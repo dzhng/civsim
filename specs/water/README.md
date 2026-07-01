@@ -16,11 +16,21 @@ Reference image (the compare-screenshots target):
 > (2026-07-01, this worktree) — all three *battle* water surfaces are now **one material** and the
 > field↔sea shoreline seam is closed by construction. Winner is **Gerstner**.
 >
-> **You are picking up at Slice 10 — campaign strategic sea** (subtle, zoom/pitch-gated `waterShade`
-> in `mapPass`; delete the dormant `CampaignWaterPass`). Read
-> [`slices/10-campaign-sea.md`](slices/10-campaign-sea.md). Then **S11** deletes the IFFT loser and
-> closes the spec. Invoke `aesthetics` (campaign is the antique chart — the deep-ocean reference is
-> explicitly **not** the campaign target) and `renderer`.
+> **The three water SURFACES are all done** (battle field water S8, battle open sea S9, campaign sea
+> S10a). What remains is **bounded dead-code cleanup + close-spec** — no new look work:
+> - **S10b — delete the dormant `CampaignWaterPass`.** It's lab-model-shot-only (never production, so
+>   nothing to "fight the mask" in practice). Delete `CampaignWaterPass` + `WATER_WGSL` +
+>   `campaignWaterFeatures` + `CampaignWaterFeature` from `campaign/atmospherePass.ts`; remove the
+>   `router.ts` import (`:22`) and its use in `routeCampaignModelShots` (`:1539/:1542/:1548/:1569`) and
+>   the two inline `water = [...]` assignments in `campaignModelShotFrame` (`:1823/:1833` — those gates
+>   lose the water backdrop); drop the structural assertion in `renderer-lab-routes.mjs:988`. Re-bless
+>   the affected `campaign-models` gate shots (`water`/`cloud-fog`).
+> - **S11 — delete the IFFT loser + close-spec.** Delete `water/ifftField/`; collapse `createWaterField`
+>   / `WaterFieldId` to Gerstner-only. This **reworks the `water-bakeoff` scene + route** (its whole
+>   point was the A/B — the `ifft`/`compare`/storage/compute assertions go; it becomes Gerstner-only)
+>   and re-blesses `water/bakeoff-compare-dusk`. Then `close-spec`: archive to `specs/done/` as durable
+>   rationale (the one `civsimWaterColor` material + agitation dial; the seam-closed-by-construction
+>   firewall; the calm-coastal vs deep-ocean-lab split).
 >
 > **S10 recon (verified 2026-07-01 — the campaign renderer was rewritten, so re-check the spec's
 > file/line refs):**
@@ -188,8 +198,10 @@ Reference image (the compare-screenshots target):
 >   shared `waterShoreRamp` + `fieldWaterColor`; **the seam-foundation slice**) → `slices/08-battle-coastal-field-water.md`
 > - [x] S9 — Battle **open-sea horizon** plane onto the S8 material (seam closed by construction; the
 >   one `civsimWaterColor` material + agitation dial) → `slices/09-battle-open-sea-horizon.md`
-> - [ ] S10 — Campaign strategic sea (subtle, zoom/pitch-gated) + delete `CampaignWaterPass` →
->   `slices/10-campaign-sea.md`
+> - [x] S10a — Campaign strategic sea: subtle zoom/pitch-gated animated shimmer in `mapPass`
+>   (`shell.setTime`; cam.time drift; `CAMPAIGN_SEA_PALETTE_WGSL`) → `slices/10-campaign-sea.md`
+> - [x] S10b — deleted the dormant `CampaignWaterPass` + `WATER_WGSL` + `campaignWaterFeatures` +
+>   the `shoreline-water` model-shot gate (all lab-only; remaining campaign-models shots byte-identical)
 > - [ ] S11 — Delete the IFFT loser + `close-spec` → `slices/11-cleanup-close.md`
 >
 > **Before you end your pass:** update this section — move the status/date, tick the TODOs you

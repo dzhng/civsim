@@ -49,7 +49,6 @@ function seaStats(png) {
     sumB = 0;
   for (let i = 0; i < png.data.length; i += 4) {
     const r = png.data[i];
-    const g = png.data[i + 1];
     const b = png.data[i + 2];
     total++;
     if (b > r + 12 && b > 70 && b < 190) {

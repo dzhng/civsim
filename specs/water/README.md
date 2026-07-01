@@ -12,15 +12,17 @@ Reference image (the compare-screenshots target):
 
 ## Next Agent Prompt
 
-> **Status:** Slices 1–5 landed. Winner: **Gerstner** (see
+> **Status:** Slices 1–6 landed. Winner: **Gerstner** (see
 > [`slices/01-bakeoff-decision.md`](slices/01-bakeoff-decision.md)). Last updated 2026-07-01.
 >
-> **You are picking up at Slice 6 (horizon haze / aerial perspective).** Read this README and
-> open [`slices/06-horizon-haze.md`](slices/06-horizon-haze.md). Grade the far sea toward the
-> preset's `hazeColor` (already on each `WaterEnvironment`) so the sea-to-sky seam is soft and
-> the horizon desaturates — drive it from the same distance the depth ramp uses in
-> `waterShade`/the plane fs. Frame the lab camera to the horizon band. The seam, clock, sun
-> uniform, geometry, foam, glint and colour are **frozen**.
+> **You are picking up at Slice 7 (animation rhythm — time-series GIF).** Read this README and
+> open [`slices/07-animation-rhythm.md`](slices/07-animation-rhythm.md). The look is complete;
+> S7 judges the *motion* over time — film the open-sea plane across a `t` sweep (use the
+> `write-vibe`/screenshot-regression GIF mechanics) and check the swell cadence reads like a
+> real sea (not too fast/slow, no popping). Free-run via `shell.setTime(wallclock)`; snap a
+> frame strip at fixed `t` values. Everything (seam, clock, sun, geometry, foam, glint, colour,
+> haze) is **frozen** — S7 only watches it move. After S7 the next pass is **S8 integration**
+> (drop the locked water pass into the real battle open-sea surface — bigger, touches production).
 >
 > **Slice 5 result:** water is now **neutral albedo × environment preset** — `waterPalette.ts`
 > (Aegean turquoise→deep-blue albedo, depth-ramped by distance) × `waterEnvironment.ts` presets
@@ -77,7 +79,7 @@ Reference image (the compare-screenshots target):
 > - [x] S3 — Whitecap foam coverage (granular height-keyed whitecaps) → `slices/03-foam-coverage.md`
 > - [x] S4 — Sun-glint streak (banded specular, sun-tracking) → `slices/04-sun-glint.md`
 > - [x] S5 — Water albedo + depth ramp × env preset (waterPalette + waterEnvironment) → `slices/05-albedo-depth-ramp.md`
-> - [ ] S6 — Horizon haze / aerial perspective → `slices/06-horizon-haze.md`
+> - [x] S6 — Horizon haze / aerial perspective (distance-keyed haze in waterShade) → `slices/06-horizon-haze.md`
 > - [ ] S7 — Animation rhythm (time-series GIF) → `slices/07-animation-rhythm.md`
 > - [ ] S8 — Integrate: battle open-sea (first production surface) → `slices/08-integrate-battle-open-sea.md`
 > - [ ] S9 — Integrate: battle coastal gameplay water → `slices/09-integrate-battle-coastal.md`

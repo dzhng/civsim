@@ -3253,20 +3253,23 @@ async function routeBattleGrassField(ctx: LabContext) {
   const texturePrimitive = isTextureGrassPrimitiveFamily(grassPrimitiveFamily);
   const textureCarrier = grassPrimitiveFamily === 'texture-carrier';
   const textureMicroCarrier = grassPrimitiveFamily === 'texture-micro-carrier';
+  const fieldFiberBodyPrimitive = grassPrimitiveFamily === 'field-fiber-body' || grassPrimitiveFamily === 'field-fiber-bundle';
   const textureVolumeProfile = texturePrimitive ? textureVolumeProfileParam(ctx.params, 'textureVolumeProfile', 'current') : 'current';
   const textureVolumeRenderModel = grassPrimitiveFamily === 'texture-volume' ? textureVolumeRenderModelParam(ctx.params, 'textureVolumeRenderModel', 'opaque-card') : 'opaque-card';
   const accentAggregation = accentMode && texturePrimitive
     ? grassAccentAggregationParam(ctx.params, 'accentAggregation', 'field-cell')
     : accentMode && fieldShellStyle
     ? 'field-near'
+    : accentMode && fieldFiberBodyPrimitive
+    ? grassAccentAggregationParam(ctx.params, 'accentAggregation', 'record')
     : accentMode && isClumpGrassAccentStyle(accentStyle)
     ? grassAccentAggregationParam(ctx.params, 'accentAggregation', 'clump')
     : 'record';
   grass.setGrassFieldSnapshot(snapshot, 'green-grass', {
     seed: 0x31b2,
     bladesPerTuft: integerParam(ctx.params, 'blades', mode === 'field-meadow' ? 0 : accentMode && fieldShellStyle ? 1 : accentMode && textureMicroCarrier ? 2 : accentMode && textureCarrier ? 4 : accentMode && texturePrimitive ? 4 : accentMode && workbenchPrimitive ? grassPrimitiveFamily === 'alpha-impostor' ? 4 : 5 : accentMode ? 3 : 9, 0, 48),
-    maxTufts: integerParam(ctx.params, 'accentTufts', accentMode && fieldShellStyle ? 1500 : accentMode && workbenchPrimitive ? snapshot.records.length : accentMode ? 900 : snapshot.records.length, 0, 12000),
-    accentMaxClumps: integerParam(ctx.params, 'accentClumps', accentMode ? textureMicroCarrier ? 1900 : textureCarrier ? 1450 : texturePrimitive ? 1100 : workbenchPrimitive ? 360 : 420 : 0, 0, 12000),
+    maxTufts: integerParam(ctx.params, 'accentTufts', accentMode && accentAggregation === 'field-subcell' ? 7200 : accentMode && fieldShellStyle ? 1500 : accentMode && workbenchPrimitive ? snapshot.records.length : accentMode ? 900 : snapshot.records.length, 0, 24000),
+    accentMaxClumps: integerParam(ctx.params, 'accentClumps', accentMode ? accentAggregation === 'field-subcell' ? 900 : textureMicroCarrier ? 1900 : textureCarrier ? 1450 : texturePrimitive ? 1100 : workbenchPrimitive ? 360 : 420 : 0, 0, 12000),
     bladeHeight: numberParam(ctx.params, 'bladeHeight', mode === 'field-meadow' ? 0.32 : accentMode && accentStyle === 'field-fiber-shell-visibility' ? 0.86 : accentMode && fieldShellStyle ? 0.62 : accentMode && textureMicroCarrier ? 0.58 : accentMode && textureCarrier ? 0.88 : accentMode && texturePrimitive ? 1.00 : accentMode && grassPrimitiveFamily === 'alpha-impostor' ? 0.74 : accentMode && grassPrimitiveFamily === 'billboard-cluster' ? 0.92 : accentMode && grassPrimitiveFamily === 'volume-card' ? 0.70 : accentMode ? 0.58 : 1.02),
     bladeWidth: numberParam(ctx.params, 'bladeWidth', mode === 'field-meadow' ? 0.024 : accentMode && accentStyle === 'field-fiber-shell-visibility' ? 0.052 : accentMode && fieldShellStyle ? 0.038 : accentMode && textureMicroCarrier ? 0.044 : accentMode && textureCarrier ? 0.110 : accentMode && texturePrimitive ? 0.070 : accentMode && grassPrimitiveFamily === 'volume-card' ? 0.086 : accentMode ? 0.066 : 0.078),
     bend: numberParam(ctx.params, 'bend', mode === 'field-meadow' ? 0.18 : accentMode && accentStyle === 'field-fiber-shell-visibility' ? 0.08 : accentMode && fieldShellStyle ? 0.14 : accentMode && textureMicroCarrier ? 0.05 : accentMode && textureCarrier ? 0.035 : accentMode && texturePrimitive ? 0.05 : accentMode && grassPrimitiveFamily === 'volume-card' ? 0.06 : accentMode ? 0.12 : 0.30),
@@ -3279,10 +3282,11 @@ async function routeBattleGrassField(ctx: LabContext) {
       accentDepthNear: numberParam(ctx.params, 'accentDepthNear', fieldShellStyle || workbenchPrimitive ? -35 : -35),
       accentDepthFar: numberParam(ctx.params, 'accentDepthFar', fieldShellStyle || workbenchPrimitive ? 72 : 56),
     } : {}),
-    surfaceBlend: numberParam(ctx.params, 'surfaceBlend', accentMode ? accentAggregation === 'field-cell' ? textureMicroCarrier ? 0.34 : textureCarrier ? 0.38 : 0.26 : accentAggregation === 'clump' ? workbenchPrimitive ? 0.38 : 0.58 : accentStyle === 'field-fiber-shell-visibility' ? 0.42 : accentAggregation === 'field-near' ? 0.70 : 0.98 : 0),
+    surfaceBlend: numberParam(ctx.params, 'surfaceBlend', accentMode ? accentAggregation === 'field-cell' ? textureMicroCarrier ? 0.34 : textureCarrier ? 0.38 : 0.26 : accentAggregation === 'field-subcell' ? 0.96 : accentAggregation === 'clump' ? workbenchPrimitive ? 0.38 : 0.58 : accentStyle === 'field-fiber-shell-visibility' ? 0.42 : accentAggregation === 'field-near' ? 0.70 : 0.98 : 0),
     accentStyle,
     accentAggregation,
-    accentClumpFootprint: numberParam(ctx.params, 'accentFootprint', accentAggregation === 'field-cell' ? textureMicroCarrier ? 1.8 : textureCarrier ? 5.2 : 3.0 : accentAggregation === 'clump' ? workbenchPrimitive ? 7.4 : 6.3 : 1),
+    accentClumpFootprint: numberParam(ctx.params, 'accentFootprint', accentAggregation === 'field-cell' ? textureMicroCarrier ? 1.8 : textureCarrier ? 5.2 : 3.0 : accentAggregation === 'field-subcell' ? 2.2 : accentAggregation === 'clump' ? workbenchPrimitive ? 7.4 : 6.3 : 1),
+    accentMicroSourcesPerCell: integerParam(ctx.params, 'accentSourcesPerCell', accentAggregation === 'field-subcell' ? 8 : 1, 1, 12),
     fiberShellVariant,
     grassPrimitiveFamily,
     grassPrimitiveBaseline: grassPrimitiveFamily === 'field-fiber-shell' ? 'none' : 'field-fiber-shell-normal',
@@ -3323,6 +3327,9 @@ async function routeBattleGrassField(ctx: LabContext) {
     accentRibbons: grassStats.accentRibbons,
     accentClumps: grassStats.accentClumps,
     accentSourceRecords: grassStats.accentSourceRecords,
+    sourceTopology: grassStats.grassPrimitiveSourceTopology,
+    sourceCells: grassStats.grassPrimitiveSourceCells,
+    sourcesPerCell: grassStats.grassPrimitiveSourcesPerCell,
     fiberShell: grassStats.fiberShellRecords > 0 ? `${grassStats.fiberShellRecords}/${grassStats.fiberShellSourceRecords}` : 'off',
     fiberShellRibbons: grassStats.fiberShellRibbons,
     labProfile: closeLabCameraProfile ?? 'off',
@@ -3379,9 +3386,11 @@ async function routeBattleGrassField(ctx: LabContext) {
     && grassStats.fieldRecords > 100
     && grassStats.accentStyle !== 'tuft'
     && grassStats.tuftInstances > 20
-    && grassStats.tuftInstances <= grassStats.fieldRecords
+    && (grassStats.accentAggregation === 'field-subcell'
+      ? grassStats.tuftInstances > grassStats.fieldRecords
+      : grassStats.tuftInstances <= grassStats.fieldRecords)
     && grassStats.submittedTriangles > 0
-    && grassStats.submittedTriangles < 83200
+    && grassStats.submittedTriangles < (grassStats.accentAggregation === 'field-subcell' ? 1500000 : 83200)
     && grassStats.drawCalls === 1
     && groundStats.meadow.source === 'field'
     && groundStats.meadow.fieldCoverage > 0.50
@@ -4206,7 +4215,7 @@ function grassAccentStyleParam(params: URLSearchParams, key: string, fallback: G
 
 function grassAccentAggregationParam(params: URLSearchParams, key: string, fallback: GrassAccentAggregation): GrassAccentAggregation {
   const raw = params.get(key);
-  return raw === 'clump' || raw === 'record' || raw === 'field-cell' || raw === 'field-near' ? raw : fallback;
+  return raw === 'clump' || raw === 'record' || raw === 'field-cell' || raw === 'field-near' || raw === 'field-subcell' ? raw : fallback;
 }
 
 function fiberShellVariantParam(params: URLSearchParams, key: string, fallback: GrassFiberShellVariant): GrassFiberShellVariant {

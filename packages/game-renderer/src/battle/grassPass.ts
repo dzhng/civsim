@@ -32,7 +32,7 @@ export interface BattleGrassFocus {
   farWeight?: number;
 }
 
-export type GrassAccentAggregation = 'record' | 'clump' | 'field-cell' | 'field-near';
+export type GrassAccentAggregation = 'record' | 'clump' | 'field-cell' | 'field-near' | 'field-subcell';
 export type GrassFiberShellVariant = 'off' | 'normal' | 'visibility' | 'width' | 'lift' | 'view-thickness';
 export type TextureVolumeProfile = 'current' | 'seated-soft' | 'overlap-stagger' | 'broken-lattice';
 export type TextureVolumeRenderModel = 'opaque-card' | 'alpha-cutout' | 'hard-cutout' | 'dither-cutout' | 'sparse-dither';
@@ -73,6 +73,7 @@ export interface BattleGrassParams {
   accentStyle?: GrassAccentStyle;
   accentAggregation?: GrassAccentAggregation;
   accentClumpFootprint?: number;
+  accentMicroSourcesPerCell?: number;
   fiberShellVariant?: GrassFiberShellVariant;
   grassPrimitiveFamily?: GrassPrimitiveFamily;
   grassPrimitiveBaseline?: string;
@@ -129,6 +130,10 @@ export interface BattleGrassStats {
   fiberShellVariant: GrassFiberShellVariant;
   grassPrimitiveFamily: GrassPrimitiveFamily;
   grassPrimitiveSourceRecords: number;
+  grassPrimitiveSourceTopology: GrassAccentAggregation;
+  grassPrimitiveSourceCells: number;
+  grassPrimitiveSourcesPerCell: number;
+  grassPrimitiveSourceFixedLab: boolean;
   grassPrimitiveRecords: number;
   grassPrimitiveClumps: number;
   grassPrimitiveDepthNear: number;
@@ -454,6 +459,10 @@ export class BattleGrassPass {
   private fiberShellVariant: GrassFiberShellVariant = 'off';
   private grassPrimitiveFamily: GrassPrimitiveFamily = 'legacy-tuft';
   private grassPrimitiveBaseline = 'none';
+  private grassPrimitiveSourceTopology: GrassAccentAggregation = 'record';
+  private grassPrimitiveSourceCells = 0;
+  private grassPrimitiveSourcesPerCell = 1;
+  private grassPrimitiveSourceFixedLab = false;
   private grassPrimitiveTextureWidth = 0;
   private grassPrimitiveTextureHeight = 0;
   private grassPrimitiveTextureTiles = 0;
@@ -628,6 +637,10 @@ export class BattleGrassPass {
     this.fiberShellVariant = 'off';
     this.grassPrimitiveFamily = 'legacy-tuft';
     this.grassPrimitiveBaseline = 'none';
+    this.grassPrimitiveSourceTopology = 'record';
+    this.grassPrimitiveSourceCells = 0;
+    this.grassPrimitiveSourcesPerCell = 1;
+    this.grassPrimitiveSourceFixedLab = false;
     this.clearGrassPrimitiveTextureStats();
     this.textureVolumeProfile = 'current';
     this.textureVolumeRenderModel = 'opaque-card';
@@ -698,6 +711,10 @@ export class BattleGrassPass {
     this.fiberShellVariant = 'off';
     this.grassPrimitiveFamily = 'legacy-tuft';
     this.grassPrimitiveBaseline = 'none';
+    this.grassPrimitiveSourceTopology = 'record';
+    this.grassPrimitiveSourceCells = 0;
+    this.grassPrimitiveSourcesPerCell = 1;
+    this.grassPrimitiveSourceFixedLab = false;
     this.clearGrassPrimitiveTextureStats();
     this.textureVolumeProfile = 'current';
     this.textureVolumeRenderModel = 'opaque-card';
@@ -799,6 +816,8 @@ export class BattleGrassPass {
       ? 'field-cell'
       : params.accentAggregation === 'clump'
       ? 'clump'
+      : params.accentAggregation === 'field-subcell'
+      ? 'field-subcell'
       : params.accentAggregation === 'field-near'
         ? 'field-near'
         : 'record';
@@ -806,13 +825,19 @@ export class BattleGrassPass {
       && isClumpAccentStyle(this.accentStyle)
       && requestedAggregation === 'clump';
     const textureFamily = isTextureGrassPrimitiveFamily(this.grassPrimitiveFamily);
+    const bodyFiberFamily = isFieldFiberBodyPrimitiveFamily(this.grassPrimitiveFamily);
     const canAggregateFieldCells = this.bladesPerTuft > 0
       && textureFamily
       && requestedAggregation === 'field-cell';
+    const canAggregateFieldSubcells = this.bladesPerTuft > 0
+      && bodyFiberFamily
+      && requestedAggregation === 'field-subcell';
     this.accentAggregation = fieldFiberShell && this.bladesPerTuft > 0
       ? 'field-near'
       : canAggregateFieldCells
         ? 'field-cell'
+        : canAggregateFieldSubcells
+          ? 'field-subcell'
         : canAggregateClumps
           ? 'clump'
           : 'record';
@@ -823,9 +848,17 @@ export class BattleGrassPass {
     this.fiberShellDepthNear = 0;
     this.fiberShellDepthFar = 0;
     this.fiberShellSelectedRatio = 0;
-    const explicitBudget = Number.isFinite(params.maxTufts)
-      ? clampInt(params.maxTufts!, 0, snapshot.records.length)
+    this.grassPrimitiveSourceTopology = this.accentAggregation;
+    this.grassPrimitiveSourceCells = 0;
+    this.grassPrimitiveSourcesPerCell = 1;
+    this.grassPrimitiveSourceFixedLab = false;
+    const requestedBudget = Number.isFinite(params.maxTufts)
+      ? clampInt(params.maxTufts!, 0, 96000)
       : snapshot.records.length;
+    const explicitBudget = this.accentAggregation === 'field-subcell'
+      ? requestedBudget
+      : Math.min(requestedBudget, snapshot.records.length);
+    if (this.accentAggregation === 'field-subcell') this.maxTufts = requestedBudget;
     let selectedRecords: GrassFieldRecord[];
     if (this.bladesPerTuft <= 0) {
       selectedRecords = snapshot.records;
@@ -850,6 +883,37 @@ export class BattleGrassPass {
       this.fiberShellDepthNear = this.accentDepthNear;
       this.fiberShellDepthFar = this.accentDepthFar;
       this.fiberShellSelectedRatio = sourceRecords.length > 0 ? selectedRecords.length / sourceRecords.length : 0;
+    } else if (canAggregateFieldSubcells) {
+      const sourceRecords = accentRecordCandidates(snapshot.records, merged.focus, params);
+      const maxCells = Number.isFinite(params.accentMaxClumps)
+        ? clampInt(params.accentMaxClumps!, 0, sourceRecords.length)
+        : Math.min(sourceRecords.length, Math.max(1, Math.ceil(explicitBudget / 8)));
+      const microSourcesPerCell = clampInt(params.accentMicroSourcesPerCell ?? 7, 1, 12);
+      const recordBudget = Math.min(explicitBudget, maxCells * microSourcesPerCell);
+      const aggregated = aggregateFieldCellAccentRecords(sourceRecords, merged.focus, params, maxCells, {
+        baseHeight: this.baseHeight,
+        baseWidth: this.baseWidth,
+        baseBend: merged.bend,
+        footprint: this.accentClumpFootprint,
+        footprintScale: this.grassPrimitiveFamily === 'field-fiber-bundle' ? 0.82 : 0.70,
+        vertical: true,
+        jitter: this.accentClumpFootprint * (this.grassPrimitiveFamily === 'field-fiber-bundle' ? 0.42 : 0.58),
+        jitterMin: 0.18,
+        yawJitter: this.grassPrimitiveFamily === 'field-fiber-bundle' ? 1.20 : 1.80,
+        widthScale: this.grassPrimitiveFamily === 'field-fiber-bundle' ? 0.72 : 0.62,
+        heightScale: this.grassPrimitiveFamily === 'field-fiber-bundle' ? 0.78 : 0.72,
+        copyOffsetScale: this.grassPrimitiveFamily === 'field-fiber-bundle' ? 1.10 : 1.38,
+        maxCopies: microSourcesPerCell,
+        recordBudget,
+        fixedCopies: true,
+      });
+      selectedRecords = aggregated.records;
+      this.accentTufts = selectedRecords.length;
+      this.accentSourceRecords = sourceRecords.length;
+      this.accentClumps = aggregated.clumps;
+      this.grassPrimitiveSourceCells = aggregated.clumps;
+      this.grassPrimitiveSourcesPerCell = microSourcesPerCell;
+      this.grassPrimitiveSourceFixedLab = true;
     } else if (canAggregateFieldCells) {
       const sourceRecords = accentRecordCandidates(snapshot.records, merged.focus, params);
       const maxCells = Number.isFinite(params.accentMaxClumps)
@@ -1010,6 +1074,10 @@ export class BattleGrassPass {
       fiberShellVariant: this.fiberShellVariant,
       grassPrimitiveFamily: this.grassPrimitiveFamily,
       grassPrimitiveSourceRecords: this.accentSourceRecords,
+      grassPrimitiveSourceTopology: this.grassPrimitiveSourceTopology,
+      grassPrimitiveSourceCells: this.grassPrimitiveSourceCells,
+      grassPrimitiveSourcesPerCell: this.grassPrimitiveSourcesPerCell,
+      grassPrimitiveSourceFixedLab: this.grassPrimitiveSourceFixedLab,
       grassPrimitiveRecords: this.accentTufts,
       grassPrimitiveClumps: this.accentClumps,
       grassPrimitiveDepthNear: this.accentTufts > 0 ? this.accentDepthNear : 0,
@@ -1702,6 +1770,7 @@ interface ClumpAccentOptions {
   recordBudget?: number;
   carrier?: boolean;
   microCarrier?: boolean;
+  fixedCopies?: boolean;
 }
 
 interface ClumpAccumulator {
@@ -1975,13 +2044,15 @@ function aggregateFieldCellAccentRecords(
     .sort((a, b) => (b.score - a.score) || (a.acc.seed - b.acc.seed) || a.acc.key.localeCompare(b.acc.key));
 
   const chosen = selectDistributedFieldCells(scored, maxCells, focus);
-  const maxCopies = Math.max(1, Math.min(6, clampInt(options.maxCopies ?? 1, 1, 6)));
+  const maxCopies = Math.max(1, Math.min(12, clampInt(options.maxCopies ?? 1, 1, 12)));
   const recordBudget = Math.max(0, clampInt(options.recordBudget ?? chosen.length * maxCopies, 0, chosen.length * maxCopies));
   const out: GrassFieldRecord[] = [];
   for (const { acc } of chosen) {
     if (out.length >= recordBudget) break;
     const avgDepthFade = acc.depthFadeSum / Math.max(1, acc.count);
-    const copies = options.microCarrier
+    const copies = options.fixedCopies
+      ? maxCopies
+      : options.microCarrier
       ? Math.min(maxCopies,
         1
         + (acc.count >= 2 ? 1 : 0)
@@ -2235,6 +2306,10 @@ function grassPrimitiveFamilyForStyle(style: GrassAccentStyle): GrassPrimitiveFa
 
 function isTextureGrassPrimitiveFamily(family: GrassPrimitiveFamily): boolean {
   return family === 'texture-volume' || family === 'texture-carrier' || family === 'texture-micro-carrier';
+}
+
+function isFieldFiberBodyPrimitiveFamily(family: GrassPrimitiveFamily): boolean {
+  return family === 'field-fiber-body' || family === 'field-fiber-bundle';
 }
 
 function accentDepthBounds(focus: BattleGrassFocus | undefined, params: BattleGrassParams): { depthNear: number; depthFar: number } {

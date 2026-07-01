@@ -4226,7 +4226,7 @@ function routeCamera3dProbe(ctx: LabContext) {
   const g = canvas.getContext('2d')!;
 
   const cam: Camera3DParams = {
-    target: [0, 0, 0],
+    target: [numberParam(ctx.params, 'targetX', 0), numberParam(ctx.params, 'targetY', 0), numberParam(ctx.params, 'targetZ', 0)],
     distance: numberParam(ctx.params, 'distance', 260),
     pitch: numberParam(ctx.params, 'pitch', 0.5),
     yaw: numberParam(ctx.params, 'yaw', 0),

@@ -219,7 +219,7 @@ export function prettyClass(name: string): string {
   return name.replace(/([a-z])([A-Z])/g, '$1 $2');
 }
 
-function classSort(name: string): number {
+export function classSort(name: string): number {
   const order: Record<string, number> = {
     Peasant: 0,
     LightSword: 10,

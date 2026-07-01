@@ -230,14 +230,14 @@ they become dense grass.
   (`0.02108` foreground, `0.05422` midground). Density/count alone is not the
   missing variable.
 - 03B4C5B4 has since been resliced into a close-lab ladder. B4B1A1U,
-  B4B1A1V, B4B1A1W, and B4B1A1X are rejected: source density, source-attached
-  strand mats, material-only field domains, and large field-owned shell geometry
-  still create markers, fan/card patches, flat paint, or oversized stamp swipes
-  rather than continuous body. The current pickup is B4B1A1Y.
+  B4B1A1V, B4B1A1W, B4B1A1X, and B4B1A1Y are rejected: source density,
+  source-attached strand mats, material-only field domains, large field-owned
+  shell geometry, and target-scale micro-strand geometry still create markers,
+  fan/card patches, flat paint, oversized stamp swipes, or isolated fleck
+  clusters rather than continuous body. The current pickup is B4B1A1Z.
   Freeze atlas, palette, meadow/root, camera, terrain, fog, water, sky, and crop
-  windows; keep body ownership field-owned while testing pixel-scale
-  micro-strand silhouette before any perf, coverage, LOD, or camera-relative
-  pass.
+  windows; keep body ownership field-owned while testing continuous strand/nap
+  texture before any perf, coverage, LOD, or camera-relative pass.
 
 Current approach queue:
 
@@ -249,10 +249,10 @@ Current approach queue:
 3. **03B4C5B3 micro-blade density carrier spike.** Verified/rejected. Keep it as
    evidence that more/smaller carriers are mostly invisible or pixel grit at the
    reference camera.
-4. **03B4C5B4 minimum visible grass-body carrier.** Current pickup. Keep B3
-   density, selection, atlas, palette, meadow/root material, camera, terrain,
-   fog, water, sky, lighting, and crop windows fixed. Change only the visible
-   body/occupancy envelope of the existing micro primitives.
+4. **03B4C5B4B1A1Z field-owned continuous strand texture.** Current pickup.
+   Keep atlas, palette, meadow/root material, camera, terrain, fog, water, sky,
+   lighting, and crop windows fixed. Keep ownership field-domain-based and test
+   only continuous strand/nap texture across domain cells.
 5. **03B4C5C atlas tile content and color integration.** Reopen atlas content,
    alpha, and tip/base colour only after B4 proves the carrier can form visible
    foreground grass body.
@@ -295,8 +295,9 @@ Follow the resliced files:
 - `03b4c5b3-micro-blade-density-carrier-spike.md` — verified/rejected; many
   smaller field-owned texture primitives are mostly invisible or pixel grit at
   the reference camera.
-- `03b4c5b4-minimum-visible-grass-body-carrier.md` — current pickup; keep B3
-  density/content fixed and test only visible grass-body envelope.
+- `03b4c5b4b1a1z-field-owned-continuous-strand-texture.md` — current pickup;
+  keep field ownership and test continuous strand/nap texture across domain
+  cells before perf/coverage.
 - `03b4c5c-atlas-tile-content-and-color-integration.md` — future isolated atlas
   and colour pass, only after B4 proves foreground body visibility.
 - `03b4c5d-midground-continuity-and-depth-falloff.md` — future isolated

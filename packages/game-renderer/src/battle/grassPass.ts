@@ -9,6 +9,8 @@ import {
   DEFAULT_GRASS_TUFT_BLADES,
   SLICE00_GRASS_ALBEDO,
   buildGrassTuftMesh,
+  fieldDomainSilhouetteScale,
+  fieldDomainSilhouetteStrandsPerCell,
   grassTuftStats,
   type GrassAccentStyle,
   type GrassTuftOptions,
@@ -47,6 +49,7 @@ export type GrassPrimitiveFamily =
   | 'field-strand-mat'
   | 'field-woven-mat'
   | 'field-domain-shell'
+  | 'field-domain-micro-strand'
   | 'alpha-impostor'
   | 'billboard-cluster'
   | 'volume-card'
@@ -159,6 +162,12 @@ export interface BattleGrassStats {
   grassPrimitiveDomainCoverageAvg: number;
   grassPrimitiveDomainExposedGround: number;
   grassPrimitiveDomainSourceAttached: boolean;
+  grassPrimitiveDomainStrandsPerCell: number;
+  grassPrimitiveDomainMicroStrands: number;
+  grassPrimitiveDomainStrandWidthMin: number;
+  grassPrimitiveDomainStrandWidthMax: number;
+  grassPrimitiveDomainStrandHeightMin: number;
+  grassPrimitiveDomainStrandHeightMax: number;
   grassPrimitiveDomainSubmittedTriangles: number;
   grassPrimitiveDomainGeometryBytes: number;
   grassPrimitiveDomainMaterialBytes: number;
@@ -498,6 +507,12 @@ export class BattleGrassPass {
   private grassPrimitiveDomainCoverageAvg = 0;
   private grassPrimitiveDomainExposedGround = 1;
   private grassPrimitiveDomainSourceAttached = true;
+  private grassPrimitiveDomainStrandsPerCell = 0;
+  private grassPrimitiveDomainMicroStrands = 0;
+  private grassPrimitiveDomainStrandWidthMin = 0;
+  private grassPrimitiveDomainStrandWidthMax = 0;
+  private grassPrimitiveDomainStrandHeightMin = 0;
+  private grassPrimitiveDomainStrandHeightMax = 0;
   private grassPrimitiveDomainGeometryBytes = 0;
   private grassPrimitiveDomainMaterialBytes = 0;
   private textureVolumeProfile: TextureVolumeProfile = 'current';
@@ -944,7 +959,9 @@ export class BattleGrassPass {
       this.grassPrimitiveSourceCells = 0;
       this.grassPrimitiveSourcesPerCell = 0;
       this.grassPrimitiveSourceFixedLab = true;
-      this.grassPrimitiveDomainId = 'field-domain-shell';
+      const domainScale = fieldDomainSilhouetteScale(this.accentStyle, this.baseWidth, this.baseHeight);
+      const strandsPerCell = fieldDomainSilhouetteStrandsPerCell(this.accentStyle, this.bladesPerTuft);
+      this.grassPrimitiveDomainId = this.grassPrimitiveFamily;
       this.grassPrimitiveDomainGridColumns = domain.gridColumns;
       this.grassPrimitiveDomainGridRows = domain.gridRows;
       this.grassPrimitiveDomainCells = domain.cells;
@@ -955,6 +972,12 @@ export class BattleGrassPass {
       this.grassPrimitiveDomainCoverageAvg = domain.coverageAvg;
       this.grassPrimitiveDomainExposedGround = domain.exposedGround;
       this.grassPrimitiveDomainSourceAttached = false;
+      this.grassPrimitiveDomainStrandsPerCell = strandsPerCell;
+      this.grassPrimitiveDomainMicroStrands = domain.cells * strandsPerCell;
+      this.grassPrimitiveDomainStrandWidthMin = round3(domainScale.widthMin);
+      this.grassPrimitiveDomainStrandWidthMax = round3(domainScale.widthMax);
+      this.grassPrimitiveDomainStrandHeightMin = round3(domainScale.heightMin);
+      this.grassPrimitiveDomainStrandHeightMax = round3(domainScale.heightMax);
       this.grassPrimitiveDomainMaterialBytes = 0;
     } else if (canAggregateFieldSubcells) {
       const sourceRecords = accentRecordCandidates(snapshot.records, merged.focus, params);
@@ -1214,6 +1237,12 @@ export class BattleGrassPass {
       grassPrimitiveDomainCoverageAvg: this.grassPrimitiveDomainCoverageAvg,
       grassPrimitiveDomainExposedGround: this.grassPrimitiveDomainExposedGround,
       grassPrimitiveDomainSourceAttached: this.grassPrimitiveDomainSourceAttached,
+      grassPrimitiveDomainStrandsPerCell: this.grassPrimitiveDomainStrandsPerCell,
+      grassPrimitiveDomainMicroStrands: this.grassPrimitiveDomainMicroStrands,
+      grassPrimitiveDomainStrandWidthMin: this.grassPrimitiveDomainStrandWidthMin,
+      grassPrimitiveDomainStrandWidthMax: this.grassPrimitiveDomainStrandWidthMax,
+      grassPrimitiveDomainStrandHeightMin: this.grassPrimitiveDomainStrandHeightMin,
+      grassPrimitiveDomainStrandHeightMax: this.grassPrimitiveDomainStrandHeightMax,
       grassPrimitiveDomainSubmittedTriangles: this.grassPrimitiveDomainCells > 0 ? this.meshTriangles * this.tuftCount : 0,
       grassPrimitiveDomainGeometryBytes: this.grassPrimitiveDomainGeometryBytes,
       grassPrimitiveDomainMaterialBytes: this.grassPrimitiveDomainMaterialBytes,
@@ -1298,6 +1327,12 @@ export class BattleGrassPass {
     this.grassPrimitiveDomainCoverageAvg = 0;
     this.grassPrimitiveDomainExposedGround = 1;
     this.grassPrimitiveDomainSourceAttached = true;
+    this.grassPrimitiveDomainStrandsPerCell = 0;
+    this.grassPrimitiveDomainMicroStrands = 0;
+    this.grassPrimitiveDomainStrandWidthMin = 0;
+    this.grassPrimitiveDomainStrandWidthMax = 0;
+    this.grassPrimitiveDomainStrandHeightMin = 0;
+    this.grassPrimitiveDomainStrandHeightMax = 0;
     this.grassPrimitiveDomainGeometryBytes = 0;
     this.grassPrimitiveDomainMaterialBytes = 0;
   }
@@ -2597,6 +2632,7 @@ function grassPrimitiveFamilyForStyle(style: GrassAccentStyle): GrassPrimitiveFa
   if (style === 'field-strand-mat') return 'field-strand-mat';
   if (style === 'field-woven-mat') return 'field-woven-mat';
   if (style === 'field-domain-shell') return 'field-domain-shell';
+  if (style === 'field-domain-micro-strand') return 'field-domain-micro-strand';
   if (style === 'alpha-impostor') return 'alpha-impostor';
   if (style === 'billboard-cluster') return 'billboard-cluster';
   if (style === 'volume-card') return 'volume-card';
@@ -2623,13 +2659,14 @@ function isContinuousStrandBodyPrimitiveFamily(family: GrassPrimitiveFamily): bo
 }
 
 function isFieldDomainSilhouettePrimitiveFamily(family: GrassPrimitiveFamily): boolean {
-  return family === 'field-domain-shell';
+  return family === 'field-domain-shell' || family === 'field-domain-micro-strand';
 }
 
 function grassPrimitiveRepresentation(family: GrassPrimitiveFamily): string {
   if (family === 'field-strand-mat') return 'continuous-strand-mat';
   if (family === 'field-woven-mat') return 'interwoven-strand-mat';
   if (family === 'field-domain-shell') return 'field-owned-body-silhouette';
+  if (family === 'field-domain-micro-strand') return 'field-owned-micro-strand-silhouette';
   return family;
 }
 

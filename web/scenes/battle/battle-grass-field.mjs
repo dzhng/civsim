@@ -43,6 +43,9 @@ export const meta = {
     "grass/foreground-close-lab-field-owned-body-silhouette-candidates",
     "grass/foreground-close-lab-field-owned-body-silhouette-crops",
     "grass/foreground-close-lab-field-owned-body-silhouette-selected",
+    "grass/foreground-close-lab-field-owned-micro-strand-candidates",
+    "grass/foreground-close-lab-field-owned-micro-strand-crops",
+    "grass/foreground-close-lab-field-owned-micro-strand-selected",
   ],
   describe:
     "Grass-field route proving packed terrain-normal attributes, field-driven meadow material, and bounded blade accents.",
@@ -295,6 +298,39 @@ const FIELD_OWNED_BODY_SILHOUETTE_CANDIDATES = [
       "grassPrimitiveFamily=field-domain-shell&accentTufts=1550&accentFootprint=2.7&blades=8&bladeHeight=0.54&bladeWidth=0.054&bend=0.07&spread=0.30&surfaceBlend=0.58",
   },
 ];
+const FIELD_OWNED_MICRO_STRAND_CANDIDATES = [
+  {
+    id: "b4b1a1w-field-material",
+    label: "B4B1A1W MATERIAL",
+    color: [88, 88, 88, 255],
+    query:
+      "grassPrimitiveFamily=field-fiber-shell&fiberShellVariant=off&accentTufts=0&blades=0&bodyDomainStrength=1.10&bodyDomainScale=0.86&bodyDomainContrast=0.72",
+    context: true,
+  },
+  {
+    id: "b4b1a1x-domain-shell",
+    label: "B4B1A1X SHELL",
+    color: [128, 88, 44, 255],
+    query:
+      "grassPrimitiveFamily=field-domain-shell&accentTufts=1850&accentFootprint=3.2&blades=10&bladeHeight=0.64&bladeWidth=0.060&bend=0.09&spread=0.34&surfaceBlend=0.54",
+    rejectedContext: true,
+  },
+  {
+    id: "micro-strand-field",
+    label: "MICRO STRAND",
+    color: [50, 132, 78, 255],
+    query:
+      "grassPrimitiveFamily=field-domain-micro-strand&accentTufts=1450&accentFootprint=2.4&blades=22&bladeHeight=0.46&bladeWidth=0.034&bend=0.07&spread=0.24&surfaceBlend=0.50",
+    selected: true,
+  },
+  {
+    id: "micro-strand-tall",
+    label: "TALL MICRO",
+    color: [54, 116, 142, 255],
+    query:
+      "grassPrimitiveFamily=field-domain-micro-strand&accentTufts=1300&accentFootprint=2.6&blades=26&bladeHeight=0.56&bladeWidth=0.036&bend=0.08&spread=0.28&surfaceBlend=0.48",
+  },
+];
 const SCALE_REPAIR_CANDIDATES = [
   { profile: "b4b1-current", color: [88, 88, 88, 255] },
   { profile: "scale-repair-low", color: [60, 116, 62, 255], selected: true },
@@ -334,6 +370,7 @@ export async function run(ctx) {
   await verifyForegroundCloseContinuousStrandBody(ctx);
   await verifyForegroundCloseFieldOwnedBodyDomain(ctx);
   await verifyForegroundCloseFieldOwnedBodySilhouette(ctx);
+  await verifyForegroundCloseFieldOwnedMicroStrand(ctx);
 }
 
 async function verifyPackedTilt(ctx) {
@@ -1709,6 +1746,135 @@ async function verifyForegroundCloseFieldOwnedBodySilhouette(ctx) {
   });
 }
 
+async function verifyForegroundCloseFieldOwnedMicroStrand(ctx) {
+  const captures = [];
+  for (const candidate of FIELD_OWNED_MICRO_STRAND_CANDIDATES) {
+    const page = await ctx.newPage({
+      viewport: { width: 900, height: 700 },
+      errorPrefix: `battle-grass-field-field-owned-micro-strand-${candidate.id}`,
+    });
+    await page.goto(
+      `${ctx.target}/renderer/battle-grass-field?mode=foreground-close-lab&labCameraProfile=b4b1a0-test-env&${candidate.query}`,
+    );
+    await page.waitForFunction(
+      () =>
+        window.__rendererLabReady === true &&
+        window.__rendererLabStats?.stats?.mode === "foreground-close-lab",
+      { timeout: 18000 },
+    );
+    await page.waitForTimeout(160);
+    const stats = await page.evaluate(() => window.__rendererLabStats?.stats ?? null);
+    if (stats?.route !== "battle-grass-field" || stats?.mode !== "foreground-close-lab") {
+      await page.close();
+      throw new Error(
+        `foreground close field-owned micro-strand did not publish valid stats for ${candidate.id}: ${JSON.stringify(stats)}`,
+      );
+    }
+    const shot = await page.locator("#renderer-canvas").screenshot();
+    captures.push({ ...candidate, stats, png: PNG.sync.read(shot) });
+    await page.close();
+  }
+
+  const context = captures.find((capture) => capture.context);
+  const rejectedShell = captures.find((capture) => capture.rejectedContext);
+  const selected =
+    captures.find((capture) => capture.selected) ??
+    captures.find((capture) => !capture.context && !capture.rejectedContext) ??
+    captures[0];
+  const bodyCaptures = captures.filter((capture) => !capture.context && !capture.rejectedContext);
+  const windows = context.stats.lab?.reviewWindows;
+  const targetCloseHero = PNG.sync.read(await readFile(TARGET_CLOSE_HERO));
+  const baseCameraKey = JSON.stringify(context.stats.camera);
+  const baseFocusKey = JSON.stringify(context.stats.focus);
+  const baseFrozenKey = JSON.stringify(context.stats.lab?.frozenInputs);
+  const baseField = context.stats.field;
+  const microStats = captures.map((capture) => ({
+    id: capture.id,
+    grass: capture.stats.grass,
+    meadow: capture.stats.ground?.meadow,
+    lab: capture.stats.lab,
+  }));
+
+  ctx.check(
+    "foreground close field-owned micro-strand freezes the accepted B4B1A0 lab",
+    captures.every(
+      (capture) =>
+        capture.stats.lab?.contract === "03B4C5B4B1A0" &&
+        capture.stats.lab?.cameraProfile === "b4b1a0-test-env" &&
+        capture.stats.lab?.cropPurpose === "test-environment-comparability-not-body-acceptance" &&
+        JSON.stringify(capture.stats.camera) === baseCameraKey &&
+        JSON.stringify(capture.stats.focus) === baseFocusKey &&
+        JSON.stringify(capture.stats.lab?.frozenInputs) === baseFrozenKey &&
+        capture.stats.field?.seed === baseField?.seed &&
+        capture.stats.field?.acceptedRecords === baseField?.acceptedRecords &&
+        capture.stats.field?.candidateCells === baseField?.candidateCells &&
+        capture.stats.ground?.meadow?.source === "field" &&
+        capture.stats.ground?.meadow?.rootMassEnabled === true,
+    ),
+    JSON.stringify(microStats),
+  );
+  ctx.check(
+    "foreground close field-owned micro-strand keeps rejected material and shell contexts",
+    context?.stats.ground?.meadow?.bodyDomainEnabled === true &&
+      context?.stats.ground?.meadow?.bodyDomainMaterialOnly === true &&
+      context?.stats.grass?.submittedTriangles === 0 &&
+      rejectedShell?.stats.grass?.grassPrimitiveFamily === "field-domain-shell" &&
+      rejectedShell?.stats.grass?.grassPrimitiveDomainId === "field-domain-shell" &&
+      rejectedShell?.stats.grass?.grassPrimitiveDomainSourceAttached === false,
+    JSON.stringify(microStats),
+  );
+  ctx.check(
+    "foreground close field-owned micro-strand publishes micro-strand telemetry",
+    bodyCaptures.length ===
+      FIELD_OWNED_MICRO_STRAND_CANDIDATES.filter(
+        (candidate) => !candidate.context && !candidate.rejectedContext,
+      ).length &&
+      bodyCaptures.every((capture) => {
+        const grass = capture.stats.grass;
+        return (
+          grass?.grassPrimitiveFamily === "field-domain-micro-strand" &&
+          grass?.grassPrimitiveRepresentation === "field-owned-micro-strand-silhouette" &&
+          grass?.grassPrimitiveDomainId === "field-domain-micro-strand" &&
+          grass?.grassPrimitiveDomainSourceAttached === false &&
+          grass?.grassPrimitiveDomainGridColumns > 4 &&
+          grass?.grassPrimitiveDomainGridRows > 4 &&
+          grass?.grassPrimitiveDomainCells === grass?.tuftInstances &&
+          grass?.grassPrimitiveDomainTiles >= grass?.grassPrimitiveDomainCells &&
+          grass?.grassPrimitiveDomainCoverageAvg > 0.45 &&
+          grass?.grassPrimitiveDomainCoverageMedian > 0.45 &&
+          grass?.grassPrimitiveDomainExposedGround < 0.4 &&
+          grass?.grassPrimitiveDomainStrandsPerCell >= 30 &&
+          grass?.grassPrimitiveDomainMicroStrands ===
+            grass?.grassPrimitiveDomainCells * grass?.grassPrimitiveDomainStrandsPerCell &&
+          grass?.grassPrimitiveDomainStrandWidthMin > 0 &&
+          grass?.grassPrimitiveDomainStrandWidthMax <= 0.018 &&
+          grass?.grassPrimitiveDomainStrandHeightMin > 0 &&
+          grass?.grassPrimitiveDomainStrandHeightMax <= 0.26 &&
+          grass?.grassPrimitiveDomainSubmittedTriangles === grass?.submittedTriangles &&
+          grass?.grassPrimitiveDomainGeometryBytes > 0 &&
+          grass?.grassPrimitiveDomainMaterialBytes === 0 &&
+          grass?.grassPrimitiveTextureBytes === 0 &&
+          grass?.submittedTriangles > 0 &&
+          grass?.submittedTriangles < 420000 &&
+          grass?.drawCalls === 1
+        );
+      }),
+    JSON.stringify(microStats),
+  );
+
+  await ctx.snap(null, "grass/foreground-close-lab-field-owned-micro-strand-candidates", {
+    shot: PNG.sync.write(composeFieldOwnedBodySilhouetteCandidateSheet(targetCloseHero, captures)),
+  });
+  await ctx.snap(null, "grass/foreground-close-lab-field-owned-micro-strand-crops", {
+    shot: PNG.sync.write(
+      composeFieldOwnedBodySilhouetteCropSheet(targetCloseHero, captures, windows),
+    ),
+  });
+  await ctx.snap(null, "grass/foreground-close-lab-field-owned-micro-strand-selected", {
+    shot: PNG.sync.write(drawBodyArchitectureFull(selected.png, windows)),
+  });
+}
+
 function hasPackedTelemetry(stats) {
   const grass = stats?.grass;
   return (
@@ -2436,13 +2602,16 @@ function fieldOwnedBodyDomainShortLabel(capture) {
 
 function fieldOwnedBodySilhouetteLabel(capture) {
   const grass = capture.stats.grass;
-  if (grass?.grassPrimitiveDomainId !== "field-domain-shell") return `${capture.label} CTX`;
+  if (!grass?.grassPrimitiveDomainId?.startsWith("field-domain")) return `${capture.label} CTX`;
+  if (grass.grassPrimitiveDomainId === "field-domain-micro-strand") {
+    return `${capture.label} ${grass.grassPrimitiveDomainCells}C ${grass.grassPrimitiveDomainStrandsPerCell}S ${grass.grassPrimitiveDomainMicroStrands}M`;
+  }
   return `${capture.label} ${grass.grassPrimitiveDomainCells}C ${grass.grassPrimitiveDomainOverlap.toFixed(2)}O ${grass.grassPrimitiveDomainExposedGround.toFixed(2)}E`;
 }
 
 function fieldOwnedBodySilhouetteShortLabel(capture) {
   const grass = capture.stats.grass;
-  if (grass?.grassPrimitiveDomainId !== "field-domain-shell") return capture.label;
+  if (!grass?.grassPrimitiveDomainId?.startsWith("field-domain")) return capture.label;
   return `${capture.label} ${grass.grassPrimitiveDomainId}`;
 }
 

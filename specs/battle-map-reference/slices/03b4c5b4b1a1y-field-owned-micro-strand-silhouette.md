@@ -70,7 +70,26 @@ appears.
 
 ## Next Slice
 
-If accepted, continue to
-`03b4c5b4b1a2-close-body-perf-envelope.md`. If rejected, reslice close-body
-ownership/representation again before perf, coverage, palette, LOD,
-camera-relative generation, or final compose.
+Rejected on 2026-07-01. Evidence lives under
+`assets/03b4-evidence/03b4c5-close-foreground-lab/field-owned-micro-strand-silhouette/`.
+
+The field-owned micro-strand seam worked mechanically: the selected candidate
+published `1450` domain cells, `36` strands per cell, `52200` micro-strands,
+`417600` submitted triangles, strand width `0.005`-`0.013`, strand height
+`0.083`-`0.212`, zero material bytes, and `sourceAttached=false`. The visual
+failed anyway. The close crop still reads as flat paint plus isolated yellow
+fleck clusters, not continuous close grass body. `compare-screenshots` recorded
+only `0.19531x` target edge energy for the selected candidate and
+`0.19231x` for the tall variant; against rejected B4B1A1X shell, the candidates
+sit very close (`parityDistance=0.04874` / `0.04467`), meaning this changed the
+shape of the artifacts more than the failed field read. The unprimed critique
+called out sparse coverage, poor body continuity, source-local-looking vertical
+patches, flat/debuggy ground, chunky scale mismatch, saturated yellow flecks,
+and missing close-grass texture outside the clumps.
+
+Do not continue to perf. Continue to
+`03b4c5b4b1a1z-field-owned-continuous-strand-texture.md`, which keeps field
+ownership but tests a continuous domain-spanning strand/nap texture rather than
+per-domain-cell clustered geometry. Perf, coverage, palette, LOD,
+camera-relative generation, and final compose remain blocked until a close-body
+representation is accepted.

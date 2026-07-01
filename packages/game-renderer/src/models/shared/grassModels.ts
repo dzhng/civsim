@@ -13,6 +13,7 @@ export type GrassAccentStyle =
   | 'field-strand-mat'
   | 'field-woven-mat'
   | 'field-domain-shell'
+  | 'field-domain-micro-strand'
   | 'alpha-impostor'
   | 'billboard-cluster'
   | 'volume-card'
@@ -36,6 +37,13 @@ export interface GrassTuftStats {
   opaqueVertices: number;
   opaqueTriangles: number;
   shadowVertices: number;
+}
+
+export interface FieldDomainSilhouetteScale {
+  widthMin: number;
+  widthMax: number;
+  heightMin: number;
+  heightMax: number;
 }
 
 export const GRASS_TUFT_SEGMENTS = 2;
@@ -96,6 +104,7 @@ export function buildGrassTuftMesh(options: GrassTuftOptions = {}): MeshData {
   if (accentStyle === 'field-strand-mat') return buildContinuousStrandBodyMesh(seed, blades, height, width, bend, spread, palette, false);
   if (accentStyle === 'field-woven-mat') return buildContinuousStrandBodyMesh(seed, blades, height, width, bend, spread, palette, true);
   if (accentStyle === 'field-domain-shell') return buildFieldDomainShellMesh(seed, blades, height, width, bend, spread, palette);
+  if (accentStyle === 'field-domain-micro-strand') return buildFieldDomainMicroStrandMesh(seed, blades, height, width, bend, spread, palette);
   if (accentStyle === 'alpha-impostor') return buildAlphaImpostorPatchMesh(seed, blades, height, width, bend, spread, palette);
   if (accentStyle === 'billboard-cluster') return buildBillboardClusterMesh(seed, blades, height, width, bend, spread, palette);
   if (accentStyle === 'volume-card') return buildNearGrassVolumeCardMesh(seed, blades, height, width, bend, spread, palette);
@@ -129,6 +138,32 @@ export function buildGrassTuftMesh(options: GrassTuftOptions = {}): MeshData {
   }
 
   return builder.finish('grass tuft mesh');
+}
+
+export function fieldDomainSilhouetteStrandsPerCell(style: GrassAccentStyle, blades: number): number {
+  if (style === 'field-domain-micro-strand') return Math.max(26, Math.min(40, clampInt(blades, 0, 96) + 14));
+  if (style === 'field-domain-shell') return Math.max(5, Math.min(7, Math.ceil(clampInt(blades, 0, 96) * 0.5) + 1));
+  return 0;
+}
+
+export function fieldDomainSilhouetteScale(style: GrassAccentStyle, width: number, height: number): FieldDomainSilhouetteScale {
+  if (style === 'field-domain-micro-strand') {
+    return {
+      widthMin: width * 0.16,
+      widthMax: width * 0.38,
+      heightMin: height * 0.18,
+      heightMax: height * 0.46,
+    };
+  }
+  if (style === 'field-domain-shell') {
+    return {
+      widthMin: width * 2.50,
+      widthMax: width * 4.15,
+      heightMin: height * 0.32,
+      heightMax: height * 0.58,
+    };
+  }
+  return { widthMin: 0, widthMax: 0, heightMin: 0, heightMax: 0 };
 }
 
 function buildRootShadowAccentMesh(
@@ -304,7 +339,7 @@ function buildFieldDomainShellMesh(
   palette: { root: Rgb; mid: Rgb; tip: Rgb; dry: Rgb },
 ): MeshData {
   const builder = new MeshBuilder();
-  const shells = Math.max(5, Math.min(7, Math.ceil(blades * 0.5) + 1));
+  const shells = fieldDomainSilhouetteStrandsPerCell('field-domain-shell', blades);
   const strokeTone = scaleColor(mixColor(palette.root, palette.mid, 0.24), 0.82);
   const liftTone = scaleColor(mixColor(palette.mid, palette.tip, 0.28), 0.88);
   const shadowTone = scaleColor(mixColor(palette.root, palette.mid, 0.08), 0.64);
@@ -328,6 +363,43 @@ function buildFieldDomainShellMesh(
     });
   }
   return builder.finish('grass field-domain-shell mesh');
+}
+
+function buildFieldDomainMicroStrandMesh(
+  seed: number,
+  blades: number,
+  height: number,
+  width: number,
+  bend: number,
+  spread: number,
+  palette: { root: Rgb; mid: Rgb; tip: Rgb; dry: Rgb },
+): MeshData {
+  const builder = new MeshBuilder();
+  const strands = fieldDomainSilhouetteStrandsPerCell('field-domain-micro-strand', blades);
+  const baseTone = scaleColor(mixColor(palette.root, palette.mid, 0.16), 0.70);
+  const midTone = scaleColor(mixColor(palette.root, palette.mid, 0.34), 0.82);
+  const tipTone = scaleColor(mixColor(palette.mid, palette.tip, 0.22), 0.84);
+  const yawBase = jitter(seed, 1, 0.18);
+  for (let i = 0; i < strands; i++) {
+    const t = strands <= 1 ? 0 : i / (strands - 1);
+    const lane = (i % 9) - 4;
+    const root: [number, number, number] = [
+      (t - 0.5) * spread * 0.82 + jitter(seed + i * 31, 2, spread * 0.08),
+      lane * spread * 0.030 + jitter(seed + i * 37, 3, spread * 0.13),
+      height * (0.006 + hash2(seed + i, 4) * 0.012),
+    ];
+    addTaperedPanel(builder, {
+      root,
+      yaw: yawBase + lane * 0.020 + jitter(seed + i * 41, 5, 0.16),
+      height: height * (0.18 + hash2(seed + i, 6) * 0.26 + (1 - t) * 0.020),
+      width: width * (0.16 + hash2(seed + i, 7) * 0.22),
+      bend: bend * height * (0.026 + hash2(seed + i, 8) * 0.052),
+      lowerColor: scaleColor(i % 5 === 0 ? baseTone : midTone, 0.84 + hash2(seed + i, 9) * 0.16),
+      upperColor: scaleColor(tipTone, 0.88 + hash2(seed + i, 10) * 0.14),
+      tipScale: 0.030,
+    });
+  }
+  return builder.finish('grass field-domain-micro-strand mesh');
 }
 
 function buildAlphaImpostorPatchMesh(

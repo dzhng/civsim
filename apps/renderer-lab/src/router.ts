@@ -3248,7 +3248,7 @@ async function routeBattleGrassField(ctx: LabContext) {
     || grassPrimitiveFamily === 'field-fiber-bundle'
     || grassPrimitiveFamily === 'field-strand-mat'
     || grassPrimitiveFamily === 'field-woven-mat';
-  const fieldDomainSilhouettePrimitive = grassPrimitiveFamily === 'field-domain-shell';
+  const fieldDomainSilhouettePrimitive = grassPrimitiveFamily === 'field-domain-shell' || grassPrimitiveFamily === 'field-domain-micro-strand';
   const textureVolumeProfile = texturePrimitive ? textureVolumeProfileParam(ctx.params, 'textureVolumeProfile', 'current') : 'current';
   const textureVolumeRenderModel = grassPrimitiveFamily === 'texture-volume' ? textureVolumeRenderModelParam(ctx.params, 'textureVolumeRenderModel', 'opaque-card') : 'opaque-card';
   const accentAggregation = accentMode && texturePrimitive
@@ -3264,13 +3264,13 @@ async function routeBattleGrassField(ctx: LabContext) {
     : 'record';
   grass.setGrassFieldSnapshot(snapshot, 'green-grass', {
     seed: 0x31b2,
-    bladesPerTuft: integerParam(ctx.params, 'blades', mode === 'field-meadow' ? 0 : accentMode && fieldShellStyle ? 1 : accentMode && fieldDomainSilhouettePrimitive ? 10 : accentMode && textureMicroCarrier ? 2 : accentMode && textureCarrier ? 4 : accentMode && texturePrimitive ? 4 : accentMode && workbenchPrimitive ? grassPrimitiveFamily === 'alpha-impostor' ? 4 : 5 : accentMode ? 3 : 9, 0, 48),
-    maxTufts: integerParam(ctx.params, 'accentTufts', accentMode && accentAggregation === 'field-subcell' ? 7200 : accentMode && fieldShellStyle ? 1500 : accentMode && fieldDomainSilhouettePrimitive ? 1850 : accentMode && workbenchPrimitive ? snapshot.records.length : accentMode ? 900 : snapshot.records.length, 0, 24000),
+    bladesPerTuft: integerParam(ctx.params, 'blades', mode === 'field-meadow' ? 0 : accentMode && fieldShellStyle ? 1 : accentMode && grassPrimitiveFamily === 'field-domain-micro-strand' ? 22 : accentMode && fieldDomainSilhouettePrimitive ? 10 : accentMode && textureMicroCarrier ? 2 : accentMode && textureCarrier ? 4 : accentMode && texturePrimitive ? 4 : accentMode && workbenchPrimitive ? grassPrimitiveFamily === 'alpha-impostor' ? 4 : 5 : accentMode ? 3 : 9, 0, 48),
+    maxTufts: integerParam(ctx.params, 'accentTufts', accentMode && accentAggregation === 'field-subcell' ? 7200 : accentMode && fieldShellStyle ? 1500 : accentMode && grassPrimitiveFamily === 'field-domain-micro-strand' ? 1450 : accentMode && fieldDomainSilhouettePrimitive ? 1850 : accentMode && workbenchPrimitive ? snapshot.records.length : accentMode ? 900 : snapshot.records.length, 0, 24000),
     accentMaxClumps: integerParam(ctx.params, 'accentClumps', accentMode ? accentAggregation === 'field-subcell' ? 900 : fieldDomainSilhouettePrimitive ? 0 : textureMicroCarrier ? 1900 : textureCarrier ? 1450 : texturePrimitive ? 1100 : workbenchPrimitive ? 360 : 420 : 0, 0, 12000),
-    bladeHeight: numberParam(ctx.params, 'bladeHeight', mode === 'field-meadow' ? 0.32 : accentMode && accentStyle === 'field-fiber-shell-visibility' ? 0.86 : accentMode && fieldShellStyle ? 0.62 : accentMode && fieldDomainSilhouettePrimitive ? 0.64 : accentMode && textureMicroCarrier ? 0.58 : accentMode && textureCarrier ? 0.88 : accentMode && texturePrimitive ? 1.00 : accentMode && grassPrimitiveFamily === 'alpha-impostor' ? 0.74 : accentMode && grassPrimitiveFamily === 'billboard-cluster' ? 0.92 : accentMode && grassPrimitiveFamily === 'volume-card' ? 0.70 : accentMode ? 0.58 : 1.02),
-    bladeWidth: numberParam(ctx.params, 'bladeWidth', mode === 'field-meadow' ? 0.024 : accentMode && accentStyle === 'field-fiber-shell-visibility' ? 0.052 : accentMode && fieldShellStyle ? 0.038 : accentMode && fieldDomainSilhouettePrimitive ? 0.060 : accentMode && textureMicroCarrier ? 0.044 : accentMode && textureCarrier ? 0.110 : accentMode && texturePrimitive ? 0.070 : accentMode && grassPrimitiveFamily === 'volume-card' ? 0.086 : accentMode ? 0.066 : 0.078),
-    bend: numberParam(ctx.params, 'bend', mode === 'field-meadow' ? 0.18 : accentMode && accentStyle === 'field-fiber-shell-visibility' ? 0.08 : accentMode && fieldShellStyle ? 0.14 : accentMode && fieldDomainSilhouettePrimitive ? 0.09 : accentMode && textureMicroCarrier ? 0.05 : accentMode && textureCarrier ? 0.035 : accentMode && texturePrimitive ? 0.05 : accentMode && grassPrimitiveFamily === 'volume-card' ? 0.06 : accentMode ? 0.12 : 0.30),
-    spread: numberParam(ctx.params, 'spread', mode === 'field-meadow' ? 0.06 : accentMode && accentStyle === 'field-fiber-shell-visibility' ? 0.055 : accentMode && fieldShellStyle ? 0.040 : accentMode && fieldDomainSilhouettePrimitive ? 0.34 : accentMode && textureMicroCarrier ? 0.052 : accentMode && textureCarrier ? 0.11 : accentMode && texturePrimitive ? 0.082 : accentMode && workbenchPrimitive ? 0.090 : accentMode ? 0.070 : 0.17),
+    bladeHeight: numberParam(ctx.params, 'bladeHeight', mode === 'field-meadow' ? 0.32 : accentMode && accentStyle === 'field-fiber-shell-visibility' ? 0.86 : accentMode && fieldShellStyle ? 0.62 : accentMode && grassPrimitiveFamily === 'field-domain-micro-strand' ? 0.46 : accentMode && fieldDomainSilhouettePrimitive ? 0.64 : accentMode && textureMicroCarrier ? 0.58 : accentMode && textureCarrier ? 0.88 : accentMode && texturePrimitive ? 1.00 : accentMode && grassPrimitiveFamily === 'alpha-impostor' ? 0.74 : accentMode && grassPrimitiveFamily === 'billboard-cluster' ? 0.92 : accentMode && grassPrimitiveFamily === 'volume-card' ? 0.70 : accentMode ? 0.58 : 1.02),
+    bladeWidth: numberParam(ctx.params, 'bladeWidth', mode === 'field-meadow' ? 0.024 : accentMode && accentStyle === 'field-fiber-shell-visibility' ? 0.052 : accentMode && fieldShellStyle ? 0.038 : accentMode && grassPrimitiveFamily === 'field-domain-micro-strand' ? 0.034 : accentMode && fieldDomainSilhouettePrimitive ? 0.060 : accentMode && textureMicroCarrier ? 0.044 : accentMode && textureCarrier ? 0.110 : accentMode && texturePrimitive ? 0.070 : accentMode && grassPrimitiveFamily === 'volume-card' ? 0.086 : accentMode ? 0.066 : 0.078),
+    bend: numberParam(ctx.params, 'bend', mode === 'field-meadow' ? 0.18 : accentMode && accentStyle === 'field-fiber-shell-visibility' ? 0.08 : accentMode && fieldShellStyle ? 0.14 : accentMode && grassPrimitiveFamily === 'field-domain-micro-strand' ? 0.07 : accentMode && fieldDomainSilhouettePrimitive ? 0.09 : accentMode && textureMicroCarrier ? 0.05 : accentMode && textureCarrier ? 0.035 : accentMode && texturePrimitive ? 0.05 : accentMode && grassPrimitiveFamily === 'volume-card' ? 0.06 : accentMode ? 0.12 : 0.30),
+    spread: numberParam(ctx.params, 'spread', mode === 'field-meadow' ? 0.06 : accentMode && accentStyle === 'field-fiber-shell-visibility' ? 0.055 : accentMode && fieldShellStyle ? 0.040 : accentMode && grassPrimitiveFamily === 'field-domain-micro-strand' ? 0.24 : accentMode && fieldDomainSilhouettePrimitive ? 0.34 : accentMode && textureMicroCarrier ? 0.052 : accentMode && textureCarrier ? 0.11 : accentMode && texturePrimitive ? 0.082 : accentMode && workbenchPrimitive ? 0.090 : accentMode ? 0.070 : 0.17),
     windPhase: numberParam(ctx.params, 'phase', 0.3),
     windStrength: numberParam(ctx.params, 'windStrength', mode === 'field-meadow' ? 0.014 : accentMode ? 0.012 : 0.035),
     zoomT: 1,
@@ -3279,10 +3279,10 @@ async function routeBattleGrassField(ctx: LabContext) {
       accentDepthNear: numberParam(ctx.params, 'accentDepthNear', fieldShellStyle || workbenchPrimitive ? -35 : -35),
       accentDepthFar: numberParam(ctx.params, 'accentDepthFar', fieldShellStyle || workbenchPrimitive ? 72 : 56),
     } : {}),
-    surfaceBlend: numberParam(ctx.params, 'surfaceBlend', accentMode ? accentAggregation === 'field-cell' ? fieldDomainSilhouettePrimitive ? 0.54 : textureMicroCarrier ? 0.34 : textureCarrier ? 0.38 : 0.26 : accentAggregation === 'field-subcell' ? 0.96 : accentAggregation === 'clump' ? workbenchPrimitive ? 0.38 : 0.58 : accentStyle === 'field-fiber-shell-visibility' ? 0.42 : accentAggregation === 'field-near' ? 0.70 : 0.98 : 0),
+    surfaceBlend: numberParam(ctx.params, 'surfaceBlend', accentMode ? accentAggregation === 'field-cell' ? grassPrimitiveFamily === 'field-domain-micro-strand' ? 0.50 : fieldDomainSilhouettePrimitive ? 0.54 : textureMicroCarrier ? 0.34 : textureCarrier ? 0.38 : 0.26 : accentAggregation === 'field-subcell' ? 0.96 : accentAggregation === 'clump' ? workbenchPrimitive ? 0.38 : 0.58 : accentStyle === 'field-fiber-shell-visibility' ? 0.42 : accentAggregation === 'field-near' ? 0.70 : 0.98 : 0),
     accentStyle,
     accentAggregation,
-    accentClumpFootprint: numberParam(ctx.params, 'accentFootprint', accentAggregation === 'field-cell' ? fieldDomainSilhouettePrimitive ? 3.2 : textureMicroCarrier ? 1.8 : textureCarrier ? 5.2 : 3.0 : accentAggregation === 'field-subcell' ? 2.2 : accentAggregation === 'clump' ? workbenchPrimitive ? 7.4 : 6.3 : 1),
+    accentClumpFootprint: numberParam(ctx.params, 'accentFootprint', accentAggregation === 'field-cell' ? grassPrimitiveFamily === 'field-domain-micro-strand' ? 2.4 : fieldDomainSilhouettePrimitive ? 3.2 : textureMicroCarrier ? 1.8 : textureCarrier ? 5.2 : 3.0 : accentAggregation === 'field-subcell' ? 2.2 : accentAggregation === 'clump' ? workbenchPrimitive ? 7.4 : 6.3 : 1),
     accentMicroSourcesPerCell: integerParam(ctx.params, 'accentSourcesPerCell', accentAggregation === 'field-subcell' ? 8 : 1, 1, 12),
     fiberShellVariant,
     grassPrimitiveFamily,
@@ -3381,10 +3381,10 @@ async function routeBattleGrassField(ctx: LabContext) {
     && grassStats.submittedTriangles < 83200
     && grassStats.drawCalls === 1;
   const fieldDomainSilhouetteOk = closeLab
-    && grassStats.grassPrimitiveFamily === 'field-domain-shell'
-    && grassStats.grassPrimitiveRepresentation === 'field-owned-body-silhouette'
+    && (grassStats.grassPrimitiveFamily === 'field-domain-shell' || grassStats.grassPrimitiveFamily === 'field-domain-micro-strand')
+    && (grassStats.grassPrimitiveRepresentation === 'field-owned-body-silhouette' || grassStats.grassPrimitiveRepresentation === 'field-owned-micro-strand-silhouette')
     && grassStats.accentAggregation === 'field-cell'
-    && grassStats.grassPrimitiveDomainId === 'field-domain-shell'
+    && grassStats.grassPrimitiveDomainId === grassStats.grassPrimitiveFamily
     && grassStats.grassPrimitiveDomainSourceAttached === false
     && grassStats.grassPrimitiveDomainGridColumns > 4
     && grassStats.grassPrimitiveDomainGridRows > 4
@@ -3396,6 +3396,11 @@ async function routeBattleGrassField(ctx: LabContext) {
     && grassStats.grassPrimitiveDomainCoverageAvg > 0.45
     && grassStats.grassPrimitiveDomainCoverageMedian > 0.45
     && grassStats.grassPrimitiveDomainExposedGround < 0.40
+    && grassStats.grassPrimitiveDomainStrandsPerCell > 0
+    && grassStats.grassPrimitiveDomainMicroStrands === grassStats.grassPrimitiveDomainCells * grassStats.grassPrimitiveDomainStrandsPerCell
+    && grassStats.grassPrimitiveDomainStrandWidthMin >= 0
+    && grassStats.grassPrimitiveDomainStrandWidthMax >= grassStats.grassPrimitiveDomainStrandWidthMin
+    && grassStats.grassPrimitiveDomainStrandHeightMax >= grassStats.grassPrimitiveDomainStrandHeightMin
     && grassStats.grassPrimitiveDomainSubmittedTriangles === grassStats.submittedTriangles
     && grassStats.grassPrimitiveDomainGeometryBytes > 0
     && grassStats.grassPrimitiveTextureBytes === 0
@@ -4212,6 +4217,7 @@ function grassAccentStyleParam(params: URLSearchParams, key: string, fallback: G
     || raw === 'field-strand-mat'
     || raw === 'field-woven-mat'
     || raw === 'field-domain-shell'
+    || raw === 'field-domain-micro-strand'
     || raw === 'alpha-impostor'
     || raw === 'billboard-cluster'
     || raw === 'volume-card'
@@ -4260,6 +4266,7 @@ function grassPrimitiveFamilyParam(params: URLSearchParams, key: string, fallbac
     || raw === 'field-strand-mat'
     || raw === 'field-woven-mat'
     || raw === 'field-domain-shell'
+    || raw === 'field-domain-micro-strand'
     || raw === 'alpha-impostor'
     || raw === 'billboard-cluster'
     || raw === 'volume-card'
@@ -4279,6 +4286,7 @@ function accentStyleForPrimitiveFamily(family: GrassPrimitiveFamily, fiberShellV
   if (family === 'field-strand-mat') return 'field-strand-mat';
   if (family === 'field-woven-mat') return 'field-woven-mat';
   if (family === 'field-domain-shell') return 'field-domain-shell';
+  if (family === 'field-domain-micro-strand') return 'field-domain-micro-strand';
   if (family === 'alpha-impostor') return 'alpha-impostor';
   if (family === 'billboard-cluster') return 'billboard-cluster';
   if (family === 'volume-card' || family === 'texture-volume' || family === 'texture-carrier' || family === 'texture-micro-carrier') return 'volume-card';
@@ -4297,6 +4305,7 @@ function grassPrimitiveFamilyForAccentStyle(style: GrassAccentStyle): GrassPrimi
   if (style === 'field-strand-mat') return 'field-strand-mat';
   if (style === 'field-woven-mat') return 'field-woven-mat';
   if (style === 'field-domain-shell') return 'field-domain-shell';
+  if (style === 'field-domain-micro-strand') return 'field-domain-micro-strand';
   if (style === 'alpha-impostor') return 'alpha-impostor';
   if (style === 'billboard-cluster') return 'billboard-cluster';
   if (style === 'volume-card') return 'volume-card';
@@ -4325,7 +4334,7 @@ function isClumpGrassAccentStyle(style: GrassAccentStyle): boolean {
 }
 
 function isWorkbenchGrassPrimitiveFamily(family: GrassPrimitiveFamily): boolean {
-  return family === 'field-fiber-body' || family === 'field-fiber-bundle' || family === 'field-strand-mat' || family === 'field-woven-mat' || family === 'field-domain-shell' || family === 'alpha-impostor' || family === 'billboard-cluster' || family === 'volume-card' || family === 'texture-volume' || family === 'texture-carrier' || family === 'texture-micro-carrier';
+  return family === 'field-fiber-body' || family === 'field-fiber-bundle' || family === 'field-strand-mat' || family === 'field-woven-mat' || family === 'field-domain-shell' || family === 'field-domain-micro-strand' || family === 'alpha-impostor' || family === 'billboard-cluster' || family === 'volume-card' || family === 'texture-volume' || family === 'texture-carrier' || family === 'texture-micro-carrier';
 }
 
 function isFieldFiberShellStyle(style: GrassAccentStyle): boolean {

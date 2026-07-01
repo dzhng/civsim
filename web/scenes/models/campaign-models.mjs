@@ -19,7 +19,6 @@ export const meta = {
     "campaign/labels/labels",
     "campaign/terrain/terrain-grass-scrub",
     "campaign/terrain/terrain-stone-relief",
-    "campaign/terrain/shoreline-water",
     "campaign/terrain/cloud-fog",
   ],
   describe:
@@ -107,12 +106,6 @@ const gates = [
     label: "Terrain Stone Relief",
     criteria:
       "Stone/relief material sample shows rocks and mountains anchored to campaign terrain.",
-  },
-  {
-    id: "shoreline-water",
-    label: "Shoreline Water",
-    criteria:
-      "Campaign water/glint pass is visible as a real WebGPU atmospheric layer over the terrain.",
   },
   {
     id: "cloud-fog",

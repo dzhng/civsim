@@ -2,9 +2,10 @@ import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 import { compileShader } from '../../../renderer-core/src/compileShader';
 import { gpuMultisample, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
-import { WATER_SHADE_WGSL } from './waterMaterialWgsl';
+import { WATER_SHADE_WGSL, CIVSIM_WATER_COLOR_WGSL } from './waterMaterialWgsl';
 import { WATER_PALETTE_WGSL } from './waterPalette';
-import { waterEnvironmentWgsl, WATER_ENVIRONMENTS, type WaterEnvironment } from './waterEnvironment';
+import { waterShoreRampWgsl, LAB_OPEN_SEA_RAMP, type WaterShoreRamp } from './waterShoreRamp';
+import { waterEnvironmentWgsl, WATER_ENVIRONMENTS, type WaterEnvironment } from '../environment/environment';
 import type { WaterFieldSource } from './waterField';
 
 // The candidate-agnostic open-sea pass: one tessellated plane at the battle
@@ -30,6 +31,21 @@ export interface WaterPlaneRect {
 // normals keep the near field crisp regardless of triangle size.
 export const DEFAULT_WATER_PLANE: WaterPlaneRect = { x0: -420, y0: -160, x1: 420, y1: 1100, res: 340 };
 
+// Surface-scale knobs that let the same plane serve the isolated lab open sea and a
+// real coastal battle edge. The defaults reproduce the lab plane exactly (baseZ 0,
+// the lab camera-distance ramp), so every frozen water-*.mjs scene stays byte-identical.
+export interface WaterPlaneOptions {
+  /** World z the plane floats at (its waves ride on top). Battle edges seat it at
+   *  the shoreline height datum; the lab sits it at 0. */
+  baseZ?: number;
+  /** Depth/haze ramp. The lab keys on camera distance (LAB_OPEN_SEA_RAMP); a battle
+   *  edge keys on distance-from-shore so both sides of the shoreline are one material. */
+  shoreRamp?: WaterShoreRamp;
+  /** When set, depth/haze key on `abs(world.x − shoreX)` (distance from the shoreline
+   *  in X) instead of camera distance — the seam-closing key the field water shares. */
+  shoreX?: number | null;
+}
+
 export class WaterPlanePass {
   private readonly shell: RawFrameShell;
   private readonly field: WaterFieldSource;
@@ -38,7 +54,7 @@ export class WaterPlanePass {
   private readonly indexBuffer: GPUBuffer;
   private readonly indexCount: number;
 
-  constructor(shell: RawFrameShell, field: WaterFieldSource, rect: WaterPlaneRect = DEFAULT_WATER_PLANE, env: WaterEnvironment = WATER_ENVIRONMENTS.golden) {
+  constructor(shell: RawFrameShell, field: WaterFieldSource, rect: WaterPlaneRect = DEFAULT_WATER_PLANE, env: WaterEnvironment = WATER_ENVIRONMENTS.golden, opts: WaterPlaneOptions = {}) {
     this.shell = shell;
     this.field = field;
     const device = shell.device;
@@ -52,7 +68,7 @@ export class WaterPlanePass {
 
     const fieldLayout = field.bindGroupLayout();
     const bindGroupLayouts = fieldLayout ? [shell.cameraBindGroupLayout, fieldLayout] : [shell.cameraBindGroupLayout];
-    const module = compileShader(device, waterPlaneWgsl(field.wgslSample(), env), `water-plane-${field.id}`);
+    const module = compileShader(device, waterPlaneWgsl(field.wgslSample(), env, opts), `water-plane-${field.id}`);
     this.pipeline = device.createRenderPipeline({
       label: `water-plane-${field.id}-pipeline`,
       layout: device.createPipelineLayout({ bindGroupLayouts }),
@@ -106,13 +122,53 @@ function buildGrid(rect: WaterPlaneRect): { vertices: Float32Array; indices: Uin
   return { vertices, indices };
 }
 
-function waterPlaneWgsl(fieldWgsl: string, env: WaterEnvironment): string {
+function waterPlaneWgsl(fieldWgsl: string, env: WaterEnvironment, opts: WaterPlaneOptions): string {
+  const baseZ = opts.baseZ ?? 0;
+  // Two modes, both the single `civsimWaterColor` material (spec firewall #1):
+  //  - Lab open sea (shoreX null): the whole isolated plane is the reference open sea,
+  //    agitation 1, depth/haze keyed on camera distance. Byte-identical to the frozen
+  //    look scenes.
+  //  - Battle ocean edge (shoreX set): the sea meets the S8 field water at the shore, so
+  //    it must MATCH it there and only become the reference sea offshore. Both depth and
+  //    agitation ramp with distance-from-shore in X: at the shoreline the sea is the same
+  //    calm mid-blue as the field water (agitation 0), grading to the deep, whitecapped,
+  //    glittering open sea offshore, then hazing into the sky. No stripe by construction.
+  const fs = opts.shoreX == null
+    ? `
+@fragment
+fn fs(in: VsOut) -> @location(0) vec4f {
+  let ramp = waterShoreRamp(length(in.world - vec2f(cam.x, cam.y)));
+  return vec4f(civsimWaterColor(in.world, ramp.x, ramp.y, 1.0, 0.0), 1.0);
+}`
+    : `
+const OCEAN_SHORE_DEPTH = 0.30; // depth01 at the shoreline — matches the field water's deep end (pale)
+const OCEAN_DEEP_DEPTH = 0.80;  // depth01 far offshore — deep Aegean blue
+// Depth and agitation ramp on DIFFERENT distances. Depth grades over a short range so
+// the visible coastal sea reads pale turquoise near the beach → deeper blue offshore
+// (the shallow-shelf cue). Agitation ramps far out so the whole visible sea stays
+// calm and golden — the open-sea whitecaps only build near the horizon, and no
+// calm↔rough boundary reads as a seam. The battle target is the calm Aegean coast,
+// NOT the rough deep-ocean reference (that is the lab look).
+const OCEAN_DEPTH_FAR = 500.0;
+const OCEAN_AGITATE_FAR = 3200.0;
+@fragment
+fn fs(in: VsOut) -> @location(0) vec4f {
+  let shoreDist = abs(in.world.x - ${opts.shoreX.toFixed(3)});
+  let depth01 = mix(OCEAN_SHORE_DEPTH, OCEAN_DEEP_DEPTH, smoothstep(0.0, OCEAN_DEPTH_FAR, shoreDist));
+  let agitation = smoothstep(0.0, OCEAN_AGITATE_FAR, shoreDist);
+  let haze01 = waterShoreRamp(shoreDist).y;
+  return vec4f(civsimWaterColor(in.world, depth01, haze01, agitation, 0.0), 1.0);
+}`;
   return `
 ${WORLD_CAMERA_WGSL}
 ${fieldWgsl}
 ${WATER_PALETTE_WGSL}
 ${waterEnvironmentWgsl(env)}
+${waterShoreRampWgsl(opts.shoreRamp ?? LAB_OPEN_SEA_RAMP)}
 ${WATER_SHADE_WGSL}
+${CIVSIM_WATER_COLOR_WGSL}
+
+const WATER_PLANE_BASE_Z = ${baseZ.toFixed(3)};
 
 struct VsOut {
   @builtin(position) pos: vec4f,
@@ -122,32 +178,11 @@ struct VsOut {
 @vertex
 fn vs(@location(0) world: vec2f) -> VsOut {
   let s = waterField(world, cam.time);
-  let p3 = vec3f(world, s.height);
+  let p3 = vec3f(world, WATER_PLANE_BASE_Z + s.height);
   var out: VsOut;
   out.pos = projectWorld3d(p3, civsimBattleWorldDepth3d(p3));
   out.world = world;
   return out;
 }
-
-@fragment
-fn fs(in: VsOut) -> @location(0) vec4f {
-  // Re-evaluate the field per fragment for a crisp normal (the vertex stage only
-  // owns displacement). Neutral grey via the shared waterShade — silhouette only.
-  let s = waterField(in.world, cam.time);
-  // Glint band: how well the direction from the camera to this fragment aligns
-  // with the sun azimuth — 1 up the sun-track, fading to the sides.
-  let delta = in.world - vec2f(cam.x, cam.y);
-  let toFrag = normalize(delta);
-  let sunAzVec = vec2f(cos(cam.sunAz), sin(cam.sunAz));
-  let band = smoothstep(0.1, 0.8, dot(toFrag, sunAzVec));
-  // Depth ramp for the open sea: near reads as shallow turquoise, the far sea as
-  // deep blue (distance stands in for depth on the horizon plane).
-  let dist = length(delta);
-  let depth01 = smoothstep(20.0, 420.0, dist);
-  // Aerial-perspective haze: ramps up over the far distance, reaching ~1 near the
-  // plane's far edge so the sea dissolves into the sky with no hard horizon line.
-  let haze01 = smoothstep(55.0, 300.0, dist);
-  let col = waterShade(s, sunDirection(), band, depth01, haze01);
-  return vec4f(col, 1.0);
-}`;
+${fs}`;
 }

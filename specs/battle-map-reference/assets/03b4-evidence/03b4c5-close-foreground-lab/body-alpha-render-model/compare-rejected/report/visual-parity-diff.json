@@ -1,0 +1,214 @@
+{
+  "kind": "screenshot-parity-diff",
+  "generatedAt": "2026-07-01T11:33:50.161Z",
+  "note": "Lower parityDistance means the candidate is closer to the reference for this fixed pair. This is a distance metric, not an acceptance gate.",
+  "pairCount": 5,
+  "worstPair": "sparse-dither",
+  "results": [
+    {
+      "id": "sparse-dither",
+      "current": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/body-alpha-render-model/compare-rejected/reference/sparse-dither.png",
+      "candidate": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/body-alpha-render-model/compare-rejected/candidate/sparse-dither.png",
+      "dimensions": {
+        "width": 814,
+        "height": 192
+      },
+      "parityDistance": 0.16048,
+      "grayscale": {
+        "mae": 3.26469,
+        "rmse": 10.60099,
+        "diffRatio16": 0.07961,
+        "diffRatio32": 0.04252,
+        "diffRatio64": 0.00169,
+        "pixelmatchRatio": 0.06649
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.97119,
+        "terrainLikeRatioCandidate": 0.96755,
+        "avgLuminanceCurrent": 124.85051,
+        "avgLuminanceCandidate": 121.80853,
+        "avgLuminanceDelta": -3.04198,
+        "edgeEnergyCurrent": 0.06783,
+        "edgeEnergyCandidate": 0.04226,
+        "edgeEnergyRatio": 0.62307,
+        "edgeDiffRatio32": 0.10638
+      },
+      "artifacts": {
+        "sideBySide": "report/sparse-dither-side-by-side.png",
+        "currentGray": "report/sparse-dither-current-gray.png",
+        "candidateGray": "report/sparse-dither-candidate-gray.png",
+        "absDiff": "report/sparse-dither-absdiff.png",
+        "pixelmatch": "report/sparse-dither-pixelmatch.png",
+        "currentEdges": "report/sparse-dither-current-edges.png",
+        "candidateEdges": "report/sparse-dither-candidate-edges.png",
+        "edgeDiff": "report/sparse-dither-edge-diff.png"
+      }
+    },
+    {
+      "id": "hard-cutout",
+      "current": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/body-alpha-render-model/compare-rejected/reference/hard-cutout.png",
+      "candidate": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/body-alpha-render-model/compare-rejected/candidate/hard-cutout.png",
+      "dimensions": {
+        "width": 814,
+        "height": 192
+      },
+      "parityDistance": 0.16014,
+      "grayscale": {
+        "mae": 3.10382,
+        "rmse": 10.43849,
+        "diffRatio16": 0.06919,
+        "diffRatio32": 0.04302,
+        "diffRatio64": 0.00175,
+        "pixelmatchRatio": 0.0608
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.97119,
+        "terrainLikeRatioCandidate": 0.96911,
+        "avgLuminanceCurrent": 124.85051,
+        "avgLuminanceCandidate": 121.95262,
+        "avgLuminanceDelta": -2.89789,
+        "edgeEnergyCurrent": 0.06783,
+        "edgeEnergyCandidate": 0.04175,
+        "edgeEnergyRatio": 0.6155,
+        "edgeDiffRatio32": 0.09944
+      },
+      "artifacts": {
+        "sideBySide": "report/hard-cutout-side-by-side.png",
+        "currentGray": "report/hard-cutout-current-gray.png",
+        "candidateGray": "report/hard-cutout-candidate-gray.png",
+        "absDiff": "report/hard-cutout-absdiff.png",
+        "pixelmatch": "report/hard-cutout-pixelmatch.png",
+        "currentEdges": "report/hard-cutout-current-edges.png",
+        "candidateEdges": "report/hard-cutout-candidate-edges.png",
+        "edgeDiff": "report/hard-cutout-edge-diff.png"
+      }
+    },
+    {
+      "id": "alpha-cutout",
+      "current": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/body-alpha-render-model/compare-rejected/reference/alpha-cutout.png",
+      "candidate": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/body-alpha-render-model/compare-rejected/candidate/alpha-cutout.png",
+      "dimensions": {
+        "width": 814,
+        "height": 192
+      },
+      "parityDistance": 0.15773,
+      "grayscale": {
+        "mae": 3.37757,
+        "rmse": 10.57798,
+        "diffRatio16": 0.08948,
+        "diffRatio32": 0.04242,
+        "diffRatio64": 0.00129,
+        "pixelmatchRatio": 0.07416
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.97119,
+        "terrainLikeRatioCandidate": 0.96745,
+        "avgLuminanceCurrent": 124.85051,
+        "avgLuminanceCandidate": 121.47727,
+        "avgLuminanceDelta": -3.37324,
+        "edgeEnergyCurrent": 0.06783,
+        "edgeEnergyCandidate": 0.04353,
+        "edgeEnergyRatio": 0.64172,
+        "edgeDiffRatio32": 0.1134
+      },
+      "artifacts": {
+        "sideBySide": "report/alpha-cutout-side-by-side.png",
+        "currentGray": "report/alpha-cutout-current-gray.png",
+        "candidateGray": "report/alpha-cutout-candidate-gray.png",
+        "absDiff": "report/alpha-cutout-absdiff.png",
+        "pixelmatch": "report/alpha-cutout-pixelmatch.png",
+        "currentEdges": "report/alpha-cutout-current-edges.png",
+        "candidateEdges": "report/alpha-cutout-candidate-edges.png",
+        "edgeDiff": "report/alpha-cutout-edge-diff.png"
+      }
+    },
+    {
+      "id": "dither-cutout",
+      "current": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/body-alpha-render-model/compare-rejected/reference/dither-cutout.png",
+      "candidate": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/body-alpha-render-model/compare-rejected/candidate/dither-cutout.png",
+      "dimensions": {
+        "width": 814,
+        "height": 192
+      },
+      "parityDistance": 0.14821,
+      "grayscale": {
+        "mae": 3.503,
+        "rmse": 10.89077,
+        "diffRatio16": 0.09586,
+        "diffRatio32": 0.04524,
+        "diffRatio64": 0.00164,
+        "pixelmatchRatio": 0.07948
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.97119,
+        "terrainLikeRatioCandidate": 0.96641,
+        "avgLuminanceCurrent": 124.85051,
+        "avgLuminanceCandidate": 121.35177,
+        "avgLuminanceDelta": -3.49874,
+        "edgeEnergyCurrent": 0.06783,
+        "edgeEnergyCandidate": 0.04584,
+        "edgeEnergyRatio": 0.67578,
+        "edgeDiffRatio32": 0.1108
+      },
+      "artifacts": {
+        "sideBySide": "report/dither-cutout-side-by-side.png",
+        "currentGray": "report/dither-cutout-current-gray.png",
+        "candidateGray": "report/dither-cutout-candidate-gray.png",
+        "absDiff": "report/dither-cutout-absdiff.png",
+        "pixelmatch": "report/dither-cutout-pixelmatch.png",
+        "currentEdges": "report/dither-cutout-current-edges.png",
+        "candidateEdges": "report/dither-cutout-candidate-edges.png",
+        "edgeDiff": "report/dither-cutout-edge-diff.png"
+      }
+    },
+    {
+      "id": "opaque-card",
+      "current": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/body-alpha-render-model/compare-rejected/reference/opaque-card.png",
+      "candidate": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/body-alpha-render-model/compare-rejected/candidate/opaque-card.png",
+      "dimensions": {
+        "width": 814,
+        "height": 192
+      },
+      "parityDistance": 0,
+      "grayscale": {
+        "mae": 0,
+        "rmse": 0,
+        "diffRatio16": 0,
+        "diffRatio32": 0,
+        "diffRatio64": 0,
+        "pixelmatchRatio": 0
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.97119,
+        "terrainLikeRatioCandidate": 0.97119,
+        "avgLuminanceCurrent": 124.85051,
+        "avgLuminanceCandidate": 124.85051,
+        "avgLuminanceDelta": 0,
+        "edgeEnergyCurrent": 0.06783,
+        "edgeEnergyCandidate": 0.06783,
+        "edgeEnergyRatio": 1,
+        "edgeDiffRatio32": 0
+      },
+      "artifacts": {
+        "sideBySide": "report/opaque-card-side-by-side.png",
+        "currentGray": "report/opaque-card-current-gray.png",
+        "candidateGray": "report/opaque-card-candidate-gray.png",
+        "absDiff": "report/opaque-card-absdiff.png",
+        "pixelmatch": "report/opaque-card-pixelmatch.png",
+        "currentEdges": "report/opaque-card-current-edges.png",
+        "candidateEdges": "report/opaque-card-candidate-edges.png",
+        "edgeDiff": "report/opaque-card-edge-diff.png"
+      }
+    }
+  ]
+}

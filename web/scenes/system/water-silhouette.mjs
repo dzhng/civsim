@@ -6,7 +6,7 @@ import { PNG } from "pngjs";
 // frozen-clock baseline of its geometry, and stays inside the Slice 1 GPU budget.
 // Colour/foam/glint are later slices and deliberately absent here.
 //
-// GPU only (VERIFY_GPU=1); on macOS that means headful + hardware.
+// GPU only (VERIFY_GPU=1); on this Mac use headless Chrome + hardware.
 
 const WINNER = "gerstner";
 const BUDGET_MS = 8;

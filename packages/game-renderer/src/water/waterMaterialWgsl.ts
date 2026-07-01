@@ -57,3 +57,24 @@ fn waterShade(sample: WaterSample, sunDir: vec3f, glintBand: f32, depth01: f32, 
   // where WATER_HAZE equals the sky, so the seam dissolves.
   return mix(surface, WATER_HAZE, clamp(haze01, 0.0, 1.0));
 }`;
+
+// The one civsim water material, the seam-closing firewall: every water surface —
+// on-field river/shallows, the open sea, the lab plane — is this single function, so
+// where two surfaces meet they cannot show a stripe if they pass matching arguments.
+// `agitation` is the single dial from a glassy shallow to the open sea: 0 flattens the
+// swell toward calm, kills the whitecaps, and cuts the sun glint (a river); 1 is the
+// full reference sea (steep swell, whitecaps, the broad glitter track). `swash` is
+// extra foam a caller lays at a waterline; `depth01`/`haze01` are the caller's ramps.
+// Requires `waterField`, `waterShade`, `sunDirection`, and `cam` already in scope.
+export const CIVSIM_WATER_COLOR_WGSL = `
+fn civsimWaterColor(p: vec2f, depth01: f32, haze01: f32, agitation: f32, swash: f32) -> vec3f {
+  var s = waterField(p, cam.time);
+  // Flatten the swell toward up as agitation falls (waterShade renormalises, so pass
+  // the un-normalised blend — at agitation 1 this is exactly the field normal).
+  s.normal = mix(vec3f(0.0, 0.0, 1.0), s.normal, mix(0.30, 1.0, agitation));
+  s.foam = max(s.foam * agitation, swash);
+  let delta = p - vec2f(cam.x, cam.y);
+  let sunAzVec = vec2f(cos(cam.sunAz), sin(cam.sunAz));
+  let band = smoothstep(0.1, 0.8, dot(normalize(delta), sunAzVec)) * mix(0.25, 1.0, agitation);
+  return waterShade(s, sunDirection(), band, depth01, haze01);
+}`;

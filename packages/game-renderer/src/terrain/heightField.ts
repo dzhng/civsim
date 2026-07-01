@@ -57,6 +57,18 @@ export function terrainHeightAt(field: TerrainHeightField, x: number, y: number)
   return lerp(top, bot, ty) * verticalScale;
 }
 
+/** Unit surface normal at world (x,y), derived from the shared height sampler. */
+export function terrainNormalAt(field: TerrainHeightField, x: number, y: number, sampleDistance = field.cell): [number, number, number] {
+  const d = Math.max(0.001, sampleDistance);
+  const dx = terrainHeightAt(field, x + d, y) - terrainHeightAt(field, x - d, y);
+  const dy = terrainHeightAt(field, x, y + d) - terrainHeightAt(field, x, y - d);
+  const nx = -dx / (2 * d);
+  const ny = -dy / (2 * d);
+  const nz = 1;
+  const len = Math.hypot(nx, ny, nz) || 1;
+  return [nx / len, ny / len, nz / len];
+}
+
 /** Peak-to-trough relief across the field, in rendered world Z. */
 export function heightSpan(field: TerrainHeightField): number {
   if (field.height.length === 0) return 0;

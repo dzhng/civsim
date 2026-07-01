@@ -7,12 +7,12 @@ touching before you delete or re-bless.
 
 ## Who owns which folder
 
-| Folder                                | Harness                                                    | Regen command (run from `web/`, dev server up)                         |
-| ------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `campaign/` `ui/` `battle/` `models/` | `scene.mjs` (headless Chromium / WebGPU)                   | `VERIFY_GPU=1 UPDATE_SHOTS=1 node scene.mjs --full`                    |
-| `vibe/`                               | `web/vibe/*.mjs` (melee/duel sim flip-books)               | `UPDATE_SHOTS=1 node vibe/all.mjs`                                     |
-| `weave/`                              | `crates/sim/src/bin/weave_shots.rs` (Rust sim, no browser) | `cargo run -p sim --bin weave_shots --features shots` (from repo root) |
-| `diff/`                               | transient diff output, **gitignored**                      | n/a — safe to delete, never committed                                  |
+| Folder                                | Harness                                                    | Regen command (run from `web/`, dev server up)                                                                |
+| ------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `campaign/` `ui/` `battle/` `models/` | `scene.mjs` (headless Chrome / WebGPU)                     | `VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome UPDATE_SHOTS=1 node scene.mjs --full` |
+| `vibe/`                               | `web/vibe/*.mjs` (melee/duel sim flip-books)               | `VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome UPDATE_SHOTS=1 node vibe/all.mjs`     |
+| `weave/`                              | `crates/sim/src/bin/weave_shots.rs` (Rust sim, no browser) | `cargo run -p sim --bin weave_shots --features shots` (from repo root)                                        |
+| `diff/`                               | transient diff output, **gitignored**                      | n/a — safe to delete, never committed                                                                         |
 
 `scene.mjs` routes a scene to a folder by its top-level directory under
 `scenes/` (`battle/ campaign/ ui/ models/`); anything else lands in `misc/`.
@@ -32,10 +32,10 @@ see [`../vibe/README.md`](../vibe/README.md). For the scene catalog and the
 bunx vite --port 5185 --strictPort &
 
 # 1. scene harness (campaign / ui / battle / models)
-VERIFY_URL=http://localhost:5185 VERIFY_GPU=1 UPDATE_SHOTS=1 node scene.mjs --full
+VERIFY_URL=http://localhost:5185 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome UPDATE_SHOTS=1 node scene.mjs --full
 
 # 2. vibe melee flip-books
-VERIFY_URL=http://localhost:5185 UPDATE_SHOTS=1 node vibe/all.mjs
+VERIFY_URL=http://localhost:5185 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome UPDATE_SHOTS=1 node vibe/all.mjs
 
 # from repo root — 3. weave (Rust, no server needed; self-wipes shots/weave)
 cargo run -p sim --bin weave_shots --features shots
@@ -59,17 +59,14 @@ and should stay deleted.
   render, re-bless (`UPDATE_SHOTS=1`) and open the baseline, or screenshot the
   page directly. Re-blessing preserves the existing baseline file when the
   decoded pixels are identical, even if the newly captured PNG bytes differ.
-- **Sub-percent raster wobble is expected.** The headless device is swiftshader
-  (`google / swiftshader`); snaps carry documented sub-percent diffs that pass
-  within tolerance. Re-blessing them just churns the same wobble back — don't.
-- **WebGPU adapter policy.** SwiftShader is the canonical baseline adapter
-  because it gives CI one repeatable rasterizer instead of every developer's GPU
-  driver. WebGPU support can make that software path unavailable on some local
-  Chromium builds; in that case use an explicit hardware/Metal run for local
-  evidence, record the adapter provenance, and prove determinism with a second
-  no-update run. Do not silently mix hardware-blessed baselines with
-  SwiftShader-blessed baselines: dense stone/terrain frames can exceed the 2%
-  budget even when the render is otherwise unchanged.
+- **Sub-percent raster wobble is expected.** Headless Chrome on hardware/Metal
+  can move text edges and dense alpha-blended silhouettes by small amounts. The
+  per-snap tolerance absorbs named raster noise, not unknown product drift.
+- **WebGPU adapter policy.** Installed Chrome in headless mode on hardware/Metal
+  is the canonical local baseline adapter. Bundled headless Chromium may not
+  boot WebGPU scenes on this Mac. Do not silently mix another adapter, browser
+  channel, or headful/headless mode into the baselines; if you must, record the
+  provenance and prove determinism with a second no-update run.
 - **Free-port hygiene.** Vite servers from other checkouts linger on
   5173/5174/5179; always start your own with `--port <free> --strictPort` and
   point `VERIFY_URL` at it, or you will verify against the wrong build.

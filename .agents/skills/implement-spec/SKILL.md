@@ -15,6 +15,12 @@ commit. Finishing a pass means starting the next one, not handing back to the
 user. Only stop when the spec is fully implemented (or a genuine blocker needs a
 decision only the user can make).
 
+**Work in parallel wherever the graph allows.** Do not walk the ladder one slice
+at a time when slices are independent. Read the spec's dependency graph as a
+wavefront and **delegate independent passes to subagents that run concurrently**
+(see Rules) — you orchestrate and integrate; only serialize what genuinely
+depends on prior work.
+
 ## Workflow
 
 1. Read the repo README, the spec README, and the next slice before editing.
@@ -31,9 +37,12 @@ decision only the user can make).
    screenshots so the subject is framed and readable, not merely nonblank.
    Never weaken an existing default gate or repin a failing contract without
    proving the old contract is wrong.
-5. Run [review](../review/SKILL.md) before committing. Apply simplifications
-   found in review, rerun the affected checks, then commit only the focused
-   changes from this pass.
+5. Run [refactor-clean](../refactor-clean/SKILL.md) at the end of every pass,
+   before reviewing: collapse any sediment this pass introduced — dev-only shims,
+   duplicated concepts, parallel abstractions, compatibility wrappers — into the
+   clean contract with one owner, so the code reads as designed today, not tacked
+   on. Then run [review](../review/SKILL.md). Apply the fixes from both, rerun the
+   affected checks, then commit only the focused changes from this pass.
 6. Update the spec README's "Next Agent Prompt": status, completed work, next
    pickup point, blockers, changed gates, and any architecture decision that
    changed the plan.
@@ -44,6 +53,18 @@ decision only the user can make).
 
 ## Rules
 
+- **Delegate independent work to subagents so passes run in parallel.** The
+  spec's dependency graph is the map: whenever two or more slices, branches (e.g.
+  battle vs campaign), sub-slices, replication spikes, or recon tasks have no
+  unmet dependency on each other, hand them to subagents that run concurrently
+  (spawn them in one message) instead of doing them yourself in sequence. Give
+  each subagent its own git worktree when they touch files in parallel so their
+  diffs don't collide, and keep work that shares the same files or API seam on a
+  single agent to avoid merge chaos. Each delegated unit still owns its full pass
+  — implement, verify, refactor-clean, review, focused commit — and you integrate
+  the results, resolve conflicts, rerun the affected gates on the merged tree, and
+  keep the Next Agent Prompt coherent. Only serialize what the graph says must be
+  serial; never idle a lane waiting on an unrelated one.
 - Treat backward compatibility as non-goal for unshipped/dev scaffolding. Delete
   old paths, wrappers, aliases, fallback modes, and stale tests when the new
   architecture replaces them.
@@ -79,9 +100,9 @@ decision only the user can make).
 
 ## Done
 
-A **pass** is done when code, spec handoff, verification evidence, review
-cleanup, and a focused commit all agree on the same current truth — then you
-start the next pass.
+A **pass** is done when code, spec handoff, verification evidence, refactor-clean
+and review cleanup, and a focused commit all agree on the same current truth —
+then you start the next pass.
 
 The **spec** is done — and only then is this skill done — when every slice and
 global TODO is closed, all gates are green, the handoff shows nothing left to

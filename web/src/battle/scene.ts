@@ -19,6 +19,7 @@ import {
   SHOCK_CAV_SIDEARM_CLASS,
 } from "../../../packages/soldier-assets/src/soldierMesh";
 import { BattleRenderer, type BattleTacticalLineFrame } from "./renderer";
+import { BATTLE_CAMERA_RIG_LIMITS, cameraForZoom, type CameraRigRange } from "./cameraRig";
 import {
   CLASS_NAMES,
   UNIT_CLASS_BY_KEY,
@@ -175,9 +176,20 @@ export class BattleScene implements Scene {
     const canvas = document.getElementById("battlefield") as HTMLCanvasElement;
     const camera = new Camera(canvas);
     const renderer = (sharedRenderer ??= new BattleRenderer(canvas));
-    camera.pitch = renderer.pitch;
     renderer.resize(); // the canvas may have been display:none through a window resize
     const STRIDE = game.unit_info_stride();
+    let cameraRigBounds = { width: 1, height: 1 };
+    let cameraRigRange: CameraRigRange = { min: 0.4, max: 8 };
+    const applyBattleCameraRig = () => {
+      const rig = cameraForZoom(camera.zoom, cameraRigRange, cameraRigBounds);
+      camera.pitch = Math.min(
+        BATTLE_CAMERA_RIG_LIMITS.vistaPitch,
+        Math.max(0, rig.pitch + camera.pitchBias),
+      );
+      camera.targetOffset = rig.targetOffset;
+      camera.perspective = rig.perspective;
+      camera.zoomT = rig.zoomT;
+    };
 
     // Open framed to the ARMIES (bbox + margin), not the map: a two-unit
     // duel opens snug on the action; full deployments span the field and
@@ -188,6 +200,7 @@ export class BattleScene implements Scene {
       const ox = game.terrain_origin_x();
       const oy = game.terrain_origin_y();
       camera.bounds = [ox, oy, ox + mapW, oy + mapH];
+      cameraRigBounds = { width: mapW, height: mapH };
       const info = unitInfo();
       let [x0, y0, x1, y1] = [Infinity, Infinity, -Infinity, -Infinity];
       for (let u = 0; u < game.unit_count(); u++) {
@@ -199,22 +212,29 @@ export class BattleScene implements Scene {
       }
       const dpr = window.devicePixelRatio || 1;
       const mapZoom = (canvas.clientHeight * dpr) / Math.min(mapH * 0.62, 1000);
+      const topDownCos = Math.max(0.2, Math.cos(BATTLE_CAMERA_RIG_LIMITS.topDownPitch));
+      const tacticalZoom = Math.min(
+        (canvas.clientWidth * dpr) / mapW,
+        (canvas.clientHeight * dpr) / topDownCos / mapH,
+      );
+      cameraRigRange = { min: Math.max(0.4, tacticalZoom), max: Math.max(8, tacticalZoom * 6) };
       const fit = Number.isFinite(x0)
         ? Math.min(
             (canvas.clientWidth * dpr) / (x1 - x0 + 130),
             (canvas.clientHeight * dpr) / (y1 - y0 + 130),
           )
         : 0;
+      const initialCenter: [number, number] =
+        fit > mapZoom ? [(x0 + x1) / 2, (y0 + y1) / 2] : [camera.x, -0.27 * mapH];
       if (fit > mapZoom) {
         // Small field (duels, sandboxes): open snug on the action.
-        camera.x = (x0 + x1) / 2;
-        camera.y = (y0 + y1) / 2;
         camera.zoom = Math.min(fit, 6);
       } else {
         // Full deployment: open behind your own line, framed to the map.
-        camera.y = -0.27 * mapH;
         camera.zoom = mapZoom;
       }
+      applyBattleCameraRig();
+      camera.setViewCenter(initialCenter[0], initialCenter[1]);
       camera.clampView();
     }
 
@@ -339,8 +359,11 @@ export class BattleScene implements Scene {
         const r = minimap.getBoundingClientRect();
         const fx = (e.clientX - r.left) / r.width;
         const fy = (e.clientY - r.top) / r.height;
-        camera.x = game.terrain_origin_x() + fx * game.terrain_w() * game.terrain_cell();
-        camera.y = game.terrain_origin_y() + (1 - fy) * game.terrain_h() * game.terrain_cell();
+        camera.setViewCenter(
+          game.terrain_origin_x() + fx * game.terrain_w() * game.terrain_cell(),
+          game.terrain_origin_y() + (1 - fy) * game.terrain_h() * game.terrain_cell(),
+        );
+        camera.clampView();
       },
       { signal },
     );
@@ -827,7 +850,7 @@ export class BattleScene implements Scene {
         myUnits(units).forEach((u) => game.set_fire_at_will(u, fireOn ? 1 : 0));
       },
     };
-    const input = new Input(canvas, camera, sink, signal);
+    const input = new Input(canvas, camera, sink, signal, applyBattleCameraRig);
     let pursueOn = false;
     let fireOn = true;
     updateToolbar(); // initial React paint now that paused/timeScale/showPaths/fireOn exist
@@ -841,8 +864,7 @@ export class BattleScene implements Scene {
       input.selected = additive ? Array.from(new Set([...input.selected, unit])) : [unit];
       // Centre the camera on the picked unit, like clicking its banner.
       const [cx, cy] = unitCenter(unit);
-      camera.x = cx;
-      camera.y = cy;
+      camera.setViewCenter(cx, cy);
       camera.clampView();
     };
     handleCardSelect = onCardSelect;
@@ -1168,6 +1190,7 @@ export class BattleScene implements Scene {
       fpsAvg += (1 / Math.max(frameDt, 1e-4) - fpsAvg) * 0.05;
 
       // Pan in the view's rotated frame so W/S/A/D track the screen at any yaw.
+      applyBattleCameraRig();
       camera.panWorld(input.panX * frameDt, input.panY * frameDt);
 
       accumulator += paused ? 0 : frameDt * timeScale;

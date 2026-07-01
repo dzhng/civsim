@@ -1,0 +1,91 @@
+{
+  "kind": "screenshot-parity-diff",
+  "generatedAt": "2026-07-01T00:55:28.350Z",
+  "note": "Lower parityDistance means the candidate is closer to the reference for this fixed pair. This is a distance metric, not an acceptance gate.",
+  "pairCount": 1,
+  "worstPair": "fiber-shell",
+  "results": [
+    {
+      "id": "fiber-shell",
+      "current": "specs/battle-map-reference/assets/03b4-evidence/03b4c3-fiber-visibility-and-shading/compare/off/fiber-shell.png",
+      "candidate": "specs/battle-map-reference/assets/03b4-evidence/03b4c3-fiber-visibility-and-shading/compare/normal/fiber-shell.png",
+      "dimensions": {
+        "width": 1638,
+        "height": 800
+      },
+      "parityDistance": 0.00029,
+      "grayscale": {
+        "mae": 0.00089,
+        "rmse": 0.08519,
+        "diffRatio16": 0,
+        "diffRatio32": 0,
+        "diffRatio64": 0,
+        "pixelmatchRatio": 0
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.80136,
+        "terrainLikeRatioCandidate": 0.80136,
+        "avgLuminanceCurrent": 155.7978,
+        "avgLuminanceCandidate": 155.79869,
+        "avgLuminanceDelta": 0.00089,
+        "edgeEnergyCurrent": 0.02388,
+        "edgeEnergyCandidate": 0.02391,
+        "edgeEnergyRatio": 1.00131,
+        "edgeDiffRatio32": 0.00001
+      },
+      "artifacts": {
+        "sideBySide": "off-vs-normal-foreground/fiber-shell-side-by-side.png",
+        "currentGray": "off-vs-normal-foreground/fiber-shell-current-gray.png",
+        "candidateGray": "off-vs-normal-foreground/fiber-shell-candidate-gray.png",
+        "absDiff": "off-vs-normal-foreground/fiber-shell-absdiff.png",
+        "pixelmatch": "off-vs-normal-foreground/fiber-shell-pixelmatch.png",
+        "currentEdges": "off-vs-normal-foreground/fiber-shell-current-edges.png",
+        "candidateEdges": "off-vs-normal-foreground/fiber-shell-candidate-edges.png",
+        "edgeDiff": "off-vs-normal-foreground/fiber-shell-edge-diff.png"
+      },
+      "worldCrop": {
+        "label": "foreground grass band",
+        "bounds": {
+          "x": 0,
+          "y": 496,
+          "width": 1638,
+          "height": 272
+        },
+        "parityDistance": 0.00081,
+        "grayscale": {
+          "mae": 0.00227,
+          "rmse": 0.13626,
+          "diffRatio16": 0,
+          "diffRatio32": 0,
+          "diffRatio64": 0,
+          "pixelmatchRatio": 0
+        },
+        "contentProxies": {
+          "blackRatioCurrent": 0,
+          "blackRatioCandidate": 0,
+          "terrainLikeRatioCurrent": 1,
+          "terrainLikeRatioCandidate": 1,
+          "avgLuminanceCurrent": 127.70377,
+          "avgLuminanceCandidate": 127.70603,
+          "avgLuminanceDelta": 0.00226,
+          "edgeEnergyCurrent": 0.02138,
+          "edgeEnergyCandidate": 0.02146,
+          "edgeEnergyRatio": 1.00371,
+          "edgeDiffRatio32": 0.00002
+        },
+        "artifacts": {
+          "sideBySide": "off-vs-normal-foreground/fiber-shell-world-crop-side-by-side.png",
+          "currentGray": "off-vs-normal-foreground/fiber-shell-world-crop-current-gray.png",
+          "candidateGray": "off-vs-normal-foreground/fiber-shell-world-crop-candidate-gray.png",
+          "absDiff": "off-vs-normal-foreground/fiber-shell-world-crop-absdiff.png",
+          "pixelmatch": "off-vs-normal-foreground/fiber-shell-world-crop-pixelmatch.png",
+          "currentEdges": "off-vs-normal-foreground/fiber-shell-world-crop-current-edges.png",
+          "candidateEdges": "off-vs-normal-foreground/fiber-shell-world-crop-candidate-edges.png",
+          "edgeDiff": "off-vs-normal-foreground/fiber-shell-world-crop-edge-diff.png"
+        }
+      }
+    }
+  ]
+}

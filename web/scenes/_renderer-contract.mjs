@@ -166,6 +166,8 @@ export function hasBattleWorldDepthContract(renderStats) {
     ) &&
     hasFrameDepthPass(renderStats?.phases, "battle-skinned-crowd", "read-write") &&
     hasFramePassRole(renderStats?.phases, "battle-skinned-crowd", "world-opaque", "world-depth") &&
+    hasFrameDepthPass(renderStats?.phases, "battle-soldier-shadows", "read") &&
+    hasFramePassRole(renderStats?.phases, "battle-soldier-shadows", "world-decal", "world-depth") &&
     hasFrameDepthPass(renderStats?.phases, "battle-ground-cues", "read") &&
     hasFramePassRole(renderStats?.phases, "battle-ground-cues", "world-decal", "world-depth") &&
     hasFramePass(renderStats?.phases, "battle-effect-lines", "overlay") &&
@@ -193,10 +195,14 @@ export function hasCampaignWorldDepthContract(stats) {
     hasFramePassRole(stats?.phases, "campaign-scenery-opaque", "world-opaque", "world-depth") &&
     hasFrameDepthPass(stats?.phases, "campaign-entities-opaque", "read-write") &&
     hasFramePassRole(stats?.phases, "campaign-entities-opaque", "world-opaque", "world-depth") &&
+    hasFrameDepthPass(stats?.phases, "campaign-soldier-crowd", "read-write") &&
+    hasFramePassRole(stats?.phases, "campaign-soldier-crowd", "world-opaque", "world-depth") &&
     hasFrameDepthPass(stats?.phases, "campaign-scenery-shadows", "read") &&
     hasFramePassRole(stats?.phases, "campaign-scenery-shadows", "world-decal", "world-depth") &&
     hasFrameDepthPass(stats?.phases, "campaign-entity-shadows", "read") &&
     hasFramePassRole(stats?.phases, "campaign-entity-shadows", "world-decal", "world-depth") &&
+    hasFrameDepthPass(stats?.phases, "campaign-soldier-shadows", "read") &&
+    hasFramePassRole(stats?.phases, "campaign-soldier-shadows", "world-decal", "world-depth") &&
     hasFrameDepthPass(stats?.phases, "campaign-roads", "read") &&
     hasFramePassRole(stats?.phases, "campaign-roads", "world-decal", "world-depth") &&
     hasFrameDepthPass(stats?.phases, "campaign-sea-lanes-depth", "read") &&

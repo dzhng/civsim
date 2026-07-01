@@ -1,6 +1,6 @@
 ---
 name: feature-slicing
-description: Break large features into independently verifiable, human-reviewable slices under specs/<feature>/. Use for risky or multi-step feature work that needs upfront questioning, API seams, browser-playable checkpoints, HTML visualizations, screenshot gates, staged implementation plans, or reslicing when implementation reveals a slice is bigger than expected. Pairs with [write-scene](../write-scene/SKILL.md) and [screenshot-regression](../screenshot-regression/SKILL.md) (the browser checkpoints and screenshot gates) and [review](../review/SKILL.md) (audit each slice before it lands).
+description: Break large features into independently verifiable, human-reviewable slices under specs/<feature>/. Use for risky or multi-step feature work that needs upfront questioning, API seams, browser-playable checkpoints, HTML visualizations, screenshot gates, staged implementation plans, recursive fog-of-war reslicing, or proactive research into reference implementations/best practices before slicing. Pairs with [write-scene](../write-scene/SKILL.md) and [screenshot-regression](../screenshot-regression/SKILL.md) (the browser checkpoints and screenshot gates), [refactor-clean](../refactor-clean/SKILL.md) (review the materialized spec so the plan describes one-owner architecture, not the feature bolted on), and [review](../review/SKILL.md) (audit each slice before it lands).
 ---
 
 # Feature Slicing
@@ -22,35 +22,50 @@ whole feature is done.
    fixtures, and tests at the seam. If a slice needs three unrelated systems
    booted before it can be checked, sharpen the seam.
 
-3. **Make progress visible.** For visual or interactive work, every slice
+3. **Research the fog.** When the feature depends on an unfamiliar domain,
+   high-fidelity visual target, named reference, benchmark, external repo,
+   library, or "how do people usually do this?" question, do targeted online
+   research before finalizing slices. Prefer primary sources: official docs,
+   source repos, papers, case studies, talks, and shipped examples. If a
+   reference implementation exists, add a replication spike before translation
+   or approximation.
+
+4. **Make progress visible.** For visual or interactive work, every slice
    should produce something playable: a route, fixture page, harness, CLI
    probe, or HTML visualization the human can run, inspect, screenshot, and
    critique. Tests prove contracts; demos expose taste and intent.
 
-4. **Optimize feedback loops.** Slice so the next useful question can be
+5. **Optimize feedback loops.** Slice so the next useful question can be
    answered quickly. Prefer tiny runnable surfaces, hot-reloadable harnesses,
    sample fixtures, and self-contained workbenches over plans that require the
    whole feature to exist before anyone can learn from it. For asset-heavy
    work, plan an asset app/workbench where humans and artists can add samples,
    upload replacements, preview them live, and see validation failures fast.
 
-5. **Use the repo's natural shape.** If the repo is a monorepo, plan apps and
+6. **Use the repo's natural shape.** If the repo is a monorepo, plan apps and
    packages instead of forcing everything into the current app. Give each
    testable surface a first-class route or command; avoid piling new behavior
    behind opaque query flags when a small dedicated app would be clearer.
 
-6. **Do not block on missing inputs.** If art, data, credentials, or external
+7. **Do not block on missing inputs.** If art, data, credentials, or external
    assets are missing, plan generated placeholders plus a replacement contract.
    The feature should advance with placeholders, while a separate handoff path
    explains exactly what the human or external partner must provide later.
 
-7. **Draft in parallel, then synthesize.** For any multi-slice feature, don't
+8. **Draft in parallel, then synthesize.** For any multi-slice feature, don't
    trust one pass to find the right cut. Fan out a few independent drafts and
    merge the best into one plan (see the Workflow). Divergence is the point:
    blind drafts surface slices, seams, and risks a lone plan misses — and where
    they independently agree, you know the cut is solid.
 
-8. **One visual variable per slice.** Visual slices fail when they ask one pass
+9. **Recursively uncover fog of war.** The first slice graph is a scouting pass,
+   not proof the field is known. After drafting, inspect each high-risk slice as
+   if it were its own feature. If it hides multiple variables, unknown external
+   practice, unproven architecture, or "we'll figure it out during
+   implementation," reslice that subset and repeat until every next slice has
+   one question, one seam, one review surface, and one verdict.
+
+10. **One visual variable per slice.** Visual slices fail when they ask one pass
    to match the final hero image. Split by the thing being judged: density,
    silhouette, colour, texture, lighting, fog, water placement, water material,
    label legibility, animation rhythm. Each slice gets a crop/mask and a verdict
@@ -62,7 +77,12 @@ whole feature is done.
 1. **Interview:** keep asking until you can name the slices without
    hand-waving. Stop when remaining unknowns can safely be discovered by the
    first slice.
-2. **Draft in parallel:** for a multi-slice feature, spawn **three independent
+2. **Research:** inspect the repo and research unfamiliar external practice
+   before drafting when the feature names a reference, library, technique,
+   standard, visual target, or performance pattern. Capture the discovered
+   source/repo/article/paper links in the spec and turn any exemplar into a
+   reproduction spike before a porting slice.
+3. **Draft in parallel:** for a multi-slice feature, spawn **three independent
    subagents** to draft the whole plan — fresh context each, a git worktree
    apiece if they must run or build to validate, otherwise have them return the
    plan inline. Give each the *same* brief from the interview and nothing else
@@ -72,7 +92,7 @@ whole feature is done.
    dependencies, API seams, playable deliverables, verification gates, and human
    review checkpoints. Skip the fan-out only for a genuinely single-slice
    problem.
-3. **Synthesize:** read every draft and build the canonical plan yourself —
+4. **Synthesize:** read every draft and build the canonical plan yourself —
    don't anoint one. Take the strongest slicing, union the seams, risks, and
    firewalls each caught alone, and where drafts disagree pick the
    better-justified call and record the genuine alternative for the human. Where
@@ -87,13 +107,32 @@ whole feature is done.
    [compare-screenshots](../compare-screenshots/SKILL.md) as the gate that judges
    candidate-against-target: the telemetry and less-wrong verdict that
    screenshot-critique's single-shot eyes do not give.
-4. **Materialize:** create `specs/<feature>/` when the feature has more than
+5. **Recursive fog audit:** review the canonical graph slice by slice. For any
+   slice with hidden variables, broad verbs ("make it realistic", "match the
+   reference", "add the backend"), missing research, or more than one visual
+   variable/API seam, run this same slicing logic on that slice as a sub-feature.
+   Keep repeating until the next implementation slice can be accepted or rejected
+   by one focused artifact. Record deferred variables as later slices, not prose
+   inside the current slice.
+6. **Materialize:** create `specs/<feature>/` when the feature has more than
    one slice or needs assets/visualizations.
-5. **Build slice by slice:** leave each slice with a runnable artifact and
+7. **Refactor-clean the plan:** run [refactor-clean](../refactor-clean/SKILL.md)
+   over the materialized spec — the plan is architecture too, and it must describe
+   the shape the codebase would want if designed today, not the old shape with the
+   feature bolted on. Name each concept that should have one owner (projection,
+   environment, data contract, renderer phase, state machine, test oracle) and
+   confirm no slice introduces a parallel abstraction, duplicated concept, or
+   compatibility layer that a later slice must delete. Any transitional scaffolding
+   a slice genuinely needs must be named as a short-lived seam with an explicit
+   removal condition and the slice that removes it — collapsed the instant its
+   consumers migrate, never carried to the end by default. Encode the resulting
+   single-owner invariants and the end-state ("reads as designed today, not tacked
+   on") in the README so every implementing pass inherits them.
+8. **Build slice by slice:** leave each slice with a runnable artifact and
    verification before depending on it. Keep each artifact small enough to
    iterate on quickly. Keep the README's "Next Agent Prompt" written as the
    handoff text a future agent should read and follow.
-6. **Reslice when the work says so:** if implementation hits a snag and the slice
+9. **Reslice when the work says so:** if implementation hits a snag and the slice
    starts changing unrelated variables, stop broadening the patch. Update the spec
    first: split the slice into smaller contracts, name the frozen inputs, move the
    extra visual variables to later slices, and rewrite the Next Agent Prompt to

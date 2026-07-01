@@ -14,3 +14,13 @@ const WATER_DEEP_ALBEDO = vec3f(0.02, 0.07, 0.19);    // deep blue
 const WATER_FOAM_ALBEDO = vec3f(0.92, 0.93, 0.94);    // white spray (lit by the preset)
 const WATER_GLINT_GAIN = 1.1;                          // specular strength; colour = the sun's
 `;
+
+// The campaign strategic sea's albedo — a MUTED, slightly-desaturated chart blue,
+// NOT the saturated battle sea (the campaign is an antique painted chart, and the
+// deep-ocean reference is explicitly not its target). This is the 4th and last inline
+// water-colour site collapsed into the palette; `mapPass` mixes shallow→deep by its
+// own shelf term and lays the subtle animated glint/foam over it.
+export const CAMPAIGN_SEA_PALETTE_WGSL = `
+const CAMPAIGN_SEA_SHALLOW = vec3f(0.40, 0.56, 0.64);
+const CAMPAIGN_SEA_DEEP = vec3f(0.16, 0.30, 0.44);
+`;

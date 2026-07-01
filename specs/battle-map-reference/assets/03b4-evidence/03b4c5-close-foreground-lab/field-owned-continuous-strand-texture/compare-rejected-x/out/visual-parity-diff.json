@@ -1,0 +1,91 @@
+{
+  "kind": "screenshot-parity-diff",
+  "generatedAt": "2026-07-01T16:21:55.270Z",
+  "note": "Lower parityDistance means the candidate is closer to the reference for this fixed pair. This is a distance metric, not an acceptance gate.",
+  "pairCount": 2,
+  "worstPair": "continuous-nap-fine",
+  "results": [
+    {
+      "id": "continuous-nap-fine",
+      "current": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/field-owned-continuous-strand-texture/compare-rejected-x/reference/continuous-nap-fine.png",
+      "candidate": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/field-owned-continuous-strand-texture/compare-rejected-x/candidate/continuous-nap-fine.png",
+      "dimensions": {
+        "width": 760,
+        "height": 180
+      },
+      "parityDistance": 0.16178,
+      "grayscale": {
+        "mae": 3.76318,
+        "rmse": 5.99712,
+        "diffRatio16": 0.03276,
+        "diffRatio32": 0.00491,
+        "diffRatio64": 0,
+        "pixelmatchRatio": 0.02697
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.0367,
+        "terrainLikeRatioCandidate": 0,
+        "avgLuminanceCurrent": 117.57883,
+        "avgLuminanceCandidate": 114.0697,
+        "avgLuminanceDelta": -3.50913,
+        "edgeEnergyCurrent": 0.00787,
+        "edgeEnergyCandidate": 0.01688,
+        "edgeEnergyRatio": 2.14516,
+        "edgeDiffRatio32": 0.01327
+      },
+      "artifacts": {
+        "sideBySide": "out/continuous-nap-fine-side-by-side.png",
+        "currentGray": "out/continuous-nap-fine-current-gray.png",
+        "candidateGray": "out/continuous-nap-fine-candidate-gray.png",
+        "absDiff": "out/continuous-nap-fine-absdiff.png",
+        "pixelmatch": "out/continuous-nap-fine-pixelmatch.png",
+        "currentEdges": "out/continuous-nap-fine-current-edges.png",
+        "candidateEdges": "out/continuous-nap-fine-candidate-edges.png",
+        "edgeDiff": "out/continuous-nap-fine-edge-diff.png"
+      }
+    },
+    {
+      "id": "continuous-nap-field",
+      "current": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/field-owned-continuous-strand-texture/compare-rejected-x/reference/continuous-nap-field.png",
+      "candidate": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/field-owned-continuous-strand-texture/compare-rejected-x/candidate/continuous-nap-field.png",
+      "dimensions": {
+        "width": 760,
+        "height": 180
+      },
+      "parityDistance": 0.08923,
+      "grayscale": {
+        "mae": 3.48411,
+        "rmse": 5.78661,
+        "diffRatio16": 0.03295,
+        "diffRatio32": 0.00307,
+        "diffRatio64": 0,
+        "pixelmatchRatio": 0.02779
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.0367,
+        "terrainLikeRatioCandidate": 0,
+        "avgLuminanceCurrent": 117.57883,
+        "avgLuminanceCandidate": 114.3378,
+        "avgLuminanceDelta": -3.24103,
+        "edgeEnergyCurrent": 0.00787,
+        "edgeEnergyCandidate": 0.01127,
+        "edgeEnergyRatio": 1.43269,
+        "edgeDiffRatio32": 0.0136
+      },
+      "artifacts": {
+        "sideBySide": "out/continuous-nap-field-side-by-side.png",
+        "currentGray": "out/continuous-nap-field-current-gray.png",
+        "candidateGray": "out/continuous-nap-field-candidate-gray.png",
+        "absDiff": "out/continuous-nap-field-absdiff.png",
+        "pixelmatch": "out/continuous-nap-field-pixelmatch.png",
+        "currentEdges": "out/continuous-nap-field-current-edges.png",
+        "candidateEdges": "out/continuous-nap-field-candidate-edges.png",
+        "edgeDiff": "out/continuous-nap-field-edge-diff.png"
+      }
+    }
+  ]
+}

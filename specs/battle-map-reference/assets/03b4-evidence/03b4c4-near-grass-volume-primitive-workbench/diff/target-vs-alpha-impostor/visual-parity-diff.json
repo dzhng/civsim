@@ -1,0 +1,91 @@
+{
+  "kind": "screenshot-parity-diff",
+  "generatedAt": "2026-07-01T01:39:36.697Z",
+  "note": "Lower parityDistance means the candidate is closer to the reference for this fixed pair. This is a distance metric, not an acceptance gate.",
+  "pairCount": 2,
+  "worstPair": "midground",
+  "results": [
+    {
+      "id": "midground",
+      "current": "../../../../private/tmp/civsim-03b4c4-crops/target/midground.png",
+      "candidate": "../../../../private/tmp/civsim-03b4c4-crops/alpha-impostor/midground.png",
+      "dimensions": {
+        "width": 780,
+        "height": 87
+      },
+      "parityDistance": 0.64655,
+      "grayscale": {
+        "mae": 52.48098,
+        "rmse": 58.35551,
+        "diffRatio16": 0.90408,
+        "diffRatio32": 0.72146,
+        "diffRatio64": 0.38108,
+        "pixelmatchRatio": 0.8342
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.68236,
+        "terrainLikeRatioCandidate": 1,
+        "avgLuminanceCurrent": 176.59211,
+        "avgLuminanceCandidate": 130.77276,
+        "avgLuminanceDelta": -45.81935,
+        "edgeEnergyCurrent": 0.06846,
+        "edgeEnergyCandidate": 0.03351,
+        "edgeEnergyRatio": 0.4895,
+        "edgeDiffRatio32": 0.14195
+      },
+      "artifacts": {
+        "sideBySide": "target-vs-alpha-impostor/midground-side-by-side.png",
+        "currentGray": "target-vs-alpha-impostor/midground-current-gray.png",
+        "candidateGray": "target-vs-alpha-impostor/midground-candidate-gray.png",
+        "absDiff": "target-vs-alpha-impostor/midground-absdiff.png",
+        "pixelmatch": "target-vs-alpha-impostor/midground-pixelmatch.png",
+        "currentEdges": "target-vs-alpha-impostor/midground-current-edges.png",
+        "candidateEdges": "target-vs-alpha-impostor/midground-candidate-edges.png",
+        "edgeDiff": "target-vs-alpha-impostor/midground-edge-diff.png"
+      }
+    },
+    {
+      "id": "foreground",
+      "current": "../../../../private/tmp/civsim-03b4c4-crops/target/foreground.png",
+      "candidate": "../../../../private/tmp/civsim-03b4c4-crops/alpha-impostor/foreground.png",
+      "dimensions": {
+        "width": 780,
+        "height": 147
+      },
+      "parityDistance": 0.47619,
+      "grayscale": {
+        "mae": 28.61416,
+        "rmse": 33.96418,
+        "diffRatio16": 0.71176,
+        "diffRatio32": 0.40401,
+        "diffRatio64": 0.04122,
+        "pixelmatchRatio": 0.60791
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.99797,
+        "terrainLikeRatioCandidate": 1,
+        "avgLuminanceCurrent": 149.27794,
+        "avgLuminanceCandidate": 127.51227,
+        "avgLuminanceDelta": -21.76566,
+        "edgeEnergyCurrent": 0.08236,
+        "edgeEnergyCandidate": 0.02786,
+        "edgeEnergyRatio": 0.33826,
+        "edgeDiffRatio32": 0.13123
+      },
+      "artifacts": {
+        "sideBySide": "target-vs-alpha-impostor/foreground-side-by-side.png",
+        "currentGray": "target-vs-alpha-impostor/foreground-current-gray.png",
+        "candidateGray": "target-vs-alpha-impostor/foreground-candidate-gray.png",
+        "absDiff": "target-vs-alpha-impostor/foreground-absdiff.png",
+        "pixelmatch": "target-vs-alpha-impostor/foreground-pixelmatch.png",
+        "currentEdges": "target-vs-alpha-impostor/foreground-current-edges.png",
+        "candidateEdges": "target-vs-alpha-impostor/foreground-candidate-edges.png",
+        "edgeDiff": "target-vs-alpha-impostor/foreground-edge-diff.png"
+      }
+    }
+  ]
+}

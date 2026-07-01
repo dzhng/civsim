@@ -1,52 +1,41 @@
-# Slice 04 — terrain relief + ground grade
+# Slice 04A — valley relief and foreground hummock silhouette
 
-## Contract unlocked
+## Contract
 
-The reference's deep rolling valley and smooth green hummocks under the grass,
-instead of near-flat ground — plus a warm ground grade so the lush reference read
-sits in the Aegean register.
+Shape the shared heightfield so the reference view has a readable valley drop,
+rolling foreground hummock, and midground recession. This slice is about large
+terrain form only.
 
-## API seam
+## Fixed Inputs
 
-Raise relief through the **existing** height path — never a second source:
+- Grass density/texture from Slice 03B/03C is frozen.
+- Cliff silhouette/texture, sky, distance fog, water, and final composition stay
+  fixed unless they prevent a fair terrain-form crop.
+- `terrainHeightAt` remains the single height source. Soldiers, shadows, props, and
+  grass must ride the same surface.
 
-- Tune `verticalScale` / add a render-side mesoscale displacement layer feeding the
-  `TerrainHeightField` before upload in `web/src/battle/renderer.ts` (render-only,
-  grilling Q4), **or** author the height into the map catalog for `highland-valley`.
-- Keep `terrainHeightAt` the single source so crowd, shadows, scenery, and grass all
-  ride the same surface. If shaping is render-only, document that soldiers follow it
-  because they read the same field.
-- Tune `BattleGroundPass`'s **neutral** ground albedo / churn for the smoother
-  hummocky read — the warm/cool grade is the Slice 06 lighting preset, not baked here.
+## Accept / Reject
 
-`TerrainHeightField`'s typed shape is unchanged; only its contents get more relief.
+Use `compare-screenshots` crops focused on:
 
-## What the human can run / see
+- foreground hummock silhouette and slope direction;
+- central valley recession;
+- broad landform bands under the grass.
 
-`renderer/battle-terrain-3d?gate=<map>` and `renderer/battle-terrain-elevation`
-show deeper relief; gameplay battles on this map roll.
+Do **not** judge cliff face shape, cliff texture, fog strength, water material, or
+grass colour here. If those are visibly wrong, record them as later-slice debt.
 
 ## Verification
 
-- `heightSpan` stays in the readable band (existing assert: `> 5 && < 40`); widen
-  only with written justification and re-pin the test if the vista genuinely needs
-  more.
-- **Seating regression is the hard gate:** `battle-terrain-elevation` proves
-  soldiers/shadows/props seat on the new surface (no floaters, no clipping).
-- Snapshot the elevation/terrain-3d shots.
+- `heightSpan` remains in the readable band (`> 5 && < 40`) unless the slice records
+  a specific reason to widen it.
+- `battle-terrain-elevation` proves soldiers/shadows/props seat on the new surface.
+- `battle-terrain-3d` and `battle-map-reference` snapshots update intentionally.
+- Run the neutral review/screenshot critique with a prompt scoped to valley relief
+  and hummock silhouette only.
+- `edgeSealMismatches` stays empty.
 
-## Screenshot-critique
+## Next Slice
 
-**Required:** do the hills read as natural relief — like the reference's hummocks —
-rather than lumpy noise, and does unit movement still read?
-
-## Must stay green
-
-`battle-terrain-elevation`, `battle-terrain-3d` seating checks; `edgeSealMismatches`
-empty; `cargo` (sim height untouched if render-only). Relief must not create
-impassable steps the sim disagrees with.
-
-## Human feedback that would reshape this slice
-
-Hill placement / amplitude / wavelength; whether relief is render-only or
-sim-backed.
+After the terrain silhouette is accepted, freeze the height profile and tune ground
+grade/texture in `04b-ground-grade-texture.md`.

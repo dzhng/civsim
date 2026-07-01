@@ -373,6 +373,7 @@ export class CampaignScene implements Scene {
         radius: source.r,
       })),
       factionView: this.factionView,
+      stackUnitCap: this.stackUnitCap,
     });
   }
 

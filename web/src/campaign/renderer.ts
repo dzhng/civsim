@@ -39,6 +39,16 @@ import {
   type WorldRenderPass,
 } from "../../../packages/renderer-core/src/frameShell";
 import { screenToWorld, world3dToScreen } from "../../../packages/renderer-core/src/cameraUniform";
+import { SkinnedCrowdPipeline } from "../../../packages/renderer-core/src/skinnedPipeline";
+import { SoldierShadowDecalPass } from "../../../packages/renderer-core/src/soldierShadowPass";
+import { buildStackCrowd } from "../../../packages/crowd-runtime/src/stackCrowd";
+import type { CrowdInstance } from "../../../packages/crowd-runtime/src/instanceData";
+import {
+  loadPlaceholderKit,
+  loadPlaceholderVat,
+  mountedClassesFromKit,
+} from "../../../packages/soldier-assets/src/placeholders";
+import { createPlaceholderSoldierMeshes } from "../../../packages/soldier-assets/src/soldierMesh";
 import type { CampaignData, MapNode } from "./data";
 import { isControlledStage } from "./data";
 import type { CamView } from "./camera";
@@ -60,6 +70,8 @@ interface DrawOptions {
   fogOfWar: boolean;
   visionSources: CampaignFogSource[];
   factionView: boolean;
+  /** ARMY_STACK_UNIT_CAP — a full stack shows the max representative figures. */
+  stackUnitCap: number;
 }
 
 export class CampaignRenderer {
@@ -78,6 +90,9 @@ export class CampaignRenderer {
   private markers: CampaignMarkerPass | null = null;
   private scenery: CampaignSceneryPass | null = null;
   private entities: CampaignEntityPass | null = null;
+  private soldierCrowd: SkinnedCrowdPipeline | null = null;
+  private soldierShadows: SoldierShadowDecalPass | null = null;
+  private mountedClasses: number[] = [];
   private selection: CampaignSelectionPass | null = null;
   private labels: CampaignLabelPass | null = null;
   private surface: CampaignSurface;
@@ -203,6 +218,8 @@ export class CampaignRenderer {
       !this.markers ||
       !this.scenery ||
       !this.entities ||
+      !this.soldierCrowd ||
+      !this.soldierShadows ||
       !this.selection ||
       !this.labels
     )
@@ -219,11 +236,17 @@ export class CampaignRenderer {
     };
     this.shell.setCamera(this.currentCamera);
     const buildStart = performance.now();
-    const frame = buildEntityFrame(this.data, this.field, opts);
+    const animTime = this.fixedTime ?? performance.now() / 1000;
+    const frame = buildEntityFrame(this.data, this.field, opts, this.mountedClasses, animTime);
     const buildEnd = performance.now();
     this.lastEntities = { cityEntities: frame.cityEntities, armyEntities: frame.armyEntities };
     const uploadStart = performance.now();
-    const sceneryTime = this.fixedTime ?? performance.now() / 1000;
+    // One clock drives every animated surface: crawling scenery, the subtle sea
+    // shimmer in mapPass (cam.time), and the soldier-crowd VAT phase. Frozen
+    // snapshots pin fixedTime = 0, so the sea's cam.time term is 0 and the map
+    // stays byte-identical; runtime advances it live.
+    const sceneryTime = animTime;
+    this.shell.setTime(sceneryTime);
     this.scenery.upload(
       campaignScenery(
         this.sceneryCandidates,
@@ -232,6 +255,10 @@ export class CampaignRenderer {
       ).concat(campaignRoadCarts(this.data, this.field, sceneryTime, opts)),
     );
     this.entities.upload(frame.entities);
+    this.soldierCrowd.upload(frame.crowd, { size: CAMPAIGN_FIGURE_SIZE });
+    // The grounding shadow radius must track the figure size, or a 2.4x-scaled
+    // soldier's default-radius shadow hides under its own body.
+    this.soldierShadows.upload(frame.crowd, { radius: 0.62 * CAMPAIGN_FIGURE_SIZE });
     this.selection.upload(frame.selections);
     this.markers.upload(campaignMapMarkers(this.data, opts));
     this.lastFog = { enabled: opts.fogOfWar, sources: opts.visionSources };
@@ -271,6 +298,13 @@ export class CampaignRenderer {
         depth: "read-write",
         draw: (pass) => this.entities!.drawOpaque(pass),
       },
+      {
+        id: "campaign-soldier-crowd",
+        role: "world-opaque",
+        phase: "world-depth",
+        depth: "read-write",
+        draw: (pass) => this.soldierCrowd!.draw(pass),
+      },
       ...(opts.factionView
         ? [
             {
@@ -306,6 +340,13 @@ export class CampaignRenderer {
         phase: "world-depth",
         depth: "read",
         draw: (pass) => this.entities!.drawShadows(pass),
+      },
+      {
+        id: "campaign-soldier-shadows",
+        role: "world-decal",
+        phase: "world-depth",
+        depth: "read",
+        draw: (pass) => this.soldierShadows!.draw(pass),
       },
       {
         id: "campaign-roads",
@@ -482,6 +523,20 @@ export class CampaignRenderer {
     this.scenery = new CampaignSceneryPass(this.shell);
     this.sceneryCandidates = buildCampaignSceneryCandidates(this.data, this.field);
     this.entities = new CampaignEntityPass(this.shell);
+    // The shared skinned soldier renderer, on campaign depth. Army stacks draw a
+    // small representative crowd through the SAME pipeline/meshes/VATs/shadow as
+    // battle (buildStackCrowd feeds it per stack); the entity pass now only draws
+    // the city and the army's standard banner.
+    const soldierKit = await loadPlaceholderKit();
+    this.mountedClasses = mountedClassesFromKit(soldierKit);
+    this.soldierCrowd = new SkinnedCrowdPipeline(
+      this.shell,
+      createPlaceholderSoldierMeshes([0.3, 0.36, 0.74]),
+      await loadPlaceholderVat(),
+      soldierKit,
+      { worldDepth: "campaign" },
+    );
+    this.soldierShadows = new SoldierShadowDecalPass(this.shell, { worldDepth: "campaign" });
     this.selection = new CampaignSelectionPass(this.shell);
     this.labels = new CampaignLabelPass(this.shell);
     const drawData = buildCampaignMapDrawData(this.data, {
@@ -507,6 +562,27 @@ function roundMs(value: number) {
 
 const CAMPAIGN_CLOSE_PITCH = 0.82;
 
+// Representative figures are drawn larger than battle soldiers (size 1) so they
+// read at the strategic camera; tuned against the campaign-models 'army' zoom.
+// Exported so the renderer-lab 'army' review surface tracks production by
+// construction instead of re-hardcoding the size/spacing/shadow-radius.
+export const CAMPAIGN_FIGURE_SIZE = 2.4;
+
+// Zoom LOD for the army-stack figures. Below FIGURE_FAR_ZOOM the stack shows the
+// standard banner alone (figures would be sub-readable and cost draw calls over
+// the whole map); the figure count ramps to CAMPAIGN_MAX_FIGURES as the camera
+// closes past FIGURE_NEAR_ZOOM. (Campaign zoom runs ~0.16 whole-map to ~6 close.)
+const CAMPAIGN_MAX_FIGURES = 6;
+const FIGURE_FAR_ZOOM = 1.4;
+const FIGURE_NEAR_ZOOM = 3.6;
+
+// Allegiance → the crowd shader's faction accent slot: friend=0 (blue), foe=1
+// (red), neutral=2 (amber). Note this is NOT the raw Allegiance enum order
+// (Neutral=1, Foe=2), so a neutral stack reads amber, not enemy-red.
+function allegianceCrowdFaction(allegiance: Allegiance): 0 | 1 | 2 {
+  return allegiance === Allegiance.Friend ? 0 : allegiance === Allegiance.Foe ? 1 : 2;
+}
+
 function campaignPitch(zoom: number) {
   const t = smoothstep(0.62, 1.6, zoom);
   return CAMPAIGN_CLOSE_PITCH * t;
@@ -521,9 +597,16 @@ function campaignPerspective(zoom: number) {
   return Math.min(0.0048, Math.max(0, (zoom - 1.0) * 0.0032));
 }
 
-function buildEntityFrame(data: CampaignData, field: TerrainField, opts: DrawOptions) {
+function buildEntityFrame(
+  data: CampaignData,
+  field: TerrainField,
+  opts: DrawOptions,
+  mountedClasses: number[],
+  animTime: number,
+) {
   const entities: CampaignEntityInstance[] = [];
   const selections: CampaignSelectionInstance[] = [];
+  const crowd: CrowdInstance[] = [];
   let cityEntities = 0;
   let armyEntities = 0;
   const fixtureScale = isControlledStage(data) ? 1.82 : 1;
@@ -561,6 +644,12 @@ function buildEntityFrame(data: CampaignData, field: TerrainField, opts: DrawOpt
       });
     }
   }
+  // Zoom LOD, computed once per frame: figures fade in as the camera closes on a
+  // stack and drop to zero (the standard banner alone) over the whole map, so the
+  // strategic view stays readable and the draw cost stays bounded.
+  const zoomFigures = Math.round(
+    CAMPAIGN_MAX_FIGURES * smoothstep(FIGURE_FAR_ZOOM, FIGURE_NEAR_ZOOM, opts.cam.scale),
+  );
   for (const army of opts.armies) {
     // Cull by fog visibility, matching visibleCampaignArmies (labels/markers) —
     // not by allegiance. A neutral or allied army standing in the player's
@@ -584,6 +673,31 @@ function buildEntityFrame(data: CampaignData, field: TerrainField, opts: DrawOpt
       kind: "army",
       strength: Math.min(1, Math.max(0.25, army.soldiers / 2600)),
     });
+    // Representative figures for this stack, through the shared skinned crowd.
+    // Which classes appear is sampled from the live roster; the count scales to
+    // the stack cap. Figures are tinted by allegiance (friend blue / foe red /
+    // neutral amber); the standard banner above carries the true faction livery.
+    const roster = army.unitsByClass.some((n) => n > 0) ? army.unitsByClass : army.roster;
+    if (zoomFigures > 0) {
+      crowd.push(
+        ...buildStackCrowd(roster, {
+          unitCount: army.unitCount,
+          stackUnitCap: opts.stackUnitCap,
+          maxFigures: zoomFigures,
+          x: display.x,
+          y: display.y,
+          faction: allegianceCrowdFaction(allegiance),
+          seed: army.id,
+          clip: army.marching ? "march" : "idle",
+          phase: animTime,
+          mountedClasses,
+          // Space figures by their rendered footprint so they read as individuals,
+          // not one merged blob, at CAMPAIGN_FIGURE_SIZE.
+          spacing: CAMPAIGN_FIGURE_SIZE * 1.1,
+          terrainHeight: (x, y) => field.heightAt(x, y),
+        }),
+      );
+    }
     armyEntities++;
     if (army.id === opts.selected) {
       const controlledStage = isControlledStage(data);
@@ -602,7 +716,7 @@ function buildEntityFrame(data: CampaignData, field: TerrainField, opts: DrawOpt
       });
     }
   }
-  return { entities, selections, cityEntities, armyEntities };
+  return { entities, selections, crowd, cityEntities, armyEntities };
 }
 
 const CITY_MARKER_BASE_RADIUS_PX = 3.8;

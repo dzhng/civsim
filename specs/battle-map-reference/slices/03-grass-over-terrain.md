@@ -1,60 +1,37 @@
-# Slice 03 — grass over terrain
+# Slice 03A — grass over terrain infrastructure
 
-## Contract unlocked
+## Shipped 2026-06-30
 
-Grass on the real maps — density-driven by ground cover/tint, seated on the height
-field, and cheap enough to keep at gameplay zoom. This is the reference's dense,
-waving foreground that dominates the lower third.
+This slice owns grass **wiring**, not final reference likeness. It landed the
+terrain-aware `BattleGrassPass` path: grass scatters from the battle terrain grid,
+rejects blocked tints, seats every tuft through the shared heightfield, draws in the
+world-depth phase before soldiers, publishes mask/LOD stats, and keeps gameplay
+zoom sparse enough for unit readability.
 
-## API seam
+Reference grass density, colour, softness, and wind texture are now separate slices:
+`03b-foreground-grass-density.md` and `03c-grass-color-texture.md`.
 
-Wire `BattleGrassPass` (Slice 02) into production:
+## Contract
 
-- `web/src/battle/renderer.ts` `applyTerrain()` — set the field/cover on the grass
-  pass alongside `ground?.setTerrain` / `scenery?.upload`.
-- Insert into the ordered draw list **before** `battle-skinned-crowd`, role
-  `world-opaque`.
-- Density gated by `BattleGroundCover` and sim tint: **no grass on
-  water/rock/wall/mud cells**; each tuft seated via `terrainHeightAt` (reuse the
-  seating contract from `terrainScenery.ts`). Distance LOD; grass fades into the
-  existing ground wash near the horizon so blades don't pop at distance.
-- **Zoom-reactive density/height:** key grass amount and blade height to the
-  `zoomT` exported by the Slice 01 camera rig — full and tall at zoom-in (the
-  cinematic vista), thinned and short at zoom-out (top-down tactical) so units read.
-  This is the same lever as the legibility tuning below, driven off one shared seam.
+Grass appears on real battle maps as deterministic, terrain-masked, depth-tested
+world geometry. This slice proves the renderer can place grass correctly; it does
+not decide whether the foreground meadow is dense or soft enough to match the
+reference.
 
-## What the human can run / see
+## Gates
 
-The existing `renderer/battle-terrain-3d?gate=<map>` route now shows grass on all
-three catalog maps (`river-and-crags`, `walled-plain`, `coastal-scrub`).
+- `battle-terrain-3d` proves grass exists on eligible ground, avoids
+  water/rock/wall/mud, stays in the world-depth pass, and reports bounded instance
+  stats.
+- `battle-terrain-elevation` proves grass, soldiers, shadows, and props share the
+  same `terrainHeightAt` surface.
+- Gameplay shots prove sparse/mid-zoom readability remains intact.
 
-## Verification
+## Out Of Scope
 
-- Extend `web/scenes/battle/battle-terrain-3d.mjs`: `bladeInstances > 0` only on
-  grass cover, **zero over water/rock**; soldiers/props still seat (no floating
-  blades — depth correct).
-- Perf within the `full-game-rendering-performance` budget with the grass instance
-  cap + LOD active.
-- **Wind at field scale (`write-anim`):** loop the grass field swaying in context —
-  the wind should read as a travelling breeze across the field, **not** every blade
-  in the same phase, and sway must hold up under the zoom-coupled camera (no shimmer
-  at the vista, settles toward top-down). Re-uses the motion gate from Slice 02 at map scale.
-- Re-bless the `terrain-3d/*` snapshots.
+- Lower-third reference meadow density.
+- Grass colour or stipple/noise quality.
+- Cliff shape, fog, water, or final whole-frame similarity.
 
-## Screenshot-critique
-
-**Required** on each re-blessed shot: does the field read as the reference's grass
-volume (dense foreground, receding) *without burying units or the gold selection
-glow* at the playable mid zoom (grilling Q5)?
-
-## Must stay green
-
-`battle-terrain-elevation`, `battle-terrain-features`, the crowd/LOD scenes,
-`battle-renderer-visual` (gameplay-zoom unit readability), `full-game-rendering-performance`;
-render-graph `ok`; `cargo`.
-
-## Human feedback that would reshape this slice
-
-Density curve; sway amplitude/speed; far-cutoff distance; how aggressively density
-keys to `zoomT`; whether grass clears / shortens under unit footprints (ties to
-gameplay legibility, Q5).
+Those belong to later slices. Do not reopen this infrastructure slice because the
+reference composition is still wrong.

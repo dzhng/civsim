@@ -12,22 +12,24 @@ Reference image (the compare-screenshots target):
 
 ## Next Agent Prompt
 
-> **Status:** Slices 1–7 landed — the **open-sea look is complete in the lab**. Winner:
-> **Gerstner** (see [`slices/01-bakeoff-decision.md`](slices/01-bakeoff-decision.md)). Last
-> updated 2026-07-01.
+> **Status:** Slices 1–7 landed on **main** — the **open-sea look is complete in the lab**.
+> Slice 8 (battle integration) was **attempted and reverted** (kept off main); its plan and the
+> one unresolved blocker are captured in
+> [`slices/08-integration-notes.md`](slices/08-integration-notes.md). Winner: **Gerstner** (see
+> [`slices/01-bakeoff-decision.md`](slices/01-bakeoff-decision.md)). Last updated 2026-07-01.
 >
-> **You are picking up at Slice 8 — the first PRODUCTION integration (battle open-sea).** Read
-> this README and open [`slices/08-integrate-battle-open-sea.md`](slices/08-integrate-battle-open-sea.md).
-> Drop the locked `waterPlanePass` / `waterField` / `waterShade` into the real battle open-sea
-> surface (the sealed `ocean` edge in `battle/horizonPass.ts`), through `projectWorld3d` +
-> `civsimBattleWorldDepth3d` in the world-depth slot, MSAA-safe. The whole look (seam, clock,
-> sun, geometry, foam, glint, colour, haze) is **frozen** — this slice reconciles seams, depth,
-> MSAA and prop/label seating, it does not re-tune the look. Verify on
-> `/renderer/battle-terrain-3d?gate=coastal-scrub&view=west` and a live battle; match the battle
-> environment preset to the terrain lighting so the water sun agrees with the land (the sun
-> uniform already carries the battle-sun default). Watch: no z-fight with `BattleHorizonPass`
-> blockers, no stripe where field water meets the open sea, MSAA=1 today but call
-> `gpuMultisample(shell.sampleCount)`.
+> **You are picking up at Slice 8 — the first PRODUCTION integration (battle open-sea).**
+> **Read [`slices/08-integration-notes.md`](slices/08-integration-notes.md) first** — it has a
+> verified working approach (swap the `role:'ocean'` gradQuad in `battle/horizonPass.ts` for a
+> per-edge `WaterPlanePass`; the plane already gained the `baseZ` / `hazeNear/Far` /
+> shore-keyed-depth generalizations it needs, defaulting to the lab values) AND the one blocker
+> that stopped it: a **shoreline seam** where the sea's distance ramps (depth/haze/shore-fade)
+> compress into a straight screen line at the grazing `view=west` edge test and must reconcile
+> with the field's own aerial haze + water tint. **Strong recommendation: do S8 together with
+> S9 (coastal field water), or first unify the field water onto `waterShade`** so both sides of
+> the shoreline are the same material and the seam cannot exist — and verify at a real gameplay
+> 3/4 camera, not only the grazing edge test. The whole look (clock, sun, geometry, foam, glint,
+> colour, haze) is **frozen** — integration reconciles seams/depth/MSAA/seating, not the look.
 >
 > **Slices 6–7 result:** distance-keyed **haze** in `waterShade` dissolves the far sea into the
 > preset sky (no hard horizon; glint fades with haze) — `water-haze` scene gates the soft seam.

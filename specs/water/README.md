@@ -12,24 +12,43 @@ Reference image (the compare-screenshots target):
 
 ## Next Agent Prompt
 
-> **Status:** Slices 1–7 landed on **main** — the **open-sea look is complete in the lab**.
-> Slice 8 (battle integration) was **attempted and reverted** (kept off main); its plan and the
-> one unresolved blocker are captured in
-> [`slices/08-integration-notes.md`](slices/08-integration-notes.md). Winner: **Gerstner** (see
-> [`slices/01-bakeoff-decision.md`](slices/01-bakeoff-decision.md)). Last updated 2026-07-01.
+> **Status:** Slices 1–7 landed on **main** — the **open-sea look is complete in the lab**. The
+> remaining integration + cleanup was **re-sliced** (2026-07-01) after a first battle-integration
+> attempt hit a shoreline seam; three independent drafts converged on the plan below. Winner:
+> **Gerstner** (see [`slices/01-bakeoff-decision.md`](slices/01-bakeoff-decision.md)). Last
+> updated 2026-07-01.
 >
-> **You are picking up at Slice 8 — the first PRODUCTION integration (battle open-sea).**
-> **Read [`slices/08-integration-notes.md`](slices/08-integration-notes.md) first** — it has a
-> verified working approach (swap the `role:'ocean'` gradQuad in `battle/horizonPass.ts` for a
-> per-edge `WaterPlanePass`; the plane already gained the `baseZ` / `hazeNear/Far` /
-> shore-keyed-depth generalizations it needs, defaulting to the lab values) AND the one blocker
-> that stopped it: a **shoreline seam** where the sea's distance ramps (depth/haze/shore-fade)
-> compress into a straight screen line at the grazing `view=west` edge test and must reconcile
-> with the field's own aerial haze + water tint. **Strong recommendation: do S8 together with
-> S9 (coastal field water), or first unify the field water onto `waterShade`** so both sides of
-> the shoreline are the same material and the seam cannot exist — and verify at a real gameplay
-> 3/4 camera, not only the grazing edge test. The whole look (clock, sun, geometry, foam, glint,
-> colour, haze) is **frozen** — integration reconciles seams/depth/MSAA/seating, not the look.
+> **You are picking up at Slice 8 — coastal FIELD water (the new first integration).** The old
+> S8/S9 order is **inverted**: the reverted attempt proved the field↔sea shoreline seam is a
+> *material mismatch* (the sea plane and the field water were two different shaders meeting at the
+> shore), not a geometry bug — you cannot caulk a seam between two materials, you remove it by
+> making both sides one material. So **S8 unifies the on-field battle water onto `waterShade`
+> first** (defining a shared `waterShoreRamp` depth/haze helper), and **S9 drops the open-sea
+> horizon plane onto that same material** so the seam cannot exist by construction.
+>
+> **Before you start:** read [`slices/08-integration-notes.md`](slices/08-integration-notes.md)
+> (the attempt's verified findings + the exact blocker), then
+> [`slices/08-battle-coastal-field-water.md`](slices/08-battle-coastal-field-water.md). Invoke the
+> `aesthetics` and `renderer` skills. The whole look (clock, sun, geometry, foam, glint, colour,
+> haze) is **frozen** — these slices reconcile seam/depth/MSAA/seating, not the look.
+>
+> **Load-bearing facts from recon (do not relearn the hard way):**
+> - The **live battle does NOT use `terrainPass.ts`** — only `BattleHorizonPass` + `BattleGroundPass`
+>   are wired (`web/src/battle/renderer.ts`). `terrainPass` water (kind-0/10) is **lab-fixture-only**.
+>   Production field water is a **flat vertex tint (`groundPass.ts` `TINT_COLOR[1]`) baked into the
+>   gameplay heightfield mesh that soldiers ride** — so field water **cannot be a separate displaced
+>   pass**; it is a **per-fragment `waterShade` on the existing ground mesh**, keyed by a water-weight
+>   vertex attribute, with the collision height field UNTOUCHED (a seating gate guards it).
+> - `waterPlanePass` on main is **still lab-only** — the `baseZ` / `hazeNear/Far` / shore-keyed-depth
+>   generalizations were in the reverted attempt and **must be rebuilt** (S8 builds them as the shared
+>   `waterShoreRamp` helper; defaults = today's lab values so every `water-*.mjs` lab scene stays
+>   byte-identical).
+> - **Judge at the 3/4 gameplay camera (`view=field`), not the grazing `view=west`** — the grazing edge
+>   view compresses every distance ramp into a false straight line. `view=west` is a regression-only snap.
+> - **Gerstner won → IFFT and its compute plumbing are dead code** (no device ever selects `ifft`;
+>   Gerstner is analytic and universal). Deleted in S11.
+> - **`CampaignWaterPass` is dormant** (never wired to production); the campaign sea is the `mapPass`
+>   raster mask. Deleted in S10; campaign gets subtle `waterShade` behaviour injected into `mapPass`.
 >
 > **Slices 6–7 result:** distance-keyed **haze** in `waterShade` dissolves the far sea into the
 > preset sky (no hard horizon; glint fades with haze) — `water-haze` scene gates the soft seam.
@@ -75,9 +94,9 @@ Reference image (the compare-screenshots target):
 > re-run it; it passes at 0 diff.)
 >
 > **Active warnings:**
-> - **Gerstner won; IFFT is retained only as the capability/weak-GPU fallback through Slice 8
->   and is deleted in Slice 11.** The look slices must read acceptably off *either* field
->   (the pick is reversible via `createWaterField({ tech })`).
+> - **Gerstner won and is analytic/universal, so IFFT is dead code** (nothing selects `ifft` in
+>   production). Leave `water/ifftField/` alone until Slice 11 deletes it — do not build new work on
+>   it. `createWaterField` / the `WaterFieldSource` seam are kept (the production firewall).
 > - The camera BGL is now **`VERTEX | FRAGMENT`** and the camera uniform's first pad is the
 >   `time` clock (`setTime`). This moved zero existing pixels (battle/campaign snapshots are
 >   byte-identical) — keep it that way.
@@ -97,13 +116,17 @@ Reference image (the compare-screenshots target):
 > - [x] S5 — Water albedo + depth ramp × env preset (waterPalette + waterEnvironment) → `slices/05-albedo-depth-ramp.md`
 > - [x] S6 — Horizon haze / aerial perspective (distance-keyed haze in waterShade) → `slices/06-horizon-haze.md`
 > - [x] S7 — Animation rhythm (deterministic clock, believable cadence) → `slices/07-animation-rhythm.md`
-> - [ ] S8 — Integrate: battle open-sea (first production surface) → `slices/08-integrate-battle-open-sea.md`
-> - [ ] S9 — Integrate: battle coastal gameplay water → `slices/09-integrate-battle-coastal.md`
-> - [ ] S10 — Integrate: campaign sea (subtle / chart-respecting) → `slices/10-integrate-campaign-sea.md`
-> - [ ] S11 — Loser deletion + close-spec → `slices/11-cleanup-close.md`
+> - [ ] S8 — Battle **coastal field water** onto `waterShade` (per-fragment on `groundPass`; the
+>   shared `waterShoreRamp`; **the seam-foundation slice**) → `slices/08-battle-coastal-field-water.md`
+> - [ ] S9 — Battle **open-sea horizon** plane onto the S8 material (seam closes by construction) →
+>   `slices/09-battle-open-sea-horizon.md`
+> - [ ] S10 — Campaign strategic sea (subtle, zoom/pitch-gated) + delete `CampaignWaterPass` →
+>   `slices/10-campaign-sea.md`
+> - [ ] S11 — Delete the IFFT loser + `close-spec` → `slices/11-cleanup-close.md`
 >
-> **Before you end your pass:** update this section — move the status, tick the TODOs you
-> closed, record the bake-off winner once Slice 1 lands, and note the next pickup point.
+> **Before you end your pass:** update this section — move the status/date, tick the TODOs you
+> closed, note the next pickup point, and record any recon fact or decision that would save the
+> next agent a wrong turn (like the `terrainPass`/seating/shore-ramp facts above).
 
 ---
 
@@ -151,9 +174,12 @@ color, haze) and all three production surfaces are written **against the seam, n
 technique**. Deleting a candidate = deleting its one producer file + its branch in the
 factory.
 
-**Asymmetry (a locked firewall):** if **Gerstner wins**, IFFT is deleted entirely. If
-**IFFT wins**, Gerstner is **kept as the capability/weak-GPU fallback** and is never
-deleted — which is why the look slices must read acceptably driven by *either* field.
+**Asymmetry (resolved):** **Gerstner won** (Slice 1), so IFFT is deleted entirely in Slice 11.
+Gerstner is analytic (no GPU compute, `bindGroupLayout()` returns null) and therefore runs on
+*every* adapter — it is its own weak-GPU fallback, so nothing ever selects `ifft` in production.
+The `WaterFieldSource` interface + `createWaterField` factory are **kept** (collapsed to a single
+Gerstner producer): they are the firewall the production surfaces are written against, cheap to
+retain, and keep consumers untouched.
 
 ---
 
@@ -170,42 +196,48 @@ packages/game-renderer/src/water/        NEW — the one home for water
   gerstnerField.ts     candidate A producer (analytic, pure-WGSL, no infra)
   ifftField/           candidate B producer (JONSWAP spectrum → compute IFFT → texture)
   waterPlanePass.ts    candidate-agnostic render pass consuming a WaterFieldSource
-  waterMaterialWgsl.ts shared WGSL: waterShade(sample, env, depth01) -> color (identical for both candidates + all surfaces)
-  waterPalette.ts      neutral albedo + depth-ramp + foam/glint constants (kills the 4 inline color sites)
-  waterEnvironment.ts  {sunDir, keyColor, fillColor, hazeColor, exposure} presets: golden / dusk / overcast
+  waterMaterialWgsl.ts shared WGSL: waterShade(sample, sunDir, glintBand, depth01, haze01) -> color (all surfaces)
+  waterShoreRamp.ts    NEW (S8)  shared distance-from-shore depth/haze ramp both field water + open sea call
+  waterPalette.ts      neutral albedo + depth-ramp + foam/glint constants (kills the inline color sites)
+  waterEnvironment.ts  {keyColor, fillColor, hazeColor, exposure, sunAzimuth, sunElevation} presets: golden / dusk / overcast
 
-apps/renderer-lab/src/router.ts          EDIT  /renderer/water-bakeoff + per-slice review routes
-web/scenes/{battle,campaign}/water-*.mjs NEW   gated visual scenes (VERIFY_GPU=1), snap at fixed t
-packages/game-renderer/src/renderGraph.ts EDIT add the animated-water skeleton entries
+apps/renderer-lab/src/router.ts          EDIT  lab review routes (bake-off route deleted in S11)
+web/scenes/{battle,campaign}/water-*.mjs NEW   gated visual scenes (VERIFY_GPU=1 hardware headful), snap at fixed t
 ```
 
-The 4 inline water-color sites that collapse into `waterPalette.ts` at Slice 5:
-`horizonPass.ts:22-23`, `terrainPass.ts` kind-0 (~91-102), `groundPass.ts:23`
-(`TINT_COLOR[1]`), `mapPass.ts` (~222).
+The inline water-colour sites that collapse onto `waterPalette`/`waterShade` at the integration
+slices — **2 production** (`horizonPass.ts:22-23` → S9; `groundPass.ts:23` `TINT_COLOR[1]` → S8) +
+`mapPass.ts:~222` sea (S10) + **lab-only** `terrainPass.ts` water kinds (folded in S8 for lab
+parity; the live battle does not use `terrainPass`).
 
 ---
 
 ## Slice graph
 
 ```
-S1  bake-off spike ──┬─► picks technique + freezes the WaterFieldSource seam + the clock
+S1  bake-off spike ──┬─► picks technique (Gerstner) + freezes the WaterFieldSource seam + the clock
                      │
         (winner only, tuned on the open-sea waterPlanePass in the lab route)
                      ▼
-S2 silhouette ─► S3 foam ─► S4 glint ─► S5 color/depth ─► S6 haze ─► S7 rhythm
+S2 silhouette ─► S3 foam ─► S4 glint ─► S5 color/depth ─► S6 haze ─► S7 rhythm   [DONE, on main]
                      │   (one visual variable each; neutral grey until S5)
                      ▼
-        (drop the locked water pass into the real product)
-S8 battle open-sea  ─►  S9 battle coastal  ─►  S10 campaign sea
+        (integrate the locked look into the three production surfaces)
+S8 battle COASTAL FIELD water ─► S9 battle OPEN-SEA horizon ─► S10 campaign sea
+   (defines the shared shore     (snaps onto S8's material;
+    material + waterShoreRamp)     the shoreline seam cannot exist)
                      ▼
-S11 loser deletion + close-spec
+S11 delete IFFT loser + close-spec
 ```
 
-Why this order: the look is judged on the **open-sea surface rendered in the lab** (the
-exact subject of the reference, but isolated from full-scene integration noise). Geometry,
-foam and glint are judged in neutral grey (S2–S4) *before* color (S5) so each is a clean
-single-variable verdict. Integration (S8–S10) then only has to reconcile seams, depth,
-MSAA, and prop/label seating — not re-litigate the look.
+Why this order: the look (S2–S7) is judged on the **open-sea surface in the lab** — the exact
+subject of the reference, isolated from integration noise; each visual variable gets a clean
+single-variable verdict in neutral grey (S2–S4) before colour (S5). **Integration was re-ordered
+after the first attempt:** the field↔sea shoreline seam is a *material mismatch*, so S8 unifies the
+on-field water onto `waterShade` **first** (both sides of every shore become one material via a
+shared `waterShoreRamp`), then S9's open-sea plane meets an identical material at the shore and the
+seam is structurally impossible. Integration reconciles seams/depth/MSAA/seating — it does not
+re-litigate the frozen look.
 
 ---
 
@@ -220,31 +252,43 @@ MSAA, and prop/label seating — not re-litigate the look.
 | S5 | `…?preset=golden|dusk|overcast` | dusk vs ref (behavior, not values) | near→far water gradient |
 | S6 | `…` framed to the horizon | yes (soft horizon) | sea-to-sky seam band |
 | S7 | `…&play=1` GIF | n/a (motion) | full plane over time |
-| S8 | `/renderer/battle-terrain-3d?gate=coastal-scrub&view=west` + live battle | yes | horizon band over a beach battle |
-| S9 | `…&view=field` + live battle | shore-grade target (not deep-ocean ref) | shoreline / shallows band |
-| S10 | `/renderer/campaign-map` at 2 zooms | subtle target (campaign deliberately diverges) | coastline + sea patch |
+| S8 | `/renderer/battle-terrain-3d?gate=coastal-scrub&view=field&t=…` + live river/lake battle | **shore-grade** target (shallow tan→turquoise→blue + swash foam), **not** the deep-ocean ref | shoreline / shallows band, 3/4 camera |
+| S9 | `…?gate=coastal-scrub&view=field` (primary) + `&view=west` (regression) + live battle | yes, `reference-ifft-ocean-dusk.png` (geometry/foam/glint, not mood) | horizon sea + shoreline band over a beach battle, 3/4 camera |
+| S10 | `/renderer/campaign-map` at near + far zoom | **subtle** target (campaign deliberately diverges from the deep-ocean ref) | coastline + sea-lane + coastal label, 2 zooms |
 | S11 | full suite | — | — |
+
+**Standing verification gate (every visual slice, S8–S11):** the last check before accepting any
+shot is the [`screenshot-critique`](../../.claude/skills/screenshot-critique) skill — an unprimed
+second opinion the regression snaps and the implementer's own eyes cannot supply. Where a slice
+has a target to compare against (a prior look it changes, or the reference/shore-grade/subtle
+target above), it also runs [`compare-screenshots`](../../.claude/skills/compare-screenshots) to
+judge candidate-against-target (telemetry + a less-wrong verdict), not a match-the-reference check.
+Judge at the **3/4 gameplay camera**; the grazing `view=west` is a regression snap only.
 
 ---
 
 ## Firewalls / scope guards
 
-1. **No-compute-infra risk (IFFT).** All compute lives behind
-   `capabilities.computeOceanSupported` (compute + `maxStorageBufferBindingSize` via the
-   existing `assertStorageBufferFits`). Runtime falls back to Gerstner when unsupported, so
-   weak/no-compute adapters always get *some* water. The fallback is a **Slice 1 gate**,
-   not an afterthought. If IFFT wins, Gerstner is retained as that fallback.
-2. **Campaign painted-chart vs animated-waves.** Owned by Slice 10: subtle, zoom/pitch-gated
-   treatment, foam only at coastlines, a strength knob, and an additive-only fallback. The
-   deep-ocean reference is explicitly **not** the campaign target. Decide
-   revive-or-delete on the dormant `CampaignWaterPass` here.
-3. **MSAA / depth / perspective.** New battle water pipelines must call
-   `gpuMultisample(shell.sampleCount)` even though battle is MSAA=1 today. Displaced water
-   goes through `projectWorld3d` + `civsimBattleWorldDepth3d` in the world-depth slot;
-   Slice 2/8 check no z-fight with horizon blockers and no seam at the shore. Coastal
-   `terrainPass` water uses flat `projectGround` today and **cannot displace** until moved
-   to a z-bearing path (Slice 9). Campaign sea is a single depth-write map-fill mesh
-   (Slice 10).
+1. **The shoreline seam (the load-bearing firewall).** Field water (S8) and open sea (S9) MUST be
+   the **same material at every shore** or a seam is inevitable — proven by the reverted attempt.
+   S8 extracts a shared **`waterShoreRamp`** WGSL helper (depth/haze keyed on **distance-from-shore**,
+   not camera distance) that *both* the on-field water and the open-sea plane call with identical
+   `waterPalette`/`golden` constants. S9 must not invent its own ramp. Verify continuity at the 3/4
+   camera first, then the grazing `view=west` regression snap.
+2. **Field water cannot displace the collision surface.** Soldiers/props ride the `groundPass`
+   heightfield mesh. S8's water is a **per-fragment `waterShade`** on that mesh (ripple normal +
+   foam via a water-weight attribute), and must **not** alter `terrainHeightAt`/the seating height —
+   a position-hash A/B seating gate proves units don't float or sink (memory: "golden hash has no
+   cavalry"). Only the S9 open-sea plane (no units on it) displaces, through `projectWorld3d` +
+   `civsimBattleWorldDepth3d`.
+3. **Campaign painted-chart vs animated-waves.** Owned by Slice 10: subtle, zoom/pitch-gated
+   `waterShade` behaviour (glint+foam) injected into the `mapPass` sea branch, foam only at
+   coastlines, a `seaAnimateMix` strength knob, additive-only fallback, **no displacement**. The
+   deep-ocean reference is explicitly **not** the campaign target. The dormant `CampaignWaterPass`
+   is **deleted**, not revived (it would be a second sea authority fighting the mask).
+4. **MSAA / depth.** The battle water pipelines (S8 ground, S9 plane, `horizonPass`) must call
+   `gpuMultisample(shell.sampleCount)` even though battle is MSAA=1 today; the horizon pipeline
+   currently omits it. Campaign sea is a single depth-write map-fill mesh (Slice 10), no displacement.
 4. **Determinism / weak-GPU perf.** Time is injectable (`fixedTime` pattern); every visual
    gate snaps at a fixed `t`. A `gpuTimeMs` perf gate (`enableGpuTimer` + `timestamp-query`)
    rides every surface slice; tessellation / IFFT resolution are the dials; Gerstner is the
@@ -275,9 +319,10 @@ MSAA, and prop/label seating — not re-litigate the look.
 
 ## First useful playable checkpoint
 
-`/renderer/water-bakeoff?tech=…&preset=dusk|golden&t=…` from **Slice 1** — both techniques
-A/B against the reference at dusk *and* neutral albedo proven at golden hour, with live
-`gpuTimeMs`, in one route. The first **in-product** checkpoint is **battle open-sea after
-Slice 8** (`/renderer/battle-terrain-3d?gate=coastal-scrub&view=west`), where the sealed
-ocean edge of a real beach battle becomes a foam-and-glint sea that matches the reference
-while still reading warm under golden hour.
+The lab look (S1–S7) is complete: `/renderer/water-bakeoff?tech=gerstner&preset=golden|dusk|overcast&t=…`
+shows the finished open-sea surface. The first **in-product** checkpoint is **the coastal battle
+after Slice 8** (`/renderer/battle-terrain-3d?gate=river-and-crags&view=field&t=…`), where the
+on-field river/shore water becomes the shared `waterShade` material; then **Slice 9** turns the
+sealed ocean edge of a beach battle (`gate=coastal-scrub&view=field`) into a foam-and-glint sea that
+laps the shoreline with no seam and reads warm under golden hour — the closest real surface to the
+reference image. Judge both at the 3/4 `view=field` camera, not the grazing `view=west`.

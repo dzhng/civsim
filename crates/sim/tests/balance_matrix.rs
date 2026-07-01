@@ -233,10 +233,15 @@ fn the_counter_web_holds() {
             0,
             "the medium spear's reach grinds the rider down",
         ),
-        // LongSwords is a budget anti-light cleaver: armour (the heavy sword)
-        // beats it head-on, but its wide cleave still shreds loose light infantry
-        // — the width, not the punch, is its edge.
-        (HeavySword, LongSwords, 0, "armour beats the budget cleaver"),
+        // LongSwords is a flank/open-order cleaver, not a frontal pusher: armour
+        // (the heavy sword) beats it head-on, but its wide sweep still shreds
+        // loose light infantry — the width, not the punch, is its edge.
+        (
+            HeavySword,
+            LongSwords,
+            0,
+            "armour beats the frontal cleaver",
+        ),
         (
             LongSwords,
             Skirmishers,

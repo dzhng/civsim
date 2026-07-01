@@ -33,10 +33,18 @@ fn a_rise_peaks_at_center_and_eases_to_zero_by_radius() {
     let c = Vec2::new(160.0, 160.0);
     t.add_rise(c, 120.0, 6.0);
     // Peak near the amplitude at the center cell center.
-    assert!((t.height_at(c) - 6.0).abs() < 0.2, "center {}", t.height_at(c));
+    assert!(
+        (t.height_at(c) - 6.0).abs() < 0.2,
+        "center {}",
+        t.height_at(c)
+    );
     // Nearly faded at the radius (bilinear leaves a sliver from the last inside
     // cell), and strictly flat well beyond it.
-    assert!(t.height_at(c + Vec2::new(120.0, 0.0)) < 0.15, "rim {}", t.height_at(c + Vec2::new(120.0, 0.0)));
+    assert!(
+        t.height_at(c + Vec2::new(120.0, 0.0)) < 0.15,
+        "rim {}",
+        t.height_at(c + Vec2::new(120.0, 0.0))
+    );
     assert!(t.height_at(c + Vec2::new(300.0, 0.0)).abs() < 1e-3);
     // Monotonic falloff outward: each step out is no higher than the last.
     let mut prev = f32::INFINITY;
@@ -59,7 +67,11 @@ fn bilinear_samples_interpolate_between_cell_centers() {
     let mid = Vec2::new((c1.x + c2.x) * 0.5, 2.0);
     assert!((t.height_at(c1) - 0.0).abs() < 1e-4);
     assert!((t.height_at(c2) - 10.0).abs() < 1e-4);
-    assert!((t.height_at(mid) - 5.0).abs() < 1e-3, "mid {}", t.height_at(mid));
+    assert!(
+        (t.height_at(mid) - 5.0).abs() < 1e-3,
+        "mid {}",
+        t.height_at(mid)
+    );
 }
 
 #[test]
@@ -80,8 +92,15 @@ fn a_ridge_raises_a_bank_along_its_line() {
     t.add_ridge(a, b, 60.0, 4.0);
     // On the line: near the amplitude. Off the line by the radius: zero.
     let on = Vec2::new(240.0, 80.0);
-    assert!((t.height_at(on) - 4.0).abs() < 0.3, "ridge crest {}", t.height_at(on));
-    assert!(t.height_at(Vec2::new(240.0, 80.0 + 100.0)).abs() < 1e-3, "off-bank not flat");
+    assert!(
+        (t.height_at(on) - 4.0).abs() < 0.3,
+        "ridge crest {}",
+        t.height_at(on)
+    );
+    assert!(
+        t.height_at(Vec2::new(240.0, 80.0 + 100.0)).abs() < 1e-3,
+        "off-bank not flat"
+    );
 }
 
 #[test]
@@ -108,7 +127,11 @@ fn every_quick_battle_map_rolls_but_stays_gentle() {
                 max_step = max_step.max(d);
             }
         }
-        assert!(max_step < t.cell, "{map:?} slope too steep: {max_step}m over {}m", t.cell);
+        assert!(
+            max_step < t.cell,
+            "{map:?} slope too steep: {max_step}m over {}m",
+            t.cell
+        );
     }
 }
 
@@ -125,7 +148,8 @@ fn west_and_east_are_sealed_while_north_and_south_stay_open() {
         let mut east_sealed = 0;
         let samples = 100;
         for k in 0..samples {
-            let y = -MAP_HALF_H + 40.0 + (MAP_HALF_H * 2.0 - 80.0) * k as f32 / (samples - 1) as f32;
+            let y =
+                -MAP_HALF_H + 40.0 + (MAP_HALF_H * 2.0 - 80.0) * k as f32 / (samples - 1) as f32;
             // Scan inward from each side for an impassable cell.
             let west = (0..((band / t.cell) as i32))
                 .any(|i| t.speed_at(Vec2::new(-MAP_HALF_W + 6.0 + i as f32 * t.cell, y)) <= 0.0);
@@ -135,20 +159,33 @@ fn west_and_east_are_sealed_while_north_and_south_stay_open() {
             east_sealed += east as i32;
         }
         // A continuous seal: the great majority of the side is blocked.
-        assert!(west_sealed > 90, "{map:?} west flank not sealed: {west_sealed}/100");
-        assert!(east_sealed > 90, "{map:?} east flank not sealed: {east_sealed}/100");
+        assert!(
+            west_sealed > 90,
+            "{map:?} west flank not sealed: {west_sealed}/100"
+        );
+        assert!(
+            east_sealed > 90,
+            "{map:?} east flank not sealed: {east_sealed}/100"
+        );
 
         // The central corridor is open the full length of the field.
         for k in 0..samples {
-            let y = -MAP_HALF_H + 40.0 + (MAP_HALF_H * 2.0 - 80.0) * k as f32 / (samples - 1) as f32;
+            let y =
+                -MAP_HALF_H + 40.0 + (MAP_HALF_H * 2.0 - 80.0) * k as f32 / (samples - 1) as f32;
             assert!(
                 t.speed_at(Vec2::new(0.0, y)) > 0.0,
                 "{map:?} center blocked at y={y}",
             );
         }
         // North and south edges read as open ground at mid-field.
-        assert!(t.speed_at(Vec2::new(0.0, MAP_HALF_H - 10.0)) > 0.0, "{map:?} north sealed");
-        assert!(t.speed_at(Vec2::new(0.0, -MAP_HALF_H + 10.0)) > 0.0, "{map:?} south sealed");
+        assert!(
+            t.speed_at(Vec2::new(0.0, MAP_HALF_H - 10.0)) > 0.0,
+            "{map:?} north sealed"
+        );
+        assert!(
+            t.speed_at(Vec2::new(0.0, -MAP_HALF_H + 10.0)) > 0.0,
+            "{map:?} south sealed"
+        );
     }
 }
 

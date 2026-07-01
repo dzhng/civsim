@@ -1,17 +1,17 @@
-import { PNG } from 'pngjs';
-import { battleDuel } from '../worlds.mjs';
+import { PNG } from "pngjs";
+import { battleDuel } from "../worlds.mjs";
 
 export const meta = {
-  name: 'battle-lod',
-  kind: 'flow',
-  world: 'battle-duel',
-  tier: 'quick',
+  name: "battle-lod",
+  kind: "flow",
+  world: "battle-duel",
+  tier: "quick",
   snapshots: [],
-  describe: 'Unit sprite readability across zoom levels.',
+  describe: "Unit sprite readability across zoom levels.",
 };
 
 export async function run(ctx) {
-  const page = await battleDuel(ctx, { debugBlocks: true, settle: 400, errorPrefix: 'lod' });
+  const page = await battleDuel(ctx, { debugBlocks: true, settle: 400, errorPrefix: "lod" });
 
   for (const z of [1, 2, 4, 6, 9]) {
     const box = await page.evaluate((zoom) => {
@@ -25,7 +25,10 @@ export async function run(ctx) {
       window.__game.freeze();
       const cnt = a[7];
       const start = window.__game.soldierStartOf(0);
-      let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+      let x0 = 1e9,
+        y0 = 1e9,
+        x1 = -1e9,
+        y1 = -1e9;
       const dpr = window.devicePixelRatio || 1;
       for (let i = 0; i < cnt; i++) {
         const [wx, wy] = window.__game.soldierPos(start + i);
@@ -44,11 +47,16 @@ export async function run(ctx) {
     const cx1 = Math.min(png.width - 1, Math.ceil(box[2] + 4));
     const cy0 = Math.max(0, Math.floor(box[1] - 4));
     const cy1 = Math.min(png.height - 1, Math.ceil(box[3] + 4));
-    let n = 0, unit = 0, blue = 0, dark = 0;
+    let n = 0,
+      unit = 0,
+      blue = 0,
+      dark = 0;
     for (let y = cy0; y <= cy1; y++) {
       for (let x = cx0; x <= cx1; x++) {
         const o = (y * png.width + x) * 4;
-        const r = png.data[o], g = png.data[o + 1], b = png.data[o + 2];
+        const r = png.data[o],
+          g = png.data[o + 1],
+          b = png.data[o + 2];
         n++;
         if (Math.max(r, g, b) < 45) dark++;
         if (!(g > r + 8 && g > b + 8)) {

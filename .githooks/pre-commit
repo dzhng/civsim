@@ -1,0 +1,45 @@
+#!/bin/sh
+# Format staged sources with the project formatters, then restage them, so
+# every commit lands already-formatted:
+#   Rust    -> rustfmt          (same style as `cargo fmt --all`)
+#   web/**  -> oxfmt --write     (same as `bun run --cwd web format`;
+#                                 honors web/.prettierignore, so generated
+#                                 data under web/public/** and the lockfile
+#                                 are left alone)
+#
+# It formats and restages whole files, so stage complete files — an unstaged
+# hunk in a file you're committing will be pulled in once the formatter rewrites
+# it. Enable the hook with `scripts/setup-hooks.sh` (sets core.hooksPath).
+
+root=$(git rev-parse --show-toplevel) || exit 1
+cd "$root" || exit 1
+
+staged() { git diff --cached --name-only --diff-filter=ACMR | grep -E "$1"; }
+
+status=0
+
+# --- Rust ------------------------------------------------------------------
+rs=$(staged '\.rs$')
+if [ -n "$rs" ]; then
+  if command -v rustfmt >/dev/null 2>&1; then
+    echo "$rs" | xargs rustfmt --edition 2021 || status=1
+    echo "$rs" | xargs git add
+  else
+    echo "pre-commit: rustfmt not found (rustup component add rustfmt); skipping Rust." >&2
+  fi
+fi
+
+# --- web -------------------------------------------------------------------
+web=$(staged '^web/')
+if [ -n "$web" ]; then
+  if [ -x web/node_modules/.bin/oxfmt ]; then
+    echo "$web" | sed 's#^web/##' \
+      | ( cd web && xargs ./node_modules/.bin/oxfmt --write --no-error-on-unmatched-pattern ) \
+      || status=1
+    echo "$web" | xargs git add
+  else
+    echo "pre-commit: web/node_modules missing (bun install --cwd web); skipping web." >&2
+  fi
+fi
+
+exit $status

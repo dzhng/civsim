@@ -1,202 +1,246 @@
-import { readFileSync } from 'node:fs';
-import { PNG } from 'pngjs';
+import { readFileSync } from "node:fs";
+import { PNG } from "pngjs";
 
-const CAMPAIGN_MAP_JSON = new URL('../../public/data/campaign-map.json', import.meta.url);
+const CAMPAIGN_MAP_JSON = new URL("../../public/data/campaign-map.json", import.meta.url);
 const WHOLE_MAP_CAMERA = [-100, 250, 0.16];
 const REGIONAL_ITALY_CAMERA = [-430, 380, 4.0];
 const ROME_CLOSE_CAMERA = [-456, 446, 6.0];
 const MAINLAND_ITALY_CITY_NAMES = [
-  'Roma',
-  'Tibur',
-  'Narnia',
-  'Spoletium',
-  'Reate',
-  'Ferentinum',
-  'Alba Fucens',
-  'Clusium',
-  'Volsinii',
-  'Casinum',
-  'Aesernia',
-  'Teanum',
-  'Capua',
+  "Roma",
+  "Tibur",
+  "Narnia",
+  "Spoletium",
+  "Reate",
+  "Ferentinum",
+  "Alba Fucens",
+  "Clusium",
+  "Volsinii",
+  "Casinum",
+  "Aesernia",
+  "Teanum",
+  "Capua",
 ];
 const CENTRAL_ITALY_ROAD_PAIRS = [
-  ['Roma', 'Tibur'],
-  ['Roma', 'Narnia'],
-  ['Roma', 'Reate'],
-  ['Roma', 'Volsinii'],
-  ['Roma', 'Ferentinum'],
-  ['Roma', 'Ostia/Portus'],
-  ['Alba Fucens', 'Tibur'],
-  ['Narnia', 'Spoletium'],
-  ['Clusium', 'Volsinii'],
-  ['Casinum', 'Teanum'],
-  ['Minturnae', 'Teanum'],
-  ['Capua', 'Minturnae'],
+  ["Roma", "Tibur"],
+  ["Roma", "Narnia"],
+  ["Roma", "Reate"],
+  ["Roma", "Volsinii"],
+  ["Roma", "Ferentinum"],
+  ["Roma", "Ostia/Portus"],
+  ["Alba Fucens", "Tibur"],
+  ["Narnia", "Spoletium"],
+  ["Clusium", "Volsinii"],
+  ["Casinum", "Teanum"],
+  ["Minturnae", "Teanum"],
+  ["Capua", "Minturnae"],
 ];
 const TERRAIN_FEATURE_CROPS = {
-  'northern-apennines': { x: 560, y: 80, w: 360, h: 340 },
-  'central-apennines': { x: 430, y: 120, w: 500, h: 390 },
-  'southern-apennines': { x: 735, y: 310, w: 380, h: 250 },
+  "northern-apennines": { x: 560, y: 80, w: 360, h: 340 },
+  "central-apennines": { x: 430, y: 120, w: 500, h: 390 },
+  "southern-apennines": { x: 735, y: 310, w: 380, h: 250 },
 };
 const ROAD_SAMPLE_OFFSETS = roadSampleOffsets();
-const CAMPAIGN_MAP = JSON.parse(readFileSync(CAMPAIGN_MAP_JSON, 'utf8'));
+const CAMPAIGN_MAP = JSON.parse(readFileSync(CAMPAIGN_MAP_JSON, "utf8"));
 const MAINLAND_ITALY_POINTS = pointsForCityNames(CAMPAIGN_MAP, MAINLAND_ITALY_CITY_NAMES);
 const CENTRAL_ITALY_ROAD_POINTS = roadSamplesForPairs(CAMPAIGN_MAP, CENTRAL_ITALY_ROAD_PAIRS);
 
 export const meta = {
-  name: 'campaign-lod',
-  kind: 'visual',
-  world: 'campaign-real',
-  tier: 'quick',
+  name: "campaign-lod",
+  kind: "visual",
+  world: "campaign-real",
+  tier: "quick",
   snapshots: [
-    'campaign-lod-whole-political',
-    'campaign-lod-whole-natural',
-    'campaign-lod-whole-fog',
-    'campaign-lod-regional-italy-natural',
-    'campaign-lod-regional-italy-political',
-    'campaign-lod-rome-close',
-    'campaign-lod-selected-army-city',
-    'campaign-lod-selected-city',
-    'campaign-lod-border-fog',
+    "campaign-lod-whole-political",
+    "campaign-lod-whole-natural",
+    "campaign-lod-whole-fog",
+    "campaign-lod-regional-italy-natural",
+    "campaign-lod-regional-italy-political",
+    "campaign-lod-rome-close",
+    "campaign-lod-selected-army-city",
+    "campaign-lod-selected-city",
+    "campaign-lod-border-fog",
   ],
-  describe: 'Real campaign map LoD bands for WebGPU map accuracy, labels, roads, fog, selection, and close city/army composition.',
+  describe:
+    "Real campaign map LoD bands for WebGPU map accuracy, labels, roads, fog, selection, and close city/army composition.",
 };
 
 export async function run(ctx) {
-  if (process.env.VERIFY_GPU !== '1') {
-    ctx.check('campaign WebGPU LoD scenes require VERIFY_GPU=1', true, 'set VERIFY_GPU=1 to exercise the WebGPU campaign adapter');
+  if (process.env.VERIFY_GPU !== "1") {
+    ctx.check(
+      "campaign WebGPU LoD scenes require VERIFY_GPU=1",
+      true,
+      "set VERIFY_GPU=1 to exercise the WebGPU campaign adapter",
+    );
     return;
   }
 
   const page = await ctx.newPage({
     viewport: { width: 1280, height: 800 },
-    errorPrefix: 'campaign-lod',
+    errorPrefix: "campaign-lod",
   });
   await page.goto(`${ctx.target}/`);
-  await page.waitForSelector('#menu-new-campaign', { timeout: 20000 });
-  await page.click('#menu-new-campaign');
+  await page.waitForSelector("#menu-new-campaign", { timeout: 20000 });
+  await page.click("#menu-new-campaign");
   await page.waitForFunction(
-    () => window.__campaignReady === true
-      && window.__campaignGpuStats?.ready === true
-      && window.__campaignGpuStats?.renderer === 'renderer-campaign',
+    () =>
+      window.__campaignReady === true &&
+      window.__campaignGpuStats?.ready === true &&
+      window.__campaignGpuStats?.renderer === "renderer-campaign",
     undefined,
     { timeout: 30000 },
   );
   await page.evaluate(() => window.__campaign.freeze());
 
   const anchors = await page.evaluate(async () => {
-    const map = await fetch('/data/campaign-map.json').then((response) => response.json());
+    const map = await fetch("/data/campaign-map.json").then((response) => response.json());
     const nodeIndex = (name) => map.nodes.findIndex((node) => node.name === name);
-    const roma = nodeIndex('Roma');
-    const ostia = nodeIndex('Ostia/Portus');
+    const roma = nodeIndex("Roma");
+    const ostia = nodeIndex("Ostia/Portus");
     const army = window.__campaign.armies().find((candidate) => candidate.mine);
     return { roma, ostia, armyId: army?.id ?? -1 };
   });
-  ctx.check('real campaign LoD scene found Roma, Ostia, and player army', anchors.roma >= 0 && anchors.ostia >= 0 && anchors.armyId >= 0, JSON.stringify(anchors));
+  ctx.check(
+    "real campaign LoD scene found Roma, Ostia, and player army",
+    anchors.roma >= 0 && anchors.ostia >= 0 && anchors.armyId >= 0,
+    JSON.stringify(anchors),
+  );
 
-  await snapCampaign(page, ctx, 'campaign-lod-whole-political', {
-    before: () => page.evaluate((camera) => {
-      window.__campaign.freeze(true);
-      window.__campaign.factionView(true);
-      window.__campaign.fogOfWar(false);
-      window.__campaign.select(-1);
-      window.__campaign.cam(...camera);
-    }, WHOLE_MAP_CAMERA),
-    stats: (stats) => stats.visibleLabels >= 20 && hasRoadJunctionGeometry(stats) && stats.cityEntities > 300,
+  await snapCampaign(page, ctx, "campaign-lod-whole-political", {
+    before: () =>
+      page.evaluate((camera) => {
+        window.__campaign.freeze(true);
+        window.__campaign.factionView(true);
+        window.__campaign.fogOfWar(false);
+        window.__campaign.select(-1);
+        window.__campaign.cam(...camera);
+      }, WHOLE_MAP_CAMERA),
+    stats: (stats) =>
+      stats.visibleLabels >= 20 && hasRoadJunctionGeometry(stats) && stats.cityEntities > 300,
   });
 
-  await snapCampaign(page, ctx, 'campaign-lod-whole-natural', {
-    before: () => page.evaluate((camera) => {
-      window.__campaign.factionView(false);
-      window.__campaign.fogOfWar(false);
-      window.__campaign.cam(...camera);
-    }, WHOLE_MAP_CAMERA),
+  await snapCampaign(page, ctx, "campaign-lod-whole-natural", {
+    before: () =>
+      page.evaluate((camera) => {
+        window.__campaign.factionView(false);
+        window.__campaign.fogOfWar(false);
+        window.__campaign.cam(...camera);
+      }, WHOLE_MAP_CAMERA),
     stats: (stats) => stats.visibleLabels >= 16 && hasRoadJunctionGeometry(stats),
   });
 
-  await snapCampaign(page, ctx, 'campaign-lod-whole-fog', {
-    before: () => page.evaluate((camera) => {
-      window.__campaign.factionView(true);
-      window.__campaign.fogOfWar(true);
-      window.__campaign.cam(...camera);
-    }, WHOLE_MAP_CAMERA),
+  await snapCampaign(page, ctx, "campaign-lod-whole-fog", {
+    before: () =>
+      page.evaluate((camera) => {
+        window.__campaign.factionView(true);
+        window.__campaign.fogOfWar(true);
+        window.__campaign.cam(...camera);
+      }, WHOLE_MAP_CAMERA),
     stats: (stats) => stats.fogEnabled === true && stats.fogSources > 0 && stats.visibleLabels < 20,
   });
 
-  await snapCampaign(page, ctx, 'campaign-lod-regional-italy-natural', {
-    before: () => page.evaluate((camera) => {
-      window.__campaign.fogOfWar(false);
-      window.__campaign.factionView(false);
-      window.__campaign.select(-1);
-      window.__campaign.cam(...camera);
-    }, REGIONAL_ITALY_CAMERA),
-    stats: (stats) => stats.visibleLabels >= 8 && stats.cityEntities > 20 && stats.armyEntities >= 1 && hasRoadJunctionGeometry(stats) && stats.factionView === false && hasTerrainFeatureDensity(stats),
+  await snapCampaign(page, ctx, "campaign-lod-regional-italy-natural", {
+    before: () =>
+      page.evaluate((camera) => {
+        window.__campaign.fogOfWar(false);
+        window.__campaign.factionView(false);
+        window.__campaign.select(-1);
+        window.__campaign.cam(...camera);
+      }, REGIONAL_ITALY_CAMERA),
+    stats: (stats) =>
+      stats.visibleLabels >= 8 &&
+      stats.cityEntities > 20 &&
+      stats.armyEntities >= 1 &&
+      hasRoadJunctionGeometry(stats) &&
+      stats.factionView === false &&
+      hasTerrainFeatureDensity(stats),
     checkStructure: true,
-    realItalyAlignment: 'regional',
+    realItalyAlignment: "regional",
   });
 
-  await snapCampaign(page, ctx, 'campaign-lod-regional-italy-political', {
-    before: () => page.evaluate((camera) => {
-      window.__campaign.fogOfWar(false);
-      window.__campaign.factionView(true);
-      window.__campaign.select(-1);
-      window.__campaign.cam(...camera);
-    }, REGIONAL_ITALY_CAMERA),
-    stats: (stats) => stats.visibleLabels >= 8 && stats.cityEntities > 20 && stats.armyEntities >= 1 && hasRoadJunctionGeometry(stats) && stats.factionView === true && hasTerrainFeatureDensity(stats),
+  await snapCampaign(page, ctx, "campaign-lod-regional-italy-political", {
+    before: () =>
+      page.evaluate((camera) => {
+        window.__campaign.fogOfWar(false);
+        window.__campaign.factionView(true);
+        window.__campaign.select(-1);
+        window.__campaign.cam(...camera);
+      }, REGIONAL_ITALY_CAMERA),
+    stats: (stats) =>
+      stats.visibleLabels >= 8 &&
+      stats.cityEntities > 20 &&
+      stats.armyEntities >= 1 &&
+      hasRoadJunctionGeometry(stats) &&
+      stats.factionView === true &&
+      hasTerrainFeatureDensity(stats),
   });
 
-  await snapCampaign(page, ctx, 'campaign-lod-rome-close', {
-    before: () => page.evaluate((camera) => {
-      window.__campaign.factionView(false);
-      window.__campaign.select(-1);
-      window.__campaign.cam(...camera);
-    }, ROME_CLOSE_CAMERA),
-    stats: (stats) => stats.visibleLabels >= 5
-      && stats.visibleLabelNames?.includes('city:OSTIA/PORTUS')
-      && stats.cityEntities > 20
-      && stats.armyEntities >= 1
-      && hasRoadJunctionGeometry(stats)
-      && hasTerrainFeatureDensity(stats),
-    realItalyAlignment: 'close',
+  await snapCampaign(page, ctx, "campaign-lod-rome-close", {
+    before: () =>
+      page.evaluate((camera) => {
+        window.__campaign.factionView(false);
+        window.__campaign.select(-1);
+        window.__campaign.cam(...camera);
+      }, ROME_CLOSE_CAMERA),
+    stats: (stats) =>
+      stats.visibleLabels >= 5 &&
+      stats.visibleLabelNames?.includes("city:OSTIA/PORTUS") &&
+      stats.cityEntities > 20 &&
+      stats.armyEntities >= 1 &&
+      hasRoadJunctionGeometry(stats) &&
+      hasTerrainFeatureDensity(stats),
+    realItalyAlignment: "close",
     greenTerrainFloor: 0.42,
   });
 
-  await snapCampaign(page, ctx, 'campaign-lod-selected-army-city', {
-    before: () => page.evaluate(({ armyId, roma, camera }) => {
-      window.__campaign.place(armyId, 0, roma, 0);
-      window.__campaign.factionView(false);
-      window.__campaign.select(armyId);
-      window.__campaign.cam(...camera);
-    }, { ...anchors, camera: ROME_CLOSE_CAMERA }),
-    stats: (stats) => stats.visibleLabels >= 4
-      && hasRoadJunctionGeometry(stats)
-      && stats.composedArmyCityLabels >= 1
-      && stats.garrisonedArmySelections >= 1
-      && stats.maxSelectionRadius >= 11
-      && stats.maxSelectionRadius < 13
-      && stats.visibleLabelNames?.includes('city:OSTIA/PORTUS')
-      && !stats.labelCollisionCulledLabels?.includes('city:OSTIA/PORTUS'),
+  await snapCampaign(page, ctx, "campaign-lod-selected-army-city", {
+    before: () =>
+      page.evaluate(
+        ({ armyId, roma, camera }) => {
+          window.__campaign.place(armyId, 0, roma, 0);
+          window.__campaign.factionView(false);
+          window.__campaign.select(armyId);
+          window.__campaign.cam(...camera);
+        },
+        { ...anchors, camera: ROME_CLOSE_CAMERA },
+      ),
+    stats: (stats) =>
+      stats.visibleLabels >= 4 &&
+      hasRoadJunctionGeometry(stats) &&
+      stats.composedArmyCityLabels >= 1 &&
+      stats.garrisonedArmySelections >= 1 &&
+      stats.maxSelectionRadius >= 11 &&
+      stats.maxSelectionRadius < 13 &&
+      stats.visibleLabelNames?.includes("city:OSTIA/PORTUS") &&
+      !stats.labelCollisionCulledLabels?.includes("city:OSTIA/PORTUS"),
     greenTerrainFloor: 0.42,
   });
 
-  await snapCampaign(page, ctx, 'campaign-lod-selected-city', {
-    before: () => page.evaluate(({ roma, camera }) => {
-      window.__campaign.select(-1);
-      window.__campaign.factionView(false);
-      window.__campaign.openCity(roma);
-      window.__campaign.cam(...camera);
-    }, { roma: anchors.roma, camera: ROME_CLOSE_CAMERA }),
+  await snapCampaign(page, ctx, "campaign-lod-selected-city", {
+    before: () =>
+      page.evaluate(
+        ({ roma, camera }) => {
+          window.__campaign.select(-1);
+          window.__campaign.factionView(false);
+          window.__campaign.openCity(roma);
+          window.__campaign.cam(...camera);
+        },
+        { roma: anchors.roma, camera: ROME_CLOSE_CAMERA },
+      ),
     stats: (stats) => stats.visibleLabels >= 4 && hasRoadJunctionGeometry(stats),
   });
 
-  await snapCampaign(page, ctx, 'campaign-lod-border-fog', {
-    before: () => page.evaluate(() => {
-      window.__campaign.fogOfWar(true);
-      window.__campaign.factionView(true);
-      window.__campaign.cam(-430, 380, 2.2);
-    }),
-    stats: (stats) => stats.fogEnabled === true && stats.fogSources > 0 && stats.cloudQuads === 1 && hasTerrainFeatureDensity(stats),
+  await snapCampaign(page, ctx, "campaign-lod-border-fog", {
+    before: () =>
+      page.evaluate(() => {
+        window.__campaign.fogOfWar(true);
+        window.__campaign.factionView(true);
+        window.__campaign.cam(-430, 380, 2.2);
+      }),
+    stats: (stats) =>
+      stats.fogEnabled === true &&
+      stats.fogSources > 0 &&
+      stats.cloudQuads === 1 &&
+      hasTerrainFeatureDensity(stats),
   });
 
   await page.close();
@@ -204,17 +248,24 @@ export async function run(ctx) {
 
 function hasTerrainFeatureDensity(stats) {
   const scenery = stats.sceneryStats;
-  return stats.scenery >= 4000
-    && scenery?.mountains >= 1000
-    && scenery?.trees >= 2400
-    && scenery?.rocks >= 700;
+  return (
+    stats.scenery >= 4000 &&
+    scenery?.mountains >= 1000 &&
+    scenery?.trees >= 2400 &&
+    scenery?.rocks >= 700
+  );
 }
 
 function hasRoadJunctionGeometry(stats) {
   return stats.roadTriangles > 0 && stats.roadJunctionCaps >= 100;
 }
 
-async function snapCampaign(page, ctx, name, { before, stats, checkStructure = false, realItalyAlignment = null, greenTerrainFloor = null }) {
+async function snapCampaign(
+  page,
+  ctx,
+  name,
+  { before, stats, checkStructure = false, realItalyAlignment = null, greenTerrainFloor = null },
+) {
   await before();
   await page.waitForTimeout(300);
   const gpuStats = await page.evaluate(() => window.__campaignGpuStats);
@@ -242,7 +293,7 @@ function pointsForCityNames(map, names) {
   return names.map((name) => {
     const node = byName.get(name);
     if (!node) throw new Error(`campaign map is missing city ${name}`);
-    return { kind: 'city', name, x: node.pos[0], y: node.pos[1] };
+    return { kind: "city", name, x: node.pos[0], y: node.pos[1] };
   });
 }
 
@@ -251,7 +302,7 @@ function roadSamplesForPairs(map, pairs) {
   const samples = [];
   for (const [a, b] of pairs) {
     const edge = map.edges.find((candidate) => {
-      if (candidate.kind !== 'road') return false;
+      if (candidate.kind !== "road") return false;
       const an = byId.get(candidate.a)?.name;
       const bn = byId.get(candidate.b)?.name;
       return (an === a && bn === b) || (an === b && bn === a);
@@ -265,7 +316,7 @@ function roadSamplesForPairs(map, pairs) {
       for (let step = 0; step < steps; step++) {
         const t = (step + 1) / (steps + 1);
         samples.push({
-          kind: 'road',
+          kind: "road",
           name: `${a}-${b}`,
           x: start[0] + (end[0] - start[0]) * t,
           y: start[1] + (end[1] - start[1]) * t,
@@ -277,16 +328,19 @@ function roadSamplesForPairs(map, pairs) {
 }
 
 async function checkRealItalyAlignment(page, ctx, name, current, cameraBand) {
-  const semantic = await page.evaluate(({ cities, roads }) => {
-    const terrainSample = (point) => {
-      const sample = window.__campaign.terrainAt(point.x, point.y);
-      return { ...point, land: sample.land, height: sample.height };
-    };
-    return {
-      cities: cities.map(terrainSample),
-      roads: roads.map(terrainSample),
-    };
-  }, { cities: MAINLAND_ITALY_POINTS, roads: CENTRAL_ITALY_ROAD_POINTS });
+  const semantic = await page.evaluate(
+    ({ cities, roads }) => {
+      const terrainSample = (point) => {
+        const sample = window.__campaign.terrainAt(point.x, point.y);
+        return { ...point, land: sample.land, height: sample.height };
+      };
+      return {
+        cities: cities.map(terrainSample),
+        roads: roads.map(terrainSample),
+      };
+    },
+    { cities: MAINLAND_ITALY_POINTS, roads: CENTRAL_ITALY_ROAD_POINTS },
+  );
   const badSemanticCities = semantic.cities.filter((point) => !point.land);
   const badSemanticRoads = semantic.roads.filter((point) => !point.land);
   ctx.check(
@@ -300,33 +354,35 @@ async function checkRealItalyAlignment(page, ctx, name, current, cameraBand) {
     }),
   );
 
-  const visible = await page.evaluate(({ cities, roads }) => {
-    const project = (point) => {
-      const [sx, sy] = window.__campaign.project(point.x, point.y);
-      return { ...point, sx, sy };
-    };
-    return {
-      cities: cities.map(project),
-      roads: roads.map(project),
-    };
-  }, { cities: MAINLAND_ITALY_POINTS, roads: CENTRAL_ITALY_ROAD_POINTS });
+  const visible = await page.evaluate(
+    ({ cities, roads }) => {
+      const project = (point) => {
+        const [sx, sy] = window.__campaign.project(point.x, point.y);
+        return { ...point, sx, sy };
+      };
+      return {
+        cities: cities.map(project),
+        roads: roads.map(project),
+      };
+    },
+    { cities: MAINLAND_ITALY_POINTS, roads: CENTRAL_ITALY_ROAD_POINTS },
+  );
   const pixelMetrics = renderedLandMetrics(current, visible);
-  const minVisibleCities = cameraBand === 'close' ? 5 : 10;
-  const minVisibleRoads = cameraBand === 'close' ? 8 : 22;
+  const minVisibleCities = cameraBand === "close" ? 5 : 10;
+  const minVisibleRoads = cameraBand === "close" ? 8 : 22;
   ctx.check(
     `${name} rendered mainland Italy anchors do not sit in visible water`,
-    pixelMetrics.visibleCities >= minVisibleCities
-      && pixelMetrics.visibleRoads >= minVisibleRoads
-      && pixelMetrics.badCities.length === 0
-      && pixelMetrics.badRoads.length === 0,
+    pixelMetrics.visibleCities >= minVisibleCities &&
+      pixelMetrics.visibleRoads >= minVisibleRoads &&
+      pixelMetrics.badCities.length === 0 &&
+      pixelMetrics.badRoads.length === 0,
     JSON.stringify(pixelMetrics),
   );
   const roadMetrics = renderedRoadMetrics(current, visible.roads);
-  const minRoadHitRatio = cameraBand === 'regional' ? 0.88 : 0.90;
+  const minRoadHitRatio = cameraBand === "regional" ? 0.88 : 0.9;
   ctx.check(
     `${name} visible central Italy roads are continuous above terrain`,
-    roadMetrics.visibleRoads >= minVisibleRoads
-      && roadMetrics.roadHitRatio >= minRoadHitRatio,
+    roadMetrics.visibleRoads >= minVisibleRoads && roadMetrics.roadHitRatio >= minRoadHitRatio,
     JSON.stringify(roadMetrics),
   );
 }
@@ -340,32 +396,36 @@ async function checkRealItalyAlignment(page, ctx, name, current, cameraBand) {
 function checkRegionalMapStructure(ctx, current) {
   const m = campaign3dMetrics(current);
   ctx.check(
-    'campaign-lod-regional-italy-natural reads as a structured map (sea, land, roads, labels; no political wash)',
-    m.waterRatio >= 0.30
-      && m.landRatio >= 0.12
-      && m.roadRatio >= 0.012
-      && m.labelRatio >= 0.002
-      && m.politicalWashRatio <= 0.12,
+    "campaign-lod-regional-italy-natural reads as a structured map (sea, land, roads, labels; no political wash)",
+    m.waterRatio >= 0.3 &&
+      m.landRatio >= 0.12 &&
+      m.roadRatio >= 0.012 &&
+      m.labelRatio >= 0.002 &&
+      m.politicalWashRatio <= 0.12,
     JSON.stringify(m),
   );
   const features = terrainFeatureCropMetrics(current);
-  const featureChecks = Object.fromEntries(Object.keys(TERRAIN_FEATURE_CROPS).map((name) => {
-    const crop = features[name];
-    return [name, {
-      crop,
-      // Mountain/dark floors recalibrated after slice 3 greened the grass: the
-      // warm-stone classifier used to count tan plains as "mountain", inflating
-      // these crops. With living-green grass only the actual rock props count
-      // (sparser in the southern crop), and they read MORE clearly against the
-      // green (verified by critique). Floors guard readability against the new
-      // palette; the greenRatio floor pins the greening itself.
-      ok: crop.mountainRatio >= 0.07
-        && crop.darkFeatureRatio >= 0.04
-        && crop.greenRatio >= 0.55,
-    }];
-  }));
+  const featureChecks = Object.fromEntries(
+    Object.keys(TERRAIN_FEATURE_CROPS).map((name) => {
+      const crop = features[name];
+      return [
+        name,
+        {
+          crop,
+          // Mountain/dark floors recalibrated after slice 3 greened the grass: the
+          // warm-stone classifier used to count tan plains as "mountain", inflating
+          // these crops. With living-green grass only the actual rock props count
+          // (sparser in the southern crop), and they read MORE clearly against the
+          // green (verified by critique). Floors guard readability against the new
+          // palette; the greenRatio floor pins the greening itself.
+          ok:
+            crop.mountainRatio >= 0.07 && crop.darkFeatureRatio >= 0.04 && crop.greenRatio >= 0.55,
+        },
+      ];
+    }),
+  );
   ctx.check(
-    'campaign-lod-regional-italy-natural keeps named mountain and forest crops readable',
+    "campaign-lod-regional-italy-natural keeps named mountain and forest crops readable",
     Object.values(featureChecks).every((check) => check.ok),
     JSON.stringify(featureChecks),
   );
@@ -419,7 +479,8 @@ function greenTerrainMetrics(png) {
       const g = png.data[i + 1];
       const b = png.data[i + 2];
       const a = png.data[i + 3];
-      if (a < 16 || isWaterPixel(r, g, b) || isRoadPixel(r, g, b) || isLabelPixel(r, g, b)) continue;
+      if (a < 16 || isWaterPixel(r, g, b) || isRoadPixel(r, g, b) || isLabelPixel(r, g, b))
+        continue;
       const cityRoof = r > 135 && r > g + 24 && g > 70 && b < 110;
       if (cityRoof) continue;
       total++;
@@ -433,7 +494,12 @@ function greenTerrainMetrics(png) {
 }
 
 function terrainFeatureCropMetrics(png) {
-  return Object.fromEntries(Object.entries(TERRAIN_FEATURE_CROPS).map(([name, crop]) => [name, terrainFeatureMetrics(png, crop)]));
+  return Object.fromEntries(
+    Object.entries(TERRAIN_FEATURE_CROPS).map(([name, crop]) => [
+      name,
+      terrainFeatureMetrics(png, crop),
+    ]),
+  );
 }
 
 function terrainFeatureMetrics(png, crop) {
@@ -448,16 +514,25 @@ function terrainFeatureMetrics(png, crop) {
       const g = png.data[i + 1];
       const b = png.data[i + 2];
       const a = png.data[i + 3];
-      if (a < 16 || isWaterPixel(r, g, b) || isRoadPixel(r, g, b) || isLabelPixel(r, g, b)) continue;
+      if (a < 16 || isWaterPixel(r, g, b) || isRoadPixel(r, g, b) || isLabelPixel(r, g, b))
+        continue;
       total++;
       const max = Math.max(r, g, b);
       const min = Math.min(r, g, b);
       const saturation = max - min;
       const greyStone = max < 150 && min > 25 && saturation < 65 && r >= b - 12 && g >= b - 12;
-      const warmStone = r > 90 && r < 175 && g > 65 && g < 150 && b > 35 && b < 125 && r >= g * 1.04 && g >= b * 1.08;
+      const warmStone =
+        r > 90 &&
+        r < 175 &&
+        g > 65 &&
+        g < 150 &&
+        b > 35 &&
+        b < 125 &&
+        r >= g * 1.04 &&
+        g >= b * 1.08;
       if (greyStone || warmStone) mountain++;
       if ((max < 105 && min > 20 && saturation < 65) || (warmStone && max < 130)) darkFeature++;
-      if (g > r * 1.03 && g > b * 1.10 && g > 80 && r < 175 && b < 150) green++;
+      if (g > r * 1.03 && g > b * 1.1 && g > 80 && r < 175 && b < 150) green++;
     }
   }
   const ratio = (value) => Number((value / Math.max(1, total)).toFixed(4));

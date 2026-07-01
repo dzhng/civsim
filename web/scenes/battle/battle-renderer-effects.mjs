@@ -1,30 +1,41 @@
-import { PNG } from 'pngjs';
-import { hasBattleWorldDepthContract } from '../_renderer-contract.mjs';
+import { PNG } from "pngjs";
+import { hasBattleWorldDepthContract } from "../_renderer-contract.mjs";
 
 export const meta = {
-  name: 'battle-renderer-effects',
-  kind: 'visual',
-  world: 'battle-5v5',
-  tier: 'quick',
-  snapshots: ['battle-projectiles-dpr2'],
-  describe: 'Production WebGPU battle frame with deterministic projectile/effect-line overlay at DPR2.',
+  name: "battle-renderer-effects",
+  kind: "visual",
+  world: "battle-5v5",
+  tier: "quick",
+  snapshots: ["battle-projectiles-dpr2"],
+  describe:
+    "Production WebGPU battle frame with deterministic projectile/effect-line overlay at DPR2.",
 };
 
 export async function run(ctx) {
-  if (process.env.VERIFY_GPU !== '1') {
-    ctx.check('requires WebGPU browser flags', true, 'set VERIFY_GPU=1 to capture WebGPU battle effects');
+  if (process.env.VERIFY_GPU !== "1") {
+    ctx.check(
+      "requires WebGPU browser flags",
+      true,
+      "set VERIFY_GPU=1 to capture WebGPU battle effects",
+    );
     return;
   }
 
-  const page = await ctx.newPage({ deviceScaleFactor: 2, errorPrefix: 'battle-effects-dpr2' });
+  const page = await ctx.newPage({ deviceScaleFactor: 2, errorPrefix: "battle-effects-dpr2" });
   await page.goto(`${ctx.target}?battle=5v5&ai=on`);
-  await page.waitForFunction(() => {
-    const stats = window.__game?.stats?.();
-    return window.__ready === true
-      && stats?.renderer === 'gpu'
-      && stats.renderStats?.ready === true
-      && stats.renderStats.soldiers === stats.soldiers;
-  }, undefined, { timeout: 20000 });
+  await page.waitForFunction(
+    () => {
+      const stats = window.__game?.stats?.();
+      return (
+        window.__ready === true &&
+        stats?.renderer === "gpu" &&
+        stats.renderStats?.ready === true &&
+        stats.renderStats.soldiers === stats.soldiers
+      );
+    },
+    undefined,
+    { timeout: 20000 },
+  );
 
   await page.evaluate(() => {
     window.__cam.zoom = 2.6;
@@ -36,7 +47,7 @@ export async function run(ctx) {
     return window.__game.freezeAtTick(473);
   });
   await page.waitForTimeout(120);
-  const canvas = page.locator('#battlefield');
+  const canvas = page.locator("#battlefield");
   const hiddenEffectsCanvas = PNG.sync.read(await canvas.screenshot());
 
   await page.evaluate(() => {
@@ -50,11 +61,11 @@ export async function run(ctx) {
   }));
   const effects = state.stats.renderStats?.tacticalLines?.effects;
   ctx.check(
-    'WebGPU battle effect frame preserves deterministic projectile/effect segments',
-    state.tick === 473
-      && state.stats.renderer === 'gpu'
-      && hasBattleWorldDepthContract(state.stats.renderStats)
-      && effects?.lineSegments >= 40,
+    "WebGPU battle effect frame preserves deterministic projectile/effect segments",
+    state.tick === 473 &&
+      state.stats.renderer === "gpu" &&
+      hasBattleWorldDepthContract(state.stats.renderStats) &&
+      effects?.lineSegments >= 40,
     JSON.stringify({ tick: state.tick, effects, renderStats: state.stats.renderStats }),
   );
 
@@ -68,16 +79,16 @@ export async function run(ctx) {
     effectDiffPixels: pixelDiff(hiddenEffectsCanvas, visibleEffectsCanvas),
   };
   ctx.check(
-    'WebGPU battle effect frame has projectile pixels, teams, terrain, HUD, and minimap',
-    canvasMetrics.effectDiffPixels > 25
-      && pageMetrics.warmTerrain > 20000
-      && pageMetrics.blueTeam > 250
-      && pageMetrics.redTeam > 250
-      && pageMetrics.darkHud > 15000
-      && pageMetrics.minimapPixels > 5000,
+    "WebGPU battle effect frame has projectile pixels, teams, terrain, HUD, and minimap",
+    canvasMetrics.effectDiffPixels > 25 &&
+      pageMetrics.warmTerrain > 20000 &&
+      pageMetrics.blueTeam > 250 &&
+      pageMetrics.redTeam > 250 &&
+      pageMetrics.darkHud > 15000 &&
+      pageMetrics.minimapPixels > 5000,
     JSON.stringify({ pageMetrics, canvasMetrics }),
   );
-  await ctx.snap(page, 'battle-projectiles-dpr2', { shot });
+  await ctx.snap(page, "battle-projectiles-dpr2", { shot });
   await page.close();
 }
 
@@ -98,11 +109,20 @@ function battleEffectPageMetrics(png) {
       if (r > 135 && g > 115 && b < 120) warmTerrain++;
       if (b > r + 24 && b > g + 8) blueTeam++;
       if (r > g + 22 && r > b + 26 && r > 105) redTeam++;
-      if (y > png.height * 0.70 && r < 70 && g < 75 && b < 85) darkHud++;
-      if (x > png.width * 0.78 && y > png.height * 0.72 && g > 70 && g > r * 0.75 && b < 120) minimapPixels++;
+      if (y > png.height * 0.7 && r < 70 && g < 75 && b < 85) darkHud++;
+      if (x > png.width * 0.78 && y > png.height * 0.72 && g > 70 && g > r * 0.75 && b < 120)
+        minimapPixels++;
     }
   }
-  return { width: png.width, height: png.height, warmTerrain, blueTeam, redTeam, darkHud, minimapPixels };
+  return {
+    width: png.width,
+    height: png.height,
+    warmTerrain,
+    blueTeam,
+    redTeam,
+    darkHud,
+    minimapPixels,
+  };
 }
 
 function pixelDiff(a, b) {

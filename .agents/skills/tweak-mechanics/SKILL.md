@@ -1,15 +1,22 @@
 ---
 name: tweak-mechanics
-description: How to change the SIM PHYSICS (how soldiers move, collide, press, hold a line, rout) — the first-principles workflow and the kind of tests that pin it. Distinct from balancing units. Use when David says a behavior looks wrong ("heavy v heavy isn't clean", "the latch points the wrong way", "they swirl/pass through each other"), or asks to simplify/question a mechanic. Pairs with [debug](../debug/SKILL.md) (the diagnosis loop for a red or a "feels off") and [write-tests](../write-tests/SKILL.md); distinct from [balance-unit](../balance-unit/SKILL.md) (the stat-table counterpart — never fix balance by changing physics) and [tweak-campaign](../tweak-campaign/SKILL.md) (the strategic layer the battles sit in — movement on the road graph, economy, the commander AI).
+description: How to change the SIM PHYSICS (how soldiers move, collide, press, hold a line, rout) — the first-principles workflow and the kind of tests that pin it. Distinct from balancing units. Use when David says a behavior looks wrong ("heavy v heavy isn't clean", "the latch points the wrong way", "they swirl/pass through each other"), asks whether a mechanics change or balance/stat change is right, or asks to simplify/question a mechanic. Pairs with [debug](../debug/SKILL.md) (the diagnosis loop for a red or a "feels off") and [write-tests](../write-tests/SKILL.md); distinct from [balance-unit](../balance-unit/SKILL.md) (the stat-table counterpart — never fix balance by changing physics) and [tweak-campaign](../tweak-campaign/SKILL.md) (the strategic layer the battles sit in — movement on the road graph, economy, the commander AI).
 ---
 
 # Tweaking a mechanic (the physics, not the balance)
 
 A **mechanics** change alters *how the world works* — how bodies move, collide,
 press, hold formation, face, rout. A **balance** change alters *how a unit is
-priced* (its stat block); that is the `balance-unit` skill. Never judge a
-mechanics change by who won — balance can flip the winner tomorrow and the
-physics must still be right.
+priced* (its stat block); that is the `balance-unit` skill.
+
+**Mechanics correctness comes first.** If a physically sound mechanic exposes a
+class as too strong or too weak, keep the mechanic and tune the class later;
+never add a mechanics exception just to preserve a balance verdict. Before
+changing stats, prove the mechanic's geometry and forces look right in the
+smallest controlled case and, for visible battle behavior, in the vibe frames.
+Only after that do outcome pins, counter-webs, and prices get re-derived. Never
+judge a mechanics change by who won — balance can flip the winner tomorrow and
+the physics must still be right.
 
 ## First principles: forces and bodies, never walls
 

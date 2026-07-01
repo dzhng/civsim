@@ -5,9 +5,15 @@ description: Implement an existing spec. Use when the user says implement spec.
 
 # Implement Spec
 
-Build the active spec one reviewable pass at a time. The spec is the source of
-truth, but the architecture is allowed to improve when the code teaches you the
-plan is stale.
+Build the active spec to completion, one reviewable pass at a time. The spec is
+the source of truth, but the architecture is allowed to improve when the code
+teaches you the plan is stale.
+
+A pass (usually one slice) is a **commit checkpoint, not a stopping point.** The
+job is the whole spec — every slice, every global TODO — not the first green
+commit. Finishing a pass means starting the next one, not handing back to the
+user. Only stop when the spec is fully implemented (or a genuine blocker needs a
+decision only the user can make).
 
 ## Workflow
 
@@ -28,9 +34,13 @@ plan is stale.
 5. Run [review](../review/SKILL.md) before committing. Apply simplifications
    found in review, rerun the affected checks, then commit only the focused
    changes from this pass.
-6. Update the spec README's "Next Agent Prompt" before ending: status,
-   completed work, next pickup point, blockers, changed gates, and any
-   architecture decision that changed the plan.
+6. Update the spec README's "Next Agent Prompt": status, completed work, next
+   pickup point, blockers, changed gates, and any architecture decision that
+   changed the plan.
+7. **Continue.** If any slice or global TODO is still open, go straight back to
+   step 1 for the next one — same session, no pause for acknowledgement. Keep
+   looping until every TODO is closed. When the last slice lands, close the spec
+   with [close-spec](../close-spec/SKILL.md).
 
 ## Rules
 
@@ -39,8 +49,16 @@ plan is stale.
   architecture replaces them.
 - Do not let tests get easier by accident. A split harness or new runner must
   preserve the old default coverage unless the spec explicitly changes it.
-- Commit every clean pass. If a pass is not green, do not commit it as finished;
-  report the failing contract and exact evidence.
+- Commit every clean pass, then immediately begin the next one. A green commit is
+  a checkpoint, not permission to stop. If a pass is not green, do not commit it
+  as finished; report the failing contract and exact evidence.
+- Do not stop while work remains. "Slice N is done and committed" is not a
+  finished task while later slices or TODOs are open — a single completed slice is
+  a reason to continue, never to hand back. The only legitimate early stops are: a
+  hard blocker that needs a user-only decision, a gate that cannot be made green
+  with an honest fix, or the user interrupting. Running low on context is not a
+  stop — update the handoff and keep going. When you must stop, say exactly which
+  slice is next and why you paused.
 - Keep visual evidence honest: contact sheets, GIFs, screenshots, and
   baselines must show the thing being judged at the intended camera/framing.
 - Sweep every player-visible surface implied by the slice. A model, state, or
@@ -61,5 +79,11 @@ plan is stale.
 
 ## Done
 
-A pass is done when code, spec handoff, verification evidence, review cleanup,
-and a focused commit all agree on the same current truth.
+A **pass** is done when code, spec handoff, verification evidence, review
+cleanup, and a focused commit all agree on the same current truth — then you
+start the next pass.
+
+The **spec** is done — and only then is this skill done — when every slice and
+global TODO is closed, all gates are green, the handoff shows nothing left to
+pick up, and the spec has been archived with [close-spec](../close-spec/SKILL.md).
+Anything short of that is mid-implementation: keep going.

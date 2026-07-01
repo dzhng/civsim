@@ -4,8 +4,8 @@
 // heightmap without touching the asset pipeline. Heights are visual relief
 // (massively exaggerated, like every campaign map), not real elevation.
 
-import type { CampaignData } from './data';
-import { isControlledStage } from './data';
+import type { CampaignData } from "./data";
+import { isControlledStage } from "./data";
 
 // Must match crates/mapgen/src/raster.rs. Mountain height is graded later by range
 // size (interior of a broad mass climbs higher than a narrow ridge).
@@ -55,7 +55,12 @@ function smooth01(t: number): number {
 }
 
 /** Two-pass chamfer distance (in cells) to the nearest cell matching `isSrc`. */
-function chamfer<T extends Uint8Array>(src: T, isSrc: (v: number) => boolean, w: number, h: number): Float32Array {
+function chamfer<T extends Uint8Array>(
+  src: T,
+  isSrc: (v: number) => boolean,
+  w: number,
+  h: number,
+): Float32Array {
   const d = new Float32Array(w * h).fill(1e9);
   for (let i = 0; i < w * h; i++) if (isSrc(src[i])) d[i] = 0;
   const D = Math.SQRT2;
@@ -110,7 +115,7 @@ export class TerrainField {
 
     // Downsample the bg into the grid and classify by nearest palette color.
     const cv = new OffscreenCanvas(this.w, this.h);
-    const ctx = cv.getContext('2d')!;
+    const ctx = cv.getContext("2d")!;
     ctx.drawImage(data.bg, 0, 0, this.w, this.h);
     const px = ctx.getImageData(0, 0, this.w, this.h).data;
     const n = this.w * this.h;
@@ -139,7 +144,7 @@ export class TerrainField {
     // whose source block contains river pixels (the Nile must stay green).
     {
       const fcv = new OffscreenCanvas(data.bg.width, data.bg.height);
-      const fctx = fcv.getContext('2d')!;
+      const fctx = fcv.getContext("2d")!;
       fctx.drawImage(data.bg, 0, 0);
       const fpx = fctx.getImageData(0, 0, data.bg.width, data.bg.height).data;
       const rc = PALETTE[4].c;
@@ -181,7 +186,7 @@ export class TerrainField {
     if (!isControlledStage(data)) {
       const cityMask = new Uint8Array(n);
       for (const node of data.map.nodes) {
-        if (node.kind !== 'city') continue;
+        if (node.kind !== "city") continue;
         const cgx = Math.round((node.pos[0] - this.minX) / this.cell - 0.5);
         const cgy = Math.round((this.maxY - node.pos[1]) / this.cell - 0.5);
         if (cgx < 0 || cgy < 0 || cgx >= this.w || cgy >= this.h) continue;
@@ -250,10 +255,13 @@ export class TerrainField {
       const wy = this.maxY - (gy + 0.5) * this.cell;
       // piecewise latitude base: desert south, temperate north
       const lat =
-        wy < -400 ? 0.08 :
-        wy < 100 ? 0.08 + ((wy + 400) / 500) * 0.3 :
-        wy < TEMPERATE_Y_KM ? 0.38 + ((wy - 100) / 600) * 0.17 :
-        Math.min(0.8, 0.55 + ((wy - TEMPERATE_Y_KM) / 1300) * 0.25);
+        wy < -400
+          ? 0.08
+          : wy < 100
+            ? 0.08 + ((wy + 400) / 500) * 0.3
+            : wy < TEMPERATE_Y_KM
+              ? 0.38 + ((wy - 100) / 600) * 0.17
+              : Math.min(0.8, 0.55 + ((wy - TEMPERATE_Y_KM) / 1300) * 0.25);
       for (let gx = 0; gx < w; gx++) {
         const i = gy * w + gx;
         // A channel: SIGNED shore distance — 0.5 at the waterline, above on
@@ -265,13 +273,22 @@ export class TerrainField {
         const river = Math.max(0, 1 - riverD[i] / 3);
         const coast = Math.max(0, 1 - shoreD[i] / 6);
         // noise matters less where the climate is decisively dry
-        const moisture = Math.min(1, Math.max(0,
-          lat + river * 0.55 + coast * 0.1 + (vnoise2(gx / 22, gy / 22) - 0.5) * 0.3 * (0.35 + lat)));
-        const patch = vnoise2(gx / 16 + 31.7, gy / 16 + 11.3) * 0.7 + vnoise2(gx / 5 + 7.1, gy / 5 + 3.9) * 0.3;
+        const moisture = Math.min(
+          1,
+          Math.max(
+            0,
+            lat +
+              river * 0.55 +
+              coast * 0.1 +
+              (vnoise2(gx / 22, gy / 22) - 0.5) * 0.3 * (0.35 + lat),
+          ),
+        );
+        const patch =
+          vnoise2(gx / 16 + 31.7, gy / 16 + 11.3) * 0.7 + vnoise2(gx / 5 + 7.1, gy / 5 + 3.9) * 0.3;
         // Forest reaches into temperate (not just lush) latitudes and a wider
         // band of patch noise so wooded regions actually carry visible stands of
         // trees; foothill rock only partly suppresses it so slopes keep cover.
-        const forest = smooth01((moisture - 0.40) / 0.26) * smooth01((patch - 0.34) / 0.30);
+        const forest = smooth01((moisture - 0.4) / 0.26) * smooth01((patch - 0.34) / 0.3);
         const rock = smooth01((this.height[i] - 6) / 16);
         this.biome[i * 4] = moisture * 255;
         this.biome[i * 4 + 1] = forest * (1 - rock * 0.55) * 255;

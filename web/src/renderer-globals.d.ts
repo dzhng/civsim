@@ -5,7 +5,7 @@ type GPUBindGroup = unknown;
 type GPUBindGroupLayout = unknown;
 type GPURenderPipeline = unknown;
 type GPUSampler = unknown;
-type GPUCompilationMessageType = 'error' | 'warning' | 'info';
+type GPUCompilationMessageType = "error" | "warning" | "info";
 interface GPUCompilationMessage {
   readonly message: string;
   readonly type: GPUCompilationMessageType;
@@ -24,7 +24,7 @@ type GPUTexture = { createView(): GPUTextureView; destroy(): void };
 type GPUTextureView = unknown;
 
 interface GPUDeviceLostInfo {
-  readonly reason: 'destroyed' | 'unknown';
+  readonly reason: "destroyed" | "unknown";
   readonly message: string;
 }
 
@@ -49,6 +49,7 @@ declare const GPUMapMode: {
 };
 
 declare const GPUShaderStage: {
+  readonly COMPUTE: number;
   readonly FRAGMENT: number;
   readonly VERTEX: number;
 };
@@ -56,8 +57,11 @@ declare const GPUShaderStage: {
 declare const GPUTextureUsage: {
   readonly COPY_DST: number;
   readonly RENDER_ATTACHMENT: number;
+  readonly STORAGE_BINDING: number;
   readonly TEXTURE_BINDING: number;
 };
+
+type GPUComputePipeline = unknown;
 
 interface GPUAdapterInfo {
   readonly vendor?: string;
@@ -83,7 +87,11 @@ interface GPU {
 }
 
 interface GPUCanvasContext {
-  configure(config: { device: GPUDevice; format: GPUTextureFormat; alphaMode?: 'opaque' | 'premultiplied' });
+  configure(config: {
+    device: GPUDevice;
+    format: GPUTextureFormat;
+    alphaMode?: "opaque" | "premultiplied";
+  });
   getConfiguration?(): unknown;
   getCurrentTexture(): GPUTexture;
   unconfigure?(): void;
@@ -106,11 +114,16 @@ interface GPUDevice {
   readonly features: Set<string>;
   readonly limits: Record<string, number>;
   createBindGroup(descriptor: unknown): GPUBindGroup;
-  createQuerySet(descriptor: { type: 'timestamp' | 'occlusion'; count: number; label?: string }): GPUQuerySet;
+  createQuerySet(descriptor: {
+    type: "timestamp" | "occlusion";
+    count: number;
+    label?: string;
+  }): GPUQuerySet;
   createBindGroupLayout(descriptor: unknown): GPUBindGroupLayout;
   createBuffer(descriptor: { label?: string; size: number; usage: number }): GPUBuffer;
   createCommandEncoder(descriptor?: unknown): GPUCommandEncoder;
   createPipelineLayout(descriptor: unknown): unknown;
+  createComputePipeline(descriptor: unknown): GPUComputePipeline;
   createRenderPipeline(descriptor: unknown): GPURenderPipeline;
   createSampler(descriptor?: unknown): GPUSampler;
   createShaderModule(descriptor: { label?: string; code: string }): GPUShaderModule;
@@ -119,9 +132,33 @@ interface GPUDevice {
 
 interface GPUCommandEncoder {
   beginRenderPass(descriptor: unknown): GPURenderPassEncoder;
-  resolveQuerySet(querySet: GPUQuerySet, firstQuery: number, queryCount: number, destination: GPUBuffer, destinationOffset: number): void;
-  copyBufferToBuffer(source: GPUBuffer, sourceOffset: number, destination: GPUBuffer, destinationOffset: number, size: number): void;
+  beginComputePass(descriptor?: unknown): GPUComputePassEncoder;
+  resolveQuerySet(
+    querySet: GPUQuerySet,
+    firstQuery: number,
+    queryCount: number,
+    destination: GPUBuffer,
+    destinationOffset: number,
+  ): void;
+  copyBufferToBuffer(
+    source: GPUBuffer,
+    sourceOffset: number,
+    destination: GPUBuffer,
+    destinationOffset: number,
+    size: number,
+  ): void;
   finish(): unknown;
+}
+
+interface GPUComputePassEncoder {
+  setPipeline(pipeline: GPUComputePipeline): void;
+  setBindGroup(index: number, bindGroup: GPUBindGroup): void;
+  dispatchWorkgroups(
+    workgroupCountX: number,
+    workgroupCountY?: number,
+    workgroupCountZ?: number,
+  ): void;
+  end(): void;
 }
 
 interface GPUMappableBuffer {
@@ -135,13 +172,22 @@ interface GPURenderPassEncoder {
   drawIndexed(indexCount: number, instanceCount?: number): void;
   end(): void;
   setBindGroup(index: number, bindGroup: GPUBindGroup): void;
-  setIndexBuffer(buffer: GPUBuffer, indexFormat: 'uint16' | 'uint32'): void;
+  setIndexBuffer(buffer: GPUBuffer, indexFormat: "uint16" | "uint32"): void;
   setPipeline(pipeline: GPURenderPipeline): void;
   setVertexBuffer(slot: number, buffer: GPUBuffer): void;
+  setScissorRect(x: number, y: number, width: number, height: number): void;
+  setViewport(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    minDepth: number,
+    maxDepth: number,
+  ): void;
 }
 
 interface GPURequestAdapterOptions {
-  powerPreference?: 'high-performance' | 'low-power';
+  powerPreference?: "high-performance" | "low-power";
 }
 
 interface Navigator {
@@ -149,5 +195,5 @@ interface Navigator {
 }
 
 interface HTMLCanvasElement {
-  getContext(contextId: 'webgpu'): GPUCanvasContext | null;
+  getContext(contextId: "webgpu"): GPUCanvasContext | null;
 }

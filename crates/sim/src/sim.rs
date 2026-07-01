@@ -903,7 +903,8 @@ impl Sim {
 
         // Slot maps change in two distinct ways: fighting/advancing casualties
         // close forward within fixed files, while lateral re-evening is reserved
-        // for deliberate reform moments or the clear beat after contact.
+        // for reform beats or broad, deep contact where stale slot labels would
+        // make a physically wide frontage read as a pinched one.
         for ui in 0..self.units.len() {
             let advancing = self.units[ui].move_target.is_some()
                 || matches!(self.units[ui].mode, OrderMode::Attack(_));
@@ -912,6 +913,23 @@ impl Sim {
             let column_close = casualties_to_close && (self.units[ui].engaged > 0 || advancing);
             let disengage_reform = self.units[ui].disengage_reform_pending
                 && self.units[ui].quiet_ticks == DISENGAGE_REFORM_CLEAR_TICKS;
+            let files = self.units[ui].files_eff.max(1);
+            let ranks = self.units[ui].alive_count as f32 / files as f32;
+            let broad_contact_files = if self.units[ui].engaged > 0 && files >= 12 {
+                let mut fighting_files = vec![false; files];
+                for s in 0..self.units[ui].count {
+                    let i = self.units[ui].start + s;
+                    if self.alive[i] == 1 && self.fighting[i] == 1 {
+                        fighting_files[self.soldier_slot[i] as usize % files] = true;
+                    }
+                }
+                fighting_files.iter().filter(|&&covered| covered).count()
+            } else {
+                0
+            };
+            let engaged_deep_reform = broad_contact_files * 2 > files
+                && ranks >= 5.0
+                && self.tick_count % 60 == (ui as u64) % 60;
             // A SETTLED, AT-EASE unit (halted, no enemy near) that frayed on
             // the march RE-FORMS on a slow drumbeat so order RECOVERS — without
             // this a unit kept its march disorder forever (nothing re-sorted a
@@ -922,7 +940,8 @@ impl Sim {
                 && self.units[ui].cohesion < 0.9
                 && self.tick_count % 45 == (ui as u64) % 45;
 
-            if self.units[ui].pivoting || disengage_reform || at_ease_reform {
+            if self.units[ui].pivoting || disengage_reform || at_ease_reform || engaged_deep_reform
+            {
                 reassign_slots(
                     &self.units[ui],
                     &self.positions,
@@ -1621,6 +1640,29 @@ impl Sim {
                 }
                 fighting_files.iter().filter(|&&covered| covered).count() * 2 > my_files
             };
+            let narrow_against_much_wider_foot = advancing
+                && !strict_formation
+                && !u.is_mounted()
+                && !u.tramples()
+                && units.iter().any(|v| {
+                    if v.team == u.team
+                        || v.alive_count == 0
+                        || v.is_mounted()
+                        || v.tramples()
+                        || v.files_eff.max(1) < my_files * 4
+                    {
+                        return false;
+                    }
+                    let vf = dir(v.facing);
+                    if f.dot(vf) > -0.35 {
+                        return false;
+                    }
+                    let vr = Vec2::new(vf.y, -vf.x);
+                    let lateral = (u.center() - v.center()).dot(vr).abs();
+                    let lateral_overlap = lateral < 0.5 * (u.width() + v.width()) + u.spacing.x;
+                    let axial = (v.center() - u.center()).dot(f);
+                    lateral_overlap && axial > -u.depth() && axial < 220.0
+                });
             let reach_u = u.stats.weapons.iter().fold(0.0f32, |m, w| m.max(w.reach));
             let mut err_sum = 0.0f32;
             let mut pivot_sum = 0.0f32;
@@ -1886,7 +1928,13 @@ impl Sim {
                                 // sideways fan-out. A small body-scale slack
                                 // keeps first contact from reading hollow without
                                 // returning to the old unbounded live-length lever.
-                                let pivot_len = if al > rl {
+                                let fighting_mounted =
+                                    target[i] >= 0 && mounted[target[i] as usize] == 1;
+                                let pivot_len = if (u.is_mounted()
+                                    || fighting_mounted
+                                    || narrow_against_much_wider_foot)
+                                    && al > rl
+                                {
                                     al.min(rl + pivot_stretch_slack)
                                 } else {
                                     al

@@ -5,9 +5,9 @@
 // down once contact lands (light troops shouldn't win a melee)?
 //   Default: heavy infantry advances on held archers.
 //   Override: ADV=6 SHOOT=5 node vibe/missile.mjs  (cavalry onto skirmishers)
-import { openBattle, vibeCapture, fitDuel, duelSample, CLS } from './_lib.mjs';
+import { openBattle, closeBattle, vibeCapture, fitDuel, duelSample, CLS } from "./_lib.mjs";
 
-const ADV = Number(process.env.ADV ?? CLS.heavy);    // unit 0, advances
+const ADV = Number(process.env.ADV ?? CLS.heavy); // unit 0, advances
 const SHOOT = Number(process.env.SHOOT ?? CLS.archers); // unit 1, holds + shoots
 
 const { browser, page, errs } = await openBattle(`battle=duel&a=${ADV}&b=${SHOOT}&ai=off`);
@@ -18,15 +18,18 @@ await page.evaluate(() => {
 });
 
 const label = (secs, s) =>
-  `t=${String(secs).padStart(3)}s  advancer ${s.aAlive}/${s.aTotal} (coh ${s.aCoh.toFixed(2)})  `
-  + `shooter ${s.bAlive}/${s.bTotal} ammo ${s.bAmmo}  fighting ${s.aFight}/${s.bFight}  victor ${s.victor}`;
+  `t=${String(secs).padStart(3)}s  advancer ${s.aAlive}/${s.aTotal} (coh ${s.aCoh.toFixed(2)})  ` +
+  `shooter ${s.bAlive}/${s.bTotal} ammo ${s.bAmmo}  fighting ${s.aFight}/${s.bFight}  victor ${s.victor}`;
 
-const { frames, resolved, fails } = await vibeCapture(page, process.env.NAME ?? 'missile', {
-  frame: () => fitDuel(page, { margin: 220 }), sample: () => duelSample(page),
-  label, done: (s) => s.victor >= 0,
+const { frames, resolved, fails } = await vibeCapture(page, process.env.NAME ?? "missile", {
+  frame: () => fitDuel(page, { margin: 220 }),
+  sample: () => duelSample(page),
+  label,
+  done: (s) => s.victor >= 0,
+  requireResolved: true,
 });
 
 console.log(resolved ? `\nresolved in ${frames} frames` : `\nUNRESOLVED`);
-if (errs.length) console.log('page errors:', errs.slice(0, 3));
-await browser.close();
+if (errs.length) console.log("page errors:", errs.slice(0, 3));
+await closeBattle(browser, page);
 process.exit(fails);

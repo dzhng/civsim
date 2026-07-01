@@ -48,7 +48,7 @@ neon-green?
 
 ## Must stay green
 
-The whole battle suite (`bun run scenario:renderer`), `full-game-rendering-performance`,
+The whole battle suite (`bun run scene:renderer`), `full-game-rendering-performance`,
 `scripts/test-mechanics`, `scripts/test-scenarios`; render-graph `ok`.
 
 ## After it lands

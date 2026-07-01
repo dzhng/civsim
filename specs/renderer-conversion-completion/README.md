@@ -136,7 +136,7 @@ hardware).
 
 **Slice 10 (scenario & visual acceptance reports) — pipeline proven, scoring
 gated on David:**
-- `scenario:renderer` runs end to end and persists
+- `scene:renderer` runs end to end and persists
   `web/reports/rendering/scenario-runs/renderer-latest.json` (the writer works);
   release-review visuals are checked from `web/shots`, and perf/cutover reports
   generate under `web/reports/rendering`; `cutover:renderer` now runs end to end and
@@ -144,13 +144,13 @@ gated on David:**
   `pending: missing`).
 - All nine new lab-route gates (fault-injection, capabilities, asset-workbench,
   per-class-vat, soldier-materials, mounted-units, lod-tiers, battle-elevation,
-  battle-effects) are wired into `scenario:renderer`.
+  battle-effects) are wired into `scene:renderer`.
 - **Cannot reach `releaseReady=true` autonomously.** The per-route cutover gate
   in `renderer-lab-routes` requires the full release-ready state, so the suite is
   red until the cutover is ready (circular); `visual-improvement` needs David's
   blessing of which current-renderer captures are the floor; `hardware-perf` is
   slice 11. To complete: David blesses the visual floor captures, then
-  `scenario:renderer` / `:campaign` persist clean reports.
+  `scene:renderer` / `:campaign` persist clean reports.
 
 **Slice 11 (hardware perf & cutover audit) — harness ready, needs David's
 hardware + sign-off:**
@@ -306,7 +306,7 @@ hardware + sign-off:**
 - New `/renderer/fault-injection` lab route (three buttons: bad shader, rejected
   submit, device loss) + `renderer-fault-injection` scene gate, plus two source
   gates in `renderer-lab-routes` (every shader via `compileShader`; every
-  `renderer.ready` has a `.catch`). Added to `scenario:renderer`.
+  `renderer.ready` has a `.catch`). Added to `scene:renderer`.
 
 Firewall note: campaign renderer passes (`game-renderer/src/campaign/*`) were
 left untouched per the spec; the `compileShader` source gate is scoped to
@@ -320,8 +320,8 @@ David's human/hardware input, in priority order:
    baseline re-bless): MSAA 4x in battle, localized faction masking, LOD tiers in
    battle, grounding shadows + a battle terrain height source, corpse desat/roll
    + particles in the live event stream.
-2. Bless the current-renderer floor captures, then run `scenario:renderer` /
-   `scenario:renderer:campaign` for clean reports (slice 10).
+2. Bless the current-renderer floor captures, then run `scene:renderer` /
+   `scene:renderer:campaign` for clean reports (slice 10).
 3. Run `perf:renderer:hardware` on named hardware + `release:renderer`; sign off
    (slice 11).
 4. Design call for slice 06's real horse skeleton + rider composition.
@@ -356,7 +356,7 @@ Global TODO:
   GPU); 3D projectiles deferred (optional polish). Production wiring gated.
 - [~] Slice 10: report pipeline proven (scenario/visual/perf reports generate;
   cutover:renderer scores real inputs); the nine new lab gates are in
-  scenario:renderer. Clean reports gated on David's visual-floor blessing
+  scene:renderer. Clean reports gated on David's visual-floor blessing
   (the per-route cutover gate is circular until release-ready).
 - [~] Slice 11: perf + audit harness ready; named-hardware run + human sign-off
   are David's gates (swiftshader CI cannot produce release perf evidence).

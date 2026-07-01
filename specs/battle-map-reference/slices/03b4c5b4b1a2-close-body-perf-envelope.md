@@ -3,12 +3,11 @@
 ## Contract
 
 Record the accepted close-body architecture and render model's density and
-performance envelope before B4B2 tunes coverage. B4B1A1 did **not** accept an
-architecture, and B4B1A1R rejected shape-only repair; this slice may only start
-after `03b4c5b4b1a1s-texture-volume-alpha-render-model.md` accepts a repaired
-body render model. This slice owns **budget shape only**: record counts,
-primitive counts, bytes, draw calls, CPU build/upload costs, and obvious LOD
-pressure.
+performance envelope before B4B2 tunes coverage. B4B1A1, B4B1A1R, B4B1A1S,
+B4B1A1T, and B4B1A1U did **not** accept a body. This slice may only start after
+a later close-body representation slice accepts a visually plausible body path.
+This slice owns **budget shape only**: record counts, primitive counts, bytes,
+draw calls, CPU build/upload costs, and obvious LOD pressure.
 
 Out of scope: changing body architecture, coverage tuning, strand scale, clump
 rhythm, atlas colour/content, camera-relative generation, backend policy, LOD
@@ -17,8 +16,8 @@ compose.
 
 ## Approach
 
-- Freeze the accepted B4B1A0 lab and the repaired architecture/render model
-  accepted by B4B1A1S.
+- Freeze the accepted B4B1A0 lab and the close-body representation accepted by
+  the latest B4B1A1 child slice.
 - Run a small low/target/high density sweep for the selected representation.
 - Record records accepted/emitted, primitives submitted, triangles, draw calls,
   instance/storage bytes, texture bytes, CPU build/upload time, and frame timing
@@ -44,8 +43,8 @@ changes visual variables that belong to B4B2-B4B5.
   decision note under
   `assets/03b4-evidence/03b4c5-close-foreground-lab/body-perf-envelope/`.
 - Use `compare-screenshots` only to confirm the target-budget shot does not
-  visually regress from the B4B1A1S accepted architecture and render model. Do
-  not compare this slice to the final reference.
+  visually regress from the accepted close-body architecture and render model.
+  Do not compare this slice to the final reference.
 - Run unprimed `screenshot-critique` scoped to perf-sweep artifacts: popping,
   obvious sparsity, card walls, dense noise, or hidden exposed ground.
 - Open the sweep sheet with `preview-shots` as a non-blocking checkpoint.

@@ -11,17 +11,17 @@ water, cliffs, sky, and final reference compose.
 
 ## Approach
 
-- Freeze the accepted B4B1A0 close test surface, B4B1A1S accepted body render model,
-  B4B1A2 target perf budget, terrain patch, lighting, palette, meadow base, root
-  base, and comparison crops.
+- Freeze the accepted B4B1A0 close test surface, the close-body representation
+  accepted by the latest B4B1A1 child slice, B4B1A2 target perf budget, terrain
+  patch, lighting, palette, meadow base, root base, and comparison crops.
 - Tune only body height, body width, coverage scalar/alpha multiplier with the
   atlas texture frozen, root-to-tip coverage, seating offset, and tip bias for
   the selected body primitive.
 - Compare against the target close-hero crop and the rejected `field-fiber-shell`,
   `texture-volume`, `texture-carrier`, and `texture-micro-carrier` baselines.
-- Do not swap primitive families here. If the accepted B4B1A1S technique cannot
-  plausibly cover the ground after shallow tuning, record the failure and reslice
-  instead of turning B4B2 back into a broad technique search.
+- Do not swap primitive families here. If the accepted close-body representation
+  cannot plausibly cover the ground after shallow tuning, record the failure and
+  reslice instead of turning B4B2 back into a broad technique search.
 
 ## Accept / Reject
 

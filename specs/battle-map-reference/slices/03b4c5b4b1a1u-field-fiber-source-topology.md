@@ -1,5 +1,15 @@
 # Slice 03B4C5B4B1A1U - field-fiber source topology
 
+## Status
+
+Rejected on 2026-07-01. Evidence lives under
+`assets/03b4-evidence/03b4c5-close-foreground-lab/field-fiber-source-topology/`.
+The source topology implementation is useful renderer-lab plumbing: it adds a
+`field-subcell` source mode and publishes source-cell/micro-source telemetry.
+Visually, it is not accepted. Dense subcell variants improve edge energy over
+the B4B1A1T per-record context, but they still read as isolated clumps and
+marker/ruler posts on smooth ground, not a continuous close grass body.
+
 ## Contract
 
 Prove whether a non-card close grass body can come from a denser **source
@@ -77,7 +87,7 @@ full-scene composition.
 
 ## Next Slice
 
-If accepted, return to `03b4c5b4b1a2-close-body-perf-envelope.md` using the
-accepted source topology and non-card primitive family. If rejected, reslice the
-close body representation again before perf, coverage, palette, LOD, or
-camera-relative work.
+Rejected. Continue at
+`03b4c5b4b1a1v-continuous-strand-body-representation.md`. Do not return to
+`03b4c5b4b1a2-close-body-perf-envelope.md` until a body representation is
+accepted.

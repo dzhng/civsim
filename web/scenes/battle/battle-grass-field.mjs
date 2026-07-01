@@ -31,6 +31,9 @@ export const meta = {
     "grass/foreground-close-lab-field-fiber-body-candidates",
     "grass/foreground-close-lab-field-fiber-body-crops",
     "grass/foreground-close-lab-field-fiber-body-selected",
+    "grass/foreground-close-lab-field-fiber-source-candidates",
+    "grass/foreground-close-lab-field-fiber-source-crops",
+    "grass/foreground-close-lab-field-fiber-source-selected",
   ],
   describe:
     "Grass-field route proving packed terrain-normal attributes, field-driven meadow material, and bounded blade accents.",
@@ -177,6 +180,34 @@ const BODY_FIELD_FIBER_CANDIDATES = [
       "grassPrimitiveFamily=field-fiber-bundle&blades=10&accentTufts=1554&bladeHeight=0.76&bladeWidth=0.044&bend=0.10&spread=0.070",
   },
 ];
+const FIELD_FIBER_SOURCE_TOPOLOGY_CANDIDATES = [
+  {
+    id: "b4b1a1t-field-fiber-dense",
+    family: "field-fiber-body",
+    label: "B4B1A1T RECORD",
+    color: [88, 88, 88, 255],
+    query:
+      "grassPrimitiveFamily=field-fiber-body&accentAggregation=record&blades=14&accentTufts=1554&bladeHeight=0.72&bladeWidth=0.038&bend=0.14&spread=0.080",
+    context: true,
+  },
+  {
+    id: "subcell-dense",
+    family: "field-fiber-body",
+    label: "SUBCELL DENSE",
+    color: [54, 126, 78, 255],
+    query:
+      "grassPrimitiveFamily=field-fiber-body&accentAggregation=field-subcell&accentClumps=900&accentSourcesPerCell=8&accentTufts=7200&accentFootprint=2.2&blades=10&bladeHeight=0.72&bladeWidth=0.038&bend=0.14&spread=0.080",
+    selected: true,
+  },
+  {
+    id: "subcell-broken-spacing",
+    family: "field-fiber-body",
+    label: "BROKEN SPACING",
+    color: [58, 116, 142, 255],
+    query:
+      "grassPrimitiveFamily=field-fiber-body&accentAggregation=field-subcell&accentClumps=760&accentSourcesPerCell=10&accentTufts=7600&accentFootprint=2.8&blades=10&bladeHeight=0.72&bladeWidth=0.036&bend=0.14&spread=0.086",
+  },
+];
 const SCALE_REPAIR_CANDIDATES = [
   { profile: "b4b1-current", color: [88, 88, 88, 255] },
   { profile: "scale-repair-low", color: [60, 116, 62, 255], selected: true },
@@ -212,6 +243,7 @@ export async function run(ctx) {
   await verifyForegroundCloseBodyContinuityRepair(ctx);
   await verifyForegroundCloseBodyAlphaRenderModel(ctx);
   await verifyForegroundCloseFieldFiberBodyArchitecture(ctx);
+  await verifyForegroundCloseFieldFiberSourceTopology(ctx);
 }
 
 async function verifyPackedTilt(ctx) {
@@ -1130,6 +1162,117 @@ async function verifyForegroundCloseFieldFiberBodyArchitecture(ctx) {
   });
 }
 
+async function verifyForegroundCloseFieldFiberSourceTopology(ctx) {
+  const captures = [];
+  for (const candidate of FIELD_FIBER_SOURCE_TOPOLOGY_CANDIDATES) {
+    const page = await ctx.newPage({
+      viewport: { width: 900, height: 700 },
+      errorPrefix: `battle-grass-field-field-fiber-source-${candidate.id}`,
+    });
+    await page.goto(
+      `${ctx.target}/renderer/battle-grass-field?mode=foreground-close-lab&labCameraProfile=b4b1a0-test-env&${candidate.query}`,
+    );
+    await page.waitForFunction(
+      () =>
+        window.__rendererLabReady === true &&
+        window.__rendererLabStats?.stats?.mode === "foreground-close-lab",
+      { timeout: 18000 },
+    );
+    await page.waitForTimeout(160);
+    const stats = await page.evaluate(() => window.__rendererLabStats?.stats ?? null);
+    if (stats?.route !== "battle-grass-field" || stats?.mode !== "foreground-close-lab") {
+      await page.close();
+      throw new Error(
+        `foreground close field-fiber source topology did not publish valid stats for ${candidate.id}: ${JSON.stringify(stats)}`,
+      );
+    }
+    const shot = await page.locator("#renderer-canvas").screenshot();
+    captures.push({ ...candidate, stats, png: PNG.sync.read(shot) });
+    await page.close();
+  }
+
+  const context = captures.find((capture) => capture.context);
+  const selected =
+    captures.find((capture) => capture.selected) ??
+    captures.find((capture) => !capture.context) ??
+    captures[0];
+  const sourceCaptures = captures.filter((capture) => !capture.context);
+  const windows = context.stats.lab?.reviewWindows;
+  const targetCloseHero = PNG.sync.read(await readFile(TARGET_CLOSE_HERO));
+  const baseCameraKey = JSON.stringify(context.stats.camera);
+  const baseFocusKey = JSON.stringify(context.stats.focus);
+  const baseFrozenKey = JSON.stringify(context.stats.lab?.frozenInputs);
+  const baseField = context.stats.field;
+  const baseSourceRecords = context.stats.grass?.accentSourceRecords;
+  const sourceStats = captures.map((capture) => ({
+    id: capture.id,
+    grass: capture.stats.grass,
+    lab: capture.stats.lab,
+  }));
+
+  ctx.check(
+    "foreground close field-fiber source topology freezes the accepted B4B1A0 lab",
+    captures.every(
+      (capture) =>
+        capture.stats.lab?.contract === "03B4C5B4B1A0" &&
+        capture.stats.lab?.cameraProfile === "b4b1a0-test-env" &&
+        capture.stats.lab?.cropPurpose === "test-environment-comparability-not-body-acceptance" &&
+        JSON.stringify(capture.stats.camera) === baseCameraKey &&
+        JSON.stringify(capture.stats.focus) === baseFocusKey &&
+        JSON.stringify(capture.stats.lab?.frozenInputs) === baseFrozenKey &&
+        capture.stats.field?.seed === baseField?.seed &&
+        capture.stats.field?.acceptedRecords === baseField?.acceptedRecords &&
+        capture.stats.field?.candidateCells === baseField?.candidateCells &&
+        capture.stats.ground?.meadow?.source === "field" &&
+        capture.stats.ground?.meadow?.rootMassEnabled === true,
+    ),
+    JSON.stringify(sourceStats),
+  );
+  ctx.check(
+    "foreground close field-fiber source topology keeps rejected per-record context",
+    context?.stats.grass?.grassPrimitiveFamily === "field-fiber-body" &&
+      context?.stats.grass?.accentAggregation === "record" &&
+      context?.stats.grass?.grassPrimitiveSourceTopology === "record" &&
+      context?.stats.grass?.grassPrimitiveRecords === baseSourceRecords &&
+      context?.stats.grass?.grassPrimitiveTextureBytes === 0,
+    JSON.stringify(sourceStats),
+  );
+  ctx.check(
+    "foreground close field-fiber source topology expands field cells into dense micro-sources",
+    sourceCaptures.length ===
+      FIELD_FIBER_SOURCE_TOPOLOGY_CANDIDATES.filter((candidate) => !candidate.context).length &&
+      sourceCaptures.every(
+        (capture) =>
+          capture.stats.grass?.grassPrimitiveFamily === "field-fiber-body" &&
+          capture.stats.grass?.accentAggregation === "field-subcell" &&
+          capture.stats.grass?.grassPrimitiveSourceTopology === "field-subcell" &&
+          capture.stats.grass?.grassPrimitiveTextureBytes === 0 &&
+          capture.stats.grass?.grassPrimitiveSourceFixedLab === true &&
+          capture.stats.grass?.accentSourceRecords === baseSourceRecords &&
+          capture.stats.grass?.grassPrimitiveSourceCells > 100 &&
+          capture.stats.grass?.grassPrimitiveSourceCells <= baseSourceRecords &&
+          capture.stats.grass?.grassPrimitiveSourcesPerCell >= 8 &&
+          capture.stats.grass?.grassPrimitiveRecords ===
+            capture.stats.grass?.grassPrimitiveSourceCells *
+              capture.stats.grass?.grassPrimitiveSourcesPerCell &&
+          capture.stats.grass?.grassPrimitiveRecords > baseSourceRecords * 4 &&
+          capture.stats.grass?.submittedTriangles > 0 &&
+          capture.stats.grass?.submittedTriangles < 1500000,
+      ),
+    JSON.stringify(sourceStats),
+  );
+
+  await ctx.snap(null, "grass/foreground-close-lab-field-fiber-source-candidates", {
+    shot: PNG.sync.write(composeFieldFiberSourceCandidateSheet(targetCloseHero, captures)),
+  });
+  await ctx.snap(null, "grass/foreground-close-lab-field-fiber-source-crops", {
+    shot: PNG.sync.write(composeFieldFiberSourceCropSheet(targetCloseHero, captures, windows)),
+  });
+  await ctx.snap(null, "grass/foreground-close-lab-field-fiber-source-selected", {
+    shot: PNG.sync.write(drawBodyArchitectureFull(selected.png, windows)),
+  });
+}
+
 function hasPackedTelemetry(stats) {
   const grass = stats?.grass;
   return (
@@ -1576,6 +1719,56 @@ function composeFieldFiberBodyCropSheet(targetCloseHero, captures, windows) {
   return composeGrid([target, ...closeCrops, ...tightCrops], 4);
 }
 
+function composeFieldFiberSourceCandidateSheet(targetCloseHero, captures) {
+  const target = captioned(
+    bordered(withScaleGuides(resizeToWidth(targetCloseHero, 360)), [190, 42, 28, 255]),
+    "TARGET CLOSE",
+  );
+  const crops = captures.map((capture) =>
+    captioned(
+      bordered(
+        withScaleGuides(
+          resizeToWidth(cropRatio(capture.png, capture.stats.lab.reviewWindows.closeHero), 360),
+          { proxies: true },
+        ),
+        capture.color,
+      ),
+      fieldFiberSourceLabel(capture),
+    ),
+  );
+  return composeGrid([target, ...crops], 4);
+}
+
+function composeFieldFiberSourceCropSheet(targetCloseHero, captures, windows) {
+  const target = captioned(
+    bordered(withScaleGuides(resizeToWidth(targetCloseHero, 360)), [190, 42, 28, 255]),
+    "TARGET CLOSE",
+  );
+  const closeCrops = captures.map((capture) =>
+    captioned(
+      bordered(
+        withScaleGuides(resizeToWidth(cropRatio(capture.png, windows.closeHero), 360), {
+          proxies: true,
+        }),
+        capture.color,
+      ),
+      fieldFiberSourceLabel(capture),
+    ),
+  );
+  const tightCrops = captures.map((capture) =>
+    captioned(
+      bordered(
+        withScaleGuides(resizeToWidth(cropRatio(capture.png, windows.closeTight2x), 360), {
+          proxies: true,
+        }),
+        capture.color,
+      ),
+      `2X ${fieldFiberBodyShortLabel(capture)}`,
+    ),
+  );
+  return composeGrid([target, ...closeCrops, ...tightCrops], 4);
+}
+
 function bodyArchitectureLabel(capture) {
   return `${bodyArchitectureShortLabel(capture.family)} ${capture.stats.grass.submittedTriangles}T`;
 }
@@ -1623,6 +1816,15 @@ function fieldFiberBodyLabel(capture) {
 function fieldFiberBodyShortLabel(capture) {
   if (capture.label) return capture.label;
   return capture.id.toUpperCase().replaceAll("-", " ");
+}
+
+function fieldFiberSourceLabel(capture) {
+  const grass = capture.stats.grass;
+  const source =
+    grass.grassPrimitiveSourceTopology === "field-subcell"
+      ? `${grass.grassPrimitiveSourceCells}C/${grass.grassPrimitiveSourcesPerCell}X`
+      : "RECORD";
+  return `${fieldFiberBodyShortLabel(capture)} ${source} ${grass.submittedTriangles}T`;
 }
 
 function closeLabProfileLabel(profile) {

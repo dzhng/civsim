@@ -3214,6 +3214,7 @@ async function routeBattleGrassField(ctx: LabContext) {
   const shell = await createConfiguredShell(ctx.canvas, camera);
   const ground = new BattleGroundPass(shell);
   ground.setTerrain(grid, field, 'green-grass', 2);
+  const bodyDomainId = bodyDomainIdParam(ctx.params, 'bodyDomainId', 'field-strand-material');
   if (mode !== 'packed-tilt') {
     ground.setMeadowFromGrassField(snapshot, bounds, {
       depthNear: numberParam(ctx.params, 'meadowDepthNear', -70),
@@ -3229,8 +3230,10 @@ async function routeBattleGrassField(ctx: LabContext) {
       rootMassStrength: accentMode ? numberParam(ctx.params, 'rootMassStrength', 1.32) : 0,
       rootMassContrast: numberParam(ctx.params, 'rootMassContrast', 0.72),
       rootMassSpread: numberParam(ctx.params, 'rootMassSpread', 9.5),
+      bodyDomainId,
       bodyDomainStrength: numberParam(ctx.params, 'bodyDomainStrength', 0),
       bodyDomainScale: numberParam(ctx.params, 'bodyDomainScale', 0.84),
+      bodyDomainFiberFrequency: numberParam(ctx.params, 'bodyDomainFiberFrequency', numberParam(ctx.params, 'bodyDomainScale', 0.84)),
       bodyDomainContrast: numberParam(ctx.params, 'bodyDomainContrast', 0.82),
     });
   }
@@ -3409,10 +3412,16 @@ async function routeBattleGrassField(ctx: LabContext) {
     && grassStats.drawCalls === 1;
   const bodyDomainOk = closeLab
     && groundStats.meadow.bodyDomainEnabled === true
-    && groundStats.meadow.bodyDomainId === 'field-strand-material'
+    && (groundStats.meadow.bodyDomainId === 'field-strand-material' || groundStats.meadow.bodyDomainId === 'field-continuous-strand-texture')
     && groundStats.meadow.bodyDomainMaterialOnly === true
     && groundStats.meadow.bodyDomainSubmittedTriangles === 0
     && groundStats.meadow.bodyDomainTextureBytes > 0
+    && groundStats.meadow.bodyDomainMaterialBytes === groundStats.meadow.bodyDomainTextureBytes
+    && groundStats.meadow.bodyDomainSourceAttached === false
+    && (groundStats.meadow.bodyDomainId !== 'field-continuous-strand-texture' || (
+      groundStats.meadow.bodyDomainRepresentation === 'continuous-strand-texture'
+      && groundStats.meadow.bodyDomainFiberFrequency >= 1
+    ))
     && groundStats.meadow.bodyDomainCoverageAvg > 0.55
     && groundStats.meadow.bodyDomainCoverageMedian > 0.55
     && groundStats.meadow.bodyDomainExposedGround < 0.18
@@ -4252,6 +4261,12 @@ function textureVolumeRenderModelParam(params: URLSearchParams, key: string, fal
     || raw === 'sparse-dither'
     ? raw
     : fallback;
+}
+
+function bodyDomainIdParam(params: URLSearchParams, key: string, fallback: 'field-strand-material' | 'field-continuous-strand-texture'): 'field-strand-material' | 'field-continuous-strand-texture' {
+  const raw = params.get(key);
+  if (raw === 'field-strand-material' || raw === 'field-continuous-strand-texture') return raw;
+  return fallback;
 }
 
 function grassPrimitiveFamilyParam(params: URLSearchParams, key: string, fallback: GrassPrimitiveFamily): GrassPrimitiveFamily {

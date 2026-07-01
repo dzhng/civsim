@@ -31,9 +31,12 @@ decision only the user can make).
    screenshots so the subject is framed and readable, not merely nonblank.
    Never weaken an existing default gate or repin a failing contract without
    proving the old contract is wrong.
-5. Run [review](../review/SKILL.md) before committing. Apply simplifications
-   found in review, rerun the affected checks, then commit only the focused
-   changes from this pass.
+5. Run [refactor-clean](../refactor-clean/SKILL.md) at the end of every pass,
+   before reviewing: collapse any sediment this pass introduced — dev-only shims,
+   duplicated concepts, parallel abstractions, compatibility wrappers — into the
+   clean contract with one owner, so the code reads as designed today, not tacked
+   on. Then run [review](../review/SKILL.md). Apply the fixes from both, rerun the
+   affected checks, then commit only the focused changes from this pass.
 6. Update the spec README's "Next Agent Prompt": status, completed work, next
    pickup point, blockers, changed gates, and any architecture decision that
    changed the plan.
@@ -79,9 +82,9 @@ decision only the user can make).
 
 ## Done
 
-A **pass** is done when code, spec handoff, verification evidence, review
-cleanup, and a focused commit all agree on the same current truth — then you
-start the next pass.
+A **pass** is done when code, spec handoff, verification evidence, refactor-clean
+and review cleanup, and a focused commit all agree on the same current truth —
+then you start the next pass.
 
 The **spec** is done — and only then is this skill done — when every slice and
 global TODO is closed, all gates are green, the handoff shows nothing left to

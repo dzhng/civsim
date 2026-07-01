@@ -16,7 +16,7 @@
 // toolbar refresh. Slices 03–07 turn this composition into the three bronze
 // housings; slice 01 keeps every element's id and position identical.
 
-import { forwardRef, useImperativeHandle, useRef, useState, type Ref } from "react";
+import { forwardRef, useImperativeHandle, useRef, useState, type Ref, type RefObject } from "react";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import { HudPanel, type HudData } from "./HudPanel";
@@ -94,11 +94,7 @@ const ToolbarHost = forwardRef<ToolbarHandle, { onCmd(cmd: string): void }>(
   function ToolbarHost(props, ref) {
     const [state, setState] = useState<Record<string, ToolButtonState> | null>(null);
     useImperativeHandle(ref, () => ({ set: (s) => flushSync(() => setState(s)) }), []);
-    return (
-      <div id="toolbar" className="hud-chassis">
-        {state ? <Toolbar state={state} onCmd={props.onCmd} /> : null}
-      </div>
-    );
+    return <div id="toolbar">{state ? <Toolbar state={state} onCmd={props.onCmd} /> : null}</div>;
   },
 );
 
@@ -106,33 +102,70 @@ interface CardsHostHandle {
   build(units: UnitCardInit[]): void;
   update(states: (UnitCardState | null)[]): void;
 }
-const CardsHost = forwardRef<CardsHostHandle, { onSelect(unit: number, additive: boolean): void }>(
-  function CardsHost(props, ref) {
-    const [units, setUnits] = useState<UnitCardInit[]>([]);
-    const rootRef = useRef<HTMLDivElement>(null);
-    const viewRef = useRef<UnitCardsHandle>(null);
-    useImperativeHandle(
-      ref,
-      () => ({
-        build: (u) => flushSync(() => setUnits(u)),
-        update: (s) => viewRef.current?.update(s),
-      }),
-      [],
-    );
-    return (
-      <div id="unitcards" ref={rootRef}>
-        <UnitCardsView
-          ref={viewRef}
-          units={units}
-          onSelect={props.onSelect}
-          leftReserve={BOTTOM_CARD_LEFT_RESERVE}
-          rightReserve={MINIMAP_RESERVE}
-          rootRef={rootRef}
-        />
-      </div>
-    );
-  },
-);
+interface CardsHostProps {
+  onSelect(unit: number, additive: boolean): void;
+  /** The grid host applyCardGrid writes its vars onto — the outer #battle-center,
+   * so the whole merged housing (cards + toolbar) tracks the card layout. */
+  gridRootRef: RefObject<HTMLElement | null>;
+}
+const CardsHost = forwardRef<CardsHostHandle, CardsHostProps>(function CardsHost(props, ref) {
+  const [units, setUnits] = useState<UnitCardInit[]>([]);
+  const viewRef = useRef<UnitCardsHandle>(null);
+  useImperativeHandle(
+    ref,
+    () => ({
+      build: (u) => flushSync(() => setUnits(u)),
+      update: (s) => viewRef.current?.update(s),
+    }),
+    [],
+  );
+  return (
+    <div id="unitcards">
+      <UnitCardsView
+        ref={viewRef}
+        units={units}
+        onSelect={props.onSelect}
+        leftReserve={BOTTOM_CARD_LEFT_RESERVE}
+        rightReserve={MINIMAP_RESERVE}
+        rootRef={props.gridRootRef}
+      />
+    </div>
+  );
+});
+
+interface CenterHandle {
+  buildCards(units: UnitCardInit[]): void;
+  updateCards(states: (UnitCardState | null)[]): void;
+  setToolbar(state: Record<string, ToolButtonState>): void;
+}
+// The bottom-center housing: card wells on top, order/time control strip below,
+// in ONE bronze tray (specs/hud-housings, slice 05). A structural wrapper holding
+// NO data state, so it never re-renders — cards and toolbar stay separate stateful
+// islands (CardsHost / ToolbarHost), and a ≤5Hz toolbar refresh never reconciles
+// the 60Hz card grid. applyCardGrid writes onto this #battle-center element.
+const CenterCard = forwardRef<
+  CenterHandle,
+  { onSelect(unit: number, additive: boolean): void; onToolbarCmd(cmd: string): void }
+>(function CenterCard(props, ref) {
+  const centerRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<CardsHostHandle>(null);
+  const toolbarRef = useRef<ToolbarHandle>(null);
+  useImperativeHandle(
+    ref,
+    () => ({
+      buildCards: (u) => cardsRef.current?.build(u),
+      updateCards: (s) => cardsRef.current?.update(s),
+      setToolbar: (s) => toolbarRef.current?.set(s),
+    }),
+    [],
+  );
+  return (
+    <div id="battle-center" className="hud-chassis hud-chassis--tray" ref={centerRef}>
+      <CardsHost ref={cardsRef} onSelect={props.onSelect} gridRootRef={centerRef} />
+      <ToolbarHost ref={toolbarRef} onCmd={props.onToolbarCmd} />
+    </div>
+  );
+});
 
 interface BattleHudProps {
   onCardSelect(unit: number, additive: boolean): void;
@@ -145,17 +178,16 @@ type BattleHudInnerHandle = Omit<BattleHudHandle, "destroy">;
 const BattleHud = forwardRef<BattleHudInnerHandle, BattleHudProps>(function BattleHud(props, ref) {
   const infoRef = useRef<InfoHandle>(null);
   const fpsRef = useRef<FpsHandle>(null);
-  const toolbarRef = useRef<ToolbarHandle>(null);
-  const cardsRef = useRef<CardsHostHandle>(null);
+  const centerRef = useRef<CenterHandle>(null);
   const miniRef = useRef<HTMLCanvasElement>(null);
   useImperativeHandle(
     ref,
     () => ({
       setInfo: (d) => infoRef.current?.set(d),
       setFps: (t) => fpsRef.current?.set(t),
-      setToolbar: (s) => toolbarRef.current?.set(s),
-      buildCards: (u) => cardsRef.current?.build(u),
-      cards: { update: (s) => cardsRef.current?.update(s) },
+      setToolbar: (s) => centerRef.current?.setToolbar(s),
+      buildCards: (u) => centerRef.current?.buildCards(u),
+      cards: { update: (s) => centerRef.current?.updateCards(s) },
       get minimapCanvas() {
         return miniRef.current!;
       },
@@ -166,8 +198,7 @@ const BattleHud = forwardRef<BattleHudInnerHandle, BattleHudProps>(function Batt
     <>
       <LeftInfoCard ref={infoRef} />
       <FpsReadout ref={fpsRef} />
-      <CardsHost ref={cardsRef} onSelect={props.onCardSelect} />
-      <ToolbarHost ref={toolbarRef} onCmd={props.onToolbarCmd} />
+      <CenterCard ref={centerRef} onSelect={props.onCardSelect} onToolbarCmd={props.onToolbarCmd} />
       <canvas id="minimap" className="hud-chassis" width={240} height={160} ref={miniRef} />
     </>
   );

@@ -48,6 +48,7 @@ struct GroundUniform {
   meadow1: vec4f,
   meadow2: vec4f,
   meadow3: vec4f,
+  meadow4: vec4f,
 };
 @group(1) @binding(0) var<uniform> ground: GroundUniform;
 @group(1) @binding(1) var meadowSampler: sampler;
@@ -126,6 +127,10 @@ fn meadowCarpet(world: vec2f, axes: vec2f, field: vec4f, screen: vec2f) -> vec3f
   let rootMassEnabled = clamp(ground.meadow3.x, 0.0, 1.0);
   let rootMassStrength = clamp(ground.meadow3.y, 0.0, 2.0);
   let rootMassContrast = clamp(ground.meadow3.z, 0.25, 2.0);
+  let bodyDomainEnabled = clamp(ground.meadow4.x, 0.0, 1.0);
+  let bodyDomainStrength = clamp(ground.meadow4.y, 0.0, 2.0);
+  let bodyDomainScale = max(0.01, ground.meadow4.z);
+  let bodyDomainContrast = clamp(ground.meadow4.w, 0.35, 2.5);
   let fieldClump = rootMassField * rootMassEnabled;
   let rootMassRaw = pow(rootMassField, rootMassContrast);
   let rootMass = smoothstep(0.035, 0.72, rootMassRaw) * rootMassEnabled * fieldEnabled;
@@ -199,6 +204,24 @@ fn meadowCarpet(world: vec2f, axes: vec2f, field: vec4f, screen: vec2f) -> vec3f
   let rootBreakup = fbm(world * 0.620 + rootMatWarp * 8.0 + vec2f(fieldCoverageRaw * 4.1, fieldClump * 6.3));
   let rootVelvet = smoothstep(0.26, 0.82, rootFelt * 0.52 + rootBreakup * 0.48);
   let rootThread = smoothstep(0.46, 0.88, rootFuzz * 0.60 + rootBreakup * 0.40);
+  let bodyDomainCoverage = pow(smoothstep(0.030, 0.72, max(fieldCoverageRaw, max(rootMassField * 0.64, fieldRaw * 0.72))), bodyDomainContrast);
+  let bodyDomainPresence = bodyDomainEnabled * bodyDomainCoverage * (0.66 + nearT * 0.48);
+  let bodyWarp = vec2f(
+    fbm(world * 0.052 + vec2f(fieldPhase * 4.3, fieldCoverageRaw * 3.1)) - 0.5,
+    fbm(world * 0.071 + vec2f(fieldClump * 4.7, fieldPhase * 3.3)) - 0.5
+  );
+  let bodyStrandA = ridge(vec2f(
+    along * bodyDomainScale + bodyWarp.x * 4.0 + fieldPhase * 2.3,
+    across * bodyDomainScale * 0.22 + bodyWarp.y * 2.6 + fieldClump * 1.7
+  ));
+  let bodyStrandB = ridge(vec2f(
+    along * bodyDomainScale * 1.74 + bodyWarp.x * 5.7 + fieldCoverageRaw * 3.2,
+    across * bodyDomainScale * 0.36 + bodyWarp.y * 3.5 + fieldPhase * 2.1
+  ));
+  let bodyStrandFine = fbm(world * (bodyDomainScale * 0.92) + bodyWarp * 6.8 + vec2f(fieldPhase * 6.1, fieldClump * 4.9));
+  let bodyStrands = bodyStrandA * 0.46 + bodyStrandB * 0.34 + bodyStrandFine * 0.20;
+  let bodyLift = smoothstep(0.48, 0.84, bodyStrands);
+  let bodyShadow = smoothstep(0.10, 0.38, bodyStrands);
   let fieldTone = fieldRaw - 0.48;
   let fieldClumpWeight = smoothstep(0.08, 0.82, fieldClump);
   let mat = mix(smoothstep(0.30, 0.78, broad), fieldCoverage, fieldDetailPresence * 0.82);
@@ -233,6 +256,9 @@ fn meadowCarpet(world: vec2f, axes: vec2f, field: vec4f, screen: vec2f) -> vec3f
   col = mix(col, shadow, fieldThatchShadow * fieldDetailPresence * (0.050 + nearT * 0.046));
   col = mix(col, lift, screenFiberLift * fieldPresence * (0.026 + nearT * 0.028));
   col = mix(col, shadow, screenFiberShadow * fieldPresence * (0.026 + nearT * 0.028));
+  col = mix(col, vec3f(0.57, 0.65, 0.46), bodyDomainPresence * bodyDomainStrength * (0.16 + nearT * 0.10));
+  col = mix(col, lift, bodyLift * bodyDomainPresence * bodyDomainStrength * (0.10 + nearT * 0.09));
+  col = mix(col, shadow, bodyShadow * bodyDomainPresence * bodyDomainStrength * (0.095 + nearT * 0.085));
   col = mix(col, lift, smoothstep(0.54, 0.82, fieldPatch) * fieldDetailPresence * (0.070 + nearT * 0.050));
   col = mix(col, shadow, smoothstep(0.18, 0.42, fieldPatch) * fieldDetailPresence * (0.060 + nearT * 0.055));
   col = mix(col, shadow, (1.0 - fieldMass) * fieldDetailPresence * (0.11 + nearT * 0.07));
@@ -340,6 +366,19 @@ export class BattleGroundPass {
     rootMassCoverage: 0,
     rootMassAvg: 0,
     rootMassSpread: 0,
+    bodyDomainEnabled: false,
+    bodyDomainId: 'off',
+    bodyDomainTextureWidth: 1,
+    bodyDomainTextureHeight: 1,
+    bodyDomainCellSize: 1,
+    bodyDomainCoverageMin: 0,
+    bodyDomainCoverageMax: 0,
+    bodyDomainCoverageAvg: 0,
+    bodyDomainCoverageMedian: 0,
+    bodyDomainExposedGround: 1,
+    bodyDomainTextureBytes: 4,
+    bodyDomainSubmittedTriangles: 0,
+    bodyDomainMaterialOnly: true,
   };
 
   constructor(private shell: RawFrameShell) {
@@ -375,7 +414,7 @@ export class BattleGroundPass {
     });
     this.uniformBuffer = shell.device.createBuffer({
       label: 'battle-ground-uniforms',
-      size: 16 * 4,
+      size: 20 * 4,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
     this.meadowSampler = shell.device.createSampler({
@@ -437,6 +476,19 @@ export class BattleGroundPass {
       rootMassCoverage: 0,
       rootMassAvg: 0,
       rootMassSpread: 0,
+      bodyDomainEnabled: false,
+      bodyDomainId: 'off',
+      bodyDomainTextureWidth: 1,
+      bodyDomainTextureHeight: 1,
+      bodyDomainCellSize: 1,
+      bodyDomainCoverageMin: 0,
+      bodyDomainCoverageMax: 0,
+      bodyDomainCoverageAvg: 0,
+      bodyDomainCoverageMedian: 0,
+      bodyDomainExposedGround: 1,
+      bodyDomainTextureBytes: 4,
+      bodyDomainSubmittedTriangles: 0,
+      bodyDomainMaterialOnly: true,
     };
     this.writeMeadowUniforms([
       enabled,
@@ -455,6 +507,10 @@ export class BattleGroundPass {
       0,
       1,
       0,
+      0,
+      0,
+      1,
+      1,
     ]);
   }
 
@@ -466,6 +522,9 @@ export class BattleGroundPass {
     const texture = buildMeadowTexture(snapshot, bounds, params);
     const rootMassStrength = Math.max(0, Math.min(2, Number.isFinite(params.rootMassStrength) ? params.rootMassStrength! : 0));
     const rootMassContrast = Math.max(0.25, Number.isFinite(params.rootMassContrast) ? params.rootMassContrast! : 1);
+    const bodyDomainStrength = Math.max(0, Math.min(2, Number.isFinite(params.bodyDomainStrength) ? params.bodyDomainStrength! : 0));
+    const bodyDomainScale = Math.max(0.01, Number.isFinite(params.bodyDomainScale) ? params.bodyDomainScale! : 0.84);
+    const bodyDomainContrast = Math.max(0.35, Math.min(2.5, Number.isFinite(params.bodyDomainContrast) ? params.bodyDomainContrast! : 0.82));
     this.meadowTexture.destroy();
     this.meadowTexture = createMeadowTexture(this.shell.device, texture.width, texture.height, texture.pixels, texture.bytesPerRow);
     this.groundBindGroup = this.createGroundBindGroup();
@@ -494,6 +553,19 @@ export class BattleGroundPass {
       rootMassCoverage: texture.rootMassCoverage,
       rootMassAvg: texture.rootMassAvg,
       rootMassSpread: texture.rootMassSpread,
+      bodyDomainEnabled: bodyDomainStrength > 0,
+      bodyDomainId: bodyDomainStrength > 0 ? 'field-strand-material' : 'off',
+      bodyDomainTextureWidth: texture.width,
+      bodyDomainTextureHeight: texture.height,
+      bodyDomainCellSize: texture.cellSize,
+      bodyDomainCoverageMin: texture.bodyDomainCoverageMin,
+      bodyDomainCoverageMax: texture.bodyDomainCoverageMax,
+      bodyDomainCoverageAvg: texture.bodyDomainCoverageAvg,
+      bodyDomainCoverageMedian: texture.bodyDomainCoverageMedian,
+      bodyDomainExposedGround: texture.bodyDomainExposedGround,
+      bodyDomainTextureBytes: texture.width * texture.height * 4,
+      bodyDomainSubmittedTriangles: 0,
+      bodyDomainMaterialOnly: true,
     };
     this.writeMeadowUniforms([
       enabled,
@@ -512,6 +584,10 @@ export class BattleGroundPass {
       rootMassStrength,
       rootMassContrast,
       this.meadowStats.fieldFloor,
+      bodyDomainStrength > 0 ? 1 : 0,
+      bodyDomainStrength,
+      bodyDomainScale,
+      bodyDomainContrast,
     ]);
   }
 
@@ -653,6 +729,9 @@ export interface BattleMeadowParams {
   rootMassStrength?: number;
   rootMassContrast?: number;
   rootMassSpread?: number;
+  bodyDomainStrength?: number;
+  bodyDomainScale?: number;
+  bodyDomainContrast?: number;
 }
 
 function buildMeadowTexture(snapshot: GrassFieldSnapshot, bounds: BattleMeadowBounds, params: BattleMeadowParams) {
@@ -727,6 +806,11 @@ function buildMeadowTexture(snapshot: GrassFieldSnapshot, bounds: BattleMeadowBo
   let directionSum = 0;
   let rootCovered = 0;
   let rootMassSum = 0;
+  let bodyDomainMin = 1;
+  let bodyDomainMax = 0;
+  let bodyDomainSum = 0;
+  let bodyDomainExposed = 0;
+  const bodyDomainValues: number[] = [];
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const i = y * width + x;
@@ -735,6 +819,7 @@ function buildMeadowTexture(snapshot: GrassFieldSnapshot, bounds: BattleMeadowBo
       const rootRaw = rootMass[i];
       const rootSoft = rootCoverage[i];
       const rootValue = smoothstepRange(0.025, 0.70, Math.max(rootRaw * 0.88, rootSoft * 0.72));
+      const bodyDomainValue = clamp01(Math.max(softMass, rawMass * 0.82, rootValue * 0.64));
       const w = weight[i];
       const directionLength = w > 0 ? Math.min(1, Math.hypot(dirX[i], dirY[i]) / w) : 0;
       const clumpAvg = w > 0 ? clump[i] / w : 0;
@@ -746,6 +831,11 @@ function buildMeadowTexture(snapshot: GrassFieldSnapshot, bounds: BattleMeadowBo
       directionSum += directionLength * rawMass;
       if (rootValue > 0.08) rootCovered++;
       rootMassSum += rootValue;
+      bodyDomainMin = Math.min(bodyDomainMin, bodyDomainValue);
+      bodyDomainMax = Math.max(bodyDomainMax, bodyDomainValue);
+      bodyDomainSum += bodyDomainValue;
+      if (bodyDomainValue < 0.18) bodyDomainExposed++;
+      bodyDomainValues.push(bodyDomainValue);
       const o = y * bytesPerRow + x * 4;
       pixels[o] = Math.round(rawMass * 255);
       pixels[o + 1] = Math.round(softMass * 255);
@@ -754,6 +844,10 @@ function buildMeadowTexture(snapshot: GrassFieldSnapshot, bounds: BattleMeadowBo
     }
   }
   const texels = width * height;
+  bodyDomainValues.sort((a, b) => a - b);
+  const medianBodyDomain = bodyDomainValues.length === 0
+    ? 0
+    : bodyDomainValues[Math.floor((bodyDomainValues.length - 1) / 2)];
   return {
     width,
     height,
@@ -769,6 +863,11 @@ function buildMeadowTexture(snapshot: GrassFieldSnapshot, bounds: BattleMeadowBo
     rootMassCoverage: round3(rootCovered / Math.max(1, texels)),
     rootMassAvg: round3(rootMassSum / Math.max(1, texels)),
     rootMassSpread: round3(rootMassSpread),
+    bodyDomainCoverageMin: round3(bodyDomainMin === 1 && texels === 0 ? 0 : bodyDomainMin),
+    bodyDomainCoverageMax: round3(bodyDomainMax),
+    bodyDomainCoverageAvg: round3(bodyDomainSum / Math.max(1, texels)),
+    bodyDomainCoverageMedian: round3(medianBodyDomain),
+    bodyDomainExposedGround: round3(bodyDomainExposed / Math.max(1, texels)),
   };
 }
 

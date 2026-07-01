@@ -229,13 +229,13 @@ they become dense grass.
   and midground `0.37539x`; versus field-shell, parity barely moves
   (`0.02108` foreground, `0.05422` midground). Density/count alone is not the
   missing variable.
-- 03B4C5B4 has since been resliced into a close-lab ladder. B4B1A1U and
-  B4B1A1V are rejected: source density and source-attached strand mats still
-  create markers, clumps, or fan/card patches rather than continuous body. The
-  current pickup is B4B1A1W. Freeze atlas, palette, meadow/root, camera, terrain,
-  fog, water, sky, and crop windows; change only the close-body ownership domain
-  so the body is field-owned before any perf, coverage, LOD, or camera-relative
-  pass.
+- 03B4C5B4 has since been resliced into a close-lab ladder. B4B1A1U,
+  B4B1A1V, and B4B1A1W are rejected: source density, source-attached strand
+  mats, and material-only field domains still create markers, fan/card patches,
+  or flat paint rather than continuous body. The current pickup is B4B1A1X.
+  Freeze atlas, palette, meadow/root, camera, terrain, fog, water, sky, and crop
+  windows; keep body ownership field-owned while adding silhouette/height before
+  any perf, coverage, LOD, or camera-relative pass.
 
 Current approach queue:
 

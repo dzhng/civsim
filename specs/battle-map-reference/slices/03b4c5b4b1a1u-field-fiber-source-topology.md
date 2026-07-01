@@ -87,8 +87,9 @@ full-scene composition.
 
 ## Next Slice
 
-Rejected. `03b4c5b4b1a1v-continuous-strand-body-representation.md` has since
-also been attempted and rejected. Continue at
-`03b4c5b4b1a1w-field-owned-strand-material-domain.md`. Do not return to
+Rejected. `03b4c5b4b1a1v-continuous-strand-body-representation.md` and
+`03b4c5b4b1a1w-field-owned-strand-material-domain.md` have since also been
+attempted and rejected. Continue at
+`03b4c5b4b1a1x-field-owned-body-silhouette-layer.md`. Do not return to
 `03b4c5b4b1a2-close-body-perf-envelope.md` until a body representation/domain is
 accepted.

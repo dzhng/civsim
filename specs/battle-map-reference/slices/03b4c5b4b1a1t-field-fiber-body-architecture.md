@@ -26,8 +26,9 @@ comparisons, and decision note show the same failure:
 The immediate next slice was
 `03b4c5b4b1a1u-field-fiber-source-topology.md`, which changed the close-body
 source topology inside the fixed B4B1A0 lab. That slice and the following
-B4B1A1V strand-mat representation pass are now also rejected. Current work
-continues at `03b4c5b4b1a1w-field-owned-strand-material-domain.md`.
+B4B1A1V strand-mat representation and B4B1A1W material-domain passes are now
+also rejected. Current work continues at
+`03b4c5b4b1a1x-field-owned-body-silhouette-layer.md`.
 
 ## Contract
 
@@ -87,8 +88,9 @@ visible, or requires changing unrelated visual variables.
 
 ## Next Slice
 
-Rejected. `03b4c5b4b1a1u-field-fiber-source-topology.md` and
-`03b4c5b4b1a1v-continuous-strand-body-representation.md` have since also been
+Rejected. `03b4c5b4b1a1u-field-fiber-source-topology.md`,
+`03b4c5b4b1a1v-continuous-strand-body-representation.md`, and
+`03b4c5b4b1a1w-field-owned-strand-material-domain.md` have since also been
 attempted and rejected. Continue with
-`03b4c5b4b1a1w-field-owned-strand-material-domain.md` before perf, coverage,
+`03b4c5b4b1a1x-field-owned-body-silhouette-layer.md` before perf, coverage,
 palette, LOD, or camera-relative work.

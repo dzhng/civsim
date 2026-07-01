@@ -33,7 +33,7 @@
       }
       #hud {
         position: fixed;
-        top: 12px;
+        bottom: 12px;
         left: 12px;
         font:
           12px/1.5 ui-monospace,
@@ -252,7 +252,10 @@
       #unitcards {
         position: fixed;
         bottom: 52px;
-        left: 50%;
+        /* Centered on the card-bar window between the bottom-corner HUD (info card
+         left, minimap right) — applyCardGrid writes --card-center-x. Falls back to
+         50% (the lab reserves equal margins, so the window is viewport-centered). */
+        left: var(--card-center-x, 50%);
         transform: translateX(-50%);
         z-index: 5;
         display: grid;

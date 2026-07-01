@@ -23,6 +23,14 @@ const CARD_W = 72; // fixed card width in px (cardH derives from the 3:4 aspect)
 // zone (symmetric, to stay centered). The lab harness has no minimap and passes
 // a bare margin instead. Tunable at the S2 checkpoint.
 export const MINIMAP_RESERVE = 210;
+// Production HUD left reserve: the card bar must clear the bottom-left info card
+// (#hud), whose right edge is 12(inset) + 282(max content) + 26(padding) +
+// 6(border) = 326px, plus a small gap. This is ASYMMETRIC from the right (which
+// only clears the minimap, MINIMAP_RESERVE): reserving the full 336 on BOTH sides
+// would narrow the bar enough to wrap an extra row, growing it tall enough to
+// cover mid-field units and break click-selection. Keeping the right wide keeps
+// the bar short. The renderer-lab passes MINIMAP_RESERVE on both sides.
+export const BOTTOM_CARD_LEFT_RESERVE = 336;
 const GRID_OPTS: CardGridOpts = { cardW: CARD_W, aspect: 3 / 4, gap: 4, maxRows: 3 };
 
 /** The four live nodes a card's per-frame update writes into. */
@@ -57,13 +65,25 @@ export function applyCardVisual(card: HTMLElement, b: CardBarRefs, s: UnitCardSt
 
 /** No-scroll grid pass: pick rows/cols at the fixed card size for the width
  * budget and hand them to CSS as custom properties on `root`. Layout, never
- * per-frame. Shared by both card bars. */
-export function applyCardGrid(root: HTMLElement, count: number, sideReserve: number): void {
-  const boxW = window.innerWidth - 2 * sideReserve;
+ * per-frame. Shared by both card bars.
+ *
+ * The budget is the viewport minus a left and right reserve (asymmetric: the
+ * bottom-left info card is wider than the right-hand minimap). The bar centers in
+ * that window via `--card-center-x` (px), which #unitcards reads for its `left`.
+ * The lab passes equal reserves, so the center collapses to the viewport midpoint
+ * — pixel-identical to the old `left: 50%`. */
+export function applyCardGrid(
+  root: HTMLElement,
+  count: number,
+  leftReserve: number,
+  rightReserve: number,
+): void {
+  const boxW = window.innerWidth - leftReserve - rightReserve;
   const g = computeCardGrid(count, boxW, GRID_OPTS);
   root.style.setProperty("--cols", String(g.cols));
   root.style.setProperty("--card-w", g.cardW + "px");
   root.style.setProperty("--card-h", g.cardH + "px");
+  root.style.setProperty("--card-center-x", (leftReserve + boxW / 2).toFixed(1) + "px");
   root.classList.toggle("undersized", g.degenerate);
   (window as unknown as { __cardGrid?: unknown }).__cardGrid = {
     rows: g.rows,

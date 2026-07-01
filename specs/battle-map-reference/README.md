@@ -148,15 +148,17 @@ reveals another hidden variable, stop and reslice with `feature-slicing` before
 continuing renderer work.
 
 **Atmosphere reuse correction (2026-07-01):** when this plan reaches distance
-fog, do not design a new battle-only haze. Reuse the water S6 horizon-fog
+fog, do not design a new battle-only haze. Reuse the water S6/S7 horizon-fog
 contract visible in `web/shots/misc/water/haze-gerstner.png` and
-`web/shots/misc/water/albedo-overcast.png`: far geometry fades toward the active
-environment haze colour, high-frequency detail/glint fades out with distance,
-and the horizon seam dissolves instead of drawing a separate fog wall. The
-archived review copies live in `assets/water-fog-reference/`. Slice 06B owns
-threading that same effect through far grass/meadow mass, ridges, terrain, and
-distant water. Until 06B, keep fog frozen and do not use haze to disguise grass,
-cliff, or water shortcomings.
+`web/shots/misc/water/albedo-overcast.png`: distance computes a shared
+`haze01`, high-frequency detail and glint fade by `(1.0 - haze01)`, the final
+lit surface colour blends toward the active environment haze colour, and the
+horizon seam dissolves instead of drawing a separate fog wall. The archived
+review copies live in `assets/water-fog-reference/`. Slice 06B owns threading
+that same effect through far grass/meadow mass, ridges, terrain, and distant
+water. This is an architectural reuse requirement: use or extract the same
+environment/fog seam instead of copying new per-pass constants. Until 06B, keep
+fog frozen and do not use haze to disguise grass, cliff, or water shortcomings.
 
 **False-earth / X-post correction (2026-07-01):** David pointed at
 `momentchan/false-earth` and the X post describing packed terrain-normal instance

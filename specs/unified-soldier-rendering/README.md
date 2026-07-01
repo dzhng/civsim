@@ -134,8 +134,26 @@ Dependency: 0 informs 1. 1 unblocks 2 and 4. 2 (shadow relocated) is a dependenc
 
 ## Next Agent Prompt
 
-**Status:** Slices 0–3 landed (spike, depth param, shared shadow → battle, figure sampler).
-Next: Slice 4 (campaign crowd). Last updated 2026-07-01.
+**Status:** Slices 0–4 landed (spike, depth param, shared shadow → battle, figure sampler,
+campaign crowd). Next: Slice 5 (zoom LOD). Last updated 2026-07-01.
+
+**BLOCKER for the next agent — rebase pending:** origin/main advanced to a large **water
+feature + headless-baseline** merge (`661247af`) while this branch was built on `208fdbe7`.
+This sandbox **cannot check out or even `git diff` origin/main** — the repo became a partial
+clone and the promisor blobs will not backfill by any fetch method tried (checkout stalls on
+per-blob lazy fetch; `git diff 208fdbe7 origin/main` returns garbage). So the branch could
+NOT be rebased here. It must be rebased onto `origin/main` in a normal-git environment before
+merge. The feature is soldier-rendering and the merge is water — mostly orthogonal — but
+verify the campaign renderer pass list still composes (water may have added a strategic-sea
+pass) and re-bless the campaign scenes headless after rebase.
+
+**Capture mode is now HEADLESS** (blessed local mode, matches origin/main): run from `web/`
+with the dev server up —
+`VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs <scene>`
+(NO `VERIFY_HEADFUL`). Bundled Chromium's SwiftShader can't get a WebGPU adapter here; real
+installed Chrome headless + Metal works and is deterministic. Only feature-affected shots were
+re-blessed on this branch; the repo-wide headful→headless migration of UI/text baselines lives
+on origin/main (do not re-bless those here — they resolve at rebase).
 
 **Test-infra note:** vitest / tsx / esbuild-CLI are NOT installed in this sandbox and can't
 be installed (network-blocked); node type-stripping can't resolve the repo's extensionless
@@ -160,7 +178,15 @@ The spike's remaining value is the campaign-crowd eyeball + perf number; it will
 as a renderer-lab route on top of the real depth param next, doubling as the Slice 4
 de-risk. Read the four Key Seams above before continuing.
 
-**Start here:** Slice 4 — [campaign crowd replacement](slices/04-campaign-crowd.md). In
+**Start here (after the rebase above):** Slice 5 —
+[zoom LOD](slices/05-zoom-lod.md). Gate `buildStackCrowd` emission on `cam.scale` in
+`web/src/campaign/renderer.ts` (mirror battle's `zoom < 1.2` impostor switch): near zoom draws
+the crowd; far zoom draws zero figures and falls back to the banner/`campaignMapMarkers`. Add a
+smoothstep fade so figures don't pop. Perf-bound via `full-game-rendering-performance`; verify
+`campaign-lod` at its three cameras. Also raise the standard banner a touch so it clears the
+figures at close zoom (minor polish deferred from Slice 4).
+
+**Superseded Slice 4 start (done):** Slice 4 — [campaign crowd replacement](slices/04-campaign-crowd.md). In
 `web/src/campaign/renderer.ts`: in `init()` load kit/vat/meshes (same loaders as battle)
 and build `SkinnedCrowdPipeline(shell, meshes, vat, kit, { worldDepth: 'campaign' })` +
 `SoldierShadowDecalPass(shell, { worldDepth: 'campaign' })`. Thread `unitsByClass` /
@@ -218,7 +244,15 @@ relief, sorts against campaign geometry, 0.85ms/6 figures. Scale decision: campa
       updated, baselines re-blessed, lab routes 0px. Battle now casts soldier shadows.
 - [x] Slice 3 — pure sampler `crowd-runtime/src/stackCrowd.ts` (`buildStackCrowd`,
       `stackFigureCount`, `sampleFigureClasses`); arithmetic verified, tsc strict clean.
-- [ ] Slice 4 — campaign crowd replacement (+ split banner, + faction bucket)
+- [x] Slice 4 — campaign crowd replacement: army stacks draw the shared skinned crowd
+      (`buildStackCrowd` → `SkinnedCrowdPipeline{worldDepth:'campaign'}` + `SoldierShadowDecalPass`),
+      baked marker → `buildCampaignStandardMesh` (banner only), passes `campaign-soldier-crowd`
+      + `campaign-soldier-shadows`, contract updated, `scene.ts` passes `stackUnitCap`, faction
+      = allegiance bucket, figure size 2.4 with shadow-radius + spacing scaled to size. Lab
+      `campaign-models` army/garrison gate renders the crowd too. Verified headless; army gate
+      + campaign-visual contract green. Screenshot-critique caught (and fixed) invisible-shadow
+      (radius) + merged-blob (spacing) bugs; banner sits a touch low behind figures (minor,
+      matters less once Slice 5 collapses figures to the banner far out).
 - [ ] Slice 5 — zoom LOD collapse
 - [ ] Slice 6 — cleanup / delete dead code
 

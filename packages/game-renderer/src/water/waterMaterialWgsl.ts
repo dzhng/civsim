@@ -24,7 +24,7 @@ const WATER_VIEW_DIR = vec3f(0.0, -0.62, 0.78);
 // sparkle on matching facets across the whole sea ("sequins"); the caller masks
 // it to the sun's azimuth so it reads as one coherent streak, computed where the
 // fragment's world direction is known (the plane pass).
-fn waterShade(sample: WaterSample, sunDir: vec3f, glintBand: f32, depth01: f32) -> vec3f {
+fn waterShade(sample: WaterSample, sunDir: vec3f, glintBand: f32, depth01: f32, haze01: f32) -> vec3f {
   // Neutral albedo graded shallow→deep, then lit by the preset. The mood is all
   // in WATER_KEY/WATER_FILL/WATER_EXPOSURE — the albedo carries no warmth.
   let albedo = mix(WATER_SHALLOW_ALBEDO, WATER_DEEP_ALBEDO, depth01);
@@ -44,10 +44,16 @@ fn waterShade(sample: WaterSample, sunDir: vec3f, glintBand: f32, depth01: f32) 
   let facing = clamp(dot(n, halfv), 0.0, 1.0);
   let sparkle = pow(facing, 70.0) * 1.4;
   let sheen = pow(facing, 6.0) * 0.5;
-  let glint = min((sparkle + sheen) * glintBand, 1.5) * (1.0 - foam * 0.5);
+  // Fade the glint into the distance so the far crests melt fully into the haze
+  // instead of leaving a bright sparkle band at the seam.
+  let glint = min((sparkle + sheen) * glintBand, 1.5) * (1.0 - foam * 0.5) * (1.0 - haze01);
   col = col + WATER_KEY * WATER_GLINT_GAIN * glint;
   // Whitecaps: white spray lit by the environment (warm at golden, cool under
   // overcast) — the same-material two-light proof runs through here.
   let foamLit = WATER_FOAM_ALBEDO * (WATER_KEY * 0.55 + WATER_FILL * 0.45) * WATER_EXPOSURE;
-  return mix(col, foamLit, foam);
+  let surface = mix(col, foamLit, foam);
+  // Aerial perspective: the far sea desaturates into the preset haze so it meets
+  // the sky with no hard horizon line. haze01 reaches ~1 at the plane's far edge,
+  // where WATER_HAZE equals the sky, so the seam dissolves.
+  return mix(surface, WATER_HAZE, clamp(haze01, 0.0, 1.0));
 }`;

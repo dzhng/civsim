@@ -142,8 +142,12 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let band = smoothstep(0.1, 0.8, dot(toFrag, sunAzVec));
   // Depth ramp for the open sea: near reads as shallow turquoise, the far sea as
   // deep blue (distance stands in for depth on the horizon plane).
-  let depth01 = smoothstep(20.0, 420.0, length(delta));
-  let col = waterShade(s, sunDirection(), band, depth01);
+  let dist = length(delta);
+  let depth01 = smoothstep(20.0, 420.0, dist);
+  // Aerial-perspective haze: ramps up over the far distance, reaching ~1 near the
+  // plane's far edge so the sea dissolves into the sky with no hard horizon line.
+  let haze01 = smoothstep(55.0, 300.0, dist);
+  let col = waterShade(s, sunDirection(), band, depth01, haze01);
   return vec4f(col, 1.0);
 }`;
 }

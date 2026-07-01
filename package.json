@@ -5,8 +5,9 @@
   "scripts": {
     "setup": "bun install --cwd web && scripts/setup-hooks.sh",
     "dev": "bun run --cwd web dev",
-    "build": "bun run --cwd web build",
     "build:wasm": "bun run --cwd web build:wasm",
+    "build:web": "bun run --cwd web build",
+    "build:all": "bun run --cwd web build:wasm && bun run --cwd web build",
     "lint": "bun run --cwd web lint",
     "typecheck": "bun run --cwd web typecheck",
     "fmt": "cargo fmt --all && bun run --cwd web format",

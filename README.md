@@ -380,7 +380,8 @@ mirror of every subcommand.
 bun run setup        # one-time per clone: install web deps + enable the hook
 bun run dev          # web dev server (http://localhost:5173)
 bun run build:wasm   # Rust -> wasm: regenerate web/src/wasm/ after Rust changes
-bun run build        # bundle the web app -> dist/ (consumes the wasm above)
+bun run build:web    # bundle the web app -> dist/ (consumes the wasm above)
+bun run build:all    # build:wasm then build:web — full build from scratch
 bun run fmt          # format Rust + web        (fmt:check to verify only)
 bun run lint         # oxlint the web app
 bun run typecheck    # tsc --noEmit

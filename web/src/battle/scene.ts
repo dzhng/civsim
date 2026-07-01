@@ -19,7 +19,7 @@ import {
   SHOCK_CAV_SIDEARM_CLASS,
 } from "../../../packages/soldier-assets/src/soldierMesh";
 import { BattleRenderer, type BattleTacticalLineFrame } from "./renderer";
-import { BATTLE_CAMERA_RIG_LIMITS, cameraForZoom, type CameraRigRange } from "./cameraRig";
+import { type CameraRigRange } from "./cameraRig";
 import {
   CLASS_NAMES,
   UNIT_CLASS_BY_KEY,
@@ -167,15 +167,11 @@ export class BattleScene implements Scene {
     const STRIDE = game.unit_info_stride();
     let cameraRigBounds = { width: 1, height: 1 };
     let cameraRigRange: CameraRigRange = { min: 0.4, max: 8 };
+    // Feed the real-camera zoom rig its live range + field bounds; the Camera
+    // resolves distance/pitch/fovY (and applies the user's pitchBias) from zoom
+    // itself, so this just keeps those inputs current as setup refines them.
     const applyBattleCameraRig = () => {
-      const rig = cameraForZoom(camera.zoom, cameraRigRange, cameraRigBounds);
-      camera.pitch = Math.min(
-        BATTLE_CAMERA_RIG_LIMITS.vistaPitch,
-        Math.max(0, rig.pitch + camera.pitchBias),
-      );
-      camera.targetOffset = rig.targetOffset;
-      camera.perspective = rig.perspective;
-      camera.zoomT = rig.zoomT;
+      camera.setRig(cameraRigRange, cameraRigBounds);
     };
 
     // Open framed to the ARMIES (bbox + margin), not the map: a two-unit
@@ -199,7 +195,8 @@ export class BattleScene implements Scene {
       }
       const dpr = window.devicePixelRatio || 1;
       const mapZoom = (canvas.clientHeight * dpr) / Math.min(mapH * 0.62, 1000);
-      const topDownCos = Math.max(0.2, Math.cos(BATTLE_CAMERA_RIG_LIMITS.topDownPitch));
+      // Near-top-down (zoomed out) has almost no vertical foreshortening.
+      const topDownCos = 0.95;
       const tacticalZoom = Math.min(
         (canvas.clientWidth * dpr) / mapW,
         (canvas.clientHeight * dpr) / topDownCos / mapH,

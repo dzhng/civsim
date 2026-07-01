@@ -39,7 +39,6 @@ export async function run(ctx) {
 
   await page.evaluate(() => {
     window.__cam.zoom = 2.6;
-    window.__cam.pitch = 0;
     window.__cam.yaw = 0;
     window.__cam.x = 0;
     window.__cam.y = 0;

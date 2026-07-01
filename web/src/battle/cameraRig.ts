@@ -3,61 +3,22 @@ export interface CameraRigBounds {
   height: number;
 }
 
-export interface CameraRig {
-  pitch: number;
-  targetOffset: number;
-  perspective: number;
-  zoomT: number;
-}
-
 export interface CameraRigRange {
   min: number;
   max: number;
 }
 
-const TOP_DOWN_PITCH = 0.08;
-const VISTA_PITCH = 1.02;
-const MIN_TARGET_OFFSET = 0;
-const MAX_TARGET_OFFSET_FRACTION = 0.25;
-const MAX_PERSPECTIVE = 0.006;
-
-export function cameraForZoom(zoom: number, zoomRange: CameraRigRange, bounds: CameraRigBounds): CameraRig {
-  const min = Math.max(0.0001, Math.min(zoomRange.min, zoomRange.max));
-  const max = Math.max(min + 0.0001, Math.max(zoomRange.min, zoomRange.max));
-  const rawT = (zoom - min) / (max - min);
-  const zoomT = clamp01(rawT);
-  const eased = smoothstep(zoomT);
-  const fieldReach = Math.max(1, Math.min(bounds.width, bounds.height));
-  const targetOffset = lerp(MIN_TARGET_OFFSET, fieldReach * MAX_TARGET_OFFSET_FRACTION, eased);
-  return {
-    pitch: lerp(TOP_DOWN_PITCH, VISTA_PITCH, eased),
-    targetOffset,
-    perspective: lerp(0, MAX_PERSPECTIVE, eased),
-    zoomT,
-  };
-}
-
-export const BATTLE_CAMERA_RIG_LIMITS = {
-  topDownPitch: TOP_DOWN_PITCH,
-  vistaPitch: VISTA_PITCH,
-  maxTargetOffsetFraction: MAX_TARGET_OFFSET_FRACTION,
-  maxPerspective: MAX_PERSPECTIVE,
-} as const;
-
 // ---------------------------------------------------------------------------
-// Real-camera zoom rig (slice 03). Purely additive: `cameraForZoom` above still
-// drives the legacy 2.5D camera until slice 04 swaps `scene.ts` onto the rig
-// below. The two coexist only across that short migration seam.
-//
-// This maps zoom → framing for the real 3D perspective camera (`camera3d.ts`):
+// The zoom rig maps zoom → framing for the real 3D perspective camera
+// (`camera3d.ts`):
 // near-top-down when zoomed OUT (zoomT = 0), a low oblique cinematic vista when
 // zoomed IN (zoomT = 1). `pitch` follows camera3d's convention — π/2 is straight
-// down, small is near the horizon — so it DECREASES as you zoom in (opposite of
-// the legacy flat-convention pitch above). The caller fills `yaw` (0 for battle),
-// `aspect` (live width/height), and `near` at wire-time in slice 04; it also adds
-// the ground view-centre to `target` (the rig returns a forward look-ahead offset
-// along −X, the yaw-0 view direction — the camera focuses ahead of your line so
-// the field opens out toward the horizon instead of tilting in place).
+// down, small is near the horizon — so it DECREASES as you zoom in. The caller
+// (`web/src/shared/camera.ts` for battle) fills `yaw` (0 for battle), `aspect`
+// (live width/height), and `near`, and adds the ground view-centre to `target`
+// (the rig returns a forward look-ahead offset along −X, the yaw-0 view direction
+// — the camera focuses ahead of your line so the field opens out toward the
+// horizon instead of tilting in place).
 
 /** Camera3DParams-shaped subset produced by the zoom rig, plus the exported
  *  `zoomT` (grass density / haze depth read it). */

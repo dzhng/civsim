@@ -46,7 +46,6 @@ export async function run(ctx) {
     window.__game.select(4);
     const info = window.__game.unitInfo(4);
     const cam = window.__cam;
-    cam.pitch = 0;
     cam.yaw = 0;
     cam.zoom = 2.8;
     cam.x = info[unitInfo.x] - 70;

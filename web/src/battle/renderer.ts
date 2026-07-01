@@ -37,6 +37,7 @@ import {
   type WorldRenderPass,
 } from "../../../packages/renderer-core/src/frameShell";
 import { compileShader } from "../../../packages/renderer-core/src/compileShader";
+import type { Camera3DParams } from "../../../packages/renderer-core/src/camera3d";
 import { gpuMultisample } from "../../../packages/renderer-core/src/pipelineContracts";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
 import { WORLD_CAMERA_WGSL } from "../../../packages/renderer-core/src/cameraWgsl";
@@ -95,16 +96,15 @@ export class BattleRenderer {
     frameCpuMs: 0,
   };
   private frameStart = 0;
-  private lastCamera = {
-    x: 0,
-    y: 0,
-    zoom: 0,
-    pitch: 0,
-    yaw: 0,
-    zoomT: 0,
-    targetOffset: 0,
-    perspective: 0,
-  };
+  private lastCamera: {
+    x: number;
+    y: number;
+    zoom: number;
+    pitch: number;
+    yaw: number;
+    zoomT: number;
+    camera3d?: Camera3DParams;
+  } = { x: 0, y: 0, zoom: 0, pitch: 0, yaw: 0, zoomT: 0 };
 
   constructor(private canvas: HTMLCanvasElement) {
     this.ready = this.init();
@@ -481,6 +481,7 @@ export class BattleRenderer {
 
   private async init() {
     this.shell = await createFrameShell(this.canvas, {
+      reverseZ: true,
       onFatalError: (report) =>
         showFatalErrorSurface(
           this.canvas,
@@ -491,15 +492,19 @@ export class BattleRenderer {
         ),
     });
     applyBattleEnvironment(this.shell, this.environment);
-    this.ground = new BattleGroundPass(this.shell, this.environment);
-    this.grass = new BattleGrassPass(this.shell, this.environment);
-    this.scenery = new CampaignSceneryPass(this.shell, "battle");
-    this.horizon = new BattleHorizonPass(this.shell, this.environment);
+    // Battle is on the real 3D perspective camera + reverse-Z depth (slice 04):
+    // every world-depth pass opts into `real` so it projects through camera3d's
+    // viewProj and depth-tests reverse-Z. Campaign builds its own shell/passes
+    // without this flag and stays on the legacy 2.5D painter path (byte-identical).
+    this.ground = new BattleGroundPass(this.shell, this.environment, { real: true });
+    this.grass = new BattleGrassPass(this.shell, this.environment, { real: true });
+    this.scenery = new CampaignSceneryPass(this.shell, "battle", { real: true });
+    this.horizon = new BattleHorizonPass(this.shell, this.environment, { real: true });
     this.applyTerrain();
-    this.groundCues = new BattleGroundCuePass(this.shell);
-    this.effectLines = new BattleEffectLinePass(this.shell);
-    this.tris = new BattleTrianglePass(this.shell);
-    this.debugBlocks = new BattleTrianglePass(this.shell);
+    this.groundCues = new BattleGroundCuePass(this.shell, { real: true });
+    this.effectLines = new BattleEffectLinePass(this.shell, { real: true });
+    this.tris = new BattleTrianglePass(this.shell, { real: true });
+    this.debugBlocks = new BattleTrianglePass(this.shell, { real: true });
     const kit = await loadPlaceholderKit();
     this.mountedClasses = mountedClassesFromKit(kit);
     this.crowd = new SkinnedCrowdPipeline(
@@ -507,9 +512,9 @@ export class BattleRenderer {
       createPlaceholderSoldierMeshes([0.2, 0.42, 0.88]),
       await loadClassVats(kit),
       kit,
-      { lighting: skinnedLightingForBattleEnvironment(this.environment) },
+      { lighting: skinnedLightingForBattleEnvironment(this.environment), real: true },
     );
-    this.soldierShadows = new SoldierShadowDecalPass(this.shell);
+    this.soldierShadows = new SoldierShadowDecalPass(this.shell, { real: true });
   }
 
   private updateGrassForCamera(camera: typeof this.lastCamera) {
@@ -592,8 +597,8 @@ function cameraSnapshot(camera: Camera) {
     pitch: camera.pitch,
     yaw: camera.yaw,
     zoomT: camera.zoomT,
-    targetOffset: camera.targetOffset,
-    perspective: camera.perspective,
+    // The real 3D perspective camera drives every battle world-depth pass.
+    camera3d: camera.params(),
   };
 }
 
@@ -605,7 +610,7 @@ function frozenFrameKey(camera: Camera, count: number, staticSoldiers: number) {
     roundKey(camera.zoom),
     roundKey(camera.pitch ?? 0),
     roundKey(camera.yaw ?? 0),
-    roundKey(camera.perspective ?? 0),
+    roundKey(camera.zoomT ?? 0),
     count,
     staticSoldiers,
   ].join(":");
@@ -695,9 +700,9 @@ class BattleTrianglePass {
   private capacity = 0;
   private vertexCount = 0;
 
-  constructor(private shell: RawFrameShell) {
+  constructor(private shell: RawFrameShell, opts: { real?: boolean } = {}) {
     const device = shell.device;
-    const module = compileShader(device, TRIANGLE_WGSL, "battle-triangle");
+    const module = compileShader(device, triangleWgsl(opts.real ?? false), "battle-triangle");
     this.pipeline = device.createRenderPipeline({
       label: "battle-triangle-pipeline",
       layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),
@@ -759,7 +764,8 @@ class BattleTrianglePass {
   }
 }
 
-const TRIANGLE_WGSL = `
+function triangleWgsl(real: boolean) {
+  return `
 ${WORLD_CAMERA_WGSL}
 struct VsOut {
   @builtin(position) pos: vec4f,
@@ -769,7 +775,7 @@ struct VsOut {
 @vertex
 fn vs(@location(0) world: vec2f, @location(1) color: vec4f) -> VsOut {
   var out: VsOut;
-  out.pos = projectGround(world, 0.0);
+  out.pos = ${real ? "projectReal(vec3f(world, 0.0))" : "projectGround(world, 0.0)"};
   out.color = color;
   return out;
 }
@@ -778,3 +784,4 @@ fn vs(@location(0) world: vec2f, @location(1) color: vec4f) -> VsOut {
 fn fs(in: VsOut) -> @location(0) vec4f {
   return in.color;
 }`;
+}

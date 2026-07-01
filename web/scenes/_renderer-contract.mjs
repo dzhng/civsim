@@ -10,6 +10,8 @@ const FRAME_GRAPH_CONTRACT_SOURCE = readFileSync(
 );
 
 export const GPU_DEPTH_FORMAT = readDepthConst("GPU_DEPTH_FORMAT");
+// Battle flipped to the reverse-Z depth buffer in slice 04; campaign stays legacy.
+export const GPU_DEPTH_FORMAT_REVERSE = readDepthConst("GPU_DEPTH_FORMAT_REVERSE");
 export const GPU_WORLD_DEPTH_ATTACHMENT = readDepthConst("GPU_WORLD_DEPTH_ATTACHMENT");
 export const GPU_DEPTH_MODES = readDepthModes();
 export const FRAME_PHASE_KINDS = readStringArrayConst(
@@ -151,7 +153,7 @@ export function hasBattleWorldDepthContract(renderStats) {
     renderStats?.cameraContract === "shared-world-camera-wgsl" &&
     renderStats?.skinnedCameraContract === "shared-world-camera-wgsl" &&
     renderStats?.depth?.allocated === true &&
-    renderStats?.depth?.format === GPU_DEPTH_FORMAT &&
+    renderStats?.depth?.format === GPU_DEPTH_FORMAT_REVERSE &&
     hasFramePhaseOrder(renderStats?.phases, { requireOverlay: true }) &&
     hasDepthPassPlacement(renderStats?.phases) &&
     hasSemanticPassRoles(renderStats?.phases) &&

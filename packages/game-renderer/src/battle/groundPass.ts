@@ -1,6 +1,6 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
-import { gpuMultisample, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import { gpuMultisample, gpuOpaqueColorTarget, gpuReverseZDepthStencil, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 import { compileShader } from '../../../renderer-core/src/compileShader';
 import type { BattleGroundCover, BattleTerrainGrid } from './terrainFeatures';
 import { terrainHeightAt, type TerrainHeightField } from '../terrain/heightField';
@@ -47,7 +47,7 @@ const WATER_TINT = 1;
 // FIELD_WATER_WGSL, single-sourced with the lab terrainPass fixtures and built on
 // the same frozen open-sea look as the horizon plane, so all civsim water is one
 // material.
-const GROUND_WGSL = (env: BattleEnvironment) => `
+const GROUND_WGSL = (env: BattleEnvironment, real: boolean) => `
 ${WORLD_CAMERA_WGSL}
 ${battleEnvironmentWgsl(env)}
 struct GroundUniform {
@@ -301,7 +301,7 @@ fn meadowCarpet(world: vec2f, axes: vec2f, field: vec4f, screen: vec2f) -> vec3f
 @vertex
 fn vs(@location(0) world: vec3f, @location(1) normal: vec3f, @location(2) color: vec3f, @location(3) water: f32) -> VsOut {
   var out: VsOut;
-  out.pos = projectWorld3d(world, civsimBattleWorldDepth3d(world));
+  out.pos = ${real ? 'projectReal(world)' : 'projectWorld3d(world, civsimBattleWorldDepth3d(world))'};
   let sun = sunDirection();
   out.light = clamp(dot(normalize(normal), sun) * 0.45 + 0.74, 0.5, 1.18);
   out.color = color;
@@ -413,8 +413,9 @@ export class BattleGroundPass {
     bodyDomainSourceAttached: false,
   };
 
-  constructor(private shell: RawFrameShell, private environment: BattleEnvironment = BATTLE_ENVIRONMENTS['golden-hour']) {
-    const module = compileShader(shell.device, GROUND_WGSL(environment), `battle-ground-heightfield-${environment.id}`);
+  constructor(private shell: RawFrameShell, private environment: BattleEnvironment = BATTLE_ENVIRONMENTS['golden-hour'], opts: { real?: boolean } = {}) {
+    const real = opts.real ?? false;
+    const module = compileShader(shell.device, GROUND_WGSL(environment, real), `battle-ground-heightfield-${environment.id}`);
     this.groundBindGroupLayout = shell.device.createBindGroupLayout({
       label: 'battle-ground-uniform-layout',
       entries: [
@@ -441,7 +442,7 @@ export class BattleGroundPass {
       },
       fragment: { module, entryPoint: 'fs', targets: [gpuOpaqueColorTarget(shell.info.format)] },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: gpuWorldDepthStencil('read-write'),
+      depthStencil: real ? gpuReverseZDepthStencil('read-write') : gpuWorldDepthStencil('read-write'),
       multisample: gpuMultisample(shell.sampleCount),
     });
     this.uniformBuffer = shell.device.createBuffer({

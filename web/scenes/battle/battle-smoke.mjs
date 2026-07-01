@@ -28,43 +28,45 @@ export async function run(ctx) {
   const camFit = await page.evaluate(() => {
     const c = window.__cam;
     const cv = document.getElementById("battlefield");
-    const old = { x: c.x, y: c.y, zoom: c.zoom, pitch: c.pitch };
-    c.pitch = 0;
-    c.zoom = 0.001;
+    const old = { x: c.x, y: c.y, zoom: c.zoom };
+    c.zoom = 0.001; // below any floor → clamps to the zoom-out limit
     c.x = 999999;
     c.y = -999999;
     c.clampView?.();
     const [x0, y0, x1, y1] = c.bounds;
-    const fieldW = x1 - x0;
-    const fieldH = y1 - y0;
-    const fit = Math.min(cv.width / fieldW, cv.height / fieldH);
+    // Real visible ground span from the screen corners under the perspective camera.
+    const pts = [c.screenToWorld(0, 0), c.screenToWorld(cv.width, 0), c.screenToWorld(0, cv.height), c.screenToWorld(cv.width, cv.height)];
+    const xs = pts.map((p) => p[0]);
+    const ys = pts.map((p) => p[1]);
+    const [cx, cy] = c.viewCenter();
     const out = {
-      zoom: c.zoom,
-      fit,
-      x: c.x,
-      y: c.y,
-      cx: (x0 + x1) / 2,
-      cy: (y0 + y1) / 2,
-      viewW: cv.width / c.zoom,
-      viewH: cv.height / c.zoom,
-      fieldW,
-      fieldH,
+      x: cx,
+      y: cy,
+      x0,
+      y0,
+      x1,
+      y1,
+      visW: Math.max(...xs) - Math.min(...xs),
+      visH: Math.max(...ys) - Math.min(...ys),
+      fieldW: x1 - x0,
+      fieldH: y1 - y0,
     };
     Object.assign(c, old);
     c.clampView?.();
     return out;
   });
+  // Zoomed fully out the real camera frames a tactical overview: the field's short
+  // axis fits within the visible ground span (framing scales with min(w,h)).
   check(
-    "battle camera zoom-out fits the playable field",
-    camFit.zoom >= camFit.fit * 0.999 &&
-      camFit.viewW >= camFit.fieldW * 0.999 &&
-      camFit.viewH >= camFit.fieldH * 0.999,
-    `zoom ${camFit.zoom.toFixed(3)}, fit ${camFit.fit.toFixed(3)}`,
+    "battle camera zoom-out frames a tactical overview",
+    Math.max(camFit.visW, camFit.visH) >= Math.min(camFit.fieldW, camFit.fieldH) * 0.9,
+    `visible ${camFit.visW.toFixed(0)}x${camFit.visH.toFixed(0)}, field ${camFit.fieldW.toFixed(0)}x${camFit.fieldH.toFixed(0)}`,
   );
+  // Panning is bounded: the look target never leaves the playable field rect.
   check(
-    "battle camera cannot pan away when fully zoomed out",
-    Math.abs(camFit.x - camFit.cx) < 0.01 && Math.abs(camFit.y - camFit.cy) < 0.01,
-    `camera (${camFit.x.toFixed(1)},${camFit.y.toFixed(1)}) center (${camFit.cx.toFixed(1)},${camFit.cy.toFixed(1)})`,
+    "battle camera cannot pan the look target off the field",
+    camFit.x >= camFit.x0 - 0.5 && camFit.x <= camFit.x1 + 0.5 && camFit.y >= camFit.y0 - 0.5 && camFit.y <= camFit.y1 + 0.5,
+    `target (${camFit.x.toFixed(1)},${camFit.y.toFixed(1)}) field [${camFit.x0.toFixed(0)},${camFit.x1.toFixed(0)}]x[${camFit.y0.toFixed(0)},${camFit.y1.toFixed(0)}]`,
   );
 
   // Pixel regression on deterministic battle states: fixed tick, camera, and

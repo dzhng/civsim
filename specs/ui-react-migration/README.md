@@ -12,9 +12,23 @@ Synthesized from three independent draft plans (they converged hard — the cut 
 
 **Status:** S0 + S1 + S2 + S3 shipped (green). **S3 verdict: MIGRATE (Branch A).** _Last updated: 2026-07-01._
 
-**Start at S6** (HUD migrate Branch A + battle modals). **S5 is effectively done: every
-persistent campaign panel is React** — top bar, army, city, diplomacy, class builder, AND
-sieges (S5a–e). Two items were **resliced out of S5e** with rationale:
+**Start at S6b** (battle toolbar → React). **S6a shipped: the card bar is React by default**
+(the spike payoff — battle-selection-dpr2 0.0000%). S6 decomposes into:
+- **S6a — card bar React default** ✅ (`?hud=vanilla` escape hatch until S7).
+- **S6b — toolbar** (`#toolbar`): 10 data-cmd buttons; `updateToolbar` sets `.on`/`disabled`
+  per selection+order state; delegated click → `sink` commands. React: a `<Toolbar>` fed
+  button state, dedup'd (≤5Hz). Icons via `toolbarIcon()` (make a JSX `<ToolIcon>` like `UiIcon`).
+- **S6c — info panel** (`#hud`): read-only ≤5Hz readout (`updateHud`, throttled 0.2s) — header
+  lines + selected/hovered unit detail (portrait, name, meta, stat bars, spec/weapon lines with
+  `&nbsp;`/`<br>`). Big faithful port; low risk (no interaction). Convert `&nbsp;`→` `.
+- **S6d — minimap frame**: React bronze chassis around `<canvas id="minimap">`; `drawMinimap`
+  stays raw (firewall). Small.
+- **S6e — battle modals**: `#gameover`, `#pausemenu`, AND the campaign `showBattleModal`
+  (resliced from S4b/S5e). Needs a battle-scene modal root + replacing the `this.modal`
+  render-loop null-gate with a boolean. The gameover/pause markup leaves index.html.
+
+**S5 is done: every persistent campaign panel is React** — top bar, army, city, diplomacy,
+class builder, sieges (S5a–e). Two items were **resliced out of S5e** with rationale:
 - **The battle-decision modal** (`showBattleModal` — Fight/Auto-resolve) folds into **S6**: it's
   a battle-decision overlay (same category as the gameover/pause modals) and is coupled to the
   render loop via the `this.modal` null-gate, so it's cleaner to migrate alongside S6's battle

@@ -294,5 +294,5 @@ After touching `snapshot.mjs` or the freeze paths, run a mutation test: make
 a small visible change (a shader color constant, a marker size), run the
 harness, and confirm the snapshot FAILS. A subtle real change once slipped
 under pixelmatch's default 0.1 threshold — that's why comparisons are exact.
-Baselines are per-platform (font/GPU rasterization differs across OSes); they
-are blessed on this Mac, headless chromium.
+Baselines are per-platform and per browser mode (font/GPU rasterization differs
+across OSes, adapters, channels, and headful/headless capture).

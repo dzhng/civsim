@@ -79,3 +79,32 @@ If accepted, continue to
 `03b4c5b4b1a2-close-body-perf-envelope.md` and measure the accepted domain's
 budget. If rejected, reslice close-body ownership again before perf, coverage,
 palette, LOD, camera-relative generation, or final compose.
+
+## Result - rejected on 2026-07-01
+
+Evidence is archived under
+`assets/03b4-evidence/03b4c5-close-foreground-lab/field-owned-strand-material-domain/`.
+
+This pass landed useful field-owned material-domain plumbing:
+
+- `BattleGroundPass` now exposes optional `bodyDomain*` material uniforms and
+  `bodyDomain*` telemetry on the field meadow stats.
+- The focused lab can run material-only body-domain candidates with
+  `accentTufts=0`, `bladeInstances=0`, `submittedTriangles=0`, and `drawCalls=0`,
+  proving the visible body can be tested without per-source geometry.
+- The evidence candidates report `bodyDomainCoverageAvg=0.936`,
+  `bodyDomainCoverageMedian=1.000`, `bodyDomainExposedGround=0.004`, and
+  `bodyDomainTextureBytes=1920`.
+
+The visual is rejected. Against the resized target close crop,
+`field-material-body` records `edgeEnergyRatio=0.04921` and
+`field-material-fine` records `edgeEnergyRatio=0.05199`. Against the rejected
+B4B1A1V strand-mat crop, they retain only `0.08441x` and `0.08919x` of edge
+energy. Neutral critique agreed: the material-domain candidates are flat green
+terrain plus isolated marker posts, not close grass body.
+
+Learning: field/domain ownership is necessary, but material-only ground colour
+is insufficient. The next slice must keep field ownership while adding real
+near-body silhouette or height from the domain itself, not from per-source
+emitters. Continue with
+`03b4c5b4b1a1x-field-owned-body-silhouette-layer.md`.

@@ -102,6 +102,7 @@ fan/card patches, wrong scale, and repeated comb/grouping artifacts.
 Learning: changing the mesh representation per source is still source-attached
 geometry. The close crop needs a continuous field-owned body layer whose domain
 covers the review surface before it is expressed as strands, fibers, or material
-detail. Do not proceed to B4B1A2 perf, B4B2 coverage, B4B5 palette, B4C
+detail. B4B1A1W has since tested and rejected material-only field ownership as
+flat paint. Do not proceed to B4B1A2 perf, B4B2 coverage, B4B5 palette, B4C
 camera-relative generation, B4D LOD, or final compose from this result. Continue
-with `03b4c5b4b1a1w-field-owned-strand-material-domain.md`.
+with `03b4c5b4b1a1x-field-owned-body-silhouette-layer.md`.

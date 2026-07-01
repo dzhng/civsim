@@ -3229,6 +3229,9 @@ async function routeBattleGrassField(ctx: LabContext) {
       rootMassStrength: accentMode ? numberParam(ctx.params, 'rootMassStrength', 1.32) : 0,
       rootMassContrast: numberParam(ctx.params, 'rootMassContrast', 0.72),
       rootMassSpread: numberParam(ctx.params, 'rootMassSpread', 9.5),
+      bodyDomainStrength: numberParam(ctx.params, 'bodyDomainStrength', 0),
+      bodyDomainScale: numberParam(ctx.params, 'bodyDomainScale', 0.84),
+      bodyDomainContrast: numberParam(ctx.params, 'bodyDomainContrast', 0.82),
     });
   }
   const grass = new BattleGrassPass(shell);
@@ -3305,6 +3308,7 @@ async function routeBattleGrassField(ctx: LabContext) {
     drawCalls: grassStats.drawCalls,
     meadow: ground.stats().meadow.enabled ? `${ground.stats().meadow.source}:${ground.stats().meadow.fieldCoverage}` : 'off',
     rootMass: ground.stats().meadow.rootMassEnabled ? `${ground.stats().meadow.rootMassCoverage}/${ground.stats().meadow.rootMassStrength}` : 'off',
+    bodyDomain: ground.stats().meadow.bodyDomainEnabled ? `${ground.stats().meadow.bodyDomainId}:${ground.stats().meadow.bodyDomainExposedGround}` : 'off',
     accentStyle: grassStats.accentStyle,
     accentAggregation: grassStats.accentAggregation,
     grassPrimitiveFamily: grassStats.grassPrimitiveFamily,
@@ -3373,16 +3377,31 @@ async function routeBattleGrassField(ctx: LabContext) {
     && grassStats.submittedTriangles > 0
     && grassStats.submittedTriangles < 83200
     && grassStats.drawCalls === 1;
+  const bodyDomainOk = closeLab
+    && groundStats.meadow.bodyDomainEnabled === true
+    && groundStats.meadow.bodyDomainId === 'field-strand-material'
+    && groundStats.meadow.bodyDomainMaterialOnly === true
+    && groundStats.meadow.bodyDomainSubmittedTriangles === 0
+    && groundStats.meadow.bodyDomainTextureBytes > 0
+    && groundStats.meadow.bodyDomainCoverageAvg > 0.55
+    && groundStats.meadow.bodyDomainCoverageMedian > 0.55
+    && groundStats.meadow.bodyDomainExposedGround < 0.18
+    && grassStats.accentTufts === 0
+    && grassStats.bladeInstances === 0
+    && grassStats.submittedTriangles === 0
+    && grassStats.drawCalls === 0;
   const closeLabOk = closeLab
     && grassStats.fieldRecords > 100
-    && grassStats.accentStyle !== 'tuft'
-    && grassStats.tuftInstances > 20
-    && (grassStats.accentAggregation === 'field-subcell'
-      ? grassStats.tuftInstances > grassStats.fieldRecords
-      : grassStats.tuftInstances <= grassStats.fieldRecords)
-    && grassStats.submittedTriangles > 0
-    && grassStats.submittedTriangles < (grassStats.accentAggregation === 'field-subcell' ? 1500000 : 83200)
-    && grassStats.drawCalls === 1
+    && (bodyDomainOk || (
+      grassStats.accentStyle !== 'tuft'
+      && grassStats.tuftInstances > 20
+      && (grassStats.accentAggregation === 'field-subcell'
+        ? grassStats.tuftInstances > grassStats.fieldRecords
+        : grassStats.tuftInstances <= grassStats.fieldRecords)
+      && grassStats.submittedTriangles > 0
+      && grassStats.submittedTriangles < (grassStats.accentAggregation === 'field-subcell' ? 1500000 : 83200)
+      && grassStats.drawCalls === 1
+    ))
     && groundStats.meadow.source === 'field'
     && groundStats.meadow.fieldCoverage > 0.50
     && groundStats.meadow.rootMassEnabled === true

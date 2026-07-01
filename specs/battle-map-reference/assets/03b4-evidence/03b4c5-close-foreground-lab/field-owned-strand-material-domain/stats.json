@@ -1,0 +1,838 @@
+{
+  "variants": [
+    {
+      "id": "b4b1a1v-strand-mat",
+      "context": true,
+      "selected": false,
+      "stats": {
+        "route": "battle-grass-field",
+        "mode": "foreground-close-lab",
+        "camera": {
+          "x": 0,
+          "y": -50,
+          "zoom": 178,
+          "pitch": 0.96,
+          "yaw": -0.045,
+          "perspective": 0.032
+        },
+        "focus": {
+          "x": 0,
+          "y": -22,
+          "radius": 78
+        },
+        "bounds": {
+          "x": -84,
+          "y": -68,
+          "width": 168,
+          "height": 136
+        },
+        "grid": {
+          "w": 42,
+          "h": 34,
+          "cell": 4,
+          "ox": -84,
+          "oy": -68
+        },
+        "field": {
+          "seed": 12722,
+          "snapX": 0,
+          "snapY": -22,
+          "snapCellSize": 22,
+          "fieldCellSize": 3,
+          "clumpCellSize": 30,
+          "minNormalZ": 0.78,
+          "candidateCells": 2124,
+          "acceptedRecords": 1554,
+          "recordCapacity": 3200,
+          "cappedRecords": 0,
+          "outOfBoundsCells": 303,
+          "rejectedTintCells": 91,
+          "rejectedSlopeCells": 176,
+          "rejectedDensityCells": 0,
+          "openGrassCells": 1554,
+          "forestCells": 0,
+          "roughCells": 0,
+          "lodCounts": [
+            170,
+            658,
+            726
+          ],
+          "packedStrideFloats": 16,
+          "packedStrideBytes": 64,
+          "packedBytes": 99456
+        },
+        "grass": {
+          "layer": "battle-grass-instanced-blades",
+          "prepMode": "packed-field",
+          "cover": "green-grass",
+          "terrainMasked": true,
+          "zoomT": 1,
+          "focusRadius": 78,
+          "tuftInstances": 7200,
+          "bladeInstances": 86400,
+          "cappedTufts": 0,
+          "density": 0.731638418079096,
+          "maxTufts": 7200,
+          "eligibleCells": 2124,
+          "blockedTintCells": 91,
+          "openGrassCells": 1554,
+          "forestCells": 0,
+          "roughCells": 0,
+          "invalidTintTufts": 0,
+          "meshVertices": 192,
+          "meshTriangles": 96,
+          "submittedTriangles": 691200,
+          "drawCalls": 1,
+          "packedStrideFloats": 16,
+          "fieldRecordStrideFloats": 16,
+          "instanceBytes": 460800,
+          "fieldRecords": 1554,
+          "fieldRejectedSlopeCells": 176,
+          "accentTufts": 7200,
+          "accentRibbons": 0,
+          "accentRibbonDepthNear": 0,
+          "accentRibbonDepthFar": 0,
+          "accentDepthNear": -35,
+          "accentDepthFar": 72,
+          "accentSurfaceBlend": 0.96,
+          "accentStyle": "field-strand-mat",
+          "accentAggregation": "field-subcell",
+          "accentSourceRecords": 1343,
+          "accentClumps": 900,
+          "accentClumpFootprint": 2.35,
+          "fiberShellSourceRecords": 0,
+          "fiberShellRecords": 0,
+          "fiberShellRibbons": 0,
+          "fiberShellDepthNear": 0,
+          "fiberShellDepthFar": 0,
+          "fiberShellSelectedRatio": 0,
+          "fiberShellSubmittedTriangles": 0,
+          "fiberShellVariant": "off",
+          "grassPrimitiveFamily": "field-strand-mat",
+          "grassPrimitiveRepresentation": "continuous-strand-mat",
+          "grassPrimitiveRepresentationTriangles": 691200,
+          "grassPrimitiveSourceRecords": 1343,
+          "grassPrimitiveSourceTopology": "field-subcell",
+          "grassPrimitiveSourceCells": 900,
+          "grassPrimitiveSourcesPerCell": 8,
+          "grassPrimitiveSourceFixedLab": true,
+          "grassPrimitiveRecords": 7200,
+          "grassPrimitiveClumps": 900,
+          "grassPrimitiveDepthNear": -35,
+          "grassPrimitiveDepthFar": 72,
+          "grassPrimitiveTextureWidth": 0,
+          "grassPrimitiveTextureHeight": 0,
+          "grassPrimitiveTextureTiles": 0,
+          "grassPrimitiveTextureBytes": 0,
+          "grassPrimitiveMicroCards": 0,
+          "textureVolumeProfile": "current",
+          "textureVolumeRenderModel": "opaque-card",
+          "grassPrimitiveBaseline": "field-fiber-shell-normal",
+          "windPhase": 0.3,
+          "windStrength": 0.012,
+          "cameraContract": "shared-world-camera-wgsl"
+        },
+        "ground": {
+          "triangles": 714,
+          "layer": "battle-ground-heightfield",
+          "meadow": {
+            "enabled": true,
+            "source": "field",
+            "depthNear": -70,
+            "depthFar": 155,
+            "nearStrength": 0.98,
+            "farStrength": 0.74,
+            "textureWidth": 24,
+            "textureHeight": 20,
+            "textureCellSize": 7,
+            "fieldRecords": 1554,
+            "fieldCoverage": 0.902,
+            "softCoverage": 1,
+            "avgDensity": 0.552,
+            "avgCoverage": 0.936,
+            "directionalCoverage": 0.667,
+            "textureBytes": 1920,
+            "fieldFloor": 0,
+            "coverageSpread": 34,
+            "rootMassEnabled": true,
+            "rootMassStrength": 1.32,
+            "rootMassCoverage": 0.652,
+            "rootMassAvg": 0.536,
+            "rootMassSpread": 9.5,
+            "bodyDomainEnabled": false,
+            "bodyDomainId": "off",
+            "bodyDomainTextureWidth": 24,
+            "bodyDomainTextureHeight": 20,
+            "bodyDomainCellSize": 7,
+            "bodyDomainCoverageMin": 0.095,
+            "bodyDomainCoverageMax": 1,
+            "bodyDomainCoverageAvg": 0.936,
+            "bodyDomainCoverageMedian": 1,
+            "bodyDomainExposedGround": 0.004,
+            "bodyDomainTextureBytes": 1920,
+            "bodyDomainSubmittedTriangles": 0,
+            "bodyDomainMaterialOnly": true
+          }
+        },
+        "lab": {
+          "profile": "foreground-close-lab",
+          "contract": "03B4C5B4B1A0",
+          "cameraProfile": "b4b1a0-test-env",
+          "cropPurpose": "test-environment-comparability-not-body-acceptance",
+          "calibration": "test-environment-review-windows",
+          "foregroundWorldUnitsPerPixel": 0.00562,
+          "reviewWindows": {
+            "closeHero": {
+              "x": 0.08,
+              "y": 0.61,
+              "width": 0.84,
+              "height": 0.254
+            },
+            "closeTight2x": {
+              "x": 0.24,
+              "y": 0.64,
+              "width": 0.52,
+              "height": 0.22
+            },
+            "closeTight4x": {
+              "x": 0.38,
+              "y": 0.71,
+              "width": 0.24,
+              "height": 0.13
+            },
+            "transition": {
+              "x": 0.12,
+              "y": 0.34,
+              "width": 0.76,
+              "height": 0.2
+            },
+            "midMass": {
+              "x": 0.16,
+              "y": 0.16,
+              "width": 0.68,
+              "height": 0.16
+            }
+          },
+          "frozenInputs": {
+            "terrain": "battle-grass-field-slope-grid",
+            "palette": "green-grass",
+            "lighting": "renderer-lab-overcast-clear",
+            "seed": 12722,
+            "meadow": "field-owned",
+            "rootMass": "enabled"
+          }
+        },
+        "depth": {
+          "format": "depth24plus",
+          "width": 590,
+          "height": 658,
+          "allocated": true
+        },
+        "framePhases": [
+          {
+            "kind": "background",
+            "label": "terrain, backdrop, impostor markers, and background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "battle-grass-field-ground",
+              "battle-grass-field-packed-tilt"
+            ],
+            "passRoles": [
+              {
+                "id": "battle-grass-field-ground",
+                "role": "world-opaque"
+              },
+              {
+                "id": "battle-grass-field-packed-tilt",
+                "role": "world-opaque"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "battle-grass-field-ground",
+                "mode": "read-write"
+              },
+              {
+                "id": "battle-grass-field-packed-tilt",
+                "mode": "read-write"
+              }
+            ],
+            "depth": "depth24plus-clear",
+            "loadOp": "load"
+          }
+        ]
+      }
+    },
+    {
+      "id": "field-material-body",
+      "context": false,
+      "selected": true,
+      "stats": {
+        "route": "battle-grass-field",
+        "mode": "foreground-close-lab",
+        "camera": {
+          "x": 0,
+          "y": -50,
+          "zoom": 178,
+          "pitch": 0.96,
+          "yaw": -0.045,
+          "perspective": 0.032
+        },
+        "focus": {
+          "x": 0,
+          "y": -22,
+          "radius": 78
+        },
+        "bounds": {
+          "x": -84,
+          "y": -68,
+          "width": 168,
+          "height": 136
+        },
+        "grid": {
+          "w": 42,
+          "h": 34,
+          "cell": 4,
+          "ox": -84,
+          "oy": -68
+        },
+        "field": {
+          "seed": 12722,
+          "snapX": 0,
+          "snapY": -22,
+          "snapCellSize": 22,
+          "fieldCellSize": 3,
+          "clumpCellSize": 30,
+          "minNormalZ": 0.78,
+          "candidateCells": 2124,
+          "acceptedRecords": 1554,
+          "recordCapacity": 3200,
+          "cappedRecords": 0,
+          "outOfBoundsCells": 303,
+          "rejectedTintCells": 91,
+          "rejectedSlopeCells": 176,
+          "rejectedDensityCells": 0,
+          "openGrassCells": 1554,
+          "forestCells": 0,
+          "roughCells": 0,
+          "lodCounts": [
+            170,
+            658,
+            726
+          ],
+          "packedStrideFloats": 16,
+          "packedStrideBytes": 64,
+          "packedBytes": 99456
+        },
+        "grass": {
+          "layer": "battle-grass-instanced-blades",
+          "prepMode": "packed-field",
+          "cover": "green-grass",
+          "terrainMasked": true,
+          "zoomT": 1,
+          "focusRadius": 78,
+          "tuftInstances": 1554,
+          "bladeInstances": 0,
+          "cappedTufts": 0,
+          "density": 0.731638418079096,
+          "maxTufts": 3200,
+          "eligibleCells": 2124,
+          "blockedTintCells": 91,
+          "openGrassCells": 1554,
+          "forestCells": 0,
+          "roughCells": 0,
+          "invalidTintTufts": 0,
+          "meshVertices": 0,
+          "meshTriangles": 0,
+          "submittedTriangles": 0,
+          "drawCalls": 0,
+          "packedStrideFloats": 16,
+          "fieldRecordStrideFloats": 16,
+          "instanceBytes": 99456,
+          "fieldRecords": 1554,
+          "fieldRejectedSlopeCells": 176,
+          "accentTufts": 0,
+          "accentRibbons": 0,
+          "accentRibbonDepthNear": 0,
+          "accentRibbonDepthFar": 0,
+          "accentDepthNear": -35,
+          "accentDepthFar": 72,
+          "accentSurfaceBlend": 0.7,
+          "accentStyle": "field-fiber-shell",
+          "accentAggregation": "record",
+          "accentSourceRecords": 0,
+          "accentClumps": 0,
+          "accentClumpFootprint": 1,
+          "fiberShellSourceRecords": 0,
+          "fiberShellRecords": 0,
+          "fiberShellRibbons": 0,
+          "fiberShellDepthNear": 0,
+          "fiberShellDepthFar": 0,
+          "fiberShellSelectedRatio": 0,
+          "fiberShellSubmittedTriangles": 0,
+          "fiberShellVariant": "off",
+          "grassPrimitiveFamily": "field-fiber-shell",
+          "grassPrimitiveRepresentation": "field-fiber-shell",
+          "grassPrimitiveRepresentationTriangles": 0,
+          "grassPrimitiveSourceRecords": 0,
+          "grassPrimitiveSourceTopology": "record",
+          "grassPrimitiveSourceCells": 0,
+          "grassPrimitiveSourcesPerCell": 1,
+          "grassPrimitiveSourceFixedLab": false,
+          "grassPrimitiveRecords": 0,
+          "grassPrimitiveClumps": 0,
+          "grassPrimitiveDepthNear": 0,
+          "grassPrimitiveDepthFar": 0,
+          "grassPrimitiveTextureWidth": 0,
+          "grassPrimitiveTextureHeight": 0,
+          "grassPrimitiveTextureTiles": 0,
+          "grassPrimitiveTextureBytes": 0,
+          "grassPrimitiveMicroCards": 0,
+          "textureVolumeProfile": "current",
+          "textureVolumeRenderModel": "opaque-card",
+          "grassPrimitiveBaseline": "none",
+          "windPhase": 0.3,
+          "windStrength": 0.012,
+          "cameraContract": "shared-world-camera-wgsl"
+        },
+        "ground": {
+          "triangles": 714,
+          "layer": "battle-ground-heightfield",
+          "meadow": {
+            "enabled": true,
+            "source": "field",
+            "depthNear": -70,
+            "depthFar": 155,
+            "nearStrength": 0.98,
+            "farStrength": 0.74,
+            "textureWidth": 24,
+            "textureHeight": 20,
+            "textureCellSize": 7,
+            "fieldRecords": 1554,
+            "fieldCoverage": 0.902,
+            "softCoverage": 1,
+            "avgDensity": 0.552,
+            "avgCoverage": 0.936,
+            "directionalCoverage": 0.667,
+            "textureBytes": 1920,
+            "fieldFloor": 0,
+            "coverageSpread": 34,
+            "rootMassEnabled": true,
+            "rootMassStrength": 1.32,
+            "rootMassCoverage": 0.652,
+            "rootMassAvg": 0.536,
+            "rootMassSpread": 9.5,
+            "bodyDomainEnabled": true,
+            "bodyDomainId": "field-strand-material",
+            "bodyDomainTextureWidth": 24,
+            "bodyDomainTextureHeight": 20,
+            "bodyDomainCellSize": 7,
+            "bodyDomainCoverageMin": 0.095,
+            "bodyDomainCoverageMax": 1,
+            "bodyDomainCoverageAvg": 0.936,
+            "bodyDomainCoverageMedian": 1,
+            "bodyDomainExposedGround": 0.004,
+            "bodyDomainTextureBytes": 1920,
+            "bodyDomainSubmittedTriangles": 0,
+            "bodyDomainMaterialOnly": true
+          }
+        },
+        "lab": {
+          "profile": "foreground-close-lab",
+          "contract": "03B4C5B4B1A0",
+          "cameraProfile": "b4b1a0-test-env",
+          "cropPurpose": "test-environment-comparability-not-body-acceptance",
+          "calibration": "test-environment-review-windows",
+          "foregroundWorldUnitsPerPixel": 0.00562,
+          "reviewWindows": {
+            "closeHero": {
+              "x": 0.08,
+              "y": 0.61,
+              "width": 0.84,
+              "height": 0.254
+            },
+            "closeTight2x": {
+              "x": 0.24,
+              "y": 0.64,
+              "width": 0.52,
+              "height": 0.22
+            },
+            "closeTight4x": {
+              "x": 0.38,
+              "y": 0.71,
+              "width": 0.24,
+              "height": 0.13
+            },
+            "transition": {
+              "x": 0.12,
+              "y": 0.34,
+              "width": 0.76,
+              "height": 0.2
+            },
+            "midMass": {
+              "x": 0.16,
+              "y": 0.16,
+              "width": 0.68,
+              "height": 0.16
+            }
+          },
+          "frozenInputs": {
+            "terrain": "battle-grass-field-slope-grid",
+            "palette": "green-grass",
+            "lighting": "renderer-lab-overcast-clear",
+            "seed": 12722,
+            "meadow": "field-owned",
+            "rootMass": "enabled"
+          }
+        },
+        "depth": {
+          "format": "depth24plus",
+          "width": 590,
+          "height": 658,
+          "allocated": true
+        },
+        "framePhases": [
+          {
+            "kind": "background",
+            "label": "terrain, backdrop, impostor markers, and background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "battle-grass-field-ground",
+              "battle-grass-field-packed-tilt"
+            ],
+            "passRoles": [
+              {
+                "id": "battle-grass-field-ground",
+                "role": "world-opaque"
+              },
+              {
+                "id": "battle-grass-field-packed-tilt",
+                "role": "world-opaque"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "battle-grass-field-ground",
+                "mode": "read-write"
+              },
+              {
+                "id": "battle-grass-field-packed-tilt",
+                "mode": "read-write"
+              }
+            ],
+            "depth": "depth24plus-clear",
+            "loadOp": "load"
+          }
+        ]
+      }
+    },
+    {
+      "id": "field-material-fine",
+      "context": false,
+      "selected": false,
+      "stats": {
+        "route": "battle-grass-field",
+        "mode": "foreground-close-lab",
+        "camera": {
+          "x": 0,
+          "y": -50,
+          "zoom": 178,
+          "pitch": 0.96,
+          "yaw": -0.045,
+          "perspective": 0.032
+        },
+        "focus": {
+          "x": 0,
+          "y": -22,
+          "radius": 78
+        },
+        "bounds": {
+          "x": -84,
+          "y": -68,
+          "width": 168,
+          "height": 136
+        },
+        "grid": {
+          "w": 42,
+          "h": 34,
+          "cell": 4,
+          "ox": -84,
+          "oy": -68
+        },
+        "field": {
+          "seed": 12722,
+          "snapX": 0,
+          "snapY": -22,
+          "snapCellSize": 22,
+          "fieldCellSize": 3,
+          "clumpCellSize": 30,
+          "minNormalZ": 0.78,
+          "candidateCells": 2124,
+          "acceptedRecords": 1554,
+          "recordCapacity": 3200,
+          "cappedRecords": 0,
+          "outOfBoundsCells": 303,
+          "rejectedTintCells": 91,
+          "rejectedSlopeCells": 176,
+          "rejectedDensityCells": 0,
+          "openGrassCells": 1554,
+          "forestCells": 0,
+          "roughCells": 0,
+          "lodCounts": [
+            170,
+            658,
+            726
+          ],
+          "packedStrideFloats": 16,
+          "packedStrideBytes": 64,
+          "packedBytes": 99456
+        },
+        "grass": {
+          "layer": "battle-grass-instanced-blades",
+          "prepMode": "packed-field",
+          "cover": "green-grass",
+          "terrainMasked": true,
+          "zoomT": 1,
+          "focusRadius": 78,
+          "tuftInstances": 1554,
+          "bladeInstances": 0,
+          "cappedTufts": 0,
+          "density": 0.731638418079096,
+          "maxTufts": 3200,
+          "eligibleCells": 2124,
+          "blockedTintCells": 91,
+          "openGrassCells": 1554,
+          "forestCells": 0,
+          "roughCells": 0,
+          "invalidTintTufts": 0,
+          "meshVertices": 0,
+          "meshTriangles": 0,
+          "submittedTriangles": 0,
+          "drawCalls": 0,
+          "packedStrideFloats": 16,
+          "fieldRecordStrideFloats": 16,
+          "instanceBytes": 99456,
+          "fieldRecords": 1554,
+          "fieldRejectedSlopeCells": 176,
+          "accentTufts": 0,
+          "accentRibbons": 0,
+          "accentRibbonDepthNear": 0,
+          "accentRibbonDepthFar": 0,
+          "accentDepthNear": -35,
+          "accentDepthFar": 72,
+          "accentSurfaceBlend": 0.7,
+          "accentStyle": "field-fiber-shell",
+          "accentAggregation": "record",
+          "accentSourceRecords": 0,
+          "accentClumps": 0,
+          "accentClumpFootprint": 1,
+          "fiberShellSourceRecords": 0,
+          "fiberShellRecords": 0,
+          "fiberShellRibbons": 0,
+          "fiberShellDepthNear": 0,
+          "fiberShellDepthFar": 0,
+          "fiberShellSelectedRatio": 0,
+          "fiberShellSubmittedTriangles": 0,
+          "fiberShellVariant": "off",
+          "grassPrimitiveFamily": "field-fiber-shell",
+          "grassPrimitiveRepresentation": "field-fiber-shell",
+          "grassPrimitiveRepresentationTriangles": 0,
+          "grassPrimitiveSourceRecords": 0,
+          "grassPrimitiveSourceTopology": "record",
+          "grassPrimitiveSourceCells": 0,
+          "grassPrimitiveSourcesPerCell": 1,
+          "grassPrimitiveSourceFixedLab": false,
+          "grassPrimitiveRecords": 0,
+          "grassPrimitiveClumps": 0,
+          "grassPrimitiveDepthNear": 0,
+          "grassPrimitiveDepthFar": 0,
+          "grassPrimitiveTextureWidth": 0,
+          "grassPrimitiveTextureHeight": 0,
+          "grassPrimitiveTextureTiles": 0,
+          "grassPrimitiveTextureBytes": 0,
+          "grassPrimitiveMicroCards": 0,
+          "textureVolumeProfile": "current",
+          "textureVolumeRenderModel": "opaque-card",
+          "grassPrimitiveBaseline": "none",
+          "windPhase": 0.3,
+          "windStrength": 0.012,
+          "cameraContract": "shared-world-camera-wgsl"
+        },
+        "ground": {
+          "triangles": 714,
+          "layer": "battle-ground-heightfield",
+          "meadow": {
+            "enabled": true,
+            "source": "field",
+            "depthNear": -70,
+            "depthFar": 155,
+            "nearStrength": 0.98,
+            "farStrength": 0.74,
+            "textureWidth": 24,
+            "textureHeight": 20,
+            "textureCellSize": 7,
+            "fieldRecords": 1554,
+            "fieldCoverage": 0.902,
+            "softCoverage": 1,
+            "avgDensity": 0.552,
+            "avgCoverage": 0.936,
+            "directionalCoverage": 0.667,
+            "textureBytes": 1920,
+            "fieldFloor": 0,
+            "coverageSpread": 34,
+            "rootMassEnabled": true,
+            "rootMassStrength": 1.32,
+            "rootMassCoverage": 0.652,
+            "rootMassAvg": 0.536,
+            "rootMassSpread": 9.5,
+            "bodyDomainEnabled": true,
+            "bodyDomainId": "field-strand-material",
+            "bodyDomainTextureWidth": 24,
+            "bodyDomainTextureHeight": 20,
+            "bodyDomainCellSize": 7,
+            "bodyDomainCoverageMin": 0.095,
+            "bodyDomainCoverageMax": 1,
+            "bodyDomainCoverageAvg": 0.936,
+            "bodyDomainCoverageMedian": 1,
+            "bodyDomainExposedGround": 0.004,
+            "bodyDomainTextureBytes": 1920,
+            "bodyDomainSubmittedTriangles": 0,
+            "bodyDomainMaterialOnly": true
+          }
+        },
+        "lab": {
+          "profile": "foreground-close-lab",
+          "contract": "03B4C5B4B1A0",
+          "cameraProfile": "b4b1a0-test-env",
+          "cropPurpose": "test-environment-comparability-not-body-acceptance",
+          "calibration": "test-environment-review-windows",
+          "foregroundWorldUnitsPerPixel": 0.00562,
+          "reviewWindows": {
+            "closeHero": {
+              "x": 0.08,
+              "y": 0.61,
+              "width": 0.84,
+              "height": 0.254
+            },
+            "closeTight2x": {
+              "x": 0.24,
+              "y": 0.64,
+              "width": 0.52,
+              "height": 0.22
+            },
+            "closeTight4x": {
+              "x": 0.38,
+              "y": 0.71,
+              "width": 0.24,
+              "height": 0.13
+            },
+            "transition": {
+              "x": 0.12,
+              "y": 0.34,
+              "width": 0.76,
+              "height": 0.2
+            },
+            "midMass": {
+              "x": 0.16,
+              "y": 0.16,
+              "width": 0.68,
+              "height": 0.16
+            }
+          },
+          "frozenInputs": {
+            "terrain": "battle-grass-field-slope-grid",
+            "palette": "green-grass",
+            "lighting": "renderer-lab-overcast-clear",
+            "seed": 12722,
+            "meadow": "field-owned",
+            "rootMass": "enabled"
+          }
+        },
+        "depth": {
+          "format": "depth24plus",
+          "width": 590,
+          "height": 658,
+          "allocated": true
+        },
+        "framePhases": [
+          {
+            "kind": "background",
+            "label": "terrain, backdrop, impostor markers, and background surfaces",
+            "passIds": [
+              "builtin-background"
+            ],
+            "passRoles": [
+              {
+                "id": "builtin-background",
+                "role": "background-underpaint"
+              }
+            ],
+            "depthPasses": [],
+            "depth": "none",
+            "loadOp": "clear"
+          },
+          {
+            "kind": "world-depth",
+            "label": "depth-tested world geometry and ground decals",
+            "passIds": [
+              "battle-grass-field-ground",
+              "battle-grass-field-packed-tilt"
+            ],
+            "passRoles": [
+              {
+                "id": "battle-grass-field-ground",
+                "role": "world-opaque"
+              },
+              {
+                "id": "battle-grass-field-packed-tilt",
+                "role": "world-opaque"
+              }
+            ],
+            "depthPasses": [
+              {
+                "id": "battle-grass-field-ground",
+                "mode": "read-write"
+              },
+              {
+                "id": "battle-grass-field-packed-tilt",
+                "mode": "read-write"
+              }
+            ],
+            "depth": "depth24plus-clear",
+            "loadOp": "load"
+          }
+        ]
+      }
+    }
+  ]
+}

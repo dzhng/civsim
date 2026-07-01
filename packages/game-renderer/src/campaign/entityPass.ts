@@ -1,7 +1,7 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 import { gpuAlphaBlendColorTarget, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
-import { buildCampaignArmyMarkerMesh, buildCityMesh } from '../models/campaign/campaignEntityModels';
+import { buildCampaignStandardMesh, buildCityMesh } from '../models/campaign/campaignEntityModels';
 
 export interface CampaignEntityInstance {
   x: number;
@@ -83,7 +83,7 @@ export class CampaignEntityPass {
   private cityCount = 0;
   private armyCount = 0;
   private cityMesh = buildCityMesh();
-  private armyMesh = buildCampaignArmyMarkerMesh();
+  private armyMesh = buildCampaignStandardMesh();
 
   constructor(private shell: RawFrameShell) {
     const device = shell.device;

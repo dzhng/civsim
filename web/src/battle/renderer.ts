@@ -35,6 +35,7 @@ import { gpuMultisample } from "../../../packages/renderer-core/src/pipelineCont
 import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
 import { WORLD_CAMERA_WGSL } from "../../../packages/renderer-core/src/cameraWgsl";
 import { SkinnedCrowdPipeline } from "../../../packages/renderer-core/src/skinnedPipeline";
+import { SoldierShadowDecalPass } from "../../../packages/renderer-core/src/soldierShadowPass";
 import {
   loadClassVats,
   loadPlaceholderKit,
@@ -59,6 +60,7 @@ export class BattleRenderer {
   private horizon: BattleHorizonPass | null = null;
   private heightField: TerrainHeightField | null = null;
   private crowd: SkinnedCrowdPipeline | null = null;
+  private soldierShadows: SoldierShadowDecalPass | null = null;
   private groundCues: BattleGroundCuePass | null = null;
   private effectLines: BattleEffectLinePass | null = null;
   private tris: BattleTrianglePass | null = null;
@@ -116,6 +118,7 @@ export class BattleRenderer {
     this.markers = [];
     this.triangleVerts = new Float32Array();
     this.crowd?.upload([]);
+    this.soldierShadows?.upload([]);
     this.effectLines?.upload(this.triangleVerts);
     this.tris?.upload(this.triangleVerts);
     this.debugBlocks?.upload(this.triangleVerts);
@@ -258,6 +261,7 @@ export class BattleRenderer {
     this.updateGrassWindPhase();
     this.updateGrassForCamera(this.lastCamera);
     this.crowd.upload(this.instances);
+    this.soldierShadows?.upload(this.instances);
     this.debugBlocks?.upload(
       this.blockMode
         ? buildDebugBlockTriangles(positions, alive, this.soldierUnit, this.unitTeam, count)
@@ -290,6 +294,7 @@ export class BattleRenderer {
       !this.ground ||
       !this.grass ||
       !this.crowd ||
+      !this.soldierShadows ||
       !this.groundCues ||
       !this.effectLines ||
       !this.tris ||
@@ -361,6 +366,13 @@ export class BattleRenderer {
           phase: "world-depth",
           depth: "read",
           draw: (pass: WorldRenderPass) => this.scenery!.drawShadows(pass),
+        },
+        {
+          id: "battle-soldier-shadows",
+          role: "world-decal",
+          phase: "world-depth",
+          depth: "read",
+          draw: (pass: WorldRenderPass) => this.soldierShadows!.draw(pass),
         },
         {
           id: "battle-ground-cues",
@@ -486,6 +498,7 @@ export class BattleRenderer {
       await loadClassVats(kit),
       kit,
     );
+    this.soldierShadows = new SoldierShadowDecalPass(this.shell);
   }
 
   private updateGrassForCamera(camera: typeof this.lastCamera) {

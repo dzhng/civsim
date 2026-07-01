@@ -3,11 +3,14 @@
 // untouched), reads zero-copy army/city arrays from wasm each frame, and
 // hands Pending battles to the battle scene (or auto-resolves them).
 
-import { createElement } from 'react';
+import { createElement, Fragment } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
+import { flushSync } from 'react-dom';
 import { Campaign, Game, start_campaign_battle, report_battle, type InitOutput } from '../wasm/game_wasm.js';
 import type { Scene } from '../scene';
 import { CampaignTopBar } from '../ui/campaign/CampaignTopBar';
+import { ArmyPanel } from '../ui/campaign/ArmyPanel';
+import { CityPanel } from '../ui/campaign/CityPanel';
 import { loadCampaignData, nearestLoc, tilePos, type CampaignData } from './data';
 import type { CamView } from './camera';
 import { CampaignRenderer } from './renderer';
@@ -17,10 +20,8 @@ import { Allegiance } from './status';
 import { installCampaignDebugApi, markCampaignReady } from './debugApi';
 import { fatalSurfaceFor, showFatalErrorSurface } from '../shared/fatalError';
 import {
-  armyPanelHtml,
   campaignDomHtml,
   classBuilderHtml,
-  cityPanelHtml,
   diplomacyHtml,
   type ArmyRosterRow,
   type ClassDoctrineRow,
@@ -83,6 +84,8 @@ export class CampaignScene implements Scene {
   private ui!: HTMLDivElement;
   private topBarRoot: Root | null = null;
   private lastTopBarKey = '';
+  private armyRoot: Root | null = null;
+  private cityRoot: Root | null = null;
   private renderer!: CampaignRenderer;
   // Terrain/territory live across battle round-trips (enter/exit cycles).
   private field: TerrainField | null = null;
@@ -672,6 +675,8 @@ export class CampaignScene implements Scene {
     // the successor of the old imperative #cmp-date/#cmp-gold/.on updates.
     this.topBarRoot = createRoot(ui.querySelector('#cmp-topbar-root')!);
     this.renderTopBar();
+    this.armyRoot = createRoot(ui.querySelector('#cmp-army')!);
+    this.cityRoot = createRoot(ui.querySelector('#cmp-city')!);
   }
 
   private saveCampaign() {
@@ -812,16 +817,16 @@ export class CampaignScene implements Scene {
 
   private updateArmyPanel() {
     const panel = this.ui.querySelector('#cmp-army') as HTMLDivElement;
-    if (this.selected < 0) {
+    const roster = this.selected < 0
+      ? null
+      : (JSON.parse(this.cfg.campaign.army_roster_json(this.selected)) as ArmyRosterRow[] | null);
+    if (this.selected < 0 || !roster) {
       panel.style.display = 'none';
+      this.armyRoot?.render(null);
       return;
     }
-    const roster = JSON.parse(this.cfg.campaign.army_roster_json(this.selected)) as ArmyRosterRow[] | null;
-    if (!roster) {
-      panel.style.display = 'none';
-      return;
-    }
-    const me = this.armies.find((a) => a.id === this.selected);
+    const id = this.selected;
+    const me = this.armies.find((a) => a.id === id);
     // merge candidate: another of my halted armies on the same/adjacent tile
     const buddy = me
       ? this.armies.find((a) => a.mine && a.id !== me.id && Math.hypot(a.x - me.x, a.y - me.y) < 6)
@@ -830,47 +835,20 @@ export class CampaignScene implements Scene {
     const spotIdx = me
       ? this.spotPos.findIndex(([x, y]) => Math.hypot(x - me.x, y - me.y) < 2.6)
       : -1;
-    const autoReplenish = this.cfg.campaign.army_auto_replenish(this.selected);
-    panel.innerHTML = armyPanelHtml(this.selected, roster, me, buddy, spotIdx, autoReplenish);
+    const autoReplenish = this.cfg.campaign.army_auto_replenish(id);
     panel.style.display = 'block';
-    panel.querySelector('#cmp-auto-replenish')?.addEventListener('change', (e) => {
-      const on = (e.currentTarget as HTMLInputElement).checked;
-      this.cfg.campaign.order_auto_replenish(this.selected, on);
-      this.refreshViews();
-      this.updateArmyPanel();
-    });
-    panel.querySelector('#cmp-halt')?.addEventListener('click', () => {
-      this.cfg.campaign.order_halt(this.selected);
-      this.refreshViews();
-    });
-    panel.querySelector('#cmp-ambush')?.addEventListener('click', () => {
-      if (spotIdx >= 0 && this.cfg.campaign.order_ambush(this.selected, spotIdx)) {
-        this.refreshViews();
-        this.updateArmyPanel();
-      }
-    });
-    panel.querySelector('#cmp-camp')?.addEventListener('click', () => {
-      if (this.cfg.campaign.order_camp(this.selected)) {
-        this.refreshViews();
-        this.updateArmyPanel();
-      }
-    });
-    panel.querySelector('#cmp-split')?.addEventListener('click', () => {
-      let mask = 0;
-      panel.querySelectorAll<HTMLInputElement>('input[data-entry]:checked').forEach((b) => {
-        mask |= 1 << Number(b.dataset.entry);
-      });
-      if (mask && this.cfg.campaign.order_split(this.selected, mask)) {
-        this.refreshViews();
-        this.updateArmyPanel();
-      }
-    });
-    panel.querySelector('#cmp-merge')?.addEventListener('click', () => {
-      if (buddy && this.cfg.campaign.order_merge(buddy.id, this.selected)) {
-        this.refreshViews();
-        this.updateArmyPanel();
-      }
-    });
+    const root = this.armyRoot;
+    // flushSync so the panel DOM is live synchronously (matching the old
+    // innerHTML), for the debug API and any synchronous test read.
+    if (root) flushSync(() => root.render(createElement(ArmyPanel, {
+      armyId: id, roster, me, buddy, spotIdx, autoReplenish,
+      onAutoReplenish: (on) => { this.cfg.campaign.order_auto_replenish(id, on); this.refreshViews(); this.updateArmyPanel(); },
+      onHalt: () => { this.cfg.campaign.order_halt(id); this.refreshViews(); },
+      onAmbush: () => { if (spotIdx >= 0 && this.cfg.campaign.order_ambush(id, spotIdx)) { this.refreshViews(); this.updateArmyPanel(); } },
+      onCamp: () => { if (this.cfg.campaign.order_camp(id)) { this.refreshViews(); this.updateArmyPanel(); } },
+      onSplit: (mask) => { if (this.cfg.campaign.order_split(id, mask)) { this.refreshViews(); this.updateArmyPanel(); } },
+      onMerge: () => { if (buddy && this.cfg.campaign.order_merge(buddy.id, id)) { this.refreshViews(); this.updateArmyPanel(); } },
+    })));
   }
 
   private openCityPanel(node: number) {
@@ -881,37 +859,37 @@ export class CampaignScene implements Scene {
     const mineCity = this.cfg.data.map.factions[c.owner]?.playable !== undefined && c.owner === this.playerFaction();
     const detail = JSON.parse(this.cfg.campaign.city_json(node)) as CityDetail | null;
     if (!detail) return;
-    panel.innerHTML = cityPanelHtml(this.cfg.data, node, c, mineCity, detail, this.recruitClasses);
+    const n = this.cfg.data.map.nodes[node];
     panel.style.display = 'block';
-    // Policy dials: drag a slider to set the city's focus/throttle. Read both so
-    // changing one keeps the other; the city auto-develops from here.
-    const policyInputs = panel.querySelectorAll<HTMLInputElement>('input[data-policy]');
-    const applyPolicy = () => {
-      const get = (k: string) =>
-        Number(panel.querySelector<HTMLInputElement>(`input[data-policy="${k}"]`)?.value ?? 0);
-      this.cfg.campaign.order_set_city_policy(node, get('focus'), get('throttle'));
-      this.refreshViews();
-    };
-    policyInputs.forEach((b) => b.addEventListener('change', applyPolicy));
-    panel.querySelectorAll<HTMLButtonElement>('button[data-recruit]').forEach((b) =>
-      b.addEventListener('click', () => {
-        this.cfg.campaign.order_recruit(node, Number(b.dataset.recruit), 240);
-        this.refreshViews();
-        this.openCityPanel(node);
-      }),
-    );
+    const root = this.cityRoot;
+    if (root) flushSync(() => root.render(createElement(CityPanel, {
+      name: n.name,
+      tier: n.tier,
+      factionName: this.cfg.data.map.factions[c.owner]?.name ?? '?',
+      garrison: c.garrison,
+      queue: c.queue,
+      mineCity,
+      detail,
+      recruitClasses: this.recruitClasses,
+      // Read both dials so setting one keeps the other; the city auto-develops.
+      onPolicy: (focus, throttle) => { this.cfg.campaign.order_set_city_policy(node, focus, throttle); this.refreshViews(); },
+      onRecruit: (i) => { this.cfg.campaign.order_recruit(node, i, 240); this.refreshViews(); this.openCityPanel(node); },
+    })));
   }
 
   private openJunctionPanel(node: number) {
     this.selectedCity = -1;
     const panel = this.ui.querySelector('#cmp-city') as HTMLDivElement;
-    panel.innerHTML = `<b>${this.cfg.data.map.nodes[node].name}</b> (junction)`;
     panel.style.display = 'block';
+    const root = this.cityRoot;
+    if (root) flushSync(() => root.render(createElement(Fragment, null,
+      createElement('b', null, this.cfg.data.map.nodes[node].name), ' (junction)')));
   }
 
   private closeCityPanel() {
     this.selectedCity = -1;
     (this.ui.querySelector('#cmp-city') as HTMLDivElement).style.display = 'none';
+    this.cityRoot?.render(null);
   }
 
   private playerFaction(): number {

@@ -215,7 +215,7 @@ function classRow(row: ClassDoctrineRow): string {
   </div>`;
 }
 
-function prettyClass(name: string): string {
+export function prettyClass(name: string): string {
   return name.replace(/([a-z])([A-Z])/g, '$1 $2');
 }
 

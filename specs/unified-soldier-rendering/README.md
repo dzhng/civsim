@@ -183,7 +183,14 @@ The spike's remaining value is the campaign-crowd eyeball + perf number; it will
 as a renderer-lab route on top of the real depth param next, doubling as the Slice 4
 de-risk. Read the four Key Seams above before continuing.
 
-**Start here:** Slice 5 — [zoom LOD](slices/05-zoom-lod.md). Gate `buildStackCrowd` emission on `cam.scale` in
+**Start here:** All six slices have shipped and are verified green headless on the rebased
+tree. Remaining wrap-up: run `review`/`simplify` over the branch diff, then `close-spec` to
+archive this plan into a durable rationale record under `specs/done/`.
+
+**Slice 5 (done):** zoom LOD in `buildEntityFrame` — figure count ramps via
+`smoothstep(FIGURE_FAR_ZOOM=1.4, FIGURE_NEAR_ZOOM=3.6, cam.scale)` to `CAMPAIGN_MAX_FIGURES`;
+zoomed out shows the banner alone. Verified: campaign-lod whole-map = banner only, rome-close =
+figure cluster (re-blessed); campaign-visual + campaign-models green. Gate `buildStackCrowd` emission on `cam.scale` in
 `web/src/campaign/renderer.ts` (mirror battle's `zoom < 1.2` impostor switch): near zoom draws
 the crowd; far zoom draws zero figures and falls back to the banner/`campaignMapMarkers`. Add a
 smoothstep fade so figures don't pop. Perf-bound via `full-game-rendering-performance`; verify
@@ -257,8 +264,12 @@ relief, sorts against campaign geometry, 0.85ms/6 figures. Scale decision: campa
       + campaign-visual contract green. Screenshot-critique caught (and fixed) invisible-shadow
       (radius) + merged-blob (spacing) bugs; banner sits a touch low behind figures (minor,
       matters less once Slice 5 collapses figures to the banner far out).
-- [ ] Slice 5 — zoom LOD collapse
-- [ ] Slice 6 — cleanup / delete dead code
+- [x] Slice 5 — zoom LOD collapse (figures fade in by cam.scale; banner-only far;
+      campaign-lod re-blessed)
+- [x] Slice 6 — cleanup: deleted `web/src/battle/atlas.ts` (dead 2D sprite path), the
+      throwaway `routeCampaignCrowdSpike` + ROUTES entry, and the local capture harness /
+      its .gitignore. 0 refs to `buildCampaignArmyMarkerMesh` / `BattleSoldierShadowPass` /
+      `battle/atlas`. Typecheck + campaign-models/per-class-vat green.
 
 **Before you end your pass:** update this section — move the checklist forward, record
 what the spike decided, and rewrite "Start here" to the next pickup point.

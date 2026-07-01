@@ -102,7 +102,6 @@ const routes: Record<string, LabRoute> = {
   '/renderer/campaign-map': routeCampaignMap,
   '/renderer/campaign-ui': routeCampaignUi,
   '/renderer/campaign-models': routeCampaignModelShots,
-  '/renderer/campaign-crowd-spike': routeCampaignCrowdSpike,
   '/renderer/shared-prop-models': routeSharedPropModelShots,
   '/renderer/render-graph': routeRenderGraph,
   '/renderer/world-camera': routeWorldCamera,
@@ -1627,80 +1626,6 @@ async function routeCampaignModelShots(ctx: LabContext) {
     hostileDrawOrder: hostileDepthOrder ? 'entities-before-late-scenery' : 'normal',
     samples,
     postCutoverScreenshots: 'renderer-only',
-  });
-}
-
-// THROWAWAY SPIKE (specs/unified-soldier-rendering slice 0): a skinned soldier
-// mini-crowd rendered through the SHARED SkinnedCrowdPipeline on campaign depth,
-// beside a campaign city, to prove figures seat on relief and depth-sort against
-// campaign geometry before the committed campaign-crowd slice. Delete in cleanup.
-async function routeCampaignCrowdSpike(ctx: LabContext) {
-  const green: [number, number, number] = [0.31, 0.82, 0.39];
-  const red: [number, number, number] = [0.70, 0.18, 0.16];
-  const camera = { x: 0, y: 0.3, zoom: 28, pitch: 0.56, yaw: 0, perspective: 0.018 };
-  const shell = await createConfiguredShell(ctx.canvas, camera);
-  const scenery = new CampaignSceneryPass(shell);
-  const entities = new CampaignEntityPass(shell);
-  // A city just behind the crowd, and a tree, so we can eyeball the crowd sorting
-  // in front of / behind real campaign geometry (the depth-fn seam).
-  entities.upload([{ x: 7.0, y: -3.4, radius: 6.0, faction: red, allegiance: green, kind: 'city', strength: 1 }]);
-  scenery.upload([{ x: -6.6, y: -2.0, size: 8.0, kind: 'broadleaf', shade: 0.7 }]);
-
-  // Skinned crowd on CAMPAIGN depth. A gentle ground ramp lets us see the feet
-  // ride relief (the seating invariant) rather than a flat parade.
-  const kit = await loadPlaceholderKit();
-  const vat = await loadPlaceholderVat();
-  const meshes = createPlaceholderSoldierMeshes([0.30, 0.36, 0.74]);
-  const pipeline = new SkinnedCrowdPipeline(shell, meshes, vat, kit, { worldDepth: 'campaign' });
-  const shadows = new SoldierShadowDecalPass(shell);
-  const ramp = (x: number, _y: number) => x * 0.12;
-  const armyX = 0;
-  const armyY = 0.5;
-  const cols = 3;
-  const rows = 2;
-  const positions = new Float32Array(cols * rows * 2);
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const i = r * cols + c;
-      positions[i * 2] = armyX + (c - (cols - 1) / 2) * 1.9;
-      positions[i * 2 + 1] = armyY + (r - (rows - 1) / 2) * 1.9;
-    }
-  }
-  const built = buildCrowdInstances({ positions, terrainHeight: ramp, simTick: 90 });
-  const instances = built.instances.map((inst) => ({ ...inst, facing: Math.PI / 2 }));
-  const elevationMatches = instances.every((inst) => Math.abs((inst.elevation ?? 0) - ramp(inst.x, inst.y)) < 1e-4);
-  pipeline.upload(instances, { forcedClip: 'march', phaseOffset: 0, size: 2.4 });
-  shadows.upload(instances);
-
-  const buildStart = performance.now();
-  shell.drawFrame({
-    clear: { r: 0.09, g: 0.10, b: 0.10, a: 1 },
-    terrainRect: [-18, -12, 36, 24],
-    passes: [
-      { id: 'spike-scenery', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => scenery.drawOpaque(pass) },
-      { id: 'spike-entities', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => entities.drawOpaque(pass) },
-      { id: 'spike-crowd', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => pipeline.draw(pass) },
-      { id: 'spike-scenery-shadow', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => scenery.drawShadows(pass) },
-      { id: 'spike-entity-shadow', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => entities.drawShadows(pass) },
-      { id: 'spike-crowd-shadow', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => shadows.draw(pass) },
-    ],
-  });
-  const drawMs = performance.now() - buildStart;
-  ctx.status.innerHTML = reportTable({
-    route: 'campaign-crowd-spike',
-    soldiers: instances.length,
-    seatsOnRamp: elevationMatches,
-    drawMs: drawMs.toFixed(2),
-    note: 'THROWAWAY: shared skinned crowd on campaign depth beside a city',
-  });
-  publish('campaign-crowd-spike', true, {
-    route: 'campaign-crowd-spike',
-    soldiers: instances.length,
-    soldierElevationMatches: elevationMatches,
-    drawMs,
-    camera,
-    depth: shell.stats().depth,
-    framePhases: shell.stats().phases,
   });
 }
 

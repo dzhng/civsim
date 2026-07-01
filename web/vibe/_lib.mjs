@@ -59,6 +59,21 @@ export async function openBattle(query) {
   return { browser, page, errs };
 }
 
+export async function closeBattle(browser, page) {
+  try {
+    if (page && !page.isClosed()) await page.close({ runBeforeUnload: false });
+  } catch {}
+  const timeoutMs = Number(process.env.VIBE_CLOSE_TIMEOUT_MS ?? 5000);
+  const closed = await Promise.race([
+    browser.close().then(() => true, () => false),
+    new Promise((resolve) => setTimeout(() => resolve(false), timeoutMs)),
+  ]);
+  if (!closed) {
+    const proc = typeof browser.process === 'function' ? browser.process() : null;
+    if (proc && !proc.killed) proc.kill('SIGKILL');
+  }
+}
+
 // Class ids (match class.rs / CLASS_NAMES).
 export const CLS = {
   heavy: 0, light: 1, longsword: 2, phalanx: 3, archers: 4,
@@ -169,6 +184,7 @@ function writeTimelineGif(name, shots, { preserveExisting = false } = {}) {
 
 export async function vibeCapture(page, name, {
   stepSecs = 30, maxSteps = 20, frame, sample, label, done,
+  requireResolved = false,
   // The sim is fully deterministic (freezeAtTick pins the exact tick), so a frame
   // SHOULD be byte-identical — except headless SwiftShader rasterizes a dense
   // melee of overlapping alpha-blended soldiers with ~1% run-to-run wobble. A
@@ -212,7 +228,14 @@ export async function vibeCapture(page, name, {
     if (post >= 0) post++;                       // optional post-verdict tail frame
     else if (done && done(s)) post = 0;          // this frame IS the verdict
     if (post >= TAIL_FRAMES) { result = { frames, resolved: true, fails }; break; }
-    if (post < 0 && step >= maxSteps) { result = { frames, resolved: false, fails }; break; } // capped before a verdict
+    if (post < 0 && step >= maxSteps) {
+      if (requireResolved) {
+        fails++;
+        console.log(`  FAIL ${name} capped before verdict at ${secs}s`);
+      }
+      result = { frames, resolved: false, fails };
+      break;
+    }
     await page.evaluate((n) => window.__game.advance(n), stepSecs * TPS);
   }
   const refresh = await finishSnapshotFolder(`vibe/${name}`);

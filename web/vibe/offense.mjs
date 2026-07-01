@@ -3,7 +3,7 @@
 // they should curl IN and the cloth should DRAPE around it (envelop). Eyeball
 // web/shots/vibe/offense/. Built with the spawn hook so the block is narrow and
 // shallow enough to actually engage (a deep tank just stalls the line).
-import { openBattle, vibeCapture } from './_lib.mjs';
+import { openBattle, closeBattle, vibeCapture } from './_lib.mjs';
 
 const { browser, page, errs } = await openBattle('battle=duel&a=0&b=0&ai=off');
 
@@ -49,5 +49,5 @@ const { frames, fails } = await vibeCapture(page, process.env.NAME ?? 'offense',
 });
 console.log(`\n${frames} frames`);
 if (errs.length) console.log('page errors:', errs.slice(0, 3));
-await browser.close();
+await closeBattle(browser, page);
 process.exit(fails);

@@ -9,7 +9,7 @@
 //   Override: ATK=6 DEF=0 node vibe/charge.mjs  (cav into a held heavy line)
 //   Flank:    FLANK=1 ATK=6 DEF=3 node vibe/charge.mjs  (pikes face north, cav rides east)
 //   Wall:     WALL=1 ATK=6 DEF=3 node vibe/charge.mjs   (wide pike front, no flank wrap)
-import { openBattle, vibeCapture, fitDuel, duelSample, duelLabel, CLS } from './_lib.mjs';
+import { openBattle, closeBattle, vibeCapture, fitDuel, duelSample, duelLabel, CLS } from './_lib.mjs';
 
 const ATK = Number(process.env.ATK ?? CLS.cavalry);  // unit 0, charges
 const DEF = Number(process.env.DEF ?? CLS.phalanx);   // unit 1, holds (braced)
@@ -119,11 +119,12 @@ const { frames, resolved, fails } = await vibeCapture(page, process.env.NAME ?? 
     || (WALL && s.aAlive <= s.aTotal * 0.35)
     || (WALL && s.aFight === 0 && s.bFight === 0 && s.aCoh <= 0.12),
   maxSteps: WALL ? 12 : 20,
+  requireResolved: true,
 });
 
 const defenderNote = FLANK ? ', side-on' : WALL ? ', wide wall' : '';
 console.log(resolved ? `\nresolved in ${frames} frames` : `\nUNRESOLVED`);
 console.log(`A = attacker (charging), B = defender (held${defenderNote})`);
 if (errs.length) console.log('page errors:', errs.slice(0, 3));
-await browser.close();
+await closeBattle(browser, page);
 process.exit(fails);

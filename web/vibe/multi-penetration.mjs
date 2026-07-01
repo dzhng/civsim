@@ -5,7 +5,7 @@
 //
 // Built with the raw spawn hook (light-infantry stats), spawned clear of the
 // duel's two idle units up north so they sit off-frame.
-import { openBattle, vibeCapture } from './_lib.mjs';
+import { openBattle, closeBattle, vibeCapture } from './_lib.mjs';
 
 const { browser, page, errs } = await openBattle('battle=duel&a=0&b=0&ai=off');
 
@@ -59,5 +59,5 @@ const { frames, fails } = await vibeCapture(page, 'multi-penetration', {
 });
 console.log(`\n${frames} frames`);
 if (errs.length) console.log('page errors:', errs.slice(0, 3));
-await browser.close();
+await closeBattle(browser, page);
 process.exit(fails);

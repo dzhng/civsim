@@ -1,4 +1,5 @@
 import { toolbarIcon } from "../../battle/toolbarIcons";
+import { Tooltip } from "./Tooltip";
 
 // S6b: the battle order toolbar (#toolbar) as React. Icon-only buttons, so the
 // Phosphor glyph goes in via dangerouslySetInnerHTML of the same toolbarIcon()
@@ -72,16 +73,18 @@ export function Toolbar({ state, onCmd }: ToolbarProps) {
         item === "sep" ? (
           <span className="sep" key={`sep${i}`} />
         ) : (
-          <button
-            key={item.cmd}
-            data-cmd={item.cmd}
-            aria-label={item.ariaLabel}
-            title={item.title}
-            className={state[item.cmd]?.on ? "on" : undefined}
-            disabled={state[item.cmd]?.disabled ?? false}
-            onClick={() => onCmd(item.cmd)}
-            dangerouslySetInnerHTML={{ __html: toolbarIcon(item.cmd) }}
-          />
+          // Bronze chip on hover/focus (Radix) replaces the native title bubble;
+          // aria-label stays for screen readers.
+          <Tooltip key={item.cmd} label={item.title}>
+            <button
+              data-cmd={item.cmd}
+              aria-label={item.ariaLabel}
+              className={state[item.cmd]?.on ? "on" : undefined}
+              disabled={state[item.cmd]?.disabled ?? false}
+              onClick={() => onCmd(item.cmd)}
+              dangerouslySetInnerHTML={{ __html: toolbarIcon(item.cmd) }}
+            />
+          </Tooltip>
         ),
       )}
     </>

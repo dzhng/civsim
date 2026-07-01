@@ -23,11 +23,23 @@ contract); it does not change the card-grid math or the sim.
 
 ## Next Agent Prompt
 
-**Status:** Slices 01–07 shipped (+ a card-size tweak). Last updated 2026-07-01.
+**Status:** Slices 01–08 shipped (+ a card-size tweak). Last updated 2026-07-01.
 
-**Start here:** Slice `08-bronze-tooltips` (Radix, approved by David), then slice
-09 (fidelity + close-spec). Keep a `bun run dev` server at :5173 before any scene
-run.
+**Start here:** Slice `09-fidelity-pass` — final aesthetic polish vs the reference,
+whole-composition unprimed screenshot-critique + compare-screenshots, then
+`close-spec`. Keep a `bun run dev` server at :5173 before any scene run.
+
+**What slice 08 landed:** custom bronze tooltips on the icon-only toolbar controls,
+built on `@radix-ui/react-tooltip` (added dep) and skinned to the bronze tokens
+(`.hud-tooltip` in `bronze.css`) — NOT the default slate look. `Tooltip.tsx` exposes
+`TooltipProvider` (wraps the HUD tree in `BattleHud`) and `Tooltip` (wraps each
+button in `Toolbar.tsx`, fed the `LAYOUT[].title` copy; native `title=` removed,
+`aria-label` kept). Radix gives hover + keyboard-focus triggers and `side="top"`
+collision handling so the chip opens upward and never clips. Verified headful: chip
+is bronze/opaque/legible/upward (unprimed critique) and the behavioral gate in
+`battle-input.mjs` checks hover + focus + no-native-title. Battle snapshots stayed
+**0 px** (tooltips only show on hover, so the resting layout is unchanged — no
+re-bless).
 
 **What slice 07 landed:** mostly a reconciliation — the asymmetric reserve, the
 flush-corner placement (all three housings at a 12px inset on one baseline), and the
@@ -212,7 +224,7 @@ carries the four id rules plus the new `#battle-hud` mount container.
 - [x] 06 — Minimap → bottom-right corner housing — shipped
 - [x] 07 — Asymmetric reserve + flush-corner placement (mostly in 03/06; viewport
       gate reconciled here) — shipped
-- [ ] 08 — Bronze tooltip chips on icon-only buttons
+- [x] 08 — Bronze tooltip chips on icon-only buttons (Radix, bronze-skinned) — shipped
 - [ ] 09 — Fidelity pass vs reference + close-spec
 
 ---

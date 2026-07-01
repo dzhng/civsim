@@ -32,6 +32,7 @@
     "bake:test": "node ../packages/soldier-assets/bake/vat.test.mjs && node ../packages/soldier-assets/bake/gltf.test.mjs && node ../packages/soldier-assets/bake/soldier-placeholders.mjs --check && node shots/models/scripts/soldier-cards.mjs --check"
   },
   "dependencies": {
+    "@radix-ui/react-tooltip": "^1.2.11",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },

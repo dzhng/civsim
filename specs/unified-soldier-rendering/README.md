@@ -134,7 +134,8 @@ Dependency: 0 informs 1. 1 unblocks 2 and 4. 2 (shadow relocated) is a dependenc
 
 ## Next Agent Prompt
 
-**Status:** Slice 1 landed (depth parameterization). Last updated 2026-07-01.
+**Status:** Slices 0 (spike) + 1 (depth param) landed. Next: Slice 2 (shared shadow into
+battle). Last updated 2026-07-01.
 
 **Environment notes (important):**
 - Build on `feat/unified-soldier-rendering`, cut from `208fdbe7`. Pulling latest
@@ -153,11 +154,20 @@ The spike's remaining value is the campaign-crowd eyeball + perf number; it will
 as a renderer-lab route on top of the real depth param next, doubling as the Slice 4
 de-risk. Read the four Key Seams above before continuing.
 
-**Start here:** Build the campaign-crowd spike (Slice 0 content) as a renderer-lab route
-using `new SkinnedCrowdPipeline(shell, meshes, vats, kit, { worldDepth: 'campaign' })`,
-following the `routeBattleTerrain3d` `view=soldiers` template (router.ts:2403). Prove
-figures seat + sort on the real campaign map and capture a perf number. Then resolve the
-open unknowns below and proceed to Slice 2 (shared shadow into battle).
+**Start here:** Slice 2 — [shared shadow into battle](slices/02-shared-shadow-battle.md).
+Relocate `packages/game-renderer/src/battle/soldierShadowPass.ts` →
+`packages/renderer-core/src/soldierShadowPass.ts`, rename `BattleSoldierShadowPass` →
+`SoldierShadowDecalPass`, add the `worldDepthFn: 'battle' | 'campaign'` option (mirror
+Slice 1's `.replace` of `civsimBattleWorldDepth3d(world)`), and wire it into
+`web/src/battle/renderer.ts` as pass `battle-soldier-shadows` (world-decal, depth read)
+so battle soldiers finally cast shadows. Update the battle contract in
+`web/scenes/_renderer-contract.mjs`. The spike already imports `BattleSoldierShadowPass`
+from the old path — update that import (or leave the spike, since Slice 6 deletes it).
+
+**Spike outcome (Slice 0, done):** GO. Shared crowd renders on campaign depth, seats on
+relief, sorts against campaign geometry, 0.85ms/6 figures. Scale decision: campaign figure
+`size ≈ 2.4` at zoom 28. Faction: friend/foe/neutral bucket + banner color confirmed. See
+[slice 00 findings](slices/00-spike-campaign-crowd.md).
 
 **Open unknowns the spike must resolve (they set Slice 1 & 4 decisions):**
 - Does battle depth visibly mis-sort campaign soldiers vs mountains/city? (expected yes
@@ -171,7 +181,8 @@ open unknowns below and proceed to Slice 2 (shared shadow into battle).
   clamp via `modelLookForClass` like battle's `buildCrowdInstances` does?
 
 **Global TODO**
-- [ ] Slice 0 — spike campaign mini-crowd (throwaway) → resolves unknowns above
+- [x] Slice 0 — spike campaign mini-crowd (throwaway, `routeCampaignCrowdSpike`) → GO;
+      findings recorded in slice 00. Route deleted in Slice 6.
 - [x] Slice 1 — parameterize scene depth in pipeline (`SoldierCrowdDepthScene`,
       `SkinnedCrowdPipeline` `{ worldDepth }` opt; battle byte-identical, verified via
       per-class-vat + battle-terrain-elevation 0px). Shadow-pass half moves to Slice 2.

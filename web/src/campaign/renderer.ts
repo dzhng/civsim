@@ -566,6 +566,14 @@ const CAMPAIGN_CLOSE_PITCH = 0.82;
 // read at the strategic camera; tuned against the campaign-models 'army' zoom.
 const CAMPAIGN_FIGURE_SIZE = 2.4;
 
+// Zoom LOD for the army-stack figures. Below FIGURE_FAR_ZOOM the stack shows the
+// standard banner alone (figures would be sub-readable and cost draw calls over
+// the whole map); the figure count ramps to CAMPAIGN_MAX_FIGURES as the camera
+// closes past FIGURE_NEAR_ZOOM. (Campaign zoom runs ~0.16 whole-map to ~6 close.)
+const CAMPAIGN_MAX_FIGURES = 6;
+const FIGURE_FAR_ZOOM = 1.4;
+const FIGURE_NEAR_ZOOM = 3.6;
+
 function campaignPitch(zoom: number) {
   const t = smoothstep(0.62, 1.6, zoom);
   return CAMPAIGN_CLOSE_PITCH * t;
@@ -655,23 +663,32 @@ function buildEntityFrame(
     // the stack cap. Coloured friend/foe/neutral by allegiance (0/1/2) — the
     // standard banner above carries the true faction livery.
     const roster = army.unitsByClass.some((n) => n > 0) ? army.unitsByClass : army.roster;
-    crowd.push(
-      ...buildStackCrowd(roster, {
-        unitCount: army.unitCount,
-        stackUnitCap: opts.stackUnitCap,
-        x: display.x,
-        y: display.y,
-        faction: allegiance as 0 | 1 | 2,
-        seed: army.id,
-        clip: army.marching ? "march" : "idle",
-        phase: animTime,
-        mountedClasses,
-        // Space figures by their rendered footprint so they read as individuals,
-        // not one merged blob, at CAMPAIGN_FIGURE_SIZE.
-        spacing: CAMPAIGN_FIGURE_SIZE * 1.1,
-        terrainHeight: (x, y) => field.heightAt(x, y),
-      }),
+    // Zoom LOD: fade the figure count in as the camera closes on the stack, and
+    // drop to zero (the standard banner alone) when zoomed out over the map, so
+    // the strategic view stays readable and the draw cost stays bounded.
+    const zoomFigures = Math.round(
+      CAMPAIGN_MAX_FIGURES * smoothstep(FIGURE_FAR_ZOOM, FIGURE_NEAR_ZOOM, opts.cam.scale),
     );
+    if (zoomFigures > 0) {
+      crowd.push(
+        ...buildStackCrowd(roster, {
+          unitCount: army.unitCount,
+          stackUnitCap: opts.stackUnitCap,
+          maxFigures: zoomFigures,
+          x: display.x,
+          y: display.y,
+          faction: allegiance as 0 | 1 | 2,
+          seed: army.id,
+          clip: army.marching ? "march" : "idle",
+          phase: animTime,
+          mountedClasses,
+          // Space figures by their rendered footprint so they read as individuals,
+          // not one merged blob, at CAMPAIGN_FIGURE_SIZE.
+          spacing: CAMPAIGN_FIGURE_SIZE * 1.1,
+          terrainHeight: (x, y) => field.heightAt(x, y),
+        }),
+      );
+    }
     armyEntities++;
     if (army.id === opts.selected) {
       const controlledStage = isControlledStage(data);

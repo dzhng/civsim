@@ -23,11 +23,29 @@ contract); it does not change the card-grid math or the sim.
 
 ## Next Agent Prompt
 
-**Status:** Slices 01–08 shipped (+ a card-size tweak). Last updated 2026-07-01.
+**Status:** ALL SLICES SHIPPED (01–09 + card-size tweak). Ready for `close-spec`.
+Last updated 2026-07-02. Keep a `bun run dev` server at :5173 before any scene run.
 
-**Start here:** Slice `09-fidelity-pass` — final aesthetic polish vs the reference,
-whole-composition unprimed screenshot-critique + compare-screenshots, then
-`close-spec`. Keep a `bun run dev` server at :5173 before any scene run.
+**What slice 09 landed:** the fidelity pass + a bug fix.
+- Whole-composition critique vs the reference: **hard aesthetic contract PASSES**
+  (opaque, framed, inset wells, no transparency/fade, no floating gutter cards, no
+  pill buttons / CSS glow).
+- Warmer/redder bronze (David approved the level): `bronze.css` `--bronze-fill`/
+  `--bronze-edge` shifted amber-red, `--bronze-frame` deepened with an engraved
+  groove ring; crimson-dark card wells (`.ucard`); squared the CSS-progress-style
+  stat-bar caps (`#hud .hud-bar` radius 2→1). Shared tokens, so the menu warmed
+  consistently too — re-blessed (battle + card-bar + menu).
+- **Filigree: skipped** (David: "bevel is enough") — true scrollwork wants a
+  dedicated 9-slice SVG asset and wouldn't cover the canvas minimap uniformly; the
+  deeper cast bevel + groove carries the "engraved bronze" read.
+- **Bug fix:** unit banners (`#unitlabels`, z-index 3) were painting over the
+  bottom-left info card because `#hud` had no `z-index`; added `z-index: 5` (above
+  banners, matching the other housings). Fixed.
+- Verified: selection, tooltips (hover/focus), minimap click all green;
+  battle/card-bar/menu baselines re-blessed after inspection.
+
+Not done: round portrait/minimap and cast scrollwork filigree were declined for now
+(future enhancements — a dedicated SVG-asset pass).
 
 **What slice 08 landed:** custom bronze tooltips on the icon-only toolbar controls,
 built on `@radix-ui/react-tooltip` (added dep) and skinned to the bronze tokens
@@ -225,7 +243,8 @@ carries the four id rules plus the new `#battle-hud` mount container.
 - [x] 07 — Asymmetric reserve + flush-corner placement (mostly in 03/06; viewport
       gate reconciled here) — shipped
 - [x] 08 — Bronze tooltip chips on icon-only buttons (Radix, bronze-skinned) — shipped
-- [ ] 09 — Fidelity pass vs reference + close-spec
+- [x] 09 — Fidelity pass (warm/red bronze + deeper bevel, contract PASSES) + banner
+      z-order fix — shipped; close-spec next
 
 ---
 

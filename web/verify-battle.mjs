@@ -1,5 +1,5 @@
 // Compatibility wrapper for the battle scenes. Prefer `node scene.mjs`
-// for new work; this keeps the historical npm scripts and SNAP filters alive.
+// for new work; this keeps the historical scene scripts and SNAP filters alive.
 import { main } from "./scene.mjs";
 
 process.env.VERIFY_GPU ??= "1";

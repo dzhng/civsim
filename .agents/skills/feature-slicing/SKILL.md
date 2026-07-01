@@ -1,6 +1,6 @@
 ---
 name: feature-slicing
-description: Break large features into independently verifiable, human-reviewable slices under specs/<feature>/. Use for risky or multi-step feature work that needs upfront questioning, API seams, browser-playable checkpoints, HTML visualizations, screenshot gates, staged implementation plans, recursive fog-of-war reslicing, or proactive research into reference implementations/best practices before slicing. Pairs with [write-scene](../write-scene/SKILL.md) and [screenshot-regression](../screenshot-regression/SKILL.md) (the browser checkpoints and screenshot gates) and [review](../review/SKILL.md) (audit each slice before it lands).
+description: Break large features into independently verifiable, human-reviewable slices under specs/<feature>/. Use for risky or multi-step feature work that needs upfront questioning, API seams, browser-playable checkpoints, HTML visualizations, screenshot gates, staged implementation plans, recursive fog-of-war reslicing, or proactive research into reference implementations/best practices before slicing. Pairs with [write-scene](../write-scene/SKILL.md) and [screenshot-regression](../screenshot-regression/SKILL.md) (the browser checkpoints and screenshot gates), [refactor-clean](../refactor-clean/SKILL.md) (review the materialized spec so the plan describes one-owner architecture, not the feature bolted on), and [review](../review/SKILL.md) (audit each slice before it lands).
 ---
 
 # Feature Slicing
@@ -116,11 +116,23 @@ whole feature is done.
    inside the current slice.
 6. **Materialize:** create `specs/<feature>/` when the feature has more than
    one slice or needs assets/visualizations.
-7. **Build slice by slice:** leave each slice with a runnable artifact and
+7. **Refactor-clean the plan:** run [refactor-clean](../refactor-clean/SKILL.md)
+   over the materialized spec — the plan is architecture too, and it must describe
+   the shape the codebase would want if designed today, not the old shape with the
+   feature bolted on. Name each concept that should have one owner (projection,
+   environment, data contract, renderer phase, state machine, test oracle) and
+   confirm no slice introduces a parallel abstraction, duplicated concept, or
+   compatibility layer that a later slice must delete. Any transitional scaffolding
+   a slice genuinely needs must be named as a short-lived seam with an explicit
+   removal condition and the slice that removes it — collapsed the instant its
+   consumers migrate, never carried to the end by default. Encode the resulting
+   single-owner invariants and the end-state ("reads as designed today, not tacked
+   on") in the README so every implementing pass inherits them.
+8. **Build slice by slice:** leave each slice with a runnable artifact and
    verification before depending on it. Keep each artifact small enough to
    iterate on quickly. Keep the README's "Next Agent Prompt" written as the
    handoff text a future agent should read and follow.
-8. **Reslice when the work says so:** if implementation hits a snag and the slice
+9. **Reslice when the work says so:** if implementation hits a snag and the slice
    starts changing unrelated variables, stop broadening the patch. Update the spec
    first: split the slice into smaller contracts, name the frozen inputs, move the
    extra visual variables to later slices, and rewrite the Next Agent Prompt to

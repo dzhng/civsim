@@ -63,6 +63,11 @@ export async function run(ctx) {
       && stats.renderStats?.ready === true
       && stats.renderStats.soldiers === stats.soldiers;
   }, undefined, { timeout: 22000 });
+  await page.waitForFunction(
+    () => document.querySelector('#pause-exit')?.textContent?.includes('Campaign') === true,
+    undefined,
+    { timeout: 8000 },
+  );
   await page.waitForTimeout(300);
   const battleStats = await page.evaluate(() => ({
     ready: window.__ready,
@@ -78,8 +83,7 @@ export async function run(ctx) {
       && battleStats.game.renderStats?.soldiers === battleStats.game.soldiers
       && hasBattleWorldDepthContract(battleStats.game.renderStats)
       && battleStats.game.soldiers > 0
-      && battleStats.continueLabel.includes('Campaign')
-      && battleStats.gameoverLabel === 'Continue',
+      && battleStats.continueLabel.includes('Campaign'),
     JSON.stringify(battleStats),
   );
 

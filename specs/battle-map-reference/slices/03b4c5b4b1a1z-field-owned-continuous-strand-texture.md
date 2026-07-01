@@ -88,6 +88,9 @@ bottom-edge foreground structure, broad smear bands instead of interleaved grass
 clusters, procedural regularity, narrow value range, and weak scan readability.
 
 Do not continue to perf. Continue to
-`03b4c5b4b1a1aa-field-owned-foreground-occlusion-blade-layer.md`, which keeps
-field ownership but tests the newly exposed missing variable: lower-foreground
-upright/occluding blade body over the fixed close lab.
+`03b4c5b4b1a1aa-false-earth-close-material-replication.md`, which reproduces
+the source false-earth close material in its native Three.js/WebGPU/TSL
+architecture before another civsim-native approximation. The direct
+field-owned foreground occlusion test is deferred to
+`03b4c5b4b1a1ab-field-owned-foreground-occlusion-blade-layer.md` unless the
+replication spike replaces it with a better porting slice.

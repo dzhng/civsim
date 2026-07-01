@@ -29,8 +29,11 @@ ground-plane perspective, too-faint strand scale, missing bottom-edge foreground
 structure, broad smear bands instead of interleaved grass clusters, procedural
 regularity, narrow teal-green values, and weak scan readability.
 
-Do not continue to perf, coverage, palette, LOD, camera-relative generation, or
-final compose. Continue to
-`03b4c5b4b1a1aa-field-owned-foreground-occlusion-blade-layer.md`, which keeps
-field ownership but tests the missing variable directly: near-foreground
-vertical/occluding blade body over the fixed close lab.
+Do not continue to perf, coverage, palette, LOD, production camera-relative
+generation, or final compose. Continue to
+`03b4c5b4b1a1aa-false-earth-close-material-replication.md`, which reproduces
+the source false-earth close material in its native Three.js/WebGPU/TSL
+architecture before another civsim-native approximation. The direct field-owned
+foreground occlusion test is deferred to
+`03b4c5b4b1a1ab-field-owned-foreground-occlusion-blade-layer.md` unless the
+replication spike replaces it with a better porting slice.

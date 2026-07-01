@@ -235,10 +235,12 @@ they become dense grass.
   field-owned shell geometry, target-scale micro-strand geometry, and continuous
   strand/nap texture still create markers, fan/card patches, flat paint,
   oversized stamp swipes, isolated fleck clusters, or faint scratched terrain
-  rather than continuous body. The current pickup is B4B1A1AA. Freeze atlas,
-  palette, meadow/root, camera, terrain, fog, water, sky, and crop windows; keep
-  body ownership field-owned while testing lower-foreground upright/occluding
-  blade body before any perf, coverage, LOD, or camera-relative pass.
+  rather than continuous body. The current pickup is B4B1A1AA: reproduce the
+  false-earth close material in a standalone Three.js/WebGPU/TSL lab using the
+  source architecture and the supplied close-up reference screenshot. Freeze the
+  civsim battle route while doing this; field-owned foreground occlusion is now
+  B4B1A1AB and should only proceed if the replication spike does not replace it
+  with a better porting slice.
 
 Current approach queue:
 
@@ -250,21 +252,24 @@ Current approach queue:
 3. **03B4C5B3 micro-blade density carrier spike.** Verified/rejected. Keep it as
    evidence that more/smaller carriers are mostly invisible or pixel grit at the
    reference camera.
-4. **03B4C5B4B1A1AA field-owned foreground occlusion blade layer.** Current
-   pickup. Keep atlas, palette, meadow/root material, camera, terrain, fog,
-   water, sky, lighting, and crop windows fixed. Keep ownership
-   field-domain-based and test only lower-foreground upright/occluding blade
-   body.
-5. **03B4C5C atlas tile content and color integration.** Reopen atlas content,
+4. **03B4C5B4B1A1AA false-earth close material replication.** Current pickup.
+   Use the source repo/article architecture directly in a standalone
+   Three.js/WebGPU/TSL lab. Compare only close material density, overlapping
+   body, strand scale/highlights, and depth pockets against the supplied
+   close-up screenshot.
+5. **03B4C5B4B1A1AB field-owned foreground occlusion blade layer.** Deferred
+   fallback/porting slot. Keep ownership field-domain-based only if AA proves
+   this is still the right variable to test.
+6. **03B4C5C atlas tile content and color integration.** Reopen atlas content,
    alpha, and tip/base colour only after B4 proves the carrier can form visible
    foreground grass body.
-6. **03B4C5D midground continuity and depth falloff.** Tune depth/LOD only after
+7. **03B4C5D midground continuity and depth falloff.** Tune depth/LOD only after
    foreground body and atlas integration are credible; use the midground crop as
    the primary comparison.
-7. **Winning-family implementation slice.** If 03B4C5 finds a viable primitive
+8. **Winning-family implementation slice.** If 03B4C5 finds a viable primitive
    family, split it into a follow-up implementation slice before polishing
    colour, density, or depth LOD.
-8. **03B4D depth LOD compose.** Compose accepted root and near-field layers with
+9. **03B4D depth LOD compose.** Compose accepted root and near-field layers with
    explicit near/mid/far ownership. Keep root-only and ribbon-only proof modes so
    a future pass can isolate regressions.
 
@@ -300,9 +305,11 @@ Follow the resliced files:
 - `03b4c5b4b1a1z-field-owned-continuous-strand-texture.md` —
   recorded/rejected; continuous strand/nap texture remains flat scratched
   paint.
-- `03b4c5b4b1a1aa-field-owned-foreground-occlusion-blade-layer.md` — current
-  pickup; keep field ownership and test lower-foreground upright/occluding blade
-  body before perf/coverage.
+- `03b4c5b4b1a1aa-false-earth-close-material-replication.md` — current pickup;
+  reproduce the false-earth close material in a standalone Three.js/WebGPU/TSL
+  lab before more civsim-native approximations.
+- `03b4c5b4b1a1ab-field-owned-foreground-occlusion-blade-layer.md` — deferred
+  fallback/porting slot after the false-earth replication spike.
 - `03b4c5c-atlas-tile-content-and-color-integration.md` — future isolated atlas
   and colour pass, only after B4 proves foreground body visibility.
 - `03b4c5d-midground-continuity-and-depth-falloff.md` — future isolated

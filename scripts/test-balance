@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# SLOW stat-vs-price balance tests (balance_*): matchups over seed sets / full
+# battles. Minutes to run. You almost never need these while changing physics —
+# run them before re-deriving the economy, or before a push that touches balance.
+# (The full generated matrix in balance_matrix is #[ignore]'d; add --ignored to
+# include it.)
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+flags=()
+for f in crates/sim/tests/balance_*.rs; do
+  flags+=(--test "$(basename "$f" .rs)")
+done
+echo "→ cargo test -p sim ${flags[*]}   (SLOW — minutes)"
+exec cargo test -p sim "${flags[@]}" "$@"

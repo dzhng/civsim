@@ -1,0 +1,7 @@
+# oxfmt honors this file by default (alongside .gitignore). These are
+# generated or data files, not hand-written source — never reformat them.
+bun.lock
+
+# Static data + baked assets: the campaign map, backgrounds, soldier kit, and
+# baked VAT are produced by tooling, not edited by hand.
+public/

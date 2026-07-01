@@ -1,0 +1,12 @@
+[workspace]
+members = ["crates/contract", "crates/sim", "crates/game-wasm", "crates/mapgen", "crates/campaign"]
+resolver = "2"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+
+# Tests simulate minutes of battle at 30Hz: optimize them. (IEEE float
+# semantics are opt-level-independent in Rust, so the golden hash holds.)
+[profile.test]
+opt-level = 2

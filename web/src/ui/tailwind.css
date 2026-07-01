@@ -1,0 +1,10 @@
+/* S0 stack-setup: prove Tailwind v4 compiles through @tailwindcss/vite.
+ *
+ * Utilities + theme only — NO preflight. Preflight is Tailwind's global CSS
+ * reset (margins, box-sizing, borders); injecting it now would restyle the
+ * existing bespoke UI and move every baseline. Whether to adopt preflight
+ * (and how to scope it) is an S1 design-system decision, made deliberately
+ * against the screenshot gates — not smuggled in by the stack slice. */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);

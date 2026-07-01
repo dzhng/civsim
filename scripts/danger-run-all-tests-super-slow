@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# ⚠️  THE WHOLE SIM SUITE — 10+ MINUTES. Don't run this in an iteration loop.
+#
+# Use the focused runners instead, they cover everything between them:
+#   scripts/test-mechanics    fast physics invariants   (the inner loop)
+#   scripts/test-scenarios    behavioral contracts
+#   scripts/test-infra        golden / determinism      (fast)
+#   scripts/test-balance      SLOW economy matchups
+#
+# Only run THIS before a push that could move everything, or when you genuinely
+# need the full picture. Add --ignored to also run the #[ignore]'d slow gates.
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+echo "⚠️  running the ENTIRE sim suite (10+ min). Ctrl-C to bail."
+exec cargo test -p sim "$@"

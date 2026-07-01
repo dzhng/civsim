@@ -1,5 +1,12 @@
 # Slice 05b — Collapse the legacy 2.5D projector engine-wide
 
+**STATUS: DONE (committed 2026-07-02).** One projector (`projectWorld`, camera3d
+viewProj), one depth convention (reverse-Z `depth32float`, `gpuWorldDepthStencil`),
+zero `real`/`reverseZ` flags, camera uniform re-packed (48 floats, survivors
+documented), lab routes/pick harness/fixtures on `chartCamera3d`, projection
+identity published via `__rendererLabStats`. See the README Next Agent Prompt
+for the verified record.
+
 ## Contract unlocked
 
 The migration seam opened in `02`–`05a` is deleted: **one** projection owner

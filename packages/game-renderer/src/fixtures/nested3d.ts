@@ -21,10 +21,6 @@ struct VsOut {
   @location(1) shade: f32,
 };
 
-fn projectWorld(world: vec3f) -> vec4f {
-  return projectWorld3d(world, worldDepth3d(world, 0.48, 0.028, 0.003));
-}
-
 @vertex
 fn vs(@location(0) world: vec3f, @location(1) color: vec4f) -> VsOut {
   var out: VsOut;

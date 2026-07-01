@@ -1,6 +1,6 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
-import { gpuReverseZDepthStencil, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import { gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 import type { CampaignMapSurfaceMesh } from './mapPass';
 
 export interface CampaignTerritoryTextureData {
@@ -32,7 +32,7 @@ struct VsOut {
 @vertex
 fn vs(@location(0) world: vec3f, @location(1) uv: vec2f) -> VsOut {
   var out: VsOut;
-  out.pos = projectWorld3d(world, civsimCampaignWorldDepth3d(world));
+  out.pos = projectWorld(world);
   out.uv = uv;
   return out;
 }
@@ -56,17 +56,14 @@ export class CampaignTerritoryPass {
   private textureSize = { width: 0, height: 0 };
   private surface: CampaignMapSurfaceMesh | null = null;
 
-  constructor(private shell: RawFrameShell, data: CampaignTerritoryTextureData, style: CampaignTerritoryStyle = {}, surface?: CampaignMapSurfaceMesh, opts: { real?: boolean } = {}) {
+  constructor(private shell: RawFrameShell, data: CampaignTerritoryTextureData, style: CampaignTerritoryStyle = {}, surface?: CampaignMapSurfaceMesh) {
     const device = shell.device;
-    const real = opts.real ?? false;
     this.surface = surface ?? null;
     const mesh = surface ?? flatTerritorySurface(data.rect);
     this.indexCount = mesh.indices.length;
     const module = device.createShaderModule({
       label: 'campaign-territory-wgsl',
-      code: (real
-        ? TERRITORY_WGSL.replace('projectWorld3d(world, civsimCampaignWorldDepth3d(world))', 'projectReal(world)')
-        : TERRITORY_WGSL)
+      code: TERRITORY_WGSL
         .replace('__TERRITORY_WARM_MIX__', (style.warmMix ?? 0.04).toFixed(3))
         .replace('__TERRITORY_ALPHA__', (style.alpha ?? 0.24).toFixed(3)),
     });
@@ -103,7 +100,7 @@ export class CampaignTerritoryPass {
         }],
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: real ? gpuReverseZDepthStencil('read') : gpuWorldDepthStencil('read'),
+      depthStencil: gpuWorldDepthStencil('read'),
     });
     this.vertexBuffer = device.createBuffer({
       label: 'campaign-territory-surface-vertices',

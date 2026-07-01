@@ -1,6 +1,6 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
-import { gpuMultisample, gpuOpaqueColorTarget, gpuReverseZDepthStencil, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import { gpuMultisample, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 import { compileShader } from '../../../renderer-core/src/compileShader';
 import type { BattleGroundCover, BattleTerrainGrid } from './terrainFeatures';
 import { terrainHeightAt, type TerrainHeightField } from '../terrain/heightField';
@@ -47,7 +47,7 @@ const WATER_TINT = 1;
 // FIELD_WATER_WGSL, single-sourced with the lab terrainPass fixtures and built on
 // the same frozen open-sea look as the horizon plane, so all civsim water is one
 // material.
-const GROUND_WGSL = (env: BattleEnvironment, real: boolean) => `
+const GROUND_WGSL = (env: BattleEnvironment) => `
 ${WORLD_CAMERA_WGSL}
 ${battleEnvironmentWgsl(env)}
 struct GroundUniform {
@@ -70,7 +70,7 @@ struct VsOut {
   @location(2) world: vec2f,
   @location(3) water: f32,
   @location(4) fog: f32,
-  @location(5) axes: vec2f,
+  @location(5) dist: f32,
 };
 
 fn hash(p: vec2f) -> f32 {
@@ -103,9 +103,9 @@ fn meadowField(world: vec2f) -> vec4f {
   return textureSampleLevel(meadowTexture, meadowSampler, clamp(uv, vec2f(0.0), vec2f(1.0)), 0.0) * inside;
 }
 
-fn meadowWeight(axes: vec2f, field: vec4f) -> f32 {
+fn meadowWeight(dist: f32, field: vec4f) -> f32 {
   let enabled = ground.meadow0.x;
-  let depthT = smoothstep(ground.meadow1.x, ground.meadow1.y, axes.y);
+  let depthT = smoothstep(ground.meadow1.x, ground.meadow1.y, dist);
   let strength = mix(ground.meadow1.z, ground.meadow1.w, depthT);
   let fieldEnabled = ground.meadow0.y;
   let fieldRaw = clamp(field.r * ground.meadow0.z, 0.0, 1.0);
@@ -116,8 +116,8 @@ fn meadowWeight(axes: vec2f, field: vec4f) -> f32 {
   return enabled * strength * mix(1.0, fieldBlend, fieldEnabled);
 }
 
-fn meadowCarpet(world: vec2f, axes: vec2f, field: vec4f, screen: vec2f) -> vec3f {
-  let depthT = smoothstep(ground.meadow1.x, ground.meadow1.y, axes.y);
+fn meadowCarpet(world: vec2f, dist: f32, field: vec4f, screen: vec2f) -> vec3f {
+  let depthT = smoothstep(ground.meadow1.x, ground.meadow1.y, dist);
   let nearT = 1.0 - depthT;
   let fieldEnabled = ground.meadow0.y;
   let fieldRaw = clamp(field.r * ground.meadow0.z, 0.0, 1.0);
@@ -301,14 +301,17 @@ fn meadowCarpet(world: vec2f, axes: vec2f, field: vec4f, screen: vec2f) -> vec3f
 @vertex
 fn vs(@location(0) world: vec3f, @location(1) normal: vec3f, @location(2) color: vec3f, @location(3) water: f32) -> VsOut {
   var out: VsOut;
-  out.pos = ${real ? 'projectReal(world)' : 'projectWorld3d(world, civsimBattleWorldDepth3d(world))'};
+  out.pos = projectWorld(world);
   let sun = sunDirection();
   out.light = clamp(dot(normalize(normal), sun) * 0.45 + 0.74, 0.5, 1.18);
   out.color = color;
   out.world = world.xy;
-  let axes = cameraSpace(world.xy);
-  out.axes = axes;
-  out.fog = smoothstep(720.0, 1850.0, axes.y) * 0.52;
+  // The legacy chart "depth" axis (see chartDepthDist) — the key the fog and
+  // meadow depth ramps were tuned against; kept value-identical to the blessed
+  // battle baselines through the projector collapse.
+  let dist = chartDepthDist(world.xy);
+  out.dist = dist;
+  out.fog = smoothstep(720.0, 1850.0, dist) * 0.52;
   out.water = water;
   return out;
 }
@@ -325,10 +328,10 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let grade = mix(BATTLE_FILL, BATTLE_KEY, clamp((in.light - 0.5) / 0.68, 0.0, 1.0));
   var col = in.color * detail * in.light * grade * BATTLE_EXPOSURE;
   let meadowFieldData = meadowField(in.world);
-  let meadow = meadowWeight(in.axes, meadowFieldData);
-  let meadowDepthT = smoothstep(ground.meadow1.x, ground.meadow1.y, in.axes.y);
+  let meadow = meadowWeight(in.dist, meadowFieldData);
+  let meadowDepthT = smoothstep(ground.meadow1.x, ground.meadow1.y, in.dist);
   let meadowLight = mix(1.00, in.light, 0.24 + meadowDepthT * 0.18);
-  let meadowCol = meadowCarpet(in.world, in.axes, meadowFieldData, in.pos.xy) * meadowLight * vec3f(0.94, 0.94, 0.98) * BATTLE_EXPOSURE;
+  let meadowCol = meadowCarpet(in.world, in.dist, meadowFieldData, in.pos.xy) * meadowLight * vec3f(0.94, 0.94, 0.98) * BATTLE_EXPOSURE;
   col = mix(col, meadowCol, meadow);
   // Churn: where the ground is earthy (brown, r over g) the mud reads as trodden,
   // broken ground — a patchy dried crust over darker hollows, scored by
@@ -413,9 +416,8 @@ export class BattleGroundPass {
     bodyDomainSourceAttached: false,
   };
 
-  constructor(private shell: RawFrameShell, private environment: BattleEnvironment = BATTLE_ENVIRONMENTS['golden-hour'], opts: { real?: boolean } = {}) {
-    const real = opts.real ?? false;
-    const module = compileShader(shell.device, GROUND_WGSL(environment, real), `battle-ground-heightfield-${environment.id}`);
+  constructor(private shell: RawFrameShell, private environment: BattleEnvironment = BATTLE_ENVIRONMENTS['golden-hour']) {
+    const module = compileShader(shell.device, GROUND_WGSL(environment), `battle-ground-heightfield-${environment.id}`);
     this.groundBindGroupLayout = shell.device.createBindGroupLayout({
       label: 'battle-ground-uniform-layout',
       entries: [
@@ -442,7 +444,7 @@ export class BattleGroundPass {
       },
       fragment: { module, entryPoint: 'fs', targets: [gpuOpaqueColorTarget(shell.info.format)] },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: real ? gpuReverseZDepthStencil('read-write') : gpuWorldDepthStencil('read-write'),
+      depthStencil: gpuWorldDepthStencil('read-write'),
       multisample: gpuMultisample(shell.sampleCount),
     });
     this.uniformBuffer = shell.device.createBuffer({

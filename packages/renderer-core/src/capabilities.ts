@@ -5,22 +5,20 @@ export interface GpuCapabilities {
   reason: string;
 }
 
-import { chooseDepthFormat } from './depthContract';
-
 export type GpuPowerPreference = 'high-performance' | 'low-power' | 'default';
 
 // The single source of truth for what the granted device can do and every
 // deliberate downgrade we make from it. Computed once at device creation from
 // the adapter limits + granted device features; passes read it, they never
-// re-probe the adapter.
+// re-probe the adapter. The world depth format is NOT a capability: it is the
+// fixed engine-wide contract (depthContract.ts GPU_DEPTH_FORMAT, depth32float,
+// WebGPU-core mandatory).
 export interface GpuDeviceCaps {
   maxStorageBufferBindingSize: number;
   maxBufferSize: number;
   msaaSampleCount: number;
   msaaSupported: boolean;
   timestampQuery: boolean;
-  depthFormat: GPUTextureFormat;
-  depthDowngrade: string | null;
   powerPreference: GpuPowerPreference;
 }
 
@@ -32,22 +30,16 @@ export interface ResolveDeviceCapsInput {
   adapterLimits: Record<string, number>;
   deviceFeatures: Iterable<string>;
   powerPreference: GpuPowerPreference;
-  /** Test hook: pretend depth24plus is unavailable to exercise the fallback. */
-  forceNoDepth24?: boolean;
 }
 
 export function resolveDeviceCaps(input: ResolveDeviceCapsInput): GpuDeviceCaps {
   const features = new Set(input.deviceFeatures);
-  const depth = chooseDepthFormat(!input.forceNoDepth24);
-  if (depth.downgrade) console.warn(`WebGPU downgrade: ${depth.downgrade}`);
   return {
     maxStorageBufferBindingSize: input.adapterLimits.maxStorageBufferBindingSize ?? 0,
     maxBufferSize: input.adapterLimits.maxBufferSize ?? 0,
     msaaSampleCount: GPU_MSAA_SAMPLE_COUNT,
     msaaSupported: true,
     timestampQuery: features.has('timestamp-query'),
-    depthFormat: depth.format,
-    depthDowngrade: depth.downgrade,
     powerPreference: input.powerPreference,
   };
 }

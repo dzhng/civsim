@@ -1,4 +1,5 @@
 import { PNG } from "pngjs";
+import { GPU_DEPTH_FORMAT } from "../_renderer-contract.mjs";
 
 export const meta = {
   name: "renderer-capabilities",
@@ -7,7 +8,7 @@ export const meta = {
   tier: "full",
   snapshots: [],
   describe:
-    "Capability probe: granted limits/format, depth fallback decision, VAT-buffer guard, and live GPU-time readout.",
+    "Capability probe: granted limits/format, the fixed reverse-Z depth contract, VAT-buffer guard, and live GPU-time readout.",
 };
 
 function countNonBlank(png) {
@@ -95,17 +96,14 @@ async function runProbe(ctx, page) {
   ctx.check(
     "capabilities: caps object is populated from the granted device",
     stats.caps?.maxStorageBufferBindingSize > 0 &&
-      stats.caps?.depthFormat === "depth24plus" &&
       stats.caps?.msaaSupported === true &&
       ["high-performance", "low-power", "default"].includes(stats.caps?.powerPreference),
     JSON.stringify(stats.caps),
   );
   ctx.check(
-    "capabilities: depth fallback decision selects depth32float with a reason",
-    stats.downgrade?.depthFormat === "depth32float" &&
-      typeof stats.downgrade?.reason === "string" &&
-      stats.downgrade.reason.length > 0,
-    JSON.stringify(stats.downgrade),
+    "capabilities: the shell reports the fixed engine-wide reverse-Z depth format",
+    stats.depth?.format === GPU_DEPTH_FORMAT,
+    JSON.stringify(stats.depth),
   );
   ctx.check(
     "capabilities: granted limits expose the requested storage headroom",

@@ -25,7 +25,7 @@ export interface RenderGraphPass {
     attachment: string;
     mode: GpuDepthMode;
     format: typeof GPU_DEPTH_FORMAT;
-    compare?: 'less' | 'less-equal' | 'always';
+    compare?: 'greater' | 'greater-equal' | 'always';
     store?: 'discard' | 'store';
   };
 }
@@ -78,7 +78,7 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     framePhase: 'world-depth',
     role: 'world-depth-fill',
     writes: [GPU_WORLD_DEPTH_ATTACHMENT],
-    depth: { attachment: GPU_WORLD_DEPTH_ATTACHMENT, mode: 'write', format: GPU_DEPTH_FORMAT, compare: 'less', store: 'discard' },
+    depth: { attachment: GPU_WORLD_DEPTH_ATTACHMENT, mode: 'write', format: GPU_DEPTH_FORMAT, compare: 'greater', store: 'discard' },
   },
   {
     id: 'battleTerrainProps',
@@ -89,7 +89,7 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     batching: { strategy: 'instance-kind', buckets: ['trees', 'rocks', 'shrubs'] },
     reads: ['cameraUniforms', 'battleState', GPU_WORLD_DEPTH_ATTACHMENT],
     writes: ['worldColor', GPU_WORLD_DEPTH_ATTACHMENT],
-    depth: { attachment: GPU_WORLD_DEPTH_ATTACHMENT, mode: 'read-write', format: GPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
+    depth: { attachment: GPU_WORLD_DEPTH_ATTACHMENT, mode: 'read-write', format: GPU_DEPTH_FORMAT, compare: 'greater-equal', store: 'store' },
   },
   {
     id: 'battleCrowd',
@@ -100,7 +100,7 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     batching: { strategy: 'mesh-variant', buckets: ['class-meshes', 'lods'] },
     reads: ['cameraUniforms', GPU_WORLD_DEPTH_ATTACHMENT, 'soldierVat', 'crowdInstances'],
     writes: ['worldColor', GPU_WORLD_DEPTH_ATTACHMENT, 'pickIds'],
-    depth: { attachment: GPU_WORLD_DEPTH_ATTACHMENT, mode: 'read-write', format: GPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
+    depth: { attachment: GPU_WORLD_DEPTH_ATTACHMENT, mode: 'read-write', format: GPU_DEPTH_FORMAT, compare: 'greater-equal', store: 'store' },
   },
   {
     id: 'campaignSceneryOpaque',
@@ -111,7 +111,7 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     batching: { strategy: 'instance-kind', buckets: ['trees', 'rocks', 'mountains'] },
     reads: ['cameraUniforms', 'campaignState', GPU_WORLD_DEPTH_ATTACHMENT],
     writes: ['worldColor', GPU_WORLD_DEPTH_ATTACHMENT],
-    depth: { attachment: GPU_WORLD_DEPTH_ATTACHMENT, mode: 'read-write', format: GPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
+    depth: { attachment: GPU_WORLD_DEPTH_ATTACHMENT, mode: 'read-write', format: GPU_DEPTH_FORMAT, compare: 'greater-equal', store: 'store' },
   },
   {
     id: 'campaignEntitiesOpaque',
@@ -122,7 +122,7 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     batching: { strategy: 'mesh-variant', buckets: ['cities', 'armies', 'standards', 'garrisons'] },
     reads: ['cameraUniforms', 'campaignState', GPU_WORLD_DEPTH_ATTACHMENT],
     writes: ['worldColor', GPU_WORLD_DEPTH_ATTACHMENT, 'pickIds'],
-    depth: { attachment: GPU_WORLD_DEPTH_ATTACHMENT, mode: 'read-write', format: GPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
+    depth: { attachment: GPU_WORLD_DEPTH_ATTACHMENT, mode: 'read-write', format: GPU_DEPTH_FORMAT, compare: 'greater-equal', store: 'store' },
   },
   {
     id: 'battleGroundCues',
@@ -132,7 +132,7 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     role: 'world-decal',
     reads: ['cameraUniforms', 'battleState', GPU_WORLD_DEPTH_ATTACHMENT],
     writes: ['worldColor'],
-    depth: { attachment: GPU_WORLD_DEPTH_ATTACHMENT, mode: 'read', format: GPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
+    depth: { attachment: GPU_WORLD_DEPTH_ATTACHMENT, mode: 'read', format: GPU_DEPTH_FORMAT, compare: 'greater-equal', store: 'store' },
   },
   {
     id: 'campaignSceneryShadows',
@@ -142,7 +142,7 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     role: 'world-decal',
     reads: ['cameraUniforms', 'campaignState', GPU_WORLD_DEPTH_ATTACHMENT],
     writes: ['worldColor'],
-    depth: { attachment: GPU_WORLD_DEPTH_ATTACHMENT, mode: 'read', format: GPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
+    depth: { attachment: GPU_WORLD_DEPTH_ATTACHMENT, mode: 'read', format: GPU_DEPTH_FORMAT, compare: 'greater-equal', store: 'store' },
   },
   {
     id: 'campaignEntityShadows',
@@ -152,7 +152,7 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     role: 'world-decal',
     reads: ['cameraUniforms', 'campaignState', GPU_WORLD_DEPTH_ATTACHMENT],
     writes: ['worldColor'],
-    depth: { attachment: GPU_WORLD_DEPTH_ATTACHMENT, mode: 'read', format: GPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
+    depth: { attachment: GPU_WORLD_DEPTH_ATTACHMENT, mode: 'read', format: GPU_DEPTH_FORMAT, compare: 'greater-equal', store: 'store' },
   },
   {
     id: 'campaignRoads',
@@ -162,7 +162,7 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     role: 'world-decal',
     reads: ['cameraUniforms', 'campaignState', GPU_WORLD_DEPTH_ATTACHMENT],
     writes: ['worldColor'],
-    depth: { attachment: GPU_WORLD_DEPTH_ATTACHMENT, mode: 'read', format: GPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
+    depth: { attachment: GPU_WORLD_DEPTH_ATTACHMENT, mode: 'read', format: GPU_DEPTH_FORMAT, compare: 'greater-equal', store: 'store' },
   },
   {
     id: 'campaignSeaLanes',
@@ -172,7 +172,7 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     role: 'world-decal',
     reads: ['cameraUniforms', 'campaignState', GPU_WORLD_DEPTH_ATTACHMENT],
     writes: ['worldColor'],
-    depth: { attachment: GPU_WORLD_DEPTH_ATTACHMENT, mode: 'read', format: GPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
+    depth: { attachment: GPU_WORLD_DEPTH_ATTACHMENT, mode: 'read', format: GPU_DEPTH_FORMAT, compare: 'greater-equal', store: 'store' },
   },
   {
     id: 'campaignGroundSelection',
@@ -182,7 +182,7 @@ export const FULL_GAME_GRAPH_SKELETON: RenderGraphPass[] = [
     role: 'world-decal',
     reads: ['cameraUniforms', 'campaignState', GPU_WORLD_DEPTH_ATTACHMENT],
     writes: ['worldColor'],
-    depth: { attachment: GPU_WORLD_DEPTH_ATTACHMENT, mode: 'read', format: GPU_DEPTH_FORMAT, compare: 'less-equal', store: 'store' },
+    depth: { attachment: GPU_WORLD_DEPTH_ATTACHMENT, mode: 'read', format: GPU_DEPTH_FORMAT, compare: 'greater-equal', store: 'store' },
   },
   {
     id: 'atmosphereOverlays',

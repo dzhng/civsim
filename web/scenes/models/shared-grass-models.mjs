@@ -1,8 +1,12 @@
 import { PNG } from 'pngjs';
 
+// Floors re-derived for the oblique camera3d review framing (slice 05b): the
+// blades stand toward the camera instead of splaying under the fake top-down
+// projection, so less of the silhouette reads as deep-shaded blade interior
+// (measured 0.0035 tuft / 0.033 patch; floors keep ~40% margin).
 const gates = [
-  { id: 'tuft', label: 'Grass Tuft', minGrass: 0.010, minDark: 0.12, minDeepBlade: 0.006 },
-  { id: 'patch', label: 'Grass Patch', minGrass: 0.035, minDark: 0.25, minDeepBlade: 0.035 },
+  { id: 'tuft', label: 'Grass Tuft', minGrass: 0.010, minDark: 0.12, minDeepBlade: 0.002 },
+  { id: 'patch', label: 'Grass Patch', minGrass: 0.035, minDark: 0.25, minDeepBlade: 0.02 },
 ];
 
 export const meta = {

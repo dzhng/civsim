@@ -1,7 +1,8 @@
-import { cameraUniformData, CAMERA_UNIFORM_BYTES, DEFAULT_SUN_AZIMUTH, DEFAULT_SUN_ELEVATION, type CameraSnapshot } from './cameraUniform';
+import { chartCamera3d } from './camera3d';
+import { cameraUniformData, CAMERA_UNIFORM_BYTES, DEFAULT_SUN_AZIMUTH, DEFAULT_SUN_ELEVATION, PROJECTION_IDENTITY, type CameraSnapshot } from './cameraUniform';
 import { WORLD_CAMERA_WGSL } from './cameraWgsl';
 import { compileShader } from './compileShader';
-import { GPU_DEPTH_CLEAR, GPU_DEPTH_FORMAT, GPU_DEPTH_FORMAT_REVERSE, GPU_REVERSE_Z_DEPTH_CLEAR, isGpuDepthMode, type GpuDepthMode } from './depthContract';
+import { GPU_DEPTH_CLEAR, GPU_DEPTH_FORMAT, isGpuDepthMode, type GpuDepthMode } from './depthContract';
 import { requestGpuDevice, type DeviceLostReport, type UncapturedErrorReport, type GpuDeviceInfo } from './device';
 import {
   frameGraphDepthRole,
@@ -48,11 +49,6 @@ export interface FrameShellOptions {
   enableGpuTimer?: boolean;
   /** MSAA sample count (1 = off). Battle edges use 4; campaign stays at 1. */
   sampleCount?: number;
-  /** Opt into a reverse-Z `depth32float` world depth buffer (near → 1, far → 0,
-   *  cleared to 0). Pipelines in the world phase must then declare
-   *  `gpuReverseZDepthStencil`. Slice 02: only the water bake-off shell sets this;
-   *  battle/campaign keep the legacy `depth24plus` painter path. */
-  reverseZ?: boolean;
 }
 
 export interface RawFrameShell {
@@ -137,7 +133,7 @@ export interface FramePhaseStats {
   passIds: string[];
   passRoles: Array<{ id: string; role: FrameGraphPassRole }>;
   depthPasses: Array<{ id: string; mode: FrameGraphDepthMode }>;
-  depth: 'none' | 'depth24plus-clear' | 'depth32float-reverse-z-clear';
+  depth: 'none' | 'depth32float-reverse-z-clear';
   loadOp: 'clear' | 'load';
 }
 
@@ -150,6 +146,8 @@ export interface FrameShellStats {
   device: string;
   atmosphere: string;
   cameraContract: 'shared-world-camera-wgsl';
+  /** The engine-wide projection/depth identity (camera3d viewProj, reverse-Z). */
+  projection: typeof PROJECTION_IDENTITY;
   markerLayer: MarkerLayerIntent;
   phases: FramePhaseStats[];
   sampleCount: number;
@@ -228,16 +226,16 @@ const WIDE_DETAIL_TERRAIN_STYLE: TerrainShaderStyle = {
   aerialStrength: '0.19',
 };
 
-function terrainWgsl(style: TerrainShaderStyle, real: boolean) {
+function terrainWgsl(style: TerrainShaderStyle) {
   return `
 ${WORLD_CAMERA_WGSL}
 struct VsOut { @builtin(position) pos: vec4f, @location(0) world: vec2f, @location(1) dist: f32 };
 @vertex
 fn vs(@location(0) world: vec2f) -> VsOut {
   var out: VsOut;
-  out.pos = ${real ? 'projectReal(vec3f(world, 0.0))' : 'projectGround(world, 0.8)'};
+  out.pos = projectWorld(vec3f(world, 0.0));
   out.world = world;
-  out.dist = length(world - vec2f(cam.x, cam.y));
+  out.dist = length(world - cam.focus);
   return out;
 }
 fn hash(p: vec2f) -> f32 {
@@ -307,14 +305,14 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 }`;
 }
 
-function terrainBackdropWgsl(real: boolean) {
+function terrainBackdropWgsl() {
   return `
 ${WORLD_CAMERA_WGSL}
 struct VsOut { @builtin(position) pos: vec4f, @location(0) world: vec2f };
 @vertex
 fn vs(@location(0) world: vec2f) -> VsOut {
   var out: VsOut;
-  out.pos = ${real ? 'projectReal(vec3f(world, 0.0))' : 'projectGround(world, 0.9)'};
+  out.pos = projectWorld(vec3f(world, 0.0));
   out.world = world;
   return out;
 }
@@ -345,7 +343,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 }`;
 }
 
-function markerWgsl(real: boolean) {
+function markerWgsl() {
   return `
 ${WORLD_CAMERA_WGSL}
 struct Inst { xy:f32, yy:f32, facing:f32, faction:f32, size:f32, lod:f32, pad0:f32, pad1:f32 };
@@ -358,7 +356,7 @@ fn vs(@location(0) quad: vec2f, @location(1) inst: vec4f, @location(2) instMeta:
   let p = vec2f(quad.x * instMeta.x * 0.34, quad.y * instMeta.x * 0.58);
   let world = vec2f(inst.x, inst.y) + vec2f(p.x * c - p.y * s, p.x * s + p.y * c);
   var out: VsOut;
-  out.pos = ${real ? 'projectReal(vec3f(world, 0.0))' : 'projectGround(world, 0.2)'};
+  out.pos = projectWorld(vec3f(world, 0.0));
   out.faction = inst.w;
   out.local = quad;
   out.lod = instMeta.y;
@@ -466,7 +464,9 @@ export class RawFrameShellImpl implements RawFrameShell {
   private depthHeight = 0;
   private markerCapacity = 0;
   private markerLayer: MarkerLayerIntent = 'none';
-  private camera: Omit<CameraSnapshot, 'width' | 'height'> = { x: 0, y: 0, zoom: 12, pitch: 0.35, yaw: 0 };
+  // Every route/renderer sets its own camera before drawing; this default only
+  // keeps a freshly-created shell renderable (a chart-framed origin view).
+  private camera: Omit<CameraSnapshot, 'width' | 'height'> = { x: 0, y: 0, zoom: 12, camera3d: chartCamera3d({ x: 0, y: 0, zoom: 12, pitch: 0.35 }, 600) };
   private time = 0;
   private sunAzimuth = DEFAULT_SUN_AZIMUTH;
   private sunElevation = DEFAULT_SUN_ELEVATION;
@@ -483,7 +483,6 @@ export class RawFrameShellImpl implements RawFrameShell {
   private readonly onFatalError?: (report: FrameShellFatalReport) => void;
   readonly depthFormat: GPUTextureFormat;
   readonly sampleCount: number;
-  private readonly reverseZ: boolean;
   private gpuTimer: GpuFrameTimer | null = null;
   private gpuTimeMs: number | null = null;
   private msaaTexture: GPUTexture | null = null;
@@ -494,8 +493,7 @@ export class RawFrameShellImpl implements RawFrameShell {
     this.device = info.device;
     this.onDeviceLost = options.onDeviceLost;
     this.onFatalError = options.onFatalError;
-    this.reverseZ = options.reverseZ === true;
-    this.depthFormat = this.reverseZ ? GPU_DEPTH_FORMAT_REVERSE : (info.caps.depthFormat ?? GPU_DEPTH_FORMAT);
+    this.depthFormat = GPU_DEPTH_FORMAT;
     this.sampleCount = Math.max(1, Math.floor(options.sampleCount ?? 1));
     if (options.enableGpuTimer && info.caps.timestampQuery) {
       this.gpuTimer = createGpuFrameTimer(this.device);
@@ -523,8 +521,8 @@ export class RawFrameShellImpl implements RawFrameShell {
       layout: this.cameraBindGroupLayout,
       entries: [{ binding: 0, resource: { buffer: this.cameraBuffer } }],
     });
-    this.terrainPipeline = this.makeTerrainPipeline('terrain', terrainWgsl(DEFAULT_TERRAIN_STYLE, this.reverseZ));
-    this.terrainWideDetailPipeline = this.makeTerrainPipeline('terrain-wide-detail', terrainWgsl(WIDE_DETAIL_TERRAIN_STYLE, this.reverseZ));
+    this.terrainPipeline = this.makeTerrainPipeline('terrain', terrainWgsl(DEFAULT_TERRAIN_STYLE));
+    this.terrainWideDetailPipeline = this.makeTerrainPipeline('terrain-wide-detail', terrainWgsl(WIDE_DETAIL_TERRAIN_STYLE));
     this.terrainBackdropPipeline = this.makeTerrainBackdropPipeline();
     this.markerPipeline = this.makeMarkerPipeline();
     this.terrainBackdropVertexBuffer = this.device.createBuffer({
@@ -657,7 +655,7 @@ export class RawFrameShellImpl implements RawFrameShell {
         passIds: worldPasses.map((pass) => pass.id),
         passRoles: worldPasses.map((pass) => ({ id: pass.id, role: pass.role })),
         depthPasses: worldPasses.map((pass) => ({ id: pass.id, mode: pass.depth })),
-        depth: this.reverseZ ? 'depth32float-reverse-z-clear' : 'depth24plus-clear',
+        depth: 'depth32float-reverse-z-clear',
         loadOp: 'load',
       });
     }
@@ -764,6 +762,7 @@ export class RawFrameShellImpl implements RawFrameShell {
       device: [this.info.vendor, this.info.architecture, this.info.description].filter(Boolean).join(' / ') || 'unknown',
       atmosphere: 'aegean-sky-haze',
       cameraContract: 'shared-world-camera-wgsl',
+      projection: PROJECTION_IDENTITY,
       markerLayer: this.markerLayer,
       phases: this.lastPhases.map((phase) => ({ ...phase })),
       sampleCount: this.sampleCount,
@@ -881,7 +880,7 @@ export class RawFrameShellImpl implements RawFrameShell {
     }
     return {
       view: this.depthTexture.createView(),
-      depthClearValue: this.reverseZ ? GPU_REVERSE_Z_DEPTH_CLEAR : GPU_DEPTH_CLEAR,
+      depthClearValue: GPU_DEPTH_CLEAR,
       depthLoadOp: 'clear',
       depthStoreOp: 'discard',
     };
@@ -925,7 +924,7 @@ export class RawFrameShellImpl implements RawFrameShell {
   }
 
   private makeTerrainBackdropPipeline() {
-    const module = compileShader(this.device, terrainBackdropWgsl(this.reverseZ), 'terrain-backdrop');
+    const module = compileShader(this.device, terrainBackdropWgsl(), 'terrain-backdrop');
     return this.device.createRenderPipeline({
       label: 'terrain-backdrop-pipeline',
       layout: this.device.createPipelineLayout({ bindGroupLayouts: [this.cameraBindGroupLayout] }),
@@ -937,7 +936,7 @@ export class RawFrameShellImpl implements RawFrameShell {
   }
 
   private makeMarkerPipeline() {
-    const module = compileShader(this.device, markerWgsl(this.reverseZ), 'marker');
+    const module = compileShader(this.device, markerWgsl(), 'marker');
     return this.device.createRenderPipeline({
       label: 'marker-pipeline',
       layout: this.device.createPipelineLayout({ bindGroupLayouts: [this.cameraBindGroupLayout] }),

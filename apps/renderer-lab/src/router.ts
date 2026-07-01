@@ -1,8 +1,8 @@
 import { createFrameShell, type BackgroundRenderPass, type FrameGraphCommands, type FrameGraphPass, type MarkerInstance, type OverlayRenderPass, type RawFrameShell, type WorldRenderPass } from '../../../packages/renderer-core/src/frameShell';
-import { screenToWorld, world3dToScreen, worldToScreen } from '../../../packages/renderer-core/src/cameraUniform';
+import { PROJECTION_IDENTITY, screenToWorld, world3dToScreen, worldToScreen, type CameraSnapshot } from '../../../packages/renderer-core/src/cameraUniform';
 import { GPU_DEPTH_FORMAT, GPU_WORLD_DEPTH_ATTACHMENT } from '../../../packages/renderer-core/src/depthContract';
 import { requestGpuDevice, gpuFailureMessage } from '../../../packages/renderer-core/src/device';
-import { assertStorageBufferFits, resolveDeviceCaps } from '../../../packages/renderer-core/src/capabilities';
+import { assertStorageBufferFits } from '../../../packages/renderer-core/src/capabilities';
 import { WORLD_CAMERA_WGSL } from '../../../packages/renderer-core/src/cameraWgsl';
 import { gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../packages/renderer-core/src/pipelineContracts';
 import { compileShader, setShaderErrorHandler, shaderCompilationMessages, type ShaderCompilationMessage } from '../../../packages/renderer-core/src/compileShader';
@@ -20,7 +20,7 @@ import { BattleGroundCuePass, selectedUnitGroundCueVertices } from '../../../pac
 import { BattleEffectLinePass } from '../../../packages/game-renderer/src/battle/effectLinePass';
 import { SoldierShadowDecalPass } from '../../../packages/renderer-core/src/soldierShadowPass';
 import { BattleParticlePass, type BattleParticle } from '../../../packages/game-renderer/src/battle/particlePass';
-import { battleUnitsInRect, cssToBattleWorld, liveBattlePickUnits, pickBattleUnit, type BattlePickUnit, type RendererBattlePickCamera } from '../../../packages/game-renderer/src/battle/pickingDebug';
+import { battleUnitsInRect, battleWorldToCss, cssToBattleWorld, liveBattlePickUnits, pickBattleUnit, type BattlePickUnit, type RendererBattlePickCamera } from '../../../packages/game-renderer/src/battle/pickingDebug';
 import { BattleTerrainPass, type BattleTerrainFixture } from '../../../packages/game-renderer/src/battle/terrainPass';
 import { CLASS_DEPTH, CLASS_SPACING, UNIT_INFO } from '../../../packages/game-renderer/src/battle/unitInfoLayout';
 import { CampaignCloudPass } from '../../../packages/game-renderer/src/campaign/atmospherePass';
@@ -35,7 +35,7 @@ import { BattleGroundPass } from '../../../packages/game-renderer/src/battle/gro
 import { BattleGrassPass, type BattleGrassBounds, type BattleGrassParams, type GrassAccentAggregation, type GrassFiberShellVariant, type GrassPrimitiveFamily, type TextureVolumeProfile, type TextureVolumeRenderModel } from '../../../packages/game-renderer/src/battle/grassPass';
 import { sampleGrassField } from '../../../packages/game-renderer/src/battle/grassField';
 import { BattleHorizonPass } from '../../../packages/game-renderer/src/battle/horizonPass';
-import { eyePosition, projectPoint, unprojectToPlaneZ, type Camera3DParams } from '../../../packages/renderer-core/src/camera3d';
+import { chartCamera3d, eyePosition, projectPoint, unprojectToPlaneZ, type Camera3DParams, type ChartCameraSpec } from '../../../packages/renderer-core/src/camera3d';
 import { createWaterField } from '../../../packages/game-renderer/src/water/waterField';
 import { WaterPlanePass } from '../../../packages/game-renderer/src/water/waterPlanePass';
 import {
@@ -172,7 +172,7 @@ async function routeDevice(ctx: LabContext) {
   const info = await requestGpuDevice();
   const shell = await createFrameShell(ctx.canvas);
   const markers = generatedMarkers(18, -8, -4, 0).concat(generatedMarkers(18, 8, 2, 1));
-  shell.setCamera({ x: 0, y: 0, zoom: 10, pitch: 0.25, yaw: 0 });
+  shell.setCamera(chartSnapshot({ x: 0, y: 0, zoom: 10, pitch: 0.25, yaw: 0 }, shell));
   shell.drawFrame({ markers, markerLayer: 'lab-placeholder' });
   ctx.status.innerHTML = reportTable({
     route: 'device',
@@ -646,15 +646,6 @@ async function routeCapabilities(ctx: LabContext) {
   const shell = await createFrameShell(ctx.canvas, { enableGpuTimer: true, sampleCount: sampleParam });
   const caps = shell.info.caps;
 
-  // The deliberate depth downgrade: what caps would choose if depth24plus were
-  // unavailable. Decision only — we do not re-render the live shell on it.
-  const downgradeCaps = resolveDeviceCaps({
-    adapterLimits: shell.info.limits,
-    deviceFeatures: shell.info.features,
-    powerPreference: caps.powerPreference,
-    forceNoDepth24: true,
-  });
-
   // VAT storage-buffer guard: oversize is rejected before allocation; a real
   // size fits.
   let oversizeRejected = false;
@@ -672,7 +663,7 @@ async function routeCapabilities(ctx: LabContext) {
     realSizeFits = false;
   }
 
-  shell.setCamera({ x: 0, y: 0, zoom: 9, pitch: 0.34, yaw: -0.12 });
+  shell.setCamera(chartSnapshot({ x: 0, y: 0, zoom: 9, pitch: 0.34, yaw: -0.12 }, shell));
   const markers = generatedMarkers(80, -10, -9, 0).concat(generatedMarkers(80, 10, 3, 1));
   const fixture = new Nested3dFixturePass(shell);
   const draw = (): FrameGraphCommands => ({
@@ -688,8 +679,7 @@ async function routeCapabilities(ctx: LabContext) {
       route: 'capabilities',
       'power preference': caps.powerPreference,
       'preferred format': shell.info.format,
-      'depth format': caps.depthFormat,
-      'depth fallback (forced)': `${downgradeCaps.depthFormat} — ${downgradeCaps.depthDowngrade ?? 'none'}`,
+      'depth format': stats.depth.format,
       'maxStorageBufferBindingSize': caps.maxStorageBufferBindingSize,
       'maxBufferSize': caps.maxBufferSize,
       'MSAA supported': caps.msaaSupported,
@@ -702,7 +692,7 @@ async function routeCapabilities(ctx: LabContext) {
     publish('capabilities', true, {
       route: 'capabilities',
       caps,
-      downgrade: { depthFormat: downgradeCaps.depthFormat, reason: downgradeCaps.depthDowngrade },
+      depth: stats.depth,
       grantedLimits: { maxStorageBufferBindingSize: shell.info.limits.maxStorageBufferBindingSize, maxBufferSize: shell.info.limits.maxBufferSize },
       sampleCount: stats.sampleCount,
       gpuTimeMs: stats.gpuTimeMs,
@@ -753,7 +743,7 @@ async function routeFaultInjection(ctx: LabContext) {
       report.message,
     )),
   });
-  shell.setCamera({ x: 0, y: 0, zoom: 10, pitch: 0.25, yaw: 0 });
+  shell.setCamera(chartSnapshot({ x: 0, y: 0, zoom: 10, pitch: 0.25, yaw: 0 }, shell));
   const markers = generatedMarkers(18, -8, -4, 0).concat(generatedMarkers(18, 8, 2, 1));
   shell.drawFrame({ markers, markerLayer: 'lab-placeholder' });
   state.initialFrameRendered = true;
@@ -1008,7 +998,7 @@ async function routeSkinnedSoldier(ctx: LabContext) {
     x: numberParam(ctx.params, 'x', 0),
     y: numberParam(ctx.params, 'y', 0),
     zoom: numberParam(ctx.params, 'zoom', 86),
-    pitch: numberParam(ctx.params, 'pitch', 0.10),
+    pitch: numberParam(ctx.params, 'pitch', 1.1),
     yaw: numberParam(ctx.params, 'yaw', 0),
   });
   const pipeline = await createSkinnedPipeline(shell, [0.20, 0.42, 0.88], vat);
@@ -1031,7 +1021,7 @@ async function routeSkinnedSoldier(ctx: LabContext) {
 async function routeSkinnedCrowd(ctx: LabContext) {
   const count = Number(ctx.params.get('count') ?? 2000);
   const vat = await loadPlaceholderVat();
-  const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: -2, zoom: 5.2, pitch: 0.28, yaw: 0 });
+  const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: -2, zoom: 5.2, pitch: 1.1, yaw: 0 });
   const pipeline = await createSkinnedPipeline(shell, [0.20, 0.42, 0.88], vat);
   const instances = generatedFormation(Math.floor(count / 2), { x: -20, y: -12, faction: 0, columns: 40, frame: 1 })
     .concat(generatedFormation(Math.ceil(count / 2), { x: 20, y: 4, faction: 1, columns: 40, frame: 8 }));
@@ -1042,7 +1032,10 @@ async function routeSkinnedCrowd(ctx: LabContext) {
 
 async function routeSkinnedDepth(ctx: LabContext) {
   const vat = await loadPlaceholderVat();
-  const camera = { x: 0, y: 0, zoom: 92, pitch: 0.18, yaw: 0, perspective: 0 };
+  // Oblique review pitch: camera3d vertical scale is sin(pitch), so the old
+  // near-top-down 0.18 collapsed soldiers to a few pixels. sin(1.1) ≈ 0.89
+  // keeps the silhouette close to the pre-collapse full-z look.
+  const camera = { x: 0, y: 0, zoom: 92, pitch: 1.1, yaw: 0 };
   const shell = await createConfiguredShell(ctx.canvas, camera);
   const pipeline = await createSkinnedPipeline(shell, [0.20, 0.42, 0.88], vat);
   const frontClass = UNIT_CLASS_BY_KEY[UnitClass.HeavySword];
@@ -1086,7 +1079,7 @@ async function routeSkinnedDepth(ctx: LabContext) {
     passes: [{ id: 'skinned-depth-crowd', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => pipeline.draw(pass) }],
   });
   const shellStats = shell.stats();
-  const sampleCamera = { ...camera, width: shellStats.width, height: shellStats.height };
+  const sampleCamera = chartCameraSnapshot(camera, shellStats.width, shellStats.height);
   const [sampleX, sampleY] = world3dToScreen(
     sampleCamera,
     -0.52 * 1.35,
@@ -1115,7 +1108,10 @@ async function routeSkinnedDepth(ctx: LabContext) {
 
 async function routeBattleGroundCueDepth(ctx: LabContext) {
   const vat = await loadPlaceholderVat();
-  const camera = { x: 0, y: 0, zoom: 92, pitch: 0.18, yaw: 0, perspective: 0 };
+  // Oblique review pitch: camera3d vertical scale is sin(pitch), so the old
+  // near-top-down 0.18 collapsed soldiers to a few pixels. sin(1.1) ≈ 0.89
+  // keeps the silhouette close to the pre-collapse full-z look.
+  const camera = { x: 0, y: 0, zoom: 92, pitch: 1.1, yaw: 0 };
   const shell = await createConfiguredShell(ctx.canvas, camera);
   const pipeline = await createSkinnedPipeline(shell, [0.20, 0.42, 0.88], vat);
   const groundCues = new BattleGroundCuePass(shell);
@@ -1144,7 +1140,7 @@ async function routeBattleGroundCueDepth(ctx: LabContext) {
     ],
   });
   const shellStats = shell.stats();
-  const sampleCamera = { ...camera, width: shellStats.width, height: shellStats.height };
+  const sampleCamera = chartCameraSnapshot(camera, shellStats.width, shellStats.height);
   const covered = world3dToScreen(sampleCamera, -0.52 * 1.35, 0, 1.36 * 1.35);
   const exposed = world3dToScreen(sampleCamera, 1.85, 0.08, 0.02);
   const samples = {
@@ -1180,7 +1176,10 @@ function battleGroundCueDepthFixtureVertices() {
 
 async function routeBattleEffectOverlay(ctx: LabContext) {
   const vat = await loadPlaceholderVat();
-  const camera = { x: 0, y: 0, zoom: 92, pitch: 0.18, yaw: 0, perspective: 0 };
+  // Oblique review pitch: camera3d vertical scale is sin(pitch), so the old
+  // near-top-down 0.18 collapsed soldiers to a few pixels. sin(1.1) ≈ 0.89
+  // keeps the silhouette close to the pre-collapse full-z look.
+  const camera = { x: 0, y: 0, zoom: 92, pitch: 1.1, yaw: 0 };
   const shell = await createConfiguredShell(ctx.canvas, camera);
   const pipeline = await createSkinnedPipeline(shell, [0.20, 0.42, 0.88], vat);
   const effects = new BattleEffectLinePass(shell);
@@ -1209,7 +1208,7 @@ async function routeBattleEffectOverlay(ctx: LabContext) {
     ],
   });
   const shellStats = shell.stats();
-  const sampleCamera = { ...camera, width: shellStats.width, height: shellStats.height };
+  const sampleCamera = chartCameraSnapshot(camera, shellStats.width, shellStats.height);
   const overSoldier = world3dToScreen(sampleCamera, -0.52 * 1.35, 0, 0.02);
   const exposed = world3dToScreen(sampleCamera, 1.85, 0.08, 0.02);
   const samples = {
@@ -1360,7 +1359,7 @@ async function routeCampaignMap(ctx: LabContext) {
   borders.upload(campaignBorderVertices(territoryData.borders));
   markers.upload(drawData.cityMarkers);
   const labels = drawData.labels.concat(campaignFactionLabels(territoryData.labels));
-  const labelLayer = labelPass.upload(labels, camera);
+  const labelLayer = labelPass.upload(labels, chartSnapshot(camera, shell));
   shell.drawFrame({
     clear: { r: 0.68, g: 0.72, b: 0.69, a: 1 },
     terrainRect: [0, 0, 0, 0],
@@ -1455,7 +1454,7 @@ async function routeCampaignUi(ctx: LabContext) {
     entities.upload(entityFrame.entities);
     selection.upload(entityFrame.selections);
     const labels = drawData.labels.concat(campaignArmyLabels(views.armies));
-    const labelLayer = labelPass.upload(labels, camera);
+    const labelLayer = labelPass.upload(labels, chartSnapshot(camera, shell));
     shell.drawFrame({
       clear: { r: 0.68, g: 0.72, b: 0.69, a: 1 },
       terrainRect: campaignBgTerrainRect(data.bgRect),
@@ -1544,6 +1543,54 @@ async function routeCampaignUi(ctx: LabContext) {
   draw();
 }
 
+const MODEL_SHOT_GROUND_DEPTH_WGSL = `
+${WORLD_CAMERA_WGSL}
+@vertex
+fn vs(@location(0) world: vec2f) -> @builtin(position) vec4f {
+  return projectWorld(vec3f(world, 0.0));
+}
+@fragment
+fn fs() -> @location(0) vec4f {
+  return vec4f(0.0);
+}`;
+
+// The fixture ground as a real depth surface, mirroring the production
+// campaign frame (campaign-map-surface is a world-depth-fill). Writes reverse-Z
+// ground depth without touching color — the shell's background terrain stays
+// the visual — so below-ground fixtures (the hidden garrison) are genuinely
+// underground while ground decals (z ≥ 0.03) still pass their reads.
+class ModelShotGroundDepthPass {
+  private pipeline: GPURenderPipeline;
+  private vertexBuffer: GPUBuffer;
+
+  constructor(private shell: RawFrameShell) {
+    const module = compileShader(shell.device, MODEL_SHOT_GROUND_DEPTH_WGSL, 'model-shot-ground-depth');
+    this.pipeline = shell.device.createRenderPipeline({
+      label: 'model-shot-ground-depth-pipeline',
+      layout: shell.device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),
+      vertex: { module, entryPoint: 'vs', buffers: [{ arrayStride: 8, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x2' }] }] },
+      fragment: { module, entryPoint: 'fs', targets: [{ format: shell.info.format, writeMask: 0 }] },
+      primitive: { topology: 'triangle-strip' },
+      depthStencil: gpuWorldDepthStencil('write'),
+    });
+    this.vertexBuffer = shell.device.createBuffer({
+      label: 'model-shot-ground-depth-quad',
+      size: 8 * 4,
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+    });
+  }
+
+  setRect([x, y, w, h]: [number, number, number, number]) {
+    this.shell.device.queue.writeBuffer(this.vertexBuffer, 0, new Float32Array([x, y, x + w, y, x, y + h, x + w, y + h]));
+  }
+
+  draw(pass: WorldRenderPass) {
+    pass.setPipeline(this.pipeline);
+    pass.setVertexBuffer(0, this.vertexBuffer);
+    pass.draw(4);
+  }
+}
+
 async function routeCampaignModelShots(ctx: LabContext) {
   const gate = campaignModelShot(ctx.params.get('gate'));
   const camera = campaignModelShotCamera(gate);
@@ -1555,20 +1602,18 @@ async function routeCampaignModelShots(ctx: LabContext) {
   const labelPass = new CampaignLabelPass(shell);
   const frame = campaignModelShotFrame(gate);
   const cityStandardSamples = campaignModelShotCityStandardSamples(gate, ctx.canvas, camera);
-  const garrisonSamples = campaignModelShotGarrisonSamples(gate, ctx.canvas, camera);
-  const selectionSamples = campaignModelShotSelectionSamples(gate, ctx.canvas, camera);
   const clouds = frame.cloudRect ? new CampaignCloudPass(shell, frame.cloudRect) : null;
   entities.upload(frame.entities);
   scenery.upload(frame.scenery);
   roads.upload(frame.roads);
   selection.upload(frame.selections);
-  const labelLayer = labelPass.upload(frame.labels, camera);
+  const labelLayer = labelPass.upload(frame.labels, chartSnapshot(camera, shell));
   // Army stacks draw the shared skinned crowd (matching the production campaign
   // renderer), so this isolated 'army'/'garrison-*' review shows the real
   // representative figures + grounding shadow, not just the standard banner.
   const soldierKit = await loadPlaceholderKit();
-  const soldierCrowd = new SkinnedCrowdPipeline(shell, createPlaceholderSoldierMeshes([0.30, 0.36, 0.74]), await loadPlaceholderVat(), soldierKit, { worldDepth: 'campaign' });
-  const soldierShadows = new SoldierShadowDecalPass(shell, { worldDepth: 'campaign' });
+  const soldierCrowd = new SkinnedCrowdPipeline(shell, createPlaceholderSoldierMeshes([0.30, 0.36, 0.74]), await loadPlaceholderVat(), soldierKit);
+  const soldierShadows = new SoldierShadowDecalPass(shell);
   const modelStackRoster = [4, 0, 3, 0, 2, 1];
   const modelCrowd = frame.entities
     .filter((entity) => entity.kind === 'army')
@@ -1587,10 +1632,17 @@ async function routeCampaignModelShots(ctx: LabContext) {
     }));
   soldierCrowd.upload(modelCrowd, { size: CAMPAIGN_FIGURE_SIZE });
   soldierShadows.upload(modelCrowd, { radius: 0.62 * CAMPAIGN_FIGURE_SIZE });
+  // The occlusion/visibility samples derive from the crowd actually drawn, so
+  // the sampled points always have a real soldier where the check expects one.
+  const garrisonSamples = campaignModelShotGarrisonSamples(gate, ctx.canvas, camera, modelCrowd);
+  const selectionSamples = campaignModelShotSelectionSamples(gate, ctx.canvas, camera, modelCrowd);
   const hostileDepthOrder = gate === 'hostile-depth-order';
+  const groundDepth = new ModelShotGroundDepthPass(shell);
+  groundDepth.setRect(frame.terrainRect);
   const entityOpaquePass: FrameGraphPass = { id: 'model-shot-entities-opaque', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => entities.drawOpaque(pass) };
   const sceneryOpaquePass: FrameGraphPass = { id: 'model-shot-scenery-opaque', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => scenery.drawOpaque(pass) };
   const passes: FrameGraphPass[] = [
+    { id: 'model-shot-ground-depth', role: 'world-depth-fill', phase: 'world-depth', depth: 'write', draw: (pass) => groundDepth.draw(pass) },
     ...(hostileDepthOrder ? [entityOpaquePass, sceneryOpaquePass] : [sceneryOpaquePass, entityOpaquePass]),
     { id: 'model-shot-soldier-crowd', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => soldierCrowd.draw(pass) },
     { id: 'model-shot-scenery-shadows', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => scenery.drawShadows(pass) },
@@ -1625,7 +1677,10 @@ async function routeCampaignModelShots(ctx: LabContext) {
     ...(cityStandardSamples ? { cityStandard: cityStandardSamples } : {}),
     ...(garrisonSamples ? { garrison: garrisonSamples } : {}),
     ...(selectionSamples ? { selectionDepth: selectionSamples } : {}),
-    ...(hostileDepthOrder ? { hostileDepthOrder: campaignModelShotHostileDepthSamples() } : {}),
+    ...(hostileDepthOrder ? { hostileDepthOrder: campaignModelShotHostileDepthSamples(ctx.canvas, camera) } : {}),
+    // Drawn crowd anchors (world x, y) — lets scene tooling reason about the
+    // review fixture from published data instead of duplicating the stack build.
+    crowd: modelCrowd.map((inst) => [inst.x, inst.y]),
   };
   publish('campaign-models', true, {
     route: 'campaign-models',
@@ -1774,19 +1829,35 @@ const MODEL_SHOT_GARRISON_ARMY_POSITION: [number, number] = [0.65, -1.65];
 const MODEL_SHOT_OUTSIDE_GARRISON_ARMY_POSITION: [number, number] = [-7.10, -1.85];
 const MODEL_SHOT_HIDDEN_GARRISON_ARMY_POSITION: [number, number] = [0.0, 3.0];
 const MODEL_SHOT_GARRISON_ARMY_RADIUS = 7.0;
-const MODEL_SHOT_HIDDEN_GARRISON_Z = -4.4;
+// Deep enough that the WHOLE standard (mesh top ≈ 7.9 world after army scale)
+// sits below z = 0, so the route's ground depth-fill genuinely buries it —
+// under one true projector "hidden" means occluded, not painted last.
+const MODEL_SHOT_HIDDEN_GARRISON_Z = -8.0;
+// The hostile-depth-order late tree: behind (north of) the city flag with its
+// canopy volume kept strictly north of the cloth plane (canopy min y
+// = y − (0.19 + 0.40)·size > flag y ≈ −1.75), so along the flag's sightline
+// the earlier-drawn flag is genuinely NEARER and only depth (not submit
+// order) keeps it visible in front of the late scenery bucket.
+const MODEL_SHOT_LATE_TREE = { x: -1.34, y: 3.1, size: 8.0 };
 
 function campaignModelShot(value: string | null): CampaignModelShot {
   return CAMPAIGN_MODEL_SHOTS.includes(value as CampaignModelShot) ? value as CampaignModelShot : 'city';
 }
 
 function campaignModelShotCamera(gate: CampaignModelShot) {
-  const close = { x: 0, y: 0.3, zoom: 28, pitch: 0.56, yaw: 0, perspective: 0.018 };
-  if (gate === 'overview') return { x: 0, y: -0.6, zoom: 28, pitch: 0.54, yaw: 0, perspective: 0.012 };
-  if (gate === 'road' || gate === 'road-only') return { x: 0, y: -1.3, zoom: 30, pitch: 0.54, yaw: 0, perspective: 0.012 };
-  if (gate === 'terrain-grass-scrub') return { x: 0, y: -0.3, zoom: 40, pitch: 0.56, yaw: 0, perspective: 0.016 };
-  if (gate === 'terrain-stone-relief') return { x: 0, y: -0.4, zoom: 40, pitch: 0.56, yaw: 0, perspective: 0.014 };
-  if (gate === 'cloud-fog') return { x: 0, y: 0, zoom: 26, pitch: 0.50, yaw: 0, perspective: 0.010 };
+  // Occlusion gates (city/garrison/selection/hostile-depth) need the oblique
+  // review pitch so vertical city geometry occludes again under camera3d
+  // (sightline to the embedded cloth must pass through the wall/roof volume);
+  // the ground-centric gates keep their original chart-like framing.
+  const close = { x: 0, y: 0.3, zoom: 28, pitch: 1.05, yaw: 0 };
+  // The outside garrison stands west of the city; recentre between them so the
+  // army body (its west shield reaches x ≈ −9.3) stays fully in frame.
+  if (gate === 'garrison-outside') return { ...close, x: -2.2 };
+  if (gate === 'overview') return { x: 0, y: -0.6, zoom: 28, pitch: 0.54, yaw: 0 };
+  if (gate === 'road' || gate === 'road-only') return { x: 0, y: -1.3, zoom: 30, pitch: 0.54, yaw: 0 };
+  if (gate === 'terrain-grass-scrub') return { x: 0, y: -0.3, zoom: 40, pitch: 0.56, yaw: 0 };
+  if (gate === 'terrain-stone-relief') return { x: 0, y: -0.4, zoom: 40, pitch: 0.56, yaw: 0 };
+  if (gate === 'cloud-fog') return { x: 0, y: 0, zoom: 26, pitch: 0.50, yaw: 0 };
   return close;
 }
 
@@ -1810,14 +1881,14 @@ function campaignModelShotFrame(gate: CampaignModelShot) {
   const addArmy = (x: number, y: number, selected = false) => {
     entities.push({ x, y, radius: 5.5, faction: red, allegiance: green, kind: 'army', strength: 0.86 });
     labels.push({ text: '1ST LEGION', x, y, kind: 'army', size: 13, priority: 5, icon: 'army', iconColor: green, screenOffsetY: 54 });
-    if (selected) selections.push({ x, y, z: 0, radius: 6.1, color: green, kind: 'army' });
+    if (selected) selections.push({ x, y, z: 0, radius: 6.5, color: green, kind: 'army' });
   };
 
   if (gate === 'overview') addCity(-6.0, -2.0, 7.0, 'ROMA', red, green, false);
   if (gate === 'city') addCity(MODEL_SHOT_CITY_POSITION[0], MODEL_SHOT_CITY_POSITION[1], MODEL_SHOT_CITY_RADIUS, 'ROMA', red, green, true);
   if (gate === 'hostile-depth-order') {
     addCity(MODEL_SHOT_CITY_POSITION[0], MODEL_SHOT_CITY_POSITION[1], MODEL_SHOT_CITY_RADIUS, 'ROMA', red, green, true);
-    scenery.push({ x: -1.34, y: -1.08, size: 14.0, kind: 'broadleaf', shade: 0.72 });
+    scenery.push({ x: MODEL_SHOT_LATE_TREE.x, y: MODEL_SHOT_LATE_TREE.y, size: MODEL_SHOT_LATE_TREE.size, kind: 'broadleaf', shade: 0.72 });
   }
   if (gate === 'garrison-outside') {
     addCity(MODEL_SHOT_CITY_POSITION[0], MODEL_SHOT_CITY_POSITION[1], MODEL_SHOT_CITY_RADIUS, 'ROMA', red, green, true);
@@ -1909,17 +1980,33 @@ function campaignModelShotFrame(gate: CampaignModelShot) {
   return { entities, scenery, selections, labels, roads, terrainRect, cloudRect };
 }
 
-function campaignModelShotHostileDepthSamples() {
+// Derived from the fixture's world geometry (a point inside the city flag's
+// pennant cloth, and a point inside the late broadleaf's canopy blobs) via the
+// route's own projector, so the samples follow the camera.
+function campaignModelShotHostileDepthSamples(canvas: HTMLCanvasElement, camera: ChartCameraSpec) {
+  const scale = MODEL_SHOT_CITY_RADIUS / 5.0;
+  const flag = projectNestedPoint(canvas, camera, [
+    MODEL_SHOT_CITY_POSITION[0] + 0.9 * scale,
+    MODEL_SHOT_CITY_POSITION[1] + 0.04 * scale,
+    5.9 * scale,
+  ]);
+  // Sample the canopy body (mid-height, slightly west of the trunk) — the top
+  // rim thins to nothing under the oblique review pitch.
+  const tree = projectNestedPoint(canvas, camera, [
+    MODEL_SHOT_LATE_TREE.x - 0.2 * MODEL_SHOT_LATE_TREE.size,
+    MODEL_SHOT_LATE_TREE.y,
+    0.78 * MODEL_SHOT_LATE_TREE.size,
+  ]);
   return {
-    flagOverLateTree: { x: 302, y: 148, note: 'visible city flag in front of late scenery' },
-    lateTreeControl: { x: 176, y: 209, note: 'late scenery bucket visible away from the flag' },
+    flagOverLateTree: { ...flag, note: 'visible city flag in front of late scenery' },
+    lateTreeControl: { ...tree, note: 'late scenery bucket visible away from the flag' },
   };
 }
 
 function campaignModelShotCityStandardSamples(
   gate: CampaignModelShot,
   canvas: HTMLCanvasElement,
-  camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number },
+  camera: ChartCameraSpec,
 ) {
   if (gate !== 'city' && gate !== 'selected-city') return null;
   const scale = MODEL_SHOT_CITY_RADIUS / 5.0;
@@ -1942,7 +2029,8 @@ function campaignModelShotCityStandardSamples(
 function campaignModelShotGarrisonSamples(
   gate: CampaignModelShot,
   canvas: HTMLCanvasElement,
-  camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number },
+  camera: ChartCameraSpec,
+  crowd: CrowdInstance[] = [],
 ) {
   if (gate !== 'garrison-outside' && gate !== 'garrison-city' && gate !== 'garrison-hidden') return null;
   const cityScale = MODEL_SHOT_CITY_RADIUS / 5.0;
@@ -1965,9 +2053,19 @@ function campaignModelShotGarrisonSamples(
     armyZ + local[2] * armyScale,
   ]);
   if (gate === 'garrison-outside') {
+    // The outside army body is the drawn soldier crowd: sample the torso of its
+    // west-most figure (the crowd is the visible "shield wall", not a fixed
+    // offset on the old army entity mesh).
+    const west = crowd.reduce(
+      (best: CrowdInstance | null, inst) => (best === null || inst.x < best.x ? inst : best),
+      null,
+    );
+    const bodyWorld: [number, number, number] = west
+      ? [west.x, west.y, 1.8]
+      : [armyBase[0], armyBase[1], 1.8];
     return {
       state: 'outside-city',
-      visibleShieldOutsideCity: armyPoint([-1.40, -0.72, 0.90]),
+      visibleShieldOutsideCity: projectNestedPoint(canvas, camera, bodyWorld),
       visibleStandardOutsideCity: armyPoint([1.30, 0.12, 4.02]),
       cityControl: cityPoint([-0.62, 0.08, 1.50]),
     };
@@ -1988,23 +2086,77 @@ function campaignModelShotGarrisonSamples(
   };
 }
 
+// Selection rings are ground ellipses (selectionPass: y semi-axis 0.76 for
+// cities / 0.64 for armies, opaque band around d ≈ 0.94–0.96 of the radius,
+// lifted 0.045 above the ground). Sample the NORTH arc point — behind the
+// fixture volume at the oblique review pitch, so geometry must occlude it —
+// and the EAST arc point on open ground, both derived from the same world
+// geometry the route draws instead of fixed crop pixels.
 function campaignModelShotSelectionSamples(
   gate: CampaignModelShot,
   canvas: HTMLCanvasElement,
-  camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number },
+  camera: ChartCameraSpec,
+  crowd: CrowdInstance[] = [],
 ) {
-  void canvas;
-  void camera;
   if (gate === 'selected-city') {
+    const ring = MODEL_SHOT_CITY_RADIUS * 1.34;
+    const [cx, cy] = MODEL_SHOT_CITY_POSITION;
     return {
-      occludedByCityCore: { x: 295, y: 290, note: 'fixed selected-city crop sample where city geometry must paint over the ground selection decal' },
-      visibleOuterRing: { x: 460, y: 236, note: 'fixed selected-city crop sample on exposed outer selection arc' },
+      occludedByCityCore: {
+        ...projectNestedPoint(canvas, camera, [cx, cy + ring * 0.76 * 0.96, 0.045]),
+        note: 'north ring arc behind the city core; buildings must paint over the ground selection decal',
+      },
+      visibleOuterRing: {
+        ...projectNestedPoint(canvas, camera, [cx + ring * 0.96, cy, 0.045]),
+        note: 'east ring arc on exposed ground beside the city',
+      },
     };
   }
   if (gate === 'army') {
+    // addArmy: army at (0, -2.2) with selection radius 6.5. The sampled north
+    // arc segment must hide behind a soldier that is actually drawn, so work in
+    // SCREEN space: for each drawn figure, find the arc azimuth whose screen x
+    // matches the figure's feet, and accept it when the arc's screen row lands
+    // on the figure's torso/head band (≈ 40–85 px above the feet at this
+    // framing — lower rows leave ring pixels between the shins, higher rows
+    // clear the head). Sample behind the best-centred candidate.
+    const ring = 6.5;
+    const arcAt = (x: number) =>
+      -2.2 + 0.95 * 0.64 * ring * Math.sqrt(Math.max(0, 1 - (x / (0.95 * ring)) ** 2));
+    let occludedSample: { x: number; y: number; world: [number, number, number] } | null = null;
+    let occluderScore = Infinity;
+    for (const inst of crowd) {
+      if (Math.abs(inst.x) > ring * 0.58) continue;
+      const feet = projectNestedPoint(canvas, camera, [inst.x, inst.y, 0]);
+      // The arc azimuth whose screen x lines up with this figure's feet.
+      let best: { x: number; y: number; world: [number, number, number] } | null = null;
+      let bestDx = Infinity;
+      for (let sx = -ring * 0.58; sx <= ring * 0.58; sx += 0.05) {
+        const candidate = projectNestedPoint(canvas, camera, [sx, arcAt(sx), 0.045]);
+        const dx = Math.abs(candidate.x - feet.x);
+        if (dx < bestDx) {
+          bestDx = dx;
+          best = candidate;
+        }
+      }
+      if (!best || bestDx > 3) continue;
+      const above = feet.y - best.y;
+      if (above < 40 || above > 85) continue;
+      const score = Math.abs(above - 60);
+      if (score < occluderScore) {
+        occluderScore = score;
+        occludedSample = best;
+      }
+    }
     return {
-      occludedByArmyCore: { x: 294, y: 331, note: 'fixed army crop sample where soldiers/shields must paint over the ground selection decal' },
-      visibleOuterRing: { x: 467, y: 343, note: 'fixed army crop sample on exposed outer selection arc' },
+      occludedByArmyCore: {
+        ...(occludedSample ?? projectNestedPoint(canvas, camera, [0, arcAt(0), 0.045])),
+        note: 'north ring arc behind a drawn soldier torso; figures must paint over the ground selection decal',
+      },
+      visibleOuterRing: {
+        ...projectNestedPoint(canvas, camera, [ring * 0.94, -2.2, 0.045]),
+        note: 'east ring arc on exposed ground beside the formation',
+      },
     };
   }
   return null;
@@ -2026,7 +2178,10 @@ function campaignBgTerrainRect(rect: { min: [number, number]; max: [number, numb
 
 async function routeRenderGraph(ctx: LabContext) {
   const report = fullGameRenderGraphReport();
-  const camera = { x: 0, y: -0.6, zoom: 38, pitch: 0.66, yaw: -0.04, perspective: 0.008 };
+  // Oblique enough that the nested3d wall (z ≤ 2.85 at y −1.25) occludes the
+  // planted-standard sample [-2.62, 0.1, 1.35]: needs camera3d elevation
+  // < atan(1.5/1.35) ≈ 0.84, i.e. chart pitch > ~0.75.
+  const camera = { x: 0, y: -0.6, zoom: 38, pitch: 1.1, yaw: -0.04 };
   const shell = await createConfiguredShell(ctx.canvas, camera);
   const nested = new Nested3dFixturePass(shell);
   const markers = [
@@ -2305,9 +2460,11 @@ function uniqueGraphFramePhases(report: ReturnType<typeof fullGameRenderGraphRep
 
 async function routeWorldCamera(ctx: LabContext) {
   const mode = ctx.params.get('mode') === 'battle' ? 'battle' : 'campaign';
+  // Both modes need the oblique review pitch (> ~0.75) so the nested3d wall
+  // occludes the planted-standard sample under the real camera3d projector.
   const camera = mode === 'battle'
-    ? { x: 0, y: -0.6, zoom: 42, pitch: 0.34, yaw: -0.10, perspective: 0 }
-    : { x: 0, y: -0.6, zoom: 38, pitch: 0.66, yaw: -0.04, perspective: 0.008 };
+    ? { x: 0, y: -0.6, zoom: 42, pitch: 1.0, yaw: -0.10 }
+    : { x: 0, y: -0.6, zoom: 38, pitch: 1.1, yaw: -0.04 };
   const shell = await createConfiguredShell(ctx.canvas, camera);
   const nested = new Nested3dFixturePass(shell);
   shell.drawFrame({
@@ -2326,7 +2483,7 @@ async function routeWorldCamera(ctx: LabContext) {
     route: 'world-camera',
     status: 'shared camera/depth contract',
     mode,
-    camera: `pitch ${camera.pitch.toFixed(2)}, yaw ${camera.yaw.toFixed(2)}, perspective ${camera.perspective}`,
+    camera: `pitch ${camera.pitch.toFixed(2)}, yaw ${camera.yaw.toFixed(2)}`,
     depth: shellStats.depth.allocated ? `${shellStats.depth.format} ${shellStats.depth.width}x${shellStats.depth.height}` : 'not allocated',
     cameraWgsl: 'packages/renderer-core/src/cameraWgsl.ts',
     maxAnchorDeltaPx: anchorAgreement.maxDelta.toFixed(4),
@@ -2489,9 +2646,9 @@ struct VsOut {
 @vertex
 fn vs(@location(0) world: vec3f, @location(1) normal: vec3f, @location(2) color: vec3f, @location(3) alpha: f32) -> VsOut {
   var out: VsOut;
-  out.pos = projectWorld3d(world, civsimBattleWorldDepth3d(world));
-  let axes = cameraSpace(world.xy);
-  let distanceFog = smoothstep(780.0, 2400.0, axes.y);
+  out.pos = projectWorld(world);
+  let axesY = length(world.xy - cam.focus);
+  let distanceFog = smoothstep(780.0, 2400.0, axesY);
   let heightFog = smoothstep(120.0, 330.0, world.z);
   out.fog = clamp(distanceFog * 0.72 + heightFog * 0.20 + (1.0 - alpha) * 0.35, 0.0, 0.92);
   let sun = normalize(vec3f(-0.35, -0.18, 0.92));
@@ -2824,8 +2981,8 @@ async function routeBattleTerrain3d(ctx: LabContext) {
         ? { x: standX, y: standY + 4, zoom: 9.0, pitch: 0.40, yaw: -0.04 }
         : view === 'reference'
           ? isReferenceFixture
-            ? { x: Number(ctx.params.get('cx') ?? -380), y: Number(ctx.params.get('cy') ?? -720), zoom: Number(ctx.params.get('zoom') ?? 1.92), pitch: 1.03, yaw: -0.035, perspective: 0.0068 }
-            : { x: Number(ctx.params.get('cx') ?? -70), y: Number(ctx.params.get('cy') ?? -650), zoom: Number(ctx.params.get('zoom') ?? 2.4), pitch: 1.02, yaw: -0.04, perspective: 0.006 }
+            ? { x: Number(ctx.params.get('cx') ?? -380), y: Number(ctx.params.get('cy') ?? -720), zoom: Number(ctx.params.get('zoom') ?? 1.92), pitch: 1.03, yaw: -0.035 }
+            : { x: Number(ctx.params.get('cx') ?? -70), y: Number(ctx.params.get('cy') ?? -650), zoom: Number(ctx.params.get('zoom') ?? 2.4), pitch: 1.02, yaw: -0.04 }
         : { x: Number(ctx.params.get('cx') ?? focus?.x ?? 0), y: Number(ctx.params.get('cy') ?? focus?.y ?? 0) - 110, zoom: 3.3, pitch: 0.44, yaw: -0.05 };
   const shell = await createConfiguredShell(ctx.canvas, camera, environment);
   // Field water animates on cam.time; snap at a fixed t for deterministic shots
@@ -2948,7 +3105,7 @@ async function routeBattleTerrain3d(ctx: LabContext) {
       windStrength: isReferenceFixture ? 0.058 : 0.078,
     });
   }
-  const props = new CampaignSceneryPass(shell, 'battle');
+  const props = new CampaignSceneryPass(shell);
   props.upload(scenery);
   const horizon = new BattleHorizonPass(shell, environment);
   horizon.setEdges({ ox, oy, w, h, cell }, presentation.edges, field);
@@ -3178,7 +3335,7 @@ async function routeBattleGrass(ctx: LabContext) {
     windPhase: phase,
     windStrength: numberParam(ctx.params, 'windStrength', 0.10),
   };
-  const camera = { x: 0, y: -2.2, zoom: 31, pitch: 0.54, yaw: -0.12, perspective: 0.018 };
+  const camera = { x: 0, y: -2.2, zoom: 31, pitch: 0.54, yaw: -0.12 };
   const shell = await createConfiguredShell(ctx.canvas, camera, environment);
   const grass = new BattleGrassPass(shell, environment);
   grass.setField(flatFieldFor(bounds), bounds, 'green-grass', params);
@@ -3253,9 +3410,8 @@ async function routeBattleGrassField(ctx: LabContext) {
       zoom: numberParam(ctx.params, 'cameraZoom', closeLabCamera.zoom),
       pitch: numberParam(ctx.params, 'cameraPitch', closeLabCamera.pitch),
       yaw: numberParam(ctx.params, 'cameraYaw', closeLabCamera.yaw),
-      perspective: numberParam(ctx.params, 'cameraPerspective', closeLabCamera.perspective),
     }
-    : { x: 10, y: -14, zoom: 40, pitch: 0.66, yaw: -0.18, perspective: 0.020 };
+    : { x: 10, y: -14, zoom: 40, pitch: 0.66, yaw: -0.18 };
   const shell = await createConfiguredShell(ctx.canvas, camera, environment);
   const ground = new BattleGroundPass(shell, environment);
   ground.setTerrain(grid, field, 'green-grass', 2);
@@ -3542,17 +3698,21 @@ const FOREGROUND_CLOSE_LAB_WINDOWS = {
 type ForegroundCloseLabCameraProfile = 'b4b1-current' | 'scale-repair-low' | 'scale-repair-oblique' | 'b4b1a0-test-env';
 
 const FOREGROUND_CLOSE_LAB_CAMERA_PROFILES: Record<ForegroundCloseLabCameraProfile, {
-  camera: { x: number; y: number; zoom: number; pitch: number; yaw: number; perspective: number };
+  camera: { x: number; y: number; zoom: number; pitch: number; yaw: number };
   reviewWindows: typeof FOREGROUND_CLOSE_LAB_WINDOWS;
   calibration: string;
 }> = {
+  // Profile pitches raised together after the projector collapse: blade
+  // verticality is sin(pitch) under camera3d, so the close-hero window needs
+  // sin ≈ 0.89–0.95 for grass to dominate the foreground again. Relative
+  // ordering (current < low < test-env < oblique) is preserved.
   'b4b1-current': {
-    camera: { x: 0, y: -36, zoom: 104, pitch: 0.78, yaw: -0.08, perspective: 0.020 },
+    camera: { x: 0, y: -36, zoom: 104, pitch: 1.10, yaw: -0.08 },
     reviewWindows: FOREGROUND_CLOSE_LAB_WINDOWS,
     calibration: 'none',
   },
   'scale-repair-low': {
-    camera: { x: 0, y: -47, zoom: 155, pitch: 0.92, yaw: -0.06, perspective: 0.030 },
+    camera: { x: 0, y: -47, zoom: 155, pitch: 1.18, yaw: -0.06 },
     reviewWindows: {
       closeHero: { x: 0.08, y: 0.60, width: 0.84, height: 0.30 },
       closeTight2x: { x: 0.25, y: 0.66, width: 0.50, height: 0.22 },
@@ -3563,7 +3723,7 @@ const FOREGROUND_CLOSE_LAB_CAMERA_PROFILES: Record<ForegroundCloseLabCameraProfi
     calibration: 'neutral-scale-guides',
   },
   'scale-repair-oblique': {
-    camera: { x: 0, y: -51, zoom: 132, pitch: 1.04, yaw: -0.12, perspective: 0.042 },
+    camera: { x: 0, y: -51, zoom: 132, pitch: 1.26, yaw: -0.12 },
     reviewWindows: {
       closeHero: { x: 0.08, y: 0.58, width: 0.84, height: 0.32 },
       closeTight2x: { x: 0.25, y: 0.65, width: 0.50, height: 0.23 },
@@ -3574,7 +3734,7 @@ const FOREGROUND_CLOSE_LAB_CAMERA_PROFILES: Record<ForegroundCloseLabCameraProfi
     calibration: 'neutral-scale-guides',
   },
   'b4b1a0-test-env': {
-    camera: { x: 0, y: -50, zoom: 178, pitch: 0.96, yaw: -0.045, perspective: 0.032 },
+    camera: { x: 0, y: -50, zoom: 178, pitch: 1.22, yaw: -0.045 },
     reviewWindows: {
       closeHero: { x: 0.08, y: 0.61, width: 0.84, height: 0.254 },
       closeTight2x: { x: 0.24, y: 0.64, width: 0.52, height: 0.22 },
@@ -3916,6 +4076,9 @@ async function routeBattleInput(ctx: LabContext) {
   const viewH = (ctx.canvas.clientHeight || 620) * dpr;
   const camera = battleCamera(bounds, viewW, viewH, mode);
   const shell = await createConfiguredShell(ctx.canvas, camera);
+  // GPU camera and CPU picking build the SAME chartCamera3d from this one chart
+  // spec (chartSnapshot here, pickingDebug's conversions on cameraForPick()).
+  const applyCamera = () => shell.setCamera(chartSnapshot(camera, shell));
   const cameraForPick = (): RendererBattlePickCamera => ({
     x: camera.x,
     y: camera.y,
@@ -4041,7 +4204,7 @@ async function routeBattleInput(ctx: LabContext) {
         if (Number.isFinite(next.zoom)) camera.zoom = Math.max(0.6, Math.min(40, next.zoom!));
         if (Number.isFinite(next.pitch)) camera.pitch = Math.max(0, Math.min(1.1, next.pitch!));
         if (Number.isFinite(next.yaw)) camera.yaw = next.yaw!;
-        shell.setCamera(camera);
+        applyCamera();
         draw();
       },
     });
@@ -4093,11 +4256,11 @@ async function routeBattleInput(ctx: LabContext) {
     event.preventDefault();
     const before = cssToBattleWorld(event.clientX, event.clientY, ctx.canvas, cameraForPick());
     camera.zoom = Math.max(0.6, Math.min(40, camera.zoom * Math.pow(1.0015, -event.deltaY)));
-    shell.setCamera(camera);
+    applyCamera();
     const after = cssToBattleWorld(event.clientX, event.clientY, ctx.canvas, cameraForPick());
     camera.x += before.x - after.x;
     camera.y += before.y - after.y;
-    shell.setCamera(camera);
+    applyCamera();
     draw();
   }, { passive: false });
 
@@ -4123,12 +4286,12 @@ async function routeWaterBakeoff(ctx: LabContext) {
   // Slice 02 keystone: the water route runs on the real 3D perspective camera and a
   // reverse-Z depth32float buffer — the finite plane now meets a true straight
   // horizon instead of the fake-projection dome/streak wedge.
-  const shell = await createFrameShell(ctx.canvas, { enableGpuTimer: true, reverseZ: true });
+  const shell = await createFrameShell(ctx.canvas, { enableGpuTimer: true });
 
   // An oblique framing that looks out to sea toward +y (yaw −π/2 puts the eye south
   // of the target, looking north over the plane's 1100-unit span). Infinite far
   // plane → the ground plane's vanishing line is the horizon. camera3d owns the
-  // matrices; the legacy scalars only feed the water shader's distance-haze key,
+  // matrices; the x/y focus scalars only feed the water shader's distance-haze key,
   // which we anchor at the eye's ground footprint so haze grows with view distance.
   // Pitch is deliberately not so grazing that the near sea turns to a solid glint
   // sheet — the look scenes (foam/albedo) read the material, not a specular wall.
@@ -4146,7 +4309,7 @@ async function routeWaterBakeoff(ctx: LabContext) {
     near: 1,
   };
   const eye = eyePosition(cam3d);
-  shell.setCamera({ x: eye[0], y: eye[1], zoom: 1, pitch: cam3d.pitch, yaw: cam3d.yaw, camera3d: cam3d });
+  shell.setCamera({ x: eye[0], y: eye[1], zoom: 1, camera3d: cam3d });
   shell.setSun(sunAz, sunEl);
 
   // Sky clear from the preset's haze colour so the sea meets a matching horizon
@@ -4157,7 +4320,7 @@ async function routeWaterBakeoff(ctx: LabContext) {
   // loser was deleted in Slice 11). This route renders the open-sea plane and stays
   // the shared renderer for every look scene (silhouette/foam/glint/albedo/haze/rhythm).
   const field = createWaterField(shell);
-  const plane = new WaterPlanePass(shell, field, undefined, env, { real: true });
+  const plane = new WaterPlanePass(shell, field, undefined, env);
 
   const drawAt = (t: number) => {
     shell.setTime(t);
@@ -4304,9 +4467,22 @@ function routeCamera3dProbe(ctx: LabContext) {
   });
 }
 
-async function createConfiguredShell(canvas: HTMLCanvasElement, camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number }, environment: BattleEnvironment = resolveBattleEnvironment('golden-hour')) {
+// Chart framing spec + a device-pixel viewport → the full CameraSnapshot the
+// CPU projection helpers (worldToScreen/screenToWorld/world3dToScreen) take.
+// Builds the SAME chartCamera3d the shell renders with, so CPU picks/samples
+// and the GPU frame agree by construction.
+function chartCameraSnapshot(spec: ChartCameraSpec, width: number, height: number): CameraSnapshot {
+  return { x: spec.x, y: spec.y, zoom: spec.zoom, width, height, camera3d: chartCamera3d(spec, height) };
+}
+
+// The setCamera form of the same conversion (the shell owns width/height).
+function chartSnapshot(spec: ChartCameraSpec, shell: RawFrameShell): Omit<CameraSnapshot, 'width' | 'height'> {
+  return { x: spec.x, y: spec.y, zoom: spec.zoom, camera3d: chartCamera3d(spec, shell.stats().height) };
+}
+
+async function createConfiguredShell(canvas: HTMLCanvasElement, camera: ChartCameraSpec, environment: BattleEnvironment = resolveBattleEnvironment('golden-hour')) {
   const shell = await createFrameShell(canvas);
-  shell.setCamera(camera);
+  shell.setCamera(chartSnapshot(camera, shell));
   applyBattleEnvironment(shell, environment);
   return shell;
 }
@@ -4317,13 +4493,16 @@ function clearForEnvironment(environment: BattleEnvironment) {
 }
 
 function grassModelShotConfig(gate: 'tuft' | 'patch'): {
-  camera: { x: number; y: number; zoom: number; pitch: number; yaw: number; perspective: number };
+  camera: { x: number; y: number; zoom: number; pitch: number; yaw: number };
   bounds: BattleGrassBounds;
   params: BattleGrassParams;
 } {
+  // Blades are vertical content: camera3d scales them by sin(pitch), so the
+  // model sheets need the oblique review pitch (sin(1.15) ≈ 0.91) to keep the
+  // silhouette readable.
   if (gate === 'patch') {
     return {
-      camera: { x: 0, y: -0.6, zoom: 88, pitch: 0.74, yaw: -0.10, perspective: 0.020 },
+      camera: { x: 0, y: -0.6, zoom: 128, pitch: 1.15, yaw: -0.10 },
       bounds: { x: -1.2, y: -0.9, width: 2.4, height: 1.8 },
       params: {
         seed: 0x2244,
@@ -4340,7 +4519,7 @@ function grassModelShotConfig(gate: 'tuft' | 'patch'): {
     };
   }
   return {
-    camera: { x: 0, y: -0.08, zoom: 178, pitch: 0.84, yaw: -0.06, perspective: 0.024 },
+    camera: { x: 0, y: -0.08, zoom: 260, pitch: 1.15, yaw: -0.06 },
     bounds: { x: -0.32, y: -0.28, width: 0.64, height: 0.56 },
     params: {
       seed: 0x1144,
@@ -4785,13 +4964,13 @@ function battleCamera(bounds: { cx: number; cy: number; w: number; h: number }, 
 }
 
 function campaignPresetCamera(preset: string) {
-  const presets: Record<string, { x: number; y: number; zoom: number; pitch: number; yaw: number; perspective?: number }> = {
+  const presets: Record<string, { x: number; y: number; zoom: number; pitch: number; yaw: number }> = {
     fixture: { x: 0, y: 450, zoom: 6.0, pitch: 0, yaw: 0 },
     whole: { x: -100, y: 250, zoom: 0.16, pitch: 0, yaw: 0 },
-    roma: { x: -456, y: 446, zoom: 2.5, pitch: 0, yaw: 0, perspective: 0.0048 },
-    gaul: { x: -1020, y: 938, zoom: 2.2, pitch: 0, yaw: 0, perspective: 0.0038 },
-    nile: { x: 1131, y: -686, zoom: 2.2, pitch: 0, yaw: 0, perspective: 0.0038 },
-    alps: { x: -450, y: 1080, zoom: 1.8, pitch: 0, yaw: 0, perspective: 0.0026 },
+    roma: { x: -456, y: 446, zoom: 2.5, pitch: 0, yaw: 0 },
+    gaul: { x: -1020, y: 938, zoom: 2.2, pitch: 0, yaw: 0 },
+    nile: { x: 1131, y: -686, zoom: 2.2, pitch: 0, yaw: 0 },
+    alps: { x: -450, y: 1080, zoom: 1.8, pitch: 0, yaw: 0 },
     political: { x: 180, y: 520, zoom: 0.58, pitch: 0, yaw: 0 },
   };
   return presets[preset] ?? presets.whole;
@@ -4919,7 +5098,7 @@ function campaignPick(
   clientX: number,
   clientY: number,
   canvas: HTMLCanvasElement,
-  camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number },
+  camera: ChartCameraSpec,
   stats: { width: number; height: number },
   data: CampaignData,
   views: CampaignViews,
@@ -4936,10 +5115,21 @@ function campaignPick(
     }
   }
   if (army >= 0) return { kind: 'army', army, city: -1, worldX: world.x, worldY: world.y };
-  const loc = nearestLoc(data.map, world.x, world.y, 18);
-  if (loc && loc.kind === 0 && data.map.nodes[loc.a]?.kind === 'city') {
-    return { kind: 'city', army: -1, city: loc.a, worldX: world.x, worldY: world.y };
-  }
+  // Scan city nodes directly instead of nearestLoc: roads run THROUGH city
+  // nodes, so a click a fraction off the node centre is marginally closer to
+  // the road polyline than to the node and nearestLoc resolves it to an edge
+  // location — a city click must never race the road under it.
+  let city = -1;
+  let bestCityD = 18;
+  data.map.nodes.forEach((node, index) => {
+    if (node.kind !== 'city') return;
+    const d = Math.hypot(node.pos[0] - world.x, node.pos[1] - world.y);
+    if (d < bestCityD) {
+      bestCityD = d;
+      city = index;
+    }
+  });
+  if (city >= 0) return { kind: 'city', army: -1, city, worldX: world.x, worldY: world.y };
   return { kind: 'empty', army: -1, city: -1, worldX: world.x, worldY: world.y };
 }
 
@@ -4947,19 +5137,19 @@ function campaignCssToWorld(
   clientX: number,
   clientY: number,
   canvas: HTMLCanvasElement,
-  camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number },
+  camera: ChartCameraSpec,
   stats: { width: number; height: number },
 ) {
   const rect = canvas.getBoundingClientRect();
   const px = (clientX - rect.left) * (canvas.width / Math.max(1, canvas.clientWidth));
   const py = (clientY - rect.top) * (canvas.height / Math.max(1, canvas.clientHeight));
-  const [x, y] = screenToWorld({ ...camera, width: stats.width, height: stats.height }, px, py);
+  const [x, y] = screenToWorld(chartCameraSnapshot(camera, stats.width, stats.height), px, py);
   return { x, y };
 }
 
 function publishCampaignUiDebug(
   canvas: HTMLCanvasElement,
-  camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number },
+  camera: ChartCameraSpec,
   views: CampaignViews,
   selectedArmy: number,
   selectedCity: number,
@@ -4991,11 +5181,11 @@ function campaignWorldToCss(
   x: number,
   y: number,
   canvas: HTMLCanvasElement,
-  camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number },
+  camera: ChartCameraSpec,
   stats: { width: number; height: number },
 ) {
   const rect = canvas.getBoundingClientRect();
-  const [px, py] = worldToScreen({ ...camera, width: stats.width, height: stats.height }, x, y);
+  const [px, py] = worldToScreen(chartCameraSnapshot(camera, stats.width, stats.height), x, y);
   return {
     x: rect.left + px * (canvas.clientWidth / Math.max(1, canvas.width)),
     y: rect.top + py * (canvas.clientHeight / Math.max(1, canvas.height)),
@@ -5004,36 +5194,30 @@ function campaignWorldToCss(
 
 function projectNestedPoint(
   canvas: HTMLCanvasElement,
-  camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number },
+  camera: ChartCameraSpec,
   point: [number, number, number],
 ) {
-  const c = Math.cos(camera.yaw ?? 0);
-  const s = Math.sin(camera.yaw ?? 0);
-  const dx = point[0] - camera.x;
-  const dy = point[1] - camera.y;
-  const rx = dx * c + dy * s;
-  const ry = -dx * s + dy * c;
-  const cosP = Math.max(0.2, Math.cos(camera.pitch ?? 0));
-  const perspective = Math.max(0, camera.perspective ?? 0);
-  const depth = Math.max(0.32, 1 + ry * perspective);
-  return {
-    x: (rx * camera.zoom) / depth + canvas.width * 0.5,
-    y: canvas.height * 0.5 - ((ry * camera.zoom * cosP + point[2] * camera.zoom) / depth),
-    world: point,
-  };
+  const snapshot = chartCameraSnapshot(camera, canvas.width, canvas.height);
+  const [x, y] = world3dToScreen(snapshot, point[0], point[1], point[2]);
+  return { x, y, world: point };
 }
 
+// CPU/GPU agreement under the ONE projection owner (camera3d): project each
+// ground anchor through worldToScreen, unproject the pixel back through
+// screenToWorld, and report the round-trip delta in device pixels (world
+// delta × camera.zoom). Both directions ride the same chartCamera3d matrices
+// the shell renders with, so any drift is a real projection bug.
 function worldCameraAnchorAgreement(
   canvas: HTMLCanvasElement,
-  camera: { x: number; y: number; zoom: number; pitch?: number; yaw?: number; perspective?: number },
+  camera: ChartCameraSpec,
   anchors: [string, [number, number, number]][],
 ) {
-  const snapshot = { ...camera, width: canvas.width, height: canvas.height };
+  const snapshot = chartCameraSnapshot(camera, canvas.width, canvas.height);
   const points = anchors.map(([id, point]) => {
-    const cpu = worldToScreen(snapshot, point[0], point[1]);
-    const gpu = projectNestedPoint(canvas, camera, point);
-    const delta = Math.hypot(cpu[0] - gpu.x, cpu[1] - gpu.y);
-    return { id, cpu, gpu: [gpu.x, gpu.y], delta };
+    const screen = worldToScreen(snapshot, point[0], point[1]);
+    const world = screenToWorld(snapshot, screen[0], screen[1]);
+    const delta = Math.hypot(world[0] - point[0], world[1] - point[1]) * camera.zoom;
+    return { id, screen, roundTrip: world, delta };
   });
   return {
     maxDelta: points.reduce((max, point) => Math.max(max, point.delta), 0),
@@ -5065,6 +5249,7 @@ function exposeBattleInputDebug(
       advance(n: number): void;
       freezeAtTick(target: number): void | Promise<void>;
       setCamera(next: Partial<RendererBattlePickCamera>): void;
+      project(x: number, y: number): { x: number; y: number };
     };
   };
   w.__gpuBattleInput = {
@@ -5082,13 +5267,21 @@ function exposeBattleInputDebug(
     advance: controls.advance,
     freezeAtTick: controls.freezeAtTick,
     setCamera: controls.camera,
+    // The harness's own camera3d-backed world→css conversion, so scene-side
+    // screen positioning cannot drift from the pick math.
+    project: (x: number, y: number) => battleWorldToCss(x, y, canvas, camera),
   };
 }
 
 function publish(route: string, ok: boolean, stats: unknown) {
-  const w = window as unknown as { __rendererLabReady?: boolean; __rendererLabStats?: unknown };
+  const w = window as unknown as {
+    __rendererLabReady?: boolean;
+    __rendererLabStats?: { ok: boolean; route: string; projection: typeof PROJECTION_IDENTITY; stats: unknown };
+  };
   w.__rendererLabReady = true;
-  w.__rendererLabStats = { ok, route, stats };
+  // Every route publishes the engine's one projection/depth identity so the
+  // scene suite can prove one projector engine-wide.
+  w.__rendererLabStats = { ok, route, projection: PROJECTION_IDENTITY, stats };
 }
 
 function reportTable(values: Record<string, unknown>) {

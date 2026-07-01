@@ -59,17 +59,19 @@ export async function run(ctx) {
 
   // camera3d convention (slice 04): pitch π/2 = straight down, small = oblique;
   // pitch DECREASES and fovY/closeness INCREASE from tactical zoom-out to vista.
+  // The rig is read from renderStats.camera.camera3d — the one projection owner
+  // (the snapshot carries no separate pitch scalar since the 05b collapse).
   ctx.check('zoom rig frames the widest view near top-down',
-    rigs[0].zoomT < 0.2 && rigs[0].pitch > 1.2,
+    rigs[0].zoomT < 0.2 && rigs[0].camera3d.pitch > 1.2,
     JSON.stringify(rigs[0]));
   ctx.check('zoom rig keeps playable mid zoom tilting off top-down',
-    rigs[1].zoomT > 0.15 && rigs[1].zoomT < 0.65 && rigs[1].pitch > 0.9 && rigs[1].pitch < 1.35,
+    rigs[1].zoomT > 0.15 && rigs[1].zoomT < 0.65 && rigs[1].camera3d.pitch > 0.9 && rigs[1].camera3d.pitch < 1.35,
     JSON.stringify(rigs[1]));
   ctx.check('zoom rig reaches the close low-oblique vista band',
-    rigs[2].zoomT === 1 && rigs[2].pitch < 0.4 && rigs[2].camera3d.fovY > rigs[1].camera3d.fovY,
+    rigs[2].zoomT === 1 && rigs[2].camera3d.pitch < 0.4 && rigs[2].camera3d.fovY > rigs[1].camera3d.fovY,
     JSON.stringify(rigs[2]));
   ctx.check('zoom rig progression is monotonic (pitch falls, fov widens, distance closes)',
-    rigs[0].pitch > rigs[1].pitch && rigs[1].pitch > rigs[2].pitch
+    rigs[0].camera3d.pitch > rigs[1].camera3d.pitch && rigs[1].camera3d.pitch > rigs[2].camera3d.pitch
       && rigs[0].camera3d.fovY < rigs[1].camera3d.fovY && rigs[1].camera3d.fovY < rigs[2].camera3d.fovY
       && rigs[0].camera3d.distance > rigs[1].camera3d.distance && rigs[1].camera3d.distance > rigs[2].camera3d.distance,
     JSON.stringify(rigs));

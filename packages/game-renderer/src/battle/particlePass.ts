@@ -38,7 +38,7 @@ fn vs(@location(0) quad: vec2f, @location(1) inst: vec4f, @location(2) instMeta:
   let grow = mix(0.6, 1.4, age);
   let world = vec3f(inst.x + quad.x * instMeta.x * grow, inst.y, inst.z + rise + quad.y * instMeta.x * grow);
   var out: VsOut;
-  out.pos = projectWorld3d(world, 0.05);
+  out.pos = projectWorld(world);
   out.local = quad;
   let dust = vec3f(0.74, 0.66, 0.49);
   let blood = vec3f(0.42, 0.06, 0.05);

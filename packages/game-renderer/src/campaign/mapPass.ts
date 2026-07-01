@@ -1,7 +1,7 @@
 import type { CameraSnapshot } from '../../../renderer-core/src/cameraUniform';
 import { worldToScreen } from '../../../renderer-core/src/cameraUniform';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
-import { gpuAlphaBlendColorTarget, gpuReverseZDepthStencil, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import { gpuAlphaBlendColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 import { CAMPAIGN_SEA_PALETTE_WGSL } from '../water/waterPalette';
 import type { BackgroundRenderPass, OverlayRenderPass, RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 
@@ -133,7 +133,7 @@ struct VsOut {
 @vertex
 fn vs(@location(0) world: vec3f, @location(1) uv: vec2f) -> VsOut {
   var out: VsOut;
-  out.pos = projectWorld3d(world, civsimCampaignWorldDepth3d(world));
+  out.pos = projectWorld(world);
   out.uv = uv;
   out.world = world.xy;
   out.height = world.z;
@@ -251,10 +251,11 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   col = mix(col, vec3f(0.30, 0.48, 0.58), coast * seaMask * 0.20);
   // Subtle sea shimmer: the glint waves crawl on cam.time, gated so the map reads as a
   // still painted chart from altitude and comes gently alive close in — opened by
-  // EITHER zoom (the campaign zooms in to close) OR pitch (it tilts as it descends), so
-  // the gate works both in the top-down lab presets and the tilting live map. cam.time
-  // is 0 in frozen snapshots, so the drift vanishes and the map stays byte-identical.
-  let seaMotion = max(smoothstep(0.8, 2.0, cam.zoom), smoothstep(0.95, 0.70, cam.cosP));
+  // EITHER zoom (cam.zoom, the chart scale, grows as the camera closes in) OR tilt
+  // (cam.tilt = sin of the camera pitch; 1 = top-down, falls as the camera descends).
+  // cam.time is 0 in frozen snapshots, so the drift vanishes and the map stays
+  // byte-identical.
+  let seaMotion = max(smoothstep(0.8, 2.0, cam.zoom), smoothstep(0.95, 0.70, cam.tilt));
   let drift = cam.time * 0.09 * seaMotion;
   let wave = sin(in.world.x * 0.045 + in.world.y * 0.018 + vnoise(in.world * 0.022) * 2.2 + drift);
   let cross = sin(in.world.x * -0.021 + in.world.y * 0.052 + vnoise(in.world * 0.011 + vec2f(4.7, 9.2)) * 2.8 - drift * 0.7);
@@ -281,7 +282,7 @@ struct VsOut { @builtin(position) pos: vec4f, @location(0) color: vec4f };
 @vertex
 fn vs(@location(0) world: vec2f, @location(1) color: vec4f) -> VsOut {
   var out: VsOut;
-  out.pos = projectGround(world, civsimCampaignGroundDepth(world, 0.05));
+  out.pos = projectWorld(vec3f(world, 0.0));
   out.color = color;
   return out;
 }
@@ -310,7 +311,7 @@ fn vs(
   @location(3) material: f32,
 ) -> VsOut {
   var out: VsOut;
-  out.pos = projectWorld3d(world, civsimCampaignWorldDepth3d(world));
+  out.pos = projectWorld(world);
   out.color = color;
   out.world = world;
   out.uv = uv;
@@ -353,7 +354,7 @@ struct VsOut {
 @vertex
 fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: vec4f, @location(3) inst2: vec4f) -> VsOut {
   let markerKind = inst0.w;
-  let anchor = projectGround(inst0.xy, 0.08);
+  let anchor = projectWorld(vec3f(inst0.xy, 0.0));
   let size = inst0.z;
   let cityOffset = quad * size;
   let flagOffset = vec2f(quad.x * size, (quad.y + 1.0) * size);
@@ -390,24 +391,11 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   return vec4f(mix(fill, selectedEdge, outline * (1.0 - pennant) * 0.75), alpha);
 }`;
 
-// Swap the legacy 2.5D projector calls for the real camera3d projector
-// (projectReal) so a campaign pass renders under the real perspective camera +
-// reverse-Z (slice 05). A no-op when `real` is false, so the pass stays
-// byte-identical on the legacy depth24plus painter path — the renderer-lab
-// campaign review routes still build these passes on a non-reverse-Z shell.
-function realProjection(wgsl: string, real: boolean): string {
-  if (!real) return wgsl;
-  return wgsl
-    .replace('projectWorld3d(world, civsimCampaignWorldDepth3d(world))', 'projectReal(world)')
-    .replace('projectGround(world, civsimCampaignGroundDepth(world, 0.05))', 'projectReal(vec3f(world, 0.0))')
-    .replace('projectGround(inst0.xy, 0.08)', 'projectReal(vec3f(inst0.xy, 0.0))');
-}
-
-// The label anchor projection: legacy 2.5D screen-space, or the real camera3d
-// projection (projectReal → NDC → device pixels). Both return device-pixel
-// screen space (y-down); the CPU visibility cull (visibleLabels) uses the
-// matching cameraUniform.worldToScreen so atlas placement and the GPU agree.
-const labelWgsl = (real: boolean) => `
+// The label anchor projection: the real camera3d projection (projectWorld →
+// NDC → device pixels), returned in device-pixel screen space (y-down); the
+// CPU visibility cull (visibleLabels) uses the matching
+// cameraUniform.worldToScreen so atlas placement and the GPU agree.
+const labelWgsl = `
 ${WORLD_CAMERA_WGSL}
 @group(1) @binding(0) var labelTex: texture_2d<f32>;
 @group(1) @binding(1) var labelSampler: sampler;
@@ -418,16 +406,9 @@ struct VsOut {
 };
 
 fn projectScreen(world: vec2f) -> vec2f {
-${real
-    ? `  let clip = projectReal(vec3f(world, 0.0));
+  let clip = projectWorld(vec3f(world, 0.0));
   let ndc = clip.xy / clip.w;
-  return vec2f((ndc.x * 0.5 + 0.5) * cam.width, (1.0 - (ndc.y * 0.5 + 0.5)) * cam.height);`
-    : `  let axes = cameraSpace(world);
-  let depth = perspectiveDepth(axes.y);
-  return vec2f(
-    (axes.x * cam.zoom) / depth + cam.width * 0.5,
-    (-axes.y * cam.zoom * cam.cosP) / depth + cam.height * 0.5
-  );`}
+  return vec2f((ndc.x * 0.5 + 0.5) * cam.width, (1.0 - (ndc.y * 0.5 + 0.5)) * cam.height);
 }
 
 @vertex
@@ -470,14 +451,13 @@ export class CampaignMapPass {
   private terrainMix: number;
   private terrainTextureSize: [number, number] | null;
 
-  constructor(private shell: RawFrameShell, image: ImageBitmap, rect: { min: [number, number]; max: [number, number] }, style: CampaignMapStyle = {}, surface?: CampaignMapSurfaceMesh, opts: { real?: boolean } = {}) {
+  constructor(private shell: RawFrameShell, image: ImageBitmap, rect: { min: [number, number]; max: [number, number] }, style: CampaignMapStyle = {}, surface?: CampaignMapSurfaceMesh) {
     const device = shell.device;
-    const real = opts.real ?? false;
     this.terrainMix = style.terrainMix ?? (style.terrain ? 1 : 0);
     this.terrainTextureSize = style.terrain ? [style.terrain.width, style.terrain.height] : null;
     const module = device.createShaderModule({
       label: 'campaign-map-wgsl',
-      code: realProjection(MAP_WGSL, real)
+      code: MAP_WGSL
         .replaceAll('__SEA_TINT_MIX__', (style.seaTintMix ?? 0).toFixed(3))
         .replaceAll('__TERRAIN_MIX__', this.terrainMix.toFixed(3)),
     });
@@ -536,7 +516,7 @@ export class CampaignMapPass {
       },
       fragment: { module, entryPoint: 'fs', targets: [{ format: shell.info.format }] },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: real ? gpuReverseZDepthStencil('write') : gpuWorldDepthStencil('write'),
+      depthStencil: gpuWorldDepthStencil('write'),
     });
     const mesh = surface ?? flatMapSurface(rect);
     this.indexCount = mesh.indices.length;
@@ -636,9 +616,9 @@ export class CampaignLinePass {
   private pipeline: GPURenderPipeline;
   private geometry: CampaignLineGeometry;
 
-  constructor(private shell: RawFrameShell, private topology: GPUPrimitiveTopology = 'line-list', opts: { real?: boolean } = {}) {
+  constructor(private shell: RawFrameShell, private topology: GPUPrimitiveTopology = 'line-list') {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'campaign-line-wgsl', code: realProjection(LINE_WGSL, opts.real ?? false) });
+    const module = device.createShaderModule({ label: 'campaign-line-wgsl', code: LINE_WGSL });
     this.pipeline = this.makePipeline(module);
     this.geometry = new CampaignLineGeometry(shell, topology, 'campaign-line-empty');
   }
@@ -685,12 +665,9 @@ export class CampaignWorldLinePass {
   private pipeline: GPURenderPipeline;
   private geometry: CampaignLineGeometry;
 
-  private readonly real: boolean;
-
-  constructor(private shell: RawFrameShell, private topology: GPUPrimitiveTopology = 'line-list', opts: { real?: boolean } = {}) {
+  constructor(private shell: RawFrameShell, private topology: GPUPrimitiveTopology = 'line-list') {
     const device = shell.device;
-    this.real = opts.real ?? false;
-    const module = device.createShaderModule({ label: 'campaign-world-line-wgsl', code: realProjection(LINE_WGSL, this.real) });
+    const module = device.createShaderModule({ label: 'campaign-world-line-wgsl', code: LINE_WGSL });
     this.pipeline = this.makePipeline(module);
     this.geometry = new CampaignLineGeometry(shell, topology, 'campaign-world-line-empty');
   }
@@ -717,7 +694,7 @@ export class CampaignWorldLinePass {
         targets: [gpuAlphaBlendColorTarget(this.shell.info.format)],
       },
       primitive: { topology: this.topology },
-      depthStencil: this.real ? gpuReverseZDepthStencil('read') : gpuWorldDepthStencil('read'),
+      depthStencil: gpuWorldDepthStencil('read'),
     });
   }
 
@@ -780,10 +757,9 @@ export class CampaignRoadPass {
   private capacity = 0;
   private vertexCount = 0;
 
-  constructor(private shell: RawFrameShell, opts: { real?: boolean } = {}) {
+  constructor(private shell: RawFrameShell) {
     const device = shell.device;
-    const real = opts.real ?? false;
-    const module = device.createShaderModule({ label: 'campaign-road-wgsl', code: realProjection(ROAD_WGSL, real) });
+    const module = device.createShaderModule({ label: 'campaign-road-wgsl', code: ROAD_WGSL });
     this.pipeline = device.createRenderPipeline({
       label: 'campaign-road-depth-pipeline',
       layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout] }),
@@ -806,7 +782,7 @@ export class CampaignRoadPass {
         targets: [gpuAlphaBlendColorTarget(this.shell.info.format)],
       },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: real ? gpuReverseZDepthStencil('read') : gpuWorldDepthStencil('read'),
+      depthStencil: gpuWorldDepthStencil('read'),
     });
     this.vertexBuffer = device.createBuffer({
       label: 'campaign-road-empty',
@@ -848,9 +824,9 @@ export class CampaignMarkerPass {
   private capacity = 0;
   private markerCount = 0;
 
-  constructor(private shell: RawFrameShell, opts: { real?: boolean } = {}) {
+  constructor(private shell: RawFrameShell) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'campaign-marker-wgsl', code: realProjection(MARKER_WGSL, opts.real ?? false) });
+    const module = device.createShaderModule({ label: 'campaign-marker-wgsl', code: MARKER_WGSL });
     this.pipeline = device.createRenderPipeline({
       label: 'campaign-marker-pipeline',
       layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),
@@ -961,9 +937,9 @@ export class CampaignLabelPass {
     layer: 'raw-gpu-glyph-atlas',
   };
 
-  constructor(private shell: RawFrameShell, opts: { real?: boolean } = {}) {
+  constructor(private shell: RawFrameShell) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'campaign-label-wgsl', code: labelWgsl(opts.real ?? false) });
+    const module = device.createShaderModule({ label: 'campaign-label-wgsl', code: labelWgsl });
     this.bindGroupLayout = device.createBindGroupLayout({
       label: 'campaign-label-atlas-bgl',
       entries: [

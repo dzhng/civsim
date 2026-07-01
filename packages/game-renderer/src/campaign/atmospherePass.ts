@@ -12,18 +12,9 @@ export interface CampaignFogSource {
   radius: number;
 }
 
-// Swap the legacy 2.5D ground projector for the real camera3d projector so the
-// overlay atmosphere quads (cloud veil / fog-of-war) land in the right place
-// under the real perspective camera (slice 05). A no-op when `real` is false, so
-// the renderer-lab campaign routes stay byte-identical on the legacy path.
-function realProjection(wgsl: string, real: boolean): string {
-  return real
-    ? wgsl
-        .replace('projectGround(world, 0.12)', 'projectReal(vec3f(world, 0.0))')
-        .replace('projectGround(world, 0.11)', 'projectReal(vec3f(world, 0.0))')
-    : wgsl;
-}
-
+// The overlay atmosphere quads (cloud veil / fog-of-war) sit on the ground
+// plane and project through the one real camera3d projector like every other
+// campaign pass.
 const CLOUD_WGSL = `
 ${WORLD_CAMERA_WGSL}
 
@@ -36,7 +27,7 @@ struct VsOut {
 @vertex
 fn vs(@location(0) world: vec2f, @location(1) uv: vec2f) -> VsOut {
   var out: VsOut;
-  out.pos = projectGround(world, 0.12);
+  out.pos = projectWorld(vec3f(world, 0.0));
   out.uv = uv;
   out.world = world;
   return out;
@@ -100,7 +91,7 @@ struct VsOut {
 @vertex
 fn vs(@location(0) world: vec2f, @location(1) uv: vec2f) -> VsOut {
   var out: VsOut;
-  out.pos = projectGround(world, 0.11);
+  out.pos = projectWorld(vec3f(world, 0.0));
   out.uv = uv;
   out.world = world;
   return out;
@@ -168,9 +159,9 @@ export class CampaignFogPass {
   private sourceCount = 0;
   private enabled = false;
 
-  constructor(private shell: RawFrameShell, rect: CampaignAtmosphereRect, opts: { real?: boolean } = {}) {
+  constructor(private shell: RawFrameShell, rect: CampaignAtmosphereRect) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'campaign-fog-wgsl', code: realProjection(FOG_WGSL, opts.real ?? false) });
+    const module = device.createShaderModule({ label: 'campaign-fog-wgsl', code: FOG_WGSL });
     this.bindGroupLayout = device.createBindGroupLayout({
       label: 'campaign-fog-bgl',
       entries: [{ binding: 0, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } }],
@@ -264,9 +255,9 @@ export class CampaignCloudPass {
   private pipeline: GPURenderPipeline;
   private vertexBuffer: GPUBuffer;
 
-  constructor(private shell: RawFrameShell, rect: CampaignAtmosphereRect, alphaScale = 1, opts: { real?: boolean } = {}) {
+  constructor(private shell: RawFrameShell, rect: CampaignAtmosphereRect, alphaScale = 1) {
     const device = shell.device;
-    const code = realProjection(CLOUD_WGSL, opts.real ?? false).replace('__CLOUD_ALPHA_SCALE__', alphaScale.toFixed(3));
+    const code = CLOUD_WGSL.replace('__CLOUD_ALPHA_SCALE__', alphaScale.toFixed(3));
     const module = device.createShaderModule({ label: 'campaign-cloud-wgsl', code });
     this.pipeline = device.createRenderPipeline({
       label: 'campaign-cloud-pipeline',

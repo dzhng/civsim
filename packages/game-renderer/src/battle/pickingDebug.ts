@@ -1,3 +1,8 @@
+// The lab battle pick harness. One projector (camera3d): the harness frames the
+// battle in chart terms ({x, y, zoom, pitch, yaw} plus the device-pixel
+// viewport) and converts css↔world through the SAME chartCamera3d the route
+// feeds to shell.setCamera, so CPU picking and the GPU frame cannot drift.
+import { chartCamera3d, projectPoint, unprojectToPlaneZ, type Camera3DParams } from '../../../renderer-core/src/camera3d';
 import { CLASS_DEPTH, CLASS_SPACING, UNIT_INFO } from './unitInfoLayout';
 
 export interface RendererBattlePickCamera {
@@ -56,30 +61,31 @@ export function liveBattlePickUnits(game: BattlePickGame, memory: WebAssembly.Me
   return units;
 }
 
+// The chart framing resolved to real camera3d params, aspect pinned to the
+// harness viewport — the same resolution the shell renders with.
+function pickParams(camera: RendererBattlePickCamera): Camera3DParams {
+  return { ...chartCamera3d(camera, camera.height), aspect: camera.width / Math.max(1, camera.height) };
+}
+
 export function cssToBattleWorld(cssX: number, cssY: number, canvas: HTMLCanvasElement, camera: RendererBattlePickCamera) {
   const rect = canvas.getBoundingClientRect();
   const px = (cssX - rect.left) * (canvas.width / Math.max(1, canvas.clientWidth));
   const py = (cssY - rect.top) * (canvas.height / Math.max(1, canvas.clientHeight));
-  const rx = (px - camera.width * 0.5) / camera.zoom;
-  const ry = -(py - camera.height * 0.5) / (camera.zoom * cosPitch(camera.pitch));
-  const c = Math.cos(camera.yaw);
-  const s = Math.sin(camera.yaw);
-  return {
-    x: camera.x + rx * c - ry * s,
-    y: camera.y + rx * s + ry * c,
-  };
+  const ndcX = (px / Math.max(1, camera.width)) * 2 - 1;
+  const ndcY = 1 - (py / Math.max(1, camera.height)) * 2;
+  const hit = unprojectToPlaneZ(pickParams(camera), ndcX, ndcY, 0);
+  // Ray misses the ground (parallel or behind the eye): fall back to the centre.
+  if (!hit) return { x: camera.x, y: camera.y };
+  return { x: hit[0], y: hit[1] };
 }
 
 export function battleWorldToCss(x: number, y: number, canvas: HTMLCanvasElement, camera: RendererBattlePickCamera) {
   const rect = canvas.getBoundingClientRect();
-  const c = Math.cos(camera.yaw);
-  const s = Math.sin(camera.yaw);
-  const dx = x - camera.x;
-  const dy = y - camera.y;
-  const rx = dx * c + dy * s;
-  const ry = -dx * s + dy * c;
-  const px = rx * camera.zoom + camera.width * 0.5;
-  const py = -ry * camera.zoom * cosPitch(camera.pitch) + camera.height * 0.5;
+  const { ndc, clipW } = projectPoint(pickParams(camera), [x, y, 0]);
+  // Behind the camera: report far off-screen so callers cull it.
+  if (clipW <= 0) return { x: -1e5, y: -1e5 };
+  const px = (ndc[0] * 0.5 + 0.5) * camera.width;
+  const py = (1 - (ndc[1] * 0.5 + 0.5)) * camera.height;
   return {
     x: rect.left + px * (canvas.clientWidth / Math.max(1, canvas.width)),
     y: rect.top + py * (canvas.clientHeight / Math.max(1, canvas.height)),
@@ -103,8 +109,4 @@ export function battleUnitsInRect(units: BattlePickUnit[], x0: number, y0: numbe
   return units
     .filter((unit) => (team === 'any' || unit.team === team) && unit.x >= x0 && unit.x <= x1 && unit.y >= y0 && unit.y <= y1)
     .map((unit) => unit.unit);
-}
-
-function cosPitch(pitch: number) {
-  return Math.max(0.2, Math.cos(pitch));
 }

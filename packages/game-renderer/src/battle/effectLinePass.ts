@@ -9,7 +9,7 @@ export interface BattleEffectLineStats {
   cameraContract: 'shared-world-camera-wgsl';
 }
 
-const EFFECT_LINE_WGSL = (real: boolean) => `
+const EFFECT_LINE_WGSL = `
 ${WORLD_CAMERA_WGSL}
 struct VsOut {
   @builtin(position) pos: vec4f,
@@ -19,7 +19,7 @@ struct VsOut {
 @vertex
 fn vs(@location(0) world: vec2f, @location(1) color: vec3f) -> VsOut {
   var out: VsOut;
-  out.pos = ${real ? 'projectReal(vec3f(world, 0.0))' : 'projectGround(world, 0.0)'};
+  out.pos = projectWorld(vec3f(world, 0.0));
   out.color = color;
   return out;
 }
@@ -35,10 +35,9 @@ export class BattleEffectLinePass {
   private capacity = 0;
   private vertexCount = 0;
 
-  constructor(private shell: RawFrameShell, opts: { real?: boolean } = {}) {
+  constructor(private shell: RawFrameShell) {
     const device = shell.device;
-    const real = opts.real ?? false;
-    const module = compileShader(device, EFFECT_LINE_WGSL(real), 'battle-effect-line');
+    const module = compileShader(device, EFFECT_LINE_WGSL, 'battle-effect-line');
     this.pipeline = device.createRenderPipeline({
       label: 'battle-effect-line-pipeline',
       layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),

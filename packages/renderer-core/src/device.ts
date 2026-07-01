@@ -32,8 +32,6 @@ export interface RequestGpuDeviceOptions {
   callbacks?: GpuDeviceCallbacks;
   /** Defaults to 'high-performance' — we always want the discrete GPU when present. */
   powerPreference?: GpuPowerPreference;
-  /** Test hook threaded into caps to exercise the depth fallback. */
-  forceNoDepth24?: boolean;
 }
 
 // Bindings the renderer relies on above the spec's conservative device
@@ -84,7 +82,6 @@ export async function requestGpuDevice(options: RequestGpuDeviceOptions = {}): P
       adapterLimits,
       deviceFeatures: device.features,
       powerPreference,
-      forceNoDepth24: options.forceNoDepth24,
     }),
   };
 }

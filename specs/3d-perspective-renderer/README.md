@@ -97,11 +97,45 @@ snapshot baselines are stale (identical diff counts before/after this slice); th
 `water-silhouette` 8ms budget check fails only on the **SwiftShader software
 rasterizer** (perf gates are hardware-only per this README).
 
-**Exact next pickup point:** **slice `03` (zoom→camera rig)** — turn the
-zoom/pitch/FOV knobs into one pure, testable curve (`cameraRig.ts`) feeding
-`Camera3DParams`, for battle + campaign, with a genuine near-top-down end. `01`+`02`
-are green. Do NOT start the seam flip (`04`) until `03` is green. The `06` bake-off
-can run in parallel (it only needs `01`+`02`'s water proof).
+**Slice `03` is DONE (committed, 2026-07-02).** The zoom→camera rig landed as a
+pure, deterministic curve mapping zoom → real `Camera3DParams` framing. **Purely
+additive** (refinement over the slice file, which said "rewrite `cameraForZoom`"):
+the legacy `cameraForZoom` + `scene.ts` 2.5D path is UNTOUCHED (battle renders
+byte-identical) and stays wired until slice `04` swaps `scene.ts` onto the new rig
+and deletes `cameraForZoom`. Two rigs coexist only across that short migration seam
+— collapse it at `04`.
+- **New in `web/src/battle/cameraRig.ts`:** `battleCameraRig(zoom, zoomRange,
+  bounds)` and `campaignCameraRig(...)`, both returning `ZoomCameraRig
+  { target:[x,y,z]; distance; pitch; fovY; zoomT }` (camera3d convention: pitch π/2
+  = top-down, small = oblique; **pitch/distance DECREASE with zoom, fovY increases**
+  — opposite sign to the legacy flat-convention `cameraForZoom` pitch). `yaw`/
+  `aspect`/`near` are the caller's to fill at wire-time (`04`); `target` is a forward
+  look-ahead offset along −X (the yaw-0 view direction) added to the ground
+  view-centre by the caller. `zoomT` still exported (grass/haze read it).
+- **Chosen curve endpoints (the human tuning knob):**
+  battle pitch **1.35 → 0.28 rad** (~77°→16° down), fovY **0.50 → 0.85 rad**
+  (~29°→49°), distance **2.0·min(w,h) → 0.6·min(w,h)**, forward look-ahead
+  **0 → 0.30·min(w,h)**. Campaign is flatter/narrower and lingers near top-down:
+  pitch **1.42 → 0.55**, fovY **0.45 → 0.65**, `easeBias` **1.8** (vs battle 1.0) so
+  it stays a near-top-down chart past the midpoint. One `smoothstep(zoomT)^easeBias`
+  eased parameter drives every axis → monotonic + continuous by construction.
+- **Single-curve legibility:** the monotonic curve kept mid-zoom legible in the probe
+  contact sheet, so the **RTS-mode fovY clamp fallback was NOT needed** (recorded as
+  available if `04`'s play-test finds mid-zoom too wide).
+- **Verified:** `web/tests/cameraRig.test.ts` extended (+9 tests, 37 total green) —
+  pitch/fovY/distance monotonic, near-top-down band out / vista band in, continuous,
+  clamped past both ends, deterministic, campaign-flatter-than-battle. `typecheck`
+  green. Probe extended additively to accept `targetX/targetY/targetZ` (was fixed
+  `[0,0,0]`). Contact sheet (top-down→mid→vista) captured via the `/renderer/
+  camera3d-probe` route; screenshot-critique verdict: reads as a smooth dolly from
+  tactical top-down to cinematic horizon vista.
+
+**Exact next pickup point:** **slice `04` (flip the shared seam → battle
+engine-wide + 3D ray-cast picking).** `01`+`02`+`03` are green. `04` swaps
+`scene.ts` onto `battleCameraRig` (filling `yaw=0`, live `aspect`, adding the ground
+view-centre to `rig.target`), deletes the legacy `cameraForZoom`/`CameraRig`/
+`BATTLE_CAMERA_RIG_LIMITS`, and collapses the two-rig seam. The `06` bake-off can
+still run in parallel.
 
 **Active blockers / coordination warnings:**
 - **Overlap with `specs/battle-map-reference/`** (active, in-flight). That spec is
@@ -125,7 +159,7 @@ can run in parallel (it only needs `01`+`02`'s water proof).
 **Global TODO checklist:**
 - [x] `01` — `camera3d` pure math library (renderer-core) + `/renderer/camera3d-probe` **(done)**
 - [x] `02` — real depth + real projection proven on the **water route** (keystone) **(done — dome gone, reverse-Z on SwiftShader confirmed)**
-- [ ] `03` — zoom→camera rig (pure curve), battle + campaign
+- [x] `03` — zoom→camera rig (pure curve), battle + campaign **(done — additive `battleCameraRig`/`campaignCameraRig`; legacy `cameraForZoom` untouched until `04`)**
 - [ ] `04` — flip the shared seam → **battle** engine-wide + 3D ray-cast picking
 - [ ] `05` — flip **campaign** to the real camera + campaign picking, then **delete
       the legacy projection/depth scaffolding** (no dual path survives the spine)

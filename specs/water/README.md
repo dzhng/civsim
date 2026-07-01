@@ -12,17 +12,31 @@ Reference image (the compare-screenshots target):
 
 ## Next Agent Prompt
 
-> **Status:** Slices 1–6 landed. Winner: **Gerstner** (see
-> [`slices/01-bakeoff-decision.md`](slices/01-bakeoff-decision.md)). Last updated 2026-07-01.
+> **Status:** Slices 1–7 landed — the **open-sea look is complete in the lab**. Winner:
+> **Gerstner** (see [`slices/01-bakeoff-decision.md`](slices/01-bakeoff-decision.md)). Last
+> updated 2026-07-01.
 >
-> **You are picking up at Slice 7 (animation rhythm — time-series GIF).** Read this README and
-> open [`slices/07-animation-rhythm.md`](slices/07-animation-rhythm.md). The look is complete;
-> S7 judges the *motion* over time — film the open-sea plane across a `t` sweep (use the
-> `write-vibe`/screenshot-regression GIF mechanics) and check the swell cadence reads like a
-> real sea (not too fast/slow, no popping). Free-run via `shell.setTime(wallclock)`; snap a
-> frame strip at fixed `t` values. Everything (seam, clock, sun, geometry, foam, glint, colour,
-> haze) is **frozen** — S7 only watches it move. After S7 the next pass is **S8 integration**
-> (drop the locked water pass into the real battle open-sea surface — bigger, touches production).
+> **You are picking up at Slice 8 — the first PRODUCTION integration (battle open-sea).** Read
+> this README and open [`slices/08-integrate-battle-open-sea.md`](slices/08-integrate-battle-open-sea.md).
+> Drop the locked `waterPlanePass` / `waterField` / `waterShade` into the real battle open-sea
+> surface (the sealed `ocean` edge in `battle/horizonPass.ts`), through `projectWorld3d` +
+> `civsimBattleWorldDepth3d` in the world-depth slot, MSAA-safe. The whole look (seam, clock,
+> sun, geometry, foam, glint, colour, haze) is **frozen** — this slice reconciles seams, depth,
+> MSAA and prop/label seating, it does not re-tune the look. Verify on
+> `/renderer/battle-terrain-3d?gate=coastal-scrub&view=west` and a live battle; match the battle
+> environment preset to the terrain lighting so the water sun agrees with the land (the sun
+> uniform already carries the battle-sun default). Watch: no z-fight with `BattleHorizonPass`
+> blockers, no stripe where field water meets the open sea, MSAA=1 today but call
+> `gpuMultisample(shell.sampleCount)`.
+>
+> **Slices 6–7 result:** distance-keyed **haze** in `waterShade` dissolves the far sea into the
+> preset sky (no hard horizon; glint fades with haze) — `water-haze` scene gates the soft seam.
+> **Animation** rides `cam.time` (`shell.setTime`): the 20-wave Gerstner phases advance by
+> dispersion, foam noise drifts, glint shimmers — judged (unprimed) a believable, coherent,
+> pop-free open-sea cadence; deterministic at fixed `t` (the `water-rhythm` scene pins a
+> filmstrip + emits `shots/misc/water/rhythm.gif`). **Known refinement (not a blocker):** foam
+> could linger/decay a touch longer (true foam persistence needs a feedback buffer — a future
+> polish, out of scope for the analytic field).
 >
 > **Slice 5 result:** water is now **neutral albedo × environment preset** — `waterPalette.ts`
 > (Aegean turquoise→deep-blue albedo, depth-ramped by distance) × `waterEnvironment.ts` presets
@@ -80,7 +94,7 @@ Reference image (the compare-screenshots target):
 > - [x] S4 — Sun-glint streak (banded specular, sun-tracking) → `slices/04-sun-glint.md`
 > - [x] S5 — Water albedo + depth ramp × env preset (waterPalette + waterEnvironment) → `slices/05-albedo-depth-ramp.md`
 > - [x] S6 — Horizon haze / aerial perspective (distance-keyed haze in waterShade) → `slices/06-horizon-haze.md`
-> - [ ] S7 — Animation rhythm (time-series GIF) → `slices/07-animation-rhythm.md`
+> - [x] S7 — Animation rhythm (deterministic clock, believable cadence) → `slices/07-animation-rhythm.md`
 > - [ ] S8 — Integrate: battle open-sea (first production surface) → `slices/08-integrate-battle-open-sea.md`
 > - [ ] S9 — Integrate: battle coastal gameplay water → `slices/09-integrate-battle-coastal.md`
 > - [ ] S10 — Integrate: campaign sea (subtle / chart-respecting) → `slices/10-integrate-campaign-sea.md`

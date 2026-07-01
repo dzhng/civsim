@@ -44,7 +44,11 @@ interface InfoHandle {
 const LeftInfoCard = forwardRef<InfoHandle>(function LeftInfoCard(_props, ref) {
   const [data, setData] = useState<HudData | null>(null);
   useImperativeHandle(ref, () => ({ set: (d) => flushSync(() => setData(d)) }), []);
-  return <div id="hud">{data ? <HudPanel data={data} /> : "loading wasm…"}</div>;
+  return (
+    <div id="hud" className="hud-chassis">
+      {data ? <HudPanel data={data} /> : "loading wasm…"}
+    </div>
+  );
 });
 
 interface ToolbarHandle {
@@ -54,7 +58,11 @@ const ToolbarHost = forwardRef<ToolbarHandle, { onCmd(cmd: string): void }>(
   function ToolbarHost(props, ref) {
     const [state, setState] = useState<Record<string, ToolButtonState> | null>(null);
     useImperativeHandle(ref, () => ({ set: (s) => flushSync(() => setState(s)) }), []);
-    return <div id="toolbar">{state ? <Toolbar state={state} onCmd={props.onCmd} /> : null}</div>;
+    return (
+      <div id="toolbar" className="hud-chassis">
+        {state ? <Toolbar state={state} onCmd={props.onCmd} /> : null}
+      </div>
+    );
   },
 );
 
@@ -120,7 +128,7 @@ const BattleHud = forwardRef<BattleHudInnerHandle, BattleHudProps>(function Batt
       <LeftInfoCard ref={infoRef} />
       <CardsHost ref={cardsRef} onSelect={props.onCardSelect} />
       <ToolbarHost ref={toolbarRef} onCmd={props.onToolbarCmd} />
-      <canvas id="minimap" width={240} height={160} ref={miniRef} />
+      <canvas id="minimap" className="hud-chassis" width={240} height={160} ref={miniRef} />
     </>
   );
 });

@@ -23,11 +23,37 @@ contract); it does not change the card-grid math or the sim.
 
 ## Next Agent Prompt
 
-**Status:** Slice 01 shipped. Last updated 2026-07-01.
+**Status:** Slices 01–02 shipped. Last updated 2026-07-01.
 
-**Start here:** Slice `02-extract-chassis`. Read it, then the firewalls section
+**Start here:** Slice `03-left-info-card`. Read it, then the firewalls section
 below, then build. Each slice leaves the battle playable and screenshot-able; do
 not start a later slice until the current one's gate passes.
+
+**What slice 02 landed:** the shared `.hud-chassis` housing class lives in
+`web/src/ui/theme/bronze.css` (material only: border style/color, radius,
+`--bronze-fill/-edge`, `--bronze-frame`; each surface keeps its own border-width /
+position / size). `#hud`, `#toolbar`, `#minimap` now carry `className="hud-chassis"`
+(set in `BattleHud.tsx`) and their id rules in `index.html` dropped the duplicated
+recipe. Verified pixel-identical (0 px differ on all battle + card-bar snapshots,
+no re-bless).
+
+**Reconciliation (deviation from slice 02's original text):** the plan wanted a
+`<Chassis>` React component and a wholesale move of the four surfaces' CSS out of
+`index.html`. Two findings changed that:
+- `/renderer/*` is the **same web SPA** (`main.ts` dynamically imports the lab
+  router into `index.html`), so the renderer-lab route loads `index.html`'s inline
+  `<style>` — including `.ucard`/`#unitcards`. Moving those into a `BattleHud`-only
+  stylesheet would break `card-bar.mjs` (the lab route never imports `BattleHud`).
+  So `#unitcards`/`.ucard` stay in `index.html`; the shared class went to the
+  globally-linked `bronze.css` instead (both routes load it).
+- A `<Chassis>` wrapper component would add a DOM node and change layout; the real
+  reusable primitive is the **CSS class**, which the new cards apply directly. No
+  component was created. This matches the `bronze.css` header's own anticipation
+  of a `.chassis` class.
+- The ornate `--tray` variant (for the center card) is deferred to slice 05, where
+  it is first needed.
+- Pre-existing dead CSS noticed but left alone: `#help` (index.html ~118) has a
+  rule but no element. Out of scope; flag for a future cleanup.
 
 **What slice 01 landed (`web/src/ui/hud/BattleHud.tsx`):** one React root
 (`mountBattleHud`) composing `<LeftInfoCard>` (`#hud`), `<CardsHost>`
@@ -69,8 +95,9 @@ carries the four id rules plus the new `#battle-hud` mount container.
 
 **Global TODO:**
 - [x] 01 — Single-root `<BattleHud>` (foundation, pixel-identical) — shipped
-- [ ] 02 — Extract `<Chassis>` housing primitive (pixel-identical); also move
-      the four surfaces' inline CSS out of index.html (deferred from slice 01)
+- [x] 02 — Shared `.hud-chassis` primitive in bronze.css; deduped #hud/#toolbar/
+      #minimap onto it (pixel-identical) — shipped. `<Chassis>` component and the
+      wholesale CSS move dropped as unsafe/low-value (see handoff notes).
 - [ ] 03 — Left info card → bottom-left corner
 - [ ] 04 — Army-roster idle state; drop debug header; FPS → bare top-left
 - [ ] 05 — Merge toolbar into the center card housing

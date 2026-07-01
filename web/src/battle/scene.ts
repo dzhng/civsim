@@ -453,15 +453,16 @@ export class BattleScene implements Scene {
     gameover.style.display = 'none';
     const gameoverRoot = createRoot(gameover);
     this.cleanups.push(() => gameoverRoot.unmount());
-    const showGameover = (win: boolean, sub: string) => {
-      gameoverRoot.render(createElement(GameOver, {
-        inCampaign: this.cfg.inCampaign, win, sub,
-        onRestart: () => this.restartBattle(),
-        onExit: () => this.cfg.onExit(),
-        onWatch: () => { gameover.style.display = 'none'; },
-      }));
-      gameover.style.display = 'flex';
-    };
+    const renderGameover = (win: boolean, sub: string) => flushSync(() => gameoverRoot.render(createElement(GameOver, {
+      inCampaign: this.cfg.inCampaign, win, sub,
+      onRestart: () => this.restartBattle(),
+      onExit: () => this.cfg.onExit(),
+      onWatch: () => { gameover.style.display = 'none'; },
+    })));
+    // Render hidden at setup so #gameover-menu exists — the campaign handoff
+    // harness reads its label ("Continue") before any victory.
+    renderGameover(true, '');
+    const showGameover = (win: boolean, sub: string) => { renderGameover(win, sub); gameover.style.display = 'flex'; };
     let timeScale = 1;
     let showPaths = false;
     let frozenEffects = false;

@@ -128,7 +128,9 @@ export function campaignDomHtml(): string {
     <div class="cmp-panel" id="cmp-diplomacy"
       style="display:none;left:10px;right:auto;top:44px;width:300px;max-height:84vh;overflow:auto;"></div>
     <div class="cmp-panel" id="cmp-classes"
-      style="display:none;left:10px;right:auto;top:44px;width:520px;max-height:84vh;overflow:auto;"></div>`;
+      style="display:none;left:10px;right:auto;top:44px;width:520px;max-height:84vh;overflow:auto;"></div>
+    <!-- Battle-decision modal (Fight / Auto-resolve) — React (CampaignBattleModal). -->
+    <div id="cmp-modal-root"></div>`;
 }
 
 export function diplomacyHtml(list: DiplomacyRow[]): string {

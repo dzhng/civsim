@@ -134,8 +134,14 @@ Dependency: 0 informs 1. 1 unblocks 2 and 4. 2 (shadow relocated) is a dependenc
 
 ## Next Agent Prompt
 
-**Status:** Slices 0 (spike), 1 (depth param), 2 (shared shadow → battle) landed. Next:
-Slice 3 (figure sampler). Last updated 2026-07-01.
+**Status:** Slices 0–3 landed (spike, depth param, shared shadow → battle, figure sampler).
+Next: Slice 4 (campaign crowd). Last updated 2026-07-01.
+
+**Test-infra note:** vitest / tsx / esbuild-CLI are NOT installed in this sandbox and can't
+be installed (network-blocked); node type-stripping can't resolve the repo's extensionless
+imports. So pure-TS logic is verified by (a) an inlined standalone node algorithm check and
+(b) `tsc --strict` on the file, with full behavioral proof deferred to the Slice 4 visual.
+When vitest is available, promote the sampler check to a real test.
 
 **Environment notes (important):**
 - Build on `feat/unified-soldier-rendering`, cut from `208fdbe7`. Pulling latest
@@ -154,13 +160,30 @@ The spike's remaining value is the campaign-crowd eyeball + perf number; it will
 as a renderer-lab route on top of the real depth param next, doubling as the Slice 4
 de-risk. Read the four Key Seams above before continuing.
 
-**Start here:** Slice 3 — [figure sampler](slices/03-figure-sampler.md). Add a pure
-`packages/crowd-runtime/src/stackCrowd.ts`: `buildStackCrowd(unitsByClass, opts) ->
-CrowdInstance[]`, figure count `clamp(round(6 * unitCount / stackUnitCap), 1, 6)`, class
-mix by largest-remainder from `unitsByClass`, class id clamped via `modelLookForClass`,
-deterministic by army id, elevation from a sampler. No render change yet. Then Slice 4
-wires it into the campaign renderer (uses `{ worldDepth: 'campaign' }` +
-`SoldierShadowDecalPass(shell, { worldDepth: 'campaign' })` — both already exist).
+**Start here:** Slice 4 — [campaign crowd replacement](slices/04-campaign-crowd.md). In
+`web/src/campaign/renderer.ts`: in `init()` load kit/vat/meshes (same loaders as battle)
+and build `SkinnedCrowdPipeline(shell, meshes, vat, kit, { worldDepth: 'campaign' })` +
+`SoldierShadowDecalPass(shell, { worldDepth: 'campaign' })`. Thread `unitsByClass` /
+`unitCount` / `stackUnitCap` / `marching` from `ArmyView` through `buildEntityFrame`; per
+army call `buildStackCrowd(...)` (from `crowd-runtime/src/stackCrowd.ts`) seated via
+`field.heightAt`, phase from `fixedTime ?? performance.now()/1000`; concat + upload. Add
+pass `campaign-soldier-crowd` (world-opaque, read-write) after `campaign-entities-opaque`,
+and draw figure shadows in/next to `campaign-entity-shadows`. Split the banner into
+`buildCampaignStandardMesh()` and stop feeding army figures to `CampaignEntityPass` (city
+stays; keeps `campaign-entities-opaque`/`campaign-entity-shadows` alive → contract green).
+Faction = allegiance bucket (friend/foe/neutral) → `CrowdInstance.faction` 0/1/2; banner
+carries true color. Figure `size ≈ 2.4` at zoom 28 (spike). Gate on
+`web/scenes/models/campaign-models.mjs` `army` + `campaign-visual`; screenshot-critique +
+compare vs the old marker; re-bless. GPU loop:
+`VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_HEADFUL=1 VERIFY_BROWSER_CHANNEL=chrome node scene.mjs <scene>`
+(and `web/_spike-capture.mjs <url> <out.png>` for a quick eyeball).
+
+**Figure sampler (Slice 3, done):** `packages/crowd-runtime/src/stackCrowd.ts` —
+`buildStackCrowd(unitsByClass, opts) -> CrowdInstance[]`, plus `stackFigureCount` and
+`sampleFigureClasses`. Count `clamp(round(6*unitCount/cap),1,6)`; class mix largest-remainder;
+deterministic by seed; elevation via sampler; mounted via `mountedClasses`; faction/clip/phase
+passthrough. Class ids pass straight through (no `modelLookForClass` — avoids a
+crowd-runtime→game-renderer cycle; the pipeline's resourceLookup handles them like battle).
 
 **Shared shadow module (Slice 2, done):** `packages/renderer-core/src/soldierShadowPass.ts`
 (`SoldierShadowDecalPass`, `{ worldDepth }` opt). Wired into battle as `battle-soldier-shadows`;
@@ -193,7 +216,8 @@ relief, sorts against campaign geometry, 0.85ms/6 figures. Scale decision: campa
 - [x] Slice 2 — relocate shared shadow → `renderer-core/soldierShadowPass.ts`
       (`SoldierShadowDecalPass`); wired into battle (`battle-soldier-shadows`), contract
       updated, baselines re-blessed, lab routes 0px. Battle now casts soldier shadows.
-- [ ] Slice 3 — pure representative-figure sampler
+- [x] Slice 3 — pure sampler `crowd-runtime/src/stackCrowd.ts` (`buildStackCrowd`,
+      `stackFigureCount`, `sampleFigureClasses`); arithmetic verified, tsc strict clean.
 - [ ] Slice 4 — campaign crowd replacement (+ split banner, + faction bucket)
 - [ ] Slice 5 — zoom LOD collapse
 - [ ] Slice 6 — cleanup / delete dead code

@@ -54,14 +54,23 @@ struct WaterSample { height: f32, normal: vec3f, foam: f32 };
 
 const WATER_WAVES = ${bakeWaveArray()};
 
+fn fhash(p: vec2f) -> f32 {
+  return fract(sin(dot(p, vec2f(127.1, 311.7))) * 43758.5453);
+}
+fn fnoise(p: vec2f) -> f32 {
+  let i = floor(p);
+  let f = fract(p);
+  let u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(fhash(i), fhash(i + vec2f(1.0, 0.0)), u.x),
+             mix(fhash(i + vec2f(0.0, 1.0)), fhash(i + vec2f(1.0, 1.0)), u.x), u.y);
+}
+
 fn waterField(p: vec2f, t: f32) -> WaterSample {
   var waves = WATER_WAVES;
   let g = 9.81;
   var h = 0.0;
   var slopeX = 0.0;
   var slopeY = 0.0;
-  var crest = 0.0;
-  var ampSum = 0.0001;
   for (var i = 0; i < ${WAVE_COUNT}; i = i + 1) {
     let wv = waves[i];
     let dir = wv.xy;
@@ -81,13 +90,22 @@ fn waterField(p: vec2f, t: f32) -> WaterSample {
     let dphase = amp * 2.0 * dHump * k;
     slopeX = slopeX + dphase * dir.x;
     slopeY = slopeY + dphase * dir.y;
-    crest = crest + max(0.0, c) * amp * k * 0.5;
-    ampSum = ampSum + amp;
   }
   var out: WaterSample;
   out.height = h;
   out.normal = normalize(vec3f(-slopeX, -slopeY, 1.0));
-  out.foam = clamp(crest / ampSum * 1.4 - 0.5, 0.0, 1.0);
+  // Whitecaps cap the crest TOPS — keyed on height (a scalar, so the foam is
+  // isotropic blobs, not the radial streaks a slope-face signal makes under this
+  // foreshortened camera). Two octaves of fine grain break the caps into dense
+  // granular spray rather than flat white or hard slivers.
+  let cover = smoothstep(1.3, 3.1, h);
+  // Speckle: foam appears only where a three-octave noise is high, so the crest
+  // caps break into granular spray instead of solid white regions. The finest
+  // octave keeps the near-foreground patches from clumping into opaque blobs.
+  let speckle = fnoise(p * 0.5 + vec2f(t * 0.10, t * 0.05)) * 0.42
+              + fnoise(p * 1.3 - vec2f(t * 0.06, t * 0.09)) * 0.34
+              + fnoise(p * 3.0 + vec2f(t * 0.04, -t * 0.07)) * 0.24;
+  out.foam = cover * smoothstep(0.42, 0.66, speckle) * 0.9;
   return out;
 }`;
 }

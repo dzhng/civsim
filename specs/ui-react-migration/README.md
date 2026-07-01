@@ -12,7 +12,15 @@ Synthesized from three independent draft plans (they converged hard — the cut 
 
 **Status:** S0 + S1 + S2 + S3 shipped (green). **S3 verdict: MIGRATE (Branch A).** _Last updated: 2026-07-01._
 
-**Start at S6e** (battle modals). **S6a–c shipped; S6d resolved as no-op.** S6 remaining:
+**Start at S7** (cleanup). **S6 is done: S6a–c + S6e shipped, S6d no-op.** The battle HUD is
+fully React (card bar, toolbar, info panel, gameover + pause modals). **S7 scope** (folds in the
+deferred items): (1) delete the vanilla `UnitCards` class + point the renderer-lab card-bar route
+at `UnitCardsReact` (remove `?react`/`?hud=vanilla` flags); (2) dedup the campaign lab
+`uiLayer.ts` onto the S5 React components (delete the now-lab-only `armyPanelHtml`/`cityPanelHtml`/
+`diplomacyHtml`/`classBuilderHtml` + `prettyClass`/`classSort` exports once done); (3) migrate the
+campaign `showBattleModal` (Fight/Auto-resolve) — replace the render-loop `this.modal` null-gate
+with a boolean + a React root; (4) grep-prove one chassis source, all baselines unmoved, then
+close-spec. S6 detail:
 - **S6a — card bar React default** ✅ (`?hud=vanilla` escape hatch until S7).
 - **S6b — toolbar** ✅ (`web/src/ui/hud/Toolbar.tsx` into `#toolbar`; icon-only buttons via
   `dangerouslySetInnerHTML` of `toolbarIcon()`; scene's `updateToolbar` computes a `{on,disabled}`

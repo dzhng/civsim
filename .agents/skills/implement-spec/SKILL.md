@@ -15,6 +15,12 @@ commit. Finishing a pass means starting the next one, not handing back to the
 user. Only stop when the spec is fully implemented (or a genuine blocker needs a
 decision only the user can make).
 
+**Work in parallel wherever the graph allows.** Do not walk the ladder one slice
+at a time when slices are independent. Read the spec's dependency graph as a
+wavefront and **delegate independent passes to subagents that run concurrently**
+(see Rules) — you orchestrate and integrate; only serialize what genuinely
+depends on prior work.
+
 ## Workflow
 
 1. Read the repo README, the spec README, and the next slice before editing.
@@ -47,6 +53,18 @@ decision only the user can make).
 
 ## Rules
 
+- **Delegate independent work to subagents so passes run in parallel.** The
+  spec's dependency graph is the map: whenever two or more slices, branches (e.g.
+  battle vs campaign), sub-slices, replication spikes, or recon tasks have no
+  unmet dependency on each other, hand them to subagents that run concurrently
+  (spawn them in one message) instead of doing them yourself in sequence. Give
+  each subagent its own git worktree when they touch files in parallel so their
+  diffs don't collide, and keep work that shares the same files or API seam on a
+  single agent to avoid merge chaos. Each delegated unit still owns its full pass
+  — implement, verify, refactor-clean, review, focused commit — and you integrate
+  the results, resolve conflicts, rerun the affected gates on the merged tree, and
+  keep the Next Agent Prompt coherent. Only serialize what the graph says must be
+  serial; never idle a lane waiting on an unrelated one.
 - Treat backward compatibility as non-goal for unshipped/dev scaffolding. Delete
   old paths, wrappers, aliases, fallback modes, and stale tests when the new
   architecture replaces them.

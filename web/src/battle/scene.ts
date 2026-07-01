@@ -693,14 +693,14 @@ export class BattleScene implements Scene {
       const [cx, cy] = unitCenter(unit);
       camera.x = cx; camera.y = cy; camera.clampView();
     };
-    // S3 perf spike: ?hud=react (or localStorage hud=react) swaps the vanilla
-    // card bar for the React one at the SAME rAF update call site, for the A/B
-    // measurement. Default stays vanilla until S6 reads S3's verdict.
-    const useReactCards = new URLSearchParams(location.search).get('hud') === 'react'
-      || (typeof localStorage !== 'undefined' && localStorage.getItem('hud') === 'react');
-    const unitCards = useReactCards
-      ? new UnitCardsReact(cardsRoot, onCardSelect)
-      : new UnitCards(cardsRoot, onCardSelect);
+    // S6 (spike verdict: MIGRATE — Δmedian/Δp95 ≈ 0): the React card bar is the
+    // default now. ?hud=vanilla (or localStorage hud=vanilla) keeps the old DOM
+    // path as an escape hatch until S7 deletes the vanilla UnitCards.
+    const useVanillaCards = new URLSearchParams(location.search).get('hud') === 'vanilla'
+      || (typeof localStorage !== 'undefined' && localStorage.getItem('hud') === 'vanilla');
+    const unitCards = useVanillaCards
+      ? new UnitCards(cardsRoot, onCardSelect)
+      : new UnitCardsReact(cardsRoot, onCardSelect);
     const buildCards = () => {
       const info = unitInfo();
       cardUnits = [];

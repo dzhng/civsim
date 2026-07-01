@@ -1,7 +1,7 @@
-import { cameraUniformData, DEFAULT_SUN_AZIMUTH, DEFAULT_SUN_ELEVATION, type CameraSnapshot } from './cameraUniform';
+import { cameraUniformData, CAMERA_UNIFORM_BYTES, DEFAULT_SUN_AZIMUTH, DEFAULT_SUN_ELEVATION, type CameraSnapshot } from './cameraUniform';
 import { WORLD_CAMERA_WGSL } from './cameraWgsl';
 import { compileShader } from './compileShader';
-import { GPU_DEPTH_FORMAT, isGpuDepthMode, type GpuDepthMode } from './depthContract';
+import { GPU_DEPTH_CLEAR, GPU_DEPTH_FORMAT, GPU_DEPTH_FORMAT_REVERSE, GPU_REVERSE_Z_DEPTH_CLEAR, isGpuDepthMode, type GpuDepthMode } from './depthContract';
 import { requestGpuDevice, type DeviceLostReport, type UncapturedErrorReport, type GpuDeviceInfo } from './device';
 import {
   frameGraphDepthRole,
@@ -48,6 +48,11 @@ export interface FrameShellOptions {
   enableGpuTimer?: boolean;
   /** MSAA sample count (1 = off). Battle edges use 4; campaign stays at 1. */
   sampleCount?: number;
+  /** Opt into a reverse-Z `depth32float` world depth buffer (near → 1, far → 0,
+   *  cleared to 0). Pipelines in the world phase must then declare
+   *  `gpuReverseZDepthStencil`. Slice 02: only the water bake-off shell sets this;
+   *  battle/campaign keep the legacy `depth24plus` painter path. */
+  reverseZ?: boolean;
 }
 
 export interface RawFrameShell {
@@ -132,7 +137,7 @@ export interface FramePhaseStats {
   passIds: string[];
   passRoles: Array<{ id: string; role: FrameGraphPassRole }>;
   depthPasses: Array<{ id: string; mode: FrameGraphDepthMode }>;
-  depth: 'none' | 'depth24plus-clear';
+  depth: 'none' | 'depth24plus-clear' | 'depth32float-reverse-z-clear';
   loadOp: 'clear' | 'load';
 }
 
@@ -477,6 +482,7 @@ export class RawFrameShellImpl implements RawFrameShell {
   private readonly onFatalError?: (report: FrameShellFatalReport) => void;
   readonly depthFormat: GPUTextureFormat;
   readonly sampleCount: number;
+  private readonly reverseZ: boolean;
   private gpuTimer: GpuFrameTimer | null = null;
   private gpuTimeMs: number | null = null;
   private msaaTexture: GPUTexture | null = null;
@@ -487,7 +493,8 @@ export class RawFrameShellImpl implements RawFrameShell {
     this.device = info.device;
     this.onDeviceLost = options.onDeviceLost;
     this.onFatalError = options.onFatalError;
-    this.depthFormat = info.caps.depthFormat ?? GPU_DEPTH_FORMAT;
+    this.reverseZ = options.reverseZ === true;
+    this.depthFormat = this.reverseZ ? GPU_DEPTH_FORMAT_REVERSE : (info.caps.depthFormat ?? GPU_DEPTH_FORMAT);
     this.sampleCount = Math.max(1, Math.floor(options.sampleCount ?? 1));
     if (options.enableGpuTimer && info.caps.timestampQuery) {
       this.gpuTimer = createGpuFrameTimer(this.device);
@@ -507,7 +514,7 @@ export class RawFrameShellImpl implements RawFrameShell {
     });
     this.cameraBuffer = this.device.createBuffer({
       label: 'raw-frame-camera',
-      size: 12 * 4,
+      size: CAMERA_UNIFORM_BYTES,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
     this.cameraBindGroup = this.device.createBindGroup({
@@ -649,7 +656,7 @@ export class RawFrameShellImpl implements RawFrameShell {
         passIds: worldPasses.map((pass) => pass.id),
         passRoles: worldPasses.map((pass) => ({ id: pass.id, role: pass.role })),
         depthPasses: worldPasses.map((pass) => ({ id: pass.id, mode: pass.depth })),
-        depth: 'depth24plus-clear',
+        depth: this.reverseZ ? 'depth32float-reverse-z-clear' : 'depth24plus-clear',
         loadOp: 'load',
       });
     }
@@ -873,7 +880,7 @@ export class RawFrameShellImpl implements RawFrameShell {
     }
     return {
       view: this.depthTexture.createView(),
-      depthClearValue: 1,
+      depthClearValue: this.reverseZ ? GPU_REVERSE_Z_DEPTH_CLEAR : GPU_DEPTH_CLEAR,
       depthLoadOp: 'clear',
       depthStoreOp: 'discard',
     };

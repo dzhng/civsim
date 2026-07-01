@@ -32,7 +32,12 @@ const waitReady = (page) =>
 // the horizon), so the check is preset-colour-agnostic.
 function foamStats(png) {
   let foam = 0;
-  const seaTop = Math.floor(png.height * 0.4);
+  // Sample the NEAR sea only. Under the real perspective camera (slice 02) the sea
+  // meets a true hazed horizon around the upper third; that aerial-haze band is
+  // bright and neutral, so counting it would score haze as whitecaps. The near sea
+  // (below ~0.55H) is where whitecaps are unambiguous — haze coverage is gated
+  // separately by water-haze.
+  const seaTop = Math.floor(png.height * 0.55);
   const seaArea = (png.height - seaTop) * png.width;
   for (let y = seaTop; y < png.height; y++) {
     for (let x = 0; x < png.width; x++) {

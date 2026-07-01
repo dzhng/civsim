@@ -4120,12 +4120,33 @@ async function routeWaterBakeoff(ctx: LabContext) {
   const sunEl = ctx.params.has('sunEl') ? numberParam(ctx.params, 'sunEl', env.sunElevation) : env.sunElevation;
   const fixedT = ctx.params.has('t') ? numberParam(ctx.params, 't', 0) : null;
 
-  const shell = await createFrameShell(ctx.canvas, { enableGpuTimer: true });
+  // Slice 02 keystone: the water route runs on the real 3D perspective camera and a
+  // reverse-Z depth32float buffer — the finite plane now meets a true straight
+  // horizon instead of the fake-projection dome/streak wedge.
+  const shell = await createFrameShell(ctx.canvas, { enableGpuTimer: true, reverseZ: true });
 
-  const camera = camName === 'campaign'
-    ? { x: 0, y: 90, zoom: 3.4, pitch: 0.42, yaw: 0, perspective: 0.02 }
-    : { x: 0, y: -6, zoom: 2.6, pitch: 0.30, yaw: 0, perspective: 0.032 };
-  shell.setCamera(camera);
+  // An oblique framing that looks out to sea toward +y (yaw −π/2 puts the eye south
+  // of the target, looking north over the plane's 1100-unit span). Infinite far
+  // plane → the ground plane's vanishing line is the horizon. camera3d owns the
+  // matrices; the legacy scalars only feed the water shader's distance-haze key,
+  // which we anchor at the eye's ground footprint so haze grows with view distance.
+  // Pitch is deliberately not so grazing that the near sea turns to a solid glint
+  // sheet — the look scenes (foam/albedo) read the material, not a specular wall.
+  // The framing is URL-tunable (pitch/dist/fov/targetY) for the eyeball checkpoint.
+  const base = camName === 'campaign'
+    ? { targetY: 200, distance: 240, pitch: 0.38, fovY: 0.70 }
+    : { targetY: 140, distance: 190, pitch: 0.22, fovY: 0.78 };
+  const cam3d: Camera3DParams = {
+    target: [0, numberParam(ctx.params, 'targetY', base.targetY), 0],
+    distance: numberParam(ctx.params, 'dist', base.distance),
+    pitch: numberParam(ctx.params, 'pitch', base.pitch),
+    yaw: -Math.PI / 2,
+    fovY: numberParam(ctx.params, 'fov', base.fovY),
+    aspect: 1000 / 600,
+    near: 1,
+  };
+  const eye = eyePosition(cam3d);
+  shell.setCamera({ x: eye[0], y: eye[1], zoom: 1, pitch: cam3d.pitch, yaw: cam3d.yaw, camera3d: cam3d });
   shell.setSun(sunAz, sunEl);
 
   // Sky clear from the preset's haze colour so the sea meets a matching horizon
@@ -4136,7 +4157,7 @@ async function routeWaterBakeoff(ctx: LabContext) {
   // loser was deleted in Slice 11). This route renders the open-sea plane and stays
   // the shared renderer for every look scene (silhouette/foam/glint/albedo/haze/rhythm).
   const field = createWaterField(shell);
-  const plane = new WaterPlanePass(shell, field, undefined, env);
+  const plane = new WaterPlanePass(shell, field, undefined, env, { real: true });
 
   const drawAt = (t: number) => {
     shell.setTime(t);
@@ -4163,6 +4184,10 @@ async function routeWaterBakeoff(ctx: LabContext) {
       fixedTime: fixedT,
       fieldResolution: field.stats().fieldResolution,
       cameraContract: s.cameraContract,
+      // Slice 02: publish the depth identity + world-phase depth mode so a scene
+      // can prove the water route is on the reverse-Z depth32float path.
+      depth: s.depth,
+      phases: s.phases,
     });
     ctx.status.innerHTML = reportTable({
       route: 'water-bakeoff',

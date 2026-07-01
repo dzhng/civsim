@@ -1,7 +1,7 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 import { compileShader } from '../../../renderer-core/src/compileShader';
-import { gpuMultisample, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import { gpuMultisample, gpuOpaqueColorTarget, gpuReverseZDepthStencil, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 import { WATER_SHADE_WGSL, CIVSIM_WATER_COLOR_WGSL } from './waterMaterialWgsl';
 import { WATER_PALETTE_WGSL } from './waterPalette';
 import { waterShoreRampWgsl, LAB_OPEN_SEA_RAMP, type WaterShoreRamp } from './waterShoreRamp';
@@ -44,6 +44,13 @@ export interface WaterPlaneOptions {
   /** When set, depth/haze key on `abs(world.x − shoreX)` (distance from the shoreline
    *  in X) instead of camera distance — the seam-closing key the field water shares. */
   shoreX?: number | null;
+  /** Use the real 3D perspective camera: project through `projectReal` (camera3d's
+   *  viewProj, real reverse-Z clip depth) and depth-test against a reverse-Z
+   *  `depth32float` buffer — instead of the legacy 2.5D `projectWorld3d` + painter
+   *  `civsimBattleWorldDepth3d`. Requires a `reverseZ` shell. Slice 02: only the
+   *  water bake-off route sets this; battle's horizon ocean stays on the legacy path
+   *  so it renders byte-identically. */
+  real?: boolean;
 }
 
 export class WaterPlanePass {
@@ -75,7 +82,7 @@ export class WaterPlanePass {
       vertex: { module, entryPoint: 'vs', buffers: [{ arrayStride: 8, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x2' }] }] },
       fragment: { module, entryPoint: 'fs', targets: [gpuOpaqueColorTarget(shell.info.format)] },
       primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: gpuWorldDepthStencil('read-write'),
+      depthStencil: opts.real ? gpuReverseZDepthStencil('read-write') : gpuWorldDepthStencil('read-write'),
       multisample: gpuMultisample(shell.sampleCount),
     });
   }
@@ -180,7 +187,7 @@ fn vs(@location(0) world: vec2f) -> VsOut {
   let s = waterField(world, cam.time);
   let p3 = vec3f(world, WATER_PLANE_BASE_Z + s.height);
   var out: VsOut;
-  out.pos = projectWorld3d(p3, civsimBattleWorldDepth3d(p3));
+  out.pos = ${opts.real ? 'projectReal(p3)' : 'projectWorld3d(p3, civsimBattleWorldDepth3d(p3))'};
   out.world = world;
   return out;
 }

@@ -6,6 +6,17 @@ export const GPU_WORLD_DEPTH_ATTACHMENT = 'worldDepth' as const;
 export const GPU_DEPTH_FORMAT = 'depth24plus' as const;
 export const GPU_DEPTH_FORMAT_FALLBACK = 'depth32float' as const;
 
+// Reverse-Z depth: near → 1, far → 0, so 32-bit float depth spends its precision
+// where it matters (the far plane is exactly 0). The precision-optimal convention,
+// opt-in per shell (frameShell `reverseZ`) — the water route adopts it in slice 02;
+// battle/campaign stay on the legacy painter path until the seam flip (04/05).
+export const GPU_DEPTH_FORMAT_REVERSE = 'depth32float' as const;
+
+// Depth-buffer clear per Z direction: legacy painter/real-Z clears far = 1;
+// reverse-Z clears far = 0.
+export const GPU_DEPTH_CLEAR = 1;
+export const GPU_REVERSE_Z_DEPTH_CLEAR = 0;
+
 export type GpuDepthFormat = typeof GPU_DEPTH_FORMAT | typeof GPU_DEPTH_FORMAT_FALLBACK;
 
 export interface DepthFormatChoice {

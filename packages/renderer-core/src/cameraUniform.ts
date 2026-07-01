@@ -1,3 +1,5 @@
+import { eyePosition, invViewProj, viewProjMatrix, type Camera3DParams } from './camera3d';
+
 export interface CameraSnapshot {
   x: number;
   y: number;
@@ -16,7 +18,29 @@ export interface CameraSnapshot {
    *  the battle sun convention so an unset sun matches terrain lighting. */
   sunAzimuth?: number;
   sunElevation?: number;
+  /** The real 3D perspective camera (camera3d, the ONE projection owner). When set,
+   *  its resolved `viewProj`/`invViewProj`/`eye`/`znear`/`zfar` are packed into the
+   *  appended tail of the uniform for `projectReal`-based passes. `aspect` is
+   *  overridden by the live width/height so the projection follows every resize.
+   *  Legacy (2.5D `projectGround`/`projectWorld3d`) passes ignore this tail, so the
+   *  first 12 scalars stay byte-identical whether it is present or not. Slice 02:
+   *  only the water bake-off route supplies it. */
+  camera3d?: Camera3DParams;
 }
+
+// The camera uniform is a superset: 12 legacy 2.5D scalars followed by the real
+// camera's matrices/eye. std140/WGSL 16-byte alignment (mat4 = 64B, vec3 padded
+// to 16B) places viewProj at float 12 (byte 48), invViewProj at float 28 (112),
+// eye at float 44 (176), znear at float 47 (188), zfar at float 48 (192); the
+// struct rounds up to 52 floats. Growing here is additive — legacy passes read
+// only floats 0..11.
+export const CAMERA_UNIFORM_FLOATS = 52;
+export const CAMERA_UNIFORM_BYTES = CAMERA_UNIFORM_FLOATS * 4;
+const VIEW_PROJ_OFFSET = 12;
+const INV_VIEW_PROJ_OFFSET = 28;
+const EYE_OFFSET = 44;
+const ZNEAR_OFFSET = 47;
+const ZFAR_OFFSET = 48;
 
 // The battle sun convention (cf. horizonPass/groundPass inline `normalize(...)`),
 // expressed as azimuth/elevation so water glint agrees with terrain lighting when
@@ -27,7 +51,8 @@ export const DEFAULT_SUN_ELEVATION = Math.asin(0.87 / Math.hypot(0.40, 0.28, 0.8
 export function cameraUniformData(camera: CameraSnapshot): Float32Array {
   const pitch = camera.pitch ?? 0;
   const yaw = camera.yaw ?? 0;
-  return new Float32Array([
+  const data = new Float32Array(CAMERA_UNIFORM_FLOATS);
+  data.set([
     camera.x,
     camera.y,
     camera.zoom,
@@ -40,7 +65,22 @@ export function cameraUniformData(camera: CameraSnapshot): Float32Array {
     camera.time ?? 0,
     camera.sunAzimuth ?? DEFAULT_SUN_AZIMUTH,
     camera.sunElevation ?? DEFAULT_SUN_ELEVATION,
-  ]);
+  ], 0);
+  if (camera.camera3d) {
+    // Single owner: camera3d resolves the matrices. Aspect always follows the live
+    // viewport so the projection is correct across resizes without the caller
+    // re-supplying it.
+    const params: Camera3DParams = { ...camera.camera3d, aspect: camera.width / camera.height };
+    data.set(viewProjMatrix(params), VIEW_PROJ_OFFSET);
+    data.set(invViewProj(params), INV_VIEW_PROJ_OFFSET);
+    const eye = eyePosition(params);
+    data[EYE_OFFSET] = eye[0];
+    data[EYE_OFFSET + 1] = eye[1];
+    data[EYE_OFFSET + 2] = eye[2];
+    data[ZNEAR_OFFSET] = params.near;
+    data[ZFAR_OFFSET] = params.far ?? 0; // 0 = infinite far sentinel
+  }
+  return data;
 }
 
 export function worldToScreen(camera: CameraSnapshot, wx: number, wy: number): [number, number] {

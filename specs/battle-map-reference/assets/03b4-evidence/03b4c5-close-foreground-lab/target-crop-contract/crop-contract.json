@@ -1,0 +1,131 @@
+{
+  "kind": "battle-map-reference-b4a-grass-crop-contract",
+  "generatedAt": "2026-07-01T08:23:05.164Z",
+  "targetSource": "/Users/homeserver/dev/civsim-main-worktree/specs/battle-map-reference/assets/target-battle-map.png",
+  "currentSource": "/Users/homeserver/dev/civsim-main-worktree/web/shots/battle/map-reference/candidate-vista.png",
+  "conclusion": "The target has a close lower-foreground grass read. The current reference capture has no comparable close foreground; current-side crops are absence proxies only and must not be used as blade-scale parity targets. B4B should build a close grass lab before more full-vista grass tuning.",
+  "zones": [
+    {
+      "id": "close-hero",
+      "purpose": "Tight lower foreground where target grass body, strand direction, clump softness, and height variation are visible.",
+      "currentRole": "absence proxy only; the current full scene has no comparable close grass layer for this zone",
+      "color": "#e03636",
+      "cropSize": {
+        "width": 760,
+        "height": 180
+      },
+      "target": {
+        "ratio": {
+          "x": 0.05,
+          "y": 0.84,
+          "width": 0.9,
+          "height": 0.12
+        },
+        "pixels": {
+          "x": 109,
+          "y": 1013,
+          "width": 1953,
+          "height": 145
+        }
+      },
+      "current": {
+        "ratio": {
+          "x": 0.05,
+          "y": 0.8,
+          "width": 0.9,
+          "height": 0.14
+        },
+        "pixels": {
+          "x": 82,
+          "y": 640,
+          "width": 1474,
+          "height": 112
+        }
+      }
+    },
+    {
+      "id": "transition",
+      "purpose": "Grass-dominant foreground-to-midground patch where strand detail should collapse into clumped soft body.",
+      "currentRole": "absence proxy only; the current full scene has no comparable close grass layer for this zone",
+      "color": "#ee8e27",
+      "cropSize": {
+        "width": 760,
+        "height": 170
+      },
+      "target": {
+        "ratio": {
+          "x": 0.69,
+          "y": 0.725,
+          "width": 0.2,
+          "height": 0.045
+        },
+        "pixels": {
+          "x": 1497,
+          "y": 874,
+          "width": 434,
+          "height": 54
+        }
+      },
+      "current": {
+        "ratio": {
+          "x": 0.3,
+          "y": 0.61,
+          "width": 0.46,
+          "height": 0.09
+        },
+        "pixels": {
+          "x": 491,
+          "y": 488,
+          "width": 753,
+          "height": 72
+        }
+      }
+    },
+    {
+      "id": "mid-mass",
+      "purpose": "Small meadow-edge mass patch where individual strands should no longer be readable.",
+      "currentRole": "absence proxy only; the current full scene has no comparable close grass layer for this zone",
+      "color": "#2a79d6",
+      "cropSize": {
+        "width": 760,
+        "height": 150
+      },
+      "target": {
+        "ratio": {
+          "x": 0.75,
+          "y": 0.69,
+          "width": 0.16,
+          "height": 0.035
+        },
+        "pixels": {
+          "x": 1628,
+          "y": 832,
+          "width": 347,
+          "height": 42
+        }
+      },
+      "current": {
+        "ratio": {
+          "x": 0.44,
+          "y": 0.52,
+          "width": 0.24,
+          "height": 0.06
+        },
+        "pixels": {
+          "x": 721,
+          "y": 416,
+          "width": 393,
+          "height": 48
+        }
+      }
+    }
+  ],
+  "artifacts": {
+    "board": "/Users/homeserver/dev/civsim-main-worktree/specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/target-crop-contract/crop-contract-board.png",
+    "targetAnnotated": "/Users/homeserver/dev/civsim-main-worktree/specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/target-crop-contract/target-annotated.png",
+    "currentAnnotated": "/Users/homeserver/dev/civsim-main-worktree/specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/target-crop-contract/current-annotated.png",
+    "targetDir": "/Users/homeserver/dev/civsim-main-worktree/specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/target-crop-contract/target",
+    "currentDir": "/Users/homeserver/dev/civsim-main-worktree/specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/target-crop-contract/current",
+    "labeledDir": "/Users/homeserver/dev/civsim-main-worktree/specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/target-crop-contract/labeled"
+  }
+}

@@ -39,6 +39,14 @@ Spike results from the current worktree:
 - A terrain-only meadow shader can fill pixels and hit broad average colour, but
   without a real field/clump data owner it still reads as tinted procedural
   terrain.
+- The current 03B3 WIP proves the field texture is the correct data owner: the
+  meadow material now consumes 03B1 field records through `BattleGroundPass` while
+  foreground blade geometry is held at zero. The first visible result is still not
+  accepted because it reads as a smooth painted surface with combed/row-like
+  streaks and too little grassy volume.
+- Do not use foreground blades to hide a bad meadow material. If the lower-third
+  crop only looks dense after `grassBlades` is raised, that belongs to 03B4 and
+  means 03B3 is not done.
 
 ## False-Earth / X-Post Findings
 
@@ -50,10 +58,12 @@ runtime ambition:
   params as packed instance attributes, filter steep slopes, and tilt bases in the
   vertex shader while tips blend toward skyward growth. This maps well onto
   civsim's existing CPU instance upload path.
-- false-earth is the full GPU-native version: a snapped world grid, integer/PCG
-  seeds, Voronoi clumps, packed 4-vec4 blade records, terrain sampling, visible
-  LOD index buffers, and compute/indirect draw routing. It is the escalation path
-  if the packed-attribute CPU field proves visually right but too expensive.
+- false-earth demonstrates the fuller GPU-native backend for the same domain: a
+  snapped world grid, integer/PCG seeds, Voronoi clumps, packed 4-vec4 blade
+  records, terrain sampling, visible LOD index buffers, and compute/indirect draw
+  routing. Civsim should copy the camera-position procedural domain first.
+  GPU-native is the escalation backend if B4C0 or 03B5 proves the accepted
+  CPU/packed field is too expensive.
 - Copy the architecture and data contracts, not the app stack: no Three.js/TSL,
   Leva, character push/waves, emissive/neon materials, or false-earth colours.
 - Keep civsim's sacred contracts: `TerrainHeightField` owns height, battle grass
@@ -68,24 +78,39 @@ Use the 03B follow-on slices as an architecture ladder, not as a bag of knobs:
 2. Prove the X-post packed-attribute slope/normal behavior second (`03B2`).
 3. Let that field drive the broad meadow material (`03B3`).
 4. Add only the foreground blade geometry still missing (`03B4`).
-5. Gate readability and perf before adopting the result (`03B5`).
-6. Escalate to GPU compute/indirect only if the accepted CPU/packed path is too
-   expensive (`03B6`).
+5. Run the camera-relative backend spike before domain implementation
+   (`03B4C5B4C0`).
+6. Gate readability and perf before adopting the result (`03B5`).
+7. Escalate to GPU compute/indirect only if B4C0 or 03B5 proves the accepted
+   CPU/packed path is too expensive (`03B6`).
 
 The rejected local attempts are still useful evidence: card-only density was
 noisy and expensive, terrain-only meadow colour had no real clump owner, and
 fiber/sprite rows read as separate glyphs. Future passes should use those failures
 to avoid redoing broad count/colour tweaks before the field contract exists.
 
+Every follow-on pass should update its slice with the implementation approach it
+actually tried, the named files/routes/scenes it touched, and any rejected visual
+approaches. A future pass should be able to resume from the spec alone without the
+chat transcript.
+
 ## Follow-On Slices
 
 - `03b1-field-baseline-and-data-contract.md` owns the stable grass field records.
 - `03b2-packed-attribute-slope-tilt.md` owns the X-post vertex/attribute spike.
-- `03b3-field-driven-meadow-material.md` owns continuous meadow mass.
-- `03b4-false-earth-blade-accents.md` owns near blade/clump geometry.
+- `03b3-field-driven-meadow-material.md` records the field-meadow material
+  umbrella and current rejected/accepted attempts.
+- `03b3a-field-meadow-coverage-floor.md` owns field coverage and transition
+  falloff.
+- `03b3b-material-volume-proxy.md` owns material-only volume, or the decision
+  that true volume must move to geometry.
+- `03b4-false-earth-blade-accents.md` is the 03B4 umbrella; continue through
+  `03b4b-clump-root-shadow-volume.md` before near blade silhouettes.
+- `03b4c5b4c0-camera-relative-backend-spike.md` owns the camera-relative
+  CPU/GPU backend policy and perf gates before B4C1 implements cells/rings.
 - `03b5-readability-and-perf-gate.md` owns gameplay and route adoption.
-- `03b6-gpu-compute-and-indirect.md` is optional escalation, only after CPU/packed
-  field visuals are accepted and perf says compute is worth the renderer cost.
+- `03b6-gpu-compute-and-indirect.md` is optional escalation, only after B4C0 or
+  03B5 proves CPU/upload cost is the blocker behind the same record seam.
 - `03c-grass-color-texture.md` owns colour, sparkle, softness, and wind texture
   after the density architecture stops moving.
 
@@ -125,6 +150,16 @@ crop.
 
 ## Next Slice
 
-Implement `03b3-field-driven-meadow-material.md` next. Do not keep tuning
-foreground card counts or meadow shader constants outside the field/clump
-contract.
+Continue with `03b4c5-texture-backed-grass-volume.md`. 03B3A accepted the
+softened field-coverage channel; 03B3B rejected material-only meadow volume;
+03B4B landed clump aggregation but rejected hard root geometry; 03B4B2 landed a
+soft-root material layer but rejected it as smooth painted/combed carpet; 03B4C
+landed `soft-root-fiber` clump-ribbon telemetry but rejected the visual as sparse
+flecks; 03B4C2 landed `field-fiber-shell` ownership telemetry but rejected the
+visual as a smooth sheet with faint streaks; 03B4C3 rejected the one-strip shell
+primitive after material, width, lift, and view-thickness tests; 03B4C4 rejected
+mesh-only alternate families as sparse marks/stamps over the same painted plane.
+Do not keep tuning foreground card counts, meadow shader constants,
+root-material strength, per-record root-shadow count/width, `soft-root-fiber`
+clump ribbon count/width/height, `field-fiber-shell` emitter count/depth, or the
+03B4C4 mesh stand-ins outside the field/clump contract.

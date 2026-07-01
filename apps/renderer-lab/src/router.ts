@@ -30,7 +30,7 @@ import { BATTLE_MAP_CATALOG, battleMapById, buildBattleTerrainPresentation, pres
 import { flatHeightField, heightSpan, terrainHeightAt, type TerrainHeightField } from '../../../packages/game-renderer/src/terrain/heightField';
 import { terrainHeightField, type BattleTerrainFeature, type BattleTerrainFeatureKind, type BattleTerrainGrid } from '../../../packages/game-renderer/src/battle/terrainFeatures';
 import { BattleGroundPass } from '../../../packages/game-renderer/src/battle/groundPass';
-import { BattleGrassPass, type BattleGrassBounds, type BattleGrassParams } from '../../../packages/game-renderer/src/battle/grassPass';
+import { BattleGrassPass, type BattleGrassBounds, type BattleGrassParams, type GrassAccentAggregation, type GrassFiberShellVariant, type GrassPrimitiveFamily } from '../../../packages/game-renderer/src/battle/grassPass';
 import { sampleGrassField } from '../../../packages/game-renderer/src/battle/grassField';
 import { BattleHorizonPass } from '../../../packages/game-renderer/src/battle/horizonPass';
 import { createWaterField, type WaterFieldId, type WaterFieldSource } from '../../../packages/game-renderer/src/water/waterField';
@@ -38,6 +38,7 @@ import { WaterPlanePass } from '../../../packages/game-renderer/src/water/waterP
 import { WATER_ENVIRONMENTS, type WaterEnvironment } from '../../../packages/game-renderer/src/water/waterEnvironment';
 import { featuresToBattleScenery } from '../../../packages/game-renderer/src/battle/terrainScenery';
 import { MeshBuilder, type Rgb } from '../../../packages/game-renderer/src/models/shared/meshBuilder';
+import type { GrassAccentStyle } from '../../../packages/game-renderer/src/models/shared/grassModels';
 import { CampaignSelectionPass, type CampaignSelectionInstance } from '../../../packages/game-renderer/src/campaign/selectionPass';
 import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages/game-renderer/src/campaign/territoryPass';
 import { Nested3dFixturePass } from '../../../packages/game-renderer/src/fixtures/nested3d';
@@ -2805,18 +2806,14 @@ async function routeBattleTerrain3d(ctx: LabContext) {
   ground.setTerrain(grid, field, presentation.groundCover);
   const grass = new BattleGrassPass(shell);
   const grassZoomT = view === 'reference' ? 1.0 : view === 'soldiers' ? 0.82 : 0.58;
+  const requestedGrassTechnique = ctx.params.get('grassTechnique');
   const grassTechnique = view === 'reference' && isReferenceFixture
-    ? (ctx.params.get('grassTechnique') === 'cards' || ctx.params.get('grassTechnique') === 'carpet' ? ctx.params.get('grassTechnique')! : 'hybrid')
+    ? requestedGrassTechnique === 'cards'
+      ? 'cards'
+      : requestedGrassTechnique === 'field-meadow'
+        ? 'field-meadow'
+        : 'field-accent'
     : 'cards';
-  if (view === 'reference' && isReferenceFixture && grassTechnique !== 'cards') {
-    ground.setMeadow({
-      depthNear: numberParam(ctx.params, 'meadowDepthNear', 0),
-      depthFar: numberParam(ctx.params, 'meadowDepthFar', 1040),
-      nearStrength: numberParam(ctx.params, 'meadowNear', grassTechnique === 'carpet' ? 0.98 : 0.90),
-      farStrength: numberParam(ctx.params, 'meadowFar', grassTechnique === 'carpet' ? 0.46 : 0.34),
-    });
-  }
-  const referenceGrassBaseTufts = grassTechnique === 'carpet' ? 3000 : grassTechnique === 'hybrid' ? 6000 : 24000;
   const grassFocus = {
     x: camera.x,
     y: camera.y,
@@ -2829,20 +2826,95 @@ async function routeBattleTerrain3d(ctx: LabContext) {
       farWeight: numberParam(ctx.params, 'grassFarWeight', 0.035),
     } : {}),
   };
-  grass.setTerrain(grid, field, presentation.groundCover, {
-    seed: 0x7a55,
-    density: view === 'reference' ? (isReferenceFixture ? 1.15 : 0.72) : 0.50,
-    maxTufts: view === 'reference' ? (isReferenceFixture ? referenceGrassBaseTufts : 8000) : 4200,
-    zoomT: grassZoomT,
-    focus: grassFocus,
-    ...(view === 'reference' ? { bladesPerTuft: integerParam(ctx.params, 'grassBlades', 12, 1, 96) } : {}),
-    bladeHeight: view === 'reference' ? numberParam(ctx.params, 'grassBladeHeight', isReferenceFixture ? 1.45 : 1.24) : 1.0,
-    bladeWidth: view === 'reference' ? numberParam(ctx.params, 'grassBladeWidth', isReferenceFixture ? 0.096 : 0.088) : 0.072,
-    bend: view === 'reference' ? numberParam(ctx.params, 'grassBend', isReferenceFixture ? 0.46 : 0.40) : 0.32,
-    spread: view === 'reference' ? numberParam(ctx.params, 'grassSpread', isReferenceFixture ? 0.34 : 0.25) : 0.20,
-    windPhase: numberParam(ctx.params, 'grassPhase', 0),
-    windStrength: isReferenceFixture ? 0.058 : 0.078,
-  });
+  let referenceFieldSnapshot: ReturnType<typeof sampleGrassField> | null = null;
+  if (view === 'reference' && isReferenceFixture && grassTechnique !== 'cards') {
+    referenceFieldSnapshot = sampleGrassField(grid, field, {
+      seed: integerParam(ctx.params, 'grassSeed', 0x7a55, 0, 0x7fff_ffff),
+      focus: grassFocus,
+      fieldCellSize: numberParam(ctx.params, 'grassFieldCell', 4.6),
+      snapCellSize: numberParam(ctx.params, 'grassSnapCell', 28),
+      clumpCellSize: numberParam(ctx.params, 'grassClumpCell', 46),
+      density: numberParam(ctx.params, 'grassFieldDensity', 1.0),
+      jitter: numberParam(ctx.params, 'grassFieldJitter', 0.58),
+      minNormalZ: numberParam(ctx.params, 'grassMinNormalZ', 0.54),
+      maxRecords: integerParam(ctx.params, 'grassFieldRecords', 7000, 0, 20000),
+      baseHeight: numberParam(ctx.params, 'grassBladeHeight', 0.82),
+      baseWidth: numberParam(ctx.params, 'grassBladeWidth', 0.052),
+      baseBend: numberParam(ctx.params, 'grassBend', 0.28),
+    });
+    ground.setMeadowFromGrassField(referenceFieldSnapshot, { x: ox, y: oy, width: w * cell, height: h * cell }, {
+      depthNear: numberParam(ctx.params, 'meadowDepthNear', 0),
+      depthFar: numberParam(ctx.params, 'meadowDepthFar', 1040),
+      nearStrength: numberParam(ctx.params, 'meadowNear', 0.96),
+      farStrength: numberParam(ctx.params, 'meadowFar', 0.48),
+      cellSize: numberParam(ctx.params, 'meadowCell', 16),
+      spread: numberParam(ctx.params, 'meadowSpread', 86),
+      coverageSpread: numberParam(ctx.params, 'meadowCoverageSpread', 180),
+      densityScale: numberParam(ctx.params, 'meadowDensityScale', 1.08),
+      streakStrength: numberParam(ctx.params, 'meadowStreak', 0.28),
+      fieldFloor: numberParam(ctx.params, 'meadowFloor', 0.07),
+      rootMassStrength: grassTechnique === 'field-accent' ? numberParam(ctx.params, 'rootMassStrength', 1.24) : 0,
+      rootMassContrast: numberParam(ctx.params, 'rootMassContrast', 0.78),
+      rootMassSpread: numberParam(ctx.params, 'rootMassSpread', 32),
+    });
+    const fiberShellVariant = fiberShellVariantParam(ctx.params, 'fiberShellVariant', 'normal');
+    const requestedPrimitiveFamily = grassPrimitiveFamilyParam(ctx.params, 'grassPrimitiveFamily', 'field-fiber-shell');
+    const defaultAccentStyle = grassTechnique === 'field-meadow'
+      ? 'tuft'
+      : accentStyleForPrimitiveFamily(requestedPrimitiveFamily, fiberShellVariant);
+    const grassAccentStyle = grassAccentStyleParam(ctx.params, 'grassAccentStyle', defaultAccentStyle);
+    const grassPrimitiveFamily = grassPrimitiveFamilyForRequest(requestedPrimitiveFamily, grassAccentStyle);
+    const texturePrimitive = isTextureGrassPrimitiveFamily(grassPrimitiveFamily);
+    const textureCarrier = grassPrimitiveFamily === 'texture-carrier';
+    const textureMicroCarrier = grassPrimitiveFamily === 'texture-micro-carrier';
+    const grassAccentAggregation = grassTechnique === 'field-accent' && texturePrimitive
+      ? grassAccentAggregationParam(ctx.params, 'grassAccentAggregation', 'field-cell')
+      : grassTechnique === 'field-accent' && isFieldFiberShellStyle(grassAccentStyle)
+      ? 'field-near'
+      : grassTechnique === 'field-accent' && isClumpGrassAccentStyle(grassAccentStyle)
+      ? grassAccentAggregationParam(ctx.params, 'grassAccentAggregation', 'clump')
+      : 'record';
+    const fieldShellStyle = isFieldFiberShellStyle(grassAccentStyle);
+    const workbenchPrimitive = isWorkbenchGrassPrimitiveFamily(grassPrimitiveFamily);
+    grass.setGrassFieldSnapshot(referenceFieldSnapshot, presentation.groundCover, {
+      seed: 0x7a55,
+      bladesPerTuft: integerParam(ctx.params, 'grassBlades', grassTechnique === 'field-meadow' ? 0 : fieldShellStyle ? 1 : textureMicroCarrier ? 2 : textureCarrier ? 4 : texturePrimitive ? 4 : grassPrimitiveFamily === 'alpha-impostor' ? 4 : grassPrimitiveFamily === 'volume-card' ? 5 : 5, 0, 96),
+      maxTufts: integerParam(ctx.params, 'grassAccentTufts', grassTechnique === 'field-meadow' ? referenceFieldSnapshot.records.length : fieldShellStyle ? 5200 : workbenchPrimitive ? referenceFieldSnapshot.records.length : 2600, 0, 20000),
+      accentMaxClumps: integerParam(ctx.params, 'grassAccentClumps', grassTechnique === 'field-accent' ? textureMicroCarrier ? 4600 : textureCarrier ? 2400 : texturePrimitive ? 1900 : workbenchPrimitive ? 420 : 760 : 0, 0, 20000),
+      bladeHeight: numberParam(ctx.params, 'grassBladeHeight', grassTechnique === 'field-meadow' ? 0.82 : grassAccentStyle === 'field-fiber-shell-visibility' ? 0.86 : fieldShellStyle ? 0.62 : textureMicroCarrier ? 0.68 : textureCarrier ? 0.92 : texturePrimitive ? 1.06 : grassPrimitiveFamily === 'alpha-impostor' ? 0.74 : grassPrimitiveFamily === 'billboard-cluster' ? 0.92 : grassPrimitiveFamily === 'volume-card' ? 0.70 : 0.56),
+      bladeWidth: numberParam(ctx.params, 'grassBladeWidth', grassTechnique === 'field-meadow' ? 0.052 : grassAccentStyle === 'field-fiber-shell-visibility' ? 0.052 : fieldShellStyle ? 0.036 : textureMicroCarrier ? 0.044 : textureCarrier ? 0.120 : texturePrimitive ? 0.074 : grassPrimitiveFamily === 'volume-card' ? 0.090 : 0.070),
+      bend: numberParam(ctx.params, 'grassBend', grassTechnique === 'field-meadow' ? 0.28 : grassAccentStyle === 'field-fiber-shell-visibility' ? 0.08 : fieldShellStyle ? 0.14 : textureMicroCarrier ? 0.05 : textureCarrier ? 0.035 : texturePrimitive ? 0.05 : grassPrimitiveFamily === 'volume-card' ? 0.06 : 0.12),
+      spread: numberParam(ctx.params, 'grassSpread', grassTechnique === 'field-meadow' ? 0.16 : grassAccentStyle === 'field-fiber-shell-visibility' ? 0.055 : fieldShellStyle ? 0.040 : textureMicroCarrier ? 0.052 : textureCarrier ? 0.12 : texturePrimitive ? 0.082 : grassPrimitiveFamily === 'volume-card' ? 0.070 : 0.090),
+      windPhase: numberParam(ctx.params, 'grassPhase', 0),
+      windStrength: grassTechnique === 'field-meadow' ? 0.032 : 0.016,
+      zoomT: grassZoomT,
+      focus: grassFocus,
+      accentDepthNear: numberParam(ctx.params, 'grassAccentDepthNear', fieldShellStyle || workbenchPrimitive ? 35 : -40),
+      accentDepthFar: numberParam(ctx.params, 'grassAccentDepthFar', textureMicroCarrier ? 460 : textureCarrier ? 460 : fieldShellStyle || workbenchPrimitive ? 360 : 120),
+      surfaceBlend: numberParam(ctx.params, 'grassAccentSurface', grassTechnique === 'field-meadow' ? 0 : grassAccentAggregation === 'field-cell' ? textureMicroCarrier ? 0.34 : textureCarrier ? 0.38 : 0.26 : grassAccentAggregation === 'clump' ? workbenchPrimitive ? 0.38 : 0.56 : grassAccentStyle === 'field-fiber-shell-visibility' ? 0.42 : grassAccentAggregation === 'field-near' ? 0.70 : 0.98),
+      accentStyle: grassAccentStyle,
+      accentAggregation: grassAccentAggregation,
+      accentClumpFootprint: numberParam(ctx.params, 'grassAccentFootprint', grassAccentAggregation === 'field-cell' ? textureMicroCarrier ? 1.9 : textureCarrier ? 5.8 : 3.4 : grassAccentAggregation === 'clump' ? workbenchPrimitive ? 8.2 : 6.8 : 1),
+      fiberShellVariant,
+      grassPrimitiveFamily,
+      grassPrimitiveBaseline: grassPrimitiveFamily === 'field-fiber-shell' ? 'none' : 'field-fiber-shell-normal',
+    });
+  } else {
+    grass.setTerrain(grid, field, presentation.groundCover, {
+      seed: 0x7a55,
+      density: view === 'reference' ? (isReferenceFixture ? 1.15 : 0.72) : 0.50,
+      maxTufts: view === 'reference' ? (isReferenceFixture ? 24000 : 8000) : 4200,
+      zoomT: grassZoomT,
+      focus: grassFocus,
+      ...(view === 'reference' ? { bladesPerTuft: integerParam(ctx.params, 'grassBlades', 12, 1, 96) } : {}),
+      bladeHeight: view === 'reference' ? numberParam(ctx.params, 'grassBladeHeight', isReferenceFixture ? 1.45 : 1.24) : 1.0,
+      bladeWidth: view === 'reference' ? numberParam(ctx.params, 'grassBladeWidth', isReferenceFixture ? 0.096 : 0.088) : 0.072,
+      bend: view === 'reference' ? numberParam(ctx.params, 'grassBend', isReferenceFixture ? 0.46 : 0.40) : 0.32,
+      spread: view === 'reference' ? numberParam(ctx.params, 'grassSpread', isReferenceFixture ? 0.34 : 0.25) : 0.20,
+      windPhase: numberParam(ctx.params, 'grassPhase', 0),
+      windStrength: isReferenceFixture ? 0.058 : 0.078,
+    });
+  }
   const props = new CampaignSceneryPass(shell, 'battle');
   props.upload(scenery);
   const horizon = new BattleHorizonPass(shell);
@@ -2911,6 +2983,15 @@ async function routeBattleTerrain3d(ctx: LabContext) {
     grassTechnique,
     meadow: groundStats.meadow.enabled ? `${groundStats.meadow.nearStrength.toFixed(2)} → ${groundStats.meadow.farStrength.toFixed(2)}` : 'off',
     grassTufts: grassStats.tuftInstances,
+    grassAccent: `${grassStats.accentStyle}/${grassStats.accentAggregation}`,
+    grassPrimitiveFamily: grassStats.grassPrimitiveFamily,
+    grassPrimitiveBaseline: grassStats.grassPrimitiveBaseline,
+    grassPrimitiveTexture: grassStats.grassPrimitiveTextureBytes > 0
+      ? `${grassStats.grassPrimitiveTextureWidth}x${grassStats.grassPrimitiveTextureHeight} / ${grassStats.grassPrimitiveTextureTiles} tiles`
+      : 'none',
+    fiberShellVariant: grassStats.fiberShellVariant,
+    grassAccentClumps: grassStats.accentClumps,
+    grassAccentSource: grassStats.accentSourceRecords,
     grassBlades: grassStats.bladeInstances,
     grassBlockedCells: grassStats.blockedTintCells,
     props: scenery.length,
@@ -3093,14 +3174,23 @@ async function routeBattleGrass(ctx: LabContext) {
 }
 
 async function routeBattleGrassField(ctx: LabContext) {
-  const mode = 'packed-tilt';
+  const requestedMode = ctx.params.get('mode');
+  const mode = requestedMode === 'field-meadow' || requestedMode === 'field-accent' || requestedMode === 'foreground-close-lab'
+    ? requestedMode
+    : 'packed-tilt';
+  const closeLab = mode === 'foreground-close-lab';
+  const accentMode = mode === 'field-accent' || closeLab;
+  const closeLabCameraProfile: ForegroundCloseLabCameraProfile | undefined = closeLab
+    ? foregroundCloseLabCameraProfileParam(ctx.params, 'labCameraProfile', 'b4b1-current')
+    : undefined;
+  const closeLabProfile = closeLabCameraProfile ? FOREGROUND_CLOSE_LAB_CAMERA_PROFILES[closeLabCameraProfile] : undefined;
   const grid = buildGrassFieldSlopeGrid();
   const field = terrainHeightField(grid);
   const bounds = { x: grid.ox, y: grid.oy, width: grid.w * grid.cell, height: grid.h * grid.cell };
   const focus = {
-    x: numberParam(ctx.params, 'focusX', 0),
-    y: numberParam(ctx.params, 'focusY', 0),
-    radius: numberParam(ctx.params, 'radius', 86),
+    x: numberParam(ctx.params, 'focusX', closeLab ? 0 : 0),
+    y: numberParam(ctx.params, 'focusY', closeLab ? -22 : 0),
+    radius: numberParam(ctx.params, 'radius', closeLab ? 78 : 86),
   };
   const snapshot = sampleGrassField(grid, field, {
     seed: integerParam(ctx.params, 'seed', 0x31b2, 0, 0x7fff_ffff),
@@ -3110,28 +3200,84 @@ async function routeBattleGrassField(ctx: LabContext) {
     clumpCellSize: numberParam(ctx.params, 'clumpCell', 30),
     density: numberParam(ctx.params, 'density', 1.0),
     jitter: numberParam(ctx.params, 'jitter', 0.46),
-    minNormalZ: numberParam(ctx.params, 'minNormalZ', 0.66),
+    minNormalZ: numberParam(ctx.params, 'minNormalZ', mode === 'packed-tilt' ? 0.66 : 0.78),
     maxRecords: integerParam(ctx.params, 'maxRecords', 3200, 0, 12000),
     baseHeight: numberParam(ctx.params, 'bladeHeight', 1.02),
     baseWidth: numberParam(ctx.params, 'bladeWidth', 0.078),
     baseBend: numberParam(ctx.params, 'bend', 0.30),
   });
-  const camera = { x: 10, y: -14, zoom: 40, pitch: 0.66, yaw: -0.18, perspective: 0.020 };
+  const closeLabCamera = closeLabProfile?.camera;
+  const camera = closeLab && closeLabCamera
+    ? {
+      x: numberParam(ctx.params, 'cameraX', closeLabCamera.x),
+      y: numberParam(ctx.params, 'cameraY', closeLabCamera.y),
+      zoom: numberParam(ctx.params, 'cameraZoom', closeLabCamera.zoom),
+      pitch: numberParam(ctx.params, 'cameraPitch', closeLabCamera.pitch),
+      yaw: numberParam(ctx.params, 'cameraYaw', closeLabCamera.yaw),
+      perspective: numberParam(ctx.params, 'cameraPerspective', closeLabCamera.perspective),
+    }
+    : { x: 10, y: -14, zoom: 40, pitch: 0.66, yaw: -0.18, perspective: 0.020 };
   const shell = await createConfiguredShell(ctx.canvas, camera);
   const ground = new BattleGroundPass(shell);
   ground.setTerrain(grid, field, 'green-grass', 2);
+  if (mode !== 'packed-tilt') {
+    ground.setMeadowFromGrassField(snapshot, bounds, {
+      depthNear: numberParam(ctx.params, 'meadowDepthNear', -70),
+      depthFar: numberParam(ctx.params, 'meadowDepthFar', 155),
+      nearStrength: numberParam(ctx.params, 'meadowNear', 0.98),
+      farStrength: numberParam(ctx.params, 'meadowFar', 0.74),
+      cellSize: numberParam(ctx.params, 'meadowCell', 7),
+      spread: numberParam(ctx.params, 'meadowSpread', 21),
+      coverageSpread: numberParam(ctx.params, 'meadowCoverageSpread', 34),
+      densityScale: numberParam(ctx.params, 'meadowDensityScale', 1.12),
+      streakStrength: numberParam(ctx.params, 'meadowStreak', 0.30),
+      fieldFloor: numberParam(ctx.params, 'meadowFloor', 0),
+      rootMassStrength: accentMode ? numberParam(ctx.params, 'rootMassStrength', 1.32) : 0,
+      rootMassContrast: numberParam(ctx.params, 'rootMassContrast', 0.72),
+      rootMassSpread: numberParam(ctx.params, 'rootMassSpread', 9.5),
+    });
+  }
   const grass = new BattleGrassPass(shell);
+  const fiberShellVariant = fiberShellVariantParam(ctx.params, 'fiberShellVariant', 'normal');
+  const requestedPrimitiveFamily = grassPrimitiveFamilyParam(ctx.params, 'grassPrimitiveFamily', 'field-fiber-shell');
+  const accentStyle = grassAccentStyleParam(ctx.params, 'accentStyle', accentMode ? accentStyleForPrimitiveFamily(requestedPrimitiveFamily, fiberShellVariant) : 'tuft');
+  const grassPrimitiveFamily = grassPrimitiveFamilyForRequest(requestedPrimitiveFamily, accentStyle);
+  const fieldShellStyle = isFieldFiberShellStyle(accentStyle);
+  const workbenchPrimitive = isWorkbenchGrassPrimitiveFamily(grassPrimitiveFamily);
+  const texturePrimitive = isTextureGrassPrimitiveFamily(grassPrimitiveFamily);
+  const textureCarrier = grassPrimitiveFamily === 'texture-carrier';
+  const textureMicroCarrier = grassPrimitiveFamily === 'texture-micro-carrier';
+  const accentAggregation = accentMode && texturePrimitive
+    ? grassAccentAggregationParam(ctx.params, 'accentAggregation', 'field-cell')
+    : accentMode && fieldShellStyle
+    ? 'field-near'
+    : accentMode && isClumpGrassAccentStyle(accentStyle)
+    ? grassAccentAggregationParam(ctx.params, 'accentAggregation', 'clump')
+    : 'record';
   grass.setGrassFieldSnapshot(snapshot, 'green-grass', {
     seed: 0x31b2,
-    bladesPerTuft: integerParam(ctx.params, 'blades', 9, 1, 48),
-    bladeHeight: numberParam(ctx.params, 'bladeHeight', 1.02),
-    bladeWidth: numberParam(ctx.params, 'bladeWidth', 0.078),
-    bend: numberParam(ctx.params, 'bend', 0.30),
-    spread: numberParam(ctx.params, 'spread', 0.17),
+    bladesPerTuft: integerParam(ctx.params, 'blades', mode === 'field-meadow' ? 0 : accentMode && fieldShellStyle ? 1 : accentMode && textureMicroCarrier ? 2 : accentMode && textureCarrier ? 4 : accentMode && texturePrimitive ? 4 : accentMode && workbenchPrimitive ? grassPrimitiveFamily === 'alpha-impostor' ? 4 : 5 : accentMode ? 3 : 9, 0, 48),
+    maxTufts: integerParam(ctx.params, 'accentTufts', accentMode && fieldShellStyle ? 1500 : accentMode && workbenchPrimitive ? snapshot.records.length : accentMode ? 900 : snapshot.records.length, 0, 12000),
+    accentMaxClumps: integerParam(ctx.params, 'accentClumps', accentMode ? textureMicroCarrier ? 1900 : textureCarrier ? 1450 : texturePrimitive ? 1100 : workbenchPrimitive ? 360 : 420 : 0, 0, 12000),
+    bladeHeight: numberParam(ctx.params, 'bladeHeight', mode === 'field-meadow' ? 0.32 : accentMode && accentStyle === 'field-fiber-shell-visibility' ? 0.86 : accentMode && fieldShellStyle ? 0.62 : accentMode && textureMicroCarrier ? 0.58 : accentMode && textureCarrier ? 0.88 : accentMode && texturePrimitive ? 1.00 : accentMode && grassPrimitiveFamily === 'alpha-impostor' ? 0.74 : accentMode && grassPrimitiveFamily === 'billboard-cluster' ? 0.92 : accentMode && grassPrimitiveFamily === 'volume-card' ? 0.70 : accentMode ? 0.58 : 1.02),
+    bladeWidth: numberParam(ctx.params, 'bladeWidth', mode === 'field-meadow' ? 0.024 : accentMode && accentStyle === 'field-fiber-shell-visibility' ? 0.052 : accentMode && fieldShellStyle ? 0.038 : accentMode && textureMicroCarrier ? 0.044 : accentMode && textureCarrier ? 0.110 : accentMode && texturePrimitive ? 0.070 : accentMode && grassPrimitiveFamily === 'volume-card' ? 0.086 : accentMode ? 0.066 : 0.078),
+    bend: numberParam(ctx.params, 'bend', mode === 'field-meadow' ? 0.18 : accentMode && accentStyle === 'field-fiber-shell-visibility' ? 0.08 : accentMode && fieldShellStyle ? 0.14 : accentMode && textureMicroCarrier ? 0.05 : accentMode && textureCarrier ? 0.035 : accentMode && texturePrimitive ? 0.05 : accentMode && grassPrimitiveFamily === 'volume-card' ? 0.06 : accentMode ? 0.12 : 0.30),
+    spread: numberParam(ctx.params, 'spread', mode === 'field-meadow' ? 0.06 : accentMode && accentStyle === 'field-fiber-shell-visibility' ? 0.055 : accentMode && fieldShellStyle ? 0.040 : accentMode && textureMicroCarrier ? 0.052 : accentMode && textureCarrier ? 0.11 : accentMode && texturePrimitive ? 0.082 : accentMode && workbenchPrimitive ? 0.090 : accentMode ? 0.070 : 0.17),
     windPhase: numberParam(ctx.params, 'phase', 0.3),
-    windStrength: numberParam(ctx.params, 'windStrength', 0.035),
+    windStrength: numberParam(ctx.params, 'windStrength', mode === 'field-meadow' ? 0.014 : accentMode ? 0.012 : 0.035),
     zoomT: 1,
     focus,
+    ...(accentMode ? {
+      accentDepthNear: numberParam(ctx.params, 'accentDepthNear', fieldShellStyle || workbenchPrimitive ? -35 : -35),
+      accentDepthFar: numberParam(ctx.params, 'accentDepthFar', fieldShellStyle || workbenchPrimitive ? 72 : 56),
+    } : {}),
+    surfaceBlend: numberParam(ctx.params, 'surfaceBlend', accentMode ? accentAggregation === 'field-cell' ? textureMicroCarrier ? 0.34 : textureCarrier ? 0.38 : 0.26 : accentAggregation === 'clump' ? workbenchPrimitive ? 0.38 : 0.58 : accentStyle === 'field-fiber-shell-visibility' ? 0.42 : accentAggregation === 'field-near' ? 0.70 : 0.98 : 0),
+    accentStyle,
+    accentAggregation,
+    accentClumpFootprint: numberParam(ctx.params, 'accentFootprint', accentAggregation === 'field-cell' ? textureMicroCarrier ? 1.8 : textureCarrier ? 5.2 : 3.0 : accentAggregation === 'clump' ? workbenchPrimitive ? 7.4 : 6.3 : 1),
+    fiberShellVariant,
+    grassPrimitiveFamily,
+    grassPrimitiveBaseline: grassPrimitiveFamily === 'field-fiber-shell' ? 'none' : 'field-fiber-shell-normal',
   });
   shell.drawFrame({
     clear: { r: 0.75, g: 0.84, b: 0.90, a: 1 },
@@ -3152,8 +3298,91 @@ async function routeBattleGrassField(ctx: LabContext) {
     instanceBytes: grassStats.instanceBytes,
     submittedTriangles: grassStats.submittedTriangles,
     drawCalls: grassStats.drawCalls,
+    meadow: ground.stats().meadow.enabled ? `${ground.stats().meadow.source}:${ground.stats().meadow.fieldCoverage}` : 'off',
+    rootMass: ground.stats().meadow.rootMassEnabled ? `${ground.stats().meadow.rootMassCoverage}/${ground.stats().meadow.rootMassStrength}` : 'off',
+    accentStyle: grassStats.accentStyle,
+    accentAggregation: grassStats.accentAggregation,
+    grassPrimitiveFamily: grassStats.grassPrimitiveFamily,
+    grassPrimitiveBaseline: grassStats.grassPrimitiveBaseline,
+    grassPrimitiveTexture: grassStats.grassPrimitiveTextureBytes > 0
+      ? `${grassStats.grassPrimitiveTextureWidth}x${grassStats.grassPrimitiveTextureHeight} / ${grassStats.grassPrimitiveTextureTiles} tiles`
+      : 'none',
+    fiberShellVariant: grassStats.fiberShellVariant,
+    accentRibbons: grassStats.accentRibbons,
+    accentClumps: grassStats.accentClumps,
+    accentSourceRecords: grassStats.accentSourceRecords,
+    fiberShell: grassStats.fiberShellRecords > 0 ? `${grassStats.fiberShellRecords}/${grassStats.fiberShellSourceRecords}` : 'off',
+    fiberShellRibbons: grassStats.fiberShellRibbons,
+    labProfile: closeLabCameraProfile ?? 'off',
   });
-  publish('battle-grass-field', grassStats.fieldRecords > 0 && grassStats.fieldRejectedSlopeCells > 0 && grassStats.drawCalls === 1, {
+  const groundStats = ground.stats();
+  const fieldShellActiveOk = isFieldFiberShellStyle(grassStats.accentStyle)
+    && grassStats.accentAggregation === 'field-near'
+    && grassStats.fiberShellVariant !== 'off'
+    && grassStats.fiberShellSourceRecords > grassStats.fiberShellRecords
+    && grassStats.fiberShellRecords === grassStats.accentTufts
+    && grassStats.fiberShellRecords === grassStats.tuftInstances
+    && grassStats.fiberShellRecords > 80
+    && grassStats.fiberShellRecords < grassStats.fieldRecords
+    && grassStats.fiberShellRibbons >= grassStats.fiberShellRecords
+    && grassStats.fiberShellRibbons === grassStats.accentRibbons
+    && grassStats.fiberShellDepthFar > grassStats.fiberShellDepthNear
+    && grassStats.fiberShellSubmittedTriangles === grassStats.submittedTriangles;
+  const fieldShellOffOk = isFieldFiberShellStyle(grassStats.accentStyle)
+    && grassStats.accentAggregation === 'field-near'
+    && grassStats.fiberShellVariant === 'off'
+    && grassStats.fiberShellSourceRecords > 0
+    && grassStats.fiberShellRecords === 0
+    && grassStats.accentTufts === 0
+    && grassStats.tuftInstances === 0
+    && grassStats.drawCalls === 0;
+  const clumpAccentOk = !isFieldFiberShellStyle(grassStats.accentStyle)
+    && grassStats.accentAggregation === 'clump'
+    && grassStats.accentClumps > 0
+    && grassStats.accentSourceRecords > grassStats.accentTufts
+    && grassStats.accentTufts >= grassStats.accentClumps
+    && grassStats.accentTufts <= grassStats.accentClumps * 3
+    && (grassStats.accentStyle !== 'soft-root-fiber' || grassStats.accentRibbons > grassStats.accentTufts);
+  const fieldCellTextureOk = isTextureGrassPrimitiveFamily(grassStats.grassPrimitiveFamily)
+    && grassStats.accentStyle === 'volume-card'
+    && grassStats.accentAggregation === 'field-cell'
+    && grassStats.accentClumps > 0
+    && grassStats.accentTufts >= grassStats.accentClumps
+    && grassStats.accentTufts <= grassStats.accentClumps * (grassStats.grassPrimitiveFamily === 'texture-micro-carrier' ? 4 : 2)
+    && (grassStats.grassPrimitiveFamily === 'texture-micro-carrier'
+      ? grassStats.accentSourceRecords >= grassStats.accentClumps
+      : grassStats.accentSourceRecords > grassStats.accentTufts)
+    && grassStats.grassPrimitiveSourceRecords === grassStats.accentSourceRecords
+    && grassStats.grassPrimitiveRecords === grassStats.accentTufts
+    && grassStats.grassPrimitiveClumps === grassStats.accentClumps
+    && grassStats.grassPrimitiveTextureWidth > 0
+    && grassStats.grassPrimitiveTextureHeight > 0
+    && grassStats.grassPrimitiveTextureTiles > 0
+    && grassStats.grassPrimitiveTextureBytes > 0
+    && (grassStats.grassPrimitiveFamily !== 'texture-micro-carrier' || grassStats.grassPrimitiveMicroCards >= grassStats.accentTufts * 3)
+    && grassStats.submittedTriangles > 0
+    && grassStats.submittedTriangles < 83200
+    && grassStats.drawCalls === 1;
+  const closeLabOk = closeLab
+    && grassStats.fieldRecords > 100
+    && grassStats.accentStyle !== 'tuft'
+    && grassStats.tuftInstances > 20
+    && grassStats.tuftInstances <= grassStats.fieldRecords
+    && grassStats.submittedTriangles > 0
+    && grassStats.submittedTriangles < 83200
+    && grassStats.drawCalls === 1
+    && groundStats.meadow.source === 'field'
+    && groundStats.meadow.fieldCoverage > 0.50
+    && groundStats.meadow.rootMassEnabled === true
+    && groundStats.meadow.rootMassCoverage > 0.05;
+  const ok = closeLab
+    ? closeLabOk
+    : mode === 'field-meadow'
+    ? grassStats.fieldRecords > 0 && grassStats.bladeInstances === 0 && grassStats.drawCalls === 0 && groundStats.meadow.source === 'field' && groundStats.meadow.fieldCoverage > 0.50
+    : accentMode
+      ? grassStats.fieldRecords > 0 && grassStats.accentStyle !== 'tuft' && (fieldShellActiveOk || fieldShellOffOk || clumpAccentOk || fieldCellTextureOk) && grassStats.tuftInstances === grassStats.accentTufts && grassStats.tuftInstances < grassStats.fieldRecords && (grassStats.fiberShellVariant === 'off' || grassStats.bladeInstances >= grassStats.tuftInstances) && (grassStats.fiberShellVariant === 'off' || grassStats.drawCalls === 1) && groundStats.meadow.source === 'field' && groundStats.meadow.fieldCoverage > 0.50 && groundStats.meadow.rootMassEnabled === true && groundStats.meadow.rootMassCoverage > 0.05
+    : grassStats.fieldRecords > 0 && grassStats.fieldRejectedSlopeCells > 0 && grassStats.drawCalls === 1;
+  publish('battle-grass-field', ok, {
     route: 'battle-grass-field',
     mode,
     camera,
@@ -3162,10 +3391,94 @@ async function routeBattleGrassField(ctx: LabContext) {
     grid: { w: grid.w, h: grid.h, cell: grid.cell, ox: grid.ox, oy: grid.oy },
     field: snapshot.stats,
     grass: grassStats,
-    ground: ground.stats(),
+    ground: groundStats,
+    lab: closeLab ? {
+      profile: 'foreground-close-lab',
+      contract: closeLabContract(closeLabCameraProfile),
+      cameraProfile: closeLabCameraProfile,
+      cropPurpose: closeLabCropPurpose(closeLabCameraProfile),
+      calibration: closeLabProfile?.calibration ?? 'none',
+      foregroundWorldUnitsPerPixel: Number((1 / camera.zoom).toFixed(5)),
+      reviewWindows: closeLabProfile?.reviewWindows ?? FOREGROUND_CLOSE_LAB_WINDOWS,
+      frozenInputs: {
+        terrain: 'battle-grass-field-slope-grid',
+        palette: 'green-grass',
+        lighting: 'renderer-lab-overcast-clear',
+        seed: 0x31b2,
+        meadow: 'field-owned',
+        rootMass: 'enabled',
+      },
+    } : undefined,
     depth: shell.stats().depth,
     framePhases: shell.stats().phases,
   });
+}
+
+const FOREGROUND_CLOSE_LAB_WINDOWS = {
+  closeHero: { x: 0.08, y: 0.70, width: 0.84, height: 0.24 },
+  closeTight2x: { x: 0.28, y: 0.75, width: 0.44, height: 0.16 },
+  closeTight4x: { x: 0.41, y: 0.79, width: 0.18, height: 0.10 },
+  transition: { x: 0.14, y: 0.48, width: 0.72, height: 0.18 },
+  midMass: { x: 0.18, y: 0.31, width: 0.64, height: 0.15 },
+};
+
+type ForegroundCloseLabCameraProfile = 'b4b1-current' | 'scale-repair-low' | 'scale-repair-oblique' | 'b4b1a0-test-env';
+
+const FOREGROUND_CLOSE_LAB_CAMERA_PROFILES: Record<ForegroundCloseLabCameraProfile, {
+  camera: { x: number; y: number; zoom: number; pitch: number; yaw: number; perspective: number };
+  reviewWindows: typeof FOREGROUND_CLOSE_LAB_WINDOWS;
+  calibration: string;
+}> = {
+  'b4b1-current': {
+    camera: { x: 0, y: -36, zoom: 104, pitch: 0.78, yaw: -0.08, perspective: 0.020 },
+    reviewWindows: FOREGROUND_CLOSE_LAB_WINDOWS,
+    calibration: 'none',
+  },
+  'scale-repair-low': {
+    camera: { x: 0, y: -47, zoom: 155, pitch: 0.92, yaw: -0.06, perspective: 0.030 },
+    reviewWindows: {
+      closeHero: { x: 0.08, y: 0.60, width: 0.84, height: 0.30 },
+      closeTight2x: { x: 0.25, y: 0.66, width: 0.50, height: 0.22 },
+      closeTight4x: { x: 0.39, y: 0.72, width: 0.22, height: 0.13 },
+      transition: { x: 0.12, y: 0.36, width: 0.76, height: 0.20 },
+      midMass: { x: 0.16, y: 0.18, width: 0.68, height: 0.16 },
+    },
+    calibration: 'neutral-scale-guides',
+  },
+  'scale-repair-oblique': {
+    camera: { x: 0, y: -51, zoom: 132, pitch: 1.04, yaw: -0.12, perspective: 0.042 },
+    reviewWindows: {
+      closeHero: { x: 0.08, y: 0.58, width: 0.84, height: 0.32 },
+      closeTight2x: { x: 0.25, y: 0.65, width: 0.50, height: 0.23 },
+      closeTight4x: { x: 0.39, y: 0.72, width: 0.22, height: 0.13 },
+      transition: { x: 0.12, y: 0.34, width: 0.76, height: 0.20 },
+      midMass: { x: 0.16, y: 0.15, width: 0.68, height: 0.16 },
+    },
+    calibration: 'neutral-scale-guides',
+  },
+  'b4b1a0-test-env': {
+    camera: { x: 0, y: -50, zoom: 178, pitch: 0.96, yaw: -0.045, perspective: 0.032 },
+    reviewWindows: {
+      closeHero: { x: 0.08, y: 0.61, width: 0.84, height: 0.254 },
+      closeTight2x: { x: 0.24, y: 0.64, width: 0.52, height: 0.22 },
+      closeTight4x: { x: 0.38, y: 0.71, width: 0.24, height: 0.13 },
+      transition: { x: 0.12, y: 0.34, width: 0.76, height: 0.20 },
+      midMass: { x: 0.16, y: 0.16, width: 0.68, height: 0.16 },
+    },
+    calibration: 'test-environment-review-windows',
+  },
+};
+
+function closeLabContract(profile: ForegroundCloseLabCameraProfile | undefined): string {
+  if (profile === 'b4b1-current') return '03B4C5B4B1';
+  if (profile === 'b4b1a0-test-env') return '03B4C5B4B1A0';
+  return '03B4C5B4B1R';
+}
+
+function closeLabCropPurpose(profile: ForegroundCloseLabCameraProfile | undefined): string {
+  if (profile === 'b4b1-current') return 'scale-only-not-visual-acceptance';
+  if (profile === 'b4b1a0-test-env') return 'test-environment-comparability-not-body-acceptance';
+  return 'scale-perspective-repair-not-grass-acceptance';
 }
 
 function buildGrassFieldSlopeGrid(): BattleTerrainGrid {
@@ -3853,6 +4166,111 @@ function numberParam(params: URLSearchParams, key: string, fallback: number) {
 function integerParam(params: URLSearchParams, key: string, fallback: number, min: number, max: number) {
   const value = Math.floor(numberParam(params, key, fallback));
   return Math.max(min, Math.min(max, value));
+}
+
+function foregroundCloseLabCameraProfileParam(params: URLSearchParams, key: string, fallback: ForegroundCloseLabCameraProfile): ForegroundCloseLabCameraProfile {
+  const raw = params.get(key);
+  return raw === 'b4b1-current' || raw === 'scale-repair-low' || raw === 'scale-repair-oblique' || raw === 'b4b1a0-test-env' ? raw : fallback;
+}
+
+function grassAccentStyleParam(params: URLSearchParams, key: string, fallback: GrassAccentStyle): GrassAccentStyle {
+  const raw = params.get(key);
+  return raw === 'root-shadow'
+    || raw === 'soft-root-mass'
+    || raw === 'soft-root-fiber'
+    || raw === 'field-fiber-shell'
+    || raw === 'field-fiber-shell-visibility'
+    || raw === 'alpha-impostor'
+    || raw === 'billboard-cluster'
+    || raw === 'volume-card'
+    || raw === 'fiber-ribbon'
+    || raw === 'hybrid-root-fiber'
+    || raw === 'tuft'
+    ? raw
+    : fallback;
+}
+
+function grassAccentAggregationParam(params: URLSearchParams, key: string, fallback: GrassAccentAggregation): GrassAccentAggregation {
+  const raw = params.get(key);
+  return raw === 'clump' || raw === 'record' || raw === 'field-cell' || raw === 'field-near' ? raw : fallback;
+}
+
+function fiberShellVariantParam(params: URLSearchParams, key: string, fallback: GrassFiberShellVariant): GrassFiberShellVariant {
+  const raw = params.get(key);
+  return raw === 'off' || raw === 'normal' || raw === 'visibility' || raw === 'width' || raw === 'lift' || raw === 'view-thickness' ? raw : fallback;
+}
+
+function grassPrimitiveFamilyParam(params: URLSearchParams, key: string, fallback: GrassPrimitiveFamily): GrassPrimitiveFamily {
+  const raw = params.get(key);
+  return raw === 'legacy-tuft'
+    || raw === 'root-shadow'
+    || raw === 'soft-root-mass'
+    || raw === 'soft-root-fiber'
+    || raw === 'field-fiber-shell'
+    || raw === 'alpha-impostor'
+    || raw === 'billboard-cluster'
+    || raw === 'volume-card'
+    || raw === 'texture-volume'
+    || raw === 'texture-carrier'
+    || raw === 'texture-micro-carrier'
+    || raw === 'fiber-ribbon'
+    || raw === 'hybrid-root-fiber'
+    ? raw
+    : fallback;
+}
+
+function accentStyleForPrimitiveFamily(family: GrassPrimitiveFamily, fiberShellVariant: GrassFiberShellVariant): GrassAccentStyle {
+  if (family === 'field-fiber-shell') return fiberShellVariant === 'visibility' ? 'field-fiber-shell-visibility' : 'field-fiber-shell';
+  if (family === 'alpha-impostor') return 'alpha-impostor';
+  if (family === 'billboard-cluster') return 'billboard-cluster';
+  if (family === 'volume-card' || family === 'texture-volume' || family === 'texture-carrier' || family === 'texture-micro-carrier') return 'volume-card';
+  if (family === 'root-shadow') return 'root-shadow';
+  if (family === 'soft-root-mass') return 'soft-root-mass';
+  if (family === 'soft-root-fiber') return 'soft-root-fiber';
+  if (family === 'fiber-ribbon') return 'fiber-ribbon';
+  if (family === 'hybrid-root-fiber') return 'hybrid-root-fiber';
+  return 'tuft';
+}
+
+function grassPrimitiveFamilyForAccentStyle(style: GrassAccentStyle): GrassPrimitiveFamily {
+  if (style === 'field-fiber-shell' || style === 'field-fiber-shell-visibility') return 'field-fiber-shell';
+  if (style === 'alpha-impostor') return 'alpha-impostor';
+  if (style === 'billboard-cluster') return 'billboard-cluster';
+  if (style === 'volume-card') return 'volume-card';
+  if (style === 'root-shadow') return 'root-shadow';
+  if (style === 'soft-root-mass') return 'soft-root-mass';
+  if (style === 'soft-root-fiber') return 'soft-root-fiber';
+  if (style === 'fiber-ribbon') return 'fiber-ribbon';
+  if (style === 'hybrid-root-fiber') return 'hybrid-root-fiber';
+  return 'legacy-tuft';
+}
+
+function grassPrimitiveFamilyForRequest(requested: GrassPrimitiveFamily, style: GrassAccentStyle): GrassPrimitiveFamily {
+  if (requested === 'texture-volume' && style === 'volume-card') return 'texture-volume';
+  if (requested === 'texture-carrier' && style === 'volume-card') return 'texture-carrier';
+  if (requested === 'texture-micro-carrier' && style === 'volume-card') return 'texture-micro-carrier';
+  return grassPrimitiveFamilyForAccentStyle(style);
+}
+
+function isClumpGrassAccentStyle(style: GrassAccentStyle): boolean {
+  return style === 'root-shadow'
+    || style === 'soft-root-mass'
+    || style === 'soft-root-fiber'
+    || style === 'alpha-impostor'
+    || style === 'billboard-cluster'
+    || style === 'volume-card';
+}
+
+function isWorkbenchGrassPrimitiveFamily(family: GrassPrimitiveFamily): boolean {
+  return family === 'alpha-impostor' || family === 'billboard-cluster' || family === 'volume-card' || family === 'texture-volume' || family === 'texture-carrier' || family === 'texture-micro-carrier';
+}
+
+function isFieldFiberShellStyle(style: GrassAccentStyle): boolean {
+  return style === 'field-fiber-shell' || style === 'field-fiber-shell-visibility';
+}
+
+function isTextureGrassPrimitiveFamily(family: GrassPrimitiveFamily): boolean {
+  return family === 'texture-volume' || family === 'texture-carrier' || family === 'texture-micro-carrier';
 }
 
 function animateShell(shell: RawFrameShell, status: HTMLElement, frame: () => FrameGraphCommands) {

@@ -1,0 +1,50 @@
+{
+  "kind": "screenshot-parity-diff",
+  "generatedAt": "2026-07-01T10:08:51.319Z",
+  "note": "Lower parityDistance means the candidate is closer to the reference for this fixed pair. This is a distance metric, not an acceptance gate.",
+  "pairCount": 1,
+  "worstPair": "close-hero",
+  "results": [
+    {
+      "id": "close-hero",
+      "current": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/test-environment/compare-target/close-hero.png",
+      "candidate": "specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/test-environment/compare-lab/close-hero.png",
+      "dimensions": {
+        "width": 760,
+        "height": 180
+      },
+      "parityDistance": 0.24936,
+      "grayscale": {
+        "mae": 14.65989,
+        "rmse": 18.03808,
+        "diffRatio16": 0.39246,
+        "diffRatio32": 0.06632,
+        "diffRatio64": 0,
+        "pixelmatchRatio": 0.25039
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 1,
+        "terrainLikeRatioCandidate": 1,
+        "avgLuminanceCurrent": 133.09698,
+        "avgLuminanceCandidate": 131.51975,
+        "avgLuminanceDelta": -1.57723,
+        "edgeEnergyCurrent": 0.04817,
+        "edgeEnergyCandidate": 0.00563,
+        "edgeEnergyRatio": 0.11698,
+        "edgeDiffRatio32": 0.05421
+      },
+      "artifacts": {
+        "sideBySide": "compare-report/close-hero-side-by-side.png",
+        "currentGray": "compare-report/close-hero-current-gray.png",
+        "candidateGray": "compare-report/close-hero-candidate-gray.png",
+        "absDiff": "compare-report/close-hero-absdiff.png",
+        "pixelmatch": "compare-report/close-hero-pixelmatch.png",
+        "currentEdges": "compare-report/close-hero-current-edges.png",
+        "candidateEdges": "compare-report/close-hero-candidate-edges.png",
+        "edgeDiff": "compare-report/close-hero-edge-diff.png"
+      }
+    }
+  ]
+}

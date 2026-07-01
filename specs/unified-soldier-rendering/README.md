@@ -134,13 +134,30 @@ Dependency: 0 informs 1. 1 unblocks 2 and 4. 2 (shadow relocated) is a dependenc
 
 ## Next Agent Prompt
 
-**Status:** Plan complete, not yet implemented. Last updated 2026-07-01.
+**Status:** Slice 1 landed (depth parameterization). Last updated 2026-07-01.
 
-**Start here:** Slice 0 — [the spike](slices/00-spike-campaign-crowd.md). It is a
-throwaway that de-risks the whole feature: prove a `SkinnedCrowdPipeline` mini-crowd
-renders on the *real* campaign map (correct seating on `field.heightAt`, correct depth
-sort against city/scenery, acceptable perf across all visible armies) and answer the
-open unknowns below. Read the four Key Seams above before you touch anything.
+**Environment notes (important):**
+- Build on `feat/unified-soldier-rendering`, cut from `208fdbe7`. Pulling latest
+  `main` (5 orthogonal tooling/baseline commits) is blocked in this sandbox: batched
+  pack transfer works but the working-tree checkout lazy-fetches ~40 blobs one-at-a-time
+  and stalls. Rebase onto `origin/main` (`d45b6ca0`) when the network cooperates — it is
+  a trivial ff, zero feature-file overlap.
+- **GPU verification loop:** headless SwiftShader WebGPU does NOT work here
+  (`requestAdapter` returns null). Use real Metal via headful Chrome:
+  `VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_HEADFUL=1 VERIFY_BROWSER_CHANNEL=chrome node scene.mjs <scene>`
+  (run from `web/`, with `npm run dev` up on :5173). Snapshots are byte-stable this way.
+
+**Reordering decision:** Slice 1 (depth param) landed before the Slice 0 spike, because
+the spike needs the depth param to be meaningful (otherwise it is a throwaway WGSL hack).
+The spike's remaining value is the campaign-crowd eyeball + perf number; it will be built
+as a renderer-lab route on top of the real depth param next, doubling as the Slice 4
+de-risk. Read the four Key Seams above before continuing.
+
+**Start here:** Build the campaign-crowd spike (Slice 0 content) as a renderer-lab route
+using `new SkinnedCrowdPipeline(shell, meshes, vats, kit, { worldDepth: 'campaign' })`,
+following the `routeBattleTerrain3d` `view=soldiers` template (router.ts:2403). Prove
+figures seat + sort on the real campaign map and capture a perf number. Then resolve the
+open unknowns below and proceed to Slice 2 (shared shadow into battle).
 
 **Open unknowns the spike must resolve (they set Slice 1 & 4 decisions):**
 - Does battle depth visibly mis-sort campaign soldiers vs mountains/city? (expected yes
@@ -155,7 +172,9 @@ open unknowns below. Read the four Key Seams above before you touch anything.
 
 **Global TODO**
 - [ ] Slice 0 — spike campaign mini-crowd (throwaway) → resolves unknowns above
-- [ ] Slice 1 — parameterize scene depth in pipeline + shadow pass
+- [x] Slice 1 — parameterize scene depth in pipeline (`SoldierCrowdDepthScene`,
+      `SkinnedCrowdPipeline` `{ worldDepth }` opt; battle byte-identical, verified via
+      per-class-vat + battle-terrain-elevation 0px). Shadow-pass half moves to Slice 2.
 - [ ] Slice 2 — relocate shared shadow, wire into battle
 - [ ] Slice 3 — pure representative-figure sampler
 - [ ] Slice 4 — campaign crowd replacement (+ split banner, + faction bucket)

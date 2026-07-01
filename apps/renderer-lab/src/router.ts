@@ -8,6 +8,7 @@ import { fatalSurfaceFor, showFatalErrorSurface } from '../../../web/src/shared/
 import { SkinnedCrowdPipeline } from '../../../packages/renderer-core/src/skinnedPipeline';
 import { animationForFrame } from '../../../packages/crowd-runtime/src/animationState';
 import { buildCrowdInstances, generatedFormation, type CrowdInstance } from '../../../packages/crowd-runtime/src/instanceData';
+import { buildStackCrowd } from '../../../packages/crowd-runtime/src/stackCrowd';
 import { assignCrowdLods, assignCrowdLodsByDistance, countLods, lodWithHysteresis } from '../../../packages/crowd-runtime/src/lod';
 import { createPerfAverager } from '../../../packages/crowd-runtime/src/perfStats';
 import { buildLiveBattleCrowdFrame } from '../../../packages/game-renderer/src/battle/crowdPass';
@@ -38,7 +39,7 @@ import { campaignBorderVertices, CampaignTerritoryPass } from '../../../packages
 import { Nested3dFixturePass } from '../../../packages/game-renderer/src/fixtures/nested3d';
 import { formatPerfSummary, makeFullGamePerfReport } from '../../../packages/game-renderer/src/perfReport';
 import { compileRenderGraph, fullGameRenderGraphReport, type RenderGraphPass } from '../../../packages/game-renderer/src/renderGraph';
-import { loadPlaceholderKit, loadPlaceholderVat, placeholderClipNames } from '../../../packages/soldier-assets/src/placeholders';
+import { loadPlaceholderKit, loadPlaceholderVat, mountedClassesFromKit, placeholderClipNames } from '../../../packages/soldier-assets/src/placeholders';
 import {
   REAL_UNIT_CLASS_COUNT,
   PLACEHOLDER_RENDER_CLASS_COUNT,
@@ -1543,13 +1544,39 @@ async function routeCampaignModelShots(ctx: LabContext) {
   roads.upload(frame.roads);
   selection.upload(frame.selections);
   const labelLayer = labelPass.upload(frame.labels, camera);
+  // Army stacks draw the shared skinned crowd (matching the production campaign
+  // renderer), so this isolated 'army'/'garrison-*' review shows the real
+  // representative figures + grounding shadow, not just the standard banner.
+  const soldierKit = await loadPlaceholderKit();
+  const soldierCrowd = new SkinnedCrowdPipeline(shell, createPlaceholderSoldierMeshes([0.30, 0.36, 0.74]), await loadPlaceholderVat(), soldierKit, { worldDepth: 'campaign' });
+  const soldierShadows = new SoldierShadowDecalPass(shell, { worldDepth: 'campaign' });
+  const modelStackRoster = [4, 0, 3, 0, 2, 1];
+  const modelCrowd = frame.entities
+    .filter((entity) => entity.kind === 'army')
+    .flatMap((entity, i) => buildStackCrowd(modelStackRoster, {
+      unitCount: 20,
+      stackUnitCap: 20,
+      x: entity.x,
+      y: entity.y,
+      faction: 0,
+      seed: 100 + i,
+      clip: 'idle',
+      phase: 0,
+      mountedClasses: mountedClassesFromKit(soldierKit),
+      spacing: 2.4 * 1.1,
+      terrainHeight: () => entity.z ?? 0,
+    }));
+  soldierCrowd.upload(modelCrowd, { size: 2.4 });
+  soldierShadows.upload(modelCrowd, { radius: 0.62 * 2.4 });
   const hostileDepthOrder = gate === 'hostile-depth-order';
   const entityOpaquePass: FrameGraphPass = { id: 'model-shot-entities-opaque', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => entities.drawOpaque(pass) };
   const sceneryOpaquePass: FrameGraphPass = { id: 'model-shot-scenery-opaque', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => scenery.drawOpaque(pass) };
   const passes: FrameGraphPass[] = [
     ...(hostileDepthOrder ? [entityOpaquePass, sceneryOpaquePass] : [sceneryOpaquePass, entityOpaquePass]),
+    { id: 'model-shot-soldier-crowd', role: 'world-opaque', phase: 'world-depth', depth: 'read-write', draw: (pass) => soldierCrowd.draw(pass) },
     { id: 'model-shot-scenery-shadows', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => scenery.drawShadows(pass) },
     { id: 'model-shot-entity-shadows', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => entities.drawShadows(pass) },
+    { id: 'model-shot-soldier-shadows', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => soldierShadows.draw(pass) },
     { id: 'model-shot-roads', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => roads.draw(pass) },
     { id: 'model-shot-selection', role: 'world-decal', phase: 'world-depth', depth: 'read', draw: (pass) => selection.draw(pass) },
     ...(clouds ? [{ id: 'model-shot-clouds', role: 'overlay-effect' as const, phase: 'overlay' as const, draw: (pass: OverlayRenderPass) => clouds.draw(pass) }] : []),

@@ -52,14 +52,18 @@ export function buildCityMesh(): MeshData {
   return builder.finish('campaign city mesh');
 }
 
-export function buildCampaignArmyMarkerMesh(): MeshData {
+// The army stack's standard: pole, finial, cross-arms, and flag cloth. The
+// soldiers that used to be baked into this marker are now the shared skinned
+// crowd (buildStackCrowd + SkinnedCrowdPipeline); the standard remains as the
+// faction-coloured banner (the flag's white panels take the faction livery),
+// and doubles as the marker the LOD collapses to when zoomed out.
+export function buildCampaignStandardMesh(): MeshData {
   const builder = new MeshBuilder();
   const timber: Rgb = [0.43, 0.30, 0.17];
-  const linen: Rgb = [0.76, 0.64, 0.42];
-  builder.shadow(2.20, 1.18, 0.18, [0.08, -0.24]);
-  builder.contactShadow([0.08, -0.02], [1.92, 0.56], 0.115, [0.18, -0.24]);
-  builder.contactShadow([0.06, -0.02], [0.48, 0.38], 0.096, [0.22, -0.28]);
-  builder.contactShadow([0.90, 0.02], [1.68, 0.20], 0.064, [0.26, -0.30]);
+  // A small soft shadow anchors the pole base; the figures carry their own
+  // shared grounding shadows now, so the wide block footprint is gone.
+  builder.shadow(0.62, 0.42, 0.16, [0.06, -0.14]);
+  builder.contactShadow([0.06, -0.02], [0.40, 0.30], 0.09, [0.14, -0.20]);
   builder.box([0, 0, 2.38], [0.16, 0.16, 4.76], timber, 1);
   builder.box([0, 0, 4.84], [0.28, 0.28, 0.22], [0.72, 0.57, 0.28], 1);
   builder.box([0.08, -0.11, 3.80], [0.12, 0.12, 1.20], timber, 1);
@@ -78,31 +82,5 @@ export function buildCampaignArmyMarkerMesh(): MeshData {
     [1.70, 0.20, 3.36],
     [1.02, 0.00, 3.28],
   ], [1, 1, 1], 1);
-  const slots: [number, number, boolean, boolean][] = [
-    [-1.10, -0.70, true, true], [-0.38, -0.78, false, true], [0.34, -0.76, true, true], [1.04, -0.66, false, true],
-    [-1.20, -0.12, false, true], [-0.48, -0.20, true, false], [0.24, -0.22, false, true], [0.96, -0.14, true, false],
-    [-0.78, 0.48, false, true], [-0.08, 0.44, true, false], [0.62, 0.40, false, true],
-  ];
-  const orderedSlots = slots
-    .map((slot, index) => ({ slot, index }))
-    .sort((a, b) => b.slot[1] - a.slot[1]);
-  for (const { slot: [x, y, spear, shield] } of orderedSlots) {
-    soldier(builder, x, y - 0.12, shield, spear, linen);
-  }
-  return builder.finish('campaign army marker mesh');
-}
-
-function soldier(builder: MeshBuilder, x: number, y: number, shield: boolean, spear: boolean, tunic: Rgb) {
-  const skin: Rgb = [0.79, 0.60, 0.47];
-  const bronze: Rgb = [0.72, 0.57, 0.28];
-  const leather: Rgb = [0.34, 0.23, 0.14];
-  const wood: Rgb = [0.47, 0.33, 0.19];
-  builder.contactShadow([x, y], [0.48, 0.30], 0.074, [0.08, -0.12]);
-  builder.box([x - 0.12, y, 0.34], [0.13, 0.14, 0.68], leather, 1);
-  builder.box([x + 0.12, y, 0.34], [0.13, 0.14, 0.68], leather, 1);
-  builder.box([x, y + 0.01, 0.96], [0.40, 0.30, 0.66], tunic, 1);
-  builder.box([x, y + 0.02, 1.36], [0.25, 0.22, 0.24], skin, 1);
-  builder.box([x, y + 0.03, 1.57], [0.27, 0.24, 0.17], bronze, 1);
-  if (spear) builder.box([x + 0.30, y + 0.07, 1.02], [0.06, 0.07, 1.42], wood, 1);
-  if (shield) builder.box([x - 0.31, y + 0.11, 0.88], [0.32, 0.10, 0.66], [1, 1, 1], 1);
+  return builder.finish('campaign standard mesh');
 }

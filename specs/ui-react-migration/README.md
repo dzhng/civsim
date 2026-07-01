@@ -12,7 +12,7 @@ Synthesized from three independent draft plans (they converged hard — the cut 
 
 **Status:** S0 + S1 + S2 + S3 shipped (green). **S3 verdict: MIGRATE (Branch A).** _Last updated: 2026-07-01._
 
-**Start at S6c** (info panel `#hud`). **S6a (card bar default) + S6b (toolbar) shipped.** S6 remaining:
+**Start at S6d** (minimap frame). **S6a (card bar) + S6b (toolbar) + S6c (info panel) shipped.** S6 remaining:
 - **S6a — card bar React default** ✅ (`?hud=vanilla` escape hatch until S7).
 - **S6b — toolbar** ✅ (`web/src/ui/hud/Toolbar.tsx` into `#toolbar`; icon-only buttons via
   `dangerouslySetInnerHTML` of `toolbarIcon()`; scene's `updateToolbar` computes a `{on,disabled}`

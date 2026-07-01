@@ -29,6 +29,7 @@ import { flushSync } from 'react-dom';
 import { UnitCards } from './unitCard';
 import { UnitCardsReact } from '../ui/hud/UnitCardsReact';
 import { Toolbar, type ToolButtonState } from '../ui/hud/Toolbar';
+import { HudPanel, type HudUnit } from '../ui/hud/HudPanel';
 import { installViewportGate } from './viewportGate';
 import { Input } from './input';
 import { MANUAL_HTML } from './manual';
@@ -904,7 +905,8 @@ export class BattleScene implements Scene {
     // lancer holding anything but its lance has dropped to its sabre for the
     // grind, so the renderer shows the sidearm pseudo-class.
     const classChargeIdx: number[] = CLASS_SPECS.map((c) => c.weapons.findIndex((w) => w.charge));
-    const hud = document.getElementById('hud')!;
+    const hudRoot = createRoot(document.getElementById('hud')!);
+    this.cleanups.push(() => hudRoot.unmount());
     const banner = document.getElementById('banner')!;
     const selbox = document.getElementById('selbox')!;
     banner.style.display = 'none';
@@ -1161,17 +1163,17 @@ export class BattleScene implements Scene {
     };
 
     function updateHud() {
-      const lines = [
+      const header = [
         `soldiers ${game.soldier_count().toLocaleString()}   units ${game.unit_count()}`,
         frozen
           ? 'fps —   tick — ms   PAUSED'
           : `fps ${fpsAvg.toFixed(0)}   tick ${tickMsAvg.toFixed(2)} ms` +
             (paused ? '   PAUSED' : timeScale !== 1 ? `   x${timeScale}` : ''),
       ];
-      let bars = '';
+      let unit: HudUnit | undefined;
       let cardUnit = -1;
       if (input.selected.length > 1) {
-        lines.push(`${input.selected.length} units selected`);
+        header.push(`${input.selected.length} units selected`);
       } else if (input.selected.length === 1) {
         cardUnit = input.selected[0];
       } else if (input.mouseCss[0] >= 0) {
@@ -1209,8 +1211,9 @@ export class BattleScene implements Scene {
           );
           for (const w of spec.weapons) {
             const deg = ((w.arc * 180) / Math.PI / 2).toFixed(0);
+            // Leading indent is a real non-breaking space (was the &nbsp; entity).
             detail.push(
-              `&nbsp;${w.name}: ${w.reach.toFixed(1)}m ±${deg}°  ` +
+              ` ${w.name}: ${w.reach.toFixed(1)}m ±${deg}°  ` +
                 `dmg ${w.damage.toFixed(2)} / ${w.interval.toFixed(1)}s` +
                 (w.minRange > 0 ? `  (dead <${w.minRange.toFixed(1)}m)` : ''),
             );
@@ -1218,25 +1221,16 @@ export class BattleScene implements Scene {
           if (spec.missile) {
             const m = spec.missile;
             detail.push(
-              `&nbsp;${m.name}: ${m.range.toFixed(0)}m  dmg ${m.damage.toFixed(2)} / ${m.interval.toFixed(0)}s  ` +
+              ` ${m.name}: ${m.range.toFixed(0)}m  dmg ${m.damage.toFixed(2)} / ${m.interval.toFixed(0)}s  ` +
                 `ammo ${m.ammo}${m.mobileFire ? '  fires mounted' : ''}`,
             );
           }
         }
         const hpColor = hpFrac > 0.5 ? '#5cba46' : hpFrac > 0.25 ? '#d6b13a' : '#cf4a3a';
-        const stat = (label: string, frac: number, color: string) =>
-          `<div class="hud-stat"><span>${label}</span><div class="hud-bar"><div style="width:${(frac * 100).toFixed(0)}%;background:${color}"></div></div></div>`;
-        bars =
-          `<div class="hud-head">${thumb ? `<img class="hud-port" src="${thumb}" alt="">` : ''}` +
-            `<div><div class="hud-name">${cls}</div>` +
-            `<div class="hud-meta">${side} · ${alive}/${total} men · ${pace}${charge}${routing}${engaged}${ammo}</div></div></div>` +
-          stat('HP', hpFrac, hpColor) +
-          stat('COH', cohesion, '#d9c75a') +
-          stat('STA', fatigue, '#d9a13b') +
-          stat('MOR', info[o + 20], '#c2554e') +
-          (detail.length ? `<div class="hud-detail">${detail.join('<br>')}</div>` : '');
+        const meta = `${side} · ${alive}/${total} men · ${pace}${charge}${routing}${engaged}${ammo}`;
+        unit = { thumb: thumb || undefined, cls, meta, hpFrac, hpColor, cohesion, fatigue, morale: info[o + 20], detail };
       }
-      hud.innerHTML = lines.join('<br>') + bars;
+      flushSync(() => hudRoot.render(createElement(HudPanel, { data: { header, unit } })));
 
       // Game over: one side is dead or wholly routing. The sim keeps
       // RUNNING — routs are locked sim-side, so the pursuit plays out

@@ -26,7 +26,6 @@ import { UnitBanner, type BannerChip } from './unitBanner';
 import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
-import { UnitCards } from './unitCard';
 import { UnitCardsReact } from '../ui/hud/UnitCardsReact';
 import { Toolbar, type ToolButtonState } from '../ui/hud/Toolbar';
 import { HudPanel, type HudUnit } from '../ui/hud/HudPanel';
@@ -695,14 +694,8 @@ export class BattleScene implements Scene {
       const [cx, cy] = unitCenter(unit);
       camera.x = cx; camera.y = cy; camera.clampView();
     };
-    // S6 (spike verdict: MIGRATE — Δmedian/Δp95 ≈ 0): the React card bar is the
-    // default now. ?hud=vanilla (or localStorage hud=vanilla) keeps the old DOM
-    // path as an escape hatch until S7 deletes the vanilla UnitCards.
-    const useVanillaCards = new URLSearchParams(location.search).get('hud') === 'vanilla'
-      || (typeof localStorage !== 'undefined' && localStorage.getItem('hud') === 'vanilla');
-    const unitCards = useVanillaCards
-      ? new UnitCards(cardsRoot, onCardSelect)
-      : new UnitCardsReact(cardsRoot, onCardSelect);
+    // The card bar is React (spike verdict: MIGRATE — Δmedian/Δp95 ≈ 0).
+    const unitCards = new UnitCardsReact(cardsRoot, onCardSelect);
     const buildCards = () => {
       const info = unitInfo();
       cardUnits = [];
@@ -721,10 +714,7 @@ export class BattleScene implements Scene {
       unitCards.build(inits);
     };
     buildCards();
-    this.cleanups.push(() => {
-      if (unitCards instanceof UnitCardsReact) unitCards.destroy();
-      else cardsRoot.innerHTML = '';
-    });
+    this.cleanups.push(() => unitCards.destroy());
     const updateCards = () => {
       const info = unitInfo();
       const sel = new Set(input.selected);

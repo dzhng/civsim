@@ -163,6 +163,10 @@ export class ImpostorSpikeMeshCrowd {
   upload(instances: CrowdInstance[]): void {
     this.count = instances.length;
     this.mesh.visible = instances.length > 0;
+    if (instances.length === 0) {
+      this.geometry.instanceCount = 0;
+      return;
+    }
     if (instances.length > this.capacity) {
       this.capacity = Math.max(instances.length, this.capacity * 2, 512);
       this.inst = new Float32Array(this.capacity * 4);
@@ -247,6 +251,10 @@ export class OctahedralImpostorCrowd {
   upload(instances: CrowdInstance[]): void {
     this.source = instances;
     this.mesh.visible = instances.length > 0;
+    if (instances.length === 0) {
+      this.geometry.instanceCount = 0;
+      return;
+    }
     if (instances.length > this.capacity) {
       this.capacity = Math.max(instances.length, this.capacity * 2, 512);
       this.inst = new Float32Array(this.capacity * 4);
@@ -286,8 +294,8 @@ export class OctahedralImpostorCrowd {
       this.meta[o] = nearestTile(localDir, this.atlas.directions);
       this.meta[o + 3] = clampShade(0.72 + 0.28 * Math.max(0, localDir.dot(LIGHT_DIR)));
     }
-    const attr = this.geometry.getAttribute('spikeImpostorMeta') as THREE.InstancedBufferAttribute;
-    attr.needsUpdate = true;
+    const attr = this.geometry.getAttribute('spikeImpostorMeta') as THREE.InstancedBufferAttribute | undefined;
+    if (attr) attr.needsUpdate = true;
   }
 
   stats() {

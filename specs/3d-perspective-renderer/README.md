@@ -19,16 +19,38 @@ slice `06` is DONE with a substrate verdict (below); the **photoreal ladder
 `07`–`17` is AUTHORED** (slice files `slices/07-*.md` … `17-*.md`; adoption seam,
 scaffolding ledger, single-owner invariants, and standing gates in **"Photoreal
 ladder invariants"** below — read that section before implementing any ladder
-slice); and **slice `07` is DONE** (below) — the ladder's foundation exists and
-the 06 spike is gone.
+slice); **slice `07` is DONE** (below); and **slice `08` is DONE — `08b`, THE
+atomic production flip, landed: three.js WebGPU + TSL owns battle world
+rendering in production.** Every later look slice lands in the real game.
 
-**Exact next pickup point:** **`08b` — the ATOMIC production flip**
-(`slices/08-battle-world-adoption.md`): swap `BattleRenderer.init()`'s
-internals onto `PhotorealBattleWorld` on the same canvas, delete the
-`createFrameShell` + bespoke battle pass construction from `renderer.ts`, keep
-`stats()` shape, re-point `battle-perf-30k`, deliberate re-bless of the battle
-suite. `08a` is DONE (below) — the parity world + its evidence are the
-foundation 08b flips onto.
+**Exact next pickup point:** **`09` — lighting core**
+(`slices/09-lighting-core.md`): physical sun + IBL + ACES from
+`CIVSIM_ENVIRONMENTS` on the now-production photoreal battle world. The
+standing gates ("Photoreal ladder invariants") apply from here on every slice.
+
+**Slice `08b` is DONE (this branch, 2026-07-02) — THE atomic production flip.**
+`BattleRenderer` (public API unmoved) renders through `PhotorealBattleWorld`
+on the same `#battlefield` canvas; `createFrameShell` + every bespoke battle
+pass instance + the inline `BattleTrianglePass` are deleted from
+`web/src/battle/renderer.ts` (net −371 lines). Frozen-frame caching, frozen-cue
+filtering, `?debug=blocks`, and the fatal surface (re-homed to
+`GPUDevice.lost`) stay above the seam. `stats()` keeps its parsed shape, backed
+by the photoreal seam + identity fields; `hasBattleWorldDepthContract` and the
+handful of bespoke-specific scene asserts were re-derived (`drawCalls===1` →
+small batched bound, `atmosphere` → `environment==='golden'`, terrain layer →
+`photoreal-battle-ground`). **Zero baselines re-blessed** — the whole battle
+suite passed inside existing budgets (biggest movement 0.017% on the
+camera-zoom contact sheet; lab-route scenes byte-identical); campaign
+byte-identical; seating tripwire `match=true`; compare old-vs-new default
+parityDistance 0.00002 (parity / not worse). **Perf ledger row
+(`battle-perf-30k`, hardware apple/metal-3, 30,560 soldiers + full foliage):
+GPU median 3.31 ms mid / 3.59 ms vista (p95 4.05/3.99) — vs bespoke 4.35/4.30;
+the flip is ~25% faster.** Play-readiness proven in headful hardware Chrome
+(click-select, drag-box, order, HUD/minimap, 96–108 fps). New TSL hazard
+recorded in the slice file: three's internal animation loop resets
+`renderer.info` every browser frame — `PhotorealWorld.render()` snapshots the
+counts. Lab `routeBattleLive` builds its own bespoke passes and is unaffected
+(migrates/retires at `17`).
 
 **Slice `08a` is DONE (this branch, 2026-07-02).**
 `packages/photoreal-renderer/src/battle/` renders the FULL production battle
@@ -463,10 +485,10 @@ depth-bias only (pending David's confirm; billboards → `08`, LOD → `14b`).
 - [x] `07` — photoreal foundation: `packages/photoreal-renderer` + harness
       re-tooling, spike promoted/deleted (`slices/07-photoreal-foundation.md`)
       **(done)**
-- [ ] `08` — battle world adoption: **`08a` parity lab world DONE**
-      (`/renderer/photoreal-battle`, verdict parity/not-worse, GPU 3.3–3.9 ms
-      at 30.5k, overlay ports landed) → `08b` atomic production flip is the
-      NEXT pickup (`slices/08-battle-world-adoption.md`)
+- [x] `08` — battle world adoption **(DONE: `08a` parity lab world +
+      `08b` ATOMIC production flip — three.js owns battle production; zero
+      re-blessed baselines, campaign byte-identical, 30k gate 3.31/3.59 ms
+      vs bespoke 4.35/4.30; `slices/08-battle-world-adoption.md`)**
 - [ ] `09` — lighting core: physical sun + IBL + ACES from `CIVSIM_ENVIRONMENTS`
       (`slices/09-lighting-core.md`)
 - [ ] `10` — physical sky + aerial-perspective ONE owner + presets

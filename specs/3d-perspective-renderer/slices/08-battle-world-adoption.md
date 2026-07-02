@@ -1,6 +1,91 @@
 # Slice 08 — Battle world adoption (THE seam flip)
 
-## STATUS: 08a DONE (2026-07-02, this branch) — 08b (the atomic production flip) is next
+## STATUS: DONE — 08a + 08b (2026-07-02, this branch). three.js owns battle production.
+
+**08b — the atomic flip landed.** `BattleRenderer.init()` constructs
+`PhotorealBattleWorld` on the same `#battlefield` canvas; the `createFrameShell`
+call, all bespoke battle pass instances (`BattleGroundPass`, `BattleGrassPass`,
+`CampaignSceneryPass` battle instance, `BattleHorizonPass`,
+`SkinnedCrowdPipeline`, `SoldierShadowDecalPass`, `BattleGroundCuePass`,
+`BattleEffectLinePass`), and the inline `BattleTrianglePass` class + its WGSL
+are DELETED from `web/src/battle/renderer.ts` (~480 lines gone; net −371 across
+the flip). The public API did not move. Kept ABOVE the seam, unchanged:
+frozen-frame caching (`fixedTime` key skips identical redraws), frozen-cue
+filtering (`frozenSelectionGroundCues` + `preserveFrozenEffects`), the
+`?debug=blocks` builder, CPU frame-perf split, and the device-lost fatal
+surface (re-homed onto three's `GPUDevice.lost`). Pre-`ready` `setStatic`/
+`setTerrain` calls are buffered and replayed at init (scene.ts calls them
+synchronously after construction). Zero diff: `camera.ts`, `input.ts`,
+`cameraRig.ts`, `scene.ts`, DOM minimap, HUD/banners/cards, picking, `crates/**`.
+
+**stats() shape:** kept for everything scenes parse (`soldiers/expectedSoldiers/
+lod/terrain/tacticalLines/performance.gpuTimeMs/camera/markerLayer/device`),
+now backed by the photoreal seam and extended with the ownership identity
+fields (`substrate/projection/environment`), `seating` (the heightfield
+firewall, asserted in production now), and `depth: { owner: 'three-webgpu',
+reversed }` read off the live renderer. Dropped (bespoke frame-graph concepts
+with no three equivalent): `atmosphere`, `cameraContract`,
+`skinnedCameraContract`, `phases`, `depth.format`.
+`hasBattleWorldDepthContract` (`web/scenes/_renderer-contract.mjs`) was
+re-derived to the photoreal identity + seating + overlay-seam contract
+(campaign keeps the bespoke phase-graph contract until `16a`); scene asserts
+re-derived: `drawCalls === 1` → `0 < drawCalls < 64` (batched, not
+per-soldier), `atmosphere === 'aegean-sky-haze'` → `environment === 'golden'`,
+`terrain.layer` → `'photoreal-battle-ground'`, and the `renderer-lab-routes`
+source audit for `renderer.ts` now requires the photoreal seam and forbids
+bespoke shells/pipelines. Two seam fixes surfaced by the gates:
+`renderer.info` is reset by three's INTERNAL animation loop every browser
+frame, so `PhotorealWorld.render()` snapshots drawCalls/triangles for stats
+(new hazard, recorded below); `PhotorealWorldStats` grew `device`
+("vendor / architecture / description" from `GPUDevice.adapterInfo`) for the
+perf gate's hardware-adapter assert; grass stats grew the `environment`
+identity.
+
+**Verification (all green, 2026-07-02):**
+- Full battle suite under SwiftShader: **zero baselines re-blessed** — every
+  moved snapshot landed inside its existing budget. Biggest movement:
+  `battle-camera-zoom` contact sheet 534 px (0.0173%); `battle-initial` 5 px,
+  `battle-banner` 9 px, `battle-manual` 4 px, `battle-ai` 138 px (0.0135%),
+  `battle-minimap-world-dpr2` 468 px (0.0114%), `battle-projectiles-dpr2`
+  250 px, `battle-selection-dpr2` 343 px, `battle-cavalry-plow` 0 px. All
+  lab-route battle scenes (terrain-3d/blockers/elevation/features, grass,
+  map-reference, water-coastal/open-sea) byte-identical 0.0000%.
+- `battle-terrain-elevation` seating tripwire `match=true` on all 3 maps; the
+  production-page seating firewall additionally asserted every frame via
+  `renderStats.seating.matches` (15,560 checked, span 3.8 m on map A).
+- `battlePicking.test.ts` untouched-green (45/45 unit tests); campaign suites
+  byte-identical (83 checks, 0.0000% snapshot movement); `menu-renderer-shell`,
+  `full-game-rendering-performance`, `renderer-lab-routes` green;
+  `water-silhouette` 8 ms SwiftShader budget red is the README-documented
+  pre-existing red.
+- `compare-screenshots` old-default (blessed baseline) vs new-default (flipped
+  renderer, matched freeze tick 240): full-frame parityDistance **0.00002**,
+  `formation-mid` centre crop **0.00001**, edgeEnergyRatio 1.00001 — verdict
+  **parity / not worse**.
+- **Perf (hardware apple/metal-3, `battle-perf-30k` re-run, 30,560 soldiers +
+  548 scenery + vista 184.8k grass blades): GPU median 3.31 ms mid / 3.59 ms
+  vista (p95 4.05/3.99), rAF 8.3 ms vsync-pinned — BEFORE the flip: 4.35/4.30.
+  The photoreal world is ~25% faster than the bespoke frame.** The gate ran
+  unmodified — it drives BattleRenderer, which is the point of the seam.
+- Play-readiness (headful hardware Chrome, `?map=A`): top/mid/vista shots,
+  real click-select (`[4]`), real drag-box (9 units), right-click order, HUD +
+  unit card + banners + DOM minimap live, 96–108 fps. `screenshot-critique`
+  run last on the new default + hardware shots.
+- `cargo test --workspace` green; zero edits under `crates/**`.
+
+**New TSL/three@0.185 hazard (add to the 06/07/08a list):**
+4. **three's internal `Animation` loop resets `renderer.info` every browser
+   frame** even when you never call `setAnimationLoop` — any stats read outside
+   the render call's own task sees `drawCalls: 0`. Snapshot `info.render`
+   counts immediately after `renderer.render()` (done in
+   `PhotorealWorld.render()`).
+
+**routeBattleLive disposition:** the lab route constructs its OWN bespoke
+shell + passes (`createConfiguredShell` + `BattleTerrainPass` +
+`SkinnedCrowdPipeline` + `BattleGroundCuePass` + `BattleMinimapPass`) and never
+consumed `BattleRenderer`, so it keeps working unchanged on the bespoke path.
+Its photoreal migration (or retirement) stays assigned to **`17`** with the
+rest of the bespoke battle-pass sweep.
 
 `packages/photoreal-renderer/src/battle/` is the parity battle world:
 `battleWorld.ts` (`PhotorealBattleWorld`, the BattleRenderer-shaped API:

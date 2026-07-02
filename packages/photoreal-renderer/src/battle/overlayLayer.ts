@@ -4,11 +4,16 @@
 // depth), and the far-LOD marker impostors re-homed as camera-facing TSL
 // billboards (the 04c/04d item). Upload contracts are unchanged: the SAME
 // Float32Array layouts drawTacticalLines/drawTris feed the bespoke passes.
+// The upload contracts carry display-referred colours (authored for the
+// bespoke swapchain); since slice 09 the frame is ACES-tonemapped sRGB, so
+// each overlay linearizes through the one linearAlbedo seam — the gold glow
+// (rule 6) and faction accents keep their authored hue through the transform.
 import * as THREE from 'three/webgpu';
 import {
   attribute, clamp, float, length, max, mix, smoothstep, step, uniform, varying, vec3, vec4,
 } from 'three/tsl';
 import type { MarkerInstance } from '../../../renderer-core/src/frameShell';
+import { linearAlbedo } from './battleTsl';
 import { RENDER_ORDER } from './terrainLayer';
 
 /** A growable line-list layer fed by (x, y, r, g, b)-stride vertex arrays —
@@ -27,7 +32,7 @@ export class PhotorealLineLayer {
     material.depthTest = opts.depthTest;
     material.depthWrite = false;
     material.fog = false;
-    material.colorNode = vec4(varying(attribute<'vec3'>('lineColor', 'vec3')), opts.alpha);
+    material.colorNode = vec4(linearAlbedo(varying(attribute<'vec3'>('lineColor', 'vec3'))), opts.alpha);
     this.lines = new THREE.LineSegments(this.makeGeometry(128), material);
     this.lines.frustumCulled = false;
     this.lines.renderOrder = opts.renderOrder;
@@ -88,7 +93,8 @@ export class PhotorealTriangleLayer {
     material.depthTest = false;
     material.depthWrite = false;
     material.fog = false;
-    material.colorNode = varying(attribute<'vec4'>('triColor', 'vec4'));
+    const triColor = varying(attribute<'vec4'>('triColor', 'vec4'));
+    material.colorNode = vec4(linearAlbedo(triColor.rgb), triColor.a);
     this.mesh = new THREE.Mesh(this.makeGeometry(192), material);
     this.mesh.frustumCulled = false;
     this.mesh.renderOrder = renderOrder;
@@ -184,7 +190,7 @@ export class PhotorealMarkerLayer {
     const body = mix(vec3(0.56, 0.41, 0.24), vec3(0.78, 0.65, 0.42), clamp(float(1.0).sub(local.y.abs()), 0.0, 1.0));
     const stripe = smoothstep(float(0.02), float(0.0), local.x.add(0.32).abs());
     const lodDim = float(1.0).sub(lod.mul(0.08));
-    material.colorNode = vec4(mix(body, accent, max(stripe, 0.58)).mul(lodDim), inside);
+    material.colorNode = vec4(linearAlbedo(mix(body, accent, max(stripe, 0.58)).mul(lodDim)), inside);
 
     this.mesh = new THREE.Mesh(this.geometry, material);
     this.mesh.frustumCulled = false;

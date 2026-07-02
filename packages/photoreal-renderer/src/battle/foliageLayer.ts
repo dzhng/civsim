@@ -7,7 +7,7 @@
 // meshes (SCENERY_PROP_MODELS) the bespoke passes upload.
 import * as THREE from 'three/webgpu';
 import {
-  attribute, clamp, float, max, mix, normalize, sin, uniform, varying, vec2, vec3, vec4,
+  attribute, clamp, float, max, mix, normalize, sin, uniform, varying, vec3, vec4,
 } from 'three/tsl';
 import type { BattleTerrainGrassBuild } from '../../../game-renderer/src/battle/grassPass';
 import { GRASS_INSTANCE_STRIDE_FLOATS } from '../../../game-renderer/src/battle/grassPass';

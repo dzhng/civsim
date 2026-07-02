@@ -74,7 +74,7 @@ blur the solar disc). `CIVSIM_ENVIRONMENTS` gained NOTHING.
 
 ### Evidence
 
-- **Per-preset montage** (`web/shots-slice11/preset-montage.png`, hardware,
+- **Per-preset montage** (`assets/shadow-preset-montage.png`, hardware,
   fixed t=0, same grove): golden = long warm toward-camera shadows; noon =
   short compact; dusk = longest + dim; overcast = shadows melt into the haze.
   Shadows track each preset's sun elevation.

@@ -67,7 +67,12 @@ the same pass sorts props against the campaign ground or the battle ground.
 - Shared sampler: `packages/game-renderer/src/terrain/heightField.ts`.
 - Battle presentation: `packages/game-renderer/src/battle/` — `mapCatalog.ts`
   (roles), `terrainFeatures.ts` (extraction), `terrainScenery.ts` (placement),
-  `groundPass.ts` (rolling ground), `horizonPass.ts` (sealed edges).
+  `groundPass.ts` (rolling ground), `horizonPass.ts` (sealed edges). In
+  production the battle draws all of this through the three.js WebGPU world in
+  `packages/photoreal-renderer` (which samples the same catalog, features, and
+  height field); the bespoke WGSL passes beside the data still serve the
+  campaign and the renderer lab until the photoreal ladder retires them
+  ([specs/3d-perspective-renderer](../specs/3d-perspective-renderer/README.md)).
 - Shared props: `packages/game-renderer/src/models/shared/`.
 - The visual gates that prove all of it are the `battle-terrain-*` scenes under
   `web/scenes/battle/`; the snapshot discipline they obey is

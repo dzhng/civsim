@@ -16,20 +16,21 @@ Risks), never as the first move.
 
 ## Next Agent Prompt
 
-*Status (2026-07-03): slices 01–04 COMPLETE; slice 05 diagnosis CONVERGED on
-an honest metric. The shape-orientation detector (validated on settled +
-synthetic-rotation controls) gives the verdict: the visual pinwheel is REAL
-COHERENT SHAPE TILT of both living bodies + the seam (±26–40 deg by 300s),
-in BOTH controlled and vibe-like configs, with frames static (facings
-frozen, frame-center bearing ~0) — the body/seam layer, not the order/frame
-layer. The old centroid-bearing metric did not even track the tilt sign.
-Companion discovery: the press has a coherent ~3 deg/s internal circulation
-loop (both units, same sign — men cycle like a tank tread); the slow shape
-tilt is plausibly its residue. Pickup point: force-trace attribution of the
-CIRCULATION (which channels drive the loop, per unit, windowed — the
-slice-03 torque probe is the template but read it against the shape-tilt
-sign), then design the fix at the loop's source. Target pins get rebuilt on
-shape orientation. Full trail: slices/05-pinwheel.md bottom-up.*
+*Status (2026-07-03): slice 05 ROOT CAUSE NAMED, first exact projection
+attempt STOPPED and reverted. The pivot spring — an internal force field —
+carries a net curl in a deformed press: it pumps angular momentum into its
+own unit, the speed cap masks most of it, the ~3 deg/s circulation loop is
+the remainder, and its slow asymmetry is the shape tilt (the visual
+pinwheel). The exact torque-free projection in `steer_soldiers` did collapse
+the `PivotSpring` trace residual (max 0.187 deg/s in the saved probe) and
+reduced average circulation to ~0.28-0.38 deg/s, but it failed the FIRST gate:
+survivability regressed from clean HEAD's passing lethality 193s and HP4/HP1
+5.85x to 167s and 6.18x. Source was reverted per protocol; no golden re-pin,
+pin rebuild, scenarios/balance, or vibe refilm was run. Pickup point: read
+the stopped-attempt note at the bottom of slices/05-pinwheel.md, redesign the
+torque-free/internal-field fix so survivability holds first, then rerun the
+same ladder before the orchestrator rebuilds the pinwheel pin on the shape
+detector and refilms vibes.*
 
 You are implementing this spec. Slices 01–03 (harness, metrology,
 attribution) are landed — read their slice files' bottom notes and the

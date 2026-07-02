@@ -235,3 +235,189 @@ Verdict: shape tilt is real in both controlled and vibe-like configs; the
 visual pinwheel lives in the living body/seam shape layer, not in frame wheel
 (`u.facing` stays frozen and `u.center()` bearing stays ~0 through the held
 grind, with only late rout/collapse excursions in a few vibe-like 400s rows).
+
+
+## Force-trace attribution of circulation (2026-07-03)
+
+Probe added test-side only in
+`crates/sim/tests/force_trace.rs::blob_probe_slice05_circulation_force_attribution`.
+It measures, for each 25s window/unit from 100-400s, the observed living-cohort
+circulation from 1s rigid fits, the traced channel angular impulse
+`sum((p-centroid) x channel_displacement) / sum(|p-centroid|^2)`, and the
+PCA shape-orientation tilt rate from the slice-05 detector.
+
+Reproduce:
+`cargo test -p sim --test force_trace --features force-trace blob_probe_slice05_circulation_force_attribution -- --ignored --nocapture`
+or save the full channel ledger with
+`cargo test -p sim --test force_trace --features force-trace blob_probe_slice05_circulation_force_attribution -- --ignored --nocapture > target/slice05-circulation-force.log 2>&1`.
+
+Verdict: sign-normalized across controlled seed 0, controlled seed 4, and
+vibe-like seed 0, `PivotSpring` is the dominant pump (+53.8 to +58.5 deg/s) and
+`WeaveNet` is the consistent secondary pump (+6.4 to +6.8 deg/s); `SpeedCap` is
+the dominant damp (-54.8 to -62.2 deg/s), with `CorridorClamp` and
+`EnemyBondInsideReachPush` smaller dampers. Shape tilt does not follow
+circulation same-window in lockstep; it lags/intermittently follows the
+circulation sign most clearly in the vibe-like late windows.
+
+Aggregate, sign-normalized by observed circulation direction:
+
+| run | circ avg | shape avg | pump channels | damp channels |
+|---|---:|---:|---|---|
+| controlled seed 0 | +4.59 deg/s | -0.07 deg/s | `PivotSpring` +58.5, `WeaveNet` +6.8, `SlotPull` +2.7, `Magnet` +2.0 | `SpeedCap` -62.2, `CorridorClamp` -3.0, `EnemyBondInsideReachPush` -1.2 |
+| controlled seed 4 | -3.60 deg/s | +0.06 deg/s | `PivotSpring` +53.8, `WeaveNet` +6.4, `SlotPull` +2.4, `Magnet` +1.3 | `SpeedCap` -54.8, `CorridorClamp` -2.7, `EnemyBondInsideReachPush` -2.7 |
+| vibe-like seed 0 | -3.74 deg/s | -0.00 deg/s | `PivotSpring` +56.9, `WeaveNet` +6.8, `SlotPull` +2.8, `Magnet` +1.2 | `SpeedCap` -57.8, `CorridorClamp` -3.5, `EnemyBondInsideReachPush` -2.8 |
+
+Per-window dominant channel table. Rates are deg/s; pump/damp is relative to
+the observed circulation sign in that row. `trace` is the signed sum of all
+traced channel angular impulses, not the fitted cohort circulation.
+
+| config | seed | unit | window | circ | trace | shape | top pumps | top damps |
+|---|---:|---:|---|---:|---:|---:|---|---|
+| controlled | 0 | 0 | 100-125 | +3.52 | +1.66 | +0.03 | `PivotSpring` +46.2; `SlotPull` +6.7; `WeaveNet` +5.2 | `SpeedCap` -51.6; `CorridorClamp` -2.5; `EnemyBondInsideReachPush` -2.1 |
+| controlled | 0 | 1 | 100-125 | +3.48 | +1.59 | +0.05 | `PivotSpring` +46.9; `SlotPull` +6.6; `WeaveNet` +5.0 | `SpeedCap` -52.5; `CorridorClamp` -2.5; `EnemyBondInsideReachPush` -2.2 |
+| controlled | 0 | 0 | 125-150 | +3.67 | +1.53 | +0.01 | `PivotSpring` +47.5; `SlotPull` +6.5; `WeaveNet` +5.5 | `SpeedCap` -53.4; `CorridorClamp` -2.8; `EnemyBondInsideReachPush` -1.9 |
+| controlled | 0 | 1 | 125-150 | +3.76 | +1.97 | -0.09 | `PivotSpring` +49.2; `SlotPull` +6.7; `WeaveNet` +5.8 | `SpeedCap` -56.5; `CorridorClamp` -2.4; `EnemyBondInsideReachPush` -1.9 |
+| controlled | 0 | 0 | 150-175 | +3.88 | +1.55 | -0.02 | `PivotSpring` +49.1; `SlotPull` +6.6; `WeaveNet` +6.0 | `SpeedCap` -56.6; `CorridorClamp` -3.1; `EnemyBondInsideReachPush` -1.5 |
+| controlled | 0 | 1 | 150-175 | +3.81 | +2.20 | +0.01 | `PivotSpring` +51.4; `SlotPull` +6.7; `WeaveNet` +5.7 | `SpeedCap` -58.5; `CorridorClamp` -2.2; `EnemyBondInsideReachPush` -1.9 |
+| controlled | 0 | 0 | 175-200 | +3.67 | +1.42 | -0.01 | `PivotSpring` +48.6; `WeaveNet` +5.6; `SlotPull` +5.5 | `SpeedCap` -54.5; `CorridorClamp` -3.1; `EnemyBondInsideReachPush` -1.5 |
+| controlled | 0 | 1 | 175-200 | +3.53 | +1.55 | -0.01 | `PivotSpring` +51.9; `WeaveNet` +5.6; `SlotPull` +5.4 | `SpeedCap` -57.2; `CorridorClamp` -2.8; `EnemyBondInsideReachPush` -2.0 |
+| controlled | 0 | 0 | 200-225 | +4.03 | +1.70 | +0.07 | `PivotSpring` +56.3; `WeaveNet` +6.4; `SlotPull` +5.3 | `SpeedCap` -61.4; `CorridorClamp` -3.1; `EnemyBondInsideReachPush` -1.8 |
+| controlled | 0 | 1 | 200-225 | +4.28 | +2.38 | +0.09 | `PivotSpring` +58.2; `WeaveNet` +6.5; `SlotPull` +5.2 | `SpeedCap` -63.1; `CorridorClamp` -2.6; `EnemyBondInsideReachPush` -1.8 |
+| controlled | 0 | 0 | 225-250 | +4.32 | +2.15 | +0.01 | `PivotSpring` +55.9; `WeaveNet` +6.5; `SlotPull` +4.3 | `SpeedCap` -61.0; `CorridorClamp` -2.9; `EnemyBondInsideReachPush` -1.3 |
+| controlled | 0 | 1 | 225-250 | +4.30 | +2.44 | +0.07 | `PivotSpring` +56.0; `WeaveNet` +6.2; `SlotPull` +3.6 | `SpeedCap` -59.1; `CorridorClamp` -2.5; `EnemyBondInsideReachPush` -2.1 |
+| controlled | 0 | 0 | 250-275 | +4.85 | +2.57 | +0.07 | `PivotSpring` +59.2; `WeaveNet` +7.2; `SlotPull` +3.4 | `SpeedCap` -63.8; `CorridorClamp` -3.1; `Cruise` -1.2 |
+| controlled | 0 | 1 | 250-275 | +4.80 | +3.06 | -0.10 | `PivotSpring` +67.7; `WeaveNet` +7.8; `SlotPull` +3.5 | `SpeedCap` -71.0; `CorridorClamp` -2.4; `EnemyBondInsideReachPush` -2.3 |
+| controlled | 0 | 0 | 275-300 | +5.24 | +2.48 | -0.12 | `PivotSpring` +64.2; `WeaveNet` +7.6; `SlotPull` +2.4 | `SpeedCap` -67.8; `CorridorClamp` -3.5; `Cruise` -1.2 |
+| controlled | 0 | 1 | 275-300 | +5.13 | +2.93 | +0.02 | `PivotSpring` +66.0; `WeaveNet` +7.2; `Magnet` +1.8 | `SpeedCap` -67.9; `CorridorClamp` -2.9; `EnemyBondInsideReachPush` -1.6 |
+| controlled | 0 | 0 | 300-325 | +5.79 | +3.42 | +0.15 | `PivotSpring` +72.3; `WeaveNet` +8.6; `SlotPull` +1.1 | `SpeedCap` -73.2; `CorridorClamp` -3.1; `EnemyBondInsideReachPush` -1.8 |
+| controlled | 0 | 1 | 300-325 | +5.74 | +3.19 | +0.06 | `PivotSpring` +73.1; `WeaveNet` +8.7; `SlotPull` +1.2 | `SpeedCap` -75.3; `CorridorClamp` -3.4; `EnemyBondInsideReachPush` -1.3 |
+| controlled | 0 | 0 | 325-350 | +6.07 | +3.18 | -0.10 | `PivotSpring` +76.2; `WeaveNet` +9.0; `Magnet` +2.7 | `SpeedCap` -78.6; `CorridorClamp` -3.7; `Cruise` -1.3 |
+| controlled | 0 | 1 | 325-350 | +6.17 | +3.08 | -0.16 | `PivotSpring` +71.0; `WeaveNet` +8.9; `Magnet` +3.7 | `SpeedCap` -74.2; `CorridorClamp` -3.9; `Cruise` -1.4 |
+| controlled | 0 | 0 | 350-375 | +6.70 | +4.04 | +0.08 | `PivotSpring` +85.4; `WeaveNet` +10.2; `Magnet` +2.8 | `SpeedCap` -86.4; `CorridorClamp` -3.7; `SlotPull` -2.0 |
+| controlled | 0 | 1 | 350-375 | +6.84 | +3.92 | +0.10 | `PivotSpring` +86.8; `WeaveNet` +10.4; `Magnet` +3.2 | `SpeedCap` -88.9; `CorridorClamp` -4.2; `SlotPull` -2.1 |
+| controlled | 0 | 0 | 375-400 | +3.64 | +1.32 | -0.92 | `PivotSpring` +37.4; `WeaveNet` +4.9; `Magnet` +2.0 | `SpeedCap` -35.0; `SlotPull` -6.4; `CorridorClamp` -2.7 |
+| controlled | 0 | 1 | 375-400 | +3.03 | +1.16 | -0.88 | `PivotSpring` +28.3; `WeaveNet` +3.3; `Magnet` +2.2 | `SpeedCap` -25.0; `SlotPull` -8.3; `CorridorClamp` -2.2 |
+| controlled | 4 | 0 | 100-125 | -3.04 | -0.29 | +0.00 | `PivotSpring` -50.1; `SlotPull` -6.7; `WeaveNet` -6.1 | `SpeedCap` +56.4; `CorridorClamp` +3.5; `EnemyBondInsideReachPush` +2.7 |
+| controlled | 4 | 1 | 100-125 | -3.30 | -0.44 | +0.01 | `PivotSpring` -49.0; `SlotPull` -7.4; `WeaveNet` -6.5 | `SpeedCap` +55.8; `CorridorClamp` +3.6; `EnemyBondInsideReachPush` +2.3 |
+| controlled | 4 | 0 | 125-150 | -3.26 | -0.99 | -0.03 | `PivotSpring` -52.5; `WeaveNet` -6.5; `SlotPull` -6.0 | `SpeedCap` +56.6; `EnemyBondInsideReachPush` +3.7; `CorridorClamp` +2.9 |
+| controlled | 4 | 1 | 125-150 | -3.30 | +0.02 | +0.01 | `PivotSpring` -47.0; `SlotPull` -6.2; `WeaveNet` -5.9 | `SpeedCap` +53.2; `CorridorClamp` +4.1; `EnemyBondInsideReachPush` +2.1 |
+| controlled | 4 | 0 | 150-175 | -3.81 | -1.74 | -0.05 | `PivotSpring` -56.2; `WeaveNet` -6.8; `SlotPull` -5.4 | `SpeedCap` +59.9; `EnemyBondInsideReachPush` +3.2; `CorridorClamp` +2.7 |
+| controlled | 4 | 1 | 150-175 | -3.39 | +0.25 | -0.03 | `PivotSpring` -51.2; `WeaveNet` -6.5; `SlotPull` -5.9 | `SpeedCap` +57.7; `CorridorClamp` +4.5; `EnemyBondInsideReachPush` +2.7 |
+| controlled | 4 | 0 | 175-200 | -3.81 | -1.73 | -0.06 | `PivotSpring` -63.8; `WeaveNet` -7.8; `SlotPull` -4.3 | `SpeedCap` +67.6; `EnemyBondInsideReachPush` +3.0; `CorridorClamp` +2.9 |
+| controlled | 4 | 1 | 175-200 | -3.86 | -0.77 | -0.02 | `PivotSpring` -54.8; `WeaveNet` -7.0; `SlotPull` -5.5 | `SpeedCap` +60.5; `CorridorClamp` +4.1; `EnemyBondInsideReachPush` +1.9 |
+| controlled | 4 | 0 | 200-225 | -4.44 | -2.12 | -0.18 | `PivotSpring` -62.9; `WeaveNet` -7.7; `SlotPull` -3.0 | `SpeedCap` +63.1; `EnemyBondInsideReachPush` +3.2; `CorridorClamp` +2.9 |
+| controlled | 4 | 1 | 200-225 | -4.22 | -0.30 | -0.23 | `PivotSpring` -57.1; `WeaveNet` -7.6; `SlotPull` -4.2 | `SpeedCap` +58.6; `CorridorClamp` +4.9; `EnemyBondInsideReachPush` +3.1 |
+| controlled | 4 | 0 | 225-250 | -4.53 | -1.84 | +0.14 | `PivotSpring` -66.0; `WeaveNet` -8.2; `Magnet` -3.4 | `SpeedCap` +68.6; `CorridorClamp` +3.2; `EnemyBondInsideReachPush` +2.9 |
+| controlled | 4 | 1 | 225-250 | -5.08 | -1.24 | +0.18 | `PivotSpring` -61.0; `WeaveNet` -8.4; `SlotPull` -3.2 | `SpeedCap` +65.9; `CorridorClamp` +4.6; `EnemyBondWeld` +1.4 |
+| controlled | 4 | 0 | 250-275 | -5.78 | -3.06 | -0.34 | `PivotSpring` -74.3; `WeaveNet` -9.5; `WeaponRepel` -1.2 | `SpeedCap` +71.2; `EnemyBondInsideReachPush` +4.3; `CorridorClamp` +3.3 |
+| controlled | 4 | 1 | 250-275 | -5.14 | -1.83 | -0.36 | `PivotSpring` -63.6; `WeaveNet` -8.4; `Magnet` -2.7 | `SpeedCap` +65.9; `CorridorClamp` +4.2; `EnemyBondInsideReachPush` +2.0 |
+| controlled | 4 | 0 | 275-300 | -6.86 | -4.67 | +0.17 | `PivotSpring` -88.9; `WeaveNet` -10.8; `Magnet` -2.9 | `SpeedCap` +87.4; `CorridorClamp` +2.6; `EnemyBondInsideReachPush` +2.6 |
+| controlled | 4 | 1 | 275-300 | -6.31 | -2.53 | +0.27 | `PivotSpring` -68.9; `WeaveNet` -9.5; `Magnet` -4.8 | `SpeedCap` +72.5; `CorridorClamp` +4.7; `EnemyBondWeld` +2.0 |
+| controlled | 4 | 0 | 300-325 | +0.10 | +0.26 | +0.57 | `SlotPull` +13.7; `PivotSpring` +3.0; `BodySeparationFriendlySlide` +0.3 | `SpeedCap` -11.4; `EnemyBondInsideReachPush` -3.5; `WeaponRepel` -0.6 |
+| controlled | 4 | 1 | 300-325 | -3.77 | -2.00 | +0.89 | `PivotSpring` -69.0; `WeaveNet` -9.1 | `SpeedCap` +61.3; `EnemyBondWeld` +3.5; `EnemyBondInsideReachPush` +3.5 |
+| controlled | 4 | 0 | 325-350 | +0.24 | +0.24 | +0.23 | `SlotPull` +6.5; `Magnet` +1.4; `EnemyBondWeld` +0.4 | `PivotSpring` -8.3; `WeaveNet` -0.1 |
+| controlled | 4 | 1 | 325-350 | -0.04 | +0.21 | +0.03 | `Magnet` -1.5; `EnemyBondInsideReachPush` -1.2; `Cruise` -0.8 | `SlotPull` +4.5; `CorridorClamp` +0.9 |
+| controlled | 4 | 0 | 350-375 | -4.69 | -4.61 | -0.42 | `PivotSpring` -105.5; `WeaveNet` -8.4; `WeaponRepel` -1.2 | `SpeedCap` +91.4; `SlotPull` +6.6; `EnemyBondInsideReachPush` +5.7 |
+| controlled | 4 | 1 | 350-375 | -4.40 | -4.04 | -0.67 | `PivotSpring` -104.7; `WeaveNet` -8.0; `WeaponRepel` -1.6 | `SpeedCap` +94.4; `EnemyBondInsideReachPush` +6.3; `SlotPull` +5.5 |
+| controlled | 4 | 0 | 375-400 | -1.73 | -1.21 | +0.74 | `PivotSpring` -22.3; `WeaveNet` -2.6; `WeaponRepel` -0.4 | `SpeedCap` +17.6; `Magnet` +2.5; `SlotPull` +2.3 |
+| controlled | 4 | 1 | 375-400 | -2.08 | -1.72 | +0.62 | `PivotSpring` -28.3; `WeaveNet` -3.1; `WeaponRepel` -1.5 | `SpeedCap` +18.9; `EnemyBondInsideReachPush` +6.5; `EnemyBondWeld` +3.3 |
+| vibe_like | 0 | 0 | 100-125 | -3.12 | -0.23 | +0.01 | `PivotSpring` -49.5; `SlotPull` -7.5; `WeaveNet` -6.3 | `SpeedCap` +55.9; `CorridorClamp` +3.6; `EnemyBondInsideReachPush` +2.5 |
+| vibe_like | 0 | 1 | 100-125 | -2.85 | -0.33 | -0.02 | `PivotSpring` -49.8; `SlotPull` -6.9; `WeaveNet` -5.7 | `SpeedCap` +55.5; `CorridorClamp` +3.2; `EnemyBondInsideReachPush` +3.1 |
+| vibe_like | 0 | 0 | 125-150 | -2.98 | +0.64 | +0.03 | `PivotSpring` -48.1; `SlotPull` -6.7; `WeaveNet` -5.9 | `SpeedCap` +53.3; `CorridorClamp` +4.4; `EnemyBondInsideReachPush` +2.5 |
+| vibe_like | 0 | 1 | 125-150 | -3.15 | -0.73 | -0.03 | `PivotSpring` -53.2; `WeaveNet` -6.3; `SlotPull` -6.2 | `SpeedCap` +57.3; `EnemyBondInsideReachPush` +3.5; `CorridorClamp` +3.0 |
+| vibe_like | 0 | 0 | 150-175 | -3.11 | +0.24 | -0.23 | `PivotSpring` -52.9; `SlotPull` -6.6; `WeaveNet` -6.3 | `SpeedCap` +56.8; `CorridorClamp` +4.0; `EnemyBondInsideReachPush` +3.1 |
+| vibe_like | 0 | 1 | 150-175 | -3.57 | -1.70 | -0.15 | `PivotSpring` -57.4; `WeaveNet` -7.0; `SlotPull` -5.8 | `SpeedCap` +59.9; `EnemyBondInsideReachPush` +3.9; `CorridorClamp` +2.4 |
+| vibe_like | 0 | 0 | 175-200 | -3.51 | -0.18 | +0.11 | `PivotSpring` -53.0; `WeaveNet` -6.7; `SlotPull` -4.7 | `SpeedCap` +55.8; `CorridorClamp` +4.2; `EnemyBondInsideReachPush` +2.1 |
+| vibe_like | 0 | 1 | 175-200 | -3.29 | -0.45 | -0.06 | `PivotSpring` -56.4; `WeaveNet` -6.7; `SlotPull` -4.4 | `SpeedCap` +56.2; `CorridorClamp` +3.7; `EnemyBondInsideReachPush` +3.4 |
+| vibe_like | 0 | 0 | 200-225 | -3.95 | +0.03 | +0.08 | `PivotSpring` -54.8; `WeaveNet` -7.0; `SlotPull` -3.6 | `SpeedCap` +56.4; `CorridorClamp` +4.7; `EnemyBondInsideReachPush` +2.8 |
+| vibe_like | 0 | 1 | 200-225 | -4.48 | -0.91 | -0.03 | `PivotSpring` -57.6; `WeaveNet` -7.8; `SlotPull` -3.4 | `SpeedCap` +57.3; `CorridorClamp` +4.3; `EnemyBondInsideReachPush` +3.1 |
+| vibe_like | 0 | 0 | 225-250 | -4.73 | -0.88 | -0.31 | `PivotSpring` -61.6; `WeaveNet` -8.0; `Magnet` -2.5 | `SpeedCap` +62.8; `CorridorClamp` +4.7; `EnemyBondInsideReachPush` +2.4 |
+| vibe_like | 0 | 1 | 225-250 | -4.64 | -1.04 | -0.06 | `PivotSpring` -60.7; `WeaveNet` -7.4; `Magnet` -3.6 | `SpeedCap` +63.0; `CorridorClamp` +4.3; `EnemyBondInsideReachPush` +2.5 |
+| vibe_like | 0 | 0 | 250-275 | -5.47 | -1.47 | +0.17 | `PivotSpring` -66.3; `WeaveNet` -8.8; `Magnet` -1.4 | `SpeedCap` +65.6; `CorridorClamp` +4.8; `EnemyBondInsideReachPush` +2.7 |
+| vibe_like | 0 | 1 | 250-275 | -5.31 | -1.76 | +0.15 | `PivotSpring` -69.5; `WeaveNet` -9.3; `Magnet` -1.4 | `SpeedCap` +69.8; `CorridorClamp` +4.3; `EnemyBondInsideReachPush` +2.5 |
+| vibe_like | 0 | 0 | 275-300 | -6.60 | -1.87 | -0.14 | `PivotSpring` -70.5; `WeaveNet` -9.5; `Magnet` -4.7 | `SpeedCap` +71.0; `CorridorClamp` +5.6; `EnemyBondWeld` +2.4 |
+| vibe_like | 0 | 1 | 275-300 | -5.92 | -1.19 | -0.10 | `PivotSpring` -68.5; `WeaveNet` -9.3; `Magnet` -6.9 | `SpeedCap` +72.2; `CorridorClamp` +5.5; `EnemyBondWeld` +2.5 |
+| vibe_like | 0 | 0 | 300-325 | -6.87 | -3.90 | -0.26 | `PivotSpring` -80.1; `WeaveNet` -10.3; `WeaponRepel` -2.1 | `SpeedCap` +75.9; `EnemyBondInsideReachPush` +4.1; `CorridorClamp` +3.6 |
+| vibe_like | 0 | 1 | 300-325 | -5.53 | -1.67 | -0.23 | `PivotSpring` -77.1; `WeaveNet` -10.0; `Magnet` -2.7 | `SpeedCap` +76.1; `CorridorClamp` +4.8; `EnemyBondInsideReachPush` +3.0 |
+| vibe_like | 0 | 0 | 325-350 | +0.04 | +1.11 | +0.98 | `SlotPull` +15.2; `PivotSpring` +4.5; `EnemyBondWeld` +1.8 | `SpeedCap` -15.3; `EnemyBondInsideReachPush` -2.8; `Magnet` -2.0 |
+| vibe_like | 0 | 1 | 325-350 | -2.97 | -0.16 | +1.06 | `PivotSpring` -43.6; `WeaveNet` -6.2 | `SpeedCap` +35.2; `SlotPull` +3.9; `CorridorClamp` +3.6 |
+| vibe_like | 0 | 0 | 350-375 | +0.23 | +1.05 | +0.23 | `SlotPull` +6.5; `CorridorClamp` +1.4; `EnemyBondWeld` +1.1 | `SpeedCap` -4.6; `EnemyBondInsideReachPush` -2.1; `PivotSpring` -1.2 |
+| vibe_like | 0 | 1 | 350-375 | +0.25 | +1.19 | +0.23 | `SlotPull` +6.0; `CorridorClamp` +1.6; `Magnet` +1.2 | `SpeedCap` -5.1; `Cruise` -0.7; `WeaponRepel` -0.7 |
+| vibe_like | 0 | 0 | 375-400 | -4.37 | +0.26 | -0.66 | `PivotSpring` -132.3; `WeaveNet` -9.4; `WeaponRepel` -2.4 | `SpeedCap` +116.3; `EnemyBondInsideReachPush` +9.6; `SlotPull` +6.9 |
+| vibe_like | 0 | 1 | 375-400 | -3.88 | -0.32 | -0.86 | `PivotSpring` -99.9; `WeaveNet` -9.8; `WeaponRepel` -1.5 | `SpeedCap` +90.6; `SlotPull` +8.8; `EnemyBondWeld` +4.9 |
+
+
+## The driver, named (2026-07-03) — and the fix design
+
+The circulation attribution table above names it: **the pivot spring pumps
+the loop.** Per window its angular impulse is the dominant negative term
+(-50..-80) with SpeedCap returning most but not all (+55..+76); the observed
+~3-6 deg/s circulation is the uncanceled remainder and tracks it window by
+window (both configs, both units; the sign flip rows at 325-375s vibe-like
+are the late-fight collapse).
+
+First-principles reading: the pivot spring is an INTERNAL force (unit's own
+bonds), and internal force fields must carry zero net torque about the body
+they act on. As implemented (per-bond tangential corrections toward the
+frozen-frame rest heading), its sum over a deformed press has a coherent
+curl: it pumps angular momentum into the unit it exists to stabilize. The
+speed cap hides most of the violation; the remainder circulates men (the
+tank tread) and its slow asymmetry tilts the shape (the pinwheel).
+
+FIX DESIGN (exact, not a tunable): make the pivot force field torque-free by
+construction — per unit per tick, subtract the net-rotation mode from the
+pivot corrections (the solid-rotation component omega = sum(r x F)/sum(|r|^2)
+about the living centroid, F' = F - omega x r per soldier). A pure shear/
+dressing correction keeps working; the net curl is removed at the source.
+Verification: the PivotSpring channel's angular impulse reads ~0 by
+construction; the circulation loop collapses; then re-measure shape tilt on
+the slice-05 detector, then the full gate ladder (survivability FIRST, band
+rail, wrap/latch/width/backfill/bulge/weave trio/no-crab, scenarios+balance
+classified, golden re-pin once, vibe refilm last). Consider the same
+torque-free projection for the weave net if its channel shows residual curl
+after the pivot fix — one invariant, every internal field obeys it.
+
+
+## Torque-free pivot projection attempt STOPPED (2026-07-03)
+
+Implemented the exact per-unit pivot projection in `Sim::steer_soldiers` as
+designed above: raw pivot corrections were projected about the living centroid
+before entering the steering sum, and the `PivotSpring` force-trace channel
+recorded the projected value. The source change was then reverted per the
+verification loop because the first gate, survivability, failed and clean HEAD
+proved the failure was introduced by the projection.
+
+Gate ladder actuals:
+
+1. Survivability FIRST:
+   - With projection: `attack_lethality_grinds_a_reference_line_in_about_three_to_four_minutes`
+     failed at 167s (band 180-255s).
+   - With projection: `survivability_scales_with_the_reference_stats` failed
+     HP4/HP1 at 6.18x (band 3.5-6.0x); HP2/HP1 was 2.15x; block0.5 was
+     1.65x HP1.
+   - Clean HEAD from an archived copy passed: lethality 193s, HP2/HP1 2.05x,
+     HP4/HP1 5.85x, block0.5 1.58x HP1.
+   - Reverted source in this worktree passed the same rail again with the same
+     clean-HEAD numbers.
+2. Circulation attribution probe with projection, before revert:
+   - `PivotSpring` collapsed from the prior dominant +/-53.8..58.5 deg/s
+     aggregate pump to max residual 0.187 deg/s in the saved run.
+   - Observed circulation collapsed in aggregate but did not vanish:
+     controlled seed 0 mean abs 0.375 deg/s, controlled seed 4 mean abs
+     0.383 deg/s, vibe-like seed 0 mean abs 0.276 deg/s.
+   - Remaining circulation was carried by `EnemyBondInsideReachPush`,
+     `SpeedCap`, `Magnet`, `WeaveNet`, `SlotPull`, and collision channels,
+     depending on window.
+3. Shape-tilt probe, full `./scripts/test-mechanics --no-fail-fast`,
+   `scripts/test-scenarios`, `scripts/test-balance`, golden re-pin, pin rebuild,
+   and vibe refilm were not run because survivability failed and the protocol
+   requires stopping before downstream gates.
+
+Change ledger for this stopped attempt:
+
+| test | previous behavior | new behavior | why |
+|---|---|---|---|
+| `crates/sim/tests/mechanics_survivability.rs::attack_lethality_grinds_a_reference_line_in_about_three_to_four_minutes` | Clean HEAD passed at 193s within the 180-255s band. | Projection failed at 167s, below the 180s floor; reverted source restores 193s. | The pivot projection removed the internal angular spring's solid-rotation component, changing how the reference grind recirculates wounded/front men and shortening the equal grind. Provenance: your-regression; source reverted. |
+| `crates/sim/tests/mechanics_survivability.rs::survivability_scales_with_the_reference_stats` | Clean HEAD passed: HP1 30.9s, HP2 63.6s, HP4 180.9s, HP2/HP1 2.05x, HP4/HP1 5.85x, block0.5 48.8s / 1.58x. | Projection failed: HP1 29.1s, HP2 62.6s, HP4 179.7s, HP2/HP1 2.15x, HP4/HP1 6.18x, block0.5 48.1s / 1.65x; reverted source restores clean-HEAD values. | The exact torque removal disproportionately lengthened the HP4 tail relative to HP1 while also shortening the equal reference lethality anchor. Provenance: your-regression; source reverted. |
+
+No golden hash was re-pinned because no sim source change remains in-tree.

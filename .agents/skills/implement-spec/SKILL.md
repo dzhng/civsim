@@ -46,7 +46,15 @@ depends on prior work.
 6. Update the spec README's "Next Agent Prompt": status, completed work, next
    pickup point, blockers, changed gates, and any architecture decision that
    changed the plan.
-7. **Continue.** If any slice or global TODO is still open, go straight back to
+7. Run a **spec hygiene pass** whenever the plan has churned: after a red visual
+   pass, after a rebase that changes owners, after two or three slice commits,
+   when the handoff contradicts the TODO/graph, or when the active prompt grows
+   hard to scan. Prune stale blow-by-blow history into a compact archive,
+   correct completed/rejected/next markers, name the one active pickup, and
+   reslice any bloated slice before more code. The completion criterion is that a
+   fresh agent can read the opening handoff, TODO, and slice graph and choose the
+   same next action.
+8. **Continue.** If any slice or global TODO is still open, go straight back to
    step 1 for the next one — same session, no pause for acknowledgement. Keep
    looping until every TODO is closed. When the last slice lands, close the spec
    with [close-spec](../close-spec/SKILL.md).
@@ -88,6 +96,9 @@ depends on prior work.
 - When the implementation touches shared behavior, leave docs or spec rationale
   using [write-docs](../write-docs/SKILL.md) principles: durable invariants and
   pointers, not copied inventories.
+- For long specs, keep the spec itself reviewable. Do not let the README become
+  a transcript of every failed attempt; keep one current handoff, one TODO/graph,
+  and one compact evidence ledger, with details in slice files or assets.
 - **Human checkpoints never block.** At a slice's review or sign-off gate, open
   the relevant shots with [preview-shots](../preview-shots/SKILL.md), state the
   decision and the options, and give the user ~5 minutes to weigh in — keep

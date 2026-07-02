@@ -16,6 +16,8 @@
 //! Runs at 10 Hz per soldier (round-robin thirds), deterministic.
 
 use crate::class::{UnitClassId, Weapon};
+#[cfg(feature = "force-trace")]
+use crate::force_trace::{ForceChannel, ForceRecord};
 use crate::math::{dir, wrap_angle, Vec2};
 use crate::movement::stamina_factor;
 use crate::sim::Sim;
@@ -828,6 +830,15 @@ impl Sim {
                 if self.terrain.speed_at(np) > 0.0 {
                     self.positions[2 * v] = np.x;
                     self.positions[2 * v + 1] = np.y;
+                    #[cfg(feature = "force-trace")]
+                    self.force_trace.push(ForceRecord::new(
+                        self.tick_count,
+                        v,
+                        self.soldier_unit[v] as usize,
+                        ForceChannel::HitPush,
+                        Vec2::new(sx, sy),
+                        "jacobi_hit_push_apply",
+                    ));
                 }
             }
             // Label a melee kill charge vs grind by where the wound came from:
@@ -963,8 +974,19 @@ impl Sim {
             let m = self.mass[victim] * vsp * 0.8;
             let cur = (self.mom_x[victim].powi(2) + self.mom_y[victim].powi(2)).sqrt();
             if cur < m {
+                #[cfg(feature = "force-trace")]
+                let before = Vec2::new(self.mom_x[victim], self.mom_y[victim]);
                 self.mom_x[victim] = vvx / vsp * m;
                 self.mom_y[victim] = vvy / vsp * m;
+                #[cfg(feature = "force-trace")]
+                self.force_trace.push(ForceRecord::new(
+                    self.tick_count,
+                    victim,
+                    uv,
+                    ForceChannel::KnockbackMomentum,
+                    Vec2::new(self.mom_x[victim], self.mom_y[victim]) - before,
+                    "strike_preserves_fast_body_momentum",
+                ));
             }
         }
 
@@ -987,8 +1009,17 @@ impl Sim {
         // together after the pass (the terrain clamp is applied there). The shove
         // IS the pressure input — it shortens his bonds, and the weave reads that
         // compression as crush next tick.
-        self.push_acc[2 * victim] += d.x * push;
-        self.push_acc[2 * victim + 1] += d.y * push;
+        #[cfg(not(feature = "force-trace"))]
+        {
+            self.push_acc[2 * victim] += d.x * push;
+            self.push_acc[2 * victim + 1] += d.y * push;
+        }
+        #[cfg(feature = "force-trace")]
+        {
+            let push_vec = d * push;
+            self.push_acc[2 * victim] += push_vec.x;
+            self.push_acc[2 * victim + 1] += push_vec.y;
+        }
 
         // Blocked, or gang-capped (no room to land the blade): the shove above
         // still happened — only the wound is denied.

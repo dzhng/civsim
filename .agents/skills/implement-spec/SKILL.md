@@ -1,6 +1,6 @@
 ---
 name: implement-spec
-description: Implement an existing spec through committed passes, with periodic cleanup for long specs so the plan, code, handoff, and priorities do not bloat or drift.
+description: Implement an existing spec through committed passes. Use for long or multi-pass specs that need maintenance checkpoints to periodically clean code, handoffs, priorities, and plan bloat before drift accumulates.
 ---
 
 # Implement Spec
@@ -46,17 +46,31 @@ depends on prior work.
 6. Update the spec README's "Next Agent Prompt": status, completed work, next
    pickup point, blockers, changed gates, and any architecture decision that
    changed the plan.
-7. Run a **maintenance checkpoint** periodically, not only at the end. Trigger it
-   after a red pass, after a rebase that changes owners, after every two or three
-   slice commits, before changing feature areas, when the handoff contradicts the
-   TODO/graph, or when the active prompt grows hard to scan. Clean both plan and
-   code: prune stale history into a compact ledger, correct
-   completed/rejected/next markers, name the one active pickup, delete obsolete
-   scaffolding introduced by earlier passes, and reslice any bloated or still-red
-   slice before more implementation. If the work feels off-track, ask a fresh
-   review/subagent to audit the current spec shape and priority order, then apply
-   the fixes. The checkpoint is done only when a fresh agent can read the opening
-   handoff, TODO, and slice graph and choose the same next action.
+7. Run a **maintenance checkpoint** as part of the loop, not as endgame cleanup.
+   Trigger it after a red pass, after every two or three slice commits, after a
+   rebase/resume/compaction, before changing feature areas, when evidence
+   invalidates the plan, when the handoff contradicts the TODO/graph, or when the
+   active prompt grows hard to scan. Long specs bloat repeatedly; cleanup is a
+   normal pass, not a cosmetic chore.
+
+   A checkpoint cleans both plan and code before more feature work:
+   - Shorten the README handoff to one current pickup, one priority order, and
+     one compact evidence ledger; move play-by-play into slice files or assets.
+   - Correct completed/rejected/next markers; delete stale TODOs, stale
+     acceptance claims, duplicated status sections, and obsolete prompts.
+   - Re-rank remaining work so the next red/high-risk contract is explicit, and
+     demote branches that are not on that path.
+   - Reslice any still-red, overloaded, or foggy slice into smaller independently
+     verifiable passes before implementing past it.
+   - Delete or collapse scaffolding from earlier passes when it no longer owns a
+     real contract.
+   - If the work feels off-track, ask a fresh review/subagent to audit spec shape
+     and priority order, then apply the fixes.
+
+   Commit the checkpoint as its own focused pass when cleanup changes the spec,
+   code shape, or handoff enough that future agents would otherwise inherit stale
+   context. It is done only when a fresh agent can read the README handoff, TODO,
+   and slice graph and choose the same next action without conversation history.
 8. **Continue.** If any slice or global TODO is still open, go straight back to
    step 1 for the next one — same session, no pause for acknowledgement. Keep
    looping until every TODO is closed. When the last slice lands, close the spec

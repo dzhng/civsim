@@ -9,10 +9,15 @@
 // shadow pass re-skins the same VAT positionNode per cascade.
 import * as THREE from 'three/webgpu';
 import {
-  attribute, clamp, dot, float, floor, int, ivec2, max, mix, normalize, sin, smoothstep, step, textureLoad, varying, vec3, vec4,
+  abs, attribute, clamp, dot, float, floor, int, ivec2, max, mix, normalize, sin, smoothstep, step, textureLoad, varying, vec3, vec4,
 } from 'three/tsl';
 import type { CrowdInstance } from '../../../crowd-runtime/src/instanceData';
-import type { SoldierMeshData } from '../../../soldier-assets/src/soldierMesh';
+import {
+  SOLDIER_MATERIAL_MASKS,
+  SOLDIER_PBR_VALUES,
+  soldierMaterialIdentity,
+  type SoldierMeshData,
+} from '../../../soldier-assets/src/soldierMesh';
 import type { SoldierKitManifest, VatBake } from '../../../soldier-assets/src/schema';
 import { createVatLayout, resolveVatClip, type VatLayout } from '../../../renderer-core/src/vatLayout';
 import { linearAlbedo, viewNormalNode } from './battleTsl';
@@ -34,6 +39,7 @@ interface ClassBucket {
 export class PhotorealCrowd {
   private buckets: ClassBucket[] = [];
   private instanceCount = 0;
+  private readonly materialIdentity: ReturnType<typeof soldierMaterialIdentity>;
 
   constructor(
     scene: THREE.Scene,
@@ -41,6 +47,7 @@ export class PhotorealCrowd {
     vats: VatBake[],
     kit: SoldierKitManifest,
   ) {
+    this.materialIdentity = soldierMaterialIdentity(kit);
     // One VAT texture per distinct bake (the all-placeholder case → one).
     const textures = new Map<VatBake, THREE.DataTexture>();
     const textureFor = (vat: VatBake): THREE.DataTexture => {
@@ -138,6 +145,7 @@ export class PhotorealCrowd {
       instances: this.instanceCount,
       drawCalls: this.buckets.filter((bucket) => bucket.count > 0).length,
       meshVariants: this.buckets.length,
+      material: this.materialIdentity,
     };
   }
 }
@@ -157,13 +165,13 @@ function crowdGeometry(mesh: SoldierMeshData): THREE.InstancedBufferGeometry {
   return geo;
 }
 
-// SkinnedCrowdPipeline SKINNED_WGSL's VAT skinning + albedo composition,
-// ported at factionMaskStrength = 0 (the production battle default; the
-// ORM/normal texture terms it gates vanish and the neutral 1×1 placeholder
-// textures reduce to identities). Slice 09: the skinned lighting grade is
-// gone — the environment lights the skinned, yaw/roll-rotated normal.
+// SkinnedCrowdPipeline SKINNED_WGSL's VAT skinning + material-channel contract,
+// with slice-14a PBR promoted onto MeshStandardNodeMaterial: albedo = cColor,
+// normal = skinned cNormal, ORM = occlusion/roughness/metalness in the canonical
+// order, factionMask = high-blue accent channel. Slice 09's baked lighting grade
+// stays gone — the environment lights the skinned, yaw/roll-rotated normal.
 function crowdMaterial(vatTex: THREE.DataTexture): THREE.MeshStandardNodeMaterial {
-  const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, roughness: 0.82, metalness: 0 });
+  const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, roughness: SOLDIER_PBR_VALUES.roughness.default, metalness: 0 });
   // fog stays ON: the shared aerial-perspective hook (scene.fogNode, 10b)
   // hazes the crowd like every other world surface.
   const position = attribute<'vec3'>('position', 'vec3');
@@ -221,25 +229,70 @@ function crowdMaterial(vatTex: THREE.DataTexture): THREE.MeshStandardNodeMateria
   const vCorpse = varying(corpse).toVar();
   const vColor = varying(color).toVar();
 
-  // NEUTRAL albedo composition: faction accents + bronze/linen material
-  // character + corpse desaturation stay (they are what the soldier IS); the
-  // baked lambert/key-fill/exposure/rim grade is gone.
-  const blue = vec3(0.20, 0.42, 0.88);
-  const red = vec3(0.84, 0.24, 0.20);
+  // NEUTRAL albedo composition: faction accents + material albedo + corpse
+  // desaturation stay (they are what the soldier IS); the baked
+  // lambert/key-fill/exposure/rim grade is gone. Faction readability is tuned
+  // by accent saturation/mix, not by baking light into the base albedo.
+  const blue = vec3(0.06, 0.32, 1.0);
+  const red = vec3(0.96, 0.13, 0.09);
   const neutral = vec3(0.82, 0.70, 0.34);
   let accent = mix(blue, red, step(0.5, faction)).toVar();
   accent = mix(accent, neutral, step(1.5, faction)).toVar();
-  const teamMask = smoothstep(0.18, 0.55, max(vColor.b.sub(max(vColor.r, vColor.g)), 0.0)).toVar();
-  const teamMix = mix(float(0.44), float(0.90), teamMask);
-  const bronzeMask = smoothstep(0.58, 0.78, vColor.r).mul(smoothstep(0.34, 0.52, vColor.g)).mul(float(1.0).sub(smoothstep(0.28, 0.46, vColor.b)));
-  const linenMask = smoothstep(0.58, 0.76, vColor.r).mul(smoothstep(0.48, 0.66, vColor.g)).mul(smoothstep(0.32, 0.48, vColor.b));
+  const masks = SOLDIER_MATERIAL_MASKS;
+  const teamMask = smoothstep(
+    masks.factionMask.blueDelta[0],
+    masks.factionMask.blueDelta[1],
+    max(vColor.b.sub(max(vColor.r, vColor.g)), 0.0),
+  ).toVar();
+  const teamMix = mix(float(SOLDIER_PBR_VALUES.accent.broadMix), float(SOLDIER_PBR_VALUES.accent.maskedMix), teamMask);
+  const bronzeMask = smoothstep(masks.bronze.r[0], masks.bronze.r[1], vColor.r)
+    .mul(smoothstep(masks.bronze.g[0], masks.bronze.g[1], vColor.g))
+    .mul(float(1.0).sub(smoothstep(masks.bronze.maxB[0], masks.bronze.maxB[1], vColor.b)));
+  const greySpread = max(max(abs(vColor.r.sub(vColor.g)), abs(vColor.g.sub(vColor.b))), abs(vColor.r.sub(vColor.b))).toVar();
+  const ironMask = clamp(float(1.0).sub(greySpread.mul(masks.iron.greySpreadScale)), 0.0, 1.0)
+    .mul(smoothstep(masks.iron.brightness[0], masks.iron.brightness[1], vColor.r.add(vColor.g).add(vColor.b).div(3.0)));
+  const linenMask = smoothstep(masks.linen.r[0], masks.linen.r[1], vColor.r)
+    .mul(smoothstep(masks.linen.g[0], masks.linen.g[1], vColor.g))
+    .mul(smoothstep(masks.linen.b[0], masks.linen.b[1], vColor.b))
+    .mul(float(1.0).sub(bronzeMask));
+  const leatherMask = smoothstep(masks.leather.r[0], masks.leather.r[1], vColor.r)
+    .mul(smoothstep(masks.leather.g[0], masks.leather.g[1], vColor.g))
+    .mul(float(1.0).sub(smoothstep(masks.leather.maxB[0], masks.leather.maxB[1], vColor.b)));
+  const skinMask = smoothstep(masks.skin.r[0], masks.skin.r[1], vColor.r)
+    .mul(smoothstep(masks.skin.g[0], masks.skin.g[1], vColor.g))
+    .mul(smoothstep(masks.skin.b[0], masks.skin.b[1], vColor.b))
+    .mul(float(1.0).sub(bronzeMask));
   let albedo = mix(vColor.rgb, accent, teamMix).toVar();
-  albedo = albedo.add(vec3(0.10, 0.055, 0.012).mul(bronzeMask).mul(0.6)).toVar();
-  albedo = albedo.add(vec3(0.055, 0.045, 0.020).mul(linenMask).mul(0.4)).toVar();
+  albedo = albedo.add(vec3(0.05, 0.028, 0.006).mul(bronzeMask)).toVar();
+  albedo = albedo.add(vec3(0.035, 0.030, 0.014).mul(linenMask).mul(0.55)).toVar();
+  albedo = albedo.add(vec3(0.025, 0.026, 0.024).mul(ironMask).mul(0.45)).toVar();
+  const roughness = mix(
+    mix(
+      mix(
+        mix(
+          float(SOLDIER_PBR_VALUES.roughness.default),
+          float(SOLDIER_PBR_VALUES.roughness.linen),
+          linenMask,
+        ),
+        float(SOLDIER_PBR_VALUES.roughness.leather),
+        leatherMask,
+      ),
+      float(SOLDIER_PBR_VALUES.roughness.skin),
+      skinMask,
+    ),
+    float(SOLDIER_PBR_VALUES.roughness.bronze),
+    bronzeMask,
+  );
+  material.roughnessNode = clamp(mix(roughness, float(SOLDIER_PBR_VALUES.roughness.iron), ironMask), 0.32, 0.94);
+  material.metalnessNode = clamp(
+    bronzeMask.mul(SOLDIER_PBR_VALUES.metalness.bronze)
+      .add(ironMask.mul(SOLDIER_PBR_VALUES.metalness.iron)),
+    0.0,
+    0.95,
+  );
   // Corpses desaturate and darken so the fallen read as dead, not living.
   const lum = dot(albedo, vec3(0.30, 0.59, 0.11));
   albedo = mix(albedo, vec3(lum).mul(0.62).add(vec3(0.06, 0.04, 0.03)), vCorpse.mul(0.7)).toVar();
   material.colorNode = vec4(linearAlbedo(clamp(albedo, vec3(0.0), vec3(1.0))), vColor.a);
   return material;
 }
-

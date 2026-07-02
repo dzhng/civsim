@@ -30,12 +30,55 @@ invariants"** below — read that section before implementing any ladder slice);
 production flip, landed: three.js WebGPU + TSL owns battle world rendering in
 production.** Every later look slice lands in the real game.
 
-**Exact next pickup point:** **`09` — lighting core**
-(`slices/09-lighting-core.md`): physical sun + IBL + ACES from
-`CIVSIM_ENVIRONMENTS` on the now-production photoreal battle world. **The
-ladder continues from `main`** — future slices land on main as individually
-gated increments, not on a long-lived branch. The standing gates ("Photoreal
-ladder invariants") apply from here on every slice.
+**Exact next pickup point:** **`10` — physical sky + atmosphere**
+(`slices/10-sky-atmosphere.md`): `10a` Hillaire-style sky behind a `SkyModel`
+seam feeding `scene.environment` (deletes 09's procedural-equirect IBL
+stand-in), `10b` the ONE aerial-perspective owner (deletes the `THREE.Fog`
+stand-in AND the per-material `Aerial stand-in` albedo mixes born 08a/09 —
+grep that phrase), `10c` presets through the sky model — the roster is now
+FOUR presets (noon added at 09, David's call). **The ladder continues from
+`main`** — future slices land on main as individually gated increments, not on
+a long-lived branch. The standing gates ("Photoreal ladder invariants") apply
+on every slice.
+
+**Slice `09` is DONE (2026-07-02) — lighting core, the first deliberate
+look-change.** The battle world dropped its parity output (NoToneMapping +
+display swapchain) and lights physically: sun `DirectionalLight` + PMREM'd
+procedural-equirect IBL (10a stand-in) + ACES with per-preset exposure, all
+mapped from the ONE owner — `CIVSIM_ENVIRONMENTS` grew a
+`physical: { sunIntensity, exposure, turbidity }` block (the photoreal exposure
+is a NEW field; the flat `exposure` stays the bespoke display knob so
+campaign/water stayed byte-identical) **plus a FOURTH preset `noon`** (David's
+mid-slice roster call: neutral midday "true colour" reference; roster
+final-for-now golden-hour/dusk/overcast-foggy/noon). Every battle material is
+now a `MeshStandardNodeMaterial` response with NEUTRAL albedo — baked
+lambert/key-fill/exposure grades extracted, the display-referred battle palette
+linearized through ONE seam (`battleTsl.linearAlbedo`, incl. the overlay
+Float32Array contracts: unconverted, the rule-6 gold glow washed to pale cream
+under ACES — caught by the parity gate's gold-pixel check), normals through ONE
+hook (`viewNormalNode`); scenery's pass-private sun and the water's baked
+key/fill/glint stack are DELETED (grep-clean: no key/fill/sun constants in
+`packages/photoreal-renderer` outside `environment.ts`). The sea keeps its
+Gerstner seam but shades as albedo+roughness (real GGX sun glint; shallows
+re-registered pale turquoise). `/renderer/photoreal-battle?env=` works for all
+four aliases; NEW gate scene `battle-photoreal-lighting` (per-preset crowd-mid
+snaps, identity, determinism, preset-swap movement floors);
+`photorealEnvironment.test.ts` pins the physical block (sun round-trip,
+exposure/irradiance/turbidity monotonicity, deterministic swaps; 48 unit tests).
+**Deliberate re-bless: 9 battle baselines** (initial/banner/manual/ai/
+camera-zoom/minimap/projectiles/selection/photoreal-parity — each diff
+eyeballed) + 4 new lighting baselines; campaign byte-identical; seating
+tripwire `match=true`; two gate re-derivations recorded in the slice file
+(camera-zoom red bin 105→70 for the ACES crimson; irradiance-not-knob sun
+ordering). Golden default preserves the old production ground register (warmth
+1.84 vs baked 1.86) — the look survived the physical rewrite while the mood
+became a swappable environment. New hazards recorded: TSL `Fn` returns lose
+their node type in `@types/three`; 4-vertex quads need per-fragment procedural
+normals. **Perf ledger row (hardware apple/metal-3, `battle-perf-30k`, 30,560
+soldiers + 548 scenery + vista 184.8k grass blades, ALL slice-09 lighting on):
+GPU median 3.27 ms mid / 2.75 ms vista (p95 7.74/6.28), rAF 8.3 ms
+vsync-pinned — vs 3.31/3.59 at 08b: the physical sun + IBL + ACES relight is
+frame-time-free.**
 
 **Slice `08b` is DONE (this branch, 2026-07-02) — THE atomic production flip.**
 `BattleRenderer` (public API unmoved) renders through `PhotorealBattleWorld`
@@ -509,9 +552,11 @@ depth-bias only (pending David's confirm; billboards → `08`, LOD → `14b`).
       `08b` ATOMIC production flip — three.js owns battle production; zero
       re-blessed baselines, campaign byte-identical, 30k gate 3.31/3.59 ms
       vs bespoke 4.35/4.30; `slices/08-battle-world-adoption.md`)**
-- [ ] `09` — lighting core: physical sun + IBL + ACES from `CIVSIM_ENVIRONMENTS`
-      (`slices/09-lighting-core.md`)
-- [ ] `10` — physical sky + aerial-perspective ONE owner + presets
+- [x] `09` — lighting core: physical sun + IBL + ACES from `CIVSIM_ENVIRONMENTS`
+      **(done — neutral albedos engine-wide on the battle world, physical block
+      + noon preset on the ONE owner, 9 baselines re-blessed;
+      `slices/09-lighting-core.md`)**
+- [ ] `10` — physical sky + aerial-perspective ONE owner + presets (NOW FOUR)
       (`slices/10-sky-atmosphere.md`)
 - [ ] `11` — CSM sun shadows, deletes blob-shadow stand-in
       (`slices/11-csm-shadows.md`)
@@ -655,7 +700,8 @@ a first-class acceptance criterion, not a "later optimization":
       │  a: parity battle world in the lab (/renderer/photoreal-battle, overlay ports)
       │  b: ATOMIC production flip (BattleRenderer internals; no runtime flag)
       │
-09 lighting core (physical sun + IBL + ACES from CIVSIM_ENVIRONMENTS; neutral albedos)
+09 lighting core (physical sun + IBL + ACES from CIVSIM_ENVIRONMENTS;   ✅ done
+      │            neutral albedos; noon preset added — roster of 4)
       │
 10 physical sky + atmosphere (a: Hillaire sky · b: aerial-perspective ONE owner ·
       │                        c: presets through the sky model)

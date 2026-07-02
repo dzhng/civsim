@@ -149,3 +149,43 @@ readability at scale (`14`), water glint/shore (`12b–e`), flat sky (`10`).
 production battle world (still dies at `10a`); THREE.Fog stand-in unchanged
 (dies at `10b`); the inline per-material haze mixes are re-recorded as part of
 the same 10b row (albedo-level stand-ins, one grep: `Aerial stand-in`).
+
+**Standing gates (all green, 2026-07-02):** `cargo test --workspace` (zero
+`crates/**` diffs); `test:unit` 48/48 (was 45 — the three new environment
+pins); vitest 3/3; full battle + campaign + system scene suites under
+SwiftShader post-re-bless ALL CHECKS PASSED (incl. `battle-renderer-default`,
+`battle-input`, `battle-terrain-elevation` seating tripwire `match=true`,
+`battle-photoreal-parity` incl. its gold-glow and 30.5k hardware legs,
+`photoreal-substrate` byte-tolerant, `battle-photoreal-lighting` byte-stable
+across runs); **perf ledger row: hardware apple/metal-3, 30,560 soldiers +
+548 scenery + vista 184.8k grass blades, GPU median 3.27 ms mid / 2.75 ms
+vista (p95 7.74/6.28, 150 samples each), rAF 8.3 ms vsync-pinned — vs
+3.31/3.59 at 08b, i.e. the relight costs nothing.** SwiftShader remained the
+correctness proxy throughout (ACES + PMREM IBL render fine there — no new
+adapter-gated tier needed this slice).
+
+**Human checkpoint (non-blocking, preview-shots, ~10 min window, no response —
+decided on the evidence and recorded):** opened the four per-preset close shots
++ the golden sea + the crowd-mid strip + both references in one Preview window.
+Call: ACCEPT all four registers for 09. Grounds: (1) the golden default lands
+on the old production ground register (warmth 1.84 vs baked 1.86 — the default
+look survives the physical rewrite); (2) preset separation is real and
+deterministic (dusk warm/dim, overcast flat cool high-key, noon bright neutral;
+swap telemetry 8–50 meanAbsDiff on the crowd-mid crop); (3) the same-materials
+litmus passes per the unprimed neutral review ("differences are
+palette/lighting only"); (4) every register shortfall named by review/critique
+(no cast shadows, flat sky card, fog only at far range, tan-vs-green field
+albedo) is owned by name by `10a`/`10b`/`11`/`13`. Final mood tuning remains
+David's knob at `10c`, where sky + aerial complete the moods.
+
+**Re-bless count: 9 battle baselines** (battle-initial, battle-banner,
+battle-manual, battle-ai, battle-camera-zoom, battle-minimap-world-dpr2,
+battle-projectiles-dpr2, battle-selection-dpr2, photoreal-parity) — each diff
+eyeballed individually before blessing; **+4 new** photoreal-lighting crowd-mid
+baselines (golden-hour/noon/dusk/overcast-foggy), byte-stable across runs.
+In-budget movers left un-blessed per the 08b precedent: battle-cavalry-plow
+0.78%, menu-renderer 0.04%/0.02%, photoreal-pbr/crowd-mid sub-threshold
+(max channel Δ12 — the sun boost offset by the lower golden exposure under
+ACES). Campaign suites byte-identical (0.0000%); water/terrain lab scenes
+byte-identical (bespoke substrate untouched); seating tripwire `match=true`
+on all fixtures.

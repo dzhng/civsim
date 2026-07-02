@@ -41,8 +41,9 @@ depends on prior work.
    Read `git status`/`git diff --stat` line by line and account for every path:
    one-off probes, shot scripts, scratch `.mjs`/`.tmp` files, `nohup.out`,
    ad-hoc screenshot dirs, and SPIKE/debug notes never enter a commit — scratch
-   belongs in the job dir (`$CLAUDE_JOB_DIR/tmp`), review evidence belongs in
-   the spec's `assets/`, and anything else gets deleted. A file you can't name
+   belongs in the job dir (`$CLAUDE_JOB_DIR/tmp`) or, for agents without that
+   env (codex, other harnesses), the repo's gitignored `/throwaway/` folder;
+   review evidence belongs in the spec's `assets/`; anything else gets deleted. A file you can't name
    the durable purpose of does not ship. Delegated agents leak these; the
    integrating reviewer re-checks the merged tree with the same eye.
 6. Run [refactor-clean](../refactor-clean/SKILL.md) at the end of every pass,

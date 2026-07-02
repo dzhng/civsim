@@ -1,0 +1,175 @@
+# Campaign Map Polish
+
+Polish the campaign map (the grand-strategy overworld) from David's screenshot
+feedback: fix visual bugs, recolor to a natural antique-chart palette, redesign
+the on-map city info UI, and convert the campaign DOM UI to the battle **bronze**
+style and React architecture.
+
+This spec was cut from three independent draft passes, synthesized into one
+ladder. The recon that seeded them (exact fix-sites for every item) is baked into
+the slice files.
+
+---
+
+## Next Agent Prompt
+
+**Status:** Plan materialized 2026-07-03. Implementation not started.
+**You are implementing this spec.** David's standing goal: work through the
+slices in order and **use `/codex` for implementation work wherever possible**
+(delegate the mechanical edits to Codex via `codex exec`; you drive verification,
+screenshots, and the human checkpoints yourself).
+
+**Next pickup point:** Slice `00-setup` (spec scaffold + palette telemetry
+harness), then `01-camera-clamp`, then the foundation group `02`→`03`→`04` up to
+the **Foundation human checkpoint** — the first thing David reviews.
+
+**How to work each slice:**
+1. Read the slice file. Confirm the seam in the real code.
+2. Delegate the edit to Codex (`/codex`) when the change is well-defined; review
+   its diff.
+3. Rebuild if you touched `crates/` (`bun run build:wasm`) or re-baked mapgen.
+4. Run the slice's verification scene (`cd web && VERIFY_GPU=1 node scene.mjs
+   <scene>`), inspect the PNG, run **screenshot-critique** (unprimed second
+   opinion) as the last check on any visual shot, and **compare-screenshots**
+   whenever there's a target/prior look to judge against.
+5. At a human checkpoint: open shots with **preview-shots**, give David ~5 min,
+   and if silent decide on the evidence, record the decision + rationale here,
+   close the shots, and proceed. Never block the build on sign-off.
+6. Update this section (status, next pickup, checklist) before ending your pass.
+
+**Active warnings:**
+- Foundation (02–04) **re-blesses the entire campaign snapshot baseline set** at
+  the Foundation checkpoint. Every later visual slice diffs against the new
+  palette — do not bless downstream baselines before the checkpoint passes.
+- Camera (01) lands before the foundation review so foundation shots aren't
+  captured through black corners; but 01 is a *mechanical* gate, not the human
+  checkpoint (locked: foundation is the first human checkpoint).
+- The mapgen re-bake (07) is the only cross-cutting serialization point — it
+  regenerates `web/public/data/campaign-map.json` (+ dist copy) and shifts city
+  positions; re-bless position-asserting scenes only after it lands.
+- Bronze DOM edits touch the shared `web/src/ui/theme/bronze.css` — **battle HUD
+  scenes are a hard firewall**; keep them green.
+
+### Global TODO checklist
+- [ ] `00-setup` — spec scaffold, copy references, palette compare-telemetry harness
+- [ ] `01-camera-clamp` — no off-map black corners; collapse the dup zoom-ceiling const
+- [ ] `02-terrain-grade` — global grade knob (brightness/saturation/warmth)
+- [ ] `03-terrain-biomes` — per-biome hue constants
+- [ ] `04-faction-fill` — de-mud; collapse 3 alpha owners → 1
+- [ ] ★ **Foundation human checkpoint** (David) — then re-bless campaign baselines
+- [ ] `05-roads-cull-relax` — renderer land-cull relax (isolates cull-vs-data)
+- [ ] `06-data-diagnosis` — cities-in-sea + road-graph audit (read-only, human checkpoint)
+- [ ] `07-mapgen-rebake` — one Rust fix + one re-bake: cities on land + road stub/fragment cleanup
+- [ ] `08-capital-labels` — occupied-capital name at low zoom + garrison label-far fix
+- [ ] `09-sea-labels` — mask-fit so labels stay inside their sea with margin
+- [ ] `10-shadow-ring` — shrink/soften the city ground ellipse
+- [ ] `11-cart-size` — carts ≈ road width
+- [ ] `12-selection-ring` — brighten/thicken + drape over terrain height
+- [ ] `13-bronze-shell` — bronze tokens + shell + single-root convergence (proof-of-look checkpoint)
+- [ ] `14-bronze-topbar` — top bar → bronze wells, Phosphor icons, no emoji
+- [ ] `15-bronze-panels` — City/Army/Diplomacy/ClassBuilder/Sieges → bronze (sub-sliced)
+- [ ] `16-city-card-design` — HTML contact sheet, 2–3 variations (human checkpoint)
+- [ ] `17-city-card-impl` — own-city bronze card as DOM overlay (garrison strip below)
+- [ ] `18-allegiance-rechannel` — enemy red sword + icon→faction flip, atomic (no signal gap)
+- [ ] `19-aesthetics-doc` — palette target + rewritten two-color rule (lands after its code)
+
+---
+
+## Locked decisions
+1. **One spec** — everything here; bronze-UI is a slice-group inside it.
+2. **Exact battle bronze** — campaign DOM reuses `web/src/ui/theme/bronze.css`
+   tokens and the battle components (`HudPanel`/`Toolbar`/`Tooltip`). No brass
+   variant, no forked token file.
+3. **Roads fixed at both layers** — renderer cull relax (05) *and* mapgen stub/
+   fragment cleanup + re-bake (07).
+4. **Foundation look is the first human checkpoint** — terrain palette + faction
+   fill gate every later screenshot.
+5. **React architecture** — David asked to "use the same react component
+   architecture as well," so campaign adopts battle's **single-root imperative-
+   handle** mount (a `mountCampaignHud` analogous to `mountBattleHud`), retiring
+   the two parallel `createRoot` mount systems. *Recorded alternative (Planner B):
+   keep multi-root and only share a bronze shell — fall back to this if the
+   single-root port proves too costly mid-build; the bronze look does not depend
+   on the root count.*
+
+## Slice ladder (dependencies)
+```
+00 setup ─┐
+01 camera │  (mechanical gate; before foundation review)
+          ▼
+02 grade → 03 biomes → 04 faction-fill ──► ★ FOUNDATION CHECKPOINT (re-bless baselines)
+                                              │
+   ┌──────────────────────────────────────────┼───────────────── parallel after foundation
+   ▼                    ▼           ▼          ▼            ▼
+05 roads-cull      08 capital    10 shadow  11 cart     13 bronze-shell
+   ▼                  labels      ring       size          ▼
+06 diagnosis (human) 09 sea-labels          12 sel-ring  14 topbar → 15 panels
+   ▼                                                        ▼
+07 mapgen re-bake                                    16 card-design (human)
+                                                            ▼
+                                                     17 card-impl  (needs 13 tokens)
+                                                            ▼
+                                                     18 allegiance-rechannel
+                                                            ▼
+                                                     19 aesthetics-doc (part 2 after 18)
+```
+The mapgen re-bake (07) is the one serialization point (shifts positions). City
+card (17) depends on bronze tokens (13). The icon→faction flip lands **atomically**
+with the card/sword replacement (18) so allegiance is never unreadable mid-build.
+
+## Refactor-clean — single-owner invariants
+The plan must read as the shape the code would want if designed today, not the
+old shape with fixes bolted on. Each concept has **one owner**; no slice may fork
+a parallel abstraction or leave a compatibility layer a later slice must delete.
+
+1. **Map projection** — `crates/mapgen` (`geo.rs` Lambert + `sources.rs project`);
+   `node.pos` is read verbatim on the frontend. No frontend coordinate transform
+   may appear (07 fixes in-pipeline or via `overrides.json`).
+2. **Terrain palette** — `grade()` + `naturalCampaignColor()` in `mapPass.ts` is
+   the one color path. The faction fill (04) must not re-tint terrain to
+   compensate.
+3. **Faction-fill material** — net alpha is today a product of THREE owners
+   (`territoryPass __TERRITORY_ALPHA__` × renderer `alpha` × `territory.ts FILL_A`).
+   04 collapses to **one** authoritative knob and neutralizes the others. All C
+   tweaks live in this material.
+4. **Label / marker system** — the `CampaignLabel[]` emitter (`campaignCityLabels`/
+   `campaignArmyLabels` → drawn in `mapPass`) is the one owner for items E/F/G/
+   I-label. The own-city DOM card (17) *moves* own entries out of the canvas pass
+   into a DOM overlay — never drawn by both, never a parallel React city loop.
+5. **World→screen projector** — `renderer.toScreen()` already exists; the DOM
+   card reuses it, not a parallel anchor computation.
+6. **Bronze token set** — `web/src/ui/theme/bronze.css` is the one owner (locked).
+7. **Zoom-ceiling `8`** — duplicated at `scene.ts:501` + `renderer.ts:161`; 01
+   collapses to one exported constant.
+8. **Campaign UI root** — two mount systems exist today: `scene.ts`
+   (`campaignDomHtml`, the game) and `uiLayer.ts` (`CampaignUiLayer`, the
+   `/renderer` lab). 13 converges them onto one single-root pattern so bronze
+   can't drift between game and lab.
+
+## Verification
+- **Runner:** `cd web && VERIFY_GPU=1 node scene.mjs <scene>`; snapshot baselines
+  in `web/shots/`; bless with `UPDATE_SHOTS=1`; filter with `SNAP=<substr>`.
+  Ready-gates: `window.__campaignReady`, `__campaignGpuStats`, `__campaign`.
+- **wasm:** `bun run build:wasm` after any `crates/` change.
+- **mapgen re-bake:** `cargo run -p mapgen --release` (writes
+  `web/public/data/campaign-map.json` + dist copy; runs leagues + prune-cities).
+  *Confirm the exact invocation in 07 before running.*
+- **Existing campaign scenes (reuse):** `campaign-lod` (snaps `whole-political`,
+  `whole-natural`, `whole-fog`, `regional-italy-natural/-political`, `rome-close`,
+  `selected-city`, `selected-army-city`, `border-fog`), `campaign-polish-markers`,
+  `campaign-polish-roads`, `campaign-map-alignment`, `campaign-visual`, `water-sea`.
+- **New scenes to add:** `campaign-frame` (01), `campaign-biomes` (03),
+  `campaign-cities-onland` (07), `campaign-lowzoom-capitals` (08),
+  `campaign-sea-labels` (09), `campaign-city-cards` (17),
+  `campaign-ui-bronze-{shell,topbar,panels}` (13–15).
+- **Standing visual gate (every visual slice):** run **screenshot-critique** as
+  the last check on any shot; run **compare-screenshots** whenever there is a
+  target (references) or prior look to judge against. These are not optional.
+
+## Assets
+- `assets/natural-palette-target.png` — David's TW:Troy target for the recolor
+  (also copied into `.claude/skills/aesthetics/references/` in slice 19).
+- `assets/feedback/` — the annotated feedback screenshots, named by concern.
+- Reference targets in `.claude/skills/aesthetics/references/`:
+  `campaign-map-political-borders.png` (faction-fill target),
+  `campaign-map-aegean-wide.png`, `ui-cardbar-tw.png` (bronze UI target).

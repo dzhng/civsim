@@ -5,6 +5,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { CIVSIM_ENVIRONMENTS } from '../../packages/game-renderer/src/environment/environment.ts';
 import { photorealEnvironment } from '../../packages/photoreal-renderer/src/environment.ts';
+import {
+  overcastFromTurbidity,
+  mieScale,
+  skyModelParams,
+  transmittanceToSun,
+} from '../../packages/photoreal-renderer/src/atmosphere/skyModel.ts';
 
 const PRESET_IDS = Object.keys(CIVSIM_ENVIRONMENTS) as (keyof typeof CIVSIM_ENVIRONMENTS)[];
 
@@ -23,10 +29,9 @@ test('photoreal environment: every preset id maps', () => {
       `sun azimuth for ${id}`,
     );
     // Physical fields come straight from the owner, never a parallel table.
-    assert.deepEqual(spec.sunColor, env.keyColor, `key color for ${id}`);
-    assert.deepEqual(spec.skyZenithColor, env.skyZenithColor, `zenith for ${id}`);
-    assert.deepEqual(spec.skyHorizonColor, env.skyHorizonColor, `horizon for ${id}`);
-    assert.deepEqual(spec.groundBounceColor, env.groundBounceColor, `ground bounce for ${id}`);
+    // Since 10a the sun colour is the SKY MODEL's transmittance-derived light
+    // (physics from sun elevation + turbidity), never the authored keyColor.
+    assert.deepEqual(spec.sunColor, skyModelParams(env).sunLightColor, `sun colour for ${id}`);
     assert.deepEqual(spec.hazeColor, env.hazeColor, `haze for ${id}`);
     // Slice 09: the physical block on the ONE owner is the parameterization.
     assert.equal(spec.exposure, env.physical.exposure, `exposure for ${id}`);
@@ -105,7 +110,72 @@ test('photoreal environment: pure function of the preset', () => {
     assert.equal(JSON.stringify(env), before, `preset must not be mutated for ${id}`);
     // The spec owns fresh arrays — mutating it must not write through to the owner.
     a.sunColor[0] = 999;
-    a.skyZenithColor[1] = 999;
+    a.hazeColor[1] = 999;
     assert.equal(JSON.stringify(env), before, `spec arrays must be copies for ${id}`);
   }
+});
+
+// --- Slice 10a: the physical sky model (sun elevation + turbidity drive it) ---
+
+test('sky model: pure, deterministic preset mapping', () => {
+  for (const id of PRESET_IDS) {
+    const env = CIVSIM_ENVIRONMENTS[id];
+    const before = JSON.stringify(env);
+    const a = skyModelParams(env);
+    const b = skyModelParams(env);
+    assert.deepEqual(a, b, `two calls must agree for ${id}`);
+    assert.equal(JSON.stringify(env), before, `preset must not be mutated for ${id}`);
+    assert.equal(a.id, id);
+    assert.equal(a.turbidity, env.physical.turbidity, `turbidity from the ONE owner for ${id}`);
+    // Sun direction matches the preset angles (same convention as the spec).
+    assert.ok(Math.abs(a.sunDirection[2] - Math.sin(env.sunElevation)) < 1e-9, `sun z for ${id}`);
+    // Transmittance is max-channel-normalized linear rgb in (0, 1].
+    assert.ok(Math.abs(Math.max(...a.sunTransmittance) - 1) < 1e-9, `transmittance peak for ${id}`);
+    assert.ok(a.sunTransmittance.every((c) => c > 0 && c <= 1), `transmittance range for ${id}`);
+  }
+});
+
+test('sky model: sun tint warms as the sun drops (physics, not authored keys)', () => {
+  const warmth = (id: keyof typeof CIVSIM_ENVIRONMENTS) => {
+    const t = skyModelParams(CIVSIM_ENVIRONMENTS[id]).sunTransmittance;
+    return t[0] / t[2]; // R/B — higher = warmer
+  };
+  // dusk (el 0.24) warmer than golden (0.5) warmer than noon (1.22).
+  assert.ok(warmth('dusk') > warmth('golden'), 'dusk sun warmer than golden');
+  assert.ok(warmth('golden') > warmth('noon'), 'golden sun warmer than noon');
+  assert.ok(warmth('golden') > 1.3, 'golden sun visibly warm');
+  assert.ok(warmth('noon') < 1.5, 'noon sun near-neutral');
+});
+
+test('sky model: turbidity drives overcastness and mie', () => {
+  // Overcastness: only the overcast preset reads as overcast.
+  assert.equal(overcastFromTurbidity(CIVSIM_ENVIRONMENTS.overcast.physical.turbidity), 1, 'overcast fully overcast');
+  for (const id of ['golden', 'noon', 'dusk'] as const) {
+    assert.equal(overcastFromTurbidity(CIVSIM_ENVIRONMENTS[id].physical.turbidity), 0, `${id} reads clear`);
+  }
+  // Monotone axes.
+  assert.ok(mieScale(2.0) < mieScale(2.6), 'mie monotone in turbidity');
+  assert.ok(mieScale(2.6) < mieScale(9.0), 'overcast carries the most mie');
+  assert.ok(overcastFromTurbidity(5.0) < overcastFromTurbidity(7.0), 'overcastness monotone');
+});
+
+test('sky model: overcast sun light is desaturated toward grey', () => {
+  const overcast = skyModelParams(CIVSIM_ENVIRONMENTS.overcast);
+  const spreadT =
+    Math.max(...overcast.sunTransmittance) - Math.min(...overcast.sunTransmittance);
+  const spreadL = Math.max(...overcast.sunLightColor) - Math.min(...overcast.sunLightColor);
+  assert.ok(spreadL < spreadT * 0.05, 'overcast kills the direct sun tint');
+  const golden = skyModelParams(CIVSIM_ENVIRONMENTS.golden);
+  assert.deepEqual(golden.sunLightColor, golden.sunTransmittance, 'clear presets keep the physical tint');
+});
+
+test('sky model: transmittance responds to sun height and turbidity', () => {
+  const up: readonly [number, number, number] = [0, 0, 1];
+  const low: readonly [number, number, number] = [0, Math.cos(0.15), Math.sin(0.15)];
+  const clearUp = transmittanceToSun(up, 2.0);
+  const clearLow = transmittanceToSun(low, 2.0);
+  // Lower sun → relatively less blue survives (warmer tint after normalizing).
+  assert.ok(clearLow[2] < clearUp[2], 'low sun sheds more blue');
+  const hazyLow = transmittanceToSun(low, 6.0);
+  assert.ok(hazyLow[2] <= clearLow[2] + 1e-9, 'turbidity never adds blue back');
 });

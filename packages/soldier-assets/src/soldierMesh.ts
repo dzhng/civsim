@@ -18,7 +18,13 @@ export const SOLDIER_MATERIAL_CHANNELS = {
 } as const;
 
 export const SOLDIER_PBR_VALUES = {
-  accent: { broadMix: 0.30, maskedMix: 0.98 },
+  // broadMix is the L0 (close-up) body tint locked by 14a for realism-vs-legibility.
+  // tierBroadMix ramps it UP at the coarser LOD tiers (14b): the L1/L2 reduced
+  // meshes drop the accent geometry (crest/shield) that carried the faction read
+  // up close, so at distance the body itself must carry more team colour — the
+  // "faction reads before class" rule matters MORE far away, not less. tier[0]
+  // stays == broadMix so L0 is byte-for-byte the 14a look.
+  accent: { broadMix: 0.30, maskedMix: 0.98, tierBroadMix: [0.30, 0.48, 0.66] },
   roughness: {
     bronze: 0.46,
     iron: 0.38,
@@ -31,6 +37,14 @@ export const SOLDIER_PBR_VALUES = {
     bronze: 0.82,
     iron: 0.92,
   },
+  // Slice 14c grounding/contact AO. An analytic ambient-occlusion term darkens
+  // the soldier's lower body where the ground occludes skylight — the cheap
+  // "standing on the ground, not pasted" cue. It rides the material aoNode, so
+  // it dims only indirect (sky/IBL) light, NEVER the sun's direct term (that is
+  // 11's cast shadow — distinct owner). `band` is the local mesh height (world
+  // units above the feet) over which the darkening fades to none; `strength` is
+  // the darkest occlusion at the contact line (ao = 1 - strength at z=0).
+  contactAo: { band: 0.42, strength: 0.55 },
 } as const;
 
 export const SOLDIER_MATERIAL_MASKS = {

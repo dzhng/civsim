@@ -6,6 +6,7 @@ export interface LodPolicy {
   l0Pixels: number;
   l1Pixels: number;
   l2Pixels: number;
+  minScreenPixels: number;
 }
 
 export interface LodAssignment {
@@ -24,12 +25,14 @@ export const DEFAULT_LOD_POLICY: LodPolicy = {
   l0Pixels: 18,
   l1Pixels: 9,
   l2Pixels: 4,
+  minScreenPixels: 2.25,
 };
 
 export function assignLodForScreenSize(screenSize: number, policy = DEFAULT_LOD_POLICY): LodLevel {
-  if (screenSize >= policy.l0Pixels) return 0;
-  if (screenSize >= policy.l1Pixels) return 1;
-  if (screenSize >= policy.l2Pixels) return 2;
+  const size = Math.max(screenSize, policy.minScreenPixels);
+  if (size >= policy.l0Pixels) return 0;
+  if (size >= policy.l1Pixels) return 1;
+  if (size >= policy.l2Pixels) return 2;
   return 3;
 }
 
@@ -38,7 +41,7 @@ export function assignCrowdLods(instances: CrowdInstance[], zoom: number, policy
     // Every mounted class is taller on screen; drive the scale off the mount
     // flag, not a hardcoded class list.
     const mountedScale = inst.mounted ? 1.45 : 1;
-    const screenSize = zoom * mountedScale * 1.8;
+    const screenSize = Math.max(policy.minScreenPixels, zoom * mountedScale * 1.8);
     return { level: assignLodForScreenSize(screenSize, policy), screenSize };
   });
 }
@@ -51,10 +54,10 @@ export interface LodCamera {
 
 /** Projected on-screen height of an instance: scales with zoom, falls with
  *  distance from the camera focus, so near soldiers are L0 and far ones coarsen. */
-export function instanceScreenSize(x: number, y: number, camera: LodCamera, mounted: boolean): number {
+export function instanceScreenSize(x: number, y: number, camera: LodCamera, mounted: boolean, policy = DEFAULT_LOD_POLICY): number {
   const dist = Math.hypot(x - camera.x, y - camera.y);
   const mountedScale = mounted ? 1.45 : 1;
-  return (camera.zoom * 1.8 * mountedScale) / (1 + dist * 0.012);
+  return Math.max(policy.minScreenPixels, (camera.zoom * 1.8 * mountedScale) / (1 + dist * 0.012));
 }
 
 // A level change only sticks once the size is past the boundary by `margin`, so
@@ -80,7 +83,7 @@ export function assignCrowdLodsByDistance(
   prevLevels?: ArrayLike<number>,
 ): LodAssignment[] {
   return instances.map((inst, i) => {
-    const screenSize = instanceScreenSize(inst.x, inst.y, camera, inst.mounted);
+    const screenSize = instanceScreenSize(inst.x, inst.y, camera, inst.mounted, policy);
     const level = prevLevels
       ? lodWithHysteresis((prevLevels[i] ?? 0) as LodLevel, screenSize, policy)
       : assignLodForScreenSize(screenSize, policy);

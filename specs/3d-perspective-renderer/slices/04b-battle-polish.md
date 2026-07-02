@@ -1,6 +1,26 @@
 # Slice 04b — Battle polish under the real camera (deferred from `04`)
 
-## Contract unlocked
+## STATUS: CANCELLED (2026-07-02) — superseded by the photoreal ladder
+
+Every item this slice contained is owned elsewhere after the `06` substrate
+verdict, and its remaining bespoke targets are passes `08b` orphans — polishing
+them would be dead work (flagged to David twice with a cancel recommendation; no
+objection):
+
+- **decal depth-bias (04b)** → the bespoke battle decal pipelines are orphaned at
+  `08b`; the photoreal overlay decals land depth-correct in `08a` by construction.
+- **particle/marker billboards (04c/04d)** → re-homed to `08a` (camera-facing TSL
+  billboards are part of the overlay ports).
+- **LOD screen-size (04e)** → absorbed by `14b` (with explicit per-instance
+  frustum culling).
+- **lab pick-harness migration (04g)** → already landed in `05b`
+  (`chartCamera3d` + ray-cast `pickingDebug`).
+
+Campaign's bespoke decals (selection rings) stay as-is until `16`; no z-fighting
+has been observed there (flat chart camera). If any appears before `16`, reopen
+just that item.
+
+## Contract unlocked (original, for the record)
 
 The battle renderer's secondary surfaces are *correct citizens* of the real 3D
 camera, not survivors of the flip: decals never z-fight on slopes, particles and

@@ -205,7 +205,11 @@ fn naturalCampaignColor(b: vec4f, light: f32, world: vec2f, h: f32) -> vec3f {
     sand *= 0.95 + 0.08 * nz(world, 1.6, px);
     var ground = mix(sand, grass, smoothstep(0.12, 0.28, moisture));
     let landShore = (b.a - 0.5) * 24.0;
-    ground = mix(vec3f(0.85, 0.78, 0.60), ground, smoothstep(0.05, 0.6, landShore));
+    // Muted, thinner coastal sand: the old bright (0.85,0.78,0.60) over a wide
+    // 0.05..0.6 band read as a glowing beach rim (05a critique). Pull the sand
+    // toward the muted chart palette and tighten the band so the waterline is a
+    // soft beach, not a lit edge.
+    ground = mix(vec3f(0.77, 0.71, 0.56), ground, smoothstep(0.04, 0.42, landShore));
     let canopy = smoothstep(0.25, 0.70, b.g * (0.55 + 0.90 * nz(world, 0.55, px)));
     let forest = mix(vec3f(0.24, 0.36, 0.20), vec3f(0.32, 0.46, 0.26), nz(world, 1.9, px));
     ground = mix(ground, forest, canopy);

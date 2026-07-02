@@ -49,9 +49,13 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let ring = outer * inner;
   let fill = smoothstep(0.990, 0.966, d) * smoothstep(innerCut - 0.012, innerCut + 0.008, d) * 0.024;
   let armyMix = select(0.18, 0.0, strongArmy);
-  let groundTint = mix(in.color, vec3f(0.74, 0.66, 0.36), select(0.40, armyMix, in.kind > 0.5));
-  let armyBoost = select(0.0, select(0.08, 0.20, strongArmy), in.kind > 0.5);
-  var ringAlpha = select(0.68, select(0.72, 0.94, strongArmy), in.kind > 0.5);
+  // City ring (kind 0) read as a low-contrast grey over green turf (05a critique):
+  // it washed the green status colour 40% toward parchment-gold at 0.68 alpha.
+  // Keep the diegetic soft ring but let the green carry — a lighter parchment
+  // wash and a firmer alpha, matching the army ring's legibility.
+  let groundTint = mix(in.color, vec3f(0.74, 0.66, 0.36), select(0.20, armyMix, in.kind > 0.5));
+  let armyBoost = select(0.10, select(0.08, 0.20, strongArmy), in.kind > 0.5);
+  var ringAlpha = select(0.90, select(0.72, 0.94, strongArmy), in.kind > 0.5);
   ringAlpha = select(ringAlpha, 0.98, garrisonedArmy);
   return vec4f(groundTint * (0.86 + armyBoost), max(ring * ringAlpha, fill));
 }`;

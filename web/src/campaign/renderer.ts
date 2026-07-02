@@ -669,7 +669,7 @@ export class CampaignRenderer {
     const drawData = buildCampaignMapDrawData(this.data, {
       roadScale: 1.0,
       roadSurfaceAt: (x, y) =>
-        this.field.landAt(x, y, controlledStage ? 2.5 : 10.5) ? "land" : "water",
+        this.field.landAt(x, y, controlledStage ? 2.5 : 16) ? "land" : "water",
       heightAt: (x, y) => this.field.heightAt(x, y),
     });
     this.mapDrawStats = drawData.stats;

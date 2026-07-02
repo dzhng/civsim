@@ -20,8 +20,11 @@ slices in order and **use `/codex` for implementation work wherever possible**
 (delegate the mechanical edits to Codex via `codex exec`; you drive verification,
 screenshots, and the human checkpoints yourself).
 
-**Next pickup point:** Slice `05-roads-cull-relax` (renderer land-cull), then the
-data group (`06` diagnosis → `07` mapgen re-bake). Foundation (02–04) is done.
+**Next pickup point:** Slice `06-data-diagnosis` — read-only cities-in-sea +
+road-graph audit (a human checkpoint on the fix-path), then `07` mapgen re-bake
+(Rust build + JSON re-bake — a natural fresh-context boundary). Done so far:
+00–05 + 11. `08` labels, `09` sea labels, `10` shadow ring, `12` selection ring,
+`13–15` bronze UI, `16–18` city card + allegiance, `19` docs remain.
 
 **Verification setup (learned in slice 01 — READ THIS):**
 - The scene runner (`cd web && node scene.mjs <scene>`) targets a dev server at
@@ -76,7 +79,8 @@ palette. New scene: `campaign-frame` (asserts no off-map black at wide/tall aspe
 - [x] `03-terrain-biomes` — grass hue kelly→olive; baselines re-blessed
 - [x] `04-faction-fill` — de-mud (tint removed, 3 alpha owners → 1 = pass alpha 0.35)
 - [ ] ★ **Foundation human checkpoint** (David) — shots presented; awaiting review, proceeding on evidence
-- [ ] `05-roads-cull-relax` — renderer land-cull relax (isolates cull-vs-data)
+- [x] `05-roads-cull-relax` — cull 0.68→0.5, land slack 10.5→16; +516 road tris recovered, none over water
+- [x] `11-cart-size` — carts 6.0→1.3 (road width)
 - [ ] `06-data-diagnosis` — cities-in-sea + road-graph audit (read-only, human checkpoint)
 - [ ] `07-mapgen-rebake` — one Rust fix + one re-bake: cities on land + road stub/fragment cleanup
 - [ ] `08-capital-labels` — occupied-capital name at low zoom + garrison label-far fix

@@ -85,7 +85,7 @@ palette. New scene: `campaign-frame` (asserts no off-map black at wide/tall aspe
 - [ ] `07-mapgen-rebake` — one Rust fix + one re-bake: cities on land + road stub/fragment cleanup
 - [ ] `08-capital-labels` — occupied-capital name at low zoom + garrison label-far fix
 - [ ] `09-sea-labels` — mask-fit so labels stay inside their sea with margin
-- [ ] `10-shadow-ring` — shrink/soften the city ground ellipse
+- [~] `10-shadow-ring` — RESLICED: the ugly "ring" is the garrison-footprint disc (occupied cities only), folded into `08`; city model shadow reads fine, left as-is
 - [ ] `11-cart-size` — carts ≈ road width
 - [ ] `12-selection-ring` — brighten/thicken + drape over terrain height
 - [ ] `13-bronze-shell` — bronze tokens + shell + single-root convergence (proof-of-look checkpoint)

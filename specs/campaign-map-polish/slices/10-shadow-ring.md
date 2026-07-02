@@ -1,7 +1,18 @@
 # 10 — Shrink the city shadow ring
 
-**Contract unlocked:** no ugly dark ground ellipse ("shadow ring") around cities
-(feedback #9, the ring around Rome). It becomes a subtle contact shadow, not a halo.
+> **RESLICE (2026-07-03, verified on rome-close):** feedback #9's "ugly shadow
+> ring around Rome" is NOT the universal city model shadow — normal cities
+> (Tibur, Narnia, …) render a fine subtle contact shadow. The visible ugly ring
+> is the **light grey garrison-footprint disc** drawn only under occupied/
+> garrisoned capitals (Rome has the 1st Legion). That element is owned by the
+> occupied-city/garrison path — **fold this fix into slice 08** (capital labels +
+> garrison anchor), where the garrison display is already being touched. The city
+> **model** shadow (`campaignEntityModels.ts:11` `builder.shadow(3.65,1.95,…)`)
+> reads fine at campaign zoom and needs no change; leave it. This slice is
+> effectively subsumed by 08 unless the model shadow itself is later judged wrong.
+
+**Original contract (superseded):** no ugly dark ground ellipse ("shadow ring")
+around cities (feedback #9, the ring around Rome).
 
 ## API seam
 - `packages/game-renderer/src/models/campaign/campaignEntityModels.ts:11`:

@@ -17,7 +17,15 @@ garrison army label, which is itself culled at low zoom.
 - **Garrison label-far half of feedback #9** folds here (same garrison-anchor
   owner): `renderer.ts:909-915, 928, 950-957` (`garrisonDisplayAnchor`,
   `screenOffsetY`, `overlapClearance`, `selectedOffset`) — pull the label back to
-  the city footprint. (The shadow-ring half of #9 is slice 10.)
+  the city footprint.
+- **The "ugly shadow ring" of feedback #9 also folds here (reslice from slice 10):**
+  it is the light-grey garrison-footprint DISC drawn only under occupied/garrisoned
+  capitals (verified on rome-close: normal cities have no such disc). Find the
+  element that renders it — likely the garrison display anchor footprint or the
+  ground-selection pass drawing a garrison marker even when deselected
+  (`selectionPass` kind 2 / `garrisonDisplayAnchor`) — and make it subtle or remove
+  it so a garrisoned capital doesn't wear an ugly halo. The city MODEL shadow
+  (`campaignEntityModels.ts:11`) reads fine; do not change it.
 - **Firewall:** don't add a second cull path in `renderer.ts`; the tier/cull
   policy stays in the `mapPass` label gates.
 

@@ -41,8 +41,10 @@ test('photoreal sea: Gerstner is the default active source', () => {
         fadeEnd: 2300,
       },
       foam: {
-        heightStart: 0.52,
-        heightEnd: 1.55,
+        // Base thresholds x SEA_SWELL_SCALE (0.55) — David's calm-register
+        // call (2026-07-02): foam scales with the swell so coverage holds.
+        heightStart: 0.52 * 0.55,
+        heightEnd: 1.55 * 0.55,
         slopeStart: 0.12,
         slopeEnd: 0.58,
         speckleStart: 0.56,

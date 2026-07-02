@@ -13,7 +13,8 @@ photoreal register the `aesthetics` skill targets.
 ## Next Agent Prompt
 
 **Status (updated 2026-07-02): ON MAIN through slice `11`; worktree `codex-12bcde`
-has slice `12` complete.** The camera spine
+has slice `12` complete; worktree `codex-14bc` has slice `14` complete (`14a`
+materials + `14b` LOD/impostors/culling + `14c` contact AO).** The camera spine
 `01`–`05b` is COMPLETE (one projector `projectWorld`, one reverse-Z
 `depth32float` convention, legacy 2.5D deleted and grep-proofed). The `06`
 substrate verdict is **three.js WebGPU + TSL** for the photoreal layer (camera
@@ -27,7 +28,12 @@ blob-shadow decals are deleted). Every later look slice lands in the real game,
 on `main`, as an individually gated increment — not on a long-lived branch. The
 standing gates ("Photoreal ladder invariants" below) apply on every slice.
 
-**Exact next pickup point: slice `13`/`14`/`15` follow-up work**
+**Exact next pickup point: slice `13` (terrain/foliage substrate seams) then
+`15` (post chain).** Slice `14` is DONE (see ledger). The far-crowd smear the
+`11` critique flagged is retired by `14b`'s impostor tier; `14c` grounds the
+feet. Original `12`/`14` follow-up context below:
+
+**Prior pickup context: slice `13`/`14`/`15` follow-up work**
 (`slices/12-photoreal-sea.md`): `12a` picked Gerstner TSL and rejected the
 spectral/IFFT spike; `12b` removed that implementation, kept the one
 `SeaDisplacementSource` socket, and put the surface on SkyModel-LUT PBR with
@@ -67,6 +73,9 @@ map-edge seams + mountain shelf + crag-base shadow gap (`13`), far-crowd smear
 | `12c` photoreal sea foam | whitecaps gated by Gerstner crest height + slope agitation + speckle; `sea-mid` crop foamFraction 0.0838, not blanket; hardware baseline + SwiftShader green | `b4ced5e3` |
 | `12d` photoreal sea shore | terrain-height shore ramp blends tan sand → turquoise → deep blue; sea rim extended to 7200 m and left to 10b aerial haze; `shore-line` SwiftShader green | `775e5419` |
 | `12e` photoreal sea glint | roughness floor 0.105 + normal-detail ceiling 0.84; `sun-glint` hotFraction 0.0326/centerShare 0.6393; old water-* bakeoff gates retired; 30k perf 5.85/7.89 ms | this commit |
+| `14a` PBR soldier materials | per-class albedo/normal/orm/faction-mask on the VAT crowd via node materials; bronze/iron metal, linen/leather rough; accent broadMix 0.30/maskedMix 0.98 legible at zoom | `codex-14a` |
+| `14b` 30k LOD/impostors + culling | lod.ts policy reused (L0/L1/L2 mesh + L3 octahedral impostor, absorbs 04e); per-instance CPU cull vs view ∪ CSM-cascade frusta; spike DELETED; coarse-tier + impostor faction tint (faction-before-class at range); **30k perf mid 3.63/vista 3.59 ms (vista −4.3 from 12e)** | this commit |
+| `14c` contact AO | analytic `aoNode` grounding (indirect-only, distinct from 11's cast shadow); band 0.42 / strength 0.55, corpse-gated; frame-time-neutral | this commit |
 
 ### Active blockers / coordination warnings
 
@@ -105,8 +114,9 @@ map-edge seams + mountain shelf + crag-base shadow gap (`13`), far-crowd smear
       `seaLayer` owner (`slices/12-photoreal-sea.md`) **COMPLETE in `codex-12bcde`**
 - [ ] `13` — photoreal terrain + foliage, RE-SCOPED to substrate seams
       (`slices/13-photoreal-terrain-foliage.md`; the LOOK is battle-map-reference's)
-- [ ] `14` — photoreal soldiers: materials, 30k LOD/impostors + union-frustum
-      culling, contact AO (`slices/14-photoreal-soldiers.md`)
+- [x] `14` — photoreal soldiers: `14a` PBR materials · `14b` 30k LOD/impostors +
+      union-frustum culling (spike deleted; vista 7.89→3.59 ms) · `14c` contact AO
+      (`slices/14-photoreal-soldiers.md`)
 - [ ] `15` — post chain: bloom + refine; ACES-vs-AgX decided here
       (`slices/15-post-chain.md`)
 - [ ] `16` — campaign photoreal: `16a` register GO/NO-GO + flip, chart grade,

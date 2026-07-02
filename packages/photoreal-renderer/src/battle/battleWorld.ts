@@ -41,7 +41,7 @@ import {
   loadPlaceholderKit,
   mountedClassesFromKit,
 } from '../../../soldier-assets/src/placeholders';
-import { createPlaceholderSoldierMeshes } from '../../../soldier-assets/src/soldierMesh';
+import { createPlaceholderSoldierMeshTiers } from '../../../soldier-assets/src/soldierMesh';
 import { PhotorealWorld } from '../world';
 import { applyCivsimEnvironment } from '../environment';
 import { applyCamera3d } from '../cameraBridge';
@@ -59,7 +59,7 @@ import {
   type SeaDisplacementSourceId,
 } from './seaLayer';
 import { PhotorealGrassField, PhotorealScenery } from './foliageLayer';
-import { PhotorealCrowd } from './crowdLayer';
+import { PhotorealCrowd, type CrowdVisibilityScope } from './crowdLayer';
 import { configureSunShadows, resolveSunShadowMode, type SunShadowMode, type SunShadowRig } from './shadowRig';
 import { PhotorealLineLayer, PhotorealMarkerLayer, PhotorealTriangleLayer } from './overlayLayer';
 
@@ -135,7 +135,7 @@ export class PhotorealBattleWorld {
     world: PhotorealWorld,
     environment: BattleEnvironment,
     sea: ReturnType<typeof createSeaDisplacementSource>,
-    meshes: ReturnType<typeof createPlaceholderSoldierMeshes>,
+    meshes: ReturnType<typeof createPlaceholderSoldierMeshTiers>,
     vats: Awaited<ReturnType<typeof loadClassVats>>,
     kit: Awaited<ReturnType<typeof loadPlaceholderKit>>,
     shadowMode: SunShadowMode,
@@ -202,7 +202,7 @@ export class PhotorealBattleWorld {
     // ?shadows= override wins. Resolved here because the adapter identity
     // only exists once the renderer is initialized.
     const shadowMode = resolveSunShadowMode(world.stats().device, options.shadows);
-    return new PhotorealBattleWorld(world, environment, sea, createPlaceholderSoldierMeshes([0.2, 0.42, 0.88]), vats, kit, shadowMode);
+    return new PhotorealBattleWorld(world, environment, sea, createPlaceholderSoldierMeshTiers([0.2, 0.42, 0.88]), vats, kit, shadowMode);
   }
 
   setTime(seconds: number): void {
@@ -357,24 +357,14 @@ export class PhotorealBattleWorld {
       simTick: simTick ?? 0,
       count,
     });
-    if (camera.zoom < 1.2) {
-      this.instances = [];
-      this.markers = built.instances.map((inst) => ({
-        x: inst.x,
-        y: inst.y,
-        facing: inst.facing,
-        faction: inst.faction,
-        size: inst.mounted ? 1.45 : 1.1,
-        lod: 3,
-      }));
-    } else {
-      this.instances = built.instances;
-      this.markers = [];
-    }
+    this.instances = built.instances;
+    this.markers = [];
     this.updateSeating(built.instances);
     this.updateGrassWindPhase();
     this.updateGrassForCamera(camera);
-    this.crowd.upload(this.instances);
+    applyCamera3d(this.camera, this.lastCamera.camera3d);
+    this.shadowRig.update(this.camera);
+    this.crowd.upload(this.instances, this.crowdVisibilityScope());
     this.markerLayer.upload(this.markers);
   }
 
@@ -406,6 +396,7 @@ export class PhotorealBattleWorld {
     // Cascade splits track the live projection (the zoom rig moves fovY/pitch
     // continuously) — re-fit them after every camera pose.
     this.shadowRig.update(this.camera);
+    this.crowd.refreshCamera(this.camera);
     this.markerLayer.setCameraBasis(this.camera);
     this.background.setStyle(this.lastCamera.zoom < 1.2 ? 'wide-detail' : 'default');
     this.world.render(this.camera);
@@ -414,6 +405,20 @@ export class PhotorealBattleWorld {
   private setCamera(camera: BattleCameraSnapshot): void {
     this.lastCamera = camera;
     this.frame.focus.value.set(camera.x, camera.y);
+  }
+
+  private crowdVisibilityScope(): CrowdVisibilityScope {
+    const view = new THREE.Frustum();
+    const mat = new THREE.Matrix4().multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse);
+    view.setFromProjectionMatrix(mat, this.camera.coordinateSystem, this.camera.reversedDepth);
+    const shadowFrusta = this.shadowRig.cullingFrusta();
+    return {
+      camera: this.camera,
+      lodCamera: { x: this.lastCamera.x, y: this.lastCamera.y, zoom: this.lastCamera.zoom },
+      frusta: [view, ...shadowFrusta],
+      viewFrusta: 1,
+      shadowFrusta: shadowFrusta.length,
+    };
   }
 
   private updateSeating(instances: CrowdInstance[]): void {
@@ -483,8 +488,10 @@ export class PhotorealBattleWorld {
 
   stats() {
     const world = this.world.stats();
-    const markerCount = this.markers.length;
-    const skinnedCount = this.instances.length;
+    const crowdStats = this.crowd.stats();
+    const visibleTierHistogram = crowdStats.visibleTierHistogram;
+    const markerCount = visibleTierHistogram.l3;
+    const skinnedCount = visibleTierHistogram.l0 + visibleTierHistogram.l1 + visibleTierHistogram.l2;
     const sea = this.sea.stats();
     return {
       renderer: 'gpu' as const,
@@ -494,11 +501,11 @@ export class PhotorealBattleWorld {
       environment: this.environment.environment.id,
       width: this.world.renderer.domElement.width,
       height: this.world.renderer.domElement.height,
-      soldiers: skinnedCount + markerCount,
+      soldiers: this.instances.length + this.markers.length,
       expectedSoldiers: this.staticSoldiers,
       drawCalls: world.drawCalls,
       triangles: world.triangles,
-      crowd: this.crowd.stats(),
+      crowd: crowdStats,
       lod: { skinned: skinnedCount, impostors: markerCount },
       device: world.device,
       // The engine depth convention, read off the live renderer: three owns the

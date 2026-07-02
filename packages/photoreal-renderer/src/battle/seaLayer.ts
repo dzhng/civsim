@@ -40,8 +40,13 @@ const SEA_GLINT_HOT_LUMA_THRESHOLD = 246;
 const SEA_GLINT_HOT_FRACTION_MAX = 0.07;
 const SEA_GLINT_CENTER_SHARE_MIN = 0.60;
 const SEA_SURFACE_OWNER = 'skyModel-ibl-standard-pbr' as const;
-const SEA_FOAM_HEIGHT_START = 0.52;
-const SEA_FOAM_HEIGHT_END = 1.55;
+// Sea state — David's register call (2026-07-02): calm Aegean, waves present
+// but not choppy, and battle water sits near shore. One knob scales every
+// wave amplitude (photoreal sea only; the shared bespoke baker is untouched).
+// Foam height thresholds scale with it so whitecap coverage stays consistent.
+const SEA_SWELL_SCALE = 0.55;
+const SEA_FOAM_HEIGHT_START = 0.52 * SEA_SWELL_SCALE;
+const SEA_FOAM_HEIGHT_END = 1.55 * SEA_SWELL_SCALE;
 const SEA_FOAM_SLOPE_START = 0.12;
 const SEA_FOAM_SLOPE_END = 0.58;
 const SEA_FOAM_SPECKLE_START = 0.56;
@@ -229,9 +234,9 @@ export function waterFieldNodes(p: Vec2Node, t: FloatNode): WaterSampleNodes {
     const c = phase.cos().toVar();
     const hump = s.mul(0.5).add(0.5).toVar(); // 0..1 wave profile
     const sharp = hump.mul(hump); // narrow peaks, wide flat troughs
-    h = h.add(sharp.sub(0.333).mul(wv.amplitude));
+    h = h.add(sharp.sub(0.333).mul(wv.amplitude * SEA_SWELL_SCALE));
     const dHump = hump.mul(c); // d(sharp)/d(phase)
-    const dphase = dHump.mul(wv.amplitude * 2.0 * k).toVar();
+    const dphase = dHump.mul(wv.amplitude * SEA_SWELL_SCALE * 2.0 * k).toVar();
     slopeX = slopeX.add(dphase.mul(wv.dirX));
     slopeY = slopeY.add(dphase.mul(wv.dirY));
   }
@@ -262,7 +267,7 @@ export function waterHeightNode(p: Vec2Node, t: FloatNode): FloatNode {
     const ph0 = fract53(Math.sin(i * 127.1 + wv.wavelength * 3.71) * 43758.5453) * 6.2831853;
     const phase = dot(vec2(wv.dirX, wv.dirY), p).mul(k).sub(t.mul(w * 0.42)).add(ph0);
     const hump = phase.sin().mul(0.5).add(0.5).toVar();
-    h = h.add(hump.mul(hump).sub(0.333).mul(wv.amplitude));
+    h = h.add(hump.mul(hump).sub(0.333).mul(wv.amplitude * SEA_SWELL_SCALE));
   }
   return h;
 }

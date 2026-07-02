@@ -53,6 +53,29 @@ work without a fresh ask.
 5. You own the result: read the full diff, run the tests, and only then report
    it. "Codex says it's done" is not done.
 
+## Exec liveness — a hang looks like work
+
+`codex exec` can wedge at startup: process alive at ~0% CPU, but no session
+file under `~/.codex/sessions/<Y/M/D>/`, no network socket, no tree changes.
+"Process running" is NOT "working" — one such hang sat 2h doing nothing
+(2026-07-02, melee-blob).
+
+- **Watchdog every launch:** put a unique marker string in the prompt, then
+  kill the exec if `grep -rl "<marker>" ~/.codex/sessions/<Y/M/D>/` finds no
+  session within ~3 minutes. Relaunching after a kill has always worked.
+- **Don't launch two execs in the same instant**, and kill stale hung execs
+  before starting a new one — the observed hangs coincided with another codex
+  instance starting or wedged.
+- **Trust the worktree first:** headless exec in a directory codex doesn't
+  trust can block forever on an invisible prompt. Git worktrees are separate
+  paths from the trusted repo root — add
+  `[projects."<worktree-path>"]\ntrust_level = "trusted"` to
+  `~/.codex/config.toml` before exec'ing in one. This is the safe fix; the
+  bypass flags stay forbidden.
+- **Long prompts via file:** `codex exec ... "$(cat prompt.txt)"` — and check
+  the file exists first; a missing file silently sends the fallback string as
+  the task.
+
 ## Rules
 
 - Don't touch the working tree while a Codex exec is running on it.

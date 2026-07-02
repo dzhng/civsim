@@ -16,48 +16,38 @@ Risks), never as the first move.
 
 ## Next Agent Prompt
 
-*Status (2026-07-02): slices 01, 02, AND 03 COMPLETE. 01: force-trace harness
-behind `force-trace`, conservation + smoke green, default golden
-byte-identical, tweak-mechanics skill updated. 02: four detectors + probes +
-four ignored target pins landed; validated quiet on controls; measured-today
-table in `slices/02-metrology.md` and `visualizations/seam-timeline.html`.
-KEY MEASUREMENT: the sustained seam band does NOT reproduce (p95 ~1 rank,
-settles after an impact transient) but rotation grows monotonically (heavy
-mortal ~25 deg by 380s, still climbing) and the pike mid-line void is
-persistent (~+0.6 m). The pinwheel looks like the primary bug; the "deep
-band" was substantially the rotated seam read as mixing in isometric crops.
-03: attribution probes and diagnostic env knobs landed; default golden
-byte-identical. Verdicts below: slide/tiebreak are not the primary motor,
-deep-reform is split by mortality, pike frontal-gate-fails story is killed,
-and the full-noise band still does not sustain. Pickup point: reslice 04-07
-from the measured verdicts (rotation/silhouette first; pike owner needs a new
-probe if still prioritized).*
+*Status (2026-07-02): slices 01–03 COMPLETE and RESLICED. The 03 verdicts
+killed three hypotheses: seam band (p95 ~2r even under full vibe noise —
+inside David's budget), slide/tiebreak chirality, and the pike
+standoff-owner story. The measured disease: pair rotation is a MORTAL-only
+runaway (immortal oscillates 4–9°, mortal ramps 21→62°, vibe-like ~40° with
+silhouette floor 0.62); net torque is a small residual of huge canceling
+SpeedCap-vs-PivotSpring terms; the engaged re-dress ratchets orientation
+10–15°/beat yet ALSO arrests a deeper orbit (disabling it spins 4/5 mortal
+seeds to ±180°). Pickup point: slice 04
+(`slices/04-mortal-orbit-attribution.md`) — name the mortal-unlock
+mechanism, then 05 fixes it.*
 
-You are implementing this spec. Start at `slices/01-force-trace.md` — the
-universal force-instrumentation harness. David's directive (2026-07-02): we do
-too much trial & error on mechanics work; this is a deterministic simulator
-where we control every variable, so EVERY force acting on a soldier must be
-traceable to the exact piece of logic that produced it, as a permanent debug
-harness for all tweak-mechanics work — and slice 01 is not done until the
-tweak-mechanics skill documents it. Then `slices/02-metrology.md` (nothing
-else is unblocked until the detectors exist — every sharp symptom here is
-invisible to the current test wall, see Detector Blindness), then
-`slices/03-attribution.md`, and **stop to reslice**: slices 04–07 name their
-expected mechanisms, but 03's measured verdicts decide them — update the slice
-files and this section before implementing 04. Read
-`.claude/skills/tweak-mechanics/SKILL.md` and
-`specs/standoff-double-push.md` in full before touching sim code. Rebuild wasm
+You are implementing this spec. Slices 01–03 (harness, metrology,
+attribution) are landed — read their slice files' bottom notes and the
+verdict table below before anything else. David's standing directive: this
+is a deterministic simulator; measure with the force-trace harness before
+theorizing, no trial-and-error knob sweeps. The next pickup is
+`slices/04-mortal-orbit-attribution.md`; slice 05 implements the fix its
+verdict names; 06/07 handle pike-void and silhouette residue after the fix;
+08 re-blesses and closes. Read `.claude/skills/tweak-mechanics/SKILL.md`
+(and its references/force-trace.md) before touching sim code. Rebuild wasm
 before filming anything. Update this section (status, pickup point, TODO)
 before ending your pass.
 
 - [x] 01 force-trace — every force channel recorded at its source, ledger + torque/crossing queries; tweak-mechanics skill updated
 - [x] 02 metrology — detectors + probes + ignored pins + seam-timeline.html; seam band does not reproduce sustained, rotation does
-- [x] 03 attribution — ledger + ablation matrix; verdict per hypothesis; **reslice checkpoint**
-- [ ] 04 seam band — one standoff owner, band ≤ 2–3 ranks (absorbs the standoff-double-push rider)
-- [ ] 05 pinwheel — kill the rotation (chirality and/or ratchet per 03)
-- [ ] 06 pike front — flat gap profile, no mid-line lens (may fold into 04)
-- [ ] 07 silhouette — measure residue after 04–06, fix only what remains
-- [ ] 08 re-bless, change-report ledger, close-spec
+- [x] 03 attribution — verdicts measured; band/chirality/pike-owner killed; orbit is mortal-only; **resliced**
+- [ ] 04 mortal-orbit attribution — name the unlock mechanism (cap-clips-spring / off-axis mass chase / ratchet timing / forward-close feed); activate the band rail
+- [ ] 05 orbit fix — per 04's verdict; the equilibrium must settle; the re-dress-off ±180° blow-up must also heal
+- [ ] 06 pike void — re-measure after 05, diagnose residue fresh (owner hypothesis dead)
+- [ ] 07 silhouette — residue after 05–06 (vibe-like floor today: 0.62)
+- [ ] 08 re-bless, change-report ledger, standoff-rider 1v1 pin, close-spec
 
 ## Evidence
 
@@ -157,9 +147,10 @@ carve-out.
 
 ## Slice graph
 
-01 (force-trace harness) → 02 (metrology) → 03 (attribution) → **reslice
-checkpoint** → 04 → 05 → 06 → 07 → 08, one variable per slice; slice files
-carry the contracts. Review map: every shipping slice ends
+01 (harness) → 02 (metrology) → 03 (attribution) → **reslice [done
+2026-07-02]** → 04 (mortal-orbit attribution) → 05 (orbit fix) → 06 (pike
+residue) → 07 (silhouette residue) → 08 (re-bless/close), one variable per
+slice; slice files carry the contracts. Review map: every shipping slice ends
 with the immortal mechanics pins green, the relevant vibe re-filmed
 (wasm rebuilt first), tight seam crops judged with `compare-screenshots`
 against `assets/before-*`, and an unprimed `screenshot-critique` as the final

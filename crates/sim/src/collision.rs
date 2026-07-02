@@ -13,6 +13,8 @@
 //! speed × effective mass) that stun and displace.
 
 use crate::class::{HORSE_BODY_R, HORSE_HALF_LEN};
+#[cfg(feature = "force-trace")]
+use crate::force_trace::{ForceChannel, ForceRecord};
 use crate::math::Vec2;
 use crate::sim::Sim;
 use crate::tunables::DT;
@@ -38,6 +40,10 @@ impl Sim {
             return;
         }
         let tun = self.tun;
+        #[cfg(feature = "force-trace")]
+        let tick_now = self.tick_count;
+        #[cfg(feature = "force-trace")]
+        let mut force_records: Vec<ForceRecord> = Vec::new();
 
         // --- per-unit brace factor; per-soldier effective mass -------------
         let brace: Vec<f32> = self.units.iter().map(|u| u.brace()).collect();
@@ -269,8 +275,39 @@ impl Sim {
                             let w_j = m_eff(j, nx, ny, enemies);
                             let share = w_j / (w_i + w_j);
                             let overlap = (min_dist - d) * share;
-                            push.x += (nx - slide * ny) * overlap;
-                            push.y += (ny + slide * nx) * overlap;
+                            #[cfg(not(feature = "force-trace"))]
+                            {
+                                push.x += (nx - slide * ny) * overlap;
+                                push.y += (ny + slide * nx) * overlap;
+                            }
+                            #[cfg(feature = "force-trace")]
+                            {
+                                let normal_push = Vec2::new(nx, ny) * overlap;
+                                let slide_push = Vec2::new(-slide * ny, slide * nx) * overlap;
+                                push = push + normal_push + slide_push;
+                                force_records.push(ForceRecord::new(
+                                    tick_now,
+                                    i,
+                                    ui,
+                                    ForceChannel::BodySeparationNormal,
+                                    normal_push,
+                                    if enemies {
+                                        "enemy_body_normal"
+                                    } else {
+                                        "friendly_body_normal"
+                                    },
+                                ));
+                                if slide_push.x != 0.0 || slide_push.y != 0.0 {
+                                    force_records.push(ForceRecord::new(
+                                        tick_now,
+                                        i,
+                                        ui,
+                                        ForceChannel::BodySeparationFriendlySlide,
+                                        slide_push,
+                                        "friendly_slide_component",
+                                    ));
+                                }
+                            }
 
                             // Track the deepest ENEMY body for the hard wall —
                             // unless this body is trampling (it rides through).
@@ -335,8 +372,25 @@ impl Sim {
                                     let ramp =
                                         ((closing - tun.impact_floor) / span).clamp(0.0, 1.0);
                                     let dv = ramp * w_j / (w_i + w_j);
-                                    push.x += nx * closing * tun.impact_push * DT * share;
-                                    push.y += ny * closing * tun.impact_push * DT * share;
+                                    #[cfg(not(feature = "force-trace"))]
+                                    {
+                                        push.x += nx * closing * tun.impact_push * DT * share;
+                                        push.y += ny * closing * tun.impact_push * DT * share;
+                                    }
+                                    #[cfg(feature = "force-trace")]
+                                    {
+                                        let impact_push = Vec2::new(nx, ny)
+                                            * (closing * tun.impact_push * DT * share);
+                                        push = push + impact_push;
+                                        force_records.push(ForceRecord::new(
+                                            tick_now,
+                                            i,
+                                            ui,
+                                            ForceChannel::ImpactPush,
+                                            impact_push,
+                                            "charge_closing_impact_push",
+                                        ));
+                                    }
                                     // TRAMPLE BLEED: the charge spends its carried
                                     // momentum on every enemy body it rides into,
                                     // scaled by that man's BRACE (always some — a
@@ -488,7 +542,23 @@ impl Sim {
                                 }
                             }
                         } else {
-                            push.x += if i < j { 0.01 } else { -0.01 };
+                            #[cfg(not(feature = "force-trace"))]
+                            {
+                                push.x += if i < j { 0.01 } else { -0.01 };
+                            }
+                            #[cfg(feature = "force-trace")]
+                            {
+                                let tie = Vec2::new(if i < j { 0.01 } else { -0.01 }, 0.0);
+                                push = push + tie;
+                                force_records.push(ForceRecord::new(
+                                    tick_now,
+                                    i,
+                                    soldier_unit[i] as usize,
+                                    ForceChannel::BodySeparationTieBreak,
+                                    tie,
+                                    "coincident_body_index_tiebreak",
+                                ));
+                            }
                         }
                     }
                 }
@@ -503,6 +573,8 @@ impl Sim {
         // not an overwrite. As the charge bogs, its closing speed (and so the
         // floor) drops with it, and the bleed finally wins and it stops.
         for s in 0..n_sol {
+            #[cfg(feature = "force-trace")]
+            let mom_before = Vec2::new(mom_x[s], mom_y[s]);
             mom_x[s] += bleed_x[s];
             mom_y[s] += bleed_y[s];
             if set_mag[s] > 0.0 {
@@ -510,6 +582,20 @@ impl Sim {
                 if cur < set_mag[s] {
                     mom_x[s] = set_nx[s] * set_mag[s];
                     mom_y[s] = set_ny[s] * set_mag[s];
+                }
+            }
+            #[cfg(feature = "force-trace")]
+            {
+                let mom_after = Vec2::new(mom_x[s], mom_y[s]);
+                if mom_after.x != mom_before.x || mom_after.y != mom_before.y {
+                    force_records.push(ForceRecord::new(
+                        tick_now,
+                        s,
+                        soldier_unit[s] as usize,
+                        ForceChannel::KnockbackMomentum,
+                        mom_after - mom_before,
+                        "charge_momentum_bleed_or_retain",
+                    ));
                 }
             }
         }
@@ -677,10 +763,38 @@ impl Sim {
                     let (wj, wi) = (m_eff(j, -aim.x, -aim.y, true), m_eff(i, aim.x, aim.y, true));
                     let inv = 1.0 / (wi + wj);
                     let push = near_pen * tun.weapon_repel * DT;
-                    repel[2 * i] += aim.x * push * (wj * inv);
-                    repel[2 * i + 1] += aim.y * push * (wj * inv);
-                    repel[2 * j] -= aim.x * push * (wi * inv);
-                    repel[2 * j + 1] -= aim.y * push * (wi * inv);
+                    #[cfg(not(feature = "force-trace"))]
+                    {
+                        repel[2 * i] += aim.x * push * (wj * inv);
+                        repel[2 * i + 1] += aim.y * push * (wj * inv);
+                        repel[2 * j] -= aim.x * push * (wi * inv);
+                        repel[2 * j + 1] -= aim.y * push * (wi * inv);
+                    }
+                    #[cfg(feature = "force-trace")]
+                    {
+                        let push_i = aim * (push * (wj * inv));
+                        let push_j = aim * (-push * (wi * inv));
+                        repel[2 * i] += push_i.x;
+                        repel[2 * i + 1] += push_i.y;
+                        repel[2 * j] += push_j.x;
+                        repel[2 * j + 1] += push_j.y;
+                        force_records.push(ForceRecord::new(
+                            tick_now,
+                            i,
+                            ui,
+                            ForceChannel::WeaponRepel,
+                            push_i,
+                            "frontal_gate=true bearer_repel",
+                        ));
+                        force_records.push(ForceRecord::new(
+                            tick_now,
+                            j,
+                            uj,
+                            ForceChannel::WeaponRepel,
+                            push_j,
+                            "frontal_gate=true recoil",
+                        ));
+                    }
                 }
             }
         }
@@ -691,9 +805,21 @@ impl Sim {
             let mut py = scratch[2 * i + 1];
             let mag = (px * px + py * py).sqrt();
             if mag > tun.separation_max_push {
+                #[cfg(feature = "force-trace")]
+                let pre_cap = Vec2::new(px, py);
                 let k = tun.separation_max_push / mag;
                 px *= k;
                 py *= k;
+                #[cfg(feature = "force-trace")]
+                force_records.push(ForceRecord::cap(
+                    tick_now,
+                    i,
+                    soldier_unit[i] as usize,
+                    ForceChannel::BodySeparationNormal,
+                    pre_cap,
+                    Vec2::new(px, py),
+                    "separation_max_push",
+                ));
             }
             // The weapon repel is its OWN capped correction, summed after the
             // body separation. Capping it (like the bodies) is what keeps a
@@ -707,9 +833,21 @@ impl Sim {
             let mut ry = repel[2 * i + 1];
             let rmag = (rx * rx + ry * ry).sqrt();
             if rmag > tun.separation_max_push {
+                #[cfg(feature = "force-trace")]
+                let pre_cap = Vec2::new(rx, ry);
                 let k = tun.separation_max_push / rmag;
                 rx *= k;
                 ry *= k;
+                #[cfg(feature = "force-trace")]
+                force_records.push(ForceRecord::cap(
+                    tick_now,
+                    i,
+                    soldier_unit[i] as usize,
+                    ForceChannel::WeaponRepel,
+                    pre_cap,
+                    Vec2::new(rx, ry),
+                    "weapon_repel_cap",
+                ));
             }
             px += rx;
             py += ry;
@@ -730,6 +868,8 @@ impl Sim {
             };
             // Hard wall: a man may not end the tick inside an enemy body. Snap
             // him out to the contact ring of the deepest one he overlaps.
+            #[cfg(feature = "force-trace")]
+            let before_wall = np;
             let np = if wall_depth[i] >= 0.0 {
                 let to = Vec2::new(np.x - wall_cx[i], np.y - wall_cy[i]);
                 let dd = to.len();
@@ -744,6 +884,17 @@ impl Sim {
             } else {
                 np
             };
+            #[cfg(feature = "force-trace")]
+            if np.x != before_wall.x || np.y != before_wall.y {
+                force_records.push(ForceRecord::new(
+                    tick_now,
+                    i,
+                    soldier_unit[i] as usize,
+                    ForceChannel::HardWall,
+                    np - before_wall,
+                    "deepest_enemy_body_snap",
+                ));
+            }
             positions[2 * i] = np.x;
             positions[2 * i + 1] = np.y;
         }
@@ -870,6 +1021,17 @@ impl Sim {
                     if terrain.speed_at(np) > 0.0 || terrain.speed_at(p) <= 0.0 {
                         positions[2 * i] = np.x;
                         positions[2 * i + 1] = np.y;
+                        #[cfg(feature = "force-trace")]
+                        if scratch[2 * i] != 0.0 || scratch[2 * i + 1] != 0.0 {
+                            force_records.push(ForceRecord::new(
+                                tick_now,
+                                i,
+                                soldier_unit[i] as usize,
+                                ForceChannel::ProjectionPass,
+                                Vec2::new(scratch[2 * i], scratch[2 * i + 1]),
+                                "iterative_body_projection",
+                            ));
+                        }
                     }
                 }
             }
@@ -880,5 +1042,7 @@ impl Sim {
         for &i in &impact_kills {
             self.kill_with(i, crate::combat::KillCause::Impact);
         }
+        #[cfg(feature = "force-trace")]
+        self.force_trace.extend(force_records);
     }
 }

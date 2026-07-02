@@ -88,3 +88,27 @@ If a channel genuinely cannot be recorded at its application site without
 perturbing the sim (borrow structure, hot-loop layout), restructure the code
 so it can — that refactor is in scope here: a force you cannot observe is a
 force you cannot debug, and the code shape that hides it is itself the smell.
+
+## Implementation note — 2026-07-02
+
+Verification:
+
+- Default `cargo test -p sim --test golden`: passed, pinned hash stayed
+  `0xc8fad834908e0b0e`.
+- `./scripts/test-mechanics`: passed.
+- `cargo test -p sim --test force_trace --features force-trace -- --nocapture`:
+  passed conservation + smoke (`2 passed`, probe ignored).
+- `cargo test -p sim --test golden --features force-trace -- --nocapture`:
+  moved to `0x85d3bfbc44fd15cb` versus the default pin. Treat traced runs as
+  self-consistent diagnosis and re-check observables untraced.
+- Probe generated
+  `specs/melee-blob/visualizations/force-budget-timeline.html` and
+  `force-budget-heavy-v-heavy.jsonl`.
+
+Skill handoff landed in the reviewer pass: `.claude/skills` is a symlink to
+`.agents/skills` (write there — the Codex sandbox exposed it read-only);
+`references/force-trace.md` added and SKILL.md got the "Trace before
+theorizing" section. Reviewer also moved the raw JSONL dump to
+`target/force-trace/` (run output, never committed) and rewrote the probe's
+HTML as a self-contained SVG chart (top-6 channels + Other, per-unit net
+|force| and torque panels, tooltip, table view, light/dark).

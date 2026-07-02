@@ -1,0 +1,383 @@
+#![cfg(feature = "force-trace")]
+
+mod common;
+
+use common::force_trace::{
+    cap_hit_histograms, per_soldier_ledger, seam_crossing_decomposition,
+    unit_force_budget_by_channel,
+};
+use common::no_morale_parade;
+use sim::{ForceChannel, Pace, Sim, UnitClassId, Vec2, DT};
+use std::collections::BTreeSet;
+use std::f32::consts::PI;
+
+fn traced_heavy_clash(seconds: f32) -> Sim {
+    let mut sim = Sim::new(no_morale_parade(), 0x5150);
+    let a = sim.spawn_class_with_files(
+        Vec2::new(0.0, -9.0),
+        PI * 0.5,
+        96,
+        12,
+        UnitClassId::HeavySword,
+        0,
+    );
+    let b = sim.spawn_class_with_files(
+        Vec2::new(0.0, 9.0),
+        -PI * 0.5,
+        96,
+        12,
+        UnitClassId::HeavySword,
+        1,
+    );
+    sim.set_pace(a, Pace::Run);
+    sim.set_pace(b, Pace::Run);
+    sim.set_attack_order(a, b);
+    sim.set_attack_order(b, a);
+    sim.clear_force_trace();
+    for _ in 0..(seconds / DT) as usize {
+        sim.tick();
+    }
+    sim
+}
+
+fn traced_probe_clash(seconds: f32) -> Sim {
+    let mut sim = Sim::new(no_morale_parade(), 0x5150);
+    let a = sim.spawn_class_with_files(
+        Vec2::new(0.0, -7.0),
+        PI * 0.5,
+        48,
+        8,
+        UnitClassId::HeavySword,
+        0,
+    );
+    let b = sim.spawn_class_with_files(
+        Vec2::new(0.0, 7.0),
+        -PI * 0.5,
+        48,
+        8,
+        UnitClassId::HeavySword,
+        1,
+    );
+    sim.set_pace(a, Pace::Run);
+    sim.set_pace(b, Pace::Run);
+    sim.set_attack_order(a, b);
+    sim.set_attack_order(b, a);
+    sim.clear_force_trace();
+    for _ in 0..(seconds / DT) as usize {
+        sim.tick();
+    }
+    sim
+}
+
+#[test]
+fn force_trace_steering_conserves_pre_collision_displacement() {
+    let mut sim = traced_heavy_clash(0.0);
+    for _ in 0..(4.0 / DT) as usize {
+        sim.tick();
+        let tick = sim.tick_count - 1;
+        for (soldier, residual) in sim.force_trace_steering_residuals(tick) {
+            let err = residual.len();
+            assert!(
+                err < 2.0e-5,
+                "untraced steering displacement at tick {tick} soldier {soldier}: {residual:?}"
+            );
+        }
+    }
+}
+
+#[test]
+fn force_trace_smoke_covers_expected_channels() {
+    let mut sim = traced_heavy_clash(12.0);
+
+    // Force the pure collision channels that a clean line clash may only touch
+    // briefly or not at all.
+    let c = sim.spawn_unit(
+        Vec2::new(-1.0, -1.0),
+        0.0,
+        8,
+        4,
+        Vec2::new(0.2, 0.2),
+        0,
+        0.7,
+    );
+    let d = sim.spawn_unit(Vec2::new(-1.0, -1.0), PI, 8, 4, Vec2::new(0.2, 0.2), 1, 0.7);
+    sim.set_attack_order(c, d);
+    sim.set_attack_order(d, c);
+    sim.tick();
+
+    let _e = sim.spawn_class_with_files(
+        Vec2::new(8.0, -0.9),
+        PI * 0.5,
+        48,
+        12,
+        UnitClassId::HeavySword,
+        0,
+    );
+    let _f = sim.spawn_class_with_files(
+        Vec2::new(8.0, 0.9),
+        -PI * 0.5,
+        48,
+        12,
+        UnitClassId::HeavySword,
+        1,
+    );
+    for _ in 0..8 {
+        sim.tick();
+    }
+
+    let _p = sim.spawn_class_with_files(
+        Vec2::new(-9.0, -0.8),
+        PI * 0.5,
+        64,
+        16,
+        UnitClassId::HeavyPhalanx,
+        0,
+    );
+    let _q = sim.spawn_class_with_files(
+        Vec2::new(-8.2, 0.8),
+        -PI * 0.5,
+        64,
+        16,
+        UnitClassId::HeavyPhalanx,
+        1,
+    );
+    for _ in 0..80 {
+        sim.tick();
+    }
+
+    let seen: BTreeSet<ForceChannel> = sim
+        .force_trace
+        .records()
+        .iter()
+        .map(|r| r.channel)
+        .collect();
+
+    let expected = [
+        ForceChannel::WeaveNet,
+        ForceChannel::CompPush,
+        ForceChannel::PivotSpring,
+        ForceChannel::EnemyBondWeld,
+        ForceChannel::EnemyBondInsideReachPush,
+        ForceChannel::SlotPull,
+        ForceChannel::CorridorClamp,
+        ForceChannel::Magnet,
+        ForceChannel::Cruise,
+        ForceChannel::SpeedCap,
+        ForceChannel::FightingPaceCap,
+        ForceChannel::BodySeparationNormal,
+        ForceChannel::BodySeparationFriendlySlide,
+        ForceChannel::HardWall,
+        ForceChannel::ProjectionPass,
+        ForceChannel::WeaponRepel,
+        ForceChannel::HitPush,
+        ForceChannel::KnockbackMomentum,
+        ForceChannel::SlotPullLean,
+        ForceChannel::PikeLateralFriction,
+        ForceChannel::SoldierFacing,
+        ForceChannel::UnitFacing,
+        ForceChannel::UnitFrame,
+    ];
+    for channel in expected {
+        assert!(seen.contains(&channel), "missing force channel {channel:?}");
+    }
+    let soldier = sim.units[0].start;
+    assert!(!per_soldier_ledger(&sim.force_trace, soldier).is_empty());
+    assert!(!cap_hit_histograms(&sim.force_trace).is_empty());
+    let crossing = seam_crossing_decomposition(&sim.force_trace, soldier, 0, Vec2::new(0.0, 1.0));
+    assert!(crossing.values().all(|v| v.is_finite()));
+}
+
+#[test]
+#[ignore = "writes specs/melee-blob/visualizations/force-budget-timeline.html"]
+fn write_heavy_force_budget_timeline_html() {
+    let sim = traced_probe_clash(7.0);
+    let repo = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(|p| p.parent())
+        .unwrap()
+        .to_path_buf();
+    // Raw per-record JSONL is run output for offline analysis, not a reviewable
+    // artifact — it goes under target/, never into specs/.
+    let raw_dir = repo.join("target/force-trace");
+    std::fs::create_dir_all(&raw_dir).unwrap();
+    sim.force_trace
+        .dump_jsonl(raw_dir.join("force-budget-heavy-v-heavy.jsonl"))
+        .unwrap();
+
+    // Per tick × unit × channel: net force vector and torque about the unit
+    // centroid, as JSON rows the chart aggregates client-side.
+    let mut rows = String::from("[");
+    for tick in 0..sim.tick_count {
+        for unit in 0..sim.units.len() {
+            let positions: Vec<_> = (sim.units[unit].start
+                ..sim.units[unit].start + sim.units[unit].count)
+                .filter(|&s| sim.alive[s] == 1)
+                .map(|s| (s, sim.soldier_pos(s)))
+                .collect();
+            for budget in unit_force_budget_by_channel(&sim.force_trace, unit, tick, &positions) {
+                rows.push_str(&format!(
+                    "[{},{},{:?},{:.4},{:.4},{:.4}],",
+                    tick,
+                    unit,
+                    format!("{:?}", budget.channel),
+                    budget.net.x,
+                    budget.net.y,
+                    budget.torque
+                ));
+            }
+        }
+    }
+    if rows.ends_with(',') {
+        rows.pop();
+    }
+    rows.push(']');
+
+    let html = CHART_TEMPLATE
+        .replace("__ROWS__", &rows)
+        .replace("__DT__", &format!("{}", DT))
+        .replace(
+            "__PROVENANCE__",
+            "Machine-generated by crates/sim/tests/force_trace.rs::write_heavy_force_budget_timeline_html \
+             (immortal 48x8 HeavySword vs HeavySword probe, 7s, seed 0x5150, --features force-trace). \
+             Raw per-record JSONL: target/force-trace/force-budget-heavy-v-heavy.jsonl.",
+        );
+    let dir = repo.join("specs/melee-blob/visualizations");
+    std::fs::create_dir_all(&dir).unwrap();
+    std::fs::write(dir.join("force-budget-timeline.html"), html).unwrap();
+}
+
+/// Self-contained chart page: per-unit net-|force| and torque timelines by
+/// channel (global top-6 channels get the categorical palette, the rest fold
+/// into a gray "Other"), shared legend, crosshair tooltip, and a table view.
+/// Palette is the validated dataviz reference instance (light+dark steps).
+const CHART_TEMPLATE: &str = r##"<!doctype html>
+<meta charset="utf-8">
+<title>Force budget timeline — heavy v heavy probe</title>
+<style>
+.viz-root {
+  --surface-1: #fcfcfb; --text-primary: #0b0b0b; --text-secondary: #52514e;
+  --grid: #e4e3df; --other: #8a8984;
+  --s1: #2a78d6; --s2: #1baf7a; --s3: #eda100; --s4: #008300; --s5: #4a3aa7; --s6: #e34948;
+}
+@media (prefers-color-scheme: dark) {
+  .viz-root {
+    --surface-1: #1a1a19; --text-primary: #ffffff; --text-secondary: #c3c2b7;
+    --grid: #34332f; --other: #8a8984;
+    --s1: #3987e5; --s2: #199e70; --s3: #c98500; --s4: #008300; --s5: #9085e9; --s6: #e66767;
+  }
+}
+body { margin: 0; }
+.viz-root { background: var(--surface-1); color: var(--text-primary);
+  font: 13px system-ui; padding: 24px; min-height: 100vh; }
+h1 { font-size: 16px; margin: 0 0 4px; }
+.sub { color: var(--text-secondary); margin-bottom: 16px; }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; margin: 8px 0 16px; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; color: var(--text-secondary); }
+.legend i { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+.panels { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; }
+.panel h2 { font-size: 13px; font-weight: 600; margin: 0 0 4px; color: var(--text-secondary); }
+svg { width: 100%; height: auto; display: block; }
+.tip { position: fixed; pointer-events: none; background: var(--surface-1);
+  border: 1px solid var(--grid); border-radius: 4px; padding: 6px 8px; font-size: 12px;
+  display: none; box-shadow: 0 2px 8px rgba(0,0,0,.15); z-index: 2; }
+details { margin-top: 20px; } summary { cursor: pointer; color: var(--text-secondary); }
+table { border-collapse: collapse; margin-top: 8px; }
+td, th { border: 1px solid var(--grid); padding: 3px 6px; text-align: right; font-size: 12px; }
+th:nth-child(3), td:nth-child(3) { text-align: left; }
+footer { margin-top: 20px; color: var(--text-secondary); font-size: 12px; max-width: 900px; }
+</style>
+<div class="viz-root">
+<h1>Force budget timeline — heavy v heavy probe</h1>
+<div class="sub">Per-channel net |force| (m/tick summed over soldiers) and torque about the unit centroid, per tick. Top 6 channels by peak net force; remainder folds into Other.</div>
+<div class="legend" id="legend"></div>
+<div class="panels" id="panels"></div>
+<div class="tip" id="tip"></div>
+<details><summary>Data table (per tick × unit × channel)</summary>
+<table><thead><tr><th>tick</th><th>unit</th><th>channel</th><th>net x</th><th>net y</th><th>torque</th></tr></thead>
+<tbody id="tbody"></tbody></table></details>
+<footer>__PROVENANCE__</footer>
+</div>
+<script>
+const ROWS = __ROWS__;
+const DT = __DT__;
+const COLORS = ['var(--s1)','var(--s2)','var(--s3)','var(--s4)','var(--s5)','var(--s6)'];
+const peak = new Map();
+for (const [,,c,x,y] of ROWS) {
+  const m = Math.hypot(x, y);
+  peak.set(c, Math.max(peak.get(c) || 0, m));
+}
+const topCh = [...peak.entries()].sort((a,b) => b[1]-a[1]).slice(0,6).map(e => e[0]);
+const color = c => topCh.includes(c) ? COLORS[topCh.indexOf(c)] : 'var(--other)';
+const units = [...new Set(ROWS.map(r => r[1]))].sort();
+const maxTick = Math.max(...ROWS.map(r => r[0]));
+// series[unit][name] = {net: Float64Array, tq: Float64Array} with Other folded.
+const series = {};
+for (const u of units) series[u] = {};
+for (const [t,u,c,x,y,tq] of ROWS) {
+  const name = topCh.includes(c) ? c : 'Other';
+  const s = series[u][name] ||= { net: new Float64Array(maxTick+1), tq: new Float64Array(maxTick+1) };
+  s.net[t] += Math.hypot(x, y);
+  s.tq[t] += tq;
+}
+const legend = document.getElementById('legend');
+for (const name of [...topCh, 'Other']) {
+  const el = document.createElement('span');
+  el.innerHTML = `<i style="background:${color(name)}"></i>${name}`;
+  legend.appendChild(el);
+}
+const W = 560, H = 220, PL = 46, PB = 24, PT = 8, PR = 8;
+function panel(title, unit, key, symmetric) {
+  const names = Object.keys(series[unit]);
+  let lo = 0, hi = 1e-9;
+  for (const n of names) for (const v of series[unit][n][key]) {
+    hi = Math.max(hi, v); if (symmetric) lo = Math.min(lo, v);
+  }
+  if (symmetric) { const a = Math.max(hi, -lo); hi = a; lo = -a; }
+  const x = t => PL + (W-PL-PR) * t / maxTick;
+  const y = v => PT + (H-PT-PB) * (1 - (v-lo)/(hi-lo));
+  let g = '';
+  const yt = symmetric ? [lo, lo/2, 0, hi/2, hi] : [0, hi/4, hi/2, 3*hi/4, hi];
+  for (const v of yt) g += `<line x1="${PL}" x2="${W-PR}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)" stroke-width="1"/>` +
+    `<text x="${PL-5}" y="${y(v)+4}" text-anchor="end" fill="var(--text-secondary)" font-size="10">${v.toPrecision(2)}</text>`;
+  for (let s = 0; s <= maxTick*DT; s += 1) g += `<text x="${x(s/DT)}" y="${H-6}" text-anchor="middle" fill="var(--text-secondary)" font-size="10">${s}s</text>`;
+  let paths = '';
+  for (const n of names) {
+    const d = [...series[unit][n][key]].map((v,t) => `${t ? 'L' : 'M'}${x(t).toFixed(1)},${y(v).toFixed(1)}`).join('');
+    paths += `<path d="${d}" fill="none" stroke="${color(n)}" stroke-width="2" data-name="${n}"/>`;
+  }
+  const div = document.createElement('div');
+  div.className = 'panel';
+  div.innerHTML = `<h2>${title}</h2><svg viewBox="0 0 ${W} ${H}" data-unit="${unit}" data-key="${key}" data-lo="${lo}" data-hi="${hi}">${g}${paths}<line class="xh" y1="${PT}" y2="${H-PB}" stroke="var(--text-secondary)" stroke-width="1" visibility="hidden"/></svg>`;
+  document.getElementById('panels').appendChild(div);
+}
+for (const u of units) {
+  panel(`Unit ${u} — net |force| by channel`, u, 'net', false);
+  panel(`Unit ${u} — torque about centroid by channel`, u, 'tq', true);
+}
+const tip = document.getElementById('tip');
+document.querySelectorAll('svg').forEach(svg => {
+  svg.addEventListener('mousemove', ev => {
+    const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+    const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const t = Math.round((p.x - PL) / (W-PL-PR) * maxTick);
+    if (t < 0 || t > maxTick) { tip.style.display = 'none'; return; }
+    const xh = svg.querySelector('.xh');
+    const xpx = PL + (W-PL-PR) * t / maxTick;
+    xh.setAttribute('x1', xpx); xh.setAttribute('x2', xpx); xh.setAttribute('visibility', 'visible');
+    const u = +svg.dataset.unit, key = svg.dataset.key;
+    const lines = Object.entries(series[u]).map(([n,s]) =>
+      `<span style="color:${color(n).startsWith('var') ? '' : color(n)}"><i style="display:inline-block;width:10px;height:3px;background:${color(n)};margin-right:4px"></i></span>${n}: ${s[key][t].toFixed(3)}`);
+    tip.innerHTML = `<b>t=${(t*DT).toFixed(2)}s</b><br>` + lines.join('<br>');
+    tip.style.display = 'block';
+    tip.style.left = (ev.clientX + 14) + 'px'; tip.style.top = (ev.clientY + 14) + 'px';
+  });
+  svg.addEventListener('mouseleave', () => {
+    tip.style.display = 'none';
+    svg.querySelector('.xh').setAttribute('visibility', 'hidden');
+  });
+});
+const tbody = document.getElementById('tbody');
+tbody.innerHTML = ROWS.map(([t,u,c,x,y,tq]) =>
+  `<tr><td>${t}</td><td>${u}</td><td>${c}</td><td>${x.toFixed(4)}</td><td>${y.toFixed(4)}</td><td>${tq.toFixed(4)}</td></tr>`).join('');
+</script>
+"##;

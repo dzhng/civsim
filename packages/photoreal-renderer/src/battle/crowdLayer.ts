@@ -1,22 +1,21 @@
-// crowdLayer — the parity VAT crowd (slice 08a): a literal TSL port of the
-// production SkinnedCrowdPipeline (per-class placeholder meshes, shared VAT
-// bake, corpse roll/desaturation, faction accents, the battle skinned
-// lighting) fed by the SAME buildCrowdInstances output, plus the blob-shadow
-// decal replica of SoldierShadowDecalPass. SCAFFOLD per the README ledger:
-// blob shadows die at slice 11 (real CSM).
+// crowdLayer — the VAT crowd on the photoreal substrate (born slice 08a as a
+// literal port of the production SkinnedCrowdPipeline: per-class placeholder
+// meshes, shared VAT bake, corpse roll/desaturation, faction accents). Since
+// slice 09 soldiers are a standard-material response with a NEUTRAL albedo —
+// the baked skinned-lighting grade (lambert/key-fill/exposure/rim) is
+// extracted and the sun + IBL light the skinned normals. Fed by the SAME
+// buildCrowdInstances output, plus the blob-shadow decal replica of
+// SoldierShadowDecalPass. SCAFFOLD per the README ledger: blob shadows die at
+// slice 11 (real CSM).
 import * as THREE from 'three/webgpu';
 import {
-  abs, attribute, clamp, dot, float, floor, int, ivec2, length, max, mix, normalize, sin, smoothstep, step, textureLoad, varying, vec3, vec4,
+  attribute, clamp, dot, float, floor, int, ivec2, length, max, mix, normalize, sin, smoothstep, step, textureLoad, varying, vec3, vec4,
 } from 'three/tsl';
 import type { CrowdInstance } from '../../../crowd-runtime/src/instanceData';
 import type { SoldierMeshData } from '../../../soldier-assets/src/soldierMesh';
 import type { SoldierKitManifest, VatBake } from '../../../soldier-assets/src/schema';
 import { createVatLayout, resolveVatClip, type VatLayout } from '../../../renderer-core/src/vatLayout';
-import {
-  skinnedLightingForBattleEnvironment,
-  type BattleEnvironment,
-} from '../../../game-renderer/src/environment/environment';
-import { rgbNode, saturateN, sunDirectionNode } from './battleTsl';
+import { linearAlbedo, viewNormalNode } from './battleTsl';
 import { RENDER_ORDER } from './terrainLayer';
 
 interface ClassBucket {
@@ -38,7 +37,6 @@ export class PhotorealCrowd {
 
   constructor(
     scene: THREE.Scene,
-    env: BattleEnvironment,
     meshes: SoldierMeshData[],
     vats: VatBake[],
     kit: SoldierKitManifest,
@@ -60,7 +58,7 @@ export class PhotorealCrowd {
     for (let classId = 0; classId < meshes.length; classId++) {
       const vat = vats[classId] ?? vats[vats.length - 1] ?? vats[0];
       const geometry = crowdGeometry(meshes[classId]);
-      const mesh = new THREE.Mesh(geometry, crowdMaterial(env, textureFor(vat)));
+      const mesh = new THREE.Mesh(geometry, crowdMaterial(textureFor(vat)));
       mesh.name = `battle-crowd-${classId}`;
       mesh.frustumCulled = false;
       mesh.renderOrder = RENDER_ORDER.worldOpaque;
@@ -150,12 +148,13 @@ function crowdGeometry(mesh: SoldierMeshData): THREE.InstancedBufferGeometry {
   return geo;
 }
 
-// SkinnedCrowdPipeline SKINNED_WGSL, ported at factionMaskStrength = 0 (the
-// production battle default; the ORM/normal texture terms it gates vanish and
-// the neutral 1×1 placeholder textures reduce to identities).
-function crowdMaterial(env: BattleEnvironment, vatTex: THREE.DataTexture): THREE.MeshBasicNodeMaterial {
-  const lighting = skinnedLightingForBattleEnvironment(env);
-  const material = new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide });
+// SkinnedCrowdPipeline SKINNED_WGSL's VAT skinning + albedo composition,
+// ported at factionMaskStrength = 0 (the production battle default; the
+// ORM/normal texture terms it gates vanish and the neutral 1×1 placeholder
+// textures reduce to identities). Slice 09: the skinned lighting grade is
+// gone — the environment lights the skinned, yaw/roll-rotated normal.
+function crowdMaterial(vatTex: THREE.DataTexture): THREE.MeshStandardNodeMaterial {
+  const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, roughness: 0.82, metalness: 0 });
   // fog stays ON: the scene THREE.Fog haze stand-in (dies at 10b) covers the
   // surfaces that carry no ported bespoke haze term (crowd + scenery).
   const position = attribute<'vec3'>('position', 'vec3');
@@ -198,14 +197,24 @@ function crowdMaterial(env: BattleEnvironment, vatTex: THREE.DataTexture): THREE
     p.z.add(inst2.x),
   );
 
-  const sun = sunDirectionNode(env);
-  const light = varying(clamp(dot(n, sun).mul(0.42).add(0.74), 0.34, 1.12)).toVar();
+  // The environment lights the FULLY posed normal: skinned, corpse-rolled,
+  // then yaw-rotated into world space (the parity port lit the raw skinned
+  // normal — a bespoke quirk that dies with the baked grade).
+  const rolledN = vec3(n.x, n.y.mul(rc).sub(n.z.mul(rs)), n.y.mul(rs).add(n.z.mul(rc)));
+  const worldN = vec3(
+    rolledN.x.mul(c).sub(rolledN.y.mul(s)),
+    rolledN.x.mul(s).add(rolledN.y.mul(c)),
+    rolledN.z,
+  );
+  material.normalNode = viewNormalNode(worldN);
+
   const faction = varying(inst0.w).toVar();
-  const rim = varying(smoothstep(0.20, 0.92, float(1.0).sub(abs(n.z)))).toVar();
-  const height = varying(clamp(p.z.add(inst2.x).div(2.1), 0.0, 1.0)).toVar();
   const vCorpse = varying(corpse).toVar();
   const vColor = varying(color).toVar();
 
+  // NEUTRAL albedo composition: faction accents + bronze/linen material
+  // character + corpse desaturation stay (they are what the soldier IS); the
+  // baked lambert/key-fill/exposure/rim grade is gone.
   const blue = vec3(0.20, 0.42, 0.88);
   const red = vec3(0.84, 0.24, 0.20);
   const neutral = vec3(0.82, 0.70, 0.34);
@@ -213,20 +222,15 @@ function crowdMaterial(env: BattleEnvironment, vatTex: THREE.DataTexture): THREE
   accent = mix(accent, neutral, step(1.5, faction)).toVar();
   const teamMask = smoothstep(0.18, 0.55, max(vColor.b.sub(max(vColor.r, vColor.g)), 0.0)).toVar();
   const teamMix = mix(float(0.44), float(0.90), teamMask);
-  const base = mix(vColor.rgb, accent, teamMix);
-  const light01 = saturateN(light.sub(0.34).div(0.78)).toVar();
-  const grade = mix(rgbNode(lighting.fillColor), rgbNode(lighting.keyColor), light01);
   const bronzeMask = smoothstep(0.58, 0.78, vColor.r).mul(smoothstep(0.34, 0.52, vColor.g)).mul(float(1.0).sub(smoothstep(0.28, 0.46, vColor.b)));
   const linenMask = smoothstep(0.58, 0.76, vColor.r).mul(smoothstep(0.48, 0.66, vColor.g)).mul(smoothstep(0.32, 0.48, vColor.b));
-  let shaded = base.mul(light01.mul(0.58).add(0.62)).mul(grade).mul(lighting.exposure).toVar();
-  shaded = shaded.add(vec3(0.10, 0.055, 0.012).mul(bronzeMask).mul(light01.mul(0.70).add(0.30))).toVar();
-  shaded = shaded.add(vec3(0.055, 0.045, 0.020).mul(linenMask).mul(light01.mul(0.45).add(0.25))).toVar();
-  shaded = shaded.add(accent.mul(rim).mul(teamMask.mul(0.08).add(0.06))).toVar();
-  shaded = mix(shaded, vec3(0.92, 0.84, 0.60), float(1.0).sub(height).mul(0.035)).toVar();
+  let albedo = mix(vColor.rgb, accent, teamMix).toVar();
+  albedo = albedo.add(vec3(0.10, 0.055, 0.012).mul(bronzeMask).mul(0.6)).toVar();
+  albedo = albedo.add(vec3(0.055, 0.045, 0.020).mul(linenMask).mul(0.4)).toVar();
   // Corpses desaturate and darken so the fallen read as dead, not living.
-  const lum = dot(shaded, vec3(0.30, 0.59, 0.11));
-  shaded = mix(shaded, vec3(lum).mul(0.62).add(vec3(0.06, 0.04, 0.03)), vCorpse.mul(0.7)).toVar();
-  material.colorNode = vec4(clamp(shaded, vec3(0.0), vec3(1.0)), vColor.a);
+  const lum = dot(albedo, vec3(0.30, 0.59, 0.11));
+  albedo = mix(albedo, vec3(lum).mul(0.62).add(vec3(0.06, 0.04, 0.03)), vCorpse.mul(0.7)).toVar();
+  material.colorNode = vec4(linearAlbedo(clamp(albedo, vec3(0.0), vec3(1.0))), vColor.a);
   return material;
 }
 

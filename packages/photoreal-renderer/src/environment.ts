@@ -17,6 +17,7 @@ import {
   Fog,
   LinearFilter,
   RGBAFormat,
+  SRGBColorSpace,
 } from 'three';
 import type { CivsimEnvironment, CivsimEnvironmentId } from '../../game-renderer/src/environment/environment';
 import type { PhotorealWorld } from './world';
@@ -34,16 +35,19 @@ export interface PhotorealEnvironmentSpec {
   groundBounceColor: Rgb;
   hazeColor: Rgb;
   exposure: number;
+  /** Atmospheric turbidity — carried for the physical sky (slice 10a). */
+  turbidity: number;
   environmentIntensity: number;
   backgroundIntensity: number;
 }
 
 // Verdict-grade constants carried over from the 06 bake-off's winning probe.
-const SUN_INTENSITY = 2.5;
 const ENVIRONMENT_INTENSITY = 0.7;
 const BACKGROUND_INTENSITY = 1.3;
 
-/** The pure preset → physical-parameters mapping (no GPU, no scene mutation). */
+/** The pure preset → physical-parameters mapping (no GPU, no scene mutation).
+ *  Sun intensity / exposure / turbidity come from the preset's physical block
+ *  (CivsimPhysicalLight) — per-preset knobs on the ONE owner. */
 export function photorealEnvironment(env: CivsimEnvironment): PhotorealEnvironmentSpec {
   const cosEl = Math.cos(env.sunElevation);
   return {
@@ -54,12 +58,13 @@ export function photorealEnvironment(env: CivsimEnvironment): PhotorealEnvironme
       Math.sin(env.sunElevation),
     ],
     sunColor: [...env.keyColor],
-    sunIntensity: SUN_INTENSITY,
+    sunIntensity: env.physical.sunIntensity,
     skyZenithColor: [...env.skyZenithColor],
     skyHorizonColor: [...env.skyHorizonColor],
     groundBounceColor: [...env.groundBounceColor],
     hazeColor: [...env.hazeColor],
-    exposure: env.exposure,
+    exposure: env.physical.exposure,
+    turbidity: env.physical.turbidity,
     environmentIntensity: ENVIRONMENT_INTENSITY,
     backgroundIntensity: BACKGROUND_INTENSITY,
   };
@@ -82,7 +87,9 @@ export function applyCivsimEnvironment(
   const spec = photorealEnvironment(env);
   const scene = world.scene;
 
-  const sun = new DirectionalLight(new Color(...spec.sunColor), spec.sunIntensity);
+  // Preset key/haze colours are display-referred (the bespoke swapchain
+  // values); convert at this seam so the scene lights in linear space.
+  const sun = new DirectionalLight(displayColor(spec.sunColor), spec.sunIntensity);
   sun.position.set(spec.sunDirection[0] * 400, spec.sunDirection[1] * 400, spec.sunDirection[2] * 400);
   sun.target.position.set(0, 0, 0);
   scene.add(sun);
@@ -95,14 +102,18 @@ export function applyCivsimEnvironment(
     scene.background = envTexture;
     scene.backgroundIntensity = spec.backgroundIntensity;
   } else {
-    scene.background = new Color(...spec.hazeColor);
+    scene.background = displayColor(spec.hazeColor);
   }
   if (options.fog) {
-    scene.fog = new Fog(new Color(...spec.hazeColor), options.fog.near, options.fog.far);
+    scene.fog = new Fog(displayColor(spec.hazeColor), options.fog.near, options.fog.far);
   }
   world.renderer.toneMappingExposure = spec.exposure;
   world.environmentId = spec.id;
   return spec;
+}
+
+function displayColor([r, g, b]: Rgb): Color {
+  return new Color().setRGB(r, g, b, SRGBColorSpace);
 }
 
 // Procedural equirect radiance, authored as f(worldDir) in our z-up world

@@ -1,11 +1,13 @@
-// foliageLayer — parity grass + scenery (slice 08a): literal TSL ports of the
-// production BattleGrassPass (legacy-tuft path) and CampaignSceneryPass
-// shaders, instancing the SAME CPU-built tuft mesh + scatter
-// (buildBattleTerrainGrass) and the SAME shared prop meshes
-// (SCENERY_PROP_MODELS) the bespoke passes upload.
+// foliageLayer — grass + scenery on the photoreal substrate. Born as literal
+// TSL ports of the production BattleGrassPass (legacy-tuft path) and
+// CampaignSceneryPass shaders; since slice 09 they are standard-material
+// responses with NEUTRAL albedos (baked lambert/grade/exposure extracted —
+// the sun + IBL environment light them), still instancing the SAME CPU-built
+// tuft mesh + scatter (buildBattleTerrainGrass) and the SAME shared prop
+// meshes (SCENERY_PROP_MODELS) the bespoke passes upload.
 import * as THREE from 'three/webgpu';
 import {
-  attribute, clamp, dot, float, max, mix, normalize, sin, uniform, varying, vec2, vec3, vec4,
+  attribute, clamp, float, max, mix, normalize, sin, uniform, varying, vec2, vec3, vec4,
 } from 'three/tsl';
 import type { BattleTerrainGrassBuild } from '../../../game-renderer/src/battle/grassPass';
 import { GRASS_INSTANCE_STRIDE_FLOATS } from '../../../game-renderer/src/battle/grassPass';
@@ -16,7 +18,7 @@ import {
   type BattleEnvironment,
 } from '../../../game-renderer/src/environment/environment';
 import {
-  chartDepthDistNode, rgbNode, rotateYawN, saturateN, smoothstepN, sunDirectionNode,
+  chartDepthDistNode, linearAlbedo, rgbNode, rotateYawN, smoothstepN, viewNormalNode,
   type BattleFrameUniforms,
 } from './battleTsl';
 import { RENDER_ORDER } from './terrainLayer';
@@ -25,6 +27,10 @@ import { RENDER_ORDER } from './terrainLayer';
 const GRASS_ALBEDO_ROOT: [number, number, number] = [0.42, 0.50, 0.24];
 const GRASS_ALBEDO_SHADOW: [number, number, number] = [0.600, 0.627, 0.361];
 const GRASS_ALBEDO_NEAR: [number, number, number] = [0.753, 0.757, 0.471];
+// The tuft palette above was authored as LIT display colours under the baked
+// bespoke pipeline; as a neutral albedo it reads a step too bright next to
+// the ground it grows from — this factor extracts that bake (slice 09).
+const GRASS_BAKED_LIGHT_EXTRACTION = 0.84;
 
 /** The instanced tuft field. One material (all tuning via uniforms) whose
  *  geometry + instances are swapped whenever the production grass cache key
@@ -52,11 +58,10 @@ export class PhotorealGrassField {
     scene.add(this.mesh);
   }
 
-  private material(env: BattleEnvironment, frame: BattleFrameUniforms): THREE.MeshBasicNodeMaterial {
+  private material(env: BattleEnvironment, frame: BattleFrameUniforms): THREE.MeshStandardNodeMaterial {
     const e = env.environment;
-    const material = new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide });
+    const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, roughness: 0.9, metalness: 0 });
     material.fog = false;
-    const sun = sunDirectionNode(env);
     const local = attribute<'vec3'>('position', 'vec3');
     const normal = attribute<'vec3'>('gNormal', 'vec3');
     const colorAndAlpha = attribute<'vec4'>('gColor', 'vec4');
@@ -97,24 +102,28 @@ export class PhotorealGrassField {
       normal.z,
     ));
     const tiltedNormal = normalize(mix(terrainN, rnormal, heightT.mul(0.48).add(0.38)));
-    const light = varying(clamp(dot(tiltedNormal, sun).mul(0.28).add(0.82), 0.58, 1.10)).toVar();
+    material.normalNode = viewNormalNode(tiltedNormal);
     const vColor = varying(colorAndAlpha.rgb.mul(shade)).toVar();
     const vAlpha = varying(colorAndAlpha.a);
     const vHeightT = varying(heightT).toVar();
     const vTerrainT = varying(terrainT).toVar();
     const vFog = varying(smoothstepN(620.0, 1650.0, chartDepthDistNode(world.xy, frame)).mul(0.64));
 
-    const grade = mix(rgbNode(e.fillColor), rgbNode(e.keyColor), saturateN(light.sub(0.58).div(0.52)));
+    // NEUTRAL blade albedo: per-blade shade/tip/stubble variation stays (it is
+    // material character), the baked lambert/key-fill/exposure grade is gone —
+    // the sun + IBL light the blades through tiltedNormal.
     const strawTip = rgbNode(GRASS_ALBEDO_NEAR);
     const tipDry = smoothstepN(0.62, 1.0, vHeightT).mul(0.055).mul(float(1.0).sub(vTerrainT.mul(0.82)));
-    const lit = mix(vColor.mul(light).mul(grade), strawTip, tipDry);
+    const base = mix(vColor, strawTip, tipDry);
     let terrainStubble = mix(rgbNode(GRASS_ALBEDO_ROOT), rgbNode(GRASS_ALBEDO_NEAR), smoothstepN(0.12, 1.0, vHeightT));
     terrainStubble = mix(terrainStubble, rgbNode(GRASS_ALBEDO_SHADOW), 0.18);
-    let col = mix(lit, terrainStubble, vTerrainT.mul(0.58));
+    let albedo = mix(base, terrainStubble, vTerrainT.mul(0.58));
     const neutralMeadow = vec3(0.58, 0.66, 0.48);
-    col = mix(col, neutralMeadow, vTerrainT.mul(0.55).add(0.20));
-    col = mix(col.mul(e.exposure), rgbNode(e.hazeColor), vFog);
-    material.colorNode = vec4(clamp(col, vec3(0.0), vec3(1.0)), vAlpha);
+    albedo = mix(albedo, neutralMeadow, vTerrainT.mul(0.55).add(0.20));
+    // Aerial stand-in (dies at 10b, the one aerial-perspective owner).
+    albedo = albedo.mul(GRASS_BAKED_LIGHT_EXTRACTION);
+    albedo = mix(albedo, rgbNode(e.hazeColor), vFog);
+    material.colorNode = vec4(linearAlbedo(clamp(albedo, vec3(0.0), vec3(1.0))), vAlpha);
     return material;
   }
 
@@ -271,10 +280,15 @@ function sceneryGeometry(vertices: Float32Array, indices: Uint16Array): THREE.In
   return geo;
 }
 
-// sceneryPass SCENERY_WGSL, ported: per-instance yaw/scale/baseZ pose, the
-// pass's own fixed sun, warm-key/cool-fill grade, per-instance shade variation.
-function sceneryMaterial(kind: 'opaque' | 'shadow'): THREE.MeshBasicNodeMaterial {
-  const material = new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide });
+// sceneryPass SCENERY_WGSL pose port; since slice 09 the opaque props are a
+// standard-material response — the pass-private fixed sun and warm-key/
+// cool-fill grade are DELETED (no parallel lighting constants), the scene sun
+// + IBL light the rotated normals. Per-instance shade variation stays as
+// albedo character. The shadow bucket stays an unlit decal (dies at 11, CSM).
+function sceneryMaterial(kind: 'opaque' | 'shadow'): THREE.MeshBasicNodeMaterial | THREE.MeshStandardNodeMaterial {
+  const material = kind === 'shadow'
+    ? new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide })
+    : new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, roughness: 0.9, metalness: 0 });
   if (kind === 'shadow') {
     material.transparent = true;
     material.depthWrite = false;
@@ -291,18 +305,15 @@ function sceneryMaterial(kind: 'opaque' | 'shadow'): THREE.MeshBasicNodeMaterial
   const yaw = instStyle.z;
   const { rx, ry, cy, sy } = rotateYawN(local.x, local.y, yaw);
   material.positionNode = vec3(instPose.x.add(rx.mul(scale)), instPose.y.add(ry.mul(scale)), baseZ.add(local.z.mul(heightScale)));
-  const sun = normalize(vec3(-0.42, -0.34, 0.84));
   const rnormal = vec3(normal.x.mul(cy).sub(normal.y.mul(sy)), normal.x.mul(sy).add(normal.y.mul(cy)), normal.z);
-  const light = varying(clamp(dot(normalize(rnormal), sun).mul(0.34).add(0.78), 0.48, 1.14)).toVar();
+  if (kind === 'opaque') material.normalNode = viewNormalNode(normalize(rnormal));
   const vColor = varying(colorAndAlpha.rgb);
   const vAlpha = varying(colorAndAlpha.a);
   const shade = varying(clamp(instStyle.x, 0.0, 1.0));
 
-  const warmKey = vec3(1.08, 1.00, 0.82);
-  const coolFill = vec3(0.72, 0.77, 0.82);
-  const grade = mix(coolFill, warmKey, saturateN(light.sub(0.48).div(0.66)));
   const variation = shade.mul(0.18).add(0.88);
-  const col = clamp(vColor.mul(light).mul(grade).mul(variation), vec3(0.0), vec3(1.0));
-  material.colorNode = vec4(col, vAlpha);
+  const albedo = clamp(vColor.mul(variation), vec3(0.0), vec3(1.0));
+  // The shadow decal stays display-referred (unlit stand-in, dies at 11).
+  material.colorNode = vec4(kind === 'opaque' ? linearAlbedo(albedo) : albedo, vAlpha);
   return material;
 }

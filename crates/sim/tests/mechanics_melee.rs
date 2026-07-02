@@ -802,6 +802,121 @@ struct BlobSample {
     lattice_b: f32,
 }
 
+#[derive(Clone, Copy, Debug)]
+struct OrientedAxis {
+    angle_deg: f32,
+    anisotropy: f32,
+}
+
+#[derive(Clone, Copy, Debug)]
+struct AxisTracker {
+    last_deg: Option<f32>,
+}
+
+impl AxisTracker {
+    fn new() -> Self {
+        Self { last_deg: None }
+    }
+
+    fn measure(&mut self, raw: Option<OrientedAxis>) -> f32 {
+        let Some(axis) = raw else {
+            return self.last_deg.unwrap_or(0.0);
+        };
+        if axis.anisotropy < 0.03 {
+            return self.last_deg.unwrap_or(axis.angle_deg);
+        }
+        let mut angle = axis.angle_deg;
+        if let Some(prev) = self.last_deg {
+            while angle - prev > 90.0 {
+                angle -= 180.0;
+            }
+            while angle - prev < -90.0 {
+                angle += 180.0;
+            }
+        }
+        self.last_deg = Some(angle);
+        angle
+    }
+}
+
+fn pca_major_axis(points: &[Vec2]) -> Option<OrientedAxis> {
+    if points.len() < 3 {
+        return None;
+    }
+    let n = points.len() as f32;
+    let center = points.iter().fold(Vec2::ZERO, |acc, &p| acc + p) * (1.0 / n);
+    let (mut xx, mut xy, mut yy) = (0.0f32, 0.0f32, 0.0f32);
+    for &p in points {
+        let d = p - center;
+        xx += d.x * d.x;
+        xy += d.x * d.y;
+        yy += d.y * d.y;
+    }
+    xx /= n;
+    xy /= n;
+    yy /= n;
+    let trace = (xx + yy).max(1.0e-6);
+    let spread = ((xx - yy) * (xx - yy) + 4.0 * xy * xy).sqrt();
+    Some(OrientedAxis {
+        angle_deg: (0.5 * (2.0 * xy).atan2(xx - yy)).to_degrees(),
+        anisotropy: spread / trace,
+    })
+}
+
+fn unit_shape_axis(sim: &Sim, unit: usize) -> Option<OrientedAxis> {
+    let points: Vec<Vec2> = unit_live_positions(sim, unit)
+        .into_iter()
+        .map(|(_, p)| p)
+        .collect();
+    pca_major_axis(&points)
+}
+
+fn rotated_points(points: &[Vec2], angle_deg: f32) -> Vec<Vec2> {
+    if points.is_empty() {
+        return Vec::new();
+    }
+    let center = points.iter().fold(Vec2::ZERO, |acc, &p| acc + p) * (1.0 / points.len() as f32);
+    let (s, c) = angle_deg.to_radians().sin_cos();
+    points
+        .iter()
+        .map(|&p| {
+            let d = p - center;
+            center + Vec2::new(d.x * c - d.y * s, d.x * s + d.y * c)
+        })
+        .collect()
+}
+
+fn seam_interface_axis(sim: &Sim, a: usize, b: usize) -> Option<OrientedAxis> {
+    let mut pairs = Vec::new();
+    for (unit, foe) in [(a, b), (b, a)] {
+        for (i, pi) in unit_live_positions(sim, unit) {
+            let mut best = (f32::INFINITY, Vec2::ZERO);
+            for (j, pj) in unit_live_positions(sim, foe) {
+                let gap = (pj - pi).len() - sim.radius[i] - sim.radius[j];
+                if gap < best.0 {
+                    best = (gap, (pi + pj) * 0.5);
+                }
+            }
+            if best.0.is_finite() {
+                pairs.push(best);
+            }
+        }
+    }
+    if pairs.len() < 8 {
+        return None;
+    }
+    pairs.sort_by(|a, b| a.0.total_cmp(&b.0));
+    let contact_floor = pairs[0].0 + 1.0;
+    let keep = pairs
+        .iter()
+        .position(|(gap, _)| *gap > contact_floor.max(1.5))
+        .unwrap_or(pairs.len())
+        .max(24)
+        .min(pairs.len());
+    let points: Vec<Vec2> = pairs.into_iter().take(keep).map(|(_, p)| p).collect();
+    pca_major_axis(&points)
+}
+
 #[derive(Clone, Debug)]
 struct BlobRun {
     probe: &'static str,
@@ -1068,6 +1183,48 @@ fn blob_sample(sim: &Sim, a: usize, b: usize, t: f32) -> BlobSample {
         lattice_a: lattice_orientation_deg(sim, a),
         lattice_b: lattice_orientation_deg(sim, b),
     }
+}
+
+#[test]
+fn shape_orientation_detector_reads_settled_and_synthetic_rotation() {
+    let mut tun = no_morale();
+    tun.micro_rough = 0.0;
+    let mut sim = Sim::new(tun, 0x5105);
+    let unit = sim.spawn_class_stats_with_files(
+        Vec2::new(0.0, 0.0),
+        FRAC_PI_2,
+        N,
+        24,
+        UnitClassId::HeavySword,
+        class_stats(UnitClassId::HeavySword),
+        0,
+    );
+    let points: Vec<Vec2> = unit_live_positions(&sim, unit)
+        .into_iter()
+        .map(|(_, p)| p)
+        .collect();
+
+    let mut tracker = AxisTracker::new();
+    let settled = tracker.measure(pca_major_axis(&points));
+    assert!(
+        settled.abs() < 0.1,
+        "settled block should read ~0deg shape orientation, got {settled:.3}"
+    );
+
+    let rotated = rotated_points(&points, 31.0);
+    let mut tracker = AxisTracker::new();
+    let angle = tracker.measure(pca_major_axis(&rotated));
+    assert!(
+        (angle - 31.0).abs() < 0.1,
+        "synthetic rotated block should read 31deg, got {angle:.3}"
+    );
+
+    let rotated_across_axis_flip = rotated_points(&points, 104.0);
+    let wrapped = tracker.measure(pca_major_axis(&rotated_across_axis_flip));
+    assert!(
+        (wrapped - 104.0).abs() < 0.1,
+        "axis continuity should preserve the nearest 180deg branch, got {wrapped:.3}"
+    );
 }
 
 /// A holding phalanx in a frontal press should not have its rear ranks buzzing
@@ -3230,6 +3387,89 @@ fn blob_probe_slice05_cohort_split() {
                     if elapsed >= 400.0 {
                         break;
                     }
+                }
+            }
+        }
+    }
+}
+
+/// Slice 05 round 4: PCA shape orientation of each living unit body plus the
+/// near-contact seam interface. This is the visual pinwheel detector: it reads
+/// the rectangle David sees, while reporting the older centroid-bearing number
+/// beside it so death geography stays visible.
+#[test]
+#[ignore = "melee-blob slice 05: shape orientation split probe"]
+fn blob_probe_slice05_shape_orientation_split() {
+    let stats = class_stats(UnitClassId::HeavySword);
+    for (config, vibe_like) in [("controlled", false), ("vibe_like", true)] {
+        for seed in [0_u64, 1, 2, 3, 4] {
+            let tun = if vibe_like {
+                let mut t = Tunables::default();
+                apply_melee_env_overrides(&mut t);
+                t
+            } else {
+                controlled_heavy_tun()
+            };
+            let mut sim = Sim::new(tun, seed);
+            let a = sim.spawn_class_stats_with_files(
+                Vec2::new(0.0, -13.0),
+                FRAC_PI_2,
+                N,
+                24,
+                UnitClassId::HeavySword,
+                stats,
+                0,
+            );
+            let b = sim.spawn_class_stats_with_files(
+                Vec2::new(0.0, 13.0),
+                -FRAC_PI_2,
+                N,
+                24,
+                UnitClassId::HeavySword,
+                stats,
+                1,
+            );
+            sim.set_pace(a, Pace::Run);
+            sim.set_pace(b, Pace::Run);
+            sim.set_attack_order(a, b);
+            sim.set_attack_order(b, a);
+
+            let mut body_trackers = [AxisTracker::new(), AxisTracker::new()];
+            let mut seam_tracker = AxisTracker::new();
+            let mut body = [
+                body_trackers[0].measure(unit_shape_axis(&sim, a)),
+                body_trackers[1].measure(unit_shape_axis(&sim, b)),
+            ];
+            let mut seam = seam_tracker.measure(seam_interface_axis(&sim, a, b));
+
+            for step in 1..=(400.0 / DT) as usize {
+                sim.tick();
+                let t = step as f32 * DT;
+                if step % (1.0 / DT) as usize == 0 {
+                    body = [
+                        body_trackers[0].measure(unit_shape_axis(&sim, a)),
+                        body_trackers[1].measure(unit_shape_axis(&sim, b)),
+                    ];
+                    seam = seam_tracker.measure(seam_interface_axis(&sim, a, b));
+                }
+                if step % (100.0 / DT) as usize == 0 {
+                    let live_bearing = engagement_rotation_deg(&sim, a, b);
+                    let center_delta = sim.units[b].center() - sim.units[a].center();
+                    let frame_center_bearing = center_delta.x.atan2(center_delta.y).to_degrees();
+                    let sa = silhouette_rectangularity(&sim, a);
+                    let sb = silhouette_rectangularity(&sim, b);
+                    let silhouette = sa.inside_frac.min(sb.inside_frac);
+                    eprintln!(
+                        "SLICE05_SHAPE config={config} seed={seed} t={t:.0}s u0_shape={:.2}deg u1_shape={:.2}deg seam={seam:.2}deg live_centroid_bearing={live_bearing:.2}deg silhouette={silhouette:.2} frame_center_bearing={frame_center_bearing:.2}deg u0_facing={:.1}deg u1_facing={:.1}deg u0_center=({:.2},{:.2}) u1_center=({:.2},{:.2})",
+                        body[0],
+                        body[1],
+                        sim.units[a].facing.to_degrees(),
+                        sim.units[b].facing.to_degrees(),
+                        sim.units[a].center().x,
+                        sim.units[a].center().y,
+                        sim.units[b].center().x,
+                        sim.units[b].center().y,
+                    );
                 }
             }
         }

@@ -172,3 +172,66 @@ Detector scorecard so far: centroid-pair bearing (conflates death geography),
 long-window rigid fit (decorrelates), integrated short-fit (measures
 circulation). Shape orientation is round 4 and matches the visual definition
 of the symptom.
+
+
+## Detector round 4 — shape orientation split (2026-07-03)
+
+Detector added test-side only in
+`crates/sim/tests/mechanics_melee.rs::shape_orientation_detector_reads_settled_and_synthetic_rotation`
+and `blob_probe_slice05_shape_orientation_split`: per-unit PCA major-axis angle
+of living positions with 180deg axis continuity/hysteresis, plus a PCA seam
+axis from near-contact pair midpoints. Controls: settled block reads ~0deg;
+synthetic 31deg rotated copy reads 31deg; 180deg branch continuity preserved.
+
+Reproduce:
+`cargo test -p sim --test mechanics_melee shape_orientation_detector_reads_settled_and_synthetic_rotation -- --nocapture`
+and
+`cargo test -p sim --test mechanics_melee blob_probe_slice05_shape_orientation_split -- --ignored --nocapture`.
+
+| config | seed | t | unit0 shape | unit1 shape | seam | live centroid bearing | silhouette | frame center bearing | unit facings |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| controlled | 0 | 100s | +26.46 | +27.38 | +27.94 | +3.66 | 0.99 | -0.05 | +90.1 / -90.0 |
+| controlled | 0 | 200s | +27.93 | +27.68 | +28.18 | -6.38 | 0.98 | -0.05 | +90.1 / -90.0 |
+| controlled | 0 | 300s | +26.73 | +29.42 | +28.40 | -13.23 | 0.94 | -0.04 | +90.1 / -90.0 |
+| controlled | 0 | 400s | +4.77 | +5.32 | +4.54 | +11.66 | 0.95 | -0.01 | +90.1 / -90.0 |
+| controlled | 1 | 100s | +28.86 | +27.36 | +28.72 | +0.04 | 0.98 | -0.08 | +90.1 / -90.0 |
+| controlled | 1 | 200s | +26.85 | +25.78 | +27.16 | +4.18 | 0.98 | -0.08 | +90.1 / -90.0 |
+| controlled | 1 | 300s | +28.02 | +28.25 | +29.08 | -14.95 | 0.94 | -0.08 | +90.1 / -90.0 |
+| controlled | 1 | 400s | +5.70 | +5.57 | +5.44 | +3.23 | 0.95 | -0.07 | +90.1 / -90.0 |
+| controlled | 2 | 100s | +26.53 | +27.74 | +27.76 | +0.42 | 0.99 | -0.05 | +90.1 / -90.0 |
+| controlled | 2 | 200s | +27.99 | +26.74 | +28.50 | -0.56 | 0.98 | -0.05 | +90.1 / -90.0 |
+| controlled | 2 | 300s | +30.24 | +29.26 | +30.89 | -19.62 | 0.90 | -0.05 | +90.1 / -90.0 |
+| controlled | 2 | 400s | +17.66 | +16.12 | +16.62 | -20.28 | 0.88 | -0.06 | +90.1 / -90.0 |
+| controlled | 3 | 100s | +27.66 | +27.47 | +28.42 | -0.77 | 1.00 | -0.07 | +90.1 / -90.0 |
+| controlled | 3 | 200s | +29.24 | +28.35 | +29.85 | -7.17 | 0.97 | -0.07 | +90.1 / -90.0 |
+| controlled | 3 | 300s | +32.24 | +31.89 | +31.71 | -12.67 | 0.90 | -0.07 | +90.1 / -90.0 |
+| controlled | 3 | 400s | +7.85 | +9.80 | +8.07 | -22.35 | 0.96 | -0.07 | +90.1 / -90.0 |
+| controlled | 4 | 100s | -27.86 | -28.09 | -28.91 | +7.92 | 0.98 | -0.05 | +90.1 / -90.0 |
+| controlled | 4 | 200s | -35.51 | -35.03 | -37.55 | +19.88 | 0.94 | -0.04 | +90.1 / -90.0 |
+| controlled | 4 | 300s | -37.22 | -37.80 | -40.39 | +37.19 | 0.86 | -0.03 | +90.1 / -90.0 |
+| controlled | 4 | 400s | -28.52 | -25.04 | -23.29 | +51.88 | 0.74 | -0.02 | +90.1 / -90.0 |
+| vibe_like | 0 | 100s | -29.19 | -28.53 | -29.88 | +6.96 | 0.98 | -0.16 | +90.0 / -89.9 |
+| vibe_like | 0 | 200s | -30.23 | -30.01 | -31.34 | +8.13 | 0.96 | -0.17 | +90.0 / -89.9 |
+| vibe_like | 0 | 300s | -38.72 | -37.44 | -42.33 | +37.66 | 0.83 | -0.20 | +90.0 / -89.9 |
+| vibe_like | 0 | 400s | -23.29 | -22.41 | -20.05 | +25.91 | 0.82 | -0.39 | +90.0 / -89.9 |
+| vibe_like | 1 | 100s | -29.39 | -29.04 | -30.17 | +7.02 | 0.96 | -0.09 | +90.0 / -89.9 |
+| vibe_like | 1 | 200s | -29.36 | -28.31 | -30.23 | +4.00 | 0.96 | -0.10 | +90.0 / -89.9 |
+| vibe_like | 1 | 300s | -30.83 | -31.84 | -33.40 | +24.82 | 0.87 | -0.13 | +90.0 / -89.9 |
+| vibe_like | 1 | 400s | -16.50 | -21.79 | -19.78 | +31.14 | 0.89 | +16.71 | +90.0 / -89.9 |
+| vibe_like | 2 | 100s | -27.37 | -27.13 | -27.56 | -1.04 | 0.98 | -0.12 | +90.0 / -89.9 |
+| vibe_like | 2 | 200s | -31.47 | -30.11 | -31.62 | +10.77 | 0.95 | -0.11 | +90.0 / -89.9 |
+| vibe_like | 2 | 300s | -27.77 | -26.01 | -26.60 | +46.51 | 0.75 | -0.09 | +90.0 / -89.9 |
+| vibe_like | 2 | 400s | -14.99 | +0.54 | -6.89 | +3.25 | 0.94 | +3.02 | +90.0 / -89.9 |
+| vibe_like | 3 | 100s | -29.58 | -29.87 | -30.52 | +6.59 | 0.97 | -0.14 | +90.0 / -89.9 |
+| vibe_like | 3 | 200s | -33.02 | -32.26 | -35.93 | +12.19 | 0.92 | -0.15 | +90.0 / -89.9 |
+| vibe_like | 3 | 300s | -38.99 | -40.75 | -41.79 | +36.33 | 0.84 | -0.11 | +90.0 / -89.9 |
+| vibe_like | 3 | 400s | -35.02 | -4.80 | -102.93 | +11.75 | 0.69 | +10.67 | +90.0 / -89.9 |
+| vibe_like | 4 | 100s | -28.50 | -29.40 | -29.27 | +0.92 | 0.99 | -0.14 | +90.0 / -89.9 |
+| vibe_like | 4 | 200s | -32.61 | -32.35 | -34.61 | +13.61 | 0.94 | -0.17 | +90.0 / -89.9 |
+| vibe_like | 4 | 300s | -31.34 | -30.60 | -31.77 | +22.45 | 0.89 | -0.21 | +90.0 / -89.9 |
+| vibe_like | 4 | 400s | -13.83 | -12.09 | -10.70 | +8.43 | 0.95 | -0.26 | +90.0 / -89.9 |
+
+Verdict: shape tilt is real in both controlled and vibe-like configs; the
+visual pinwheel lives in the living body/seam shape layer, not in frame wheel
+(`u.facing` stays frozen and `u.center()` bearing stays ~0 through the held
+grind, with only late rout/collapse excursions in a few vibe-like 400s rows).

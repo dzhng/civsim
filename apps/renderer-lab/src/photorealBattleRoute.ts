@@ -20,7 +20,10 @@
 //   ?shadows=off|single|csm
 //                 sun-shadow tier override (slice 11 QA; default = adapter
 //                 probe — csm on hardware, single on software rasterizers)
+//   ?sea=gerstner|ifft
+//                 photoreal sea displacement source (IFFT falls back on software adapters)
 import { PhotorealBattleWorld, type BattleTacticalLineFrame } from '../../../packages/photoreal-renderer/src/battle/battleWorld';
+import { seaDisplacementSourceFromParam } from '../../../packages/photoreal-renderer/src/battle/seaLayer';
 import { createPhotorealStatsPublisher } from '../../../packages/photoreal-renderer/src/stats';
 import { Camera } from '../../../web/src/shared/camera';
 import { pushPie, pushRing } from '../../../web/src/shared/overlays';
@@ -49,7 +52,11 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
   if (params.get('ref') === '1') ctx.root.classList.add('reference-shot');
   const [{ default: initWasm, Game }, world] = await Promise.all([
     import('../../../web/src/wasm/game_wasm.js'),
-    PhotorealBattleWorld.create(ctx.canvas, { environment: params.get('env'), shadows: params.get('shadows') }),
+    PhotorealBattleWorld.create(ctx.canvas, {
+      environment: params.get('env'),
+      shadows: params.get('shadows'),
+      sea: seaDisplacementSourceFromParam(params.get('sea')),
+    }),
   ]);
   const wasm = await initWasm();
   const game = new Game(0x5eed_c0de);
@@ -389,6 +396,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
     ctx.status.innerHTML = `<table>
       <tr><td>route</td><td>photoreal-battle (${s.substrate})</td></tr>
       <tr><td>environment</td><td>${s.environment}</td></tr>
+      <tr><td>sea</td><td>${rs.sea.source} (${rs.sea.tier})</td></tr>
       <tr><td>map</td><td>${params.get('map') === 'B' ? 'B' : 'A'}</td></tr>
       <tr><td>soldiers</td><td>${rs.soldiers} / ${rs.expectedSoldiers}</td></tr>
       <tr><td>seating</td><td>match=${rs.seating.matches} span=${rs.seating.span}</td></tr>

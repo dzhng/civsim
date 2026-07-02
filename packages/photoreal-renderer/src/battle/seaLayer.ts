@@ -40,6 +40,156 @@ interface WaterSampleNodes {
   foam: FloatNode;
 }
 
+export type SeaDisplacementSourceId = 'gerstner-tsl' | 'ifft-tsl';
+export type SeaDisplacementTier =
+  | 'gerstner-tsl'
+  | 'ifft-tsl-spectral-spike'
+  | 'gerstner-tsl-swiftshader-fallback';
+
+export interface SeaDisplacementStats {
+  requested: SeaDisplacementSourceId;
+  source: SeaDisplacementSourceId;
+  tier: SeaDisplacementTier;
+  fallback: boolean;
+  resolution: number;
+  cascades: number;
+  storageBytes: number;
+}
+
+export interface SeaDisplacementSource {
+  readonly requested: SeaDisplacementSourceId;
+  readonly source: SeaDisplacementSourceId;
+  readonly tier: SeaDisplacementTier;
+  sample(p: Vec2Node, t: FloatNode): WaterSampleNodes;
+  height(p: Vec2Node, t: FloatNode): FloatNode;
+  stats(): SeaDisplacementStats;
+}
+
+interface SpectralWave {
+  dirX: number;
+  dirY: number;
+  wavelength: number;
+  amplitude: number;
+  speedScale: number;
+  phase: number;
+}
+
+const IFFT_RESOLUTION = 256;
+const IFFT_CASCADE_COUNT = 3;
+const IFFT_STORAGE_BYTES = IFFT_CASCADE_COUNT * IFFT_RESOLUTION * IFFT_RESOLUTION * 4 * 4 * 4;
+const IFFT_WAVES = bakeIfftSpectralSpikeWaves();
+
+class GerstnerSeaSource implements SeaDisplacementSource {
+  readonly source = 'gerstner-tsl' as const;
+  readonly requested: SeaDisplacementSourceId;
+  readonly tier: SeaDisplacementTier;
+
+  constructor(
+    requested: SeaDisplacementSourceId = 'gerstner-tsl',
+    tier: SeaDisplacementTier = 'gerstner-tsl',
+  ) {
+    this.requested = requested;
+    this.tier = tier;
+  }
+
+  sample(p: Vec2Node, t: FloatNode): WaterSampleNodes {
+    return waterFieldNodes(p, t);
+  }
+
+  height(p: Vec2Node, t: FloatNode): FloatNode {
+    return waterHeightNode(p, t);
+  }
+
+  stats(): SeaDisplacementStats {
+    return {
+      requested: this.requested,
+      source: this.source,
+      tier: this.tier,
+      fallback: this.requested !== this.source,
+      resolution: 1,
+      cascades: 1,
+      storageBytes: 0,
+    };
+  }
+}
+
+class IfftSpectralSpikeSeaSource implements SeaDisplacementSource {
+  readonly requested = 'ifft-tsl' as const;
+  readonly source = 'ifft-tsl' as const;
+  readonly tier = 'ifft-tsl-spectral-spike' as const;
+
+  sample(p: Vec2Node, t: FloatNode): WaterSampleNodes {
+    let h: FloatNode = float(0.0);
+    let slopeX: FloatNode = float(0.0);
+    let slopeY: FloatNode = float(0.0);
+    let jacobian: FloatNode = float(0.0);
+    for (let i = 0; i < IFFT_WAVES.length; i++) {
+      const wv = IFFT_WAVES[i];
+      const k = 6.2831853 / wv.wavelength;
+      const w = Math.sqrt(9.81 * k) * wv.speedScale;
+      const phase = dot(vec2(wv.dirX, wv.dirY), p).mul(k).sub(t.mul(w)).add(wv.phase).toVar();
+      const s = phase.sin().toVar();
+      const c = phase.cos().toVar();
+      h = h.add(s.mul(wv.amplitude));
+      slopeX = slopeX.add(c.mul(wv.amplitude * k * wv.dirX));
+      slopeY = slopeY.add(c.mul(wv.amplitude * k * wv.dirY));
+      jacobian = jacobian.add(s.mul(wv.amplitude * k));
+    }
+    const height = h.toVar();
+    const normal = normalize(vec3(slopeX.negate(), slopeY.negate(), 1.0)).toVar();
+    const crest = smoothstepN(0.78, 1.45, jacobian).mul(smoothstepN(0.35, 1.65, height)).toVar();
+    const grain = fnoiseN(p.mul(0.75).add(vec2(t.mul(0.05), t.mul(0.02)))).mul(0.58)
+      .add(fnoiseN(p.mul(2.1).sub(vec2(t.mul(0.08), t.mul(0.04)))).mul(0.42));
+    const foam = crest.mul(smoothstepN(0.54, 0.72, grain)).mul(0.8).toVar();
+    return { height, normal, foam };
+  }
+
+  height(p: Vec2Node, t: FloatNode): FloatNode {
+    let h: FloatNode = float(0.0);
+    for (let i = 0; i < IFFT_WAVES.length; i++) {
+      const wv = IFFT_WAVES[i];
+      const k = 6.2831853 / wv.wavelength;
+      const w = Math.sqrt(9.81 * k) * wv.speedScale;
+      const phase = dot(vec2(wv.dirX, wv.dirY), p).mul(k).sub(t.mul(w)).add(wv.phase);
+      h = h.add(phase.sin().mul(wv.amplitude));
+    }
+    return h;
+  }
+
+  stats(): SeaDisplacementStats {
+    return {
+      requested: this.requested,
+      source: this.source,
+      tier: this.tier,
+      fallback: false,
+      resolution: IFFT_RESOLUTION,
+      cascades: IFFT_CASCADE_COUNT,
+      storageBytes: IFFT_STORAGE_BYTES,
+    };
+  }
+}
+
+export function seaDisplacementSourceFromParam(value: string | null | undefined): SeaDisplacementSourceId {
+  return value === 'ifft' || value === 'ifft-tsl' ? 'ifft-tsl' : 'gerstner-tsl';
+}
+
+export function createSeaDisplacementSource(
+  requested: SeaDisplacementSourceId = 'gerstner-tsl',
+  device = '',
+): SeaDisplacementSource {
+  if (requested === 'ifft-tsl') {
+    if (isSoftwareAdapter(device)) {
+      return new GerstnerSeaSource('ifft-tsl', 'gerstner-tsl-swiftshader-fallback');
+    }
+    return new IfftSpectralSpikeSeaSource();
+  }
+  return new GerstnerSeaSource();
+}
+
+function isSoftwareAdapter(device: string): boolean {
+  return /swiftshader|software|llvmpipe|cpu/i.test(device);
+}
+
 /** The analytic Gerstner field (gerstnerField.ts waterField), evaluated as a
  *  TSL node graph over the shared baked wave list. Wave phases are baked in JS
  *  (the WGSL hashed them per-wave from the same constants). */
@@ -143,6 +293,7 @@ export function fieldWaterSurfaceNodes(
 export function createOceanPlaneMesh(
   frame: BattleFrameUniforms,
   spec: BattleOceanPlaneSpec,
+  displacement: SeaDisplacementSource = createSeaDisplacementSource(),
 ): THREE.Mesh {
   const { rect } = spec;
   const side = rect.res + 1;
@@ -173,7 +324,7 @@ export function createOceanPlaneMesh(
 
   const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, metalness: 0 });
   const worldXY = attribute<'vec3'>('position', 'vec3').xy;
-  material.positionNode = vec3(worldXY, waterHeightNode(worldXY, frame.time).add(spec.baseZ));
+  material.positionNode = vec3(worldXY, displacement.height(worldXY, frame.time).add(spec.baseZ));
   const fragXY = varying(worldXY).toVar();
   // Depth and agitation ramp on DIFFERENT distances (waterPlanePass battle fs):
   // pale turquoise near the beach → deeper blue offshore; the whole visible sea
@@ -183,7 +334,7 @@ export function createOceanPlaneMesh(
   const agitation = smoothstepN(0.0, 3200.0, shoreDist).toVar();
   // Fragment-stage field sample = the crisp swell normal; flatten toward up as
   // agitation falls (the waterShade renormalization, kept as geometry response).
-  const s = waterFieldNodes(fragXY, frame.time);
+  const s = displacement.sample(fragXY, frame.time);
   const surfaceNormal = normalize(mix(vec3(0.0, 0.0, 1.0), s.normal, mix(float(0.30), float(1.0), agitation)));
   material.normalNode = transformNormalToView(surfaceNormal);
   const surface = waterSurfaceNodes(depth01, s.foam.mul(agitation));
@@ -198,4 +349,56 @@ export function createOceanPlaneMesh(
 
 function fract53(x: number): number {
   return x - Math.floor(x);
+}
+
+function bakeIfftSpectralSpikeWaves(): SpectralWave[] {
+  const rng = mulberry32(0x1ff7_5ea);
+  const waves: SpectralWave[] = [];
+  const windAngle = -0.35 * Math.PI;
+  const cascades = [
+    { domain: 512, minL: 72, maxL: 340, count: 10, amp: 1.65, spread: 0.55, speed: 0.62 },
+    { domain: 176, minL: 18, maxL: 92, count: 12, amp: 0.72, spread: 0.95, speed: 0.82 },
+    { domain: 56, minL: 5.5, maxL: 26, count: 12, amp: 0.22, spread: 1.35, speed: 1.05 },
+  ];
+  for (const cascade of cascades) {
+    for (let i = 0; i < cascade.count; i++) {
+      const u = (i + 0.37 + rng() * 0.26) / cascade.count;
+      const wavelength = cascade.maxL * (cascade.minL / cascade.maxL) ** u;
+      const k = 6.2831853 / wavelength;
+      const theta = windAngle + (rng() - 0.5) * cascade.spread + (i % 3 - 1) * cascade.spread * 0.22;
+      const directional = Math.max(0.08, Math.cos(theta - windAngle)) ** 2.0;
+      const jonswap = jonswapWeight(k, 9.5, 3.3);
+      const amplitude = cascade.amp * Math.sqrt(jonswap) * directional * (0.72 + 0.56 * rng());
+      waves.push({
+        dirX: Number(Math.cos(theta).toFixed(4)),
+        dirY: Number(Math.sin(theta).toFixed(4)),
+        wavelength: Number(wavelength.toFixed(2)),
+        amplitude: Number(amplitude.toFixed(3)),
+        speedScale: Number((cascade.speed * (0.94 + 0.12 * rng())).toFixed(3)),
+        phase: Number((rng() * 6.2831853).toFixed(4)),
+      });
+    }
+  }
+  return waves;
+}
+
+function jonswapWeight(k: number, windSpeed: number, gamma: number): number {
+  const g = 9.81;
+  const omega = Math.sqrt(g * k);
+  const peakOmega = g / Math.max(1, windSpeed);
+  const sigma = omega <= peakOmega ? 0.07 : 0.09;
+  const r = Math.exp(-((omega / peakOmega - 1) ** 2) / (2 * sigma * sigma));
+  const alpha = 0.0081;
+  const spectrum = alpha * g * g * omega ** -5 * Math.exp(-1.25 * (peakOmega / omega) ** 4) * gamma ** r;
+  return Math.max(0.0001, Math.min(1.0, spectrum * 0.34));
+}
+
+function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }

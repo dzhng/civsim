@@ -237,7 +237,7 @@ export class OctahedralImpostorCrowd {
     const faction = varying(inst.w).toVar();
     const shade = varying(meta.w).toVar();
     const mask = smoothstep(0.05, 0.28, sample.b.sub(max(sample.r, sample.g))).toVar();
-    const color = factionTintNode(vec4(sample.rgb, sample.a), faction, mask.mul(0.95)).mul(vec4(vec3(shade), 1.0));
+    const color = sampledFactionTintNode(vec4(sample.rgb, sample.a), faction, mask.mul(0.95)).mul(vec4(vec3(shade), 1.0));
     material.colorNode = vec4(color.rgb, sample.a);
 
     this.mesh = new THREE.Mesh(this.geometry, material);
@@ -317,6 +317,18 @@ function factionTintNode(color: Node<'vec4'>, faction: Node<'float'>, amount: No
   accent = mix(accent, neutral, step(1.5, faction));
   const rgb = mix(color.rgb, accent, amount);
   return vec4(linearAlbedo(clamp(rgb, vec3(0.0), vec3(1.0))), color.a);
+}
+
+function sampledFactionTintNode(color: Node<'vec4'>, faction: Node<'float'>, amount: Node<'float'>) {
+  const blue = linearAlbedo(vec3(...BLUE));
+  const red = linearAlbedo(vec3(...RED));
+  const neutral = linearAlbedo(vec3(...NEUTRAL));
+  let accent = mix(blue, red, step(0.5, faction));
+  accent = mix(accent, neutral, step(1.5, faction));
+  // texture() has already put the sRGB-tagged atlas sample into material color
+  // space. Re-running linearAlbedo on that sample double-linearizes it to black.
+  const rgb = mix(color.rgb, accent, amount);
+  return vec4(clamp(rgb, vec3(0.0), vec3(1.0)), color.a);
 }
 
 function poseMeshWithVat(mesh: SoldierMeshData, vat: VatBake, clipName: string, phase: number): PosedMeshData {

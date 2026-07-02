@@ -196,7 +196,7 @@ export class PhotorealBattleWorld {
       PhotorealWorld.create(canvas, { antialias: false }),
       loadPlaceholderKit(),
     ]);
-    const sea = createSeaDisplacementSource(options.sea ?? 'gerstner-tsl', world.stats().device);
+    const sea = createSeaDisplacementSource(options.sea ?? 'gerstner-tsl');
     const vats = await loadClassVats(kit);
     // Shadow tier: adapter capability probe (SwiftShader → 'single'), lab
     // ?shadows= override wins. Resolved here because the adapter identity

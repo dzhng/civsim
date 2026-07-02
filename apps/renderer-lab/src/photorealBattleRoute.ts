@@ -20,8 +20,8 @@
 //   ?shadows=off|single|csm
 //                 sun-shadow tier override (slice 11 QA; default = adapter
 //                 probe — csm on hardware, single on software rasterizers)
-//   ?sea=gerstner|ifft
-//                 photoreal sea displacement source (IFFT falls back on software adapters)
+//   ?sea=gerstner
+//                 photoreal sea displacement source (12a verdict: Gerstner TSL)
 import { PhotorealBattleWorld, type BattleTacticalLineFrame } from '../../../packages/photoreal-renderer/src/battle/battleWorld';
 import { seaDisplacementSourceFromParam } from '../../../packages/photoreal-renderer/src/battle/seaLayer';
 import { createPhotorealStatsPublisher } from '../../../packages/photoreal-renderer/src/stats';

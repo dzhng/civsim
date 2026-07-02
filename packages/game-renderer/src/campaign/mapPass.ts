@@ -1253,7 +1253,11 @@ function roadEdgeIsLandSafe(edge: CampaignMapEdgeData, style: CampaignMapDrawSty
       if (style.roadSurfaceAt(x, y) === 'land') landSamples++;
     }
   }
-  return samples === 0 || landSamples / samples >= 0.68;
+  // Coastal ORBIS roads hug the shoreline and dip over the coarse land mask's
+  // water cells though the road is on real land; the old 0.68 floor silently
+  // dropped whole connected edges. Relax so a road survives when it is mostly on
+  // land (a genuine sea crossing is still mostly water and drops).
+  return samples === 0 || landSamples / samples >= 0.5;
 }
 
 function pushRoadVertex(out: number[], point: [number, number], z: number, color: [number, number, number, number], uv: [number, number], material: number, heightAt?: (x: number, y: number) => number) {

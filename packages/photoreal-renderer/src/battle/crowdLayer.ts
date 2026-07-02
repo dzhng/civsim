@@ -4,12 +4,12 @@
 // slice 09 soldiers are a standard-material response with a NEUTRAL albedo —
 // the baked skinned-lighting grade (lambert/key-fill/exposure/rim) is
 // extracted and the sun + IBL light the skinned normals. Fed by the SAME
-// buildCrowdInstances output, plus the blob-shadow decal replica of
-// SoldierShadowDecalPass. SCAFFOLD per the README ledger: blob shadows die at
-// slice 11 (real CSM).
+// buildCrowdInstances output. Since slice 11 the crowd casts/receives REAL
+// sun shadows (shadowRig) — the 08a blob-shadow decal replica is deleted; the
+// shadow pass re-skins the same VAT positionNode per cascade.
 import * as THREE from 'three/webgpu';
 import {
-  attribute, clamp, dot, float, floor, int, ivec2, length, max, mix, normalize, sin, smoothstep, step, textureLoad, varying, vec3, vec4,
+  attribute, clamp, dot, float, floor, int, ivec2, max, mix, normalize, sin, smoothstep, step, textureLoad, varying, vec3, vec4,
 } from 'three/tsl';
 import type { CrowdInstance } from '../../../crowd-runtime/src/instanceData';
 import type { SoldierMeshData } from '../../../soldier-assets/src/soldierMesh';
@@ -62,6 +62,11 @@ export class PhotorealCrowd {
       mesh.name = `battle-crowd-${classId}`;
       mesh.frustumCulled = false;
       mesh.renderOrder = RENDER_ORDER.worldOpaque;
+      // Slice 11: soldiers cast (the shadow pass reuses the VAT positionNode
+      // per cascade — the headline perf spender of the ladder) and receive
+      // (terrain/tree/soldier-on-soldier shading grounds the formation).
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
       mesh.visible = false;
       scene.add(mesh);
       this.buckets.push({
@@ -141,6 +146,10 @@ function crowdGeometry(mesh: SoldierMeshData): THREE.InstancedBufferGeometry {
   const geo = new THREE.InstancedBufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(mesh.positions, 3));
   geo.setAttribute('cNormal', new THREE.BufferAttribute(mesh.normals, 3));
+  // Alias the same buffer as the standard 'normal' attribute: three's shadow
+  // receiver offset (shadow.normalBias → normalWorld) reads it by name — with
+  // only the custom attribute present the offset is silently zero (slice 11).
+  geo.setAttribute('normal', new THREE.BufferAttribute(mesh.normals, 3));
   geo.setAttribute('cColor', new THREE.BufferAttribute(mesh.colors, 4));
   geo.setAttribute('bone', new THREE.BufferAttribute(mesh.bones, 1));
   geo.setIndex(new THREE.BufferAttribute(mesh.indices, 1));
@@ -234,71 +243,3 @@ function crowdMaterial(vatTex: THREE.DataTexture): THREE.MeshStandardNodeMateria
   return material;
 }
 
-/** Blob-shadow decal replica of SoldierShadowDecalPass — a soft dark ellipse
- *  seated at each soldier's (x, y, elevation). Dies at slice 11 (CSM). */
-export class PhotorealSoldierShadows {
-  private mesh: THREE.Mesh;
-  private geometry: THREE.InstancedBufferGeometry;
-  private capacity = 0;
-  private data = new Float32Array(0);
-  private count = 0;
-
-  constructor(scene: THREE.Scene) {
-    this.geometry = new THREE.InstancedBufferGeometry();
-    this.geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array([
-      -1, -1, 0, 1, -1, 0, -1, 1, 0, 1, 1, 0,
-    ]), 3));
-    this.geometry.setIndex([0, 1, 2, 2, 1, 3]);
-    this.geometry.instanceCount = 0;
-
-    const material = new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide, transparent: true });
-    material.depthWrite = false;
-    material.fog = false;
-    const quad = attribute<'vec3'>('position', 'vec3');
-    const inst = attribute<'vec4'>('shadowInst', 'vec4'); // (x, y, radius, elevation)
-    material.positionNode = vec3(inst.x.add(quad.x.mul(inst.z)), inst.y.add(quad.y.mul(inst.z)), inst.w.add(0.015));
-    const local = varying(quad.xy).toVar();
-    const d = length(local).toVar();
-    // The WGSL discards d > 1; an alpha-zero fragment on a non-depth-writing
-    // decal is the same pixel result.
-    const inside = float(1.0).sub(step(1.0, d));
-    const alpha = float(1.0).sub(d.mul(d)).mul(0.34).mul(inside);
-    material.colorNode = vec4(vec3(0.06, 0.05, 0.04), alpha);
-
-    this.mesh = new THREE.Mesh(this.geometry, material);
-    this.mesh.name = 'battle-soldier-shadows';
-    this.mesh.frustumCulled = false;
-    this.mesh.renderOrder = RENDER_ORDER.soldierShadows;
-    this.mesh.visible = false;
-    scene.add(this.mesh);
-  }
-
-  upload(instances: CrowdInstance[], opts: { radius?: number } = {}): void {
-    this.count = instances.length;
-    this.mesh.visible = instances.length > 0;
-    if (instances.length === 0) {
-      this.geometry.instanceCount = 0;
-      return;
-    }
-    if (instances.length > this.capacity) {
-      this.capacity = Math.max(instances.length, this.capacity * 2, 256);
-      this.data = new Float32Array(this.capacity * 4);
-      this.geometry.setAttribute('shadowInst', new THREE.InstancedBufferAttribute(this.data, 4));
-    }
-    const radius = opts.radius ?? 0.62;
-    for (let i = 0; i < instances.length; i++) {
-      const inst = instances[i];
-      const o = i * 4;
-      this.data[o] = inst.x;
-      this.data[o + 1] = inst.y;
-      this.data[o + 2] = radius * (inst.mounted ? 1.5 : 1) * (inst.alive ? 1 : 1.25);
-      this.data[o + 3] = inst.elevation ?? 0;
-    }
-    (this.geometry.getAttribute('shadowInst') as THREE.InstancedBufferAttribute).needsUpdate = true;
-    this.geometry.instanceCount = instances.length;
-  }
-
-  stats() {
-    return { shadows: this.count };
-  }
-}

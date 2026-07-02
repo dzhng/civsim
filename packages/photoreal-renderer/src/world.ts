@@ -41,6 +41,9 @@ export class PhotorealWorld {
   /** Set by applyCivsimEnvironment — the atmosphere ownership identity
    *  (which sky tier rendered, which aerial owner hazed) for the stats seam. */
   atmosphere: Record<string, unknown> | null = null;
+  /** Set by applyCivsimEnvironment — the ONE sun light, so consumers (the
+   *  slice-11 shadowRig) can configure how it casts without re-deriving it. */
+  sunLight: THREE.DirectionalLight | null = null;
   private timeSeconds = 0;
   private gpuTimeMs: number | null = null;
   private timestampBroken = false;

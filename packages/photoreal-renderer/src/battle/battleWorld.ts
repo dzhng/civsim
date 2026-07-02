@@ -161,6 +161,9 @@ export class PhotorealBattleWorld {
     // the one aerial-perspective owner.
     const haze = env.environment.hazeColor;
     scene.fog = new THREE.Fog(new THREE.Color(haze[0], haze[1], haze[2]), 3400, 8200);
+    // The stats identity field: this world is dressed from the ONE preset
+    // owner (BATTLE_ENVIRONMENTS['golden-hour'] → CIVSIM_ENVIRONMENTS.golden).
+    world.environmentId = env.environment.id;
 
     this.background = new BattleBackgroundQuads(scene, this.frame);
     this.grass = new PhotorealGrassField(scene, env, this.frame);

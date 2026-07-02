@@ -1,5 +1,101 @@
 # Slice 08 — Battle world adoption (THE seam flip)
 
+## STATUS: 08a DONE (2026-07-02, this branch) — 08b (the atomic production flip) is next
+
+`packages/photoreal-renderer/src/battle/` is the parity battle world:
+`battleWorld.ts` (`PhotorealBattleWorld`, the BattleRenderer-shaped API:
+`setStatic/setTerrain/draw/drawTris/drawTacticalLines/stats/resize/setTime` on a
+`BattleCameraSnapshot` — exactly what `renderer.ts::cameraSnapshot` produces),
+`terrainLayer.ts` (backdrop + builtin terrain quads + ground mesh + horizon
+blockers), `seaLayer.ts` (the ONE water seam: Gerstner `waterField` →
+`waterShade` → `civsimWaterColor` → shore ramps as TSL, fed by
+`bakeGerstnerWaves` — the shared wave source of truth), `foliageLayer.ts`
+(grass tufts + scenery), `crowdLayer.ts` (per-class VAT crowd + blob-shadow
+decal replica), `overlayLayer.ts` (ground cues / effect lines / debug
+triangles on the unchanged `Float32Array` contracts; far-LOD markers re-homed
+as camera-facing billboards — the 04c/04d item), `battleTsl.ts` (shared noise/
+camera/environment node vocabulary). Every material is a literal TSL port of
+the production WGSL (unlit, exposure/haze/sun baked exactly as the bespoke
+passes; `NoToneMapping` + linear output = the bespoke non-sRGB swapchain).
+
+**Geometry/scatter single owners (extracted, behavior-neutral):** the bespoke
+passes and the photoreal world now consume the SAME CPU builders —
+`buildBattleGroundMesh` (groundPass), `buildBattleTerrainGrass` (grassPass),
+`buildBattleHorizonLayout` (horizonPass), `bakeGerstnerWaves` (gerstnerField,
+quantised exactly as the WGSL literal prints), `BATTLE_RELIEF_EXAGGERATION`
+(terrainFeatures; was private in BattleRenderer). Sim firewall intact:
+`buildCrowdInstances` + `terrainHeightAt` are the only bridges, both unmoved.
+
+**Lab route `/renderer/photoreal-battle`** boots the SAME wasm battle worlds
+as the production page (`Game(0x5eed_c0de)` + `start_battle(A|B)`, the
+production spawn path for `?count=` growth) and frames through the SAME shared
+`Camera` (`window.__cam`), so compare-screenshots holds it against the
+production battle at matched camera3d framing. Params: `?map/ai/ticks/count/
+run/t/select/fx/debug=blocks/ref=1/zoom/cx/cy`.
+
+**Parity evidence (matched `__cam` framing vs production `?map=A&ai=off`,
+hardware, 1280×800, fixed t=0; capture pairs + diff artifacts under the
+compare-screenshots protocol):**
+
+| stop | framing | parityDistance | mae | px>32 | edgeEnergyRatio |
+|---|---|---|---|---|---|
+| mid | zoom 4.5 @ (0,−650) | 0.00012 | 0.004 | 0.004% | 1.0000 |
+| top | zoom 1.5 (overview clamp) | 0.00022 | 0.006 | 0.005% | 0.9997 |
+| vista | zoom 9.5 @ (0,−650) | 0.00252 | 0.091 | 0.12% | 1.0000 |
+| sea | zoom 6 yaw π @ (600,−650) | 0.02596 | 1.884 | 1.66% | 1.0000 |
+
+mid/top/vista are visually indistinguishable (crowd pixel-for-pixel after the
+MSAA fix below). The sea divergence is wave-PHASE pattern only (per-wave phase
+offsets hash `sin()` in f32 WGSL vs f64 JS): same statistics, same palette,
+same haze dissolve, same shore band — edge energy and luminance identical to
+4 decimal places. VERDICT: **parity / not worse** (neutral two-image judges +
+critique quoted below in Verification).
+
+**Perf ledger row (hardware apple/metal-3, chrome, 1280×800):**
+`/renderer/photoreal-battle?count=30500` (30,560 soldiers + 548 scenery + full
+sea + grass; vista fill 16,800 tufts / 184,800 blades = the production floors)
+= **GPU 3.3–3.9 ms mid/vista, median rAF 8.33 ms vsync-pinned** — next to
+production `battle-perf-30k` 4.35/4.30 ms and `photoreal-crowd` 5.29 ms;
+~8.5× inside the 33 ms budget with the FULL parity world.
+
+**Gate scene:** `web/scenes/battle/battle-photoreal-parity.mjs` (SwiftShader
+green, baseline `web/shots/battle/photoreal-parity.png`): identity fields
+`{substrate, projection, environment:'golden'}`, soldier count identity + floor,
+the seating tripwire (`seating.matches === true` — every instance elevation
+equals the shared `terrainHeightAt` sample, span > 0.5 m on map A's relief),
+sealed-edge/scenery/grass floors, overlay-port contracts (gold cues + effect
+lines), crowd/gold pixels on screen, fixed-`setTime` byte-determinism, and the
+hardware 30.5k ≤ 33 ms leg (skipped by name under SwiftShader).
+
+**New TSL/three@0.185 hazards recorded (add to the 06/07 hazard list):**
+1. **`reversedDepthBuffer` REVERSES the sorted render lists** —
+   `RenderList.sort()` runs the painter sort then `list.reverse()` when
+   reversed depth is on, inverting `renderOrder` semantics for opaque AND
+   transparent lists (a -10 background quad draws LAST and covers the world,
+   with zero validation errors). Fix: compensating comparators via
+   `renderer.setOpaqueSort/setTransparentSort` that pre-invert every axis
+   (battleWorld.ts owns them).
+2. **Default 4× MSAA (`antialias: true`) washes out the sub-pixel crowd** —
+   at gameplay zoom soldiers are 1–2 px and multisample resolve averages them
+   toward the ground; the production battle shell renders at sampleCount 1.
+   `PhotorealWorld.create` grew an `{ antialias }` option; the battle world
+   passes false. (Judged per-surface at 08b+; not a global photoreal setting.)
+3. **`THREE.Fog` applies at overview distances the bespoke frame never fogs** —
+   the top-down rig parks the eye ~3.2 km out (2×min map side), so a
+   "gameplay-range" fog bleaches crowd/scenery from above. The haze stand-in
+   ranges start past the rig maximum (3400→8200) until `10b` replaces it with
+   the one aerial-perspective owner.
+
+**Scaffolding ledger rows born here (README table):** `THREE.Fog` haze
+stand-in (dies at 10b), blob-shadow decal replica (dies at 11), parity
+Gerstner-family sea shading in `seaLayer` (dies at 12b–d; the seam survives).
+
+**Deliberately NOT ported (production-only behavior that stays above the
+seam at 08b):** frozen-frame caching/`fixedTime` cue filtering
+(`frozenSelectionGroundCues`) and the render-position smoothing — both live in
+`BattleRenderer`/`scene.ts` and keep working unchanged when 08b swaps the
+internals; the world renders what it is handed.
+
 ## Contract unlocked
 
 three.js owns **battle world rendering in production**. Every later look slice lands

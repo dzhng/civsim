@@ -22,8 +22,39 @@ ladder invariants"** below — read that section before implementing any ladder
 slice); and **slice `07` is DONE** (below) — the ladder's foundation exists and
 the 06 spike is gone.
 
-**Exact next pickup point:** start the ladder proper at `08a` (`slices/08a-*.md`,
-`PhotorealBattleWorld` parity assembly on the `07` foundation). `04f` is DONE
+**Exact next pickup point:** **`08b` — the ATOMIC production flip**
+(`slices/08-battle-world-adoption.md`): swap `BattleRenderer.init()`'s
+internals onto `PhotorealBattleWorld` on the same canvas, delete the
+`createFrameShell` + bespoke battle pass construction from `renderer.ts`, keep
+`stats()` shape, re-point `battle-perf-30k`, deliberate re-bless of the battle
+suite. `08a` is DONE (below) — the parity world + its evidence are the
+foundation 08b flips onto.
+
+**Slice `08a` is DONE (this branch, 2026-07-02).**
+`packages/photoreal-renderer/src/battle/` renders the FULL production battle
+world at parity on the three.js WebGPU + TSL substrate — terrain (backdrop +
+builtin quads + heightfield ground incl. field water), Gerstner-family sea
+(`seaLayer.ts`, the ONE water seam, fed by the shared `bakeGerstnerWaves`
+list), horizon blockers, grass + scenery from the shared builders, the
+per-class VAT crowd fed by `buildCrowdInstances` (seated via `terrainHeightAt`
+— firewall intact), blob-shadow + `THREE.Fog` haze stand-ins (ledger rows),
+and the OVERLAY PORTS (gold ground cues / effect lines / debug triangles on
+unchanged `Float32Array` contracts; far-LOD markers as camera-facing TSL
+billboards — 04c/04d re-homed). Lab route **`/renderer/photoreal-battle`**
+boots the production wasm worlds on the shared `Camera` (`window.__cam`).
+**Parity verdict: parity / not worse** — matched-framing compare vs the
+production battle at 4 stops: mid/top/vista parityDistance 0.0001–0.0025
+(neutral judge: "near-pixel-identical"), sea 0.026 (wave-phase pattern only;
+same register/statistics). **Perf ledger row:** full world at **30,560
+soldiers = GPU 3.3–3.9 ms** (hardware apple/metal-3; vs production 4.30–4.35,
+photoreal-crowd 5.29). Gate scene `battle-photoreal-parity` (identity fields,
+count identity, seating tripwire `matches=true`, overlay contracts,
+byte-determinism, hardware 30.5k ms leg). **Three new TSL hazards recorded in
+the slice file** — headline: three@0.185 `reversedDepthBuffer` REVERSES the
+sorted render lists (renderOrder inverted; compensating
+`setOpaqueSort/setTransparentSort` comparators in `battleWorld.ts`); default
+MSAA washes the sub-pixel crowd (battle world runs `antialias: false`);
+`THREE.Fog` ranges must start past the overview rig distance. `04f` is DONE
 (below) — the standing 30k gate exists and is green.
 
 **Slice `04f` is DONE (this branch, 2026-07-02).** The standing 30k perf gate is
@@ -429,11 +460,13 @@ depth-bias only (pending David's confirm; billboards → `08`, LOD → `14b`).
       `slices/04b-battle-polish.md`; billboards re-homed to `08`, LOD to `14b`)
 - [x] `06` — photoreal substrate bake-off → **VERDICT: three.js WebGPU + TSL**
       (`slices/06-photoreal-substrate-bakeoff.md`)
-- [ ] `07` — photoreal foundation: `packages/photoreal-renderer` + harness
-      re-tooling, spike promoted/deleted (`slices/07-photoreal-foundation.md`) —
-      **can start now, in parallel**
-- [ ] `08` — battle world adoption: `08a` parity lab world → `08b` atomic
-      production flip (`slices/08-battle-world-adoption.md`)
+- [x] `07` — photoreal foundation: `packages/photoreal-renderer` + harness
+      re-tooling, spike promoted/deleted (`slices/07-photoreal-foundation.md`)
+      **(done)**
+- [ ] `08` — battle world adoption: **`08a` parity lab world DONE**
+      (`/renderer/photoreal-battle`, verdict parity/not-worse, GPU 3.3–3.9 ms
+      at 30.5k, overlay ports landed) → `08b` atomic production flip is the
+      NEXT pickup (`slices/08-battle-world-adoption.md`)
 - [ ] `09` — lighting core: physical sun + IBL + ACES from `CIVSIM_ENVIRONMENTS`
       (`slices/09-lighting-core.md`)
 - [ ] `10` — physical sky + aerial-perspective ONE owner + presets

@@ -267,10 +267,42 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
     const info = unitInfo();
     return count > 0 ? [cx / count, cy / count] : [info[u * STRIDE], info[u * STRIDE + 1]];
   };
+  // ?fx=1: a deterministic overlay fixture at the first player unit — an
+  // order-progress pie + projectile streaks (effect lines) and a pair of
+  // attack-arc fans (debug triangles), so the overlay ports are verifiable
+  // without scripting a live melee.
+  const fxAt = params.get('fx') === '1' ? unitCenter(firstPlayerUnit()) : null;
+  const fxArcs = (): Float32Array => {
+    if (!fxAt) return new Float32Array();
+    const [x, y] = fxAt;
+    const tris: number[] = [];
+    for (const [f0, r, g, b] of [[Math.PI / 2, 0.55, 0.85, 1.0], [-Math.PI / 2, 1.0, 0.72, 0.35]] as const) {
+      const reach = 2.4;
+      for (let s = 0; s < 3; s++) {
+        const a0 = f0 - 0.5 + (s / 3);
+        const a1 = f0 - 0.5 + ((s + 1) / 3);
+        tris.push(
+          x, y, r, g, b, 0.26,
+          x + Math.cos(a0) * reach, y + Math.sin(a0) * reach, r, g, b, 0.04,
+          x + Math.cos(a1) * reach, y + Math.sin(a1) * reach, r, g, b, 0.04,
+        );
+      }
+    }
+    return new Float32Array(tris);
+  };
+
   const tacticalFrame = (): BattleTacticalLineFrame => {
     const groundCues: number[] = [];
     const effects: number[] = [];
     const info = unitInfo();
+    if (fxAt) {
+      pushPie(effects, fxAt[0], fxAt[1], 0.66, 7, 1, 1, 1);
+      for (let i = 0; i < 6; i++) {
+        const px = fxAt[0] - 18 + i * 7;
+        const py = fxAt[1] + 14 + i * 2;
+        effects.push(px - 0.7, py, 0.92, 0.92, 0.83, px + 0.7, py, 0.92, 0.92, 0.83);
+      }
+    }
     for (let u = 0; u < game.unit_count(); u++) {
       const o = u * STRIDE;
       if (info[o + 14] > 0) pushPie(effects, info[o], info[o + 1], info[o + 14], 7, 1, 1, 1);
@@ -333,7 +365,8 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
     const positions = new Float32Array(wasm.memory.buffer, game.positions_ptr(), n * 2);
     const snapshot = cameraSnapshot();
     world.draw(positions, renderFacings, frames, aliveF32, n, snapshot, renderClass, simTick);
-    world.drawTris(attackArcs(), snapshot);
+    const arcs = attackArcs();
+    world.drawTris(arcs.length > 0 ? arcs : fxArcs(), snapshot);
     if (debugBlocks) {
       world.uploadDebugBlocks(buildDebugBlockTriangles(game, wasm.memory.buffer));
     }

@@ -13,6 +13,7 @@ const WATER_SHALLOW_ALBEDO = vec3f(0.09, 0.29, 0.40); // Aegean turquoise, blue-
 const WATER_DEEP_ALBEDO = vec3f(0.02, 0.07, 0.19);    // deep blue
 const WATER_FOAM_ALBEDO = vec3f(0.92, 0.93, 0.94);    // white spray (lit by the preset)
 const WATER_GLINT_GAIN = 1.1;                          // specular strength; colour = the sun's
+const WATER_SHALLOW_SCATTER = 0.6;                     // sandy-bottom backscatter lift at the shore (sun-independent)
 `;
 
 // The campaign strategic sea's albedo — a MUTED, slightly-desaturated chart blue,

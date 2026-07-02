@@ -108,7 +108,12 @@ export async function run(ctx) {
       retiredStats.renderer === "gpu" &&
         retiredStats.renderStats?.drawCalls > 0 &&
         retiredStats.renderStats?.drawCalls < 64 &&
-        retiredStats.renderStats?.markerLayer === "none" &&
+        // Slice 14b: at the duel route's default zoom a 2m soldier subtends
+        // only ~3 px, so the projected-screen-height LOD promotes the whole
+        // crowd to the far octahedral-impostor tier — 'none' (all skinned
+        // mesh) was the pre-14b state. Either LOD-driven marker state is valid.
+        (retiredStats.renderStats?.markerLayer === "none" ||
+          retiredStats.renderStats?.markerLayer === "far-lod-impostor") &&
         hasBattleWorldDepthContract(retiredStats.renderStats),
       JSON.stringify(retiredStats),
     );

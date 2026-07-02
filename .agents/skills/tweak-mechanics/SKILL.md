@@ -134,6 +134,18 @@ did a sound change move a value pin (re-pin to the printed actual with a one-lin
 cause, only after the qualitative contract still holds). When you finish, hand
 David the [change-report](../change-report/SKILL.md) ledger of every moved test.
 
+## Trace before theorizing — the force-trace harness
+
+Every force on every soldier is recordable at its source behind
+`--features force-trace`: per-record channel + source-site tags, pre/post-cap
+values, and query helpers for the standard questions (what carried this man
+across the seam, torque budget by channel, which cap fired). A conservation
+test guarantees nothing moves a soldier untraced. **Read the ledger before
+forming a hypothesis** — the constituent-term logging below is a harness query,
+not bespoke eprintln archaeology (probes in hot lib code shift float codegen;
+the feature gate is the only airtight guard). Full API, worked one-liners, and
+the codegen caveat: [references/force-trace.md](references/force-trace.md).
+
 ## Measure the mechanism, never argue from the score
 
 It is a deterministic sim — instrument the *cause*, don't reason from the

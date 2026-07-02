@@ -7,6 +7,8 @@
 //!   unit-state integration (disorder, cohesion, stamina, contact decay).
 
 use crate::class::{class_stats, UnitClass, UnitClassId};
+#[cfg(feature = "force-trace")]
+use crate::force_trace::{ForceChannel, ForceRecord, ForceTrace, ForceTraceFilter};
 use crate::grid::SpatialHash;
 use crate::math::{dir, rotate_toward, wrap_angle, Vec2};
 use crate::movement::{
@@ -170,6 +172,12 @@ pub struct Sim {
     /// a quiet wing reads 0; a man beside the scrum reads high — and his
     /// seek radius grows with it (cascading envelopment).
     pub fight_near: Vec<u8>,
+    /// Surface gap to the nearest living enemy body (f32::MAX when none in
+    /// awareness range), written by the combat targeting scan each tick.
+    pub nearest_enemy_d: Vec<f32>,
+    /// That enemy's soldier index (-1 when none) — the blade-lock tangent
+    /// reference for the fighting-tempo cap.
+    pub nearest_enemy: Vec<i32>,
     /// 1 = the bearing to this soldier's target is clear of friendly bodies
     /// (within 1.5m, ±40°). The anti-blender leash: rank-3 men behind
     /// comrades may NOT wade in regardless of seek radius.
@@ -222,6 +230,8 @@ pub struct Sim {
     pub rng: Pcg32,
     pub(crate) grid: SpatialHash,
     pub(crate) scratch: Vec<f32>,
+    #[cfg(feature = "force-trace")]
+    pub force_trace: ForceTrace,
 }
 
 impl Sim {
@@ -266,6 +276,8 @@ impl Sim {
             fighting: Vec::new(),
             has_fighting: false,
             fight_near: Vec::new(),
+            nearest_enemy_d: Vec::new(),
+            nearest_enemy: Vec::new(),
             front_clear: Vec::new(),
             awareness: Vec::new(),
             hit_dir: Vec::new(),
@@ -290,7 +302,38 @@ impl Sim {
             rng: Pcg32::new(seed, 0xda3e),
             grid: SpatialHash::new(),
             scratch: Vec::new(),
+            #[cfg(feature = "force-trace")]
+            force_trace: ForceTrace::new(),
         }
+    }
+
+    #[cfg(feature = "force-trace")]
+    pub fn clear_force_trace(&mut self) {
+        self.force_trace.clear();
+    }
+
+    #[cfg(feature = "force-trace")]
+    pub fn set_force_trace_filter(&mut self, filter: ForceTraceFilter) {
+        self.force_trace.set_filter(filter);
+    }
+
+    #[cfg(feature = "force-trace")]
+    pub fn force_trace_steering_residuals(&self, tick: u64) -> Vec<(usize, Vec2)> {
+        let mut sums = vec![Vec2::ZERO; self.soldier_count()];
+        for record in self.force_trace.records() {
+            if record.tick == tick && record.channel.is_steering() {
+                sums[record.soldier] = sums[record.soldier] + record.vec;
+            }
+        }
+        let mut out = Vec::new();
+        for i in 0..self.soldier_count() {
+            if self.alive[i] == 0 {
+                continue;
+            }
+            let actual = Vec2::new(self.kin_vx[i] * DT, self.kin_vy[i] * DT);
+            out.push((i, sums[i] - actual));
+        }
+        out
     }
 
     pub fn soldier_count(&self) -> usize {
@@ -439,6 +482,8 @@ impl Sim {
             self.attacked_by.push(0);
             self.fighting.push(0);
             self.fight_near.push(0);
+            self.nearest_enemy_d.push(f32::MAX);
+            self.nearest_enemy.push(-1);
             self.front_clear.push(1);
             self.awareness.push(1.0);
             self.hit_dir.push(0.0);
@@ -844,6 +889,8 @@ impl Sim {
         let dt = DT;
         let tun = self.tun;
         let n = self.soldier_count();
+        #[cfg(feature = "force-trace")]
+        let mut tick_force_records: Vec<ForceRecord> = Vec::new();
 
         // Snapshot for velocity measurement (charges, anchor drift).
         self.prev_positions.resize(2 * n, 0.0);
@@ -855,10 +902,40 @@ impl Sim {
         self.run_skirmish_evade();
         self.navigate_units();
 
+        #[cfg(feature = "force-trace")]
+        let mut trace_unit_index = 0usize;
         for u in &mut self.units {
             let ground = self.terrain.speed_at(u.anchor).max(0.15);
             let a0 = u.anchor;
+            #[cfg(feature = "force-trace")]
+            let facing0 = u.facing;
             update_unit_motion(&tun, u, dt, ground);
+            #[cfg(feature = "force-trace")]
+            {
+                let soldier = u.start;
+                let frame_delta = u.anchor - a0;
+                if frame_delta.x != 0.0 || frame_delta.y != 0.0 {
+                    tick_force_records.push(ForceRecord::new(
+                        self.tick_count,
+                        soldier,
+                        trace_unit_index,
+                        ForceChannel::UnitFrame,
+                        frame_delta,
+                        "unit_anchor_motion",
+                    ));
+                }
+                if u.facing != facing0 {
+                    tick_force_records.push(ForceRecord::new(
+                        self.tick_count,
+                        soldier,
+                        trace_unit_index,
+                        ForceChannel::UnitFacing,
+                        Vec2::new(wrap_angle(u.facing - facing0), 0.0),
+                        "unit_motion_facing",
+                    ));
+                }
+                trace_unit_index += 1;
+            }
             // frame_speed MEASURES the frame's gross motion in this pass —
             // bracing, charge windows, and mobile-fire gates read it. One
             // blind spot: it is taken before the anchor law runs, so a
@@ -868,6 +945,8 @@ impl Sim {
                 u.frame_speed = (u.anchor - a0).len() / dt;
             }
         }
+        #[cfg(feature = "force-trace")]
+        self.force_trace.extend(tick_force_records);
 
         // A halted frame with slots on impassable ground slides itself clear:
         // the ideal formation must always be physically achievable, or the
@@ -929,7 +1008,9 @@ impl Sim {
             };
             let engaged_deep_reform = broad_contact_files * 2 > files
                 && ranks >= 5.0
-                && self.tick_count % 60 == (ui as u64) % 60;
+                && self.tun.engaged_deep_reform
+                && self.tick_count % self.tun.engaged_deep_reform_ticks
+                    == (ui as u64) % self.tun.engaged_deep_reform_ticks;
             // A SETTLED, AT-EASE unit (halted, no enemy near) that frayed on
             // the march RE-FORMS on a slow drumbeat so order RECOVERS — without
             // this a unit kept its march disorder forever (nothing re-sorted a
@@ -1566,9 +1647,13 @@ impl Sim {
             hit_dir,
             hit_ttl,
             mounted,
+            nearest_enemy,
+            nearest_enemy_d,
             ..
         } = self;
         let tick_now = *tick_count;
+        #[cfg(feature = "force-trace")]
+        let mut force_records: Vec<ForceRecord> = Vec::new();
         // Pressure is read straight off the WEAVE now: a man's crush is the
         // load on his springs — the friendly net squeezing him plus the enemy
         // reach-spring shoving him back when ranks pile him inside reach. No
@@ -1694,6 +1779,138 @@ impl Sim {
                 }
             }
 
+            let mut living_centroid = Vec2::ZERO;
+            let mut living_count = 0.0f32;
+            for s in 0..u.count {
+                let i = u.start + s;
+                if alive[i] == 1 {
+                    living_centroid =
+                        living_centroid + Vec2::new(positions[2 * i], positions[2 * i + 1]);
+                    living_count += 1.0;
+                }
+            }
+            if living_count > 0.0 {
+                living_centroid = living_centroid * (1.0 / living_count);
+            }
+
+            let mut projected_pivot = vec![Vec2::ZERO; u.count];
+            if living_count > 0.0 {
+                let order_advancing =
+                    u.move_target.is_some() || matches!(u.mode, OrderMode::Attack(_));
+                let running = !strict_formation
+                    && u.move_target.is_some()
+                    && u.mass_advance > tun.charge_spent_speed;
+                let gathering = u.reform_timer > 0.0
+                    && u.cohesion < REFORM_COH
+                    && !matches!(u.mode, OrderMode::Attack(_) | OrderMode::Disengage);
+                let trampling_unit = u.tramples()
+                    && (u.move_target.is_some() || u.mass_advance > tun.charge_spent_speed);
+                let weave_active = !((trampling_unit || running) && !gathering);
+                if weave_active {
+                    let files = u.files_eff.max(1);
+                    let (sx, sy) = (u.spacing.x, u.spacing.y);
+                    let neighbor_skip = if order_advancing && !strict_formation {
+                        1
+                    } else {
+                        WEAVE_NEIGHBOR_SKIP
+                    };
+                    let ranks = slot_capacity.div_ceil(files);
+                    let mut torque = 0.0f32;
+                    let mut inertia = 0.0f32;
+                    for s in 0..u.count {
+                        let i = u.start + s;
+                        if alive[i] == 0 || stun[i] > 0.0 || trampled[i] > 0.0 || u.routing {
+                            continue;
+                        }
+                        let p = Vec2::new(positions[2 * i], positions[2 * i + 1]);
+                        let si = soldier_slot[i] as usize;
+                        let (file, rank) = (si % files, si / files);
+                        let mut raw = Vec2::ZERO;
+                        let mut pivot_bond = |j: usize, off: Vec2| {
+                            if j != usize::MAX && trampled[j] <= 0.0 {
+                                let jp =
+                                    Vec2::new(prev_positions[2 * j], prev_positions[2 * j + 1]);
+                                let d = p - jp;
+                                let (al, rl) = (d.len(), off.len());
+                                if al > 1e-3 && rl > 1e-3 {
+                                    let (dh, oh) = (d * (1.0 / al), off * (1.0 / rl));
+                                    let dot = (dh.x * oh.x + dh.y * oh.y).clamp(-1.0, 1.0);
+                                    let tang = oh - dh * dot;
+                                    let fighting_mounted =
+                                        target[i] >= 0 && mounted[target[i] as usize] == 1;
+                                    let pivot_len = if (u.is_mounted()
+                                        || fighting_mounted
+                                        || narrow_against_much_wider_foot)
+                                        && al > rl
+                                    {
+                                        al.min(rl + pivot_stretch_slack)
+                                    } else {
+                                        al
+                                    };
+                                    raw = raw + tang * pivot_len;
+                                }
+                            }
+                        };
+                        for step in 1..=file.min(neighbor_skip) {
+                            let ns = si - step;
+                            let j = soldier_at_slot[ns];
+                            if j != usize::MAX && trampled[j] <= 0.0 {
+                                pivot_bond(j, r * (sx * step as f32));
+                                break;
+                            }
+                        }
+                        let right_steps = (files - 1 - file)
+                            .min(slot_capacity.saturating_sub(1).saturating_sub(si))
+                            .min(neighbor_skip);
+                        for step in 1..=right_steps {
+                            let ns = si + step;
+                            let j = soldier_at_slot[ns];
+                            if j != usize::MAX && trampled[j] <= 0.0 {
+                                pivot_bond(j, r * (-sx * step as f32));
+                                break;
+                            }
+                        }
+                        for step in 1..=rank.min(neighbor_skip) {
+                            let ns = si - files * step;
+                            let j = soldier_at_slot[ns];
+                            if j != usize::MAX && trampled[j] <= 0.0 {
+                                pivot_bond(j, f * (-sy * step as f32));
+                                break;
+                            }
+                        }
+                        for step in 1..=((ranks - 1 - rank).min(neighbor_skip)) {
+                            let ns = si + files * step;
+                            if ns >= slot_capacity {
+                                break;
+                            }
+                            let j = soldier_at_slot[ns];
+                            if j != usize::MAX && trampled[j] <= 0.0 {
+                                pivot_bond(j, f * (sy * step as f32));
+                                break;
+                            }
+                        }
+                        let component = raw * tun.pivot_stiffness;
+                        projected_pivot[s] = component;
+                        let lever = p - living_centroid;
+                        torque += lever.x * component.y - lever.y * component.x;
+                        inertia += lever.x * lever.x + lever.y * lever.y;
+                    }
+                    if inertia > 1.0e-6 {
+                        let omega = torque / inertia;
+                        for s in 0..u.count {
+                            let i = u.start + s;
+                            if alive[i] == 0 {
+                                continue;
+                            }
+                            let p = Vec2::new(positions[2 * i], positions[2 * i + 1]);
+                            let lever = p - living_centroid;
+                            projected_pivot[s] =
+                                projected_pivot[s] - Vec2::new(-omega * lever.y, omega * lever.x);
+                        }
+                    }
+                }
+            }
+
             for s in 0..u.count {
                 let i = u.start + s;
                 if alive[i] == 0 {
@@ -1722,8 +1939,19 @@ impl Sim {
                 // their stumble-through, and fleeing men their escape.
                 if mom_x[i] != 0.0 || mom_y[i] != 0.0 {
                     let v = 1.0 / mass[i].max(0.2);
+                    #[cfg(feature = "force-trace")]
+                    let before = Vec2::new(positions[2 * i], positions[2 * i + 1]);
                     positions[2 * i] += mom_x[i] * v * dt;
                     positions[2 * i + 1] += mom_y[i] * v * dt;
+                    #[cfg(feature = "force-trace")]
+                    force_records.push(ForceRecord::new(
+                        tick_now,
+                        i,
+                        soldier_unit[i] as usize,
+                        ForceChannel::KnockbackMomentum,
+                        Vec2::new(positions[2 * i], positions[2 * i + 1]) - before,
+                        "carried_momentum_displacement",
+                    ));
                     let decay = 1.0 - (dt / 0.8);
                     mom_x[i] *= decay;
                     mom_y[i] *= decay;
@@ -1777,12 +2005,34 @@ impl Sim {
                         .max(0.0);
                     positions[2 * i] = p.x + run.x * sp * dt;
                     positions[2 * i + 1] = p.y + run.y * sp * dt;
+                    #[cfg(feature = "force-trace")]
+                    force_records.push(ForceRecord::new(
+                        tick_now,
+                        i,
+                        soldier_unit[i] as usize,
+                        ForceChannel::Routing,
+                        Vec2::new(positions[2 * i], positions[2 * i + 1]) - p,
+                        "routing_run",
+                    ));
                     let desired = run.y.atan2(run.x);
+                    #[cfg(feature = "force-trace")]
+                    let facing_before = facings[i];
                     facings[i] = rotate_toward(
                         facings[i],
                         desired,
                         tun.soldier_turn_rate * u.stats.turn_mult * dt,
                     );
+                    #[cfg(feature = "force-trace")]
+                    if facings[i] != facing_before {
+                        force_records.push(ForceRecord::new(
+                            tick_now,
+                            i,
+                            soldier_unit[i] as usize,
+                            ForceChannel::SoldierFacing,
+                            Vec2::new(wrap_angle(facings[i] - facing_before), 0.0),
+                            "routing_facing",
+                        ));
+                    }
                     continue;
                 }
 
@@ -1812,6 +2062,8 @@ impl Sim {
                 let to = slot - p;
                 let mut slot_pull_vec = to;
                 let mut formation_blocks_forward = false;
+                #[cfg(feature = "force-trace")]
+                let mut corridor_slot_removed = Vec2::ZERO;
                 // A footman may not power himself forward through a living,
                 // opposing foot formation's frontage. This is local and geometric:
                 // inside that enemy's lateral corridor, remove the forward slot /
@@ -1830,7 +2082,13 @@ impl Sim {
                             continue;
                         }
                         let vr = Vec2::new(vf.y, -vf.x);
-                        let half_w = 0.5 * v.width() + 0.5 * v.spacing.x;
+                        let corridor_files = if tun.corridor_deployed_width {
+                            v.files.max(v.files_eff)
+                        } else {
+                            v.files_eff
+                        };
+                        let half_w = 0.5 * (corridor_files.max(1) - 1) as f32 * v.spacing.x
+                            + 0.5 * v.spacing.x;
                         let p_lat = (p - v.center()).dot(vr);
                         let slot_lat = (slot - v.center()).dot(vr);
                         if p_lat.abs().min(slot_lat.abs()) > half_w {
@@ -1839,7 +2097,12 @@ impl Sim {
                         let v_mid = v.center().dot(f);
                         if p.dot(f) > v_mid && slot.dot(f) > v_mid {
                             let forward_pull = slot_pull_vec.dot(f).max(0.0);
-                            slot_pull_vec = slot_pull_vec - f * forward_pull;
+                            let removed = f * forward_pull;
+                            slot_pull_vec = slot_pull_vec - removed;
+                            #[cfg(feature = "force-trace")]
+                            {
+                                corridor_slot_removed = corridor_slot_removed - removed;
+                            }
                             formation_blocks_forward = true;
                             break;
                         }
@@ -1865,12 +2128,15 @@ impl Sim {
                 // shove that rotates each bond back toward its rest heading
                 // (length untouched) — the force that snaps a bent/sheared line
                 // straight, which the length-only net & compression springs can't
-                // feel. Scaled by pivot_stiffness below.
-                let mut pivot_push = Vec2::ZERO;
+                // feel. The torque-free per-unit component is precomputed above.
                 // The scalar crush: the SUM of spring-load magnitudes (each bond's
                 // push, plus the enemy reach-spring below). Vector cancels under a
                 // two-sided squeeze; this scalar does not — that gap IS the vice.
                 let mut crush_scalar = 0.0f32;
+                #[cfg(feature = "force-trace")]
+                let mut enemy_weld_component = Vec2::ZERO;
+                #[cfg(feature = "force-trace")]
+                let mut enemy_inside_push = Vec2::ZERO;
                 // Weave: blend the rigid-slot pull with where my NEIGHBOURS want
                 // me — rest spacing from the men beside and behind. Undeformed,
                 // the two agree (the net's rest shape IS the grid); when a
@@ -1913,33 +2179,6 @@ impl Sim {
                                 let (dh, oh) = (d * (1.0 / al), off * (1.0 / rl));
                                 let dot = (dh.x * oh.x + dh.y * oh.y).clamp(-1.0, 1.0);
                                 bond_pivot += dot.acos();
-                                // Angular spring: the part of the rest heading
-                                // PERPENDICULAR to the live bond, scaled by the
-                                // bond's length — a tangential pull that swings the
-                                // bond back to rest without changing its length.
-                                // (Linear in sin(angle): an exponential knee held
-                                // its shape stiffer but read as too rigid and choked
-                                // the wrap — a wrap is the same large bend, so any
-                                // sharp angle law that stops a pancake stops a curl.)
-                                let tang = oh - dh * dot;
-                                // Contact queues can stretch a bond axially; that
-                                // stretch is handled by the length spring and
-                                // should not amplify the angular correction into
-                                // sideways fan-out. A small body-scale slack
-                                // keeps first contact from reading hollow without
-                                // returning to the old unbounded live-length lever.
-                                let fighting_mounted =
-                                    target[i] >= 0 && mounted[target[i] as usize] == 1;
-                                let pivot_len = if (u.is_mounted()
-                                    || fighting_mounted
-                                    || narrow_against_much_wider_foot)
-                                    && al > rl
-                                {
-                                    al.min(rl + pivot_stretch_slack)
-                                } else {
-                                    al
-                                };
-                                pivot_push = pivot_push + tang * pivot_len;
                             }
                             // COMPRESSION push: when the bond is shorter than rest,
                             // shove away from the neighbour, the force climbing
@@ -2023,14 +2262,27 @@ impl Sim {
                             // him. Blend the weld into the net target at half
                             // weight (the bond is one strong neighbour).
                             let bond_to = ep + d * (reach_u / al) - p;
+                            #[cfg(feature = "force-trace")]
+                            let before_bond = net_target.unwrap_or(Vec2::ZERO);
                             net_target =
                                 Some(net_target.map_or(bond_to, |nt| (nt + bond_to) * 0.5));
+                            #[cfg(feature = "force-trace")]
+                            {
+                                let after_bond = net_target.unwrap_or(Vec2::ZERO);
+                                enemy_weld_component =
+                                    enemy_weld_component + (after_bond - before_bond);
+                            }
                             // Same exponential shove-apart if I am inside his reach.
                             let comp = reach_u - al;
                             if comp > 0.0 {
                                 let push = tun.compress_strength
                                     * ((comp / tun.compress_scale).exp() - 1.0);
-                                comp_push = comp_push + d * (push / al);
+                                let push_vec = d * (push / al);
+                                comp_push = comp_push + push_vec;
+                                #[cfg(feature = "force-trace")]
+                                {
+                                    enemy_inside_push = enemy_inside_push + push_vec;
+                                }
                                 crush_scalar += push;
                             }
                         }
@@ -2143,15 +2395,63 @@ impl Sim {
                 // rides off. No "re-form" rule; the gather IS the re-form. A DIVE
                 // (Attack) never gathers: its blob is the disruption. (`gathering`
                 // computed above, where it also caps the gather pace.)
-                let mut steer_to = if (trampling || running) && !gathering {
+                let weave_active = !((trampling || running) && !gathering);
+                let mut steer_to = if !weave_active {
                     Vec2::ZERO
                 } else {
-                    let s = match net_target {
+                    let weave_component = match net_target {
                         Some(nt) => nt * tun.weave_stiffness + comp_push,
                         None => to + comp_push,
                     };
-                    s + pivot_push * tun.pivot_stiffness
+                    weave_component + projected_pivot[s]
                 };
+                #[cfg(feature = "force-trace")]
+                if weave_active {
+                    let net_component = match net_target {
+                        Some(nt) => (nt - enemy_weld_component) * tun.weave_stiffness,
+                        None => to,
+                    };
+                    let comp_component = comp_push - enemy_inside_push;
+                    let pivot_component = projected_pivot[s];
+                    for (channel, vec, meta) in [
+                        (
+                            ForceChannel::WeaveNet,
+                            net_component,
+                            "net_or_slot_fallback",
+                        ),
+                        (
+                            ForceChannel::CompPush,
+                            comp_component,
+                            "friendly_weave_compression",
+                        ),
+                        (
+                            ForceChannel::EnemyBondWeld,
+                            enemy_weld_component * tun.weave_stiffness,
+                            "fighting_target_reach_weld",
+                        ),
+                        (
+                            ForceChannel::EnemyBondInsideReachPush,
+                            enemy_inside_push,
+                            "inside_reach_exponential_push",
+                        ),
+                        (
+                            ForceChannel::PivotSpring,
+                            pivot_component,
+                            "bond_angle_spring",
+                        ),
+                    ] {
+                        if vec.x != 0.0 || vec.y != 0.0 {
+                            force_records.push(ForceRecord::new(
+                                tick_now,
+                                i,
+                                soldier_unit[i] as usize,
+                                channel,
+                                vec * (tun.soldier_gain * dt),
+                                meta,
+                            ));
+                        }
+                    }
+                }
                 let fi = target[i];
                 let foe_mounted = fi >= 0 && mounted[fi as usize] == 1;
                 // The foe I'm fighting is itself ~as wide as my line — a single
@@ -2189,6 +2489,43 @@ impl Sim {
                     slot_pull_u
                 };
                 steer_to = steer_to + slot_pull_vec * slot_pull_i;
+                #[cfg(feature = "force-trace")]
+                {
+                    let slot_channel = if slot_pull_i == 0.65 {
+                        ForceChannel::SlotPullLean
+                    } else {
+                        ForceChannel::SlotPull
+                    };
+                    let slot_vec = slot_pull_vec * slot_pull_i;
+                    if slot_vec.x != 0.0 || slot_vec.y != 0.0 {
+                        force_records.push(ForceRecord::new(
+                            tick_now,
+                            i,
+                            soldier_unit[i] as usize,
+                            slot_channel,
+                            slot_vec * (tun.soldier_gain * dt),
+                            if slot_pull_i == 0.65 {
+                                "engaged_lean_0_65"
+                            } else {
+                                "slot_pull"
+                            },
+                        ));
+                    }
+                    let corridor_vec = corridor_slot_removed * slot_pull_i;
+                    if corridor_vec.x != 0.0 || corridor_vec.y != 0.0 {
+                        force_records.push(ForceRecord::cap(
+                            tick_now,
+                            i,
+                            soldier_unit[i] as usize,
+                            ForceChannel::CorridorClamp,
+                            (slot_pull_vec - corridor_slot_removed)
+                                * slot_pull_i
+                                * (tun.soldier_gain * dt),
+                            slot_pull_vec * slot_pull_i * (tun.soldier_gain * dt),
+                            "slot_forward_removed",
+                        ));
+                    }
+                }
                 // ENEMY MAGNET — the SEEK, and nothing else. A pure attract
                 // toward the foe a man is fighting: far off he is pulled in hard
                 // (he RUNS to contact); at reach the force fades to zero (he STOPS
@@ -2229,6 +2566,8 @@ impl Sim {
                         let pull = (tun.magnet_strength * (1.0 - (-off / tun.magnet_scale).exp()))
                             .max(0.0);
                         let mut magnet = d * (pull / dist);
+                        #[cfg(feature = "force-trace")]
+                        let magnet_pre_clamp = magnet;
                         if formation_blocks_forward {
                             let forward = magnet.dot(f).max(0.0);
                             magnet = magnet - f * forward;
@@ -2250,8 +2589,45 @@ impl Sim {
                         // feed-forward (which would pour the wing past the foe). The
                         // magnet already pulls him inward; just don't override it.
                         let md = dir(u.facing);
-                        if !strict_formation && d.dot(md) / dist < 0.45 {
+                        if self.tun.seeking_flank_curl
+                            && !strict_formation
+                            && d.dot(md) / dist < 0.45
+                        {
                             seeking_flank = true;
+                        }
+                        #[cfg(feature = "force-trace")]
+                        {
+                            if magnet.x != 0.0 || magnet.y != 0.0 {
+                                force_records.push(ForceRecord::new(
+                                    tick_now,
+                                    i,
+                                    soldier_unit[i] as usize,
+                                    ForceChannel::Magnet,
+                                    magnet * (tun.soldier_gain * dt),
+                                    if self.tun.seeking_flank_curl
+                                        && !strict_formation
+                                        && d.dot(md) / dist < 0.45
+                                    {
+                                        "seeking_flank=true"
+                                    } else {
+                                        "seeking_flank=false"
+                                    },
+                                ));
+                            }
+                            if formation_blocks_forward
+                                && (magnet_pre_clamp.x != magnet.x
+                                    || magnet_pre_clamp.y != magnet.y)
+                            {
+                                force_records.push(ForceRecord::cap(
+                                    tick_now,
+                                    i,
+                                    soldier_unit[i] as usize,
+                                    ForceChannel::CorridorClamp,
+                                    magnet_pre_clamp * (tun.soldier_gain * dt),
+                                    magnet * (tun.soldier_gain * dt),
+                                    "magnet_forward_removed",
+                                ));
+                            }
                         }
                     }
                 }
@@ -2263,6 +2639,15 @@ impl Sim {
                     let fy = stagger01(i * 3 + 1, tick_now / 4) - 0.5;
                     fidget_offset[i] = Vec2::new(fx, fy) * IDLE_FIDGET;
                     steer_to = steer_to + fidget_offset[i];
+                    #[cfg(feature = "force-trace")]
+                    force_records.push(ForceRecord::new(
+                        tick_now,
+                        i,
+                        soldier_unit[i] as usize,
+                        ForceChannel::Fidget,
+                        fidget_offset[i] * (tun.soldier_gain * dt),
+                        "idle_fidget",
+                    ));
                 }
 
                 let micro = 1.0 - tun.micro_rough * (1.0 - crate::terrain::micro_rough(p));
@@ -2278,7 +2663,19 @@ impl Sim {
                 let mut v = steer_to * tun.soldier_gain;
                 let vl = v.len();
                 if vl > max_sp {
+                    #[cfg(feature = "force-trace")]
+                    let pre_cap = v;
                     v = v * (max_sp / vl);
+                    #[cfg(feature = "force-trace")]
+                    force_records.push(ForceRecord::cap(
+                        tick_now,
+                        i,
+                        soldier_unit[i] as usize,
+                        ForceChannel::SpeedCap,
+                        pre_cap * dt,
+                        v * dt,
+                        "soldier_max_speed",
+                    ));
                 }
                 if formation_blocks_forward {
                     let forward = v.dot(f);
@@ -2293,7 +2690,19 @@ impl Sim {
                             0.15
                         };
                     if forward > cap {
+                        #[cfg(feature = "force-trace")]
+                        let pre_cap = v;
                         v = v - f * (forward - cap);
+                        #[cfg(feature = "force-trace")]
+                        force_records.push(ForceRecord::cap(
+                            tick_now,
+                            i,
+                            soldier_unit[i] as usize,
+                            ForceChannel::CorridorClamp,
+                            pre_cap * dt,
+                            v * dt,
+                            "forward_speed_cap",
+                        ));
                     }
                 }
                 if vl > 0.2 {
@@ -2334,7 +2743,18 @@ impl Sim {
                             let want = (escape_speed * escape_factor * ground).min(max_sp);
                             let along = v.dot(escape_dir);
                             if want > along {
+                                #[cfg(feature = "force-trace")]
+                                let pre_escape = v;
                                 v = v + escape_dir * (want - along);
+                                #[cfg(feature = "force-trace")]
+                                force_records.push(ForceRecord::new(
+                                    tick_now,
+                                    i,
+                                    soldier_unit[i] as usize,
+                                    ForceChannel::DisengageEscape,
+                                    (v - pre_escape) * dt,
+                                    "disengage_escape_drive",
+                                ));
                             }
                         }
                     }
@@ -2353,7 +2773,18 @@ impl Sim {
                     let fwd = v.x * md.x + v.y * md.y;
                     let want = u.cruise.min(max_sp);
                     if want > fwd {
+                        #[cfg(feature = "force-trace")]
+                        let pre_cruise = v;
                         v = v + md * (want - fwd);
+                        #[cfg(feature = "force-trace")]
+                        force_records.push(ForceRecord::new(
+                            tick_now,
+                            i,
+                            soldier_unit[i] as usize,
+                            ForceChannel::Cruise,
+                            (v - pre_cruise) * dt,
+                            "frame_feed_forward",
+                        ));
                     }
                 }
                 // FIGHTING PACE, directional: a man already engaged may not drive
@@ -2376,7 +2807,69 @@ impl Sim {
                         let eh = e * (1.0 / el);
                         let fwd = v.x * eh.x + v.y * eh.y;
                         if fwd > tun.base_speed {
+                            #[cfg(feature = "force-trace")]
+                            let pre_cap = v;
                             v = v - eh * (fwd - tun.base_speed);
+                            #[cfg(feature = "force-trace")]
+                            force_records.push(ForceRecord::cap(
+                                tick_now,
+                                i,
+                                soldier_unit[i] as usize,
+                                ForceChannel::FightingPaceCap,
+                                pre_cap * dt,
+                                v * dt,
+                                "toward_foe_base_speed",
+                            ));
+                        }
+                    }
+                }
+                // FIGHTING TEMPO, tangential: you cannot CROSS a man's
+                // front at speed. In blade-lock range, the velocity component
+                // PERPENDICULAR to the nearest enemy's bearing is capped at
+                // fighting tempo; radial motion stays free — closing is
+                // already paced by the directional cap above and backing out
+                // is how the wounded circulate (the survivability mechanism a
+                // total cap measurably broke: HP2/HP1 hit 2.59x). Sliding
+                // along the seam at full stride was the measured motor of the
+                // mortal binary orbit (melee-blob slice 05): two casualty-
+                // offset fronts thrust past each other's flanks and the pair
+                // orbits. A trampler rides through and a routing man flees at
+                // fear pace — both exempt; a man torn far out of place still
+                // surges (same exemption as the directional cap above).
+                let ne = nearest_enemy[i];
+                if engaged_i
+                    && err < tun.surge_err_threshold
+                    && !u.routing
+                    && !u.tramples()
+                    && ne >= 0
+                    && nearest_enemy_d[i] <= tun.fighting_tempo_radius
+                {
+                    let ep = Vec2::new(
+                        prev_positions[2 * ne as usize],
+                        prev_positions[2 * ne as usize + 1],
+                    );
+                    let e = ep - p;
+                    let el = e.len();
+                    if el > 1e-3 {
+                        let eh = e * (1.0 / el);
+                        let radial = eh * v.dot(eh);
+                        let tangent = v - radial;
+                        let tl = tangent.len();
+                        let tmax = tun.base_speed * tun.fighting_tempo_tangent_mult;
+                        if tl > tmax {
+                            #[cfg(feature = "force-trace")]
+                            let pre_cap = v;
+                            v = radial + tangent * (tmax / tl);
+                            #[cfg(feature = "force-trace")]
+                            force_records.push(ForceRecord::cap(
+                                tick_now,
+                                i,
+                                soldier_unit[i] as usize,
+                                ForceChannel::FightingTempoCap,
+                                pre_cap * dt,
+                                v * dt,
+                                "blade_lock_tangential_tempo",
+                            ));
                         }
                     }
                 }
@@ -2392,7 +2885,19 @@ impl Sim {
                     let lat = v.dot(r);
                     let last_lat = Vec2::new(kin_vx[i], kin_vy[i]).dot(r);
                     if lat * last_lat < 0.0 {
+                        #[cfg(feature = "force-trace")]
+                        let pre_friction = v;
                         v = v - r * (lat * (1.0 - tun.idle_settle_damp));
+                        #[cfg(feature = "force-trace")]
+                        force_records.push(ForceRecord::cap(
+                            tick_now,
+                            i,
+                            soldier_unit[i] as usize,
+                            ForceChannel::PikeLateralFriction,
+                            pre_friction * dt,
+                            v * dt,
+                            "strict_formation_lateral_reversal",
+                        ));
                     }
                 }
                 // Idle/hold settle damping: a HALTED formation with no order and
@@ -2424,10 +2929,24 @@ impl Sim {
                 {
                     let last = Vec2::new(kin_vx[i], kin_vy[i]);
                     if v.dot(last) < 0.0 {
+                        #[cfg(feature = "force-trace")]
+                        let pre_damp = v;
                         v = v * tun.idle_settle_damp;
+                        #[cfg(feature = "force-trace")]
+                        force_records.push(ForceRecord::cap(
+                            tick_now,
+                            i,
+                            soldier_unit[i] as usize,
+                            ForceChannel::IdleSettleDamp,
+                            pre_damp * dt,
+                            v * dt,
+                            "idle_reversal_damp",
+                        ));
                     }
                 }
                 let mut np = Vec2::new(p.x + v.x * dt, p.y + v.y * dt);
+                #[cfg(feature = "force-trace")]
+                let pre_terrain_np = np;
                 // No "halt at your foe" clamp, no "hold the rank" clamp: the man
                 // is stopped by his foe's BODY (collision) and held on it by the
                 // magnet. The ranks behind stop because the lattice in front of
@@ -2444,6 +2963,18 @@ impl Sim {
                     } else {
                         p
                     };
+                }
+                #[cfg(feature = "force-trace")]
+                if np.x != pre_terrain_np.x || np.y != pre_terrain_np.y {
+                    force_records.push(ForceRecord::cap(
+                        tick_now,
+                        i,
+                        soldier_unit[i] as usize,
+                        ForceChannel::TerrainProject,
+                        pre_terrain_np - p,
+                        np - p,
+                        "terrain_projection",
+                    ));
                 }
                 positions[2 * i] = np.x;
                 positions[2 * i + 1] = np.y;
@@ -2539,11 +3070,24 @@ impl Sim {
                     // wheel to meet a flanker. Non-threat re-aims (march heading, the
                     // last blow that landed) are unscaled — those he feels regardless.
                     let see = if aware_i { awareness[i] } else { 1.0 };
+                    #[cfg(feature = "force-trace")]
+                    let facing_before = facings[i];
                     facings[i] = rotate_toward(
                         facings[i],
                         desired_face,
                         tun.soldier_turn_rate * u.stats.turn_mult * see * dt,
                     );
+                    #[cfg(feature = "force-trace")]
+                    if facings[i] != facing_before {
+                        force_records.push(ForceRecord::new(
+                            tick_now,
+                            i,
+                            soldier_unit[i] as usize,
+                            ForceChannel::SoldierFacing,
+                            Vec2::new(wrap_angle(facings[i] - facing_before), 0.0),
+                            "threat_or_motion_facing",
+                        ));
+                    }
                 }
             }
             measures.push(UnitMeasure {
@@ -2557,6 +3101,8 @@ impl Sim {
                 pivot_sum,
             });
         }
+        #[cfg(feature = "force-trace")]
+        self.force_trace.extend(force_records);
         measures
     }
 
@@ -2616,8 +3162,36 @@ impl Sim {
                     // trample carry-through law holds without it).
                     let geom = tun.wheel_speed_factor * top / u.pivot_radius().max(1.0);
                     let center = u.center();
+                    #[cfg(feature = "force-trace")]
+                    let facing_before = u.facing;
+                    #[cfg(feature = "force-trace")]
+                    let anchor_before = u.anchor;
                     u.facing = rotate_toward(u.facing, desired, geom * dt);
                     u.anchor = center + dir(u.facing) * (0.5 * u.depth());
+                    #[cfg(feature = "force-trace")]
+                    {
+                        if u.facing != facing_before {
+                            self.force_trace.push(ForceRecord::new(
+                                self.tick_count,
+                                u.start,
+                                ui,
+                                ForceChannel::UnitFacing,
+                                Vec2::new(wrap_angle(u.facing - facing_before), 0.0),
+                                "contact_facing",
+                            ));
+                        }
+                        let anchor_delta = u.anchor - anchor_before;
+                        if anchor_delta.x != 0.0 || anchor_delta.y != 0.0 {
+                            self.force_trace.push(ForceRecord::new(
+                                self.tick_count,
+                                u.start,
+                                ui,
+                                ForceChannel::UnitFrame,
+                                anchor_delta,
+                                "contact_anchor_reseat",
+                            ));
+                        }
+                    }
                     u.pivoting = true; // slots keep relabeling while we wheel
                 }
             }

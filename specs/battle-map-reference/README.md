@@ -11,7 +11,8 @@ master shot judged against the reference.
 
 **⚠️ THE RENDERER CHANGED UNDERNEATH THIS SPEC (2026-07-02) — read this block
 before trusting anything below it.** The `3d-perspective-renderer` spec landed on
-main: the engine now runs a **real 3D perspective camera** (`camera3d`, reverse-Z
+main and is now CLOSED (`specs/done/3d-perspective-renderer/`): the engine now runs
+a **real 3D perspective camera** (`camera3d`, reverse-Z
 `depth32float`, the 2.5D tilted-ortho projection is DELETED) and **battle
 production renders through three.js WebGPU + TSL** (`packages/photoreal-renderer`,
 `PhotorealBattleWorld` behind `BattleRenderer`'s unchanged API — the bespoke WGSL

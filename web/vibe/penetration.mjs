@@ -8,6 +8,7 @@ import {
   openBattle,
   closeBattle,
   vibeCapture,
+  fitBattleUnits,
   CLS,
   UNIT_CENTER_X,
   UNIT_CENTER_Y,
@@ -29,35 +30,8 @@ await page.evaluate(
   [UNIT_CENTER_X, UNIT_CENTER_Y],
 );
 
-// Fit both units' full footprint (the line is wide), flat top-down.
-const frame = () =>
-  page.evaluate(() => {
-    let minx = 1e9,
-      miny = 1e9,
-      maxx = -1e9,
-      maxy = -1e9;
-    for (const u of [0, 1]) {
-      const cnt = window.__game.unitInfo(u)[7];
-      const start = window.__game.soldierStartOf(u);
-      for (let i = start; i < start + cnt; i++) {
-        const [x, y] = window.__game.soldierPos(i);
-        if (x < minx) minx = x;
-        if (x > maxx) maxx = x;
-        if (y < miny) miny = y;
-        if (y > maxy) maxy = y;
-      }
-    }
-    const cv = document.getElementById("battlefield");
-    const c = window.__cam;
-    c.pitch = 0;
-    c.x = (minx + maxx) / 2;
-    c.y = (miny + maxy) / 2;
-    c.zoom = Math.max(
-      3,
-      Math.min(20, Math.min(cv.width / (maxx - minx + 40), cv.height / (maxy - miny + 40))),
-    );
-    c.clampView?.();
-  });
+// Fit both units' full footprint (the line is wide).
+const frame = () => fitBattleUnits(page, [0, 1]);
 
 const sample = () =>
   page.evaluate(() => {

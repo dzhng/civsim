@@ -265,7 +265,9 @@ export class BattleRenderer {
   }
 
   private async init() {
-    const world = await PhotorealBattleWorld.create(this.canvas);
+    const world = await PhotorealBattleWorld.create(this.canvas, {
+      environment: new URLSearchParams(location.search).get("env"),
+    });
     this.world = world;
     // The bespoke shell's fatal surface, re-homed onto three's device.
     const device = (world.world.renderer.backend as unknown as { device?: GPUDevice }).device;

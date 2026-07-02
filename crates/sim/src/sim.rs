@@ -998,6 +998,7 @@ impl Sim {
             };
             let engaged_deep_reform = broad_contact_files * 2 > files
                 && ranks >= 5.0
+                && self.tun.engaged_deep_reform
                 && self.tick_count % 60 == (ui as u64) % 60;
             // A SETTLED, AT-EASE unit (halted, no enemy near) that frayed on
             // the march RE-FORMS on a slow drumbeat so order RECOVERS — without
@@ -2465,7 +2466,10 @@ impl Sim {
                         // feed-forward (which would pour the wing past the foe). The
                         // magnet already pulls him inward; just don't override it.
                         let md = dir(u.facing);
-                        if !strict_formation && d.dot(md) / dist < 0.45 {
+                        if self.tun.seeking_flank_curl
+                            && !strict_formation
+                            && d.dot(md) / dist < 0.45
+                        {
                             seeking_flank = true;
                         }
                         #[cfg(feature = "force-trace")]
@@ -2477,7 +2481,10 @@ impl Sim {
                                     soldier_unit[i] as usize,
                                     ForceChannel::Magnet,
                                     magnet * (tun.soldier_gain * dt),
-                                    if !strict_formation && d.dot(md) / dist < 0.45 {
+                                    if self.tun.seeking_flank_curl
+                                        && !strict_formation
+                                        && d.dot(md) / dist < 0.45
+                                    {
                                         "seeking_flank=true"
                                     } else {
                                         "seeking_flank=false"

@@ -544,20 +544,33 @@ impl Sim {
                         } else {
                             #[cfg(not(feature = "force-trace"))]
                             {
-                                push.x += if i < j { 0.01 } else { -0.01 };
+                                push.x += if i < j {
+                                    tun.body_separation_tiebreak
+                                } else {
+                                    -tun.body_separation_tiebreak
+                                };
                             }
                             #[cfg(feature = "force-trace")]
                             {
-                                let tie = Vec2::new(if i < j { 0.01 } else { -0.01 }, 0.0);
-                                push = push + tie;
-                                force_records.push(ForceRecord::new(
-                                    tick_now,
-                                    i,
-                                    soldier_unit[i] as usize,
-                                    ForceChannel::BodySeparationTieBreak,
-                                    tie,
-                                    "coincident_body_index_tiebreak",
-                                ));
+                                let tie = Vec2::new(
+                                    if i < j {
+                                        tun.body_separation_tiebreak
+                                    } else {
+                                        -tun.body_separation_tiebreak
+                                    },
+                                    0.0,
+                                );
+                                if tie.x != 0.0 {
+                                    push = push + tie;
+                                    force_records.push(ForceRecord::new(
+                                        tick_now,
+                                        i,
+                                        soldier_unit[i] as usize,
+                                        ForceChannel::BodySeparationTieBreak,
+                                        tie,
+                                        "coincident_body_index_tiebreak",
+                                    ));
+                                }
                             }
                         }
                     }

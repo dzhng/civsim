@@ -7,8 +7,10 @@ use common::force_trace::{
     unit_force_budget_by_channel,
 };
 use common::no_morale_parade;
-use sim::{ForceChannel, Pace, Sim, UnitClassId, Vec2, DT};
-use std::collections::BTreeSet;
+use sim::{
+    class_stats, ForceChannel, ForceTraceFilter, Pace, Sim, Tunables, UnitClassId, Vec2, DT,
+};
+use std::collections::{BTreeMap, BTreeSet};
 use std::f32::consts::PI;
 
 fn traced_heavy_clash(seconds: f32) -> Sim {
@@ -67,6 +69,182 @@ fn traced_probe_clash(seconds: f32) -> Sim {
         sim.tick();
     }
     sim
+}
+
+fn trace_env_bool(name: &str) -> Option<bool> {
+    std::env::var(name).ok().map(|v| {
+        let v = v.trim().to_ascii_lowercase();
+        !(v == "0" || v == "false" || v == "off" || v == "no")
+    })
+}
+
+fn apply_trace_env_overrides(tun: &mut Tunables) {
+    if let Ok(v) = std::env::var("SLIDE") {
+        tun.separation_slide = v.parse().unwrap();
+    }
+    if let Ok(v) = std::env::var("TIEBREAK") {
+        tun.body_separation_tiebreak = v.parse().unwrap();
+    }
+    if let Ok(v) = std::env::var("MAGNET") {
+        tun.magnet_strength = v.parse().unwrap();
+    }
+    if let Some(on) = trace_env_bool("DEEPREFORM") {
+        tun.engaged_deep_reform = on;
+    }
+    if let Some(on) = trace_env_bool("FLANKCURL") {
+        tun.seeking_flank_curl = on;
+    }
+}
+
+fn traced_attribution_heavy(seed: u64, immortal: bool) -> (Sim, usize, usize) {
+    let mut tun = no_morale_parade();
+    apply_trace_env_overrides(&mut tun);
+    let mut sim = Sim::new(tun, seed);
+    let stats = class_stats(UnitClassId::HeavySword);
+    let a = sim.spawn_class_stats_with_files(
+        Vec2::new(0.0, -13.0),
+        PI * 0.5,
+        240,
+        24,
+        UnitClassId::HeavySword,
+        stats,
+        0,
+    );
+    let b = sim.spawn_class_stats_with_files(
+        Vec2::new(0.0, 13.0),
+        -PI * 0.5,
+        240,
+        24,
+        UnitClassId::HeavySword,
+        stats,
+        1,
+    );
+    if immortal {
+        for k in 0..sim.soldier_count() {
+            sim.health[k] = 1.0e9;
+        }
+    }
+    sim.set_pace(a, Pace::Run);
+    sim.set_pace(b, Pace::Run);
+    sim.set_attack_order(a, b);
+    sim.set_attack_order(b, a);
+    let units = BTreeSet::from([a, b]);
+    sim.set_force_trace_filter(ForceTraceFilter {
+        units: Some(units),
+        ..ForceTraceFilter::default()
+    });
+    (sim, a, b)
+}
+
+fn traced_live_positions(sim: &Sim, unit: usize) -> Vec<(usize, Vec2)> {
+    let u = &sim.units[unit];
+    (u.start..u.start + u.count)
+        .filter(|&s| sim.alive[s] == 1)
+        .map(|s| (s, sim.soldier_pos(s)))
+        .collect()
+}
+
+fn traced_live_centroid(sim: &Sim, unit: usize) -> Vec2 {
+    let pts = traced_live_positions(sim, unit);
+    if pts.is_empty() {
+        return sim.units[unit].centroid;
+    }
+    let sum = pts.iter().fold(Vec2::ZERO, |acc, &(_, p)| {
+        Vec2::new(acc.x + p.x, acc.y + p.y)
+    });
+    sum * (1.0 / pts.len() as f32)
+}
+
+fn traced_engagement_rotation_deg(sim: &Sim, a: usize, b: usize) -> f32 {
+    let d = traced_live_centroid(sim, b) - traced_live_centroid(sim, a);
+    d.x.atan2(d.y).to_degrees()
+}
+
+#[derive(Clone, Debug)]
+struct TorqueWindow {
+    start: f32,
+    end: f32,
+    rot_start: f32,
+    rot_end: f32,
+    by_unit: [BTreeMap<ForceChannel, f32>; 2],
+}
+
+#[test]
+#[ignore = "melee-blob: slice 03 long-window torque budget; run with --features force-trace"]
+fn write_slice03_torque_budget() {
+    for immortal in [true, false] {
+        let (mut sim, a, b) = traced_attribution_heavy(0x4202, immortal);
+        let mut windows: Vec<TorqueWindow> = (0..4)
+            .map(|idx| {
+                let start = 300.0 + idx as f32 * 25.0;
+                TorqueWindow {
+                    start,
+                    end: start + 25.0,
+                    rot_start: 0.0,
+                    rot_end: 0.0,
+                    by_unit: [BTreeMap::new(), BTreeMap::new()],
+                }
+            })
+            .collect();
+        let end_tick = (400.0 / DT) as usize;
+        for step in 1..=end_tick {
+            let t = step as f32 * DT;
+            if t < 300.0 {
+                sim.clear_force_trace();
+                sim.tick();
+                continue;
+            }
+            sim.clear_force_trace();
+            sim.tick();
+            for window in &mut windows {
+                if t < window.start || t >= window.end {
+                    continue;
+                }
+                if window.rot_start == 0.0 {
+                    window.rot_start = traced_engagement_rotation_deg(&sim, a, b);
+                }
+                window.rot_end = traced_engagement_rotation_deg(&sim, a, b);
+                for (slot, unit) in [a, b].into_iter().enumerate() {
+                    let positions = traced_live_positions(&sim, unit);
+                    for budget in unit_force_budget_by_channel(
+                        &sim.force_trace,
+                        unit,
+                        sim.tick_count - 1,
+                        &positions,
+                    ) {
+                        *window.by_unit[slot].entry(budget.channel).or_insert(0.0) += budget.torque;
+                    }
+                }
+            }
+        }
+        for window in &windows {
+            for unit_slot in [0usize, 1] {
+                let mut rows: Vec<_> = window.by_unit[unit_slot].iter().collect();
+                rows.sort_by(|a, b| b.1.abs().total_cmp(&a.1.abs()));
+                let total: f32 = window.by_unit[unit_slot].values().copied().sum();
+                eprintln!(
+                    "SLICE03_TORQUE variant={} unit={} window={:.0}-{:.0}s rot={:.2}->{:.2}deg total_torque={:.4}",
+                    if immortal { "immortal" } else { "mortal" },
+                    unit_slot,
+                    window.start,
+                    window.end,
+                    window.rot_start,
+                    window.rot_end,
+                    total,
+                );
+                for (channel, torque) in rows.into_iter().take(10) {
+                    eprintln!(
+                        "  SLICE03_TORQUE_CHANNEL variant={} unit={} window={:.0}-{:.0}s channel={channel:?} torque={torque:.4} source={}",
+                        if immortal { "immortal" } else { "mortal" },
+                        unit_slot,
+                        window.start,
+                        window.end,
+                        channel.source_site(),
+                    );
+                }
+            }
+        }
+    }
 }
 
 #[test]

@@ -132,6 +132,42 @@ export async function run(ctx) {
       }),
     );
 
+    if (dpr === 1) {
+      // Bronze tooltips (Radix) on the icon-only controls: appear on hover AND
+      // keyboard focus, carry the command copy, and replace the native title bubble.
+      await page.hover('#toolbar button[data-cmd="pace"]');
+      await page.waitForTimeout(500);
+      const hoverTip = await page.evaluate(() => {
+        const t = document.querySelector(".hud-tooltip");
+        const btn = document.querySelector('#toolbar button[data-cmd="pace"]');
+        return {
+          cls: t?.className ?? "",
+          hasCopy: (t?.textContent ?? "").includes("Toggle walk/run"),
+          nativeTitle: btn?.getAttribute("title"),
+        };
+      });
+      ctx.check(
+        "toolbar icon shows a bronze tooltip on hover (no native title)",
+        hoverTip.cls.includes("hud-tooltip") && hoverTip.hasCopy && hoverTip.nativeTitle === null,
+        JSON.stringify(hoverTip),
+      );
+
+      await page.mouse.move(8, 8);
+      await page.waitForTimeout(350);
+      await page.evaluate(() =>
+        document.querySelector('#toolbar button[data-cmd="pause"]').focus(),
+      );
+      await page.waitForTimeout(500);
+      const focusCopy = await page.evaluate(
+        () => document.querySelector(".hud-tooltip")?.textContent ?? "",
+      );
+      ctx.check(
+        "toolbar icon shows its tooltip on keyboard focus",
+        focusCopy.includes("Pause"),
+        JSON.stringify({ focusCopy: focusCopy.slice(0, 40) }),
+      );
+    }
+
     await page.close();
   }
 }

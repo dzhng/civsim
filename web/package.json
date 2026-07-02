@@ -13,7 +13,7 @@
     "build:wasm": "wasm-pack build ../crates/game-wasm --target web --release --out-dir ../../web/src/wasm",
     "scene": "node scene.mjs",
     "scene:full": "node scene.mjs --full",
-    "test:ui": "node --test src/battle/cardGrid.test.mjs src/ui/menu/armyBuilderState.test.mjs",
+    "test:ui": "node --test src/battle/cardGrid.test.mjs src/battle/armySummary.test.mjs src/ui/menu/armyBuilderState.test.mjs",
     "test:unit": "node --experimental-strip-types --import ./tests/register-ts-extension-loader.mjs --test tests/*.test.ts",
     "scene:renderer": "SCENARIO_REPORT_JSON=reports/rendering/scenario-runs/renderer-latest.json VERIFY_GPU=1 node scene.mjs renderer-lab-routes renderer-fault-injection renderer-capabilities asset-workbench per-class-vat soldier-materials mounted-units lod-tiers battle-elevation battle-effects campaign-models full-game-rendering-performance battle-renderer-default battle-input battle-camera-zoom battle-grass campaign-production campaign-handoff campaign-save-load campaign-visual campaign-map-alignment campaign-lod menu-renderer-shell menu-renderer-shell-visual shared-prop-models shared-grass-models battle-terrain-features battle-terrain-3d battle-terrain-blockers battle-terrain-elevation",
     "scene:renderer:campaign": "SCENARIO_REPORT_JSON=reports/rendering/scenario-runs/renderer-campaign-latest.json VERIFY_GPU=1 node scene.mjs campaign-production campaign-handoff campaign-save-load campaign-conquest campaign-reinforcements campaign-visual campaign-map-alignment campaign-lod",
@@ -36,6 +36,7 @@
     "bake:test": "node ../packages/soldier-assets/bake/vat.test.mjs && node ../packages/soldier-assets/bake/gltf.test.mjs && node ../packages/soldier-assets/bake/soldier-placeholders.mjs --check && node shots/models/scripts/soldier-cards.mjs --check"
   },
   "dependencies": {
+    "@radix-ui/react-tooltip": "^1.2.11",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "three": "^0.185.1"

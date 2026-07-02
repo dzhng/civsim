@@ -27,6 +27,14 @@ it is moving ownership until there is one concept with clear consumers.
 
 ## Rules
 
+- **Do not over-weigh the sunk cost of the existing architecture.** "It already
+  exists and works" is not an argument for keeping a shape — coding agents make
+  large architecture switches cheap, so size a refactor by the quality of the end
+  state, not by the volume of code it replaces. When behavior must survive, pin it
+  with tests at the consumer surface and swap the architecture underneath — though
+  most of the time even the old seams shouldn't survive verbatim: a big refactor is
+  the chance to redraw them into the shape the codebase would want today, not to
+  faithfully rebuild the old interfaces on a new foundation.
 - Prefer one shared primitive over N adapters. An adapter is acceptable only at an
   external boundary or as a short-lived migration seam.
 - Do not preserve dev-only compatibility by default. Unshipped scaffolding should

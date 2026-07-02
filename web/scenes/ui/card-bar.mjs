@@ -23,13 +23,13 @@ export const meta = {
     "Fixed-size 3:4 unit-card grid wrapping 20/30/40 cards into rows at dpr 1 and 2, plus the min-window gate.",
 };
 
-// At the 1280px viewport (boxW 1256, 16 fixed cards/row) the roster wraps as it
-// grows: 20→2×10, 30→2×15, 40→3×14 — cards stay one fixed size throughout.
-const CARD_W = 72;
+// The roster wraps into rows at a fixed card size (58px, 20% smaller than the
+// original 72): 20→1×20, 30→2×15, 40→2×20 at these viewport widths.
+const CARD_W = 58;
 const CASES = [
-  { count: 20, rows: 2, cols: 10 },
+  { count: 20, rows: 1, cols: 20 },
   { count: 30, rows: 2, cols: 15 },
-  { count: 40, rows: 3, cols: 14 },
+  { count: 40, rows: 2, cols: 20 },
 ];
 
 async function openCase(ctx, count, dpr) {

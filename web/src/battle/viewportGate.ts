@@ -1,12 +1,14 @@
-// Minimum supported battle-window size. Below it the HUD (the fixed-size card bar
-// beside the bottom-right minimap, the toolbar, the battlefield) gets cramped, so
-// the battle shows a "window too small" placeholder instead of degrading silently.
+// Minimum supported battle-window size. Below it the three bottom HUD housings
+// (bottom-left info card, bottom-center cards+controls, bottom-right minimap) and
+// the battlefield get cramped, so the battle shows a "window too small"
+// placeholder instead of degrading silently.
 //
-// The floor follows from the card bar's geometry: a centered bar clears the
-// minimap when it is no wider than `viewport − 2×MINIMAP_RESERVE`, and at the
-// fixed 72px card it holds `ceil(N/maxRows)` cards per row — so a roster of N
-// fits at full size when `viewport ≥ ceil(N/3)×76 + 420`. 1180px holds 30 unit
-// cards; 640px leaves room for a 3-row bar above the toolbar. Tunable by David.
+// The floor follows from the card bar's geometry (specs/done/hud-housings): the bar now
+// sits in the gap between the two corner housings, so its width budget is
+// `viewport − BOTTOM_CARD_LEFT_RESERVE(336) − BOTTOM_CARD_RIGHT_RESERVE(268)`. At
+// the fixed 58px card it wraps to more rows as the roster grows (David: let it
+// wrap). 1180px leaves ~576px of bar (≈9 cards before wrapping); 640px leaves room
+// for a multi-row bar. Tunable by David.
 export const MIN_WINDOW_W = 1180;
 export const MIN_WINDOW_H = 640;
 

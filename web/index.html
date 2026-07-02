@@ -33,8 +33,12 @@
       }
       #hud {
         position: fixed;
-        top: 12px;
+        bottom: 12px;
         left: 12px;
+        /* Above the world-space unit banners (#unitlabels, z-index 3) — the info
+         card sits at the bottom-left where player units (and their banners) are,
+         so without this a banner draws over the card's top edge. */
+        z-index: 5;
         font:
           12px/1.5 ui-monospace,
           Menlo,
@@ -44,12 +48,8 @@
         min-width: 234px;
         max-width: 282px;
         padding: 10px 13px 11px;
-        border: 3px solid transparent;
-        border-radius: 5px;
-        background:
-          var(--bronze-fill) padding-box,
-          var(--bronze-edge) border-box;
-        box-shadow: var(--bronze-frame);
+        /* Housing material comes from .hud-chassis (bronze.css). */
+        border-width: 3px;
       }
       /* Visual unit readout: portrait + name header, labeled stat bars, detail. */
       #hud .hud-head {
@@ -100,7 +100,8 @@
         flex: 1;
         height: 7px;
         background: rgba(6, 8, 5, 0.8);
-        border-radius: 2px;
+        /* Squared, inset well — not a rounded-cap CSS progress bar (slice 09). */
+        border-radius: 1px;
         overflow: hidden;
         box-shadow: inset 0 0 0 1px rgba(150, 114, 62, 0.3);
       }
@@ -235,24 +236,13 @@
         pointer-events: none;
         z-index: 3;
       }
-      /* Worn-bronze chassis from the shared tokens (bronze.css) — opaque
-       worn-metal housing, NOT a translucent web pill bar. */
+      /* The order/time control strip — a bare centered button row inside the
+         #battle-center housing (its bronze tray lives on #battle-center). */
       #toolbar {
-        position: fixed;
-        bottom: 10px;
-        left: 50%;
-        transform: translateX(-50%);
         display: flex;
         gap: 5px;
         align-items: center;
-        z-index: 5;
-        padding: 6px 8px;
-        border: 3px solid transparent;
-        border-radius: 5px;
-        background:
-          var(--bronze-fill) padding-box,
-          var(--bronze-edge) border-box;
-        box-shadow: var(--bronze-frame);
+        justify-content: center;
       }
       /* Bottom unit-card strip: one card per player unit (Total War style).
        Fixed-size cards in a no-scroll grid — JS writes --cols/--card-w/--card-h
@@ -262,7 +252,10 @@
       #unitcards {
         position: fixed;
         bottom: 52px;
-        left: 50%;
+        /* Centered on the card-bar window between the bottom-corner HUD (info card
+         left, minimap right) — applyCardGrid writes --card-center-x. Falls back to
+         50% (the lab reserves equal margins, so the window is viewport-centered). */
+        left: var(--card-center-x, 50%);
         transform: translateX(-50%);
         z-index: 5;
         display: grid;
@@ -324,6 +317,44 @@
           0 0 0 1px rgba(182, 142, 80, 0.65),
           0 9px 24px rgba(0, 0, 0, 0.68);
       }
+      /* The merged bottom-center housing (cards + control strip in one bronze
+         tray, .hud-chassis--tray). applyCardGrid writes --card-center-x here and
+         --cols/--card-w/--card-h inherit down to the #unitcards grid inside. The
+         two scoped rules below strip the standalone housing/position from the
+         PRODUCTION #unitcards / #toolbar (they live inside #battle-center now);
+         the renderer-lab's #unitcards is not inside #battle-center, so its global
+         rule above is untouched. */
+      #battle-center {
+        position: fixed;
+        bottom: 12px;
+        left: var(--card-center-x, 50%);
+        transform: translateX(-50%);
+        z-index: 5;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        width: max-content;
+        max-width: calc(100vw - 24px);
+        padding: 10px 11px;
+      }
+      #battle-center #unitcards {
+        position: static;
+        left: auto;
+        transform: none;
+        z-index: auto;
+        max-width: none;
+        padding: 0;
+        background: none;
+        border: 0;
+        box-shadow: none;
+      }
+      /* Full width of the housing so the button group centers under the cards
+         (justify-content:center on #toolbar) instead of floating to one side. */
+      #battle-center #toolbar {
+        width: 100%;
+        padding-top: 2px;
+      }
       @media (max-width: 760px) {
         #manual {
           left: 12px;
@@ -345,8 +376,9 @@
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        background: #16100a;
-        border: 1px solid #3a2c18;
+        /* Warm crimson-dark card well (slice 09 fidelity pass). */
+        background: #22110c;
+        border: 1px solid #43291a;
         border-top: 3px solid var(--fac);
         border-radius: 2px;
         cursor: pointer;
@@ -625,14 +657,12 @@
       #minimap {
         position: fixed;
         right: 12px;
-        bottom: 170px;
+        /* Flush in the bottom-right corner (specs/done/hud-housings) — its own bronze
+         housing card, mirroring the bottom-left info card. */
+        bottom: 12px;
         cursor: crosshair;
-        border: 4px solid transparent;
-        border-radius: 5px;
-        background:
-          var(--bronze-fill) padding-box,
-          var(--bronze-edge) border-box;
-        box-shadow: var(--bronze-frame);
+        /* Housing material comes from .hud-chassis (bronze.css). */
+        border-width: 4px;
         /* Above the world-space unit banners (#unitlabels, z-index 3) so a banner
          drawn over a unit near the corner can't bleed across the minimap. */
         z-index: 10;
@@ -1121,7 +1151,6 @@
       <!-- Content is React (src/ui/hud/BattleModals.tsx, GameOver), mounted by
        BattleScene. This shell keeps the CSS backdrop + display toggle. -->
       <div id="gameover"></div>
-      <div id="hud">loading wasm…</div>
       <div id="buttons">
         <button id="btn-menu">Menu</button>
       </div>
@@ -1130,11 +1159,12 @@
       <div id="pausemenu"></div>
       <div id="banner"></div>
       <div id="selbox"></div>
-      <canvas id="minimap" width="240" height="160"></canvas>
       <div id="unitlabels"></div>
-      <div id="unitcards"></div>
-      <!-- Buttons are React now (src/ui/hud/Toolbar.tsx, mounted by BattleScene). -->
-      <div id="toolbar"></div>
+      <!-- The unit info panel (#hud), unit-card strip (#unitcards), toolbar
+       (#toolbar), and minimap (#minimap) are ONE React tree now
+       (src/ui/hud/BattleHud.tsx), mounted here by BattleScene. Their bronze CSS
+       below still styles the React-rendered elements (same ids). -->
+      <div id="battle-hud"></div>
     </div>
     <!-- React overlay root: a sibling above the canvas, never a parent of it.
        Fixed full-viewport, click-through by default; individual React panels

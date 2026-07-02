@@ -11,11 +11,33 @@ import * as THREE from 'three/webgpu';
 import { uniform } from 'three/tsl';
 import type { CivsimEnvironmentId } from '../../game-renderer/src/environment/environment';
 
+// The ONE tone-map operator, engine-wide (slice-15 identity decision). Applied
+// by the renderer's output — or, when a post chain is installed, by three's
+// renderOutput at the tail of the chain (world.post never re-decides it).
+//
+// VERDICT: AgX (slice 15). Judged on matched per-preset shots (sea vista +
+// golden-hour field + overcast) against battle-coastal-vista.jpg — confirmed by
+// a blind second reviewer. AgX carries the reference's warm golden-hour cast
+// with a soft highlight rolloff on the sun disc / sea glint and lower
+// far-distance contrast (true aerial perspective); ACES read cooler, punchier,
+// and over-saturated — the "Instagram" look the slice warns against. AgX's one
+// cost, slightly muted team pips, stays legible (they remain unambiguous) and
+// is a team-colour-layer concern, not the grade's. ACES is deleted, not flagged.
+export const BATTLE_TONE_MAPPING: THREE.ToneMapping = THREE.AgXToneMapping;
+
 interface SortItem {
   groupOrder: number | null;
   renderOrder: number | null;
   z: number | null;
   id: number | null;
+}
+
+/** A post-processing chain the world routes its final render through (slice
+ *  15). When null, render() draws straight to the swapchain. Kept as a minimal
+ *  interface so world.ts owns no post dependency — the battle world installs a
+ *  BattlePostChain; lab/other routes stay chain-free. */
+export interface WorldPostRenderer {
+  render(scene: THREE.Scene, camera: THREE.Camera): void;
 }
 
 export interface PhotorealWorldStats {
@@ -35,6 +57,9 @@ export class PhotorealWorld {
   readonly scene: THREE.Scene;
   /** The one time uniform every animated TSL material in this world reads. */
   readonly uTime = uniform(0);
+  /** Optional post-processing chain (slice 15); when set, render() routes the
+   *  final frame through it (bloom + the ONE tone-map at the tail). */
+  post: WorldPostRenderer | null = null;
   /** Set by applyCivsimEnvironment — the stats identity field proving the ONE
    *  environment-preset owner (CIVSIM_ENVIRONMENTS) dressed this world. */
   environmentId: CivsimEnvironmentId | null = null;
@@ -70,7 +95,7 @@ export class PhotorealWorld {
       // makes three build the same projection cameraBridge produces CPU-side.
       reversedDepthBuffer: true,
     });
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMapping = BATTLE_TONE_MAPPING;
     // TSL/three@0.185 HAZARD (recorded in the 08a slice file): with
     // `reversedDepthBuffer` three sorts its render lists then REVERSES them
     // wholesale (RenderList.sort → list.reverse()), inverting renderOrder
@@ -106,7 +131,8 @@ export class PhotorealWorld {
   }
 
   render(camera: THREE.Camera): void {
-    this.renderer.render(this.scene, camera);
+    if (this.post) this.post.render(this.scene, camera);
+    else this.renderer.render(this.scene, camera);
     this.lastDrawCalls = this.renderer.info.render.drawCalls;
     this.lastTriangles = this.renderer.info.render.triangles;
     this.pollGpuTime();

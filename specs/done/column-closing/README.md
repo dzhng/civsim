@@ -36,10 +36,12 @@ as the normal repair path.
 The visual target is the original deployed column footprint at enemy contact,
 not pixel closeness to the old screenshot baseline. In the accepted penetration
 case the 8-file column's deployed slot width is about `6.3m`; the pinned contact
-test allows small physical spread but rejects both a pinched column and a broad
-fan-out. The old baseline is itself flawed for this scenario: its middle pinches
-or harrows inward unnaturally, so the accepted current shots are judged as less
-wrong against the deployed-footprint target, not as a perfect final look.
+test rejects a pinched column (no band narrower than `deployed - 1.5m`) and a
+broad fan-out (no band wider than `deployed + 8m` — a deliberately loose rail
+that catches whole-formation splash, not small spread). The old baseline is
+itself flawed for this scenario: its middle pinches or harrows inward
+unnaturally, so the accepted current shots are judged as less wrong against the
+deployed-footprint target, not as a perfect final look.
 
 The final contact-width pass also keeps the pivot spring's angular lever capped
 for mounted contact and for a narrow foot column driving into a much wider foot
@@ -48,14 +50,30 @@ stretched queue should not turn a bond-angle correction into lateral fan-out.
 Ordinary foot-on-foot wraps still use the live bond length so they can drape
 around exposed flanks.
 
+The pivot cap is also the build's headline divergence. The plan's premise was
+that the crab was purely a slot-identity bug — "physics is untouched, we change
+only which slot a man is assigned, never the forces." That held for the crab
+itself, but the contact-width fan-out turned out to be a steering problem, not
+a relabel problem: ablation pinned it to the lateral component of the pivot
+spring inside `steer_soldiers` (disabling the forward block changed nothing;
+disabling compression worsened the rear; disabling the pivot spring alone kept
+the column narrow). Shipping therefore required a physics change — the length
+cap — and a golden-hash re-pin the plan had promised would not happen.
+
 ## Invariants
 
 - Fighting or advancing casualty repair must not change ordinary survivors'
   files.
+- `compact_columns` keys its ordering on rank and soldier index, never on world
+  position. Sorting survivors by where physics shoved them is exactly the
+  relabel crab; a tidiness refactor that swaps the key silently reintroduces it.
 - A wiped single file remains a notch while contact is live.
 - Adjacent two-or-more-file lanes may receive bounded rear/deep donors from the
-  nearest live edges; donor count is capped by the gap, not by unit size.
-- Non-donor rear ranks must stay near the push-only lateral floor; a full file
+  nearest live edges; donor count is `min(gap files, 6)` — capped by the gap
+  and an absolute ceiling, never by unit size.
+- Non-donor rear ranks' lateral excursion stays under absolute no-crab rails
+  (p95 under `0.45m`, peak under `0.55m`) — set below the roughly `1.0m`
+  signature of a file relabel and above harmless spring settle. A full file
   relabel is the regression this feature exists to prevent.
 - Lateral re-evening is reserved for deliberate reform moments, the disengage
   clear beat, and the broad/deep contact re-dress; it must not be the ordinary
@@ -96,13 +114,19 @@ around exposed flanks.
 
 ## Visual Provenance
 
-- `visualizations/no-crab-timeline.html` is the durable slot-map proof for the
+- `visualizations/no-crab-timeline.html` is the durable slot-map record for the
   file-fixed close: rear ranks stay in their columns, a wiped file remains a
   live-contact notch, and the clear beat later re-evens it.
-- `visualizations/bridge-gap-proof.html` is the durable proof for the local
+- `visualizations/bridge-gap-proof.html` is the durable record for the local
   bridge rule: a two-file lane gets two rear/deep edge donors, a four-file lane
   gets four bounded donors, and a single-file notch gets none while contact is
-  live.
+  live. Only the two-file case is pinned by a cargo test
+  (`adjacent_wiped_files_get_bounded_rear_donors`); the four-file case is
+  illustrated here and enforced by the `min(gap, 6)` cap in the code, not by a
+  test.
+- Both HTML pages embed hand-authored fixture captures written to mirror the
+  formation tests; they are illustrative records of the accepted behavior, not
+  machine-generated sim dumps.
 - `web/shots/vibe/penetration/` and `web/shots/vibe/offense/` hold the accepted
   battle-vibe baselines. They were regenerated after the deployed-footprint
   target replaced raw baseline matching; current was accepted as less wrong
@@ -122,10 +146,21 @@ are the lasting visual standard.
 - Restoring engaged `reassign_slots` narrowed some probes, but did it by the
   forbidden lateral relabel and disturbed defender cohesion.
 - File-local reranking, same-file collision queues, stronger slot rails,
-  target-lane costs, broad magnet/awareness clamps, rear no-cruise gates,
-  friendly-slide damping, pivot lateral damping, and rest-weave stiffness all
-  moved one diagnostic in the right direction but failed either scalar
+  target-lane costs, broad magnet/awareness clamps, and rest-weave stiffness
+  all moved one diagnostic in the right direction but failed either scalar
   mechanics, survivability, or browser visual review.
+- The long-grind survivability ceiling (`HP4/HP1` must stay near `6.0x`) was
+  the recurring executioner: rear no-cruise gates, removing friendly
+  separation-slide, and same-file slide damping each narrowed the width probe
+  and then died there at `6.2–6.6x`. Anything that stops rear ranks from
+  flowing around friends stretches the long grind.
+- Rear-scoped pivot *lateral damping* was promoted and then rejected for a
+  stringy, porous tail and a front wedge in visual review; the narrower
+  *length* cap survived. Damp the lever's length, not its lateral component.
+- A looser `0.15m` pivot slack broke
+  `a_mortal_wrapping_line_backfills_casualty_tears` and pushed survivability
+  outside the rails; the shipped `0.10m` is the widest slack that held, not an
+  arbitrary constant.
 - Purely suppressing lateral pressure is the wrong lever: it can make a column
   look narrower while starving bulge, wrap, latch, or long-grind survivability.
 - The local bridge is deliberately conservative. It seeds large lanes from the

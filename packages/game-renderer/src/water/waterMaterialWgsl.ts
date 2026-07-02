@@ -35,6 +35,14 @@ fn waterShade(sample: WaterSample, sunDir: vec3f, glintBand: f32, depth01: f32, 
   let sky = clamp(n.z * 0.5 + 0.5, 0.0, 1.0);
   let light = WATER_KEY * (0.34 + 0.66 * diff) + WATER_FILL * (0.28 + 0.32 * sky);
   var col = albedo * light * WATER_EXPOSURE;
+  // Sandy-shallow backscatter: shallow water over the bright bottom scatters
+  // light back to the eye regardless of the sun's position, so the shore reads
+  // as bright Aegean turquoise even when the sun swings behind the view (the
+  // locked 10c azimuth). Keyed on shallowness (sun-INDEPENDENT, unlike the
+  // glint) and self-coloured, so it lifts the authored shallow hue and dies to
+  // zero in deep water — the open sea is unchanged.
+  let shallowScatter = 1.0 - clamp(depth01, 0.0, 1.0);
+  col = col + albedo * (WATER_SHALLOW_SCATTER * shallowScatter) * WATER_EXPOSURE;
   let foam = clamp(sample.foam, 0.0, 1.0);
   // Sun glint, the sun's own colour (WATER_KEY), banded to the sun azimuth: a
   // broad soft sheen (the warm sun-glitter track that makes the water carry the

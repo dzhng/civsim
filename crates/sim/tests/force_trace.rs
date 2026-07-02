@@ -787,7 +787,7 @@ fn force_trace_smoke_covers_expected_channels() {
 }
 
 #[test]
-#[ignore = "writes specs/melee-blob/visualizations/force-budget-timeline.html"]
+#[ignore = "writes specs/done/melee-blob/visualizations/force-budget-timeline.html"]
 fn write_heavy_force_budget_timeline_html() {
     let sim = traced_probe_clash(7.0);
     let repo = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -840,7 +840,7 @@ fn write_heavy_force_budget_timeline_html() {
              (immortal 48x8 HeavySword vs HeavySword probe, 7s, seed 0x5150, --features force-trace). \
              Raw per-record JSONL: target/force-trace/force-budget-heavy-v-heavy.jsonl.",
         );
-    let dir = repo.join("specs/melee-blob/visualizations");
+    let dir = repo.join("specs/done/melee-blob/visualizations");
     std::fs::create_dir_all(&dir).unwrap();
     std::fs::write(dir.join("force-budget-timeline.html"), html).unwrap();
 }

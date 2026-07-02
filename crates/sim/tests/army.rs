@@ -131,7 +131,10 @@ fn ai_battle_resolves_with_pinned_scale_shape() {
         "army scale majority pattern moved: {summary:?}"
     );
     let medians: Vec<f32> = summary.iter().map(|r| r.1).collect();
-    for (median, range) in medians.iter().zip([0.42..0.56, 0.62..0.78, 0.50..0.66]) {
+    // x4 band re-derived for melee-blob slice 05's torque-free pivot
+    // projection (same width, centered on the corrected-physics actual; the
+    // grind resolves faster and the large-scale battle bleeds deeper).
+    for (median, range) in medians.iter().zip([0.42..0.56, 0.62..0.78, 0.65..0.81]) {
         assert!(
             range.contains(median),
             "median death fraction moved outside pinned scale band: {medians:?}"

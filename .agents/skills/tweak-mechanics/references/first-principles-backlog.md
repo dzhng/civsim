@@ -67,3 +67,25 @@ Facing deadzone + sticky target + EMA pressure (the jitter fix), Jacobi staging
 (M-equivariance), `m_eff_dir` directional brace (keys off stable unit facing +
 geometry), `nearest_enemy`/`mark_at_ease` shared edge-distance snapshot (the
 canonical "is the enemy near" — counter-example to finding #3).
+
+
+## Paid down (2026-07-03, melee-blob)
+
+- **The pivot spring's torque leak** — the weave's pivot spring pumped net
+  angular momentum into its own unit (internal forces must sum to zero
+  torque). Fixed by per-unit projection of the net-rotation mode
+  (sim.rs steer_soldiers, melee-blob slice 05). The visual melee pinwheel,
+  the ~3 deg/s internal circulation loop, and the pike mid-line void were
+  all its downstream symptoms. Debt note: the projection pre-pass duplicates
+  the pivot-bond math — fold the two passes together on the next
+  steer_soldiers touch.
+
+## Successor item (cross-feature)
+
+- **Vibe camera re-frame + full re-bless** — the photoreal renderer landed
+  concurrently with melee-blob; every committed vibe baseline is stale for
+  renderer reasons and the new default camera frames duels too small to
+  judge. Re-frame the vibe capture camera (fight-centered, closer zoom),
+  then re-bless all vibe scenarios per screenshot-regression, reading every
+  frame. The melee-blob physics is verified by cargo rails + spot films
+  (specs/done/melee-blob assets) in the meantime.

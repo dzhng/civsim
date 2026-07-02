@@ -14,10 +14,9 @@ cargo test -p sim --test force_trace --features force-trace -- --nocapture
 The harness is compile-time gated on the `force-trace` cargo feature. The
 default build is byte-identical (the golden hash does not move — that is a
 standing gate). **Codegen caveat:** with the feature ON, float codegen shifts
-and the golden hash differs (recorded in
-`specs/melee-blob/slices/01-force-trace.md`). Traced runs are self-consistent
-diagnosis; re-check any load-bearing observable on an untraced run before
-shipping a conclusion.
+and the golden hash differs. Traced runs are self-consistent diagnosis;
+re-check any load-bearing observable on an untraced run before shipping a
+conclusion.
 
 ## Recording model
 
@@ -69,7 +68,7 @@ Query helpers live in `crates/sim/tests/common/mod.rs::force_trace`:
 `force_trace.rs::write_heavy_force_budget_timeline_html` (`--ignored`) is the
 worked example: traces a heavy-v-heavy probe clash and writes a
 self-contained per-channel force/torque timeline chart to
-`specs/melee-blob/visualizations/force-budget-timeline.html`. Copy its shape
+`specs/done/melee-blob/visualizations/force-budget-timeline.html`. Copy its shape
 for new probes.
 
 ## Discipline

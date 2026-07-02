@@ -11,7 +11,7 @@ import {
 } from 'three/tsl';
 import { attribute } from 'three/tsl';
 import { bakeGerstnerWaves } from '../../../game-renderer/src/water/gerstnerField';
-import { FIELD_WATER_RAMP, type WaterShoreRamp } from '../../../game-renderer/src/water/waterShoreRamp';
+import { BATTLE_OCEAN_RAMP, FIELD_WATER_RAMP, type WaterShoreRamp } from '../../../game-renderer/src/water/waterShoreRamp';
 import type { BattleOceanPlaneSpec } from '../../../game-renderer/src/battle/horizonPass';
 import {
   fnoiseN, linearAlbedo, rgbNode, saturateN, smoothstepN,
@@ -24,6 +24,7 @@ import {
 const WATER_SHALLOW_ALBEDO: [number, number, number] = [0.22, 0.58, 0.60];
 const WATER_DEEP_ALBEDO: [number, number, number] = [0.025, 0.095, 0.22];
 const WATER_FOAM_ALBEDO: [number, number, number] = [0.92, 0.93, 0.94];
+const WATER_SAND_TURBIDITY_ALBEDO: [number, number, number] = [0.66, 0.58, 0.40];
 // Calm water is glossy: the sun track is standard-material GGX specular from
 // the live environment sun; foam stays matte.
 const WATER_ROUGHNESS = 0.075;
@@ -43,6 +44,8 @@ const SEA_FOAM_SLOPE_END = 0.58;
 const SEA_FOAM_SPECKLE_START = 0.56;
 const SEA_FOAM_SPECKLE_END = 0.78;
 const SEA_FOAM_SCALE = 0.74;
+const SEA_SAND_TURBIDITY_DEPTH_START = 0.04;
+const SEA_SAND_TURBIDITY_DEPTH_END = 0.26;
 
 interface WaterSampleNodes {
   height: FloatNode;
@@ -60,6 +63,7 @@ export interface SeaSurfaceStats {
   shallowAlbedo: [number, number, number];
   deepAlbedo: [number, number, number];
   foamAlbedo: [number, number, number];
+  sandTurbidityAlbedo: [number, number, number];
   roughness: number;
   foamRoughness: number;
   normalDetail: {
@@ -76,6 +80,13 @@ export interface SeaSurfaceStats {
     speckleStart: number;
     speckleEnd: number;
     scale: number;
+  };
+  shore: {
+    ramp: WaterShoreRamp;
+    sandTurbidityDepthStart: number;
+    sandTurbidityDepthEnd: number;
+    heightfieldDatum: true;
+    farExtent: number;
   };
 }
 
@@ -153,6 +164,7 @@ export function seaSurfaceStats(): SeaSurfaceStats {
     shallowAlbedo: WATER_SHALLOW_ALBEDO,
     deepAlbedo: WATER_DEEP_ALBEDO,
     foamAlbedo: WATER_FOAM_ALBEDO,
+    sandTurbidityAlbedo: WATER_SAND_TURBIDITY_ALBEDO,
     roughness: WATER_ROUGHNESS,
     foamRoughness: WATER_FOAM_ROUGHNESS,
     normalDetail: {
@@ -169,6 +181,13 @@ export function seaSurfaceStats(): SeaSurfaceStats {
       speckleStart: SEA_FOAM_SPECKLE_START,
       speckleEnd: SEA_FOAM_SPECKLE_END,
       scale: SEA_FOAM_SCALE,
+    },
+    shore: {
+      ramp: BATTLE_OCEAN_RAMP,
+      sandTurbidityDepthStart: SEA_SAND_TURBIDITY_DEPTH_START,
+      sandTurbidityDepthEnd: SEA_SAND_TURBIDITY_DEPTH_END,
+      heightfieldDatum: true,
+      farExtent: 7200,
     },
   };
 }
@@ -251,9 +270,13 @@ export interface WaterSurfaceNodes {
 export function waterSurfaceNodes(
   depth01: FloatNode,
   foamRaw: FloatNode,
+  shoreTurbidity: FloatNode | null = null,
 ): WaterSurfaceNodes {
   const foam = saturateN(foamRaw).toVar();
-  let albedo = mix(rgbNode(WATER_SHALLOW_ALBEDO), rgbNode(WATER_DEEP_ALBEDO), depth01);
+  const shallow = shoreTurbidity
+    ? mix(rgbNode(WATER_SAND_TURBIDITY_ALBEDO), rgbNode(WATER_SHALLOW_ALBEDO), shoreTurbidity)
+    : rgbNode(WATER_SHALLOW_ALBEDO);
+  let albedo = mix(shallow, rgbNode(WATER_DEEP_ALBEDO), depth01);
   albedo = mix(albedo, rgbNode(WATER_FOAM_ALBEDO), foam);
   albedo = linearAlbedo(albedo);
   const roughness = mix(float(WATER_ROUGHNESS), float(WATER_FOAM_ROUGHNESS), foam);
@@ -316,7 +339,8 @@ export function createOceanPlaneMesh(
   // beach → deeper blue offshore; the visible sea stays calm, whitecaps build
   // only with real swell agitation.
   const shoreDist = fragXY.x.sub(spec.shoreX).abs().toVar();
-  const depth01 = mix(float(0.30), float(0.80), smoothstepN(0.0, 500.0, shoreDist));
+  const depth01 = shoreDepthNode(BATTLE_OCEAN_RAMP, shoreDist);
+  const shoreTurbidity = smoothstepN(SEA_SAND_TURBIDITY_DEPTH_START, SEA_SAND_TURBIDITY_DEPTH_END, depth01);
   const agitation = smoothstepN(0.0, 3200.0, shoreDist).toVar();
   const viewDist = length(fragXY.sub(vec2(frame.focus))).toVar();
   const distanceFade = smoothstepN(SEA_NORMAL_DETAIL_FADE_START, SEA_NORMAL_DETAIL_FADE_END, viewDist).toVar();
@@ -327,7 +351,7 @@ export function createOceanPlaneMesh(
   const normalStrength = mix(float(0.30), float(1.0), agitation).mul(detail);
   const surfaceNormal = normalize(mix(vec3(0.0, 0.0, 1.0), s.normal, normalStrength));
   material.normalNode = transformNormalToView(surfaceNormal);
-  const surface = waterSurfaceNodes(depth01, s.foam.mul(agitation));
+  const surface = waterSurfaceNodes(depth01, s.foam.mul(agitation), shoreTurbidity);
   material.colorNode = vec4(surface.albedo, 1.0);
   material.roughnessNode = surface.roughness;
 

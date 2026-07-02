@@ -90,6 +90,38 @@ visible from seaward bearings → `12d` extent/shore work.
   the terrain heightfield, plus the seaward far-edge extent/haze fix through the
   10b aerial owner. Water-gate ledger still open.
 
+## 12d STATUS (2026-07-02): DONE — shore blending + far-rim owner
+
+- **Implementation:** `seaLayer.ts` now keys the open-sea material off
+  `BATTLE_OCEAN_RAMP` instead of the old parity ramp. The shoreline starts with
+  sand turbidity, passes through pale Aegean turquoise, then reaches the existing
+  deep-water blue offshore. The ramp is keyed to the terrain-heightfield shoreline
+  datum (`abs(worldX - shoreX)`) and published in `surface.shore` stats.
+- **Constants chosen:** sand turbidity albedo `[0.66, 0.58, 0.40]`; turbidity
+  fades over depth `0.04→0.26`; ocean depth ramp remains
+  `{ depthNear: 12, depthFar: 300, hazeNear: 520, hazeFar: 1900 }`. The open-sea
+  horizon plane extends to `7200` m at `440` segments, with no inline haze added:
+  the far rim is intentionally handed to the slice-10b aerial-perspective owner.
+- **Scene:** `web/scenes/battle/photoreal-sea.mjs` now includes
+  `photoreal-sea/shore-line`, cropped across the land/shore/near-sea band. The
+  crop asserts tan sand, turquoise shallows, and deep blue are all present.
+- **Evidence:** `bun run --cwd web typecheck`; `bun run --cwd web test:unit`
+  (68/68); hardware look re-bless
+  `UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5178 VERIFY_GPU=1
+  VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs
+  photoreal-sea` → ALL CHECKS PASSED; SwiftShader
+  `VERIFY_URL=http://localhost:5178 VERIFY_GPU=1 node scene.mjs photoreal-sea`
+  → ALL CHECKS PASSED. Baselines re-blessed/added:
+  `web/shots/battle/photoreal-sea/sea-horizon.png`,
+  `web/shots/battle/photoreal-sea/sea-mid.png`, and
+  `web/shots/battle/photoreal-sea/shore-line.png`. Hardware `shore-line`
+  metrics: sandFraction `0.4282`, turquoiseFraction `0.3188`,
+  deepBlueFraction `0.2717`, blueFraction `0.3526`; SwiftShader drift on
+  `shore-line` was 1797 px (`0.7799%`). Seating tripwire
+  `battle-terrain-elevation` stayed green with `match=true` on all three fixtures.
+- **Next:** `12e` disciplines the sun glint sparkle size/threshold and closes the
+  named water-gate retirement ledger plus `/renderer/water-bakeoff` fate.
+
 ## Contract unlocked
 
 The sea sells the setting (aesthetics rule 4): a photoreal Aegean sea at the true

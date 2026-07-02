@@ -5,7 +5,7 @@ export const meta = {
   kind: 'visual',
   world: 'battle-photoreal-sea-vista',
   tier: 'full',
-  snapshots: ['photoreal-sea/sea-horizon', 'photoreal-sea/sea-mid'],
+  snapshots: ['photoreal-sea/sea-horizon', 'photoreal-sea/sea-mid', 'photoreal-sea/shore-line'],
   describe: 'Slice 12 photoreal sea: SkyModel-reflecting PBR Gerstner surface at a fixed sea-facing battle vista.',
 };
 
@@ -63,7 +63,10 @@ export async function run(ctx) {
         sea?.surface?.normalDetail?.near > sea?.surface?.normalDetail?.far &&
         sea?.surface?.normalDetail?.fadeEnd > sea?.surface?.normalDetail?.fadeStart &&
         sea?.surface?.foam?.heightStart < sea?.surface?.foam?.heightEnd &&
-        sea?.surface?.foam?.slopeStart < sea?.surface?.foam?.slopeEnd,
+        sea?.surface?.foam?.slopeStart < sea?.surface?.foam?.slopeEnd &&
+        sea?.surface?.shore?.heightfieldDatum === true &&
+        sea?.surface?.shore?.ramp?.depthNear < sea?.surface?.shore?.ramp?.depthFar &&
+        sea?.surface?.shore?.farExtent >= 7200,
       JSON.stringify(sea?.surface),
     );
     ctx.check(
@@ -91,6 +94,18 @@ export async function run(ctx) {
       JSON.stringify(f),
     );
     await ctx.snap(null, 'photoreal-sea/sea-mid', { shot: mid });
+
+    const shore = cropPng(full, { x: 0, y: 390, width: 1280, height: 180 });
+    const s = shoreLineMetrics(PNG.sync.read(shore));
+    ctx.check(
+      'shore-line: terrain edge blends tan sand to pale turquoise to deep blue',
+      s.sandFraction > 0.18 &&
+        s.turquoiseFraction > 0.10 &&
+        s.deepBlueFraction > 0.08 &&
+        s.blueFraction > 0.18,
+      JSON.stringify(s),
+    );
+    await ctx.snap(null, 'photoreal-sea/shore-line', { shot: shore });
   } finally {
     await page.close();
   }
@@ -154,5 +169,31 @@ function foamBandMetrics(png) {
   return {
     blueFraction: Number((blue / total).toFixed(4)),
     foamFraction: Number((foam / total).toFixed(4)),
+  };
+}
+
+function shoreLineMetrics(png) {
+  let sand = 0;
+  let turquoise = 0;
+  let deepBlue = 0;
+  let blue = 0;
+  const total = png.width * png.height;
+  for (let y = 0; y < png.height; y++) {
+    for (let x = 0; x < png.width; x++) {
+      const i = (y * png.width + x) * 4;
+      const r = png.data[i];
+      const g = png.data[i + 1];
+      const b = png.data[i + 2];
+      if (r > 90 && g > 78 && b < g - 5 && r >= b + 22 && Math.abs(r - g) < 55) sand++;
+      if (g > r + 8 && b > r + 16 && g > 80 && b > 85 && Math.abs(b - g) < 70) turquoise++;
+      if (b > g + 5 && b > r + 28 && b > 55 && g > r + 5) deepBlue++;
+      if (b > r + 10 && g > r + 2 && b > 48) blue++;
+    }
+  }
+  return {
+    sandFraction: Number((sand / total).toFixed(4)),
+    turquoiseFraction: Number((turquoise / total).toFixed(4)),
+    deepBlueFraction: Number((deepBlue / total).toFixed(4)),
+    blueFraction: Number((blue / total).toFixed(4)),
   };
 }

@@ -4,6 +4,7 @@ import {
   createSeaDisplacementSource,
   seaDisplacementSourceFromParam,
 } from '../../packages/photoreal-renderer/src/battle/seaLayer.ts';
+import { BATTLE_OCEAN_RAMP } from '../../packages/game-renderer/src/water/waterShoreRamp.ts';
 
 test('photoreal sea: route params select the displacement source', () => {
   assert.equal(seaDisplacementSourceFromParam(null), 'gerstner-tsl');
@@ -30,6 +31,7 @@ test('photoreal sea: Gerstner is the default active source', () => {
       shallowAlbedo: [0.22, 0.58, 0.60],
       deepAlbedo: [0.025, 0.095, 0.22],
       foamAlbedo: [0.92, 0.93, 0.94],
+      sandTurbidityAlbedo: [0.66, 0.58, 0.40],
       roughness: 0.075,
       foamRoughness: 0.78,
       normalDetail: {
@@ -46,6 +48,13 @@ test('photoreal sea: Gerstner is the default active source', () => {
         speckleStart: 0.56,
         speckleEnd: 0.78,
         scale: 0.74,
+      },
+      shore: {
+        ramp: BATTLE_OCEAN_RAMP,
+        sandTurbidityDepthStart: 0.04,
+        sandTurbidityDepthEnd: 0.26,
+        heightfieldDatum: true,
+        farExtent: 7200,
       },
     },
   });

@@ -1,5 +1,35 @@
 # Slice 12 — Photoreal sea
 
+## 12a MINI-VERDICT (reviewer, 2026-07-02): GERSTNER-TSL WINS; full IFFT port REJECTED on this evidence
+
+Three-way hardware bake-off at the judging framing (`?map=A&zoom=6&cx=900&cy=-180&pitch=0.22&yaw=0`,
+fixed t; shots in `assets/bakeoff-{gerstner,ifft}-y0.png` + `assets/baseline-webgpu-ocean.png`):
+
+- **gerstner-tsl (WINNER):** irregular displaced chop, believable sparkle, disciplined
+  sun band — the only prong that reads as an Aegean coastal sea.
+- **ifft-tsl-spectral-spike:** engaged on hardware (3×256² cascades, 12.6 MB storage)
+  but reads COMBED — long anisotropic streaks + smeared sun track (the corduroy
+  failure mode). Loses decisively to the tuned Gerstner. Per the spike's decision
+  rule, the full compute-butterfly port is NOT justified; 12b removes the spectral
+  implementation and keeps the `SeaDisplacementSource` seam + tier machinery (one
+  owner, swappable) so a future real-IFFT attempt has a socket — it must beat the
+  12b-improved Gerstner to earn it.
+- **Stock `webgpu_ocean` baseline (WaterMesh+SkyMesh, David's bar):** structurally
+  flat — normal-map distortion with zero displacement; our Gerstner beats it on wave
+  body at any exposure. (Reviewer's harness over-exposed the baseline shot — lighting
+  mismatch noted honestly; the structural verdict is exposure-independent.
+  `web/baseline-ocean.html` + `public/spike/waternormals.jpg` kept as the reference
+  harness.)
+
+Codex deliverable verified: seam/tier/stats contract clean, gate scene ALL PASS on
+SwiftShader (ifft→gerstner fallback asserted) AND hardware (ifft engaged). Recorded
+traps: (1) scene-harness `VERIFY_URL` defaults to :5173 — every parallel worktree
+MUST pin its own port or it silently tests another worktree's server (cost one
+false-negative debugging round); (2) grazing-distance sparkle aliasing confirmed in
+shots → `12b` distance-faded normal detail; (3) the battle sea plane's far edge is
+visible from seaward bearings → `12d` extent/shore work.
+
+
 ## Contract unlocked
 
 The sea sells the setting (aesthetics rule 4): a photoreal Aegean sea at the true

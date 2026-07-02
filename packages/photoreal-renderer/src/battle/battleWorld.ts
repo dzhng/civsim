@@ -53,7 +53,11 @@ import {
   createHorizonBlockerMesh,
   RENDER_ORDER,
 } from './terrainLayer';
-import { createOceanPlaneMesh } from './seaLayer';
+import {
+  createOceanPlaneMesh,
+  createSeaDisplacementSource,
+  type SeaDisplacementSourceId,
+} from './seaLayer';
 import { PhotorealGrassField, PhotorealScenery } from './foliageLayer';
 import { PhotorealCrowd } from './crowdLayer';
 import { configureSunShadows, resolveSunShadowMode, type SunShadowMode, type SunShadowRig } from './shadowRig';
@@ -90,6 +94,7 @@ export class PhotorealBattleWorld {
   private readonly debugBlocks: PhotorealTriangleLayer;
   private readonly markerLayer: PhotorealMarkerLayer;
   private readonly mountedClasses: number[];
+  private readonly sea: ReturnType<typeof createSeaDisplacementSource>;
 
   private ground: THREE.Mesh | null = null;
   private horizonBlockers: THREE.Mesh | null = null;
@@ -129,6 +134,7 @@ export class PhotorealBattleWorld {
   private constructor(
     world: PhotorealWorld,
     environment: BattleEnvironment,
+    sea: ReturnType<typeof createSeaDisplacementSource>,
     meshes: ReturnType<typeof createPlaceholderSoldierMeshes>,
     vats: Awaited<ReturnType<typeof loadClassVats>>,
     kit: Awaited<ReturnType<typeof loadPlaceholderKit>>,
@@ -136,6 +142,7 @@ export class PhotorealBattleWorld {
   ) {
     this.world = world;
     this.environment = environment;
+    this.sea = sea;
     this.frame = createBattleFrameUniforms();
     this.frame.time = world.uTime;
     const scene = world.scene;
@@ -182,19 +189,20 @@ export class PhotorealBattleWorld {
 
   static async create(
     canvas: HTMLCanvasElement,
-    options: { environment?: string | null; shadows?: string | null } = {},
+    options: { environment?: string | null; shadows?: string | null; sea?: SeaDisplacementSourceId } = {},
   ): Promise<PhotorealBattleWorld> {
     const environment = resolveBattleEnvironment(options.environment);
     const [world, kit] = await Promise.all([
       PhotorealWorld.create(canvas, { antialias: false }),
       loadPlaceholderKit(),
     ]);
+    const sea = createSeaDisplacementSource(options.sea ?? 'gerstner-tsl', world.stats().device);
     const vats = await loadClassVats(kit);
     // Shadow tier: adapter capability probe (SwiftShader → 'single'), lab
     // ?shadows= override wins. Resolved here because the adapter identity
     // only exists once the renderer is initialized.
     const shadowMode = resolveSunShadowMode(world.stats().device, options.shadows);
-    return new PhotorealBattleWorld(world, environment, createPlaceholderSoldierMeshes([0.2, 0.42, 0.88]), vats, kit, shadowMode);
+    return new PhotorealBattleWorld(world, environment, sea, createPlaceholderSoldierMeshes([0.2, 0.42, 0.88]), vats, kit, shadowMode);
   }
 
   setTime(seconds: number): void {
@@ -309,7 +317,7 @@ export class PhotorealBattleWorld {
     this.sealedEdges = layout.builtEdges.map((e) => `${e.side}:${e.role}`);
     this.horizonBlockers = createHorizonBlockerMesh(layout);
     if (this.horizonBlockers) scene.add(this.horizonBlockers);
-    this.oceanPlanes = layout.oceanPlanes.map((spec) => createOceanPlaneMesh(this.frame, spec));
+    this.oceanPlanes = layout.oceanPlanes.map((spec) => createOceanPlaneMesh(this.frame, spec, this.sea));
     for (const plane of this.oceanPlanes) scene.add(plane);
 
     this.scenery.upload(featuresToBattleScenery(presentation.features, field, 0x77));
@@ -477,6 +485,7 @@ export class PhotorealBattleWorld {
     const world = this.world.stats();
     const markerCount = this.markers.length;
     const skinnedCount = this.instances.length;
+    const sea = this.sea.stats();
     return {
       renderer: 'gpu' as const,
       ready: true,
@@ -499,6 +508,7 @@ export class PhotorealBattleWorld {
       // Shadow ownership identity (11): WHICH tier cast the sun shadows —
       // the SwiftShader scene asserts 'single', hardware asserts 'csm'.
       shadows: this.shadowRig.identity(),
+      sea,
       camera: this.lastCamera,
       seating: { ...this.seating },
       terrain: this.ground
@@ -507,6 +517,10 @@ export class PhotorealBattleWorld {
             layer: 'photoreal-battle-ground' as const,
             groundTriangles: this.groundTriangles,
             sealedEdges: [...this.sealedEdges],
+            sea: {
+              ...sea,
+              planes: this.oceanPlanes.length,
+            },
             groundCover: this.groundCover,
             environment: battleEnvironmentStats(this.environment),
             scenery: this.scenery.stats().scenery,

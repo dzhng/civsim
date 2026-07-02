@@ -386,6 +386,17 @@ function crowdMaterial(vatTex: THREE.DataTexture, lod = 0): THREE.MeshStandardNo
     0.0,
     0.95,
   );
+  // Slice 14c grounding/contact AO: an analytic term darkens the ambient light
+  // over the bottom `band` world units of the LOCAL (pre-scale) mesh height, so
+  // feet/ankles read as sitting in ground-occluded skylight rather than pasted
+  // onto the terrain. It rides aoNode (indirect/IBL only) — the sun's direct
+  // cast shadow (slice 11) is a separate owner. Living soldiers only: a prone
+  // corpse's whole body is low, so gating by corpse keeps the fallen from
+  // blackening wholesale.
+  const contactRise = smoothstep(float(0.0), float(SOLDIER_PBR_VALUES.contactAo.band), rolled.z);
+  const contactAo = mix(float(1.0 - SOLDIER_PBR_VALUES.contactAo.strength), float(1.0), contactRise);
+  material.aoNode = varying(mix(float(1.0), contactAo, float(1.0).sub(corpse)));
+
   // Corpses desaturate and darken so the fallen read as dead, not living.
   const lum = dot(albedo, vec3(0.30, 0.59, 0.11));
   albedo = mix(albedo, vec3(lum).mul(0.62).add(vec3(0.06, 0.04, 0.03)), vCorpse.mul(0.7)).toVar();

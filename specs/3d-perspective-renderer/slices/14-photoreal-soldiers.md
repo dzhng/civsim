@@ -119,6 +119,22 @@ below).
   synthetic peasant grid, not a per-faction bug. None block 14b (gate = perf +
   tier correctness); all are tuning candidates for David's checkpoint.
 
+## 14c implementation note
+
+Status: DONE on branch `codex-14bc`.
+
+- Analytic contact AO on the crowd material `aoNode`: darkens ONLY indirect
+  (sky/IBL) light over the bottom `band` = 0.42 world units of the local mesh
+  height, to `1 − strength` = 0.45 at the contact line, fading to 1.0 above.
+  Rides `aoNode`, so it never touches the sun's direct term — that is 11's cast
+  shadow, a distinct owner. Living soldiers only (a prone corpse's whole body is
+  low, so it is gated by the corpse flag). Constants live on
+  `SOLDIER_PBR_VALUES.contactAo` for scene/reviewer assertion.
+- Cheap: a few inline TSL ops, zero new draw calls, no ground decal (so no
+  z=0-under-terrain alignment risk); frame-time-neutral in the 30k gate above.
+  Grounds the feet/ankles so soldiers read as standing on the ground, not pasted;
+  the `photoreal-shadows` `shadow-contact` crop drift stays within tolerance.
+
 ## What the human can run / see
 
 `/battle` at close and vista zoom; `/renderer/photoreal-crowd` (07's route, now

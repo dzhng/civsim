@@ -139,3 +139,36 @@ real vibe-like, the whole fix target moves to the frame/order layer (latch,
 pursue, anchor chase under casualties) and the target pins get rebuilt on
 the cohort detector. The a_symmetric_grind_does_not_pinwheel pin must NOT be
 un-ignored until the detector split lands.
+
+
+## Detector round 3 + the circulation discovery (2026-07-03)
+
+`blob_probe_slice05_cohort_split` (now integrating 1s rigid fits — long-window
+fits decorrelate into full-circle noise, see the probe comment):
+
+- The integrated fit reads a near-constant ~3.2 deg/s SAME-SIGN rotation for
+  BOTH units in EVERY config — controlled and vibe-like, frozen facings,
+  stable silhouettes. 3.5 full turns per run is visually impossible: the
+  Kabsch fit measures net angular CIRCULATION of the cohort about its
+  centroid, not orientation. **Men cycle through the crowd like a tank tread
+  while the shape stands still.** Orientation-of-shape and circulation-of-
+  mass are different observables in a formation men flow through.
+- **Discovery, follow up:** the press has a coherent internal circulation at
+  ~3 deg/s, same sign for both units within a run, sign varying by seed/config
+  (controlled seeds 0-3 positive, seed 4 negative; vibe-like all negative).
+  This is a real transport phenomenon (possible deep cause of the slow shape
+  tilt: circulation asymmetry over time), and a possible chirality connection
+  — instrument its source (which channels drive the loop: slide? weave? comp?)
+  with the force-trace harness.
+- **The honest verdict metric for the visual pinwheel is SHAPE ORIENTATION:**
+  per-unit PCA major-axis angle of living positions, tracked with axis-sign
+  continuity (hysteresis), plus the seam-interface angle. It reads the tilted
+  rectangle David sees, immune to churn circulation, and honest about death
+  geography (if casualties tilt the shape, it LOOKS tilted — that is still
+  the visual truth). Rebuild the rotation target pin on this detector, then
+  re-run the controlled-vs-vibe-like split to name the fix layer.
+
+Detector scorecard so far: centroid-pair bearing (conflates death geography),
+long-window rigid fit (decorrelates), integrated short-fit (measures
+circulation). Shape orientation is round 4 and matches the visual definition
+of the symptom.

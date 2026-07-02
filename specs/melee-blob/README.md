@@ -16,13 +16,18 @@ Risks), never as the first move.
 
 ## Next Agent Prompt
 
-*Status (2026-07-02): slice 01 COMPLETE — harness in sim behind
-`force-trace`, conservation + smoke green, default golden byte-identical,
-tweak-mechanics skill updated (`references/force-trace.md`; note
-`.claude/skills` is a symlink to `.agents/skills` — write there, some
-sandboxes expose the symlink read-only). Slice 02 is being implemented in the
-sibling worktree `melee-blob-s02`. Pickup point: integrate slice 02, then
-slice 03 attribution on the harness.*
+*Status (2026-07-02): slices 01 AND 02 COMPLETE. 01: force-trace harness
+behind `force-trace`, conservation + smoke green, default golden
+byte-identical, tweak-mechanics skill updated. 02: four detectors + probes +
+four ignored target pins landed; validated quiet on controls; measured-today
+table in `slices/02-metrology.md` and `visualizations/seam-timeline.html`.
+KEY MEASUREMENT: the sustained seam band does NOT reproduce (p95 ~1 rank,
+settles after an impact transient) but rotation grows monotonically (heavy
+mortal ~25 deg by 380s, still climbing) and the pike mid-line void is
+persistent (~+0.6 m). The pinwheel looks like the primary bug; the "deep
+band" was substantially the rotated seam read as mixing in isometric crops.
+Pickup point: slice 03 attribution — adjudicate with the force ledger, then
+reslice 04-07 (likely: rotation becomes priority 1).*
 
 You are implementing this spec. Start at `slices/01-force-trace.md` — the
 universal force-instrumentation harness. David's directive (2026-07-02): we do
@@ -42,7 +47,7 @@ before filming anything. Update this section (status, pickup point, TODO)
 before ending your pass.
 
 - [x] 01 force-trace — every force channel recorded at its source, ledger + torque/crossing queries; tweak-mechanics skill updated
-- [ ] 02 metrology — seam/rotation/silhouette/gap-profile detectors + ignored pins + HTML timeline
+- [x] 02 metrology — detectors + probes + ignored pins + seam-timeline.html; seam band does not reproduce sustained, rotation does
 - [ ] 03 attribution — ledger + ablation matrix; verdict per hypothesis; **reslice checkpoint**
 - [ ] 04 seam band — one standoff owner, band ≤ 2–3 ranks (absorbs the standoff-double-push rider)
 - [ ] 05 pinwheel — kill the rotation (chirality and/or ratchet per 03)

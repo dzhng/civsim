@@ -72,6 +72,9 @@ work without a fresh ask.
    with you until a fresh agent couldn't misread it.
 2. Start from a clean tree (or record the baseline commit) so Codex's diff is
    separable from yours.
+   Tell Codex to write scratch (probes, shot dumps, notes) to the repo's
+   gitignored `/throwaway/` folder — never the tree; its diff must contain only
+   the deliverable.
 3. Pick the sandbox by what the task must RUN:
    - Pure code + typecheck/unit: `codex exec --sandbox workspace-write "<task>"`.
      Network is off; add `-c sandbox_workspace_write.network_access=true` only

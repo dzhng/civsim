@@ -64,11 +64,14 @@ const GROUND_BOUNCE_TINT: Rgb = [0.34, 0.30, 0.25];
  *  BRIGHTER toward the horizon (mist register, matching the reference and
  *  the 09 stand-in), not the darker CIE-standard horizon. */
 const OVERCAST_ZENITH_RADIANCE: Rgb = [1.02, 1.05, 1.10];
-/** Sun disc: ~1.2° visual radius (readable at game framing) with an HDR core
- *  the ACES shoulder rolls into a warm-rimmed white. */
+/** Sun disc: ~1.2° visual radius (readable at game framing). The radiance is
+ *  kept BELOW the ACES saturation knee so the transmittance tint survives —
+ *  at 60 the dusk disc blew to pure white (10a critique); at 2.5 dusk reads
+ *  a warm gold disc, noon a bright cream one (mood over strict photometry —
+ *  a real 14° sun is blinding white, the register wants the evening tint). */
 const SUN_DISC_COS_INNER = 0.99985;
 const SUN_DISC_COS_OUTER = 0.99955;
-const SUN_DISC_RADIANCE = 60.0;
+const SUN_DISC_RADIANCE = 2.5;
 
 /** How much Mie the preset's turbidity adds (T = 1 → pure Rayleigh air). */
 export function mieScale(turbidity: number): number {

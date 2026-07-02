@@ -95,14 +95,14 @@ export function aerialPerspectiveNode(
     const reach = positionWorld.sub(observer ?? cameraPosition).toVar();
     const distKm = length(reach).div(1000.0).sub(CLEAR_RADIUS_KM).max(0.0).toVar();
     const transmit = vec3(...params.extinction).mul(distKm).negate().exp().toVar();
-    // The in-scatter colour: the sky just above the horizon in the
-    // fragment's VIEW azimuth (eye→fragment — the direction being looked
-    // along). Near top-down views degenerate toward the zenith sample, where
-    // distances (and 1−T) are tiny anyway.
-    const view = positionWorld.sub(cameraPosition).toVar();
-    const groundDist = length(view.xy).toVar();
-    const horizonDir = normalize(vec3(view.x, view.y, groundDist.mul(0.035).add(1e-4)));
-    const skyLight = texture(sky.lut.texture, equirectUV(horizonDir)).rgb;
+    // The in-scatter colour: the sky-view LUT along the TRUE view direction
+    // (eye→fragment). Near-horizontal rays pick up the horizon sky (the
+    // ranges/sea dissolve into it); downward rays land in the LUT's
+    // below-horizon ground-bounce region, which is dim like the ground —
+    // sampling the bright horizon for steep rays washed whole top-down
+    // overviews out (the 10c battle-smoke finding).
+    const view = normalize(positionWorld.sub(cameraPosition));
+    const skyLight = texture(sky.lut.texture, equirectUV(view)).rgb;
     const hazed = output.rgb.mul(transmit).add(skyLight.mul(vec3(1.0).sub(transmit)));
     return vec4(hazed, output.a);
   });

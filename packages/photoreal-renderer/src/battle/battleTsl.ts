@@ -1,0 +1,126 @@
+// Shared TSL vocabulary for the parity battle world (slice 08a): the noise
+// helpers and camera/environment terms the bespoke WGSL passes share
+// (cameraWgsl.ts sunDirection/chartDepthDist, the groundPass hash/vnoise/fbm/
+// ridge family), ported once and consumed by every battle layer so the ported
+// materials stay literal translations of the production shaders.
+//
+// Determinism: nothing here reads the TSL `time` node (banned); every animated
+// term keys off uniforms owned by PhotorealBattleWorld.
+import {
+  abs, clamp, cos, dot, float, floor, fract, mix, normalize, sin, smoothstep, uniform, vec2, vec3,
+} from 'three/tsl';
+import { Vector2 } from 'three';
+import type { Node } from 'three/webgpu';
+import type { BattleEnvironment } from '../../../game-renderer/src/environment/environment';
+
+export type FloatNode = Node<'float'>;
+export type Vec2Node = Node<'vec2'>;
+export type Vec3Node = Node<'vec3'>;
+export type Vec4Node = Node<'vec4'>;
+
+export type Rgb = readonly [number, number, number];
+
+export function rgbNode(c: Rgb): Vec3Node {
+  return vec3(c[0], c[1], c[2]);
+}
+
+/** The per-frame camera/clock uniforms the ported battle shaders read — the
+ *  TSL mirror of the bespoke `cam` uniform scalars that survive projection
+ *  (focus, eye.xy, time). One owner: PhotorealBattleWorld writes them.
+ *  `time` mirrors cam.time — the production battle never sets it, so parity
+ *  captures freeze it at 0; live viewing may drive it. */
+export function createBattleFrameUniforms() {
+  return {
+    focus: uniform(new Vector2(0, 0)),
+    eyeXY: uniform(new Vector2(0, -100)),
+    time: uniform(0),
+  };
+}
+
+export type BattleFrameUniforms = ReturnType<typeof createBattleFrameUniforms>;
+
+/** WGSL `hash(p)` from groundPass/frameShell — a 2D value hash. */
+export function hashN(p: Vec2Node): FloatNode {
+  const p3 = fract(vec3(p.x, p.y, p.x).mul(0.1031)).toVar();
+  const q = p3.add(dot(p3, vec3(p3.y, p3.z, p3.x).add(33.33))).toVar();
+  return fract(q.x.add(q.y).mul(q.z));
+}
+
+/** WGSL `vnoise(p)` — bilinear value noise over the hash lattice. */
+export function vnoiseN(p: Vec2Node): FloatNode {
+  const i = floor(p).toVar();
+  const f = fract(p).toVar();
+  const u = f.mul(f).mul(float(3.0).sub(f.mul(2.0))).toVar();
+  return mix(
+    mix(hashN(i), hashN(i.add(vec2(1.0, 0.0))), u.x),
+    mix(hashN(i.add(vec2(0.0, 1.0))), hashN(i.add(vec2(1.0, 1.0))), u.x),
+    u.y,
+  );
+}
+
+/** WGSL `fbm(p)` from groundPass — three octaves of vnoise. */
+export function fbmN(p: Vec2Node): FloatNode {
+  return vnoiseN(p).mul(0.52)
+    .add(vnoiseN(p.mul(2.11).add(vec2(4.3, 1.7))).mul(0.31))
+    .add(vnoiseN(p.mul(4.07).add(vec2(9.1, 6.4))).mul(0.17));
+}
+
+/** WGSL `ridge(p)`/`ridged(p)` — folded value noise. */
+export function ridgeN(p: Vec2Node): FloatNode {
+  const r = float(1.0).sub(abs(vnoiseN(p).mul(2.0).sub(1.0))).toVar();
+  return r.mul(r);
+}
+
+/** WGSL `fnoise(p)` from gerstnerField — the sin-dot hash noise the water
+ *  foam/swash speckle uses (distinct from the ground hash family). */
+export function fnoiseN(p: Vec2Node): FloatNode {
+  const fhash = (q: Vec2Node): FloatNode => fract(sin(dot(q, vec2(127.1, 311.7))).mul(43758.5453));
+  const i = floor(p).toVar();
+  const f = fract(p).toVar();
+  const u = f.mul(f).mul(float(3.0).sub(f.mul(2.0))).toVar();
+  return mix(
+    mix(fhash(i), fhash(i.add(vec2(1.0, 0.0))), u.x),
+    mix(fhash(i.add(vec2(0.0, 1.0))), fhash(i.add(vec2(1.0, 1.0))), u.x),
+    u.y,
+  );
+}
+
+/** WGSL `sunDirection()` for a battle environment — a compile-time constant
+ *  (the preset owns az/el; production writes them into the camera uniform). */
+export function sunDirectionNode(env: BattleEnvironment): Vec3Node {
+  const az = env.environment.sunAzimuth;
+  const el = env.environment.sunElevation;
+  const ce = Math.cos(el);
+  return vec3(ce * Math.cos(az), ce * Math.sin(az), Math.sin(el));
+}
+
+/** The battle fog/meadow grading axis (cameraWgsl chartDepthDist): signed
+ *  ground distance from the view centre along the legacy chart "depth" axis,
+ *  reconstructed from the eye→focus ground direction. */
+export function chartDepthDistNode(world: Vec2Node, frame: BattleFrameUniforms): FloatNode {
+  const fwd = normalize(vec2(frame.focus).sub(vec2(frame.eyeXY))).toVar();
+  return dot(world.sub(vec2(frame.focus)), vec2(fwd.y, fwd.x.negate()));
+}
+
+/** WGSL smoothstep with scalar edges (all ports use constant edges). */
+export function smoothstepN(edge0: number, edge1: number, x: FloatNode): FloatNode {
+  return smoothstep(float(edge0), float(edge1), x);
+}
+
+/** clamp(x, 0, 1). */
+export function saturateN(x: FloatNode): FloatNode {
+  return clamp(x, 0.0, 1.0);
+}
+
+/** Rotate a local XY by an instance yaw (the cy/sy pattern every instanced
+ *  battle shader uses). Returns [rotatedX, rotatedY, cosYaw, sinYaw]. */
+export function rotateYawN(x: FloatNode, y: FloatNode, yaw: FloatNode): { rx: FloatNode; ry: FloatNode; cy: FloatNode; sy: FloatNode } {
+  const cy = cos(yaw).toVar();
+  const sy = sin(yaw).toVar();
+  return {
+    rx: x.mul(cy).sub(y.mul(sy)),
+    ry: x.mul(sy).add(y.mul(cy)),
+    cy,
+    sy,
+  };
+}

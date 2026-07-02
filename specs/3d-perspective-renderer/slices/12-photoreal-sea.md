@@ -122,6 +122,65 @@ visible from seaward bearings → `12d` extent/shore work.
 - **Next:** `12e` disciplines the sun glint sparkle size/threshold and closes the
   named water-gate retirement ledger plus `/renderer/water-bakeoff` fate.
 
+## 12e STATUS (2026-07-02): DONE — glint discipline + water-gate retirement
+
+- **Implementation:** the sea remains a `MeshStandardNodeMaterial`; no second
+  sky, sun, or inline glint path was introduced. The calm-water roughness floor
+  rose to `0.105` and near normal detail was capped at `0.84` (far remains
+  `0.18`, fade `720→2300`) so the GGX sun track stays present without a field
+  of single-pixel sparkle. Foam still pushes roughness to `0.78`.
+- **Constants recorded:** `surface.glint = { roughnessFloor: 0.105,
+  normalDetailCeiling: 0.84, hotLumaThreshold: 246, hotFractionMax: 0.07,
+  centerShareMin: 0.60 }`. These are the slice-15a bloom tripwire: bloom may
+  enrich the track, but must not turn it into blanket sparkle or a blown sheet.
+- **Scene:** `web/scenes/battle/photoreal-sea.mjs` now includes
+  `photoreal-sea/sun-glint`, cropped around the fixed golden-hour sun track. The
+  crop asserts a hot GGX track exists, that hot coverage stays bounded, and that
+  most hot pixels concentrate in the central reflected sun band rather than
+  arbitrary crest foam.
+- **Evidence:** `bun run --cwd web typecheck`; `bun run --cwd web test:unit`
+  (68/68); hardware look re-bless
+  `UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5178 VERIFY_GPU=1
+  VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs
+  photoreal-sea` → ALL CHECKS PASSED; SwiftShader
+  `VERIFY_URL=http://localhost:5178 VERIFY_GPU=1 node scene.mjs photoreal-sea`
+  → ALL CHECKS PASSED. Baselines re-blessed/added:
+  `web/shots/battle/photoreal-sea/sea-horizon.png`,
+  `web/shots/battle/photoreal-sea/sea-mid.png`,
+  `web/shots/battle/photoreal-sea/shore-line.png`, and
+  `web/shots/battle/photoreal-sea/sun-glint.png`. Hardware `sun-glint`
+  metrics: hotFraction `0.0326`, centerShare `0.6393`, maxLuma `255`;
+  SwiftShader drift on `sun-glint` was 1442 px (`1.2716%`). Hardware
+  `bun run --cwd web perf:30k` with `VERIFY_URL=http://localhost:5178` stayed
+  green: GPU median `5.85 ms` mid / `7.89 ms` vista, p95 `6.93 ms` /
+  `9.66 ms`, device `apple / metal-3`.
+
+## 12e WATER-GATE RETIREMENT LEDGER (2026-07-02)
+
+- `water-foam`: retired; intent re-derived by `photoreal-sea/sea-mid`
+  (`foamFraction` present but bounded, crest/agitation driven).
+- `water-albedo`: retired; intent split across `photoreal-sea/shore-line` (tan
+  sand → turquoise → deep blue) and `photoreal-sea/sea-horizon` (blue readable
+  near sea under the live sky).
+- `water-glint`: retired; intent re-derived by `photoreal-sea/sun-glint`
+  (standard-material GGX from the SkyModel environment sun, bounded hot coverage).
+- `water-haze`: retired; intent re-derived by the photoreal-sea stats check that
+  `stats.atmosphere.aerial.owner === 'aerialPerspective'`, plus the horizon crop.
+  No inline sea haze remains.
+- `water-rhythm`: retired; the old multi-frame lab GIF guarded the bakeoff
+  `WaterPlanePass` motion, not the production battle owner. Gerstner motion is now
+  pinned by fixed-time `photoreal-sea` crops; future motion review belongs in a
+  battle vibe/GIF if the sea animation changes.
+- `water-silhouette`: retired; the old isolated-plane silhouette is superseded by
+  `photoreal-sea/sea-horizon` and `shore-line` in the real battle composition.
+- `water-horizon-real`: retired; its reverse-Z/real-camera proof shipped in slice
+  02 and is now a historical spine invariant. The active sea horizon proof is
+  `photoreal-sea/sea-horizon` under `/renderer/photoreal-battle`.
+- `/renderer/water-bakeoff`: retained only as a legacy/manual lab route until the
+  slice-17 legacy sweep. It is no longer an active gate; the seven
+  `web/scenes/system/water-*.mjs` scenes and stale `web/shots/misc/water/*`
+  baselines were deliberately deleted.
+
 ## Contract unlocked
 
 The sea sells the setting (aesthetics rule 4): a photoreal Aegean sea at the true

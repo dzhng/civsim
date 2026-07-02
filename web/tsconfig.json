@@ -9,7 +9,12 @@
     "noEmit": true,
     "isolatedModules": true,
     "resolveJsonModule": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "paths": {
+      "three": ["./node_modules/@types/three/index.d.ts"],
+      "three/webgpu": ["./node_modules/@types/three/build/three.webgpu.d.ts"],
+      "three/tsl": ["./node_modules/@types/three/build/three.tsl.d.ts"]
+    }
   },
   "include": ["src"]
 }

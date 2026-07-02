@@ -1,5 +1,57 @@
 # Slice 07 — Photoreal foundation: `packages/photoreal-renderer` + harness re-tooling
 
+## STATUS: DONE (2026-07-02, this branch)
+
+Built as specified; decisions + evidence:
+
+- **Package name `photoreal-renderer`** (purpose-over-tech, recorded
+  recommendation; David silent on the flag). **60k stress mode kept** on
+  `/renderer/photoreal-crowd?count=` (verified publishing 60,000).
+- **Reverse-Z carries over:** three@0.185's `WebGPURenderer({ reversedDepthBuffer:
+  true })` builds the exact `perspectiveReverseZ` matrix (near→1, far→0), so the
+  substrate shares the engine depth direction. `applyCamera3d` sets the
+  renderer-managed `_reversedDepth` backing field so CPU-side matrices match
+  before first render (version-pinned; the unit test pins it). three has no
+  infinite-far branch (NaNs at `far=Infinity`) — omitted far becomes
+  `PHOTOREAL_FAR_FALLBACK = 1e7`, converging on the infinite-limit matrix.
+- **Environment owner grew photoreal fields** (`skyZenithColor`,
+  `skyHorizonColor`, `groundBounceColor`) on `CIVSIM_ENVIRONMENTS` — golden takes
+  the spike's verdict-grade values; dusk/overcast authored, exercised only by the
+  unit test until a route uses them.
+- **Resolution plumbing (new, deliberate):** `packages/*`/`apps/*` sit outside
+  the vite root, so bare `three` imports resolve nowhere by walk-up. Wired in all
+  three resolvers: vite `resolve.alias` (exact-match regexes → pinned builds),
+  tsconfig `paths` (→ `@types/three`, dev-only, which covers `three/webgpu` +
+  `three/tsl` fine — no local d.ts needed), and the node test loader retries bare
+  specifiers anchored at `web/` (`web/tests/ts-extension-loader.mjs`).
+- **TSL hazard beyond the 06 list:** `@types/three`'s `attribute<TNodeType>()`
+  widens an inferred string literal to `string`, silently dropping the whole
+  swizzle/operator surface — explicit generics required
+  (`attribute<'vec4'>('iPose', 'vec4')`).
+- **SwiftShader reality check:** one full-scale crowd frame ≈ 30 s of software
+  rasterization; the gate scene uses clipped `page.screenshot` (no
+  element-stability wait) + 120 s screenshot timeouts. Byte-determinism holds
+  (identical buffers on every pair).
+- **Frame-time ledger opened (hardware, apple/metal-3, chrome, 1100×700):**
+  `/renderer/photoreal-crowd` mid, 30,400 soldiers + 200k grass + 3k trees =
+  **GPU 5.29 ms, median rAF 8.33 ms (vsync-pinned @120 Hz), p95 9.91 ms**
+  (budget ≤ 33 ms; 06 baseline ~6 ms GPU). Byte-determinism also holds on the
+  hardware adapter.
+- Verification: `photorealCamera` (4 tests) + `photorealEnvironment` (2 tests) →
+  `test:unit` 45/45; `photoreal-substrate` scene ALL PASS under SwiftShader
+  (identity fields, count floors, non-blank, byte-determinism, snaps
+  `shots/misc/photoreal-{pbr,crowd-mid}.png`); spike fully deleted (nothing
+  spike-shaped survives — grep-verified, including the banned TSL `time` node).
+- **screenshot-critique (unprimed, on the promoted PBR grid): "needs another
+  pass"** — parity with the 06 evidence shot is confirmed side-by-side (this
+  slice's contract: promote at parity, no new visual variable), and every
+  finding maps to already-scheduled ladder work: (1) featureless flat-gradient
+  IBL collapses both material axes → the procedural-equirect scaffold row,
+  deleted by `10a` (physical sky feeds the IBL); (2) no shadows / contact
+  grounding → `11` (CSM); (3) near-row specular clipping + silhouette aliasing +
+  background banding → re-judge under the `10a` environment before treating as
+  material-system bugs. Nothing here is a promotion regression.
+
 ## Contract unlocked
 
 The 06 verdict's 5-point harness re-tooling plan is **implemented**: a production-grade

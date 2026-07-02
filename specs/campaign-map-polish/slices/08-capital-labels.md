@@ -19,13 +19,23 @@ garrison army label, which is itself culled at low zoom.
   `screenOffsetY`, `overlapClearance`, `selectedOffset`) — pull the label back to
   the city footprint.
 - **The "ugly shadow ring" of feedback #9 also folds here (reslice from slice 10):**
-  it is the light-grey garrison-footprint DISC drawn only under occupied/garrisoned
-  capitals (verified on rome-close: normal cities have no such disc). Find the
-  element that renders it — likely the garrison display anchor footprint or the
-  ground-selection pass drawing a garrison marker even when deselected
-  (`selectionPass` kind 2 / `garrisonDisplayAnchor`) — and make it subtle or remove
-  it so a garrisoned capital doesn't wear an ugly halo. The city MODEL shadow
-  (`campaignEntityModels.ts:11`) reads fine; do not change it.
+  it is a LIGHT-grey oval ground decal drawn only under occupied/garrisoned
+  capitals. Verified facts (narrow the search with these):
+  - It is NOT the city model shadow (`campaignEntityModels.ts:11`) — that's on every
+    city and reads fine; normal cities show no disc.
+  - It is NOT the selection ring — `rome-close` deselects (`select(-1)`) yet the
+    disc is present. The selection instance at `renderer.ts:825` is gated on
+    `army.id === opts.selected`, so it isn't that.
+  - It is LIGHT (grey/white with a faint dark rim), so it is not the soldier-crowd
+    shadows (those are dark; `renderer.ts` `soldierShadows.upload`).
+  - It appears exactly where the garrison army renders at `garrisonDisplayAnchor`
+    (`renderer.ts:786-798`, the "army" entity at the anchor) with the crowd figures
+    standing on it.
+  - **Next step:** grep for a light ground platform/plaza/decal drawn for a
+    garrisoned city or under the campaign crowd that is NOT gated on selection
+    (candidates: a garrison "platform" mesh, a ground-plane decal in the entity/
+    scenery pass, or a crowd ground disc). Make it subtle or remove it so a
+    garrisoned capital doesn't wear a halo.
 - **Firewall:** don't add a second cull path in `renderer.ts`; the tier/cull
   policy stays in the `mapPass` label gates.
 

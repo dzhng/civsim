@@ -16,8 +16,13 @@ Risks), never as the first move.
 
 ## Next Agent Prompt
 
-*Status (2026-07-02): spec authored, no slice started. Last updated by the
-planning pass.*
+*Status (2026-07-02): slice 01 COMPLETE — harness in sim behind
+`force-trace`, conservation + smoke green, default golden byte-identical,
+tweak-mechanics skill updated (`references/force-trace.md`; note
+`.claude/skills` is a symlink to `.agents/skills` — write there, some
+sandboxes expose the symlink read-only). Slice 02 is being implemented in the
+sibling worktree `melee-blob-s02`. Pickup point: integrate slice 02, then
+slice 03 attribution on the harness.*
 
 You are implementing this spec. Start at `slices/01-force-trace.md` — the
 universal force-instrumentation harness. David's directive (2026-07-02): we do
@@ -36,7 +41,7 @@ files and this section before implementing 04. Read
 before filming anything. Update this section (status, pickup point, TODO)
 before ending your pass.
 
-- [ ] 01 force-trace — every force channel recorded at its source, ledger + torque/crossing queries; **updates the tweak-mechanics skill**
+- [x] 01 force-trace — every force channel recorded at its source, ledger + torque/crossing queries; tweak-mechanics skill updated
 - [ ] 02 metrology — seam/rotation/silhouette/gap-profile detectors + ignored pins + HTML timeline
 - [ ] 03 attribution — ledger + ablation matrix; verdict per hypothesis; **reslice checkpoint**
 - [ ] 04 seam band — one standoff owner, band ≤ 2–3 ranks (absorbs the standoff-double-push rider)

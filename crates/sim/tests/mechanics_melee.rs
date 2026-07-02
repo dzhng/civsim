@@ -3098,3 +3098,140 @@ fn blob_probe_slice05_couple_chain() {
         }
     }
 }
+
+/// Rigid 2D rotation (degrees) best mapping the cohort's positions at the
+/// interval start onto its positions now — soldiers alive at BOTH endpoints
+/// only, so casualty geography cannot masquerade as motion (the conflation
+/// the couple-chain probe exposed in the centroid-bearing detector).
+fn cohort_rotation_deg(start: &[(usize, Vec2)], sim: &Sim) -> f32 {
+    let cohort: Vec<(Vec2, Vec2)> = start
+        .iter()
+        .filter(|&&(s, _)| sim.alive[s] == 1)
+        .map(|&(s, p0)| (p0, sim.soldier_pos(s)))
+        .collect();
+    if cohort.len() < 8 {
+        return 0.0;
+    }
+    let n = cohort.len() as f32;
+    let (mut c0, mut c1) = (Vec2::ZERO, Vec2::ZERO);
+    for &(p0, p1) in &cohort {
+        c0 = c0 + p0;
+        c1 = c1 + p1;
+    }
+    c0 = c0 * (1.0 / n);
+    c1 = c1 * (1.0 / n);
+    let (mut dot, mut cross) = (0.0f32, 0.0f32);
+    for &(p0, p1) in &cohort {
+        let a = p0 - c0;
+        let b = p1 - c1;
+        dot += a.x * b.x + a.y * b.y;
+        cross += a.x * b.y - a.y * b.x;
+    }
+    cross.atan2(dot).to_degrees()
+}
+
+/// Slice 05 detector split: cohort (body-motion) rotation vs centroid-pair
+/// bearing, on the controlled pinned-frame config AND the vibe-like config.
+/// Decides which layer the visual pinwheel lives in before any fix.
+#[test]
+#[ignore = "melee-blob slice 05: cohort/bearing rotation split probe"]
+fn blob_probe_slice05_cohort_split() {
+    let stats = class_stats(UnitClassId::HeavySword);
+    for (config, vibe_like) in [("controlled", false), ("vibe_like", true)] {
+        for seed in [0_u64, 1, 2, 3, 4] {
+            let tun = if vibe_like {
+                let mut t = Tunables::default();
+                apply_melee_env_overrides(&mut t);
+                t
+            } else {
+                controlled_heavy_tun()
+            };
+            let mut sim = Sim::new(tun, seed);
+            let a = sim.spawn_class_stats_with_files(
+                Vec2::new(0.0, -13.0),
+                FRAC_PI_2,
+                N,
+                24,
+                UnitClassId::HeavySword,
+                stats,
+                0,
+            );
+            let b = sim.spawn_class_stats_with_files(
+                Vec2::new(0.0, 13.0),
+                -FRAC_PI_2,
+                N,
+                24,
+                UnitClassId::HeavySword,
+                stats,
+                1,
+            );
+            sim.set_pace(a, Pace::Run);
+            sim.set_pace(b, Pace::Run);
+            sim.set_attack_order(a, b);
+            sim.set_attack_order(b, a);
+
+            // Detector validation: over a pre-contact approach interval the
+            // cohort fit must read ~0 (pure translation).
+            let snap0: Vec<Vec<(usize, Vec2)>> = [a, b]
+                .iter()
+                .map(|&u| {
+                    (sim.units[u].start..sim.units[u].start + sim.units[u].count)
+                        .filter(|&s| sim.alive[s] == 1)
+                        .map(|s| (s, sim.soldier_pos(s)))
+                        .collect()
+                })
+                .collect();
+            for _ in 0..(3.0 / DT) as usize {
+                sim.tick();
+            }
+            for snap in &snap0 {
+                let r = cohort_rotation_deg(snap, &sim);
+                assert!(
+                    r.abs() < 1.0,
+                    "cohort detector reads {r:.2} deg on a pure approach"
+                );
+            }
+
+            // Integrate SHORT-interval rigid fits (1s — near-rigid against
+            // grind churn); a long-window fit decorrelates and reads noise
+            // across the full circle (measured: +/-170deg/100s with frozen
+            // facings — the third metric-encodes-the-wrong-thing catch).
+            const FIT_S: f32 = 1.0;
+            const REPORT_S: f32 = 100.0;
+            let mut fit_start: Vec<Vec<(usize, Vec2)>> = snap0;
+            let mut elapsed;
+            let mut cum = [0.0f32; 2];
+            for step in 1..=((400.0 - 3.0) / DT) as usize {
+                sim.tick();
+                elapsed = 3.0 + step as f32 * DT;
+                if step % (FIT_S / DT) as usize == 0 {
+                    for (slot, _) in [a, b].iter().enumerate() {
+                        cum[slot] += cohort_rotation_deg(&fit_start[slot], &sim);
+                    }
+                    fit_start = [a, b]
+                        .iter()
+                        .map(|&u| {
+                            (sim.units[u].start..sim.units[u].start + sim.units[u].count)
+                                .filter(|&s| sim.alive[s] == 1)
+                                .map(|s| (s, sim.soldier_pos(s)))
+                                .collect()
+                        })
+                        .collect();
+                }
+                if step % (REPORT_S / DT) as usize == 0 || elapsed >= 400.0 {
+                    let bearing = engagement_rotation_deg(&sim, a, b);
+                    eprintln!(
+                        "SLICE05_COHORT config={config} seed={seed} t={elapsed:.0}s bearing={bearing:.2}deg u0 cohort_cum={:.2} facing={:.1} | u1 cohort_cum={:.2} facing={:.1}",
+                        cum[0],
+                        sim.units[a].facing.to_degrees(),
+                        cum[1],
+                        sim.units[b].facing.to_degrees()
+                    );
+                    if elapsed >= 400.0 {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}

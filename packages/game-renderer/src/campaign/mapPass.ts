@@ -175,11 +175,15 @@ fn nz(p: vec2f, freq: f32, px: f32) -> f32 {
 }
 
 fn grade(c0: vec3f) -> vec3f {
-  var c = pow(max(c0, vec3f(0.0)), vec3f(0.92, 0.95, 1.0));
+  // Global tone toward the muted antique-chart target (campaign-map-polish 02):
+  // the old grade over-saturated (1.06) and washed the map brighter (*1.05+0.02),
+  // reading as a vivid webapp map. Pull saturation down, drop the brightness lift,
+  // and warm slightly toward sepia so the whole chart sits in the Aegean register.
+  var c = pow(max(c0, vec3f(0.0)), vec3f(0.95, 0.97, 1.0));
   let l = dot(c, vec3f(0.299, 0.587, 0.114));
-  c = mix(vec3f(l), c, 1.06);
-  c = c * 1.05 + vec3f(0.02);
-  c *= vec3f(1.02, 1.0, 0.95);
+  c = mix(vec3f(l), c, 0.84);
+  c = c * 0.99 + vec3f(0.006);
+  c *= vec3f(1.05, 1.0, 0.92);
   return clamp(c, vec3f(0.0), vec3f(1.0));
 }
 

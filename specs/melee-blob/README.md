@@ -16,14 +16,21 @@ Risks), never as the first move.
 
 ## Next Agent Prompt
 
-*Status (2026-07-02): slices 01–04 COMPLETE and RESLICED. Slice 04 named the
-mortal unlock: cap-clips-the-spring. SpeedCap removes PivotSpring-aligned
-steering in both runs, but mortality amplifies it (mortal avg
-parallel-of-total clip 0.775 vs immortal 0.689; ramp window peak 0.907 vs
-0.690), so the restoring spring is preferentially eaten while the residual
-drift survives. Off-axis mass chase, re-dress legalization, and forward-close
-feed were killed. Pickup point: slice 05 — fix the cap/spring feedback without
-weakening the now-active seam-band rail.*
+*Status (2026-07-03): slices 01–04 COMPLETE; slice 05 mid-diagnosis. READ
+slices/05-pinwheel.md BOTTOM-UP — its last sections are the live state.
+Measured dead so far: three restriction-family fixes (reallocation, total
+tempo cap, tangential tempo cap — survivability executioner each time),
+relabel-as-motor (cadence scaling inverts), corridor width, the offset
+couple. Standing discoveries: (1) the centroid-bearing rotation metric
+conflates casualty geography with motion; (2) rigid-fit detectors measure
+internal CIRCULATION — the press has a coherent ~3 deg/s internal loop (men
+cycle like a tank tread while the shape stands still), a real phenomenon
+worth force-trace attribution on its own; (3) the honest pinwheel metric is
+per-unit SHAPE ORIENTATION (PCA major axis with sign continuity) + seam
+angle. Pickup point: build the shape-orientation detector, re-run the
+controlled-vs-vibe-like split, name the fix layer (bodies vs frames vs death
+geography), THEN design the fix. a_symmetric_grind_does_not_pinwheel stays
+ignored until rebuilt on the new detector.*
 
 You are implementing this spec. Slices 01–03 (harness, metrology,
 attribution) are landed — read their slice files' bottom notes and the

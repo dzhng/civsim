@@ -67,6 +67,8 @@ import { campaignSurface, type CampaignSurface } from "./surface";
 import { type FactionLabel, type Territory } from "./territory";
 import type { ArmyView, CityView } from "./views";
 
+export const MAX_CAMPAIGN_ZOOM = 8;
+
 interface DrawOptions {
   cam: CamView;
   armies: ArmyView[];
@@ -157,8 +159,30 @@ export class CampaignRenderer {
         (window.devicePixelRatio || 1)
       : Math.max(cssW / (rect.max[0] - rect.min[0]), cssH / ((rect.max[1] - rect.min[1]) * cosP)) *
         (window.devicePixelRatio || 1);
-    const minZoom = controlled ? fillZoom * 0.78 : fillZoom;
-    const maxZoom = controlled ? Math.max(8, minZoom * 2.2) : 8;
+    let minZoom = controlled ? fillZoom * 0.78 : fillZoom;
+    const maxZoom = controlled ? Math.max(MAX_CAMPAIGN_ZOOM, minZoom * 2.2) : MAX_CAMPAIGN_ZOOM;
+    if (!controlled) {
+      const mapW = rect.max[0] - rect.min[0];
+      const mapH = rect.max[1] - rect.min[1];
+      const fits = (scale: number) => {
+        const fp = this.groundFootprintForScale(scale);
+        return fp.halfW * 2 <= mapW && fp.dTop + fp.dBottom <= mapH;
+      };
+      if (fillZoom >= maxZoom) {
+        minZoom = fillZoom;
+      } else if (!fits(maxZoom)) {
+        minZoom = maxZoom;
+      } else {
+        let lo = fillZoom;
+        let hi = maxZoom;
+        for (let i = 0; i < 24; i++) {
+          const mid = (lo + hi) * 0.5;
+          if (fits(mid)) hi = mid;
+          else lo = mid;
+        }
+        minZoom = hi;
+      }
+    }
     cam.scale = Math.max(minZoom, Math.min(maxZoom, cam.scale));
     const halfW = (this.canvas.width || cssW) / (2 * cam.scale);
     const halfH = (this.canvas.height || cssH) / (2 * cam.scale * cosP);
@@ -166,9 +190,47 @@ export class CampaignRenderer {
       cam.x = clampControlledAxis(cam.x, rect.min[0], rect.max[0], halfW);
       cam.y = clampControlledAxis(cam.y, rect.min[1], rect.max[1], halfH);
     } else {
-      cam.x = clamp(cam.x, rect.min[0] + halfW, rect.max[0] - halfW);
-      cam.y = clamp(cam.y, rect.min[1] + halfH, rect.max[1] - halfH);
+      const fp = this.groundFootprintForScale(cam.scale);
+      const minX = rect.min[0] + fp.halfW;
+      const maxX = rect.max[0] - fp.halfW;
+      const minY = rect.min[1] + fp.dBottom;
+      const maxY = rect.max[1] - fp.dTop;
+      cam.x = minX > maxX ? (rect.min[0] + rect.max[0]) * 0.5 : clamp(cam.x, minX, maxX);
+      cam.y = minY > maxY ? (rect.min[1] + rect.max[1]) * 0.5 : clamp(cam.y, minY, maxY);
     }
+  }
+
+  private groundFootprintForScale(scale: number) {
+    const rect = this.data.bgRect;
+    const cx = (rect.min[0] + rect.max[0]) * 0.5;
+    const cy = (rect.min[1] + rect.max[1]) * 0.5;
+    const centeredCam: CamView = { x: cx, y: cy, scale };
+    const stats = this.shell?.stats();
+    const width = stats?.width ?? this.canvas.width ?? 1;
+    const height = Math.max(1, stats?.height ?? this.canvas.height ?? 1);
+    const snapshot: CameraSnapshot = {
+      x: cx,
+      y: cy,
+      zoom: scale,
+      camera3d: this.cameraParamsFor(centeredCam),
+      width,
+      height,
+    };
+    const corners = [
+      screenToWorld(snapshot, 0, 0),
+      screenToWorld(snapshot, width, 0),
+      screenToWorld(snapshot, 0, height),
+      screenToWorld(snapshot, width, height),
+    ];
+    let halfW = 0;
+    let minY = Infinity;
+    let maxY = -Infinity;
+    for (const [x, y] of corners) {
+      halfW = Math.max(halfW, Math.abs(x - cx));
+      minY = Math.min(minY, y);
+      maxY = Math.max(maxY, y);
+    }
+    return { halfW, dTop: maxY - cy, dBottom: cy - minY };
   }
 
   toScreen(wx: number, wy: number): [number, number] {
@@ -518,7 +580,7 @@ export class CampaignRenderer {
     const fillZoom =
       Math.max(cssW / (rect.max[0] - rect.min[0]), cssH / (rect.max[1] - rect.min[1])) * dpr;
     const min = controlled ? fillZoom * 0.78 : fillZoom;
-    const max = controlled ? Math.max(8, min * 2.2) : 8;
+    const max = controlled ? Math.max(MAX_CAMPAIGN_ZOOM, min * 2.2) : MAX_CAMPAIGN_ZOOM;
     return { min, max };
   }
 

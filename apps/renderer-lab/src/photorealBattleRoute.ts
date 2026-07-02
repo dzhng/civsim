@@ -14,6 +14,9 @@
 //   ?t=S          fixed clock seconds (byte-deterministic frames)
 //   ?select=1     select the first player unit (gold ground-cue rings)
 //   ?debug=blocks debug unit blocks (mirrors the production toggle)
+//   ?pitch=R      camera pitch override in radians (sky/atmosphere QA — the
+//                 production rig never points this high)
+//   ?yaw=R        camera yaw override in radians (same QA knob)
 import { PhotorealBattleWorld, type BattleTacticalLineFrame } from '../../../packages/photoreal-renderer/src/battle/battleWorld';
 import { createPhotorealStatsPublisher } from '../../../packages/photoreal-renderer/src/stats';
 import { Camera } from '../../../web/src/shared/camera';
@@ -336,9 +339,14 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
     return { renderStats: s, soldiers: s.soldiers, expectedSoldiers: s.expectedSoldiers };
   });
 
+  const pitchOverride = params.has('pitch') ? Number(params.get('pitch')) : null;
+  const yawOverride = params.has('yaw') ? Number(params.get('yaw')) : null;
   const cameraSnapshot = () => {
     const [x, y] = camera.viewCenter();
-    return { x, y, zoom: camera.zoom, zoomT: camera.zoomT, camera3d: camera.params() };
+    const camera3d = camera.params();
+    if (pitchOverride !== null && Number.isFinite(pitchOverride)) camera3d.pitch = pitchOverride;
+    if (yawOverride !== null && Number.isFinite(yawOverride)) camera3d.yaw = yawOverride;
+    return { x, y, zoom: camera.zoom, zoomT: camera.zoomT, camera3d };
   };
 
   let accumulator = 0;

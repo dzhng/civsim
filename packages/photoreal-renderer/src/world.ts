@@ -11,6 +11,13 @@ import * as THREE from 'three/webgpu';
 import { uniform } from 'three/tsl';
 import type { CivsimEnvironmentId } from '../../game-renderer/src/environment/environment';
 
+interface SortItem {
+  groupOrder: number | null;
+  renderOrder: number | null;
+  z: number | null;
+  id: number | null;
+}
+
 export interface PhotorealWorldStats {
   drawCalls: number;
   triangles: number;
@@ -31,6 +38,9 @@ export class PhotorealWorld {
   /** Set by applyCivsimEnvironment — the stats identity field proving the ONE
    *  environment-preset owner (CIVSIM_ENVIRONMENTS) dressed this world. */
   environmentId: CivsimEnvironmentId | null = null;
+  /** Set by applyCivsimEnvironment — the atmosphere ownership identity
+   *  (which sky tier rendered, which aerial owner hazed) for the stats seam. */
+  atmosphere: Record<string, unknown> | null = null;
   private timeSeconds = 0;
   private gpuTimeMs: number | null = null;
   private timestampBroken = false;
@@ -58,6 +68,21 @@ export class PhotorealWorld {
       reversedDepthBuffer: true,
     });
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    // TSL/three@0.185 HAZARD (recorded in the 08a slice file): with
+    // `reversedDepthBuffer` three sorts its render lists then REVERSES them
+    // wholesale (RenderList.sort → list.reverse()), inverting renderOrder
+    // semantics — a low-renderOrder backdrop/sky would draw LAST and cover
+    // the world. These comparators pre-invert every axis so the post-reverse
+    // order is the classic painter contract (renderOrder asc; opaque
+    // front-to-back, transparent back-to-front) every photoreal world layers
+    // by — substrate-wide since 10a (the sky dome draws in the painter band
+    // on lab routes too).
+    renderer.setOpaqueSort((a: SortItem, b: SortItem) =>
+      ((b.groupOrder ?? 0) - (a.groupOrder ?? 0)) || ((b.renderOrder ?? 0) - (a.renderOrder ?? 0))
+      || ((b.z ?? 0) - (a.z ?? 0)) || ((b.id ?? 0) - (a.id ?? 0)));
+    renderer.setTransparentSort((a: SortItem, b: SortItem) =>
+      ((b.groupOrder ?? 0) - (a.groupOrder ?? 0)) || ((b.renderOrder ?? 0) - (a.renderOrder ?? 0))
+      || ((a.z ?? 0) - (b.z ?? 0)) || ((b.id ?? 0) - (a.id ?? 0)));
     await renderer.init();
     return new PhotorealWorld(renderer, new THREE.Scene());
   }

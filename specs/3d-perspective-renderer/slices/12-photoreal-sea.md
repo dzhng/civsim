@@ -65,6 +65,31 @@ visible from seaward bearings → `12d` extent/shore work.
   and the `sea-mid` crop. Water-gate retirement ledger and `/renderer/water-bakeoff`
   fate remain open until 12d/12e can re-point every named intent.
 
+## 12c STATUS (2026-07-02): DONE — crest/agitation whitecaps
+
+- **Implementation:** Gerstner foam now gates on crest height plus local slope
+  energy, then breaks coverage with deterministic fnoise speckle. It is not a
+  broad sea-wide mask: `foam = crest(height 0.52→1.55) * agitation(slopeEnergy
+  0.12→0.58) * speckle(0.56→0.78) * 0.74`, still multiplied by offshore
+  agitation in the ocean-plane material.
+- **Scene:** `web/scenes/battle/photoreal-sea.mjs` now includes
+  `photoreal-sea/sea-mid`, cropped off-centre in the mid-water band to avoid the
+  main sun track. The crop checks whitecap presence without blanket coverage.
+- **Evidence:** `bun run --cwd web typecheck`; `bun run --cwd web test:unit`
+  (68/68); hardware look re-bless
+  `UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5178 VERIFY_GPU=1
+  VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs
+  photoreal-sea` → ALL CHECKS PASSED; SwiftShader
+  `VERIFY_URL=http://localhost:5178 VERIFY_GPU=1 node scene.mjs photoreal-sea`
+  → ALL CHECKS PASSED. Baselines re-blessed/added:
+  `web/shots/battle/photoreal-sea/sea-horizon.png` and
+  `web/shots/battle/photoreal-sea/sea-mid.png`. Hardware `sea-mid` metrics:
+  blueFraction `0.9431`, foamFraction `0.0838`; SwiftShader drift on
+  `sea-mid` was 7 px (`0.0053%`).
+- **Next:** `12d` shore blending: tan sand → pale turquoise → deep blue against
+  the terrain heightfield, plus the seaward far-edge extent/haze fix through the
+  10b aerial owner. Water-gate ledger still open.
+
 ## Contract unlocked
 
 The sea sells the setting (aesthetics rule 4): a photoreal Aegean sea at the true

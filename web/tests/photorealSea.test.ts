@@ -38,6 +38,15 @@ test('photoreal sea: Gerstner is the default active source', () => {
         fadeStart: 720,
         fadeEnd: 2300,
       },
+      foam: {
+        heightStart: 0.52,
+        heightEnd: 1.55,
+        slopeStart: 0.12,
+        slopeEnd: 0.58,
+        speckleStart: 0.56,
+        speckleEnd: 0.78,
+        scale: 0.74,
+      },
     },
   });
 });

@@ -5,7 +5,7 @@ export const meta = {
   kind: 'visual',
   world: 'battle-photoreal-sea-vista',
   tier: 'full',
-  snapshots: ['photoreal-sea/sea-horizon'],
+  snapshots: ['photoreal-sea/sea-horizon', 'photoreal-sea/sea-mid'],
   describe: 'Slice 12 photoreal sea: SkyModel-reflecting PBR Gerstner surface at a fixed sea-facing battle vista.',
 };
 
@@ -61,7 +61,9 @@ export async function run(ctx) {
         sea?.surface?.skyReflection === 'scene.environment:skyModel-lut' &&
         sea?.surface?.sunGlint === 'mesh-standard-ggx' &&
         sea?.surface?.normalDetail?.near > sea?.surface?.normalDetail?.far &&
-        sea?.surface?.normalDetail?.fadeEnd > sea?.surface?.normalDetail?.fadeStart,
+        sea?.surface?.normalDetail?.fadeEnd > sea?.surface?.normalDetail?.fadeStart &&
+        sea?.surface?.foam?.heightStart < sea?.surface?.foam?.heightEnd &&
+        sea?.surface?.foam?.slopeStart < sea?.surface?.foam?.slopeEnd,
       JSON.stringify(sea?.surface),
     );
     ctx.check(
@@ -80,6 +82,15 @@ export async function run(ctx) {
       JSON.stringify(m),
     );
     await ctx.snap(null, 'photoreal-sea/sea-horizon', { shot: horizon });
+
+    const mid = cropPng(full, { x: 40, y: 505, width: 560, height: 235 });
+    const f = foamBandMetrics(PNG.sync.read(mid));
+    ctx.check(
+      'sea-mid: crest whitecaps are present but not blanket foam',
+      f.foamFraction > 0.002 && f.foamFraction < 0.16 && f.blueFraction > 0.45,
+      JSON.stringify(f),
+    );
+    await ctx.snap(null, 'photoreal-sea/sea-mid', { shot: mid });
   } finally {
     await page.close();
   }
@@ -121,5 +132,27 @@ function seaBandMetrics(png) {
   return {
     blueFraction: Number((blue / total).toFixed(4)),
     lumaSpread: Number((maxLuma - minLuma).toFixed(2)),
+  };
+}
+
+function foamBandMetrics(png) {
+  let blue = 0;
+  let foam = 0;
+  const total = png.width * png.height;
+  for (let y = 0; y < png.height; y++) {
+    for (let x = 0; x < png.width; x++) {
+      const i = (y * png.width + x) * 4;
+      const r = png.data[i];
+      const g = png.data[i + 1];
+      const b = png.data[i + 2];
+      if (b > r + 10 && g > r + 2 && b > 48) blue++;
+      const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      const chroma = Math.max(r, g, b) - Math.min(r, g, b);
+      if (luma > 172 && chroma < 72) foam++;
+    }
+  }
+  return {
+    blueFraction: Number((blue / total).toFixed(4)),
+    foamFraction: Number((foam / total).toFixed(4)),
   };
 }

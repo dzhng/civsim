@@ -36,6 +36,13 @@ const SEA_NORMAL_DETAIL_FAR = 0.18;
 const SEA_NORMAL_DETAIL_FADE_START = 720;
 const SEA_NORMAL_DETAIL_FADE_END = 2300;
 const SEA_SURFACE_OWNER = 'skyModel-ibl-standard-pbr' as const;
+const SEA_FOAM_HEIGHT_START = 0.52;
+const SEA_FOAM_HEIGHT_END = 1.55;
+const SEA_FOAM_SLOPE_START = 0.12;
+const SEA_FOAM_SLOPE_END = 0.58;
+const SEA_FOAM_SPECKLE_START = 0.56;
+const SEA_FOAM_SPECKLE_END = 0.78;
+const SEA_FOAM_SCALE = 0.74;
 
 interface WaterSampleNodes {
   height: FloatNode;
@@ -60,6 +67,15 @@ export interface SeaSurfaceStats {
     far: number;
     fadeStart: number;
     fadeEnd: number;
+  };
+  foam: {
+    heightStart: number;
+    heightEnd: number;
+    slopeStart: number;
+    slopeEnd: number;
+    speckleStart: number;
+    speckleEnd: number;
+    scale: number;
   };
 }
 
@@ -145,6 +161,15 @@ export function seaSurfaceStats(): SeaSurfaceStats {
       fadeStart: SEA_NORMAL_DETAIL_FADE_START,
       fadeEnd: SEA_NORMAL_DETAIL_FADE_END,
     },
+    foam: {
+      heightStart: SEA_FOAM_HEIGHT_START,
+      heightEnd: SEA_FOAM_HEIGHT_END,
+      slopeStart: SEA_FOAM_SLOPE_START,
+      slopeEnd: SEA_FOAM_SLOPE_END,
+      speckleStart: SEA_FOAM_SPECKLE_START,
+      speckleEnd: SEA_FOAM_SPECKLE_END,
+      scale: SEA_FOAM_SCALE,
+    },
   };
 }
 
@@ -176,12 +201,15 @@ export function waterFieldNodes(p: Vec2Node, t: FloatNode): WaterSampleNodes {
   }
   const height = h.toVar();
   const normal = normalize(vec3(slopeX.negate(), slopeY.negate(), 1.0)).toVar();
-  // Whitecaps cap the crest TOPS, broken into granular spray by fnoise speckle.
-  const cover = smoothstepN(1.3, 3.1, height);
+  // Whitecaps are crest/agitation driven: high wave tops only foam where the
+  // local slope is stressed, then fnoise breaks the cover into spray flecks.
+  const crest = smoothstepN(SEA_FOAM_HEIGHT_START, SEA_FOAM_HEIGHT_END, height);
+  const slopeEnergy = slopeX.mul(slopeX).add(slopeY.mul(slopeY)).toVar();
+  const agitation = smoothstepN(SEA_FOAM_SLOPE_START, SEA_FOAM_SLOPE_END, slopeEnergy);
   const speckle = fnoiseN(p.mul(0.5).add(vec2(t.mul(0.10), t.mul(0.05)))).mul(0.42)
     .add(fnoiseN(p.mul(1.3).sub(vec2(t.mul(0.06), t.mul(0.09)))).mul(0.34))
     .add(fnoiseN(p.mul(3.0).add(vec2(t.mul(0.04), t.mul(-0.07)))).mul(0.24));
-  const foam = cover.mul(smoothstepN(0.42, 0.66, speckle)).mul(0.9).toVar();
+  const foam = crest.mul(agitation).mul(smoothstepN(SEA_FOAM_SPECKLE_START, SEA_FOAM_SPECKLE_END, speckle)).mul(SEA_FOAM_SCALE).toVar();
   return { height, normal, foam };
 }
 

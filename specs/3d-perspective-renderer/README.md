@@ -13,7 +13,7 @@ photoreal register the `aesthetics` skill targets.
 ## Next Agent Prompt
 
 **Status (updated 2026-07-02): ON MAIN through slice `11`; worktree `codex-12bcde`
-has `12b` complete.** The camera spine
+has `12b` + `12c` complete.** The camera spine
 `01`–`05b` is COMPLETE (one projector `projectWorld`, one reverse-Z
 `depth32float` convention, legacy 2.5D deleted and grep-proofed). The `06`
 substrate verdict is **three.js WebGPU + TSL** for the photoreal layer (camera
@@ -27,12 +27,13 @@ blob-shadow decals are deleted). Every later look slice lands in the real game,
 on `main`, as an individually gated increment — not on a long-lived branch. The
 standing gates ("Photoreal ladder invariants" below) apply on every slice.
 
-**Exact next pickup point: `12c` — photoreal sea foam/whitecaps**
+**Exact next pickup point: `12d` — photoreal sea shore blending**
 (`slices/12-photoreal-sea.md`): `12a` picked Gerstner TSL and rejected the
 spectral/IFFT spike; `12b` removed that implementation, kept the one
 `SeaDisplacementSource` socket, and put the surface on SkyModel-LUT PBR with
-distance-faded normal detail. Continue with agitation/crest-driven foam, then
-shore blending and glint discipline. `12`/`13`/`14` are parallelizable in
+distance-faded normal detail; `12c` made whitecaps crest/slope/agitation driven
+and added the `sea-mid` crop. Continue with shore blending and glint discipline.
+`12`/`13`/`14` are parallelizable in
 worktrees from here — coordinate with David's battle-map-reference session
 (file reservations below). Critique items owned by name: tan field albedo +
 map-edge seams + mountain shelf + crag-base shadow gap (`13`), far-crowd smear
@@ -59,7 +60,8 @@ map-edge seams + mountain shelf + crag-base shadow gap (`13`), far-crowd smear
 | `10b` aerial owner | `aerialPerspective.ts` on `scene.fogNode` is THE one haze source; `THREE.Fog` + inline hazes DELETED; ground-focus depth + true view-direction in-scatter | `027efabe` |
 | `10c` preset moods | overcast litmus PASSES (lum 191/sat 6.2 vs ref 176/7.6); `SUN_TOWARD_VIEW` π/2→π + golden elev 0.35; ~70 re-blesses across 10b+c; 3.14/3.18 ms | `04c5dcb4` |
 | `11` CSM sun shadows | `shadowRig` seam — **three CSMShadowNode addon** (3×2048 from the live camera3d projection) + `'single'` SwiftShader tier asserted by name; blob-shadow decals DELETED; ground receives-not-casts (recorded); ZERO existing re-blesses + 6 new baselines; **5.86/6.39 ms (crowd shadow cost +2.7/+3.2)** | `f469a697` |
-| `12b` photoreal sea PBR | spectral/IFFT spike REMOVED; Gerstner TSL is the only tier; sea reflects the SkyModel LUT via standard PBR + GGX sun glint; normal detail fades 720→2300 m (0.92→0.18); SwiftShader `photoreal-sea/sea-horizon` green | pending |
+| `12b` photoreal sea PBR | spectral/IFFT spike REMOVED; Gerstner TSL is the only tier; sea reflects the SkyModel LUT via standard PBR + GGX sun glint; normal detail fades 720→2300 m (0.92→0.18); SwiftShader `photoreal-sea/sea-horizon` green | `d1531a82` |
+| `12c` photoreal sea foam | whitecaps gated by Gerstner crest height + slope agitation + speckle; `sea-mid` crop foamFraction 0.0838, not blanket; hardware baseline + SwiftShader green | pending |
 
 ### Active blockers / coordination warnings
 
@@ -95,7 +97,7 @@ map-edge seams + mountain shelf + crag-base shadow gap (`13`), far-crowd smear
 - [x] `11` — CSM sun shadows via `shadowRig` (addon verdict); blob-shadow
       stand-ins deleted (`slices/11-csm-shadows.md`)
 - [ ] `12` — photoreal sea: Gerstner-vs-IFFT spike → surface/foam/shore/glint;
-      `seaLayer` owner (`slices/12-photoreal-sea.md`) **← 12b done; NEXT 12c**
+      `seaLayer` owner (`slices/12-photoreal-sea.md`) **← 12b+c done; NEXT 12d**
 - [ ] `13` — photoreal terrain + foliage, RE-SCOPED to substrate seams
       (`slices/13-photoreal-terrain-foliage.md`; the LOOK is battle-map-reference's)
 - [ ] `14` — photoreal soldiers: materials, 30k LOD/impostors + union-frustum
@@ -106,7 +108,7 @@ map-edge seams + mountain shelf + crag-base shadow gap (`13`), far-crowd smear
       entities, territory/labels (`slices/16-campaign-photoreal.md`)
 - [ ] `17` — legacy deletion sweep + close-spec (`slices/17-legacy-sweep-close.md`)
 
-(`12`/`13`/`14` are parallelizable in worktrees after `11`; `12c` continues in `seaLayer`.)
+(`12`/`13`/`14` are parallelizable in worktrees after `11`; `12d` continues in `seaLayer`.)
 
 **Instruction to the next agent:** keep this section COMPACT — update the status
 paragraph, pickup point, ledger (one line per newly-done slice), and checklist;

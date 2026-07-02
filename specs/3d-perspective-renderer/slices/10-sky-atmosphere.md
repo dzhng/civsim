@@ -30,6 +30,17 @@ ever — this is the register-maker (aesthetics rule 1) and the net-deletion inv
 the physical parameterization (sun elevation + turbidity drive everything); fields
 added to `CIVSIM_ENVIRONMENTS`, per the `09` rule.
 
+**Locked preset moods (David's interview decisions, absorbed from the retired
+`battle-atmosphere` spec — do not re-litigate):**
+- **golden** — sun-drenched Aegean, subtle far haze; the default battle light.
+- **overcast** — cool, flat, **high-key** (not dark), with **HEAVY fog swallowing
+  layered mountain ranges**; reference `assets/battle-overcast-highland.png`. The
+  aesthetics litmus stands: same materials, different environment — mood lives in
+  the light, never baked into albedo.
+Reference images live in this spec's `assets/` (`battle-coastal-vista.jpg` golden
+sky/vista, `battle-advance-coast.jpg` the sea→sky seam, `battle-overcast-highland.png`
+overcast).
+
 ## What the human can run / see
 
 `/battle` under each preset; `/renderer/photoreal-battle?env=…`.

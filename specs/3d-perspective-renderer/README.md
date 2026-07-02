@@ -447,6 +447,17 @@ gate) lands **before `08b`** (the atomic battle flip) — **landed 2026-07-02, g
 depth-bias only (pending David's confirm; billboards → `08`, LOD → `14b`).
 
 **Active blockers / coordination warnings:**
+- **`specs/battle-atmosphere` — RETIRED and deleted (2026-07-02, David's call),
+  absorbed by this ladder.** Its mission (one environment preset every surface
+  reads, real sky backdrop, one aerial-perspective owner, sea→sky dissolve,
+  golden + overcast presets) is owned by `09`/`10`/`12`; its S1 environment seam
+  had already landed historically (`CIVSIM_ENVIRONMENTS` + battle aliases via
+  battle-map-reference 06C, extended in `07`). Its reference images moved to
+  `assets/` here (`battle-coastal-vista.jpg`, `battle-advance-coast.jpg`,
+  `battle-overcast-highland.png`); David's locked preset moods are recorded in
+  `10c`. Its "haze == skyHorizon identity" trick is superseded by `10b`'s single
+  aerial owner; its frozen-water-scenes firewall carries on in `12`'s by-name
+  gate retirement list.
 - **`specs/battle-map-reference` — PAUSE / re-scope (needs David's confirm).** That
   spec is ~40 slices deep in a grass-architecture ladder tuned under the bespoke
   substrate that `08b`/`13` replace. Recommended split (recorded in slice `13`):

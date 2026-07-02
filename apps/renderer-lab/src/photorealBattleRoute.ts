@@ -209,7 +209,6 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
     const [wx1, wy0] = camera.screenToWorld(ctx.canvas.width, ctx.canvas.height);
     const tris: number[] = [];
     let budget = 900;
-    const specs = JSON.parse(game.class_specs()) as Array<{ weapons: Array<{ reach: number; arc: number; braced?: boolean }> }>;
     for (let i = 0; i < n && budget > 0; i++) {
       if (frames[i] !== 3) continue;
       const x = pos[2 * i];
@@ -217,7 +216,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       if (x < wx0 || x > wx1 || y < wy0 || y > wy1) continue;
       const u = sUnit[i];
       const cls = info[u * STRIDE + 13];
-      const w = specs[cls]?.weapons[curWeapon[i]];
+      const w = CLASS_SPECS[cls]?.weapons[curWeapon[i]];
       if (!w) continue;
       const team = info[u * STRIDE + 6];
       const [r, g, b] = team === 0 ? [0.55, 0.85, 1.0] : [1.0, 0.72, 0.35];

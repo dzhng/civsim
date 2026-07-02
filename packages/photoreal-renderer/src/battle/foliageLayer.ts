@@ -11,7 +11,10 @@ import type { BattleTerrainGrassBuild } from '../../../game-renderer/src/battle/
 import { GRASS_INSTANCE_STRIDE_FLOATS } from '../../../game-renderer/src/battle/grassPass';
 import type { CampaignSceneryInstance } from '../../../game-renderer/src/campaign/sceneryPass';
 import { SCENERY_PROP_MODELS } from '../../../game-renderer/src/models/shared/sceneryPropRegistry';
-import type { BattleEnvironment } from '../../../game-renderer/src/environment/environment';
+import {
+  battleEnvironmentStats,
+  type BattleEnvironment,
+} from '../../../game-renderer/src/environment/environment';
 import {
   chartDepthDistNode, rgbNode, rotateYawN, saturateN, smoothstepN, sunDirectionNode,
   type BattleFrameUniforms,
@@ -37,8 +40,10 @@ export class PhotorealGrassField {
   private tuftCount = 0;
   private bladesPerTuft = 0;
   private meshTriangles = 0;
+  private readonly env: BattleEnvironment;
 
   constructor(scene: THREE.Scene, env: BattleEnvironment, frame: BattleFrameUniforms) {
+    this.env = env;
     this.mesh = new THREE.Mesh(new THREE.InstancedBufferGeometry(), this.material(env, frame));
     this.mesh.name = 'battle-grass';
     this.mesh.frustumCulled = false;
@@ -172,6 +177,9 @@ export class PhotorealGrassField {
       tuftInstances: this.tuftCount,
       bladeInstances: this.tuftCount * this.bladesPerTuft,
       submittedTriangles: this.meshTriangles * this.tuftCount,
+      // The identity assert: the grass material is dressed from the ONE
+      // environment-preset owner, same as the terrain.
+      environment: battleEnvironmentStats(this.env),
     };
   }
 }

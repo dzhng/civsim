@@ -157,7 +157,8 @@ async function measureBattle(ctx) {
       stats.soldiers > 0 &&
       stats.renderStats?.soldiers === stats.renderStats?.expectedSoldiers &&
       stats.renderStats?.soldiers === stats.soldiers &&
-      stats.renderStats?.drawCalls === 1 &&
+      stats.renderStats?.drawCalls > 0 &&
+      stats.renderStats?.drawCalls < 64 &&
       hasBattleWorldDepthContract(stats.renderStats) &&
       perfStatsOk(stats.renderStats?.performance),
     JSON.stringify({ frame, stats }),

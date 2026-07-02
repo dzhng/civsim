@@ -488,6 +488,10 @@ export class PhotorealBattleWorld {
       drawCalls: world.drawCalls,
       triangles: world.triangles,
       lod: { skinned: skinnedCount, impostors: markerCount },
+      device: world.device,
+      // The engine depth convention, read off the live renderer: three owns the
+      // depth buffer since 08b, posed reverse-Z to match camera3d.
+      depth: { owner: 'three-webgpu' as const, reversed: this.world.renderer.reversedDepthBuffer === true },
       camera: this.lastCamera,
       seating: { ...this.seating },
       terrain: this.ground

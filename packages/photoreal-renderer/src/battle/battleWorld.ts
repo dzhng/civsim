@@ -9,10 +9,10 @@
 // buildCrowdInstances + terrainHeightAt.
 //
 // Scaffolding ledger rows owned here (README "Photoreal ladder invariants"):
-//   - Procedural equirect IBL stand-in (environment.ts) — dies at 10a.
 //   - THREE.Fog haze stand-in matched to hazeColor — dies at 10b.
 //   - Blob-shadow decal replica (crowdLayer) — dies at 11.
 //   - Parity-derived Gerstner sea shading (seaLayer) — dies at 12b–d.
+// (The 10a row — procedural equirect IBL — is DEAD: SkyModel owns the sky.)
 // 08b swapped BattleRenderer's internals onto this class on the same canvas.
 import * as THREE from 'three/webgpu';
 import { buildCrowdInstances, type CrowdInstance } from '../../../crowd-runtime/src/instanceData';
@@ -138,30 +138,16 @@ export class PhotorealBattleWorld {
     const scene = world.scene;
     const env = this.environment;
 
-    // TSL/three@0.185 HAZARD (recorded in the slice file): with
-    // `reversedDepthBuffer` three sorts its render lists then REVERSES them
-    // wholesale (RenderList.sort → list.reverse()), inverting renderOrder
-    // semantics — the -10 backdrop would draw LAST and cover the world. These
-    // comparators pre-invert every axis so the post-reverse order is the
-    // classic painter contract (renderOrder asc; opaque front-to-back,
-    // transparent back-to-front) the frame-graph port layers by.
-    interface SortItem { groupOrder: number | null; renderOrder: number | null; z: number | null; id: number | null }
-    world.renderer.setOpaqueSort((a: SortItem, b: SortItem) =>
-      ((b.groupOrder ?? 0) - (a.groupOrder ?? 0)) || ((b.renderOrder ?? 0) - (a.renderOrder ?? 0))
-      || ((b.z ?? 0) - (a.z ?? 0)) || ((b.id ?? 0) - (a.id ?? 0)));
-    world.renderer.setTransparentSort((a: SortItem, b: SortItem) =>
-      ((b.groupOrder ?? 0) - (a.groupOrder ?? 0)) || ((b.renderOrder ?? 0) - (a.renderOrder ?? 0))
-      || ((a.z ?? 0) - (b.z ?? 0)) || ((b.id ?? 0) - (a.id ?? 0)));
-    // Slice 09 — lighting core: sun DirectionalLight + PMREM'd procedural
-    // equirect IBL (stand-in, dies at 10a) + ACES tonemap + per-preset
-    // exposure, all mapped from the ONE preset owner. Background 'haze':
-    // the clear past the backdrop is the preset haze colour (the sky itself
-    // lands at 10a). The THREE.Fog stand-in keeps its 08a constraint — the
-    // top-down overview parks the eye ~3.2 km out (rig distance 2×min(map
-    // w,h)), so the ramp starts past that; it only ever touches beyond-battle
-    // distances until 10b replaces it with the one aerial-perspective owner.
+    // Slice 09 — lighting core: sun DirectionalLight + ACES tonemap +
+    // per-preset exposure; slice 10a — the physical sky (SkyModel dome +
+    // sky-view-LUT IBL, one source) replaced the procedural-equirect + haze
+    // clear. All mapped from the ONE preset owner. The THREE.Fog stand-in
+    // keeps its 08a constraint — the top-down overview parks the eye ~3.2 km
+    // out (rig distance 2×min(map w,h)), so the ramp starts past that; it
+    // only ever touches beyond-battle distances until 10b replaces it with
+    // the one aerial-perspective owner. (The reversed-depth sort comparators
+    // moved to PhotorealWorld.create at 10a — substrate-wide contract.)
     applyCivsimEnvironment(world, env.environment, {
-      background: 'haze',
       fog: { near: 3400, far: 8200 },
     });
 
@@ -496,6 +482,8 @@ export class PhotorealBattleWorld {
       // The engine depth convention, read off the live renderer: three owns the
       // depth buffer since 08b, posed reverse-Z to match camera3d.
       depth: { owner: 'three-webgpu' as const, reversed: this.world.renderer.reversedDepthBuffer === true },
+      // Atmosphere ownership identity (10a sky tier; 10b adds the aerial owner).
+      atmosphere: this.world.atmosphere,
       camera: this.lastCamera,
       seating: { ...this.seating },
       terrain: this.ground

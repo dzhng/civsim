@@ -37,10 +37,13 @@ export class PhotorealWorld {
     this.scene = scene;
   }
 
-  static async create(canvas: HTMLCanvasElement): Promise<PhotorealWorld> {
+  static async create(canvas: HTMLCanvasElement, options: { antialias?: boolean } = {}): Promise<PhotorealWorld> {
     const renderer = new THREE.WebGPURenderer({
       canvas,
-      antialias: true,
+      // Default on; the parity battle world opts out (the production battle
+      // shell renders at sampleCount 1, and 4× MSAA visibly washes out the
+      // sub-pixel crowd at gameplay zoom).
+      antialias: options.antialias ?? true,
       trackTimestamp: true,
       // The engine depth contract is reverse-Z (near → 1, far → 0); this option
       // makes three build the same projection cameraBridge produces CPU-side.

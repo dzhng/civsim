@@ -1,8 +1,10 @@
 # Slice 07 — Silhouette: bodies stay rectangles behind the seam (priority 3)
 
-Measure first. Corner melt is expected to be substantially emergent from
-04–06 (mixing plus rotation erase edges); this slice measures the residue and
-fixes ONLY what remains. Depends on 04–06.
+Measure first. Slice 03 measured the vibe-like silhouette floor at 0.62 (and
+0.40–0.62 with the re-dress disabled) — the second visible failure after the
+orbit. It is expected to be substantially emergent from the orbit fix
+(rotation erases edges); this slice measures the residue after 05–06 and
+fixes ONLY what remains. Depends on 05–06.
 
 ## Contract
 

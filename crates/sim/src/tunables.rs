@@ -106,6 +106,10 @@ pub struct Tunables {
     /// Tangential fraction of the push: overlapping soldiers slide around
     /// each other instead of deadlocking in symmetric head-on shoving.
     pub separation_slide: f32,
+    /// Diagnostic scale for the deterministic coincident-body index tiebreak.
+    /// Default preserves the historical 0.01m nudge; attribution probes may
+    /// set this to zero to isolate slide chirality from index ordering.
+    pub body_separation_tiebreak: f32,
     /// Cap on total separation displacement per soldier per tick (m).
     pub separation_max_push: f32,
     /// How strongly a soldier is pulled toward his ABSOLUTE formation slot,
@@ -254,6 +258,13 @@ pub struct Tunables {
     /// rest — the equilibrium a standing line must reach. Only an idle, enemy-
     /// free, unordered unit is damped, so it never touches a fight or a march.
     pub idle_settle_damp: f32,
+    /// Diagnostic switch for the broad-contact engaged slot re-sort. Defaults
+    /// on; attribution probes may disable it to test whether re-dress ratchets
+    /// accumulated lattice rotation.
+    pub engaged_deep_reform: bool,
+    /// Diagnostic switch for flank curl: when on, overhanging attackers drop
+    /// frame feed-forward and let the enemy magnet curl them inward.
+    pub seeking_flank_curl: bool,
     /// Charge burst speed (m/s, fresh foot unit; class pace_mult applies).
     pub charge_speed: f32,
     /// Final-approach window: charge engages within this many seconds of
@@ -318,6 +329,7 @@ impl Default for Tunables {
             min_accel_frac: 0.4,
             soldier_radius: 0.33,
             separation_slide: 0.3,
+            body_separation_tiebreak: 0.01,
             separation_max_push: 0.25,
             slot_pull: 0.2,
             slot_pull_hold: 0.8,
@@ -359,6 +371,8 @@ impl Default for Tunables {
             stamina_cadence_floor: 0.75,
             at_ease_range: 60.0,
             idle_settle_damp: 0.5,
+            engaged_deep_reform: true,
+            seeking_flank_curl: true,
         }
     }
 }

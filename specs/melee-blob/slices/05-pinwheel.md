@@ -1,8 +1,12 @@
-# Slice 05 — Kill the pinwheel (priority 2)
+# Slice 05 — Kill the orbit (priority 1 after the reslice)
 
-One variable: the rotation driver 03 named (chirality seed and/or ratchet
-and/or unopposed wrap torque). Depends on 04 — the band bound changes the
-torque landscape; fixing rotation against the old seam is fitting noise.
+One variable: the mortal-unlock mechanism slice 04 names. Depends on 04.
+Slice 03 already KILLED the chirality seed (slide/tiebreak) and measured the
+constraint the fix must satisfy: with the engaged re-dress disabled, 4/5
+mortal seeds spin to ±180° — so the re-dress is currently arresting a deeper
+orbit while also ratcheting orientation 10–15°/beat. The fix must make the
+underlying equilibrium settle (driving force → zero at a settled seam), not
+just remove the ratchet: removing it alone is measured to make things WORSE.
 
 ## Contract
 
@@ -10,25 +14,23 @@ torque landscape; fixing rotation against the old seam is fitting noise.
 across the seed sweep; the seam stays ~spawn-axis-aligned to the end of the
 mortal vibes. Deliberate asymmetric envelopment still works.
 
-## Mechanism candidates (03 picks; containment order)
+## Mechanism candidates (04 picks; containment order)
 
-1. **Chirality (H3):** make the friendly slide non-chiral — per-pair tangent
-   sign chosen by a symmetric deterministic criterion (e.g. the side reducing
-   that man's net/slot error), never a world-fixed handedness. Column-closing
-   killed *removing* the slide (survivability executioner); de-chiralizing
-   keeps the lubrication. Watch `symmetric_clash_has_no_mechanical_bias` and
-   the no-crab rails — slide changes move exactly those numbers.
-2. **Wrap torque (H2):** the curl's driving force must go to zero at
-   equilibrium — `seeking_flank` engages only against a genuinely exposed
-   flank (an overhang the foe does not mirror), so two equal fronts have no
-   curl to feed; a real overlap still wraps.
-3. **Ratchet (H4):** renegotiate the `engaged_deep_reform` carve-out — WITH
-   David, never silently (column-closing added it deliberately for measured
-   width). Candidate shapes: gate it on a genuinely-degraded state (the
-   anti-X-that-fires-when-X-isn't-happening smell), or make the re-dress
-   orientation-preserving (resort within the unit's remembered frame, not
-   world positions). `column_contact_width_stays_near_its_deployed_footprint`
-   must hold through whatever replaces it.
+1. **Cap-clips-the-spring:** if the per-soldier speed cap preferentially eats
+   the pivot spring's restoring component on mortal runs, the first-principles
+   fix is in how the cap composes with restoring steering (a cap firing on a
+   state it shouldn't — the anti-X smell), not a new force.
+2. **Off-axis mass chase:** if frozen-facing units chasing an off-axis alive
+   mass is the orbit geometry, the driving force must go to zero at
+   equilibrium — e.g. the engaged advance drive keys off the contact seam,
+   not the foe centroid, so a settled seam produces no tangential chase.
+   Explicitly NOT a facing servo tracking the foe centroid (that IS the swirl
+   — the rejected contact-lock path).
+3. **Ratchet shaping (with David):** only as the residual after 1–2 — make
+   the re-dress orientation-preserving (resort within the unit's remembered
+   frame) while keeping its measured-width and orbit-arrest roles;
+   `column_contact_width_stays_near_its_deployed_footprint` and the
+   deep-reform-off blow-up case must BOTH hold through the change.
 
 Explicitly NOT: a facing servo tracking the foe centroid mid-grind (that IS
 the swirl — sim.rs contact-lock comment), and NOT pivot lateral damping

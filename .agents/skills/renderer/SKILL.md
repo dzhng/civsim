@@ -1,35 +1,15 @@
 ---
 name: renderer
-description: Build, debug, or review renderer work on either substrate — three.js WebGPU + TSL (battle production, photoreal layers) or bespoke WGSL passes (campaign, lab). Use when changing GPU resource layouts, render or compute passes, node materials, bind groups, buffers, shaders, frame orchestration, depth/overlay composition, capability handling, performance, or browser-verified renderer visuals.
+description: Build, debug, or review WebGPU renderer work — three.js/TSL scene layers, node materials, or raw WGSL passes and compute. Use when changing GPU resource layouts, render or compute passes, node materials, bind groups, buffers, shaders, frame orchestration, depth/overlay composition, capability handling, performance, or browser-verified renderer visuals.
 ---
 
 # GPU renderer
 
-Use this for GPU renderer work where correctness depends on GPU resource ownership,
-pass orchestration, shader/material layout, depth semantics, or browser-verified
-output.
-
-## Substrates
-
-Two renderers coexist; the FIRST question on any change is which one owns the
-surface. **three.js WebGPU + TSL** owns battle production and the photoreal
-layers; **bespoke WGSL passes** own campaign and remaining lab routes until their
-ladder slices retire them. Shared invariants across both:
-
-- **One projection owner:** the pure `camera3d` library (view/projection
-  matrices, screen↔world, picking rays). Bespoke shaders consume its matrices via
-  the camera uniform; a three camera is posed ONLY through the camera bridge —
-  never hand-rolled orbit math in a route or pass.
-- **One depth convention:** reverse-Z (near→1, far→0) on a float depth buffer,
-  engine-wide. Depth compares are `greater`-family.
-- **One environment owner:** presets (sun, sky, haze, exposure) live in the
-  shared environment module; both substrates map from it. A preset-dependent
-  material knob belongs on the owner, never in a pass.
-- **Ownership stays visible:** shells and routes publish their projection/depth/
-  environment identity in stats so scenes can assert every surface reports the
-  same source of truth.
-- The three.js version is **pinned**; upgrading it is its own reviewed change
-  with the full suite + perf gate as harness, never a ride-along.
+Use this for WebGPU renderer work where correctness depends on GPU resource
+ownership, pass orchestration, shader/material layout, depth semantics, or
+browser-verified output. Find the current owners in the codebase — projection,
+depth convention, environment presets — before changing anything; do not assume
+this skill knows today's module layout.
 
 ## Workflow
 
@@ -58,6 +38,15 @@ ladder slices retire them. Shared invariants across both:
 
 ## Rules
 
+- One projection owner, one depth convention, one environment owner — whatever
+  modules currently own them. A camera is posed through the shared camera
+  helper, never hand-rolled orbit math in a route or pass; a preset-dependent
+  material knob lives on the environment owner, never in a pass.
+- Prefer reverse-Z (near→1, far→0) on a float depth buffer for large outdoor
+  depth ranges; whichever convention is in force, it is engine-wide — depth
+  compare direction, clear value, and format move together or not at all.
+- Renderer library upgrades are their own reviewed change with the full suite
+  and perf gate as harness — never a ride-along on a feature commit.
 - WGSL uniforms and storage structs must respect alignment. Pack scalar fields
   into obvious 16-byte slots when it reduces layout ambiguity.
 - Treat depth as an access contract, not a boolean. Use explicit modes such as
@@ -154,7 +143,7 @@ ladder slices retire them. Shared invariants across both:
   shader state can leave counts healthy while pixels are blank; pair stats with
   crop/content probes for each visual class.
 
-## three.js WebGPU + TSL rules
+## three.js WebGPU + TSL rules (when the scene layer is three.js)
 
 - **Reversed depth flips three's sorted render lists.** With a reversed depth
   buffer, opaque/transparent sort order inverts silently — zero validation
@@ -166,11 +155,12 @@ ladder slices retire them. Shared invariants across both:
   healthy. Per-instance work must re-apply instancing explicitly.
 - **`normalNode` is view-space.** Lighting math that assumes world-space normals
   reads plausibly wrong (moves with the camera); transform deliberately.
-- **The TSL `time` node is BANNED in package code** — it breaks byte-stable
-  snapshots. All animation keys off an owned time uniform driven by the shell's
-  `setTime`, plus seeded RNG.
-- **No infinite-far perspective** — three NaNs at `far=Infinity`; use the large
-  finite fallback that converges on the infinite-limit matrix (unit-pinned).
+- **The TSL `time` node is BANNED in renderer code** — it breaks byte-stable
+  snapshots. All animation keys off an owned, injectable time uniform plus
+  seeded RNG.
+- **No infinite-far perspective** — three NaNs at `far=Infinity`; use a large
+  finite far that converges on the infinite-limit matrix, and pin the
+  equivalence with a unit test.
 - **`renderer.info` resets every browser frame** via three's internal loop —
   snapshot the counts at render time before publishing stats.
 - **Type packages widen TSL literals** (`attribute()` inferred as `string` drops
@@ -262,9 +252,7 @@ ladder slices retire them. Shared invariants across both:
   phase should be.
 - A visual fix changes camera, lighting, model geometry, and pass order at once,
   leaving no clear cause for the result.
-- A change touches both substrates at once, or ports a concept into one substrate
-  while the other keeps its own copy — single owners span substrates.
-- A three camera is posed by hand in a route or layer instead of through the
-  camera bridge.
+- A camera is posed by hand-rolled orbit/projection math beside the shared
+  camera helper.
 - A snapshot gate flakes frame-to-frame — suspect an unowned time source (TSL
   `time`, `performance.now`, unseeded RNG) before suspecting the GPU.

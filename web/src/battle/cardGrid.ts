@@ -11,7 +11,7 @@
 //
 // Layout decisions that depend on N can't live in CSS (it can't see the count),
 // so the JS picks rows/cols and CSS paints them. The canonical algorithm is
-// mirrored in specs/card-bar/visualizations/grid-prototype.html — keep them in
+// mirrored in specs/done/card-bar/visualizations/grid-prototype.html — keep them in
 // lockstep.
 
 export interface CardGrid {

@@ -16,6 +16,7 @@ serde_json = "1"
 # The weave vibe-shot generator (`src/bin/weave_shots.rs`) — a committed tool,
 # run on demand, never part of a normal build.
 shots = ["dep:png"]
+force-trace = []
 
 # `weave_shots` is gated so `cargo build` / the wasm build never pull in `png`.
 # Run it with: cargo run -p sim --bin weave_shots --features shots

@@ -44,13 +44,19 @@ export interface BattleEnvironment {
   clear: [number, number, number, number];
 }
 
-const SUN_TOWARD_VIEW = Math.PI / 2;
+// Toward the DEFAULT battle view: camera3d yaw 0 looks along -X (azimuth pi).
+// Authored as pi/2 for the 2.5D camera and stale after the 04a flip — the
+// references (battle-coastal-vista) compose with the sun IN view; restored at
+// the ladder's 10c with the physical sky (record in slices/10-sky-atmosphere.md).
+const SUN_TOWARD_VIEW = Math.PI;
 
 export const CIVSIM_ENVIRONMENTS: Record<CivsimEnvironmentId, CivsimEnvironment> = {
   golden: {
     id: 'golden',
     sunAzimuth: SUN_TOWARD_VIEW,
-    sunElevation: 0.5,
+    // A true golden-hour sun (20 deg): the physical sky warms the light and
+    // the sun-ward sky by transmittance — "golden's warm sky" (locked mood).
+    sunElevation: 0.35,
     keyColor: [1.0, 0.86, 0.62],
     fillColor: [0.46, 0.58, 0.78],
     hazeColor: [0.82, 0.80, 0.70],

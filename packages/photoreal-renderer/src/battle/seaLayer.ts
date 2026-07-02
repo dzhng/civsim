@@ -1,45 +1,217 @@
-// seaLayer — the ONE water seam of the photoreal battle world (slice 08a).
-// Since slice 09 the sea is a standard-material response: the Gerstner-family
-// displacement/foam/shore seam survives (fed by the SAME baked wave list —
-// bakeGerstnerWaves — and the SAME ocean-plane layout the bespoke horizonPass
-// builds), but the surface carries a NEUTRAL albedo + roughness and the sun /
-// IBL light it like every other world surface. SCAFFOLD per the README
-// ledger: this parity-derived Gerstner shading dies at 12b–d (photoreal
-// surface); the seam survives. The haze mix is the 08a aerial stand-in (dies
-// at 10b, the one aerial-perspective owner).
+// seaLayer — the ONE water seam of the photoreal battle world. The sea uses
+// the Gerstner TSL displacement source selected by the 12a verdict, shaded as
+// a standard material so Fresnel reflection and GGX sun glint come from the
+// same SkyModel LUT/IBL and sun that light the rest of the scene. Distance
+// haze comes ONLY from the shared aerial-perspective hook (scene.fogNode,
+// slice 10b) — the sea dissolves into the sky through it, never through an
+// inline haze mix.
 import * as THREE from 'three/webgpu';
 import {
-  dot, float, mix, normalize, transformNormalToView, varying, vec2, vec3, vec4,
+  dot, float, length, mix, normalize, transformNormalToView, varying, vec2, vec3, vec4,
 } from 'three/tsl';
 import { attribute } from 'three/tsl';
 import { bakeGerstnerWaves } from '../../../game-renderer/src/water/gerstnerField';
 import { BATTLE_OCEAN_RAMP, FIELD_WATER_RAMP, type WaterShoreRamp } from '../../../game-renderer/src/water/waterShoreRamp';
 import type { BattleOceanPlaneSpec } from '../../../game-renderer/src/battle/horizonPass';
-import type { BattleEnvironment } from '../../../game-renderer/src/environment/environment';
 import {
   fnoiseN, linearAlbedo, rgbNode, saturateN, smoothstepN,
   type BattleFrameUniforms, type FloatNode, type Vec2Node, type Vec3Node,
 } from './battleTsl';
 
-// The neutral albedo the sea *is*, before any lighting mood. Waterpalette's
-// display constants were authored as LIT sea colours for the baked pipeline;
-// as effective albedo (real water "colour" is scattering, not diffuse
-// reflectance) they read a register brighter so the shallows keep the pale
-// Aegean turquoise (aesthetics rule 4) under a physical sun instead of
-// collapsing to navy. The photoreal sea surface proper lands at 12b–d.
-const WATER_SHALLOW_ALBEDO: [number, number, number] = [0.24, 0.52, 0.53];
-const WATER_DEEP_ALBEDO: [number, number, number] = [0.04, 0.12, 0.26];
+// The neutral scattering colour the sea contributes beneath its sky reflection.
+// These are display-authored effective albedos: pale Aegean turquoise in the
+// shallows and a restrained deep-water blue offshore under the golden preset.
+const WATER_SHALLOW_ALBEDO: [number, number, number] = [0.22, 0.58, 0.60];
+const WATER_DEEP_ALBEDO: [number, number, number] = [0.025, 0.095, 0.22];
 const WATER_FOAM_ALBEDO: [number, number, number] = [0.92, 0.93, 0.94];
-// Calm water is glossy (the sun glint is real GGX specular now); foam and
-// hazed distance read matte.
-const WATER_ROUGHNESS = 0.14;
-const WATER_FOAM_ROUGHNESS = 0.85;
-const WATER_HAZE_ROUGHNESS = 0.9;
+const WATER_SAND_TURBIDITY_ALBEDO: [number, number, number] = [0.66, 0.58, 0.40];
+// Calm water is glossy: the sun track is standard-material GGX specular from
+// the live environment sun; foam stays matte.
+const WATER_ROUGHNESS = 0.105;
+const WATER_FOAM_ROUGHNESS = 0.78;
+// 12b trap: the sea looked right nearby but sparkled like aliasing in the
+// grazing upper band. Fade normal detail with distance from the battle focus;
+// aerial haze remains owned by scene.fogNode.
+const SEA_NORMAL_DETAIL_NEAR = 0.84;
+const SEA_NORMAL_DETAIL_FAR = 0.18;
+const SEA_NORMAL_DETAIL_FADE_START = 720;
+const SEA_NORMAL_DETAIL_FADE_END = 2300;
+const SEA_GLINT_HOT_LUMA_THRESHOLD = 246;
+const SEA_GLINT_HOT_FRACTION_MAX = 0.07;
+const SEA_GLINT_CENTER_SHARE_MIN = 0.60;
+const SEA_SURFACE_OWNER = 'skyModel-ibl-standard-pbr' as const;
+// Sea state — David's register call (2026-07-02): calm Aegean, waves present
+// but not choppy, and battle water sits near shore. One knob scales every
+// wave amplitude (photoreal sea only; the shared bespoke baker is untouched).
+// Foam height thresholds scale with it so whitecap coverage stays consistent.
+const SEA_SWELL_SCALE = 0.55;
+const SEA_FOAM_HEIGHT_START = 0.52 * SEA_SWELL_SCALE;
+const SEA_FOAM_HEIGHT_END = 1.55 * SEA_SWELL_SCALE;
+const SEA_FOAM_SLOPE_START = 0.12;
+const SEA_FOAM_SLOPE_END = 0.58;
+const SEA_FOAM_SPECKLE_START = 0.56;
+const SEA_FOAM_SPECKLE_END = 0.78;
+const SEA_FOAM_SCALE = 0.74;
+const SEA_SAND_TURBIDITY_DEPTH_START = 0.04;
+const SEA_SAND_TURBIDITY_DEPTH_END = 0.26;
 
 interface WaterSampleNodes {
   height: FloatNode;
   normal: Vec3Node;
   foam: FloatNode;
+}
+
+export type SeaDisplacementSourceId = 'gerstner-tsl';
+export type SeaDisplacementTier = 'gerstner-tsl';
+
+export interface SeaSurfaceStats {
+  owner: typeof SEA_SURFACE_OWNER;
+  skyReflection: 'scene.environment:skyModel-lut';
+  sunGlint: 'mesh-standard-ggx';
+  shallowAlbedo: [number, number, number];
+  deepAlbedo: [number, number, number];
+  foamAlbedo: [number, number, number];
+  sandTurbidityAlbedo: [number, number, number];
+  roughness: number;
+  foamRoughness: number;
+  normalDetail: {
+    near: number;
+    far: number;
+    fadeStart: number;
+    fadeEnd: number;
+  };
+  foam: {
+    heightStart: number;
+    heightEnd: number;
+    slopeStart: number;
+    slopeEnd: number;
+    speckleStart: number;
+    speckleEnd: number;
+    scale: number;
+  };
+  shore: {
+    ramp: WaterShoreRamp;
+    sandTurbidityDepthStart: number;
+    sandTurbidityDepthEnd: number;
+    heightfieldDatum: true;
+    farExtent: number;
+  };
+  glint: {
+    roughnessFloor: number;
+    normalDetailCeiling: number;
+    hotLumaThreshold: number;
+    hotFractionMax: number;
+    centerShareMin: number;
+  };
+}
+
+export interface SeaDisplacementStats {
+  requested: SeaDisplacementSourceId;
+  source: SeaDisplacementSourceId;
+  tier: SeaDisplacementTier;
+  fallback: boolean;
+  resolution: number;
+  cascades: number;
+  storageBytes: number;
+  surface: SeaSurfaceStats;
+}
+
+export interface SeaDisplacementSource {
+  readonly requested: SeaDisplacementSourceId;
+  readonly source: SeaDisplacementSourceId;
+  readonly tier: SeaDisplacementTier;
+  sample(p: Vec2Node, t: FloatNode): WaterSampleNodes;
+  height(p: Vec2Node, t: FloatNode): FloatNode;
+  stats(): SeaDisplacementStats;
+}
+
+class GerstnerSeaSource implements SeaDisplacementSource {
+  readonly source = 'gerstner-tsl' as const;
+  readonly requested: SeaDisplacementSourceId;
+  readonly tier: SeaDisplacementTier;
+
+  constructor(
+    requested: SeaDisplacementSourceId = 'gerstner-tsl',
+    tier: SeaDisplacementTier = 'gerstner-tsl',
+  ) {
+    this.requested = requested;
+    this.tier = tier;
+  }
+
+  sample(p: Vec2Node, t: FloatNode): WaterSampleNodes {
+    return waterFieldNodes(p, t);
+  }
+
+  height(p: Vec2Node, t: FloatNode): FloatNode {
+    return waterHeightNode(p, t);
+  }
+
+  stats(): SeaDisplacementStats {
+    return {
+      requested: this.requested,
+      source: this.source,
+      tier: this.tier,
+      fallback: this.requested !== this.source,
+      resolution: 1,
+      cascades: 1,
+      storageBytes: 0,
+      surface: seaSurfaceStats(),
+    };
+  }
+}
+
+export function seaDisplacementSourceFromParam(value: string | null | undefined): SeaDisplacementSourceId {
+  const normalized = value === 'gerstner' || value === 'gerstner-tsl' ? value : 'gerstner-tsl';
+  return normalized === 'gerstner' ? 'gerstner-tsl' : normalized;
+}
+
+export function createSeaDisplacementSource(
+  requested: SeaDisplacementSourceId = 'gerstner-tsl',
+): SeaDisplacementSource {
+  return new GerstnerSeaSource(requested);
+}
+
+export function seaSurfaceStats(): SeaSurfaceStats {
+  return {
+    owner: SEA_SURFACE_OWNER,
+    skyReflection: 'scene.environment:skyModel-lut',
+    sunGlint: 'mesh-standard-ggx',
+    shallowAlbedo: WATER_SHALLOW_ALBEDO,
+    deepAlbedo: WATER_DEEP_ALBEDO,
+    foamAlbedo: WATER_FOAM_ALBEDO,
+    sandTurbidityAlbedo: WATER_SAND_TURBIDITY_ALBEDO,
+    roughness: WATER_ROUGHNESS,
+    foamRoughness: WATER_FOAM_ROUGHNESS,
+    normalDetail: {
+      near: SEA_NORMAL_DETAIL_NEAR,
+      far: SEA_NORMAL_DETAIL_FAR,
+      fadeStart: SEA_NORMAL_DETAIL_FADE_START,
+      fadeEnd: SEA_NORMAL_DETAIL_FADE_END,
+    },
+    foam: {
+      heightStart: SEA_FOAM_HEIGHT_START,
+      heightEnd: SEA_FOAM_HEIGHT_END,
+      slopeStart: SEA_FOAM_SLOPE_START,
+      slopeEnd: SEA_FOAM_SLOPE_END,
+      speckleStart: SEA_FOAM_SPECKLE_START,
+      speckleEnd: SEA_FOAM_SPECKLE_END,
+      scale: SEA_FOAM_SCALE,
+    },
+    shore: {
+      ramp: BATTLE_OCEAN_RAMP,
+      sandTurbidityDepthStart: SEA_SAND_TURBIDITY_DEPTH_START,
+      sandTurbidityDepthEnd: SEA_SAND_TURBIDITY_DEPTH_END,
+      heightfieldDatum: true,
+      farExtent: 7200,
+    },
+    glint: {
+      roughnessFloor: WATER_ROUGHNESS,
+      normalDetailCeiling: SEA_NORMAL_DETAIL_NEAR,
+      hotLumaThreshold: SEA_GLINT_HOT_LUMA_THRESHOLD,
+      hotFractionMax: SEA_GLINT_HOT_FRACTION_MAX,
+      centerShareMin: SEA_GLINT_CENTER_SHARE_MIN,
+    },
+  };
 }
 
 /** The analytic Gerstner field (gerstnerField.ts waterField), evaluated as a
@@ -62,20 +234,23 @@ export function waterFieldNodes(p: Vec2Node, t: FloatNode): WaterSampleNodes {
     const c = phase.cos().toVar();
     const hump = s.mul(0.5).add(0.5).toVar(); // 0..1 wave profile
     const sharp = hump.mul(hump); // narrow peaks, wide flat troughs
-    h = h.add(sharp.sub(0.333).mul(wv.amplitude));
+    h = h.add(sharp.sub(0.333).mul(wv.amplitude * SEA_SWELL_SCALE));
     const dHump = hump.mul(c); // d(sharp)/d(phase)
-    const dphase = dHump.mul(wv.amplitude * 2.0 * k).toVar();
+    const dphase = dHump.mul(wv.amplitude * SEA_SWELL_SCALE * 2.0 * k).toVar();
     slopeX = slopeX.add(dphase.mul(wv.dirX));
     slopeY = slopeY.add(dphase.mul(wv.dirY));
   }
   const height = h.toVar();
   const normal = normalize(vec3(slopeX.negate(), slopeY.negate(), 1.0)).toVar();
-  // Whitecaps cap the crest TOPS, broken into granular spray by fnoise speckle.
-  const cover = smoothstepN(1.3, 3.1, height);
+  // Whitecaps are crest/agitation driven: high wave tops only foam where the
+  // local slope is stressed, then fnoise breaks the cover into spray flecks.
+  const crest = smoothstepN(SEA_FOAM_HEIGHT_START, SEA_FOAM_HEIGHT_END, height);
+  const slopeEnergy = slopeX.mul(slopeX).add(slopeY.mul(slopeY)).toVar();
+  const agitation = smoothstepN(SEA_FOAM_SLOPE_START, SEA_FOAM_SLOPE_END, slopeEnergy);
   const speckle = fnoiseN(p.mul(0.5).add(vec2(t.mul(0.10), t.mul(0.05)))).mul(0.42)
     .add(fnoiseN(p.mul(1.3).sub(vec2(t.mul(0.06), t.mul(0.09)))).mul(0.34))
     .add(fnoiseN(p.mul(3.0).add(vec2(t.mul(0.04), t.mul(-0.07)))).mul(0.24));
-  const foam = cover.mul(smoothstepN(0.42, 0.66, speckle)).mul(0.9).toVar();
+  const foam = crest.mul(agitation).mul(smoothstepN(SEA_FOAM_SPECKLE_START, SEA_FOAM_SPECKLE_END, speckle)).mul(SEA_FOAM_SCALE).toVar();
   return { height, normal, foam };
 }
 
@@ -92,21 +267,19 @@ export function waterHeightNode(p: Vec2Node, t: FloatNode): FloatNode {
     const ph0 = fract53(Math.sin(i * 127.1 + wv.wavelength * 3.71) * 43758.5453) * 6.2831853;
     const phase = dot(vec2(wv.dirX, wv.dirY), p).mul(k).sub(t.mul(w * 0.42)).add(ph0);
     const hump = phase.sin().mul(0.5).add(0.5).toVar();
-    h = h.add(hump.mul(hump).sub(0.333).mul(wv.amplitude));
+    h = h.add(hump.mul(hump).sub(0.333).mul(wv.amplitude * SEA_SWELL_SCALE));
   }
   return h;
 }
 
-/** waterShoreRamp(shoreDist) → (depth01, haze01) for a ramp table. */
-export function shoreRampNodes(ramp: WaterShoreRamp, shoreDist: FloatNode): { depth01: FloatNode; haze01: FloatNode } {
-  return {
-    depth01: smoothstepN(ramp.depthNear, ramp.depthFar, shoreDist),
-    haze01: smoothstepN(ramp.hazeNear, ramp.hazeFar, shoreDist),
-  };
+/** waterShoreRamp(shoreDist) → depth01 (the haze leg of the shared ramp
+ *  table is a bespoke-WGSL knob; photoreal haze is the aerial owner's). */
+export function shoreDepthNode(ramp: WaterShoreRamp, shoreDist: FloatNode): FloatNode {
+  return smoothstepN(ramp.depthNear, ramp.depthFar, shoreDist);
 }
 
 export interface WaterSurfaceNodes {
-  /** Neutral albedo (depth-graded blue + foam + the 10b-bound haze mix). */
+  /** Neutral albedo (depth-graded blue + foam). */
   albedo: Vec3Node;
   foam: FloatNode;
   roughness: FloatNode;
@@ -115,26 +288,20 @@ export interface WaterSurfaceNodes {
 /** The one civsim water surface response: every photoreal water surface
  *  (ocean planes, on-field water in the ground material) composes through
  *  this, so shorelines cannot show a stripe. Neutral albedo — the environment
- *  lights it. */
+ *  lights it, the aerial owner hazes it. */
 export function waterSurfaceNodes(
-  env: BattleEnvironment,
   depth01: FloatNode,
-  haze01: FloatNode,
   foamRaw: FloatNode,
+  shoreTurbidity: FloatNode | null = null,
 ): WaterSurfaceNodes {
-  const e = env.environment;
   const foam = saturateN(foamRaw).toVar();
-  const haze = saturateN(haze01).toVar();
-  let albedo = mix(rgbNode(WATER_SHALLOW_ALBEDO), rgbNode(WATER_DEEP_ALBEDO), depth01);
+  const shallow = shoreTurbidity
+    ? mix(rgbNode(WATER_SAND_TURBIDITY_ALBEDO), rgbNode(WATER_SHALLOW_ALBEDO), shoreTurbidity)
+    : rgbNode(WATER_SHALLOW_ALBEDO);
+  let albedo = mix(shallow, rgbNode(WATER_DEEP_ALBEDO), depth01);
   albedo = mix(albedo, rgbNode(WATER_FOAM_ALBEDO), foam);
-  // Aerial stand-in (08a parity ledger — dies at 10b, the ONE aerial owner).
-  albedo = mix(albedo, rgbNode(e.hazeColor), haze);
   albedo = linearAlbedo(albedo);
-  const roughness = mix(
-    mix(float(WATER_ROUGHNESS), float(WATER_FOAM_ROUGHNESS), foam),
-    float(WATER_HAZE_ROUGHNESS),
-    haze,
-  );
+  const roughness = mix(float(WATER_ROUGHNESS), float(WATER_FOAM_ROUGHNESS), foam);
   return { albedo, foam, roughness };
 }
 
@@ -143,23 +310,21 @@ export function waterSurfaceNodes(
  *  box-filtered water weight. The ground material blends these over turf by
  *  the same weight. */
 export function fieldWaterSurfaceNodes(
-  env: BattleEnvironment,
   frame: BattleFrameUniforms,
   p: Vec2Node,
   shoreDist: FloatNode,
 ): WaterSurfaceNodes {
   const swash = smoothstepN(0.16, 0.02, shoreDist).mul(smoothstepN(0.006, 0.03, shoreDist));
   const lace = fnoiseN(p.mul(1.2).add(vec2(frame.time.mul(0.05), 0.0))).mul(0.28).add(0.72);
-  const ramp = shoreRampNodes(FIELD_WATER_RAMP, shoreDist);
-  return waterSurfaceNodes(env, ramp.depth01, ramp.haze01, swash.mul(lace).mul(0.7));
+  return waterSurfaceNodes(shoreDepthNode(FIELD_WATER_RAMP, shoreDist), swash.mul(lace).mul(0.7));
 }
 
 /** One battle ocean-edge plane (waterPlanePass battle mode): the displaced
  *  grid mesh + the shore-keyed standard-material water surface. */
 export function createOceanPlaneMesh(
-  env: BattleEnvironment,
   frame: BattleFrameUniforms,
   spec: BattleOceanPlaneSpec,
+  displacement: SeaDisplacementSource = createSeaDisplacementSource(),
 ): THREE.Mesh {
   const { rect } = spec;
   const side = rect.res + 1;
@@ -189,23 +354,26 @@ export function createOceanPlaneMesh(
   geo.setIndex(new THREE.BufferAttribute(indices, 1));
 
   const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, metalness: 0 });
-  material.fog = false;
   const worldXY = attribute<'vec3'>('position', 'vec3').xy;
-  material.positionNode = vec3(worldXY, waterHeightNode(worldXY, frame.time).add(spec.baseZ));
+  material.positionNode = vec3(worldXY, displacement.height(worldXY, frame.time).add(spec.baseZ));
   const fragXY = varying(worldXY).toVar();
-  // Depth and agitation ramp on DIFFERENT distances (waterPlanePass battle fs):
-  // pale turquoise near the beach → deeper blue offshore; the whole visible sea
-  // stays calm, whitecaps only build near the horizon.
+  // Depth and agitation ramp on DIFFERENT distances: pale turquoise near the
+  // beach → deeper blue offshore; the visible sea stays calm, whitecaps build
+  // only with real swell agitation.
   const shoreDist = fragXY.x.sub(spec.shoreX).abs().toVar();
-  const depth01 = mix(float(0.30), float(0.80), smoothstepN(0.0, 500.0, shoreDist));
+  const depth01 = shoreDepthNode(BATTLE_OCEAN_RAMP, shoreDist);
+  const shoreTurbidity = smoothstepN(SEA_SAND_TURBIDITY_DEPTH_START, SEA_SAND_TURBIDITY_DEPTH_END, depth01);
   const agitation = smoothstepN(0.0, 3200.0, shoreDist).toVar();
-  const haze01 = shoreRampNodes(BATTLE_OCEAN_RAMP, shoreDist).haze01;
-  // Fragment-stage field sample = the crisp swell normal; flatten toward up as
-  // agitation falls (the waterShade renormalization, kept as geometry response).
-  const s = waterFieldNodes(fragXY, frame.time);
-  const surfaceNormal = normalize(mix(vec3(0.0, 0.0, 1.0), s.normal, mix(float(0.30), float(1.0), agitation)));
+  const viewDist = length(fragXY.sub(vec2(frame.focus))).toVar();
+  const distanceFade = smoothstepN(SEA_NORMAL_DETAIL_FADE_START, SEA_NORMAL_DETAIL_FADE_END, viewDist).toVar();
+  const detail = mix(float(SEA_NORMAL_DETAIL_NEAR), float(SEA_NORMAL_DETAIL_FAR), distanceFade).toVar();
+  // Fragment-stage field sample = the crisp swell normal. Fade high-frequency
+  // normal detail with distance so the grazing band cannot sparkle/moire.
+  const s = displacement.sample(fragXY, frame.time);
+  const normalStrength = mix(float(0.30), float(1.0), agitation).mul(detail);
+  const surfaceNormal = normalize(mix(vec3(0.0, 0.0, 1.0), s.normal, normalStrength));
   material.normalNode = transformNormalToView(surfaceNormal);
-  const surface = waterSurfaceNodes(env, depth01, haze01, s.foam.mul(agitation));
+  const surface = waterSurfaceNodes(depth01, s.foam.mul(agitation), shoreTurbidity);
   material.colorNode = vec4(surface.albedo, 1.0);
   material.roughnessNode = surface.roughness;
 

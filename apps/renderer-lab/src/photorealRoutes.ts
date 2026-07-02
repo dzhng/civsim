@@ -409,9 +409,7 @@ export async function routePhotorealCrowd(ctx: PhotorealRouteContext) {
   world.resize(width, height, Math.min(window.devicePixelRatio, 2));
   const camera = new THREE.PerspectiveCamera();
   applyCamera3d(camera, camera3dFor(CROWD_CAMERAS[camName], width / height));
-  applyCivsimEnvironment(world, CIVSIM_ENVIRONMENTS.golden, {
-    fog: { near: 700, far: 3600 },
-  });
+  applyCivsimEnvironment(world, CIVSIM_ENVIRONMENTS.golden);
 
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(1200, 1500),

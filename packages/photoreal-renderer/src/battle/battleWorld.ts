@@ -9,12 +9,13 @@
 // buildCrowdInstances + terrainHeightAt.
 //
 // Scaffolding ledger rows owned here (README "Photoreal ladder invariants"):
-//   - THREE.Fog haze stand-in matched to hazeColor — dies at 10b.
-//   - Blob-shadow decal replica (crowdLayer) — dies at 11.
 //   - Parity-derived Gerstner sea shading (seaLayer) — dies at 12b–d.
-// (The 10a row — procedural equirect IBL — is DEAD: SkyModel owns the sky.)
+// (10a's procedural-equirect IBL, 10b's THREE.Fog + per-material haze
+// stand-ins, and 08a's blob-shadow decals are DEAD: SkyModel owns the sky,
+// aerialPerspective the haze, and shadowRig casts REAL sun shadows since 11.)
 // 08b swapped BattleRenderer's internals onto this class on the same canvas.
 import * as THREE from 'three/webgpu';
+import { vec3 } from 'three/tsl';
 import { buildCrowdInstances, type CrowdInstance } from '../../../crowd-runtime/src/instanceData';
 import {
   battleEnvironmentStats,
@@ -34,13 +35,13 @@ import { buildBattleTerrainGrass } from '../../../game-renderer/src/battle/grass
 import { featuresToBattleScenery } from '../../../game-renderer/src/battle/terrainScenery';
 import { terrainHeightAt, type TerrainHeightField } from '../../../game-renderer/src/terrain/heightField';
 import type { MarkerInstance } from '../../../renderer-core/src/frameShell';
-import { eyePosition, type Camera3DParams } from '../../../renderer-core/src/camera3d';
+import type { Camera3DParams } from '../../../renderer-core/src/camera3d';
 import {
   loadClassVats,
   loadPlaceholderKit,
   mountedClassesFromKit,
 } from '../../../soldier-assets/src/placeholders';
-import { createPlaceholderSoldierMeshes } from '../../../soldier-assets/src/soldierMesh';
+import { createPlaceholderSoldierMeshTiers } from '../../../soldier-assets/src/soldierMesh';
 import { PhotorealWorld } from '../world';
 import { applyCivsimEnvironment } from '../environment';
 import { applyCamera3d } from '../cameraBridge';
@@ -52,10 +53,16 @@ import {
   createHorizonBlockerMesh,
   RENDER_ORDER,
 } from './terrainLayer';
-import { createOceanPlaneMesh } from './seaLayer';
+import {
+  createOceanPlaneMesh,
+  createSeaDisplacementSource,
+  type SeaDisplacementSourceId,
+} from './seaLayer';
 import { PhotorealGrassField, PhotorealScenery } from './foliageLayer';
-import { PhotorealCrowd, PhotorealSoldierShadows } from './crowdLayer';
+import { PhotorealCrowd, type CrowdVisibilityScope } from './crowdLayer';
+import { configureSunShadows, resolveSunShadowMode, type SunShadowMode, type SunShadowRig } from './shadowRig';
 import { PhotorealLineLayer, PhotorealMarkerLayer, PhotorealTriangleLayer } from './overlayLayer';
+import { BattlePostChain } from '../post/postChain';
 
 /** The camera fields BattleRenderer snapshots from the shared Camera each
  *  frame (renderer.ts cameraSnapshot) — the whole camera contract. */
@@ -81,13 +88,15 @@ export class PhotorealBattleWorld {
   private readonly grass: PhotorealGrassField;
   private readonly scenery: PhotorealScenery;
   private readonly crowd: PhotorealCrowd;
-  private readonly soldierShadows: PhotorealSoldierShadows;
+  private readonly shadowRig: SunShadowRig;
   private readonly groundCues: PhotorealLineLayer;
   private readonly effectLines: PhotorealLineLayer;
   private readonly debugTriangles: PhotorealTriangleLayer;
   private readonly debugBlocks: PhotorealTriangleLayer;
   private readonly markerLayer: PhotorealMarkerLayer;
   private readonly mountedClasses: number[];
+  private readonly sea: ReturnType<typeof createSeaDisplacementSource>;
+  private readonly post: BattlePostChain;
 
   private ground: THREE.Mesh | null = null;
   private horizonBlockers: THREE.Mesh | null = null;
@@ -127,12 +136,16 @@ export class PhotorealBattleWorld {
   private constructor(
     world: PhotorealWorld,
     environment: BattleEnvironment,
-    meshes: ReturnType<typeof createPlaceholderSoldierMeshes>,
+    sea: ReturnType<typeof createSeaDisplacementSource>,
+    meshes: ReturnType<typeof createPlaceholderSoldierMeshTiers>,
     vats: Awaited<ReturnType<typeof loadClassVats>>,
     kit: Awaited<ReturnType<typeof loadPlaceholderKit>>,
+    shadowMode: SunShadowMode,
+    postEnabled: boolean,
   ) {
     this.world = world;
     this.environment = environment;
+    this.sea = sea;
     this.frame = createBattleFrameUniforms();
     this.frame.time = world.uTime;
     const scene = world.scene;
@@ -140,22 +153,27 @@ export class PhotorealBattleWorld {
 
     // Slice 09 — lighting core: sun DirectionalLight + ACES tonemap +
     // per-preset exposure; slice 10a — the physical sky (SkyModel dome +
-    // sky-view-LUT IBL, one source) replaced the procedural-equirect + haze
-    // clear. All mapped from the ONE preset owner. The THREE.Fog stand-in
-    // keeps its 08a constraint — the top-down overview parks the eye ~3.2 km
-    // out (rig distance 2×min(map w,h)), so the ramp starts past that; it
-    // only ever touches beyond-battle distances until 10b replaces it with
-    // the one aerial-perspective owner. (The reversed-depth sort comparators
+    // sky-view-LUT IBL, one source); slice 10b — the ONE aerial-perspective
+    // owner (scene.fogNode) hazes every fog-enabled world material, replacing
+    // the THREE.Fog stand-in AND the per-material albedo haze mixes. All
+    // mapped from the ONE preset owner. (The reversed-depth sort comparators
     // moved to PhotorealWorld.create at 10a — substrate-wide contract.)
     applyCivsimEnvironment(world, env.environment, {
-      fog: { near: 3400, far: 8200 },
+      // Aerial optical depth measured from the player's ground focus — the
+      // tactical rig eye parks km out and would white gameplay framings out.
+      aerialObserver: vec3(this.frame.focus, 0.0),
     });
 
+    // Slice 11 — real cascaded sun shadows from the SAME environment sun,
+    // adapter-tiered (csm hardware / single software / off lab-debug). The
+    // 08a blob-shadow decal stand-ins are deleted; casters/receivers are
+    // flagged where each mesh is built (terrain/foliage/crowd layers).
+    this.shadowRig = configureSunShadows(world.renderer, world.sunLight!, env.environment, shadowMode);
+
     this.background = new BattleBackgroundQuads(scene, this.frame);
-    this.grass = new PhotorealGrassField(scene, env, this.frame);
+    this.grass = new PhotorealGrassField(scene, env);
     this.scenery = new PhotorealScenery(scene);
     this.crowd = new PhotorealCrowd(scene, meshes, vats, kit);
-    this.soldierShadows = new PhotorealSoldierShadows(scene);
     this.mountedClasses = mountedClassesFromKit(kit);
     this.groundCues = new PhotorealLineLayer(scene, 0.02, {
       alpha: 0.88,
@@ -170,23 +188,50 @@ export class PhotorealBattleWorld {
     this.debugBlocks = new PhotorealTriangleLayer(scene, RENDER_ORDER.debugBlocks);
     this.debugTriangles = new PhotorealTriangleLayer(scene, RENDER_ORDER.debugTriangles);
     this.markerLayer = new PhotorealMarkerLayer(scene);
+
+    // Slice 15 — the post chain: one bloom stage over the whole scene pass, the
+    // ONE tone-map applied at the tail. Threshold-disciplined (linear-HDR
+    // luminance), so only the sky sun disc + the GGX sea glint spill; the
+    // in-scene tactical overlays sit below threshold and the DOM HUD is outside
+    // the canvas — neither blooms. ?post=off (lab A/B) bypasses the chain.
+    this.post = new BattlePostChain(world.renderer, scene, this.camera);
+    this.post.enabled = postEnabled;
+    world.post = this.post;
   }
 
   static async create(
     canvas: HTMLCanvasElement,
-    options: { environment?: string | null } = {},
+    options: {
+      environment?: string | null;
+      shadows?: string | null;
+      sea?: SeaDisplacementSourceId;
+      post?: string | null;
+    } = {},
   ): Promise<PhotorealBattleWorld> {
     const environment = resolveBattleEnvironment(options.environment);
     const [world, kit] = await Promise.all([
       PhotorealWorld.create(canvas, { antialias: false }),
       loadPlaceholderKit(),
     ]);
+    const sea = createSeaDisplacementSource(options.sea ?? 'gerstner-tsl');
     const vats = await loadClassVats(kit);
-    return new PhotorealBattleWorld(world, environment, createPlaceholderSoldierMeshes([0.2, 0.42, 0.88]), vats, kit);
+    // Shadow tier: adapter capability probe (SwiftShader → 'single'), lab
+    // ?shadows= override wins. Resolved here because the adapter identity
+    // only exists once the renderer is initialized.
+    const shadowMode = resolveSunShadowMode(world.stats().device, options.shadows);
+    // ?post=off (lab A/B only) bypasses the chain; production always runs it.
+    const postEnabled = options.post !== 'off';
+    return new PhotorealBattleWorld(world, environment, sea, createPlaceholderSoldierMeshTiers([0.2, 0.42, 0.88]), vats, kit, shadowMode, postEnabled);
   }
 
   setTime(seconds: number): void {
     this.world.setTime(seconds);
+  }
+
+  /** Toggle the bloom stage in place (slice-15a A/B: the sun-glint bloom on/off
+   *  pair proving bloom did not re-break the 12e glint discipline). */
+  setBloomEnabled(on: boolean): void {
+    this.post.setBloomEnabled(on);
   }
 
   resize(width: number, height: number, pixelRatio = 1): void {
@@ -201,7 +246,6 @@ export class PhotorealBattleWorld {
     this.instances = [];
     this.markers = [];
     this.crowd.upload([]);
-    this.soldierShadows.upload([]);
     this.markerLayer.upload([]);
     this.effectLines.upload(new Float32Array());
     this.debugTriangles.upload(new Float32Array());
@@ -279,7 +323,7 @@ export class PhotorealBattleWorld {
     }
     const groundMesh = buildBattleGroundMesh(grid, field, this.groundCover);
     this.groundTriangles = groundMesh.triangles;
-    this.ground = createGroundMesh(this.environment, this.frame, groundMesh);
+    this.ground = createGroundMesh(this.frame, groundMesh);
     scene.add(this.ground);
 
     if (this.horizonBlockers) {
@@ -296,12 +340,13 @@ export class PhotorealBattleWorld {
       field,
     );
     this.sealedEdges = layout.builtEdges.map((e) => `${e.side}:${e.role}`);
-    this.horizonBlockers = createHorizonBlockerMesh(this.environment, layout);
+    this.horizonBlockers = createHorizonBlockerMesh(layout);
     if (this.horizonBlockers) scene.add(this.horizonBlockers);
-    this.oceanPlanes = layout.oceanPlanes.map((spec) => createOceanPlaneMesh(this.environment, this.frame, spec));
+    this.oceanPlanes = layout.oceanPlanes.map((spec) => createOceanPlaneMesh(this.frame, spec, this.sea));
     for (const plane of this.oceanPlanes) scene.add(plane);
 
     this.scenery.upload(featuresToBattleScenery(presentation.features, field, 0x77));
+    this.shadowRig.setWorldRect(this.terrainRect);
     this.background.setRects(this.terrainRect, expandedTerrainRect(this.terrainRect));
     this.grassTerrainKey = null;
     this.updateGrassForCamera(this.lastCamera);
@@ -337,25 +382,14 @@ export class PhotorealBattleWorld {
       simTick: simTick ?? 0,
       count,
     });
-    if (camera.zoom < 1.2) {
-      this.instances = [];
-      this.markers = built.instances.map((inst) => ({
-        x: inst.x,
-        y: inst.y,
-        facing: inst.facing,
-        faction: inst.faction,
-        size: inst.mounted ? 1.45 : 1.1,
-        lod: 3,
-      }));
-    } else {
-      this.instances = built.instances;
-      this.markers = [];
-    }
+    this.instances = built.instances;
+    this.markers = [];
     this.updateSeating(built.instances);
     this.updateGrassWindPhase();
     this.updateGrassForCamera(camera);
-    this.crowd.upload(this.instances);
-    this.soldierShadows.upload(this.instances);
+    applyCamera3d(this.camera, this.lastCamera.camera3d);
+    this.shadowRig.update(this.camera);
+    this.crowd.upload(this.instances, this.crowdVisibilityScope());
     this.markerLayer.upload(this.markers);
   }
 
@@ -384,6 +418,10 @@ export class PhotorealBattleWorld {
    *  directly when they draw a static world. */
   render(): void {
     applyCamera3d(this.camera, this.lastCamera.camera3d);
+    // Cascade splits track the live projection (the zoom rig moves fovY/pitch
+    // continuously) — re-fit them after every camera pose.
+    this.shadowRig.update(this.camera);
+    this.crowd.refreshCamera(this.camera);
     this.markerLayer.setCameraBasis(this.camera);
     this.background.setStyle(this.lastCamera.zoom < 1.2 ? 'wide-detail' : 'default');
     this.world.render(this.camera);
@@ -392,8 +430,20 @@ export class PhotorealBattleWorld {
   private setCamera(camera: BattleCameraSnapshot): void {
     this.lastCamera = camera;
     this.frame.focus.value.set(camera.x, camera.y);
-    const eye = eyePosition(camera.camera3d);
-    this.frame.eyeXY.value.set(eye[0], eye[1]);
+  }
+
+  private crowdVisibilityScope(): CrowdVisibilityScope {
+    const view = new THREE.Frustum();
+    const mat = new THREE.Matrix4().multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse);
+    view.setFromProjectionMatrix(mat, this.camera.coordinateSystem, this.camera.reversedDepth);
+    const shadowFrusta = this.shadowRig.cullingFrusta();
+    return {
+      camera: this.camera,
+      lodCamera: { x: this.lastCamera.x, y: this.lastCamera.y, zoom: this.lastCamera.zoom },
+      frusta: [view, ...shadowFrusta],
+      viewFrusta: 1,
+      shadowFrusta: shadowFrusta.length,
+    };
   }
 
   private updateSeating(instances: CrowdInstance[]): void {
@@ -463,8 +513,11 @@ export class PhotorealBattleWorld {
 
   stats() {
     const world = this.world.stats();
-    const markerCount = this.markers.length;
-    const skinnedCount = this.instances.length;
+    const crowdStats = this.crowd.stats();
+    const visibleTierHistogram = crowdStats.visibleTierHistogram;
+    const markerCount = visibleTierHistogram.l3;
+    const skinnedCount = visibleTierHistogram.l0 + visibleTierHistogram.l1 + visibleTierHistogram.l2;
+    const sea = this.sea.stats();
     return {
       renderer: 'gpu' as const,
       ready: true,
@@ -473,10 +526,11 @@ export class PhotorealBattleWorld {
       environment: this.environment.environment.id,
       width: this.world.renderer.domElement.width,
       height: this.world.renderer.domElement.height,
-      soldiers: skinnedCount + markerCount,
+      soldiers: this.instances.length + this.markers.length,
       expectedSoldiers: this.staticSoldiers,
       drawCalls: world.drawCalls,
       triangles: world.triangles,
+      crowd: crowdStats,
       lod: { skinned: skinnedCount, impostors: markerCount },
       device: world.device,
       // The engine depth convention, read off the live renderer: three owns the
@@ -484,6 +538,12 @@ export class PhotorealBattleWorld {
       depth: { owner: 'three-webgpu' as const, reversed: this.world.renderer.reversedDepthBuffer === true },
       // Atmosphere ownership identity (10a sky tier; 10b adds the aerial owner).
       atmosphere: this.world.atmosphere,
+      // Shadow ownership identity (11): WHICH tier cast the sun shadows —
+      // the SwiftShader scene asserts 'single', hardware asserts 'csm'.
+      shadows: this.shadowRig.identity(),
+      // Post-chain ownership identity (15): bloom stage + the ONE tone-map.
+      post: this.post.stats(),
+      sea,
       camera: this.lastCamera,
       seating: { ...this.seating },
       terrain: this.ground
@@ -492,6 +552,10 @@ export class PhotorealBattleWorld {
             layer: 'photoreal-battle-ground' as const,
             groundTriangles: this.groundTriangles,
             sealedEdges: [...this.sealedEdges],
+            sea: {
+              ...sea,
+              planes: this.oceanPlanes.length,
+            },
             groundCover: this.groundCover,
             environment: battleEnvironmentStats(this.environment),
             scenery: this.scenery.stats().scenery,
@@ -514,6 +578,7 @@ export class PhotorealBattleWorld {
   }
 
   dispose(): void {
+    this.shadowRig.dispose();
     this.world.dispose();
   }
 }

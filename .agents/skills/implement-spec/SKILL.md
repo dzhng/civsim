@@ -37,16 +37,25 @@ depends on prior work.
    screenshots so the subject is framed and readable, not merely nonblank.
    Never weaken an existing default gate or repin a failing contract without
    proving the old contract is wrong.
-5. Run [refactor-clean](../refactor-clean/SKILL.md) at the end of every pass,
+5. **Review the change list and clean up after every pass, before committing.**
+   Read `git status`/`git diff --stat` line by line and account for every path:
+   one-off probes, shot scripts, scratch `.mjs`/`.tmp` files, `nohup.out`,
+   ad-hoc screenshot dirs, and SPIKE/debug notes never enter a commit — scratch
+   belongs in the job dir (`$CLAUDE_JOB_DIR/tmp`) or, for agents without that
+   env (codex, other harnesses), the repo's gitignored `/throwaway/` folder;
+   review evidence belongs in the spec's `assets/`; anything else gets deleted. A file you can't name
+   the durable purpose of does not ship. Delegated agents leak these; the
+   integrating reviewer re-checks the merged tree with the same eye.
+6. Run [refactor-clean](../refactor-clean/SKILL.md) at the end of every pass,
    before reviewing: collapse any sediment this pass introduced — dev-only shims,
    duplicated concepts, parallel abstractions, compatibility wrappers — into the
    clean contract with one owner, so the code reads as designed today, not tacked
    on. Then run [review](../review/SKILL.md). Apply the fixes from both, rerun the
    affected checks, then commit only the focused changes from this pass.
-6. Update the spec README's "Next Agent Prompt": status, completed work, next
+7. Update the spec README's "Next Agent Prompt": status, completed work, next
    pickup point, blockers, changed gates, and any architecture decision that
    changed the plan.
-7. Run a **maintenance checkpoint** as part of the loop, not as endgame cleanup.
+8. Run a **maintenance checkpoint** as part of the loop, not as endgame cleanup.
    Trigger it after a red pass, after every two or three slice commits, after a
    rebase/resume/compaction, before changing feature areas, when evidence
    invalidates the plan, when the handoff contradicts the TODO/graph, or when the
@@ -71,7 +80,7 @@ depends on prior work.
    code shape, or handoff enough that future agents would otherwise inherit stale
    context. It is done only when a fresh agent can read the README handoff, TODO,
    and slice graph and choose the same next action without conversation history.
-8. **Continue.** If any slice or global TODO is still open, go straight back to
+9. **Continue.** If any slice or global TODO is still open, go straight back to
    step 1 for the next one — same session, no pause for acknowledgement. Keep
    looping until every TODO is closed. When the last slice lands, close the spec
    with [close-spec](../close-spec/SKILL.md).

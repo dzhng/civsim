@@ -17,7 +17,15 @@
 //   ?pitch=R      camera pitch override in radians (sky/atmosphere QA — the
 //                 production rig never points this high)
 //   ?yaw=R        camera yaw override in radians (same QA knob)
+//   ?shadows=off|single|csm
+//                 sun-shadow tier override (slice 11 QA; default = adapter
+//                 probe — csm on hardware, single on software rasterizers)
+//   ?sea=gerstner
+//                 photoreal sea displacement source (12a verdict: Gerstner TSL)
+//   ?post=off     bypass the whole post chain (slice-15 lab A/B)
+//   ?bloom=off    keep the chain but drop the bloom stage (glint on/off pair)
 import { PhotorealBattleWorld, type BattleTacticalLineFrame } from '../../../packages/photoreal-renderer/src/battle/battleWorld';
+import { seaDisplacementSourceFromParam } from '../../../packages/photoreal-renderer/src/battle/seaLayer';
 import { createPhotorealStatsPublisher } from '../../../packages/photoreal-renderer/src/stats';
 import { Camera } from '../../../web/src/shared/camera';
 import { pushPie, pushRing } from '../../../web/src/shared/overlays';
@@ -46,8 +54,14 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
   if (params.get('ref') === '1') ctx.root.classList.add('reference-shot');
   const [{ default: initWasm, Game }, world] = await Promise.all([
     import('../../../web/src/wasm/game_wasm.js'),
-    PhotorealBattleWorld.create(ctx.canvas, { environment: params.get('env') }),
+    PhotorealBattleWorld.create(ctx.canvas, {
+      environment: params.get('env'),
+      shadows: params.get('shadows'),
+      sea: seaDisplacementSourceFromParam(params.get('sea')),
+      post: params.get('post'),
+    }),
   ]);
+  if (params.get('bloom') === 'off') world.setBloomEnabled(false);
   const wasm = await initWasm();
   const game = new Game(0x5eed_c0de);
   game.start_battle(params.get('map') === 'B' ? 1 : 0);
@@ -386,6 +400,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
     ctx.status.innerHTML = `<table>
       <tr><td>route</td><td>photoreal-battle (${s.substrate})</td></tr>
       <tr><td>environment</td><td>${s.environment}</td></tr>
+      <tr><td>sea</td><td>${rs.sea.source} (${rs.sea.tier})</td></tr>
       <tr><td>map</td><td>${params.get('map') === 'B' ? 'B' : 'A'}</td></tr>
       <tr><td>soldiers</td><td>${rs.soldiers} / ${rs.expectedSoldiers}</td></tr>
       <tr><td>seating</td><td>match=${rs.seating.matches} span=${rs.seating.span}</td></tr>

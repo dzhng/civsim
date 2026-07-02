@@ -193,6 +193,52 @@ pub fn ref_archer() -> UnitClass {
     s
 }
 
+#[cfg(feature = "force-trace")]
+pub mod force_trace {
+    use sim::{ForceBudget, ForceChannel, ForceRecord, ForceTrace, Vec2};
+    use std::collections::BTreeMap;
+
+    pub fn per_soldier_ledger(trace: &ForceTrace, soldier: usize) -> Vec<&ForceRecord> {
+        trace.ledger_for_soldier(soldier)
+    }
+
+    pub fn unit_force_budget_by_channel(
+        trace: &ForceTrace,
+        unit: usize,
+        tick: u64,
+        positions: &[(usize, Vec2)],
+    ) -> Vec<ForceBudget> {
+        let net = trace.net_force_by_channel(unit, tick);
+        let torque = trace.torque_about_centroid_by_channel(unit, tick, positions);
+        net.into_iter()
+            .map(|(channel, net)| ForceBudget {
+                channel,
+                net,
+                torque: torque.get(&channel).copied().unwrap_or(0.0),
+            })
+            .collect()
+    }
+
+    pub fn seam_crossing_decomposition(
+        trace: &ForceTrace,
+        soldier: usize,
+        tick: u64,
+        seam_axis: Vec2,
+    ) -> BTreeMap<ForceChannel, f32> {
+        let mut out = BTreeMap::new();
+        for record in trace.records() {
+            if record.soldier == soldier && record.tick == tick {
+                *out.entry(record.channel).or_insert(0.0) += record.vec.dot(seam_axis);
+            }
+        }
+        out
+    }
+
+    pub fn cap_hit_histograms(trace: &ForceTrace) -> BTreeMap<ForceChannel, usize> {
+        trace.cap_histogram()
+    }
+}
+
 /// Reference couched lance: one lethal forward skewer on the charge.
 pub const REF_LANCE: Weapon = Weapon {
     reach: 2.4,

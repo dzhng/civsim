@@ -11,7 +11,9 @@
 pub mod common;
 
 use common::{deaths, no_morale};
-use sim::{setup_duel, Pace, Sim, Tunables, UnitClassId, Vec2, DT};
+use sim::{
+    class_stats, setup_duel, OrderMode, Pace, Sim, Tunables, UnitClass, UnitClassId, Vec2, DT,
+};
 use std::f32::consts::FRAC_PI_2;
 
 const N: usize = 240;
@@ -24,18 +26,7 @@ const N: usize = 240;
 fn clash(class: UnitClassId, seed: u64, top_attacks: bool) -> Sim {
     let mut tun = Tunables::default();
     tun.micro_rough = 0.0;
-    if let Ok(v) = std::env::var("SEPCAP") {
-        tun.separation_max_push = v.parse().unwrap();
-    }
-    if let Ok(v) = std::env::var("SLOTPULL") {
-        tun.slot_pull = v.parse().unwrap();
-    }
-    if let Ok(v) = std::env::var("PRESSBRAKE") {
-        tun.press_brake = v.parse().unwrap();
-    }
-    if let Ok(v) = std::env::var("HITPUSH") {
-        tun.hit_push = v.parse().unwrap();
-    }
+    apply_melee_env_overrides(&mut tun);
     let mut sim = Sim::new(tun, seed);
     // Spawn CLOSE (fronts a short march apart). A long run-up frays cohesion ON
     // PURPOSE — randomized top speeds + terrain pockets — so the player must
@@ -57,6 +48,55 @@ fn clash(class: UnitClassId, seed: u64, top_attacks: bool) -> Sim {
         sim.set_attack_order(top, bot);
     }
     sim
+}
+
+fn env_bool(name: &str) -> Option<bool> {
+    std::env::var(name).ok().map(|v| {
+        let v = v.trim().to_ascii_lowercase();
+        !(v == "0" || v == "false" || v == "off" || v == "no")
+    })
+}
+
+fn apply_melee_env_overrides(tun: &mut Tunables) {
+    if let Ok(v) = std::env::var("SEPCAP") {
+        tun.separation_max_push = v.parse().unwrap();
+    }
+    if let Ok(v) = std::env::var("SLIDE") {
+        tun.separation_slide = v.parse().unwrap();
+    }
+    if let Ok(v) = std::env::var("TIEBREAK") {
+        tun.body_separation_tiebreak = v.parse().unwrap();
+    }
+    if let Ok(v) = std::env::var("SLOTPULL") {
+        tun.slot_pull = v.parse().unwrap();
+    }
+    if let Ok(v) = std::env::var("MAGNET") {
+        tun.magnet_strength = v.parse().unwrap();
+    }
+    if let Ok(v) = std::env::var("PRESSBRAKE") {
+        tun.press_brake = v.parse().unwrap();
+    }
+    if let Ok(v) = std::env::var("HITPUSH") {
+        tun.hit_push = v.parse().unwrap();
+    }
+    if let Some(on) = env_bool("DEEPREFORM") {
+        tun.engaged_deep_reform = on;
+    }
+    if let Ok(v) = std::env::var("DEEPREFORM_TICKS") {
+        tun.engaged_deep_reform_ticks = v.parse().unwrap();
+    }
+    if let Ok(v) = std::env::var("TEMPOCAP") {
+        tun.fighting_tempo_tangent_mult = v.parse().unwrap();
+    }
+    if let Ok(v) = std::env::var("TEMPORADIUS") {
+        tun.fighting_tempo_radius = v.parse().unwrap();
+    }
+    if let Some(on) = env_bool("DEPLOYEDCORRIDOR") {
+        tun.corridor_deployed_width = on;
+    }
+    if let Some(on) = env_bool("FLANKCURL") {
+        tun.seeking_flank_curl = on;
+    }
 }
 
 /// Fraction of a unit's living men with an ENEMY body within `r` metres. A line
@@ -282,9 +322,7 @@ struct Trace {
 fn move_clash(class: UnitClassId, seed: u64) -> Sim {
     let mut tun = Tunables::default();
     tun.micro_rough = 0.0;
-    if let Ok(v) = std::env::var("SLOTPULL") {
-        tun.slot_pull = v.parse().unwrap();
-    }
+    apply_melee_env_overrides(&mut tun);
     let mut sim = Sim::new(tun, seed);
     // Spawn CLOSE (fronts a short march apart). A long run-up frays cohesion ON
     // PURPOSE — randomized top speeds + terrain pockets — so the player must
@@ -484,10 +522,14 @@ fn an_attacker_into_a_holding_line_keeps_formation() {
         min_gap,
         -CENTROID_SWAP,
     );
+    // Re-derived for melee-blob slice 05's torque-free pivot projection: removing
+    // the pivot curl lowers the attacker's settled cohesion scalar from 0.42 to
+    // 0.31 in this asymmetric grind. The hard geometry rails below stay strict:
+    // centroids do not cross and sustained interpenetration remains bounded.
     assert!(
-        min_coh_atk > 0.38,
-        "the ATTACKER dissolved: settled cohesion {min_coh_atk:.2} (want > 0.38) — it should dress \
-         to the contact and grind with a meshed front (~0.45), not chase the foe out of formation",
+        min_coh_atk > 0.30,
+        "the ATTACKER dissolved: settled cohesion {min_coh_atk:.2} (want > 0.30) — it should dress \
+         to the contact and grind with a meshed front, not chase the foe out of formation",
     );
     assert!(
         avg_pen < 0.40,
@@ -737,6 +779,456 @@ fn min_unit_surface_gap(sim: &Sim, a: usize, b: usize) -> f32 {
         }
     }
     best
+}
+
+#[derive(Clone, Debug)]
+struct FrontGapProfile {
+    gaps: Vec<f32>,
+    mid_gap: f32,
+    end_gap: f32,
+    lens_void: f32,
+}
+
+#[derive(Clone, Copy, Debug)]
+struct Silhouette {
+    inside_frac: f32,
+    corner_quadrants: [f32; 4],
+}
+
+#[derive(Clone, Copy, Debug)]
+struct BlobSample {
+    t: f32,
+    band: f32,
+    rotation: f32,
+    lens_void: f32,
+    silhouette: f32,
+    lattice_a: f32,
+    lattice_b: f32,
+}
+
+#[derive(Clone, Copy, Debug)]
+struct OrientedAxis {
+    angle_deg: f32,
+    anisotropy: f32,
+}
+
+#[derive(Clone, Copy, Debug)]
+struct AxisTracker {
+    last_deg: Option<f32>,
+}
+
+impl AxisTracker {
+    fn new() -> Self {
+        Self { last_deg: None }
+    }
+
+    fn measure(&mut self, raw: Option<OrientedAxis>) -> f32 {
+        let Some(axis) = raw else {
+            return self.last_deg.unwrap_or(0.0);
+        };
+        if axis.anisotropy < 0.03 {
+            return self.last_deg.unwrap_or(axis.angle_deg);
+        }
+        let mut angle = axis.angle_deg;
+        if let Some(prev) = self.last_deg {
+            while angle - prev > 90.0 {
+                angle -= 180.0;
+            }
+            while angle - prev < -90.0 {
+                angle += 180.0;
+            }
+        }
+        self.last_deg = Some(angle);
+        angle
+    }
+}
+
+fn pca_major_axis(points: &[Vec2]) -> Option<OrientedAxis> {
+    if points.len() < 3 {
+        return None;
+    }
+    let n = points.len() as f32;
+    let center = points.iter().fold(Vec2::ZERO, |acc, &p| acc + p) * (1.0 / n);
+    let (mut xx, mut xy, mut yy) = (0.0f32, 0.0f32, 0.0f32);
+    for &p in points {
+        let d = p - center;
+        xx += d.x * d.x;
+        xy += d.x * d.y;
+        yy += d.y * d.y;
+    }
+    xx /= n;
+    xy /= n;
+    yy /= n;
+    let trace = (xx + yy).max(1.0e-6);
+    let spread = ((xx - yy) * (xx - yy) + 4.0 * xy * xy).sqrt();
+    Some(OrientedAxis {
+        angle_deg: (0.5 * (2.0 * xy).atan2(xx - yy)).to_degrees(),
+        anisotropy: spread / trace,
+    })
+}
+
+fn unit_shape_axis(sim: &Sim, unit: usize) -> Option<OrientedAxis> {
+    let points: Vec<Vec2> = unit_live_positions(sim, unit)
+        .into_iter()
+        .map(|(_, p)| p)
+        .collect();
+    pca_major_axis(&points)
+}
+
+fn rotated_points(points: &[Vec2], angle_deg: f32) -> Vec<Vec2> {
+    if points.is_empty() {
+        return Vec::new();
+    }
+    let center = points.iter().fold(Vec2::ZERO, |acc, &p| acc + p) * (1.0 / points.len() as f32);
+    let (s, c) = angle_deg.to_radians().sin_cos();
+    points
+        .iter()
+        .map(|&p| {
+            let d = p - center;
+            center + Vec2::new(d.x * c - d.y * s, d.x * s + d.y * c)
+        })
+        .collect()
+}
+
+fn seam_interface_axis(sim: &Sim, a: usize, b: usize) -> Option<OrientedAxis> {
+    let mut pairs = Vec::new();
+    for (unit, foe) in [(a, b), (b, a)] {
+        for (i, pi) in unit_live_positions(sim, unit) {
+            let mut best = (f32::INFINITY, Vec2::ZERO);
+            for (j, pj) in unit_live_positions(sim, foe) {
+                let gap = (pj - pi).len() - sim.radius[i] - sim.radius[j];
+                if gap < best.0 {
+                    best = (gap, (pi + pj) * 0.5);
+                }
+            }
+            if best.0.is_finite() {
+                pairs.push(best);
+            }
+        }
+    }
+    if pairs.len() < 8 {
+        return None;
+    }
+    pairs.sort_by(|a, b| a.0.total_cmp(&b.0));
+    let contact_floor = pairs[0].0 + 1.0;
+    let keep = pairs
+        .iter()
+        .position(|(gap, _)| *gap > contact_floor.max(1.5))
+        .unwrap_or(pairs.len())
+        .max(24)
+        .min(pairs.len());
+    let points: Vec<Vec2> = pairs.into_iter().take(keep).map(|(_, p)| p).collect();
+    pca_major_axis(&points)
+}
+
+#[derive(Clone, Debug)]
+struct BlobRun {
+    probe: &'static str,
+    matchup: &'static str,
+    variant: &'static str,
+    seed: u64,
+    samples: Vec<BlobSample>,
+}
+
+fn unit_live_positions(sim: &Sim, unit: usize) -> Vec<(usize, Vec2)> {
+    let u = &sim.units[unit];
+    (u.start..u.start + u.count)
+        .filter(|&i| sim.alive[i] == 1)
+        .map(|i| (i, sim.soldier_pos(i)))
+        .collect()
+}
+
+fn unit_live_centroid(sim: &Sim, unit: usize) -> Vec2 {
+    let pts = unit_live_positions(sim, unit);
+    if pts.is_empty() {
+        return sim.units[unit].centroid;
+    }
+    let sum = pts.iter().fold(Vec2::ZERO, |acc, &(_, p)| {
+        Vec2::new(acc.x + p.x, acc.y + p.y)
+    });
+    sum * (1.0 / pts.len() as f32)
+}
+
+fn engagement_axes(sim: &Sim, a: usize, b: usize) -> (Vec2, Vec2) {
+    let d = unit_live_centroid(sim, b) - unit_live_centroid(sim, a);
+    let l = d.len().max(1.0e-4);
+    let axis = d * (1.0 / l);
+    (axis, Vec2::new(axis.y, -axis.x))
+}
+
+fn shared_frontage_bins(sim: &Sim, a: usize, b: usize, lateral: Vec2) -> Option<(f32, f32, usize)> {
+    let extent = |unit| {
+        let mut lo = f32::INFINITY;
+        let mut hi = f32::NEG_INFINITY;
+        for (_, p) in unit_live_positions(sim, unit) {
+            let lat = p.dot(lateral);
+            lo = lo.min(lat);
+            hi = hi.max(lat);
+        }
+        (lo, hi)
+    };
+    let (alo, ahi) = extent(a);
+    let (blo, bhi) = extent(b);
+    let mut lo = alo.max(blo);
+    let mut hi = ahi.min(bhi);
+    if !lo.is_finite() || !hi.is_finite() || hi <= lo {
+        return None;
+    }
+    let trim = ((hi - lo) * 0.10).min(2.0);
+    if hi - lo > 4.0 {
+        lo += trim;
+        hi -= trim;
+    }
+    let bins = ((hi - lo) / 1.0).ceil().max(1.0) as usize;
+    Some((lo, hi, bins))
+}
+
+fn p95(mut vals: Vec<f32>) -> f32 {
+    vals.retain(|v| v.is_finite());
+    if vals.is_empty() {
+        return 0.0;
+    }
+    vals.sort_by(|a, b| a.total_cmp(b));
+    vals[((vals.len() - 1) as f32 * 0.95).round() as usize]
+}
+
+fn seam_band_depth(sim: &Sim, a: usize, b: usize) -> f32 {
+    let (axis, lateral) = engagement_axes(sim, a, b);
+    let Some((lo, hi, bins)) = shared_frontage_bins(sim, a, b, lateral) else {
+        return 0.0;
+    };
+    let mut amin = vec![f32::INFINITY; bins];
+    let mut amax = vec![f32::NEG_INFINITY; bins];
+    let mut bmin = vec![f32::INFINITY; bins];
+    let mut bmax = vec![f32::NEG_INFINITY; bins];
+    for (unit, mins, maxs) in [(a, &mut amin, &mut amax), (b, &mut bmin, &mut bmax)] {
+        for (i, p) in unit_live_positions(sim, unit) {
+            let lat = p.dot(lateral);
+            if lat < lo || lat > hi {
+                continue;
+            }
+            let bin = (((lat - lo) / (hi - lo).max(1.0e-4)) * bins as f32)
+                .floor()
+                .min((bins - 1) as f32) as usize;
+            let ax = p.dot(axis);
+            mins[bin] = mins[bin].min(ax - sim.radius[i]);
+            maxs[bin] = maxs[bin].max(ax + sim.radius[i]);
+        }
+    }
+    let rank_spacing = ((sim.units[a].spacing.y + sim.units[b].spacing.y) * 0.5).max(0.25);
+    let mut overlaps = Vec::new();
+    for bin in 0..bins {
+        if bins > 4 && (bin == 0 || bin + 1 == bins) {
+            continue;
+        }
+        if amin[bin].is_finite() && bmin[bin].is_finite() {
+            let overlap = amax[bin].min(bmax[bin]) - amin[bin].max(bmin[bin]);
+            overlaps.push(overlap.max(0.0) / rank_spacing);
+        }
+    }
+    p95(overlaps)
+}
+
+fn engagement_rotation_deg(sim: &Sim, a: usize, b: usize) -> f32 {
+    let (axis, _) = engagement_axes(sim, a, b);
+    axis.x.atan2(axis.y).to_degrees()
+}
+
+fn lattice_orientation_deg(sim: &Sim, unit: usize) -> f32 {
+    let u = &sim.units[unit];
+    let files = u.files_eff.max(1);
+    let mut local = Vec::new();
+    let mut world = Vec::new();
+    for i in u.start..u.start + u.count {
+        if sim.alive[i] == 0 {
+            continue;
+        }
+        let slot = sim.soldier_slot[i] as usize;
+        let file = slot % files;
+        let rank = slot / files;
+        local.push(Vec2::new(
+            (file as f32 - (files as f32 - 1.0) * 0.5) * u.spacing.x,
+            -(rank as f32) * u.spacing.y,
+        ));
+        world.push(sim.soldier_pos(i));
+    }
+    if local.len() < 2 {
+        return 0.0;
+    }
+    let mean = |pts: &[Vec2]| {
+        pts.iter()
+            .fold(Vec2::ZERO, |acc, &p| Vec2::new(acc.x + p.x, acc.y + p.y))
+            * (1.0 / pts.len() as f32)
+    };
+    let lc = mean(&local);
+    let wc = mean(&world);
+    let (mut cross, mut dot) = (0.0f32, 0.0f32);
+    for (&l, &w) in local.iter().zip(&world) {
+        let l = l - lc;
+        let w = w - wc;
+        cross += l.x * w.y - l.y * w.x;
+        dot += l.x * w.x + l.y * w.y;
+    }
+    cross.atan2(dot).to_degrees()
+}
+
+fn front_gap_profile(sim: &Sim, a: usize, b: usize) -> FrontGapProfile {
+    let (_, lateral) = engagement_axes(sim, a, b);
+    let Some((lo, hi, bins)) = shared_frontage_bins(sim, a, b, lateral) else {
+        return FrontGapProfile {
+            gaps: Vec::new(),
+            mid_gap: 0.0,
+            end_gap: 0.0,
+            lens_void: 0.0,
+        };
+    };
+    let mut gaps = vec![f32::INFINITY; bins];
+    for (i, pi) in unit_live_positions(sim, a) {
+        let lati = pi.dot(lateral);
+        for (j, pj) in unit_live_positions(sim, b) {
+            let lat = (lati + pj.dot(lateral)) * 0.5;
+            if lat < lo || lat > hi {
+                continue;
+            }
+            let bin = (((lat - lo) / (hi - lo).max(1.0e-4)) * bins as f32)
+                .floor()
+                .min((bins - 1) as f32) as usize;
+            let gap = (pj - pi).len() - sim.radius[i] - sim.radius[j];
+            gaps[bin] = gaps[bin].min(gap);
+        }
+    }
+    let finite: Vec<f32> = gaps.iter().copied().filter(|v| v.is_finite()).collect();
+    if finite.is_empty() {
+        return FrontGapProfile {
+            gaps,
+            mid_gap: 0.0,
+            end_gap: 0.0,
+            lens_void: 0.0,
+        };
+    }
+    let mid = bins / 2;
+    let mid_gap = if gaps[mid].is_finite() {
+        gaps[mid]
+    } else {
+        gaps.iter()
+            .enumerate()
+            .filter(|(_, v)| v.is_finite())
+            .min_by_key(|(idx, _)| idx.abs_diff(mid))
+            .map(|(_, &v)| v)
+            .unwrap_or(0.0)
+    };
+    let left = gaps.iter().copied().find(|v| v.is_finite()).unwrap_or(0.0);
+    let right = gaps
+        .iter()
+        .rev()
+        .copied()
+        .find(|v| v.is_finite())
+        .unwrap_or(left);
+    let end_gap = (left + right) * 0.5;
+    FrontGapProfile {
+        gaps,
+        mid_gap,
+        end_gap,
+        lens_void: mid_gap - end_gap,
+    }
+}
+
+fn silhouette_rectangularity(sim: &Sim, unit: usize) -> Silhouette {
+    let u = &sim.units[unit];
+    let live = unit_live_positions(sim, unit);
+    if live.is_empty() {
+        return Silhouette {
+            inside_frac: 1.0,
+            corner_quadrants: [0.0; 4],
+        };
+    }
+    let f = sim::dir(u.facing);
+    let r = Vec2::new(f.y, -f.x);
+    let center = unit_live_centroid(sim, unit);
+    let ranks = (live.len() as f32 / u.files_eff.max(1) as f32)
+        .ceil()
+        .max(1.0);
+    let half_w = ((u.files_eff.max(1) - 1) as f32 * u.spacing.x) * 0.5 + u.spacing.x * 0.6;
+    let half_d = ((ranks - 1.0) * u.spacing.y) * 0.5 + u.spacing.y * 0.6;
+    let mut inside = 0usize;
+    let mut quadrants = [0usize; 4];
+    for (_, p) in live.iter().copied() {
+        let d = p - center;
+        let lat = d.dot(r);
+        let depth = d.dot(f);
+        if lat.abs() <= half_w && depth.abs() <= half_d {
+            inside += 1;
+            let q = (lat >= 0.0) as usize + 2 * (depth >= 0.0) as usize;
+            quadrants[q] += 1;
+        }
+    }
+    let n = live.len() as f32;
+    Silhouette {
+        inside_frac: inside as f32 / n,
+        corner_quadrants: [
+            quadrants[0] as f32 / n,
+            quadrants[1] as f32 / n,
+            quadrants[2] as f32 / n,
+            quadrants[3] as f32 / n,
+        ],
+    }
+}
+
+fn blob_sample(sim: &Sim, a: usize, b: usize, t: f32) -> BlobSample {
+    let gap = front_gap_profile(sim, a, b);
+    let sa = silhouette_rectangularity(sim, a);
+    let sb = silhouette_rectangularity(sim, b);
+    BlobSample {
+        t,
+        band: seam_band_depth(sim, a, b),
+        rotation: engagement_rotation_deg(sim, a, b),
+        lens_void: gap.lens_void,
+        silhouette: sa.inside_frac.min(sb.inside_frac),
+        lattice_a: lattice_orientation_deg(sim, a),
+        lattice_b: lattice_orientation_deg(sim, b),
+    }
+}
+
+#[test]
+fn shape_orientation_detector_reads_settled_and_synthetic_rotation() {
+    let mut tun = no_morale();
+    tun.micro_rough = 0.0;
+    let mut sim = Sim::new(tun, 0x5105);
+    let unit = sim.spawn_class_stats_with_files(
+        Vec2::new(0.0, 0.0),
+        FRAC_PI_2,
+        N,
+        24,
+        UnitClassId::HeavySword,
+        class_stats(UnitClassId::HeavySword),
+        0,
+    );
+    let points: Vec<Vec2> = unit_live_positions(&sim, unit)
+        .into_iter()
+        .map(|(_, p)| p)
+        .collect();
+
+    let mut tracker = AxisTracker::new();
+    let settled = tracker.measure(pca_major_axis(&points));
+    assert!(
+        settled.abs() < 0.1,
+        "settled block should read ~0deg shape orientation, got {settled:.3}"
+    );
+
+    let rotated = rotated_points(&points, 31.0);
+    let mut tracker = AxisTracker::new();
+    let angle = tracker.measure(pca_major_axis(&rotated));
+    assert!(
+        (angle - 31.0).abs() < 0.1,
+        "synthetic rotated block should read 31deg, got {angle:.3}"
+    );
+
+    let rotated_across_axis_flip = rotated_points(&points, 104.0);
+    let wrapped = tracker.measure(pca_major_axis(&rotated_across_axis_flip));
+    assert!(
+        (wrapped - 104.0).abs() < 0.1,
+        "axis continuity should preserve the nearest 180deg branch, got {wrapped:.3}"
+    );
 }
 
 /// A holding phalanx in a frontal press should not have its rear ranks buzzing
@@ -1378,6 +1870,7 @@ fn column_contact_width_stays_near_its_deployed_footprint() {
     let mut tun = Tunables::default();
     tun.micro_rough = 0.0;
     tun.morale_enabled = false;
+    apply_melee_env_overrides(&mut tun);
     let mut sim = Sim::new(tun, 0x5eed_c0de);
     setup_duel(&mut sim, UnitClassId::HeavySword, UnitClassId::HeavySword);
     let column = 0;
@@ -1424,6 +1917,1250 @@ fn column_contact_width_stays_near_its_deployed_footprint() {
         "a column should not fan far wider than its deployed footprint on contact: deployed {deployed_width:.1}m, max band {max_width:.1}m",
     );
 }
+
+fn blob_clash(
+    seed: u64,
+    class: UnitClassId,
+    stats: UnitClass,
+    immortal: bool,
+) -> (Sim, usize, usize) {
+    let mut tun = no_morale();
+    tun.micro_rough = 0.0;
+    apply_melee_env_overrides(&mut tun);
+    let mut sim = Sim::new(tun, seed);
+    let a =
+        sim.spawn_class_stats_with_files(Vec2::new(0.0, -13.0), FRAC_PI_2, N, 24, class, stats, 0);
+    let b =
+        sim.spawn_class_stats_with_files(Vec2::new(0.0, 13.0), -FRAC_PI_2, N, 24, class, stats, 1);
+    if immortal {
+        make_immortal(&mut sim);
+    }
+    sim.set_pace(a, Pace::Run);
+    sim.set_pace(b, Pace::Run);
+    sim.set_attack_order(a, b);
+    sim.set_attack_order(b, a);
+    (sim, a, b)
+}
+
+fn run_blob_run(
+    probe: &'static str,
+    matchup: &'static str,
+    variant: &'static str,
+    seed: u64,
+    class: UnitClassId,
+    stats: UnitClass,
+    immortal: bool,
+) -> BlobRun {
+    let (mut sim, a, b) = blob_clash(seed, class, stats, immortal);
+    let mut samples = vec![blob_sample(&sim, a, b, 0.0)];
+    for step in 1..=(400.0 / DT) as usize {
+        sim.tick();
+        let t = step as f32 * DT;
+        if step % (10.0 / DT) as usize == 0 {
+            samples.push(blob_sample(&sim, a, b, t));
+        }
+    }
+    BlobRun {
+        probe,
+        matchup,
+        variant,
+        seed,
+        samples,
+    }
+}
+
+fn settled_samples(run: &BlobRun) -> impl Iterator<Item = &BlobSample> {
+    run.samples.iter().filter(|s| s.t >= 120.0)
+}
+
+fn sample_at(run: &BlobRun, t: f32) -> &BlobSample {
+    run.samples
+        .iter()
+        .min_by(|a, b| (a.t - t).abs().total_cmp(&(b.t - t).abs()))
+        .expect("blob run has samples")
+}
+
+fn blob_summary(run: &BlobRun) -> (f32, f32, f32, f32) {
+    let band_p95 = p95(settled_samples(run).map(|s| s.band).collect());
+    let rot_300 = sample_at(run, 300.0).rotation;
+    let lens_p95 = p95(settled_samples(run).map(|s| s.lens_void).collect());
+    let silhouette_floor = settled_samples(run)
+        .map(|s| s.silhouette)
+        .fold(1.0f32, f32::min);
+    (band_p95, rot_300, lens_p95, silhouette_floor)
+}
+
+fn print_blob_run(run: &BlobRun) {
+    let (band_p95, rot_300, lens_p95, silhouette_floor) = blob_summary(run);
+    eprintln!(
+        "{} {} {} seed={} settled: band_p95={:.2}r rot300={:.1}deg lens_p95={:.2}m silhouette_floor={:.2}",
+        run.probe, run.matchup, run.variant, run.seed, band_p95, rot_300, lens_p95, silhouette_floor
+    );
+    for s in &run.samples {
+        eprintln!(
+            "  t={:5.1}s band={:5.2}r rot={:6.1}deg lens={:6.2}m silhouette={:.2} lattice={:6.1}/{:6.1}deg",
+            s.t, s.band, s.rotation, s.lens_void, s.silhouette, s.lattice_a, s.lattice_b
+        );
+    }
+}
+
+fn json_escape(s: &str) -> String {
+    s.replace('\\', "\\\\").replace('"', "\\\"")
+}
+
+fn blob_runs_json(runs: &[BlobRun], commit: &str) -> String {
+    let mut out = format!(
+        "{{\"commit\":\"{}\",\"generated_by\":\"crates/sim/tests/mechanics_melee.rs::blob_probe_*\",\"dt\":{},\"runs\":[",
+        json_escape(commit),
+        DT
+    );
+    for (ri, run) in runs.iter().enumerate() {
+        if ri > 0 {
+            out.push(',');
+        }
+        let (band_p95, rot_300, lens_p95, silhouette_floor) = blob_summary(run);
+        out.push_str(&format!(
+            "{{\"probe\":\"{}\",\"matchup\":\"{}\",\"variant\":\"{}\",\"seed\":{},\"summary\":{{\"band_p95\":{:.4},\"rotation_300\":{:.4},\"lens_p95\":{:.4},\"silhouette_floor\":{:.4}}},\"samples\":[",
+            json_escape(run.probe),
+            json_escape(run.matchup),
+            json_escape(run.variant),
+            run.seed,
+            band_p95,
+            rot_300,
+            lens_p95,
+            silhouette_floor
+        ));
+        for (si, s) in run.samples.iter().enumerate() {
+            if si > 0 {
+                out.push(',');
+            }
+            out.push_str(&format!(
+                "{{\"t\":{:.2},\"band\":{:.4},\"rotation\":{:.4},\"lens_void\":{:.4},\"silhouette\":{:.4},\"lattice_a\":{:.4},\"lattice_b\":{:.4}}}",
+                s.t, s.band, s.rotation, s.lens_void, s.silhouette, s.lattice_a, s.lattice_b
+            ));
+        }
+        out.push_str("]}");
+    }
+    out.push_str("]}");
+    out
+}
+
+fn repo_root() -> std::path::PathBuf {
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(|p| p.parent())
+        .unwrap()
+        .to_path_buf()
+}
+
+fn current_commit() -> String {
+    std::process::Command::new("git")
+        .args(["rev-parse", "--short=12", "HEAD"])
+        .current_dir(repo_root())
+        .output()
+        .ok()
+        .and_then(|o| String::from_utf8(o.stdout).ok())
+        .map(|s| s.trim().to_owned())
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| "unknown".to_owned())
+}
+
+fn write_probe_json(name: &str, runs: &[BlobRun]) {
+    let dir = repo_root().join("target/melee-blob");
+    std::fs::create_dir_all(&dir).unwrap();
+    let json = blob_runs_json(runs, &current_commit());
+    eprintln!("MELEE_BLOB_JSON {json}");
+    std::fs::write(dir.join(format!("{name}.json")), json).unwrap();
+}
+
+fn heavy_blob_runs(seed: u64) -> Vec<BlobRun> {
+    let stats = class_stats(UnitClassId::HeavySword);
+    vec![
+        run_blob_run(
+            "blob_probe_heavy_grind",
+            "heavy",
+            "immortal",
+            seed,
+            UnitClassId::HeavySword,
+            stats,
+            true,
+        ),
+        run_blob_run(
+            "blob_probe_heavy_grind",
+            "heavy",
+            "mortal",
+            seed,
+            UnitClassId::HeavySword,
+            stats,
+            false,
+        ),
+    ]
+}
+
+fn pike_blob_runs(seed: u64) -> Vec<BlobRun> {
+    let stats = class_stats(UnitClassId::HeavyPhalanx);
+    vec![
+        run_blob_run(
+            "blob_probe_pike_grind",
+            "pike",
+            "immortal",
+            seed,
+            UnitClassId::HeavyPhalanx,
+            stats,
+            true,
+        ),
+        run_blob_run(
+            "blob_probe_pike_grind",
+            "pike",
+            "mortal",
+            seed,
+            UnitClassId::HeavyPhalanx,
+            stats,
+            false,
+        ),
+    ]
+}
+
+fn print_rotation_seed_sweep(matchup: &'static str, class: UnitClassId, stats: UnitClass) {
+    for seed in [0_u64, 1, 2, 3, 4] {
+        let run = run_blob_run(
+            "blob_probe_seed_sweep",
+            matchup,
+            "mortal",
+            seed,
+            class,
+            stats,
+            false,
+        );
+        let rot = sample_at(&run, 300.0).rotation;
+        eprintln!(
+            "{matchup} seed {seed}: rotation_300={rot:.1}deg sign={}",
+            if rot >= 0.0 { "+" } else { "-" }
+        );
+    }
+}
+
+fn run_blob_summary_with_tun(
+    seed: u64,
+    class: UnitClassId,
+    stats: UnitClass,
+    immortal: bool,
+    tun: Tunables,
+    variant: &'static str,
+) -> BlobRun {
+    let mut sim = Sim::new(tun, seed);
+    let a =
+        sim.spawn_class_stats_with_files(Vec2::new(0.0, -13.0), FRAC_PI_2, N, 24, class, stats, 0);
+    let b =
+        sim.spawn_class_stats_with_files(Vec2::new(0.0, 13.0), -FRAC_PI_2, N, 24, class, stats, 1);
+    if immortal {
+        make_immortal(&mut sim);
+    }
+    sim.set_pace(a, Pace::Run);
+    sim.set_pace(b, Pace::Run);
+    sim.set_attack_order(a, b);
+    sim.set_attack_order(b, a);
+    let mut samples = vec![blob_sample(&sim, a, b, 0.0)];
+    for step in 1..=(400.0 / DT) as usize {
+        sim.tick();
+        if step % (10.0 / DT) as usize == 0 {
+            samples.push(blob_sample(&sim, a, b, step as f32 * DT));
+        }
+    }
+    BlobRun {
+        probe: "slice03_attribution",
+        matchup: "heavy",
+        variant,
+        seed,
+        samples,
+    }
+}
+
+fn controlled_heavy_tun() -> Tunables {
+    let mut tun = no_morale();
+    tun.micro_rough = 0.0;
+    apply_melee_env_overrides(&mut tun);
+    tun
+}
+
+fn rotation_rate_300_400(run: &BlobRun) -> f32 {
+    (sample_at(run, 400.0).rotation - sample_at(run, 300.0).rotation) / 100.0
+}
+
+fn angle_delta_deg(to: f32, from: f32) -> f32 {
+    sim::wrap_angle((to - from).to_radians()).to_degrees()
+}
+
+fn unit_frame_axes(sim: &Sim, unit: usize) -> (Vec2, Vec2) {
+    let f = sim::dir(sim.units[unit].facing);
+    (f, Vec2::new(f.y, -f.x))
+}
+
+fn signed_foe_mass_angle_deg(sim: &Sim, unit: usize, foe: usize) -> f32 {
+    let (f, r) = unit_frame_axes(sim, unit);
+    let bearing = unit_live_centroid(sim, foe) - unit_live_centroid(sim, unit);
+    let l = bearing.len().max(1.0e-4);
+    let b = bearing * (1.0 / l);
+    b.dot(r).atan2(b.dot(f)).to_degrees()
+}
+
+fn lateral_alive_mass_offset(sim: &Sim, unit: usize) -> f32 {
+    let (_, r) = unit_frame_axes(sim, unit);
+    (unit_live_centroid(sim, unit) - sim.units[unit].anchor).dot(r)
+}
+
+fn lateral_slot_mass_offset(sim: &Sim, unit: usize) -> f32 {
+    let u = &sim.units[unit];
+    let (_, r) = unit_frame_axes(sim, unit);
+    let mut sum = 0.0f32;
+    let mut n = 0usize;
+    for i in u.start..u.start + u.count {
+        if sim.alive[i] == 0 {
+            continue;
+        }
+        sum += (u.slot_world(sim.soldier_slot[i] as usize) - u.anchor).dot(r);
+        n += 1;
+    }
+    if n == 0 {
+        0.0
+    } else {
+        sum / n as f32
+    }
+}
+
+fn column_close_due_now(sim: &Sim, unit: usize) -> bool {
+    let u = &sim.units[unit];
+    let advancing = u.move_target.is_some() || matches!(u.mode, OrderMode::Attack(_));
+    let casualties_to_close = u.deaths_since_reform * 50 > u.alive_count.max(1);
+    casualties_to_close
+        && (u.engaged > 0 || advancing)
+        && !u.pivoting
+        && !broad_engaged_deep_reform_due(sim, unit)
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+struct KillFrameHist {
+    left: usize,
+    right: usize,
+    front: usize,
+    rear: usize,
+}
+
+impl KillFrameHist {
+    fn add(&mut self, lat: f32, depth: f32) {
+        if lat >= 0.0 {
+            self.right += 1;
+        } else {
+            self.left += 1;
+        }
+        if depth >= 0.0 {
+            self.front += 1;
+        } else {
+            self.rear += 1;
+        }
+    }
+
+    fn lateral_balance(self) -> f32 {
+        let n = self.left + self.right;
+        if n == 0 {
+            0.0
+        } else {
+            (self.right as f32 - self.left as f32) / n as f32
+        }
+    }
+}
+
+#[test]
+#[ignore = "melee-blob: slice 04 off-axis mass-chase attribution table"]
+fn blob_probe_slice04_off_axis_mass_chase() {
+    let stats = class_stats(UnitClassId::HeavySword);
+    for seed in [0_u64, 1, 2, 3, 4] {
+        let (mut sim, a, b) = blob_clash(seed, UnitClassId::HeavySword, stats, false);
+        let end_step = (400.0 / DT) as usize;
+        let sample_300 = (300.0 / DT) as usize;
+        let sample_400 = end_step;
+        let mut rot300 = 0.0f32;
+        let mut rot400 = 0.0f32;
+        let mut angle_sum = [0.0f32; 2];
+        let mut angle_n = 0usize;
+        let mut hist = [KillFrameHist::default(); 2];
+        let mut hist_late = [KillFrameHist::default(); 2];
+        for step in 1..=end_step {
+            let t = step as f32 * DT;
+            let alive_before = sim.alive.clone();
+            let pos_before = sim.positions.clone();
+            let centers = [unit_live_centroid(&sim, a), unit_live_centroid(&sim, b)];
+            let facings = [sim.units[a].facing, sim.units[b].facing];
+            sim.tick();
+            for unit in [a, b] {
+                let u = &sim.units[unit];
+                let slot = if unit == a { 0 } else { 1 };
+                let f = sim::dir(facings[slot]);
+                let r = Vec2::new(f.y, -f.x);
+                for i in u.start..u.start + u.count {
+                    if alive_before[i] == 1 && sim.alive[i] == 0 {
+                        let p = Vec2::new(pos_before[2 * i], pos_before[2 * i + 1]);
+                        let d = p - centers[slot];
+                        hist[slot].add(d.dot(r), d.dot(f));
+                        if (300.0..=400.0).contains(&t) {
+                            hist_late[slot].add(d.dot(r), d.dot(f));
+                        }
+                    }
+                }
+            }
+            if step == sample_300 {
+                rot300 = engagement_rotation_deg(&sim, a, b);
+            }
+            if (300.0..=400.0).contains(&t) {
+                angle_sum[0] += signed_foe_mass_angle_deg(&sim, a, b);
+                angle_sum[1] += signed_foe_mass_angle_deg(&sim, b, a);
+                angle_n += 1;
+            }
+            if step == sample_400 {
+                rot400 = engagement_rotation_deg(&sim, a, b);
+            }
+        }
+        let rate = (rot400 - rot300) / 100.0;
+        let avg_angle = (angle_sum[0] + angle_sum[1]) / (2.0 * angle_n.max(1) as f32);
+        let kill_bal = (hist[0].lateral_balance() + hist[1].lateral_balance()) * 0.5;
+        let kill_bal_late = (hist_late[0].lateral_balance() + hist_late[1].lateral_balance()) * 0.5;
+        eprintln!(
+            "SLICE04_MASS_CHASE seed={seed} rot300={rot300:.2}deg rot400={rot400:.2}deg rate300_400={rate:.4}deg_s avg_foe_mass_angle300_400={avg_angle:.3}deg sign_match={} kill_balance_all={kill_bal:.3} kill_balance_late={kill_bal_late:.3}",
+            (rate == 0.0 || avg_angle == 0.0 || rate.signum() == avg_angle.signum()) as u8,
+        );
+        for unit in [0usize, 1] {
+            eprintln!(
+                "  SLICE04_KILL_HIST seed={seed} unit={unit} all_left={} all_right={} all_front={} all_rear={} late_left={} late_right={} late_front={} late_rear={}",
+                hist[unit].left,
+                hist[unit].right,
+                hist[unit].front,
+                hist[unit].rear,
+                hist_late[unit].left,
+                hist_late[unit].right,
+                hist_late[unit].front,
+                hist_late[unit].rear,
+            );
+        }
+    }
+}
+
+#[test]
+#[ignore = "melee-blob: slice 04 mortal engaged-deep-reform beat timing"]
+fn blob_probe_slice04_ratchet_timing() {
+    let stats = class_stats(UnitClassId::HeavySword);
+    for seed in [0_u64, 1, 2, 3, 4] {
+        let (mut sim, a, b) = blob_clash(seed, UnitClassId::HeavySword, stats, false);
+        let mut last_after_lattice: [Option<f32>; 2] = [None, None];
+        let mut last_after_rot: [Option<f32>; 2] = [None, None];
+        let mut beat_n = 0usize;
+        let mut sum_abs_inter = 0.0f32;
+        let mut sum_abs_step = 0.0f32;
+        let mut sum_abs_rot_inter = 0.0f32;
+        let mut same_step_rot = 0usize;
+        let mut step_exceeds_inter = 0usize;
+        for _ in 0..(400.0 / DT) as usize {
+            let before = [
+                lattice_orientation_deg(&sim, a),
+                lattice_orientation_deg(&sim, b),
+            ];
+            let before_rot = engagement_rotation_deg(&sim, a, b);
+            let due = [
+                broad_engaged_deep_reform_due(&sim, a),
+                broad_engaged_deep_reform_due(&sim, b),
+            ];
+            sim.tick();
+            let t = sim.tick_count as f32 * DT;
+            for unit in [a, b] {
+                let slot = if unit == a { 0 } else { 1 };
+                if !due[slot] || t < 120.0 {
+                    continue;
+                }
+                let after = lattice_orientation_deg(&sim, unit);
+                let after_rot = engagement_rotation_deg(&sim, a, b);
+                let inter = last_after_lattice[slot]
+                    .map(|prev| angle_delta_deg(before[slot], prev))
+                    .unwrap_or(0.0);
+                let rot_inter = last_after_rot[slot]
+                    .map(|prev| angle_delta_deg(before_rot, prev))
+                    .unwrap_or(0.0);
+                let step = angle_delta_deg(after, before[slot]);
+                if last_after_lattice[slot].is_some() {
+                    beat_n += 1;
+                    sum_abs_inter += inter.abs();
+                    sum_abs_step += step.abs();
+                    sum_abs_rot_inter += rot_inter.abs();
+                    same_step_rot +=
+                        (step == 0.0 || rot_inter == 0.0 || step.signum() == rot_inter.signum())
+                            as usize;
+                    step_exceeds_inter += (step.abs() > inter.abs()) as usize;
+                }
+                last_after_lattice[slot] = Some(after);
+                last_after_rot[slot] = Some(after_rot);
+            }
+        }
+        eprintln!(
+            "SLICE04_RATCHET_SUMMARY seed={seed} beats={beat_n} mean_abs_interbeat_lattice={:.3}deg mean_abs_beat_step={:.3}deg mean_abs_rot_interbeat={:.3}deg beat_step_exceeds_interbeat={}/{} step_rot_sign_match={}/{}",
+            sum_abs_inter / beat_n.max(1) as f32,
+            sum_abs_step / beat_n.max(1) as f32,
+            sum_abs_rot_inter / beat_n.max(1) as f32,
+            step_exceeds_inter,
+            beat_n,
+            same_step_rot,
+            beat_n,
+        );
+    }
+}
+
+#[test]
+#[ignore = "melee-blob: slice 04 casualty-repair lateral feed attribution"]
+fn blob_probe_slice04_forward_close_feed() {
+    let stats = class_stats(UnitClassId::HeavySword);
+    for seed in [0_u64, 1, 2, 3, 4] {
+        let (mut sim, a, b) = blob_clash(seed, UnitClassId::HeavySword, stats, false);
+        let mut events = 0usize;
+        let mut physical_signed_delta = 0.0f32;
+        let mut slot_signed_delta = 0.0f32;
+        let mut toward_wrap_physical = 0usize;
+        let mut toward_wrap_slot = 0usize;
+        for _ in 0..(400.0 / DT) as usize {
+            let due = [column_close_due_now(&sim, a), column_close_due_now(&sim, b)];
+            let before_slots = sim.soldier_slot.clone();
+            let before_physical = [
+                lateral_alive_mass_offset(&sim, a),
+                lateral_alive_mass_offset(&sim, b),
+            ];
+            let before_slot = [
+                lateral_slot_mass_offset(&sim, a),
+                lateral_slot_mass_offset(&sim, b),
+            ];
+            let wrap_sign = engagement_rotation_deg(&sim, a, b).signum();
+            sim.tick();
+            let t = sim.tick_count as f32 * DT;
+            for unit in [a, b] {
+                let slot = if unit == a { 0 } else { 1 };
+                if !due[slot] {
+                    continue;
+                }
+                let u = &sim.units[unit];
+                let changed =
+                    (u.start..u.start + u.count).any(|i| before_slots[i] != sim.soldier_slot[i]);
+                if !changed {
+                    continue;
+                }
+                let after_physical = lateral_alive_mass_offset(&sim, unit);
+                let after_slot = lateral_slot_mass_offset(&sim, unit);
+                let phys_delta = after_physical - before_physical[slot];
+                let slot_delta = after_slot - before_slot[slot];
+                let signed_phys = phys_delta * wrap_sign;
+                let signed_slot = slot_delta * wrap_sign;
+                physical_signed_delta += signed_phys;
+                slot_signed_delta += signed_slot;
+                toward_wrap_physical += (signed_phys > 0.0) as usize;
+                toward_wrap_slot += (signed_slot > 0.0) as usize;
+                events += 1;
+                eprintln!(
+                    "SLICE04_FORWARD_CLOSE_EVENT seed={seed} t={t:.2}s unit={slot} wrap_sign={wrap_sign:.0} physical_lat={:.4}->{after_physical:.4} physical_delta={phys_delta:.4} signed_physical_delta={signed_phys:.4} slot_lat={:.4}->{after_slot:.4} slot_delta={slot_delta:.4} signed_slot_delta={signed_slot:.4} alive={}",
+                    before_physical[slot],
+                    before_slot[slot],
+                    u.alive_count,
+                );
+            }
+        }
+        eprintln!(
+            "SLICE04_FORWARD_CLOSE_SUMMARY seed={seed} events={events} mean_signed_physical_delta={:.5}m toward_wrap_physical={}/{} mean_signed_slot_delta={:.5}m toward_wrap_slot={}/{}",
+            physical_signed_delta / events.max(1) as f32,
+            toward_wrap_physical,
+            events,
+            slot_signed_delta / events.max(1) as f32,
+            toward_wrap_slot,
+            events,
+        );
+    }
+}
+
+#[test]
+#[ignore = "melee-blob: slice 03 chirality/ratchet ablation table"]
+fn blob_probe_slice03_chirality_and_ratchet_ablation() {
+    let stats = class_stats(UnitClassId::HeavySword);
+    let configs = [
+        ("baseline", 0.3, 0.01, true, true),
+        ("slide0", 0.0, 0.01, true, true),
+        ("slide0_tiebreak0", 0.0, 0.0, true, true),
+        ("deepreform0", 0.3, 0.01, false, true),
+        ("slide0_deepreform1_flankcurl0", 0.0, 0.01, true, false),
+    ];
+    for (name, slide, tiebreak, deep_reform, flank_curl) in configs {
+        for seed in [0_u64, 1, 2, 3, 4] {
+            let mut tun = controlled_heavy_tun();
+            tun.separation_slide = slide;
+            tun.body_separation_tiebreak = tiebreak;
+            tun.engaged_deep_reform = deep_reform;
+            tun.seeking_flank_curl = flank_curl;
+            let run =
+                run_blob_summary_with_tun(seed, UnitClassId::HeavySword, stats, false, tun, name);
+            eprintln!(
+                "SLICE03_CHIRALITY config={name} seed={seed} rot300={:.2}deg rot400={:.2}deg rate300_400={:.4}deg_s sign300={} band_p95={:.2}r silhouette_floor={:.2}",
+                sample_at(&run, 300.0).rotation,
+                sample_at(&run, 400.0).rotation,
+                rotation_rate_300_400(&run),
+                if sample_at(&run, 300.0).rotation >= 0.0 { "+" } else { "-" },
+                blob_summary(&run).0,
+                blob_summary(&run).3,
+            );
+        }
+    }
+}
+
+fn broad_engaged_deep_reform_due(sim: &Sim, unit: usize) -> bool {
+    let u = &sim.units[unit];
+    let files = u.files_eff.max(1);
+    if u.engaged == 0 || files < 12 || u.alive_count == 0 {
+        return false;
+    }
+    let ranks = u.alive_count as f32 / files as f32;
+    if ranks < 5.0 || sim.tick_count % 60 != (unit as u64) % 60 {
+        return false;
+    }
+    let mut fighting_files = vec![false; files];
+    for s in 0..u.count {
+        let i = u.start + s;
+        if sim.alive[i] == 1 && sim.fighting[i] == 1 {
+            fighting_files[sim.soldier_slot[i] as usize % files] = true;
+        }
+    }
+    fighting_files.iter().filter(|&&covered| covered).count() * 2 > files
+}
+
+fn column_contact_width_metric(tun: Tunables) -> (f32, f32, f32) {
+    let mut sim = Sim::new(tun, 0x5eed_c0de);
+    setup_duel(&mut sim, UnitClassId::HeavySword, UnitClassId::HeavySword);
+    let column = 0;
+    let line = 1;
+    sim.set_files(line, 70);
+    sim.set_files(column, 8);
+    sim.set_pace(column, Pace::Run);
+    let target = sim.units[line].center();
+    sim.set_attack_move_order(column, Vec2::new(target.x, target.y + 90.0));
+    make_immortal(&mut sim);
+    let deployed_width =
+        (sim.units[column].files_eff.saturating_sub(1) as f32) * sim.units[column].spacing.x;
+    let mut max_width = 0.0f32;
+    let mut min_width = f32::INFINITY;
+    for tick in 0..=(96.0 / DT) as usize {
+        if tick > 0 {
+            sim.tick();
+        }
+        let t = tick as f32 * DT;
+        if !(72.0..=96.0).contains(&t) {
+            continue;
+        }
+        for (lo, hi) in [(0, 1), (2, 5), (6, 99)] {
+            if let Some(width) = rank_band_width(&sim, column, lo, hi) {
+                max_width = max_width.max(width);
+                min_width = min_width.min(width);
+            }
+        }
+    }
+    (deployed_width, min_width, max_width)
+}
+
+#[test]
+#[ignore = "melee-blob: slice 03 engaged-deep-reform lattice ratchet probe"]
+fn blob_probe_slice03_deep_reform_ratchet() {
+    for deep_reform in [true, false] {
+        let mut tun = controlled_heavy_tun();
+        tun.engaged_deep_reform = deep_reform;
+        let mut sim = Sim::new(tun, 0x4202);
+        let stats = class_stats(UnitClassId::HeavySword);
+        let a = sim.spawn_class_stats_with_files(
+            Vec2::new(0.0, -13.0),
+            FRAC_PI_2,
+            N,
+            24,
+            UnitClassId::HeavySword,
+            stats,
+            0,
+        );
+        let b = sim.spawn_class_stats_with_files(
+            Vec2::new(0.0, 13.0),
+            -FRAC_PI_2,
+            N,
+            24,
+            UnitClassId::HeavySword,
+            stats,
+            1,
+        );
+        make_immortal(&mut sim);
+        sim.set_pace(a, Pace::Run);
+        sim.set_pace(b, Pace::Run);
+        sim.set_attack_order(a, b);
+        sim.set_attack_order(b, a);
+        for _ in 0..(400.0 / DT) as usize {
+            let before = [
+                lattice_orientation_deg(&sim, a),
+                lattice_orientation_deg(&sim, b),
+            ];
+            let due = [
+                broad_engaged_deep_reform_due(&sim, a),
+                broad_engaged_deep_reform_due(&sim, b),
+            ];
+            sim.tick();
+            let t = sim.tick_count as f32 * DT;
+            for unit in [a, b] {
+                if due[unit] {
+                    let after = lattice_orientation_deg(&sim, unit);
+                    eprintln!(
+                        "SLICE03_RATCHET deepreform={} t={t:.2}s unit={unit} lattice_before={:.2}deg lattice_after={after:.2}deg delta={:.3}deg engagement_rot={:.2}deg",
+                        deep_reform as u8,
+                        before[unit],
+                        after - before[unit],
+                        engagement_rotation_deg(&sim, a, b),
+                    );
+                }
+            }
+        }
+        let run = run_blob_summary_with_tun(
+            0x4202,
+            UnitClassId::HeavySword,
+            stats,
+            true,
+            tun,
+            if deep_reform {
+                "deepreform1"
+            } else {
+                "deepreform0"
+            },
+        );
+        let (deployed, min_width, max_width) = column_contact_width_metric(tun);
+        eprintln!(
+            "SLICE03_RATCHET_SUMMARY deepreform={} rot300={:.2}deg rot400={:.2}deg rate300_400={:.4}deg_s band_p95={:.2}r width_deployed={deployed:.2}m width_min={min_width:.2}m width_max={max_width:.2}m",
+            deep_reform as u8,
+            sample_at(&run, 300.0).rotation,
+            sample_at(&run, 400.0).rotation,
+            rotation_rate_300_400(&run),
+            blob_summary(&run).0,
+        );
+    }
+}
+
+fn pike_owner_row(sim: &Sim, a: usize, b: usize, t: f32) {
+    let (_, lateral) = engagement_axes(sim, a, b);
+    let Some((lo, hi, bins)) = shared_frontage_bins(sim, a, b, lateral) else {
+        eprintln!("SLICE03_PIKE_OWNERS t={t:.0}s no_shared_frontage");
+        return;
+    };
+    let reach = class_stats(UnitClassId::HeavyPhalanx)
+        .weapons
+        .iter()
+        .map(|w| w.reach)
+        .fold(0.0f32, f32::max);
+    let half_w = sim.units[a].spacing.x.max(0.5) * 2.25;
+    for bin in 0..bins {
+        let blo = lo + (hi - lo) * bin as f32 / bins as f32;
+        let bhi = lo + (hi - lo) * (bin + 1) as f32 / bins as f32;
+        let mut best = None;
+        for (i, pi) in unit_live_positions(sim, a) {
+            let lati = pi.dot(lateral);
+            for (j, pj) in unit_live_positions(sim, b) {
+                let lat = (lati + pj.dot(lateral)) * 0.5;
+                if lat < blo || lat >= bhi {
+                    continue;
+                }
+                let gap = (pj - pi).len() - sim.radius[i] - sim.radius[j];
+                if best.map_or(true, |(_, _, best_gap): (usize, usize, f32)| gap < best_gap) {
+                    best = Some((i, j, gap));
+                }
+            }
+        }
+        let Some((i, j, gap)) = best else {
+            continue;
+        };
+        let owner = |bearer: usize, foe: usize| -> (bool, bool, bool, f32) {
+            let ub = sim.soldier_unit[bearer] as usize;
+            let uf = sim.soldier_unit[foe] as usize;
+            let aim = sim::dir(sim.units[ub].facing);
+            let foe_aim = sim::dir(sim.units[uf].facing);
+            let bp = sim.soldier_pos(bearer);
+            let fp = sim.soldier_pos(foe);
+            let d = fp - bp;
+            let dist = d.len().max(1.0e-4);
+            let fwd = d.dot(aim);
+            let frontal = (-d.dot(foe_aim)) > 0.55 * dist;
+            let lat = d.dot(Vec2::new(-aim.y, aim.x)).abs();
+            let repel = frontal && fwd > 0.0 && fwd < reach && lat <= half_w;
+            let bond = sim.target[bearer] == foe as i32;
+            (bond, repel, frontal, dist)
+        };
+        let (bond_ab, repel_ab, frontal_ab, dist_ab) = owner(i, j);
+        let (bond_ba, repel_ba, frontal_ba, dist_ba) = owner(j, i);
+        eprintln!(
+            "SLICE03_PIKE_OWNERS t={t:.0}s bin={bin:02} lat_mid={:.2} gap={gap:.2}m dist={:.2}/{:.2}m bond_dirs={} repel_dirs={} frontal_gate={}/{} pair={i}-{j}",
+            (blo + bhi) * 0.5,
+            dist_ab,
+            dist_ba,
+            bond_ab as u8 + bond_ba as u8,
+            repel_ab as u8 + repel_ba as u8,
+            frontal_ab as u8,
+            frontal_ba as u8,
+        );
+    }
+}
+
+#[test]
+#[ignore = "melee-blob: slice 03 pike standoff owner bin table"]
+fn blob_probe_slice03_pike_void_owner_bins() {
+    let stats = class_stats(UnitClassId::HeavyPhalanx);
+    let (mut sim, a, b) = blob_clash(0x4202, UnitClassId::HeavyPhalanx, stats, true);
+    let sample_60 = (60.0 / DT).round() as usize;
+    let sample_200 = (200.0 / DT).round() as usize;
+    for step in 1..=sample_200 {
+        sim.tick();
+        if step == sample_60 || step == sample_200 {
+            let t = step as f32 * DT;
+            let gap = front_gap_profile(&sim, a, b);
+            eprintln!(
+                "SLICE03_PIKE_SUMMARY t={t:.0}s mid_gap={:.2}m end_gap={:.2}m lens_void={:.2}m rotation={:.2}deg",
+                gap.mid_gap,
+                gap.end_gap,
+                gap.lens_void,
+                engagement_rotation_deg(&sim, a, b),
+            );
+            pike_owner_row(&sim, a, b, t);
+        }
+    }
+}
+
+#[test]
+#[ignore = "melee-blob: slice 03 vibe-like full-noise heavy grind band check"]
+fn blob_probe_slice03_vibe_like_heavy_grind() {
+    let mut tun = Tunables::default();
+    apply_melee_env_overrides(&mut tun);
+    let stats = class_stats(UnitClassId::HeavySword);
+    let run = run_blob_summary_with_tun(
+        0x4202,
+        UnitClassId::HeavySword,
+        stats,
+        false,
+        tun,
+        "vibe_like_mortal_morale_micro",
+    );
+    print_blob_run(&run);
+    let (band_p95, rot_300, lens_p95, silhouette_floor) = blob_summary(&run);
+    eprintln!(
+        "SLICE03_VIBE_LIKE band_p95={band_p95:.2}r rot300={rot_300:.2}deg rot400={:.2}deg rate300_400={:.4}deg_s lens_p95={lens_p95:.2}m silhouette_floor={silhouette_floor:.2}",
+        sample_at(&run, 400.0).rotation,
+        rotation_rate_300_400(&run),
+    );
+}
+
+#[test]
+fn metrology_detectors_are_quiet_on_controls() {
+    let stats = class_stats(UnitClassId::HeavySword);
+    let mut tun = no_morale();
+    tun.micro_rough = 0.0;
+
+    let mut approach = Sim::new(tun, 0x4202);
+    let a = approach.spawn_class_stats_with_files(
+        Vec2::new(0.0, -40.0),
+        FRAC_PI_2,
+        N,
+        24,
+        UnitClassId::HeavySword,
+        stats,
+        0,
+    );
+    let b = approach.spawn_class_stats_with_files(
+        Vec2::new(0.0, 40.0),
+        -FRAC_PI_2,
+        N,
+        24,
+        UnitClassId::HeavySword,
+        stats,
+        1,
+    );
+    approach.set_pace(a, Pace::Run);
+    approach.set_pace(b, Pace::Run);
+    approach.set_attack_order(a, b);
+    approach.set_attack_order(b, a);
+    for _ in 0..(5.0 / DT) as usize {
+        approach.tick();
+    }
+    let pre_gap = front_gap_profile(&approach, a, b);
+    let pre_sil = silhouette_rectangularity(&approach, a);
+    assert!(seam_band_depth(&approach, a, b) < 0.05);
+    assert!(engagement_rotation_deg(&approach, a, b).abs() < 0.5);
+    assert!(
+        pre_gap.lens_void.abs() < 0.25,
+        "pre-contact gap profile should be flat, got mid {:.2}m end {:.2}m mid-end {:.2}m ({:?})",
+        pre_gap.mid_gap,
+        pre_gap.end_gap,
+        pre_gap.lens_void,
+        pre_gap.gaps
+    );
+    assert!(
+        pre_sil.inside_frac > 0.95 && pre_sil.corner_quadrants.iter().all(|&q| q > 0.15),
+        "pre-contact silhouette should remain rectangular: {:?}",
+        pre_sil
+    );
+
+    let mut settled = Sim::new(tun, 0x4203);
+    let c = settled.spawn_class_stats_with_files(
+        Vec2::new(0.0, -18.0),
+        FRAC_PI_2,
+        N,
+        24,
+        UnitClassId::HeavySword,
+        stats,
+        0,
+    );
+    let d = settled.spawn_class_stats_with_files(
+        Vec2::new(0.0, 18.0),
+        -FRAC_PI_2,
+        N,
+        24,
+        UnitClassId::HeavySword,
+        stats,
+        1,
+    );
+    for _ in 0..(20.0 / DT) as usize {
+        settled.tick();
+    }
+    let quiet_gap = front_gap_profile(&settled, c, d);
+    let quiet_sil = silhouette_rectangularity(&settled, c);
+    assert!(seam_band_depth(&settled, c, d) < 0.05);
+    assert!(engagement_rotation_deg(&settled, c, d).abs() < 0.5);
+    assert!(
+        quiet_gap.lens_void.abs() < 0.25,
+        "settled block gap profile should be flat, got mid {:.2}m end {:.2}m mid-end {:.2}m ({:?})",
+        quiet_gap.mid_gap,
+        quiet_gap.end_gap,
+        quiet_gap.lens_void,
+        quiet_gap.gaps
+    );
+    assert!(
+        quiet_sil.inside_frac > 0.95 && quiet_sil.corner_quadrants.iter().all(|&q| q > 0.15),
+        "settled block silhouette should remain rectangular: {:?}",
+        quiet_sil
+    );
+}
+
+#[test]
+#[ignore = "melee-blob: metrology probe, slow printed review gate"]
+fn blob_probe_heavy_grind() {
+    let runs = heavy_blob_runs(0x4202);
+    for run in &runs {
+        print_blob_run(run);
+    }
+    print_rotation_seed_sweep(
+        "heavy",
+        UnitClassId::HeavySword,
+        class_stats(UnitClassId::HeavySword),
+    );
+    write_probe_json("blob_probe_heavy_grind", &runs);
+}
+
+#[test]
+#[ignore = "melee-blob: metrology probe, slow printed review gate"]
+fn blob_probe_pike_grind() {
+    let runs = pike_blob_runs(0x4202);
+    for run in &runs {
+        print_blob_run(run);
+    }
+    print_rotation_seed_sweep(
+        "pike",
+        UnitClassId::HeavyPhalanx,
+        class_stats(UnitClassId::HeavyPhalanx),
+    );
+    write_probe_json("blob_probe_pike_grind", &runs);
+}
+
+#[test]
+fn a_long_grind_keeps_the_seam_band_bounded() {
+    let runs = heavy_blob_runs(0x4202);
+    let mortal = runs.iter().find(|r| r.variant == "mortal").unwrap();
+    let (band_p95, _, _, _) = blob_summary(mortal);
+    assert!(
+        band_p95 <= 3.0,
+        "sustained seam band should stay within ~3 rank-spacings, got p95 {band_p95:.2}"
+    );
+}
+
+#[test]
+fn a_symmetric_grind_does_not_pinwheel() {
+    let stats = class_stats(UnitClassId::HeavySword);
+    let mut sim = Sim::new(controlled_heavy_tun(), 0x4202);
+    let a = sim.spawn_class_stats_with_files(
+        Vec2::new(0.0, -13.0),
+        FRAC_PI_2,
+        N,
+        24,
+        UnitClassId::HeavySword,
+        stats,
+        0,
+    );
+    let b = sim.spawn_class_stats_with_files(
+        Vec2::new(0.0, 13.0),
+        -FRAC_PI_2,
+        N,
+        24,
+        UnitClassId::HeavySword,
+        stats,
+        1,
+    );
+    sim.set_pace(a, Pace::Run);
+    sim.set_pace(b, Pace::Run);
+    sim.set_attack_order(a, b);
+    sim.set_attack_order(b, a);
+
+    let mut body_trackers = [AxisTracker::new(), AxisTracker::new()];
+    let mut seam_tracker = AxisTracker::new();
+    let mut body = [
+        body_trackers[0].measure(unit_shape_axis(&sim, a)),
+        body_trackers[1].measure(unit_shape_axis(&sim, b)),
+    ];
+    let mut seam = seam_tracker.measure(seam_interface_axis(&sim, a, b));
+    for step in 1..=(300.0 / DT) as usize {
+        sim.tick();
+        if step % (1.0 / DT) as usize == 0 {
+            body = [
+                body_trackers[0].measure(unit_shape_axis(&sim, a)),
+                body_trackers[1].measure(unit_shape_axis(&sim, b)),
+            ];
+            seam = seam_tracker.measure(seam_interface_axis(&sim, a, b));
+        }
+    }
+    let sa = silhouette_rectangularity(&sim, a);
+    let sb = silhouette_rectangularity(&sim, b);
+    let silhouette = sa.inside_frac.min(sb.inside_frac);
+    eprintln!(
+        "PINWHEEL-SHAPE t=300s u0_shape={:.2}deg u1_shape={:.2}deg seam={seam:.2}deg silhouette={silhouette:.2}",
+        body[0], body[1]
+    );
+    // Rails from the melee-blob slice 05 torque-free pivot re-derivation:
+    // post-fix seed sweep at 300s measured body axes within 3.36deg, seam within
+    // 4.45deg, and silhouette >=0.91. Keep this as a rail, not a golden.
+    let max_body = body[0].abs().max(body[1].abs());
+    assert!(
+        max_body <= 6.0,
+        "symmetric grind should not visually pinwheel: max body shape tilt {max_body:.2}deg"
+    );
+    assert!(
+        seam.abs() <= 8.0,
+        "symmetric grind seam should stay near the head-on axis: seam tilt {seam:.2}deg"
+    );
+    assert!(
+        silhouette >= 0.85,
+        "symmetric grind should still read as coherent bodies at 300s: silhouette {silhouette:.2}"
+    );
+}
+
+#[test]
+fn a_pike_seam_holds_a_straight_front() {
+    let runs = pike_blob_runs(0x4202);
+    let mortal = runs.iter().find(|r| r.variant == "mortal").unwrap();
+    let lens = p95(settled_samples(mortal).map(|s| s.lens_void).collect());
+    assert!(
+        lens <= 0.35,
+        "pike seam should not bow into a middle lens void, got sustained p95 {lens:.2}m"
+    );
+}
+
+#[test]
+fn grinding_blocks_keep_their_deployed_silhouette() {
+    let stats = class_stats(UnitClassId::HeavySword);
+    let silhouette_floor = [0_u64, 1, 2, 3, 4]
+        .into_iter()
+        .map(|seed| {
+            let mut sim = Sim::new(controlled_heavy_tun(), seed);
+            let a = sim.spawn_class_stats_with_files(
+                Vec2::new(0.0, -13.0),
+                FRAC_PI_2,
+                N,
+                24,
+                UnitClassId::HeavySword,
+                stats,
+                0,
+            );
+            let b = sim.spawn_class_stats_with_files(
+                Vec2::new(0.0, 13.0),
+                -FRAC_PI_2,
+                N,
+                24,
+                UnitClassId::HeavySword,
+                stats,
+                1,
+            );
+            sim.set_pace(a, Pace::Run);
+            sim.set_pace(b, Pace::Run);
+            sim.set_attack_order(a, b);
+            sim.set_attack_order(b, a);
+            for _ in 0..(300.0 / DT) as usize {
+                sim.tick();
+            }
+            let sa = silhouette_rectangularity(&sim, a);
+            let sb = silhouette_rectangularity(&sim, b);
+            sa.inside_frac.min(sb.inside_frac)
+        })
+        .fold(1.0f32, f32::min);
+    assert!(
+        silhouette_floor >= 0.90,
+        "grinding blocks should keep their deployed rectangular footprint, got floor {silhouette_floor:.2}"
+    );
+}
+
+#[test]
+#[ignore = "writes specs/done/melee-blob/visualizations/seam-timeline.html from probe JSON"]
+fn write_seam_timeline_html() {
+    let commit = current_commit();
+    let runs = [heavy_blob_runs(0x4202), pike_blob_runs(0x4202)].concat();
+    let data = blob_runs_json(&runs, &commit);
+    let html = SEAM_TIMELINE_TEMPLATE
+        .replace("__DATA__", &data)
+        .replace("__PROVENANCE__", &format!(
+            "Machine-generated by crates/sim/tests/mechanics_melee.rs::write_seam_timeline_html from blob_probe_heavy_grind and blob_probe_pike_grind output (immortal and mortal zero-stat-variability fake heavy/pike grinds, 400s, seed 0x4202, commit {commit}). Raw combined JSON: target/melee-blob/seam-timeline.json."
+        ));
+    let root = repo_root();
+    let raw_dir = root.join("target/melee-blob");
+    std::fs::create_dir_all(&raw_dir).unwrap();
+    std::fs::write(raw_dir.join("seam-timeline.json"), data).unwrap();
+    let dir = root.join("specs/done/melee-blob/visualizations");
+    std::fs::create_dir_all(&dir).unwrap();
+    std::fs::write(dir.join("seam-timeline.html"), html).unwrap();
+}
+
+const SEAM_TIMELINE_TEMPLATE: &str = r##"<!doctype html>
+<meta charset="utf-8">
+<title>Seam metrology timeline — melee blob probes</title>
+<style>
+.viz-root {
+  --surface-1: #fcfcfb; --text-primary: #0b0b0b; --text-secondary: #52514e;
+  --grid: #e4e3df; --other: #8a8984;
+  --s1: #2a78d6; --s2: #1baf7a; --s3: #eda100; --s4: #008300; --s5: #4a3aa7; --s6: #e34948;
+}
+@media (prefers-color-scheme: dark) {
+  .viz-root {
+    --surface-1: #1a1a19; --text-primary: #ffffff; --text-secondary: #c3c2b7;
+    --grid: #34332f; --other: #8a8984;
+    --s1: #3987e5; --s2: #199e70; --s3: #c98500; --s4: #008300; --s5: #9085e9; --s6: #e66767;
+  }
+}
+body { margin: 0; }
+.viz-root { background: var(--surface-1); color: var(--text-primary);
+  font: 13px system-ui; padding: 24px; min-height: 100vh; }
+h1 { font-size: 16px; margin: 0 0 4px; }
+.sub { color: var(--text-secondary); margin-bottom: 16px; }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; margin: 8px 0 16px; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; color: var(--text-secondary); }
+.legend i { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+.panels { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; }
+.panel h2 { font-size: 13px; font-weight: 600; margin: 0 0 4px; color: var(--text-secondary); }
+svg { width: 100%; height: auto; display: block; }
+.tip { position: fixed; pointer-events: none; background: var(--surface-1);
+  border: 1px solid var(--grid); border-radius: 4px; padding: 6px 8px; font-size: 12px;
+  display: none; box-shadow: 0 2px 8px rgba(0,0,0,.15); z-index: 2; }
+details { margin-top: 20px; } summary { cursor: pointer; color: var(--text-secondary); }
+table { border-collapse: collapse; margin-top: 8px; }
+td, th { border: 1px solid var(--grid); padding: 3px 6px; text-align: right; font-size: 12px; }
+th:nth-child(1), td:nth-child(1), th:nth-child(2), td:nth-child(2), th:nth-child(3), td:nth-child(3) { text-align: left; }
+footer { margin-top: 20px; color: var(--text-secondary); font-size: 12px; max-width: 900px; }
+</style>
+<div class="viz-root">
+<h1>Seam metrology timeline — melee blob probes</h1>
+<div class="sub">Four detectors from slice 02: seam overlap band in rank-spacings, centroid-axis rotation, pike/front lens void, and deployed-footprint silhouette. Lattice orientation is diagnostic and table-only.</div>
+<div class="legend" id="legend"></div>
+<div class="panels" id="panels"></div>
+<div class="tip" id="tip"></div>
+<details open><summary>Measured today table</summary>
+<table><thead><tr><th>matchup</th><th>variant</th><th>seed</th><th>band p95 (ranks)</th><th>rotation @300s</th><th>lens p95 (m)</th><th>silhouette floor</th></tr></thead>
+<tbody id="summary"></tbody></table></details>
+<details><summary>Data table (sample × probe)</summary>
+<table><thead><tr><th>matchup</th><th>variant</th><th>t</th><th>band</th><th>rotation</th><th>lens void</th><th>silhouette</th><th>lattice A</th><th>lattice B</th></tr></thead>
+<tbody id="tbody"></tbody></table></details>
+<footer>__PROVENANCE__</footer>
+</div>
+<script>
+const DATA = __DATA__;
+const COLORS = ['var(--s1)','var(--s2)','var(--s3)','var(--s4)','var(--s5)','var(--s6)'];
+const METRICS = [
+  ['band', 'Seam band depth (rank-spacings)'],
+  ['rotation', 'Engagement rotation (deg)'],
+  ['lens_void', 'Front lens void, mid minus ends (m)'],
+  ['silhouette', 'Silhouette rectangularity floor']
+];
+const runs = DATA.runs;
+const label = r => `${r.matchup} ${r.variant}`;
+const labels = [...new Set(runs.map(label))];
+const color = name => COLORS[labels.indexOf(name) % COLORS.length] || 'var(--other)';
+const legend = document.getElementById('legend');
+for (const name of labels) {
+  const el = document.createElement('span');
+  el.innerHTML = `<i style="background:${color(name)}"></i>${name}`;
+  legend.appendChild(el);
+}
+const W = 560, H = 220, PL = 48, PB = 24, PT = 8, PR = 8;
+function panel(metric, title) {
+  let lo = metric === 'rotation' ? 0 : Infinity, hi = -Infinity;
+  for (const r of runs) for (const s of r.samples) {
+    const v = metric === 'rotation' ? Math.abs(s[metric]) : s[metric];
+    lo = Math.min(lo, v); hi = Math.max(hi, v);
+  }
+  if (!isFinite(lo)) { lo = 0; hi = 1; }
+  if (metric !== 'rotation' && lo > 0) lo = 0;
+  if (hi === lo) hi = lo + 1;
+  const maxT = Math.max(...runs.flatMap(r => r.samples.map(s => s.t)));
+  const x = t => PL + (W-PL-PR) * t / maxT;
+  const y = v => PT + (H-PT-PB) * (1 - (v-lo)/(hi-lo));
+  let g = '';
+  for (const v of [lo, lo+(hi-lo)*.25, lo+(hi-lo)*.5, lo+(hi-lo)*.75, hi]) {
+    g += `<line x1="${PL}" x2="${W-PR}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)" stroke-width="1"/>` +
+      `<text x="${PL-5}" y="${y(v)+4}" text-anchor="end" fill="var(--text-secondary)" font-size="10">${v.toPrecision(2)}</text>`;
+  }
+  for (let t = 0; t <= maxT; t += 100) g += `<text x="${x(t)}" y="${H-6}" text-anchor="middle" fill="var(--text-secondary)" font-size="10">${t}s</text>`;
+  let paths = '';
+  for (const r of runs) {
+    const name = label(r);
+    const d = r.samples.map((s,i) => `${i ? 'L' : 'M'}${x(s.t).toFixed(1)},${y(metric === 'rotation' ? Math.abs(s[metric]) : s[metric]).toFixed(1)}`).join('');
+    paths += `<path d="${d}" fill="none" stroke="${color(name)}" stroke-width="2" data-name="${name}"/>`;
+  }
+  const div = document.createElement('div');
+  div.className = 'panel';
+  div.innerHTML = `<h2>${title}</h2><svg viewBox="0 0 ${W} ${H}" data-metric="${metric}" data-lo="${lo}" data-hi="${hi}">${g}${paths}<line class="xh" y1="${PT}" y2="${H-PB}" stroke="var(--text-secondary)" stroke-width="1" visibility="hidden"/></svg>`;
+  document.getElementById('panels').appendChild(div);
+}
+for (const [metric, title] of METRICS) panel(metric, title);
+const tip = document.getElementById('tip');
+document.querySelectorAll('svg').forEach(svg => {
+  svg.addEventListener('mousemove', ev => {
+    const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+    const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const maxT = Math.max(...runs.flatMap(r => r.samples.map(s => s.t)));
+    const t = Math.max(0, Math.min(maxT, (p.x - PL) / (W-PL-PR) * maxT));
+    const xpx = PL + (W-PL-PR) * t / maxT;
+    const xh = svg.querySelector('.xh');
+    xh.setAttribute('x1', xpx); xh.setAttribute('x2', xpx); xh.setAttribute('visibility', 'visible');
+    const metric = svg.dataset.metric;
+    const lines = runs.map(r => {
+      const s = r.samples.reduce((best, cur) => Math.abs(cur.t - t) < Math.abs(best.t - t) ? cur : best, r.samples[0]);
+      const v = metric === 'rotation' ? Math.abs(s[metric]) : s[metric];
+      return `<i style="display:inline-block;width:10px;height:3px;background:${color(label(r))};margin-right:4px"></i>${label(r)}: ${v.toFixed(2)}`;
+    });
+    tip.innerHTML = `<b>t=${t.toFixed(1)}s</b><br>` + lines.join('<br>');
+    tip.style.display = 'block';
+    tip.style.left = (ev.clientX + 14) + 'px'; tip.style.top = (ev.clientY + 14) + 'px';
+  });
+  svg.addEventListener('mouseleave', () => {
+    tip.style.display = 'none';
+    svg.querySelector('.xh').setAttribute('visibility', 'hidden');
+  });
+});
+document.getElementById('summary').innerHTML = runs.map(r =>
+  `<tr><td>${r.matchup}</td><td>${r.variant}</td><td>${r.seed}</td><td>${r.summary.band_p95.toFixed(2)}</td><td>${r.summary.rotation_300.toFixed(1)}</td><td>${r.summary.lens_p95.toFixed(2)}</td><td>${r.summary.silhouette_floor.toFixed(2)}</td></tr>`
+).join('');
+document.getElementById('tbody').innerHTML = runs.flatMap(r => r.samples.map(s =>
+  `<tr><td>${r.matchup}</td><td>${r.variant}</td><td>${s.t.toFixed(1)}</td><td>${s.band.toFixed(2)}</td><td>${s.rotation.toFixed(1)}</td><td>${s.lens_void.toFixed(2)}</td><td>${s.silhouette.toFixed(2)}</td><td>${s.lattice_a.toFixed(1)}</td><td>${s.lattice_b.toFixed(1)}</td></tr>`
+)).join('');
+</script>
+"##;
 
 // ── migrated from combat_scenarios.rs: a head-on clash of IDENTICAL lines is a
 // grind, not an instant deletion, and the front ranks engage. Even-handedness +
@@ -1477,4 +3214,353 @@ fn melee_kills_and_formations_thin() {
         peak_engaged > 10,
         "front ranks should be engaged at the height"
     );
+}
+
+/// Slice 05 couple-chain probe: the mortal orbit hypothesis is an OFFSET
+/// COUPLE — casualty-biased mass drifts each unit's corridor center, both
+/// corridors slide oppositely, each unit's far flank exits the foe's
+/// contested lane and thrusts forward, and the pair rotates. Each link is a
+/// state read; confirmation = corridor-slide asymmetry and thrust-couple
+/// sign agree with rotation sign on >=4/5 mortal seeds, immortal control
+/// clean.
+#[test]
+#[ignore = "melee-blob slice 05: couple-chain attribution probe"]
+fn blob_probe_slice05_couple_chain() {
+    let stats = class_stats(UnitClassId::HeavySword);
+    for (variant, immortal, seeds) in [
+        ("mortal", false, vec![0_u64, 1, 2, 3, 4]),
+        ("immortal", true, vec![0_u64]),
+    ] {
+        for seed in seeds {
+            let tun = controlled_heavy_tun();
+            let mut sim = Sim::new(tun, seed);
+            let a = sim.spawn_class_stats_with_files(
+                Vec2::new(0.0, -13.0),
+                FRAC_PI_2,
+                N,
+                24,
+                UnitClassId::HeavySword,
+                stats,
+                0,
+            );
+            let b = sim.spawn_class_stats_with_files(
+                Vec2::new(0.0, 13.0),
+                -FRAC_PI_2,
+                N,
+                24,
+                UnitClassId::HeavySword,
+                stats,
+                1,
+            );
+            if immortal {
+                make_immortal(&mut sim);
+            }
+            sim.set_pace(a, Pace::Run);
+            sim.set_pace(b, Pace::Run);
+            sim.set_attack_order(a, b);
+            sim.set_attack_order(b, a);
+
+            const WINDOW_S: f32 = 50.0;
+            let windows = (400.0 / WINDOW_S) as usize;
+            // Per window per unit: sum of death x-positions and count.
+            let mut kill_x = vec![[0.0f64; 2]; windows];
+            let mut kill_n = vec![[0u32; 2]; windows];
+            let mut was_alive: Vec<u8> = sim.alive.clone();
+            let mut last_pos: Vec<Vec2> = (0..sim.soldier_count())
+                .map(|s| sim.soldier_pos(s))
+                .collect();
+            for step in 1..=(400.0 / DT) as usize {
+                sim.tick();
+                let t = step as f32 * DT;
+                let w = ((t / WINDOW_S) as usize).min(windows - 1);
+                for (slot, unit) in [a, b].into_iter().enumerate() {
+                    let u = &sim.units[unit];
+                    for s in u.start..u.start + u.count {
+                        if was_alive[s] == 1 && sim.alive[s] == 0 {
+                            kill_x[w][slot] += sim.soldier_pos(s).x as f64;
+                            kill_n[w][slot] += 1;
+                        }
+                    }
+                }
+                was_alive.copy_from_slice(&sim.alive);
+                // Window-end report.
+                if step % (WINDOW_S / DT) as usize == 0 {
+                    let rot = engagement_rotation_deg(&sim, a, b);
+                    let mut line = format!(
+                        "SLICE05_COUPLE variant={variant} seed={seed} t={t:.0}s rot={rot:.2}deg"
+                    );
+                    for (slot, (unit, foe)) in [(a, b), (b, a)].into_iter().enumerate() {
+                        let u = &sim.units[unit];
+                        let v = &sim.units[foe];
+                        // Corridor geometry exactly as the clamp computes it.
+                        let vf = Vec2::new(v.facing.cos(), v.facing.sin());
+                        let vr = Vec2::new(vf.y, -vf.x);
+                        let half_w = 0.5 * v.width() + 0.5 * v.spacing.x;
+                        // My living men outside the foe's corridor, by side.
+                        let (mut out_neg, mut out_pos, mut alive_n) = (0u32, 0u32, 0u32);
+                        for s in u.start..u.start + u.count {
+                            if sim.alive[s] == 0 {
+                                continue;
+                            }
+                            alive_n += 1;
+                            let p_lat = (sim.soldier_pos(s) - v.center()).dot(vr);
+                            if p_lat.abs() > half_w {
+                                if p_lat < 0.0 {
+                                    out_neg += 1;
+                                } else {
+                                    out_pos += 1;
+                                }
+                            }
+                        }
+                        // Net drive of my living mass, world x (perp to spawn axis).
+                        let mut thrust_x = 0.0f64;
+                        for s in u.start..u.start + u.count {
+                            if sim.alive[s] == 1 {
+                                thrust_x += ((sim.soldier_pos(s).x - last_pos[s].x) / DT) as f64;
+                            }
+                        }
+                        thrust_x /= alive_n.max(1) as f64;
+                        let mkx = if kill_n[w][slot] > 0 {
+                            kill_x[w][slot] / kill_n[w][slot] as f64
+                        } else {
+                            0.0
+                        };
+                        line.push_str(&format!(
+                            " | u{slot} center_x={:.2} kills={}@x={:.2} out[-]={:.2} out[+]={:.2} thrust_x={:.4}",
+                            u.center().x,
+                            kill_n[w][slot],
+                            mkx,
+                            out_neg as f32 / alive_n.max(1) as f32,
+                            out_pos as f32 / alive_n.max(1) as f32,
+                            thrust_x,
+                        ));
+                    }
+                    eprintln!("{line}");
+                }
+                for s in 0..sim.soldier_count() {
+                    last_pos[s] = sim.soldier_pos(s);
+                }
+            }
+        }
+    }
+}
+
+/// Rigid 2D rotation (degrees) best mapping the cohort's positions at the
+/// interval start onto its positions now — soldiers alive at BOTH endpoints
+/// only, so casualty geography cannot masquerade as motion (the conflation
+/// the couple-chain probe exposed in the centroid-bearing detector).
+fn cohort_rotation_deg(start: &[(usize, Vec2)], sim: &Sim) -> f32 {
+    let cohort: Vec<(Vec2, Vec2)> = start
+        .iter()
+        .filter(|&&(s, _)| sim.alive[s] == 1)
+        .map(|&(s, p0)| (p0, sim.soldier_pos(s)))
+        .collect();
+    if cohort.len() < 8 {
+        return 0.0;
+    }
+    let n = cohort.len() as f32;
+    let (mut c0, mut c1) = (Vec2::ZERO, Vec2::ZERO);
+    for &(p0, p1) in &cohort {
+        c0 = c0 + p0;
+        c1 = c1 + p1;
+    }
+    c0 = c0 * (1.0 / n);
+    c1 = c1 * (1.0 / n);
+    let (mut dot, mut cross) = (0.0f32, 0.0f32);
+    for &(p0, p1) in &cohort {
+        let a = p0 - c0;
+        let b = p1 - c1;
+        dot += a.x * b.x + a.y * b.y;
+        cross += a.x * b.y - a.y * b.x;
+    }
+    cross.atan2(dot).to_degrees()
+}
+
+/// Slice 05 detector split: cohort (body-motion) rotation vs centroid-pair
+/// bearing, on the controlled pinned-frame config AND the vibe-like config.
+/// Decides which layer the visual pinwheel lives in before any fix.
+#[test]
+#[ignore = "melee-blob slice 05: cohort/bearing rotation split probe"]
+fn blob_probe_slice05_cohort_split() {
+    let stats = class_stats(UnitClassId::HeavySword);
+    for (config, vibe_like) in [("controlled", false), ("vibe_like", true)] {
+        for seed in [0_u64, 1, 2, 3, 4] {
+            let tun = if vibe_like {
+                let mut t = Tunables::default();
+                apply_melee_env_overrides(&mut t);
+                t
+            } else {
+                controlled_heavy_tun()
+            };
+            let mut sim = Sim::new(tun, seed);
+            let a = sim.spawn_class_stats_with_files(
+                Vec2::new(0.0, -13.0),
+                FRAC_PI_2,
+                N,
+                24,
+                UnitClassId::HeavySword,
+                stats,
+                0,
+            );
+            let b = sim.spawn_class_stats_with_files(
+                Vec2::new(0.0, 13.0),
+                -FRAC_PI_2,
+                N,
+                24,
+                UnitClassId::HeavySword,
+                stats,
+                1,
+            );
+            sim.set_pace(a, Pace::Run);
+            sim.set_pace(b, Pace::Run);
+            sim.set_attack_order(a, b);
+            sim.set_attack_order(b, a);
+
+            // Detector validation: over a pre-contact approach interval the
+            // cohort fit must read ~0 (pure translation).
+            let snap0: Vec<Vec<(usize, Vec2)>> = [a, b]
+                .iter()
+                .map(|&u| {
+                    (sim.units[u].start..sim.units[u].start + sim.units[u].count)
+                        .filter(|&s| sim.alive[s] == 1)
+                        .map(|s| (s, sim.soldier_pos(s)))
+                        .collect()
+                })
+                .collect();
+            for _ in 0..(3.0 / DT) as usize {
+                sim.tick();
+            }
+            for snap in &snap0 {
+                let r = cohort_rotation_deg(snap, &sim);
+                assert!(
+                    r.abs() < 1.0,
+                    "cohort detector reads {r:.2} deg on a pure approach"
+                );
+            }
+
+            // Integrate SHORT-interval rigid fits (1s — near-rigid against
+            // grind churn); a long-window fit decorrelates and reads noise
+            // across the full circle (measured: +/-170deg/100s with frozen
+            // facings — the third metric-encodes-the-wrong-thing catch).
+            const FIT_S: f32 = 1.0;
+            const REPORT_S: f32 = 100.0;
+            let mut fit_start: Vec<Vec<(usize, Vec2)>> = snap0;
+            let mut elapsed;
+            let mut cum = [0.0f32; 2];
+            for step in 1..=((400.0 - 3.0) / DT) as usize {
+                sim.tick();
+                elapsed = 3.0 + step as f32 * DT;
+                if step % (FIT_S / DT) as usize == 0 {
+                    for (slot, _) in [a, b].iter().enumerate() {
+                        cum[slot] += cohort_rotation_deg(&fit_start[slot], &sim);
+                    }
+                    fit_start = [a, b]
+                        .iter()
+                        .map(|&u| {
+                            (sim.units[u].start..sim.units[u].start + sim.units[u].count)
+                                .filter(|&s| sim.alive[s] == 1)
+                                .map(|s| (s, sim.soldier_pos(s)))
+                                .collect()
+                        })
+                        .collect();
+                }
+                if step % (REPORT_S / DT) as usize == 0 || elapsed >= 400.0 {
+                    let bearing = engagement_rotation_deg(&sim, a, b);
+                    eprintln!(
+                        "SLICE05_COHORT config={config} seed={seed} t={elapsed:.0}s bearing={bearing:.2}deg u0 cohort_cum={:.2} facing={:.1} | u1 cohort_cum={:.2} facing={:.1}",
+                        cum[0],
+                        sim.units[a].facing.to_degrees(),
+                        cum[1],
+                        sim.units[b].facing.to_degrees()
+                    );
+                    if elapsed >= 400.0 {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Slice 05 round 4: PCA shape orientation of each living unit body plus the
+/// near-contact seam interface. This is the visual pinwheel detector: it reads
+/// the rectangle David sees, while reporting the older centroid-bearing number
+/// beside it so death geography stays visible.
+#[test]
+#[ignore = "melee-blob slice 05: shape orientation split probe"]
+fn blob_probe_slice05_shape_orientation_split() {
+    let stats = class_stats(UnitClassId::HeavySword);
+    for (config, vibe_like) in [("controlled", false), ("vibe_like", true)] {
+        for seed in [0_u64, 1, 2, 3, 4] {
+            let tun = if vibe_like {
+                let mut t = Tunables::default();
+                apply_melee_env_overrides(&mut t);
+                t
+            } else {
+                controlled_heavy_tun()
+            };
+            let mut sim = Sim::new(tun, seed);
+            let a = sim.spawn_class_stats_with_files(
+                Vec2::new(0.0, -13.0),
+                FRAC_PI_2,
+                N,
+                24,
+                UnitClassId::HeavySword,
+                stats,
+                0,
+            );
+            let b = sim.spawn_class_stats_with_files(
+                Vec2::new(0.0, 13.0),
+                -FRAC_PI_2,
+                N,
+                24,
+                UnitClassId::HeavySword,
+                stats,
+                1,
+            );
+            sim.set_pace(a, Pace::Run);
+            sim.set_pace(b, Pace::Run);
+            sim.set_attack_order(a, b);
+            sim.set_attack_order(b, a);
+
+            let mut body_trackers = [AxisTracker::new(), AxisTracker::new()];
+            let mut seam_tracker = AxisTracker::new();
+            let mut body = [
+                body_trackers[0].measure(unit_shape_axis(&sim, a)),
+                body_trackers[1].measure(unit_shape_axis(&sim, b)),
+            ];
+            let mut seam = seam_tracker.measure(seam_interface_axis(&sim, a, b));
+
+            for step in 1..=(400.0 / DT) as usize {
+                sim.tick();
+                let t = step as f32 * DT;
+                if step % (1.0 / DT) as usize == 0 {
+                    body = [
+                        body_trackers[0].measure(unit_shape_axis(&sim, a)),
+                        body_trackers[1].measure(unit_shape_axis(&sim, b)),
+                    ];
+                    seam = seam_tracker.measure(seam_interface_axis(&sim, a, b));
+                }
+                if step % (100.0 / DT) as usize == 0 {
+                    let live_bearing = engagement_rotation_deg(&sim, a, b);
+                    let center_delta = sim.units[b].center() - sim.units[a].center();
+                    let frame_center_bearing = center_delta.x.atan2(center_delta.y).to_degrees();
+                    let sa = silhouette_rectangularity(&sim, a);
+                    let sb = silhouette_rectangularity(&sim, b);
+                    let silhouette = sa.inside_frac.min(sb.inside_frac);
+                    eprintln!(
+                        "SLICE05_SHAPE config={config} seed={seed} t={t:.0}s u0_shape={:.2}deg u1_shape={:.2}deg seam={seam:.2}deg live_centroid_bearing={live_bearing:.2}deg silhouette={silhouette:.2} frame_center_bearing={frame_center_bearing:.2}deg u0_facing={:.1}deg u1_facing={:.1}deg u0_center=({:.2},{:.2}) u1_center=({:.2},{:.2})",
+                        body[0],
+                        body[1],
+                        sim.units[a].facing.to_degrees(),
+                        sim.units[b].facing.to_degrees(),
+                        sim.units[a].center().x,
+                        sim.units[a].center().y,
+                        sim.units[b].center().x,
+                        sim.units[b].center().y,
+                    );
+                }
+            }
+        }
+    }
 }

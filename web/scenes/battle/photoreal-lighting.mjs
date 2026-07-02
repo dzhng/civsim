@@ -4,14 +4,15 @@ import { PNG } from "pngjs";
 // the ONE preset owner (CIVSIM_ENVIRONMENTS). Every battle environment preset
 // renders /renderer/photoreal-battle at the SAME fixed setTime and framing;
 // the ONE visual variable is how surfaces respond to sun + ambient, cropped to
-// `crowd-mid` (center formations at mid zoom). Sky look (10), shadows (11),
-// and material detail (12–14) are out of scope here. Asserts: the stats
-// identity maps each battle alias to its civsim preset, fixed-time frames are
-// byte-deterministic, and swapping the preset deterministically moves the
-// pixels (same world, different environment — the aesthetics litmus).
+// `crowd-mid` (center formations at mid zoom). Since 14a, the same scene also
+// pins the soldier material identity under all four presets. Asserts: the stats
+// identity maps each battle alias to its civsim preset, the crowd publishes its
+// material channel mapping, fixed-time frames are byte-deterministic, and
+// swapping the preset deterministically moves the pixels (same world, different
+// environment — the aesthetics litmus).
 export const meta = {
   name: "battle-photoreal-lighting",
-  kind: "flow",
+  kind: "visual",
   world: "battle-photoreal",
   tier: "full",
   snapshots: [
@@ -20,7 +21,8 @@ export const meta = {
     "photoreal-lighting/dusk-crowd-mid",
     "photoreal-lighting/overcast-foggy-crowd-mid",
   ],
-  describe: "Photoreal lighting core: per-preset crowd-mid snapshots, deterministic preset swaps.",
+  describe:
+    "Photoreal lighting/material core: per-preset crowd-mid snapshots, deterministic preset swaps.",
 };
 
 const FIXED_TIME = 0;
@@ -52,6 +54,7 @@ export async function run(ctx) {
     );
     await page.waitForTimeout(400);
     const stats = await page.evaluate(() => window.__rendererLabStats);
+    const material = stats?.stats?.renderStats?.crowd?.material;
     ctx.check(
       `${env}: identity maps through the ONE preset owner (${preset})`,
       stats?.environment === preset &&
@@ -61,6 +64,16 @@ export async function run(ctx) {
         source: stats?.stats?.renderStats?.terrain?.environment?.source,
       }),
     );
+    ctx.check(
+      `${env}: crowd publishes the soldier material identity`,
+      material?.identity === "soldier-assets-placeholder-pbr-v1" &&
+        material?.mapping?.orm ===
+          "occlusion/roughness/metalness, canonical order from skinnedPipeline" &&
+        material?.mapping?.factionMask === "high-blue cColor accent channel" &&
+        material?.pbr?.metalness?.iron > material?.pbr?.metalness?.bronze &&
+        material?.pbr?.roughness?.linen > material?.pbr?.roughness?.leather,
+      JSON.stringify(material),
+    );
 
     // Clipped canvas shot (SwiftShader: a full frame is ~30 s of software
     // rasterization — no element-stability wait, long timeouts).
@@ -69,7 +82,7 @@ export async function run(ctx) {
     if (env === "golden-hour") {
       const shotB = await page.screenshot({ clip, timeout: 180000 });
       ctx.check(
-        "fixed setTime renders byte-identical frames under the physical lighting",
+        "fixed setTime renders byte-identical frames under the physical lighting/materials",
         Buffer.compare(shotA, shotB) === 0,
         JSON.stringify({ bytesA: shotA.length, bytesB: shotB.length }),
       );
@@ -77,7 +90,8 @@ export async function run(ctx) {
     const crop = cropCrowdMid(PNG.sync.read(shotA));
     crops.set(env, crop);
     // Baselines are SwiftShader artifacts; a hardware run must not diff them.
-    if (!hardware) await ctx.snap(page, `photoreal-lighting/${env}-crowd-mid`, { shot: PNG.sync.write(crop) });
+    if (!hardware)
+      await ctx.snap(page, `photoreal-lighting/${env}-crowd-mid`, { shot: PNG.sync.write(crop) });
     await page.close();
   }
 

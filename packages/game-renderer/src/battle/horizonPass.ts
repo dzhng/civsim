@@ -31,9 +31,9 @@ const HAZE: [number, number, number] = [0.80, 0.81, 0.83];
 
 // The ocean edge runs from the shoreline out past the horizon; the plane laps 24 m
 // into the field so it meets the on-field water with no gap.
-const OCEAN_FAR = 4000;
+const OCEAN_FAR = 7200;
 const OCEAN_LAP = 24;
-const OCEAN_RES = 360;
+const OCEAN_RES = 440;
 
 const HORIZON_WGSL = (env: BattleEnvironment) => `
 ${WORLD_CAMERA_WGSL}

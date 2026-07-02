@@ -11,12 +11,12 @@
 // redraws), frozen-cue filtering (frozenSelectionGroundCues +
 // preserveFrozenEffects), the ?debug=blocks triangle builder, and the CPU
 // frame-perf split. The world renders what it is handed.
-import type { Camera } from '../shared/camera';
+import type { Camera } from "../shared/camera";
 import {
   PhotorealBattleWorld,
   type BattleCameraSnapshot,
-} from '../../../packages/photoreal-renderer/src/battle/battleWorld';
-import { fatalSurfaceFor, showFatalErrorSurface } from '../shared/fatalError';
+} from "../../../packages/photoreal-renderer/src/battle/battleWorld";
+import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
 
 export class BattleRenderer {
   readonly ready: Promise<void>;
@@ -26,7 +26,7 @@ export class BattleRenderer {
   private world: PhotorealBattleWorld | null = null;
   private pendingStatic: { soldierUnit: Uint32Array; teams: number[]; classes: number[] } | null =
     null;
-  private pendingTerrain: Parameters<PhotorealBattleWorld['setTerrain']> | null = null;
+  private pendingTerrain: Parameters<PhotorealBattleWorld["setTerrain"]> | null = null;
   private staticSoldiers = 0;
   // Kept above the seam for the ?debug=blocks unit-bounds overlay.
   private soldierUnit = new Uint32Array(0);
@@ -34,7 +34,7 @@ export class BattleRenderer {
   private triangleVerts = new Float32Array();
   private frozenFrameKey: string | null = null;
   private skipFrozenFrame = false;
-  private blockMode = new URLSearchParams(location.search).get('debug') === 'blocks';
+  private blockMode = new URLSearchParams(location.search).get("debug") === "blocks";
   private framePerf = {
     buildMs: 0,
     uploadMs: 0,
@@ -60,13 +60,17 @@ export class BattleRenderer {
 
   constructor(private canvas: HTMLCanvasElement) {
     this.ready = this.init();
-    window.addEventListener('resize', () => this.resize());
+    window.addEventListener("resize", () => this.resize());
   }
 
   resize() {
     if (!this.world) return;
     // Same sizing contract as the bespoke shell: CSS box × devicePixelRatio.
-    this.world.resize(this.canvas.clientWidth || 1, this.canvas.clientHeight || 1, window.devicePixelRatio || 1);
+    this.world.resize(
+      this.canvas.clientWidth || 1,
+      this.canvas.clientHeight || 1,
+      window.devicePixelRatio || 1,
+    );
   }
 
   setStatic(soldierUnit: Uint32Array, teams: number[], classes: number[]) {
@@ -79,7 +83,11 @@ export class BattleRenderer {
       this.world.setStatic(soldierUnit, teams, classes);
     } else {
       // Copy: wasm memory may move before init resolves.
-      this.pendingStatic = { soldierUnit: this.soldierUnit, teams: [...teams], classes: [...classes] };
+      this.pendingStatic = {
+        soldierUnit: this.soldierUnit,
+        teams: [...teams],
+        classes: [...classes],
+      };
     }
   }
 
@@ -209,14 +217,19 @@ export class BattleRenderer {
   stats() {
     const ws = this.world?.stats() ?? null;
     return {
-      renderer: 'gpu' as const,
+      renderer: "gpu" as const,
       ready: this.world !== null,
       // Photoreal ownership identity (README "Photoreal ladder invariants").
-      substrate: ws?.substrate ?? 'initializing',
-      projection: ws?.projection ?? 'initializing',
-      environment: ws?.environment ?? 'initializing',
-      device: ws?.device ?? 'initializing',
+      substrate: ws?.substrate ?? "initializing",
+      projection: ws?.projection ?? "initializing",
+      environment: ws?.environment ?? "initializing",
+      device: ws?.device ?? "initializing",
       depth: ws?.depth ?? null,
+      // Slice 11 shadow-tier identity ({ mode, cascades, ... } — csm/single/off).
+      shadows: ws?.shadows ?? null,
+      // Slice 15 post-chain identity ({ owner, bloom, tonemap } — the ONE
+      // bloom + tone-map owner over the production battle frame).
+      post: ws?.post ?? null,
       width: ws?.width ?? 0,
       height: ws?.height ?? 0,
       soldiers: ws?.soldiers ?? 0,
@@ -224,7 +237,7 @@ export class BattleRenderer {
       drawCalls: ws?.drawCalls ?? 0,
       triangles: ws?.triangles ?? 0,
       lod: ws?.lod ?? { skinned: 0, impostors: 0 },
-      markerLayer: (ws?.lod.impostors ?? 0) > 0 ? ('far-lod-impostor' as const) : ('none' as const),
+      markerLayer: (ws?.lod.impostors ?? 0) > 0 ? ("far-lod-impostor" as const) : ("none" as const),
       camera: this.lastCamera,
       seating: ws?.seating ?? { checked: 0, matches: true, span: 0 },
       terrain: ws?.terrain ?? null,
@@ -257,10 +270,14 @@ export class BattleRenderer {
     // The bespoke shell's fatal surface, re-homed onto three's device.
     const device = (world.world.renderer.backend as unknown as { device?: GPUDevice }).device;
     void device?.lost?.then((info) =>
-      showFatalErrorSurface(this.canvas, fatalSurfaceFor('device-lost', info.message)),
+      showFatalErrorSurface(this.canvas, fatalSurfaceFor("device-lost", info.message)),
     );
     if (this.pendingStatic) {
-      world.setStatic(this.pendingStatic.soldierUnit, this.pendingStatic.teams, this.pendingStatic.classes);
+      world.setStatic(
+        this.pendingStatic.soldierUnit,
+        this.pendingStatic.teams,
+        this.pendingStatic.classes,
+      );
       this.pendingStatic = null;
     }
     if (this.pendingTerrain) {
@@ -322,11 +339,11 @@ function frozenFrameKey(camera: Camera, count: number, staticSoldiers: number) {
     roundKey(camera.zoomT ?? 0),
     count,
     staticSoldiers,
-  ].join(':');
+  ].join(":");
 }
 
 function roundKey(value: number) {
-  return Number.isFinite(value) ? value.toFixed(4) : 'nan';
+  return Number.isFinite(value) ? value.toFixed(4) : "nan";
 }
 
 function buildDebugBlockTriangles(

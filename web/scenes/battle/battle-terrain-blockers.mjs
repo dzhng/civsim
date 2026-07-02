@@ -83,8 +83,11 @@ function blockerMetrics(png, role) {
       if (role === "ocean") {
         if (b > r + 12 && b > 70 && b < 200 && g > r) blocker++;
       } else {
-        // grey-ish stone: channels close together, mid value.
-        if (Math.abs(r - g) < 26 && Math.abs(g - b) < 30 && r > 110 && r < 215) blocker++;
+        // grey-ish stone: channels close together, mid-to-bright value. The
+        // bounds were re-derived at the ladder's 10c (the sun-toward-view
+        // re-aim backlights the west crags: lit faces ~235, shade ~95 —
+        // still grey-neutral stone either way).
+        if (Math.abs(r - g) < 26 && Math.abs(g - b) < 30 && r > 95 && r < 242) blocker++;
       }
     }
   }

@@ -30,16 +30,65 @@ invariants"** below — read that section before implementing any ladder slice);
 production flip, landed: three.js WebGPU + TSL owns battle world rendering in
 production.** Every later look slice lands in the real game.
 
-**Exact next pickup point:** **`10` — physical sky + atmosphere**
-(`slices/10-sky-atmosphere.md`): `10a` Hillaire-style sky behind a `SkyModel`
-seam feeding `scene.environment` (deletes 09's procedural-equirect IBL
-stand-in), `10b` the ONE aerial-perspective owner (deletes the `THREE.Fog`
-stand-in AND the per-material `Aerial stand-in` albedo mixes born 08a/09 —
-grep that phrase), `10c` presets through the sky model — the roster is now
-FOUR presets (noon added at 09, David's call). **The ladder continues from
-`main`** — future slices land on main as individually gated increments, not on
-a long-lived branch. The standing gates ("Photoreal ladder invariants") apply
-on every slice.
+**Exact next pickup point:** **`11` — CSM sun shadows**
+(`slices/11-csm-shadows.md`): real cascaded shadow maps from the 10a sun,
+deleting the 08a blob-shadow stand-in (ledger row); adapter-gated fallback
+tier inside the seam (SwiftShader proves it); headline perf re-run — `11` is
+a named pressure point on the 33 ms budget. Both unprimed critiques at `10`
+called missing cast shadows the top register gap for golden/dusk — the sun
+now points TOWARD the default view (10c re-aim), so expect long
+toward-camera shadows. **The ladder continues from `main`** — future slices
+land on main as individually gated increments, not on a long-lived branch.
+The standing gates ("Photoreal ladder invariants") apply on every slice.
+
+**Slice `10` is DONE (2026-07-02) — physical sky + THE one aerial owner +
+preset moods.** `10a`: `SkyModel` seam
+(`packages/photoreal-renderer/src/atmosphere/skyModel.ts`, tier
+`skyview-fragment-lut`) — **the recorded Hillaire-vs-analytic decision: a
+Hillaire-style sky-view LUT baked by a FRAGMENT pass, not compute** (dodges
+the SwiftShader compute risk wholesale — the software adapter runs the SAME
+tier, proven by the new `battle-photoreal-sky` scene's tier-identity assert;
+per-frame sky cost is one texture sample). Single-scatter raymarch (32×6,
+Hillaire's Earth coefficients) + blue-tinted MS floor + CIE-style overcast
+blend keyed on turbidity; the LUT is `scene.environment` AND the background
+dome's source (ambient always agrees with the visible sky) + analytic sun
+disc (excluded from the LUT — no DirectionalLight double-count); the sun
+light colour is the transmittance toward the sun (physics, never keyColor).
+Procedural-equirect stand-in DELETED; `skyZenith/skyHorizon/groundBounce`
+fields deleted from the ONE owner (sun elevation + turbidity drive
+everything — no new fields were needed). Calibration landed the physical sky
+ON the 09 register (10a suite: ZERO battle/campaign re-blesses). `10b`:
+`atmosphere/aerialPerspective.ts` — ONE TSL scatter/extinction Fn on
+`scene.fogNode` hazes every fog-enabled world surface; in-scatter = the
+sky-view LUT at the horizon along the view azimuth (sea→sky and ranges→sky
+dissolves by construction); `THREE.Fog` + every per-material `Aerial
+stand-in` mix DELETED (grep-proof: zero haze sources outside `atmosphere/`).
+Hard calls recorded: optical depth measured from the camera GROUND FOCUS +
+140 m clear radius — the rig eye parks 1–3 km out and eye-keyed depth whites
+out gameplay framings; in-scatter sampled along the TRUE view direction —
+horizon-clamped sampling washed top-down overviews with bright horizon sky
+(caught by the full-suite sweep; downward rays now land in the LUT's dim
+below-horizon region). `10c`: the locked moods complete — overcast litmus vs
+`battle-overcast-highland.png` PASSES on register telemetry (cand lum
+191/sat 6.2 vs ref 176/7.6); `SUN_TOWARD_VIEW` re-aimed π/2→π (stale since
+the 04a camera flip; restores sun-in-view composition, sanctioned by
+battle-map-reference's rebase contract) + golden sunElevation 0.35 (true
+golden-hour warmth R/B 2.0). One gate re-derivation
+(`battle-terrain-blockers` stone bin widened for the backlit crags).
+**Re-bless: ~70 baseline updates across 10b+10c** (photoreal-sky 12 +
+lighting 4 + parity/pbr/crowd 3 [twice: aerial then sun re-aim],
+battle-camera-zoom, 17 battle-map-reference grass-lab evidence shots, 5
+terrain-blockers, 2 grass model sheets, battle-smoke initial/banner/manual,
+minimap/projectiles/selection dpr2 — each eyeballed);
+campaign byte-identical throughout; unit 55 (48→55: sky + aerial pins).
+**Perf ledger row (hardware apple/metal-3, 30,560 soldiers + 548 scenery +
+vista 184.8k grass blades, sky + aerial ON, final constants): GPU median
+3.14 ms mid / 3.18 ms vista (p95 6.14/5.41), rAF 8.3 ms vsync-pinned — vs
+3.27/2.75 at 09: the fullscreen sky dome + per-surface aerial are
+essentially frame-time-free after the view-direction in-scatter
+simplification (~10× inside the 33 ms budget).** Remaining
+critique items owned by name: shadows (11), tan field albedo + map-edge
+seams + mountain shelf (13), far-crowd smear (14b).
 
 **Slice `09` is DONE (2026-07-02) — lighting core, the first deliberate
 look-change.** The battle world dropped its parity output (NoToneMapping +
@@ -558,8 +607,10 @@ depth-bias only (pending David's confirm; billboards → `08`, LOD → `14b`).
       **(done — neutral albedos engine-wide on the battle world, physical block
       + noon preset on the ONE owner, 9 baselines re-blessed;
       `slices/09-lighting-core.md`)**
-- [ ] `10` — physical sky + aerial-perspective ONE owner + presets (NOW FOUR)
-      (`slices/10-sky-atmosphere.md`)
+- [x] `10` — physical sky + aerial-perspective ONE owner + presets (NOW FOUR)
+      **(done — SkyModel `skyview-fragment-lut` tier + aerialPerspective on
+      scene.fogNode; equirect + THREE.Fog + inline-haze stand-ins deleted;
+      sun re-aimed toward view; `slices/10-sky-atmosphere.md`)**
 - [ ] `11` — CSM sun shadows, deletes blob-shadow stand-in
       (`slices/11-csm-shadows.md`)
 - [ ] `12` — photoreal sea: Gerstner-vs-IFFT spike → surface/foam/shore/glint;
@@ -830,8 +881,8 @@ deleter (a ladder slice is not done while its ledger row is still alive):
 |---|---|---|
 | Spike: `web/three-{water,pbr,crowd}.html`, `web/src/three-probe/*`, `apps/renderer-lab/src/bakeoffProbes.ts` + `/renderer/{pbr-probe,water-pbr,crowd-perf}`, `web/bakeoff-shot.mjs`, `web/shots-bakeoff/` | 06 | **07** (promoted or deleted; nothing spike-shaped survives) |
 | `web/src/three-probe/three-shims.d.ts` | 06 | **07** (`@types/three` dev-only) |
-| Procedural equirect `scene.environment` stand-in | 07/09 | **10a** (physical sky feeds the IBL) |
-| Parity `THREE.Fog` haze stand-in in `PhotorealBattleWorld` | 08a | **10b** (aerial-perspective owner) |
+| ~~Procedural equirect `scene.environment` stand-in~~ | 07/09 | **DELETED at 10a** (SkyModel's sky-view LUT feeds background + IBL) |
+| ~~Parity `THREE.Fog` haze stand-in + per-material `Aerial stand-in` albedo mixes~~ | 08a/09 | **DELETED at 10b** (`atmosphere/aerialPerspective.ts` on `scene.fogNode` is the ONE owner) |
 | Blob-shadow parity stand-in (decal replica) | 08a | **11** (real CSM) |
 | Parity Gerstner-family sea shading in `seaLayer` | 08a | **12b–d** (photoreal surface; the seam survives) |
 | Battle instances of bespoke world passes orphaned at the flip (`BattleGroundPass`, `BattleGrassPass`, `BattleHorizonPass`, `BattleGroundCuePass`, `BattleEffectLinePass`, inline `BattleTrianglePass`, battle `SkinnedCrowdPipeline`/`SoldierShadowDecalPass`) — classes live on for campaign/lab | pre-existing | **08b** orphans; **17** deletes (per `16a`'s campaign ruling) |

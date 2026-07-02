@@ -1,5 +1,40 @@
 # Slice 03 — Zoom → camera rig (pure curve, battle + campaign)
 
+## STATUS: DONE (committed 2026-07-02, `88d45d0f`)
+
+The zoom→camera rig landed as a pure, deterministic curve mapping zoom → real
+`Camera3DParams` framing. **Purely additive** (refinement over this file's "rewrite
+`cameraForZoom`"): the legacy `cameraForZoom` + `scene.ts` 2.5D path stayed
+UNTOUCHED (battle byte-identical) and remained wired until `04a` swapped `scene.ts`
+onto the new rig and deleted `cameraForZoom`. Two rigs coexisted only across that
+short migration seam — collapsed at `04a`.
+
+- **New in `web/src/battle/cameraRig.ts`:** `battleCameraRig(zoom, zoomRange,
+  bounds)` and `campaignCameraRig(...)`, both returning `ZoomCameraRig
+  { target:[x,y,z]; distance; pitch; fovY; zoomT }` (camera3d convention: pitch π/2
+  = top-down, small = oblique; **pitch/distance DECREASE with zoom, fovY increases**
+  — opposite sign to the legacy flat-convention `cameraForZoom` pitch). `yaw`/
+  `aspect`/`near` are the caller's to fill at wire-time (`04`); `target` is a forward
+  look-ahead offset along −X (the yaw-0 view direction) added to the ground
+  view-centre by the caller. `zoomT` still exported (grass/haze read it).
+- **Chosen curve endpoints (the human tuning knob):**
+  battle pitch **1.35 → 0.28 rad** (~77°→16° down), fovY **0.50 → 0.85 rad**
+  (~29°→49°), distance **2.0·min(w,h) → 0.6·min(w,h)**, forward look-ahead
+  **0 → 0.30·min(w,h)**. Campaign is flatter/narrower and lingers near top-down:
+  pitch **1.42 → 0.55**, fovY **0.45 → 0.65**, `easeBias` **1.8** (vs battle 1.0) so
+  it stays a near-top-down chart past the midpoint. One `smoothstep(zoomT)^easeBias`
+  eased parameter drives every axis → monotonic + continuous by construction.
+- **Single-curve legibility:** the monotonic curve kept mid-zoom legible in the probe
+  contact sheet, so the **RTS-mode fovY clamp fallback was NOT needed** (recorded as
+  available if a play-test finds mid-zoom too wide).
+- **Verified:** `web/tests/cameraRig.test.ts` extended (+9 tests, 37 total green) —
+  pitch/fovY/distance monotonic, near-top-down band out / vista band in, continuous,
+  clamped past both ends, deterministic, campaign-flatter-than-battle. `typecheck`
+  green. Probe extended additively to accept `targetX/targetY/targetZ` (was fixed
+  `[0,0,0]`). Contact sheet (top-down→mid→vista) captured via the
+  `/renderer/camera3d-probe` route; screenshot-critique verdict: reads as a smooth
+  dolly from tactical top-down to cinematic horizon vista.
+
 ## Contract unlocked
 
 Zoom-coupled framing expressed as **real camera params**: near-top-down when zoomed

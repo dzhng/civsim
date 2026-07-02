@@ -32,12 +32,6 @@ export interface CivsimEnvironment {
   /** Overall exposure; dusk is dim, not dark-albedo'd. (Bespoke display knob —
    *  the photoreal exposure is physical.exposure.) */
   exposure: number;
-  /** Photoreal sky-dome gradient (drives the IBL environment until the physical
-   *  sky lands in slice 10a): zenith → horizon above the horizon line, ground
-   *  bounce below it. Linear radiance, not display colours. */
-  skyZenithColor: [number, number, number];
-  skyHorizonColor: [number, number, number];
-  groundBounceColor: [number, number, number];
   physical: CivsimPhysicalLight;
 }
 
@@ -61,9 +55,6 @@ export const CIVSIM_ENVIRONMENTS: Record<CivsimEnvironmentId, CivsimEnvironment>
     fillColor: [0.46, 0.58, 0.78],
     hazeColor: [0.82, 0.80, 0.70],
     exposure: 1.18,
-    skyZenithColor: [0.16, 0.28, 0.52],
-    skyHorizonColor: [0.60, 0.56, 0.46],
-    groundBounceColor: [0.20, 0.17, 0.12],
     physical: { sunIntensity: 3.4, exposure: 1.12, turbidity: 2.6 },
   },
   dusk: {
@@ -74,9 +65,6 @@ export const CIVSIM_ENVIRONMENTS: Record<CivsimEnvironmentId, CivsimEnvironment>
     fillColor: [0.34, 0.40, 0.56],
     hazeColor: [0.72, 0.58, 0.5],
     exposure: 0.86,
-    skyZenithColor: [0.09, 0.13, 0.30],
-    skyHorizonColor: [0.52, 0.34, 0.26],
-    groundBounceColor: [0.13, 0.10, 0.08],
     physical: { sunIntensity: 2.1, exposure: 0.92, turbidity: 3.6 },
   },
   noon: {
@@ -87,9 +75,6 @@ export const CIVSIM_ENVIRONMENTS: Record<CivsimEnvironmentId, CivsimEnvironment>
     fillColor: [0.56, 0.66, 0.82],
     hazeColor: [0.80, 0.83, 0.86],
     exposure: 1.08,
-    skyZenithColor: [0.19, 0.34, 0.62],
-    skyHorizonColor: [0.64, 0.72, 0.80],
-    groundBounceColor: [0.22, 0.20, 0.15],
     physical: { sunIntensity: 3.0, exposure: 1.05, turbidity: 2.0 },
   },
   overcast: {
@@ -100,11 +85,9 @@ export const CIVSIM_ENVIRONMENTS: Record<CivsimEnvironmentId, CivsimEnvironment>
     fillColor: [0.72, 0.76, 0.82],
     hazeColor: [0.84, 0.86, 0.88],
     exposure: 1.0,
-    // Flat HIGH-KEY radiance (David's locked overcast mood): the bright grey
-    // sky IS the light source — the IBL carries the day, the sun barely keys.
-    skyZenithColor: [0.60, 0.66, 0.74],
-    skyHorizonColor: [0.86, 0.89, 0.93],
-    groundBounceColor: [0.30, 0.30, 0.28],
+    // David's locked overcast mood is flat HIGH-KEY: the bright grey sky IS
+    // the light source (physical: turbidity 9.0 → the sky model's overcast
+    // dome carries the day; the sun barely keys at 0.4).
     physical: { sunIntensity: 0.4, exposure: 1.18, turbidity: 9.0 },
   },
 };

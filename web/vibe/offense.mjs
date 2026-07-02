@@ -3,7 +3,7 @@
 // they should curl IN and the cloth should DRAPE around it (envelop). Eyeball
 // web/shots/vibe/offense/. Built with the spawn hook so the block is narrow and
 // shallow enough to actually engage (a deep tank just stalls the line).
-import { openBattle, closeBattle, vibeCapture } from "./_lib.mjs";
+import { openBattle, closeBattle, vibeCapture, fitBattleUnits } from "./_lib.mjs";
 
 const { browser, page, errs } = await openBattle("battle=duel&a=0&b=0&ai=off");
 
@@ -21,34 +21,7 @@ const units = await page.evaluate(() => {
 });
 const ids = await page.evaluate((u) => [u.atk, u.def], units);
 
-const frame = () =>
-  page.evaluate((ids) => {
-    let minx = 1e9,
-      miny = 1e9,
-      maxx = -1e9,
-      maxy = -1e9;
-    for (const u of ids) {
-      const cnt = window.__game.unitInfo(u)[7];
-      const start = window.__game.soldierStartOf(u);
-      for (let i = start; i < start + cnt; i++) {
-        const [x, y] = window.__game.soldierPos(i);
-        if (x < minx) minx = x;
-        if (x > maxx) maxx = x;
-        if (y < miny) miny = y;
-        if (y > maxy) maxy = y;
-      }
-    }
-    const cv = document.getElementById("battlefield");
-    const c = window.__cam;
-    c.pitch = 0;
-    c.x = (minx + maxx) / 2;
-    c.y = (miny + maxy) / 2;
-    c.zoom = Math.max(
-      3,
-      Math.min(20, Math.min(cv.width / (maxx - minx + 40), cv.height / (maxy - miny + 40))),
-    );
-    c.clampView?.();
-  }, ids);
+const frame = () => fitBattleUnits(page, ids);
 const sample = () =>
   page.evaluate((ids) => {
     const a = window.__game.unitInfo(ids[0]),

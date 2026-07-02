@@ -37,13 +37,18 @@ export async function openBattle(query) {
     launchOptions.channel = process.env.VERIFY_BROWSER_CHANNEL;
   }
   const browser = await chromium.launch(launchOptions);
-  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  const page = await browser.newPage({
+    viewport: { width: 1280, height: 800 },
+    deviceScaleFactor: 2,
+  });
   const errs = [];
   page.on("pageerror", (e) => errs.push(e.message));
   page.on("console", (m) => {
     if (m.type() === "error") errs.push(m.text());
   });
-  await page.goto(`${TARGET}/?${query}`);
+  const params = new URLSearchParams(query);
+  params.set("env", "noon");
+  await page.goto(`${TARGET}/?${params.toString()}`);
   await page.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
   await page.addStyleTag({
     content: `
@@ -96,16 +101,15 @@ export const CLS = {
   peasant: 9,
 };
 
-/** Fit both duel units (centroids + margin) into view — ~2.5 holds both lines
- *  when they spawn ~400 m apart, ~20 reads individual men once they collide. */
-export const fitDuel = (page, opts = {}) =>
+/** Pick the soldiers the vibe should frame; the scene owns the camera mechanics. */
+export const fitBattleUnits = (page, unitIds = [0, 1], opts = {}) =>
   page.evaluate(
-    ([centerX, centerY, margin, minZoom]) => {
-      const infos = [window.__game.unitInfo(0), window.__game.unitInfo(1)];
-      const cv = document.getElementById("battlefield");
+    ([unitIds, centerX, centerY, collapseAftermath, frameOpts]) => {
+      const ids = unitIds.length ? unitIds : [0, 1];
       const bounds = [];
-      for (const u of [0, 1]) {
-        const count = infos[u][7];
+      for (const u of ids) {
+        const info = window.__game.unitInfo(u);
+        const count = info[7];
         const start = window.__game.soldierStartOf(u);
         let minx = 1e9,
           miny = 1e9,
@@ -122,16 +126,17 @@ export const fitDuel = (page, opts = {}) =>
           if (y > maxy) maxy = y;
         }
         if (alive === 0) {
-          minx = maxx = infos[u][centerX];
-          miny = maxy = infos[u][centerY];
+          minx = maxx = info[centerX];
+          miny = maxy = info[centerY];
         }
         bounds.push({ unit: u, count, alive, minx, miny, maxx, maxy });
       }
       const stats = window.__game.stats?.();
       let selected = bounds;
-      if (stats && (stats.victor === 0 || stats.victor === 1)) {
-        selected = [bounds[stats.victor]];
-      } else {
+      if (collapseAftermath && stats && (stats.victor === 0 || stats.victor === 1)) {
+        const victorBounds = bounds.find((b) => b.unit === stats.victor) ?? bounds[stats.victor];
+        if (victorBounds) selected = [victorBounds];
+      } else if (collapseAftermath) {
         const sorted = [...bounds].sort((a, b) => b.alive - a.alive);
         const large = sorted[0],
           small = sorted[1];
@@ -147,17 +152,19 @@ export const fitDuel = (page, opts = {}) =>
       let maxx = Math.max(...selected.map((b) => b.maxx));
       let miny = Math.min(...selected.map((b) => b.miny));
       let maxy = Math.max(...selected.map((b) => b.maxy));
-      const spanX = maxx - minx + margin;
-      const spanY = maxy - miny + margin;
-      const c = window.__cam;
-      c.x = (minx + maxx) / 2;
-      c.y = (miny + maxy) / 2;
-      c.pitch = 0;
-      c.zoom = Math.max(minZoom, Math.min(20, Math.min(cv.width / spanX, cv.height / spanY)));
-      c.clampView?.();
+      window.__game.reviewFrame(minx, miny, maxx, maxy, frameOpts);
     },
-    [UNIT_CENTER_X, UNIT_CENTER_Y, opts.margin ?? 90, opts.minZoom ?? 2.5],
+    [
+      unitIds,
+      UNIT_CENTER_X,
+      UNIT_CENTER_Y,
+      opts.collapseAftermath ?? unitIds.length === 2,
+      { margin: opts.margin, pitch: opts.pitch, fill: opts.fill },
+    ],
   );
+
+/** Fit both duel units into view. */
+export const fitDuel = (page, opts = {}) => fitBattleUnits(page, [0, 1], opts);
 
 /** Status of the two duel units (a = unit 0, b = unit 1). */
 export const duelSample = (page) =>
@@ -202,7 +209,7 @@ const TAIL_FRAMES = Number(process.env.VIBE_TAIL_FRAMES ?? 0);
 // (downscaled to keep the tracked file small), so it never costs a second capture
 // pass. The PNGs stay the full-res regression baselines; the GIF is review-only.
 const GIF_DELAY_CS = 20; // 200 ms per frame
-const GIF_DOWNSCALE = 2; // 1280x800 -> 640x400
+const GIF_DOWNSCALE = 4; // 2560x1600 at DPR 2 -> 640x400
 function writeIfChanged(path, data) {
   try {
     if (Buffer.compare(fs.readFileSync(path), data) === 0) return false;
@@ -305,5 +312,6 @@ export async function vibeCapture(
       process.env.UPDATE_SHOTS && !refreshedFrameChanged && refresh.pruned === 0,
     ),
   });
+  await page.evaluate(() => window.__game.reviewFrameClear?.());
   return result;
 }

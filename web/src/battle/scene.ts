@@ -180,6 +180,16 @@ export class BattleScene implements Scene {
     const STRIDE = game.unit_info_stride();
     let cameraRigBounds = { width: 1, height: 1 };
     let cameraRigRange: CameraRigRange = { min: 0.4, max: 8 };
+    let mapCameraRigBounds = { width: 1, height: 1 };
+    let mapCameraRigRange: CameraRigRange = { min: 0.4, max: 8 };
+    let reviewFrameRestore: {
+      rigBounds: { width: number; height: number };
+      rigRange: CameraRigRange;
+      zoom: number;
+      pitchBias: number;
+      yaw: number;
+      center: [number, number];
+    } | null = null;
     // Feed the real-camera zoom rig its live range + field bounds; the Camera
     // resolves distance/pitch/fovY (and applies the user's pitchBias) from zoom
     // itself, so this just keeps those inputs current as setup refines them.
@@ -215,6 +225,8 @@ export class BattleScene implements Scene {
         (canvas.clientHeight * dpr) / topDownCos / mapH,
       );
       cameraRigRange = { min: Math.max(0.4, tacticalZoom), max: Math.max(8, tacticalZoom * 6) };
+      mapCameraRigBounds = { ...cameraRigBounds };
+      mapCameraRigRange = { ...cameraRigRange };
       const fit = Number.isFinite(x0)
         ? Math.min(
             (canvas.clientWidth * dpr) / (x1 - x0 + 130),
@@ -1558,6 +1570,98 @@ export class BattleScene implements Scene {
       tickGroupAttacks();
       return renderer.settlePresentedFrame();
     };
+    const reviewFrame = (
+      minx: number,
+      miny: number,
+      maxx: number,
+      maxy: number,
+      opts: { margin?: number; pitch?: number; fill?: number } = {},
+    ) => {
+      if (![minx, miny, maxx, maxy].every(Number.isFinite)) return;
+      if (!reviewFrameRestore) {
+        reviewFrameRestore = {
+          rigBounds: { ...cameraRigBounds },
+          rigRange: { ...cameraRigRange },
+          zoom: camera.zoom,
+          pitchBias: camera.pitchBias,
+          yaw: camera.yaw,
+          center: camera.viewCenter(),
+        };
+      }
+      // Review shots are north-up (world +Y to the top of frame — blue south
+      // unit at the bottom, red north unit on top). camera3d yaw 0 puts +Y to
+      // screen-right; -PI/2 is the chart-style north-up bearing.
+      camera.yaw = -Math.PI / 2;
+      const loX = Math.min(minx, maxx);
+      const hiX = Math.max(minx, maxx);
+      const loY = Math.min(miny, maxy);
+      const hiY = Math.max(miny, maxy);
+      const margin = Math.max(0, opts.margin ?? 12);
+      const halfMargin = margin / 2;
+      const fitMinX = loX - halfMargin;
+      const fitMaxX = hiX + halfMargin;
+      const fitMinY = loY - halfMargin;
+      const fitMaxY = hiY + halfMargin;
+      const cx = (loX + hiX) / 2;
+      const cy = (loY + hiY) / 2;
+      let spanX = Math.max(1, fitMaxX - fitMinX);
+      let spanY = Math.max(1, fitMaxY - fitMinY);
+      const targetFill = Math.max(0.01, opts.fill ?? 0.72);
+      const setReviewRig = () => {
+        cameraRigRange = { min: 2.5, max: 20 };
+        cameraRigBounds = { width: spanX, height: spanY };
+        applyBattleCameraRig();
+        camera.zoom = 20;
+        camera.pitchBias = 0.28 - (opts.pitch ?? 1.15);
+        camera.setViewCenter(cx, cy);
+      };
+      const samplePoints: [number, number][] = [
+        [fitMinX, fitMinY],
+        [fitMaxX, fitMinY],
+        [fitMaxX, fitMaxY],
+        [fitMinX, fitMaxY],
+        [cx, fitMinY],
+        [fitMaxX, cy],
+        [cx, fitMaxY],
+        [fitMinX, cy],
+      ];
+      setReviewRig();
+      const clientWidth = Math.max(
+        1,
+        canvas.clientWidth || canvas.width / (window.devicePixelRatio || 1),
+      );
+      const clientHeight = Math.max(
+        1,
+        canvas.clientHeight || canvas.height / (window.devicePixelRatio || 1),
+      );
+      for (let i = 0; i < 3; i++) {
+        const projected = samplePoints.map(([x, y]) => camera.worldToScreen(x, y));
+        const xs = projected.map((p) => p[0]);
+        const ys = projected.map((p) => p[1]);
+        const screenSpanX = Math.max(...xs) - Math.min(...xs);
+        const screenSpanY = Math.max(...ys) - Math.min(...ys);
+        const fill = Math.max(screenSpanX / clientWidth, screenSpanY / clientHeight);
+        if (!Number.isFinite(fill) || fill <= 0) break;
+        const scale = fill / targetFill;
+        if (Math.abs(scale - 1) <= 0.05) break;
+        spanX *= scale;
+        spanY *= scale;
+        setReviewRig();
+      }
+    };
+    const reviewFrameClear = () => {
+      const restored = reviewFrameRestore;
+      cameraRigBounds = restored ? { ...restored.rigBounds } : { ...mapCameraRigBounds };
+      cameraRigRange = restored ? { ...restored.rigRange } : { ...mapCameraRigRange };
+      applyBattleCameraRig();
+      if (restored) {
+        camera.zoom = restored.zoom;
+        camera.pitchBias = restored.pitchBias;
+        camera.yaw = restored.yaw;
+        camera.setViewCenter(restored.center[0], restored.center[1]);
+      }
+      reviewFrameRestore = null;
+    };
     window.__game = {
       stats: () => ({
         soldiers: game.soldier_count(),
@@ -1600,6 +1704,8 @@ export class BattleScene implements Scene {
       freezeAtTick,
       freezeAtTickWithEffects: (target: number) => freezeAtTick(target, { effects: true }),
       freeze: (on = true) => doFreeze(on),
+      reviewFrame,
+      reviewFrameClear,
       groupMove: (units: number[], x: number, y: number) => groupMove(units, x, y, "move"),
       setFiles: (u: number, files: number) => game.set_files(u, files),
       // Spawn an arbitrary unit (vibe scenarios: multi-column penetration, etc.).

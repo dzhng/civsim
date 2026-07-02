@@ -13,6 +13,7 @@ import {
   openBattle,
   closeBattle,
   vibeCapture,
+  fitBattleUnits,
   fitDuel,
   duelSample,
   duelLabel,
@@ -69,64 +70,7 @@ if (WALL) {
   });
 }
 
-const fitUnits = () =>
-  page.evaluate((ids) => {
-    const bounds = [];
-    for (const u of ids) {
-      const info = window.__game.unitInfo(u);
-      const cnt = window.__game.unitInfo(u)[7];
-      const start = window.__game.soldierStartOf(u);
-      let minx = 1e9,
-        miny = 1e9,
-        maxx = -1e9,
-        maxy = -1e9,
-        alive = 0;
-      for (let i = start; i < start + cnt; i++) {
-        if (window.__game.soldierAlive && window.__game.soldierAlive(i) <= 0) continue;
-        alive++;
-        const [x, y] = window.__game.soldierPos(i);
-        if (x < minx) minx = x;
-        if (x > maxx) maxx = x;
-        if (y < miny) miny = y;
-        if (y > maxy) maxy = y;
-      }
-      if (alive === 0) {
-        minx = maxx = info[30];
-        miny = maxy = info[31];
-      }
-      bounds.push({ unit: u, count: cnt, alive, minx, miny, maxx, maxy });
-    }
-    const stats = window.__game.stats?.();
-    let selected = bounds;
-    if (stats && (stats.victor === 0 || stats.victor === 1) && bounds[stats.victor]) {
-      selected = [bounds[stats.victor]];
-    } else {
-      const sorted = [...bounds].sort((a, b) => b.alive - a.alive);
-      const large = sorted[0],
-        small = sorted[1];
-      if (
-        small &&
-        small.alive <= Math.max(12, small.count * 0.18) &&
-        large.alive >= Math.max(2 * small.alive, 1)
-      ) {
-        selected = [large];
-      }
-    }
-    const minx = Math.min(...selected.map((b) => b.minx));
-    const maxx = Math.max(...selected.map((b) => b.maxx));
-    const miny = Math.min(...selected.map((b) => b.miny));
-    const maxy = Math.max(...selected.map((b) => b.maxy));
-    const cv = document.getElementById("battlefield");
-    const c = window.__cam;
-    c.pitch = 0;
-    c.x = (minx + maxx) / 2;
-    c.y = (miny + maxy) / 2;
-    c.zoom = Math.max(
-      2.5,
-      Math.min(20, Math.min(cv.width / (maxx - minx + 90), cv.height / (maxy - miny + 90))),
-    );
-    c.clampView?.();
-  }, ids);
+const fitUnits = () => fitBattleUnits(page, ids);
 
 const sampleUnits = () =>
   page.evaluate((ids) => {
@@ -148,7 +92,7 @@ const sampleUnits = () =>
   }, ids);
 
 const { frames, resolved, fails } = await vibeCapture(page, process.env.NAME ?? "charge", {
-  frame: () => (customStage ? fitUnits() : fitDuel(page, { margin: 180 })),
+  frame: () => (customStage ? fitUnits() : fitDuel(page)),
   sample: () => (customStage ? sampleUnits() : duelSample(page)),
   label: duelLabel,
   done: (s) =>

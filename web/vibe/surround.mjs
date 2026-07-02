@@ -5,7 +5,7 @@
 // unit is pressed from its side and back at the same time.
 //   node vibe/surround.mjs              # middle holds (square defence)
 //   ATTACK=1 node vibe/surround.mjs     # middle attacks out, surrounded
-import { openBattle, closeBattle, vibeCapture } from "./_lib.mjs";
+import { openBattle, closeBattle, vibeCapture, fitBattleUnits } from "./_lib.mjs";
 
 const ATTACK = process.env.ATTACK === "1";
 const { browser, page, errs } = await openBattle("battle=duel&a=0&b=0&ai=off");
@@ -35,34 +35,7 @@ const units = await page.evaluate((attack) => {
 }, ATTACK);
 const ids = await page.evaluate((u) => [u.mid, u.front, u.side, u.back], units);
 
-const frame = () =>
-  page.evaluate((ids) => {
-    let minx = 1e9,
-      miny = 1e9,
-      maxx = -1e9,
-      maxy = -1e9;
-    for (const u of ids) {
-      const cnt = window.__game.unitInfo(u)[7];
-      const start = window.__game.soldierStartOf(u);
-      for (let i = start; i < start + cnt; i++) {
-        const [x, y] = window.__game.soldierPos(i);
-        if (x < minx) minx = x;
-        if (x > maxx) maxx = x;
-        if (y < miny) miny = y;
-        if (y > maxy) maxy = y;
-      }
-    }
-    const cv = document.getElementById("battlefield");
-    const c = window.__cam;
-    c.pitch = 0;
-    c.x = (minx + maxx) / 2;
-    c.y = (miny + maxy) / 2;
-    c.zoom = Math.max(
-      3,
-      Math.min(20, Math.min(cv.width / (maxx - minx + 40), cv.height / (maxy - miny + 40))),
-    );
-    c.clampView?.();
-  }, ids);
+const frame = () => fitBattleUnits(page, ids, { collapseAftermath: false });
 const sample = () =>
   page.evaluate((ids) => {
     const m = window.__game.unitInfo(ids[0]);

@@ -3009,7 +3009,7 @@ fn grinding_blocks_keep_their_deployed_silhouette() {
 }
 
 #[test]
-#[ignore = "writes specs/melee-blob/visualizations/seam-timeline.html from probe JSON"]
+#[ignore = "writes specs/done/melee-blob/visualizations/seam-timeline.html from probe JSON"]
 fn write_seam_timeline_html() {
     let commit = current_commit();
     let runs = [heavy_blob_runs(0x4202), pike_blob_runs(0x4202)].concat();
@@ -3023,7 +3023,7 @@ fn write_seam_timeline_html() {
     let raw_dir = root.join("target/melee-blob");
     std::fs::create_dir_all(&raw_dir).unwrap();
     std::fs::write(raw_dir.join("seam-timeline.json"), data).unwrap();
-    let dir = root.join("specs/melee-blob/visualizations");
+    let dir = root.join("specs/done/melee-blob/visualizations");
     std::fs::create_dir_all(&dir).unwrap();
     std::fs::write(dir.join("seam-timeline.html"), html).unwrap();
 }

@@ -33,6 +33,34 @@ contact. Deps: `11` (shadows to sit in); parallel with `12`/`13`.
   contact term or blob AO node) — the "standing on the ground, not pasted" fix;
   distinct from `11`'s cast shadows.
 
+## 14a implementation note
+
+Status: implemented on branch `codex-14a`; 14b/14c remain separate.
+
+- Channel mapping found and used: `albedo = cColor.rgb`, `normal = cNormal`
+  skinned/yaw-rotated into world space, `orm = occlusion/roughness/metalness`
+  in the canonical `skinnedPipeline` order, `factionMask = high-blue cColor`
+  accent channel. The placeholder kit has no texture files yet, so the
+  photoreal crowd consumes the existing vertex-channel encoding rather than
+  inventing a parallel texture path.
+- Metal/rough choices: bronze helmet/tip regions `metalness=0.82`,
+  `roughness=0.46`; iron blade regions `metalness=0.92`, `roughness=0.38`;
+  linen `roughness=0.90`, leather `0.74`, skin `0.66`, default `0.84`.
+- Faction legibility approach: albedos stay neutral; the knob is accent
+  saturation/mix (`broadMix=0.30`, `maskedMix=0.98`) so the team read survives
+  gameplay zoom while high-blue mask areas still identify crests/shields.
+- Stats: `PhotorealBattleWorld.stats().crowd.material` publishes the channel
+  mapping, PBR constants, and per-class kit material names for scene assertions
+  and reviewer inspection.
+- Verification added: `web/tests/soldierMaterials.test.ts` pins the material
+  identity, channel order, bronze/iron/faction mask decoding, and rough/metal
+  ordering. `web/scenes/battle/photoreal-lighting.mjs` now asserts the material
+  identity for the four fixed-time preset crops.
+- Local limitation: this sandbox rejected local server binds (`EPERM` on both
+  `::1:5174` and `127.0.0.1:5174`), so the SwiftShader scene/baseline run is
+  ready but not executed here:
+  `UPDATE_SHOTS=1 VERIFY_GPU=1 VERIFY_URL=http://127.0.0.1:5174 node scene.mjs battle-photoreal-lighting`.
+
 ## What the human can run / see
 
 `/battle` at close and vista zoom; `/renderer/photoreal-crowd` (07's route, now

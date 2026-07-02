@@ -36,16 +36,12 @@ import { BattleGrassPass, type BattleGrassBounds, type BattleGrassParams, type G
 import { sampleGrassField } from '../../../packages/game-renderer/src/battle/grassField';
 import { BattleHorizonPass } from '../../../packages/game-renderer/src/battle/horizonPass';
 import { chartCamera3d, eyePosition, projectPoint, unprojectToPlaneZ, type Camera3DParams, type ChartCameraSpec } from '../../../packages/renderer-core/src/camera3d';
-import { createWaterField } from '../../../packages/game-renderer/src/water/waterField';
-import { WaterPlanePass } from '../../../packages/game-renderer/src/water/waterPlanePass';
 import {
-  WATER_ENVIRONMENTS,
   applyBattleEnvironment,
   battleEnvironmentStats,
   resolveBattleEnvironment,
   skinnedLightingForBattleEnvironment,
   type BattleEnvironment,
-  type WaterEnvironment,
 } from '../../../packages/game-renderer/src/environment/environment';
 import { featuresToBattleScenery } from '../../../packages/game-renderer/src/battle/terrainScenery';
 import { MeshBuilder, type Rgb } from '../../../packages/game-renderer/src/models/shared/meshBuilder';
@@ -133,7 +129,6 @@ const routes: Record<string, LabRoute> = {
   '/renderer/battle-input': routeBattleInput,
   '/renderer/battle-live': routeBattleLive,
   '/renderer/card-bar': routeCardBar,
-  '/renderer/water-bakeoff': routeWaterBakeoff,
   '/renderer/camera3d-probe': routeCamera3dProbe,
   // Photoreal ladder (slices 07+): three.js WebGPU + TSL on the camera3d spine.
   '/renderer/photoreal-pbr': routePhotorealPbr,
@@ -4271,106 +4266,6 @@ async function routeBattleInput(ctx: LabContext) {
   }, { passive: false });
 
   draw();
-}
-
-// Legacy open-sea lab route. Slice 12 moved the active battle sea gates to
-// /renderer/photoreal-battle and retired the water-* bakeoff scenes; keep this
-// manual route until the slice-17 legacy sweep decides whether the old
-// WaterPlanePass proof surface still has value.
-async function routeWaterBakeoff(ctx: LabContext) {
-  const presetName = ctx.params.get('preset') ?? 'golden';
-  const env: WaterEnvironment = WATER_ENVIRONMENTS[presetName as WaterEnvironment['id']] ?? WATER_ENVIRONMENTS.golden;
-  const camName = ctx.params.get('cam') === 'campaign' ? 'campaign' : 'battle';
-  // Sun comes from the preset; `sunAz`/`sunEl` override it (e.g. the glint scene
-  // sweeps the azimuth to prove the streak tracks the sun).
-  const sunAz = ctx.params.has('sunAz') ? numberParam(ctx.params, 'sunAz', env.sunAzimuth) : env.sunAzimuth;
-  const sunEl = ctx.params.has('sunEl') ? numberParam(ctx.params, 'sunEl', env.sunElevation) : env.sunElevation;
-  const fixedT = ctx.params.has('t') ? numberParam(ctx.params, 't', 0) : null;
-
-  // Slice 02 keystone: the water route runs on the real 3D perspective camera and a
-  // reverse-Z depth32float buffer — the finite plane now meets a true straight
-  // horizon instead of the fake-projection dome/streak wedge.
-  const shell = await createFrameShell(ctx.canvas, { enableGpuTimer: true });
-
-  // An oblique framing that looks out to sea toward +y (yaw −π/2 puts the eye south
-  // of the target, looking north over the plane's 1100-unit span). Infinite far
-  // plane → the ground plane's vanishing line is the horizon. camera3d owns the
-  // matrices; the x/y focus scalars only feed the water shader's distance-haze key,
-  // which we anchor at the eye's ground footprint so haze grows with view distance.
-  // Pitch is deliberately not so grazing that the near sea turns to a solid glint
-  // sheet — the look scenes (foam/albedo) read the material, not a specular wall.
-  // The framing is URL-tunable (pitch/dist/fov/targetY) for the eyeball checkpoint.
-  const base = camName === 'campaign'
-    ? { targetY: 200, distance: 240, pitch: 0.38, fovY: 0.70 }
-    : { targetY: 140, distance: 190, pitch: 0.22, fovY: 0.78 };
-  const cam3d: Camera3DParams = {
-    target: [0, numberParam(ctx.params, 'targetY', base.targetY), 0],
-    distance: numberParam(ctx.params, 'dist', base.distance),
-    pitch: numberParam(ctx.params, 'pitch', base.pitch),
-    yaw: -Math.PI / 2,
-    fovY: numberParam(ctx.params, 'fov', base.fovY),
-    aspect: 1000 / 600,
-    near: 1,
-  };
-  const eye = eyePosition(cam3d);
-  shell.setCamera({ x: eye[0], y: eye[1], zoom: 1, camera3d: cam3d });
-  shell.setSun(sunAz, sunEl);
-
-  // Sky clear from the preset's haze colour so the sea meets a matching horizon
-  // (Slice 6 will grade the sea-to-sky seam properly).
-  const clear: GPUColor = { r: env.hazeColor[0], g: env.hazeColor[1], b: env.hazeColor[2], a: 1 };
-
-  // Gerstner is the legacy lab water field. Photoreal battle water now lives behind
-  // SeaDisplacementSource in seaLayer.ts; this route is no longer an active gate.
-  const field = createWaterField(shell);
-  const plane = new WaterPlanePass(shell, field, undefined, env);
-
-  const drawAt = (t: number) => {
-    shell.setTime(t);
-    shell.drawFrame({
-      clear,
-      precompute: (enc) => field.ensureFrame(enc, t),
-      passes: [{
-        id: 'water-bakeoff-plane', role: 'world-opaque', phase: 'world-depth', depth: 'read-write',
-        draw: (pass) => plane.draw(pass),
-      }],
-    });
-  };
-
-  const publishStats = () => {
-    const s = shell.stats();
-    publish('water-bakeoff', true, {
-      route: 'water-bakeoff',
-      tech: field.id,
-      compare: false,
-      preset: presetName,
-      camera: camName,
-      timestampQuery: shell.info.caps.timestampQuery,
-      gpuTimeMs: s.gpuTimeMs,
-      fixedTime: fixedT,
-      fieldResolution: field.stats().fieldResolution,
-      cameraContract: s.cameraContract,
-      // Slice 02: publish the depth identity + world-phase depth mode so a scene
-      // can prove the water route is on the reverse-Z depth32float path.
-      depth: s.depth,
-      phases: s.phases,
-    });
-    ctx.status.innerHTML = reportTable({
-      route: 'water-bakeoff',
-      tech: field.id,
-      camera: camName,
-      preset: presetName,
-      'GPU time (ms)': s.gpuTimeMs === null ? 'pending' : s.gpuTimeMs.toFixed(3),
-    });
-  };
-
-  const t0 = performance.now();
-  const tick = () => {
-    drawAt(fixedT ?? (performance.now() - t0) / 1000);
-    publishStats();
-    requestAnimationFrame(tick);
-  };
-  tick();
 }
 
 // Slice 01 deliverable: a pure-CPU, WebGPU-free probe for the real 3D camera. It

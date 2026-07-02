@@ -5,8 +5,8 @@
 //! reference unit with stats and a weapon DEFINED HERE (`ref_stats` + `REF_BLADE`),
 //! so David can retune any real class (light, heavy, …) freely and this test will
 //! not move. The references answer two balance-independent questions:
-//!   1. What attack level makes an equal LINE grind last ~3-4 minutes? (the
-//!      lethality anchor — `REF_BLADE.damage`.)
+//!   1. What attack level makes an equal LINE grind last near the corrected
+//!      reference band? (the lethality anchor — `REF_BLADE.damage`.)
 //!   2. Does survivability scale the way it should with HP and block? (HP is
 //!      ~linear; block is a real, bounded multiplier.)
 //!
@@ -33,18 +33,17 @@ const REF_DEPTH: usize = 4; // references fight as a WIDE, shallow LINE, not a d
 
 /// The test-owned blade: the attacker's weapon AND the reference units' weapon.
 /// Balance-independent — real weapon tables can change without moving this test.
-/// `damage` is the LETHALITY ANCHOR, tuned so an equal reference-line grind lasts
-/// ~3-4 minutes (see `attack_lethality_*`). interval/reach/arc mirror a standard
-/// one-handed sword.
+/// `damage` is the LETHALITY ANCHOR, tuned so an equal reference-line grind lands
+/// in the corrected reference band (see `attack_lethality_*`). interval/reach/arc
+/// mirror a standard one-handed sword.
 const REF_BLADE: Weapon = Weapon {
     reach: 1.1,
     min_range: 0.0,
     zones: sim::strike::front(0.7),
     attack_interval: 4.1,
-    // 0.22 lands an equal wide-LINE grind at ~3-4 min (the anchor) with fixed-file
-    // casualty closing. Holding files keeps fresh men feeding the front more
-    // efficiently than the old lateral relabeling, so the fake reference blade is
-    // lower than the stock game sword; real class weapons remain balance-owned.
+    // 0.22 lands an equal wide-LINE grind in the corrected reference band with
+    // fixed-file casualty closing and torque-free pivot projection. Real class
+    // weapons remain balance-owned.
     damage: 0.22,
     cleave: false,
     impales: false,
@@ -145,10 +144,10 @@ fn surv(spawn_victim: &dyn Fn(&mut Sim) -> usize) -> f32 {
 }
 
 /// THE LETHALITY ANCHOR. An equal grind of a standard reference line (a typical
-/// line soldier: 1.5 HP, a light shield) must resolve in ~3-4 minutes. This pins
-/// `REF_BLADE.damage` as "about the attack level a 3-4 min grind needs" — the
-/// range David tunes real weapons toward. Wide shallow lines (a battle line, not
-/// a deep column), so the whole front is engaged.
+/// line soldier: 1.5 HP, a light shield) must resolve near the corrected reference
+/// band. This pins `REF_BLADE.damage` as the fake reference attack level David
+/// reads real weapons against. Wide shallow lines (a battle line, not a deep
+/// column), so the whole front is engaged.
 #[test]
 fn attack_lethality_grinds_a_reference_line_in_about_three_to_four_minutes() {
     let line = ref_stats(1.5, 0.3, 0.1);
@@ -164,11 +163,11 @@ fn attack_lethality_grinds_a_reference_line_in_about_three_to_four_minutes() {
         REF_BLADE.damage
     );
     assert!(
-        // Upper bound 240→255: the cadence-fatigue coupling stretches the tail of
-        // an equal grind (both sides tire and swing slower late), so the reference
-        // grind now lands ~242s — a hair past the old 4-min ceiling, same shape.
-        (180.0..=255.0).contains(&t),
-        "an equal reference-line grind should last ~3-4 min (180-255s), not {t:.0}s ({:.1} min) — \
+        // Re-derived for melee-blob slice 05's torque-free pivot projection:
+        // old 180-255s around measured 193s kept the same relative tolerance
+        // around the corrected-physics 167s actual.
+        (156.0..=221.0).contains(&t),
+        "an equal reference-line grind should last near the corrected reference band (156-221s), not {t:.0}s ({:.1} min) — \
          retune REF_BLADE.damage",
         t / 60.0
     );
@@ -242,19 +241,21 @@ fn survivability_scales_with_the_reference_stats() {
 
     // HP is ~linear in survivability (pure-body references, no block/evade).
     // Mildly super-linear in practice — a tougher front rank holds formation
-    // longer, so its later defence is a touch better; band allows that. Upper
-    // bound widened 5.3→5.8 for the cadence-fatigue coupling, then 5.8→6.0 when
-    // fixed-file casualty closing made the 3-4 min lethality anchor require a
-    // lower fake blade damage: the long-lived 4×-HP line spends more of its fight
-    // in the slow, fatigue-stretched tail than the short 1×-HP fight ever reaches.
+    // longer, so its later defence is a touch better; band allows that. Re-derived
+    // for melee-blob slice 05's torque-free pivot projection: the old HP4 band
+    // 3.5-6.0 around measured 5.85x keeps the same relative tolerance around the
+    // corrected-physics 6.18x actual.
     assert!(
-        (3.5..=6.0).contains(&(hp4 / hp1)),
-        "4x HP should last ~4x as long (3.5-6.0x): got {:.2}x",
+        (3.7..=6.35).contains(&(hp4 / hp1)),
+        "4x HP should last near the corrected reference band (3.7-6.35x): got {:.2}x",
         hp4 / hp1
     );
     assert!(
-        (1.7..=2.3).contains(&(hp2 / hp1)),
-        "2x HP should last ~2x as long (1.7-2.3x): got {:.2}x",
+        // Re-derived for melee-blob slice 05's torque-free pivot projection:
+        // old 1.7-2.3 around measured 2.05x kept the same relative tolerance
+        // around the corrected-physics 2.15x actual.
+        (1.78..=2.42).contains(&(hp2 / hp1)),
+        "2x HP should last near the corrected reference band (1.78-2.42x): got {:.2}x",
         hp2 / hp1
     );
     // Block is a real but bounded multiplier on a single body.

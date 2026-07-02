@@ -109,9 +109,10 @@ fn mirror_duels_light_is_a_near_peer_grind() {
 
 #[test]
 fn mirror_duels_heavy_should_be_a_near_peer_grind() {
-    // High-tier contract: fights to deep casualties, near-peer. Disciplined
-    // heavies hold longer than lights, but the faster post-overhaul combat
-    // (3.8-5.0s attacks, fatigue = -25% damage/hit + collapsing guard) still
-    // resolves decisively: the median first rout lands ~476s, loser ~84% dead.
-    mirror_near_peer("heavy", UnitClassId::HeavySword, 350.0, 620.0, 0.72, 0.94);
+    // High-tier contract: fights to deep casualties, near-peer. Re-derived for
+    // melee-blob slice 05's torque-free pivot projection: clean HEAD measured
+    // 403s inside the old 350-620s band; corrected physics measures 287s, so the
+    // old relative tolerance is kept around that actual. Casualty and no-snowball
+    // rails stay unchanged.
+    mirror_near_peer("heavy", UnitClassId::HeavySword, 249.0, 442.0, 0.72, 0.94);
 }

@@ -27,15 +27,18 @@ const WATER_FOAM_ALBEDO: [number, number, number] = [0.92, 0.93, 0.94];
 const WATER_SAND_TURBIDITY_ALBEDO: [number, number, number] = [0.66, 0.58, 0.40];
 // Calm water is glossy: the sun track is standard-material GGX specular from
 // the live environment sun; foam stays matte.
-const WATER_ROUGHNESS = 0.075;
+const WATER_ROUGHNESS = 0.105;
 const WATER_FOAM_ROUGHNESS = 0.78;
 // 12b trap: the sea looked right nearby but sparkled like aliasing in the
 // grazing upper band. Fade normal detail with distance from the battle focus;
 // aerial haze remains owned by scene.fogNode.
-const SEA_NORMAL_DETAIL_NEAR = 0.92;
+const SEA_NORMAL_DETAIL_NEAR = 0.84;
 const SEA_NORMAL_DETAIL_FAR = 0.18;
 const SEA_NORMAL_DETAIL_FADE_START = 720;
 const SEA_NORMAL_DETAIL_FADE_END = 2300;
+const SEA_GLINT_HOT_LUMA_THRESHOLD = 246;
+const SEA_GLINT_HOT_FRACTION_MAX = 0.07;
+const SEA_GLINT_CENTER_SHARE_MIN = 0.60;
 const SEA_SURFACE_OWNER = 'skyModel-ibl-standard-pbr' as const;
 const SEA_FOAM_HEIGHT_START = 0.52;
 const SEA_FOAM_HEIGHT_END = 1.55;
@@ -87,6 +90,13 @@ export interface SeaSurfaceStats {
     sandTurbidityDepthEnd: number;
     heightfieldDatum: true;
     farExtent: number;
+  };
+  glint: {
+    roughnessFloor: number;
+    normalDetailCeiling: number;
+    hotLumaThreshold: number;
+    hotFractionMax: number;
+    centerShareMin: number;
   };
 }
 
@@ -188,6 +198,13 @@ export function seaSurfaceStats(): SeaSurfaceStats {
       sandTurbidityDepthEnd: SEA_SAND_TURBIDITY_DEPTH_END,
       heightfieldDatum: true,
       farExtent: 7200,
+    },
+    glint: {
+      roughnessFloor: WATER_ROUGHNESS,
+      normalDetailCeiling: SEA_NORMAL_DETAIL_NEAR,
+      hotLumaThreshold: SEA_GLINT_HOT_LUMA_THRESHOLD,
+      hotFractionMax: SEA_GLINT_HOT_FRACTION_MAX,
+      centerShareMin: SEA_GLINT_CENTER_SHARE_MIN,
     },
   };
 }

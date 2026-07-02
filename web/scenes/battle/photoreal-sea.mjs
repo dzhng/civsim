@@ -5,7 +5,12 @@ export const meta = {
   kind: 'visual',
   world: 'battle-photoreal-sea-vista',
   tier: 'full',
-  snapshots: ['photoreal-sea/sea-horizon', 'photoreal-sea/sea-mid', 'photoreal-sea/shore-line'],
+  snapshots: [
+    'photoreal-sea/sea-horizon',
+    'photoreal-sea/sea-mid',
+    'photoreal-sea/shore-line',
+    'photoreal-sea/sun-glint',
+  ],
   describe: 'Slice 12 photoreal sea: SkyModel-reflecting PBR Gerstner surface at a fixed sea-facing battle vista.',
 };
 
@@ -66,7 +71,11 @@ export async function run(ctx) {
         sea?.surface?.foam?.slopeStart < sea?.surface?.foam?.slopeEnd &&
         sea?.surface?.shore?.heightfieldDatum === true &&
         sea?.surface?.shore?.ramp?.depthNear < sea?.surface?.shore?.ramp?.depthFar &&
-        sea?.surface?.shore?.farExtent >= 7200,
+        sea?.surface?.shore?.farExtent >= 7200 &&
+        sea?.surface?.glint?.roughnessFloor >= 0.10 &&
+        sea?.surface?.glint?.normalDetailCeiling <= 0.84 &&
+        sea?.surface?.glint?.hotFractionMax <= 0.07 &&
+        sea?.surface?.glint?.centerShareMin >= 0.60,
       JSON.stringify(sea?.surface),
     );
     ctx.check(
@@ -106,6 +115,19 @@ export async function run(ctx) {
       JSON.stringify(s),
     );
     await ctx.snap(null, 'photoreal-sea/shore-line', { shot: shore });
+
+    const glint = cropPng(full, { x: 430, y: 398, width: 420, height: 270 });
+    const glintConstants = sea?.surface?.glint ?? {};
+    const g = glintMetrics(PNG.sync.read(glint), glintConstants);
+    ctx.check(
+      'sun-glint: GGX sparkle is present, compact, and below the bloom tripwire',
+      g.hotFraction > 0.0015 &&
+        g.hotFraction < glintConstants.hotFractionMax &&
+        g.centerShare >= glintConstants.centerShareMin &&
+        g.maxLuma >= glintConstants.hotLumaThreshold,
+      JSON.stringify(g),
+    );
+    await ctx.snap(null, 'photoreal-sea/sun-glint', { shot: glint });
   } finally {
     await page.close();
   }
@@ -195,5 +217,34 @@ function shoreLineMetrics(png) {
     turquoiseFraction: Number((turquoise / total).toFixed(4)),
     deepBlueFraction: Number((deepBlue / total).toFixed(4)),
     blueFraction: Number((blue / total).toFixed(4)),
+  };
+}
+
+function glintMetrics(png, constants) {
+  let hot = 0;
+  let centerHot = 0;
+  let maxLuma = 0;
+  const total = png.width * png.height;
+  const threshold = constants?.hotLumaThreshold ?? 224;
+  const centerX0 = png.width * 0.36;
+  const centerX1 = png.width * 0.64;
+  for (let y = 0; y < png.height; y++) {
+    for (let x = 0; x < png.width; x++) {
+      const i = (y * png.width + x) * 4;
+      const r = png.data[i];
+      const g = png.data[i + 1];
+      const b = png.data[i + 2];
+      const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      maxLuma = Math.max(maxLuma, luma);
+      if (luma >= threshold && Math.max(r, g, b) - Math.min(r, g, b) < 52) {
+        hot++;
+        if (x >= centerX0 && x <= centerX1) centerHot++;
+      }
+    }
+  }
+  return {
+    hotFraction: Number((hot / total).toFixed(4)),
+    centerShare: Number((hot === 0 ? 0 : centerHot / hot).toFixed(4)),
+    maxLuma: Number(maxLuma.toFixed(2)),
   };
 }

@@ -12,21 +12,30 @@ photoreal register the `aesthetics` skill targets.
 
 ## Next Agent Prompt
 
-**Status (updated 2026-07-02):** the **camera spine `01`–`05b` is COMPLETE and
-landed on this branch** (`05b` = commit `e86f68dd`: one projector `projectWorld`,
-one reverse-Z `depth32float` convention, legacy 2.5D deleted and grep-proofed);
-slice `06` is DONE with a substrate verdict (below); the **photoreal ladder
-`07`–`17` is AUTHORED** (slice files `slices/07-*.md` … `17-*.md`; adoption seam,
-scaffolding ledger, single-owner invariants, and standing gates in **"Photoreal
-ladder invariants"** below — read that section before implementing any ladder
-slice); **slice `07` is DONE** (below); and **slice `08` is DONE — `08b`, THE
-atomic production flip, landed: three.js WebGPU + TSL owns battle world
-rendering in production.** Every later look slice lands in the real game.
+**Status (updated 2026-07-02): MERGED TO MAIN.** Everything below through
+`08b` landed on `main` (merge of `worktree-3d-perspective-renderer`, incl. the
+reconciliation with the `hud-housings` HUD and a one-time re-bless of 7 battle
+baselines for the combined new-HUD + real-camera look; full gate set green on
+the merged tree — cargo workspace, verify/verify:full, scene:renderer,
+scene:renderer:campaign, seating tripwire `match=true`, test:unit/test:ui/
+vitest, typecheck, and `perf:30k` hardware GPU median 3.05 ms mid / 2.54 ms
+vista). The **camera spine `01`–`05b` is COMPLETE** (`05b` = commit
+`e86f68dd`: one projector `projectWorld`, one reverse-Z `depth32float`
+convention, legacy 2.5D deleted and grep-proofed); slice `06` is DONE with a
+substrate verdict (below); the **photoreal ladder `07`–`17` is AUTHORED**
+(slice files `slices/07-*.md` … `17-*.md`; adoption seam, scaffolding ledger,
+single-owner invariants, and standing gates in **"Photoreal ladder
+invariants"** below — read that section before implementing any ladder slice);
+**slice `07` is DONE** (below); and **slice `08` is DONE — `08b`, THE atomic
+production flip, landed: three.js WebGPU + TSL owns battle world rendering in
+production.** Every later look slice lands in the real game.
 
 **Exact next pickup point:** **`09` — lighting core**
 (`slices/09-lighting-core.md`): physical sun + IBL + ACES from
-`CIVSIM_ENVIRONMENTS` on the now-production photoreal battle world. The
-standing gates ("Photoreal ladder invariants") apply from here on every slice.
+`CIVSIM_ENVIRONMENTS` on the now-production photoreal battle world. **The
+ladder continues from `main`** — future slices land on main as individually
+gated increments, not on a long-lived branch. The standing gates ("Photoreal
+ladder invariants") apply from here on every slice.
 
 **Slice `08b` is DONE (this branch, 2026-07-02) — THE atomic production flip.**
 `BattleRenderer` (public API unmoved) renders through `PhotorealBattleWorld`

@@ -14,13 +14,21 @@ contact. Deps: `11` (shadows to sit in); parallel with `12`/`13`.
   `packages/photoreal-renderer/src/battle/crowdLayer.ts`: bronze/iron metalness,
   linen/leather roughness, faction accent masks **legible at gameplay zoom**
   (aesthetics: faction reads before class).
-- **14b — 30k LOD/impostors.** Distance tiers + far impostors on the three crowd,
-  **REUSING `packages/crowd-runtime/src/lod.ts` semantics** (tiers, hysteresis —
-  the LOD policy owner does not fork). This **absorbs the deferred bespoke `04e`**
+- **14b — 30k LOD/impostors + per-instance frustum culling.** Distance tiers +
+  far impostors on the three crowd, **REUSING
+  `packages/crowd-runtime/src/lod.ts` semantics** (tiers, hysteresis — the LOD
+  policy owner does not fork). This **absorbs the deferred bespoke `04e`**
   (projected screen-height with a min-size floor) — build it once, here, on the
   surviving substrate. Far impostors replace the frameShell marker parity layer
-  from `08`. The brute-force spike headroom is spent by `09`–`13`; this is the
-  ladder's true perf lever.
+  from `08`. **Frustum culling is explicit scope, not a free rider:** three culls
+  an `InstancedMesh` as ONE whole-mesh bounding sphere, so per-instance culling
+  needs CPU instance compaction against the `camera3d` frustum (what the bespoke
+  prong did — 13.4k of 30.5k culled at vista) or GPU-driven culling; pick on
+  evidence, publish culled counts in stats, and note that `11`'s shadow cascades
+  re-render the crowd — cull against the UNION of view + active cascade frusta or
+  shadows will pop at the screen edge. The brute-force spike headroom is spent by
+  `09`–`13`; this is the ladder's true perf lever, judged by the `04f` gate at
+  mid AND vista.
 - **14c — grounding/contact AO.** Cheap contact darkening under soldiers (analytic
   contact term or blob AO node) — the "standing on the ground, not pasted" fix;
   distinct from `11`'s cast shadows.

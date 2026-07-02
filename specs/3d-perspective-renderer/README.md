@@ -57,7 +57,7 @@ map-edge seams + mountain shelf + crag-base shadow gap (`13`), far-crowd smear
 | `10a` physical sky | `SkyModel` sky-view LUT baked by FRAGMENT pass (tier `skyview-fragment-lut`, same tier on SwiftShader); equirect stand-in DELETED; zero re-blesses | `ef2c491d` |
 | `10b` aerial owner | `aerialPerspective.ts` on `scene.fogNode` is THE one haze source; `THREE.Fog` + inline hazes DELETED; ground-focus depth + true view-direction in-scatter | `027efabe` |
 | `10c` preset moods | overcast litmus PASSES (lum 191/sat 6.2 vs ref 176/7.6); `SUN_TOWARD_VIEW` π/2→π + golden elev 0.35; ~70 re-blesses across 10b+c; 3.14/3.18 ms | `04c5dcb4` |
-| `11` CSM sun shadows | `shadowRig` seam — **three CSMShadowNode addon** (3×2048 from the live camera3d projection) + `'single'` SwiftShader tier asserted by name; blob-shadow decals DELETED; ground receives-not-casts (recorded); ZERO existing re-blesses + 6 new baselines; **5.86/6.39 ms (crowd shadow cost +2.7/+3.2)** | — |
+| `11` CSM sun shadows | `shadowRig` seam — **three CSMShadowNode addon** (3×2048 from the live camera3d projection) + `'single'` SwiftShader tier asserted by name; blob-shadow decals DELETED; ground receives-not-casts (recorded); ZERO existing re-blesses + 6 new baselines; **5.86/6.39 ms (crowd shadow cost +2.7/+3.2)** | `f469a697` |
 
 ### Active blockers / coordination warnings
 

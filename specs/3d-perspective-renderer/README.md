@@ -12,19 +12,20 @@ photoreal register the `aesthetics` skill targets.
 
 ## Next Agent Prompt
 
-**Status (updated 2026-07-02):** camera spine `01`–`05a` landed on this branch
-(`05b` authored, landing on the spine track); slice `06` is DONE with a substrate
-verdict (below); the **photoreal ladder `07`–`17` is AUTHORED** (slice files
-`slices/07-*.md` … `17-*.md`; adoption seam, scaffolding ledger, single-owner
-invariants, and standing gates in **"Photoreal ladder invariants"** below — read
-that section before implementing any ladder slice); and **slice `07` is DONE**
-(below) — the ladder's foundation exists and the 06 spike is gone.
+**Status (updated 2026-07-02):** the **camera spine `01`–`05b` is COMPLETE and
+landed on this branch** (`05b` = commit `e86f68dd`: one projector `projectWorld`,
+one reverse-Z `depth32float` convention, legacy 2.5D deleted and grep-proofed);
+slice `06` is DONE with a substrate verdict (below); the **photoreal ladder
+`07`–`17` is AUTHORED** (slice files `slices/07-*.md` … `17-*.md`; adoption seam,
+scaffolding ledger, single-owner invariants, and standing gates in **"Photoreal
+ladder invariants"** below — read that section before implementing any ladder
+slice); and **slice `07` is DONE** (below) — the ladder's foundation exists and
+the 06 spike is gone.
 
 **Exact next pickup point:** land `04f` (30k perf gate scene — the instrument
-every ladder slice re-runs) and `05b` (legacy projector collapse) on the spine
-track — **both must land before `08b`** — then start the ladder proper at `08a`
-(`slices/08a-*.md`, `PhotorealBattleWorld` parity assembly on the `07`
-foundation).
+every ladder slice re-runs; **must land before `08b`**), then start the ladder
+proper at `08a` (`slices/08a-*.md`, `PhotorealBattleWorld` parity assembly on the
+`07` foundation).
 
 **Slice `07` is DONE (this branch, 2026-07-02).** `packages/photoreal-renderer/`
 (source-only) is the three.js WebGPU + TSL substrate on the camera3d spine:

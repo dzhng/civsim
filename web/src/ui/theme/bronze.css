@@ -18,15 +18,113 @@
  * Loaded render-blocking from <head> before index.html's inline <style>, so the
  * tokens are defined before first paint (no FOUC). */
 :root {
-  --bronze-fill: linear-gradient(#5e4527, #2a1f11);
-  --bronze-edge: linear-gradient(#c79a54 0%, #6e5128 48%, #241a0e 100%);
+  /* Warm reddish-bronze (slice 09 fidelity pass, David) — the fill leans amber/red
+   * over the old cool brown; the edge is a brighter cast-metal rim grading to a
+   * dark red-black. */
+  --bronze-fill: linear-gradient(#8a5327, #3a1509);
+  --bronze-edge: linear-gradient(#ecb964 0%, #a25c27 42%, #2f1206 100%);
+  /* Deeper cast bevel: a brighter warm rim-light, a dark inner wall, and an
+   * engraved bronze groove ring so the housing reads as cast metal, not flat
+   * wood. */
   --bronze-frame:
-    inset 0 1px 0 rgba(236, 200, 132, 0.6), inset 0 0 0 2px rgba(16, 10, 5, 0.7),
-    inset 0 -2px 6px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(182, 142, 80, 0.6),
-    0 7px 18px rgba(0, 0, 0, 0.6);
-  --bronze-ink: #e7cfa0;
-  --bronze-ink-bright: #f6e4ba;
-  --well-bg: #1a130b;
+    inset 0 1px 0 rgba(248, 214, 148, 0.72), inset 0 0 0 2px rgba(20, 9, 4, 0.8),
+    inset 0 0 0 3px rgba(150, 104, 54, 0.5), inset 0 -3px 7px rgba(0, 0, 0, 0.62),
+    0 0 0 1px rgba(200, 150, 82, 0.72), 0 8px 20px rgba(0, 0, 0, 0.64);
+  --bronze-ink: #ecd0a2;
+  --bronze-ink-bright: #f8e6bc;
+  --well-bg: #1e0f0a;
   --well-shadow: inset 0 0 0 1px rgba(150, 114, 62, 0.3), inset 0 0 6px rgba(0, 0, 0, 0.7);
   --well-hover: inset 0 0 0 1px rgba(201, 165, 99, 0.7), inset 0 0 6px rgba(0, 0, 0, 0.6);
+}
+
+/* The shared worn-bronze housing — opaque metal fill inside a beveled edge,
+ * framed with depth. This is the plain chassis behind the battle HUD's #hud /
+ * #toolbar / #minimap surfaces and the three bottom cards (specs/done/hud-housings).
+ * Each surface still sets its own border-width, position, and size; this class
+ * owns the MATERIAL only. NOT a translucent web pill. Lives here (not in a
+ * component stylesheet) because both the game and the /renderer lab route load
+ * this globally-linked sheet, but only the game bundles the HUD component CSS. */
+.hud-chassis {
+  border-style: solid;
+  border-color: transparent;
+  border-radius: 5px;
+  background:
+    var(--bronze-fill) padding-box,
+    var(--bronze-edge) border-box;
+  box-shadow: var(--bronze-frame);
+}
+
+/* Bronze tooltip chip for icon-only HUD controls (Radix content; see Tooltip.tsx).
+ * Opaque worn-bronze, not a slate webapp chip. Multi-line copy is honored
+ * (white-space: pre-line) so the "Hotkey: X" first line reads as its own row.
+ * pointer-events:none — it's a label, never a click target. */
+.hud-tooltip {
+  max-width: 260px;
+  padding: 6px 9px;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  background:
+    var(--bronze-fill) padding-box,
+    var(--bronze-edge) border-box;
+  box-shadow: var(--bronze-frame);
+  color: var(--bronze-ink);
+  font:
+    11px/1.4 ui-monospace,
+    Menlo,
+    monospace;
+  white-space: pre-line;
+  letter-spacing: 0.2px;
+  pointer-events: none;
+  z-index: 60;
+  user-select: none;
+}
+.hud-tooltip-arrow {
+  fill: #6e5128;
+}
+
+/* The richer riveted tray — corner rivets + brushed grain over the shared
+ * fill/edge, with a deeper 6-layer frame. The bottom-center cards+controls
+ * housing (#battle-center). Overrides .hud-chassis's plain fill/shadow. */
+.hud-chassis--tray {
+  border-width: 4px;
+  background:
+    radial-gradient(
+        circle at 9px 9px,
+        rgba(234, 204, 142, 0.95) 0 1.1px,
+        rgba(58, 42, 22, 0.95) 1.5px 2.7px,
+        transparent 3.1px
+      )
+      padding-box,
+    radial-gradient(
+        circle at calc(100% - 9px) 9px,
+        rgba(234, 204, 142, 0.95) 0 1.1px,
+        rgba(58, 42, 22, 0.95) 1.5px 2.7px,
+        transparent 3.1px
+      )
+      padding-box,
+    radial-gradient(
+        circle at 9px calc(100% - 9px),
+        rgba(234, 204, 142, 0.95) 0 1.1px,
+        rgba(58, 42, 22, 0.95) 1.5px 2.7px,
+        transparent 3.1px
+      )
+      padding-box,
+    radial-gradient(
+        circle at calc(100% - 9px) calc(100% - 9px),
+        rgba(234, 204, 142, 0.95) 0 1.1px,
+        rgba(58, 42, 22, 0.95) 1.5px 2.7px,
+        transparent 3.1px
+      )
+      padding-box,
+    repeating-linear-gradient(96deg, rgba(255, 228, 168, 0.035) 0 2px, rgba(0, 0, 0, 0.04) 2px 4px)
+      padding-box,
+    var(--bronze-fill) padding-box,
+    var(--bronze-edge) border-box;
+  box-shadow:
+    inset 0 1px 0 rgba(236, 200, 132, 0.65),
+    inset 0 0 0 2px rgba(16, 10, 5, 0.78),
+    inset 0 0 0 3px rgba(158, 120, 66, 0.55),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(182, 142, 80, 0.65),
+    0 9px 24px rgba(0, 0, 0, 0.68);
 }

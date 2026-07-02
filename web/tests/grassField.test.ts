@@ -1,15 +1,15 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import assert from "node:assert/strict";
+import test from "node:test";
 import {
   GRASS_FIELD_PACKED_STRIDE_FLOATS,
   sampleGrassField,
   type GrassFieldConfig,
   type GrassFieldRecord,
-} from '../../packages/game-renderer/src/battle/grassField.ts';
-import { terrainHeightField } from '../../packages/game-renderer/src/battle/terrainFeatures.ts';
-import type { BattleTerrainGrid } from '../../packages/game-renderer/src/battle/terrainFeatures.ts';
+} from "../../packages/game-renderer/src/battle/grassField.ts";
+import { terrainHeightField } from "../../packages/game-renderer/src/battle/terrainFeatures.ts";
+import type { BattleTerrainGrid } from "../../packages/game-renderer/src/battle/terrainFeatures.ts";
 
-test('grass field records are byte-stable for the same seed and focus', () => {
+test("grass field records are byte-stable for the same seed and focus", () => {
   const grid = makeGrid(6, 6, 10);
   const field = terrainHeightField(grid);
   const config = baseConfig();
@@ -21,11 +21,14 @@ test('grass field records are byte-stable for the same seed and focus', () => {
   assert.deepEqual(a.stats, b.stats);
   assert.equal(a.stats.recordCapacity, config.maxRecords);
   assert.equal(a.stats.packedStrideFloats, GRASS_FIELD_PACKED_STRIDE_FLOATS);
-  assert.equal(a.stats.packedStrideBytes, GRASS_FIELD_PACKED_STRIDE_FLOATS * Float32Array.BYTES_PER_ELEMENT);
+  assert.equal(
+    a.stats.packedStrideBytes,
+    GRASS_FIELD_PACKED_STRIDE_FLOATS * Float32Array.BYTES_PER_ELEMENT,
+  );
   assert.equal(a.stats.packedBytes, a.packedRecords.byteLength);
 });
 
-test('grass field snap keeps sub-cell focus moves from reshuffling records', () => {
+test("grass field snap keeps sub-cell focus moves from reshuffling records", () => {
   const grid = makeGrid(7, 7, 10);
   const field = terrainHeightField(grid);
   const a = sampleGrassField(grid, field, {
@@ -44,13 +47,8 @@ test('grass field snap keeps sub-cell focus moves from reshuffling records', () 
   assert.deepEqual(Array.from(a.packedRecords), Array.from(b.packedRecords));
 });
 
-test('grass field rejects blocked terrain tints while preserving allowed cover', () => {
-  const tint = new Uint8Array([
-    0, 1, 2, 0,
-    3, 0, 5, 0,
-    0, 4, 6, 0,
-    0, 0, 0, 0,
-  ]);
+test("grass field rejects blocked terrain tints while preserving allowed cover", () => {
+  const tint = new Uint8Array([0, 1, 2, 0, 3, 0, 5, 0, 0, 4, 6, 0, 0, 0, 0, 0]);
   const grid = makeGrid(4, 4, 10, tint);
   const field = terrainHeightField(grid);
   const snapshot = sampleGrassField(grid, field, {
@@ -65,12 +63,15 @@ test('grass field rejects blocked terrain tints while preserving allowed cover',
   });
 
   assert.ok(snapshot.stats.rejectedTintCells >= 4, JSON.stringify(snapshot.stats));
-  assert.equal(snapshot.records.some((record) => [1, 2, 3, 5].includes(record.tint)), false);
+  assert.equal(
+    snapshot.records.some((record) => [1, 2, 3, 5].includes(record.tint)),
+    false,
+  );
   assert.ok(snapshot.stats.openGrassCells > 0, JSON.stringify(snapshot.stats));
   assert.ok(snapshot.stats.forestCells > 0, JSON.stringify(snapshot.stats));
 });
 
-test('grass field rejects steep slopes from the shared terrain normal', () => {
+test("grass field rejects steep slopes from the shared terrain normal", () => {
   const height = new Float32Array(16);
   for (let cy = 0; cy < 4; cy++) {
     for (let cx = 0; cx < 4; cx++) height[cy * 4 + cx] = cx * 32;
@@ -92,7 +93,7 @@ test('grass field rejects steep slopes from the shared terrain normal', () => {
   assert.ok(snapshot.stats.rejectedSlopeCells > 0, JSON.stringify(snapshot.stats));
 });
 
-test('grass field records expose finite packed blade and clump data', () => {
+test("grass field records expose finite packed blade and clump data", () => {
   const grid = makeGrid(6, 6, 10);
   const field = terrainHeightField(grid);
   const snapshot = sampleGrassField(grid, field, baseConfig());
@@ -105,7 +106,7 @@ test('grass field records expose finite packed blade and clump data', () => {
   for (const record of snapshot.records) assertRecordIsFinite(record);
 });
 
-test('grass field publishes explicit capacity and cap counters', () => {
+test("grass field publishes explicit capacity and cap counters", () => {
   const grid = makeGrid(8, 8, 10);
   const field = terrainHeightField(grid);
   const snapshot = sampleGrassField(grid, field, {
@@ -138,7 +139,13 @@ function baseConfig(): GrassFieldConfig {
   };
 }
 
-function makeGrid(w: number, h: number, cell: number, tint?: Uint8Array, height?: Float32Array): BattleTerrainGrid {
+function makeGrid(
+  w: number,
+  h: number,
+  cell: number,
+  tint?: Uint8Array,
+  height?: Float32Array,
+): BattleTerrainGrid {
   return {
     w,
     h,
@@ -173,7 +180,10 @@ function assertRecordIsFinite(record: GrassFieldRecord): void {
   assert.ok(scalars.every(Number.isFinite), JSON.stringify(record));
   const normalLength = Math.hypot(record.normalX, record.normalY, record.normalZ);
   assert.ok(Math.abs(normalLength - 1) < 1e-5, JSON.stringify({ record, normalLength }));
-  assert.ok(record.lodTier === 0 || record.lodTier === 1 || record.lodTier === 2, JSON.stringify(record));
+  assert.ok(
+    record.lodTier === 0 || record.lodTier === 1 || record.lodTier === 2,
+    JSON.stringify(record),
+  );
   assert.ok(record.clumpSeed >= 0 && record.clumpSeed <= 0x00ff_ffff, JSON.stringify(record));
   assert.ok(record.bladeSeed >= 0 && record.bladeSeed <= 0x00ff_ffff, JSON.stringify(record));
 }

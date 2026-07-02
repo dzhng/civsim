@@ -1,3 +1,3 @@
-import { register } from 'node:module';
+import { register } from "node:module";
 
-register('./ts-extension-loader.mjs', import.meta.url);
+register("./ts-extension-loader.mjs", import.meta.url);

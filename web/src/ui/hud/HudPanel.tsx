@@ -1,10 +1,11 @@
 import { Fragment } from "react";
+import { type ArmySummary } from "../../battle/armySummary";
 
-// S6c: the top-left unit info panel (#hud) as React — a read-only ≤5Hz readout.
-// BattleScene computes HudData each throttled tick (the same fields the old
-// updateHud built into an innerHTML string) and this renders it. Multi-line text
-// uses <br> between lines exactly like the old `lines.join('<br>')`; detail lines
-// already have their leading indent as a real non-breaking space (was &nbsp;).
+// The bottom-left info card (specs/done/hud-housings). A read-only ≤5Hz readout:
+// BattleScene computes HudData each throttled tick and this renders it. Shows the
+// selected/hovered unit when there is one, otherwise an army-roster summary so the
+// card is never empty. (The old debug header — soldiers/fps/tick — is gone; FPS
+// now lives in its own bare top-left readout, see BattleHud.)
 
 export interface HudUnit {
   thumb?: string;
@@ -19,8 +20,10 @@ export interface HudUnit {
 }
 
 export interface HudData {
-  header: string[];
+  /** The selected or hovered unit, if any. */
   unit?: HudUnit;
+  /** Army-wide summary shown when no unit is selected/hovered. */
+  roster?: ArmySummary;
 }
 
 function lines(list: string[]) {
@@ -43,27 +46,51 @@ function Bar({ label, frac, color }: { label: string; frac: number; color: strin
   );
 }
 
-export function HudPanel({ data }: { data: HudData }) {
-  const u = data.unit;
+/** Green→amber→red by fraction, matching the per-unit HP bar's thresholds. */
+function strengthColor(frac: number) {
+  return frac > 0.5 ? "#5cba46" : frac > 0.25 ? "#d6b13a" : "#cf4a3a";
+}
+
+function UnitReadout({ u }: { u: HudUnit }) {
   return (
     <>
-      {lines(data.header)}
-      {u ? (
-        <>
-          <div className="hud-head">
-            {u.thumb ? <img className="hud-port" src={u.thumb} alt="" /> : null}
-            <div>
-              <div className="hud-name">{u.cls}</div>
-              <div className="hud-meta">{u.meta}</div>
-            </div>
-          </div>
-          <Bar label="HP" frac={u.hpFrac} color={u.hpColor} />
-          <Bar label="COH" frac={u.cohesion} color="#d9c75a" />
-          <Bar label="STA" frac={u.fatigue} color="#d9a13b" />
-          <Bar label="MOR" frac={u.morale} color="#c2554e" />
-          {u.detail.length ? <div className="hud-detail">{lines(u.detail)}</div> : null}
-        </>
-      ) : null}
+      <div className="hud-head">
+        {u.thumb ? <img className="hud-port" src={u.thumb} alt="" /> : null}
+        <div>
+          <div className="hud-name">{u.cls}</div>
+          <div className="hud-meta">{u.meta}</div>
+        </div>
+      </div>
+      <Bar label="HP" frac={u.hpFrac} color={u.hpColor} />
+      <Bar label="COH" frac={u.cohesion} color="#d9c75a" />
+      <Bar label="STA" frac={u.fatigue} color="#d9a13b" />
+      <Bar label="MOR" frac={u.morale} color="#c2554e" />
+      {u.detail.length ? <div className="hud-detail">{lines(u.detail)}</div> : null}
     </>
   );
+}
+
+function RosterReadout({ s }: { s: ArmySummary }) {
+  const standing = s.routing > 0 ? `${s.routing} routing` : "holding the line";
+  return (
+    <>
+      <div className="hud-head">
+        <div>
+          <div className="hud-name">Army</div>
+          <div className="hud-meta">
+            {s.unitsAlive}/{s.unitsTotal} units · {standing}
+          </div>
+        </div>
+      </div>
+      <Bar label="STR" frac={s.strengthFrac} color={strengthColor(s.strengthFrac)} />
+      <Bar label="MOR" frac={s.morale} color="#c2554e" />
+      <Bar label="COH" frac={s.cohesion} color="#d9c75a" />
+    </>
+  );
+}
+
+export function HudPanel({ data }: { data: HudData }) {
+  if (data.unit) return <UnitReadout u={data.unit} />;
+  if (data.roster) return <RosterReadout s={data.roster} />;
+  return null;
 }

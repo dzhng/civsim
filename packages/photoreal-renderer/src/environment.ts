@@ -1,14 +1,16 @@
 // applyCivsimEnvironment — dresses a PhotorealWorld from the ONE environment
 // preset owner (CIVSIM_ENVIRONMENTS / BATTLE_ENVIRONMENTS in
 // packages/game-renderer/src/environment/environment.ts): the physical sky
-// (SkyModel — background dome + IBL + sun tint, slice 10a), the sun
-// DirectionalLight, an optional THREE.Fog haze (stand-in, dies at 10b), and
-// toneMappingExposure. New physical fields are ADDED to that owner, never
-// forked into a parallel table — everything here is a pure function of the
-// preset (pinned by web/tests/photorealEnvironment.test.ts).
-import { Color, DirectionalLight, Fog, SRGBColorSpace } from 'three';
+// (SkyModel — background dome + IBL + sun tint, slice 10a), the ONE
+// aerial-perspective owner (scene.fogNode, slice 10b), the sun
+// DirectionalLight, and toneMappingExposure. New physical fields are ADDED to
+// that owner, never forked into a parallel table — everything here is a pure
+// function of the preset (pinned by web/tests/photorealEnvironment.test.ts).
+import { Color, DirectionalLight } from 'three';
+import type { Node } from 'three/webgpu';
 import type { CivsimEnvironment, CivsimEnvironmentId } from '../../game-renderer/src/environment/environment';
 import { SkyModel, skyModelParams } from './atmosphere/skyModel';
+import { aerialIdentity, aerialPerspectiveNode } from './atmosphere/aerialPerspective';
 import type { PhotorealWorld } from './world';
 
 type Rgb = [number, number, number];
@@ -21,7 +23,6 @@ export interface PhotorealEnvironmentSpec {
    *  atmospheric transmittance (slice 10a), never the authored keyColor. */
   sunColor: Rgb;
   sunIntensity: number;
-  hazeColor: Rgb;
   exposure: number;
   /** Atmospheric turbidity — drives the physical sky + aerial haze. */
   turbidity: number;
@@ -46,7 +47,6 @@ export function photorealEnvironment(env: CivsimEnvironment): PhotorealEnvironme
     ],
     sunColor: [...sky.sunLightColor],
     sunIntensity: env.physical.sunIntensity,
-    hazeColor: [...env.hazeColor],
     exposure: env.physical.exposure,
     turbidity: env.physical.turbidity,
     environmentIntensity: ENVIRONMENT_INTENSITY,
@@ -54,9 +54,9 @@ export function photorealEnvironment(env: CivsimEnvironment): PhotorealEnvironme
 }
 
 export interface PhotorealEnvironmentOptions {
-  /** Linear fog in the preset haze colour; the distances are per-scene framing
-   *  choices, the colour is the preset's. Stand-in — dies at 10b. */
-  fog?: { near: number; far: number };
+  /** Observer point for aerial optical depth (see aerialPerspectiveNode) —
+   *  the battle world passes its camera ground focus. Default: the eye. */
+  aerialObserver?: Node<'vec3'>;
 }
 
 export function applyCivsimEnvironment(
@@ -75,7 +75,11 @@ export function applyCivsimEnvironment(
   scene.add(sky.mesh);
   scene.environment = sky.lut.texture;
   scene.environmentIntensity = spec.environmentIntensity;
-  world.atmosphere = { sky: sky.identity() };
+
+  // The ONE aerial-perspective owner (10b): every fog-enabled world material
+  // hazes through this hook; the in-scatter colour is the sky itself.
+  scene.fogNode = aerialPerspectiveNode(sky, env, options.aerialObserver);
+  world.atmosphere = { sky: sky.identity(), aerial: aerialIdentity(env) };
 
   // The sun: direction from the preset angles, colour from the SAME sky
   // parameterization (linear transmittance — no display conversion).
@@ -85,16 +89,7 @@ export function applyCivsimEnvironment(
   scene.add(sun);
   scene.add(sun.target);
 
-  if (options.fog) {
-    scene.fog = new Fog(displayColor(spec.hazeColor), options.fog.near, options.fog.far);
-  }
   world.renderer.toneMappingExposure = spec.exposure;
   world.environmentId = spec.id;
   return spec;
-}
-
-/** Preset haze colours are display-referred (the bespoke swapchain values);
- *  convert at this seam so the scene lights in linear space. */
-function displayColor([r, g, b]: Rgb): Color {
-  return new Color().setRGB(r, g, b, SRGBColorSpace);
 }

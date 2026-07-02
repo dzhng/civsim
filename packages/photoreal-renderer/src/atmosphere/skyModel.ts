@@ -346,9 +346,13 @@ export class SkyModel {
     const sky = mix(clearSky, overcastSky, p.overcast).toVar();
 
     // Below the horizon: fade to the ground-bounce tint (the IBL's up-welling
-    // term). The visible battle world always covers these directions.
+    // term). Under overcast the fog owns the ground view — up-welling matches
+    // the fog's brightness instead of darkening to bare-earth bounce.
+    const groundTint = GROUND_BOUNCE_TINT.map(
+      (c) => c + (0.88 - c) * p.overcast,
+    ) as unknown as Rgb;
     const ground = smoothstep(float(0.0), float(0.35), dirIn.z.negate());
-    return mix(sky, sky.mul(vec3(...GROUND_BOUNCE_TINT)), ground);
+    return mix(sky, sky.mul(vec3(...groundTint)), ground);
   }
 }
 

@@ -18,8 +18,7 @@ import {
   type BattleEnvironment,
 } from '../../../game-renderer/src/environment/environment';
 import {
-  chartDepthDistNode, linearAlbedo, rgbNode, rotateYawN, smoothstepN, viewNormalNode,
-  type BattleFrameUniforms,
+  linearAlbedo, rgbNode, rotateYawN, smoothstepN, viewNormalNode,
 } from './battleTsl';
 import { RENDER_ORDER } from './terrainLayer';
 
@@ -48,9 +47,9 @@ export class PhotorealGrassField {
   private meshTriangles = 0;
   private readonly env: BattleEnvironment;
 
-  constructor(scene: THREE.Scene, env: BattleEnvironment, frame: BattleFrameUniforms) {
+  constructor(scene: THREE.Scene, env: BattleEnvironment) {
     this.env = env;
-    this.mesh = new THREE.Mesh(new THREE.InstancedBufferGeometry(), this.material(env, frame));
+    this.mesh = new THREE.Mesh(new THREE.InstancedBufferGeometry(), this.material());
     this.mesh.name = 'battle-grass';
     this.mesh.frustumCulled = false;
     this.mesh.renderOrder = RENDER_ORDER.worldOpaque;
@@ -58,10 +57,8 @@ export class PhotorealGrassField {
     scene.add(this.mesh);
   }
 
-  private material(env: BattleEnvironment, frame: BattleFrameUniforms): THREE.MeshStandardNodeMaterial {
-    const e = env.environment;
+  private material(): THREE.MeshStandardNodeMaterial {
     const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, roughness: 0.9, metalness: 0 });
-    material.fog = false;
     const local = attribute<'vec3'>('position', 'vec3');
     const normal = attribute<'vec3'>('gNormal', 'vec3');
     const colorAndAlpha = attribute<'vec4'>('gColor', 'vec4');
@@ -107,7 +104,6 @@ export class PhotorealGrassField {
     const vAlpha = varying(colorAndAlpha.a);
     const vHeightT = varying(heightT).toVar();
     const vTerrainT = varying(terrainT).toVar();
-    const vFog = varying(smoothstepN(620.0, 1650.0, chartDepthDistNode(world.xy, frame)).mul(0.64));
 
     // NEUTRAL blade albedo: per-blade shade/tip/stubble variation stays (it is
     // material character), the baked lambert/key-fill/exposure grade is gone —
@@ -120,9 +116,7 @@ export class PhotorealGrassField {
     let albedo = mix(base, terrainStubble, vTerrainT.mul(0.58));
     const neutralMeadow = vec3(0.58, 0.66, 0.48);
     albedo = mix(albedo, neutralMeadow, vTerrainT.mul(0.55).add(0.20));
-    // Aerial stand-in (dies at 10b, the one aerial-perspective owner).
     albedo = albedo.mul(GRASS_BAKED_LIGHT_EXTRACTION);
-    albedo = mix(albedo, rgbNode(e.hazeColor), vFog);
     material.colorNode = vec4(linearAlbedo(clamp(albedo, vec3(0.0), vec3(1.0))), vAlpha);
     return material;
   }

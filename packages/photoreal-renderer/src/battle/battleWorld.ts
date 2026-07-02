@@ -9,12 +9,13 @@
 // buildCrowdInstances + terrainHeightAt.
 //
 // Scaffolding ledger rows owned here (README "Photoreal ladder invariants"):
-//   - THREE.Fog haze stand-in matched to hazeColor — dies at 10b.
 //   - Blob-shadow decal replica (crowdLayer) — dies at 11.
 //   - Parity-derived Gerstner sea shading (seaLayer) — dies at 12b–d.
-// (The 10a row — procedural equirect IBL — is DEAD: SkyModel owns the sky.)
+// (10a's procedural-equirect IBL and 10b's THREE.Fog + per-material haze
+// stand-ins are DEAD: SkyModel owns the sky, aerialPerspective the haze.)
 // 08b swapped BattleRenderer's internals onto this class on the same canvas.
 import * as THREE from 'three/webgpu';
+import { vec3 } from 'three/tsl';
 import { buildCrowdInstances, type CrowdInstance } from '../../../crowd-runtime/src/instanceData';
 import {
   battleEnvironmentStats,
@@ -34,7 +35,7 @@ import { buildBattleTerrainGrass } from '../../../game-renderer/src/battle/grass
 import { featuresToBattleScenery } from '../../../game-renderer/src/battle/terrainScenery';
 import { terrainHeightAt, type TerrainHeightField } from '../../../game-renderer/src/terrain/heightField';
 import type { MarkerInstance } from '../../../renderer-core/src/frameShell';
-import { eyePosition, type Camera3DParams } from '../../../renderer-core/src/camera3d';
+import type { Camera3DParams } from '../../../renderer-core/src/camera3d';
 import {
   loadClassVats,
   loadPlaceholderKit,
@@ -140,19 +141,19 @@ export class PhotorealBattleWorld {
 
     // Slice 09 — lighting core: sun DirectionalLight + ACES tonemap +
     // per-preset exposure; slice 10a — the physical sky (SkyModel dome +
-    // sky-view-LUT IBL, one source) replaced the procedural-equirect + haze
-    // clear. All mapped from the ONE preset owner. The THREE.Fog stand-in
-    // keeps its 08a constraint — the top-down overview parks the eye ~3.2 km
-    // out (rig distance 2×min(map w,h)), so the ramp starts past that; it
-    // only ever touches beyond-battle distances until 10b replaces it with
-    // the one aerial-perspective owner. (The reversed-depth sort comparators
+    // sky-view-LUT IBL, one source); slice 10b — the ONE aerial-perspective
+    // owner (scene.fogNode) hazes every fog-enabled world material, replacing
+    // the THREE.Fog stand-in AND the per-material albedo haze mixes. All
+    // mapped from the ONE preset owner. (The reversed-depth sort comparators
     // moved to PhotorealWorld.create at 10a — substrate-wide contract.)
     applyCivsimEnvironment(world, env.environment, {
-      fog: { near: 3400, far: 8200 },
+      // Aerial optical depth measured from the player's ground focus — the
+      // tactical rig eye parks km out and would white gameplay framings out.
+      aerialObserver: vec3(this.frame.focus, 0.0),
     });
 
     this.background = new BattleBackgroundQuads(scene, this.frame);
-    this.grass = new PhotorealGrassField(scene, env, this.frame);
+    this.grass = new PhotorealGrassField(scene, env);
     this.scenery = new PhotorealScenery(scene);
     this.crowd = new PhotorealCrowd(scene, meshes, vats, kit);
     this.soldierShadows = new PhotorealSoldierShadows(scene);
@@ -279,7 +280,7 @@ export class PhotorealBattleWorld {
     }
     const groundMesh = buildBattleGroundMesh(grid, field, this.groundCover);
     this.groundTriangles = groundMesh.triangles;
-    this.ground = createGroundMesh(this.environment, this.frame, groundMesh);
+    this.ground = createGroundMesh(this.frame, groundMesh);
     scene.add(this.ground);
 
     if (this.horizonBlockers) {
@@ -296,9 +297,9 @@ export class PhotorealBattleWorld {
       field,
     );
     this.sealedEdges = layout.builtEdges.map((e) => `${e.side}:${e.role}`);
-    this.horizonBlockers = createHorizonBlockerMesh(this.environment, layout);
+    this.horizonBlockers = createHorizonBlockerMesh(layout);
     if (this.horizonBlockers) scene.add(this.horizonBlockers);
-    this.oceanPlanes = layout.oceanPlanes.map((spec) => createOceanPlaneMesh(this.environment, this.frame, spec));
+    this.oceanPlanes = layout.oceanPlanes.map((spec) => createOceanPlaneMesh(this.frame, spec));
     for (const plane of this.oceanPlanes) scene.add(plane);
 
     this.scenery.upload(featuresToBattleScenery(presentation.features, field, 0x77));
@@ -392,8 +393,6 @@ export class PhotorealBattleWorld {
   private setCamera(camera: BattleCameraSnapshot): void {
     this.lastCamera = camera;
     this.frame.focus.value.set(camera.x, camera.y);
-    const eye = eyePosition(camera.camera3d);
-    this.frame.eyeXY.value.set(eye[0], eye[1]);
   }
 
   private updateSeating(instances: CrowdInstance[]): void {

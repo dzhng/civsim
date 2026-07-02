@@ -13,15 +13,33 @@ the slice files.
 
 ## Next Agent Prompt
 
-**Status:** Plan materialized 2026-07-03. Implementation not started.
+**Status:** 2026-07-03. Slices 00 + 01 DONE (committed). Foundation group next.
 **You are implementing this spec.** David's standing goal: work through the
 slices in order and **use `/codex` for implementation work wherever possible**
 (delegate the mechanical edits to Codex via `codex exec`; you drive verification,
 screenshots, and the human checkpoints yourself).
 
-**Next pickup point:** Slice `00-setup` (spec scaffold + palette telemetry
-harness), then `01-camera-clamp`, then the foundation group `02`→`03`→`04` up to
-the **Foundation human checkpoint** — the first thing David reviews.
+**Next pickup point:** Slice `02-terrain-grade` (global grade knob), then `03`→
+`04` up to the **Foundation human checkpoint** — the first thing David reviews.
+
+**Verification setup (learned in slice 01 — READ THIS):**
+- The scene runner (`cd web && node scene.mjs <scene>`) targets a dev server at
+  `VERIFY_URL` (default `localhost:5173`). **5173 is occupied by another
+  worktree's server** — always start your OWN dev server for this tree and target
+  it: `cd web && node node_modules/.bin/vite --port 5199 --strictPort &` then
+  `VERIFY_URL=http://localhost:5199 VERIFY_GPU=1 node scene.mjs <scene>`. Verifying
+  against the wrong server silently tests stale code. (A dev server on 5199 may
+  already be running from slice 01.)
+- Bless baselines with `UPDATE_SHOTS=1`; filter with `SNAP=<substr>`.
+- Codex's sandbox can't bind localhost, so it can't run scenes — delegate the
+  code edit to Codex (`codex exec --sandbox workspace-write`), then YOU run the
+  scene + screenshot-critique.
+
+**Slice 01 notes:** camera clamp now uses the real frustum footprint (`screenToWorld`)
+instead of an orthographic `cosP` estimate — the projection is the single owner.
+The raised `minZoom` shifted `campaign-lod`'s `whole-*` shots (map now fills the
+frame); those baselines were re-blessed. Foundation (02–04) will re-bless again for
+palette. New scene: `campaign-frame` (asserts no off-map black at wide/tall aspect).
 
 **How to work each slice:**
 1. Read the slice file. Confirm the seam in the real code.
@@ -51,8 +69,8 @@ the **Foundation human checkpoint** — the first thing David reviews.
   scenes are a hard firewall**; keep them green.
 
 ### Global TODO checklist
-- [ ] `00-setup` — spec scaffold, copy references, palette compare-telemetry harness
-- [ ] `01-camera-clamp` — no off-map black corners; collapse the dup zoom-ceiling const
+- [x] `00-setup` — scaffold + palette reference copied to aesthetics references
+- [x] `01-camera-clamp` — real-frustum-footprint clamp; no off-map black; zoom-ceiling const unified
 - [ ] `02-terrain-grade` — global grade knob (brightness/saturation/warmth)
 - [ ] `03-terrain-biomes` — per-biome hue constants
 - [ ] `04-faction-fill` — de-mud; collapse 3 alpha owners → 1

@@ -23,7 +23,7 @@ import { Sieges } from "../ui/campaign/Sieges";
 import { CampaignBattleModal, type EncounterSideView } from "../ui/campaign/CampaignBattleModal";
 import { loadCampaignData, nearestLoc, tilePos, type CampaignData } from "./data";
 import type { CamView } from "./camera";
-import { CampaignRenderer } from "./renderer";
+import { CampaignRenderer, MAX_CAMPAIGN_ZOOM } from "./renderer";
 import { TerrainField } from "./terrain";
 import { Territory } from "./territory";
 import { Allegiance } from "./status";
@@ -498,7 +498,7 @@ export class CampaignScene implements Scene {
           e.offsetX * devicePixelRatio,
           e.offsetY * devicePixelRatio,
         );
-        this.cam.scale = Math.min(8, this.cam.scale * f);
+        this.cam.scale = Math.min(MAX_CAMPAIGN_ZOOM, this.cam.scale * f);
         this.clampCam(); // zoom floor + new basis for zoom-to-cursor
         const [nx, ny] = this.renderer.toWorld(
           e.offsetX * devicePixelRatio,

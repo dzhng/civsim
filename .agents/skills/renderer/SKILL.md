@@ -1,12 +1,15 @@
 ---
 name: renderer
-description: Build, debug, or review renderer and WGSL compute work. Use when changing GPU resource layouts, render or compute passes, bind groups, buffers, shaders, frame orchestration, depth/overlay composition, capability handling, performance, or browser-verified renderer visuals.
+description: Build, debug, or review WebGPU renderer work — three.js/TSL scene layers, node materials, or raw WGSL passes and compute. Use when changing GPU resource layouts, render or compute passes, node materials, bind groups, buffers, shaders, frame orchestration, depth/overlay composition, capability handling, performance, or browser-verified renderer visuals.
 ---
 
 # GPU renderer
 
-Use this for GPU renderer work where correctness depends on GPU resource ownership,
-pass orchestration, WGSL layout, depth semantics, or browser-verified output.
+Use this for WebGPU renderer work where correctness depends on GPU resource
+ownership, pass orchestration, shader/material layout, depth semantics, or
+browser-verified output. Find the current owners in the codebase — projection,
+depth convention, environment presets — before changing anything; do not assume
+this skill knows today's module layout.
 
 ## Workflow
 
@@ -35,6 +38,15 @@ pass orchestration, WGSL layout, depth semantics, or browser-verified output.
 
 ## Rules
 
+- One projection owner, one depth convention, one environment owner — whatever
+  modules currently own them. A camera is posed through the shared camera
+  helper, never hand-rolled orbit math in a route or pass; a preset-dependent
+  material knob lives on the environment owner, never in a pass.
+- Prefer reverse-Z (near→1, far→0) on a float depth buffer for large outdoor
+  depth ranges; whichever convention is in force, it is engine-wide — depth
+  compare direction, clear value, and format move together or not at all.
+- Renderer library upgrades are their own reviewed change with the full suite
+  and perf gate as harness — never a ride-along on a feature commit.
 - WGSL uniforms and storage structs must respect alignment. Pack scalar fields
   into obvious 16-byte slots when it reduces layout ambiguity.
 - Treat depth as an access contract, not a boolean. Use explicit modes such as
@@ -131,10 +143,52 @@ pass orchestration, WGSL layout, depth semantics, or browser-verified output.
   shader state can leave counts healthy while pixels are blank; pair stats with
   crop/content probes for each visual class.
 
+## three.js WebGPU + TSL rules (when the scene layer is three.js)
+
+- **Reversed depth flips three's sorted render lists.** With a reversed depth
+  buffer, opaque/transparent sort order inverts silently — zero validation
+  errors, and a low-`renderOrder` backdrop can cover the whole world. After any
+  depth-convention or sort change, prove draw order empirically (hostile-order
+  fixture), and expect to own the sort comparators.
+- **A custom `positionNode` silently discards `instanceMatrix`.** Smell: every
+  instance renders at the origin or with one shared transform while counts look
+  healthy. Per-instance work must re-apply instancing explicitly.
+- **`normalNode` is view-space.** Lighting math that assumes world-space normals
+  reads plausibly wrong (moves with the camera); transform deliberately.
+- **The TSL `time` node is BANNED in renderer code** — it breaks byte-stable
+  snapshots. All animation keys off an owned, injectable time uniform plus
+  seeded RNG.
+- **No infinite-far perspective** — three NaNs at `far=Infinity`; use a large
+  finite far that converges on the infinite-limit matrix, and pin the
+  equivalence with a unit test.
+- **`renderer.info` resets every browser frame** via three's internal loop —
+  snapshot the counts at render time before publishing stats.
+- **Type packages widen TSL literals** (`attribute()` inferred as `string` drops
+  the whole swizzle/operator surface) — use explicit generics; if published types
+  don't cover a module, keep a *narrowed* local declaration, never `any`.
+- **Match sample count to the product.** Default MSAA washes out sub-pixel
+  detail (a distant crowd fades to mush); the antialias choice is a per-world
+  contract, not a default.
+- **Screen fog ranges are camera-distance ranges.** A haze stand-in tuned at
+  gameplay zoom fires at overview rig distances; range floors must clear the
+  rig's maximum eye distance.
+
 ## Performance
 
+- **SwiftShader is the correctness proxy, never the perf oracle.** It renders
+  TSL/WebGPU (including reverse-Z, timestamps) faithfully but orders of
+  magnitude slower; perf gates run on hardware only, and the standing crowd
+  perf gate + frame-time ledger judge every renderer-affecting slice.
+- Exercise capabilities (GPU timer, MSAA, depth formats) in the production
+  shell shape, not only lab shells — a capability that only ever ran in a
+  simpler configuration can be invalid in the real one.
 - Prefer instancing, batching, storage buffers, indirect draws where useful, and
   GPU-side phase preparation for scale.
+- **Per-instance frustum culling is not free on either substrate** — three
+  culls an instanced mesh as one bounding sphere; cull via CPU instance
+  compaction or GPU-driven culling, publish culled counts in stats, and once
+  shadow cascades exist cull against the union of view + cascade frusta or
+  shadows pop at the screen edge.
 - Avoid CPU readbacks in hot paths. Debug readbacks must be bounded, named, and
   removable.
 - For iterative compute or simulation, split phases such as `state`, `apply`,
@@ -198,3 +252,7 @@ pass orchestration, WGSL layout, depth semantics, or browser-verified output.
   phase should be.
 - A visual fix changes camera, lighting, model geometry, and pass order at once,
   leaving no clear cause for the result.
+- A camera is posed by hand-rolled orbit/projection math beside the shared
+  camera helper.
+- A snapshot gate flakes frame-to-frame — suspect an unowned time source (TSL
+  `time`, `performance.now`, unseeded RNG) before suspecting the GPU.

@@ -12,28 +12,30 @@ photoreal register the `aesthetics` skill targets.
 
 ## Next Agent Prompt
 
-**Status (updated 2026-07-02): ON MAIN through slice `10`.** The camera spine
+**Status (updated 2026-07-02): ON MAIN through slice `11`.** The camera spine
 `01`–`05b` is COMPLETE (one projector `projectWorld`, one reverse-Z
 `depth32float` convention, legacy 2.5D deleted and grep-proofed). The `06`
 substrate verdict is **three.js WebGPU + TSL** for the photoreal layer (camera
 spine stays bespoke `camera3d`, fed through `cameraBridge.applyCamera3d`).
-`07`–`10` landed: `packages/photoreal-renderer` owns battle production rendering
+`07`–`11` landed: `packages/photoreal-renderer` owns battle production rendering
 (`08b` atomic flip, no runtime flag), lit physically from the ONE environment
 owner (`09`), under a Hillaire-style sky-view LUT + THE one aerial-perspective
-owner + four preset moods (`10`). Every later look slice lands in the real game,
+owner + four preset moods (`10`), with REAL cascaded sun shadows from that same
+sun (`11` — `battle/shadowRig.ts`, adapter-tiered csm/single/off; the 08a
+blob-shadow decals are deleted). Every later look slice lands in the real game,
 on `main`, as an individually gated increment — not on a long-lived branch. The
 standing gates ("Photoreal ladder invariants" below) apply on every slice.
 
-**Exact next pickup point: `11` — CSM sun shadows** (`slices/11-csm-shadows.md`):
-real cascaded shadow maps from the `10a` sun, deleting the `08a` blob-shadow
-stand-in (scaffolding ledger row); adapter-gated fallback tier inside the
-`shadowRig` seam (SwiftShader proves it, asserted via stats identity); headline
-perf re-run — `11` is a named pressure point on the 33 ms budget (last ledger
-row: 3.14/3.18 ms mid/vista). Both unprimed critiques at `10` called missing
-cast shadows the top register gap for golden/dusk — the sun now points TOWARD
-the default view (`10c` re-aim), so expect long toward-camera shadows.
-Remaining critique items owned by name: shadows (`11`), tan field albedo +
-map-edge seams + mountain shelf (`13`), far-crowd smear (`14b`).
+**Exact next pickup point: `12` — photoreal sea** (`slices/12-photoreal-sea.md`):
+`12a` Gerstner-vs-IFFT technique spike (porting the upstream
+Threejs-WebGPU-IFFT-Ocean is ON the table since the 06 verdict — see "Known
+unknowns"), then PBR surface / foam / shore blending / glint behind the ONE
+`seaLayer` seam, retiring the 08a parity Gerstner shading (ledger row). `12b`
+consumes `10`'s sky; glint pairs with `15a`. `12`/`13`/`14` are parallelizable
+in worktrees from here — coordinate with David's battle-map-reference session
+(file reservations below). Critique items owned by name: tan field albedo +
+map-edge seams + mountain shelf + crag-base shadow gap (`13`), far-crowd smear
+(`14b`), trunk-contact AO (`14c`).
 
 ### Evidence ledger (done slices — one line each; detail lives in the slice file)
 
@@ -55,6 +57,7 @@ map-edge seams + mountain shelf (`13`), far-crowd smear (`14b`).
 | `10a` physical sky | `SkyModel` sky-view LUT baked by FRAGMENT pass (tier `skyview-fragment-lut`, same tier on SwiftShader); equirect stand-in DELETED; zero re-blesses | `ef2c491d` |
 | `10b` aerial owner | `aerialPerspective.ts` on `scene.fogNode` is THE one haze source; `THREE.Fog` + inline hazes DELETED; ground-focus depth + true view-direction in-scatter | `027efabe` |
 | `10c` preset moods | overcast litmus PASSES (lum 191/sat 6.2 vs ref 176/7.6); `SUN_TOWARD_VIEW` π/2→π + golden elev 0.35; ~70 re-blesses across 10b+c; 3.14/3.18 ms | `04c5dcb4` |
+| `11` CSM sun shadows | `shadowRig` seam — **three CSMShadowNode addon** (3×2048 from the live camera3d projection) + `'single'` SwiftShader tier asserted by name; blob-shadow decals DELETED; ground receives-not-casts (recorded); ZERO existing re-blesses + 6 new baselines; **5.86/6.39 ms (crowd shadow cost +2.7/+3.2)** | — |
 
 ### Active blockers / coordination warnings
 
@@ -87,9 +90,10 @@ map-edge seams + mountain shelf (`13`), far-crowd smear (`14b`).
 - [x] `08` — battle world adoption (`08a` parity world + `08b` atomic production flip)
 - [x] `09` — lighting core (physical sun + IBL + ACES; noon preset; neutral albedos)
 - [x] `10` — physical sky + aerial ONE owner + preset moods (four presets)
-- [ ] `11` — CSM sun shadows, deletes blob-shadow stand-in (`slices/11-csm-shadows.md`) **← NEXT**
+- [x] `11` — CSM sun shadows via `shadowRig` (addon verdict); blob-shadow
+      stand-ins deleted (`slices/11-csm-shadows.md`)
 - [ ] `12` — photoreal sea: Gerstner-vs-IFFT spike → surface/foam/shore/glint;
-      `seaLayer` owner (`slices/12-photoreal-sea.md`)
+      `seaLayer` owner (`slices/12-photoreal-sea.md`) **← NEXT**
 - [ ] `13` — photoreal terrain + foliage, RE-SCOPED to substrate seams
       (`slices/13-photoreal-terrain-foliage.md`; the LOOK is battle-map-reference's)
 - [ ] `14` — photoreal soldiers: materials, 30k LOD/impostors + union-frustum
@@ -234,7 +238,7 @@ a first-class acceptance criterion, not a "later optimization":
       │
 10 physical sky + atmosphere (a: Hillaire sky · b: aerial-perspective ONE owner ·   ✅ done
       │                        c: presets through the sky model)
-11 CSM sun shadows (deletes 08a blob-shadow stand-in; headline perf re-run)   ← NEXT
+11 CSM sun shadows (blob-shadow stand-ins deleted; shadow cost +2.7/+3.2 ms)   ✅ done
       │
       ├── 12 photoreal sea      a: Gerstner-vs-IFFT spike · b: PBR surface · c: foam ·
       │                         d: shore blending · e: glint (pairs with 15a)
@@ -242,7 +246,7 @@ a first-class acceptance criterion, not a "later optimization":
       │                         contract) · c: scenery/cliffs · d: compose vs target
       ├── 14 photoreal soldiers a: PBR materials · b: 30k LOD/impostors (absorbs 04e) ·
       │                         c: grounding AO
-      │     (12/13/14 parallelizable in worktrees after 11; 12b needs 10's sky)
+      │     (12/13/14 parallelizable in worktrees NOW; 12b needs 10's sky)      ← NEXT: 12
       │
 15 post chain (a: bloom · b: refine; ACES-vs-AgX identity decided here)
       │
@@ -359,7 +363,7 @@ deleter (a ladder slice is not done while its ledger row is still alive):
 | `web/src/three-probe/three-shims.d.ts` | 06 | **07** (`@types/three` dev-only) |
 | ~~Procedural equirect `scene.environment` stand-in~~ | 07/09 | **DELETED at 10a** (SkyModel's sky-view LUT feeds background + IBL) |
 | ~~Parity `THREE.Fog` haze stand-in + per-material `Aerial stand-in` albedo mixes~~ | 08a/09 | **DELETED at 10b** (`atmosphere/aerialPerspective.ts` on `scene.fogNode` is the ONE owner) |
-| Blob-shadow parity stand-in (decal replica) | 08a | **11** (real CSM) |
+| ~~Blob-shadow parity stand-in (decal replicas: soldier + scenery)~~ | 08a | **DELETED at 11** (real CSM via `battle/shadowRig.ts`) |
 | Parity Gerstner-family sea shading in `seaLayer` | 08a | **12b–d** (photoreal surface; the seam survives) |
 | Battle instances of bespoke world passes orphaned at the flip (`BattleGroundPass`, `BattleGrassPass`, `BattleHorizonPass`, `BattleGroundCuePass`, `BattleEffectLinePass`, inline `BattleTrianglePass`, battle `SkinnedCrowdPipeline`/`SoldierShadowDecalPass`) — classes live on for campaign/lab | pre-existing | **08b** orphans; **17** deletes (per `16a`'s campaign ruling) |
 | Bespoke campaign world passes + `frameShell` world machinery + `WaterPlanePass`/`gerstnerField.ts` WGSL | pre-existing | **16a** orphans (if GO) → **17** sweeps; if NO-GO, recorded exception |

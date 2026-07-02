@@ -88,6 +88,10 @@ export function applyCivsimEnvironment(
   sun.target.position.set(0, 0, 0);
   scene.add(sun);
   scene.add(sun.target);
+  // Published for the shadow seam (battle/shadowRig.ts, slice 11): shadows are
+  // cast BY this same sun, so the preset's sunIntensity already scales how
+  // strongly they read (overcast's 0.4 sun ⇒ faint shadows, by physics).
+  world.sunLight = sun;
 
   world.renderer.toneMappingExposure = spec.exposure;
   world.environmentId = spec.id;

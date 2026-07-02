@@ -53,6 +53,10 @@ export class PhotorealGrassField {
     this.mesh.name = 'battle-grass';
     this.mesh.frustumCulled = false;
     this.mesh.renderOrder = RENDER_ORDER.worldOpaque;
+    // Slice 11: grass RECEIVES sun shadows (tree/soldier shade falls across
+    // it) but does not cast — per-blade casting re-renders every instanced
+    // blade into every cascade for shadows no eye resolves at gameplay zoom.
+    this.mesh.receiveShadow = true;
     this.mesh.visible = false;
     scene.add(this.mesh);
   }
@@ -138,6 +142,9 @@ export class PhotorealGrassField {
     }
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geo.setAttribute('gNormal', new THREE.BufferAttribute(normals, 3));
+    // 'normal' alias: shadow.normalBias reads normalWorld by attribute name
+    // — without it the receiver offset is silently zero (slice 11).
+    geo.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
     geo.setAttribute('gColor', new THREE.BufferAttribute(colors, 4));
     geo.setIndex(new THREE.BufferAttribute(build.mesh.opaque.indices, 1));
 
@@ -192,7 +199,6 @@ const SCENERY_KINDS: SceneryKind[] = ['conifer', 'broadleaf', 'rock'];
 
 interface SceneryBucket {
   opaque: THREE.Mesh;
-  shadow: THREE.Mesh;
   count: number;
 }
 
@@ -205,18 +211,17 @@ export class PhotorealScenery {
   constructor(scene: THREE.Scene) {
     for (const kind of SCENERY_KINDS) {
       const model = SCENERY_PROP_MODELS[kind].build();
-      const opaque = new THREE.Mesh(sceneryGeometry(model.opaque.vertices, model.opaque.indices), sceneryMaterial('opaque'));
+      const opaque = new THREE.Mesh(sceneryGeometry(model.opaque.vertices, model.opaque.indices), sceneryMaterial());
       opaque.name = `battle-scenery-${kind}`;
       opaque.renderOrder = RENDER_ORDER.worldOpaque;
-      const shadow = new THREE.Mesh(sceneryGeometry(model.shadow.vertices, model.shadow.indices), sceneryMaterial('shadow'));
-      shadow.name = `battle-scenery-${kind}-shadow`;
-      shadow.renderOrder = RENDER_ORDER.sceneryShadows;
-      for (const mesh of [opaque, shadow]) {
-        mesh.frustumCulled = false;
-        mesh.visible = false;
-        scene.add(mesh);
-      }
-      this.buckets.set(kind, { opaque, shadow, count: 0 });
+      // Slice 11: props cast REAL sun shadows and receive them (canopy
+      // self-shading, cliff shade) — the baked shadow-decal mesh is deleted.
+      opaque.castShadow = true;
+      opaque.receiveShadow = true;
+      opaque.frustumCulled = false;
+      opaque.visible = false;
+      scene.add(opaque);
+      this.buckets.set(kind, { opaque, count: 0 });
     }
   }
 
@@ -239,13 +244,11 @@ export class PhotorealScenery {
         style[i * 4 + 1] = inst.height ?? inst.size;
         style[i * 4 + 2] = inst.yaw ?? 0;
       }
-      for (const mesh of [bucket.opaque, bucket.shadow]) {
-        const geo = mesh.geometry as THREE.InstancedBufferGeometry;
-        geo.setAttribute('instPose', new THREE.InstancedBufferAttribute(pose, 4));
-        geo.setAttribute('instStyle', new THREE.InstancedBufferAttribute(style, 4));
-        geo.instanceCount = list.length;
-        mesh.visible = list.length > 0;
-      }
+      const geo = bucket.opaque.geometry as THREE.InstancedBufferGeometry;
+      geo.setAttribute('instPose', new THREE.InstancedBufferAttribute(pose, 4));
+      geo.setAttribute('instStyle', new THREE.InstancedBufferAttribute(style, 4));
+      geo.instanceCount = list.length;
+      bucket.opaque.visible = list.length > 0;
     }
   }
 
@@ -268,6 +271,8 @@ function sceneryGeometry(vertices: Float32Array, indices: Uint16Array): THREE.In
   }
   geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   geo.setAttribute('sNormal', new THREE.BufferAttribute(normals, 3));
+  // 'normal' alias for shadow.normalBias (see crowdLayer note, slice 11).
+  geo.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
   geo.setAttribute('sColor', new THREE.BufferAttribute(colors, 4));
   geo.setIndex(new THREE.BufferAttribute(indices, 1));
   geo.instanceCount = 0;
@@ -278,16 +283,10 @@ function sceneryGeometry(vertices: Float32Array, indices: Uint16Array): THREE.In
 // standard-material response — the pass-private fixed sun and warm-key/
 // cool-fill grade are DELETED (no parallel lighting constants), the scene sun
 // + IBL light the rotated normals. Per-instance shade variation stays as
-// albedo character. The shadow bucket stays an unlit decal (dies at 11, CSM).
-function sceneryMaterial(kind: 'opaque' | 'shadow'): THREE.MeshBasicNodeMaterial | THREE.MeshStandardNodeMaterial {
-  const material = kind === 'shadow'
-    ? new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide })
-    : new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, roughness: 0.9, metalness: 0 });
-  if (kind === 'shadow') {
-    material.transparent = true;
-    material.depthWrite = false;
-    material.fog = false;
-  }
+// albedo character. (The unlit shadow-decal variant died at 11 — props cast
+// real sun shadows through this same positionNode now.)
+function sceneryMaterial(): THREE.MeshStandardNodeMaterial {
+  const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, roughness: 0.9, metalness: 0 });
   const local = attribute<'vec3'>('position', 'vec3');
   const normal = attribute<'vec3'>('sNormal', 'vec3');
   const colorAndAlpha = attribute<'vec4'>('sColor', 'vec4');
@@ -300,14 +299,13 @@ function sceneryMaterial(kind: 'opaque' | 'shadow'): THREE.MeshBasicNodeMaterial
   const { rx, ry, cy, sy } = rotateYawN(local.x, local.y, yaw);
   material.positionNode = vec3(instPose.x.add(rx.mul(scale)), instPose.y.add(ry.mul(scale)), baseZ.add(local.z.mul(heightScale)));
   const rnormal = vec3(normal.x.mul(cy).sub(normal.y.mul(sy)), normal.x.mul(sy).add(normal.y.mul(cy)), normal.z);
-  if (kind === 'opaque') material.normalNode = viewNormalNode(normalize(rnormal));
+  material.normalNode = viewNormalNode(normalize(rnormal));
   const vColor = varying(colorAndAlpha.rgb);
   const vAlpha = varying(colorAndAlpha.a);
   const shade = varying(clamp(instStyle.x, 0.0, 1.0));
 
   const variation = shade.mul(0.18).add(0.88);
   const albedo = clamp(vColor.mul(variation), vec3(0.0), vec3(1.0));
-  // The shadow decal stays display-referred (unlit stand-in, dies at 11).
-  material.colorNode = vec4(kind === 'opaque' ? linearAlbedo(albedo) : albedo, vAlpha);
+  material.colorNode = vec4(linearAlbedo(albedo), vAlpha);
   return material;
 }

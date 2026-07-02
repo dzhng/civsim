@@ -17,6 +17,9 @@
 //   ?pitch=R      camera pitch override in radians (sky/atmosphere QA — the
 //                 production rig never points this high)
 //   ?yaw=R        camera yaw override in radians (same QA knob)
+//   ?shadows=off|single|csm
+//                 sun-shadow tier override (slice 11 QA; default = adapter
+//                 probe — csm on hardware, single on software rasterizers)
 import { PhotorealBattleWorld, type BattleTacticalLineFrame } from '../../../packages/photoreal-renderer/src/battle/battleWorld';
 import { createPhotorealStatsPublisher } from '../../../packages/photoreal-renderer/src/stats';
 import { Camera } from '../../../web/src/shared/camera';
@@ -46,7 +49,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
   if (params.get('ref') === '1') ctx.root.classList.add('reference-shot');
   const [{ default: initWasm, Game }, world] = await Promise.all([
     import('../../../web/src/wasm/game_wasm.js'),
-    PhotorealBattleWorld.create(ctx.canvas, { environment: params.get('env') }),
+    PhotorealBattleWorld.create(ctx.canvas, { environment: params.get('env'), shadows: params.get('shadows') }),
   ]);
   const wasm = await initWasm();
   const game = new Game(0x5eed_c0de);

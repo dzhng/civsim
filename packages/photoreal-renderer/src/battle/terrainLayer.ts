@@ -26,8 +26,7 @@ export const RENDER_ORDER = {
   terrain: -9,
   markers: -8,
   worldOpaque: 0,
-  sceneryShadows: 1,
-  soldierShadows: 2,
+  // (1 and 2 were the 08a blob-shadow decal bands — deleted at 11, real CSM.)
   groundCues: 3,
   effectLines: 10,
   debugBlocks: 11,
@@ -179,7 +178,11 @@ function backdropMaterial(): THREE.MeshStandardNodeMaterial {
 }
 
 /** The background band: backdrop quad + builtin terrain quad (two styles,
- *  toggled by zoom exactly like drawFrame's terrainStyle). */
+ *  toggled by zoom exactly like drawFrame's terrainStyle). Deliberately
+ *  OUTSIDE the slice-11 shadow set (neither casts nor receives): they are
+ *  depthTest-off underlays beyond the heightfield, always shaded fullscreen
+ *  under the real ground — receiving would pay per-pixel cascade sampling
+ *  twice for pixels the aerial haze owns anyway. */
 export class BattleBackgroundQuads {
   readonly backdrop: THREE.Mesh;
   readonly terrainDefault: THREE.Mesh;
@@ -223,6 +226,9 @@ export function createGroundMesh(
   const buffer = new THREE.InterleavedBuffer(mesh.vertices, 10);
   geo.setAttribute('position', new THREE.InterleavedBufferAttribute(buffer, 3, 0));
   geo.setAttribute('gNormal', new THREE.InterleavedBufferAttribute(buffer, 3, 3));
+  // 'normal' alias (same interleaved view): shadow.normalBias reads
+  // normalWorld by attribute name — absent, the offset is silently zero (11).
+  geo.setAttribute('normal', new THREE.InterleavedBufferAttribute(buffer, 3, 3));
   geo.setAttribute('gColor', new THREE.InterleavedBufferAttribute(buffer, 3, 6));
   geo.setAttribute('gWater', new THREE.InterleavedBufferAttribute(buffer, 1, 9));
   geo.setIndex(new THREE.BufferAttribute(mesh.indices, 1));
@@ -262,6 +268,13 @@ export function createGroundMesh(
   ground.name = 'battle-ground';
   ground.frustumCulled = false;
   ground.renderOrder = RENDER_ORDER.worldOpaque;
+  // Slice 11: the ground is the primary shadow RECEIVER (soldier/tree/cliff
+  // shadows land here) but does NOT cast. A gently undulating heightfield at
+  // a grazing golden-hour sun needs cot(elevation)·texel ≈ 2–3 world units of
+  // depth bias in the far cascades to stop self-shadow ripple — a bias that
+  // erases every soldier-sized shadow (verified on hardware shots). Terrain
+  // self-occlusion is owned by 13 (relief look) / 14c (contact AO) instead.
+  ground.receiveShadow = true;
   return ground;
 }
 
@@ -272,6 +285,8 @@ export function createHorizonBlockerMesh(layout: BattleHorizonLayout): THREE.Mes
   const buffer = new THREE.InterleavedBuffer(layout.mesh.vertices, 10);
   geo.setAttribute('position', new THREE.InterleavedBufferAttribute(buffer, 3, 0));
   geo.setAttribute('hNormal', new THREE.InterleavedBufferAttribute(buffer, 3, 3));
+  // 'normal' alias for shadow.normalBias (see the ground-mesh note above).
+  geo.setAttribute('normal', new THREE.InterleavedBufferAttribute(buffer, 3, 3));
   geo.setAttribute('hColor', new THREE.InterleavedBufferAttribute(buffer, 3, 6));
   geo.setIndex(new THREE.BufferAttribute(layout.mesh.indices, 1));
 
@@ -285,5 +300,9 @@ export function createHorizonBlockerMesh(layout: BattleHorizonLayout): THREE.Mes
   mesh.name = 'battle-horizon-blockers';
   mesh.frustumCulled = false;
   mesh.renderOrder = RENDER_ORDER.worldOpaque;
+  // Slice 11: headland cliffs/walls throw long shadows onto the field at low
+  // sun and self-shade; they receive like every world surface.
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
   return mesh;
 }

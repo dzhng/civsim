@@ -109,3 +109,33 @@ chain confirms, the fix question becomes: what is the honest corridor
 reference for a formation still holding its footprint (the slot-grid frame,
 not the casualty-weighted mass)? If it does not confirm, foundation trigger
 (b) fires with three measured dead ends as evidence.
+
+
+## Measurement correction (2026-07-03, couple-chain probe) — READ FIRST
+
+`blob_probe_slice05_couple_chain` killed the offset-couple hypothesis AND
+exposed a detector conflation:
+
+- Frame centers stay pinned at x=0.00 all run; ~0% of either unit is ever
+  outside the foe's corridor; per-unit net lateral thrust is noise; kill
+  positions show no consistent lateral bias. No couple exists in the
+  controlled probes.
+- Yet centroid-pair "rotation" still wanders to -26 deg — with silhouettes
+  at 0.8+. With frames pinned, the pair bearing tilts from CASUALTY
+  GEOGRAPHY alone (who died where moves the alive-mass centroids), no body
+  rotation required. The controlled-probe rotation metric conflates death
+  geography with motion — metric-encodes-the-wrong-thing, round two.
+- The visual pinwheel in the vibes occurs with FREE frames (latch/pursue
+  active, morale on, micro_rough on) — a configuration the pinned controlled
+  probes do not reproduce (controlled rot300 ~10-25 deg noisy-sign vs
+  vibe-like 40 deg one-signed with silhouette 0.62).
+
+Next measurement (before ANY further fix): a cohort rotation detector —
+track the SAME surviving soldiers' positions and fit the rigid rotation of
+that cohort per unit (body motion only, dead men excluded from both
+endpoints), alongside the centroid-bearing number, on (a) the controlled
+probe and (b) the vibe-like config. If cohort rotation is ~0 controlled but
+real vibe-like, the whole fix target moves to the frame/order layer (latch,
+pursue, anchor chase under casualties) and the target pins get rebuilt on
+the cohort detector. The a_symmetric_grind_does_not_pinwheel pin must NOT be
+un-ignored until the detector split lands.

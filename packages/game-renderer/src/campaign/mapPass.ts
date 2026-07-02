@@ -198,7 +198,7 @@ fn naturalCampaignColor(b: vec4f, light: f32, world: vec2f, h: f32) -> vec3f {
     // Reach green earlier and land on a richer, less-yellow grass so temperate
     // Italy reads as living Mediterranean turf, not faded straw. The dry end
     // stays an olive (not tan) so mid-moisture plains keep a green cast.
-    var grass = mix(vec3f(0.54, 0.58, 0.34), vec3f(0.33, 0.55, 0.27), smoothstep(0.16, 0.46, moisture));
+    var grass = mix(vec3f(0.55, 0.56, 0.33), vec3f(0.42, 0.52, 0.29), smoothstep(0.16, 0.46, moisture));
     // Broad meadow patches: low-frequency darker/lusher and lighter sun-bleached
     // zones so a wide field is never one flat fill.
     let meadow = nz(world, 0.34, px);

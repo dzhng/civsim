@@ -5,6 +5,14 @@ no dead stubs / orphan components. One Rust change, one re-bake, carrying both t
 D-fix (cities on land) and the L-data fix (road hygiene). This is the spec's only
 cross-cutting serialization point — it shifts positions.
 
+## CONCRETE TARGETS (from slice 06 diagnosis)
+- **Cities:** snap the 37 on-water port cities to nearest land (36 need ≤6km; all
+  read as coastal ports at the waterline). **Cnidus** (@ [834,-104], 14km offshore)
+  is the one genuine outlier — verify after snap; if the snap lands it oddly, give
+  it a manual `crates/mapgen/overrides.json` position instead.
+- **Roads:** remove the 17 degree-1 junction stubs + 83 degree-0 junctions; drop or
+  reconnect the two isolated road components (25 and 5 nodes). Keep the 59 sea-ports.
+
 ## API seam (single owner — projection + build pipeline, invariant 1)
 - `crates/mapgen/src/build.rs`: it already drops edge-less *sites* (~217-218);
   extend to drop degree-1 junction stubs and reconnect the two disconnected road

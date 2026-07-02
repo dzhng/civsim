@@ -16,20 +16,18 @@ Risks), never as the first move.
 
 ## Next Agent Prompt
 
-*Status (2026-07-03): slices 01–04 COMPLETE; slice 05 diagnosis CONVERGED on
-an honest metric. The shape-orientation detector (validated on settled +
-synthetic-rotation controls) gives the verdict: the visual pinwheel is REAL
-COHERENT SHAPE TILT of both living bodies + the seam (±26–40 deg by 300s),
-in BOTH controlled and vibe-like configs, with frames static (facings
-frozen, frame-center bearing ~0) — the body/seam layer, not the order/frame
-layer. The old centroid-bearing metric did not even track the tilt sign.
-Companion discovery: the press has a coherent ~3 deg/s internal circulation
-loop (both units, same sign — men cycle like a tank tread); the slow shape
-tilt is plausibly its residue. Pickup point: force-trace attribution of the
-CIRCULATION (which channels drive the loop, per unit, windowed — the
-slice-03 torque probe is the template but read it against the shape-tilt
-sign), then design the fix at the loop's source. Target pins get rebuilt on
-shape orientation. Full trail: slices/05-pinwheel.md bottom-up.*
+*Status (2026-07-03): slice 05 ROOT CAUSE NAMED, fix designed, ready to
+implement. The pivot spring — an internal force field — carries a net curl
+in a deformed press: it pumps angular momentum into its own unit (violating
+the internal-forces-carry-zero-net-torque invariant), the speed cap masks
+most of it, the ~3 deg/s circulation loop is the remainder, and its slow
+asymmetry is the shape tilt (the visual pinwheel). Full evidence trail and
+the exact fix design (torque-free projection of the pivot field, not a
+tunable) at the bottom of slices/05-pinwheel.md. Pickup point: implement the
+projection in steer_soldiers, verify PivotSpring angular impulse ~0 on the
+attribution probe, circulation collapses, shape tilt re-measured, then the
+full gate ladder (survivability FIRST), golden re-pin once, rebuild the
+pinwheel pin on the shape detector, vibe refilm as the visual verdict.*
 
 You are implementing this spec. Slices 01–03 (harness, metrology,
 attribution) are landed — read their slice files' bottom notes and the

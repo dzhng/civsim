@@ -181,6 +181,192 @@ struct CapClipWindow {
     samples: [usize; 2],
 }
 
+#[derive(Clone, Copy, Debug)]
+struct OrientedAxis {
+    angle_deg: f32,
+    anisotropy: f32,
+}
+
+#[derive(Clone, Debug, Default)]
+struct AxisTracker {
+    last_deg: Option<f32>,
+}
+
+impl AxisTracker {
+    fn new() -> Self {
+        Self::default()
+    }
+
+    fn measure(&mut self, raw: Option<OrientedAxis>) -> f32 {
+        let Some(axis) = raw else {
+            return self.last_deg.unwrap_or(0.0);
+        };
+        if axis.anisotropy < 0.03 {
+            return self.last_deg.unwrap_or(axis.angle_deg);
+        }
+        let mut angle = axis.angle_deg;
+        if let Some(prev) = self.last_deg {
+            while angle - prev > 90.0 {
+                angle -= 180.0;
+            }
+            while angle - prev < -90.0 {
+                angle += 180.0;
+            }
+        }
+        self.last_deg = Some(angle);
+        angle
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CirculationWindow {
+    start: f32,
+    end: f32,
+    shape_start: [f32; 2],
+    shape_end: [f32; 2],
+    observed_deg: [f32; 2],
+    by_unit: [BTreeMap<ForceChannel, f32>; 2],
+}
+
+fn pca_major_axis(points: &[Vec2]) -> Option<OrientedAxis> {
+    if points.len() < 3 {
+        return None;
+    }
+    let n = points.len() as f32;
+    let center = points.iter().fold(Vec2::ZERO, |acc, &p| acc + p) * (1.0 / n);
+    let (mut xx, mut xy, mut yy) = (0.0f32, 0.0f32, 0.0f32);
+    for &p in points {
+        let d = p - center;
+        xx += d.x * d.x;
+        xy += d.x * d.y;
+        yy += d.y * d.y;
+    }
+    xx /= n;
+    xy /= n;
+    yy /= n;
+    let trace = (xx + yy).max(1.0e-6);
+    let spread = ((xx - yy) * (xx - yy) + 4.0 * xy * xy).sqrt();
+    Some(OrientedAxis {
+        angle_deg: (0.5 * (2.0 * xy).atan2(xx - yy)).to_degrees(),
+        anisotropy: spread / trace,
+    })
+}
+
+fn traced_unit_shape_axis(sim: &Sim, unit: usize) -> Option<OrientedAxis> {
+    let points: Vec<Vec2> = traced_live_positions(sim, unit)
+        .into_iter()
+        .map(|(_, p)| p)
+        .collect();
+    pca_major_axis(&points)
+}
+
+fn controlled_trace_tun() -> Tunables {
+    let mut tun = no_morale_parade();
+    apply_trace_env_overrides(&mut tun);
+    tun
+}
+
+fn vibe_like_trace_tun() -> Tunables {
+    let mut tun = Tunables::default();
+    apply_trace_env_overrides(&mut tun);
+    tun
+}
+
+fn traced_slice05_heavy(seed: u64, vibe_like: bool) -> (Sim, usize, usize) {
+    let tun = if vibe_like {
+        vibe_like_trace_tun()
+    } else {
+        controlled_trace_tun()
+    };
+    let mut sim = Sim::new(tun, seed);
+    let stats = class_stats(UnitClassId::HeavySword);
+    let a = sim.spawn_class_stats_with_files(
+        Vec2::new(0.0, -13.0),
+        PI * 0.5,
+        240,
+        24,
+        UnitClassId::HeavySword,
+        stats,
+        0,
+    );
+    let b = sim.spawn_class_stats_with_files(
+        Vec2::new(0.0, 13.0),
+        -PI * 0.5,
+        240,
+        24,
+        UnitClassId::HeavySword,
+        stats,
+        1,
+    );
+    sim.set_pace(a, Pace::Run);
+    sim.set_pace(b, Pace::Run);
+    sim.set_attack_order(a, b);
+    sim.set_attack_order(b, a);
+    sim.set_force_trace_filter(ForceTraceFilter {
+        units: Some(BTreeSet::from([a, b])),
+        ..ForceTraceFilter::default()
+    });
+    (sim, a, b)
+}
+
+fn cohort_rotation_deg(start: &[(usize, Vec2)], sim: &Sim) -> f32 {
+    let cohort: Vec<(Vec2, Vec2)> = start
+        .iter()
+        .filter(|&&(s, _)| sim.alive[s] == 1)
+        .map(|&(s, p0)| (p0, sim.soldier_pos(s)))
+        .collect();
+    if cohort.len() < 8 {
+        return 0.0;
+    }
+    let n = cohort.len() as f32;
+    let (mut c0, mut c1) = (Vec2::ZERO, Vec2::ZERO);
+    for &(p0, p1) in &cohort {
+        c0 = c0 + p0;
+        c1 = c1 + p1;
+    }
+    c0 = c0 * (1.0 / n);
+    c1 = c1 * (1.0 / n);
+    let (mut dot, mut cross) = (0.0f32, 0.0f32);
+    for &(p0, p1) in &cohort {
+        let a = p0 - c0;
+        let b = p1 - c1;
+        dot += a.x * b.x + a.y * b.y;
+        cross += a.x * b.y - a.y * b.x;
+    }
+    cross.atan2(dot).to_degrees()
+}
+
+fn channel_circulation_step_deg(sim: &Sim, unit: usize, tick: u64) -> BTreeMap<ForceChannel, f32> {
+    let positions = traced_live_positions(sim, unit);
+    if positions.len() < 8 {
+        return BTreeMap::new();
+    }
+    let centroid =
+        positions.iter().fold(Vec2::ZERO, |acc, &(_, p)| acc + p) * (1.0 / positions.len() as f32);
+    let mut by_soldier = BTreeMap::new();
+    let mut inertia = 0.0f32;
+    for &(soldier, p) in &positions {
+        let r = p - centroid;
+        inertia += r.x * r.x + r.y * r.y;
+        by_soldier.insert(soldier, r);
+    }
+    if inertia <= 1.0e-6 {
+        return BTreeMap::new();
+    }
+    let mut out = BTreeMap::new();
+    for record in sim.force_trace.records() {
+        if record.unit != unit || record.tick != tick || sim.alive[record.soldier] == 0 {
+            continue;
+        }
+        let Some(&r) = by_soldier.get(&record.soldier) else {
+            continue;
+        };
+        let angular = (r.x * record.vec.y - r.y * record.vec.x) / inertia;
+        *out.entry(record.channel).or_insert(0.0) += angular.to_degrees();
+    }
+    out
+}
+
 #[test]
 #[ignore = "melee-blob: slice 03 long-window torque budget; run with --features force-trace"]
 fn write_slice03_torque_budget() {
@@ -354,6 +540,129 @@ fn blob_probe_slice04_cap_clips_spring() {
                     directional,
                     along / total,
                 );
+            }
+        }
+    }
+}
+
+#[test]
+#[ignore = "melee-blob slice 05: living-cohort circulation force attribution; run with --features force-trace"]
+fn blob_probe_slice05_circulation_force_attribution() {
+    for (config, seed, vibe_like) in [
+        ("controlled", 0_u64, false),
+        ("controlled", 4_u64, false),
+        ("vibe_like", 0_u64, true),
+    ] {
+        let (mut sim, a, b) = traced_slice05_heavy(seed, vibe_like);
+        const START_S: f32 = 100.0;
+        const END_S: f32 = 400.0;
+        const WINDOW_S: f32 = 25.0;
+        const FIT_S: f32 = 1.0;
+        let mut windows: Vec<CirculationWindow> = (0..((END_S - START_S) / WINDOW_S) as usize)
+            .map(|idx| {
+                let start = START_S + idx as f32 * WINDOW_S;
+                CirculationWindow {
+                    start,
+                    end: start + WINDOW_S,
+                    shape_start: [0.0; 2],
+                    shape_end: [0.0; 2],
+                    observed_deg: [0.0; 2],
+                    by_unit: [BTreeMap::new(), BTreeMap::new()],
+                }
+            })
+            .collect();
+        let mut shape_trackers = [AxisTracker::new(), AxisTracker::new()];
+        shape_trackers[0].measure(traced_unit_shape_axis(&sim, a));
+        shape_trackers[1].measure(traced_unit_shape_axis(&sim, b));
+        let mut fit_start = [a, b]
+            .into_iter()
+            .map(|unit| traced_live_positions(&sim, unit))
+            .collect::<Vec<_>>();
+
+        for step in 1..=(END_S / DT) as usize {
+            let t = step as f32 * DT;
+            sim.clear_force_trace();
+            sim.tick();
+            let tick = sim.tick_count - 1;
+
+            if step % (FIT_S / DT) as usize == 0 {
+                for (slot, unit) in [a, b].into_iter().enumerate() {
+                    let delta = cohort_rotation_deg(&fit_start[slot], &sim);
+                    if (START_S..END_S).contains(&t) {
+                        let idx = ((t - START_S) / WINDOW_S)
+                            .floor()
+                            .min(windows.len() as f32 - 1.0)
+                            as usize;
+                        windows[idx].observed_deg[slot] += delta;
+                    }
+                    fit_start[slot] = traced_live_positions(&sim, unit);
+                }
+            }
+
+            if step % (1.0 / DT) as usize == 0 {
+                let shape = [
+                    shape_trackers[0].measure(traced_unit_shape_axis(&sim, a)),
+                    shape_trackers[1].measure(traced_unit_shape_axis(&sim, b)),
+                ];
+                if (START_S..END_S).contains(&t) {
+                    let idx = ((t - START_S) / WINDOW_S)
+                        .floor()
+                        .min(windows.len() as f32 - 1.0) as usize;
+                    let window = &mut windows[idx];
+                    if (t - window.start).abs() < 0.5 * DT || window.shape_start == [0.0; 2] {
+                        window.shape_start = shape;
+                    }
+                    window.shape_end = shape;
+                }
+            }
+
+            if (START_S..END_S).contains(&t) {
+                let idx = ((t - START_S) / WINDOW_S)
+                    .floor()
+                    .min(windows.len() as f32 - 1.0) as usize;
+                for (slot, unit) in [a, b].into_iter().enumerate() {
+                    for (channel, deg) in channel_circulation_step_deg(&sim, unit, tick) {
+                        *windows[idx].by_unit[slot].entry(channel).or_insert(0.0) += deg;
+                    }
+                }
+            }
+        }
+
+        for window in &windows {
+            for unit_slot in [0usize, 1] {
+                let observed_rate = window.observed_deg[unit_slot] / WINDOW_S;
+                let shape_delta = sim::wrap_angle(
+                    (window.shape_end[unit_slot] - window.shape_start[unit_slot]).to_radians(),
+                )
+                .to_degrees();
+                let shape_rate = shape_delta / WINDOW_S;
+                let channel_sum: f32 = window.by_unit[unit_slot].values().copied().sum();
+                eprintln!(
+                    "SLICE05_CIRC_WINDOW config={config} seed={seed} unit={unit_slot} window={:.0}-{:.0}s observed_circ={:.2}deg observed_rate={observed_rate:.3}deg_s traced_sum={channel_sum:.2}deg traced_rate={:.3}deg_s shape={:.2}->{:.2}deg shape_rate={shape_rate:.3}deg_s",
+                    window.start,
+                    window.end,
+                    window.observed_deg[unit_slot],
+                    channel_sum / WINDOW_S,
+                    window.shape_start[unit_slot],
+                    window.shape_end[unit_slot],
+                );
+
+                let mut rows: Vec<_> = window.by_unit[unit_slot].iter().collect();
+                rows.sort_by(|a, b| b.1.abs().total_cmp(&a.1.abs()));
+                for (channel, deg) in rows.into_iter().take(8) {
+                    let role = if deg.signum() == window.observed_deg[unit_slot].signum() {
+                        "pump"
+                    } else {
+                        "damp"
+                    };
+                    eprintln!(
+                        "  SLICE05_CIRC_CHANNEL config={config} seed={seed} unit={unit_slot} window={:.0}-{:.0}s role={role} channel={channel:?} contribution={deg:.2}deg rate={:.3}deg_s source={}",
+                        window.start,
+                        window.end,
+                        deg / WINDOW_S,
+                        channel.source_site(),
+                    );
+                }
             }
         }
     }

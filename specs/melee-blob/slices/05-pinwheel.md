@@ -376,3 +376,48 @@ rail, wrap/latch/width/backfill/bulge/weave trio/no-crab, scenarios+balance
 classified, golden re-pin once, vibe refilm last). Consider the same
 torque-free projection for the weave net if its channel shows residual curl
 after the pivot fix — one invariant, every internal field obeys it.
+
+
+## Torque-free pivot projection attempt STOPPED (2026-07-03)
+
+Implemented the exact per-unit pivot projection in `Sim::steer_soldiers` as
+designed above: raw pivot corrections were projected about the living centroid
+before entering the steering sum, and the `PivotSpring` force-trace channel
+recorded the projected value. The source change was then reverted per the
+verification loop because the first gate, survivability, failed and clean HEAD
+proved the failure was introduced by the projection.
+
+Gate ladder actuals:
+
+1. Survivability FIRST:
+   - With projection: `attack_lethality_grinds_a_reference_line_in_about_three_to_four_minutes`
+     failed at 167s (band 180-255s).
+   - With projection: `survivability_scales_with_the_reference_stats` failed
+     HP4/HP1 at 6.18x (band 3.5-6.0x); HP2/HP1 was 2.15x; block0.5 was
+     1.65x HP1.
+   - Clean HEAD from an archived copy passed: lethality 193s, HP2/HP1 2.05x,
+     HP4/HP1 5.85x, block0.5 1.58x HP1.
+   - Reverted source in this worktree passed the same rail again with the same
+     clean-HEAD numbers.
+2. Circulation attribution probe with projection, before revert:
+   - `PivotSpring` collapsed from the prior dominant +/-53.8..58.5 deg/s
+     aggregate pump to max residual 0.187 deg/s in the saved run.
+   - Observed circulation collapsed in aggregate but did not vanish:
+     controlled seed 0 mean abs 0.375 deg/s, controlled seed 4 mean abs
+     0.383 deg/s, vibe-like seed 0 mean abs 0.276 deg/s.
+   - Remaining circulation was carried by `EnemyBondInsideReachPush`,
+     `SpeedCap`, `Magnet`, `WeaveNet`, `SlotPull`, and collision channels,
+     depending on window.
+3. Shape-tilt probe, full `./scripts/test-mechanics --no-fail-fast`,
+   `scripts/test-scenarios`, `scripts/test-balance`, golden re-pin, pin rebuild,
+   and vibe refilm were not run because survivability failed and the protocol
+   requires stopping before downstream gates.
+
+Change ledger for this stopped attempt:
+
+| test | previous behavior | new behavior | why |
+|---|---|---|---|
+| `crates/sim/tests/mechanics_survivability.rs::attack_lethality_grinds_a_reference_line_in_about_three_to_four_minutes` | Clean HEAD passed at 193s within the 180-255s band. | Projection failed at 167s, below the 180s floor; reverted source restores 193s. | The pivot projection removed the internal angular spring's solid-rotation component, changing how the reference grind recirculates wounded/front men and shortening the equal grind. Provenance: your-regression; source reverted. |
+| `crates/sim/tests/mechanics_survivability.rs::survivability_scales_with_the_reference_stats` | Clean HEAD passed: HP1 30.9s, HP2 63.6s, HP4 180.9s, HP2/HP1 2.05x, HP4/HP1 5.85x, block0.5 48.8s / 1.58x. | Projection failed: HP1 29.1s, HP2 62.6s, HP4 179.7s, HP2/HP1 2.15x, HP4/HP1 6.18x, block0.5 48.1s / 1.65x; reverted source restores clean-HEAD values. | The exact torque removal disproportionately lengthened the HP4 tail relative to HP1 while also shortening the equal reference lethality anchor. Provenance: your-regression; source reverted. |
+
+No golden hash was re-pinned because no sim source change remains in-tree.

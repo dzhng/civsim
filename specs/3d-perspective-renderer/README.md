@@ -22,10 +22,29 @@ ladder invariants"** below — read that section before implementing any ladder
 slice); and **slice `07` is DONE** (below) — the ladder's foundation exists and
 the 06 spike is gone.
 
-**Exact next pickup point:** land `04f` (30k perf gate scene — the instrument
-every ladder slice re-runs; **must land before `08b`**), then start the ladder
-proper at `08a` (`slices/08a-*.md`, `PhotorealBattleWorld` parity assembly on the
-`07` foundation).
+**Exact next pickup point:** start the ladder proper at `08a` (`slices/08a-*.md`,
+`PhotorealBattleWorld` parity assembly on the `07` foundation). `04f` is DONE
+(below) — the standing 30k gate exists and is green.
+
+**Slice `04f` is DONE (this branch, 2026-07-02).** The standing 30k perf gate is
+`web/scenes/battle/battle-perf-30k.mjs` (NEW scene — `full-game-rendering-performance`
+stays the broad liveness/comparison report; rationale in the slice file), runner
+`bun run --cwd web perf:30k`. It boots the PRODUCTION battle (`?map=A&ai=off`,
+15,560 soldiers) and grows it to **30,560 via the production spawn path**, holds
+the mid + vista rig stops centred on the crowd, pauses the SIM (not freeze —
+freeze skips redraws; at 30k the sim tick alone eats ~164 ms/frame of main
+thread, which is sim cost, not renderer cost), and samples 150 warm frames of
+`renderStats.performance.gpuTimeMs` per stop. **Result: GPU median 4.35 ms
+(mid) / 4.30 ms (vista), p95 4.65/4.98, ≈7.5× inside the 33 ms budget**
+(ledger row below). Counts published + floored (≥30k soldiers, ≥500 scenery,
+vista ≥15k tufts/≥150k grass blades). Under SwiftShader the scene runs as a
+correctness smoke and SKIPS the ms assertion by name. Landing it surfaced and
+fixed a real shell bug: `frameShell.timestampWrites` emitted an empty
+timestampWrites descriptor for middle phases (WebGPU validation error — only a
+3-phase shell with the timer on hits it); `BattleRenderer` now sets
+`enableGpuTimer: true` and publishes `performance.gpuTimeMs`. Battle/campaign
+baselines byte-identical (0.0000% diffs, seating tripwire `match=true`);
+`test:unit` 45/45.
 
 **Slice `07` is DONE (this branch, 2026-07-02).** `packages/photoreal-renderer/`
 (source-only) is the three.js WebGPU + TSL substrate on the camera3d spine:
@@ -52,7 +71,11 @@ wired explicitly (vite alias + tsconfig paths + node test-loader fallback —
 they're outside the vite root). The 06 spike is fully deleted per the
 scaffolding ledger. **Frame-time ledger opened:** `photoreal-crowd` (30,400 +
 200k grass + 3k trees, hardware apple/metal-3) = **GPU 5.29 ms / median rAF
-8.33 ms vsync-pinned** (budget ≤ 33). `test:unit` 45/45; full battle + campaign
+8.33 ms vsync-pinned** (budget ≤ 33); `battle-perf-30k` (04f, PRODUCTION
+`BattleRenderer`, 30,560 soldiers + 548 scenery + vista 184.8k grass blades,
+hardware apple/metal-3) = **GPU median 4.35 ms mid / 4.30 ms vista (p95
+4.65/4.98) / median rAF 8.3 ms vsync-pinned** — the number `08b`'s swap is
+judged against. `test:unit` 45/45; full battle + campaign
 suites byte-identical; details + TSL hazards in `slices/07-photoreal-foundation.md`.
 
 **Slice `06` is DONE — SUBSTRATE VERDICT: three.js WebGPU + TSL for the photoreal
@@ -243,6 +266,7 @@ polish on top):**
   The production gameplay picking (the `Camera` class, used by `input.ts`) IS the
   ray-cast and is verified; the lab harness's camera3d migration is a `04`-followup.
 - **30k-soldier + foliage perf gate:** author it next (README TODO), hardware-only.
+  **(Done — `04f`, `battle-perf-30k`, green.)**
 
 **Slice `05a` is DONE (committed, 2026-07-02).** The production campaign renderer is
 flipped onto the real 3D perspective camera + reverse-Z, mirroring 04a's pattern:
@@ -356,7 +380,8 @@ ladder `07`–`17` was authored against the verdict via a three-draft
 
 **Exact next pickup point:** **`07` — photoreal foundation** (`packages/
 photoreal-renderer` + harness re-tooling; lab-only, can start now). `04f` (30k perf
-gate) lands **before `08b`** (the atomic battle flip). `04b` is descoped to decal
+gate) lands **before `08b`** (the atomic battle flip) — **landed 2026-07-02, green**.
+`04b` is descoped to decal
 depth-bias only (pending David's confirm; billboards → `08`, LOD → `14b`).
 
 **Active blockers / coordination warnings:**
@@ -396,8 +421,10 @@ depth-bias only (pending David's confirm; billboards → `08`, LOD → `14b`).
       COMPLETE: one projector `projectWorld`, one reverse-Z `depth32float`
       convention, zero flags, lab routes/pick harness/fixtures on
       `chartCamera3d`, projection identity published + asserted)**
-- [ ] `04f` — 30k-soldier + foliage perf gate, hardware-only, standing
-      (`slices/04f-30k-perf-gate.md`) — **before `08b`**
+- [x] `04f` — 30k-soldier + foliage perf gate, hardware-only, standing
+      (`slices/04f-30k-perf-gate.md`) — **done — GREEN: production renderer GPU
+      median 4.35/4.30 ms at mid/vista with 30,560 soldiers + dense foliage,
+      ~7.5× inside the 33 ms budget; `bun run --cwd web perf:30k`**
 - [ ] `04b` — battle polish, **descoped to decal depth-bias only** (needs confirm;
       `slices/04b-battle-polish.md`; billboards re-homed to `08`, LOD to `14b`)
 - [x] `06` — photoreal substrate bake-off → **VERDICT: three.js WebGPU + TSL**
@@ -539,7 +566,7 @@ a first-class acceptance criterion, not a "later optimization":
       ├── 04a FLIP battle + 3D ray-cast picking               ✅ done (per-pass `real` flag)
       │        │
       │        ├── 05 FLIP campaign + collapse legacy projector   ✅ done (05a + 05b; SPINE COMPLETE)
-      │        ├── 04f 30k-soldier + foliage perf gate            hardware-only — BEFORE 08b
+      │        ├── 04f 30k-soldier + foliage perf gate            ✅ done (standing; GREEN ~7.5× in budget)
       │        └── 04b battle polish (descoped: decal bias only)  needs-human-confirm
       │
 06 PHOTOREAL SUBSTRATE BAKE-OFF                               ✅ done — VERDICT:

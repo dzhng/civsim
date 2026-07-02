@@ -3,7 +3,7 @@
 Make a **30,000-soldier engaged battle simulate at ≤ 25 ms/tick** (today: ~50 ms
 fighting, ~24.5 ms idle — measured, see [investigation.md](investigation.md)),
 so 30k live battles fit a 30 fps frame alongside the renderer (~3 ms GPU). The
-renderer side is done (`specs/3d-perspective-renderer/` 04f gate); the sim tick
+renderer side is done (`specs/done/3d-perspective-renderer/` 04f gate); the sim tick
 is the blocker. This is SIM-domain work: [tweak-mechanics](../../.claude/skills/tweak-mechanics/SKILL.md),
 [write-tests](../../.claude/skills/write-tests/SKILL.md), [debug](../../.claude/skills/debug/SKILL.md),
 and [write-vibe](../../.claude/skills/write-vibe/SKILL.md) govern how changes are

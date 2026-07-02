@@ -69,6 +69,7 @@ import type { VatBake, VatClip } from '../../../packages/soldier-assets/src/sche
 import { importedRigMesh } from './importedRigMesh';
 import { routePhotorealCrowd, routePhotorealPbr } from './photorealRoutes';
 import { routePhotorealBattle } from './photorealBattleRoute';
+import { routeImpostorSpike } from './impostorSpikeRoute';
 import { buildBattleUiModel, BattleUiLayer } from '../../../web/src/battle/uiLayer';
 import { UNIT_CLASS_BY_KEY, UnitClass, CLASS_NAMES } from '../../../web/src/battle/classData';
 import type { UnitCardInit, UnitCardState } from '../../../web/src/battle/unitCard';
@@ -139,6 +140,7 @@ const routes: Record<string, LabRoute> = {
   '/renderer/photoreal-pbr': routePhotorealPbr,
   '/renderer/photoreal-crowd': routePhotorealCrowd,
   '/renderer/photoreal-battle': routePhotorealBattle,
+  '/renderer/impostor-spike': routeImpostorSpike,
 };
 
 export async function mountRendererLab(path = location.pathname) {

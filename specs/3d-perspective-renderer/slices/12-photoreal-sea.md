@@ -25,6 +25,17 @@ water paths.
   `battle-coastal-vista.jpg` + hardware ms. Record a 06-style mini-verdict here.
   **Whatever wins, Gerstner is the guaranteed SwiftShader fallback tier** (IFFT
   compute is a flagged CI risk), asserted by scene + stats identity.
+  **Baseline prong (David, 2026-07-02): the bake-off ALSO compares against the
+  stock three.js `webgpu_ocean` example** —
+  <https://threejs.org/examples/?q=ocean#webgpu_ocean>
+  (`examples/webgpu_ocean.html`: `WaterMesh` normal-map distortion water + `SkyMesh`,
+  no displacement). It is the "free from the ecosystem" bar: a custom prong that
+  doesn't visibly beat it at our framing does not justify existing. The
+  `waternormals.jpg` texture it needs is NOT in the npm package — the reviewer
+  supplies it (fetched from the three.js repo) when building the baseline harness;
+  judge all three at matched framing under the `10` sky where feasible (the stock
+  example brings its own sky — note the lighting mismatch in the verdict rather
+  than pretending it away).
 - **12b — PBR surface:** Fresnel reflection of the *actual* `10` sky/IBL (one sky
   source), GGX sun glint track, deep-water color. Fix the 06 critique's flagged
   three-prong flaws: blobby glint track, horizon moiré (distance-faded normal detail).

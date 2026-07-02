@@ -1,22 +1,25 @@
-// terrainLayer — the parity battle ground (slice 08a): literal TSL ports of
-// the production background quads (frameShell terrainWgsl/terrainBackdropWgsl)
-// and the height-displaced ground mesh (groundPass GROUND_WGSL, active path —
-// the meadow branch is disabled in the production battle and stays unported),
-// plus the sealed-edge horizon blockers (horizonPass HORIZON_WGSL). The CPU
-// geometry comes from the same builders the bespoke passes upload
-// (buildBattleGroundMesh / buildBattleHorizonLayout).
+// terrainLayer — the battle ground on the photoreal substrate. Born as literal
+// TSL ports of the production background quads (frameShell terrainWgsl/
+// terrainBackdropWgsl), the height-displaced ground mesh (groundPass
+// GROUND_WGSL, meadow branch unported), and the sealed-edge horizon blockers
+// (horizonPass HORIZON_WGSL); since slice 09 they are standard-material
+// responses with NEUTRAL albedos — the baked lambert/key-fill/exposure terms
+// are extracted, the sun + IBL environment light them. The CPU geometry comes
+// from the same builders the bespoke passes upload (buildBattleGroundMesh /
+// buildBattleHorizonLayout). Inline haze mixes are the 08a aerial stand-in
+// (die at 10b, the one aerial-perspective owner).
 import * as THREE from 'three/webgpu';
 import {
-  attribute, clamp, dot, float, length, mix, normalize, smoothstep, varying, vec2, vec3, vec4,
+  attribute, clamp, float, length, mix, normalize, transformNormalToView, varying, vec2, vec3, vec4,
 } from 'three/tsl';
 import type { BattleGroundMesh } from '../../../game-renderer/src/battle/groundPass';
 import type { BattleHorizonLayout } from '../../../game-renderer/src/battle/horizonPass';
 import type { BattleEnvironment } from '../../../game-renderer/src/environment/environment';
 import {
-  chartDepthDistNode, fbmN, hashN, ridgeN, rgbNode, saturateN, smoothstepN, sunDirectionNode, vnoiseN,
+  chartDepthDistNode, fbmN, hashN, linearAlbedo, ridgeN, rgbNode, saturateN, smoothstepN, viewNormalNode, vnoiseN,
   type BattleFrameUniforms, type FloatNode, type Rgb, type Vec2Node,
 } from './battleTsl';
-import { fieldWaterColorNodes } from './seaLayer';
+import { fieldWaterSurfaceNodes } from './seaLayer';
 
 export const RENDER_ORDER = {
   backdrop: -10,
@@ -120,8 +123,8 @@ function quadGroundHeight(p: Vec2Node): FloatNode {
   return broad.add(folds).add(scratch);
 }
 
-function terrainQuadMaterial(style: TerrainQuadStyle, frame: BattleFrameUniforms): THREE.MeshBasicNodeMaterial {
-  const material = new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide });
+function terrainQuadMaterial(style: TerrainQuadStyle, frame: BattleFrameUniforms): THREE.MeshStandardNodeMaterial {
+  const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, roughness: 0.96, metalness: 0 });
   material.fog = false;
   material.depthTest = false;
   material.depthWrite = false;
@@ -133,9 +136,9 @@ function terrainQuadMaterial(style: TerrainQuadStyle, frame: BattleFrameUniforms
   const relief = quadGroundHeight(world).toVar();
   const hx = quadGroundHeight(world.add(vec2(1.8, 0.0))).sub(relief);
   const hy = quadGroundHeight(world.add(vec2(0.0, 1.8))).sub(relief);
-  const sun = normalize(vec3(-0.46, -0.34, 0.82));
-  const normal = normalize(vec3(hx.mul(-1.45), hy.mul(-1.45), 1.0));
-  const lambert = saturateN(dot(normal, sun)).toVar();
+  // The quad is 4 vertices: the relief normal must be per-fragment (a vertex
+  // varying would interpolate flat) — the sun now shades it, not a baked lambert.
+  material.normalNode = transformNormalToView(normalize(vec3(hx.mul(-1.45), hy.mul(-1.45), 1.0)));
   const grazing = smoothstepN(0.16, 0.86, ridgeN(vec2(world.x.mul(0.12).add(world.y.mul(0.03)), world.y.mul(0.09)))).toVar();
   const olive = mix(rgbNode(style.oliveLow), rgbNode(style.oliveHigh), mid.mul(0.66).add(fine.mul(0.16)).add(relief.mul(0.18)));
   const scrubPatch = smoothstepN(0.50, 0.86, broad).mul(float(1.0).sub(smoothstepN(0.86, 0.98, fine)));
@@ -153,7 +156,6 @@ function terrainQuadMaterial(style: TerrainQuadStyle, frame: BattleFrameUniforms
   let grass = mix(olive, rgbNode(style.dry), trample.mul(style.trampleMix).add(style.dryMixBase));
   grass = mix(grass, vec3(0.31, 0.39, 0.18), scrubPatch.mul(0.34));
   grass = mix(grass, vec3(0.88, 0.75, 0.47), rakedDust);
-  grass = grass.mul(lambert.mul(0.34).add(0.70));
   grass = grass.add(vec3(0.13, 0.12, 0.055).mul(speckle));
   grass = mix(grass, rgbNode(style.stubbleColor), stubble.mul(style.stubbleStrength));
   grass = mix(grass, grass.mul(rgbNode(style.darkFleckColor)), darkFleck.mul(style.darkFleckStrength));
@@ -161,16 +163,18 @@ function terrainQuadMaterial(style: TerrainQuadStyle, frame: BattleFrameUniforms
   const dust = smoothstepN(18.0, 96.0, dist).mul(style.dustStrength);
   const aerial = smoothstepN(120.0, 420.0, dist);
   const sunBleached = mix(grass, vec3(0.86, 0.72, 0.46), dust);
+  // Aerial stand-in (dies at 10b, the one aerial-perspective owner).
   const haze = vec3(0.78, 0.75, 0.64);
-  material.colorNode = vec4(mix(sunBleached, haze, aerial.mul(style.aerialStrength)), 1.0);
+  material.colorNode = vec4(linearAlbedo(mix(sunBleached, haze, aerial.mul(style.aerialStrength))), 1.0);
   return material;
 }
 
-function backdropMaterial(): THREE.MeshBasicNodeMaterial {
-  const material = new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide });
+function backdropMaterial(): THREE.MeshStandardNodeMaterial {
+  const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, roughness: 0.98, metalness: 0 });
   material.fog = false;
   material.depthTest = false;
   material.depthWrite = false;
+  material.normalNode = viewNormalNode(vec3(0.0, 0.0, 1.0));
   const world = varying(attribute<'vec3'>('position', 'vec3').xy).toVar();
   const broad = vnoiseN(world.mul(0.055).add(vec2(4.7, 8.1)));
   const mid = vnoiseN(world.mul(0.42).add(vec2(11.3, 1.9)));
@@ -178,7 +182,7 @@ function backdropMaterial(): THREE.MeshBasicNodeMaterial {
   let grass = mix(vec3(0.16, 0.25, 0.12), vec3(0.30, 0.42, 0.20), broad);
   grass = mix(grass, vec3(0.11, 0.18, 0.10), smoothstepN(0.62, 0.94, mid).mul(0.38));
   grass = grass.add(vec3(0.10, 0.12, 0.04).mul(speck));
-  material.colorNode = vec4(grass, 1.0);
+  material.colorNode = vec4(linearAlbedo(grass), 1.0);
   return material;
 }
 
@@ -233,24 +237,23 @@ export function createGroundMesh(
   geo.setIndex(new THREE.BufferAttribute(mesh.indices, 1));
 
   const e = env.environment;
-  const material = new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide });
+  const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, metalness: 0 });
   material.fog = false;
-  const sun = sunDirectionNode(env);
   const position = attribute<'vec3'>('position', 'vec3');
   const gNormal = attribute<'vec3'>('gNormal', 'vec3');
-  const light = varying(clamp(dot(normalize(gNormal), sun).mul(0.45).add(0.74), 0.5, 1.18)).toVar();
+  material.normalNode = viewNormalNode(normalize(gNormal));
   const color = varying(attribute<'vec3'>('gColor', 'vec3')).toVar();
   const water = varying(attribute<'float'>('gWater', 'float')).toVar();
   const world = varying(position.xy).toVar();
   const fog = varying(smoothstepN(720.0, 1850.0, chartDepthDistNode(position.xy, frame)).mul(0.52));
 
-  // Grass/ground micro-detail across scales (GROUND_WGSL fs, meadow off).
+  // Grass/ground micro-detail across scales (GROUND_WGSL fs, meadow off) —
+  // NEUTRAL albedo variation; the sun + IBL environment light it.
   const drift = fbmN(world.mul(0.08)).sub(0.5).mul(0.10);
   const mottle = fbmN(world.mul(1.1)).sub(0.5).mul(0.13);
   const blade = fbmN(world.mul(4.7)).sub(0.5).mul(0.10).add(fbmN(world.mul(12.0)).sub(0.5).mul(0.06));
   const detail = clamp(drift.add(mottle).add(blade).add(1.0), 0.68, 1.32);
-  const grade = mix(rgbNode(e.fillColor), rgbNode(e.keyColor), saturateN(light.sub(0.5).div(0.68)));
-  let col = color.mul(detail).mul(light).mul(grade).mul(e.exposure);
+  let albedo = color.mul(detail);
   // Churn: trodden mud reads as broken ground (brown AND dark keys the earth).
   const brown = smoothstepN(0.0, 0.05, color.r.sub(color.g));
   const dark = float(1.0).sub(smoothstepN(0.30, 0.46, color.r.add(color.g).add(color.b).div(3.0)));
@@ -258,12 +261,16 @@ export function createGroundMesh(
   const clods = fbmN(world.mul(0.07)).mul(0.6).add(fbmN(world.mul(0.16).add(vec2(5.0, 2.0))).mul(0.4));
   const ruts = ridgeN(world.mul(vec2(0.11, 0.045)).add(vec2(2.0, 0.0)));
   const churn = clamp(clods.mul(0.72).add(ruts.mul(0.28)).add(0.58), 0.42, 1.30);
-  col = mix(col, col.mul(churn), earth);
-  // Field water: the shared water material blended by the box-filtered weight.
-  const waterCol = fieldWaterColorNodes(env, frame, world, water);
-  col = mix(col, waterCol, saturateN(water));
-  col = mix(col, rgbNode(e.hazeColor), fog);
-  material.colorNode = vec4(clamp(col, vec3(0.0), vec3(1.0)), 1.0);
+  albedo = mix(albedo, albedo.mul(churn), earth);
+  // Field water: the shared water surface blended by the box-filtered weight
+  // (albedo + roughness — wet ground gets a real sun sheen).
+  const waterBlend = saturateN(water).toVar();
+  const fieldWater = fieldWaterSurfaceNodes(env, frame, world, water);
+  albedo = mix(albedo, fieldWater.albedo, waterBlend);
+  // Aerial stand-in (dies at 10b, the one aerial-perspective owner).
+  albedo = mix(albedo, rgbNode(e.hazeColor), fog);
+  material.colorNode = vec4(linearAlbedo(clamp(albedo, vec3(0.0), vec3(1.0))), 1.0);
+  material.roughnessNode = mix(float(0.95), fieldWater.roughness, waterBlend);
 
   const ground = new THREE.Mesh(geo, material);
   ground.name = 'battle-ground';
@@ -283,15 +290,14 @@ export function createHorizonBlockerMesh(env: BattleEnvironment, layout: BattleH
   geo.setIndex(new THREE.BufferAttribute(layout.mesh.indices, 1));
 
   const e = env.environment;
-  const material = new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide });
+  const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, roughness: 0.92, metalness: 0 });
   material.fog = false;
-  const sun = sunDirectionNode(env);
-  const light = varying(clamp(dot(normalize(attribute<'vec3'>('hNormal', 'vec3')), sun).mul(0.5).add(0.7), 0.42, 1.2));
+  material.normalNode = viewNormalNode(normalize(attribute<'vec3'>('hNormal', 'vec3')));
   const color = varying(attribute<'vec3'>('hColor', 'vec3'));
-  // Push the blocker slightly toward the cool haze with height so it reads as
-  // standing off in the distance behind the field.
-  const col = clamp(mix(color.mul(light).mul(e.exposure), rgbNode(e.hazeColor), 0.10), vec3(0.0), vec3(1.0));
-  material.colorNode = vec4(col, 1.0);
+  // Push the blocker slightly toward the haze so it reads as standing off in
+  // the distance behind the field (aerial stand-in — dies at 10b).
+  const col = clamp(mix(color, rgbNode(e.hazeColor), 0.10), vec3(0.0), vec3(1.0));
+  material.colorNode = vec4(linearAlbedo(col), 1.0);
 
   const mesh = new THREE.Mesh(geo, material);
   mesh.name = 'battle-horizon-blockers';

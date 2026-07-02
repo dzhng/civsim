@@ -5,6 +5,8 @@
 // route against the production battle at matched camera3d framing.
 //
 //   ?map=A|B      quick-battle map (default A)
+//   ?env=golden-hour|dusk|overcast-foggy|noon
+//                 environment preset (default golden-hour; slice 09)
 //   ?ai=on        enemy AI (default off — deterministic standing armies)
 //   ?ticks=N      sim ticks advanced before first frame (default 60)
 //   ?count=N      grow the army to N soldiers via the production spawn path
@@ -41,7 +43,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
   if (params.get('ref') === '1') ctx.root.classList.add('reference-shot');
   const [{ default: initWasm, Game }, world] = await Promise.all([
     import('../../../web/src/wasm/game_wasm.js'),
-    PhotorealBattleWorld.create(ctx.canvas),
+    PhotorealBattleWorld.create(ctx.canvas, { environment: params.get('env') }),
   ]);
   const wasm = await initWasm();
   const game = new Game(0x5eed_c0de);

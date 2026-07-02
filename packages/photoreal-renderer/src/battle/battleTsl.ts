@@ -7,11 +7,10 @@
 // Determinism: nothing here reads the TSL `time` node (banned); every animated
 // term keys off uniforms owned by PhotorealBattleWorld.
 import {
-  abs, clamp, cos, dot, float, floor, fract, mix, normalize, sin, smoothstep, uniform, vec2, vec3,
+  abs, clamp, cos, dot, float, floor, fract, mix, normalize, sRGBTransferEOTF, sin, smoothstep, transformNormalToView, uniform, varying, vec2, vec3,
 } from 'three/tsl';
 import { Vector2 } from 'three';
 import type { Node } from 'three/webgpu';
-import type { BattleEnvironment } from '../../../game-renderer/src/environment/environment';
 
 export type FloatNode = Node<'float'>;
 export type Vec2Node = Node<'vec2'>;
@@ -85,13 +84,23 @@ export function fnoiseN(p: Vec2Node): FloatNode {
   );
 }
 
-/** WGSL `sunDirection()` for a battle environment — a compile-time constant
- *  (the preset owns az/el; production writes them into the camera uniform). */
-export function sunDirectionNode(env: BattleEnvironment): Vec3Node {
-  const az = env.environment.sunAzimuth;
-  const el = env.environment.sunElevation;
-  const ce = Math.cos(el);
-  return vec3(ce * Math.cos(az), ce * Math.sin(az), Math.sin(el));
+/** The battle palette (vertex tints, style constants, preset colours) is
+ *  authored display-referred — the bespoke frame wrote those values straight
+ *  to a non-sRGB swapchain. A standard-material response needs LINEAR albedo,
+ *  so every battle material converts its composed albedo through the sRGB
+ *  EOTF exactly once, at the end (compose in display space, light in linear —
+ *  the same contract as an sRGB-tagged albedo texture). */
+export function linearAlbedo(display: Vec3Node): Vec3Node {
+  // The cast re-types the untyped Fn return (@types/three drops the node type).
+  return sRGBTransferEOTF(display) as unknown as Vec3Node;
+}
+
+/** The standard-material normal hook for battle geometry: attributes are
+ *  authored in world (z-up) space on identity-transform meshes, and
+ *  `normalNode` expects a VIEW-space normal (07's recorded hazard) — transform
+ *  in the vertex stage, interpolate, renormalize. */
+export function viewNormalNode(worldNormal: Vec3Node): Vec3Node {
+  return varying(transformNormalToView(worldNormal)).normalize();
 }
 
 /** The battle fog/meadow grading axis (cameraWgsl chartDepthDist): signed

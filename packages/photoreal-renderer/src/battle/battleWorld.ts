@@ -1,21 +1,24 @@
-// PhotorealBattleWorld — slice 08a: the FULL battle world at parity look on
-// the three.js WebGPU + TSL substrate, accepting the EXACT production inputs
-// BattleRenderer holds (terrain grid + tint + heightfield from setTerrain,
+// PhotorealBattleWorld — the FULL production battle world on the three.js
+// WebGPU + TSL substrate (born slice 08a at parity; physically lit since
+// slice 09: sun + IBL + ACES from CIVSIM_ENVIRONMENTS, neutral-albedo
+// standard materials). Accepts the EXACT production inputs BattleRenderer
+// holds (terrain grid + tint + heightfield from setTerrain,
 // buildCrowdInstances soldier frames, drawTris/drawTacticalLines Float32Array
 // contracts). The sim firewall does not move: soldiers seat via the same CPU
 // terrainHeightAt sampling; the only sim→renderer bridges stay
 // buildCrowdInstances + terrainHeightAt.
 //
 // Scaffolding ledger rows owned here (README "Photoreal ladder invariants"):
+//   - Procedural equirect IBL stand-in (environment.ts) — dies at 10a.
 //   - THREE.Fog haze stand-in matched to hazeColor — dies at 10b.
 //   - Blob-shadow decal replica (crowdLayer) — dies at 11.
-//   - Parity Gerstner-family sea shading (seaLayer) — dies at 12b–d.
-// 08b swaps BattleRenderer's internals onto this class on the same canvas.
+//   - Parity-derived Gerstner sea shading (seaLayer) — dies at 12b–d.
+// 08b swapped BattleRenderer's internals onto this class on the same canvas.
 import * as THREE from 'three/webgpu';
 import { buildCrowdInstances, type CrowdInstance } from '../../../crowd-runtime/src/instanceData';
 import {
-  BATTLE_ENVIRONMENTS,
   battleEnvironmentStats,
+  resolveBattleEnvironment,
   type BattleEnvironment,
 } from '../../../game-renderer/src/environment/environment';
 import {
@@ -39,6 +42,7 @@ import {
 } from '../../../soldier-assets/src/placeholders';
 import { createPlaceholderSoldierMeshes } from '../../../soldier-assets/src/soldierMesh';
 import { PhotorealWorld } from '../world';
+import { applyCivsimEnvironment } from '../environment';
 import { applyCamera3d } from '../cameraBridge';
 import { PHOTOREAL_PROJECTION, PHOTOREAL_SUBSTRATE } from '../stats';
 import { createBattleFrameUniforms, type BattleFrameUniforms } from './battleTsl';
@@ -71,7 +75,7 @@ export interface BattleTacticalLineFrame {
 export class PhotorealBattleWorld {
   readonly world: PhotorealWorld;
   readonly camera = new THREE.PerspectiveCamera();
-  private readonly environment: BattleEnvironment = BATTLE_ENVIRONMENTS['golden-hour'];
+  private readonly environment: BattleEnvironment;
   private readonly frame: BattleFrameUniforms;
   private readonly background: BattleBackgroundQuads;
   private readonly grass: PhotorealGrassField;
@@ -122,20 +126,18 @@ export class PhotorealBattleWorld {
 
   private constructor(
     world: PhotorealWorld,
+    environment: BattleEnvironment,
     meshes: ReturnType<typeof createPlaceholderSoldierMeshes>,
     vats: Awaited<ReturnType<typeof loadClassVats>>,
     kit: Awaited<ReturnType<typeof loadPlaceholderKit>>,
   ) {
     this.world = world;
+    this.environment = environment;
     this.frame = createBattleFrameUniforms();
     this.frame.time = world.uTime;
     const scene = world.scene;
     const env = this.environment;
 
-    // Parity output: the bespoke frame writes display values straight to a
-    // non-sRGB swapchain — no tone mapping, no output transform.
-    world.renderer.toneMapping = THREE.NoToneMapping;
-    world.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
     // TSL/three@0.185 HAZARD (recorded in the slice file): with
     // `reversedDepthBuffer` three sorts its render lists then REVERSES them
     // wholesale (RenderList.sort → list.reverse()), inverting renderOrder
@@ -150,25 +152,23 @@ export class PhotorealBattleWorld {
     world.renderer.setTransparentSort((a: SortItem, b: SortItem) =>
       ((b.groupOrder ?? 0) - (a.groupOrder ?? 0)) || ((b.renderOrder ?? 0) - (a.renderOrder ?? 0))
       || ((a.z ?? 0) - (b.z ?? 0)) || ((b.id ?? 0) - (a.id ?? 0)));
-    // drawFrame's clear colour — visible only past the backdrop, like bespoke.
-    scene.background = new THREE.Color(0.16, 0.24, 0.15);
-    // THREE.Fog haze stand-in (ledger: dies at 10b) in the preset hazeColor,
-    // covering the surfaces without a ported bespoke haze term (crowd,
-    // scenery). Parity constraint: the bespoke frame applies NO fog to those
-    // surfaces, and the top-down overview parks the eye ~3.2 km out (rig
-    // distance 2×min(map w,h)), so the ramp starts past that — the stand-in
-    // only ever touches beyond-battle distances until 10b replaces it with
-    // the one aerial-perspective owner.
-    const haze = env.environment.hazeColor;
-    scene.fog = new THREE.Fog(new THREE.Color(haze[0], haze[1], haze[2]), 3400, 8200);
-    // The stats identity field: this world is dressed from the ONE preset
-    // owner (BATTLE_ENVIRONMENTS['golden-hour'] → CIVSIM_ENVIRONMENTS.golden).
-    world.environmentId = env.environment.id;
+    // Slice 09 — lighting core: sun DirectionalLight + PMREM'd procedural
+    // equirect IBL (stand-in, dies at 10a) + ACES tonemap + per-preset
+    // exposure, all mapped from the ONE preset owner. Background 'haze':
+    // the clear past the backdrop is the preset haze colour (the sky itself
+    // lands at 10a). The THREE.Fog stand-in keeps its 08a constraint — the
+    // top-down overview parks the eye ~3.2 km out (rig distance 2×min(map
+    // w,h)), so the ramp starts past that; it only ever touches beyond-battle
+    // distances until 10b replaces it with the one aerial-perspective owner.
+    applyCivsimEnvironment(world, env.environment, {
+      background: 'haze',
+      fog: { near: 3400, far: 8200 },
+    });
 
     this.background = new BattleBackgroundQuads(scene, this.frame);
     this.grass = new PhotorealGrassField(scene, env, this.frame);
     this.scenery = new PhotorealScenery(scene);
-    this.crowd = new PhotorealCrowd(scene, env, meshes, vats, kit);
+    this.crowd = new PhotorealCrowd(scene, meshes, vats, kit);
     this.soldierShadows = new PhotorealSoldierShadows(scene);
     this.mountedClasses = mountedClassesFromKit(kit);
     this.groundCues = new PhotorealLineLayer(scene, 0.02, {
@@ -186,13 +186,17 @@ export class PhotorealBattleWorld {
     this.markerLayer = new PhotorealMarkerLayer(scene);
   }
 
-  static async create(canvas: HTMLCanvasElement): Promise<PhotorealBattleWorld> {
+  static async create(
+    canvas: HTMLCanvasElement,
+    options: { environment?: string | null } = {},
+  ): Promise<PhotorealBattleWorld> {
+    const environment = resolveBattleEnvironment(options.environment);
     const [world, kit] = await Promise.all([
       PhotorealWorld.create(canvas, { antialias: false }),
       loadPlaceholderKit(),
     ]);
     const vats = await loadClassVats(kit);
-    return new PhotorealBattleWorld(world, createPlaceholderSoldierMeshes([0.2, 0.42, 0.88]), vats, kit);
+    return new PhotorealBattleWorld(world, environment, createPlaceholderSoldierMeshes([0.2, 0.42, 0.88]), vats, kit);
   }
 
   setTime(seconds: number): void {

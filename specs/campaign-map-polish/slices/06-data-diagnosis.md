@@ -17,9 +17,33 @@
   sea-only ports (which must NOT be "fixed"). Prune commit `a97db5f5` is the
   suspected origin.
 
+## DIAGNOSIS RESULTS (2026-07-03, run against current campaign-map.json + terrainAt)
+
+**Cities-in-sea (feedback #4/#5):** of 412 cities, 37 sit on a water raster cell.
+**Every one is a `port`; ZERO non-port cities are misplaced.** By distance to
+nearest land: **36 are ≤6km** (icon/marker sits right at the waterline — coastal
+ports whose center is a hair offshore of the coarse coastline; this is what the
+offshore square markers in #4/#5 are), and **exactly 1 is genuinely far out —
+Cnidus (tier1, 14km, @ [834,-104])**. So this is NOT coordinate corruption; it is
+coastal-port centers landing on the sea side of the coarse land raster.
+
+**Road graph (feedback #11–13, data half):** 639 road edges. **17 degree-1 junction
+stubs** (dead-end roads to a bare junction), **83 degree-0 junctions** (orphan
+nodes), road components sized **473 / 25 / 5** + singletons (two isolated clusters).
+All 59 road-less cities are legit ports — none stranded. Matches the prune-commit
+(`a97db5f5`) hypothesis: cities pruned without cleaning incident junctions.
+
+**Recommended fix-path (default, pending David):**
+- Cities: in `crates/mapgen`, snap any city whose center is on water to the nearest
+  land cell (small nudge fixes all 36 waterline ports). Cnidus (14km) is either a
+  bad ORBIS coordinate → a manual `overrides.json` position, or a large snap; check
+  it looks right after.
+- Roads: drop degree-≤1 junction stubs + degree-0 junctions; drop or reconnect the
+  25- and 5-node isolated components. Preserve the 59 sea-ports.
+
 ## What the human can see
-- A diagnosis report (markdown/HTML) + an annotated overview screenshot with each
-  offending city circled and each real road hole marked.
+- The diagnosis above (counts + the one real city bug, Cnidus). Scripts:
+  `scratchpad/diag-cities.mjs` (terrainAt sweep) + the Python road audit.
 
 ## ★ Human checkpoint (non-blocking)
 Open the report + annotated shot with **preview-shots**. David picks: the D

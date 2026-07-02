@@ -13,25 +13,28 @@ the slice files.
 
 ## Next Agent Prompt
 
-**Status:** 2026-07-03. Slices 00–04 DONE (committed). Foundation look complete
-and presented at the checkpoint; next is the data/geometry group (`05` roads).
+**Status:** 2026-07-03. DONE & committed: 00–06, 11 (foundation look, camera,
+carts, road-cull relax, data diagnosis) + the 10→08 reslice. Foundation presented
+at its checkpoint; David away, proceeded on evidence (palette + 0.35 wash kept).
+Next is `07` mapgen re-bake (Rust build — a clean fresh-context boundary; the fix
+targets are recorded in the slice file).
 **You are implementing this spec.** David's standing goal: work through the
 slices in order and **use `/codex` for implementation work wherever possible**
 (delegate the mechanical edits to Codex via `codex exec`; you drive verification,
 screenshots, and the human checkpoints yourself).
 
-**Next pickup point (two independent options — either is a clean start):**
-- `06-data-diagnosis` → `07` mapgen re-bake: read-only cities-in-sea + road-graph
-  audit (David picks the fix-path), then the Rust build + JSON re-bake. A natural
-  fresh-context boundary.
+**Next pickup point (two independent clean starts):**
+- `07-mapgen-rebake`: the Rust fix + JSON re-bake. Fix targets are in the slice
+  file (snap 37 on-water ports to land + Cnidus, drop 17 stubs/83 dead junctions/
+  25+5 orphan road components). Confirm the re-bake command
+  (`cargo run -p mapgen --release`) writes `web/public/data/campaign-map.json` +
+  dist copy, then `bun run build:wasm`. Re-bless position scenes only.
 - `08-capital-labels`: occupied-capital names at low zoom + garrison label-far +
-  the garrison-disc "shadow ring". **Diagnostic groundwork is done** — the disc is
-  a light ground decal specific to garrisoned cities (NOT model shadow, NOT
-  selection, NOT crowd shadow); see the slice file for the narrowed search.
+  the garrison-disc "shadow ring". Diagnostic groundwork done (see slice file: the
+  disc is a light ground decal specific to garrisoned cities).
 
-Done so far: 00–05, 11 (committed & verified), plus the 10→08 reslice. Remaining:
-`06`/`07` data, `08` labels + garrison disc, `09` sea labels, `12` selection ring,
-`13–15` bronze UI, `16–18` city card + allegiance re-channel, `19` docs.
+Remaining after those: `09` sea labels, `12` selection ring, `13–15` bronze UI,
+`16–18` city card + allegiance re-channel, `19` docs.
 
 **Reliable verification recipe (proven this session):** start your own dev server
 `cd web && node node_modules/.bin/vite --port 5199 --strictPort &`; iterate visuals
@@ -95,8 +98,8 @@ palette. New scene: `campaign-frame` (asserts no off-map black at wide/tall aspe
 - [ ] ★ **Foundation human checkpoint** (David) — shots presented; awaiting review, proceeding on evidence
 - [x] `05-roads-cull-relax` — cull 0.68→0.5, land slack 10.5→16; +516 road tris recovered, none over water
 - [x] `11-cart-size` — carts 6.0→1.3 (road width)
-- [ ] `06-data-diagnosis` — cities-in-sea + road-graph audit (read-only, human checkpoint)
-- [ ] `07-mapgen-rebake` — one Rust fix + one re-bake: cities on land + road stub/fragment cleanup
+- [x] `06-data-diagnosis` — DONE: 0 misplaced non-port cities; 36 ports at waterline + Cnidus (14km) the one real bug; roads = 17 stubs/83 dead junctions/25+5 orphan components (all in slice files)
+- [ ] `07-mapgen-rebake` — one Rust fix + one re-bake: snap on-water ports to land (+ Cnidus override), drop road stubs/orphan components. Targets recorded in slice file.
 - [ ] `08-capital-labels` — occupied-capital name at low zoom + garrison label-far fix
 - [ ] `09-sea-labels` — mask-fit so labels stay inside their sea with margin
 - [~] `10-shadow-ring` — RESLICED: the ugly "ring" is the garrison-footprint disc (occupied cities only), folded into `08`; city model shadow reads fine, left as-is

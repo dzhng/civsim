@@ -112,9 +112,14 @@ export async function run(ctx) {
     const shot = PNG.sync.read(await page.screenshot({ clip, timeout: 180000 }));
     const offScenery = cropFrac(shot, SCENERY_CROP);
     const delta = meanAbsDiff(goldenScenery, offScenery);
+    // Presence proxy, not a contrast target: the slice-15 AgX grade lifts
+    // shadows (aesthetics rule 2 — bright, legible, no moody near-black), so the
+    // grove's on/off darkening is subtler than the ACES-era 1.5 this once pinned.
+    // The mechanism still holds — the grove visibly darkens and ?shadows=off
+    // removes it — so the floor guards presence, not the old magnitude.
     ctx.check(
-      "shadows move the grove crop (on vs off mean|Δ| > 1.5)",
-      delta > 1.5,
+      "shadows move the grove crop (on vs off mean|Δ| > 1.2)",
+      delta > 1.2,
       JSON.stringify({ meanAbsDiff: Number(delta.toFixed(2)) }),
     );
     await page.close();

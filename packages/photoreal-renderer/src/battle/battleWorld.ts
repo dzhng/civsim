@@ -62,6 +62,7 @@ import { PhotorealGrassField, PhotorealScenery } from './foliageLayer';
 import { PhotorealCrowd, type CrowdVisibilityScope } from './crowdLayer';
 import { configureSunShadows, resolveSunShadowMode, type SunShadowMode, type SunShadowRig } from './shadowRig';
 import { PhotorealLineLayer, PhotorealMarkerLayer, PhotorealTriangleLayer } from './overlayLayer';
+import { BattlePostChain } from '../post/postChain';
 
 /** The camera fields BattleRenderer snapshots from the shared Camera each
  *  frame (renderer.ts cameraSnapshot) — the whole camera contract. */
@@ -95,6 +96,7 @@ export class PhotorealBattleWorld {
   private readonly markerLayer: PhotorealMarkerLayer;
   private readonly mountedClasses: number[];
   private readonly sea: ReturnType<typeof createSeaDisplacementSource>;
+  private readonly post: BattlePostChain;
 
   private ground: THREE.Mesh | null = null;
   private horizonBlockers: THREE.Mesh | null = null;
@@ -139,6 +141,7 @@ export class PhotorealBattleWorld {
     vats: Awaited<ReturnType<typeof loadClassVats>>,
     kit: Awaited<ReturnType<typeof loadPlaceholderKit>>,
     shadowMode: SunShadowMode,
+    postEnabled: boolean,
   ) {
     this.world = world;
     this.environment = environment;
@@ -185,11 +188,25 @@ export class PhotorealBattleWorld {
     this.debugBlocks = new PhotorealTriangleLayer(scene, RENDER_ORDER.debugBlocks);
     this.debugTriangles = new PhotorealTriangleLayer(scene, RENDER_ORDER.debugTriangles);
     this.markerLayer = new PhotorealMarkerLayer(scene);
+
+    // Slice 15 — the post chain: one bloom stage over the whole scene pass, the
+    // ONE tone-map applied at the tail. Threshold-disciplined (linear-HDR
+    // luminance), so only the sky sun disc + the GGX sea glint spill; the
+    // in-scene tactical overlays sit below threshold and the DOM HUD is outside
+    // the canvas — neither blooms. ?post=off (lab A/B) bypasses the chain.
+    this.post = new BattlePostChain(world.renderer, scene, this.camera);
+    this.post.enabled = postEnabled;
+    world.post = this.post;
   }
 
   static async create(
     canvas: HTMLCanvasElement,
-    options: { environment?: string | null; shadows?: string | null; sea?: SeaDisplacementSourceId } = {},
+    options: {
+      environment?: string | null;
+      shadows?: string | null;
+      sea?: SeaDisplacementSourceId;
+      post?: string | null;
+    } = {},
   ): Promise<PhotorealBattleWorld> {
     const environment = resolveBattleEnvironment(options.environment);
     const [world, kit] = await Promise.all([
@@ -202,11 +219,19 @@ export class PhotorealBattleWorld {
     // ?shadows= override wins. Resolved here because the adapter identity
     // only exists once the renderer is initialized.
     const shadowMode = resolveSunShadowMode(world.stats().device, options.shadows);
-    return new PhotorealBattleWorld(world, environment, sea, createPlaceholderSoldierMeshTiers([0.2, 0.42, 0.88]), vats, kit, shadowMode);
+    // ?post=off (lab A/B only) bypasses the chain; production always runs it.
+    const postEnabled = options.post !== 'off';
+    return new PhotorealBattleWorld(world, environment, sea, createPlaceholderSoldierMeshTiers([0.2, 0.42, 0.88]), vats, kit, shadowMode, postEnabled);
   }
 
   setTime(seconds: number): void {
     this.world.setTime(seconds);
+  }
+
+  /** Toggle the bloom stage in place (slice-15a A/B: the sun-glint bloom on/off
+   *  pair proving bloom did not re-break the 12e glint discipline). */
+  setBloomEnabled(on: boolean): void {
+    this.post.setBloomEnabled(on);
   }
 
   resize(width: number, height: number, pixelRatio = 1): void {
@@ -516,6 +541,8 @@ export class PhotorealBattleWorld {
       // Shadow ownership identity (11): WHICH tier cast the sun shadows —
       // the SwiftShader scene asserts 'single', hardware asserts 'csm'.
       shadows: this.shadowRig.identity(),
+      // Post-chain ownership identity (15): bloom stage + the ONE tone-map.
+      post: this.post.stats(),
       sea,
       camera: this.lastCamera,
       seating: { ...this.seating },

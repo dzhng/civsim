@@ -1,6 +1,6 @@
 import * as THREE from 'three/webgpu';
 import {
-  attribute, clamp, float, max, mix, smoothstep, step, texture, transformNormalToView, uniform, varying, vec2, vec3, vec4,
+  attribute, clamp, float, max, mix, smoothstep, step, texture, uniform, varying, vec2, vec3, vec4,
 } from 'three/tsl';
 import type { Node } from 'three/webgpu';
 import type { CrowdInstance } from '../../../crowd-runtime/src/instanceData';
@@ -15,7 +15,6 @@ export interface ImpostorAtlas {
   columns: number;
   rows: number;
   directions: THREE.Vector3[];
-  posedMesh: PosedMeshData;
 }
 
 interface PosedMeshData {
@@ -32,12 +31,16 @@ interface Bounds2 {
   maxY: number;
 }
 
+// How far the whole far-tier silhouette leans toward its faction colour (14b).
+// Distant units must read as coloured blocks (faction before class); accent
+// areas still retint near-fully on top of this floor.
+const IMPOSTOR_BROAD_MIX = 0.55;
 const BLUE: [number, number, number] = [0.20, 0.42, 0.88];
 const RED: [number, number, number] = [0.84, 0.24, 0.20];
 const NEUTRAL: [number, number, number] = [0.76, 0.67, 0.42];
 const LIGHT_DIR = new THREE.Vector3(-0.34, -0.42, 0.84).normalize();
 
-export function createClass0ImpostorAtlas(
+export function createSoldierImpostorAtlas(
   mesh: SoldierMeshData,
   vat: VatBake,
   opts: { columns?: number; rows?: number; tileSize?: number } = {},
@@ -68,135 +71,16 @@ export function createClass0ImpostorAtlas(
   }
 
   const textureAtlas = new THREE.CanvasTexture(canvas);
-  textureAtlas.name = 'impostor-spike-class0-atlas';
+  textureAtlas.name = 'battle-crowd-shared-soldier-impostor-atlas';
   textureAtlas.colorSpace = THREE.SRGBColorSpace;
   textureAtlas.minFilter = THREE.LinearMipmapLinearFilter;
   textureAtlas.magFilter = THREE.LinearFilter;
   textureAtlas.generateMipmaps = true;
   textureAtlas.needsUpdate = true;
-  return { texture: textureAtlas, tileSize, columns, rows, directions, posedMesh };
+  return { texture: textureAtlas, tileSize, columns, rows, directions };
 }
 
-export function createImpostorSpikeInstances(count: number): CrowdInstance[] {
-  const out: CrowdInstance[] = [];
-  const half = Math.floor(count / 2);
-  const columns = 190;
-  const spacing = 1.15;
-  for (let block = 0; block < 2; block++) {
-    const blockCount = block === 0 ? half : count - half;
-    const rows = Math.ceil(blockCount / columns);
-    const centerY = block === 0 ? -70 : 70;
-    const facing = block === 0 ? 0 : Math.PI;
-    const faction = block as 0 | 1;
-    const sign = block === 0 ? 1 : -1;
-    for (let i = 0; i < blockCount; i++) {
-      const col = i % columns;
-      const row = Math.floor(i / columns);
-      const seed = deterministicSeed(out.length, faction);
-      out.push({
-        x: (col - (columns - 1) * 0.5) * spacing,
-        y: centerY + sign * (row - (rows - 1) * 0.5) * spacing,
-        facing,
-        classId: 0,
-        faction,
-        alive: true,
-        frame: 12,
-        clip: 'march',
-        phase: 0.18,
-        seed,
-        mounted: false,
-        lod: 3,
-        elevation: 0,
-        deathVariant: 0,
-      });
-    }
-  }
-  return out;
-}
-
-export class ImpostorSpikeMeshCrowd {
-  private readonly mesh: THREE.Mesh;
-  private readonly geometry: THREE.InstancedBufferGeometry;
-  private capacity = 0;
-  private inst = new Float32Array(0);
-  private meta = new Float32Array(0);
-  private count = 0;
-
-  constructor(scene: THREE.Scene, posed: PosedMeshData) {
-    this.geometry = new THREE.InstancedBufferGeometry();
-    this.geometry.setAttribute('position', new THREE.BufferAttribute(posed.positions, 3));
-    this.geometry.setAttribute('cNormal', new THREE.BufferAttribute(posed.normals, 3));
-    this.geometry.setAttribute('cColor', new THREE.BufferAttribute(posed.colors, 4));
-    this.geometry.setIndex(new THREE.BufferAttribute(posed.indices, 1));
-    this.geometry.instanceCount = 0;
-
-    const material = new THREE.MeshStandardNodeMaterial({ roughness: 0.84, metalness: 0.0 });
-    const position = attribute<'vec3'>('position', 'vec3');
-    const normal = attribute<'vec3'>('cNormal', 'vec3');
-    const color = attribute<'vec4'>('cColor', 'vec4');
-    const inst = attribute<'vec4'>('spikeMeshInst', 'vec4'); // x, y, elevation, faction
-    const meta = attribute<'vec4'>('spikeMeshMeta', 'vec4'); // facing, size, 0, 0
-    const c = meta.x.cos();
-    const s = meta.x.sin();
-    const p = position.mul(meta.y);
-    material.positionNode = vec3(
-      inst.x.add(p.x.mul(c)).sub(p.y.mul(s)),
-      inst.y.add(p.x.mul(s)).add(p.y.mul(c)),
-      inst.z.add(p.z),
-    );
-    const worldN = vec3(
-      normal.x.mul(c).sub(normal.y.mul(s)),
-      normal.x.mul(s).add(normal.y.mul(c)),
-      normal.z,
-    );
-    material.normalNode = varying(transformNormalToView(worldN)).normalize();
-    material.colorNode = factionTintNode(color, inst.w, float(0.9));
-
-    this.mesh = new THREE.Mesh(this.geometry, material);
-    this.mesh.name = 'impostor-spike-mesh-control';
-    this.mesh.frustumCulled = false;
-    this.mesh.renderOrder = RENDER_ORDER.worldOpaque;
-    this.mesh.visible = false;
-    scene.add(this.mesh);
-  }
-
-  upload(instances: CrowdInstance[]): void {
-    this.count = instances.length;
-    this.mesh.visible = instances.length > 0;
-    if (instances.length === 0) {
-      this.geometry.instanceCount = 0;
-      return;
-    }
-    if (instances.length > this.capacity) {
-      this.capacity = Math.max(instances.length, this.capacity * 2, 512);
-      this.inst = new Float32Array(this.capacity * 4);
-      this.meta = new Float32Array(this.capacity * 4);
-      this.geometry.setAttribute('spikeMeshInst', new THREE.InstancedBufferAttribute(this.inst, 4));
-      this.geometry.setAttribute('spikeMeshMeta', new THREE.InstancedBufferAttribute(this.meta, 4));
-    }
-    for (let i = 0; i < instances.length; i++) {
-      const src = instances[i];
-      const o = i * 4;
-      this.inst[o] = src.x;
-      this.inst[o + 1] = src.y;
-      this.inst[o + 2] = src.elevation ?? 0;
-      this.inst[o + 3] = src.faction;
-      this.meta[o] = src.facing;
-      this.meta[o + 1] = 1;
-    }
-    for (const name of ['spikeMeshInst', 'spikeMeshMeta'] as const) {
-      const attr = this.geometry.getAttribute(name) as THREE.InstancedBufferAttribute;
-      attr.needsUpdate = true;
-    }
-    this.geometry.instanceCount = instances.length;
-  }
-
-  stats() {
-    return { meshInstances: this.count, meshDrawCalls: this.count > 0 ? 1 : 0 };
-  }
-}
-
-export class OctahedralImpostorCrowd {
+export class OctahedralImpostorLayer {
   private readonly mesh: THREE.Mesh;
   private readonly geometry: THREE.InstancedBufferGeometry;
   private readonly camRight = uniform(new THREE.Vector3(1, 0, 0));
@@ -219,8 +103,8 @@ export class OctahedralImpostorCrowd {
     material.depthWrite = true;
     material.fog = true;
     const quad = attribute<'vec3'>('position', 'vec3');
-    const inst = attribute<'vec4'>('spikeImpostorInst', 'vec4'); // x, y, elevation, faction
-    const meta = attribute<'vec4'>('spikeImpostorMeta', 'vec4'); // tile, width, height, shade
+    const inst = attribute<'vec4'>('impostorInst', 'vec4'); // x, y, elevation, faction
+    const meta = attribute<'vec4'>('impostorMeta', 'vec4'); // tile, width, height, shade
     const right = vec3(this.camRight).mul(quad.x.mul(meta.y).mul(0.5));
     const up = vec3(this.camUp).mul(quad.y.mul(meta.z).mul(0.5));
     material.positionNode = vec3(inst.x, inst.y, inst.z.add(meta.z.mul(0.5))).add(right).add(up);
@@ -236,14 +120,21 @@ export class OctahedralImpostorCrowd {
     const sample = texture(this.atlas.texture, atlasUv).toVar();
     const faction = varying(inst.w).toVar();
     const shade = varying(meta.w).toVar();
+    // Faction tint the WHOLE far-tier silhouette, not just the blue-dominant
+    // accent (14b): at impostor range the crest/shield that identified the team
+    // up close is a sub-pixel smear, so the body itself must carry the colour —
+    // a Total-War distant unit reads as a coloured block. The accent areas still
+    // go to a near-full retint; the body leans faction by IMPOSTOR_BROAD_MIX.
     const mask = smoothstep(0.05, 0.28, sample.b.sub(max(sample.r, sample.g))).toVar();
-    const color = sampledFactionTintNode(vec4(sample.rgb, sample.a), faction, mask.mul(0.95)).mul(vec4(vec3(shade), 1.0));
+    const tintAmount = max(mask.mul(0.95), float(IMPOSTOR_BROAD_MIX)).toVar();
+    const color = sampledFactionTintNode(vec4(sample.rgb, sample.a), faction, tintAmount).mul(vec4(vec3(shade), 1.0));
     material.colorNode = vec4(color.rgb, sample.a);
 
     this.mesh = new THREE.Mesh(this.geometry, material);
-    this.mesh.name = 'impostor-spike-octahedral-billboards';
+    this.mesh.name = 'battle-crowd-far-impostors';
     this.mesh.frustumCulled = false;
     this.mesh.renderOrder = RENDER_ORDER.worldOpaque;
+    this.mesh.castShadow = false;
     this.mesh.visible = false;
     scene.add(this.mesh);
   }
@@ -259,8 +150,8 @@ export class OctahedralImpostorCrowd {
       this.capacity = Math.max(instances.length, this.capacity * 2, 512);
       this.inst = new Float32Array(this.capacity * 4);
       this.meta = new Float32Array(this.capacity * 4);
-      this.geometry.setAttribute('spikeImpostorInst', new THREE.InstancedBufferAttribute(this.inst, 4));
-      this.geometry.setAttribute('spikeImpostorMeta', new THREE.InstancedBufferAttribute(this.meta, 4));
+      this.geometry.setAttribute('impostorInst', new THREE.InstancedBufferAttribute(this.inst, 4));
+      this.geometry.setAttribute('impostorMeta', new THREE.InstancedBufferAttribute(this.meta, 4));
     }
     for (let i = 0; i < instances.length; i++) {
       const src = instances[i];
@@ -274,8 +165,8 @@ export class OctahedralImpostorCrowd {
       this.meta[o + 2] = 2.18;
       this.meta[o + 3] = 1;
     }
-    (this.geometry.getAttribute('spikeImpostorInst') as THREE.InstancedBufferAttribute).needsUpdate = true;
-    (this.geometry.getAttribute('spikeImpostorMeta') as THREE.InstancedBufferAttribute).needsUpdate = true;
+    (this.geometry.getAttribute('impostorInst') as THREE.InstancedBufferAttribute).needsUpdate = true;
+    (this.geometry.getAttribute('impostorMeta') as THREE.InstancedBufferAttribute).needsUpdate = true;
     this.geometry.instanceCount = instances.length;
   }
 
@@ -294,7 +185,7 @@ export class OctahedralImpostorCrowd {
       this.meta[o] = nearestTile(localDir, this.atlas.directions);
       this.meta[o + 3] = clampShade(0.72 + 0.28 * Math.max(0, localDir.dot(LIGHT_DIR)));
     }
-    const attr = this.geometry.getAttribute('spikeImpostorMeta') as THREE.InstancedBufferAttribute | undefined;
+    const attr = this.geometry.getAttribute('impostorMeta') as THREE.InstancedBufferAttribute | undefined;
     if (attr) attr.needsUpdate = true;
   }
 
@@ -304,19 +195,9 @@ export class OctahedralImpostorCrowd {
       impostorDrawCalls: this.source.length > 0 ? 1 : 0,
       atlas: `${this.atlas.columns}x${this.atlas.rows}x${this.atlas.tileSize}`,
       tileSelection: 'nearest',
-      factionMask: 'blue-dominance mask from baked atlas RGB; runtime tint to faction',
+      factionMask: 'sampled texture blue-dominance mask; runtime tint to faction without double-linearizing sampled RGB',
     };
   }
-}
-
-function factionTintNode(color: Node<'vec4'>, faction: Node<'float'>, amount: Node<'float'>) {
-  const blue = vec3(...BLUE);
-  const red = vec3(...RED);
-  const neutral = vec3(...NEUTRAL);
-  let accent = mix(blue, red, step(0.5, faction));
-  accent = mix(accent, neutral, step(1.5, faction));
-  const rgb = mix(color.rgb, accent, amount);
-  return vec4(linearAlbedo(clamp(rgb, vec3(0.0), vec3(1.0))), color.a);
 }
 
 function sampledFactionTintNode(color: Node<'vec4'>, faction: Node<'float'>, amount: Node<'float'>) {
@@ -511,14 +392,6 @@ function nearestTile(dir: THREE.Vector3, directions: THREE.Vector3[]): number {
     }
   }
   return best;
-}
-
-function deterministicSeed(index: number, faction: number): number {
-  let x = (Math.imul(index + 101, 0x9e3779b1) ^ Math.imul(faction + 7, 0x85ebca6b)) >>> 0;
-  x ^= x >>> 16;
-  x = Math.imul(x, 0xc2b2ae35) >>> 0;
-  x ^= x >>> 13;
-  return x >>> 0;
 }
 
 function clampShade(x: number): number {

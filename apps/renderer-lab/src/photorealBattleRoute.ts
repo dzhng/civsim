@@ -22,6 +22,8 @@
 //                 probe — csm on hardware, single on software rasterizers)
 //   ?sea=gerstner
 //                 photoreal sea displacement source (12a verdict: Gerstner TSL)
+//   ?post=off     bypass the whole post chain (slice-15 lab A/B)
+//   ?bloom=off    keep the chain but drop the bloom stage (glint on/off pair)
 import { PhotorealBattleWorld, type BattleTacticalLineFrame } from '../../../packages/photoreal-renderer/src/battle/battleWorld';
 import { seaDisplacementSourceFromParam } from '../../../packages/photoreal-renderer/src/battle/seaLayer';
 import { createPhotorealStatsPublisher } from '../../../packages/photoreal-renderer/src/stats';
@@ -56,8 +58,10 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       environment: params.get('env'),
       shadows: params.get('shadows'),
       sea: seaDisplacementSourceFromParam(params.get('sea')),
+      post: params.get('post'),
     }),
   ]);
+  if (params.get('bloom') === 'off') world.setBloomEnabled(false);
   const wasm = await initWasm();
   const game = new Game(0x5eed_c0de);
   game.start_battle(params.get('map') === 'B' ? 1 : 0);

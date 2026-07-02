@@ -91,6 +91,9 @@ export interface SunShadowRig {
   update(camera: THREE.PerspectiveCamera): void;
   /** Terrain rect (setTerrain) — the single-tier ortho fit. No-op for csm. */
   setWorldRect(rect: [number, number, number, number]): void;
+  /** Active shadow-camera frusta used by the crowd culler in addition to the
+   *  view frustum, so off-screen casters stay alive for sun shadows. */
+  cullingFrusta(): THREE.Frustum[];
   /** The stats identity block — scenes assert WHICH tier cast the shadows. */
   identity(): {
     owner: 'shadowRig';
@@ -129,6 +132,7 @@ export function configureSunShadows(
       mode,
       update: () => {},
       setWorldRect: () => {},
+      cullingFrusta: () => [],
       identity: () => identityFor(0, 0),
       dispose: () => {},
     };
@@ -163,6 +167,7 @@ export function configureSunShadows(
         if (csm.camera !== null) csm.updateFrustums();
       },
       setWorldRect: () => {},
+      cullingFrusta: () => shadowFrustaForCascadeLights(csm.lights),
       identity: () => identityFor(CSM_CASCADES, CSM_MAP_SIZE),
       dispose: () => csm.dispose(),
     };
@@ -194,7 +199,29 @@ export function configureSunShadows(
     mode,
     update: () => {},
     setWorldRect: fit,
+    cullingFrusta: () => shadowFrustaForCascadeLights([sun]),
     identity: () => identityFor(1, SINGLE_MAP_SIZE),
     dispose: () => {},
   };
+}
+
+function shadowFrustaForCascadeLights(lights: Array<THREE.Object3D & { target?: THREE.Object3D; shadow?: THREE.DirectionalLightShadow }>): THREE.Frustum[] {
+  const out: THREE.Frustum[] = [];
+  const mat = new THREE.Matrix4();
+  const target = new THREE.Vector3();
+  for (const light of lights) {
+    const shadow = light.shadow;
+    const cam = shadow?.camera;
+    const lightTarget = light.target;
+    if (!shadow || !cam || !lightTarget) continue;
+    light.updateMatrixWorld(true);
+    lightTarget.updateMatrixWorld(true);
+    cam.position.setFromMatrixPosition(light.matrixWorld);
+    target.setFromMatrixPosition(lightTarget.matrixWorld);
+    cam.lookAt(target);
+    cam.updateMatrixWorld(true);
+    mat.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse);
+    out.push(new THREE.Frustum().setFromProjectionMatrix(mat, cam.coordinateSystem, cam.reversedDepth));
+  }
+  return out;
 }

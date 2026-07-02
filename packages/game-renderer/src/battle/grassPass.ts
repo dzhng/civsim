@@ -202,7 +202,7 @@ const DEFAULT_GRASS_PARAMS = {
 const GRASS_ALBEDO_ROOT = wgslVec3(SLICE00_GRASS_ALBEDO.root);
 const GRASS_ALBEDO_SHADOW = wgslVec3(SLICE00_GRASS_ALBEDO.shadow);
 const GRASS_ALBEDO_NEAR = wgslVec3(SLICE00_GRASS_ALBEDO.near);
-const GRASS_INSTANCE_STRIDE_FLOATS = 16;
+export const GRASS_INSTANCE_STRIDE_FLOATS = 16;
 const GRASS_INSTANCE_STRIDE_BYTES = GRASS_INSTANCE_STRIDE_FLOATS * Float32Array.BYTES_PER_ELEMENT;
 const GRASS_UNIFORM_FLOATS = 8;
 const GRASS_VOLUME_ATLAS_TILE_SIZE = 64;
@@ -726,20 +726,18 @@ export class BattleGrassPass {
   }
 
   setTerrain(grid: BattleTerrainGrid, field: TerrainHeightField, cover: BattleGroundCover, params: BattleGrassParams = {}) {
-    const merged = { ...DEFAULT_GRASS_PARAMS, ...params };
-    const zoomT = clamp01(params.zoomT ?? 0.55);
-    const tune = terrainGrassTuning(cover, zoomT);
+    const build = buildBattleTerrainGrass(grid, field, cover, params);
     this.cover = cover;
     this.prepMode = 'legacy-scatter';
     this.terrainMasked = true;
-    this.zoomT = zoomT;
-    this.density = Math.max(0, merged.density * tune.density);
-    this.maxTufts = clampInt(merged.maxTufts * tune.maxTufts, 0, 96000);
-    this.bladesPerTuft = clampInt(merged.bladesPerTuft * tune.bladesPerTuft, 1, 96);
-    this.windPhase = merged.windPhase;
-    this.windStrength = Math.max(0, merged.windStrength * tune.wind);
-    this.baseHeight = Math.max(0.05, merged.bladeHeight * tune.height);
-    this.baseWidth = Math.max(0.001, merged.bladeWidth * tune.width);
+    this.zoomT = build.zoomT;
+    this.density = build.density;
+    this.maxTufts = build.maxTufts;
+    this.bladesPerTuft = build.bladesPerTuft;
+    this.windPhase = build.windPhase;
+    this.windStrength = build.windStrength;
+    this.baseHeight = build.baseHeight;
+    this.baseWidth = build.baseWidth;
     this.fieldRecordStrideFloats = 0;
     this.fieldRecords = 0;
     this.fieldRejectedSlopeCells = 0;
@@ -772,41 +770,20 @@ export class BattleGrassPass {
     this.textureVolumeProfile = 'current';
     this.textureVolumeRenderModel = 'opaque-card';
 
-    const meshOptions: GrassTuftOptions = {
-      seed: merged.seed,
-      blades: this.bladesPerTuft,
-      height: this.baseHeight,
-      width: this.baseWidth,
-      bend: merged.bend,
-      spread: merged.spread * tune.spread,
-      palette: cover,
-      accentStyle: 'tuft',
-    };
-    const mesh = buildGrassTuftMesh(meshOptions);
-    const meshStats = grassTuftStats(mesh, this.bladesPerTuft);
+    const meshStats = grassTuftStats(build.mesh, this.bladesPerTuft);
     this.meshVertices = meshStats.opaqueVertices;
     this.meshTriangles = meshStats.opaqueTriangles;
-    this.uploadMesh(mesh.opaque.vertices, mesh.opaque.indices);
+    this.uploadMesh(build.mesh.opaque.vertices, build.mesh.opaque.indices);
 
-    const focus = params.focus ?? defaultGrassFocus(grid);
-    this.focusRadius = Math.max(0, focus.radius);
-    const cells = collectTerrainGrassCells(grid, focus);
-    this.eligibleCells = cells.eligibleCells;
-    this.blockedTintCells = cells.blockedTintCells;
-    this.openGrassCells = cells.openGrassCells;
-    this.forestCells = cells.forestCells;
-    this.roughCells = cells.roughCells;
-    const requested = this.density > 0 && cells.weightedArea > 0 ? Math.max(1, Math.ceil(cells.weightedArea * this.density)) : 0;
-    const count = Math.min(requested, this.maxTufts);
-    this.cappedTufts = Math.max(0, requested - count);
-    const scattered = scatterTerrainTufts(grid, field, cells.cells, count, merged.seed, tune, {
-      baseHeight: this.baseHeight,
-      baseWidth: this.baseWidth,
-      baseBend: merged.bend,
-      terrainT: tune.surfaceBlend,
-    });
-    this.invalidTintTufts = scattered.invalidTintTufts;
-    this.uploadInstances(scattered.instances);
+    this.focusRadius = build.focusRadius;
+    this.eligibleCells = build.eligibleCells;
+    this.blockedTintCells = build.blockedTintCells;
+    this.openGrassCells = build.openGrassCells;
+    this.forestCells = build.forestCells;
+    this.roughCells = build.roughCells;
+    this.cappedTufts = build.cappedTufts;
+    this.invalidTintTufts = build.invalidTintTufts;
+    this.uploadInstances(build.instances);
     this.writeUniforms();
   }
 
@@ -1924,6 +1901,93 @@ function scatterTerrainTufts(
     });
   }
   return { instances: data, invalidTintTufts };
+}
+
+/** The production battle grass, CPU-built: the tuft mesh + the scattered tuft
+ *  instances (stride GRASS_INSTANCE_STRIDE_FLOATS) + the tuned uniform values.
+ *  Extracted from BattleGrassPass.setTerrain so the photoreal battle world
+ *  (slice 08a) scatters the exact same tufts from the exact same policy. */
+export interface BattleTerrainGrassBuild {
+  mesh: ReturnType<typeof buildGrassTuftMesh>;
+  meshOptions: GrassTuftOptions;
+  instances: Float32Array;
+  tuftCount: number;
+  bladesPerTuft: number;
+  density: number;
+  maxTufts: number;
+  windPhase: number;
+  windStrength: number;
+  baseHeight: number;
+  baseWidth: number;
+  zoomT: number;
+  focusRadius: number;
+  cappedTufts: number;
+  eligibleCells: number;
+  blockedTintCells: number;
+  openGrassCells: number;
+  forestCells: number;
+  roughCells: number;
+  invalidTintTufts: number;
+}
+
+export function buildBattleTerrainGrass(
+  grid: BattleTerrainGrid,
+  field: TerrainHeightField,
+  cover: BattleGroundCover,
+  params: BattleGrassParams = {},
+): BattleTerrainGrassBuild {
+  const merged = { ...DEFAULT_GRASS_PARAMS, ...params };
+  const zoomT = clamp01(params.zoomT ?? 0.55);
+  const tune = terrainGrassTuning(cover, zoomT);
+  const density = Math.max(0, merged.density * tune.density);
+  const maxTufts = clampInt(merged.maxTufts * tune.maxTufts, 0, 96000);
+  const bladesPerTuft = clampInt(merged.bladesPerTuft * tune.bladesPerTuft, 1, 96);
+  const windStrength = Math.max(0, merged.windStrength * tune.wind);
+  const baseHeight = Math.max(0.05, merged.bladeHeight * tune.height);
+  const baseWidth = Math.max(0.001, merged.bladeWidth * tune.width);
+  const meshOptions: GrassTuftOptions = {
+    seed: merged.seed,
+    blades: bladesPerTuft,
+    height: baseHeight,
+    width: baseWidth,
+    bend: merged.bend,
+    spread: merged.spread * tune.spread,
+    palette: cover,
+    accentStyle: 'tuft',
+  };
+  const mesh = buildGrassTuftMesh(meshOptions);
+  const focus = params.focus ?? defaultGrassFocus(grid);
+  const cells = collectTerrainGrassCells(grid, focus);
+  const requested = density > 0 && cells.weightedArea > 0 ? Math.max(1, Math.ceil(cells.weightedArea * density)) : 0;
+  const count = Math.min(requested, maxTufts);
+  const scattered = scatterTerrainTufts(grid, field, cells.cells, count, merged.seed, tune, {
+    baseHeight,
+    baseWidth,
+    baseBend: merged.bend,
+    terrainT: tune.surfaceBlend,
+  });
+  return {
+    mesh,
+    meshOptions,
+    instances: scattered.instances,
+    tuftCount: scattered.instances.length / GRASS_INSTANCE_STRIDE_FLOATS,
+    bladesPerTuft,
+    density,
+    maxTufts,
+    windPhase: merged.windPhase,
+    windStrength,
+    baseHeight,
+    baseWidth,
+    zoomT,
+    focusRadius: Math.max(0, focus.radius),
+    cappedTufts: Math.max(0, requested - count),
+    eligibleCells: cells.eligibleCells,
+    blockedTintCells: cells.blockedTintCells,
+    openGrassCells: cells.openGrassCells,
+    forestCells: cells.forestCells,
+    roughCells: cells.roughCells,
+    invalidTintTufts: scattered.invalidTintTufts,
+  };
 }
 
 interface GrassFieldInstanceOptions {

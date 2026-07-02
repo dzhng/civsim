@@ -654,78 +654,9 @@ export class BattleGroundPass {
    *  exact same surface). `step` cells per quad downsamples the sim grid (600×400)
    *  to a mesh fine enough to read the relief, coarse enough to stay cheap. */
   setTerrain(grid: BattleTerrainGrid, field: TerrainHeightField, cover: BattleGroundCover, step = 2) {
-    const base = GROUND_COVER_COLOR[cover] ?? GROUND_COVER_COLOR['green-grass'];
-    const nx = Math.floor(grid.w / step) + 1;
-    const ny = Math.floor(grid.h / step) + 1;
-    const verts = new Float32Array(nx * ny * 10);
-    const cellWorld = (ci: number, cj: number): [number, number] => [
-      grid.ox + Math.min(ci, grid.w - 1) * grid.cell + grid.cell * 0.5,
-      grid.oy + Math.min(cj, grid.h - 1) * grid.cell + grid.cell * 0.5,
-    ];
-    // Box-filter the feature tint over the step block so a forest/mud boundary
-    // fades across cells instead of stair-stepping per coarse vertex.
-    const cellColor = (ci: number, cj: number): [number, number, number] => {
-      let r = 0, g = 0, b = 0, n = 0;
-      for (let dy = -step; dy <= step; dy++) {
-        for (let dx = -step; dx <= step; dx++) {
-          const sx = ci + dx;
-          const sy = cj + dy;
-          if (sx < 0 || sy < 0 || sx >= grid.w || sy >= grid.h) continue;
-          const overlay = TINT_COLOR[grid.tint[sy * grid.w + sx]];
-          const c = overlay ? mix(base, overlay, 0.82) : base;
-          r += c[0]; g += c[1]; b += c[2]; n++;
-        }
-      }
-      return n > 0 ? [r / n, g / n, b / n] : base;
-    };
-    // Water weight, box-filtered exactly like the tint colour so the shore fades
-    // across cells instead of stair-stepping: the fraction of the step block that
-    // is water tint. This is the field water's distance-from-shore proxy (0 at the
-    // edge → 1 deep in the body) that the shared shore ramp keys on.
-    const cellWater = (ci: number, cj: number): number => {
-      let water = 0, n = 0;
-      for (let dy = -step; dy <= step; dy++) {
-        for (let dx = -step; dx <= step; dx++) {
-          const sx = ci + dx;
-          const sy = cj + dy;
-          if (sx < 0 || sy < 0 || sx >= grid.w || sy >= grid.h) continue;
-          if (grid.tint[sy * grid.w + sx] === WATER_TINT) water++;
-          n++;
-        }
-      }
-      return n > 0 ? water / n : 0;
-    };
-    let v = 0;
-    for (let j = 0; j < ny; j++) {
-      for (let i = 0; i < nx; i++) {
-        const ci = Math.min(i * step, grid.w - 1);
-        const cj = Math.min(j * step, grid.h - 1);
-        const [x, y] = cellWorld(ci, cj);
-        const z = terrainHeightAt(field, x, y);
-        // Surface normal from the height gradient (central difference in world).
-        const d = grid.cell * step;
-        const hx = terrainHeightAt(field, x + d, y) - terrainHeightAt(field, x - d, y);
-        const hy = terrainHeightAt(field, x, y + d) - terrainHeightAt(field, x, y - d);
-        const nlen = Math.hypot(hx, hy, 2 * d) || 1;
-        const color = cellColor(ci, cj);
-        verts[v++] = x; verts[v++] = y; verts[v++] = z;
-        verts[v++] = -hx / nlen; verts[v++] = -hy / nlen; verts[v++] = (2 * d) / nlen;
-        verts[v++] = color[0]; verts[v++] = color[1]; verts[v++] = color[2];
-        verts[v++] = cellWater(ci, cj);
-      }
-    }
-    const indices: number[] = [];
-    for (let j = 0; j < ny - 1; j++) {
-      for (let i = 0; i < nx - 1; i++) {
-        const a = j * nx + i;
-        const b = a + 1;
-        const c = a + nx;
-        const dd = c + 1;
-        indices.push(a, c, b, b, c, dd);
-      }
-    }
-    this.upload(verts, new Uint32Array(indices));
-    this.triangles = indices.length / 3;
+    const mesh = buildBattleGroundMesh(grid, field, cover, step);
+    this.upload(mesh.vertices, mesh.indices);
+    this.triangles = mesh.triangles;
   }
 
   private upload(verts: Float32Array, indices: Uint32Array) {
@@ -761,6 +692,96 @@ export class BattleGroundPass {
   private writeMeadowUniforms(values: number[]): void {
     this.shell.device.queue.writeBuffer(this.uniformBuffer, 0, new Float32Array(values));
   }
+}
+
+/** The battle ground mesh, CPU-built: interleaved stride-10 vertices
+ *  (pos3, normal3, color3, waterWeight1) + uint32 triangle indices. Extracted so
+ *  the pass and the photoreal battle world (slice 08a) displace/tint the exact
+ *  same surface from the exact same data. */
+export interface BattleGroundMesh {
+  /** Interleaved: x,y,z, nx,ny,nz, r,g,b, water — 10 floats per vertex. */
+  vertices: Float32Array;
+  indices: Uint32Array;
+  triangles: number;
+}
+
+export function buildBattleGroundMesh(
+  grid: BattleTerrainGrid,
+  field: TerrainHeightField,
+  cover: BattleGroundCover,
+  step = 2,
+): BattleGroundMesh {
+  const base = GROUND_COVER_COLOR[cover] ?? GROUND_COVER_COLOR['green-grass'];
+  const nx = Math.floor(grid.w / step) + 1;
+  const ny = Math.floor(grid.h / step) + 1;
+  const verts = new Float32Array(nx * ny * 10);
+  const cellWorld = (ci: number, cj: number): [number, number] => [
+    grid.ox + Math.min(ci, grid.w - 1) * grid.cell + grid.cell * 0.5,
+    grid.oy + Math.min(cj, grid.h - 1) * grid.cell + grid.cell * 0.5,
+  ];
+  // Box-filter the feature tint over the step block so a forest/mud boundary
+  // fades across cells instead of stair-stepping per coarse vertex.
+  const cellColor = (ci: number, cj: number): [number, number, number] => {
+    let r = 0, g = 0, b = 0, n = 0;
+    for (let dy = -step; dy <= step; dy++) {
+      for (let dx = -step; dx <= step; dx++) {
+        const sx = ci + dx;
+        const sy = cj + dy;
+        if (sx < 0 || sy < 0 || sx >= grid.w || sy >= grid.h) continue;
+        const overlay = TINT_COLOR[grid.tint[sy * grid.w + sx]];
+        const c = overlay ? mix(base, overlay, 0.82) : base;
+        r += c[0]; g += c[1]; b += c[2]; n++;
+      }
+    }
+    return n > 0 ? [r / n, g / n, b / n] : base;
+  };
+  // Water weight, box-filtered exactly like the tint colour so the shore fades
+  // across cells instead of stair-stepping: the fraction of the step block that
+  // is water tint. This is the field water's distance-from-shore proxy (0 at the
+  // edge → 1 deep in the body) that the shared shore ramp keys on.
+  const cellWater = (ci: number, cj: number): number => {
+    let water = 0, n = 0;
+    for (let dy = -step; dy <= step; dy++) {
+      for (let dx = -step; dx <= step; dx++) {
+        const sx = ci + dx;
+        const sy = cj + dy;
+        if (sx < 0 || sy < 0 || sx >= grid.w || sy >= grid.h) continue;
+        if (grid.tint[sy * grid.w + sx] === WATER_TINT) water++;
+        n++;
+      }
+    }
+    return n > 0 ? water / n : 0;
+  };
+  let v = 0;
+  for (let j = 0; j < ny; j++) {
+    for (let i = 0; i < nx; i++) {
+      const ci = Math.min(i * step, grid.w - 1);
+      const cj = Math.min(j * step, grid.h - 1);
+      const [x, y] = cellWorld(ci, cj);
+      const z = terrainHeightAt(field, x, y);
+      // Surface normal from the height gradient (central difference in world).
+      const d = grid.cell * step;
+      const hx = terrainHeightAt(field, x + d, y) - terrainHeightAt(field, x - d, y);
+      const hy = terrainHeightAt(field, x, y + d) - terrainHeightAt(field, x, y - d);
+      const nlen = Math.hypot(hx, hy, 2 * d) || 1;
+      const color = cellColor(ci, cj);
+      verts[v++] = x; verts[v++] = y; verts[v++] = z;
+      verts[v++] = -hx / nlen; verts[v++] = -hy / nlen; verts[v++] = (2 * d) / nlen;
+      verts[v++] = color[0]; verts[v++] = color[1]; verts[v++] = color[2];
+      verts[v++] = cellWater(ci, cj);
+    }
+  }
+  const indices: number[] = [];
+  for (let j = 0; j < ny - 1; j++) {
+    for (let i = 0; i < nx - 1; i++) {
+      const a = j * nx + i;
+      const b = a + 1;
+      const c = a + nx;
+      const dd = c + 1;
+      indices.push(a, c, b, b, c, dd);
+    }
+  }
+  return { vertices: verts, indices: new Uint32Array(indices), triangles: indices.length / 3 };
 }
 
 function mix(a: [number, number, number], b: [number, number, number], t: number): [number, number, number] {

@@ -142,7 +142,7 @@ it was never part of this migration.
 
 ## Subsumes
 
-This closes `specs/battle-ui/` S1 (the shared-token extraction) — it was this migration all along.
+This closes `specs/done/battle-ui/` S1 (the shared-token extraction) — it was this migration all along.
 
 ---
 

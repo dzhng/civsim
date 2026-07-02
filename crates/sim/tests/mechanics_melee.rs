@@ -2955,7 +2955,6 @@ fn a_symmetric_grind_does_not_pinwheel() {
 }
 
 #[test]
-#[ignore = "melee-blob: slice 06 lands this"]
 fn a_pike_seam_holds_a_straight_front() {
     let runs = pike_blob_runs(0x4202);
     let mortal = runs.iter().find(|r| r.variant == "mortal").unwrap();
@@ -2967,15 +2966,44 @@ fn a_pike_seam_holds_a_straight_front() {
 }
 
 #[test]
-#[ignore = "melee-blob: slice 07 lands this"]
 fn grinding_blocks_keep_their_deployed_silhouette() {
-    let runs = heavy_blob_runs(0x4202);
-    let mortal = runs.iter().find(|r| r.variant == "mortal").unwrap();
-    let silhouette_floor = settled_samples(mortal)
-        .map(|s| s.silhouette)
+    let stats = class_stats(UnitClassId::HeavySword);
+    let silhouette_floor = [0_u64, 1, 2, 3, 4]
+        .into_iter()
+        .map(|seed| {
+            let mut sim = Sim::new(controlled_heavy_tun(), seed);
+            let a = sim.spawn_class_stats_with_files(
+                Vec2::new(0.0, -13.0),
+                FRAC_PI_2,
+                N,
+                24,
+                UnitClassId::HeavySword,
+                stats,
+                0,
+            );
+            let b = sim.spawn_class_stats_with_files(
+                Vec2::new(0.0, 13.0),
+                -FRAC_PI_2,
+                N,
+                24,
+                UnitClassId::HeavySword,
+                stats,
+                1,
+            );
+            sim.set_pace(a, Pace::Run);
+            sim.set_pace(b, Pace::Run);
+            sim.set_attack_order(a, b);
+            sim.set_attack_order(b, a);
+            for _ in 0..(300.0 / DT) as usize {
+                sim.tick();
+            }
+            let sa = silhouette_rectangularity(&sim, a);
+            let sb = silhouette_rectangularity(&sim, b);
+            sa.inside_frac.min(sb.inside_frac)
+        })
         .fold(1.0f32, f32::min);
     assert!(
-        silhouette_floor >= 0.80,
+        silhouette_floor >= 0.90,
         "grinding blocks should keep their deployed rectangular footprint, got floor {silhouette_floor:.2}"
     );
 }

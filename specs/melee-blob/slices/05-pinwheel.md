@@ -509,3 +509,21 @@ No unit stat-table fields changed.
 
 No vibe baselines or `web/` files were touched. Pickup: orchestrator vibe
 refilm, then slices 06-08.
+
+
+## Visual verdict (2026-07-03, orchestrator refilm)
+
+Heavy-both refilmed on the corrected physics (wasm rebuilt, new renderer):
+`assets/after-heavy-both_t{060,160,240}s.png` vs the before-crops. At t060
+two clean parallel bodies, straight seam, no diagonal lens (the before-crop
+was already an amoeba at t060). At t160 casualties thin both sides but the
+seam axis has not rotated and both bodies stay coherent blocks. The pinwheel
+and the melt are gone in film, matching the measured tilt collapse
+(~40 deg -> 2-4 deg).
+
+Caveat for slice 08: the renderer was overhauled concurrently (photoreal
+work), so camera framing differs from all committed vibe baselines — every
+vibe baseline is stale for renderer reasons independent of this fix. The
+full re-bless sweep needs the vibe camera re-framed for the new renderer
+first (fight center + closer zoom), then frames read in order and blessed
+per screenshot-regression.

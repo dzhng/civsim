@@ -41,3 +41,11 @@ Pike-v-pike re-filmed (wasm rebuilt); before/after of t060 (the lens frame)
 judged with `compare-screenshots` against `assets/before-pike-v-pike_t060s.png`;
 unprimed `screenshot-critique` on "two pike walls grinding at pole length,
 flat front"; non-blocking preview-shots checkpoint.
+
+## Closure 2026-07-03
+
+Closed by the slice-05 torque-free pivot fix; no slice-06 sim-source change.
+`blob_probe_pike_grind` on seed `0x4202` re-read the fixed physics as:
+immortal `lens_p95=-0.03m`, mortal `lens_p95=0.06m`. The old persistent
+mid-minus-ends void of about `+0.6m` did not survive; the mortal p95 is well
+inside the active `a_pike_seam_holds_a_straight_front` rail of `<= 0.35m`.

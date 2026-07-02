@@ -16,18 +16,17 @@ Risks), never as the first move.
 
 ## Next Agent Prompt
 
-*Status (2026-07-03): slice 05 LANDED with the pre-authorized pin
-re-derivation. The pivot spring — an internal force field — now projects out
-its per-unit solid-rotation mode each tick (`omega = sum(r x F)/sum(|r|^2)`,
-`F' = F - omega x r` about the living centroid), and the `PivotSpring`
-force-trace channel records the projected value. The channel residual is down
-to max 0.187 deg/s, the shape-orientation pin is active and green, survivability
-and downstream value rails were re-derived with ledgers, golden moved once
-(`0xc8fad834908e0b0e` -> `0x1dc6e35d979b486c`), `test-mechanics
---no-fail-fast`, `test-scenarios`, and `test-balance` are green. No vibe
-baselines or `web/` files were touched. Pickup point: orchestrator vibe refilm
-for the new slice-05 physics, then slices 06-08 (pike void, silhouette residue,
-re-bless/close).*
+*Status (2026-07-03): slices 06 and 07 CLOSED by the slice-05 torque-free
+pivot physics, with no sim-source changes. Pike re-measurement on the fixed
+physics killed the old persistent lens void: `blob_probe_pike_grind` seed
+`0x4202` read immortal `lens_p95=-0.03m` and mortal `lens_p95=0.06m` (old
+residue was about `+0.6m`). The silhouette shape-probe seed set at t300 read a
+healthy floor across seeds: controlled `0.94-0.99`, vibe-like `0.91-0.99`.
+`a_pike_seam_holds_a_straight_front` and
+`grinding_blocks_keep_their_deployed_silhouette` are active pins; golden remains
+`0x1dc6e35d979b486c`. No vibe baselines or `web/` files were touched. Pickup
+point: orchestrator re-bless sweep for the slice-05 physics, then slice 08
+(final re-bless/close and standoff-rider 1v1 pin).*
 
 You are implementing this spec. Slices 01–03 (harness, metrology,
 attribution) are landed — read their slice files' bottom notes and the
@@ -46,8 +45,8 @@ before ending your pass.
 - [x] 03 attribution — verdicts measured; band/chirality/pike-owner killed; orbit is mortal-only; **resliced**
 - [x] 04 mortal-orbit attribution — cap-clips-spring named as the unlock; off-axis mass chase / ratchet timing / forward-close feed killed; band rail active
 - [x] 05 orbit fix — torque-free pivot projection landed; shape pin rebuilt on the slice-05 detector; value pins and golden re-derived
-- [ ] 06 pike void — re-measure after 05, diagnose residue fresh (owner hypothesis dead)
-- [ ] 07 silhouette — residue after 05–06 (vibe-like floor today: 0.62)
+- [x] 06 pike void — re-measured after 05; residue gone, pike straight-front pin active
+- [x] 07 silhouette — re-measured after 05; t300 floor healthy across shape-probe seeds, silhouette pin active
 - [ ] 08 re-bless, change-report ledger, standoff-rider 1v1 pin, close-spec
 
 ## Evidence

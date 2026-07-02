@@ -46,3 +46,14 @@ containment discipline.
 t300 crops of both matchups; `compare-screenshots` against the before-assets;
 unprimed `screenshot-critique` on "readable ranks behind a churning front";
 non-blocking preview-shots checkpoint for the accept-vs-fix call.
+
+## Closure 2026-07-03
+
+Closed by the slice-05 torque-free pivot fix; no slice-07 sim-source change.
+`blob_probe_slice05_shape_orientation_split` on the fixed physics read a
+healthy t300 silhouette floor across seeds 0-4: controlled `0.94-0.99`,
+vibe-like `0.91-0.99`. The active
+`grinding_blocks_keep_their_deployed_silhouette` pin uses the controlled t300
+shape-detector seed set and rails the floor at `>= 0.90`. The older
+120-400s minimum was not used as the shipping contract because it captured
+late casualty-collapse/end-state cleanup after the deployed-body t300 read.

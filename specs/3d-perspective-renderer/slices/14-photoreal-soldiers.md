@@ -61,6 +61,64 @@ Status: implemented on branch `codex-14a`; 14b/14c remain separate.
   ready but not executed here:
   `UPDATE_SHOTS=1 VERIFY_GPU=1 VERIFY_URL=http://127.0.0.1:5174 node scene.mjs battle-photoreal-lighting`.
 
+## 14b implementation note
+
+Status: DONE on branch `codex-14bc` (resumed from a codex partial; audit verdict
+below).
+
+- **Audit verdict on the inherited diff.** KEPT: the LOD-tier mesh set
+  (`createPlaceholderSoldierMeshTiers` L0 full / L1 drops crest·shield·weapon /
+  L2 drops arms), the octahedral-impostor promotion (`impostorLayer.ts` from the
+  verified spike, sampled-texture faction path, no double-linearize), the
+  per-instance CPU culling against the UNION of view + CSM cascade frusta
+  (`shadowRig.cullingFrusta()`), the `crowdLod.ts` seam consuming `lod.ts`, the
+  spike deletions, and the stats histograms. FIXED: (1) distant faction read —
+  the L1/L2 meshes DROP the crest/shield accent geometry that carried the team
+  colour up close, so at range soldiers went dark-neutral and the perf
+  crowd-visibility gate + a `screenshot-critique` both flagged unreadable
+  far-crowd; the fix ramps the broad body tint UP at coarse tiers
+  (`accent.tierBroadMix [0.30,0.48,0.66]`, L0 == the locked 14a value) and tints
+  the WHOLE impostor silhouette toward faction (`IMPOSTOR_BROAD_MIX 0.55`), so
+  far units read as Total-War coloured blocks — "faction before class" holds at
+  distance. (2) the `battle-renderer-default` retired-route check asserted
+  `markerLayer === 'none'`, the pre-14b state; at the duel default zoom a 2 m
+  soldier subtends ~3 px so the whole crowd is legitimately the far impostor
+  tier — re-blessed to accept `far-lod-impostor`.
+- **LOD policy owner unforked.** `crowd-runtime/lod.ts` owns tiers/hysteresis/
+  min-size floor; `crowdLod.ts` calls its `assignCrowdLodsByDistance` (projected
+  on-screen height, min-size floor = the absorbed `04e`); the crowd never grew a
+  second policy.
+- **Culling.** CPU instance compaction; a soldier survives if its bounding
+  sphere hits ANY of {view frustum} ∪ {active CSM cascade frusta} so off-screen
+  casters keep their shadows. Stats publish `culling {input,visible,culled,
+  viewFrusta,shadowFrusta}` + assigned/visible tier histograms.
+- **Spike DELETED (refactor-clean, nothing spike-shaped survives):**
+  `packages/photoreal-renderer/src/battle/impostorSpike.ts`,
+  `apps/renderer-lab/src/impostorSpikeRoute.ts`, the `/renderer/impostor-spike`
+  route entry, `web/scenes/battle/impostor-spike.mjs`, and
+  `web/shots-spike/impostor-spike-{mesh,impostor,split}.png`.
+- **Gates.** typecheck; `test:unit` 71 pass incl. re-derived screen-size-driven
+  `photorealCrowdLod.test.ts` (monotonic coarsening + min-size floor +
+  hysteresis); SwiftShader battle suite green incl. the `battle-terrain-elevation`
+  seating tripwire `match=true` (0.46 % snapshot drift); `photoreal-lighting` /
+  `-parity` / `-shadows` crowd crops within tolerance (≤0.93 %, no re-bless);
+  `lod-tiers` monotonic + `meshVariants 60`. Pop-check ±5° yaw: team pixels
+  3001/2977/3082, verydark≈0 — no impostor tile pop.
+- **Perf (hardware, apple/metal-3, 30 560 soldiers + dense foliage):** mid 3.63 /
+  vista 3.59 ms (12e baseline 5.85 / 7.89 → vista −4.3 ms, mid −2.2 ms — the
+  ladder's perf lever). Crowd-visibility team pixels mid 7 718 / vista 13 702,
+  BOTH above the pre-14b full-mesh baseline (2 562 / 5 288) — the far crowd reads
+  faction MORE clearly than the wasteful full mesh, at half the frame cost.
+- **Non-blocking human-eyeball checkpoint (record + decide on evidence):** a
+  fresh `screenshot-critique` on the vista still notes (a) the melee centre reads
+  busy — mostly the dense vista grass fill + the tightly-packed real crowd, not
+  the soldiers; (b) impostors are flat "coloured tiles" at extreme vista (the
+  legibility-vs-volume trade of a strong far tint — the readable choice; the
+  alternative was dark blocks); (c) a red-vs-blue profile asymmetry that tracks
+  facing (octahedral side vs front tile) + the perf harness's row-alternating
+  synthetic peasant grid, not a per-faction bug. None block 14b (gate = perf +
+  tier correctness); all are tuning candidates for David's checkpoint.
+
 ## What the human can run / see
 
 `/battle` at close and vista zoom; `/renderer/photoreal-crowd` (07's route, now

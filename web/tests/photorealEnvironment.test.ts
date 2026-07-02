@@ -58,11 +58,16 @@ test('photoreal environment: the preset registers order physically', () => {
   assert.ok(dusk.exposure < overcast.exposure, 'dusk dimmer than overcast');
   assert.ok(dusk.exposure < golden.exposure, 'dusk dimmer than golden');
   assert.ok(dusk.exposure < noon.exposure, 'dusk dimmer than noon');
-  // Sun-vs-sky: overcast is the diffuse register — weakest direct sun; noon
-  // is the clear neutral reference — strongest, highest sun.
+  // Sun-vs-sky: overcast is the diffuse register — weakest direct sun. The
+  // physically meaningful ordering is DELIVERED ground irradiance
+  // (intensity × sun height), monotone noon > golden > dusk > overcast —
+  // the raw intensity knob may compensate a low sun (golden's warm boost).
   assert.ok(overcast.sunIntensity < dusk.sunIntensity, 'overcast sun weaker than dusk');
   assert.ok(overcast.sunIntensity < golden.sunIntensity, 'overcast sun weaker than golden');
-  assert.ok(noon.sunIntensity >= golden.sunIntensity, 'noon sun at least golden');
+  const groundIrradiance = (s: ReturnType<typeof spec>) => s.sunIntensity * s.sunDirection[2];
+  assert.ok(groundIrradiance(noon) > groundIrradiance(golden), 'noon delivers the strongest sun');
+  assert.ok(groundIrradiance(golden) > groundIrradiance(dusk), 'golden delivers more sun than dusk');
+  assert.ok(groundIrradiance(dusk) > groundIrradiance(overcast), 'dusk delivers more sun than overcast');
   assert.ok(noon.sunDirection[2] > golden.sunDirection[2], 'noon sun higher than golden');
   assert.ok(golden.sunDirection[2] > dusk.sunDirection[2], 'golden sun higher than dusk');
   // Turbidity monotonicity: clear noon < golden < dusk < overcast (heavy fog).

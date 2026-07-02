@@ -21,9 +21,14 @@ import {
   type BattleFrameUniforms, type FloatNode, type Vec2Node, type Vec3Node,
 } from './battleTsl';
 
-// waterPalette.ts — the neutral albedo the sea *is*, before any lighting mood.
-const WATER_SHALLOW_ALBEDO: [number, number, number] = [0.09, 0.29, 0.40];
-const WATER_DEEP_ALBEDO: [number, number, number] = [0.02, 0.07, 0.19];
+// The neutral albedo the sea *is*, before any lighting mood. Waterpalette's
+// display constants were authored as LIT sea colours for the baked pipeline;
+// as effective albedo (real water "colour" is scattering, not diffuse
+// reflectance) they read a register brighter so the shallows keep the pale
+// Aegean turquoise (aesthetics rule 4) under a physical sun instead of
+// collapsing to navy. The photoreal sea surface proper lands at 12b–d.
+const WATER_SHALLOW_ALBEDO: [number, number, number] = [0.24, 0.52, 0.53];
+const WATER_DEEP_ALBEDO: [number, number, number] = [0.04, 0.12, 0.26];
 const WATER_FOAM_ALBEDO: [number, number, number] = [0.92, 0.93, 0.94];
 // Calm water is glossy (the sun glint is real GGX specular now); foam and
 // hazed distance read matte.

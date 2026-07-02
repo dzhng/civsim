@@ -1,8 +1,8 @@
-// Shared TSL vocabulary for the parity battle world (slice 08a): the noise
-// helpers and camera/environment terms the bespoke WGSL passes share
-// (cameraWgsl.ts sunDirection/chartDepthDist, the groundPass hash/vnoise/fbm/
-// ridge family), ported once and consumed by every battle layer so the ported
-// materials stay literal translations of the production shaders.
+// Shared TSL vocabulary for the photoreal battle world: the noise helpers the
+// bespoke WGSL passes shared (cameraWgsl.ts chartDepthDist, the groundPass
+// hash/vnoise/fbm/ridge family), ported once at 08a, plus the slice-09
+// standard-material seams every battle layer uses (linearAlbedo — the one
+// display→linear conversion; viewNormalNode — the one normalNode hook).
 //
 // Determinism: nothing here reads the TSL `time` node (banned); every animated
 // term keys off uniforms owned by PhotorealBattleWorld.

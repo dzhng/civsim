@@ -16,7 +16,7 @@ Risks), never as the first move.
 
 ## Next Agent Prompt
 
-*Status (2026-07-02): slices 01 AND 02 COMPLETE. 01: force-trace harness
+*Status (2026-07-02): slices 01, 02, AND 03 COMPLETE. 01: force-trace harness
 behind `force-trace`, conservation + smoke green, default golden
 byte-identical, tweak-mechanics skill updated. 02: four detectors + probes +
 four ignored target pins landed; validated quiet on controls; measured-today
@@ -26,8 +26,12 @@ settles after an impact transient) but rotation grows monotonically (heavy
 mortal ~25 deg by 380s, still climbing) and the pike mid-line void is
 persistent (~+0.6 m). The pinwheel looks like the primary bug; the "deep
 band" was substantially the rotated seam read as mixing in isometric crops.
-Pickup point: slice 03 attribution — adjudicate with the force ledger, then
-reslice 04-07 (likely: rotation becomes priority 1).*
+03: attribution probes and diagnostic env knobs landed; default golden
+byte-identical. Verdicts below: slide/tiebreak are not the primary motor,
+deep-reform is split by mortality, pike frontal-gate-fails story is killed,
+and the full-noise band still does not sustain. Pickup point: reslice 04-07
+from the measured verdicts (rotation/silhouette first; pike owner needs a new
+probe if still prioritized).*
 
 You are implementing this spec. Start at `slices/01-force-trace.md` — the
 universal force-instrumentation harness. David's directive (2026-07-02): we do
@@ -48,7 +52,7 @@ before ending your pass.
 
 - [x] 01 force-trace — every force channel recorded at its source, ledger + torque/crossing queries; tweak-mechanics skill updated
 - [x] 02 metrology — detectors + probes + ignored pins + seam-timeline.html; seam band does not reproduce sustained, rotation does
-- [ ] 03 attribution — ledger + ablation matrix; verdict per hypothesis; **reslice checkpoint**
+- [x] 03 attribution — ledger + ablation matrix; verdict per hypothesis; **reslice checkpoint**
 - [ ] 04 seam band — one standoff owner, band ≤ 2–3 ranks (absorbs the standoff-double-push rider)
 - [ ] 05 pinwheel — kill the rotation (chirality and/or ratchet per 03)
 - [ ] 06 pike front — flat gap profile, no mid-line lens (may fold into 04)
@@ -224,6 +228,17 @@ shots with preview-shots, ~5 min window, decide on evidence, record, proceed).
 | Does any seam hold survive the HP4/HP1 executioner? | 04/05, run early |
 | Is the pike void downstream of rotation or its own owner bug? | 03 rotation-suppressed profile |
 | How much silhouette heals free from 04–06? | 07 opening measurement |
+
+## Slice 03 verdicts (measured)
+
+| question | verdict | deciding numbers | reproduce |
+|---|---|---|---|
+| Torque budget | OPEN | Traced mortal heavy (feature-on, 300-400s) did not expose one persistent driver channel. Rotation rose 21.5 -> 61.9 deg over 300-375s, then fell to 37.7 deg by 400s. Net torque is a small residual of huge opposing steering terms: e.g. 350-375s unit 1 `SpeedCap` +100504 vs `PivotSpring` -109276, with `Magnet` +5017, `CorridorClamp` +4001, `SlotPull` +3914. This is a steering/cap feedback, not a clean single-channel torque. | `cargo test -p sim --test force_trace --features force-trace write_slice03_torque_budget -- --ignored --nocapture` |
+| Chirality seed | KILLED | `SLIDE=0` did not collapse rotation rate: baseline five-seed mortal rates over 300-400s were +0.2257, +0.1466, -0.0395, -0.1153, +0.1674 deg/s; `slide0` rates were +0.1356, -0.1326, -0.0110, -0.0959, -0.1491 deg/s. `slide0_tiebreak0` matched `slide0` exactly in this sweep. | `cargo test -p sim --test mechanics_melee blob_probe_slice03_chirality_and_ratchet_ablation -- --ignored --nocapture` |
+| Ratchet / engaged deep reform | OPEN | Deep reform beats do rewrite lattice orientation: with reform on, late immortal beats jump roughly 10-15 deg; with reform off, before/after deltas stay near 0. But the ablation splits by mortality. Immortal seed 0x4202 plateaus with reform off (`rot300=4.16`, `rot400=0.28`, band p95 0.11r), while mortal five-seed `deepreform0` often blows up (`rot400` ~= 180 deg in 4/5 seeds). Contact-width metric stayed unchanged in this probe (`deployed=6.30m`, min 6.58m, max 12.87m both on/off). | `cargo test -p sim --test mechanics_melee blob_probe_slice03_deep_reform_ratchet -- --ignored --nocapture` and `cargo test -p sim --test mechanics_melee blob_probe_slice03_chirality_and_ratchet_ablation -- --ignored --nocapture` |
+| Wrap torque | OPEN | With `SLIDE=0`, disabling flank curl reduced but did not remove mortal residual torque. Mean per-unit total torque over 300-375s fell from ~3996 to ~2717 per 25s window (about 32% reduction), while rates stayed nonzero in the non-traced sweep (`slide0_deepreform1_flankcurl0`: -0.2232, +0.0489, +0.1075, +0.0674, -0.0571 deg/s). Remaining torque is still dominated by `SpeedCap`/`PivotSpring`/`WeaveNet` steering terms. | `SLIDE=0 cargo test -p sim --test force_trace --features force-trace write_slice03_torque_budget -- --ignored --nocapture` and `SLIDE=0 FLANKCURL=0 cargo test -p sim --test force_trace --features force-trace write_slice03_torque_budget -- --ignored --nocapture` |
+| Pike void owner | KILLED | The sampled pike bins do not show wing frontal-gate failure. At t=60s and t=200s, nearest-pair `frontal_gate` was `1/1` across sampled bins. At t=200s the mid gap was only slightly larger (`mid=2.66m`, `end=2.53m`, lens +0.13m), and center bins were mostly bond-only/no-repel, not a double-hold center plus failed-gate wings. | `cargo test -p sim --test mechanics_melee blob_probe_slice03_pike_void_owner_bins -- --ignored --nocapture` |
+| Band reconciliation | KILLED | Full-noise real HeavySword mortal/morale/default-micro grind did not produce a sustained deep band: settled `band_p95=1.99r` (< 3r). Rotation and silhouette are the visible failures: `rot300=24.63deg`, `rot400=39.72deg`, `rate300_400=0.1509deg/s`, `silhouette_floor=0.62`. | `cargo test -p sim --test mechanics_melee blob_probe_slice03_vibe_like_heavy_grind -- --ignored --nocapture` |
 
 ## Risks
 

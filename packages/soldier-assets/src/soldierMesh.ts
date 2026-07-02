@@ -18,7 +18,13 @@ export const SOLDIER_MATERIAL_CHANNELS = {
 } as const;
 
 export const SOLDIER_PBR_VALUES = {
-  accent: { broadMix: 0.30, maskedMix: 0.98 },
+  // broadMix is the L0 (close-up) body tint locked by 14a for realism-vs-legibility.
+  // tierBroadMix ramps it UP at the coarser LOD tiers (14b): the L1/L2 reduced
+  // meshes drop the accent geometry (crest/shield) that carried the faction read
+  // up close, so at distance the body itself must carry more team colour — the
+  // "faction reads before class" rule matters MORE far away, not less. tier[0]
+  // stays == broadMix so L0 is byte-for-byte the 14a look.
+  accent: { broadMix: 0.30, maskedMix: 0.98, tierBroadMix: [0.30, 0.48, 0.66] },
   roughness: {
     bronze: 0.46,
     iron: 0.38,

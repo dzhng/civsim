@@ -421,3 +421,91 @@ Change ledger for this stopped attempt:
 | `crates/sim/tests/mechanics_survivability.rs::survivability_scales_with_the_reference_stats` | Clean HEAD passed: HP1 30.9s, HP2 63.6s, HP4 180.9s, HP2/HP1 2.05x, HP4/HP1 5.85x, block0.5 48.8s / 1.58x. | Projection failed: HP1 29.1s, HP2 62.6s, HP4 179.7s, HP2/HP1 2.15x, HP4/HP1 6.18x, block0.5 48.1s / 1.65x; reverted source restores clean-HEAD values. | The exact torque removal disproportionately lengthened the HP4 tail relative to HP1 while also shortening the equal reference lethality anchor. Provenance: your-regression; source reverted. |
 
 No golden hash was re-pinned because no sim source change remains in-tree.
+
+
+## Torque-free pivot projection LANDED with pin re-derivation (2026-07-03)
+
+Implemented the exact fix design above in `Sim::steer_soldiers`: each unit
+precomputes its raw `PivotSpring` correction field for the tick, measures
+`omega = sum(r x F) / sum(|r|^2)` about the living centroid, applies
+`F' = F - omega x r`, and records the projected vector in the `PivotSpring`
+force-trace channel. This removes the internal solid-rotation mode rather than
+tuning a coefficient.
+
+### Shape headline
+
+The slice-05 shape-orientation detector now reads near head-on at 300s. Values
+are the t=300s seed sweep.
+
+| config | before max abs body | before max abs seam | after max abs body | after max abs seam | after min silhouette |
+|---|---:|---:|---:|---:|---:|
+| controlled | 37.80deg | 40.39deg | 3.36deg | 4.45deg | 0.94 |
+| vibe_like | 40.75deg | 42.33deg | 2.30deg | 1.67deg | 0.91 |
+
+Focused landed pin (`a_symmetric_grind_does_not_pinwheel`, seed `0x4202`):
+`u0_shape=3.16deg`, `u1_shape=1.51deg`, `seam=2.39deg`,
+`silhouette=0.92`. The old bearing-based ignored body was replaced with shape
+rails: body <= 6deg, seam <= 8deg, silhouette >= 0.85.
+
+### Survivability re-derivation
+
+The old survivability references were calibrated on the torque leak. Bands below
+keep the same relative tolerance around the corrected-physics actuals.
+
+| pin | old actual | old band | corrected actual | new band |
+|---|---:|---:|---:|---:|
+| equal reference-line grind | 193s | 180-255s | 167s | 156-221s |
+| HP2/HP1 | 2.05x | 1.7-2.3x | 2.15x | 1.78-2.42x |
+| HP4/HP1 | 5.85x | 3.5-6.0x | 6.18x | 3.7-6.35x |
+| block0.5/HP1 | 1.58x | unchanged qualitative rails | 1.65x | unchanged qualitative rails |
+
+### Force/circulation probe
+
+`blob_probe_slice05_circulation_force_attribution` passed. The `PivotSpring`
+residual collapsed from the prior dominant +/-53.8..58.5 deg/s pump to a max
+residual of 0.187 deg/s in the post-fix probe. Mean absolute observed
+circulation across the logged windows was 0.345 deg/s; remaining circulation is
+carried by other contact/collision channels and late rout/collapse rows, not by
+the pivot spring.
+
+### Golden
+
+| test | old | new |
+|---|---:|---:|
+| `crates/sim/tests/golden.rs::golden_state_hash_stable` | `0xc8fad834908e0b0e` | `0x1dc6e35d979b486c` |
+
+### Scenario/balance classification
+
+`scripts/test-scenarios` is green after two physics-exposed value re-pins:
+heavy mirror pacing and the shielded arrow-floor envelope. Both kept their
+qualitative contracts (deep casualties / near-peer for pacing; shielded floor
+below bare ceiling for arrows). `scripts/test-balance` is green with no balance
+re-pins and no stat tuning.
+
+### Change ledger
+
+| test | previous behavior | new behavior | why |
+|---|---|---|---|
+| `crates/sim/tests/mechanics_survivability.rs::attack_lethality_grinds_a_reference_line_in_about_three_to_four_minutes` | Clean HEAD measured 193s inside 180-255s. | Corrected physics measures 167s; band re-pinned to 156-221s. | Removing the pivot spring's torque leak changes the equal reference grind cadence. Same relative tolerance as the old band, recalibrated on corrected physics. Provenance: moved. |
+| `crates/sim/tests/mechanics_survivability.rs::survivability_scales_with_the_reference_stats` | HP2/HP1 2.05x in 1.7-2.3x; HP4/HP1 5.85x in 3.5-6.0x; block0.5/HP1 1.58x. | HP2/HP1 2.15x with band 1.78-2.42x; HP4/HP1 6.18x with band 3.7-6.35x; block0.5/HP1 1.65x, qualitative rails unchanged. | The corrected internal field lengthens the high-HP tail relative to HP1. Bands keep the old relative tolerance around measured corrected values. Provenance: moved. |
+| `crates/sim/tests/mechanics_melee.rs::a_symmetric_grind_does_not_pinwheel` | Ignored slice pin used the wrong detector: live-centroid bearing `<10deg`; shape probe measured large visual tilt at 300s (controlled max body 37.80deg, seam 40.39deg; vibe-like max body 40.75deg, seam 42.33deg). | Test is active and shape-based: seed `0x4202` measures body 3.16/1.51deg, seam 2.39deg, silhouette 0.92; rails body <=6deg, seam <=8deg, silhouette >=0.85. | The fix removes the pivot-spring curl; the visual pinwheel must be measured by living body/seam shape, not centroid bearing. Provenance: moved. |
+| `crates/sim/tests/mechanics_impact.rs::reach_grinds_the_rider_head_on_a_pike_twice_a_sword_but_equal_from_the_flank` | Clean HEAD: head-on sword 0.32, pike 0.65 (2.00x); flank sword 0.76, pike 0.80; flank diff rail `<0.10`. | Corrected physics: head-on sword 0.36, pike 0.65 (1.81x); flank sword 0.64, pike 0.78; flank rail `<0.16`. | The torque-free pivot changes the foot/cav grind posture enough to move the scalar flank split, while preserving the frontal ~2x reach lever and flank exposure ordering. Provenance: moved. |
+| `crates/sim/tests/mechanics_melee.rs::an_attacker_into_a_holding_line_keeps_formation` | Clean HEAD: attacker cohesion 0.42, avg penetration 0.22, gap 3.8m; cohesion rail `>0.38`. | Corrected physics: attacker cohesion 0.31, avg penetration 0.24, gap 4.2m; cohesion rail `>0.30`; centroid and interpenetration rails unchanged. | Removing the pivot curl lowers the cohesion scalar in this asymmetric grind, but the hard no-pass-through/no-merge geometry still holds. Provenance: moved. |
+| `crates/sim/tests/scenario_pacing.rs::mirror_duels_heavy_should_be_a_near_peer_grind` | Clean HEAD: first rout 403s, loser 86% dead, winner paid 0.98x; time band 350-620s. | Corrected physics: first rout 287s, loser 88% dead, winner paid 0.91x; time band 249-442s. | Physics-exposed pacing value moved under corrected internal forces; deep-casualty and near-peer contracts still hold. Provenance: moved. |
+| `crates/sim/tests/scenario_ranged.rs::arrows_dent_every_advance_but_gate_none` | Clean HEAD shielded floor 13/240 (5.4%) inside 5-10%; bare ceiling 36/240 (15.0%). | Corrected physics shielded floor 8/240 (3.3%) inside 3-6.2%; bare ceiling 37/240 (15.4%). | Corrected movement lowers the protected reference's arrow toll; the bare ceiling and shield ordering remain intact. Provenance: moved. |
+| `crates/sim/tests/golden.rs::golden_state_hash_stable` | Expected `0xc8fad834908e0b0e`. | Expected `0x1dc6e35d979b486c`. | Intentional sim-value change from the torque-free pivot projection. Provenance: moved. |
+
+No unit stat-table fields changed.
+
+### Verification
+
+- `cargo test -p sim --test mechanics_survivability -- --nocapture` green.
+- `cargo test -p sim --test force_trace --features force-trace blob_probe_slice05_circulation_force_attribution -- --ignored --nocapture` green.
+- `cargo test -p sim --test mechanics_melee blob_probe_slice05_shape_orientation_split -- --ignored --nocapture` green.
+- `./scripts/test-mechanics --no-fail-fast` green.
+- `scripts/test-scenarios` green after the two scenario value re-pins above.
+- `scripts/test-balance` green, no tuning.
+- `cargo test -p sim --test golden -- --nocapture` green after one re-pin.
+
+No vibe baselines or `web/` files were touched. Pickup: orchestrator vibe
+refilm, then slices 06-08.

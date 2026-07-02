@@ -1779,6 +1779,138 @@ impl Sim {
                 }
             }
 
+            let mut living_centroid = Vec2::ZERO;
+            let mut living_count = 0.0f32;
+            for s in 0..u.count {
+                let i = u.start + s;
+                if alive[i] == 1 {
+                    living_centroid =
+                        living_centroid + Vec2::new(positions[2 * i], positions[2 * i + 1]);
+                    living_count += 1.0;
+                }
+            }
+            if living_count > 0.0 {
+                living_centroid = living_centroid * (1.0 / living_count);
+            }
+
+            let mut projected_pivot = vec![Vec2::ZERO; u.count];
+            if living_count > 0.0 {
+                let order_advancing =
+                    u.move_target.is_some() || matches!(u.mode, OrderMode::Attack(_));
+                let running = !strict_formation
+                    && u.move_target.is_some()
+                    && u.mass_advance > tun.charge_spent_speed;
+                let gathering = u.reform_timer > 0.0
+                    && u.cohesion < REFORM_COH
+                    && !matches!(u.mode, OrderMode::Attack(_) | OrderMode::Disengage);
+                let trampling_unit = u.tramples()
+                    && (u.move_target.is_some() || u.mass_advance > tun.charge_spent_speed);
+                let weave_active = !((trampling_unit || running) && !gathering);
+                if weave_active {
+                    let files = u.files_eff.max(1);
+                    let (sx, sy) = (u.spacing.x, u.spacing.y);
+                    let neighbor_skip = if order_advancing && !strict_formation {
+                        1
+                    } else {
+                        WEAVE_NEIGHBOR_SKIP
+                    };
+                    let ranks = slot_capacity.div_ceil(files);
+                    let mut torque = 0.0f32;
+                    let mut inertia = 0.0f32;
+                    for s in 0..u.count {
+                        let i = u.start + s;
+                        if alive[i] == 0 || stun[i] > 0.0 || trampled[i] > 0.0 || u.routing {
+                            continue;
+                        }
+                        let p = Vec2::new(positions[2 * i], positions[2 * i + 1]);
+                        let si = soldier_slot[i] as usize;
+                        let (file, rank) = (si % files, si / files);
+                        let mut raw = Vec2::ZERO;
+                        let mut pivot_bond = |j: usize, off: Vec2| {
+                            if j != usize::MAX && trampled[j] <= 0.0 {
+                                let jp =
+                                    Vec2::new(prev_positions[2 * j], prev_positions[2 * j + 1]);
+                                let d = p - jp;
+                                let (al, rl) = (d.len(), off.len());
+                                if al > 1e-3 && rl > 1e-3 {
+                                    let (dh, oh) = (d * (1.0 / al), off * (1.0 / rl));
+                                    let dot = (dh.x * oh.x + dh.y * oh.y).clamp(-1.0, 1.0);
+                                    let tang = oh - dh * dot;
+                                    let fighting_mounted =
+                                        target[i] >= 0 && mounted[target[i] as usize] == 1;
+                                    let pivot_len = if (u.is_mounted()
+                                        || fighting_mounted
+                                        || narrow_against_much_wider_foot)
+                                        && al > rl
+                                    {
+                                        al.min(rl + pivot_stretch_slack)
+                                    } else {
+                                        al
+                                    };
+                                    raw = raw + tang * pivot_len;
+                                }
+                            }
+                        };
+                        for step in 1..=file.min(neighbor_skip) {
+                            let ns = si - step;
+                            let j = soldier_at_slot[ns];
+                            if j != usize::MAX && trampled[j] <= 0.0 {
+                                pivot_bond(j, r * (sx * step as f32));
+                                break;
+                            }
+                        }
+                        let right_steps = (files - 1 - file)
+                            .min(slot_capacity.saturating_sub(1).saturating_sub(si))
+                            .min(neighbor_skip);
+                        for step in 1..=right_steps {
+                            let ns = si + step;
+                            let j = soldier_at_slot[ns];
+                            if j != usize::MAX && trampled[j] <= 0.0 {
+                                pivot_bond(j, r * (-sx * step as f32));
+                                break;
+                            }
+                        }
+                        for step in 1..=rank.min(neighbor_skip) {
+                            let ns = si - files * step;
+                            let j = soldier_at_slot[ns];
+                            if j != usize::MAX && trampled[j] <= 0.0 {
+                                pivot_bond(j, f * (-sy * step as f32));
+                                break;
+                            }
+                        }
+                        for step in 1..=((ranks - 1 - rank).min(neighbor_skip)) {
+                            let ns = si + files * step;
+                            if ns >= slot_capacity {
+                                break;
+                            }
+                            let j = soldier_at_slot[ns];
+                            if j != usize::MAX && trampled[j] <= 0.0 {
+                                pivot_bond(j, f * (sy * step as f32));
+                                break;
+                            }
+                        }
+                        let component = raw * tun.pivot_stiffness;
+                        projected_pivot[s] = component;
+                        let lever = p - living_centroid;
+                        torque += lever.x * component.y - lever.y * component.x;
+                        inertia += lever.x * lever.x + lever.y * lever.y;
+                    }
+                    if inertia > 1.0e-6 {
+                        let omega = torque / inertia;
+                        for s in 0..u.count {
+                            let i = u.start + s;
+                            if alive[i] == 0 {
+                                continue;
+                            }
+                            let p = Vec2::new(positions[2 * i], positions[2 * i + 1]);
+                            let lever = p - living_centroid;
+                            projected_pivot[s] =
+                                projected_pivot[s] - Vec2::new(-omega * lever.y, omega * lever.x);
+                        }
+                    }
+                }
+            }
+
             for s in 0..u.count {
                 let i = u.start + s;
                 if alive[i] == 0 {
@@ -1996,8 +2128,7 @@ impl Sim {
                 // shove that rotates each bond back toward its rest heading
                 // (length untouched) — the force that snaps a bent/sheared line
                 // straight, which the length-only net & compression springs can't
-                // feel. Scaled by pivot_stiffness below.
-                let mut pivot_push = Vec2::ZERO;
+                // feel. The torque-free per-unit component is precomputed above.
                 // The scalar crush: the SUM of spring-load magnitudes (each bond's
                 // push, plus the enemy reach-spring below). Vector cancels under a
                 // two-sided squeeze; this scalar does not — that gap IS the vice.
@@ -2048,33 +2179,6 @@ impl Sim {
                                 let (dh, oh) = (d * (1.0 / al), off * (1.0 / rl));
                                 let dot = (dh.x * oh.x + dh.y * oh.y).clamp(-1.0, 1.0);
                                 bond_pivot += dot.acos();
-                                // Angular spring: the part of the rest heading
-                                // PERPENDICULAR to the live bond, scaled by the
-                                // bond's length — a tangential pull that swings the
-                                // bond back to rest without changing its length.
-                                // (Linear in sin(angle): an exponential knee held
-                                // its shape stiffer but read as too rigid and choked
-                                // the wrap — a wrap is the same large bend, so any
-                                // sharp angle law that stops a pancake stops a curl.)
-                                let tang = oh - dh * dot;
-                                // Contact queues can stretch a bond axially; that
-                                // stretch is handled by the length spring and
-                                // should not amplify the angular correction into
-                                // sideways fan-out. A small body-scale slack
-                                // keeps first contact from reading hollow without
-                                // returning to the old unbounded live-length lever.
-                                let fighting_mounted =
-                                    target[i] >= 0 && mounted[target[i] as usize] == 1;
-                                let pivot_len = if (u.is_mounted()
-                                    || fighting_mounted
-                                    || narrow_against_much_wider_foot)
-                                    && al > rl
-                                {
-                                    al.min(rl + pivot_stretch_slack)
-                                } else {
-                                    al
-                                };
-                                pivot_push = pivot_push + tang * pivot_len;
                             }
                             // COMPRESSION push: when the bond is shorter than rest,
                             // shove away from the neighbour, the force climbing
@@ -2295,11 +2399,11 @@ impl Sim {
                 let mut steer_to = if !weave_active {
                     Vec2::ZERO
                 } else {
-                    let s = match net_target {
+                    let weave_component = match net_target {
                         Some(nt) => nt * tun.weave_stiffness + comp_push,
                         None => to + comp_push,
                     };
-                    s + pivot_push * tun.pivot_stiffness
+                    weave_component + projected_pivot[s]
                 };
                 #[cfg(feature = "force-trace")]
                 if weave_active {
@@ -2308,7 +2412,7 @@ impl Sim {
                         None => to,
                     };
                     let comp_component = comp_push - enemy_inside_push;
-                    let pivot_component = pivot_push * tun.pivot_stiffness;
+                    let pivot_component = projected_pivot[s];
                     for (channel, vec, meta) in [
                         (
                             ForceChannel::WeaveNet,

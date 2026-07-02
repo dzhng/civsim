@@ -20,11 +20,25 @@ slices in order and **use `/codex` for implementation work wherever possible**
 (delegate the mechanical edits to Codex via `codex exec`; you drive verification,
 screenshots, and the human checkpoints yourself).
 
-**Next pickup point:** Slice `06-data-diagnosis` — read-only cities-in-sea +
-road-graph audit (a human checkpoint on the fix-path), then `07` mapgen re-bake
-(Rust build + JSON re-bake — a natural fresh-context boundary). Done so far:
-00–05 + 11. `08` labels, `09` sea labels, `10` shadow ring, `12` selection ring,
-`13–15` bronze UI, `16–18` city card + allegiance, `19` docs remain.
+**Next pickup point (two independent options — either is a clean start):**
+- `06-data-diagnosis` → `07` mapgen re-bake: read-only cities-in-sea + road-graph
+  audit (David picks the fix-path), then the Rust build + JSON re-bake. A natural
+  fresh-context boundary.
+- `08-capital-labels`: occupied-capital names at low zoom + garrison label-far +
+  the garrison-disc "shadow ring". **Diagnostic groundwork is done** — the disc is
+  a light ground decal specific to garrisoned cities (NOT model shadow, NOT
+  selection, NOT crowd shadow); see the slice file for the narrowed search.
+
+Done so far: 00–05, 11 (committed & verified), plus the 10→08 reslice. Remaining:
+`06`/`07` data, `08` labels + garrison disc, `09` sea labels, `12` selection ring,
+`13–15` bronze UI, `16–18` city card + allegiance re-channel, `19` docs.
+
+**Reliable verification recipe (proven this session):** start your own dev server
+`cd web && node node_modules/.bin/vite --port 5199 --strictPort &`; iterate visuals
+with the standalone probe at `scratchpad/probe.mjs` (fresh browser, no baseline
+machinery — dodges the HMR-lag that makes the scene runner show 0-diff right after
+a shader edit); gate with `VERIFY_URL=http://localhost:5199 VERIFY_GPU=1 node
+scene.mjs <scene>` and bless with `UPDATE_SHOTS=1`.
 
 **Verification setup (learned in slice 01 — READ THIS):**
 - The scene runner (`cd web && node scene.mjs <scene>`) targets a dev server at

@@ -40,13 +40,20 @@ work without a fresh ask.
    enough that a fresh agent couldn't misread it.
 2. Start from a clean tree (or record the baseline commit) so Codex's diff is
    separable from yours.
-3. Run `codex exec --sandbox workspace-write "<task>"`; use
-   `-o <file>` to capture the final message and background the call when the
-   task is long. Non-interactive runs never ask for approval — the sandbox is
-   the only control — so workspace-write already auto-executes shell commands,
-   tests included. Network is off inside the sandbox; add
-   `-c sandbox_workspace_write.network_access=true` only when the task must
-   fetch (e.g. new deps).
+3. Pick the sandbox by what the task must RUN:
+   - Pure code + typecheck/unit: `codex exec --sandbox workspace-write "<task>"`.
+     Network is off; add `-c sandbox_workspace_write.network_access=true` only
+     when the task must fetch (e.g. new deps).
+   - **Browser verification, dev servers, or full test/scene runs: use
+     `codex exec --dangerously-bypass-approvals-and-sandbox "<task>"`.** The
+     sandbox blocks localhost binds (`listen EPERM` on vite/playwright) and the
+     app-server, so a sandboxed codex ships code it never saw run — every
+     sandboxed lane here needed a reviewer round-trip to catch first-frame bugs.
+     Bypass trades that blindness for zero OS control: only in a dedicated git
+     worktree, only with a prompt you authored end-to-end (never relaying
+     third-party text), and the diff review you owe afterwards is the control.
+   Use `-o <file>` to capture the final message and background long calls.
+   Non-interactive runs never ask for approval either way.
 4. Follow up with `codex exec resume <session-id> "<follow-up>"`, taking the
    id from the run header. `resume --last` means the most recent session
    globally — a review or any other codex run in between will hijack it.
@@ -81,6 +88,8 @@ file under `~/.codex/sessions/<Y/M/D>/`, no network socket, no tree changes.
 - Don't touch the working tree while a Codex exec is running on it.
 - `--sandbox read-only` (the default) for consultation and questions;
   `workspace-write` only for delegated implementation.
-- Never use the `--dangerously-bypass-*` flags. `--full-auto` is deprecated
-  and is just an alias for workspace-write — don't reach for it.
+- `--dangerously-bypass-approvals-and-sandbox` is reserved for tasks that must
+  run browsers/servers/full suites (above) — dedicated worktree, self-authored
+  prompt, mandatory diff review after. `--full-auto` is deprecated (just an
+  alias for workspace-write) — don't reach for it.
 - Omit model overrides unless the user asks for one.

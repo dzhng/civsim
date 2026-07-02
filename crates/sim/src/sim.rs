@@ -172,6 +172,12 @@ pub struct Sim {
     /// a quiet wing reads 0; a man beside the scrum reads high — and his
     /// seek radius grows with it (cascading envelopment).
     pub fight_near: Vec<u8>,
+    /// Surface gap to the nearest living enemy body (f32::MAX when none in
+    /// awareness range), written by the combat targeting scan each tick.
+    pub nearest_enemy_d: Vec<f32>,
+    /// That enemy's soldier index (-1 when none) — the blade-lock tangent
+    /// reference for the fighting-tempo cap.
+    pub nearest_enemy: Vec<i32>,
     /// 1 = the bearing to this soldier's target is clear of friendly bodies
     /// (within 1.5m, ±40°). The anti-blender leash: rank-3 men behind
     /// comrades may NOT wade in regardless of seek radius.
@@ -270,6 +276,8 @@ impl Sim {
             fighting: Vec::new(),
             has_fighting: false,
             fight_near: Vec::new(),
+            nearest_enemy_d: Vec::new(),
+            nearest_enemy: Vec::new(),
             front_clear: Vec::new(),
             awareness: Vec::new(),
             hit_dir: Vec::new(),
@@ -474,6 +482,8 @@ impl Sim {
             self.attacked_by.push(0);
             self.fighting.push(0);
             self.fight_near.push(0);
+            self.nearest_enemy_d.push(f32::MAX);
+            self.nearest_enemy.push(-1);
             self.front_clear.push(1);
             self.awareness.push(1.0);
             self.hit_dir.push(0.0);
@@ -999,7 +1009,8 @@ impl Sim {
             let engaged_deep_reform = broad_contact_files * 2 > files
                 && ranks >= 5.0
                 && self.tun.engaged_deep_reform
-                && self.tick_count % 60 == (ui as u64) % 60;
+                && self.tick_count % self.tun.engaged_deep_reform_ticks
+                    == (ui as u64) % self.tun.engaged_deep_reform_ticks;
             // A SETTLED, AT-EASE unit (halted, no enemy near) that frayed on
             // the march RE-FORMS on a slow drumbeat so order RECOVERS — without
             // this a unit kept its march disorder forever (nothing re-sorted a
@@ -1636,6 +1647,8 @@ impl Sim {
             hit_dir,
             hit_ttl,
             mounted,
+            nearest_enemy,
+            nearest_enemy_d,
             ..
         } = self;
         let tick_now = *tick_count;
@@ -1937,7 +1950,13 @@ impl Sim {
                             continue;
                         }
                         let vr = Vec2::new(vf.y, -vf.x);
-                        let half_w = 0.5 * v.width() + 0.5 * v.spacing.x;
+                        let corridor_files = if tun.corridor_deployed_width {
+                            v.files.max(v.files_eff)
+                        } else {
+                            v.files_eff
+                        };
+                        let half_w = 0.5 * (corridor_files.max(1) - 1) as f32 * v.spacing.x
+                            + 0.5 * v.spacing.x;
                         let p_lat = (p - v.center()).dot(vr);
                         let slot_lat = (slot - v.center()).dot(vr);
                         if p_lat.abs().min(slot_lat.abs()) > half_w {
@@ -2696,6 +2715,56 @@ impl Sim {
                                 pre_cap * dt,
                                 v * dt,
                                 "toward_foe_base_speed",
+                            ));
+                        }
+                    }
+                }
+                // FIGHTING TEMPO, tangential: you cannot CROSS a man's
+                // front at speed. In blade-lock range, the velocity component
+                // PERPENDICULAR to the nearest enemy's bearing is capped at
+                // fighting tempo; radial motion stays free — closing is
+                // already paced by the directional cap above and backing out
+                // is how the wounded circulate (the survivability mechanism a
+                // total cap measurably broke: HP2/HP1 hit 2.59x). Sliding
+                // along the seam at full stride was the measured motor of the
+                // mortal binary orbit (melee-blob slice 05): two casualty-
+                // offset fronts thrust past each other's flanks and the pair
+                // orbits. A trampler rides through and a routing man flees at
+                // fear pace — both exempt; a man torn far out of place still
+                // surges (same exemption as the directional cap above).
+                let ne = nearest_enemy[i];
+                if engaged_i
+                    && err < tun.surge_err_threshold
+                    && !u.routing
+                    && !u.tramples()
+                    && ne >= 0
+                    && nearest_enemy_d[i] <= tun.fighting_tempo_radius
+                {
+                    let ep = Vec2::new(
+                        prev_positions[2 * ne as usize],
+                        prev_positions[2 * ne as usize + 1],
+                    );
+                    let e = ep - p;
+                    let el = e.len();
+                    if el > 1e-3 {
+                        let eh = e * (1.0 / el);
+                        let radial = eh * v.dot(eh);
+                        let tangent = v - radial;
+                        let tl = tangent.len();
+                        let tmax = tun.base_speed * tun.fighting_tempo_tangent_mult;
+                        if tl > tmax {
+                            #[cfg(feature = "force-trace")]
+                            let pre_cap = v;
+                            v = radial + tangent * (tmax / tl);
+                            #[cfg(feature = "force-trace")]
+                            force_records.push(ForceRecord::cap(
+                                tick_now,
+                                i,
+                                soldier_unit[i] as usize,
+                                ForceChannel::FightingTempoCap,
+                                pre_cap * dt,
+                                v * dt,
+                                "blade_lock_tangential_tempo",
                             ));
                         }
                     }

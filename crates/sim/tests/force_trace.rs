@@ -671,3 +671,111 @@ tbody.innerHTML = ROWS.map(([t,u,c,x,y,tq]) =>
   `<tr><td>${t}</td><td>${u}</td><td>${c}</td><td>${x.toFixed(4)}</td><td>${y.toFixed(4)}</td><td>${tq.toFixed(4)}</td></tr>`).join('');
 </script>
 "##;
+
+/// Slice 05 phase 1: WHY does a mortal grind saturate the per-soldier speed
+/// cap? For every capped soldier-tick, attribute the steering ask by channel
+/// and locate the capped men by distance-to-nearest-enemy band. The verdict
+/// sentence this feeds: "capped soldiers are mostly X-positioned and their
+/// demand is carried by CHANNEL Y at Z% share."
+#[test]
+#[ignore = "melee-blob slice 05: cap-saturation attribution (phase 1)"]
+fn blob_probe_slice05_cap_saturation() {
+    const WINDOW_S: f32 = 25.0;
+    const RUN_S: f32 = 400.0;
+    const BAND_LABELS: [&str; 4] = ["<1.5m", "1.5-3m", "3-6m", ">6m"];
+    for immortal in [true, false] {
+        let (mut sim, a, b) = traced_attribution_heavy(0x4202, immortal);
+        let end_tick = (RUN_S / DT) as usize;
+        let windows = (RUN_S / WINDOW_S) as usize;
+        let mut capped_soldier_ticks = vec![0u64; windows];
+        let mut alive_soldier_ticks = vec![0u64; windows];
+        let mut removed_len = vec![0f64; windows];
+        let mut pre_len = vec![0f64; windows];
+        let mut ask_by_channel: Vec<BTreeMap<ForceChannel, f64>> = vec![BTreeMap::new(); windows];
+        let mut ask_total = vec![0f64; windows];
+        let mut band_counts = vec![[0u64; 4]; windows];
+        for step in 1..=end_tick {
+            sim.clear_force_trace();
+            sim.tick();
+            let tick = sim.tick_count - 1;
+            let t = step as f32 * DT;
+            let w = ((t / WINDOW_S) as usize).min(windows - 1);
+
+            let mut capped: BTreeMap<usize, usize> = BTreeMap::new();
+            for r in sim.force_trace.records() {
+                if r.tick == tick && r.channel == ForceChannel::SpeedCap {
+                    capped.insert(r.soldier, r.unit);
+                    if let (Some(pre), Some(post)) = (r.pre, r.post) {
+                        removed_len[w] += (pre - post).len() as f64;
+                        pre_len[w] += pre.len() as f64;
+                    }
+                }
+            }
+            capped_soldier_ticks[w] += capped.len() as u64;
+            for unit in [a, b] {
+                alive_soldier_ticks[w] += traced_live_positions(&sim, unit).len() as u64;
+            }
+            for r in sim.force_trace.records() {
+                if r.tick == tick && r.channel.is_steering() && capped.contains_key(&r.soldier) {
+                    let m = r.vec.len() as f64;
+                    *ask_by_channel[w].entry(r.channel).or_insert(0.0) += m;
+                    ask_total[w] += m;
+                }
+            }
+            if step % 15 == 0 {
+                for (&s, &unit) in &capped {
+                    let foe = if unit == a { b } else { a };
+                    let p = sim.soldier_pos(s);
+                    let mut dmin = f32::INFINITY;
+                    for (_, q) in traced_live_positions(&sim, foe) {
+                        let d = (q - p).len();
+                        if d < dmin {
+                            dmin = d;
+                        }
+                    }
+                    let band = if dmin < 1.5 {
+                        0
+                    } else if dmin < 3.0 {
+                        1
+                    } else if dmin < 6.0 {
+                        2
+                    } else {
+                        3
+                    };
+                    band_counts[w][band] += 1;
+                }
+            }
+        }
+        for w in 0..windows {
+            let capped_frac =
+                capped_soldier_ticks[w] as f64 / (alive_soldier_ticks[w] as f64).max(1.0);
+            let clip_frac = removed_len[w] / pre_len[w].max(1.0e-9);
+            let mut shares: Vec<(ForceChannel, f64)> = ask_by_channel[w]
+                .iter()
+                .map(|(&c, &v)| (c, v / ask_total[w].max(1.0e-9)))
+                .collect();
+            shares.sort_by(|x, y| y.1.total_cmp(&x.1));
+            let top: Vec<String> = shares
+                .iter()
+                .take(6)
+                .map(|(c, f)| format!("{c:?}={:.3}", f))
+                .collect();
+            let bands_total: u64 = band_counts[w].iter().sum();
+            let bands: Vec<String> = BAND_LABELS
+                .iter()
+                .zip(band_counts[w].iter())
+                .map(|(l, &n)| format!("{l}={:.2}", n as f64 / (bands_total as f64).max(1.0)))
+                .collect();
+            eprintln!(
+                "SLICE05_CAP_SAT variant={} window={:.0}-{:.0}s capped_frac={:.3} clip_frac={:.3} shares[{}] bands[{}]",
+                if immortal { "immortal" } else { "mortal" },
+                w as f32 * WINDOW_S,
+                (w + 1) as f32 * WINDOW_S,
+                capped_frac,
+                clip_frac,
+                top.join(" "),
+                bands.join(" ")
+            );
+        }
+    }
+}

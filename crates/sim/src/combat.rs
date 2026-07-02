@@ -254,6 +254,8 @@ impl Sim {
                 self.fighting[i] = 0;
                 self.fight_near[i] = 0;
                 self.front_clear[i] = 1;
+                self.nearest_enemy_d[i] = f32::MAX;
+                self.nearest_enemy[i] = -1;
                 continue;
             }
             let my_team = self.units[ui].team;
@@ -415,6 +417,8 @@ impl Sim {
             }
 
             self.fight_near[i] = fight_near.min(10) as u8;
+            self.nearest_enemy_d[i] = if nearest >= 0 { nearest_d } else { f32::MAX };
+            self.nearest_enemy[i] = nearest;
             if nearest < 0 || nearest_d > DISENGAGE_DIST {
                 self.target[i] = -1;
                 self.fighting[i] = 0;

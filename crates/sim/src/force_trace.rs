@@ -18,6 +18,7 @@ pub enum ForceChannel {
     Cruise,
     SpeedCap,
     FightingPaceCap,
+    FightingTempoCap,
     PikeLateralFriction,
     IdleSettleDamp,
     BodySeparationNormal,
@@ -52,6 +53,7 @@ impl ForceChannel {
         ForceChannel::Cruise,
         ForceChannel::SpeedCap,
         ForceChannel::FightingPaceCap,
+        ForceChannel::FightingTempoCap,
         ForceChannel::PikeLateralFriction,
         ForceChannel::IdleSettleDamp,
         ForceChannel::BodySeparationNormal,
@@ -88,6 +90,7 @@ impl ForceChannel {
             ForceChannel::Cruise => "sim.rs/steer_soldiers/frame_cruise",
             ForceChannel::SpeedCap => "sim.rs/steer_soldiers/soldier_speed_cap",
             ForceChannel::FightingPaceCap => "sim.rs/steer_soldiers/fighting_pace_cap",
+            ForceChannel::FightingTempoCap => "sim.rs/steer_soldiers/fighting_tempo_cap",
             ForceChannel::PikeLateralFriction => "sim.rs/steer_soldiers/pike_lateral_friction",
             ForceChannel::IdleSettleDamp => "sim.rs/steer_soldiers/idle_settle_damp",
             ForceChannel::BodySeparationNormal => "collision.rs/apply_separation/body_normal",
@@ -126,6 +129,7 @@ impl ForceChannel {
                 | ForceChannel::Cruise
                 | ForceChannel::SpeedCap
                 | ForceChannel::FightingPaceCap
+                | ForceChannel::FightingTempoCap
                 | ForceChannel::PikeLateralFriction
                 | ForceChannel::IdleSettleDamp
                 | ForceChannel::Routing
@@ -141,6 +145,7 @@ impl ForceChannel {
             ForceChannel::CorridorClamp
                 | ForceChannel::SpeedCap
                 | ForceChannel::FightingPaceCap
+                | ForceChannel::FightingTempoCap
                 | ForceChannel::PikeLateralFriction
                 | ForceChannel::IdleSettleDamp
                 | ForceChannel::WeaponRepel

@@ -11,7 +11,7 @@
 pub mod common;
 
 use common::{deaths, no_morale};
-use sim::{setup_duel, Pace, Sim, Tunables, UnitClassId, Vec2, DT};
+use sim::{class_stats, setup_duel, Pace, Sim, Tunables, UnitClass, UnitClassId, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
 
 const N: usize = 240;
@@ -739,6 +739,299 @@ fn min_unit_surface_gap(sim: &Sim, a: usize, b: usize) -> f32 {
     best
 }
 
+#[derive(Clone, Debug)]
+struct FrontGapProfile {
+    gaps: Vec<f32>,
+    mid_gap: f32,
+    end_gap: f32,
+    lens_void: f32,
+}
+
+#[derive(Clone, Copy, Debug)]
+struct Silhouette {
+    inside_frac: f32,
+    corner_quadrants: [f32; 4],
+}
+
+#[derive(Clone, Copy, Debug)]
+struct BlobSample {
+    t: f32,
+    band: f32,
+    rotation: f32,
+    lens_void: f32,
+    silhouette: f32,
+    lattice_a: f32,
+    lattice_b: f32,
+}
+
+#[derive(Clone, Debug)]
+struct BlobRun {
+    probe: &'static str,
+    matchup: &'static str,
+    variant: &'static str,
+    seed: u64,
+    samples: Vec<BlobSample>,
+}
+
+fn unit_live_positions(sim: &Sim, unit: usize) -> Vec<(usize, Vec2)> {
+    let u = &sim.units[unit];
+    (u.start..u.start + u.count)
+        .filter(|&i| sim.alive[i] == 1)
+        .map(|i| (i, sim.soldier_pos(i)))
+        .collect()
+}
+
+fn unit_live_centroid(sim: &Sim, unit: usize) -> Vec2 {
+    let pts = unit_live_positions(sim, unit);
+    if pts.is_empty() {
+        return sim.units[unit].centroid;
+    }
+    let sum = pts.iter().fold(Vec2::ZERO, |acc, &(_, p)| {
+        Vec2::new(acc.x + p.x, acc.y + p.y)
+    });
+    sum * (1.0 / pts.len() as f32)
+}
+
+fn engagement_axes(sim: &Sim, a: usize, b: usize) -> (Vec2, Vec2) {
+    let d = unit_live_centroid(sim, b) - unit_live_centroid(sim, a);
+    let l = d.len().max(1.0e-4);
+    let axis = d * (1.0 / l);
+    (axis, Vec2::new(axis.y, -axis.x))
+}
+
+fn shared_frontage_bins(sim: &Sim, a: usize, b: usize, lateral: Vec2) -> Option<(f32, f32, usize)> {
+    let extent = |unit| {
+        let mut lo = f32::INFINITY;
+        let mut hi = f32::NEG_INFINITY;
+        for (_, p) in unit_live_positions(sim, unit) {
+            let lat = p.dot(lateral);
+            lo = lo.min(lat);
+            hi = hi.max(lat);
+        }
+        (lo, hi)
+    };
+    let (alo, ahi) = extent(a);
+    let (blo, bhi) = extent(b);
+    let mut lo = alo.max(blo);
+    let mut hi = ahi.min(bhi);
+    if !lo.is_finite() || !hi.is_finite() || hi <= lo {
+        return None;
+    }
+    let trim = ((hi - lo) * 0.10).min(2.0);
+    if hi - lo > 4.0 {
+        lo += trim;
+        hi -= trim;
+    }
+    let bins = ((hi - lo) / 1.0).ceil().max(1.0) as usize;
+    Some((lo, hi, bins))
+}
+
+fn p95(mut vals: Vec<f32>) -> f32 {
+    vals.retain(|v| v.is_finite());
+    if vals.is_empty() {
+        return 0.0;
+    }
+    vals.sort_by(|a, b| a.total_cmp(b));
+    vals[((vals.len() - 1) as f32 * 0.95).round() as usize]
+}
+
+fn seam_band_depth(sim: &Sim, a: usize, b: usize) -> f32 {
+    let (axis, lateral) = engagement_axes(sim, a, b);
+    let Some((lo, hi, bins)) = shared_frontage_bins(sim, a, b, lateral) else {
+        return 0.0;
+    };
+    let mut amin = vec![f32::INFINITY; bins];
+    let mut amax = vec![f32::NEG_INFINITY; bins];
+    let mut bmin = vec![f32::INFINITY; bins];
+    let mut bmax = vec![f32::NEG_INFINITY; bins];
+    for (unit, mins, maxs) in [(a, &mut amin, &mut amax), (b, &mut bmin, &mut bmax)] {
+        for (i, p) in unit_live_positions(sim, unit) {
+            let lat = p.dot(lateral);
+            if lat < lo || lat > hi {
+                continue;
+            }
+            let bin = (((lat - lo) / (hi - lo).max(1.0e-4)) * bins as f32)
+                .floor()
+                .min((bins - 1) as f32) as usize;
+            let ax = p.dot(axis);
+            mins[bin] = mins[bin].min(ax - sim.radius[i]);
+            maxs[bin] = maxs[bin].max(ax + sim.radius[i]);
+        }
+    }
+    let rank_spacing = ((sim.units[a].spacing.y + sim.units[b].spacing.y) * 0.5).max(0.25);
+    let mut overlaps = Vec::new();
+    for bin in 0..bins {
+        if bins > 4 && (bin == 0 || bin + 1 == bins) {
+            continue;
+        }
+        if amin[bin].is_finite() && bmin[bin].is_finite() {
+            let overlap = amax[bin].min(bmax[bin]) - amin[bin].max(bmin[bin]);
+            overlaps.push(overlap.max(0.0) / rank_spacing);
+        }
+    }
+    p95(overlaps)
+}
+
+fn engagement_rotation_deg(sim: &Sim, a: usize, b: usize) -> f32 {
+    let (axis, _) = engagement_axes(sim, a, b);
+    axis.x.atan2(axis.y).to_degrees()
+}
+
+fn lattice_orientation_deg(sim: &Sim, unit: usize) -> f32 {
+    let u = &sim.units[unit];
+    let files = u.files_eff.max(1);
+    let mut local = Vec::new();
+    let mut world = Vec::new();
+    for i in u.start..u.start + u.count {
+        if sim.alive[i] == 0 {
+            continue;
+        }
+        let slot = sim.soldier_slot[i] as usize;
+        let file = slot % files;
+        let rank = slot / files;
+        local.push(Vec2::new(
+            (file as f32 - (files as f32 - 1.0) * 0.5) * u.spacing.x,
+            -(rank as f32) * u.spacing.y,
+        ));
+        world.push(sim.soldier_pos(i));
+    }
+    if local.len() < 2 {
+        return 0.0;
+    }
+    let mean = |pts: &[Vec2]| {
+        pts.iter()
+            .fold(Vec2::ZERO, |acc, &p| Vec2::new(acc.x + p.x, acc.y + p.y))
+            * (1.0 / pts.len() as f32)
+    };
+    let lc = mean(&local);
+    let wc = mean(&world);
+    let (mut cross, mut dot) = (0.0f32, 0.0f32);
+    for (&l, &w) in local.iter().zip(&world) {
+        let l = l - lc;
+        let w = w - wc;
+        cross += l.x * w.y - l.y * w.x;
+        dot += l.x * w.x + l.y * w.y;
+    }
+    cross.atan2(dot).to_degrees()
+}
+
+fn front_gap_profile(sim: &Sim, a: usize, b: usize) -> FrontGapProfile {
+    let (_, lateral) = engagement_axes(sim, a, b);
+    let Some((lo, hi, bins)) = shared_frontage_bins(sim, a, b, lateral) else {
+        return FrontGapProfile {
+            gaps: Vec::new(),
+            mid_gap: 0.0,
+            end_gap: 0.0,
+            lens_void: 0.0,
+        };
+    };
+    let mut gaps = vec![f32::INFINITY; bins];
+    for (i, pi) in unit_live_positions(sim, a) {
+        let lati = pi.dot(lateral);
+        for (j, pj) in unit_live_positions(sim, b) {
+            let lat = (lati + pj.dot(lateral)) * 0.5;
+            if lat < lo || lat > hi {
+                continue;
+            }
+            let bin = (((lat - lo) / (hi - lo).max(1.0e-4)) * bins as f32)
+                .floor()
+                .min((bins - 1) as f32) as usize;
+            let gap = (pj - pi).len() - sim.radius[i] - sim.radius[j];
+            gaps[bin] = gaps[bin].min(gap);
+        }
+    }
+    let finite: Vec<f32> = gaps.iter().copied().filter(|v| v.is_finite()).collect();
+    if finite.is_empty() {
+        return FrontGapProfile {
+            gaps,
+            mid_gap: 0.0,
+            end_gap: 0.0,
+            lens_void: 0.0,
+        };
+    }
+    let mid = bins / 2;
+    let mid_gap = if gaps[mid].is_finite() {
+        gaps[mid]
+    } else {
+        gaps.iter()
+            .enumerate()
+            .filter(|(_, v)| v.is_finite())
+            .min_by_key(|(idx, _)| idx.abs_diff(mid))
+            .map(|(_, &v)| v)
+            .unwrap_or(0.0)
+    };
+    let left = gaps.iter().copied().find(|v| v.is_finite()).unwrap_or(0.0);
+    let right = gaps
+        .iter()
+        .rev()
+        .copied()
+        .find(|v| v.is_finite())
+        .unwrap_or(left);
+    let end_gap = (left + right) * 0.5;
+    FrontGapProfile {
+        gaps,
+        mid_gap,
+        end_gap,
+        lens_void: mid_gap - end_gap,
+    }
+}
+
+fn silhouette_rectangularity(sim: &Sim, unit: usize) -> Silhouette {
+    let u = &sim.units[unit];
+    let live = unit_live_positions(sim, unit);
+    if live.is_empty() {
+        return Silhouette {
+            inside_frac: 1.0,
+            corner_quadrants: [0.0; 4],
+        };
+    }
+    let f = sim::dir(u.facing);
+    let r = Vec2::new(f.y, -f.x);
+    let center = unit_live_centroid(sim, unit);
+    let ranks = (live.len() as f32 / u.files_eff.max(1) as f32)
+        .ceil()
+        .max(1.0);
+    let half_w = ((u.files_eff.max(1) - 1) as f32 * u.spacing.x) * 0.5 + u.spacing.x * 0.6;
+    let half_d = ((ranks - 1.0) * u.spacing.y) * 0.5 + u.spacing.y * 0.6;
+    let mut inside = 0usize;
+    let mut quadrants = [0usize; 4];
+    for (_, p) in live.iter().copied() {
+        let d = p - center;
+        let lat = d.dot(r);
+        let depth = d.dot(f);
+        if lat.abs() <= half_w && depth.abs() <= half_d {
+            inside += 1;
+            let q = (lat >= 0.0) as usize + 2 * (depth >= 0.0) as usize;
+            quadrants[q] += 1;
+        }
+    }
+    let n = live.len() as f32;
+    Silhouette {
+        inside_frac: inside as f32 / n,
+        corner_quadrants: [
+            quadrants[0] as f32 / n,
+            quadrants[1] as f32 / n,
+            quadrants[2] as f32 / n,
+            quadrants[3] as f32 / n,
+        ],
+    }
+}
+
+fn blob_sample(sim: &Sim, a: usize, b: usize, t: f32) -> BlobSample {
+    let gap = front_gap_profile(sim, a, b);
+    let sa = silhouette_rectangularity(sim, a);
+    let sb = silhouette_rectangularity(sim, b);
+    BlobSample {
+        t,
+        band: seam_band_depth(sim, a, b),
+        rotation: engagement_rotation_deg(sim, a, b),
+        lens_void: gap.lens_void,
+        silhouette: sa.inside_frac.min(sb.inside_frac),
+        lattice_a: lattice_orientation_deg(sim, a),
+        lattice_b: lattice_orientation_deg(sim, b),
+    }
+}
+
 /// A holding phalanx in a frontal press should not have its rear ranks buzzing
 /// sideways in their lanes. The pike wall is taking no casualties here; if the
 /// backline still walks left/right several centimetres every tick, that is a
@@ -1424,6 +1717,552 @@ fn column_contact_width_stays_near_its_deployed_footprint() {
         "a column should not fan far wider than its deployed footprint on contact: deployed {deployed_width:.1}m, max band {max_width:.1}m",
     );
 }
+
+fn blob_clash(
+    seed: u64,
+    class: UnitClassId,
+    stats: UnitClass,
+    immortal: bool,
+) -> (Sim, usize, usize) {
+    let mut tun = no_morale();
+    tun.micro_rough = 0.0;
+    let mut sim = Sim::new(tun, seed);
+    let a =
+        sim.spawn_class_stats_with_files(Vec2::new(0.0, -13.0), FRAC_PI_2, N, 24, class, stats, 0);
+    let b =
+        sim.spawn_class_stats_with_files(Vec2::new(0.0, 13.0), -FRAC_PI_2, N, 24, class, stats, 1);
+    if immortal {
+        make_immortal(&mut sim);
+    }
+    sim.set_pace(a, Pace::Run);
+    sim.set_pace(b, Pace::Run);
+    sim.set_attack_order(a, b);
+    sim.set_attack_order(b, a);
+    (sim, a, b)
+}
+
+fn run_blob_run(
+    probe: &'static str,
+    matchup: &'static str,
+    variant: &'static str,
+    seed: u64,
+    class: UnitClassId,
+    stats: UnitClass,
+    immortal: bool,
+) -> BlobRun {
+    let (mut sim, a, b) = blob_clash(seed, class, stats, immortal);
+    let mut samples = vec![blob_sample(&sim, a, b, 0.0)];
+    for step in 1..=(400.0 / DT) as usize {
+        sim.tick();
+        let t = step as f32 * DT;
+        if step % (10.0 / DT) as usize == 0 {
+            samples.push(blob_sample(&sim, a, b, t));
+        }
+    }
+    BlobRun {
+        probe,
+        matchup,
+        variant,
+        seed,
+        samples,
+    }
+}
+
+fn settled_samples(run: &BlobRun) -> impl Iterator<Item = &BlobSample> {
+    run.samples.iter().filter(|s| s.t >= 120.0)
+}
+
+fn sample_at(run: &BlobRun, t: f32) -> &BlobSample {
+    run.samples
+        .iter()
+        .min_by(|a, b| (a.t - t).abs().total_cmp(&(b.t - t).abs()))
+        .expect("blob run has samples")
+}
+
+fn blob_summary(run: &BlobRun) -> (f32, f32, f32, f32) {
+    let band_p95 = p95(settled_samples(run).map(|s| s.band).collect());
+    let rot_300 = sample_at(run, 300.0).rotation;
+    let lens_p95 = p95(settled_samples(run).map(|s| s.lens_void).collect());
+    let silhouette_floor = settled_samples(run)
+        .map(|s| s.silhouette)
+        .fold(1.0f32, f32::min);
+    (band_p95, rot_300, lens_p95, silhouette_floor)
+}
+
+fn print_blob_run(run: &BlobRun) {
+    let (band_p95, rot_300, lens_p95, silhouette_floor) = blob_summary(run);
+    eprintln!(
+        "{} {} {} seed={} settled: band_p95={:.2}r rot300={:.1}deg lens_p95={:.2}m silhouette_floor={:.2}",
+        run.probe, run.matchup, run.variant, run.seed, band_p95, rot_300, lens_p95, silhouette_floor
+    );
+    for s in &run.samples {
+        eprintln!(
+            "  t={:5.1}s band={:5.2}r rot={:6.1}deg lens={:6.2}m silhouette={:.2} lattice={:6.1}/{:6.1}deg",
+            s.t, s.band, s.rotation, s.lens_void, s.silhouette, s.lattice_a, s.lattice_b
+        );
+    }
+}
+
+fn json_escape(s: &str) -> String {
+    s.replace('\\', "\\\\").replace('"', "\\\"")
+}
+
+fn blob_runs_json(runs: &[BlobRun], commit: &str) -> String {
+    let mut out = format!(
+        "{{\"commit\":\"{}\",\"generated_by\":\"crates/sim/tests/mechanics_melee.rs::blob_probe_*\",\"dt\":{},\"runs\":[",
+        json_escape(commit),
+        DT
+    );
+    for (ri, run) in runs.iter().enumerate() {
+        if ri > 0 {
+            out.push(',');
+        }
+        let (band_p95, rot_300, lens_p95, silhouette_floor) = blob_summary(run);
+        out.push_str(&format!(
+            "{{\"probe\":\"{}\",\"matchup\":\"{}\",\"variant\":\"{}\",\"seed\":{},\"summary\":{{\"band_p95\":{:.4},\"rotation_300\":{:.4},\"lens_p95\":{:.4},\"silhouette_floor\":{:.4}}},\"samples\":[",
+            json_escape(run.probe),
+            json_escape(run.matchup),
+            json_escape(run.variant),
+            run.seed,
+            band_p95,
+            rot_300,
+            lens_p95,
+            silhouette_floor
+        ));
+        for (si, s) in run.samples.iter().enumerate() {
+            if si > 0 {
+                out.push(',');
+            }
+            out.push_str(&format!(
+                "{{\"t\":{:.2},\"band\":{:.4},\"rotation\":{:.4},\"lens_void\":{:.4},\"silhouette\":{:.4},\"lattice_a\":{:.4},\"lattice_b\":{:.4}}}",
+                s.t, s.band, s.rotation, s.lens_void, s.silhouette, s.lattice_a, s.lattice_b
+            ));
+        }
+        out.push_str("]}");
+    }
+    out.push_str("]}");
+    out
+}
+
+fn repo_root() -> std::path::PathBuf {
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(|p| p.parent())
+        .unwrap()
+        .to_path_buf()
+}
+
+fn current_commit() -> String {
+    std::process::Command::new("git")
+        .args(["rev-parse", "--short=12", "HEAD"])
+        .current_dir(repo_root())
+        .output()
+        .ok()
+        .and_then(|o| String::from_utf8(o.stdout).ok())
+        .map(|s| s.trim().to_owned())
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| "unknown".to_owned())
+}
+
+fn write_probe_json(name: &str, runs: &[BlobRun]) {
+    let dir = repo_root().join("target/melee-blob");
+    std::fs::create_dir_all(&dir).unwrap();
+    let json = blob_runs_json(runs, &current_commit());
+    eprintln!("MELEE_BLOB_JSON {json}");
+    std::fs::write(dir.join(format!("{name}.json")), json).unwrap();
+}
+
+fn heavy_blob_runs(seed: u64) -> Vec<BlobRun> {
+    let stats = class_stats(UnitClassId::HeavySword);
+    vec![
+        run_blob_run(
+            "blob_probe_heavy_grind",
+            "heavy",
+            "immortal",
+            seed,
+            UnitClassId::HeavySword,
+            stats,
+            true,
+        ),
+        run_blob_run(
+            "blob_probe_heavy_grind",
+            "heavy",
+            "mortal",
+            seed,
+            UnitClassId::HeavySword,
+            stats,
+            false,
+        ),
+    ]
+}
+
+fn pike_blob_runs(seed: u64) -> Vec<BlobRun> {
+    let stats = class_stats(UnitClassId::HeavyPhalanx);
+    vec![
+        run_blob_run(
+            "blob_probe_pike_grind",
+            "pike",
+            "immortal",
+            seed,
+            UnitClassId::HeavyPhalanx,
+            stats,
+            true,
+        ),
+        run_blob_run(
+            "blob_probe_pike_grind",
+            "pike",
+            "mortal",
+            seed,
+            UnitClassId::HeavyPhalanx,
+            stats,
+            false,
+        ),
+    ]
+}
+
+fn print_rotation_seed_sweep(matchup: &'static str, class: UnitClassId, stats: UnitClass) {
+    for seed in [0_u64, 1, 2, 3, 4] {
+        let run = run_blob_run(
+            "blob_probe_seed_sweep",
+            matchup,
+            "mortal",
+            seed,
+            class,
+            stats,
+            false,
+        );
+        let rot = sample_at(&run, 300.0).rotation;
+        eprintln!(
+            "{matchup} seed {seed}: rotation_300={rot:.1}deg sign={}",
+            if rot >= 0.0 { "+" } else { "-" }
+        );
+    }
+}
+
+#[test]
+fn metrology_detectors_are_quiet_on_controls() {
+    let stats = class_stats(UnitClassId::HeavySword);
+    let mut tun = no_morale();
+    tun.micro_rough = 0.0;
+
+    let mut approach = Sim::new(tun, 0x4202);
+    let a = approach.spawn_class_stats_with_files(
+        Vec2::new(0.0, -40.0),
+        FRAC_PI_2,
+        N,
+        24,
+        UnitClassId::HeavySword,
+        stats,
+        0,
+    );
+    let b = approach.spawn_class_stats_with_files(
+        Vec2::new(0.0, 40.0),
+        -FRAC_PI_2,
+        N,
+        24,
+        UnitClassId::HeavySword,
+        stats,
+        1,
+    );
+    approach.set_pace(a, Pace::Run);
+    approach.set_pace(b, Pace::Run);
+    approach.set_attack_order(a, b);
+    approach.set_attack_order(b, a);
+    for _ in 0..(5.0 / DT) as usize {
+        approach.tick();
+    }
+    let pre_gap = front_gap_profile(&approach, a, b);
+    let pre_sil = silhouette_rectangularity(&approach, a);
+    assert!(seam_band_depth(&approach, a, b) < 0.05);
+    assert!(engagement_rotation_deg(&approach, a, b).abs() < 0.5);
+    assert!(
+        pre_gap.lens_void.abs() < 0.25,
+        "pre-contact gap profile should be flat, got mid {:.2}m end {:.2}m mid-end {:.2}m ({:?})",
+        pre_gap.mid_gap,
+        pre_gap.end_gap,
+        pre_gap.lens_void,
+        pre_gap.gaps
+    );
+    assert!(
+        pre_sil.inside_frac > 0.95 && pre_sil.corner_quadrants.iter().all(|&q| q > 0.15),
+        "pre-contact silhouette should remain rectangular: {:?}",
+        pre_sil
+    );
+
+    let mut settled = Sim::new(tun, 0x4203);
+    let c = settled.spawn_class_stats_with_files(
+        Vec2::new(0.0, -18.0),
+        FRAC_PI_2,
+        N,
+        24,
+        UnitClassId::HeavySword,
+        stats,
+        0,
+    );
+    let d = settled.spawn_class_stats_with_files(
+        Vec2::new(0.0, 18.0),
+        -FRAC_PI_2,
+        N,
+        24,
+        UnitClassId::HeavySword,
+        stats,
+        1,
+    );
+    for _ in 0..(20.0 / DT) as usize {
+        settled.tick();
+    }
+    let quiet_gap = front_gap_profile(&settled, c, d);
+    let quiet_sil = silhouette_rectangularity(&settled, c);
+    assert!(seam_band_depth(&settled, c, d) < 0.05);
+    assert!(engagement_rotation_deg(&settled, c, d).abs() < 0.5);
+    assert!(
+        quiet_gap.lens_void.abs() < 0.25,
+        "settled block gap profile should be flat, got mid {:.2}m end {:.2}m mid-end {:.2}m ({:?})",
+        quiet_gap.mid_gap,
+        quiet_gap.end_gap,
+        quiet_gap.lens_void,
+        quiet_gap.gaps
+    );
+    assert!(
+        quiet_sil.inside_frac > 0.95 && quiet_sil.corner_quadrants.iter().all(|&q| q > 0.15),
+        "settled block silhouette should remain rectangular: {:?}",
+        quiet_sil
+    );
+}
+
+#[test]
+#[ignore = "melee-blob: metrology probe, slow printed review gate"]
+fn blob_probe_heavy_grind() {
+    let runs = heavy_blob_runs(0x4202);
+    for run in &runs {
+        print_blob_run(run);
+    }
+    print_rotation_seed_sweep(
+        "heavy",
+        UnitClassId::HeavySword,
+        class_stats(UnitClassId::HeavySword),
+    );
+    write_probe_json("blob_probe_heavy_grind", &runs);
+}
+
+#[test]
+#[ignore = "melee-blob: metrology probe, slow printed review gate"]
+fn blob_probe_pike_grind() {
+    let runs = pike_blob_runs(0x4202);
+    for run in &runs {
+        print_blob_run(run);
+    }
+    print_rotation_seed_sweep(
+        "pike",
+        UnitClassId::HeavyPhalanx,
+        class_stats(UnitClassId::HeavyPhalanx),
+    );
+    write_probe_json("blob_probe_pike_grind", &runs);
+}
+
+#[test]
+#[ignore = "melee-blob: slice 04 lands this"]
+fn a_long_grind_keeps_the_seam_band_bounded() {
+    let runs = heavy_blob_runs(0x4202);
+    let mortal = runs.iter().find(|r| r.variant == "mortal").unwrap();
+    let (band_p95, _, _, _) = blob_summary(mortal);
+    assert!(
+        band_p95 <= 3.0,
+        "sustained seam band should stay within ~3 rank-spacings, got p95 {band_p95:.2}"
+    );
+}
+
+#[test]
+#[ignore = "melee-blob: slice 05 lands this"]
+fn a_symmetric_grind_does_not_pinwheel() {
+    let runs = heavy_blob_runs(0x4202);
+    let mortal = runs.iter().find(|r| r.variant == "mortal").unwrap();
+    let rot = sample_at(mortal, 300.0).rotation.abs();
+    assert!(
+        rot < 10.0,
+        "symmetric grind should not pinwheel more than ~10deg over 300s, got {rot:.1}deg"
+    );
+}
+
+#[test]
+#[ignore = "melee-blob: slice 06 lands this"]
+fn a_pike_seam_holds_a_straight_front() {
+    let runs = pike_blob_runs(0x4202);
+    let mortal = runs.iter().find(|r| r.variant == "mortal").unwrap();
+    let lens = p95(settled_samples(mortal).map(|s| s.lens_void).collect());
+    assert!(
+        lens <= 0.35,
+        "pike seam should not bow into a middle lens void, got sustained p95 {lens:.2}m"
+    );
+}
+
+#[test]
+#[ignore = "melee-blob: slice 07 lands this"]
+fn grinding_blocks_keep_their_deployed_silhouette() {
+    let runs = heavy_blob_runs(0x4202);
+    let mortal = runs.iter().find(|r| r.variant == "mortal").unwrap();
+    let silhouette_floor = settled_samples(mortal)
+        .map(|s| s.silhouette)
+        .fold(1.0f32, f32::min);
+    assert!(
+        silhouette_floor >= 0.80,
+        "grinding blocks should keep their deployed rectangular footprint, got floor {silhouette_floor:.2}"
+    );
+}
+
+#[test]
+#[ignore = "writes specs/melee-blob/visualizations/seam-timeline.html from probe JSON"]
+fn write_seam_timeline_html() {
+    let commit = current_commit();
+    let runs = [heavy_blob_runs(0x4202), pike_blob_runs(0x4202)].concat();
+    let data = blob_runs_json(&runs, &commit);
+    let html = SEAM_TIMELINE_TEMPLATE
+        .replace("__DATA__", &data)
+        .replace("__PROVENANCE__", &format!(
+            "Machine-generated by crates/sim/tests/mechanics_melee.rs::write_seam_timeline_html from blob_probe_heavy_grind and blob_probe_pike_grind output (immortal and mortal zero-stat-variability fake heavy/pike grinds, 400s, seed 0x4202, commit {commit}). Raw combined JSON: target/melee-blob/seam-timeline.json."
+        ));
+    let root = repo_root();
+    let raw_dir = root.join("target/melee-blob");
+    std::fs::create_dir_all(&raw_dir).unwrap();
+    std::fs::write(raw_dir.join("seam-timeline.json"), data).unwrap();
+    let dir = root.join("specs/melee-blob/visualizations");
+    std::fs::create_dir_all(&dir).unwrap();
+    std::fs::write(dir.join("seam-timeline.html"), html).unwrap();
+}
+
+const SEAM_TIMELINE_TEMPLATE: &str = r##"<!doctype html>
+<meta charset="utf-8">
+<title>Seam metrology timeline — melee blob probes</title>
+<style>
+.viz-root {
+  --surface-1: #fcfcfb; --text-primary: #0b0b0b; --text-secondary: #52514e;
+  --grid: #e4e3df; --other: #8a8984;
+  --s1: #2a78d6; --s2: #1baf7a; --s3: #eda100; --s4: #008300; --s5: #4a3aa7; --s6: #e34948;
+}
+@media (prefers-color-scheme: dark) {
+  .viz-root {
+    --surface-1: #1a1a19; --text-primary: #ffffff; --text-secondary: #c3c2b7;
+    --grid: #34332f; --other: #8a8984;
+    --s1: #3987e5; --s2: #199e70; --s3: #c98500; --s4: #008300; --s5: #9085e9; --s6: #e66767;
+  }
+}
+body { margin: 0; }
+.viz-root { background: var(--surface-1); color: var(--text-primary);
+  font: 13px system-ui; padding: 24px; min-height: 100vh; }
+h1 { font-size: 16px; margin: 0 0 4px; }
+.sub { color: var(--text-secondary); margin-bottom: 16px; }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; margin: 8px 0 16px; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; color: var(--text-secondary); }
+.legend i { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+.panels { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; }
+.panel h2 { font-size: 13px; font-weight: 600; margin: 0 0 4px; color: var(--text-secondary); }
+svg { width: 100%; height: auto; display: block; }
+.tip { position: fixed; pointer-events: none; background: var(--surface-1);
+  border: 1px solid var(--grid); border-radius: 4px; padding: 6px 8px; font-size: 12px;
+  display: none; box-shadow: 0 2px 8px rgba(0,0,0,.15); z-index: 2; }
+details { margin-top: 20px; } summary { cursor: pointer; color: var(--text-secondary); }
+table { border-collapse: collapse; margin-top: 8px; }
+td, th { border: 1px solid var(--grid); padding: 3px 6px; text-align: right; font-size: 12px; }
+th:nth-child(1), td:nth-child(1), th:nth-child(2), td:nth-child(2), th:nth-child(3), td:nth-child(3) { text-align: left; }
+footer { margin-top: 20px; color: var(--text-secondary); font-size: 12px; max-width: 900px; }
+</style>
+<div class="viz-root">
+<h1>Seam metrology timeline — melee blob probes</h1>
+<div class="sub">Four detectors from slice 02: seam overlap band in rank-spacings, centroid-axis rotation, pike/front lens void, and deployed-footprint silhouette. Lattice orientation is diagnostic and table-only.</div>
+<div class="legend" id="legend"></div>
+<div class="panels" id="panels"></div>
+<div class="tip" id="tip"></div>
+<details open><summary>Measured today table</summary>
+<table><thead><tr><th>matchup</th><th>variant</th><th>seed</th><th>band p95 (ranks)</th><th>rotation @300s</th><th>lens p95 (m)</th><th>silhouette floor</th></tr></thead>
+<tbody id="summary"></tbody></table></details>
+<details><summary>Data table (sample × probe)</summary>
+<table><thead><tr><th>matchup</th><th>variant</th><th>t</th><th>band</th><th>rotation</th><th>lens void</th><th>silhouette</th><th>lattice A</th><th>lattice B</th></tr></thead>
+<tbody id="tbody"></tbody></table></details>
+<footer>__PROVENANCE__</footer>
+</div>
+<script>
+const DATA = __DATA__;
+const COLORS = ['var(--s1)','var(--s2)','var(--s3)','var(--s4)','var(--s5)','var(--s6)'];
+const METRICS = [
+  ['band', 'Seam band depth (rank-spacings)'],
+  ['rotation', 'Engagement rotation (deg)'],
+  ['lens_void', 'Front lens void, mid minus ends (m)'],
+  ['silhouette', 'Silhouette rectangularity floor']
+];
+const runs = DATA.runs;
+const label = r => `${r.matchup} ${r.variant}`;
+const labels = [...new Set(runs.map(label))];
+const color = name => COLORS[labels.indexOf(name) % COLORS.length] || 'var(--other)';
+const legend = document.getElementById('legend');
+for (const name of labels) {
+  const el = document.createElement('span');
+  el.innerHTML = `<i style="background:${color(name)}"></i>${name}`;
+  legend.appendChild(el);
+}
+const W = 560, H = 220, PL = 48, PB = 24, PT = 8, PR = 8;
+function panel(metric, title) {
+  let lo = metric === 'rotation' ? 0 : Infinity, hi = -Infinity;
+  for (const r of runs) for (const s of r.samples) {
+    const v = metric === 'rotation' ? Math.abs(s[metric]) : s[metric];
+    lo = Math.min(lo, v); hi = Math.max(hi, v);
+  }
+  if (!isFinite(lo)) { lo = 0; hi = 1; }
+  if (metric !== 'rotation' && lo > 0) lo = 0;
+  if (hi === lo) hi = lo + 1;
+  const maxT = Math.max(...runs.flatMap(r => r.samples.map(s => s.t)));
+  const x = t => PL + (W-PL-PR) * t / maxT;
+  const y = v => PT + (H-PT-PB) * (1 - (v-lo)/(hi-lo));
+  let g = '';
+  for (const v of [lo, lo+(hi-lo)*.25, lo+(hi-lo)*.5, lo+(hi-lo)*.75, hi]) {
+    g += `<line x1="${PL}" x2="${W-PR}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)" stroke-width="1"/>` +
+      `<text x="${PL-5}" y="${y(v)+4}" text-anchor="end" fill="var(--text-secondary)" font-size="10">${v.toPrecision(2)}</text>`;
+  }
+  for (let t = 0; t <= maxT; t += 100) g += `<text x="${x(t)}" y="${H-6}" text-anchor="middle" fill="var(--text-secondary)" font-size="10">${t}s</text>`;
+  let paths = '';
+  for (const r of runs) {
+    const name = label(r);
+    const d = r.samples.map((s,i) => `${i ? 'L' : 'M'}${x(s.t).toFixed(1)},${y(metric === 'rotation' ? Math.abs(s[metric]) : s[metric]).toFixed(1)}`).join('');
+    paths += `<path d="${d}" fill="none" stroke="${color(name)}" stroke-width="2" data-name="${name}"/>`;
+  }
+  const div = document.createElement('div');
+  div.className = 'panel';
+  div.innerHTML = `<h2>${title}</h2><svg viewBox="0 0 ${W} ${H}" data-metric="${metric}" data-lo="${lo}" data-hi="${hi}">${g}${paths}<line class="xh" y1="${PT}" y2="${H-PB}" stroke="var(--text-secondary)" stroke-width="1" visibility="hidden"/></svg>`;
+  document.getElementById('panels').appendChild(div);
+}
+for (const [metric, title] of METRICS) panel(metric, title);
+const tip = document.getElementById('tip');
+document.querySelectorAll('svg').forEach(svg => {
+  svg.addEventListener('mousemove', ev => {
+    const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+    const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const maxT = Math.max(...runs.flatMap(r => r.samples.map(s => s.t)));
+    const t = Math.max(0, Math.min(maxT, (p.x - PL) / (W-PL-PR) * maxT));
+    const xpx = PL + (W-PL-PR) * t / maxT;
+    const xh = svg.querySelector('.xh');
+    xh.setAttribute('x1', xpx); xh.setAttribute('x2', xpx); xh.setAttribute('visibility', 'visible');
+    const metric = svg.dataset.metric;
+    const lines = runs.map(r => {
+      const s = r.samples.reduce((best, cur) => Math.abs(cur.t - t) < Math.abs(best.t - t) ? cur : best, r.samples[0]);
+      const v = metric === 'rotation' ? Math.abs(s[metric]) : s[metric];
+      return `<i style="display:inline-block;width:10px;height:3px;background:${color(label(r))};margin-right:4px"></i>${label(r)}: ${v.toFixed(2)}`;
+    });
+    tip.innerHTML = `<b>t=${t.toFixed(1)}s</b><br>` + lines.join('<br>');
+    tip.style.display = 'block';
+    tip.style.left = (ev.clientX + 14) + 'px'; tip.style.top = (ev.clientY + 14) + 'px';
+  });
+  svg.addEventListener('mouseleave', () => {
+    tip.style.display = 'none';
+    svg.querySelector('.xh').setAttribute('visibility', 'hidden');
+  });
+});
+document.getElementById('summary').innerHTML = runs.map(r =>
+  `<tr><td>${r.matchup}</td><td>${r.variant}</td><td>${r.seed}</td><td>${r.summary.band_p95.toFixed(2)}</td><td>${r.summary.rotation_300.toFixed(1)}</td><td>${r.summary.lens_p95.toFixed(2)}</td><td>${r.summary.silhouette_floor.toFixed(2)}</td></tr>`
+).join('');
+document.getElementById('tbody').innerHTML = runs.flatMap(r => r.samples.map(s =>
+  `<tr><td>${r.matchup}</td><td>${r.variant}</td><td>${s.t.toFixed(1)}</td><td>${s.band.toFixed(2)}</td><td>${s.rotation.toFixed(1)}</td><td>${s.lens_void.toFixed(2)}</td><td>${s.silhouette.toFixed(2)}</td><td>${s.lattice_a.toFixed(1)}</td><td>${s.lattice_b.toFixed(1)}</td></tr>`
+)).join('');
+</script>
+"##;
 
 // ── migrated from combat_scenarios.rs: a head-on clash of IDENTICAL lines is a
 // grind, not an instant deletion, and the front ranks engage. Even-handedness +

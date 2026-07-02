@@ -4273,12 +4273,10 @@ async function routeBattleInput(ctx: LabContext) {
   draw();
 }
 
-// The open-sea plane route (originally the Slice 1 technique bake-off, now the
-// single Gerstner production field). One tessellated plane at the battle horizon
-// camera (or the campaign camera for the perf gate), driven by the WaterFieldSource
-// seam. `?preset=golden|dusk|overcast`, `?sunAz`/`?sunEl`, and `?t=<seconds>` (freeze
-// the clock for snapshots) are the dials; this route is the shared renderer for every
-// water look scene.
+// Legacy open-sea lab route. Slice 12 moved the active battle sea gates to
+// /renderer/photoreal-battle and retired the water-* bakeoff scenes; keep this
+// manual route until the slice-17 legacy sweep decides whether the old
+// WaterPlanePass proof surface still has value.
 async function routeWaterBakeoff(ctx: LabContext) {
   const presetName = ctx.params.get('preset') ?? 'golden';
   const env: WaterEnvironment = WATER_ENVIRONMENTS[presetName as WaterEnvironment['id']] ?? WATER_ENVIRONMENTS.golden;
@@ -4322,9 +4320,8 @@ async function routeWaterBakeoff(ctx: LabContext) {
   // (Slice 6 will grade the sea-to-sky seam properly).
   const clear: GPUColor = { r: env.hazeColor[0], g: env.hazeColor[1], b: env.hazeColor[2], a: 1 };
 
-  // Gerstner is the one production water field (it won the Slice 1 bake-off; the IFFT
-  // loser was deleted in Slice 11). This route renders the open-sea plane and stays
-  // the shared renderer for every look scene (silhouette/foam/glint/albedo/haze/rhythm).
+  // Gerstner is the legacy lab water field. Photoreal battle water now lives behind
+  // SeaDisplacementSource in seaLayer.ts; this route is no longer an active gate.
   const field = createWaterField(shell);
   const plane = new WaterPlanePass(shell, field, undefined, env);
 

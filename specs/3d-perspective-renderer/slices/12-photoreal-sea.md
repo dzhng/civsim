@@ -29,6 +29,157 @@ false-negative debugging round); (2) grazing-distance sparkle aliasing confirmed
 shots → `12b` distance-faded normal detail; (3) the battle sea plane's far edge is
 visible from seaward bearings → `12d` extent/shore work.
 
+## 12b STATUS (2026-07-02): DONE — PBR surface + rejected IFFT removal
+
+- **Implementation:** `seaLayer.ts` now has one active displacement source:
+  `gerstner-tsl`. The rejected `ifft-tsl-spectral-spike` class, JONSWAP helper,
+  storage-byte tier, and SwiftShader fallback branch are deleted. The
+  `SeaDisplacementSource` seam and stats identity remain as the future socket;
+  legacy `?sea=ifft` route values deliberately resolve to Gerstner.
+- **PBR surface:** the sea stays a `MeshStandardNodeMaterial`; Fresnel reflection
+  and GGX sun glint come from the actual slice-10 `SkyModel` LUT
+  (`scene.environment`) and the same environment sun. Published stats:
+  `surface.owner = skyModel-ibl-standard-pbr`,
+  `skyReflection = scene.environment:skyModel-lut`,
+  `sunGlint = mesh-standard-ggx`.
+- **Constants chosen:** shallow albedo `[0.22, 0.58, 0.60]`, deep albedo
+  `[0.025, 0.095, 0.22]`, foam albedo `[0.92, 0.93, 0.94]`, water roughness
+  `0.075`, foam roughness `0.78`. Distance-faded normal detail kills the
+  grazing-band sparkle aliasing: near `0.92`, far `0.18`, fade `720→2300` world
+  metres from the battle focus. Aerial haze remains exclusively the 10b owner.
+- **Scene:** old `photoreal-sea-spike` retired; new
+  `web/scenes/battle/photoreal-sea.mjs` owns the 12-series crops. 12b added
+  `photoreal-sea/sea-horizon` at fixed `t=18.25`, camera
+  `?map=A&zoom=8.0&cx=950&cy=-150&pitch=0.28&yaw=0`, sampling the near sea below
+  the horizon-haze band.
+- **Evidence:** `bun run --cwd web typecheck`; `bun run --cwd web test:unit`
+  (68/68); hardware look re-bless
+  `UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5178 VERIFY_GPU=1
+  VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs
+  photoreal-sea` → ALL CHECKS PASSED; SwiftShader
+  `VERIFY_URL=http://localhost:5178 VERIFY_GPU=1 node scene.mjs photoreal-sea`
+  → ALL CHECKS PASSED against the hardware baseline (962 px / `0.2891%` drift).
+  Baseline re-blessed: `web/shots/battle/photoreal-sea/sea-horizon.png`.
+  Hardware crop metrics: blueFraction `0.7568`, lumaSpread `205.65`.
+- **Next:** `12c` adds agitation/crest-driven foam/whitecaps (no blanket foam)
+  and the `sea-mid` crop. Water-gate retirement ledger and `/renderer/water-bakeoff`
+  fate remain open until 12d/12e can re-point every named intent.
+
+## 12c STATUS (2026-07-02): DONE — crest/agitation whitecaps
+
+- **Implementation:** Gerstner foam now gates on crest height plus local slope
+  energy, then breaks coverage with deterministic fnoise speckle. It is not a
+  broad sea-wide mask: `foam = crest(height 0.52→1.55) * agitation(slopeEnergy
+  0.12→0.58) * speckle(0.56→0.78) * 0.74`, still multiplied by offshore
+  agitation in the ocean-plane material.
+- **Scene:** `web/scenes/battle/photoreal-sea.mjs` now includes
+  `photoreal-sea/sea-mid`, cropped off-centre in the mid-water band to avoid the
+  main sun track. The crop checks whitecap presence without blanket coverage.
+- **Evidence:** `bun run --cwd web typecheck`; `bun run --cwd web test:unit`
+  (68/68); hardware look re-bless
+  `UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5178 VERIFY_GPU=1
+  VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs
+  photoreal-sea` → ALL CHECKS PASSED; SwiftShader
+  `VERIFY_URL=http://localhost:5178 VERIFY_GPU=1 node scene.mjs photoreal-sea`
+  → ALL CHECKS PASSED. Baselines re-blessed/added:
+  `web/shots/battle/photoreal-sea/sea-horizon.png` and
+  `web/shots/battle/photoreal-sea/sea-mid.png`. Hardware `sea-mid` metrics:
+  blueFraction `0.9431`, foamFraction `0.0838`; SwiftShader drift on
+  `sea-mid` was 7 px (`0.0053%`).
+- **Next:** `12d` shore blending: tan sand → pale turquoise → deep blue against
+  the terrain heightfield, plus the seaward far-edge extent/haze fix through the
+  10b aerial owner. Water-gate ledger still open.
+
+## 12d STATUS (2026-07-02): DONE — shore blending + far-rim owner
+
+- **Implementation:** `seaLayer.ts` now keys the open-sea material off
+  `BATTLE_OCEAN_RAMP` instead of the old parity ramp. The shoreline starts with
+  sand turbidity, passes through pale Aegean turquoise, then reaches the existing
+  deep-water blue offshore. The ramp is keyed to the terrain-heightfield shoreline
+  datum (`abs(worldX - shoreX)`) and published in `surface.shore` stats.
+- **Constants chosen:** sand turbidity albedo `[0.66, 0.58, 0.40]`; turbidity
+  fades over depth `0.04→0.26`; ocean depth ramp remains
+  `{ depthNear: 12, depthFar: 300, hazeNear: 520, hazeFar: 1900 }`. The open-sea
+  horizon plane extends to `7200` m at `440` segments, with no inline haze added:
+  the far rim is intentionally handed to the slice-10b aerial-perspective owner.
+- **Scene:** `web/scenes/battle/photoreal-sea.mjs` now includes
+  `photoreal-sea/shore-line`, cropped across the land/shore/near-sea band. The
+  crop asserts tan sand, turquoise shallows, and deep blue are all present.
+- **Evidence:** `bun run --cwd web typecheck`; `bun run --cwd web test:unit`
+  (68/68); hardware look re-bless
+  `UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5178 VERIFY_GPU=1
+  VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs
+  photoreal-sea` → ALL CHECKS PASSED; SwiftShader
+  `VERIFY_URL=http://localhost:5178 VERIFY_GPU=1 node scene.mjs photoreal-sea`
+  → ALL CHECKS PASSED. Baselines re-blessed/added:
+  `web/shots/battle/photoreal-sea/sea-horizon.png`,
+  `web/shots/battle/photoreal-sea/sea-mid.png`, and
+  `web/shots/battle/photoreal-sea/shore-line.png`. Hardware `shore-line`
+  metrics: sandFraction `0.4282`, turquoiseFraction `0.3188`,
+  deepBlueFraction `0.2717`, blueFraction `0.3526`; SwiftShader drift on
+  `shore-line` was 1797 px (`0.7799%`). Seating tripwire
+  `battle-terrain-elevation` stayed green with `match=true` on all three fixtures.
+- **Next:** `12e` disciplines the sun glint sparkle size/threshold and closes the
+  named water-gate retirement ledger plus `/renderer/water-bakeoff` fate.
+
+## 12e STATUS (2026-07-02): DONE — glint discipline + water-gate retirement
+
+- **Implementation:** the sea remains a `MeshStandardNodeMaterial`; no second
+  sky, sun, or inline glint path was introduced. The calm-water roughness floor
+  rose to `0.105` and near normal detail was capped at `0.84` (far remains
+  `0.18`, fade `720→2300`) so the GGX sun track stays present without a field
+  of single-pixel sparkle. Foam still pushes roughness to `0.78`.
+- **Constants recorded:** `surface.glint = { roughnessFloor: 0.105,
+  normalDetailCeiling: 0.84, hotLumaThreshold: 246, hotFractionMax: 0.07,
+  centerShareMin: 0.60 }`. These are the slice-15a bloom tripwire: bloom may
+  enrich the track, but must not turn it into blanket sparkle or a blown sheet.
+- **Scene:** `web/scenes/battle/photoreal-sea.mjs` now includes
+  `photoreal-sea/sun-glint`, cropped around the fixed golden-hour sun track. The
+  crop asserts a hot GGX track exists, that hot coverage stays bounded, and that
+  most hot pixels concentrate in the central reflected sun band rather than
+  arbitrary crest foam.
+- **Evidence:** `bun run --cwd web typecheck`; `bun run --cwd web test:unit`
+  (68/68); hardware look re-bless
+  `UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5178 VERIFY_GPU=1
+  VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs
+  photoreal-sea` → ALL CHECKS PASSED; SwiftShader
+  `VERIFY_URL=http://localhost:5178 VERIFY_GPU=1 node scene.mjs photoreal-sea`
+  → ALL CHECKS PASSED. Baselines re-blessed/added:
+  `web/shots/battle/photoreal-sea/sea-horizon.png`,
+  `web/shots/battle/photoreal-sea/sea-mid.png`,
+  `web/shots/battle/photoreal-sea/shore-line.png`, and
+  `web/shots/battle/photoreal-sea/sun-glint.png`. Hardware `sun-glint`
+  metrics: hotFraction `0.0326`, centerShare `0.6393`, maxLuma `255`;
+  SwiftShader drift on `sun-glint` was 1442 px (`1.2716%`). Hardware
+  `bun run --cwd web perf:30k` with `VERIFY_URL=http://localhost:5178` stayed
+  green: GPU median `5.85 ms` mid / `7.89 ms` vista, p95 `6.93 ms` /
+  `9.66 ms`, device `apple / metal-3`.
+
+## 12e WATER-GATE RETIREMENT LEDGER (2026-07-02)
+
+- `water-foam`: retired; intent re-derived by `photoreal-sea/sea-mid`
+  (`foamFraction` present but bounded, crest/agitation driven).
+- `water-albedo`: retired; intent split across `photoreal-sea/shore-line` (tan
+  sand → turquoise → deep blue) and `photoreal-sea/sea-horizon` (blue readable
+  near sea under the live sky).
+- `water-glint`: retired; intent re-derived by `photoreal-sea/sun-glint`
+  (standard-material GGX from the SkyModel environment sun, bounded hot coverage).
+- `water-haze`: retired; intent re-derived by the photoreal-sea stats check that
+  `stats.atmosphere.aerial.owner === 'aerialPerspective'`, plus the horizon crop.
+  No inline sea haze remains.
+- `water-rhythm`: retired; the old multi-frame lab GIF guarded the bakeoff
+  `WaterPlanePass` motion, not the production battle owner. Gerstner motion is now
+  pinned by fixed-time `photoreal-sea` crops; future motion review belongs in a
+  battle vibe/GIF if the sea animation changes.
+- `water-silhouette`: retired; the old isolated-plane silhouette is superseded by
+  `photoreal-sea/sea-horizon` and `shore-line` in the real battle composition.
+- `water-horizon-real`: retired; its reverse-Z/real-camera proof shipped in slice
+  02 and is now a historical spine invariant. The active sea horizon proof is
+  `photoreal-sea/sea-horizon` under `/renderer/photoreal-battle`.
+- `/renderer/water-bakeoff`: retained only as a legacy/manual lab route until the
+  slice-17 legacy sweep. It is no longer an active gate; the seven
+  `web/scenes/system/water-*.mjs` scenes and stale `web/shots/misc/water/*`
+  baselines were deliberately deleted.
 
 ## Contract unlocked
 

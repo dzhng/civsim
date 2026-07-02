@@ -4,13 +4,14 @@ import {
   createSeaDisplacementSource,
   seaDisplacementSourceFromParam,
 } from '../../packages/photoreal-renderer/src/battle/seaLayer.ts';
+import { BATTLE_OCEAN_RAMP } from '../../packages/game-renderer/src/water/waterShoreRamp.ts';
 
 test('photoreal sea: route params select the displacement source', () => {
   assert.equal(seaDisplacementSourceFromParam(null), 'gerstner-tsl');
   assert.equal(seaDisplacementSourceFromParam('gerstner'), 'gerstner-tsl');
   assert.equal(seaDisplacementSourceFromParam('gerstner-tsl'), 'gerstner-tsl');
-  assert.equal(seaDisplacementSourceFromParam('ifft'), 'ifft-tsl');
-  assert.equal(seaDisplacementSourceFromParam('ifft-tsl'), 'ifft-tsl');
+  assert.equal(seaDisplacementSourceFromParam('ifft'), 'gerstner-tsl');
+  assert.equal(seaDisplacementSourceFromParam('ifft-tsl'), 'gerstner-tsl');
 });
 
 test('photoreal sea: Gerstner is the default active source', () => {
@@ -23,25 +24,56 @@ test('photoreal sea: Gerstner is the default active source', () => {
     resolution: 1,
     cascades: 1,
     storageBytes: 0,
+    surface: {
+      owner: 'skyModel-ibl-standard-pbr',
+      skyReflection: 'scene.environment:skyModel-lut',
+      sunGlint: 'mesh-standard-ggx',
+      shallowAlbedo: [0.22, 0.58, 0.60],
+      deepAlbedo: [0.025, 0.095, 0.22],
+      foamAlbedo: [0.92, 0.93, 0.94],
+      sandTurbidityAlbedo: [0.66, 0.58, 0.40],
+      roughness: 0.105,
+      foamRoughness: 0.78,
+      normalDetail: {
+        near: 0.84,
+        far: 0.18,
+        fadeStart: 720,
+        fadeEnd: 2300,
+      },
+      foam: {
+        heightStart: 0.52,
+        heightEnd: 1.55,
+        slopeStart: 0.12,
+        slopeEnd: 0.58,
+        speckleStart: 0.56,
+        speckleEnd: 0.78,
+        scale: 0.74,
+      },
+      shore: {
+        ramp: BATTLE_OCEAN_RAMP,
+        sandTurbidityDepthStart: 0.04,
+        sandTurbidityDepthEnd: 0.26,
+        heightfieldDatum: true,
+        farExtent: 7200,
+      },
+      glint: {
+        roughnessFloor: 0.105,
+        normalDetailCeiling: 0.84,
+        hotLumaThreshold: 246,
+        hotFractionMax: 0.07,
+        centerShareMin: 0.60,
+      },
+    },
   });
 });
 
-test('photoreal sea: IFFT publishes its spike identity on hardware-like adapters', () => {
-  const stats = createSeaDisplacementSource('ifft-tsl', 'apple / metal-3').stats();
-  assert.equal(stats.requested, 'ifft-tsl');
-  assert.equal(stats.source, 'ifft-tsl');
-  assert.equal(stats.tier, 'ifft-tsl-spectral-spike');
-  assert.equal(stats.fallback, false);
-  assert.equal(stats.resolution, 256);
-  assert.equal(stats.cascades, 3);
-  assert.ok(stats.storageBytes > 0);
-});
-
-test('photoreal sea: requested IFFT falls back to Gerstner on SwiftShader', () => {
-  const stats = createSeaDisplacementSource('ifft-tsl', 'google / swiftshader').stats();
-  assert.equal(stats.requested, 'ifft-tsl');
+test('photoreal sea: adapter tier collapses to Gerstner after the 12a verdict', () => {
+  const stats = createSeaDisplacementSource('gerstner-tsl').stats();
+  assert.equal(stats.requested, 'gerstner-tsl');
   assert.equal(stats.source, 'gerstner-tsl');
-  assert.equal(stats.tier, 'gerstner-tsl-swiftshader-fallback');
-  assert.equal(stats.fallback, true);
+  assert.equal(stats.tier, 'gerstner-tsl');
+  assert.equal(stats.fallback, false);
+  assert.equal(stats.resolution, 1);
+  assert.equal(stats.cascades, 1);
   assert.equal(stats.storageBytes, 0);
 });

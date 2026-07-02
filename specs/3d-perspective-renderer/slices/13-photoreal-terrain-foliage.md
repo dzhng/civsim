@@ -1,6 +1,27 @@
 # Slice 13 — Photoreal terrain + foliage
 
-## Contract unlocked
+## RE-SCOPED (David, 2026-07-02): look + compose ownership → `battle-map-reference`
+
+David restarted `specs/battle-map-reference` in a parallel session. The terrain/
+cliff/grass **LOOK** work and the composed master-shot gate this slice was going
+to absorb are handed BACK to that spec (its README's substrate-change block
+records the division and the contracts it obeys). This slice shrinks to the
+**substrate seams the ladder still owes**:
+
+- the terrain/foliage TSL layers stay structurally sound under `09`–`11` (relit
+  materials, receive the `10b` aerial hook + `11` shadows) — no *look-matching*
+  against the reference here;
+- foliage remains ONE instanced owner with published counts, shared with `14b`'s
+  LOD/culling infrastructure (`battle-map-reference` builds density/species on
+  top of that owner, never beside it);
+- file reservation: after `09` lands, `battle-map-reference` owns
+  `battle/{terrain,foliage}Layer*` look edits; the ladder's later slices touch
+  them only through the shared hooks.
+
+The original contract below is kept for reference; treat its look/compose gates
+as `battle-map-reference`'s now.
+
+## Contract unlocked (original, pre-re-scope)
 
 The ground register of `assets/target-battle-map.png` (copied into this spec from
 `specs/battle-map-reference/` — the north star): PBR ground, grass **at density**,

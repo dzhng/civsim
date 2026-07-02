@@ -29,6 +29,41 @@ false-negative debugging round); (2) grazing-distance sparkle aliasing confirmed
 shots → `12b` distance-faded normal detail; (3) the battle sea plane's far edge is
 visible from seaward bearings → `12d` extent/shore work.
 
+## 12b STATUS (2026-07-02): DONE — PBR surface + rejected IFFT removal
+
+- **Implementation:** `seaLayer.ts` now has one active displacement source:
+  `gerstner-tsl`. The rejected `ifft-tsl-spectral-spike` class, JONSWAP helper,
+  storage-byte tier, and SwiftShader fallback branch are deleted. The
+  `SeaDisplacementSource` seam and stats identity remain as the future socket;
+  legacy `?sea=ifft` route values deliberately resolve to Gerstner.
+- **PBR surface:** the sea stays a `MeshStandardNodeMaterial`; Fresnel reflection
+  and GGX sun glint come from the actual slice-10 `SkyModel` LUT
+  (`scene.environment`) and the same environment sun. Published stats:
+  `surface.owner = skyModel-ibl-standard-pbr`,
+  `skyReflection = scene.environment:skyModel-lut`,
+  `sunGlint = mesh-standard-ggx`.
+- **Constants chosen:** shallow albedo `[0.22, 0.58, 0.60]`, deep albedo
+  `[0.025, 0.095, 0.22]`, foam albedo `[0.92, 0.93, 0.94]`, water roughness
+  `0.075`, foam roughness `0.78`. Distance-faded normal detail kills the
+  grazing-band sparkle aliasing: near `0.92`, far `0.18`, fade `720→2300` world
+  metres from the battle focus. Aerial haze remains exclusively the 10b owner.
+- **Scene:** old `photoreal-sea-spike` retired; new
+  `web/scenes/battle/photoreal-sea.mjs` owns the 12-series crops. 12b added
+  `photoreal-sea/sea-horizon` at fixed `t=18.25`, camera
+  `?map=A&zoom=8.0&cx=950&cy=-150&pitch=0.28&yaw=0`, sampling the near sea below
+  the horizon-haze band.
+- **Evidence:** `bun run --cwd web typecheck`; `bun run --cwd web test:unit`
+  (68/68); hardware look re-bless
+  `UPDATE_SHOTS=1 VERIFY_URL=http://localhost:5178 VERIFY_GPU=1
+  VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs
+  photoreal-sea` → ALL CHECKS PASSED; SwiftShader
+  `VERIFY_URL=http://localhost:5178 VERIFY_GPU=1 node scene.mjs photoreal-sea`
+  → ALL CHECKS PASSED against the hardware baseline (962 px / `0.2891%` drift).
+  Baseline re-blessed: `web/shots/battle/photoreal-sea/sea-horizon.png`.
+  Hardware crop metrics: blueFraction `0.7568`, lumaSpread `205.65`.
+- **Next:** `12c` adds agitation/crest-driven foam/whitecaps (no blanket foam)
+  and the `sea-mid` crop. Water-gate retirement ledger and `/renderer/water-bakeoff`
+  fate remain open until 12d/12e can re-point every named intent.
 
 ## Contract unlocked
 

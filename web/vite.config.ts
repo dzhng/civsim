@@ -25,6 +25,11 @@ export default defineConfig({
     alias: [
       { find: /^three\/webgpu$/, replacement: threeBuild("three.webgpu.js") },
       { find: /^three\/tsl$/, replacement: threeBuild("three.tsl.js") },
+      // Addons (slice 11: csm/CSMShadowNode) — same pinned three package.
+      {
+        find: /^three\/examples\/jsm\//,
+        replacement: fileURLToPath(new URL("./node_modules/three/examples/jsm/", import.meta.url)),
+      },
       { find: /^three$/, replacement: threeBuild("three.module.js") },
     ],
   },

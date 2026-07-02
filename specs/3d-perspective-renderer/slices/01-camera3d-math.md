@@ -1,5 +1,19 @@
 # Slice 01 — `camera3d` math library (pure, no GPU)
 
+## STATUS: DONE (committed 2026-07-02, `22890ee2`)
+
+Landed the pure `camera3d` math library + `mat4` (`packages/renderer-core/src/`),
+reverse-Z infinite-far perspective, and the WebGPU-free `/renderer/camera3d-probe`
+route (ground grid + unit cube + formation, project→unproject round-trip readout).
+7 unit tests green (`web/tests/camera3d.test.ts`). **Infra reconcile:** the
+`web/tests/*.test.ts` node:test suites (camera3d, cameraRig, grassField,
+grassModels) were orphaned — run by no gate. Added `web` script `test:unit`
+(`node --experimental-strip-types --import ./tests/register-ts-extension-loader.mjs
+--test tests/*.test.ts`) and chained it into the root `test:web`, so `check`/CI now
+runs all 25. camera3d is the single projection owner; the 2.5D fake path in
+`cameraUniform.ts` was untouched here (collapsed at `04`/`05` per the
+clean-architecture invariants).
+
 ## Contract unlocked
 
 A deterministic, unit-testable source of truth for view/projection/unprojection

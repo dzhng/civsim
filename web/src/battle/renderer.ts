@@ -217,6 +217,8 @@ export class BattleRenderer {
       environment: ws?.environment ?? 'initializing',
       device: ws?.device ?? 'initializing',
       depth: ws?.depth ?? null,
+      // Slice 11 shadow-tier identity ({ mode, cascades, ... } — csm/single/off).
+      shadows: ws?.shadows ?? null,
       width: ws?.width ?? 0,
       height: ws?.height ?? 0,
       soldiers: ws?.soldiers ?? 0,

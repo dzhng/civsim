@@ -1,5 +1,61 @@
 # Slice 02 — Real depth + real projection, proven on the water route (KEYSTONE)
 
+## STATUS: DONE (committed 2026-07-02, `6a5b5c0d`)
+
+The keystone landed: the water route runs on the real 3D perspective camera + a
+reverse-Z `depth32float` buffer, and the **dome/streak wedge is GONE** —
+`/renderer/water-bakeoff` reads as a flat sea meeting a straight, level true
+horizon (screenshot-critique: "straight and flat, not domed, waves recede
+correctly"; compare-screenshots old-dome vs new: new decisively less wrong).
+Reverse-Z + `depth32float` render **non-blank on SwiftShader** (risk retired). New
+gate scene `web/scenes/system/water-horizon-real.mjs` (depth-format + level-horizon
+asserts). Unit gate `web/tests/cameraUniform.test.ts` (4 tests): packed
+`viewProj`/`invViewProj`/`eye` equal `camera3d`, 52-float/208-byte layout, and the
+12 legacy scalars byte-identical with/without the real camera. All
+`web/shots/misc/water/**` deliberately re-blessed (geometry moved under the real
+projection). Non-water frozen scenes verified byte-identical
+(`battle-terrain-elevation` seating tripwire `match=true`).
+
+**Decisions recorded this slice:**
+
+- **How the shell receives the real camera:** additive optional field
+  `CameraSnapshot.camera3d?: Camera3DParams`. When set, `cameraUniformData` resolves
+  `viewProj`/`invViewProj`/`eye`/`znear`/`zfar` via `camera3d` and packs them after
+  the 12 legacy scalars (offsets: float 12 / 28 / 44 / 47 / 48; struct = 52 floats /
+  208 B). **`aspect` is overridden by the live width/height** so the projection
+  follows resize with a single owner. Legacy passes read only floats 0..11 →
+  byte-identical.
+- **Uniform is a superset, not a replacement:** `CAMERA_UNIFORM_WGSL` `struct Camera`
+  appends `viewProj`/`invViewProj`/`eye`/`znear`/`zfar`; `projectReal(world)` is the
+  new real projector. All legacy fns (`projectGround`/`projectWorld3d`/`worldDepth3d`/
+  `civsim*WorldDepth3d`) were untouched — the short-lived migration seam collapsed at
+  `04`/`05`.
+- **Reverse-Z is opt-in per shell:** `FrameShellOptions.reverseZ` → `depth32float`,
+  clear `0`; `depthContract` adds `GPU_DEPTH_FORMAT_REVERSE` + clear consts;
+  `pipelineContracts` adds `gpuReverseZDepthStencil(mode)` (compare `greater` /
+  `greater-equal`). Battle/campaign shells stayed on legacy `depth24plus` painter
+  until `04a`/`05a`.
+- **`WaterPlanePass` real path is opt-in (`opts.real`)** because battle's
+  `horizonPass` ocean edge shares that class on the legacy `depth24plus` shell — the
+  flag kept that byte-identical while only the bake-off route flipped to
+  `projectReal` + `gpuReverseZDepthStencil('read-write')`.
+- **Water framing:** an oblique out-to-sea camera (`yaw = −π/2`, infinite far →
+  true-horizon vanishing line). Battle default `target[0,140,0]/dist 190/pitch 0.22/
+  fov 0.78`; campaign (`?cam=campaign`) `target[0,200,0]/dist 240/pitch 0.38/fov 0.70`.
+  URL-tunable (`pitch/dist/fov/targetY`). Two water look-scenes (`foam`, `albedo`)
+  were re-based to sample the **near sea** (below the honest horizon-haze band) —
+  the real camera reveals a real hazed horizon the fake projection compressed away,
+  so the old fixed bands were reading haze as whitecaps / averaging albedo through
+  aerial haze (haze is gated separately by `water-haze`). Dusk's mean is warm by
+  design; blue-dominance is asserted for the daytime presets, dusk only stays off
+  neon-green. No thresholds were loosened to hide a look.
+
+**Known non-blocking reds at landing (pre-existing on HEAD, not this slice):** the
+format gate (single/double quotes) red on committed HEAD; several water/coastal
+battle snapshot baselines stale (identical diff counts before/after this slice);
+the `water-silhouette` 8ms budget check fails only on the **SwiftShader software
+rasterizer** (perf gates are hardware-only per the README).
+
 ## Contract unlocked
 
 The finite water quad renders to a straight, flat **true horizon** — the "dome +

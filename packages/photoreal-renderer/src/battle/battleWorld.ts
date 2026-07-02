@@ -498,6 +498,7 @@ export class PhotorealBattleWorld {
       expectedSoldiers: this.staticSoldiers,
       drawCalls: world.drawCalls,
       triangles: world.triangles,
+      crowd: this.crowd.stats(),
       lod: { skinned: skinnedCount, impostors: markerCount },
       device: world.device,
       // The engine depth convention, read off the live renderer: three owns the

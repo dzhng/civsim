@@ -7,14 +7,11 @@ feedback #3 (Rome). This closes the Foundation look.
 ## API seam (single owner — faction-fill material, invariant 3)
 The muddy brown has two causes, both fixed here:
 1. **Warm-tan tint:** `packages/game-renderer/src/campaign/territoryPass.ts`
-   fragment (40-45) mixes the faction color toward warm tan `(0.92,0.74,0.42)` by
-   `__TERRITORY_WARM_MIX__`. Drop it to ~0 so the faction color passes through.
-   (`web/src/campaign/renderer.ts:574-583` sets main-map `warmMix:0.015`.)
-2. **Three stacked alpha owners:** net alpha ≈ `__TERRITORY_ALPHA__` (0.24
-   default, renderer overrides 0.55) × per-texel `FILL_A=150` (`territory.ts:51`).
-   **Collapse to one authoritative knob** — nominate the renderer-side `alpha`,
-   pin `FILL_A` and the pass default to neutral (1.0) with a comment. Then tune
-   the single alpha for a translucent-wash strength.
+   fragment returns the faction texture RGB directly, without mixing toward tan.
+2. **Three stacked alpha owners:** per-texel alpha is neutral
+   (`FILL_A=255` in `territory.ts:51`), and the territory pass alpha is the
+   only opacity knob. The controlled-stage default preserves the previous net
+   opacity; the main map passes its own provisional wash strength.
 - **Firewall:** must NOT re-tint terrain in `mapPass` to compensate (that would
   fork the palette owner). Hue-vs-alpha are the two knobs; both live in this
   material.

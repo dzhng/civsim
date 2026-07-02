@@ -501,16 +501,18 @@ depth-bias only (pending David's confirm; billboards → `08`, LOD → `14b`).
   `10c`. Its "haze == skyHorizon identity" trick is superseded by `10b`'s single
   aerial owner; its frozen-water-scenes firewall carries on in `12`'s by-name
   gate retirement list.
-- **`specs/battle-map-reference` — PAUSE / re-scope (needs David's confirm).** That
-  spec is ~40 slices deep in a grass-architecture ladder tuned under the bespoke
-  substrate that `08b`/`13` replace. Recommended split (recorded in slice `13`):
-  this spec **owns battle look surfaces from `08b` on**; `battle-map-reference` is
-  re-scoped to **target definition** (its target image — now copied to
-  `assets/target-battle-map.png` here — the highland fixture, the environment
-  presets already landed in `CIVSIM_ENVIRONMENTS`, and the `03b1` grass-field data
-  contract that `13b` consumes); its compose gate is absorbed as `13d`; its 03B4*
-  rejection ledger is required reading for `13b`. Its baselines are
-  will-move-anyway. Do not continue implementing it meanwhile.
+- **`specs/battle-map-reference` — RESOLVED (David, 2026-07-02): restarted in a
+  parallel session with a new division of labor.** That spec OWNS terrain relief/
+  cliffs/grass-foliage LOOK + scenery composition + the composed master-shot gate
+  (slice `13` here is RE-SCOPED to substrate seams only — see its status block).
+  This ladder OWNS lighting (`09`), sky + the ONE aerial owner (`10`), CSM (`11`),
+  sea (`12`), soldiers/LOD/culling (`14`), post (`15`) — battle-map-reference
+  consumes those, never rebuilds them. Its README's substrate-change block carries
+  the contracts (TSL-only render work in the photoreal package, extend
+  `CIVSIM_ENVIRONMENTS`, aerial hook not inline haze, TSL `time` ban, standing
+  perf/seating gates) and the parallel-session coordination rules (own worktree,
+  frequent rebases, file reservations: `battle/{terrain,foliage}Layer*` are theirs
+  after `09` lands; environment/sky/shadow/sea/crowd files are this ladder's).
 - **`04b` — descope to decal depth-bias only (needs David's confirm).** Its
   billboard items are re-homed to `08` (TSL billboards) and LOD-screen-size to
   `14b`; spending them on bespoke passes that `08b` orphans is double work. The lab

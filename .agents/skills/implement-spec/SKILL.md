@@ -1,6 +1,6 @@
 ---
 name: implement-spec
-description: Implement an existing spec. Use when the user says implement spec.
+description: Implement an existing spec through committed passes, with periodic cleanup for long specs so the plan, code, handoff, and priorities do not bloat or drift.
 ---
 
 # Implement Spec
@@ -46,14 +46,17 @@ depends on prior work.
 6. Update the spec README's "Next Agent Prompt": status, completed work, next
    pickup point, blockers, changed gates, and any architecture decision that
    changed the plan.
-7. Run a **spec hygiene pass** whenever the plan has churned: after a red visual
-   pass, after a rebase that changes owners, after two or three slice commits,
-   when the handoff contradicts the TODO/graph, or when the active prompt grows
-   hard to scan. Prune stale blow-by-blow history into a compact archive,
-   correct completed/rejected/next markers, name the one active pickup, and
-   reslice any bloated slice before more code. The completion criterion is that a
-   fresh agent can read the opening handoff, TODO, and slice graph and choose the
-   same next action.
+7. Run a **maintenance checkpoint** periodically, not only at the end. Trigger it
+   after a red pass, after a rebase that changes owners, after every two or three
+   slice commits, before changing feature areas, when the handoff contradicts the
+   TODO/graph, or when the active prompt grows hard to scan. Clean both plan and
+   code: prune stale history into a compact ledger, correct
+   completed/rejected/next markers, name the one active pickup, delete obsolete
+   scaffolding introduced by earlier passes, and reslice any bloated or still-red
+   slice before more implementation. If the work feels off-track, ask a fresh
+   review/subagent to audit the current spec shape and priority order, then apply
+   the fixes. The checkpoint is done only when a fresh agent can read the opening
+   handoff, TODO, and slice graph and choose the same next action.
 8. **Continue.** If any slice or global TODO is still open, go straight back to
    step 1 for the next one — same session, no pause for acknowledgement. Keep
    looping until every TODO is closed. When the last slice lands, close the spec
@@ -96,9 +99,10 @@ depends on prior work.
 - When the implementation touches shared behavior, leave docs or spec rationale
   using [write-docs](../write-docs/SKILL.md) principles: durable invariants and
   pointers, not copied inventories.
-- For long specs, keep the spec itself reviewable. Do not let the README become
-  a transcript of every failed attempt; keep one current handoff, one TODO/graph,
-  and one compact evidence ledger, with details in slice files or assets.
+- For long specs, keep the spec itself reviewable as an invariant. Do not let
+  the README become a transcript of every attempt; keep one current handoff, one
+  TODO/graph, and one compact evidence ledger, with details in slice files or
+  assets.
 - **Human checkpoints never block.** At a slice's review or sign-off gate, open
   the relevant shots with [preview-shots](../preview-shots/SKILL.md), state the
   decision and the options, and give the user ~5 minutes to weigh in — keep

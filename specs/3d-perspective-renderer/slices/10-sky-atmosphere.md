@@ -1,6 +1,6 @@
 # Slice 10 — Physical sky + atmosphere (ONE aerial owner)
 
-## STATUS: IN PROGRESS — 10a DONE (2026-07-02). Evidence at the bottom of this file.
+## STATUS: DONE (2026-07-02) — 10a + 10b + 10c. Evidence at the bottom of this file.
 
 ## Contract unlocked
 
@@ -157,3 +157,173 @@ completion, David's knob); dusk sun disc ACES-blows to white (→ **10c** disc
 radiance tune); hard terrain-plane edge against the below-horizon sky (→ 13
 terrain/horizon composition); distant crowd smear + cyan far-LOD cluster
 (→ 14b); no cast shadows (→ 11); faceted pyramid mountains (→ 13c).
+
+## 10b DONE — evidence (2026-07-02)
+
+**THE ONE AERIAL OWNER SHIPPED:**
+`packages/photoreal-renderer/src/atmosphere/aerialPerspective.ts` — one TSL
+scatter/extinction Fn assigned to `scene.fogNode` (three's shared material
+hook: `NodeMaterial.setupFog` applies it to every fog-enabled material), so
+terrain quads/backdrop, the heightfield ground (incl. field water), horizon
+blockers, ocean planes, grass, scenery, and the crowd all haze through ONE
+source. Per-channel Beer–Lambert extinction from the SAME Rayleigh/Mie
+coefficients as the sky (turbidity-driven) plus a neutral ground-fog term
+above turbidity 4; the in-scatter colour is **the sky-view LUT sampled at the
+horizon along the fragment's view azimuth** — far surfaces dissolve into
+exactly the sky behind them (warm toward the sun, flat white under overcast:
+the sea→sky and ranges→sky dissolves are free, by construction).
+
+**Stand-ins DELETED (ledger rows closed):** the `THREE.Fog` parity haze
+(environment.ts fog option + battleWorld's 3400/8200 ramp + the crowd lab
+route's 700/3600 ramp) and every per-material `Aerial stand-in` albedo mix
+(terrain quads' `aerialStrength` style field + haze mix, ground `chartDepth`
+fog varying, horizon blockers' 0.10 haze push, grass `vFog` mix, sea
+`haze01`/`WATER_HAZE_ROUGHNESS` shore-keyed fade). Grep-proof: zero
+functional haze sources in `packages/photoreal-renderer` outside
+`atmosphere/`; the orphaned `chartDepthDistNode` + `eyeXY` uniform are
+deleted from battleTsl (the 05b value-identical port existed only to feed
+those mixes). Overlays (gold cues, effect lines, far-LOD markers, blob/prop
+shadow decals) stay `fog: false` by design — gameplay legibility (rule 6)
+and 11-bound decals, recorded here.
+
+**THE OBSERVER DECISION (the slice's hard call, recorded):** aerial optical
+depth is measured from the camera's GROUND FOCUS (the player's stand-in,
+`frame.focus`), not the rig eye — the tactical camera parks 1–3 km out at
+gameplay zooms (probed: eye 1974 m at the crowd-mid framing, 960 m at
+vista), and eye-keyed depth double-counts the miniature-world amplification:
+overcast whited out ENTIRE gameplay framings and golden blue-tinted the
+whole field (shots in the session record). Focus-keying is what the bespoke
+haze did (`chartDepthDist`) and keeps every zoom readable; worlds without a
+focus (lab routes) default to the eye. Plus a 140 m clear radius (aesthetics
+rule 2 — the commanded fight never washes out). Constants:
+`AERIAL_DISTANCE_SCALE = 4.5` (raised from 3 after an unprimed critique
+called the clear presets' ranges "cardboard" — at 4.5 the ranges recede
+visibly while the near field stays warm), `FOG_COEFF_KM = 0.026`/(T−4)²
+(overcast σ ≈ 0.85/km, V ≈ 4.4 km: ranges 1.1–1.5 km from focus at T ≈
+0.25–0.35 — "HEAVY fog swallowing layered ranges"). Sky-model follow-up: the
+LUT's below-horizon ground bounce blends to fog-grey under overcast (the tan
+bounce clashed against white fog at the map edge).
+
+**Verification:** unit — 2 new aerial pins (55 total: visibility monotone
+noon > golden > dusk > overcast, golden V > 20 km subtle vs overcast V < 5 km
+heavy, clear presets rayleigh-blue B/R > 1.5 vs overcast near-neutral < 1.3,
+determinism). Scene — `battle-photoreal-sky` gained the aerial identity
+assert; far-terrain-band + full baselines re-blessed per preset (the 10b
+variable), lighting crowd-mid re-blessed (dusk 37%, overcast 79% — the
+gameplay-framing haze, eyeballed). Full suite 613 checks 0 fails; production
+battle movers: battle-camera-zoom only (vista stop, eyeballed + re-blessed);
+campaign byte-identical; seating tripwire `match=true`. **Perf ledger row
+(hardware apple/metal-3, 30,560 soldiers + 548 scenery + vista 184.8k grass
+blades, sky + aerial on; FINAL row re-measured at 10c constants after the
+view-direction in-scatter fix): GPU median 3.14 ms mid / 3.18 ms vista
+(p95 6.14/5.41), rAF 8.3 ms vsync-pinned — vs 3.27/2.75 at 09, essentially
+frame-time-free, ~10× inside the 33 ms budget. (Interim 10b measurements
+with the horizon-clamped in-scatter: 4.27–4.36/4.82–5.27.)** SwiftShader renders the
+aerial fine (no compute — same tier).
+
+**Second unprimed critique (post-10b, recorded):** graded aerial between
+clear presets confirmed missing at scale 3 → fixed at 4.5 (above); the
+"saturated grass patch punches through fog" finding is the grass-tuft focus
+radius (the tuft field only spawns near the camera focus — a pre-existing
+composition fact, 13b's foliage look); map-edge wedge/tan void → 13/13d
+(already recorded); overcast tactical framing is deliberately the heavy
+preset — David's knob if too heavy.
+
+## 10c DONE — evidence (2026-07-02): presets through the sky model
+
+**No new preset fields were needed** — the 09 physical block (sun
+elevation/azimuth + turbidity) plus the shared angles already drive the
+whole sky + aerial parameterization; that was the point of the seam. The
+locked moods complete through VALUES on the ONE owner:
+
+- **Sun re-aimed toward the default view (`SUN_TOWARD_VIEW` π/2 → π).** The
+  constant was authored for the 2.5D camera and went stale at the 04a flip
+  (camera3d yaw 0 looks along −X = azimuth π; verified empirically with the
+  lab `?yaw=` knob — the disc centres at view azimuth yaw+π). Every
+  reference composes with the sun IN view; two unprimed critiques
+  independently flagged "golden-hour shows no golden light" at the default
+  framing. Coordination: sanctioned — battle-map-reference's README defers
+  look-judgment until 10/11 land and records that this ladder re-blesses
+  battle baselines as lighting/sky change; environment files are this
+  ladder's reserve.
+- **Golden sunElevation 0.5 → 0.35 rad (20°).** A true golden-hour sun: the
+  physical transmittance now delivers R/B ≈ 2.0 warm key (vs noon 1.28) and
+  a warm sun-ward sky — "golden's warm sky" from physics, not paint.
+  Irradiance ordering (noon > golden > dusk > overcast) still pinned green.
+- **Dusk disc radiance 60 → 2.5** (below the ACES saturation knee so the
+  transmittance tint survives — the white-blob critique finding; the halo
+  glow still blows out near the core exactly like the reference sun).
+- **Overcast completes as locked:** cool flat HIGH-KEY sky (LUT band
+  telemetry sat 2.5, lum 222) + HEAVY fog swallowing the layered ranges
+  (10b). Full-frame register vs `battle-overcast-highland.png`: candidate
+  mean (186,192,188) lum 191 sat 6.2 vs reference (171,178,172) lum 176 sat
+  7.6 — the same-materials-different-environment litmus PASSES (same world,
+  cool flat high-key, ranges dissolving).
+- **Golden full-frame vs `battle-coastal-vista.jpg`:** sky band and light
+  register land (warm quadrant, warm key, subtle far haze, blue-receding
+  ranges); the remaining gap is the FIELD ALBEDO — reference tan/dry
+  (mean R>G: 148/131) vs our green-grass map (145/169) — which is 13's
+  terrain work by name (recorded since 09).
+
+**Third unprimed critique (4 preset fulls, pre-re-aim):** mood separation —
+overcast distinct (HIGH pass), dusk reads evening, golden↔noon was the
+collision pair → resolved by the re-aim + elevation (golden now carries the
+warm quadrant + warm key; dusk is warmest, which is physically right — the
+lower sun). Same-world/same-materials: explicit PASS ("only light/atmosphere
+change — no different-art problem"). Recorded leftovers: no cast shadows
+(11), map-edge seams + mountain-base shelf (13/13d), tan albedo (13a).
+
+**In-scatter correction found by the 10c full-suite sweep (recorded):** the
+`battle-smoke` scenes (not in the curated 613-check list) exposed that
+sampling the in-scatter at the HORIZON washed steep top-down overviews out —
+the horizon sky is 3–8× brighter than the ground, so even 15% haze bloomed
+the whole map. Fix: the aerial hook samples the sky-view LUT along the TRUE
+view direction — downward rays land in the LUT's dim below-horizon
+ground-bounce region (matching the ground), horizontal rays keep the
+horizon-sky dissolve. Lesson recorded: the curated suite list missed the
+top-down production framing; the full `node scene.mjs` sweep is part of this
+slice's gate from now on.
+
+**Final unprimed critique (post-everything, the last visual check):**
+same-world/same-materials PASS ("holds up well"); noon + overcast distinct
+and correct; top-down gameplay view "clean and legible — no washed-out
+veil, HUD readable" (the in-scatter fix verified); golden-vs-dusk warmth
+ordering flagged again — dusk reads warmer than golden, which is the
+physical truth of the lower sun; whether golden should out-warm dusk
+anyway is David's mood knob (one constant each: `sunElevation`,
+`physical.turbidity`). Remaining named items unchanged: map-edge slab +
+mountain-base seam (13/13d), cone mountains (13c), far-soldier smear
+(14b), glowing grass-tuft patch under fog (13b — the tufts are unlit
+geometry pockets, a foliage-look matter).
+
+**Gate re-derivation (05b precedent, recorded):** the
+`battle-terrain-blockers` grey-stone colour bin widened from r∈(110,215) to
+r∈(95,242) — the re-aimed sun backlights the west crags (lit faces ~235,
+shade ~95); the bin still describes grey-neutral stone, the floor 0.04 is
+untouched.
+
+**Re-bless (10c, each eyeballed):** battle-camera-zoom, 17 battle-map-
+reference grass-lab evidence baselines (lighting-direction only — fixtures
+intact; sanctioned by that spec's rebase contract), 5 terrain-blockers, 1
+shared-grass-models sheet, 12 photoreal-sky + 4 photoreal-lighting + parity/
+pbr/crowd-mid (21 photoreal-scene baselines). Campaign byte-identical
+throughout.
+
+**Human checkpoint (non-blocking, preview-shots, ~10 min window, no
+response — decided on the evidence and recorded):** opened the four final
+preset fulls + both tactical framings + the golden pre-re-aim A/B + both
+references in one Preview window; closed on proceed. **Call: ACCEPT all four
+preset moods as the 10c completion.** Grounds: (1) the overcast litmus
+passes on register telemetry AND unprimed critique ("clearly distinct and
+successful… excellent recession — best of the four"); (2) golden's locked
+"warm sky" is delivered by physics (sun-in-view warm quadrant, R/B 2.0 key,
+subtle far haze) and the pre-re-aim A/B shows the re-aim is what separates
+golden from noon; (3) dusk-warmest ordering is physically correct (the
+lower sun) and reads as evening; (4) noon is the neutral reference by
+design; (5) the remaining register gaps are owned by name — cast shadows
+(11), tan field albedo/map-edge/mountain shelf (13), far-crowd smear (14b).
+**Mood fine-tuning stays David's knob**: how heavy overcast's fog is
+(`FOG_COEFF_KM`), how warm golden is (`sunElevation`), the sun azimuth
+composition (`SUN_TOWARD_VIEW`), the disc size/brightness
+(`SUN_DISC_*`) — all single constants on the two atmosphere files/the ONE
+preset owner, each documented at its definition.

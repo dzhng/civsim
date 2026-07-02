@@ -7,7 +7,7 @@
 // Determinism: nothing here reads the TSL `time` node (banned); every animated
 // term keys off uniforms owned by PhotorealBattleWorld.
 import {
-  abs, clamp, cos, dot, float, floor, fract, mix, normalize, sRGBTransferEOTF, sin, smoothstep, transformNormalToView, uniform, varying, vec2, vec3,
+  abs, clamp, cos, dot, float, floor, fract, mix, sRGBTransferEOTF, sin, smoothstep, transformNormalToView, uniform, varying, vec2, vec3,
 } from 'three/tsl';
 import { Vector2 } from 'three';
 import type { Node } from 'three/webgpu';
@@ -25,13 +25,13 @@ export function rgbNode(c: Rgb): Vec3Node {
 
 /** The per-frame camera/clock uniforms the ported battle shaders read — the
  *  TSL mirror of the bespoke `cam` uniform scalars that survive projection
- *  (focus, eye.xy, time). One owner: PhotorealBattleWorld writes them.
+ *  (focus, time). One owner: PhotorealBattleWorld writes them; the aerial
+ *  hook reads `focus` as its observer.
  *  `time` mirrors cam.time — the production battle never sets it, so parity
  *  captures freeze it at 0; live viewing may drive it. */
 export function createBattleFrameUniforms() {
   return {
     focus: uniform(new Vector2(0, 0)),
-    eyeXY: uniform(new Vector2(0, -100)),
     time: uniform(0),
   };
 }
@@ -101,14 +101,6 @@ export function linearAlbedo(display: Vec3Node): Vec3Node {
  *  in the vertex stage, interpolate, renormalize. */
 export function viewNormalNode(worldNormal: Vec3Node): Vec3Node {
   return varying(transformNormalToView(worldNormal)).normalize();
-}
-
-/** The battle fog/meadow grading axis (cameraWgsl chartDepthDist): signed
- *  ground distance from the view centre along the legacy chart "depth" axis,
- *  reconstructed from the eye→focus ground direction. */
-export function chartDepthDistNode(world: Vec2Node, frame: BattleFrameUniforms): FloatNode {
-  const fwd = normalize(vec2(frame.focus).sub(vec2(frame.eyeXY))).toVar();
-  return dot(world.sub(vec2(frame.focus)), vec2(fwd.y, fwd.x.negate()));
 }
 
 /** WGSL smoothstep with scalar edges (all ports use constant edges). */

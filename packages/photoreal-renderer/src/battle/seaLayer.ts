@@ -5,17 +5,17 @@
 // builds), but the surface carries a NEUTRAL albedo + roughness and the sun /
 // IBL light it like every other world surface. SCAFFOLD per the README
 // ledger: this parity-derived Gerstner shading dies at 12b–d (photoreal
-// surface); the seam survives. The haze mix is the 08a aerial stand-in (dies
-// at 10b, the one aerial-perspective owner).
+// surface); the seam survives. Distance haze comes ONLY from the shared
+// aerial-perspective hook (scene.fogNode, slice 10b) — the sea dissolves into
+// the sky through it, never through a shore-keyed albedo mix.
 import * as THREE from 'three/webgpu';
 import {
   dot, float, mix, normalize, transformNormalToView, varying, vec2, vec3, vec4,
 } from 'three/tsl';
 import { attribute } from 'three/tsl';
 import { bakeGerstnerWaves } from '../../../game-renderer/src/water/gerstnerField';
-import { BATTLE_OCEAN_RAMP, FIELD_WATER_RAMP, type WaterShoreRamp } from '../../../game-renderer/src/water/waterShoreRamp';
+import { FIELD_WATER_RAMP, type WaterShoreRamp } from '../../../game-renderer/src/water/waterShoreRamp';
 import type { BattleOceanPlaneSpec } from '../../../game-renderer/src/battle/horizonPass';
-import type { BattleEnvironment } from '../../../game-renderer/src/environment/environment';
 import {
   fnoiseN, linearAlbedo, rgbNode, saturateN, smoothstepN,
   type BattleFrameUniforms, type FloatNode, type Vec2Node, type Vec3Node,
@@ -30,11 +30,9 @@ import {
 const WATER_SHALLOW_ALBEDO: [number, number, number] = [0.24, 0.52, 0.53];
 const WATER_DEEP_ALBEDO: [number, number, number] = [0.04, 0.12, 0.26];
 const WATER_FOAM_ALBEDO: [number, number, number] = [0.92, 0.93, 0.94];
-// Calm water is glossy (the sun glint is real GGX specular now); foam and
-// hazed distance read matte.
+// Calm water is glossy (the sun glint is real GGX specular now); foam matte.
 const WATER_ROUGHNESS = 0.14;
 const WATER_FOAM_ROUGHNESS = 0.85;
-const WATER_HAZE_ROUGHNESS = 0.9;
 
 interface WaterSampleNodes {
   height: FloatNode;
@@ -97,16 +95,14 @@ export function waterHeightNode(p: Vec2Node, t: FloatNode): FloatNode {
   return h;
 }
 
-/** waterShoreRamp(shoreDist) → (depth01, haze01) for a ramp table. */
-export function shoreRampNodes(ramp: WaterShoreRamp, shoreDist: FloatNode): { depth01: FloatNode; haze01: FloatNode } {
-  return {
-    depth01: smoothstepN(ramp.depthNear, ramp.depthFar, shoreDist),
-    haze01: smoothstepN(ramp.hazeNear, ramp.hazeFar, shoreDist),
-  };
+/** waterShoreRamp(shoreDist) → depth01 (the haze leg of the shared ramp
+ *  table is a bespoke-WGSL knob; photoreal haze is the aerial owner's). */
+export function shoreDepthNode(ramp: WaterShoreRamp, shoreDist: FloatNode): FloatNode {
+  return smoothstepN(ramp.depthNear, ramp.depthFar, shoreDist);
 }
 
 export interface WaterSurfaceNodes {
-  /** Neutral albedo (depth-graded blue + foam + the 10b-bound haze mix). */
+  /** Neutral albedo (depth-graded blue + foam). */
   albedo: Vec3Node;
   foam: FloatNode;
   roughness: FloatNode;
@@ -115,26 +111,16 @@ export interface WaterSurfaceNodes {
 /** The one civsim water surface response: every photoreal water surface
  *  (ocean planes, on-field water in the ground material) composes through
  *  this, so shorelines cannot show a stripe. Neutral albedo — the environment
- *  lights it. */
+ *  lights it, the aerial owner hazes it. */
 export function waterSurfaceNodes(
-  env: BattleEnvironment,
   depth01: FloatNode,
-  haze01: FloatNode,
   foamRaw: FloatNode,
 ): WaterSurfaceNodes {
-  const e = env.environment;
   const foam = saturateN(foamRaw).toVar();
-  const haze = saturateN(haze01).toVar();
   let albedo = mix(rgbNode(WATER_SHALLOW_ALBEDO), rgbNode(WATER_DEEP_ALBEDO), depth01);
   albedo = mix(albedo, rgbNode(WATER_FOAM_ALBEDO), foam);
-  // Aerial stand-in (08a parity ledger — dies at 10b, the ONE aerial owner).
-  albedo = mix(albedo, rgbNode(e.hazeColor), haze);
   albedo = linearAlbedo(albedo);
-  const roughness = mix(
-    mix(float(WATER_ROUGHNESS), float(WATER_FOAM_ROUGHNESS), foam),
-    float(WATER_HAZE_ROUGHNESS),
-    haze,
-  );
+  const roughness = mix(float(WATER_ROUGHNESS), float(WATER_FOAM_ROUGHNESS), foam);
   return { albedo, foam, roughness };
 }
 
@@ -143,21 +129,18 @@ export function waterSurfaceNodes(
  *  box-filtered water weight. The ground material blends these over turf by
  *  the same weight. */
 export function fieldWaterSurfaceNodes(
-  env: BattleEnvironment,
   frame: BattleFrameUniforms,
   p: Vec2Node,
   shoreDist: FloatNode,
 ): WaterSurfaceNodes {
   const swash = smoothstepN(0.16, 0.02, shoreDist).mul(smoothstepN(0.006, 0.03, shoreDist));
   const lace = fnoiseN(p.mul(1.2).add(vec2(frame.time.mul(0.05), 0.0))).mul(0.28).add(0.72);
-  const ramp = shoreRampNodes(FIELD_WATER_RAMP, shoreDist);
-  return waterSurfaceNodes(env, ramp.depth01, ramp.haze01, swash.mul(lace).mul(0.7));
+  return waterSurfaceNodes(shoreDepthNode(FIELD_WATER_RAMP, shoreDist), swash.mul(lace).mul(0.7));
 }
 
 /** One battle ocean-edge plane (waterPlanePass battle mode): the displaced
  *  grid mesh + the shore-keyed standard-material water surface. */
 export function createOceanPlaneMesh(
-  env: BattleEnvironment,
   frame: BattleFrameUniforms,
   spec: BattleOceanPlaneSpec,
 ): THREE.Mesh {
@@ -189,7 +172,6 @@ export function createOceanPlaneMesh(
   geo.setIndex(new THREE.BufferAttribute(indices, 1));
 
   const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, metalness: 0 });
-  material.fog = false;
   const worldXY = attribute<'vec3'>('position', 'vec3').xy;
   material.positionNode = vec3(worldXY, waterHeightNode(worldXY, frame.time).add(spec.baseZ));
   const fragXY = varying(worldXY).toVar();
@@ -199,13 +181,12 @@ export function createOceanPlaneMesh(
   const shoreDist = fragXY.x.sub(spec.shoreX).abs().toVar();
   const depth01 = mix(float(0.30), float(0.80), smoothstepN(0.0, 500.0, shoreDist));
   const agitation = smoothstepN(0.0, 3200.0, shoreDist).toVar();
-  const haze01 = shoreRampNodes(BATTLE_OCEAN_RAMP, shoreDist).haze01;
   // Fragment-stage field sample = the crisp swell normal; flatten toward up as
   // agitation falls (the waterShade renormalization, kept as geometry response).
   const s = waterFieldNodes(fragXY, frame.time);
   const surfaceNormal = normalize(mix(vec3(0.0, 0.0, 1.0), s.normal, mix(float(0.30), float(1.0), agitation)));
   material.normalNode = transformNormalToView(surfaceNormal);
-  const surface = waterSurfaceNodes(env, depth01, haze01, s.foam.mul(agitation));
+  const surface = waterSurfaceNodes(depth01, s.foam.mul(agitation));
   material.colorNode = vec4(surface.albedo, 1.0);
   material.roughnessNode = surface.roughness;
 

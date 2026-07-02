@@ -17,7 +17,49 @@ Instead — exactly like slice 02's water pass — **each battle-owned pass comp
 `projectGround`/`projectWorld3d`/`civsim*WorldDepth3d` bodies are UNTOUCHED, so
 campaign stays byte-identical on its own legacy shell. The one real projector
 collapses the legacy fns + the per-pass `real` flag at the end of `05`, when nothing
-consumes the legacy path. See the README "Slice 04a is DONE" block for specifics.
+consumes the legacy path (that collapse landed — `05b`).
+
+**04a evidence (committed 2026-07-02, `785d2ee9`; spec correction `5289d54e`):**
+
+- **Per-pass `real` flag (NOT rewriting the shared `projectGround`/`projectWorld3d`
+  bodies).** Each battle-owned pass compiles a `real` WGSL variant that calls
+  `projectReal(...)` and swaps its depthStencil to `gpuReverseZDepthStencil`.
+  Battle sets `real: true`; campaign builds its own shell + pass instances and never
+  sets it (stays byte-identical on legacy `depth24plus`). Flags added to
+  `skinnedPipeline`, `soldierShadowPass`, `groundPass`, `grassPass`, `horizonPass`
+  (incl. its `WaterPlanePass` ocean planes), `groundCuePass`, `effectLinePass`,
+  `campaign/sceneryPass` (battle mode), the inline `BattleTrianglePass`, and the
+  `frameShell` builtin terrain/backdrop/marker shaders (gated on the shell's
+  `reverseZ`). Battle shell opts into `reverseZ: true`. `soldierShadowPass` drops
+  the `0.72` y-squash when real.
+- **CPU: `camera3d` is the ONE owner.** `web/src/shared/camera.ts` `Camera` was
+  rewritten to delegate every screen↔world mapping to `camera3d`
+  (`projectPoint`/`unprojectToPlaneZ` against ground z=0); `worldToScreen`/
+  `screenToWorld`/`clampView`/`zoomAt`/`panPixels`/`panWorld` all go through a
+  `params(): Camera3DParams` built from `battleCameraRig`. `scene.ts` feeds the rig
+  (`camera.setRig(range,bounds)`); `renderer.ts` builds `CameraSnapshot.camera3d`
+  and opts the shell into reverse-Z. **`cameraForZoom` + `CameraRig` +
+  `BATTLE_CAMERA_RIG_LIMITS` DELETED** (only consumers were `scene.ts` +
+  `cameraRig.test.ts`); the two-rig seam is collapsed. Picking firewall held:
+  `input.ts` call sites + `pickUnit(wx,wy)` + `terrainHeightAt` untouched.
+- **Verified:** typecheck + 34 unit tests green (incl. new
+  `web/tests/battlePicking.test.ts` — worldToScreen∘screenToWorld round-trips
+  <0.3 px across zoom stops; a centroid click selects its unit). Seating tripwire
+  `battle-terrain-elevation` `match=true` on all 3 fixtures (heightfield firewall
+  intact). Full `battle` scene suite green under SwiftShader, no page/validation
+  errors. Depth-sort/upright confirmed (screenshot-critique of the camera-zoom
+  contact sheet: smooth top-down→mid→vista, a proper low-oblique cinematic vista
+  with upright, correctly depth-sorted soldiers; selection-ring ground decal seats
+  on terrain; HUD/banners/minimap intact). Campaign frozen scenes byte-identical
+  (map-alignment + campaign-visual diffs 0.003–0.08%, within SwiftShader noise).
+  All moved `web/shots/battle/**` (24 baselines) re-blessed deliberately after
+  eyeballing representatives. Re-derived the `battle-camera-zoom` behavioral
+  asserts and the `hasBattleWorldDepthContract` depth-format expectation to the
+  camera3d/reverse-Z convention.
+- **Deferred follow-ups at landing:** `04b` decal depth-bias (later CANCELLED —
+  superseded, see `04b-battle-polish.md`), `04c`/`04d` billboards (re-homed to
+  `08a`), `04e` LOD screen-size (absorbed by `14b`), lab `routeBattleLive` +
+  `pickingDebug.ts` migration (landed in `05b`), 30k perf gate (landed as `04f`).
 
 ## Contract unlocked
 

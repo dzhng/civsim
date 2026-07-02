@@ -82,6 +82,18 @@ fn apply_melee_env_overrides(tun: &mut Tunables) {
     if let Some(on) = env_bool("DEEPREFORM") {
         tun.engaged_deep_reform = on;
     }
+    if let Ok(v) = std::env::var("DEEPREFORM_TICKS") {
+        tun.engaged_deep_reform_ticks = v.parse().unwrap();
+    }
+    if let Ok(v) = std::env::var("TEMPOCAP") {
+        tun.fighting_tempo_tangent_mult = v.parse().unwrap();
+    }
+    if let Ok(v) = std::env::var("TEMPORADIUS") {
+        tun.fighting_tempo_radius = v.parse().unwrap();
+    }
+    if let Some(on) = env_bool("DEPLOYEDCORRIDOR") {
+        tun.corridor_deployed_width = on;
+    }
     if let Some(on) = env_bool("FLANKCURL") {
         tun.seeking_flank_curl = on;
     }

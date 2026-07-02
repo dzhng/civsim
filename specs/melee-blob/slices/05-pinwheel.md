@@ -56,3 +56,56 @@ Heavy-both at t300+: seam still axis-aligned, two held bodies. Side-by-side
 old/new GIF; before/after rotation curve added to the visualization.
 `compare-screenshots` + unprimed `screenshot-critique`; non-blocking
 preview-shots checkpoint for David.
+
+
+## Dead ends (measured, 2026-07-02 — first fix attempt)
+
+Budgeted composition at a fixed saturated total is a dead end in BOTH
+directions (full sweep diff archived by the orchestrator; failures measured,
+not guessed):
+
+- Full restoring-priority after cruise kills the mortal orbit but starves the
+  chase terms whenever the cap binds: wrap, trample, pressure, weave contact,
+  and disengage all break.
+- Allocation at the original cap site stays contained but does not fix the
+  orbit, and mid-strength variants fail survivability (HP2/HP1 read 2.80x vs
+  the 1.7-2.3x band) while only 2/5 seeds met the pinwheel rail.
+
+Conclusion: do not re-attempt reallocation of a saturated sum. The upstream
+question is why a settled mortal grind saturates the per-soldier cap AT ALL —
+a chase channel whose driving force fails to go to zero at equilibrium.
+Measure which channel carries capped soldiers' demand, then shrink that
+demand at ITS equilibrium.
+
+
+## Dead ends, continued (2026-07-02/03 — orchestrator attempts, all measured)
+
+- **Total fighting-tempo cap** (blade contact bounds the whole stride,
+  radius = fighting flag's reach+0.3, mult 1.25): survivability executioner —
+  HP2/HP1 hit 2.59x (band 1.7-2.3) — while the orbit persisted (rates up to
+  +0.49 deg/s). Restricting front-two-rank circulation stretches the mid-HP
+  grind.
+- **Tangential fighting-tempo cap** (only the component crossing the nearest
+  enemy's front, blade-lock radius 0.55m, mult 1.0): HP2/HP1 improved to the
+  knife edge (2.31x) but HP4/HP1 blew out (6.75x > 6.0), and the orbit
+  persisted (seed 3 +0.30 deg/s). Even tangential restriction near enemies
+  stretches the long grind. The machinery (nearest_enemy/nearest_enemy_d
+  persistence, FightingTempoCap channel, TEMPOCAP/TEMPORADIUS knobs) is kept
+  default-disabled (mult = INFINITY) for future probes.
+- **Deployed-width corridor** (corridor half-width from deployed files, not
+  files_eff; DEPLOYEDCORRIDOR knob): rotation numbers byte-identical to
+  baseline — files_eff does not shrink at all at these probes' casualty
+  levels (240 men / 24 files shrink only below 72 alive), so corridor WIDTH
+  is not the couple's source. Falsified.
+
+**Open lead for the next pass:** the corridor is centered on `v.center()`,
+which drifts with casualty-biased mass. Two corridors sliding in opposite
+senses unblock one flank each — the couple with no width change. Instrument
+the chain link by link before any further fix: per-seed kill-side asymmetry →
+unit center lateral drift (vs pair axis) → corridor coverage of the foe's
+flank columns → per-unit net forward-thrust direction, over the ramp windows,
+correlated with rotation sign. Every link is a harness/state read. If the
+chain confirms, the fix question becomes: what is the honest corridor
+reference for a formation still holding its footprint (the slot-grid frame,
+not the casualty-weighted mass)? If it does not confirm, foundation trigger
+(b) fires with three measured dead ends as evidence.

@@ -262,6 +262,24 @@ pub struct Tunables {
     /// on; attribution probes may disable it to test whether re-dress ratchets
     /// accumulated lattice rotation.
     pub engaged_deep_reform: bool,
+    /// In blade-lock range a man cannot CROSS his nearest enemy's front
+    /// faster than fighting tempo (multiplier on base_speed, tangential
+    /// component only) — the melee-blob slice 05 orbit fix. f32::INFINITY
+    /// disables (pre-fix behavior).
+    pub fighting_tempo_tangent_mult: f32,
+    /// The forward corridor a fighting formation contests is its DEPLOYED
+    /// frontage, not its casualty-shrunken live width: dead files leave a
+    /// notch, not a free lane, until the unit breaks or reforms narrower.
+    /// The melee-blob slice 05 candidate for the mortal orbit (the couple
+    /// forms when both corridors shrink and both flanks unblock).
+    pub corridor_deployed_width: bool,
+    /// Surface gap to the nearest enemy under which the tangential tempo cap
+    /// binds — true blade-lock, tighter than the fighting flag's reach+0.3.
+    pub fighting_tempo_radius: f32,
+    /// Diagnostic cadence (ticks) for that re-sort. Default preserves the
+    /// historical 60-tick beat; attribution probes sweep it to test whether
+    /// rotation rate scales with relabel frequency.
+    pub engaged_deep_reform_ticks: u64,
     /// Diagnostic switch for flank curl: when on, overhanging attackers drop
     /// frame feed-forward and let the enemy magnet curl them inward.
     pub seeking_flank_curl: bool,
@@ -372,6 +390,10 @@ impl Default for Tunables {
             at_ease_range: 60.0,
             idle_settle_damp: 0.5,
             engaged_deep_reform: true,
+            fighting_tempo_tangent_mult: f32::INFINITY,
+            corridor_deployed_width: false,
+            fighting_tempo_radius: 0.55,
+            engaged_deep_reform_ticks: 60,
             seeking_flank_curl: true,
         }
     }

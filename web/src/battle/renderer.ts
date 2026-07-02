@@ -219,6 +219,9 @@ export class BattleRenderer {
       depth: ws?.depth ?? null,
       // Slice 11 shadow-tier identity ({ mode, cascades, ... } — csm/single/off).
       shadows: ws?.shadows ?? null,
+      // Slice 15 post-chain identity ({ owner, bloom, tonemap } — the ONE
+      // bloom + tone-map owner over the production battle frame).
+      post: ws?.post ?? null,
       width: ws?.width ?? 0,
       height: ws?.height ?? 0,
       soldiers: ws?.soldiers ?? 0,

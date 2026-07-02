@@ -23,6 +23,11 @@ export const meta = {
   describe: "Fresh raw renderer lab routes render and expose deterministic stats.",
 };
 
+// Raw (bespoke WebGPU) lab routes only: every entry must publish the single
+// PROJECTION_IDENTITY and render through the shared frame shell. The photoreal
+// three.js routes (/renderer/photoreal-pbr, /renderer/photoreal-crowd) publish
+// the { substrate, projection: 'camera3d', environment } identity instead and
+// are gated by scenes/system/photoreal-substrate.mjs.
 const routes = [
   [
     "frame-shell",

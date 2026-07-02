@@ -16,6 +16,12 @@ export interface CivsimEnvironment {
   hazeColor: [number, number, number];
   /** Overall exposure; dusk is dim, not dark-albedo'd. */
   exposure: number;
+  /** Photoreal sky-dome gradient (drives the IBL environment until the physical
+   *  sky lands in slice 10a): zenith → horizon above the horizon line, ground
+   *  bounce below it. Linear radiance, not display colours. */
+  skyZenithColor: [number, number, number];
+  skyHorizonColor: [number, number, number];
+  groundBounceColor: [number, number, number];
 }
 
 export type BattleEnvironmentId = 'golden-hour' | 'overcast-foggy' | 'dusk';
@@ -38,6 +44,9 @@ export const CIVSIM_ENVIRONMENTS: Record<CivsimEnvironmentId, CivsimEnvironment>
     fillColor: [0.46, 0.58, 0.78],
     hazeColor: [0.82, 0.80, 0.70],
     exposure: 1.18,
+    skyZenithColor: [0.16, 0.28, 0.52],
+    skyHorizonColor: [0.60, 0.56, 0.46],
+    groundBounceColor: [0.20, 0.17, 0.12],
   },
   dusk: {
     id: 'dusk',
@@ -47,6 +56,9 @@ export const CIVSIM_ENVIRONMENTS: Record<CivsimEnvironmentId, CivsimEnvironment>
     fillColor: [0.34, 0.40, 0.56],
     hazeColor: [0.72, 0.58, 0.5],
     exposure: 0.86,
+    skyZenithColor: [0.09, 0.13, 0.30],
+    skyHorizonColor: [0.52, 0.34, 0.26],
+    groundBounceColor: [0.13, 0.10, 0.08],
   },
   overcast: {
     id: 'overcast',
@@ -56,6 +68,9 @@ export const CIVSIM_ENVIRONMENTS: Record<CivsimEnvironmentId, CivsimEnvironment>
     fillColor: [0.72, 0.76, 0.82],
     hazeColor: [0.84, 0.86, 0.88],
     exposure: 1.0,
+    skyZenithColor: [0.36, 0.41, 0.48],
+    skyHorizonColor: [0.62, 0.65, 0.68],
+    groundBounceColor: [0.17, 0.17, 0.16],
   },
 };
 

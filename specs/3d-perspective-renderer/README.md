@@ -14,21 +14,45 @@ photoreal register the `aesthetics` skill targets.
 
 **Status (updated 2026-07-02):** camera spine `01`–`05a` landed on this branch
 (`05b` authored, landing on the spine track); slice `06` is DONE with a substrate
-verdict (below); and the **photoreal ladder `07`–`17` is now AUTHORED** — synthesized
-from three independent architect drafts against the `06` verdict. The ladder's slice
-files live in `slices/07-*.md` … `17-*.md`; the sketched `07`–`14` graph below was
-replaced by the real `07`–`17` graph. The adoption seam, scaffolding ledger,
-single-owner invariants, and standing gates are recorded in **"Photoreal ladder
-invariants"** below — read that section before implementing any ladder slice.
+verdict (below); the **photoreal ladder `07`–`17` is AUTHORED** (slice files
+`slices/07-*.md` … `17-*.md`; adoption seam, scaffolding ledger, single-owner
+invariants, and standing gates in **"Photoreal ladder invariants"** below — read
+that section before implementing any ladder slice); and **slice `07` is DONE**
+(below) — the ladder's foundation exists and the 06 spike is gone.
 
-**Exact next pickup point:** two parallel tracks.
-1. **Spine track:** land `04f` (30k perf gate scene — the instrument every ladder
-   slice re-runs) and `05b` (legacy projector collapse) — **both must land before
-   `08b`** (the production flip deletes passes, not paths, and needs the perf gate
-   in place).
-2. **Ladder track:** slice `07` (`slices/07-photoreal-foundation.md`) **can start
-   immediately, in parallel, in its own worktree** — it is additive + spike deletion,
-   touches no production surface, and doesn't depend on `04f`/`05b`.
+**Exact next pickup point:** land `04f` (30k perf gate scene — the instrument
+every ladder slice re-runs) and `05b` (legacy projector collapse) on the spine
+track — **both must land before `08b`** — then start the ladder proper at `08a`
+(`slices/08a-*.md`, `PhotorealBattleWorld` parity assembly on the `07`
+foundation).
+
+**Slice `07` is DONE (this branch, 2026-07-02).** `packages/photoreal-renderer/`
+(source-only) is the three.js WebGPU + TSL substrate on the camera3d spine:
+`world.ts` (`PhotorealWorld` — one `WebGPURenderer({ canvas, antialias,
+trackTimestamp, reversedDepthBuffer: true })` + one Scene, manual rAF, an OWNED
+`uTime` uniform; the TSL `time` node is BANNED for byte-determinism;
+`settlePresentedFrame()` via `renderer.backend.device.queue`), `cameraBridge.ts`
+(`applyCamera3d` — the ONLY way a three camera gets posed; reverse-Z matrices
+pinned equal to `camera3d` by `web/tests/photorealCamera.test.ts`),
+`environment.ts` (maps `CIVSIM_ENVIRONMENTS` — which grew `skyZenithColor`/
+`skyHorizonColor`/`groundBounceColor` on the ONE owner — to sun light, procedural
+equirect IBL (PMREM'd by three; dies at `10a`), optional fog,
+`toneMappingExposure`; pure mapping pinned by
+`web/tests/photorealEnvironment.test.ts`), `stats.ts` (`__rendererLabStats`
+backed by `renderer.info` + GPU timestamps, identity fields
+`{ substrate: 'threejs-webgpu-tsl', projection: 'camera3d', environment }`).
+Promoted routes `/renderer/photoreal-pbr` + `/renderer/photoreal-crowd`
+(`?cam=mid|vista`, `?count=` 60k stress kept, `?t=` fixed time) live in
+`apps/renderer-lab/src/photorealRoutes.ts`; gate scene
+`web/scenes/system/photoreal-substrate.mjs` (identity, count floors, non-blank,
+fixed-`setTime` byte-determinism, hardware perf leg). `@types/three` (dev-only)
+replaced the spike shims; bare `three` imports from `packages/*`/`apps/*` are
+wired explicitly (vite alias + tsconfig paths + node test-loader fallback —
+they're outside the vite root). The 06 spike is fully deleted per the
+scaffolding ledger. **Frame-time ledger opened:** `photoreal-crowd` (30,400 +
+200k grass + 3k trees, hardware apple/metal-3) = **GPU 5.29 ms / median rAF
+8.33 ms vsync-pinned** (budget ≤ 33). `test:unit` 45/45; full battle + campaign
+suites byte-identical; details + TSL hazards in `slices/07-photoreal-foundation.md`.
 
 **Slice `06` is DONE — SUBSTRATE VERDICT: three.js WebGPU + TSL for the photoreal
 layer (decided 2026-07-02, evidence-based, autonomous per the locked procedure).**

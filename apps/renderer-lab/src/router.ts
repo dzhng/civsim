@@ -67,7 +67,7 @@ import { badArtistPackFixture, validateRig, validateSoldierKit, type ImportedRig
 import { bakeGltf } from '../../../packages/soldier-assets/bake/gltf.mjs';
 import type { VatBake, VatClip } from '../../../packages/soldier-assets/src/schema';
 import { importedRigMesh } from './importedRigMesh';
-import { routeCrowdPerf, routePbrProbe, routeWaterPbr } from './bakeoffProbes';
+import { routePhotorealCrowd, routePhotorealPbr } from './photorealRoutes';
 import { buildBattleUiModel, BattleUiLayer } from '../../../web/src/battle/uiLayer';
 import { UNIT_CLASS_BY_KEY, UnitClass, CLASS_NAMES } from '../../../web/src/battle/classData';
 import type { UnitCardInit, UnitCardState } from '../../../web/src/battle/unitCard';
@@ -134,10 +134,9 @@ const routes: Record<string, LabRoute> = {
   '/renderer/card-bar': routeCardBar,
   '/renderer/water-bakeoff': routeWaterBakeoff,
   '/renderer/camera3d-probe': routeCamera3dProbe,
-  // Slice 06 bake-off spikes (throwaway; bespoke prong):
-  '/renderer/pbr-probe': routePbrProbe,
-  '/renderer/water-pbr': routeWaterPbr,
-  '/renderer/crowd-perf': routeCrowdPerf,
+  // Photoreal ladder (slices 07+): three.js WebGPU + TSL on the camera3d spine.
+  '/renderer/photoreal-pbr': routePhotorealPbr,
+  '/renderer/photoreal-crowd': routePhotorealCrowd,
 };
 
 export async function mountRendererLab(path = location.pathname) {

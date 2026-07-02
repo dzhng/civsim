@@ -641,7 +641,7 @@ export class CampaignRenderer {
         rgba: territory.rgba,
         rect: this.data.bgRect,
       },
-      controlledStage ? undefined : { alpha: 0.55, warmMix: 0.015 },
+      controlledStage ? undefined : { alpha: 0.35 },
       this.surface.mesh,
     );
     this.lines = new CampaignWorldLinePass(this.shell, "triangle-list");

@@ -48,7 +48,7 @@ function warp(wx: number, wy: number): [number, number] {
   return [wx + dx, wy + dy];
 }
 
-const FILL_A = 150;
+const FILL_A = 255;
 
 /** Douglas–Peucker simplification: drop points within `tol` km of the chord, so
  *  a traced boundary's per-cell staircase zigzag collapses to the few points

@@ -13,14 +13,15 @@ the slice files.
 
 ## Next Agent Prompt
 
-**Status:** 2026-07-03. Slices 00 + 01 DONE (committed). Foundation group next.
+**Status:** 2026-07-03. Slices 00–04 DONE (committed). Foundation look complete
+and presented at the checkpoint; next is the data/geometry group (`05` roads).
 **You are implementing this spec.** David's standing goal: work through the
 slices in order and **use `/codex` for implementation work wherever possible**
 (delegate the mechanical edits to Codex via `codex exec`; you drive verification,
 screenshots, and the human checkpoints yourself).
 
-**Next pickup point:** Slice `02-terrain-grade` (global grade knob), then `03`→
-`04` up to the **Foundation human checkpoint** — the first thing David reviews.
+**Next pickup point:** Slice `05-roads-cull-relax` (renderer land-cull), then the
+data group (`06` diagnosis → `07` mapgen re-bake). Foundation (02–04) is done.
 
 **Verification setup (learned in slice 01 — READ THIS):**
 - The scene runner (`cd web && node scene.mjs <scene>`) targets a dev server at
@@ -71,10 +72,10 @@ palette. New scene: `campaign-frame` (asserts no off-map black at wide/tall aspe
 ### Global TODO checklist
 - [x] `00-setup` — scaffold + palette reference copied to aesthetics references
 - [x] `01-camera-clamp` — real-frustum-footprint clamp; no off-map black; zoom-ceiling const unified
-- [ ] `02-terrain-grade` — global grade knob (brightness/saturation/warmth)
-- [ ] `03-terrain-biomes` — per-biome hue constants
-- [ ] `04-faction-fill` — de-mud; collapse 3 alpha owners → 1
-- [ ] ★ **Foundation human checkpoint** (David) — then re-bless campaign baselines
+- [x] `02-terrain-grade` — global grade muted (sat 1.06→0.84, wash removed, warmed)
+- [x] `03-terrain-biomes` — grass hue kelly→olive; baselines re-blessed
+- [x] `04-faction-fill` — de-mud (tint removed, 3 alpha owners → 1 = pass alpha 0.35)
+- [ ] ★ **Foundation human checkpoint** (David) — shots presented; awaiting review, proceeding on evidence
 - [ ] `05-roads-cull-relax` — renderer land-cull relax (isolates cull-vs-data)
 - [ ] `06-data-diagnosis` — cities-in-sea + road-graph audit (read-only, human checkpoint)
 - [ ] `07-mapgen-rebake` — one Rust fix + one re-bake: cities on land + road stub/fragment cleanup

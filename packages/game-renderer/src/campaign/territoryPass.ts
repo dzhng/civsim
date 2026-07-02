@@ -16,7 +16,6 @@ export interface CampaignBorderPolyline {
 
 export interface CampaignTerritoryStyle {
   alpha?: number;
-  warmMix?: number;
 }
 
 const TERRITORY_WGSL = `
@@ -40,8 +39,7 @@ fn vs(@location(0) world: vec3f, @location(1) uv: vec2f) -> VsOut {
 @fragment
 fn fs(in: VsOut) -> @location(0) vec4f {
   let sample = textureSample(terrTex, terrSampler, in.uv);
-  let color = mix(sample.rgb, vec3f(0.92, 0.74, 0.42), __TERRITORY_WARM_MIX__);
-  return vec4f(color, sample.a * __TERRITORY_ALPHA__);
+  return vec4f(sample.rgb, sample.a * __TERRITORY_ALPHA__);
 }`;
 
 export class CampaignTerritoryPass {
@@ -64,8 +62,7 @@ export class CampaignTerritoryPass {
     const module = device.createShaderModule({
       label: 'campaign-territory-wgsl',
       code: TERRITORY_WGSL
-        .replace('__TERRITORY_WARM_MIX__', (style.warmMix ?? 0.04).toFixed(3))
-        .replace('__TERRITORY_ALPHA__', (style.alpha ?? 0.24).toFixed(3)),
+        .replace('__TERRITORY_ALPHA__', (style.alpha ?? 0.14).toFixed(3)),
     });
     this.bindGroupLayout = device.createBindGroupLayout({
       label: 'campaign-territory-bgl',

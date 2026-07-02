@@ -480,6 +480,9 @@ export class BattleRenderer {
         uploadMs: roundMs(this.framePerf.uploadMs),
         drawMs: roundMs(this.framePerf.drawMs),
         frameCpuMs: roundMs(this.framePerf.frameCpuMs),
+        // Per-frame GPU time from the shell's timestamp QuerySet (null when the
+        // adapter lacks timestamp-query). The battle-perf-30k gate reads this.
+        gpuTimeMs: shell?.gpuTimeMs ?? null,
       },
     };
   }
@@ -495,6 +498,9 @@ export class BattleRenderer {
 
   private async init() {
     this.shell = await createFrameShell(this.canvas, {
+      // Caps-gated timestamp QuerySet; feeds stats().performance.gpuTimeMs so
+      // the standing 30k perf gate measures the production battle frame.
+      enableGpuTimer: true,
       onFatalError: (report) =>
         showFatalErrorSurface(
           this.canvas,

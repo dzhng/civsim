@@ -716,6 +716,9 @@ export class RawFrameShellImpl implements RawFrameShell {
     const writes: GpuTimestampWrites = { querySet: this.gpuTimer.querySet };
     if (phase === 'background') writes.beginningOfPassWriteIndex = 0;
     if (phase === lastPhase) writes.endOfPassWriteIndex = 1;
+    // A middle phase (neither first nor last) writes no timestamps; an empty
+    // timestampWrites descriptor is a WebGPU validation error.
+    if (writes.beginningOfPassWriteIndex === undefined && writes.endOfPassWriteIndex === undefined) return undefined;
     return writes;
   }
 

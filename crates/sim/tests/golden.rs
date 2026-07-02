@@ -53,13 +53,11 @@ fn golden_state_hash_stable() {
         sim.tick();
     }
     let h = state_hash(&sim);
-    // Re-pinned: broad, deep contacts periodically re-dress slot labels, and
-    // the pivot spring keeps capped leverage for mounted contact and narrow
-    // columns into much wider foot lines. Intentional for contact-width
-    // preservation without overpowering cavalry walk-ins. (Prior re-pins:
-    // stamina cadence-coupling; LightSpear reach 1.6→1.5; turn rate no longer
-    // throttled by cohesion.)
-    const EXPECTED: u64 = 0xc8fad834908e0b0e;
+    // Re-pinned for melee-blob slice 05: the pivot spring is projected
+    // torque-free per unit, removing its internal solid-rotation mode.
+    // (Prior re-pins: broad/deep contact re-dress; stamina cadence-coupling;
+    // LightSpear reach 1.6→1.5; turn rate no longer throttled by cohesion.)
+    const EXPECTED: u64 = 0x1dc6e35d979b486c;
     assert_eq!(
         h, EXPECTED,
         "sim behavior changed: golden hash {h:#018x} != pinned {EXPECTED:#018x}. \

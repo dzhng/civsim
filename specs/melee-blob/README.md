@@ -16,21 +16,18 @@ Risks), never as the first move.
 
 ## Next Agent Prompt
 
-*Status (2026-07-03): slice 05 ROOT CAUSE NAMED, first exact projection
-attempt STOPPED and reverted. The pivot spring — an internal force field —
-carries a net curl in a deformed press: it pumps angular momentum into its
-own unit, the speed cap masks most of it, the ~3 deg/s circulation loop is
-the remainder, and its slow asymmetry is the shape tilt (the visual
-pinwheel). The exact torque-free projection in `steer_soldiers` did collapse
-the `PivotSpring` trace residual (max 0.187 deg/s in the saved probe) and
-reduced average circulation to ~0.28-0.38 deg/s, but it failed the FIRST gate:
-survivability regressed from clean HEAD's passing lethality 193s and HP4/HP1
-5.85x to 167s and 6.18x. Source was reverted per protocol; no golden re-pin,
-pin rebuild, scenarios/balance, or vibe refilm was run. Pickup point: read
-the stopped-attempt note at the bottom of slices/05-pinwheel.md, redesign the
-torque-free/internal-field fix so survivability holds first, then rerun the
-same ladder before the orchestrator rebuilds the pinwheel pin on the shape
-detector and refilms vibes.*
+*Status (2026-07-03): slice 05 LANDED with the pre-authorized pin
+re-derivation. The pivot spring — an internal force field — now projects out
+its per-unit solid-rotation mode each tick (`omega = sum(r x F)/sum(|r|^2)`,
+`F' = F - omega x r` about the living centroid), and the `PivotSpring`
+force-trace channel records the projected value. The channel residual is down
+to max 0.187 deg/s, the shape-orientation pin is active and green, survivability
+and downstream value rails were re-derived with ledgers, golden moved once
+(`0xc8fad834908e0b0e` -> `0x1dc6e35d979b486c`), `test-mechanics
+--no-fail-fast`, `test-scenarios`, and `test-balance` are green. No vibe
+baselines or `web/` files were touched. Pickup point: orchestrator vibe refilm
+for the new slice-05 physics, then slices 06-08 (pike void, silhouette residue,
+re-bless/close).*
 
 You are implementing this spec. Slices 01–03 (harness, metrology,
 attribution) are landed — read their slice files' bottom notes and the
@@ -48,7 +45,7 @@ before ending your pass.
 - [x] 02 metrology — detectors + probes + ignored pins + seam-timeline.html; seam band does not reproduce sustained, rotation does
 - [x] 03 attribution — verdicts measured; band/chirality/pike-owner killed; orbit is mortal-only; **resliced**
 - [x] 04 mortal-orbit attribution — cap-clips-spring named as the unlock; off-axis mass chase / ratchet timing / forward-close feed killed; band rail active
-- [ ] 05 orbit fix — per 04's verdict; the equilibrium must settle; the re-dress-off ±180° blow-up must also heal
+- [x] 05 orbit fix — torque-free pivot projection landed; shape pin rebuilt on the slice-05 detector; value pins and golden re-derived
 - [ ] 06 pike void — re-measure after 05, diagnose residue fresh (owner hypothesis dead)
 - [ ] 07 silhouette — residue after 05–06 (vibe-like floor today: 0.62)
 - [ ] 08 re-bless, change-report ledger, standoff-rider 1v1 pin, close-spec

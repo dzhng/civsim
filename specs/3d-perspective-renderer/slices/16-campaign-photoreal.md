@@ -80,3 +80,84 @@ The aesthetics skill campaign references (`campaign-map-aegean-wide.png`,
 The 16a GO/NO-GO is David's most consequential remaining call — surface it clearly
 (preview-shots + a one-paragraph recommendation), but do not block: decide on
 evidence if silent, record, and keep the door explicitly reversible until 16b lands.
+
+## 16a RULING — **NO-GO** (recorded 2026-07-03; reversible until 16b lands)
+
+**Verdict: campaign stays on the bespoke WGSL chart renderer as a deliberate,
+permanent two-renderer exception.** The photoreal substrate cannot carry the
+antique-chart register; per this slice's own Risks note, that makes NO-GO the
+correct verdict, not a failure.
+
+**The experiment.** Reused the photoreal substrate (`/renderer/photoreal-battle`,
+the full production `PhotorealWorld` — SkyModel dome + aerial-perspective owner +
+Gerstner `seaLayer` + CSM sun + ACES) framed at chart-like cameras: a strategic
+near-top-down (`pitch≈1.4`, low zoom) and a low vista, golden-hour preset, hardware
+adapter. Held side-by-side with the current bespoke chart at matched framings
+(`campaign-lod-whole-natural` strategic, `campaign-lod-rome-close` close) and the
+north-star reference (`aesthetics/references/campaign-map-aegean-wide.png`).
+Opened for David with `preview-shots`; ~10-min active window.
+
+**Evidence (four independent lines, all one direction):**
+1. *References.* The campaign identity (aesthetics: "preserve and sharpen") is a
+   FLAT painted parchment chart — matte slate-blue sea carrying faded italic
+   sea-names, engraved Cinzel labels, cloud-vignette frame, painted relief. It is
+   defined by the ABSENCE of a physical sky, wave sea, cast shadows, and ACES
+   contrast.
+2. *The photoreal substrate at a chart camera* renders a physically-lit ground
+   plane whose edges fade into an atmospheric sky-haze band — a lit empty field,
+   not a chart. No vignette frame, no muted palette, nowhere to letter a sea name.
+3. *The photoreal sea* (`photoreal-sea/sea-horizon`) is a Gerstner ocean with
+   whitecaps + blinding sun-glint — categorically "satellite/real render," the
+   exact failure the slice names ("campaign must NOT become a satellite render").
+   Calm painted water with italic "AEGEAN SEA" across it is impossible on it.
+4. *Neutral unprimed judge* (fresh subagent, images only, neutral labels) — verdict
+   unprompted: the bespoke chart reads as the antique chart; the photoreal render
+   is "a fundamentally different register that grading cannot convert" (no flat
+   orthographic chart projection, no painted land/sea separation, no sea lettering).
+
+**The trade David saw.** *Chart identity vs photoreal consistency:* the photoreal
+substrate's headline outputs (physical sky, Gerstner sea + glint, CSM shadows, ACES
+relief) are precisely the register that converts the painted chart into a satellite
+render — the opposite of the locked campaign identity. *Perf:* not a factor
+(campaign is cheap either way; the headline gate stays battle). *17 payoff:* GO's
+sole real upside — one substrate engine-wide, 17 deletes ALL bespoke passes. NO-GO
+keeps the bespoke campaign renderer permanently; 17's sweep shrinks to battle-side
+bespoke only. The maintenance win does not justify destroying the identity the
+aesthetics skill exists to protect, on a surface that already hits its target.
+
+**Consequences of NO-GO (this slice):**
+- The bespoke campaign renderer is recorded as an intentional permanent exception
+  in the README end-state invariants + the scaffolding ledger's last row.
+- 16b/c (photoreal campaign world, entities/scenery) are **not built**.
+- 16d re-scopes to bespoke-side critique touches only (the 05a-flagged items).
+- `17`'s deletion inventory: battle-side bespoke world passes only; the campaign
+  bespoke passes + `frameShell` world machinery are KEPT (the campaign renderer is
+  their live owner), not swept.
+
+## 16d (NO-GO branch) — bespoke-renderer critique touches
+
+The 05a-flagged look items, landed on the bespoke campaign renderer:
+- **ROMA as army sub-label** — already shipped: `campaignArmyLabels` sets
+  `subText: occupiedCity.name.toUpperCase()` (`web/src/campaign/renderer.ts`).
+- **Label anchors below the model** — already shipped: relief-aware
+  `cityLabelOffset` + `cityReliefRisePx` seat the name a fixed gap below the raised
+  model. (Verified against a fresh close capture; no change needed.)
+- **Low-contrast selection ring** — DONE. `CampaignSelectionPass` city ring (kind 0)
+  was a 0.68-alpha green washed 40% toward parchment-gold → read as faint grey over
+  turf. Raised to 0.90 alpha + 0.20 wash + a small brightness lift; the green
+  allegiance ring is now legible (before: no visible ring on selected Roma; after: a
+  clear green ring). Verified in `campaign-lod-selected-city` before/after.
+- **Glowing beach rim** — DONE (conservative). The land-side coastal sand in
+  `mapPass` `naturalCampaignColor` was a bright `(0.85,0.78,0.60)` over a wide
+  `0.05..0.6` shore band → glowing rim. Muted to `(0.77,0.71,0.56)` and tightened to
+  `0.04..0.42`; the waterline reads as a soft beach, not a lit edge. Sub-budget
+  across the campaign suite (floors untouched); the coast `campaign-lod` naturals
+  re-blessed deliberately.
+- **Roads through city models** — AUDITED, no code change this pass. Roads are
+  `depth:read` decals correctly drawn AFTER the depth-writing city entities, so
+  depth already governs occlusion; the residual "through" read is road geometry
+  terminating at the city NODE center *under* the model footprint. The right fix
+  (per `renderer` skill: never cut endpoint gaps around occluders) is to terminate
+  road polylines at the city footprint radius and let the model occlude — a
+  contained follow-up left for a road-geometry pass; recorded here so `17`/polish
+  can pick it up. Not churned blind under this slice.

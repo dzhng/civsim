@@ -285,7 +285,7 @@ export class PhotorealBattleWorld {
     const scene = this.world.scene;
     if (this.ground) {
       scene.remove(this.ground);
-      this.ground.geometry.dispose();
+      disposeMesh(this.ground);
     }
     const groundMesh = buildBattleGroundMesh(grid, field, this.groundCover);
     this.groundTriangles = groundMesh.triangles;
@@ -294,11 +294,11 @@ export class PhotorealBattleWorld {
 
     if (this.horizonBlockers) {
       scene.remove(this.horizonBlockers);
-      this.horizonBlockers.geometry.dispose();
+      disposeMesh(this.horizonBlockers);
     }
     for (const plane of this.oceanPlanes) {
       scene.remove(plane);
-      plane.geometry.dispose();
+      disposeMesh(plane);
     }
     const layout = buildBattleHorizonLayout(
       { ox: grid.ox, oy: grid.oy, w: grid.w, h: grid.h, cell: grid.cell },
@@ -520,6 +520,15 @@ export class PhotorealBattleWorld {
   dispose(): void {
     this.world.dispose();
   }
+}
+
+/** setTerrain can rebuild a battle world in place (restarts); release both
+ *  sides of the swapped meshes. */
+function disposeMesh(mesh: THREE.Mesh): void {
+  mesh.geometry.dispose();
+  const material = mesh.material;
+  if (Array.isArray(material)) material.forEach((m) => m.dispose());
+  else material.dispose();
 }
 
 /** BattleRenderer's expandedTerrainRect — the backdrop margin. */

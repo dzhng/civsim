@@ -28,8 +28,10 @@ blob-shadow decals are deleted). Every later look slice lands in the real game,
 on `main`, as an individually gated increment — not on a long-lived branch. The
 standing gates ("Photoreal ladder invariants" below) apply on every slice.
 
-**Exact next pickup point: slice `13` (terrain/foliage substrate seams) then
-`16` (campaign photoreal).** Slices `14` and `15` are DONE (see ledger). Slice
+**Exact next pickup point: slice `13` (terrain/foliage substrate seams), then
+`17` (close-spec).** Slice `16` is DONE — `16a` **ruled NO-GO** (campaign stays
+bespoke, permanent two-renderer exception; see ledger + invariants), so `17`'s
+sweep is battle-side bespoke ONLY. Slices `14` and `15` are DONE (see ledger). Slice
 `15` settled the grade infrastructure the campaign question inherits: ONE post
 owner (`post/postChain.ts`), restrained bloom, and the **AgX** tone-map verdict
 (ACES deleted). The far-crowd smear the `11` critique flagged is retired by
@@ -76,6 +78,7 @@ map-edge seams + mountain shelf + crag-base shadow gap (`13`), far-crowd smear
 | `12c` photoreal sea foam | whitecaps gated by Gerstner crest height + slope agitation + speckle; `sea-mid` crop foamFraction 0.0838, not blanket; hardware baseline + SwiftShader green | `b4ced5e3` |
 | `12d` photoreal sea shore | terrain-height shore ramp blends tan sand → turquoise → deep blue; sea rim extended to 7200 m and left to 10b aerial haze; `shore-line` SwiftShader green | `775e5419` |
 | `12e` photoreal sea glint | roughness floor 0.105 + normal-detail ceiling 0.84; `sun-glint` hotFraction 0.0326/centerShare 0.6393; old water-* bakeoff gates retired; 30k perf 5.85/7.89 ms | this commit |
+| `16a` campaign GO/NO-GO | **NO-GO** — photoreal register (physical sky, Gerstner sea+glint, CSM, ACES) destroys the antique chart; four independent evidence lines incl. a neutral unprimed judge ("register grading cannot convert"); campaign stays bespoke as a PERMANENT exception; `17` sweeps battle-only. `16d` critique fixes on bespoke: selection-ring contrast (green ring now legible) + beach-rim mute; ROMA sub-label/relief label-anchors already shipped. Full campaign suite green; `campaignPicking` 4/4; 5 `campaign-lod` baselines re-blessed | this commit |
 | `14a` PBR soldier materials | per-class albedo/normal/orm/faction-mask on the VAT crowd via node materials; bronze/iron metal, linen/leather rough; accent broadMix 0.30/maskedMix 0.98 legible at zoom | `codex-14a` |
 | `14b` 30k LOD/impostors + culling | lod.ts policy reused (L0/L1/L2 mesh + L3 octahedral impostor, absorbs 04e); per-instance CPU cull vs view ∪ CSM-cascade frusta; spike DELETED; coarse-tier + impostor faction tint (faction-before-class at range); **30k perf mid 3.63/vista 3.59 ms (vista −4.3 from 12e)** | this commit |
 | `14c` contact AO | analytic `aoNode` grounding (indirect-only, distinct from 11's cast shadow); band 0.42 / strength 0.55, corpse-gated; frame-time-neutral | this commit |
@@ -124,9 +127,11 @@ map-edge seams + mountain shelf + crag-base shadow gap (`13`), far-crowd smear
 - [x] `15` — post chain: `post/postChain.ts` ONE owner; restrained bloom
       (0.06/0.30/threshold 1.0) + **AgX** tone-map (ACES deleted); 12e glint
       pairing proven; 15b refine = no (`slices/15-post-chain.md`)
-- [ ] `16` — campaign photoreal: `16a` register GO/NO-GO + flip, chart grade,
-      entities, territory/labels (`slices/16-campaign-photoreal.md`)
-- [ ] `17` — legacy deletion sweep + close-spec (`slices/17-legacy-sweep-close.md`)
+- [x] `16` — campaign photoreal: `16a` **ruled NO-GO** — campaign stays bespoke as a
+      permanent two-renderer exception; `16b`/`16c` not built; `16d` critique fixes
+      landed on the bespoke renderer (`slices/16-campaign-photoreal.md`)
+- [ ] `17` — legacy deletion sweep + close-spec — **battle-side bespoke ONLY**
+      (campaign bespoke passes KEPT per `16a`) (`slices/17-legacy-sweep-close.md`)
 
 (`13`/`14` remain parallelizable in worktrees after `11`; `15` follows the glint/bloom contract.)
 
@@ -377,6 +382,15 @@ in reviewable passes, then delete the stale path in the same milestone.
 - **Determinism:** animation keys off `PhotorealWorld.setTime` + seeded RNG; the TSL
   `time` node is banned in package code.
 - **Version pin:** `three@0.185.1` until `17` closes the ladder.
+- **Substrate split (`16a` ruled NO-GO):** the photoreal three.js substrate owns
+  **battle** world rendering; the **campaign** antique chart stays on the bespoke
+  WGSL renderer (`web/src/campaign/renderer.ts` + its `packages/game-renderer/src/campaign/*`
+  passes + `frameShell` world machinery) as a **deliberate, permanent two-renderer
+  exception**. The chart register (flat painted parchment, matte slate sea with
+  italic sea-names, engraved labels, cloud vignette) is *destroyed* by the
+  photoreal sky/Gerstner-sea/CSM-shadow/ACES register — evidence + neutral judge in
+  `slices/16-campaign-photoreal.md`. "One substrate engine-wide" is therefore NOT a
+  ladder invariant; `17` deletes battle-side bespoke only.
 
 **Scaffolding ledger** — everything that exists only to die, each with its named
 deleter (a ladder slice is not done while its ledger row is still alive):
@@ -390,7 +404,7 @@ deleter (a ladder slice is not done while its ledger row is still alive):
 | ~~Blob-shadow parity stand-in (decal replicas: soldier + scenery)~~ | 08a | **DELETED at 11** (real CSM via `battle/shadowRig.ts`) |
 | Parity Gerstner-family sea shading in `seaLayer` | 08a | **12b–d** (photoreal surface; the seam survives) |
 | Battle instances of bespoke world passes orphaned at the flip (`BattleGroundPass`, `BattleGrassPass`, `BattleHorizonPass`, `BattleGroundCuePass`, `BattleEffectLinePass`, inline `BattleTrianglePass`, battle `SkinnedCrowdPipeline`/`SoldierShadowDecalPass`) — classes live on for campaign/lab | pre-existing | **08b** orphans; **17** deletes (per `16a`'s campaign ruling) |
-| Bespoke campaign world passes + `frameShell` world machinery + `WaterPlanePass`/`gerstnerField.ts` WGSL | pre-existing | **16a** orphans (if GO) → **17** sweeps; if NO-GO, recorded exception |
+| ~~Bespoke campaign world passes + `frameShell` world machinery~~ | pre-existing | **16a ruled NO-GO** — KEPT as the campaign renderer's live owner (permanent intentional exception, see invariants). `WaterPlanePass`/`gerstnerField.ts` WGSL is battle-water bespoke and still dies at **17**. |
 
 **Standing gates on EVERY slice `08b`→`17`** (each slice file references this list;
 don't restate it, run it):

@@ -61,6 +61,13 @@ export interface BattleTerrainPresentation {
   features: BattleTerrainFeature[];
 }
 
+/** Render exaggeration for the gentle metre-scale relief at the gameplay
+ *  camera; the sim height stays plausible. Modest for live play (vs the lab
+ *  review value) so soldiers don't visibly stair-step. One owner: the
+ *  production BattleRenderer and the photoreal battle world both scale the
+ *  live height field by this. */
+export const BATTLE_RELIEF_EXAGGERATION = 1.6;
+
 export function isBattleGrassBlockedTint(tint: number): boolean {
   return tint === 1 || tint === 2 || tint === 3 || tint === 5;
 }

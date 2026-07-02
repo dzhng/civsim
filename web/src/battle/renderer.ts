@@ -14,6 +14,7 @@ import {
   battleMapByWasmId,
 } from "../../../packages/game-renderer/src/battle/mapCatalog";
 import {
+  BATTLE_RELIEF_EXAGGERATION,
   deriveBattleEdgeRoles,
   type BattleGroundCover,
   type BattleTerrainGrid,
@@ -55,10 +56,6 @@ export class BattleRenderer {
   fixedTime: number | null = null;
   preserveFrozenEffects = false;
 
-  // Render exaggeration for the gentle metre-scale relief at the gameplay
-  // camera; the sim height stays plausible. Modest for live play (vs the lab
-  // review value) so soldiers don't visibly stair-step.
-  private static readonly RELIEF_EXAGGERATION = 1.6;
 
   private shell: RawFrameShell | null = null;
   private ground: BattleGroundPass | null = null;
@@ -186,7 +183,7 @@ export class BattleRenderer {
           oy: grid.oy,
           height: grid.height,
           units: "meters",
-          verticalScale: BattleRenderer.RELIEF_EXAGGERATION,
+          verticalScale: BATTLE_RELIEF_EXAGGERATION,
         }
       : {
           w: grid.w,

@@ -26,12 +26,25 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-// vec4(dirX, dirY, wavelength m, amplitude m) per wave, as a WGSL array literal.
-function bakeWaveArray(): string {
+/** One baked directional wave. The numbers are quantised exactly as the WGSL
+ *  literal prints them, so any consumer (the photoreal TSL sea included)
+ *  evaluates the same field the production shader compiles in. */
+export interface GerstnerWave {
+  dirX: number;
+  dirY: number;
+  /** metres */
+  wavelength: number;
+  /** metres */
+  amplitude: number;
+}
+
+// The discretised ocean spectrum: deterministic (seeded), one source of truth
+// for every Gerstner-family water surface.
+export function bakeGerstnerWaves(): GerstnerWave[] {
   const rng = mulberry32(WAVE_SEED);
   const longL = 96;
   const shortL = 6.5; // down into fine chop so the big swells carry small-scale ripple
-  const rows: string[] = [];
+  const waves: GerstnerWave[] = [];
   for (let i = 0; i < WAVE_COUNT; i++) {
     const t = i / (WAVE_COUNT - 1);
     const wavelength = longL * (shortL / longL) ** t * (0.85 + 0.3 * rng());
@@ -43,8 +56,22 @@ function bakeWaveArray(): string {
     // Longer waves carry more amplitude (a red spectrum); jittered so no single
     // train dominates the grain.
     const amp = 2.7 * (wavelength / longL) ** 0.7 * (0.7 + 0.6 * rng());
-    rows.push(`vec4f(${dx.toFixed(4)}, ${dy.toFixed(4)}, ${wavelength.toFixed(2)}, ${amp.toFixed(3)})`);
+    // Quantise like the WGSL literal so all consumers see identical waves.
+    waves.push({
+      dirX: Number(dx.toFixed(4)),
+      dirY: Number(dy.toFixed(4)),
+      wavelength: Number(wavelength.toFixed(2)),
+      amplitude: Number(amp.toFixed(3)),
+    });
   }
+  return waves;
+}
+
+// vec4(dirX, dirY, wavelength m, amplitude m) per wave, as a WGSL array literal.
+function bakeWaveArray(): string {
+  const rows = bakeGerstnerWaves().map(
+    (w) => `vec4f(${w.dirX.toFixed(4)}, ${w.dirY.toFixed(4)}, ${w.wavelength.toFixed(2)}, ${w.amplitude.toFixed(3)})`,
+  );
   return `array<vec4f, ${WAVE_COUNT}>(\n    ${rows.join(',\n    ')}\n  )`;
 }
 

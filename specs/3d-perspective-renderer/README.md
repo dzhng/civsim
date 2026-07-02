@@ -29,9 +29,12 @@ on `main`, as an individually gated increment — not on a long-lived branch. Th
 standing gates ("Photoreal ladder invariants" below) apply on every slice.
 
 **Exact next pickup point: slice `13` (terrain/foliage substrate seams) then
-`15` (post chain).** Slice `14` is DONE (see ledger). The far-crowd smear the
-`11` critique flagged is retired by `14b`'s impostor tier; `14c` grounds the
-feet. Original `12`/`14` follow-up context below:
+`16` (campaign photoreal).** Slices `14` and `15` are DONE (see ledger). Slice
+`15` settled the grade infrastructure the campaign question inherits: ONE post
+owner (`post/postChain.ts`), restrained bloom, and the **AgX** tone-map verdict
+(ACES deleted). The far-crowd smear the `11` critique flagged is retired by
+`14b`'s impostor tier; `14c` grounds the feet. Original `12`/`14` follow-up
+context below:
 
 **Prior pickup context: slice `13`/`14`/`15` follow-up work**
 (`slices/12-photoreal-sea.md`): `12a` picked Gerstner TSL and rejected the
@@ -76,6 +79,7 @@ map-edge seams + mountain shelf + crag-base shadow gap (`13`), far-crowd smear
 | `14a` PBR soldier materials | per-class albedo/normal/orm/faction-mask on the VAT crowd via node materials; bronze/iron metal, linen/leather rough; accent broadMix 0.30/maskedMix 0.98 legible at zoom | `codex-14a` |
 | `14b` 30k LOD/impostors + culling | lod.ts policy reused (L0/L1/L2 mesh + L3 octahedral impostor, absorbs 04e); per-instance CPU cull vs view ∪ CSM-cascade frusta; spike DELETED; coarse-tier + impostor faction tint (faction-before-class at range); **30k perf mid 3.63/vista 3.59 ms (vista −4.3 from 12e)** | this commit |
 | `14c` contact AO | analytic `aoNode` grounding (indirect-only, distinct from 11's cast shadow); band 0.42 / strength 0.55, corpse-gated; frame-time-neutral | this commit |
+| `15` post chain | `post/postChain.ts` — ONE owner on three's node pipeline: restrained bloom (strength 0.06/radius 0.30/**linear-HDR threshold 1.0** → only sun disc + GGX glint spill; overlays sit below threshold, DOM HUD is off-canvas) + tone-map at the tail. **Tonemap verdict: AgX** (ACES deleted; blind A/B confirmed it reads closer to the warm filmic reference than ACES' Instagram punch). 12e pairing PROVEN (`photoreal-post` bloom on/off: glint hotFraction 0.0235→0.0267, still < 0.07 tripwire). 15b refine = NO. Perf 4.73 mid / 7.89 vista ms (bloom +1.1/+4.3, in budget). 10 baselines (7 re-blessed + 3 new); shadow presence-proxy 1.5→1.2 (AgX lifts shadows) | this commit |
 
 ### Active blockers / coordination warnings
 
@@ -117,8 +121,9 @@ map-edge seams + mountain shelf + crag-base shadow gap (`13`), far-crowd smear
 - [x] `14` — photoreal soldiers: `14a` PBR materials · `14b` 30k LOD/impostors +
       union-frustum culling (spike deleted; vista 7.89→3.59 ms) · `14c` contact AO
       (`slices/14-photoreal-soldiers.md`)
-- [ ] `15` — post chain: bloom + refine; ACES-vs-AgX decided here
-      (`slices/15-post-chain.md`)
+- [x] `15` — post chain: `post/postChain.ts` ONE owner; restrained bloom
+      (0.06/0.30/threshold 1.0) + **AgX** tone-map (ACES deleted); 12e glint
+      pairing proven; 15b refine = no (`slices/15-post-chain.md`)
 - [ ] `16` — campaign photoreal: `16a` register GO/NO-GO + flip, chart grade,
       entities, territory/labels (`slices/16-campaign-photoreal.md`)
 - [ ] `17` — legacy deletion sweep + close-spec (`slices/17-legacy-sweep-close.md`)

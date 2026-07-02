@@ -11,7 +11,9 @@
 pub mod common;
 
 use common::{deaths, no_morale};
-use sim::{class_stats, setup_duel, Pace, Sim, Tunables, UnitClass, UnitClassId, Vec2, DT};
+use sim::{
+    class_stats, setup_duel, OrderMode, Pace, Sim, Tunables, UnitClass, UnitClassId, Vec2, DT,
+};
 use std::f32::consts::FRAC_PI_2;
 
 const N: usize = 240;
@@ -2012,6 +2014,297 @@ fn rotation_rate_300_400(run: &BlobRun) -> f32 {
     (sample_at(run, 400.0).rotation - sample_at(run, 300.0).rotation) / 100.0
 }
 
+fn angle_delta_deg(to: f32, from: f32) -> f32 {
+    sim::wrap_angle((to - from).to_radians()).to_degrees()
+}
+
+fn unit_frame_axes(sim: &Sim, unit: usize) -> (Vec2, Vec2) {
+    let f = sim::dir(sim.units[unit].facing);
+    (f, Vec2::new(f.y, -f.x))
+}
+
+fn signed_foe_mass_angle_deg(sim: &Sim, unit: usize, foe: usize) -> f32 {
+    let (f, r) = unit_frame_axes(sim, unit);
+    let bearing = unit_live_centroid(sim, foe) - unit_live_centroid(sim, unit);
+    let l = bearing.len().max(1.0e-4);
+    let b = bearing * (1.0 / l);
+    b.dot(r).atan2(b.dot(f)).to_degrees()
+}
+
+fn lateral_alive_mass_offset(sim: &Sim, unit: usize) -> f32 {
+    let (_, r) = unit_frame_axes(sim, unit);
+    (unit_live_centroid(sim, unit) - sim.units[unit].anchor).dot(r)
+}
+
+fn lateral_slot_mass_offset(sim: &Sim, unit: usize) -> f32 {
+    let u = &sim.units[unit];
+    let (_, r) = unit_frame_axes(sim, unit);
+    let mut sum = 0.0f32;
+    let mut n = 0usize;
+    for i in u.start..u.start + u.count {
+        if sim.alive[i] == 0 {
+            continue;
+        }
+        sum += (u.slot_world(sim.soldier_slot[i] as usize) - u.anchor).dot(r);
+        n += 1;
+    }
+    if n == 0 {
+        0.0
+    } else {
+        sum / n as f32
+    }
+}
+
+fn column_close_due_now(sim: &Sim, unit: usize) -> bool {
+    let u = &sim.units[unit];
+    let advancing = u.move_target.is_some() || matches!(u.mode, OrderMode::Attack(_));
+    let casualties_to_close = u.deaths_since_reform * 50 > u.alive_count.max(1);
+    casualties_to_close
+        && (u.engaged > 0 || advancing)
+        && !u.pivoting
+        && !broad_engaged_deep_reform_due(sim, unit)
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+struct KillFrameHist {
+    left: usize,
+    right: usize,
+    front: usize,
+    rear: usize,
+}
+
+impl KillFrameHist {
+    fn add(&mut self, lat: f32, depth: f32) {
+        if lat >= 0.0 {
+            self.right += 1;
+        } else {
+            self.left += 1;
+        }
+        if depth >= 0.0 {
+            self.front += 1;
+        } else {
+            self.rear += 1;
+        }
+    }
+
+    fn lateral_balance(self) -> f32 {
+        let n = self.left + self.right;
+        if n == 0 {
+            0.0
+        } else {
+            (self.right as f32 - self.left as f32) / n as f32
+        }
+    }
+}
+
+#[test]
+#[ignore = "melee-blob: slice 04 off-axis mass-chase attribution table"]
+fn blob_probe_slice04_off_axis_mass_chase() {
+    let stats = class_stats(UnitClassId::HeavySword);
+    for seed in [0_u64, 1, 2, 3, 4] {
+        let (mut sim, a, b) = blob_clash(seed, UnitClassId::HeavySword, stats, false);
+        let end_step = (400.0 / DT) as usize;
+        let sample_300 = (300.0 / DT) as usize;
+        let sample_400 = end_step;
+        let mut rot300 = 0.0f32;
+        let mut rot400 = 0.0f32;
+        let mut angle_sum = [0.0f32; 2];
+        let mut angle_n = 0usize;
+        let mut hist = [KillFrameHist::default(); 2];
+        let mut hist_late = [KillFrameHist::default(); 2];
+        for step in 1..=end_step {
+            let t = step as f32 * DT;
+            let alive_before = sim.alive.clone();
+            let pos_before = sim.positions.clone();
+            let centers = [unit_live_centroid(&sim, a), unit_live_centroid(&sim, b)];
+            let facings = [sim.units[a].facing, sim.units[b].facing];
+            sim.tick();
+            for unit in [a, b] {
+                let u = &sim.units[unit];
+                let slot = if unit == a { 0 } else { 1 };
+                let f = sim::dir(facings[slot]);
+                let r = Vec2::new(f.y, -f.x);
+                for i in u.start..u.start + u.count {
+                    if alive_before[i] == 1 && sim.alive[i] == 0 {
+                        let p = Vec2::new(pos_before[2 * i], pos_before[2 * i + 1]);
+                        let d = p - centers[slot];
+                        hist[slot].add(d.dot(r), d.dot(f));
+                        if (300.0..=400.0).contains(&t) {
+                            hist_late[slot].add(d.dot(r), d.dot(f));
+                        }
+                    }
+                }
+            }
+            if step == sample_300 {
+                rot300 = engagement_rotation_deg(&sim, a, b);
+            }
+            if (300.0..=400.0).contains(&t) {
+                angle_sum[0] += signed_foe_mass_angle_deg(&sim, a, b);
+                angle_sum[1] += signed_foe_mass_angle_deg(&sim, b, a);
+                angle_n += 1;
+            }
+            if step == sample_400 {
+                rot400 = engagement_rotation_deg(&sim, a, b);
+            }
+        }
+        let rate = (rot400 - rot300) / 100.0;
+        let avg_angle = (angle_sum[0] + angle_sum[1]) / (2.0 * angle_n.max(1) as f32);
+        let kill_bal = (hist[0].lateral_balance() + hist[1].lateral_balance()) * 0.5;
+        let kill_bal_late = (hist_late[0].lateral_balance() + hist_late[1].lateral_balance()) * 0.5;
+        eprintln!(
+            "SLICE04_MASS_CHASE seed={seed} rot300={rot300:.2}deg rot400={rot400:.2}deg rate300_400={rate:.4}deg_s avg_foe_mass_angle300_400={avg_angle:.3}deg sign_match={} kill_balance_all={kill_bal:.3} kill_balance_late={kill_bal_late:.3}",
+            (rate == 0.0 || avg_angle == 0.0 || rate.signum() == avg_angle.signum()) as u8,
+        );
+        for unit in [0usize, 1] {
+            eprintln!(
+                "  SLICE04_KILL_HIST seed={seed} unit={unit} all_left={} all_right={} all_front={} all_rear={} late_left={} late_right={} late_front={} late_rear={}",
+                hist[unit].left,
+                hist[unit].right,
+                hist[unit].front,
+                hist[unit].rear,
+                hist_late[unit].left,
+                hist_late[unit].right,
+                hist_late[unit].front,
+                hist_late[unit].rear,
+            );
+        }
+    }
+}
+
+#[test]
+#[ignore = "melee-blob: slice 04 mortal engaged-deep-reform beat timing"]
+fn blob_probe_slice04_ratchet_timing() {
+    let stats = class_stats(UnitClassId::HeavySword);
+    for seed in [0_u64, 1, 2, 3, 4] {
+        let (mut sim, a, b) = blob_clash(seed, UnitClassId::HeavySword, stats, false);
+        let mut last_after_lattice: [Option<f32>; 2] = [None, None];
+        let mut last_after_rot: [Option<f32>; 2] = [None, None];
+        let mut beat_n = 0usize;
+        let mut sum_abs_inter = 0.0f32;
+        let mut sum_abs_step = 0.0f32;
+        let mut sum_abs_rot_inter = 0.0f32;
+        let mut same_step_rot = 0usize;
+        let mut step_exceeds_inter = 0usize;
+        for _ in 0..(400.0 / DT) as usize {
+            let before = [
+                lattice_orientation_deg(&sim, a),
+                lattice_orientation_deg(&sim, b),
+            ];
+            let before_rot = engagement_rotation_deg(&sim, a, b);
+            let due = [
+                broad_engaged_deep_reform_due(&sim, a),
+                broad_engaged_deep_reform_due(&sim, b),
+            ];
+            sim.tick();
+            let t = sim.tick_count as f32 * DT;
+            for unit in [a, b] {
+                let slot = if unit == a { 0 } else { 1 };
+                if !due[slot] || t < 120.0 {
+                    continue;
+                }
+                let after = lattice_orientation_deg(&sim, unit);
+                let after_rot = engagement_rotation_deg(&sim, a, b);
+                let inter = last_after_lattice[slot]
+                    .map(|prev| angle_delta_deg(before[slot], prev))
+                    .unwrap_or(0.0);
+                let rot_inter = last_after_rot[slot]
+                    .map(|prev| angle_delta_deg(before_rot, prev))
+                    .unwrap_or(0.0);
+                let step = angle_delta_deg(after, before[slot]);
+                if last_after_lattice[slot].is_some() {
+                    beat_n += 1;
+                    sum_abs_inter += inter.abs();
+                    sum_abs_step += step.abs();
+                    sum_abs_rot_inter += rot_inter.abs();
+                    same_step_rot +=
+                        (step == 0.0 || rot_inter == 0.0 || step.signum() == rot_inter.signum())
+                            as usize;
+                    step_exceeds_inter += (step.abs() > inter.abs()) as usize;
+                }
+                last_after_lattice[slot] = Some(after);
+                last_after_rot[slot] = Some(after_rot);
+            }
+        }
+        eprintln!(
+            "SLICE04_RATCHET_SUMMARY seed={seed} beats={beat_n} mean_abs_interbeat_lattice={:.3}deg mean_abs_beat_step={:.3}deg mean_abs_rot_interbeat={:.3}deg beat_step_exceeds_interbeat={}/{} step_rot_sign_match={}/{}",
+            sum_abs_inter / beat_n.max(1) as f32,
+            sum_abs_step / beat_n.max(1) as f32,
+            sum_abs_rot_inter / beat_n.max(1) as f32,
+            step_exceeds_inter,
+            beat_n,
+            same_step_rot,
+            beat_n,
+        );
+    }
+}
+
+#[test]
+#[ignore = "melee-blob: slice 04 casualty-repair lateral feed attribution"]
+fn blob_probe_slice04_forward_close_feed() {
+    let stats = class_stats(UnitClassId::HeavySword);
+    for seed in [0_u64, 1, 2, 3, 4] {
+        let (mut sim, a, b) = blob_clash(seed, UnitClassId::HeavySword, stats, false);
+        let mut events = 0usize;
+        let mut physical_signed_delta = 0.0f32;
+        let mut slot_signed_delta = 0.0f32;
+        let mut toward_wrap_physical = 0usize;
+        let mut toward_wrap_slot = 0usize;
+        for _ in 0..(400.0 / DT) as usize {
+            let due = [column_close_due_now(&sim, a), column_close_due_now(&sim, b)];
+            let before_slots = sim.soldier_slot.clone();
+            let before_physical = [
+                lateral_alive_mass_offset(&sim, a),
+                lateral_alive_mass_offset(&sim, b),
+            ];
+            let before_slot = [
+                lateral_slot_mass_offset(&sim, a),
+                lateral_slot_mass_offset(&sim, b),
+            ];
+            let wrap_sign = engagement_rotation_deg(&sim, a, b).signum();
+            sim.tick();
+            let t = sim.tick_count as f32 * DT;
+            for unit in [a, b] {
+                let slot = if unit == a { 0 } else { 1 };
+                if !due[slot] {
+                    continue;
+                }
+                let u = &sim.units[unit];
+                let changed =
+                    (u.start..u.start + u.count).any(|i| before_slots[i] != sim.soldier_slot[i]);
+                if !changed {
+                    continue;
+                }
+                let after_physical = lateral_alive_mass_offset(&sim, unit);
+                let after_slot = lateral_slot_mass_offset(&sim, unit);
+                let phys_delta = after_physical - before_physical[slot];
+                let slot_delta = after_slot - before_slot[slot];
+                let signed_phys = phys_delta * wrap_sign;
+                let signed_slot = slot_delta * wrap_sign;
+                physical_signed_delta += signed_phys;
+                slot_signed_delta += signed_slot;
+                toward_wrap_physical += (signed_phys > 0.0) as usize;
+                toward_wrap_slot += (signed_slot > 0.0) as usize;
+                events += 1;
+                eprintln!(
+                    "SLICE04_FORWARD_CLOSE_EVENT seed={seed} t={t:.2}s unit={slot} wrap_sign={wrap_sign:.0} physical_lat={:.4}->{after_physical:.4} physical_delta={phys_delta:.4} signed_physical_delta={signed_phys:.4} slot_lat={:.4}->{after_slot:.4} slot_delta={slot_delta:.4} signed_slot_delta={signed_slot:.4} alive={}",
+                    before_physical[slot],
+                    before_slot[slot],
+                    u.alive_count,
+                );
+            }
+        }
+        eprintln!(
+            "SLICE04_FORWARD_CLOSE_SUMMARY seed={seed} events={events} mean_signed_physical_delta={:.5}m toward_wrap_physical={}/{} mean_signed_slot_delta={:.5}m toward_wrap_slot={}/{}",
+            physical_signed_delta / events.max(1) as f32,
+            toward_wrap_physical,
+            events,
+            slot_signed_delta / events.max(1) as f32,
+            toward_wrap_slot,
+            events,
+        );
+    }
+}
+
 #[test]
 #[ignore = "melee-blob: slice 03 chirality/ratchet ablation table"]
 fn blob_probe_slice03_chirality_and_ratchet_ablation() {
@@ -2409,7 +2702,6 @@ fn blob_probe_pike_grind() {
 }
 
 #[test]
-#[ignore = "melee-blob: slice 04 lands this"]
 fn a_long_grind_keeps_the_seam_band_bounded() {
     let runs = heavy_blob_runs(0x4202);
     let mortal = runs.iter().find(|r| r.variant == "mortal").unwrap();

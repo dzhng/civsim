@@ -16,17 +16,14 @@ Risks), never as the first move.
 
 ## Next Agent Prompt
 
-*Status (2026-07-02): slices 01–03 COMPLETE and RESLICED. The 03 verdicts
-killed three hypotheses: seam band (p95 ~2r even under full vibe noise —
-inside David's budget), slide/tiebreak chirality, and the pike
-standoff-owner story. The measured disease: pair rotation is a MORTAL-only
-runaway (immortal oscillates 4–9°, mortal ramps 21→62°, vibe-like ~40° with
-silhouette floor 0.62); net torque is a small residual of huge canceling
-SpeedCap-vs-PivotSpring terms; the engaged re-dress ratchets orientation
-10–15°/beat yet ALSO arrests a deeper orbit (disabling it spins 4/5 mortal
-seeds to ±180°). Pickup point: slice 04
-(`slices/04-mortal-orbit-attribution.md`) — name the mortal-unlock
-mechanism, then 05 fixes it.*
+*Status (2026-07-02): slices 01–04 COMPLETE and RESLICED. Slice 04 named the
+mortal unlock: cap-clips-the-spring. SpeedCap removes PivotSpring-aligned
+steering in both runs, but mortality amplifies it (mortal avg
+parallel-of-total clip 0.775 vs immortal 0.689; ramp window peak 0.907 vs
+0.690), so the restoring spring is preferentially eaten while the residual
+drift survives. Off-axis mass chase, re-dress legalization, and forward-close
+feed were killed. Pickup point: slice 05 — fix the cap/spring feedback without
+weakening the now-active seam-band rail.*
 
 You are implementing this spec. Slices 01–03 (harness, metrology,
 attribution) are landed — read their slice files' bottom notes and the
@@ -43,7 +40,7 @@ before ending your pass.
 - [x] 01 force-trace — every force channel recorded at its source, ledger + torque/crossing queries; tweak-mechanics skill updated
 - [x] 02 metrology — detectors + probes + ignored pins + seam-timeline.html; seam band does not reproduce sustained, rotation does
 - [x] 03 attribution — verdicts measured; band/chirality/pike-owner killed; orbit is mortal-only; **resliced**
-- [ ] 04 mortal-orbit attribution — name the unlock mechanism (cap-clips-spring / off-axis mass chase / ratchet timing / forward-close feed); activate the band rail
+- [x] 04 mortal-orbit attribution — cap-clips-spring named as the unlock; off-axis mass chase / ratchet timing / forward-close feed killed; band rail active
 - [ ] 05 orbit fix — per 04's verdict; the equilibrium must settle; the re-dress-off ±180° blow-up must also heal
 - [ ] 06 pike void — re-measure after 05, diagnose residue fresh (owner hypothesis dead)
 - [ ] 07 silhouette — residue after 05–06 (vibe-like floor today: 0.62)
@@ -230,6 +227,17 @@ shots with preview-shots, ~5 min window, decide on evidence, record, proceed).
 | Wrap torque | OPEN | With `SLIDE=0`, disabling flank curl reduced but did not remove mortal residual torque. Mean per-unit total torque over 300-375s fell from ~3996 to ~2717 per 25s window (about 32% reduction), while rates stayed nonzero in the non-traced sweep (`slide0_deepreform1_flankcurl0`: -0.2232, +0.0489, +0.1075, +0.0674, -0.0571 deg/s). Remaining torque is still dominated by `SpeedCap`/`PivotSpring`/`WeaveNet` steering terms. | `SLIDE=0 cargo test -p sim --test force_trace --features force-trace write_slice03_torque_budget -- --ignored --nocapture` and `SLIDE=0 FLANKCURL=0 cargo test -p sim --test force_trace --features force-trace write_slice03_torque_budget -- --ignored --nocapture` |
 | Pike void owner | KILLED | The sampled pike bins do not show wing frontal-gate failure. At t=60s and t=200s, nearest-pair `frontal_gate` was `1/1` across sampled bins. At t=200s the mid gap was only slightly larger (`mid=2.66m`, `end=2.53m`, lens +0.13m), and center bins were mostly bond-only/no-repel, not a double-hold center plus failed-gate wings. | `cargo test -p sim --test mechanics_melee blob_probe_slice03_pike_void_owner_bins -- --ignored --nocapture` |
 | Band reconciliation | KILLED | Full-noise real HeavySword mortal/morale/default-micro grind did not produce a sustained deep band: settled `band_p95=1.99r` (< 3r). Rotation and silhouette are the visible failures: `rot300=24.63deg`, `rot400=39.72deg`, `rate300_400=0.1509deg/s`, `silhouette_floor=0.62`. | `cargo test -p sim --test mechanics_melee blob_probe_slice03_vibe_like_heavy_grind -- --ignored --nocapture` |
+
+## Slice 04 verdicts (measured)
+
+| mechanism | verdict | deciding numbers | reproduce |
+|---|---|---|---|
+| Cap-clips-the-spring | CONFIRMED | SpeedCap removes the component parallel to PivotSpring more strongly in mortal runs: avg `parallel_frac_of_signed` 0.933 mortal vs 0.880 immortal, avg `parallel_frac_of_total` 0.775 vs 0.689. In the ramp window 350-375s, mortal unit 1 reached 0.907 parallel-of-total and 0.983 parallel-of-signed while immortal stayed ~0.690/~0.881. Mortality amplifies an existing cap/spring cancellation into sustained residual drift. | `cargo test -p sim --test force_trace --features force-trace blob_probe_slice04_cap_clips_spring -- --ignored --nocapture` |
+| Off-axis mass chase | KILLED | Rotation-rate sign followed the foe alive-mass offset sign in only 3/5 seeds. Seeds 0 and 1 rotated positive over 300-400s (`+0.2521`, `+0.1683 deg/s`) while the average foe-mass angle was negative (`-14.317`, `-16.988 deg`). Late kill asymmetry had a signal (4/5 sign matches), but the mass-offset criterion failed. | `cargo test -p sim --test mechanics_melee blob_probe_slice04_off_axis_mass_chase -- --ignored --nocapture` |
+| Ratchet timing | KILLED | Re-dress beats cancel/rewrite lattice drift instead of legalizing pair orbit: across 1259 mortal beats, mean abs inter-beat lattice drift was 15.7-17.9 deg and mean abs beat step was 15.6-17.8 deg, while pair rotation between beats was only 1.0-1.6 deg. Beat step exceeded inter-beat drift in 607/1259 beats and matched rotation sign in 700/1259, not a ratchet signature. | `cargo test -p sim --test mechanics_melee blob_probe_slice04_ratchet_timing -- --ignored --nocapture` |
+| Forward-close feed | KILLED | Compact-column repair events did not systematically shift alive mass toward the wrap side. Across 137 events, mean signed physical lateral shift was -0.0012 m/event with 79/137 toward-wrap; slot-target shift was -0.0027 m/event with only 22/137 toward-wrap. | `cargo test -p sim --test mechanics_melee blob_probe_slice04_forward_close_feed -- --ignored --nocapture` |
+
+THE named mortal-unlock mechanism is cap-clips-the-spring: mortality amplifies SpeedCap clipping of PivotSpring's restoring steering until the residual pair rotation persists.
 
 ## Risks
 

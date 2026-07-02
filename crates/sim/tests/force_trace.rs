@@ -169,6 +169,18 @@ struct TorqueWindow {
     by_unit: [BTreeMap<ForceChannel, f32>; 2],
 }
 
+#[derive(Clone, Debug)]
+struct CapClipWindow {
+    start: f32,
+    end: f32,
+    rot_start: f32,
+    rot_end: f32,
+    removed_along_pivot: [f32; 2],
+    removed_against_pivot: [f32; 2],
+    removed_total: [f32; 2],
+    samples: [usize; 2],
+}
+
 #[test]
 #[ignore = "melee-blob: slice 03 long-window torque budget; run with --features force-trace"]
 fn write_slice03_torque_budget() {
@@ -242,6 +254,106 @@ fn write_slice03_torque_budget() {
                         channel.source_site(),
                     );
                 }
+            }
+        }
+    }
+}
+
+#[test]
+#[ignore = "melee-blob: slice 04 cap-vs-pivot clipping attribution; run with --features force-trace"]
+fn blob_probe_slice04_cap_clips_spring() {
+    for immortal in [true, false] {
+        let (mut sim, a, b) = traced_attribution_heavy(0x4202, immortal);
+        let mut windows: Vec<CapClipWindow> = (0..4)
+            .map(|idx| {
+                let start = 300.0 + idx as f32 * 25.0;
+                CapClipWindow {
+                    start,
+                    end: start + 25.0,
+                    rot_start: 0.0,
+                    rot_end: 0.0,
+                    removed_along_pivot: [0.0; 2],
+                    removed_against_pivot: [0.0; 2],
+                    removed_total: [0.0; 2],
+                    samples: [0; 2],
+                }
+            })
+            .collect();
+        let end_tick = (400.0 / DT) as usize;
+        for step in 1..=end_tick {
+            let t = step as f32 * DT;
+            if t < 300.0 {
+                sim.clear_force_trace();
+                sim.tick();
+                continue;
+            }
+            sim.clear_force_trace();
+            sim.tick();
+            let tick = sim.tick_count - 1;
+            let mut pivot_by_soldier = BTreeMap::new();
+            for record in sim.force_trace.records() {
+                if record.tick == tick && record.channel == ForceChannel::PivotSpring {
+                    pivot_by_soldier.insert(record.soldier, record.vec);
+                }
+            }
+            for window in &mut windows {
+                if t < window.start || t >= window.end {
+                    continue;
+                }
+                if window.rot_start == 0.0 {
+                    window.rot_start = traced_engagement_rotation_deg(&sim, a, b);
+                }
+                window.rot_end = traced_engagement_rotation_deg(&sim, a, b);
+                for record in sim.force_trace.records() {
+                    if record.tick != tick || record.channel != ForceChannel::SpeedCap {
+                        continue;
+                    }
+                    let Some(pre) = record.pre else { continue };
+                    let Some(post) = record.post else { continue };
+                    let Some(pivot) = pivot_by_soldier.get(&record.soldier).copied() else {
+                        continue;
+                    };
+                    let pivot_len = pivot.len();
+                    if pivot_len <= 1.0e-6 {
+                        continue;
+                    }
+                    let removed = pre - post;
+                    let along = removed.dot(pivot * (1.0 / pivot_len));
+                    let unit_slot = if record.unit == a {
+                        0
+                    } else if record.unit == b {
+                        1
+                    } else {
+                        continue;
+                    };
+                    window.removed_along_pivot[unit_slot] += along.max(0.0);
+                    window.removed_against_pivot[unit_slot] += (-along).max(0.0);
+                    window.removed_total[unit_slot] += removed.len();
+                    window.samples[unit_slot] += 1;
+                }
+            }
+        }
+        for window in &windows {
+            for unit_slot in [0usize, 1] {
+                let along = window.removed_along_pivot[unit_slot];
+                let against = window.removed_against_pivot[unit_slot];
+                let total = window.removed_total[unit_slot].max(1.0e-6);
+                let directional = along / (along + against).max(1.0e-6);
+                eprintln!(
+                    "SLICE04_CAP_CLIP variant={} unit={} window={:.0}-{:.0}s rot={:.2}->{:.2}deg samples={} removed_total={:.3} removed_parallel_pivot={:.3} removed_antiparallel_pivot={:.3} parallel_frac_of_signed={:.3} parallel_frac_of_total={:.3}",
+                    if immortal { "immortal" } else { "mortal" },
+                    unit_slot,
+                    window.start,
+                    window.end,
+                    window.rot_start,
+                    window.rot_end,
+                    window.samples[unit_slot],
+                    window.removed_total[unit_slot],
+                    along,
+                    against,
+                    directional,
+                    along / total,
+                );
             }
         }
     }

@@ -90,6 +90,20 @@ hardware 30.5k ≤ 33 ms leg (skipped by name under SwiftShader).
 stand-in (dies at 10b), blob-shadow decal replica (dies at 11), parity
 Gerstner-family sea shading in `seaLayer` (dies at 12b–d; the seam survives).
 
+**screenshot-critique (unprimed, on the route shots + crops): "needs polish
+passes" — and every finding is PRE-EXISTING production look, verified present
+pixel-for-pixel in the matched production captures, each already owned by a
+named ladder slice:** hard map-edge/backdrop void + two-tone grass seam →
+`13a/13d` (terrain compose), low-poly repetitive peaks on a flat apron →
+`13c` (scenery/cliffs), noisy dithered water + pale horizon dissolve → `12b–e`
+(photoreal sea; the dissolve is the honest haze-to-sky ramp), grove-wide blob
+shadows / no per-tree grounding → `11` (CSM), flat hazy lighting → `09`/`10`,
+thin single-file formations = the real sim spacing at rest (not a render
+defect). One critique miss on our side: the "missing selection marker" crop
+was mis-framed; the gold glow is verified by the scene's gold-pixel check on
+both adapters and by direct crop inspection. Nothing here is an 08a
+regression — 08a's contract is parity, not a new look.
+
 **Deliberately NOT ported (production-only behavior that stays above the
 seam at 08b):** frozen-frame caching/`fixedTime` cue filtering
 (`frozenSelectionGroundCues`) and the render-position smoothing — both live in

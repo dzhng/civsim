@@ -2969,3 +2969,132 @@ fn melee_kills_and_formations_thin() {
         "front ranks should be engaged at the height"
     );
 }
+
+/// Slice 05 couple-chain probe: the mortal orbit hypothesis is an OFFSET
+/// COUPLE — casualty-biased mass drifts each unit's corridor center, both
+/// corridors slide oppositely, each unit's far flank exits the foe's
+/// contested lane and thrusts forward, and the pair rotates. Each link is a
+/// state read; confirmation = corridor-slide asymmetry and thrust-couple
+/// sign agree with rotation sign on >=4/5 mortal seeds, immortal control
+/// clean.
+#[test]
+#[ignore = "melee-blob slice 05: couple-chain attribution probe"]
+fn blob_probe_slice05_couple_chain() {
+    let stats = class_stats(UnitClassId::HeavySword);
+    for (variant, immortal, seeds) in [
+        ("mortal", false, vec![0_u64, 1, 2, 3, 4]),
+        ("immortal", true, vec![0_u64]),
+    ] {
+        for seed in seeds {
+            let tun = controlled_heavy_tun();
+            let mut sim = Sim::new(tun, seed);
+            let a = sim.spawn_class_stats_with_files(
+                Vec2::new(0.0, -13.0),
+                FRAC_PI_2,
+                N,
+                24,
+                UnitClassId::HeavySword,
+                stats,
+                0,
+            );
+            let b = sim.spawn_class_stats_with_files(
+                Vec2::new(0.0, 13.0),
+                -FRAC_PI_2,
+                N,
+                24,
+                UnitClassId::HeavySword,
+                stats,
+                1,
+            );
+            if immortal {
+                make_immortal(&mut sim);
+            }
+            sim.set_pace(a, Pace::Run);
+            sim.set_pace(b, Pace::Run);
+            sim.set_attack_order(a, b);
+            sim.set_attack_order(b, a);
+
+            const WINDOW_S: f32 = 50.0;
+            let windows = (400.0 / WINDOW_S) as usize;
+            // Per window per unit: sum of death x-positions and count.
+            let mut kill_x = vec![[0.0f64; 2]; windows];
+            let mut kill_n = vec![[0u32; 2]; windows];
+            let mut was_alive: Vec<u8> = sim.alive.clone();
+            let mut last_pos: Vec<Vec2> = (0..sim.soldier_count())
+                .map(|s| sim.soldier_pos(s))
+                .collect();
+            for step in 1..=(400.0 / DT) as usize {
+                sim.tick();
+                let t = step as f32 * DT;
+                let w = ((t / WINDOW_S) as usize).min(windows - 1);
+                for (slot, unit) in [a, b].into_iter().enumerate() {
+                    let u = &sim.units[unit];
+                    for s in u.start..u.start + u.count {
+                        if was_alive[s] == 1 && sim.alive[s] == 0 {
+                            kill_x[w][slot] += sim.soldier_pos(s).x as f64;
+                            kill_n[w][slot] += 1;
+                        }
+                    }
+                }
+                was_alive.copy_from_slice(&sim.alive);
+                // Window-end report.
+                if step % (WINDOW_S / DT) as usize == 0 {
+                    let rot = engagement_rotation_deg(&sim, a, b);
+                    let mut line = format!(
+                        "SLICE05_COUPLE variant={variant} seed={seed} t={t:.0}s rot={rot:.2}deg"
+                    );
+                    for (slot, (unit, foe)) in [(a, b), (b, a)].into_iter().enumerate() {
+                        let u = &sim.units[unit];
+                        let v = &sim.units[foe];
+                        // Corridor geometry exactly as the clamp computes it.
+                        let vf = Vec2::new(v.facing.cos(), v.facing.sin());
+                        let vr = Vec2::new(vf.y, -vf.x);
+                        let half_w = 0.5 * v.width() + 0.5 * v.spacing.x;
+                        // My living men outside the foe's corridor, by side.
+                        let (mut out_neg, mut out_pos, mut alive_n) = (0u32, 0u32, 0u32);
+                        for s in u.start..u.start + u.count {
+                            if sim.alive[s] == 0 {
+                                continue;
+                            }
+                            alive_n += 1;
+                            let p_lat = (sim.soldier_pos(s) - v.center()).dot(vr);
+                            if p_lat.abs() > half_w {
+                                if p_lat < 0.0 {
+                                    out_neg += 1;
+                                } else {
+                                    out_pos += 1;
+                                }
+                            }
+                        }
+                        // Net drive of my living mass, world x (perp to spawn axis).
+                        let mut thrust_x = 0.0f64;
+                        for s in u.start..u.start + u.count {
+                            if sim.alive[s] == 1 {
+                                thrust_x += ((sim.soldier_pos(s).x - last_pos[s].x) / DT) as f64;
+                            }
+                        }
+                        thrust_x /= alive_n.max(1) as f64;
+                        let mkx = if kill_n[w][slot] > 0 {
+                            kill_x[w][slot] / kill_n[w][slot] as f64
+                        } else {
+                            0.0
+                        };
+                        line.push_str(&format!(
+                            " | u{slot} center_x={:.2} kills={}@x={:.2} out[-]={:.2} out[+]={:.2} thrust_x={:.4}",
+                            u.center().x,
+                            kill_n[w][slot],
+                            mkx,
+                            out_neg as f32 / alive_n.max(1) as f32,
+                            out_pos as f32 / alive_n.max(1) as f32,
+                            thrust_x,
+                        ));
+                    }
+                    eprintln!("{line}");
+                }
+                for s in 0..sim.soldier_count() {
+                    last_pos[s] = sim.soldier_pos(s);
+                }
+            }
+        }
+    }
+}

@@ -1315,15 +1315,17 @@ async function findPhaseBrandFootguns() {
       ],
     },
     {
+      // Since slice 08b the production battle renders through the photoreal
+      // seam: BattleRenderer owns no bespoke passes and no frame shell.
       file: new URL("../../src/battle/renderer.ts", import.meta.url),
       checks: [
         [
-          "battle debug triangles draw requires overlay pass",
-          /class BattleTrianglePass[\s\S]*?\bdraw\s*\(\s*pass:\s*OverlayRenderPass\s*\)/,
+          "battle renderer renders through the photoreal battle world seam",
+          /PhotorealBattleWorld\.create\(this\.canvas\)/,
         ],
         [
-          "battle far LOD markers declare impostor marker layer",
-          /markerLayer:\s*this\.markers\.length\s*>\s*0\s*\?\s*["']far-lod-impostor["']\s*:\s*undefined/,
+          "battle renderer builds no bespoke frame shell or passes",
+          (v) => !/createFrameShell|RawFrameShell|GPURenderPipeline/.test(v),
         ],
       ],
     },

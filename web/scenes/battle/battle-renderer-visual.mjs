@@ -82,7 +82,7 @@ export async function run(ctx) {
   ctx.check(
     "WebGPU battle visual frame includes terrain props and tactical ground cues",
     state.stats.renderStats?.terrain?.fixture === "sim-tint" &&
-      state.stats.renderStats.terrain.layer === "battle-ground-heightfield" &&
+      state.stats.renderStats.terrain.layer === "photoreal-battle-ground" &&
       state.stats.renderStats.terrain.groundTriangles > 1000 &&
       state.stats.renderStats.terrain.scenery > 0 &&
       state.stats.renderStats.tacticalLines?.groundCues?.lineSegments > 0,

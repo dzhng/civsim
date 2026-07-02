@@ -85,7 +85,7 @@ export async function run(ctx) {
     state.renderer === "gpu" &&
       hasBattleWorldDepthContract(state.renderStats) &&
       state.renderStats?.terrain?.fixture === "sim-tint" &&
-      state.renderStats.terrain.layer === "battle-ground-heightfield" &&
+      state.renderStats.terrain.layer === "photoreal-battle-ground" &&
       state.renderStats.terrain.groundTriangles > 1000 &&
       state.renderStats.terrain.scenery > 0,
     JSON.stringify(state.renderStats),

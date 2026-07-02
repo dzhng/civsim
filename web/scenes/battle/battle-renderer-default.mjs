@@ -36,27 +36,30 @@ export async function run(ctx) {
   );
   const stats = await page.evaluate(() => window.__game.stats());
   ctx.check(
-    "battle default renderer is raw WebGPU",
+    "battle default renderer is the photoreal WebGPU world",
     stats.renderer === "gpu" &&
       stats.renderStats?.ready === true &&
       stats.renderStats.soldiers === stats.soldiers &&
       stats.renderStats.markerLayer === "far-lod-impostor" &&
       stats.renderStats.lod?.impostors > 0 &&
-      stats.renderStats.atmosphere === "aegean-sky-haze" &&
+      stats.renderStats.environment === "golden" &&
       hasBattleWorldDepthContract(stats.renderStats),
     JSON.stringify(stats),
   );
   ctx.check(
+    // Draw-call count stays independent of soldier count (instanced crowd, not
+    // per-soldier draws): the whole world fits a small fixed budget.
     "renderer drew the full battle crowd",
     stats.renderStats?.soldiers === stats.renderStats?.expectedSoldiers &&
       stats.renderStats?.soldiers === stats.soldiers &&
-      stats.renderStats?.drawCalls === 1,
+      stats.renderStats?.drawCalls > 0 &&
+      stats.renderStats?.drawCalls < 64,
     JSON.stringify(stats.renderStats),
   );
   ctx.check(
     "WebGPU battle terrain includes sim-sourced feature detail",
     stats.renderStats?.terrain?.fixture === "sim-tint" &&
-      stats.renderStats.terrain.layer === "battle-ground-heightfield" &&
+      stats.renderStats.terrain.layer === "photoreal-battle-ground" &&
       stats.renderStats.terrain.environment?.id === "golden-hour" &&
       stats.renderStats.terrain.environment?.source === "CIVSIM_ENVIRONMENTS.golden" &&
       stats.renderStats.terrain.grass?.environment?.id === "golden-hour" &&
@@ -103,7 +106,8 @@ export async function run(ctx) {
     ctx.check(
       `retired gfx=${retired} battle route still uses raw WebGPU`,
       retiredStats.renderer === "gpu" &&
-        retiredStats.renderStats?.drawCalls === 1 &&
+        retiredStats.renderStats?.drawCalls > 0 &&
+        retiredStats.renderStats?.drawCalls < 64 &&
         retiredStats.renderStats?.markerLayer === "none" &&
         hasBattleWorldDepthContract(retiredStats.renderStats),
       JSON.stringify(retiredStats),

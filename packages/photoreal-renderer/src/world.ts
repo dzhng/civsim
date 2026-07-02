@@ -18,6 +18,9 @@ export interface PhotorealWorldStats {
    *  adapter cannot deliver timestamps (failure-tolerant — SwiftShader stays green). */
   gpuTimeMs: number | null;
   timeSeconds: number;
+  /** Adapter identity ("vendor / architecture / description") — the perf gates
+   *  read this to prove a hardware run measured a real (non-software) adapter. */
+  device: string;
 }
 
 export class PhotorealWorld {
@@ -31,6 +34,11 @@ export class PhotorealWorld {
   private timeSeconds = 0;
   private gpuTimeMs: number | null = null;
   private timestampBroken = false;
+  // Snapshotted at render(): three's internal animation loop calls
+  // info.reset() every browser frame, so live info.render counts read 0
+  // whenever stats() runs outside the render call's own task.
+  private lastDrawCalls = 0;
+  private lastTriangles = 0;
 
   private constructor(renderer: THREE.WebGPURenderer, scene: THREE.Scene) {
     this.renderer = renderer;
@@ -71,6 +79,8 @@ export class PhotorealWorld {
 
   render(camera: THREE.Camera): void {
     this.renderer.render(this.scene, camera);
+    this.lastDrawCalls = this.renderer.info.render.drawCalls;
+    this.lastTriangles = this.renderer.info.render.triangles;
     this.pollGpuTime();
   }
 
@@ -93,11 +103,21 @@ export class PhotorealWorld {
 
   stats(): PhotorealWorldStats {
     return {
-      drawCalls: this.renderer.info.render.drawCalls,
-      triangles: this.renderer.info.render.triangles,
+      drawCalls: this.lastDrawCalls,
+      triangles: this.lastTriangles,
       gpuTimeMs: this.gpuTimeMs,
       timeSeconds: this.timeSeconds,
+      device: this.deviceLabel(),
     };
+  }
+
+  /** Same "vendor / architecture / description" format the bespoke shell
+   *  published (GPUDevice.adapterInfo; 'unknown' before init/without support). */
+  private deviceLabel(): string {
+    const device = (this.renderer.backend as unknown as { device?: GPUDevice }).device;
+    const info = (device as (GPUDevice & { adapterInfo?: GPUAdapterInfo }) | undefined)?.adapterInfo;
+    if (!info) return 'unknown';
+    return [info.vendor, info.architecture, info.description].filter(Boolean).join(' / ') || 'unknown';
   }
 
   /** Await the GPU queue so the presented frame is fully rasterized before a

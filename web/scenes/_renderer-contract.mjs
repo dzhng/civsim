@@ -12,6 +12,10 @@ const CAMERA_UNIFORM_SOURCE = readFileSync(
   new URL("../../packages/renderer-core/src/cameraUniform.ts", import.meta.url),
   "utf8",
 );
+const PHOTOREAL_STATS_SOURCE = readFileSync(
+  new URL("../../packages/photoreal-renderer/src/stats.ts", import.meta.url),
+  "utf8",
+);
 
 // The ONE engine-wide depth format (reverse-Z depth32float since slice 05b).
 export const GPU_DEPTH_FORMAT = readDepthConst("GPU_DEPTH_FORMAT");
@@ -21,6 +25,17 @@ export const PROJECTION_IDENTITY = readSourceStringConst(
   CAMERA_UNIFORM_SOURCE,
   "PROJECTION_IDENTITY",
   "shared camera uniform contract",
+);
+// The photoreal ownership identity (battle production since slice 08b).
+export const PHOTOREAL_SUBSTRATE = readSourceStringConst(
+  PHOTOREAL_STATS_SOURCE,
+  "PHOTOREAL_SUBSTRATE",
+  "photoreal stats seam",
+);
+export const PHOTOREAL_PROJECTION = readSourceStringConst(
+  PHOTOREAL_STATS_SOURCE,
+  "PHOTOREAL_PROJECTION",
+  "photoreal stats seam",
 );
 export const GPU_DEPTH_MODES = readDepthModes();
 export const FRAME_PHASE_KINDS = readStringArrayConst(
@@ -50,7 +65,7 @@ function readDepthConst(name) {
 
 function readSourceStringConst(source, name, label) {
   const match = source.match(
-    new RegExp(`export\\s+const\\s+${name}\\s*=\\s*['"]([^'"]+)['"]\\s+as\\s+const`),
+    new RegExp(`export\\s+const\\s+${name}\\s*=\\s*['"]([^'"]+)['"]`),
   );
   if (!match) throw new Error(`Unable to read ${name} from ${label}`);
   return match[1];
@@ -161,36 +176,28 @@ function hasSemanticPassRoles(phases) {
   );
 }
 
+// Since slice 08b the production battle world renders on the photoreal
+// substrate (three.js WebGPU + TSL behind BattleRenderer): depth is a real
+// reverse-Z buffer owned by three, posed by camera3d through cameraBridge, and
+// the bespoke frame-graph phase stats no longer exist for battle. The contract
+// asserts the ownership identity fields (single owners, README "Photoreal
+// ladder invariants"), the reverse-Z depth convention read off the live
+// renderer, the heightfield seating firewall, and the tactical-line overlay
+// seams. The bespoke phase-graph contract lives on for campaign
+// (hasCampaignWorldDepthContract) until slice 16a.
 export function hasBattleWorldDepthContract(renderStats) {
   return (
-    renderStats?.cameraContract === "shared-world-camera-wgsl" &&
-    renderStats?.skinnedCameraContract === "shared-world-camera-wgsl" &&
-    renderStats?.depth?.allocated === true &&
-    renderStats?.depth?.format === GPU_DEPTH_FORMAT &&
-    hasFramePhaseOrder(renderStats?.phases, { requireOverlay: true }) &&
-    hasDepthPassPlacement(renderStats?.phases) &&
-    hasSemanticPassRoles(renderStats?.phases) &&
-    hasFrameDepthPass(renderStats?.phases, "battle-ground", "read-write") &&
-    hasFramePassRole(renderStats?.phases, "battle-ground", "world-opaque", "world-depth") &&
-    hasFrameDepthPass(renderStats?.phases, "battle-terrain-scenery", "read-write") &&
-    hasFramePassRole(
-      renderStats?.phases,
-      "battle-terrain-scenery",
-      "world-opaque",
-      "world-depth",
-    ) &&
-    hasFrameDepthPass(renderStats?.phases, "battle-skinned-crowd", "read-write") &&
-    hasFramePassRole(renderStats?.phases, "battle-skinned-crowd", "world-opaque", "world-depth") &&
-    hasFrameDepthPass(renderStats?.phases, "battle-soldier-shadows", "read") &&
-    hasFramePassRole(renderStats?.phases, "battle-soldier-shadows", "world-decal", "world-depth") &&
-    hasFrameDepthPass(renderStats?.phases, "battle-ground-cues", "read") &&
-    hasFramePassRole(renderStats?.phases, "battle-ground-cues", "world-decal", "world-depth") &&
-    hasFramePass(renderStats?.phases, "battle-effect-lines", "overlay") &&
-    hasFramePassRole(renderStats?.phases, "battle-effect-lines", "overlay-effect", "overlay") &&
-    hasFramePass(renderStats?.phases, "battle-debug-blocks", "overlay") &&
-    hasFramePassRole(renderStats?.phases, "battle-debug-blocks", "overlay-debug", "overlay") &&
-    hasFramePass(renderStats?.phases, "battle-debug-triangles", "overlay") &&
-    hasFramePassRole(renderStats?.phases, "battle-debug-triangles", "overlay-debug", "overlay")
+    renderStats?.ready === true &&
+    renderStats?.substrate === PHOTOREAL_SUBSTRATE &&
+    renderStats?.projection === PHOTOREAL_PROJECTION &&
+    typeof renderStats?.environment === "string" &&
+    renderStats.environment.length > 0 &&
+    renderStats?.depth?.owner === "three-webgpu" &&
+    renderStats?.depth?.reversed === true &&
+    renderStats?.seating?.matches === true &&
+    renderStats?.tacticalLines?.groundCues != null &&
+    renderStats?.tacticalLines?.effects != null &&
+    renderStats?.drawCalls > 0
   );
 }
 

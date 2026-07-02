@@ -20,10 +20,21 @@ in TypeScript.
   state is read zero-copy via pointers into wasm memory.
 - `crates/mapgen` — offline pipeline that bakes the campaign map (road graph +
   a painted background raster) from source geodata.
-- `web` — Vite + TypeScript shell. Battle: WebGL2 instanced renderer. Campaign:
-  a Babylon.js 3D terrain under a transparent Canvas2D marker layer. How battle
-  terrain becomes a place — rolling ground, sealed edges, shared scenery, and
-  the seating contract — is documented in
+- `packages` — the TypeScript rendering stack, shared by battle and campaign.
+  `renderer-core` owns the one real 3D perspective camera (`camera3d`:
+  view/projection matrices, reverse-Z `depth32float` engine-wide, ray-cast
+  picking) and the GPU contracts every pass obeys. `photoreal-renderer` is the
+  production battle world — three.js WebGPU + TSL behind `BattleRenderer`'s
+  unchanged API. `game-renderer` holds the terrain/scenery data pipeline both
+  worlds sample, the environment presets (`CIVSIM_ENVIRONMENTS`), and the
+  bespoke WGSL passes that still render the campaign (and the renderer lab)
+  until the photoreal ladder decides their fate. The conversion rationale and
+  the in-flight ladder live in
+  [specs/3d-perspective-renderer/README.md](specs/3d-perspective-renderer/README.md).
+- `web` — Vite + TypeScript shell (routes, input, HUD, wasm glue); the
+  rendering machinery itself lives in `packages`. How battle terrain becomes a
+  place — rolling ground, sealed edges, shared scenery, and the seating
+  contract — is documented in
   [docs/battle-terrain.md](docs/battle-terrain.md).
 - `web/scene.mjs` and `web/scenes/*.mjs` — Playwright browser scenes for
   addressable battle/campaign checks and screenshots; baselines are committed
@@ -60,6 +71,7 @@ bun run --cwd web lint           # oxlint (react/import/typescript/unicorn)
 bun run --cwd web typecheck      # tsc --noEmit
 bun run --cwd web test           # vitest (React overlay component tests)
 bun run --cwd web test:ui        # node --test (pure DOM-free .mjs suites)
+bun run --cwd web test:unit      # node --test (TypeScript seam suites in web/tests/)
 ```
 
 Keep broad formatting churn in its own commit, separate from mechanics,
@@ -119,7 +131,7 @@ like a charge, that an idle line breathes like men and not like a spreadsheet.
 This sim is emergent: simple physics produce the behavior, and whether that
 behavior matches reality is a question only the eye can answer. So every change
 to how bodies move or lay out is verified by **watching** it — the Playwright
-snapshots (`web/verify*.mjs`) are not decoration; they are the test that the
+snapshots (`web/scene.mjs`) are not decoration; they are the test that the
 physics is real, and a change that touches soldier motion or layout is not done
 until it has been *seen* and pinned as a reproducible snapshot.
 
@@ -310,17 +322,23 @@ cohesion is *measured* from bodies, never stored.)
 ## The 3D map — a swappable engine behind a fixed seam
 
 The campaign renders a tilting heightfield — straight-down political map when
-zoomed out, Total War tilt as you descend — with a transparent Canvas2D layer
-of markers on top. Two principles kept it honest through an engine rewrite.
+zoomed out, Total War tilt as you descend. Two principles kept it honest
+through repeated engine rewrites (hand-rolled WebGL, then Babylon.js, then the
+bespoke WebGPU renderer it runs on today).
 
-**The camera is the only seam.** `Terrain3D` exposes `project` / `unproject` /
-`clampCam` and reveals nothing else about how it draws. The overlay places
-every banner and label through `project`; clicks ray-march the ground through
-`unproject`; the zoom floor and pan bounds live in `clampCam`. So the renderer
-underneath is replaceable, and proving it was the test: swapping a hand-rolled
-WebGL renderer for Babylon.js rewrote `terrain3d.ts` alone and touched neither
-the scene, the input, nor the harness. Define the boundary as a small
-projection contract and the machinery behind it stops being load-bearing.
+**The camera is the only seam.** The scene talks to the renderer through a
+small projection contract — world↔screen both ways plus the zoom/pan clamp —
+and learns nothing else about how it draws. Every banner and label is placed
+through the forward projection; clicks and hovers go through the inverse
+(picking the *rendered* marker, never a parallel guess); the zoom floor and
+pan bounds live in the clamp. Because the boundary is that narrow, each engine
+swap replaced the machinery without touching the scene, the input, or the
+harness. Today the contract is fulfilled by the one engine-wide perspective
+camera — `packages/renderer-core/src/camera3d.ts`, the same view/projection
+matrices, reverse-Z depth, and ray-cast picking battle uses (see
+[specs/3d-perspective-renderer/README.md](specs/3d-perspective-renderer/README.md)).
+Define the boundary as a small projection contract and the machinery behind it
+stops being load-bearing.
 
 **A screenshot is a regression test only if the frame is reproducible.**
 `web/snapshot.mjs` compares against committed baselines at *zero* pixel
@@ -342,12 +360,13 @@ price is a color contract between the painter and the reader: the palette in
 `crates/mapgen/src/raster.rs` and the classifier in `web/src/campaign/terrain.ts`
 point at each other in comment — recolor one and you must recolor the other.
 
-**A library that runs the frame loop assumes it owns it.** The campaign keeps
-its own render loop and calls Babylon's `scene.render()` by hand. That silently
-disables anything wired to *Babylon's* loop: its post-process pipeline never
-presented to the canvas, so the screen stayed black until the vignette moved
-into the terrain shader. When you drive a framework's render yourself, expect
-its loop-time conveniences to no-op, and plan to reimplement the ones you want.
+**A library that runs the frame loop assumes it owns it.** The game keeps its
+own render loop and calls the engine's render by hand — true of Babylon then,
+true of the three.js battle world now. That silently disables anything wired to
+the *library's* loop: Babylon's post-process pipeline never presented to the
+canvas, so the screen stayed black until the vignette moved into the terrain
+shader. When you drive a framework's render yourself, expect its loop-time
+conveniences to no-op, and plan to reimplement the ones you want.
 
 ## Screenshot baselines
 
@@ -409,6 +428,9 @@ node web/scene.mjs campaign-visual campaign-map-alignment campaign-lod  # campai
 # bun run verify / verify:campaign run the packaged battle / campaign subsets.
 # re-bless screenshot baselines after an intentional visual change:
 UPDATE_SHOTS=1 node web/scene.mjs campaign-visual
+
+# renderer perf gate: 30k soldiers + foliage on the hardware GPU (budget 33 ms)
+bun run --cwd web perf:30k
 ```
 
 See `crates/sim/tests/README.md` for the sim test taxonomy and

@@ -6,17 +6,17 @@
 // responses with NEUTRAL albedos — the baked lambert/key-fill/exposure terms
 // are extracted, the sun + IBL environment light them. The CPU geometry comes
 // from the same builders the bespoke passes upload (buildBattleGroundMesh /
-// buildBattleHorizonLayout). Inline haze mixes are the 08a aerial stand-in
-// (die at 10b, the one aerial-perspective owner).
+// buildBattleHorizonLayout). Distance haze comes ONLY from the shared
+// aerial-perspective hook (scene.fogNode, slice 10b) — no material here adds
+// its own haze, ever.
 import * as THREE from 'three/webgpu';
 import {
   attribute, clamp, float, length, mix, normalize, transformNormalToView, varying, vec2, vec3, vec4,
 } from 'three/tsl';
 import type { BattleGroundMesh } from '../../../game-renderer/src/battle/groundPass';
 import type { BattleHorizonLayout } from '../../../game-renderer/src/battle/horizonPass';
-import type { BattleEnvironment } from '../../../game-renderer/src/environment/environment';
 import {
-  chartDepthDistNode, fbmN, hashN, linearAlbedo, ridgeN, rgbNode, saturateN, smoothstepN, viewNormalNode, vnoiseN,
+  fbmN, hashN, linearAlbedo, ridgeN, rgbNode, saturateN, smoothstepN, viewNormalNode, vnoiseN,
   type BattleFrameUniforms, type FloatNode, type Rgb, type Vec2Node,
 } from './battleTsl';
 import { fieldWaterSurfaceNodes } from './seaLayer';
@@ -54,7 +54,6 @@ interface TerrainQuadStyle {
   darkFleckStrength: number;
   stoneFleckStrength: number;
   dustStrength: number;
-  aerialStrength: number;
 }
 
 const DEFAULT_TERRAIN_STYLE: TerrainQuadStyle = {
@@ -76,7 +75,6 @@ const DEFAULT_TERRAIN_STYLE: TerrainQuadStyle = {
   darkFleckStrength: 0.38,
   stoneFleckStrength: 0.30,
   dustStrength: 0.14,
-  aerialStrength: 0.22,
 };
 
 const WIDE_DETAIL_TERRAIN_STYLE: TerrainQuadStyle = {
@@ -98,7 +96,6 @@ const WIDE_DETAIL_TERRAIN_STYLE: TerrainQuadStyle = {
   darkFleckStrength: 0.42,
   stoneFleckStrength: 0.32,
   dustStrength: 0.12,
-  aerialStrength: 0.19,
 };
 
 function quadGeometry(): THREE.BufferGeometry {
@@ -125,7 +122,6 @@ function quadGroundHeight(p: Vec2Node): FloatNode {
 
 function terrainQuadMaterial(style: TerrainQuadStyle, frame: BattleFrameUniforms): THREE.MeshStandardNodeMaterial {
   const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, roughness: 0.96, metalness: 0 });
-  material.fog = false;
   material.depthTest = false;
   material.depthWrite = false;
   const world = varying(attribute<'vec3'>('position', 'vec3').xy).toVar();
@@ -161,17 +157,13 @@ function terrainQuadMaterial(style: TerrainQuadStyle, frame: BattleFrameUniforms
   grass = mix(grass, grass.mul(rgbNode(style.darkFleckColor)), darkFleck.mul(style.darkFleckStrength));
   grass = mix(grass, vec3(0.46, 0.43, 0.32), stoneFleck.mul(style.stoneFleckStrength));
   const dust = smoothstepN(18.0, 96.0, dist).mul(style.dustStrength);
-  const aerial = smoothstepN(120.0, 420.0, dist);
   const sunBleached = mix(grass, vec3(0.86, 0.72, 0.46), dust);
-  // Aerial stand-in (dies at 10b, the one aerial-perspective owner).
-  const haze = vec3(0.78, 0.75, 0.64);
-  material.colorNode = vec4(linearAlbedo(mix(sunBleached, haze, aerial.mul(style.aerialStrength))), 1.0);
+  material.colorNode = vec4(linearAlbedo(sunBleached), 1.0);
   return material;
 }
 
 function backdropMaterial(): THREE.MeshStandardNodeMaterial {
   const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, roughness: 0.98, metalness: 0 });
-  material.fog = false;
   material.depthTest = false;
   material.depthWrite = false;
   material.normalNode = viewNormalNode(vec3(0.0, 0.0, 1.0));
@@ -224,7 +216,6 @@ export class BattleBackgroundQuads {
 
 /** The rolling battle ground mesh (groundPass port, meadow disabled). */
 export function createGroundMesh(
-  env: BattleEnvironment,
   frame: BattleFrameUniforms,
   mesh: BattleGroundMesh,
 ): THREE.Mesh {
@@ -236,16 +227,13 @@ export function createGroundMesh(
   geo.setAttribute('gWater', new THREE.InterleavedBufferAttribute(buffer, 1, 9));
   geo.setIndex(new THREE.BufferAttribute(mesh.indices, 1));
 
-  const e = env.environment;
   const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, metalness: 0 });
-  material.fog = false;
   const position = attribute<'vec3'>('position', 'vec3');
   const gNormal = attribute<'vec3'>('gNormal', 'vec3');
   material.normalNode = viewNormalNode(normalize(gNormal));
   const color = varying(attribute<'vec3'>('gColor', 'vec3')).toVar();
   const water = varying(attribute<'float'>('gWater', 'float')).toVar();
   const world = varying(position.xy).toVar();
-  const fog = varying(smoothstepN(720.0, 1850.0, chartDepthDistNode(position.xy, frame)).mul(0.52));
 
   // Grass/ground micro-detail across scales (GROUND_WGSL fs, meadow off) —
   // NEUTRAL albedo variation; the sun + IBL environment light it.
@@ -265,10 +253,8 @@ export function createGroundMesh(
   // Field water: the shared water surface blended by the box-filtered weight
   // (albedo + roughness — wet ground gets a real sun sheen).
   const waterBlend = saturateN(water).toVar();
-  const fieldWater = fieldWaterSurfaceNodes(env, frame, world, water);
+  const fieldWater = fieldWaterSurfaceNodes(frame, world, water);
   albedo = mix(albedo, fieldWater.albedo, waterBlend);
-  // Aerial stand-in (dies at 10b, the one aerial-perspective owner).
-  albedo = mix(albedo, rgbNode(e.hazeColor), fog);
   material.colorNode = vec4(linearAlbedo(clamp(albedo, vec3(0.0), vec3(1.0))), 1.0);
   material.roughnessNode = mix(float(0.95), fieldWater.roughness, waterBlend);
 
@@ -280,7 +266,7 @@ export function createGroundMesh(
 }
 
 /** The sealed-edge blocker mesh (horizonPass port — cliffs/walls/aprons). */
-export function createHorizonBlockerMesh(env: BattleEnvironment, layout: BattleHorizonLayout): THREE.Mesh | null {
+export function createHorizonBlockerMesh(layout: BattleHorizonLayout): THREE.Mesh | null {
   if (layout.mesh.indices.length === 0) return null;
   const geo = new THREE.BufferGeometry();
   const buffer = new THREE.InterleavedBuffer(layout.mesh.vertices, 10);
@@ -289,14 +275,10 @@ export function createHorizonBlockerMesh(env: BattleEnvironment, layout: BattleH
   geo.setAttribute('hColor', new THREE.InterleavedBufferAttribute(buffer, 3, 6));
   geo.setIndex(new THREE.BufferAttribute(layout.mesh.indices, 1));
 
-  const e = env.environment;
   const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, roughness: 0.92, metalness: 0 });
-  material.fog = false;
   material.normalNode = viewNormalNode(normalize(attribute<'vec3'>('hNormal', 'vec3')));
   const color = varying(attribute<'vec3'>('hColor', 'vec3'));
-  // Push the blocker slightly toward the haze so it reads as standing off in
-  // the distance behind the field (aerial stand-in — dies at 10b).
-  const col = clamp(mix(color, rgbNode(e.hazeColor), 0.10), vec3(0.0), vec3(1.0));
+  const col = clamp(color, vec3(0.0), vec3(1.0));
   material.colorNode = vec4(linearAlbedo(col), 1.0);
 
   const mesh = new THREE.Mesh(geo, material);

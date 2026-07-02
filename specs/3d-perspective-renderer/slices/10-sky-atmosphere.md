@@ -1,6 +1,6 @@
 # Slice 10 — Physical sky + atmosphere (ONE aerial owner)
 
-## STATUS: IN PROGRESS — 10a DONE (2026-07-02). Evidence at the bottom of this file.
+## STATUS: IN PROGRESS — 10a + 10b DONE (2026-07-02). Evidence at the bottom of this file.
 
 ## Contract unlocked
 
@@ -157,3 +157,72 @@ completion, David's knob); dusk sun disc ACES-blows to white (→ **10c** disc
 radiance tune); hard terrain-plane edge against the below-horizon sky (→ 13
 terrain/horizon composition); distant crowd smear + cyan far-LOD cluster
 (→ 14b); no cast shadows (→ 11); faceted pyramid mountains (→ 13c).
+
+## 10b DONE — evidence (2026-07-02)
+
+**THE ONE AERIAL OWNER SHIPPED:**
+`packages/photoreal-renderer/src/atmosphere/aerialPerspective.ts` — one TSL
+scatter/extinction Fn assigned to `scene.fogNode` (three's shared material
+hook: `NodeMaterial.setupFog` applies it to every fog-enabled material), so
+terrain quads/backdrop, the heightfield ground (incl. field water), horizon
+blockers, ocean planes, grass, scenery, and the crowd all haze through ONE
+source. Per-channel Beer–Lambert extinction from the SAME Rayleigh/Mie
+coefficients as the sky (turbidity-driven) plus a neutral ground-fog term
+above turbidity 4; the in-scatter colour is **the sky-view LUT sampled at the
+horizon along the fragment's view azimuth** — far surfaces dissolve into
+exactly the sky behind them (warm toward the sun, flat white under overcast:
+the sea→sky and ranges→sky dissolves are free, by construction).
+
+**Stand-ins DELETED (ledger rows closed):** the `THREE.Fog` parity haze
+(environment.ts fog option + battleWorld's 3400/8200 ramp + the crowd lab
+route's 700/3600 ramp) and every per-material `Aerial stand-in` albedo mix
+(terrain quads' `aerialStrength` style field + haze mix, ground `chartDepth`
+fog varying, horizon blockers' 0.10 haze push, grass `vFog` mix, sea
+`haze01`/`WATER_HAZE_ROUGHNESS` shore-keyed fade). Grep-proof: zero
+functional haze sources in `packages/photoreal-renderer` outside
+`atmosphere/`; the orphaned `chartDepthDistNode` + `eyeXY` uniform are
+deleted from battleTsl (the 05b value-identical port existed only to feed
+those mixes). Overlays (gold cues, effect lines, far-LOD markers, blob/prop
+shadow decals) stay `fog: false` by design — gameplay legibility (rule 6)
+and 11-bound decals, recorded here.
+
+**THE OBSERVER DECISION (the slice's hard call, recorded):** aerial optical
+depth is measured from the camera's GROUND FOCUS (the player's stand-in,
+`frame.focus`), not the rig eye — the tactical camera parks 1–3 km out at
+gameplay zooms (probed: eye 1974 m at the crowd-mid framing, 960 m at
+vista), and eye-keyed depth double-counts the miniature-world amplification:
+overcast whited out ENTIRE gameplay framings and golden blue-tinted the
+whole field (shots in the session record). Focus-keying is what the bespoke
+haze did (`chartDepthDist`) and keeps every zoom readable; worlds without a
+focus (lab routes) default to the eye. Plus a 140 m clear radius (aesthetics
+rule 2 — the commanded fight never washes out). Constants:
+`AERIAL_DISTANCE_SCALE = 4.5` (raised from 3 after an unprimed critique
+called the clear presets' ranges "cardboard" — at 4.5 the ranges recede
+visibly while the near field stays warm), `FOG_COEFF_KM = 0.026`/(T−4)²
+(overcast σ ≈ 0.85/km, V ≈ 4.4 km: ranges 1.1–1.5 km from focus at T ≈
+0.25–0.35 — "HEAVY fog swallowing layered ranges"). Sky-model follow-up: the
+LUT's below-horizon ground bounce blends to fog-grey under overcast (the tan
+bounce clashed against white fog at the map edge).
+
+**Verification:** unit — 2 new aerial pins (55 total: visibility monotone
+noon > golden > dusk > overcast, golden V > 20 km subtle vs overcast V < 5 km
+heavy, clear presets rayleigh-blue B/R > 1.5 vs overcast near-neutral < 1.3,
+determinism). Scene — `battle-photoreal-sky` gained the aerial identity
+assert; far-terrain-band + full baselines re-blessed per preset (the 10b
+variable), lighting crowd-mid re-blessed (dusk 37%, overcast 79% — the
+gameplay-framing haze, eyeballed). Full suite 613 checks 0 fails; production
+battle movers: battle-camera-zoom only (vista stop, eyeballed + re-blessed);
+campaign byte-identical; seating tripwire `match=true`. **Perf ledger row
+(hardware apple/metal-3, 30,560 soldiers + 548 scenery + vista 184.8k grass
+blades, sky + aerial on): GPU median 4.27–4.36 ms mid / 4.82–5.27 ms vista
+(p95 ≤ 8.1) — vs 3.27/2.75 at 09; the sky dome fullscreen pass + per-surface
+aerial cost ~1–2 ms, ~6× inside the 33 ms budget.** SwiftShader renders the
+aerial fine (no compute — same tier).
+
+**Second unprimed critique (post-10b, recorded):** graded aerial between
+clear presets confirmed missing at scale 3 → fixed at 4.5 (above); the
+"saturated grass patch punches through fog" finding is the grass-tuft focus
+radius (the tuft field only spawns near the camera focus — a pre-existing
+composition fact, 13b's foliage look); map-edge wedge/tan void → 13/13d
+(already recorded); overcast tactical framing is deliberately the heavy
+preset — David's knob if too heavy.

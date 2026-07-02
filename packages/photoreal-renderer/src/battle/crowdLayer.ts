@@ -155,8 +155,8 @@ function crowdGeometry(mesh: SoldierMeshData): THREE.InstancedBufferGeometry {
 // gone — the environment lights the skinned, yaw/roll-rotated normal.
 function crowdMaterial(vatTex: THREE.DataTexture): THREE.MeshStandardNodeMaterial {
   const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, roughness: 0.82, metalness: 0 });
-  // fog stays ON: the scene THREE.Fog haze stand-in (dies at 10b) covers the
-  // surfaces that carry no ported bespoke haze term (crowd + scenery).
+  // fog stays ON: the shared aerial-perspective hook (scene.fogNode, 10b)
+  // hazes the crowd like every other world surface.
   const position = attribute<'vec3'>('position', 'vec3');
   const normal = attribute<'vec3'>('cNormal', 'vec3');
   const color = attribute<'vec4'>('cColor', 'vec4');

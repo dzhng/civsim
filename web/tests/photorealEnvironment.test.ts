@@ -11,6 +11,7 @@ import {
   skyModelParams,
   transmittanceToSun,
 } from '../../packages/photoreal-renderer/src/atmosphere/skyModel.ts';
+import { aerialParams } from '../../packages/photoreal-renderer/src/atmosphere/aerialPerspective.ts';
 
 const PRESET_IDS = Object.keys(CIVSIM_ENVIRONMENTS) as (keyof typeof CIVSIM_ENVIRONMENTS)[];
 
@@ -32,7 +33,6 @@ test('photoreal environment: every preset id maps', () => {
     // Since 10a the sun colour is the SKY MODEL's transmittance-derived light
     // (physics from sun elevation + turbidity), never the authored keyColor.
     assert.deepEqual(spec.sunColor, skyModelParams(env).sunLightColor, `sun colour for ${id}`);
-    assert.deepEqual(spec.hazeColor, env.hazeColor, `haze for ${id}`);
     // Slice 09: the physical block on the ONE owner is the parameterization.
     assert.equal(spec.exposure, env.physical.exposure, `exposure for ${id}`);
     assert.equal(spec.sunIntensity, env.physical.sunIntensity, `sun intensity for ${id}`);
@@ -92,7 +92,7 @@ test('photoreal environment: swapping presets moves sun/haze/exposure determinis
         specA.sunDirection.join() !== specB.sunDirection.join() ||
         specA.sunIntensity !== specB.sunIntensity ||
         specA.exposure !== specB.exposure ||
-        specA.hazeColor.join() !== specB.hazeColor.join();
+        specA.turbidity !== specB.turbidity;
       assert.ok(moved, `presets ${a} and ${b} must map to different physical light`);
       // Deterministic: re-mapping after the swap reproduces the first spec.
       assert.deepEqual(photorealEnvironment(CIVSIM_ENVIRONMENTS[a]), specA, `swap back to ${a} is deterministic`);
@@ -110,7 +110,7 @@ test('photoreal environment: pure function of the preset', () => {
     assert.equal(JSON.stringify(env), before, `preset must not be mutated for ${id}`);
     // The spec owns fresh arrays — mutating it must not write through to the owner.
     a.sunColor[0] = 999;
-    a.hazeColor[1] = 999;
+    a.sunDirection[1] = 999;
     assert.equal(JSON.stringify(env), before, `spec arrays must be copies for ${id}`);
   }
 });
@@ -178,4 +178,40 @@ test('sky model: transmittance responds to sun height and turbidity', () => {
   assert.ok(clearLow[2] < clearUp[2], 'low sun sheds more blue');
   const hazyLow = transmittanceToSun(low, 6.0);
   assert.ok(hazyLow[2] <= clearLow[2] + 1e-9, 'turbidity never adds blue back');
+});
+
+// --- Slice 10b: the ONE aerial-perspective owner (turbidity drives the haze) ---
+
+test('aerial: pure, deterministic preset mapping with physical ordering', () => {
+  for (const id of PRESET_IDS) {
+    const env = CIVSIM_ENVIRONMENTS[id];
+    const a = aerialParams(env);
+    assert.deepEqual(a, aerialParams(env), `deterministic for ${id}`);
+    assert.ok(a.extinction.every((c) => c > 0), `positive extinction for ${id}`);
+    assert.ok(a.visibilityKm > 0, `positive visibility for ${id}`);
+  }
+  const vis = (id: keyof typeof CIVSIM_ENVIRONMENTS) =>
+    aerialParams(CIVSIM_ENVIRONMENTS[id]).visibilityKm;
+  // Visibility monotone with clarity: noon clearest … overcast heaviest.
+  assert.ok(vis('noon') > vis('golden'), 'noon clearer than golden');
+  assert.ok(vis('golden') > vis('dusk'), 'golden clearer than dusk');
+  assert.ok(vis('dusk') > vis('overcast'), 'dusk clearer than overcast');
+  // David's locked moods: golden subtle far haze, overcast HEAVY fog
+  // swallowing layered ranges. "Heavy" is judged at the ranges' distance —
+  // the vista eye parks ~1 km out, blockers sit 2.5–4 km out, so overcast
+  // needs T < ~0.25 there (V < 8 km) while golden's near field stays clear.
+  assert.ok(vis('golden') > 20, `golden haze stays subtle (V=${vis('golden')}km)`);
+  assert.ok(vis('overcast') < 5, `overcast fog swallows ranges (V=${vis('overcast')}km)`);
+});
+
+test('aerial: clear presets scatter blue-first, overcast fog is near-neutral', () => {
+  const spectralRatio = (id: keyof typeof CIVSIM_ENVIRONMENTS) => {
+    const [r, , b] = aerialParams(CIVSIM_ENVIRONMENTS[id]).extinction;
+    return b / r;
+  };
+  // Rayleigh dominates the clear presets (blue extinguishes ~2x+ red);
+  // droplet fog flattens the spectrum for overcast.
+  assert.ok(spectralRatio('noon') > 2.0, 'noon aerial is rayleigh-blue');
+  assert.ok(spectralRatio('golden') > 1.5, 'golden aerial leans blue');
+  assert.ok(spectralRatio('overcast') < 1.3, 'overcast fog is spectrally near-neutral');
 });

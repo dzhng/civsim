@@ -62,6 +62,14 @@ work without a fresh ask.
 
 ## Exec liveness — a hang looks like work
 
+**Root cause found (2026-07-02): an ambiguous stdin.** A backgrounded
+`codex exec` whose stdin is a pipe prints `Reading additional input from
+stdin...` and blocks forever — process alive, ~0% CPU, no session file. This
+was every observed hang. **Always launch with stdin redirected:**
+`codex exec ... < /dev/null` (with `nohup`/`&` as needed). The watchdog below
+stays as the backstop.
+
+
 `codex exec` can wedge at startup: process alive at ~0% CPU, but no session
 file under `~/.codex/sessions/<Y/M/D>/`, no network socket, no tree changes.
 "Process running" is NOT "working" — one such hang sat 2h doing nothing

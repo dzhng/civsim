@@ -16,21 +16,20 @@ Risks), never as the first move.
 
 ## Next Agent Prompt
 
-*Status (2026-07-03): slices 01–04 COMPLETE; slice 05 mid-diagnosis. READ
-slices/05-pinwheel.md BOTTOM-UP — its last sections are the live state.
-Measured dead so far: three restriction-family fixes (reallocation, total
-tempo cap, tangential tempo cap — survivability executioner each time),
-relabel-as-motor (cadence scaling inverts), corridor width, the offset
-couple. Standing discoveries: (1) the centroid-bearing rotation metric
-conflates casualty geography with motion; (2) rigid-fit detectors measure
-internal CIRCULATION — the press has a coherent ~3 deg/s internal loop (men
-cycle like a tank tread while the shape stands still), a real phenomenon
-worth force-trace attribution on its own; (3) the honest pinwheel metric is
-per-unit SHAPE ORIENTATION (PCA major axis with sign continuity) + seam
-angle. Pickup point: build the shape-orientation detector, re-run the
-controlled-vs-vibe-like split, name the fix layer (bodies vs frames vs death
-geography), THEN design the fix. a_symmetric_grind_does_not_pinwheel stays
-ignored until rebuilt on the new detector.*
+*Status (2026-07-03): slices 01–04 COMPLETE; slice 05 diagnosis CONVERGED on
+an honest metric. The shape-orientation detector (validated on settled +
+synthetic-rotation controls) gives the verdict: the visual pinwheel is REAL
+COHERENT SHAPE TILT of both living bodies + the seam (±26–40 deg by 300s),
+in BOTH controlled and vibe-like configs, with frames static (facings
+frozen, frame-center bearing ~0) — the body/seam layer, not the order/frame
+layer. The old centroid-bearing metric did not even track the tilt sign.
+Companion discovery: the press has a coherent ~3 deg/s internal circulation
+loop (both units, same sign — men cycle like a tank tread); the slow shape
+tilt is plausibly its residue. Pickup point: force-trace attribution of the
+CIRCULATION (which channels drive the loop, per unit, windowed — the
+slice-03 torque probe is the template but read it against the shape-tilt
+sign), then design the fix at the loop's source. Target pins get rebuilt on
+shape orientation. Full trail: slices/05-pinwheel.md bottom-up.*
 
 You are implementing this spec. Slices 01–03 (harness, metrology,
 attribution) are landed — read their slice files' bottom notes and the

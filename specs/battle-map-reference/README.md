@@ -9,7 +9,61 @@ master shot judged against the reference.
 
 ## Next Agent Prompt
 
-**Status:** Slices 00, 01, 02, and 06C landed. Slice 06C now uses
+**⚠️ THE RENDERER CHANGED UNDERNEATH THIS SPEC (2026-07-02) — read this block
+before trusting anything below it.** The `3d-perspective-renderer` spec landed on
+main: the engine now runs a **real 3D perspective camera** (`camera3d`, reverse-Z
+`depth32float`, the 2.5D tilted-ortho projection is DELETED) and **battle
+production renders through three.js WebGPU + TSL** (`packages/photoreal-renderer`,
+`PhotorealBattleWorld` behind `BattleRenderer`'s unchanged API — the bespoke WGSL
+battle passes are orphaned from production and slated for deletion). David's call
+(2026-07-02): this spec RESTARTS in a parallel session with the division of labor
+below — it no longer pauses for the photoreal ladder.
+
+**Division of labor (who owns which surface — do not double-build):**
+- **This spec OWNS:** terrain relief/grade + cliff silhouette/texture +
+  grass/foliage LOOK + scenery composition + the composed master-shot gate (the
+  photoreal ladder's slice `13` hands terrain/foliage look and the compose gate
+  BACK here — recorded in that slice file).
+- **The photoreal ladder OWNS (consume, never rebuild):** lighting core (`09`,
+  IN FLIGHT — sun/IBL/ACES via `CIVSIM_ENVIRONMENTS`, four presets incl. the new
+  `noon`), physical sky + THE ONE aerial-perspective owner (`10`), CSM shadows
+  (`11`), the sea (`12`), soldier materials + crowd LOD/impostors + per-instance
+  frustum culling (`14`), post chain (`15`). If a look here needs a
+  sky/haze/light/sea knob, the knob goes on the owner via the ladder, never
+  inline.
+
+**Contracts every new slice here must obey (from the ladder's invariants):**
+- New render work lands as **TSL layers/materials in the photoreal package** —
+  NOT in `packages/game-renderer/src/battle/*` (dead for production). The grass
+  render architecture re-homes to the photoreal foliage layer; the `03b1`
+  grass-field DATA contract survives as the data owner; the 03B4* rejection
+  ledger remains required reading (its failure modes are substrate-independent).
+- Extend `CIVSIM_ENVIRONMENTS` (one owner), never fork; consume the `10b` aerial
+  hook once it lands, never inline haze; TSL `time` node banned (animation via
+  the owned time uniform + seeded RNG); `three` version pinned — never upgrade as
+  a ride-along.
+- Standing gates stay green: `perf:30k` (30k soldiers + foliage ≤ 33 ms hardware
+  — dense foliage is exactly what stresses it), the `battle-terrain-elevation`
+  seating tripwire, deliberate re-bless only. Invoke the `renderer` skill and
+  read the TSL hazard lists in the ladder's `06`/`07`/`08` slice files before
+  writing TSL.
+- **Parallel-session coordination:** work in your own worktree; rebase on main
+  often (the ladder lands `09`–`11` there, re-blessing battle baselines as
+  lighting/sky/shadows change). Until `10`/`11` land, prefer
+  geometry/data/fixture/workbench slices over final look-judgment — grass judged
+  under parity lighting will be re-judged under real sun/shadows. Reserve
+  `packages/photoreal-renderer/src/battle/{terrain,foliage}Layer*` for this spec
+  after the ladder's `09` lands; the ladder reserves environment/sky/shadow/
+  sea/crowd files.
+- **Stale-slice audit (from the substrate change):** slice `01` zoom-coupled
+  camera — SUPERSEDED (the real rig landed in the ladder; `zoomT` is still
+  exported from `battleCameraRig`). `06`/`06b` sky/fog — now owned by ladder
+  `10`. `07`/`07b` water — ladder `12`. `03b*` grass RENDER slices — re-home to
+  TSL (data contract + rejection ledger survive). Camera-relative field-domain
+  recon notes predate the real camera — re-derive against `camera3d` before
+  reuse.
+
+**Status (pre-substrate-change, kept for history):** Slices 00, 01, 02, and 06C landed. Slice 06C now uses
 `CIVSIM_ENVIRONMENTS` as the shared weather owner: `WATER_ENVIRONMENTS` remains
 the water-facing alias, battle uses `golden-hour`/`overcast-foggy` aliases, and
 ground, grass, horizon, water, and skinned soldiers all consume the same sun,

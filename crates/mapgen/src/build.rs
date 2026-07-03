@@ -11,6 +11,49 @@ const SIMPLIFY_TOL_KM: f64 = 1.0;
 /// Forest patches: deterministic hash over this cell size, below the threshold.
 const FOREST_CELL_KM: f64 = 40.0;
 const FOREST_FRAC: u64 = 22; // percent
+pub const CITY_SNAP_MARGIN_CELLS: usize = 1;
+pub const MAX_CITY_SNAP_MOVE_KM: f64 = 6.0;
+const CITY_SNAP_SEARCH_KM: f64 = 80.0;
+
+pub struct CitySnapExemption {
+    pub name: &'static str,
+    pub reason: &'static str,
+}
+
+pub const CITY_SNAP_EXEMPTIONS: &[CitySnapExemption] = &[
+    CitySnapExemption {
+        name: "Tainaron Pr.",
+        reason: "small peninsula; nearest 3x3-safe cell would move the harbor over 14km",
+    },
+    CitySnapExemption {
+        name: "Cnidus",
+        reason: "small peninsula harbor; nearest 3x3-safe cell would move the city over 12km",
+    },
+    CitySnapExemption {
+        name: "Apollonia Pontica",
+        reason: "coastal harbor; nearest 3x3-safe cell would move the port over 8km",
+    },
+    CitySnapExemption {
+        name: "Perinthus",
+        reason: "strait harbor; nearest 3x3-safe cell would move the port over 7km",
+    },
+    CitySnapExemption {
+        name: "Meninge",
+        reason: "small-island city; nearest 3x3-safe cell would move it over 7km",
+    },
+    CitySnapExemption {
+        name: "Constantinopolis",
+        reason: "strait harbor; nearest 3x3-safe cell would move the port over 6km",
+    },
+    CitySnapExemption {
+        name: "Gades",
+        reason: "harbor on a narrow island/coast; nearest 3x3-safe cell would move it over 6km",
+    },
+    CitySnapExemption {
+        name: "Thaenae",
+        reason: "coastal harbor; nearest 3x3-safe cell would move the port over 6km",
+    },
+];
 
 #[derive(Serialize)]
 pub struct MapJson {
@@ -29,6 +72,8 @@ pub struct NodeJson {
     pub id: u32,
     pub name: String,
     pub pos: [f64; 2],
+    #[serde(rename = "srcPos")]
+    pub src_pos: [f64; 2],
     pub kind: &'static str, // "city" | "junction"
     pub tier: u8,           // 0 for junctions
     pub port: bool,
@@ -482,6 +527,7 @@ pub fn build(input: BuildInput<'_>) -> MapJson {
             id: s.id,
             name: s.label.clone(),
             pos: city_positions.get(&s.id).copied().unwrap_or(s.pos),
+            src_pos: s.pos,
             kind: if is_city { "city" } else { "junction" },
             tier,
             port: ports.contains(&s.id),
@@ -632,22 +678,69 @@ fn snapped_city_positions(
     city_sites: &BTreeSet<u32>,
     land_raster: &Raster,
 ) -> BTreeMap<u32, [f64; 2]> {
-    const MAX_SNAP_KM: f64 = 80.0;
     let mut out = BTreeMap::new();
+    let mut moved = Vec::new();
+    let mut exempted = Vec::new();
     for &id in city_sites {
         let pos = sites[&id].pos;
-        if land_raster.is_land_at(pos) {
+        let Some([x, y]) = land_raster.cell_of(pos) else {
+            continue;
+        };
+        if land_raster.is_land_neighborhood(x, y, CITY_SNAP_MARGIN_CELLS) {
             continue;
         }
         let snapped = land_raster
-            .nearest_land_cell_center(pos, MAX_SNAP_KM)
+            .nearest_land_neighborhood_center(pos, CITY_SNAP_SEARCH_KM, CITY_SNAP_MARGIN_CELLS)
             .unwrap_or_else(|| {
                 panic!(
-                    "no land cell within {MAX_SNAP_KM}km of {}",
+                    "no city-snap margin-safe land cell within {CITY_SNAP_SEARCH_KM}km of {}",
                     sites[&id].label
                 )
             });
+        let move_km = dist(pos, snapped);
+        if move_km > MAX_CITY_SNAP_MOVE_KM {
+            if !land_raster.is_land_cell(x, y) {
+                let center_land = land_raster
+                    .nearest_land_neighborhood_center(pos, CITY_SNAP_SEARCH_KM, 0)
+                    .unwrap_or_else(|| {
+                        panic!(
+                            "no center-land cell within {CITY_SNAP_SEARCH_KM}km of {}",
+                            sites[&id].label
+                        )
+                    });
+                out.insert(id, center_land);
+            }
+            exempted.push((sites[&id].label.as_str(), pos, snapped, move_km));
+            continue;
+        }
         out.insert(id, snapped);
+        moved.push((sites[&id].label.as_str(), pos, snapped, move_km));
+    }
+    moved.sort_by(|a, b| b.3.partial_cmp(&a.3).unwrap());
+    exempted.sort_by(|a, b| b.3.partial_cmp(&a.3).unwrap());
+    eprintln!(
+        "city-snap: {} moved within {MAX_CITY_SNAP_MOVE_KM:.1}km, {} exempted beyond {MAX_CITY_SNAP_MOVE_KM:.1}km",
+        moved.len(),
+        exempted.len()
+    );
+    for (name, from, to, km) in &moved {
+        eprintln!(
+            "city-snap moved: {name}: [{:.3},{:.3}] -> [{:.3},{:.3}] ({:.3}km)",
+            from[0], from[1], to[0], to[1], km
+        );
+    }
+    for (name, from, to, km) in &exempted {
+        if let Some(exemption) = CITY_SNAP_EXEMPTIONS.iter().find(|e| e.name == *name) {
+            eprintln!(
+                "city-snap exempted: {name}: nearest margin-safe [{:.3},{:.3}] is {:.3}km from [{:.3},{:.3}] ({})",
+                to[0], to[1], km, from[0], from[1], exemption.reason
+            );
+        } else {
+            eprintln!(
+                "city-snap exempted pre-prune: {name}: nearest margin-safe [{:.3},{:.3}] is {:.3}km from [{:.3},{:.3}]",
+                to[0], to[1], km, from[0], from[1]
+            );
+        }
     }
     out
 }

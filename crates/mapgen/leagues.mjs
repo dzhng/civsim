@@ -96,16 +96,21 @@ ind.forEach((c, i) => groups[asn[i]].push(c));
 
 // Build a faction per non-empty group, named after its leading (largest) city.
 const leagues = [];
-groups.forEach((g, j) => {
+groups.forEach((g) => {
   if (!g.length) return;
   const lead = g.slice().sort((a, b) => (b.n.tier - a.n.tier) || a.n.name.localeCompare(b.n.name))[0];
   const id = `league_${slug(lead.n.name)}`;
   // Named after the league's leading city — a minor city-state faction reads
   // like any other faction ("Tarraco", "Corinthus"), no "League" suffix.
   const name = lead.n.name;
-  const color = leagueColor(leagues.length);
   for (const c of g) c.n.owner = id;
-  leagues.push({ id, name, color, playable: false, ai_persona: 'neutral' });
+  leagues.push({ id, name, playable: false, ai_persona: 'neutral' });
+});
+// Color by id rank, not group enumeration order: kmeans group order shifts
+// with position jitter (e.g. a coastal re-snap), and a league must not change
+// hue because an unrelated city moved 2 km.
+[...leagues].sort((a, b) => a.id.localeCompare(b.id)).forEach((league, rank) => {
+  league.color = leagueColor(rank);
 });
 
 // Powers keep their cities; tag them as expansionist (explicit, configurable).

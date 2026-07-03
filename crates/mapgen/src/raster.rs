@@ -128,6 +128,26 @@ impl Raster {
             .unwrap_or(false)
     }
 
+    pub fn is_land_neighborhood(&self, x: usize, y: usize, margin_cells: usize) -> bool {
+        let margin = margin_cells as isize;
+        for dy in -margin..=margin {
+            let yy = y as isize + dy;
+            if yy < 0 || yy >= self.h as isize {
+                return false;
+            }
+            for dx in -margin..=margin {
+                let xx = x as isize + dx;
+                if xx < 0 || xx >= self.w as isize {
+                    return false;
+                }
+                if !self.is_land_cell(xx as usize, yy as usize) {
+                    return false;
+                }
+            }
+        }
+        true
+    }
+
     pub fn classify_cell(&self, x: usize, y: usize) -> Option<RenderMaskClass> {
         if x >= self.w || y >= self.h {
             return None;
@@ -140,17 +160,12 @@ impl Raster {
         ]))
     }
 
-    pub fn is_land_at(&self, p: [f64; 2]) -> bool {
-        self.classify_at(p)
-            .map(RenderMaskClass::is_land)
-            .unwrap_or(false)
-    }
-
-    pub fn classify_at(&self, p: [f64; 2]) -> Option<RenderMaskClass> {
-        self.cell_of(p).and_then(|[x, y]| self.classify_cell(x, y))
-    }
-
-    pub fn nearest_land_cell_center(&self, p: [f64; 2], max_radius_km: f64) -> Option<[f64; 2]> {
+    pub fn nearest_land_neighborhood_center(
+        &self,
+        p: [f64; 2],
+        max_radius_km: f64,
+        margin_cells: usize,
+    ) -> Option<[f64; 2]> {
         let [cx, cy] = self.cell_of(p)?;
         let cell_km = ((self.bb.max[0] - self.bb.min[0]) / self.w as f64)
             .max((self.bb.max[1] - self.bb.min[1]) / self.h as f64);
@@ -163,7 +178,10 @@ impl Raster {
             }
             for dx in -r..=r {
                 let x = cx as isize + dx;
-                if x < 0 || x >= self.w as isize || !self.is_land_cell(x as usize, y as usize) {
+                if x < 0
+                    || x >= self.w as isize
+                    || !self.is_land_neighborhood(x as usize, y as usize, margin_cells)
+                {
                     continue;
                 }
                 let q = self.cell_center(x as usize, y as usize);

@@ -6,6 +6,7 @@ import { BattleScene, type BattleKind } from "./battle/scene";
 import { CampaignScene, loadCampaignData } from "./campaign/scene";
 import type { CampaignData } from "./campaign/data";
 import { checkGpuSupport, type GpuSupportState } from "../../packages/game-renderer/src/appShell";
+import { setActiveFactions } from "../../packages/game-renderer/src/battle/factionColors";
 
 const params = new URLSearchParams(location.search);
 let wasm: InitOutput;
@@ -60,6 +61,7 @@ async function main() {
   }
 
   function launchBattle(kind: BattleKind) {
+    setActiveFactions();
     switchScene(
       new BattleScene({
         wasm,
@@ -79,6 +81,7 @@ async function main() {
   ];
 
   function createQuickBattleGame(cfg: QuickBattleConfig): Game {
+    setActiveFactions(cfg.factions);
     const game = new Game(BATTLE_SEED);
     game.load_map(cfg.mapId);
     cfg.teams.forEach((picks, team) => {
@@ -419,6 +422,7 @@ async function main() {
       mapJson,
       onExit: () => switchScene(menu),
       onBattle: (game, done) => {
+        setActiveFactions();
         switchScene(
           new BattleScene({
             wasm,
@@ -438,15 +442,8 @@ async function main() {
   }
 
   const menu = new MenuScene({
-    onQuickBattle: launchBattle,
     onCustomBattle: launchQuickBattle,
     classSpecs: quickBattleClasses,
-    onDuel: (a, b, ai) => {
-      duel.a = a;
-      duel.b = b;
-      duel.ai = ai;
-      launchBattle("duel");
-    },
     onNewCampaign: () => void launchCampaign(false),
     onLoadCampaign: () => void launchCampaign(true),
     hasSave: () => localStorage.getItem(SAVE_KEY) !== null,

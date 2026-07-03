@@ -4,6 +4,7 @@ export type CrowdClip =
   | 'run'
   | 'attack_a'
   | 'hit_a'
+  | 'shoot'
   | 'death_a'
   | 'at_ease';
 
@@ -21,6 +22,7 @@ const FRAME_STOW = 7;
 const FRAME_RUN_A = 8;
 const FRAME_RUN_B = 9;
 const FRAME_HIT = 10;
+const FRAME_SHOOT = 12;
 
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 const fract = (v: number) => v - Math.floor(v);
@@ -43,6 +45,9 @@ export function animationForFrame(frame: number, tick: number, seed: number, ali
   }
   if (frame === FRAME_HIT) {
     return { clip: 'hit_a', phase: fract(beat * 1.1), loop: false, deathVariant: 0 };
+  }
+  if (frame === FRAME_SHOOT) {
+    return { clip: 'shoot', phase: fract(beat * 1.35), loop: false, deathVariant: 0 };
   }
   if (frame === FRAME_RUN_A || frame === FRAME_RUN_B) {
     return { clip: 'run', phase: fract(beat * 0.85 + (frame === FRAME_RUN_B ? 0.5 : 0)), loop: true, deathVariant: 0 };

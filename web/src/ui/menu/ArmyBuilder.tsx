@@ -1,5 +1,9 @@
 import { useReducer } from "react";
 import {
+  BATTLE_FACTIONS,
+  type BattleFactionId,
+} from "../../../../packages/game-renderer/src/battle/factionColors";
+import {
   QUICK_BATTLE_GOLD,
   QUICK_BATTLE_MAPS,
   QUICK_BATTLE_MAX_UNITS,
@@ -13,6 +17,7 @@ import {
 import {
   armyBuilderReducer,
   armyConfig,
+  DEFAULT_BATTLE_FACTIONS,
   pickArmy,
   type Army,
   type ArmyBuilderState,
@@ -24,7 +29,11 @@ import {
 function initialState(): ArmyBuilderState {
   const balanced = QUICK_BATTLE_TEMPLATES[0];
   const make = (): Army => new Map(balanced.units.map((u) => [u.classId, u.count] as const));
-  return { mapId: QUICK_BATTLE_MAPS[0]?.wasmMapId ?? 0, armies: [make(), make()] };
+  return {
+    mapId: QUICK_BATTLE_MAPS[0]?.wasmMapId ?? 0,
+    armies: [make(), make()],
+    factions: [DEFAULT_BATTLE_FACTIONS[0], DEFAULT_BATTLE_FACTIONS[1]],
+  };
 }
 
 interface ArmyBuilderProps {
@@ -34,11 +43,9 @@ interface ArmyBuilderProps {
   onClose: () => void;
 }
 
-/** Custom-battle setup, ported 1:1 from the vanilla mountQuickBattleSetup so the
- * #quick-battle-modal bronze CSS in index.html still applies and the
- * menu-quick-battle-modal baseline stays pixel-identical. State is a useReducer
- * over the byte-identical-tested armyBuilderState; the launched config is exactly
- * what the old builder emitted. */
+/** Custom-battle setup. The #quick-battle-modal bronze CSS in index.html still
+ * styles this React DOM; state stays in the pure reducer so army picks and
+ * faction choices remain testable without the browser. */
 export function ArmyBuilder({ open, classes, onLaunch, onClose }: ArmyBuilderProps) {
   const [state, dispatch] = useReducer(armyBuilderReducer, undefined, initialState);
   const costOf: ClassCost = (classId) => classes.find((c) => c.id === classId)?.cost ?? 0;
@@ -84,6 +91,7 @@ export function ArmyBuilder({ open, classes, onLaunch, onClose }: ArmyBuilderPro
               team={team}
               classes={classes}
               army={state.armies[team]}
+              factionId={state.factions[team]}
               validation={validations[team]}
               dispatch={dispatch}
             />
@@ -106,15 +114,45 @@ function ArmyPanel(props: {
   team: 0 | 1;
   classes: QuickBattleClassSpec[];
   army: Army;
+  factionId: BattleFactionId;
   validation: QuickBattleValidation;
   dispatch: (a: import("./armyBuilderState").ArmyBuilderAction) => void;
 }) {
-  const { team, classes, army, validation: v, dispatch } = props;
+  const { team, classes, army, factionId, validation: v, dispatch } = props;
   const footerCls =
     "qb-footer" + (v.overBudget || v.overSlots ? " over" : "") + (v.empty ? " empty" : "");
+  const title = team === 0 ? "Your Army" : "Enemy Army";
   return (
     <div className="qb-army" id={`qb-army-${team}`}>
-      <h3>{team === 0 ? "Your Army" : "Enemy Army"}</h3>
+      <div
+        className="qb-army-header"
+        style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}
+      >
+        <h3 style={{ margin: 0, flex: 1 }}>{title}</h3>
+        <select
+          aria-label={`${title} faction`}
+          value={factionId}
+          onChange={(e) =>
+            dispatch({ kind: "faction", team, factionId: e.target.value as BattleFactionId })
+          }
+          style={{
+            minWidth: "112px",
+            background: "var(--well-bg)",
+            color: "var(--bronze-ink)",
+            border: "1px solid #3a2c18",
+            borderRadius: "2px",
+            padding: "4px 6px",
+            font: "inherit",
+            boxShadow: "var(--well-shadow)",
+          }}
+        >
+          {BATTLE_FACTIONS.filter((faction) => faction.id !== "neutral").map((faction) => (
+            <option key={faction.id} value={faction.id}>
+              {faction.name}
+            </option>
+          ))}
+        </select>
+      </div>
       <div className="qb-templates">
         {QUICK_BATTLE_TEMPLATES.map((t) => (
           <button

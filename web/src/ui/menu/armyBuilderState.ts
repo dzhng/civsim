@@ -1,6 +1,6 @@
-// Pure state for the React custom-battle army builder (S4) — no runtime catalog
+// Pure state for the React custom-battle army builder — no runtime catalog
 // import (the catalog types come in type-only, erased at build/strip time), so
-// this byte-identical-output contract is unit-testable under `node --test`.
+// the emitted launch config is unit-testable under `node --test`.
 //
 // The output `armyConfig` MUST match what the old vanilla builder produced for
 // the same click sequence. The load-bearing subtlety: picks come out in Map
@@ -8,18 +8,24 @@
 // player adds later, in click order) — NOT ascending class id. So the state
 // keeps a real Map per side and the reducer mirrors the vanilla mutations
 // exactly; a plain numeric-keyed object would silently reorder integer keys.
+// Factions are a separate per-team picker and do not affect army ordering.
 
+import type { BattleFactionId } from "../../../../packages/game-renderer/src/battle/factionColors";
 import type { QuickBattleConfig, QuickBattleUnitPick } from "../../battle/quickBattleCatalog";
 
 export type Army = Map<number, number>;
 
+export const DEFAULT_BATTLE_FACTIONS: [BattleFactionId, BattleFactionId] = ["azure", "crimson"];
+
 export interface ArmyBuilderState {
   mapId: number;
   armies: [Army, Army];
+  factions: [BattleFactionId, BattleFactionId];
 }
 
 export type ArmyBuilderAction =
   | { kind: "map"; mapId: number }
+  | { kind: "faction"; team: 0 | 1; factionId: BattleFactionId }
   | { kind: "count"; team: 0 | 1; classId: number; delta: number }
   | { kind: "template"; team: 0 | 1; units: readonly { classId: number; count: number }[] };
 
@@ -32,6 +38,11 @@ export function armyBuilderReducer(s: ArmyBuilderState, a: ArmyBuilderAction): A
   switch (a.kind) {
     case "map":
       return { ...s, mapId: a.mapId };
+    case "faction": {
+      const factions: [BattleFactionId, BattleFactionId] = [...s.factions];
+      factions[a.team] = a.factionId;
+      return { ...s, factions };
+    }
     case "count": {
       const armies = cloneArmies(s.armies);
       const army = armies[a.team];
@@ -56,5 +67,9 @@ export function pickArmy(army: Army): QuickBattleUnitPick[] {
 }
 
 export function armyConfig(s: ArmyBuilderState): QuickBattleConfig {
-  return { mapId: s.mapId, teams: [pickArmy(s.armies[0]), pickArmy(s.armies[1])] };
+  return {
+    mapId: s.mapId,
+    teams: [pickArmy(s.armies[0]), pickArmy(s.armies[1])],
+    factions: [s.factions[0], s.factions[1]],
+  };
 }

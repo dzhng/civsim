@@ -90,6 +90,10 @@ const ANIMS = {
     delay: 12,
     steps: [STAND, { frame: 11, dt: 0.12 }, { frame: 3, dt: 0.1 }, { frame: 3, dt: 0.08 }, STAND],
   },
+  shoot: {
+    delay: 12,
+    steps: [STAND, { frame: 12, dt: 0.12 }, { frame: 12, dt: 0.18 }, { frame: 12, dt: 0.1 }, STAND],
+  },
   hit: { delay: 16, steps: [STAND, { frame: 10, dt: 0.1 }, { frame: 10, dt: 0.1 }, STAND, STAND] },
   die: {
     delay: 9,
@@ -173,6 +177,7 @@ await browser.close();
 
 function clipForAnimation(name) {
   if (name === "attack") return "attack_a";
+  if (name === "shoot") return "shoot";
   if (name === "hit") return "hit_a";
   if (name === "die") return "death_a";
   if (name === "run") return "run";

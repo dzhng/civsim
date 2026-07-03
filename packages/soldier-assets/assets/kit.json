@@ -38,7 +38,8 @@
     "8": "run",
     "9": "run",
     "10": "hit_a",
-    "11": "attack_a"
+    "11": "attack_a",
+    "12": "shoot"
   },
   "clips": {
     "idle": {
@@ -65,21 +66,27 @@
       "frames": 9,
       "loop": false
     },
+    "shoot": {
+      "name": "shoot",
+      "start": 44,
+      "frames": 10,
+      "loop": false
+    },
     "hit_a": {
       "name": "hit_a",
-      "start": 44,
+      "start": 54,
       "frames": 5,
       "loop": false
     },
     "death_a": {
       "name": "death_a",
-      "start": 49,
+      "start": 59,
       "frames": 12,
       "loop": false
     },
     "at_ease": {
       "name": "at_ease",
-      "start": 61,
+      "start": 71,
       "frames": 13,
       "loop": true
     }
@@ -318,6 +325,6 @@
     "format": "RGBA32F-json",
     "path": "baked/human-placeholder.vat.json",
     "layout": "pixel(x=globalFrame, y=bone*4+col) = joint matrix column",
-    "sha256": "1375e656f471e6eee45cbce62c3dcba701e710954dfb56c4b85bec5cd5bd016d"
+    "sha256": "579a632c16bf5d8e1d8252b4e9812f77fd9f280b0ec919c2e06ef78e507cff6c"
   }
 }

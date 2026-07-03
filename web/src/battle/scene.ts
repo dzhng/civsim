@@ -2,6 +2,7 @@ import { Game, type InitOutput } from "../wasm/game_wasm.js";
 import type { Scene } from "../scene";
 import { Camera } from "../shared/camera";
 import { pushGhost, pushPie, pushRing } from "../shared/overlays";
+import { projectPoint } from "../../../packages/renderer-core/src/camera3d";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
 import {
   CLASS_DEPTH,
@@ -46,6 +47,16 @@ import { groupMoveDests, UnitSnap } from "./orders";
 
 const TICK_DT = 1 / 30;
 const MAX_TICKS_PER_FRAME = 4;
+const FRAME_SHOOT = 12;
+
+type MissileExportGame = Game & {
+  loosing_ptr(): number;
+  projectile_z_ptr(): number;
+  projectile_vx_ptr(): number;
+  projectile_vy_ptr(): number;
+  projectile_vz_ptr(): number;
+};
+
 const KITE_CLASS_IDS = [
   UNIT_CLASS_BY_KEY[UnitClass.Skirmishers],
   UNIT_CLASS_BY_KEY[UnitClass.HorseArchers],
@@ -1099,14 +1110,93 @@ export class BattleScene implements Scene {
       // Projectiles.
       const pCount = showTransient ? game.projectile_count() : 0;
       if (pCount > 0) {
+        const missileGame = game as MissileExportGame;
         const px = new Float32Array(wasm.memory.buffer, game.projectile_x_ptr(), pCount);
         const py = new Float32Array(wasm.memory.buffer, game.projectile_y_ptr(), pCount);
+        const pz = new Float32Array(wasm.memory.buffer, missileGame.projectile_z_ptr(), pCount);
+        const pvx = new Float32Array(wasm.memory.buffer, missileGame.projectile_vx_ptr(), pCount);
+        const pvy = new Float32Array(wasm.memory.buffer, missileGame.projectile_vy_ptr(), pCount);
+        const pvz = new Float32Array(wasm.memory.buffer, missileGame.projectile_vz_ptr(), pCount);
         const pk = new Uint8Array(wasm.memory.buffer, game.projectile_kind_ptr(), pCount);
+        // Effects lines carry per-vertex z (see PhotorealLineLayer
+        // perVertexZ): an arrow is a true 3D segment along its velocity —
+        // no screen-space tricks (a ground-plane unproject snapped every
+        // above-horizon endpoint to the view centre: the fan bug).
+        const dpr = window.devicePixelRatio || 1;
+        const minArrowWorld = (6 * dpr) / Math.max(4, camera.zoom); // ~6px floor
         for (let i = 0; i < pCount; i++) {
           const stone = pk[i] === 2;
-          const len = stone ? 1.4 : 0.7;
-          const c = stone ? 0.25 : 0.92;
-          effects.push(px[i] - len, py[i], c, c, c * 0.9, px[i] + len, py[i], c, c, c * 0.9);
+          if (stone) {
+            const len = 1.4;
+            const c = 0.25;
+            effects.push(
+              px[i] - len,
+              py[i],
+              0.4,
+              c,
+              c,
+              c * 0.9,
+              px[i] + len,
+              py[i],
+              0.4,
+              c,
+              c,
+              c * 0.9,
+            );
+            continue;
+          }
+          const speed = Math.hypot(pvx[i], pvy[i], pvz[i]) || 1;
+          const half = Math.max(0.8, minArrowWorld / 2);
+          const dx = (pvx[i] / speed) * half;
+          const dy = (pvy[i] / speed) * half;
+          const dz = (pvz[i] / speed) * half;
+          const z0 = Math.max(0.05, pz[i] - dz);
+          const z1 = Math.max(0.05, pz[i] + dz);
+          // Dark shaft (arrows read dark in flight) doubled for weight, with
+          // a pale fletching tip at the tail for direction.
+          const sh = 0.16;
+          effects.push(
+            px[i] - dx,
+            py[i] - dy,
+            z0,
+            sh,
+            sh,
+            sh * 0.9,
+            px[i] + dx,
+            py[i] + dy,
+            z1,
+            sh,
+            sh,
+            sh * 0.9,
+          );
+          effects.push(
+            px[i] - dx,
+            py[i] - dy,
+            z0 + 0.06,
+            sh,
+            sh,
+            sh * 0.9,
+            px[i] + dx,
+            py[i] + dy,
+            z1 + 0.06,
+            sh,
+            sh,
+            sh * 0.9,
+          );
+          effects.push(
+            px[i] - dx * 0.7,
+            py[i] - dy * 0.7,
+            (z0 + z1) / 2 + 0.03,
+            0.95,
+            0.92,
+            0.8,
+            px[i] - dx,
+            py[i] - dy,
+            z0 + 0.03,
+            0.95,
+            0.92,
+            0.8,
+          );
         }
       }
       return { groundCues: new Float32Array(groundCues), effects: new Float32Array(effects) };
@@ -1252,6 +1342,11 @@ export class BattleScene implements Scene {
         const n = game.soldier_count();
         const a = new Uint8Array(wasm.memory.buffer, game.alive_ptr(), n);
         const fighting = new Uint8Array(wasm.memory.buffer, game.fighting_ptr(), n);
+        const loosing = new Float32Array(
+          wasm.memory.buffer,
+          (game as MissileExportGame).loosing_ptr(),
+          n,
+        );
         const switchCd = new Float32Array(wasm.memory.buffer, game.switch_cd_ptr(), n);
         const sUnit = new Uint32Array(wasm.memory.buffer, game.soldier_unit_ptr(), n);
         const curWeapon = new Uint8Array(wasm.memory.buffer, game.cur_weapon_ptr(), n);
@@ -1332,6 +1427,8 @@ export class BattleScene implements Scene {
             frames[i] = 4; // fallen
           } else if (switchCd[i] > 0) {
             frames[i] = 5; // fumbling the weapon swap
+          } else if (loosing[i] > 0) {
+            frames[i] = FRAME_SHOOT;
           } else if (fighting[i]) {
             // Trading blows: a thrust beat alternating with a guard, and ~1/3 of
             // the men on the off-beat flinching (a hit reaction) so a melee
@@ -1718,6 +1815,7 @@ export class BattleScene implements Scene {
         simTick += n;
         tickGroupAttacks();
       },
+      projectileCount: () => game.projectile_count(),
       // Absolute ticks driven so far — the harness pins a snapshot to a fixed
       // tick so the idle fidget sway can't jitter the pixels run-to-run.
       tickCount: () => simTick,

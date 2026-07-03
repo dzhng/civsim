@@ -63,6 +63,13 @@ export function placeholderRig() {
         4: { R: channel([0, 0.35, 0.7], [qx(-0.65), qx(1.2), qx(-0.25)]) },
       },
     },
+    {
+      name: 'shoot', duration: 0.75, tracks: {
+        1: { R: channel([0, 0.55, 1], [qz(0.04), qz(-0.08), qz(0.02)]) },
+        3: { R: channel([0, 0.55, 1], [qx(-0.75), qx(-1.18), qx(-0.78)]) },
+        4: { R: channel([0, 0.55, 0.72, 1], [qx(-0.42), qx(1.08), qx(-0.2), qx(-0.42)]) },
+      },
+    },
     { name: 'hit_a', duration: 0.35, tracks: { 1: { R: channel([0, 0.5, 1], [qx(0), qx(-0.45), qx(0.05)]) } } },
     {
       name: 'death_a', duration: 0.9, tracks: {
@@ -99,6 +106,7 @@ function kitJson(baked) {
     frameMap: {
       0: 'idle', 1: 'march', 2: 'march', 3: 'attack_a', 4: 'death_a', 5: 'idle',
       6: 'at_ease', 7: 'at_ease', 8: 'run', 9: 'run', 10: 'hit_a', 11: 'attack_a',
+      12: 'shoot',
     },
     clips: Object.fromEntries(baked.clips.map((c) => [c.name, { ...c, loop: ['idle', 'march', 'run', 'at_ease'].includes(c.name) }])),
     archetypes: {

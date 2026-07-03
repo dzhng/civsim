@@ -23,13 +23,28 @@ export const BATTLE_FACTIONS = [
   {
     id: "neutral",
     name: "Neutral",
-    primary: [0.82, 0.70, 0.34],
+    primary: [0.82, 0.7, 0.34],
     bannerCss: "#d1b357",
   },
 ] as const satisfies readonly BattleFaction[];
 
+export type ActiveBattleFactions = readonly [BattleFactionId, BattleFactionId];
+
+let activeFactions: ActiveBattleFactions | undefined;
+
+export function setActiveFactions(teamToFactionId?: readonly [string, string] | null): void {
+  activeFactions = teamToFactionId
+    ? [validFactionId(teamToFactionId[0], 0), validFactionId(teamToFactionId[1], 1)]
+    : undefined;
+}
+
+function validFactionId(id: string | undefined, fallbackTeam: 0 | 1): BattleFactionId {
+  const faction = BATTLE_FACTIONS.find((candidate) => candidate.id === id);
+  return faction?.id ?? BATTLE_FACTIONS[fallbackTeam].id;
+}
+
 export function factionForTeam(team: number, overrides?: readonly [string, string]): BattleFaction {
-  const overrideId = team === 0 || team === 1 ? overrides?.[team] : undefined;
+  const overrideId = team === 0 || team === 1 ? (overrides ?? activeFactions)?.[team] : undefined;
   if (overrideId) {
     const override = BATTLE_FACTIONS.find((faction) => faction.id === overrideId);
     if (override) return override;

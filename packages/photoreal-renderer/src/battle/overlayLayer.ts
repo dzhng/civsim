@@ -18,17 +18,21 @@ import { linearAlbedo } from './battleTsl';
 import { RENDER_ORDER } from './terrainLayer';
 
 /** A growable line-list layer fed by (x, y, r, g, b)-stride vertex arrays —
- *  the BattleGroundCuePass / BattleEffectLinePass upload contract. */
+ *  the BattleGroundCuePass / BattleEffectLinePass upload contract. With
+ *  `perVertexZ` the stride is (x, y, z, r, g, b) so lines can leave the
+ *  ground plane (mid-flight arrows); the layer z becomes a bias only. */
 export class PhotorealLineLayer {
   private readonly lines: THREE.LineSegments;
   private capacity = 0;
   private vertexCount = 0;
+  private readonly stride: number;
 
   constructor(
     scene: THREE.Scene,
     private readonly z: number,
-    opts: { alpha: number; depthTest: boolean; renderOrder: number },
+    opts: { alpha: number; depthTest: boolean; renderOrder: number; perVertexZ?: boolean },
   ) {
+    this.stride = opts.perVertexZ ? 6 : 5;
     const material = new THREE.LineBasicNodeMaterial({ transparent: true });
     material.depthTest = opts.depthTest;
     material.depthWrite = false;
@@ -49,9 +53,10 @@ export class PhotorealLineLayer {
     return geo;
   }
 
-  /** Same contract as the bespoke pass: floor(len / 5) vertices of (x, y, rgb). */
+  /** Same contract as the bespoke pass: floor(len / stride) vertices of
+   *  (x, y, rgb) or (x, y, z, rgb) with perVertexZ. */
   upload(vertices: Float32Array): void {
-    const count = Math.floor(vertices.length / 5);
+    const count = Math.floor(vertices.length / this.stride);
     this.vertexCount = count;
     this.lines.visible = count > 0;
     if (count > this.capacity) {
@@ -63,14 +68,15 @@ export class PhotorealLineLayer {
     const color = this.lines.geometry.getAttribute('lineColor') as THREE.BufferAttribute;
     const pos = position.array as Float32Array;
     const col = color.array as Float32Array;
+    const zOff = this.stride === 6 ? 1 : 0;
     for (let i = 0; i < count; i++) {
-      const o = i * 5;
+      const o = i * this.stride;
       pos[i * 3] = vertices[o];
       pos[i * 3 + 1] = vertices[o + 1];
-      pos[i * 3 + 2] = this.z;
-      col[i * 3] = vertices[o + 2];
-      col[i * 3 + 1] = vertices[o + 3];
-      col[i * 3 + 2] = vertices[o + 4];
+      pos[i * 3 + 2] = zOff ? vertices[o + 2] + this.z : this.z;
+      col[i * 3] = vertices[o + 2 + zOff];
+      col[i * 3 + 1] = vertices[o + 3 + zOff];
+      col[i * 3 + 2] = vertices[o + 4 + zOff];
     }
     position.needsUpdate = true;
     color.needsUpdate = true;

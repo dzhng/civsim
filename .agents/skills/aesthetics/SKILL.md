@@ -51,7 +51,7 @@ Campaign (grand-strategy map):
   carries a **diagonal hatch** (the red stripes over Macedon). Cinzel-caps city
   names, region names in larger faded caps. Wash strength follows David's
   EU4-political call: the faction color dominates while terrain relief reads
-  through (see `specs/done`/campaign-map-polish rationale once archived).
+  through (rationale: `specs/done/campaign-map-polish/`).
 
 UI / HUD (in-game panels):
 - `references/ui-cardbar-tw.png` — the Total War unit-card bar: the target for any

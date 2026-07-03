@@ -30,6 +30,12 @@ What it measures:
   by the renderer are sampled through `renderLandAt`.
 - City cards: visible DOM city card rect corners plus center are converted
   through `screenToWorld` and sampled with `renderLandAt`.
+- Scenery: the renderer's full static candidate set
+  (`window.__campaign.sceneryCandidates()`) is classified through
+  `renderLandAt` twice per instance — center (margin 0) and footprint
+  (margin `size/2`, matching the builder's land gate) — with per-kind counts.
+  Measured once (world-space data, framing-independent); violations carry
+  whole-map screen coordinates.
 
 Reconciliation vs the vision audit (slice 00): the audit's "12 offshore
 cities" mixes two defect classes. Square-marker-on-open-water is what
@@ -48,5 +54,8 @@ Green meanings by slice:
   land with the re-baked margin.
 - Slice 03: sea labels are at least `0.95` water, so `landFraction <= 0.05`.
 - Slice 04: city icon+label rects mostly-land (extend the probe first).
+- Slice 06: `scenery.onWaterTotal` and `scenery.footprintOverWaterTotal` are
+  both 0, and `scenery.total` stays within 10% of the pre-gate baseline
+  10,791 (no mass extinction).
 - Slice 07: visible city cards are mostly land; card overhangs should be named
   and driven down before slice close-out.

@@ -286,6 +286,55 @@ async function measureSeaLabels(page, stats) {
   return result.sort((a, b) => a.text.localeCompare(b.text));
 }
 
+// Scenery (slice 06): the static candidate set is world-space data shared by
+// every framing, so it is measured once, not per framing. Every candidate is
+// classified twice through renderLandAt: center on water (margin 0, the hard
+// B9 defect) and footprint over water (margin = size/2, the instance's
+// rendered footprint radius — the same margin the builder gate applies).
+// Green = both totals 0 with per-kind counts close to the pre-gate baseline
+// (no mass extinction — see tools/README.md).
+async function measureScenery(page) {
+  return page.evaluate(() => {
+    const api = window.__campaign;
+    const items = api.sceneryCandidates();
+    const byKind = {};
+    const violations = [];
+    for (const item of items) {
+      const bucket = (byKind[item.kind] ??= { total: 0, onWater: 0, footprintOverWater: 0 });
+      bucket.total++;
+      const centerLand = api.renderLandAt(item.x, item.y, 0);
+      const footprintLand = api.renderLandAt(item.x, item.y, item.size * 0.5);
+      if (centerLand && footprintLand) continue;
+      if (!centerLand) bucket.onWater++;
+      if (!footprintLand) bucket.footprintOverWater++;
+      if (violations.length < 50) {
+        const [sx, sy] = api.project(item.x, item.y);
+        violations.push({
+          kind: item.kind,
+          centerLand,
+          world: { x: roundLocal(item.x), y: roundLocal(item.y) },
+          screen: { x: roundLocal(sx), y: roundLocal(sy) },
+          size: roundLocal(item.size),
+        });
+      }
+    }
+    return {
+      total: items.length,
+      onWaterTotal: Object.values(byKind).reduce((n, bucket) => n + bucket.onWater, 0),
+      footprintOverWaterTotal: Object.values(byKind).reduce(
+        (n, bucket) => n + bucket.footprintOverWater,
+        0,
+      ),
+      byKind,
+      violations,
+    };
+
+    function roundLocal(value) {
+      return Math.round(value * 1000) / 1000;
+    }
+  });
+}
+
 async function measureCards(page) {
   const cards = await page.evaluate(() => {
     const api = window.__campaign;
@@ -359,12 +408,17 @@ async function main() {
     for (const framing of FRAMINGS) {
       framings.push(await measureFraming(page, map, framing));
     }
+    // Re-pose the whole-map framing so violation screen coords are readable
+    // (world-space classification itself is camera-independent).
+    await pose(page, FRAMINGS[0]);
+    const scenery = await measureScenery(page);
     if (pageErrors.length > 0) {
       throw new Error(`browser reported errors: ${pageErrors.slice(0, 5).join(" | ")}`);
     }
     const report = {
       "generated-by": GENERATED_BY,
       target: TARGET,
+      scenery,
       framings,
     };
     const text = `${JSON.stringify(report, null, 2)}\n`;

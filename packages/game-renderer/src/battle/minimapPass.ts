@@ -1,6 +1,7 @@
 import type { OverlayRenderPass, RawFrameShell } from '../../../renderer-core/src/frameShell';
 import { compileShader } from '../../../renderer-core/src/compileShader';
 import { gpuMultisample } from '../../../renderer-core/src/pipelineContracts';
+import { factionForTeam } from './factionColors';
 
 export interface MinimapUnit {
   x: number;
@@ -190,11 +191,10 @@ function buildRects(data: BattleMinimapData, width: number, height: number): Scr
   for (const unit of data.units) {
     const p = project(unit.x, unit.y, data.world, x, y, mapW, mapH);
     const size = unit.selected ? 4.2 : 3.0;
+    const primary = factionForTeam(unit.team).primary;
     const color: [number, number, number, number] = unit.selected
       ? [1, 0.80, 0.20, 1]
-      : unit.team === 0
-        ? [0.32, 0.56, 1, 0.96]
-        : [0.95, 0.25, 0.18, 0.96];
+      : [primary[0], primary[1], primary[2], 0.96];
     rects.push({ x: p.x - size * 0.5, y: p.y - size * 0.5, w: size, h: size, color });
   }
   return rects;

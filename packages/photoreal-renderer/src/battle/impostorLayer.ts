@@ -4,6 +4,7 @@ import {
 } from 'three/tsl';
 import type { Node } from 'three/webgpu';
 import type { CrowdInstance } from '../../../crowd-runtime/src/instanceData';
+import { factionForTeam } from '../../../game-renderer/src/battle/factionColors';
 import type { VatBake } from '../../../soldier-assets/src/schema';
 import type { SoldierMeshData } from '../../../soldier-assets/src/soldierMesh';
 import { linearAlbedo } from './battleTsl';
@@ -35,9 +36,6 @@ interface Bounds2 {
 // Distant units must read as coloured blocks (faction before class); accent
 // areas still retint near-fully on top of this floor.
 const IMPOSTOR_BROAD_MIX = 0.55;
-const BLUE: [number, number, number] = [0.20, 0.42, 0.88];
-const RED: [number, number, number] = [0.84, 0.24, 0.20];
-const NEUTRAL: [number, number, number] = [0.76, 0.67, 0.42];
 const LIGHT_DIR = new THREE.Vector3(-0.34, -0.42, 0.84).normalize();
 
 export function createSoldierImpostorAtlas(
@@ -201,9 +199,9 @@ export class OctahedralImpostorLayer {
 }
 
 function sampledFactionTintNode(color: Node<'vec4'>, faction: Node<'float'>, amount: Node<'float'>) {
-  const blue = linearAlbedo(vec3(...BLUE));
-  const red = linearAlbedo(vec3(...RED));
-  const neutral = linearAlbedo(vec3(...NEUTRAL));
+  const blue = linearAlbedo(vec3(...factionForTeam(0).primary));
+  const red = linearAlbedo(vec3(...factionForTeam(1).primary));
+  const neutral = linearAlbedo(vec3(...factionForTeam(2).primary));
   let accent = mix(blue, red, step(0.5, faction));
   accent = mix(accent, neutral, step(1.5, faction));
   // texture() has already put the sRGB-tagged atlas sample into material color

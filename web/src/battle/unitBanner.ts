@@ -4,6 +4,8 @@
 // object, so it can be mounted and snapshotted standalone (see
 // mountBannerGallery) for visual-regression tests — no sim, no 3D engine.
 
+import { factionForTeam } from "../../../packages/game-renderer/src/battle/factionColors";
+
 export type ChipKind = "plain" | "hot" | "bad";
 export interface BannerChip {
   text: string;
@@ -18,8 +20,6 @@ export interface BannerState {
   selected: boolean;
 }
 
-// Team cloth + health-bar hue (player blue, enemy red), matching the army colours.
-const TEAM_HUE = ["#6f9ae8", "#e0604f"];
 const SVGNS = "http://www.w3.org/2000/svg";
 
 export class UnitBanner {
@@ -87,8 +87,9 @@ export class UnitBanner {
   update(s: BannerState) {
     if (s.team !== this.team) {
       this.team = s.team;
-      this.cloth.setAttribute("fill", TEAM_HUE[s.team]);
-      this.hpFill.style.background = TEAM_HUE[s.team];
+      const bannerCss = factionForTeam(s.team).bannerCss;
+      this.cloth.setAttribute("fill", bannerCss);
+      this.hpFill.style.background = bannerCss;
     }
     this.hpFill.style.width = `${(Math.max(0, Math.min(1, s.hp)) * 100).toFixed(1)}%`;
     this.cohFill.style.width = `${(Math.max(0, Math.min(1, s.cohesion)) * 100).toFixed(1)}%`;

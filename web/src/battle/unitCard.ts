@@ -7,11 +7,18 @@ import {
   lookForModel,
   modelLookForClass,
 } from "../../../packages/game-renderer/src/models/shared/soldierModel";
+import {
+  factionForTeam,
+  factionPrimaryCss,
+} from "../../../packages/game-renderer/src/battle/factionColors";
 import { computeCardGrid, type CardGridOpts } from "./cardGrid";
 
 // Faction accents keep cards, banners, and WebGPU soldier colours reading as
 // the same side.
-export const FACTION_CSS = ["#3a6cf0", "#e03e34"]; // player blue, enemy crimson
+export const FACTION_CSS = [
+  factionPrimaryCss(factionForTeam(0)),
+  factionPrimaryCss(factionForTeam(1)),
+];
 
 // Total-War card-bar constants (the production source of truth — cardGrid.ts
 // only holds matching fallbacks). Cards are a FIXED size; the bar wraps into

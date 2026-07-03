@@ -11,13 +11,13 @@ export const BATTLE_FACTIONS = [
   {
     id: "azure",
     name: "Azure",
-    primary: [0.20, 0.42, 0.88],
+    primary: [0.15, 0.38, 0.96],
     bannerCss: "#6f9ae8",
   },
   {
     id: "crimson",
     name: "Crimson",
-    primary: [0.84, 0.24, 0.20],
+    primary: [0.94, 0.15, 0.12],
     bannerCss: "#e0604f",
   },
   {

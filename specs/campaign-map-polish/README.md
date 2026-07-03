@@ -98,7 +98,7 @@ scene.mjs <scene>` and bless with `UPDATE_SHOTS=1`.
 - [x] `16-city-card-design` — sheet built + critiqued; DECIDED: variation B (plaque + wells), DOM-overlay seam; David can override
 - [x] `17-city-card-impl` — C-cards for own cities AND armies (DOM overlay, per-frame transforms, gates mirrored); scene contracts moved to DOM-card assertions
 - [x] `18-allegiance-rechannel` — enemy red sword + all icons faction-colored; allegianceColor removed from icon paths
-- [~] `19-aesthetics-doc` — part 1 DONE (palette-target reference line in SKILL.md); part 2 (two-color rule rewrite) gated on 17+18
+- [x] `19-aesthetics-doc` — palette target referenced + two-color rule rewritten for the card/sword model
 - [ ] `20-crisp-borders` — David (mid-build): crisp territory edges + dual faction-colored border lines (slice file has the seam)
 
 ---

@@ -163,15 +163,22 @@ there: expect layered gradients/insets or a 9-slice frame asset.
 ## The two-color rule (don't break it)
 
 On the campaign map every entity color is **either a faction color or an allegiance
-color**, never anything else:
+accent**, never anything else — but the two no longer share the icon channel:
 
-- **Faction colors** (`map.factions[].color`) — territory fills, the 3D city
-  banners/flags. "Who owns this."
-- **Allegiance colors** (`STATUS_CSS`, green/amber/red) — the 2D label status icons
-  (house for city, users-four for army). "How they stand to me."
+- **Faction colors** (`map.factions[].color`) — territory fills and borders, the 3D
+  banners/flags, **every 2D label icon and marker**, and the faction band on the
+  own-entity map cards. "Who owns this." Icons never carry allegiance color.
+- **Allegiance is a treatment, not an icon tint.** OWN entities read as the bronze
+  faction-banner **map card** (cities: name + income, garrison as an attached
+  footer; field armies: name + strength). NEUTRAL cities keep the engraved canvas
+  label. ENEMY cities carry a **red sword** to the right of the label — the one
+  allegiance-colored mark on labels. The status colors (`STATUS_CSS`
+  green/amber/red) survive only as non-icon accents: the selection ring and the
+  crowd-figure tint.
 
 When you add a colored campaign element, decide which of these two meanings it
-serves and use that source. Introducing a third color vocabulary is a regression.
+serves and use that source. Reintroducing allegiance-colored icons, or a third
+color vocabulary, is a regression.
 
 ## Workflow
 

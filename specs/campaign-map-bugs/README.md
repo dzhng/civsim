@@ -25,7 +25,14 @@ classification API + `cargo run -p mapgen -- probe`; frontend `RenderMask` /
 `CAMPAIGN_SEA_PALETTE_WGSL`; bake↔frontend bridge 7,822/7,822). Probe key
 finding (U1): all 412 city centers are land — the 12 "offshore" cities sit
 within ~2 km (≈1 bake px) of water, so the defect is marker-footprint vs
-center-pixel. Next: slice 00's rendered-probe tool + red baseline.
+center-pixel. Rendered probe landed (tools/render-probe.mjs + red baseline,
+see tools/README.md): sea-label + card violations reproduce the audit exactly;
+the audit's "12 offshore cities" split into square-marker-on-water (B1, probe
+`landFraction`, slice 01 gate: none `< 0.5`) and icon+label-anchored-at-sea
+(B2 — the b1-tarraco/corinthus crops actually show this class — slice 04, which
+extends the probe to city icon+label rects). Slice 00 complete. **Next pickup:
+slice 01 (city snap + re-bake, ★human)**; 03/05/06 are unblocked lanes; 08 is
+in flight on worktree-map-bugs-standard.
 **You are a fresh session implementing this spec** via
 [implement-spec](../../.agents/skills/implement-spec/SKILL.md). David's standing
 preference: delegate well-defined mechanical edits to Codex (`codex exec`,

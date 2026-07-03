@@ -493,12 +493,21 @@ export interface CampaignLabelPassStats {
   labels: number;
   visibleLabels: number;
   visibleLabelNames: string[];
+  visibleSeaLabelRects: CampaignLabelDebugRect[];
   collisionCulls: number;
   collisionCulledLabels: string[];
   atlasWidth: number;
   atlasHeight: number;
   vertices: number;
   layer: 'raw-gpu-glyph-atlas';
+}
+
+export interface CampaignLabelDebugRect {
+  text: string;
+  kind: CampaignLabel['kind'];
+  opacity: number;
+  box: { x: number; y: number; w: number; h: number };
+  corners: [number, number][];
 }
 
 export class CampaignMapPass {
@@ -900,6 +909,7 @@ export class CampaignMarkerPass {
   private instanceBuffer: GPUBuffer;
   private capacity = 0;
   private markerCount = 0;
+  private cityMarkerRadiiPx: number[] = [];
 
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
@@ -951,6 +961,11 @@ export class CampaignMarkerPass {
 
   upload(markers: CampaignMarker[]) {
     this.markerCount = markers.length;
+    this.cityMarkerRadiiPx = [...new Set(
+      markers
+        .filter((marker) => marker.kind === 'city')
+        .map((marker) => Number(marker.radius.toFixed(3))),
+    )].sort((a, b) => a - b);
     if (markers.length > this.capacity) {
       this.capacity = Math.max(markers.length, this.capacity * 2, 128);
       this.instanceBuffer = this.shell.device.createBuffer({
@@ -988,7 +1003,11 @@ export class CampaignMarkerPass {
   }
 
   stats() {
-    return { markers: this.markerCount };
+    return {
+      markers: this.markerCount,
+      cityMarkerRadiiPx: this.cityMarkerRadiiPx,
+      cityMarkerRadiusPx: this.cityMarkerRadiiPx[this.cityMarkerRadiiPx.length - 1] ?? 0,
+    };
   }
 }
 
@@ -1006,6 +1025,7 @@ export class CampaignLabelPass {
     labels: 0,
     visibleLabels: 0,
     visibleLabelNames: [],
+    visibleSeaLabelRects: [],
     collisionCulls: 0,
     collisionCulledLabels: [],
     atlasWidth: 1,
@@ -1080,6 +1100,7 @@ export class CampaignLabelPass {
         labels: labels.length,
         visibleLabels: 0,
         visibleLabelNames: [],
+        visibleSeaLabelRects: [],
         collisionCulls: 0,
         collisionCulledLabels: [],
         atlasWidth: 1,
@@ -1116,6 +1137,7 @@ export class CampaignLabelPass {
       labels: labels.length,
       visibleLabels: atlas.entries.length,
       visibleLabelNames: atlas.entries.slice(0, 128).map((entry) => `${entry.label.kind}:${labelText(entry.label)}`),
+      visibleSeaLabelRects: labelDebugRects(atlas.entries, dpr).filter((entry) => entry.kind === 'sea'),
       collisionCulls: atlas.collisionCulls,
       collisionCulledLabels: atlas.collisionCulledLabels,
       atlasWidth: atlas.width,
@@ -1858,6 +1880,57 @@ function labelBounds(entry: MeasuredCampaignLabel, dpr: number): LabelBounds {
 
 function overlaps(a: LabelBounds, b: LabelBounds) {
   return a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0;
+}
+
+function labelDebugRects(entries: AtlasEntry[], dpr: number): CampaignLabelDebugRect[] {
+  return entries.map((entry) => {
+    const label = entry.label;
+    const width = entry.width;
+    const height = entry.height;
+    const angle = label.angle ?? 0;
+    const c = Math.cos(angle);
+    const s = Math.sin(angle);
+    const anchorOffsetX =
+      label.screenAnchorX === 'left'
+        ? entry.offsetX + width * 0.5
+        : label.screenAnchorX === 'right'
+          ? entry.offsetX - width * 0.5
+          : entry.offsetX;
+    const anchorOffsetY =
+      label.screenAnchorY === 'top'
+        ? entry.offsetY + height * 0.5
+        : label.screenAnchorY === 'bottom'
+          ? entry.offsetY - height * 0.5
+          : entry.offsetY;
+    const centerX = entry.screenX + anchorOffsetX;
+    const centerY = entry.screenY + anchorOffsetY;
+    const corners = [
+      [-width * 0.5, -height * 0.5],
+      [width * 0.5, -height * 0.5],
+      [width * 0.5, height * 0.5],
+      [-width * 0.5, height * 0.5],
+    ].map(([x, y]): [number, number] => [
+      roundPx((centerX + x * c - y * s) / dpr),
+      roundPx((centerY + x * s + y * c) / dpr),
+    ]);
+    const xs = corners.map((corner) => corner[0]);
+    const ys = corners.map((corner) => corner[1]);
+    const x0 = Math.min(...xs);
+    const y0 = Math.min(...ys);
+    const x1 = Math.max(...xs);
+    const y1 = Math.max(...ys);
+    return {
+      text: labelText(label),
+      kind: label.kind,
+      opacity: roundPx(entry.opacity),
+      box: { x: roundPx(x0), y: roundPx(y0), w: roundPx(x1 - x0), h: roundPx(y1 - y0) },
+      corners,
+    };
+  });
+}
+
+function roundPx(value: number) {
+  return Number(value.toFixed(3));
 }
 
 function buildLabelVertices(entries: AtlasEntry[]) {

@@ -1,0 +1,2619 @@
+{
+  "generated-by": "CODEX-00-PROBE specs/campaign-map-bugs/tools/render-probe.mjs",
+  "target": "http://localhost:5199",
+  "framings": [
+    {
+      "framing": {
+        "name": "whole-map-political",
+        "camera": [
+          -100,
+          250,
+          0.16
+        ],
+        "viewport": {
+          "width": 1600,
+          "height": 1000
+        }
+      },
+      "markerRadiusPx": 5.9,
+      "offshoreCities": [
+        {
+          "name": "Adramyttium",
+          "index": 4,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.823,
+          "marginKm": 63.413,
+          "screen": {
+            "x": 1104.953,
+            "y": 515.78
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Aelana",
+          "index": 6,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.85,
+          "marginKm": 80,
+          "screen": {
+            "x": 1427.394,
+            "y": 873.666
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Agrigentum",
+          "index": 563,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.726,
+          "marginKm": 5.356,
+          "screen": {
+            "x": 697.233,
+            "y": 611.227
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Ake-Ptolemais",
+          "index": 12,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.726,
+          "marginKm": 4.023,
+          "screen": {
+            "x": 1402.249,
+            "y": 737.441
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Aleria",
+          "index": 564,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.496,
+          "marginKm": 0.177,
+          "screen": {
+            "x": 591.137,
+            "y": 416.611
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Alexandria",
+          "index": 15,
+          "tier": 3,
+          "centerLand": true,
+          "landFraction": 0.637,
+          "marginKm": 5.097,
+          "screen": {
+            "x": 1243.201,
+            "y": 832.941
+          },
+          "markerRadiusPx": 5.9
+        },
+        {
+          "name": "Alexandria Troas",
+          "index": 16,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.584,
+          "marginKm": 1.614,
+          "screen": {
+            "x": 1080.276,
+            "y": 508.111
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Altinum",
+          "index": 17,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.752,
+          "marginKm": 3.106,
+          "screen": {
+            "x": 683.68,
+            "y": 293.632
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Amastris",
+          "index": 415,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.584,
+          "marginKm": 1.978,
+          "screen": {
+            "x": 1249.995,
+            "y": 409.809
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Amathous",
+          "index": 532,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.619,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 1325.366,
+            "y": 677.332
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Amisus",
+          "index": 425,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.522,
+          "marginKm": 0.381,
+          "screen": {
+            "x": 1365.684,
+            "y": 406.153
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Amphipolis",
+          "index": 566,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.805,
+          "marginKm": 5.67,
+          "screen": {
+            "x": 1007.73,
+            "y": 472.638
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Ancona",
+          "index": 19,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.478,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 708.618,
+            "y": 368.386
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Apollonia",
+          "index": 541,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.637,
+          "marginKm": 3.182,
+          "screen": {
+            "x": 1399.615,
+            "y": 767.302
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Apollonia (Epirus)",
+          "index": 475,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.717,
+          "marginKm": 4.449,
+          "screen": {
+            "x": 877.68,
+            "y": 479.453
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Apollonia Pontica",
+          "index": 520,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.504,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 1111.473,
+            "y": 403.309
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Aquileia",
+          "index": 31,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.611,
+          "marginKm": 3.777,
+          "screen": {
+            "x": 710.045,
+            "y": 286.619
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Ariminum",
+          "index": 39,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.575,
+          "marginKm": 2.115,
+          "screen": {
+            "x": 683.7,
+            "y": 349.581
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Ascalon",
+          "index": 42,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.664,
+          "marginKm": 3.933,
+          "screen": {
+            "x": 1395.092,
+            "y": 790.581
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Aternum",
+          "index": 45,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.584,
+          "marginKm": 2.029,
+          "screen": {
+            "x": 726.541,
+            "y": 412.532
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Athenae",
+          "index": 46,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.752,
+          "marginKm": 7.511,
+          "screen": {
+            "x": 1012.903,
+            "y": 582.985
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Barcino",
+          "index": 61,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.549,
+          "marginKm": 1.507,
+          "screen": {
+            "x": 375.895,
+            "y": 417.55
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Bargylia",
+          "index": 519,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.867,
+          "marginKm": 5.667,
+          "screen": {
+            "x": 1135.956,
+            "y": 603.779
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Berytus",
+          "index": 68,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.566,
+          "marginKm": 1.79,
+          "screen": {
+            "x": 1408.269,
+            "y": 696.389
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Brundisium",
+          "index": 81,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.54,
+          "marginKm": 1.276,
+          "screen": {
+            "x": 833.539,
+            "y": 484.999
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Byblos",
+          "index": 545,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.655,
+          "marginKm": 2.155,
+          "screen": {
+            "x": 1410.195,
+            "y": 686.919
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Caesarea Maritima",
+          "index": 88,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.619,
+          "marginKm": 1.353,
+          "screen": {
+            "x": 1399.822,
+            "y": 755.096
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Camarina",
+          "index": 460,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.531,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 723.975,
+            "y": 629.748
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Camulodunum",
+          "index": 95,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.973,
+          "marginKm": 9.548,
+          "screen": {
+            "x": 435.744,
+            "y": 26.389
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Caralis",
+          "index": 444,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.54,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 566.686,
+            "y": 527.156
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Carthago",
+          "index": 101,
+          "tier": 3,
+          "centerLand": true,
+          "landFraction": 0.575,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 592.615,
+            "y": 622.502
+          },
+          "markerRadiusPx": 5.9
+        },
+        {
+          "name": "Carthago Nova",
+          "index": 102,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.611,
+          "marginKm": 3.364,
+          "screen": {
+            "x": 250.997,
+            "y": 543.095
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Castrum Truentinum",
+          "index": 104,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.549,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 718.209,
+            "y": 395.692
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Catabathmus Maior",
+          "index": 106,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.752,
+          "marginKm": 3.322,
+          "screen": {
+            "x": 1080.49,
+            "y": 834.571
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Caunus",
+          "index": 523,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.867,
+          "marginKm": 8.524,
+          "screen": {
+            "x": 1170.194,
+            "y": 614.345
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Chalcis",
+          "index": 491,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.717,
+          "marginKm": 36.982,
+          "screen": {
+            "x": 1006.917,
+            "y": 564.204
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Chersonasos",
+          "index": 502,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.602,
+          "marginKm": 0.893,
+          "screen": {
+            "x": 1074.447,
+            "y": 683.72
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Chersonesos",
+          "index": 534,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.54,
+          "marginKm": 2.142,
+          "screen": {
+            "x": 1257.938,
+            "y": 297.397
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Chios",
+          "index": 505,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.566,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 1085.274,
+            "y": 562.122
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Clysma",
+          "index": 115,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.717,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 1341.721,
+            "y": 870.088
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Cnidus",
+          "index": 516,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.195,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 1133.918,
+            "y": 622.012
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Constantinopolis",
+          "index": 121,
+          "tier": 3,
+          "centerLand": true,
+          "landFraction": 0.593,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 1156.671,
+            "y": 450.078
+          },
+          "markerRadiusPx": 5.9
+        },
+        {
+          "name": "Corcyra",
+          "index": 476,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.363,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 892.922,
+            "y": 525.722
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Corinthus",
+          "index": 486,
+          "tier": 3,
+          "centerLand": true,
+          "landFraction": 0.867,
+          "marginKm": 5.547,
+          "screen": {
+            "x": 987.257,
+            "y": 586.857
+          },
+          "markerRadiusPx": 5.9
+        },
+        {
+          "name": "Corycus",
+          "index": 537,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.504,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 1343.184,
+            "y": 603.635
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Cosa",
+          "index": 126,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.619,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 642.661,
+            "y": 408.764
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Cyrene",
+          "index": 129,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.929,
+          "marginKm": 11.339,
+          "screen": {
+            "x": 965.892,
+            "y": 790.184
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Cyzicus",
+          "index": 521,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.752,
+          "marginKm": 6.017,
+          "screen": {
+            "x": 1128.944,
+            "y": 479.149
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Darnis",
+          "index": 132,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.566,
+          "marginKm": 0.35,
+          "screen": {
+            "x": 991.928,
+            "y": 791.277
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Delphi",
+          "index": 134,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.867,
+          "marginKm": 80,
+          "screen": {
+            "x": 973.851,
+            "y": 565.24
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Demetrias",
+          "index": 565,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.628,
+          "marginKm": 30.984,
+          "screen": {
+            "x": 984.605,
+            "y": 532.004
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Dianium",
+          "index": 418,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.531,
+          "marginKm": 2.097,
+          "screen": {
+            "x": 294.747,
+            "y": 502.479
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Dioscurias",
+          "index": 552,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.708,
+          "marginKm": 1.898,
+          "screen": {
+            "x": 1475.796,
+            "y": 313.28
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Durnonovaria",
+          "index": 147,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.903,
+          "marginKm": 8.048,
+          "screen": {
+            "x": 347.38,
+            "y": 51.686
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Dyrrhachium",
+          "index": 150,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.504,
+          "marginKm": 1.461,
+          "screen": {
+            "x": 877.912,
+            "y": 458.15
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Ebusus",
+          "index": 416,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.54,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 334.157,
+            "y": 506.977
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Emporiae",
+          "index": 156,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.867,
+          "marginKm": 3.818,
+          "screen": {
+            "x": 408.476,
+            "y": 391.975
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Ephesus",
+          "index": 158,
+          "tier": 3,
+          "centerLand": true,
+          "landFraction": 0.885,
+          "marginKm": 10.071,
+          "screen": {
+            "x": 1124.844,
+            "y": 575.291
+          },
+          "markerRadiusPx": 5.9
+        },
+        {
+          "name": "Epidaurum",
+          "index": 469,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.584,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 841.876,
+            "y": 409.166
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Euesperides",
+          "index": 477,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.673,
+          "marginKm": 4.017,
+          "screen": {
+            "x": 906.683,
+            "y": 819.819
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Fanum Fortunae",
+          "index": 160,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.54,
+          "marginKm": 2.074,
+          "screen": {
+            "x": 695.745,
+            "y": 358.459
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Forum Iulii",
+          "index": 164,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.779,
+          "marginKm": 4.9,
+          "screen": {
+            "x": 518.934,
+            "y": 358.137
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Gades",
+          "index": 167,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.46,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 82.34,
+            "y": 546.717
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Gaza",
+          "index": 169,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.779,
+          "marginKm": 6.548,
+          "screen": {
+            "x": 1393.432,
+            "y": 797.449
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Gorgippia",
+          "index": 549,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.699,
+          "marginKm": 1.609,
+          "screen": {
+            "x": 1356.535,
+            "y": 267.22
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Gythion",
+          "index": 485,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.619,
+          "marginKm": 0.993,
+          "screen": {
+            "x": 980.227,
+            "y": 632.568
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Hadrumetum",
+          "index": 176,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.584,
+          "marginKm": 0.538,
+          "screen": {
+            "x": 600.19,
+            "y": 663.349
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Halicarnassus",
+          "index": 517,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.602,
+          "marginKm": 2.383,
+          "screen": {
+            "x": 1131.676,
+            "y": 610.179
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Heraclea Pontica",
+          "index": 402,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.504,
+          "marginKm": 0.387,
+          "screen": {
+            "x": 1225.973,
+            "y": 431.683
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Hippo Regius",
+          "index": 184,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.655,
+          "marginKm": 2.849,
+          "screen": {
+            "x": 513.236,
+            "y": 613.231
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Histria",
+          "index": 186,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.646,
+          "marginKm": 6.012,
+          "screen": {
+            "x": 1130.799,
+            "y": 318.153
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Iader",
+          "index": 187,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.646,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 758.833,
+            "y": 350.505
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Igilgili",
+          "index": 441,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.558,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 451.13,
+            "y": 609.178
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Ilium",
+          "index": 190,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.85,
+          "marginKm": 8.771,
+          "screen": {
+            "x": 1082.85,
+            "y": 500.582
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Iol Caesarea",
+          "index": 192,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.558,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 339.373,
+            "y": 600.701
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Isca",
+          "index": 193,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.903,
+          "marginKm": 52.11,
+          "screen": {
+            "x": 345.527,
+            "y": 16.853
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Kalos Limen",
+          "index": 530,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.566,
+          "marginKm": 2.434,
+          "screen": {
+            "x": 1229.551,
+            "y": 267.272
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Krane",
+          "index": 582,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.823,
+          "marginKm": 8.318,
+          "screen": {
+            "x": 914.932,
+            "y": 577.555
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Lamia",
+          "index": 432,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.991,
+          "marginKm": 50.534,
+          "screen": {
+            "x": 971.17,
+            "y": 548.919
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Lampsacus",
+          "index": 208,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.726,
+          "marginKm": 22.586,
+          "screen": {
+            "x": 1093.793,
+            "y": 483.824
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Laodicea",
+          "index": 210,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.531,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 1403.134,
+            "y": 630.468
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Lapethos",
+          "index": 535,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.664,
+          "marginKm": 3.43,
+          "screen": {
+            "x": 1322.257,
+            "y": 653.326
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Lepcis Magna",
+          "index": 214,
+          "tier": 3,
+          "centerLand": true,
+          "landFraction": 0.531,
+          "marginKm": 0.707,
+          "screen": {
+            "x": 711.392,
+            "y": 797.921
+          },
+          "markerRadiusPx": 5.9
+        },
+        {
+          "name": "Leucas",
+          "index": 478,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.363,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 917.781,
+            "y": 553.762
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Lilybaeum",
+          "index": 456,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.487,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 663.325,
+            "y": 590.233
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Lissus",
+          "index": 434,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.894,
+          "marginKm": 7.95,
+          "screen": {
+            "x": 883.605,
+            "y": 440.289
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Lixus",
+          "index": 217,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.708,
+          "marginKm": 7.593,
+          "screen": {
+            "x": 71.307,
+            "y": 598.309
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Lokroi Epizephyrioi",
+          "index": 466,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.522,
+          "marginKm": 0.045,
+          "screen": {
+            "x": 781.864,
+            "y": 577.523
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Luna",
+          "index": 224,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.699,
+          "marginKm": 3.644,
+          "screen": {
+            "x": 613.458,
+            "y": 344.107
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Malaca",
+          "index": 561,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.611,
+          "marginKm": 1.028,
+          "screen": {
+            "x": 139.201,
+            "y": 553.647
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Massilia",
+          "index": 232,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.575,
+          "marginKm": 0.677,
+          "screen": {
+            "x": 480.156,
+            "y": 358.331
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Melita",
+          "index": 459,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.442,
+          "marginKm": 3.353,
+          "screen": {
+            "x": 720.426,
+            "y": 668.687
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Meninge",
+          "index": 448,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.451,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 601.032,
+            "y": 748.221
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Messana",
+          "index": 462,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.593,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 759.598,
+            "y": 578.945
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Minturnae",
+          "index": 237,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.673,
+          "marginKm": 2.026,
+          "screen": {
+            "x": 711.191,
+            "y": 458.768
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Myra",
+          "index": 409,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.513,
+          "marginKm": 0.314,
+          "screen": {
+            "x": 1216.215,
+            "y": 632.118
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Myriandros",
+          "index": 546,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.894,
+          "marginKm": 8.28,
+          "screen": {
+            "x": 1405.395,
+            "y": 587.173
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Mytilene",
+          "index": 507,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.894,
+          "marginKm": 17.142,
+          "screen": {
+            "x": 1087.404,
+            "y": 528.942
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Neapolis (Thrace)",
+          "index": 570,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.637,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 1025.151,
+            "y": 465.975
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Nicomedia",
+          "index": 251,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.982,
+          "marginKm": 45.503,
+          "screen": {
+            "x": 1186.246,
+            "y": 457.129
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Nicopolis",
+          "index": 252,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.416,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 919.151,
+            "y": 546.009
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Odessus",
+          "index": 257,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.619,
+          "marginKm": 2.239,
+          "screen": {
+            "x": 1114.54,
+            "y": 371.275
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Oea",
+          "index": 258,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.558,
+          "marginKm": 1.166,
+          "screen": {
+            "x": 674.412,
+            "y": 785.785
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Olbia",
+          "index": 419,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.867,
+          "marginKm": 5.071,
+          "screen": {
+            "x": 585.22,
+            "y": 462.168
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Olbia (Borysthenes)",
+          "index": 528,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.619,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 1198.714,
+            "y": 227.164
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Olisipo",
+          "index": 260,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.637,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 27.511,
+            "y": 438.381
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Ostia/Portus",
+          "index": 263,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.513,
+          "marginKm": 0.071,
+          "screen": {
+            "x": 669.337,
+            "y": 436.821
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Palma",
+          "index": 597,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.726,
+          "marginKm": 0.782,
+          "screen": {
+            "x": 375.914,
+            "y": 488.271
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Panormus",
+          "index": 562,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.726,
+          "marginKm": 7.531,
+          "screen": {
+            "x": 690.81,
+            "y": 579.194
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Pantikapaion",
+          "index": 547,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.593,
+          "marginKm": 1.395,
+          "screen": {
+            "x": 1329.457,
+            "y": 259.612
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Paphos",
+          "index": 420,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.478,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 1302.599,
+            "y": 678.767
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Paraetonium",
+          "index": 268,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.681,
+          "marginKm": 3.848,
+          "screen": {
+            "x": 1151.452,
+            "y": 836.824
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Patara",
+          "index": 410,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.496,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 1195.278,
+            "y": 633.299
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Patrae",
+          "index": 482,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.602,
+          "marginKm": 2.49,
+          "screen": {
+            "x": 951.036,
+            "y": 574.913
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Pelusium",
+          "index": 274,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.796,
+          "marginKm": 5.869,
+          "screen": {
+            "x": 1333.753,
+            "y": 826.645
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Perge",
+          "index": 407,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.956,
+          "marginKm": 10.522,
+          "screen": {
+            "x": 1238.501,
+            "y": 600.237
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Perinthus",
+          "index": 278,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.442,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 1126.596,
+            "y": 454.965
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Phaselis",
+          "index": 408,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.504,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 1230.989,
+            "y": 619.184
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Phasis",
+          "index": 553,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.602,
+          "marginKm": 0.293,
+          "screen": {
+            "x": 1503.342,
+            "y": 340.003
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Pisae",
+          "index": 283,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.903,
+          "marginKm": 10.876,
+          "screen": {
+            "x": 622.265,
+            "y": 358.332
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Pola",
+          "index": 287,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.407,
+          "marginKm": 0.334,
+          "screen": {
+            "x": 720.939,
+            "y": 321.022
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Pompeii",
+          "index": 288,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.823,
+          "marginKm": 3.685,
+          "screen": {
+            "x": 731.324,
+            "y": 478.646
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Populonium",
+          "index": 602,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.31,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 622.697,
+            "y": 386.202
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Prusias",
+          "index": 526,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.982,
+          "marginKm": 11.437,
+          "screen": {
+            "x": 1165.834,
+            "y": 472.912
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Ptolemais",
+          "index": 295,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.681,
+          "marginKm": 5.394,
+          "screen": {
+            "x": 935.321,
+            "y": 795.995
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Puteoli",
+          "index": 297,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.442,
+          "marginKm": 0.259,
+          "screen": {
+            "x": 720.316,
+            "y": 475.078
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Raphia",
+          "index": 554,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.92,
+          "marginKm": 11.188,
+          "screen": {
+            "x": 1388.345,
+            "y": 807.488
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Ravenna",
+          "index": 298,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.805,
+          "marginKm": 6.12,
+          "screen": {
+            "x": 675.054,
+            "y": 335.307
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Rhodos",
+          "index": 522,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.23,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 1158.979,
+            "y": 631.201
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Rusaddir",
+          "index": 302,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.628,
+          "marginKm": 1.967,
+          "screen": {
+            "x": 168.969,
+            "y": 619.659
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Rusicade",
+          "index": 303,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.743,
+          "marginKm": 4.648,
+          "screen": {
+            "x": 486.94,
+            "y": 610.325
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Sabratha",
+          "index": 305,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.637,
+          "marginKm": 3.899,
+          "screen": {
+            "x": 651.106,
+            "y": 788.221
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Saguntum",
+          "index": 306,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.664,
+          "marginKm": 4.007,
+          "screen": {
+            "x": 291.451,
+            "y": 468.672
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Sala",
+          "index": 307,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.708,
+          "marginKm": 7.143,
+          "screen": {
+            "x": 35.619,
+            "y": 638.922
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Salamis",
+          "index": 421,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.584,
+          "marginKm": 0.612,
+          "screen": {
+            "x": 1346.638,
+            "y": 655.421
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Saldae",
+          "index": 308,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.584,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 429.205,
+            "y": 608.492
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Salernum",
+          "index": 309,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.699,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 739.492,
+            "y": 481.152
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Salona",
+          "index": 310,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.655,
+          "marginKm": 40.844,
+          "screen": {
+            "x": 792.886,
+            "y": 373.457
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Samos",
+          "index": 510,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.54,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 1112.614,
+            "y": 586.017
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Scodra",
+          "index": 319,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.912,
+          "marginKm": 26.15,
+          "screen": {
+            "x": 878.956,
+            "y": 429.562
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Seleukeia Pieria",
+          "index": 422,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.673,
+          "marginKm": 3.824,
+          "screen": {
+            "x": 1401.775,
+            "y": 607.009
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Selinus",
+          "index": 457,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.593,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 674.565,
+            "y": 598.667
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Senia",
+          "index": 323,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.681,
+          "marginKm": 23.043,
+          "screen": {
+            "x": 750.618,
+            "y": 317.439
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Sestus",
+          "index": 509,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.761,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 1085.961,
+            "y": 488.835
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Side",
+          "index": 327,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.451,
+          "marginKm": 0.01,
+          "screen": {
+            "x": 1256.505,
+            "y": 605.367
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Siga",
+          "index": 328,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.699,
+          "marginKm": 6.052,
+          "screen": {
+            "x": 213.955,
+            "y": 630.683
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Sinope",
+          "index": 542,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.363,
+          "marginKm": 0.859,
+          "screen": {
+            "x": 1322.39,
+            "y": 385.478
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Sipontum",
+          "index": 331,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.619,
+          "marginKm": 1.183,
+          "screen": {
+            "x": 773.918,
+            "y": 446.913
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Smyrna",
+          "index": 336,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.938,
+          "marginKm": 4.694,
+          "screen": {
+            "x": 1116.193,
+            "y": 556.916
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Syracusae",
+          "index": 423,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.354,
+          "marginKm": 0.073,
+          "screen": {
+            "x": 750.591,
+            "y": 622.613
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Tacape",
+          "index": 347,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.699,
+          "marginKm": 3.039,
+          "screen": {
+            "x": 575.345,
+            "y": 739.483
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Tainaron Pr.",
+          "index": 484,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.212,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 977.489,
+            "y": 643.936
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Tanais",
+          "index": 551,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.832,
+          "marginKm": 80,
+          "screen": {
+            "x": 1380.147,
+            "y": 169.483
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Tarentum",
+          "index": 350,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.593,
+          "marginKm": 1.546,
+          "screen": {
+            "x": 812.757,
+            "y": 491.334
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Tarracina",
+          "index": 351,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.619,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 696.129,
+            "y": 455.568
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Tarraco",
+          "index": 352,
+          "tier": 3,
+          "centerLand": true,
+          "landFraction": 0.513,
+          "marginKm": 0.289,
+          "screen": {
+            "x": 347.457,
+            "y": 422.127
+          },
+          "markerRadiusPx": 5.9
+        },
+        {
+          "name": "Tergeste",
+          "index": 356,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.735,
+          "marginKm": 0.556,
+          "screen": {
+            "x": 720.707,
+            "y": 291.446
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Thabraca",
+          "index": 417,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.726,
+          "marginKm": 4.86,
+          "screen": {
+            "x": 544.855,
+            "y": 614.099
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Thaenae",
+          "index": 447,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.513,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 597.264,
+            "y": 708.748
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Thasos",
+          "index": 497,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.389,
+          "marginKm": 1.067,
+          "screen": {
+            "x": 1033.494,
+            "y": 472.279
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Theodosia",
+          "index": 543,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.549,
+          "marginKm": 1.038,
+          "screen": {
+            "x": 1304.162,
+            "y": 272.178
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Thessalonica",
+          "index": 362,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.947,
+          "marginKm": 29.445,
+          "screen": {
+            "x": 982.552,
+            "y": 481.012
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Tingi",
+          "index": 369,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.584,
+          "marginKm": 3.581,
+          "screen": {
+            "x": 87.556,
+            "y": 578.427
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Tomis",
+          "index": 371,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.593,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 1128.696,
+            "y": 332.327
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Trapezus",
+          "index": 373,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.593,
+          "marginKm": 0.936,
+          "screen": {
+            "x": 1463.497,
+            "y": 396.366
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Tripolis",
+          "index": 567,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.69,
+          "marginKm": 6.017,
+          "screen": {
+            "x": 1414.118,
+            "y": 673.425
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Tyrus",
+          "index": 377,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.558,
+          "marginKm": 0.46,
+          "screen": {
+            "x": 1403.232,
+            "y": 722.826
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Vibo Valentia",
+          "index": 389,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.858,
+          "marginKm": 8.217,
+          "screen": {
+            "x": 777.207,
+            "y": 560.409
+          },
+          "markerRadiusPx": 4.5
+        }
+      ],
+      "seaLabels": [
+        {
+          "text": "ADRIATIC SEA",
+          "landFraction": 1,
+          "samples": 29,
+          "box": {
+            "x": 810.625,
+            "y": 307.003,
+            "w": 97.54,
+            "h": 83.224
+          }
+        },
+        {
+          "text": "AEGEAN SEA",
+          "landFraction": 0.216,
+          "samples": 37,
+          "box": {
+            "x": 1005.575,
+            "y": 514.939,
+            "w": 86.994,
+            "h": 79.275
+          }
+        },
+        {
+          "text": "ATLANTIC OCEAN",
+          "landFraction": 0.161,
+          "samples": 31,
+          "box": {
+            "x": 30.934,
+            "y": 263.673,
+            "w": 79.417,
+            "h": 122.303
+          }
+        },
+        {
+          "text": "BLACK SEA",
+          "landFraction": 0.956,
+          "samples": 91,
+          "box": {
+            "x": 1153.619,
+            "y": 166.236,
+            "w": 105,
+            "h": 35
+          }
+        },
+        {
+          "text": "IBERIAN SEA",
+          "landFraction": 0,
+          "samples": 91,
+          "box": {
+            "x": 198.575,
+            "y": 563.923,
+            "w": 114,
+            "h": 33
+          }
+        },
+        {
+          "text": "IONIAN SEA",
+          "landFraction": 0,
+          "samples": 33,
+          "box": {
+            "x": 786.387,
+            "y": 579.734,
+            "w": 120.087,
+            "h": 135.612
+          }
+        },
+        {
+          "text": "MEDITERRANEAN SEA",
+          "landFraction": 0.272,
+          "samples": 81,
+          "box": {
+            "x": 831.732,
+            "y": 765.287,
+            "w": 238.543,
+            "h": 62.084
+          }
+        },
+        {
+          "text": "TYRRHENIAN SEA",
+          "landFraction": 0.091,
+          "samples": 33,
+          "box": {
+            "x": 640.719,
+            "y": 498.464,
+            "w": 135.57,
+            "h": 93.764
+          }
+        }
+      ],
+      "cards": [
+        {
+          "name": "ROMA",
+          "landFraction": 0.2,
+          "box": {
+            "x": 620.758,
+            "y": 448.096,
+            "w": 109.375,
+            "h": 53.547
+          }
+        }
+      ]
+    },
+    {
+      "framing": {
+        "name": "regional-italy",
+        "camera": [
+          -430,
+          445,
+          3
+        ],
+        "viewport": {
+          "width": 1600,
+          "height": 1000
+        }
+      },
+      "markerRadiusPx": 5.9,
+      "offshoreCities": [
+        {
+          "name": "Aleria",
+          "index": 564,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.717,
+          "marginKm": 0.177,
+          "screen": {
+            "x": 7.596,
+            "y": 366.999
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Aternum",
+          "index": 45,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.779,
+          "marginKm": 2.029,
+          "screen": {
+            "x": 1151.787,
+            "y": 333.193
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Castrum Truentinum",
+          "index": 104,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.752,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 1076.325,
+            "y": 197.292
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Cosa",
+          "index": 126,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.991,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 445.173,
+            "y": 302.592
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Ostia/Portus",
+          "index": 263,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.717,
+          "marginKm": 0.071,
+          "screen": {
+            "x": 667.963,
+            "y": 536.406
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Populonium",
+          "index": 602,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.743,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 286.595,
+            "y": 123.405
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Puteoli",
+          "index": 297,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.504,
+          "marginKm": 0.259,
+          "screen": {
+            "x": 1121.145,
+            "y": 875.205
+          },
+          "markerRadiusPx": 5.2
+        },
+        {
+          "name": "Salernum",
+          "index": 309,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.947,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 1296.918,
+            "y": 931.864
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Sipontum",
+          "index": 331,
+          "tier": 1,
+          "centerLand": true,
+          "landFraction": 0.699,
+          "marginKm": 1.183,
+          "screen": {
+            "x": 1577.752,
+            "y": 623.491
+          },
+          "markerRadiusPx": 4.5
+        },
+        {
+          "name": "Tarracina",
+          "index": 351,
+          "tier": 2,
+          "centerLand": true,
+          "landFraction": 0.929,
+          "marginKm": 0.999,
+          "screen": {
+            "x": 902.147,
+            "y": 699.523
+          },
+          "markerRadiusPx": 5.2
+        }
+      ],
+      "seaLabels": [],
+      "cards": [
+        {
+          "name": "ALBA FUCENS",
+          "landFraction": 1,
+          "box": {
+            "x": 902.455,
+            "y": 461.746,
+            "w": 104.906,
+            "h": 38.047
+          }
+        },
+        {
+          "name": "ASCULUM",
+          "landFraction": 1,
+          "box": {
+            "x": 961.499,
+            "y": 223.048,
+            "w": 81.187,
+            "h": 38.047
+          }
+        },
+        {
+          "name": "CAPUA",
+          "landFraction": 0.8,
+          "box": {
+            "x": 1100.418,
+            "y": 808.484,
+            "w": 115.641,
+            "h": 53.547
+          }
+        },
+        {
+          "name": "CASINUM",
+          "landFraction": 1,
+          "box": {
+            "x": 1013.71,
+            "y": 663.399,
+            "w": 81.188,
+            "h": 38.047
+          }
+        },
+        {
+          "name": "CLUSIUM",
+          "landFraction": 1,
+          "box": {
+            "x": 580.273,
+            "y": 157.656,
+            "w": 81.188,
+            "h": 38.047
+          }
+        },
+        {
+          "name": "COSA",
+          "landFraction": 0,
+          "box": {
+            "x": 404.134,
+            "y": 324.192,
+            "w": 82.078,
+            "h": 38.047
+          }
+        },
+        {
+          "name": "FERENTINUM",
+          "landFraction": 1,
+          "box": {
+            "x": 857.778,
+            "y": 589.359,
+            "w": 102.859,
+            "h": 38.047
+          }
+        },
+        {
+          "name": "MINTURNAE",
+          "landFraction": 0.4,
+          "box": {
+            "x": 987.137,
+            "y": 749.573,
+            "w": 96.547,
+            "h": 38.047
+          }
+        },
+        {
+          "name": "NARNIA",
+          "landFraction": 1,
+          "box": {
+            "x": 701.6,
+            "y": 316.494,
+            "w": 82.078,
+            "h": 38.047
+          }
+        },
+        {
+          "name": "OSTIA/PORTUS",
+          "landFraction": 0.4,
+          "box": {
+            "x": 611.018,
+            "y": 558.006,
+            "w": 113.891,
+            "h": 38.047
+          }
+        },
+        {
+          "name": "REATE",
+          "landFraction": 1,
+          "box": {
+            "x": 782.629,
+            "y": 354.041,
+            "w": 82.078,
+            "h": 38.047
+          }
+        },
+        {
+          "name": "ROMA",
+          "landFraction": 0.8,
+          "box": {
+            "x": 665.993,
+            "y": 516.005,
+            "w": 109.375,
+            "h": 53.547
+          }
+        },
+        {
+          "name": "TARRACINA",
+          "landFraction": 0,
+          "box": {
+            "x": 856.139,
+            "y": 721.123,
+            "w": 92.016,
+            "h": 38.047
+          }
+        },
+        {
+          "name": "TEANUM",
+          "landFraction": 1,
+          "box": {
+            "x": 1068.829,
+            "y": 748.225,
+            "w": 82.078,
+            "h": 38.047
+          }
+        },
+        {
+          "name": "TIBUR",
+          "landFraction": 1,
+          "box": {
+            "x": 758.599,
+            "y": 495.913,
+            "w": 82.078,
+            "h": 38.047
+          }
+        },
+        {
+          "name": "VOLSINII",
+          "landFraction": 1,
+          "box": {
+            "x": 578.166,
+            "y": 271.488,
+            "w": 82.078,
+            "h": 38.047
+          }
+        }
+      ]
+    }
+  ]
+}

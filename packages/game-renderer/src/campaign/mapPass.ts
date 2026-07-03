@@ -55,6 +55,7 @@ export interface CampaignMapStyle {
 export interface CampaignMapDrawStyle {
   roadScale?: number;
   roadSurfaceAt?: (x: number, y: number) => 'land' | 'water';
+  surfaceAt?: (x: number, y: number) => 'land' | 'water';
   heightAt?: (x: number, y: number) => number;
 }
 
@@ -1113,7 +1114,7 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData, style: Camp
   const roadJunctionCaps = pushRoadJunctionCaps(roadMeshVertices, data, safeRoads, style);
   const cityNodes = data.map.nodes.filter((node) => node.kind === 'city');
   const cityMarkers = cityNodes.map((node) => markerForNode(data, node));
-  const labels = data.map.nodes.length > 20 ? seaLabels() : [];
+  const labels = data.map.nodes.length > 20 ? fitSeaLabels(seaLabels(), surfaceAt(style)) : [];
   return {
     lineVertices: new Float32Array(lineVertices),
     roadMeshVertices: new Float32Array(roadMeshVertices),
@@ -1237,7 +1238,8 @@ export function smoothRoadCenterline(points: [number, number][]) {
 }
 
 function roadEdgeIsLandSafe(edge: CampaignMapEdgeData, style: CampaignMapDrawStyle) {
-  if (!style.roadSurfaceAt) return true;
+  const at = surfaceAt(style);
+  if (!at) return true;
   let samples = 0;
   let landSamples = 0;
   for (let i = 1; i < edge.via.length; i++) {
@@ -1250,7 +1252,7 @@ function roadEdgeIsLandSafe(edge: CampaignMapEdgeData, style: CampaignMapDrawSty
       const x = a[0] + (b[0] - a[0]) * t;
       const y = a[1] + (b[1] - a[1]) * t;
       samples++;
-      if (style.roadSurfaceAt(x, y) === 'land') landSamples++;
+      if (at(x, y) === 'land') landSamples++;
     }
   }
   // Coastal ORBIS roads hug the shoreline and dip over the coarse land mask's
@@ -1323,6 +1325,10 @@ function pushRoadRibbon(
 
 const ROAD_SURFACE_SAMPLE_KM = 0.9;
 
+function surfaceAt(style: CampaignMapDrawStyle) {
+  return style.surfaceAt ?? style.roadSurfaceAt;
+}
+
 function markerForNode(data: CampaignMapInputData, node: CampaignMapNodeData): CampaignMarker {
   const factionIndex = Math.max(0, data.map.factions.findIndex((faction) => faction.id === node.owner));
   const faction = data.map.factions[factionIndex]?.color ?? [154, 132, 90];
@@ -1346,6 +1352,143 @@ function seaLabels(): CampaignLabel[] {
     { text: 'Iberian Sea', x: -1640, y: -40, size: 22, kind: 'sea', priority: 4, curve: -0.45 },
     { text: 'Atlantic Ocean', x: -2200, y: 760, size: 15, kind: 'sea', priority: 4, angle: -1.1, curve: 0.18 },
   ];
+}
+
+// Sea labels are screen-space text anchored to world points; fit against the
+// full-opacity threshold so the static placement is conservative before fadeout.
+const SEA_LABEL_FIT_ZOOM = 0.26;
+const SEA_LABEL_LAND_MARGIN_KM = 25;
+const SEA_LABEL_MIN_SCALE = 0.55;
+const SEA_LABEL_SHRINK_STEP = 0.05;
+const SEA_LABEL_MAX_NUDGE_KM = 60;
+const SEA_LABEL_NUDGE_STEP_KM = 10;
+const SEA_LABEL_MARGIN_SAMPLES: [number, number][] = [
+  [0, 0],
+  [1, 0],
+  [-1, 0],
+  [0, 1],
+  [0, -1],
+  [0.707, 0.707],
+  [-0.707, 0.707],
+  [0.707, -0.707],
+  [-0.707, -0.707],
+];
+
+function fitSeaLabels(
+  labels: CampaignLabel[],
+  at?: (x: number, y: number) => 'land' | 'water',
+): CampaignLabel[] {
+  if (!at) return labels;
+  return labels.map((label) => fitSeaLabel(label, at));
+}
+
+function fitSeaLabel(
+  label: CampaignLabel,
+  at: (x: number, y: number) => 'land' | 'water',
+): CampaignLabel {
+  for (let scale = 1; scale >= SEA_LABEL_MIN_SCALE - 0.001; scale -= SEA_LABEL_SHRINK_STEP) {
+    const candidate = withSeaLabelScale(label, scale);
+    if (seaLabelClearsLand(candidate, at)) return candidate;
+  }
+  const shrunk = withSeaLabelScale(label, SEA_LABEL_MIN_SCALE);
+  const angle = shrunk.angle ?? 0;
+  const along: [number, number] = [Math.cos(angle), Math.sin(angle)];
+  const across: [number, number] = [-Math.sin(angle), Math.cos(angle)];
+  for (const nudge of seaLabelNudges()) {
+    const candidate = {
+      ...shrunk,
+      x: shrunk.x + along[0] * nudge[0] + across[0] * nudge[1],
+      y: shrunk.y + along[1] * nudge[0] + across[1] * nudge[1],
+    };
+    if (seaLabelClearsLand(candidate, at)) return candidate;
+  }
+  return shrunk;
+}
+
+function withSeaLabelScale(label: CampaignLabel, scale: number): CampaignLabel {
+  return scale >= 0.995 ? label : { ...label, size: label.size * scale };
+}
+
+function seaLabelNudges(): [number, number][] {
+  const nudges: [number, number][] = [];
+  for (let distance = SEA_LABEL_NUDGE_STEP_KM; distance <= SEA_LABEL_MAX_NUDGE_KM; distance += SEA_LABEL_NUDGE_STEP_KM) {
+    nudges.push(
+      [0, distance],
+      [0, -distance],
+      [distance, 0],
+      [-distance, 0],
+      [distance, distance],
+      [-distance, distance],
+      [distance, -distance],
+      [-distance, -distance],
+    );
+  }
+  return nudges;
+}
+
+function seaLabelClearsLand(
+  label: CampaignLabel,
+  at: (x: number, y: number) => 'land' | 'water',
+) {
+  const samples = seaLabelWorldSamples(label);
+  for (const point of samples) {
+    for (const margin of SEA_LABEL_MARGIN_SAMPLES) {
+      if (
+        at(
+          point[0] + margin[0] * SEA_LABEL_LAND_MARGIN_KM,
+          point[1] + margin[1] * SEA_LABEL_LAND_MARGIN_KM,
+        ) === 'land'
+      ) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+function seaLabelWorldSamples(label: CampaignLabel): [number, number][] {
+  const text = labelText(label);
+  const sizePx = Math.max(10, label.size);
+  const letterSpacingPx = sizePx * 0.22;
+  const glyphWidthsPx = Array.from(text).map((char) => seaGlyphWidthPx(char, sizePx));
+  const widthPx = Math.max(
+    1,
+    glyphWidthsPx.reduce((sum, value) => sum + value, 0) + Math.max(0, glyphWidthsPx.length - 1) * letterSpacingPx,
+  );
+  const bend = label.curve ?? defaultSeaLabelCurve(label);
+  const depthPx = bend * Math.min(sizePx * 1.35, Math.max(sizePx * 0.42, widthPx * 0.075));
+  const halfWidthKm = Math.max(1, (widthPx * 0.5) / SEA_LABEL_FIT_ZOOM);
+  const depthKm = depthPx / SEA_LABEL_FIT_ZOOM;
+  const sizeKm = sizePx / SEA_LABEL_FIT_ZOOM;
+  const angle = label.angle ?? 0;
+  const ca = Math.cos(angle);
+  const sa = Math.sin(angle);
+  const offsets = [-sizeKm * 0.78, 0, sizeKm * 0.36];
+  const samples: [number, number][] = [];
+  const steps = Math.max(12, Math.ceil(widthPx / 24));
+  for (let i = 0; i <= steps; i++) {
+    const t = -1 + (2 * i) / steps;
+    const localX = t * halfWidthKm;
+    const localY = depthKm * (1 - t * t);
+    const slope = (-2 * depthKm * t) / halfWidthKm;
+    const normalLen = Math.hypot(slope, 1) || 1;
+    const nx = -slope / normalLen;
+    const ny = 1 / normalLen;
+    for (const offset of offsets) {
+      const x = localX + nx * offset;
+      const y = localY + ny * offset;
+      samples.push([label.x + x * ca - y * sa, label.y + x * sa + y * ca]);
+    }
+  }
+  return samples;
+}
+
+function seaGlyphWidthPx(char: string, sizePx: number) {
+  if (char === ' ') return sizePx * 0.34;
+  if ('ilI.,'.includes(char)) return sizePx * 0.28;
+  if ('MW'.includes(char)) return sizePx * 0.94;
+  if (char === char.toUpperCase() && char !== char.toLowerCase()) return sizePx * 0.72;
+  return sizePx * 0.58;
 }
 
 interface VisibleCampaignLabel {

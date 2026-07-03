@@ -13,9 +13,9 @@ import {
 import type { Scene } from "../scene";
 import { type EncounterSideView } from "../ui/campaign/CampaignBattleModal";
 import { mountCampaignHud, type CampaignHudHandle } from "../ui/campaign/CampaignHud";
-import { loadCampaignData, nearestLoc, tilePos, type CampaignData } from "./data";
+import { loadCampaignData, nearestLoc, tilePos, type CampaignData, type MapNode } from "./data";
 import type { CamView } from "./camera";
-import { CampaignRenderer, MAX_CAMPAIGN_ZOOM } from "./renderer";
+import { CampaignRenderer, MAX_CAMPAIGN_ZOOM, cityModelRadius } from "./renderer";
 import { TerrainField } from "./terrain";
 import { Territory } from "./territory";
 import { Allegiance } from "./status";
@@ -132,6 +132,10 @@ export class CampaignScene implements Scene {
    *  the DOM (and its click handlers) every tick. */
   private siegeSig = "";
   private mapCardsSig = "";
+  /** Landward card offsets, cached per camera pose (see landwardCardOffset). */
+  private cardOffsetSig = "";
+  private cardOffsets = new Map<string, [number, number]>();
+  private cityAnchorScreensCache: [number, number][] | null = null;
 
   constructor(private cfg: CampaignConfig) {
     this.cam = { x: 0, y: 0, scale: 0.18 };
@@ -482,15 +486,21 @@ export class CampaignScene implements Scene {
     const positions: MapCardPosition[] = [];
     const cityMinTier = this.cam.scale < 0.6 ? 3 : this.cam.scale < 0.85 ? 2 : 1;
     const pf = this.playerFaction();
+    const cardSizes = hud.measureMapCards();
     for (const [node, city] of this.cities) {
       if (city.owner !== pf) continue;
       const mapNode = this.cfg.data.map.nodes[node];
       if (mapNode.kind !== "city") continue;
       const [sx, sy] = this.renderer.toScreen(mapNode.pos[0], mapNode.pos[1]);
-      const x = sx / dpr;
-      const y = sy / dpr + cityCardOffsetY(this.cam.scale, mapNode.tier);
+      const id = `city:${node}`;
+      const ax = sx / dpr;
+      const ay = sy / dpr;
+      const baseY = ay + cityCardOffsetY(this.cam.scale, mapNode.tier);
+      const [dx, dy] = this.landwardCardOffset(id, mapNode, ax, ay, baseY, cardSizes.get(id), dpr);
+      const x = ax + dx;
+      const y = baseY + dy;
       positions.push({
-        id: `city:${node}`,
+        id,
         x,
         y,
         visible: mapNode.tier >= cityMinTier && onScreen(x, y, width, height),
@@ -509,6 +519,172 @@ export class CampaignScene implements Scene {
       });
     }
     hud.updateMapCards(positions);
+  }
+
+  /** City cards are DOM chips pinned over a 3D coast, so a shoreline city's
+   *  card can hang over open water (B5: MINTURNAE's half-overhang). Score the
+   *  card rect's world footprint through the one projection owner + the
+   *  full-res render mask, and slide sea-hanging cards toward the land side.
+   *  Pure anchor offsetting — collision arbitration is the occupancy
+   *  authority's job (slice 09), not this loop's. Offsets are cached per
+   *  camera pose: they only depend on the camera and the card's size. */
+  private landwardCardOffset(
+    id: string,
+    mapNode: MapNode,
+    anchorX: number,
+    anchorY: number,
+    y: number,
+    size: { w: number; h: number } | undefined,
+    dpr: number,
+  ): [number, number] {
+    if (!size) return [0, 0];
+    // The projection depends on the camera AND the canvas size, so a resize
+    // must invalidate too.
+    const poseSig = `${this.cam.x},${this.cam.y},${this.cam.scale},${dpr},${this.canvas.clientWidth}x${this.canvas.clientHeight}`;
+    if (poseSig !== this.cardOffsetSig) {
+      this.cardOffsetSig = poseSig;
+      this.cardOffsets.clear();
+      this.cityAnchorScreensCache = null;
+    }
+    const key = `${id}:${size.w}x${size.h}`;
+    const cached = this.cardOffsets.get(key);
+    if (cached) return cached;
+    const offset = this.computeLandwardOffset(mapNode, anchorX, anchorY, y, size.w, size.h, dpr);
+    this.cardOffsets.set(key, offset);
+    return offset;
+  }
+
+  private computeLandwardOffset(
+    mapNode: MapNode,
+    anchorX: number,
+    anchorY: number,
+    y: number,
+    w: number,
+    h: number,
+    dpr: number,
+  ): [number, number] {
+    const x = anchorX;
+    const base = this.cardRectLandFraction(x, y, w, h, dpr);
+    if (base >= CARD_LAND_FULL) return [0, 0];
+    // The walk budget is world-km, so a zoomed-out card (whole-map ROMA spans
+    // hundreds of km) stays pinned to its marker instead of chasing a coast it
+    // can never fit on.
+    const radiusKm = cityModelRadius(mapNode.tier);
+    const [edgeX] = this.renderer.toScreen(mapNode.pos[0] + radiusKm, mapNode.pos[1]);
+    const modelHalfWidth = Math.abs(edgeX / dpr - anchorX);
+    const pxPerKm = modelHalfWidth / radiusKm;
+    const maxSteps = Math.min(
+      CARD_LANDWARD_MAX_STEPS,
+      Math.floor((CARD_LANDWARD_MAX_KM * pxPerKm) / CARD_LANDWARD_STEP_PX),
+    );
+    if (maxSteps < 1) return [0, 0];
+    const inland = this.landwardScreenDir(x, y + h / 2, Math.max(w, h) * 0.75, dpr);
+    if (!inland) return [0, 0];
+    // Model keep-out, sized from the rendered screen footprint: the contract
+    // is "the card sits BESIDE a visible city model", so no candidate may park
+    // on its own model — nor walk onto a NEIGHBOR'S (Minturnae's card sliding
+    // over Capua). Card-vs-card overlap stays with the collision authority.
+    const keep = {
+      x: Math.max(4, modelHalfWidth * 1.15),
+      // Measured at the regional camera: the mesh plus its relief rise tops
+      // out ~1.3x the footprint half-width above the anchor; 2.2 leaves the
+      // towers a margin without walling off the whole strip above the city.
+      up: Math.max(8, modelHalfWidth * 2.2),
+      down: modelHalfWidth * 0.5,
+    };
+    const reach = CARD_LANDWARD_STEP_PX * maxSteps + w / 2 + keep.x + keep.up;
+    const anchors = this.cityAnchorScreens(dpr).filter(
+      ([cx, cy]) => Math.abs(cx - x) < reach && Math.abs(cy - y) < reach,
+    );
+    // Fan the walk around the inland normal (0, ±45°, ±90°): the nearest
+    // fully-ashore placement wins, so a card slides along the coast instead of
+    // marching straight onto its own city when land happens to lie there.
+    const angle = Math.atan2(inland[1], inland[0]);
+    const fan = [0, Math.PI / 4, -Math.PI / 4, Math.PI / 2, -Math.PI / 2].map(
+      (rot): [number, number] => [Math.cos(angle + rot), Math.sin(angle + rot)],
+    );
+    let best: [number, number] = [0, 0];
+    let bestScore = base;
+    for (let step = 1; step <= maxSteps; step++) {
+      for (const [ux, uy] of fan) {
+        const dx = ux * CARD_LANDWARD_STEP_PX * step;
+        const dy = uy * CARD_LANDWARD_STEP_PX * step;
+        if (
+          anchors.some(([cx, cy]) => cardInModelKeepOut(x + dx - w / 2, y + dy, w, h, cx, cy, keep))
+        )
+          continue;
+        const score = this.cardRectLandFraction(x + dx, y + dy, w, h, dpr);
+        if (score >= CARD_LAND_FULL) return [dx, dy];
+        if (score > bestScore) {
+          bestScore = score;
+          best = [dx, dy];
+        }
+      }
+    }
+    return best;
+  }
+
+  /** Screen positions (CSS px) of every city model anchor, cached per camera
+   *  pose alongside the card offsets (same invalidation signature). */
+  private cityAnchorScreens(dpr: number): [number, number][] {
+    if (this.cityAnchorScreensCache) return this.cityAnchorScreensCache;
+    const anchors: [number, number][] = [];
+    for (const node of this.cfg.data.map.nodes) {
+      if (node.kind !== "city") continue;
+      const [sx, sy] = this.renderer.toScreen(node.pos[0], node.pos[1]);
+      anchors.push([sx / dpr, sy / dpr]);
+    }
+    this.cityAnchorScreensCache = anchors;
+    return anchors;
+  }
+
+  /** Land share of a card rect (top-center at x,y; CSS px) over the render
+   *  mask. The grid is edge-inclusive: the corners are the rect's most
+   *  seaward points and the ones the render-probe measures, so a scorer that
+   *  skips them calls a wet-cornered card "fully ashore". */
+  private cardRectLandFraction(x: number, y: number, w: number, h: number, dpr: number) {
+    const cols = 5;
+    const rows = 3;
+    let land = 0;
+    for (let iy = 0; iy < rows; iy++) {
+      for (let ix = 0; ix < cols; ix++) {
+        const sx = x - w / 2 + (w * ix) / (cols - 1);
+        const sy = y + (h * iy) / (rows - 1);
+        const [wx, wy] = this.renderer.toWorld(sx * dpr, sy * dpr);
+        if (this.field!.renderLandAt(wx, wy)) land++;
+      }
+    }
+    return land / (cols * rows);
+  }
+
+  /** Screen-space unit vector toward land around (cx, cy): the sum of the
+   *  land-hitting directions on a sampling ring. Null when the ring gives no
+   *  usable direction (all-land, all-sea, or perfectly balanced). */
+  private landwardScreenDir(
+    cx: number,
+    cy: number,
+    radiusPx: number,
+    dpr: number,
+  ): [number, number] | null {
+    let vx = 0;
+    let vy = 0;
+    const dirs = 16;
+    for (let k = 0; k < dirs; k++) {
+      const a = (2 * Math.PI * k) / dirs;
+      const ox = Math.cos(a);
+      const oy = Math.sin(a);
+      const [wx, wy] = this.renderer.toWorld(
+        (cx + ox * radiusPx) * dpr,
+        (cy + oy * radiusPx) * dpr,
+      );
+      if (this.field!.renderLandAt(wx, wy)) {
+        vx += ox;
+        vy += oy;
+      }
+    }
+    const len = Math.hypot(vx, vy);
+    if (len < 1e-3) return null;
+    return [vx / len, vy / len];
   }
 
   private ownGarrisonFooters() {
@@ -1170,6 +1346,39 @@ function formatStrength(soldiers: number) {
 function cityCardOffsetY(zoom: number, tier: number) {
   if (zoom < 0.6) return 12 + tier * 1.4;
   return 15 + Math.min(8, zoom * 2.2);
+}
+
+// Landward card walk: step size and range (CSS px). 12 steps of 8 px keeps the
+// worst shoreline card within roughly one card-width of its anchor — enough to
+// clear MINTURNAE/OSTIA-class overhangs, and to lift a card over its own
+// model's keep-out when ashore means above the city (TARRACINA) — without
+// visually detaching the card.
+const CARD_LANDWARD_STEP_PX = 8;
+const CARD_LANDWARD_MAX_STEPS = 12;
+// World-km cap on the walk: covers the evidence cases (MINTURNAE ~29 km,
+// OSTIA ~32 km at the regional zoom) while pinning zoomed-out cards in place.
+const CARD_LANDWARD_MAX_KM = 40;
+// "Fully ashore": every rect sample hits land (1.0 minus float slack).
+const CARD_LAND_FULL = 0.999;
+
+/** Card rect (left, top, w, h) vs the own-model keep-out box around the city
+ *  anchor: `keep.up` above the anchor (the model rises), `keep.down` below its
+ *  foot, `keep.x` to each side. */
+function cardInModelKeepOut(
+  left: number,
+  top: number,
+  w: number,
+  h: number,
+  anchorX: number,
+  anchorY: number,
+  keep: { x: number; up: number; down: number },
+) {
+  return (
+    left + w > anchorX - keep.x &&
+    left < anchorX + keep.x &&
+    top + h > anchorY - keep.up &&
+    top < anchorY + keep.down
+  );
 }
 
 function onScreen(x: number, y: number, width: number, height: number) {

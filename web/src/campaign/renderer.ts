@@ -1058,78 +1058,72 @@ function campaignCityLabels(
   return labels;
 }
 
-// Marker-clearance ring for overview anchor candidates, in units of the
-// marker's outer-edge clearance. A city label always hugs its marker (the
-// eight ring-1 positions are the only candidates); the alternates exist purely
-// so slice-09 occupancy can dodge to another side of the SAME marker, never to
-// detach. City labels do NOT chase dry ground — only sea names do (David's
-// rule): a coastal name may sit partly over water, but it stays on its city.
-const OVERVIEW_LABEL_RING_SCALES = [1];
-
-/** Overview (marker-attached) city-label anchor candidates: the classic
- * below-right of the square marker first (the tiebreak — inland labels never
- * move), then its mirrors around the marker, ring by ring. Edge offsets shift
- * every candidate alike so map-border labels stay inside the frame. */
+/** Overview (marker-attached) city-label anchor candidates. The label sits
+ * DIRECTLY BELOW the marker, tight against it (David's rule: "right under the
+ * city") — the same centred-below convention the closeup path uses, so a
+ * coastal city's name reads as sitting ON its city instead of drifting into
+ * the sea. The alternates (right, left, above, then the corners) exist only so
+ * slice-09 occupancy can dodge to another side of the SAME marker; every one
+ * is one marker-clearance away, so the label can never detach. Edge offsets
+ * shift all candidates alike to keep map-border labels in frame. */
 function overviewCityLabelAnchors(
   tier: number,
   edgeX: number,
   edgeY: number,
 ): CampaignLabelAnchor[] {
-  const anchors: CampaignLabelAnchor[] = [];
-  for (const ring of OVERVIEW_LABEL_RING_SCALES) {
-    const d = cityMarkerOuterEdgePlusSidePx(tier) * ring;
-    anchors.push(
-      {
-        screenOffsetX: d + edgeX,
-        screenOffsetY: d + edgeY,
-        screenAnchorX: "left",
-        screenAnchorY: "top",
-      },
-      {
-        screenOffsetX: -d + edgeX,
-        screenOffsetY: d + edgeY,
-        screenAnchorX: "right",
-        screenAnchorY: "top",
-      },
-      {
-        screenOffsetX: d + edgeX,
-        screenOffsetY: -d + edgeY,
-        screenAnchorX: "left",
-        screenAnchorY: "bottom",
-      },
-      {
-        screenOffsetX: -d + edgeX,
-        screenOffsetY: -d + edgeY,
-        screenAnchorX: "right",
-        screenAnchorY: "bottom",
-      },
-      {
-        screenOffsetX: d + edgeX,
-        screenOffsetY: edgeY,
-        screenAnchorX: "left",
-        screenAnchorY: "center",
-      },
-      {
-        screenOffsetX: -d + edgeX,
-        screenOffsetY: edgeY,
-        screenAnchorX: "right",
-        screenAnchorY: "center",
-      },
-      {
-        screenOffsetX: edgeX,
-        screenOffsetY: d + edgeY,
-        screenAnchorX: "center",
-        screenAnchorY: "top",
-      },
-      {
-        screenOffsetX: edgeX,
-        screenOffsetY: -d + edgeY,
-        screenAnchorX: "center",
-        screenAnchorY: "bottom",
-      },
-    );
-  }
-  return anchors;
+  // Marker half-side (the square's edge) plus a small icon gap: the label just
+  // clears the marker with no daylight to read as detached.
+  const d = cityMarkerRadiusPx(tier) + OVERVIEW_LABEL_ICON_PADDING_PX;
+  return [
+    {
+      screenOffsetX: edgeX,
+      screenOffsetY: d + edgeY,
+      screenAnchorX: "center",
+      screenAnchorY: "top",
+    },
+    {
+      screenOffsetX: d + edgeX,
+      screenOffsetY: edgeY,
+      screenAnchorX: "left",
+      screenAnchorY: "center",
+    },
+    {
+      screenOffsetX: -d + edgeX,
+      screenOffsetY: edgeY,
+      screenAnchorX: "right",
+      screenAnchorY: "center",
+    },
+    {
+      screenOffsetX: edgeX,
+      screenOffsetY: -d + edgeY,
+      screenAnchorX: "center",
+      screenAnchorY: "bottom",
+    },
+    {
+      screenOffsetX: d + edgeX,
+      screenOffsetY: d + edgeY,
+      screenAnchorX: "left",
+      screenAnchorY: "top",
+    },
+    {
+      screenOffsetX: -d + edgeX,
+      screenOffsetY: d + edgeY,
+      screenAnchorX: "right",
+      screenAnchorY: "top",
+    },
+    {
+      screenOffsetX: d + edgeX,
+      screenOffsetY: -d + edgeY,
+      screenAnchorX: "left",
+      screenAnchorY: "bottom",
+    },
+    {
+      screenOffsetX: -d + edgeX,
+      screenOffsetY: -d + edgeY,
+      screenAnchorX: "right",
+      screenAnchorY: "bottom",
+    },
+  ];
 }
 
 // A slid closeup label keeps this much overlap with the marker column so it
@@ -1280,15 +1274,7 @@ function cityMarkerRadiusPx(tier: number) {
   return CITY_MARKER_BASE_RADIUS_PX + tier * CITY_MARKER_TIER_RADIUS_PX;
 }
 
-function cityMarkerSidePx(tier: number) {
-  return cityMarkerRadiusPx(tier) * 2;
-}
-
-function cityMarkerOuterEdgePlusSidePx(tier: number) {
-  const radius = cityMarkerRadiusPx(tier);
-  return radius + cityMarkerSidePx(tier) - OVERVIEW_LABEL_ICON_PADDING_PX;
-}
-
+// Gap between the marker's edge and the tight-hugging overview label.
 const OVERVIEW_LABEL_ICON_PADDING_PX = 5;
 
 function cityCollisionGroup(index: number) {

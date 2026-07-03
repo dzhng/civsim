@@ -13,15 +13,12 @@ the slice files.
 
 ## Next Agent Prompt
 
-**Status:** 2026-07-03 (later). DONE & committed: 00–06, 11, 04b (faction wash
-raised to EU4 political strength per David: `assets/faction-wash-target-eu4.png`).
-**In flight — three parallel Codex lanes in worktrees** (integrate in this order,
-re-blessing baselines once per merge):
-1. `.claude/worktrees/cmp-mapgen` (branch cmp-mapgen) — slice 07 Rust fix + re-bake.
-2. `.claude/worktrees/cmp-labels` (branch cmp-labels) — slices 08+09+12.
-3. `.claude/worktrees/cmp-bronze` (branch cmp-bronze) — slices 13+14+15.
-Slice 16 RESOLVED: variation **B** (plaque + inset wells), DOM-overlay seam —
-decided on critique evidence, David can override (see slice file).
+**Status:** 2026-07-03 (end of build). ALL SLICES SHIPPED (00–20). Lanes merged,
+worktrees removed, all campaign scenes green and blessed, battle firewall green.
+Ready for close-spec. Known follow-up (out of scope, from the final unprimed
+critique): some faction PALETTE colors are hard to tell apart at zoom-out
+(e.g. Macedon vs Seleucid blues) — that's the `map.factions[].color` table
+(data), not the rendering; raise with David separately.
 **You are implementing this spec.** David's standing goal: work through the
 slices in order and **use `/codex` for implementation work wherever possible**
 (delegate the mechanical edits to Codex via `codex exec`; you drive verification,
@@ -99,7 +96,7 @@ scene.mjs <scene>` and bless with `UPDATE_SHOTS=1`.
 - [x] `17-city-card-impl` — C-cards for own cities AND armies (DOM overlay, per-frame transforms, gates mirrored); scene contracts moved to DOM-card assertions
 - [x] `18-allegiance-rechannel` — enemy red sword + all icons faction-colored; allegianceColor removed from icon paths
 - [x] `19-aesthetics-doc` — palette target referenced + two-color rule rewritten for the card/sword model
-- [ ] `20-crisp-borders` — David (mid-build): crisp territory edges + dual faction-colored border lines (slice file has the seam)
+- [x] `20-crisp-borders` — nearest-sampled wash (crisp texel edges) + dual faction-colored border strips w/ dark seam, terrain-draped (3D line variant); tolerance tightened so strips hug the wash edge
 
 ---
 

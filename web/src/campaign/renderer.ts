@@ -29,7 +29,7 @@ import {
   type CampaignSelectionInstance,
 } from "../../../packages/game-renderer/src/campaign/selectionPass";
 import {
-  campaignBorderVertices,
+  campaignFactionBorderVertices,
   CampaignTerritoryPass,
 } from "../../../packages/game-renderer/src/campaign/territoryPass";
 import {
@@ -268,7 +268,7 @@ export class CampaignRenderer {
       rgba: territory.rgba,
       rect: this.data.bgRect,
     });
-    this.borders.upload(campaignBorderVertices(territory.borders));
+    this.borders.upload(campaignFactionBorderVertices(territory.borders, (x, y) => this.field.heightAt(x, y)));
   }
 
   draw(opts: DrawOptions) {
@@ -648,7 +648,7 @@ export class CampaignRenderer {
     );
     this.lines = new CampaignWorldLinePass(this.shell, "triangle-list");
     this.roads = new CampaignRoadPass(this.shell);
-    this.borders = new CampaignWorldLinePass(this.shell, "line-list");
+    this.borders = new CampaignWorldLinePass(this.shell, "triangle-list", "xyz");
     this.markers = new CampaignMarkerPass(this.shell);
     this.scenery = new CampaignSceneryPass(this.shell);
     this.sceneryCandidates = buildCampaignSceneryCandidates(this.data, this.field);
@@ -679,7 +679,9 @@ export class CampaignRenderer {
     this.lines.upload(drawData.lineVertices);
     this.roads.upload(drawData.roadMeshVertices);
     this.borders.upload(
-      controlledStage ? new Float32Array() : campaignBorderVertices(territory.borders),
+      controlledStage
+        ? new Float32Array()
+        : campaignFactionBorderVertices(territory.borders, (x, y) => this.field.heightAt(x, y)),
     );
     publishStats(this.stats());
   }

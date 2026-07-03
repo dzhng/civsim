@@ -9,6 +9,7 @@
 import type { CampaignData } from "./data";
 import type { CityView } from "./views";
 import { TerrainField, hash2 } from "./terrain";
+import type { CampaignBorderPolyline } from "../../../packages/game-renderer/src/campaign/territoryPass";
 
 /** Land farther than this from any city is no one's (deep deserts, steppe).
  *  Generous enough that a faction's coastal cities reach into one contiguous
@@ -134,7 +135,7 @@ export class Territory {
   /** Smooth faction-boundary polylines in world km, each with its bbox for
    *  cheap viewport culling. Rebuilt with the colours; the overlay strokes them
    *  as real vectors so borders stay smooth curves at any zoom. */
-  borders: { pts: [number, number][]; bb: [number, number, number, number] }[] = [];
+  borders: CampaignBorderPolyline[] = [];
   labels: FactionLabel[] = [];
 
   constructor(
@@ -322,87 +323,123 @@ export class Territory {
     });
   }
 
-  /** Trace the faction-vs-faction boundaries of the owner grid into polylines,
-   *  then Chaikin-smooth them — so the overlay can stroke real vector borders
-   *  that stay smooth curves at any zoom (no cell-grid staircase). */
+  /** Trace owner-grid boundaries into oriented polylines. Each chain keeps the
+   *  faction on its left/right side so the renderer can draw side-colored strips. */
   private extractBorders(owner: Int16Array) {
-    const { w, h, cell, minX, maxY } = this.field;
+    const { w, h, cell, minX, maxY, land } = this.field;
     const VW = w + 1; // vertices per row
     const M = VW * (h + 1);
-    // Adjacency over grid vertices, linked by boundary segments.
-    const adj = new Map<number, number[]>();
-    const link = (a: number, b: number) => {
-      (adj.get(a) ?? adj.set(a, []).get(a)!).push(b);
-      (adj.get(b) ?? adj.set(b, []).get(b)!).push(a);
+    type Edge = { a: number; b: number };
+    type Group = { leftOwner: number; rightOwner: number; edges: Edge[] };
+    const groups = new Map<string, Group>();
+    const edgeKey = (a: number, b: number) => (a < b ? a * M + b : b * M + a);
+    const canonicalLeftOwner = (leftOwner: number, rightOwner: number) => {
+      if (leftOwner < 0) return rightOwner;
+      if (rightOwner < 0) return leftOwner;
+      return Math.min(leftOwner, rightOwner);
+    };
+    const addBoundary = (a: number, b: number, leftOwner: number, rightOwner: number) => {
+      if (leftOwner === rightOwner || (leftOwner < 0 && rightOwner < 0)) return;
+      const canonicalLeft = canonicalLeftOwner(leftOwner, rightOwner);
+      const canonicalRight = canonicalLeft === leftOwner ? rightOwner : leftOwner;
+      const edge = canonicalLeft === leftOwner ? { a, b } : { a: b, b: a };
+      const key = `${canonicalLeft}:${canonicalRight}`;
+      const group = groups.get(key) ?? { leftOwner: canonicalLeft, rightOwner: canonicalRight, edges: [] };
+      group.edges.push(edge);
+      groups.set(key, group);
     };
     for (let gy = 0; gy < h; gy++) {
       for (let gx = 0; gx < w; gx++) {
-        const o = owner[gy * w + gx];
-        if (o < 0) continue;
+        const i = gy * w + gx;
+        const o = owner[i];
         if (gx + 1 < w) {
-          const or = owner[gy * w + gx + 1];
-          if (or >= 0 && or !== o) {
-            const v = gy * VW + gx + 1;
-            link(v, v + VW);
+          const ri = i + 1;
+          const or = owner[ri];
+          if ((o >= 0 || or >= 0) && (o >= 0 && or >= 0 ? o !== or : land[i] && land[ri])) {
+            const top = gy * VW + gx + 1;
+            addBoundary(top + VW, top, o, or);
           }
         }
         if (gy + 1 < h) {
-          const od = owner[(gy + 1) * w + gx];
-          if (od >= 0 && od !== o) {
-            const v = (gy + 1) * VW + gx;
-            link(v, v + 1);
+          const di = i + w;
+          const od = owner[di];
+          if ((o >= 0 || od >= 0) && (o >= 0 && od >= 0 ? o !== od : land[i] && land[di])) {
+            const left = (gy + 1) * VW + gx;
+            addBoundary(left, left + 1, o, od);
           }
         }
       }
     }
-    // Walk degree-2 chains into polylines, breaking at junctions/endpoints.
-    const used = new Set<number>();
-    const key = (a: number, b: number) => (a < b ? a * M + b : b * M + a);
-    const walk = (start: number, first: number): number[] => {
-      const path = [start];
-      let prev = start;
-      let cur = first;
-      for (;;) {
-        used.add(key(prev, cur));
-        path.push(cur);
-        const nbrs = adj.get(cur)!;
-        if (nbrs.length !== 2) break;
-        const nxt = nbrs[0] === prev ? nbrs[1] : nbrs[0];
-        if (used.has(key(cur, nxt))) break;
-        prev = cur;
-        cur = nxt;
+
+    const out: CampaignBorderPolyline[] = [];
+    for (const group of groups.values()) {
+      // Walk degree-2 chains into polylines, breaking at junctions/endpoints.
+      const adj = new Map<number, number[]>();
+      const oriented = new Map<number, Edge>();
+      const link = (edge: Edge) => {
+        (adj.get(edge.a) ?? adj.set(edge.a, []).get(edge.a)!).push(edge.b);
+        (adj.get(edge.b) ?? adj.set(edge.b, []).get(edge.b)!).push(edge.a);
+        oriented.set(edgeKey(edge.a, edge.b), edge);
+      };
+      for (const edge of group.edges) link(edge);
+      const used = new Set<number>();
+      const walk = (start: number, first: number): number[] => {
+        const path = [start];
+        let prev = start;
+        let cur = first;
+        for (;;) {
+          used.add(edgeKey(prev, cur));
+          path.push(cur);
+          const nbrs = adj.get(cur)!;
+          if (nbrs.length !== 2) break;
+          const nxt = nbrs[0] === prev ? nbrs[1] : nbrs[0];
+          if (used.has(edgeKey(cur, nxt))) break;
+          prev = cur;
+          cur = nxt;
+        }
+        return path;
+      };
+      const chains: number[][] = [];
+      for (const [v, nbrs] of adj) {
+        if (nbrs.length === 2) continue; // start only from endpoints/junctions
+        for (const nb of nbrs) if (!used.has(edgeKey(v, nb))) chains.push(walk(v, nb));
       }
-      return path;
-    };
-    const chains: number[][] = [];
-    for (const [v, nbrs] of adj) {
-      if (nbrs.length === 2) continue; // start only from endpoints/junctions
-      for (const nb of nbrs) if (!used.has(key(v, nb))) chains.push(walk(v, nb));
-    }
-    for (const [v, nbrs] of adj) {
-      for (const nb of nbrs) if (!used.has(key(v, nb))) chains.push(walk(v, nb)); // loops
-    }
-    // Vertex id → world km; smooth; record bbox for viewport culling.
-    const out: { pts: [number, number][]; bb: [number, number, number, number] }[] = [];
-    for (const vids of chains) {
-      if (vids.length < 2) continue;
-      // Trace → world km → drop the per-cell staircase (DP) → smooth (Chaikin).
-      const world = vids.map((vid): [number, number] => [
-        minX + (vid % VW) * cell,
-        maxY - ((vid / VW) | 0) * cell,
-      ]);
-      const pts = chaikin(simplifyDP(world, cell * 1.7), 3);
-      let mnx = Infinity,
-        mny = Infinity,
-        mxx = -Infinity,
-        mxy = -Infinity;
-      for (const [x, y] of pts) {
-        if (x < mnx) mnx = x;
-        if (y < mny) mny = y;
-        if (x > mxx) mxx = x;
-        if (y > mxy) mxy = y;
+      for (const [v, nbrs] of adj) {
+        for (const nb of nbrs) if (!used.has(edgeKey(v, nb))) chains.push(walk(v, nb)); // loops
       }
-      out.push({ pts, bb: [mnx, mny, mxx, mxy] });
+
+      for (let vids of chains) {
+        if (vids.length < 2) continue;
+        const first = oriented.get(edgeKey(vids[0], vids[1]));
+        if (first && (first.a !== vids[0] || first.b !== vids[1])) vids = vids.slice().reverse();
+        const world = vids.map((vid): [number, number] => [
+          minX + (vid % VW) * cell,
+          maxY - ((vid / VW) | 0) * cell,
+        ]);
+        // Tight tolerance: the wash edge is nearest-sampled texels now, so the
+        // border must hug the staircase (a loose DP cut lets wash corners poke
+        // past the colored strips); Chaikin still rounds the residual corners.
+        const pts = chaikin(simplifyDP(world, cell * 0.55), 2);
+        let mnx = Infinity,
+          mny = Infinity,
+          mxx = -Infinity,
+          mxy = -Infinity;
+        for (const [x, y] of pts) {
+          if (x < mnx) mnx = x;
+          if (y < mny) mny = y;
+          if (x > mxx) mxx = x;
+          if (y > mxy) mxy = y;
+        }
+        const leftFaction = this.data.map.factions[group.leftOwner];
+        const rightFaction = group.rightOwner >= 0 ? this.data.map.factions[group.rightOwner] : undefined;
+        if (!leftFaction) continue;
+        out.push({
+          pts,
+          bb: [mnx, mny, mxx, mxy],
+          left: { owner: group.leftOwner, color: leftFaction.color },
+          right: rightFaction ? { owner: group.rightOwner, color: rightFaction.color } : null,
+        });
+      }
     }
     return out;
   }

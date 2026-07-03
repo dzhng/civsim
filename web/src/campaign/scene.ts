@@ -453,7 +453,7 @@ export class CampaignScene implements Scene {
     }
     const ordinalOf = this.playerArmyOrdinals();
     for (const army of this.armies) {
-      if (!this.isOwnArmy(army) || this.occupiedCityForArmy(army) !== null) continue;
+      if (!this.isOwnArmy(army) || this.ownGarrisonCityForArmy(army) !== null) continue;
       cards.push({
         id: `army:${army.id}`,
         kind: "army",
@@ -492,7 +492,7 @@ export class CampaignScene implements Scene {
       });
     }
     for (const army of this.armies) {
-      if (!this.isOwnArmy(army) || this.occupiedCityForArmy(army) !== null) continue;
+      if (!this.isOwnArmy(army) || this.ownGarrisonCityForArmy(army) !== null) continue;
       const [sx, sy] = this.renderer.toScreen(army.x, army.y);
       const x = sx / dpr;
       const y = sy / dpr + 22;
@@ -534,6 +534,15 @@ export class CampaignScene implements Scene {
 
   private isOwnArmy(army: ArmyView) {
     return army.mine || army.faction === this.playerFaction();
+  }
+
+  /** The occupied city only counts as a garrison (card footer, no army card)
+   *  when the player OWNS it — an own army on a foreign city (siege/occupation)
+   *  must keep its own army card or the stack has no label at all. */
+  private ownGarrisonCityForArmy(army: ArmyView) {
+    const hit = this.occupiedCityForArmy(army);
+    if (!hit) return null;
+    return this.cities.get(hit.index)?.owner === this.playerFaction() ? hit : null;
   }
 
   private occupiedCityForArmy(army: ArmyView) {

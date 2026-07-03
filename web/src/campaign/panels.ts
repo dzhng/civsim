@@ -70,11 +70,17 @@ export function campaignDomHtml(): string {
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-tool { width:30px;min-width:30px;padding:0; }
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-ico { width:15px;height:15px;fill:currentColor;flex:none;display:block; }
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-top .cmp-ico { width:17px;height:17px;color:currentColor; }
-      :is(#campaign-ui, .renderer-campaign-ui) .cmp-panel { position:fixed;right:10px;top:56px;width:244px;
-        max-height:calc(100vh - 66px);overflow:auto;color:var(--bronze-ink);padding:11px;border-width:3px;z-index:10;box-sizing:border-box; }
-      :is(#campaign-ui, .renderer-campaign-ui) .cmp-panel--city { top:auto;bottom:10px; }
-      :is(#campaign-ui, .renderer-campaign-ui) .cmp-panel--diplomacy { left:10px;right:auto;top:56px;width:318px;max-height:84vh; }
-      :is(#campaign-ui, .renderer-campaign-ui) .cmp-panel--classes { left:10px;right:auto;top:56px;width:540px;max-height:84vh; }
+      /* Panel MATERIAL/shape is shared; PLACEMENT is game-scoped (#campaign-ui):
+         the renderer-lab fixture positions the same panels absolutely inside its
+         own box (apps/renderer-lab router fixture CSS). */
+      :is(#campaign-ui, .renderer-campaign-ui) .cmp-panel { width:244px;pointer-events:auto;
+        overflow:auto;color:var(--bronze-ink);padding:11px;border-width:3px;z-index:10;box-sizing:border-box; }
+      #campaign-ui .cmp-panel { position:fixed;right:10px;top:56px;max-height:calc(100vh - 66px); }
+      #campaign-ui .cmp-panel--city { top:auto;bottom:10px; }
+      :is(#campaign-ui, .renderer-campaign-ui) .cmp-panel--diplomacy { width:318px; }
+      #campaign-ui .cmp-panel--diplomacy { left:10px;right:auto;top:56px;max-height:84vh; }
+      :is(#campaign-ui, .renderer-campaign-ui) .cmp-panel--classes { width:540px; }
+      #campaign-ui .cmp-panel--classes { left:10px;right:auto;top:56px;max-height:84vh; }
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-panel b { font-family:Cinzel,Georgia,serif;letter-spacing:0.2px;color:#f1dfb1; }
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-title { display:flex;align-items:center;gap:7px;margin-bottom:7px; }
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-title .cmp-ico { width:17px;height:17px;color:#f0d98a; }
@@ -157,10 +163,10 @@ export function campaignDomHtml(): string {
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-actions { justify-content:center;margin-top:12px; }
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-actions button { font-size:14px;min-height:34px;padding:0 18px; }
       @media (max-width:1100px) {
-        :is(#campaign-ui, .renderer-campaign-ui) .cmp-panel,
-        :is(#campaign-ui, .renderer-campaign-ui) .cmp-panel--diplomacy,
-        :is(#campaign-ui, .renderer-campaign-ui) .cmp-panel--classes { top:96px;max-height:calc(100vh - 106px); }
-        :is(#campaign-ui, .renderer-campaign-ui) .cmp-panel--city { top:auto;bottom:10px; }
+        #campaign-ui .cmp-panel,
+        #campaign-ui .cmp-panel--diplomacy,
+        #campaign-ui .cmp-panel--classes { top:96px;max-height:calc(100vh - 106px); }
+        #campaign-ui .cmp-panel--city { top:auto;bottom:10px; }
       }
     </style>
     <div id="cmp-hud-root"></div>`;

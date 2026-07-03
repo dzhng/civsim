@@ -2118,9 +2118,13 @@ export async function run(ctx) {
       const samples = stats.stats.samples.selectionDepth;
       const core = patchStats(canvasPng, samples.occludedByCityCore, 7);
       const ring = patchStats(canvasPng, samples.visibleOuterRing, 7);
+      // Re-pinned (spec campaign-map-polish 12): the selection ring draws with
+      // depth 'always' so raised terrain/geometry no longer clips it — the old
+      // "city occludes the ring" contract WAS the reported bug (half-cut ring).
+      // The ring must now paint over the city core.
       ctx.check(
-        `${route}: city geometry occludes the ground selection marker`,
-        core.selectionGreen <= 8 && core.tan + core.red > 120,
+        `${route}: selection ring paints over the city core (no depth clipping)`,
+        core.selectionGreen > 60,
         JSON.stringify({ core, sample: samples.occludedByCityCore }),
       );
       ctx.check(
@@ -2136,9 +2140,11 @@ export async function run(ctx) {
       const ring = patchStats(canvasPng, samples.visibleOuterRing, 6);
       // Figure cloth reads navy (shadow side) as often as bright blue at the
       // oblique review pitch — both bins are soldier body.
+      // Re-pinned (spec campaign-map-polish 12): ring draws over the formation —
+      // see the selected-city note above.
       ctx.check(
-        `${route}: army geometry occludes the ground selection marker`,
-        core.selectionGreen <= 8 && core.red + core.tan + core.blue + core.navy > 80,
+        `${route}: selection ring paints over the formation (no depth clipping)`,
+        core.selectionGreen > 60,
         JSON.stringify({ core, sample: samples.occludedByArmyCore }),
       );
       ctx.check(

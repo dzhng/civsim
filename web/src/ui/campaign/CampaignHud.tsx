@@ -54,7 +54,7 @@ const ArmyHost = forwardRef<ArmyHandle>(function ArmyHost(_props, ref) {
   return (
     <div
       id="cmp-army"
-      className="cmp-panel hud-chassis"
+      className="cmp-panel hud-chassis renderer-campaign-panel army"
       style={{ display: props ? "block" : "none" }}
     >
       {props ? <ArmyPanel {...props} /> : null}
@@ -88,7 +88,7 @@ const CityHost = forwardRef<CityHandle>(function CityHost(_props, ref) {
   return (
     <div
       id="cmp-city"
-      className="cmp-panel cmp-panel--city hud-chassis"
+      className="cmp-panel cmp-panel--city hud-chassis renderer-campaign-panel city"
       style={{ display: content ? "block" : "none" }}
     >
       {content}
@@ -106,7 +106,7 @@ const DiplomacyHost = forwardRef<DiplomacyHandle>(function DiplomacyHost(_props,
   return (
     <div
       id="cmp-diplomacy"
-      className="cmp-panel cmp-panel--diplomacy hud-chassis"
+      className="cmp-panel cmp-panel--diplomacy hud-chassis renderer-campaign-panel diplomacy"
       style={{ display: props ? "block" : "none" }}
     >
       {props ? <DiplomacyPanel {...props} /> : null}
@@ -124,7 +124,7 @@ const ClassesHost = forwardRef<ClassesHandle>(function ClassesHost(_props, ref) 
   return (
     <div
       id="cmp-classes"
-      className="cmp-panel cmp-panel--classes hud-chassis hud-chassis--tray"
+      className="cmp-panel cmp-panel--classes hud-chassis hud-chassis--tray renderer-campaign-panel classes"
       style={{ display: props ? "block" : "none" }}
     >
       {props ? <ClassBuilder {...props} /> : null}

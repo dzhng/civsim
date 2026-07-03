@@ -166,7 +166,10 @@ async function collectCollisionState(page) {
     ...stats.visibleFactionLabelRects,
   ]
     .filter((label) => label.opacity >= 0.3)
-    .map((label) => ({ ...label, ink: deflate(label.box, label.padPx ?? 0) }));
+    // Use the arbitration's own ink rect (deflate-then-rotate AABB), not the
+    // full-quad box deflated by pad — for a tilted faction engraving the latter
+    // is looser and flags sub-pixel kisses the arbitration already cleared.
+    .map((label) => ({ ...label, ink: label.inkRect ?? deflate(label.box, label.padPx ?? 0) }));
   return {
     labels,
     cards: stats.visibleCardRects ?? [],

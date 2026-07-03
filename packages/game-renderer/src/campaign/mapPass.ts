@@ -611,6 +611,11 @@ export interface CampaignLabelDebugRect {
   /** Transparent halo margin inside the box, CSS px per side. Deflating the
    * box by this gives the ink rect (icon + glyphs) — the visible label. */
   padPx: number;
+  /** The exact ink-rect AABB the occupancy arbitration used for this label
+   * (deflate-to-ink THEN rotate THEN AABB). For a tilted label this is tighter
+   * than deflating `box` (the full-quad AABB) by `padPx` — consumers checking
+   * overlaps must use this so the test agrees with what arbitration enforced. */
+  inkRect: { x: number; y: number; w: number; h: number };
   /** Faction labels only: true for the small league names (they yield to
    * cards; major engravings are background-scale and do not). */
   minor?: boolean;
@@ -2409,12 +2414,19 @@ function cornersAabb(corners: [number, number][]): ScreenRect {
 function labelDebugRects(entries: AtlasEntry[], dpr: number): CampaignLabelDebugRect[] {
   return entries.map((entry) => {
     const label = entry.label;
-    const corners = labelCornersCss(
-      entry.screenX + anchorCenterOffsetX(label.screenAnchorX, entry.offsetX, entry.width),
-      entry.screenY + anchorCenterOffsetY(label.screenAnchorY, entry.offsetY, entry.height),
-      entry.width,
-      entry.height,
-      label.angle ?? 0,
+    const centerX = entry.screenX + anchorCenterOffsetX(label.screenAnchorX, entry.offsetX, entry.width);
+    const centerY = entry.screenY + anchorCenterOffsetY(label.screenAnchorY, entry.offsetY, entry.height);
+    const angle = label.angle ?? 0;
+    const corners = labelCornersCss(centerX, centerY, entry.width, entry.height, angle, dpr);
+    // Ink rect the arbitration enforced: deflate to ink, THEN rotate, THEN AABB
+    // (mirrors inkRectAt). For a tilted label this differs from deflating the
+    // full-quad AABB `box`.
+    const inkCorners = labelCornersCss(
+      centerX,
+      centerY,
+      Math.max(1, entry.width - entry.padding * 2),
+      Math.max(1, entry.height - entry.padding * 2),
+      angle,
       dpr,
     );
     return {
@@ -2424,6 +2436,7 @@ function labelDebugRects(entries: AtlasEntry[], dpr: number): CampaignLabelDebug
       box: cornersAabb(corners),
       corners,
       padPx: roundPx(entry.padding / dpr),
+      inkRect: cornersAabb(inkCorners),
       ...(label.kind === 'faction' ? { minor: label.factionMinor === true } : {}),
     };
   });

@@ -1278,10 +1278,7 @@ async function findPhaseBrandFootguns() {
           "battle ground cue draw requires world pass",
           /\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/,
         ],
-        [
-          "battle ground cue uses the shared projector",
-          /projectWorld\s*\(/,
-        ],
+        ["battle ground cue uses the shared projector", /projectWorld\s*\(/],
         [
           "battle ground cue uses depth-read material contract",
           /gpuWorldDepthStencil\s*\(\s*'read'\s*\)/,
@@ -1321,7 +1318,7 @@ async function findPhaseBrandFootguns() {
       checks: [
         [
           "battle renderer renders through the photoreal battle world seam",
-          /PhotorealBattleWorld\.create\(this\.canvas\)/,
+          /PhotorealBattleWorld\.create\(this\.canvas[,)]/,
         ],
         [
           "battle renderer builds no bespoke frame shell or passes",
@@ -1836,7 +1833,22 @@ function patchStats(png, sample, radius = 4) {
       count++;
     }
   }
-  return { x: cx, y: cy, count, red, flagRed, blue, tan, green, selectionGreen, gold, white, dark, foliage, navy };
+  return {
+    x: cx,
+    y: cy,
+    count,
+    red,
+    flagRed,
+    blue,
+    tan,
+    green,
+    selectionGreen,
+    gold,
+    white,
+    dark,
+    foliage,
+    navy,
+  };
 }
 
 export async function run(ctx) {

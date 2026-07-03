@@ -204,7 +204,7 @@ export class PhotorealBattleWorld {
     // under any rise and vanishes. The lift clears the coarse ground mesh's
     // within-cell divergence from the bilinear field.
     this.groundCues = new PhotorealLineLayer(scene, 0.25, {
-      alpha: 0.88,
+      alpha: 0.98, // the selection-ring weight — cues and rings are one style
       depthTest: true,
       renderOrder: RENDER_ORDER.groundCues,
       drape: { heightAt: (x, y) => this.heightAt(x, y), step: 4 },

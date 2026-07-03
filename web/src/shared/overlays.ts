@@ -1,13 +1,26 @@
-// Tactical line vertex helpers (x, y, r, g, b per vertex; GL_LINES pairs).
+// Tactical overlay vertex helpers: line cues are (x, y, r, g, b) per vertex
+// (GL_LINES pairs); ring instances are (x, y, radius, r, g, b).
 
-/** Formation-frame outline + facing tick at a prospective destination. */
-export function pushGhost(
-  verts: number[],
+/** The ONE selection/status green — campaign selection rings, battle soldier
+ *  rings, and the player's order-preview cues all read this. */
+export const SELECTION_GREEN: [number, number, number] = [0.31, 0.82, 0.39];
+
+/** Soldier-ring footprint radius, meters — selection and destination previews. */
+export const SOLDIER_RING_RADIUS = 0.45;
+
+/** Destination preview: one soldier ring per man at his prospective formation
+ *  slot — the same decal style as the live selection rings, so "where they
+ *  stand now" and "where they will stand" read as one visual language. Front
+ *  rank sits on the destination point, ranks fall back behind it, and the
+ *  last partial rank centres on the frontage. */
+export function pushDestRings(
+  rings: number[],
   x: number,
   y: number,
   facing: number,
-  w: number,
-  d: number,
+  alive: number,
+  files: number,
+  spacing: number,
   r: number,
   g: number,
   b: number,
@@ -16,19 +29,16 @@ export function pushGhost(
     fy = Math.sin(facing);
   const rx = fy,
     ry = -fx;
-  const hw = w / 2;
-  const corners = [
-    [x + rx * hw, y + ry * hw],
-    [x - rx * hw, y - ry * hw],
-    [x - rx * hw - fx * d, y - ry * hw - fy * d],
-    [x + rx * hw - fx * d, y + ry * hw - fy * d],
-  ];
-  for (let k = 0; k < 4; k++) {
-    const [x0, y0] = corners[k];
-    const [x1, y1] = corners[(k + 1) % 4];
-    verts.push(x0, y0, r, g, b, x1, y1, r, g, b);
+  const rankGap = 1.1;
+  const n = Math.max(0, Math.floor(alive));
+  const perRank = Math.max(1, Math.floor(files));
+  for (let i = 0; i < n; i++) {
+    const rank = Math.floor(i / perRank);
+    const rankCount = Math.min(perRank, n - rank * perRank);
+    const off = (i % perRank) * spacing - ((rankCount - 1) * spacing) / 2;
+    const back = rank * rankGap;
+    rings.push(x + rx * off - fx * back, y + ry * off - fy * back, SOLDIER_RING_RADIUS, r, g, b);
   }
-  verts.push(x, y, r, g, b, x + fx * 5, y + fy * 5, r, g, b);
 }
 
 /** Progress pie: an arc of `frac` of a full turn, 16ths, starting at 12 o'clock. */

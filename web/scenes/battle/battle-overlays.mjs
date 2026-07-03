@@ -54,8 +54,8 @@ export async function run(ctx) {
     const a = g.unitInfo(4);
     g.setFiles(4, 6);
     g.select(4);
-    g.setOrder(4, a[0] + 24, a[1] + 10);
-    g.enqueue(4, 0, a[0] + 44, a[1] + 26, 0, 0);
+    g.setOrder(4, a[0] + 10, a[1] + 4);
+    g.enqueue(4, 0, a[0] + 18, a[1] + 10, 0, 0);
   });
   // Latch the order-path overlay on (the toolbar twin of holding Space) so the
   // frozen frame carries the ghost, path, and queue diamonds.

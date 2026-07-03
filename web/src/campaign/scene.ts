@@ -233,6 +233,9 @@ export class CampaignScene implements Scene {
         const p = this.renderer.toScreen(wx, wy);
         return [p[0] / devicePixelRatio, p[1] / devicePixelRatio];
       },
+      /** CSS px -> world km through the one renderer projection owner. */
+      screenToWorld: (sx: number, sy: number) =>
+        this.renderer.toWorld(sx * devicePixelRatio, sy * devicePixelRatio),
       cam: (x: number, y: number, scale: number) => {
         this.cam = { x, y, scale };
         this.clampCam();
@@ -250,6 +253,8 @@ export class CampaignScene implements Scene {
         land: this.field!.landAt(x, y),
         height: this.field!.heightAt(x, y),
       }),
+      renderLandAt: (x: number, y: number, marginKm = 0) =>
+        this.field!.renderLandAt(x, y, marginKm),
       /** Snapshot mode: pin the water clock (campaign is already paused). */
       freeze: (on = true) => {
         this.renderer.fixedTime = on ? 0 : null;

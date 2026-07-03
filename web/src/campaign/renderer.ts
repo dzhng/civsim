@@ -110,6 +110,7 @@ export class CampaignRenderer {
     labels: 0,
     visibleLabels: 0,
     visibleLabelNames: [],
+    visibleSeaLabelRects: [],
     collisionCulls: 0,
     collisionCulledLabels: [],
     atlasWidth: 0,
@@ -510,6 +511,7 @@ export class CampaignRenderer {
 
   stats() {
     const shell = this.shell?.stats();
+    const markerStats = this.markers?.stats();
     return {
       renderer: "renderer-campaign",
       ready: this.shell !== null,
@@ -521,6 +523,7 @@ export class CampaignRenderer {
       labels: this.labelStats.labels,
       visibleLabels: this.labelStats.visibleLabels,
       visibleLabelNames: this.labelStats.visibleLabelNames,
+      visibleSeaLabelRects: this.labelStats.visibleSeaLabelRects,
       labelCollisionCulls: this.labelStats.collisionCulls,
       labelCollisionCulledLabels: this.labelStats.collisionCulledLabels,
       ...this.lastLabelComposition,
@@ -536,7 +539,14 @@ export class CampaignRenderer {
       factionView: this.lastFactionView,
       territoryPixels: this.territoryPass?.stats().pixels ?? 0,
       borderSegments: this.borders?.stats().segments ?? 0,
-      mapMarkers: this.markers?.stats().markers ?? 0,
+      mapMarkers: markerStats?.markers ?? 0,
+      markerRadiusPx: markerStats?.cityMarkerRadiusPx ?? 0,
+      cityMarkerRadiiPx: markerStats?.cityMarkerRadiiPx ?? [],
+      cityMarkerRadiiPxByTier: {
+        1: cityMarkerRadiusPx(1),
+        2: cityMarkerRadiusPx(2),
+        3: cityMarkerRadiusPx(3),
+      },
       ...this.selection?.stats(),
       scenery: this.scenery?.stats().scenery ?? 0,
       sceneryStats: this.scenery?.stats() ?? null,

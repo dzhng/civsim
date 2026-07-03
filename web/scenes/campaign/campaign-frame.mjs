@@ -7,7 +7,7 @@ import { PNG } from "pngjs";
 // and produced the black top-left/top-right wedges) and a standard aspect.
 const CENTER = [-100, 250]; // whole-map center (see campaign-lod WHOLE_MAP_CAMERA)
 const TINY_SCALE = 0.001; // below the fill floor → clampCam raises it to minZoom
-const HUD_TOP = 44; // skip the DOM top bar when sampling the top corners
+const HUD_TOP = 104; // skip the DOM top bar (the bronze tray wraps to 2 rows at narrow widths)
 const CORNER = 48; // corner block size in px
 const MAX_BLACK_RATIO = 0.12; // a map corner is well under this; an off-map corner ≈ 1
 

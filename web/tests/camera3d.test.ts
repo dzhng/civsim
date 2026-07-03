@@ -1,5 +1,5 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import assert from "node:assert/strict";
+import test from "node:test";
 import {
   eyePosition,
   invViewProj,
@@ -9,8 +9,8 @@ import {
   viewMatrix,
   viewProjMatrix,
   type Camera3DParams,
-} from '../../packages/renderer-core/src/camera3d.ts';
-import { identity, multiply, type Mat4 } from '../../packages/renderer-core/src/mat4.ts';
+} from "../../packages/renderer-core/src/camera3d.ts";
+import { identity, multiply, type Mat4 } from "../../packages/renderer-core/src/mat4.ts";
 
 // A representative oblique battle-ish camera. Finite far keeps the reverse-Z
 // depth mapping exact at both planes for the monotonic test.
@@ -31,7 +31,7 @@ function maxAbsDiff(a: Mat4, b: Mat4): number {
   return m;
 }
 
-test('camera3d: screen↔world round-trips on the ground plane', () => {
+test("camera3d: screen↔world round-trips on the ground plane", () => {
   // Project a grid of ground points, then unproject the pixel back onto the same
   // z-plane — the inverse must land on the original point.
   for (let gx = -180; gx <= 180; gx += 60) {
@@ -45,18 +45,21 @@ test('camera3d: screen↔world round-trips on the ground plane', () => {
       // the round-trip carries single-precision error dominated by the perspective
       // divide (~a few ×10⁻³ world units across the field) — far below soldier
       // spacing and sub-pixel for picking.
-      assert.ok(Math.hypot(back[0] - gx, back[1] - gy, back[2]) < 1e-2, `round-trip ${gx},${gy} → ${back}`);
+      assert.ok(
+        Math.hypot(back[0] - gx, back[1] - gy, back[2]) < 1e-2,
+        `round-trip ${gx},${gy} → ${back}`,
+      );
     }
   }
 });
 
-test('camera3d: the target projects to the screen centre', () => {
+test("camera3d: the target projects to the screen centre", () => {
   const { ndc, clipW } = projectPoint(CAM, CAM.target);
   assert.ok(clipW > 0);
   assert.ok(Math.abs(ndc[0]) < 1e-5 && Math.abs(ndc[1]) < 1e-5, `target ndc ${ndc}`);
 });
 
-test('camera3d: view rotation is orthonormal', () => {
+test("camera3d: view rotation is orthonormal", () => {
   const v = viewMatrix(CAM);
   // Upper-left 3×3 rotation (column-major): columns are the basis vectors.
   const cols = [
@@ -73,13 +76,17 @@ test('camera3d: view rotation is orthonormal', () => {
   }
 });
 
-test('camera3d: reverse-Z depth is monotonic-decreasing and in [0,1]', () => {
+test("camera3d: reverse-Z depth is monotonic-decreasing and in [0,1]", () => {
   // March straight out along the eye→target ray; reverse-Z means nearer = higher
   // depth (near→1, far→0), strictly decreasing, always inside the unit range.
   const eye = eyePosition(CAM);
-  let dx = CAM.target[0] - eye[0], dy = CAM.target[1] - eye[1], dz = CAM.target[2] - eye[2];
+  let dx = CAM.target[0] - eye[0],
+    dy = CAM.target[1] - eye[1],
+    dz = CAM.target[2] - eye[2];
   const l = Math.hypot(dx, dy, dz);
-  dx /= l; dy /= l; dz /= l;
+  dx /= l;
+  dy /= l;
+  dz /= l;
   let prev = Infinity;
   for (const d of [2, 10, 50, 200, 800, 3500]) {
     const w: [number, number, number] = [eye[0] + dx * d, eye[1] + dy * d, eye[2] + dz * d];
@@ -90,13 +97,16 @@ test('camera3d: reverse-Z depth is monotonic-decreasing and in [0,1]', () => {
   }
 });
 
-test('camera3d: invViewProj is a true inverse', () => {
+test("camera3d: invViewProj is a true inverse", () => {
   const vp = viewProjMatrix(CAM);
   const prod = multiply(vp, invViewProj(CAM));
-  assert.ok(maxAbsDiff(prod, identity()) < 1e-4, `VP · VP⁻¹ ≠ I (max diff ${maxAbsDiff(prod, identity())})`);
+  assert.ok(
+    maxAbsDiff(prod, identity()) < 1e-4,
+    `VP · VP⁻¹ ≠ I (max diff ${maxAbsDiff(prod, identity())})`,
+  );
 });
 
-test('camera3d: infinite far plane maps the horizon toward depth 0', () => {
+test("camera3d: infinite far plane maps the horizon toward depth 0", () => {
   const inf: Camera3DParams = { ...CAM, far: undefined };
   const eye = eyePosition(inf);
   // A very distant ground point ahead should approach — but stay above — depth 0.
@@ -107,7 +117,7 @@ test('camera3d: infinite far plane maps the horizon toward depth 0', () => {
   assert.ok(Math.abs(ndc[2]) < 1e-2, `far depth ${ndc[2]} not near 0`);
 });
 
-test('camera3d: matrices are deterministic for identical params', () => {
+test("camera3d: matrices are deterministic for identical params", () => {
   assert.deepEqual(viewProjMatrix(CAM), viewProjMatrix(CAM));
   assert.deepEqual(projMatrix(CAM), projMatrix(CAM));
 });

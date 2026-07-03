@@ -28,7 +28,6 @@ export const meta = {
     "Cascaded sun shadows: per-preset scenery crops, tier identity per adapter, on/off presence.",
 };
 
-const FIXED_TIME = 0;
 // The eastern tree grove + a soldier formation in one frame (map A). zoom
 // clamps to the rig; the grove crop stays legible at either adapter's clamp.
 const FRAMING = "map=A&t=0&ref=1&zoom=28&cx=560&cy=-380";

@@ -204,7 +204,9 @@ export async function run(ctx) {
     const cards = await visibleMapCardNames(page);
     ctx.check(
       "campaign-lod rome-close shows own-city map cards incl. Ostia/Portus + garrisoned Roma",
-      cards.some((n) => n.toUpperCase().includes("OSTIA")) && cards.some((n) => n.toUpperCase().includes("ROMA")) && cards.length >= 5,
+      cards.some((n) => n.toUpperCase().includes("OSTIA")) &&
+        cards.some((n) => n.toUpperCase().includes("ROMA")) &&
+        cards.length >= 5,
       JSON.stringify(cards),
     );
   }

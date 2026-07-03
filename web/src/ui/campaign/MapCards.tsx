@@ -1,10 +1,4 @@
-import {
-  forwardRef,
-  useImperativeHandle,
-  useRef,
-  useState,
-  type CSSProperties,
-} from "react";
+import { forwardRef, useImperativeHandle, useRef, useState, type CSSProperties } from "react";
 import { flushSync } from "react-dom";
 
 export type MapCardKind = "city" | "army";

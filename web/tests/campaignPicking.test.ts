@@ -1,12 +1,12 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { campaignCameraRig } from '../src/battle/cameraRig.ts';
+import assert from "node:assert/strict";
+import test from "node:test";
+import { campaignCameraRig } from "../src/battle/cameraRig.ts";
 import {
   screenToWorld,
   world3dToScreen,
   worldToScreen,
   type CameraSnapshot,
-} from '../../packages/renderer-core/src/cameraUniform.ts';
+} from "../../packages/renderer-core/src/cameraUniform.ts";
 
 // Campaign picking is a real 3D ray-cast against the ground plane (z = 0) and
 // label/marker placement is a real projection — both flow through
@@ -46,7 +46,7 @@ function snapshot(x: number, y: number, scale: number): CameraSnapshot {
 
 const zoomStops = [0.2, 0.6, 1.6, 3.6, 6];
 
-test('campaign worldToScreen(screenToWorld(px)) round-trips on the ground plane at every zoom', () => {
+test("campaign worldToScreen(screenToWorld(px)) round-trips on the ground plane at every zoom", () => {
   for (const scale of zoomStops) {
     const cam = snapshot(40, -30, scale);
     // Lower-central band provably hits the ground (upper pixels look past the
@@ -62,7 +62,7 @@ test('campaign worldToScreen(screenToWorld(px)) round-trips on the ground plane 
   }
 });
 
-test('campaign camera keeps the chart scale: east km at the target project at scale px/km', () => {
+test("campaign camera keeps the chart scale: east km at the target project at scale px/km", () => {
   for (const scale of zoomStops) {
     const cam = snapshot(40, -30, scale);
     const [ax] = worldToScreen(cam, 40, -30);
@@ -75,7 +75,7 @@ test('campaign camera keeps the chart scale: east km at the target project at sc
   }
 });
 
-test('campaign camera keeps the map orientation: east → screen right, north → screen up', () => {
+test("campaign camera keeps the map orientation: east → screen right, north → screen up", () => {
   const cam = snapshot(0, 0, 1.6);
   const [cx, cy] = worldToScreen(cam, 0, 0); // screen centre = look target (x,y)
   const [ex, ey] = worldToScreen(cam, 120, 0); // 120 km east (+X)
@@ -86,7 +86,7 @@ test('campaign camera keeps the map orientation: east → screen right, north �
   assert.ok(Math.abs(nx - cx) < 40, `north stays near the vertical: ${nx} vs ${cx}`);
 });
 
-test('a click on a city maps back to that city (nearest-loc pick)', () => {
+test("a click on a city maps back to that city (nearest-loc pick)", () => {
   // A handful of "cities" on the ground near the framed centre.
   const cities: Array<[number, number]> = [
     [40, -30],

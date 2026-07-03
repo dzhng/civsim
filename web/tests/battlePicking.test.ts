@@ -1,11 +1,11 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import assert from "node:assert/strict";
+import test from "node:test";
 import {
   projectPoint,
   unprojectToPlaneZ,
   type Camera3DParams,
-} from '../../packages/renderer-core/src/camera3d.ts';
-import { battleCameraRig } from '../src/battle/cameraRig.ts';
+} from "../../packages/renderer-core/src/camera3d.ts";
+import { battleCameraRig } from "../src/battle/cameraRig.ts";
 
 // Slice 04: battle picking is a real 3D ray-cast against the ground plane (z = 0).
 // The production Camera delegates screen↔world to camera3d's projectPoint /
@@ -51,15 +51,15 @@ function pxToWorld(p: Camera3DParams, px: number, py: number): [number, number] 
 // perspective (upper pixels look at the horizon/sky where no ground hit exists).
 const zoomStops = [0.6, 1.5, 3, 5, 7.5];
 
-test('worldToScreen(screenToWorld(px)) round-trips on the ground plane at every zoom', () => {
+test("worldToScreen(screenToWorld(px)) round-trips on the ground plane at every zoom", () => {
   for (const zoom of zoomStops) {
     const p = params(zoom);
     for (let py = H * 0.5; py <= H * 0.95; py += H * 0.15) {
       for (let px = W * 0.15; px <= W * 0.85; px += W * 0.175) {
         const world = pxToWorld(p, px, py);
-        assert.ok(world, `ground hit at zoom ${zoom}, px (${px|0},${py|0})`);
+        assert.ok(world, `ground hit at zoom ${zoom}, px (${px | 0},${py | 0})`);
         const back = worldToPx(p, world![0], world![1]);
-        assert.ok(back.clipW > 0, 'projected point is in front of the camera');
+        assert.ok(back.clipW > 0, "projected point is in front of the camera");
         assert.ok(Math.abs(back.px - px) < 0.3, `x round-trip zoom ${zoom}: ${back.px} vs ${px}`);
         assert.ok(Math.abs(back.py - py) < 0.3, `y round-trip zoom ${zoom}: ${back.py} vs ${py}`);
       }
@@ -67,7 +67,7 @@ test('worldToScreen(screenToWorld(px)) round-trips on the ground plane at every 
   }
 });
 
-test('a click at a unit centroid picks that unit', () => {
+test("a click at a unit centroid picks that unit", () => {
   // Three unit centroids on the ground near the framed centre.
   const centroids: Array<[number, number]> = [
     [0, -20],

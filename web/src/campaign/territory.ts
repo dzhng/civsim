@@ -344,7 +344,11 @@ export class Territory {
       const canonicalRight = canonicalLeft === leftOwner ? rightOwner : leftOwner;
       const edge = canonicalLeft === leftOwner ? { a, b } : { a: b, b: a };
       const key = `${canonicalLeft}:${canonicalRight}`;
-      const group = groups.get(key) ?? { leftOwner: canonicalLeft, rightOwner: canonicalRight, edges: [] };
+      const group = groups.get(key) ?? {
+        leftOwner: canonicalLeft,
+        rightOwner: canonicalRight,
+        edges: [],
+      };
       group.edges.push(edge);
       groups.set(key, group);
     };
@@ -431,7 +435,8 @@ export class Territory {
           if (y > mxy) mxy = y;
         }
         const leftFaction = this.data.map.factions[group.leftOwner];
-        const rightFaction = group.rightOwner >= 0 ? this.data.map.factions[group.rightOwner] : undefined;
+        const rightFaction =
+          group.rightOwner >= 0 ? this.data.map.factions[group.rightOwner] : undefined;
         if (!leftFaction) continue;
         out.push({
           pts,

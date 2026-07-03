@@ -31,7 +31,12 @@ export async function run(ctx) {
     c.clampView?.();
     const [x0, y0, x1, y1] = c.bounds;
     // Real visible ground span from the screen corners under the perspective camera.
-    const pts = [c.screenToWorld(0, 0), c.screenToWorld(cv.width, 0), c.screenToWorld(0, cv.height), c.screenToWorld(cv.width, cv.height)];
+    const pts = [
+      c.screenToWorld(0, 0),
+      c.screenToWorld(cv.width, 0),
+      c.screenToWorld(0, cv.height),
+      c.screenToWorld(cv.width, cv.height),
+    ];
     const xs = pts.map((p) => p[0]);
     const ys = pts.map((p) => p[1]);
     const [cx, cy] = c.viewCenter();
@@ -61,7 +66,10 @@ export async function run(ctx) {
   // Panning is bounded: the look target never leaves the playable field rect.
   check(
     "battle camera cannot pan the look target off the field",
-    camFit.x >= camFit.x0 - 0.5 && camFit.x <= camFit.x1 + 0.5 && camFit.y >= camFit.y0 - 0.5 && camFit.y <= camFit.y1 + 0.5,
+    camFit.x >= camFit.x0 - 0.5 &&
+      camFit.x <= camFit.x1 + 0.5 &&
+      camFit.y >= camFit.y0 - 0.5 &&
+      camFit.y <= camFit.y1 + 0.5,
     `target (${camFit.x.toFixed(1)},${camFit.y.toFixed(1)}) field [${camFit.x0.toFixed(0)},${camFit.x1.toFixed(0)}]x[${camFit.y0.toFixed(0)},${camFit.y1.toFixed(0)}]`,
   );
 

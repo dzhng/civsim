@@ -64,9 +64,7 @@ function readDepthConst(name) {
 }
 
 function readSourceStringConst(source, name, label) {
-  const match = source.match(
-    new RegExp(`export\\s+const\\s+${name}\\s*=\\s*['"]([^'"]+)['"]`),
-  );
+  const match = source.match(new RegExp(`export\\s+const\\s+${name}\\s*=\\s*['"]([^'"]+)['"]`));
   if (!match) throw new Error(`Unable to read ${name} from ${label}`);
   return match[1];
 }

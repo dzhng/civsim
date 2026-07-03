@@ -166,10 +166,6 @@ fn ridged(p: vec2f) -> f32 {
   return r * r;
 }
 
-fn seaAmount(rgb: vec3f) -> f32 {
-  return smoothstep(0.04, 0.14, rgb.b - max(rgb.r, rgb.g * 0.88));
-}
-
 fn nz(p: vec2f, freq: f32, px: f32) -> f32 {
   let fade = clamp(1.0 - freq * px * 2.2, 0.0, 1.0);
   if (fade <= 0.0) {

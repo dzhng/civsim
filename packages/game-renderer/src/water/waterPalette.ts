@@ -24,4 +24,8 @@ const WATER_SHALLOW_SCATTER = 0.6;                     // sandy-bottom backscatt
 export const CAMPAIGN_SEA_PALETTE_WGSL = `
 const CAMPAIGN_SEA_SHALLOW = vec3f(0.40, 0.56, 0.64);
 const CAMPAIGN_SEA_DEEP = vec3f(0.16, 0.30, 0.44);
+
+fn seaAmount(rgb: vec3f) -> f32 {
+  return smoothstep(0.04, 0.14, rgb.b - max(rgb.r, rgb.g * 0.88));
+}
 `;

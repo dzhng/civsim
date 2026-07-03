@@ -1315,9 +1315,26 @@ function pushRaisedRoad(
   style: CampaignMapDrawStyle,
   at?: (x: number, y: number) => 'land' | 'water',
 ): number {
-  if (edge.via.length < 2) return 0;
   const roadScale = style.roadScale ?? 1;
-  const source = smoothRoadCenterline(edge.via);
+  const halfWidth = 0.55 * roadScale;
+  const { runs, gaps } = drawnRoadRuns(edge.via, at);
+  for (const run of runs) {
+    pushRoadRibbon(out, run, halfWidth * 1.58, 0.18 * roadScale, [0.30, 0.27, 0.23, 0.78], 0, style.heightAt);
+    pushRoadRibbon(out, run, halfWidth, 0.32 * roadScale, [0.76, 0.74, 0.68, 0.98], 1, style.heightAt);
+  }
+  return gaps;
+}
+
+/** The exact centerline geometry the road pass draws: smoothed, resampled at
+ * ROAD_SURFACE_SAMPLE_KM, split into land runs (short water dips bridged,
+ * ferry straits split). Road decorations (carts) ride these same runs so they
+ * follow the visible ribbon by construction. */
+export function drawnRoadRuns(
+  via: [number, number][],
+  at?: (x: number, y: number) => 'land' | 'water',
+): { runs: [number, number][][]; gaps: number } {
+  if (via.length < 2) return { runs: [], gaps: 0 };
+  const source = smoothRoadCenterline(via);
   const center: [number, number][] = [[source[0][0], source[0][1]]];
   for (let i = 1; i < source.length; i++) {
     const a = source[i - 1];
@@ -1329,13 +1346,7 @@ function pushRaisedRoad(
       center.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]);
     }
   }
-  const halfWidth = 0.55 * roadScale;
-  const { runs, gaps } = roadLandRuns(center, at);
-  for (const run of runs) {
-    pushRoadRibbon(out, run, halfWidth * 1.58, 0.18 * roadScale, [0.30, 0.27, 0.23, 0.78], 0, style.heightAt);
-    pushRoadRibbon(out, run, halfWidth, 0.32 * roadScale, [0.76, 0.74, 0.68, 0.98], 1, style.heightAt);
-  }
-  return gaps;
+  return roadLandRuns(center, at);
 }
 
 // Water dips up to this length along the smoothed centerline are bridged (the
@@ -1417,7 +1428,7 @@ function pushRoadJunctionCaps(out: number[], data: CampaignMapInputData, roads: 
 // TWIN: smooth_renderer_centerline in crates/mapgen/src/landroute.rs — the
 // bake pre-verifies road land-safety through this exact smoothing, so change
 // both together.
-export function smoothRoadCenterline(points: [number, number][]) {
+function smoothRoadCenterline(points: [number, number][]) {
   if (points.length <= 2) return points;
   const smoothed: [number, number][] = [points[0]];
   for (let i = 1; i + 1 < points.length; i++) {

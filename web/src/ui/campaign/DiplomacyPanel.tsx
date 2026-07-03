@@ -2,10 +2,8 @@ import type { CSSProperties } from "react";
 import type { DiplomacyAction, DiplomacyRow } from "../../campaign/panels";
 import { UiIcon } from "./UiIcon";
 
-// S5c: the diplomacy panel (#cmp-diplomacy) as React — ported 1:1 from
-// diplomacyHtml. Each .cmp-diplo-row is a flex container (gap-spaced), so the
-// only thing that matters is the elements in order; the scene feeds the faction
-// list and dispatches the chosen action back to wasm.
+// Diplomacy panel. The scene feeds the faction list and dispatches the chosen
+// action back to wasm.
 export interface DiplomacyPanelProps {
   list: DiplomacyRow[];
   onAction(act: DiplomacyAction, other: number): void;

@@ -1,5 +1,6 @@
-// S5e: the siege notifications (#cmp-sieges) as React — ported 1:1 from
-// refreshSieges. A click centers the camera and opens the besieged city.
+import { UiIcon } from "./UiIcon";
+
+// Siege notifications. A click centers the camera and opens the besieged city.
 export interface SiegeRow {
   node: number;
   x: number;
@@ -18,14 +19,17 @@ export function Sieges({ sieges, onSelect }: SiegesProps) {
     <>
       {sieges.map((s) => (
         <div
-          className="cmp-siege"
+          className="cmp-siege hud-chassis"
           key={s.node}
           data-node={s.node}
           data-x={s.x}
           data-y={s.y}
           onClick={() => onSelect(s.node, s.x, s.y)}
         >
-          <b>⚔ {s.name} under siege</b>
+          <div className="cmp-siege-title">
+            <UiIcon name="sword" />
+            <b>{s.name} under siege</b>
+          </div>
           <div className="cmp-siege-sub">{s.attackerName} at the walls — click to view</div>
         </div>
       ))}

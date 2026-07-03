@@ -149,6 +149,7 @@ mod tests {
         name: String,
         pos: [f64; 2],
         kind: String,
+        port: bool,
     }
 
     #[derive(Deserialize)]
@@ -174,7 +175,9 @@ mod tests {
 
         let nodes: BTreeMap<u32, &NodeFixture> = map.nodes.iter().map(|n| (n.id, n)).collect();
         let mut road_degree: BTreeMap<u32, usize> = BTreeMap::new();
+        let mut sea_degree: BTreeMap<u32, usize> = BTreeMap::new();
         let mut total_degree: BTreeMap<u32, usize> = BTreeMap::new();
+        let mut sea_edges = 0usize;
 
         for edge in &map.edges {
             let a = nodes
@@ -211,10 +214,16 @@ mod tests {
             if edge.kind == "road" {
                 *road_degree.entry(edge.a).or_default() += 1;
                 *road_degree.entry(edge.b).or_default() += 1;
+            } else if edge.kind == "sea" {
+                sea_edges += 1;
+                *sea_degree.entry(edge.a).or_default() += 1;
+                *sea_degree.entry(edge.b).or_default() += 1;
             }
         }
 
         let mut water_cities = Vec::new();
+        let mut ports_without_sea = Vec::new();
+        let mut stranded_cities = Vec::new();
         let mut stub_junctions = Vec::new();
         let mut dead_junctions = Vec::new();
         for n in &map.nodes {
@@ -222,12 +231,19 @@ mod tests {
                 if !land_at(n.pos, &bg, bg_w, bg_h, &bg_px) {
                     water_cities.push(n.name.as_str());
                 }
+                if n.port && sea_degree.get(&n.id).copied().unwrap_or(0) == 0 {
+                    ports_without_sea.push(n.name.as_str());
+                }
+                if total_degree.get(&n.id).copied().unwrap_or(0) == 0 {
+                    stranded_cities.push(n.name.as_str());
+                }
             } else if n.kind == "junction" {
                 let rd = road_degree.get(&n.id).copied().unwrap_or(0);
-                if rd <= 1 {
+                let sd = sea_degree.get(&n.id).copied().unwrap_or(0);
+                if rd <= 1 && sd == 0 {
                     stub_junctions.push(n.id);
                 }
-                if rd == 0 {
+                if total_degree.get(&n.id).copied().unwrap_or(0) == 0 {
                     dead_junctions.push(n.id);
                 }
                 assert!(
@@ -238,7 +254,19 @@ mod tests {
             }
         }
 
+        assert_eq!(
+            sea_edges, 468,
+            "sea edge count changed from the pre-prune ORBIS lane set"
+        );
         assert!(water_cities.is_empty(), "cities on water: {water_cities:?}");
+        assert!(
+            ports_without_sea.is_empty(),
+            "port cities without sea edges: {ports_without_sea:?}"
+        );
+        assert!(
+            stranded_cities.is_empty(),
+            "cities with neither road nor sea connectivity: {stranded_cities:?}"
+        );
         assert!(
             stub_junctions.is_empty(),
             "road stub junctions: {stub_junctions:?}"

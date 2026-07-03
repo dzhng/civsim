@@ -220,7 +220,9 @@ export class Input {
 
     // Continuous pan: held keys + screen edges, applied by the main loop.
     const panTimer = setInterval(() => {
-      const speed = 600 / camera.zoom;
+      // The zoomed-out overview surveys the whole field, so it pans 3× faster
+      // than the close vista (zoomT 0 = top-down overview, 1 = vista).
+      const speed = (600 / camera.zoom) * (3 - 2 * camera.zoomT);
       let px =
         (held.has("d") || held.has("arrowright") ? speed : 0) -
         (held.has("a") || held.has("arrowleft") ? speed : 0);

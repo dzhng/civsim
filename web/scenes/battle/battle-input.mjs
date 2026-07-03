@@ -132,6 +132,53 @@ export async function run(ctx) {
       }),
     );
 
+    // Keyboard pan is screen-relative: at the north-up view (yaw −π/2, the
+    // Backspace/Home reset) D must drive the view east (+X) and W north (+Y).
+    // Pins the screen→world axis convention across the whole key/edge pan path
+    // (real keydown → held set → pan timer → panWorld).
+    await page.mouse.move(400, 300); // clear of the edge-scroll band
+    const panProbe = async (key) => {
+      const before = await page.evaluate(() => {
+        const cam = window.__cam;
+        cam.yaw = -Math.PI / 2;
+        cam.zoom = 24; // past the rig max → full vista: clampView pans freely
+        const b = cam.bounds;
+        if (b) cam.setViewCenter((b[0] + b[2]) / 2, (b[1] + b[3]) / 2);
+        return cam.viewCenter();
+      });
+      // Hold the key until the main loop has demonstrably applied the pan —
+      // software-GPU frames can take hundreds of ms, so a wall-clock hold races.
+      await page.keyboard.down(key);
+      const moved = await page
+        .waitForFunction(
+          (b) => {
+            const c = window.__cam.viewCenter();
+            return Math.hypot(c[0] - b[0], c[1] - b[1]) > 0.5;
+          },
+          before,
+          { timeout: 10000, polling: 100 },
+        )
+        .then(
+          () => true,
+          () => false,
+        );
+      await page.keyboard.up(key);
+      const after = await page.evaluate(() => window.__cam.viewCenter());
+      return { moved, dx: after[0] - before[0], dy: after[1] - before[1] };
+    };
+    const d = await panProbe("d");
+    ctx.check(
+      `dpr${dpr}: D key pans the view east at the north-up yaw`,
+      d.moved && d.dx > 0 && Math.abs(d.dy) < d.dx * 0.05,
+      JSON.stringify(d),
+    );
+    const w = await panProbe("w");
+    ctx.check(
+      `dpr${dpr}: W key pans the view north at the north-up yaw`,
+      w.moved && w.dy > 0 && Math.abs(w.dx) < w.dy * 0.05,
+      JSON.stringify(w),
+    );
+
     if (dpr === 1) {
       // Bronze tooltips (Radix) on the icon-only controls: appear on hover AND
       // keyboard focus, carry the command copy, and replace the native title bubble.

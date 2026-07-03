@@ -30,7 +30,13 @@ export class Camera {
   private zoomRange: CameraRigRange = { min: 0.4, max: 8 };
   private rigBounds = { width: 1, height: 1 };
 
-  constructor(private canvas: HTMLCanvasElement) {}
+  // Explicit field (not a constructor parameter property) so node's strip-only
+  // TS loader can run this file in unit tests.
+  private canvas: HTMLCanvasElement;
+
+  constructor(canvas: HTMLCanvasElement) {
+    this.canvas = canvas;
+  }
 
   /** Feed the zoom→framing curve its range + field bounds (from scene setup). */
   setRig(zoomRange: CameraRigRange, bounds: { width: number; height: number }) {
@@ -56,11 +62,13 @@ export class Camera {
     return Math.max(MIN_PITCH, Math.min(MAX_PITCH, rig.pitch - this.pitchBias));
   }
 
-  /** Rotate a screen-axes vector (right, up) into world (east, north) by yaw. */
-  private rotate(right: number, up: number): [number, number] {
+  /** Rotate a yaw-0 world-frame vector into world axes by yaw. Note camera3d's
+   *  yaw-0 view direction is −X (screen-right = +Y), so this is NOT a
+   *  screen→world mapping — panWorld converts screen axes first. */
+  private rotate(x: number, y: number): [number, number] {
     const c = Math.cos(this.yaw);
     const s = Math.sin(this.yaw);
-    return [right * c - up * s, right * s + up * c];
+    return [x * c - y * s, x * s + y * c];
   }
 
   /** The world-space parameters of the real perspective camera this frame. The
@@ -108,7 +116,12 @@ export class Camera {
   private visibleHalfExtent(): [number, number] {
     const W = this.canvas.width;
     const H = this.canvas.height;
-    const corners = [this.groundAt(0, 0), this.groundAt(W, 0), this.groundAt(0, H), this.groundAt(W, H)];
+    const corners = [
+      this.groundAt(0, 0),
+      this.groundAt(W, 0),
+      this.groundAt(0, H),
+      this.groundAt(W, H),
+    ];
     if (corners.some((c) => c === null)) return [0, 0];
     const xs = corners.map((c) => c![0]);
     const ys = corners.map((c) => c![1]);
@@ -171,7 +184,8 @@ export class Camera {
   /** Pan by a screen-axes world delta (right, up) — keyboard/edge scroll, kept
    *  view-relative so W always drives into the screen whatever the yaw. */
   panWorld(right: number, up: number) {
-    const [wx, wy] = this.rotate(right, up);
+    // Screen axes in the yaw-0 world frame: right = +Y, up = −X (view direction).
+    const [wx, wy] = this.rotate(-up, right);
     this.x += wx;
     this.y += wy;
     this.clampView();

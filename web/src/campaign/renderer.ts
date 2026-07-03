@@ -1255,6 +1255,9 @@ function campaignRoadCarts(
           const y = via[i - 1][1] + (via[i][1] - via[i - 1][1]) * t;
           if (opts.fogOfWar && !fogVisible(opts, x, y, 0.18)) break;
           const ang = Math.atan2(via[i][1] - via[i - 1][1], via[i][0] - via[i - 1][0]);
+          // Same land truth as the road ribbon: no cart crawls a ferry-strait
+          // water gap the road pass honestly leaves undrawn.
+          if (!field.renderLandAt(x, y)) break;
           carts.push({
             x,
             y,

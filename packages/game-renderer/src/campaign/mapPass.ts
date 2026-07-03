@@ -1414,6 +1414,9 @@ function pushRoadJunctionCaps(out: number[], data: CampaignMapInputData, roads: 
   return caps;
 }
 
+// TWIN: smooth_renderer_centerline in crates/mapgen/src/landroute.rs — the
+// bake pre-verifies road land-safety through this exact smoothing, so change
+// both together.
 export function smoothRoadCenterline(points: [number, number][]) {
   if (points.length <= 2) return points;
   const smoothed: [number, number][] = [points[0]];
@@ -1447,10 +1450,9 @@ function roadEdgeIsLandSafe(edge: CampaignMapEdgeData, at?: (x: number, y: numbe
     }
   }
   // Only a genuine sea crossing (a mostly-water polyline) drops whole; a road
-  // that merely hugs the coast stays and draws its land runs. This gate used
-  // to sample the coarse 8 km grid with a 16 km all-land margin, which failed
-  // wholesale on coastal approach edges — the B7b "road gaps" (Cosa,
-  // Tarracina) were connected edges silently culled here.
+  // that merely hugs the coast stays and draws its land runs. The sampler must
+  // be point truth (the full-res render mask) — an area-statistic sampler here
+  // culls whole coastal approach edges (bug B7b: roadless Cosa/Tarracina).
   return samples === 0 || landSamples / samples >= 0.5;
 }
 

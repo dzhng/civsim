@@ -406,11 +406,22 @@ fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: v
 @fragment
 fn fs(in: VsOut) -> @location(0) vec4f {
   let edge = vec3f(0.16, 0.12, 0.07);
+  let parchment = vec3f(0.97, 0.94, 0.86);
   if (in.markerKind < 0.5) {
     let a = max(abs(in.local.x), abs(in.local.y));
     if (a > 1.0) { discard; }
     let border = step(0.72, a);
-    let body = mix(in.faction, in.allegiance, 0.18);
+    // The faction fill can vanish into its own territory wash (the wash IS the
+    // faction color over land), leaving only the ink frame — a hollow chip. So
+    // the body carries tonal structure the map can't match: a top-lit grade
+    // plus a beveled rim (parchment-lit top-left, ink-shaded bottom-right).
+    let lift = clamp(in.local.y * 0.5 + 0.5, 0.0, 1.0);
+    let flat = mix(in.faction, in.allegiance, 0.18);
+    var body = mix(mix(flat, edge, 0.24), mix(flat, parchment, 0.26), lift);
+    let bevel = step(0.46, a) * (1.0 - border);
+    let lit = select(0.0, 1.0, in.local.y - in.local.x > 0.0);
+    let rim = mix(mix(flat, edge, 0.42), mix(flat, parchment, 0.58), lit);
+    body = mix(body, rim, bevel);
     return vec4f(mix(body, edge, border), 0.92);
   }
   let gold = vec3f(0.79, 0.64, 0.15);
@@ -427,10 +438,13 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let clothRect = select(0.0, 1.0, in.local.x > clothLeft && in.local.x < clothRight && in.local.y > clothTop && in.local.y < clothBottom);
   let notch = select(0.0, 1.0, in.local.y > notchTop && abs(in.local.x - clothMid) < (in.local.y - notchTop) * notchSlope);
   let cloth = clothRect * (1.0 - notch);
-  let sideTrim = cloth * select(0.0, 1.0, abs(in.local.x - clothLeft) < 0.035 || abs(in.local.x - clothRight) < 0.035);
-  let topTrim = cloth * select(0.0, 1.0, abs(in.local.y - clothTop) < 0.035);
-  let tailTrim = cloth * select(0.0, 1.0, in.local.y > clothBottom - 0.04 && abs(in.local.x - clothMid) > 0.18);
-  let notchTrim = select(0.0, 1.0, in.local.y > notchTop && in.local.y < clothBottom && abs(abs(in.local.x - clothMid) - (in.local.y - notchTop) * notchSlope) < 0.035);
+  // Trim width is sized so the gold edging survives the 9 px whole-map marker
+  // (0.035 quantized to sub-pixel there, erasing the cloth's contour).
+  let trimW = 0.06;
+  let sideTrim = cloth * select(0.0, 1.0, abs(in.local.x - clothLeft) < trimW || abs(in.local.x - clothRight) < trimW);
+  let topTrim = cloth * select(0.0, 1.0, abs(in.local.y - clothTop) < trimW);
+  let tailTrim = cloth * select(0.0, 1.0, in.local.y > clothBottom - 0.065 && abs(in.local.x - clothMid) > 0.18);
+  let notchTrim = select(0.0, 1.0, in.local.y > notchTop && in.local.y < clothBottom && abs(abs(in.local.x - clothMid) - (in.local.y - notchTop) * notchSlope) < trimW);
   let trim = max(max(sideTrim, topTrim), max(tailTrim, notchTrim));
   let emblem = select(0.0, 1.0, abs(in.local.x - clothMid) + abs(in.local.y + 0.12) < 0.14);
   let selectedEdge = vec3f(0.96, 0.93, 0.84);
@@ -448,7 +462,13 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   if (alpha <= 0.0) { discard; }
   let hardware = max(max(pole, finial), crossbar);
   let goldInk = max(max(trim, emblem), finial);
-  var fill = mix(edge, in.faction, cloth);
+  // The cloth is graded from an ink-deepened foot to a parchment-lit head so a
+  // livery that matches the land or its own territory wash (Arverni green over
+  // green Gaul) still reads as solid cloth, not a hollow outline. The livery
+  // hue stays the faction color — only luminance structure is added.
+  let clothLift = clamp((in.local.y - clothTop) / (clothBottom - clothTop), 0.0, 1.0);
+  let clothColor = mix(mix(in.faction, edge, 0.30), mix(in.faction, parchment, 0.26), clothLift);
+  var fill = mix(edge, clothColor, cloth);
   fill = mix(fill, edge, hardware * (1.0 - finial));
   fill = mix(fill, gold, goldInk);
   return vec4f(mix(fill, selectedEdge, outline * 0.75), alpha);

@@ -88,14 +88,15 @@ ran, and `class_specs` panicked the moment a real build loaded it.
 
 ## Taking a screenshot (ad-hoc, to look at something)
 
-Headless Chrome + hardware GPU is the blessed local capture mode for WebGPU
-visual baselines. Use `VERIFY_BROWSER_CHANNEL=chrome
-VERIFY_GPU_ADAPTER=hardware` with `VERIFY_GPU=1`, and do not set
-`VERIFY_HEADFUL=1` unless the user explicitly asks to watch a live browser or
-you are reproducing a headful-only bug. Bundled headless Chromium may fail to
-boot WebGPU scenes on this Mac, so use the installed Chrome channel for
-baseline work. The review surface is the saved PNG/GIF artifacts, not the live
-browser window.
+The harness default — bundled headless Chromium on the SwiftShader adapter —
+is the blessed capture mode for WebGPU visual baselines. Run with `VERIFY_GPU=1`
+and nothing else: no `VERIFY_GPU_ADAPTER`, no `VERIFY_BROWSER_CHANNEL`.
+Software rasterization is what keeps baselines machine-independent; a
+hardware/Metal capture renders subtly different pixels and poisons every
+baseline it blesses. `VERIFY_GPU_ADAPTER=hardware` exists for perf gates only.
+Do not set `VERIFY_HEADFUL=1` unless the user explicitly asks to watch a live
+browser or you are reproducing a headful-only bug. The review surface is the
+saved PNG/GIF artifacts, not the live browser window.
 
 Dev server first (5173 is usually taken by the old `/Users/david/dev/game`
 checkout — don't kill it):
@@ -243,12 +244,12 @@ skip the internal `page.screenshot()`.
 5. **Wait ~250 ms after moving the camera** so a frame actually renders; the
    `cam()` hook updates the projection synchronously but the canvas repaints
    on the next rAF.
-6. **Record adapter provenance.** WebGPU baselines in this repo are blessed on
-   this Mac with installed Chrome in headless mode using hardware/Metal:
-   `VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome`.
-   If another adapter, channel, or headful/headless mode is used, name it in the
-   handoff and prove determinism with a second run before treating the pixels as
-   canonical.
+6. **Adapter provenance is fixed: SwiftShader.** Baselines are blessed with
+   the harness defaults (`VERIFY_GPU=1`, bundled headless Chromium, SwiftShader)
+   — the software rasterizer is the correctness proxy and keeps pixels
+   machine-independent. Never bless with `VERIFY_GPU_ADAPTER=hardware` or a
+   browser channel override; a capture taken with anything but the defaults is
+   not canonical.
 
 ## When a snapshot fails
 
@@ -259,8 +260,8 @@ skip the internal `page.screenshot()`.
 3. Intentional visual change → re-bless and commit the new baselines:
 
 ```sh
-UPDATE_SHOTS=1 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome VERIFY_URL=http://localhost:5174 node scene.mjs campaign-lod
-UPDATE_SHOTS=1 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome VERIFY_URL=http://localhost:5174 node scene.mjs battle-renderer-default
+UPDATE_SHOTS=1 VERIFY_GPU=1 VERIFY_URL=http://localhost:5174 node scene.mjs campaign-lod
+UPDATE_SHOTS=1 VERIFY_GPU=1 VERIFY_URL=http://localhost:5174 node scene.mjs battle-renderer-default
 ```
 
 Vibe and model-sheet re-blesses clear their baseline folder first (and the vibe

@@ -12,7 +12,7 @@
 //   ?count=N      grow the army to N soldiers via the production spawn path
 //   ?run=1        keep the sim ticking each frame (default paused after boot)
 //   ?t=S          fixed clock seconds (byte-deterministic frames)
-//   ?select=1     select the first player unit (gold ground-cue rings)
+//   ?select=1     select the first player unit (gold ring decals)
 //   ?debug=blocks debug unit blocks (mirrors the production toggle)
 //   ?pitch=R      camera pitch override in radians (sky/atmosphere QA — the
 //                 production rig never points this high)

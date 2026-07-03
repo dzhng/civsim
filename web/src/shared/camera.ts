@@ -73,11 +73,21 @@ export class Camera {
 
   /** Rotate a yaw-0 world-frame vector into world axes by yaw. Note camera3d's
    *  yaw-0 view direction is −X (screen-right = +Y), so this is NOT a
-   *  screen→world mapping — panWorld converts screen axes first. */
+   *  screen→world mapping — that's `groundAxes`. */
   private rotate(x: number, y: number): [number, number] {
     const c = Math.cos(this.yaw);
     const s = Math.sin(this.yaw);
     return [x * c - y * s, x * s + y * c];
+  }
+
+  /** The screen frame on the ground, world coords: `right` is screen-right,
+   *  `up` is into-the-screen (the ground-projected view direction). The ONE
+   *  owner of the screen↔ground axis convention — keyboard pan and every DOM
+   *  anchor that reasons in screen terms derive their axes here. */
+  groundAxes(): { right: [number, number]; up: [number, number] } {
+    const c = Math.cos(this.yaw);
+    const s = Math.sin(this.yaw);
+    return { right: [-s, c], up: [-c, -s] };
   }
 
   /** The world-space parameters of the real perspective camera this frame. The
@@ -194,10 +204,9 @@ export class Camera {
   /** Pan by a screen-axes world delta (right, up) — keyboard/edge scroll, kept
    *  view-relative so W always drives into the screen whatever the yaw. */
   panWorld(right: number, up: number) {
-    // Screen axes in the yaw-0 world frame: right = +Y, up = −X (view direction).
-    const [wx, wy] = this.rotate(-up, right);
-    this.x += wx;
-    this.y += wy;
+    const axes = this.groundAxes();
+    this.x += axes.right[0] * right + axes.up[0] * up;
+    this.y += axes.right[1] * right + axes.up[1] * up;
     this.clampView();
   }
 

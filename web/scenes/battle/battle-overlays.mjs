@@ -3,15 +3,16 @@
 // any rise (invisible order previews, no rings). The world is river-and-crags
 // (the steepest quick-battle map), one unit selected with a queued order, so
 // the frame proves: per-soldier campaign-style green rings seated on the
-// slope, the destination ghost + queue diamonds draped over the ground, and
-// the DOM banner planted on the block at its rendered height.
+// slope, the destination ring grid + path legs + queue diamond draped over
+// the ground, and the DOM banner planted on the block at its rendered height.
 export const meta = {
   name: "battle-overlays",
   kind: "visual",
   world: "battle-map-a-overlays",
   tier: "quick",
   snapshots: ["overlays/selection-orders", "overlays/rings-close"],
-  describe: "Selection rings, order ghost/queue cues, and the unit banner over elevated terrain.",
+  describe:
+    "Selection rings, order ring-grid/queue cues, and the unit banner over elevated terrain.",
 };
 
 export async function run(ctx) {
@@ -47,8 +48,9 @@ export async function run(ctx) {
   // happened to reach, a different world every run). Pose while frozen, then
   // advance a fixed delta so the frame is the same world state every run.
   await page.evaluate(() => window.__game.freezeAtTick(4000));
-  // Narrow unit 4 (ghost segments stay under the frozen-frame cue filter's
-  // length cap), select it, order a move plus one queued waypoint.
+  // Select unit 4 as a narrow column and give it short order hops — the
+  // frozen-frame cue filter drops line segments past its length cap, so the
+  // path legs must stay under it to connect in the shot.
   await page.evaluate(() => {
     const g = window.__game;
     const a = g.unitInfo(4);
@@ -57,8 +59,8 @@ export async function run(ctx) {
     g.setOrder(4, a[0] + 10, a[1] + 4);
     g.enqueue(4, 0, a[0] + 18, a[1] + 10, 0, 0);
   });
-  // Latch the order-path overlay on (the toolbar twin of holding Space) so the
-  // frozen frame carries the ghost, path, and queue diamonds.
+  // Latch the order-path overlay on (the toolbar twin of holding Space) so
+  // the frozen frame carries the destination grid, path legs, and diamond.
   await page.click('#toolbar button[data-cmd="paths"]');
   await page.evaluate(() => window.__game.freezeAtTick(4020));
   await page.evaluate(() => {
@@ -79,7 +81,7 @@ export async function run(ctx) {
     JSON.stringify(stats.renderStats.tacticalLines),
   );
   ctx.check(
-    "ground cues survived the frozen-frame filter (ghost + queue diamonds)",
+    "ground cues survived the frozen-frame filter (path legs + queue diamond)",
     stats.renderStats.tacticalLines.groundCues?.vertices > 0,
     JSON.stringify(stats.renderStats.tacticalLines),
   );

@@ -40,9 +40,11 @@ whole sheet is the regression target. Motion review lives in
 
 ## Adapter provenance
 
-The canonical local model-shot baseline device is installed Chrome in headless
-mode on hardware/Metal: `VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware
-VERIFY_BROWSER_CHANNEL=chrome`. Do not add `VERIFY_HEADFUL=1` for model sheets
+The canonical model-shot baseline device is the harness default: bundled
+headless Chromium on the SwiftShader adapter (`VERIFY_GPU=1`, no
+`VERIFY_GPU_ADAPTER`, no `VERIFY_BROWSER_CHANNEL`) — software rasterization
+keeps baselines machine-independent; hardware/Metal captures are for perf
+gates only. Do not add `VERIFY_HEADFUL=1` for model sheets
 unless the user explicitly asks to watch the browser or you are reproducing a
 headful-only bug. After a re-bless, immediately re-run the same gate without
 `UPDATE_SHOTS` on that adapter and require `0 px` diff before calling the

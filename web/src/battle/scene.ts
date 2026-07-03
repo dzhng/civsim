@@ -239,6 +239,7 @@ export class BattleScene implements Scene {
         // Full deployment: open behind your own line, framed to the map.
         camera.zoom = mapZoom;
       }
+      camera.yaw = -Math.PI / 2;
       applyBattleCameraRig();
       camera.setViewCenter(initialCenter[0], initialCenter[1]);
       camera.clampView();
@@ -646,6 +647,12 @@ export class BattleScene implements Scene {
         info[o] - Math.cos(info[o + 2]) * depth * 0.5,
         info[o + 1] - Math.sin(info[o + 2]) * depth * 0.5,
       ];
+    };
+
+    const soldierStartOf = (u: number, info = unitInfo()) => {
+      let start = 0;
+      for (let k = 0; k < u; k++) start += Math.max(0, Math.floor(info[k * STRIDE + 7]));
+      return start;
     };
 
     const myUnits = (units: number[]) => {
@@ -1069,10 +1076,25 @@ export class BattleScene implements Scene {
         }
       }
       // Selection rings.
-      for (const u of input.selected) {
-        const [cx, cy] = unitCenter(u);
-        pushRing(groundCues, cx, cy, 8.5, 18, 1.0, 0.78, 0.22);
-        pushRing(groundCues, cx, cy, 5.4, 14, 1.0, 0.92, 0.45);
+      if (input.selected.length > 0) {
+        const pos = positions();
+        const aliveSoldiers = new Uint8Array(
+          wasm.memory.buffer,
+          game.alive_ptr(),
+          game.soldier_count(),
+        );
+        for (const u of input.selected) {
+          const o = u * STRIDE;
+          if (info[o + 15] === 0) continue;
+          const start = soldierStartOf(u, info);
+          const count = Math.max(0, Math.floor(info[o + 7]));
+          const end = Math.min(start + count, aliveSoldiers.length);
+          for (let i = start; i < end; i++) {
+            if (aliveSoldiers[i] === 0) continue;
+            const p = i * 2;
+            pushRing(groundCues, pos[p], pos[p + 1], 0.45, 8, 0.31, 0.82, 0.39);
+          }
+        }
       }
       // Projectiles.
       const pCount = showTransient ? game.projectile_count() : 0;
@@ -1736,10 +1758,7 @@ export class BattleScene implements Scene {
       },
       unitInfo: (u: number) => Array.from(unitInfo().slice(u * STRIDE, u * STRIDE + STRIDE)),
       soldierStartOf: (u: number) => {
-        const info = unitInfo();
-        let start = 0;
-        for (let k = 0; k < u; k++) start += info[k * STRIDE + 7];
-        return start;
+        return soldierStartOf(u);
       },
       soldierPos: (i: number) => {
         const p = positions();

@@ -26,13 +26,25 @@ b1-tarraco/corinthus crops are the icon+label class, owned by 04's gate).
 bake invariant, srcPos prune stability, id-stable league colors — full ledger
 in slices/01-city-snap.md). 08 ✓ merged (marker cloth/chip grade fixes the
 wash-camouflage class; 63-livery sheet gate — ledger in slices/08-standard.md).
-**In flight (parallel lane worktrees, do not duplicate):** 02 (lane-roads,
-:5204), 03 (lane-sea-labels, :5203), 05 (lane-territory-coast, :5205), 06
-(lane-scenery, :5206), 07 (lane-cards, :5207). All branched from this branch
-post-01. **Next pickup after lanes merge:** 04 (needs 03's scorer), then 09
-(needs 04+07), then 10. Cross-lane note: any lane blessing whole-map/regional
-political snaps will conflict on merge — resolve by re-capturing on the merged
-tree (precedent: the 01+08 merge bless commit).
+03 ✓ merged (fitter fit the mirrored box + silently drew rejects — rewritten;
+all 8 sea names on water; shared `bestPlacement` scorer exported for 04).
+05 ✓ merged (territory clips to the DRAWN composite — bg+biome via terrainMix —
+paint-only seaward ring; inland control byte-identical). 06 ✓ merged (scenery
+gated per-instance footprint through renderLandAt; 0 on water). 07 ✓ merged
+(Ostia model was never missing — the ROMA card covered its anchor; landward
+card offsets; card gates in campaign-lod).
+**gpu/scenery/cards lane close-out oracle: GREEN** — all gate classes absent
+on the merged regional shot; report + evidence in
+assets/oracle/regional-closeout-05-06-07/ (also proved 05's before/after via a
+judge that accidentally audited origin/main's stale baseline — judge prompts
+must mandate the absolute shot path). Confirmed non-gate findings routed:
+Puteoli road-missing + Ferentinum dead-end stub → 02 (new named instances);
+Roma-cluster/Minturnae-Teanum card stacks → 09; island-fidelity pill (real
+island, coarse-raster lozenge) → David at 10.
+**In flight:** 02 (lane-roads, :5204), 04 (lane-city-labels, :5208 — runs the
+labels-lane whole-map oracle). **Next after those merge:** 09 (needs 04+07 ✓),
+then 10. Cross-lane note: lanes bless from their branch point — resolve merge
+conflicts by re-capturing on the merged tree (established precedent).
 **You are a fresh session implementing this spec** via
 [implement-spec](../../.agents/skills/implement-spec/SKILL.md). David's standing
 preference: delegate well-defined mechanical edits to Codex (`codex exec`,

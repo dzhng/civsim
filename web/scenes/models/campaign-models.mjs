@@ -13,6 +13,7 @@ export const meta = {
     "campaign/entities/hostile-depth-order",
     "campaign/entities/town",
     "campaign/entities/army",
+    "campaign/entities/standard-liveries",
     "campaign/terrain/road",
     "campaign/terrain/road-only",
     "campaign/entities/selected-city",
@@ -71,6 +72,12 @@ const gates = [
     label: "Army Marker",
     criteria:
       "Army flag is attached to the marker with representative figures, faction livery, label icon, shadow, and a ground selection footprint occluded by the formation.",
+  },
+  {
+    id: "standard-liveries",
+    label: "Standard Liveries",
+    criteria:
+      "Every faction livery's army standard reads as solid cloth over the map green: the marker cloth carries a top-lit grade and never matches the ground everywhere.",
   },
   {
     id: "road",
@@ -156,7 +163,7 @@ async function captureShot(ctx, gate) {
     throw new Error(`model shot ${gate.id} did not publish valid stats: ${JSON.stringify(stats)}`);
   }
   const shot = await page.locator("#renderer-canvas").screenshot();
-  const content = shotContentCheck(gate.id, shot);
+  const content = shotContentCheck(gate.id, shot, stats);
   const shotName = `campaign/${shotFolder(gate.id)}/${gate.id}`;
   await ctx.snap(page, shotName, { shot });
   await page.close();
@@ -175,8 +182,10 @@ async function captureShot(ctx, gate) {
   };
 }
 
-function shotContentCheck(gateId, shot) {
-  const metrics = contentMetrics(PNG.sync.read(shot));
+function shotContentCheck(gateId, shot, stats) {
+  const png = PNG.sync.read(shot);
+  if (gateId === "standard-liveries") return standardLiveryContentCheck(png, stats);
+  const metrics = contentMetrics(png);
   const required = CONTENT_REQUIREMENTS[gateId];
   if (!required) return { ok: true, metrics };
   const ok = Object.entries(required).every(([key, min]) => (metrics[key] ?? 0) >= min);
@@ -194,6 +203,7 @@ function shotFolder(gateId) {
       "garrison-city",
       "garrison-hidden",
       "hostile-depth-order",
+      "standard-liveries",
     ].includes(gateId)
   ) {
     return "entities";
@@ -202,6 +212,142 @@ function shotFolder(gateId) {
     return "labels";
   }
   return "terrain";
+}
+
+function standardLiveryContentCheck(png, stats) {
+  const cells = Array.isArray(stats?.samples?.liveryCells) ? stats.samples.liveryCells : [];
+  const failures = [];
+  const checked = [];
+  for (const cell of cells) {
+    // Whole pixels: fractional anchors make every 1-px row rect straddle two
+    // rows (floor/ceil), smearing the head/foot bands across neighbours.
+    const px = Math.round(Number(cell?.markerPx?.[0]));
+    const py = Math.round(Number(cell?.markerPx?.[1]));
+    if (!Number.isFinite(px) || !Number.isFinite(py)) {
+      failures.push({
+        name: cell?.name ?? `faction ${cell?.faction ?? "?"}`,
+        reason: "missing markerPx",
+      });
+      continue;
+    }
+    // The marker is screen-space geometry (radius 9 px), so with a rounded
+    // anchor the cloth interior sits at fixed offsets: cloth ~[py-16, py-5)
+    // between the swallowtail notch (top ~4 px) and the gold pole hardware
+    // (row py-5 and below). Medians keep the gold trim/emblem pixels inside a
+    // band from dragging its statistic toward gold-ink luminance.
+    const cloth = sampleRect(png, px - 3, py - 16, px + 3, py - 5);
+    const ground = sampleRect(png, px - 20, py - 8, px - 12, py);
+    if (cloth.count === 0 || ground.count === 0) {
+      failures.push({ name: cell.name, reason: "sample outside screenshot" });
+      continue;
+    }
+    // Head rows are parchment-lit, foot rows ink-deepened; the top-lit grade
+    // is the guarantee that no flat wash can match the whole cloth.
+    const head = sampleRect(png, px - 3, py - 13, px + 3, py - 10);
+    const foot = sampleRect(png, px - 3, py - 8, px + 3, py - 5);
+    const grade = head.medianLuma - foot.medianLuma;
+    const separation = maxChannelSeparation(png, cloth, ground.mean);
+    const missed = [];
+    if (grade < 10) missed.push("grade");
+    if (separation < 25) missed.push("ground-separation");
+    if (missed.length > 0) {
+      failures.push({
+        name: cell.name,
+        reason: missed.join("+"),
+        grade: Number(grade.toFixed(1)),
+        separation: Number(separation.toFixed(1)),
+      });
+    }
+    checked.push({
+      name: cell.name,
+      grade: Number(grade.toFixed(1)),
+      separation: Number(separation.toFixed(1)),
+    });
+  }
+  const expected = Number(stats?.factions ?? 0);
+  if (expected !== cells.length) {
+    failures.push({
+      name: "faction table",
+      reason: `expected ${expected}, sampled ${cells.length}`,
+    });
+  }
+  return {
+    ok: cells.length > 0 && failures.length === 0,
+    metrics: {
+      factions: expected,
+      checked: cells.length,
+      failingFactions: failures.map((failure) => failure.name),
+      failures,
+      minGrade: minMetric(checked, "grade"),
+      minSeparation: minMetric(checked, "separation"),
+    },
+  };
+}
+
+function sampleRect(png, x0, y0, x1, y1) {
+  const ix0 = clamp(Math.floor(x0), 0, png.width);
+  const iy0 = clamp(Math.floor(y0), 0, png.height);
+  const ix1 = clamp(Math.ceil(x1), 0, png.width);
+  const iy1 = clamp(Math.ceil(y1), 0, png.height);
+  let count = 0;
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  const lumas = [];
+  for (let y = iy0; y < iy1; y++) {
+    for (let x = ix0; x < ix1; x++) {
+      const i = (y * png.width + x) * 4;
+      const pr = png.data[i];
+      const pg = png.data[i + 1];
+      const pb = png.data[i + 2];
+      r += pr;
+      g += pg;
+      b += pb;
+      lumas.push(luminance(pr, pg, pb));
+      count++;
+    }
+  }
+  lumas.sort((a, b2) => a - b2);
+  return {
+    x0: ix0,
+    y0: iy0,
+    x1: ix1,
+    y1: iy1,
+    count,
+    mean: count > 0 ? [r / count, g / count, b / count] : [0, 0, 0],
+    // Median is the band statistic for cloth grading: the gold trim/emblem
+    // pixels inside a band would drag a mean toward gold-ink luminance.
+    medianLuma: count > 0 ? lumas[count >> 1] : 0,
+  };
+}
+
+function maxChannelSeparation(png, rect, mean) {
+  let max = 0;
+  for (let y = rect.y0; y < rect.y1; y++) {
+    for (let x = rect.x0; x < rect.x1; x++) {
+      const i = (y * png.width + x) * 4;
+      max = Math.max(
+        max,
+        Math.abs(png.data[i] - mean[0]),
+        Math.abs(png.data[i + 1] - mean[1]),
+        Math.abs(png.data[i + 2] - mean[2]),
+      );
+    }
+  }
+  return max;
+}
+
+function luminance(r, g, b) {
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function minMetric(rows, key) {
+  if (rows.length === 0) return 0;
+  return Math.min(...rows.map((row) => row[key]));
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
 }
 
 function contentMetrics(png) {

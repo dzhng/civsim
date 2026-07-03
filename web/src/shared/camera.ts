@@ -53,6 +53,15 @@ export class Camera {
     return this.rig().zoomT;
   }
 
+  /** Keyboard/edge pan speed, world m/s. Faster the further out the view is,
+   *  but capped at the ~75%-out sweet spot — the full overview raced. */
+  panSpeed() {
+    const { min, max } = this.zoomRange;
+    const z = Math.max(this.zoom, min + 0.25 * (max - min));
+    const t = Math.max(0, Math.min(1, (z - min) / Math.max(1e-6, max - min)));
+    return (600 / z) * (12 - 11.5 * t);
+  }
+
   /** The camera3d pitch actually used this frame (auto curve + user bias, clamped). */
   get pitch() {
     return this.effectivePitch(this.rig());

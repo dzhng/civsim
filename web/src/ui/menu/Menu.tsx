@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import type { BattleKind } from "../../battle/scene";
+import { useEffect, useState } from "react";
 import type { GpuSupportState } from "../../../../packages/game-renderer/src/appShell";
 import type { QuickBattleClassSpec, QuickBattleConfig } from "../../battle/quickBattleCatalog";
 import { ArmyBuilder } from "./ArmyBuilder";
@@ -10,16 +9,11 @@ import { ArmyBuilder } from "./ArmyBuilder";
  * never per frame). */
 export interface MenuProps {
   gpuStatus: GpuSupportState;
-  classNames: readonly string[];
-  /** Index of the unit class the duel pre-selects for side B (a lively foe). */
-  duelDefaultB: number;
   hasSave: boolean;
-  onQuickBattle: (kind: BattleKind) => void;
   /** Class rows for the custom-battle army builder (now React). */
   classes: QuickBattleClassSpec[];
   /** Launch a configured custom battle. */
   onCustomBattle: (cfg: QuickBattleConfig) => void;
-  onDuel: (a: number, b: number, ai: boolean) => void;
   onNewCampaign: () => void;
   onLoadCampaign: () => void;
   /** Toggles the vanilla #manual overlay (owned outside React). */
@@ -28,34 +22,21 @@ export interface MenuProps {
   onHideManual: () => void;
 }
 
-/** Boot menu, ported 1:1 from the old #menu-ui markup so the bronze styling in
- * index.html still applies and the screenshot baselines stay pixel-identical.
- * The custom-battle army builder stays vanilla (S2); this only renders its
- * trigger. pointer-events:auto re-enables clicks inside the click-through
+/** Boot menu using the legacy #menu-ui structure so the bronze styling in
+ * index.html still applies. Custom Battle is the one player-facing battle
+ * entry; pointer-events:auto re-enables clicks inside the click-through
  * #ui-root overlay. */
 export function Menu(props: MenuProps) {
-  const { gpuStatus, classNames, hasSave } = props;
+  const { gpuStatus, hasSave } = props;
   const ok = gpuStatus.ok;
   const msg = gpuStatus.message;
 
-  const [duelOpen, setDuelOpen] = useState(false);
   const [qbOpen, setQbOpen] = useState(false);
-  const [duelA, setDuelA] = useState(0);
-  const [duelB, setDuelB] = useState(props.duelDefaultB);
-  const [duelAi, setDuelAi] = useState(false);
-  const duelARef = useRef<HTMLSelectElement>(null);
 
-  // Match the old scene: opening the duel focuses side A (so the snapshot keeps
-  // its focus ring, and keyboard users land on the picker).
-  useEffect(() => {
-    if (duelOpen) duelARef.current?.focus();
-  }, [duelOpen]);
-
-  // Escape closes the duel modal and the field manual, matching the old scene.
+  // Escape closes the custom battle modal and the field manual.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      setDuelOpen(false);
       setQbOpen(false);
       props.onHideManual();
     };
@@ -64,11 +45,6 @@ export function Menu(props: MenuProps) {
   }, [props]);
 
   const disabledTitle = ok ? "" : msg;
-  const options = classNames.map((name, i) => (
-    <option key={i} value={String(i)}>
-      {name}
-    </option>
-  ));
 
   return (
     <>
@@ -105,22 +81,6 @@ export function Menu(props: MenuProps) {
         <div className="menu-section">
           <h2>Quick Battle</h2>
           <button
-            id="menu-1v1"
-            disabled={!ok}
-            title={disabledTitle}
-            onClick={() => ok && setDuelOpen(true)}
-          >
-            1v1 Duel <small>you pick the matchup</small>
-          </button>
-          <button
-            data-battle="5v5"
-            disabled={!ok}
-            title={disabledTitle}
-            onClick={() => props.onQuickBattle("5v5")}
-          >
-            Clash of Arms <small>full roster, open field</small>
-          </button>
-          <button
             id="menu-quick-battle"
             disabled={!ok}
             title={disabledTitle}
@@ -134,57 +94,6 @@ export function Menu(props: MenuProps) {
           <button id="menu-manual" onClick={props.onToggleManual}>
             Field Manual
           </button>
-        </div>
-
-        <div
-          id="duel-modal"
-          style={{ display: duelOpen ? "flex" : "none" }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setDuelOpen(false);
-          }}
-        >
-          <div className="panel">
-            <h2>1v1 DUEL</h2>
-            <div className="duel-row">
-              <select
-                id="duel-a"
-                ref={duelARef}
-                value={String(duelA)}
-                onChange={(e) => setDuelA(Number(e.target.value))}
-              >
-                {options}
-              </select>
-              <span className="duel-vs">vs</span>
-              <select
-                id="duel-b"
-                value={String(duelB)}
-                onChange={(e) => setDuelB(Number(e.target.value))}
-              >
-                {options}
-              </select>
-            </div>
-            <label className="duel-ai">
-              <input
-                type="checkbox"
-                id="duel-ai"
-                checked={duelAi}
-                onChange={(e) => setDuelAi(e.target.checked)}
-              />{" "}
-              enemy AI commander
-            </label>
-            <button
-              id="menu-duel"
-              onClick={() => {
-                setDuelOpen(false);
-                props.onDuel(duelA, duelB, duelAi);
-              }}
-            >
-              Fight
-            </button>
-            <button className="cancel" id="duel-cancel" onClick={() => setDuelOpen(false)}>
-              Cancel
-            </button>
-          </div>
         </div>
       </div>
 

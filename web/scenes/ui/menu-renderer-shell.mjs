@@ -33,14 +33,21 @@ export async function run(ctx) {
     stats: window.__appShellStats,
     menuDisplay: getComputedStyle(document.getElementById("menu-ui")).display,
     statusText: document.getElementById("menu-renderer-status")?.textContent ?? "",
+    battleButtons: Array.from(document.querySelectorAll("#menu-ui #menu-quick-battle")).map(
+      (button) => button.id,
+    ),
+    removedBattleButtons: document.querySelectorAll("#menu-ui button[data-battle], #menu-1v1")
+      .length,
     launchDisabled: Array.from(
-      document.querySelectorAll("#menu-ui button[data-battle], #menu-1v1, #menu-new-campaign"),
+      document.querySelectorAll("#menu-quick-battle, #menu-new-campaign"),
     ).some((button) => button.disabled),
   }));
   ctx.check(
-    "normal boot opens WebGPU-ready menu shell",
+    "normal boot opens WebGPU-ready menu shell with Custom Battle as the only battle entry",
     shell.stats?.gpu?.ok === true &&
       shell.menuDisplay === "flex" &&
+      shell.battleButtons.length === 1 &&
+      shell.removedBattleButtons === 0 &&
       !shell.launchDisabled &&
       shell.statusText.includes("WebGPU ready"),
     JSON.stringify(shell),
@@ -57,11 +64,17 @@ export async function run(ctx) {
       (e) => e.textContent,
     );
     const rows = document.querySelectorAll("#qb-army-0 .qb-row").length;
+    const factions = Array.from(
+      document.querySelectorAll("#qb-army-0 select, #qb-army-1 select"),
+    ).map((select) => ({
+      value: select.value,
+      options: Array.from(select.options).map((option) => option.value),
+    }));
     const defaultValid = document.getElementById("qb-launch")?.disabled === false;
     // Overfill side 0 past the slot cap by clicking the cheapest class's + many times.
     const plus = document.querySelector("#qb-army-0 .qb-row:last-child .qb-step:last-child");
     for (let i = 0; i < 30; i++) plus?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    return { open, maps, rows, defaultValid };
+    return { open, maps, rows, factions, defaultValid };
   });
   // The builder re-renders the over-budget state on its own clock (React batches
   // the dispatched clicks), so read the invalidation after it settles.
@@ -81,10 +94,36 @@ export async function run(ctx) {
   );
   ctx.check(
     "Custom Battle setup is catalog-driven with live army validation",
-    qb.open === true && qb.maps.length === 3 && qb.rows >= 15 && qb.defaultValid && overInvalid,
+    qb.open === true &&
+      qb.maps.length === 3 &&
+      qb.rows >= 15 &&
+      qb.factions.length === 2 &&
+      qb.factions[0]?.value === "azure" &&
+      qb.factions[1]?.value === "crimson" &&
+      qb.factions.every(
+        (faction) =>
+          faction.options.includes("azure") &&
+          faction.options.includes("crimson") &&
+          !faction.options.includes("neutral"),
+      ) &&
+      qb.defaultValid &&
+      overInvalid,
     JSON.stringify({ ...qb, overInvalid }),
   );
-  await page.click("#qb-back");
+
+  await page.selectOption('#qb-army-0 select[aria-label="Your Army faction"]', "crimson");
+  await page.selectOption('#qb-army-1 select[aria-label="Enemy Army faction"]', "azure");
+  await page.click("#qb-army-0 .qb-template");
+  await page.waitForFunction(() => document.getElementById("qb-launch")?.disabled === false);
+  await page.click("#qb-launch");
+  await waitForRendererBattleUpload(page);
+  const customStats = await page.evaluate(() => window.__game.stats());
+  ctx.check(
+    "Custom Battle launches through the default WebGPU battle renderer",
+    battleStatsMatch(customStats) && customStats.units >= 10,
+    JSON.stringify(customStats),
+  );
+  await returnBattleToMenu(page);
 
   await page.click("#menu-manual");
   const manualOpen = await page.evaluate(() => ({
@@ -101,38 +140,6 @@ export async function run(ctx) {
     () => getComputedStyle(document.getElementById("manual")).display,
   );
   ctx.check("Escape closes menu manual", manualClosed === "none", manualClosed);
-
-  await page.click("#menu-1v1");
-  await page.waitForTimeout(80);
-  const duelModal = await page.evaluate(() => ({
-    display: getComputedStyle(document.getElementById("duel-modal")).display,
-    active: document.activeElement?.id ?? "",
-    options: document.getElementById("duel-a").options.length,
-  }));
-  ctx.check(
-    "duel picker opens with keyboard focus",
-    duelModal.display === "flex" && duelModal.active === "duel-a" && duelModal.options > 4,
-    JSON.stringify(duelModal),
-  );
-  await page.click("#menu-duel");
-  await waitForRendererBattleUpload(page);
-  const duelStats = await page.evaluate(() => window.__game.stats());
-  ctx.check(
-    "duel launches through the default WebGPU battle renderer",
-    battleStatsMatch(duelStats),
-    JSON.stringify(duelStats),
-  );
-  await returnBattleToMenu(page);
-
-  await page.click('button[data-battle="5v5"]');
-  await waitForRendererBattleUpload(page);
-  const quickStats = await page.evaluate(() => window.__game.stats());
-  ctx.check(
-    "quick battle launches through the default WebGPU battle renderer",
-    battleStatsMatch(quickStats) && quickStats.units >= 10,
-    JSON.stringify(quickStats),
-  );
-  await returnBattleToMenu(page);
 
   await page.click("#menu-new-campaign");
   await page.waitForFunction(
@@ -180,19 +187,20 @@ async function runUnsupportedFixture(ctx) {
     stats: window.__appShellStats,
     statusText: document.getElementById("menu-renderer-status")?.textContent ?? "",
     launchButtons: Array.from(
-      document.querySelectorAll(
-        "#menu-ui button[data-battle], #menu-1v1, #menu-new-campaign, #menu-load-save",
-      ),
+      document.querySelectorAll("#menu-quick-battle, #menu-new-campaign, #menu-load-save"),
     ).map((button) => ({
       id: button.id || button.dataset.battle,
       disabled: button.disabled,
       title: button.title,
     })),
+    removedBattleButtons: document.querySelectorAll("#menu-ui button[data-battle], #menu-1v1")
+      .length,
   }));
   ctx.check(
     "unsupported WebGPU fixture shows a blocking menu message",
     blocked.stats?.gpu?.ok === false &&
       blocked.statusText.includes("WebGPU unavailable") &&
+      blocked.removedBattleButtons === 0 &&
       blocked.launchButtons.every((button) => button.disabled === true && button.title.length > 0),
     JSON.stringify(blocked),
   );

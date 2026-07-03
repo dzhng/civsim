@@ -22,6 +22,9 @@ fn state_hash(sim: &Sim) -> u64 {
         fnv1a(&mut h, u.cohesion.to_bits());
         fnv1a(&mut h, u.stamina.to_bits());
     }
+    for &ttl in &sim.loosing_ttl {
+        fnv1a(&mut h, ttl.to_bits());
+    }
     h
 }
 
@@ -53,11 +56,14 @@ fn golden_state_hash_stable() {
         sim.tick();
     }
     let h = state_hash(&sim);
+    // Re-pinned for battle-identity slice 07: loosing_ttl is now hashed
+    // as per-soldier sim state for the archer shoot animation.
+    // Previous pin: 0x1dc6e35d979b486c.
     // Re-pinned for melee-blob slice 05: the pivot spring is projected
     // torque-free per unit, removing its internal solid-rotation mode.
     // (Prior re-pins: broad/deep contact re-dress; stamina cadence-coupling;
     // LightSpear reach 1.6→1.5; turn rate no longer throttled by cohesion.)
-    const EXPECTED: u64 = 0x1dc6e35d979b486c;
+    const EXPECTED: u64 = 0xa12f53b1d6420bac;
     assert_eq!(
         h, EXPECTED,
         "sim behavior changed: golden hash {h:#018x} != pinned {EXPECTED:#018x}. \

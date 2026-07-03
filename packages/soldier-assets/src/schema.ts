@@ -4,6 +4,7 @@ export type ClipId =
   | 'run'
   | 'attack_a'
   | 'hit_a'
+  | 'shoot'
   | 'death_a'
   | 'at_ease'
   | 'walk'
@@ -83,9 +84,9 @@ export const REQUIRED_HUMAN_CLIPS: ClipId[] = [
   'run',
   'attack_a',
   'hit_a',
+  'shoot',
   'death_a',
   'at_ease',
 ];
 
 export const REQUIRED_HORSE_CLIPS: ClipId[] = ['idle', 'walk', 'canter'];
-

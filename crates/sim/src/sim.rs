@@ -128,6 +128,8 @@ pub struct Sim {
     /// neighbours treat him as a gap — the charge punches a hole that heals once
     /// it bogs. Distinct from stun (no felling/lethality coupling).
     pub(crate) trampled: Vec<f32>,
+    /// Seconds left in the visible missile loosing beat.
+    pub loosing_ttl: Vec<f32>,
     /// Current melee engagement (enemy soldier index, -1 = none).
     /// Set at awareness range (~6m): drives approach facing.
     pub target: Vec<i32>,
@@ -265,6 +267,7 @@ impl Sim {
             switch_cd: Vec::new(),
             stun: Vec::new(),
             trampled: Vec::new(),
+            loosing_ttl: Vec::new(),
             target: Vec::new(),
             attacked_by: Vec::new(),
             dmg_acc: Vec::new(),
@@ -478,6 +481,7 @@ impl Sim {
             self.switch_cd.push(0.0);
             self.stun.push(0.0);
             self.trampled.push(0.0);
+            self.loosing_ttl.push(0.0);
             self.target.push(-1);
             self.attacked_by.push(0);
             self.fighting.push(0);
@@ -1059,6 +1063,11 @@ impl Sim {
         self.apply_separation();
         self.run_combat();
         self.run_missiles();
+        for ttl in &mut self.loosing_ttl {
+            if *ttl > 0.0 {
+                *ttl = (*ttl - dt).max(0.0);
+            }
+        }
         self.contact_facing(&measures, dt);
         self.integrate_units(&measures, dt);
         self.mark_at_ease(); // fresh centroids; before morale reads it

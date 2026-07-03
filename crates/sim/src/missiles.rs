@@ -13,6 +13,7 @@ use crate::tunables::DT;
 use crate::unit::OrderMode;
 
 const GRAVITY: f32 = 9.81;
+const LOOSING_TTL: f32 = 0.75;
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum MissileKind {
@@ -281,6 +282,7 @@ impl Sim {
                 let to = (aim - p) * (1.0 / dist.max(0.01));
                 self.projectiles
                     .push(p, to * horiz, vert, spec.kind, team, spec.damage);
+                self.loosing_ttl[i] = LOOSING_TTL;
                 self.attack_cd[i] = spec.interval * (0.8 + 0.4 * self.rng.unit_f32());
                 self.units[ui].ammo = self.units[ui].ammo.saturating_sub(1);
             }

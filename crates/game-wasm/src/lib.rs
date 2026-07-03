@@ -316,6 +316,11 @@ impl Game {
         self.battle.sim.fighting.as_ptr()
     }
 
+    /// Per-soldier missile loosing countdown (>0 = draw/loose pose).
+    pub fn loosing_ptr(&self) -> *const f32 {
+        self.battle.sim.loosing_ttl.as_ptr()
+    }
+
     pub fn projectile_count(&self) -> u32 {
         self.battle.sim.projectiles.len() as u32
     }
@@ -326,6 +331,22 @@ impl Game {
 
     pub fn projectile_y_ptr(&self) -> *const f32 {
         self.battle.sim.projectiles.y.as_ptr()
+    }
+
+    pub fn projectile_z_ptr(&self) -> *const f32 {
+        self.battle.sim.projectiles.z.as_ptr()
+    }
+
+    pub fn projectile_vx_ptr(&self) -> *const f32 {
+        self.battle.sim.projectiles.vx.as_ptr()
+    }
+
+    pub fn projectile_vy_ptr(&self) -> *const f32 {
+        self.battle.sim.projectiles.vy.as_ptr()
+    }
+
+    pub fn projectile_vz_ptr(&self) -> *const f32 {
+        self.battle.sim.projectiles.vz.as_ptr()
     }
 
     pub fn projectile_kind_ptr(&self) -> *const u8 {

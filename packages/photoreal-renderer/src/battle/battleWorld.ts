@@ -184,6 +184,7 @@ export class PhotorealBattleWorld {
       alpha: 0.92,
       depthTest: false,
       renderOrder: RENDER_ORDER.effectLines,
+      perVertexZ: true,
     });
     this.debugBlocks = new PhotorealTriangleLayer(scene, RENDER_ORDER.debugBlocks);
     this.debugTriangles = new PhotorealTriangleLayer(scene, RENDER_ORDER.debugTriangles);

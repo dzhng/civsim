@@ -7,7 +7,12 @@
 
 import assert from "node:assert/strict";
 import test from "node:test";
-import { armyBuilderReducer, armyConfig, pickArmy } from "./armyBuilderState.ts";
+import {
+  DEFAULT_BATTLE_FACTIONS,
+  armyBuilderReducer,
+  armyConfig,
+  pickArmy,
+} from "./armyBuilderState.ts";
 
 // Arbitrary class ids in a non-ascending order, to prove insertion order is kept
 // (an object-keyed-by-int would resort these to 1,2,7).
@@ -22,7 +27,11 @@ const TMPL_B = [
 ];
 
 const armyOf = (units) => new Map(units.map((u) => [u.classId, u.count]));
-const stateOf = () => ({ mapId: 0, armies: [armyOf(TMPL_A), armyOf(TMPL_B)] });
+const stateOf = () => ({
+  mapId: 0,
+  armies: [armyOf(TMPL_A), armyOf(TMPL_B)],
+  factions: [...DEFAULT_BATTLE_FACTIONS],
+});
 const picksOf = (units) => units.map((u) => ({ classId: u.classId, count: u.count }));
 
 test("armyConfig reflects insertion order, not numeric class id", () => {
@@ -30,6 +39,7 @@ test("armyConfig reflects insertion order, not numeric class id", () => {
   assert.equal(cfg.mapId, 0);
   assert.deepEqual(cfg.teams[0], picksOf(TMPL_A)); // 7,2,1 — NOT 1,2,7
   assert.deepEqual(cfg.teams[1], picksOf(TMPL_B));
+  assert.deepEqual(cfg.factions, ["azure", "crimson"]);
 });
 
 test("map action sets mapId, leaves armies untouched (and is immutable)", () => {
@@ -46,6 +56,14 @@ test("template action replaces a side in template order, leaves the other side",
   assert.deepEqual(armyConfig(s1).teams[0], picksOf(TMPL_B));
   assert.deepEqual(armyConfig(s1).teams[1], picksOf(TMPL_B)); // side 1 already TMPL_B
   assert.deepEqual(armyConfig(s0).teams[0], picksOf(TMPL_A), "s0 not mutated");
+});
+
+test("faction action updates one side and leaves armies untouched", () => {
+  const s0 = stateOf();
+  const s1 = armyBuilderReducer(s0, { kind: "faction", team: 0, factionId: "crimson" });
+  assert.deepEqual(armyConfig(s1).factions, ["crimson", "crimson"]);
+  assert.deepEqual(armyConfig(s1).teams, armyConfig(s0).teams);
+  assert.deepEqual(armyConfig(s0).factions, ["azure", "crimson"], "s0 not mutated");
 });
 
 test("a class added after the template is appended LAST in pick order", () => {

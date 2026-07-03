@@ -1929,6 +1929,7 @@ async function routeCampaignMap(ctx: LabContext) {
       rgba: territoryData.rgba,
       rect: data.bgRect,
     },
+    map.drawnCoast,
     undefined,
     surface.mesh,
   );

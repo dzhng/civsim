@@ -559,7 +559,7 @@
         height: 18px;
         background: rgba(150, 114, 62, 0.55);
       }
-      /* Unit banner: one component = standard (SVG flag) + health/cohesion bars + status chips. */
+      /* Unit banner: one component = standard (SVG flag) + own-unit stat bars + status chips. */
       .ubanner {
         position: absolute;
         width: 56px;
@@ -575,30 +575,38 @@
       }
       .ubanner-flag {
         display: block;
-        width: 56px;
-        height: 24px;
+        width: 48px;
+        height: 76px;
         overflow: visible;
       }
       .ubanner.sel .ubanner-flag {
         transform: scale(1.12);
-        transform-origin: 28px 1px;
+        transform-origin: 24px 4px;
       }
       .ubanner-bars {
         width: 52px;
-        margin: 0 2px 1px;
+        margin: 0 2px 3px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
       }
       .ubar {
         height: 3px;
         background: rgba(10, 10, 12, 0.55);
         border-radius: 2px;
         overflow: hidden;
-        margin-bottom: 1px;
       }
       .ubar > div {
         height: 100%;
       }
       .ubar.coh > div {
         background: #d9c75a;
+      }
+      .ubar.morale > div {
+        background: #7fb069;
+      }
+      .ubar.stamina > div {
+        background: #5aa0d9;
       }
       .ubanner-fx {
         display: flex;

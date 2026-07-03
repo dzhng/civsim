@@ -384,15 +384,45 @@ fn fs(in: VsOut) -> @location(0) vec4f {
     let body = mix(in.faction, in.allegiance, 0.18);
     return vec4f(mix(body, edge, border), 0.92);
   }
-  let pole = select(0.0, 1.0, abs(in.local.x + 0.55) < 0.08 && in.local.y > -0.96 && in.local.y < 0.94);
-  let flagBand = select(0.0, 1.0, in.local.x > -0.55 && in.local.x < 0.82 && in.local.y > 0.05 && in.local.y < 0.92);
-  let pennant = flagBand * select(1.0, 0.0, in.local.x > 0.38 && abs(in.local.y - 0.48) < (in.local.x - 0.38) * 0.45);
-  let outline = select(0.0, 1.0, in.selected > 0.5 && in.local.x > -0.72 && in.local.x < 0.95 && in.local.y > -0.08 && in.local.y < 1.0);
-  let alpha = max(max(pole, pennant), outline * 0.85);
-  if (alpha <= 0.0) { discard; }
-  let fill = mix(edge, in.faction, pennant);
+  let gold = vec3f(0.79, 0.64, 0.15);
+  let pole = select(0.0, 1.0, abs(in.local.x + 0.55) < 0.045 && in.local.y > -0.96 && in.local.y < 0.94);
+  let finial = select(0.0, 1.0, length(in.local - vec2f(-0.55, -0.9)) < 0.105);
+  let crossbar = select(0.0, 1.0, in.local.x > -0.78 && in.local.x < 0.58 && abs(in.local.y + 0.58) < 0.035);
+  let clothLeft = -0.38;
+  let clothRight = 0.42;
+  let clothMid = 0.02;
+  let clothTop = -0.52;
+  let clothBottom = 0.82;
+  let notchTop = 0.58;
+  let notchSlope = 0.34 / (clothBottom - notchTop);
+  let clothRect = select(0.0, 1.0, in.local.x > clothLeft && in.local.x < clothRight && in.local.y > clothTop && in.local.y < clothBottom);
+  let notch = select(0.0, 1.0, in.local.y > notchTop && abs(in.local.x - clothMid) < (in.local.y - notchTop) * notchSlope);
+  let cloth = clothRect * (1.0 - notch);
+  let sideTrim = cloth * select(0.0, 1.0, abs(in.local.x - clothLeft) < 0.035 || abs(in.local.x - clothRight) < 0.035);
+  let topTrim = cloth * select(0.0, 1.0, abs(in.local.y - clothTop) < 0.035);
+  let tailTrim = cloth * select(0.0, 1.0, in.local.y > clothBottom - 0.04 && abs(in.local.x - clothMid) > 0.18);
+  let notchTrim = select(0.0, 1.0, in.local.y > notchTop && in.local.y < clothBottom && abs(abs(in.local.x - clothMid) - (in.local.y - notchTop) * notchSlope) < 0.035);
+  let trim = max(max(sideTrim, topTrim), max(tailTrim, notchTrim));
+  let emblem = select(0.0, 1.0, abs(in.local.x - clothMid) + abs(in.local.y + 0.12) < 0.14);
   let selectedEdge = vec3f(0.96, 0.93, 0.84);
-  return vec4f(mix(fill, selectedEdge, outline * (1.0 - pennant) * 0.75), alpha);
+  let outline = select(
+    0.0,
+    1.0,
+    in.selected > 0.5 &&
+      in.local.x > -0.84 &&
+      in.local.x < 0.64 &&
+      in.local.y > -0.98 &&
+      in.local.y < 0.96 &&
+      (abs(in.local.x + 0.84) < 0.04 || abs(in.local.x - 0.64) < 0.04 || abs(in.local.y + 0.98) < 0.04 || abs(in.local.y - 0.96) < 0.04)
+  );
+  let alpha = max(max(max(pole, finial), max(crossbar, cloth)), max(max(trim, emblem), outline * 0.85));
+  if (alpha <= 0.0) { discard; }
+  let hardware = max(max(pole, finial), crossbar);
+  let goldInk = max(max(trim, emblem), finial);
+  var fill = mix(edge, in.faction, cloth);
+  fill = mix(fill, edge, hardware * (1.0 - finial));
+  fill = mix(fill, gold, goldInk);
+  return vec4f(mix(fill, selectedEdge, outline * 0.75), alpha);
 }`;
 
 // The label anchor projection: the real camera3d projection (projectWorld →

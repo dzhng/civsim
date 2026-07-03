@@ -6,6 +6,7 @@ import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
 import {
   CLASS_DEPTH,
   CLASS_SPACING,
+  UNIT_INFO,
 } from "../../../packages/game-renderer/src/battle/unitInfoLayout";
 import {
   modelLookForClass,
@@ -45,10 +46,6 @@ import { groupMoveDests, UnitSnap } from "./orders";
 
 const TICK_DT = 1 / 30;
 const MAX_TICKS_PER_FRAME = 4;
-// Last field of the unit_info stride (see UNIT_INFO_STRIDE in game-wasm/lib.rs):
-// render_look sits at offset 32 in the 33-float layout.
-const UNIT_INFO_RENDER_LOOK = 32;
-
 const KITE_CLASS_IDS = [
   UNIT_CLASS_BY_KEY[UnitClass.Skirmishers],
   UNIT_CLASS_BY_KEY[UnitClass.HorseArchers],
@@ -477,12 +474,16 @@ export class BattleScene implements Scene {
           continue;
         }
         const selected = u === sel;
+        const mine = info[o + UNIT_INFO.team] === 0;
         b.setVisible(true);
         b.place(sx, sy, bannerScale(camera.zoom, selected));
         b.update({
-          team: info[o + 6] === 0 ? 0 : 1,
+          team: mine ? 0 : 1,
+          mine,
           hp: alive / info[o + 7],
-          cohesion: info[o + 4],
+          cohesion: info[o + UNIT_INFO.cohesion],
+          morale: info[o + UNIT_INFO.morale],
+          stamina: info[o + UNIT_INFO.stamina],
           chips: unitChips(info, o),
           selected,
         });
@@ -887,7 +888,7 @@ export class BattleScene implements Scene {
         inits.push({
           unit: u,
           cls: info[u * STRIDE + 13],
-          look: info[u * STRIDE + UNIT_INFO_RENDER_LOOK] ?? modelLookForUnit(info[u * STRIDE + 13]),
+          look: info[u * STRIDE + UNIT_INFO.renderLook] ?? modelLookForUnit(info[u * STRIDE + 13]),
           team: 0 as const,
           name: CLASS_NAMES[info[u * STRIDE + 13]] ?? "?",
         });

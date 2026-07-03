@@ -188,7 +188,7 @@ fn grade(c0: vec3f) -> vec3f {
 }
 
 fn naturalCampaignColor(b: vec4f, light: f32, world: vec2f, h: f32) -> vec3f {
-  let water = 1.0 - smoothstep(0.497, 0.503, b.a);
+  let water = drawnWaterAmount(b.a);
   let px = max(fwidth(world.x), fwidth(world.y));
   var col = vec3f(0.0);
   if (water < 0.999) {
@@ -530,24 +530,36 @@ export interface CampaignLabelDebugRect {
   corners: [number, number][];
 }
 
+/** The map pass's own drawn-coast contract: the campaign-bg raster (what the
+ * raster terrain layer paints), the biome texture (whose alpha contour is the
+ * canonical-terrain waterline), and the terrainMix this pass composites them
+ * with. territoryPass clips the faction wash through the SAME textures and mix
+ * (via the shared seaAmount / drawnWaterAmount classifiers), so the wash ends
+ * exactly where the visibly drawn sea begins. */
+export interface CampaignDrawnCoast {
+  bg: GPUTextureView;
+  biome: GPUTextureView;
+  terrainMix: number;
+}
+
 export class CampaignMapPass {
+  public readonly drawnCoast: CampaignDrawnCoast;
   private pipeline: GPURenderPipeline;
   private bindGroup: GPUBindGroup;
   private vertexBuffer: GPUBuffer;
   private indexBuffer: GPUBuffer;
   private indexCount: number;
-  private terrainMix: number;
   private terrainTextureSize: [number, number] | null;
 
   constructor(private shell: RawFrameShell, image: ImageBitmap, rect: { min: [number, number]; max: [number, number] }, style: CampaignMapStyle = {}, surface?: CampaignMapSurfaceMesh) {
     const device = shell.device;
-    this.terrainMix = style.terrainMix ?? (style.terrain ? 1 : 0);
+    const terrainMix = style.terrainMix ?? (style.terrain ? 1 : 0);
     this.terrainTextureSize = style.terrain ? [style.terrain.width, style.terrain.height] : null;
     const module = device.createShaderModule({
       label: 'campaign-map-wgsl',
       code: MAP_WGSL
         .replaceAll('__SEA_TINT_MIX__', (style.seaTintMix ?? 0).toFixed(3))
-        .replaceAll('__TERRAIN_MIX__', this.terrainMix.toFixed(3)),
+        .replaceAll('__TERRAIN_MIX__', terrainMix.toFixed(3)),
     });
     const texture = device.createTexture({
       label: 'campaign-map-texture',
@@ -559,6 +571,7 @@ export class CampaignMapPass {
     const biomeTexture = style.terrain
       ? createRgbaTexture(device, 'campaign-map-biome-texture', style.terrain.width, style.terrain.height, style.terrain.biome)
       : createRgbaTexture(device, 'campaign-map-biome-fallback', 1, 1, new Uint8Array([0, 0, 0, 128]));
+    this.drawnCoast = { bg: texture.createView(), biome: biomeTexture.createView(), terrainMix };
     const lightTexture = style.terrain
       ? createLightTexture(device, 'campaign-map-light-texture', style.terrain.width, style.terrain.height, style.terrain.light)
       : createRgbaTexture(device, 'campaign-map-light-fallback', 1, 1, new Uint8Array([128, 128, 128, 255]));
@@ -582,9 +595,9 @@ export class CampaignMapPass {
       label: 'campaign-map-texture-bg',
       layout: texLayout,
       entries: [
-        { binding: 0, resource: texture.createView() },
+        { binding: 0, resource: this.drawnCoast.bg },
         { binding: 1, resource: sampler },
-        { binding: 2, resource: biomeTexture.createView() },
+        { binding: 2, resource: this.drawnCoast.biome },
         { binding: 3, resource: lightTexture.createView() },
       ],
     });
@@ -634,9 +647,9 @@ export class CampaignMapPass {
   stats() {
     return {
       surfaceTriangles: Math.floor(this.indexCount / 3),
-      terrainMix: this.terrainMix,
+      terrainMix: this.drawnCoast.terrainMix,
       terrainTextureSize: this.terrainTextureSize,
-      layer: this.terrainMix > 0 ? 'canonical-biome-light-terrain' : 'background-raster-terrain',
+      layer: this.drawnCoast.terrainMix > 0 ? 'canonical-biome-light-terrain' : 'background-raster-terrain',
     };
   }
 }

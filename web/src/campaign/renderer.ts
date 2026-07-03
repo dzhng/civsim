@@ -660,6 +660,7 @@ export class CampaignRenderer {
         rgba: territory.rgba,
         rect: this.data.bgRect,
       },
+      this.map.drawnCoast,
       // EU4-political-strength wash (David, assets/faction-wash-target-eu4.png):
       // the faction color dominates while terrain relief still reads through.
       controlledStage ? undefined : { alpha: 0.62 },

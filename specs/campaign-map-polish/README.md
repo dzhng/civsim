@@ -13,11 +13,16 @@ the slice files.
 
 ## Next Agent Prompt
 
-**Status:** 2026-07-03. DONE & committed: 00–06, 11 (foundation look, camera,
-carts, road-cull relax, data diagnosis) + the 10→08 reslice. Foundation presented
-at its checkpoint; David away, proceeded on evidence (palette + 0.35 wash kept).
-Next is `07` mapgen re-bake (Rust build — a clean fresh-context boundary; the fix
-targets are recorded in the slice file).
+**Status:** 2026-07-03 (later). DONE & committed: 00–06, 11, 04b (faction wash
+raised to EU4 political strength per David: `assets/faction-wash-target-eu4.png`).
+**In flight — three parallel Codex lanes in worktrees** (integrate in this order,
+re-blessing baselines once per merge):
+1. `.claude/worktrees/cmp-mapgen` (branch cmp-mapgen) — slice 07 Rust fix + re-bake.
+2. `.claude/worktrees/cmp-labels` (branch cmp-labels) — slices 08+09+12.
+3. `.claude/worktrees/cmp-bronze` (branch cmp-bronze) — slices 13+14+15.
+Slice 16 contact sheet produced (`visualizations/city-card-variations.html`,
+published artifact) — David's pick pending; default on silence: C's structure
+(faction band + attached garrison footer), possibly with B's inset income well.
 **You are implementing this spec.** David's standing goal: work through the
 slices in order and **use `/codex` for implementation work wherever possible**
 (delegate the mechanical edits to Codex via `codex exec`; you drive verification,
@@ -108,7 +113,7 @@ palette. New scene: `campaign-frame` (asserts no off-map black at wide/tall aspe
 - [ ] `13-bronze-shell` — bronze tokens + shell + single-root convergence (proof-of-look checkpoint)
 - [ ] `14-bronze-topbar` — top bar → bronze wells, Phosphor icons, no emoji
 - [ ] `15-bronze-panels` — City/Army/Diplomacy/ClassBuilder/Sieges → bronze (sub-sliced)
-- [ ] `16-city-card-design` — HTML contact sheet, 2–3 variations (human checkpoint)
+- [x] `16-city-card-design` — sheet built + critiqued; DECIDED: variation B (plaque + wells), DOM-overlay seam; David can override
 - [ ] `17-city-card-impl` — own-city bronze card as DOM overlay (garrison strip below)
 - [ ] `18-allegiance-rechannel` — enemy red sword + icon→faction flip, atomic (no signal gap)
 - [ ] `19-aesthetics-doc` — palette target + rewritten two-color rule (lands after its code)

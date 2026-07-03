@@ -1,7 +1,7 @@
 import { Game, type InitOutput } from "../wasm/game_wasm.js";
 import type { Scene } from "../scene";
 import { Camera } from "../shared/camera";
-import { pushGhost, pushPie, pushRing } from "../shared/overlays";
+import { pushGhost, pushPie } from "../shared/overlays";
 import { projectPoint } from "../../../packages/renderer-core/src/camera3d";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
 import {
@@ -417,11 +417,15 @@ export class BattleScene implements Scene {
     const domBanners: UnitBanner[] = [];
     // Per-unit banner anchors are refreshed from the rendered soldiers each
     // frame. Unit-info center fields can lag during packed fights, so banners
-    // follow the visible block instead of collapsing to the map center.
-    let unitBannerX = new Float32Array(0);
-    let unitTopY = new Float32Array(0);
-    let unitMinX = new Float32Array(0);
-    let unitMaxX = new Float32Array(0);
+    // follow the visible block instead of collapsing to the map center. The
+    // block extremes are taken in the camera's ground-projected screen frame
+    // (right/up axes), not world axes — world extremes only mean "top of the
+    // block on screen" at the default north-up yaw, and drift under Q/E.
+    let unitAnchorX = new Float32Array(0);
+    let unitAnchorY = new Float32Array(0);
+    let unitMinR = new Float32Array(0);
+    let unitMaxR = new Float32Array(0);
+    let unitTopU = new Float32Array(0);
     const addDomBanner = () => {
       const b = new UnitBanner();
       b.setVisible(false);
@@ -478,9 +482,15 @@ export class BattleScene implements Scene {
           b.setVisible(false);
           continue;
         }
-        const anchorX = unitBannerX[u] > -Infinity ? unitBannerX[u] : info[o];
-        const anchorY = unitTopY[u] > -Infinity ? unitTopY[u] : info[o + 1];
-        const [sx, sy] = camera.worldToScreen(anchorX, anchorY);
+        const anchorX = unitAnchorX[u] > -Infinity ? unitAnchorX[u] : info[o];
+        const anchorY = unitAnchorY[u] > -Infinity ? unitAnchorY[u] : info[o + 1];
+        // Project at the rendered ground height — a z=0 anchor parallaxes away
+        // from the soldiers on elevated terrain as the camera moves.
+        const [sx, sy] = camera.worldToScreen(
+          anchorX,
+          anchorY,
+          renderer.heightAt(anchorX, anchorY),
+        );
         if (sx < -60 || sy < -40 || sx > window.innerWidth + 60 || sy > window.innerHeight + 40) {
           b.setVisible(false);
           continue;
@@ -956,6 +966,7 @@ export class BattleScene implements Scene {
       const info = unitInfo();
       const n = game.unit_count();
       const groundCues: number[] = [];
+      const rings: number[] = [];
       const effects: number[] = [];
       const showTransient = !frozen || withPaths || frozenEffects;
       for (let u = 0; u < n; u++) {
@@ -1022,8 +1033,11 @@ export class BattleScene implements Scene {
             b * 0.8 * k,
           );
         }
-        // Progress pie: WHITE = order transmitting down the line.
-        if (showTransient && info[o + 14] > 0) pushPie(effects, ax, ay, info[o + 14], 7, 1, 1, 1);
+        // Progress pie: WHITE = order transmitting down the line. A ground cue
+        // (5-stride, draped on terrain) — the effects buffer is 6-stride with
+        // per-vertex z, so pushing it there shears every later vertex.
+        if (showTransient && info[o + 14] > 0)
+          pushPie(groundCues, ax, ay, info[o + 14], 7, 1, 1, 1);
       }
       // Right-drag preview: where everyone will stand, facing the cursor.
       if (input.rightDrag) {
@@ -1103,7 +1117,8 @@ export class BattleScene implements Scene {
           for (let i = start; i < end; i++) {
             if (aliveSoldiers[i] === 0) continue;
             const p = i * 2;
-            pushRing(groundCues, pos[p], pos[p + 1], 0.45, 8, 0.31, 0.82, 0.39);
+            // Campaign-selection green (the status accent), as ring decals.
+            rings.push(pos[p], pos[p + 1], 0.45, 0.31, 0.82, 0.39);
           }
         }
       }
@@ -1199,7 +1214,11 @@ export class BattleScene implements Scene {
           );
         }
       }
-      return { groundCues: new Float32Array(groundCues), effects: new Float32Array(effects) };
+      return {
+        groundCues: new Float32Array(groundCues),
+        rings: new Float32Array(rings),
+        effects: new Float32Array(effects),
+      };
     }
 
     // --- The one Menu button: restart or exit --------------------------------------
@@ -1375,16 +1394,23 @@ export class BattleScene implements Scene {
           atEase[u] = info[o + 17] > 0.5 ? 1 : 0;
           running[u] = info[o + 9] > 0.5 ? 1 : 0;
         }
-        if (unitTopY.length < uc) {
-          unitBannerX = new Float32Array(uc);
-          unitTopY = new Float32Array(uc);
-          unitMinX = new Float32Array(uc);
-          unitMaxX = new Float32Array(uc);
+        if (unitTopU.length < uc) {
+          unitAnchorX = new Float32Array(uc);
+          unitAnchorY = new Float32Array(uc);
+          unitMinR = new Float32Array(uc);
+          unitMaxR = new Float32Array(uc);
+          unitTopU = new Float32Array(uc);
         }
-        unitBannerX.fill(-Infinity, 0, uc);
-        unitTopY.fill(-Infinity, 0, uc);
-        unitMinX.fill(Infinity, 0, uc);
-        unitMaxX.fill(-Infinity, 0, uc);
+        unitAnchorX.fill(-Infinity, 0, uc);
+        unitAnchorY.fill(-Infinity, 0, uc);
+        unitMinR.fill(Infinity, 0, uc);
+        unitMaxR.fill(-Infinity, 0, uc);
+        unitTopU.fill(-Infinity, 0, uc);
+        // Ground-projected screen axes (world frame): right R and up U.
+        const rAxisX = -Math.sin(camera.yaw);
+        const rAxisY = Math.cos(camera.yaw);
+        const uAxisX = -Math.cos(camera.yaw);
+        const uAxisY = -Math.sin(camera.yaw);
         const t = now / 1000;
         for (let i = 0; i < n; i++) {
           aliveF32[i] = a[i];
@@ -1417,10 +1443,12 @@ export class BattleScene implements Scene {
             const u = sUnit[i];
             if (u < uc) {
               const wx = renderPos[pi];
-              const wy = renderPos[pi + 1]; // top-on-screen is northmost (max world-y)
-              if (wy > unitTopY[u]) unitTopY[u] = wy;
-              if (wx < unitMinX[u]) unitMinX[u] = wx;
-              if (wx > unitMaxX[u]) unitMaxX[u] = wx;
+              const wy = renderPos[pi + 1];
+              const rP = wx * rAxisX + wy * rAxisY;
+              const uP = wx * uAxisX + wy * uAxisY;
+              if (uP > unitTopU[u]) unitTopU[u] = uP; // top of the block on screen
+              if (rP < unitMinR[u]) unitMinR[u] = rP;
+              if (rP > unitMaxR[u]) unitMaxR[u] = rP;
             }
           }
           if (!a[i]) {
@@ -1474,7 +1502,13 @@ export class BattleScene implements Scene {
           }
         }
         for (let u = 0; u < uc; u++) {
-          if (unitMinX[u] < Infinity) unitBannerX[u] = (unitMinX[u] + unitMaxX[u]) * 0.5;
+          // Anchor = screen-x midpoint of the block at its screen-top edge,
+          // mapped back to world through the orthonormal (R, U) basis.
+          if (unitMinR[u] < Infinity) {
+            const midR = (unitMinR[u] + unitMaxR[u]) * 0.5;
+            unitAnchorX[u] = rAxisX * midR + uAxisX * unitTopU[u];
+            unitAnchorY[u] = rAxisY * midR + uAxisY * unitTopU[u];
+          }
         }
         if (updateRenderPos) renderPosTick = simTick;
       }
@@ -1872,6 +1906,9 @@ export class BattleScene implements Scene {
         const a = new Uint8Array(wasm.memory.buffer, game.alive_ptr(), game.soldier_count());
         return a[i] ?? 0;
       },
+      // The renderer's canonical terrain surface — lets the harness project
+      // world anchors (banners, soldiers) at their true rendered height.
+      heightAt: (x: number, y: number) => renderer.heightAt(x, y),
     };
     window.__cam = camera;
     void renderer.ready

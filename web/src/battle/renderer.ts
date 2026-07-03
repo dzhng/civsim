@@ -196,6 +196,9 @@ export class BattleRenderer {
       {
         groundCues:
           this.fixedTime !== null ? frozenSelectionGroundCues(lines.groundCues) : lines.groundCues,
+        // Selection rings are unit-anchored and deterministic — frozen frames
+        // keep them, exactly like the short-segment selection cues.
+        rings: lines.rings,
         effects:
           this.fixedTime !== null && !this.preserveFrozenEffects
             ? new Float32Array()
@@ -241,7 +244,7 @@ export class BattleRenderer {
       camera: this.lastCamera,
       seating: ws?.seating ?? { checked: 0, matches: true, span: 0 },
       terrain: ws?.terrain ?? null,
-      tacticalLines: ws?.tacticalLines ?? { groundCues: null, effects: null },
+      tacticalLines: ws?.tacticalLines ?? { groundCues: null, rings: null, effects: null },
       markers: ws?.markers ?? null,
       performance: {
         buildMs: roundMs(this.framePerf.buildMs),
@@ -253,6 +256,12 @@ export class BattleRenderer {
         gpuTimeMs: ws?.performance.gpuTimeMs ?? null,
       },
     };
+  }
+
+  /** Terrain surface height at a world point — the world's canonical surface
+   *  contract, for DOM anchors that must sit where the rendered ground is. */
+  heightAt(x: number, y: number): number {
+    return this.world?.heightAt(x, y) ?? 0;
   }
 
   async settlePresentedFrame() {
@@ -292,6 +301,8 @@ export class BattleRenderer {
 
 export interface BattleTacticalLineFrame {
   groundCues: Float32Array;
+  /** Per-soldier selection rings, (x, y, radius, r, g, b) per instance. */
+  rings: Float32Array;
   effects: Float32Array;
 }
 

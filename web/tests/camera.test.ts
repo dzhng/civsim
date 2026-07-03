@@ -72,3 +72,24 @@ test("panWorld at the default north-up view maps to world east/north", () => {
     `up-pan must be +Y, got (${nx1 - nx0}, ${ny1 - ny0})`,
   );
 });
+
+test("panSpeed slows monotonically as you zoom in, and caps past ~75% out", () => {
+  const camera = makeCamera(0);
+  const range = { min: 0.4, max: 8 };
+  const speedAt = (zoom: number) => {
+    camera.zoom = zoom;
+    return camera.panSpeed();
+  };
+  const zoomAtT = (t: number) => range.min + t * (range.max - range.min);
+  // Cap: everything further out than the sweet spot pans at the same speed.
+  const sweetSpot = speedAt(zoomAtT(0.25));
+  assert.equal(speedAt(range.min), sweetSpot, "fully zoomed out must hit the cap");
+  assert.equal(speedAt(zoomAtT(0.1)), sweetSpot, "past the sweet spot must hit the cap");
+  // Inside the cap, speed strictly decreases toward the close vista.
+  let prev = sweetSpot;
+  for (const t of [0.4, 0.6, 0.8, 1.0]) {
+    const s = speedAt(zoomAtT(t));
+    assert.ok(s < prev, `speed must fall as zoom rises: t=${t} gave ${s} >= ${prev}`);
+    prev = s;
+  }
+});

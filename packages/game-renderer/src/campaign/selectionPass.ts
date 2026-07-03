@@ -39,23 +39,23 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let d = length(in.local);
   let strongArmy = in.kind > 0.5;
   let garrisonedArmy = in.kind > 1.5;
-  var innerCut = select(0.918, 0.872, strongArmy);
-  innerCut = select(innerCut, 0.904, garrisonedArmy);
-  var innerFade = select(0.936, 0.900, strongArmy);
-  innerFade = select(innerFade, 0.928, garrisonedArmy);
+  var innerCut = select(0.884, 0.836, strongArmy);
+  innerCut = select(innerCut, 0.856, garrisonedArmy);
+  var innerFade = select(0.912, 0.872, strongArmy);
+  innerFade = select(innerFade, 0.890, garrisonedArmy);
   if (d > 1.0 || d < innerCut) { discard; }
   let outer = smoothstep(1.0, 0.988, d);
   let inner = smoothstep(innerCut, innerFade, d);
   let ring = outer * inner;
-  let fill = smoothstep(0.990, 0.966, d) * smoothstep(innerCut - 0.012, innerCut + 0.008, d) * 0.024;
+  let fill = smoothstep(0.990, 0.948, d) * smoothstep(innerCut - 0.014, innerCut + 0.010, d) * 0.034;
   let armyMix = select(0.18, 0.0, strongArmy);
   // City ring (kind 0) read as a low-contrast grey over green turf (05a critique):
   // it washed the green status colour 40% toward parchment-gold at 0.68 alpha.
   // Keep the diegetic soft ring but let the green carry — a lighter parchment
   // wash and a firmer alpha, matching the army ring's legibility.
   let groundTint = mix(in.color, vec3f(0.74, 0.66, 0.36), select(0.20, armyMix, in.kind > 0.5));
-  let armyBoost = select(0.10, select(0.08, 0.20, strongArmy), in.kind > 0.5);
-  var ringAlpha = select(0.90, select(0.72, 0.94, strongArmy), in.kind > 0.5);
+  let armyBoost = select(0.13, select(0.10, 0.22, strongArmy), in.kind > 0.5);
+  var ringAlpha = select(0.98, select(0.86, 0.98, strongArmy), in.kind > 0.5);
   ringAlpha = select(ringAlpha, 0.98, garrisonedArmy);
   return vec4f(groundTint * (0.86 + armyBoost), max(ring * ringAlpha, fill));
 }`;
@@ -112,7 +112,7 @@ export class CampaignSelectionPass {
         targets: [gpuAlphaBlendColorTarget(this.shell.info.format)],
       },
       primitive: { topology: 'triangle-strip' },
-      depthStencil: gpuWorldDepthStencil('read'),
+      depthStencil: gpuWorldDepthStencil('read', 'always'),
     });
   }
 

@@ -670,7 +670,7 @@ export class CampaignRenderer {
     this.labels = new CampaignLabelPass(this.shell);
     const drawData = buildCampaignMapDrawData(this.data, {
       roadScale: 1.0,
-      roadSurfaceAt: (x, y) =>
+      surfaceAt: (x, y) =>
         this.field.landAt(x, y, controlledStage ? 2.5 : 16) ? "land" : "water",
       heightAt: (x, y) => this.field.heightAt(x, y),
     });
@@ -915,11 +915,9 @@ function campaignCityLabels(
   cam: CameraSnapshot,
 ): CampaignLabel[] {
   const edge = mapEdgeProjector(data);
-  const occupiedCities = occupiedCityLabels(data, opts);
   const labels: CampaignLabel[] = [];
   data.map.nodes.forEach((node, index) => {
     if (node.kind !== "city") return;
-    if (occupiedCities.has(index)) return;
     if (!fogVisible(opts, node.pos[0], node.pos[1], 0.18)) return;
     const city = opts.cities.get(index);
     const owner =
@@ -975,8 +973,8 @@ function campaignArmyLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
       ? garrisonDisplayAnchor(data.map.nodes[occupiedCity.index])
       : { x: army.x, y: army.y };
     const cityOverlap = occupiedCity !== null;
-    const selectedOffset = army.id === opts.selected && isControlledStage(data) ? 28 : 0;
-    const overlapClearance = cityOverlap ? (opts.cam.scale >= 3 ? 44 : 38) : 24;
+    const selectedOffset = !cityOverlap && army.id === opts.selected && isControlledStage(data) ? 28 : 0;
+    const overlapClearance = cityOverlap ? (opts.cam.scale >= 3 ? 14 : 10) : 24;
     return {
       text: `${ordinal(ordinalOf.get(army.id) ?? 1)} LEGION`,
       sideText: `${Math.round(army.soldiers / 100) / 10}k`,
@@ -994,15 +992,6 @@ function campaignArmyLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
   });
 }
 
-function occupiedCityLabels(data: CampaignData, opts: DrawOptions) {
-  const occupied = new Set<number>();
-  for (const army of visibleCampaignArmies(opts)) {
-    const match = occupiedCityForArmy(data, army);
-    if (match) occupied.add(match.index);
-  }
-  return occupied;
-}
-
 function cityModelRadius(tier: number) {
   return tier >= 3 ? 6.2 : 5.2;
 }
@@ -1013,10 +1002,11 @@ function citySelectionRadius(tier: number) {
 
 function garrisonDisplayAnchor(city: MapNode) {
   const cityRadius = cityModelRadius(city.tier);
-  // Keep the garrison inside the city footprint while exposing it at the front gate.
+  // Keep the garrison inside the city footprint so the composed army+city label
+  // collides with the plain city label and reads as one city-owned marker.
   return {
-    x: city.pos[0] - cityRadius * 0.28,
-    y: city.pos[1] - cityRadius * 0.36,
+    x: city.pos[0] - cityRadius * 0.08,
+    y: city.pos[1] - cityRadius * 0.12,
   };
 }
 

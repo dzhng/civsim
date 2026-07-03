@@ -1,5 +1,5 @@
 // A unit's banner: one self-contained UI component carrying the standard (a
-// team-coloured cloth on a pole) and the unit's live state — health, cohesion,
+// team-coloured cloth on a pole) and the unit's live state — own-unit stat bars
 // and status-effect chips. It owns its DOM and renders from a plain state
 // object, so it can be mounted and snapshotted standalone (see
 // mountBannerGallery) for visual-regression tests — no sim, no 3D engine.
@@ -14,8 +14,11 @@ export interface BannerChip {
 }
 export interface BannerState {
   team: 0 | 1;
+  mine: boolean;
   hp: number; // 0..1 of full strength
   cohesion: number; // 0..1
+  morale: number; // 0..1
+  stamina: number; // 0..1
   chips: BannerChip[];
   selected: boolean;
 }
@@ -25,10 +28,14 @@ const SVGNS = "http://www.w3.org/2000/svg";
 export class UnitBanner {
   readonly el: HTMLDivElement;
   private cloth: SVGPathElement;
+  private bars: HTMLDivElement;
   private hpFill: HTMLDivElement;
   private cohFill: HTMLDivElement;
+  private moraleFill: HTMLDivElement;
+  private staminaFill: HTMLDivElement;
   private fx: HTMLDivElement;
   private team = -1;
+  private mine = false;
   private selected = false;
   private chipKey = "";
 
@@ -36,33 +43,48 @@ export class UnitBanner {
     const el = document.createElement("div");
     el.className = "ubanner";
 
-    // The standard: a pole topped by a finial, with a swallowtail cloth flying
-    // to one side. Only the cloth's fill changes with team.
+    // The standard: a Rome-2 vertical cloth hanging from a crossbar. Only the
+    // cloth's fill changes with team.
     const svg = document.createElementNS(SVGNS, "svg");
     svg.setAttribute("class", "ubanner-flag");
-    svg.setAttribute("viewBox", "0 0 56 24");
-    const cloth = document.createElementNS(SVGNS, "path");
-    cloth.setAttribute("d", "M29 3 L52 5 L46 11 L52 17 L29 15 Z");
-    cloth.setAttribute("stroke", "rgba(0,0,0,0.35)");
-    cloth.setAttribute("stroke-width", "0.8");
+    svg.setAttribute("viewBox", "0 0 48 76");
     const pole = document.createElementNS(SVGNS, "rect");
-    pole.setAttribute("x", "27");
-    pole.setAttribute("y", "1");
+    pole.setAttribute("x", "23");
+    pole.setAttribute("y", "3");
     pole.setAttribute("width", "2");
-    pole.setAttribute("height", "22");
+    pole.setAttribute("height", "71");
     pole.setAttribute("rx", "1");
     pole.setAttribute("fill", "#6b5a3e");
     const finial = document.createElementNS(SVGNS, "circle");
-    finial.setAttribute("cx", "28");
-    finial.setAttribute("cy", "2");
-    finial.setAttribute("r", "2.2");
-    finial.setAttribute("fill", "#cdb56a");
-    svg.append(cloth, pole, finial);
+    finial.setAttribute("cx", "24");
+    finial.setAttribute("cy", "4");
+    finial.setAttribute("r", "3");
+    finial.setAttribute("fill", "#c9a227");
+    const crossbar = document.createElementNS(SVGNS, "rect");
+    crossbar.setAttribute("x", "10");
+    crossbar.setAttribute("y", "12");
+    crossbar.setAttribute("width", "28");
+    crossbar.setAttribute("height", "2.5");
+    crossbar.setAttribute("rx", "1.2");
+    crossbar.setAttribute("fill", "#6b5a3e");
+    const cloth = document.createElementNS(SVGNS, "path");
+    cloth.setAttribute("d", "M12 14 H36 V70 L24 62 L12 70 Z");
+    cloth.setAttribute("stroke", "#c9a227");
+    cloth.setAttribute("stroke-width", "1.4");
+    cloth.setAttribute("stroke-linejoin", "round");
+    const emblem = document.createElementNS(SVGNS, "path");
+    emblem.setAttribute("d", "M24 29 L30 35 L24 41 L18 35 Z");
+    emblem.setAttribute("fill", "none");
+    emblem.setAttribute("stroke", "#c9a227");
+    emblem.setAttribute("stroke-width", "2.2");
+    emblem.setAttribute("stroke-linejoin", "round");
+    svg.append(pole, finial, crossbar, cloth, emblem);
 
-    // The unit's state hangs below the standard like its banner: a health bar,
-    // a cohesion bar, then status chips.
+    // The unit's own-side stats hang below the status chips and above the
+    // standard.
     const bars = document.createElement("div");
     bars.className = "ubanner-bars";
+    bars.hidden = true;
     const hp = document.createElement("div");
     hp.className = "ubar";
     this.hpFill = document.createElement("div");
@@ -71,7 +93,15 @@ export class UnitBanner {
     coh.className = "ubar coh";
     this.cohFill = document.createElement("div");
     coh.append(this.cohFill);
-    bars.append(hp, coh);
+    const morale = document.createElement("div");
+    morale.className = "ubar morale";
+    this.moraleFill = document.createElement("div");
+    morale.append(this.moraleFill);
+    const stamina = document.createElement("div");
+    stamina.className = "ubar stamina";
+    this.staminaFill = document.createElement("div");
+    stamina.append(this.staminaFill);
+    bars.append(hp, coh, morale, stamina);
 
     this.fx = document.createElement("div");
     this.fx.className = "ubanner-fx";
@@ -81,6 +111,7 @@ export class UnitBanner {
     // rides above it as one piece.
     el.append(this.fx, bars, svg);
     this.cloth = cloth;
+    this.bars = bars;
     this.el = el;
   }
 
@@ -91,8 +122,14 @@ export class UnitBanner {
       this.cloth.setAttribute("fill", bannerCss);
       this.hpFill.style.background = bannerCss;
     }
+    if (s.mine !== this.mine) {
+      this.mine = s.mine;
+      this.bars.hidden = !s.mine;
+    }
     this.hpFill.style.width = `${(Math.max(0, Math.min(1, s.hp)) * 100).toFixed(1)}%`;
     this.cohFill.style.width = `${(Math.max(0, Math.min(1, s.cohesion)) * 100).toFixed(1)}%`;
+    this.moraleFill.style.width = `${(Math.max(0, Math.min(1, s.morale)) * 100).toFixed(1)}%`;
+    this.staminaFill.style.width = `${(Math.max(0, Math.min(1, s.stamina)) * 100).toFixed(1)}%`;
     if (s.selected !== this.selected) {
       this.selected = s.selected;
       this.el.classList.toggle("sel", s.selected);
@@ -133,14 +170,41 @@ export class UnitBanner {
 // covers the component's whole surface (both teams, every bar level, the chip
 // kinds, selection) without the sim or the engine.
 export const BANNER_GALLERY: { label: string; state: BannerState }[] = [
-  { label: "fresh / player", state: { team: 0, hp: 1, cohesion: 1, selected: false, chips: [] } },
-  { label: "fresh / enemy", state: { team: 1, hp: 1, cohesion: 1, selected: false, chips: [] } },
+  {
+    label: "fresh / player",
+    state: {
+      team: 0,
+      mine: true,
+      hp: 1,
+      cohesion: 1,
+      morale: 1,
+      stamina: 1,
+      selected: false,
+      chips: [],
+    },
+  },
+  {
+    label: "fresh / enemy",
+    state: {
+      team: 1,
+      mine: false,
+      hp: 1,
+      cohesion: 1,
+      morale: 1,
+      stamina: 1,
+      selected: false,
+      chips: [],
+    },
+  },
   {
     label: "selected",
     state: {
       team: 0,
+      mine: true,
       hp: 0.86,
       cohesion: 0.93,
+      morale: 0.88,
+      stamina: 0.64,
       selected: true,
       chips: [
         { text: "ATK", title: "attacking" },
@@ -152,8 +216,11 @@ export const BANNER_GALLERY: { label: string; state: BannerState }[] = [
     label: "fighting",
     state: {
       team: 1,
+      mine: false,
       hp: 0.62,
       cohesion: 0.58,
+      morale: 0.46,
+      stamina: 0.32,
       selected: false,
       chips: [{ text: "ATK" }, { text: "CHG!", kind: "hot" }, { text: "⚔7", kind: "hot" }],
     },
@@ -162,8 +229,11 @@ export const BANNER_GALLERY: { label: string; state: BannerState }[] = [
     label: "breaking",
     state: {
       team: 0,
+      mine: true,
       hp: 0.24,
       cohesion: 0.12,
+      morale: 0.08,
+      stamina: 0.27,
       selected: false,
       chips: [
         { text: "ROUT", kind: "bad" },
@@ -176,8 +246,11 @@ export const BANNER_GALLERY: { label: string; state: BannerState }[] = [
     label: "ranged / dry",
     state: {
       team: 1,
+      mine: false,
       hp: 0.78,
       cohesion: 0.71,
+      morale: 0.67,
+      stamina: 0.18,
       selected: false,
       chips: [{ text: "KITE" }, { text: "AMMO!", kind: "bad" }, { text: "2nd", kind: "hot" }],
     },

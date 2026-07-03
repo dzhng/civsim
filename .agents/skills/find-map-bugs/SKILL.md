@@ -53,6 +53,13 @@ orchestrate — subagents look.
    correctness rule, each grounded in code the agent actually read. Do not
    hardcode a legend in prompts from memory — the map's vocabulary changes;
    the code is the source of truth.
+   **The legend describes, it never excuses.** It says what elements look like
+   and where they belong — it must NOT carry "the code renders X this way on
+   purpose, so X is fine." Whether a visible artifact is acceptable is the
+   HUMAN's call: a judge may refute a claim only by showing the pixels don't
+   show it or the element is a different class than claimed. "Intentional per
+   the code" is not a refutation — such findings ship, tagged
+   `intended-by-code`, for the human to rule on.
 3. **Tile it.** `node <skill>/scripts/tile.mjs slice <shot> <workdir>/tiles`
    (3×3 with overlap by default; `--cols 4 --rows 3` for very wide shots).
    `manifest.json` maps each tile to its full-image offset.
@@ -63,10 +70,11 @@ orchestrate — subagents look.
    pixel coordinates, empty array if clean. Tell finders: sweep, don't skim —
    walk EVERY label and EVERY marker in the tile and check each against the
    legend's correctness rule (a blatant offshore label is missed when the eye
-   only scans for anomalies), then scan coastlines, roads, and territory
-   edges; report what you SEE, never what you infer should exist; when unsure,
+   only scans for anomalies); for EVERY city, check a road reaches it whenever
+   neighboring cities show roads; then scan coastlines and territory edges;
+   report what you SEE, never what you infer should exist; when unsure,
    include at low confidence (later passes filter). Completion: every tile has
-   reported, and each report states how many labels/markers it checked.
+   reported, and each report states how many labels/markers/cities it checked.
 5. **Merge.** Convert tile bboxes to full-image coordinates via the manifest;
    dedupe overlapping-tile duplicates (same type, centers within ~60px → keep
    the higher confidence). Completion: every finder finding is either merged,

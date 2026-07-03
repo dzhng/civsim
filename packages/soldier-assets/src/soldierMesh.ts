@@ -231,9 +231,9 @@ export function createPlaceholderSoldierMesh(
 
 function armorColor(armor: Armor): Rgba {
   switch (armor) {
-    case 'heavy': return [0.61, 0.57, 0.48, 1];
+    case 'heavy': return [0.74, 0.63, 0.44, 1];
     case 'medium': return [0.52, 0.42, 0.31, 1];
-    case 'light': return [0.64, 0.54, 0.37, 1];
+    case 'light': return [0.70, 0.58, 0.40, 1];
     case 'cloth': return [0.48, 0.42, 0.30, 1];
     case 'rag': return [0.38, 0.28, 0.18, 1];
   }

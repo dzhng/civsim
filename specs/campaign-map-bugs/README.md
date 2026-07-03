@@ -41,18 +41,21 @@ must mandate the absolute shot path). Confirmed non-gate findings routed:
 Puteoli road-missing + Ferentinum dead-end stub → 02 (new named instances);
 Roma-cluster/Minturnae-Teanum card stacks → 09; island-fidelity pill (real
 island, coarse-raster lozenge) → David at 10.
-**In flight:** 02 (lane-roads, :5204), 04 (lane-city-labels, :5208 — runs the
-labels-lane whole-map oracle). **Next after those merge:** 09 (needs 04+07 ✓),
-then 10. Cross-lane note: lanes bless from their branch point — resolve merge
-conflicts by re-capturing on the merged tree (established precedent).
+02 ✓ and 04 ✓ merged with all oracles GREEN (data-lane: road classes absent;
+labels-lane: sea/label classes absent). All eight implementation slices are on
+this branch; probe gates on the merged tree: cityLabels ≥0.95 (CORINTHUS 0.802
+named exemption), sea labels ≤0.05, cities ≥0.5 modulo 5 exemptions + 7
+island-class, cards modulo whole-map ROMA + COSA corner, scenery 0 on water.
 **You are a fresh session implementing this spec** via
 [implement-spec](../../.agents/skills/implement-spec/SKILL.md). David's standing
 preference: delegate well-defined mechanical edits to Codex (`codex exec`,
 see the codex skill); you own verification, screenshots, and checkpoints.
 
-**Next pickup point:** slice `00-mask-owners` (the foundation everything else
-consumes), then `01-city-snap` (the re-bake that moves anchors — a human
-checkpoint), then the lanes fan out (see the graph below).
+**Next pickup point:** slice `09-collision` (one occupancy authority — the last
+implementation slice; needs 04+07, both merged), then `10-final-sweep` →
+close-spec. Open David-rulings queued for 10: island-fidelity pill (real
+island as coarse lozenge), CORINTHUS 0.802 label exemption, southern-Italy
+grey "Independent" fill, DIOSCURIAS/IERUSALEM engraved-name placements.
 
 **How to verify (hard-won recipes — read before running anything):**
 - Start your OWN dev server: `cd web && node node_modules/.bin/vite --port 5199
@@ -96,12 +99,12 @@ checkpoint), then the lanes fan out (see the graph below).
 ### Global TODO checklist
 - [x] `00-mask-owners` — land-truth owners on both sides of the bake + the probe tool (red baseline)
 - [x] `01-city-snap` — B1: cities snap to the rendered mask w/ margin; invariant bridge; re-bake ★human
-- [ ] `02-roads` — B7b: Cosa/Tarracina/Ostia road gaps; named suspect: roadEdgeIsLandSafe whole-edge drop (in flight: lane-roads)
-- [ ] `03-sea-labels` — B3: fitter honored at rendered zoom; move-before-shrink; Adriatic legible ★human (in flight: lane-sea-labels)
-- [x] `04-city-labels` — B2+B8: land-aware anchor choice via the shared placement scorer ★human (shipped on lane-city-labels; ledger + close-out oracle in slices/04-city-labels.md)
-- [ ] `05-territory-coast` — B4: wash conforms to the drawn coast; inland edges untouched ★human (in flight: lane-territory-coast)
-- [ ] `06-scenery` — B9: scenery gated by the render mask (island beach + trees) (in flight: lane-scenery)
-- [ ] `07-cards` — B5: Ostia model diagnose→fix; land-aware card anchoring (in flight: lane-cards)
+- [x] `02-roads` — B7b: road gaps fixed at BOTH owners (bake land-safe polylines + per-run render cull); Puteoli/Ferentinum covered; DATA oracle GREEN (slices/02-roads.md)
+- [x] `03-sea-labels` — B3: fitter rewritten (mirrored-box + silent-fallback lie); all 8 names on water; scorer exported (slices/03-sea-labels.md)
+- [x] `04-city-labels` — B2+B8: land-aware anchors via the shared scorer ★recorded; LABELS oracle PASS; CORINTHUS 0.802 named exemption for David (slices/04-city-labels.md)
+- [x] `05-territory-coast` — B4: wash clips to the DRAWN composite; inland control byte-identical ★recorded (slices/05-territory-coast.md)
+- [x] `06-scenery` — B9: per-instance footprint gate; 406→0 on water (slices/06-scenery.md)
+- [x] `07-cards` — B5: Ostia model was card-occluded, not missing; landward card offsets (slices/07-cards.md)
 - [x] `08-standard` — B6: hollow army standard repro→fix + livery model sheet
 - [ ] `09-collision` — B7: one occupancy authority across canvas labels + DOM cards ★human
 - [ ] `10-final-sweep` — full find-map-bugs on all three shots: zero confirmed findings ★human → close-spec

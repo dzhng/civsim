@@ -20,6 +20,7 @@ import {
   type CampaignLabelAnchor,
   type CampaignMapStats,
   type CampaignMarker,
+  type ScreenRect,
 } from "../../../packages/game-renderer/src/campaign/mapPass";
 import {
   CampaignSceneryPass,
@@ -68,6 +69,15 @@ import type { ArmyView, CityView } from "./views";
 
 export const MAX_CAMPAIGN_ZOOM = 8;
 
+/** One visible DOM map card's screen rect (CSS px), reported per frame by the
+ * scene's card loop after its card-vs-card pass. The label occupancy
+ * arbitration treats these as pre-claimed ground (cards outrank labels). */
+export interface CampaignCardRect {
+  id: string;
+  name: string;
+  box: ScreenRect;
+}
+
 interface DrawOptions {
   cam: CamView;
   armies: ArmyView[];
@@ -82,6 +92,12 @@ interface DrawOptions {
   factionView: boolean;
   /** ARMY_STACK_UNIT_CAP — a full stack shows the max representative figures. */
   stackUnitCap: number;
+  /** Cards report, never arbitrate labels privately (slice 09): the visible
+   * card rects this frame, blocking canvas label ground. */
+  cardRects?: CampaignCardRect[];
+  /** Cards the scene's card-vs-card pass hid this frame ("card:NAME") —
+   * merged into the collision-cull stats so scenes assert one outcome list. */
+  cardCollisionCulls?: string[];
 }
 
 export class CampaignRenderer {
@@ -113,6 +129,8 @@ export class CampaignRenderer {
     visibleLabelNames: [],
     visibleSeaLabelRects: [],
     visibleCityLabelRects: [],
+    visibleArmyLabelRects: [],
+    visibleFactionLabelRects: [],
     collisionCulls: 0,
     collisionCulledLabels: [],
     atlasWidth: 0,
@@ -120,6 +138,7 @@ export class CampaignRenderer {
     vertices: 0,
     layer: "raw-gpu-glyph-atlas",
   };
+  private lastCards: { rects: CampaignCardRect[]; culls: string[] } = { rects: [], culls: [] };
   private lastEntities = {
     cityEntities: 0,
     armyEntities: 0,
@@ -299,15 +318,8 @@ export class CampaignRenderer {
       return;
     const frameStart = performance.now();
     this.lastFactionView = opts.factionView;
-    this.currentCamera = {
-      x: opts.cam.x,
-      y: opts.cam.y,
-      // cam.scale still feeds the map's sea-shimmer zoom gate (cam.zoom); the
-      // tilt gate now derives from the camera3d pitch inside cameraUniformData.
-      zoom: opts.cam.scale,
-      // The real 3D perspective camera — the one projection owner.
-      camera3d: this.cameraParamsFor(opts.cam),
-    };
+    this.lastCards = { rects: opts.cardRects ?? [], culls: opts.cardCollisionCulls ?? [] };
+    this.setFrameCamera(opts.cam);
     this.shell.setCamera(this.currentCamera);
     const buildStart = performance.now();
     const animTime = this.fixedTime ?? performance.now() / 1000;
@@ -357,9 +369,14 @@ export class CampaignRenderer {
     this.labelStats = this.labels.upload(
       staticLabels.concat(cityLabels, armyLabels, factionLabels),
       this.currentCamera,
-      // City-label anchor choice samples the same full-res land truth the
-      // sea-label fitter fits against (slice 00's render mask owner).
-      { renderSurfaceAt: (x, y) => (this.field.renderLandAt(x, y) ? "land" : "water") },
+      {
+        // City-label anchor choice samples the same full-res land truth the
+        // sea-label fitter fits against (slice 00's render mask owner).
+        renderSurfaceAt: (x, y) => (this.field.renderLandAt(x, y) ? "land" : "water"),
+        // The scene-reported card rects: pre-claimed ground in the one
+        // occupancy arbitration (cards outrank canvas labels).
+        blockedRects: this.lastCards.rects.map((card) => card.box),
+      },
     );
     const uploadEnd = performance.now();
     const drawStart = performance.now();
@@ -543,8 +560,15 @@ export class CampaignRenderer {
       visibleLabelNames: this.labelStats.visibleLabelNames,
       visibleSeaLabelRects: this.labelStats.visibleSeaLabelRects,
       visibleCityLabelRects: this.labelStats.visibleCityLabelRects,
-      labelCollisionCulls: this.labelStats.collisionCulls,
-      labelCollisionCulledLabels: this.labelStats.collisionCulledLabels,
+      visibleArmyLabelRects: this.labelStats.visibleArmyLabelRects,
+      visibleFactionLabelRects: this.labelStats.visibleFactionLabelRects,
+      visibleCardRects: this.lastCards.rects,
+      labelCollisionCulls: this.labelStats.collisionCulls + this.lastCards.culls.length,
+      // One outcome list across the seam: canvas-label culls + card culls.
+      labelCollisionCulledLabels: [
+        ...this.labelStats.collisionCulledLabels,
+        ...this.lastCards.culls,
+      ],
       ...this.lastLabelComposition,
       labelLayer: this.labelStats.layer,
       labelAtlas: `${this.labelStats.atlasWidth}x${this.labelStats.atlasHeight}`,
@@ -585,13 +609,30 @@ export class CampaignRenderer {
   }
 
   // Renderable before the first draw(): a whole-map chart framing stands in
-  // until draw() derives the real camera from the live CamView.
+  // until setFrameCamera derives the real camera from the live CamView.
   private currentCamera: Omit<CameraSnapshot, "width" | "height"> = {
     x: 0,
     y: 0,
     zoom: 0.18,
     camera3d: chartCamera3d({ x: 0, y: 0, zoom: 0.18 }, 800),
   };
+
+  /** Pin this frame's camera pose. The scene calls this BEFORE its card loop
+   * so toScreen/toWorld project through the pose draw() is about to render —
+   * the card rects reported into the label arbitration are same-frame, never
+   * one behind (slice 09's pinned ordering). draw() re-applies it, so calling
+   * draw() alone stays correct. */
+  setFrameCamera(cam: CamView) {
+    this.currentCamera = {
+      x: cam.x,
+      y: cam.y,
+      // cam.scale still feeds the map's sea-shimmer zoom gate (cam.zoom); the
+      // tilt gate now derives from the camera3d pitch inside cameraUniformData.
+      zoom: cam.scale,
+      // The real 3D perspective camera — the one projection owner.
+      camera3d: this.cameraParamsFor(cam),
+    };
+  }
 
   /** The playable field bounds (world km) that the zoom rig frames. */
   private campaignRigBounds() {

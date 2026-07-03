@@ -86,7 +86,7 @@ checkpoint), then the lanes fan out (see the graph below).
 - [x] `01-city-snap` — B1: cities snap to the rendered mask w/ margin; invariant bridge; re-bake ★human
 - [ ] `02-roads` — B7b: Cosa/Tarracina/Ostia road gaps; named suspect: roadEdgeIsLandSafe whole-edge drop (in flight: lane-roads)
 - [ ] `03-sea-labels` — B3: fitter honored at rendered zoom; move-before-shrink; Adriatic legible ★human (in flight: lane-sea-labels)
-- [ ] `04-city-labels` — B2+B8: land-aware anchor choice via the shared placement scorer ★human
+- [x] `04-city-labels` — B2+B8: land-aware anchor choice via the shared placement scorer ★human (shipped on lane-city-labels; ledger + close-out oracle in slices/04-city-labels.md)
 - [ ] `05-territory-coast` — B4: wash conforms to the drawn coast; inland edges untouched ★human (in flight: lane-territory-coast)
 - [ ] `06-scenery` — B9: scenery gated by the render mask (island beach + trees) (in flight: lane-scenery)
 - [ ] `07-cards` — B5: Ostia model diagnose→fix; land-aware card anchoring (in flight: lane-cards)

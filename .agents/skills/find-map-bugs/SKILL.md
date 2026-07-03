@@ -71,7 +71,10 @@ orchestrate — subagents look.
    walk EVERY label and EVERY marker in the tile and check each against the
    legend's correctness rule (a blatant offshore label is missed when the eye
    only scans for anomalies); for EVERY city, check a road reaches it whenever
-   neighboring cities show roads; then scan coastlines and territory edges;
+   neighboring cities show roads — and when the tile's edge cuts off the
+   context needed to tell, report the city as a LOW-confidence road-missing
+   candidate rather than staying silent (the judge resolves it on the full
+   shot); then scan coastlines and territory edges;
    report what you SEE, never what you infer should exist; when unsure,
    include at low confidence (later passes filter). Completion: every tile has
    reported, and each report states how many labels/markers/cities it checked.
@@ -97,6 +100,10 @@ orchestrate — subagents look.
    - `other`-type claims (seams, artifacts) → must rule out the legitimate
      feature the legend suggests (e.g. a political border) or downgrade to
      "suspected, unproven".
+   - road-missing claims → pan the FULL shot around the city (roads may enter
+     from outside the finder's tile) and trace every approach before ruling;
+     confirm only when no road reaches the city while comparable neighbors
+     have them.
    Completion: every candidate has a verdict whose stated evidence covers each
    claim element, AND a centered final crop.
 7. **Report.** Write `<workdir>/bugs.md`: one line per CONFIRMED bug — type,

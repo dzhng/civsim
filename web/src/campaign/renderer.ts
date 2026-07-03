@@ -553,6 +553,9 @@ export class CampaignRenderer {
       lineSegments: this.lines?.stats().segments ?? 0,
       roadTriangles: this.roads?.stats().triangles ?? 0,
       roadJunctionCaps: this.mapDrawStats?.roadJunctionCaps ?? 0,
+      roadEdgesCulled: this.mapDrawStats?.roadEdgesCulled ?? 0,
+      roadWaterGaps: this.mapDrawStats?.roadWaterGaps ?? 0,
+      seaLanes: this.mapDrawStats?.seaLanes ?? 0,
       phases: shell?.phases ?? [],
       depth: shell?.depth ?? null,
       postCutoverScreenshots: "renderer-only",
@@ -684,7 +687,14 @@ export class CampaignRenderer {
     this.labels = new CampaignLabelPass(this.shell);
     const drawData = buildCampaignMapDrawData(this.data, {
       roadScale: 1.0,
+      // Two land samplers, one owner each (spec campaign-map-bugs, slice 00
+      // division of labor): sea-label fitting wants an area statistic, which
+      // the 8 km grid + wide inland margin owns; roads want point truth
+      // against the pixels the player sees, which the full-res render mask
+      // owns. Feeding the labels' coarse sampler to the road cull was B7b —
+      // whole coastal approach edges (Cosa, Tarracina) dropped silently.
       surfaceAt: (x, y) => (this.field.landAt(x, y, controlledStage ? 2.5 : 16) ? "land" : "water"),
+      roadSurfaceAt: (x, y) => (this.field.renderLandAt(x, y) ? "land" : "water"),
       heightAt: (x, y) => this.field.heightAt(x, y),
     });
     this.mapDrawStats = drawData.stats;

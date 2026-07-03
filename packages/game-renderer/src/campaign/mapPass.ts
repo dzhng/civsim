@@ -42,6 +42,10 @@ export interface CampaignMapStats {
   lineVertices: number;
   roadMeshVertices: number;
   roadJunctionCaps: number;
+  /** Road edges dropped whole because their centerline is mostly water. */
+  roadEdgesCulled: number;
+  /** Unbridged water gaps where a drawn road ribbon stops at a shore. */
+  roadWaterGaps: number;
   cityMarkers: number;
   labels: number;
 }
@@ -54,7 +58,14 @@ export interface CampaignMapStyle {
 
 export interface CampaignMapDrawStyle {
   roadScale?: number;
+  /** Road land test — point truth against the pixels the player sees (the
+   * renderer supplies the full-res render mask). Roads draw where their
+   * centerline is on rendered land; never used for label fitting. */
   roadSurfaceAt?: (x: number, y: number) => 'land' | 'water';
+  /** Sea-label fitting only — an area statistic ("is this neighborhood
+   * decisively land?"); the renderer supplies the coarse 8 km grid with a wide
+   * inland margin. Deliberately NOT the road sampler: labels want area
+   * statistics, roads want point truth. */
   surfaceAt?: (x: number, y: number) => 'land' | 'water';
   heightAt?: (x: number, y: number) => number;
 }
@@ -1214,17 +1225,22 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData, style: Camp
   const lineVertices: number[] = [];
   const roadMeshVertices: number[] = [];
   const safeRoads: CampaignMapEdgeData[] = [];
+  const roadAt = style.roadSurfaceAt;
+  let roadEdgesCulled = 0;
+  let roadWaterGaps = 0;
   for (const edge of data.map.edges) {
     if (edge.kind === 'sea') pushEdgeLines(lineVertices, edge);
-    else if (roadEdgeIsLandSafe(edge, style)) {
+    else if (roadEdgeIsLandSafe(edge, roadAt)) {
       safeRoads.push(edge);
-      pushRaisedRoad(roadMeshVertices, edge, style);
+      roadWaterGaps += pushRaisedRoad(roadMeshVertices, edge, style, roadAt);
+    } else {
+      roadEdgesCulled++;
     }
   }
   const roadJunctionCaps = pushRoadJunctionCaps(roadMeshVertices, data, safeRoads, style);
   const cityNodes = data.map.nodes.filter((node) => node.kind === 'city');
   const cityMarkers = cityNodes.map((node) => markerForNode(data, node));
-  const labels = data.map.nodes.length > 20 ? fitSeaLabels(seaLabels(), surfaceAt(style)) : [];
+  const labels = data.map.nodes.length > 20 ? fitSeaLabels(seaLabels(), style.surfaceAt) : [];
   return {
     lineVertices: new Float32Array(lineVertices),
     roadMeshVertices: new Float32Array(roadMeshVertices),
@@ -1236,6 +1252,8 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData, style: Camp
       lineVertices: Math.floor(lineVertices.length / 6),
       roadMeshVertices: Math.floor(roadMeshVertices.length / 10),
       roadJunctionCaps,
+      roadEdgesCulled,
+      roadWaterGaps,
       cityMarkers: cityMarkers.length,
       labels: labels.length,
     },
@@ -1290,8 +1308,14 @@ function pushEdgeLines(out: number[], edge: CampaignMapEdgeData) {
   }
 }
 
-function pushRaisedRoad(out: number[], edge: CampaignMapEdgeData, style: CampaignMapDrawStyle) {
-  if (edge.via.length < 2) return;
+/** Returns the number of unbridged water gaps (drawn ribbon stops at a shore). */
+function pushRaisedRoad(
+  out: number[],
+  edge: CampaignMapEdgeData,
+  style: CampaignMapDrawStyle,
+  at?: (x: number, y: number) => 'land' | 'water',
+): number {
+  if (edge.via.length < 2) return 0;
   const roadScale = style.roadScale ?? 1;
   const source = smoothRoadCenterline(edge.via);
   const center: [number, number][] = [[source[0][0], source[0][1]]];
@@ -1306,8 +1330,62 @@ function pushRaisedRoad(out: number[], edge: CampaignMapEdgeData, style: Campaig
     }
   }
   const halfWidth = 0.55 * roadScale;
-  pushRoadRibbon(out, center, halfWidth * 1.58, 0.18 * roadScale, [0.30, 0.27, 0.23, 0.78], 0, style.heightAt);
-  pushRoadRibbon(out, center, halfWidth, 0.32 * roadScale, [0.76, 0.74, 0.68, 0.98], 1, style.heightAt);
+  const { runs, gaps } = roadLandRuns(center, at);
+  for (const run of runs) {
+    pushRoadRibbon(out, run, halfWidth * 1.58, 0.18 * roadScale, [0.30, 0.27, 0.23, 0.78], 0, style.heightAt);
+    pushRoadRibbon(out, run, halfWidth, 0.32 * roadScale, [0.76, 0.74, 0.68, 0.98], 1, style.heightAt);
+  }
+  return gaps;
+}
+
+// Water dips up to this length along the smoothed centerline are bridged (the
+// bake tolerates raw dips <= 3 km, which smoothing can stretch); anything
+// longer is a ledgered ferry strait and the ribbon honestly stops at the
+// shore. TWIN: ROAD_SMOOTHED_BRIDGE_KM in crates/mapgen/src/landroute.rs —
+// the bake invariant guarantees committed roads never split except at ferries.
+const ROAD_WATER_BRIDGE_KM = 4.5;
+
+/** Split a resampled road centerline into its drawable land runs. */
+function roadLandRuns(
+  center: [number, number][],
+  at?: (x: number, y: number) => 'land' | 'water',
+): { runs: [number, number][][]; gaps: number } {
+  if (!at) return { runs: [center], gaps: 0 };
+  const land = center.map(([x, y]) => at(x, y) === 'land');
+  // Bridge interior water dips by sample count (samples ride ~0.9 km apart —
+  // the same counting the bake's smoothed-run invariant uses). Terminal water
+  // is never bridged: road terminals sit on land nodes, so a water tail is
+  // stale data and trimming beats drawing into the sea.
+  const bridgeSamples = Math.round(ROAD_WATER_BRIDGE_KM / ROAD_SURFACE_SAMPLE_KM);
+  let gaps = 0;
+  let i = 0;
+  while (i < center.length) {
+    if (land[i]) {
+      i++;
+      continue;
+    }
+    let j = i;
+    while (j < center.length && !land[j]) j++;
+    const interior = i > 0 && j < center.length;
+    if (interior && j - i <= bridgeSamples) {
+      for (let k = i; k < j; k++) land[k] = true;
+    } else if (interior) {
+      gaps++;
+    }
+    i = j;
+  }
+  const runs: [number, number][][] = [];
+  let run: [number, number][] = [];
+  for (let k = 0; k < center.length; k++) {
+    if (land[k]) {
+      run.push(center[k]);
+    } else if (run.length > 0) {
+      if (run.length >= 2) runs.push(run);
+      run = [];
+    }
+  }
+  if (run.length >= 2) runs.push(run);
+  return { runs, gaps };
 }
 
 function pushRoadJunctionCaps(out: number[], data: CampaignMapInputData, roads: CampaignMapEdgeData[], style: CampaignMapDrawStyle) {
@@ -1351,8 +1429,7 @@ export function smoothRoadCenterline(points: [number, number][]) {
   return smoothed;
 }
 
-function roadEdgeIsLandSafe(edge: CampaignMapEdgeData, style: CampaignMapDrawStyle) {
-  const at = surfaceAt(style);
+function roadEdgeIsLandSafe(edge: CampaignMapEdgeData, at?: (x: number, y: number) => 'land' | 'water') {
   if (!at) return true;
   let samples = 0;
   let landSamples = 0;
@@ -1369,10 +1446,11 @@ function roadEdgeIsLandSafe(edge: CampaignMapEdgeData, style: CampaignMapDrawSty
       if (at(x, y) === 'land') landSamples++;
     }
   }
-  // Coastal ORBIS roads hug the shoreline and dip over the coarse land mask's
-  // water cells though the road is on real land; the old 0.68 floor silently
-  // dropped whole connected edges. Relax so a road survives when it is mostly on
-  // land (a genuine sea crossing is still mostly water and drops).
+  // Only a genuine sea crossing (a mostly-water polyline) drops whole; a road
+  // that merely hugs the coast stays and draws its land runs. This gate used
+  // to sample the coarse 8 km grid with a 16 km all-land margin, which failed
+  // wholesale on coastal approach edges — the B7b "road gaps" (Cosa,
+  // Tarracina) were connected edges silently culled here.
   return samples === 0 || landSamples / samples >= 0.5;
 }
 
@@ -1438,10 +1516,6 @@ function pushRoadRibbon(
 }
 
 const ROAD_SURFACE_SAMPLE_KM = 0.9;
-
-function surfaceAt(style: CampaignMapDrawStyle) {
-  return style.surfaceAt ?? style.roadSurfaceAt;
-}
 
 function markerForNode(data: CampaignMapInputData, node: CampaignMapNodeData): CampaignMarker {
   const factionIndex = Math.max(0, data.map.factions.findIndex((faction) => faction.id === node.owner));

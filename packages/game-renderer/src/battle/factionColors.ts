@@ -1,0 +1,44 @@
+export type BattleFactionId = "azure" | "crimson" | "neutral";
+
+export interface BattleFaction {
+  id: BattleFactionId;
+  name: string;
+  primary: readonly [number, number, number];
+  bannerCss: string;
+}
+
+export const BATTLE_FACTIONS = [
+  {
+    id: "azure",
+    name: "Azure",
+    primary: [0.20, 0.42, 0.88],
+    bannerCss: "#6f9ae8",
+  },
+  {
+    id: "crimson",
+    name: "Crimson",
+    primary: [0.84, 0.24, 0.20],
+    bannerCss: "#e0604f",
+  },
+  {
+    id: "neutral",
+    name: "Neutral",
+    primary: [0.82, 0.70, 0.34],
+    bannerCss: "#d1b357",
+  },
+] as const satisfies readonly BattleFaction[];
+
+export function factionForTeam(team: number, overrides?: readonly [string, string]): BattleFaction {
+  const overrideId = team === 0 || team === 1 ? overrides?.[team] : undefined;
+  if (overrideId) {
+    const override = BATTLE_FACTIONS.find((faction) => faction.id === overrideId);
+    if (override) return override;
+  }
+  if (team === 0) return BATTLE_FACTIONS[0];
+  if (team === 1) return BATTLE_FACTIONS[1];
+  return BATTLE_FACTIONS[2];
+}
+
+export function factionPrimaryCss(faction: BattleFaction): string {
+  return `rgb(${faction.primary.map((channel) => Math.round(channel * 255)).join(", ")})`;
+}

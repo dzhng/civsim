@@ -19,6 +19,7 @@ import {
   soldierMaterialIdentity,
   type SoldierMeshData,
 } from '../../../soldier-assets/src/soldierMesh';
+import { factionForTeam } from '../../../game-renderer/src/battle/factionColors';
 import type { SoldierKitManifest, VatBake } from '../../../soldier-assets/src/schema';
 import { createVatLayout, resolveVatClip, type VatLayout } from '../../../renderer-core/src/vatLayout';
 import { linearAlbedo, viewNormalNode } from './battleTsl';
@@ -324,9 +325,9 @@ function crowdMaterial(vatTex: THREE.DataTexture, lod = 0): THREE.MeshStandardNo
   // desaturation stay (they are what the soldier IS); the baked
   // lambert/key-fill/exposure/rim grade is gone. Faction readability is tuned
   // by accent saturation/mix, not by baking light into the base albedo.
-  const blue = vec3(0.06, 0.32, 1.0);
-  const red = vec3(0.96, 0.13, 0.09);
-  const neutral = vec3(0.82, 0.70, 0.34);
+  const blue = vec3(...factionForTeam(0).primary);
+  const red = vec3(...factionForTeam(1).primary);
+  const neutral = vec3(...factionForTeam(2).primary);
   let accent = mix(blue, red, step(0.5, faction)).toVar();
   accent = mix(accent, neutral, step(1.5, faction)).toVar();
   const masks = SOLDIER_MATERIAL_MASKS;

@@ -12,6 +12,7 @@ import * as THREE from 'three/webgpu';
 import {
   attribute, clamp, float, length, max, mix, smoothstep, step, uniform, varying, vec3, vec4,
 } from 'three/tsl';
+import { factionForTeam } from '../../../game-renderer/src/battle/factionColors';
 import type { MarkerInstance } from '../../../renderer-core/src/frameShell';
 import { linearAlbedo } from './battleTsl';
 import { RENDER_ORDER } from './terrainLayer';
@@ -180,9 +181,9 @@ export class PhotorealMarkerLayer {
     const local = varying(quad.xy).toVar();
     const faction = varying(inst.w);
     const lod = varying(meta.y);
-    const blue = vec3(0.20, 0.42, 0.88);
-    const red = vec3(0.84, 0.24, 0.20);
-    const neutral = vec3(0.76, 0.67, 0.42);
+    const blue = vec3(...factionForTeam(0).primary);
+    const red = vec3(...factionForTeam(1).primary);
+    const neutral = vec3(...factionForTeam(2).primary);
     let accent = mix(blue, red, step(0.5, faction));
     accent = mix(accent, neutral, step(1.5, faction));
     const d = length(local);

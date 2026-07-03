@@ -2042,7 +2042,7 @@ function buildLabelAtlas(
       height: Math.max(1, Math.ceil((seaPath?.height ?? style.size * (subText ? 2.42 : 1.55)) + style.padding * 2)),
     };
   });
-  const collision = arbitrateLabelOccupancy(measured, camera, dpr, placement);
+  const collision = arbitrateLabelOccupancy(measured, dpr, placement);
   const layoutEntries = collision.entries;
   const atlasWidth = measured.some((entry) => entry.width > 1024) ? 2048 : 1024;
   let x = 0;
@@ -2148,10 +2148,6 @@ function buildLabelAtlas(
   };
 }
 
-// Sample step over an anchored label's drawn rect, CSS px. Fine enough that a
-// city name a few glyphs long still gets several samples per glyph.
-const ANCHORED_LABEL_SAMPLE_STEP_PX = 10;
-
 // A fading label is a ghost, not readable ink: below this opacity it draws but
 // neither claims occupancy nor culls against anyone (labels pop less through
 // their fade bands than if a near-invisible engraving could hide a city name).
@@ -2187,7 +2183,6 @@ interface OccupancyClaim {
  */
 function arbitrateLabelOccupancy(
   labels: MeasuredCampaignLabel[],
-  camera: CameraSnapshot,
   dpr: number,
   placement: CampaignLabelPlacementStyle | undefined,
 ) {
@@ -2243,7 +2238,7 @@ function arbitrateLabelOccupancy(
         cull(entry);
         continue;
       }
-      const rect = placeCityLabel(entry, claims, camera, dpr, placement);
+      const rect = placeCityLabel(entry, claims, dpr);
       if (!rect) {
         cull(entry);
         continue;
@@ -2268,25 +2263,18 @@ function arbitrateLabelOccupancy(
   };
 }
 
-// Wettest ink a displaced city label freely accepts. Occupancy pressure must
-// not re-open B2 (city ink on open water): a label pushed off its ground by a
-// card or engraving may take a spot up to this wet — or as wet as its own
-// UNCONSTRAINED best (the pre-09 placement, which covers the exempted
-// CORINTHUS isthmus read) — and hides rather than draw wetter than both.
-const CITY_LABEL_MAX_WATER_FRACTION = 0.25;
-
-/** City-label placement (B2/B8 + slice 09): walk the emitter's
- * preference-ordered candidates, drop the ones whose ink rect lands on
- * claimed ground, and pick among the survivors through the one placement
- * scorer (isBadAt = water). The first candidate is the tiebreak, so inland
- * labels with clear ground never churn; null means every open spot is claimed
- * or too wet to draw on. */
+/** City-label placement (slice 09 occupancy only): a city label always hugs
+ * its marker — it never scores its candidates against the render mask (only
+ * sea names chase dry ground, per David's rule). Walk the emitter's
+ * preference-ordered hug candidates (attached position first) and take the
+ * first whose ink rect lands on unclaimed ground, so an unobstructed label
+ * keeps the classic attached anchor and a blocked one dodges to another side
+ * of the SAME marker. null means every hug position is claimed → the label
+ * hides rather than detach. */
 function placeCityLabel(
   entry: MeasuredCampaignLabel,
   claims: OccupancyClaim[],
-  camera: CameraSnapshot,
   dpr: number,
-  placement: CampaignLabelPlacementStyle | undefined,
 ): ScreenRect | null {
   const candidates =
     entry.label.placementCandidates && entry.label.placementCandidates.length > 0
@@ -2299,37 +2287,19 @@ function placeCityLabel(
             screenAnchorY: entry.label.screenAnchorY ?? 'center',
           } satisfies CampaignLabelAnchor,
         ];
-  const scored = candidates.map((candidate) => ({
-    candidate,
-    rect: candidateInkRect(entry, candidate, dpr),
-  }));
-  const open = scored.filter(
-    ({ rect }) => !claims.some((claim) => rectsOverlap(rect, claim.rect)),
-  );
-  if (open.length === 0) return null;
-  let winner = open[0];
-  if (placement) {
-    const isWaterAt = (x: number, y: number) => placement.renderSurfaceAt(x, y) === 'water';
-    const samplesOf = ({ candidate }: (typeof scored)[number]) =>
-      anchoredLabelWorldSamples(entry, candidate, camera, dpr);
-    const verdict = bestPlacement(open, samplesOf, isWaterAt);
-    if (!verdict) return null;
-    if (verdict.badFraction > CITY_LABEL_MAX_WATER_FRACTION) {
-      // Wetter than the free threshold: only draw if occupancy is not to
-      // blame — the unconstrained best (the pre-09 placement) is just as wet.
-      const unconstrained = bestPlacement(scored, samplesOf, isWaterAt);
-      if (!unconstrained || verdict.badFraction > unconstrained.badFraction + 1e-6) return null;
-    }
-    winner = verdict.candidate;
+  for (const candidate of candidates) {
+    const rect = candidateInkRect(entry, candidate, dpr);
+    if (claims.some((claim) => rectsOverlap(rect, claim.rect))) continue;
+    entry.offsetX = candidate.screenOffsetX * dpr;
+    entry.offsetY = candidate.screenOffsetY * dpr;
+    entry.label = {
+      ...entry.label,
+      screenAnchorX: candidate.screenAnchorX,
+      screenAnchorY: candidate.screenAnchorY,
+    };
+    return rect;
   }
-  entry.offsetX = winner.candidate.screenOffsetX * dpr;
-  entry.offsetY = winner.candidate.screenOffsetY * dpr;
-  entry.label = {
-    ...entry.label,
-    screenAnchorX: winner.candidate.screenAnchorX,
-    screenAnchorY: winner.candidate.screenAnchorY,
-  };
-  return winner.rect;
+  return null;
 }
 
 /** Ink rect (CSS px AABB) of a measured label at its current anchor. */
@@ -2375,39 +2345,6 @@ function inkRectAt(
   return cornersAabb(corners);
 }
 
-/** Sample grid over the candidate's ink rect — the atlas rect deflated by its
- * halo padding, i.e. the visible icon + glyph band (device px, axis-aligned —
- * anchored labels never rotate) — mapped to ground-plane world points through
- * the real camera so the scored footprint is exactly the visible one. The
- * padding stays out of the score: it is transparent margin, and counting it
- * would push coastal labels off their cities for water nobody sees. */
-function anchoredLabelWorldSamples(
-  entry: MeasuredCampaignLabel,
-  candidate: CampaignLabelAnchor,
-  camera: CameraSnapshot,
-  dpr: number,
-): [number, number][] {
-  const centerX =
-    entry.screenX +
-    anchorCenterOffsetX(candidate.screenAnchorX, candidate.screenOffsetX * dpr, entry.width);
-  const centerY =
-    entry.screenY +
-    anchorCenterOffsetY(candidate.screenAnchorY, candidate.screenOffsetY * dpr, entry.height);
-  const inkWidth = Math.max(1, entry.width - entry.style.padding * 2);
-  const inkHeight = Math.max(1, entry.height - entry.style.padding * 2);
-  const stepPx = ANCHORED_LABEL_SAMPLE_STEP_PX * dpr;
-  const cols = Math.max(6, Math.ceil(inkWidth / stepPx));
-  const rows = Math.max(3, Math.ceil(inkHeight / stepPx));
-  const samples: [number, number][] = [];
-  for (let iy = 0; iy < rows; iy++) {
-    const sy = centerY + inkHeight * ((iy + 0.5) / rows - 0.5);
-    for (let ix = 0; ix < cols; ix++) {
-      const sx = centerX + inkWidth * ((ix + 0.5) / cols - 0.5);
-      samples.push(screenToWorld(camera, sx, sy));
-    }
-  }
-  return samples;
-}
 
 /** Screen offset from the label's anchor point to its rect center: a 'left'
  * X-anchor means the rect's left edge sits at anchor+offset, so the center is

@@ -1028,9 +1028,10 @@ function campaignCityLabels(
     const edgeX = horizontalEdgeOffset(edge.x(node.pos[0]));
     const edgeY = verticalEdgeOffset(edge.y(node.pos[1]));
     const reliefPx = cityReliefRisePx(field, opts, node.pos, cam);
-    // Anchor placement is land-aware (B2/B8): the emitter only authors the
-    // preference-ordered candidates; the label pass scores their measured
-    // rects against the render mask and keeps the first mostly-land one.
+    // A city label hugs its marker, always (David's rule): the emitter authors
+    // the attached anchor first, then its mirrors around the same marker as
+    // collision alternates. The label pass never scores these against the
+    // render mask — only sea names care about dry ground.
     const anchors = overviewMarkerLabel
       ? overviewCityLabelAnchors(node.tier, edgeX, edgeY)
       : closeupCityLabelAnchors(
@@ -1057,12 +1058,13 @@ function campaignCityLabels(
   return labels;
 }
 
-// Marker-clearance rings for overview anchor candidates, in units of the
-// marker's outer-edge clearance. Ring 1 is the classic attached look; the
-// outer rings only win when no ring-1 placement is clean (a whole-map label
-// box spans hundreds of km — isthmus cities like Corinthus have no clean
-// adjacent spot), trading a little detachment for ink on land.
-const OVERVIEW_LABEL_RING_SCALES = [1, 2.2, 3.6];
+// Marker-clearance ring for overview anchor candidates, in units of the
+// marker's outer-edge clearance. A city label always hugs its marker (the
+// eight ring-1 positions are the only candidates); the alternates exist purely
+// so slice-09 occupancy can dodge to another side of the SAME marker, never to
+// detach. City labels do NOT chase dry ground — only sea names do (David's
+// rule): a coastal name may sit partly over water, but it stays on its city.
+const OVERVIEW_LABEL_RING_SCALES = [1];
 
 /** Overview (marker-attached) city-label anchor candidates: the classic
  * below-right of the square marker first (the tiebreak — inland labels never
@@ -1134,10 +1136,9 @@ function overviewCityLabelAnchors(
 // still reads as attached to its city rather than floating beside it.
 const CLOSEUP_LABEL_MARKER_TIE_PX = 14;
 
-/** Closeup city labels sit centered under the model; when a long coastal
- * name's centered box runs into the sea (B8), slide it sideways at the same
- * relief-aware height so the seaward edge pulls back ashore. Above the model
- * (centered, then slid) is the last resort. */
+/** Closeup city labels sit centered under the model; the sideways slides and
+ * the above-model positions are collision alternates only (slice 09), reached
+ * when the centered spot is claimed — never to chase dry ground. */
 function closeupCityLabelAnchors(
   edgeX: number,
   belowY: number,

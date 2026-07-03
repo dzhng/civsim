@@ -39,6 +39,12 @@ What it measures:
 - City labels: the drawn city icon+name rects exported by the renderer
   (`visibleCityLabelRects`), deflated to the ink band (the exported `padPx`
   halo margin is transparent), sampled through `renderLandAt` per framing.
+  Its `landFraction` is INFORMATIONAL only, not a gate (04b/David's rule): a
+  city label always hugs its marker and never chases dry ground — a coastal
+  name is *expected* to sit partly over water. Non-detachment is guaranteed
+  structurally, not by a threshold: the emitter's only candidates are the
+  ring-1 hug positions (`OVERVIEW_LABEL_RING_SCALES = [1]`), so a city label
+  is at most one marker-clearance from its square or hidden — never adrift.
 - City cards: visible DOM city card rect corners plus center are converted
   through `screenToWorld` and sampled with `renderLandAt`.
 - Scenery: the renderer's full static candidate set
@@ -64,14 +70,13 @@ Green meanings by slice:
   at either framing, except named port exemptions; every city center stays
   land with the re-baked margin.
 - Slice 03: sea labels are at least `0.95` water, so `landFraction <= 0.05`.
-- Slice 04: every visible city icon+label ink rect is mostly-land
-  (`landFraction >= 0.95`) at both framings, and the visible-label counts stay
-  at the pre-placement baseline (whole-map 10, regional 21 — no collision
-  bloodbath). One named exemption: CORINTHUS at the whole-map framing holds
-  `>= 0.80` — its label box spans ~270 km at that zoom and a measured offset
-  sweep found no `>= 0.95` placement within 100 px of the isthmus marker
-  (first fully-clean spot is ~285 km away, which would be the worse
-  label-detached class).
+- Slice 04 (superseded by 04b — David's rule): a city label hugs its marker,
+  full stop; it does NOT chase dry ground (only sea names do). The gate is
+  non-detachment, guaranteed structurally by the ring-1-only candidate set —
+  not a land-fraction threshold. `cityLabels[].landFraction` is informational:
+  coastal names (CORINTHUS, TARRACO, coastal ports) legitimately read partly
+  over water because they sit on their city. Visible-label counts still stay
+  at the pre-placement baseline (no collision bloodbath).
 - Slice 06: `scenery.onWaterTotal` and `scenery.footprintOverWaterTotal` are
   both 0, and `scenery.total` stays within 10% of the pre-gate baseline
   10,791 (no mass extinction).

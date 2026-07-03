@@ -18,12 +18,24 @@ creative, try a few variations and show me."
 - The HTML contact sheet (publishable via Artifact) showing all variations side by
   side, over a campaign-map backdrop crop for context.
 
-## ★ Human checkpoint (non-blocking)
-Open with **preview-shots** / publish as an Artifact. David picks a variation AND
-confirms the seam: **DOM overlay anchored via `renderer.toScreen()`** (recommended
-— reuses bronze components + the existing projector; invariants 4, 5) vs a richer
-canvas panel in `mapPass`. If silent ~5 min, default to variation 1 + DOM overlay;
-record the choice in the README and proceed.
+## ★ Human checkpoint — RESOLVED 2026-07-03 (non-blocking, decided on evidence)
+Sheet built (`visualizations/city-card-variations.html`), published as an
+artifact, opened in Preview; unprimed critique run (verdict below). David did not
+respond within the window, so per protocol the decision was made on the evidence:
+
+**CHOSEN: Variation B — plaque with inset wells** (engraved name on bronze;
+income and garrison each in a dark inset `--well-bg` well, one housing).
+Rationale: the unprimed critique found A/C near-duplicates while B is the only
+variation with real internal material hierarchy, and B's hierarchy survives
+downscaling at regional zoom where C's hairline band and A's detached slip lose
+signal first. B also already has the single-silhouette-when-garrisoned property
+(the garrison is an attached well, not a second chip). Implementation notes from
+the critique: keep the faction-colored house icon on the name row; the enemy
+sword glyph must be bold (a thin slash dies at zoom); the strength number ("2.6K")
+needs brighter ink than the first draft.
+**Seam: DOM overlay anchored via `renderer.toScreen()`** (invariants 4, 5).
+Reversible: slice 17 parameterizes the card body; switching to A/C later is a
+markup swap. David can override at any time.
 
 ## Verification
 - No product code. The contact sheet is the deliverable.

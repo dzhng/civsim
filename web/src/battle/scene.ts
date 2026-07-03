@@ -183,6 +183,10 @@ export class BattleScene implements Scene {
     const canvas = document.getElementById("battlefield") as HTMLCanvasElement;
     const camera = new Camera(canvas);
     const renderer = (sharedRenderer ??= new BattleRenderer(canvas));
+    // The camera rides the terrain: look target + eye clearance sample the
+    // same height field the renderer draws, so the soldier-eye zoom floor
+    // stays above hills and WASD panning auto-raises.
+    camera.groundHeight = (x, y) => renderer.heightAt(x, y);
     renderer.resize(); // the canvas may have been display:none through a window resize
     const STRIDE = game.unit_info_stride();
     let cameraRigBounds = { width: 1, height: 1 };

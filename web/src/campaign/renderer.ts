@@ -502,6 +502,11 @@ export class CampaignRenderer {
     return campaignPitch(scale);
   }
 
+  /** Verification probe: the full static scenery candidate set (world km). */
+  sceneryCandidateSnapshot(): CampaignSceneryInstance[] {
+    return this.sceneryCandidates.map((item) => ({ ...item }));
+  }
+
   destroy() {
     window.removeEventListener("resize", this.onResize);
     this.shell?.destroy();
@@ -1189,6 +1194,13 @@ const CAMPAIGN_MAX_ROCKS = 1000;
 const CAMPAIGN_MOUNTAIN_VISUAL_SCALE = 2.25;
 const CAMPAIGN_ROCK_VISUAL_SCALE = 1.75;
 const CAMPAIGN_TREE_VISUAL_SCALE = 1.72;
+// Land gate (B9): every static candidate must pass renderLandAt — the
+// full-res rendered coast, not the 8 km grid — with the instance's own
+// footprint radius as the margin (`size` is roughly the footprint diameter in
+// km), so no prop hangs over the water side of the drawn coastline.
+function sceneryFootprintOnLand(field: TerrainField, x: number, y: number, size: number) {
+  return field.renderLandAt(x, y, size * 0.5);
+}
 
 function campaignScenery(
   candidates: CampaignSceneryInstance[],
@@ -1291,32 +1303,39 @@ function buildCampaignSceneryCandidates(
         const x = x0 + (hash2(gx, gy * 2) - 0.5) * field.cell * 0.7;
         const y = y0 + (hash2(gx * 2, gy) - 0.5) * field.cell * 0.7;
         const radius = field.cell * 0.5 * (0.7 + rock * 0.5);
-        mountains.push({
-          x,
-          y,
-          z: Math.max(0, field.heightAt(x, y)),
-          size: radius * CAMPAIGN_MOUNTAIN_VISUAL_SCALE,
-          // Lower silhouette: broad ridges rather than spires that tower over
-          // labels. Vertical scale trimmed alongside the broader massif mesh.
-          height: (2.1 + rock * 3.1 + height * 3.3) * 1.0,
-          kind: "mountain",
-          shade: hash2(gx + 3, gy + 5),
-          yaw: hash2(gx * 9 + 1, gy * 4 + 7) * Math.PI * 2,
-          score: mountainScore + hash2(gx + 17, gy + 29) * 0.08,
-          gx,
-          gy,
-        });
+        const size = radius * CAMPAIGN_MOUNTAIN_VISUAL_SCALE;
+        // Gate only the mountain push: a failed land check must not skip the
+        // cell's forest block below.
+        if (sceneryFootprintOnLand(field, x, y, size)) {
+          mountains.push({
+            x,
+            y,
+            z: Math.max(0, field.heightAt(x, y)),
+            size,
+            // Lower silhouette: broad ridges rather than spires that tower over
+            // labels. Vertical scale trimmed alongside the broader massif mesh.
+            height: (2.1 + rock * 3.1 + height * 3.3) * 1.0,
+            kind: "mountain",
+            shade: hash2(gx + 3, gy + 5),
+            yaw: hash2(gx * 9 + 1, gy * 4 + 7) * Math.PI * 2,
+            score: mountainScore + hash2(gx + 17, gy + 29) * 0.08,
+            gx,
+            gy,
+          });
+        }
       } else if (rock > 0.3 && hash2(gx * 5, gy * 9) < rock * 0.6) {
         const count = 1 + Math.floor(hash2(gx, gy) * 2.5);
         for (let t = 0; t < count; t++) {
           const x = x0 + (hash2(gx * 7 + t, gy * 11) - 0.5) * field.cell * 1.2;
           const y = y0 + (hash2(gx * 5 + t, gy * 13) - 0.5) * field.cell * 1.2;
           const radius = 0.9 + hash2(gx + t, gy) * 1.7;
+          const size = radius * CAMPAIGN_ROCK_VISUAL_SCALE;
+          if (!sceneryFootprintOnLand(field, x, y, size)) continue;
           rocks.push({
             x,
             y,
             z: Math.max(0, field.heightAt(x, y)),
-            size: radius * CAMPAIGN_ROCK_VISUAL_SCALE,
+            size,
             height: (0.7 + hash2(gx, gy + t) * 1.4) * 1.12,
             kind: "rock",
             shade: hash2(t + 1, gx),
@@ -1333,11 +1352,13 @@ function buildCampaignSceneryCandidates(
           const x = x0 + (hash2(gx * 7 + t, gy * 13 + 1) - 0.5) * field.cell * 1.4;
           const y = y0 + (hash2(gx * 3 + t, gy * 17 + 5) - 0.5) * field.cell * 1.4;
           const heightScale = 2.0 + hash2(gx + t, gy + t) * 1.8;
+          const size = heightScale * 0.72 * CAMPAIGN_TREE_VISUAL_SCALE;
+          if (!sceneryFootprintOnLand(field, x, y, size)) continue;
           trees.push({
             x,
             y,
             z: Math.max(0, field.heightAt(x, y) - 0.05),
-            size: heightScale * 0.72 * CAMPAIGN_TREE_VISUAL_SCALE,
+            size,
             height: heightScale * 1.1,
             kind:
               hash2(gx * 5 + t, gy * 11) < (y > TEMPERATE_Y_KM ? 0.75 : 0.25)

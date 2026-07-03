@@ -91,13 +91,19 @@ export async function run(ctx) {
   const cityOpened = await page.evaluate(() => ({
     selected: window.__campaign.selected(),
     cityPanel: document.querySelector("#cmp-city")?.textContent ?? "",
+    // Own cities are DOM map cards (spec campaign-map-polish 17); Neapolis is
+    // the one canvas label left in this fixture.
+    cards: Array.from(document.querySelectorAll(".cmp-map-card"))
+      .filter((node) => node.style.display !== "none")
+      .map((node) => node.querySelector(".cmp-map-card__name")?.textContent ?? ""),
     gpu: window.__campaignGpuStats,
   }));
   ctx.check(
     "real canvas click opens the normal city panel over WebGPU",
     cityOpened.selected === -1 &&
       cityOpened.cityPanel.includes("Roma") &&
-      cityOpened.gpu.visibleLabels >= 2 &&
+      cityOpened.gpu.visibleLabels >= 1 &&
+      cityOpened.cards.some((n) => n.toUpperCase().includes("ROMA")) &&
       cityOpened.gpu.labelLayer === "raw-gpu-glyph-atlas" &&
       hasCampaignWorldDepthContract(cityOpened.gpu),
     JSON.stringify({ cityTarget, cityOpened }),

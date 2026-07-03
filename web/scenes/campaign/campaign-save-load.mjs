@@ -33,7 +33,10 @@ export async function run(ctx) {
     timeout: 18000,
   });
   await page.waitForFunction(
-    () => getComputedStyle(document.getElementById("menu-ui")).display === "flex",
+    () => {
+      const menu = document.getElementById("menu-ui");
+      return menu !== null && getComputedStyle(menu).display === "flex";
+    },
     undefined,
     { timeout: 12000 },
   );
@@ -84,7 +87,10 @@ export async function run(ctx) {
 
   await page.click("#cmp-exit");
   await page.waitForFunction(
-    () => getComputedStyle(document.getElementById("menu-ui")).display === "flex",
+    () => {
+      const menu = document.getElementById("menu-ui");
+      return menu !== null && getComputedStyle(menu).display === "flex";
+    },
     undefined,
     { timeout: 12000 },
   );

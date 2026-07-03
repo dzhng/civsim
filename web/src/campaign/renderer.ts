@@ -29,7 +29,7 @@ import {
   type CampaignSelectionInstance,
 } from "../../../packages/game-renderer/src/campaign/selectionPass";
 import {
-  campaignBorderVertices,
+  campaignFactionBorderVertices,
   CampaignTerritoryPass,
 } from "../../../packages/game-renderer/src/campaign/territoryPass";
 import {
@@ -66,6 +66,8 @@ import { TEMPERATE_Y_KM, type TerrainField } from "./terrain";
 import { campaignSurface, type CampaignSurface } from "./surface";
 import { type FactionLabel, type Territory } from "./territory";
 import type { ArmyView, CityView } from "./views";
+
+export const MAX_CAMPAIGN_ZOOM = 8;
 
 interface DrawOptions {
   cam: CamView;
@@ -157,8 +159,30 @@ export class CampaignRenderer {
         (window.devicePixelRatio || 1)
       : Math.max(cssW / (rect.max[0] - rect.min[0]), cssH / ((rect.max[1] - rect.min[1]) * cosP)) *
         (window.devicePixelRatio || 1);
-    const minZoom = controlled ? fillZoom * 0.78 : fillZoom;
-    const maxZoom = controlled ? Math.max(8, minZoom * 2.2) : 8;
+    let minZoom = controlled ? fillZoom * 0.78 : fillZoom;
+    const maxZoom = controlled ? Math.max(MAX_CAMPAIGN_ZOOM, minZoom * 2.2) : MAX_CAMPAIGN_ZOOM;
+    if (!controlled) {
+      const mapW = rect.max[0] - rect.min[0];
+      const mapH = rect.max[1] - rect.min[1];
+      const fits = (scale: number) => {
+        const fp = this.groundFootprintForScale(scale);
+        return fp.halfW * 2 <= mapW && fp.dTop + fp.dBottom <= mapH;
+      };
+      if (fillZoom >= maxZoom) {
+        minZoom = fillZoom;
+      } else if (!fits(maxZoom)) {
+        minZoom = maxZoom;
+      } else {
+        let lo = fillZoom;
+        let hi = maxZoom;
+        for (let i = 0; i < 24; i++) {
+          const mid = (lo + hi) * 0.5;
+          if (fits(mid)) hi = mid;
+          else lo = mid;
+        }
+        minZoom = hi;
+      }
+    }
     cam.scale = Math.max(minZoom, Math.min(maxZoom, cam.scale));
     const halfW = (this.canvas.width || cssW) / (2 * cam.scale);
     const halfH = (this.canvas.height || cssH) / (2 * cam.scale * cosP);
@@ -166,9 +190,47 @@ export class CampaignRenderer {
       cam.x = clampControlledAxis(cam.x, rect.min[0], rect.max[0], halfW);
       cam.y = clampControlledAxis(cam.y, rect.min[1], rect.max[1], halfH);
     } else {
-      cam.x = clamp(cam.x, rect.min[0] + halfW, rect.max[0] - halfW);
-      cam.y = clamp(cam.y, rect.min[1] + halfH, rect.max[1] - halfH);
+      const fp = this.groundFootprintForScale(cam.scale);
+      const minX = rect.min[0] + fp.halfW;
+      const maxX = rect.max[0] - fp.halfW;
+      const minY = rect.min[1] + fp.dBottom;
+      const maxY = rect.max[1] - fp.dTop;
+      cam.x = minX > maxX ? (rect.min[0] + rect.max[0]) * 0.5 : clamp(cam.x, minX, maxX);
+      cam.y = minY > maxY ? (rect.min[1] + rect.max[1]) * 0.5 : clamp(cam.y, minY, maxY);
     }
+  }
+
+  private groundFootprintForScale(scale: number) {
+    const rect = this.data.bgRect;
+    const cx = (rect.min[0] + rect.max[0]) * 0.5;
+    const cy = (rect.min[1] + rect.max[1]) * 0.5;
+    const centeredCam: CamView = { x: cx, y: cy, scale };
+    const stats = this.shell?.stats();
+    const width = stats?.width ?? this.canvas.width ?? 1;
+    const height = Math.max(1, stats?.height ?? this.canvas.height ?? 1);
+    const snapshot: CameraSnapshot = {
+      x: cx,
+      y: cy,
+      zoom: scale,
+      camera3d: this.cameraParamsFor(centeredCam),
+      width,
+      height,
+    };
+    const corners = [
+      screenToWorld(snapshot, 0, 0),
+      screenToWorld(snapshot, width, 0),
+      screenToWorld(snapshot, 0, height),
+      screenToWorld(snapshot, width, height),
+    ];
+    let halfW = 0;
+    let minY = Infinity;
+    let maxY = -Infinity;
+    for (const [x, y] of corners) {
+      halfW = Math.max(halfW, Math.abs(x - cx));
+      minY = Math.min(minY, y);
+      maxY = Math.max(maxY, y);
+    }
+    return { halfW, dTop: maxY - cy, dBottom: cy - minY };
   }
 
   toScreen(wx: number, wy: number): [number, number] {
@@ -206,7 +268,7 @@ export class CampaignRenderer {
       rgba: territory.rgba,
       rect: this.data.bgRect,
     });
-    this.borders.upload(campaignBorderVertices(territory.borders));
+    this.borders.upload(campaignFactionBorderVertices(territory.borders, (x, y) => this.field.heightAt(x, y)));
   }
 
   draw(opts: DrawOptions) {
@@ -518,7 +580,7 @@ export class CampaignRenderer {
     const fillZoom =
       Math.max(cssW / (rect.max[0] - rect.min[0]), cssH / (rect.max[1] - rect.min[1])) * dpr;
     const min = controlled ? fillZoom * 0.78 : fillZoom;
-    const max = controlled ? Math.max(8, min * 2.2) : 8;
+    const max = controlled ? Math.max(MAX_CAMPAIGN_ZOOM, min * 2.2) : MAX_CAMPAIGN_ZOOM;
     return { min, max };
   }
 
@@ -579,12 +641,14 @@ export class CampaignRenderer {
         rgba: territory.rgba,
         rect: this.data.bgRect,
       },
-      controlledStage ? undefined : { alpha: 0.55, warmMix: 0.015 },
+      // EU4-political-strength wash (David, assets/faction-wash-target-eu4.png):
+      // the faction color dominates while terrain relief still reads through.
+      controlledStage ? undefined : { alpha: 0.62 },
       this.surface.mesh,
     );
     this.lines = new CampaignWorldLinePass(this.shell, "triangle-list");
     this.roads = new CampaignRoadPass(this.shell);
-    this.borders = new CampaignWorldLinePass(this.shell, "line-list");
+    this.borders = new CampaignWorldLinePass(this.shell, "triangle-list", "xyz");
     this.markers = new CampaignMarkerPass(this.shell);
     this.scenery = new CampaignSceneryPass(this.shell);
     this.sceneryCandidates = buildCampaignSceneryCandidates(this.data, this.field);
@@ -606,8 +670,8 @@ export class CampaignRenderer {
     this.labels = new CampaignLabelPass(this.shell);
     const drawData = buildCampaignMapDrawData(this.data, {
       roadScale: 1.0,
-      roadSurfaceAt: (x, y) =>
-        this.field.landAt(x, y, controlledStage ? 2.5 : 10.5) ? "land" : "water",
+      surfaceAt: (x, y) =>
+        this.field.landAt(x, y, controlledStage ? 2.5 : 16) ? "land" : "water",
       heightAt: (x, y) => this.field.heightAt(x, y),
     });
     this.mapDrawStats = drawData.stats;
@@ -615,7 +679,9 @@ export class CampaignRenderer {
     this.lines.upload(drawData.lineVertices);
     this.roads.upload(drawData.roadMeshVertices);
     this.borders.upload(
-      controlledStage ? new Float32Array() : campaignBorderVertices(territory.borders),
+      controlledStage
+        ? new Float32Array()
+        : campaignFactionBorderVertices(territory.borders, (x, y) => this.field.heightAt(x, y)),
     );
     publishStats(this.stats());
   }
@@ -798,28 +864,25 @@ function campaignMapMarkers(data: CampaignData, opts: DrawOptions): CampaignMark
         0,
         data.map.factions.findIndex((faction) => faction.id === node.owner),
       );
-    const allegiance = opts.factionView ? statusOf(opts.factionStatus, owner) : Allegiance.Neutral;
+    if (owner === opts.playerFaction) return;
     markers.push({
       x: node.pos[0],
       y: node.pos[1],
       radius: cityMarkerRadiusPx(node.tier),
-      faction: opts.factionView ? factionColor(data, owner) : [0.16, 0.12, 0.08],
-      allegiance: allegianceColor(allegiance),
+      faction: factionColor(data, owner),
+      allegiance: factionColor(data, owner),
       kind: "city",
       selected: index === opts.selectedCity,
     });
   });
   for (const army of visibleCampaignArmies(opts)) {
-    const allegiance =
-      army.mine || army.faction === opts.playerFaction
-        ? Allegiance.Friend
-        : statusOf(opts.factionStatus, army.faction);
+    if (army.mine || army.faction === opts.playerFaction) continue;
     markers.push({
       x: army.x,
       y: army.y,
       radius: army.id === opts.selected ? 10.5 : 9,
       faction: factionColor(data, army.faction),
-      allegiance: allegianceColor(allegiance),
+      allegiance: factionColor(data, army.faction),
       kind: "army",
       selected: army.id === opts.selected,
     });
@@ -851,11 +914,9 @@ function campaignCityLabels(
   cam: CameraSnapshot,
 ): CampaignLabel[] {
   const edge = mapEdgeProjector(data);
-  const occupiedCities = occupiedCityLabels(data, opts);
   const labels: CampaignLabel[] = [];
   data.map.nodes.forEach((node, index) => {
     if (node.kind !== "city") return;
-    if (occupiedCities.has(index)) return;
     if (!fogVisible(opts, node.pos[0], node.pos[1], 0.18)) return;
     const city = opts.cities.get(index);
     const owner =
@@ -864,7 +925,8 @@ function campaignCityLabels(
         0,
         data.map.factions.findIndex((faction) => faction.id === node.owner),
       );
-    const allegiance = opts.factionView ? statusOf(opts.factionStatus, owner) : Allegiance.Neutral;
+    if (owner === opts.playerFaction) return;
+    const allegiance = statusOf(opts.factionStatus, owner);
     const baseSize = Math.min(15, 9.5 + opts.cam.scale) * (node.tier >= 3 ? 1.15 : 1);
     const overviewMarkerLabel = opts.cam.scale < 0.6;
     labels.push({
@@ -875,7 +937,9 @@ function campaignCityLabels(
       size: baseSize,
       priority: node.tier,
       icon: "city",
-      iconColor: allegianceColor(allegiance),
+      iconColor: factionColor(data, owner),
+      rightIcon: allegiance === Allegiance.Foe ? "sword" : undefined,
+      rightIconColor: allegiance === Allegiance.Foe ? [0.83, 0.2, 0.15] : undefined,
       collisionGroup: cityCollisionGroup(index),
       screenOffsetX: cityLabelOffsetX(opts, node.tier) + horizontalEdgeOffset(edge.x(node.pos[0])),
       screenOffsetY:
@@ -900,43 +964,32 @@ function campaignArmyLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
     ids.sort((a, b) => a - b);
     ids.forEach((id, index) => ordinalOf.set(id, index + 1));
   }
-  return visibleCampaignArmies(opts).map((army): CampaignLabel => {
-    const allegiance =
-      army.mine || army.faction === opts.playerFaction
-        ? Allegiance.Friend
-        : statusOf(opts.factionStatus, army.faction);
-    const markerSize = army.id === opts.selected ? 13 : 11;
-    const occupiedCity = occupiedCityForArmy(data, army);
-    const display = occupiedCity
-      ? garrisonDisplayAnchor(data.map.nodes[occupiedCity.index])
-      : { x: army.x, y: army.y };
-    const cityOverlap = occupiedCity !== null;
-    const selectedOffset = army.id === opts.selected && isControlledStage(data) ? 28 : 0;
-    const overlapClearance = cityOverlap ? (opts.cam.scale >= 3 ? 44 : 38) : 24;
-    return {
-      text: `${ordinal(ordinalOf.get(army.id) ?? 1)} LEGION`,
-      sideText: `${Math.round(army.soldiers / 100) / 10}k`,
-      subText: occupiedCity?.name.toUpperCase(),
-      x: display.x,
-      y: display.y,
-      kind: "army",
-      size: Math.min(14, 9 + opts.cam.scale),
-      priority: 4,
-      icon: "army",
-      iconColor: allegianceColor(allegiance),
-      collisionGroup: occupiedCity ? cityCollisionGroup(occupiedCity.index) : undefined,
-      screenOffsetY: markerSize + selectedOffset + overlapClearance,
-    };
-  });
-}
-
-function occupiedCityLabels(data: CampaignData, opts: DrawOptions) {
-  const occupied = new Set<number>();
-  for (const army of visibleCampaignArmies(opts)) {
-    const match = occupiedCityForArmy(data, army);
-    if (match) occupied.add(match.index);
-  }
-  return occupied;
+  return visibleCampaignArmies(opts)
+    .filter((army) => !army.mine && army.faction !== opts.playerFaction)
+    .map((army): CampaignLabel => {
+      const markerSize = army.id === opts.selected ? 13 : 11;
+      const occupiedCity = occupiedCityForArmy(data, army);
+      const display = occupiedCity
+        ? garrisonDisplayAnchor(data.map.nodes[occupiedCity.index])
+        : { x: army.x, y: army.y };
+      const cityOverlap = occupiedCity !== null;
+      const selectedOffset = !cityOverlap && army.id === opts.selected && isControlledStage(data) ? 28 : 0;
+      const overlapClearance = cityOverlap ? (opts.cam.scale >= 3 ? 14 : 10) : 24;
+      return {
+        text: `${ordinal(ordinalOf.get(army.id) ?? 1)} LEGION`,
+        sideText: `${Math.round(army.soldiers / 100) / 10}k`,
+        subText: occupiedCity?.name.toUpperCase(),
+        x: display.x,
+        y: display.y,
+        kind: "army",
+        size: Math.min(14, 9 + opts.cam.scale),
+        priority: 4,
+        icon: "army",
+        iconColor: factionColor(data, army.faction),
+        collisionGroup: occupiedCity ? cityCollisionGroup(occupiedCity.index) : undefined,
+        screenOffsetY: markerSize + selectedOffset + overlapClearance,
+      };
+    });
 }
 
 function cityModelRadius(tier: number) {
@@ -949,10 +1002,11 @@ function citySelectionRadius(tier: number) {
 
 function garrisonDisplayAnchor(city: MapNode) {
   const cityRadius = cityModelRadius(city.tier);
-  // Keep the garrison inside the city footprint while exposing it at the front gate.
+  // Keep the garrison inside the city footprint so the composed army+city label
+  // collides with the plain city label and reads as one city-owned marker.
   return {
-    x: city.pos[0] - cityRadius * 0.28,
-    y: city.pos[1] - cityRadius * 0.36,
+    x: city.pos[0] - cityRadius * 0.08,
+    y: city.pos[1] - cityRadius * 0.12,
   };
 }
 
@@ -1181,8 +1235,8 @@ function campaignRoadCarts(
             x,
             y,
             z: Math.max(0, field.heightAt(x, y)),
-            size: 6.0,
-            height: 4.0,
+            size: 1.3,
+            height: 0.9,
             kind: "cart",
             shade: 0.55 + phase * 0.35,
             yaw: dir > 0 ? ang : ang + Math.PI,

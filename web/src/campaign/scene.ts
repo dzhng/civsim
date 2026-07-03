@@ -3,9 +3,6 @@
 // untouched), reads zero-copy army/city arrays from wasm each frame, and
 // hands Pending battles to the battle scene (or auto-resolves them).
 
-import { createElement, Fragment } from "react";
-import { createRoot, type Root } from "react-dom/client";
-import { flushSync } from "react-dom";
 import {
   Campaign,
   Game,
@@ -14,19 +11,15 @@ import {
   type InitOutput,
 } from "../wasm/game_wasm.js";
 import type { Scene } from "../scene";
-import { CampaignTopBar } from "../ui/campaign/CampaignTopBar";
-import { ArmyPanel } from "../ui/campaign/ArmyPanel";
-import { CityPanel } from "../ui/campaign/CityPanel";
-import { DiplomacyPanel } from "../ui/campaign/DiplomacyPanel";
-import { ClassBuilder } from "../ui/campaign/ClassBuilder";
-import { Sieges } from "../ui/campaign/Sieges";
-import { CampaignBattleModal, type EncounterSideView } from "../ui/campaign/CampaignBattleModal";
+import { type EncounterSideView } from "../ui/campaign/CampaignBattleModal";
+import { mountCampaignHud, type CampaignHudHandle } from "../ui/campaign/CampaignHud";
 import { loadCampaignData, nearestLoc, tilePos, type CampaignData } from "./data";
 import type { CamView } from "./camera";
-import { CampaignRenderer } from "./renderer";
+import { CampaignRenderer, MAX_CAMPAIGN_ZOOM } from "./renderer";
 import { TerrainField } from "./terrain";
 import { Territory } from "./territory";
 import { Allegiance } from "./status";
+import type { MapCardModel, MapCardPosition } from "../ui/campaign/MapCards";
 import { installCampaignDebugApi, markCampaignReady } from "./debugApi";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
 import {
@@ -46,6 +39,7 @@ import { readCampaignViews, type ArmyView, type CityView } from "./views";
  * the AI cost per real-second tracks the multiplier, not the tick scale. */
 const TICKS_PER_SEC = 60;
 const SPEEDS = [1, 2, 4];
+const SPEED_LABELS = ["1x", "3x", "10x"];
 const SAVE_KEY = "campaign-save";
 /** Ticks between a snapshot and applying the decisions it yields — must match
  *  campaign tunables AI_LATENCY. */
@@ -90,13 +84,8 @@ interface SiegeView {
 export class CampaignScene implements Scene {
   private canvas!: HTMLCanvasElement;
   private ui!: HTMLDivElement;
-  private topBarRoot: Root | null = null;
+  private campaignHud: CampaignHudHandle | null = null;
   private lastTopBarKey = "";
-  private armyRoot: Root | null = null;
-  private cityRoot: Root | null = null;
-  private diploRoot: Root | null = null;
-  private classesRoot: Root | null = null;
-  private siegesRoot: Root | null = null;
   private renderer!: CampaignRenderer;
   // Terrain/territory live across battle round-trips (enter/exit cycles).
   private field: TerrainField | null = null;
@@ -116,7 +105,7 @@ export class CampaignScene implements Scene {
    *  the green selection ring. -1 when no city is selected. */
   private selectedCity = -1;
   /** Allegiance (Friend/Neutral/Foe) per faction id, refreshed when ownership
-   *  or relations change; drives the map flag and label-icon colours. */
+   *  or relations change; drives map status treatment and non-icon tints. */
   private factionStatus = new Int8Array(0);
   /** Faction (political) view: territories flooded with owner colours + names.
    *  Off = the natural map (terrain only, neutral city dots). */
@@ -136,13 +125,13 @@ export class CampaignScene implements Scene {
   private stackUnitCap = 1;
   private recruitClasses: string[] = [];
   private spotPos: [number, number][] = [];
-  private modalRoot: Root | null = null;
   private modalOpen = false;
   private autoResolving = false;
   private terrainReady = false;
   /** Signature of the currently-shown siege notifications, to avoid rebuilding
    *  the DOM (and its click handlers) every tick. */
   private siegeSig = "";
+  private mapCardsSig = "";
 
   constructor(private cfg: CampaignConfig) {
     this.cam = { x: 0, y: 0, scale: 0.18 };
@@ -375,6 +364,7 @@ export class CampaignScene implements Scene {
       factionView: this.factionView,
       stackUnitCap: this.stackUnitCap,
     });
+    this.updateMapCardPositions();
   }
 
   /** Pan the camera to a world point (clamped inside the map). */
@@ -400,11 +390,12 @@ export class CampaignScene implements Scene {
     this.cities = views.cities;
     this.roadLevels = views.roadLevels;
     this.stackUnitCap = views.stackUnitCap;
-    // Keep allegiance fresh for label icons (cheap; the renderer reads it every
-    // frame). City/army flags are faction-coloured, so they only need a
+    // Keep allegiance fresh for status treatment (cheap; the renderer reads it
+    // every frame). City/army flags are faction-coloured, so they only need a
     // recolour when a town changes hands.
     this.refreshFactionStatus();
     this.refreshSieges();
+    this.refreshMapCards();
     if (views.ownerHash !== this.ownerHash && this.territory) {
       this.ownerHash = views.ownerHash;
       this.territory.rebuild(this.cities);
@@ -420,8 +411,8 @@ export class CampaignScene implements Scene {
     const facName = (f: number) => this.cfg.data.map.factions[f]?.name ?? `faction ${f}`;
     // Rebuild only when the set of besieged cities changes, not every tick.
     const sig = sieges.map((s) => s.node).join(",");
-    const root = this.siegesRoot;
-    if (!root) return;
+    const hud = this.campaignHud;
+    if (!hud) return;
     if (sig !== this.siegeSig) {
       this.siegeSig = sig;
       const rows = sieges.map((s) => ({
@@ -431,18 +422,138 @@ export class CampaignScene implements Scene {
         name: this.cfg.data.map.nodes[s.node].name,
         attackerName: facName(s.attacker),
       }));
-      flushSync(() =>
-        root.render(
-          createElement(Sieges, {
-            sieges: rows,
-            onSelect: (node, x, y) => {
-              this.centerCam(x, y);
-              this.openCityPanel(node);
-            },
-          }),
-        ),
-      );
+      hud.setSieges(rows, (node, x, y) => {
+        this.centerCam(x, y);
+        this.openCityPanel(node);
+      });
     }
+  }
+
+  private refreshMapCards() {
+    const hud = this.campaignHud;
+    if (!hud) return;
+    const pf = this.playerFaction();
+    const cards: MapCardModel[] = [];
+    const garrisonsByCity = this.ownGarrisonFooters();
+    for (const [node, city] of this.cities) {
+      if (city.owner !== pf) continue;
+      const mapNode = this.cfg.data.map.nodes[node];
+      if (mapNode.kind !== "city") continue;
+      const detail = JSON.parse(this.cfg.campaign.city_json(node)) as CityDetail | null;
+      const garrison = garrisonsByCity.get(node);
+      cards.push({
+        id: `city:${node}`,
+        kind: "city",
+        name: mapNode.name.toUpperCase(),
+        factionColor: cssFactionColor(this.cfg.data.map.factions[city.owner]?.color),
+        incomeText: `+${(detail?.monthly_income ?? 0).toLocaleString()}/mo`,
+        garrisonName: garrison?.name,
+        garrisonStrengthText: garrison?.strength,
+      });
+    }
+    const ordinalOf = this.playerArmyOrdinals();
+    for (const army of this.armies) {
+      if (!this.isOwnArmy(army) || this.ownGarrisonCityForArmy(army) !== null) continue;
+      cards.push({
+        id: `army:${army.id}`,
+        kind: "army",
+        name: `${ordinal(ordinalOf.get(army.id) ?? 1)} LEGION`.toUpperCase(),
+        factionColor: cssFactionColor(this.cfg.data.map.factions[army.faction]?.color),
+        strengthText: formatStrength(army.soldiers),
+      });
+    }
+    const sig = JSON.stringify(cards);
+    if (sig === this.mapCardsSig) return;
+    this.mapCardsSig = sig;
+    hud.setMapCards(cards);
+  }
+
+  private updateMapCardPositions() {
+    const hud = this.campaignHud;
+    if (!hud) return;
+    const dpr = window.devicePixelRatio || 1;
+    const width = this.canvas.clientWidth || window.innerWidth || 1;
+    const height = this.canvas.clientHeight || window.innerHeight || 1;
+    const positions: MapCardPosition[] = [];
+    const cityMinTier = this.cam.scale < 0.6 ? 3 : this.cam.scale < 0.85 ? 2 : 1;
+    const pf = this.playerFaction();
+    for (const [node, city] of this.cities) {
+      if (city.owner !== pf) continue;
+      const mapNode = this.cfg.data.map.nodes[node];
+      if (mapNode.kind !== "city") continue;
+      const [sx, sy] = this.renderer.toScreen(mapNode.pos[0], mapNode.pos[1]);
+      const x = sx / dpr;
+      const y = sy / dpr + cityCardOffsetY(this.cam.scale, mapNode.tier);
+      positions.push({
+        id: `city:${node}`,
+        x,
+        y,
+        visible: mapNode.tier >= cityMinTier && onScreen(x, y, width, height),
+      });
+    }
+    for (const army of this.armies) {
+      if (!this.isOwnArmy(army) || this.ownGarrisonCityForArmy(army) !== null) continue;
+      const [sx, sy] = this.renderer.toScreen(army.x, army.y);
+      const x = sx / dpr;
+      const y = sy / dpr + 22;
+      positions.push({
+        id: `army:${army.id}`,
+        x,
+        y,
+        visible: this.cam.scale > 0.35 && onScreen(x, y, width, height),
+      });
+    }
+    hud.updateMapCards(positions);
+  }
+
+  private ownGarrisonFooters() {
+    const footers = new Map<number, { name: string; strength: string; soldiers: number }>();
+    const ordinalOf = this.playerArmyOrdinals();
+    for (const army of this.armies) {
+      if (!this.isOwnArmy(army)) continue;
+      const city = this.occupiedCityForArmy(army);
+      if (city === null) continue;
+      const existing = footers.get(city.index);
+      if (existing && existing.soldiers >= army.soldiers) continue;
+      footers.set(city.index, {
+        name: `${ordinal(ordinalOf.get(army.id) ?? 1)} LEGION`,
+        strength: formatStrength(army.soldiers),
+        soldiers: army.soldiers,
+      });
+    }
+    return footers;
+  }
+
+  private playerArmyOrdinals() {
+    const ids = this.armies
+      .filter((army) => this.isOwnArmy(army))
+      .map((army) => army.id)
+      .sort((a, b) => a - b);
+    return new Map(ids.map((id, index) => [id, index + 1]));
+  }
+
+  private isOwnArmy(army: ArmyView) {
+    return army.mine || army.faction === this.playerFaction();
+  }
+
+  /** The occupied city only counts as a garrison (card footer, no army card)
+   *  when the player OWNS it — an own army on a foreign city (siege/occupation)
+   *  must keep its own army card or the stack has no label at all. */
+  private ownGarrisonCityForArmy(army: ArmyView) {
+    const hit = this.occupiedCityForArmy(army);
+    if (!hit) return null;
+    return this.cities.get(hit.index)?.owner === this.playerFaction() ? hit : null;
+  }
+
+  private occupiedCityForArmy(army: ArmyView) {
+    let best: { index: number; d: number } | null = null;
+    for (let index = 0; index < this.cfg.data.map.nodes.length; index++) {
+      const node = this.cfg.data.map.nodes[index];
+      if (node.kind !== "city") continue;
+      const d = Math.hypot(node.pos[0] - army.x, node.pos[1] - army.y);
+      if (d < 8 && (!best || d < best.d)) best = { index, d };
+    }
+    return best;
   }
 
   // ---- input ------------------------------------------------------------------
@@ -498,7 +609,7 @@ export class CampaignScene implements Scene {
           e.offsetX * devicePixelRatio,
           e.offsetY * devicePixelRatio,
         );
-        this.cam.scale = Math.min(8, this.cam.scale * f);
+        this.cam.scale = Math.min(MAX_CAMPAIGN_ZOOM, this.cam.scale * f);
         this.clampCam(); // zoom floor + new basis for zoom-to-cursor
         const [nx, ny] = this.renderer.toWorld(
           e.offsetX * devicePixelRatio,
@@ -647,7 +758,7 @@ export class CampaignScene implements Scene {
     });
     const mineInvolved = info.attacker.faction === my || info.defender.faction === my;
     // Jump the camera to where the fight is so the player sees the threat
-    // behind the (semi-transparent) modal. Prefer the defender — that is the
+    // behind the dimmed modal. Prefer the defender — that is the
     // place under attack — and fall back to the attacker if it is off-map or
     // fogged (e.g. a city garrison not drawn as a field army).
     const at =
@@ -658,26 +769,21 @@ export class CampaignScene implements Scene {
       this.drawWorld(); // one render at the new camera before the modal covers it
     }
     this.modalOpen = true;
-    const root = this.modalRoot;
-    if (root)
-      flushSync(() =>
-        root.render(
-          createElement(CampaignBattleModal, {
-            ambush: info.ambush,
-            attacker: sideView(info.attacker, "Attacker", info.no_retreat[0]),
-            defender: sideView(info.defender, "Defender", info.no_retreat[1]),
-            reinforcements: info.reinforcements,
-            mineInvolved,
-            onFight: () => this.fight(eid),
-            onAuto: () => this.autoResolve(eid),
-          }),
-        ),
-      );
+    this.campaignHud?.setBattleModal({
+      ambush: info.ambush,
+      attacker: sideView(info.attacker, "Attacker", info.no_retreat[0]),
+      defender: sideView(info.defender, "Defender", info.no_retreat[1]),
+      reinforcements: info.reinforcements,
+      mineInvolved,
+      onFight: () => this.fight(eid),
+      onAuto: () => this.autoResolve(eid),
+    });
   }
 
   private closeModal() {
     this.modalOpen = false;
-    this.modalRoot?.render(null);
+    this.campaignHud?.setBattleModal(null);
+    this.campaignHud?.setProgressModal(null);
   }
 
   private fight(eid: number) {
@@ -701,10 +807,7 @@ export class CampaignScene implements Scene {
     const game = start_campaign_battle(c, eid);
     if (!game) return;
     this.autoResolving = true;
-    const overlay = document.createElement("div");
-    overlay.className = "cmp-modal";
-    overlay.innerHTML = `<div class="cmp-box"><h2>Resolving battle…</h2><div id="cmp-prog">0:00</div></div>`;
-    this.ui.appendChild(overlay);
+    this.campaignHud?.setProgressModal("0:00");
     // Match the native headless auto-resolve cap: long grinds are decided by
     // remaining strength instead of making the UI burn minutes of wasm time.
     const cap = 30 * 60 * 12; // 12 battle-minutes
@@ -713,13 +816,14 @@ export class CampaignScene implements Scene {
       const v = game.auto_step(30 * 10); // 10 battle-seconds per frame
       ticks += 30 * 10;
       const secs = Math.floor(ticks / 30);
-      overlay.querySelector("#cmp-prog")!.textContent =
-        `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")} battle time`;
+      this.campaignHud?.setProgressModal(
+        `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")} battle time`,
+      );
       if (v >= 0 || ticks >= cap) {
         report_battle(c, game);
         game.free();
-        overlay.remove();
         this.autoResolving = false;
+        this.closeModal();
         this.refreshViews();
       } else {
         requestAnimationFrame(pump);
@@ -740,17 +844,8 @@ export class CampaignScene implements Scene {
     ui.style.display = "none";
     ui.innerHTML = campaignDomHtml();
     document.body.appendChild(ui);
-    // The top bar is React (CampaignTopBar); its handlers call the same scene
-    // methods the old inline listeners did. renderTopBar() feeds it state and is
-    // the successor of the old imperative #cmp-date/#cmp-gold/.on updates.
-    this.topBarRoot = createRoot(ui.querySelector("#cmp-topbar-root")!);
+    this.campaignHud = mountCampaignHud(ui.querySelector("#cmp-hud-root")!);
     this.renderTopBar();
-    this.armyRoot = createRoot(ui.querySelector("#cmp-army")!);
-    this.cityRoot = createRoot(ui.querySelector("#cmp-city")!);
-    this.diploRoot = createRoot(ui.querySelector("#cmp-diplomacy")!);
-    this.classesRoot = createRoot(ui.querySelector("#cmp-classes")!);
-    this.siegesRoot = createRoot(ui.querySelector("#cmp-sieges")!);
-    this.modalRoot = createRoot(ui.querySelector("#cmp-modal-root")!);
   }
 
   private saveCampaign() {
@@ -765,13 +860,14 @@ export class CampaignScene implements Scene {
   /** Render the React top bar with current state — the ≤5Hz bridge. Skips when
    * nothing visible changed (called every updateHud, i.e. per render frame). */
   private renderTopBar() {
-    if (!this.topBarRoot) return;
+    const hud = this.campaignHud;
+    if (!hud) return;
     const t = this.cfg.campaign.current_tick();
     const day = Math.floor(t / 1440) + 1;
     const mins = t % 1440;
     const hh = String(Math.floor(mins / 60)).padStart(2, "0");
     const mm = String(Math.floor(mins % 60)).padStart(2, "0");
-    const dateText = `Day ${day}, ${hh}:${mm}${this.paused ? "  ⏸ PAUSED" : `  ${SPEEDS[this.speed]}×`}`;
+    const dateText = `Day ${day}, ${hh}:${mm}${this.paused ? "  PAUSED" : `  ${SPEED_LABELS[this.speed]}`}`;
     const eco = JSON.parse(this.cfg.campaign.economy_json()) as {
       treasury: number;
       monthly_income: number;
@@ -783,60 +879,56 @@ export class CampaignScene implements Scene {
     const key = `${dateText}|${goldText}|${this.factionView}|${this.fogOfWar}|${this.diploOpen}|${this.classBuilderOpen}`;
     if (key === this.lastTopBarKey) return;
     this.lastTopBarKey = key;
-    this.topBarRoot.render(
-      createElement(CampaignTopBar, {
-        dateText,
-        goldText,
-        paused: this.paused,
-        speed: this.speed,
-        factionView: this.factionView,
-        fog: this.fogOfWar,
-        diploOpen: this.diploOpen,
-        classesOpen: this.classBuilderOpen,
-        onPause: () => {
-          this.paused = !this.paused;
-          this.renderTopBar();
-        },
-        onSpeed: (i) => {
-          this.setSpeed(i);
-          this.renderTopBar();
-        },
-        onFactions: () => {
-          this.factionView = !this.factionView;
-          this.renderTopBar();
-        },
-        onFog: () => {
-          this.fogOfWar = !this.fogOfWar;
-          this.renderTopBar();
-        },
-        onDiplomacy: () => {
-          this.toggleDiplomacy();
-          this.renderTopBar();
-        },
-        onClasses: () => {
-          this.toggleClassBuilder();
-          this.renderTopBar();
-        },
-        onSave: () => this.saveCampaign(),
-        onExit: () => this.cfg.onExit(),
-      }),
-    );
+    hud.setTopBar({
+      dateText,
+      goldText,
+      paused: this.paused,
+      speed: this.speed,
+      factionView: this.factionView,
+      fog: this.fogOfWar,
+      diploOpen: this.diploOpen,
+      classesOpen: this.classBuilderOpen,
+      onPause: () => {
+        this.paused = !this.paused;
+        this.renderTopBar();
+      },
+      onSpeed: (i) => {
+        this.setSpeed(i);
+        this.renderTopBar();
+      },
+      onFactions: () => {
+        this.factionView = !this.factionView;
+        this.renderTopBar();
+      },
+      onFog: () => {
+        this.fogOfWar = !this.fogOfWar;
+        this.renderTopBar();
+      },
+      onDiplomacy: () => {
+        this.toggleDiplomacy();
+        this.renderTopBar();
+      },
+      onClasses: () => {
+        this.toggleClassBuilder();
+        this.renderTopBar();
+      },
+      onSave: () => this.saveCampaign(),
+      onExit: () => this.cfg.onExit(),
+    });
   }
 
   private toggleDiplomacy() {
     this.diploOpen = !this.diploOpen;
-    const panel = this.ui.querySelector("#cmp-diplomacy") as HTMLDivElement;
-    panel.style.display = this.diploOpen ? "block" : "none";
     // The #cmp-diplo-btn lit state is the React top bar's (diploOpen prop).
     if (this.diploOpen) this.updateDiplomacyPanel();
+    else this.campaignHud?.setDiplomacy(null);
   }
 
   private toggleClassBuilder() {
     this.classBuilderOpen = !this.classBuilderOpen;
-    const panel = this.ui.querySelector("#cmp-classes") as HTMLDivElement;
-    panel.style.display = this.classBuilderOpen ? "block" : "none";
     // The #cmp-classes-btn lit state is the React top bar's (classesOpen prop).
     if (this.classBuilderOpen) this.updateClassBuilderPanel(true);
+    else this.campaignHud?.setClasses(null);
   }
 
   private updateDiplomacyPanel() {
@@ -852,20 +944,14 @@ export class CampaignScene implements Scene {
       break_alliance: (other) => this.cfg.campaign.break_alliance(other),
       gift_gold: (other) => this.cfg.campaign.gift_gold(other, 200),
     };
-    const root = this.diploRoot;
-    if (root)
-      flushSync(() =>
-        root.render(
-          createElement(DiplomacyPanel, {
-            list,
-            onAction: (act, other) => {
-              actions[act](other);
-              this.refreshViews();
-              this.updateDiplomacyPanel();
-            },
-          }),
-        ),
-      );
+    this.campaignHud?.setDiplomacy({
+      list,
+      onAction: (act, other) => {
+        actions[act](other);
+        this.refreshViews();
+        this.updateDiplomacyPanel();
+      },
+    });
   }
 
   private updateHud() {
@@ -891,51 +977,40 @@ export class CampaignScene implements Scene {
         dirty: d.unit !== r.selected || d.size !== r.sizeMult,
       };
     });
-    const root = this.classesRoot;
-    if (root)
-      flushSync(() =>
-        root.render(
-          createElement(ClassBuilder, {
-            rows,
-            // Selecting a unit/size stages it in the draft (its dirty flag lights
-            // Apply); the row's live selected/size drives the fallback for the other.
-            onSelectUnit: (cls, unit) => {
-              const row = rows.find((r) => r.classIndex === cls);
-              if (!row) return;
-              this.classDraft.set(cls, { unit, size: row.sizeMult });
-              this.updateClassBuilderPanel(true);
-            },
-            onSelectSize: (cls, size) => {
-              const row = rows.find((r) => r.classIndex === cls);
-              if (!row) return;
-              this.classDraft.set(cls, { unit: row.selected, size });
-              this.updateClassBuilderPanel(true);
-            },
-            onApply: (cls) => {
-              const draft = this.classDraft.get(cls);
-              if (
-                draft &&
-                this.cfg.campaign.order_set_class_doctrine(cls, draft.unit, draft.size)
-              ) {
-                this.classDraft.delete(cls);
-                this.refreshViews();
-                this.updateClassBuilderPanel(true);
-              }
-            },
-          }),
-        ),
-      );
+    this.campaignHud?.setClasses({
+      rows,
+      // Selecting a unit/size stages it in the draft (its dirty flag lights
+      // Apply); the row's live selected/size drives the fallback for the other.
+      onSelectUnit: (cls, unit) => {
+        const row = rows.find((r) => r.classIndex === cls);
+        if (!row) return;
+        this.classDraft.set(cls, { unit, size: row.sizeMult });
+        this.updateClassBuilderPanel(true);
+      },
+      onSelectSize: (cls, size) => {
+        const row = rows.find((r) => r.classIndex === cls);
+        if (!row) return;
+        this.classDraft.set(cls, { unit: row.selected, size });
+        this.updateClassBuilderPanel(true);
+      },
+      onApply: (cls) => {
+        const draft = this.classDraft.get(cls);
+        if (draft && this.cfg.campaign.order_set_class_doctrine(cls, draft.unit, draft.size)) {
+          this.classDraft.delete(cls);
+          this.refreshViews();
+          this.updateClassBuilderPanel(true);
+        }
+      },
+    });
   }
 
   private updateArmyPanel() {
-    const panel = this.ui.querySelector("#cmp-army") as HTMLDivElement;
     const roster =
       this.selected < 0
         ? null
         : (JSON.parse(this.cfg.campaign.army_roster_json(this.selected)) as ArmyRosterRow[] | null);
     if (this.selected < 0 || !roster) {
-      panel.style.display = "none";
-      this.armyRoot?.render(null);
+      this.campaignHud?.setArmy(null);
       return;
     }
     const id = this.selected;
@@ -949,61 +1024,51 @@ export class CampaignScene implements Scene {
       ? this.spotPos.findIndex(([x, y]) => Math.hypot(x - me.x, y - me.y) < 2.6)
       : -1;
     const autoReplenish = this.cfg.campaign.army_auto_replenish(id);
-    panel.style.display = "block";
-    const root = this.armyRoot;
-    // flushSync so the panel DOM is live synchronously (matching the old
-    // innerHTML), for the debug API and any synchronous test read.
-    if (root)
-      flushSync(() =>
-        root.render(
-          createElement(ArmyPanel, {
-            armyId: id,
-            roster,
-            me,
-            buddy,
-            spotIdx,
-            autoReplenish,
-            onAutoReplenish: (on) => {
-              this.cfg.campaign.order_auto_replenish(id, on);
-              this.refreshViews();
-              this.updateArmyPanel();
-            },
-            onHalt: () => {
-              this.cfg.campaign.order_halt(id);
-              this.refreshViews();
-            },
-            onAmbush: () => {
-              if (spotIdx >= 0 && this.cfg.campaign.order_ambush(id, spotIdx)) {
-                this.refreshViews();
-                this.updateArmyPanel();
-              }
-            },
-            onCamp: () => {
-              if (this.cfg.campaign.order_camp(id)) {
-                this.refreshViews();
-                this.updateArmyPanel();
-              }
-            },
-            onSplit: (mask) => {
-              if (this.cfg.campaign.order_split(id, mask)) {
-                this.refreshViews();
-                this.updateArmyPanel();
-              }
-            },
-            onMerge: () => {
-              if (buddy && this.cfg.campaign.order_merge(buddy.id, id)) {
-                this.refreshViews();
-                this.updateArmyPanel();
-              }
-            },
-          }),
-        ),
-      );
+    this.campaignHud?.setArmy({
+      armyId: id,
+      roster,
+      me,
+      buddy,
+      spotIdx,
+      autoReplenish,
+      onAutoReplenish: (on) => {
+        this.cfg.campaign.order_auto_replenish(id, on);
+        this.refreshViews();
+        this.updateArmyPanel();
+      },
+      onHalt: () => {
+        this.cfg.campaign.order_halt(id);
+        this.refreshViews();
+      },
+      onAmbush: () => {
+        if (spotIdx >= 0 && this.cfg.campaign.order_ambush(id, spotIdx)) {
+          this.refreshViews();
+          this.updateArmyPanel();
+        }
+      },
+      onCamp: () => {
+        if (this.cfg.campaign.order_camp(id)) {
+          this.refreshViews();
+          this.updateArmyPanel();
+        }
+      },
+      onSplit: (mask) => {
+        if (this.cfg.campaign.order_split(id, mask)) {
+          this.refreshViews();
+          this.updateArmyPanel();
+        }
+      },
+      onMerge: () => {
+        if (buddy && this.cfg.campaign.order_merge(buddy.id, id)) {
+          this.refreshViews();
+          this.updateArmyPanel();
+        }
+      },
+    });
   }
 
   private openCityPanel(node: number) {
     this.selectedCity = node;
-    const panel = this.ui.querySelector("#cmp-city") as HTMLDivElement;
     const c = this.cities.get(node);
     if (!c) return;
     const mineCity =
@@ -1012,57 +1077,36 @@ export class CampaignScene implements Scene {
     const detail = JSON.parse(this.cfg.campaign.city_json(node)) as CityDetail | null;
     if (!detail) return;
     const n = this.cfg.data.map.nodes[node];
-    panel.style.display = "block";
-    const root = this.cityRoot;
-    if (root)
-      flushSync(() =>
-        root.render(
-          createElement(CityPanel, {
-            name: n.name,
-            tier: n.tier,
-            factionName: this.cfg.data.map.factions[c.owner]?.name ?? "?",
-            garrison: c.garrison,
-            queue: c.queue,
-            mineCity,
-            detail,
-            recruitClasses: this.recruitClasses,
-            // Read both dials so setting one keeps the other; the city auto-develops.
-            onPolicy: (focus, throttle) => {
-              this.cfg.campaign.order_set_city_policy(node, focus, throttle);
-              this.refreshViews();
-            },
-            onRecruit: (i) => {
-              this.cfg.campaign.order_recruit(node, i, 240);
-              this.refreshViews();
-              this.openCityPanel(node);
-            },
-          }),
-        ),
-      );
+    this.campaignHud?.setCity({
+      name: n.name,
+      tier: n.tier,
+      factionName: this.cfg.data.map.factions[c.owner]?.name ?? "?",
+      garrison: c.garrison,
+      queue: c.queue,
+      mineCity,
+      detail,
+      recruitClasses: this.recruitClasses,
+      // Read both dials so setting one keeps the other; the city auto-develops.
+      onPolicy: (focus, throttle) => {
+        this.cfg.campaign.order_set_city_policy(node, focus, throttle);
+        this.refreshViews();
+      },
+      onRecruit: (i) => {
+        this.cfg.campaign.order_recruit(node, i, 240);
+        this.refreshViews();
+        this.openCityPanel(node);
+      },
+    });
   }
 
   private openJunctionPanel(node: number) {
     this.selectedCity = -1;
-    const panel = this.ui.querySelector("#cmp-city") as HTMLDivElement;
-    panel.style.display = "block";
-    const root = this.cityRoot;
-    if (root)
-      flushSync(() =>
-        root.render(
-          createElement(
-            Fragment,
-            null,
-            createElement("b", null, this.cfg.data.map.nodes[node].name),
-            " (junction)",
-          ),
-        ),
-      );
+    this.campaignHud?.setJunction(this.cfg.data.map.nodes[node].name);
   }
 
   private closeCityPanel() {
     this.selectedCity = -1;
-    (this.ui.querySelector("#cmp-city") as HTMLDivElement).style.display = "none";
-    this.cityRoot?.render(null);
+    this.campaignHud?.setCity(null);
   }
 
   private playerFaction(): number {
@@ -1107,6 +1151,30 @@ export class CampaignScene implements Scene {
     }
     return src;
   }
+}
+
+function cssFactionColor(color: [number, number, number] | undefined) {
+  const [r, g, b] = color ?? [146, 126, 92];
+  return `rgb(${r},${g},${b})`;
+}
+
+function formatStrength(soldiers: number) {
+  return `${Math.round(soldiers / 100) / 10}k`;
+}
+
+function cityCardOffsetY(zoom: number, tier: number) {
+  if (zoom < 0.6) return 12 + tier * 1.4;
+  return 15 + Math.min(8, zoom * 2.2);
+}
+
+function onScreen(x: number, y: number, width: number, height: number) {
+  return x >= -160 && y >= -90 && x <= width + 160 && y <= height + 120;
+}
+
+function ordinal(k: number) {
+  const value = k % 100;
+  const suffix = value >= 11 && value <= 13 ? "th" : (["th", "st", "nd", "rd"][k % 10] ?? "th");
+  return `${k}${suffix}`;
 }
 
 export { loadCampaignData };

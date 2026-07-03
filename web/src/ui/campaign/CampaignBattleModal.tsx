@@ -1,6 +1,5 @@
-// S7: the campaign battle-decision modal (Fight / Auto-resolve) as React —
-// ported 1:1 from showBattleModal. Rendered into #cmp-modal-root; the scene
-// tracks an open flag (was the this.modal null-gate) to pause the world draw.
+// Campaign battle-decision modal. The scene tracks an open flag to pause the
+// world draw while this choice is visible.
 
 export interface EncounterSideView {
   label: string;
@@ -37,7 +36,7 @@ function Side({ s }: { s: EncounterSideView }) {
 export function CampaignBattleModal(p: CampaignBattleModalProps) {
   return (
     <div className="cmp-modal">
-      <div className="cmp-box">
+      <div className="cmp-box hud-chassis hud-chassis--tray">
         <h2>{p.ambush ? "AMBUSH!" : "Battle"}</h2>
         <div className="cmp-sides">
           <Side s={p.attacker} />

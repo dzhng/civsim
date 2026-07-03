@@ -862,28 +862,25 @@ function campaignMapMarkers(data: CampaignData, opts: DrawOptions): CampaignMark
         0,
         data.map.factions.findIndex((faction) => faction.id === node.owner),
       );
-    const allegiance = opts.factionView ? statusOf(opts.factionStatus, owner) : Allegiance.Neutral;
+    if (owner === opts.playerFaction) return;
     markers.push({
       x: node.pos[0],
       y: node.pos[1],
       radius: cityMarkerRadiusPx(node.tier),
-      faction: opts.factionView ? factionColor(data, owner) : [0.16, 0.12, 0.08],
-      allegiance: allegianceColor(allegiance),
+      faction: factionColor(data, owner),
+      allegiance: factionColor(data, owner),
       kind: "city",
       selected: index === opts.selectedCity,
     });
   });
   for (const army of visibleCampaignArmies(opts)) {
-    const allegiance =
-      army.mine || army.faction === opts.playerFaction
-        ? Allegiance.Friend
-        : statusOf(opts.factionStatus, army.faction);
+    if (army.mine || army.faction === opts.playerFaction) continue;
     markers.push({
       x: army.x,
       y: army.y,
       radius: army.id === opts.selected ? 10.5 : 9,
       faction: factionColor(data, army.faction),
-      allegiance: allegianceColor(allegiance),
+      allegiance: factionColor(data, army.faction),
       kind: "army",
       selected: army.id === opts.selected,
     });
@@ -926,7 +923,8 @@ function campaignCityLabels(
         0,
         data.map.factions.findIndex((faction) => faction.id === node.owner),
       );
-    const allegiance = opts.factionView ? statusOf(opts.factionStatus, owner) : Allegiance.Neutral;
+    if (owner === opts.playerFaction) return;
+    const allegiance = statusOf(opts.factionStatus, owner);
     const baseSize = Math.min(15, 9.5 + opts.cam.scale) * (node.tier >= 3 ? 1.15 : 1);
     const overviewMarkerLabel = opts.cam.scale < 0.6;
     labels.push({
@@ -937,7 +935,9 @@ function campaignCityLabels(
       size: baseSize,
       priority: node.tier,
       icon: "city",
-      iconColor: allegianceColor(allegiance),
+      iconColor: factionColor(data, owner),
+      rightIcon: allegiance === Allegiance.Foe ? "sword" : undefined,
+      rightIconColor: allegiance === Allegiance.Foe ? [0.83, 0.2, 0.15] : undefined,
       collisionGroup: cityCollisionGroup(index),
       screenOffsetX: cityLabelOffsetX(opts, node.tier) + horizontalEdgeOffset(edge.x(node.pos[0])),
       screenOffsetY:
@@ -962,34 +962,32 @@ function campaignArmyLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
     ids.sort((a, b) => a - b);
     ids.forEach((id, index) => ordinalOf.set(id, index + 1));
   }
-  return visibleCampaignArmies(opts).map((army): CampaignLabel => {
-    const allegiance =
-      army.mine || army.faction === opts.playerFaction
-        ? Allegiance.Friend
-        : statusOf(opts.factionStatus, army.faction);
-    const markerSize = army.id === opts.selected ? 13 : 11;
-    const occupiedCity = occupiedCityForArmy(data, army);
-    const display = occupiedCity
-      ? garrisonDisplayAnchor(data.map.nodes[occupiedCity.index])
-      : { x: army.x, y: army.y };
-    const cityOverlap = occupiedCity !== null;
-    const selectedOffset = !cityOverlap && army.id === opts.selected && isControlledStage(data) ? 28 : 0;
-    const overlapClearance = cityOverlap ? (opts.cam.scale >= 3 ? 14 : 10) : 24;
-    return {
-      text: `${ordinal(ordinalOf.get(army.id) ?? 1)} LEGION`,
-      sideText: `${Math.round(army.soldiers / 100) / 10}k`,
-      subText: occupiedCity?.name.toUpperCase(),
-      x: display.x,
-      y: display.y,
-      kind: "army",
-      size: Math.min(14, 9 + opts.cam.scale),
-      priority: 4,
-      icon: "army",
-      iconColor: allegianceColor(allegiance),
-      collisionGroup: occupiedCity ? cityCollisionGroup(occupiedCity.index) : undefined,
-      screenOffsetY: markerSize + selectedOffset + overlapClearance,
-    };
-  });
+  return visibleCampaignArmies(opts)
+    .filter((army) => !army.mine && army.faction !== opts.playerFaction)
+    .map((army): CampaignLabel => {
+      const markerSize = army.id === opts.selected ? 13 : 11;
+      const occupiedCity = occupiedCityForArmy(data, army);
+      const display = occupiedCity
+        ? garrisonDisplayAnchor(data.map.nodes[occupiedCity.index])
+        : { x: army.x, y: army.y };
+      const cityOverlap = occupiedCity !== null;
+      const selectedOffset = !cityOverlap && army.id === opts.selected && isControlledStage(data) ? 28 : 0;
+      const overlapClearance = cityOverlap ? (opts.cam.scale >= 3 ? 14 : 10) : 24;
+      return {
+        text: `${ordinal(ordinalOf.get(army.id) ?? 1)} LEGION`,
+        sideText: `${Math.round(army.soldiers / 100) / 10}k`,
+        subText: occupiedCity?.name.toUpperCase(),
+        x: display.x,
+        y: display.y,
+        kind: "army",
+        size: Math.min(14, 9 + opts.cam.scale),
+        priority: 4,
+        icon: "army",
+        iconColor: factionColor(data, army.faction),
+        collisionGroup: occupiedCity ? cityCollisionGroup(occupiedCity.index) : undefined,
+        screenOffsetY: markerSize + selectedOffset + overlapClearance,
+      };
+    });
 }
 
 function cityModelRadius(tier: number) {

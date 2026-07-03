@@ -98,8 +98,10 @@ export interface CampaignLabel {
   priority: number;
   angle?: number;
   curve?: number;
-  icon?: 'city' | 'army';
+  icon?: 'city' | 'army' | 'sword';
   iconColor?: [number, number, number];
+  rightIcon?: 'sword';
+  rightIconColor?: [number, number, number];
   sideText?: string;
   subText?: string;
   collisionGroup?: string;
@@ -114,6 +116,7 @@ export interface CampaignLabel {
 const ICON_PATHS = {
   city: 'M240,208H224V136l2.34,2.34A8,8,0,0,0,237.66,127L139.31,28.68a16,16,0,0,0-22.62,0L18.34,127a8,8,0,0,0,11.32,11.31L32,136v72H16a8,8,0,0,0,0,16H240a8,8,0,0,0,0-16Zm-88,0H104V160a4,4,0,0,1,4-4h40a4,4,0,0,1,4,4Z',
   army: 'M230.4,219.19A8,8,0,0,1,224,232H32a8,8,0,0,1-6.4-12.8A67.88,67.88,0,0,1,53,197.51a40,40,0,1,1,53.93,0,67.42,67.42,0,0,1,21,14.29,67.42,67.42,0,0,1,21-14.29,40,40,0,1,1,53.93,0A67.85,67.85,0,0,1,230.4,219.19ZM27.2,126.4a8,8,0,0,0,11.2-1.6,52,52,0,0,1,83.2,0,8,8,0,0,0,12.8,0,52,52,0,0,1,83.2,0,8,8,0,0,0,12.8-9.61A67.85,67.85,0,0,0,203,93.51a40,40,0,1,0-53.93,0,67.42,67.42,0,0,0-21,14.29,67.42,67.42,0,0,0-21-14.29,40,40,0,1,0-53.93,0A67.88,67.88,0,0,0,25.6,115.2,8,8,0,0,0,27.2,126.4Z',
+  sword: 'M202.7,17.4l35.9,35.9L104,187.9l-35.9-35.9L202.7,17.4ZM57.5,135.6l62.9,62.9-18.1,18.1-18.7-18.7-41.9,41.9-25.5-25.5 41.9-41.9-18.7-18.7 18.1-18.1Z',
 } as const;
 
 const MAP_WGSL = `
@@ -1341,7 +1344,7 @@ function markerForNode(data: CampaignMapInputData, node: CampaignMapNodeData): C
     y: node.pos[1],
     radius: node.tier >= 3 ? 10 : 7,
     faction: [faction[0] / 255, faction[1] / 255, faction[2] / 255],
-    allegiance: node.owner === 'rome' ? [0.31, 0.82, 0.39] : [0.93, 0.78, 0.30],
+    allegiance: [faction[0] / 255, faction[1] / 255, faction[2] / 255],
   };
 }
 
@@ -1586,6 +1589,8 @@ function labelAtlasKey(labels: VisibleCampaignLabel[], dpr: number, totalLabels:
         (label.curve ?? 0).toFixed(3),
         label.icon ?? 'none',
         label.iconColor?.map((v) => v.toFixed(3)).join(',') ?? '',
+        label.rightIcon ?? 'none',
+        label.rightIconColor?.map((v) => v.toFixed(3)).join(',') ?? '',
         label.sideText ?? '',
         label.subText ?? '',
         label.collisionGroup ?? '',
@@ -1611,6 +1616,7 @@ function buildLabelAtlas(labels: VisibleCampaignLabel[], dpr: number) {
     const sideText = entry.label.sideText ?? '';
     const subText = entry.label.subText ?? '';
     const iconWidth = entry.label.icon ? style.iconSize + style.iconGap : 0;
+    const rightIconWidth = entry.label.rightIcon ? style.iconSize + style.iconGap : 0;
     const mainWidth = measure.measureText(text).width;
     const sideWidth = sideText ? style.sideGap + measureTextWithFont(measure, style.sideFont, style.letterSpacing, sideText) : 0;
     const subWidth = subText ? measureTextWithFont(measure, style.subFont, style.letterSpacing, subText) : 0;
@@ -1623,7 +1629,7 @@ function buildLabelAtlas(labels: VisibleCampaignLabel[], dpr: number) {
       style,
       seaPath,
       mainWidth,
-      width: Math.max(1, Math.ceil(Math.max(seaPath?.width ?? mainWidth + iconWidth + sideWidth, subWidth) + style.padding * 2)),
+      width: Math.max(1, Math.ceil(Math.max(seaPath?.width ?? mainWidth + iconWidth + sideWidth + rightIconWidth, subWidth) + style.padding * 2)),
       height: Math.max(1, Math.ceil((seaPath?.height ?? style.size * (subText ? 2.42 : 1.55)) + style.padding * 2)),
     };
   });
@@ -1680,6 +1686,19 @@ function buildLabelAtlas(labels: VisibleCampaignLabel[], dpr: number) {
         ctx.fillStyle = entry.style.sideFill;
         ctx.fillText(entry.sideText, sx, ty);
         ctx.font = entry.style.font;
+      }
+      if (entry.label.rightIcon) {
+        const sideWidth = entry.sideText
+          ? entry.style.sideGap + measureTextWithFont(ctx, entry.style.sideFont, entry.style.letterSpacing, entry.sideText)
+          : 0;
+        const ix = tx + entry.mainWidth + sideWidth + entry.style.iconGap;
+        drawLabelIcon(
+          ctx,
+          { ...entry.label, icon: entry.label.rightIcon, iconColor: entry.label.rightIconColor },
+          ix,
+          ty - entry.style.iconSize * 0.84,
+          entry.style,
+        );
       }
     }
     if (entry.subText) {
@@ -2005,7 +2024,7 @@ function drawLabelIcon(
   if (!label.icon) return;
   const path = new Path2D(ICON_PATHS[label.icon]);
   const s = style.iconSize / 256;
-  const color = label.iconColor ?? (label.kind === 'army' ? [0.31, 0.82, 0.39] : [0.93, 0.78, 0.30]);
+  const color = label.iconColor ?? [0.57, 0.49, 0.36];
   ctx.save();
   ctx.translate(x, y);
   ctx.scale(s, s);

@@ -23,7 +23,13 @@ Sheet built (`visualizations/city-card-variations.html`), published as an
 artifact, opened in Preview; unprimed critique run (verdict below). David did not
 respond within the window, so per protocol the decision was made on the evidence:
 
-**CHOSEN: Variation B — plaque with inset wells** (engraved name on bronze;
+**DAVID OVERRODE (2026-07-03, final): Variation C — the faction-banner card**
+("In the examples, I like Faction-banner card"), and extended the scope: **own
+ARMIES use the same card style** — a C-style bronze card (faction band on top)
+for own field armies (name + strength), not just cities. The interim call below
+is superseded; kept for the record.
+
+~~CHOSEN: Variation B — plaque with inset wells~~ (engraved name on bronze;
 income and garrison each in a dark inset `--well-bg` well, one housing).
 Rationale: the unprimed critique found A/C near-duplicates while B is the only
 variation with real internal material hierarchy, and B's hierarchy survives

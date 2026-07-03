@@ -1,5 +1,6 @@
 import { battleCameraRig, type CameraRigRange, type ZoomCameraRig } from "../battle/cameraRig";
 import {
+  eyePosition,
   projectPoint,
   unprojectToPlaneZ,
   type Camera3DParams,
@@ -13,6 +14,7 @@ import {
 // There is no separate 2.5D projection here — camera3d is the single owner.
 const MIN_PITCH = 0.12; // near ground-level vista floor (radians off the ground)
 const MAX_PITCH = Math.PI / 2 - 0.02; // just shy of straight-down top-down
+const EYE_CLEARANCE = 1.6; // m above terrain at the eye's ground column
 const NEAR_PLANE = 1.0; // meters; reverse-Z + infinite far spends precision far out
 
 export class Camera {
@@ -29,6 +31,11 @@ export class Camera {
 
   private zoomRange: CameraRigRange = { min: 0.4, max: 8 };
   private rigBounds = { width: 1, height: 1 };
+  /** Terrain height sampler (world m). When set, the look target rides the
+   *  terrain and the eye keeps a clearance above it — the soldier-eye zoom
+   *  floor cannot dive under a hill, and WASD panning auto-raises because
+   *  params() resamples every frame. Null = legacy flat z = 0. */
+  groundHeight: ((x: number, y: number) => number) | null = null;
 
   // Explicit field (not a constructor parameter property) so node's strip-only
   // TS loader can run this file in unit tests.
@@ -95,15 +102,27 @@ export class Camera {
   params(): Camera3DParams {
     const rig = this.rig();
     const [ox, oy] = this.rotate(rig.target[0], rig.target[1]);
-    return {
-      target: [this.x + ox, this.y + oy, 0],
+    const tx = this.x + ox;
+    const ty = this.y + oy;
+    let tz = this.groundHeight ? this.groundHeight(tx, ty) : 0;
+    const mk = (z: number): Camera3DParams => ({
+      target: [tx, ty, z],
       distance: rig.distance,
       pitch: this.effectivePitch(rig),
       yaw: this.yaw,
       fovY: rig.fovY,
       aspect: this.canvas.width / Math.max(1, this.canvas.height),
       near: NEAR_PLANE,
-    };
+    });
+    if (this.groundHeight) {
+      // Eye clearance: the eye's ground column can be HIGHER than the look
+      // target's (looking up-slope from a valley). Raising target.z raises
+      // the eye 1:1, so one closed-form lift keeps the eye above terrain.
+      const eye = eyePosition(mk(tz));
+      const need = this.groundHeight(eye[0], eye[1]) + EYE_CLEARANCE - eye[2];
+      if (need > 0) tz += need;
+    }
+    return mk(tz);
   }
 
   /** The ground point at screen centre (the camera's look target). */

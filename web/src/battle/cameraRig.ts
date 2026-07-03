@@ -52,7 +52,7 @@ interface RigCurve {
 }
 
 // Battle: a genuine near-top-down tactical read through most of the range,
-// dropping late into a low cinematic vista at the close endpoint.
+// only dropping toward the low cinematic vista in the final zoom stretch.
 const BATTLE_CURVE: RigCurve = {
   topDownPitch: 1.35, // ~77° down — near-vertical tactical
   vistaPitch: 0.24, // ~14° — low, just above soldier eye height at 10m
@@ -62,7 +62,7 @@ const BATTLE_CURVE: RigCurve = {
   distInFactor: 0.6,
   distInMeters: 10,
   maxForwardFraction: 0.3,
-  easeBias: 4,
+  easeBias: 20,
 };
 
 // Campaign: a strategic chart. Flatter (stays near-top-down longer via easeBias),

@@ -304,6 +304,27 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   return in.color;
 }`;
 
+// 3D variant: vertices carry their own z (terrain height + lift) so ground
+// strips like the faction borders drape over raised terrain instead of being
+// depth-buried at z = 0 under the height-mapped surface mesh.
+const LINE3D_WGSL = `
+${WORLD_CAMERA_WGSL}
+
+struct VsOut { @builtin(position) pos: vec4f, @location(0) color: vec4f };
+
+@vertex
+fn vs(@location(0) world: vec3f, @location(1) color: vec4f) -> VsOut {
+  var out: VsOut;
+  out.pos = projectWorld(world);
+  out.color = color;
+  return out;
+}
+
+@fragment
+fn fs(in: VsOut) -> @location(0) vec4f {
+  return in.color;
+}`;
+
 const ROAD_WGSL = `
 ${WORLD_CAMERA_WGSL}
 
@@ -677,15 +698,28 @@ export class CampaignWorldLinePass {
   private pipeline: GPURenderPipeline;
   private geometry: CampaignLineGeometry;
 
-  constructor(private shell: RawFrameShell, private topology: GPUPrimitiveTopology = 'line-list') {
+  constructor(
+    private shell: RawFrameShell,
+    private topology: GPUPrimitiveTopology = 'line-list',
+    private vertexFormat: 'xy' | 'xyz' = 'xy',
+  ) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'campaign-world-line-wgsl', code: LINE_WGSL });
+    const module = device.createShaderModule({
+      label: 'campaign-world-line-wgsl',
+      code: vertexFormat === 'xyz' ? LINE3D_WGSL : LINE_WGSL,
+    });
     this.pipeline = this.makePipeline(module);
-    this.geometry = new CampaignLineGeometry(shell, topology, 'campaign-world-line-empty');
+    this.geometry = new CampaignLineGeometry(
+      shell,
+      topology,
+      'campaign-world-line-empty',
+      vertexFormat === 'xyz' ? 7 : 6,
+    );
   }
 
   private makePipeline(module: GPUShaderModule) {
     const device = this.shell.device;
+    const positionSize = this.vertexFormat === 'xyz' ? 12 : 8;
     return device.createRenderPipeline({
       label: 'campaign-line-world-depth-pipeline',
       layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout] }),
@@ -693,10 +727,10 @@ export class CampaignWorldLinePass {
         module,
         entryPoint: 'vs',
         buffers: [{
-          arrayStride: 24,
+          arrayStride: positionSize + 16,
           attributes: [
-            { shaderLocation: 0, offset: 0, format: 'float32x2' },
-            { shaderLocation: 1, offset: 8, format: 'float32x4' },
+            { shaderLocation: 0, offset: 0, format: this.vertexFormat === 'xyz' ? 'float32x3' : 'float32x2' },
+            { shaderLocation: 1, offset: positionSize, format: 'float32x4' },
           ],
         }],
       },
@@ -728,21 +762,26 @@ class CampaignLineGeometry {
   private capacity = 0;
   private vertexCount = 0;
 
-  constructor(private shell: RawFrameShell, private topology: GPUPrimitiveTopology, emptyLabel: string) {
+  constructor(
+    private shell: RawFrameShell,
+    private topology: GPUPrimitiveTopology,
+    emptyLabel: string,
+    private floatsPerVertex = 6,
+  ) {
     this.vertexBuffer = shell.device.createBuffer({
       label: emptyLabel,
-      size: 6 * 4,
+      size: this.floatsPerVertex * 4,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
   }
 
   upload(vertices: Float32Array) {
-    this.vertexCount = Math.floor(vertices.length / 6);
+    this.vertexCount = Math.floor(vertices.length / this.floatsPerVertex);
     if (this.vertexCount > this.capacity) {
       this.capacity = Math.max(this.vertexCount, this.capacity * 2, 512);
       this.vertexBuffer = this.shell.device.createBuffer({
         label: 'campaign-line-vertices',
-        size: this.capacity * 6 * 4,
+        size: this.capacity * this.floatsPerVertex * 4,
         usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
       });
     }

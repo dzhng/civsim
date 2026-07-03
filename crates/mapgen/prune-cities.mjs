@@ -35,11 +35,14 @@ cities.sort((p, q) =>
 // city maps to the nearest survivor (which absorbs its roads/garrison).
 const kept = [];
 const remap = new Map(); // pruned id -> surviving id
+const prunePos = (n) => n.srcPos ?? n.pos;
 for (const c of cities) {
   let near = null;
   let nearD = MIN_DIST_KM;
+  const cp = prunePos(c);
   for (const k of kept) {
-    const d = Math.hypot(c.pos[0] - k.pos[0], c.pos[1] - k.pos[1]);
+    const kp = prunePos(k);
+    const d = Math.hypot(cp[0] - kp[0], cp[1] - kp[1]);
     if (d < nearD) { nearD = d; near = k; }
   }
   if (near) remap.set(c.id, near.id);
@@ -51,6 +54,7 @@ const posOf = new Map(nodes.map((n) => [n.id, n.pos]));
 // Drop pruned city nodes.
 const prunedIds = new Set(remap.keys());
 map.nodes = nodes.filter((n) => !prunedIds.has(n.id));
+for (const n of map.nodes) delete n.srcPos;
 
 // Rewire edges onto survivors; snap the via endpoint to the new node so the
 // road still reaches it, drop self-loops, and dedupe collapsed duplicates.

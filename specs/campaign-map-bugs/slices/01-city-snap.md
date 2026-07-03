@@ -41,3 +41,31 @@ and record here.
 ## Feedback that would change this slice
 - A city snapped somewhere odd-looking → adjust its target cell choice, not the
   invariant.
+
+## Ledger (implemented 2026-07-03)
+- Snap criterion: `snapped_city_positions` targets the nearest cell whose 3x3
+  neighborhood is all-land in the FINAL painted raster (classified via the
+  slice-00 owner). 98 cities moved, all ≤ 4.93 km. `MAX_CITY_SNAP_MOVE_KM = 6`;
+  beyond it a city stays put and joins `CITY_SNAP_EXEMPTIONS` (8 named:
+  Tainaron Pr., Cnidus, Apollonia Pontica, Perinthus, Meninge,
+  Constantinopolis, Gades, Thaenae — peninsula/strait/small-island harbors).
+- Invariant extended: every non-exempt city's 3x3 bg neighborhood all-land +
+  exemption list must name real cities (stale-exemption guard).
+- Prune stability: bake exports transient `srcPos`; prune-cities spaces on it
+  (and strips it), so the snap can never change WHICH cities survive.
+- League colors: assignment now keyed to sorted league id, not kmeans group
+  order — position jitter can no longer reshuffle hues. One-time global
+  neutral-league recolor accepted in this slice's bless (12 leagues would have
+  permuted anyway; now stable forever).
+- Probe: whole-map landFraction<0.5 went 22 → 12 (5 exempt); regional-italy 0;
+  all 412 centers land. Remaining 7 non-exempt (Rhodos, Samos, Corcyra, Melita,
+  Leucas, Populonium, Sinope) are island-class — marker sits ON its visible
+  island; visual verdict at the data-lane oracle (02).
+- ★checkpoint: unprimed critique confirms no square marker floats on open
+  water; its remaining findings are owned by open slices (03/04/05). NEW
+  pre-existing observation for the final sweep: southern-Italy grey region
+  reads as "missing fill" (independents color) — David to rule at 10.
+- Re-blessed (deliberate, this slice's variables): campaign-lod-whole-political,
+  campaign-lod-regional-italy-political, campaign-lod-border-fog.
+- Evidence-crop note: b1-tarraco/corinthus/pella show the icon+label class —
+  resolved by slice 04, not here (see tools/README.md reconciliation).

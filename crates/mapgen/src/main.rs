@@ -230,6 +230,10 @@ mod tests {
         }
 
         let mut water_cities = Vec::new();
+        let mut margin_water_cities = Vec::new();
+        let city_snap_exemptions: std::collections::BTreeSet<&str> =
+            build::CITY_SNAP_EXEMPTIONS.iter().map(|e| e.name).collect();
+        let mut seen_exemptions = std::collections::BTreeSet::new();
         let mut ports_without_sea = Vec::new();
         let mut stranded_cities = Vec::new();
         let mut stub_junctions = Vec::new();
@@ -238,6 +242,19 @@ mod tests {
             if n.kind == "city" {
                 if !land_at(n.pos, &bg, bg_w, bg_h, &bg_px) {
                     water_cities.push(n.name.as_str());
+                }
+                let exempt = city_snap_exemptions.contains(n.name.as_str());
+                if exempt {
+                    seen_exemptions.insert(n.name.as_str());
+                } else if !land_neighborhood_at(
+                    n.pos,
+                    &bg,
+                    bg_w,
+                    bg_h,
+                    &bg_px,
+                    build::CITY_SNAP_MARGIN_CELLS,
+                ) {
+                    margin_water_cities.push(n.name.as_str());
                 }
                 if n.port && sea_degree.get(&n.id).copied().unwrap_or(0) == 0 {
                     ports_without_sea.push(n.name.as_str());
@@ -268,6 +285,14 @@ mod tests {
         );
         assert!(water_cities.is_empty(), "cities on water: {water_cities:?}");
         assert!(
+            margin_water_cities.is_empty(),
+            "non-exempt cities without a 3x3 all-land rendered-raster neighborhood: {margin_water_cities:?}"
+        );
+        assert_eq!(
+            seen_exemptions, city_snap_exemptions,
+            "city snap exemptions must name committed city nodes"
+        );
+        assert!(
             ports_without_sea.is_empty(),
             "port cities without sea edges: {ports_without_sea:?}"
         );
@@ -285,13 +310,54 @@ mod tests {
         );
     }
 
-    fn land_at(p: [f64; 2], bg: &BgRect, w: usize, h: usize, px: &[u8]) -> bool {
+    fn cell_of(p: [f64; 2], bg: &BgRect, w: usize, h: usize) -> Option<[usize; 2]> {
         let x = ((p[0] - bg.min[0]) / (bg.max[0] - bg.min[0]) * w as f64).floor() as isize;
         let y = ((bg.max[1] - p[1]) / (bg.max[1] - bg.min[1]) * h as f64).floor() as isize;
         if x < 0 || y < 0 || x >= w as isize || y >= h as isize {
-            return false;
+            return None;
         }
-        let i = (y as usize * w + x as usize) * 4;
+        Some([x as usize, y as usize])
+    }
+
+    fn land_at(p: [f64; 2], bg: &BgRect, w: usize, h: usize, px: &[u8]) -> bool {
+        let Some([x, y]) = cell_of(p, bg, w, h) else {
+            return false;
+        };
+        land_cell(x, y, w, px)
+    }
+
+    fn land_neighborhood_at(
+        p: [f64; 2],
+        bg: &BgRect,
+        w: usize,
+        h: usize,
+        px: &[u8],
+        margin_cells: usize,
+    ) -> bool {
+        let Some([cx, cy]) = cell_of(p, bg, w, h) else {
+            return false;
+        };
+        let margin = margin_cells as isize;
+        for dy in -margin..=margin {
+            let y = cy as isize + dy;
+            if y < 0 || y >= h as isize {
+                return false;
+            }
+            for dx in -margin..=margin {
+                let x = cx as isize + dx;
+                if x < 0 || x >= w as isize {
+                    return false;
+                }
+                if !land_cell(x as usize, y as usize, w, px) {
+                    return false;
+                }
+            }
+        }
+        true
+    }
+
+    fn land_cell(x: usize, y: usize, w: usize, px: &[u8]) -> bool {
+        let i = (y * w + x) * 4;
         raster::Raster::rgb_is_land([px[i], px[i + 1], px[i + 2]])
     }
 

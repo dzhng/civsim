@@ -293,7 +293,7 @@ pub fn make_committed_roads_land_safe(
     );
 }
 
-pub fn long_water_runs(via: &[[f64; 2]], raster: &Raster) -> Vec<WaterRun> {
+pub fn water_runs(via: &[[f64; 2]], raster: &Raster) -> Vec<WaterRun> {
     let samples = sample_polyline(via, raster);
     water_runs_from_samples(&samples)
 }
@@ -623,7 +623,7 @@ fn water_runs_from_samples(samples: &[Sample]) -> Vec<WaterRun> {
 }
 
 pub fn longest_water_run(via: &[[f64; 2]], raster: &Raster) -> f64 {
-    long_water_runs(via, raster)
+    water_runs(via, raster)
         .iter()
         .map(|run| run.km)
         .fold(0.0, f64::max)
@@ -887,11 +887,11 @@ mod tests {
         assert_eq!(rerouted.via[0], via[0]);
         assert_eq!(*rerouted.via.last().unwrap(), via[1]);
         assert!(
-            long_water_runs(&rerouted.via, &bay)
+            water_runs(&rerouted.via, &bay)
                 .iter()
                 .all(|run| run.km <= ROAD_WATER_RUN_MAX_KM),
             "rerouted bay road still has long water runs: {:?}",
-            long_water_runs(&rerouted.via, &bay)
+            water_runs(&rerouted.via, &bay)
         );
 
         let channel = land_raster_with_water(rect_poly(20.0, 0.0, 40.0, 60.0));

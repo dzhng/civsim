@@ -51,6 +51,19 @@ function warp(wx: number, wy: number): [number, number] {
 
 const FILL_A = 255;
 
+/** 8-neighborhood scan order for the seaward paint ring (see rebuild) —
+ *  cardinal first so straight coasts copy from their facing land cell. */
+const DILATE_NEIGHBORS: [number, number][] = [
+  [0, -1],
+  [-1, 0],
+  [1, 0],
+  [0, 1],
+  [-1, -1],
+  [1, -1],
+  [-1, 1],
+  [1, 1],
+];
+
 /** Douglas–Peucker simplification: drop points within `tol` km of the chord, so
  *  a traced boundary's per-cell staircase zigzag collapses to the few points
  *  that capture its real shape — Chaikin then smooths those into a clean curve
@@ -284,6 +297,31 @@ export class Territory {
         cells[f]++;
         sumX[f] += minX + (gx + 0.5) * cell;
         sumY[f] += maxY - (gy + 0.5) * cell;
+      }
+    }
+    // Seaward paint ring (campaign-map-bugs 05): the territory shader clips the
+    // wash to the drawn coastline (the mapPass drawnCoast contract, shared
+    // classifiers in CAMPAIGN_SEA_PALETTE_WGSL), but clipping can only REMOVE
+    // wash — where this 8 km raster's last land cell stops short of the drawn
+    // coast, the edge stayed a blocky cell boundary.
+    // Copy each unpainted water cell's fill from an adjacent claimed land cell
+    // (paint only: `nearest`/`owner` untouched, so borders, claims, centroids,
+    // and label sizing cannot move) and let the shader's coast clip own where
+    // the wash actually ends.
+    const land = this.field.land;
+    for (let gy = 0; gy < h; gy++) {
+      for (let gx = 0; gx < w; gx++) {
+        const i = gy * w + gx;
+        if (land[i] || owner[i] >= 0) continue;
+        for (const [dx, dy] of DILATE_NEIGHBORS) {
+          const nx = gx + dx;
+          const ny = gy + dy;
+          if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+          const ni = ny * w + nx;
+          if (!land[ni] || owner[ni] < 0) continue;
+          rgba.copyWithin(i * 4, ni * 4, ni * 4 + 4);
+          break;
+        }
       }
     }
     this.borders = this.extractBorders(owner);

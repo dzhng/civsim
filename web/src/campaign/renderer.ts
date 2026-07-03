@@ -558,6 +558,8 @@ export class CampaignRenderer {
       lineSegments: this.lines?.stats().segments ?? 0,
       roadTriangles: this.roads?.stats().triangles ?? 0,
       roadJunctionCaps: this.mapDrawStats?.roadJunctionCaps ?? 0,
+      seaLabelFits: this.mapDrawStats?.seaLabelFits ?? [],
+      seaLabelFitZoom: this.mapDrawStats?.seaLabelFitZoom ?? 0,
       phases: shell?.phases ?? [],
       depth: shell?.depth ?? null,
       postCutoverScreenshots: "renderer-only",
@@ -688,9 +690,17 @@ export class CampaignRenderer {
     this.soldierShadows = new SoldierShadowDecalPass(this.shell);
     this.selection = new CampaignSelectionPass(this.shell);
     this.labels = new CampaignLabelPass(this.shell);
+    // Sea labels are widest (in km) at the camera's zoom floor; probe the
+    // clamp for it so the fitter judges placements at the whole-map framing
+    // the player actually sees. clampCam works in device px per km, the
+    // fitter in CSS px, hence the dpr divide.
+    const zoomFloorProbe = { x: 0, y: 0, scale: 0 };
+    this.clampCam(zoomFloorProbe);
     const drawData = buildCampaignMapDrawData(this.data, {
       roadScale: 1.0,
       surfaceAt: (x, y) => (this.field.landAt(x, y, controlledStage ? 2.5 : 16) ? "land" : "water"),
+      renderSurfaceAt: (x, y) => (this.field.renderLandAt(x, y) ? "land" : "water"),
+      seaLabelFitZoom: zoomFloorProbe.scale / (window.devicePixelRatio || 1),
       heightAt: (x, y) => this.field.heightAt(x, y),
     });
     this.mapDrawStats = drawData.stats;

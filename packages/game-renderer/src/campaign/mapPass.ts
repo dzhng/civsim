@@ -44,6 +44,18 @@ export interface CampaignMapStats {
   roadJunctionCaps: number;
   cityMarkers: number;
   labels: number;
+  seaLabelFits: CampaignSeaLabelFit[];
+  seaLabelFitZoom: number;
+}
+
+/** Per-sea-label fit verdict: the accepted scale, how far the label moved
+ * from its authored anchor, and the land fraction of the accepted placement's
+ * sample cloud (0 = fully on water at the fit zoom). */
+export interface CampaignSeaLabelFit {
+  text: string;
+  scale: number;
+  nudgeKm: number;
+  landFraction: number;
 }
 
 export interface CampaignMapStyle {
@@ -56,6 +68,15 @@ export interface CampaignMapDrawStyle {
   roadScale?: number;
   roadSurfaceAt?: (x: number, y: number) => 'land' | 'water';
   surfaceAt?: (x: number, y: number) => 'land' | 'water';
+  /** Full-resolution render-mask classifier (TerrainField.renderLandAt, the
+   * slice-00 land-truth owner). Point-truth queries — sea-label placement —
+   * use this; the coarse `surfaceAt` stays the owner of area statistics
+   * (road drop decisions). */
+  renderSurfaceAt?: (x: number, y: number) => 'land' | 'water';
+  /** Smallest zoom the camera clamp allows (CSS px per km). Sea labels are
+   * screen-space text, so their world footprint is widest here; the fitter
+   * judges placements at this zoom. Defaults to SEA_LABEL_FIT_ZOOM. */
+  seaLabelFitZoom?: number;
   heightAt?: (x: number, y: number) => number;
 }
 
@@ -1237,12 +1258,15 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData, style: Camp
   const roadJunctionCaps = pushRoadJunctionCaps(roadMeshVertices, data, safeRoads, style);
   const cityNodes = data.map.nodes.filter((node) => node.kind === 'city');
   const cityMarkers = cityNodes.map((node) => markerForNode(data, node));
-  const labels = data.map.nodes.length > 20 ? fitSeaLabels(seaLabels(), surfaceAt(style)) : [];
+  const seaLabelFit =
+    data.map.nodes.length > 20
+      ? fitSeaLabels(seaLabels(), style)
+      : { labels: [], fits: [], fitZoom: SEA_LABEL_FIT_ZOOM };
   return {
     lineVertices: new Float32Array(lineVertices),
     roadMeshVertices: new Float32Array(roadMeshVertices),
     cityMarkers,
-    labels,
+    labels: seaLabelFit.labels,
     stats: {
       roads: roads.length,
       seaLanes: seaLanes.length,
@@ -1250,7 +1274,9 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData, style: Camp
       roadMeshVertices: Math.floor(roadMeshVertices.length / 10),
       roadJunctionCaps,
       cityMarkers: cityMarkers.length,
-      labels: labels.length,
+      labels: seaLabelFit.labels.length,
+      seaLabelFits: seaLabelFit.fits,
+      seaLabelFitZoom: seaLabelFit.fitZoom,
     },
   };
 }
@@ -1468,146 +1494,233 @@ function markerForNode(data: CampaignMapInputData, node: CampaignMapNodeData): C
   };
 }
 
+// Anchors sit at each sea's open-water center (measured against the render
+// mask; slice 03 moved Adriatic/Aegean/Black Sea in from shore) and angles
+// follow the basin's long axis in screen space (positive = falling to the
+// right); the fitter only polishes from here.
 function seaLabels(): CampaignLabel[] {
   return [
     { text: 'Mediterranean Sea', x: 320, y: -585, size: 28, kind: 'sea', priority: 4, angle: -0.03, curve: -0.85 },
     { text: 'Tyrrhenian Sea', x: -360, y: 120, size: 20, kind: 'sea', priority: 4, angle: -0.5, curve: 0.55 },
     { text: 'Ionian Sea', x: 30, y: -170, size: 18, kind: 'sea', priority: 4, angle: -0.9, curve: 0.45 },
-    { text: 'Adriatic Sea', x: 70, y: 690, size: 18, kind: 'sea', priority: 4, angle: -0.65, curve: -0.4 },
-    { text: 'Aegean Sea', x: 600, y: 150, size: 17, kind: 'sea', priority: 4, angle: -0.7, curve: 0.42 },
-    { text: 'Black Sea', x: 1080, y: 1180, size: 24, kind: 'sea', priority: 4, curve: 0.5 },
-    { text: 'Iberian Sea', x: -1640, y: -40, size: 22, kind: 'sea', priority: 4, curve: -0.45 },
+    { text: 'Adriatic Sea', x: -15, y: 335, size: 18, kind: 'sea', priority: 4, angle: 0.9, curve: -0.4 },
+    // The Aegean anchor sits at the basin's south gate: the Cyclades leave no
+    // clean full-rect placement in the island-studded center/north (best found
+    // there is ~0.18 land), so water-coverage-first settles south of them.
+    { text: 'Aegean Sea', x: 460, y: -60, size: 17, kind: 'sea', priority: 4, angle: -0.7, curve: 0.42 },
+    { text: 'Black Sea', x: 1480, y: 550, size: 24, kind: 'sea', priority: 4, curve: 0.5 },
+    { text: 'Iberian Sea', x: -1250, y: 90, size: 22, kind: 'sea', priority: 4, curve: -0.45 },
     { text: 'Atlantic Ocean', x: -2200, y: 760, size: 15, kind: 'sea', priority: 4, angle: -1.1, curve: 0.18 },
   ];
 }
 
-// Sea labels are screen-space text anchored to world points; fit against the
-// full-opacity threshold so the static placement is conservative before fadeout.
+// Sea labels are screen-space text anchored to world points, so their world
+// footprint is widest at the camera's zoom floor — the fit is judged there
+// (style.seaLabelFitZoom), with SEA_LABEL_FIT_ZOOM as the conservative upper
+// bound: the full-opacity threshold of the sea-label fade band.
 const SEA_LABEL_FIT_ZOOM = 0.26;
-const SEA_LABEL_LAND_MARGIN_KM = 25;
+// Coast standoff added around the drawn rect. Kept small: narrow basins
+// (Adriatic ~200 km wide) stop having any clean placement when the margin
+// inflates the rect much further.
+const SEA_LABEL_LAND_MARGIN_KM = 12;
+// Legibility floor: a sea name may shrink to this scale but never below —
+// better a nudged full-size label than a vanishing one (move before shrink).
 const SEA_LABEL_MIN_SCALE = 0.55;
 const SEA_LABEL_SHRINK_STEP = 0.05;
-const SEA_LABEL_MAX_NUDGE_KM = 60;
-const SEA_LABEL_NUDGE_STEP_KM = 10;
-const SEA_LABEL_MARGIN_SAMPLES: [number, number][] = [
-  [0, 0],
-  [1, 0],
-  [-1, 0],
-  [0, 1],
-  [0, -1],
-  [0.707, 0.707],
-  [-0.707, 0.707],
-  [0.707, -0.707],
-  [-0.707, -0.707],
-];
+// The move budget: seas are long, so the search runs farther along the
+// label's axis (label.angle follows the basin) than across it. The budget is
+// deliberately basin-scale — anchors sit at their sea's open-water center,
+// and a bigger budget lets a cramped label defect into a roomier neighboring
+// sea (Adriatic and Aegean both fled to the Ionian at 420 km).
+const SEA_LABEL_ALONG_NUDGE_KM = 240;
+const SEA_LABEL_ACROSS_NUDGE_KM = 150;
+const SEA_LABEL_NUDGE_STEP_KM = 20;
+const SEA_LABEL_SAMPLE_STEP_KM = 15;
+// Sea text metrics shared by the style, the curved atlas draw, and the
+// placement fitter — if these drift apart, the fitted box stops being the
+// drawn box (the U2 bug class).
+const SEA_LABEL_LETTER_SPACING_EM = 0.22;
+const SEA_LABEL_PADDING_EM = 0.34;
 
-function fitSeaLabels(
-  labels: CampaignLabel[],
-  at?: (x: number, y: number) => 'land' | 'water',
-): CampaignLabel[] {
-  if (!at) return labels;
-  return labels.map((label) => fitSeaLabel(label, at));
+/** The one placement scorer (shared with city-label anchoring): walk
+ * preference-ordered candidates, sample each one's world-space point cloud,
+ * and return the first fully-clean candidate — else the least-bad earliest
+ * one. "Bad" is the caller's polarity: land under a sea label, water under a
+ * city label. */
+export interface PlacementVerdict<C> {
+  candidate: C;
+  badFraction: number;
 }
 
-function fitSeaLabel(
-  label: CampaignLabel,
-  at: (x: number, y: number) => 'land' | 'water',
-): CampaignLabel {
-  for (let scale = 1; scale >= SEA_LABEL_MIN_SCALE - 0.001; scale -= SEA_LABEL_SHRINK_STEP) {
-    const candidate = withSeaLabelScale(label, scale);
-    if (seaLabelClearsLand(candidate, at)) return candidate;
-  }
-  const shrunk = withSeaLabelScale(label, SEA_LABEL_MIN_SCALE);
-  const angle = shrunk.angle ?? 0;
-  const along: [number, number] = [Math.cos(angle), Math.sin(angle)];
-  const across: [number, number] = [-Math.sin(angle), Math.cos(angle)];
-  for (const nudge of seaLabelNudges()) {
-    const candidate = {
-      ...shrunk,
-      x: shrunk.x + along[0] * nudge[0] + across[0] * nudge[1],
-      y: shrunk.y + along[1] * nudge[0] + across[1] * nudge[1],
-    };
-    if (seaLabelClearsLand(candidate, at)) return candidate;
-  }
-  return shrunk;
-}
-
-function withSeaLabelScale(label: CampaignLabel, scale: number): CampaignLabel {
-  return scale >= 0.995 ? label : { ...label, size: label.size * scale };
-}
-
-function seaLabelNudges(): [number, number][] {
-  const nudges: [number, number][] = [];
-  for (let distance = SEA_LABEL_NUDGE_STEP_KM; distance <= SEA_LABEL_MAX_NUDGE_KM; distance += SEA_LABEL_NUDGE_STEP_KM) {
-    nudges.push(
-      [0, distance],
-      [0, -distance],
-      [distance, 0],
-      [-distance, 0],
-      [distance, distance],
-      [-distance, distance],
-      [distance, -distance],
-      [-distance, -distance],
-    );
-  }
-  return nudges;
-}
-
-function seaLabelClearsLand(
-  label: CampaignLabel,
-  at: (x: number, y: number) => 'land' | 'water',
-) {
-  const samples = seaLabelWorldSamples(label);
-  for (const point of samples) {
-    for (const margin of SEA_LABEL_MARGIN_SAMPLES) {
-      if (
-        at(
-          point[0] + margin[0] * SEA_LABEL_LAND_MARGIN_KM,
-          point[1] + margin[1] * SEA_LABEL_LAND_MARGIN_KM,
-        ) === 'land'
-      ) {
-        return false;
+export function bestPlacement<C>(
+  candidates: Iterable<C>,
+  worldSamplesOf: (candidate: C) => [number, number][],
+  isBadAt: (x: number, y: number) => boolean,
+): PlacementVerdict<C> | null {
+  let best: PlacementVerdict<C> | null = null;
+  for (const candidate of candidates) {
+    const samples = worldSamplesOf(candidate);
+    if (samples.length === 0) continue;
+    // A candidate is dead once it cannot beat the incumbent; bail early so
+    // mostly-bad candidates cost a handful of lookups, not the full grid.
+    const badLimit = best ? best.badFraction * samples.length : samples.length;
+    let bad = 0;
+    for (const [x, y] of samples) {
+      if (isBadAt(x, y)) {
+        bad++;
+        if (bad >= badLimit) break;
       }
     }
+    const badFraction = bad / samples.length;
+    if (badFraction === 0) return { candidate, badFraction };
+    if (!best || badFraction < best.badFraction - 1e-6) best = { candidate, badFraction };
   }
-  return true;
+  return best;
 }
 
-function seaLabelWorldSamples(label: CampaignLabel): [number, number][] {
+interface SeaLabelPlacement {
+  x: number;
+  y: number;
+  scale: number;
+  nudgeKm: number;
+}
+
+interface FittedSeaLabels {
+  labels: CampaignLabel[];
+  fits: CampaignSeaLabelFit[];
+  fitZoom: number;
+}
+
+function fitSeaLabels(labels: CampaignLabel[], style: CampaignMapDrawStyle): FittedSeaLabels {
+  const fitZoom = Math.min(style.seaLabelFitZoom ?? SEA_LABEL_FIT_ZOOM, SEA_LABEL_FIT_ZOOM);
+  const at = style.renderSurfaceAt ?? surfaceAt(style);
+  if (!at) return { labels, fits: [], fitZoom };
+  const widthOf = seaLabelWidthMeasurer();
+  const fitted: CampaignLabel[] = [];
+  const fits: CampaignSeaLabelFit[] = [];
+  for (const label of labels) {
+    const verdict = bestPlacement(
+      seaLabelCandidates(label),
+      (candidate) => seaLabelWorldSamples(label, candidate, fitZoom, widthOf),
+      (x, y) => at(x, y) === 'land',
+    );
+    const placement = verdict?.candidate ?? { x: label.x, y: label.y, scale: 1, nudgeKm: 0 };
+    fitted.push({
+      ...label,
+      x: placement.x,
+      y: placement.y,
+      size: label.size * placement.scale,
+    });
+    fits.push({
+      text: labelText(label),
+      scale: placement.scale,
+      nudgeKm: roundPx(placement.nudgeKm),
+      landFraction: roundPx(verdict?.badFraction ?? 0),
+    });
+  }
+  return { labels: fitted, fits, fitZoom };
+}
+
+/** Move before shrink: every nudge along the sea's axis at full size comes
+ * before the first shrink step, and each shrink re-runs the whole sweep.
+ * label.angle rotates the drawn quad in screen space (y down); world y runs
+ * up, so the screen baseline direction (cos a, sin a) is (cos a, -sin a) in
+ * world km. */
+function* seaLabelCandidates(label: CampaignLabel): Generator<SeaLabelPlacement> {
+  const angle = label.angle ?? 0;
+  const along: [number, number] = [Math.cos(angle), -Math.sin(angle)];
+  const across: [number, number] = [-Math.sin(angle), -Math.cos(angle)];
+  for (let scale = 1; scale >= SEA_LABEL_MIN_SCALE - 0.001; scale -= SEA_LABEL_SHRINK_STEP) {
+    for (const [u, v] of seaLabelNudges()) {
+      yield {
+        x: label.x + along[0] * u + across[0] * v,
+        y: label.y + along[1] * u + across[1] * v,
+        scale,
+        nudgeKm: Math.hypot(u, v),
+      };
+    }
+  }
+}
+
+/** Nudge offsets (along, across) ordered by distance so the scorer prefers
+ * placements near the authored anchor. Each axis steps outward from 0 so
+ * pure along-axis and pure across-axis moves are always in the grid. */
+function seaLabelNudges(): [number, number][] {
+  const axisSteps = (budgetKm: number) => {
+    const steps = [0];
+    for (let d = SEA_LABEL_NUDGE_STEP_KM; d <= budgetKm; d += SEA_LABEL_NUDGE_STEP_KM) {
+      steps.push(d, -d);
+    }
+    return steps;
+  };
+  const nudges: [number, number][] = [];
+  for (const u of axisSteps(SEA_LABEL_ALONG_NUDGE_KM)) {
+    for (const v of axisSteps(SEA_LABEL_ACROSS_NUDGE_KM)) {
+      nudges.push([u, v]);
+    }
+  }
+  return nudges.sort((a, b) => Math.hypot(a[0], a[1]) - Math.hypot(b[0], b[1]));
+}
+
+/** Sample grid over the label's full drawn rect — the same box the atlas
+ * lays out (measured text width, curve depth, padding), inflated by the land
+ * margin. Local coordinates are the quad's screen space (y down); the final
+ * y flip converts screen-down to world-north. Matching the drawn rect (not
+ * just the glyph band) keeps the fit verdict equal to what an area probe of
+ * the rendered box measures. */
+function seaLabelWorldSamples(
+  label: CampaignLabel,
+  placement: SeaLabelPlacement,
+  fitZoom: number,
+  widthOf: (text: string, sizePx: number) => number,
+): [number, number][] {
   const text = labelText(label);
-  const sizePx = Math.max(10, label.size);
-  const letterSpacingPx = sizePx * 0.22;
-  const glyphWidthsPx = Array.from(text).map((char) => seaGlyphWidthPx(char, sizePx));
-  const widthPx = Math.max(
-    1,
-    glyphWidthsPx.reduce((sum, value) => sum + value, 0) + Math.max(0, glyphWidthsPx.length - 1) * letterSpacingPx,
-  );
-  const bend = label.curve ?? defaultSeaLabelCurve(label);
-  const depthPx = bend * Math.min(sizePx * 1.35, Math.max(sizePx * 0.42, widthPx * 0.075));
-  const halfWidthKm = Math.max(1, (widthPx * 0.5) / SEA_LABEL_FIT_ZOOM);
-  const depthKm = depthPx / SEA_LABEL_FIT_ZOOM;
-  const sizeKm = sizePx / SEA_LABEL_FIT_ZOOM;
+  const sizePx = Math.max(10, label.size * placement.scale);
+  const widthPx = widthOf(text, sizePx);
+  const depthPx = seaLabelCurveDepthPx(label, sizePx, widthPx);
+  const paddingPx = Math.ceil(sizePx * SEA_LABEL_PADDING_EM);
+  const boxWidthPx = widthPx + paddingPx * 2;
+  const boxHeightPx = sizePx * 1.5 + Math.abs(depthPx) * 1.35 + paddingPx * 2;
+  const halfWidthKm = (boxWidthPx * 0.5) / fitZoom + SEA_LABEL_LAND_MARGIN_KM;
+  const halfHeightKm = (boxHeightPx * 0.5) / fitZoom + SEA_LABEL_LAND_MARGIN_KM;
   const angle = label.angle ?? 0;
   const ca = Math.cos(angle);
   const sa = Math.sin(angle);
-  const offsets = [-sizeKm * 0.78, 0, sizeKm * 0.36];
+  // Island-scale sampling: Aegean islets are ~15-30 km, so a coarser grid
+  // certifies "clean" placements whose drawn box still clips an island.
+  const cols = Math.max(12, Math.ceil((halfWidthKm * 2) / SEA_LABEL_SAMPLE_STEP_KM));
+  const rows = Math.max(5, Math.ceil((halfHeightKm * 2) / SEA_LABEL_SAMPLE_STEP_KM));
   const samples: [number, number][] = [];
-  const steps = Math.max(12, Math.ceil(widthPx / 24));
-  for (let i = 0; i <= steps; i++) {
-    const t = -1 + (2 * i) / steps;
-    const localX = t * halfWidthKm;
-    const localY = depthKm * (1 - t * t);
-    const slope = (-2 * depthKm * t) / halfWidthKm;
-    const normalLen = Math.hypot(slope, 1) || 1;
-    const nx = -slope / normalLen;
-    const ny = 1 / normalLen;
-    for (const offset of offsets) {
-      const x = localX + nx * offset;
-      const y = localY + ny * offset;
-      samples.push([label.x + x * ca - y * sa, label.y + x * sa + y * ca]);
+  for (let iy = 0; iy < rows; iy++) {
+    const py = -halfHeightKm + (2 * halfHeightKm * iy) / (rows - 1);
+    for (let ix = 0; ix < cols; ix++) {
+      const px = -halfWidthKm + (2 * halfWidthKm * ix) / (cols - 1);
+      samples.push([placement.x + px * ca - py * sa, placement.y - (px * sa + py * ca)]);
     }
   }
   return samples;
+}
+
+/** True atlas measure: the same per-glyph measurement the atlas draw uses
+ * (measureSeaLabelGlyphs), at dpr 1. Falls back to the coarse per-class
+ * estimate where no canvas exists (node-side use). */
+function seaLabelWidthMeasurer(): (text: string, sizePx: number) => number {
+  const ctx =
+    typeof document === 'undefined' ? null : document.createElement('canvas').getContext('2d');
+  if (!ctx) return estimatedSeaLabelWidthPx;
+  return (text, sizePx) => {
+    ctx.font = seaLabelFont(sizePx);
+    return measureSeaLabelGlyphs(ctx, sizePx, text).width;
+  };
+}
+
+function estimatedSeaLabelWidthPx(text: string, sizePx: number) {
+  const glyphWidthsPx = Array.from(text).map((char) => seaGlyphWidthPx(char, sizePx));
+  return Math.max(
+    1,
+    glyphWidthsPx.reduce((sum, value) => sum + value, 0) +
+      Math.max(0, glyphWidthsPx.length - 1) * sizePx * SEA_LABEL_LETTER_SPACING_EM,
+  );
 }
 
 function seaGlyphWidthPx(char: string, sizePx: number) {
@@ -2019,10 +2132,10 @@ function labelStyle(label: CampaignLabel, dpr: number) {
   const size = Math.max(10, label.size) * dpr;
   if (label.kind === 'sea') {
     return {
-      font: `italic 400 ${size}px Georgia, 'Times New Roman', serif`,
-      letterSpacing: `${size * 0.22}px`,
+      font: seaLabelFont(size),
+      letterSpacing: `${size * SEA_LABEL_LETTER_SPACING_EM}px`,
       size,
-      padding: Math.ceil(size * 0.34),
+      padding: Math.ceil(size * SEA_LABEL_PADDING_EM),
       fill: 'rgba(196, 214, 232, 0.78)',
       halo: 'rgba(20, 34, 52, 0.55)',
       haloWidth: 2.5 * dpr,
@@ -2124,14 +2237,32 @@ function measureSeaLabel(
   label: CampaignLabel,
   text: string,
 ): SeaLabelPath {
+  const { glyphs, width } = measureSeaLabelGlyphs(ctx, style.size, text);
+  const depth = seaLabelCurveDepthPx(label, style.size, width);
+  return {
+    glyphs,
+    width,
+    height: style.size * 1.5 + Math.abs(depth) * 1.35,
+    depth,
+  };
+}
+
+/** Baseline bow of the curved sea text, in px at the given font size. */
+function seaLabelCurveDepthPx(label: CampaignLabel, sizePx: number, widthPx: number) {
+  const bend = label.curve ?? defaultSeaLabelCurve(label);
+  return bend * Math.min(sizePx * 1.35, Math.max(sizePx * 0.42, widthPx * 0.075));
+}
+
+/** Per-glyph advances for curved sea text. Glyphs are drawn one at a time, so
+ * the sea style's letter spacing (0.22 em) is applied manually between them —
+ * both the atlas draw and the placement fitter measure through here. */
+function measureSeaLabelGlyphs(ctx: CanvasRenderingContext2D, sizePx: number, text: string) {
   const previousLetterSpacing = ctx.letterSpacing;
   ctx.letterSpacing = '0px';
-  const letterSpacing = Number.parseFloat(style.letterSpacing) || 0;
+  const letterSpacing = sizePx * SEA_LABEL_LETTER_SPACING_EM;
   const chars = Array.from(text);
   const widths = chars.map((char) => ctx.measureText(char).width);
   const width = Math.max(1, widths.reduce((sum, value) => sum + value, 0) + Math.max(0, chars.length - 1) * letterSpacing);
-  const bend = label.curve ?? defaultSeaLabelCurve(label);
-  const depth = bend * Math.min(style.size * 1.35, Math.max(style.size * 0.42, width * 0.075));
   let advance = 0;
   const glyphs = chars.map((char, index) => {
     const glyphWidth = widths[index];
@@ -2140,12 +2271,11 @@ function measureSeaLabel(
     return { char, width: glyphWidth, center };
   });
   ctx.letterSpacing = previousLetterSpacing;
-  return {
-    glyphs,
-    width,
-    height: style.size * 1.5 + Math.abs(depth) * 1.35,
-    depth,
-  };
+  return { glyphs, width };
+}
+
+function seaLabelFont(sizePx: number) {
+  return `italic 400 ${sizePx}px Georgia, 'Times New Roman', serif`;
 }
 
 function drawSeaLabelText(

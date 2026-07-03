@@ -16,9 +16,24 @@ shields/crests/tunics; camera just above helmet height. `ref-medieval2-battle.jp
 
 ## Next Agent Prompt
 
-*Status (2026-07-03): spec authored from four-agent recon; slice 01 next.
-Recon verdicts embedded per slice — trust the file:line pointers, they were
-verified this session.*
+*Status (2026-07-03): ALL NINE SLICES LANDED on main. 01 faction table;
+02 soldier realism (broad tint dead, accents saturated, linen lifted off
+terrain); 03+04 vertical banners + ownership bars (note: banner-gallery's
+old baseline passed stale once — re-blessed in 09); 05+06 rings + camera
+(REGRESSION CAUGHT IN 09: the 10m absolute close-distance cap also captured
+the reviewFrame hook which pinned zoomT=1 — review shots filmed as giant
+close-ups; fixed by pinning the review camera to the UNCAPPED top-down
+endpoint, zoom=rig min, pitchBias from topDownPitch 1.35); 07 arrows+archer
+(golden 0x1dc6e35d979b486c -> 0xa12f53b1d6420bac; the first arrow renderer
+round-tripped screen space and fanned airborne arrows into viewCenter —
+effects lines now carry per-vertex z; slice 08's menu/picker changes rode
+into 07's commit cf2643bb via a shared-tree add -A, content verified);
+08 single Custom Battle entry + azure/crimson picker; 09 full re-bless (17
+vibe timelines, banner gallery, battle renderer scenes). Remaining known
+debt: campaign scene re-bless for the pennant restyle happens with the next
+campaign pass (campaign map shots unaffected by battle changes except the
+marker pennant silhouette); write-anim GIF for the shoot clip is reviewable
+via the arrows-close draw poses.*
 
 Implement in order; 01 is the foundation (color unification) every visual
 slice consumes. After each slice: gates green, screenshot-critique on new
@@ -27,15 +42,15 @@ player on the LEFT of screen; projectile z never exported) are in slices 06/07.
 Work in this worktree; dev server for filming MUST be this worktree's on
 :5174 strict-port (5173 belongs to another checkout).
 
-- [ ] 01 faction-table — one battle faction table (Azure/Crimson fake factions), 7 hardcoded color sites collapse onto it; baselines byte-stable
-- [ ] 02 soldier-realism — kill broad tint, accent-only faction (shield/crest/tunic), LOD/impostor legibility kept
-- [ ] 03 banners — Rome-2 vertical swallowtail (battle DOM SVG + campaign pennant), faction field
-- [ ] 04 ownership-bars — 4 bars (hp/cohesion/morale/stamina) on OWN units only; enemy = flag only
-- [ ] 05 selection-rings — campaign-green ring under each soldier of selected units (+ existing flag glow)
-- [ ] 06 camera — default yaw = -PI/2 (own army bottom); max zoom-in eye ~2-3m (absolute close endpoint)
-- [ ] 07 arrows+archer — projectile z export, visible arced arrows, archer draw/loose cycle; arrow regression scene zoomed-in + zoomed-out
-- [ ] 08 menu — single Custom Battle entry; faction picker (colors only for now)
-- [ ] 09 integrate — vibe re-bless (soldier look moves every frame), model sheets, close-spec
+- [x] 01 faction-table — one battle faction table (Azure/Crimson fake factions), 7 hardcoded color sites collapse onto it; baselines byte-stable
+- [x] 02 soldier-realism — kill broad tint, accent-only faction (shield/crest/tunic), LOD/impostor legibility kept
+- [x] 03 banners — Rome-2 vertical swallowtail (battle DOM SVG + campaign pennant), faction field
+- [x] 04 ownership-bars — 4 bars (hp/cohesion/morale/stamina) on OWN units only; enemy = flag only
+- [x] 05 selection-rings — campaign-green ring under each soldier of selected units (+ existing flag glow)
+- [x] 06 camera — default yaw = -PI/2 (own army bottom); max zoom-in eye ~2-3m (absolute close endpoint)
+- [x] 07 arrows+archer — projectile z export, visible arced arrows, archer draw/loose cycle; arrow regression scene zoomed-in + zoomed-out
+- [x] 08 menu — single Custom Battle entry; faction picker (colors only for now)
+- [x] 09 integrate — vibe re-bless (soldier look moves every frame), model sheets, close-spec
 
 ## Recon facts (verified 2026-07-03, file:line current)
 

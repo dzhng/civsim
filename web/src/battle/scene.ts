@@ -1731,8 +1731,14 @@ export class BattleScene implements Scene {
         cameraRigRange = { min: 2.5, max: 20 };
         cameraRigBounds = { width: spanX, height: spanY };
         applyBattleCameraRig();
-        camera.zoom = 20;
-        camera.pitchBias = 0.28 - (opts.pitch ?? 1.15);
+        // Pin the TOP-DOWN rig endpoint (zoomT = 0): its distance is
+        // map-relative (fieldReach * distOutFactor) with no absolute cap, so
+        // the fill convergence below can scale the synthetic bounds freely.
+        // (Pinning zoomT = 1 broke when the close endpoint gained the 10m
+        // absolute cap for soldier-eye zoom — review shots filmed as giant
+        // close-ups.) Rig pitch at this endpoint is topDownPitch = 1.35.
+        camera.zoom = 2.5;
+        camera.pitchBias = 1.35 - (opts.pitch ?? 1.15);
         camera.setViewCenter(cx, cy);
       };
       const samplePoints: [number, number][] = [

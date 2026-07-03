@@ -4,6 +4,34 @@
 use crate::geo::BBox;
 use crate::sources::Poly;
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum RenderMaskClass {
+    Sea,
+    Land,
+    Mountain,
+    Lake,
+    River,
+}
+
+impl RenderMaskClass {
+    pub fn rgb(self) -> [u8; 3] {
+        match self {
+            RenderMaskClass::Sea => [38, 60, 84],
+            RenderMaskClass::Land => [196, 178, 138],
+            RenderMaskClass::Mountain => [142, 120, 96],
+            RenderMaskClass::Lake => [52, 84, 110],
+            RenderMaskClass::River => [60, 96, 124],
+        }
+    }
+
+    pub fn is_land(self) -> bool {
+        matches!(
+            self,
+            RenderMaskClass::Land | RenderMaskClass::Mountain | RenderMaskClass::River
+        )
+    }
+}
+
 pub struct Raster {
     pub w: usize,
     pub h: usize,
@@ -14,15 +42,13 @@ pub struct Raster {
 
 // TWIN: web/src/campaign/terrain.ts classifies map pixels by nearest match
 // against these exact colors — recolor here, recolor there.
-const SEA: [u8; 3] = [38, 60, 84];
-const LAND: [u8; 3] = [196, 178, 138];
-const MOUNTAIN: [u8; 3] = [142, 120, 96];
-const LAKE: [u8; 3] = [52, 84, 110];
-const RIVER: [u8; 3] = [60, 96, 124];
-
-pub fn is_land_rgb(c: [u8; 3]) -> bool {
-    matches!(c, LAND | MOUNTAIN | RIVER)
-}
+pub const RENDER_MASK_CLASSES: [RenderMaskClass; 5] = [
+    RenderMaskClass::Sea,
+    RenderMaskClass::Land,
+    RenderMaskClass::Mountain,
+    RenderMaskClass::Lake,
+    RenderMaskClass::River,
+];
 
 impl Raster {
     pub fn new(bb: BBox, px_per_km: f64) -> Raster {
@@ -30,7 +56,7 @@ impl Raster {
         let h = ((bb.max[1] - bb.min[1]) * px_per_km).ceil() as usize;
         let mut px = vec![0u8; w * h * 4];
         for i in 0..w * h {
-            px[i * 4..i * 4 + 3].copy_from_slice(&SEA);
+            px[i * 4..i * 4 + 3].copy_from_slice(&RenderMaskClass::Sea.rgb());
             px[i * 4 + 3] = 255;
         }
         Raster {
@@ -40,6 +66,26 @@ impl Raster {
             bb,
             scale: px_per_km,
         }
+    }
+
+    pub fn classify_rgb(rgb: [u8; 3]) -> RenderMaskClass {
+        let mut best = RenderMaskClass::Sea;
+        let mut best_d = u32::MAX;
+        for class in RENDER_MASK_CLASSES {
+            let c = class.rgb();
+            let d = (rgb[0] as i32 - c[0] as i32).pow(2) as u32
+                + (rgb[1] as i32 - c[1] as i32).pow(2) as u32
+                + (rgb[2] as i32 - c[2] as i32).pow(2) as u32;
+            if d < best_d {
+                best_d = d;
+                best = class;
+            }
+        }
+        best
+    }
+
+    pub fn rgb_is_land(rgb: [u8; 3]) -> bool {
+        Self::classify_rgb(rgb).is_land()
     }
 
     /// World km → pixel (y flipped: world +y north, raster row 0 top).
@@ -77,17 +123,31 @@ impl Raster {
     }
 
     pub fn is_land_cell(&self, x: usize, y: usize) -> bool {
+        self.classify_cell(x, y)
+            .map(RenderMaskClass::is_land)
+            .unwrap_or(false)
+    }
+
+    pub fn classify_cell(&self, x: usize, y: usize) -> Option<RenderMaskClass> {
         if x >= self.w || y >= self.h {
-            return false;
+            return None;
         }
         let i = (y * self.w + x) * 4;
-        is_land_rgb([self.px[i], self.px[i + 1], self.px[i + 2]])
+        Some(Self::classify_rgb([
+            self.px[i],
+            self.px[i + 1],
+            self.px[i + 2],
+        ]))
     }
 
     pub fn is_land_at(&self, p: [f64; 2]) -> bool {
-        self.cell_of(p)
-            .map(|[x, y]| self.is_land_cell(x, y))
+        self.classify_at(p)
+            .map(RenderMaskClass::is_land)
             .unwrap_or(false)
+    }
+
+    pub fn classify_at(&self, p: [f64; 2]) -> Option<RenderMaskClass> {
+        self.cell_of(p).and_then(|[x, y]| self.classify_cell(x, y))
     }
 
     pub fn nearest_land_cell_center(&self, p: [f64; 2], max_radius_km: f64) -> Option<[f64; 2]> {
@@ -205,20 +265,84 @@ pub fn paint(
             && p.bbox.min[1] <= bb.max[1]
     };
     for p in land.iter().filter(|p| visible(p)) {
-        r.fill_poly(p, LAND);
+        r.fill_poly(p, RenderMaskClass::Land.rgb());
     }
     for p in mountains.iter().filter(|p| visible(p)) {
-        r.fill_poly(p, MOUNTAIN);
+        r.fill_poly(p, RenderMaskClass::Mountain.rgb());
     }
     for line in rivers {
         for w in line.windows(2) {
             if bb.contains(w[0]) || bb.contains(w[1]) {
-                r.draw_line(w[0], w[1], 1.2, RIVER);
+                r.draw_line(w[0], w[1], 1.2, RenderMaskClass::River.rgb());
             }
         }
     }
     for p in lakes.iter().filter(|p| visible(p)) {
-        r.fill_poly(p, LAKE);
+        r.fill_poly(p, RenderMaskClass::Lake.rgb());
     }
     r
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn rect_poly(x0: f64, y0: f64, x1: f64, y1: f64) -> Poly {
+        let ring = vec![[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]];
+        Poly {
+            bbox: BBox::of(ring.iter().copied()),
+            rings: vec![ring],
+        }
+    }
+
+    fn assert_written_pixels_classify_as(
+        before: &[u8],
+        raster: &Raster,
+        expected: RenderMaskClass,
+        label: &str,
+    ) {
+        let mut changed = 0usize;
+        for i in 0..raster.w * raster.h {
+            let off = i * 4;
+            if before[off..off + 3] != raster.px[off..off + 3] {
+                changed += 1;
+                let got =
+                    Raster::classify_rgb([raster.px[off], raster.px[off + 1], raster.px[off + 2]]);
+                assert_eq!(got, expected, "{label} wrote pixel {i} as {got:?}");
+            }
+        }
+        assert!(changed > 0, "{label} did not paint any pixels");
+    }
+
+    #[test]
+    fn painter_pixels_round_trip_through_render_mask_classifier() {
+        let bb = BBox {
+            min: [0.0, 0.0],
+            max: [32.0, 32.0],
+        };
+
+        for class in [
+            RenderMaskClass::Land,
+            RenderMaskClass::Mountain,
+            RenderMaskClass::Lake,
+        ] {
+            let mut raster = Raster::new(bb, 1.0);
+            let before = raster.px.clone();
+            raster.fill_poly(&rect_poly(4.0, 4.0, 18.0, 18.0), class.rgb());
+            assert_written_pixels_classify_as(&before, &raster, class, "fill_poly");
+        }
+
+        let mut raster = Raster::new(bb, 1.0);
+        let before = raster.px.clone();
+        raster.draw_line([2.0, 2.0], [28.0, 24.0], 2.0, RenderMaskClass::River.rgb());
+        assert_written_pixels_classify_as(&before, &raster, RenderMaskClass::River, "draw_line");
+
+        for class in RENDER_MASK_CLASSES {
+            assert_eq!(
+                Raster::rgb_is_land(class.rgb()),
+                class.is_land(),
+                "{class:?} land flag changed"
+            );
+        }
+    }
 }

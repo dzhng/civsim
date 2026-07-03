@@ -19,7 +19,13 @@ ARE the acceptance criteria: the defect visible in each must be gone.
 
 ## Next Agent Prompt
 
-**Status:** Plan materialized 2026-07-03. Implementation not started.
+**Status:** 2026-07-03: slice 00's land-truth owners + bridge landed (mapgen
+classification API + `cargo run -p mapgen -- probe`; frontend `RenderMask` /
+`TerrainField.renderLandAt`; WGSL `seaAmount` hoisted to
+`CAMPAIGN_SEA_PALETTE_WGSL`; bake↔frontend bridge 7,822/7,822). Probe key
+finding (U1): all 412 city centers are land — the 12 "offshore" cities sit
+within ~2 km (≈1 bake px) of water, so the defect is marker-footprint vs
+center-pixel. Next: slice 00's rendered-probe tool + red baseline.
 **You are a fresh session implementing this spec** via
 [implement-spec](../../.agents/skills/implement-spec/SKILL.md). David's standing
 preference: delegate well-defined mechanical edits to Codex (`codex exec`,
@@ -53,6 +59,14 @@ checkpoint), then the lanes fan out (see the graph below).
   prior look and vs the slice's evidence crop.
 
 **Active warnings:**
+- origin/main carries 13 PRE-EXISTING battle failures (dc6b7e2e tuned
+  crowd/camera/animation without re-blessing battle baselines: photoreal
+  lighting/parity/sky/shadows, overlays, smoke, grass, banner-plant, minimap).
+  Not caused by this spec. The battle firewall here = no NEW failures beyond
+  those 13; campaign + campaign-models + water-sea are fully green and stay so.
+- The main checkout's prebuilt `web/src/wasm` is STALE vs main's crates
+  (missing `loosing_ptr`) — always `bun run --cwd web build:wasm` in a fresh
+  worktree; rustfmt may need `rustup component add rustfmt`.
 - `01-city-snap` re-bakes and MOVES city positions — do not build label/card/
   road work on pre-bake anchors; do not bless downstream baselines before its
   checkpoint passes.

@@ -10,12 +10,18 @@
 
 mod build;
 mod geo;
+mod probe;
 mod raster;
 mod sources;
 
 use geo::BBox;
 
 fn main() {
+    if std::env::args().nth(1).as_deref() == Some("probe") {
+        probe::write_committed_probe();
+        return;
+    }
+
     let dir = "crates/mapgen/data";
     let out_dir = "web/public/data";
     std::fs::create_dir_all(out_dir).unwrap();
@@ -111,6 +117,8 @@ fn main() {
     // `cargo run -p mapgen` always emits the finished, committed map.
     post_step("crates/mapgen/leagues.mjs");
     post_step("crates/mapgen/prune-cities.mjs");
+
+    probe::write_committed_probe();
 }
 
 /// Run a Node post-processing step against the just-written map, streaming its
@@ -284,21 +292,19 @@ mod tests {
             return false;
         }
         let i = (y as usize * w + x as usize) * 4;
-        raster::is_land_rgb([px[i], px[i + 1], px[i + 2]])
+        raster::Raster::rgb_is_land([px[i], px[i + 1], px[i + 2]])
     }
 
     fn read_png(path: &str) -> (usize, usize, Vec<u8>) {
-        let file = std::fs::File::open(path).unwrap();
-        let decoder = png::Decoder::new(file);
-        let mut reader = decoder.read_info().unwrap();
-        let mut buf = vec![0; reader.output_buffer_size()];
-        let info = reader.next_frame(&mut buf).unwrap();
-        assert_eq!(info.color_type, png::ColorType::Rgba);
-        assert_eq!(info.bit_depth, png::BitDepth::Eight);
-        (
-            info.width as usize,
-            info.height as usize,
-            buf[..info.buffer_size()].to_vec(),
-        )
+        probe::read_png(std::path::Path::new(path))
+    }
+
+    #[test]
+    fn committed_mask_probe_matches_regenerated_probe() {
+        let expected: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(probe::committed_probe_path()).unwrap())
+                .unwrap();
+        let actual = serde_json::to_value(probe::build_committed_probe()).unwrap();
+        assert_eq!(actual, expected, "committed mask probe is stale");
     }
 }

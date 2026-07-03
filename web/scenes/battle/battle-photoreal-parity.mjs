@@ -47,7 +47,11 @@ export async function run(ctx) {
         stats.substrate === SUBSTRATE &&
         stats.projection === PROJECTION &&
         stats.environment === "golden",
-      JSON.stringify({ substrate: stats?.substrate, projection: stats?.projection, environment: stats?.environment }),
+      JSON.stringify({
+        substrate: stats?.substrate,
+        projection: stats?.projection,
+        environment: stats?.environment,
+      }),
     );
     const rs = stats?.stats?.renderStats;
     ctx.check(
@@ -71,16 +75,20 @@ export async function run(ctx) {
         rs.terrain.scenery >= 500 &&
         rs.terrain.grass.tuftInstances > 1000 &&
         rs.terrain.grass.bladeInstances > 10000,
-      JSON.stringify(rs?.terrain && {
-        groundTriangles: rs.terrain.groundTriangles,
-        sealedEdges: rs.terrain.sealedEdges,
-        scenery: rs.terrain.scenery,
-        grass: rs.terrain.grass,
-      }),
+      JSON.stringify(
+        rs?.terrain && {
+          groundTriangles: rs.terrain.groundTriangles,
+          sealedEdges: rs.terrain.sealedEdges,
+          scenery: rs.terrain.scenery,
+          grass: rs.terrain.grass,
+        },
+      ),
     );
     ctx.check(
-      "overlay ports carry the tactical-line contracts (gold cues + effects)",
-      rs?.tacticalLines?.groundCues?.lineSegments >= 30 && rs.tacticalLines.effects.lineSegments >= 10,
+      "overlay ports carry the tactical-line contracts (gold rings + pie cues + effects)",
+      rs?.tacticalLines?.rings?.rings >= 2 &&
+        rs.tacticalLines.groundCues.lineSegments >= 10 &&
+        rs.tacticalLines.effects.lineSegments >= 6,
       JSON.stringify(rs?.tacticalLines),
     );
 
@@ -114,7 +122,9 @@ export async function run(ctx) {
       "parity-perf",
     );
     await page.waitForFunction(
-      () => window.__rendererLabStats?.stats?.frames >= 120 && window.__rendererLabStats?.stats?.gpuTimeMs !== null,
+      () =>
+        window.__rendererLabStats?.stats?.frames >= 120 &&
+        window.__rendererLabStats?.stats?.gpuTimeMs !== null,
       undefined,
       { timeout: 60000 },
     );
@@ -125,11 +135,21 @@ export async function run(ctx) {
         s.medianMs !== null &&
         s.medianMs <= PERF_BUDGET_MS &&
         s.gpuTimeMs <= PERF_BUDGET_MS,
-      JSON.stringify({ soldiers: s.renderStats.soldiers, medianMs: s.medianMs, p95Ms: s.p95Ms, gpuTimeMs: s.gpuTimeMs, drawCalls: s.drawCalls }),
+      JSON.stringify({
+        soldiers: s.renderStats.soldiers,
+        medianMs: s.medianMs,
+        p95Ms: s.p95Ms,
+        gpuTimeMs: s.gpuTimeMs,
+        drawCalls: s.drawCalls,
+      }),
     );
     await page.close();
   } else {
-    ctx.check("SwiftShader is not a perf oracle: 30.5k ms leg skipped by name", true, "hardware-only");
+    ctx.check(
+      "SwiftShader is not a perf oracle: 30.5k ms leg skipped by name",
+      true,
+      "hardware-only",
+    );
   }
 }
 
@@ -137,7 +157,10 @@ async function openRoute(ctx, query, errorPrefix) {
   const page = await ctx.newPage({ viewport: { width: 1280, height: 800 }, errorPrefix });
   await page.goto(`${ctx.target}/renderer/photoreal-battle${query}`);
   await page.waitForFunction(
-    () => window.__rendererLabReady === true && window.__rendererLabStats?.ok === true && window.__rendererLabStats?.route === "photoreal-battle",
+    () =>
+      window.__rendererLabReady === true &&
+      window.__rendererLabStats?.ok === true &&
+      window.__rendererLabStats?.route === "photoreal-battle",
     undefined,
     { timeout: 180000 },
   );

@@ -1,7 +1,7 @@
 import { Game, type InitOutput } from "../wasm/game_wasm.js";
 import type { Scene } from "../scene";
 import { Camera } from "../shared/camera";
-import { pushGhost, pushPie } from "../shared/overlays";
+import { pushDestRings, pushPie, SELECTION_GREEN, SOLDIER_RING_RADIUS } from "../shared/overlays";
 import { projectPoint } from "../../../packages/renderer-core/src/camera3d";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
 import {
@@ -972,7 +972,9 @@ export class BattleScene implements Scene {
       for (let u = 0; u < n; u++) {
         const o = u * STRIDE;
         const [ax, ay, facing, team] = [info[o], info[o + 1], info[o + 2], info[o + 6]];
-        const [r, g, b] = team === 0 ? [0.55, 0.7, 1.0] : [1.0, 0.55, 0.45];
+        // The player's cues share the selection-ring green (one style for
+        // "mine"); the enemy's keep the red accent.
+        const [r, g, b] = team === 0 ? SELECTION_GREEN : [1.0, 0.55, 0.45];
         if (withPaths) {
           const fx = Math.cos(facing);
           const fy = Math.sin(facing);
@@ -1006,8 +1008,8 @@ export class BattleScene implements Scene {
             }
           }
         }
-        // Destination ghost: the formation frame at the end of the path
-        // (flashes on every order; hold Space to keep them all visible).
+        // Destination preview: the soldier-ring grid at the final formation
+        // slots (flashes on every order; hold Space to keep them all visible).
         const age = performance.now() - (orderFlash.get(u) ?? -1e9);
         if (info[o + 12] > 0.5 && (withPaths || (showTransient && age < 2500))) {
           // Recent orders fade out; Space shows them at full strength.
@@ -1015,11 +1017,20 @@ export class BattleScene implements Scene {
           const cls = info[o + 13];
           const alive = info[o + 15];
           const files = Math.max(1, Math.ceil(alive / CLASS_DEPTH[cls]));
-          const w = files * CLASS_SPACING[cls];
-          const d = CLASS_DEPTH[cls] * 1.1;
           const gf =
             info[o + 23] > 0.5 ? info[o + 22] : Math.atan2(info[o + 11] - ay, info[o + 10] - ax);
-          pushGhost(groundCues, info[o + 10], info[o + 11], gf, w, d, r * k, g * k, b * k);
+          pushDestRings(
+            rings,
+            info[o + 10],
+            info[o + 11],
+            gf,
+            alive,
+            files,
+            CLASS_SPACING[cls],
+            r * k,
+            g * k,
+            b * k,
+          );
           groundCues.push(
             ax,
             ay,
@@ -1039,7 +1050,8 @@ export class BattleScene implements Scene {
         if (showTransient && info[o + 14] > 0)
           pushPie(groundCues, ax, ay, info[o + 14], 7, 1, 1, 1);
       }
-      // Right-drag preview: where everyone will stand, facing the cursor.
+      // Right-drag preview: where every man will stand, facing the cursor —
+      // the soldier-ring grid in the selection green.
       if (input.rightDrag) {
         const sel = myUnits(input.selected);
         if (sel.length > 0) {
@@ -1048,17 +1060,15 @@ export class BattleScene implements Scene {
             const o = dst.u * STRIDE;
             const cls = info[o + 13];
             const alive = info[o + 15];
-            const files = Math.max(1, Math.ceil(alive / CLASS_DEPTH[cls]));
-            pushGhost(
-              groundCues,
+            pushDestRings(
+              rings,
               dst.x,
               dst.y,
               input.rightDrag.facing,
-              files * CLASS_SPACING[cls],
-              CLASS_DEPTH[cls] * 1.1,
-              1,
-              1,
-              0.7,
+              alive,
+              Math.max(1, Math.ceil(alive / CLASS_DEPTH[cls])),
+              CLASS_SPACING[cls],
+              ...SELECTION_GREEN,
             );
           }
           // The arrow itself.
@@ -1066,18 +1076,15 @@ export class BattleScene implements Scene {
           groundCues.push(
             a.x,
             a.y,
-            1,
-            1,
-            0.7,
+            ...SELECTION_GREEN,
             a.x + Math.cos(a.facing) * 14,
             a.y + Math.sin(a.facing) * 14,
-            1,
-            1,
-            0.7,
+            ...SELECTION_GREEN,
           );
         }
       }
-      // Drag-move preview: ghosts of every selected unit at the dragged spot.
+      // Drag-move preview: the ring grid of every selected unit at the
+      // dragged spot.
       if (input.dragDelta) {
         const [dx, dy] = input.dragDelta;
         for (const u of input.selected) {
@@ -1085,18 +1092,16 @@ export class BattleScene implements Scene {
           const cls = info[o + 13];
           const alive = info[o + 15];
           if (alive === 0) continue;
-          const files = Math.max(1, Math.ceil(alive / CLASS_DEPTH[cls]));
           const [cx, cy] = unitCenter(u);
-          pushGhost(
-            groundCues,
+          pushDestRings(
+            rings,
             cx + dx,
             cy + dy,
             info[o + 2],
-            files * CLASS_SPACING[cls],
-            CLASS_DEPTH[cls] * 1.1,
-            1,
-            1,
-            1,
+            alive,
+            Math.max(1, Math.ceil(alive / CLASS_DEPTH[cls])),
+            CLASS_SPACING[cls],
+            ...SELECTION_GREEN,
           );
         }
       }
@@ -1117,8 +1122,7 @@ export class BattleScene implements Scene {
           for (let i = start; i < end; i++) {
             if (aliveSoldiers[i] === 0) continue;
             const p = i * 2;
-            // Campaign-selection green (the status accent), as ring decals.
-            rings.push(pos[p], pos[p + 1], 0.45, 0.31, 0.82, 0.39);
+            rings.push(pos[p], pos[p + 1], SOLDIER_RING_RADIUS, ...SELECTION_GREEN);
           }
         }
       }

@@ -44,10 +44,7 @@ import {
   type CameraSnapshot,
 } from "../../../packages/renderer-core/src/cameraUniform";
 import { campaignCameraRig, type CameraRigRange } from "../battle/cameraRig";
-import {
-  chartCamera3d,
-  type Camera3DParams,
-} from "../../../packages/renderer-core/src/camera3d";
+import { chartCamera3d, type Camera3DParams } from "../../../packages/renderer-core/src/camera3d";
 import { SkinnedCrowdPipeline } from "../../../packages/renderer-core/src/skinnedPipeline";
 import { SoldierShadowDecalPass } from "../../../packages/renderer-core/src/soldierShadowPass";
 import { buildStackCrowd } from "../../../packages/crowd-runtime/src/stackCrowd";
@@ -61,6 +58,7 @@ import { createPlaceholderSoldierMeshes } from "../../../packages/soldier-assets
 import type { CampaignData, MapNode } from "./data";
 import { isControlledStage } from "./data";
 import type { CamView } from "./camera";
+import { SELECTION_GREEN } from "../shared/overlays";
 import { Allegiance } from "./status";
 import { TEMPERATE_Y_KM, type TerrainField } from "./terrain";
 import { campaignSurface, type CampaignSurface } from "./surface";
@@ -268,7 +266,9 @@ export class CampaignRenderer {
       rgba: territory.rgba,
       rect: this.data.bgRect,
     });
-    this.borders.upload(campaignFactionBorderVertices(territory.borders, (x, y) => this.field.heightAt(x, y)));
+    this.borders.upload(
+      campaignFactionBorderVertices(territory.borders, (x, y) => this.field.heightAt(x, y)),
+    );
   }
 
   draw(opts: DrawOptions) {
@@ -631,7 +631,11 @@ export class CampaignRenderer {
           },
       this.surface.mesh,
     );
-    this.clouds = new CampaignCloudPass(this.shell, this.data.bgRect, controlledStage ? 0.75 : 2.05);
+    this.clouds = new CampaignCloudPass(
+      this.shell,
+      this.data.bgRect,
+      controlledStage ? 0.75 : 2.05,
+    );
     this.fog = new CampaignFogPass(this.shell, this.data.bgRect);
     this.territoryPass = new CampaignTerritoryPass(
       this.shell,
@@ -670,8 +674,7 @@ export class CampaignRenderer {
     this.labels = new CampaignLabelPass(this.shell);
     const drawData = buildCampaignMapDrawData(this.data, {
       roadScale: 1.0,
-      surfaceAt: (x, y) =>
-        this.field.landAt(x, y, controlledStage ? 2.5 : 16) ? "land" : "water",
+      surfaceAt: (x, y) => (this.field.landAt(x, y, controlledStage ? 2.5 : 16) ? "land" : "water"),
       heightAt: (x, y) => this.field.heightAt(x, y),
     });
     this.mapDrawStats = drawData.stats;
@@ -766,7 +769,7 @@ function buildEntityFrame(
         y: mapNode.pos[1],
         z: field.heightAt(mapNode.pos[0], mapNode.pos[1]),
         radius: citySelectionRadius(mapNode.tier) * fixtureScale,
-        color: [0.31, 0.82, 0.39],
+        color: SELECTION_GREEN,
         kind: "city",
       });
     }
@@ -838,7 +841,7 @@ function buildEntityFrame(
         y: display.y,
         z: field.heightAt(display.x, display.y),
         radius: selectionRadius,
-        color: [0.31, 0.82, 0.39],
+        color: SELECTION_GREEN,
         kind: occupiedCity ? "garrisoned-army" : "army",
       });
     }
@@ -902,7 +905,7 @@ function factionColor(data: CampaignData, faction: number): [number, number, num
 }
 
 function allegianceColor(allegiance: Allegiance): [number, number, number] {
-  if (allegiance === Allegiance.Friend) return [0.31, 0.82, 0.39];
+  if (allegiance === Allegiance.Friend) return SELECTION_GREEN;
   if (allegiance === Allegiance.Foe) return [0.88, 0.27, 0.23];
   return [0.93, 0.78, 0.3];
 }
@@ -973,7 +976,8 @@ function campaignArmyLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
         ? garrisonDisplayAnchor(data.map.nodes[occupiedCity.index])
         : { x: army.x, y: army.y };
       const cityOverlap = occupiedCity !== null;
-      const selectedOffset = !cityOverlap && army.id === opts.selected && isControlledStage(data) ? 28 : 0;
+      const selectedOffset =
+        !cityOverlap && army.id === opts.selected && isControlledStage(data) ? 28 : 0;
       const overlapClearance = cityOverlap ? (opts.cam.scale >= 3 ? 14 : 10) : 24;
       return {
         text: `${ordinal(ordinalOf.get(army.id) ?? 1)} LEGION`,

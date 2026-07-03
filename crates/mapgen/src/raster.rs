@@ -68,6 +68,21 @@ impl Raster {
         }
     }
 
+    /// Rehydrate a raster from committed RGBA pixels — the invariant tests wrap
+    /// the committed campaign-bg.png so they query it through the same
+    /// classification owner the bake used.
+    pub fn from_rgba(bb: BBox, w: usize, h: usize, px: Vec<u8>) -> Raster {
+        assert_eq!(px.len(), w * h * 4, "raster pixel buffer size mismatch");
+        let scale = w as f64 / (bb.max[0] - bb.min[0]);
+        Raster {
+            w,
+            h,
+            px,
+            bb,
+            scale,
+        }
+    }
+
     pub fn classify_rgb(rgb: [u8; 3]) -> RenderMaskClass {
         let mut best = RenderMaskClass::Sea;
         let mut best_d = u32::MAX;

@@ -42,10 +42,16 @@ Campaign (grand-strategy map):
 - `references/campaign-map-aegean-wide.png` — the painted parchment overview. Muted
   green/tan land, slate-blue sea, **wispy cloud vignette framing the edges**,
   engraved serif city labels, italic sea names following the water.
+- `references/campaign-natural-target.png` — the terrain-palette target (a TW:Troy
+  campaign vista David picked). Sun-bleached **yellow-olive turf**, warm
+  desaturated register, muted teal water — the campaign's natural-view colors are
+  graded toward this shot, never toward vivid kelly-green or webapp brights.
 - `references/campaign-map-political-borders.png` — zoomed political view. Faction
   territory as **translucent color washes**; the active/aggressor faction's land
   carries a **diagonal hatch** (the red stripes over Macedon). Cinzel-caps city
-  names, region names in larger faded caps.
+  names, region names in larger faded caps. Wash strength follows David's
+  EU4-political call: the faction color dominates while terrain relief reads
+  through (see `specs/done`/campaign-map-polish rationale once archived).
 
 UI / HUD (in-game panels):
 - `references/ui-cardbar-tw.png` — the Total War unit-card bar: the target for any

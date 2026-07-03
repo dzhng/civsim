@@ -98,7 +98,7 @@ scene.mjs <scene>` and bless with `UPDATE_SHOTS=1`.
 - [x] `16-city-card-design` — sheet built + critiqued; DECIDED: variation B (plaque + wells), DOM-overlay seam; David can override
 - [ ] `17-city-card-impl` — own-city bronze card as DOM overlay (garrison strip below)
 - [ ] `18-allegiance-rechannel` — enemy red sword + icon→faction flip, atomic (no signal gap)
-- [ ] `19-aesthetics-doc` — palette target + rewritten two-color rule (lands after its code)
+- [~] `19-aesthetics-doc` — part 1 DONE (palette-target reference line in SKILL.md); part 2 (two-color rule rewrite) gated on 17+18
 
 ---
 

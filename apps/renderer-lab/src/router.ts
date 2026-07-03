@@ -89,6 +89,7 @@ import {
   buildCampaignMapDrawData,
   CampaignLabelPass,
   CampaignMapPass,
+  type CampaignMarker,
   CampaignMarkerPass,
   CampaignRoadPass,
   CampaignWorldLinePass,
@@ -2317,44 +2318,59 @@ async function routeCampaignModelShots(ctx: LabContext) {
   const selection = new CampaignSelectionPass(shell);
   const labelPass = new CampaignLabelPass(shell);
   const frame = campaignModelShotFrame(gate);
+  const standardLiveries =
+    gate === "standard-liveries"
+      ? await campaignModelShotStandardLiveries(ctx.canvas, camera)
+      : null;
+  if (standardLiveries) {
+    frame.entities.push(...standardLiveries.entities);
+    frame.terrainRect = standardLiveries.terrainRect;
+  }
   const cityStandardSamples = campaignModelShotCityStandardSamples(gate, ctx.canvas, camera);
   const clouds = frame.cloudRect ? new CampaignCloudPass(shell, frame.cloudRect) : null;
+  const markerPass = standardLiveries?.markers.length ? new CampaignMarkerPass(shell) : null;
   entities.upload(frame.entities);
   scenery.upload(frame.scenery);
   roads.upload(frame.roads);
   selection.upload(frame.selections);
+  if (markerPass && standardLiveries) markerPass.upload(standardLiveries.markers);
   const labelLayer = labelPass.upload(frame.labels, chartSnapshot(camera, shell));
   // Army stacks draw the shared skinned crowd (matching the production campaign
   // renderer), so this isolated 'army'/'garrison-*' review shows the real
   // representative figures + grounding shadow, not just the standard banner.
-  const soldierKit = await loadPlaceholderKit();
-  const soldierCrowd = new SkinnedCrowdPipeline(
-    shell,
-    createPlaceholderSoldierMeshes([0.3, 0.36, 0.74]),
-    await loadPlaceholderVat(),
-    soldierKit,
-  );
-  const soldierShadows = new SoldierShadowDecalPass(shell);
-  const modelStackRoster = [4, 0, 3, 0, 2, 1];
-  const modelCrowd = frame.entities
-    .filter((entity) => entity.kind === "army")
-    .flatMap((entity, i) =>
-      buildStackCrowd(modelStackRoster, {
-        unitCount: 20,
-        stackUnitCap: 20,
-        x: entity.x,
-        y: entity.y,
-        faction: 0,
-        seed: 100 + i,
-        clip: "idle",
-        phase: 0,
-        mountedClasses: mountedClassesFromKit(soldierKit),
-        spacing: CAMPAIGN_FIGURE_SIZE * 1.1,
-        terrainHeight: () => entity.z ?? 0,
-      }),
+  let soldierCrowd: SkinnedCrowdPipeline | null = null;
+  let soldierShadows: SoldierShadowDecalPass | null = null;
+  let modelCrowd: CrowdInstance[] = [];
+  if (gate !== "standard-liveries") {
+    const soldierKit = await loadPlaceholderKit();
+    soldierCrowd = new SkinnedCrowdPipeline(
+      shell,
+      createPlaceholderSoldierMeshes([0.3, 0.36, 0.74]),
+      await loadPlaceholderVat(),
+      soldierKit,
     );
-  soldierCrowd.upload(modelCrowd, { size: CAMPAIGN_FIGURE_SIZE });
-  soldierShadows.upload(modelCrowd, { radius: 0.62 * CAMPAIGN_FIGURE_SIZE });
+    soldierShadows = new SoldierShadowDecalPass(shell);
+    const modelStackRoster = [4, 0, 3, 0, 2, 1];
+    modelCrowd = frame.entities
+      .filter((entity) => entity.kind === "army")
+      .flatMap((entity, i) =>
+        buildStackCrowd(modelStackRoster, {
+          unitCount: 20,
+          stackUnitCap: 20,
+          x: entity.x,
+          y: entity.y,
+          faction: 0,
+          seed: 100 + i,
+          clip: "idle",
+          phase: 0,
+          mountedClasses: mountedClassesFromKit(soldierKit),
+          spacing: CAMPAIGN_FIGURE_SIZE * 1.1,
+          terrainHeight: () => entity.z ?? 0,
+        }),
+      );
+    soldierCrowd.upload(modelCrowd, { size: CAMPAIGN_FIGURE_SIZE });
+    soldierShadows.upload(modelCrowd, { radius: 0.62 * CAMPAIGN_FIGURE_SIZE });
+  }
   // The occlusion/visibility samples derive from the crowd actually drawn, so
   // the sampled points always have a real soldier where the check expects one.
   const garrisonSamples = campaignModelShotGarrisonSamples(gate, ctx.canvas, camera, modelCrowd);
@@ -2387,13 +2403,17 @@ async function routeCampaignModelShots(ctx: LabContext) {
     ...(hostileDepthOrder
       ? [entityOpaquePass, sceneryOpaquePass]
       : [sceneryOpaquePass, entityOpaquePass]),
-    {
-      id: "model-shot-soldier-crowd",
-      role: "world-opaque",
-      phase: "world-depth",
-      depth: "read-write",
-      draw: (pass) => soldierCrowd.draw(pass),
-    },
+    ...(soldierCrowd
+      ? [
+          {
+            id: "model-shot-soldier-crowd",
+            role: "world-opaque" as const,
+            phase: "world-depth" as const,
+            depth: "read-write" as const,
+            draw: (pass: WorldRenderPass) => soldierCrowd.draw(pass),
+          },
+        ]
+      : []),
     {
       id: "model-shot-scenery-shadows",
       role: "world-decal",
@@ -2408,13 +2428,17 @@ async function routeCampaignModelShots(ctx: LabContext) {
       depth: "read",
       draw: (pass) => entities.drawShadows(pass),
     },
-    {
-      id: "model-shot-soldier-shadows",
-      role: "world-decal",
-      phase: "world-depth",
-      depth: "read",
-      draw: (pass) => soldierShadows.draw(pass),
-    },
+    ...(soldierShadows
+      ? [
+          {
+            id: "model-shot-soldier-shadows",
+            role: "world-decal" as const,
+            phase: "world-depth" as const,
+            depth: "read" as const,
+            draw: (pass: WorldRenderPass) => soldierShadows.draw(pass),
+          },
+        ]
+      : []),
     {
       id: "model-shot-roads",
       role: "world-decal",
@@ -2439,6 +2463,16 @@ async function routeCampaignModelShots(ctx: LabContext) {
           },
         ]
       : []),
+    ...(markerPass
+      ? [
+          {
+            id: "model-shot-markers",
+            role: "overlay-ui" as const,
+            phase: "overlay" as const,
+            draw: (pass: OverlayRenderPass) => markerPass.draw(pass),
+          },
+        ]
+      : []),
     {
       id: "model-shot-labels",
       role: "overlay-ui",
@@ -2460,6 +2494,8 @@ async function routeCampaignModelShots(ctx: LabContext) {
     roadTriangles: roads.stats().triangles,
     cloudQuads: clouds?.stats().cloudQuads ?? 0,
     labels: `${labelLayer.visibleLabels}/${labelLayer.labels}`,
+    markers: markerPass?.stats().markers ?? 0,
+    factions: standardLiveries?.factions ?? "n/a",
     cityStandard: cityStandardSamples ? "embedded-depth-sampled" : "n/a",
     garrison: garrisonSamples ? "army-inside-city-depth-sampled" : "n/a",
     selectionDepth: selectionSamples ? "ground-decal-occlusion-sampled" : "n/a",
@@ -2472,6 +2508,12 @@ async function routeCampaignModelShots(ctx: LabContext) {
     ...(selectionSamples ? { selectionDepth: selectionSamples } : {}),
     ...(hostileDepthOrder
       ? { hostileDepthOrder: campaignModelShotHostileDepthSamples(ctx.canvas, camera) }
+      : {}),
+    ...(standardLiveries
+      ? {
+          liveryCells: standardLiveries.liveryCells,
+          standardLiveryGrid: standardLiveries.grid,
+        }
       : {}),
     // Drawn crowd anchors (world x, y) — lets scene tooling reason about the
     // review fixture from published data instead of duplicating the stack build.
@@ -2489,6 +2531,8 @@ async function routeCampaignModelShots(ctx: LabContext) {
     selections: frame.selections.length,
     labels: labelLayer.labels,
     visibleLabels: labelLayer.visibleLabels,
+    markers: markerPass?.stats().markers ?? 0,
+    factions: standardLiveries?.factions,
     labelLayer: labelLayer.layer,
     entityLayer: entities.stats().layer,
     depth: shell.stats().depth,
@@ -2619,6 +2663,7 @@ type CampaignModelShot =
   | "road"
   | "road-only"
   | "selected-city"
+  | "standard-liveries"
   | "labels"
   | "terrain-grass-scrub"
   | "terrain-stone-relief"
@@ -2635,6 +2680,7 @@ const CAMPAIGN_MODEL_SHOTS: CampaignModelShot[] = [
   "road",
   "road-only",
   "selected-city",
+  "standard-liveries",
   "labels",
   "terrain-grass-scrub",
   "terrain-stone-relief",
@@ -2674,6 +2720,12 @@ function campaignModelShotCamera(gate: CampaignModelShot) {
   // army body (its west shield reaches x ≈ −9.3) stays fully in frame.
   if (gate === "garrison-outside") return { ...close, x: -2.2 };
   if (gate === "overview") return { x: 0, y: -0.6, zoom: 28, pitch: 0.54, yaw: 0 };
+  // Zoom 10 keeps every livery cell (and its screen-space marker) inside the
+  // 970 px lab canvas: the perspective pitch widens the bottom rows, and at
+  // zoom 12 corner markers projected off-canvas, so their pixel gates sampled
+  // clamped garbage. y = -4 lifts the grid so the bottom row's standards sit
+  // fully in frame (the top rows have headroom, the models rise upward).
+  if (gate === "standard-liveries") return { x: 0, y: -4, zoom: 10, pitch: 0.54, yaw: 0 };
   if (gate === "road" || gate === "road-only")
     return { x: 0, y: -1.3, zoom: 30, pitch: 0.54, yaw: 0 };
   if (gate === "terrain-grass-scrub") return { x: 0, y: -0.3, zoom: 40, pitch: 0.56, yaw: 0 };
@@ -2912,6 +2964,79 @@ function campaignModelShotFrame(gate: CampaignModelShot) {
     });
   }
   return { entities, scenery, selections, labels, roads, terrainRect, cloudRect };
+}
+
+async function campaignModelShotStandardLiveries(
+  canvas: HTMLCanvasElement,
+  camera: ChartCameraSpec,
+) {
+  const res = await fetch("/data/campaign-map.json");
+  const map = (await res.json()) as {
+    factions: { name: string; color: [number, number, number] }[];
+  };
+  const columns = 6;
+  const spacing: [number, number] = [15, 7.5];
+  const rows = Math.ceil(map.factions.length / columns);
+  const width = (columns - 1) * spacing[0];
+  const height = Math.max(0, rows - 1) * spacing[1];
+  const entities: CampaignEntityInstance[] = [];
+  const markers: CampaignMarker[] = [];
+  const liveryCells = map.factions.map((faction, index) => {
+    const col = index % columns;
+    const row = Math.floor(index / columns);
+    const x = col * spacing[0] - width / 2;
+    const y = height / 2 - row * spacing[1];
+    const color: [number, number, number] = [
+      faction.color[0] / 255,
+      faction.color[1] / 255,
+      faction.color[2] / 255,
+    ];
+    const markerAnchor: [number, number] = [x + 5, y];
+    const markerSample = projectNestedPoint(canvas, camera, [markerAnchor[0], markerAnchor[1], 0]);
+    entities.push({
+      x,
+      y,
+      radius: 6.4,
+      faction: color,
+      allegiance: color,
+      kind: "army",
+      strength: 1,
+    });
+    markers.push({
+      x: markerAnchor[0],
+      y: markerAnchor[1],
+      radius: 9,
+      faction: color,
+      allegiance: color,
+      kind: "army",
+      selected: false,
+    });
+    return {
+      faction: index,
+      name: faction.name,
+      color: faction.color,
+      meshAnchor: [x, y] as [number, number],
+      markerAnchor,
+      markerPx: [markerSample.x, markerSample.y] as [number, number],
+    };
+  });
+  // Generous pad: the pitched camera shows a trapezoid of ground, so a tight
+  // rect leaves the frame's far corners on the void-dark clear color.
+  const pad = 40;
+  const terrainRect: [number, number, number, number] = [
+    -width / 2 - pad,
+    -height / 2 - pad,
+    width + pad * 2 + 5,
+    height + pad * 2,
+  ];
+  return {
+    entities,
+    markers,
+    terrainRect,
+    liveryCells,
+    factions: map.factions.length,
+    grid: { columns, rows, spacing },
+  };
 }
 
 // Derived from the fixture's world geometry (a point inside the city flag's

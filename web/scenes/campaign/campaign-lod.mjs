@@ -180,6 +180,7 @@ export async function run(ctx) {
       stats.factionView === true &&
       hasTerrainFeatureDensity(stats),
   });
+  await checkOwnCityCards(page, ctx, "campaign-lod-regional-italy-political");
 
   await snapCampaign(page, ctx, "campaign-lod-rome-close", {
     before: () =>
@@ -210,6 +211,7 @@ export async function run(ctx) {
       JSON.stringify(cards),
     );
   }
+  await checkOwnCityCards(page, ctx, "campaign-lod-rome-close");
   await snapCampaign(page, ctx, "campaign-lod-selected-army-city", {
     before: () =>
       page.evaluate(
@@ -679,5 +681,78 @@ async function visibleMapCardNames(page) {
     Array.from(document.querySelectorAll(".cmp-map-card"))
       .filter((node) => node.style.display !== "none")
       .map((node) => node.querySelector(".cmp-map-card__name")?.textContent ?? ""),
+  );
+}
+
+// Slice 07 (campaign-map-bugs B5) contract: every visible own-city card sits
+// beside a rendered city model (an entity anchor exists at its node, and no
+// card covers that anchor point) with a mostly-land rect (the landward card
+// offset keeps DOM cards off the open sea).
+async function checkOwnCityCards(page, ctx, name) {
+  const audit = await page.evaluate(async () => {
+    const api = window.__campaign;
+    const anchors = window.__campaignGpuStats.cityEntityAnchors ?? [];
+    const anchorKeys = new Set(anchors.map(([x, y]) => `${x},${y}`));
+    const map = await (await fetch("/data/campaign-map.json")).json();
+    const cityByCardName = new Map(
+      map.nodes
+        .filter((node) => node.kind === "city")
+        .map((node) => [node.name.toUpperCase(), node]),
+    );
+    const cards = Array.from(document.querySelectorAll(".cmp-map-card--city"))
+      .filter((node) => node.style.display !== "none")
+      .map((node) => ({
+        name: node.querySelector(".cmp-map-card__name")?.textContent?.trim() ?? "",
+        rect: node.getBoundingClientRect(),
+      }));
+    const audited = [];
+    for (const card of cards) {
+      const city = cityByCardName.get(card.name);
+      if (!city) {
+        audited.push({ name: card.name, error: "no city node for card name" });
+        continue;
+      }
+      const rect = card.rect;
+      const points = [
+        [rect.left, rect.top],
+        [rect.right, rect.top],
+        [rect.right, rect.bottom],
+        [rect.left, rect.bottom],
+        [rect.left + rect.width / 2, rect.top + rect.height / 2],
+      ];
+      let land = 0;
+      for (const [sx, sy] of points) {
+        const [wx, wy] = api.screenToWorld(sx, sy);
+        if (api.renderLandAt(wx, wy, 0)) land++;
+      }
+      const [ax, ay] = api.project(city.pos[0], city.pos[1]);
+      const anchorCovered = cards.some(
+        (other) =>
+          ax >= other.rect.left &&
+          ax <= other.rect.right &&
+          ay >= other.rect.top &&
+          ay <= other.rect.bottom,
+      );
+      audited.push({
+        name: card.name,
+        modelPresent: anchorKeys.has(`${city.pos[0]},${city.pos[1]}`),
+        anchorCovered,
+        landFraction: land / points.length,
+        onScreenAnchor: ax >= 0 && ay >= 0 && ax <= innerWidth && ay <= innerHeight,
+      });
+    }
+    return audited;
+  });
+  const bad = audit.filter(
+    (card) =>
+      card.error ||
+      !card.modelPresent ||
+      (card.onScreenAnchor && card.anchorCovered) ||
+      card.landFraction < 0.6,
+  );
+  ctx.check(
+    `${name} own-city cards sit ashore beside visible city models`,
+    audit.length > 0 && bad.length === 0,
+    JSON.stringify({ bad, audited: audit.length }),
   );
 }

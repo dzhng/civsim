@@ -526,6 +526,7 @@ fn prune_road_stub_junctions(
     loop {
         let mut endpoints = BTreeSet::new();
         let mut road_degree: BTreeMap<u32, usize> = BTreeMap::new();
+        let mut sea_degree: BTreeMap<u32, usize> = BTreeMap::new();
         for (i, e) in edges.iter().enumerate() {
             if !alive[i] {
                 continue;
@@ -535,12 +536,19 @@ fn prune_road_stub_junctions(
             if e.kind == "road" {
                 *road_degree.entry(e.a).or_default() += 1;
                 *road_degree.entry(e.b).or_default() += 1;
+            } else if e.kind == "sea" {
+                *sea_degree.entry(e.a).or_default() += 1;
+                *sea_degree.entry(e.b).or_default() += 1;
             }
         }
 
         let doomed: BTreeSet<u32> = endpoints
             .into_iter()
-            .filter(|id| !city_sites.contains(id) && road_degree.get(id).copied().unwrap_or(0) <= 1)
+            .filter(|id| {
+                !city_sites.contains(id)
+                    && road_degree.get(id).copied().unwrap_or(0) <= 1
+                    && sea_degree.get(id).copied().unwrap_or(0) == 0
+            })
             .collect();
         if doomed.is_empty() {
             break;
@@ -574,6 +582,49 @@ fn prune_road_stub_junctions(
     });
 
     removed
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn road_stub_prune_preserves_sea_lane_junctions() {
+        let mut edges = vec![
+            EdgeJson {
+                a: 1,
+                b: 2,
+                kind: "road",
+                via: vec![[0.0, 0.0], [1.0, 0.0]],
+                tiles: vec!["open"],
+            },
+            EdgeJson {
+                a: 2,
+                b: 3,
+                kind: "sea",
+                via: vec![[1.0, 0.0], [2.0, 0.0]],
+                tiles: vec!["sea"],
+            },
+        ];
+        let mut ambush_spots = vec![AmbushJson {
+            edge: 0,
+            tile: 0,
+            side: 1,
+        }];
+        let city_sites = BTreeSet::from([1, 3]);
+
+        let removed = prune_road_stub_junctions(&mut edges, &mut ambush_spots, &city_sites);
+
+        assert!(
+            removed.is_empty(),
+            "sea-lane junctions must not be pruned: {removed:?}"
+        );
+        assert_eq!(edges.len(), 2);
+        assert!(edges
+            .iter()
+            .any(|e| e.kind == "sea" && e.a == 2 && e.b == 3));
+        assert_eq!(ambush_spots.len(), 1);
+    }
 }
 
 fn snapped_city_positions(

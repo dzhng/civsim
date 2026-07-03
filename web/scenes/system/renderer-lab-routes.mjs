@@ -2078,7 +2078,9 @@ export async function run(ctx) {
       const standard = patchStats(canvasPng, samples.visibleStandardOutsideCity, 6);
       ctx.check(
         `${route}: outside-garrison army body is visible before entering the city`,
-        body.blue > 12,
+        // Figure cloth reads navy (shadow side) as often as bright blue —
+        // both bins are soldier body.
+        body.blue + body.navy > 12,
         JSON.stringify({ body, sample: samples.visibleShieldOutsideCity }),
       );
       ctx.check(
@@ -2094,7 +2096,7 @@ export async function run(ctx) {
       const visible = patchStats(canvasPng, samples.visibleStandardAboveRoofs, 6);
       ctx.check(
         `${route}: production city material occludes the garrisoned army body`,
-        hidden.blue <= 8 && hidden.tan + hidden.red > 80,
+        hidden.blue + hidden.navy <= 8 && hidden.tan + hidden.red > 80,
         JSON.stringify({ hidden, sample: samples.hiddenShieldInsideWall }),
       );
       ctx.check(

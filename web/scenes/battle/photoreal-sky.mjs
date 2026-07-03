@@ -32,10 +32,10 @@ export const meta = {
     "photoreal-sky/dusk-full",
     "photoreal-sky/overcast-foggy-full",
   ],
-  describe: "Physical sky + aerial perspective: per-preset sky-band/far-terrain/full snapshots, sky-tier identity.",
+  describe:
+    "Physical sky + aerial perspective: per-preset sky-band/far-terrain/full snapshots, sky-tier identity.",
 };
 
-const FIXED_TIME = 0;
 // The vista rig stop (battle-perf-30k's framing): sky band + far ridge in frame.
 const FRAMING = "map=A&t=0&ref=1&zoom=9.5&cx=0&cy=-310";
 const SKY_TIER = "skyview-fragment-lut";
@@ -106,7 +106,9 @@ export async function run(ctx) {
     // Baselines are SwiftShader artifacts; a hardware run must not diff them.
     if (!hardware) {
       await ctx.snap(page, `photoreal-sky/${env}-sky-band`, { shot: PNG.sync.write(skyBand) });
-      await ctx.snap(page, `photoreal-sky/${env}-far-terrain-band`, { shot: PNG.sync.write(farBand) });
+      await ctx.snap(page, `photoreal-sky/${env}-far-terrain-band`, {
+        shot: PNG.sync.write(farBand),
+      });
       await ctx.snap(page, `photoreal-sky/${env}-full`, { shot: PNG.sync.write(full) });
     }
     await page.close();

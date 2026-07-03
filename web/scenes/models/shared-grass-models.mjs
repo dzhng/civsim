@@ -1,26 +1,30 @@
-import { PNG } from 'pngjs';
+import { PNG } from "pngjs";
 
 // Floors re-derived for the oblique camera3d review framing (slice 05b): the
 // blades stand toward the camera instead of splaying under the fake top-down
 // projection, so less of the silhouette reads as deep-shaded blade interior
 // (measured 0.0035 tuft / 0.033 patch; floors keep ~40% margin).
 const gates = [
-  { id: 'tuft', label: 'Grass Tuft', minGrass: 0.010, minDark: 0.12, minDeepBlade: 0.002 },
-  { id: 'patch', label: 'Grass Patch', minGrass: 0.035, minDark: 0.25, minDeepBlade: 0.02 },
+  { id: "tuft", label: "Grass Tuft", minGrass: 0.01, minDark: 0.12, minDeepBlade: 0.002 },
+  { id: "patch", label: "Grass Patch", minGrass: 0.035, minDark: 0.25, minDeepBlade: 0.02 },
 ];
 
 export const meta = {
-  name: 'shared-grass-models',
-  kind: 'visual',
-  world: 'shared-grass-models',
-  tier: 'full',
+  name: "shared-grass-models",
+  kind: "visual",
+  world: "shared-grass-models",
+  tier: "full",
   snapshots: gates.map((gate) => `shared/grass/${gate.id}`),
-  describe: 'Captures reusable grass primitive baselines under web/shots/models/shared/grass.',
+  describe: "Captures reusable grass primitive baselines under web/shots/models/shared/grass.",
 };
 
 export async function run(ctx) {
-  if (process.env.VERIFY_GPU !== '1') {
-    ctx.check('shared grass shots require browser GPU flags', true, 'set VERIFY_GPU=1 to capture shared grass shots');
+  if (process.env.VERIFY_GPU !== "1") {
+    ctx.check(
+      "shared grass shots require browser GPU flags",
+      true,
+      "set VERIFY_GPU=1 to capture shared grass shots",
+    );
     return;
   }
 
@@ -30,21 +34,36 @@ export async function run(ctx) {
 }
 
 async function captureGate(ctx, gate) {
-  const page = await ctx.newPage({ viewport: { width: 920, height: 720 }, errorPrefix: `shared-grass-${gate.id}` });
+  const page = await ctx.newPage({
+    viewport: { width: 920, height: 720 },
+    errorPrefix: `shared-grass-${gate.id}`,
+  });
   await page.goto(`${ctx.target}/renderer/shared-grass-models?gate=${gate.id}`);
-  await page.waitForFunction((id) => window.__rendererLabReady === true && window.__rendererLabStats?.stats?.gate === id, gate.id, { timeout: 18000 });
+  await page.waitForFunction(
+    (id) => window.__rendererLabReady === true && window.__rendererLabStats?.stats?.gate === id,
+    gate.id,
+    { timeout: 18000 },
+  );
   await page.waitForTimeout(160);
   const stats = await page.evaluate(() => window.__rendererLabStats?.stats ?? null);
-  if (stats?.route !== 'shared-grass-models' || stats?.gate !== gate.id) {
+  if (stats?.route !== "shared-grass-models" || stats?.gate !== gate.id) {
     await page.close();
-    throw new Error(`shared grass ${gate.id} did not publish valid stats: ${JSON.stringify(stats)}`);
+    throw new Error(
+      `shared grass ${gate.id} did not publish valid stats: ${JSON.stringify(stats)}`,
+    );
   }
-  ctx.check(`${gate.id} route publishes shared grass stats`, stats.bladeInstances >= stats.tuftInstances && stats.meshVertices > 0, JSON.stringify(stats));
-  const shot = await page.locator('#renderer-canvas').screenshot();
+  ctx.check(
+    `${gate.id} route publishes shared grass stats`,
+    stats.bladeInstances >= stats.tuftInstances && stats.meshVertices > 0,
+    JSON.stringify(stats),
+  );
+  const shot = await page.locator("#renderer-canvas").screenshot();
   const metrics = grassModelMetrics(PNG.sync.read(shot));
   ctx.check(
     `${gate.id} grass silhouette is visible`,
-    metrics.grass >= gate.minGrass && metrics.dark >= gate.minDark && metrics.deepBlade >= gate.minDeepBlade,
+    metrics.grass >= gate.minGrass &&
+      metrics.dark >= gate.minDark &&
+      metrics.deepBlade >= gate.minDeepBlade,
     JSON.stringify({ label: gate.label, metrics }),
   );
   await ctx.snap(page, `shared/grass/${gate.id}`, { shot });

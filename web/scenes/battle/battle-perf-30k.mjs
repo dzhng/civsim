@@ -1,5 +1,5 @@
-import { mkdir, writeFile } from 'node:fs/promises';
-import { PNG } from 'pngjs';
+import { mkdir, writeFile } from "node:fs/promises";
+import { PNG } from "pngjs";
 
 // The standing 30k perf gate (slice 04f): the PRODUCTION battle renderer
 // (BattleRenderer — the surface slice 08b swaps) must hold the spec's locked
@@ -11,12 +11,13 @@ import { PNG } from 'pngjs';
 // still runs as a correctness smoke and records that the budget was skipped.
 // Every photoreal ladder slice from 08b on re-runs this gate.
 export const meta = {
-  name: 'battle-perf-30k',
-  kind: 'flow',
-  world: 'battle-real',
-  tier: 'full',
+  name: "battle-perf-30k",
+  kind: "flow",
+  world: "battle-real",
+  tier: "full",
   snapshots: [],
-  describe: 'Production battle renderer holds 33 ms median GPU frame time at 30k+ soldiers plus dense foliage.',
+  describe:
+    "Production battle renderer holds 33 ms median GPU frame time at 30k+ soldiers plus dense foliage.",
 };
 
 // Locked numbers (interview 2026-07-02): changing either requires David.
@@ -35,30 +36,43 @@ const VISTA_GRASS_BLADE_FLOOR = 150000;
 // stops centre on the 30k crowd mass so the measured frame carries the
 // soldiers on screen, not an empty field.
 const STOPS = [
-  { name: 'mid', zoom: 3.0, center: [0, -310] },
-  { name: 'vista', zoom: 9.5, center: [0, -310] },
+  { name: "mid", zoom: 3.0, center: [0, -310] },
+  { name: "vista", zoom: 9.5, center: [0, -310] },
 ];
 
 const WARMUP_FRAMES = 60;
 const SAMPLE_FRAMES = 150;
-const REPORT_DIR = new URL('../../reports/rendering/scenario-runs/', import.meta.url);
+const REPORT_DIR = new URL("../../reports/rendering/scenario-runs/", import.meta.url);
 
 export async function run(ctx) {
-  if (process.env.VERIFY_GPU !== '1') {
-    ctx.check('requires WebGPU browser flags', true, 'set VERIFY_GPU=1 to exercise the 30k perf gate');
+  if (process.env.VERIFY_GPU !== "1") {
+    ctx.check(
+      "requires WebGPU browser flags",
+      true,
+      "set VERIFY_GPU=1 to exercise the 30k perf gate",
+    );
     return;
   }
-  const hardware = process.env.VERIFY_GPU_ADAPTER === 'hardware';
+  const hardware = process.env.VERIFY_GPU_ADAPTER === "hardware";
 
-  const page = await ctx.newPage({ viewport: { width: 1280, height: 800 }, errorPrefix: 'battle-perf-30k' });
+  const page = await ctx.newPage({
+    viewport: { width: 1280, height: 800 },
+    errorPrefix: "battle-perf-30k",
+  });
   await page.goto(`${ctx.target}?map=A&ai=off`);
-  await page.waitForFunction(() => {
-    const stats = window.__game?.stats?.();
-    return window.__ready === true
-      && stats?.renderer === 'gpu'
-      && stats.renderStats?.ready === true
-      && stats.renderStats.soldiers === stats.soldiers;
-  }, undefined, { timeout: 90000 });
+  await page.waitForFunction(
+    () => {
+      const stats = window.__game?.stats?.();
+      return (
+        window.__ready === true &&
+        stats?.renderer === "gpu" &&
+        stats.renderStats?.ready === true &&
+        stats.renderStats.soldiers === stats.soldiers
+      );
+    },
+    undefined,
+    { timeout: 90000 },
+  );
 
   // Grow the map-A battle to the 30k floor through the production spawn path.
   // Fixed grid + fixed establishment => the load is identical every run.
@@ -73,15 +87,22 @@ export async function run(ctx) {
     }
     return { before, added: need * 500 };
   }, SPAWN_TARGET);
-  await page.waitForFunction((floor) => {
-    const stats = window.__game.stats();
-    return stats.soldiers >= floor
-      && stats.renderStats.soldiers === stats.soldiers
-      && stats.renderStats.expectedSoldiers === stats.soldiers;
-  }, SOLDIER_FLOOR, { timeout: 120000 });
+  await page.waitForFunction(
+    (floor) => {
+      const stats = window.__game.stats();
+      return (
+        stats.soldiers >= floor &&
+        stats.renderStats.soldiers === stats.soldiers &&
+        stats.renderStats.expectedSoldiers === stats.soldiers
+      );
+    },
+    SOLDIER_FLOOR,
+    { timeout: 120000 },
+  );
 
   await page.addStyleTag({
-    content: '#gameover, #hud, #buttons, #pausemenu, #banner, #selbox, #minimap, #unitlabels, #unitcards, #toolbar { display: none !important; }',
+    content:
+      "#gameover, #hud, #buttons, #pausemenu, #banner, #selbox, #minimap, #unitlabels, #unitcards, #toolbar { display: none !important; }",
   });
   await page.evaluate(() => {
     window.__cam.yaw = 0;
@@ -93,13 +114,13 @@ export async function run(ctx) {
   // (~15 ms/tick catch-up), which is sim cost, not renderer cost — this gate
   // measures the RENDERER, so the crowd stands idle while every rAF still
   // draws a full live frame.
-  await page.keyboard.press('p');
+  await page.keyboard.press("p");
   await page.waitForTimeout(600); // let the tick accumulator drain its backlog
   const tickBefore = await page.evaluate(() => window.__game.tickCount());
   await page.waitForTimeout(300);
   const tickAfter = await page.evaluate(() => window.__game.tickCount());
   ctx.check(
-    'sim is paused for the renderer measurement (rAF frames stay live draws)',
+    "sim is paused for the renderer measurement (rAF frames stay live draws)",
     tickAfter === tickBefore,
     JSON.stringify({ tickBefore, tickAfter }),
   );
@@ -120,22 +141,25 @@ export async function run(ctx) {
     // Warm frames, then per-frame samples: rAF wall time plus the shell's
     // timestamp-query GPU time surfaced through the production stats seam.
     // SwiftShader gets a token sample run (liveness), never a verdict.
-    const sampled = await page.evaluate(async ({ warmup, frames }) => {
-      const raf = () => new Promise((resolve) => requestAnimationFrame(resolve));
-      for (let i = 0; i < warmup; i++) await raf();
-      const gpu = [];
-      const frameMs = [];
-      let last = performance.now();
-      for (let i = 0; i < frames; i++) {
-        await raf();
-        const now = performance.now();
-        frameMs.push(now - last);
-        last = now;
-        const g = window.__game.stats().renderStats.performance.gpuTimeMs;
-        if (typeof g === 'number' && Number.isFinite(g) && g >= 0) gpu.push(g);
-      }
-      return { gpu, raf: frameMs };
-    }, { warmup: hardware ? WARMUP_FRAMES : 5, frames: hardware ? SAMPLE_FRAMES : 10 });
+    const sampled = await page.evaluate(
+      async ({ warmup, frames }) => {
+        const raf = () => new Promise((resolve) => requestAnimationFrame(resolve));
+        for (let i = 0; i < warmup; i++) await raf();
+        const gpu = [];
+        const frameMs = [];
+        let last = performance.now();
+        for (let i = 0; i < frames; i++) {
+          await raf();
+          const now = performance.now();
+          frameMs.push(now - last);
+          last = now;
+          const g = window.__game.stats().renderStats.performance.gpuTimeMs;
+          if (typeof g === "number" && Number.isFinite(g) && g >= 0) gpu.push(g);
+        }
+        return { gpu, raf: frameMs };
+      },
+      { warmup: hardware ? WARMUP_FRAMES : 5, frames: hardware ? SAMPLE_FRAMES : 10 },
+    );
 
     const stats = await page.evaluate(() => {
       const s = window.__game.stats();
@@ -165,7 +189,7 @@ export async function run(ctx) {
       device: stats.device,
     });
 
-    shots[stop.name] = await page.locator('#battlefield').screenshot({ timeout: 180000 });
+    shots[stop.name] = await page.locator("#battlefield").screenshot({ timeout: 180000 });
   }
 
   const [mid, vista] = table;
@@ -174,15 +198,15 @@ export async function run(ctx) {
   // --- The load is real and may never shrink -------------------------------
   ctx.check(
     `gate holds >= ${SOLDIER_FLOOR} soldiers on the production battle renderer`,
-    spawned.before + spawned.added >= SOLDIER_FLOOR
-      && table.every((row) => row.soldiers >= SOLDIER_FLOOR),
+    spawned.before + spawned.added >= SOLDIER_FLOOR &&
+      table.every((row) => row.soldiers >= SOLDIER_FLOOR),
     JSON.stringify({ spawned, mid: mid.soldiers, vista: vista.soldiers }),
   );
   ctx.check(
-    'gate holds the dense foliage fill (scenery + vista grass floors)',
-    table.every((row) => row.scenery >= SCENERY_FLOOR)
-      && vista.grassTufts >= VISTA_GRASS_TUFT_FLOOR
-      && vista.grassBlades >= VISTA_GRASS_BLADE_FLOOR,
+    "gate holds the dense foliage fill (scenery + vista grass floors)",
+    table.every((row) => row.scenery >= SCENERY_FLOOR) &&
+      vista.grassTufts >= VISTA_GRASS_TUFT_FLOOR &&
+      vista.grassBlades >= VISTA_GRASS_BLADE_FLOOR,
     JSON.stringify({
       scenery: vista.scenery,
       vistaGrassTufts: vista.grassTufts,
@@ -201,14 +225,14 @@ export async function run(ctx) {
     vista: crowdPixels(PNG.sync.read(shots.vista)),
   };
   ctx.check(
-    'frames show the crowd and terrain at both stops (load is on screen)',
-    pixels.mid.team > 1400
-      && pixels.vista.team > 3200
-      && pixels.vista.terrain > pixels.vista.total * 0.2,
+    "frames show the crowd and terrain at both stops (load is on screen)",
+    pixels.mid.team > 1400 &&
+      pixels.vista.team > 3200 &&
+      pixels.vista.terrain > pixels.vista.total * 0.2,
     JSON.stringify(pixels),
   );
   await mkdir(REPORT_DIR, { recursive: true });
-  const adapter = hardware ? 'hardware' : 'swiftshader';
+  const adapter = hardware ? "hardware" : "swiftshader";
   for (const [name, shot] of Object.entries(shots)) {
     const shotPath = new URL(`battle-perf-30k-${name}-${adapter}.png`, REPORT_DIR);
     await writeFile(shotPath, shot);
@@ -218,9 +242,9 @@ export async function run(ctx) {
   // --- The budget ------------------------------------------------------------
   if (hardware) {
     ctx.check(
-      'hardware run measured a real (non-software) adapter with live GPU timestamps',
-      !/swiftshader|llvmpipe|software/i.test(vista.device)
-        && table.every((row) => row.gpuSamples >= SAMPLE_FRAMES * 0.5),
+      "hardware run measured a real (non-software) adapter with live GPU timestamps",
+      !/swiftshader|llvmpipe|software/i.test(vista.device) &&
+        table.every((row) => row.gpuSamples >= SAMPLE_FRAMES * 0.5),
       JSON.stringify({ device: vista.device, gpuSamples: table.map((row) => row.gpuSamples) }),
     );
     ctx.check(
@@ -230,7 +254,7 @@ export async function run(ctx) {
     );
   } else {
     ctx.check(
-      'SwiftShader is not a perf oracle: ms budget assertion skipped (correctness smoke only)',
+      "SwiftShader is not a perf oracle: ms budget assertion skipped (correctness smoke only)",
       true,
       JSON.stringify({ device: vista.device, rafMedianMs: table.map((row) => row.rafMedianMs) }),
     );

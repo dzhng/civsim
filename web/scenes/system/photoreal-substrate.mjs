@@ -161,7 +161,12 @@ export async function run(ctx) {
     ctx.check(
       `photoreal-crowd perf: median rAF and GPU ms within the ${PERF_BUDGET_MS} ms budget`,
       s.medianMs !== null && s.medianMs <= PERF_BUDGET_MS && s.gpuTimeMs <= PERF_BUDGET_MS,
-      JSON.stringify({ medianMs: s.medianMs, p95Ms: s.p95Ms, gpuTimeMs: s.gpuTimeMs, drawCalls: s.drawCalls }),
+      JSON.stringify({
+        medianMs: s.medianMs,
+        p95Ms: s.p95Ms,
+        gpuTimeMs: s.gpuTimeMs,
+        drawCalls: s.drawCalls,
+      }),
     );
     await page.close();
   }

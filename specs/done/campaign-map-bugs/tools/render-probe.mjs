@@ -13,7 +13,7 @@ const FRAMINGS = [
   { name: "whole-map-political", camera: [-100, 250, 0.16], factionView: true },
   { name: "regional-italy", camera: [-430, 445, 3.0], factionView: true },
 ];
-const GENERATED_BY = "CODEX-00-PROBE specs/campaign-map-bugs/tools/render-probe.mjs";
+const GENERATED_BY = "CODEX-00-PROBE specs/done/campaign-map-bugs/tools/render-probe.mjs";
 
 function parseArgs(argv) {
   let out = null;
@@ -26,7 +26,7 @@ function parseArgs(argv) {
     } else if (!arg.startsWith("-") && out === null) {
       out = arg;
     } else {
-      throw new Error(`unknown argument: ${arg}\nusage: VERIFY_URL=http://localhost:5173 VERIFY_GPU=1 node specs/campaign-map-bugs/tools/render-probe.mjs [--out report.json]`);
+      throw new Error(`unknown argument: ${arg}\nusage: VERIFY_URL=http://localhost:5173 VERIFY_GPU=1 node specs/done/campaign-map-bugs/tools/render-probe.mjs [--out report.json]`);
     }
   }
   return { out };

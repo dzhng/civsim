@@ -135,7 +135,7 @@ pub fn write_committed_probe() {
     let root = repo_root();
     write_probe(
         &root.join("web/public/data"),
-        &root.join("specs/campaign-map-bugs/assets/probe/mask-probe.json"),
+        &root.join("specs/done/campaign-map-bugs/assets/probe/mask-probe.json"),
     );
 }
 
@@ -146,7 +146,7 @@ pub fn build_committed_probe() -> MaskProbe {
 
 #[cfg(test)]
 pub fn committed_probe_path() -> PathBuf {
-    repo_root().join("specs/campaign-map-bugs/assets/probe/mask-probe.json")
+    repo_root().join("specs/done/campaign-map-bugs/assets/probe/mask-probe.json")
 }
 
 fn write_probe(data_dir: &Path, out_path: &Path) {

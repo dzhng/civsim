@@ -10,6 +10,7 @@
 
 mod build;
 mod geo;
+mod landroute;
 mod probe;
 mod raster;
 mod sources;
@@ -117,6 +118,8 @@ fn main() {
     // `cargo run -p mapgen` always emits the finished, committed map.
     post_step("crates/mapgen/leagues.mjs");
     post_step("crates/mapgen/prune-cities.mjs");
+
+    landroute::make_committed_roads_land_safe(out_dir, &r, &rivers, &mountains, bb);
 
     probe::write_committed_probe();
 }
@@ -307,6 +310,76 @@ mod tests {
         assert!(
             dead_junctions.is_empty(),
             "degree-0 junctions: {dead_junctions:?}"
+        );
+
+        let sea_only_expected: std::collections::BTreeSet<&str> =
+            landroute::SEA_ONLY_CITIES.iter().copied().collect();
+        let mut sea_only_actual = std::collections::BTreeSet::new();
+        let mut road_nodes_on_water = Vec::new();
+        for n in &map.nodes {
+            let rd = road_degree.get(&n.id).copied().unwrap_or(0);
+            if rd > 0 && !land_at(n.pos, &bg, bg_w, bg_h, &bg_px) {
+                road_nodes_on_water.push(n.name.as_str());
+            }
+            if n.kind == "city" && rd == 0 {
+                sea_only_actual.insert(n.name.as_str());
+            }
+        }
+        assert!(
+            road_nodes_on_water.is_empty(),
+            "road-bearing nodes on painted water: {road_nodes_on_water:?}"
+        );
+        assert_eq!(
+            sea_only_actual, sea_only_expected,
+            "cities without road-degree must match SEA_ONLY_CITIES exactly"
+        );
+
+        // Query the committed bg through the SAME owners the bake used: the
+        // raster classifier plus landroute's raw/smoothed run measures.
+        let committed_raster = raster::Raster::from_rgba(
+            BBox {
+                min: bg.min,
+                max: bg.max,
+            },
+            bg_w,
+            bg_h,
+            bg_px.clone(),
+        );
+        let ferry_pairs: std::collections::BTreeSet<(&str, &str)> = landroute::ROAD_FERRY_CROSSINGS
+            .iter()
+            .map(|&(a, b)| landroute::ordered_pair(a, b))
+            .collect();
+        let mut ferry_pairs_seen = std::collections::BTreeSet::new();
+        let mut road_water_violations = Vec::new();
+        for edge in &map.edges {
+            if edge.kind != "road" {
+                continue;
+            }
+            let a = nodes[&edge.a].name.as_str();
+            let b = nodes[&edge.b].name.as_str();
+            let pair = landroute::ordered_pair(a, b);
+            let raw = landroute::longest_water_run(&edge.via, &committed_raster);
+            let smoothed =
+                landroute::renderer_smoothed_longest_water_run(&edge.via, &committed_raster);
+            if raw > landroute::ROAD_WATER_RUN_MAX_KM
+                || smoothed > landroute::ROAD_SMOOTHED_BRIDGE_KM
+            {
+                if ferry_pairs.contains(&pair) {
+                    ferry_pairs_seen.insert(pair);
+                } else {
+                    road_water_violations
+                        .push(format!("{a}--{b} raw {raw:.1}km smoothed {smoothed:.1}km"));
+                }
+            }
+        }
+        assert!(
+            road_water_violations.is_empty(),
+            "road edges with unledgered painted-water runs > {:.1}km: {road_water_violations:?}",
+            landroute::ROAD_WATER_RUN_MAX_KM
+        );
+        assert_eq!(
+            ferry_pairs_seen, ferry_pairs,
+            "ROAD_FERRY_CROSSINGS entries must name existing road edges that still cross painted water"
         );
     }
 

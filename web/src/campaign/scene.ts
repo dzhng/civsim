@@ -15,7 +15,16 @@ import { type EncounterSideView } from "../ui/campaign/CampaignBattleModal";
 import { mountCampaignHud, type CampaignHudHandle } from "../ui/campaign/CampaignHud";
 import { loadCampaignData, nearestLoc, tilePos, type CampaignData, type MapNode } from "./data";
 import type { CamView } from "./camera";
-import { CampaignRenderer, MAX_CAMPAIGN_ZOOM, cityModelRadius } from "./renderer";
+import {
+  rectsOverlap,
+  type ScreenRect,
+} from "../../../packages/game-renderer/src/campaign/mapPass";
+import {
+  CampaignRenderer,
+  MAX_CAMPAIGN_ZOOM,
+  cityModelRadius,
+  type CampaignCardRect,
+} from "./renderer";
 import { TerrainField } from "./terrain";
 import { Territory } from "./territory";
 import { Allegiance } from "./status";
@@ -132,6 +141,11 @@ export class CampaignScene implements Scene {
    *  the DOM (and its click handlers) every tick. */
   private siegeSig = "";
   private mapCardsSig = "";
+  /** Last measured size per card id. measureMapCards() only sees displayed
+   *  nodes, so a card the collision pass hid would otherwise lose its size and
+   *  flicker back in unarbitrated next frame; the cache keeps it a contender.
+   *  Cleared when the card set/content changes (sizes follow content). */
+  private cardSizeCache = new Map<string, { w: number; h: number }>();
   /** Landward card offsets, cached per camera pose (see landwardCardOffset). */
   private cardOffsetSig = "";
   private cardOffsets = new Map<string, [number, number]>();
@@ -356,6 +370,13 @@ export class CampaignScene implements Scene {
   private drawWorld() {
     this.renderer.resize();
     this.clampCam(); // zoom floor = aspect-fill, pan inside the map
+    // Same-frame collision ordering (slice 09, pinned): pin this frame's
+    // camera, lay the DOM cards out against it (card-vs-card resolution
+    // included), and only then draw — so the canvas label arbitration blocks
+    // on the exact card rects the player sees this frame, never last frame's.
+    this.renderer.setFrameCamera(this.cam);
+    const cards = this.layoutMapCards();
+    this.campaignHud?.updateMapCards(cards.positions);
     this.renderer.draw({
       cam: this.cam,
       armies: this.armies,
@@ -373,8 +394,9 @@ export class CampaignScene implements Scene {
       })),
       factionView: this.factionView,
       stackUnitCap: this.stackUnitCap,
+      cardRects: cards.rects,
+      cardCollisionCulls: cards.culls,
     });
-    this.updateMapCardPositions();
   }
 
   /** Pan the camera to a world point (clamped inside the map). */
@@ -475,19 +497,43 @@ export class CampaignScene implements Scene {
     const sig = JSON.stringify(cards);
     if (sig === this.mapCardsSig) return;
     this.mapCardsSig = sig;
+    this.cardSizeCache.clear();
     hud.setMapCards(cards);
   }
 
-  private updateMapCardPositions() {
+  /** Lay the DOM map cards out for this frame: anchor each card (landward
+   *  offset, slice 07), then resolve card-vs-card overlaps HERE in the scene
+   *  loop — deterministic priority (higher-tier city wins, armies yield to
+   *  cities), the loser nudges along its land-side arc, then stacks below the
+   *  winner, then hides — through the same exported rect math the canvas
+   *  label arbitration runs on. The visible rects and culls are REPORTED to
+   *  the renderer: cards report, the label authority arbitrates labels. */
+  private layoutMapCards(): {
+    positions: MapCardPosition[];
+    rects: CampaignCardRect[];
+    culls: string[];
+  } {
     const hud = this.campaignHud;
-    if (!hud) return;
+    if (!hud) return { positions: [], rects: [], culls: [] };
     const dpr = window.devicePixelRatio || 1;
     const width = this.canvas.clientWidth || window.innerWidth || 1;
     const height = this.canvas.clientHeight || window.innerHeight || 1;
-    const positions: MapCardPosition[] = [];
     const cityMinTier = this.cam.scale < 0.6 ? 3 : this.cam.scale < 0.85 ? 2 : 1;
     const pf = this.playerFaction();
-    const cardSizes = hud.measureMapCards();
+    for (const [id, size] of hud.measureMapCards()) this.cardSizeCache.set(id, size);
+    const cardSizes = this.cardSizeCache;
+    interface CardLayout {
+      id: string;
+      name: string;
+      /** Who wins ground: cities above armies, higher tier above lower. */
+      priority: number;
+      x: number;
+      y: number;
+      size: { w: number; h: number } | undefined;
+      visible: boolean;
+      rect?: ScreenRect;
+    }
+    const entries: CardLayout[] = [];
     for (const [node, city] of this.cities) {
       if (city.owner !== pf) continue;
       const mapNode = this.cfg.data.map.nodes[node];
@@ -497,38 +543,142 @@ export class CampaignScene implements Scene {
       const ax = sx / dpr;
       const ay = sy / dpr;
       const baseY = ay + cityCardOffsetY(this.cam.scale, mapNode.tier);
-      const [dx, dy] = this.landwardCardOffset(id, mapNode, ax, ay, baseY, cardSizes.get(id), dpr);
+      const size = cardSizes.get(id);
+      const [dx, dy] = this.landwardCardOffset(id, mapNode, ax, ay, baseY, size, dpr);
       const x = ax + dx;
       const y = baseY + dy;
-      positions.push({
+      entries.push({
         id,
+        name: mapNode.name.toUpperCase(),
+        priority: 10 + mapNode.tier,
         x,
         y,
+        size,
         visible: mapNode.tier >= cityMinTier && onScreen(x, y, width, height),
       });
     }
+    const ordinalOf = this.playerArmyOrdinals();
     for (const army of this.armies) {
       if (!this.isOwnArmy(army) || this.ownGarrisonCityForArmy(army) !== null) continue;
       const [sx, sy] = this.renderer.toScreen(army.x, army.y);
+      const id = `army:${army.id}`;
       const x = sx / dpr;
       const y = sy / dpr + 22;
-      positions.push({
-        id: `army:${army.id}`,
+      entries.push({
+        id,
+        // Must match the DOM card title (refreshMapCards) — stats consumers
+        // key card outcomes by name.
+        name: `${ordinal(ordinalOf.get(army.id) ?? 1)} LEGION`.toUpperCase(),
+        priority: 0,
         x,
         y,
+        size: cardSizes.get(id),
         visible: this.cam.scale > 0.35 && onScreen(x, y, width, height),
       });
     }
-    hud.updateMapCards(positions);
+    // Card-vs-card: claim ground in priority order (emitter order breaks
+    // ties — deterministic per frame). A card not yet measured (first DOM
+    // frame) can't claim or yield; it joins next frame.
+    const claimed: ScreenRect[] = [];
+    const culls: string[] = [];
+    const contenders = entries
+      .map((entry, seq) => ({ entry, seq }))
+      .filter(({ entry }) => entry.visible && entry.size)
+      .sort((a, b) => b.entry.priority - a.entry.priority || a.seq - b.seq)
+      .map(({ entry }) => entry);
+    for (const entry of contenders) {
+      const size = entry.size!;
+      const rect = cardRectAt(entry.x, entry.y, size);
+      if (!claimed.some((other) => rectsOverlap(rect, other))) {
+        entry.rect = rect;
+        claimed.push(rect);
+        continue;
+      }
+      const moved = this.resolveCardCollision(entry, size, claimed, width, height, dpr);
+      if (!moved) {
+        entry.visible = false;
+        culls.push(`card:${entry.name}`);
+        continue;
+      }
+      entry.x = moved.x;
+      entry.y = moved.y;
+      entry.rect = cardRectAt(moved.x, moved.y, size);
+      claimed.push(entry.rect);
+    }
+    return {
+      positions: entries.map(({ id, x, y, visible }) => ({ id, x, y, visible })),
+      rects: entries
+        .filter((entry) => entry.visible && entry.rect)
+        .map((entry) => ({ id: entry.id, name: entry.name, box: entry.rect! })),
+      culls,
+    };
+  }
+
+  /** Losing card's escape: nudge along its land-side arc (coastward fan, the
+   *  slice-07 direction; away from the blocker when the neighborhood gives no
+   *  coast signal), never onto worse sea and never over a city-model anchor;
+   *  else stack below the cards that beat it; else give up (hide). */
+  private resolveCardCollision(
+    entry: { x: number; y: number },
+    size: { w: number; h: number },
+    claimed: ScreenRect[],
+    width: number,
+    height: number,
+    dpr: number,
+  ): { x: number; y: number } | null {
+    const { w, h } = size;
+    const rectAt = (x: number, y: number) => cardRectAt(x, y, size);
+    const anchors = this.cityAnchorScreens(dpr);
+    const clearAt = (rect: ScreenRect) =>
+      !claimed.some((other) => rectsOverlap(rect, other)) &&
+      // The card must keep beside the city models (the slice-07 contract):
+      // an escape that buries a model anchor is not an escape.
+      !anchors.some(
+        ([ax, ay]) =>
+          ax >= rect.x && ax <= rect.x + rect.w && ay >= rect.y && ay <= rect.y + rect.h,
+      );
+    const blockers = claimed.filter((other) => rectsOverlap(rectAt(entry.x, entry.y), other));
+    const inland = this.landwardScreenDir(entry.x, entry.y + h / 2, Math.max(w, h) * 0.75, dpr);
+    const fan = directionFan(inland ?? awayFromRects(entry.x, entry.y + h / 2, blockers));
+    // Never trade the collision fix for a worse sea overhang (slice 07): a
+    // nudge or stack spot must hold the card's own land floor, else hide.
+    const landFloor = Math.min(
+      CARD_LAND_FULL,
+      this.cardRectLandFraction(entry.x, entry.y, w, h, dpr),
+    );
+    const holdsAshore = (x: number, y: number) =>
+      this.cardRectLandFraction(x, y, w, h, dpr) >= landFloor;
+    for (let step = 1; step <= CARD_COLLISION_MAX_STEPS; step++) {
+      for (const [ux, uy] of fan) {
+        const x = entry.x + ux * CARD_LANDWARD_STEP_PX * step;
+        const y = entry.y + uy * CARD_LANDWARD_STEP_PX * step;
+        if (!onScreen(x, y, width, height) || !clearAt(rectAt(x, y))) continue;
+        if (holdsAshore(x, y)) return { x, y };
+      }
+    }
+    let y = Math.max(...blockers.map((other) => other.y + other.h)) + CARD_STACK_GAP_PX;
+    for (let walk = 0; walk < CARD_STACK_MAX_WALKS; walk++) {
+      const rect = rectAt(entry.x, y);
+      if (clearAt(rect)) {
+        return onScreen(entry.x, y, width, height) && holdsAshore(entry.x, y)
+          ? { x: entry.x, y }
+          : null;
+      }
+      const hit = claimed.filter((other) => rectsOverlap(rect, other));
+      if (hit.length === 0) return null; // blocked by a model anchor, not a card
+      y = Math.max(...hit.map((other) => other.y + other.h)) + CARD_STACK_GAP_PX;
+    }
+    return null;
   }
 
   /** City cards are DOM chips pinned over a 3D coast, so a shoreline city's
    *  card can hang over open water (B5: MINTURNAE's half-overhang). Score the
    *  card rect's world footprint through the one projection owner + the
    *  full-res render mask, and slide sea-hanging cards toward the land side.
-   *  Pure anchor offsetting — collision arbitration is the occupancy
-   *  authority's job (slice 09), not this loop's. Offsets are cached per
-   *  camera pose: they only depend on the camera and the card's size. */
+   *  Pure anchor offsetting — card-vs-card resolution is layoutMapCards's
+   *  claim pass, and label arbitration is the occupancy authority's (09).
+   *  Offsets are cached per camera pose: they only depend on the camera and
+   *  the card's size. */
   private landwardCardOffset(
     id: string,
     mapNode: MapNode,
@@ -584,7 +734,7 @@ export class CampaignScene implements Scene {
     // Model keep-out, sized from the rendered screen footprint: the contract
     // is "the card sits BESIDE a visible city model", so no candidate may park
     // on its own model — nor walk onto a NEIGHBOR'S (Minturnae's card sliding
-    // over Capua). Card-vs-card overlap stays with the collision authority.
+    // over Capua). Card-vs-card overlap is layoutMapCards's claim pass.
     const keep = {
       x: Math.max(4, modelHalfWidth * 1.15),
       // Measured at the regional camera: the mesh plus its relief rise tops
@@ -600,10 +750,7 @@ export class CampaignScene implements Scene {
     // Fan the walk around the inland normal (0, ±45°, ±90°): the nearest
     // fully-ashore placement wins, so a card slides along the coast instead of
     // marching straight onto its own city when land happens to lie there.
-    const angle = Math.atan2(inland[1], inland[0]);
-    const fan = [0, Math.PI / 4, -Math.PI / 4, Math.PI / 2, -Math.PI / 2].map(
-      (rot): [number, number] => [Math.cos(angle + rot), Math.sin(angle + rot)],
-    );
+    const fan = directionFan(inland);
     let best: [number, number] = [0, 0];
     let bestScore = base;
     for (let step = 1; step <= maxSteps; step++) {
@@ -1356,6 +1503,15 @@ function cityCardOffsetY(zoom: number, tier: number) {
 // visually detaching the card.
 const CARD_LANDWARD_STEP_PX = 8;
 const CARD_LANDWARD_MAX_STEPS = 12;
+// Card-vs-card escape budget (slice 09): the same 8 px stride, reaching about
+// one card-width — far enough to slide out from under a neighbor, near enough
+// to still read as that city's card.
+const CARD_COLLISION_MAX_STEPS = 12;
+// Stacked cards sit this many px below the card that beat them, and the walk
+// down a pile is bounded — past that the card hides instead of trailing off
+// the screen.
+const CARD_STACK_GAP_PX = 4;
+const CARD_STACK_MAX_WALKS = 6;
 // World-km cap on the walk: covers the evidence cases (MINTURNAE ~29 km,
 // OSTIA ~32 km at the regional zoom) while pinning zoomed-out cards in place.
 const CARD_LANDWARD_MAX_KM = 40;
@@ -1384,6 +1540,39 @@ function cardInModelKeepOut(
 
 function onScreen(x: number, y: number, width: number, height: number) {
   return x >= -160 && y >= -90 && x <= width + 160 && y <= height + 120;
+}
+
+/** DOM card rect (CSS px): cards render top-center anchored
+ *  (translate3d(x,y) translate(-50%,0) in MapCards). */
+function cardRectAt(x: number, y: number, size: { w: number; h: number }): ScreenRect {
+  return { x: x - size.w / 2, y, w: size.w, h: size.h };
+}
+
+/** Walk headings around a base direction: the direction itself and its
+ *  ±45°/±90° rotations — the one fan shape both the landward slide (07) and
+ *  the collision escape (09) sweep. */
+function directionFan(dir: [number, number]): [number, number][] {
+  const angle = Math.atan2(dir[1], dir[0]);
+  return [0, Math.PI / 4, -Math.PI / 4, Math.PI / 2, -Math.PI / 2].map((rot): [number, number] => [
+    Math.cos(angle + rot),
+    Math.sin(angle + rot),
+  ]);
+}
+
+/** Unit direction from the centroid of the blocking rects toward the losing
+ *  card — the escape heading when the coast gives no landward signal. */
+function awayFromRects(x: number, y: number, blockers: ScreenRect[]): [number, number] {
+  let cx = 0;
+  let cy = 0;
+  for (const rect of blockers) {
+    cx += rect.x + rect.w / 2;
+    cy += rect.y + rect.h / 2;
+  }
+  cx /= Math.max(1, blockers.length);
+  cy /= Math.max(1, blockers.length);
+  const len = Math.hypot(x - cx, y - cy);
+  if (len < 1e-3) return [0, -1];
+  return [(x - cx) / len, (y - cy) / len];
 }
 
 function ordinal(k: number) {

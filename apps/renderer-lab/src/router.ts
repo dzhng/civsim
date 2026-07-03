@@ -2034,6 +2034,8 @@ async function routeCampaignMap(ctx: LabContext) {
     cameraContract: shell.stats().cameraContract,
     labels: labelLayer.labels,
     visibleLabels: labelLayer.visibleLabels,
+    collisionCulls: labelLayer.collisionCulls,
+    collisionCulledLabels: labelLayer.collisionCulledLabels,
     factions: territoryData.labels.length,
     territoryPixels: territory.stats().pixels,
     borderSegments: borders.stats().segments,

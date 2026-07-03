@@ -144,11 +144,12 @@ export interface CampaignLabel {
   factionRadiusKm?: number;
   factionMinor?: boolean;
   /** Land-aware anchor choice (B2/B8): preference-ordered alternatives for
-   * the label's screen offset+anchor. The label pass scores each candidate's
-   * measured ink rect against the render mask through the shared placement
-   * scorer (isBadAt = water) and keeps the winner. The first candidate must
-   * mirror the screenOffset/screenAnchor fields — it is the tiebreak, so
-   * labels with a clean default never move. */
+   * the label's screen offset+anchor. The occupancy arbitration drops the
+   * candidates whose measured ink rect lands on claimed ground (cards and
+   * higher-priority labels), then the shared placement scorer picks among the
+   * survivors (isBadAt = water). The first candidate must mirror the
+   * screenOffset/screenAnchor fields — it is the tiebreak, so labels with a
+   * clean default never move. */
   placementCandidates?: CampaignLabelAnchor[];
 }
 
@@ -562,6 +563,8 @@ export interface CampaignLabelPassStats {
   visibleLabelNames: string[];
   visibleSeaLabelRects: CampaignLabelDebugRect[];
   visibleCityLabelRects: CampaignLabelDebugRect[];
+  visibleArmyLabelRects: CampaignLabelDebugRect[];
+  visibleFactionLabelRects: CampaignLabelDebugRect[];
   collisionCulls: number;
   collisionCulledLabels: string[];
   atlasWidth: number;
@@ -570,11 +573,33 @@ export interface CampaignLabelPassStats {
   layer: 'raw-gpu-glyph-atlas';
 }
 
+/** Axis-aligned screen rect, CSS px — the one rect currency shared by the
+ * label occupancy arbitration and the scene's card loop (slice 09). */
+export interface ScreenRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/** The one overlap implementation: every collision verdict — label vs label,
+ * card vs label, card vs card in the scene loop — goes through this test, so
+ * "overlaps" means the same thing on both sides of the canvas/DOM seam. */
+export function rectsOverlap(a: ScreenRect, b: ScreenRect): boolean {
+  return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+}
+
 /** The land truth city-label anchor choice samples: the full-res render mask
  * (TerrainField.renderLandAt) — the same owner the sea-label fitter scores
- * against. Absent it, labels keep their first (default) candidate. */
+ * against. Absent the style, the occupancy arbitration still runs (with no
+ * card blockers) but candidates are not water-scored: the first
+ * occupancy-clear candidate wins. */
 export interface CampaignLabelPlacementStyle {
   renderSurfaceAt: (x: number, y: number) => 'land' | 'water';
+  /** Visible DOM card rects (CSS px), reported per frame by the scene's card
+   * loop. Cards outrank canvas labels: the occupancy arbitration treats these
+   * as pre-claimed ground. */
+  blockedRects?: ScreenRect[];
 }
 
 export interface CampaignLabelDebugRect {
@@ -586,6 +611,9 @@ export interface CampaignLabelDebugRect {
   /** Transparent halo margin inside the box, CSS px per side. Deflating the
    * box by this gives the ink rect (icon + glyphs) — the visible label. */
   padPx: number;
+  /** Faction labels only: true for the small league names (they yield to
+   * cards; major engravings are background-scale and do not). */
+  minor?: boolean;
 }
 
 /** The map pass's own drawn-coast contract: the campaign-bg raster (what the
@@ -1118,6 +1146,8 @@ export class CampaignLabelPass {
     visibleLabelNames: [],
     visibleSeaLabelRects: [],
     visibleCityLabelRects: [],
+    visibleArmyLabelRects: [],
+    visibleFactionLabelRects: [],
     collisionCulls: 0,
     collisionCulledLabels: [],
     atlasWidth: 1,
@@ -1198,6 +1228,8 @@ export class CampaignLabelPass {
         visibleLabelNames: [],
         visibleSeaLabelRects: [],
         visibleCityLabelRects: [],
+        visibleArmyLabelRects: [],
+        visibleFactionLabelRects: [],
         collisionCulls: 0,
         collisionCulledLabels: [],
         atlasWidth: 1,
@@ -1208,7 +1240,9 @@ export class CampaignLabelPass {
       return this.statsValue;
     }
 
-    const atlasKey = labelAtlasKey(visible, dpr, labels.length);
+    // Blocked card rects join the key: a card that moved must re-arbitrate the
+    // canvas labels even when every label input is unchanged.
+    const atlasKey = `${labelAtlasKey(visible, dpr, labels.length)}#${blockedRectsKey(placement)}`;
     if (atlasKey === this.atlasKey) return this.statsValue;
     this.atlasKey = atlasKey;
     const atlas = buildLabelAtlas(visible, dpr, snapshot, placement);
@@ -1237,6 +1271,8 @@ export class CampaignLabelPass {
       visibleLabelNames: atlas.entries.slice(0, 128).map((entry) => `${entry.label.kind}:${labelText(entry.label)}`),
       visibleSeaLabelRects: debugRects.filter((entry) => entry.kind === 'sea'),
       visibleCityLabelRects: debugRects.filter((entry) => entry.kind === 'city'),
+      visibleArmyLabelRects: debugRects.filter((entry) => entry.kind === 'army'),
+      visibleFactionLabelRects: debugRects.filter((entry) => entry.kind === 'faction'),
       collisionCulls: atlas.collisionCulls,
       collisionCulledLabels: atlas.collisionCulledLabels,
       atlasWidth: atlas.width,
@@ -1931,6 +1967,12 @@ function visibleLabels(labels: CampaignLabel[], camera: CameraSnapshot, dpr: num
   return visible;
 }
 
+function blockedRectsKey(placement: CampaignLabelPlacementStyle | undefined) {
+  return (placement?.blockedRects ?? [])
+    .map((rect) => [rect.x, rect.y, rect.w, rect.h].map((v) => v.toFixed(1)).join(','))
+    .join(';');
+}
+
 function labelAtlasKey(labels: VisibleCampaignLabel[], dpr: number, totalLabels: number) {
   return [
     totalLabels,
@@ -2000,8 +2042,7 @@ function buildLabelAtlas(
       height: Math.max(1, Math.ceil((seaPath?.height ?? style.size * (subText ? 2.42 : 1.55)) + style.padding * 2)),
     };
   });
-  placeAnchoredLabels(measured, camera, dpr, placement);
-  const collision = cullOverlappingLabels(measured);
+  const collision = arbitrateLabelOccupancy(measured, camera, dpr, placement);
   const layoutEntries = collision.entries;
   const atlasWidth = measured.some((entry) => entry.width > 1024) ? 2048 : 1024;
   let x = 0;
@@ -2103,7 +2144,7 @@ function buildLabelAtlas(
     pixels: ctx.getImageData(0, 0, atlasWidth, atlasHeight).data,
     entries,
     collisionCulls: collision.culledLabels.length,
-    collisionCulledLabels: collision.culledLabels.slice(0, 16),
+    collisionCulledLabels: collision.culledLabels.slice(0, 64),
   };
 }
 
@@ -2111,36 +2152,227 @@ function buildLabelAtlas(
 // city name a few glyphs long still gets several samples per glyph.
 const ANCHORED_LABEL_SAMPLE_STEP_PX = 10;
 
-/** City-label anchor choice (B2/B8): for each label carrying placement
- * candidates, score every candidate's measured ink rect against the render
- * mask through the one placement scorer (isBadAt = water) and keep the
- * winner. Candidate order is the preference order — the first (the emitter's
- * default) wins outright when fully on land, so inland labels never churn.
- * Runs before the collision cull so occupancy sees final geometry. */
-function placeAnchoredLabels(
-  entries: MeasuredCampaignLabel[],
+// A fading label is a ghost, not readable ink: below this opacity it draws but
+// neither claims occupancy nor culls against anyone (labels pop less through
+// their fade bands than if a near-invisible engraving could hide a city name).
+const OCCUPANCY_MIN_OPACITY = 0.3;
+
+/** One claimed patch of screen. Card claims are marked so territory-scale
+ * faction engravings can ignore them (see arbitrateLabelOccupancy). */
+interface OccupancyClaim {
+  rect: ScreenRect;
+  card: boolean;
+}
+
+/** The one occupancy authority (slice 09): nothing readable overlaps.
+ *
+ * Claim order is the who-yields priority, deterministic:
+ *   1. DOM cards (reported by the scene loop) — pre-claimed; cards outrank
+ *      canvas labels.
+ *   2. Faction engravings (major): claim their ink against same-scale text but
+ *      neither yield to nor contest cards — a small chip over a giant
+ *      background engraving reads fine, hiding a nation's name would not
+ *      (the same reasoning that keeps sea names out entirely).
+ *   3. Minor faction (league) names — label-scale text, so they yield to
+ *      cards and earlier claims.
+ *   4. Army labels — fixed anchors on moving stacks; they yield by hiding
+ *      (the marker stays).
+ *   5. City labels, higher tier first — the only movable text: each dodges
+ *      through its placement candidates (occupancy-clear first, then the
+ *      shared land scorer) and hides only when every candidate is claimed.
+ * Sea labels stay out of the game on both sides: basin-scale background text.
+ * A surviving composed garrison label still replaces its city's plain label
+ * by collision group; a composed label that loses its ground frees the city
+ * label to arbitrate normally.
+ */
+function arbitrateLabelOccupancy(
+  labels: MeasuredCampaignLabel[],
   camera: CameraSnapshot,
   dpr: number,
   placement: CampaignLabelPlacementStyle | undefined,
 ) {
-  if (!placement) return;
-  for (const entry of entries) {
-    const candidates = entry.label.placementCandidates;
-    if (!candidates || candidates.length < 2) continue;
-    const verdict = bestPlacement(
-      candidates,
-      (candidate) => anchoredLabelWorldSamples(entry, candidate, camera, dpr),
-      (x, y) => placement.renderSurfaceAt(x, y) === 'water',
-    );
-    if (!verdict) continue;
-    entry.offsetX = verdict.candidate.screenOffsetX * dpr;
-    entry.offsetY = verdict.candidate.screenOffsetY * dpr;
-    entry.label = {
-      ...entry.label,
-      screenAnchorX: verdict.candidate.screenAnchorX,
-      screenAnchorY: verdict.candidate.screenAnchorY,
-    };
+  const claims: OccupancyClaim[] = (placement?.blockedRects ?? []).map((rect) => ({
+    rect,
+    card: true,
+  }));
+  const overlapsClaim = (rect: ScreenRect, ignoreCards: boolean) =>
+    claims.some((claim) => !(ignoreCards && claim.card) && rectsOverlap(rect, claim.rect));
+
+  const arbitrates = (entry: MeasuredCampaignLabel) =>
+    entry.label.kind !== 'sea' && entry.opacity >= OCCUPANCY_MIN_OPACITY;
+  const stageOf = (entry: MeasuredCampaignLabel) => {
+    if (entry.label.kind === 'faction') return entry.label.factionMinor ? 1 : 0;
+    return entry.label.kind === 'army' ? 2 : 3;
+  };
+  const ordered = labels
+    .map((entry, index) => ({ entry, index }))
+    .filter(({ entry }) => arbitrates(entry))
+    .sort((a, b) => {
+      const stage = stageOf(a.entry) - stageOf(b.entry);
+      if (stage !== 0) return stage;
+      // Among city labels the higher tier claims first; everything else keeps
+      // its emitter order (already deterministic per frame).
+      if (stageOf(a.entry) === 3 && a.entry.label.priority !== b.entry.label.priority) {
+        return b.entry.label.priority - a.entry.label.priority;
+      }
+      return a.index - b.index;
+    });
+
+  const culled = new Set<MeasuredCampaignLabel>();
+  const culledLabels: string[] = [];
+  const cull = (entry: MeasuredCampaignLabel) => {
+    culled.add(entry);
+    culledLabels.push(`${entry.label.kind}:${labelText(entry.label)}`);
+  };
+  const composedArmyGroups = new Set<string>();
+
+  for (const { entry } of ordered) {
+    const kind = entry.label.kind;
+    if (kind === 'faction' && !entry.label.factionMinor) {
+      const rect = entryInkRect(entry, dpr);
+      if (overlapsClaim(rect, true)) {
+        cull(entry);
+        continue;
+      }
+      claims.push({ rect, card: false });
+      continue;
+    }
+    if (kind === 'city') {
+      const group = entry.label.collisionGroup;
+      if (group !== undefined && composedArmyGroups.has(group)) {
+        cull(entry);
+        continue;
+      }
+      const rect = placeCityLabel(entry, claims, camera, dpr, placement);
+      if (!rect) {
+        cull(entry);
+        continue;
+      }
+      claims.push({ rect, card: false });
+      continue;
+    }
+    const rect = entryInkRect(entry, dpr);
+    if (overlapsClaim(rect, false)) {
+      cull(entry);
+      continue;
+    }
+    claims.push({ rect, card: false });
+    const group = entry.label.collisionGroup;
+    if (kind === 'army' && entry.label.subText && group !== undefined) {
+      composedArmyGroups.add(group);
+    }
   }
+  return {
+    entries: labels.filter((entry) => !culled.has(entry)),
+    culledLabels,
+  };
+}
+
+// Wettest ink a displaced city label freely accepts. Occupancy pressure must
+// not re-open B2 (city ink on open water): a label pushed off its ground by a
+// card or engraving may take a spot up to this wet — or as wet as its own
+// UNCONSTRAINED best (the pre-09 placement, which covers the exempted
+// CORINTHUS isthmus read) — and hides rather than draw wetter than both.
+const CITY_LABEL_MAX_WATER_FRACTION = 0.25;
+
+/** City-label placement (B2/B8 + slice 09): walk the emitter's
+ * preference-ordered candidates, drop the ones whose ink rect lands on
+ * claimed ground, and pick among the survivors through the one placement
+ * scorer (isBadAt = water). The first candidate is the tiebreak, so inland
+ * labels with clear ground never churn; null means every open spot is claimed
+ * or too wet to draw on. */
+function placeCityLabel(
+  entry: MeasuredCampaignLabel,
+  claims: OccupancyClaim[],
+  camera: CameraSnapshot,
+  dpr: number,
+  placement: CampaignLabelPlacementStyle | undefined,
+): ScreenRect | null {
+  const candidates =
+    entry.label.placementCandidates && entry.label.placementCandidates.length > 0
+      ? entry.label.placementCandidates
+      : [
+          {
+            screenOffsetX: entry.offsetX / dpr,
+            screenOffsetY: entry.offsetY / dpr,
+            screenAnchorX: entry.label.screenAnchorX ?? 'center',
+            screenAnchorY: entry.label.screenAnchorY ?? 'center',
+          } satisfies CampaignLabelAnchor,
+        ];
+  const scored = candidates.map((candidate) => ({
+    candidate,
+    rect: candidateInkRect(entry, candidate, dpr),
+  }));
+  const open = scored.filter(
+    ({ rect }) => !claims.some((claim) => rectsOverlap(rect, claim.rect)),
+  );
+  if (open.length === 0) return null;
+  let winner = open[0];
+  if (placement) {
+    const isWaterAt = (x: number, y: number) => placement.renderSurfaceAt(x, y) === 'water';
+    const samplesOf = ({ candidate }: (typeof scored)[number]) =>
+      anchoredLabelWorldSamples(entry, candidate, camera, dpr);
+    const verdict = bestPlacement(open, samplesOf, isWaterAt);
+    if (!verdict) return null;
+    if (verdict.badFraction > CITY_LABEL_MAX_WATER_FRACTION) {
+      // Wetter than the free threshold: only draw if occupancy is not to
+      // blame — the unconstrained best (the pre-09 placement) is just as wet.
+      const unconstrained = bestPlacement(scored, samplesOf, isWaterAt);
+      if (!unconstrained || verdict.badFraction > unconstrained.badFraction + 1e-6) return null;
+    }
+    winner = verdict.candidate;
+  }
+  entry.offsetX = winner.candidate.screenOffsetX * dpr;
+  entry.offsetY = winner.candidate.screenOffsetY * dpr;
+  entry.label = {
+    ...entry.label,
+    screenAnchorX: winner.candidate.screenAnchorX,
+    screenAnchorY: winner.candidate.screenAnchorY,
+  };
+  return winner.rect;
+}
+
+/** Ink rect (CSS px AABB) of a measured label at its current anchor. */
+function entryInkRect(entry: MeasuredCampaignLabel, dpr: number): ScreenRect {
+  return inkRectAt(entry, entry.offsetX, entry.offsetY, entry.label.screenAnchorX, entry.label.screenAnchorY, dpr);
+}
+
+function candidateInkRect(
+  entry: MeasuredCampaignLabel,
+  candidate: CampaignLabelAnchor,
+  dpr: number,
+): ScreenRect {
+  return inkRectAt(
+    entry,
+    candidate.screenOffsetX * dpr,
+    candidate.screenOffsetY * dpr,
+    candidate.screenAnchorX,
+    candidate.screenAnchorY,
+    dpr,
+  );
+}
+
+/** The visible ink box: the atlas rect deflated by its transparent halo
+ * padding, placed with the same anchor math the GPU quad uses (the padding is
+ * margin nobody sees — counting it would make labels yield to empty air). */
+function inkRectAt(
+  entry: MeasuredCampaignLabel,
+  offsetX: number,
+  offsetY: number,
+  anchorX: CampaignLabel['screenAnchorX'],
+  anchorY: CampaignLabel['screenAnchorY'],
+  dpr: number,
+): ScreenRect {
+  const pad = entry.style.padding;
+  const corners = labelCornersCss(
+    entry.screenX + anchorCenterOffsetX(anchorX, offsetX, entry.width),
+    entry.screenY + anchorCenterOffsetY(anchorY, offsetY, entry.height),
+    Math.max(1, entry.width - pad * 2),
+    Math.max(1, entry.height - pad * 2),
+    entry.label.angle ?? 0,
+    dpr,
+  );
+  return cornersAabb(corners);
 }
 
 /** Sample grid over the candidate's ink rect — the atlas rect deflated by its
@@ -2200,67 +2432,62 @@ function anchorCenterOffsetY(
   return offsetY;
 }
 
-/** A composed army label (garrison + subText city name) replaces its city's
- * plain label outright: the group match IS the redundancy, not the rects —
- * an anchor-placed city label that dodges water must not resurrect beside a
- * composed label already carrying its name. (Cross-entity collision proper is
- * slice 09's occupancy authority, not this cull.) */
-function cullOverlappingLabels(labels: MeasuredCampaignLabel[]) {
-  const composedArmyGroups = new Set(
-    labels
-      .filter((entry) => entry.label.kind === 'army' && Boolean(entry.label.subText))
-      .map((entry) => entry.label.collisionGroup)
-      .filter((group): group is string => group !== undefined),
-  );
-  if (composedArmyGroups.size === 0) return { entries: labels, culledLabels: [] };
-  const entries: MeasuredCampaignLabel[] = [];
-  const culledLabels: string[] = [];
-  for (const entry of labels) {
-    const cullsAgainstArmyCityLabel =
-      entry.label.kind === 'city' &&
-      entry.label.collisionGroup !== undefined &&
-      composedArmyGroups.has(entry.label.collisionGroup);
-    if (cullsAgainstArmyCityLabel) {
-      culledLabels.push(`${entry.label.kind}:${labelText(entry.label)}`);
-      continue;
-    }
-    entries.push(entry);
-  }
-  return { entries, culledLabels };
+/** Corners (CSS px) of a label quad of the given size centered at the given
+ * device-px screen center, rotated like the GPU quad. Shared by the occupancy
+ * arbitration and the debug rects — one corner math. */
+function labelCornersCss(
+  centerX: number,
+  centerY: number,
+  width: number,
+  height: number,
+  angle: number,
+  dpr: number,
+): [number, number][] {
+  const c = Math.cos(angle);
+  const s = Math.sin(angle);
+  return [
+    [-width * 0.5, -height * 0.5],
+    [width * 0.5, -height * 0.5],
+    [width * 0.5, height * 0.5],
+    [-width * 0.5, height * 0.5],
+  ].map(([x, y]): [number, number] => [
+    roundPx((centerX + x * c - y * s) / dpr),
+    roundPx((centerY + x * s + y * c) / dpr),
+  ]);
+}
+
+function cornersAabb(corners: [number, number][]): ScreenRect {
+  const xs = corners.map((corner) => corner[0]);
+  const ys = corners.map((corner) => corner[1]);
+  const x0 = Math.min(...xs);
+  const y0 = Math.min(...ys);
+  return {
+    x: roundPx(x0),
+    y: roundPx(y0),
+    w: roundPx(Math.max(...xs) - x0),
+    h: roundPx(Math.max(...ys) - y0),
+  };
 }
 
 function labelDebugRects(entries: AtlasEntry[], dpr: number): CampaignLabelDebugRect[] {
   return entries.map((entry) => {
     const label = entry.label;
-    const width = entry.width;
-    const height = entry.height;
-    const angle = label.angle ?? 0;
-    const c = Math.cos(angle);
-    const s = Math.sin(angle);
-    const centerX = entry.screenX + anchorCenterOffsetX(label.screenAnchorX, entry.offsetX, width);
-    const centerY = entry.screenY + anchorCenterOffsetY(label.screenAnchorY, entry.offsetY, height);
-    const corners = [
-      [-width * 0.5, -height * 0.5],
-      [width * 0.5, -height * 0.5],
-      [width * 0.5, height * 0.5],
-      [-width * 0.5, height * 0.5],
-    ].map(([x, y]): [number, number] => [
-      roundPx((centerX + x * c - y * s) / dpr),
-      roundPx((centerY + x * s + y * c) / dpr),
-    ]);
-    const xs = corners.map((corner) => corner[0]);
-    const ys = corners.map((corner) => corner[1]);
-    const x0 = Math.min(...xs);
-    const y0 = Math.min(...ys);
-    const x1 = Math.max(...xs);
-    const y1 = Math.max(...ys);
+    const corners = labelCornersCss(
+      entry.screenX + anchorCenterOffsetX(label.screenAnchorX, entry.offsetX, entry.width),
+      entry.screenY + anchorCenterOffsetY(label.screenAnchorY, entry.offsetY, entry.height),
+      entry.width,
+      entry.height,
+      label.angle ?? 0,
+      dpr,
+    );
     return {
       text: labelText(label),
       kind: label.kind,
       opacity: roundPx(entry.opacity),
-      box: { x: roundPx(x0), y: roundPx(y0), w: roundPx(x1 - x0), h: roundPx(y1 - y0) },
+      box: cornersAabb(corners),
       corners,
       padPx: roundPx(entry.padding / dpr),
+      ...(label.kind === 'faction' ? { minor: label.factionMinor === true } : {}),
     };
   });
 }

@@ -1678,6 +1678,10 @@ interface FittedSeaLabels {
   fitZoom: number;
 }
 
+function surfaceAt(style: CampaignMapDrawStyle) {
+  return style.surfaceAt ?? style.roadSurfaceAt;
+}
+
 function fitSeaLabels(labels: CampaignLabel[], style: CampaignMapDrawStyle): FittedSeaLabels {
   const fitZoom = Math.min(style.seaLabelFitZoom ?? SEA_LABEL_FIT_ZOOM, SEA_LABEL_FIT_ZOOM);
   const at = style.renderSurfaceAt ?? surfaceAt(style);

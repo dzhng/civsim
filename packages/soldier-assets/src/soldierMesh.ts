@@ -18,13 +18,8 @@ export const SOLDIER_MATERIAL_CHANNELS = {
 } as const;
 
 export const SOLDIER_PBR_VALUES = {
-  // broadMix is the L0 (close-up) body tint locked by 14a for realism-vs-legibility.
-  // tierBroadMix ramps it UP at the coarser LOD tiers (14b): the L1/L2 reduced
-  // meshes drop the accent geometry (crest/shield) that carried the faction read
-  // up close, so at distance the body itself must carry more team colour — the
-  // "faction reads before class" rule matters MORE far away, not less. tier[0]
-  // stays == broadMix so L0 is byte-for-byte the 14a look.
-  accent: { broadMix: 0.30, maskedMix: 0.98, tierBroadMix: [0.30, 0.48, 0.66] },
+  // Broad tint stays low so bodies read as material; accent geometry carries faction.
+  accent: { broadMix: 0.0, maskedMix: 0.98, tierBroadMix: [0.0, 0.10, 0.18] },
   roughness: {
     bronze: 0.46,
     iron: 0.38,
@@ -177,18 +172,18 @@ function addBox(
   }
 }
 
-export function createPlaceholderSoldierMeshes(accentRgb: [number, number, number] = [0.20, 0.42, 0.88]): SoldierMeshData[] {
+export function createPlaceholderSoldierMeshes(accentRgb: [number, number, number] = [0.06, 0.1, 0.98]): SoldierMeshData[] {
   return PLACEHOLDER_LOOKS.map((_, classId) => createPlaceholderSoldierMesh(accentRgb, classId));
 }
 
 /** L0 full / L1 reduced (drops weapon, helmet crest) / L2 coarse (body+head+legs).
  *  Tiers skin to the same bones, so one VAT drives every tier. */
-export function createPlaceholderSoldierMeshTiers(accentRgb: [number, number, number] = [0.20, 0.42, 0.88]): SoldierMeshData[][] {
+export function createPlaceholderSoldierMeshTiers(accentRgb: [number, number, number] = [0.06, 0.1, 0.98]): SoldierMeshData[][] {
   return PLACEHOLDER_LOOKS.map((_, classId) => [0, 1, 2].map((lod) => createPlaceholderSoldierMesh(accentRgb, classId, lod)));
 }
 
 export function createPlaceholderSoldierMesh(
-  accentRgb: [number, number, number] = [0.20, 0.42, 0.88],
+  accentRgb: [number, number, number] = [0.06, 0.1, 0.98],
   classId = 0,
   lod = 0,
 ): SoldierMeshData {
@@ -215,7 +210,8 @@ export function createPlaceholderSoldierMesh(
     addBox(v, indices, [0.24, 0.34, 0.48], [0.12, 0.14, 0.72], 0, horse);
     if (lod < 1) addBox(v, indices, [0, -0.02, 1.17], [0.46, 0.34, 0.12], 0, accent);
   }
-  addBox(v, indices, [0, 0.02, 1.24 + riderLift], [0.48, 0.28, 0.70], 1, linen);
+  addBox(v, indices, [0, 0.02, 1.33 + riderLift], [0.48, 0.28, 0.52], 1, linen);
+  addBox(v, indices, [0, 0.02, 0.98 + riderLift], [0.48, 0.28, 0.18], 1, accent);
   addBox(v, indices, [0, 0.02, 1.82 + riderLift], [0.30, 0.24, 0.30], 2, helmetColor(look.helmet, bronze, linen));
   // L2 keeps only body, head, legs (the readable silhouette); L0/L1 add arms.
   if (lod < 2) {
@@ -224,11 +220,10 @@ export function createPlaceholderSoldierMesh(
   }
   addBox(v, indices, [-0.17, 0, 0.58 + riderLift * 0.34], [0.18, 0.18, look.mounted ? 0.50 : 0.78], 5, leather);
   addBox(v, indices, [0.17, 0, 0.58 + riderLift * 0.34], [0.18, 0.18, look.mounted ? 0.50 : 0.78], 6, leather);
-  // L1+ drop the fine equipment (helmet crest, shield, weapon) that doesn't read
-  // at distance; L0 is the full hero mesh.
+  addShield(v, indices, look.shield, accent, riderLift);
+  // L1+ drop the fine equipment that does not carry the distance faction read.
   if (lod < 1) {
     addHelmet(v, indices, look, accent, bronze, riderLift);
-    addShield(v, indices, look.shield, accent, riderLift);
     addWeapon(v, indices, look.weapon, look.mounted, leather, bronze, iron, riderLift);
   }
   return splitInterleaved(new Float32Array(v), new Uint16Array(indices));

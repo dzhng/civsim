@@ -221,7 +221,7 @@ export class PhotorealBattleWorld {
     const shadowMode = resolveSunShadowMode(world.stats().device, options.shadows);
     // ?post=off (lab A/B only) bypasses the chain; production always runs it.
     const postEnabled = options.post !== 'off';
-    return new PhotorealBattleWorld(world, environment, sea, createPlaceholderSoldierMeshTiers([0.2, 0.42, 0.88]), vats, kit, shadowMode, postEnabled);
+    return new PhotorealBattleWorld(world, environment, sea, createPlaceholderSoldierMeshTiers([0.06, 0.1, 0.98]), vats, kit, shadowMode, postEnabled);
   }
 
   setTime(seconds: number): void {

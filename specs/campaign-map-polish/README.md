@@ -20,9 +20,8 @@ re-blessing baselines once per merge):
 1. `.claude/worktrees/cmp-mapgen` (branch cmp-mapgen) — slice 07 Rust fix + re-bake.
 2. `.claude/worktrees/cmp-labels` (branch cmp-labels) — slices 08+09+12.
 3. `.claude/worktrees/cmp-bronze` (branch cmp-bronze) — slices 13+14+15.
-Slice 16 contact sheet produced (`visualizations/city-card-variations.html`,
-published artifact) — David's pick pending; default on silence: C's structure
-(faction band + attached garrison footer), possibly with B's inset income well.
+Slice 16 RESOLVED: variation **B** (plaque + inset wells), DOM-overlay seam —
+decided on critique evidence, David can override (see slice file).
 **You are implementing this spec.** David's standing goal: work through the
 slices in order and **use `/codex` for implementation work wherever possible**
 (delegate the mechanical edits to Codex via `codex exec`; you drive verification,
@@ -48,24 +47,8 @@ machinery — dodges the HMR-lag that makes the scene runner show 0-diff right a
 a shader edit); gate with `VERIFY_URL=http://localhost:5199 VERIFY_GPU=1 node
 scene.mjs <scene>` and bless with `UPDATE_SHOTS=1`.
 
-**Verification setup (learned in slice 01 — READ THIS):**
-- The scene runner (`cd web && node scene.mjs <scene>`) targets a dev server at
-  `VERIFY_URL` (default `localhost:5173`). **5173 is occupied by another
-  worktree's server** — always start your OWN dev server for this tree and target
-  it: `cd web && node node_modules/.bin/vite --port 5199 --strictPort &` then
-  `VERIFY_URL=http://localhost:5199 VERIFY_GPU=1 node scene.mjs <scene>`. Verifying
-  against the wrong server silently tests stale code. (A dev server on 5199 may
-  already be running from slice 01.)
-- Bless baselines with `UPDATE_SHOTS=1`; filter with `SNAP=<substr>`.
-- Codex's sandbox can't bind localhost, so it can't run scenes — delegate the
-  code edit to Codex (`codex exec --sandbox workspace-write`), then YOU run the
-  scene + screenshot-critique.
-
-**Slice 01 notes:** camera clamp now uses the real frustum footprint (`screenToWorld`)
-instead of an orthographic `cosP` estimate — the projection is the single owner.
-The raised `minZoom` shifted `campaign-lod`'s `whole-*` shots (map now fills the
-frame); those baselines were re-blessed. Foundation (02–04) will re-bless again for
-palette. New scene: `campaign-frame` (asserts no off-map black at wide/tall aspect).
+**Codex note:** its sandbox can't bind localhost — delegate code edits
+(`codex exec --sandbox workspace-write`), then YOU run scenes + critiques.
 
 **How to work each slice:**
 1. Read the slice file. Confirm the seam in the real code.
@@ -99,8 +82,8 @@ palette. New scene: `campaign-frame` (asserts no off-map black at wide/tall aspe
 - [x] `01-camera-clamp` — real-frustum-footprint clamp; no off-map black; zoom-ceiling const unified
 - [x] `02-terrain-grade` — global grade muted (sat 1.06→0.84, wash removed, warmed)
 - [x] `03-terrain-biomes` — grass hue kelly→olive; baselines re-blessed
-- [x] `04-faction-fill` — de-mud (tint removed, 3 alpha owners → 1 = pass alpha 0.35)
-- [ ] ★ **Foundation human checkpoint** (David) — shots presented; awaiting review, proceeding on evidence
+- [x] `04-faction-fill` — de-mud (tint removed, 3 alpha owners → 1); 04b raised wash to 0.62 (EU4 political, David)
+- [x] ★ **Foundation checkpoint** — presented; proceeded on evidence. David's one note (stronger faction color) landed as 04b (wash 0.62, EU4 target)
 - [x] `05-roads-cull-relax` — cull 0.68→0.5, land slack 10.5→16; +516 road tris recovered, none over water
 - [x] `11-cart-size` — carts 6.0→1.3 (road width)
 - [x] `06-data-diagnosis` — DONE: 0 misplaced non-port cities; 36 ports at waterline + Cnidus (14km) the one real bug; roads = 17 stubs/83 dead junctions/25+5 orphan components (all in slice files)
@@ -108,7 +91,6 @@ palette. New scene: `campaign-frame` (asserts no off-map black at wide/tall aspe
 - [ ] `08-capital-labels` — occupied-capital name at low zoom + garrison label-far fix
 - [ ] `09-sea-labels` — mask-fit so labels stay inside their sea with margin
 - [~] `10-shadow-ring` — RESLICED: the ugly "ring" is the garrison-footprint disc (occupied cities only), folded into `08`; city model shadow reads fine, left as-is
-- [ ] `11-cart-size` — carts ≈ road width
 - [ ] `12-selection-ring` — brighten/thicken + drape over terrain height
 - [ ] `13-bronze-shell` — bronze tokens + shell + single-root convergence (proof-of-look checkpoint)
 - [ ] `14-bronze-topbar` — top bar → bronze wells, Phosphor icons, no emoji

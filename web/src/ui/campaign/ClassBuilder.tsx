@@ -1,10 +1,8 @@
 import { classSort, prettyClass, type ClassDoctrineRow } from "../../campaign/panels";
 import { UiIcon } from "./UiIcon";
 
-// S5d: the class-builder panel (#cmp-classes) as React — ported 1:1 from
-// classBuilderHtml/classRow. Draft state (pending unit/size before Apply) lives
-// on CampaignScene; this component is data-in (rows already carry the draft
-// overlay + dirty flag) / action-out.
+// Class-builder panel. Draft state (pending unit/size before Apply) lives on
+// CampaignScene; this component is data-in / action-out.
 export interface ClassBuilderProps {
   rows: ClassDoctrineRow[];
   onSelectUnit(cls: number, unit: number): void;

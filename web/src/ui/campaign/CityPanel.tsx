@@ -2,11 +2,9 @@ import { useRef } from "react";
 import { prettyClass, type CityDetail } from "../../campaign/panels";
 import { UiIcon } from "./UiIcon";
 
-// S5b: the selected-city panel (#cmp-city) as React — ported 1:1 from
-// cityPanelHtml (+ policyHtml). Flat props (name/tier/faction/garrison/queue/
-// detail/recruitClasses) so it doesn't reach into CampaignData. Policy sliders
-// stay uncontrolled (read both on change, like the vanilla), keyed by city so a
-// new selection resets them to that city's values.
+// Selected-city panel. Flat props keep it independent of CampaignData. Policy
+// sliders stay uncontrolled (read both on change, like the vanilla), keyed by
+// city so a new selection resets them to that city's values.
 const focusLabel = (f: number) => (f < -0.33 ? "Economy" : f > 0.33 ? "Military" : "Balanced");
 const throttleLabel = (t: number) => (t > 0.5 ? "Exploit" : "Grow");
 
@@ -23,6 +21,26 @@ export interface CityPanelProps {
   onRecruit(i: number): void;
 }
 
+function StatRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="cmp-stat">
+      <span>{label}</span>
+      <span>{value}</span>
+    </div>
+  );
+}
+
+function BarRow({ label, frac }: { label: string; frac: number }) {
+  return (
+    <div className="cmp-stat">
+      <span>{label}</span>
+      <div className="cmp-bar">
+        <div style={{ width: `${Math.max(0, Math.min(1, frac)) * 100}%` }} />
+      </div>
+    </div>
+  );
+}
+
 export function CityPanel(p: CityPanelProps) {
   const focusRef = useRef<HTMLInputElement>(null);
   const throttleRef = useRef<HTMLInputElement>(null);
@@ -36,20 +54,17 @@ export function CityPanel(p: CityPanelProps) {
         <UiIcon name="city" />
         <b>{p.name}</b>
       </div>
-      <div className="cmp-city-meta">
-        tier {p.tier} — {p.factionName}
-      </div>
-      <div className="cmp-city-meta">
-        garrison {p.garrison}
-        {p.queue ? ` | recruiting ${p.queue}` : ""}
-      </div>
+      <StatRow label="Tier" value={`${p.tier} - ${p.factionName}`} />
+      <StatRow
+        label="Garrison"
+        value={`${p.garrison}${p.queue ? ` | recruiting ${p.queue}` : ""}`}
+      />
       {d ? (
         <>
-          <div className="cmp-city-meta">
-            pop {d.population.toLocaleString()} ({pct}% of cap) — loyalty{" "}
-            {Math.round(d.loyalty * 100)}%
-          </div>
-          <div className="cmp-city-meta">income {d.monthly_income.toLocaleString()}/mo</div>
+          <BarRow label="Pop" frac={d.population / Math.max(1, d.pop_cap)} />
+          <BarRow label="Loyalty" frac={d.loyalty} />
+          <StatRow label="People" value={`${d.population.toLocaleString()} (${pct}% of cap)`} />
+          <StatRow label="Income" value={`${d.monthly_income.toLocaleString()}/mo`} />
         </>
       ) : null}
       {d ? (

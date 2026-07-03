@@ -5273,16 +5273,16 @@ function installStyles() {
 	    .renderer-campaign-ui { position: absolute; inset: 0 310px 0 0; pointer-events: none; color: #eadfca; font: 12px ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; }
 	    .renderer-campaign-hud { position: absolute; left: 12px; top: 12px; display: flex; align-items: center; gap: 12px; padding: 8px 10px; background: rgba(18,17,14,0.78); border: 1px solid rgba(177,143,82,0.45); border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.32); }
 	    .renderer-campaign-hud b { color: #f4dfaa; font-family: Cinzel, Georgia, serif; }
-	    .renderer-campaign-panel { position: absolute; pointer-events: auto; width: 250px; max-height: calc(100% - 76px); overflow: auto; padding: 10px; background: linear-gradient(180deg,rgba(31,27,21,0.96),rgba(14,16,18,0.96)); border: 1px solid rgba(151,122,72,0.55); border-radius: 4px; box-shadow: 0 12px 30px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,236,186,0.12); }
-	    .renderer-campaign-panel.army { right: 12px; top: 54px; }
-	    .renderer-campaign-panel.city { right: 12px; bottom: 12px; }
-	    .renderer-campaign-panel.diplomacy { left: 12px; top: 54px; width: 310px; }
-	    .renderer-campaign-panel.classes { left: 12px; bottom: 12px; width: 250px; max-height: min(34%, 180px); }
+	    /* Lab LAYOUT only: the bronze panel MATERIAL is owned by campaignDomHtml's
+	     * .cmp-panel rules (the same chrome as the game). The fixture pins panels
+	     * absolutely inside its box so they never cover the canvas click targets
+	     * (the game positions them fixed to the viewport). */
+	    .renderer-campaign-ui .renderer-campaign-panel { position: absolute; pointer-events: auto; width: 250px; max-height: calc(100% - 76px); overflow: auto; }
+	    .renderer-campaign-ui .renderer-campaign-panel.army { right: 12px; top: 54px; left: auto; bottom: auto; }
+	    .renderer-campaign-ui .renderer-campaign-panel.city { right: 12px; bottom: 12px; left: auto; top: auto; }
+	    .renderer-campaign-ui .renderer-campaign-panel.diplomacy { left: 12px; top: 54px; right: auto; bottom: auto; width: 310px; }
+	    .renderer-campaign-ui .renderer-campaign-panel.classes { left: 12px; bottom: 12px; right: auto; top: auto; width: 250px; max-height: min(34%, 180px); }
 	    .renderer-campaign-panel b { font-family: Cinzel, Georgia, serif; letter-spacing: 0.2px; color: #f1dfb1; }
-	    .renderer-campaign-panel button { background: #202631; border: 1px solid #6c5b3e; border-radius: 3px; color: #eadfca; padding: 3px 8px; font: 11px ui-sans-serif, system-ui; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
-	    .renderer-campaign-panel button.on, .renderer-campaign-panel button:hover:not(:disabled) { background: #3a3124; border-color: #b38a43; }
-	    .renderer-campaign-panel button:disabled { opacity: 0.72; cursor: default; }
-	    .renderer-campaign-panel input[type="checkbox"] { accent-color: #b38a43; }
 	    .renderer-campaign-panel .cmp-title { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
 	    .renderer-campaign-panel .cmp-ico { width: 14px; height: 14px; fill: currentColor; color: #caa45c; filter: drop-shadow(0 1px 0 rgba(0,0,0,0.35)); }
 	    .renderer-campaign-panel .cmp-diplo-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 5px 0; padding: 6px; border-radius: 3px; background: rgba(255,255,255,0.05); }

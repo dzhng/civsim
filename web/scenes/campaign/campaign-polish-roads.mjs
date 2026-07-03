@@ -86,10 +86,17 @@ export async function run(ctx) {
   await page.waitForTimeout(320);
 
   const stats = await page.evaluate(() => window.__campaignGpuStats);
+  // Own cities render as DOM map cards (spec campaign-map-polish 17), so
+  // Ostia/Portus is covered by its card, not the canvas label list.
+  const cardNames = await page.evaluate(() =>
+    Array.from(document.querySelectorAll(".cmp-map-card"))
+      .filter((node) => node.style.display !== "none")
+      .map((node) => node.querySelector(".cmp-map-card__name")?.textContent ?? ""),
+  );
   ctx.check(
-    "polish road workbench keeps Ostia/Portus a visible label",
-    stats.visibleLabelNames?.includes("city:OSTIA/PORTUS") === true,
-    JSON.stringify(stats.visibleLabelNames),
+    "polish road workbench keeps Ostia/Portus visible (own-city map card)",
+    cardNames.some((n) => n.toUpperCase().includes("OSTIA")),
+    JSON.stringify({ cards: cardNames, canvas: stats.visibleLabelNames }),
   );
   // Road life: deterministic carts ride the spokes at this close camera (frozen
   // scene time pins them to a fixed spot for the snapshot).

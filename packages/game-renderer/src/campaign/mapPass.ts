@@ -55,6 +55,7 @@ export interface CampaignMapStyle {
 export interface CampaignMapDrawStyle {
   roadScale?: number;
   roadSurfaceAt?: (x: number, y: number) => 'land' | 'water';
+  surfaceAt?: (x: number, y: number) => 'land' | 'water';
   heightAt?: (x: number, y: number) => number;
 }
 
@@ -97,8 +98,10 @@ export interface CampaignLabel {
   priority: number;
   angle?: number;
   curve?: number;
-  icon?: 'city' | 'army';
+  icon?: 'city' | 'army' | 'sword';
   iconColor?: [number, number, number];
+  rightIcon?: 'sword';
+  rightIconColor?: [number, number, number];
   sideText?: string;
   subText?: string;
   collisionGroup?: string;
@@ -113,6 +116,7 @@ export interface CampaignLabel {
 const ICON_PATHS = {
   city: 'M240,208H224V136l2.34,2.34A8,8,0,0,0,237.66,127L139.31,28.68a16,16,0,0,0-22.62,0L18.34,127a8,8,0,0,0,11.32,11.31L32,136v72H16a8,8,0,0,0,0,16H240a8,8,0,0,0,0-16Zm-88,0H104V160a4,4,0,0,1,4-4h40a4,4,0,0,1,4,4Z',
   army: 'M230.4,219.19A8,8,0,0,1,224,232H32a8,8,0,0,1-6.4-12.8A67.88,67.88,0,0,1,53,197.51a40,40,0,1,1,53.93,0,67.42,67.42,0,0,1,21,14.29,67.42,67.42,0,0,1,21-14.29,40,40,0,1,1,53.93,0A67.85,67.85,0,0,1,230.4,219.19ZM27.2,126.4a8,8,0,0,0,11.2-1.6,52,52,0,0,1,83.2,0,8,8,0,0,0,12.8,0,52,52,0,0,1,83.2,0,8,8,0,0,0,12.8-9.61A67.85,67.85,0,0,0,203,93.51a40,40,0,1,0-53.93,0,67.42,67.42,0,0,0-21,14.29,67.42,67.42,0,0,0-21-14.29,40,40,0,1,0-53.93,0A67.88,67.88,0,0,0,25.6,115.2,8,8,0,0,0,27.2,126.4Z',
+  sword: 'M202.7,17.4l35.9,35.9L104,187.9l-35.9-35.9L202.7,17.4ZM57.5,135.6l62.9,62.9-18.1,18.1-18.7-18.7-41.9,41.9-25.5-25.5 41.9-41.9-18.7-18.7 18.1-18.1Z',
 } as const;
 
 const MAP_WGSL = `
@@ -175,11 +179,15 @@ fn nz(p: vec2f, freq: f32, px: f32) -> f32 {
 }
 
 fn grade(c0: vec3f) -> vec3f {
-  var c = pow(max(c0, vec3f(0.0)), vec3f(0.92, 0.95, 1.0));
+  // Global tone toward the muted antique-chart target (campaign-map-polish 02):
+  // the old grade over-saturated (1.06) and washed the map brighter (*1.05+0.02),
+  // reading as a vivid webapp map. Pull saturation down, drop the brightness lift,
+  // and warm slightly toward sepia so the whole chart sits in the Aegean register.
+  var c = pow(max(c0, vec3f(0.0)), vec3f(0.95, 0.97, 1.0));
   let l = dot(c, vec3f(0.299, 0.587, 0.114));
-  c = mix(vec3f(l), c, 1.06);
-  c = c * 1.05 + vec3f(0.02);
-  c *= vec3f(1.02, 1.0, 0.95);
+  c = mix(vec3f(l), c, 0.84);
+  c = c * 0.99 + vec3f(0.006);
+  c *= vec3f(1.05, 1.0, 0.92);
   return clamp(c, vec3f(0.0), vec3f(1.0));
 }
 
@@ -194,7 +202,7 @@ fn naturalCampaignColor(b: vec4f, light: f32, world: vec2f, h: f32) -> vec3f {
     // Reach green earlier and land on a richer, less-yellow grass so temperate
     // Italy reads as living Mediterranean turf, not faded straw. The dry end
     // stays an olive (not tan) so mid-moisture plains keep a green cast.
-    var grass = mix(vec3f(0.54, 0.58, 0.34), vec3f(0.33, 0.55, 0.27), smoothstep(0.16, 0.46, moisture));
+    var grass = mix(vec3f(0.55, 0.56, 0.33), vec3f(0.42, 0.52, 0.29), smoothstep(0.16, 0.46, moisture));
     // Broad meadow patches: low-frequency darker/lusher and lighter sun-bleached
     // zones so a wide field is never one flat fill.
     let meadow = nz(world, 0.34, px);
@@ -287,6 +295,27 @@ struct VsOut { @builtin(position) pos: vec4f, @location(0) color: vec4f };
 fn vs(@location(0) world: vec2f, @location(1) color: vec4f) -> VsOut {
   var out: VsOut;
   out.pos = projectWorld(vec3f(world, 0.0));
+  out.color = color;
+  return out;
+}
+
+@fragment
+fn fs(in: VsOut) -> @location(0) vec4f {
+  return in.color;
+}`;
+
+// 3D variant: vertices carry their own z (terrain height + lift) so ground
+// strips like the faction borders drape over raised terrain instead of being
+// depth-buried at z = 0 under the height-mapped surface mesh.
+const LINE3D_WGSL = `
+${WORLD_CAMERA_WGSL}
+
+struct VsOut { @builtin(position) pos: vec4f, @location(0) color: vec4f };
+
+@vertex
+fn vs(@location(0) world: vec3f, @location(1) color: vec4f) -> VsOut {
+  var out: VsOut;
+  out.pos = projectWorld(world);
   out.color = color;
   return out;
 }
@@ -699,15 +728,28 @@ export class CampaignWorldLinePass {
   private pipeline: GPURenderPipeline;
   private geometry: CampaignLineGeometry;
 
-  constructor(private shell: RawFrameShell, private topology: GPUPrimitiveTopology = 'line-list') {
+  constructor(
+    private shell: RawFrameShell,
+    private topology: GPUPrimitiveTopology = 'line-list',
+    private vertexFormat: 'xy' | 'xyz' = 'xy',
+  ) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'campaign-world-line-wgsl', code: LINE_WGSL });
+    const module = device.createShaderModule({
+      label: 'campaign-world-line-wgsl',
+      code: vertexFormat === 'xyz' ? LINE3D_WGSL : LINE_WGSL,
+    });
     this.pipeline = this.makePipeline(module);
-    this.geometry = new CampaignLineGeometry(shell, topology, 'campaign-world-line-empty');
+    this.geometry = new CampaignLineGeometry(
+      shell,
+      topology,
+      'campaign-world-line-empty',
+      vertexFormat === 'xyz' ? 7 : 6,
+    );
   }
 
   private makePipeline(module: GPUShaderModule) {
     const device = this.shell.device;
+    const positionSize = this.vertexFormat === 'xyz' ? 12 : 8;
     return device.createRenderPipeline({
       label: 'campaign-line-world-depth-pipeline',
       layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout] }),
@@ -715,10 +757,10 @@ export class CampaignWorldLinePass {
         module,
         entryPoint: 'vs',
         buffers: [{
-          arrayStride: 24,
+          arrayStride: positionSize + 16,
           attributes: [
-            { shaderLocation: 0, offset: 0, format: 'float32x2' },
-            { shaderLocation: 1, offset: 8, format: 'float32x4' },
+            { shaderLocation: 0, offset: 0, format: this.vertexFormat === 'xyz' ? 'float32x3' : 'float32x2' },
+            { shaderLocation: 1, offset: positionSize, format: 'float32x4' },
           ],
         }],
       },
@@ -750,21 +792,26 @@ class CampaignLineGeometry {
   private capacity = 0;
   private vertexCount = 0;
 
-  constructor(private shell: RawFrameShell, private topology: GPUPrimitiveTopology, emptyLabel: string) {
+  constructor(
+    private shell: RawFrameShell,
+    private topology: GPUPrimitiveTopology,
+    emptyLabel: string,
+    private floatsPerVertex = 6,
+  ) {
     this.vertexBuffer = shell.device.createBuffer({
       label: emptyLabel,
-      size: 6 * 4,
+      size: this.floatsPerVertex * 4,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
   }
 
   upload(vertices: Float32Array) {
-    this.vertexCount = Math.floor(vertices.length / 6);
+    this.vertexCount = Math.floor(vertices.length / this.floatsPerVertex);
     if (this.vertexCount > this.capacity) {
       this.capacity = Math.max(this.vertexCount, this.capacity * 2, 512);
       this.vertexBuffer = this.shell.device.createBuffer({
         label: 'campaign-line-vertices',
-        size: this.capacity * 6 * 4,
+        size: this.capacity * this.floatsPerVertex * 4,
         usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
       });
     }
@@ -1139,7 +1186,7 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData, style: Camp
   const roadJunctionCaps = pushRoadJunctionCaps(roadMeshVertices, data, safeRoads, style);
   const cityNodes = data.map.nodes.filter((node) => node.kind === 'city');
   const cityMarkers = cityNodes.map((node) => markerForNode(data, node));
-  const labels = data.map.nodes.length > 20 ? seaLabels() : [];
+  const labels = data.map.nodes.length > 20 ? fitSeaLabels(seaLabels(), surfaceAt(style)) : [];
   return {
     lineVertices: new Float32Array(lineVertices),
     roadMeshVertices: new Float32Array(roadMeshVertices),
@@ -1238,9 +1285,13 @@ function pushRoadJunctionCaps(out: number[], data: CampaignMapInputData, roads: 
   for (const [id, count] of degree) {
     const node = byId.get(id);
     if (!node || count < 3) continue;
-    const cityRadius = node.kind === 'city' ? (node.tier >= 3 ? 4.70 : 3.35) : 1.15;
+    // City plazas used to be huge (tier-3 radius 4.7 + a 1.42x dark under-disc)
+    // and read as an ugly shadow ring around capitals like Rome (feedback #9).
+    // Keep the pavement just wide enough to seat the meeting roads, and keep the
+    // dark rim as a hairline, not a halo.
+    const cityRadius = node.kind === 'city' ? (node.tier >= 3 ? 2.1 : 1.7) : 1.15;
     const surfaceRadius = cityRadius * roadScale;
-    pushRoadDisc(out, node.pos, surfaceRadius * 1.42, 0.19 * roadScale, [0.30, 0.27, 0.23, 0.74], 0, style.heightAt);
+    pushRoadDisc(out, node.pos, surfaceRadius * 1.12, 0.19 * roadScale, [0.30, 0.27, 0.23, 0.45], 0, style.heightAt);
     pushRoadDisc(out, node.pos, surfaceRadius, 0.34 * roadScale, [0.77, 0.75, 0.69, 0.98], 1, style.heightAt);
     caps++;
   }
@@ -1263,7 +1314,8 @@ export function smoothRoadCenterline(points: [number, number][]) {
 }
 
 function roadEdgeIsLandSafe(edge: CampaignMapEdgeData, style: CampaignMapDrawStyle) {
-  if (!style.roadSurfaceAt) return true;
+  const at = surfaceAt(style);
+  if (!at) return true;
   let samples = 0;
   let landSamples = 0;
   for (let i = 1; i < edge.via.length; i++) {
@@ -1276,10 +1328,14 @@ function roadEdgeIsLandSafe(edge: CampaignMapEdgeData, style: CampaignMapDrawSty
       const x = a[0] + (b[0] - a[0]) * t;
       const y = a[1] + (b[1] - a[1]) * t;
       samples++;
-      if (style.roadSurfaceAt(x, y) === 'land') landSamples++;
+      if (at(x, y) === 'land') landSamples++;
     }
   }
-  return samples === 0 || landSamples / samples >= 0.68;
+  // Coastal ORBIS roads hug the shoreline and dip over the coarse land mask's
+  // water cells though the road is on real land; the old 0.68 floor silently
+  // dropped whole connected edges. Relax so a road survives when it is mostly on
+  // land (a genuine sea crossing is still mostly water and drops).
+  return samples === 0 || landSamples / samples >= 0.5;
 }
 
 function pushRoadVertex(out: number[], point: [number, number], z: number, color: [number, number, number, number], uv: [number, number], material: number, heightAt?: (x: number, y: number) => number) {
@@ -1345,6 +1401,10 @@ function pushRoadRibbon(
 
 const ROAD_SURFACE_SAMPLE_KM = 0.9;
 
+function surfaceAt(style: CampaignMapDrawStyle) {
+  return style.surfaceAt ?? style.roadSurfaceAt;
+}
+
 function markerForNode(data: CampaignMapInputData, node: CampaignMapNodeData): CampaignMarker {
   const factionIndex = Math.max(0, data.map.factions.findIndex((faction) => faction.id === node.owner));
   const faction = data.map.factions[factionIndex]?.color ?? [154, 132, 90];
@@ -1353,7 +1413,7 @@ function markerForNode(data: CampaignMapInputData, node: CampaignMapNodeData): C
     y: node.pos[1],
     radius: node.tier >= 3 ? 10 : 7,
     faction: [faction[0] / 255, faction[1] / 255, faction[2] / 255],
-    allegiance: node.owner === 'rome' ? [0.31, 0.82, 0.39] : [0.93, 0.78, 0.30],
+    allegiance: [faction[0] / 255, faction[1] / 255, faction[2] / 255],
   };
 }
 
@@ -1368,6 +1428,143 @@ function seaLabels(): CampaignLabel[] {
     { text: 'Iberian Sea', x: -1640, y: -40, size: 22, kind: 'sea', priority: 4, curve: -0.45 },
     { text: 'Atlantic Ocean', x: -2200, y: 760, size: 15, kind: 'sea', priority: 4, angle: -1.1, curve: 0.18 },
   ];
+}
+
+// Sea labels are screen-space text anchored to world points; fit against the
+// full-opacity threshold so the static placement is conservative before fadeout.
+const SEA_LABEL_FIT_ZOOM = 0.26;
+const SEA_LABEL_LAND_MARGIN_KM = 25;
+const SEA_LABEL_MIN_SCALE = 0.55;
+const SEA_LABEL_SHRINK_STEP = 0.05;
+const SEA_LABEL_MAX_NUDGE_KM = 60;
+const SEA_LABEL_NUDGE_STEP_KM = 10;
+const SEA_LABEL_MARGIN_SAMPLES: [number, number][] = [
+  [0, 0],
+  [1, 0],
+  [-1, 0],
+  [0, 1],
+  [0, -1],
+  [0.707, 0.707],
+  [-0.707, 0.707],
+  [0.707, -0.707],
+  [-0.707, -0.707],
+];
+
+function fitSeaLabels(
+  labels: CampaignLabel[],
+  at?: (x: number, y: number) => 'land' | 'water',
+): CampaignLabel[] {
+  if (!at) return labels;
+  return labels.map((label) => fitSeaLabel(label, at));
+}
+
+function fitSeaLabel(
+  label: CampaignLabel,
+  at: (x: number, y: number) => 'land' | 'water',
+): CampaignLabel {
+  for (let scale = 1; scale >= SEA_LABEL_MIN_SCALE - 0.001; scale -= SEA_LABEL_SHRINK_STEP) {
+    const candidate = withSeaLabelScale(label, scale);
+    if (seaLabelClearsLand(candidate, at)) return candidate;
+  }
+  const shrunk = withSeaLabelScale(label, SEA_LABEL_MIN_SCALE);
+  const angle = shrunk.angle ?? 0;
+  const along: [number, number] = [Math.cos(angle), Math.sin(angle)];
+  const across: [number, number] = [-Math.sin(angle), Math.cos(angle)];
+  for (const nudge of seaLabelNudges()) {
+    const candidate = {
+      ...shrunk,
+      x: shrunk.x + along[0] * nudge[0] + across[0] * nudge[1],
+      y: shrunk.y + along[1] * nudge[0] + across[1] * nudge[1],
+    };
+    if (seaLabelClearsLand(candidate, at)) return candidate;
+  }
+  return shrunk;
+}
+
+function withSeaLabelScale(label: CampaignLabel, scale: number): CampaignLabel {
+  return scale >= 0.995 ? label : { ...label, size: label.size * scale };
+}
+
+function seaLabelNudges(): [number, number][] {
+  const nudges: [number, number][] = [];
+  for (let distance = SEA_LABEL_NUDGE_STEP_KM; distance <= SEA_LABEL_MAX_NUDGE_KM; distance += SEA_LABEL_NUDGE_STEP_KM) {
+    nudges.push(
+      [0, distance],
+      [0, -distance],
+      [distance, 0],
+      [-distance, 0],
+      [distance, distance],
+      [-distance, distance],
+      [distance, -distance],
+      [-distance, -distance],
+    );
+  }
+  return nudges;
+}
+
+function seaLabelClearsLand(
+  label: CampaignLabel,
+  at: (x: number, y: number) => 'land' | 'water',
+) {
+  const samples = seaLabelWorldSamples(label);
+  for (const point of samples) {
+    for (const margin of SEA_LABEL_MARGIN_SAMPLES) {
+      if (
+        at(
+          point[0] + margin[0] * SEA_LABEL_LAND_MARGIN_KM,
+          point[1] + margin[1] * SEA_LABEL_LAND_MARGIN_KM,
+        ) === 'land'
+      ) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+function seaLabelWorldSamples(label: CampaignLabel): [number, number][] {
+  const text = labelText(label);
+  const sizePx = Math.max(10, label.size);
+  const letterSpacingPx = sizePx * 0.22;
+  const glyphWidthsPx = Array.from(text).map((char) => seaGlyphWidthPx(char, sizePx));
+  const widthPx = Math.max(
+    1,
+    glyphWidthsPx.reduce((sum, value) => sum + value, 0) + Math.max(0, glyphWidthsPx.length - 1) * letterSpacingPx,
+  );
+  const bend = label.curve ?? defaultSeaLabelCurve(label);
+  const depthPx = bend * Math.min(sizePx * 1.35, Math.max(sizePx * 0.42, widthPx * 0.075));
+  const halfWidthKm = Math.max(1, (widthPx * 0.5) / SEA_LABEL_FIT_ZOOM);
+  const depthKm = depthPx / SEA_LABEL_FIT_ZOOM;
+  const sizeKm = sizePx / SEA_LABEL_FIT_ZOOM;
+  const angle = label.angle ?? 0;
+  const ca = Math.cos(angle);
+  const sa = Math.sin(angle);
+  const offsets = [-sizeKm * 0.78, 0, sizeKm * 0.36];
+  const samples: [number, number][] = [];
+  const steps = Math.max(12, Math.ceil(widthPx / 24));
+  for (let i = 0; i <= steps; i++) {
+    const t = -1 + (2 * i) / steps;
+    const localX = t * halfWidthKm;
+    const localY = depthKm * (1 - t * t);
+    const slope = (-2 * depthKm * t) / halfWidthKm;
+    const normalLen = Math.hypot(slope, 1) || 1;
+    const nx = -slope / normalLen;
+    const ny = 1 / normalLen;
+    for (const offset of offsets) {
+      const x = localX + nx * offset;
+      const y = localY + ny * offset;
+      samples.push([label.x + x * ca - y * sa, label.y + x * sa + y * ca]);
+    }
+  }
+  return samples;
+}
+
+function seaGlyphWidthPx(char: string, sizePx: number) {
+  if (char === ' ') return sizePx * 0.34;
+  if ('ilI.,'.includes(char)) return sizePx * 0.28;
+  if ('MW'.includes(char)) return sizePx * 0.94;
+  if (char === char.toUpperCase() && char !== char.toLowerCase()) return sizePx * 0.72;
+  return sizePx * 0.58;
 }
 
 interface VisibleCampaignLabel {
@@ -1461,6 +1658,8 @@ function labelAtlasKey(labels: VisibleCampaignLabel[], dpr: number, totalLabels:
         (label.curve ?? 0).toFixed(3),
         label.icon ?? 'none',
         label.iconColor?.map((v) => v.toFixed(3)).join(',') ?? '',
+        label.rightIcon ?? 'none',
+        label.rightIconColor?.map((v) => v.toFixed(3)).join(',') ?? '',
         label.sideText ?? '',
         label.subText ?? '',
         label.collisionGroup ?? '',
@@ -1486,6 +1685,7 @@ function buildLabelAtlas(labels: VisibleCampaignLabel[], dpr: number) {
     const sideText = entry.label.sideText ?? '';
     const subText = entry.label.subText ?? '';
     const iconWidth = entry.label.icon ? style.iconSize + style.iconGap : 0;
+    const rightIconWidth = entry.label.rightIcon ? style.iconSize + style.iconGap : 0;
     const mainWidth = measure.measureText(text).width;
     const sideWidth = sideText ? style.sideGap + measureTextWithFont(measure, style.sideFont, style.letterSpacing, sideText) : 0;
     const subWidth = subText ? measureTextWithFont(measure, style.subFont, style.letterSpacing, subText) : 0;
@@ -1498,7 +1698,7 @@ function buildLabelAtlas(labels: VisibleCampaignLabel[], dpr: number) {
       style,
       seaPath,
       mainWidth,
-      width: Math.max(1, Math.ceil(Math.max(seaPath?.width ?? mainWidth + iconWidth + sideWidth, subWidth) + style.padding * 2)),
+      width: Math.max(1, Math.ceil(Math.max(seaPath?.width ?? mainWidth + iconWidth + sideWidth + rightIconWidth, subWidth) + style.padding * 2)),
       height: Math.max(1, Math.ceil((seaPath?.height ?? style.size * (subText ? 2.42 : 1.55)) + style.padding * 2)),
     };
   });
@@ -1555,6 +1755,19 @@ function buildLabelAtlas(labels: VisibleCampaignLabel[], dpr: number) {
         ctx.fillStyle = entry.style.sideFill;
         ctx.fillText(entry.sideText, sx, ty);
         ctx.font = entry.style.font;
+      }
+      if (entry.label.rightIcon) {
+        const sideWidth = entry.sideText
+          ? entry.style.sideGap + measureTextWithFont(ctx, entry.style.sideFont, entry.style.letterSpacing, entry.sideText)
+          : 0;
+        const ix = tx + entry.mainWidth + sideWidth + entry.style.iconGap;
+        drawLabelIcon(
+          ctx,
+          { ...entry.label, icon: entry.label.rightIcon, iconColor: entry.label.rightIconColor },
+          ix,
+          ty - entry.style.iconSize * 0.84,
+          entry.style,
+        );
       }
     }
     if (entry.subText) {
@@ -1880,7 +2093,7 @@ function drawLabelIcon(
   if (!label.icon) return;
   const path = new Path2D(ICON_PATHS[label.icon]);
   const s = style.iconSize / 256;
-  const color = label.iconColor ?? (label.kind === 'army' ? [0.31, 0.82, 0.39] : [0.93, 0.78, 0.30]);
+  const color = label.iconColor ?? [0.57, 0.49, 0.36];
   ctx.save();
   ctx.translate(x, y);
   ctx.scale(s, s);

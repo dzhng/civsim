@@ -19,20 +19,20 @@ ARE the acceptance criteria: the defect visible in each must be gone.
 
 ## Next Agent Prompt
 
-**Status:** 2026-07-03: slice 00's land-truth owners + bridge landed (mapgen
-classification API + `cargo run -p mapgen -- probe`; frontend `RenderMask` /
-`TerrainField.renderLandAt`; WGSL `seaAmount` hoisted to
-`CAMPAIGN_SEA_PALETTE_WGSL`; bake↔frontend bridge 7,822/7,822). Probe key
-finding (U1): all 412 city centers are land — the 12 "offshore" cities sit
-within ~2 km (≈1 bake px) of water, so the defect is marker-footprint vs
-center-pixel. Rendered probe landed (tools/render-probe.mjs + red baseline,
-see tools/README.md): sea-label + card violations reproduce the audit exactly;
-the audit's "12 offshore cities" split into square-marker-on-water (B1, probe
-`landFraction`, slice 01 gate: none `< 0.5`) and icon+label-anchored-at-sea
-(B2 — the b1-tarraco/corinthus crops actually show this class — slice 04, which
-extends the probe to city icon+label rects). Slice 00 complete. **Next pickup:
-slice 01 (city snap + re-bake, ★human)**; 03/05/06 are unblocked lanes; 08 is
-in flight on worktree-map-bugs-standard.
+**Status 2026-07-03:** 00 ✓ (land-truth owners + bridge + rendered probe/red
+baseline — see tools/README.md, incl. the B1-vs-B2 reconciliation: the
+b1-tarraco/corinthus crops are the icon+label class, owned by 04's gate).
+01 ✓ (snap to final-raster 3x3 margin, 98 cities ≤4.9 km, 8 port exemptions,
+bake invariant, srcPos prune stability, id-stable league colors — full ledger
+in slices/01-city-snap.md). 08 ✓ merged (marker cloth/chip grade fixes the
+wash-camouflage class; 63-livery sheet gate — ledger in slices/08-standard.md).
+**In flight (parallel lane worktrees, do not duplicate):** 02 (lane-roads,
+:5204), 03 (lane-sea-labels, :5203), 05 (lane-territory-coast, :5205), 06
+(lane-scenery, :5206), 07 (lane-cards, :5207). All branched from this branch
+post-01. **Next pickup after lanes merge:** 04 (needs 03's scorer), then 09
+(needs 04+07), then 10. Cross-lane note: any lane blessing whole-map/regional
+political snaps will conflict on merge — resolve by re-capturing on the merged
+tree (precedent: the 01+08 merge bless commit).
 **You are a fresh session implementing this spec** via
 [implement-spec](../../.agents/skills/implement-spec/SKILL.md). David's standing
 preference: delegate well-defined mechanical edits to Codex (`codex exec`,
@@ -82,15 +82,15 @@ checkpoint), then the lanes fan out (see the graph below).
   baselines; an unrelated diff is a stop-the-line finding.
 
 ### Global TODO checklist
-- [ ] `00-mask-owners` — land-truth owners on both sides of the bake + the probe tool (red baseline)
-- [ ] `01-city-snap` — B1: cities snap to the rendered mask w/ margin; invariant bridge; re-bake ★human
-- [ ] `02-roads` — B7b: Cosa/Tarracina/Ostia road gaps; named suspect: roadEdgeIsLandSafe whole-edge drop
-- [ ] `03-sea-labels` — B3: fitter honored at rendered zoom; move-before-shrink; Adriatic legible ★human
+- [x] `00-mask-owners` — land-truth owners on both sides of the bake + the probe tool (red baseline)
+- [x] `01-city-snap` — B1: cities snap to the rendered mask w/ margin; invariant bridge; re-bake ★human
+- [ ] `02-roads` — B7b: Cosa/Tarracina/Ostia road gaps; named suspect: roadEdgeIsLandSafe whole-edge drop (in flight: lane-roads)
+- [ ] `03-sea-labels` — B3: fitter honored at rendered zoom; move-before-shrink; Adriatic legible ★human (in flight: lane-sea-labels)
 - [ ] `04-city-labels` — B2+B8: land-aware anchor choice via the shared placement scorer ★human
-- [ ] `05-territory-coast` — B4: wash conforms to the drawn coast; inland edges untouched ★human
-- [ ] `06-scenery` — B9: scenery gated by the render mask (island beach + trees)
-- [ ] `07-cards` — B5: Ostia model diagnose→fix; land-aware card anchoring
-- [ ] `08-standard` — B6: hollow army standard repro→fix + livery model sheet
+- [ ] `05-territory-coast` — B4: wash conforms to the drawn coast; inland edges untouched ★human (in flight: lane-territory-coast)
+- [ ] `06-scenery` — B9: scenery gated by the render mask (island beach + trees) (in flight: lane-scenery)
+- [ ] `07-cards` — B5: Ostia model diagnose→fix; land-aware card anchoring (in flight: lane-cards)
+- [x] `08-standard` — B6: hollow army standard repro→fix + livery model sheet
 - [ ] `09-collision` — B7: one occupancy authority across canvas labels + DOM cards ★human
 - [ ] `10-final-sweep` — full find-map-bugs on all three shots: zero confirmed findings ★human → close-spec
 

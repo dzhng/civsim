@@ -1,5 +1,13 @@
 # Campaign Map Probe Tools
 
+`entity-dump.mjs` is slice 07a's diagnosis probe: at the regional framing it
+maps every city node to whether a city-model instance was uploaded this frame
+(the renderer's `cityEntityAnchors` telemetry), plus whether the node's
+projected anchor point is covered by a visible DOM map card. The committed
+`../assets/probe/entity-dump-07a.json` is the U-Ostia verdict artifact:
+412/412 models present, and exactly one covered anchor — Ostia/Portus under
+the ROMA card.
+
 `render-probe.mjs` is the deterministic red-baseline probe for
 `specs/campaign-map-bugs` slice 00. It is a standalone Playwright tool, not a
 `web/scenes/` scene, because the baseline is intentionally red and must not join
@@ -58,4 +66,7 @@ Green meanings by slice:
   both 0, and `scenery.total` stays within 10% of the pre-gate baseline
   10,791 (no mass extinction).
 - Slice 07: visible city cards are mostly land; card overhangs should be named
-  and driven down before slice close-out.
+  and driven down before slice close-out. Landed state: regional framing all
+  cards `1.0` except COSA `0.8` (promontory corner); whole-map ROMA stays
+  `0.2` by design — the landward walk is capped at 40 km of world so a card
+  spanning hundreds of km can't detach from its marker chasing a coastline.

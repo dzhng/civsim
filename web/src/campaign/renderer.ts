@@ -118,7 +118,11 @@ export class CampaignRenderer {
     vertices: 0,
     layer: "raw-gpu-glyph-atlas",
   };
-  private lastEntities = { cityEntities: 0, armyEntities: 0 };
+  private lastEntities = {
+    cityEntities: 0,
+    armyEntities: 0,
+    cityEntityAnchors: [] as [number, number][],
+  };
   private lastFog = { enabled: false, sources: [] as CampaignFogSource[] };
   private lastFactionView = false;
   private lastLabelComposition = { composedArmyCityLabels: 0 };
@@ -307,7 +311,11 @@ export class CampaignRenderer {
     const animTime = this.fixedTime ?? performance.now() / 1000;
     const frame = buildEntityFrame(this.data, this.field, opts, this.mountedClasses, animTime);
     const buildEnd = performance.now();
-    this.lastEntities = { cityEntities: frame.cityEntities, armyEntities: frame.armyEntities };
+    this.lastEntities = {
+      cityEntities: frame.cityEntities,
+      armyEntities: frame.armyEntities,
+      cityEntityAnchors: frame.cityEntityAnchors,
+    };
     const uploadStart = performance.now();
     // One clock drives every animated surface: crawling scenery, the subtle sea
     // shimmer in mapPass (cam.time), and the soldier-crowd VAT phase. Frozen
@@ -763,6 +771,7 @@ function buildEntityFrame(
   const entities: CampaignEntityInstance[] = [];
   const selections: CampaignSelectionInstance[] = [];
   const crowd: CrowdInstance[] = [];
+  const cityEntityAnchors: [number, number][] = [];
   let cityEntities = 0;
   let armyEntities = 0;
   const fixtureScale = isControlledStage(data) ? 1.82 : 1;
@@ -789,6 +798,7 @@ function buildEntityFrame(
       strength: Math.min(1, (city?.garrison ?? 600) / 1200),
     });
     cityEntities++;
+    cityEntityAnchors.push([mapNode.pos[0], mapNode.pos[1]]);
     if (node === opts.selectedCity) {
       selections.push({
         x: mapNode.pos[0],
@@ -872,7 +882,7 @@ function buildEntityFrame(
       });
     }
   }
-  return { entities, selections, crowd, cityEntities, armyEntities };
+  return { entities, selections, crowd, cityEntities, armyEntities, cityEntityAnchors };
 }
 
 const CITY_MARKER_BASE_RADIUS_PX = 3.8;
@@ -1022,7 +1032,9 @@ function campaignArmyLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
     });
 }
 
-function cityModelRadius(tier: number) {
+/** World-km footprint radius of the city model mesh; exported so the card
+ *  loop can size its own-model keep-out from the rendered footprint. */
+export function cityModelRadius(tier: number) {
   return tier >= 3 ? 6.2 : 5.2;
 }
 

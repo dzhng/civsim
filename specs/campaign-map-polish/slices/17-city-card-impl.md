@@ -1,9 +1,14 @@
-# 17 — Own-city bronze card (DOM overlay)
+# 17 — Own-city + own-army bronze cards (DOM overlay)
 
-**Contract unlocked:** own cities render the chosen bronze card as a DOM overlay
-anchored to the city on the map (name + income), with the garrison army text
-stacked below. Depends on slice 13 (bronze tokens in campaign DOM) and slice 16
-(chosen design + seam).
+**Contract unlocked:** own cities AND own field armies render the chosen
+**variation-C faction-banner card** as a DOM overlay anchored via
+`renderer.toScreen` (David's pick + extension):
+- **Own city:** faction-color band on top, name row, income row; if garrisoned,
+  the army line rides an attached darker footer row (one silhouette).
+- **Own field army:** same C card — faction band, army name ("1ST LEGION"),
+  strength line ("2.6K"). Same material, smaller content.
+Neutral/enemy stay canvas labels (slice 18). Depends on slice 13 (bronze tokens,
+single-root HUD) and slice 16 (C chosen).
 
 ## API seam (invariants 4, 5)
 - New anchored DOM overlay in the campaign React layer (mounts into the slice-13

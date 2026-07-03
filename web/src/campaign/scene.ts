@@ -19,6 +19,7 @@ import { CampaignRenderer, MAX_CAMPAIGN_ZOOM } from "./renderer";
 import { TerrainField } from "./terrain";
 import { Territory } from "./territory";
 import { Allegiance } from "./status";
+import type { MapCardModel, MapCardPosition } from "../ui/campaign/MapCards";
 import { installCampaignDebugApi, markCampaignReady } from "./debugApi";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
 import {
@@ -104,7 +105,7 @@ export class CampaignScene implements Scene {
    *  the green selection ring. -1 when no city is selected. */
   private selectedCity = -1;
   /** Allegiance (Friend/Neutral/Foe) per faction id, refreshed when ownership
-   *  or relations change; drives the map flag and label-icon colours. */
+   *  or relations change; drives map status treatment and non-icon tints. */
   private factionStatus = new Int8Array(0);
   /** Faction (political) view: territories flooded with owner colours + names.
    *  Off = the natural map (terrain only, neutral city dots). */
@@ -130,6 +131,7 @@ export class CampaignScene implements Scene {
   /** Signature of the currently-shown siege notifications, to avoid rebuilding
    *  the DOM (and its click handlers) every tick. */
   private siegeSig = "";
+  private mapCardsSig = "";
 
   constructor(private cfg: CampaignConfig) {
     this.cam = { x: 0, y: 0, scale: 0.18 };
@@ -362,6 +364,7 @@ export class CampaignScene implements Scene {
       factionView: this.factionView,
       stackUnitCap: this.stackUnitCap,
     });
+    this.updateMapCardPositions();
   }
 
   /** Pan the camera to a world point (clamped inside the map). */
@@ -387,11 +390,12 @@ export class CampaignScene implements Scene {
     this.cities = views.cities;
     this.roadLevels = views.roadLevels;
     this.stackUnitCap = views.stackUnitCap;
-    // Keep allegiance fresh for label icons (cheap; the renderer reads it every
-    // frame). City/army flags are faction-coloured, so they only need a
+    // Keep allegiance fresh for status treatment (cheap; the renderer reads it
+    // every frame). City/army flags are faction-coloured, so they only need a
     // recolour when a town changes hands.
     this.refreshFactionStatus();
     this.refreshSieges();
+    this.refreshMapCards();
     if (views.ownerHash !== this.ownerHash && this.territory) {
       this.ownerHash = views.ownerHash;
       this.territory.rebuild(this.cities);
@@ -423,6 +427,124 @@ export class CampaignScene implements Scene {
         this.openCityPanel(node);
       });
     }
+  }
+
+  private refreshMapCards() {
+    const hud = this.campaignHud;
+    if (!hud) return;
+    const pf = this.playerFaction();
+    const cards: MapCardModel[] = [];
+    const garrisonsByCity = this.ownGarrisonFooters();
+    for (const [node, city] of this.cities) {
+      if (city.owner !== pf) continue;
+      const mapNode = this.cfg.data.map.nodes[node];
+      if (mapNode.kind !== "city") continue;
+      const detail = JSON.parse(this.cfg.campaign.city_json(node)) as CityDetail | null;
+      const garrison = garrisonsByCity.get(node);
+      cards.push({
+        id: `city:${node}`,
+        kind: "city",
+        name: mapNode.name.toUpperCase(),
+        factionColor: cssFactionColor(this.cfg.data.map.factions[city.owner]?.color),
+        incomeText: `+${(detail?.monthly_income ?? 0).toLocaleString()}/mo`,
+        garrisonName: garrison?.name,
+        garrisonStrengthText: garrison?.strength,
+      });
+    }
+    const ordinalOf = this.playerArmyOrdinals();
+    for (const army of this.armies) {
+      if (!this.isOwnArmy(army) || this.occupiedCityForArmy(army) !== null) continue;
+      cards.push({
+        id: `army:${army.id}`,
+        kind: "army",
+        name: `${ordinal(ordinalOf.get(army.id) ?? 1)} LEGION`.toUpperCase(),
+        factionColor: cssFactionColor(this.cfg.data.map.factions[army.faction]?.color),
+        strengthText: formatStrength(army.soldiers),
+      });
+    }
+    const sig = JSON.stringify(cards);
+    if (sig === this.mapCardsSig) return;
+    this.mapCardsSig = sig;
+    hud.setMapCards(cards);
+  }
+
+  private updateMapCardPositions() {
+    const hud = this.campaignHud;
+    if (!hud) return;
+    const dpr = window.devicePixelRatio || 1;
+    const width = this.canvas.clientWidth || window.innerWidth || 1;
+    const height = this.canvas.clientHeight || window.innerHeight || 1;
+    const positions: MapCardPosition[] = [];
+    const cityMinTier = this.cam.scale < 0.6 ? 3 : this.cam.scale < 0.85 ? 2 : 1;
+    const pf = this.playerFaction();
+    for (const [node, city] of this.cities) {
+      if (city.owner !== pf) continue;
+      const mapNode = this.cfg.data.map.nodes[node];
+      if (mapNode.kind !== "city") continue;
+      const [sx, sy] = this.renderer.toScreen(mapNode.pos[0], mapNode.pos[1]);
+      const x = sx / dpr;
+      const y = sy / dpr + cityCardOffsetY(this.cam.scale, mapNode.tier);
+      positions.push({
+        id: `city:${node}`,
+        x,
+        y,
+        visible: mapNode.tier >= cityMinTier && onScreen(x, y, width, height),
+      });
+    }
+    for (const army of this.armies) {
+      if (!this.isOwnArmy(army) || this.occupiedCityForArmy(army) !== null) continue;
+      const [sx, sy] = this.renderer.toScreen(army.x, army.y);
+      const x = sx / dpr;
+      const y = sy / dpr + 22;
+      positions.push({
+        id: `army:${army.id}`,
+        x,
+        y,
+        visible: this.cam.scale > 0.35 && onScreen(x, y, width, height),
+      });
+    }
+    hud.updateMapCards(positions);
+  }
+
+  private ownGarrisonFooters() {
+    const footers = new Map<number, { name: string; strength: string; soldiers: number }>();
+    const ordinalOf = this.playerArmyOrdinals();
+    for (const army of this.armies) {
+      if (!this.isOwnArmy(army)) continue;
+      const city = this.occupiedCityForArmy(army);
+      if (city === null) continue;
+      const existing = footers.get(city.index);
+      if (existing && existing.soldiers >= army.soldiers) continue;
+      footers.set(city.index, {
+        name: `${ordinal(ordinalOf.get(army.id) ?? 1)} LEGION`,
+        strength: formatStrength(army.soldiers),
+        soldiers: army.soldiers,
+      });
+    }
+    return footers;
+  }
+
+  private playerArmyOrdinals() {
+    const ids = this.armies
+      .filter((army) => this.isOwnArmy(army))
+      .map((army) => army.id)
+      .sort((a, b) => a - b);
+    return new Map(ids.map((id, index) => [id, index + 1]));
+  }
+
+  private isOwnArmy(army: ArmyView) {
+    return army.mine || army.faction === this.playerFaction();
+  }
+
+  private occupiedCityForArmy(army: ArmyView) {
+    let best: { index: number; d: number } | null = null;
+    for (let index = 0; index < this.cfg.data.map.nodes.length; index++) {
+      const node = this.cfg.data.map.nodes[index];
+      if (node.kind !== "city") continue;
+      const d = Math.hypot(node.pos[0] - army.x, node.pos[1] - army.y);
+      if (d < 8 && (!best || d < best.d)) best = { index, d };
+    }
+    return best;
   }
 
   // ---- input ------------------------------------------------------------------
@@ -1020,6 +1142,30 @@ export class CampaignScene implements Scene {
     }
     return src;
   }
+}
+
+function cssFactionColor(color: [number, number, number] | undefined) {
+  const [r, g, b] = color ?? [146, 126, 92];
+  return `rgb(${r},${g},${b})`;
+}
+
+function formatStrength(soldiers: number) {
+  return `${Math.round(soldiers / 100) / 10}k`;
+}
+
+function cityCardOffsetY(zoom: number, tier: number) {
+  if (zoom < 0.6) return 12 + tier * 1.4;
+  return 15 + Math.min(8, zoom * 2.2);
+}
+
+function onScreen(x: number, y: number, width: number, height: number) {
+  return x >= -160 && y >= -90 && x <= width + 160 && y <= height + 120;
+}
+
+function ordinal(k: number) {
+  const value = k % 100;
+  const suffix = value >= 11 && value <= 13 ? "th" : (["th", "st", "nd", "rd"][k % 10] ?? "th");
+  return `${k}${suffix}`;
 }
 
 export { loadCampaignData };

@@ -17,8 +17,11 @@ import { DiplomacyPanel, type DiplomacyPanelProps } from "./DiplomacyPanel";
 import { ClassBuilder, type ClassBuilderProps } from "./ClassBuilder";
 import { CampaignBattleModal, type CampaignBattleModalProps } from "./CampaignBattleModal";
 import { Sieges, type SiegeRow } from "./Sieges";
+import { MapCards, type MapCardModel, type MapCardPosition, type MapCardsHandle } from "./MapCards";
 
 export interface CampaignHudHandle {
+  setMapCards(cards: MapCardModel[]): void;
+  updateMapCards(positions: MapCardPosition[]): void;
   setTopBar(props: CampaignTopBarProps): void;
   setArmy(props: ArmyPanelProps | null): void;
   setCity(props: CityPanelProps | null): void;
@@ -201,9 +204,12 @@ const CampaignHud = forwardRef<CampaignHudInnerHandle>(function CampaignHud(_pro
   const classesRef = useRef<ClassesHandle>(null);
   const siegesRef = useRef<SiegesHandle>(null);
   const modalRef = useRef<ModalHandle>(null);
+  const mapCardsRef = useRef<MapCardsHandle>(null);
   useImperativeHandle(
     ref,
     () => ({
+      setMapCards: (cards) => mapCardsRef.current?.set(cards),
+      updateMapCards: (positions) => mapCardsRef.current?.update(positions),
       setTopBar: (p) => topBarRef.current?.set(p),
       setArmy: (p) => armyRef.current?.set(p),
       setCity: (p) => cityRef.current?.set(p),
@@ -218,6 +224,7 @@ const CampaignHud = forwardRef<CampaignHudInnerHandle>(function CampaignHud(_pro
   );
   return (
     <TooltipProvider>
+      <MapCards ref={mapCardsRef} />
       <TopBarHost ref={topBarRef} />
       <ArmyHost ref={armyRef} />
       <CityHost ref={cityRef} />

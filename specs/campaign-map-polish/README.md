@@ -99,6 +99,7 @@ scene.mjs <scene>` and bless with `UPDATE_SHOTS=1`.
 - [ ] `17-city-card-impl` — own-city bronze card as DOM overlay (garrison strip below)
 - [ ] `18-allegiance-rechannel` — enemy red sword + icon→faction flip, atomic (no signal gap)
 - [~] `19-aesthetics-doc` — part 1 DONE (palette-target reference line in SKILL.md); part 2 (two-color rule rewrite) gated on 17+18
+- [ ] `20-crisp-borders` — David (mid-build): crisp territory edges + dual faction-colored border lines (slice file has the seam)
 
 ---
 

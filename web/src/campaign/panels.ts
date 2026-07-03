@@ -128,6 +128,25 @@ export function campaignDomHtml(): string {
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-siege { pointer-events:auto;cursor:pointer;color:#f3e3c4;font:12px ui-monospace,Menlo,monospace;padding:8px 10px;border-width:3px; }
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-siege-title { display:flex;align-items:center;gap:6px; }
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-siege b { font-family:Cinzel,Georgia,serif;color:#ffd9a0; }
+      :is(#campaign-ui, .renderer-campaign-ui) .cmp-map-cards { position:fixed;inset:0;z-index:8;pointer-events:none;overflow:hidden; }
+      :is(#campaign-ui, .renderer-campaign-ui) .cmp-map-card { position:absolute;left:0;top:0;display:none;min-width:56px;max-width:118px;
+        pointer-events:none;color:var(--bronze-ink);border:2px solid transparent;border-radius:5px;
+        background:var(--bronze-fill) padding-box,var(--bronze-edge) border-box;box-shadow:var(--bronze-frame);
+        overflow:hidden;will-change:transform;box-sizing:border-box; }
+      :is(#campaign-ui, .renderer-campaign-ui) .cmp-map-card__band { height:3px;background:var(--cmp-card-faction);box-shadow:inset 0 -1px 0 rgba(0,0,0,0.5); }
+      :is(#campaign-ui, .renderer-campaign-ui) .cmp-map-card__body { display:flex;flex-direction:column;gap:2px;padding:3px 7px 4px; }
+      :is(#campaign-ui, .renderer-campaign-ui) .cmp-map-card__name { color:var(--bronze-ink-bright);font:700 10.5px/1.1 Cinzel,Georgia,serif;
+        letter-spacing:1px;text-transform:uppercase;text-shadow:0 1px 0 rgba(0,0,0,0.65);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+      :is(#campaign-ui, .renderer-campaign-ui) .cmp-map-card__income,
+      :is(#campaign-ui, .renderer-campaign-ui) .cmp-map-card__strength { display:flex;align-items:center;gap:4px;color:var(--bronze-ink);
+        font:10.5px/1 Georgia,'Times New Roman',serif;font-variant-numeric:tabular-nums;white-space:nowrap; }
+      :is(#campaign-ui, .renderer-campaign-ui) .cmp-map-card__coin { width:7px;height:7px;border-radius:50%;flex:none;
+        background:radial-gradient(circle at 35% 30%,#f6dd9a,#c9973f 60%,#7a5417);box-shadow:0 0 0 1px rgba(60,38,8,0.8); }
+      :is(#campaign-ui, .renderer-campaign-ui) .cmp-map-card__garrison { display:flex;align-items:center;gap:5px;padding:2px 7px 3px;
+        background:rgba(0,0,0,0.14);border-top:1px solid rgba(20,9,4,0.8);box-shadow:inset 0 1px 0 rgba(150,104,54,0.35);
+        color:#d8bd8d;font:9.5px/1 Georgia,'Times New Roman',serif;letter-spacing:0.7px;white-space:nowrap; }
+      :is(#campaign-ui, .renderer-campaign-ui) .cmp-map-card__garrison b { min-width:0;overflow:hidden;text-overflow:ellipsis;
+        color:var(--bronze-ink-bright);font-family:Cinzel,Georgia,serif;font-size:9.5px;letter-spacing:0.8px;text-transform:uppercase; }
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-modal { position:fixed;inset:0;background:rgba(0,0,0,0.48);display:flex;align-items:center;justify-content:center;z-index:20; }
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-box { color:var(--bronze-ink);padding:22px 30px;font:14px ui-monospace,Menlo,monospace;text-align:center;min-width:380px;border-width:4px; }
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-box h2,

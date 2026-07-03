@@ -67,17 +67,18 @@ orchestrate — subagents look.
    message**, model `opus`. Each prompt: fresh-eyes map-QA role, the tile's
    image path to Read, the taxonomy, AND the derived legend. Strict output
    contract — JSON array of `{type, desc, x, y, w, h, confidence}` in TILE
-   pixel coordinates, empty array if clean. Tell finders: sweep, don't skim —
-   walk EVERY label and EVERY marker in the tile and check each against the
-   legend's correctness rule (a blatant offshore label is missed when the eye
-   only scans for anomalies); for EVERY city, check a road reaches it whenever
-   neighboring cities show roads — and when the tile's edge cuts off the
-   context needed to tell, report the city as a LOW-confidence road-missing
-   candidate rather than staying silent (the judge resolves it on the full
-   shot); then scan coastlines and territory edges;
-   report what you SEE, never what you infer should exist; when unsure,
-   include at low confidence (later passes filter). Completion: every tile has
-   reported, and each report states how many labels/markers/cities it checked.
+   pixel coordinates, empty array if clean — PLUS a `cities` array:
+   `{name, road: "reached"|"missing"|"unclear"}` for every named city in the
+   tile. Tell finders: sweep, don't skim — walk EVERY label and EVERY marker
+   in the tile and check each against the legend's correctness rule (a blatant
+   offshore label is missed when the eye only scans for anomalies); the road
+   verdict is per city, by name — a count of "cities checked" is not a check;
+   then scan coastlines and territory edges; report what you SEE, never what
+   you infer should exist; when unsure, include at low confidence (later
+   passes filter). Completion: every tile has reported AND every named city in
+   the tile appears in its `cities` array with a road verdict. At merge, every
+   `missing` or `unclear` road verdict becomes a road-missing candidate for
+   the judge (unclear at LOW confidence).
 5. **Merge.** Convert tile bboxes to full-image coordinates via the manifest;
    dedupe overlapping-tile duplicates (same type, centers within ~60px → keep
    the higher confidence). Completion: every finder finding is either merged,

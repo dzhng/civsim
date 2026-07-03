@@ -42,6 +42,20 @@ test("battle zoom rig lands near-top-down out and a cinematic vista in", () => {
   assert.ok(vista.target[0] < 0, "look-ahead pushed forward at max zoom");
 });
 
+test("battle zoom rig holds the down-looking angle through most of the range", () => {
+  const mid = battleCameraRig(5, range, bounds);
+  const threeQuarter = battleCameraRig(7, range, bounds);
+
+  assert.ok(mid.pitch > 1.15, `mid zoom should still look down, pitch ${mid.pitch}`);
+  assert.ok(
+    threeQuarter.pitch > 0.7,
+    `three-quarter zoom should not be horizon-like yet, pitch ${threeQuarter.pitch}`,
+  );
+  assert.ok(
+    mid.pitch > (BATTLE_ZOOM_RIG_LIMITS.topDownPitch + BATTLE_ZOOM_RIG_LIMITS.vistaPitch) / 2,
+  );
+});
+
 test("battle zoom rig pitch/distance fall and fovY rises monotonically in zoom", () => {
   const stops = zoomStops.map((z) => battleCameraRig(z, range, bounds));
   for (let i = 1; i < stops.length; i++) {

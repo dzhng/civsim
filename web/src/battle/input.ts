@@ -199,9 +199,9 @@ export class Input {
           this.selected = sink.allUnits();
           return;
         }
-        // Camera reset (Total War: Backspace re-levels and faces north).
-        if (e.key === "Backspace") {
-          camera.yaw = 0;
+        // Camera reset (Total War: Backspace/Home re-level to the default north-up view).
+        if (e.key === "Backspace" || e.key === "Home") {
+          camera.yaw = -Math.PI / 2;
           camera.pitchBias = 0;
           e.preventDefault();
           return;

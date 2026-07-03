@@ -39,9 +39,11 @@ interface RigCurve {
   vistaPitch: number;
   topDownFovY: number;
   vistaFovY: number;
-  /** distance = fieldReach * factor, lerped out → in. */
+  /** distance = fieldReach * factor, lerped out to the close endpoint. */
   distOutFactor: number;
   distInFactor: number;
+  /** Optional absolute cap for the zoomed-in endpoint, in world meters. */
+  distInMeters?: number;
   /** Forward look-ahead at max zoom, as a fraction of the field's short axis. */
   maxForwardFraction: number;
   /** >1 keeps the framing near-top-down for more of the zoom range before it
@@ -53,11 +55,12 @@ interface RigCurve {
 // cinematic vista when in. Endpoints tuned so mid-zoom stays a playable RTS band.
 const BATTLE_CURVE: RigCurve = {
   topDownPitch: 1.35, // ~77° down — near-vertical tactical
-  vistaPitch: 0.28, // ~16° — low oblique horizon vista
-  topDownFovY: 0.50, // ~29° — narrow, keeps formations legible top-down
+  vistaPitch: 0.24, // ~14° — low, just above soldier eye height at 10m
+  topDownFovY: 0.5, // ~29° — narrow, keeps formations legible top-down
   vistaFovY: 0.85, // ~49° — wide cinematic
   distOutFactor: 2.0,
   distInFactor: 0.6,
+  distInMeters: 10,
   maxForwardFraction: 0.3,
   easeBias: 1,
 };
@@ -78,15 +81,28 @@ const CAMPAIGN_CURVE: RigCurve = {
 export const BATTLE_ZOOM_RIG_LIMITS = curveLimits(BATTLE_CURVE);
 export const CAMPAIGN_ZOOM_RIG_LIMITS = curveLimits(CAMPAIGN_CURVE);
 
-export function battleCameraRig(zoom: number, zoomRange: CameraRigRange, bounds: CameraRigBounds): ZoomCameraRig {
+export function battleCameraRig(
+  zoom: number,
+  zoomRange: CameraRigRange,
+  bounds: CameraRigBounds,
+): ZoomCameraRig {
   return rigForZoom(BATTLE_CURVE, zoom, zoomRange, bounds);
 }
 
-export function campaignCameraRig(zoom: number, zoomRange: CameraRigRange, bounds: CameraRigBounds): ZoomCameraRig {
+export function campaignCameraRig(
+  zoom: number,
+  zoomRange: CameraRigRange,
+  bounds: CameraRigBounds,
+): ZoomCameraRig {
   return rigForZoom(CAMPAIGN_CURVE, zoom, zoomRange, bounds);
 }
 
-function rigForZoom(curve: RigCurve, zoom: number, zoomRange: CameraRigRange, bounds: CameraRigBounds): ZoomCameraRig {
+function rigForZoom(
+  curve: RigCurve,
+  zoom: number,
+  zoomRange: CameraRigRange,
+  bounds: CameraRigBounds,
+): ZoomCameraRig {
   const min = Math.max(0.0001, Math.min(zoomRange.min, zoomRange.max));
   const max = Math.max(min + 0.0001, Math.max(zoomRange.min, zoomRange.max));
   const zoomT = clamp01((zoom - min) / (max - min));
@@ -95,10 +111,16 @@ function rigForZoom(curve: RigCurve, zoom: number, zoomRange: CameraRigRange, bo
   // framing lingers near top-down before committing to the vista.
   const eased = Math.pow(smoothstep(zoomT), curve.easeBias);
   const fieldReach = Math.max(1, Math.min(bounds.width, bounds.height));
-  const forward = lerp(0, fieldReach * curve.maxForwardFraction, eased);
+  const closeDistance = Math.min(
+    fieldReach * curve.distInFactor,
+    curve.distInMeters ?? Number.POSITIVE_INFINITY,
+  );
+  const distance = lerp(fieldReach * curve.distOutFactor, closeDistance, eased);
+  const closeForward = Math.min(fieldReach * curve.maxForwardFraction, closeDistance * 1.25);
+  const forward = lerp(0, closeForward, eased);
   return {
     target: [-forward, 0, 0],
-    distance: lerp(fieldReach * curve.distOutFactor, fieldReach * curve.distInFactor, eased),
+    distance,
     pitch: lerp(curve.topDownPitch, curve.vistaPitch, eased),
     fovY: lerp(curve.topDownFovY, curve.vistaFovY, eased),
     zoomT,

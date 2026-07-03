@@ -1,0 +1,4968 @@
+{
+  "generated-by": "specs/campaign-map-bugs/tools/entity-dump.mjs",
+  "target": "http://localhost:5207",
+  "framing": {
+    "name": "regional-italy",
+    "camera": [
+      -430,
+      445,
+      3
+    ]
+  },
+  "summary": {
+    "cityNodes": 412,
+    "cityEntityInstances": 412,
+    "missingModels": 0,
+    "anchorsCoveredByCards": [
+      "Ostia/Portus <- ROMA"
+    ]
+  },
+  "cities": [
+    {
+      "index": 4,
+      "name": "Adramyttium",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4716,
+        1265
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 5,
+      "name": "Aeclanum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1363,
+        801
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 6,
+      "name": "Aelana",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        11555,
+        6777
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 8,
+      "name": "Aesernia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1157,
+        612
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 405,
+      "name": "Aginnum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1720,
+        -482
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 563,
+      "name": "Agrigentum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        944,
+        2312
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 11,
+      "name": "Aguntum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        890,
+        -884
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 12,
+      "name": "Ake-Ptolemais",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        9367,
+        4083
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 13,
+      "name": "Alba Fucens",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        955,
+        440
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 564,
+      "name": "Aleria",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1,
+        365
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 15,
+      "name": "Alexandria",
+      "tier": 3,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        8399,
+        5850
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 16,
+      "name": "Alexandria Troas",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4455,
+        1183
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 17,
+      "name": "Altinum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        782,
+        -550
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 411,
+      "name": "Amaseia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        6607,
+        510
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 415,
+      "name": "Amastris",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5554,
+        314
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 532,
+      "name": "Amathous",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        7901,
+        3164
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 425,
+      "name": "Amisus",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        6543,
+        281
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 18,
+      "name": "Ammaedara",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -915,
+        3083
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 558,
+      "name": "Ammon",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        7440,
+        8228
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 566,
+      "name": "Amphipolis",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3684,
+        853
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 19,
+      "name": "Ancona",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        984,
+        -10
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 20,
+      "name": "Ancyra",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        6114,
+        884
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 21,
+      "name": "Antiochia",
+      "tier": 3,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        8171,
+        2203
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 23,
+      "name": "Apamea",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        8569,
+        2563
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 24,
+      "name": "Apamea (Pisidia)",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5926,
+        1725
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 25,
+      "name": "Aphroditopolis",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        10079,
+        7412
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 541,
+      "name": "Apollonia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        9690,
+        4597
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 475,
+      "name": "Apollonia (Epirus)",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        2535,
+        916
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 520,
+      "name": "Apollonia Pontica",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4365,
+        259
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 555,
+      "name": "Apollonopolis Magna",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        15444,
+        13595
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 27,
+      "name": "Apulum",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3085,
+        -709
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 28,
+      "name": "Aquae Sextiae",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -812,
+        -153
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 31,
+      "name": "Aquileia",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        982,
+        -596
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 32,
+      "name": "Aquincum",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        2066,
+        -997
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 10,
+      "name": "Ara Agrippinensium",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        29,
+        -1751
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 34,
+      "name": "Arausio",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -884,
+        -333
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 36,
+      "name": "Archelais",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        6851,
+        1408
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 37,
+      "name": "Arelate",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -969,
+        -217
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 38,
+      "name": "Argentorate",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        29,
+        -1296
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 39,
+      "name": "Ariminum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        781,
+        -154
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 40,
+      "name": "Arretium",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        614,
+        -2
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 42,
+      "name": "Ascalon",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        9910,
+        5016
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 43,
+      "name": "Asculum",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1002,
+        201
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 44,
+      "name": "Asturica",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -3318,
+        -328
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 45,
+      "name": "Aternum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1146,
+        336
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 46,
+      "name": "Athenae",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4081,
+        1980
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 48,
+      "name": "Augusta Praetoria",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -248,
+        -695
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 49,
+      "name": "Augusta Raurica",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -40,
+        -1079
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 51,
+      "name": "Augusta Taurinorum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -211,
+        -507
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 116,
+      "name": "Augusta Treverorum",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -82,
+        -1541
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 52,
+      "name": "Augusta Vindelicum",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        567,
+        -1208
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 55,
+      "name": "Augustodunum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -707,
+        -1023
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 413,
+      "name": "Augustonemetum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1050,
+        -785
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 414,
+      "name": "Augustoritum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1383,
+        -852
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 56,
+      "name": "Auzia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -2424,
+        2528
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 57,
+      "name": "Avaricum",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1030,
+        -1094
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 58,
+      "name": "Aventicum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -214,
+        -952
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 60,
+      "name": "Banasa",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -5633,
+        2438
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 61,
+      "name": "Barcino",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1818,
+        370
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 519,
+      "name": "Bargylia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5410,
+        2222
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 63,
+      "name": "Batnae",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        8427,
+        1702
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 65,
+      "name": "Beneventum",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1296,
+        773
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 66,
+      "name": "Berenice",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        18650,
+        15063
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 67,
+      "name": "Beroia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        8423,
+        2125
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 68,
+      "name": "Berytus",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        9011,
+        3449
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 70,
+      "name": "Bilbilis",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -2652,
+        198
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 72,
+      "name": "Bonna",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        40,
+        -1714
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 73,
+      "name": "Bononia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        532,
+        -294
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 74,
+      "name": "Bononia (Moesia)",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3093,
+        -134
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 75,
+      "name": "Bostra",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        10059,
+        4212
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 76,
+      "name": "Bovianum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1219,
+        651
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 77,
+      "name": "Bracara Augusta",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -3962,
+        -219
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 80,
+      "name": "Brigetio",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1891,
+        -1032
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 81,
+      "name": "Brundisium",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        2140,
+        964
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 82,
+      "name": "Bulla Regia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -682,
+        2550
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 83,
+      "name": "Burdigala",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1856,
+        -685
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 84,
+      "name": "Burnum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1562,
+        -124
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 545,
+      "name": "Byblos",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        8937,
+        3310
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 87,
+      "name": "Caesaraugusta",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -2444,
+        155
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 89,
+      "name": "Caesarea (Cappadocia)",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        7099,
+        1199
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 22,
+      "name": "Caesarea (Phrygia)",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        6135,
+        1585
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 88,
+      "name": "Caesarea Maritima",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        9542,
+        4381
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 90,
+      "name": "Caesarodunum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1289,
+        -1203
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 91,
+      "name": "Calagurris",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -2550,
+        -84
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 92,
+      "name": "Calleva",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1105,
+        -1974
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 460,
+      "name": "Camarina",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1235,
+        2531
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 94,
+      "name": "Cambodunum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        441,
+        -1092
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 95,
+      "name": "Camulodunum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -780,
+        -2013
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 96,
+      "name": "Canusium",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1631,
+        755
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 97,
+      "name": "Capsa",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -940,
+        3773
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 98,
+      "name": "Capua",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1158,
+        787
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 444,
+      "name": "Caralis",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -308,
+        1364
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 99,
+      "name": "Carnuntum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1654,
+        -1116
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 100,
+      "name": "Carrhae",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        8609,
+        1699
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 101,
+      "name": "Carthago",
+      "tier": 3,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -156,
+        2466
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 102,
+      "name": "Carthago Nova",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -3331,
+        1542
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 103,
+      "name": "Casinum",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1054,
+        642
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 300,
+      "name": "Castra Regina",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        796,
+        -1327
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 104,
+      "name": "Castrum Truentinum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1071,
+        197
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 105,
+      "name": "Castulo",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -3908,
+        1198
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 106,
+      "name": "Catabathmus Maior",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        6219,
+        5892
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 523,
+      "name": "Caunus",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5817,
+        2350
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 107,
+      "name": "Celeia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1369,
+        -697
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 108,
+      "name": "Cenabum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1025,
+        -1278
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 491,
+      "name": "Chalcis",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3954,
+        1778
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 502,
+      "name": "Chersonasos",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5165,
+        3274
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 534,
+      "name": "Chersonesos",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5170,
+        -519
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 505,
+      "name": "Chios",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4703,
+        1746
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 110,
+      "name": "Cibalae",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        2120,
+        -449
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 406,
+      "name": "Cibyra",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5995,
+        2158
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 111,
+      "name": "Circesium",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        9721,
+        2333
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 112,
+      "name": "Cirta",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1451,
+        2586
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 26,
+      "name": "Claudia Aprensis",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4475,
+        728
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 71,
+      "name": "Claudiopolis",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5616,
+        663
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 114,
+      "name": "Clusium",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        621,
+        136
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 115,
+      "name": "Clysma",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        10266,
+        6686
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 516,
+      "name": "Cnidus",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5470,
+        2439
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 118,
+      "name": "Comana",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        7423,
+        1297
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 119,
+      "name": "Comum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        118,
+        -665
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 120,
+      "name": "Conimbriga",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -4364,
+        185
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 121,
+      "name": "Constantinopolis",
+      "tier": 3,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4920,
+        651
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 122,
+      "name": "Coptos",
+      "tier": 3,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        14015,
+        11698
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 476,
+      "name": "Corcyra",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        2747,
+        1357
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 123,
+      "name": "Corduba",
+      "tier": 3,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -4222,
+        1173
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 124,
+      "name": "Corfinium",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1062,
+        433
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 486,
+      "name": "Corinthus",
+      "tier": 3,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3841,
+        2025
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 537,
+      "name": "Corycus",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        7498,
+        2210
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 126,
+      "name": "Cosa",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        445,
+        297
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 127,
+      "name": "Cuicul",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1712,
+        2544
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 129,
+      "name": "Cyrene",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4423,
+        5005
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 130,
+      "name": "Cyrrhus",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        8138,
+        1894
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 521,
+      "name": "Cyzicus",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4784,
+        913
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 131,
+      "name": "Damascus",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        9453,
+        3606
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 132,
+      "name": "Darnis",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4766,
+        5039
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 134,
+      "name": "Delphi",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3639,
+        1782
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 565,
+      "name": "Demetrias",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3634,
+        1421
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 135,
+      "name": "Dertona",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        23,
+        -438
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 136,
+      "name": "Dertosa",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -2288,
+        476
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 137,
+      "name": "Deultum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4290,
+        261
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 138,
+      "name": "Deva",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1143,
+        -2289
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 139,
+      "name": "Diana Veteranorum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1751,
+        2826
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 418,
+      "name": "Dianium",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -2774,
+        1136
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 140,
+      "name": "Dierna",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        2932,
+        -327
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 552,
+      "name": "Dioscurias",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        6956,
+        -421
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 142,
+      "name": "Doclea",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        2400,
+        337
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 143,
+      "name": "Domavium",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        2331,
+        -167
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 144,
+      "name": "Dorylaion",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5579,
+        1028
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 145,
+      "name": "Drobeta",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        2991,
+        -308
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 146,
+      "name": "Dura",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        10007,
+        2511
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 147,
+      "name": "Durnonovaria",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1368,
+        -1896
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 148,
+      "name": "Durocortorum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -547,
+        -1494
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 149,
+      "name": "Durostorum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4018,
+        -232
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 150,
+      "name": "Dyrrhachium",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        2504,
+        718
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 151,
+      "name": "Eburacum",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -844,
+        -2362
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 416,
+      "name": "Ebusus",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -2426,
+        1176
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 152,
+      "name": "Edessa",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        8440,
+        1599
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 69,
+      "name": "Eleutheropolis",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        10065,
+        5017
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 153,
+      "name": "Emerita Augusta",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -4256,
+        698
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 154,
+      "name": "Emesa",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        8968,
+        2886
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 155,
+      "name": "Emona",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1219,
+        -664
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 156,
+      "name": "Emporiae",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1500,
+        166
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 158,
+      "name": "Ephesus",
+      "tier": 3,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5161,
+        1893
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 469,
+      "name": "Epidaurum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        2135,
+        297
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 159,
+      "name": "Epiphaneia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        8788,
+        2673
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 477,
+      "name": "Euesperides",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3791,
+        5582
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 160,
+      "name": "Fanum Fortunae",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        876,
+        -88
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 162,
+      "name": "Ferentinum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        909,
+        568
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 163,
+      "name": "Florentia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        486,
+        -94
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 164,
+      "name": "Forum Iulii",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -538,
+        -91
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 166,
+      "name": "Gadara",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        10083,
+        4603
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 167,
+      "name": "Gades",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -4962,
+        1580
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 169,
+      "name": "Gaza",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        9965,
+        5142
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 172,
+      "name": "Germa",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5923,
+        1095
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 174,
+      "name": "Glevum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1211,
+        -2079
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 549,
+      "name": "Gorgippia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5811,
+        -719
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 485,
+      "name": "Gythion",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3917,
+        2577
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 176,
+      "name": "Hadrumetum",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -110,
+        2988
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 517,
+      "name": "Halicarnassus",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5386,
+        2295
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 177,
+      "name": "Heliopolis (Baalbek)",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        9170,
+        3324
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 402,
+      "name": "Heraclea Pontica",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5449,
+        491
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 178,
+      "name": "Heraklea",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3017,
+        812
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 179,
+      "name": "Herakleopolis",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        10174,
+        7801
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 181,
+      "name": "Hermopolis Magna",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        11141,
+        9408
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 182,
+      "name": "Hibis",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        13446,
+        13267
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 184,
+      "name": "Hippo Regius",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -972,
+        2352
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 185,
+      "name": "Hispalis",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -4643,
+        1268
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 186,
+      "name": "Histria",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4260,
+        -378
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 187,
+      "name": "Iader",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1394,
+        -154
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 188,
+      "name": "Iconium",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        6618,
+        1700
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 198,
+      "name": "Ierusalem",
+      "tier": 3,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        10089,
+        4863
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 441,
+      "name": "Igilgili",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1590,
+        2302
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 189,
+      "name": "Ilerda",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -2124,
+        232
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 190,
+      "name": "Ilium",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4450,
+        1115
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 192,
+      "name": "Iol Caesarea",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -2711,
+        2201
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 193,
+      "name": "Isca",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1332,
+        -2056
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 194,
+      "name": "Iulia Concordia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        877,
+        -595
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 429,
+      "name": "Iuliobriga",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -2861,
+        -378
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 195,
+      "name": "Iuliomagus",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1489,
+        -1254
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 197,
+      "name": "Iuvavum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        949,
+        -1084
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 530,
+      "name": "Kalos Limen",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4858,
+        -716
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 202,
+      "name": "Kellis",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        12429,
+        13420
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 203,
+      "name": "Klaudianon",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        13429,
+        10281
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 582,
+      "name": "Krane",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3090,
+        1917
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 556,
+      "name": "Krokodilopolis",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        9959,
+        7560
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 206,
+      "name": "Lamasba",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1767,
+        2921
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 207,
+      "name": "Lambaesis",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1675,
+        3006
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 432,
+      "name": "Lamia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3564,
+        1605
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 208,
+      "name": "Lampsacus",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4497,
+        958
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 209,
+      "name": "Lancia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -3186,
+        -315
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 210,
+      "name": "Laodicea",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        8347,
+        2540
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 403,
+      "name": "Laodicea ad Lycum",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5692,
+        1869
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 535,
+      "name": "Lapethos",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        7665,
+        2842
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 211,
+      "name": "Larinum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1329,
+        549
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 212,
+      "name": "Larissa",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3461,
+        1310
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 557,
+      "name": "Latopolis",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        14802,
+        13050
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 213,
+      "name": "Lauriacum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1208,
+        -1152
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 214,
+      "name": "Lepcis Magna",
+      "tier": 3,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1176,
+        5164
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 478,
+      "name": "Leucas",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3051,
+        1662
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 456,
+      "name": "Lilybaeum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        606,
+        2062
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 215,
+      "name": "Limonum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1449,
+        -1042
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 216,
+      "name": "Lindum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -842,
+        -2249
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 434,
+      "name": "Lissus",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        2522,
+        566
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 217,
+      "name": "Lixus",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -5403,
+        2159
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 466,
+      "name": "Lokroi Epizephyrioi",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1763,
+        1910
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 219,
+      "name": "Londinium",
+      "tier": 3,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -953,
+        -1975
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 401,
+      "name": "Lugdunum",
+      "tier": 3,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -721,
+        -736
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 222,
+      "name": "Lugdunum Convenarum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1936,
+        -192
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 223,
+      "name": "Luguvalium",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -965,
+        -2525
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 224,
+      "name": "Luna",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        227,
+        -197
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 226,
+      "name": "Lydda",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        9855,
+        4762
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 227,
+      "name": "Lykopolis",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        11883,
+        10175
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 561,
+      "name": "Malaca",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -4463,
+        1649
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 229,
+      "name": "Marcianopolis",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4183,
+        -15
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 232,
+      "name": "Massilia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -843,
+        -91
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 233,
+      "name": "Mediolanum",
+      "tier": 3,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        122,
+        -573
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 234,
+      "name": "Mediolanum (Aquitania)",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1733,
+        -892
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 459,
+      "name": "Melita",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1217,
+        3051
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 235,
+      "name": "Melitene",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        7856,
+        1135
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 236,
+      "name": "Memphis",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        9696,
+        6813
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 448,
+      "name": "Meninge",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -178,
+        4257
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 462,
+      "name": "Messana",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1547,
+        1926
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 237,
+      "name": "Minturnae",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1035,
+        728
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 238,
+      "name": "Mogontiacum",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        186,
+        -1563
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 240,
+      "name": "Mursa",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        2081,
+        -519
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 241,
+      "name": "Musti",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -591,
+        2697
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 242,
+      "name": "Mutina",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        446,
+        -340
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 409,
+      "name": "Myra",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        6388,
+        2558
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 546,
+      "name": "Myriandros",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        8022,
+        2028
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 507,
+      "name": "Mytilene",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4600,
+        1397
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 243,
+      "name": "Naissus",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        2935,
+        69
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 244,
+      "name": "Narbo",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1373,
+        -134
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 245,
+      "name": "Narnia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        743,
+        295
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 246,
+      "name": "Narona",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1969,
+        162
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 247,
+      "name": "Naucratis",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        8899,
+        6099
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 570,
+      "name": "Neapolis (Thrace)",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3821,
+        780
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 248,
+      "name": "Nemausus",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1009,
+        -267
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 250,
+      "name": "Nicaea",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5235,
+        835
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 251,
+      "name": "Nicomedia",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5211,
+        713
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 252,
+      "name": "Nicopolis",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3061,
+        1566
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 253,
+      "name": "Nicopolis (Pontus)",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        7266,
+        550
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 254,
+      "name": "Nisibis",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        9023,
+        1445
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 255,
+      "name": "Novae",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3687,
+        -60
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 559,
+      "name": "Oasis Parva",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        9699,
+        8950
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 257,
+      "name": "Odessus",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4286,
+        2
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 258,
+      "name": "Oea",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        705,
+        4931
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 259,
+      "name": "Oescus",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3473,
+        -70
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 419,
+      "name": "Olbia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -76,
+        758
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 528,
+      "name": "Olbia (Borysthenes)",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4500,
+        -967
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 260,
+      "name": "Olisipo",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -4875,
+        544
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 261,
+      "name": "Omboi",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        16284,
+        14674
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 262,
+      "name": "Osca",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -2258,
+        32
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 263,
+      "name": "Ostia/Portus",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        677,
+        532
+      ],
+      "anchorCoveredByCards": [
+        "ROMA"
+      ]
+    },
+    {
+      "index": 264,
+      "name": "Ovilava",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1128,
+        -1144
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 265,
+      "name": "Oxyrhynchus",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        10331,
+        8313
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 597,
+      "name": "Palma",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1983,
+        990
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 267,
+      "name": "Palmyra",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        9480,
+        2837
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 562,
+      "name": "Panormus",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        872,
+        1936
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 547,
+      "name": "Pantikapaion",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5562,
+        -767
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 420,
+      "name": "Paphos",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        7666,
+        3183
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 268,
+      "name": "Paraetonium",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        7195,
+        5933
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 269,
+      "name": "Parma",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        325,
+        -392
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 410,
+      "name": "Patara",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        6189,
+        2576
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 271,
+      "name": "Patavium",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        671,
+        -520
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 482,
+      "name": "Patrae",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3446,
+        1895
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 272,
+      "name": "Pax Iulia",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -4852,
+        900
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 273,
+      "name": "Pella",
+      "tier": 3,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3351,
+        887
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 274,
+      "name": "Pelusium",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        9544,
+        5719
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 277,
+      "name": "Pergamum",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4855,
+        1399
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 407,
+      "name": "Perge",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        6431,
+        2180
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 278,
+      "name": "Perinthus",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4671,
+        694
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 279,
+      "name": "Petra",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        11132,
+        5989
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 408,
+      "name": "Phaselis",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        6449,
+        2396
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 553,
+      "name": "Phasis",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        7277,
+        -231
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 281,
+      "name": "Philadelpheia",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        10216,
+        4661
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 282,
+      "name": "Philippopolis",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3729,
+        393
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 283,
+      "name": "Pisae",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        293,
+        -90
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 284,
+      "name": "Pistoriae",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        411,
+        -147
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 285,
+      "name": "Placentia",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        204,
+        -465
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 286,
+      "name": "Poetovio",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1487,
+        -735
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 287,
+      "name": "Pola",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1079,
+        -365
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 288,
+      "name": "Pompeii",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1222,
+        908
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 602,
+      "name": "Populonium",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        298,
+        123
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 292,
+      "name": "Porolissum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        2901,
+        -960
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 293,
+      "name": "Potaissa",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3068,
+        -827
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 526,
+      "name": "Prusias",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5094,
+        856
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 295,
+      "name": "Ptolemais",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4058,
+        5113
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 296,
+      "name": "Ptolemais Hermiou",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        12941,
+        11143
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 297,
+      "name": "Puteoli",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1130,
+        868
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 554,
+      "name": "Raphia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        10032,
+        5338
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 298,
+      "name": "Ravenna",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        718,
+        -258
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 299,
+      "name": "Reate",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        824,
+        332
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 522,
+      "name": "Rhodos",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5787,
+        2574
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 301,
+      "name": "Roma",
+      "tier": 3,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        721,
+        494
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 302,
+      "name": "Rusaddir",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -4545,
+        2421
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 303,
+      "name": "Rusicade",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1230,
+        2316
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 305,
+      "name": "Sabratha",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        410,
+        4961
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 306,
+      "name": "Saguntum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -2689,
+        817
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 307,
+      "name": "Sala",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -6080,
+        2666
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 421,
+      "name": "Salamis",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        7939,
+        2877
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 308,
+      "name": "Saldae",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1822,
+        2275
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 309,
+      "name": "Salernum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1297,
+        925
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 435,
+      "name": "Salmantica",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -3584,
+        105
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 310,
+      "name": "Salona",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1684,
+        15
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 510,
+      "name": "Samos",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5084,
+        1997
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 312,
+      "name": "Samosata",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        8228,
+        1470
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 314,
+      "name": "Sardis",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5243,
+        1639
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 315,
+      "name": "Sarmizegethusa",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        2967,
+        -561
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 316,
+      "name": "Satala",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        7599,
+        509
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 317,
+      "name": "Savaria",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1618,
+        -922
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 318,
+      "name": "Scarbantia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1605,
+        -1024
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 319,
+      "name": "Scodra",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        2468,
+        474
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 320,
+      "name": "Scythopolis",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        9753,
+        4323
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 321,
+      "name": "Sebasteia",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        7118,
+        747
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 422,
+      "name": "Seleukeia Pieria",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        8144,
+        2261
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 457,
+      "name": "Selinus",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        711,
+        2153
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 323,
+      "name": "Senia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1312,
+        -389
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 324,
+      "name": "Serdica",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3340,
+        228
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 509,
+      "name": "Sestus",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4428,
+        997
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 326,
+      "name": "Sicca Veneria",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -751,
+        2762
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 327,
+      "name": "Side",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        6649,
+        2228
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 328,
+      "name": "Siga",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -4153,
+        2566
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 329,
+      "name": "Singara",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        9491,
+        1696
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 330,
+      "name": "Singidunum",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        2500,
+        -335
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 542,
+      "name": "Sinope",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        6049,
+        123
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 331,
+      "name": "Sipontum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1572,
+        621
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 332,
+      "name": "Sirmium",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        2309,
+        -371
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 334,
+      "name": "Siscia",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1606,
+        -506
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 335,
+      "name": "Sitifis",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1841,
+        2591
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 336,
+      "name": "Smyrna",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4995,
+        1691
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 339,
+      "name": "Spoletium",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        801,
+        224
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 340,
+      "name": "Stobi",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3121,
+        625
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 341,
+      "name": "Sufasar",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -2767,
+        2423
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 342,
+      "name": "Sufetula",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -727,
+        3308
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 346,
+      "name": "Syene",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        16880,
+        15549
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 423,
+      "name": "Syracusae",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1482,
+        2451
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 349,
+      "name": "Tabia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        6527,
+        838
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 347,
+      "name": "Tacape",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -477,
+        4122
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 484,
+      "name": "Tainaron Pr.",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3931,
+        2720
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 551,
+      "name": "Tanais",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5601,
+        -1299
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 350,
+      "name": "Tarentum",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1971,
+        1023
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 351,
+      "name": "Tarracina",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        902,
+        693
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 352,
+      "name": "Tarraco",
+      "tier": 3,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -2066,
+        405
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 353,
+      "name": "Tarsus",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        7566,
+        1971
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 354,
+      "name": "Teanum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1110,
+        727
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 356,
+      "name": "Tergeste",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1073,
+        -566
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 417,
+      "name": "Thabraca",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -627,
+        2349
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 447,
+      "name": "Thaenae",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -178,
+        3633
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 357,
+      "name": "Thagaste",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -991,
+        2682
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 358,
+      "name": "Thamugadi",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1608,
+        3016
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 497,
+      "name": "Thasos",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3906,
+        855
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 359,
+      "name": "Thebae",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3906,
+        1836
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 141,
+      "name": "Thebai",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        14321,
+        12271
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 360,
+      "name": "Thelepte",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -949,
+        3435
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 543,
+      "name": "Theodosia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5421,
+        -690
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 362,
+      "name": "Thessalonica",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        3483,
+        930
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 363,
+      "name": "Theveste",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1048,
+        3160
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 364,
+      "name": "Thuburnica",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -782,
+        2560
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 365,
+      "name": "Tibiscum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        2839,
+        -533
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 366,
+      "name": "Tibur",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        800,
+        474
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 369,
+      "name": "Tingi",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -5111,
+        1929
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 585,
+      "name": "Toletum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -3509,
+        539
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 370,
+      "name": "Tolosa",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1642,
+        -302
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 371,
+      "name": "Tomis",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4281,
+        -279
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 372,
+      "name": "Tralles",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        5324,
+        1911
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 373,
+      "name": "Trapezus",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        7290,
+        207
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 374,
+      "name": "Tridentum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        533,
+        -714
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 567,
+      "name": "Tripolis",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        8848,
+        3118
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 375,
+      "name": "Troesmis",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4059,
+        -522
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 367,
+      "name": "Tubusuctu",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1918,
+        2318
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 376,
+      "name": "Tyana",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        7173,
+        1600
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 527,
+      "name": "Tyras",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        4311,
+        -818
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 377,
+      "name": "Tyrus",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        9236,
+        3854
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 117,
+      "name": "Ulpia Traiana Tricensimae",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -4,
+        -1882
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 437,
+      "name": "Ulpiana",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        2838,
+        294
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 378,
+      "name": "Valentia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -788,
+        -535
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 384,
+      "name": "Venta",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1174,
+        -1930
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 383,
+      "name": "Venta Icenorum",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -664,
+        -2114
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 382,
+      "name": "Venusia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1576,
+        843
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 385,
+      "name": "Vercellae",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -42,
+        -554
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 386,
+      "name": "Verona",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        490,
+        -542
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 387,
+      "name": "Verulamium",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -967,
+        -2017
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 388,
+      "name": "Vesontio",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -374,
+        -1041
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 389,
+      "name": "Vibo Valentia",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1710,
+        1729
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 390,
+      "name": "Vienna",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -731,
+        -679
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 391,
+      "name": "Viminacium",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        2669,
+        -318
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 392,
+      "name": "Vindobona",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1554,
+        -1137
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 393,
+      "name": "Viroconium",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1171,
+        -2207
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 395,
+      "name": "Virunum",
+      "tier": 2,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        1202,
+        -828
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 397,
+      "name": "Volsinii",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        619,
+        250
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 398,
+      "name": "Volubilis",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -5820,
+        2790
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 399,
+      "name": "Zarai",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        -1818,
+        2811
+      ],
+      "anchorCoveredByCards": []
+    },
+    {
+      "index": 400,
+      "name": "Zeugma",
+      "tier": 1,
+      "present": true,
+      "centerLand": true,
+      "screen": [
+        8263,
+        1707
+      ],
+      "anchorCoveredByCards": []
+    }
+  ]
+}

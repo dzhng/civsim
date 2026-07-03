@@ -6,7 +6,7 @@ import { UNIT_INFO } from "../../packages/game-renderer/src/battle/unitInfoLayou
 const SOLDIERS = 2;
 const STRIDE = 33;
 
-function makeCrowdFrameGame(running = false) {
+function makeCrowdFrameGame(running = false, fighting = false) {
   const memory = new WebAssembly.Memory({ initial: 1 });
   const ptrs = {
     alive: 0,
@@ -19,6 +19,7 @@ function makeCrowdFrameGame(running = false) {
   };
 
   new Uint8Array(memory.buffer, ptrs.alive, SOLDIERS).fill(1);
+  new Uint8Array(memory.buffer, ptrs.fighting, SOLDIERS).fill(fighting ? 1 : 0);
   new Uint32Array(memory.buffer, ptrs.soldierUnit, SOLDIERS).fill(0);
   new Float32Array(memory.buffer, ptrs.positions, SOLDIERS * 2).set([0, 0, 1, 0]);
   const unitInfo = new Float32Array(memory.buffer, ptrs.unitInfo, STRIDE);
@@ -60,5 +61,20 @@ test("crowd pass keeps each soldier gait frame stable across slowed phase ticks"
   assert.deepEqual(
     runAfter.map((inst) => inst.frame),
     runBefore.map((inst) => inst.frame),
+  );
+});
+
+test("crowd pass uses sim-tick fighting cadence", () => {
+  const fighting = makeCrowdFrameGame(false, true);
+  const before = buildLiveBattleCrowdFrame(fighting.game, fighting.memory, 0).instances;
+  const after = buildLiveBattleCrowdFrame(fighting.game, fighting.memory, 12).instances;
+
+  assert.deepEqual(
+    before.map((inst) => inst.frame),
+    [10, 0],
+  );
+  assert.deepEqual(
+    after.map((inst) => inst.frame),
+    [3, 3],
   );
 });

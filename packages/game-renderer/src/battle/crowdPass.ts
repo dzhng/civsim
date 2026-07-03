@@ -3,6 +3,7 @@ import {
   type CrowdInstance,
   type CrowdBuildStats,
 } from "../../../crowd-runtime/src/instanceData";
+import { fightingFrameForTick } from "../../../crowd-runtime/src/animationState";
 import { UNIT_INFO } from "./unitInfoLayout";
 
 export interface LiveBattleCrowdGame {
@@ -32,7 +33,6 @@ export interface LiveBattleCrowdFrame {
 
 const FRAME_IDLE = 0;
 const FRAME_MARCH_A = 1;
-const FRAME_ATTACK = 3;
 const FRAME_FALLEN = 4;
 const FRAME_SWITCH = 5;
 const FRAME_AT_EASE = 6;
@@ -78,7 +78,7 @@ export function buildLiveBattleCrowdFrame(
       continue;
     }
     if (fighting[i] > 0) {
-      frames[i] = FRAME_ATTACK;
+      frames[i] = fightingFrameForTick(simTick, i);
       statsExtra.fighting++;
       continue;
     }

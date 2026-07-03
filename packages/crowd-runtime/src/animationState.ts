@@ -15,6 +15,7 @@ export interface AnimationState {
   deathVariant: number;
 }
 
+const FRAME_IDLE = 0;
 const FRAME_ATTACK = 3;
 const FRAME_FALLEN = 4;
 const FRAME_AT_EASE = 6;
@@ -33,6 +34,8 @@ const ATTACK_CYCLES_PER_SECOND = 0.5;
 const HIT_CYCLES_PER_SECOND = 0.65;
 const SHOOT_CYCLES_PER_SECOND = 0.55;
 const IDLE_CYCLES_PER_SECOND = 0.04;
+const COHERENT_PHASE_JITTER = 0.04;
+const FIGHTING_BEAT_TICKS = 12;
 
 export function variationSeed(index: number, unit = 0): number {
   let h = (Math.imul(index + 1, 2246822507) ^ Math.imul(unit + 17, 3266489917)) >>> 0;
@@ -50,14 +53,15 @@ export function animationForFrame(
   deathAge = 1,
 ): AnimationState {
   const seconds = tick * ANIMATION_SECONDS_PER_TICK;
-  const phaseOffset = (seed & 1023) / 1024;
+  const phaseJitter = ((seed & 1023) / 1023 - 0.5) * COHERENT_PHASE_JITTER;
+  const idlePhaseOffset = (seed & 1023) / 1024;
   if (!alive || frame === FRAME_FALLEN) {
     return { clip: "death_a", phase: clamp01(deathAge), loop: false, deathVariant: seed % 3 };
   }
   if (frame === FRAME_ATTACK || frame === 11) {
     return {
       clip: "attack_a",
-      phase: fract(seconds * ATTACK_CYCLES_PER_SECOND + phaseOffset),
+      phase: fract(seconds * ATTACK_CYCLES_PER_SECOND + phaseJitter),
       loop: false,
       deathVariant: 0,
     };
@@ -65,7 +69,7 @@ export function animationForFrame(
   if (frame === FRAME_HIT) {
     return {
       clip: "hit_a",
-      phase: fract(seconds * HIT_CYCLES_PER_SECOND + phaseOffset),
+      phase: fract(seconds * HIT_CYCLES_PER_SECOND + phaseJitter),
       loop: false,
       deathVariant: 0,
     };
@@ -73,7 +77,7 @@ export function animationForFrame(
   if (frame === FRAME_SHOOT) {
     return {
       clip: "shoot",
-      phase: fract(seconds * SHOOT_CYCLES_PER_SECOND + phaseOffset),
+      phase: fract(seconds * SHOOT_CYCLES_PER_SECOND + phaseJitter),
       loop: false,
       deathVariant: 0,
     };
@@ -82,7 +86,7 @@ export function animationForFrame(
     return {
       clip: "run",
       phase: fract(
-        seconds * RUN_CYCLES_PER_SECOND + phaseOffset + (frame === FRAME_RUN_B ? 0.5 : 0),
+        seconds * RUN_CYCLES_PER_SECOND + phaseJitter + (frame === FRAME_RUN_B ? 0.5 : 0),
       ),
       loop: true,
       deathVariant: 0,
@@ -91,7 +95,7 @@ export function animationForFrame(
   if (frame === 1 || frame === 2) {
     return {
       clip: "march",
-      phase: fract(seconds * MARCH_CYCLES_PER_SECOND + phaseOffset + (frame === 2 ? 0.5 : 0)),
+      phase: fract(seconds * MARCH_CYCLES_PER_SECOND + phaseJitter + (frame === 2 ? 0.5 : 0)),
       loop: true,
       deathVariant: 0,
     };
@@ -101,10 +105,18 @@ export function animationForFrame(
   }
   return {
     clip: "idle",
-    phase: fract(seconds * IDLE_CYCLES_PER_SECOND + phaseOffset),
+    phase: fract(seconds * IDLE_CYCLES_PER_SECOND + idlePhaseOffset),
     loop: true,
     deathVariant: 0,
   };
+}
+
+export function fightingFrameForTick(simTick: number, soldierIndex: number): number {
+  return (Math.floor(simTick / FIGHTING_BEAT_TICKS + soldierIndex * 0.7) & 1) !== 0
+    ? FRAME_ATTACK
+    : soldierIndex % 3 === 0
+      ? FRAME_HIT
+      : FRAME_IDLE;
 }
 
 export function animationForSoldierFrame(

@@ -14,55 +14,71 @@
 // stand-ins, and 08a's blob-shadow decals are DEAD: SkyModel owns the sky,
 // aerialPerspective the haze, and shadowRig casts REAL sun shadows since 11.)
 // 08b swapped BattleRenderer's internals onto this class on the same canvas.
-import * as THREE from 'three/webgpu';
-import { vec3 } from 'three/tsl';
-import { buildCrowdInstances, type CrowdInstance } from '../../../crowd-runtime/src/instanceData';
+import * as THREE from "three/webgpu";
+import { vec3 } from "three/tsl";
+import { buildCrowdInstances, type CrowdInstance } from "../../../crowd-runtime/src/instanceData";
 import {
   battleEnvironmentStats,
   resolveBattleEnvironment,
   type BattleEnvironment,
-} from '../../../game-renderer/src/environment/environment';
+} from "../../../game-renderer/src/environment/environment";
 import {
   BATTLE_RELIEF_EXAGGERATION,
   deriveBattleEdgeRoles,
   type BattleGroundCover,
   type BattleTerrainGrid,
-} from '../../../game-renderer/src/battle/terrainFeatures';
-import { battleMapByWasmId, buildBattleTerrainPresentation } from '../../../game-renderer/src/battle/mapCatalog';
-import { buildBattleGroundMesh } from '../../../game-renderer/src/battle/groundPass';
-import { buildBattleHorizonLayout } from '../../../game-renderer/src/battle/horizonPass';
-import { buildBattleTerrainGrass } from '../../../game-renderer/src/battle/grassPass';
-import { featuresToBattleScenery } from '../../../game-renderer/src/battle/terrainScenery';
-import { terrainHeightAt, type TerrainHeightField } from '../../../game-renderer/src/terrain/heightField';
-import type { MarkerInstance } from '../../../renderer-core/src/frameShell';
-import type { Camera3DParams } from '../../../renderer-core/src/camera3d';
+} from "../../../game-renderer/src/battle/terrainFeatures";
+import {
+  battleMapByWasmId,
+  buildBattleTerrainPresentation,
+} from "../../../game-renderer/src/battle/mapCatalog";
+import { buildBattleGroundMesh } from "../../../game-renderer/src/battle/groundPass";
+import { buildBattleHorizonLayout } from "../../../game-renderer/src/battle/horizonPass";
+import { buildBattleTerrainGrass } from "../../../game-renderer/src/battle/grassPass";
+import { featuresToBattleScenery } from "../../../game-renderer/src/battle/terrainScenery";
+import {
+  terrainHeightAt,
+  type TerrainHeightField,
+} from "../../../game-renderer/src/terrain/heightField";
+import type { MarkerInstance } from "../../../renderer-core/src/frameShell";
+import type { Camera3DParams } from "../../../renderer-core/src/camera3d";
 import {
   loadClassVats,
   loadPlaceholderKit,
   mountedClassesFromKit,
-} from '../../../soldier-assets/src/placeholders';
-import { createPlaceholderSoldierMeshTiers } from '../../../soldier-assets/src/soldierMesh';
-import { PhotorealWorld } from '../world';
-import { applyCivsimEnvironment } from '../environment';
-import { applyCamera3d } from '../cameraBridge';
-import { PHOTOREAL_PROJECTION, PHOTOREAL_SUBSTRATE } from '../stats';
-import { createBattleFrameUniforms, type BattleFrameUniforms } from './battleTsl';
+} from "../../../soldier-assets/src/placeholders";
+import { createPlaceholderSoldierMeshTiers } from "../../../soldier-assets/src/soldierMesh";
+import { PhotorealWorld } from "../world";
+import { applyCivsimEnvironment } from "../environment";
+import { applyCamera3d } from "../cameraBridge";
+import { PHOTOREAL_PROJECTION, PHOTOREAL_SUBSTRATE } from "../stats";
+import { createBattleFrameUniforms, type BattleFrameUniforms } from "./battleTsl";
 import {
   BattleBackgroundQuads,
   createGroundMesh,
   createHorizonBlockerMesh,
   RENDER_ORDER,
-} from './terrainLayer';
+} from "./terrainLayer";
 import {
   createOceanPlaneMesh,
   createSeaDisplacementSource,
   type SeaDisplacementSourceId,
-} from './seaLayer';
-import { PhotorealGrassField, PhotorealScenery } from './foliageLayer';
-import { PhotorealCrowd, type CrowdVisibilityScope } from './crowdLayer';
-import { configureSunShadows, resolveSunShadowMode, type SunShadowMode, type SunShadowRig } from './shadowRig';
-import { PhotorealLineLayer, PhotorealMarkerLayer, PhotorealTriangleLayer } from './overlayLayer';
-import { BattlePostChain } from '../post/postChain';
+} from "./seaLayer";
+import { PhotorealGrassField, PhotorealScenery } from "./foliageLayer";
+import { PhotorealCrowd, type CrowdVisibilityScope } from "./crowdLayer";
+import {
+  configureSunShadows,
+  resolveSunShadowMode,
+  type SunShadowMode,
+  type SunShadowRig,
+} from "./shadowRig";
+import {
+  PhotorealLineLayer,
+  PhotorealMarkerLayer,
+  PhotorealRingLayer,
+  PhotorealTriangleLayer,
+} from "./overlayLayer";
+import { BattlePostChain } from "../post/postChain";
 
 /** The camera fields BattleRenderer snapshots from the shared Camera each
  *  frame (renderer.ts cameraSnapshot) — the whole camera contract. */
@@ -77,6 +93,8 @@ export interface BattleCameraSnapshot {
 export interface BattleTacticalLineFrame {
   groundCues: Float32Array;
   effects: Float32Array;
+  /** Per-soldier selection rings, (x, y, radius, r, g, b) per instance. */
+  rings: Float32Array;
 }
 
 export class PhotorealBattleWorld {
@@ -90,6 +108,7 @@ export class PhotorealBattleWorld {
   private readonly crowd: PhotorealCrowd;
   private readonly shadowRig: SunShadowRig;
   private readonly groundCues: PhotorealLineLayer;
+  private readonly selectionRings: PhotorealRingLayer;
   private readonly effectLines: PhotorealLineLayer;
   private readonly debugTriangles: PhotorealTriangleLayer;
   private readonly debugBlocks: PhotorealTriangleLayer;
@@ -111,7 +130,7 @@ export class PhotorealBattleWorld {
   private terrainRect: [number, number, number, number] = [-220, -180, 440, 360];
   private terrainGrid: BattleTerrainGrid | null = null;
   private heightField: TerrainHeightField | null = null;
-  private groundCover: BattleGroundCover = 'green-grass';
+  private groundCover: BattleGroundCover = "green-grass";
   private grassTerrainKey: string | null = null;
   private grassWindPhase = 0;
   private instances: CrowdInstance[] = [];
@@ -168,18 +187,29 @@ export class PhotorealBattleWorld {
     // adapter-tiered (csm hardware / single software / off lab-debug). The
     // 08a blob-shadow decal stand-ins are deleted; casters/receivers are
     // flagged where each mesh is built (terrain/foliage/crowd layers).
-    this.shadowRig = configureSunShadows(world.renderer, world.sunLight!, env.environment, shadowMode);
+    this.shadowRig = configureSunShadows(
+      world.renderer,
+      world.sunLight!,
+      env.environment,
+      shadowMode,
+    );
 
     this.background = new BattleBackgroundQuads(scene, this.frame);
     this.grass = new PhotorealGrassField(scene, env);
     this.scenery = new PhotorealScenery(scene);
     this.crowd = new PhotorealCrowd(scene, meshes, vats, kit);
     this.mountedClasses = mountedClassesFromKit(kit);
-    this.groundCues = new PhotorealLineLayer(scene, 0.02, {
+    // Ground cues drape onto the canonical terrain surface (the same height
+    // contract that seats soldiers and scenery) — a decal at flat z = 0 sinks
+    // under any rise and vanishes. The lift clears the coarse ground mesh's
+    // within-cell divergence from the bilinear field.
+    this.groundCues = new PhotorealLineLayer(scene, 0.25, {
       alpha: 0.88,
       depthTest: true,
       renderOrder: RENDER_ORDER.groundCues,
+      drape: { heightAt: (x, y) => this.heightAt(x, y), step: 4 },
     });
+    this.selectionRings = new PhotorealRingLayer(scene, (x, y) => this.heightAt(x, y), 0.12);
     this.effectLines = new PhotorealLineLayer(scene, 0.0, {
       alpha: 0.92,
       depthTest: false,
@@ -214,15 +244,24 @@ export class PhotorealBattleWorld {
       PhotorealWorld.create(canvas, { antialias: false }),
       loadPlaceholderKit(),
     ]);
-    const sea = createSeaDisplacementSource(options.sea ?? 'gerstner-tsl');
+    const sea = createSeaDisplacementSource(options.sea ?? "gerstner-tsl");
     const vats = await loadClassVats(kit);
     // Shadow tier: adapter capability probe (SwiftShader → 'single'), lab
     // ?shadows= override wins. Resolved here because the adapter identity
     // only exists once the renderer is initialized.
     const shadowMode = resolveSunShadowMode(world.stats().device, options.shadows);
     // ?post=off (lab A/B only) bypasses the chain; production always runs it.
-    const postEnabled = options.post !== 'off';
-    return new PhotorealBattleWorld(world, environment, sea, createPlaceholderSoldierMeshTiers([0.06, 0.1, 0.98]), vats, kit, shadowMode, postEnabled);
+    const postEnabled = options.post !== "off";
+    return new PhotorealBattleWorld(
+      world,
+      environment,
+      sea,
+      createPlaceholderSoldierMeshTiers([0.06, 0.1, 0.98]),
+      vats,
+      kit,
+      shadowMode,
+      postEnabled,
+    );
   }
 
   setTime(seconds: number): void {
@@ -248,6 +287,7 @@ export class PhotorealBattleWorld {
     this.markers = [];
     this.crowd.upload([]);
     this.markerLayer.upload([]);
+    this.selectionRings.upload(new Float32Array());
     this.effectLines.upload(new Float32Array());
     this.debugTriangles.upload(new Float32Array());
     this.debugBlocks.upload(new Float32Array());
@@ -276,7 +316,7 @@ export class PhotorealBattleWorld {
         }
       : null;
     const catalog = wasmMapId !== undefined ? battleMapByWasmId(wasmMapId) : undefined;
-    this.groundCover = catalog?.groundCover ?? 'green-grass';
+    this.groundCover = catalog?.groundCover ?? "green-grass";
     this.applyTerrain();
   }
 
@@ -293,7 +333,7 @@ export class PhotorealBattleWorld {
           ox: grid.ox,
           oy: grid.oy,
           height: grid.height,
-          units: 'meters',
+          units: "meters",
           verticalScale: BATTLE_RELIEF_EXAGGERATION,
         }
       : {
@@ -303,13 +343,13 @@ export class PhotorealBattleWorld {
           ox: grid.ox,
           oy: grid.oy,
           height: new Float32Array(grid.w * grid.h),
-          units: 'meters',
+          units: "meters",
           verticalScale: 1,
         };
     this.heightField = field;
     const presentation = buildBattleTerrainPresentation(
       {
-        id: 'live',
+        id: "live",
         edges: deriveBattleEdgeRoles(grid),
         groundCover: this.groundCover,
       },
@@ -343,7 +383,9 @@ export class PhotorealBattleWorld {
     this.sealedEdges = layout.builtEdges.map((e) => `${e.side}:${e.role}`);
     this.horizonBlockers = createHorizonBlockerMesh(layout);
     if (this.horizonBlockers) scene.add(this.horizonBlockers);
-    this.oceanPlanes = layout.oceanPlanes.map((spec) => createOceanPlaneMesh(this.frame, spec, this.sea));
+    this.oceanPlanes = layout.oceanPlanes.map((spec) =>
+      createOceanPlaneMesh(this.frame, spec, this.sea),
+    );
     for (const plane of this.oceanPlanes) scene.add(plane);
 
     this.scenery.upload(featuresToBattleScenery(presentation.features, field, 0x77));
@@ -356,6 +398,13 @@ export class PhotorealBattleWorld {
   private terrainHeightSampler(): ((x: number, y: number) => number) | undefined {
     const field = this.heightField;
     return field ? (x, y) => terrainHeightAt(field, x, y) : undefined;
+  }
+
+  /** Terrain surface height (render exaggeration applied) at a world point —
+   *  the ONE canonical surface (soldier seats, scenery, ground mesh, overlay
+   *  decals) exposed for DOM anchors and pickers. 0 before terrain arrives. */
+  heightAt(x: number, y: number): number {
+    return this.heightField ? terrainHeightAt(this.heightField, x, y) : 0;
   }
 
   draw(
@@ -410,6 +459,7 @@ export class PhotorealBattleWorld {
     this.updateGrassWindPhase();
     this.updateGrassForCamera(camera);
     this.groundCues.upload(lines.groundCues);
+    this.selectionRings.upload(lines.rings);
     this.effectLines.upload(lines.effects);
     this.render();
   }
@@ -424,7 +474,7 @@ export class PhotorealBattleWorld {
     this.shadowRig.update(this.camera);
     this.crowd.refreshCamera(this.camera);
     this.markerLayer.setCameraBasis(this.camera);
-    this.background.setStyle(this.lastCamera.zoom < 1.2 ? 'wide-detail' : 'default');
+    this.background.setStyle(this.lastCamera.zoom < 1.2 ? "wide-detail" : "default");
     this.world.render(this.camera);
   }
 
@@ -435,7 +485,10 @@ export class PhotorealBattleWorld {
 
   private crowdVisibilityScope(): CrowdVisibilityScope {
     const view = new THREE.Frustum();
-    const mat = new THREE.Matrix4().multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse);
+    const mat = new THREE.Matrix4().multiplyMatrices(
+      this.camera.projectionMatrix,
+      this.camera.matrixWorldInverse,
+    );
     view.setFromProjectionMatrix(mat, this.camera.coordinateSystem, this.camera.reversedDepth);
     const shadowFrusta = this.shadowRig.cullingFrusta();
     return {
@@ -489,22 +542,24 @@ export class PhotorealBattleWorld {
       Math.round(focus.x),
       Math.round(focus.y),
       Math.round(focus.radius),
-    ].join(':');
+    ].join(":");
     if (key === this.grassTerrainKey) return;
     this.grassTerrainKey = key;
-    this.grass.apply(buildBattleTerrainGrass(this.terrainGrid, this.heightField, this.groundCover, {
-      seed: 0x7a55,
-      density: 0.48,
-      maxTufts: 4200,
-      zoomT: zoomBucket / 5,
-      focus,
-      bladeHeight: 1.0,
-      bladeWidth: 0.072,
-      bend: 0.32,
-      spread: 0.2,
-      windPhase: this.grassWindPhase,
-      windStrength: 0.075,
-    }));
+    this.grass.apply(
+      buildBattleTerrainGrass(this.terrainGrid, this.heightField, this.groundCover, {
+        seed: 0x7a55,
+        density: 0.48,
+        maxTufts: 4200,
+        zoomT: zoomBucket / 5,
+        focus,
+        bladeHeight: 1.0,
+        bladeWidth: 0.072,
+        bend: 0.32,
+        spread: 0.2,
+        windPhase: this.grassWindPhase,
+        windStrength: 0.075,
+      }),
+    );
   }
 
   private updateGrassWindPhase(): void {
@@ -517,10 +572,11 @@ export class PhotorealBattleWorld {
     const crowdStats = this.crowd.stats();
     const visibleTierHistogram = crowdStats.visibleTierHistogram;
     const markerCount = visibleTierHistogram.l3;
-    const skinnedCount = visibleTierHistogram.l0 + visibleTierHistogram.l1 + visibleTierHistogram.l2;
+    const skinnedCount =
+      visibleTierHistogram.l0 + visibleTierHistogram.l1 + visibleTierHistogram.l2;
     const sea = this.sea.stats();
     return {
-      renderer: 'gpu' as const,
+      renderer: "gpu" as const,
       ready: true,
       substrate: PHOTOREAL_SUBSTRATE,
       projection: PHOTOREAL_PROJECTION,
@@ -536,7 +592,10 @@ export class PhotorealBattleWorld {
       device: world.device,
       // The engine depth convention, read off the live renderer: three owns the
       // depth buffer since 08b, posed reverse-Z to match camera3d.
-      depth: { owner: 'three-webgpu' as const, reversed: this.world.renderer.reversedDepthBuffer === true },
+      depth: {
+        owner: "three-webgpu" as const,
+        reversed: this.world.renderer.reversedDepthBuffer === true,
+      },
       // Atmosphere ownership identity (10a sky tier; 10b adds the aerial owner).
       atmosphere: this.world.atmosphere,
       // Shadow ownership identity (11): WHICH tier cast the sun shadows —
@@ -549,8 +608,8 @@ export class PhotorealBattleWorld {
       seating: { ...this.seating },
       terrain: this.ground
         ? {
-            fixture: 'sim-tint' as const,
-            layer: 'photoreal-battle-ground' as const,
+            fixture: "sim-tint" as const,
+            layer: "photoreal-battle-ground" as const,
             groundTriangles: this.groundTriangles,
             sealedEdges: [...this.sealedEdges],
             sea: {
@@ -565,6 +624,7 @@ export class PhotorealBattleWorld {
         : null,
       tacticalLines: {
         groundCues: this.groundCues.stats(),
+        rings: this.selectionRings.stats(),
         effects: this.effectLines.stats(),
       },
       markers: this.markerLayer.stats(),
@@ -594,7 +654,12 @@ function disposeMesh(mesh: THREE.Mesh): void {
 }
 
 /** BattleRenderer's expandedTerrainRect — the backdrop margin. */
-function expandedTerrainRect([x, y, w, h]: [number, number, number, number]): [number, number, number, number] {
+function expandedTerrainRect([x, y, w, h]: [number, number, number, number]): [
+  number,
+  number,
+  number,
+  number,
+] {
   const margin = Math.max(120, Math.max(w, h) * 0.22);
   return [x - margin, y - margin, w + margin * 2, h + margin * 2];
 }

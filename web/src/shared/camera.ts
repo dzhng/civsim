@@ -156,10 +156,11 @@ export class Camera {
     this.y += clampedY - cy;
   }
 
-  /** World coords (on the ground plane) to CSS-pixel screen coords (DOM overlays).
-   *  Points behind the camera return far off-screen so callers cull them. */
-  worldToScreen(wx: number, wy: number): [number, number] {
-    const { ndc, clipW } = projectPoint(this.params(), [wx, wy, 0]);
+  /** World coords to CSS-pixel screen coords (DOM overlays). `wz` lets anchors
+   *  sit on elevated terrain rather than the z = 0 plane. Points behind the
+   *  camera return far off-screen so callers cull them. */
+  worldToScreen(wx: number, wy: number, wz = 0): [number, number] {
+    const { ndc, clipW } = projectPoint(this.params(), [wx, wy, wz]);
     const dpr = window.devicePixelRatio || 1;
     if (clipW <= 0) return [-1e5, -1e5];
     return [

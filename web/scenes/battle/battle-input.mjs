@@ -67,6 +67,25 @@ export async function run(ctx) {
       JSON.stringify({ target: boxTarget, selected: boxed }),
     );
 
+    // Selecting grows per-soldier ground rings (campaign-style decals). Wait
+    // for a rendered frame — software-GPU frames take hundreds of ms.
+    const ringsGrew = await page
+      .waitForFunction(
+        () => window.__game.stats().renderStats.tacticalLines.rings?.rings > 0,
+        undefined,
+        { timeout: 10000, polling: 100 },
+      )
+      .then(
+        () => true,
+        () => false,
+      );
+    const ringStats = await page.evaluate(() => window.__game.stats().renderStats.tacticalLines);
+    ctx.check(
+      `dpr${dpr}: selection grows per-soldier ground rings`,
+      ringsGrew && ringStats.rings?.rings > 0,
+      JSON.stringify(ringStats),
+    );
+
     await page.evaluate(() => window.__game.freezeAtTick(72));
     await page.waitForTimeout(120);
     const canvas = page.locator("#battlefield");
@@ -110,6 +129,34 @@ export async function run(ctx) {
         ordered.stats.renderStats?.soldiers === ordered.stats.soldiers &&
         hasBattleWorldDepthContract(ordered.stats.renderStats),
       JSON.stringify({ target: orderTarget, ordered }),
+    );
+
+    // Holding Space overlays every unit's order paths (facing ticks, lines).
+    // Unfreeze first — a frozen scene renders no new tactical-line frames.
+    await page.evaluate(() => window.__game.freeze(false));
+    await page.waitForTimeout(200);
+    const cuesIdle = await page.evaluate(
+      () => window.__game.stats().renderStats.tacticalLines.groundCues.vertices,
+    );
+    await page.keyboard.down(" ");
+    const cuesShown = await page
+      .waitForFunction(
+        (idle) => window.__game.stats().renderStats.tacticalLines.groundCues.vertices > idle,
+        cuesIdle,
+        { timeout: 10000, polling: 100 },
+      )
+      .then(
+        () => true,
+        () => false,
+      );
+    const cuesHeld = await page.evaluate(
+      () => window.__game.stats().renderStats.tacticalLines.groundCues.vertices,
+    );
+    await page.keyboard.up(" ");
+    ctx.check(
+      `dpr${dpr}: holding Space shows the order overlay`,
+      cuesShown && cuesHeld > cuesIdle,
+      JSON.stringify({ cuesIdle, cuesHeld }),
     );
 
     const zoomBefore = await page.evaluate(() => window.__cam.zoom);
@@ -180,6 +227,65 @@ export async function run(ctx) {
     );
 
     if (dpr === 1) {
+      // The banner plants at the block's on-screen top edge midpoint at ANY
+      // yaw — world-axis extremes only match the screen at north-up, and a
+      // z = 0 anchor parallaxes off the block on elevated ground.
+      await page.evaluate(() => {
+        const a = window.__game.unitInfo(4);
+        const cam = window.__cam;
+        cam.zoom = 5; // mid band: the whole block stays in front of the camera
+        cam.setViewCenter(a[0], a[1]);
+        cam.clampView?.();
+      });
+      for (const yaw of [-Math.PI / 2, 0.6, 2.1]) {
+        await page.evaluate((y) => {
+          window.__cam.yaw = y;
+          window.__cam.clampView?.();
+        }, yaw);
+        await page.waitForTimeout(250);
+        const res = await page.evaluate(() => {
+          const g = window.__game;
+          const cam = window.__cam;
+          const u = 4;
+          const start = g.soldierStartOf(u);
+          const count = Math.floor(g.unitInfo(u)[7]);
+          let minX = Infinity;
+          let maxX = -Infinity;
+          let minY = Infinity;
+          let maxY = -Infinity;
+          for (let i = start; i < start + count; i++) {
+            if (!g.soldierAlive(i)) continue;
+            const [wx, wy] = g.soldierPos(i);
+            const [sx, sy] = cam.worldToScreen(wx, wy, g.heightAt(wx, wy));
+            if (sx < -1e4 || sy < -1e4) continue; // behind the camera
+            if (sx < minX) minX = sx;
+            if (sx > maxX) maxX = sx;
+            if (sy < minY) minY = sy;
+            if (sy > maxY) maxY = sy;
+          }
+          const el = document.getElementById("unitlabels")?.children[u];
+          const r = el ? el.getBoundingClientRect() : null;
+          return {
+            minX,
+            maxX,
+            minY,
+            maxY,
+            bannerX: r ? r.x + r.width / 2 : NaN,
+            bannerFoot: r ? r.bottom : NaN,
+          };
+        });
+        const marginX = Math.max(30, 0.35 * (res.maxX - res.minX));
+        const marginY = Math.max(30, 0.35 * (res.maxY - res.minY));
+        ctx.check(
+          `banner plants on the block at yaw ${yaw.toFixed(2)}`,
+          res.bannerX > res.minX - marginX &&
+            res.bannerX < res.maxX + marginX &&
+            res.bannerFoot > res.minY - marginY &&
+            res.bannerFoot < res.maxY + marginY,
+          JSON.stringify(res),
+        );
+      }
+
       // Bronze tooltips (Radix) on the icon-only controls: appear on hover AND
       // keyboard focus, carry the command copy, and replace the native title bubble.
       await page.hover('#toolbar button[data-cmd="pace"]');

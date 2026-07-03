@@ -56,7 +56,18 @@ export async function run(ctx) {
 
   const orderTarget = await worldPointNearUnit(page, 4, -80, 45);
   await page.mouse.click(orderTarget.x, orderTarget.y, { button: "right" });
-  await page.waitForTimeout(250);
+  // Wait for a rendered tactical frame carrying both the selection rings and
+  // the order-flash cues (the flash lasts ~2.5s; software-GPU frames are slow).
+  await page
+    .waitForFunction(
+      () => {
+        const t = window.__game.stats().renderStats.tacticalLines;
+        return t?.rings?.rings > 0 && t?.groundCues?.lineSegments > 0;
+      },
+      undefined,
+      { timeout: 10000, polling: 100 },
+    )
+    .catch(() => {});
 
   const state = await page.evaluate((unitInfo) => {
     const stats = window.__game.stats();
@@ -76,7 +87,7 @@ export async function run(ctx) {
       Math.hypot(state.targetX - orderTarget.worldX, state.targetY - orderTarget.worldY) < 2.0 &&
       state.stats.renderer === "gpu" &&
       hasBattleWorldDepthContract(state.stats.renderStats) &&
-      state.stats.renderStats?.tacticalLines?.groundCues?.lineSegments > 0,
+      state.stats.renderStats?.tacticalLines?.rings?.rings > 0,
     JSON.stringify({ orderTarget, state }),
   );
   ctx.check(
@@ -85,7 +96,10 @@ export async function run(ctx) {
       state.stats.renderStats.terrain.layer === "photoreal-battle-ground" &&
       state.stats.renderStats.terrain.groundTriangles > 1000 &&
       state.stats.renderStats.terrain.scenery > 0 &&
-      state.stats.renderStats.tacticalLines?.groundCues?.lineSegments > 0,
+      // Tactical ground decals in the frozen frame: selection rings (the
+      // frozen scene renders no post-order flash frames).
+      (state.stats.renderStats.tacticalLines?.groundCues?.lineSegments > 0 ||
+        state.stats.renderStats.tacticalLines?.rings?.rings > 0),
     JSON.stringify({
       terrain: state.stats.renderStats?.terrain,
       tacticalLines: state.stats.renderStats?.tacticalLines,

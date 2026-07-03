@@ -24,19 +24,22 @@
 //                 photoreal sea displacement source (12a verdict: Gerstner TSL)
 //   ?post=off     bypass the whole post chain (slice-15 lab A/B)
 //   ?bloom=off    keep the chain but drop the bloom stage (glint on/off pair)
-import { PhotorealBattleWorld, type BattleTacticalLineFrame } from '../../../packages/photoreal-renderer/src/battle/battleWorld';
-import { seaDisplacementSourceFromParam } from '../../../packages/photoreal-renderer/src/battle/seaLayer';
-import { createPhotorealStatsPublisher } from '../../../packages/photoreal-renderer/src/stats';
-import { Camera } from '../../../web/src/shared/camera';
-import { pushPie, pushRing } from '../../../web/src/shared/overlays';
-import { UNIT_CLASS_BY_KEY, UnitClass } from '../../../web/src/battle/classData';
+import {
+  PhotorealBattleWorld,
+  type BattleTacticalLineFrame,
+} from "../../../packages/photoreal-renderer/src/battle/battleWorld";
+import { seaDisplacementSourceFromParam } from "../../../packages/photoreal-renderer/src/battle/seaLayer";
+import { createPhotorealStatsPublisher } from "../../../packages/photoreal-renderer/src/stats";
+import { Camera } from "../../../web/src/shared/camera";
+import { pushPie } from "../../../web/src/shared/overlays";
+import { UNIT_CLASS_BY_KEY, UnitClass } from "../../../web/src/battle/classData";
 import {
   HEAVY_PHALANX_REST_CLASS,
   HEAVY_PHALANX_SIDEARM_CLASS,
   MEDIUM_PHALANX_REST_CLASS,
   MEDIUM_PHALANX_SIDEARM_CLASS,
   SHOCK_CAV_SIDEARM_CLASS,
-} from '../../../packages/soldier-assets/src/soldierMesh';
+} from "../../../packages/soldier-assets/src/soldierMesh";
 
 interface PhotorealBattleContext {
   root: HTMLElement;
@@ -51,25 +54,25 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
   const params = ctx.params;
   // ?ref=1: full-viewport canvas (the compare-screenshots framing — the
   // production #battlefield also fills its viewport).
-  if (params.get('ref') === '1') ctx.root.classList.add('reference-shot');
+  if (params.get("ref") === "1") ctx.root.classList.add("reference-shot");
   const [{ default: initWasm, Game }, world] = await Promise.all([
-    import('../../../web/src/wasm/game_wasm.js'),
+    import("../../../web/src/wasm/game_wasm.js"),
     PhotorealBattleWorld.create(ctx.canvas, {
-      environment: params.get('env'),
-      shadows: params.get('shadows'),
-      sea: seaDisplacementSourceFromParam(params.get('sea')),
-      post: params.get('post'),
+      environment: params.get("env"),
+      shadows: params.get("shadows"),
+      sea: seaDisplacementSourceFromParam(params.get("sea")),
+      post: params.get("post"),
     }),
   ]);
-  if (params.get('bloom') === 'off') world.setBloomEnabled(false);
+  if (params.get("bloom") === "off") world.setBloomEnabled(false);
   const wasm = await initWasm();
   const game = new Game(0x5eed_c0de);
-  game.start_battle(params.get('map') === 'B' ? 1 : 0);
-  if (params.get('ai') === 'on') game.set_ai_team(1);
-  const wasmMapId = params.get('map') === 'B' ? 1 : 0;
+  game.start_battle(params.get("map") === "B" ? 1 : 0);
+  if (params.get("ai") === "on") game.set_ai_team(1);
+  const wasmMapId = params.get("map") === "B" ? 1 : 0;
 
   // Grow to ?count through the production spawn path (battle-perf-30k grid).
-  const targetCount = Number(params.get('count')) || 0;
+  const targetCount = Number(params.get("count")) || 0;
   if (targetCount > game.soldier_count()) {
     const need = Math.ceil((targetCount - game.soldier_count()) / 500);
     for (let i = 0; i < need; i++) {
@@ -78,7 +81,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       game.spawn_class(-540 + col * 120, -400 + row * 90, Math.PI / 2, 500, 28, 0, row % 2);
     }
   }
-  let simTick = Number(params.get('ticks') ?? 60);
+  let simTick = Number(params.get("ticks") ?? 60);
   game.advance_ticks(simTick);
 
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -104,22 +107,28 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       { min: Math.max(0.4, tacticalZoom), max: Math.max(8, tacticalZoom * 6) },
       { width: mapW, height: mapH },
     );
-    camera.zoom = Number(params.get('zoom')) || Math.max(mapZoom, 3.0);
+    camera.zoom = Number(params.get("zoom")) || Math.max(mapZoom, 3.0);
     camera.setViewCenter(
-      Number(params.get('cx')) || 0,
-      params.has('cy') ? Number(params.get('cy')) : -0.27 * mapH,
+      Number(params.get("cx")) || 0,
+      params.has("cy") ? Number(params.get("cy")) : -0.27 * mapH,
     );
     camera.clampView();
   }
   (window as unknown as { __cam?: Camera }).__cam = camera;
-  (window as unknown as { __photorealBattleWorld?: PhotorealBattleWorld }).__photorealBattleWorld = world;
+  (window as unknown as { __photorealBattleWorld?: PhotorealBattleWorld }).__photorealBattleWorld =
+    world;
   // Debug isolation: ?only=battle-ground,battle-crowd keeps just those meshes.
-  const only = params.get('only');
-  const onlyNames = only ? new Set(only.split(',')) : null;
+  const only = params.get("only");
+  const onlyNames = only ? new Set(only.split(",")) : null;
   const applyOnly = () => {
     if (!onlyNames) return;
     world.world.scene.traverse((obj) => {
-      const o = obj as { isMesh?: boolean; isLineSegments?: boolean; visible: boolean; name: string };
+      const o = obj as {
+        isMesh?: boolean;
+        isLineSegments?: boolean;
+        visible: boolean;
+        name: string;
+      };
       if (!o.isMesh && !o.isLineSegments) return;
       if (![...onlyNames].some((n) => o.name.startsWith(n))) o.visible = false;
     });
@@ -127,7 +136,11 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
 
   // --- Static per-soldier data + terrain (the setStatic/setTerrain seam) ----
   const applyStatic = () => {
-    const soldierUnit = new Uint32Array(wasm.memory.buffer, game.soldier_unit_ptr(), game.soldier_count());
+    const soldierUnit = new Uint32Array(
+      wasm.memory.buffer,
+      game.soldier_unit_ptr(),
+      game.soldier_count(),
+    );
     const info = unitInfo();
     const teams = Array.from({ length: game.unit_count() }, (_, u) => info[u * STRIDE + 6]);
     const classes = Array.from({ length: game.unit_count() }, (_, u) => info[u * STRIDE + 13]);
@@ -248,9 +261,24 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
         const a0 = f0 - half + (s / segs) * w.arc;
         const a1 = f0 - half + ((s + 1) / segs) * w.arc;
         tris.push(
-          x, y, r, g, b, alpha,
-          x + Math.cos(a0) * R, y + Math.sin(a0) * R, r, g, b, 0.04,
-          x + Math.cos(a1) * R, y + Math.sin(a1) * R, r, g, b, 0.04,
+          x,
+          y,
+          r,
+          g,
+          b,
+          alpha,
+          x + Math.cos(a0) * R,
+          y + Math.sin(a0) * R,
+          r,
+          g,
+          b,
+          0.04,
+          x + Math.cos(a1) * R,
+          y + Math.sin(a1) * R,
+          r,
+          g,
+          b,
+          0.04,
         );
       }
       budget--;
@@ -260,7 +288,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
 
   // Tactical lines (scene.ts tacticalLineFrame port, sim-driven parts):
   // selection rings (gold glow), order-progress pies, projectiles.
-  const selected = params.get('select') === '1' ? firstPlayerUnit() : -1;
+  const selected = params.get("select") === "1" ? firstPlayerUnit() : -1;
   function firstPlayerUnit(): number {
     const info = unitInfo();
     for (let u = 0; u < game.unit_count(); u++) {
@@ -289,20 +317,38 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
   // order-progress pie + projectile streaks (effect lines) and a pair of
   // attack-arc fans (debug triangles), so the overlay ports are verifiable
   // without scripting a live melee.
-  const fxAt = params.get('fx') === '1' ? unitCenter(firstPlayerUnit()) : null;
+  const fxAt = params.get("fx") === "1" ? unitCenter(firstPlayerUnit()) : null;
   const fxArcs = (): Float32Array => {
     if (!fxAt) return new Float32Array();
     const [x, y] = fxAt;
     const tris: number[] = [];
-    for (const [f0, r, g, b] of [[Math.PI / 2, 0.55, 0.85, 1.0], [-Math.PI / 2, 1.0, 0.72, 0.35]] as const) {
+    for (const [f0, r, g, b] of [
+      [Math.PI / 2, 0.55, 0.85, 1.0],
+      [-Math.PI / 2, 1.0, 0.72, 0.35],
+    ] as const) {
       const reach = 2.4;
       for (let s = 0; s < 3; s++) {
-        const a0 = f0 - 0.5 + (s / 3);
-        const a1 = f0 - 0.5 + ((s + 1) / 3);
+        const a0 = f0 - 0.5 + s / 3;
+        const a1 = f0 - 0.5 + (s + 1) / 3;
         tris.push(
-          x, y, r, g, b, 0.26,
-          x + Math.cos(a0) * reach, y + Math.sin(a0) * reach, r, g, b, 0.04,
-          x + Math.cos(a1) * reach, y + Math.sin(a1) * reach, r, g, b, 0.04,
+          x,
+          y,
+          r,
+          g,
+          b,
+          0.26,
+          x + Math.cos(a0) * reach,
+          y + Math.sin(a0) * reach,
+          r,
+          g,
+          b,
+          0.04,
+          x + Math.cos(a1) * reach,
+          y + Math.sin(a1) * reach,
+          r,
+          g,
+          b,
+          0.04,
         );
       }
     }
@@ -311,24 +357,27 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
 
   const tacticalFrame = (): BattleTacticalLineFrame => {
     const groundCues: number[] = [];
+    const rings: number[] = [];
+    // Effects are (x, y, z, r, g, b) per vertex — ground cues (pies included)
+    // are 5-stride and live in groundCues, which drapes onto the terrain.
     const effects: number[] = [];
     const info = unitInfo();
     if (fxAt) {
-      pushPie(effects, fxAt[0], fxAt[1], 0.66, 7, 1, 1, 1);
+      pushPie(groundCues, fxAt[0], fxAt[1], 0.66, 7, 1, 1, 1);
       for (let i = 0; i < 6; i++) {
         const px = fxAt[0] - 18 + i * 7;
         const py = fxAt[1] + 14 + i * 2;
-        effects.push(px - 0.7, py, 0.92, 0.92, 0.83, px + 0.7, py, 0.92, 0.92, 0.83);
+        effects.push(px - 0.7, py, 0.5, 0.92, 0.92, 0.83, px + 0.7, py, 0.5, 0.92, 0.92, 0.83);
       }
     }
     for (let u = 0; u < game.unit_count(); u++) {
       const o = u * STRIDE;
-      if (info[o + 14] > 0) pushPie(effects, info[o], info[o + 1], info[o + 14], 7, 1, 1, 1);
+      if (info[o + 14] > 0) pushPie(groundCues, info[o], info[o + 1], info[o + 14], 7, 1, 1, 1);
     }
     if (selected >= 0) {
       const [cx, cy] = unitCenter(selected);
-      pushRing(groundCues, cx, cy, 8.5, 18, 1.0, 0.78, 0.22);
-      pushRing(groundCues, cx, cy, 5.4, 14, 1.0, 0.92, 0.45);
+      rings.push(cx, cy, 8.5, 1.0, 0.78, 0.22);
+      rings.push(cx, cy, 5.4, 1.0, 0.92, 0.45);
     }
     const pCount = game.projectile_count();
     if (pCount > 0) {
@@ -339,22 +388,39 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
         const stone = pk[i] === 2;
         const len = stone ? 1.4 : 0.7;
         const c = stone ? 0.25 : 0.92;
-        effects.push(px[i] - len, py[i], c, c, c * 0.9, px[i] + len, py[i], c, c, c * 0.9);
+        effects.push(
+          px[i] - len,
+          py[i],
+          0.4,
+          c,
+          c,
+          c * 0.9,
+          px[i] + len,
+          py[i],
+          0.4,
+          c,
+          c,
+          c * 0.9,
+        );
       }
     }
-    return { groundCues: new Float32Array(groundCues), effects: new Float32Array(effects) };
+    return {
+      groundCues: new Float32Array(groundCues),
+      rings: new Float32Array(rings),
+      effects: new Float32Array(effects),
+    };
   };
 
-  const debugBlocks = params.get('debug') === 'blocks';
-  const running = params.get('run') === '1';
-  const fixedT = params.has('t') ? Number(params.get('t')) : null;
-  const publish = createPhotorealStatsPublisher(world.world, 'photoreal-battle', () => {
+  const debugBlocks = params.get("debug") === "blocks";
+  const running = params.get("run") === "1";
+  const fixedT = params.has("t") ? Number(params.get("t")) : null;
+  const publish = createPhotorealStatsPublisher(world.world, "photoreal-battle", () => {
     const s = world.stats();
     return { renderStats: s, soldiers: s.soldiers, expectedSoldiers: s.expectedSoldiers };
   });
 
-  const pitchOverride = params.has('pitch') ? Number(params.get('pitch')) : null;
-  const yawOverride = params.has('yaw') ? Number(params.get('yaw')) : null;
+  const pitchOverride = params.has("pitch") ? Number(params.get("pitch")) : null;
+  const yawOverride = params.has("yaw") ? Number(params.get("yaw")) : null;
   const cameraSnapshot = () => {
     const [x, y] = camera.viewCenter();
     const camera3d = camera.params();
@@ -401,15 +467,15 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       <tr><td>route</td><td>photoreal-battle (${s.substrate})</td></tr>
       <tr><td>environment</td><td>${s.environment}</td></tr>
       <tr><td>sea</td><td>${rs.sea.source} (${rs.sea.tier})</td></tr>
-      <tr><td>map</td><td>${params.get('map') === 'B' ? 'B' : 'A'}</td></tr>
+      <tr><td>map</td><td>${params.get("map") === "B" ? "B" : "A"}</td></tr>
       <tr><td>soldiers</td><td>${rs.soldiers} / ${rs.expectedSoldiers}</td></tr>
       <tr><td>seating</td><td>match=${rs.seating.matches} span=${rs.seating.span}</td></tr>
       <tr><td>grass tufts</td><td>${rs.terrain?.grass.tuftInstances ?? 0}</td></tr>
       <tr><td>scenery</td><td>${rs.terrain?.scenery ?? 0}</td></tr>
-      <tr><td>sea planes</td><td>${rs.terrain?.sealedEdges.join(', ') || 'none'}</td></tr>
+      <tr><td>sea planes</td><td>${rs.terrain?.sealedEdges.join(", ") || "none"}</td></tr>
       <tr><td>draw calls</td><td>${s.stats.drawCalls}</td></tr>
-      <tr><td>median ms</td><td>${s.stats.medianMs?.toFixed(2) ?? 'warmup'}</td></tr>
-      <tr><td>gpu ms</td><td>${s.stats.gpuTimeMs?.toFixed(3) ?? 'pending'}</td></tr>
+      <tr><td>median ms</td><td>${s.stats.medianMs?.toFixed(2) ?? "warmup"}</td></tr>
+      <tr><td>gpu ms</td><td>${s.stats.gpuTimeMs?.toFixed(3) ?? "pending"}</td></tr>
     </table>`;
     requestAnimationFrame(loop);
   };
@@ -418,7 +484,15 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
 
 // The production ?debug=blocks triangles (renderer.ts buildDebugBlockTriangles).
 function buildDebugBlockTriangles(
-  game: { soldier_count(): number; unit_count(): number; positions_ptr(): number; alive_ptr(): number; soldier_unit_ptr(): number; unit_info_ptr(): number; unit_info_stride(): number },
+  game: {
+    soldier_count(): number;
+    unit_count(): number;
+    positions_ptr(): number;
+    alive_ptr(): number;
+    soldier_unit_ptr(): number;
+    unit_info_ptr(): number;
+    unit_info_stride(): number;
+  },
   buffer: ArrayBuffer,
 ): Float32Array {
   const n = game.soldier_count();
@@ -427,7 +501,10 @@ function buildDebugBlockTriangles(
   const soldierUnit = new Uint32Array(buffer, game.soldier_unit_ptr(), n);
   const stride = game.unit_info_stride();
   const info = new Float32Array(buffer, game.unit_info_ptr(), game.unit_count() * stride);
-  const bounds = new Map<number, { x0: number; y0: number; x1: number; y1: number; team: number }>();
+  const bounds = new Map<
+    number,
+    { x0: number; y0: number; x1: number; y1: number; team: number }
+  >();
   for (let i = 0; i < n; i++) {
     if (!alive[i]) continue;
     const unit = soldierUnit[i];
@@ -446,7 +523,8 @@ function buildDebugBlockTriangles(
   const verts: number[] = [];
   for (const b of bounds.values()) {
     const pad = 2.4;
-    const color: [number, number, number, number] = b.team === 1 ? [0.88, 0.2, 0.16, 0.88] : [0.18, 0.44, 1.0, 0.88];
+    const color: [number, number, number, number] =
+      b.team === 1 ? [0.88, 0.2, 0.16, 0.88] : [0.18, 0.44, 1.0, 0.88];
     const [x0, y0, x1, y1] = [b.x0 - pad, b.y0 - pad, b.x1 + pad, b.y1 + pad];
     verts.push(x0, y0, ...color, x1, y0, ...color, x1, y1, ...color);
     verts.push(x0, y0, ...color, x1, y1, ...color, x0, y1, ...color);

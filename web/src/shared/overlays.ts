@@ -60,32 +60,3 @@ export function pushPie(
     );
   }
 }
-
-/** Full circle outline (selection rings). */
-export function pushRing(
-  verts: number[],
-  x: number,
-  y: number,
-  R: number,
-  segs: number,
-  r: number,
-  g: number,
-  b: number,
-) {
-  for (let s = 0; s < segs; s++) {
-    const a0 = (s / segs) * Math.PI * 2;
-    const a1 = ((s + 1) / segs) * Math.PI * 2;
-    verts.push(
-      x + Math.cos(a0) * R,
-      y + Math.sin(a0) * R,
-      r,
-      g,
-      b,
-      x + Math.cos(a1) * R,
-      y + Math.sin(a1) * R,
-      r,
-      g,
-      b,
-    );
-  }
-}

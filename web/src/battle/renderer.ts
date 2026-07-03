@@ -306,8 +306,10 @@ export interface BattleTacticalLineFrame {
   effects: Float32Array;
 }
 
-/** Frozen snapshots keep unit-anchored selection cues (rings/chevrons) but
- *  drop cross-field order lines, whose endpoints churn between runs. */
+/** Frozen snapshots keep short unit-anchored cue segments (facing ticks,
+ *  queue diamonds, near path legs) but drop cross-field order lines, whose
+ *  endpoints churn between runs. Selection rings travel in their own layer
+ *  and pass through untouched. */
 function frozenSelectionGroundCues(verts: Float32Array) {
   const stride = 5;
   const maxSegmentLength = 12;

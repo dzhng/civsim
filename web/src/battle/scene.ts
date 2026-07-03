@@ -2,12 +2,11 @@ import { Game, type InitOutput } from "../wasm/game_wasm.js";
 import type { Scene } from "../scene";
 import { Camera } from "../shared/camera";
 import { pushDestRings, pushPie, SELECTION_GREEN, SOLDIER_RING_RADIUS } from "../shared/overlays";
-import { projectPoint } from "../../../packages/renderer-core/src/camera3d";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
 import {
-  CLASS_DEPTH,
   CLASS_SPACING,
   UNIT_INFO,
+  unitFiles,
 } from "../../../packages/game-renderer/src/battle/unitInfoLayout";
 import {
   modelLookForClass,
@@ -663,7 +662,7 @@ export class BattleScene implements Scene {
       // anchor is front-center; offset half-depth back along facing
       const alive = info[o + 15];
       const cls = info[o + 13];
-      const depth = (Math.ceil(alive / Math.ceil(alive / CLASS_DEPTH[cls] || 1)) || 1) * 1.1;
+      const depth = (Math.ceil(alive / unitFiles(cls, alive)) || 1) * 1.1;
       return [
         info[o] - Math.cos(info[o + 2]) * depth * 0.5,
         info[o + 1] - Math.sin(info[o + 2]) * depth * 0.5,
@@ -686,11 +685,11 @@ export class BattleScene implements Scene {
       const [cx, cy] = unitCenter(u);
       const cls = info[u * STRIDE + 13];
       const alive = info[u * STRIDE + 15];
-      const files = Math.max(1, Math.ceil(alive / CLASS_DEPTH[cls]));
+      const files = unitFiles(cls, alive);
       return { u, x: cx, y: cy, r: 0.5 * files * CLASS_SPACING[cls] };
     };
 
-    // Order ghosts flash for a moment on every command (and persist on Space).
+    // Order previews flash for a moment on every command (and persist on Space).
     const orderFlash = new Map<number, number>();
     const markFlash = (units: number[]) => {
       const t = performance.now();
@@ -1016,7 +1015,7 @@ export class BattleScene implements Scene {
           const k = withPaths ? 1 : Math.max(0, 1 - age / 2500);
           const cls = info[o + 13];
           const alive = info[o + 15];
-          const files = Math.max(1, Math.ceil(alive / CLASS_DEPTH[cls]));
+          const files = unitFiles(cls, alive);
           const gf =
             info[o + 23] > 0.5 ? info[o + 22] : Math.atan2(info[o + 11] - ay, info[o + 10] - ax);
           pushDestRings(
@@ -1066,7 +1065,7 @@ export class BattleScene implements Scene {
               dst.y,
               input.rightDrag.facing,
               alive,
-              Math.max(1, Math.ceil(alive / CLASS_DEPTH[cls])),
+              unitFiles(cls, alive),
               CLASS_SPACING[cls],
               ...SELECTION_GREEN,
             );
@@ -1099,7 +1098,7 @@ export class BattleScene implements Scene {
             cy + dy,
             info[o + 2],
             alive,
-            Math.max(1, Math.ceil(alive / CLASS_DEPTH[cls])),
+            unitFiles(cls, alive),
             CLASS_SPACING[cls],
             ...SELECTION_GREEN,
           );
@@ -1410,11 +1409,11 @@ export class BattleScene implements Scene {
         unitMinR.fill(Infinity, 0, uc);
         unitMaxR.fill(-Infinity, 0, uc);
         unitTopU.fill(-Infinity, 0, uc);
-        // Ground-projected screen axes (world frame): right R and up U.
-        const rAxisX = -Math.sin(camera.yaw);
-        const rAxisY = Math.cos(camera.yaw);
-        const uAxisX = -Math.cos(camera.yaw);
-        const uAxisY = -Math.sin(camera.yaw);
+        // Screen frame on the ground, from the camera (the one axis owner).
+        const {
+          right: [rAxisX, rAxisY],
+          up: [uAxisX, uAxisY],
+        } = camera.groundAxes();
         const t = now / 1000;
         for (let i = 0; i < n; i++) {
           aliveF32[i] = a[i];

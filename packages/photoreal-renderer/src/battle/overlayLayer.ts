@@ -1,8 +1,8 @@
-// overlayLayer — the overlay ports of slice 08a (they land HERE, not at the
-// 08b flip): ground cues/selection (depth-tested world decal lines, gold glow
-// per aesthetics rule 6), effect lines + debug triangles (overlay band, no
-// depth), and the far-LOD marker impostors re-homed as camera-facing TSL
-// billboards (the 04c/04d item). Upload contracts are unchanged: the SAME
+// overlayLayer — the battle world's overlay layers: ground cues (depth-tested
+// world decal lines draped on the terrain surface), selection/preview ring
+// decals (the shared cross-substrate ring profile), effect lines + debug
+// triangles (overlay band, no depth), and the far-LOD marker impostors as
+// camera-facing TSL billboards. Upload contracts are unchanged: the SAME
 // Float32Array layouts drawTacticalLines/drawTris feed the bespoke passes.
 // The upload contracts carry display-referred colours (authored for the
 // bespoke swapchain); since slice 09 the frame is ACES-tonemapped sRGB, so
@@ -24,6 +24,7 @@ import {
   vec4,
 } from "three/tsl";
 import { factionForTeam } from "../../../game-renderer/src/battle/factionColors";
+import { SELECTION_RING_PROFILE } from "../../../game-renderer/src/selectionRing";
 import type { MarkerInstance } from "../../../renderer-core/src/frameShell";
 import { linearAlbedo } from "./battleTsl";
 import { RENDER_ORDER } from "./terrainLayer";
@@ -247,13 +248,20 @@ export class PhotorealRingLayer {
     const local = varying(quad.xy).toVar();
     const color = varying(ringTint);
     const d = length(local);
-    const ring = smoothstep(float(1.0), float(0.988), d).mul(
-      smoothstep(float(0.836), float(0.872), d),
+    const P = SELECTION_RING_PROFILE;
+    const ring = smoothstep(float(1.0), float(P.outerEdge), d).mul(
+      smoothstep(float(P.innerCut), float(P.innerFade), d),
     );
-    const fill = smoothstep(float(0.99), float(0.948), d)
-      .mul(smoothstep(float(0.822), float(0.846), d))
-      .mul(0.034);
-    material.colorNode = vec4(linearAlbedo(color.mul(1.08)), max(ring.mul(0.98), fill));
+    const fill = smoothstep(float(P.fillOuterStart), float(P.fillOuterEnd), d)
+      .mul(
+        smoothstep(
+          float(P.innerCut - P.fillInnerBelowCut),
+          float(P.innerCut + P.fillInnerAboveCut),
+          d,
+        ),
+      )
+      .mul(P.fillAlpha);
+    material.colorNode = vec4(linearAlbedo(color.mul(1.08)), max(ring.mul(P.ringAlpha), fill));
 
     this.mesh = new THREE.Mesh(this.geometry, material);
     this.mesh.frustumCulled = false;

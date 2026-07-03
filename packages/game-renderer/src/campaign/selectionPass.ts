@@ -1,6 +1,10 @@
-import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
-import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
-import { gpuAlphaBlendColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import type { RawFrameShell, WorldRenderPass } from "../../../renderer-core/src/frameShell";
+import { WORLD_CAMERA_WGSL } from "../../../renderer-core/src/cameraWgsl";
+import {
+  gpuAlphaBlendColorTarget,
+  gpuWorldDepthStencil,
+} from "../../../renderer-core/src/pipelineContracts";
+import { SELECTION_RING_PROFILE } from "../selectionRing";
 
 export interface CampaignSelectionInstance {
   x: number;
@@ -8,8 +12,12 @@ export interface CampaignSelectionInstance {
   z: number;
   radius: number;
   color: [number, number, number];
-  kind: 'city' | 'army' | 'garrisoned-army';
+  kind: "city" | "army" | "garrisoned-army";
 }
+
+// The army-ring band/fill numbers come from the shared cross-substrate
+// profile (battle's TSL ring layer reads the same object).
+const P = SELECTION_RING_PROFILE;
 
 const SELECTION_WGSL = `
 ${WORLD_CAMERA_WGSL}
@@ -39,15 +47,15 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let d = length(in.local);
   let strongArmy = in.kind > 0.5;
   let garrisonedArmy = in.kind > 1.5;
-  var innerCut = select(0.884, 0.836, strongArmy);
+  var innerCut = select(0.884, ${P.innerCut}, strongArmy);
   innerCut = select(innerCut, 0.856, garrisonedArmy);
-  var innerFade = select(0.912, 0.872, strongArmy);
+  var innerFade = select(0.912, ${P.innerFade}, strongArmy);
   innerFade = select(innerFade, 0.890, garrisonedArmy);
   if (d > 1.0 || d < innerCut) { discard; }
-  let outer = smoothstep(1.0, 0.988, d);
+  let outer = smoothstep(1.0, ${P.outerEdge}, d);
   let inner = smoothstep(innerCut, innerFade, d);
   let ring = outer * inner;
-  let fill = smoothstep(0.990, 0.948, d) * smoothstep(innerCut - 0.014, innerCut + 0.010, d) * 0.034;
+  let fill = smoothstep(${P.fillOuterStart}, ${P.fillOuterEnd}, d) * smoothstep(innerCut - ${P.fillInnerBelowCut}, innerCut + ${P.fillInnerAboveCut}, d) * ${P.fillAlpha};
   let armyMix = select(0.18, 0.0, strongArmy);
   // City ring (kind 0) read as a low-contrast grey over green turf (05a critique):
   // it washed the green status colour 40% toward parchment-gold at 0.68 alpha.
@@ -55,8 +63,8 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   // wash and a firmer alpha, matching the army ring's legibility.
   let groundTint = mix(in.color, vec3f(0.74, 0.66, 0.36), select(0.20, armyMix, in.kind > 0.5));
   let armyBoost = select(0.13, select(0.10, 0.22, strongArmy), in.kind > 0.5);
-  var ringAlpha = select(0.98, select(0.86, 0.98, strongArmy), in.kind > 0.5);
-  ringAlpha = select(ringAlpha, 0.98, garrisonedArmy);
+  var ringAlpha = select(${P.ringAlpha}, select(0.86, ${P.ringAlpha}, strongArmy), in.kind > 0.5);
+  ringAlpha = select(ringAlpha, ${P.ringAlpha}, garrisonedArmy);
   return vec4f(groundTint * (0.86 + armyBoost), max(ring * ringAlpha, fill));
 }`;
 
@@ -71,16 +79,19 @@ export class CampaignSelectionPass {
 
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
-    const module = device.createShaderModule({ label: 'campaign-selection-wgsl', code: SELECTION_WGSL });
+    const module = device.createShaderModule({
+      label: "campaign-selection-wgsl",
+      code: SELECTION_WGSL,
+    });
     this.pipeline = this.makePipeline(module);
     this.quadBuffer = device.createBuffer({
-      label: 'campaign-selection-quad',
+      label: "campaign-selection-quad",
       size: 8 * 4,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
     device.queue.writeBuffer(this.quadBuffer, 0, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]));
     this.instanceBuffer = device.createBuffer({
-      label: 'campaign-selection-empty',
+      label: "campaign-selection-empty",
       size: 8 * 4,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
@@ -89,41 +100,41 @@ export class CampaignSelectionPass {
   private makePipeline(module: GPUShaderModule) {
     const device = this.shell.device;
     return device.createRenderPipeline({
-      label: 'campaign-selection-depth-pipeline',
+      label: "campaign-selection-depth-pipeline",
       layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout] }),
       vertex: {
         module,
-        entryPoint: 'vs',
+        entryPoint: "vs",
         buffers: [
-          { arrayStride: 8, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x2' }] },
+          { arrayStride: 8, attributes: [{ shaderLocation: 0, offset: 0, format: "float32x2" }] },
           {
             arrayStride: 32,
-            stepMode: 'instance',
+            stepMode: "instance",
             attributes: [
-              { shaderLocation: 1, offset: 0, format: 'float32x4' },
-              { shaderLocation: 2, offset: 16, format: 'float32x4' },
+              { shaderLocation: 1, offset: 0, format: "float32x4" },
+              { shaderLocation: 2, offset: 16, format: "float32x4" },
             ],
           },
         ],
       },
       fragment: {
         module,
-        entryPoint: 'fs',
+        entryPoint: "fs",
         targets: [gpuAlphaBlendColorTarget(this.shell.info.format)],
       },
-      primitive: { topology: 'triangle-strip' },
-      depthStencil: gpuWorldDepthStencil('read', 'always'),
+      primitive: { topology: "triangle-strip" },
+      depthStencil: gpuWorldDepthStencil("read", "always"),
     });
   }
 
   upload(instances: CampaignSelectionInstance[]) {
     this.count = instances.length;
-    this.garrisonedArmyCount = instances.filter((inst) => inst.kind === 'garrisoned-army').length;
+    this.garrisonedArmyCount = instances.filter((inst) => inst.kind === "garrisoned-army").length;
     this.maxRadius = instances.reduce((max, inst) => Math.max(max, inst.radius), 0);
     if (instances.length > this.capacity) {
       this.capacity = Math.max(instances.length, this.capacity * 2, 8);
       this.instanceBuffer = this.shell.device.createBuffer({
-        label: 'campaign-selection-instances',
+        label: "campaign-selection-instances",
         size: this.capacity * 8 * 4,
         usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
       });
@@ -136,7 +147,7 @@ export class CampaignSelectionPass {
       data[o] = inst.x;
       data[o + 1] = inst.y;
       data[o + 2] = inst.radius;
-      data[o + 3] = inst.kind === 'city' ? 0 : inst.kind === 'garrisoned-army' ? 2 : 1;
+      data[o + 3] = inst.kind === "city" ? 0 : inst.kind === "garrisoned-army" ? 2 : 1;
       data.set(inst.color, o + 4);
       data[o + 7] = inst.z;
     }

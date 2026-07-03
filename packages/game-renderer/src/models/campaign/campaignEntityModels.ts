@@ -59,6 +59,10 @@ export function buildCityMesh(): MeshData {
 export function buildCampaignStandardMesh(): MeshData {
   const builder = new MeshBuilder();
   const timber: Rgb = [0.43, 0.30, 0.17];
+  // Only a small pole-base shadow: the skinned figures ground themselves with the
+  // shared soldier shadow decal, so this mesh carries no wide block footprint.
+  builder.shadow(0.62, 0.42, 0.16, [0.06, -0.14]);
+  builder.contactShadow([0.06, -0.02], [0.40, 0.30], 0.09, [0.14, -0.20]);
   builder.box([0, 0, 2.38], [0.16, 0.16, 4.76], timber, 1);
   builder.box([0, 0, 4.84], [0.28, 0.28, 0.22], [0.72, 0.57, 0.28], 1);
   builder.box([0.08, -0.11, 3.80], [0.12, 0.12, 1.20], timber, 1);

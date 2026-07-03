@@ -1213,9 +1213,13 @@ function pushRoadJunctionCaps(out: number[], data: CampaignMapInputData, roads: 
   for (const [id, count] of degree) {
     const node = byId.get(id);
     if (!node || count < 3) continue;
-    const cityRadius = node.kind === 'city' ? (node.tier >= 3 ? 4.70 : 3.35) : 1.15;
+    // City plazas used to be huge (tier-3 radius 4.7 + a 1.42x dark under-disc)
+    // and read as an ugly shadow ring around capitals like Rome (feedback #9).
+    // Keep the pavement just wide enough to seat the meeting roads, and keep the
+    // dark rim as a hairline, not a halo.
+    const cityRadius = node.kind === 'city' ? (node.tier >= 3 ? 2.1 : 1.7) : 1.15;
     const surfaceRadius = cityRadius * roadScale;
-    pushRoadDisc(out, node.pos, surfaceRadius * 1.42, 0.19 * roadScale, [0.30, 0.27, 0.23, 0.74], 0, style.heightAt);
+    pushRoadDisc(out, node.pos, surfaceRadius * 1.12, 0.19 * roadScale, [0.30, 0.27, 0.23, 0.45], 0, style.heightAt);
     pushRoadDisc(out, node.pos, surfaceRadius, 0.34 * roadScale, [0.77, 0.75, 0.69, 0.98], 1, style.heightAt);
     caps++;
   }

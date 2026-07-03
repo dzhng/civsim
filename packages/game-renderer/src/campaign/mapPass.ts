@@ -1,5 +1,5 @@
 import type { CameraSnapshot } from '../../../renderer-core/src/cameraUniform';
-import { worldToScreen } from '../../../renderer-core/src/cameraUniform';
+import { screenToWorld, worldToScreen } from '../../../renderer-core/src/cameraUniform';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 import { gpuAlphaBlendColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 import { CAMPAIGN_SEA_PALETTE_WGSL } from '../water/waterPalette';
@@ -143,6 +143,21 @@ export interface CampaignLabel {
   screenAnchorY?: 'center' | 'top' | 'bottom';
   factionRadiusKm?: number;
   factionMinor?: boolean;
+  /** Land-aware anchor choice (B2/B8): preference-ordered alternatives for
+   * the label's screen offset+anchor. The label pass scores each candidate's
+   * measured ink rect against the render mask through the shared placement
+   * scorer (isBadAt = water) and keeps the winner. The first candidate must
+   * mirror the screenOffset/screenAnchor fields — it is the tiebreak, so
+   * labels with a clean default never move. */
+  placementCandidates?: CampaignLabelAnchor[];
+}
+
+/** One candidate screen placement for an anchored (city) label, CSS px. */
+export interface CampaignLabelAnchor {
+  screenOffsetX: number;
+  screenOffsetY: number;
+  screenAnchorX: 'center' | 'left' | 'right';
+  screenAnchorY: 'center' | 'top' | 'bottom';
 }
 
 const ICON_PATHS = {
@@ -546,6 +561,7 @@ export interface CampaignLabelPassStats {
   visibleLabels: number;
   visibleLabelNames: string[];
   visibleSeaLabelRects: CampaignLabelDebugRect[];
+  visibleCityLabelRects: CampaignLabelDebugRect[];
   collisionCulls: number;
   collisionCulledLabels: string[];
   atlasWidth: number;
@@ -554,12 +570,22 @@ export interface CampaignLabelPassStats {
   layer: 'raw-gpu-glyph-atlas';
 }
 
+/** The land truth city-label anchor choice samples: the full-res render mask
+ * (TerrainField.renderLandAt) — the same owner the sea-label fitter scores
+ * against. Absent it, labels keep their first (default) candidate. */
+export interface CampaignLabelPlacementStyle {
+  renderSurfaceAt: (x: number, y: number) => 'land' | 'water';
+}
+
 export interface CampaignLabelDebugRect {
   text: string;
   kind: CampaignLabel['kind'];
   opacity: number;
   box: { x: number; y: number; w: number; h: number };
   corners: [number, number][];
+  /** Transparent halo margin inside the box, CSS px per side. Deflating the
+   * box by this gives the ink rect (icon + glyphs) — the visible label. */
+  padPx: number;
 }
 
 /** The map pass's own drawn-coast contract: the campaign-bg raster (what the
@@ -1091,6 +1117,7 @@ export class CampaignLabelPass {
     visibleLabels: 0,
     visibleLabelNames: [],
     visibleSeaLabelRects: [],
+    visibleCityLabelRects: [],
     collisionCulls: 0,
     collisionCulledLabels: [],
     atlasWidth: 1,
@@ -1153,7 +1180,11 @@ export class CampaignLabelPass {
     });
   }
 
-  upload(labels: CampaignLabel[], camera: Omit<CameraSnapshot, 'width' | 'height'>) {
+  upload(
+    labels: CampaignLabel[],
+    camera: Omit<CameraSnapshot, 'width' | 'height'>,
+    placement?: CampaignLabelPlacementStyle,
+  ) {
     const stats = this.shell.stats();
     const dpr = Math.max(1, stats.dpr || window.devicePixelRatio || 1);
     const snapshot: CameraSnapshot = { ...camera, width: stats.width, height: stats.height };
@@ -1166,6 +1197,7 @@ export class CampaignLabelPass {
         visibleLabels: 0,
         visibleLabelNames: [],
         visibleSeaLabelRects: [],
+        visibleCityLabelRects: [],
         collisionCulls: 0,
         collisionCulledLabels: [],
         atlasWidth: 1,
@@ -1179,7 +1211,7 @@ export class CampaignLabelPass {
     const atlasKey = labelAtlasKey(visible, dpr, labels.length);
     if (atlasKey === this.atlasKey) return this.statsValue;
     this.atlasKey = atlasKey;
-    const atlas = buildLabelAtlas(visible, dpr);
+    const atlas = buildLabelAtlas(visible, dpr, snapshot, placement);
     this.ensureTexture(atlas.width, atlas.height);
     this.shell.device.queue.writeTexture(
       { texture: this.texture },
@@ -1198,11 +1230,13 @@ export class CampaignLabelPass {
       });
     }
     this.shell.device.queue.writeBuffer(this.vertexBuffer, 0, vertices);
+    const debugRects = labelDebugRects(atlas.entries, dpr);
     this.statsValue = {
       labels: labels.length,
       visibleLabels: atlas.entries.length,
       visibleLabelNames: atlas.entries.slice(0, 128).map((entry) => `${entry.label.kind}:${labelText(entry.label)}`),
-      visibleSeaLabelRects: labelDebugRects(atlas.entries, dpr).filter((entry) => entry.kind === 'sea'),
+      visibleSeaLabelRects: debugRects.filter((entry) => entry.kind === 'sea'),
+      visibleCityLabelRects: debugRects.filter((entry) => entry.kind === 'city'),
       collisionCulls: atlas.collisionCulls,
       collisionCulledLabels: atlas.collisionCulledLabels,
       atlasWidth: atlas.width,
@@ -1834,6 +1868,7 @@ interface VisibleCampaignLabel {
 interface AtlasEntry extends VisibleCampaignLabel {
   width: number;
   height: number;
+  padding: number;
   u0: number;
   v0: number;
   u1: number;
@@ -1922,6 +1957,9 @@ function labelAtlasKey(labels: VisibleCampaignLabel[], dpr: number, totalLabels:
         entry.offsetY.toFixed(2),
         label.screenAnchorX ?? 'center',
         label.screenAnchorY ?? 'center',
+        (label.placementCandidates ?? [])
+          .map((c) => `${c.screenOffsetX.toFixed(1)},${c.screenOffsetY.toFixed(1)},${c.screenAnchorX},${c.screenAnchorY}`)
+          .join(';'),
         entry.opacity.toFixed(3),
         entry.screenX.toFixed(1),
         entry.screenY.toFixed(1),
@@ -1930,7 +1968,12 @@ function labelAtlasKey(labels: VisibleCampaignLabel[], dpr: number, totalLabels:
   ].join('|');
 }
 
-function buildLabelAtlas(labels: VisibleCampaignLabel[], dpr: number) {
+function buildLabelAtlas(
+  labels: VisibleCampaignLabel[],
+  dpr: number,
+  camera: CameraSnapshot,
+  placement?: CampaignLabelPlacementStyle,
+) {
   const measure = document.createElement('canvas').getContext('2d')!;
   const measured = labels.map((entry): MeasuredCampaignLabel => {
     const style = labelStyle(entry.label, dpr);
@@ -1957,7 +2000,8 @@ function buildLabelAtlas(labels: VisibleCampaignLabel[], dpr: number) {
       height: Math.max(1, Math.ceil((seaPath?.height ?? style.size * (subText ? 2.42 : 1.55)) + style.padding * 2)),
     };
   });
-  const collision = cullOverlappingLabels(measured, dpr);
+  placeAnchoredLabels(measured, camera, dpr, placement);
+  const collision = cullOverlappingLabels(measured);
   const layoutEntries = collision.entries;
   const atlasWidth = measured.some((entry) => entry.width > 1024) ? 2048 : 1024;
   let x = 0;
@@ -2046,6 +2090,7 @@ function buildLabelAtlas(labels: VisibleCampaignLabel[], dpr: number) {
       opacity: entry.opacity,
       width: entry.width,
       height: entry.height,
+      padding: entry.style.padding,
       u0: entry.x / atlasWidth,
       v0: entry.y / atlasHeight,
       u1: (entry.x + entry.width) / atlasWidth,
@@ -2062,17 +2107,119 @@ function buildLabelAtlas(labels: VisibleCampaignLabel[], dpr: number) {
   };
 }
 
-function cullOverlappingLabels(labels: MeasuredCampaignLabel[], dpr: number) {
-  const composedArmyBounds = labels
-    .filter((entry) => entry.label.kind === 'army' && Boolean(entry.label.subText))
-    .map((entry) => ({ group: entry.label.collisionGroup, bounds: labelBounds(entry, dpr) }));
-  if (composedArmyBounds.length === 0) return { entries: labels, culledLabels: [] };
+// Sample step over an anchored label's drawn rect, CSS px. Fine enough that a
+// city name a few glyphs long still gets several samples per glyph.
+const ANCHORED_LABEL_SAMPLE_STEP_PX = 10;
+
+/** City-label anchor choice (B2/B8): for each label carrying placement
+ * candidates, score every candidate's measured ink rect against the render
+ * mask through the one placement scorer (isBadAt = water) and keep the
+ * winner. Candidate order is the preference order — the first (the emitter's
+ * default) wins outright when fully on land, so inland labels never churn.
+ * Runs before the collision cull so occupancy sees final geometry. */
+function placeAnchoredLabels(
+  entries: MeasuredCampaignLabel[],
+  camera: CameraSnapshot,
+  dpr: number,
+  placement: CampaignLabelPlacementStyle | undefined,
+) {
+  if (!placement) return;
+  for (const entry of entries) {
+    const candidates = entry.label.placementCandidates;
+    if (!candidates || candidates.length < 2) continue;
+    const verdict = bestPlacement(
+      candidates,
+      (candidate) => anchoredLabelWorldSamples(entry, candidate, camera, dpr),
+      (x, y) => placement.renderSurfaceAt(x, y) === 'water',
+    );
+    if (!verdict) continue;
+    entry.offsetX = verdict.candidate.screenOffsetX * dpr;
+    entry.offsetY = verdict.candidate.screenOffsetY * dpr;
+    entry.label = {
+      ...entry.label,
+      screenAnchorX: verdict.candidate.screenAnchorX,
+      screenAnchorY: verdict.candidate.screenAnchorY,
+    };
+  }
+}
+
+/** Sample grid over the candidate's ink rect — the atlas rect deflated by its
+ * halo padding, i.e. the visible icon + glyph band (device px, axis-aligned —
+ * anchored labels never rotate) — mapped to ground-plane world points through
+ * the real camera so the scored footprint is exactly the visible one. The
+ * padding stays out of the score: it is transparent margin, and counting it
+ * would push coastal labels off their cities for water nobody sees. */
+function anchoredLabelWorldSamples(
+  entry: MeasuredCampaignLabel,
+  candidate: CampaignLabelAnchor,
+  camera: CameraSnapshot,
+  dpr: number,
+): [number, number][] {
+  const centerX =
+    entry.screenX +
+    anchorCenterOffsetX(candidate.screenAnchorX, candidate.screenOffsetX * dpr, entry.width);
+  const centerY =
+    entry.screenY +
+    anchorCenterOffsetY(candidate.screenAnchorY, candidate.screenOffsetY * dpr, entry.height);
+  const inkWidth = Math.max(1, entry.width - entry.style.padding * 2);
+  const inkHeight = Math.max(1, entry.height - entry.style.padding * 2);
+  const stepPx = ANCHORED_LABEL_SAMPLE_STEP_PX * dpr;
+  const cols = Math.max(6, Math.ceil(inkWidth / stepPx));
+  const rows = Math.max(3, Math.ceil(inkHeight / stepPx));
+  const samples: [number, number][] = [];
+  for (let iy = 0; iy < rows; iy++) {
+    const sy = centerY + inkHeight * ((iy + 0.5) / rows - 0.5);
+    for (let ix = 0; ix < cols; ix++) {
+      const sx = centerX + inkWidth * ((ix + 0.5) / cols - 0.5);
+      samples.push(screenToWorld(camera, sx, sy));
+    }
+  }
+  return samples;
+}
+
+/** Screen offset from the label's anchor point to its rect center: a 'left'
+ * X-anchor means the rect's left edge sits at anchor+offset, so the center is
+ * half a width further, and symmetrically for the other anchors. */
+function anchorCenterOffsetX(
+  anchor: CampaignLabel['screenAnchorX'],
+  offsetX: number,
+  width: number,
+) {
+  if (anchor === 'left') return offsetX + width * 0.5;
+  if (anchor === 'right') return offsetX - width * 0.5;
+  return offsetX;
+}
+
+function anchorCenterOffsetY(
+  anchor: CampaignLabel['screenAnchorY'],
+  offsetY: number,
+  height: number,
+) {
+  if (anchor === 'top') return offsetY + height * 0.5;
+  if (anchor === 'bottom') return offsetY - height * 0.5;
+  return offsetY;
+}
+
+/** A composed army label (garrison + subText city name) replaces its city's
+ * plain label outright: the group match IS the redundancy, not the rects —
+ * an anchor-placed city label that dodges water must not resurrect beside a
+ * composed label already carrying its name. (Cross-entity collision proper is
+ * slice 09's occupancy authority, not this cull.) */
+function cullOverlappingLabels(labels: MeasuredCampaignLabel[]) {
+  const composedArmyGroups = new Set(
+    labels
+      .filter((entry) => entry.label.kind === 'army' && Boolean(entry.label.subText))
+      .map((entry) => entry.label.collisionGroup)
+      .filter((group): group is string => group !== undefined),
+  );
+  if (composedArmyGroups.size === 0) return { entries: labels, culledLabels: [] };
   const entries: MeasuredCampaignLabel[] = [];
   const culledLabels: string[] = [];
   for (const entry of labels) {
-    const cullsAgainstArmyCityLabel = entry.label.kind === 'city'
-      && entry.label.collisionGroup !== undefined
-      && composedArmyBounds.some((army) => army.group === entry.label.collisionGroup && overlaps(army.bounds, labelBounds(entry, dpr)));
+    const cullsAgainstArmyCityLabel =
+      entry.label.kind === 'city' &&
+      entry.label.collisionGroup !== undefined &&
+      composedArmyGroups.has(entry.label.collisionGroup);
     if (cullsAgainstArmyCityLabel) {
       culledLabels.push(`${entry.label.kind}:${labelText(entry.label)}`);
       continue;
@@ -2080,43 +2227,6 @@ function cullOverlappingLabels(labels: MeasuredCampaignLabel[], dpr: number) {
     entries.push(entry);
   }
   return { entries, culledLabels };
-}
-
-interface LabelBounds {
-  x0: number;
-  y0: number;
-  x1: number;
-  y1: number;
-}
-
-function labelBounds(entry: MeasuredCampaignLabel, dpr: number): LabelBounds {
-  const width = entry.width;
-  const height = entry.height;
-  const anchorOffsetX =
-    entry.label.screenAnchorX === 'left'
-      ? entry.offsetX + width * 0.5
-      : entry.label.screenAnchorX === 'right'
-        ? entry.offsetX - width * 0.5
-        : entry.offsetX;
-  const anchorOffsetY =
-    entry.label.screenAnchorY === 'top'
-      ? entry.offsetY + height * 0.5
-      : entry.label.screenAnchorY === 'bottom'
-        ? entry.offsetY - height * 0.5
-        : entry.offsetY;
-  const centerX = entry.screenX + anchorOffsetX;
-  const centerY = entry.screenY + anchorOffsetY;
-  const pad = Math.max(4 * dpr, entry.style.size * 0.16);
-  return {
-    x0: centerX - width * 0.5 - pad,
-    y0: centerY - height * 0.5 - pad,
-    x1: centerX + width * 0.5 + pad,
-    y1: centerY + height * 0.5 + pad,
-  };
-}
-
-function overlaps(a: LabelBounds, b: LabelBounds) {
-  return a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0;
 }
 
 function labelDebugRects(entries: AtlasEntry[], dpr: number): CampaignLabelDebugRect[] {
@@ -2127,20 +2237,8 @@ function labelDebugRects(entries: AtlasEntry[], dpr: number): CampaignLabelDebug
     const angle = label.angle ?? 0;
     const c = Math.cos(angle);
     const s = Math.sin(angle);
-    const anchorOffsetX =
-      label.screenAnchorX === 'left'
-        ? entry.offsetX + width * 0.5
-        : label.screenAnchorX === 'right'
-          ? entry.offsetX - width * 0.5
-          : entry.offsetX;
-    const anchorOffsetY =
-      label.screenAnchorY === 'top'
-        ? entry.offsetY + height * 0.5
-        : label.screenAnchorY === 'bottom'
-          ? entry.offsetY - height * 0.5
-          : entry.offsetY;
-    const centerX = entry.screenX + anchorOffsetX;
-    const centerY = entry.screenY + anchorOffsetY;
+    const centerX = entry.screenX + anchorCenterOffsetX(label.screenAnchorX, entry.offsetX, width);
+    const centerY = entry.screenY + anchorCenterOffsetY(label.screenAnchorY, entry.offsetY, height);
     const corners = [
       [-width * 0.5, -height * 0.5],
       [width * 0.5, -height * 0.5],
@@ -2162,6 +2260,7 @@ function labelDebugRects(entries: AtlasEntry[], dpr: number): CampaignLabelDebug
       opacity: roundPx(entry.opacity),
       box: { x: roundPx(x0), y: roundPx(y0), w: roundPx(x1 - x0), h: roundPx(y1 - y0) },
       corners,
+      padPx: roundPx(entry.padding / dpr),
     };
   });
 }
@@ -2180,18 +2279,8 @@ function buildLabelVertices(entries: AtlasEntry[]) {
     const angle = label.angle ?? 0;
     const c = Math.cos(angle);
     const s = Math.sin(angle);
-    const anchorOffsetX =
-      label.screenAnchorX === 'left'
-        ? entry.offsetX + width * 0.5
-        : label.screenAnchorX === 'right'
-          ? entry.offsetX - width * 0.5
-          : entry.offsetX;
-    const anchorOffsetY =
-      label.screenAnchorY === 'top'
-        ? entry.offsetY + height * 0.5
-        : label.screenAnchorY === 'bottom'
-          ? entry.offsetY - height * 0.5
-          : entry.offsetY;
+    const anchorOffsetX = anchorCenterOffsetX(label.screenAnchorX, entry.offsetX, width);
+    const anchorOffsetY = anchorCenterOffsetY(label.screenAnchorY, entry.offsetY, height);
     const corners = [
       [-width * 0.5, -height * 0.5, entry.u0, entry.v0],
       [width * 0.5, -height * 0.5, entry.u1, entry.v0],

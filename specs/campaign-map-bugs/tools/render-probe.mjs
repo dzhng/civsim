@@ -111,9 +111,12 @@ async function measureFraming(page, map, framing) {
   const stats = await page.evaluate(() => window.__campaignGpuStats);
   assertTelemetry(stats, framing.name);
   const markerRadiusPx = maxCityMarkerRadius(stats);
-  const [offshoreCities, seaLabels, cards] = await Promise.all([
+  const [offshoreCities, seaLabels, cityLabels, cards] = await Promise.all([
     measureCities(page, map, stats),
-    measureSeaLabels(page, stats),
+    measureLabelRects(page, stats.visibleSeaLabelRects),
+    // City rects deflate to the ink band (icon + glyphs): the box padding is
+    // transparent halo margin, and the B2/B8 defect is visible ink on water.
+    measureLabelRects(page, stats.visibleCityLabelRects.map(deflateToInkRect)),
     measureCards(page),
   ]);
   return {
@@ -125,6 +128,7 @@ async function measureFraming(page, map, framing) {
     markerRadiusPx,
     offshoreCities,
     seaLabels,
+    cityLabels,
     cards,
   };
 }
@@ -134,6 +138,7 @@ function assertTelemetry(stats, framingName) {
   if (!stats) missing.push("window.__campaignGpuStats");
   if (!stats?.cityMarkerRadiiPxByTier) missing.push("cityMarkerRadiiPxByTier");
   if (!Array.isArray(stats?.visibleSeaLabelRects)) missing.push("visibleSeaLabelRects");
+  if (!Array.isArray(stats?.visibleCityLabelRects)) missing.push("visibleCityLabelRects");
   if (missing.length > 0) {
     throw new Error(`${framingName}: missing renderer telemetry: ${missing.join(", ")}`);
   }
@@ -225,8 +230,32 @@ async function measureCities(page, map, stats) {
   return result.sort((a, b) => a.name.localeCompare(b.name) || a.index - b.index);
 }
 
-async function measureSeaLabels(page, stats) {
-  const labels = stats.visibleSeaLabelRects
+// City labels never rotate, so the ink rect is the axis-aligned box deflated
+// by the exported per-side halo padding.
+function deflateToInkRect(label) {
+  const pad = label.padPx ?? 0;
+  const box = {
+    x: label.box.x + pad,
+    y: label.box.y + pad,
+    w: Math.max(1, label.box.w - pad * 2),
+    h: Math.max(1, label.box.h - pad * 2),
+  };
+  return {
+    ...label,
+    box,
+    corners: [
+      [box.x, box.y],
+      [box.x + box.w, box.y],
+      [box.x + box.w, box.y + box.h],
+      [box.x, box.y + box.h],
+    ],
+  };
+}
+
+// Post-layout, post-collision drawn label rects (sea or city icon+name boxes)
+// sampled through the render mask to a per-rect landFraction.
+async function measureLabelRects(page, rects) {
+  const labels = rects
     .map((label) => ({
       text: label.text,
       box: label.box,

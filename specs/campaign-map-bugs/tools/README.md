@@ -36,6 +36,9 @@ What it measures:
   share. Cities with `landFraction == 1` and a land center are omitted.
 - Sea labels: the actual post-layout, post-collision sea-label rects exported
   by the renderer are sampled through `renderLandAt`.
+- City labels: the drawn city icon+name rects exported by the renderer
+  (`visibleCityLabelRects`), deflated to the ink band (the exported `padPx`
+  halo margin is transparent), sampled through `renderLandAt` per framing.
 - City cards: visible DOM city card rect corners plus center are converted
   through `screenToWorld` and sampled with `renderLandAt`.
 - Scenery: the renderer's full static candidate set
@@ -61,7 +64,14 @@ Green meanings by slice:
   at either framing, except named port exemptions; every city center stays
   land with the re-baked margin.
 - Slice 03: sea labels are at least `0.95` water, so `landFraction <= 0.05`.
-- Slice 04: city icon+label rects mostly-land (extend the probe first).
+- Slice 04: every visible city icon+label ink rect is mostly-land
+  (`landFraction >= 0.95`) at both framings, and the visible-label counts stay
+  at the pre-placement baseline (whole-map 10, regional 21 — no collision
+  bloodbath). One named exemption: CORINTHUS at the whole-map framing holds
+  `>= 0.80` — its label box spans ~270 km at that zoom and a measured offset
+  sweep found no `>= 0.95` placement within 100 px of the isthmus marker
+  (first fully-clean spot is ~285 km away, which would be the worse
+  label-detached class).
 - Slice 06: `scenery.onWaterTotal` and `scenery.footprintOverWaterTotal` are
   both 0, and `scenery.total` stays within 10% of the pre-gate baseline
   10,791 (no mass extinction).

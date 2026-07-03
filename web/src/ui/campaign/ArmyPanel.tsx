@@ -3,10 +3,8 @@ import { prettyClass, type ArmyRosterRow } from "../../campaign/panels";
 import type { ArmyView } from "../../campaign/views";
 import { UiIcon } from "./UiIcon";
 
-// S5b: the selected-army panel (#cmp-army) as React — ported 1:1 from
-// armyPanelHtml so the slate #campaign-ui CSS still styles it. The split
-// selection (which roster entries to peel off) is React state; the rest is
-// data-in / action-out from CampaignScene.
+// Selected-army panel. Split selection is local React state; campaign commands
+// still flow out through the same callbacks.
 export interface ArmyPanelProps {
   armyId: number;
   roster: ArmyRosterRow[];
@@ -54,7 +52,7 @@ export function ArmyPanel(p: ArmyPanelProps) {
       <div className="cmp-roster">
         {p.roster.map((r, i) =>
           r.count > 0 ? (
-            <div key={i}>
+            <div className="cmp-roster-row" key={i}>
               <label>
                 <input
                   type="checkbox"
@@ -68,7 +66,7 @@ export function ArmyPanel(p: ArmyPanelProps) {
           ) : null,
         )}
       </div>
-      <div style={{ marginTop: 6 }}>
+      <div>
         <label>
           <input
             type="checkbox"
@@ -78,7 +76,8 @@ export function ArmyPanel(p: ArmyPanelProps) {
           />{" "}
           <UiIcon name="replenish" /> Auto replenish
         </label>
-        <br />
+      </div>
+      <div className="cmp-army-actions">
         <button id="cmp-halt" onClick={p.onHalt}>
           <UiIcon name="stop" /> Halt
         </button>
@@ -87,6 +86,7 @@ export function ArmyPanel(p: ArmyPanelProps) {
         </button>
         {showAmbush ? (
           <button id="cmp-ambush" disabled={stance! >= 2} onClick={p.onAmbush}>
+            <UiIcon name="flag" />
             {ambushLabel}
           </button>
         ) : null}

@@ -1940,7 +1940,10 @@ async function routeCampaignMap(ctx: LabContext) {
   const labelPass = new CampaignLabelPass(shell);
   const drawData = buildCampaignMapDrawData(data, {
     roadScale: 0.78,
-    roadSurfaceAt: (x, y) => (surface.landAt(x, y, 10.5) ? "land" : "water"),
+    // Same sampler split as production (web/src/campaign/renderer.ts): the
+    // coarse area statistic fits sea labels, the full-res mask culls roads.
+    surfaceAt: (x, y) => (surface.landAt(x, y, 10.5) ? "land" : "water"),
+    roadSurfaceAt: (x, y) => (field.renderLandAt(x, y) ? "land" : "water"),
     heightAt: surface.heightAt,
   });
   lines.upload(drawData.lineVertices);

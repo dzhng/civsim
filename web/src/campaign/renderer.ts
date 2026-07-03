@@ -17,6 +17,7 @@ import {
   CampaignWorldLinePass,
   drawnRoadRuns,
   type CampaignLabel,
+  type CampaignLabelAnchor,
   type CampaignMapStats,
   type CampaignMarker,
 } from "../../../packages/game-renderer/src/campaign/mapPass";
@@ -111,6 +112,7 @@ export class CampaignRenderer {
     visibleLabels: 0,
     visibleLabelNames: [],
     visibleSeaLabelRects: [],
+    visibleCityLabelRects: [],
     collisionCulls: 0,
     collisionCulledLabels: [],
     atlasWidth: 0,
@@ -355,6 +357,9 @@ export class CampaignRenderer {
     this.labelStats = this.labels.upload(
       staticLabels.concat(cityLabels, armyLabels, factionLabels),
       this.currentCamera,
+      // City-label anchor choice samples the same full-res land truth the
+      // sea-label fitter fits against (slice 00's render mask owner).
+      { renderSurfaceAt: (x, y) => (this.field.renderLandAt(x, y) ? "land" : "water") },
     );
     const uploadEnd = performance.now();
     const drawStart = performance.now();
@@ -537,6 +542,7 @@ export class CampaignRenderer {
       visibleLabels: this.labelStats.visibleLabels,
       visibleLabelNames: this.labelStats.visibleLabelNames,
       visibleSeaLabelRects: this.labelStats.visibleSeaLabelRects,
+      visibleCityLabelRects: this.labelStats.visibleCityLabelRects,
       labelCollisionCulls: this.labelStats.collisionCulls,
       labelCollisionCulledLabels: this.labelStats.collisionCulledLabels,
       ...this.lastLabelComposition,
@@ -978,6 +984,19 @@ function campaignCityLabels(
     const allegiance = statusOf(opts.factionStatus, owner);
     const baseSize = Math.min(15, 9.5 + opts.cam.scale) * (node.tier >= 3 ? 1.15 : 1);
     const overviewMarkerLabel = opts.cam.scale < 0.6;
+    const edgeX = horizontalEdgeOffset(edge.x(node.pos[0]));
+    const edgeY = verticalEdgeOffset(edge.y(node.pos[1]));
+    const reliefPx = cityReliefRisePx(field, opts, node.pos, cam);
+    // Anchor placement is land-aware (B2/B8): the emitter only authors the
+    // preference-ordered candidates; the label pass scores their measured
+    // rects against the render mask and keeps the first mostly-land one.
+    const anchors = overviewMarkerLabel
+      ? overviewCityLabelAnchors(node.tier, edgeX, edgeY)
+      : closeupCityLabelAnchors(
+          edgeX,
+          cityLabelOffset(opts, baseSize, reliefPx) + edgeY,
+          -(reliefPx + baseSize * 1.9) + edgeY,
+        );
     labels.push({
       text: node.name.toUpperCase(),
       x: node.pos[0],
@@ -990,15 +1009,120 @@ function campaignCityLabels(
       rightIcon: allegiance === Allegiance.Foe ? "sword" : undefined,
       rightIconColor: allegiance === Allegiance.Foe ? [0.83, 0.2, 0.15] : undefined,
       collisionGroup: cityCollisionGroup(index),
-      screenOffsetX: cityLabelOffsetX(opts, node.tier) + horizontalEdgeOffset(edge.x(node.pos[0])),
-      screenOffsetY:
-        cityLabelOffset(opts, baseSize, node.tier, cityReliefRisePx(field, opts, node.pos, cam)) +
-        verticalEdgeOffset(edge.y(node.pos[1])),
-      screenAnchorX: overviewMarkerLabel ? "left" : "center",
-      screenAnchorY: overviewMarkerLabel ? "top" : "center",
+      ...anchors[0],
+      placementCandidates: anchors,
     });
   });
   return labels;
+}
+
+// Marker-clearance rings for overview anchor candidates, in units of the
+// marker's outer-edge clearance. Ring 1 is the classic attached look; the
+// outer rings only win when no ring-1 placement is clean (a whole-map label
+// box spans hundreds of km — isthmus cities like Corinthus have no clean
+// adjacent spot), trading a little detachment for ink on land.
+const OVERVIEW_LABEL_RING_SCALES = [1, 2.2, 3.6];
+
+/** Overview (marker-attached) city-label anchor candidates: the classic
+ * below-right of the square marker first (the tiebreak — inland labels never
+ * move), then its mirrors around the marker, ring by ring. Edge offsets shift
+ * every candidate alike so map-border labels stay inside the frame. */
+function overviewCityLabelAnchors(
+  tier: number,
+  edgeX: number,
+  edgeY: number,
+): CampaignLabelAnchor[] {
+  const anchors: CampaignLabelAnchor[] = [];
+  for (const ring of OVERVIEW_LABEL_RING_SCALES) {
+    const d = cityMarkerOuterEdgePlusSidePx(tier) * ring;
+    anchors.push(
+      {
+        screenOffsetX: d + edgeX,
+        screenOffsetY: d + edgeY,
+        screenAnchorX: "left",
+        screenAnchorY: "top",
+      },
+      {
+        screenOffsetX: -d + edgeX,
+        screenOffsetY: d + edgeY,
+        screenAnchorX: "right",
+        screenAnchorY: "top",
+      },
+      {
+        screenOffsetX: d + edgeX,
+        screenOffsetY: -d + edgeY,
+        screenAnchorX: "left",
+        screenAnchorY: "bottom",
+      },
+      {
+        screenOffsetX: -d + edgeX,
+        screenOffsetY: -d + edgeY,
+        screenAnchorX: "right",
+        screenAnchorY: "bottom",
+      },
+      {
+        screenOffsetX: d + edgeX,
+        screenOffsetY: edgeY,
+        screenAnchorX: "left",
+        screenAnchorY: "center",
+      },
+      {
+        screenOffsetX: -d + edgeX,
+        screenOffsetY: edgeY,
+        screenAnchorX: "right",
+        screenAnchorY: "center",
+      },
+      {
+        screenOffsetX: edgeX,
+        screenOffsetY: d + edgeY,
+        screenAnchorX: "center",
+        screenAnchorY: "top",
+      },
+      {
+        screenOffsetX: edgeX,
+        screenOffsetY: -d + edgeY,
+        screenAnchorX: "center",
+        screenAnchorY: "bottom",
+      },
+    );
+  }
+  return anchors;
+}
+
+// A slid closeup label keeps this much overlap with the marker column so it
+// still reads as attached to its city rather than floating beside it.
+const CLOSEUP_LABEL_MARKER_TIE_PX = 14;
+
+/** Closeup city labels sit centered under the model; when a long coastal
+ * name's centered box runs into the sea (B8), slide it sideways at the same
+ * relief-aware height so the seaward edge pulls back ashore. Above the model
+ * (centered, then slid) is the last resort. */
+function closeupCityLabelAnchors(
+  edgeX: number,
+  belowY: number,
+  aboveY: number,
+): CampaignLabelAnchor[] {
+  const slid = (offsetY: number): CampaignLabelAnchor[] => [
+    {
+      screenOffsetX: edgeX,
+      screenOffsetY: offsetY,
+      screenAnchorX: "center",
+      screenAnchorY: "center",
+    },
+    {
+      screenOffsetX: edgeX + CLOSEUP_LABEL_MARKER_TIE_PX,
+      screenOffsetY: offsetY,
+      screenAnchorX: "right",
+      screenAnchorY: "center",
+    },
+    {
+      screenOffsetX: edgeX - CLOSEUP_LABEL_MARKER_TIE_PX,
+      screenOffsetY: offsetY,
+      screenAnchorX: "left",
+      screenAnchorY: "center",
+    },
+  ];
+  return [...slid(belowY), ...slid(aboveY)];
 }
 
 function campaignArmyLabels(data: CampaignData, opts: DrawOptions): CampaignLabel[] {
@@ -1080,8 +1204,7 @@ function visibleCampaignArmies(opts: DrawOptions) {
   });
 }
 
-function cityLabelOffset(opts: DrawOptions, baseSize: number, tier: number, reliefPx: number) {
-  if (opts.cam.scale < 0.6) return cityMarkerOuterEdgePlusSidePx(tier);
+function cityLabelOffset(opts: DrawOptions, baseSize: number, reliefPx: number) {
   // The visible gap below the city model is reliefPx (model rides up over its
   // raised ground) plus this screen offset (label sits below the flat z=0
   // anchor). Target ~one label height of gap regardless of elevation, so the
@@ -1109,11 +1232,6 @@ function cityReliefRisePx(
   const [, ground] = world3dToScreen(cam, pos[0], pos[1], 0);
   const [, raised] = world3dToScreen(cam, pos[0], pos[1], h);
   return Math.max(0, (ground - raised) / dpr);
-}
-
-function cityLabelOffsetX(opts: DrawOptions, tier: number) {
-  if (opts.cam.scale >= 0.6) return 0;
-  return cityMarkerOuterEdgePlusSidePx(tier);
 }
 
 function cityMarkerRadiusPx(tier: number) {

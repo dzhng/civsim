@@ -127,3 +127,25 @@ on evidence and record.
 ## Firewalls
 - No per-city special cases; no DOM involvement; army/faction emitters
   untouched; a second placement implementation is a review-reject.
+
+## 04b — reversal (David's rule, 2026-07-04)
+Slice 04's land-aware anchoring overcorrected: to put a label on dry ground the
+scorer let it detach far from its marker (CORINTHUS across the gulf, TARRACO up
+the coast). David's rule: **a city label just hugs its marker, always — only
+sea/ocean names care about dry ground.** So the land-aware placement is gone for
+city labels:
+- `OVERVIEW_LABEL_RING_SCALES` = `[1]` (was `[1, 2.2, 3.6]`): the only candidates
+  are the eight ring-1 hug positions around the marker. Detachment is now
+  structurally impossible — a city label is at most one marker-clearance from its
+  square, or hidden.
+- `placeCityLabel` no longer scores candidates by water (the `bestPlacement`/
+  render-mask block, `CITY_LABEL_MAX_WATER_FRACTION`, and
+  `anchoredLabelWorldSamples` are deleted). It takes the first hug position whose
+  ink rect is unclaimed — so an unobstructed label keeps the classic attached
+  anchor and a blocked one dodges to another side of the SAME marker (slice-09
+  collision), never away.
+- A coastal name (CORINTHUS, TARRACO, ports) may now read partly over water —
+  that is correct: it sits on its city. The probe's `cityLabels[].landFraction`
+  becomes informational, not a gate (see tools/README.md).
+The B2/B8 originals stay fixed (labels no longer float in open sea away from
+their cities) — just by hugging instead of by scoring.

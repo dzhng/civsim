@@ -155,3 +155,12 @@ proceed on evidence and record the priority order chosen.
 - No z-index/CSS stacking hacks as a collision substitute; no label recoloring;
   cards report, never arbitrate privately; visibility changes only, never
   color.
+
+## 04b reconciliation (2026-07-04)
+The occupancy authority is unchanged, but its city-label water guard is now moot:
+04b removed dry-ground scoring from `placeCityLabel`, so occupancy picks the
+first non-colliding hug candidate (ring-1 only) with NO water comparison. City
+labels can no longer be pushed onto/away-from water by occupancy — they dodge to
+another side of the same marker or hide. `CITY_LABEL_MAX_WATER_FRACTION` and the
+`camera` param of `arbitrateLabelOccupancy` are gone. Card-vs-card, faction/army
+yield order, and the ordering pin are untouched.

@@ -24,7 +24,7 @@ function readJson<T>(path: string): T {
 test("render mask agrees with the baked campaign-bg probe", () => {
   const bgPath = resolve(process.cwd(), "public/data/campaign-bg.png");
   const bgRectPath = resolve(process.cwd(), "public/data/campaign-bg.json");
-  const probePath = resolve(repoRoot, "specs/campaign-map-bugs/assets/probe/mask-probe.json");
+  const probePath = resolve(repoRoot, "specs/done/campaign-map-bugs/assets/probe/mask-probe.json");
 
   const bg = PNG.sync.read(readFileSync(bgPath));
   const bgRect = readJson<BgWorldRect>(bgRectPath);

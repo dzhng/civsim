@@ -20,6 +20,10 @@ const MOUNTAIN: [u8; 3] = [142, 120, 96];
 const LAKE: [u8; 3] = [52, 84, 110];
 const RIVER: [u8; 3] = [60, 96, 124];
 
+pub fn is_land_rgb(c: [u8; 3]) -> bool {
+    matches!(c, LAND | MOUNTAIN | RIVER)
+}
+
 impl Raster {
     pub fn new(bb: BBox, px_per_km: f64) -> Raster {
         let w = ((bb.max[0] - bb.min[0]) * px_per_km).ceil() as usize;
@@ -51,6 +55,66 @@ impl Raster {
             let i = (y as usize * self.w + x as usize) * 4;
             self.px[i..i + 3].copy_from_slice(&c);
         }
+    }
+
+    pub fn cell_of(&self, p: [f64; 2]) -> Option<[usize; 2]> {
+        let sx = self.w as f64 / (self.bb.max[0] - self.bb.min[0]);
+        let sy = self.h as f64 / (self.bb.max[1] - self.bb.min[1]);
+        let q = [(p[0] - self.bb.min[0]) * sx, (self.bb.max[1] - p[1]) * sy];
+        if q[0] < 0.0 || q[1] < 0.0 || q[0] >= self.w as f64 || q[1] >= self.h as f64 {
+            return None;
+        }
+        Some([q[0].floor() as usize, q[1].floor() as usize])
+    }
+
+    pub fn cell_center(&self, x: usize, y: usize) -> [f64; 2] {
+        let cell_w = (self.bb.max[0] - self.bb.min[0]) / self.w as f64;
+        let cell_h = (self.bb.max[1] - self.bb.min[1]) / self.h as f64;
+        [
+            self.bb.min[0] + (x as f64 + 0.5) * cell_w,
+            self.bb.max[1] - (y as f64 + 0.5) * cell_h,
+        ]
+    }
+
+    pub fn is_land_cell(&self, x: usize, y: usize) -> bool {
+        if x >= self.w || y >= self.h {
+            return false;
+        }
+        let i = (y * self.w + x) * 4;
+        is_land_rgb([self.px[i], self.px[i + 1], self.px[i + 2]])
+    }
+
+    pub fn is_land_at(&self, p: [f64; 2]) -> bool {
+        self.cell_of(p)
+            .map(|[x, y]| self.is_land_cell(x, y))
+            .unwrap_or(false)
+    }
+
+    pub fn nearest_land_cell_center(&self, p: [f64; 2], max_radius_km: f64) -> Option<[f64; 2]> {
+        let [cx, cy] = self.cell_of(p)?;
+        let cell_km = ((self.bb.max[0] - self.bb.min[0]) / self.w as f64)
+            .max((self.bb.max[1] - self.bb.min[1]) / self.h as f64);
+        let r = (max_radius_km / cell_km).ceil() as isize;
+        let mut best: Option<([f64; 2], f64)> = None;
+        for dy in -r..=r {
+            let y = cy as isize + dy;
+            if y < 0 || y >= self.h as isize {
+                continue;
+            }
+            for dx in -r..=r {
+                let x = cx as isize + dx;
+                if x < 0 || x >= self.w as isize || !self.is_land_cell(x as usize, y as usize) {
+                    continue;
+                }
+                let q = self.cell_center(x as usize, y as usize);
+                let d2 = (p[0] - q[0]).powi(2) + (p[1] - q[1]).powi(2);
+                match best {
+                    Some((_, bd2)) if bd2 <= d2 => {}
+                    _ => best = Some((q, d2)),
+                }
+            }
+        }
+        best.map(|(q, _)| q)
     }
 
     /// Scanline even-odd fill of one polygon (with holes) in pixel space.

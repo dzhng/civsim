@@ -1,6 +1,7 @@
 //! Graph construction: ORBIS sites/routes + Natural Earth features → campaign map JSON.
 
 use crate::geo::{dist, point_along, point_in_poly, polyline_len, BBox, SegGrid};
+use crate::raster::Raster;
 use crate::sources::{OrbisRoute, OrbisSite, Poly, RouteKind};
 use serde::Serialize;
 use std::collections::{BTreeMap, BTreeSet};
@@ -89,21 +90,23 @@ fn simplify(pts: &[[f64; 2]], tol: f64) -> Vec<[f64; 2]> {
     }
 }
 
-pub struct BuildInput {
+pub struct BuildInput<'a> {
     pub sites: BTreeMap<u32, OrbisSite>,
     pub routes: Vec<OrbisRoute>,
     pub mountains: Vec<Poly>,
     pub rivers: Vec<Vec<[f64; 2]>>,
     pub overrides: serde_json::Value,
+    pub land_raster: &'a Raster,
 }
 
-pub fn build(input: BuildInput) -> MapJson {
+pub fn build(input: BuildInput<'_>) -> MapJson {
     let BuildInput {
         sites,
         routes,
         mountains,
         rivers,
         overrides,
+        land_raster,
     } = input;
 
     // World extent from sites.
@@ -126,7 +129,6 @@ pub fn build(input: BuildInput) -> MapJson {
     let mut seen: BTreeSet<(u32, u32, u8)> = BTreeSet::new();
     let mut edges: Vec<EdgeJson> = Vec::new();
     let mut ambush_spots: Vec<AmbushJson> = Vec::new();
-    let mut ports: BTreeSet<u32> = BTreeSet::new();
 
     for r in &routes {
         let key = (
@@ -137,11 +139,6 @@ pub fn build(input: BuildInput) -> MapJson {
         if !seen.insert(key) {
             continue;
         }
-        if r.kind == RouteKind::Sea {
-            ports.insert(r.a);
-            ports.insert(r.b);
-        }
-
         // Orient geometry a→b and snap endpoints onto the site positions.
         let (pa, pb) = (sites[&r.a].pos, sites[&r.b].pos);
         let mut pts = r.pts.clone();
@@ -214,8 +211,7 @@ pub fn build(input: BuildInput) -> MapJson {
         });
     }
 
-    // Drop sites with no surviving edges (isolated points render as noise).
-    let connected: BTreeSet<u32> = edges.iter().flat_map(|e| [e.a, e.b]).collect();
+    let connected_before_prune: BTreeSet<u32> = edges.iter().flat_map(|e| [e.a, e.b]).collect();
 
     let mut tier_override: BTreeMap<String, u8> = BTreeMap::new();
     for (label, t) in overrides["tier_overrides"]
@@ -245,7 +241,7 @@ pub fn build(input: BuildInput) -> MapJson {
     let factions_arr = overrides["factions"].as_array().expect("factions");
     let label_to_id: BTreeMap<&str, u32> = sites
         .values()
-        .filter(|s| connected.contains(&s.id))
+        .filter(|s| connected_before_prune.contains(&s.id))
         .map(|s| (s.label.as_str(), s.id))
         .collect();
     let resolve = |label: &str| -> u32 {
@@ -286,10 +282,17 @@ pub fn build(input: BuildInput) -> MapJson {
     // Cities by ORBIS rank, plus every forced seed (a seed is always a city).
     let mut is_city: BTreeSet<u32> = sites
         .values()
-        .filter(|s| connected.contains(&s.id) && base_tier(s) > 0)
+        .filter(|s| connected_before_prune.contains(&s.id) && base_tier(s) > 0)
         .map(|s| s.id)
         .collect();
     is_city.extend(owner_site.keys().copied());
+
+    let removed_junctions = prune_road_stub_junctions(&mut edges, &mut ambush_spots, &is_city);
+    let ports = port_sites(&edges);
+    // Drop sites with no surviving edges (isolated points render as noise), but
+    // keep cities protected from road-stub pruning.
+    let connected: BTreeSet<u32> = edges.iter().flat_map(|e| [e.a, e.b]).collect();
+    let retained_sites: BTreeSet<u32> = connected.union(&is_city).copied().collect();
 
     // LAND adjacency: sea lanes carry armies but don't make a realm look
     // contiguous, so territory is grown over roads only. Junctions transit.
@@ -445,7 +448,13 @@ pub fn build(input: BuildInput) -> MapJson {
 
     let mut nodes: Vec<NodeJson> = Vec::new();
     let mut resolved: BTreeSet<&str> = BTreeSet::new();
-    for s in sites.values().filter(|s| connected.contains(&s.id)) {
+    let city_positions = snapped_city_positions(&sites, &is_city, &land_raster);
+    snap_edge_endpoints(&mut edges, &city_positions);
+
+    for s in sites
+        .values()
+        .filter(|s| retained_sites.contains(&s.id) && !removed_junctions.contains(&s.id))
+    {
         let mut tier = tier_override
             .get(&s.label)
             .copied()
@@ -472,7 +481,7 @@ pub fn build(input: BuildInput) -> MapJson {
         nodes.push(NodeJson {
             id: s.id,
             name: s.label.clone(),
-            pos: s.pos,
+            pos: city_positions.get(&s.id).copied().unwrap_or(s.pos),
             kind: if is_city { "city" } else { "junction" },
             tier,
             port: ports.contains(&s.id),
@@ -496,5 +505,109 @@ pub fn build(input: BuildInput) -> MapJson {
         ambush_spots,
         factions: overrides["factions"].as_array().unwrap().clone(),
         start_armies: overrides["start_armies"].as_array().unwrap().clone(),
+    }
+}
+
+fn port_sites(edges: &[EdgeJson]) -> BTreeSet<u32> {
+    edges
+        .iter()
+        .filter(|e| e.kind == "sea")
+        .flat_map(|e| [e.a, e.b])
+        .collect()
+}
+
+fn prune_road_stub_junctions(
+    edges: &mut Vec<EdgeJson>,
+    ambush_spots: &mut Vec<AmbushJson>,
+    city_sites: &BTreeSet<u32>,
+) -> BTreeSet<u32> {
+    let mut alive = vec![true; edges.len()];
+    let mut removed = BTreeSet::new();
+    loop {
+        let mut endpoints = BTreeSet::new();
+        let mut road_degree: BTreeMap<u32, usize> = BTreeMap::new();
+        for (i, e) in edges.iter().enumerate() {
+            if !alive[i] {
+                continue;
+            }
+            endpoints.insert(e.a);
+            endpoints.insert(e.b);
+            if e.kind == "road" {
+                *road_degree.entry(e.a).or_default() += 1;
+                *road_degree.entry(e.b).or_default() += 1;
+            }
+        }
+
+        let doomed: BTreeSet<u32> = endpoints
+            .into_iter()
+            .filter(|id| !city_sites.contains(id) && road_degree.get(id).copied().unwrap_or(0) <= 1)
+            .collect();
+        if doomed.is_empty() {
+            break;
+        }
+        removed.extend(doomed.iter().copied());
+        for (i, e) in edges.iter().enumerate() {
+            if alive[i] && (doomed.contains(&e.a) || doomed.contains(&e.b)) {
+                alive[i] = false;
+            }
+        }
+    }
+
+    let mut edge_remap = vec![usize::MAX; edges.len()];
+    let mut retained = Vec::new();
+    for (i, e) in edges.drain(..).enumerate() {
+        if alive[i] && !removed.contains(&e.a) && !removed.contains(&e.b) {
+            edge_remap[i] = retained.len();
+            retained.push(e);
+        }
+    }
+    *edges = retained;
+
+    ambush_spots.retain_mut(|spot| {
+        let mapped = edge_remap.get(spot.edge).copied().unwrap_or(usize::MAX);
+        if mapped == usize::MAX {
+            false
+        } else {
+            spot.edge = mapped;
+            true
+        }
+    });
+
+    removed
+}
+
+fn snapped_city_positions(
+    sites: &BTreeMap<u32, OrbisSite>,
+    city_sites: &BTreeSet<u32>,
+    land_raster: &Raster,
+) -> BTreeMap<u32, [f64; 2]> {
+    const MAX_SNAP_KM: f64 = 80.0;
+    let mut out = BTreeMap::new();
+    for &id in city_sites {
+        let pos = sites[&id].pos;
+        if land_raster.is_land_at(pos) {
+            continue;
+        }
+        let snapped = land_raster
+            .nearest_land_cell_center(pos, MAX_SNAP_KM)
+            .unwrap_or_else(|| {
+                panic!(
+                    "no land cell within {MAX_SNAP_KM}km of {}",
+                    sites[&id].label
+                )
+            });
+        out.insert(id, snapped);
+    }
+    out
+}
+
+fn snap_edge_endpoints(edges: &mut [EdgeJson], city_positions: &BTreeMap<u32, [f64; 2]>) {
+    for e in edges {
+        if let Some(&p) = city_positions.get(&e.a) {
+            e.via[0] = p;
+        }
+        if let Some(&p) = city_positions.get(&e.b) {
+            *e.via.last_mut().unwrap() = p;
+        }
     }
 }

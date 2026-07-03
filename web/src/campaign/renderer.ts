@@ -15,7 +15,7 @@ import {
   CampaignMarkerPass,
   CampaignRoadPass,
   CampaignWorldLinePass,
-  smoothRoadCenterline,
+  drawnRoadRuns,
   type CampaignLabel,
   type CampaignMapStats,
   type CampaignMarker,
@@ -568,6 +568,9 @@ export class CampaignRenderer {
       roadJunctionCaps: this.mapDrawStats?.roadJunctionCaps ?? 0,
       seaLabelFits: this.mapDrawStats?.seaLabelFits ?? [],
       seaLabelFitZoom: this.mapDrawStats?.seaLabelFitZoom ?? 0,
+      roadEdgesCulled: this.mapDrawStats?.roadEdgesCulled ?? 0,
+      roadWaterGaps: this.mapDrawStats?.roadWaterGaps ?? 0,
+      seaLanes: this.mapDrawStats?.seaLanes ?? 0,
       phases: shell?.phases ?? [],
       depth: shell?.depth ?? null,
       postCutoverScreenshots: "renderer-only",
@@ -706,8 +709,15 @@ export class CampaignRenderer {
     this.clampCam(zoomFloorProbe);
     const drawData = buildCampaignMapDrawData(this.data, {
       roadScale: 1.0,
+      // Two land samplers, one owner each (spec campaign-map-bugs, slice 00
+      // division of labor): sea-label fitting wants an area statistic, which
+      // the 8 km grid + wide inland margin owns; roads want point truth
+      // against the pixels the player sees, which the full-res render mask
+      // owns. Feeding the labels' coarse sampler to the road cull was B7b —
+      // whole coastal approach edges (Cosa, Tarracina) dropped silently.
       surfaceAt: (x, y) => (this.field.landAt(x, y, controlledStage ? 2.5 : 16) ? "land" : "water"),
       renderSurfaceAt: (x, y) => (this.field.renderLandAt(x, y) ? "land" : "water"),
+      roadSurfaceAt: (x, y) => (this.field.renderLandAt(x, y) ? "land" : "water"),
       seaLabelFitZoom: zoomFloorProbe.scale / (window.devicePixelRatio || 1),
       heightAt: (x, y) => this.field.heightAt(x, y),
     });
@@ -1253,46 +1263,51 @@ function campaignRoadCarts(
   const carts: CampaignSceneryInstance[] = [];
   data.map.edges.forEach((edge, e) => {
     if (edge.kind !== "road" || !edge.via || edge.via.length < 2) return;
-    // Ride the same smoothed centerline the road pass draws, or the cart sits
-    // off in the grass beside the visible ribbon.
-    const via = smoothRoadCenterline(edge.via);
-    const segLen: number[] = [];
-    let total = 0;
-    for (let i = 1; i < via.length; i++) {
-      const d = Math.hypot(via[i][0] - via[i - 1][0], via[i][1] - via[i - 1][1]);
-      segLen.push(d);
-      total += d;
-    }
-    if (total < 28) return; // too short to carry road life
-    const count = Math.max(1, Math.floor(total / CART_SPACING_KM));
-    for (let c = 0; c < count; c++) {
-      const phase = hash2(e * 13 + c * 7 + 1, e * 5 + 3);
-      const dir = hash2(e * 3 + c, 7) < 0.5 ? 1 : -1;
-      const speed = 0.6 + hash2(e + c, e * 2 + 1) * 0.5; // km/s along the spline
-      const dist = ((((phase + (time * speed * dir) / total) % 1) + 1) % 1) * total;
-      if (dist < CART_CITY_CLEARANCE_KM || total - dist < CART_CITY_CLEARANCE_KM) continue;
-      let acc = 0;
+    // Ride the exact land runs the road pass draws (same smoothing, sampling,
+    // and ferry splits), or a cart sits off in the grass beside the visible
+    // ribbon — or worse, crawls a strait the ribbon honestly leaves undrawn.
+    const { runs } = drawnRoadRuns(edge.via, (x, y) =>
+      field.renderLandAt(x, y) ? "land" : "water",
+    );
+    for (const via of runs) {
+      const segLen: number[] = [];
+      let total = 0;
       for (let i = 1; i < via.length; i++) {
-        const d = segLen[i - 1];
-        if (acc + d >= dist) {
-          const t = (dist - acc) / Math.max(1e-6, d);
-          const x = via[i - 1][0] + (via[i][0] - via[i - 1][0]) * t;
-          const y = via[i - 1][1] + (via[i][1] - via[i - 1][1]) * t;
-          if (opts.fogOfWar && !fogVisible(opts, x, y, 0.18)) break;
-          const ang = Math.atan2(via[i][1] - via[i - 1][1], via[i][0] - via[i - 1][0]);
-          carts.push({
-            x,
-            y,
-            z: Math.max(0, field.heightAt(x, y)),
-            size: 1.3,
-            height: 0.9,
-            kind: "cart",
-            shade: 0.55 + phase * 0.35,
-            yaw: dir > 0 ? ang : ang + Math.PI,
-          });
-          break;
+        const d = Math.hypot(via[i][0] - via[i - 1][0], via[i][1] - via[i - 1][1]);
+        segLen.push(d);
+        total += d;
+      }
+      if (total < 28) continue; // too short to carry road life
+      const count = Math.max(1, Math.floor(total / CART_SPACING_KM));
+      for (let c = 0; c < count; c++) {
+        const phase = hash2(e * 13 + c * 7 + 1, e * 5 + 3);
+        const dir = hash2(e * 3 + c, 7) < 0.5 ? 1 : -1;
+        const speed = 0.6 + hash2(e + c, e * 2 + 1) * 0.5; // km/s along the spline
+        const dist = ((((phase + (time * speed * dir) / total) % 1) + 1) % 1) * total;
+        if (dist < CART_CITY_CLEARANCE_KM || total - dist < CART_CITY_CLEARANCE_KM) continue;
+        let acc = 0;
+        for (let i = 1; i < via.length; i++) {
+          const d = segLen[i - 1];
+          if (acc + d >= dist) {
+            const t = (dist - acc) / Math.max(1e-6, d);
+            const x = via[i - 1][0] + (via[i][0] - via[i - 1][0]) * t;
+            const y = via[i - 1][1] + (via[i][1] - via[i - 1][1]) * t;
+            if (opts.fogOfWar && !fogVisible(opts, x, y, 0.18)) break;
+            const ang = Math.atan2(via[i][1] - via[i - 1][1], via[i][0] - via[i - 1][0]);
+            carts.push({
+              x,
+              y,
+              z: Math.max(0, field.heightAt(x, y)),
+              size: 1.3,
+              height: 0.9,
+              kind: "cart",
+              shade: 0.55 + phase * 0.35,
+              yaw: dir > 0 ? ang : ang + Math.PI,
+            });
+            break;
+          }
+          acc += d;
         }
-        acc += d;
       }
     }
   });

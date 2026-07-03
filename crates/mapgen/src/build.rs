@@ -7,7 +7,7 @@ use serde::Serialize;
 use std::collections::{BTreeMap, BTreeSet};
 
 pub const TILE_KM: f64 = 5.0;
-const SIMPLIFY_TOL_KM: f64 = 1.0;
+pub const SIMPLIFY_TOL_KM: f64 = 1.0;
 /// Forest patches: deterministic hash over this cell size, below the threshold.
 const FOREST_CELL_KM: f64 = 40.0;
 const FOREST_FRAC: u64 = 22; // percent
@@ -103,7 +103,7 @@ fn hash(a: u64, b: u64) -> u64 {
 }
 
 /// Douglas-Peucker simplification.
-fn simplify(pts: &[[f64; 2]], tol: f64) -> Vec<[f64; 2]> {
+pub fn simplify(pts: &[[f64; 2]], tol: f64) -> Vec<[f64; 2]> {
     if pts.len() < 3 {
         return pts.to_vec();
     }
@@ -135,6 +135,74 @@ fn simplify(pts: &[[f64; 2]], tol: f64) -> Vec<[f64; 2]> {
     }
 }
 
+pub fn build_river_grid(bb: BBox, rivers: &[Vec<[f64; 2]>]) -> SegGrid {
+    let mut river_grid = SegGrid::new(bb.pad(100.0), 50.0);
+    for line in rivers {
+        for w in line.windows(2) {
+            if bb.contains(w[0]) || bb.contains(w[1]) {
+                river_grid.insert(w[0], w[1]);
+            }
+        }
+    }
+    river_grid
+}
+
+pub fn classify_route_tiles(
+    via: &[[f64; 2]],
+    kind: &str,
+    eidx: usize,
+    river_grid: &SegGrid,
+    mountains: &[Poly],
+) -> (Vec<&'static str>, Vec<AmbushJson>) {
+    let len = polyline_len(via);
+    let ntiles = ((len / TILE_KM).round() as usize).max(1);
+    let step = len / ntiles as f64;
+    let mut tiles: Vec<&'static str> = Vec::with_capacity(ntiles);
+    let mut ambush_spots = Vec::new();
+    for k in 0..ntiles {
+        let mid = point_along(via, (k as f64 + 0.5) * step);
+        let t = if kind == "sea" {
+            "sea"
+        } else if river_grid.crosses(
+            point_along(via, k as f64 * step),
+            point_along(via, (k + 1) as f64 * step),
+        ) {
+            "bridge"
+        } else if mountains
+            .iter()
+            .any(|m| m.bbox.contains(mid) && point_in_poly(mid, &m.rings))
+        {
+            if hash(eidx as u64, k as u64) % 3 == 0 {
+                "pass"
+            } else {
+                "hill"
+            }
+        } else if hash(
+            (mid[0].div_euclid(FOREST_CELL_KM) + 4000.0) as u64,
+            (mid[1].div_euclid(FOREST_CELL_KM) + 4000.0) as u64,
+        ) % 100
+            < FOREST_FRAC
+        {
+            "forest"
+        } else {
+            "open"
+        };
+        if matches!(t, "forest" | "hill" | "pass") {
+            ambush_spots.push(AmbushJson {
+                edge: eidx,
+                tile: k,
+                side: if hash(eidx as u64, k as u64 + 7) % 2 == 0 {
+                    -1
+                } else {
+                    1
+                },
+            });
+        }
+        tiles.push(t);
+    }
+    (tiles, ambush_spots)
+}
+
 pub struct BuildInput<'a> {
     pub sites: BTreeMap<u32, OrbisSite>,
     pub routes: Vec<OrbisRoute>,
@@ -160,14 +228,7 @@ pub fn build(input: BuildInput<'_>) -> MapJson {
     let half_h = bb.max[1].abs().max(bb.min[1].abs());
 
     // River segments into a query grid (for bridge detection).
-    let mut river_grid = SegGrid::new(bb.pad(100.0), 50.0);
-    for line in &rivers {
-        for w in line.windows(2) {
-            if bb.contains(w[0]) || bb.contains(w[1]) {
-                river_grid.insert(w[0], w[1]);
-            }
-        }
-    }
+    let river_grid = build_river_grid(bb, &rivers);
 
     // Dedupe routes: upstream/downstream are the same river twice; keep one per
     // (pair, kind). Parallel road+sea between the same pair both survive.
@@ -197,60 +258,18 @@ pub fn build(input: BuildInput<'_>) -> MapJson {
         *pts.last_mut().unwrap() = pb;
         let via = simplify(&pts, SIMPLIFY_TOL_KM);
 
-        let len = polyline_len(&via);
-        let ntiles = ((len / TILE_KM).round() as usize).max(1);
-        let step = len / ntiles as f64;
         let eidx = edges.len();
-        let mut tiles: Vec<&'static str> = Vec::with_capacity(ntiles);
-        for k in 0..ntiles {
-            let mid = point_along(&via, (k as f64 + 0.5) * step);
-            let t = if matches!(r.kind, RouteKind::Sea) {
-                "sea"
-            } else if river_grid.crosses(
-                point_along(&via, k as f64 * step),
-                point_along(&via, (k + 1) as f64 * step),
-            ) {
-                "bridge"
-            } else if mountains
-                .iter()
-                .any(|m| m.bbox.contains(mid) && point_in_poly(mid, &m.rings))
-            {
-                if hash(eidx as u64, k as u64) % 3 == 0 {
-                    "pass"
-                } else {
-                    "hill"
-                }
-            } else if hash(
-                (mid[0].div_euclid(FOREST_CELL_KM) + 4000.0) as u64,
-                (mid[1].div_euclid(FOREST_CELL_KM) + 4000.0) as u64,
-            ) % 100
-                < FOREST_FRAC
-            {
-                "forest"
-            } else {
-                "open"
-            };
-            if matches!(t, "forest" | "hill" | "pass") {
-                ambush_spots.push(AmbushJson {
-                    edge: eidx,
-                    tile: k,
-                    side: if hash(eidx as u64, k as u64 + 7) % 2 == 0 {
-                        -1
-                    } else {
-                        1
-                    },
-                });
-            }
-            tiles.push(t);
-        }
+        let kind = if matches!(r.kind, RouteKind::Sea) {
+            "sea"
+        } else {
+            "road"
+        };
+        let (tiles, spots) = classify_route_tiles(&via, kind, eidx, &river_grid, &mountains);
+        ambush_spots.extend(spots);
         edges.push(EdgeJson {
             a: r.a,
             b: r.b,
-            kind: if matches!(r.kind, RouteKind::Sea) {
-                "sea"
-            } else {
-                "road"
-            },
+            kind,
             via,
             tiles,
         });

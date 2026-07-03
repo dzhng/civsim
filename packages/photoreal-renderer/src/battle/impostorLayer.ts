@@ -32,10 +32,8 @@ interface Bounds2 {
   maxY: number;
 }
 
-// How far the whole far-tier silhouette leans toward its faction colour (14b).
-// Distant units must read as coloured blocks (faction before class); accent
-// areas still retint near-fully on top of this floor.
-const IMPOSTOR_BROAD_MIX = 0.55;
+// Low broad floor keeps impostor bodies material-led while sampled accent masks retint strongly.
+const IMPOSTOR_BROAD_MIX = 0.30;
 const LIGHT_DIR = new THREE.Vector3(-0.34, -0.42, 0.84).normalize();
 
 export function createSoldierImpostorAtlas(
@@ -118,11 +116,8 @@ export class OctahedralImpostorLayer {
     const sample = texture(this.atlas.texture, atlasUv).toVar();
     const faction = varying(inst.w).toVar();
     const shade = varying(meta.w).toVar();
-    // Faction tint the WHOLE far-tier silhouette, not just the blue-dominant
-    // accent (14b): at impostor range the crest/shield that identified the team
-    // up close is a sub-pixel smear, so the body itself must carry the colour —
-    // a Total-War distant unit reads as a coloured block. The accent areas still
-    // go to a near-full retint; the body leans faction by IMPOSTOR_BROAD_MIX.
+    // Accent areas still go to a near-full retint; the body keeps only a low
+    // faction floor so the impostor preserves material color at range.
     const mask = smoothstep(0.05, 0.28, sample.b.sub(max(sample.r, sample.g))).toVar();
     const tintAmount = max(mask.mul(0.95), float(IMPOSTOR_BROAD_MIX)).toVar();
     const color = sampledFactionTintNode(vec4(sample.rgb, sample.a), faction, tintAmount).mul(vec4(vec3(shade), 1.0));

@@ -189,8 +189,7 @@ export async function run(ctx) {
         window.__campaign.cam(...camera);
       }, ROME_CLOSE_CAMERA),
     stats: (stats) =>
-      stats.visibleLabels >= 5 &&
-      stats.visibleLabelNames?.includes("city:OSTIA/PORTUS") &&
+      stats.visibleLabels >= 4 &&
       stats.cityEntities > 20 &&
       stats.armyEntities >= 1 &&
       hasRoadJunctionGeometry(stats) &&
@@ -199,6 +198,16 @@ export async function run(ctx) {
     greenTerrainFloor: 0.42,
   });
 
+  {
+    // Own cities render as DOM map cards now (spec campaign-map-polish 17); the
+    // canvas label stats cover neutral cities only. Assert the cards directly.
+    const cards = await visibleMapCardNames(page);
+    ctx.check(
+      "campaign-lod rome-close shows own-city map cards incl. Ostia/Portus + garrisoned Roma",
+      cards.some((n) => n.toUpperCase().includes("OSTIA")) && cards.some((n) => n.toUpperCase().includes("ROMA")) && cards.length >= 5,
+      JSON.stringify(cards),
+    );
+  }
   await snapCampaign(page, ctx, "campaign-lod-selected-army-city", {
     before: () =>
       page.evaluate(
@@ -216,9 +225,7 @@ export async function run(ctx) {
       stats.composedArmyCityLabels >= 1 &&
       stats.garrisonedArmySelections >= 1 &&
       stats.maxSelectionRadius >= 11 &&
-      stats.maxSelectionRadius < 13 &&
-      stats.visibleLabelNames?.includes("city:OSTIA/PORTUS") &&
-      !stats.labelCollisionCulledLabels?.includes("city:OSTIA/PORTUS"),
+      stats.maxSelectionRadius < 13,
     greenTerrainFloor: 0.42,
   });
 
@@ -663,4 +670,12 @@ function isRoadPixel(r, g, b) {
 
 function isLabelPixel(r, g, b) {
   return r > 205 && g > 205 && b > 185;
+}
+
+async function visibleMapCardNames(page) {
+  return page.evaluate(() =>
+    Array.from(document.querySelectorAll(".cmp-map-card"))
+      .filter((node) => node.style.display !== "none")
+      .map((node) => node.querySelector(".cmp-map-card__name")?.textContent ?? ""),
+  );
 }

@@ -87,17 +87,17 @@ scene.mjs <scene>` and bless with `UPDATE_SHOTS=1`.
 - [x] `05-roads-cull-relax` — cull 0.68→0.5, land slack 10.5→16; +516 road tris recovered, none over water
 - [x] `11-cart-size` — carts 6.0→1.3 (road width)
 - [x] `06-data-diagnosis` — DONE: 0 misplaced non-port cities; 36 ports at waterline + Cnidus (14km) the one real bug; roads = 17 stubs/83 dead junctions/25+5 orphan components (all in slice files)
-- [ ] `07-mapgen-rebake` — one Rust fix + one re-bake: snap on-water ports to land (+ Cnidus override), drop road stubs/orphan components. Targets recorded in slice file.
-- [ ] `08-capital-labels` — occupied-capital name at low zoom + garrison label-far fix
-- [ ] `09-sea-labels` — mask-fit so labels stay inside their sea with margin
+- [x] `07-mapgen-rebake` — cities snapped to land (0 on water), road stubs/dead junctions 0, sea lanes preserved (468; over-prune caught by audit + fixed); invariant test pins it
+- [x] `08-capital-labels` — capitals named at low zoom; garrison label at city; the 'ring' was the junction-cap plaza (shrunk)
+- [x] `09-sea-labels` — mask-fit at draw-data build; all seas contained (Adriatic small but inside)
 - [~] `10-shadow-ring` — RESLICED: the ugly "ring" is the garrison-footprint disc (occupied cities only), folded into `08`; city model shadow reads fine, left as-is
-- [ ] `12-selection-ring` — brighten/thicken + drape over terrain height
-- [ ] `13-bronze-shell` — bronze tokens + shell + single-root convergence (proof-of-look checkpoint)
-- [ ] `14-bronze-topbar` — top bar → bronze wells, Phosphor icons, no emoji
-- [ ] `15-bronze-panels` — City/Army/Diplomacy/ClassBuilder/Sieges → bronze (sub-sliced)
+- [x] `12-selection-ring` — thicker/brighter, depth 'always' (no terrain clip)
+- [x] `13-bronze-shell` — bronze shell + single-root mountCampaignHud (game + renderer-lab converged)
+- [x] `14-bronze-topbar` — bronze wells, gold .on, Phosphor filled, no emoji
+- [x] `15-bronze-panels` — all panels + battle modal bronze; battle firewall green
 - [x] `16-city-card-design` — sheet built + critiqued; DECIDED: variation B (plaque + wells), DOM-overlay seam; David can override
-- [ ] `17-city-card-impl` — own-city bronze card as DOM overlay (garrison strip below)
-- [ ] `18-allegiance-rechannel` — enemy red sword + icon→faction flip, atomic (no signal gap)
+- [x] `17-city-card-impl` — C-cards for own cities AND armies (DOM overlay, per-frame transforms, gates mirrored); scene contracts moved to DOM-card assertions
+- [x] `18-allegiance-rechannel` — enemy red sword + all icons faction-colored; allegianceColor removed from icon paths
 - [~] `19-aesthetics-doc` — part 1 DONE (palette-target reference line in SKILL.md); part 2 (two-color rule rewrite) gated on 17+18
 - [ ] `20-crisp-borders` — David (mid-build): crisp territory edges + dual faction-colored border lines (slice file has the seam)
 

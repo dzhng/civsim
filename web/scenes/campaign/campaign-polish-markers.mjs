@@ -54,11 +54,12 @@ export async function run(ctx) {
   });
   await page.waitForTimeout(320);
   const labelStats = await page.evaluate(() => window.__campaignGpuStats);
+  const cardNames = await visibleMapCardNames(page);
   ctx.check(
-    "label workbench shows both city labels",
-    labelStats.visibleLabelNames?.includes("city:ROMA") &&
-      labelStats.visibleLabelNames?.includes("city:NEAPOLIS"),
-    JSON.stringify(labelStats.visibleLabelNames),
+    "label workbench shows Neapolis canvas label + Roma own-city card",
+    labelStats.visibleLabelNames?.includes("city:NEAPOLIS") &&
+      cardNames.some((n) => n.toUpperCase().includes("ROMA")),
+    JSON.stringify({ canvas: labelStats.visibleLabelNames, cards: cardNames }),
   );
   await ctx.snap(page, "polish-label-spacing");
 
@@ -114,4 +115,12 @@ function greenSwatchMetrics(png) {
     greenRatio: Number((green / Math.max(1, total)).toFixed(4)),
     brownRatio: Number((brown / Math.max(1, total)).toFixed(4)),
   };
+}
+
+async function visibleMapCardNames(page) {
+  return page.evaluate(() =>
+    Array.from(document.querySelectorAll(".cmp-map-card"))
+      .filter((node) => node.style.display !== "none")
+      .map((node) => node.querySelector(".cmp-map-card__name")?.textContent ?? ""),
+  );
 }

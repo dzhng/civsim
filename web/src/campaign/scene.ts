@@ -255,6 +255,7 @@ export class CampaignScene implements Scene {
       }),
       renderLandAt: (x: number, y: number, marginKm = 0) =>
         this.field!.renderLandAt(x, y, marginKm),
+      sceneryCandidates: () => this.renderer.sceneryCandidateSnapshot(),
       /** Snapshot mode: pin the water clock (campaign is already paused). */
       freeze: (on = true) => {
         this.renderer.fixedTime = on ? 0 : null;

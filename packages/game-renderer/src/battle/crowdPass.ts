@@ -1,5 +1,9 @@
-import { buildCrowdInstances, type CrowdInstance, type CrowdBuildStats } from '../../../crowd-runtime/src/instanceData';
-import { UNIT_INFO } from './unitInfoLayout';
+import {
+  buildCrowdInstances,
+  type CrowdInstance,
+  type CrowdBuildStats,
+} from "../../../crowd-runtime/src/instanceData";
+import { UNIT_INFO } from "./unitInfoLayout";
 
 export interface LiveBattleCrowdGame {
   alive_ptr(): number;
@@ -34,7 +38,11 @@ const FRAME_SWITCH = 5;
 const FRAME_AT_EASE = 6;
 const FRAME_RUN_A = 8;
 
-export function buildLiveBattleCrowdFrame(game: LiveBattleCrowdGame, memory: WebAssembly.Memory, simTick: number): LiveBattleCrowdFrame {
+export function buildLiveBattleCrowdFrame(
+  game: LiveBattleCrowdGame,
+  memory: WebAssembly.Memory,
+  simTick: number,
+): LiveBattleCrowdFrame {
   const count = game.soldier_count();
   const units = game.unit_count();
   const stride = game.unit_info_stride();
@@ -77,13 +85,13 @@ export function buildLiveBattleCrowdFrame(game: LiveBattleCrowdGame, memory: Web
     const running = unitInfo[unit * stride + UNIT_INFO.running] > 0.5;
     const atEase = unitInfo[unit * stride + UNIT_INFO.atEase] > 0.5;
     if (running) {
-      frames[i] = FRAME_RUN_A + ((simTick + i) & 1);
+      frames[i] = FRAME_RUN_A + (i & 1);
       statsExtra.running++;
     } else if (atEase) {
       frames[i] = FRAME_AT_EASE;
       statsExtra.atEase++;
     } else {
-      frames[i] = FRAME_MARCH_A + ((simTick + i) & 1);
+      frames[i] = FRAME_MARCH_A + (i & 1);
       if (frames[i] < FRAME_MARCH_A) frames[i] = FRAME_IDLE;
     }
   }

@@ -1473,7 +1473,7 @@ export class BattleScene implements Scene {
             const dx = updateRenderPos ? renderPos[pi] - prevRenderPos[pi] : 0;
             const dy = updateRenderPos ? renderPos[pi + 1] - prevRenderPos[pi + 1] : 0;
             if (dx * dx + dy * dy > 0.0004) {
-              const beat = ((t * 4 + i) | 0) % 2;
+              const beat = i & 1;
               frames[i] = running[sUnit[i]] ? 8 + beat : 1 + beat; // run vs march beats
             } else frames[i] = atEase[sUnit[i]] ? 6 : 0; // at ease (pikes up) or alert stand
           }

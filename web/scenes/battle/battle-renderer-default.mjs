@@ -62,7 +62,9 @@ export async function run(ctx) {
       stats.renderStats.terrain.layer === "photoreal-battle-ground" &&
       stats.renderStats.terrain.environment?.id === "golden-hour" &&
       stats.renderStats.terrain.environment?.source === "CIVSIM_ENVIRONMENTS.golden" &&
-      stats.renderStats.terrain.grass?.environment?.id === "golden-hour" &&
+      stats.renderStats.terrain.grass?.layer === "photoreal-blade-field" &&
+      stats.renderStats.terrain.grass?.recordCount > 0 &&
+      stats.renderStats.terrain.grass?.sourceStorageCore?.runtimeComputeRoute === "active" &&
       stats.renderStats.terrain.groundTriangles > 1000 &&
       stats.renderStats.terrain.scenery > 0,
     JSON.stringify(stats.renderStats?.terrain),

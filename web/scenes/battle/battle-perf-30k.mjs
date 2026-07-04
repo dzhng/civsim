@@ -24,12 +24,12 @@ export const meta = {
 const BUDGET_MS = 33;
 const SOLDIER_FLOOR = 30000;
 // The load the counts may never shrink below (map A base army 15,560 soldiers,
-// 548 scenery props; vista grass focus fill measured at 16,800 tufts /
-// 184,800 blade instances / ~1.48M submitted triangles on 2026-07-02).
+// 548 scenery props; production grass is the slice-11 blade-field record
+// window plus routed blade triangles).
 const SPAWN_TARGET = 30500;
 const SCENERY_FLOOR = 500;
-const VISTA_GRASS_TUFT_FLOOR = 15000;
-const VISTA_GRASS_BLADE_FLOOR = 150000;
+const VISTA_GRASS_RECORD_FLOOR = 10000;
+const VISTA_GRASS_TRIANGLE_FLOOR = 150000;
 
 // Same production rig zooms as battle-camera-zoom: playable mid and the
 // low-oblique cinematic vista (zoomT = 1), where grass density peaks. Both
@@ -167,8 +167,7 @@ export async function run(ctx) {
         soldiers: s.soldiers,
         renderSoldiers: s.renderStats.soldiers,
         scenery: s.renderStats.terrain?.scenery ?? 0,
-        grassTufts: s.renderStats.terrain?.grass?.tuftInstances ?? 0,
-        grassBlades: s.renderStats.terrain?.grass?.bladeInstances ?? 0,
+        grassRecords: s.renderStats.terrain?.grass?.recordCount ?? 0,
         grassTriangles: s.renderStats.terrain?.grass?.submittedTriangles ?? 0,
         device: s.renderStats.device,
       };
@@ -178,8 +177,7 @@ export async function run(ctx) {
       zoom: stop.zoom,
       soldiers: stats.renderSoldiers,
       scenery: stats.scenery,
-      grassTufts: stats.grassTufts,
-      grassBlades: stats.grassBlades,
+      grassRecords: stats.grassRecords,
       grassTriangles: stats.grassTriangles,
       gpuMedianMs: round(median(sampled.gpu)),
       gpuP95Ms: round(percentile(sampled.gpu, 0.95)),
@@ -203,14 +201,13 @@ export async function run(ctx) {
     JSON.stringify({ spawned, mid: mid.soldiers, vista: vista.soldiers }),
   );
   ctx.check(
-    "gate holds the dense foliage fill (scenery + vista grass floors)",
+    "gate holds the dense foliage fill (scenery + vista blade-field floors)",
     table.every((row) => row.scenery >= SCENERY_FLOOR) &&
-      vista.grassTufts >= VISTA_GRASS_TUFT_FLOOR &&
-      vista.grassBlades >= VISTA_GRASS_BLADE_FLOOR,
+      vista.grassRecords >= VISTA_GRASS_RECORD_FLOOR &&
+      vista.grassTriangles >= VISTA_GRASS_TRIANGLE_FLOOR,
     JSON.stringify({
       scenery: vista.scenery,
-      vistaGrassTufts: vista.grassTufts,
-      vistaGrassBlades: vista.grassBlades,
+      vistaGrassRecords: vista.grassRecords,
       vistaGrassTriangles: vista.grassTriangles,
     }),
   );

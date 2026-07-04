@@ -374,7 +374,11 @@ async function routeBladeField(ctx: LabContext) {
     ox: game.terrain_origin_x(),
     oy: game.terrain_origin_y(),
     tint: new Uint8Array(
-      new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), game.terrain_w() * game.terrain_h()),
+      new Uint8Array(
+        wasm.memory.buffer,
+        game.terrain_tint_ptr(),
+        game.terrain_w() * game.terrain_h(),
+      ),
     ),
     height: new Float32Array(
       new Float32Array(
@@ -436,7 +440,7 @@ async function routeBladeField(ctx: LabContext) {
 
   const bladeField = new PhotorealBladeFieldLayer(world.world.scene);
   bladeField.applyPackedRecords(snapshot.packedRecords, !grassOff);
-  hideLegacyGrass(world.world.scene);
+  world.setGrassVisible(false);
 
   const cameraSnapshot = () => {
     const [x, y] = camera.viewCenter();
@@ -449,7 +453,7 @@ async function routeBladeField(ctx: LabContext) {
     camera.clampView();
     const frameCamera = cameraSnapshot();
     world.draw(empty, empty, empty, empty, 0, frameCamera, new Uint8Array(), ticks);
-    hideLegacyGrass(world.world.scene);
+    world.setGrassVisible(false);
     bladeField.setVisible(!grassOff);
     bladeField.routeGpu(world.world.renderer, eyePosition(frameCamera.camera3d));
     world.render();
@@ -488,12 +492,6 @@ function createBladeFieldPublisher(
   counts: () => Record<string, unknown>,
 ) {
   return createPhotorealStatsPublisher(world.world, "blade-field", counts);
-}
-
-function hideLegacyGrass(scene: THREE.Scene): void {
-  scene.traverse((obj) => {
-    if (obj.name === "battle-grass" || obj.name.startsWith("battle-grass-")) obj.visible = false;
-  });
 }
 
 // A distinct VAT for a class: every clip's frame count scaled by `factor`

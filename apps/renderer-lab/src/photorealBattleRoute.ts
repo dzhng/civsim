@@ -473,7 +473,8 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       <tr><td>map</td><td>${params.get("map") === "B" ? "B" : "A"}</td></tr>
       <tr><td>soldiers</td><td>${rs.soldiers} / ${rs.expectedSoldiers}</td></tr>
       <tr><td>seating</td><td>match=${rs.seating.matches} span=${rs.seating.span}</td></tr>
-      <tr><td>grass tufts</td><td>${rs.terrain?.grass.tuftInstances ?? 0}</td></tr>
+      <tr><td>grass records</td><td>${rs.terrain?.grass.recordCount ?? 0}</td></tr>
+      <tr><td>grass tris</td><td>${rs.terrain?.grass.submittedTriangles ?? 0}</td></tr>
       <tr><td>scenery</td><td>${rs.terrain?.scenery ?? 0}</td></tr>
       <tr><td>sea planes</td><td>${rs.terrain?.sealedEdges.join(", ") || "none"}</td></tr>
       <tr><td>draw calls</td><td>${s.stats.drawCalls}</td></tr>

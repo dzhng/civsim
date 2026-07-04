@@ -1,8 +1,7 @@
 // False Earth blade-field layer for the photoreal substrate. This is the
 // slice-10 port seam only: it consumes the existing grassField.ts CPU records
 // (4 vec4 / 64 bytes) and draws one instanced Bezier blade tier per LOD. The
-// production PhotorealBattleWorld grass wiring stays on foliageLayer until
-// slice 11 swaps the owner.
+// slice 11 makes this the production PhotorealBattleWorld grass owner.
 import * as THREE from "three/webgpu";
 import {
   Fn,
@@ -66,8 +65,7 @@ export const BLADE_FIELD_LOD_TIERS: readonly BladeFieldTierSpec[] = [
 ];
 
 export const BLADE_FIELD_PALETTE = {
-  source:
-    "packages/photoreal-renderer/src/battle/foliageLayer.ts GRASS_ALBEDO_* olive family",
+  source: "packages/photoreal-renderer/src/battle/foliageLayer.ts GRASS_ALBEDO_* olive family",
   root: [0.46, 0.52, 0.25] as Rgb,
   mid: [0.58, 0.61, 0.32] as Rgb,
   tip: [0.71, 0.71, 0.42] as Rgb,
@@ -109,6 +107,13 @@ export interface BladeFieldStats {
     drawIndirect: true;
     visibleIndexBuffers: 3;
     runtimeComputeRoute: "not-run" | "active";
+  };
+  wind: {
+    timeUniform: "PhotorealWorld.uTime";
+    phaseSpeed: number;
+    spatialScaleX: number;
+    spatialScaleY: number;
+    tipAmplitudeM: number;
   };
   palette: typeof BLADE_FIELD_PALETTE;
   recordHash: string;
@@ -166,6 +171,7 @@ const drawIndirectStruct = struct({
 
 export class PhotorealBladeFieldLayer {
   private readonly buckets: TierBucket[];
+  private readonly time: FloatNode;
   private recordCount = 0;
   private recordHash = "00000000";
   private enabled = true;
@@ -173,13 +179,30 @@ export class PhotorealBladeFieldLayer {
   private packedRecords = new Float32Array();
   private culledRecords = 0;
 
-  constructor(scene: THREE.Scene) {
+  private readonly tiers: readonly BladeFieldTierSpec[];
+  // Blend blades into the meadow tone at the cull ring (production edge
+  // treatment; the ratified close-lab envelope renders unfaded).
+  private readonly edgeFade: boolean;
+
+  /** `tiers` overrides the ratified close-lab envelope (far 64 m) - the
+   *  production battle passes a wider far tier so vista framing (eye ~59 m
+   *  up) does not distance-cull the whole field. Slice 12 owns real
+   *  stratified budgets/thinning. */
+  constructor(
+    scene: THREE.Scene,
+    time: FloatNode = uniform(0) as unknown as FloatNode,
+    tiers: readonly BladeFieldTierSpec[] = BLADE_FIELD_LOD_TIERS,
+    edgeFade = false,
+  ) {
+    this.time = time;
+    this.tiers = tiers;
+    this.edgeFade = edgeFade;
     const material = new THREE.MeshStandardNodeMaterial({
       side: THREE.DoubleSide,
       roughness: 0.84,
       metalness: 0,
     });
-    this.buckets = BLADE_FIELD_LOD_TIERS.map((spec) => {
+    this.buckets = tiers.map((spec) => {
       const geometry = bladeGeometry(spec.segments);
       const drawBuffer = new THREE.IndirectStorageBufferAttribute(
         new Uint32Array([geometry.index?.count ?? 0, 0, 0, 0, 0]),
@@ -187,7 +210,10 @@ export class PhotorealBladeFieldLayer {
       );
       geometry.setIndirect(drawBuffer);
       const mesh = new THREE.Mesh(geometry, material);
-      mesh.name = `battle-blade-field-${spec.id}`;
+      // "battle-grass" is the ONE production grass name - scenes and debug
+      // isolation filters (?only=...battle-grass...) select grass by this
+      // prefix; the blade field inherits it from the tuft path it replaced.
+      mesh.name = `battle-grass-blades-${spec.id}`;
       mesh.frustumCulled = false;
       mesh.renderOrder = RENDER_ORDER.worldOpaque;
       mesh.receiveShadow = true;
@@ -207,11 +233,27 @@ export class PhotorealBladeFieldLayer {
     this.recordCount = packedRecords.length / GRASS_FIELD_PACKED_STRIDE_FLOATS;
     this.recordHash = hashPackedRecords(packedRecords);
     this.packedRecords = new Float32Array(packedRecords);
-    this.runtime = createGpuRuntime(this.packedRecords, this.buckets);
+    if (this.recordCount === 0) {
+      this.runtime = null;
+      this.culledRecords = 0;
+      for (const bucket of this.buckets) {
+        bucket.records = 0;
+        bucket.mesh.geometry.instanceCount = 0;
+        bucket.mesh.visible = false;
+      }
+      return;
+    }
+    this.runtime = createGpuRuntime(this.packedRecords, this.buckets, this.tiers);
 
     for (const bucket of this.buckets) {
       bucket.mesh.material.dispose();
-      bucket.mesh.material = bladeFieldMaterial(this.runtime.grassData, bucket.visibleIndices);
+      bucket.mesh.material = bladeFieldMaterial(
+        this.runtime.grassData,
+        bucket.visibleIndices,
+        this.time,
+        this.tiers[2].maxDistanceM,
+        this.edgeFade,
+      );
       bucket.records = 0;
       // Capacity, not the drawn count: the indirect buffer's GPU-routed
       // instanceCount decides what draws, but three skips geometry with
@@ -225,7 +267,9 @@ export class PhotorealBladeFieldLayer {
     if (!this.runtime) return;
     this.runtime.camera.value.set(eye[0], eye[1], eye[2]);
     this.updateCpuMirrorTierCounts(eye);
-    const compute = (renderer as unknown as { compute(node: unknown): void }).compute.bind(renderer);
+    const compute = (renderer as unknown as { compute(node: unknown): void }).compute.bind(
+      renderer,
+    );
     compute(this.runtime.reset);
     compute(this.runtime.route);
     this.runtime.routed = true;
@@ -245,9 +289,9 @@ export class PhotorealBladeFieldLayer {
       const y = this.packedRecords[o + 1];
       const z = this.packedRecords[o + 2];
       const dist = Math.hypot(x - eye[0], y - eye[1], z - eye[2]);
-      if (dist < BLADE_FIELD_LOD_TIERS[0].maxDistanceM) this.buckets[0].records++;
-      else if (dist < BLADE_FIELD_LOD_TIERS[1].maxDistanceM) this.buckets[1].records++;
-      else if (dist < BLADE_FIELD_LOD_TIERS[2].maxDistanceM) this.buckets[2].records++;
+      if (dist < this.tiers[0].maxDistanceM) this.buckets[0].records++;
+      else if (dist < this.tiers[1].maxDistanceM) this.buckets[1].records++;
+      else if (dist < this.tiers[2].maxDistanceM) this.buckets[2].records++;
       else this.culledRecords++;
     }
   }
@@ -295,6 +339,13 @@ export class PhotorealBladeFieldLayer {
         drawIndirect: true,
         visibleIndexBuffers: 3,
         runtimeComputeRoute: this.runtime?.routed ? "active" : "not-run",
+      },
+      wind: {
+        timeUniform: "PhotorealWorld.uTime",
+        phaseSpeed: 0.82,
+        spatialScaleX: 0.035,
+        spatialScaleY: 0.021,
+        tipAmplitudeM: 0.034,
       },
       palette: BLADE_FIELD_PALETTE,
       recordHash: this.recordHash,
@@ -350,8 +401,12 @@ function bladeGeometry(segments: number): THREE.InstancedBufferGeometry {
 function createGpuRuntime(
   packedRecords: Float32Array,
   buckets: readonly TierBucket[],
+  tiers: readonly BladeFieldTierSpec[],
 ): BladeFieldGpuRuntime {
-  const storageArray = instancedArray as unknown as (array: Float32Array, type: unknown) => {
+  const storageArray = instancedArray as unknown as (
+    array: Float32Array,
+    type: unknown,
+  ) => {
     setName(name: string): {
       element(index: unknown): { get(field: string): unknown };
     };
@@ -361,9 +416,10 @@ function createGpuRuntime(
   );
   const camera = uniform(new THREE.Vector3(0, 0, 0));
   const configs: RuntimeConfig[] = buckets.map((bucket) => {
-    const visibleIndices = instancedArray(new Uint32Array(packedRecords.length / 16), "uint").setName(
-      `PhotorealBladeFieldVisible${bucket.spec.id}`,
-    ) as RuntimeConfig["visibleIndices"];
+    const visibleIndices = instancedArray(
+      new Uint32Array(packedRecords.length / 16),
+      "uint",
+    ).setName(`PhotorealBladeFieldVisible${bucket.spec.id}`) as RuntimeConfig["visibleIndices"];
     const drawStorage = storage(bucket.drawBuffer, drawIndirectStruct, 1).setName(
       `PhotorealBladeFieldDraw${bucket.spec.id}`,
     ) as RuntimeConfig["drawStorage"];
@@ -396,13 +452,13 @@ function createGpuRuntime(
     const d0 = data.get("data0") as { xyz: ReturnType<typeof vec3> };
     const pos = d0.xyz;
     const dist = length(camera.sub(pos));
-    If(dist.lessThan(float(BLADE_FIELD_LOD_TIERS[0].maxDistanceM)), () => {
+    If(dist.lessThan(float(tiers[0].maxDistanceM)), () => {
       appendToTier(configs[0]);
     })
-      .ElseIf(dist.lessThan(float(BLADE_FIELD_LOD_TIERS[1].maxDistanceM)), () => {
+      .ElseIf(dist.lessThan(float(tiers[1].maxDistanceM)), () => {
         appendToTier(configs[1]);
       })
-      .ElseIf(dist.lessThan(float(BLADE_FIELD_LOD_TIERS[2].maxDistanceM)), () => {
+      .ElseIf(dist.lessThan(float(tiers[2].maxDistanceM)), () => {
         appendToTier(configs[2]);
       });
   });
@@ -410,7 +466,9 @@ function createGpuRuntime(
   return {
     camera,
     reset: resetFn().compute(1).setName("PhotorealBladeFieldResetIndirect"),
-    route: routeFn().compute(packedRecords.length / 16).setName("PhotorealBladeFieldRouteLod"),
+    route: routeFn()
+      .compute(packedRecords.length / 16)
+      .setName("PhotorealBladeFieldRouteLod"),
     routed: false,
     grassData,
   };
@@ -419,6 +477,9 @@ function createGpuRuntime(
 function bladeFieldMaterial(
   grassData: unknown,
   visibleIndices: unknown,
+  time: FloatNode,
+  farMaxM: number,
+  edgeFade: boolean,
 ): THREE.MeshStandardNodeMaterial {
   // Standard material so the environment (the mood owner) lights the canopy -
   // Lambert never samples the sky IBL here and left the field slate-grey. The
@@ -477,7 +538,9 @@ function bladeFieldMaterial(
     const t2 = t.mul(t).toVar();
     const u2 = u.mul(u).toVar();
     const windDir = normalize(vec3(0.82, 0.22, 0.0));
-    const staticWind = sin(phase).mul(0.5).add(0.5);
+    const windWave = sin(
+      phase.add(time.mul(0.82)).add(base.x.mul(0.035)).add(base.y.mul(0.021)),
+    ).toVar();
     const clumpBend = mix(0.76, 1.18, clumpWeight);
     const p0 = base;
     const p1 = base
@@ -486,11 +549,11 @@ function bladeFieldMaterial(
     const p2 = base
       .add(terrainNormal.mul(height).mul(0.7))
       .add(tangentForward.mul(bend).mul(height).mul(0.34).mul(clumpBend))
-      .add(windDir.mul(staticWind).mul(height).mul(0.028));
+      .add(windDir.mul(windWave).mul(height).mul(0.018));
     const p3 = base
       .add(terrainNormal.mul(height))
       .add(tangentForward.mul(bend).mul(height).mul(0.62).mul(clumpBend))
-      .add(windDir.mul(staticWind).mul(height).mul(0.052));
+      .add(windDir.mul(windWave).mul(height).mul(0.034));
     const center = p0
       .mul(u2.mul(u))
       .add(p1.mul(3.0).mul(u2).mul(t))
@@ -508,7 +571,11 @@ function bladeFieldMaterial(
     const geoNormal = normalize(cross(side, tangent)).toVar();
     // Sharper taper: fat straight wedges read as agave, not grass (unprimed
     // critique). Narrow shoulders, fine tip.
-    const widthFactor = t.mul(0.5).add(0.5).mul(pow(float(1.0).sub(t), 1.6)).toVar();
+    const widthFactor = t
+      .mul(0.5)
+      .add(0.5)
+      .mul(pow(float(1.0).sub(t), 1.6))
+      .toVar();
     const cameraDir = normalize(cameraPosition.sub(center)).toVar();
     const viewSideSigned = dot(cameraDir, side).toVar();
     const centerMask = pow(float(1.0).sub(t), 0.48).mul(pow(t.add(0.05), 0.33));
@@ -536,11 +603,7 @@ function bladeFieldMaterial(
     const root = rgbNode(BLADE_FIELD_PALETTE.root);
     const mid = rgbNode(BLADE_FIELD_PALETTE.mid);
     const tip = rgbNode(BLADE_FIELD_PALETTE.tip);
-    const body = mix(
-      mix(root, mid, smoothstepN(0.0, 0.58, t)),
-      tip,
-      smoothstepN(0.38, 1.0, t),
-    );
+    const body = mix(mix(root, mid, smoothstepN(0.0, 0.58, t)), tip, smoothstepN(0.38, 1.0, t));
     const dryTip = smoothstepN(0.72, 1.0, t).mul(BLADE_FIELD_PALETTE.dryTipMix);
     const heightAo = mix(0.5, 1.0, clamp(pow(t, 0.6), 0.0, 1.0));
     const clumpFactor = mix(0.92, 1.08, clamp(clumpSeed, 0.0, 1.0));
@@ -548,14 +611,24 @@ function bladeFieldMaterial(
     // Clump shade is what turns the canopy into bright tall columns over dark
     // short clumps - the vertical-run structure the close target shows.
     const clumpShade = mix(0.42, 1.18, clumpWeight);
-    const distFade = smoothstep(float(18.0), float(42.0), length(cameraPosition.sub(base)));
+    const eyeDist = length(cameraPosition.sub(base)).toVar();
+    const distFade = smoothstep(float(18.0), float(42.0), eyeDist);
+    // Blend into the meadow tone toward the cull ring so the coverage edge
+    // dissolves instead of cutting a hard disc (slice 12 owns real thinning).
+    const ringFade = smoothstep(
+      float(farMaxM * 0.72),
+      float(farMaxM * 0.95),
+      eyeDist,
+    );
+    const meadow = vec3(0.47, 0.53, 0.32);
     const shaded = mix(body, tip, dryTip)
       .mul(heightAo)
       .mul(clumpShade)
       .mul(clumpFactor)
       .mul(bladeFactor)
       .mul(0.92);
-    const albedo = mix(shaded, vec3(dot(shaded, vec3(0.333))), distFade.mul(0.16));
+    const desat = mix(shaded, vec3(dot(shaded, vec3(0.333))), distFade.mul(0.16));
+    const albedo = mix(desat, meadow, ringFade.mul(edgeFade ? 0.85 : 0.0));
     vAlbedo.assign(clamp(albedo, vec3(0.0), vec3(1.0)));
     vRough.assign(mix(0.97, 0.9, smoothstepN(0.18, 1.0, t)));
 
@@ -568,7 +641,6 @@ function bladeFieldMaterial(
   material.roughnessNode = vRough;
   return material;
 }
-
 
 function hashPackedRecords(records: Float32Array): string {
   let h = 0x811c9dc5;

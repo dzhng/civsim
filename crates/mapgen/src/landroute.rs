@@ -72,7 +72,7 @@ pub const SEA_ONLY_CITIES: &[&str] = &[
     "Meninge",
     "Mytilene",
     "Olbia",
-    "Olbia (Borysthenes)",
+    "Olbia Borysthenes",
     "Palma",
     "Panormus",
     "Pantikapaion",

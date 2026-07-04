@@ -37175,7 +37175,7 @@
       "coast_km": 26.488
     },
     {
-      "name": "Caesarea (Phrygia)",
+      "name": "Caesarea Phrygia",
       "x": 1144.6711563387826,
       "y": 115.02216842125604,
       "land": true,
@@ -37189,7 +37189,7 @@
       "coast_km": null
     },
     {
-      "name": "Apamea (Pisidia)",
+      "name": "Apamea Pisidia",
       "x": 1061.0912557292145,
       "y": 77.90479318481216,
       "land": true,
@@ -37455,7 +37455,7 @@
       "coast_km": null
     },
     {
-      "name": "Bononia (Moesia)",
+      "name": "Bononia Moesia",
       "x": 391.7547150258971,
       "y": 678.2974013878418,
       "land": true,
@@ -37532,7 +37532,7 @@
       "coast_km": 3.999
     },
     {
-      "name": "Caesarea (Cappadocia)",
+      "name": "Caesarea Cappadocia",
       "x": 1505.654039269165,
       "y": 223.4390280476428,
       "land": true,
@@ -38050,7 +38050,7 @@
       "coast_km": 4.47
     },
     {
-      "name": "Heliopolis (Baalbek)",
+      "name": "Heliopolis",
       "x": 1664.3530874932892,
       "y": -282.6500472498274,
       "land": true,
@@ -38337,7 +38337,7 @@
       "coast_km": null
     },
     {
-      "name": "Mediolanum (Aquitania)",
+      "name": "Mediolanum Aquitania",
       "x": -1433.87127872805,
       "y": 1012.0897203894702,
       "land": true,
@@ -38456,7 +38456,7 @@
       "coast_km": 3.998
     },
     {
-      "name": "Nicopolis (Pontus)",
+      "name": "Nicopolis Pontus",
       "x": 1693.1487092395475,
       "y": 426.5754285423013,
       "land": true,
@@ -39548,7 +39548,7 @@
       "coast_km": 4.47
     },
     {
-      "name": "Apollonia (Epirus)",
+      "name": "Apollonia Epirus",
       "x": 120.45150560575962,
       "y": 308.91973670371584,
       "land": true,
@@ -39716,7 +39716,7 @@
       "coast_km": 15.182
     },
     {
-      "name": "Olbia (Borysthenes)",
+      "name": "Olbia Borysthenes",
       "x": 1052.6807033480873,
       "y": 1049.4899293261908,
       "land": true,
@@ -39919,7 +39919,7 @@
       "coast_km": 4.862
     },
     {
-      "name": "Neapolis (Thrace)",
+      "name": "Neapolis",
       "x": 542.8556905388273,
       "y": 351.8364057784147,
       "land": true,

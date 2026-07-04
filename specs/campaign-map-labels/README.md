@@ -26,24 +26,24 @@ the existing owner.
 
 ## Next Agent Prompt
 
-**Status (2026-07-04):** Slices 00 (offshore marker) and 01 (probe hardening)
-SHIPPED and verified. Pick up at **Slice 02 (naming rename)**.
+**Status (2026-07-04):** Slices 00–02 SHIPPED and verified. Pick up at
+**Slice 03 (importance scalar)** — the first density slice.
 
-**Do this next, in order:**
+**Do this next, in order (03–06 are serial):**
 
-1. **Slice 02 — naming rename** (`slices/02-name-dequalify.md`). A final mapgen
-   post-step (after prune + leagues), cargo invariant, re-bake.
-2. **Slices 03–06 — density** (`slices/03..06`). Importance scalar → unified
-   greedy rank → crowding margin → reappearance verify. Each grows
-   `arbitrateLabelOccupancy`; re-bless overview snaps on the visual ones.
+1. **Slice 03 — importance scalar** (`slices/03-importance-scalar.md`). Add
+   `importance` to `CampaignLabel`, assembled at the emitters; telemetry only,
+   zero visual change.
+2. **Slice 04 — unified greedy rank**, **05 — crowding margin**, **06 —
+   reappearance verify**. Each grows `arbitrateLabelOccupancy`; re-bless
+   overview snaps on the visual ones.
 
-Slice 02 is independent of 03–06's start; 03–06 are serial. Run the per-slice
-gates below. **Update this section before ending your pass.**
+**Update this section before ending your pass.**
 
 ### Global TODO
 - [x] **00** Offshore marker fix — remove world-edge inset from city labels *(shipped)*
 - [x] **01** Probe samples the drawn icon rect + `drawnIconOffsetPx` detached-marker gate *(shipped)*
-- [ ] **02** Drop-qualifier-when-unique naming *(owns: mapgen post-step + cargo invariant)*
+- [x] **02** Drop-qualifier-when-unique naming — `dequalify-names.mjs` post-step + cargo invariant *(shipped)*
 - [ ] **03** Importance scalar on every arbitrating label *(owns: emitters + `CampaignLabel.importance`)*
 - [ ] **04** Unified importance-ranked greedy over one budget *(owns: `arbitrateLabelOccupancy`)*
 - [ ] **05** Crowding margin *(owns: the overlap test inside the arbitration)*

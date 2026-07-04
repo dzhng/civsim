@@ -1245,17 +1245,28 @@ function campaignFactionLabels(data: CampaignData, opts: DrawOptions): CampaignL
   // Faction power = sum of owned city tiers, from live ownership (opts.cities),
   // keyed by faction index — the same index FactionLabel.faction carries.
   const cityTierSum = new Array(data.map.factions.length).fill(0);
+  const cityCentroidX = new Array(data.map.factions.length).fill(0);
+  const cityCentroidY = new Array(data.map.factions.length).fill(0);
   for (const [nodeIndex, city] of opts.cities) {
-    cityTierSum[city.owner] =
-      (cityTierSum[city.owner] ?? 0) + (data.map.nodes[nodeIndex]?.tier ?? 1);
+    const node = data.map.nodes[nodeIndex];
+    const tier = node?.tier ?? 1;
+    cityTierSum[city.owner] = (cityTierSum[city.owner] ?? 0) + tier;
+    cityCentroidX[city.owner] += (node?.pos[0] ?? 0) * tier;
+    cityCentroidY[city.owner] += (node?.pos[1] ?? 0) * tier;
   }
   return opts.factionLabels
     .filter((label) => !opts.fogOfWar || fogVisible(opts, label.x, label.y, 0.14))
     .map(
       (label): CampaignLabel => ({
         text: label.name,
-        x: label.x,
-        y: label.y,
+        x:
+          cityTierSum[label.faction] > 0
+            ? cityCentroidX[label.faction] / cityTierSum[label.faction]
+            : label.x,
+        y:
+          cityTierSum[label.faction] > 0
+            ? cityCentroidY[label.faction] / cityTierSum[label.faction]
+            : label.y,
         kind: "faction",
         size: label.minor ? 9 : 17,
         priority: 4,

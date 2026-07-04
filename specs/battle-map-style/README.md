@@ -21,10 +21,9 @@ Reference images (in `assets/` and the aesthetics skill):
 
 ## Next Agent Prompt
 
-**Status 2026-07-05: slices 00, 01, 10 DONE (live-verified).** Next pickups:
-[02-landform](slices/02-landform.md) (G-track) and
-[11-grass-battle-swap](slices/11-grass-battle-swap.md) (V-track — read slice
-10's recorded TSL hazards FIRST; they cost a full day). Before writing any
+**Status 2026-07-05: slices 00, 01, 10 DONE (live-verified);
+11 CODE-LANDED as BMS11-SLICE-E9C4, awaiting orchestrator visual/perf gates.**
+Next pickup: [02-landform](slices/02-landform.md) (G-track). Before writing any
 scene against the photoreal battle route, read the camera-truth trap and the
 oracle re-anchoring amendment in
 [00's locked values](slices/00-composition-and-oracle-lock.md).
@@ -53,7 +52,10 @@ Before writing any code, read:
 - [ ] 05 — Edge grammar + deployment guarantees
 - [ ] 06 — Seed variety + seed browser
 - [x] 10 — False Earth grass port (close-gate ratification)
-- [ ] 11 — Grass battle integration (swap + delete tuft path, perf gate)
+- [x] 11 — Grass battle integration (swap + delete tuft path, perf gate)
+  CODE-LANDED BMS11-SLICE-E9C4; orchestrator still owes battle scenes, vista +
+  close-gate crops, battle baseline re-bless, perf:30k hardware, elevation
+  tripwire, and wind GIF.
 - [ ] 12 — Grass LOD budgets at 30k
 - [ ] 13 — Cliff material
 - [ ] 14 — Vista backdrop (DECIDED: render-only apron, world = 2× playable)

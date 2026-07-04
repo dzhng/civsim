@@ -34,8 +34,12 @@ import {
 } from "../../../game-renderer/src/battle/mapCatalog";
 import { buildBattleGroundMesh } from "../../../game-renderer/src/battle/groundPass";
 import { buildBattleHorizonLayout } from "../../../game-renderer/src/battle/horizonPass";
-import { buildBattleTerrainGrass } from "../../../game-renderer/src/battle/grassPass";
+import {
+  sampleGrassField,
+  type GrassFieldStats,
+} from "../../../game-renderer/src/battle/grassField";
 import { featuresToBattleScenery } from "../../../game-renderer/src/battle/terrainScenery";
+import { eyePosition } from "../../../renderer-core/src/camera3d";
 import {
   terrainHeightAt,
   type TerrainHeightField,
@@ -64,7 +68,8 @@ import {
   createSeaDisplacementSource,
   type SeaDisplacementSourceId,
 } from "./seaLayer";
-import { PhotorealGrassField, PhotorealScenery } from "./foliageLayer";
+import { PhotorealBladeFieldLayer } from "./bladeFieldLayer";
+import { PhotorealScenery } from "./foliageLayer";
 import { PhotorealCrowd, type CrowdVisibilityScope } from "./crowdLayer";
 import {
   configureSunShadows,
@@ -97,13 +102,38 @@ export interface BattleTacticalLineFrame {
   rings: Float32Array;
 }
 
+const PRODUCTION_BLADE_FIELD_PROFILE = {
+  source: "BMS11-SLICE-E9C4 slice-10 accepted close-gate profile",
+  seed: 0x5ea7_2026,
+  // Ring must exceed the vista camera's eye height (~59 m) + ground reach or
+  // production framing distance-culls the field (slice 11 finding). Coarser
+  // production cell than the close lab keeps the record count sane; proper
+  // stratified budgets + distance thinning are slice 12.
+  focusRadiusM: 150,
+  fieldCellSize: 0.6,
+  snapCellSize: 8,
+  clumpCellSize: 1.55,
+  maxRecords: 110000,
+  density: 0.8,
+  jitter: 0.72,
+  minNormalZ: 0.45,
+  lodNearRadiusM: 5,
+  lodMidRadiusM: 20,
+  baseHeight: 1.25,
+  heightJitter: 0.5,
+  baseWidth: 0.13,
+  widthJitter: 0.22,
+  baseBend: 0.45,
+  bendJitter: 0.35,
+} as const;
+
 export class PhotorealBattleWorld {
   readonly world: PhotorealWorld;
   readonly camera = new THREE.PerspectiveCamera();
   private readonly environment: BattleEnvironment;
   private readonly frame: BattleFrameUniforms;
   private readonly background: BattleBackgroundQuads;
-  private readonly grass: PhotorealGrassField;
+  private readonly grass: PhotorealBladeFieldLayer;
   private readonly scenery: PhotorealScenery;
   private readonly crowd: PhotorealCrowd;
   private readonly shadowRig: SunShadowRig;
@@ -132,7 +162,8 @@ export class PhotorealBattleWorld {
   private heightField: TerrainHeightField | null = null;
   private groundCover: BattleGroundCover = "green-grass";
   private grassTerrainKey: string | null = null;
-  private grassWindPhase = 0;
+  private grassSampleStats: GrassFieldStats | null = null;
+  private grassEnabled = true;
   private instances: CrowdInstance[] = [];
   private markers: MarkerInstance[] = [];
   private seating = { checked: 0, matches: true, span: 0 };
@@ -195,7 +226,11 @@ export class PhotorealBattleWorld {
     );
 
     this.background = new BattleBackgroundQuads(scene, this.frame);
-    this.grass = new PhotorealGrassField(scene, env);
+    this.grass = new PhotorealBladeFieldLayer(scene, this.frame.time, [
+      { id: "near", lodTier: 0, segments: 15, minDistanceM: 0, maxDistanceM: 8 },
+      { id: "mid", lodTier: 1, segments: 5, minDistanceM: 8, maxDistanceM: 30 },
+      { id: "far", lodTier: 2, segments: 2, minDistanceM: 30, maxDistanceM: 150 },
+    ], true);
     this.scenery = new PhotorealScenery(scene);
     this.crowd = new PhotorealCrowd(scene, meshes, vats, kit);
     this.mountedClasses = mountedClassesFromKit(kit);
@@ -272,6 +307,12 @@ export class PhotorealBattleWorld {
    *  pair proving bloom did not re-break the 12e glint discipline). */
   setBloomEnabled(on: boolean): void {
     this.post.setBloomEnabled(on);
+  }
+
+  /** Lab-only blade-field A/B hook; production leaves this on. */
+  setGrassVisible(visible: boolean): void {
+    this.grassEnabled = visible;
+    this.grass.setVisible(visible);
   }
 
   resize(width: number, height: number, pixelRatio = 1): void {
@@ -392,7 +433,8 @@ export class PhotorealBattleWorld {
     this.shadowRig.setWorldRect(this.terrainRect);
     this.background.setRects(this.terrainRect, expandedTerrainRect(this.terrainRect));
     this.grassTerrainKey = null;
-    this.updateGrassForCamera(this.lastCamera);
+    const terrainEye = eyePosition(this.lastCamera.camera3d);
+    this.updateGrassForCamera(terrainEye[0], terrainEye[1]);
   }
 
   private terrainHeightSampler(): ((x: number, y: number) => number) | undefined {
@@ -435,8 +477,8 @@ export class PhotorealBattleWorld {
     this.instances = built.instances;
     this.markers = [];
     this.updateSeating(built.instances);
-    this.updateGrassWindPhase();
-    this.updateGrassForCamera(camera);
+    const uploadEye = eyePosition(this.lastCamera.camera3d);
+    this.updateGrassForCamera(uploadEye[0], uploadEye[1]);
     applyCamera3d(this.camera, this.lastCamera.camera3d);
     this.shadowRig.update(this.camera);
     this.crowd.upload(this.instances, this.crowdVisibilityScope());
@@ -456,8 +498,6 @@ export class PhotorealBattleWorld {
   /** The frame call: uploads the tactical-line decals/overlays and renders. */
   drawTacticalLines(lines: BattleTacticalLineFrame, camera: BattleCameraSnapshot): void {
     this.setCamera(camera);
-    this.updateGrassWindPhase();
-    this.updateGrassForCamera(camera);
     this.groundCues.upload(lines.groundCues);
     this.selectionRings.upload(lines.rings);
     this.effectLines.upload(lines.effects);
@@ -472,6 +512,12 @@ export class PhotorealBattleWorld {
     // Cascade splits track the live projection (the zoom rig moves fovY/pitch
     // continuously) — re-fit them after every camera pose.
     this.shadowRig.update(this.camera);
+    // The grass ring centers on the CAMERA's ground position - centering on
+    // the view center (hundreds of meters ahead at the vista) reads as a
+    // floating grass disc (slice 11 finding).
+    const eye = eyePosition(this.lastCamera.camera3d);
+    this.updateGrassForCamera(eye[0], eye[1]);
+    this.grass.routeGpu(this.world.renderer, [eye[0], eye[1], eye[2]]);
     this.crowd.refreshCamera(this.camera);
     this.markerLayer.setCameraBasis(this.camera);
     this.background.setStyle(this.lastCamera.zoom < 1.2 ? "wide-detail" : "default");
@@ -518,19 +564,18 @@ export class PhotorealBattleWorld {
     this.seating = { checked: instances.length, matches, span: Number((hi - lo).toFixed(3)) };
   }
 
-  /** Identical cache-key policy to BattleRenderer.updateGrassForCamera — same
-   *  zoom buckets, same snapped focus, same production params. */
-  private updateGrassForCamera(camera: BattleCameraSnapshot): void {
+  /** Focus-following blade-record window. Same snapped-focus cadence as the
+   *  old tuft path, but records now come from grassField.ts and the blade layer
+   *  owns rendering. */
+  private updateGrassForCamera(eyeX: number, eyeY: number): void {
     if (!this.terrainGrid || !this.heightField) return;
-    const zoomT = clampUnit(camera.zoomT);
-    const radius = grassFocusRadius(zoomT, this.terrainRect);
-    const step = Math.max(24, radius * 0.14);
+    const radius = PRODUCTION_BLADE_FIELD_PROFILE.focusRadiusM;
+    const step = PRODUCTION_BLADE_FIELD_PROFILE.snapCellSize;
     const focus = {
-      x: Math.round(camera.x / step) * step,
-      y: Math.round(camera.y / step) * step,
+      x: Math.round(eyeX / step) * step,
+      y: Math.round(eyeY / step) * step,
       radius,
     };
-    const zoomBucket = Math.round(zoomT * 5);
     const key = [
       this.terrainGrid.w,
       this.terrainGrid.h,
@@ -538,33 +583,36 @@ export class PhotorealBattleWorld {
       this.terrainGrid.ox,
       this.terrainGrid.oy,
       this.groundCover,
-      zoomBucket,
       Math.round(focus.x),
       Math.round(focus.y),
-      Math.round(focus.radius),
+      focus.radius,
     ].join(":");
     if (key === this.grassTerrainKey) return;
     this.grassTerrainKey = key;
-    this.grass.apply(
-      buildBattleTerrainGrass(this.terrainGrid, this.heightField, this.groundCover, {
-        seed: 0x7a55,
-        density: 0.48,
-        maxTufts: 4200,
-        zoomT: zoomBucket / 5,
-        focus,
-        bladeHeight: 1.0,
-        bladeWidth: 0.072,
-        bend: 0.32,
-        spread: 0.2,
-        windPhase: this.grassWindPhase,
-        windStrength: 0.075,
-      }),
+    const snapshot = sampleGrassField(this.terrainGrid, this.heightField, {
+      seed: PRODUCTION_BLADE_FIELD_PROFILE.seed,
+      focus,
+      fieldCellSize: PRODUCTION_BLADE_FIELD_PROFILE.fieldCellSize,
+      snapCellSize: PRODUCTION_BLADE_FIELD_PROFILE.snapCellSize,
+      clumpCellSize: PRODUCTION_BLADE_FIELD_PROFILE.clumpCellSize,
+      maxRecords: PRODUCTION_BLADE_FIELD_PROFILE.maxRecords,
+      density: PRODUCTION_BLADE_FIELD_PROFILE.density,
+      jitter: PRODUCTION_BLADE_FIELD_PROFILE.jitter,
+      minNormalZ: PRODUCTION_BLADE_FIELD_PROFILE.minNormalZ,
+      lodNearRadius: PRODUCTION_BLADE_FIELD_PROFILE.lodNearRadiusM / radius,
+      lodMidRadius: PRODUCTION_BLADE_FIELD_PROFILE.lodMidRadiusM / radius,
+      baseHeight: PRODUCTION_BLADE_FIELD_PROFILE.baseHeight,
+      heightJitter: PRODUCTION_BLADE_FIELD_PROFILE.heightJitter,
+      baseWidth: PRODUCTION_BLADE_FIELD_PROFILE.baseWidth,
+      widthJitter: PRODUCTION_BLADE_FIELD_PROFILE.widthJitter,
+      baseBend: PRODUCTION_BLADE_FIELD_PROFILE.baseBend,
+      bendJitter: PRODUCTION_BLADE_FIELD_PROFILE.bendJitter,
+    });
+    this.grassSampleStats = snapshot.stats;
+    this.grass.applyPackedRecords(
+      snapshot.packedRecords,
+      this.grassEnabled && snapshot.stats.acceptedRecords > 0,
     );
-  }
-
-  private updateGrassWindPhase(): void {
-    this.grassWindPhase = this.world.time * 0.58;
-    this.grass.setWindPhase(this.grassWindPhase);
   }
 
   stats() {
@@ -619,7 +667,11 @@ export class PhotorealBattleWorld {
             groundCover: this.groundCover,
             environment: battleEnvironmentStats(this.environment),
             scenery: this.scenery.stats().scenery,
-            grass: this.grass.stats(),
+            grass: {
+              ...this.grass.stats(),
+              productionSamplingProfile: PRODUCTION_BLADE_FIELD_PROFILE,
+              sample: this.grassSampleStats,
+            },
           }
         : null,
       tacticalLines: {
@@ -662,15 +714,4 @@ function expandedTerrainRect([x, y, w, h]: [number, number, number, number]): [
 ] {
   const margin = Math.max(120, Math.max(w, h) * 0.22);
   return [x - margin, y - margin, w + margin * 2, h + margin * 2];
-}
-
-/** BattleRenderer's grassFocusRadius. */
-function grassFocusRadius(zoomT: number, rect: [number, number, number, number]): number {
-  const shortSide = Math.max(1, Math.min(rect[2], rect[3]));
-  const longSide = Math.max(rect[2], rect[3]);
-  return Math.min(longSide * 0.42, Math.max(120, shortSide * (0.34 - zoomT * 0.18)));
-}
-
-function clampUnit(value: number): number {
-  return Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
 }

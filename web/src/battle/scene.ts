@@ -386,7 +386,10 @@ export class BattleScene implements Scene {
         // Verdicts come from the ONE certificate owner (sim genmap::certify via
         // wasm) - the frontend never re-derives them from the speed field.
         certificates: this.cfg.generatedMap
-          ? (JSON.parse(this.cfg.game.generated_map_certificates()) as Record<string, number | boolean>)
+          ? (JSON.parse(this.cfg.game.generated_map_certificates()) as Record<
+              string,
+              number | boolean
+            >)
           : null,
         counts,
         features: {
@@ -1966,5 +1969,3 @@ function scaleHeightForRenderer(height: Float32Array, reliefScale: number): Floa
   for (let i = 0; i < height.length; i++) out[i] = height[i] * scale;
   return out;
 }
-
-

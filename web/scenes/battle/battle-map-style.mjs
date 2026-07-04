@@ -216,7 +216,14 @@ function assertPhotorealRoute(ctx, stats) {
       terrain?.sealedEdges?.includes("east:ocean") &&
       terrain?.groundTriangles > 100000 &&
       terrain?.scenery > 0 &&
-      terrain?.grass?.tuftInstances > 0,
+      terrain?.grass?.layer === "photoreal-blade-field" &&
+      terrain?.grass?.recordCount > 0 &&
+      terrain?.grass?.packedStrideFloats === 16 &&
+      terrain?.grass?.sourceStorageCore?.runtimeComputeRoute === "active" &&
+      // Tint/slope rejection counts are focus-dependent (a mid-plain 64 m
+      // window has nothing to reject) - eligibility is the data owner's
+      // contract, not this boot check's.
+      terrain?.grass?.sample?.acceptedRecords > 0,
     JSON.stringify({
       renderer: stats?.renderer,
       projection: stats?.projection,

@@ -21,10 +21,12 @@ Reference images (in `assets/` and the aesthetics skill):
 
 ## Next Agent Prompt
 
-**Status 2026-07-04: spec created, no slices started.** Start with
-[00-composition-and-oracle-lock](slices/00-composition-and-oracle-lock.md) and
-[01-genmap-skeleton](slices/01-genmap-skeleton.md) — they are independent and
-can run in parallel worktrees (00 is web-only, 01 is Rust/wasm-first).
+**Status 2026-07-04: slice 01 implemented and cargo/web-static verified;
+browser scene run and baseline blessing remain ORCHESTRATOR-TODO because this
+sandbox cannot run scenes/dev servers.** Next start
+[00-composition-and-oracle-lock](slices/00-composition-and-oracle-lock.md), or
+continue G-track with [02-landform](slices/02-landform.md) after the orchestrator
+blesses `battle-genmap-smoke`.
 
 Before writing any code, read:
 
@@ -43,7 +45,8 @@ Before writing any code, read:
 **Global TODO** (update this list and the status line before ending any pass):
 
 - [ ] 00 — Composition + oracle lock (judging apparatus pinned before art)
-- [ ] 01 — Genmap skeleton (seed → playable battle, end to end)
+- [x] 01 — Genmap skeleton (seed → playable battle, end to end; ORCHESTRATOR-TODO:
+      run/bless smoke scene)
 - [ ] 02 — Landform (macro mask × warped noise, clay verdict)
 - [ ] 03 — Passability from landform (BFS certificates)
 - [ ] 04 — Hydrology (priority-flood lakes, descending rivers, fords)

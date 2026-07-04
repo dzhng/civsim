@@ -17,13 +17,12 @@ distance does the reference's depth work across grass, cliffs, and water.
   material-local tinting.
 - Per-map-family default: the descriptor/catalog selects the preset; generated
   highland maps default to it, hand maps keep their current defaults.
-- **Fog runway rule (research-backed):** fog must reach full opacity at or
-  before the vista's outer edge in each direction — geometry past saturated
-  fog is waste, geometry ending before it silhouettes against sky. E/W the
-  tall ridges *are* the horizon; N/S the haze closes it. Blend fog to the sky
-  at the horizon (fade-to-skybox band), never constant-color to a hard line.
-  If N/S needs implausibly heavy haze to close at the 2× vista edge, invoke
-  slice 14's optional outer ring instead of thickening the mood.
+- **Fog runway rule (research-backed):** fog must reach full opacity inside
+  slice 14's far fog ring, always before its outer edge — geometry past
+  saturated fog is waste, geometry ending before it silhouettes against sky.
+  E/W the tall ridges *are* the horizon; N/S the haze closes it over the far
+  ring's sinking plain. Blend fog to the sky at the horizon (fade-to-skybox
+  band), never constant-color to a hard line.
 
 ## Human can run
 

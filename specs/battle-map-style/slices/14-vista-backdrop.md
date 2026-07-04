@@ -52,10 +52,15 @@ generated maps stop depending on `buildBattleHorizonLayout`'s blocker quads.
   variant), `castShadow = false`, `receiveShadow = false`, CSM/shadow bounds
   stay fit to the playable rect, vista excluded from picking/raycast layers.
   One draw call; ~90k triangles at 16 m cells — budget non-issue.
-- **Optional outer ring (evidence-driven):** if slice 16 finds the N/S fog
-  must reach full opacity implausibly close (vista edge ≈ 800 m out) to close
-  the horizon, add a second ultra-coarse ring (64 m cells, out to 3–4×) for
-  fog runway instead of thickening the haze. Record the call here.
+- **Far fog ring (committed — TW is the model):** beyond the 2× vista, a
+  second ultra-coarse ring (64 m cells, out to ~3–4× the playable extent)
+  provides the fog runway, so N/S haze can saturate naturally instead of
+  slamming to full opacity at ~800 m. Silhouette-and-fog duty only: heavily
+  band-limited, E/W it carries the receding ridge rows the reference layers
+  into haze, N/S it is sinking plain. Fog reaches full opacity inside this
+  ring, always before its outer edge (slice 16 owns the fog values; this
+  slice owns the geometry being there to catch them). A few tens of
+  thousands of triangles — still one draw call per ring.
 - Legacy `buildBattleHorizonLayout` blockers survive for the three hand maps
   only, and die with them in slice 20.
 

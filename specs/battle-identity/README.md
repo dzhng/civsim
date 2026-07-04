@@ -66,10 +66,41 @@ Work in this worktree; dev server for filming MUST be this worktree's on
 - [x] 07 arrows+archer — projectile z export, visible arced arrows, archer draw/loose cycle; arrow regression scene zoomed-in + zoomed-out
 - [x] 08 menu — single Custom Battle entry; faction picker (colors only for now)
 - [x] 09 integrate — vibe re-bless (soldier look moves every frame), model sheets, close-spec
-- [ ] 10 standard-asset-3d — ONE shared 3D standard (pole/crossbar/finial + waving swallowtail cloth), size tiers, deterministic wind; model sheet + anim GIF
+- [x] 10 standard-asset-3d — ONE shared 3D standard (pole/crossbar/finial + waving swallowtail cloth), size tiers, deterministic wind; model sheet + anim GIF
 - [ ] 11 battle-3d-banners — flag leaves the DOM into the scene (depth-tested, legibility floor at tactical zoom); selection glow moves onto the 3D standard; bars/chips stay DOM only until 12
 - [ ] 12 readout-billboards — bars/chips become world-anchored camera-facing GPU billboards at the pole top (glyph atlas like campaign labels); UnitBanner DOM retired; gallery becomes a renderer scene
 - [ ] 13 campaign-3d-banners — army standard mesh → shared asset; settlement banner over cities (tier-sized, Roma ref); garrison flag keeps the city anchor without doubling up
+
+## Slice 10 handoff (landed)
+
+The shared standard asset is `packages/game-renderer/src/models/shared/
+standardAsset.ts` (geometry builder, size tiers `battle-unit` /
+`campaign-army` / `settlement-banner`, livery from `battle/factionColors.ts`,
+TS wave-function twin) with the raw WebGPU review consumer in
+`standardPass.ts` (WGSL `clothWave` matches the TS twin; explicit `cam.time`,
+hashed per-instance phase — no wall clock). Contracts slices 11-13 consume:
+- **Weight channel `uvWeightMaterial.z`**: 0 = rigid (pole/crossbar/finial/
+  shadow); >0 = rides the wave. Cloth is sewn at the crossbar (weight 0 at
+  v=0) and swings hardest at the swallowtail tips. TRIM AND EMBLEM ARE NOT
+  RIGID — they sample the cloth's weight field at their (u,v) so they billow
+  with the cloth (a rigid border on waving cloth reads detached; strips are
+  subdivided along their length or they stay straight while the cloth bends).
+- **Cloth is centered on the pole** (Rome-2 silhouette), hanging
+  poleRadius+0.03 in front. The wave's toward-pole lobe is capped at quarter
+  amplitude (`STANDARD_WAVE_BACK_LOBE`; wind presses the banner forward) so
+  the cloth can NEVER pierce the pole — an unprimed critique caught the
+  piercing when the lobe was symmetric; a unit test pins the cap. Geometry is
+  single-sided with cull off and abs() lighting — duplicated coplanar back
+  faces z-fight and randomly win.
+- Review gates: `web/scenes/models/shared-standard-models.mjs` (6 snapCheck
+  baselines under `web/shots/models/shared/standards/`, framing + livery
+  pixel metrics; review cameras/gate table live in the renderer-lab router
+  beside the route, grass-config precedent — the asset module is
+  production-contract only).
+  Regen: `bun run --cwd web shots:models:standards`; wave GIFs:
+  `shots:models:standards:anim` (both need a vite on a free strict port +
+  `VERIFY_URL`, hardware Chrome per `web/shots/README.md`). Determinism
+  proven: second no-update run = 0 px on all six.
 
 ## Recon facts — 3D standards (verified 2026-07-04, file:line current)
 

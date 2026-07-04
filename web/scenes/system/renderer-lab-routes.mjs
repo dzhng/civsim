@@ -375,6 +375,30 @@ const routes = [
       hasFramePassRole(s.stats.framePhases, "shared-grass-model", "world-opaque", "world-depth"),
   ],
   [
+    "shared-standard-models?gate=battle-unit-azure",
+    (s) =>
+      s?.ok &&
+      s.route === "shared-standard-models" &&
+      s.stats.gate === "battle-unit-azure" &&
+      s.stats.tier === "battle-unit" &&
+      s.stats.faction === "azure" &&
+      s.stats.standards === 1 &&
+      s.stats.timeSeconds === 0.75 &&
+      s.stats.weightChannel?.includes(">0 cloth") &&
+      s.stats.waveContract?.includes("cam.time") &&
+      s.stats.cameraContract === "shared-world-camera-wgsl" &&
+      hasFramePhaseOrder(s.stats.framePhases) &&
+      hasFrameDepthPass(s.stats.framePhases, "shared-standard-opaque", "read-write") &&
+      hasFrameDepthPass(s.stats.framePhases, "shared-standard-shadow", "read") &&
+      hasFramePassRole(
+        s.stats.framePhases,
+        "shared-standard-opaque",
+        "world-opaque",
+        "world-depth",
+      ) &&
+      hasFramePassRole(s.stats.framePhases, "shared-standard-shadow", "world-decal", "world-depth"),
+  ],
+  [
     "render-graph",
     (s) =>
       s?.ok &&

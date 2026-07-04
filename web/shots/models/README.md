@@ -8,9 +8,12 @@ Generators for this folder live in `scripts/`:
 - `scripts/soldier-sheets.mjs` writes `shared/soldiers/ingame/`.
 - `scripts/soldier-animation.mjs` writes `shared/soldiers/anim/`.
 - `scripts/grass-wind.mjs` writes `shared/grass/anim/`.
+- `scripts/standard-wave.mjs` writes `shared/standards/anim/`.
 - Campaign model shots are captured by the scene-runner entry
   `web/scenes/models/campaign-models.mjs`, because it uses the shared scene
   screenshot harness, but the baselines still live here under `campaign/`.
+- Shared standard model shots are captured by `web/scenes/models/shared-standard-models.mjs`
+  and write all size tiers x Azure/Crimson liveries under `shared/standards/`.
 
 ```text
 shared/
@@ -19,6 +22,7 @@ shared/
     anim/       # review GIFs for soldier motion
   grass/        # reusable grass primitive sheets and wind-review GIFs
   props/        # reusable 3D scenery props shared by battle and campaign
+  standards/    # reusable 3D faction standards and wave-review GIFs
 battle/
   props/        # battle-only prop presentations and terrain-prop diagnostics
 campaign/

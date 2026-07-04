@@ -1925,11 +1925,12 @@ interface MeasuredCampaignLabel extends VisibleCampaignLabel {
 }
 
 // League-name density: at overview only leagues whose owned-city power clears
-// this bar keep a name (majors always show via powerAlpha); the ramp is how
-// sharply a league fades in as it clears the bar. Tuned so the whole-map view
-// shows the handful of strong leagues, not a wall of minor ones.
+// this bar keep a name (majors always clear it); the bar falls to zero as the
+// camera comes in. Tuned so the whole-map view shows the handful of strong
+// leagues, not a wall of minor ones. Faction engravings retire (hide, not fade —
+// no opacity) once the camera is close enough that city labels carry the detail.
 const LEAGUE_IMPORTANCE_BAR_HI = 14;
-const LEAGUE_IMPORTANCE_RAMP = 6;
+const FACTION_RETIRE_ZOOM = 0.95;
 
 function visibleLabels(labels: CampaignLabel[], camera: CameraSnapshot, dpr: number): VisibleCampaignLabel[] {
   const visible: VisibleCampaignLabel[] = [];
@@ -1949,23 +1950,21 @@ function visibleLabels(labels: CampaignLabel[], camera: CameraSnapshot, dpr: num
       opacity = (1 - clamp01((camera.zoom - 0.26) / 0.16)) * 0.8;
       if (opacity <= 0.02) continue;
     } else if (label.kind === 'faction') {
+      // Faction/league names are SOLID — no opacity anywhere (only sea names
+      // fade). Density is by VISIBILITY, not transparency: an engraving is shown
+      // at full strength or not at all. Retire engravings at close zoom, where
+      // the city labels carry the detail view.
+      if (camera.zoom > FACTION_RETIRE_ZOOM) continue;
+      if (label.factionMinor) {
+        // Leagues declutter by owned-city power (not territory area): a league
+        // keeps its name once its power clears the zoom-scaled bar — high at
+        // overview so only the strong leagues show, falling as the camera comes
+        // in (where the tighter viewport already thins the count) — else hidden.
+        const bar = LEAGUE_IMPORTANCE_BAR_HI * (1 - clamp01((camera.zoom - 0.3) / 0.5));
+        if ((label.importance ?? 0) < bar) continue;
+      }
       const radius = label.factionRadiusKm ?? 0;
       const screenR = radius * camera.zoom;
-      const powerAlpha = 1 - clamp01((camera.zoom - 0.72) / 0.16);
-      const leagueHiFade = 1 - clamp01((camera.zoom - 0.85) / 0.18);
-      if (label.factionMinor) {
-        // League names declutter by IMPORTANCE (owned-city power), not territory
-        // AREA — a vast but near-empty steppe league yields while a compact
-        // strong one keeps its name. The bar is high at overview (only the top
-        // leagues clear it) and falls to zero by mid-zoom, so lesser leagues
-        // reappear as the camera comes in — monotonic in zoom.
-        const bar = LEAGUE_IMPORTANCE_BAR_HI * (1 - clamp01((camera.zoom - 0.3) / 0.55));
-        opacity =
-          clamp01(((label.importance ?? 0) - bar) / LEAGUE_IMPORTANCE_RAMP) * leagueHiFade * 0.9;
-      } else {
-        opacity = powerAlpha;
-      }
-      if (opacity <= 0.02) continue;
       const size = label.factionMinor
         ? Math.min(22, Math.max(9, screenR * 0.4))
         : Math.min(34, Math.max(17, screenR * 0.5));

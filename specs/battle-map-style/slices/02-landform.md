@@ -15,6 +15,12 @@ derives from and every V-slice renders.
   low-lying central corridor, N/S deployment aprons — plus warped fBm detail
   whose **amplitude budget is clamped inside the corridor** so noise can never
   spawn a wall where the certificate needs passage.
+- **The height function's domain is the full vista extent** (playable × 2 per
+  axis — slice 14 samples the surround coarsely). Design consequence: the E/W
+  ridge masses straddle the playable boundary — feet inside the grid, bulk
+  outside — so the walls read as mountains the map sits against, not berms at
+  the fence. This slice only *samples* the playable center; the vista mesh is
+  slice 14's job.
 - Flank walls use ridged shaping (sharpness blending toward the edges) and
   analytical-derivative slope damping for the eroded look; **no droplet
   erosion** (sub-Nyquist at 4 m cells; recorded research decision). An

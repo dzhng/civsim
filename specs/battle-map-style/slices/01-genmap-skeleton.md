@@ -13,7 +13,9 @@ battle is playable in the browser.
 
 - `crates/sim/src/genmap/mod.rs`: `MapRecipe` (serde-able from day one — the
   future campaign seam in slice 19 is a straight embed; defaults reproduce
-  today's extents: half_w 1200, half_h 800, cell 4). `generate` is pure, no
+  today's extents: half_w 1200, half_h 800, cell 4, plus `vista_extent: 2.0` —
+  the rendered-world multiplier slice 14 consumes; the skeleton only carries
+  it). `generate` is pure, no
   I/O, writes `height/speed/tint/rough` fields directly — never stacked paint
   ops. First output deliberately boring: a gently rolling plain (integer-hash
   value noise — reuse the wrapping-mul hash family already in `maps.rs`; **no

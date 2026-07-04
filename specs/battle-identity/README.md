@@ -1,7 +1,8 @@
 # Battle Identity — realistic soldiers, faction reading, Rome-2 banners
 
 How you READ a battle: soldiers look like men (bronze/steel/linen/leather/skin),
-faction shows only on accent parts (shield, crest, tunic band) and the banner;
+faction shows only on accent parts (shield, crest, tunic band) and the banner —
+a real 3D standard standing in the world (battle AND campaign), not a UI decal;
 ownership shows through stat bars (only YOUR units have them); selection shows
 through the flag glow plus campaign-green rings under every soldier; the camera
 opens with your army at the bottom and zooms down to soldier eye level; arrows
@@ -9,14 +10,28 @@ fly visibly; archers draw and loose. One menu path into battle (Custom Battle)
 with a faction picker.
 
 **Visual north star** (`assets/`): `ref-rome2-banners.png` — vertical
-swallowtail cloth banners on a crossbar pole, faction field + emblem, gold trim.
-`ref-rome2-closeup.jpeg` — soldiers read as materials, faction carried by
-shields/crests/tunics; camera just above helmet height. `ref-medieval2-battle.jpg`
-— armies as steel masses with heraldic accents at ground level.
+swallowtail cloth banners on a crossbar pole, faction field + emblem, gold trim,
+standing IN the world as 3D cloth. `ref-rome2-closeup.jpeg` — soldiers read as
+materials, faction carried by shields/crests/tunics; camera just above helmet
+height. `ref-medieval2-battle.jpg` — armies as steel masses with heraldic
+accents at ground level. `ref-rome2-campaign-banner.png` — the campaign map's
+settlement banner: a tall faction cloth flying over the city itself, readable
+at strategic zoom.
 
 ## Next Agent Prompt
 
-*Status (2026-07-03): ALL NINE SLICES LANDED on main. 01 faction table;
+*Status (2026-07-04): David reviewed the shipped banners — NOT DONE. The flags
+on both maps must be real 3D standards like Total War (in-scene waving cloth),
+not a flat DOM SVG (battle) or static flat panels (campaign). Slices 10-13
+added: 10 builds the ONE shared 3D standard asset; 11 plants it in battle;
+12 moves the readout (bars/chips) out of the DOM into world-anchored GPU
+billboards — David rejected keeping a DOM overlay (registration jitter, no
+depth interaction; CSS matrix3d considered and rejected as worst-of-both);
+13 converts the campaign army standard and adds the settlement banner
+(`ref-rome2-campaign-banner.png`). Do 10 first — both maps consume it; 13
+also clears the pennant-restyle re-bless debt noted below.*
+
+*Status (2026-07-03): first nine slices landed on main. 01 faction table;
 02 soldier realism (broad tint dead, accents saturated, linen lifted off
 terrain); 03+04 vertical banners + ownership bars (note: banner-gallery's
 old baseline passed stale once — re-blessed in 09); 05+06 rings + camera
@@ -51,6 +66,35 @@ Work in this worktree; dev server for filming MUST be this worktree's on
 - [x] 07 arrows+archer — projectile z export, visible arced arrows, archer draw/loose cycle; arrow regression scene zoomed-in + zoomed-out
 - [x] 08 menu — single Custom Battle entry; faction picker (colors only for now)
 - [x] 09 integrate — vibe re-bless (soldier look moves every frame), model sheets, close-spec
+- [ ] 10 standard-asset-3d — ONE shared 3D standard (pole/crossbar/finial + waving swallowtail cloth), size tiers, deterministic wind; model sheet + anim GIF
+- [ ] 11 battle-3d-banners — flag leaves the DOM into the scene (depth-tested, legibility floor at tactical zoom); selection glow moves onto the 3D standard; bars/chips stay DOM only until 12
+- [ ] 12 readout-billboards — bars/chips become world-anchored camera-facing GPU billboards at the pole top (glyph atlas like campaign labels); UnitBanner DOM retired; gallery becomes a renderer scene
+- [ ] 13 campaign-3d-banners — army standard mesh → shared asset; settlement banner over cities (tier-sized, Roma ref); garrison flag keeps the city anchor without doubling up
+
+## Recon facts — 3D standards (verified 2026-07-04, file:line current)
+
+**Battle flag today.** Pure DOM: `UnitBanner` (`web/src/battle/unitBanner.ts`)
+draws pole/finial/crossbar/cloth/emblem as inline SVG (:48-81), team fill from
+the faction table's `bannerCss` (`factionColors.ts:15,21`), CSS at
+`index.html:563+`. Screen-placed by `updateUnitBanners` (`scene.ts:475`),
+bottom-anchored at the projected pole foot (`place()`, unitBanner.ts:157-161).
+Bars/chips/selection live in the same component; the banner gallery
+(`?test=banners`, `mountBannerGallery`) snapshots it engine-free.
+
+**Campaign flags today.** Real meshes but static flat panels, no cloth
+motion: army standard = `buildCampaignStandardMesh`
+(`campaignEntityModels.ts:59-85`, white `panel3d` faces take faction livery),
+drawn per stack by `CampaignEntityPass` (`entityPass.ts:86`); it is what the
+figure LOD collapses to at far zoom (`renderer.ts:796-802`). The city mesh has
+its own mast + static flag panels (`campaignEntityModels.ts:14-27`). A
+garrisoned army's standard anchors on the city (`renderer.ts:969-974`).
+Far-zoom armies also get a 2D GPU marker chip (`campaignMapMarkers`,
+`renderer.ts:948-986`) — map UI, not a flag.
+
+**Wind precedent.** Grass already does deterministic shader wind:
+per-instance `windPhase` hashed from seed, `windStrength` uniform
+(`grassPass.ts:184-199`, `grassField.ts:208`) — the cloth wave follows this
+pattern, driven by pinned scene time so snaps stay byte-stable.
 
 ## Recon facts (verified 2026-07-03, file:line current)
 
@@ -71,7 +115,8 @@ The WGSL twin already has the target behavior behind
 inline SVG horizontal pennant (path at :45), `TEAM_HUE = [#6f9ae8, #e0604f]`
 (:22), bars = hp + cohesion ONLY (:64-74; morale/stamina are chips from
 `scene.ts:430-456`), placed at `scene.ts:481`, CSS in `index.html:562-620`,
-`.sel` glow exists. Campaign flags: `mapPass.ts:364-395` pennant band.
+`.sel` glow exists. Campaign flags: `mapPass.ts:364-395` pennant band
+(moved since — current sites in the 3D-standards recon above).
 Campaign selection ring: GPU pass, GREEN `[0.31,0.82,0.39]`
 (`selectionPass.ts`, colors at `renderer.ts:703,775`). Battle has its own
 line-ring primitive `pushRing` (`web/src/shared/overlays.ts:65-91`); selected
@@ -123,6 +168,17 @@ block :61-64, both arms draw) → `ANIMS` in
   presence at L1/L2 (extend geometry or a painted patch) and the impostor
   keeps a mask-driven tint (broad floor down, not to zero blind — sweep and
   eyeball at tactical zoom).
+- **Flags are 3D, everywhere a flag flies.** One shared standard asset
+  (pole + crossbar + finial + vertical swallowtail cloth) rendered in-scene —
+  depth-tested, lit, cloth waving on deterministic wind — at three sizes:
+  battle unit standard, campaign army standard, campaign settlement banner.
+  No flat DOM/SVG flags, no static flag panels. Flat 2D flag glyphs survive
+  only as map UI (far-zoom marker chips, label rows), never as the in-world
+  flag. The battle readout (bars/chips) rides the standard as in-scene GPU
+  billboards — world-anchored at the pole top, camera-FACING (never tilted;
+  perspective comes from the anchor + distance scaling, clamped for
+  legibility), same frame and depth buffer as the flag. No DOM per-unit UI
+  survives in battle.
 - **Ownership reads as: bars = yours.** Own units: hp/cohesion/morale/stamina
   bars above the banner. Enemy: banner only (chips like ROUT may stay — they
   are battle events, not private stats).
@@ -159,3 +215,12 @@ expect one deliberate golden re-pin in slice 07).
 - scene.ts is shared by slices 04/05/06/07 — serialize those (single lane).
 - `soldier-assets` bake feeds VAT shared by every surface; clip additions
   re-bake — run the anim review harness before trusting.
+- 3D standards (slices 10-13): waving cloth is time-dependent — every snap
+  must pin scene time or the baselines flap; standards + readout billboards
+  are new per-unit draws at tactical zoom (instance them, budget like the
+  crowd); glyph-atlas text at chip sizes must be proven legible before the
+  DOM dies (the campaign labels are the precedent, but chips are smaller —
+  check at min banner scale); the engine-free banner gallery cannot survive
+  slice 12 — its replacement renderer scene must land IN slice 12, not as
+  debt; killing `buildCampaignStandardMesh`'s panels moves campaign entity
+  baselines — re-bless rides in slice 13, not before.

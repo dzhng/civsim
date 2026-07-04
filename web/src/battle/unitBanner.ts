@@ -1,8 +1,6 @@
-// A unit's banner: one self-contained UI component carrying the standard (a
-// team-coloured cloth on a pole) and the unit's live state — own-unit stat bars
-// and status-effect chips. It owns its DOM and renders from a plain state
-// object, so it can be mounted and snapshotted standalone (see
-// mountBannerGallery) for visual-regression tests — no sim, no 3D engine.
+// The temporary per-unit DOM readout: own-unit stat bars and status-effect
+// chips. The flag itself is now the in-scene 3D standard; slice 12 moves this
+// readout into renderer billboards and retires this component.
 
 import { factionForTeam } from "../../../packages/game-renderer/src/battle/factionColors";
 
@@ -23,11 +21,8 @@ export interface BannerState {
   selected: boolean;
 }
 
-const SVGNS = "http://www.w3.org/2000/svg";
-
 export class UnitBanner {
   readonly el: HTMLDivElement;
-  private cloth: SVGPathElement;
   private bars: HTMLDivElement;
   private hpFill: HTMLDivElement;
   private cohFill: HTMLDivElement;
@@ -36,52 +31,12 @@ export class UnitBanner {
   private fx: HTMLDivElement;
   private team = -1;
   private mine = false;
-  private selected = false;
   private chipKey = "";
 
   constructor() {
     const el = document.createElement("div");
     el.className = "ubanner";
 
-    // The standard: a Rome-2 vertical cloth hanging from a crossbar. Only the
-    // cloth's fill changes with team.
-    const svg = document.createElementNS(SVGNS, "svg");
-    svg.setAttribute("class", "ubanner-flag");
-    svg.setAttribute("viewBox", "0 0 48 76");
-    const pole = document.createElementNS(SVGNS, "rect");
-    pole.setAttribute("x", "23");
-    pole.setAttribute("y", "3");
-    pole.setAttribute("width", "2");
-    pole.setAttribute("height", "71");
-    pole.setAttribute("rx", "1");
-    pole.setAttribute("fill", "#6b5a3e");
-    const finial = document.createElementNS(SVGNS, "circle");
-    finial.setAttribute("cx", "24");
-    finial.setAttribute("cy", "4");
-    finial.setAttribute("r", "3");
-    finial.setAttribute("fill", "#c9a227");
-    const crossbar = document.createElementNS(SVGNS, "rect");
-    crossbar.setAttribute("x", "10");
-    crossbar.setAttribute("y", "12");
-    crossbar.setAttribute("width", "28");
-    crossbar.setAttribute("height", "2.5");
-    crossbar.setAttribute("rx", "1.2");
-    crossbar.setAttribute("fill", "#6b5a3e");
-    const cloth = document.createElementNS(SVGNS, "path");
-    cloth.setAttribute("d", "M12 14 H36 V70 L24 62 L12 70 Z");
-    cloth.setAttribute("stroke", "#c9a227");
-    cloth.setAttribute("stroke-width", "1.4");
-    cloth.setAttribute("stroke-linejoin", "round");
-    const emblem = document.createElementNS(SVGNS, "path");
-    emblem.setAttribute("d", "M24 29 L30 35 L24 41 L18 35 Z");
-    emblem.setAttribute("fill", "none");
-    emblem.setAttribute("stroke", "#c9a227");
-    emblem.setAttribute("stroke-width", "2.2");
-    emblem.setAttribute("stroke-linejoin", "round");
-    svg.append(pole, finial, crossbar, cloth, emblem);
-
-    // The unit's own-side stats hang below the status chips and above the
-    // standard.
     const bars = document.createElement("div");
     bars.className = "ubanner-bars";
     bars.hidden = true;
@@ -106,11 +61,7 @@ export class UnitBanner {
     this.fx = document.createElement("div");
     this.fx.className = "ubanner-fx";
 
-    // Stats on top, the standard at the bottom: the pole's foot anchors to the
-    // unit (see place), so the standard plants in the ranks and the readout
-    // rides above it as one piece.
-    el.append(this.fx, bars, svg);
-    this.cloth = cloth;
+    el.append(this.fx, bars);
     this.bars = bars;
     this.el = el;
   }
@@ -119,7 +70,6 @@ export class UnitBanner {
     if (s.team !== this.team) {
       this.team = s.team;
       const bannerCss = factionForTeam(s.team).bannerCss;
-      this.cloth.setAttribute("fill", bannerCss);
       this.hpFill.style.background = bannerCss;
     }
     if (s.mine !== this.mine) {
@@ -130,10 +80,6 @@ export class UnitBanner {
     this.cohFill.style.width = `${(Math.max(0, Math.min(1, s.cohesion)) * 100).toFixed(1)}%`;
     this.moraleFill.style.width = `${(Math.max(0, Math.min(1, s.morale)) * 100).toFixed(1)}%`;
     this.staminaFill.style.width = `${(Math.max(0, Math.min(1, s.stamina)) * 100).toFixed(1)}%`;
-    if (s.selected !== this.selected) {
-      this.selected = s.selected;
-      this.el.classList.toggle("sel", s.selected);
-    }
     // Chips churn far less than the bars; rebuild only when the set changes.
     const key = s.chips.map((c) => (c.kind ?? "") + c.text).join("|");
     if (key !== this.chipKey) {
@@ -150,10 +96,7 @@ export class UnitBanner {
     }
   }
 
-  /** Plant the standard so its pole foot sits at (x, y) screen pixels: the
-   *  element is bottom-anchored (−100% of its own height) and centred (−50%),
-   *  so the flag rises from the unit and the stats stack above it, whatever the
-   *  chip count. */
+  /** Bottom-anchor the DOM readout at the projected 3D pole top. */
   place(x: number, y: number, scale = 1) {
     this.el.style.left = `${x.toFixed(0)}px`;
     this.el.style.top = `${y.toFixed(0)}px`;
@@ -166,9 +109,8 @@ export class UnitBanner {
 }
 
 // --- Visual-regression harness -------------------------------------------------
-// Representative states; the gallery renders one banner per state so a snapshot
-// covers the component's whole surface (both teams, every bar level, the chip
-// kinds, selection) without the sim or the engine.
+// Representative states for the DOM remainder: own-unit bars and status chips.
+// The in-scene 3D standard is covered by battle renderer scenes.
 export const BANNER_GALLERY: { label: string; state: BannerState }[] = [
   {
     label: "fresh / player",

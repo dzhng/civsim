@@ -78,6 +78,7 @@ import {
   PhotorealRingLayer,
   PhotorealTriangleLayer,
 } from "./overlayLayer";
+import { PhotorealStandardLayer, type BattleStandardInstance } from "./standardLayer";
 import { BattlePostChain } from "../post/postChain";
 
 /** The camera fields BattleRenderer snapshots from the shared Camera each
@@ -113,6 +114,7 @@ export class PhotorealBattleWorld {
   private readonly debugTriangles: PhotorealTriangleLayer;
   private readonly debugBlocks: PhotorealTriangleLayer;
   private readonly markerLayer: PhotorealMarkerLayer;
+  private readonly standardLayer: PhotorealStandardLayer;
   private readonly mountedClasses: number[];
   private readonly sea: ReturnType<typeof createSeaDisplacementSource>;
   private readonly post: BattlePostChain;
@@ -219,6 +221,7 @@ export class PhotorealBattleWorld {
     this.debugBlocks = new PhotorealTriangleLayer(scene, RENDER_ORDER.debugBlocks);
     this.debugTriangles = new PhotorealTriangleLayer(scene, RENDER_ORDER.debugTriangles);
     this.markerLayer = new PhotorealMarkerLayer(scene);
+    this.standardLayer = new PhotorealStandardLayer(scene, world.uTime);
 
     // Slice 15 — the post chain: one bloom stage over the whole scene pass, the
     // ONE tone-map applied at the tail. Threshold-disciplined (linear-HDR
@@ -287,6 +290,7 @@ export class PhotorealBattleWorld {
     this.markers = [];
     this.crowd.upload([]);
     this.markerLayer.upload([]);
+    this.standardLayer.upload([]);
     this.selectionRings.upload(new Float32Array());
     this.effectLines.upload(new Float32Array());
     this.debugTriangles.upload(new Float32Array());
@@ -441,6 +445,10 @@ export class PhotorealBattleWorld {
     this.shadowRig.update(this.camera);
     this.crowd.upload(this.instances, this.crowdVisibilityScope());
     this.markerLayer.upload(this.markers);
+  }
+
+  uploadUnitStandards(standards: readonly BattleStandardInstance[]): void {
+    this.standardLayer.upload(standards);
   }
 
   drawTris(verts: Float32Array, camera: BattleCameraSnapshot): void {
@@ -628,6 +636,7 @@ export class PhotorealBattleWorld {
         effects: this.effectLines.stats(),
       },
       markers: this.markerLayer.stats(),
+      standards: { ...this.standardLayer.stats(), timeSeconds: this.world.time },
       performance: {
         gpuTimeMs: world.gpuTimeMs,
       },

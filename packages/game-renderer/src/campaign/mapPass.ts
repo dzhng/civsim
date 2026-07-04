@@ -452,21 +452,34 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let edge = vec3f(0.16, 0.12, 0.07);
   let parchment = vec3f(0.97, 0.94, 0.86);
   if (in.markerKind < 0.5) {
-    let a = max(abs(in.local.x), abs(in.local.y));
-    if (a > 1.0) { discard; }
-    let border = step(0.72, a);
-    // The faction fill can vanish into its own territory wash (the wash IS the
-    // faction color over land), leaving only the ink frame — a hollow chip. So
-    // the body carries tonal structure the map can't match: a top-lit grade
-    // plus a beveled rim (parchment-lit top-left, ink-shaded bottom-right).
-    let lift = clamp(in.local.y * 0.5 + 0.5, 0.0, 1.0);
+    // The city marker IS the settlement icon: a pediment roof over a body (the
+    // square chip is gone — one icon per city, David's rule). local.y = -1 top.
+    let x = in.local.x;
+    let y = in.local.y;
+    let roofApexY = -0.86;
+    let roofBaseY = -0.08;
+    let bodyBotY = 0.82;
+    let roofT = clamp((y - roofApexY) / (roofBaseY - roofApexY), 0.0, 1.0);
+    let roofHalf = 0.86 * roofT;       // pediment widens to eaves at the base
+    let bodyHalf = 0.58;               // body narrower than the eaves overhang
+    let inRoof = y >= roofApexY && y <= roofBaseY && abs(x) <= roofHalf;
+    let inBody = y > roofBaseY && y <= bodyBotY && abs(x) <= bodyHalf;
+    let house = select(0.0, 1.0, inRoof || inBody);
+    // Ink outline: the silhouette shrunk by a hair is the fill; the rind is ink,
+    // so the house reads even where its faction fill matches the territory wash.
+    let roofHalfIn = max(0.0, 0.86 * clamp((y - roofApexY - 0.10) / (roofBaseY - roofApexY), 0.0, 1.0) - 0.10);
+    let inRoofIn = y >= roofApexY + 0.10 && y <= roofBaseY && abs(x) <= roofHalfIn;
+    let inBodyIn = y > roofBaseY && y <= bodyBotY - 0.10 && abs(x) <= bodyHalf - 0.10;
+    let fillMask = select(0.0, 1.0, inRoofIn || inBodyIn);
+    if (house < 0.5) { discard; }
+    // The fill carries a top-lit grade so it never flattens into the wash.
+    let lift = clamp((roofApexY - y) / (roofApexY - bodyBotY) + 0.35, 0.0, 1.0);
     let flat = mix(in.faction, in.allegiance, 0.18);
-    var body = mix(mix(flat, edge, 0.24), mix(flat, parchment, 0.26), lift);
-    let bevel = step(0.46, a) * (1.0 - border);
-    let lit = select(0.0, 1.0, in.local.y - in.local.x > 0.0);
-    let rim = mix(mix(flat, edge, 0.42), mix(flat, parchment, 0.58), lit);
-    body = mix(body, rim, bevel);
-    return vec4f(mix(body, edge, border), 0.92);
+    let body = mix(mix(flat, edge, 0.22), mix(flat, parchment, 0.28), 1.0 - lift);
+    let sel = select(0.0, 1.0, in.selected > 0.5);
+    let selectedEdge = vec3f(0.96, 0.93, 0.84);
+    let rind = mix(edge, selectedEdge, sel * 0.8);
+    return vec4f(mix(rind, body, fillMask), 0.94);
   }
   let gold = vec3f(0.79, 0.64, 0.15);
   let pole = select(0.0, 1.0, abs(in.local.x + 0.55) < 0.045 && in.local.y > -0.96 && in.local.y < 0.94);

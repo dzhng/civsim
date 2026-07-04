@@ -2,10 +2,10 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
-import { GPU_HARDWARE_FLAGS, GPU_SWIFTSHADER_FLAGS } from "../../../web/renderer-probe-lib.mjs";
+import { GPU_HARDWARE_FLAGS, GPU_SWIFTSHADER_FLAGS } from "../../../../web/renderer-probe-lib.mjs";
 
 // The tool lives under specs/, so playwright resolves from the web app's tree.
-const { chromium } = createRequire(new URL("../../../web/", import.meta.url))("playwright");
+const { chromium } = createRequire(new URL("../../../../web/", import.meta.url))("playwright");
 
 const TARGET = process.env.VERIFY_URL ?? "http://localhost:5173";
 const VIEWPORT = { width: 1600, height: 1000 };

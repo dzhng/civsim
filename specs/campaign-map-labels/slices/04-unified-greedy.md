@@ -42,3 +42,37 @@ leagues read identical to powers (no special-case leaked in).
 **Feedback that would change this:** if too few / too many names survive at
 overview, that is Slice 03's normalization or Slice 05's margin, not a re-cut
 here.
+
+---
+
+**SHIPPED.** Two coupled changes landed together (the arbitration reorder alone
+does not declutter, because at overview leagues fade below `OCCUPANCY_MIN_OPACITY`
+and never arbitrate):
+
+1. **Sound faction power.** The slice-03 first cut (capped `radiusKm`) ranked
+   Rome last and favoured sparse steppe leagues. Replaced with **owned-city
+   tier-sum** (live, from `opts.cities`) — majors now rank 21–30 (Rome #3),
+   substantial leagues (Mediolanum 26, Ierusalem/Ephesus 17) rank fairly, and a
+   one-city steppe league (TANAIS = 1) drops to the bottom. All three importance
+   helpers rescaled onto one owned-city-tier scale (city tier → 3/6/12, army →
+   soldier mass). `powerKm` was explored and reverted (area is the wrong signal).
+2. **Importance-ranked arbitration** (`stageOf` → importance comparator) **and
+   an importance-driven league LOD** (`visibleLabels`): the minor-league opacity
+   ramp moved off territory AREA (`screenR`) onto importance vs a zoom-scaled
+   bar (`LEAGUE_IMPORTANCE_BAR_HI=14`, ramp 6) — high at overview, → 0 by
+   mid-zoom (the reappearance mechanism slice 06 verifies).
+
+Result: overview faction labels 34 → 13 (6 majors + ~7 strong leagues); the wall
+of ~28 faint minor leagues is gone. Scenes pass (nothing overlaps, LONDINIUM
+beside ARVERNI); only whole-map **political** snaps changed (0.83%) — natural /
+regional / close are 0 diff; re-blessed. tsc clean.
+
+**Open polish (unbiased screenshot-critique findings — deferred, taste calls):**
+- **Duplicate name**: a league engraving and its lead-city label render the same
+  string near each other (IERUSALEM league + IERUSALEM city). Pre-existing but
+  more visible now that strong leagues show. Candidate: suppress the league
+  engraving when its lead-city label is present.
+- League engravings read sea-like when faint (they *are* faction-styled per
+  David's "leagues == factions"; the faintness is the cause).
+- Interior slightly sparse — `LEAGUE_IMPORTANCE_BAR_HI` could drop a point or
+  two to show a few more leagues. Left for David's eye.

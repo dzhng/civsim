@@ -1924,6 +1924,13 @@ interface MeasuredCampaignLabel extends VisibleCampaignLabel {
   height: number;
 }
 
+// League-name density: at overview only leagues whose owned-city power clears
+// this bar keep a name (majors always show via powerAlpha); the ramp is how
+// sharply a league fades in as it clears the bar. Tuned so the whole-map view
+// shows the handful of strong leagues, not a wall of minor ones.
+const LEAGUE_IMPORTANCE_BAR_HI = 14;
+const LEAGUE_IMPORTANCE_RAMP = 6;
+
 function visibleLabels(labels: CampaignLabel[], camera: CameraSnapshot, dpr: number): VisibleCampaignLabel[] {
   const visible: VisibleCampaignLabel[] = [];
   for (const label of labels) {
@@ -1946,9 +1953,18 @@ function visibleLabels(labels: CampaignLabel[], camera: CameraSnapshot, dpr: num
       const screenR = radius * camera.zoom;
       const powerAlpha = 1 - clamp01((camera.zoom - 0.72) / 0.16);
       const leagueHiFade = 1 - clamp01((camera.zoom - 0.85) / 0.18);
-      opacity = label.factionMinor
-        ? clamp01((screenR - 95) / 45) * leagueHiFade * 0.9
-        : powerAlpha;
+      if (label.factionMinor) {
+        // League names declutter by IMPORTANCE (owned-city power), not territory
+        // AREA — a vast but near-empty steppe league yields while a compact
+        // strong one keeps its name. The bar is high at overview (only the top
+        // leagues clear it) and falls to zero by mid-zoom, so lesser leagues
+        // reappear as the camera comes in — monotonic in zoom.
+        const bar = LEAGUE_IMPORTANCE_BAR_HI * (1 - clamp01((camera.zoom - 0.3) / 0.55));
+        opacity =
+          clamp01(((label.importance ?? 0) - bar) / LEAGUE_IMPORTANCE_RAMP) * leagueHiFade * 0.9;
+      } else {
+        opacity = powerAlpha;
+      }
       if (opacity <= 0.02) continue;
       const size = label.factionMinor
         ? Math.min(22, Math.max(9, screenR * 0.4))
@@ -2223,21 +2239,18 @@ function arbitrateLabelOccupancy(
 
   const arbitrates = (entry: MeasuredCampaignLabel) =>
     entry.label.kind !== 'sea' && entry.opacity >= OCCUPANCY_MIN_OPACITY;
-  const stageOf = (entry: MeasuredCampaignLabel) => {
-    if (entry.label.kind === 'faction') return entry.label.factionMinor ? 1 : 0;
-    return entry.label.kind === 'army' ? 2 : 3;
-  };
+  // One occupancy budget for every kind: the label with the higher importance
+  // claims its space first, the rest cull when they collide. Importance is the
+  // unified scalar the emitters assemble (owned-city-tier power for factions,
+  // tier for cities, soldier mass for armies) — so a strong realm or a great
+  // city leads and a minor league yields, with no per-kind stage ladder.
+  const importanceOf = (entry: MeasuredCampaignLabel) => entry.label.importance ?? 0;
   const ordered = labels
     .map((entry, index) => ({ entry, index }))
     .filter(({ entry }) => arbitrates(entry))
     .sort((a, b) => {
-      const stage = stageOf(a.entry) - stageOf(b.entry);
-      if (stage !== 0) return stage;
-      // Among city labels the higher tier claims first; everything else keeps
-      // its emitter order (already deterministic per frame).
-      if (stageOf(a.entry) === 3 && a.entry.label.priority !== b.entry.label.priority) {
-        return b.entry.label.priority - a.entry.label.priority;
-      }
+      const byImportance = importanceOf(b.entry) - importanceOf(a.entry);
+      if (byImportance !== 0) return byImportance;
       return a.index - b.index;
     });
 

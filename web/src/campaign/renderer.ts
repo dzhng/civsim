@@ -1002,10 +1002,17 @@ function allegianceColor(allegiance: Allegiance): [number, number, number] {
   return [0.93, 0.78, 0.3];
 }
 
-const CITY_TIER_IMPORTANCE_KM: Record<number, number> = { 1: 90, 2: 140, 3: 210 };
-const cityImportance = (tier: number) => CITY_TIER_IMPORTANCE_KM[tier] ?? 90;
-const factionImportance = (radiusKm: number) => radiusKm;
-const armyImportance = (soldiers: number) => 90 + Math.min(200, soldiers / 15);
+// One importance scale shared by cities, factions/leagues, and armies (higher =
+// keep when space is scarce). Units are "owned-city-tier" points: a faction's
+// power is the sum of the tiers of the cities it holds — stable across army
+// movement and, unlike territory AREA, it correctly ranks a sparse steppe
+// league (one city, vast empty range) far below a real power. A city scores a
+// fraction of a strong realm so nation names generally lead but a great city
+// still competes; a field army scores by its soldier mass.
+const CITY_TIER_IMPORTANCE: Record<number, number> = { 1: 3, 2: 6, 3: 12 };
+const cityImportance = (tier: number) => CITY_TIER_IMPORTANCE[tier] ?? 3;
+const factionImportance = (cityTierSum: number) => cityTierSum;
+const armyImportance = (soldiers: number) => 3 + Math.min(12, soldiers / 200);
 
 function campaignCityLabels(
   data: CampaignData,
@@ -1277,6 +1284,13 @@ function ordinal(k: number) {
 function campaignFactionLabels(data: CampaignData, opts: DrawOptions): CampaignLabel[] {
   if (!opts.factionView) return [];
   const edge = mapEdgeProjector(data);
+  // Faction power = sum of owned city tiers, from live ownership (opts.cities),
+  // keyed by faction index — the same index FactionLabel.faction carries.
+  const cityTierSum = new Array(data.map.factions.length).fill(0);
+  for (const [nodeIndex, city] of opts.cities) {
+    cityTierSum[city.owner] =
+      (cityTierSum[city.owner] ?? 0) + (data.map.nodes[nodeIndex]?.tier ?? 1);
+  }
   return opts.factionLabels
     .filter((label) => !opts.fogOfWar || fogVisible(opts, label.x, label.y, 0.14))
     .map(
@@ -1287,7 +1301,7 @@ function campaignFactionLabels(data: CampaignData, opts: DrawOptions): CampaignL
         kind: "faction",
         size: label.minor ? 9 : 17,
         priority: 4,
-        importance: factionImportance(label.radiusKm),
+        importance: factionImportance(cityTierSum[label.faction] ?? 0),
         angle: -0.06,
         factionRadiusKm: label.radiusKm,
         factionMinor: label.minor,

@@ -26,19 +26,23 @@ the existing owner.
 
 ## Next Agent Prompt
 
-**Status (2026-07-04):** Slices 00–03 SHIPPED. Pick up at **Slice 04 (unified
-greedy rank)** — and fix the faction importance formula there first.
+**Status (2026-07-04):** Slices 00–04 SHIPPED — the overview declutters (34 → 13
+faction labels; wall of minor leagues gone). Pick up at **Slice 05 (crowding
+margin)**, then **06 (reappearance verify)**.
 
-**Do this next, in order (04–06 are serial):**
+**Do this next:**
 
-1. **Slice 04 — unified greedy rank** (`slices/04-unified-greedy.md`). FIRST fix
-   the faction importance formula (see slice 03's Calibration finding): replace
-   capped `radiusKm` with **uncapped `powerKm` (`sqrt(cells)·cell`) + a
-   per-faction army-strength term**, so Rome (small territory, strong army)
-   outranks minor leagues instead of ranking last. Then replace `stageOf` in
-   `arbitrateLabelOccupancy` with the importance comparator. Validate the
-   overview visually; re-bless snaps.
-2. **Slice 05 — crowding margin**, **06 — reappearance verify**.
+1. **Slice 05 — crowding margin** (`slices/05-crowding-margin.md`): inflate ink
+   rects by a zoom-scaled pad before `rectsOverlap` so survivors keep breathing
+   room. Re-bless overview; screenshot-critique the Aegean cluster.
+2. **Slice 06 — reappearance verify** (`slices/06-reappearance-zoom.md`): the
+   zoom-ladder probe asserting monotonic survival + per-zoom budget. The league
+   LOD's `LEAGUE_IMPORTANCE_BAR_HI` bar (slice 04) is the reappearance mechanism
+   to verify.
+
+**Deferred polish (open taste calls, see slice 04 doc):** duplicate league/city
+name (IERUSALEM league engraving + city label); faint league engravings reading
+sea-like; interior slightly sparse (bar could drop 1–2). Raise with David.
 
 **Update this section before ending your pass.**
 

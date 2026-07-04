@@ -1,7 +1,7 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 import { gpuAlphaBlendColorTarget, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
-import { buildCampaignStandardMesh, buildCityMesh } from '../models/campaign/campaignEntityModels';
+import { buildCityMesh } from '../models/campaign/campaignEntityModels';
 
 export interface CampaignEntityInstance {
   x: number;
@@ -10,7 +10,7 @@ export interface CampaignEntityInstance {
   radius: number;
   faction: [number, number, number];
   allegiance: [number, number, number];
-  kind: 'city' | 'army';
+  kind: 'city';
   strength?: number;
 }
 
@@ -72,18 +72,10 @@ export class CampaignEntityPass {
   private cityIndexBuffer: GPUBuffer;
   private cityShadowVertexBuffer: GPUBuffer;
   private cityShadowIndexBuffer: GPUBuffer;
-  private armyVertexBuffer: GPUBuffer;
-  private armyIndexBuffer: GPUBuffer;
-  private armyShadowVertexBuffer: GPUBuffer;
-  private armyShadowIndexBuffer: GPUBuffer;
   private cityInstanceBuffer: GPUBuffer;
-  private armyInstanceBuffer: GPUBuffer;
   private cityCapacity = 0;
-  private armyCapacity = 0;
   private cityCount = 0;
-  private armyCount = 0;
   private cityMesh = buildCityMesh();
-  private armyMesh = buildCampaignStandardMesh();
 
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
@@ -94,12 +86,7 @@ export class CampaignEntityPass {
     this.cityIndexBuffer = makeIndexBuffer(device, 'campaign-city-model-indices', this.cityMesh.opaque.indices);
     this.cityShadowVertexBuffer = makeVertexBuffer(device, 'campaign-city-shadow-vertices', this.cityMesh.shadow.vertices);
     this.cityShadowIndexBuffer = makeIndexBuffer(device, 'campaign-city-shadow-indices', this.cityMesh.shadow.indices);
-    this.armyVertexBuffer = makeVertexBuffer(device, 'campaign-army-model-vertices', this.armyMesh.opaque.vertices);
-    this.armyIndexBuffer = makeIndexBuffer(device, 'campaign-army-model-indices', this.armyMesh.opaque.indices);
-    this.armyShadowVertexBuffer = makeVertexBuffer(device, 'campaign-army-shadow-vertices', this.armyMesh.shadow.vertices);
-    this.armyShadowIndexBuffer = makeIndexBuffer(device, 'campaign-army-shadow-indices', this.armyMesh.shadow.indices);
     this.cityInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-city-empty-instances');
-    this.armyInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-army-empty-instances');
   }
 
   private makePipeline(module: GPUShaderModule, material: 'opaque' | 'shadow') {
@@ -145,70 +132,45 @@ export class CampaignEntityPass {
   }
 
   upload(instances: CampaignEntityInstance[]) {
-    const cities = instances.filter((inst) => inst.kind === 'city');
-    const armies = instances.filter((inst) => inst.kind === 'army');
-    this.cityCount = cities.length;
-    this.armyCount = armies.length;
-    this.cityInstanceBuffer = this.ensureInstanceBuffer(this.cityInstanceBuffer, 'campaign-city-instances', cities.length, 'city');
-    this.armyInstanceBuffer = this.ensureInstanceBuffer(this.armyInstanceBuffer, 'campaign-army-instances', armies.length, 'army');
-    if (cities.length > 0) this.shell.device.queue.writeBuffer(this.cityInstanceBuffer, 0, packInstances(cities, 5.0));
-    if (armies.length > 0) this.shell.device.queue.writeBuffer(this.armyInstanceBuffer, 0, packInstances(armies, 4.4));
+    this.cityCount = instances.length;
+    this.cityInstanceBuffer = this.ensureInstanceBuffer(this.cityInstanceBuffer, 'campaign-city-instances', instances.length);
+    if (instances.length > 0) this.shell.device.queue.writeBuffer(this.cityInstanceBuffer, 0, packInstances(instances, 5.0));
   }
 
   drawShadows(pass: WorldRenderPass) {
-    if (this.cityCount === 0 && this.armyCount === 0) return;
+    if (this.cityCount === 0) return;
     pass.setPipeline(this.shadowPipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
-    if (this.cityCount > 0) {
-      pass.setVertexBuffer(0, this.cityShadowVertexBuffer);
-      pass.setVertexBuffer(1, this.cityInstanceBuffer);
-      pass.setIndexBuffer(this.cityShadowIndexBuffer, 'uint16');
-      pass.drawIndexed(this.cityMesh.shadow.indexCount, this.cityCount);
-    }
-    if (this.armyCount > 0) {
-      pass.setVertexBuffer(0, this.armyShadowVertexBuffer);
-      pass.setVertexBuffer(1, this.armyInstanceBuffer);
-      pass.setIndexBuffer(this.armyShadowIndexBuffer, 'uint16');
-      pass.drawIndexed(this.armyMesh.shadow.indexCount, this.armyCount);
-    }
+    pass.setVertexBuffer(0, this.cityShadowVertexBuffer);
+    pass.setVertexBuffer(1, this.cityInstanceBuffer);
+    pass.setIndexBuffer(this.cityShadowIndexBuffer, 'uint16');
+    pass.drawIndexed(this.cityMesh.shadow.indexCount, this.cityCount);
   }
 
   drawOpaque(pass: WorldRenderPass) {
-    if (this.cityCount === 0 && this.armyCount === 0) return;
+    if (this.cityCount === 0) return;
     pass.setPipeline(this.opaquePipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
-    if (this.cityCount > 0) {
-      pass.setVertexBuffer(0, this.cityVertexBuffer);
-      pass.setVertexBuffer(1, this.cityInstanceBuffer);
-      pass.setIndexBuffer(this.cityIndexBuffer, 'uint16');
-      pass.drawIndexed(this.cityMesh.opaque.indexCount, this.cityCount);
-    }
-    if (this.armyCount > 0) {
-      pass.setVertexBuffer(0, this.armyVertexBuffer);
-      pass.setVertexBuffer(1, this.armyInstanceBuffer);
-      pass.setIndexBuffer(this.armyIndexBuffer, 'uint16');
-      pass.drawIndexed(this.armyMesh.opaque.indexCount, this.armyCount);
-    }
+    pass.setVertexBuffer(0, this.cityVertexBuffer);
+    pass.setVertexBuffer(1, this.cityInstanceBuffer);
+    pass.setIndexBuffer(this.cityIndexBuffer, 'uint16');
+    pass.drawIndexed(this.cityMesh.opaque.indexCount, this.cityCount);
   }
 
   stats() {
     return {
-      entities: this.cityCount + this.armyCount,
+      entities: this.cityCount,
       cityMeshes: this.cityCount,
-      armyMeshes: this.armyCount,
       cityModelVertices: (this.cityMesh.opaque.vertices.length + this.cityMesh.shadow.vertices.length) / 10,
-      armyModelVertices: (this.armyMesh.opaque.vertices.length + this.armyMesh.shadow.vertices.length) / 10,
       materialClasses: ['opaque-depth-write', 'shadow-depth-read'] as const,
-      layer: 'raw-gpu-model-library-meshes',
+      layer: 'raw-gpu-city-model-meshes',
     };
   }
 
-  private ensureInstanceBuffer(buffer: GPUBuffer, label: string, count: number, bucket: 'city' | 'army') {
-    const current = bucket === 'city' ? this.cityCapacity : this.armyCapacity;
-    if (count <= current) return buffer;
-    const next = Math.max(count, current * 2, 64);
-    if (bucket === 'city') this.cityCapacity = next;
-    else this.armyCapacity = next;
+  private ensureInstanceBuffer(buffer: GPUBuffer, label: string, count: number) {
+    if (count <= this.cityCapacity) return buffer;
+    const next = Math.max(count, this.cityCapacity * 2, 64);
+    this.cityCapacity = next;
     return this.shell.device.createBuffer({
       label,
       size: next * 12 * 4,

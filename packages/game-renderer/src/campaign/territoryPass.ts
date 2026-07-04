@@ -1,8 +1,7 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 import { gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
-import { CAMPAIGN_SEA_PALETTE_WGSL } from '../water/waterPalette';
-import type { CampaignDrawnCoast, CampaignMapSurfaceMesh } from './mapPass';
+import type { CampaignMapSurfaceMesh } from './mapPass';
 
 export interface CampaignTerritoryTextureData {
   width: number;
@@ -36,12 +35,8 @@ const CAMPAIGN_FACTION_BORDER_SEAM: [number, number, number, number] = [0.11, 0.
 
 const TERRITORY_WGSL = `
 ${WORLD_CAMERA_WGSL}
-${CAMPAIGN_SEA_PALETTE_WGSL}
 @group(1) @binding(0) var terrTex: texture_2d<f32>;
 @group(1) @binding(1) var terrSampler: sampler;
-@group(1) @binding(2) var bgTex: texture_2d<f32>;
-@group(1) @binding(3) var coastSampler: sampler;
-@group(1) @binding(4) var biomeTex: texture_2d<f32>;
 
 struct VsOut {
   @builtin(position) pos: vec4f,
@@ -59,16 +54,7 @@ fn vs(@location(0) world: vec3f, @location(1) uv: vec2f) -> VsOut {
 @fragment
 fn fs(in: VsOut) -> @location(0) vec4f {
   let sample = textureSample(terrTex, terrSampler, in.uv);
-  // The wash ends where the DRAWN sea begins: the same textures, shared
-  // classifiers (seaAmount / drawnWaterAmount), and terrain mix the map pass
-  // composites the visible waterline from — so the wash conforms to the coast
-  // the player actually sees at render resolution. Inland texels sample pure
-  // land (sea = 0), so faction-vs-faction edges keep their crisp
-  // nearest-texel character.
-  let seaBg = seaAmount(textureSample(bgTex, coastSampler, in.uv).rgb);
-  let seaDrawn = drawnWaterAmount(textureSample(biomeTex, coastSampler, in.uv).a);
-  let sea = mix(seaBg, seaDrawn, __TERRAIN_MIX__);
-  return vec4f(sample.rgb, sample.a * (1.0 - sea) * __TERRITORY_ALPHA__);
+  return vec4f(sample.rgb, sample.a * __TERRITORY_ALPHA__);
 }`;
 
 export class CampaignTerritoryPass {
@@ -82,9 +68,8 @@ export class CampaignTerritoryPass {
   private texture: GPUTexture | null = null;
   private textureSize = { width: 0, height: 0 };
   private surface: CampaignMapSurfaceMesh | null = null;
-  private coastSampler: GPUSampler;
 
-  constructor(private shell: RawFrameShell, data: CampaignTerritoryTextureData, private coast: CampaignDrawnCoast, style: CampaignTerritoryStyle = {}, surface?: CampaignMapSurfaceMesh) {
+  constructor(private shell: RawFrameShell, data: CampaignTerritoryTextureData, style: CampaignTerritoryStyle = {}, surface?: CampaignMapSurfaceMesh) {
     const device = shell.device;
     this.surface = surface ?? null;
     const mesh = surface ?? flatTerritorySurface(data.rect);
@@ -92,17 +77,13 @@ export class CampaignTerritoryPass {
     const module = device.createShaderModule({
       label: 'campaign-territory-wgsl',
       code: TERRITORY_WGSL
-        .replace('__TERRITORY_ALPHA__', (style.alpha ?? 0.14).toFixed(3))
-        .replace('__TERRAIN_MIX__', coast.terrainMix.toFixed(3)),
+        .replace('__TERRITORY_ALPHA__', (style.alpha ?? 0.14).toFixed(3)),
     });
     this.bindGroupLayout = device.createBindGroupLayout({
       label: 'campaign-territory-bgl',
       entries: [
         { binding: 0, visibility: GPUShaderStage.FRAGMENT, texture: {} },
         { binding: 1, visibility: GPUShaderStage.FRAGMENT, sampler: {} },
-        { binding: 2, visibility: GPUShaderStage.FRAGMENT, texture: {} },
-        { binding: 3, visibility: GPUShaderStage.FRAGMENT, sampler: {} },
-        { binding: 4, visibility: GPUShaderStage.FRAGMENT, texture: {} },
       ],
     });
     this.pipeline = device.createRenderPipeline({
@@ -152,16 +133,6 @@ export class CampaignTerritoryPass {
       addressModeU: 'clamp-to-edge',
       addressModeV: 'clamp-to-edge',
     });
-    // Linear like campaign-map-sampler, so the coast classifiers see the same
-    // filtered pixels the map pass draws (the nearest territory sampler above
-    // is untouched — the crisp inland edge contract).
-    this.coastSampler = device.createSampler({
-      label: 'campaign-territory-coast-sampler',
-      magFilter: 'linear',
-      minFilter: 'linear',
-      addressModeU: 'clamp-to-edge',
-      addressModeV: 'clamp-to-edge',
-    });
     this.upload(data);
   }
 
@@ -177,9 +148,6 @@ export class CampaignTerritoryPass {
         entries: [
           { binding: 0, resource: this.texture.createView() },
           { binding: 1, resource: this.sampler },
-          { binding: 2, resource: this.coast.bg },
-          { binding: 3, resource: this.coastSampler },
-          { binding: 4, resource: this.coast.biome },
         ],
       });
     }

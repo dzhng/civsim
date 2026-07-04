@@ -15,7 +15,6 @@ import { MapCards, type MapCardModel, type MapCardPosition, type MapCardsHandle 
 export interface CampaignHudHandle {
   setMapCards(cards: MapCardModel[]): void;
   updateMapCards(positions: MapCardPosition[]): void;
-  measureMapCards(): Map<string, { w: number; h: number }>;
   setTopBar(props: CampaignTopBarProps): void;
   setArmy(props: ArmyPanelProps | null): void;
   setCity(props: CityPanelProps | null): void;
@@ -204,7 +203,6 @@ const CampaignHud = forwardRef<CampaignHudInnerHandle>(function CampaignHud(_pro
     () => ({
       setMapCards: (cards) => mapCardsRef.current?.set(cards),
       updateMapCards: (positions) => mapCardsRef.current?.update(positions),
-      measureMapCards: () => mapCardsRef.current?.measure() ?? new Map(),
       setTopBar: (p) => topBarRef.current?.set(p),
       setArmy: (p) => armyRef.current?.set(p),
       setCity: (p) => cityRef.current?.set(p),

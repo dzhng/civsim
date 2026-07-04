@@ -1,5 +1,5 @@
 import type { CameraSnapshot } from '../../../renderer-core/src/cameraUniform';
-import { screenToWorld, worldToScreen } from '../../../renderer-core/src/cameraUniform';
+import { worldToScreen } from '../../../renderer-core/src/cameraUniform';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 import { gpuAlphaBlendColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 import { CAMPAIGN_SEA_PALETTE_WGSL } from '../water/waterPalette';
@@ -42,24 +42,8 @@ export interface CampaignMapStats {
   lineVertices: number;
   roadMeshVertices: number;
   roadJunctionCaps: number;
-  /** Road edges dropped whole because their centerline is mostly water. */
-  roadEdgesCulled: number;
-  /** Unbridged water gaps where a drawn road ribbon stops at a shore. */
-  roadWaterGaps: number;
   cityMarkers: number;
   labels: number;
-  seaLabelFits: CampaignSeaLabelFit[];
-  seaLabelFitZoom: number;
-}
-
-/** Per-sea-label fit verdict: the accepted scale, how far the label moved
- * from its authored anchor, and the land fraction of the accepted placement's
- * sample cloud (0 = fully on water at the fit zoom). */
-export interface CampaignSeaLabelFit {
-  text: string;
-  scale: number;
-  nudgeKm: number;
-  landFraction: number;
 }
 
 export interface CampaignMapStyle {
@@ -70,24 +54,8 @@ export interface CampaignMapStyle {
 
 export interface CampaignMapDrawStyle {
   roadScale?: number;
-  /** Road land test — point truth against the pixels the player sees (the
-   * renderer supplies the full-res render mask). Roads draw where their
-   * centerline is on rendered land; never used for label fitting. */
   roadSurfaceAt?: (x: number, y: number) => 'land' | 'water';
-  /** Sea-label fitting only — an area statistic ("is this neighborhood
-   * decisively land?"); the renderer supplies the coarse 8 km grid with a wide
-   * inland margin. Deliberately NOT the road sampler: labels want area
-   * statistics, roads want point truth. */
   surfaceAt?: (x: number, y: number) => 'land' | 'water';
-  /** Full-resolution render-mask classifier (TerrainField.renderLandAt, the
-   * slice-00 land-truth owner). Point-truth queries — sea-label placement —
-   * use this; the coarse `surfaceAt` stays the owner of area statistics
-   * (road drop decisions). */
-  renderSurfaceAt?: (x: number, y: number) => 'land' | 'water';
-  /** Smallest zoom the camera clamp allows (CSS px per km). Sea labels are
-   * screen-space text, so their world footprint is widest here; the fitter
-   * judges placements at this zoom. Defaults to SEA_LABEL_FIT_ZOOM. */
-  seaLabelFitZoom?: number;
   heightAt?: (x: number, y: number) => number;
 }
 
@@ -143,22 +111,6 @@ export interface CampaignLabel {
   screenAnchorY?: 'center' | 'top' | 'bottom';
   factionRadiusKm?: number;
   factionMinor?: boolean;
-  /** Land-aware anchor choice (B2/B8): preference-ordered alternatives for
-   * the label's screen offset+anchor. The occupancy arbitration drops the
-   * candidates whose measured ink rect lands on claimed ground (cards and
-   * higher-priority labels), then the shared placement scorer picks among the
-   * survivors (isBadAt = water). The first candidate must mirror the
-   * screenOffset/screenAnchor fields — it is the tiebreak, so labels with a
-   * clean default never move. */
-  placementCandidates?: CampaignLabelAnchor[];
-}
-
-/** One candidate screen placement for an anchored (city) label, CSS px. */
-export interface CampaignLabelAnchor {
-  screenOffsetX: number;
-  screenOffsetY: number;
-  screenAnchorX: 'center' | 'left' | 'right';
-  screenAnchorY: 'center' | 'top' | 'bottom';
 }
 
 const ICON_PATHS = {
@@ -214,6 +166,10 @@ fn ridged(p: vec2f) -> f32 {
   return r * r;
 }
 
+fn seaAmount(rgb: vec3f) -> f32 {
+  return smoothstep(0.04, 0.14, rgb.b - max(rgb.r, rgb.g * 0.88));
+}
+
 fn nz(p: vec2f, freq: f32, px: f32) -> f32 {
   let fade = clamp(1.0 - freq * px * 2.2, 0.0, 1.0);
   if (fade <= 0.0) {
@@ -236,7 +192,7 @@ fn grade(c0: vec3f) -> vec3f {
 }
 
 fn naturalCampaignColor(b: vec4f, light: f32, world: vec2f, h: f32) -> vec3f {
-  let water = drawnWaterAmount(b.a);
+  let water = 1.0 - smoothstep(0.497, 0.503, b.a);
   let px = max(fwidth(world.x), fwidth(world.y));
   var col = vec3f(0.0);
   if (water < 0.999) {
@@ -439,9 +395,7 @@ fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: v
   let clipOffset = vec2f(pixelOffset.x / (cam.width * 0.5), pixelOffset.y / (cam.height * 0.5)) * anchor.w;
   var out: VsOut;
   out.pos = vec4f(anchor.x + clipOffset.x, anchor.y + clipOffset.y, anchor.z, anchor.w);
-  // Screen y is up (+clip.y = top), but the marker art is authored y-down, so
-  // flip the fragment's local y — otherwise the standard flies upside down.
-  out.local = vec2f(quad.x, -quad.y);
+  out.local = quad;
   out.faction = inst1.rgb;
   out.allegiance = vec3f(inst1.a, inst2.r, inst2.g);
   out.markerKind = markerKind;
@@ -452,11 +406,12 @@ fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: v
 @fragment
 fn fs(in: VsOut) -> @location(0) vec4f {
   let edge = vec3f(0.16, 0.12, 0.07);
-  let parchment = vec3f(0.97, 0.94, 0.86);
   if (in.markerKind < 0.5) {
-    // Cities no longer draw a GPU chip — the settlement icon is rendered above
-    // the label (campaignCityLabels). Only armies reach this pass.
-    discard;
+    let a = max(abs(in.local.x), abs(in.local.y));
+    if (a > 1.0) { discard; }
+    let border = step(0.72, a);
+    let body = mix(in.faction, in.allegiance, 0.18);
+    return vec4f(mix(body, edge, border), 0.92);
   }
   let gold = vec3f(0.79, 0.64, 0.15);
   let pole = select(0.0, 1.0, abs(in.local.x + 0.55) < 0.045 && in.local.y > -0.96 && in.local.y < 0.94);
@@ -472,13 +427,10 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let clothRect = select(0.0, 1.0, in.local.x > clothLeft && in.local.x < clothRight && in.local.y > clothTop && in.local.y < clothBottom);
   let notch = select(0.0, 1.0, in.local.y > notchTop && abs(in.local.x - clothMid) < (in.local.y - notchTop) * notchSlope);
   let cloth = clothRect * (1.0 - notch);
-  // Trim width is sized so the gold edging survives the 9 px whole-map marker
-  // (0.035 quantized to sub-pixel there, erasing the cloth's contour).
-  let trimW = 0.06;
-  let sideTrim = cloth * select(0.0, 1.0, abs(in.local.x - clothLeft) < trimW || abs(in.local.x - clothRight) < trimW);
-  let topTrim = cloth * select(0.0, 1.0, abs(in.local.y - clothTop) < trimW);
-  let tailTrim = cloth * select(0.0, 1.0, in.local.y > clothBottom - 0.065 && abs(in.local.x - clothMid) > 0.18);
-  let notchTrim = select(0.0, 1.0, in.local.y > notchTop && in.local.y < clothBottom && abs(abs(in.local.x - clothMid) - (in.local.y - notchTop) * notchSlope) < trimW);
+  let sideTrim = cloth * select(0.0, 1.0, abs(in.local.x - clothLeft) < 0.035 || abs(in.local.x - clothRight) < 0.035);
+  let topTrim = cloth * select(0.0, 1.0, abs(in.local.y - clothTop) < 0.035);
+  let tailTrim = cloth * select(0.0, 1.0, in.local.y > clothBottom - 0.04 && abs(in.local.x - clothMid) > 0.18);
+  let notchTrim = select(0.0, 1.0, in.local.y > notchTop && in.local.y < clothBottom && abs(abs(in.local.x - clothMid) - (in.local.y - notchTop) * notchSlope) < 0.035);
   let trim = max(max(sideTrim, topTrim), max(tailTrim, notchTrim));
   let emblem = select(0.0, 1.0, abs(in.local.x - clothMid) + abs(in.local.y + 0.12) < 0.14);
   let selectedEdge = vec3f(0.96, 0.93, 0.84);
@@ -496,15 +448,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   if (alpha <= 0.0) { discard; }
   let hardware = max(max(pole, finial), crossbar);
   let goldInk = max(max(trim, emblem), finial);
-  // The cloth is graded from an ink-deepened foot to a parchment-lit head so a
-  // livery that matches the land or its own territory wash (Arverni green over
-  // green Gaul) still reads as solid cloth, not a hollow outline. The livery
-  // hue stays the faction color — only luminance structure is added. (The head
-  // is the low-y end now that the fragment y is flipped, so lift runs from the
-  // foot up.)
-  let clothLift = clamp((clothBottom - in.local.y) / (clothBottom - clothTop), 0.0, 1.0);
-  let clothColor = mix(mix(in.faction, edge, 0.30), mix(in.faction, parchment, 0.26), clothLift);
-  var fill = mix(edge, clothColor, cloth);
+  var fill = mix(edge, in.faction, cloth);
   fill = mix(fill, edge, hardware * (1.0 - finial));
   fill = mix(fill, gold, goldInk);
   return vec4f(mix(fill, selectedEdge, outline * 0.75), alpha);
@@ -553,10 +497,6 @@ export interface CampaignLabelPassStats {
   labels: number;
   visibleLabels: number;
   visibleLabelNames: string[];
-  visibleSeaLabelRects: CampaignLabelDebugRect[];
-  visibleCityLabelRects: CampaignLabelDebugRect[];
-  visibleArmyLabelRects: CampaignLabelDebugRect[];
-  visibleFactionLabelRects: CampaignLabelDebugRect[];
   collisionCulls: number;
   collisionCulledLabels: string[];
   atlasWidth: number;
@@ -565,84 +505,24 @@ export interface CampaignLabelPassStats {
   layer: 'raw-gpu-glyph-atlas';
 }
 
-/** Axis-aligned screen rect, CSS px — the one rect currency shared by the
- * label occupancy arbitration and the scene's card loop (slice 09). */
-export interface ScreenRect {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
-
-/** The one overlap implementation: every collision verdict — label vs label,
- * card vs label, card vs card in the scene loop — goes through this test, so
- * "overlaps" means the same thing on both sides of the canvas/DOM seam. */
-export function rectsOverlap(a: ScreenRect, b: ScreenRect): boolean {
-  return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
-}
-
-/** The land truth city-label anchor choice samples: the full-res render mask
- * (TerrainField.renderLandAt) — the same owner the sea-label fitter scores
- * against. Absent the style, the occupancy arbitration still runs (with no
- * card blockers) but candidates are not water-scored: the first
- * occupancy-clear candidate wins. */
-export interface CampaignLabelPlacementStyle {
-  renderSurfaceAt: (x: number, y: number) => 'land' | 'water';
-  /** Visible DOM card rects (CSS px), reported per frame by the scene's card
-   * loop. Cards outrank canvas labels: the occupancy arbitration treats these
-   * as pre-claimed ground. */
-  blockedRects?: ScreenRect[];
-}
-
-export interface CampaignLabelDebugRect {
-  text: string;
-  kind: CampaignLabel['kind'];
-  opacity: number;
-  box: { x: number; y: number; w: number; h: number };
-  corners: [number, number][];
-  /** Transparent halo margin inside the box, CSS px per side. Deflating the
-   * box by this gives the ink rect (icon + glyphs) — the visible label. */
-  padPx: number;
-  /** The exact ink-rect AABB the occupancy arbitration used for this label
-   * (deflate-to-ink THEN rotate THEN AABB). For a tilted label this is tighter
-   * than deflating `box` (the full-quad AABB) by `padPx` — consumers checking
-   * overlaps must use this so the test agrees with what arbitration enforced. */
-  inkRect: { x: number; y: number; w: number; h: number };
-  /** Faction labels only: true for the small league names (they yield to
-   * cards; major engravings are background-scale and do not). */
-  minor?: boolean;
-}
-
-/** The map pass's own drawn-coast contract: the campaign-bg raster (what the
- * raster terrain layer paints), the biome texture (whose alpha contour is the
- * canonical-terrain waterline), and the terrainMix this pass composites them
- * with. territoryPass clips the faction wash through the SAME textures and mix
- * (via the shared seaAmount / drawnWaterAmount classifiers), so the wash ends
- * exactly where the visibly drawn sea begins. */
-export interface CampaignDrawnCoast {
-  bg: GPUTextureView;
-  biome: GPUTextureView;
-  terrainMix: number;
-}
-
 export class CampaignMapPass {
-  public readonly drawnCoast: CampaignDrawnCoast;
   private pipeline: GPURenderPipeline;
   private bindGroup: GPUBindGroup;
   private vertexBuffer: GPUBuffer;
   private indexBuffer: GPUBuffer;
   private indexCount: number;
+  private terrainMix: number;
   private terrainTextureSize: [number, number] | null;
 
   constructor(private shell: RawFrameShell, image: ImageBitmap, rect: { min: [number, number]; max: [number, number] }, style: CampaignMapStyle = {}, surface?: CampaignMapSurfaceMesh) {
     const device = shell.device;
-    const terrainMix = style.terrainMix ?? (style.terrain ? 1 : 0);
+    this.terrainMix = style.terrainMix ?? (style.terrain ? 1 : 0);
     this.terrainTextureSize = style.terrain ? [style.terrain.width, style.terrain.height] : null;
     const module = device.createShaderModule({
       label: 'campaign-map-wgsl',
       code: MAP_WGSL
         .replaceAll('__SEA_TINT_MIX__', (style.seaTintMix ?? 0).toFixed(3))
-        .replaceAll('__TERRAIN_MIX__', terrainMix.toFixed(3)),
+        .replaceAll('__TERRAIN_MIX__', this.terrainMix.toFixed(3)),
     });
     const texture = device.createTexture({
       label: 'campaign-map-texture',
@@ -654,7 +534,6 @@ export class CampaignMapPass {
     const biomeTexture = style.terrain
       ? createRgbaTexture(device, 'campaign-map-biome-texture', style.terrain.width, style.terrain.height, style.terrain.biome)
       : createRgbaTexture(device, 'campaign-map-biome-fallback', 1, 1, new Uint8Array([0, 0, 0, 128]));
-    this.drawnCoast = { bg: texture.createView(), biome: biomeTexture.createView(), terrainMix };
     const lightTexture = style.terrain
       ? createLightTexture(device, 'campaign-map-light-texture', style.terrain.width, style.terrain.height, style.terrain.light)
       : createRgbaTexture(device, 'campaign-map-light-fallback', 1, 1, new Uint8Array([128, 128, 128, 255]));
@@ -678,9 +557,9 @@ export class CampaignMapPass {
       label: 'campaign-map-texture-bg',
       layout: texLayout,
       entries: [
-        { binding: 0, resource: this.drawnCoast.bg },
+        { binding: 0, resource: texture.createView() },
         { binding: 1, resource: sampler },
-        { binding: 2, resource: this.drawnCoast.biome },
+        { binding: 2, resource: biomeTexture.createView() },
         { binding: 3, resource: lightTexture.createView() },
       ],
     });
@@ -730,9 +609,9 @@ export class CampaignMapPass {
   stats() {
     return {
       surfaceTriangles: Math.floor(this.indexCount / 3),
-      terrainMix: this.drawnCoast.terrainMix,
+      terrainMix: this.terrainMix,
       terrainTextureSize: this.terrainTextureSize,
-      layer: this.drawnCoast.terrainMix > 0 ? 'canonical-biome-light-terrain' : 'background-raster-terrain',
+      layer: this.terrainMix > 0 ? 'canonical-biome-light-terrain' : 'background-raster-terrain',
     };
   }
 }
@@ -1025,7 +904,6 @@ export class CampaignMarkerPass {
   private instanceBuffer: GPUBuffer;
   private capacity = 0;
   private markerCount = 0;
-  private cityMarkerRadiiPx: number[] = [];
 
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
@@ -1077,11 +955,6 @@ export class CampaignMarkerPass {
 
   upload(markers: CampaignMarker[]) {
     this.markerCount = markers.length;
-    this.cityMarkerRadiiPx = [...new Set(
-      markers
-        .filter((marker) => marker.kind === 'city')
-        .map((marker) => Number(marker.radius.toFixed(3))),
-    )].sort((a, b) => a - b);
     if (markers.length > this.capacity) {
       this.capacity = Math.max(markers.length, this.capacity * 2, 128);
       this.instanceBuffer = this.shell.device.createBuffer({
@@ -1119,11 +992,7 @@ export class CampaignMarkerPass {
   }
 
   stats() {
-    return {
-      markers: this.markerCount,
-      cityMarkerRadiiPx: this.cityMarkerRadiiPx,
-      cityMarkerRadiusPx: this.cityMarkerRadiiPx[this.cityMarkerRadiiPx.length - 1] ?? 0,
-    };
+    return { markers: this.markerCount };
   }
 }
 
@@ -1141,10 +1010,6 @@ export class CampaignLabelPass {
     labels: 0,
     visibleLabels: 0,
     visibleLabelNames: [],
-    visibleSeaLabelRects: [],
-    visibleCityLabelRects: [],
-    visibleArmyLabelRects: [],
-    visibleFactionLabelRects: [],
     collisionCulls: 0,
     collisionCulledLabels: [],
     atlasWidth: 1,
@@ -1207,11 +1072,7 @@ export class CampaignLabelPass {
     });
   }
 
-  upload(
-    labels: CampaignLabel[],
-    camera: Omit<CameraSnapshot, 'width' | 'height'>,
-    placement?: CampaignLabelPlacementStyle,
-  ) {
+  upload(labels: CampaignLabel[], camera: Omit<CameraSnapshot, 'width' | 'height'>) {
     const stats = this.shell.stats();
     const dpr = Math.max(1, stats.dpr || window.devicePixelRatio || 1);
     const snapshot: CameraSnapshot = { ...camera, width: stats.width, height: stats.height };
@@ -1223,10 +1084,6 @@ export class CampaignLabelPass {
         labels: labels.length,
         visibleLabels: 0,
         visibleLabelNames: [],
-        visibleSeaLabelRects: [],
-        visibleCityLabelRects: [],
-        visibleArmyLabelRects: [],
-        visibleFactionLabelRects: [],
         collisionCulls: 0,
         collisionCulledLabels: [],
         atlasWidth: 1,
@@ -1237,12 +1094,10 @@ export class CampaignLabelPass {
       return this.statsValue;
     }
 
-    // Blocked card rects join the key: a card that moved must re-arbitrate the
-    // canvas labels even when every label input is unchanged.
-    const atlasKey = `${labelAtlasKey(visible, dpr, labels.length)}#${blockedRectsKey(placement)}`;
+    const atlasKey = labelAtlasKey(visible, dpr, labels.length);
     if (atlasKey === this.atlasKey) return this.statsValue;
     this.atlasKey = atlasKey;
-    const atlas = buildLabelAtlas(visible, dpr, snapshot, placement);
+    const atlas = buildLabelAtlas(visible, dpr);
     this.ensureTexture(atlas.width, atlas.height);
     this.shell.device.queue.writeTexture(
       { texture: this.texture },
@@ -1261,15 +1116,10 @@ export class CampaignLabelPass {
       });
     }
     this.shell.device.queue.writeBuffer(this.vertexBuffer, 0, vertices);
-    const debugRects = labelDebugRects(atlas.entries, dpr);
     this.statsValue = {
       labels: labels.length,
       visibleLabels: atlas.entries.length,
       visibleLabelNames: atlas.entries.slice(0, 128).map((entry) => `${entry.label.kind}:${labelText(entry.label)}`),
-      visibleSeaLabelRects: debugRects.filter((entry) => entry.kind === 'sea'),
-      visibleCityLabelRects: debugRects.filter((entry) => entry.kind === 'city'),
-      visibleArmyLabelRects: debugRects.filter((entry) => entry.kind === 'army'),
-      visibleFactionLabelRects: debugRects.filter((entry) => entry.kind === 'faction'),
       collisionCulls: atlas.collisionCulls,
       collisionCulledLabels: atlas.collisionCulledLabels,
       atlasWidth: atlas.width,
@@ -1326,42 +1176,30 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData, style: Camp
   const lineVertices: number[] = [];
   const roadMeshVertices: number[] = [];
   const safeRoads: CampaignMapEdgeData[] = [];
-  const roadAt = style.roadSurfaceAt;
-  let roadEdgesCulled = 0;
-  let roadWaterGaps = 0;
   for (const edge of data.map.edges) {
     if (edge.kind === 'sea') pushEdgeLines(lineVertices, edge);
-    else if (roadEdgeIsLandSafe(edge, roadAt)) {
+    else if (roadEdgeIsLandSafe(edge, style)) {
       safeRoads.push(edge);
-      roadWaterGaps += pushRaisedRoad(roadMeshVertices, edge, style, roadAt);
-    } else {
-      roadEdgesCulled++;
+      pushRaisedRoad(roadMeshVertices, edge, style);
     }
   }
   const roadJunctionCaps = pushRoadJunctionCaps(roadMeshVertices, data, safeRoads, style);
   const cityNodes = data.map.nodes.filter((node) => node.kind === 'city');
   const cityMarkers = cityNodes.map((node) => markerForNode(data, node));
-  const seaLabelFit =
-    data.map.nodes.length > 20
-      ? fitSeaLabels(seaLabels(), style)
-      : { labels: [], fits: [], fitZoom: SEA_LABEL_FIT_ZOOM };
+  const labels = data.map.nodes.length > 20 ? fitSeaLabels(seaLabels(), surfaceAt(style)) : [];
   return {
     lineVertices: new Float32Array(lineVertices),
     roadMeshVertices: new Float32Array(roadMeshVertices),
     cityMarkers,
-    labels: seaLabelFit.labels,
+    labels,
     stats: {
       roads: roads.length,
       seaLanes: seaLanes.length,
       lineVertices: Math.floor(lineVertices.length / 6),
       roadMeshVertices: Math.floor(roadMeshVertices.length / 10),
       roadJunctionCaps,
-      roadEdgesCulled,
-      roadWaterGaps,
       cityMarkers: cityMarkers.length,
-      labels: seaLabelFit.labels.length,
-      seaLabelFits: seaLabelFit.fits,
-      seaLabelFitZoom: seaLabelFit.fitZoom,
+      labels: labels.length,
     },
   };
 }
@@ -1414,33 +1252,10 @@ function pushEdgeLines(out: number[], edge: CampaignMapEdgeData) {
   }
 }
 
-/** Returns the number of unbridged water gaps (drawn ribbon stops at a shore). */
-function pushRaisedRoad(
-  out: number[],
-  edge: CampaignMapEdgeData,
-  style: CampaignMapDrawStyle,
-  at?: (x: number, y: number) => 'land' | 'water',
-): number {
+function pushRaisedRoad(out: number[], edge: CampaignMapEdgeData, style: CampaignMapDrawStyle) {
+  if (edge.via.length < 2) return;
   const roadScale = style.roadScale ?? 1;
-  const halfWidth = 0.55 * roadScale;
-  const { runs, gaps } = drawnRoadRuns(edge.via, at);
-  for (const run of runs) {
-    pushRoadRibbon(out, run, halfWidth * 1.58, 0.18 * roadScale, [0.30, 0.27, 0.23, 0.78], 0, style.heightAt);
-    pushRoadRibbon(out, run, halfWidth, 0.32 * roadScale, [0.76, 0.74, 0.68, 0.98], 1, style.heightAt);
-  }
-  return gaps;
-}
-
-/** The exact centerline geometry the road pass draws: smoothed, resampled at
- * ROAD_SURFACE_SAMPLE_KM, split into land runs (short water dips bridged,
- * ferry straits split). Road decorations (carts) ride these same runs so they
- * follow the visible ribbon by construction. */
-export function drawnRoadRuns(
-  via: [number, number][],
-  at?: (x: number, y: number) => 'land' | 'water',
-): { runs: [number, number][][]; gaps: number } {
-  if (via.length < 2) return { runs: [], gaps: 0 };
-  const source = smoothRoadCenterline(via);
+  const source = smoothRoadCenterline(edge.via);
   const center: [number, number][] = [[source[0][0], source[0][1]]];
   for (let i = 1; i < source.length; i++) {
     const a = source[i - 1];
@@ -1452,57 +1267,9 @@ export function drawnRoadRuns(
       center.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]);
     }
   }
-  return roadLandRuns(center, at);
-}
-
-// Water dips up to this length along the smoothed centerline are bridged (the
-// bake tolerates raw dips <= 3 km, which smoothing can stretch); anything
-// longer is a ledgered ferry strait and the ribbon honestly stops at the
-// shore. TWIN: ROAD_SMOOTHED_BRIDGE_KM in crates/mapgen/src/landroute.rs —
-// the bake invariant guarantees committed roads never split except at ferries.
-const ROAD_WATER_BRIDGE_KM = 4.5;
-
-/** Split a resampled road centerline into its drawable land runs. */
-function roadLandRuns(
-  center: [number, number][],
-  at?: (x: number, y: number) => 'land' | 'water',
-): { runs: [number, number][][]; gaps: number } {
-  if (!at) return { runs: [center], gaps: 0 };
-  const land = center.map(([x, y]) => at(x, y) === 'land');
-  // Bridge interior water dips by sample count (samples ride ~0.9 km apart —
-  // the same counting the bake's smoothed-run invariant uses). Terminal water
-  // is never bridged: road terminals sit on land nodes, so a water tail is
-  // stale data and trimming beats drawing into the sea.
-  const bridgeSamples = Math.round(ROAD_WATER_BRIDGE_KM / ROAD_SURFACE_SAMPLE_KM);
-  let gaps = 0;
-  let i = 0;
-  while (i < center.length) {
-    if (land[i]) {
-      i++;
-      continue;
-    }
-    let j = i;
-    while (j < center.length && !land[j]) j++;
-    const interior = i > 0 && j < center.length;
-    if (interior && j - i <= bridgeSamples) {
-      for (let k = i; k < j; k++) land[k] = true;
-    } else if (interior) {
-      gaps++;
-    }
-    i = j;
-  }
-  const runs: [number, number][][] = [];
-  let run: [number, number][] = [];
-  for (let k = 0; k < center.length; k++) {
-    if (land[k]) {
-      run.push(center[k]);
-    } else if (run.length > 0) {
-      if (run.length >= 2) runs.push(run);
-      run = [];
-    }
-  }
-  if (run.length >= 2) runs.push(run);
-  return { runs, gaps };
+  const halfWidth = 0.55 * roadScale;
+  pushRoadRibbon(out, center, halfWidth * 1.58, 0.18 * roadScale, [0.30, 0.27, 0.23, 0.78], 0, style.heightAt);
+  pushRoadRibbon(out, center, halfWidth, 0.32 * roadScale, [0.76, 0.74, 0.68, 0.98], 1, style.heightAt);
 }
 
 function pushRoadJunctionCaps(out: number[], data: CampaignMapInputData, roads: CampaignMapEdgeData[], style: CampaignMapDrawStyle) {
@@ -1531,10 +1298,7 @@ function pushRoadJunctionCaps(out: number[], data: CampaignMapInputData, roads: 
   return caps;
 }
 
-// TWIN: smooth_renderer_centerline in crates/mapgen/src/landroute.rs — the
-// bake pre-verifies road land-safety through this exact smoothing, so change
-// both together.
-function smoothRoadCenterline(points: [number, number][]) {
+export function smoothRoadCenterline(points: [number, number][]) {
   if (points.length <= 2) return points;
   const smoothed: [number, number][] = [points[0]];
   for (let i = 1; i + 1 < points.length; i++) {
@@ -1549,7 +1313,8 @@ function smoothRoadCenterline(points: [number, number][]) {
   return smoothed;
 }
 
-function roadEdgeIsLandSafe(edge: CampaignMapEdgeData, at?: (x: number, y: number) => 'land' | 'water') {
+function roadEdgeIsLandSafe(edge: CampaignMapEdgeData, style: CampaignMapDrawStyle) {
+  const at = surfaceAt(style);
   if (!at) return true;
   let samples = 0;
   let landSamples = 0;
@@ -1566,10 +1331,10 @@ function roadEdgeIsLandSafe(edge: CampaignMapEdgeData, at?: (x: number, y: numbe
       if (at(x, y) === 'land') landSamples++;
     }
   }
-  // Only a genuine sea crossing (a mostly-water polyline) drops whole; a road
-  // that merely hugs the coast stays and draws its land runs. The sampler must
-  // be point truth (the full-res render mask) — an area-statistic sampler here
-  // culls whole coastal approach edges (bug B7b: roadless Cosa/Tarracina).
+  // Coastal ORBIS roads hug the shoreline and dip over the coarse land mask's
+  // water cells though the road is on real land; the old 0.68 floor silently
+  // dropped whole connected edges. Relax so a road survives when it is mostly on
+  // land (a genuine sea crossing is still mostly water and drops).
   return samples === 0 || landSamples / samples >= 0.5;
 }
 
@@ -1636,6 +1401,10 @@ function pushRoadRibbon(
 
 const ROAD_SURFACE_SAMPLE_KM = 0.9;
 
+function surfaceAt(style: CampaignMapDrawStyle) {
+  return style.surfaceAt ?? style.roadSurfaceAt;
+}
+
 function markerForNode(data: CampaignMapInputData, node: CampaignMapNodeData): CampaignMarker {
   const factionIndex = Math.max(0, data.map.factions.findIndex((faction) => faction.id === node.owner));
   const faction = data.map.factions[factionIndex]?.color ?? [154, 132, 90];
@@ -1648,237 +1417,146 @@ function markerForNode(data: CampaignMapInputData, node: CampaignMapNodeData): C
   };
 }
 
-// Anchors sit at each sea's open-water center (measured against the render
-// mask; slice 03 moved Adriatic/Aegean/Black Sea in from shore) and angles
-// follow the basin's long axis in screen space (positive = falling to the
-// right); the fitter only polishes from here.
 function seaLabels(): CampaignLabel[] {
   return [
     { text: 'Mediterranean Sea', x: 320, y: -585, size: 28, kind: 'sea', priority: 4, angle: -0.03, curve: -0.85 },
     { text: 'Tyrrhenian Sea', x: -360, y: 120, size: 20, kind: 'sea', priority: 4, angle: -0.5, curve: 0.55 },
     { text: 'Ionian Sea', x: 30, y: -170, size: 18, kind: 'sea', priority: 4, angle: -0.9, curve: 0.45 },
-    { text: 'Adriatic Sea', x: -15, y: 335, size: 18, kind: 'sea', priority: 4, angle: 0.9, curve: -0.4 },
-    // The Aegean anchor sits at the basin's south gate: the Cyclades leave no
-    // clean full-rect placement in the island-studded center/north (best found
-    // there is ~0.18 land), so water-coverage-first settles south of them.
-    { text: 'Aegean Sea', x: 460, y: -60, size: 17, kind: 'sea', priority: 4, angle: -0.7, curve: 0.42 },
-    { text: 'Black Sea', x: 1480, y: 550, size: 24, kind: 'sea', priority: 4, curve: 0.5 },
-    { text: 'Iberian Sea', x: -1250, y: 90, size: 22, kind: 'sea', priority: 4, curve: -0.45 },
+    { text: 'Adriatic Sea', x: 70, y: 690, size: 18, kind: 'sea', priority: 4, angle: -0.65, curve: -0.4 },
+    { text: 'Aegean Sea', x: 600, y: 150, size: 17, kind: 'sea', priority: 4, angle: -0.7, curve: 0.42 },
+    { text: 'Black Sea', x: 1080, y: 1180, size: 24, kind: 'sea', priority: 4, curve: 0.5 },
+    { text: 'Iberian Sea', x: -1640, y: -40, size: 22, kind: 'sea', priority: 4, curve: -0.45 },
     { text: 'Atlantic Ocean', x: -2200, y: 760, size: 15, kind: 'sea', priority: 4, angle: -1.1, curve: 0.18 },
   ];
 }
 
-// Sea labels are screen-space text anchored to world points, so their world
-// footprint is widest at the camera's zoom floor — the fit is judged there
-// (style.seaLabelFitZoom), with SEA_LABEL_FIT_ZOOM as the conservative upper
-// bound: the full-opacity threshold of the sea-label fade band.
+// Sea labels are screen-space text anchored to world points; fit against the
+// full-opacity threshold so the static placement is conservative before fadeout.
 const SEA_LABEL_FIT_ZOOM = 0.26;
-// Coast standoff added around the drawn rect. Kept small: narrow basins
-// (Adriatic ~200 km wide) stop having any clean placement when the margin
-// inflates the rect much further.
-const SEA_LABEL_LAND_MARGIN_KM = 12;
-// Legibility floor: a sea name may shrink to this scale but never below —
-// better a nudged full-size label than a vanishing one (move before shrink).
+const SEA_LABEL_LAND_MARGIN_KM = 25;
 const SEA_LABEL_MIN_SCALE = 0.55;
 const SEA_LABEL_SHRINK_STEP = 0.05;
-// The move budget: seas are long, so the search runs farther along the
-// label's axis (label.angle follows the basin) than across it. The budget is
-// deliberately basin-scale — anchors sit at their sea's open-water center,
-// and a bigger budget lets a cramped label defect into a roomier neighboring
-// sea (Adriatic and Aegean both fled to the Ionian at 420 km).
-const SEA_LABEL_ALONG_NUDGE_KM = 240;
-const SEA_LABEL_ACROSS_NUDGE_KM = 150;
-const SEA_LABEL_NUDGE_STEP_KM = 20;
-const SEA_LABEL_SAMPLE_STEP_KM = 15;
-// Sea text metrics shared by the style, the curved atlas draw, and the
-// placement fitter — if these drift apart, the fitted box stops being the
-// drawn box (the U2 bug class).
-const SEA_LABEL_LETTER_SPACING_EM = 0.22;
-const SEA_LABEL_PADDING_EM = 0.34;
+const SEA_LABEL_MAX_NUDGE_KM = 60;
+const SEA_LABEL_NUDGE_STEP_KM = 10;
+const SEA_LABEL_MARGIN_SAMPLES: [number, number][] = [
+  [0, 0],
+  [1, 0],
+  [-1, 0],
+  [0, 1],
+  [0, -1],
+  [0.707, 0.707],
+  [-0.707, 0.707],
+  [0.707, -0.707],
+  [-0.707, -0.707],
+];
 
-/** The one placement scorer (shared with city-label anchoring): walk
- * preference-ordered candidates, sample each one's world-space point cloud,
- * and return the first fully-clean candidate — else the least-bad earliest
- * one. "Bad" is the caller's polarity: land under a sea label, water under a
- * city label. */
-export interface PlacementVerdict<C> {
-  candidate: C;
-  badFraction: number;
+function fitSeaLabels(
+  labels: CampaignLabel[],
+  at?: (x: number, y: number) => 'land' | 'water',
+): CampaignLabel[] {
+  if (!at) return labels;
+  return labels.map((label) => fitSeaLabel(label, at));
 }
 
-export function bestPlacement<C>(
-  candidates: Iterable<C>,
-  worldSamplesOf: (candidate: C) => [number, number][],
-  isBadAt: (x: number, y: number) => boolean,
-): PlacementVerdict<C> | null {
-  let best: PlacementVerdict<C> | null = null;
-  for (const candidate of candidates) {
-    const samples = worldSamplesOf(candidate);
-    if (samples.length === 0) continue;
-    // A candidate is dead once it cannot beat the incumbent; bail early so
-    // mostly-bad candidates cost a handful of lookups, not the full grid.
-    const badLimit = best ? best.badFraction * samples.length : samples.length;
-    let bad = 0;
-    for (const [x, y] of samples) {
-      if (isBadAt(x, y)) {
-        bad++;
-        if (bad >= badLimit) break;
+function fitSeaLabel(
+  label: CampaignLabel,
+  at: (x: number, y: number) => 'land' | 'water',
+): CampaignLabel {
+  for (let scale = 1; scale >= SEA_LABEL_MIN_SCALE - 0.001; scale -= SEA_LABEL_SHRINK_STEP) {
+    const candidate = withSeaLabelScale(label, scale);
+    if (seaLabelClearsLand(candidate, at)) return candidate;
+  }
+  const shrunk = withSeaLabelScale(label, SEA_LABEL_MIN_SCALE);
+  const angle = shrunk.angle ?? 0;
+  const along: [number, number] = [Math.cos(angle), Math.sin(angle)];
+  const across: [number, number] = [-Math.sin(angle), Math.cos(angle)];
+  for (const nudge of seaLabelNudges()) {
+    const candidate = {
+      ...shrunk,
+      x: shrunk.x + along[0] * nudge[0] + across[0] * nudge[1],
+      y: shrunk.y + along[1] * nudge[0] + across[1] * nudge[1],
+    };
+    if (seaLabelClearsLand(candidate, at)) return candidate;
+  }
+  return shrunk;
+}
+
+function withSeaLabelScale(label: CampaignLabel, scale: number): CampaignLabel {
+  return scale >= 0.995 ? label : { ...label, size: label.size * scale };
+}
+
+function seaLabelNudges(): [number, number][] {
+  const nudges: [number, number][] = [];
+  for (let distance = SEA_LABEL_NUDGE_STEP_KM; distance <= SEA_LABEL_MAX_NUDGE_KM; distance += SEA_LABEL_NUDGE_STEP_KM) {
+    nudges.push(
+      [0, distance],
+      [0, -distance],
+      [distance, 0],
+      [-distance, 0],
+      [distance, distance],
+      [-distance, distance],
+      [distance, -distance],
+      [-distance, -distance],
+    );
+  }
+  return nudges;
+}
+
+function seaLabelClearsLand(
+  label: CampaignLabel,
+  at: (x: number, y: number) => 'land' | 'water',
+) {
+  const samples = seaLabelWorldSamples(label);
+  for (const point of samples) {
+    for (const margin of SEA_LABEL_MARGIN_SAMPLES) {
+      if (
+        at(
+          point[0] + margin[0] * SEA_LABEL_LAND_MARGIN_KM,
+          point[1] + margin[1] * SEA_LABEL_LAND_MARGIN_KM,
+        ) === 'land'
+      ) {
+        return false;
       }
     }
-    const badFraction = bad / samples.length;
-    if (badFraction === 0) return { candidate, badFraction };
-    if (!best || badFraction < best.badFraction - 1e-6) best = { candidate, badFraction };
   }
-  return best;
+  return true;
 }
 
-interface SeaLabelPlacement {
-  x: number;
-  y: number;
-  scale: number;
-  nudgeKm: number;
-}
-
-interface FittedSeaLabels {
-  labels: CampaignLabel[];
-  fits: CampaignSeaLabelFit[];
-  fitZoom: number;
-}
-
-function surfaceAt(style: CampaignMapDrawStyle) {
-  return style.surfaceAt ?? style.roadSurfaceAt;
-}
-
-function fitSeaLabels(labels: CampaignLabel[], style: CampaignMapDrawStyle): FittedSeaLabels {
-  const fitZoom = Math.min(style.seaLabelFitZoom ?? SEA_LABEL_FIT_ZOOM, SEA_LABEL_FIT_ZOOM);
-  const at = style.renderSurfaceAt ?? surfaceAt(style);
-  if (!at) return { labels, fits: [], fitZoom };
-  const widthOf = seaLabelWidthMeasurer();
-  const fitted: CampaignLabel[] = [];
-  const fits: CampaignSeaLabelFit[] = [];
-  for (const label of labels) {
-    const verdict = bestPlacement(
-      seaLabelCandidates(label),
-      (candidate) => seaLabelWorldSamples(label, candidate, fitZoom, widthOf),
-      (x, y) => at(x, y) === 'land',
-    );
-    const placement = verdict?.candidate ?? { x: label.x, y: label.y, scale: 1, nudgeKm: 0 };
-    fitted.push({
-      ...label,
-      x: placement.x,
-      y: placement.y,
-      size: label.size * placement.scale,
-    });
-    fits.push({
-      text: labelText(label),
-      scale: placement.scale,
-      nudgeKm: roundPx(placement.nudgeKm),
-      landFraction: roundPx(verdict?.badFraction ?? 0),
-    });
-  }
-  return { labels: fitted, fits, fitZoom };
-}
-
-/** Move before shrink: every nudge along the sea's axis at full size comes
- * before the first shrink step, and each shrink re-runs the whole sweep.
- * label.angle rotates the drawn quad in screen space (y down); world y runs
- * up, so the screen baseline direction (cos a, sin a) is (cos a, -sin a) in
- * world km. */
-function* seaLabelCandidates(label: CampaignLabel): Generator<SeaLabelPlacement> {
-  const angle = label.angle ?? 0;
-  const along: [number, number] = [Math.cos(angle), -Math.sin(angle)];
-  const across: [number, number] = [-Math.sin(angle), -Math.cos(angle)];
-  for (let scale = 1; scale >= SEA_LABEL_MIN_SCALE - 0.001; scale -= SEA_LABEL_SHRINK_STEP) {
-    for (const [u, v] of seaLabelNudges()) {
-      yield {
-        x: label.x + along[0] * u + across[0] * v,
-        y: label.y + along[1] * u + across[1] * v,
-        scale,
-        nudgeKm: Math.hypot(u, v),
-      };
-    }
-  }
-}
-
-/** Nudge offsets (along, across) ordered by distance so the scorer prefers
- * placements near the authored anchor. Each axis steps outward from 0 so
- * pure along-axis and pure across-axis moves are always in the grid. */
-function seaLabelNudges(): [number, number][] {
-  const axisSteps = (budgetKm: number) => {
-    const steps = [0];
-    for (let d = SEA_LABEL_NUDGE_STEP_KM; d <= budgetKm; d += SEA_LABEL_NUDGE_STEP_KM) {
-      steps.push(d, -d);
-    }
-    return steps;
-  };
-  const nudges: [number, number][] = [];
-  for (const u of axisSteps(SEA_LABEL_ALONG_NUDGE_KM)) {
-    for (const v of axisSteps(SEA_LABEL_ACROSS_NUDGE_KM)) {
-      nudges.push([u, v]);
-    }
-  }
-  return nudges.sort((a, b) => Math.hypot(a[0], a[1]) - Math.hypot(b[0], b[1]));
-}
-
-/** Sample grid over the label's full drawn rect — the same box the atlas
- * lays out (measured text width, curve depth, padding), inflated by the land
- * margin. Local coordinates are the quad's screen space (y down); the final
- * y flip converts screen-down to world-north. Matching the drawn rect (not
- * just the glyph band) keeps the fit verdict equal to what an area probe of
- * the rendered box measures. */
-function seaLabelWorldSamples(
-  label: CampaignLabel,
-  placement: SeaLabelPlacement,
-  fitZoom: number,
-  widthOf: (text: string, sizePx: number) => number,
-): [number, number][] {
+function seaLabelWorldSamples(label: CampaignLabel): [number, number][] {
   const text = labelText(label);
-  const sizePx = Math.max(10, label.size * placement.scale);
-  const widthPx = widthOf(text, sizePx);
-  const depthPx = seaLabelCurveDepthPx(label, sizePx, widthPx);
-  const paddingPx = Math.ceil(sizePx * SEA_LABEL_PADDING_EM);
-  const boxWidthPx = widthPx + paddingPx * 2;
-  const boxHeightPx = sizePx * 1.5 + Math.abs(depthPx) * 1.35 + paddingPx * 2;
-  const halfWidthKm = (boxWidthPx * 0.5) / fitZoom + SEA_LABEL_LAND_MARGIN_KM;
-  const halfHeightKm = (boxHeightPx * 0.5) / fitZoom + SEA_LABEL_LAND_MARGIN_KM;
+  const sizePx = Math.max(10, label.size);
+  const letterSpacingPx = sizePx * 0.22;
+  const glyphWidthsPx = Array.from(text).map((char) => seaGlyphWidthPx(char, sizePx));
+  const widthPx = Math.max(
+    1,
+    glyphWidthsPx.reduce((sum, value) => sum + value, 0) + Math.max(0, glyphWidthsPx.length - 1) * letterSpacingPx,
+  );
+  const bend = label.curve ?? defaultSeaLabelCurve(label);
+  const depthPx = bend * Math.min(sizePx * 1.35, Math.max(sizePx * 0.42, widthPx * 0.075));
+  const halfWidthKm = Math.max(1, (widthPx * 0.5) / SEA_LABEL_FIT_ZOOM);
+  const depthKm = depthPx / SEA_LABEL_FIT_ZOOM;
+  const sizeKm = sizePx / SEA_LABEL_FIT_ZOOM;
   const angle = label.angle ?? 0;
   const ca = Math.cos(angle);
   const sa = Math.sin(angle);
-  // Island-scale sampling: Aegean islets are ~15-30 km, so a coarser grid
-  // certifies "clean" placements whose drawn box still clips an island.
-  const cols = Math.max(12, Math.ceil((halfWidthKm * 2) / SEA_LABEL_SAMPLE_STEP_KM));
-  const rows = Math.max(5, Math.ceil((halfHeightKm * 2) / SEA_LABEL_SAMPLE_STEP_KM));
+  const offsets = [-sizeKm * 0.78, 0, sizeKm * 0.36];
   const samples: [number, number][] = [];
-  for (let iy = 0; iy < rows; iy++) {
-    const py = -halfHeightKm + (2 * halfHeightKm * iy) / (rows - 1);
-    for (let ix = 0; ix < cols; ix++) {
-      const px = -halfWidthKm + (2 * halfWidthKm * ix) / (cols - 1);
-      samples.push([placement.x + px * ca - py * sa, placement.y - (px * sa + py * ca)]);
+  const steps = Math.max(12, Math.ceil(widthPx / 24));
+  for (let i = 0; i <= steps; i++) {
+    const t = -1 + (2 * i) / steps;
+    const localX = t * halfWidthKm;
+    const localY = depthKm * (1 - t * t);
+    const slope = (-2 * depthKm * t) / halfWidthKm;
+    const normalLen = Math.hypot(slope, 1) || 1;
+    const nx = -slope / normalLen;
+    const ny = 1 / normalLen;
+    for (const offset of offsets) {
+      const x = localX + nx * offset;
+      const y = localY + ny * offset;
+      samples.push([label.x + x * ca - y * sa, label.y + x * sa + y * ca]);
     }
   }
   return samples;
-}
-
-/** True atlas measure: the same per-glyph measurement the atlas draw uses
- * (measureSeaLabelGlyphs), at dpr 1. Falls back to the coarse per-class
- * estimate where no canvas exists (node-side use). */
-function seaLabelWidthMeasurer(): (text: string, sizePx: number) => number {
-  const ctx =
-    typeof document === 'undefined' ? null : document.createElement('canvas').getContext('2d');
-  if (!ctx) return estimatedSeaLabelWidthPx;
-  return (text, sizePx) => {
-    ctx.font = seaLabelFont(sizePx);
-    return measureSeaLabelGlyphs(ctx, sizePx, text).width;
-  };
-}
-
-function estimatedSeaLabelWidthPx(text: string, sizePx: number) {
-  const glyphWidthsPx = Array.from(text).map((char) => seaGlyphWidthPx(char, sizePx));
-  return Math.max(
-    1,
-    glyphWidthsPx.reduce((sum, value) => sum + value, 0) +
-      Math.max(0, glyphWidthsPx.length - 1) * sizePx * SEA_LABEL_LETTER_SPACING_EM,
-  );
 }
 
 function seaGlyphWidthPx(char: string, sizePx: number) {
@@ -1901,7 +1579,6 @@ interface VisibleCampaignLabel {
 interface AtlasEntry extends VisibleCampaignLabel {
   width: number;
   height: number;
-  padding: number;
   u0: number;
   v0: number;
   u1: number;
@@ -1964,12 +1641,6 @@ function visibleLabels(labels: CampaignLabel[], camera: CameraSnapshot, dpr: num
   return visible;
 }
 
-function blockedRectsKey(placement: CampaignLabelPlacementStyle | undefined) {
-  return (placement?.blockedRects ?? [])
-    .map((rect) => [rect.x, rect.y, rect.w, rect.h].map((v) => v.toFixed(1)).join(','))
-    .join(';');
-}
-
 function labelAtlasKey(labels: VisibleCampaignLabel[], dpr: number, totalLabels: number) {
   return [
     totalLabels,
@@ -1996,9 +1667,6 @@ function labelAtlasKey(labels: VisibleCampaignLabel[], dpr: number, totalLabels:
         entry.offsetY.toFixed(2),
         label.screenAnchorX ?? 'center',
         label.screenAnchorY ?? 'center',
-        (label.placementCandidates ?? [])
-          .map((c) => `${c.screenOffsetX.toFixed(1)},${c.screenOffsetY.toFixed(1)},${c.screenAnchorX},${c.screenAnchorY}`)
-          .join(';'),
         entry.opacity.toFixed(3),
         entry.screenX.toFixed(1),
         entry.screenY.toFixed(1),
@@ -2007,12 +1675,7 @@ function labelAtlasKey(labels: VisibleCampaignLabel[], dpr: number, totalLabels:
   ].join('|');
 }
 
-function buildLabelAtlas(
-  labels: VisibleCampaignLabel[],
-  dpr: number,
-  camera: CameraSnapshot,
-  placement?: CampaignLabelPlacementStyle,
-) {
+function buildLabelAtlas(labels: VisibleCampaignLabel[], dpr: number) {
   const measure = document.createElement('canvas').getContext('2d')!;
   const measured = labels.map((entry): MeasuredCampaignLabel => {
     const style = labelStyle(entry.label, dpr);
@@ -2021,17 +1684,12 @@ function buildLabelAtlas(
     const text = labelText(entry.label);
     const sideText = entry.label.sideText ?? '';
     const subText = entry.label.subText ?? '';
-    // A city label wears its settlement icon ABOVE the name (the icon is the
-    // city's marker), so it sits on the city with the name beneath it. Every
-    // other label keeps its icon to the left of the text.
-    const iconAbove = entry.label.kind === 'city' && !!entry.label.icon;
-    const iconWidth = entry.label.icon && !iconAbove ? style.iconSize + style.iconGap : 0;
+    const iconWidth = entry.label.icon ? style.iconSize + style.iconGap : 0;
     const rightIconWidth = entry.label.rightIcon ? style.iconSize + style.iconGap : 0;
     const mainWidth = measure.measureText(text).width;
     const sideWidth = sideText ? style.sideGap + measureTextWithFont(measure, style.sideFont, style.letterSpacing, sideText) : 0;
     const subWidth = subText ? measureTextWithFont(measure, style.subFont, style.letterSpacing, subText) : 0;
     const seaPath = entry.label.kind === 'sea' ? measureSeaLabel(measure, style, entry.label, text) : null;
-    const rowWidth = mainWidth + iconWidth + sideWidth + rightIconWidth;
     return {
       ...entry,
       text,
@@ -2040,15 +1698,11 @@ function buildLabelAtlas(
       style,
       seaPath,
       mainWidth,
-      width: iconAbove
-        ? Math.max(1, Math.ceil(Math.max(mainWidth + rightIconWidth, style.iconSize) + style.padding * 2))
-        : Math.max(1, Math.ceil(Math.max(seaPath?.width ?? rowWidth, subWidth) + style.padding * 2)),
-      height: iconAbove
-        ? Math.max(1, Math.ceil(style.iconSize + style.iconGap + style.size * 1.55 + style.padding * 2))
-        : Math.max(1, Math.ceil((seaPath?.height ?? style.size * (subText ? 2.42 : 1.55)) + style.padding * 2)),
+      width: Math.max(1, Math.ceil(Math.max(seaPath?.width ?? mainWidth + iconWidth + sideWidth + rightIconWidth, subWidth) + style.padding * 2)),
+      height: Math.max(1, Math.ceil((seaPath?.height ?? style.size * (subText ? 2.42 : 1.55)) + style.padding * 2)),
     };
   });
-  const collision = arbitrateLabelOccupancy(measured, dpr, placement);
+  const collision = cullOverlappingLabels(measured, dpr);
   const layoutEntries = collision.entries;
   const atlasWidth = measured.some((entry) => entry.width > 1024) ? 2048 : 1024;
   let x = 0;
@@ -2079,31 +1733,14 @@ function buildLabelAtlas(
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
     ctx.lineJoin = 'round';
-    const iconAbove = entry.label.kind === 'city' && !!entry.label.icon;
-    const iconWidth = entry.label.icon && !iconAbove ? entry.style.iconSize + entry.style.iconGap : 0;
-    // Icon-above city labels center their name under the settlement icon; every
-    // other label draws its text on a single baseline after the left icon.
-    const tx = iconAbove
-      ? entry.x + entry.width * 0.5 - entry.mainWidth * 0.5
-      : entry.x + entry.style.padding + iconWidth;
-    const ty = iconAbove
-      ? entry.y + entry.style.padding + entry.style.iconSize + entry.style.iconGap + entry.style.size
-      : entry.y + entry.style.padding + entry.style.size;
+    const iconWidth = entry.label.icon ? entry.style.iconSize + entry.style.iconGap : 0;
+    const tx = entry.x + entry.style.padding + iconWidth;
+    const ty = entry.y + entry.style.padding + entry.style.size;
     ctx.globalAlpha = entry.opacity;
     if (entry.label.kind === 'sea' && entry.seaPath) {
       drawSeaLabelText(ctx, entry, entry.seaPath);
     } else {
-      if (iconAbove) {
-        drawLabelIcon(
-          ctx,
-          entry.label,
-          entry.x + entry.width * 0.5 - entry.style.iconSize * 0.5,
-          entry.y + entry.style.padding,
-          entry.style,
-        );
-      } else if (entry.label.icon) {
-        drawLabelIcon(ctx, entry.label, entry.x + entry.style.padding, ty - entry.style.iconSize * 0.84, entry.style);
-      }
+      if (entry.label.icon) drawLabelIcon(ctx, entry.label, entry.x + entry.style.padding, ty - entry.style.iconSize * 0.84, entry.style);
       ctx.lineWidth = entry.style.haloWidth;
       ctx.strokeStyle = entry.style.halo;
       ctx.strokeText(entry.text, tx, ty);
@@ -2154,7 +1791,6 @@ function buildLabelAtlas(
       opacity: entry.opacity,
       width: entry.width,
       height: entry.height,
-      padding: entry.style.padding,
       u0: entry.x / atlasWidth,
       v0: entry.y / atlasHeight,
       u1: (entry.x + entry.width) / atlasWidth,
@@ -2167,301 +1803,65 @@ function buildLabelAtlas(
     pixels: ctx.getImageData(0, 0, atlasWidth, atlasHeight).data,
     entries,
     collisionCulls: collision.culledLabels.length,
-    collisionCulledLabels: collision.culledLabels.slice(0, 64),
+    collisionCulledLabels: collision.culledLabels.slice(0, 16),
   };
 }
 
-// A fading label is a ghost, not readable ink: below this opacity it draws but
-// neither claims occupancy nor culls against anyone (labels pop less through
-// their fade bands than if a near-invisible engraving could hide a city name).
-const OCCUPANCY_MIN_OPACITY = 0.3;
-
-/** One claimed patch of screen. Card claims are marked so territory-scale
- * faction engravings can ignore them (see arbitrateLabelOccupancy). */
-interface OccupancyClaim {
-  rect: ScreenRect;
-  card: boolean;
-}
-
-/** The one occupancy authority (slice 09): nothing readable overlaps.
- *
- * Claim order is the who-yields priority, deterministic:
- *   1. DOM cards (reported by the scene loop) — pre-claimed; cards outrank
- *      canvas labels.
- *   2. Faction engravings (major): claim their ink against same-scale text but
- *      neither yield to nor contest cards — a small chip over a giant
- *      background engraving reads fine, hiding a nation's name would not
- *      (the same reasoning that keeps sea names out entirely).
- *   3. Minor faction (league) names — label-scale text, so they yield to
- *      cards and earlier claims.
- *   4. Army labels — fixed anchors on moving stacks; they yield by hiding
- *      (the marker stays).
- *   5. City labels, higher tier first — the only movable text: each dodges
- *      through its placement candidates (occupancy-clear first, then the
- *      shared land scorer) and hides only when every candidate is claimed.
- * Sea labels stay out of the game on both sides: basin-scale background text.
- * A surviving composed garrison label still replaces its city's plain label
- * by collision group; a composed label that loses its ground frees the city
- * label to arbitrate normally.
- */
-function arbitrateLabelOccupancy(
-  labels: MeasuredCampaignLabel[],
-  dpr: number,
-  placement: CampaignLabelPlacementStyle | undefined,
-) {
-  const claims: OccupancyClaim[] = (placement?.blockedRects ?? []).map((rect) => ({
-    rect,
-    card: true,
-  }));
-  const overlapsClaim = (rect: ScreenRect, ignoreCards: boolean) =>
-    claims.some((claim) => !(ignoreCards && claim.card) && rectsOverlap(rect, claim.rect));
-
-  const arbitrates = (entry: MeasuredCampaignLabel) =>
-    entry.label.kind !== 'sea' && entry.opacity >= OCCUPANCY_MIN_OPACITY;
-  const stageOf = (entry: MeasuredCampaignLabel) => {
-    if (entry.label.kind === 'faction') return entry.label.factionMinor ? 1 : 0;
-    return entry.label.kind === 'army' ? 2 : 3;
-  };
-  const ordered = labels
-    .map((entry, index) => ({ entry, index }))
-    .filter(({ entry }) => arbitrates(entry))
-    .sort((a, b) => {
-      const stage = stageOf(a.entry) - stageOf(b.entry);
-      if (stage !== 0) return stage;
-      // Among city labels the higher tier claims first; everything else keeps
-      // its emitter order (already deterministic per frame).
-      if (stageOf(a.entry) === 3 && a.entry.label.priority !== b.entry.label.priority) {
-        return b.entry.label.priority - a.entry.label.priority;
-      }
-      return a.index - b.index;
-    });
-
-  const culled = new Set<MeasuredCampaignLabel>();
+function cullOverlappingLabels(labels: MeasuredCampaignLabel[], dpr: number) {
+  const composedArmyBounds = labels
+    .filter((entry) => entry.label.kind === 'army' && Boolean(entry.label.subText))
+    .map((entry) => ({ group: entry.label.collisionGroup, bounds: labelBounds(entry, dpr) }));
+  if (composedArmyBounds.length === 0) return { entries: labels, culledLabels: [] };
+  const entries: MeasuredCampaignLabel[] = [];
   const culledLabels: string[] = [];
-  const cull = (entry: MeasuredCampaignLabel) => {
-    culled.add(entry);
-    culledLabels.push(`${entry.label.kind}:${labelText(entry.label)}`);
-  };
-  const composedArmyGroups = new Set<string>();
-
-  for (const { entry } of ordered) {
-    const kind = entry.label.kind;
-    if (kind === 'faction' && !entry.label.factionMinor) {
-      const rect = entryInkRect(entry, dpr);
-      if (overlapsClaim(rect, true)) {
-        cull(entry);
-        continue;
-      }
-      claims.push({ rect, card: false });
+  for (const entry of labels) {
+    const cullsAgainstArmyCityLabel = entry.label.kind === 'city'
+      && entry.label.collisionGroup !== undefined
+      && composedArmyBounds.some((army) => army.group === entry.label.collisionGroup && overlaps(army.bounds, labelBounds(entry, dpr)));
+    if (cullsAgainstArmyCityLabel) {
+      culledLabels.push(`${entry.label.kind}:${labelText(entry.label)}`);
       continue;
     }
-    if (kind === 'city') {
-      const group = entry.label.collisionGroup;
-      if (group !== undefined && composedArmyGroups.has(group)) {
-        cull(entry);
-        continue;
-      }
-      const rect = placeCityLabel(entry, claims, dpr);
-      if (!rect) {
-        cull(entry);
-        continue;
-      }
-      claims.push({ rect, card: false });
-      continue;
-    }
-    const rect = entryInkRect(entry, dpr);
-    if (overlapsClaim(rect, false)) {
-      cull(entry);
-      continue;
-    }
-    claims.push({ rect, card: false });
-    const group = entry.label.collisionGroup;
-    if (kind === 'army' && entry.label.subText && group !== undefined) {
-      composedArmyGroups.add(group);
-    }
+    entries.push(entry);
   }
+  return { entries, culledLabels };
+}
+
+interface LabelBounds {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+}
+
+function labelBounds(entry: MeasuredCampaignLabel, dpr: number): LabelBounds {
+  const width = entry.width;
+  const height = entry.height;
+  const anchorOffsetX =
+    entry.label.screenAnchorX === 'left'
+      ? entry.offsetX + width * 0.5
+      : entry.label.screenAnchorX === 'right'
+        ? entry.offsetX - width * 0.5
+        : entry.offsetX;
+  const anchorOffsetY =
+    entry.label.screenAnchorY === 'top'
+      ? entry.offsetY + height * 0.5
+      : entry.label.screenAnchorY === 'bottom'
+        ? entry.offsetY - height * 0.5
+        : entry.offsetY;
+  const centerX = entry.screenX + anchorOffsetX;
+  const centerY = entry.screenY + anchorOffsetY;
+  const pad = Math.max(4 * dpr, entry.style.size * 0.16);
   return {
-    entries: labels.filter((entry) => !culled.has(entry)),
-    culledLabels,
+    x0: centerX - width * 0.5 - pad,
+    y0: centerY - height * 0.5 - pad,
+    x1: centerX + width * 0.5 + pad,
+    y1: centerY + height * 0.5 + pad,
   };
 }
 
-/** City-label placement (slice 09 occupancy only): a city label always hugs
- * its marker — it never scores its candidates against the render mask (only
- * sea names chase dry ground, per David's rule). Walk the emitter's
- * preference-ordered hug candidates (attached position first) and take the
- * first whose ink rect lands on unclaimed ground, so an unobstructed label
- * keeps the classic attached anchor and a blocked one dodges to another side
- * of the SAME marker. null means every hug position is claimed → the label
- * hides rather than detach. */
-function placeCityLabel(
-  entry: MeasuredCampaignLabel,
-  claims: OccupancyClaim[],
-  dpr: number,
-): ScreenRect | null {
-  const candidates =
-    entry.label.placementCandidates && entry.label.placementCandidates.length > 0
-      ? entry.label.placementCandidates
-      : [
-          {
-            screenOffsetX: entry.offsetX / dpr,
-            screenOffsetY: entry.offsetY / dpr,
-            screenAnchorX: entry.label.screenAnchorX ?? 'center',
-            screenAnchorY: entry.label.screenAnchorY ?? 'center',
-          } satisfies CampaignLabelAnchor,
-        ];
-  for (const candidate of candidates) {
-    const rect = candidateInkRect(entry, candidate, dpr);
-    if (claims.some((claim) => rectsOverlap(rect, claim.rect))) continue;
-    entry.offsetX = candidate.screenOffsetX * dpr;
-    entry.offsetY = candidate.screenOffsetY * dpr;
-    entry.label = {
-      ...entry.label,
-      screenAnchorX: candidate.screenAnchorX,
-      screenAnchorY: candidate.screenAnchorY,
-    };
-    return rect;
-  }
-  return null;
-}
-
-/** Ink rect (CSS px AABB) of a measured label at its current anchor. */
-function entryInkRect(entry: MeasuredCampaignLabel, dpr: number): ScreenRect {
-  return inkRectAt(entry, entry.offsetX, entry.offsetY, entry.label.screenAnchorX, entry.label.screenAnchorY, dpr);
-}
-
-function candidateInkRect(
-  entry: MeasuredCampaignLabel,
-  candidate: CampaignLabelAnchor,
-  dpr: number,
-): ScreenRect {
-  return inkRectAt(
-    entry,
-    candidate.screenOffsetX * dpr,
-    candidate.screenOffsetY * dpr,
-    candidate.screenAnchorX,
-    candidate.screenAnchorY,
-    dpr,
-  );
-}
-
-/** The visible ink box: the atlas rect deflated by its transparent halo
- * padding, placed with the same anchor math the GPU quad uses (the padding is
- * margin nobody sees — counting it would make labels yield to empty air). */
-function inkRectAt(
-  entry: MeasuredCampaignLabel,
-  offsetX: number,
-  offsetY: number,
-  anchorX: CampaignLabel['screenAnchorX'],
-  anchorY: CampaignLabel['screenAnchorY'],
-  dpr: number,
-): ScreenRect {
-  const pad = entry.style.padding;
-  const corners = labelCornersCss(
-    entry.screenX + anchorCenterOffsetX(anchorX, offsetX, entry.width),
-    entry.screenY + anchorCenterOffsetY(anchorY, offsetY, entry.height),
-    Math.max(1, entry.width - pad * 2),
-    Math.max(1, entry.height - pad * 2),
-    entry.label.angle ?? 0,
-    dpr,
-  );
-  return cornersAabb(corners);
-}
-
-
-/** Screen offset from the label's anchor point to its rect center: a 'left'
- * X-anchor means the rect's left edge sits at anchor+offset, so the center is
- * half a width further, and symmetrically for the other anchors. */
-function anchorCenterOffsetX(
-  anchor: CampaignLabel['screenAnchorX'],
-  offsetX: number,
-  width: number,
-) {
-  if (anchor === 'left') return offsetX + width * 0.5;
-  if (anchor === 'right') return offsetX - width * 0.5;
-  return offsetX;
-}
-
-function anchorCenterOffsetY(
-  anchor: CampaignLabel['screenAnchorY'],
-  offsetY: number,
-  height: number,
-) {
-  if (anchor === 'top') return offsetY + height * 0.5;
-  if (anchor === 'bottom') return offsetY - height * 0.5;
-  return offsetY;
-}
-
-/** Corners (CSS px) of a label quad of the given size centered at the given
- * device-px screen center, rotated like the GPU quad. Shared by the occupancy
- * arbitration and the debug rects — one corner math. */
-function labelCornersCss(
-  centerX: number,
-  centerY: number,
-  width: number,
-  height: number,
-  angle: number,
-  dpr: number,
-): [number, number][] {
-  const c = Math.cos(angle);
-  const s = Math.sin(angle);
-  return [
-    [-width * 0.5, -height * 0.5],
-    [width * 0.5, -height * 0.5],
-    [width * 0.5, height * 0.5],
-    [-width * 0.5, height * 0.5],
-  ].map(([x, y]): [number, number] => [
-    roundPx((centerX + x * c - y * s) / dpr),
-    roundPx((centerY + x * s + y * c) / dpr),
-  ]);
-}
-
-function cornersAabb(corners: [number, number][]): ScreenRect {
-  const xs = corners.map((corner) => corner[0]);
-  const ys = corners.map((corner) => corner[1]);
-  const x0 = Math.min(...xs);
-  const y0 = Math.min(...ys);
-  return {
-    x: roundPx(x0),
-    y: roundPx(y0),
-    w: roundPx(Math.max(...xs) - x0),
-    h: roundPx(Math.max(...ys) - y0),
-  };
-}
-
-function labelDebugRects(entries: AtlasEntry[], dpr: number): CampaignLabelDebugRect[] {
-  return entries.map((entry) => {
-    const label = entry.label;
-    const centerX = entry.screenX + anchorCenterOffsetX(label.screenAnchorX, entry.offsetX, entry.width);
-    const centerY = entry.screenY + anchorCenterOffsetY(label.screenAnchorY, entry.offsetY, entry.height);
-    const angle = label.angle ?? 0;
-    const corners = labelCornersCss(centerX, centerY, entry.width, entry.height, angle, dpr);
-    // Ink rect the arbitration enforced: deflate to ink, THEN rotate, THEN AABB
-    // (mirrors inkRectAt). For a tilted label this differs from deflating the
-    // full-quad AABB `box`.
-    const inkCorners = labelCornersCss(
-      centerX,
-      centerY,
-      Math.max(1, entry.width - entry.padding * 2),
-      Math.max(1, entry.height - entry.padding * 2),
-      angle,
-      dpr,
-    );
-    return {
-      text: labelText(label),
-      kind: label.kind,
-      opacity: roundPx(entry.opacity),
-      box: cornersAabb(corners),
-      corners,
-      padPx: roundPx(entry.padding / dpr),
-      inkRect: cornersAabb(inkCorners),
-      ...(label.kind === 'faction' ? { minor: label.factionMinor === true } : {}),
-    };
-  });
-}
-
-function roundPx(value: number) {
-  return Number(value.toFixed(3));
+function overlaps(a: LabelBounds, b: LabelBounds) {
+  return a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0;
 }
 
 function buildLabelVertices(entries: AtlasEntry[]) {
@@ -2474,8 +1874,18 @@ function buildLabelVertices(entries: AtlasEntry[]) {
     const angle = label.angle ?? 0;
     const c = Math.cos(angle);
     const s = Math.sin(angle);
-    const anchorOffsetX = anchorCenterOffsetX(label.screenAnchorX, entry.offsetX, width);
-    const anchorOffsetY = anchorCenterOffsetY(label.screenAnchorY, entry.offsetY, height);
+    const anchorOffsetX =
+      label.screenAnchorX === 'left'
+        ? entry.offsetX + width * 0.5
+        : label.screenAnchorX === 'right'
+          ? entry.offsetX - width * 0.5
+          : entry.offsetX;
+    const anchorOffsetY =
+      label.screenAnchorY === 'top'
+        ? entry.offsetY + height * 0.5
+        : label.screenAnchorY === 'bottom'
+          ? entry.offsetY - height * 0.5
+          : entry.offsetY;
     const corners = [
       [-width * 0.5, -height * 0.5, entry.u0, entry.v0],
       [width * 0.5, -height * 0.5, entry.u1, entry.v0],
@@ -2507,10 +1917,10 @@ function labelStyle(label: CampaignLabel, dpr: number) {
   const size = Math.max(10, label.size) * dpr;
   if (label.kind === 'sea') {
     return {
-      font: seaLabelFont(size),
-      letterSpacing: `${size * SEA_LABEL_LETTER_SPACING_EM}px`,
+      font: `italic 400 ${size}px Georgia, 'Times New Roman', serif`,
+      letterSpacing: `${size * 0.22}px`,
       size,
-      padding: Math.ceil(size * SEA_LABEL_PADDING_EM),
+      padding: Math.ceil(size * 0.34),
       fill: 'rgba(196, 214, 232, 0.78)',
       halo: 'rgba(20, 34, 52, 0.55)',
       haloWidth: 2.5 * dpr,
@@ -2612,32 +2022,14 @@ function measureSeaLabel(
   label: CampaignLabel,
   text: string,
 ): SeaLabelPath {
-  const { glyphs, width } = measureSeaLabelGlyphs(ctx, style.size, text);
-  const depth = seaLabelCurveDepthPx(label, style.size, width);
-  return {
-    glyphs,
-    width,
-    height: style.size * 1.5 + Math.abs(depth) * 1.35,
-    depth,
-  };
-}
-
-/** Baseline bow of the curved sea text, in px at the given font size. */
-function seaLabelCurveDepthPx(label: CampaignLabel, sizePx: number, widthPx: number) {
-  const bend = label.curve ?? defaultSeaLabelCurve(label);
-  return bend * Math.min(sizePx * 1.35, Math.max(sizePx * 0.42, widthPx * 0.075));
-}
-
-/** Per-glyph advances for curved sea text. Glyphs are drawn one at a time, so
- * the sea style's letter spacing (0.22 em) is applied manually between them —
- * both the atlas draw and the placement fitter measure through here. */
-function measureSeaLabelGlyphs(ctx: CanvasRenderingContext2D, sizePx: number, text: string) {
   const previousLetterSpacing = ctx.letterSpacing;
   ctx.letterSpacing = '0px';
-  const letterSpacing = sizePx * SEA_LABEL_LETTER_SPACING_EM;
+  const letterSpacing = Number.parseFloat(style.letterSpacing) || 0;
   const chars = Array.from(text);
   const widths = chars.map((char) => ctx.measureText(char).width);
   const width = Math.max(1, widths.reduce((sum, value) => sum + value, 0) + Math.max(0, chars.length - 1) * letterSpacing);
+  const bend = label.curve ?? defaultSeaLabelCurve(label);
+  const depth = bend * Math.min(style.size * 1.35, Math.max(style.size * 0.42, width * 0.075));
   let advance = 0;
   const glyphs = chars.map((char, index) => {
     const glyphWidth = widths[index];
@@ -2646,11 +2038,12 @@ function measureSeaLabelGlyphs(ctx: CanvasRenderingContext2D, sizePx: number, te
     return { char, width: glyphWidth, center };
   });
   ctx.letterSpacing = previousLetterSpacing;
-  return { glyphs, width };
-}
-
-function seaLabelFont(sizePx: number) {
-  return `italic 400 ${sizePx}px Georgia, 'Times New Roman', serif`;
+  return {
+    glyphs,
+    width,
+    height: style.size * 1.5 + Math.abs(depth) * 1.35,
+    depth,
+  };
 }
 
 function drawSeaLabelText(

@@ -24,7 +24,6 @@ export interface MapCardPosition {
 export interface MapCardsHandle {
   set(cards: MapCardModel[]): void;
   update(positions: MapCardPosition[]): void;
-  measure(): Map<string, { w: number; h: number }>;
 }
 
 export const MapCards = forwardRef<MapCardsHandle>(function MapCards(_props, ref) {
@@ -55,15 +54,6 @@ export const MapCards = forwardRef<MapCardsHandle>(function MapCards(_props, ref
         for (const [id, node] of nodeRefs.current) {
           if (!visibleIds.has(id)) node.style.display = "none";
         }
-      },
-      measure: () => {
-        const sizes = new Map<string, { w: number; h: number }>();
-        for (const [id, node] of nodeRefs.current) {
-          const w = node.offsetWidth;
-          const h = node.offsetHeight;
-          if (w > 0 && h > 0) sizes.set(id, { w, h });
-        }
-        return sizes;
       },
     }),
     [],

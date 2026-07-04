@@ -125,6 +125,7 @@ export interface ChartCameraSpec {
 // a chart framing stays chart-like; the production battle/campaign rigs own
 // their own curves.
 export const CHART_CAMERA_FOV_Y = 0.55;
+const MAX_CHART_TILT = Math.PI / 2 - 1e-3;
 
 export function chartCamera3d(spec: ChartCameraSpec, viewportHeightPx: number): Camera3DParams {
   const zoom = Math.max(0.0001, spec.zoom);
@@ -134,7 +135,7 @@ export function chartCamera3d(spec: ChartCameraSpec, viewportHeightPx: number): 
     distance,
     // Chart pitch tilts away from top-down; camera3d pitch is elevation above
     // the ground plane (π/2 = top-down).
-    pitch: Math.PI / 2 - Math.min(Math.PI / 2 - 0.05, Math.max(0, spec.pitch ?? 0)),
+    pitch: Math.PI / 2 - Math.min(MAX_CHART_TILT, Math.max(0, spec.pitch ?? 0)),
     // Chart yaw 0 = +Y up-screen, which is camera3d yaw −π/2 (eye south of the
     // target looking north).
     yaw: (spec.yaw ?? 0) - Math.PI / 2,

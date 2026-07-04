@@ -1,4 +1,5 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
+import { world3dToScreen, type CameraSnapshot } from '../../../renderer-core/src/cameraUniform';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 import { compileShader } from '../../../renderer-core/src/compileShader';
 import { gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
@@ -38,6 +39,18 @@ export interface BattleGrassFocus {
   depthFar?: number;
   nearBoost?: number;
   farWeight?: number;
+}
+
+export interface BattleGrassScreenCrop {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+export interface BattleGrassScreenProbe {
+  camera: CameraSnapshot;
+  crop: BattleGrassScreenCrop;
 }
 
 export type GrassAccentAggregation = 'record' | 'clump' | 'field-cell' | 'field-near' | 'field-subcell';
@@ -85,12 +98,39 @@ export interface BattleGrassParams {
   accentStyle?: GrassAccentStyle;
   accentAggregation?: GrassAccentAggregation;
   accentClumpFootprint?: number;
+  accentCellSizeScale?: number;
   accentMicroSourcesPerCell?: number;
   fiberShellVariant?: GrassFiberShellVariant;
   grassPrimitiveFamily?: GrassPrimitiveFamily;
   grassPrimitiveBaseline?: string;
   textureVolumeProfile?: TextureVolumeProfile;
   textureVolumeRenderModel?: TextureVolumeRenderModel;
+  screenProbe?: BattleGrassScreenProbe;
+}
+
+export interface BattleGrassScreenCoverageBand {
+  records: number;
+  inCrop: number;
+  inCropRatio: number;
+  lowerHalfInCrop: number;
+  lowerHalfInCropRatio: number;
+  bottomThirdInCrop: number;
+  bottomThirdInCropRatio: number;
+  yMinRatio: number | null;
+  yP10Ratio: number | null;
+  yP50Ratio: number | null;
+  yP90Ratio: number | null;
+  yMaxRatio: number | null;
+  projectedBladePxP50: number | null;
+  projectedBladePxP90: number | null;
+}
+
+export interface BattleGrassScreenCoverageStats {
+  enabled: boolean;
+  source: 'camera3d-projected-records';
+  crop: BattleGrassScreenCrop | null;
+  field: BattleGrassScreenCoverageBand;
+  accent: BattleGrassScreenCoverageBand;
 }
 
 export interface BattleGrassStats {
@@ -121,6 +161,12 @@ export interface BattleGrassStats {
   instanceBytes: number;
   fieldRecords: number;
   fieldRejectedSlopeCells: number;
+  fieldLodCounts: [number, number, number];
+  fieldLodNearRecords: number;
+  fieldLodMidRecords: number;
+  fieldLodFarRecords: number;
+  fieldLodNearRadius: number;
+  fieldLodMidRadius: number;
   accentTufts: number;
   accentRibbons: number;
   accentRibbonDepthNear: number;
@@ -131,6 +177,13 @@ export interface BattleGrassStats {
   accentStyle: GrassAccentStyle;
   accentAggregation: GrassAccentAggregation;
   accentSourceRecords: number;
+  accentSourceLodCounts: [number, number, number];
+  accentLodCounts: [number, number, number];
+  accentLodNearRecords: number;
+  accentLodMidRecords: number;
+  accentLodFarRecords: number;
+  accentCulledFieldRecords: number;
+  accentBudgetDroppedRecords: number;
   accentClumps: number;
   accentClumpFootprint: number;
   fiberShellSourceRecords: number;
@@ -147,6 +200,8 @@ export interface BattleGrassStats {
   grassPrimitiveSourceRecords: number;
   grassPrimitiveSourceTopology: GrassAccentAggregation;
   grassPrimitiveSourceCells: number;
+  grassPrimitiveSourceCellSize: number;
+  grassPrimitiveSourceCellSizeScale: number;
   grassPrimitiveSourcesPerCell: number;
   grassPrimitiveSourceFixedLab: boolean;
   grassPrimitiveRecords: number;
@@ -183,6 +238,7 @@ export interface BattleGrassStats {
   grassPrimitiveBaseline: string;
   windPhase: number;
   windStrength: number;
+  screenCoverage: BattleGrassScreenCoverageStats;
   cameraContract: 'shared-world-camera-wgsl';
 }
 
@@ -464,11 +520,15 @@ export class BattleGrassPass {
   private invalidTintTufts = 0;
   private windPhase = DEFAULT_GRASS_PARAMS.windPhase;
   private windStrength = DEFAULT_GRASS_PARAMS.windStrength;
+  private screenCoverage: BattleGrassScreenCoverageStats = emptyScreenCoverageStats();
   private baseHeight = DEFAULT_GRASS_PARAMS.bladeHeight;
   private baseWidth = DEFAULT_GRASS_PARAMS.bladeWidth;
   private fieldRecordStrideFloats = 0;
   private fieldRecords = 0;
   private fieldRejectedSlopeCells = 0;
+  private fieldLodCounts: [number, number, number] = [0, 0, 0];
+  private fieldLodNearRadius = 0;
+  private fieldLodMidRadius = 0;
   private accentTufts = 0;
   private accentRibbons = 0;
   private accentDepthNear = 0;
@@ -477,6 +537,8 @@ export class BattleGrassPass {
   private accentStyle: GrassAccentStyle = 'tuft';
   private accentAggregation: GrassAccentAggregation = 'record';
   private accentSourceRecords = 0;
+  private accentSourceLodCounts: [number, number, number] = [0, 0, 0];
+  private accentLodCounts: [number, number, number] = [0, 0, 0];
   private accentClumps = 0;
   private accentClumpFootprint = 1;
   private fiberShellSourceRecords = 0;
@@ -491,6 +553,8 @@ export class BattleGrassPass {
   private grassPrimitiveBaseline = 'none';
   private grassPrimitiveSourceTopology: GrassAccentAggregation = 'record';
   private grassPrimitiveSourceCells = 0;
+  private grassPrimitiveSourceCellSize = 0;
+  private grassPrimitiveSourceCellSizeScale = 1;
   private grassPrimitiveSourcesPerCell = 1;
   private grassPrimitiveSourceFixedLab = false;
   private grassPrimitiveTextureWidth = 0;
@@ -667,6 +731,9 @@ export class BattleGrassPass {
     this.fieldRecordStrideFloats = 0;
     this.fieldRecords = 0;
     this.fieldRejectedSlopeCells = 0;
+    this.fieldLodCounts = [0, 0, 0];
+    this.fieldLodNearRadius = 0;
+    this.fieldLodMidRadius = 0;
     this.accentTufts = 0;
     this.accentRibbons = 0;
     this.accentDepthNear = 0;
@@ -675,6 +742,8 @@ export class BattleGrassPass {
     this.accentStyle = 'tuft';
     this.accentAggregation = 'record';
     this.accentSourceRecords = 0;
+    this.accentSourceLodCounts = [0, 0, 0];
+    this.accentLodCounts = [0, 0, 0];
     this.accentClumps = 0;
     this.accentClumpFootprint = 1;
     this.fiberShellSourceRecords = 0;
@@ -689,6 +758,8 @@ export class BattleGrassPass {
     this.grassPrimitiveBaseline = 'none';
     this.grassPrimitiveSourceTopology = 'record';
     this.grassPrimitiveSourceCells = 0;
+    this.grassPrimitiveSourceCellSize = 0;
+    this.grassPrimitiveSourceCellSizeScale = 1;
     this.grassPrimitiveSourcesPerCell = 1;
     this.grassPrimitiveSourceFixedLab = false;
     this.clearGrassPrimitiveDomainStats();
@@ -741,6 +812,9 @@ export class BattleGrassPass {
     this.fieldRecordStrideFloats = 0;
     this.fieldRecords = 0;
     this.fieldRejectedSlopeCells = 0;
+    this.fieldLodCounts = [0, 0, 0];
+    this.fieldLodNearRadius = 0;
+    this.fieldLodMidRadius = 0;
     this.accentTufts = 0;
     this.accentRibbons = 0;
     this.accentDepthNear = 0;
@@ -749,6 +823,8 @@ export class BattleGrassPass {
     this.accentStyle = 'tuft';
     this.accentAggregation = 'record';
     this.accentSourceRecords = 0;
+    this.accentSourceLodCounts = [0, 0, 0];
+    this.accentLodCounts = [0, 0, 0];
     this.accentClumps = 0;
     this.accentClumpFootprint = 1;
     this.fiberShellSourceRecords = 0;
@@ -763,6 +839,8 @@ export class BattleGrassPass {
     this.grassPrimitiveBaseline = 'none';
     this.grassPrimitiveSourceTopology = 'record';
     this.grassPrimitiveSourceCells = 0;
+    this.grassPrimitiveSourceCellSize = 0;
+    this.grassPrimitiveSourceCellSizeScale = 1;
     this.grassPrimitiveSourcesPerCell = 1;
     this.grassPrimitiveSourceFixedLab = false;
     this.clearGrassPrimitiveDomainStats();
@@ -783,6 +861,7 @@ export class BattleGrassPass {
     this.roughCells = build.roughCells;
     this.cappedTufts = build.cappedTufts;
     this.invalidTintTufts = build.invalidTintTufts;
+    this.screenCoverage = emptyScreenCoverageStats();
     this.uploadInstances(build.instances);
     this.writeUniforms();
   }
@@ -807,10 +886,14 @@ export class BattleGrassPass {
     this.forestCells = snapshot.stats.forestCells;
     this.roughCells = snapshot.stats.roughCells;
     this.invalidTintTufts = 0;
+    this.screenCoverage = emptyScreenCoverageStats();
     this.cappedTufts = snapshot.stats.cappedRecords;
     this.fieldRecordStrideFloats = snapshot.stats.packedStrideFloats;
     this.fieldRecords = snapshot.records.length;
     this.fieldRejectedSlopeCells = snapshot.stats.rejectedSlopeCells;
+    this.fieldLodCounts = [...snapshot.stats.lodCounts] as [number, number, number];
+    this.fieldLodNearRadius = snapshot.stats.lodNearRadius;
+    this.fieldLodMidRadius = snapshot.stats.lodMidRadius;
     this.accentDepthNear = Number.isFinite(params.accentDepthNear)
       ? params.accentDepthNear!
       : Number.isFinite(merged.focus?.depthNear)
@@ -886,6 +969,8 @@ export class BattleGrassPass {
     this.fiberShellSelectedRatio = 0;
     this.grassPrimitiveSourceTopology = this.accentAggregation;
     this.grassPrimitiveSourceCells = 0;
+    this.grassPrimitiveSourceCellSize = 0;
+    this.grassPrimitiveSourceCellSizeScale = 1;
     this.grassPrimitiveSourcesPerCell = 1;
     this.grassPrimitiveSourceFixedLab = false;
     const requestedBudget = Number.isFinite(params.maxTufts)
@@ -896,6 +981,7 @@ export class BattleGrassPass {
       : Math.min(requestedBudget, snapshot.records.length);
     if (this.accentAggregation === 'field-subcell') this.maxTufts = requestedBudget;
     let selectedRecords: GrassFieldRecord[];
+    let sourceRecordsForStats: readonly GrassFieldRecord[] = [];
     if (this.bladesPerTuft <= 0) {
       selectedRecords = snapshot.records;
       this.accentTufts = 0;
@@ -905,6 +991,7 @@ export class BattleGrassPass {
       this.accentClumpFootprint = 1;
     } else if (fieldFiberShell) {
       const sourceRecords = accentRecordCandidates(snapshot.records, merged.focus, params);
+      sourceRecordsForStats = sourceRecords;
       const shellSourceRecords = this.fiberShellVariant === 'off'
         ? []
         : selectAccentRecords(sourceRecords, merged.focus, explicitBudget, params);
@@ -921,6 +1008,7 @@ export class BattleGrassPass {
       this.fiberShellSelectedRatio = sourceRecords.length > 0 ? selectedRecords.length / sourceRecords.length : 0;
     } else if (domainSilhouetteFamily) {
       const sourceRecords = accentRecordCandidates(snapshot.records, merged.focus, params);
+      sourceRecordsForStats = sourceRecords;
       const domain = fieldDomainSilhouetteRecords(sourceRecords, merged.focus, params, {
         baseHeight: this.baseHeight,
         baseWidth: this.baseWidth,
@@ -935,6 +1023,8 @@ export class BattleGrassPass {
       this.accentClumps = domain.cells;
       this.grassPrimitiveSourceTopology = 'field-cell';
       this.grassPrimitiveSourceCells = 0;
+      this.grassPrimitiveSourceCellSize = 0;
+      this.grassPrimitiveSourceCellSizeScale = 1;
       this.grassPrimitiveSourcesPerCell = 0;
       this.grassPrimitiveSourceFixedLab = true;
       const domainScale = fieldDomainSilhouetteScale(this.accentStyle, this.baseWidth, this.baseHeight);
@@ -959,6 +1049,7 @@ export class BattleGrassPass {
       this.grassPrimitiveDomainMaterialBytes = 0;
     } else if (canAggregateFieldSubcells) {
       const sourceRecords = accentRecordCandidates(snapshot.records, merged.focus, params);
+      sourceRecordsForStats = sourceRecords;
       const maxCells = Number.isFinite(params.accentMaxClumps)
         ? clampInt(params.accentMaxClumps!, 0, sourceRecords.length)
         : Math.min(sourceRecords.length, Math.max(1, Math.ceil(explicitBudget / 8)));
@@ -976,6 +1067,7 @@ export class BattleGrassPass {
             : this.grassPrimitiveFamily === 'field-strand-mat'
               ? 1.02
               : 0.70,
+        cellSizeScale: params.accentCellSizeScale,
         vertical: !strandMatFamily,
         jitter: this.accentClumpFootprint * (
           this.grassPrimitiveFamily === 'field-fiber-bundle'
@@ -1022,10 +1114,13 @@ export class BattleGrassPass {
       this.accentSourceRecords = sourceRecords.length;
       this.accentClumps = aggregated.clumps;
       this.grassPrimitiveSourceCells = aggregated.clumps;
+      this.grassPrimitiveSourceCellSize = aggregated.cellSize;
+      this.grassPrimitiveSourceCellSizeScale = aggregated.cellSizeScale;
       this.grassPrimitiveSourcesPerCell = microSourcesPerCell;
       this.grassPrimitiveSourceFixedLab = true;
     } else if (canAggregateFieldCells) {
       const sourceRecords = accentRecordCandidates(snapshot.records, merged.focus, params);
+      sourceRecordsForStats = sourceRecords;
       const maxCells = Number.isFinite(params.accentMaxClumps)
         ? clampInt(params.accentMaxClumps!, 0, sourceRecords.length)
         : explicitBudget;
@@ -1055,6 +1150,7 @@ export class BattleGrassPass {
       this.accentClumps = aggregated.clumps;
     } else if (canAggregateClumps) {
       const sourceRecords = accentRecordCandidates(snapshot.records, merged.focus, params);
+      sourceRecordsForStats = sourceRecords;
       const maxClumps = Number.isFinite(params.accentMaxClumps)
         ? clampInt(params.accentMaxClumps!, 0, sourceRecords.length)
         : explicitBudget;
@@ -1070,12 +1166,17 @@ export class BattleGrassPass {
       this.accentSourceRecords = sourceRecords.length;
       this.accentClumps = aggregated.clumps;
     } else {
+      sourceRecordsForStats = accentRecordCandidates(snapshot.records, merged.focus, params);
       selectedRecords = selectAccentRecords(snapshot.records, merged.focus, explicitBudget, params);
       this.accentTufts = selectedRecords.length;
       this.accentSourceRecords = selectedRecords.length;
       this.accentClumps = 0;
       this.accentClumpFootprint = 1;
     }
+    this.accentSourceLodCounts = this.bladesPerTuft > 0
+      ? countGrassFieldLodRecords(sourceRecordsForStats.length > 0 ? sourceRecordsForStats : selectedRecords)
+      : [0, 0, 0];
+    this.accentLodCounts = this.bladesPerTuft > 0 ? countGrassFieldLodRecords(selectedRecords) : [0, 0, 0];
     this.accentRibbons = this.bladesPerTuft > 0 && this.accentStyle === 'soft-root-fiber'
       ? selectedRecords.length * softRootFiberRibbonCount(this.bladesPerTuft)
       : this.bladesPerTuft > 0 && fieldFiberShell
@@ -1110,6 +1211,15 @@ export class BattleGrassPass {
       this.indexCount = 0;
       this.clearGrassPrimitiveTextureStats();
     }
+    this.screenCoverage = params.screenProbe
+      ? screenCoverageStats(snapshot.records, selectedRecords, params.screenProbe, {
+        baseHeight: this.baseHeight,
+        accentDepthNear: this.accentDepthNear,
+        accentDepthFar: this.accentDepthFar,
+        focus: merged.focus,
+        fadeWithDepth: this.bladesPerTuft > 0,
+      })
+      : emptyScreenCoverageStats();
     this.uploadInstances(grassFieldInstances(selectedRecords, this.baseHeight, this.baseWidth, merged.bend, {
       focus: merged.focus,
       accentDepthNear: this.accentDepthNear,
@@ -1166,6 +1276,12 @@ export class BattleGrassPass {
       instanceBytes: this.tuftCount * GRASS_INSTANCE_STRIDE_BYTES,
       fieldRecords: this.fieldRecords,
       fieldRejectedSlopeCells: this.fieldRejectedSlopeCells,
+      fieldLodCounts: this.fieldLodCounts,
+      fieldLodNearRecords: this.fieldLodCounts[0],
+      fieldLodMidRecords: this.fieldLodCounts[1],
+      fieldLodFarRecords: this.fieldLodCounts[2],
+      fieldLodNearRadius: this.fieldLodNearRadius,
+      fieldLodMidRadius: this.fieldLodMidRadius,
       accentTufts: this.accentTufts,
       accentRibbons: this.accentRibbons,
       accentRibbonDepthNear: this.accentRibbons > 0 ? this.accentDepthNear : 0,
@@ -1176,6 +1292,13 @@ export class BattleGrassPass {
       accentStyle: this.accentStyle,
       accentAggregation: this.accentAggregation,
       accentSourceRecords: this.accentSourceRecords,
+      accentSourceLodCounts: this.accentSourceLodCounts,
+      accentLodCounts: this.accentLodCounts,
+      accentLodNearRecords: this.accentLodCounts[0],
+      accentLodMidRecords: this.accentLodCounts[1],
+      accentLodFarRecords: this.accentLodCounts[2],
+      accentCulledFieldRecords: Math.max(0, this.fieldRecords - this.accentSourceRecords),
+      accentBudgetDroppedRecords: Math.max(0, this.accentSourceRecords - this.accentTufts),
       accentClumps: this.accentClumps,
       accentClumpFootprint: this.accentClumpFootprint,
       fiberShellSourceRecords: this.fiberShellSourceRecords,
@@ -1192,6 +1315,8 @@ export class BattleGrassPass {
       grassPrimitiveSourceRecords: this.accentSourceRecords,
       grassPrimitiveSourceTopology: this.grassPrimitiveSourceTopology,
       grassPrimitiveSourceCells: this.grassPrimitiveSourceCells,
+      grassPrimitiveSourceCellSize: this.grassPrimitiveSourceCellSize,
+      grassPrimitiveSourceCellSizeScale: this.grassPrimitiveSourceCellSizeScale,
       grassPrimitiveSourcesPerCell: this.grassPrimitiveSourcesPerCell,
       grassPrimitiveSourceFixedLab: this.grassPrimitiveSourceFixedLab,
       grassPrimitiveRecords: this.accentTufts,
@@ -1230,6 +1355,7 @@ export class BattleGrassPass {
       grassPrimitiveBaseline: this.grassPrimitiveBaseline,
       windPhase: this.windPhase,
       windStrength: this.windStrength,
+      screenCoverage: this.screenCoverage,
       cameraContract: 'shared-world-camera-wgsl',
     };
   }
@@ -2004,6 +2130,7 @@ interface ClumpAccentOptions {
   baseBend: number;
   footprint: number;
   footprintScale?: number;
+  cellSizeScale?: number;
   vertical?: boolean;
   jitter?: number;
   jitterMin?: number;
@@ -2075,6 +2202,12 @@ interface FieldDomainSilhouetteResult {
   coverageMedian: number;
   coverageAvg: number;
   exposedGround: number;
+}
+
+function countGrassFieldLodRecords(records: readonly GrassFieldRecord[]): [number, number, number] {
+  const counts: [number, number, number] = [0, 0, 0];
+  for (const record of records) counts[record.lodTier] = (counts[record.lodTier] ?? 0) + 1;
+  return counts;
 }
 
 function grassFieldInstances(records: readonly GrassFieldRecord[], baseHeight: number, baseWidth: number, baseBend: number, options: GrassFieldInstanceOptions): Float32Array {
@@ -2350,11 +2483,12 @@ function aggregateFieldCellAccentRecords(
   params: BattleGrassParams,
   maxCells: number,
   options: ClumpAccentOptions,
-): { records: GrassFieldRecord[]; clumps: number } {
-  if (records.length === 0 || maxCells <= 0) return { records: [], clumps: 0 };
+): { records: GrassFieldRecord[]; clumps: number; cellSize: number; cellSizeScale: number } {
+  const cellSizeScale = Math.max(0.25, Number.isFinite(options.cellSizeScale) ? options.cellSizeScale! : 1);
+  const cellSize = Math.max(1.25, options.footprint * cellSizeScale);
+  if (records.length === 0 || maxCells <= 0) return { records: [], clumps: 0, cellSize, cellSizeScale };
   const { depthNear, depthFar } = accentDepthBounds(focus, params);
   const hasDepthBins = focus && Number.isFinite(depthNear) && Number.isFinite(depthFar) && depthFar > depthNear;
-  const cellSize = Math.max(1.25, options.footprint);
   const cells = new Map<string, ClumpAccumulator>();
   for (const record of records) {
     const depth = focusDepth(record, focus);
@@ -2465,7 +2599,7 @@ function aggregateFieldCellAccentRecords(
       out.push(clumpAccumulatorRecord(acc, options, copy, copies));
     }
   }
-  return { records: out, clumps: chosen.length };
+  return { records: out, clumps: chosen.length, cellSize: round3(cellSize), cellSizeScale: round3(cellSizeScale) };
 }
 
 function selectDistributedFieldCells(scored: readonly ScoredFieldCell[], maxCells: number, focus: BattleGrassFocus | undefined): ScoredFieldCell[] {
@@ -2788,6 +2922,129 @@ function writeGrassInstance(out: Float32Array, n: number, record: PackedGrassIns
   out[i + 13] = record.normalY;
   out[i + 14] = record.normalZ;
   out[i + 15] = record.slopeMask;
+}
+
+interface ScreenCoverageOptions {
+  baseHeight: number;
+  accentDepthNear: number;
+  accentDepthFar: number;
+  focus?: BattleGrassFocus;
+  fadeWithDepth: boolean;
+}
+
+function emptyScreenCoverageBand(): BattleGrassScreenCoverageBand {
+  return {
+    records: 0,
+    inCrop: 0,
+    inCropRatio: 0,
+    lowerHalfInCrop: 0,
+    lowerHalfInCropRatio: 0,
+    bottomThirdInCrop: 0,
+    bottomThirdInCropRatio: 0,
+    yMinRatio: null,
+    yP10Ratio: null,
+    yP50Ratio: null,
+    yP90Ratio: null,
+    yMaxRatio: null,
+    projectedBladePxP50: null,
+    projectedBladePxP90: null,
+  };
+}
+
+function emptyScreenCoverageStats(): BattleGrassScreenCoverageStats {
+  return {
+    enabled: false,
+    source: 'camera3d-projected-records',
+    crop: null,
+    field: emptyScreenCoverageBand(),
+    accent: emptyScreenCoverageBand(),
+  };
+}
+
+function screenCoverageStats(
+  fieldRecords: readonly GrassFieldRecord[],
+  accentRecords: readonly GrassFieldRecord[],
+  probe: BattleGrassScreenProbe,
+  options: ScreenCoverageOptions,
+): BattleGrassScreenCoverageStats {
+  return {
+    enabled: true,
+    source: 'camera3d-projected-records',
+    crop: probe.crop,
+    field: screenCoverageBand(fieldRecords, probe, options),
+    accent: screenCoverageBand(accentRecords, probe, options),
+  };
+}
+
+function screenCoverageBand(
+  records: readonly GrassFieldRecord[],
+  probe: BattleGrassScreenProbe,
+  options: ScreenCoverageOptions,
+): BattleGrassScreenCoverageBand {
+  if (records.length === 0) return emptyScreenCoverageBand();
+  const width = Math.max(1, probe.camera.width);
+  const height = Math.max(1, probe.camera.height);
+  const crop = {
+    x0: probe.crop.x * width,
+    y0: probe.crop.y * height,
+    x1: (probe.crop.x + probe.crop.w) * width,
+    y1: (probe.crop.y + probe.crop.h) * height,
+  };
+  const yRatios: number[] = [];
+  const bladePixels: number[] = [];
+  let inCrop = 0;
+  let lowerHalfInCrop = 0;
+  let bottomThirdInCrop = 0;
+  for (const record of records) {
+    const depthFade = options.fadeWithDepth
+      ? accentDepthFade(record, options.focus, options.accentDepthNear, options.accentDepthFar)
+      : 1;
+    const heightScale = 0.48 + depthFade * 0.52;
+    const bladeHeight = Math.max(0.01, (Number.isFinite(record.height) ? record.height : options.baseHeight) * heightScale);
+    const base = world3dToScreen(probe.camera, record.x, record.y, record.z);
+    const tip = world3dToScreen(probe.camera, record.x, record.y, record.z + bladeHeight);
+    if (!validScreenPoint(base) || !validScreenPoint(tip)) continue;
+    const minX = Math.min(base[0], tip[0]);
+    const maxX = Math.max(base[0], tip[0]);
+    const minY = Math.min(base[1], tip[1]);
+    const maxY = Math.max(base[1], tip[1]);
+    const intersectsCrop = maxX >= crop.x0 && minX <= crop.x1 && maxY >= crop.y0 && minY <= crop.y1;
+    if (!intersectsCrop) continue;
+    inCrop++;
+    const centerY = (minY + maxY) * 0.5;
+    yRatios.push(centerY / height);
+    bladePixels.push(Math.hypot(tip[0] - base[0], tip[1] - base[1]));
+    if (maxY >= crop.y0 + (crop.y1 - crop.y0) * 0.5) lowerHalfInCrop++;
+    if (maxY >= crop.y0 + (crop.y1 - crop.y0) * (2 / 3)) bottomThirdInCrop++;
+  }
+  yRatios.sort((a, b) => a - b);
+  bladePixels.sort((a, b) => a - b);
+  return {
+    records: records.length,
+    inCrop,
+    inCropRatio: round3(inCrop / Math.max(1, records.length)),
+    lowerHalfInCrop,
+    lowerHalfInCropRatio: round3(lowerHalfInCrop / Math.max(1, records.length)),
+    bottomThirdInCrop,
+    bottomThirdInCropRatio: round3(bottomThirdInCrop / Math.max(1, records.length)),
+    yMinRatio: finitePercentile(yRatios, 0),
+    yP10Ratio: finitePercentile(yRatios, 0.1),
+    yP50Ratio: finitePercentile(yRatios, 0.5),
+    yP90Ratio: finitePercentile(yRatios, 0.9),
+    yMaxRatio: finitePercentile(yRatios, 1),
+    projectedBladePxP50: finitePercentile(bladePixels, 0.5),
+    projectedBladePxP90: finitePercentile(bladePixels, 0.9),
+  };
+}
+
+function validScreenPoint(point: readonly [number, number]): boolean {
+  return Number.isFinite(point[0]) && Number.isFinite(point[1]) && point[0] > -90000 && point[1] > -90000;
+}
+
+function finitePercentile(values: readonly number[], p: number): number | null {
+  if (values.length === 0) return null;
+  const index = Math.max(0, Math.min(values.length - 1, Math.floor((values.length - 1) * p)));
+  return round3(values[index]);
 }
 
 function defaultGrassFocus(grid: BattleTerrainGrid): BattleGrassFocus {

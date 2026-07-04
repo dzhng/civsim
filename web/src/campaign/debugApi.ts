@@ -1,4 +1,3 @@
-import type { CampaignSceneryInstance } from "../../../packages/game-renderer/src/campaign/sceneryPass";
 import type { ArmyView, CityView } from "./views";
 import type { Territory } from "./territory";
 
@@ -23,15 +22,12 @@ export interface CampaignDebugApi {
   factionView(on?: boolean): boolean;
   fogOfWar(on?: boolean): boolean;
   project(wx: number, wy: number): [number, number];
-  screenToWorld(sx: number, sy: number): [number, number];
   cam(x: number, y: number, scale: number): void;
   camGet(): { x: number; y: number; scale: number; pitchDeg: number };
   territoryAlpha(): number;
   visAt(x: number, y: number): number;
   cellInfo(x: number, y: number): ReturnType<Territory["infoAt"]>;
   terrainAt(x: number, y: number): { land: boolean; height: number };
-  renderLandAt(x: number, y: number, marginKm?: number): boolean;
-  sceneryCandidates(): CampaignSceneryInstance[];
   freeze(on?: boolean): void;
   terrStats(): { filled: number; total: number; labels: Territory["labels"] };
 }

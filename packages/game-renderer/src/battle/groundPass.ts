@@ -41,13 +41,23 @@ const TINT_COLOR: Record<number, [number, number, number]> = {
 // The sim tint byte that means water — its cells carry the shared water material.
 const WATER_TINT = 1;
 
+export type BattleGroundDiagnosticMode = 'normal' | 'landform-clay' | 'layout-clay' | 'passability-mask' | 'cliff-material';
+
 // The field-water material is analytic Gerstner (no GPU resources, no bind group)
 // evaluated per-fragment on the ground mesh — the mesh z stays the gameplay height
 // field, so soldiers and props seat exactly as before. The water WGSL is the shared
 // FIELD_WATER_WGSL, single-sourced with the lab terrainPass fixtures and built on
 // the same frozen open-sea look as the horizon plane, so all civsim water is one
 // material.
-const GROUND_WGSL = (env: BattleEnvironment) => `
+const GROUND_WGSL = (env: BattleEnvironment, diagnosticMode: BattleGroundDiagnosticMode) => {
+  const landformDiagnostic =
+    diagnosticMode === 'landform-clay' ||
+    diagnosticMode === 'layout-clay' ||
+    diagnosticMode === 'cliff-material';
+  const layoutDiagnostic = diagnosticMode === 'layout-clay';
+  const passabilityDiagnostic = diagnosticMode === 'passability-mask';
+  const cliffMaterialDiagnostic = diagnosticMode === 'cliff-material';
+  return `
 ${WORLD_CAMERA_WGSL}
 ${battleEnvironmentWgsl(env)}
 struct GroundUniform {
@@ -71,6 +81,11 @@ struct VsOut {
   @location(3) water: f32,
   @location(4) fog: f32,
   @location(5) dist: f32,
+  ${landformDiagnostic ? `
+  @location(6) height: f32,
+  @location(7) normalZ: f32,
+  @location(8) normalXY: vec2f,
+  ` : ''}
 };
 
 fn hash(p: vec2f) -> f32 {
@@ -306,6 +321,12 @@ fn vs(@location(0) world: vec3f, @location(1) normal: vec3f, @location(2) color:
   out.light = clamp(dot(normalize(normal), sun) * 0.45 + 0.74, 0.5, 1.18);
   out.color = color;
   out.world = world.xy;
+  ${landformDiagnostic ? `
+  out.height = world.z;
+  let unitNormal = normalize(normal);
+  out.normalZ = clamp(unitNormal.z, 0.0, 1.0);
+  out.normalXY = unitNormal.xy;
+  ` : ''}
   // The legacy chart "depth" axis (see chartDepthDist) — the key the fog and
   // meadow depth ramps were tuned against; kept value-identical to the blessed
   // battle baselines through the projector collapse.
@@ -318,6 +339,72 @@ fn vs(@location(0) world: vec3f, @location(1) normal: vec3f, @location(2) color:
 
 @fragment
 fn fs(in: VsOut) -> @location(0) vec4f {
+  ${passabilityDiagnostic ? `
+  if (true) {
+    return vec4f(clamp(in.color, vec3f(0.0), vec3f(1.0)), 1.0);
+  }
+  ` : ''}
+  ${layoutDiagnostic ? `
+  if (true) {
+    let heightT = smoothstep(-5.0, 34.0, in.height);
+    let slope = 1.0 - in.normalZ;
+    let avg = (in.color.r + in.color.g + in.color.b) / 3.0;
+    let drainage = smoothstep(0.025, 0.095, in.color.r - in.color.g) * (1.0 - smoothstep(0.40, 0.58, avg));
+    let rock = smoothstep(0.045, 0.24, slope);
+    let contour = 1.0 - smoothstep(0.012, 0.040, abs(fract(in.height * 0.13) - 0.5));
+    let shadeT = clamp((in.light - 0.50) / 0.68, 0.0, 1.0);
+    var clay = mix(vec3f(0.36, 0.42, 0.34), vec3f(0.78, 0.74, 0.59), heightT);
+    clay *= 0.58 + in.light * 0.54;
+    clay = mix(clay, vec3f(0.55, 0.55, 0.47), rock * 0.42);
+    clay = mix(clay, clay * vec3f(0.58, 0.62, 0.57), rock * (1.0 - shadeT) * 0.58);
+    clay += vec3f(0.070, 0.064, 0.040) * rock * shadeT;
+    clay = mix(clay, vec3f(0.24, 0.29, 0.23), drainage * 0.76);
+    clay += vec3f(0.030, 0.026, 0.018) * contour * (1.0 - rock) * 0.18;
+    clay = mix(clay, BATTLE_HAZE, in.fog * 0.22);
+    return vec4f(clamp(clay * BATTLE_EXPOSURE, vec3f(0.0), vec3f(1.0)), 1.0);
+  }
+  ` : ''}
+  ${cliffMaterialDiagnostic ? `
+  if (true) {
+    let slope = 1.0 - in.normalZ;
+    let rock = smoothstep(0.090, 0.235, slope) * (1.0 - in.water);
+    let cliff = smoothstep(0.165, 0.315, slope) * (1.0 - in.water);
+    let scree = smoothstep(0.065, 0.145, slope) * (1.0 - smoothstep(0.145, 0.225, slope)) * (1.0 - in.water);
+    let slopePresence = smoothstep(0.035, 0.095, slope) * (1.0 - in.water);
+    let fallLen = length(in.normalXY);
+    let fall = normalize(select(vec2f(0.0, 1.0), in.normalXY, fallLen > 0.004));
+    let across = dot(in.world, vec2f(-fall.y, fall.x));
+    let along = dot(in.world, fall);
+    let warp = fbm(in.world * 0.014 + fall * (in.height * 0.045));
+    let fluteA = ridge(vec2f(across * 0.044 + warp * 1.40, along * 0.010 + fbm(in.world * 0.020) * 0.70));
+    let fluteB = ridge(vec2f(across * 0.071 + warp * 2.10 + 7.3, along * 0.016 + in.height * 0.018));
+    let fluting = fluteA * 0.62 + fluteB * 0.38;
+    let broadPlane = fbm(vec2f(across * 0.012, along * 0.020) + vec2f(warp * 0.75, in.height * 0.012));
+    let highlight = smoothstep(0.62, 0.88, broadPlane) * cliff * slopePresence * (1.0 - smoothstep(0.72, 0.95, fluting) * 0.45);
+    let darkCrease = smoothstep(0.55, 0.84, fluting) * rock * slopePresence * (0.20 + cliff * 0.46) * (1.0 - in.light * 0.30);
+    var col = vec3f(0.43, 0.49, 0.34);
+    col = mix(col, vec3f(0.54, 0.55, 0.47), scree * 0.58);
+    col = mix(col, vec3f(0.42, 0.43, 0.40), rock);
+    col = mix(col, col * vec3f(1.24, 1.22, 1.13), highlight);
+    col = mix(col, vec3f(0.25, 0.27, 0.26), darkCrease);
+    col = mix(col, vec3f(0.22, 0.30, 0.31), clamp(in.water * 0.82, 0.0, 0.82));
+    col *= 0.80 + in.light * mix(0.06, 0.42, slopePresence);
+    col = mix(col, BATTLE_HAZE, in.fog * 0.28);
+    return vec4f(clamp(col * BATTLE_EXPOSURE, vec3f(0.0), vec3f(1.0)), 1.0);
+  }
+  ` : ''}
+  ${landformDiagnostic ? `
+  if (true) {
+    let heightT = smoothstep(-28.0, 36.0, in.height);
+    let slope = 1.0 - in.normalZ;
+    let contour = 1.0 - smoothstep(0.018, 0.052, abs(fract(in.height * 0.34) - 0.5));
+    var clay = mix(vec3f(0.35, 0.39, 0.31), vec3f(0.72, 0.70, 0.58), heightT);
+    clay *= 0.70 + in.light * 0.30;
+    clay += vec3f(0.20, 0.18, 0.12) * slope + vec3f(0.055, 0.05, 0.035) * contour;
+    clay = mix(clay, BATTLE_HAZE, in.fog * 0.35);
+    return vec4f(clamp(clay * BATTLE_EXPOSURE, vec3f(0.0), vec3f(1.0)), 1.0);
+  }
+  ` : ''}
   // Grass/ground micro-detail across scales: a gentle large drift, a mid mottle,
   // and high-frequency blade speckle so the surface reads as textured ground at
   // the gameplay camera rather than a soft wash.
@@ -361,6 +448,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   col = mix(col, BATTLE_HAZE, in.fog);
   return vec4f(clamp(col, vec3f(0.0), vec3f(1.0)), 1.0);
 }`;
+};
 
 export class BattleGroundPass {
   private pipeline: GPURenderPipeline;
@@ -373,6 +461,7 @@ export class BattleGroundPass {
   private indexBuffer: GPUBuffer | null = null;
   private indexCount = 0;
   private triangles = 0;
+  private materialStats: BattleGroundMaterialStats = emptyMaterialStats();
   private meadowStats = {
     enabled: false,
     source: 'procedural' as 'procedural' | 'field',
@@ -416,8 +505,16 @@ export class BattleGroundPass {
     bodyDomainSourceAttached: false,
   };
 
-  constructor(private shell: RawFrameShell, private environment: BattleEnvironment = BATTLE_ENVIRONMENTS['golden-hour']) {
-    const module = compileShader(shell.device, GROUND_WGSL(environment), `battle-ground-heightfield-${environment.id}`);
+  constructor(
+    private shell: RawFrameShell,
+    private environment: BattleEnvironment = BATTLE_ENVIRONMENTS['golden-hour'],
+    private diagnosticMode: BattleGroundDiagnosticMode = 'normal',
+  ) {
+    const module = compileShader(
+      shell.device,
+      GROUND_WGSL(environment, diagnosticMode),
+      `battle-ground-heightfield-${environment.id}-${diagnosticMode}`,
+    );
     this.groundBindGroupLayout = shell.device.createBindGroupLayout({
       label: 'battle-ground-uniform-layout',
       entries: [
@@ -654,9 +751,12 @@ export class BattleGroundPass {
    *  exact same surface). `step` cells per quad downsamples the sim grid (600×400)
    *  to a mesh fine enough to read the relief, coarse enough to stay cheap. */
   setTerrain(grid: BattleTerrainGrid, field: TerrainHeightField, cover: BattleGroundCover, step = 2) {
-    const mesh = buildBattleGroundMesh(grid, field, cover, step);
+    // The passability diagnostic is a per-cell mask; downsampling hides thin cliff/shore boundaries.
+    const meshStep = this.diagnosticMode === 'passability-mask' ? 1 : step;
+    const mesh = buildBattleGroundMesh(grid, field, cover, meshStep, this.diagnosticMode);
     this.upload(mesh.vertices, mesh.indices);
     this.triangles = mesh.triangles;
+    this.materialStats = buildGroundMaterialStats(grid, field);
   }
 
   private upload(verts: Float32Array, indices: Uint32Array) {
@@ -684,7 +784,9 @@ export class BattleGroundPass {
     return {
       triangles: this.triangles,
       layer: 'battle-ground-heightfield' as const,
+      diagnosticMode: this.diagnosticMode,
       environment: battleEnvironmentStats(this.environment),
+      materialBands: this.materialStats,
       meadow: this.meadowStats,
     };
   }
@@ -692,6 +794,20 @@ export class BattleGroundPass {
   private writeMeadowUniforms(values: number[]): void {
     this.shell.device.queue.writeBuffer(this.uniformBuffer, 0, new Float32Array(values));
   }
+}
+
+export interface BattleGroundMaterialStats {
+  source: 'heightfield-slope-speed-tint';
+  cells: number;
+  grassRatio: number;
+  screeRatio: number;
+  rockRatio: number;
+  waterRatio: number;
+  slope: {
+    mean: number;
+    p90: number;
+    p98: number;
+  };
 }
 
 /** The battle ground mesh, CPU-built: interleaved stride-10 vertices
@@ -705,11 +821,70 @@ export interface BattleGroundMesh {
   triangles: number;
 }
 
+function emptyMaterialStats(): BattleGroundMaterialStats {
+  return {
+    source: 'heightfield-slope-speed-tint',
+    cells: 0,
+    grassRatio: 0,
+    screeRatio: 0,
+    rockRatio: 0,
+    waterRatio: 0,
+    slope: { mean: 0, p90: 0, p98: 0 },
+  };
+}
+
+function buildGroundMaterialStats(grid: BattleTerrainGrid, field: TerrainHeightField): BattleGroundMaterialStats {
+  const total = Math.max(1, grid.w * grid.h);
+  let grass = 0;
+  let scree = 0;
+  let rock = 0;
+  let water = 0;
+  let slopeSum = 0;
+  const slopes: number[] = [];
+  for (let y = 0; y < grid.h; y++) {
+    for (let x = 0; x < grid.w; x++) {
+      const i = y * grid.w + x;
+      const wx = grid.ox + (x + 0.5) * grid.cell;
+      const wy = grid.oy + (y + 0.5) * grid.cell;
+      const hx = terrainHeightAt(field, wx + grid.cell, wy) - terrainHeightAt(field, wx - grid.cell, wy);
+      const hy = terrainHeightAt(field, wx, wy + grid.cell) - terrainHeightAt(field, wx, wy - grid.cell);
+      const normalZ = (2 * grid.cell) / (Math.hypot(hx, hy, 2 * grid.cell) || 1);
+      const slope = Math.max(0, 1 - normalZ);
+      slopeSum += slope;
+      slopes.push(slope);
+      if (grid.tint[i] === WATER_TINT) {
+        water++;
+      } else if (grid.speed && grid.speed[i] <= 0) {
+        rock++;
+      } else if ((grid.speed && grid.speed[i] < 0.9) || grid.tint[i] === 6) {
+        scree++;
+      } else {
+        grass++;
+      }
+    }
+  }
+  slopes.sort((a, b) => a - b);
+  return {
+    source: 'heightfield-slope-speed-tint',
+    cells: total,
+    grassRatio: round4(grass / total),
+    screeRatio: round4(scree / total),
+    rockRatio: round4(rock / total),
+    waterRatio: round4(water / total),
+    slope: {
+      mean: round4(slopeSum / total),
+      p90: round4(percentileSorted(slopes, 0.90)),
+      p98: round4(percentileSorted(slopes, 0.98)),
+    },
+  };
+}
+
 export function buildBattleGroundMesh(
   grid: BattleTerrainGrid,
   field: TerrainHeightField,
   cover: BattleGroundCover,
   step = 2,
+  diagnosticMode: BattleGroundDiagnosticMode = 'normal',
 ): BattleGroundMesh {
   const base = GROUND_COVER_COLOR[cover] ?? GROUND_COVER_COLOR['green-grass'];
   const nx = Math.floor(grid.w / step) + 1;
@@ -722,6 +897,7 @@ export function buildBattleGroundMesh(
   // Box-filter the feature tint over the step block so a forest/mud boundary
   // fades across cells instead of stair-stepping per coarse vertex.
   const cellColor = (ci: number, cj: number): [number, number, number] => {
+    if (diagnosticMode === 'passability-mask') return passabilityMaskColor(grid, ci, cj);
     let r = 0, g = 0, b = 0, n = 0;
     for (let dy = -step; dy <= step; dy++) {
       for (let dx = -step; dx <= step; dx++) {
@@ -782,6 +958,16 @@ export function buildBattleGroundMesh(
     }
   }
   return { vertices: verts, indices: new Uint32Array(indices), triangles: indices.length / 3 };
+}
+
+function passabilityMaskColor(grid: BattleTerrainGrid, ci: number, cj: number): [number, number, number] {
+  const { w, speed, tint } = grid;
+  if (!speed) return [0.58, 0.60, 0.54];
+  const center = cj * w + ci;
+  if (tint[center] === WATER_TINT) return [0.12, 0.45, 0.68];
+  if (speed[center] <= 0) return [0.08, 0.08, 0.08];
+  if (speed[center] < 0.9) return [0.92, 0.66, 0.12];
+  return [0.18, 0.62, 0.24];
 }
 
 function mix(a: [number, number, number], b: [number, number, number], t: number): [number, number, number] {
@@ -1039,6 +1225,16 @@ function alignTo(value: number, align: number): number {
 
 function round3(value: number): number {
   return Number(value.toFixed(3));
+}
+
+function round4(value: number): number {
+  return Number(value.toFixed(4));
+}
+
+function percentileSorted(values: number[], p: number): number {
+  if (values.length === 0) return 0;
+  const index = Math.max(0, Math.min(values.length - 1, Math.round((values.length - 1) * p)));
+  return values[index];
 }
 
 function padTextureRows(src: Uint8Array, rowBytes: number, bytesPerRow: number, rows: number): Uint8Array {

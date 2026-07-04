@@ -17,91 +17,6 @@ const PALETTE: { c: [number, number, number]; land: boolean; h: number }[] = [
   { c: [60, 96, 124], land: true, h: 1.0 }, // river (still territory-worthy land)
 ];
 
-// The committed bake probe stores grid coordinates rounded to 0.001 km after
-// sampling the unrounded point; keep edge samples stable across that loss.
-const PROBE_COORD_EPSILON_KM = 0.0005;
-
-export interface BgWorldRect {
-  min: [number, number];
-  max: [number, number];
-}
-
-function nearestPaletteIndex(r: number, g: number, b: number): number {
-  let best = 0;
-  let bestD = Infinity;
-  for (let k = 0; k < PALETTE.length; k++) {
-    const c = PALETTE[k].c;
-    const d = (r - c[0]) ** 2 + (g - c[1]) ** 2 + (b - c[2]) ** 2;
-    if (d < bestD) {
-      bestD = d;
-      best = k;
-    }
-  }
-  return best;
-}
-
-export class RenderMask {
-  readonly width: number;
-  readonly height: number;
-  readonly rect: BgWorldRect;
-  private readonly land: Uint8Array;
-
-  constructor(rgba: ArrayLike<number>, width: number, height: number, rect: BgWorldRect) {
-    const n = width * height;
-    if (rgba.length < n * 4) {
-      throw new Error(`RenderMask needs ${n * 4} RGBA bytes, got ${rgba.length}`);
-    }
-    this.width = width;
-    this.height = height;
-    this.rect = { min: [rect.min[0], rect.min[1]], max: [rect.max[0], rect.max[1]] };
-    this.land = new Uint8Array(n);
-    for (let i = 0; i < n; i++) {
-      const o = i * 4;
-      const best = nearestPaletteIndex(rgba[o], rgba[o + 1], rgba[o + 2]);
-      this.land[i] = PALETTE[best].land ? 1 : 0;
-    }
-  }
-
-  landAt(wx: number, wy: number, marginKm = 0): boolean {
-    if (marginKm > 0) {
-      const samples: [number, number][] = [
-        [0, 0],
-        [-marginKm, 0],
-        [marginKm, 0],
-        [0, -marginKm],
-        [0, marginKm],
-      ];
-      return samples.every(([dx, dy]) => this.landAt(wx + dx, wy + dy));
-    }
-    const p = this.pixelOf(wx, wy);
-    if (p === null) return false;
-    return this.land[p.y * this.width + p.x] === 1;
-  }
-
-  private pixelOf(wx: number, wy: number): { x: number; y: number } | null {
-    const {
-      min: [minX, minY],
-      max: [maxX, maxY],
-    } = this.rect;
-    if (
-      wx < minX - PROBE_COORD_EPSILON_KM ||
-      wx > maxX + PROBE_COORD_EPSILON_KM ||
-      wy < minY - PROBE_COORD_EPSILON_KM ||
-      wy > maxY + PROBE_COORD_EPSILON_KM
-    ) {
-      return null;
-    }
-    const spanX = maxX - minX;
-    const spanY = maxY - minY;
-    const x = Math.min(this.width - 1, Math.max(0, Math.floor(((wx - minX) * this.width) / spanX)));
-    const y = Math.min(
-      this.height - 1,
-      Math.max(0, Math.floor(((maxY - wy) * this.height) / spanY)),
-    );
-    return { x, y };
-  }
-}
-
 /** The one campaign sun (normalized): the terrain bake and WebGPU atmosphere
  * passes share this direction so water glints agree with the relief. */
 /** North of this y (km) the climate turns boreal: snowline, conifers,
@@ -186,8 +101,6 @@ export class TerrainField {
   light: Uint8Array;
   /** per-cell biome, RGBA: moisture, forest, rock, shore-distance (0=at water) */
   biome: Uint8Array;
-  /** full-resolution rendered land mask, row 0 = north */
-  renderMask: RenderMask;
   maxH = 0;
 
   constructor(data: CampaignData) {
@@ -211,7 +124,16 @@ export class TerrainField {
     const cls = new Uint8Array(n); // palette index, kept for the biome pass
     for (let i = 0; i < n; i++) {
       const [pr, pg, pb] = [px[i * 4], px[i * 4 + 1], px[i * 4 + 2]];
-      const best = nearestPaletteIndex(pr, pg, pb);
+      let best = 0;
+      let bestD = Infinity;
+      for (let k = 0; k < PALETTE.length; k++) {
+        const c = PALETTE[k].c;
+        const d = (pr - c[0]) ** 2 + (pg - c[1]) ** 2 + (pb - c[2]) ** 2;
+        if (d < bestD) {
+          bestD = d;
+          best = k;
+        }
+      }
       cls[i] = best;
       this.height[i] = PALETTE[best].h;
       this.land[i] = PALETTE[best].land ? 1 : 0;
@@ -225,7 +147,6 @@ export class TerrainField {
       const fctx = fcv.getContext("2d")!;
       fctx.drawImage(data.bg, 0, 0);
       const fpx = fctx.getImageData(0, 0, data.bg.width, data.bg.height).data;
-      this.renderMask = new RenderMask(fpx, data.bg.width, data.bg.height, r);
       const rc = PALETTE[4].c;
       for (let sy = 0; sy < data.bg.height; sy++) {
         const gy = Math.min(this.h - 1, Math.floor((sy / data.bg.height) * this.h));
@@ -441,9 +362,5 @@ export class TerrainField {
     const gy = Math.round((this.maxY - wy) / this.cell - 0.5);
     if (gx < 0 || gy < 0 || gx >= this.w || gy >= this.h) return false;
     return this.land[gy * this.w + gx] === 1;
-  }
-
-  renderLandAt(wx: number, wy: number, marginKm = 0): boolean {
-    return this.renderMask.landAt(wx, wy, marginKm);
   }
 }

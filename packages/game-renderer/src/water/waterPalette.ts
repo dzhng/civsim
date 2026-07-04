@@ -21,22 +21,7 @@ const WATER_SHALLOW_SCATTER = 0.6;                     // sandy-bottom backscatt
 // deep-ocean reference is explicitly not its target). This is the 4th and last inline
 // water-colour site collapsed into the palette; `mapPass` mixes shallow→deep by its
 // own shelf term and lays the subtle animated glint/foam over it.
-// The two shader-side faces of the land-truth owner, ONE definition each
-// (campaign-map-bugs 00/05 single-owner contract — no pass classifies pixels
-// privately): `seaAmount` classifies the campaign-bg raster's painted pixels
-// (the bake-side truth, what the raster terrain layer draws), and
-// `drawnWaterAmount` is the canonical-terrain waterline (the biome-alpha
-// contour the production map actually draws). A pass that must agree with the
-// visible coast mixes them by the same terrainMix the map pass composites with.
 export const CAMPAIGN_SEA_PALETTE_WGSL = `
 const CAMPAIGN_SEA_SHALLOW = vec3f(0.40, 0.56, 0.64);
 const CAMPAIGN_SEA_DEEP = vec3f(0.16, 0.30, 0.44);
-
-fn seaAmount(rgb: vec3f) -> f32 {
-  return smoothstep(0.04, 0.14, rgb.b - max(rgb.r, rgb.g * 0.88));
-}
-
-fn drawnWaterAmount(biomeAlpha: f32) -> f32 {
-  return 1.0 - smoothstep(0.497, 0.503, biomeAlpha);
-}
 `;

@@ -146,6 +146,13 @@ export function fieldDomainSilhouetteStrandsPerCell(style: GrassAccentStyle, bla
   return 0;
 }
 
+export function fieldStrandMatStrokeCount(style: GrassAccentStyle, blades: number): number {
+  const clampedBlades = clampInt(blades, 0, 96);
+  if (style === 'field-woven-mat') return Math.max(22, Math.min(28, clampedBlades + 18));
+  if (style === 'field-strand-mat') return Math.max(18, Math.min(40, clampedBlades + 12));
+  return 0;
+}
+
 export function fieldDomainSilhouetteScale(style: GrassAccentStyle, width: number, height: number): FieldDomainSilhouetteScale {
   if (style === 'field-domain-micro-strand') {
     return {
@@ -283,9 +290,7 @@ function buildContinuousStrandBodyMesh(
   woven: boolean,
 ): MeshData {
   const builder = new MeshBuilder();
-  const strands = woven
-    ? Math.max(22, Math.min(28, blades + 18))
-    : Math.max(18, Math.min(24, blades + 12));
+  const strands = fieldStrandMatStrokeCount(woven ? 'field-woven-mat' : 'field-strand-mat', blades);
   const baseTone = scaleColor(mixColor(palette.root, palette.mid, woven ? 0.26 : 0.22), woven ? 0.84 : 0.88);
   const highTone = scaleColor(mixColor(palette.mid, palette.tip, woven ? 0.34 : 0.30), woven ? 0.92 : 0.96);
   const shadowTone = scaleColor(mixColor(palette.root, palette.mid, 0.18), woven ? 0.76 : 0.80);

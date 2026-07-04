@@ -7,8 +7,12 @@ import {
   structureMetrics,
 } from "./battle-map-style-legibility-lib.js";
 
+// Close-gate oracle calibration target: the archived close-lab hero crop
+// (resolvable blades), NOT the vista reference's near-grass band - that band
+// is meadow-mass texture and calibrating on it rejects real close-up grass
+// (slice-00 trap, recorded in the slice file).
 const TARGET = new URL(
-  "../../../specs/battle-map-style/assets/target-battle-map.png",
+  "../../../specs/battle-map-style/assets/target-close-grass.png",
   import.meta.url,
 );
 
@@ -172,7 +176,7 @@ function cameraSummary(camera3d) {
 
 async function runOracleCalibration(ctx) {
   const target = PNG.sync.read(await readFile(TARGET));
-  const targetCrop = cropByRect(target, BAND_CROPS["near-grass"]);
+  const targetCrop = target;
   const samples = {
     target: targetCrop,
     "grass-off": synthGrassOff(targetCrop),
@@ -189,13 +193,13 @@ async function runOracleCalibration(ctx) {
     "oracle calibration: target passes; controls fail with named failure modes",
     verdicts.target.ok === true &&
       verdicts["grass-off"].ok === false &&
+      verdicts["grass-off"].failures.includes("no-fine-strand-detail") &&
       verdicts["grass-off"].failures.includes("low-structure-occupancy") &&
-      verdicts["grass-off"].failures.includes("bad-structure-spread") &&
       verdicts["stipple-carpet"].ok === false &&
       verdicts["stipple-carpet"].failures.includes("raw-edge-stipple") &&
       verdicts["smooth-painted-meadow"].ok === false &&
-      verdicts["smooth-painted-meadow"].failures.includes("bad-structure-spread"),
-    JSON.stringify({ oracle: ORACLE, crop: BAND_CROPS["near-grass"], verdicts, metrics }),
+      verdicts["smooth-painted-meadow"].failures.includes("no-fine-strand-detail"),
+    JSON.stringify({ oracle: ORACLE, target: "target-close-grass.png", verdicts, metrics }),
   );
 }
 

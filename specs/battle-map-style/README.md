@@ -52,7 +52,7 @@ Before writing any code, read:
 - [ ] 04 — Hydrology (priority-flood lakes, descending rivers, fords)
 - [ ] 05 — Edge grammar + deployment guarantees
 - [ ] 06 — Seed variety + seed browser
-- [ ] 10 — False Earth grass port (close-gate ratification)
+- [x] 10 — False Earth grass port (close-gate ratification)
 - [ ] 11 — Grass battle integration (swap + delete tuft path, perf gate)
 - [ ] 12 — Grass LOD budgets at 30k
 - [ ] 13 — Cliff material

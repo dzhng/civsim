@@ -45,18 +45,21 @@ holds** (live, from `opts.cities`): majors land at 21–30 (Rome #3), substantia
 leagues rank fairly, and a one-city league drops to the bottom. It is also stable
 — it moves only on conquest, not with every army step.
 
-**Decluttering needed two consumers, not one.** The plan put the density in
-`arbitrateLabelOccupancy`, but at overview leagues fade below the arbitration's
-`OCCUPANCY_MIN_OPACITY` and never arbitrate — reordering the greedy pass alone
-changes nothing visible. The visible declutter comes from `visibleLabels`: the
-minor-league opacity ramp moved off territory area (`screenR`) onto **importance
-vs a zoom-scaled bar** (`LEAGUE_IMPORTANCE_BAR_HI`), high at overview and falling
-to zero by mid-zoom. That bar *is* the reappearance mechanism — stateless,
-recomputed per frame, so a league culled wide reappears as it clears the falling
-bar. The arbitration reorder (importance-descending, one budget, `stageOf`
-removed) still matters for collision resolution among the labels that do
-arbitrate. Overview faction labels went 34 → 13; an unbiased critique read it as
-"not a wall of text."
+**Decluttering is by VISIBILITY, not opacity — faction and city names are
+solid.** David's rule: only sea names carry opacity; a faction or city name
+renders at full strength or not at all. So the density lives in `visibleLabels`
+as a hard visibility gate, not a fade — a first cut used an opacity *ramp* and it
+produced faint half-visible league "ghosts", which was the wrong shape. Now a
+league keeps its solid name once its owned-city power clears a zoom-scaled bar
+(`LEAGUE_IMPORTANCE_BAR_HI`, high at overview so only strong leagues show,
+falling as the camera comes in — the reappearance mechanism, stateless), and is
+simply hidden below it; faction engravings retire past `FACTION_RETIRE_ZOOM`
+where city labels carry the detail. Because shown leagues are now solid (above
+`OCCUPANCY_MIN_OPACITY`), they also arbitrate: the `arbitrateLabelOccupancy`
+reorder (importance-descending, one budget, `stageOf` removed) resolves their
+collisions. Overview faction labels dropped from ~34 to a clean solid set of
+6 majors + ~6 strong leagues; an unbiased critique read it as "not a wall of
+text."
 
 ## Principles & invariants (must keep holding)
 
@@ -79,6 +82,10 @@ arbitrate. Overview faction labels went 34 → 13; an unbiased critique read it 
 7. **Offset, not land-fraction, gates a detached marker.** A coastal port's
    marker legitimately overhangs the waterline (informational); a marker
    *displaced* from its city is the bug. The probe gates on `drawnIconOffsetPx`.
+8. **Only sea names carry opacity.** Faction and city names render solid or not
+   at all — density is a visibility gate (`LEAGUE_IMPORTANCE_BAR_HI` /
+   `FACTION_RETIRE_ZOOM`), never a fade. A half-visible faction/city label is a
+   bug.
 
 ## Pointers into the code
 

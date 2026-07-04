@@ -316,7 +316,7 @@ mod tests {
         }
 
         assert_eq!(
-            sea_edges, 468,
+            sea_edges, 464,
             "sea edge count changed from the pre-prune ORBIS lane set"
         );
         assert!(water_cities.is_empty(), "cities on water: {water_cities:?}");

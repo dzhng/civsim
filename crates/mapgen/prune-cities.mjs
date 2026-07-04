@@ -10,7 +10,7 @@
 // rewired onto the survivor so nothing dangles.
 import { readFile, writeFile } from 'node:fs/promises';
 
-const MIN_DIST_KM = 18; // centre spacing below which town models overlap
+const MIN_DIST_KM = 26; // centre spacing below which town models overlap
 const PATH = new URL('../../web/public/data/campaign-map.json', import.meta.url).pathname;
 
 const map = JSON.parse(await readFile(PATH, 'utf8'));

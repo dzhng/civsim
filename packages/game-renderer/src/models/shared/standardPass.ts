@@ -9,6 +9,7 @@ import {
   buildStandardMesh,
   STANDARD_SIZE_TIER_IDS,
   STANDARD_VERTEX_STRIDE_FLOATS,
+  type StandardLivery,
   standardLiveryForFaction,
   standardSeed,
   standardWindPhase,
@@ -24,9 +25,17 @@ export interface StandardInstance {
   z?: number;
   tier: StandardSizeTier;
   factionId: BattleFactionId;
+  livery?: StandardInstanceLivery;
   yaw?: number;
+  scale?: number;
   windPhase?: number;
   windStrength?: number;
+}
+
+export interface StandardInstanceLivery {
+  field: readonly [number, number, number];
+  trim?: readonly [number, number, number];
+  emblem?: readonly [number, number, number];
 }
 
 const STANDARD_WGSL = `
@@ -81,8 +90,10 @@ fn vs(
 ) -> VsOut {
   let weight = uvWeightMaterial.z;
   let material = uvWeightMaterial.w;
+  let instanceScale = max(emblemShade.a, 0.0001);
   var local = local0;
   local.y = local.y + clothWave(local0, weight, fieldPhase.a, trimStrength.a);
+  local = local * instanceScale;
   let cy = cos(pose.w);
   let sy = sin(pose.w);
   let world = vec3f(
@@ -205,6 +216,7 @@ export class SharedStandardPass {
       ),
       weightChannel: 'uvWeightMaterial.z: 0 rigid hardware, >0 cloth/trim/emblem',
       materialChannel: 'uvWeightMaterial.w: pole/gold/cloth/trim/emblem/shadow',
+      liveryContract: 'instance livery overrides field/trim/emblem; battle faction table remains default',
       waveContract: 'cam.time + deterministic per-instance phase + strength',
       layer: 'shared-3d-standard-asset',
     };
@@ -293,7 +305,7 @@ function packInstances(instances: readonly StandardInstance[]) {
   const data = new Float32Array(instances.length * 16);
   for (let i = 0; i < instances.length; i++) {
     const instance = instances[i];
-    const livery = standardLiveryForFaction(instance.factionId);
+    const livery = instanceLivery(instance, standardLiveryForFaction(instance.factionId));
     const seed = standardSeed(instance.tier, instance.factionId);
     const offset = i * 16;
     data[offset] = instance.x;
@@ -305,8 +317,18 @@ function packInstances(instances: readonly StandardInstance[]) {
     data.set(livery.trim, offset + 8);
     data[offset + 11] = instance.windStrength ?? standardWindStrength(instance.tier);
     data.set(livery.emblem, offset + 12);
+    data[offset + 15] = instance.scale ?? 1;
   }
   return data;
+}
+
+function instanceLivery(instance: StandardInstance, fallback: StandardLivery): StandardLivery {
+  return {
+    id: fallback.id,
+    field: instance.livery?.field ?? fallback.field,
+    trim: instance.livery?.trim ?? fallback.trim,
+    emblem: instance.livery?.emblem ?? fallback.emblem,
+  };
 }
 
 function makeVertexBuffer(device: GPUDevice, label: string, data: Float32Array) {

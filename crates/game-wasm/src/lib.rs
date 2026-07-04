@@ -5,7 +5,10 @@
 //! must be re-fetched every frame — Vec reallocation can move them and grow
 //! the memory (which detaches any existing JS TypedArray views).
 
-use sim::{build_map, setup_battle, setup_sandbox, Battle, MapId, Pace, Sim, Tunables, Vec2};
+use sim::{
+    build_map, generate_map, setup_battle, setup_battle_generated, setup_sandbox, Battle, MapId,
+    MapRecipe, Pace, Sim, Tunables, Vec2,
+};
 use wasm_bindgen::prelude::*;
 
 mod campaign_bind;
@@ -34,6 +37,7 @@ fn map_id_from_index(map: u32) -> MapId {
 pub struct Game {
     battle: Battle,
     unit_info: Vec<f32>,
+    generated_recipe: Option<MapRecipe>,
 }
 
 #[wasm_bindgen]
@@ -43,6 +47,7 @@ impl Game {
         Game {
             battle: Battle::from_sim(Sim::new(Tunables::default(), seed as u64)),
             unit_info: Vec::new(),
+            generated_recipe: None,
         }
     }
 
@@ -54,6 +59,7 @@ impl Game {
         let mut g = Game {
             battle,
             unit_info: Vec::new(),
+            generated_recipe: None,
         };
         g.refresh_unit_info();
         g
@@ -132,6 +138,16 @@ impl Game {
     /// 0 = RiverAndCrags, 1 = WalledPlain, 2 = CoastalScrub.
     pub fn load_map(&mut self, map: u32) {
         self.battle.sim.terrain = build_map(map_id_from_index(map));
+        self.generated_recipe = None;
+    }
+
+    pub fn load_generated_map(&mut self, seed: u64) {
+        let recipe = MapRecipe {
+            seed,
+            ..MapRecipe::default()
+        };
+        self.battle.sim.terrain = generate_map(&recipe);
+        self.generated_recipe = Some(recipe);
     }
 
     /// Tiny vibe-check fields: 0 = 1v1 heavies, 1 = 5v5 mixed inf + cav.
@@ -234,7 +250,46 @@ impl Game {
     /// Build terrain AND deploy both full armies.
     pub fn start_battle(&mut self, map: u32) {
         setup_battle(&mut self.battle.sim, map_id_from_index(map));
+        self.generated_recipe = None;
         self.refresh_unit_info();
+    }
+
+    pub fn start_battle_generated(&mut self, seed: u64) {
+        let recipe = MapRecipe {
+            seed,
+            ..MapRecipe::default()
+        };
+        setup_battle_generated(&mut self.battle.sim, &recipe);
+        self.generated_recipe = Some(recipe);
+        self.refresh_unit_info();
+    }
+
+    /// Certificate verdicts computed by the ONE owner (sim::genmap::certify) on
+    /// the live terrain, so the frontend never re-implements them.
+    pub fn generated_map_certificates(&self) -> String {
+        use sim::genmap::certify;
+        let t = &self.battle.sim.terrain;
+        serde_json::json!({
+            "westSealed": certify::side_sealed_fraction(t, certify::Side::West),
+            "eastSealed": certify::side_sealed_fraction(t, certify::Side::East),
+            "southOpen": certify::open_edge_fraction(t, certify::Side::South),
+            "northOpen": certify::open_edge_fraction(t, certify::Side::North),
+            "southDeployPassable": certify::deployment_band_passable_fraction(t, certify::Side::South),
+            "northDeployPassable": certify::deployment_band_passable_fraction(t, certify::Side::North),
+            "corridor": certify::has_deployment_corridor(t),
+        })
+        .to_string()
+    }
+
+    pub fn generated_map_descriptor(&self) -> String {
+        let seed = self.generated_recipe.map_or(0, |r| r.seed);
+        serde_json::json!({
+            "seed": seed,
+            "groundCover": "green-grass",
+            "reliefScale": 1.0,
+            "terrainHash": format!("{:#018x}", sim::genmap::terrain_hash(&self.battle.sim.terrain)),
+        })
+        .to_string()
     }
 
     pub fn radius_ptr(&self) -> *const f32 {

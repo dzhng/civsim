@@ -487,6 +487,17 @@ pub fn setup_sandbox(sim: &mut Sim, kind: u32) {
 /// south, east/west flanks sealed by the map itself.
 pub fn setup_battle(sim: &mut Sim, map: MapId) {
     sim.terrain = build(map);
+    deploy_default_armies(sim);
+}
+
+/// Generated-map twin of `setup_battle`: the armies deploy on the SAME terrain
+/// they will fight on (never build one map and swap another underneath).
+pub fn setup_battle_generated(sim: &mut Sim, recipe: &crate::genmap::MapRecipe) {
+    sim.terrain = crate::genmap::generate(recipe);
+    deploy_default_armies(sim);
+}
+
+fn deploy_default_armies(sim: &mut Sim) {
     use std::f32::consts::FRAC_PI_2;
     deploy_army(sim, Vec2::new(0.0, -600.0), FRAC_PI_2, 0);
     deploy_army(sim, Vec2::new(0.0, 600.0), -FRAC_PI_2, 1);

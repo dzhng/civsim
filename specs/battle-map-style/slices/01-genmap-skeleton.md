@@ -56,3 +56,36 @@ elevation tripwire, every existing scene.
 
 David wanting different map extents for generated maps (the recipe carries
 extents, so this is a default change, not a reshape).
+
+## Landed 2026-07-04
+
+- `crates/sim/src/genmap/` owns `MapRecipe { seed: u64, half_w: f32,
+  half_h: f32, cell: f32, vista_extent: f32 }`, serde defaults
+  `0/1200/800/4/2.0`, `generate(&MapRecipe) -> Terrain`, certificate helpers,
+  and the FNV terrain hash.
+- The first landform is intentionally plain: integer-hash value noise writes
+  rolling `height` and light `rough`; `speed` is direct passable/open or crag
+  wall geometry only; west/east use crag-circle seals, north/south stay open.
+- Wasm landed as u64/BigInt: `load_generated_map(seed: u64)`,
+  `start_battle_generated(seed: u64)`, and `generated_map_descriptor()`.
+  Descriptor JSON is `{ seed, groundCover: "green-grass", reliefScale: 1.0,
+  terrainHash }`.
+- `?map=gen&seed=N` launches a non-catalog battle kind. The frontend passes no
+  fake catalog `wasmMapId`, so the existing catalog-less
+  `deriveBattleEdgeRoles` path handles edge roles; `BattleScene` applies the
+  descriptor relief scale before the existing `setTerrain` call.
+- Golden pins:
+  `generated(seed=7)=0x97616c1950edf8b8`,
+  `RiverAndCrags=0x1d65c06afbab0eca`,
+  `WalledPlain=0x864fe11f35ddf30c`,
+  `CoastalScrub=0x020ad95c550af7b6`.
+- Verified here: `cargo test -p sim --test genmap -- --nocapture`,
+  `cargo test --workspace`, `bun run --cwd web typecheck`,
+  `bun run --cwd web lint`, and `bun run --cwd web format`.
+- ORCHESTRATOR-TODO: this sandbox cannot install/run `wasm-bindgen`, dev
+  servers, browser scenes, or Preview. `bun run build:wasm` compiled Rust but
+  failed when `wasm-pack` tried to install `wasm-bindgen` (`Operation not
+  permitted`). Run `bun run build:wasm`, then from `web/` run
+  `VERIFY_GPU=1 node scene.mjs battle-genmap-smoke` twice, bless its snapshot,
+  inspect the screenshot for a real nonblank terrain frame, and rerun
+  `VERIFY_GPU=1 node scene.mjs battle-terrain-elevation`.

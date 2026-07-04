@@ -44,6 +44,10 @@ import { Input } from "./input";
 import { MANUAL_HTML } from "./manual";
 import { groupMoveDests, UnitSnap } from "./orders";
 import { fightingFrameForTick } from "../../../packages/crowd-runtime/src/animationState";
+import {
+  BATTLE_RELIEF_EXAGGERATION,
+  type BattleGroundCover,
+} from "../../../packages/game-renderer/src/battle/terrainFeatures";
 
 const TICK_DT = 1 / 30;
 const MAX_TICKS_PER_FRAME = 4;
@@ -91,7 +95,14 @@ function renderClassFor(
   return key === undefined ? undefined : map[key];
 }
 
-export type BattleKind = "duel" | "5v5" | "surround" | "flank" | "mapA" | "mapB";
+export type BattleKind = "duel" | "5v5" | "surround" | "flank" | "mapA" | "mapB" | "gen";
+
+export interface GeneratedBattleMapDescriptor {
+  seed: number | string;
+  groundCover: BattleGroundCover;
+  reliefScale: number;
+  terrainHash: string;
+}
 
 function bannerScale(zoom: number, selected: boolean): number {
   const t = Math.max(0, Math.min(1, (zoom - 1.4) / 3.0));
@@ -109,6 +120,7 @@ export interface BattleConfig {
   /** The catalog map index, when this battle is on a quick-battle map — drives
    *  the renderer's full-field ground cover. */
   wasmMapId?: number;
+  generatedMap?: GeneratedBattleMapDescriptor;
   /** Re-run the exact setup on Restart (a custom battle re-launches its config
    *  instead of a default `kind`). */
   restart?: () => void;
@@ -280,6 +292,11 @@ export class BattleScene implements Scene {
       const th = game.terrain_h();
       const tint = new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), tw * th);
       const height = new Float32Array(wasm.memory.buffer, game.terrain_height_ptr(), tw * th);
+      const reliefScale = this.cfg.generatedMap?.reliefScale ?? BATTLE_RELIEF_EXAGGERATION;
+      const heightForRenderer =
+        reliefScale === BATTLE_RELIEF_EXAGGERATION
+          ? new Float32Array(height)
+          : scaleHeightForRenderer(height, reliefScale);
       renderer.setTerrain(
         tw,
         th,
@@ -287,7 +304,7 @@ export class BattleScene implements Scene {
         game.terrain_origin_x(),
         game.terrain_origin_y(),
         new Uint8Array(tint),
-        new Float32Array(height),
+        heightForRenderer,
         this.cfg.wasmMapId,
       );
     }
@@ -365,6 +382,12 @@ export class BattleScene implements Scene {
         oy,
         worldWidth: w * cell,
         worldHeight: h * cell,
+        generatedMap: this.cfg.generatedMap ?? null,
+        // Verdicts come from the ONE certificate owner (sim genmap::certify via
+        // wasm) - the frontend never re-derives them from the speed field.
+        certificates: this.cfg.generatedMap
+          ? (JSON.parse(this.cfg.game.generated_map_certificates()) as Record<string, number | boolean>)
+          : null,
         counts,
         features: {
           water: feature(terrainTint.water),
@@ -1936,3 +1959,12 @@ declare global {
     __ready: boolean;
   }
 }
+
+function scaleHeightForRenderer(height: Float32Array, reliefScale: number): Float32Array {
+  const out = new Float32Array(height.length);
+  const scale = reliefScale / BATTLE_RELIEF_EXAGGERATION;
+  for (let i = 0; i < height.length; i++) out[i] = height[i] * scale;
+  return out;
+}
+
+

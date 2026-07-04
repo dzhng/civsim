@@ -17,6 +17,8 @@
 //   ?pitch=R      camera pitch override in radians (sky/atmosphere QA — the
 //                 production rig never points this high)
 //   ?yaw=R        camera yaw override in radians (same QA knob)
+//   ?camYaw=R     REAL camera yaw (rotates the render camera, like middle-drag
+//                 — unlike ?yaw, which only patches the reported snapshot)
 //   ?shadows=off|single|csm
 //                 sun-shadow tier override (slice 11 QA; default = adapter
 //                 probe — csm on hardware, single on software rasterizers)
@@ -108,6 +110,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       { width: mapW, height: mapH },
     );
     camera.zoom = Number(params.get("zoom")) || Math.max(mapZoom, 3.0);
+    if (params.has("camYaw")) camera.yaw = Number(params.get("camYaw")) || 0;
     camera.setViewCenter(
       Number(params.get("cx")) || 0,
       params.has("cy") ? Number(params.get("cy")) : -0.27 * mapH,

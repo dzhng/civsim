@@ -247,7 +247,8 @@ its zero-pixel-movement proof.
 
 Slice `13` was re-scoped (David, 2026-07-02): the terrain/cliff/grass **LOOK** and
 the composed master-shot gate belong to the parallel **`specs/battle-map-reference`**
-spec (still active — its closure is a separate David sign-off). This ladder owed only
+spec (since superseded — archived at `specs/done/battle-map-reference/`; the style
+work restarts in `specs/battle-map-style/`). This ladder owed only
 the *substrate seams*, and they are delivered:
 - terrain/foliage TSL layers are relit under `09`–`11` — `terrainLayer.ts` /
   `foliageLayer.ts` take the `scene.fogNode` aerial hook and CSM (`receiveShadow` /
@@ -255,7 +256,8 @@ the *substrate seams*, and they are delivered:
 - foliage is ONE instanced owner (`foliageLayer.ts`) sharing the LOD/culling infra;
 - file reservation honored: `battle/{terrain,foliage}Layer*` LOOK edits are
   `battle-map-reference`'s; the ladder touches them only through the shared hooks.
-The LOOK work continues in `battle-map-reference`.
+The LOOK work continued in `battle-map-reference` until its supersession; it now
+restarts in `specs/battle-map-style/`.
 
 ## Visual provenance (the standard the work was held to)
 

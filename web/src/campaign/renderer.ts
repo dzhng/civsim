@@ -961,15 +961,8 @@ function campaignMapMarkers(data: CampaignData, opts: DrawOptions): CampaignMark
         data.map.factions.findIndex((faction) => faction.id === node.owner),
       );
     if (owner === opts.playerFaction) return;
-    markers.push({
-      x: node.pos[0],
-      y: node.pos[1],
-      radius: cityMarkerRadiusPx(node.tier),
-      faction: factionColor(data, owner),
-      allegiance: factionColor(data, owner),
-      kind: "city",
-      selected: index === opts.selectedCity,
-    });
+    // City markers are the settlement icon rendered above the label (see
+    // campaignCityLabels) — no separate GPU chip. Only armies draw a GPU marker.
   });
   for (const army of visibleCampaignArmies(opts)) {
     if (army.mine || army.faction === opts.playerFaction) continue;
@@ -1046,7 +1039,11 @@ function campaignCityLabels(
       kind: "city",
       size: baseSize,
       priority: node.tier,
-      // No left icon: the city's marker IS the house icon now (David's rule).
+      // Overview: the settlement icon sits ABOVE the name and IS the city's
+      // marker (no separate square). Closeup: the 3D model is the marker, so the
+      // label is text-only.
+      icon: overviewMarkerLabel ? "city" : undefined,
+      iconColor: overviewMarkerLabel ? factionColor(data, owner) : undefined,
       rightIcon: allegiance === Allegiance.Foe ? "sword" : undefined,
       rightIconColor: allegiance === Allegiance.Foe ? [0.83, 0.2, 0.15] : undefined,
       collisionGroup: cityCollisionGroup(index),
@@ -1057,69 +1054,34 @@ function campaignCityLabels(
   return labels;
 }
 
-/** Overview (marker-attached) city-label anchor candidates. The label sits
- * DIRECTLY BELOW the marker, tight against it (David's rule: "right under the
- * city") — the same centred-below convention the closeup path uses, so a
- * coastal city's name reads as sitting ON its city instead of drifting into
- * the sea. The alternates (right, left, above, then the corners) exist only so
- * slice-09 occupancy can dodge to another side of the SAME marker; every one
- * is one marker-clearance away, so the label can never detach. Edge offsets
- * shift all candidates alike to keep map-border labels in frame. */
+/** Overview city-label anchor candidates. The label leads with the settlement
+ * icon (the city's marker — there is no separate GPU chip), so anchor its TOP
+ * near the city point, lifted half an icon so the icon sits ON the point and
+ * the name hangs directly beneath it. The two alternates only shove the whole
+ * unit up or down a little for slice-09 dodging; the icon stays on its city. */
 function overviewCityLabelAnchors(
   tier: number,
   edgeX: number,
   edgeY: number,
 ): CampaignLabelAnchor[] {
-  // Marker half-side (the square's edge) plus a small icon gap: the label just
-  // clears the marker with no daylight to read as detached.
-  const d = cityMarkerRadiusPx(tier) + OVERVIEW_LABEL_ICON_PADDING_PX;
+  const lift = cityMarkerRadiusPx(tier);
   return [
     {
       screenOffsetX: edgeX,
-      screenOffsetY: d + edgeY,
+      screenOffsetY: -lift + edgeY,
       screenAnchorX: "center",
       screenAnchorY: "top",
-    },
-    {
-      screenOffsetX: d + edgeX,
-      screenOffsetY: edgeY,
-      screenAnchorX: "left",
-      screenAnchorY: "center",
-    },
-    {
-      screenOffsetX: -d + edgeX,
-      screenOffsetY: edgeY,
-      screenAnchorX: "right",
-      screenAnchorY: "center",
     },
     {
       screenOffsetX: edgeX,
-      screenOffsetY: -d + edgeY,
+      screenOffsetY: lift + edgeY,
       screenAnchorX: "center",
-      screenAnchorY: "bottom",
-    },
-    {
-      screenOffsetX: d + edgeX,
-      screenOffsetY: d + edgeY,
-      screenAnchorX: "left",
       screenAnchorY: "top",
     },
     {
-      screenOffsetX: -d + edgeX,
-      screenOffsetY: d + edgeY,
-      screenAnchorX: "right",
-      screenAnchorY: "top",
-    },
-    {
-      screenOffsetX: d + edgeX,
-      screenOffsetY: -d + edgeY,
-      screenAnchorX: "left",
-      screenAnchorY: "bottom",
-    },
-    {
-      screenOffsetX: -d + edgeX,
-      screenOffsetY: -d + edgeY,
-      screenAnchorX: "right",
+      screenOffsetX: edgeX,
+      screenOffsetY: lift + edgeY,
+      screenAnchorX: "center",
       screenAnchorY: "bottom",
     },
   ];
@@ -1288,9 +1250,6 @@ function cityReliefRisePx(
 function cityMarkerRadiusPx(tier: number) {
   return CITY_MARKER_BASE_RADIUS_PX + tier * CITY_MARKER_TIER_RADIUS_PX;
 }
-
-// Gap between the marker's edge and the tight-hugging overview label.
-const OVERVIEW_LABEL_ICON_PADDING_PX = 5;
 
 function cityCollisionGroup(index: number) {
   return `city:${index}`;

@@ -107,18 +107,28 @@ and `placeCityLabel` takes the first non-colliding hug position with no water
 scoring — so a city label is at most one marker-clearance from its square, or
 hidden, never adrift. The shared scorer survives for sea labels only.
 
-A final pass (04d) collapsed the remaining redundancy: at overview zoom the city
-was drawn as a *square chip* AND its label carried a house glyph, so two icons
-sat near each other and read as misaligned. Now **the overview city marker IS
-the settlement icon** — `MARKER_WGSL`'s `markerKind < 0.5` branch draws a
-pediment-roofed house (same anti-hollow top-lit grade + ink rind the chip had,
-so it survives its own territory wash), and the city label is **text-only**
-(`campaignCityLabels` no longer emits `icon`). One icon per city, name directly
-beneath it. At closeup the settlement is its 3D model and the label is likewise
-text-only. And a **garrisoned** army now reads city-first like the own-city
-cards: the composed label's primary line is the CITY name, the legion + strength
-drop to the secondary line (`campaignArmyLabels`, the `occupiedCity` branch) —
-a field army keeps the legion as its primary line.
+A final pass collapsed the remaining redundancy: at overview zoom the city was
+drawn as a *square chip* AND its label carried a house glyph, so two icons sat
+near each other and read as misaligned. Now **the overview city marker IS the
+settlement icon, and it reuses the real glyph** rather than a hand-rolled one:
+`campaignCityLabels` renders `ICON_PATHS.city` (faction-tinted, haloed) ABOVE
+the name — the label's icon-above layout in `mapPass`'s measure/draw — and the
+GPU city chip is gone (`campaignMapMarkers` emits only army markers; the
+shader's `markerKind < 0.5` branch is a dead `discard`). One icon per city, name
+directly beneath it; at closeup the 3D model is the marker and the label is
+text-only. A first attempt drew a procedural house in WGSL and got it both
+upside-down and too faint — reusing the atlas glyph is correct orientation,
+colour, and halo for free. A **garrisoned** army reads city-first like the
+own-city cards: the composed label's primary line is the CITY name, the legion +
+strength drop to the secondary line (`campaignArmyLabels`, the `occupiedCity`
+branch); a field army keeps the legion as its primary line.
+
+Fixing the marker also exposed that the army standard drew **upside-down** on the
+map — `MARKER_WGSL` authored its art y-down while screen y is up, which a
+symmetric square chip had hidden for years. The vertex now flips the fragment's
+local y (`out.local = vec2f(quad.x, -quad.y)`); the standard's cloth grade is
+inverted to compensate so it stays parchment-head / ink-foot (the slice-08
+livery gate pins the positive grade).
 
 ## Locked invariants (must keep holding)
 

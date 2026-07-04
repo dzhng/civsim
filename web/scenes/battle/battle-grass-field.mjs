@@ -386,7 +386,7 @@ const TEST_ENVIRONMENT_CANDIDATES = [
   { profile: "b4b1a0-test-env", color: [168, 86, 42, 255], selected: true },
 ];
 const TARGET_CLOSE_HERO = new URL(
-  "../../../specs/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/target-crop-contract/target/close-hero.png",
+  "../../../specs/done/battle-map-reference/assets/03b4-evidence/03b4c5-close-foreground-lab/target-crop-contract/target/close-hero.png",
   import.meta.url,
 );
 

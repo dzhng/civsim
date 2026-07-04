@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { PNG } from "pngjs";
 
 const TARGET = new URL(
-  "../../../specs/battle-map-reference/assets/target-battle-map.png",
+  "../../../specs/done/battle-map-reference/assets/target-battle-map.png",
   import.meta.url,
 );
 

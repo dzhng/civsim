@@ -465,21 +465,26 @@ fn fs(in: VsOut) -> @location(0) vec4f {
     let inRoof = y >= roofApexY && y <= roofBaseY && abs(x) <= roofHalf;
     let inBody = y > roofBaseY && y <= bodyBotY && abs(x) <= bodyHalf;
     let house = select(0.0, 1.0, inRoof || inBody);
-    // Ink outline: the silhouette shrunk by a hair is the fill; the rind is ink,
-    // so the house reads even where its faction fill matches the territory wash.
-    let roofHalfIn = max(0.0, 0.86 * clamp((y - roofApexY - 0.10) / (roofBaseY - roofApexY), 0.0, 1.0) - 0.10);
-    let inRoofIn = y >= roofApexY + 0.10 && y <= roofBaseY && abs(x) <= roofHalfIn;
-    let inBodyIn = y > roofBaseY && y <= bodyBotY - 0.10 && abs(x) <= bodyHalf - 0.10;
-    let fillMask = select(0.0, 1.0, inRoofIn || inBodyIn);
     if (house < 0.5) { discard; }
-    // The fill carries a top-lit grade so it never flattens into the wash.
-    let lift = clamp((roofApexY - y) / (roofApexY - bodyBotY) + 0.35, 0.0, 1.0);
+    // Two nested silhouettes: the fill is the house shrunk by ~one outline
+    // width, so the rind between them is a defined ink edge — the icon reads
+    // even where its faction fill matches the territory wash (the old chip's
+    // trick). A crisp ink frame + a parchment top-bevel is what makes a small
+    // marker pop; a flat faction fill vanishes.
+    let pad = 0.18;
+    let roofHalfIn = max(0.0, 0.86 * clamp((y - roofApexY - pad) / (roofBaseY - roofApexY), 0.0, 1.0) - pad);
+    let inRoofIn = y >= roofApexY + pad && y <= roofBaseY && abs(x) <= roofHalfIn;
+    let inBodyIn = y > roofBaseY && y <= bodyBotY - pad && abs(x) <= bodyHalf - pad;
+    let fillMask = select(0.0, 1.0, inRoofIn || inBodyIn);
     let flat = mix(in.faction, in.allegiance, 0.18);
-    let body = mix(mix(flat, edge, 0.22), mix(flat, parchment, 0.28), 1.0 - lift);
+    // Bright, faction-hued body with a parchment top-left bevel and an
+    // ink-shaded lower-right, so it stands out light-to-dark on any wash.
+    let bevel = clamp((in.local.y - in.local.x) * 0.6 + 0.5, 0.0, 1.0);
+    let body = mix(mix(flat, edge, 0.12), mix(flat, parchment, 0.44), bevel);
     let sel = select(0.0, 1.0, in.selected > 0.5);
     let selectedEdge = vec3f(0.96, 0.93, 0.84);
-    let rind = mix(edge, selectedEdge, sel * 0.8);
-    return vec4f(mix(rind, body, fillMask), 0.94);
+    let rind = mix(edge, selectedEdge, sel * 0.85);
+    return vec4f(mix(rind, body, fillMask), 0.95);
   }
   let gold = vec3f(0.79, 0.64, 0.15);
   let pole = select(0.0, 1.0, abs(in.local.x + 0.55) < 0.045 && in.local.y > -0.96 && in.local.y < 0.94);

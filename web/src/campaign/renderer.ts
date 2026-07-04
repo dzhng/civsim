@@ -942,8 +942,8 @@ function buildEntityFrame(
   return { entities, selections, crowd, cityEntities, armyEntities, cityEntityAnchors };
 }
 
-const CITY_MARKER_BASE_RADIUS_PX = 3.8;
-const CITY_MARKER_TIER_RADIUS_PX = 0.7;
+const CITY_MARKER_BASE_RADIUS_PX = 5.2;
+const CITY_MARKER_TIER_RADIUS_PX = 0.9;
 
 function campaignMapMarkers(data: CampaignData, opts: DrawOptions): CampaignMarker[] {
   if (isControlledStage(data) || opts.cam.scale >= 0.5) return [];

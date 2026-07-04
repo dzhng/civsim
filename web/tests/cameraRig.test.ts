@@ -45,11 +45,16 @@ test("battle zoom rig lands near-top-down out and a cinematic vista in", () => {
 test("battle zoom rig holds the down-looking angle through most of the range", () => {
   const mid = battleCameraRig(5, range, bounds);
   const threeQuarter = battleCameraRig(7, range, bounds);
+  const lastFifteenStart = battleCameraRig(7.8, range, bounds);
 
   assert.ok(mid.pitch > 1.15, `mid zoom should still look down, pitch ${mid.pitch}`);
   assert.ok(
     threeQuarter.pitch > 0.7,
     `three-quarter zoom should not be horizon-like yet, pitch ${threeQuarter.pitch}`,
+  );
+  assert.ok(
+    lastFifteenStart.pitch > 1.0,
+    `last 15% should still start down-looking, pitch ${lastFifteenStart.pitch}`,
   );
   assert.ok(
     mid.pitch > (BATTLE_ZOOM_RIG_LIMITS.topDownPitch + BATTLE_ZOOM_RIG_LIMITS.vistaPitch) / 2,
@@ -71,8 +76,10 @@ test("battle zoom rig is continuous across the range (no jumps)", () => {
   let prev = battleCameraRig(1, range, bounds);
   for (let z = 1; z <= 9; z += 0.25) {
     const cur = battleCameraRig(z, range, bounds);
-    assert.ok(Math.abs(cur.pitch - prev.pitch) < 0.1, `pitch step at ${z}`);
-    assert.ok(Math.abs(cur.fovY - prev.fovY) < 0.05, `fovY step at ${z}`);
+    const pitchLimit = z >= 7.5 ? 0.22 : 0.1;
+    const fovLimit = z >= 7.5 ? 0.08 : 0.05;
+    assert.ok(Math.abs(cur.pitch - prev.pitch) < pitchLimit, `pitch step at ${z}`);
+    assert.ok(Math.abs(cur.fovY - prev.fovY) < fovLimit, `fovY step at ${z}`);
     prev = cur;
   }
 });

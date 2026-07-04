@@ -43,6 +43,7 @@ import { installViewportGate } from "./viewportGate";
 import { Input } from "./input";
 import { MANUAL_HTML } from "./manual";
 import { groupMoveDests, UnitSnap } from "./orders";
+import { fightingFrameForTick } from "../../../packages/crowd-runtime/src/animationState";
 
 const TICK_DT = 1 / 30;
 const MAX_TICKS_PER_FRAME = 4;
@@ -1418,7 +1419,6 @@ export class BattleScene implements Scene {
           right: [rAxisX, rAxisY],
           up: [uAxisX, uAxisY],
         } = camera.groundAxes();
-        const t = now / 1000;
         for (let i = 0; i < n; i++) {
           aliveF32[i] = a[i];
           const pi = 2 * i;
@@ -1468,7 +1468,7 @@ export class BattleScene implements Scene {
             // Trading blows: a thrust beat alternating with a guard, and ~1/3 of
             // the men on the off-beat flinching (a hit reaction) so a melee
             // reads as give-and-take, not synchronized stabbing.
-            frames[i] = ((t * 2.5 + i * 0.7) | 0) % 2 ? 3 : i % 3 === 0 ? 10 : 0;
+            frames[i] = fightingFrameForTick(simTick, i);
           } else {
             const dx = updateRenderPos ? renderPos[pi] - prevRenderPos[pi] : 0;
             const dy = updateRenderPos ? renderPos[pi + 1] - prevRenderPos[pi + 1] : 0;

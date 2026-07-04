@@ -26,29 +26,23 @@ the existing owner.
 
 ## Next Agent Prompt
 
-**Status (2026-07-04):** Slice 00 (offshore marker) is SHIPPED and verified in
-this worktree — not yet committed alongside the rest. Spec just materialized.
-Pick up at **Slice 01 (probe hardening)**.
+**Status (2026-07-04):** Slices 00 (offshore marker) and 01 (probe hardening)
+SHIPPED and verified. Pick up at **Slice 02 (naming rename)**.
 
 **Do this next, in order:**
 
-1. **Slice 01 — harden the probe** (`slices/01-probe-drawn-marker.md`). Extend
-   `render-probe.mjs measureCities` to classify the *drawn* icon rect, not the
-   anchor. This is the regression lock for the bug Slice 00 fixed; write it so
-   that reverting Slice 00 turns it RED.
-2. **Slice 02 — naming rename** (`slices/02-name-dequalify.md`). A final mapgen
+1. **Slice 02 — naming rename** (`slices/02-name-dequalify.md`). A final mapgen
    post-step (after prune + leagues), cargo invariant, re-bake.
-3. **Slices 03–06 — density** (`slices/03..06`). Importance scalar → unified
+2. **Slices 03–06 — density** (`slices/03..06`). Importance scalar → unified
    greedy rank → crowding margin → reappearance verify. Each grows
    `arbitrateLabelOccupancy`; re-bless overview snaps on the visual ones.
 
-Slices 01 and 02 are independent of each other and of 03–06's start; 03–06 are
-serial. Run the per-slice gates below. **Update this section before ending your
-pass.**
+Slice 02 is independent of 03–06's start; 03–06 are serial. Run the per-slice
+gates below. **Update this section before ending your pass.**
 
 ### Global TODO
-- [x] **00** Offshore marker fix — remove world-edge inset from city labels *(shipped, uncommitted)*
-- [ ] **01** Probe samples the drawn icon rect *(owns: render-probe.mjs + `CampaignLabelDebugRect.iconRect`)*
+- [x] **00** Offshore marker fix — remove world-edge inset from city labels *(shipped)*
+- [x] **01** Probe samples the drawn icon rect + `drawnIconOffsetPx` detached-marker gate *(shipped)*
 - [ ] **02** Drop-qualifier-when-unique naming *(owns: mapgen post-step + cargo invariant)*
 - [ ] **03** Importance scalar on every arbitrating label *(owns: emitters + `CampaignLabel.importance`)*
 - [ ] **04** Unified importance-ranked greedy over one budget *(owns: `arbitrateLabelOccupancy`)*

@@ -608,6 +608,9 @@ export interface CampaignLabelDebugRect {
    * than deflating `box` (the full-quad AABB) by `padPx` — consumers checking
    * overlaps must use this so the test agrees with what arbitration enforced. */
   inkRect: { x: number; y: number; w: number; h: number };
+  /** Icon-above city labels only: the drawn settlement-icon sub-rect in
+   * CSS px (the marker footprint). Absent for labels with no above-icon. */
+  iconRect?: { x: number; y: number; w: number; h: number };
   /** Faction labels only: true for the small league names (they yield to
    * cards; major engravings are background-scale and do not). */
   minor?: boolean;
@@ -2447,6 +2450,20 @@ function labelDebugRects(entries: AtlasEntry[], dpr: number): CampaignLabelDebug
       angle,
       dpr,
     );
+    const iconAbove = label.kind === 'city' && !!label.icon;
+    const iconSize = iconAbove ? labelStyle(label, dpr).iconSize : 0;
+    const iconRect = iconAbove
+      ? cornersAabb(
+          labelCornersCss(
+            centerX,
+            centerY - entry.height * 0.5 + entry.padding + iconSize * 0.5,
+            iconSize,
+            iconSize,
+            angle,
+            dpr,
+          ),
+        )
+      : undefined;
     return {
       text: labelText(label),
       kind: label.kind,
@@ -2455,6 +2472,7 @@ function labelDebugRects(entries: AtlasEntry[], dpr: number): CampaignLabelDebug
       corners,
       padPx: roundPx(entry.padding / dpr),
       inkRect: cornersAabb(inkCorners),
+      ...(iconRect ? { iconRect } : {}),
       ...(label.kind === 'faction' ? { minor: label.factionMinor === true } : {}),
     };
   });

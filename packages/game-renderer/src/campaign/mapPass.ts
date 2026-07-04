@@ -261,11 +261,11 @@ fn naturalCampaignColor(b: vec4f, light: f32, world: vec2f, h: f32) -> vec3f {
   }
   if (water > 0.001) {
     let depth = clamp((0.5 - b.a) * 2.0, 0.0, 1.0);
-    let shelf = smoothstep(0.0, 0.28, depth + (nz(world, 0.5, px) - 0.5) * 0.1);
+    let shelf = smoothstep(0.0, 0.42, depth + (nz(world, 0.5, px) - 0.5) * 0.1);
     var waterCol = mix(CAMPAIGN_SEA_SHALLOW, CAMPAIGN_SEA_DEEP, shelf);
     waterCol += vec3f(0.05) * (nz(world, 1.15, px) - 0.5);
     let foam = smoothstep(0.6, 0.0, (0.5 - b.a) * 24.0) * smoothstep(0.4, 0.8, nz(world, 2.3, px));
-    waterCol = mix(waterCol, vec3f(0.88, 0.93, 0.94), foam * 0.55);
+    waterCol = mix(waterCol, vec3f(0.88, 0.93, 0.94), foam * 0.7);
     col = mix(col, waterCol, water);
   }
   let grain = vnoise(world * 0.05) * 0.6 + vnoise(world * 0.27) * 0.4;
@@ -1398,7 +1398,7 @@ function pushEdgeLines(out: number[], edge: CampaignMapEdgeData) {
       const t1 = Math.min(1, (d + dash) / len);
       const start: [number, number] = [a[0] + dx * t0, a[1] + dy * t0];
       const end: [number, number] = [a[0] + dx * t1, a[1] + dy * t1];
-      pushBand(start, end, [0.43, 0.72, 0.88, 0.12], 0.30);
+      pushBand(start, end, [0.58, 0.8, 0.95, 0.5], 0.5);
     }
   }
 }

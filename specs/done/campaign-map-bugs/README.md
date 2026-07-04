@@ -107,6 +107,19 @@ and `placeCityLabel` takes the first non-colliding hug position with no water
 scoring — so a city label is at most one marker-clearance from its square, or
 hidden, never adrift. The shared scorer survives for sea labels only.
 
+A final pass (04d) collapsed the remaining redundancy: at overview zoom the city
+was drawn as a *square chip* AND its label carried a house glyph, so two icons
+sat near each other and read as misaligned. Now **the overview city marker IS
+the settlement icon** — `MARKER_WGSL`'s `markerKind < 0.5` branch draws a
+pediment-roofed house (same anti-hollow top-lit grade + ink rind the chip had,
+so it survives its own territory wash), and the city label is **text-only**
+(`campaignCityLabels` no longer emits `icon`). One icon per city, name directly
+beneath it. At closeup the settlement is its 3D model and the label is likewise
+text-only. And a **garrisoned** army now reads city-first like the own-city
+cards: the composed label's primary line is the CITY name, the legion + strength
+drop to the secondary line (`campaignArmyLabels`, the `occupiedCity` branch) —
+a field army keeps the legion as its primary line.
+
 ## Locked invariants (must keep holding)
 
 1. **Map data is bake-owned.** Position/graph fixes go through

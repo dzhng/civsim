@@ -1046,8 +1046,7 @@ function campaignCityLabels(
       kind: "city",
       size: baseSize,
       priority: node.tier,
-      icon: "city",
-      iconColor: factionColor(data, owner),
+      // No left icon: the city's marker IS the house icon now (David's rule).
       rightIcon: allegiance === Allegiance.Foe ? "sword" : undefined,
       rightIconColor: allegiance === Allegiance.Foe ? [0.83, 0.2, 0.15] : undefined,
       collisionGroup: cityCollisionGroup(index),
@@ -1185,20 +1184,36 @@ function campaignArmyLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
       const selectedOffset =
         !cityOverlap && army.id === opts.selected && isControlledStage(data) ? 28 : 0;
       const overlapClearance = cityOverlap ? (opts.cam.scale >= 3 ? 14 : 10) : 24;
-      return {
-        text: `${ordinal(ordinalOf.get(army.id) ?? 1)} LEGION`,
-        sideText: `${Math.round(army.soldiers / 100) / 10}k`,
-        subText: occupiedCity?.name.toUpperCase(),
-        x: display.x,
-        y: display.y,
-        kind: "army",
-        size: Math.min(14, 9 + opts.cam.scale),
-        priority: 4,
-        icon: "army",
-        iconColor: factionColor(data, army.faction),
-        collisionGroup: occupiedCity ? cityCollisionGroup(occupiedCity.index) : undefined,
-        screenOffsetY: markerSize + selectedOffset + overlapClearance,
-      };
+      const legion = `${ordinal(ordinalOf.get(army.id) ?? 1)} LEGION`;
+      const strength = `${Math.round(army.soldiers / 100) / 10}k`;
+      // A garrisoned army reads city-first, like the own-city cards: the CITY
+      // name is the primary line and the legion is the secondary line beneath
+      // it. A field army keeps the legion as its primary line.
+      return occupiedCity
+        ? {
+            text: occupiedCity.name.toUpperCase(),
+            subText: `${legion} ${strength}`,
+            x: display.x,
+            y: display.y,
+            kind: "army",
+            size: Math.min(14, 9 + opts.cam.scale),
+            priority: 4,
+            iconColor: factionColor(data, army.faction),
+            collisionGroup: cityCollisionGroup(occupiedCity.index),
+            screenOffsetY: markerSize + selectedOffset + overlapClearance,
+          }
+        : {
+            text: legion,
+            sideText: strength,
+            x: display.x,
+            y: display.y,
+            kind: "army",
+            size: Math.min(14, 9 + opts.cam.scale),
+            priority: 4,
+            icon: "army",
+            iconColor: factionColor(data, army.faction),
+            screenOffsetY: markerSize + selectedOffset + overlapClearance,
+          };
     });
 }
 

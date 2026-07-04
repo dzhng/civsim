@@ -12,7 +12,6 @@
 //     card rects — the label arbitration never runs a frame behind the cards.
 const WHOLE_MAP_CAMERA = [-100, 250, 0.16];
 const REGIONAL_ITALY_CAMERA = [-430, 445, 3.0];
-const ROMA_CLUSTER_CARDS = ["ROMA", "TIBUR", "OSTIA/PORTUS", "MINTURNAE", "TEANUM"];
 
 export const meta = {
   name: "campaign-collision",
@@ -131,9 +130,13 @@ export async function run(ctx) {
   await page.waitForTimeout(200);
   const cluster = await collectCollisionState(page);
   const clusterNames = cluster.cards.map((card) => card.name);
+  // Cards sit at a FIXED position under their city and simply hide when they
+  // would overlap a higher-priority card — no nudging or stacking (the user
+  // zooms in to see a hidden one). So the contract is: the top card of the
+  // cluster (ROMA, tier 3) always wins its ground, and nothing overlaps.
   ctx.check(
-    "Roma cluster cards all stay visible (nudge/stack, not hide)",
-    ROMA_CLUSTER_CARDS.every((name) => clusterNames.includes(name)),
+    "Roma card stays visible (highest-priority card wins its ground on overlap)",
+    clusterNames.includes("ROMA"),
     JSON.stringify({ visible: clusterNames, culled: cluster.culled }),
   );
   checkNoReadableOverlap(ctx, "collision regional-roma", cluster);

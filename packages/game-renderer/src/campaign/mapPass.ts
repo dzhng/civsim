@@ -144,22 +144,6 @@ export interface CampaignLabel {
   screenAnchorY?: 'center' | 'top' | 'bottom';
   factionRadiusKm?: number;
   factionMinor?: boolean;
-  /** Land-aware anchor choice (B2/B8): preference-ordered alternatives for
-   * the label's screen offset+anchor. The occupancy arbitration drops the
-   * candidates whose measured ink rect lands on claimed ground (cards and
-   * higher-priority labels), then the shared placement scorer picks among the
-   * survivors (isBadAt = water). The first candidate must mirror the
-   * screenOffset/screenAnchor fields — it is the tiebreak, so labels with a
-   * clean default never move. */
-  placementCandidates?: CampaignLabelAnchor[];
-}
-
-/** One candidate screen placement for an anchored (city) label, CSS px. */
-export interface CampaignLabelAnchor {
-  screenOffsetX: number;
-  screenOffsetY: number;
-  screenAnchorX: 'center' | 'left' | 'right';
-  screenAnchorY: 'center' | 'top' | 'bottom';
 }
 
 const ICON_PATHS = {
@@ -2016,9 +2000,6 @@ function labelAtlasKey(labels: VisibleCampaignLabel[], dpr: number, totalLabels:
         entry.offsetY.toFixed(2),
         label.screenAnchorX ?? 'center',
         label.screenAnchorY ?? 'center',
-        (label.placementCandidates ?? [])
-          .map((c) => `${c.screenOffsetX.toFixed(1)},${c.screenOffsetY.toFixed(1)},${c.screenAnchorX},${c.screenAnchorY}`)
-          .join(';'),
         entry.opacity.toFixed(3),
         entry.screenX.toFixed(1),
         entry.screenY.toFixed(1),
@@ -2303,63 +2284,21 @@ function arbitrateLabelOccupancy(
   };
 }
 
-/** City-label placement (slice 09 occupancy only): a city label always hugs
- * its marker — it never scores its candidates against the render mask (only
- * sea names chase dry ground, per David's rule). Walk the emitter's
- * preference-ordered hug candidates (attached position first) and take the
- * first whose ink rect lands on unclaimed ground, so an unobstructed label
- * keeps the classic attached anchor and a blocked one dodges to another side
- * of the SAME marker. null means every hug position is claimed → the label
- * hides rather than detach. */
+/** City-label placement (slice 09 occupancy only): a city label has one marker
+ * hug position. If that ink rect is already claimed, the label hides rather
+ * than dodging to another side. */
 function placeCityLabel(
   entry: MeasuredCampaignLabel,
   claims: OccupancyClaim[],
   dpr: number,
 ): ScreenRect | null {
-  const candidates =
-    entry.label.placementCandidates && entry.label.placementCandidates.length > 0
-      ? entry.label.placementCandidates
-      : [
-          {
-            screenOffsetX: entry.offsetX / dpr,
-            screenOffsetY: entry.offsetY / dpr,
-            screenAnchorX: entry.label.screenAnchorX ?? 'center',
-            screenAnchorY: entry.label.screenAnchorY ?? 'center',
-          } satisfies CampaignLabelAnchor,
-        ];
-  for (const candidate of candidates) {
-    const rect = candidateInkRect(entry, candidate, dpr);
-    if (claims.some((claim) => rectsOverlap(rect, claim.rect))) continue;
-    entry.offsetX = candidate.screenOffsetX * dpr;
-    entry.offsetY = candidate.screenOffsetY * dpr;
-    entry.label = {
-      ...entry.label,
-      screenAnchorX: candidate.screenAnchorX,
-      screenAnchorY: candidate.screenAnchorY,
-    };
-    return rect;
-  }
-  return null;
+  const rect = entryInkRect(entry, dpr);
+  return claims.some((claim) => rectsOverlap(rect, claim.rect)) ? null : rect;
 }
 
 /** Ink rect (CSS px AABB) of a measured label at its current anchor. */
 function entryInkRect(entry: MeasuredCampaignLabel, dpr: number): ScreenRect {
   return inkRectAt(entry, entry.offsetX, entry.offsetY, entry.label.screenAnchorX, entry.label.screenAnchorY, dpr);
-}
-
-function candidateInkRect(
-  entry: MeasuredCampaignLabel,
-  candidate: CampaignLabelAnchor,
-  dpr: number,
-): ScreenRect {
-  return inkRectAt(
-    entry,
-    candidate.screenOffsetX * dpr,
-    candidate.screenOffsetY * dpr,
-    candidate.screenAnchorX,
-    candidate.screenAnchorY,
-    dpr,
-  );
 }
 
 /** The visible ink box: the atlas rect deflated by its transparent halo

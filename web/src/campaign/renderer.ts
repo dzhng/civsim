@@ -17,7 +17,6 @@ import {
   CampaignWorldLinePass,
   drawnRoadRuns,
   type CampaignLabel,
-  type CampaignLabelAnchor,
   type CampaignMapStats,
   type CampaignMarker,
   type ScreenRect,
@@ -1036,20 +1035,16 @@ function campaignCityLabels(
     const baseSize = Math.min(15, 9.5 + opts.cam.scale) * (node.tier >= 3 ? 1.15 : 1);
     const overviewMarkerLabel = opts.cam.scale < 0.6;
     const reliefPx = cityReliefRisePx(field, opts, node.pos, cam);
-    // A city label hugs its marker, always (David's rule): the emitter authors
-    // the attached anchor first, then its mirrors around the same marker as
-    // collision alternates. The label pass never scores these against the
-    // render mask — only sea names care about dry ground. It also never takes
-    // the world-edge inset (horizontal/verticalEdgeOffset): that inset is for
-    // free-floating faction engravings, and since the overview marker IS this
-    // label's icon, applying it dragged the icon-marker off its city into the
-    // sea (Ierusalem, on the map's eastern strip, shoved ~52px west onto water).
-    const anchors = overviewMarkerLabel
-      ? overviewCityLabelAnchors(node.tier)
-      : closeupCityLabelAnchors(
-          cityLabelOffset(opts, baseSize, reliefPx),
-          -(reliefPx + baseSize * 1.9),
-        );
+    // A city label hugs its marker, always (David's rule). The label pass never
+    // scores city labels against the render mask — only sea names care about dry
+    // ground. It also never takes the world-edge inset
+    // (horizontal/verticalEdgeOffset): that inset is for free-floating faction
+    // engravings, and since the overview marker IS this label's icon, applying
+    // it dragged the icon-marker off its city into the sea (Ierusalem, on the
+    // map's eastern strip, shoved ~52px west onto water).
+    const anchor = overviewMarkerLabel
+      ? overviewCityLabelAnchor(node.tier)
+      : closeupCityLabelAnchor(cityLabelOffset(opts, baseSize, reliefPx));
     labels.push({
       text: node.name.toUpperCase(),
       x: node.pos[0],
@@ -1066,71 +1061,34 @@ function campaignCityLabels(
       rightIcon: allegiance === Allegiance.Foe ? "sword" : undefined,
       rightIconColor: allegiance === Allegiance.Foe ? [0.83, 0.2, 0.15] : undefined,
       collisionGroup: cityCollisionGroup(index),
-      ...anchors[0],
-      placementCandidates: anchors,
+      ...anchor,
     });
   });
   return labels;
 }
 
-/** Overview city-label anchor candidates. The label leads with the settlement
+/** Overview city label anchor. The label leads with the settlement
  * icon (the city's marker — there is no separate GPU chip), so anchor its TOP
  * near the city point, lifted half an icon so the icon sits ON the point and
- * the name hangs directly beneath it. The two alternates only shove the whole
- * unit up or down a little for slice-09 dodging; the icon stays on its city. */
-function overviewCityLabelAnchors(tier: number): CampaignLabelAnchor[] {
+ * the name hangs directly beneath it. */
+function overviewCityLabelAnchor(tier: number) {
   const lift = cityMarkerRadiusPx(tier);
-  return [
-    {
-      screenOffsetX: 0,
-      screenOffsetY: -lift,
-      screenAnchorX: "center",
-      screenAnchorY: "top",
-    },
-    {
-      screenOffsetX: 0,
-      screenOffsetY: lift,
-      screenAnchorX: "center",
-      screenAnchorY: "top",
-    },
-    {
-      screenOffsetX: 0,
-      screenOffsetY: lift,
-      screenAnchorX: "center",
-      screenAnchorY: "bottom",
-    },
-  ];
+  return {
+    screenOffsetX: 0,
+    screenOffsetY: -lift,
+    screenAnchorX: "center" as const,
+    screenAnchorY: "top" as const,
+  };
 }
 
-// A slid closeup label keeps this much overlap with the marker column so it
-// still reads as attached to its city rather than floating beside it.
-const CLOSEUP_LABEL_MARKER_TIE_PX = 14;
-
-/** Closeup city labels sit centered under the model; the sideways slides and
- * the above-model positions are collision alternates only (slice 09), reached
- * when the centered spot is claimed — never to chase dry ground. */
-function closeupCityLabelAnchors(belowY: number, aboveY: number): CampaignLabelAnchor[] {
-  const slid = (offsetY: number): CampaignLabelAnchor[] => [
-    {
-      screenOffsetX: 0,
-      screenOffsetY: offsetY,
-      screenAnchorX: "center",
-      screenAnchorY: "center",
-    },
-    {
-      screenOffsetX: CLOSEUP_LABEL_MARKER_TIE_PX,
-      screenOffsetY: offsetY,
-      screenAnchorX: "right",
-      screenAnchorY: "center",
-    },
-    {
-      screenOffsetX: -CLOSEUP_LABEL_MARKER_TIE_PX,
-      screenOffsetY: offsetY,
-      screenAnchorX: "left",
-      screenAnchorY: "center",
-    },
-  ];
-  return [...slid(belowY), ...slid(aboveY)];
+/** Closeup city labels sit centered under the model. */
+function closeupCityLabelAnchor(belowY: number) {
+  return {
+    screenOffsetX: 0,
+    screenOffsetY: belowY,
+    screenAnchorX: "center" as const,
+    screenAnchorY: "center" as const,
+  };
 }
 
 function campaignArmyLabels(data: CampaignData, opts: DrawOptions): CampaignLabel[] {

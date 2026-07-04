@@ -85,6 +85,21 @@ own snapshot. The calibration scene prints the oracle verdict table.
   gate: individual tufts legible -- the honest pale-speckle baseline slice 10
   must beat).
 
+### Amendment (2026-07-05, slice 10 pass): oracle re-anchored to the CLOSE target
+
+The first calibration used the vista reference's near-grass band — meadow-mass
+texture with no resolvable blades — and REJECTED the true close-up target
+(`assets/target-close-grass.png`, the archived close-lab hero crop) with the
+same failures as any real blade render. Recalibrated: target = the close crop;
+anisotropy is a MAX at close range (parallel strands make X-transitions
+dominate — smooth meadow, grass-off, and stipple all score HIGHER than real
+grass); a raw fine-detail FLOOR separates real strands from their blur; the
+two vertical-run checks keep their anti-stipple role (stipple ~0.04/0.0) at
+0.08/0.3 rather than demanding the painting's soft-mass 0.57 — a crisp
+real-time render tops out near 0.1 because columns cross many blade/gap
+boundaries. Anchor pairing holds: target passes, all three controls fail with
+named modes. Calibration lives in the scene and reruns every pass.
+
 ## Stays green
 
 Everything — this slice changes no renderer or sim code.

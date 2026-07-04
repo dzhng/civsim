@@ -86,13 +86,15 @@ Adoption: 18 curated seeds → 19 campaign seam (cuttable) → 20 retire hand ma
   deterministic, writing `height/speed/rough/tint` fields directly (never
   stacked paint ops). The renderer is a pure consumer of `BattleTerrainGrid`;
   it never derives or reinterprets passability.
-- **The rendered world is 2× the playable one** (David, 2026-07-04). One
-  height function spans the full extent; the playable `Terrain` samples the
-  center at 4 m cells, a render-only `VistaGrid` samples the surround at 16 m
-  cells (band-limited, seam-welded, shared-source normals — slice 14). Units
-  are confined by the invisible wall at the playable boundary, which must sit
-  inside the visual footprint of the E/W terrain seals. The sim never reads
-  the vista.
+- **The rendered world follows the Total War tile-map model** (David,
+  2026-07-04). One height function spans the full extent, sampled in three
+  bands: the playable `Terrain` at 4 m cells; a render-only `VistaGrid` at
+  16 m cells out to 2× the playable rect; a far fog ring at 64 m cells out to
+  ~3–4×, where fog always reaches full opacity before the outer edge
+  (band-limited, seam-welded, shared-source normals — slice 14; fog values —
+  slice 16). Units are confined by the invisible wall at the playable
+  boundary, which must sit inside the visual footprint of the E/W terrain
+  seals. The sim never reads the vista bands.
 - **One canonical vertical scale.** Generated maps author true meters and
   render at relief exaggeration **1.0**; passability derives from the same
   meters the renderer draws. `BATTLE_RELIEF_EXAGGERATION = 1.6` becomes a

@@ -20,6 +20,41 @@ at strategic zoom.
 
 ## Next Agent Prompt
 
+*Status (2026-07-05): slice 11 plants the shared 3D standard in battle. The
+flag is gone from `UnitBanner`; one lit, depth-tested, waving standard is
+uploaded per visible unit through the photoreal three.js world (instanced TSL
+layer, `photoreal-renderer/battle/standardLayer.ts`), with selection lift on
+the flag and DOM bars/chips temporarily projected to the 3D pole top.
+Decisions the orchestrator review forced, binding for 12/13:
+- WebGPU caps a pipeline at 8 vertex buffers; the layer packs livery gold as
+  a uniform and one meta vec4 — new per-instance data must reuse slots, not
+  add attributes (the first version failed pipeline creation at 9 buffers,
+  invisible to sandboxed gates).
+- Standards yaw-billboard to `camera.yaw` — cloth yawed to unit facing is
+  edge-on (invisible) from the battle camera. Tilt-to-camera at vista pitch
+  was tried and REJECTED (reads as fallen poles).
+- Legibility floor measures the projection (`standardScale`, cloth-width
+  target in px via worldToScreen deltas) — the rig's zoom curve is a 77°-down
+  telephoto for most of its range (slice-06 design), so zoom-keyed curves lie.
+  Consequence: at vista zoom flags are honest specks; team identity there is
+  carried by the readout — slice 12's billboards inherit that duty explicitly.
+  The Rome-2 reference look lives in the swoop regime (zoom ~8.5+), pinned by
+  the battle-standards-approach baseline. No shadows on standards (a scaled
+  marker casting building-length shadows betrays the floor).
+Next: slice 12 moves bars/chips into world-anchored GPU billboards and
+retires `UnitBanner`/`?test=banners` entirely. Do not reintroduce a DOM
+overlay for the readout — David rejected it for registration jitter and no
+depth interaction. An unprimed critique of the slice-11 shots found readout
+defects slice 12 MUST fix, not port: the bar-stack floats with an air gap
+above the finial (anchor the billboard to the pole, no gap); the stripes are
+anonymous and near-identical for friend and foe (team identity must read
+from the marker at a glance — the reference puts identity on the cloth and
+keeps stats as a small garnish); enemy units at tactical zoom show NO marker
+at all when they have no chips (enemy needs a minimal flag-colored presence);
+chip rows overflow and wrap misaligned; the selection affordance on the
+readout is nearly invisible. Slice 13 then ports campaign army/settlement
+standards and clears the campaign pennant re-bless debt.*
+
 *Status (2026-07-04): David reviewed the shipped banners — NOT DONE. The flags
 on both maps must be real 3D standards like Total War (in-scene waving cloth),
 not a flat DOM SVG (battle) or static flat panels (campaign). Slices 10-13
@@ -67,7 +102,7 @@ Work in this worktree; dev server for filming MUST be this worktree's on
 - [x] 08 menu — single Custom Battle entry; faction picker (colors only for now)
 - [x] 09 integrate — vibe re-bless (soldier look moves every frame), model sheets, close-spec
 - [x] 10 standard-asset-3d — ONE shared 3D standard (pole/crossbar/finial + waving swallowtail cloth), size tiers, deterministic wind; model sheet + anim GIF
-- [ ] 11 battle-3d-banners — flag leaves the DOM into the scene (depth-tested, legibility floor at tactical zoom); selection glow moves onto the 3D standard; bars/chips stay DOM only until 12
+- [x] 11 battle-3d-banners — flag leaves the DOM into the scene (depth-tested, legibility floor at tactical zoom); selection glow moves onto the 3D standard; bars/chips stay DOM only until 12
 - [ ] 12 readout-billboards — bars/chips become world-anchored camera-facing GPU billboards at the pole top (glyph atlas like campaign labels); UnitBanner DOM retired; gallery becomes a renderer scene
 - [ ] 13 campaign-3d-banners — army standard mesh → shared asset; settlement banner over cities (tier-sized, Roma ref); garrison flag keeps the city anchor without doubling up
 

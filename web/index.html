@@ -559,7 +559,7 @@
         height: 18px;
         background: rgba(150, 114, 62, 0.55);
       }
-      /* Unit banner: one component = standard (SVG flag) + own-unit stat bars + status chips. */
+      /* Unit readout: temporary DOM bars/chips anchored to the 3D standard. */
       .ubanner {
         position: absolute;
         width: 56px;
@@ -570,22 +570,9 @@
         left: 0;
         top: 0;
       }
-      .ubanner.sel {
-        filter: drop-shadow(0 0 2.5px rgba(255, 255, 255, 0.9));
-      }
-      .ubanner-flag {
-        display: block;
-        width: 48px;
-        height: 76px;
-        overflow: visible;
-      }
-      .ubanner.sel .ubanner-flag {
-        transform: scale(1.12);
-        transform-origin: 24px 4px;
-      }
       .ubanner-bars {
         width: 52px;
-        margin: 0 2px 3px;
+        margin: 0 2px;
         display: flex;
         flex-direction: column;
         gap: 2px;

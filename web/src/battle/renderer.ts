@@ -16,6 +16,7 @@ import {
   PhotorealBattleWorld,
   type BattleCameraSnapshot,
 } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
+import type { BattleStandardInstance } from "../../../packages/photoreal-renderer/src/battle/standardLayer";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
 
 export class BattleRenderer {
@@ -42,6 +43,7 @@ export class BattleRenderer {
     frameCpuMs: 0,
   };
   private frameStart = 0;
+  private standardFrameKey = "";
   private lastCamera: BattleCameraSnapshot = {
     x: 0,
     y: 0,
@@ -78,6 +80,7 @@ export class BattleRenderer {
     this.soldierUnit = new Uint32Array(soldierUnit);
     this.unitTeam = teams.map((team) => (team === 1 ? 1 : 0));
     this.frozenFrameKey = null;
+    this.standardFrameKey = "";
     this.triangleVerts = new Float32Array();
     if (this.world) {
       this.world.setStatic(soldierUnit, teams, classes);
@@ -217,6 +220,17 @@ export class BattleRenderer {
     }
   }
 
+  setUnitStandards(standards: readonly BattleStandardInstance[]) {
+    if (!this.world) return;
+    const key = standardsKey(standards);
+    if (key !== this.standardFrameKey) {
+      this.standardFrameKey = key;
+      this.frozenFrameKey = null;
+      this.skipFrozenFrame = false;
+    }
+    this.world.uploadUnitStandards(standards);
+  }
+
   stats() {
     const ws = this.world?.stats() ?? null;
     return {
@@ -246,6 +260,7 @@ export class BattleRenderer {
       terrain: ws?.terrain ?? null,
       tacticalLines: ws?.tacticalLines ?? { groundCues: null, rings: null, effects: null },
       markers: ws?.markers ?? null,
+      standards: ws?.standards ?? null,
       performance: {
         buildMs: roundMs(this.framePerf.buildMs),
         uploadMs: roundMs(this.framePerf.uploadMs),
@@ -323,6 +338,14 @@ function frozenSelectionGroundCues(verts: Float32Array) {
     for (let k = 0; k < stride * 2; k++) out.push(verts[i + k]);
   }
   return new Float32Array(out);
+}
+
+function standardsKey(standards: readonly BattleStandardInstance[]) {
+  let key = String(standards.length);
+  for (const standard of standards) {
+    key += `|${standard.unitId}:${Math.round(standard.x * 10)},${Math.round(standard.y * 10)},${Math.round(standard.z * 10)},${Math.round(standard.yaw * 100)},${Math.round(standard.scale * 100)},${standard.factionId},${standard.selected ? 1 : 0}`;
+  }
+  return key;
 }
 
 function roundMs(value: number) {

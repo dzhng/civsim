@@ -12,6 +12,8 @@ import {
   modelLookForClass,
   modelLookForUnit,
 } from "../../../packages/game-renderer/src/models/shared/soldierModel";
+import { STANDARD_SIZE_TIERS } from "../../../packages/game-renderer/src/models/shared/standardAsset";
+import { factionForTeam } from "../../../packages/game-renderer/src/battle/factionColors";
 import {
   HEAVY_PHALANX_REST_CLASS,
   HEAVY_PHALANX_SIDEARM_CLASS,
@@ -20,6 +22,7 @@ import {
   SHOCK_CAV_SIDEARM_CLASS,
 } from "../../../packages/soldier-assets/src/soldierMesh";
 import { BattleRenderer, type BattleTacticalLineFrame } from "./renderer";
+import type { BattleStandardInstance } from "../../../packages/photoreal-renderer/src/battle/standardLayer";
 import { type CameraRigRange } from "./cameraRig";
 import {
   CLASS_NAMES,
@@ -93,9 +96,28 @@ function renderClassFor(
 
 export type BattleKind = "duel" | "5v5" | "surround" | "flank" | "mapA" | "mapB";
 
-function bannerScale(zoom: number, selected: boolean): number {
+function readoutScale(zoom: number): number {
   const t = Math.max(0, Math.min(1, (zoom - 1.4) / 3.0));
-  return (0.58 + t * 0.34) * (selected ? 1.08 : 1);
+  return 0.58 + t * 0.34;
+}
+
+// Total War legibility floor: the standard is world-scaled, but as the camera
+// pulls out it grows toward a constant screen presence instead of vanishing
+// into the ranks. The rig's zoom→distance curve is nonlinear (telephoto at
+// tactical zoom), so the floor is computed from the MEASURED projection.
+// What must stay legible is the CLOTH's screen width — the flag is the unit
+// marker at far zoom, and cloth width is what reads as "the flag".
+const STANDARD_CLOTH_TARGET_PX = 16;
+const STANDARD_MIN_SCALE = 1.6;
+const STANDARD_MAX_SCALE = 5;
+// When the camera stands inside a unit its own standard would fill the frame
+// as a featureless column — hide standards that would project this wide.
+const STANDARD_NEAR_HIDE_PX = 260;
+
+function standardScale(pxPerClothWidth: number, selected: boolean): number {
+  const legible = STANDARD_CLOTH_TARGET_PX / Math.max(0.001, pxPerClothWidth);
+  const scale = Math.min(STANDARD_MAX_SCALE, Math.max(STANDARD_MIN_SCALE, legible));
+  return scale * (selected ? 1.04 : 1);
 }
 
 export interface BattleConfig {
@@ -414,9 +436,8 @@ export class BattleScene implements Scene {
       );
     }
 
-    // --- Per-unit banners: standard + HP/cohesion bars + status chips ------------
-    // Banners stay DOM-composited while the raw WebGPU path owns battlefield
-    // pixels. The battle UI/compositor slice owns any future canvas standard.
+    // --- Per-unit standards + temporary DOM readouts ------------------------------
+    // The flag is in-scene 3D now; the DOM only carries bars/chips until slice 12.
     const labelsRoot = document.getElementById("unitlabels")!;
     const domBanners: UnitBanner[] = [];
     // Per-unit banner anchors are refreshed from the rendered soldiers each
@@ -472,37 +493,64 @@ export class BattleScene implements Scene {
       return chips;
     }
 
-    function updateUnitBanners() {
+    function updateUnitStandardsAndReadouts() {
       const info = unitInfo();
       const sel = input.selected.length > 0 ? input.selected[0] : -1;
       const n = game.unit_count();
-      // DOM banners on an exact (pitch-free) projection.
       const showAll = camera.zoom > 1.1;
+      const standards: BattleStandardInstance[] = [];
       for (let u = 0; u < n; u++) {
         const b = domBanners[u];
         const o = u * STRIDE;
         const alive = info[o + 15];
-        if (alive === 0 || !showAll) {
+        if (alive === 0) {
           b.setVisible(false);
           continue;
         }
         const anchorX = unitAnchorX[u] > -Infinity ? unitAnchorX[u] : info[o];
         const anchorY = unitAnchorY[u] > -Infinity ? unitAnchorY[u] : info[o + 1];
-        // Project at the rendered ground height — a z=0 anchor parallaxes away
-        // from the soldiers on elevated terrain as the camera moves.
-        const [sx, sy] = camera.worldToScreen(
-          anchorX,
-          anchorY,
-          renderer.heightAt(anchorX, anchorY),
-        );
+        const selected = u === sel;
+        const team = info[o + UNIT_INFO.team];
+        const mine = team === 0;
+        const groundZ = renderer.heightAt(anchorX, anchorY);
+        const tier = STANDARD_SIZE_TIERS["battle-unit"];
+        const [bx] = camera.worldToScreen(anchorX, anchorY, groundZ);
+        const [ex] = camera.worldToScreen(anchorX + 1, anchorY, groundZ);
+        const pxPerClothWidth = Math.abs(ex - bx) * tier.clothWidth;
+        const poleHeight = tier.poleHeight;
+        const scale = standardScale(pxPerClothWidth, selected);
+        if (pxPerClothWidth * STANDARD_MIN_SCALE > STANDARD_NEAR_HIDE_PX) {
+          b.setVisible(false);
+          continue;
+        }
+        standards.push({
+          unitId: u,
+          x: anchorX,
+          y: anchorY,
+          z: groundZ,
+          // Yaw-billboard toward the camera (Total War banners): a cloth
+          // yawed to the unit's facing is edge-on — invisible — from the
+          // default battle camera. The pole/finial are rotation-symmetric,
+          // so only the cloth reads and it must read from where you look.
+          yaw: camera.yaw,
+          scale,
+          factionId: factionForTeam(team).id,
+          selected,
+        });
+        if (!showAll) {
+          // Far zoom: the standard IS the unit marker; only the DOM readout hides.
+          b.setVisible(false);
+          continue;
+        }
+        const poleTopZ = groundZ + poleHeight * scale;
+        const [sx, sy] = camera.worldToScreen(anchorX, anchorY, poleTopZ);
         if (sx < -60 || sy < -40 || sx > window.innerWidth + 60 || sy > window.innerHeight + 40) {
           b.setVisible(false);
           continue;
         }
-        const selected = u === sel;
-        const mine = info[o + UNIT_INFO.team] === 0;
-        b.setVisible(true);
-        b.place(sx, sy, bannerScale(camera.zoom, selected));
+        const chips = unitChips(info, o);
+        b.setVisible(mine || chips.length > 0);
+        b.place(sx, sy, readoutScale(camera.zoom));
         b.update({
           team: mine ? 0 : 1,
           mine,
@@ -510,10 +558,11 @@ export class BattleScene implements Scene {
           cohesion: info[o + UNIT_INFO.cohesion],
           morale: info[o + UNIT_INFO.morale],
           stamina: info[o + UNIT_INFO.stamina],
-          chips: unitChips(info, o),
+          chips,
           selected,
         });
       }
+      renderer.setUnitStandards(standards);
     }
 
     // --- Toolbar (React, inside <BattleHud>) --------------------------------------
@@ -1519,7 +1568,7 @@ export class BattleScene implements Scene {
         }
         if (updateRenderPos) renderPosTick = simTick;
       }
-      // Unit standards + state are a DOM component now (see UnitBanner).
+      // Unit standards are in-scene; UnitBanner only follows with bars/chips.
       renderer.draw(
         renderPos,
         renderFacings,
@@ -1600,6 +1649,7 @@ export class BattleScene implements Scene {
         }
         if (tris.length) renderer.drawTris(new Float32Array(tris), camera);
       }
+      updateUnitStandardsAndReadouts();
       renderer.drawTacticalLines(tacticalLineFrame(showPaths), camera);
 
       // DOM selection rectangle.
@@ -1613,7 +1663,6 @@ export class BattleScene implements Scene {
         selbox.style.display = "none";
       }
 
-      updateUnitBanners();
       tickCards();
       hudTimer += frameDt;
       if (hudTimer > 0.2) {

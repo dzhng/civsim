@@ -21,13 +21,15 @@ Reference images (in `assets/` and the aesthetics skill):
 
 ## Next Agent Prompt
 
-**Status 2026-07-04: slice 00 DONE (live-verified, baselines blessed).**
-Slice 01 (genmap skeleton) is in flight in a parallel worktree; next pickups
-after it land: [02-landform](slices/02-landform.md) (G-track) and
-[10-grass-port](slices/10-grass-port.md) (V-track — reuses 00's close gate).
-Read the camera-truth trap and horizon-deferral decision recorded in
-[00's locked values](slices/00-composition-and-oracle-lock.md) before writing
-any scene against the photoreal battle route.
+**Status 2026-07-05: slices 00 and 10 DONE (live-verified, oracle-accepted).**
+Slice 01 (genmap skeleton) is implemented and cargo-green in a parallel
+worktree, pending browser verification + merge. Next pickups: 02 (landform,
+after 01 merges) and 11 (grass battle swap — read slice 10's TSL hazards
+FIRST; they cost a full day). The judging oracle was re-anchored to the true
+close-up target during slice 10 — read the amendment in
+[00's locked values](slices/00-composition-and-oracle-lock.md) plus the
+camera-truth trap before writing any scene against the photoreal battle
+route.
 
 Before writing any code, read:
 
@@ -52,7 +54,7 @@ Before writing any code, read:
 - [ ] 04 — Hydrology (priority-flood lakes, descending rivers, fords)
 - [ ] 05 — Edge grammar + deployment guarantees
 - [ ] 06 — Seed variety + seed browser
-- [ ] 10 — False Earth grass port (close-gate ratification)
+- [x] 10 — False Earth grass port (close-gate ratification)
 - [ ] 11 — Grass battle integration (swap + delete tuft path, perf gate)
 - [ ] 12 — Grass LOD budgets at 30k
 - [ ] 13 — Cliff material

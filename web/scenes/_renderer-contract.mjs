@@ -215,12 +215,16 @@ export function hasCampaignWorldDepthContract(stats) {
     hasFramePassRole(stats?.phases, "campaign-scenery-opaque", "world-opaque", "world-depth") &&
     hasFrameDepthPass(stats?.phases, "campaign-entities-opaque", "read-write") &&
     hasFramePassRole(stats?.phases, "campaign-entities-opaque", "world-opaque", "world-depth") &&
+    hasFrameDepthPass(stats?.phases, "campaign-standards-opaque", "read-write") &&
+    hasFramePassRole(stats?.phases, "campaign-standards-opaque", "world-opaque", "world-depth") &&
     hasFrameDepthPass(stats?.phases, "campaign-soldier-crowd", "read-write") &&
     hasFramePassRole(stats?.phases, "campaign-soldier-crowd", "world-opaque", "world-depth") &&
     hasFrameDepthPass(stats?.phases, "campaign-scenery-shadows", "read") &&
     hasFramePassRole(stats?.phases, "campaign-scenery-shadows", "world-decal", "world-depth") &&
     hasFrameDepthPass(stats?.phases, "campaign-entity-shadows", "read") &&
     hasFramePassRole(stats?.phases, "campaign-entity-shadows", "world-decal", "world-depth") &&
+    hasFrameDepthPass(stats?.phases, "campaign-standard-shadows", "read") &&
+    hasFramePassRole(stats?.phases, "campaign-standard-shadows", "world-decal", "world-depth") &&
     hasFrameDepthPass(stats?.phases, "campaign-soldier-shadows", "read") &&
     hasFramePassRole(stats?.phases, "campaign-soldier-shadows", "world-decal", "world-depth") &&
     hasFrameDepthPass(stats?.phases, "campaign-roads", "read") &&

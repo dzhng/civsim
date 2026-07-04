@@ -20,6 +20,19 @@ at strategic zoom.
 
 ## Next Agent Prompt
 
+*Status (2026-07-05): slice 13 converted campaign army standards and settlement
+banners to the slice-10 shared 3D standard pass. Campaign now feeds explicit
+per-instance livery from campaign faction RGB, deterministic city/army wind
+phases from the pinned scene clock, and suppresses the settlement banner when a
+garrison standard takes the city mast. Orchestrator review decisions:
+banner scale rules are exported from the campaign renderer
+(campaignSettlementStandardScale / campaignArmyStandardScale) and consumed by
+the renderer-lab review routes — the first version re-hardcoded the ratios in
+seven router sites, so production tuning silently no-opped in the review
+shots (the CAMPAIGN_FIGURE_SIZE lesson again); sized toward the Roma
+reference (settlement banner towers over the town, army standard clears its
+figure crowd). New standard-liveries model gate pins arbitrary-RGB livery.*
+
 *Status (2026-07-04): David reviewed the shipped banners — NOT DONE. The flags
 on both maps must be real 3D standards like Total War (in-scene waving cloth),
 not a flat DOM SVG (battle) or static flat panels (campaign). Slices 10-13
@@ -44,11 +57,11 @@ round-tripped screen space and fanned airborne arrows into viewCenter —
 effects lines now carry per-vertex z; slice 08's menu/picker changes rode
 into 07's commit cf2643bb via a shared-tree add -A, content verified);
 08 single Custom Battle entry + azure/crimson picker; 09 full re-bless (17
-vibe timelines, banner gallery, battle renderer scenes). Remaining known
-debt: campaign scene re-bless for the pennant restyle happens with the next
-campaign pass (campaign map shots unaffected by battle changes except the
-marker pennant silhouette); write-anim GIF for the shoot clip is reviewable
-via the arrows-close draw poses.*
+vibe timelines, banner gallery, battle renderer scenes). Slice 13 is the
+campaign pass that moves the campaign pennant/flag baselines; re-bless those
+campaign scene/model shots deliberately with the shared 3D standard. The
+write-anim GIF for the shoot clip is reviewable via the arrows-close draw
+poses.*
 
 Implement in order; 01 is the foundation (color unification) every visual
 slice consumes. After each slice: gates green, screenshot-critique on new
@@ -69,7 +82,7 @@ Work in this worktree; dev server for filming MUST be this worktree's on
 - [x] 10 standard-asset-3d — ONE shared 3D standard (pole/crossbar/finial + waving swallowtail cloth), size tiers, deterministic wind; model sheet + anim GIF
 - [ ] 11 battle-3d-banners — flag leaves the DOM into the scene (depth-tested, legibility floor at tactical zoom); selection glow moves onto the 3D standard; bars/chips stay DOM only until 12
 - [ ] 12 readout-billboards — bars/chips become world-anchored camera-facing GPU billboards at the pole top (glyph atlas like campaign labels); UnitBanner DOM retired; gallery becomes a renderer scene
-- [ ] 13 campaign-3d-banners — army standard mesh → shared asset; settlement banner over cities (tier-sized, Roma ref); garrison flag keeps the city anchor without doubling up
+- [x] 13 campaign-3d-banners — army standard mesh → shared asset; settlement banner over cities (tier-sized, Roma ref); garrison flag keeps the city anchor without doubling up
 
 ## Slice 10 handoff (landed)
 

@@ -118,9 +118,9 @@ export function standardLiveryForFaction(factionId: BattleFactionId): StandardLi
   };
 }
 
-export function standardSeed(tier: StandardSizeTier, factionId: BattleFactionId): number {
+export function standardSeed(tier: StandardSizeTier, seedKey: BattleFactionId | string | number): number {
   let h = 0x811c9dc5;
-  const text = `${tier}:${factionId}`;
+  const text = `${tier}:${seedKey}`;
   for (let i = 0; i < text.length; i++) {
     h ^= text.charCodeAt(i);
     h = Math.imul(h, 0x01000193);

@@ -26,17 +26,19 @@ the existing owner.
 
 ## Next Agent Prompt
 
-**Status (2026-07-04):** Slices 00–02 SHIPPED and verified. Pick up at
-**Slice 03 (importance scalar)** — the first density slice.
+**Status (2026-07-04):** Slices 00–03 SHIPPED. Pick up at **Slice 04 (unified
+greedy rank)** — and fix the faction importance formula there first.
 
-**Do this next, in order (03–06 are serial):**
+**Do this next, in order (04–06 are serial):**
 
-1. **Slice 03 — importance scalar** (`slices/03-importance-scalar.md`). Add
-   `importance` to `CampaignLabel`, assembled at the emitters; telemetry only,
-   zero visual change.
-2. **Slice 04 — unified greedy rank**, **05 — crowding margin**, **06 —
-   reappearance verify**. Each grows `arbitrateLabelOccupancy`; re-bless
-   overview snaps on the visual ones.
+1. **Slice 04 — unified greedy rank** (`slices/04-unified-greedy.md`). FIRST fix
+   the faction importance formula (see slice 03's Calibration finding): replace
+   capped `radiusKm` with **uncapped `powerKm` (`sqrt(cells)·cell`) + a
+   per-faction army-strength term**, so Rome (small territory, strong army)
+   outranks minor leagues instead of ranking last. Then replace `stageOf` in
+   `arbitrateLabelOccupancy` with the importance comparator. Validate the
+   overview visually; re-bless snaps.
+2. **Slice 05 — crowding margin**, **06 — reappearance verify**.
 
 **Update this section before ending your pass.**
 

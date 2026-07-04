@@ -1002,6 +1002,11 @@ function allegianceColor(allegiance: Allegiance): [number, number, number] {
   return [0.93, 0.78, 0.3];
 }
 
+const CITY_TIER_IMPORTANCE_KM: Record<number, number> = { 1: 90, 2: 140, 3: 210 };
+const cityImportance = (tier: number) => CITY_TIER_IMPORTANCE_KM[tier] ?? 90;
+const factionImportance = (radiusKm: number) => radiusKm;
+const armyImportance = (soldiers: number) => 90 + Math.min(200, soldiers / 15);
+
 function campaignCityLabels(
   data: CampaignData,
   field: TerrainField,
@@ -1045,6 +1050,7 @@ function campaignCityLabels(
       kind: "city",
       size: baseSize,
       priority: node.tier,
+      importance: cityImportance(node.tier),
       // Overview: the settlement icon sits ABOVE the name and IS the city's
       // marker (no separate square). Closeup: the 3D model is the marker, so the
       // label is text-only.
@@ -1158,6 +1164,7 @@ function campaignArmyLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
             kind: "army",
             size: Math.min(14, 9 + opts.cam.scale),
             priority: 4,
+            importance: armyImportance(army.soldiers),
             iconColor: factionColor(data, army.faction),
             collisionGroup: cityCollisionGroup(occupiedCity.index),
             // The standard flies from this same anchor (see campaignMapMarkers),
@@ -1177,6 +1184,7 @@ function campaignArmyLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
             kind: "army",
             size: Math.min(14, 9 + opts.cam.scale),
             priority: 4,
+            importance: armyImportance(army.soldiers),
             icon: "army",
             iconColor: factionColor(data, army.faction),
             screenOffsetY: markerSize + selectedOffset + overlapClearance,
@@ -1279,6 +1287,7 @@ function campaignFactionLabels(data: CampaignData, opts: DrawOptions): CampaignL
         kind: "faction",
         size: label.minor ? 9 : 17,
         priority: 4,
+        importance: factionImportance(label.radiusKm),
         angle: -0.06,
         factionRadiusKm: label.radiusKm,
         factionMinor: label.minor,

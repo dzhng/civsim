@@ -128,6 +128,7 @@ export interface CampaignLabel {
   kind: 'city' | 'sea' | 'army' | 'faction';
   size: number;
   priority: number;
+  importance?: number;
   angle?: number;
   curve?: number;
   icon?: 'city' | 'army' | 'sword';
@@ -597,6 +598,7 @@ export interface CampaignLabelPlacementStyle {
 export interface CampaignLabelDebugRect {
   text: string;
   kind: CampaignLabel['kind'];
+  importance?: number;
   opacity: number;
   box: { x: number; y: number; w: number; h: number };
   corners: [number, number][];
@@ -2467,6 +2469,7 @@ function labelDebugRects(entries: AtlasEntry[], dpr: number): CampaignLabelDebug
     return {
       text: labelText(label),
       kind: label.kind,
+      importance: label.importance,
       opacity: roundPx(entry.opacity),
       box: cornersAabb(corners),
       corners,

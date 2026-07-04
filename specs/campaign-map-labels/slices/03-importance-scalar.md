@@ -36,6 +36,19 @@ the ranking (Rome > a small league > a tier-1 town).
 city-vs-faction normalization before Slice 04 consumes it. This is *the* balance
 decision — open the telemetry table with preview-shots.
 
+**Calibration finding (SHIPPED plumbing, formula deferred to Slice 04):** the
+first-cut faction formula used `label.radiusKm` directly, but that value is
+**capped at 1.5× Rome (292)** for the territory wash — so the 6 majors and ~9
+big leagues all tie at 292 and **Rome ranks last (195)**, below tier-3 cities.
+Consuming that as-is would cull Rome. The scalar + telemetry threading are
+correct and inert (zero visual change), so they ship; the **formula** is
+resolved in Slice 04, where it drives placement and can be validated on the
+overview. The fix: faction power = **uncapped** territory size (`sqrt(cells)·cell`
+before the wash cap, exposed as a new `powerKm` on the faction label) **plus a
+per-faction army-strength term** (the `armyStrength` half of `g(...)` deferred
+here) — army strength is what keeps a strong-but-territorially-small major like
+Rome ranked above a minor neutral league. City-tier km-equivalents get
+re-checked against that corrected faction scale.
+
 **Feedback that would change this:** the normalization curve (how steeply
-faction power beats city tier) is expected to be tuned against the Slice 04
-overview.
+faction power beats city tier) is tuned against the Slice 04 overview.

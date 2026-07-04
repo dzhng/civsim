@@ -26,23 +26,14 @@ the existing owner.
 
 ## Next Agent Prompt
 
-**Status (2026-07-04):** Slices 00–04 SHIPPED — the overview declutters (34 → 13
-faction labels; wall of minor leagues gone). Pick up at **Slice 05 (crowding
-margin)**, then **06 (reappearance verify)**.
+**Status (2026-07-04):** ALL SLICES SHIPPED. Ready for `close-spec`. Slice 05
+(crowding margin) was resliced to a no-build (its premise — a crowded overview —
+was removed by slice 04's declutter). Nothing left to pick up.
 
-**Do this next:**
-
-1. **Slice 05 — crowding margin** (`slices/05-crowding-margin.md`): inflate ink
-   rects by a zoom-scaled pad before `rectsOverlap` so survivors keep breathing
-   room. Re-bless overview; screenshot-critique the Aegean cluster.
-2. **Slice 06 — reappearance verify** (`slices/06-reappearance-zoom.md`): the
-   zoom-ladder probe asserting monotonic survival + per-zoom budget. The league
-   LOD's `LEAGUE_IMPORTANCE_BAR_HI` bar (slice 04) is the reappearance mechanism
-   to verify.
-
-**Deferred polish (open taste calls, see slice 04 doc):** duplicate league/city
-name (IERUSALEM league engraving + city label); faint league engravings reading
-sea-like; interior slightly sparse (bar could drop 1–2). Raise with David.
+**Deferred polish (open taste calls for David, not open slices — see slice 04
+doc):** duplicate league/city name (IERUSALEM league engraving + city label);
+faint league engravings reading sea-like; interior slightly sparse
+(`LEAGUE_IMPORTANCE_BAR_HI` could drop 1–2).
 
 **Update this section before ending your pass.**
 
@@ -50,6 +41,10 @@ sea-like; interior slightly sparse (bar could drop 1–2). Raise with David.
 - [x] **00** Offshore marker fix — remove world-edge inset from city labels *(shipped)*
 - [x] **01** Probe samples the drawn icon rect + `drawnIconOffsetPx` detached-marker gate *(shipped)*
 - [x] **02** Drop-qualifier-when-unique naming — `dequalify-names.mjs` post-step + cargo invariant *(shipped)*
+- [x] **03** Unified importance scalar (telemetry only, inert) *(shipped)*
+- [x] **04** Importance-ranked density — owned-city-tier power, greedy arbitration + league LOD; overview 34→13 *(shipped)*
+- [x] **05** Crowding margin — RESLICED to no-build (declutter removed the crowding premise)
+- [x] **06** Reappearance verify — `tools/reappearance-probe.mjs` locks monotonic 5→14 + overview budget *(shipped)*
 - [ ] **03** Importance scalar on every arbitrating label *(owns: emitters + `CampaignLabel.importance`)*
 - [ ] **04** Unified importance-ranked greedy over one budget *(owns: `arbitrateLabelOccupancy`)*
 - [ ] **05** Crowding margin *(owns: the overlap test inside the arbitration)*

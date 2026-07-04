@@ -37,7 +37,17 @@ add minimal hysteresis in `visibleLabels` — never a stored per-label history.
 
 ---
 
-*Lane close:* after Slice 06, run the full `find-map-bugs` sweep on the three
-canonical shots, confirm the global TODO is closed, then
-[close-spec](../../../.claude/skills/close-spec/SKILL.md) this feature into
-`specs/done/`.
+**SHIPPED (verification).** The reappearance mechanism is slice 04's league LOD:
+`LEAGUE_IMPORTANCE_BAR_HI` falls to 0 by mid-zoom, so a league culled at overview
+clears the bar and reappears as the camera comes in — stateless, recomputed per
+frame. `tools/reappearance-probe.mjs` locks it: holding a fixed center over the
+league-dense east-Med and stepping the zoom, visible league count is
+non-decreasing (**5 → 7 → 12 → 14**) and the overview stays within budget (5 ≤
+10). Above zoom ~1.0 `leagueHiFade` intentionally retires faction engravings so
+cities take over — that upper cutoff is by design, not a monotonicity break. The
+apparent drops when free-panning are labels leaving the shrinking viewport, so
+the probe compares counts at a fixed center, the density signal.
+
+*Close:* `close-spec` archives this feature to `specs/done/`. The deferred
+polish (duplicate league/city name, faint-league legibility, bar tuning) is
+recorded for David — taste calls, not open slices.

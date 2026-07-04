@@ -53,7 +53,7 @@ Before writing any code, read:
 - [ ] 11 — Grass battle integration (swap + delete tuft path, perf gate)
 - [ ] 12 — Grass LOD budgets at 30k
 - [ ] 13 — Cliff material
-- [ ] 14 — Vista backdrop (decision point: apron vs styled blockers)
+- [ ] 14 — Vista backdrop (DECIDED: render-only apron, world = 2× playable)
 - [ ] 15 — Lake render
 - [ ] 16 — Haze / mood preset
 - [ ] 17 — Compose gate (style-family verdict on 3+ seeds)
@@ -86,6 +86,13 @@ Adoption: 18 curated seeds → 19 campaign seam (cuttable) → 20 retire hand ma
   deterministic, writing `height/speed/rough/tint` fields directly (never
   stacked paint ops). The renderer is a pure consumer of `BattleTerrainGrid`;
   it never derives or reinterprets passability.
+- **The rendered world is 2× the playable one** (David, 2026-07-04). One
+  height function spans the full extent; the playable `Terrain` samples the
+  center at 4 m cells, a render-only `VistaGrid` samples the surround at 16 m
+  cells (band-limited, seam-welded, shared-source normals — slice 14). Units
+  are confined by the invisible wall at the playable boundary, which must sit
+  inside the visual footprint of the E/W terrain seals. The sim never reads
+  the vista.
 - **One canonical vertical scale.** Generated maps author true meters and
   render at relief exaggeration **1.0**; passability derives from the same
   meters the renderer draws. `BATTLE_RELIEF_EXAGGERATION = 1.6` becomes a
@@ -169,7 +176,14 @@ a vista band matches the convention. Grass: Ghost of Tsushima GDC 2021
 https://gdcvault.com/play/1027033) and a TSL implementation at ~1.18 M blades
 / one draw call / 120 fps (https://aleksandargjoreski.dev/blog/growing-my-grass-shader/)
 — blade ring ~150–250 m around the camera target, stochastic distance
-thinning, terrain texture beyond; haze eats the LOD seam.
+thinning, terrain texture beyond; haze eats the LOD seam. Vista/out-of-bounds
+terrain: Total War renders ~8 km around a ~2 km playable square, vista as a
+low-frequency heightmap (https://wiki.totalwar.com/w/TWW_Assembly_Kit_Terry_Intro,
+https://wiki.totalwar.com/w/Terry_-_Low_Frequency_Map); crack-free two-rate
+seams and transition morphs from geometry clipmaps
+(https://hhoppe.com/geomclipmap.pdf); fog must saturate at or before the vista
+edge; vista excluded from shadow casting with CSM fit to playable bounds
+(https://gpuopen.com/learn/optimizing-terrain-shadows/).
 
 ## Verification rules
 

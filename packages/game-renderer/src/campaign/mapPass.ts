@@ -128,6 +128,7 @@ export interface CampaignLabel {
   kind: 'city' | 'sea' | 'army' | 'faction';
   size: number;
   priority: number;
+  importance?: number;
   angle?: number;
   curve?: number;
   icon?: 'city' | 'army' | 'sword';
@@ -143,22 +144,6 @@ export interface CampaignLabel {
   screenAnchorY?: 'center' | 'top' | 'bottom';
   factionRadiusKm?: number;
   factionMinor?: boolean;
-  /** Land-aware anchor choice (B2/B8): preference-ordered alternatives for
-   * the label's screen offset+anchor. The occupancy arbitration drops the
-   * candidates whose measured ink rect lands on claimed ground (cards and
-   * higher-priority labels), then the shared placement scorer picks among the
-   * survivors (isBadAt = water). The first candidate must mirror the
-   * screenOffset/screenAnchor fields — it is the tiebreak, so labels with a
-   * clean default never move. */
-  placementCandidates?: CampaignLabelAnchor[];
-}
-
-/** One candidate screen placement for an anchored (city) label, CSS px. */
-export interface CampaignLabelAnchor {
-  screenOffsetX: number;
-  screenOffsetY: number;
-  screenAnchorX: 'center' | 'left' | 'right';
-  screenAnchorY: 'center' | 'top' | 'bottom';
 }
 
 const ICON_PATHS = {
@@ -597,6 +582,7 @@ export interface CampaignLabelPlacementStyle {
 export interface CampaignLabelDebugRect {
   text: string;
   kind: CampaignLabel['kind'];
+  importance?: number;
   opacity: number;
   box: { x: number; y: number; w: number; h: number };
   corners: [number, number][];
@@ -608,6 +594,9 @@ export interface CampaignLabelDebugRect {
    * than deflating `box` (the full-quad AABB) by `padPx` — consumers checking
    * overlaps must use this so the test agrees with what arbitration enforced. */
   inkRect: { x: number; y: number; w: number; h: number };
+  /** Icon-above city labels only: the drawn settlement-icon sub-rect in
+   * CSS px (the marker footprint). Absent for labels with no above-icon. */
+  iconRect?: { x: number; y: number; w: number; h: number };
   /** Faction labels only: true for the small league names (they yield to
    * cards; major engravings are background-scale and do not). */
   minor?: boolean;
@@ -1919,6 +1908,14 @@ interface MeasuredCampaignLabel extends VisibleCampaignLabel {
   height: number;
 }
 
+// League-name density: at overview only leagues whose owned-city power clears
+// this bar keep a name (majors always clear it); the bar falls to zero as the
+// camera comes in. Tuned so the whole-map view shows the handful of strong
+// leagues, not a wall of minor ones. Faction engravings retire (hide, not fade —
+// no opacity) once the camera is close enough that city labels carry the detail.
+const LEAGUE_IMPORTANCE_BAR_HI = 14;
+const FACTION_RETIRE_ZOOM = 0.95;
+
 function visibleLabels(labels: CampaignLabel[], camera: CameraSnapshot, dpr: number): VisibleCampaignLabel[] {
   const visible: VisibleCampaignLabel[] = [];
   for (const label of labels) {
@@ -1937,14 +1934,21 @@ function visibleLabels(labels: CampaignLabel[], camera: CameraSnapshot, dpr: num
       opacity = (1 - clamp01((camera.zoom - 0.26) / 0.16)) * 0.8;
       if (opacity <= 0.02) continue;
     } else if (label.kind === 'faction') {
+      // Faction/league names are SOLID — no opacity anywhere (only sea names
+      // fade). Density is by VISIBILITY, not transparency: an engraving is shown
+      // at full strength or not at all. Retire engravings at close zoom, where
+      // the city labels carry the detail view.
+      if (camera.zoom > FACTION_RETIRE_ZOOM) continue;
+      if (label.factionMinor) {
+        // Leagues declutter by owned-city power (not territory area): a league
+        // keeps its name once its power clears the zoom-scaled bar — high at
+        // overview so only the strong leagues show, falling as the camera comes
+        // in (where the tighter viewport already thins the count) — else hidden.
+        const bar = LEAGUE_IMPORTANCE_BAR_HI * (1 - clamp01((camera.zoom - 0.3) / 0.5));
+        if ((label.importance ?? 0) < bar) continue;
+      }
       const radius = label.factionRadiusKm ?? 0;
       const screenR = radius * camera.zoom;
-      const powerAlpha = 1 - clamp01((camera.zoom - 0.72) / 0.16);
-      const leagueHiFade = 1 - clamp01((camera.zoom - 0.85) / 0.18);
-      opacity = label.factionMinor
-        ? clamp01((screenR - 95) / 45) * leagueHiFade * 0.9
-        : powerAlpha;
-      if (opacity <= 0.02) continue;
       const size = label.factionMinor
         ? Math.min(22, Math.max(9, screenR * 0.4))
         : Math.min(34, Math.max(17, screenR * 0.5));
@@ -1996,9 +2000,6 @@ function labelAtlasKey(labels: VisibleCampaignLabel[], dpr: number, totalLabels:
         entry.offsetY.toFixed(2),
         label.screenAnchorX ?? 'center',
         label.screenAnchorY ?? 'center',
-        (label.placementCandidates ?? [])
-          .map((c) => `${c.screenOffsetX.toFixed(1)},${c.screenOffsetY.toFixed(1)},${c.screenAnchorX},${c.screenAnchorY}`)
-          .join(';'),
         entry.opacity.toFixed(3),
         entry.screenX.toFixed(1),
         entry.screenY.toFixed(1),
@@ -2218,21 +2219,18 @@ function arbitrateLabelOccupancy(
 
   const arbitrates = (entry: MeasuredCampaignLabel) =>
     entry.label.kind !== 'sea' && entry.opacity >= OCCUPANCY_MIN_OPACITY;
-  const stageOf = (entry: MeasuredCampaignLabel) => {
-    if (entry.label.kind === 'faction') return entry.label.factionMinor ? 1 : 0;
-    return entry.label.kind === 'army' ? 2 : 3;
-  };
+  // One occupancy budget for every kind: the label with the higher importance
+  // claims its space first, the rest cull when they collide. Importance is the
+  // unified scalar the emitters assemble (owned-city-tier power for factions,
+  // tier for cities, soldier mass for armies) — so a strong realm or a great
+  // city leads and a minor league yields, with no per-kind stage ladder.
+  const importanceOf = (entry: MeasuredCampaignLabel) => entry.label.importance ?? 0;
   const ordered = labels
     .map((entry, index) => ({ entry, index }))
     .filter(({ entry }) => arbitrates(entry))
     .sort((a, b) => {
-      const stage = stageOf(a.entry) - stageOf(b.entry);
-      if (stage !== 0) return stage;
-      // Among city labels the higher tier claims first; everything else keeps
-      // its emitter order (already deterministic per frame).
-      if (stageOf(a.entry) === 3 && a.entry.label.priority !== b.entry.label.priority) {
-        return b.entry.label.priority - a.entry.label.priority;
-      }
+      const byImportance = importanceOf(b.entry) - importanceOf(a.entry);
+      if (byImportance !== 0) return byImportance;
       return a.index - b.index;
     });
 
@@ -2286,63 +2284,21 @@ function arbitrateLabelOccupancy(
   };
 }
 
-/** City-label placement (slice 09 occupancy only): a city label always hugs
- * its marker — it never scores its candidates against the render mask (only
- * sea names chase dry ground, per David's rule). Walk the emitter's
- * preference-ordered hug candidates (attached position first) and take the
- * first whose ink rect lands on unclaimed ground, so an unobstructed label
- * keeps the classic attached anchor and a blocked one dodges to another side
- * of the SAME marker. null means every hug position is claimed → the label
- * hides rather than detach. */
+/** City-label placement (slice 09 occupancy only): a city label has one marker
+ * hug position. If that ink rect is already claimed, the label hides rather
+ * than dodging to another side. */
 function placeCityLabel(
   entry: MeasuredCampaignLabel,
   claims: OccupancyClaim[],
   dpr: number,
 ): ScreenRect | null {
-  const candidates =
-    entry.label.placementCandidates && entry.label.placementCandidates.length > 0
-      ? entry.label.placementCandidates
-      : [
-          {
-            screenOffsetX: entry.offsetX / dpr,
-            screenOffsetY: entry.offsetY / dpr,
-            screenAnchorX: entry.label.screenAnchorX ?? 'center',
-            screenAnchorY: entry.label.screenAnchorY ?? 'center',
-          } satisfies CampaignLabelAnchor,
-        ];
-  for (const candidate of candidates) {
-    const rect = candidateInkRect(entry, candidate, dpr);
-    if (claims.some((claim) => rectsOverlap(rect, claim.rect))) continue;
-    entry.offsetX = candidate.screenOffsetX * dpr;
-    entry.offsetY = candidate.screenOffsetY * dpr;
-    entry.label = {
-      ...entry.label,
-      screenAnchorX: candidate.screenAnchorX,
-      screenAnchorY: candidate.screenAnchorY,
-    };
-    return rect;
-  }
-  return null;
+  const rect = entryInkRect(entry, dpr);
+  return claims.some((claim) => rectsOverlap(rect, claim.rect)) ? null : rect;
 }
 
 /** Ink rect (CSS px AABB) of a measured label at its current anchor. */
 function entryInkRect(entry: MeasuredCampaignLabel, dpr: number): ScreenRect {
   return inkRectAt(entry, entry.offsetX, entry.offsetY, entry.label.screenAnchorX, entry.label.screenAnchorY, dpr);
-}
-
-function candidateInkRect(
-  entry: MeasuredCampaignLabel,
-  candidate: CampaignLabelAnchor,
-  dpr: number,
-): ScreenRect {
-  return inkRectAt(
-    entry,
-    candidate.screenOffsetX * dpr,
-    candidate.screenOffsetY * dpr,
-    candidate.screenAnchorX,
-    candidate.screenAnchorY,
-    dpr,
-  );
 }
 
 /** The visible ink box: the atlas rect deflated by its transparent halo
@@ -2447,14 +2403,30 @@ function labelDebugRects(entries: AtlasEntry[], dpr: number): CampaignLabelDebug
       angle,
       dpr,
     );
+    const iconAbove = label.kind === 'city' && !!label.icon;
+    const iconSize = iconAbove ? labelStyle(label, dpr).iconSize : 0;
+    const iconRect = iconAbove
+      ? cornersAabb(
+          labelCornersCss(
+            centerX,
+            centerY - entry.height * 0.5 + entry.padding + iconSize * 0.5,
+            iconSize,
+            iconSize,
+            angle,
+            dpr,
+          ),
+        )
+      : undefined;
     return {
       text: labelText(label),
       kind: label.kind,
+      importance: label.importance,
       opacity: roundPx(entry.opacity),
       box: cornersAabb(corners),
       corners,
       padPx: roundPx(entry.padding / dpr),
       inkRect: cornersAabb(inkCorners),
+      ...(iconRect ? { iconRect } : {}),
       ...(label.kind === 'faction' ? { minor: label.factionMinor === true } : {}),
     };
   });

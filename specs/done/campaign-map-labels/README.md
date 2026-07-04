@@ -86,6 +86,13 @@ text."
    at all — density is a visibility gate (`LEAGUE_IMPORTANCE_BAR_HI` /
    `FACTION_RETIRE_ZOOM`), never a fade. A half-visible faction/city label is a
    bug.
+9. **Placement is dead simple: fixed position, cull on overlap.** A label or DOM
+   card sits directly under its anchor at ONE position — no dodging, nudging,
+   stacking, landward-slide, or alternate candidates. When two would overlap the
+   lower-priority one is hidden (the player zooms in to see it). This is what
+   keeps positions stable as the camera moves — clever repositioning made cards
+   jump. It superseded campaign-map-bugs' slice-07 landward card offset,
+   slice-09 card nudge/stack, and the city-label candidate walk (all deleted).
 
 ## Pointers into the code
 

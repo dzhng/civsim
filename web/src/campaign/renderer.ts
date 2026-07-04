@@ -1008,7 +1008,6 @@ function campaignCityLabels(
   opts: DrawOptions,
   cam: CameraSnapshot,
 ): CampaignLabel[] {
-  const edge = mapEdgeProjector(data);
   const labels: CampaignLabel[] = [];
   data.map.nodes.forEach((node, index) => {
     if (node.kind !== "city") return;
@@ -1024,19 +1023,20 @@ function campaignCityLabels(
     const allegiance = statusOf(opts.factionStatus, owner);
     const baseSize = Math.min(15, 9.5 + opts.cam.scale) * (node.tier >= 3 ? 1.15 : 1);
     const overviewMarkerLabel = opts.cam.scale < 0.6;
-    const edgeX = horizontalEdgeOffset(edge.x(node.pos[0]));
-    const edgeY = verticalEdgeOffset(edge.y(node.pos[1]));
     const reliefPx = cityReliefRisePx(field, opts, node.pos, cam);
     // A city label hugs its marker, always (David's rule): the emitter authors
     // the attached anchor first, then its mirrors around the same marker as
     // collision alternates. The label pass never scores these against the
-    // render mask — only sea names care about dry ground.
+    // render mask — only sea names care about dry ground. It also never takes
+    // the world-edge inset (horizontal/verticalEdgeOffset): that inset is for
+    // free-floating faction engravings, and since the overview marker IS this
+    // label's icon, applying it dragged the icon-marker off its city into the
+    // sea (Ierusalem, on the map's eastern strip, shoved ~52px west onto water).
     const anchors = overviewMarkerLabel
-      ? overviewCityLabelAnchors(node.tier, edgeX, edgeY)
+      ? overviewCityLabelAnchors(node.tier)
       : closeupCityLabelAnchors(
-          edgeX,
-          cityLabelOffset(opts, baseSize, reliefPx) + edgeY,
-          -(reliefPx + baseSize * 1.9) + edgeY,
+          cityLabelOffset(opts, baseSize, reliefPx),
+          -(reliefPx + baseSize * 1.9),
         );
     labels.push({
       text: node.name.toUpperCase(),
@@ -1065,28 +1065,24 @@ function campaignCityLabels(
  * near the city point, lifted half an icon so the icon sits ON the point and
  * the name hangs directly beneath it. The two alternates only shove the whole
  * unit up or down a little for slice-09 dodging; the icon stays on its city. */
-function overviewCityLabelAnchors(
-  tier: number,
-  edgeX: number,
-  edgeY: number,
-): CampaignLabelAnchor[] {
+function overviewCityLabelAnchors(tier: number): CampaignLabelAnchor[] {
   const lift = cityMarkerRadiusPx(tier);
   return [
     {
-      screenOffsetX: edgeX,
-      screenOffsetY: -lift + edgeY,
+      screenOffsetX: 0,
+      screenOffsetY: -lift,
       screenAnchorX: "center",
       screenAnchorY: "top",
     },
     {
-      screenOffsetX: edgeX,
-      screenOffsetY: lift + edgeY,
+      screenOffsetX: 0,
+      screenOffsetY: lift,
       screenAnchorX: "center",
       screenAnchorY: "top",
     },
     {
-      screenOffsetX: edgeX,
-      screenOffsetY: lift + edgeY,
+      screenOffsetX: 0,
+      screenOffsetY: lift,
       screenAnchorX: "center",
       screenAnchorY: "bottom",
     },
@@ -1100,26 +1096,22 @@ const CLOSEUP_LABEL_MARKER_TIE_PX = 14;
 /** Closeup city labels sit centered under the model; the sideways slides and
  * the above-model positions are collision alternates only (slice 09), reached
  * when the centered spot is claimed — never to chase dry ground. */
-function closeupCityLabelAnchors(
-  edgeX: number,
-  belowY: number,
-  aboveY: number,
-): CampaignLabelAnchor[] {
+function closeupCityLabelAnchors(belowY: number, aboveY: number): CampaignLabelAnchor[] {
   const slid = (offsetY: number): CampaignLabelAnchor[] => [
     {
-      screenOffsetX: edgeX,
+      screenOffsetX: 0,
       screenOffsetY: offsetY,
       screenAnchorX: "center",
       screenAnchorY: "center",
     },
     {
-      screenOffsetX: edgeX + CLOSEUP_LABEL_MARKER_TIE_PX,
+      screenOffsetX: CLOSEUP_LABEL_MARKER_TIE_PX,
       screenOffsetY: offsetY,
       screenAnchorX: "right",
       screenAnchorY: "center",
     },
     {
-      screenOffsetX: edgeX - CLOSEUP_LABEL_MARKER_TIE_PX,
+      screenOffsetX: -CLOSEUP_LABEL_MARKER_TIE_PX,
       screenOffsetY: offsetY,
       screenAnchorX: "left",
       screenAnchorY: "center",

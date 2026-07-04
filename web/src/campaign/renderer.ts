@@ -966,9 +966,15 @@ function campaignMapMarkers(data: CampaignData, opts: DrawOptions): CampaignMark
   });
   for (const army of visibleCampaignArmies(opts)) {
     if (army.mine || army.faction === opts.playerFaction) continue;
+    // A garrisoned army's standard flies from the city itself (the same anchor
+    // its label uses), so the flag sits directly above the city name.
+    const occupiedCity = occupiedCityForArmy(data, army);
+    const at = occupiedCity
+      ? garrisonDisplayAnchor(data.map.nodes[occupiedCity.index])
+      : { x: army.x, y: army.y };
     markers.push({
-      x: army.x,
-      y: army.y,
+      x: at.x,
+      y: at.y,
       radius: army.id === opts.selected ? 10.5 : 9,
       faction: factionColor(data, army.faction),
       allegiance: factionColor(data, army.faction),
@@ -1162,7 +1168,14 @@ function campaignArmyLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
             priority: 4,
             iconColor: factionColor(data, army.faction),
             collisionGroup: cityCollisionGroup(occupiedCity.index),
-            screenOffsetY: markerSize + selectedOffset + overlapClearance,
+            // The standard flies from this same anchor (see campaignMapMarkers),
+            // so drop the name just beneath the flag's foot: flag over city name
+            // over legion, the same stack as a plain city's house-over-name. The
+            // flag's foot sits ~half its height above the anchor, so a small
+            // negative offset tucks the name right under it.
+            screenAnchorX: "center",
+            screenAnchorY: "top",
+            screenOffsetY: -markerSize * 0.5 + selectedOffset,
           }
         : {
             text: legion,

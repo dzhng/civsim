@@ -439,7 +439,9 @@ fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: v
   let clipOffset = vec2f(pixelOffset.x / (cam.width * 0.5), pixelOffset.y / (cam.height * 0.5)) * anchor.w;
   var out: VsOut;
   out.pos = vec4f(anchor.x + clipOffset.x, anchor.y + clipOffset.y, anchor.z, anchor.w);
-  out.local = quad;
+  // Screen y is up (+clip.y = top), but the marker art is authored y-down, so
+  // flip the fragment's local y — otherwise the standard flies upside down.
+  out.local = vec2f(quad.x, -quad.y);
   out.faction = inst1.rgb;
   out.allegiance = vec3f(inst1.a, inst2.r, inst2.g);
   out.markerKind = markerKind;
@@ -452,39 +454,9 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let edge = vec3f(0.16, 0.12, 0.07);
   let parchment = vec3f(0.97, 0.94, 0.86);
   if (in.markerKind < 0.5) {
-    // The city marker IS the settlement icon: a pediment roof over a body (the
-    // square chip is gone — one icon per city, David's rule). local.y = -1 top.
-    let x = in.local.x;
-    let y = in.local.y;
-    let roofApexY = -0.86;
-    let roofBaseY = -0.08;
-    let bodyBotY = 0.82;
-    let roofT = clamp((y - roofApexY) / (roofBaseY - roofApexY), 0.0, 1.0);
-    let roofHalf = 0.86 * roofT;       // pediment widens to eaves at the base
-    let bodyHalf = 0.58;               // body narrower than the eaves overhang
-    let inRoof = y >= roofApexY && y <= roofBaseY && abs(x) <= roofHalf;
-    let inBody = y > roofBaseY && y <= bodyBotY && abs(x) <= bodyHalf;
-    let house = select(0.0, 1.0, inRoof || inBody);
-    if (house < 0.5) { discard; }
-    // Two nested silhouettes: the fill is the house shrunk by ~one outline
-    // width, so the rind between them is a defined ink edge — the icon reads
-    // even where its faction fill matches the territory wash (the old chip's
-    // trick). A crisp ink frame + a parchment top-bevel is what makes a small
-    // marker pop; a flat faction fill vanishes.
-    let pad = 0.18;
-    let roofHalfIn = max(0.0, 0.86 * clamp((y - roofApexY - pad) / (roofBaseY - roofApexY), 0.0, 1.0) - pad);
-    let inRoofIn = y >= roofApexY + pad && y <= roofBaseY && abs(x) <= roofHalfIn;
-    let inBodyIn = y > roofBaseY && y <= bodyBotY - pad && abs(x) <= bodyHalf - pad;
-    let fillMask = select(0.0, 1.0, inRoofIn || inBodyIn);
-    let flat = mix(in.faction, in.allegiance, 0.18);
-    // Bright, faction-hued body with a parchment top-left bevel and an
-    // ink-shaded lower-right, so it stands out light-to-dark on any wash.
-    let bevel = clamp((in.local.y - in.local.x) * 0.6 + 0.5, 0.0, 1.0);
-    let body = mix(mix(flat, edge, 0.12), mix(flat, parchment, 0.44), bevel);
-    let sel = select(0.0, 1.0, in.selected > 0.5);
-    let selectedEdge = vec3f(0.96, 0.93, 0.84);
-    let rind = mix(edge, selectedEdge, sel * 0.85);
-    return vec4f(mix(rind, body, fillMask), 0.95);
+    // Cities no longer draw a GPU chip — the settlement icon is rendered above
+    // the label (campaignCityLabels). Only armies reach this pass.
+    discard;
   }
   let gold = vec3f(0.79, 0.64, 0.15);
   let pole = select(0.0, 1.0, abs(in.local.x + 0.55) < 0.045 && in.local.y > -0.96 && in.local.y < 0.94);
@@ -527,8 +499,10 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   // The cloth is graded from an ink-deepened foot to a parchment-lit head so a
   // livery that matches the land or its own territory wash (Arverni green over
   // green Gaul) still reads as solid cloth, not a hollow outline. The livery
-  // hue stays the faction color — only luminance structure is added.
-  let clothLift = clamp((in.local.y - clothTop) / (clothBottom - clothTop), 0.0, 1.0);
+  // hue stays the faction color — only luminance structure is added. (The head
+  // is the low-y end now that the fragment y is flipped, so lift runs from the
+  // foot up.)
+  let clothLift = clamp((clothBottom - in.local.y) / (clothBottom - clothTop), 0.0, 1.0);
   let clothColor = mix(mix(in.faction, edge, 0.30), mix(in.faction, parchment, 0.26), clothLift);
   var fill = mix(edge, clothColor, cloth);
   fill = mix(fill, edge, hardware * (1.0 - finial));
@@ -2047,12 +2021,17 @@ function buildLabelAtlas(
     const text = labelText(entry.label);
     const sideText = entry.label.sideText ?? '';
     const subText = entry.label.subText ?? '';
-    const iconWidth = entry.label.icon ? style.iconSize + style.iconGap : 0;
+    // A city label wears its settlement icon ABOVE the name (the icon is the
+    // city's marker), so it sits on the city with the name beneath it. Every
+    // other label keeps its icon to the left of the text.
+    const iconAbove = entry.label.kind === 'city' && !!entry.label.icon;
+    const iconWidth = entry.label.icon && !iconAbove ? style.iconSize + style.iconGap : 0;
     const rightIconWidth = entry.label.rightIcon ? style.iconSize + style.iconGap : 0;
     const mainWidth = measure.measureText(text).width;
     const sideWidth = sideText ? style.sideGap + measureTextWithFont(measure, style.sideFont, style.letterSpacing, sideText) : 0;
     const subWidth = subText ? measureTextWithFont(measure, style.subFont, style.letterSpacing, subText) : 0;
     const seaPath = entry.label.kind === 'sea' ? measureSeaLabel(measure, style, entry.label, text) : null;
+    const rowWidth = mainWidth + iconWidth + sideWidth + rightIconWidth;
     return {
       ...entry,
       text,
@@ -2061,8 +2040,12 @@ function buildLabelAtlas(
       style,
       seaPath,
       mainWidth,
-      width: Math.max(1, Math.ceil(Math.max(seaPath?.width ?? mainWidth + iconWidth + sideWidth + rightIconWidth, subWidth) + style.padding * 2)),
-      height: Math.max(1, Math.ceil((seaPath?.height ?? style.size * (subText ? 2.42 : 1.55)) + style.padding * 2)),
+      width: iconAbove
+        ? Math.max(1, Math.ceil(Math.max(mainWidth + rightIconWidth, style.iconSize) + style.padding * 2))
+        : Math.max(1, Math.ceil(Math.max(seaPath?.width ?? rowWidth, subWidth) + style.padding * 2)),
+      height: iconAbove
+        ? Math.max(1, Math.ceil(style.iconSize + style.iconGap + style.size * 1.55 + style.padding * 2))
+        : Math.max(1, Math.ceil((seaPath?.height ?? style.size * (subText ? 2.42 : 1.55)) + style.padding * 2)),
     };
   });
   const collision = arbitrateLabelOccupancy(measured, dpr, placement);
@@ -2096,14 +2079,31 @@ function buildLabelAtlas(
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
     ctx.lineJoin = 'round';
-    const iconWidth = entry.label.icon ? entry.style.iconSize + entry.style.iconGap : 0;
-    const tx = entry.x + entry.style.padding + iconWidth;
-    const ty = entry.y + entry.style.padding + entry.style.size;
+    const iconAbove = entry.label.kind === 'city' && !!entry.label.icon;
+    const iconWidth = entry.label.icon && !iconAbove ? entry.style.iconSize + entry.style.iconGap : 0;
+    // Icon-above city labels center their name under the settlement icon; every
+    // other label draws its text on a single baseline after the left icon.
+    const tx = iconAbove
+      ? entry.x + entry.width * 0.5 - entry.mainWidth * 0.5
+      : entry.x + entry.style.padding + iconWidth;
+    const ty = iconAbove
+      ? entry.y + entry.style.padding + entry.style.iconSize + entry.style.iconGap + entry.style.size
+      : entry.y + entry.style.padding + entry.style.size;
     ctx.globalAlpha = entry.opacity;
     if (entry.label.kind === 'sea' && entry.seaPath) {
       drawSeaLabelText(ctx, entry, entry.seaPath);
     } else {
-      if (entry.label.icon) drawLabelIcon(ctx, entry.label, entry.x + entry.style.padding, ty - entry.style.iconSize * 0.84, entry.style);
+      if (iconAbove) {
+        drawLabelIcon(
+          ctx,
+          entry.label,
+          entry.x + entry.width * 0.5 - entry.style.iconSize * 0.5,
+          entry.y + entry.style.padding,
+          entry.style,
+        );
+      } else if (entry.label.icon) {
+        drawLabelIcon(ctx, entry.label, entry.x + entry.style.padding, ty - entry.style.iconSize * 0.84, entry.style);
+      }
       ctx.lineWidth = entry.style.haloWidth;
       ctx.strokeStyle = entry.style.halo;
       ctx.strokeText(entry.text, tx, ty);

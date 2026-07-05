@@ -5,6 +5,7 @@
 //! must be re-fetched every frame — Vec reallocation can move them and grow
 //! the memory (which detaches any existing JS TypedArray views).
 
+use contract::TerrainSource;
 use sim::{
     build_map, generate_map, generate_vista_grid, setup_battle, setup_battle_generated,
     setup_sandbox, Battle, MapId, MapRecipe, Pace, Sim, Tunables, Vec2, VistaGrid,
@@ -90,6 +91,14 @@ impl Game {
             generated_vista: None,
         };
         g.refresh_unit_info();
+        g
+    }
+
+    pub(crate) fn from_battle_with_terrain_source(battle: Battle, source: &TerrainSource) -> Game {
+        let mut g = Game::from_battle(battle);
+        if let TerrainSource::Recipe(recipe) = source {
+            g.generated_recipe = Some(*recipe);
+        }
         g
     }
 
@@ -350,6 +359,7 @@ impl Game {
             .unwrap_or(serde_json::Value::Null);
         serde_json::json!({
             "seed": seed,
+            "seedHex": format!("{:#018x}", seed),
             "groundCover": "green-grass",
             "reliefScale": 1.0,
             "slopeBands": slope_bands,
@@ -367,6 +377,7 @@ impl Game {
             Some(recipe) => generated_manifest_json(recipe, &self.battle.sim.terrain).to_string(),
             None => serde_json::json!({
                 "seed": 0,
+                "seedHex": "0x0000000000000000",
                 "groundCover": "green-grass",
                 "edges": {
                     "north": "open-fog",
@@ -806,6 +817,7 @@ fn generated_manifest_json(recipe: MapRecipe, terrain: &sim::Terrain) -> serde_j
     let composition = sim::genmap::edges::composition(&recipe);
     serde_json::json!({
         "seed": recipe.seed,
+        "seedHex": format!("{:#018x}", recipe.seed),
         "groundCover": "green-grass",
         "edges": {
             "north": "open-fog",

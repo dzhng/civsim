@@ -6,6 +6,7 @@
 
 use super::MapRecipe;
 use crate::terrain::Terrain;
+pub use contract::FieldTextureRecipe;
 use serde::{Deserialize, Serialize};
 
 const TINT_GRASS: u8 = 0;
@@ -21,15 +22,6 @@ const DEPLOYMENT_CLEAN_HALF_H: f32 = 78.0;
 const PATCH_EDGE_JITTER_D2: f32 = 0.14;
 const PATCH_EDGE_DITHER_BAND_D2: f32 = 0.10;
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct FieldTextureRecipe {
-    pub forest_clumps: u8,
-    pub scree_patches: u8,
-    pub mud_lowlands: u8,
-    pub rough_fields: u8,
-}
-
 #[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FieldTextureSummary {
@@ -37,17 +29,6 @@ pub struct FieldTextureSummary {
     pub scree_cells: usize,
     pub mud_cells: usize,
     pub rough_field_cells: usize,
-}
-
-impl Default for FieldTextureRecipe {
-    fn default() -> Self {
-        Self {
-            forest_clumps: 5,
-            scree_patches: 7,
-            mud_lowlands: 5,
-            rough_fields: 8,
-        }
-    }
 }
 
 pub fn apply(recipe: &MapRecipe, t: &mut Terrain) {

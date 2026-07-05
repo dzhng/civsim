@@ -21,14 +21,15 @@ Reference images (in `assets/` and the aesthetics skill):
 
 ## Next Agent Prompt
 
-**Status 2026-07-05: slices 00–06, 10–18 DONE (live-verified except noted).** The
+**Status 2026-07-05: slices 00–06, 10–19 DONE (live-verified except noted).** The
 generated-map pipeline is feature-complete for the compose gate: seeded
 seal grammar (organic cliff/forest/water flanks), certified corridors and
 deployments, one natural lake pocket rendering as real water, passable
 field-texture variety in the corridor, fracture-rock walls, the TW vista
 apron + fog ring, production blade grass, and three curated named generated
-maps in the Quick Battle picker. The compose gate accepted the
-overcast-highland register. Next pickup: [19-campaign-seam](slices/19-campaign-seam.md).
+maps in the Quick Battle picker, and campaign open-field battles now hand off
+to generated recipes deterministically. The compose gate accepted the
+overcast-highland register. Next pickup: [20-retire-hand-maps](slices/20-retire-hand-maps.md).
 Read the recorded traps: slice 10 TSL hazards, slice 11
 integration findings, slice 04 shoreline lessons, slice 15 water-classifier
 notes, slice 18's curated-seed pins, and 00's camera/oracle amendments.
@@ -92,7 +93,12 @@ Before writing any code, read:
       cliff/cliff), Wooded Pass (seed 8 forest flank). Cargo genmap pins
       hashes/certificates. Orchestrator still owes browser run/blessing for
       `battle-genmap-curated` and non-blocking visual review.
-- [ ] 19 — Campaign seam (cuttable; may move to a successor spec)
+- [x] 19 — Campaign seam
+      CODE-LANDED BMS19-SLICE-B2E7; open-field campaign battles now use
+      `TerrainSource::Recipe(MapRecipe)` with deterministic campaign-site
+      seeds; bridge/ford and city fights remain `TerrainSource::Ops`.
+      Orchestrator still owes browser scene run/blessing for the extended
+      `campaign-handoff` flow.
 - [ ] 20 — Retire the hand maps (David-gated; golden re-bless is the cost)
 
 ## Slice graph

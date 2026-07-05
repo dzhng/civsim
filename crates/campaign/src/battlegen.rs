@@ -1,16 +1,16 @@
 //! Battle-map generation: the campaign locale, baked into a battle
-//! `TerrainSpec`. Maps are stylized templates — a bridge tile yields a
-//! river-and-bridge corridor, a pass yields cliff-pinched ground — using the
-//! same paint vocabulary as the hand-built maps (tints: 0 grass, 1 water,
-//! 2 rock, 3 wall, 4 forest, 5 mud, 6 scree/field).
+//! `TerrainSource`. Open-field campaign battles use the generated-map recipe;
+//! bridge/ford and city fights keep the paint-op templates that encode
+//! site-specific gameplay.
 
 use crate::mapdata::{NodeKind, TileFeature, WorldMap};
 use crate::state::Loc;
-use contract::{PaintOp, Pcg32, TerrainSpec};
+use contract::{MapRecipe, PaintOp, Pcg32, TerrainSource, TerrainSpec};
 
 pub const HALF_W: f32 = 1200.0;
 pub const HALF_H: f32 = 800.0;
 const CELL: f32 = 4.0;
+const CERTIFIED_CAMPAIGN_RECIPE_SEEDS: u64 = 64;
 
 /// The battle convention: armies fight along Y (attacker south, defender
 /// north), east/west flanks sealed.
@@ -38,7 +38,73 @@ fn site_city_tier(map: &WorldMap, site: Loc) -> Option<u8> {
     }
 }
 
-pub fn generate(map: &WorldMap, site: Loc, seed: u64) -> TerrainSpec {
+pub fn terrain_source(
+    map: &WorldMap,
+    site: Loc,
+    campaign_seed: u64,
+    template_seed: u64,
+) -> TerrainSource {
+    if use_ops_template(map, site) {
+        TerrainSource::Ops(ops_template(map, site, template_seed))
+    } else {
+        TerrainSource::Recipe(recipe_for_site(map, site, campaign_seed))
+    }
+}
+
+pub fn recipe_for_site(map: &WorldMap, site: Loc, campaign_seed: u64) -> MapRecipe {
+    let mut recipe = MapRecipe {
+        seed: derived_site_seed(campaign_seed, site),
+        ..MapRecipe::default()
+    };
+    match site_feature(map, site) {
+        TileFeature::Pass => {
+            recipe.edge_seals.weights.cliff_run = 10;
+            recipe.edge_seals.weights.forest_belt = 1;
+            recipe.edge_seals.weights.water_reach = 0;
+            recipe.field_texture.scree_patches = 9;
+        }
+        TileFeature::Forest => {
+            recipe.edge_seals.weights.forest_belt = 5;
+            recipe.field_texture.forest_clumps = 8;
+        }
+        TileFeature::Hill => {
+            recipe.hydrology.lake_area_budget = 0.01;
+            recipe.field_texture.scree_patches = 9;
+        }
+        TileFeature::Open | TileFeature::Sea | TileFeature::Bridge | TileFeature::Ford => {}
+    }
+    recipe
+}
+
+pub fn derived_site_seed(campaign_seed: u64, site: Loc) -> u64 {
+    1 + splitmix64(campaign_seed ^ site_id(site).wrapping_mul(0x9E37_79B9_7F4A_7C15))
+        % CERTIFIED_CAMPAIGN_RECIPE_SEEDS
+}
+
+pub fn site_id(site: Loc) -> u64 {
+    match site {
+        Loc::Node(n) => n as u64,
+        Loc::Edge { edge, tile } => (1u64 << 63) | ((edge as u64) << 16) | tile as u64,
+    }
+}
+
+fn splitmix64(mut x: u64) -> u64 {
+    x = x.wrapping_add(0x9E37_79B9_7F4A_7C15);
+    let mut z = x;
+    z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
+    z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
+    z ^ (z >> 31)
+}
+
+fn use_ops_template(map: &WorldMap, site: Loc) -> bool {
+    site_city_tier(map, site).is_some()
+        || matches!(
+            site_feature(map, site),
+            TileFeature::Bridge | TileFeature::Ford
+        )
+}
+
+pub fn ops_template(map: &WorldMap, site: Loc, seed: u64) -> TerrainSpec {
     let mut rng = Pcg32::new(seed, 0xBA771E);
     let mut ops: Vec<PaintOp> = Vec::new();
     let feature = site_feature(map, site);

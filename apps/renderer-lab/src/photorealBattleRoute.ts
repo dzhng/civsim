@@ -5,8 +5,8 @@
 // route against the production battle at matched camera3d framing.
 //
 //   ?map=A|B|gen  quick-battle map (default A) or generated seed map
-//   ?env=golden-hour|dusk|overcast-foggy|noon
-//                 environment preset (default golden-hour; slice 09)
+//   ?env=golden-hour|dusk|overcast-foggy|overcast-highland|noon
+//                 environment preset (default golden-hour; generated maps default highland)
 //   ?ai=on        enemy AI (default off — deterministic standing armies)
 //   ?ticks=N      sim ticks advanced before first frame (default 60)
 //   ?count=N      grow the army to N soldiers via the production spawn path
@@ -35,6 +35,7 @@ import {
   type BattleTacticalLineFrame,
 } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
 import { seaDisplacementSourceFromParam } from "../../../packages/photoreal-renderer/src/battle/seaLayer";
+import { GENERATED_BATTLE_MAP_DEFAULT_ENVIRONMENT } from "../../../packages/game-renderer/src/battle/mapCatalog";
 import { BATTLE_RELIEF_EXAGGERATION } from "../../../packages/game-renderer/src/battle/terrainFeatures";
 import { createPhotorealStatsPublisher } from "../../../packages/photoreal-renderer/src/stats";
 import { Camera } from "../../../web/src/shared/camera";
@@ -59,13 +60,16 @@ const TICK_DT = 1 / 30;
 
 export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
   const params = ctx.params;
+  const generatedMap = params.get("map") === "gen";
+  const environment =
+    params.get("env") ?? (generatedMap ? GENERATED_BATTLE_MAP_DEFAULT_ENVIRONMENT : null);
   // ?ref=1: full-viewport canvas (the compare-screenshots framing — the
   // production #battlefield also fills its viewport).
   if (params.get("ref") === "1") ctx.root.classList.add("reference-shot");
   const [{ default: initWasm, Game }, world] = await Promise.all([
     import("../../../web/src/wasm/game_wasm.js"),
     PhotorealBattleWorld.create(ctx.canvas, {
-      environment: params.get("env"),
+      environment,
       shadows: params.get("shadows"),
       sea: seaDisplacementSourceFromParam(params.get("sea")),
       post: params.get("post"),
@@ -74,11 +78,15 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
   if (params.get("bloom") === "off") world.setBloomEnabled(false);
   const wasm = await initWasm();
   const game = new Game(0x5eed_c0de);
-  const generatedMap = params.get("map") === "gen";
   const generatedSeed = Number(params.get("seed") ?? 7) || 7;
   if (generatedMap) game.start_battle_generated(BigInt(generatedSeed));
   else game.start_battle(params.get("map") === "B" ? 1 : 0);
-  const generatedDescriptor = generatedMap ? JSON.parse(game.generated_map_descriptor()) : null;
+  const generatedDescriptor = generatedMap
+    ? {
+        ...JSON.parse(game.generated_map_descriptor()),
+        defaultEnvironment: GENERATED_BATTLE_MAP_DEFAULT_ENVIRONMENT,
+      }
+    : null;
   if (params.get("ai") === "on") game.set_ai_team(1);
   const wasmMapId = generatedMap ? undefined : params.get("map") === "B" ? 1 : 0;
   const clayMode = params.get("clay") === "1";

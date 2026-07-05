@@ -31,7 +31,7 @@ const PRESETS = [
   { env: "golden-hour", preset: "golden" },
   { env: "noon", preset: "noon" },
   { env: "dusk", preset: "dusk" },
-  { env: "overcast-foggy", preset: "overcast" },
+  { env: "overcast-foggy", preset: "overcast-highland" },
 ];
 
 export async function run(ctx) {

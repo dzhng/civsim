@@ -88,6 +88,8 @@ import {
   PhotorealRingLayer,
   PhotorealTriangleLayer,
 } from "./overlayLayer";
+import { PhotorealReadoutLayer, type BattleReadoutInstance } from "./readoutLayer";
+import { PhotorealStandardLayer, type BattleStandardInstance } from "./standardLayer";
 import { BattlePostChain } from "../post/postChain";
 
 export type { BattleVistaGrid } from "./terrainLayer";
@@ -151,6 +153,8 @@ export class PhotorealBattleWorld {
   private readonly debugTriangles: PhotorealTriangleLayer;
   private readonly debugBlocks: PhotorealTriangleLayer;
   private readonly markerLayer: PhotorealMarkerLayer;
+  private readonly standardLayer: PhotorealStandardLayer;
+  private readonly readoutLayer: PhotorealReadoutLayer;
   private readonly mountedClasses: number[];
   private readonly sea: ReturnType<typeof createSeaDisplacementSource>;
   private readonly post: BattlePostChain;
@@ -173,6 +177,7 @@ export class PhotorealBattleWorld {
   private terrainGrid: BattleTerrainGrid | null = null;
   private vistaGrid: BattleVistaGrid | null = null;
   private heightField: TerrainHeightField | null = null;
+  private viewportHeight = 800;
   private groundCover: BattleGroundCover = "green-grass";
   private slopeBands: BattleSlopeBands | null = null;
   private grassTerrainKey: string | null = null;
@@ -273,6 +278,8 @@ export class PhotorealBattleWorld {
     this.debugBlocks = new PhotorealTriangleLayer(scene, RENDER_ORDER.debugBlocks);
     this.debugTriangles = new PhotorealTriangleLayer(scene, RENDER_ORDER.debugTriangles);
     this.markerLayer = new PhotorealMarkerLayer(scene);
+    this.standardLayer = new PhotorealStandardLayer(scene, world.uTime);
+    this.readoutLayer = new PhotorealReadoutLayer(scene);
 
     // Slice 15 — the post chain: one bloom stage over the whole scene pass, the
     // ONE tone-map applied at the tail. Threshold-disciplined (linear-HDR
@@ -335,7 +342,21 @@ export class PhotorealBattleWorld {
   }
 
   resize(width: number, height: number, pixelRatio = 1): void {
+    this.viewportHeight = height;
     this.world.resize(width, height, pixelRatio);
+  }
+
+  /** Screen pixels per world meter at a world point, through the LIVE
+   *  perspective camera. The battle rig's chart-style worldToScreen diverges
+   *  from the true projection in the swoop regime, so legibility floors and
+   *  billboard sizing must measure here — the camera is the only seam. */
+  pxPerWorldAt(x: number, y: number, z: number): number {
+    const dx = this.camera.position.x - x;
+    const dy = this.camera.position.y - y;
+    const dz = this.camera.position.z - z;
+    const dist = Math.max(0.001, Math.hypot(dx, dy, dz));
+    const fovRad = (this.camera.fov * Math.PI) / 180;
+    return this.viewportHeight / (2 * dist * Math.tan(fovRad / 2));
   }
 
   setStatic(soldierUnit: Uint32Array, teams: number[], classes: number[]): void {
@@ -347,6 +368,8 @@ export class PhotorealBattleWorld {
     this.markers = [];
     this.crowd.upload([]);
     this.markerLayer.upload([]);
+    this.standardLayer.upload([]);
+    this.readoutLayer.upload([]);
     this.selectionRings.upload(new Float32Array());
     this.effectLines.upload(new Float32Array());
     this.debugTriangles.upload(new Float32Array());
@@ -540,6 +563,14 @@ export class PhotorealBattleWorld {
     this.markerLayer.upload(this.markers);
   }
 
+  uploadUnitReadouts(
+    standards: readonly BattleStandardInstance[],
+    readouts: readonly BattleReadoutInstance[],
+  ): void {
+    this.standardLayer.upload(standards);
+    this.readoutLayer.upload(readouts);
+  }
+
   drawTris(verts: Float32Array, camera: BattleCameraSnapshot): void {
     this.setCamera(camera);
     this.debugTriangles.upload(verts);
@@ -575,6 +606,7 @@ export class PhotorealBattleWorld {
     this.grass.routeGpu(this.world.renderer, [eye[0], eye[1], eye[2]]);
     this.crowd.refreshCamera(this.camera);
     this.markerLayer.setCameraBasis(this.camera);
+    this.readoutLayer.setCameraBasis(this.camera);
     this.background.setStyle(this.lastCamera.zoom < 1.2 ? "wide-detail" : "default");
     this.world.render(this.camera);
   }
@@ -760,6 +792,8 @@ export class PhotorealBattleWorld {
         effects: this.effectLines.stats(),
       },
       markers: this.markerLayer.stats(),
+      standards: { ...this.standardLayer.stats(), timeSeconds: this.world.time },
+      readouts: this.readoutLayer.stats(),
       performance: {
         gpuTimeMs: world.gpuTimeMs,
       },

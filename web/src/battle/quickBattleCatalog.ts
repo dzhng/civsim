@@ -13,6 +13,7 @@ import type { BattleFactionId } from "../../../packages/game-renderer/src/battle
 
 export const QUICK_BATTLE_GOLD = 15000;
 export const QUICK_BATTLE_MAX_UNITS = 20;
+export const QUICK_BATTLE_GENERATED_MAP_ID = -1;
 
 /** The map choices, straight from the shared catalog. */
 export const QUICK_BATTLE_MAPS: readonly BattleMapCatalogEntry[] = BATTLE_MAP_CATALOG;
@@ -33,6 +34,7 @@ export interface QuickBattleClassSpec {
 /** The launched custom battle: a map and two armies. */
 export interface QuickBattleConfig {
   mapId: number;
+  generatedSeed?: string;
   teams: [QuickBattleUnitPick[], QuickBattleUnitPick[]];
   factions?: [BattleFactionId, BattleFactionId];
 }

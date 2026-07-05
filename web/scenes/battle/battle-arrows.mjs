@@ -13,7 +13,7 @@ export async function run(ctx) {
   await page.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
   await page.addStyleTag({
     content:
-      "#gameover, #hud, #buttons, #pausemenu, #banner, #selbox, #minimap, #unitlabels, #unitcards, #toolbar { display: none !important; }",
+      "#gameover, #hud, #buttons, #pausemenu, #banner, #selbox, #minimap, #unitcards, #toolbar { display: none !important; }",
   });
 
   const frozenTick = await page.evaluate(async () => {

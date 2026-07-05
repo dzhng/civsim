@@ -58,26 +58,41 @@ Both halves are required, and each half kills a specific wrong answer:
    Caucasus outliers — far from any node). **The cap is the one knob, and it is
    measured from data in Slice 0 — never guessed, never swept** (instrument-first).
 
-Classification uses cheap straight-line distance (no per-city A\*), so the
-invariant stays sub-second; A\* is used only to *draw* the reconnect road, and
-the bake **panics** if a supposedly-reconnectable city has no A\* path (surfacing
-a cap/margin bug instead of silently islanding a mainland city).
+**The merge is ITERATIVE (Prim-to-fixpoint), and that is what makes a single cap
+work.** A city need not be within the cap of the *original* network — only within
+the cap of the *growing* set. Sicily's Lilybaeum is 270 km from Messana but chains
+in via short intra-Sicily hops once Syracusae bridges the first 131 km; Cape
+Tainaron is 164 km from Corinthus but only 33 km from Gythion (which reconnects
+first). So `is_reconnectable` is the **outcome of the iterative same-landmass
+merge**, not a static per-city gap. The invariant runs the same cheap straight-line
+merge (no A\*, ~71 cities); A\* only *draws* the road in the bake, which **panics**
+if a merged city has no A\* path.
 
-## Measured ground truth (8 km-grid landmass label, pre–distance-cap)
+## Measured ground truth (S0 `connectivity-report`, committed map)
 
-Of the 57 fully-disconnected (degree-0) cities, an 8 km landmass label put ~40 on
-a main-network landmass and ~17 on isolated landmasses. The distance cap then
-moves the **Black-Sea / Crimea / Caucasus outliers** (Tanais, Olbia Borysthenes,
-Pantikapaion, Theodosia, Gorgippia, Kalos Limen, Chersonesos, Tyras, Dioscurias,
-Phasis) from "reconnect" to "island," because their nearest `M` node is far by
-land. Britain's **14-city component** (degree > 0, internally roaded, unreachable
-from the capitals) is an island too — the current degree-0 check is blind to it.
-Slice 0 produces the exact partition and picks the cap in the numeric gap.
+328 of 399 cities are in `M`; 71 are off-main (Britain's 14-city component + 57
+degree-0). The report's **first-hop gaps show a clean break at 133↔158 km**:
 
-**Borderline cities the real 2 km-raster land-A\* must adjudicate:** Corcyra
-(Corfu), Chalcis (Euboea), Cyzicus, Sestus, and the snap-exempt peninsula ports
-(Cnidus, Tainaron Pr., Meninge, Perinthus) — each is island-or-reconnect
-depending on whether a genuine land bridge exists at raster resolution.
+- **Reconnect (~28):** mainland-coastal on landmass 6 with a first hop ≤133 km
+  (Prusias 48, Sinope 132, Malaca 133, Cnidus 130, Gythion 132, Amastris 92, …),
+  Cape Tainaron (33 km to Gythion), and all 6 Sicily-interior cities (landmass 77:
+  Syracusae 131 → then Camarina/Panormus/Agrigentum/Selinus/Lilybaeum chain).
+- **Island (~43):** the Black-Sea/Caucasus/Crimea rim whose first hop is ≥158 km
+  (Tyras 158, Phasis 210, Dioscurias 250, Olbia Borysthenes 277 … Tanais 706),
+  **plus** every offshore landmass with no `M` node at all (`nearest_main=NONE`):
+  Britain-14, Cyprus (Paphos/Salamis/Amathous/Lapethos), Sardinia, Corsica,
+  Balearics, the Aegean isles (Chios/Mytilene/Samos/Thasos), Crete, Rhodes, Malta,
+  Cephalonia, Corfu, Djerba.
+
+**`RECONNECT_MAX_GAP_KM = 140` km** (in the 133↔158 gap) — recorded in
+`connectivity.rs`. Britain's 14-city component is an island (no `M` node on its
+landmass) — the old degree-0 check was blind to it.
+
+**Borderline cities the real 2 km-raster land-A\* must still adjudicate at draw
+time:** Corcyra (Corfu — `NONE`, island), Chalcis (Euboea 24 km — reconnect if a
+land bridge exists), Cyzicus (70 km), Sestus (29 km), and the snap-exempt
+peninsula ports (Cnidus, Tainaron Pr., Meninge, Perinthus) — S3 retries A\* at
+`margin_cells=0` then panics or islands per case.
 
 ## The single computed owner: `crates/mapgen/src/connectivity.rs`
 
@@ -217,22 +232,26 @@ The only defense is the human review of the *computed island roster* at S0 and S
 
 ## Next Agent Prompt
 
-**Status (2026-07-05):** Straits (Messina/Bosphorus/Gulf-of-Izmit), the 3 sea
-lanes, Rhegium injection, and the solid on-top lane render are SHIPPED on `main`.
-This spec's **remaining** work — reconnect + neutral-island-holdings + honest
-invariant — is **not started**. Three parallel drafts synthesized into the plan
-above. Pick up at **Slice 0**.
+**Status (2026-07-05):** Straits/lanes/Rhegium/render SHIPPED on `main`. **S0+S1
+DONE** (codex; `connectivity.rs` primitives + `connectivity-report` subcommand;
+`cargo test -p mapgen` 7/7 green; artifacts untouched). **Cap measured:
+`RECONNECT_MAX_GAP_KM = 140` km** (clean 133↔158 gap; see Measured ground truth) —
+awaiting David's non-blocking sign-off on the ~28-reconnect / ~43-island partition.
+Next pickup: **S2** (fold descope, artifact-identical — no cap needed, safe to
+build now), then **S3** (reconnect + honest invariant — needs the cap; refine
+`is_reconnectable` into the iterative same-landmass merge).
 
-Build S0 → S1 → S2 → S3 serially on the bake spine; S4 (campaign guardrail) can
-run once S3 is green; S5 is an optional decision slice. **Slice 0's measured cap
-gates everything** — do not draw a road before David signs off on the partition.
+**Blocker/warning for S3:** `is_reconnectable` is currently a *static per-city*
+gap. Before drawing roads, wrap it in the iterative Prim merge (a city joins if
+within 140 km of the growing set on the same landmass), so Sicily's interior and
+Cape Tainaron chain in. The invariant classifies by the merge OUTCOME.
 
 **Update this section before ending your pass.**
 
 ### Global TODO
-- [ ] **S0** `mapgen connectivity-report`; measure `RECONNECT_MAX_GAP_KM`; blocking partition sign-off
-- [ ] **S1** `connectivity.rs` primitives (`landmass_labels`, `main_component`, `is_reconnectable`) + synthetic-fixture unit tests
+- [x] **S0** `mapgen connectivity-report`; `RECONNECT_MAX_GAP_KM = 140` measured; partition sign-off pending (non-blocking)
+- [x] **S1** `connectivity.rs` primitives (`landmass_labels`, `main_component`, `is_reconnectable`) + synthetic-fixture unit tests
 - [ ] **S2** fold `descope-sea-lanes.mjs` into `connectivity::descope_sea_lanes` — artifact-identical, delete the `.mjs`
-- [ ] **S3** `descope_and_reconnect` + honest computed invariant; retire `SEA_ONLY_CITIES` + `validate_sea_only_cities`; re-bless; find-map-bugs
+- [ ] **S3** iterative merge + `descope_and_reconnect` + honest computed invariant; retire `SEA_ONLY_CITIES` + `validate_sea_only_cities`; re-bless; find-map-bugs
 - [ ] **S4** `cargo test -p campaign` guardrail: islands stay non-playable + Neutral + army-less
 - [ ] **S5** (optional) ownership re-flood decision — default NO

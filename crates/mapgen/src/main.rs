@@ -10,6 +10,7 @@
 //! crates/mapgen/data/fetch.sh
 
 mod build;
+mod connectivity;
 mod geo;
 mod landroute;
 mod probe;
@@ -21,6 +22,10 @@ use geo::BBox;
 fn main() {
     if std::env::args().nth(1).as_deref() == Some("probe") {
         probe::write_committed_probe();
+        return;
+    }
+    if std::env::args().nth(1).as_deref() == Some("connectivity-report") {
+        connectivity::print_report();
         return;
     }
 

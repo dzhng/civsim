@@ -22,6 +22,7 @@ import {
   SHOCK_CAV_SIDEARM_CLASS,
 } from "../../../packages/soldier-assets/src/soldierMesh";
 import { BattleRenderer, type BattleTacticalLineFrame } from "./renderer";
+import type { BattleReadoutInstance } from "../../../packages/photoreal-renderer/src/battle/readoutLayer";
 import type { BattleStandardInstance } from "../../../packages/photoreal-renderer/src/battle/standardLayer";
 import { type CameraRigRange } from "./cameraRig";
 import {
@@ -33,7 +34,7 @@ import {
   validateClassSpecCatalog,
   type UnitClassKey,
 } from "./classData";
-import { UnitBanner, type BannerChip } from "./unitBanner";
+import { BANNER_GALLERY, type BannerChip, type BannerState } from "./readoutState";
 import { armySummary } from "./armySummary";
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
@@ -100,6 +101,12 @@ function readoutScale(zoom: number): number {
   const t = Math.max(0, Math.min(1, (zoom - 1.4) / 3.0));
   return 0.58 + t * 0.34;
 }
+
+const READOUT_TACTICAL_ZOOM = 1.1;
+
+// state index (BANNER_GALLERY order) -> unit id; see the gallery mapping note
+// at the use site.
+const GALLERY_UNIT_FOR_STATE = [1, 13, 3, 11, 7, 10];
 
 // Total War legibility floor: the standard is world-scaled, but as the camera
 // pulls out it grows toward a constant screen presence instead of vanishing
@@ -436,10 +443,7 @@ export class BattleScene implements Scene {
       );
     }
 
-    // --- Per-unit standards + temporary DOM readouts ------------------------------
-    // The flag is in-scene 3D now; the DOM only carries bars/chips until slice 12.
-    const labelsRoot = document.getElementById("unitlabels")!;
-    const domBanners: UnitBanner[] = [];
+    // --- Per-unit standards + in-scene readout billboards --------------------------
     // Per-unit banner anchors are refreshed from the rendered soldiers each
     // frame. Unit-info center fields can lag during packed fights, so banners
     // follow the visible block instead of collapsing to the map center. The
@@ -451,17 +455,8 @@ export class BattleScene implements Scene {
     let unitMinR = new Float32Array(0);
     let unitMaxR = new Float32Array(0);
     let unitTopU = new Float32Array(0);
-    const addDomBanner = () => {
-      const b = new UnitBanner();
-      b.setVisible(false);
-      labelsRoot.appendChild(b.el);
-      domBanners.push(b);
-    };
-    for (let u = 0; u < game.unit_count(); u++) addDomBanner();
     let knownUnits = game.unit_count(); // last-seen count (campaign reinforcements grow it)
-    this.cleanups.push(() => {
-      labelsRoot.innerHTML = "";
-    });
+    const readoutGalleryMode = new URLSearchParams(location.search).get("test") === "readouts";
 
     // Translate a unit's sim row into status chips: explicit states first, then
     // the physical facts the press makes true.
@@ -497,30 +492,36 @@ export class BattleScene implements Scene {
       const info = unitInfo();
       const sel = input.selected.length > 0 ? input.selected[0] : -1;
       const n = game.unit_count();
-      const showAll = camera.zoom > 1.1;
+      const showReadouts = camera.zoom > READOUT_TACTICAL_ZOOM;
       const standards: BattleStandardInstance[] = [];
+      const readouts: BattleReadoutInstance[] = [];
       for (let u = 0; u < n; u++) {
-        const b = domBanners[u];
         const o = u * STRIDE;
         const alive = info[o + 15];
-        if (alive === 0) {
-          b.setVisible(false);
-          continue;
-        }
+        if (alive === 0) continue;
         const anchorX = unitAnchorX[u] > -Infinity ? unitAnchorX[u] : info[o];
         const anchorY = unitAnchorY[u] > -Infinity ? unitAnchorY[u] : info[o + 1];
-        const selected = u === sel;
+        // Gallery states sit on units spread across BOTH armies — neighbors
+        // in one column overlap each other's fixed-screen-size readouts and
+        // the review grid becomes unreadable. Own states ride blue units,
+        // enemy states red ones.
+        const galleryIndex = readoutGalleryMode ? GALLERY_UNIT_FOR_STATE.indexOf(u) : -1;
+        const gallery = galleryIndex >= 0 ? BANNER_GALLERY[galleryIndex].state : undefined;
+        const selected = gallery?.selected ?? u === sel;
         const team = info[o + UNIT_INFO.team];
-        const mine = team === 0;
+        const displayTeam = gallery?.team ?? (team === 0 ? 0 : 1);
+        const mine = gallery?.mine ?? team === 0;
         const groundZ = renderer.heightAt(anchorX, anchorY);
         const tier = STANDARD_SIZE_TIERS["battle-unit"];
-        const [bx] = camera.worldToScreen(anchorX, anchorY, groundZ);
-        const [ex] = camera.worldToScreen(anchorX + 1, anchorY, groundZ);
-        const pxPerClothWidth = Math.abs(ex - bx) * tier.clothWidth;
+        // Measure through the renderer's TRUE camera — the rig's chart
+        // worldToScreen diverges from the real projection in the swoop
+        // regime, which maxed the legibility floor at soldier eye level
+        // (16m poles, sky-high readouts).
+        const pxPerWorld = renderer.pxPerWorldAt(anchorX, anchorY, groundZ);
+        const pxPerClothWidth = pxPerWorld * tier.clothWidth;
         const poleHeight = tier.poleHeight;
         const scale = standardScale(pxPerClothWidth, selected);
         if (pxPerClothWidth * STANDARD_MIN_SCALE > STANDARD_NEAR_HIDE_PX) {
-          b.setVisible(false);
           continue;
         }
         standards.push({
@@ -534,35 +535,57 @@ export class BattleScene implements Scene {
           // so only the cloth reads and it must read from where you look.
           yaw: camera.yaw,
           scale,
-          factionId: factionForTeam(team).id,
+          factionId: factionForTeam(displayTeam).id,
           selected,
         });
-        if (!showAll) {
-          // Far zoom: the standard IS the unit marker; only the DOM readout hides.
-          b.setVisible(false);
-          continue;
-        }
+        if (!showReadouts) continue;
+        if (readoutGalleryMode && !gallery) continue;
         const poleTopZ = groundZ + poleHeight * scale;
         const [sx, sy] = camera.worldToScreen(anchorX, anchorY, poleTopZ);
-        if (sx < -60 || sy < -40 || sx > window.innerWidth + 60 || sy > window.innerHeight + 40) {
-          b.setVisible(false);
+        if (sx < -80 || sy < -80 || sx > window.innerWidth + 80 || sy > window.innerHeight + 80)
           continue;
-        }
-        const chips = unitChips(info, o);
-        b.setVisible(mine || chips.length > 0);
-        b.place(sx, sy, readoutScale(camera.zoom));
-        b.update({
-          team: mine ? 0 : 1,
-          mine,
-          hp: alive / info[o + 7],
-          cohesion: info[o + UNIT_INFO.cohesion],
-          morale: info[o + UNIT_INFO.morale],
-          stamina: info[o + UNIT_INFO.stamina],
-          chips,
-          selected,
+        const state = gallery ?? unitReadoutState(info, o, displayTeam, mine, selected, alive);
+        readouts.push({
+          unitId: u,
+          x: anchorX,
+          y: anchorY,
+          z: poleTopZ,
+          // Gallery mode magnifies the readouts — the review snapshot judges
+          // bar/chip legibility, which needs more than marker size.
+          worldPerPx:
+            ((readoutGalleryMode ? 2.6 : 1) * readoutScale(camera.zoom)) /
+            Math.max(0.001, pxPerWorld),
+          team: state.team,
+          mine: state.mine,
+          hp: state.hp,
+          cohesion: state.cohesion,
+          morale: state.morale,
+          stamina: state.stamina,
+          chips: state.chips,
+          selected: state.selected,
         });
       }
-      renderer.setUnitStandards(standards);
+      renderer.setUnitReadouts(standards, readouts);
+    }
+
+    function unitReadoutState(
+      info: Float32Array,
+      o: number,
+      team: 0 | 1,
+      mine: boolean,
+      selected: boolean,
+      alive: number,
+    ): BannerState {
+      return {
+        team,
+        mine,
+        hp: alive / info[o + 7],
+        cohesion: info[o + UNIT_INFO.cohesion],
+        morale: info[o + UNIT_INFO.morale],
+        stamina: info[o + UNIT_INFO.stamina],
+        chips: unitChips(info, o),
+        selected,
+      };
     }
 
     // --- Toolbar (React, inside <BattleHud>) --------------------------------------
@@ -1411,7 +1434,6 @@ export class BattleScene implements Scene {
         knownUnits = game.unit_count();
         applyStatic();
         buildCards();
-        while (domBanners.length < game.unit_count()) addDomBanner();
       }
 
       {
@@ -1568,7 +1590,7 @@ export class BattleScene implements Scene {
         }
         if (updateRenderPos) renderPosTick = simTick;
       }
-      // Unit standards are in-scene; UnitBanner only follows with bars/chips.
+      // Unit standards and readouts are in-scene billboards anchored to the pole top.
       renderer.draw(
         renderPos,
         renderFacings,

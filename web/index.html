@@ -35,9 +35,6 @@
         position: fixed;
         bottom: 12px;
         left: 12px;
-        /* Above the world-space unit banners (#unitlabels, z-index 3) — the info
-         card sits at the bottom-left where player units (and their banners) are,
-         so without this a banner draws over the card's top edge. */
         z-index: 5;
         font:
           12px/1.5 ui-monospace,
@@ -229,12 +226,6 @@
         border: 1px solid rgba(255, 255, 255, 0.7);
         background: rgba(255, 255, 255, 0.08);
         pointer-events: none;
-      }
-      #unitlabels {
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-        z-index: 3;
       }
       /* The order/time control strip — a bare centered button row inside the
          #battle-center housing (its bronze tray lives on #battle-center). */
@@ -559,96 +550,6 @@
         height: 18px;
         background: rgba(150, 114, 62, 0.55);
       }
-      /* Unit readout: temporary DOM bars/chips anchored to the 3D standard. */
-      .ubanner {
-        position: absolute;
-        width: 56px;
-        display: none;
-        will-change: transform;
-        flex-direction: column;
-        align-items: center;
-        left: 0;
-        top: 0;
-      }
-      .ubanner-bars {
-        width: 52px;
-        margin: 0 2px;
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-      }
-      .ubar {
-        height: 3px;
-        background: rgba(10, 10, 12, 0.55);
-        border-radius: 2px;
-        overflow: hidden;
-      }
-      .ubar > div {
-        height: 100%;
-      }
-      .ubar.coh > div {
-        background: #d9c75a;
-      }
-      .ubar.morale > div {
-        background: #7fb069;
-      }
-      .ubar.stamina > div {
-        background: #5aa0d9;
-      }
-      .ubanner-fx {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 1px;
-        margin-top: 1px;
-        width: 56px;
-      }
-      .ubanner-fx b {
-        font:
-          600 7px ui-monospace,
-          Menlo,
-          monospace;
-        color: #e8e4d8;
-        background: rgba(14, 16, 20, 0.72);
-        border-radius: 2px;
-        padding: 0 2px;
-      }
-      .ubanner-fx b.hot {
-        color: #ffc46b;
-      }
-      .ubanner-fx b.bad {
-        color: #ff7a6b;
-      }
-      /* Standalone visual-regression gallery (?test=banners). */
-      #banner-gallery {
-        position: fixed;
-        inset: 0;
-        background: #2c3a22;
-        z-index: 50;
-        display: flex;
-        flex-wrap: wrap;
-        align-content: flex-start;
-        gap: 22px;
-        padding: 28px;
-      }
-      #banner-gallery .ubanner-cell {
-        width: 96px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-        background: rgba(0, 0, 0, 0.18);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 8px;
-        padding: 12px 8px;
-      }
-      #banner-gallery .ubanner-cap {
-        font:
-          600 10px ui-monospace,
-          Menlo,
-          monospace;
-        color: #cfe0bf;
-      }
       #minimap {
         position: fixed;
         right: 12px;
@@ -658,8 +559,6 @@
         cursor: crosshair;
         /* Housing material comes from .hud-chassis (bronze.css). */
         border-width: 4px;
-        /* Above the world-space unit banners (#unitlabels, z-index 3) so a banner
-         drawn over a unit near the corner can't bleed across the minimap. */
         z-index: 10;
       }
       #battle-ui {
@@ -1154,7 +1053,6 @@
       <div id="pausemenu"></div>
       <div id="banner"></div>
       <div id="selbox"></div>
-      <div id="unitlabels"></div>
       <!-- The unit info panel (#hud), unit-card strip (#unitcards), toolbar
        (#toolbar), and minimap (#minimap) are ONE React tree now
        (src/ui/hud/BattleHud.tsx), mounted here by BattleScene. Their bronze CSS

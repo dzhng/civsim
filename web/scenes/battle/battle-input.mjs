@@ -263,15 +263,17 @@ export async function run(ctx) {
             if (sy < minY) minY = sy;
             if (sy > maxY) maxY = sy;
           }
-          const el = document.getElementById("unitlabels")?.children[u];
-          const r = el ? el.getBoundingClientRect() : null;
+          const anchor = g
+            .stats()
+            .renderStats?.readouts?.anchors?.find((candidate) => candidate.unitId === u);
+          const projected = anchor ? cam.worldToScreen(anchor.x, anchor.y, anchor.z) : null;
           return {
             minX,
             maxX,
             minY,
             maxY,
-            bannerX: r ? r.x + r.width / 2 : NaN,
-            bannerFoot: r ? r.bottom : NaN,
+            bannerX: projected ? projected[0] : NaN,
+            bannerFoot: projected ? projected[1] : NaN,
           };
         });
         const marginX = Math.max(30, 0.35 * (res.maxX - res.minX));

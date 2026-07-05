@@ -96,10 +96,29 @@ module and benefits from 02's findings.
 
 ## Next Agent Prompt
 
-**Status 2026-07-06 (pass 5): 04 ATTRIBUTED with a working fix candidate
-PARKED (sweeping footprint — needs its own deliberate pass with David).
-The ORIGINAL REPORT is browser-VERIFIED FIXED (see below). Remaining work
-is David-gated: the 04 foundation pass, 03b, 02b-2, then 05 close-out.**
+**Status 2026-07-06 (pass 5 + David's checkpoint): the original report is
+browser-VERIFIED FIXED. David has ratified the remaining order — pick up
+at 04.**
+
+DAVID'S DECISIONS (2026-07-06, verbatim intent):
+1. **04 foundation pass: GO.** Run it as the deliberate pass this README
+   describes: the parked friction widening PLUS the deep-reform relabel
+   churn, expect golden + battle-shape pins to move — re-derive each with
+   provenance and a one-line cause, film the before/after grind vibes,
+   and present the jostle level as a non-blocking taste checkpoint
+   (frames via preview-shots, ~5 min window, then decide on evidence and
+   record here).
+2. **03b: GO**, with David's design direction: "soldier anchors should
+   not overlap any other soldier — meaning soldiers will always settle
+   at some point." I.e. make the resting TARGET GEOMETRY itself
+   conflict-free (a slot/anchor another body occupies is not a valid
+   rest target; deconflict at assignment/frame level) instead of gating
+   pulls — then every pull reaches zero naturally because every target
+   is occupiable. Treat that as the primary candidate; a better
+   mechanism is allowed if the evidence convicts one, but the three
+   pull-gating variants in the notes below stay banned re-entries.
+3. **02b-2: LAST, droppable.** If the corridor fix keeps breaking other
+   things, close it as a known limitation in 05 instead of forcing it.
 
 Feel-check (pass 5, real game build, seed-1 gen map, 350-man units,
 sim-time driven via advance()): a 35-degree 60m move order settles to
@@ -275,19 +294,19 @@ rationale here, and continue. Never idle waiting for sign-off.
 - [x] 02b-1 — In-wall slots: achievability slide samples every slot (gate
       `settle_with_frame_slots_in_wall` green)
       → [slices/02-wall-split-equilibrium.md](slices/02-wall-split-equilibrium.md)
-- [ ] 02b-2 — Corridor rest pose: body-tight edge files buzz; naive
-      radius-in-width is a banned re-entry (centering treadmill). Gate
-      `settle_inside_marginal_corridor`
-      → [slices/02-wall-split-equilibrium.md](slices/02-wall-split-equilibrium.md)
 - [x] 03 — Grazing friendly overlap (2/5m): damp reversal judged on total
       displacement (solver included) → [slices/03-friendly-overlap-cycle.md](slices/03-friendly-overlap-cycle.md)
-- [ ] 03b — Deep overlap (10m): weave rest shape must accommodate
-      obstruction; three pull-gating variants measured dead (see Next Agent
-      Prompt) → [slices/03-friendly-overlap-cycle.md](slices/03-friendly-overlap-cycle.md)
-- [ ] 04 — Family C: ATTRIBUTED, fix candidate parked in assets/ (sweeping
-      footprint: golden + 2 scenario pins + the deep-reform churn coupling
-      need per-pin provenance, vibes, and David's checkpoint)
-      → [slices/04-grind-lateral-slosh.md](slices/04-grind-lateral-slosh.md)
+- [ ] 04 — NEXT (David: GO). The foundation pass: friction widening from
+      assets/ + the deep-reform relabel churn, per-pin provenance, vibes,
+      taste checkpoint → [slices/04-grind-lateral-slosh.md](slices/04-grind-lateral-slosh.md)
+- [ ] 03b — Deep overlap (David: GO, anchor-deconfliction direction; re-pin
+      the gate at game scale — 350 men, wide-frame overlap)
+      → [slices/03-friendly-overlap-cycle.md](slices/03-friendly-overlap-cycle.md)
+- [ ] 02b-2 — LAST, droppable (David). Corridor rest pose; naive
+      radius-in-width is a banned re-entry (centering treadmill). Gate
+      `settle_inside_marginal_corridor`; if it keeps breaking things, close
+      as a known limitation in 05
+      → [slices/02-wall-split-equilibrium.md](slices/02-wall-split-equilibrium.md)
 - [ ] 05 — Close-out: retire the probe file, browser feel-check, vibe
       re-bless if needed, ledger, then
       [close-spec](../../.claude/skills/close-spec/SKILL.md) →

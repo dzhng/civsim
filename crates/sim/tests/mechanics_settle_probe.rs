@@ -585,4 +585,165 @@ fn probe_trace_cliff_churn_forces() {
     for (ch, mag) in &worst_ch {
         println!("  {ch:?}: {mag:8.2}");
     }
+
+    // Wall-split census: how many men have (a) a straight segment to their
+    // SLOT crossing impassable ground, or (b) a slot-adjacent NEIGHBOUR whose
+    // bond segment crosses impassable ground? These are the two candidate
+    // "unreachable target" populations for the slice-02 fix.
+    let blocked_segment = |a: Vec2, b: Vec2| -> bool {
+        let d = b - a;
+        let len = d.len();
+        if len < 1e-3 {
+            return false;
+        }
+        let steps = (len / 1.0).ceil() as usize;
+        (1..steps).any(|s| {
+            let p = a + d * (s as f32 / steps as f32);
+            sim.terrain.speed_at(p) <= 0.0
+        })
+    };
+    let files = u.files_eff.max(1);
+    let mut slot_blocked = 0;
+    let mut bond_blocked = 0;
+    let mut far_and_blocked = 0;
+    for i in u.start..u.start + u.count {
+        if sim.alive[i] != 1 {
+            continue;
+        }
+        let p = sim.soldier_pos(i);
+        let slot = u.slot_world(sim.soldier_slot[i] as usize);
+        let sb = blocked_segment(p, slot);
+        if sb {
+            slot_blocked += 1;
+            if (p - slot).len() > 5.0 {
+                far_and_blocked += 1;
+            }
+        }
+        let si = sim.soldier_slot[i] as usize;
+        let (file, rank) = (si % files, si / files);
+        let mut any_bond_blocked = false;
+        let mut check_neighbor = |nslot: isize| {
+            if nslot < 0 || nslot as usize >= u.count {
+                return;
+            }
+            if let Some(j) = (u.start..u.start + u.count)
+                .find(|&j| sim.alive[j] == 1 && sim.soldier_slot[j] as usize == nslot as usize)
+            {
+                let jp = sim.soldier_pos(j);
+                if blocked_segment(p, jp) {
+                    any_bond_blocked = true;
+                }
+            }
+        };
+        if file > 0 {
+            check_neighbor(si as isize - 1);
+        }
+        if file + 1 < files {
+            check_neighbor(si as isize + 1);
+        }
+        if rank > 0 {
+            check_neighbor(si as isize - files as isize);
+        }
+        check_neighbor(si as isize + files as isize);
+        if any_bond_blocked {
+            bond_blocked += 1;
+        }
+        let _ = sb;
+    }
+    println!(
+        "wall-split census: slot_blocked={slot_blocked} (far>{{5m}}={far_and_blocked}) bond_blocked={bond_blocked} of {} alive",
+        u.alive_count
+    );
+}
+
+#[cfg(feature = "force-trace")]
+#[test]
+fn probe_trace_corridor_buzz_forces() {
+    // Family A': force ledger of the marginal-corridor standing buzz —
+    // which channels alternate, and does the cycle close through the
+    // separation solver (slice-03 shape) or terrain projection (slice-02)?
+    use std::collections::BTreeMap;
+    let gap_half = 9.7f32;
+    let mut terrain = Terrain::flat(100, 60, 4.0, Vec2::new(-200.0, -120.0));
+    terrain.paint_rect(
+        Vec2::new(-60.0, -100.0),
+        Vec2::new(-gap_half + 0.6, 100.0),
+        0.0,
+        0.0,
+    );
+    terrain.paint_rect(
+        Vec2::new(gap_half + 0.6, -100.0),
+        Vec2::new(60.0, 100.0),
+        0.0,
+        0.0,
+    );
+    let mut sim = Sim::new(
+        Tunables {
+            micro_rough: 0.0,
+            morale_enabled: false,
+            ..Tunables::default()
+        },
+        SEED,
+    );
+    sim.terrain = terrain;
+    let unit = sim.spawn_unit(
+        Vec2::new(0.0, -80.0),
+        FRAC_PI_2,
+        120,
+        20,
+        Vec2::new(1.0, 1.0),
+        0,
+        1.0,
+    );
+    run(&mut sim, 3.0);
+    sim.set_move_order(unit, Vec2::new(0.0, 0.0));
+    march_until_arrived(&mut sim, unit);
+    run(&mut sim, 30.0); // settled into the buzz
+    sim.clear_force_trace();
+    run(&mut sim, 2.0);
+    let u = &sim.units[unit];
+    let mut per_channel: BTreeMap<_, f32> = BTreeMap::new();
+    let mut per_channel_net: BTreeMap<_, Vec2> = BTreeMap::new();
+    for rec in sim.force_trace.records() {
+        if rec.soldier >= u.start && rec.soldier < u.start + u.count {
+            *per_channel.entry(rec.channel).or_insert(0.0) += rec.vec.len();
+            let e = per_channel_net.entry(rec.channel).or_insert(Vec2::ZERO);
+            *e = *e + rec.vec;
+        }
+    }
+    println!(
+        "corridor buzz channel |sum| (net) over 2s, files_eff={}:",
+        u.files_eff
+    );
+    for (ch, mag) in &per_channel {
+        let net = per_channel_net[ch];
+        println!("  {ch:?}: {mag:8.2}  net=({:+.2},{:+.2})", net.x, net.y);
+    }
+    // Which men carry it: edge files vs center files mean |record|.
+    let files = u.files_eff.max(1);
+    let mut edge_sum = 0.0f32;
+    let mut edge_n = 0.0f32;
+    let mut center_sum = 0.0f32;
+    let mut center_n = 0.0f32;
+    for rec in sim.force_trace.records() {
+        if rec.soldier < u.start || rec.soldier >= u.start + u.count {
+            continue;
+        }
+        let file = sim.soldier_slot[rec.soldier] as usize % files;
+        let mag = rec.vec.len();
+        if file < 2 || file >= files - 2 {
+            edge_sum += mag;
+            edge_n += 1.0;
+        } else {
+            center_sum += mag;
+            center_n += 1.0;
+        }
+    }
+    println!(
+        "edge-file mean |rec|={:.4} ({} recs)  center mean |rec|={:.4} ({} recs)",
+        edge_sum / edge_n.max(1.0),
+        edge_n,
+        center_sum / center_n.max(1.0),
+        center_n
+    );
 }

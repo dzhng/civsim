@@ -21,7 +21,6 @@ const MAX_EXPANDED_CELLS: usize = 300_000;
 /// run the reroute cannot fix (no land path at raster resolution). The drawn
 /// ribbon stops at each shore; the crossing itself is implied.
 pub const ROAD_FERRY_CROSSINGS: &[(&str, &str)] = &[
-    ("Constantinopolis", "Nicomedia"),
     ("Constantinopolis", "Deultum"),
     ("Constantinopolis", "Perinthus"),
     ("Delphi", "Patrae"),

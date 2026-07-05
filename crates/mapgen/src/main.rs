@@ -121,6 +121,9 @@ fn main() {
     post_step("crates/mapgen/leagues.mjs");
     post_step("crates/mapgen/prune-cities.mjs");
     post_step("crates/mapgen/dequalify-names.mjs");
+    // The sea-route feature is descoped: keep only the Gibraltar and Hellespont
+    // lanes, delete the rest, and prune the junctions that only routed sea.
+    post_step("crates/mapgen/descope-sea-lanes.mjs");
 
     landroute::make_committed_roads_land_safe(out_dir, &r, &rivers, &mountains, bb);
 
@@ -269,8 +272,12 @@ mod tests {
         let mut margin_water_cities = Vec::new();
         let city_snap_exemptions: std::collections::BTreeSet<&str> =
             build::CITY_SNAP_EXEMPTIONS.iter().map(|e| e.name).collect();
+        // Sea routes are descoped: the cities that used to be reachable only by
+        // sea (SEA_ONLY_CITIES) are now intentionally isolated islands, so they
+        // are allowed to have no connectivity at all.
+        let island_cities: std::collections::BTreeSet<&str> =
+            landroute::SEA_ONLY_CITIES.iter().copied().collect();
         let mut seen_exemptions = std::collections::BTreeSet::new();
-        let mut ports_without_sea = Vec::new();
         let mut stranded_cities = Vec::new();
         let mut stub_junctions = Vec::new();
         let mut dead_junctions = Vec::new();
@@ -292,10 +299,11 @@ mod tests {
                 ) {
                     margin_water_cities.push(n.name.as_str());
                 }
-                if n.port && sea_degree.get(&n.id).copied().unwrap_or(0) == 0 {
-                    ports_without_sea.push(n.name.as_str());
-                }
-                if total_degree.get(&n.id).copied().unwrap_or(0) == 0 {
+                // A city with no edges is a bug only if it is NOT an island —
+                // island cities are isolated by design now that sea is descoped.
+                if total_degree.get(&n.id).copied().unwrap_or(0) == 0
+                    && !island_cities.contains(n.name.as_str())
+                {
                     stranded_cities.push(n.name.as_str());
                 }
             } else if n.kind == "junction" {
@@ -316,8 +324,8 @@ mod tests {
         }
 
         assert_eq!(
-            sea_edges, 464,
-            "sea edge count changed from the pre-prune ORBIS lane set"
+            sea_edges, 2,
+            "sea routes are descoped: exactly the Gibraltar + Hellespont lanes remain"
         );
         assert!(water_cities.is_empty(), "cities on water: {water_cities:?}");
         assert!(
@@ -327,10 +335,6 @@ mod tests {
         assert_eq!(
             seen_exemptions, city_snap_exemptions,
             "city snap exemptions must name committed city nodes"
-        );
-        assert!(
-            ports_without_sea.is_empty(),
-            "port cities without sea edges: {ports_without_sea:?}"
         );
         assert!(
             stranded_cities.is_empty(),

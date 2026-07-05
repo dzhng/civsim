@@ -277,6 +277,10 @@ impl Game {
             "southDeployPassable": certify::deployment_band_passable_fraction(t, certify::Side::South),
             "northDeployPassable": certify::deployment_band_passable_fraction(t, certify::Side::North),
             "corridor": certify::has_deployment_corridor(t),
+            "westFlankUnreachable": certify::flank_unreachable_fraction(t, certify::Side::West),
+            "eastFlankUnreachable": certify::flank_unreachable_fraction(t, certify::Side::East),
+            "orphanBlockedCells": certify::speed_zero_cells_without_blocking_tint(t),
+            "largestIsolatedPassablePocket": certify::largest_isolated_passable_pocket_cells(t),
         })
         .to_string()
     }

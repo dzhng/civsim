@@ -69,13 +69,13 @@ maps untouched, elevation tripwire.
   inside the grid, rolling corridor, flat aprons); elevation tripwire green;
   clay scene green twice with synthetic hillshade snaps (top-down +
   pseudo-vista).
-- **Debt 1 (next G-pass):** the clay scene renders a SYNTHETIC height-sampled
-  hillshade, not the real pipeline at the locked camera - the silhouette
-  family verdict and the horizon-0.50 promotion wait for a real-pipeline clay
-  (ride slice 03's mask scene or a clay route param).
-- **Debt 2 (fix in slice 03 pass):** the deployment-apron flattening leaves a
-  stamped oval dish imprint in the corridor hillshade - smooth the apron
-  mask's falloff.
+- **Debt 1 CLOSED in slice 03 (BMS03-SLICE-F1A8):** the clay scene now boots
+  `/renderer/photoreal-battle?map=gen&seed=7&clay=1` at the slice-00 locked
+  `VISTA_CAMERA`, captures the live renderer canvas, and measures the
+  far-terrain line from the live `camera3d` plus `heightAt`.
+- **Debt 2 CLOSED in slice 03 (BMS03-SLICE-F1A8):** the deployment-apron mask
+  now uses a wider quintic smootherstep falloff (`0..390 m`) instead of the
+  tight stamped smoothstep rim.
 ## Feedback that would change it
 
 "The flanks read as bumps, not walls" → amplitude/ridge parameters, possibly
@@ -92,15 +92,17 @@ preview-shots (non-blocking).
 - Key constants: corridor half-width `390 m`, transition `230 m`, ridge foot
   `520 m`, ridge crest `1320 m`, corridor detail budget `5.0 m`, flank detail
   `7..17 m`, apron detail multiplier `0.36`.
-- Slice 01 speed/tint passability writes remain unchanged: crag-circle E/W
-  seals still write `speed=0`, `rough=0`, `tint=2`; all other cells stay
-  speed-passable. Rough keeps the slice 01 value-noise formula.
+- At the slice-02 checkpoint, slice-01 speed/tint passability writes remained
+  unchanged: crag-circle E/W seals wrote `speed=0`, `rough=0`, `tint=2`; all
+  other cells stayed speed-passable. Slice 03 replaces this with
+  landform-derived passability.
 - Seed sweep stats pinned by cargo for seeds 1..4:
   - seed 1: corridor `-6.47..5.27 m`, flank peaks `115.17..119.72 m`
   - seed 2: corridor `-5.47..6.28 m`, flank peaks `107.78..120.77 m`
   - seed 3: corridor `-6.55..5.34 m`, flank peaks `112.62..115.69 m`
   - seed 4: corridor `-6.34..4.16 m`, flank peaks `111.18..116.36 m`
-- New generated seed-7 terrain hash: `0x3138cbc0087fc0cd`. Hand-map hashes
+- New generated seed-7 terrain hash after slice 02: `0x3138cbc0087fc0cd`
+  (slice 03 re-pins this to `0x8ceb1a8a243ea756`). Hand-map hashes
   stayed pinned:
   `RiverAndCrags=0x1d65c06afbab0eca`,
   `WalledPlain=0x864fe11f35ddf30c`,

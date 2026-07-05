@@ -1,6 +1,6 @@
 import { PNG } from "pngjs";
 
-const SEED7_HASH = "0x3138cbc0087fc0cd";
+const SEED7_HASH = "0x8ceb1a8a243ea756";
 
 export const meta = {
   name: "battle-genmap-smoke",
@@ -68,6 +68,14 @@ export async function run(ctx) {
     terrain.certificates.southDeployPassable > 0.99 &&
       terrain.certificates.northDeployPassable > 0.99 &&
       terrain.certificates.corridor === true,
+    JSON.stringify(terrain.certificates),
+  );
+  ctx.check(
+    "generated flank bands are unreachable and passability has no orphan pockets (wasm certify verdicts)",
+    terrain.certificates.westFlankUnreachable > 0.95 &&
+      terrain.certificates.eastFlankUnreachable > 0.95 &&
+      terrain.certificates.orphanBlockedCells === 0 &&
+      terrain.certificates.largestIsolatedPassablePocket <= 96,
     JSON.stringify(terrain.certificates),
   );
 

@@ -21,11 +21,15 @@ Reference images (in `assets/` and the aesthetics skill):
 
 ## Next Agent Prompt
 
-**Status 2026-07-05: slices 00, 01, 10 DONE (live-verified);
-11 CODE-LANDED as BMS11-SLICE-E9C4, awaiting orchestrator visual/perf gates.**
-Next pickup: [02-landform](slices/02-landform.md) (G-track). Before writing any
-scene against the photoreal battle route, read the camera-truth trap and the
-oracle re-anchoring amendment in
+**Status 2026-07-05: slices 00, 01, 02, 10, 11 DONE (live-verified; blade
+grass ships in production battles).** Next pickups:
+[03-passability](slices/03-passability.md) (G-track — also owes slice 02's
+two debts: real-pipeline clay at the locked camera, apron-dish smoothing) and
+[12-grass-lod-budgets](slices/12-grass-lod-budgets.md) (V-track — the
+mid-zoom bald gap and ring-edge thinning are its named debts). Read slice
+10's TSL hazards and slice 11's integration findings before touching the
+blade field; read the camera-truth trap and the oracle re-anchoring
+amendment in
 [00's locked values](slices/00-composition-and-oracle-lock.md).
 
 Before writing any code, read:
@@ -46,8 +50,8 @@ Before writing any code, read:
 
 - [x] 00 — Composition + oracle lock (judging apparatus pinned before art)
 - [x] 01 — Genmap skeleton (seed → playable battle, end to end)
-- [ ] 02 — Landform (macro mask × warped noise, clay verdict; code/cargo landed,
-      browser clay verdict pending)
+- [x] 02 — Landform (macro mask × warped noise, clay verdict; real-pipeline
+      clay + apron-dish debts routed to slice 03)
 - [ ] 03 — Passability from landform (BFS certificates)
 - [ ] 04 — Hydrology (priority-flood lakes, descending rivers, fords)
 - [ ] 05 — Edge grammar + deployment guarantees

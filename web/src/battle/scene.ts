@@ -6,7 +6,8 @@ import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
 import {
   CLASS_SPACING,
   UNIT_INFO,
-  unitFiles,
+  currentUnitFiles,
+  currentUnitRanks,
 } from "../../../packages/game-renderer/src/battle/unitInfoLayout";
 import {
   modelLookForClass,
@@ -820,14 +821,7 @@ export class BattleScene implements Scene {
     const unitCenter = (u: number): [number, number] => {
       const info = unitInfo();
       const o = u * STRIDE;
-      // anchor is front-center; offset half-depth back along facing
-      const alive = info[o + 15];
-      const cls = info[o + 13];
-      const depth = (Math.ceil(alive / unitFiles(cls, alive)) || 1) * 1.1;
-      return [
-        info[o] - Math.cos(info[o + 2]) * depth * 0.5,
-        info[o + 1] - Math.sin(info[o + 2]) * depth * 0.5,
-      ];
+      return [info[o + UNIT_INFO.centerX], info[o + UNIT_INFO.centerY]];
     };
 
     const soldierStartOf = (u: number, info = unitInfo()) => {
@@ -845,8 +839,7 @@ export class BattleScene implements Scene {
       const info = unitInfo();
       const [cx, cy] = unitCenter(u);
       const cls = info[u * STRIDE + 13];
-      const alive = info[u * STRIDE + 15];
-      const files = unitFiles(cls, alive);
+      const files = currentUnitFiles(info, u * STRIDE);
       return { u, x: cx, y: cy, r: 0.5 * files * CLASS_SPACING[cls] };
     };
 
@@ -1122,12 +1115,101 @@ export class BattleScene implements Scene {
       : updateCards;
 
     // --- Tactical lines: ground decals plus transient effects ---------------------
+    interface PreviewBounds {
+      unit: number;
+      x0: number;
+      y0: number;
+      x1: number;
+      y1: number;
+      count: number;
+      files: number;
+      ranks: number;
+      width: number;
+      depth: number;
+      aspect: number;
+      expectedAspect: number;
+      previewFiles: number;
+      previewRanks: number;
+      previewShapeAspect: number;
+    }
+    let lastPreviewBounds = new Map<number, PreviewBounds>();
+    const pushPreviewRings = (
+      rings: number[],
+      unit: number,
+      x: number,
+      y: number,
+      facing: number,
+      alive: number,
+      files: number,
+      ranks: number,
+      spacing: number,
+      r: number,
+      g: number,
+      b: number,
+    ) => {
+      const start = rings.length;
+      pushDestRings(rings, x, y, facing, alive, files, spacing, r, g, b);
+      if (rings.length === start) return;
+      const fx = Math.cos(facing);
+      const fy = Math.sin(facing);
+      const rx = fy;
+      const ry = -fx;
+      let x0 = Infinity;
+      let y0 = Infinity;
+      let x1 = -Infinity;
+      let y1 = -Infinity;
+      let lat0 = Infinity;
+      let lat1 = -Infinity;
+      let back0 = Infinity;
+      let back1 = -Infinity;
+      for (let i = start; i < rings.length; i += 6) {
+        const px = rings[i];
+        const py = rings[i + 1];
+        x0 = Math.min(x0, px);
+        y0 = Math.min(y0, py);
+        x1 = Math.max(x1, px);
+        y1 = Math.max(y1, py);
+        const dx = px - x;
+        const dy = py - y;
+        const lateral = dx * rx + dy * ry;
+        const back = -(dx * fx + dy * fy);
+        lat0 = Math.min(lat0, lateral);
+        lat1 = Math.max(lat1, lateral);
+        back0 = Math.min(back0, back);
+        back1 = Math.max(back1, back);
+      }
+      const rankGap = 1.1;
+      const width = Math.max(0.001, lat1 - lat0);
+      const depth = Math.max(0.001, back1 - back0);
+      const previewFiles = Math.max(1, Math.round(width / Math.max(0.001, spacing)) + 1);
+      const previewRanks = Math.max(1, Math.round(depth / rankGap) + 1);
+      const expectedAspect = Math.max(1, files) / Math.max(1, ranks);
+      lastPreviewBounds.set(unit, {
+        unit,
+        x0,
+        y0,
+        x1,
+        y1,
+        count: (rings.length - start) / 6,
+        files,
+        ranks,
+        width,
+        depth,
+        aspect: width / depth,
+        expectedAspect,
+        previewFiles,
+        previewRanks,
+        previewShapeAspect: previewFiles / previewRanks,
+      });
+    };
+
     function tacticalLineFrame(withPaths: boolean): BattleTacticalLineFrame {
       const info = unitInfo();
       const n = game.unit_count();
       const groundCues: number[] = [];
       const rings: number[] = [];
       const effects: number[] = [];
+      lastPreviewBounds = new Map();
       const showTransient = !frozen || withPaths || frozenEffects;
       for (let u = 0; u < n; u++) {
         const o = u * STRIDE;
@@ -1176,16 +1258,19 @@ export class BattleScene implements Scene {
           const k = withPaths ? 1 : Math.max(0, 1 - age / 2500);
           const cls = info[o + 13];
           const alive = info[o + 15];
-          const files = unitFiles(cls, alive);
+          const files = currentUnitFiles(info, o);
+          const ranks = currentUnitRanks(info, o);
           const gf =
             info[o + 23] > 0.5 ? info[o + 22] : Math.atan2(info[o + 11] - ay, info[o + 10] - ax);
-          pushDestRings(
+          pushPreviewRings(
             rings,
+            u,
             info[o + 10],
             info[o + 11],
             gf,
             alive,
             files,
+            ranks,
             CLASS_SPACING[cls],
             r * k,
             g * k,
@@ -1220,13 +1305,15 @@ export class BattleScene implements Scene {
             const o = dst.u * STRIDE;
             const cls = info[o + 13];
             const alive = info[o + 15];
-            pushDestRings(
+            pushPreviewRings(
               rings,
+              dst.u,
               dst.x,
               dst.y,
               input.rightDrag.facing,
               alive,
-              unitFiles(cls, alive),
+              currentUnitFiles(info, o),
+              currentUnitRanks(info, o),
               CLASS_SPACING[cls],
               ...SELECTION_GREEN,
             );
@@ -1253,13 +1340,15 @@ export class BattleScene implements Scene {
           const alive = info[o + 15];
           if (alive === 0) continue;
           const [cx, cy] = unitCenter(u);
-          pushDestRings(
+          pushPreviewRings(
             rings,
+            u,
             cx + dx,
             cy + dy,
             info[o + 2],
             alive,
-            unitFiles(cls, alive),
+            currentUnitFiles(info, o),
+            currentUnitRanks(info, o),
             CLASS_SPACING[cls],
             ...SELECTION_GREEN,
           );
@@ -2018,6 +2107,18 @@ export class BattleScene implements Scene {
       enqueue: (u: number, mode: number, x: number, y: number, facing: number, hasFacing: number) =>
         game.enqueue(u, mode, x, y, facing, hasFacing),
       queuedOrders: (u: number) => Array.from(game.queued_orders(u)),
+      previewDebug: (u: number) => lastPreviewBounds.get(u) ?? null,
+      formationDebug: (u: number) => {
+        const info = unitInfo();
+        const o = u * STRIDE;
+        return {
+          files: currentUnitFiles(info, o),
+          ranks: currentUnitRanks(info, o),
+          total: Math.max(0, Math.floor(info[o + UNIT_INFO.total])),
+          centerX: info[o + UNIT_INFO.centerX],
+          centerY: info[o + UNIT_INFO.centerY],
+        };
+      },
       terrainDebug,
       advance: (n: number) => {
         game.advance_ticks(n);

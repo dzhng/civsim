@@ -9,6 +9,14 @@ Codex is an independent agent on PATH (`codex`), sharing this working tree and
 already authenticated. It is a second opinion, not ground truth: verify what it
 reports, own what it changes. It reads the same `.agents/skills` you do.
 
+## If `codex` is not installed
+
+When `codex` is missing from PATH, offer to install it — **ask the user for
+approval first**, never install on your own initiative. On yes, follow the
+current instructions at https://developers.openai.com/codex/cli. First-run
+authentication is interactive — hand that step to the user. Verify with
+`codex --version` before proceeding.
+
 ## Prompting Codex
 
 Prompt Codex like an operator, not a collaborator: compact, block-structured

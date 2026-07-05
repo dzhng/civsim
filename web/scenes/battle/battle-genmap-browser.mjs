@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 const VIEWPORT = { width: 1600, height: 1120 };
 const SEEDS = Array.from({ length: 24 }, (_, i) => i + 1);
 const OUT_DIR = fileURLToPath(
-  new URL("../../../specs/battle-map-style/visualizations/", import.meta.url),
+  new URL("../../../specs/done/battle-map-style/visualizations/", import.meta.url),
 );
 const OUT_PNG = `${OUT_DIR}seed-browser.png`;
 const OUT_HTML = `${OUT_DIR}seed-browser.html`;

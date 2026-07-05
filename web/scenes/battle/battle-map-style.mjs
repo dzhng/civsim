@@ -12,7 +12,7 @@ import {
 // is meadow-mass texture and calibrating on it rejects real close-up grass
 // (slice-00 trap, recorded in the slice file).
 const TARGET = new URL(
-  "../../../specs/battle-map-style/assets/target-close-grass.png",
+  "../../../specs/done/battle-map-style/assets/target-close-grass.png",
   import.meta.url,
 );
 

@@ -2,14 +2,15 @@
 //! web/public/data/campaign-map.json (+ campaign-bg.png/.json). One command,
 //! run from the repo root:
 //!   cargo run -p mapgen --release
-//! It writes the raw map, then runs the JS post-steps in order — leagues.mjs
-//! (fold leftover independents into neutral leagues), prune-cities.mjs
-//! (drop towns too close to render cleanly), then dequalify-names.mjs
-//! (normalize display names) — so the committed map is always the finished one
-//! and a re-bake can't silently skip a step. Needs `node` on PATH. Source data:
-//! crates/mapgen/data/fetch.sh
+//! It writes the raw map, runs the post-steps in order — leagues.mjs (fold
+//! leftover independents into neutral leagues), prune-cities.mjs (drop towns too
+//! close to render cleanly), dequalify-names.mjs (normalize display names), then
+//! Rust descope/landroute cleanup — so the committed map is always the finished
+//! one and a re-bake can't silently skip a step. Needs `node` on PATH. Source
+//! data: crates/mapgen/data/fetch.sh
 
 mod build;
+mod connectivity;
 mod geo;
 mod landroute;
 mod probe;
@@ -21,6 +22,10 @@ use geo::BBox;
 fn main() {
     if std::env::args().nth(1).as_deref() == Some("probe") {
         probe::write_committed_probe();
+        return;
+    }
+    if std::env::args().nth(1).as_deref() == Some("connectivity-report") {
+        connectivity::print_report();
         return;
     }
 
@@ -120,17 +125,17 @@ fn main() {
     .unwrap();
     eprintln!("wrote {out_dir}/campaign-map.json, campaign-bg.png, campaign-bg.json");
 
-    // Finish the map in JS, in order: fold the leftover independent cities into
-    // regional neutral leagues (no ownerless grey on the political map), then
-    // thin out towns that sit too close for their 3D models to read, then
-    // normalize city/faction display names over that final city set. Run here so
-    // `cargo run -p mapgen` always emits the finished, committed map.
+    // Finish the map in order: fold the leftover independent cities into regional
+    // neutral leagues (no ownerless grey on the political map), thin out towns
+    // that sit too close for their 3D models to read, then normalize names over
+    // that final city set. Run here so `cargo run -p mapgen` always emits the
+    // finished, committed map.
     post_step("crates/mapgen/leagues.mjs");
     post_step("crates/mapgen/prune-cities.mjs");
     post_step("crates/mapgen/dequalify-names.mjs");
-    // The sea-route feature is descoped: keep only the Gibraltar and Hellespont
-    // lanes, delete the rest, and prune the junctions that only routed sea.
-    post_step("crates/mapgen/descope-sea-lanes.mjs");
+    // Descope sea routes, then reconnect every same-landmass city that can
+    // honestly chain back to the main component under the measured cap.
+    connectivity::descope_and_reconnect(out_dir, &r, &rivers, &mountains, bb);
 
     landroute::make_committed_roads_land_safe(out_dir, &r, &rivers, &mountains, bb);
 
@@ -174,7 +179,6 @@ mod tests {
         name: String,
         pos: [f64; 2],
         kind: String,
-        port: bool,
     }
 
     #[derive(Deserialize)]
@@ -193,15 +197,23 @@ mod tests {
     #[test]
     fn baked_campaign_map_satisfies_mapgen_invariants() {
         let data_dir = format!("{}/../../web/public/data", env!("CARGO_MANIFEST_DIR"));
-        let map: MapFixture = serde_json::from_str(
-            &std::fs::read_to_string(format!("{data_dir}/campaign-map.json")).unwrap(),
-        )
-        .unwrap();
+        let map_text = std::fs::read_to_string(format!("{data_dir}/campaign-map.json")).unwrap();
+        let map_value: serde_json::Value = serde_json::from_str(&map_text).unwrap();
+        let map: MapFixture = serde_json::from_str(&map_text).unwrap();
         let bg: BgRect = serde_json::from_str(
             &std::fs::read_to_string(format!("{data_dir}/campaign-bg.json")).unwrap(),
         )
         .unwrap();
         let (bg_w, bg_h, bg_px) = read_png(&format!("{data_dir}/campaign-bg.png"));
+        let committed_raster = raster::Raster::from_rgba(
+            BBox {
+                min: bg.min,
+                max: bg.max,
+            },
+            bg_w,
+            bg_h,
+            bg_px.clone(),
+        );
 
         let mut city_display_names = BTreeSet::new();
         let mut duplicate_city_display_names = Vec::new();
@@ -279,13 +291,7 @@ mod tests {
         let mut margin_water_cities = Vec::new();
         let city_snap_exemptions: std::collections::BTreeSet<&str> =
             build::CITY_SNAP_EXEMPTIONS.iter().map(|e| e.name).collect();
-        // Sea routes are descoped: the cities that used to be reachable only by
-        // sea (SEA_ONLY_CITIES) are now intentionally isolated islands, so they
-        // are allowed to have no connectivity at all.
-        let island_cities: std::collections::BTreeSet<&str> =
-            landroute::SEA_ONLY_CITIES.iter().copied().collect();
         let mut seen_exemptions = std::collections::BTreeSet::new();
-        let mut stranded_cities = Vec::new();
         let mut stub_junctions = Vec::new();
         let mut dead_junctions = Vec::new();
         for n in &map.nodes {
@@ -305,13 +311,6 @@ mod tests {
                     build::CITY_SNAP_MARGIN_CELLS,
                 ) {
                     margin_water_cities.push(n.name.as_str());
-                }
-                // A city with no edges is a bug only if it is NOT an island —
-                // island cities are isolated by design now that sea is descoped.
-                if total_degree.get(&n.id).copied().unwrap_or(0) == 0
-                    && !island_cities.contains(n.name.as_str())
-                {
-                    stranded_cities.push(n.name.as_str());
                 }
             } else if n.kind == "junction" {
                 let rd = road_degree.get(&n.id).copied().unwrap_or(0);
@@ -344,10 +343,6 @@ mod tests {
             "city snap exemptions must name committed city nodes"
         );
         assert!(
-            stranded_cities.is_empty(),
-            "cities with neither road nor sea connectivity: {stranded_cities:?}"
-        );
-        assert!(
             stub_junctions.is_empty(),
             "road stub junctions: {stub_junctions:?}"
         );
@@ -356,39 +351,54 @@ mod tests {
             "degree-0 junctions: {dead_junctions:?}"
         );
 
-        let sea_only_expected: std::collections::BTreeSet<&str> =
-            landroute::SEA_ONLY_CITIES.iter().copied().collect();
-        let mut sea_only_actual = std::collections::BTreeSet::new();
         let mut road_nodes_on_water = Vec::new();
         for n in &map.nodes {
             let rd = road_degree.get(&n.id).copied().unwrap_or(0);
             if rd > 0 && !land_at(n.pos, &bg, bg_w, bg_h, &bg_px) {
                 road_nodes_on_water.push(n.name.as_str());
             }
-            if n.kind == "city" && rd == 0 {
-                sea_only_actual.insert(n.name.as_str());
-            }
         }
         assert!(
             road_nodes_on_water.is_empty(),
             "road-bearing nodes on painted water: {road_nodes_on_water:?}"
         );
-        assert_eq!(
-            sea_only_actual, sea_only_expected,
-            "cities without road-degree must match SEA_ONLY_CITIES exactly"
+
+        let ids_by_name: BTreeMap<&str, u32> = map
+            .nodes
+            .iter()
+            .map(|node| (node.name.as_str(), node.id))
+            .collect();
+        let capital_ids: Vec<u32> = map_value
+            .get("factions")
+            .and_then(serde_json::Value::as_array)
+            .into_iter()
+            .flatten()
+            .filter(|f| {
+                f.get("playable")
+                    .and_then(serde_json::Value::as_bool)
+                    .unwrap_or(false)
+            })
+            .filter_map(|f| f.get("capital").and_then(serde_json::Value::as_str))
+            .filter_map(|name| ids_by_name.get(name).copied())
+            .collect();
+        let leftover = connectivity::reconnect_plan(
+            &map_value,
+            &committed_raster,
+            &capital_ids,
+            connectivity::RECONNECT_MAX_GAP_KM,
+        );
+        let mut leftover_names: Vec<&str> = leftover
+            .iter()
+            .filter_map(|(city_id, _, _)| nodes.get(city_id).map(|node| node.name.as_str()))
+            .collect();
+        leftover_names.sort_unstable();
+        assert!(
+            leftover_names.is_empty(),
+            "reconnectable mainland cities left stranded: {leftover_names:?}"
         );
 
         // Query the committed bg through the SAME owners the bake used: the
         // raster classifier plus landroute's raw/smoothed run measures.
-        let committed_raster = raster::Raster::from_rgba(
-            BBox {
-                min: bg.min,
-                max: bg.max,
-            },
-            bg_w,
-            bg_h,
-            bg_px.clone(),
-        );
         let ferry_pairs: std::collections::BTreeSet<(&str, &str)> = landroute::ROAD_FERRY_CROSSINGS
             .iter()
             .map(|&(a, b)| landroute::ordered_pair(a, b))

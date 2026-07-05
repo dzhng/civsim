@@ -32,67 +32,6 @@ pub const ROAD_FERRY_CROSSINGS: &[(&str, &str)] = &[
     ("Olisipo", "x"),
 ];
 
-pub const SEA_ONLY_CITIES: &[&str] = &[
-    "Agrigentum",
-    "Aleria",
-    "Amastris",
-    "Amathous",
-    "Apollonia",
-    "Apollonia Pontica",
-    "Camarina",
-    "Caralis",
-    "Caunus",
-    "Chalcis",
-    "Chersonasos",
-    "Chersonesos",
-    "Chios",
-    "Cnidus",
-    "Corcyra",
-    "Corycus",
-    "Cyzicus",
-    "Demetrias",
-    "Dianium",
-    "Dioscurias",
-    "Ebusus",
-    "Gorgippia",
-    "Gythion",
-    "Halicarnassus",
-    "Igilgili",
-    "Kalos Limen",
-    "Krane",
-    "Lapethos",
-    "Lilybaeum",
-    "Lokroi Epizephyrioi",
-    "Malaca",
-    "Melita",
-    "Meninge",
-    "Messana",
-    "Mytilene",
-    "Olbia",
-    "Olbia Borysthenes",
-    "Palma",
-    "Panormus",
-    "Pantikapaion",
-    "Paphos",
-    "Phasis",
-    "Populonium",
-    "Prusias",
-    "Rhodos",
-    "Salamis",
-    "Samos",
-    "Selinus",
-    "Sestus",
-    "Sinope",
-    "Syracusae",
-    "Tainaron Pr.",
-    "Tanais",
-    "Thabraca",
-    "Thaenae",
-    "Thasos",
-    "Theodosia",
-    "Tyras",
-];
-
 #[derive(Clone)]
 struct NodeInfo {
     name: String,
@@ -134,7 +73,6 @@ pub fn make_committed_roads_land_safe(
 
     let mut nodes = read_nodes(&map);
     let road_degree = road_degrees(&map);
-    validate_sea_only_cities(&map, &road_degree);
     let mut junction_snaps = Vec::new();
 
     {
@@ -402,7 +340,7 @@ fn reroute_road_via(via: &[[f64; 2]], raster: &Raster) -> RerouteResult {
     }
 }
 
-fn astar_land_path(
+pub fn astar_land_path(
     raster: &Raster,
     start: [f64; 2],
     goal: [f64; 2],
@@ -755,31 +693,6 @@ fn road_degrees(map: &Value) -> BTreeMap<u32, usize> {
             .or_default() += 1;
     }
     degree
-}
-
-fn validate_sea_only_cities(map: &Value, road_degree: &BTreeMap<u32, usize>) {
-    let expected = SEA_ONLY_CITIES
-        .iter()
-        .map(|name| (*name).to_string())
-        .collect::<BTreeSet<_>>();
-    let actual = map["nodes"]
-        .as_array()
-        .expect("nodes array")
-        .iter()
-        .filter(|node| {
-            node["kind"].as_str() == Some("city")
-                && road_degree
-                    .get(&(node["id"].as_u64().expect("node id") as u32))
-                    .copied()
-                    .unwrap_or(0)
-                    == 0
-        })
-        .map(|node| node["name"].as_str().expect("node name").to_string())
-        .collect::<BTreeSet<_>>();
-    assert_eq!(
-        actual, expected,
-        "cities without road-degree must match SEA_ONLY_CITIES exactly"
-    );
 }
 
 fn point_from_value(v: &Value) -> [f64; 2] {

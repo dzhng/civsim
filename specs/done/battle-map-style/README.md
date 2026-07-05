@@ -106,9 +106,10 @@ generated maps deterministically.
   `createLakePlaneMesh`), `battleWorld.ts` (assembly, grass focus ring), and
   `packages/photoreal-renderer/src/atmosphere/{aerialPerspective,skyModel}.ts`.
 - Catalog/menu: `packages/game-renderer/src/battle/mapCatalog.ts`
-  (curated table, `generatedBattleMapEntry`,
-  `GENERATED_BATTLE_MAP_DEFAULT_ENVIRONMENT`), `web/src/ui/menu/ArmyBuilder.tsx`
-  (random default seed, preview canvas).
+  (curated table, `generatedBattleMapEntry`),
+  `packages/game-renderer/src/environment/environment.ts`
+  (`DEFAULT_BATTLE_ENVIRONMENT`), `web/src/ui/menu/ArmyBuilder.tsx`
+  (random default seed, weather picker, preview canvas).
 - Verification: `web/scenes/battle/battle-genmap-*.mjs` (smoke, clay,
   passability, vista, cliff, seeds, lake, mood, browser, curated),
   `battle-map-style.mjs` (style gate + close-grass oracle + horizon pin),

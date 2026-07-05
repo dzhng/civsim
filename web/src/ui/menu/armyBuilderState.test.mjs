@@ -30,6 +30,7 @@ const armyOf = (units) => new Map(units.map((u) => [u.classId, u.count]));
 const stateOf = () => ({
   mapId: 0,
   generatedSeed: "7",
+  environment: "golden-hour",
   armies: [armyOf(TMPL_A), armyOf(TMPL_B)],
   factions: [...DEFAULT_BATTLE_FACTIONS],
 });
@@ -39,6 +40,7 @@ test("armyConfig reflects insertion order, not numeric class id", () => {
   const cfg = armyConfig(stateOf());
   assert.equal(cfg.mapId, 0);
   assert.equal(cfg.generatedSeed, "7");
+  assert.equal(cfg.environment, "golden-hour");
   assert.deepEqual(cfg.teams[0], picksOf(TMPL_A)); // 7,2,1 — NOT 1,2,7
   assert.deepEqual(cfg.teams[1], picksOf(TMPL_B));
   assert.deepEqual(cfg.factions, ["azure", "crimson"]);
@@ -95,6 +97,14 @@ test("faction action updates one side and leaves armies untouched", () => {
   assert.deepEqual(armyConfig(s1).factions, ["crimson", "crimson"]);
   assert.deepEqual(armyConfig(s1).teams, armyConfig(s0).teams);
   assert.deepEqual(armyConfig(s0).factions, ["azure", "crimson"], "s0 not mutated");
+});
+
+test("environment action updates weather and leaves armies untouched", () => {
+  const s0 = stateOf();
+  const s1 = armyBuilderReducer(s0, { kind: "environment", environment: "overcast-highland" });
+  assert.equal(armyConfig(s1).environment, "overcast-highland");
+  assert.deepEqual(armyConfig(s1).teams, armyConfig(s0).teams);
+  assert.equal(armyConfig(s0).environment, "golden-hour", "s0 not mutated");
 });
 
 test("a class added after the template is appended LAST in pick order", () => {

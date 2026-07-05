@@ -19,6 +19,15 @@ export type BattleTerrainFeatureKind =
 export type BattleEdgeRole = 'open-fog' | 'cliff' | 'mountain' | 'ocean' | 'wall';
 export type BattleGroundCover = 'green-grass' | 'yellow-grass' | 'scrub-grass' | 'sand';
 
+export interface BattleSlopeBands {
+  flatMax: number;
+  rollingMax: number;
+  slowMin: number;
+  cliffMin: number;
+  cliffDilateCells: number;
+  highlandCapMinM: number;
+}
+
 export interface BattleEdgeRoles {
   north: BattleEdgeRole;
   south: BattleEdgeRole;

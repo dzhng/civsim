@@ -26,6 +26,7 @@ import {
   BATTLE_RELIEF_EXAGGERATION,
   deriveBattleEdgeRoles,
   type BattleGroundCover,
+  type BattleSlopeBands,
   type BattleTerrainGrid,
 } from "../../../game-renderer/src/battle/terrainFeatures";
 import {
@@ -161,6 +162,7 @@ export class PhotorealBattleWorld {
   private terrainGrid: BattleTerrainGrid | null = null;
   private heightField: TerrainHeightField | null = null;
   private groundCover: BattleGroundCover = "green-grass";
+  private slopeBands: BattleSlopeBands | null = null;
   private grassTerrainKey: string | null = null;
   private grassSampleStats: GrassFieldStats | null = null;
   private grassEnabled = true;
@@ -343,6 +345,7 @@ export class PhotorealBattleWorld {
     tint?: Uint8Array,
     height?: Float32Array,
     wasmMapId?: number,
+    slopeBands?: BattleSlopeBands | null,
   ): void {
     this.terrainRect = [ox, oy, w * cell, h * cell];
     this.terrainGrid = tint
@@ -358,6 +361,7 @@ export class PhotorealBattleWorld {
       : null;
     const catalog = wasmMapId !== undefined ? battleMapByWasmId(wasmMapId) : undefined;
     this.groundCover = catalog?.groundCover ?? "green-grass";
+    this.slopeBands = slopeBands ?? null;
     this.applyTerrain();
   }
 
@@ -405,7 +409,7 @@ export class PhotorealBattleWorld {
     }
     const groundMesh = buildBattleGroundMesh(grid, field, this.groundCover);
     this.groundTriangles = groundMesh.triangles;
-    this.ground = createGroundMesh(this.frame, groundMesh);
+    this.ground = createGroundMesh(this.frame, groundMesh, { slopeBands: this.slopeBands });
     scene.add(this.ground);
 
     if (this.horizonBlockers) {
@@ -666,6 +670,7 @@ export class PhotorealBattleWorld {
               planes: this.oceanPlanes.length,
             },
             groundCover: this.groundCover,
+            slopeBands: this.slopeBands,
             environment: battleEnvironmentStats(this.environment),
             scenery: this.scenery.stats().scenery,
             grass: {

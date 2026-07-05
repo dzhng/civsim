@@ -16,6 +16,7 @@ import {
   PhotorealBattleWorld,
   type BattleCameraSnapshot,
 } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
+import type { BattleSlopeBands } from "../../../packages/game-renderer/src/battle/terrainFeatures";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
 
 export class BattleRenderer {
@@ -100,9 +101,10 @@ export class BattleRenderer {
     tint?: Uint8Array,
     height?: Float32Array,
     wasmMapId?: number,
+    slopeBands?: BattleSlopeBands | null,
   ) {
     if (this.world) {
-      this.world.setTerrain(w, h, cell, ox, oy, tint, height, wasmMapId);
+      this.world.setTerrain(w, h, cell, ox, oy, tint, height, wasmMapId, slopeBands);
     } else {
       this.pendingTerrain = [
         w,
@@ -113,6 +115,7 @@ export class BattleRenderer {
         tint ? new Uint8Array(tint) : undefined,
         height ? new Float32Array(height) : undefined,
         wasmMapId,
+        slopeBands ?? null,
       ];
     }
   }

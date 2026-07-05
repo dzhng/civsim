@@ -21,12 +21,13 @@ Reference images (in `assets/` and the aesthetics skill):
 
 ## Next Agent Prompt
 
-**Status 2026-07-05: slices 00–03, 10–12 DONE (live-verified; generated maps
-have slope-sealed flanks; blade grass with smooth thinning ships in
-production).** Next pickups: [04-hydrology](slices/04-hydrology.md) (G-track)
-and [13-cliff-material](slices/13-cliff-material.md) (V-track — judge on the
-generated flank walls via the ?clay=1 route and slope-band constants from
-genmap). Read slice 10's TSL hazards + slice 11's integration findings before
+**Status 2026-07-05: slices 00–03, 10–13 DONE/CODE-LANDED (00–03,10–12
+live-verified; 13 renderer/scene landed with browser blessing +
+screenshot-critique still owed by orchestrator).** Next pickups:
+[04-hydrology](slices/04-hydrology.md) (G-track) and
+[14-vista-backdrop](slices/14-vista-backdrop.md) (V-track — reuse the
+generated-map cliff material on the render-only apron). Read slice 10's TSL
+hazards + slice 11's integration findings before
 touching the blade field; the camera-truth trap and oracle re-anchoring live
 in [00's locked values](slices/00-composition-and-oracle-lock.md); the
 horizon-0.50 promotion waits on slice 14's vista apron (pinned 0.169 at the
@@ -62,7 +63,7 @@ Before writing any code, read:
   close-gate crops, battle baseline re-bless, perf:30k hardware, elevation
   tripwire, and wind GIF.
 - [x] 12 — Grass LOD budgets at 30k
-- [ ] 13 — Cliff material
+- [x] 13 — Cliff material
 - [ ] 14 — Vista backdrop (DECIDED: render-only apron, world = 2× playable)
 - [ ] 15 — Lake render
 - [ ] 16 — Haze / mood preset

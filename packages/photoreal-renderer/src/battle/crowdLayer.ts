@@ -69,6 +69,7 @@ export class PhotorealCrowd {
   private assignedCounts = emptyLodCounts();
   private visibleCounts = emptyLodCounts();
   private culling: CrowdCullingStats = { input: 0, visible: 0, culled: 0, viewFrusta: 0, shadowFrusta: 0 };
+  private sourceInstances: CrowdInstance[] = [];
   private readonly cullCenter = new THREE.Vector3();
   private readonly cullSphere = new THREE.Sphere();
 
@@ -128,6 +129,7 @@ export class PhotorealCrowd {
 
   upload(instances: CrowdInstance[], scope?: CrowdVisibilityScope): void {
     this.instanceCount = instances.length;
+    this.sourceInstances = instances;
     for (const bucketSet of this.buckets) {
       for (const bucket of bucketSet) bucket.pending.length = 0;
     }
@@ -168,6 +170,12 @@ export class PhotorealCrowd {
     }
     this.impostors.upload(impostors);
     if (scope) this.impostors.setCamera(scope.camera);
+  }
+
+  debugSoldierAnim(index: number): { clip: string; phase: number; frame: number } | null {
+    const inst = this.sourceInstances[index];
+    if (!inst) return null;
+    return { clip: inst.clip, phase: inst.phase, frame: inst.frame };
   }
 
   refreshCamera(camera: THREE.Camera): void {
@@ -300,11 +308,13 @@ function crowdMaterial(vatTex: THREE.DataTexture, lod = 0): THREE.MeshStandardNo
   const s = a.sin().toVar();
   const p = rolled.mul(inst1.x).toVar();
   // inst2.x = terrain elevation: soldiers sit on the surface and sort by it.
-  material.positionNode = vec3(
+  const worldPosition = vec3(
     inst0.x.add(p.x.mul(c)).sub(p.y.mul(s)),
     inst0.y.add(p.x.mul(s)).add(p.y.mul(c)),
     p.z.add(inst2.x),
   );
+  material.positionNode = worldPosition;
+  material.receivedShadowPositionNode = varying(worldPosition);
 
   // The environment lights the FULLY posed normal: skinned, corpse-rolled,
   // then yaw-rotated into world space (the parity port lit the raw skinned

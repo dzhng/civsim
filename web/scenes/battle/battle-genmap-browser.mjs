@@ -67,19 +67,23 @@ export async function run(ctx) {
           const ox = game.terrain_origin_x();
           const oy = game.terrain_origin_y();
           const n = w * h;
+          const height = new Float32Array(wasm.memory.buffer, game.terrain_height_ptr(), n).slice();
           const speed = new Float32Array(wasm.memory.buffer, game.terrain_speed_ptr(), n).slice();
           const rough = new Float32Array(wasm.memory.buffer, game.terrain_rough_ptr(), n).slice();
           const tint = new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), n).slice();
           const manifest = JSON.parse(game.generated_map_manifest());
           const certificates = JSON.parse(game.generated_map_certificates());
+          const recipeClass = manifest.recipeClass ?? "full";
           const composition = manifest.edgeSeals?.composition ?? {};
           const pass = certificatesPass(certificates);
           const terrainHash = manifest.terrainHash;
           const fieldHash = hashField(w, h, cell, ox, oy, speed, rough, tint);
           const ratios = ratiosFor(w, h, speed, rough, tint);
+          const corridor = corridorRelief(w, h, cell, ox, oy, height, tint);
           game.free();
           stats.push({
             seed,
+            recipeClass,
             pass,
             manifest,
             certificates,
@@ -87,6 +91,7 @@ export async function run(ctx) {
             terrainHash,
             fieldHash,
             ratios,
+            corridor,
           });
 
           const col = index % cols;
@@ -98,13 +103,13 @@ export async function run(ctx) {
           drawMask(g, { w, h, speed, rough, tint }, x0, y0 + labelH, tileW, tileH - labelH);
           g.fillStyle = pass ? "#e5e0c8" : "#e06a5a";
           g.fillText(
-            `seed ${seed} ${composition.west ?? "?"}/${composition.east ?? "?"}`,
+            `seed ${seed} ${recipeClass} ${composition.west ?? "?"}/${composition.east ?? "?"}`,
             x0 + 7,
             y0 + 6,
           );
           g.fillStyle = "#9aa78c";
           g.fillText(
-            `lake ${manifest.featureSummary?.lakeCells ?? 0} forest ${manifest.featureSummary?.passableForestCells ?? 0}`,
+            `lake ${manifest.featureSummary?.lakeCells ?? 0} relief ${corridor.span.toFixed(1)}m`,
             x0 + 7,
             y0 + 24,
           );
@@ -190,6 +195,28 @@ export async function run(ctx) {
           );
         }
 
+        function corridorRelief(w, h, cell, ox, oy, height, tint) {
+          let lo = Infinity;
+          let hi = -Infinity;
+          for (let cy = 0; cy < h; cy++) {
+            const y = oy + (cy + 0.5) * cell;
+            if (Math.abs(y) > 720) continue;
+            for (let cx = 0; cx < w; cx++) {
+              const x = ox + (cx + 0.5) * cell;
+              if (Math.abs(x) > 350) continue;
+              const i = cy * w + cx;
+              if (tint[i] === 1) continue;
+              lo = Math.min(lo, height[i]);
+              hi = Math.max(hi, height[i]);
+            }
+          }
+          return {
+            lo: Number(lo.toFixed(2)),
+            hi: Number(hi.toFixed(2)),
+            span: Number((hi - lo).toFixed(2)),
+          };
+        }
+
         function hashField(w, h, cell, ox, oy, speed, rough, tint) {
           let hsh = 0x811c9dc5;
           for (let cy = 0; cy < h; cy++) {
@@ -217,6 +244,7 @@ export async function run(ctx) {
 
     const failed = result.stats.filter((s) => !s.pass);
     const compositions = new Set(result.stats.map((s) => s.compositionKey));
+    const classes = new Set(result.stats.map((s) => s.recipeClass));
     const terrainHashes = new Set(result.stats.map((s) => s.terrainHash));
     const fieldHashes = new Set(result.stats.map((s) => s.fieldHash));
     ctx.check(
@@ -228,6 +256,38 @@ export async function run(ctx) {
       "seed browser has at least 3 distinct edge compositions",
       compositions.size >= 3,
       JSON.stringify([...compositions]),
+    );
+    ctx.check(
+      "seed browser includes full, dry, and plain recipe classes",
+      ["full", "dry", "plain"].every((c) => classes.has(c)),
+      JSON.stringify(
+        result.stats.map((s) => [
+          s.seed,
+          s.recipeClass,
+          s.manifest.featureSummary?.lakeCells,
+          s.corridor,
+        ]),
+      ),
+    );
+    ctx.check(
+      "dry seed-browser maps have zero lake cells",
+      result.stats
+        .filter((s) => s.recipeClass === "dry")
+        .every((s) => s.manifest.featureSummary?.lakeCells === 0),
+      JSON.stringify(
+        result.stats
+          .filter((s) => s.recipeClass === "dry")
+          .map((s) => [s.seed, s.manifest.featureSummary]),
+      ),
+    );
+    ctx.check(
+      "plain seed-browser maps stay gently rolling",
+      result.stats
+        .filter((s) => s.recipeClass === "plain")
+        .every((s) => s.corridor.span >= 2.4 && s.corridor.span <= 6.8),
+      JSON.stringify(
+        result.stats.filter((s) => s.recipeClass === "plain").map((s) => [s.seed, s.corridor]),
+      ),
     );
     ctx.check(
       "seed browser terrain hashes are pairwise unique",
@@ -257,10 +317,10 @@ export async function run(ctx) {
 </style>
 <main>
   <h1>Generated battle map seed browser</h1>
-  <p>BMS06-SLICE-C1F4. ${SEEDS.length} wasm-generated passability-mask thumbnails; certificates pass, edge compositions: ${[...compositions].join(", ")}.</p>
+  <p>BMS06-SLICE-C1F4. ${SEEDS.length} wasm-generated passability-mask thumbnails; certificates pass, classes: ${[...classes].join(", ")}; edge compositions: ${[...compositions].join(", ")}.</p>
   <img src="./seed-browser.png" alt="Generated battle map seed browser">
-  <table><thead><tr><th>seed</th><th>edge composition</th><th>terrain hash</th><th>field hash</th></tr></thead><tbody>
-${result.stats.map((r) => `<tr><td>${r.seed}</td><td>${r.compositionKey}</td><td>${r.terrainHash}</td><td>${r.fieldHash}</td></tr>`).join("\n")}
+  <table><thead><tr><th>seed</th><th>class</th><th>edge composition</th><th>lake cells</th><th>corridor relief</th><th>terrain hash</th><th>field hash</th></tr></thead><tbody>
+${result.stats.map((r) => `<tr><td>${r.seed}</td><td>${r.recipeClass}</td><td>${r.compositionKey}</td><td>${r.manifest.featureSummary?.lakeCells ?? 0}</td><td>${r.corridor.span.toFixed(2)}m</td><td>${r.terrainHash}</td><td>${r.fieldHash}</td></tr>`).join("\n")}
   </tbody></table>
 </main>
 `,

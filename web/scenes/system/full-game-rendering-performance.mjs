@@ -130,7 +130,7 @@ async function measureBattle(ctx) {
     errorPrefix: "perf-battle",
   });
   const startupStart = performance.now();
-  await page.goto(`${ctx.target}/?map=A&ai=off`);
+  await page.goto(`${ctx.target}/?map=gen&seed=7&ai=off`);
   await page.waitForFunction(
     () => {
       const stats = window.__game?.stats?.();
@@ -166,7 +166,7 @@ async function measureBattle(ctx) {
   return sceneReport({
     id: "battle-max-crowd",
     label: "Battle max crowd",
-    route: "/?map=A&ai=off",
+    route: "/?map=gen&seed=7&ai=off",
     renderer: "raw-renderer-battle",
     frame,
     startupMs,

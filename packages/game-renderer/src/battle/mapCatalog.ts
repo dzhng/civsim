@@ -60,10 +60,9 @@ export interface CuratedGeneratedBattleMapSeed {
   manifest: GeneratedBattleMapManifest;
 }
 
-// West and east are the sealed sides on every map (open corridor runs N–S);
-// north and south dissolve into distance fog. These roles present the blockers
-// the sim already paints — they never create or remove passability.
-export const BATTLE_MAP_CATALOG: readonly BattleMapCatalogEntry[] = [
+// Legacy hand-map metadata is retained only for old wasm map ids/deep links.
+// It is not part of the public quick-battle catalog.
+const LEGACY_HAND_BATTLE_MAP_CATALOG: readonly BattleMapCatalogEntry[] = [
   {
     id: "river-and-crags",
     wasmMapId: 0,
@@ -138,12 +137,21 @@ export const CURATED_GENERATED_BATTLE_MAP_CATALOG: readonly BattleMapCatalogEntr
     }),
   );
 
+// Public quick-battle map catalog: curated generated maps only.
+export const BATTLE_MAP_CATALOG: readonly BattleMapCatalogEntry[] =
+  CURATED_GENERATED_BATTLE_MAP_CATALOG;
+
+const ALL_BATTLE_MAP_CATALOG: readonly BattleMapCatalogEntry[] = [
+  ...BATTLE_MAP_CATALOG,
+  ...LEGACY_HAND_BATTLE_MAP_CATALOG,
+];
+
 export function battleMapById(id: string): BattleMapCatalogEntry | undefined {
-  return BATTLE_MAP_CATALOG.find((m) => m.id === id);
+  return ALL_BATTLE_MAP_CATALOG.find((m) => m.id === id);
 }
 
 export function battleMapByWasmId(wasmMapId: number): BattleMapCatalogEntry | undefined {
-  return BATTLE_MAP_CATALOG.find((m) => m.wasmMapId === wasmMapId);
+  return LEGACY_HAND_BATTLE_MAP_CATALOG.find((m) => m.wasmMapId === wasmMapId);
 }
 
 export function generatedBattleMapEntry(

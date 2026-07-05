@@ -45,7 +45,7 @@ export async function run(ctx) {
   for (const { env, preset } of PRESETS) {
     const page = await ctx.newPage({ viewport: { width: 1280, height: 800 }, errorPrefix: env });
     await page.goto(
-      `${ctx.target}/renderer/photoreal-battle?map=A&t=${FIXED_TIME}&ref=1&zoom=4.5&cx=0&cy=-650&env=${env}`,
+      `${ctx.target}/renderer/photoreal-battle?map=gen&seed=7&t=${FIXED_TIME}&ref=1&zoom=4.5&cx=0&cy=-650&env=${env}`,
     );
     await page.waitForFunction(
       () => window.__rendererLabReady === true && window.__rendererLabStats?.ok === true,

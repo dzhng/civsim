@@ -91,7 +91,7 @@ async function captureGrass(page, phase) {
 
 async function captureTerrainGrass(page, phase) {
   const url = new URL(`${TARGET}/renderer/battle-terrain-3d`);
-  url.searchParams.set("gate", "river-and-crags");
+  url.searchParams.set("gate", "highland-vale");
   url.searchParams.set("grassPhase", String(phase));
   await page.goto(url.href, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(

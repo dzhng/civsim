@@ -124,11 +124,13 @@ function sceneryMaterial(): THREE.MeshStandardNodeMaterial {
   const heightScale = instStyle.y;
   const yaw = instStyle.z;
   const { rx, ry, cy, sy } = rotateYawN(local.x, local.y, yaw);
-  material.positionNode = vec3(
+  const worldPosition = vec3(
     instPose.x.add(rx.mul(scale)),
     instPose.y.add(ry.mul(scale)),
     baseZ.add(local.z.mul(heightScale)),
   );
+  material.positionNode = worldPosition;
+  material.receivedShadowPositionNode = varying(worldPosition);
   const rnormal = vec3(
     normal.x.mul(cy).sub(normal.y.mul(sy)),
     normal.x.mul(sy).add(normal.y.mul(cy)),

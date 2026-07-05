@@ -76,6 +76,8 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
     }),
   ]);
   if (params.get("bloom") === "off") world.setBloomEnabled(false);
+  // Live shadow/lighting QA handle (photoreal-shadows scene + orchestrator probes).
+  (window as unknown as { __battleWorld: unknown }).__battleWorld = world;
   const wasm = await initWasm();
   const game = new Game(0x5eed_c0de);
   const generatedSeed = Number(params.get("seed") ?? 7) || 7;

@@ -96,6 +96,48 @@ turbidity 9.8 -> 7.2 so ranges READ THROUGH haze):
   (compose round-1 sheet + browser sheet); no response within the window -
   proceeded on evidence per the non-blocking rule.
 
+## David's checkpoint response (2026-07-05, reviewing the curated set)
+
+- **Slice 20: GO.** Retire the 3 hand maps.
+- **Variety directive:** not every map needs every terrain type - allow
+  flat-plain-only maps and waterless maps in the seed spread (generator
+  recipe work; routes to a variety pass, not this gate).
+- **Custom battle:** add a generate-random-map button with a top-down
+  preview image; a random generated map should be the default.
+- **Grass verdict:** the production grass reads coarser/sparser than the
+  ratified False Earth close-gate look - investigate (blade scale/density
+  regression at production tiers).
+- **Soldiers:** stop reading as blue/red blobs - realistic soldier
+  rendering, faction color only in subtle accents (shield/helmet);
+  identity comes from the flags.
+- Plus session bugs (tracked outside this spec): unit animations still
+  not visible / flicker (3rd attempt - needs a frame-by-frame phase
+  harness; legs full swing ~500ms when moving), ~25fps on camera move
+  (suspect grass), hold-space movement preview shows a rectangle for
+  square formations.
+
+## BMSVAR-H5A9 recipe-variety pass (2026-07-05)
+
+Implemented as a seeded recipe-class roll in `crates/sim/src/genmap/`:
+`full` 50%, `dry` 25%, `plain` 25%. Salt `0xb45a9` was chosen because seed 7
+rolls 29/100 and therefore remains the full-featured Highland Vale golden.
+The 64-seed sweep measures the default spread as 32 full / 16 dry / 16 plain.
+
+- `full` maps keep the existing highland vale pipeline unchanged: lakes,
+  streams, field texture, and relief pins remain as before.
+- `dry` maps keep full relief and field texture but set hydrology lake budget
+  to zero; streams may still run off north/south.
+- `plain` maps zero lakes/streams, damp interior lake basins and rolling
+  amplitude, and drop forced forest/scree/mud field-texture clumps. E/W seal
+  grammar remains unconditional; only the interior relief class changes.
+
+Certificate law stayed class-independent: deployment bands, S/N corridor,
+E/W seals, S/N open edges, blocker tint, and isolated-pocket limits still run
+over every seed. The old dry-swell floor was re-anchored per class rather than
+removed: full/dry retain the 5.0 m anti-billiard-table floor; plain maps are
+bounded to 2.4-6.8 m corridor relief so they stay gently rolling without
+crags/lakes.
+
 ## Feedback that would change it
 
 David's verdict IS this slice. Each miss becomes a pointer to the owning

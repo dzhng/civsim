@@ -583,7 +583,13 @@ function bladeFieldMaterial(
     // strong height swing so the field breaks into clumps with tip-lines at
     // many heights - the structure the close-gate oracle (and the reference)
     // shows.
-    const height = max(d1.y.mul(mix(0.52, 1.32, clumpWeight)), 0.16).toVar();
+    // Near-eye dissolve: blades within ~arm's reach of the camera render as
+    // giant paddles filling the frame (David's "coarse grass" report at close
+    // battle zoom). Scale them to the turf instead of alpha (no sort issues).
+    const nearEyeFade = smoothstep(float(1.6), float(4.5), length(cameraPosition.sub(base)));
+    const height = max(d1.y.mul(mix(0.52, 1.32, clumpWeight)), 0.16)
+      .mul(nearEyeFade)
+      .toVar();
     const bend = d1.z.mul(1.15).toVar();
     const phase = d1.w;
     const yaw = d2.x;
@@ -697,7 +703,9 @@ function bladeFieldMaterial(
     return world;
   });
 
-  material.positionNode = Fn(() => buildVertex())();
+  const worldPosition = Fn(() => buildVertex())();
+  material.positionNode = worldPosition;
+  material.receivedShadowPositionNode = varying(worldPosition);
   material.normalNode = viewNormalNode(normalize(vShadeNormal));
   material.colorNode = vec4(linearAlbedo(vAlbedo), 1.0);
   material.roughnessNode = vRough;

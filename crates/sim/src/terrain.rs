@@ -61,6 +61,22 @@ impl Terrain {
         self.index(p).map_or(0.0, |i| self.rough[i])
     }
 
+    /// True when a straight walk from `a` to `b` never crosses impassable
+    /// ground. Samples at about one-meter intervals; off-map remains passable
+    /// because `speed_at` treats the map as painted exceptions.
+    pub fn segment_passable(&self, a: Vec2, b: Vec2) -> bool {
+        let ab = b - a;
+        let len = ab.len();
+        let steps = len.ceil().max(1.0) as usize;
+        for step in 0..=steps {
+            let t = step as f32 / steps as f32;
+            if self.speed_at(a + ab * t) <= 0.0 {
+                return false;
+            }
+        }
+        true
+    }
+
     /// Ground elevation at a world point, bilinearly interpolated between the
     /// four surrounding cell centers so soldiers and props ride a smooth surface
     /// instead of stair-stepping per cell. Sample coordinates clamp to the edge

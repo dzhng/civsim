@@ -325,6 +325,10 @@ export class BattleRenderer {
     return this.world?.heightAt(x, y) ?? 0;
   }
 
+  debugSoldierAnim(index: number): { clip: string; phase: number; frame: number } | null {
+    return this.world?.debugSoldierAnim(index) ?? null;
+  }
+
   async settlePresentedFrame() {
     if (!this.world) return;
     await this.world.settlePresentedFrame();

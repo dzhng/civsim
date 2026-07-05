@@ -818,6 +818,10 @@ fn generated_manifest_json(recipe: MapRecipe, terrain: &sim::Terrain) -> serde_j
     serde_json::json!({
         "seed": recipe.seed,
         "seedHex": format!("{:#018x}", recipe.seed),
+        // The ONE class owner is sim::genmap::recipe_class - consumers (the
+        // seed-browser sheet, catalog labels) must read it here, never
+        // re-derive the roll (a duplicated mix64 diverged once already).
+        "recipeClass": sim::genmap::recipe_class(&recipe).as_str(),
         "groundCover": "green-grass",
         "edges": {
             "north": "open-fog",

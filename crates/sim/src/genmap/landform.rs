@@ -4,7 +4,7 @@
 //! even though slice 02 samples only the playable center. East/west ridge masses
 //! therefore have their feet inside the map and their bulk just beyond it.
 
-use super::{MapRecipe, FAR_FOG_EXTENT};
+use super::{MapRecipe, RecipeClass, FAR_FOG_EXTENT};
 use crate::math::Vec2;
 
 const CORRIDOR_HALF_W: f32 = 390.0;
@@ -35,6 +35,7 @@ pub fn height_band_limited(recipe: &MapRecipe, p: Vec2, min_wavelength_m: f32) -
 }
 
 fn height_with_min_wavelength(recipe: &MapRecipe, p: Vec2, min_wavelength_m: f32) -> f32 {
+    let recipe_class = super::recipe_class(recipe);
     let vista_half_w = recipe.half_w * recipe.vista_extent.max(1.0);
     let vista_half_h = recipe.half_h * recipe.vista_extent.max(1.0);
     let corridor = corridor_mask(recipe, p);
@@ -104,10 +105,19 @@ fn height_with_min_wavelength(recipe: &MapRecipe, p: Vec2, min_wavelength_m: f32
     let south_rise = low_oval(p.x, p.y + 645.0, 360.0, 190.0) * 6.6;
     let north_swell = low_oval(p.x - 115.0, p.y - 360.0, 470.0, 260.0) * 4.1;
     let central_basin = low_oval(p.x + 155.0, p.y - 25.0, 430.0, 310.0) * -4.6;
-    let hydro_basin = hydrology_basin(recipe, p, apron);
+    let mut hydro_basin = hydrology_basin(recipe, p, apron);
+    if matches!(recipe_class, RecipeClass::OpenPlain) {
+        hydro_basin *= 0.12;
+    }
     let corridor_grade = (p.y / vista_half_h).clamp(-1.0, 1.0) * 2.2;
-    let floor = (rolling + south_rise + north_swell + central_basin + hydro_basin + corridor_grade)
-        * mix(1.0, 0.58, apron * corridor);
+    let mut floor =
+        (rolling + south_rise + north_swell + central_basin + hydro_basin + corridor_grade)
+            * mix(1.0, 0.58, apron * corridor);
+    let mut open_rolling = rolling;
+    if matches!(recipe_class, RecipeClass::OpenPlain) {
+        floor *= 0.48;
+        open_rolling *= mix(0.42, 1.0, flank);
+    }
 
     let side = if p.x < 0.0 { -1.0 } else { 1.0 };
     let side_seed = if side < 0.0 { 0xb48d_6129 } else { 0x7f23_a8cb };
@@ -166,7 +176,7 @@ fn height_with_min_wavelength(recipe: &MapRecipe, p: Vec2, min_wavelength_m: f32
     let spur_gate = smoothstep(0.54, 0.86, ridged(spur_noise.value)) * flank * 0.62;
     let spur = spur_gate * (18.0 + 16.0 * ridged(mid.value));
 
-    (floor * corridor + rolling * (1.0 - corridor) + ridge + spur + far_rows).max(-8.0)
+    (floor * corridor + open_rolling * (1.0 - corridor) + ridge + spur + far_rows).max(-8.0)
 }
 
 pub fn slice01_rough_noise(seed: u64, p: Vec2) -> f32 {

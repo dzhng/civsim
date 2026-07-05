@@ -96,8 +96,100 @@ module and benefits from 02's findings.
 
 ## Next Agent Prompt
 
-**Status 2026-07-05 (pass 3): 01, 02a, and 02b-part-1 SHIPPED. Next: the
-corridor buzz (02b remainder), then 03.**
+**Status 2026-07-06 (pass 5 + David's checkpoint): the original report is
+browser-VERIFIED FIXED. David has ratified the remaining order — pick up
+at 04.**
+
+DAVID'S DECISIONS (2026-07-06, verbatim intent):
+1. **04 foundation pass: GO.** Run it as the deliberate pass this README
+   describes: the parked friction widening PLUS the deep-reform relabel
+   churn, expect golden + battle-shape pins to move — re-derive each with
+   provenance and a one-line cause, film the before/after grind vibes,
+   and present the jostle level as a non-blocking taste checkpoint
+   (frames via preview-shots, ~5 min window, then decide on evidence and
+   record here).
+2. **03b: GO**, with David's design direction: "soldier anchors should
+   not overlap any other soldier — meaning soldiers will always settle
+   at some point." I.e. make the resting TARGET GEOMETRY itself
+   conflict-free (a slot/anchor another body occupies is not a valid
+   rest target; deconflict at assignment/frame level) instead of gating
+   pulls — then every pull reaches zero naturally because every target
+   is occupiable. Treat that as the primary candidate; a better
+   mechanism is allowed if the evidence convicts one, but the three
+   pull-gating variants in the notes below stay banned re-entries.
+3. **02b-2: LAST, droppable.** If the corridor fix keeps breaking other
+   things, close it as a known limitation in 05 instead of forcing it.
+
+Feel-check (pass 5, real game build, seed-1 gen map, 350-man units,
+sim-time driven via advance()): a 35-degree 60m move order settles to
+0.0035 m/s — statue-still — by ~60s after arrival where it used to churn
+for minutes (`assets/feelcheck3-u0.png`: dressed block, banner centered).
+BUT a unit ordered 8m into a standing friendly's flank NEVER settles at
+game scale (~2 m/s indefinitely, `assets/feelcheck3-u1.png`: two
+interleaved blocks) — the parked 03b family is much louder at 350-man
+scale than the cargo 120-man/10m gate suggests. When 03b is picked up,
+re-pin its gate at game scale (350 men, wide-frame overlap) and treat
+the at-ease-reform relabel storm as a co-suspect with the weave rest
+shape (motion ~2 m/s = men WALKING to reassigned slots, the same transit
+signature as the 04 deep-reform churn).
+
+Slice 04 findings (attribution probes committed;
+`probe_grind_lateral_by_rank` + `probe_trace_grind_lateral_forces`):
+- CONVICTION: rank 5 of an immortal grind carries MORE lateral speed
+  (1.114 m/s) than the front rank trading blows (0.888) — flat-to-rising
+  rear-ward profile = lattice ringing, not combat jostle. Channels:
+  PivotSpring, CompPush, WeaveNet dominate the lateral budget, capped by
+  SpeedCap.
+- FIX CANDIDATE (WORKS, PARKED): widen the pike lateral friction to all
+  packed foot — drop `strict_formation()`, key on MEASURED advance
+  (`mass_advance < charge_spent_speed`, replacing the `order_advancing`
+  OrderMode gate per the Move==Attack litmus), judge the lateral reversal
+  in the trajectory frame (`last_disp`, not steer-only kin_v). Restores
+  the physical profile: rank 5 -> 0.105, rank 4 -> 0.289, front keeps
+  0.70 of honest jostle. Diff: `assets/slice04-friction-widening.diff`.
+- WHY PARKED: sweeping footprint — golden moves (every stalled melee is
+  touched), `ai_battle_resolves_with_pinned_scale_shape`,
+  `light_horse_tramples_at_a_third_the_butchery`, and the grind rail all
+  red. The rail WORSENED (0.635 -> 0.777) while the profile improved:
+  quieting the rear EXPOSED the engaged-deep-reform churn — slot_changes
+  in the grind went 30 -> ~400/window, the reform beat now relabels
+  against the front's slow shear every cycle and men take visible
+  sideways WALKS to new slots. That transit churn is plausibly the
+  battle-time "lots of shifting left and right" David reported, and the
+  rail metric conflates it with oscillation. The 04 finish must treat
+  BOTH (friction widening + deep-reform churn) with per-pin provenance,
+  vibe frames, and David's taste checkpoint — a foundation-style pass.
+
+Pass 4 root fix (orchestrator, after a codex negative result steered it):
+**the idle settle damp's oscillation detector was measuring the wrong
+frame.** It watched `kin_v` (steer-only, captured before the separation
+solver), so any limit cycle closing THROUGH the solver — steer onto an
+occupied spot, get shoved back — never looked like a reversal. The damp
+now fires when the steer resists the last TRUE step (total displacement,
+solver included) AND the trajectory carries no sustained drift (a ~0.5s
+EMA projecting to < half the instantaneous step — a shape factor, no
+magnitude knob). Three gates triangulated the detector; each frame
+variant alone failed one of them: steer-vs-total ate the resistance
+spring of a steadily PUSHED block (`an_advancing_block_compresses_...`
+red); total-vs-previous-total missed the ~1s standing sway at the wall
+(`settle_with_frame_slots_in_wall` red); resist+no-drift passes all
+three. Killed the friendly-overlap buzz at 2m and 5m — gate
+`settle_overlapping_friendly` live and green, both units asserted.
+
+03b REMAINDER (`settle_deeply_overlapping_friendly`, 10m, ignored/red):
+three measured NON-fixes, do not retry them — (a) occupancy-zeroing the
+slot pull with a 3m floor: buzz 0.082; (b) with a body-width floor:
+0.373 (the floor is a flapping gate — the pull toggles as men drift
+across it); (c) floorless: 0.59 (removing the counter-anchor lets the
+weave net drape the sheet deeper into the friend). The root is the weave
+REST SHAPE: the displaced men's bonds demand they stand inside the
+friend, so nsum re-feeds the solver regardless of slot gating. The fix
+direction is bond rest lengths that accommodate obstruction (compress at
+sustained contact) — a real weave design change; instrument first.
+
+Codex slice-03 exec returned NO diff by its own stop-rule (correct
+behavior): its evidence showed slot-pull zeroing insufficient, which is
+what redirected the design to the damp frame.
 
 Pass 3 (orchestrator fixup, not codex): the margin-10/12 burst cycle was
 NOT the escape-slide/corridor oscillating — the 1s-resolution film
@@ -202,14 +294,19 @@ rationale here, and continue. Never idle waiting for sign-off.
 - [x] 02b-1 — In-wall slots: achievability slide samples every slot (gate
       `settle_with_frame_slots_in_wall` green)
       → [slices/02-wall-split-equilibrium.md](slices/02-wall-split-equilibrium.md)
-- [ ] 02b-2 — Corridor rest pose: body-tight edge files buzz; naive
-      radius-in-width is a banned re-entry (centering treadmill). Gate
-      `settle_inside_marginal_corridor`
-      → [slices/02-wall-split-equilibrium.md](slices/02-wall-split-equilibrium.md)
-- [ ] 03 — Family B root fix: steer-vs-separation cycle on friendly overlap
+- [x] 03 — Grazing friendly overlap (2/5m): damp reversal judged on total
+      displacement (solver included) → [slices/03-friendly-overlap-cycle.md](slices/03-friendly-overlap-cycle.md)
+- [ ] 04 — NEXT (David: GO). The foundation pass: friction widening from
+      assets/ + the deep-reform relabel churn, per-pin provenance, vibes,
+      taste checkpoint → [slices/04-grind-lateral-slosh.md](slices/04-grind-lateral-slosh.md)
+- [ ] 03b — Deep overlap (David: GO, anchor-deconfliction direction; re-pin
+      the gate at game scale — 350 men, wide-frame overlap)
       → [slices/03-friendly-overlap-cycle.md](slices/03-friendly-overlap-cycle.md)
-- [ ] 04 — Family C: attribute and bound the sustained grind lateral slosh
-      → [slices/04-grind-lateral-slosh.md](slices/04-grind-lateral-slosh.md)
+- [ ] 02b-2 — LAST, droppable (David). Corridor rest pose; naive
+      radius-in-width is a banned re-entry (centering treadmill). Gate
+      `settle_inside_marginal_corridor`; if it keeps breaking things, close
+      as a known limitation in 05
+      → [slices/02-wall-split-equilibrium.md](slices/02-wall-split-equilibrium.md)
 - [ ] 05 — Close-out: retire the probe file, browser feel-check, vibe
       re-bless if needed, ledger, then
       [close-spec](../../.claude/skills/close-spec/SKILL.md) →

@@ -136,6 +136,7 @@ fn main() {
     // Descope sea routes, then reconnect every same-landmass city that can
     // honestly chain back to the main component under the measured cap.
     connectivity::descope_and_reconnect(out_dir, &r, &rivers, &mountains, bb);
+    post_step("crates/mapgen/claim-reconnected.mjs");
 
     landroute::make_committed_roads_land_safe(out_dir, &r, &rivers, &mountains, bb);
 
@@ -330,8 +331,8 @@ mod tests {
         }
 
         assert_eq!(
-            sea_edges, 3,
-            "sea routes are descoped: exactly the Gibraltar + Hellespont + Messina lanes remain"
+            sea_edges, 4,
+            "sea routes are descoped: exactly the Gibraltar + Sicilian-channel + Hellespont + Messina lanes remain"
         );
         assert!(water_cities.is_empty(), "cities on water: {water_cities:?}");
         assert!(

@@ -18,6 +18,21 @@
       "a": "Rhegium",
       "b": "Vibo Valentia",
       "kind": "road"
+    },
+    {
+      "a": "Carthago",
+      "b": "Lilybaeum",
+      "kind": "sea"
+    },
+    {
+      "a": "Messana",
+      "b": "Syracusae",
+      "kind": "road"
+    },
+    {
+      "a": "Camarina",
+      "b": "Agrigentum",
+      "kind": "road"
     }
   ],
   "drop_routes": [

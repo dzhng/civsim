@@ -1,94 +1,20 @@
-//! PROBE (temporary): repro for "unit arrives, then its lines shift left and
-//! right for minutes before settling". Prints per-window motion telemetry;
-//! run with --nocapture. Will be replaced by a pinned mechanics test once the
-//! root cause is fixed.
+//! PROBE (temporary): diagnostic telemetry for the formation-settle churn.
+//! The pinned contracts live in `mechanics_settle.rs`; this file keeps the
+//! print-only sweeps, the slot/ASCII-map audit, and the force-trace probe
+//! that specs/formation-settle slices 02-04 diagnose with. Retired by
+//! slice 05 once the families are fixed. Run with --nocapture.
 
 mod common;
 
+use common::settle::{
+    block, decimate, march_class_block_to, march_until_arrived, print_window, seed1_terrain,
+    seed1_west_wall_edge, window_motion,
+};
 use common::{no_morale, no_morale_parade, run};
-use sim::genmap::MapRecipe;
-use sim::{Sim, Terrain, Tunables, UnitClassId, Vec2, DT};
+use sim::{Sim, Terrain, Tunables, UnitClassId, Vec2};
 use std::f32::consts::FRAC_PI_2;
 
 const SEED: u64 = 7;
-
-struct WindowStats {
-    mean_speed: f32,
-    mean_lat: f32,
-    /// Largest |cumulative lateral drift from window start| any soldier reached.
-    max_excursion: f32,
-    /// Soldiers whose lateral excursion exceeded half a spacing (visible shift).
-    big_movers: usize,
-    /// soldier_slot reassignments observed during the window.
-    slot_changes: usize,
-    /// Unit anchor drift over the window, lateral component only.
-    anchor_lat: f32,
-    /// Unit facing change over the window (radians).
-    facing_delta: f32,
-}
-
-fn window_motion(sim: &mut Sim, unit: usize, seconds: f32) -> WindowStats {
-    let u = &sim.units[unit];
-    let range = u.start..u.start + u.count;
-    let anchor0 = u.anchor;
-    let facing0 = u.facing;
-    let ticks = (seconds / DT) as usize;
-    let mut prev: Vec<Vec2> = range.clone().map(|i| sim.soldier_pos(i)).collect();
-    let start: Vec<Vec2> = prev.clone();
-    let mut prev_slot: Vec<u32> = range.clone().map(|i| sim.soldier_slot[i]).collect();
-    let mut sum_speed = 0.0f64;
-    let mut sum_lat = 0.0f64;
-    let mut max_excursion = 0.0f32;
-    let mut excursion = vec![0.0f32; prev.len()];
-    let mut slot_changes = 0usize;
-    let mut samples = 0.0f64;
-    for _ in 0..ticks {
-        sim.tick();
-        let u = &sim.units[unit];
-        let f = sim::dir(u.facing);
-        let right = Vec2::new(f.y, -f.x);
-        for (k, i) in range.clone().enumerate() {
-            if sim.alive[i] != 1 {
-                continue;
-            }
-            let p = sim.soldier_pos(i);
-            let v = Vec2::new(p.x - prev[k].x, p.y - prev[k].y);
-            let lat = v.x * right.x + v.y * right.y;
-            sum_speed += (v.x * v.x + v.y * v.y).sqrt() as f64 / DT as f64;
-            sum_lat += lat.abs() as f64 / DT as f64;
-            let cum = Vec2::new(p.x - start[k].x, p.y - start[k].y);
-            let cum_lat = (cum.x * right.x + cum.y * right.y).abs();
-            excursion[k] = excursion[k].max(cum_lat);
-            max_excursion = max_excursion.max(cum_lat);
-            if sim.soldier_slot[i] != prev_slot[k] {
-                slot_changes += 1;
-                prev_slot[k] = sim.soldier_slot[i];
-            }
-            prev[k] = p;
-            samples += 1.0;
-        }
-    }
-    let u = &sim.units[unit];
-    let f = sim::dir(facing0);
-    let right = Vec2::new(f.y, -f.x);
-    let da = Vec2::new(u.anchor.x - anchor0.x, u.anchor.y - anchor0.y);
-    WindowStats {
-        mean_speed: (sum_speed / samples) as f32,
-        mean_lat: (sum_lat / samples) as f32,
-        max_excursion,
-        big_movers: excursion.iter().filter(|&&e| e > 0.5).count(),
-        slot_changes,
-        anchor_lat: da.x * right.x + da.y * right.y,
-        facing_delta: u.facing - facing0,
-    }
-}
-
-fn print_window(label: &str, s: &WindowStats) {
-    println!(
-        "{label}: speed={:.4} lat={:.4} max_exc={:.2} big_movers={:>3} slot_changes={:>4} anchor_lat={:+.3} facing_d={:+.4}",
-        s.mean_speed, s.mean_lat, s.max_excursion, s.big_movers, s.slot_changes, s.anchor_lat, s.facing_delta
-    );
-}
 
 /// Run `windows` 10s telemetry windows, prefixing each line with `label` and
 /// the unit's cohesion at print time.
@@ -105,79 +31,6 @@ fn print_settle(sim: &mut Sim, unit: usize, label: &str, windows: usize) {
             &s,
         );
     }
-}
-
-/// Tick until the move order resolves (or 240s), returning the elapsed time.
-fn march_until_arrived(sim: &mut Sim, unit: usize) -> f32 {
-    let mut t = 0.0f32;
-    while sim.units[unit].move_target.is_some() && t < 240.0 {
-        sim.tick();
-        t += DT;
-    }
-    t
-}
-
-/// The stock probe formation: 120 men, 20 files, 1m spacing.
-fn block(sim: &mut Sim) -> usize {
-    sim.spawn_unit(Vec2::ZERO, FRAC_PI_2, 120, 20, Vec2::new(1.0, 1.0), 0, 1.0)
-}
-
-/// Kill one soldier in every `stride` to fray the block like a post-battle unit.
-fn decimate(sim: &mut Sim, unit: usize, stride: usize) {
-    let u = &sim.units[unit];
-    let range = u.start..u.start + u.count;
-    let victims: Vec<usize> = range.filter(|i| i % stride == 0).collect();
-    for i in victims {
-        sim.kill(i);
-    }
-}
-
-/// Curated generated battle map, seed 1 (the "Shore & Crags" catalog entry).
-fn seed1_terrain() -> Terrain {
-    sim::genmap::generate(&MapRecipe {
-        seed: 1,
-        ..MapRecipe::default()
-    })
-}
-
-/// First point on seed 1 with open ground east and a solid wall west: scan a
-/// few y rows for an impassable->passable transition.
-fn seed1_west_wall_edge(terrain: &Terrain) -> (f32, f32) {
-    for yi in -6..=6 {
-        let y = yi as f32 * 50.0;
-        let mut x = -900.0f32;
-        while x < 0.0 {
-            if terrain.speed_at(Vec2::new(x, y)) > 0.0
-                && terrain.speed_at(Vec2::new(x - 2.0, y)) <= 0.0
-                && terrain.speed_at(Vec2::new(x - 6.0, y)) <= 0.0
-            {
-                return (x, y);
-            }
-            x += 1.0;
-        }
-    }
-    panic!("no west wall found in scanned rows");
-}
-
-/// March a fresh MediumInfantry block from 70m south onto `dest` (drag-style
-/// order with a commanded facing) and report the arrival time.
-fn march_class_block_to(sim: &mut Sim, dest: Vec2) -> usize {
-    let unit = sim.spawn_class_with_files(
-        dest + Vec2::new(0.0, -70.0),
-        FRAC_PI_2,
-        120,
-        20,
-        UnitClassId::MediumInfantry,
-        0,
-    );
-    run(sim, 3.0);
-    sim.set_move_order_facing(unit, dest, FRAC_PI_2);
-    let t = march_until_arrived(sim, unit);
-    println!(
-        "arrived at t={t:.1}s files_eff={}",
-        sim.units[unit].files_eff
-    );
-    unit
 }
 
 #[test]
@@ -732,4 +585,165 @@ fn probe_trace_cliff_churn_forces() {
     for (ch, mag) in &worst_ch {
         println!("  {ch:?}: {mag:8.2}");
     }
+
+    // Wall-split census: how many men have (a) a straight segment to their
+    // SLOT crossing impassable ground, or (b) a slot-adjacent NEIGHBOUR whose
+    // bond segment crosses impassable ground? These are the two candidate
+    // "unreachable target" populations for the slice-02 fix.
+    let blocked_segment = |a: Vec2, b: Vec2| -> bool {
+        let d = b - a;
+        let len = d.len();
+        if len < 1e-3 {
+            return false;
+        }
+        let steps = (len / 1.0).ceil() as usize;
+        (1..steps).any(|s| {
+            let p = a + d * (s as f32 / steps as f32);
+            sim.terrain.speed_at(p) <= 0.0
+        })
+    };
+    let files = u.files_eff.max(1);
+    let mut slot_blocked = 0;
+    let mut bond_blocked = 0;
+    let mut far_and_blocked = 0;
+    for i in u.start..u.start + u.count {
+        if sim.alive[i] != 1 {
+            continue;
+        }
+        let p = sim.soldier_pos(i);
+        let slot = u.slot_world(sim.soldier_slot[i] as usize);
+        let sb = blocked_segment(p, slot);
+        if sb {
+            slot_blocked += 1;
+            if (p - slot).len() > 5.0 {
+                far_and_blocked += 1;
+            }
+        }
+        let si = sim.soldier_slot[i] as usize;
+        let (file, rank) = (si % files, si / files);
+        let mut any_bond_blocked = false;
+        let mut check_neighbor = |nslot: isize| {
+            if nslot < 0 || nslot as usize >= u.count {
+                return;
+            }
+            if let Some(j) = (u.start..u.start + u.count)
+                .find(|&j| sim.alive[j] == 1 && sim.soldier_slot[j] as usize == nslot as usize)
+            {
+                let jp = sim.soldier_pos(j);
+                if blocked_segment(p, jp) {
+                    any_bond_blocked = true;
+                }
+            }
+        };
+        if file > 0 {
+            check_neighbor(si as isize - 1);
+        }
+        if file + 1 < files {
+            check_neighbor(si as isize + 1);
+        }
+        if rank > 0 {
+            check_neighbor(si as isize - files as isize);
+        }
+        check_neighbor(si as isize + files as isize);
+        if any_bond_blocked {
+            bond_blocked += 1;
+        }
+        let _ = sb;
+    }
+    println!(
+        "wall-split census: slot_blocked={slot_blocked} (far>{{5m}}={far_and_blocked}) bond_blocked={bond_blocked} of {} alive",
+        u.alive_count
+    );
+}
+
+#[cfg(feature = "force-trace")]
+#[test]
+fn probe_trace_corridor_buzz_forces() {
+    // Family A': force ledger of the marginal-corridor standing buzz —
+    // which channels alternate, and does the cycle close through the
+    // separation solver (slice-03 shape) or terrain projection (slice-02)?
+    use std::collections::BTreeMap;
+    let gap_half = 9.7f32;
+    let mut terrain = Terrain::flat(100, 60, 4.0, Vec2::new(-200.0, -120.0));
+    terrain.paint_rect(
+        Vec2::new(-60.0, -100.0),
+        Vec2::new(-gap_half + 0.6, 100.0),
+        0.0,
+        0.0,
+    );
+    terrain.paint_rect(
+        Vec2::new(gap_half + 0.6, -100.0),
+        Vec2::new(60.0, 100.0),
+        0.0,
+        0.0,
+    );
+    let mut sim = Sim::new(
+        Tunables {
+            micro_rough: 0.0,
+            morale_enabled: false,
+            ..Tunables::default()
+        },
+        SEED,
+    );
+    sim.terrain = terrain;
+    let unit = sim.spawn_unit(
+        Vec2::new(0.0, -80.0),
+        FRAC_PI_2,
+        120,
+        20,
+        Vec2::new(1.0, 1.0),
+        0,
+        1.0,
+    );
+    run(&mut sim, 3.0);
+    sim.set_move_order(unit, Vec2::new(0.0, 0.0));
+    march_until_arrived(&mut sim, unit);
+    run(&mut sim, 30.0); // settled into the buzz
+    sim.clear_force_trace();
+    run(&mut sim, 2.0);
+    let u = &sim.units[unit];
+    let mut per_channel: BTreeMap<_, f32> = BTreeMap::new();
+    let mut per_channel_net: BTreeMap<_, Vec2> = BTreeMap::new();
+    for rec in sim.force_trace.records() {
+        if rec.soldier >= u.start && rec.soldier < u.start + u.count {
+            *per_channel.entry(rec.channel).or_insert(0.0) += rec.vec.len();
+            let e = per_channel_net.entry(rec.channel).or_insert(Vec2::ZERO);
+            *e = *e + rec.vec;
+        }
+    }
+    println!(
+        "corridor buzz channel |sum| (net) over 2s, files_eff={}:",
+        u.files_eff
+    );
+    for (ch, mag) in &per_channel {
+        let net = per_channel_net[ch];
+        println!("  {ch:?}: {mag:8.2}  net=({:+.2},{:+.2})", net.x, net.y);
+    }
+    // Which men carry it: edge files vs center files mean |record|.
+    let files = u.files_eff.max(1);
+    let mut edge_sum = 0.0f32;
+    let mut edge_n = 0.0f32;
+    let mut center_sum = 0.0f32;
+    let mut center_n = 0.0f32;
+    for rec in sim.force_trace.records() {
+        if rec.soldier < u.start || rec.soldier >= u.start + u.count {
+            continue;
+        }
+        let file = sim.soldier_slot[rec.soldier] as usize % files;
+        let mag = rec.vec.len();
+        if file < 2 || file >= files - 2 {
+            edge_sum += mag;
+            edge_n += 1.0;
+        } else {
+            center_sum += mag;
+            center_n += 1.0;
+        }
+    }
+    println!(
+        "edge-file mean |rec|={:.4} ({} recs)  center mean |rec|={:.4} ({} recs)",
+        edge_sum / edge_n.max(1.0),
+        edge_n,
+        center_sum / center_n.max(1.0),
+        center_n
+    );
 }

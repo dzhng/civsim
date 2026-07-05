@@ -37,12 +37,6 @@ Remaining, in order:
    family): white bead-speck strings on far ridge crests (vista mesh),
    golden's razor field/sky line at the open north (aerial), residual
    water weave under golden (seaLayer). Fair game for any pass.
-3. **Standing pre-spec regression (fix lane in flight):** sun shadows
-   never render in the photoreal battle world - all shadow modes render
-   byte-identical on hardware; the photoreal-shadows baselines were
-   blessed shadowless. Also golden's sky band marginally fails the strict
-   warm contract (R>B by -0.5). Both predate this spec; fix lane on the
-   fix-sun-shadows branch.
 
 Read the recorded traps before touching code: slice 10 TSL hazards, slice
 14 wasm-view ordering, slice 15 water-classifier notes, slice 18's

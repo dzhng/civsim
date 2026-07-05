@@ -96,12 +96,14 @@ test -p mapgen` green (5/5). Screenshots captured in the session scratchpad.
 - **S3** sea lanes → `xyz` variant, solid + lifted onto the water surface
   (`pushEdgeLines`), no dashes. Gibraltar/Bosphorus/Sicily all read boldly.
 
+- **S1c** Gulf of Izmit carve — the Const↔Nicomedia lane now rides water the
+  whole way (the gulf is a real feature; the rendered result reads as a natural
+  inlet, not a canal). Bosphorus fully resolved.
+- **Mitre join** — `pushEdgeLines` builds one continuous strip (averaged
+  per-vertex normals), no notch gaps at bends.
+
 **Still open (next pickup):**
-1. **Bosphorus lane cosmetic** — the lane's eastern legs still run over the Asian
-   coast to inland Nicomedia. Topology is correct (no land bridge); routing the
-   *via* through the Gulf of Izmit (a small extra carve + via rework) is a
-   later refinement.
-2. **campaign-lod baseline re-bless** is BLOCKED by a pre-existing missing anchor
+1. **campaign-lod baseline re-bless** is BLOCKED by a pre-existing missing anchor
    (`Teanum`, pruned before this session). Fix that scene's anchor list, then
    `UPDATE_SHOTS=1 VERIFY_GPU=1 VERIFY_URL=http://localhost:5199 node scene.mjs
    campaign-lod` to re-bless the new solid lanes.

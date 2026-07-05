@@ -258,6 +258,7 @@ is superseded by the S3 island-roster which David can review in the shots.
 - [x] **S1** `connectivity.rs` primitives + synthetic-fixture unit tests
 - [x] **S2** fold `descope-sea-lanes.mjs` into `connectivity::descope_sea_lanes` — byte-identical, `.mjs` deleted
 - [x] **S3** `reconnect_plan` (drawability) + honest computed invariant; `SEA_ONLY_CITIES`/`validate_sea_only_cities` retired; 28 reconnect / 43 island
-- [ ] **S4** `cargo test -p campaign` guardrail: islands stay non-playable + Neutral + army-less
-- [ ] **S5** (optional) ownership re-flood decision — default NO
-- [ ] re-bless campaign baselines (in flight) + close-spec
+- [x] **S4** `cargo test -p campaign` guardrail (`tests/connectivity_islands.rs`): 43 islands stay non-playable + Neutral + army-less
+- [x] re-bless campaign baselines (ALL CHECKS PASSED)
+- [ ] **S5** (optional) ownership re-flood decision — default NO (not built; see slice 05)
+- [ ] close-spec (archive to specs/done/) + push to main (David's call)

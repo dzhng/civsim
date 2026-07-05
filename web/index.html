@@ -1043,6 +1043,35 @@
         color: #9c8048;
         font-size: 11px;
       }
+      .qb-generated {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .qb-generated-controls {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        gap: 5px;
+        align-items: center;
+      }
+      .qb-generated-controls input {
+        min-width: 0;
+        background: rgba(17, 14, 10, 0.75);
+        color: var(--bronze-ink);
+        border: 1px solid #3a2c18;
+        border-radius: 2px;
+        padding: 4px 5px;
+        font: inherit;
+        font-size: 11px;
+        box-shadow: var(--well-shadow);
+      }
+      .qb-generated-controls .qb-step,
+      .qb-generated-controls .qb-template {
+        width: auto;
+        margin: 0;
+        padding: 4px 6px;
+        font-size: 11px;
+      }
       .qb-armies {
         display: flex;
         gap: 16px;

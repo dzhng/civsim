@@ -29,6 +29,7 @@ const TMPL_B = [
 const armyOf = (units) => new Map(units.map((u) => [u.classId, u.count]));
 const stateOf = () => ({
   mapId: 0,
+  generatedSeed: "7",
   armies: [armyOf(TMPL_A), armyOf(TMPL_B)],
   factions: [...DEFAULT_BATTLE_FACTIONS],
 });
@@ -37,9 +38,19 @@ const picksOf = (units) => units.map((u) => ({ classId: u.classId, count: u.coun
 test("armyConfig reflects insertion order, not numeric class id", () => {
   const cfg = armyConfig(stateOf());
   assert.equal(cfg.mapId, 0);
+  assert.equal(cfg.generatedSeed, "7");
   assert.deepEqual(cfg.teams[0], picksOf(TMPL_A)); // 7,2,1 — NOT 1,2,7
   assert.deepEqual(cfg.teams[1], picksOf(TMPL_B));
   assert.deepEqual(cfg.factions, ["azure", "crimson"]);
+});
+
+test("generated seed actions sanitize numeric input and reroll", () => {
+  const s0 = stateOf();
+  const s1 = armyBuilderReducer(s0, { kind: "generatedSeed", seed: "00seed-42x" });
+  assert.equal(s1.generatedSeed, "42");
+  const s2 = armyBuilderReducer(s1, { kind: "rerollGeneratedSeed" });
+  assert.match(s2.generatedSeed, /^\d+$/);
+  assert.equal(s0.generatedSeed, "7", "s0 not mutated");
 });
 
 test("map action sets mapId, leaves armies untouched (and is immutable)", () => {

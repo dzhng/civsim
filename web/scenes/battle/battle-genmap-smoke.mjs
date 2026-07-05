@@ -1,6 +1,6 @@
 import { PNG } from "pngjs";
 
-const SEED7_HASH = "0xa83197564d957288";
+const SEED7_HASH = "0x38e99f04c18d3968";
 
 export const meta = {
   name: "battle-genmap-smoke",

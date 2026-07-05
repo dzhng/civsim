@@ -771,7 +771,7 @@ fn force_trace_smoke_covers_expected_channels() {
         ForceChannel::HitPush,
         ForceChannel::KnockbackMomentum,
         ForceChannel::SlotPullLean,
-        ForceChannel::PikeLateralFriction,
+        ForceChannel::PackedLateralFriction,
         ForceChannel::SoldierFacing,
         ForceChannel::UnitFacing,
         ForceChannel::UnitFrame,

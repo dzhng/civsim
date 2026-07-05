@@ -1,10 +1,11 @@
 const SEED = 7;
 const VIEWPORT = { width: 1280, height: 800 };
 const WINDOWS = {
-  passable: [0.55, 0.7],
-  slow: [0.03, 0.09],
-  blocked: [0.25, 0.4],
-  water: [0.0, 0.02],
+  passable: [0.5, 0.66],
+  slow: [0.06, 0.09],
+  blocked: [0.3, 0.36],
+  water: [0.005, 0.05],
+  mud: [0.008, 0.025],
 };
 
 export const meta = {
@@ -14,7 +15,7 @@ export const meta = {
   tier: "quick",
   snapshots: ["battle-genmap-passability"],
   describe:
-    "BMS03-SLICE-F1A8: generated map passability mask colored directly from sim speed/tint pointers.",
+    "BMS04-SLICE-B6D9: generated map passability mask colored directly from sim speed/tint pointers, including lake and marsh drainage classes.",
 };
 
 export async function run(ctx) {
@@ -61,10 +62,15 @@ export async function run(ctx) {
         const drawH = worldH * scale;
         const offX = (canvas.width - drawW) / 2;
         const offY = (canvas.height - drawH) / 2;
-        const counts = { passable: 0, slow: 0, blocked: 0, water: 0 };
+        const counts = { passable: 0, slow: 0, blocked: 0, water: 0, mud: 0 };
         for (let i = 0; i < n; i++) {
           if (tint[i] === 1) counts.water++;
-          else if (speed[i] <= 0) counts.blocked++;
+          else if (tint[i] === 5) {
+            counts.mud++;
+            if (speed[i] > 0 && speed[i] < 0.9) counts.slow++;
+            else if (speed[i] <= 0) counts.blocked++;
+            else counts.passable++;
+          } else if (speed[i] <= 0) counts.blocked++;
           else if (speed[i] < 0.9) counts.slow++;
           else counts.passable++;
         }
@@ -78,8 +84,9 @@ export async function run(ctx) {
               const cy = Math.max(0, Math.min(h - 1, Math.floor((wy - oy) / cell)));
               const i = cy * w + cx;
               if (tint[i] === 1) color = [35, 92, 145];
+              else if (tint[i] === 5) color = [190, 126, 42];
               else if (speed[i] <= 0) color = [13, 14, 13];
-              else if (speed[i] < 0.9) color = [205, 151, 49];
+              else if (speed[i] < 0.9) color = [153, 132, 76];
               else color = [71, 142, 75];
             }
             const o = (py * canvas.width + px) * 4;
@@ -106,7 +113,7 @@ export async function run(ctx) {
         result.dimensions.h === 400 &&
         result.dimensions.cell === 4 &&
         result.descriptor.seed === SEED &&
-        result.descriptor.terrainHash === "0x8ceb1a8a243ea756",
+        result.descriptor.terrainHash === "0xa83197564d957288",
       JSON.stringify(result),
     );
     for (const [name, [lo, hi]] of Object.entries(WINDOWS)) {
@@ -129,6 +136,24 @@ export async function run(ctx) {
         result.certificates.orphanBlockedCells === 0 &&
         result.certificates.largestIsolatedPassablePocket <= 96,
       JSON.stringify(result.certificates),
+    );
+    ctx.check(
+      "drainage stats and invariants are exported by the sim certificate owner",
+      result.certificates.drainage?.lakeCount >= 1 &&
+        result.certificates.drainage?.lakeCells > 0 &&
+        result.certificates.drainage?.playableLakeCount >= 1 &&
+        result.certificates.drainage?.playableLakeCount <= 2 &&
+        result.certificates.drainage?.largestPlayableLakeCells >= 1500 &&
+        result.certificates.drainage?.streamCount >= 1 &&
+        result.certificates.drainage?.streamCells > 0 &&
+        result.certificates.drainage?.streamDeadEnds === 0 &&
+        result.certificates.drainage?.streamImpassableCells === 0 &&
+        result.certificates.drainage?.streamLakeConnections +
+          result.certificates.drainage?.streamRunoffConnections ===
+          result.certificates.drainage?.streamCount &&
+        result.certificates.drainage?.waterLevelSet === true &&
+        result.certificates.drainage?.streamsDescend === true,
+      JSON.stringify(result.certificates.drainage),
     );
     await ctx.snap(page, "battle-genmap-passability");
   } finally {

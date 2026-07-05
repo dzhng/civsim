@@ -114,13 +114,13 @@ export async function run(ctx) {
     await page.close();
   }
 
-  // The mood lives in the sky: golden's band is warm (R >= B), overcast's is
+  // The mood lives in the sky: golden's band is warm (R > B), overcast's is
   // cool flat HIGH-KEY (near-white, B >= R), and they are far apart.
   const golden = bandStats(skyBands.get("golden-hour"));
   const overcast = bandStats(skyBands.get("overcast-foggy"));
   ctx.check(
     "golden sky band reads warm-neutral, overcast reads cool",
-    golden.meanR >= golden.meanB - 12 && overcast.meanB >= overcast.meanR,
+    golden.meanR > golden.meanB && overcast.meanB >= overcast.meanR,
     JSON.stringify({ golden, overcast }),
   );
   ctx.check(

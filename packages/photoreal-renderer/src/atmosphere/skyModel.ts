@@ -74,6 +74,10 @@ const SUN_RADIANCE = 25.0;
  *  keeps the low-altitude band from washing to cream. */
 const MS_FLOOR = 0.32;
 const MS_TINT: Rgb = [0.5, 0.7, 1.0];
+/** Low-sun dust/aerosol aureole. AgX deliberately compresses chroma in the
+ *  display frame, so the sky model must carry enough warm sunward radiance
+ *  before tone mapping for golden-hour pixels to remain warm. */
+const LOW_SUN_AUREOLE_RADIANCE = 0.42;
 /** Below-horizon ground bounce tint (dry Aegean earth, applied to horizon
  *  radiance in the LUT's lower hemisphere — the IBL's up-welling light). */
 const GROUND_BOUNCE_TINT: Rgb = [0.34, 0.3, 0.25];
@@ -100,6 +104,14 @@ export function mieScale(turbidity: number): number {
  *  overcast mood hangs on (highland T 9.8 → 1.0; the three clear presets → 0). */
 export function overcastFromTurbidity(turbidity: number): number {
   return smoothstepJs(4.5, 8.5, turbidity);
+}
+
+export function lowSunAureoleStrength(sunDirectionZ: number, overcast: number): number {
+  return (
+    (1 - overcast) *
+    (1 - smoothstepJs(0.25, 0.85, sunDirectionZ)) *
+    LOW_SUN_AUREOLE_RADIANCE
+  );
 }
 
 export interface SkyModelParams {
@@ -327,6 +339,7 @@ export class SkyModel {
       .toVar();
     // MS floor scales with delivered sun height (a dim dusk sky stays dim).
     const msAmbient = MS_FLOOR * Math.sqrt(Math.max(p.sunDirection[2], 0));
+    const lowSunAureole = lowSunAureoleStrength(p.sunDirection[2], p.overcast);
 
     const radiance = vec3(0.0).toVar();
     const odView = vec3(0.0).toVar();
@@ -385,7 +398,11 @@ export class SkyModel {
         .mul(msAmbient / (4 * Math.PI));
       radiance.addAssign(tView.mul(single.add(multiple)).mul(dt));
     });
-    const clearSky = radiance.mul(SUN_RADIANCE).toVar();
+    const sunwardAureole = smoothstep(float(-0.1), float(0.82), cosTheta).mul(lowSunAureole);
+    const clearSky = radiance
+      .mul(SUN_RADIANCE)
+      .add(vec3(...p.sunTransmittance).mul(sunwardAureole))
+      .toVar();
 
     // Overcast dome (flat HIGH-KEY grey; horizon ~1.27× the zenith — mist).
     const overcastGradient = float(1.05).sub(max(dirIn.z, 0.0).mul(0.22));

@@ -12,7 +12,10 @@ import {
   skyModelParams,
   transmittanceToSun,
 } from "../../packages/photoreal-renderer/src/atmosphere/skyModel.ts";
-import { aerialParams } from "../../packages/photoreal-renderer/src/atmosphere/aerialPerspective.ts";
+import {
+  AERIAL_DISTANCE_SCALE,
+  aerialParams,
+} from "../../packages/photoreal-renderer/src/atmosphere/aerialPerspective.ts";
 
 const PRESET_IDS = Object.keys(CIVSIM_ENVIRONMENTS) as (keyof typeof CIVSIM_ENVIRONMENTS)[];
 
@@ -170,10 +173,13 @@ test("sky model: sun tint warms as the sun drops (physics, not authored keys)", 
 
 test("sky model: turbidity drives overcastness and mie", () => {
   // Overcastness: only the overcast preset reads as overcast.
-  assert.equal(
-    overcastFromTurbidity(CIVSIM_ENVIRONMENTS["overcast-highland"].physical.turbidity),
-    1,
-    "overcast fully overcast",
+  // >= 0.75, not == 1: the slice-17 compose tune moved the preset to
+  // turbidity 7.2 (ranges must read through haze) and the ACCEPTED look
+  // renders at overcastness ~0.79. The contract is "reads overcast",
+  // not the stale 9.8-era saturation point.
+  assert.ok(
+    overcastFromTurbidity(CIVSIM_ENVIRONMENTS["overcast-highland"].physical.turbidity) >= 0.75,
+    "overcast preset reads overcast",
   );
   for (const id of ["golden", "noon", "dusk"] as const) {
     assert.equal(
@@ -184,7 +190,10 @@ test("sky model: turbidity drives overcastness and mie", () => {
   }
   // Monotone axes.
   assert.ok(mieScale(2.0) < mieScale(2.6), "mie monotone in turbidity");
-  assert.ok(mieScale(2.6) < mieScale(9.8), "overcast carries the most mie");
+  assert.ok(
+    mieScale(2.6) < mieScale(CIVSIM_ENVIRONMENTS["overcast-highland"].physical.turbidity),
+    "overcast carries the most mie",
+  );
   assert.ok(overcastFromTurbidity(5.0) < overcastFromTurbidity(7.0), "overcastness monotone");
 });
 
@@ -192,7 +201,9 @@ test("sky model: overcast sun light is desaturated toward grey", () => {
   const overcast = skyModelParams(CIVSIM_ENVIRONMENTS["overcast-highland"]);
   const spreadT = Math.max(...overcast.sunTransmittance) - Math.min(...overcast.sunTransmittance);
   const spreadL = Math.max(...overcast.sunLightColor) - Math.min(...overcast.sunLightColor);
-  assert.ok(spreadL < spreadT * 0.05, "overcast kills the direct sun tint");
+  // Strong desaturation, not total: at the slice-17 tune (turbidity 7.2,
+  // overcastness ~0.79) a fifth of the physical tint survives by design.
+  assert.ok(spreadL < spreadT * 0.35, "overcast desaturates the direct sun tint");
   const golden = skyModelParams(CIVSIM_ENVIRONMENTS.golden);
   assert.deepEqual(
     golden.sunLightColor,
@@ -212,7 +223,13 @@ test("sky model: low-sun aureole restores warm displayed clear skies", () => {
     "lower dusk sun carries at least golden warmth",
   );
   assert.ok(strength("noon") < 0.01, "high noon has no golden-hour aureole");
-  assert.equal(strength("overcast-highland"), 0, "overcast dome owns overcast colour");
+  // Far weaker than golden, not zero: overcastness is ~0.79 since the
+  // slice-17 tune, so a sliver of aureole survives; the dome still owns
+  // the overcast colour.
+  assert.ok(
+    strength("overcast-highland") < strength("golden") * 0.3,
+    "overcast dome owns overcast colour",
+  );
 });
 
 test("sky model: transmittance responds to sun height and turbidity", () => {
@@ -250,19 +267,28 @@ test("aerial: pure, deterministic preset mapping with physical ordering", () => 
   // the vista eye parks ~1 km out, blockers sit 2.5–4 km out, so overcast
   // needs T < ~0.25 there (V < 8 km) while golden's near field stays clear.
   assert.ok(vis("golden") > 20, `golden haze stays subtle (V=${vis("golden")}km)`);
-  assert.ok(
-    vis("overcast-highland") < 5,
-    `overcast fog swallows ranges (V=${vis("overcast-highland")}km)`,
-  );
+  // The runway is judged in EFFECTIVE terms - the shader multiplies
+  // optical depth by AERIAL_DISTANCE_SCALE (miniature-world amplification),
+  // so unscaled world-km numbers understate what renders. Re-anchored to
+  // the slice-17 accepted look (turbidity 7.2; ranges read THROUGH haze;
+  // the mood scene verifies the same runway on real pixels).
   const overcast = aerialParams(CIVSIM_ENVIRONMENTS["overcast-highland"]);
   const mean = overcast.extinction.reduce((sum, value) => sum + value, 0) / 3;
-  const transmittanceAt = (metres: number) => Math.exp(-mean * Math.max(0, metres / 1000 - 0.14));
+  const effective = mean * AERIAL_DISTANCE_SCALE;
   assert.ok(
-    transmittanceAt(2000) > 0.12,
-    `2km playable field remains readable (T=${transmittanceAt(2000)})`,
+    3 / effective < 3,
+    `overcast fog swallows ranges (effective V=${(3 / effective).toFixed(2)}km)`,
+  );
+  const transmittanceAt = (metres: number) =>
+    Math.exp(-effective * Math.max(0, metres / 1000 - 0.14));
+  // 1.2 km: where the compose-gate evidence shows the armies (the mood
+  // scene mid-field crop) - the accepted look closes haze beyond that.
+  assert.ok(
+    transmittanceAt(1200) > 0.1,
+    `mid playable field remains readable (T=${transmittanceAt(1200)})`,
   );
   assert.ok(
-    transmittanceAt(2800) < 0.08,
+    transmittanceAt(2800) < 0.05,
     `N/S far-ring edge saturates before 2.8km (T=${transmittanceAt(2800)})`,
   );
   assert.ok(

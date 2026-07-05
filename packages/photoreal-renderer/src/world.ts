@@ -95,6 +95,12 @@ export class PhotorealWorld {
       // makes three build the same projection cameraBridge produces CPU-side.
       reversedDepthBuffer: true,
     });
+    // three's WebGPU node materials include shadow sampling in the lighting
+    // graph only when the renderer shadow-map contract is active at build time.
+    // Shadow-casting lights still opt in per world/lab route; enabling the
+    // renderer here prevents post/pass nodes from caching a no-shadow graph.
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
     renderer.toneMapping = BATTLE_TONE_MAPPING;
     // TSL/three@0.185 HAZARD (recorded in the 08a slice file): with
     // `reversedDepthBuffer` three sorts its render lists then REVERSES them

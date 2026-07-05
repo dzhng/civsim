@@ -1359,6 +1359,8 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData, style: Camp
 // lifted onto the height-mapped water so the surface mesh no longer buries it,
 // a dark outline under a bright core so it reads on BOTH deep (dark) and shallow
 // (light) water. `heightAt` is the same water-surface sampler roads/borders use.
+// Built as a CONTINUOUS strip with per-vertex averaged normals so consecutive
+// segments share their offset corners at each waypoint — no notch gaps at bends.
 function pushEdgeLines(
   out: number[],
   edge: CampaignMapEdgeData,
@@ -1366,32 +1368,36 @@ function pushEdgeLines(
 ) {
   // Sit clearly above the animated water surface so waves never occlude it.
   const LANE_LIFT = 0.6;
-  const pushBand = (
-    a: [number, number],
-    b: [number, number],
-    color: [number, number, number, number],
-    halfWidth: number,
-  ) => {
-    const dx = b[0] - a[0];
-    const dy = b[1] - a[1];
+  const pts = edge.via;
+  if (pts.length < 2) return;
+  // Unit normal at each waypoint, averaged from its neighbours so a shared
+  // waypoint yields ONE offset point for both adjacent quads (a mitre join).
+  const normals: [number, number][] = pts.map((_, i) => {
+    const prev = pts[Math.max(0, i - 1)];
+    const next = pts[Math.min(pts.length - 1, i + 1)];
+    const dx = next[0] - prev[0];
+    const dy = next[1] - prev[1];
     const len = Math.hypot(dx, dy) || 1;
-    const nx = -dy / len;
-    const ny = dx / len;
-    const vert = (p: [number, number], s: number) => {
-      const x = p[0] + nx * s * halfWidth;
-      const y = p[1] + ny * s * halfWidth;
+    return [-dy / len, dx / len];
+  });
+  const strip = (halfWidth: number, color: [number, number, number, number]) => {
+    const vert = (p: [number, number], n: [number, number], s: number) => {
+      const x = p[0] + n[0] * s * halfWidth;
+      const y = p[1] + n[1] * s * halfWidth;
       out.push(x, y, LANE_LIFT + (heightAt?.(x, y) ?? 0), ...color);
     };
-    // Two triangles (a-, b-, b+) and (a-, b+, a+).
-    vert(a, -1); vert(b, -1); vert(b, 1);
-    vert(a, -1); vert(b, 1); vert(a, 1);
+    for (let i = 1; i < pts.length; i++) {
+      const a = pts[i - 1];
+      const b = pts[i];
+      const na = normals[i - 1];
+      const nb = normals[i];
+      // Two triangles (a-, b-, b+) and (a-, b+, a+), offset by each end's normal.
+      vert(a, na, -1); vert(b, nb, -1); vert(b, nb, 1);
+      vert(a, na, -1); vert(b, nb, 1); vert(a, na, 1);
+    }
   };
-  for (let i = 1; i < edge.via.length; i++) {
-    const a = edge.via[i - 1];
-    const b = edge.via[i];
-    pushBand(a, b, [0.04, 0.1, 0.2, 0.95], 1.8);
-    pushBand(a, b, [0.55, 0.82, 1.0, 1.0], 1.0);
-  }
+  strip(1.8, [0.04, 0.1, 0.2, 0.95]);
+  strip(1.0, [0.55, 0.82, 1.0, 1.0]);
 }
 
 /** Returns the number of unbridged water gaps (drawn ribbon stops at a shore). */

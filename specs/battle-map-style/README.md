@@ -21,18 +21,26 @@ Reference images (in `assets/` and the aesthetics skill):
 
 ## Next Agent Prompt
 
-**Status 2026-07-05: slices 00–06, 10–19 DONE (live-verified except noted).** The
-generated-map pipeline is feature-complete for the compose gate: seeded
-seal grammar (organic cliff/forest/water flanks), certified corridors and
-deployments, one natural lake pocket rendering as real water, passable
-field-texture variety in the corridor, fracture-rock walls, the TW vista
-apron + fog ring, production blade grass, and three curated named generated
-maps in the Quick Battle picker, and campaign open-field battles now hand off
-to generated recipes deterministically. The compose gate accepted the
-overcast-highland register. Next pickup: [20-retire-hand-maps](slices/20-retire-hand-maps.md).
-Read the recorded traps: slice 10 TSL hazards, slice 11
-integration findings, slice 04 shoreline lessons, slice 15 water-classifier
-notes, slice 18's curated-seed pins, and 00's camera/oracle amendments.
+**Status 2026-07-05: slices 00–06, 10–19 DONE (live-verified). Only slice
+20 remains, and it is David-gated.** The spec is functionally complete:
+seeded certified generator, the full reference style family (walling
+ranges, blade grass, fracture rock, real lake water, TW vista + fog
+runway, overcast-highland mood), three curated maps + free-seed reroll in
+Quick Battle, and campaign open-field battles booting generated maps
+deterministically. The compose gate (17) accepted the overcast register.
+
+Remaining, in order:
+1. **Slice 20 — retire the hand maps.** AWAITING DAVID'S SIGN-OFF (the
+   golden re-bless is the cost; the spec may close with hand maps alive as
+   legacy if he prefers). Do not start without his explicit go.
+2. **Three routed polish debts** (slice 17 round-3 verdict, quality not
+   family): white bead-speck strings on far ridge crests (vista mesh),
+   golden's razor field/sky line at the open north (aerial), residual
+   water weave under golden (seaLayer). Fair game for any pass.
+
+Read the recorded traps before touching code: slice 10 TSL hazards, slice
+14 wasm-view ordering, slice 15 water-classifier notes, slice 18's
+key-order scene trap, 00's camera/oracle amendments.
 
 Before writing any code, read:
 

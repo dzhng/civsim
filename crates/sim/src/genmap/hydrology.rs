@@ -52,9 +52,26 @@ pub struct Drainage {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct LakeSurfaceReport {
+    pub id: usize,
+    pub level: f32,
+    pub min_cell_x: usize,
+    pub min_cell_y: usize,
+    pub max_cell_x: usize,
+    pub max_cell_y: usize,
+    pub min_x: f32,
+    pub min_y: f32,
+    pub max_x: f32,
+    pub max_y: f32,
+    pub cells: usize,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct DrainageReport {
     pub lake_count: usize,
     pub lake_cells: usize,
+    pub lakes: Vec<LakeSurfaceReport>,
     pub playable_lake_count: usize,
     pub playable_lake_cells: usize,
     pub largest_playable_lake_cells: usize,
@@ -125,6 +142,7 @@ impl Drainage {
     pub fn report(&self, t: &Terrain) -> DrainageReport {
         let lake_count = count_components(t, &self.lake);
         let lake_cells = self.lake.iter().filter(|&&v| v != 0).count();
+        let lakes = self.lake_surfaces(t);
         let playable_lakes = playable_lake_components(t, &self.lake);
         let playable_lake_count = playable_lakes.len();
         let playable_lake_cells = playable_lakes.iter().map(|c| c.cells.len()).sum();
@@ -167,6 +185,7 @@ impl Drainage {
         DrainageReport {
             lake_count,
             lake_cells,
+            lakes,
             playable_lake_count,
             playable_lake_cells,
             largest_playable_lake_cells,
@@ -207,6 +226,42 @@ impl Drainage {
             }
         }
         true
+    }
+
+    fn lake_surfaces(&self, t: &Terrain) -> Vec<LakeSurfaceReport> {
+        components(t, &self.lake)
+            .into_iter()
+            .enumerate()
+            .map(|(id, component)| {
+                let mut min_cx = usize::MAX;
+                let mut min_cy = usize::MAX;
+                let mut max_cx = 0usize;
+                let mut max_cy = 0usize;
+                let mut level = f32::NEG_INFINITY;
+                for &i in &component.cells {
+                    let cx = i % t.w;
+                    let cy = i / t.w;
+                    min_cx = min_cx.min(cx);
+                    min_cy = min_cy.min(cy);
+                    max_cx = max_cx.max(cx);
+                    max_cy = max_cy.max(cy);
+                    level = level.max(self.water_level[i]);
+                }
+                LakeSurfaceReport {
+                    id,
+                    level,
+                    min_cell_x: min_cx,
+                    min_cell_y: min_cy,
+                    max_cell_x: max_cx,
+                    max_cell_y: max_cy,
+                    min_x: t.origin.x + min_cx as f32 * t.cell,
+                    min_y: t.origin.y + min_cy as f32 * t.cell,
+                    max_x: t.origin.x + (max_cx + 1) as f32 * t.cell,
+                    max_y: t.origin.y + (max_cy + 1) as f32 * t.cell,
+                    cells: component.cells.len(),
+                }
+            })
+            .collect()
     }
 }
 

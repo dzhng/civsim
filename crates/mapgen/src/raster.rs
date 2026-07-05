@@ -95,6 +95,20 @@ pub const STRAIT_CARVES: &[StraitCarve] = &[
         ],
         half_w_km: 4.5,
     },
+    // Gulf of Izmit: the real E-W gulf Nicomedia sits at the head of, absent from
+    // the 50m coastline, so the Const<->Nicomedia lane crossed solid Bithynian
+    // land. Open it from the Marmara east to Nicomedia's [1000, 373] doorstep so
+    // the lane rides water; ends short of Nicomedia to keep its harbor on land.
+    StraitCarve {
+        name: "Gulf of Izmit",
+        centerline: &[
+            [935.0, 378.0],
+            [945.0, 371.0],
+            [970.0, 372.0],
+            [990.0, 373.0],
+        ],
+        half_w_km: 5.0,
+    },
 ];
 
 impl Raster {

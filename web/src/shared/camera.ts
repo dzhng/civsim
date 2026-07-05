@@ -21,8 +21,8 @@ export class Camera {
   x = 0;
   y = 0;
   zoom = 4;
-  /** User tilt bias added to the zoom-driven auto pitch (middle-drag vertical).
-   *  Positive = drag down = a lower, more side-on angle (smaller camera3d pitch). */
+  /** User tilt bias added to the zoom-driven auto pitch (middle-drag vertical,
+   *  Z/X). Positive = a lower, more side-on angle (smaller camera3d pitch). */
   pitchBias = 0;
   /** View rotation about the vertical, radians (Q/E and middle-drag horizontal). */
   yaw = 0;
@@ -72,6 +72,14 @@ export class Camera {
   /** The camera3d pitch actually used this frame (auto curve + user bias, clamped). */
   get pitch() {
     return this.effectivePitch(this.rig());
+  }
+
+  /** Nudge the user tilt bias (middle-drag vertical, Z/X keys — the one owner
+   *  of the bias range). The stored bias is bounded so it can't accumulate far
+   *  past what effectivePitch can express, which would go dead: tilting back
+   *  would spend invisible travel before the view moved. */
+  adjustPitchBias(delta: number) {
+    this.pitchBias = Math.max(-0.45, Math.min(1.0, this.pitchBias + delta));
   }
 
   private effectivePitch(rig: ZoomCameraRig) {

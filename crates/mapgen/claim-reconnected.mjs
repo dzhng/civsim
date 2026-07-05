@@ -124,6 +124,20 @@ for (const group of groups) {
     }
   }
 
+  // Contiguity guard: never create an orphaned exclave. A power may claim a
+  // reconnected region ONLY if the region touches that power's OWN realm by a
+  // real edge — a road, or the power's own sea lane (e.g. Carthago↔Lilybaeum
+  // brings Sicily into reach). A region a power can only get to the long way
+  // round through rival territory (Sicily via Rhegium→Italy) fails this and is
+  // left neutral. Ownership stays contiguous, as the build flood keeps it.
+  const ownedByPower = new Set(
+    [...cityById.values()].filter((node) => node.owner === power).map((node) => node.id),
+  );
+  const touchesRealm = [...claimIds].some((id) =>
+    sortedSetValues(allAdj.get(id) ?? new Set()).some((nb) => ownedByPower.has(nb)),
+  );
+  if (!touchesRealm) continue;
+
   for (const id of sortedSetValues(claimIds)) {
     const existing = claims.get(id);
     if (existing && existing !== power) {

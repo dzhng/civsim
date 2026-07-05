@@ -3,7 +3,7 @@
 
 use crate::geo::project;
 use serde_json::Value;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 pub struct OrbisSite {
     pub id: u32,
@@ -93,6 +93,77 @@ pub fn load_routes(path: &str, sites: &BTreeMap<u32, OrbisSite>) -> Vec<OrbisRou
         dropped
     );
     out
+}
+
+/// Merge hand-authored geography from overrides.json into the ORBIS sites/routes
+/// before the graph is built — for cities absent from ORBIS (e.g. Rhegium, the
+/// Messina-strait mainland port) and the sea lanes / roads that connect them.
+/// Synthetic site ids sit above the ORBIS id range. Runs before `build::build`,
+/// so ownership flood, pruning, and landroute treat them like any other site.
+///   overrides.extra_sites:  [{ label, lon, lat, rank }]
+///   overrides.drop_routes:  [{ a, b }]        — ORBIS routes a hand-route replaces
+///   overrides.extra_routes: [{ a, b, kind }]  — kind "road" | "sea", straight a→b
+pub fn apply_extra_geography(
+    sites: &mut BTreeMap<u32, OrbisSite>,
+    routes: &mut Vec<OrbisRoute>,
+    overrides: &Value,
+) {
+    let mut next_id = sites.keys().max().copied().unwrap_or(0) + 10000;
+    let mut label_to_id: BTreeMap<String, u32> =
+        sites.values().map(|s| (s.label.clone(), s.id)).collect();
+
+    if let Some(arr) = overrides["extra_sites"].as_array() {
+        for e in arr {
+            let label = e["label"].as_str().expect("extra_site.label").to_string();
+            let lon = e["lon"].as_f64().expect("extra_site.lon");
+            let lat = e["lat"].as_f64().expect("extra_site.lat");
+            let rank = e["rank"].as_u64().unwrap_or(90) as u32;
+            let id = next_id;
+            next_id += 1;
+            sites.insert(
+                id,
+                OrbisSite {
+                    id,
+                    label: label.clone(),
+                    rank,
+                    pos: project(lon, lat),
+                },
+            );
+            label_to_id.insert(label, id);
+        }
+    }
+
+    let resolve = |label: &str| -> u32 {
+        *label_to_id
+            .get(label)
+            .unwrap_or_else(|| panic!("extra route references unknown site: {label}"))
+    };
+
+    if let Some(arr) = overrides["drop_routes"].as_array() {
+        let drop: BTreeSet<(u32, u32)> = arr
+            .iter()
+            .map(|d| {
+                let a = resolve(d["a"].as_str().expect("drop_route.a"));
+                let b = resolve(d["b"].as_str().expect("drop_route.b"));
+                (a.min(b), a.max(b))
+            })
+            .collect();
+        routes.retain(|r| !drop.contains(&(r.a.min(r.b), r.a.max(r.b))));
+    }
+
+    if let Some(arr) = overrides["extra_routes"].as_array() {
+        for e in arr {
+            let a = resolve(e["a"].as_str().expect("extra_route.a"));
+            let b = resolve(e["b"].as_str().expect("extra_route.b"));
+            let kind = match e["kind"].as_str().expect("extra_route.kind") {
+                "road" => RouteKind::Road,
+                "sea" => RouteKind::Sea,
+                other => panic!("extra_route.kind must be road|sea, got {other}"),
+            };
+            let pts = vec![sites[&a].pos, sites[&b].pos];
+            routes.push(OrbisRoute { a, b, kind, pts });
+        }
+    }
 }
 
 /// A polygon as rings of projected points (outer + holes, even-odd).

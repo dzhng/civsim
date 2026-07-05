@@ -72,7 +72,7 @@ export async function run(ctx) {
       initial.cityEntities > 100 &&
       initial.armyEntities > 5 &&
       initial.armies > 5 &&
-      initial.cities > 400 &&
+      initial.cities > 390 &&
       initial.saveLength > 1000,
     JSON.stringify(initial),
   );

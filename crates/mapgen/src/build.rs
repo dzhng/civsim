@@ -53,6 +53,10 @@ pub const CITY_SNAP_EXEMPTIONS: &[CitySnapExemption] = &[
         name: "Thaenae",
         reason: "coastal harbor; nearest 3x3-safe cell would move the port over 6km",
     },
+    CitySnapExemption {
+        name: "Messana",
+        reason: "Messina-strait harbor; carve_straits opens water on its NE shore",
+    },
 ];
 
 #[derive(Serialize)]

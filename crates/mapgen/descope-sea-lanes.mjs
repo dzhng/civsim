@@ -22,6 +22,7 @@ const map = JSON.parse(await readFile(PATH, 'utf8'));
 const KEEP = [
   ['Gades', 'Tingi'], // Gibraltar: Iberia <-> Africa
   ['Constantinopolis', 'Nicomedia'], // Bosphorus: Europe/Greece <-> Asia Minor
+  ['Rhegium', 'Messana'], // Messina: Calabrian toe <-> Sicily
 ];
 const nameOf = new Map(map.nodes.map((n) => [n.id, n.name]));
 const keyOf = (a, b) => [a, b].sort().join(' ');

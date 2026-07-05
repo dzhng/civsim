@@ -236,8 +236,9 @@ export class Input {
       this.panX = px;
       this.panY = py;
       // Q/E rotate the camera (Total War), continuous while held.
-      if (held.has("q")) camera.yaw -= 0.035;
-      if (held.has("e")) camera.yaw += 0.035;
+      // Q/E swapped per David (2026-07-06): Q rotates right, E rotates left.
+      if (held.has("q")) camera.yaw += 0.035;
+      if (held.has("e")) camera.yaw -= 0.035;
       // Z/X tilt: z looks down (toward top-down), x looks up (toward the
       // horizon) — the same tilt bias the middle-drag drives.
       if (held.has("z")) camera.adjustPitchBias(-0.02);

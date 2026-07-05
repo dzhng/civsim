@@ -231,6 +231,7 @@ export async function run(ctx) {
   }
 
   const pan = await sampleCameraPan(page, hardware);
+  const zoomSweep = await sampleCameraZoomSweep(page, hardware);
 
   const [mid, vista] = table;
   console.log(`battle-perf-30k frame-time table:\n${JSON.stringify(table, null, 2)}`);
@@ -320,6 +321,11 @@ export async function run(ctx) {
       pan.rafP95Ms !== null && pan.rafP95Ms <= BUDGET_MS,
       JSON.stringify(pan),
     );
+    ctx.check(
+      `continuous zoom sweep keeps rAF p95 within the ${BUDGET_MS} ms budget`,
+      zoomSweep.rafP95Ms !== null && zoomSweep.rafP95Ms <= BUDGET_MS,
+      JSON.stringify(zoomSweep),
+    );
   } else {
     ctx.check(
       "SwiftShader is not a perf oracle: ms budget assertion skipped (correctness smoke only)",
@@ -340,6 +346,50 @@ async function waitForGrassReady(page) {
     undefined,
     { timeout: 30000 },
   );
+}
+
+// Continuous zoom sweep: the churn the pan phase can't see. A zoom-coupled
+// grass rebuild key once rebuilt every frame while zooming (David's "still
+// slow" report) - this phase pins that class of bug.
+async function sampleCameraZoomSweep(page, hardware) {
+  await page.evaluate(async () => {
+    const cam = window.__cam;
+    cam.zoom = 3.0;
+    cam.clampView?.();
+    cam.setViewCenter(-100, -310);
+    cam.clampView?.();
+    await new Promise((resolve) => setTimeout(resolve, 120));
+  });
+  await waitForGrassReady(page);
+  const sampled = await page.evaluate(
+    async ({ durationMs, frames }) => {
+      const raf = () => new Promise((resolve) => requestAnimationFrame(resolve));
+      const cam = window.__cam;
+      const frameMs = [];
+      let last = performance.now();
+      const started = last;
+      for (let i = 0; i < frames; i++) {
+        const now = performance.now();
+        const t = Math.min(1, (now - started) / durationMs);
+        // 3.0 -> 9.0 -> 3.0 triangle sweep across the playable zoom band.
+        const tri = t < 0.5 ? t * 2 : 2 - t * 2;
+        cam.zoom = 3.0 + 6.0 * tri;
+        cam.clampView?.();
+        await raf();
+        const next = performance.now();
+        frameMs.push(next - last);
+        last = next;
+      }
+      return { raf: frameMs };
+    },
+    { durationMs: PAN_DURATION_MS, frames: hardware ? Math.ceil(PAN_DURATION_MS / 16.67) : 20 },
+  );
+  await waitForGrassReady(page);
+  return {
+    durationMs: PAN_DURATION_MS,
+    rafMedianMs: round(median(sampled.raf)),
+    rafP95Ms: round(percentile(sampled.raf, 0.95)),
+  };
 }
 
 async function sampleCameraPan(page, hardware) {

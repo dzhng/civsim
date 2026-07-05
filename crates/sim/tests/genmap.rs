@@ -17,6 +17,29 @@ const GENERATED_SEED7_HASH: u64 = 0x9053a4fa78867b91;
 const RIVER_AND_CRAGS_HASH: u64 = 0x1d65c06afbab0eca;
 const WALLED_PLAIN_HASH: u64 = 0x864fe11f35ddf30c;
 const COASTAL_SCRUB_HASH: u64 = 0x020ad95c550af7b6;
+const CURATED_GENERATED_SEEDS: &[(u64, &str, EdgeSealKind, EdgeSealKind, u64)] = &[
+    (
+        1,
+        "Shore & Crags",
+        EdgeSealKind::CliffRun,
+        EdgeSealKind::WaterReach,
+        0xe28cbaf0d2e6e796,
+    ),
+    (
+        7,
+        "Highland Vale",
+        EdgeSealKind::CliffRun,
+        EdgeSealKind::CliffRun,
+        GENERATED_SEED7_HASH,
+    ),
+    (
+        8,
+        "Wooded Pass",
+        EdgeSealKind::ForestBelt,
+        EdgeSealKind::CliffRun,
+        0x7055cdf3eac03c64,
+    ),
+];
 
 #[test]
 fn generated_map_same_seed_is_byte_identical() {
@@ -44,6 +67,34 @@ fn generated_map_different_seeds_differ() {
         ..MapRecipe::default()
     }));
     assert_ne!(a, b);
+}
+
+#[test]
+fn curated_generated_maps_are_pinned_and_certified() {
+    for &(seed, name, west, east, expected_hash) in CURATED_GENERATED_SEEDS {
+        let recipe = MapRecipe {
+            seed,
+            ..MapRecipe::default()
+        };
+        let t = generate(&recipe);
+        let hash = terrain_hash(&t);
+        let composition = edges::composition(&recipe);
+        eprintln!("{name} seed {seed} terrain hash: {hash:#018x}");
+        assert_eq!(composition.west, west, "{name} west composition");
+        assert_eq!(composition.east, east, "{name} east composition");
+        assert_generated_certificates(seed, &t);
+        assert_deployment_contract(
+            seed,
+            Side::South,
+            deployment_band_certificate(&t, Side::South),
+        );
+        assert_deployment_contract(
+            seed,
+            Side::North,
+            deployment_band_certificate(&t, Side::North),
+        );
+        assert_eq!(hash, expected_hash, "{name} seed {seed} terrain hash moved");
+    }
 }
 
 #[test]

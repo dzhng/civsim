@@ -21,17 +21,17 @@ Reference images (in `assets/` and the aesthetics skill):
 
 ## Next Agent Prompt
 
-**Status 2026-07-05: slices 00–06, 10–15 DONE (live-verified except noted).** The
+**Status 2026-07-05: slices 00–06, 10–18 DONE (live-verified except noted).** The
 generated-map pipeline is feature-complete for the compose gate: seeded
 seal grammar (organic cliff/forest/water flanks), certified corridors and
 deployments, one natural lake pocket rendering as real water, passable
 field-texture variety in the corridor, fracture-rock walls, the TW vista
-apron + fog ring, production blade grass. Next pickups:
-[16-haze-mood](slices/16-haze-mood.md) (V-track: the
-fog-runway preset owning slice 14's pale-band/silhouette debts). Then 17
-compose. Read the recorded traps: slice 10 TSL hazards, slice 11
+apron + fog ring, production blade grass, and three curated named generated
+maps in the Quick Battle picker. The compose gate accepted the
+overcast-highland register. Next pickup: [19-campaign-seam](slices/19-campaign-seam.md).
+Read the recorded traps: slice 10 TSL hazards, slice 11
 integration findings, slice 04 shoreline lessons, slice 15 water-classifier
-notes, and 00's camera/oracle amendments.
+notes, slice 18's curated-seed pins, and 00's camera/oracle amendments.
 
 Before writing any code, read:
 
@@ -86,7 +86,12 @@ Before writing any code, read:
       Orchestrator still owes browser run/blessing, unprimed critique, and
       final affected-baseline approval.
 - [x] 17 — Compose gate (round 3 ACCEPTED for overcast-highland; 3 polish debts routed — see slice)
-- [ ] 18 — Curated seeds in the catalog
+- [x] 18 — Curated seeds in the catalog
+      CODE-LANDED BMS18-SLICE-F7C3; curated Quick Battle entries:
+      Shore & Crags (seed 1 water flank), Highland Vale (seed 7 pinned
+      cliff/cliff), Wooded Pass (seed 8 forest flank). Cargo genmap pins
+      hashes/certificates. Orchestrator still owes browser run/blessing for
+      `battle-genmap-curated` and non-blocking visual review.
 - [ ] 19 — Campaign seam (cuttable; may move to a successor spec)
 - [ ] 20 — Retire the hand maps (David-gated; golden re-bless is the cost)
 

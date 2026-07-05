@@ -1,5 +1,6 @@
 import {
   BATTLE_MAP_CATALOG,
+  CURATED_GENERATED_BATTLE_MAP_CATALOG,
   type BattleMapCatalogEntry,
 } from "../../../packages/game-renderer/src/battle/mapCatalog";
 import type { BattleFactionId } from "../../../packages/game-renderer/src/battle/factionColors";
@@ -15,8 +16,11 @@ export const QUICK_BATTLE_GOLD = 15000;
 export const QUICK_BATTLE_MAX_UNITS = 20;
 export const QUICK_BATTLE_GENERATED_MAP_ID = -1;
 
-/** The map choices, straight from the shared catalog. */
-export const QUICK_BATTLE_MAPS: readonly BattleMapCatalogEntry[] = BATTLE_MAP_CATALOG;
+/** The map choices, straight from the shared catalog plus curated pinned generated seeds. */
+export const QUICK_BATTLE_MAPS: readonly BattleMapCatalogEntry[] = [
+  ...BATTLE_MAP_CATALOG,
+  ...CURATED_GENERATED_BATTLE_MAP_CATALOG,
+];
 
 export interface QuickBattleUnitPick {
   classId: number;

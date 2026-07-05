@@ -112,20 +112,13 @@ async function main() {
     const generated = cfg.mapId === QUICK_BATTLE_GENERATED_MAP_ID;
     const game = createQuickBattleGame(cfg);
     const generatedMap = generated
-      ? (JSON.parse(game.generated_map_descriptor()) as GeneratedBattleMapDescriptor)
+      ? ({
+          ...(JSON.parse(game.generated_map_descriptor()) as GeneratedBattleMapDescriptor),
+          defaultEnvironment: GENERATED_BATTLE_MAP_DEFAULT_ENVIRONMENT,
+        } satisfies GeneratedBattleMapDescriptor)
       : undefined;
-    const generatedEntry = generatedMap
-      ? generatedBattleMapEntry({
-          seed: generatedMap.seed,
-          groundCover: generatedMap.groundCover,
-          edges: {
-            north: "open-fog",
-            south: "open-fog",
-            west: generatedMap.edgeSeals?.expectedRoles?.west ?? "cliff",
-            east: generatedMap.edgeSeals?.expectedRoles?.east ?? "cliff",
-          },
-          featureSummary: generatedMap.featureSummary,
-        })
+    const generatedEntry = generated
+      ? generatedBattleMapEntry(game.generated_map_manifest())
       : null;
     switchScene(
       new BattleScene({

@@ -2,10 +2,9 @@ use crate::geo::{dist, BBox};
 use crate::probe;
 use crate::raster;
 use serde::Deserialize;
-use serde_json::Value;
+use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
-#[allow(dead_code)]
 pub const KEEP_SEA_LANES: &[(&str, &str)] = &[
     ("Gades", "Tingi"),
     ("Constantinopolis", "Nicomedia"),
@@ -26,6 +25,146 @@ pub const RECONNECT_MAX_GAP_KM: f64 = 140.0;
 
 const WATER_LABEL: u32 = u32::MAX;
 const LAND_FALLBACK_RADIUS_CELLS: isize = 4;
+
+pub fn descope_sea_lanes(map: &mut Value) {
+    let id_to_name: BTreeMap<u32, String> = map["nodes"]
+        .as_array()
+        .expect("nodes array")
+        .iter()
+        .filter_map(|node| {
+            Some((
+                node["id"].as_u64()? as u32,
+                node["name"].as_str()?.to_string(),
+            ))
+        })
+        .collect();
+    let keep_keys: BTreeSet<(&str, &str)> = KEEP_SEA_LANES
+        .iter()
+        .map(|&(a, b)| ordered_name_pair(a, b))
+        .collect();
+    let drop_road_keys: BTreeSet<(&str, &str)> =
+        [ordered_name_pair("Constantinopolis", "Nicomedia")]
+            .into_iter()
+            .collect();
+
+    {
+        let edges = map["edges"].as_array_mut().expect("edges array");
+        for (i, edge) in edges.iter_mut().enumerate() {
+            edge["_oi"] = json!(i);
+        }
+
+        let mut kept_sea = Vec::new();
+        edges.retain(|edge| {
+            let a = edge["a"].as_u64().expect("edge a") as u32;
+            let b = edge["b"].as_u64().expect("edge b") as u32;
+            let a_name = id_to_name
+                .get(&a)
+                .unwrap_or_else(|| panic!("edge references missing node {a}"));
+            let b_name = id_to_name
+                .get(&b)
+                .unwrap_or_else(|| panic!("edge references missing node {b}"));
+            let key = ordered_name_pair(a_name, b_name);
+
+            if edge["kind"].as_str() == Some("sea") {
+                if keep_keys.contains(&key) {
+                    kept_sea.push(format!("{a_name} <-> {b_name}"));
+                    return true;
+                }
+                return false;
+            }
+            !drop_road_keys.contains(&key)
+        });
+
+        eprintln!(
+            "descope-sea-lanes: kept {} sea lanes -> {}",
+            kept_sea.len(),
+            kept_sea.join("; ")
+        );
+    }
+
+    loop {
+        let mut degree: BTreeMap<u32, usize> = BTreeMap::new();
+        for edge in map["edges"].as_array().expect("edges array") {
+            let a = edge["a"].as_u64().expect("edge a") as u32;
+            let b = edge["b"].as_u64().expect("edge b") as u32;
+            *degree.entry(a).or_default() += 1;
+            *degree.entry(b).or_default() += 1;
+        }
+
+        let drop: BTreeSet<u32> = map["nodes"]
+            .as_array()
+            .expect("nodes array")
+            .iter()
+            .filter(|node| node["kind"].as_str() == Some("junction"))
+            .filter_map(|node| {
+                let id = node["id"].as_u64()? as u32;
+                (degree.get(&id).copied().unwrap_or(0) <= 1).then_some(id)
+            })
+            .collect();
+        if drop.is_empty() {
+            break;
+        }
+
+        map["nodes"]
+            .as_array_mut()
+            .expect("nodes array")
+            .retain(|node| {
+                let id = node["id"].as_u64().expect("node id") as u32;
+                !drop.contains(&id)
+            });
+        map["edges"]
+            .as_array_mut()
+            .expect("edges array")
+            .retain(|edge| {
+                let a = edge["a"].as_u64().expect("edge a") as u32;
+                let b = edge["b"].as_u64().expect("edge b") as u32;
+                !drop.contains(&a) && !drop.contains(&b)
+            });
+    }
+
+    let mut old_to_new = BTreeMap::new();
+    for (new_idx, edge) in map["edges"]
+        .as_array()
+        .expect("edges array")
+        .iter()
+        .enumerate()
+    {
+        let old_idx = edge["_oi"].as_u64().expect("edge original index") as usize;
+        old_to_new.insert(old_idx, new_idx);
+    }
+
+    if map.get("ambush_spots").is_none() {
+        map["ambush_spots"] = Value::Array(Vec::new());
+    }
+    map["ambush_spots"]
+        .as_array_mut()
+        .expect("ambush_spots array")
+        .retain_mut(|spot| {
+            let Some(old_idx) = spot["edge"].as_u64().map(|idx| idx as usize) else {
+                return false;
+            };
+            let Some(new_idx) = old_to_new.get(&old_idx).copied() else {
+                return false;
+            };
+            spot["edge"] = json!(new_idx);
+            true
+        });
+
+    for edge in map["edges"].as_array_mut().expect("edges array") {
+        edge.as_object_mut().expect("edge object").remove("_oi");
+    }
+
+    eprintln!(
+        "descope-sea-lanes: {} junctions, {} edges remain",
+        map["nodes"]
+            .as_array()
+            .expect("nodes array")
+            .iter()
+            .filter(|node| node["kind"].as_str() == Some("junction"))
+            .count(),
+        map["edges"].as_array().expect("edges array").len()
+    );
+}
 
 pub fn landmass_labels(raster: &raster::Raster) -> Vec<u32> {
     let mut labels = vec![WATER_LABEL; raster.w * raster.h];
@@ -279,6 +418,14 @@ fn pos_value(v: &Value) -> Option<[f64; 2]> {
     Some([arr.first()?.as_f64()?, arr.get(1)?.as_f64()?])
 }
 
+fn ordered_name_pair<'a>(a: &'a str, b: &'a str) -> (&'a str, &'a str) {
+    if a <= b {
+        (a, b)
+    } else {
+        (b, a)
+    }
+}
+
 fn off_main_city_component_sizes(
     map: &Value,
     nodes: &BTreeMap<u32, Node>,
@@ -394,6 +541,53 @@ mod tests {
     use super::*;
     use crate::raster::{Raster, RenderMaskClass};
     use serde_json::json;
+
+    #[test]
+    fn descope_sea_lanes_remaps_ambush_spots_by_original_edge_index() {
+        let mut map = json!({
+            "nodes": [
+                {"id": 1, "name": "Gades", "kind": "city", "pos": [0.0, 0.0]},
+                {"id": 2, "name": "Tingi", "kind": "city", "pos": [1.0, 0.0]},
+                {"id": 3, "name": "Dropped A", "kind": "city", "pos": [2.0, 0.0]},
+                {"id": 4, "name": "Dropped B", "kind": "city", "pos": [3.0, 0.0]},
+                {"id": 5, "name": "Constantinopolis", "kind": "city", "pos": [4.0, 0.0]},
+                {"id": 6, "name": "Nicomedia", "kind": "city", "pos": [5.0, 0.0]}
+            ],
+            "edges": [
+                {"a": 3, "b": 4, "kind": "sea", "via": []},
+                {"a": 1, "b": 3, "kind": "road", "via": []},
+                {"a": 1, "b": 2, "kind": "sea", "via": []},
+                {"a": 5, "b": 6, "kind": "road", "via": []}
+            ],
+            "ambush_spots": [
+                {"edge": 2, "tile": 7, "side": 1},
+                {"edge": 0, "tile": 8, "side": -1},
+                {"edge": 1, "tile": 9, "side": 1},
+                {"edge": 3, "tile": 10, "side": -1}
+            ]
+        });
+
+        descope_sea_lanes(&mut map);
+
+        let edges = map["edges"].as_array().unwrap();
+        assert_eq!(edges.len(), 2);
+        assert_eq!(edges[0]["a"], json!(1));
+        assert_eq!(edges[0]["b"], json!(3));
+        assert_eq!(edges[0]["kind"], json!("road"));
+        assert_eq!(edges[1]["a"], json!(1));
+        assert_eq!(edges[1]["b"], json!(2));
+        assert_eq!(edges[1]["kind"], json!("sea"));
+        assert!(edges.iter().all(|edge| edge.get("_oi").is_none()));
+
+        let ambush = map["ambush_spots"].as_array().unwrap();
+        let remapped_edges: Vec<u64> = ambush
+            .iter()
+            .map(|spot| spot["edge"].as_u64().unwrap())
+            .collect();
+        assert_eq!(remapped_edges, vec![1, 0]);
+        assert_eq!(ambush[0]["tile"], json!(7));
+        assert_eq!(ambush[1]["tile"], json!(9));
+    }
 
     #[test]
     fn sea_edge_bridges_main_component_without_merging_landmasses() {

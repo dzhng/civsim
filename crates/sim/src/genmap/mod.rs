@@ -2,6 +2,7 @@
 //! given a recipe, it deterministically writes the four `Terrain` channels.
 
 pub mod certify;
+pub mod hydrology;
 pub mod landform;
 pub mod passability;
 
@@ -27,6 +28,8 @@ pub struct MapRecipe {
     pub vista_extent: f32,
     #[serde(default)]
     pub slope_bands: SlopeBands,
+    #[serde(default)]
+    pub hydrology: hydrology::HydrologyRecipe,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -98,6 +101,7 @@ impl Default for MapRecipe {
             cell: default_cell(),
             vista_extent: default_vista_extent(),
             slope_bands: SlopeBands::default(),
+            hydrology: hydrology::HydrologyRecipe::default(),
         }
     }
 }
@@ -140,6 +144,11 @@ pub fn generate(recipe: &MapRecipe) -> Terrain {
         }
     }
     passability::derive(recipe, &mut t);
+    let dry_corridor_path = certify::deployment_corridor_path(&t).unwrap_or_default();
+    let drainage = hydrology::apply(recipe, &mut t, &dry_corridor_path);
+    passability::derive(recipe, &mut t);
+    passability::seal_isolated_passable_pockets(&mut t);
+    hydrology::paint(&drainage, &mut t);
 
     debug_assert!(
         certify::has_deployment_corridor(&t),
@@ -291,6 +300,31 @@ fn distance_outside_rect(p: Vec2, half_w: f32, half_h: f32) -> f32 {
 fn smoothstep(a: f32, b: f32, x: f32) -> f32 {
     let t = ((x - a) / (b - a)).clamp(0.0, 1.0);
     t * t * (3.0 - 2.0 * t)
+}
+
+pub fn drainage_report(recipe: &MapRecipe) -> hydrology::DrainageReport {
+    let mut t = Terrain::flat(
+        ((2.0 * recipe.half_w) / recipe.cell).round() as usize,
+        ((2.0 * recipe.half_h) / recipe.cell).round() as usize,
+        recipe.cell,
+        crate::math::Vec2::new(-recipe.half_w, -recipe.half_h),
+    );
+    for cy in 0..t.h {
+        for cx in 0..t.w {
+            let p = crate::math::Vec2::new(
+                t.origin.x + (cx as f32 + 0.5) * recipe.cell,
+                t.origin.y + (cy as f32 + 0.5) * recipe.cell,
+            );
+            t.height[cy * t.w + cx] = landform::height(recipe, p);
+        }
+    }
+    passability::derive(recipe, &mut t);
+    let dry_corridor_path = certify::deployment_corridor_path(&t).unwrap_or_default();
+    let drainage = hydrology::apply(recipe, &mut t, &dry_corridor_path);
+    passability::derive(recipe, &mut t);
+    passability::seal_isolated_passable_pockets(&mut t);
+    hydrology::paint(&drainage, &mut t);
+    drainage.report(&t)
 }
 
 pub fn terrain_hash(t: &Terrain) -> u64 {

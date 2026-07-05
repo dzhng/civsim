@@ -276,6 +276,10 @@ impl Game {
     pub fn generated_map_certificates(&self) -> String {
         use sim::genmap::certify;
         let t = &self.battle.sim.terrain;
+        let drainage = self
+            .generated_recipe
+            .map(|recipe| serde_json::to_value(sim::genmap::drainage_report(&recipe)).unwrap())
+            .unwrap_or(serde_json::Value::Null);
         serde_json::json!({
             "westSealed": certify::side_sealed_fraction(t, certify::Side::West),
             "eastSealed": certify::side_sealed_fraction(t, certify::Side::East),
@@ -288,6 +292,7 @@ impl Game {
             "eastFlankUnreachable": certify::flank_unreachable_fraction(t, certify::Side::East),
             "orphanBlockedCells": certify::speed_zero_cells_without_blocking_tint(t),
             "largestIsolatedPassablePocket": certify::largest_isolated_passable_pocket_cells(t),
+            "drainage": drainage,
         })
         .to_string()
     }

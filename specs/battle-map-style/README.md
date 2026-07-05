@@ -21,16 +21,17 @@ Reference images (in `assets/` and the aesthetics skill):
 
 ## Next Agent Prompt
 
-**Status 2026-07-05: slices 00–05, 10–14 DONE (05 code-landed, browser/blessing pending; others live-verified).** Generated
-maps now have: slope-sealed highland flanks with fracture-rock material, one
-natural lake pocket with streams and marsh, the TW vista apron + far fog ring
-(no more blocker spikes), seeded cliff/forest/water edge-seal vocabulary with
-deployment certificates, and production blade grass with smooth thinning.
-Next pickups: [15-lake-render](slices/15-lake-render.md) (V-track — the lake pocket exists;
-seaLayer generalization per the slice) and 06 + 16. Read slice 10's TSL
-hazards, slice 11's integration findings, and slice 04's three shoreline
-lessons before touching their areas; camera/oracle traps live in
-[00's locked values](slices/00-composition-and-oracle-lock.md).
+**Status 2026-07-05: slices 00–05, 10–15 DONE (live-verified).** The
+generated-map pipeline is feature-complete for the compose gate: seeded
+seal grammar (organic cliff/forest/water flanks), certified corridors and
+deployments, one natural lake pocket rendering as real water, fracture-rock
+walls, the TW vista apron + fog ring, production blade grass. Next pickups:
+[06-seed-variety.md](slices/06-seed-variety.md) (G-track: variety browser +
+catalog manifest) and [16-haze-mood](slices/16-haze-mood.md) (V-track: the
+fog-runway preset owning slice 14's pale-band/silhouette debts). Then 17
+compose. Read the recorded traps: slice 10 TSL hazards, slice 11
+integration findings, slice 04 shoreline lessons, slice 15 water-classifier
+notes, and 00's camera/oracle amendments.
 
 Before writing any code, read:
 

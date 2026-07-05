@@ -1,213 +1,238 @@
 # Campaign Map Connectivity
 
-Give the campaign map ONE coherent connectivity model. After the sea-route
-descope, the map must be a single graph: every surviving city reachable from
-every other over **roads + exactly three named sea lanes**, with no isolated
-islands and no fake land bridges across the straits the lanes cross.
+Give the campaign map ONE coherent connectivity model, owned by ONE computed
+step. Every *reachable* city is on the main network (roads + the 3 sea lanes);
+every *unreachable* city is a true island held as a passive neutral faction that
+teases a future sea-travel expansion. No fake land bridges, no hand-maintained
+allow-list, no silently-stranded mainland city.
+
+> **The straits + lanes + Rhegium + solid-lane render already SHIPPED** (on
+> `main`, commit range `a8b24000..71e19b71`). See "Shipped" below. This spec now
+> covers the **remaining** connectivity work: reconnect the land-reachable
+> cities, keep true islands as neutral holdings, and make the invariant honest.
 
 ## The model (definition of done)
 
-- **Exactly 3 sea lanes**, each joining two CITIES (never a junction / mid-water):
-  1. **Gibraltar** — Gades ↔ Tingi
-  2. **Bosphorus** — Constantinopolis ↔ Nicomedia
-  3. **Sicily** — Vibo Valentia ↔ Messana *(new; replaces the Messana–Vibo road
-     ferry. Rhegium is absent from the committed map, so Vibo Valentia is the
-     measured-available mainland port — David confirms the endpoint.)*
-- **One connected component** over roads + the 3 lanes: BFS from any city
-  reaches every city.
-- **Reconnect**, don't delete, the ~24 mainland cities that only lost their sea
-  link (Malaca→Corduba, Prusias→Nicaea, Sinope→Tabia, Sicily's own towns→Messana,
-  …): add a road along a real **land path** (`astar_land_path` on the carved
-  raster), never a straight line.
-- **Delete** every city that still can't be reached: Britain (14 cities),
-  Cyprus, Crete, Sardinia, Corsica, Rhodes, Balearics, the Aegean islets, Crimea,
-  the Black-Sea outliers, Sestus, … (~47, minus whatever Sicily reconnects).
-  David's ruling: keep ONLY Sicily among the islands.
-- **The straits are water.** The Bosphorus/Marmara is currently painted LAND
-  (20/21 samples between Constantinopolis and Nicomedia) — so the cities are
-  walkable-across and the lane crosses land. Every strait a lane crosses must
-  read as water through the one land-truth owner.
-- **Sea lanes render solid and on top of the water** — not faint dashes buried
-  under the surface mesh.
+- **3 sea lanes**, each joining two CITIES: Gades↔Tingi (Gibraltar),
+  Constantinopolis↔Nicomedia (Bosphorus), Rhegium↔Messana (Sicily). *(Shipped.)*
+- **Main component `M`** = BFS from the 6 playable capitals over **road + sea**
+  edges. A sea lane bridges two landmasses, so Africa, Asia Minor, and Sicily are
+  all *in* `M` via their lane endpoints.
+- **Reconnect, don't delete or strand.** Every disconnected city that is
+  land-reachable to `M` gets a road along a real land path (`astar_land_path` on
+  the carved raster). Sicily's interior reconnects to Messana; Prusias→Nicaea,
+  Malaca→Corduba, Sinope, Populonium, etc. Reconnect runs *after* the ownership
+  flood, so reconnected cities stay their existing neutral `league_*` owner — no
+  recolor, no armies (goal below).
+- **Keep true islands as passive neutral holdings — DO NOT DELETE.** A city with
+  no land path to `M` within the cap (Britain's 14, Cyprus, Crete, Sardinia,
+  Corsica, Rhodes, the Balearics, the Aegean islets, the Crimea/Black-Sea/Caucasus
+  outliers) stays exactly as it is today: owned by a non-playable `league_*`
+  faction with `ai_persona: 'neutral'` (garrisons, never marches), and armed by no
+  `start_armies` entry. **This state is ALREADY correct in the bake — the feature
+  changes nothing about islands except to stop lying about them.** They tease a
+  future expansion; David chose to keep their current muted neutral-league look.
+- **The invariant is computed, not hand-listed.** The bake and the test share ONE
+  predicate. A disconnected **mainland** city (reachable-but-unconnected) is a
+  BUG the test fails on; a true island is allowed. The 57-name `SEA_ONLY_CITIES`
+  allow-list, `validate_sea_only_cities`, and the degree-0 exemption are retired.
 
-## Root-cause diagnosis (2026-07-05, evidence-backed)
+## The island predicate (the load-bearing decision)
 
-The straits render as land because of **resolution, not data corruption** — a
-redownload or a 10m-data swap will NOT fix it:
+`is_reconnectable(city)` = **(city ∉ `M`) AND (∃ a node of `M` on the SAME raster
+land-component, within `RECONNECT_MAX_GAP_KM` straight-line).** An **island** is a
+city that is `∉ M` and NOT reconnectable.
 
-- The land/sea mask is rasterized from **vector** coastlines
-  (`crates/mapgen/data/ne_50m_land.geojson`, Natural Earth 50m, deterministic
-  `fetch.sh`). Not an image, not corrupted; a re-fetch is byte-identical. The
-  "europe map image that changed" is our *output* `campaign-bg.png`, not a source.
-- Two compounding limits close narrow straits: (1) the 50m coastline polygon
-  already merges across sub-~5 km straits (Messina ~3 km, Bosphorus ~0.7–3 km
-  have no gap in the source vector; Gibraltar ~14 km survives). (2) We rasterize
-  at **2 km/px** and the frontend **downsamples to an 8 km grid**
-  (`terrain.ts:197 cell=8`) — a real 3 km strait is sub-cell and reads land no
-  matter how sharp the source is.
-- **Proof the carve fixes it:** a throwaway carve of the Messina channel,
-  re-downsampled to the 8 km grid, flips it to a clean 2-cell water gap while
-  both port cities stay on land. This validates S1's `carve_straits` at width
-  ≥16 km (2× the 8 km cell). Sicily shows the *same* class of bug as the
-  Bosphorus — both are S1's job.
+Both halves are required, and each half kills a specific wrong answer:
 
-### Rhegium decision (David asked to add it)
+1. **Same raster land-component** (8-neighbour flood over the *carved* land mask)
+   — so a reconnect road never crosses water. Europe/Anatolia are distinct
+   landmasses (Bosphorus/Hellespont carved), correctly bridged only by lanes.
+2. **Distance cap to nearest `M` NODE** — because "same landmass" alone is NOT
+   enough: the Afro-Eurasian mainland is ONE continuous 8-connected land region
+   (Anatolia → Colchis → Pontic steppe → Crimea via Perekop). Tanais / Olbia
+   Borysthenes / Pantikapaion sit on the *same landmass* as Antiochia yet are true
+   islands — a pure-landmass rule would wrongly draw a ~1000 km steppe road to
+   them. The cap is what separates "mainland-coastal that lost its sea link"
+   (Sinope, Amastris — near a mainland node) from "effective island" (Crimea /
+   Caucasus outliers — far from any node). **The cap is the one knob, and it is
+   measured from data in Slice 0 — never guessed, never swept** (instrument-first).
 
-Rhegium is **absent from ORBIS entirely** (`orbis_sites.csv` has no row) — never
-pruned. Adding it needs a NEW **synthetic-site injection** path (overrides only
-*reference* ORBIS labels today). Placement facts (Lambert projection, verified
-against committed positions):
-- True strait coords lon 15.65/lat 38.11 → **[-205.6, 14.8]**, on the Calabrian
-  toe, ~16 km from Messana [-216.9, 26]. Its center pixel is land but its 8 km
-  neighborhood is half-sea — an inherent **waterline port** (like a real ferry
-  terminus), so it takes a `CITY_SNAP_EXEMPTIONS` entry, same as Messana.
-- **DECISION (2026-07-05, checkpoint auto-resolved, David away):** place Rhegium
-  at the **true shore [-205.6, 14.8]** with a port exemption — historically
-  correct and the sea lane reads as a real strait crossing. The carve centerline
-  threads just west of it. (Alt considered: nudge ~6 km inland to [-200,10] for a
-  clean land neighborhood without an exemption — rejected as less faithful and it
-  puts the lane's start on land. Reversible if David prefers it.)
-- **Sicily lane becomes Rhegium ↔ Messana** (replaces the Messana–Vibo Valentia
-  road ferry, which currently glues Sicily to the mainland across the painted
-  isthmus). Reconnect chain: Pompeii→Vibo Valentia→**Rhegium**, Rhegium↔Messana
-  (sea), and Messana needs a NEW road into Sicily's interior (today its only edge
-  is the ferry). This is S1 (carve) + S2 (inject + rewire) folded together.
+Classification uses cheap straight-line distance (no per-city A\*), so the
+invariant stays sub-second; A\* is used only to *draw* the reconnect road, and
+the bake **panics** if a supposedly-reconnectable city has no A\* path (surfacing
+a cap/margin bug instead of silently islanding a mainland city).
 
-New slice needed: **synthetic-site injection** (overrides `extra_sites` +
-build.rs merge, fresh ids above max ORBIS id 50801) — owned by S2's connectivity
-step or a dedicated pre-slice.
+## Measured ground truth (8 km-grid landmass label, pre–distance-cap)
+
+Of the 57 fully-disconnected (degree-0) cities, an 8 km landmass label put ~40 on
+a main-network landmass and ~17 on isolated landmasses. The distance cap then
+moves the **Black-Sea / Crimea / Caucasus outliers** (Tanais, Olbia Borysthenes,
+Pantikapaion, Theodosia, Gorgippia, Kalos Limen, Chersonesos, Tyras, Dioscurias,
+Phasis) from "reconnect" to "island," because their nearest `M` node is far by
+land. Britain's **14-city component** (degree > 0, internally roaded, unreachable
+from the capitals) is an island too — the current degree-0 check is blind to it.
+Slice 0 produces the exact partition and picks the cap in the numeric gap.
+
+**Borderline cities the real 2 km-raster land-A\* must adjudicate:** Corcyra
+(Corfu), Chalcis (Euboea), Cyzicus, Sestus, and the snap-exempt peninsula ports
+(Cnidus, Tainaron Pr., Meninge, Perinthus) — each is island-or-reconnect
+depending on whether a genuine land bridge exists at raster resolution.
+
+## The single computed owner: `crates/mapgen/src/connectivity.rs`
+
+One module owns "descope → reconnect → is-this-an-island," used by BOTH the bake
+and the invariant (the `probe.rs` pattern: one function, verified against the
+committed artifact).
+
+```
+pub const KEEP_SEA_LANES: &[(&str,&str)] =
+    &[("Gades","Tingi"),("Constantinopolis","Nicomedia"),("Rhegium","Messana")];
+pub const RECONNECT_MAX_GAP_KM: f64 = /* chosen from Slice 0 data */;
+
+pub fn landmass_labels(raster:&Raster) -> Vec<u32>;      // 8-conn land flood, deterministic
+pub fn main_component(map:&Value) -> BTreeSet<u32>;      // BFS from capitals over road+sea
+pub fn is_reconnectable(city_pos,in_m,&m_nodes,&labels,raster) -> bool;   // predicate (no A*)
+pub fn descope_and_reconnect(out_dir,raster,rivers,mountains,bb);         // bake driver
+```
+
+**Retirement map** (one owner, no sediment):
+- `descope-sea-lanes.mjs` → `connectivity::descope_sea_lanes` (Rust); file deleted.
+- `landroute::SEA_ONLY_CITIES` + `landroute::validate_sea_only_cities` → deleted.
+- The invariant's `island_cities` exemption + `sea_only_actual == SEA_ONLY_CITIES`
+  block → replaced by `is_reconnectable`.
+- The 3-lane constant, today triplicated (`descope KEEP`, `prune-cities.mjs`
+  `LANE_ENDPOINTS`, `raster::STRAIT_CARVES` names) → one `KEEP_SEA_LANES`.
+
+## Slice graph
+
+```
+S0 instrument ─▶ S1 primitives ─▶ S2 fold-descope (artifact-identical)
+                                        └─▶ S3 reconnect + honest invariant (coupled)
+                                                 ├─▶ S4 campaign guardrail (pin islands)
+                                                 └─▶ S5 (optional) ownership re-flood
+```
+
+- **S0 — Instrument** (`slices/00-instrument.md`): `mapgen connectivity-report`
+  subcommand prints every non-`M` city with `{landmass, in_M, nearest_M_node,
+  straight_gap_km, astar_km|none}`. **Blocking checkpoint:** confirm a clean gap
+  between the reconnect set and the island set; pick `RECONNECT_MAX_GAP_KM`. No
+  behavior change.
+- **S1 — Primitives** (`slices/01-primitives.md`): `landmass_labels`,
+  `main_component`, `is_reconnectable` — pure, unit-tested on synthetic fixtures
+  (two-landmass-one-lane; the Britain shape; a same-landmass-far-node island). No
+  pipeline wiring.
+- **S2 — Fold descope into Rust, artifact-identical** (`slices/02-fold-descope.md`):
+  `connectivity::descope_sea_lanes` reproduces the `.mjs` exactly; `main()` calls
+  it instead of the node step; the file is deleted. **Gate: committed map
+  byte-identical** (pure relocation).
+- **S3 — Reconnect + honest invariant, coupled** (`slices/03-reconnect-honest.md`):
+  the load-bearing slice. `descope_and_reconnect` injects A\* roads for every
+  reconnectable city (fixpoint, sorted, panic-on-unroutable) and the invariant is
+  rewritten to the computed predicate; `SEA_ONLY_CITIES` + `validate_sea_only_cities`
+  deleted. Reconnect and the invariant swap land together because reconnect breaks
+  the old assert and the new assert can't pass until reconnect runs.
+- **S4 — Campaign guardrail** (`slices/04-guardrail.md`): a `cargo test -p campaign`
+  that pins every non-`M` city as non-playable + `Neutral` persona + absent from
+  `start_armies`, so a future change can't arm/road/re-persona an island.
+- **S5 — (optional) Ownership re-flood** (`slices/05-reflood-optional.md`):
+  decide whether power-claimed reconnected cities (Panormus→Carthage in
+  `overrides.cities`) should be absorbed by the ownership flood (needs reconnect
+  *before* `build`). **Default: NO** — reconnect-after-flood, islands+reconnects
+  stay neutral, no visual change. Deferred pending David.
+
+## Single-owner invariants (every slice inherits)
+
+1. **`connectivity.rs` owns "connected + island."** ONE predicate
+   (`is_reconnectable`) shared by bake and test; ONE lane const (`KEEP_SEA_LANES`);
+   the descope graph surgery lives here. No hand-list of islands exists anywhere.
+2. **Component-membership, not degree-0, is the predicate.** A disconnected
+   multi-city component (Britain) is an island; a disconnected *mainland* city or
+   cluster is a bug. The test checks `∉ M`, never `degree == 0`.
+3. **Reconnect is post-flood.** Adding a road never redraws territory, so
+   reconnected mainland cities keep their neutral `league_*` owner — the "keep the
+   muted neutral look" guarantee.
+4. **One land-truth owner.** `landmass_labels` / `is_reconnectable` / the invariant
+   read land only through `raster::classify_rgb` (TWIN of `terrain.ts` PALETTE),
+   re-hydrating the committed PNG via `Raster::from_rgba` — the same pixels the
+   bake used, no second water test.
+5. **Islands are untouched downstream.** No `crates/campaign` or frontend change:
+   `leagues.mjs` already makes ownerless cities neutral, `AiPersona::Neutral`
+   already garrisons-only, `start_armies` already arms only powers. The feature
+   only stops the bake from lying about which disconnections are intentional.
+
+## The honest invariant (S3 writes it; it must bite)
+
+Re-derive `M` and `landmass_labels` from the committed graph + committed PNG, then
+assert **every city `∉ M` is NOT `is_reconnectable`** (a reachable-but-disconnected
+city fails with its name). Prove it bites, temporarily: (a) delete one reconnect
+road → the freed mainland city FAILS; (b) move a Black-Sea outlier's position onto
+the near-Anatolian coast → FAILS. Keep the existing water-city, margin-water,
+road-on-water, ferry-ledger, `sea_edges == 3`, junction-degree asserts unchanged.
+
+**The one-way trapdoor:** `is_reconnectable` *allowing* an island can hide a bug
+(a real mainland port spuriously islanded by a raster water gap or a bad snap).
+The only defense is the human review of the *computed island roster* at S0 and S3
+— any name David expects to be mainland is a red flag to investigate, not accept.
+
+## Firewalls
+
+- **Bake determinism** — descope/reconnect are pure functions of source + consts;
+  sorted iteration, integer A\* keys, no RNG, no wall-clock. Double bake →
+  byte-identical `campaign-map.json` + `campaign-bg.png`; committed probe ==
+  regenerated probe.
+- **Never hand-edit `campaign-map.json` / `campaign-bg.png`** — bake artifacts.
+- **Reconnect roads pass `make_committed_roads_land_safe`** — it runs after
+  reconnect; any unledgered water run panics the bake.
+- **Battle untouched** — no `crates/sim`, battle scenes, or battle render passes.
+- **Every visual slice** (S3's map shots) runs
+  [find-map-bugs](../../.claude/skills/find-map-bugs/SKILL.md) on the reconnect
+  regions + island crops, then
+  [screenshot-critique](../../.claude/skills/screenshot-critique/SKILL.md) as the
+  last unprimed check, and
+  [compare-screenshots](../../.claude/skills/compare-screenshots/SKILL.md) against
+  the pre-reconnect baseline. Re-bless campaign baselines via
+  [screenshot-regression](../../.claude/skills/screenshot-regression/SKILL.md)
+  (headless Chromium + SwiftShader, `VERIFY_GPU=1`, per-worktree `VERIFY_URL`).
+
+## Recon facts the plan is built on
+
+- **Bake pipeline** (`main.rs::main`): load sources → `apply_extra_geography` →
+  `raster::paint` → `carve_straits` → `build::build` (ownership flood over roads
+  only; writes json/png) → post-steps `leagues.mjs` → `prune-cities.mjs` →
+  `dequalify-names.mjs` → **`descope-sea-lanes.mjs`** → `make_committed_roads_land_safe`
+  → `write_committed_probe`. Reconnect slots in where descope is (after dequalify,
+  before landroute), so injected roads are made land-safe.
+- **`descope-sea-lanes.mjs` is what strands the 57** — it deletes every sea edge
+  but the 3 lanes and prunes orphan junctions. Reconnect must run after it.
+- **Reconnect primitives** already exist: `landroute::astar_land_path` (private →
+  make `pub`; deterministic; detour cap `straight_gap*5 + 60`; `MAX_EXPANDED_CELLS
+  = 300k`; needs land-cell endpoints), `build::classify_route_tiles` + `build_river_grid`
+  (already `pub`), `make_committed_roads_land_safe` (`pub`). New reconnect edges are
+  ordinary `EdgeJson{a:cityId, b:targetId, kind:"road", via:[a.pos,…A*…,b.pos], tiles}`
+  — no new junction nodes.
+- **Islands are already neutral/army-less/inert:** `leagues.mjs` → `ai_persona:'neutral'`;
+  `mapdata::AiPersona::Neutral.campaigns() == false`; `start_armies` arms only the
+  12 power cities. Verified — no downstream change in scope.
 
 ## Next Agent Prompt
 
-**Status (2026-07-05):** Shipped the strait/lane vertical slice (4 commits on
-`worktree-melee-blob`, not yet on main). Sicily + Bosphorus straits carved, the
-Sicily lane + Rhegium built, all lanes render solid on top of the water. `cargo
-test -p mapgen` green (5/5). Screenshots captured in the session scratchpad.
+**Status (2026-07-05):** Straits (Messina/Bosphorus/Gulf-of-Izmit), the 3 sea
+lanes, Rhegium injection, and the solid on-top lane render are SHIPPED on `main`.
+This spec's **remaining** work — reconnect + neutral-island-holdings + honest
+invariant — is **not started**. Three parallel drafts synthesized into the plan
+above. Pick up at **Slice 0**.
 
-**Done this pass:**
-- **S1** `raster::carve_straits` + STRAIT_CARVES — Messina AND Bosphorus carved
-  to water; both read water at the 8 km frontend grid; Const↔Nicomedia land
-  flood-fill now returns False (no land bridge). Messana/Const are exempt
-  waterline ports.
-- **S2a** synthetic-geography injection (`sources::apply_extra_geography` +
-  overrides `extra_sites`/`extra_routes`/`drop_routes`) — Rhegium on the
-  Calabrian toe; Sicily lane Rhegium↔Messana replaces the Messana–Vibo Valentia
-  road ferry; sea-edge invariant = 3; lane endpoints protected from pruning.
-- **S3** sea lanes → `xyz` variant, solid + lifted onto the water surface
-  (`pushEdgeLines`), no dashes. Gibraltar/Bosphorus/Sicily all read boldly.
-
-- **S1c** Gulf of Izmit carve — the Const↔Nicomedia lane now rides water the
-  whole way (the gulf is a real feature; the rendered result reads as a natural
-  inlet, not a canal). Bosphorus fully resolved.
-- **Mitre join** — `pushEdgeLines` builds one continuous strip (averaged
-  per-vertex normals), no notch gaps at bends.
-
-**Still open (next pickup):**
-1. **campaign-lod baseline re-bless** is BLOCKED by a pre-existing missing anchor
-   (`Teanum`, pruned before this session). Fix that scene's anchor list, then
-   `UPDATE_SHOTS=1 VERIFY_GPU=1 VERIFY_URL=http://localhost:5199 node scene.mjs
-   campaign-lod` to re-bless the new solid lanes.
-3. **The broader connectivity feature is NOT built** — the ~47-island purge and
-   the ~24 mainland reconnects (S0 RED invariants, S2 `connectivity.rs`, S4/S5)
-   are untouched. This pass only did the strait+Sicily+render slice David asked
-   for. Sicily's interior towns are still isolated `SEA_ONLY_CITIES` islands.
-
-**Build order:** S0 → S1 → S2 → S5 on the bake spine (serial); **S3 (render) runs
-in parallel** from S0 and is re-verified in S4. S4 gates the whole; S5 closes.
-
-1. **S0 — model consts + RED invariants** (`slices/00-invariant-harness.md`):
-   `SEA_LANES` (connectivity.rs) + `STRAIT_CARVES` scaffold (raster.rs), and the
-   full invariant roster written as *failing* assertions in
-   `baked_campaign_map_satisfies_mapgen_invariants`. The failing messages ARE
-   the contract each later slice flips green.
-2. **S1 — strait carve** (`slices/01-strait-carve.md`): `raster::carve_straits`
-   after `paint()`, before `build()`; width ≥16 km (see invariant below).
-3. **S2 — connectivity owner** (`slices/02-connectivity-owner.md`):
-   `connectivity.rs` after dequalify, before landroute; replaces
-   `descope-sea-lanes.mjs`, retires `SEA_ONLY_CITIES`.
-4. **S3 — render fix** (`slices/03-render-fix.md`): sea lanes → `xyz` height-
-   lifted, solid. Parallel; re-verified in S4.
-5. **S4 — verification** (`slices/04-verification.md`): lane scenes +
-   screenshot-critique + find-map-bugs.
-6. **S5 — consolidation + close** (`slices/05-close.md`).
+Build S0 → S1 → S2 → S3 serially on the bake spine; S4 (campaign guardrail) can
+run once S3 is green; S5 is an optional decision slice. **Slice 0's measured cap
+gates everything** — do not draw a road before David signs off on the partition.
 
 **Update this section before ending your pass.**
 
 ### Global TODO
-- [ ] **S0** `SEA_LANES` + `STRAIT_CARVES` consts; RED invariant harness
-- [ ] **S1** `raster::carve_straits` — straits become water (Bosphorus 20/21-land → water)
-- [ ] **S2** `connectivity.rs` — compute set, reconnect by land A*, delete rest; retire descope.mjs + SEA_ONLY_CITIES
-- [ ] **S3** sea-lane render — `xyz` z-lift + solid (no dashes)
-- [ ] **S4** lane scenes + screenshot-critique + find-map-bugs sweep
-- [ ] **S5** refactor-clean, double-bake determinism, close-spec
-
-## Single-owner invariants (firewalls every slice inherits)
-
-1. **`SEA_LANES` owns lane identity.** The 3 city-to-city lanes are named in ONE
-   const; the keep-list, the carve corridors, and the cargo invariant all read
-   it. No other file names a lane. (Retires the JS `KEEP` array.)
-2. **`raster::carve_straits` owns "strait → water".** A strait becomes water
-   ONLY by painting `RenderMaskClass::Sea` into the raster — never a frontend
-   hack. `web/src/campaign/terrain.ts` reads the same committed PNG.
-3. **`connectivity.rs` owns the connected graph.** One deterministic step
-   computes the reachable set, adds reconnect roads (land A*), deletes the rest,
-   and rewires ALL references (edges, ambush `edge`, `factions[].capital/.cities`,
-   `start_armies[].at`). It retires `descope-sea-lanes.mjs`, the `SEA_ONLY_CITIES`
-   const, `validate_sea_only_cities`, and the `island_cities`/`stranded` exemption.
-   The "intentionally isolated island" concept ceases to exist.
-4. **`main.rs` invariant test owns the definition of done.** It re-reads the
-   committed artifacts through the raster/probe owners (no re-derivation) and
-   asserts the model below.
-5. **Carve width ≥ 16 km.** The frontend downsamples the bg to an **8 km grid**
-   (`terrain.ts` cell = 8, one bg pixel per cell). A strait carve must be ≥ 2×
-   that so the downsampled frontend mask also reads water — a narrower carve is
-   invisible to the frontend and to city-snap's neighborhood test.
-
-## The pinned invariants (S0 writes them RED; S1–S3 flip them green)
-
-- **LANE-COUNT / CITY-TO-CITY** — exactly 3 sea edges; unordered endpoint-name
-  set == `SEA_LANES`; both endpoints `kind=="city"`.
-- **CONNECTED** — roads + 3 lanes form ONE component covering every city.
-- **NO-ISLANDS** — zero degree-0 cities; `SEA_ONLY_CITIES` gone. Only a lane
-  endpoint may lack a road.
-- **STRAIT-WATER** — each lane's endpoint-to-endpoint segment sampled through the
-  rehydrated raster has ~zero longest land run (endpoints NOT land-connected);
-  no road edge crosses a strait corridor.
-- **LAND-DISCONNECTION** — the road-only graph has exactly `#lanes + 1`
-  components (a tree of landmasses stitched by the 3 lanes).
-- **REFERENTIAL INTEGRITY** — every faction capital/city and army `at` resolves
-  to a surviving node (leagues firewall).
-- **BAKE DETERMINISM** — a double bake yields byte-identical `campaign-map.json`
-  + `campaign-bg.png`; committed probe == regenerated probe.
-
-## Firewalls
-- **Bake determinism** — carve/reconnect/delete are pure functions of source +
-  consts; sorted iteration, no RNG.
-- **Never hand-edit `campaign-map.json` / `campaign-bg.png`** — bake artifacts.
-- **Battle untouched** — no `crates/sim`, battle scenes, or battle render passes.
-- **One land-truth owner** — a strait is water only via `raster::carve_straits`.
-- **Every visual slice** runs [screenshot-critique](../../.claude/skills/screenshot-critique/SKILL.md)
-  as its last check, and [compare-screenshots](../../.claude/skills/compare-screenshots/SKILL.md)
-  against David's before shots for the lanes.
-
-## Ordering decisions (where the drafts split)
-- **Carve after `paint()`, before `build()`** (2 of 3): city-snap, ownership
-  flood, and landroute must all see carved water.
-- **Connectivity after dequalify, before landroute** (2 of 3): reconnect roads
-  are then made land-safe by `make_committed_roads_land_safe`. A* runs on the
-  already-carved raster, so it doesn't need landroute's output first.
-- **Render fix uses the existing `xyz` line-pass variant** (all 3): sea lanes
-  currently use the flat `xy` pass (renderer.ts:752, z=0, depth-buried); borders
-  already use `xyz` (renderer.ts:754). Reuse that seam — no new pass, no depth
-  reshuffle.
-
-## Recon facts the plan is built on
-- Bake pipeline: `main.rs::main` → `raster::paint` → `build::build` →
-  leagues.mjs → prune-cities.mjs → dequalify-names.mjs → descope-sea-lanes.mjs →
-  `landroute::make_committed_roads_land_safe` → `probe::write_committed_probe`.
-- `landroute::astar_land_path` (8-neighbour land pathfinding on the raster)
-  already exists — reuse for reconnect.
-- One land-truth owner: `raster.rs` `classify_rgb`/`RenderMaskClass` ↔
-  `terrain.ts` `PALETTE` (pinned by `painter_pixels_round_trip…`).
-- Committed state: 398 cities, 2 sea edges; 327-city main component + Britain
-  (14) + 57 single-city islands; 24 mainland cities reconnectable by land.
+- [ ] **S0** `mapgen connectivity-report`; measure `RECONNECT_MAX_GAP_KM`; blocking partition sign-off
+- [ ] **S1** `connectivity.rs` primitives (`landmass_labels`, `main_component`, `is_reconnectable`) + synthetic-fixture unit tests
+- [ ] **S2** fold `descope-sea-lanes.mjs` into `connectivity::descope_sea_lanes` — artifact-identical, delete the `.mjs`
+- [ ] **S3** `descope_and_reconnect` + honest computed invariant; retire `SEA_ONLY_CITIES` + `validate_sea_only_cities`; re-bless; find-map-bugs
+- [ ] **S4** `cargo test -p campaign` guardrail: islands stay non-playable + Neutral + army-less
+- [ ] **S5** (optional) ownership re-flood decision — default NO

@@ -507,7 +507,7 @@ export class PhotorealBattleWorld {
       .filter((plane): plane is THREE.Mesh => plane !== null);
     for (const plane of this.lakePlanes) scene.add(plane);
 
-    this.scenery.upload(featuresToBattleScenery(presentation.features, field, 0x77));
+    this.scenery.upload(featuresToBattleScenery(presentation.features, field, 0x77, grid));
     this.shadowRig.setWorldRect(this.terrainRect);
     this.background.setRects(this.terrainRect, expandedTerrainRect(this.terrainRect));
     this.grassTerrainKey = null;

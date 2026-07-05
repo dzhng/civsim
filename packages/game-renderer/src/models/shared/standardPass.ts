@@ -9,6 +9,7 @@ import {
   buildStandardMesh,
   STANDARD_SIZE_TIER_IDS,
   STANDARD_VERTEX_STRIDE_FLOATS,
+  STANDARD_WAVE_BACK_LOBE,
   type StandardLivery,
   standardLiveryForFaction,
   standardSeed,
@@ -55,7 +56,7 @@ fn clothWave(local: vec3f, weight: f32, phase: f32, strength: f32) -> f32 {
   let primary = sin(cam.time * 2.15 + phase + local.x * 5.2 + local.z * 1.25);
   let secondary = sin(cam.time * 3.1 + phase * 0.71 + local.x * 9.4 - local.z * 0.52);
   let wave = primary * 0.74 + secondary * 0.26;
-  let shaped = select(wave, wave * 0.25, wave > 0.0);
+  let shaped = select(wave, wave * ${STANDARD_WAVE_BACK_LOBE}, wave > 0.0);
   return weight * strength * shaped;
 }
 

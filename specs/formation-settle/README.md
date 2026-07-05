@@ -96,8 +96,32 @@ module and benefits from 02's findings.
 
 ## Next Agent Prompt
 
-**Status 2026-07-05 (pass 2): slices 01 + 02a SHIPPED. Next: slice 02b
-(frame clearance at walls), then 03.**
+**Status 2026-07-05 (pass 3): 01, 02a, and 02b-part-1 SHIPPED. Next: the
+corridor buzz (02b remainder), then 03.**
+
+Pass 3 (orchestrator fixup, not codex): the margin-10/12 burst cycle was
+NOT the escape-slide/corridor oscillating — the 1s-resolution film
+(`probe_burst_second_by_second`) showed the anchor frozen and files_eff
+constant through every burst, cohesion crashing BEFORE any slot relabel
+(the reform storm is a response, not the trigger). Root: the halted-frame
+achievability slide sampled every THIRD slot (`step_by(3)`) and both
+in-wall slots dodged the stride forever; their two men jittered against
+the wall and periodically resonated the standing lattice. Fix: the slide
+checks EVERY slot. Gate `settle_with_frame_slots_in_wall` [10,12] now
+live and green.
+
+CORRIDOR REMAINDER (`settle_inside_marginal_corridor`, still ignored/red):
+slots are legal-but-body-tight (edge torsos clip the wall ~0.15m; frame
+rests offset 0.6m in a gap with no body slack; nothing re-centers a
+fitting-width frame at rest). BANNED RE-ENTRY: subtracting body radius
+from `update_corridor`'s measured span — tried in pass 3, it flips the
+rest state to target<files which activates the centering shift every
+beat and the frame CRAWLS sideways forever (1.8 m/s, anchor_lat +2.5m
+per window, worse than the buzz). The fix must give a RESTING frame a
+stable centered pose (or narrower width) without turning the per-beat
+centering nudge into a treadmill — instrument the centering/np-projection
+loop first, and expect to touch how `update_corridor`'s shift interacts
+with a halted frame, not the width formula alone.
 
 Slice 01 (tests-only, codex): settle telemetry owned by
 `crates/sim/tests/common/settle.rs`, gates in
@@ -175,9 +199,12 @@ rationale here, and continue. Never idle waiting for sign-off.
       [slices/01-red-gates.md](slices/01-red-gates.md)
 - [x] 02a — Wall-split tractor: bonds/slot-pull zero across impassable
       ground → [slices/02-wall-split-equilibrium.md](slices/02-wall-split-equilibrium.md)
-- [ ] 02b — Frame clearance at walls: the escape-slide/corridor/reform
-      oscillator when resting slots are unstandable or wall-tight (gates
-      `settle_with_frame_slots_in_wall` + `settle_inside_marginal_corridor`)
+- [x] 02b-1 — In-wall slots: achievability slide samples every slot (gate
+      `settle_with_frame_slots_in_wall` green)
+      → [slices/02-wall-split-equilibrium.md](slices/02-wall-split-equilibrium.md)
+- [ ] 02b-2 — Corridor rest pose: body-tight edge files buzz; naive
+      radius-in-width is a banned re-entry (centering treadmill). Gate
+      `settle_inside_marginal_corridor`
       → [slices/02-wall-split-equilibrium.md](slices/02-wall-split-equilibrium.md)
 - [ ] 03 — Family B root fix: steer-vs-separation cycle on friendly overlap
       → [slices/03-friendly-overlap-cycle.md](slices/03-friendly-overlap-cycle.md)

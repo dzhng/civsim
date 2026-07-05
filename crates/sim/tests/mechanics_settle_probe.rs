@@ -577,6 +577,56 @@ fn probe_grind_lateral_by_rank() {
     }
 }
 
+#[test]
+fn probe_deep_reform_churn() {
+    // Slice 04 half 2: what does each engaged_deep_reform beat actually
+    // find? Logs, per 2s beat window deep in the quieted grind: labels
+    // flipped, and the man-slot error distribution JUST BEFORE the beat.
+    // High flips + low slot error = a well-seated block being churned by
+    // marginal swaps (the degraded-state gate is missing).
+    let mut sim = Sim::new(no_morale_parade(), SEED);
+    let a = block(&mut sim);
+    let b = sim.spawn_unit(
+        Vec2::new(0.0, 30.0),
+        -FRAC_PI_2,
+        120,
+        20,
+        Vec2::new(1.0, 1.0),
+        1,
+        1.0,
+    );
+    for h in sim.health.iter_mut() {
+        *h = 1e9;
+    }
+    sim.set_attack_order(a, b);
+    sim.set_attack_order(b, a);
+    run(&mut sim, 75.0);
+    let u_start = sim.units[a].start;
+    let u_count = sim.units[a].count;
+    for beat in 0..15 {
+        // Sample man-slot error now.
+        let u = &sim.units[a];
+        let mut errs: Vec<f32> = (u_start..u_start + u_count)
+            .filter(|&i| sim.alive[i] == 1)
+            .map(|i| (sim.soldier_pos(i) - u.slot_world(sim.soldier_slot[i] as usize)).len())
+            .collect();
+        errs.sort_by(f32::total_cmp);
+        let before: Vec<u32> = (u_start..u_start + u_count)
+            .map(|i| sim.soldier_slot[i])
+            .collect();
+        run(&mut sim, 2.0); // one deep-reform cadence
+        let flips = (u_start..u_start + u_count)
+            .filter(|&i| sim.soldier_slot[i] != before[i - u_start])
+            .count();
+        println!(
+            "beat {beat:>2}: flips={flips:>3}  slot_err p50={:.2} p90={:.2} max={:.2}",
+            errs[errs.len() / 2],
+            errs[errs.len() * 9 / 10],
+            errs[errs.len() - 1]
+        );
+    }
+}
+
 #[cfg(feature = "force-trace")]
 #[test]
 fn probe_trace_grind_lateral_forces() {

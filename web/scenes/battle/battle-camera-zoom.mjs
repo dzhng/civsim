@@ -126,9 +126,9 @@ export async function run(ctx) {
   const metrics = frames.map(formationMetrics);
   ctx.check(
     "zoom rig contact sheet keeps formations readable at each stop",
-    metrics[0].redTeam + metrics[0].blueTeam > 1000 &&
-      metrics[1].redTeam > 1000 &&
-      metrics[2].redTeam > 3500,
+    metrics[0].formationMass > 1000 &&
+      metrics[1].formationMass > 1000 &&
+      metrics[2].formationMass > 3500,
     JSON.stringify(metrics),
   );
 
@@ -155,8 +155,7 @@ function contactSheet(frames) {
 }
 
 function formationMetrics(png) {
-  let redTeam = 0;
-  let blueTeam = 0;
+  let formationMass = 0;
   for (let y = 0; y < png.height; y++) {
     for (let x = 0; x < png.width; x++) {
       const i = (y * png.width + x) * 4;
@@ -165,12 +164,14 @@ function formationMetrics(png) {
       const b = png.data[i + 2];
       const a = png.data[i + 3];
       if (a < 16) continue;
-      // Brightness cutoff re-derived at slice 09: ACES + linear albedo render
-      // the red team accent as a deep crimson (the 105 cutoff assumed the
-      // baked display-referred orange-red); hue dominance still keys the team.
-      if (r > g + 22 && r > b + 26 && r > 70) redTeam++;
-      if (b > r + 24 && b > g + 8) blueTeam++;
+      if (isCrowdMass(r, g, b)) formationMass++;
     }
   }
-  return { redTeam, blueTeam };
+  return { formationMass };
+}
+
+function isCrowdMass(r, g, b) {
+  const luma = r * 0.3 + g * 0.59 + b * 0.11;
+  const greenField = g > r + 22 && g > b + 12;
+  return luma > 34 && luma < 132 && r < 165 && g < 155 && b < 145 && !greenField;
 }

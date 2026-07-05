@@ -126,9 +126,8 @@ export interface UnitCardState {
 const W = 38,
   H = 48; // portrait canvas size (CSS px; drawn at 2x for crispness)
 
-// A compact side-view soldier (or rider) for class `cls`, facing right, tinted
-// with the faction accent on shield/crest/sash — the same silhouette language
-// as the 3D model, just flat. Drawn on a 2x backing for sharpness.
+// A compact side-view soldier (or rider) for class `cls`, facing right.
+// Portraits keep a small UI faction sash; the 3D crowd uses flags plus armbands.
 export function drawPortrait(
   canvas: HTMLCanvasElement,
   cls: number,

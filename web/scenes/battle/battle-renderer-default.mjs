@@ -73,18 +73,18 @@ export async function run(ctx) {
   const shot = await page.screenshot();
   const png = PNG.sync.read(shot);
   let terrain = 0;
-  let blue = 0;
+  let crowd = 0;
   for (let i = 0; i < png.data.length; i += 4) {
     const r = png.data[i];
     const g = png.data[i + 1];
     const b = png.data[i + 2];
     if ((r > 100 && g > 86 && b < 125) || (g > 78 && g >= r - 12 && b < 150)) terrain++;
-    if (b > r + 24 && b > g + 8) blue++;
+    if (isCrowdMass(r, g, b)) crowd++;
   }
   ctx.check(
-    "WebGPU battle frame has visible terrain and team color",
-    terrain > 20000 && blue > 300,
-    JSON.stringify({ terrain, blue }),
+    "WebGPU battle frame has visible terrain and crowd mass",
+    terrain > 20000 && crowd > 300,
+    JSON.stringify({ terrain, crowd }),
   );
   await page.close();
 
@@ -121,4 +121,10 @@ export async function run(ctx) {
     );
     await legacyPage.close();
   }
+}
+
+function isCrowdMass(r, g, b) {
+  const luma = r * 0.3 + g * 0.59 + b * 0.11;
+  const greenField = g > r + 22 && g > b + 12;
+  return luma > 34 && luma < 132 && r < 165 && g < 155 && b < 145 && !greenField;
 }

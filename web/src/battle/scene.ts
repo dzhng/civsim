@@ -105,6 +105,19 @@ export interface GeneratedBattleMapDescriptor {
   reliefScale: number;
   slopeBands: BattleSlopeBands;
   terrainHash: string;
+  lakeSurfaces?: Array<{
+    id: number;
+    level: number;
+    minCellX: number;
+    minCellY: number;
+    maxCellX: number;
+    maxCellY: number;
+    minX: number;
+    minY: number;
+    maxX: number;
+    maxY: number;
+    cells: number;
+  }>;
   vista?: {
     shape: string;
     bands: Array<{
@@ -332,6 +345,11 @@ export class BattleScene implements Scene {
         reliefScale === BATTLE_RELIEF_EXAGGERATION
           ? new Float32Array(height)
           : scaleHeightForRenderer(height, reliefScale);
+      const lakeSurfaces =
+        this.cfg.generatedMap?.lakeSurfaces?.map((lake) => ({
+          ...lake,
+          level: lake.level * reliefScale,
+        })) ?? null;
       generatedVistaForDebug = vista;
       renderer.setTerrain(
         tw,
@@ -344,6 +362,7 @@ export class BattleScene implements Scene {
         this.cfg.wasmMapId,
         this.cfg.generatedMap?.slopeBands ?? null,
         vista,
+        lakeSurfaces,
       );
     }
 

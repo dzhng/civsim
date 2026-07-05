@@ -330,6 +330,10 @@ impl Game {
                 },
             })
         });
+        let lake_surfaces = self
+            .generated_recipe
+            .map(|recipe| sim::genmap::drainage_report(&recipe).lakes)
+            .unwrap_or_default();
         serde_json::json!({
             "seed": seed,
             "groundCover": "green-grass",
@@ -337,6 +341,7 @@ impl Game {
             "slopeBands": slope_bands,
             "edgeSeals": edge_seals,
             "terrainHash": format!("{:#018x}", sim::genmap::terrain_hash(&self.battle.sim.terrain)),
+            "lakeSurfaces": lake_surfaces,
             "vista": self.generated_recipe.map(vista_descriptor),
         })
         .to_string()

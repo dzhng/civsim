@@ -70,7 +70,10 @@ Before writing any code, read:
 - [x] 12 — Grass LOD budgets at 30k
 - [x] 13 — Cliff material
 - [x] 14 — Vista backdrop (DECIDED: render-only apron, world = 2× playable)
-- [ ] 15 — Lake render
+- [x] 15 — Lake render
+      CODE-LANDED BMS15-SLICE-B8D2; orchestrator still owes browser run,
+      golden + overcast lake baseline blessing, screenshot-critique,
+      perf:30k hardware, and the battle-terrain-elevation tripwire.
 - [ ] 16 — Haze / mood preset
 - [ ] 17 — Compose gate (style-family verdict on 3+ seeds)
 - [ ] 18 — Curated seeds in the catalog

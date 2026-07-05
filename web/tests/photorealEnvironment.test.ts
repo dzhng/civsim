@@ -7,6 +7,7 @@ import { CIVSIM_ENVIRONMENTS } from "../../packages/game-renderer/src/environmen
 import { photorealEnvironment } from "../../packages/photoreal-renderer/src/environment.ts";
 import {
   overcastFromTurbidity,
+  lowSunAureoleStrength,
   mieScale,
   skyModelParams,
   transmittanceToSun,
@@ -198,6 +199,20 @@ test("sky model: overcast sun light is desaturated toward grey", () => {
     golden.sunTransmittance,
     "clear presets keep the physical tint",
   );
+});
+
+test("sky model: low-sun aureole restores warm displayed clear skies", () => {
+  const strength = (id: keyof typeof CIVSIM_ENVIRONMENTS) => {
+    const params = skyModelParams(CIVSIM_ENVIRONMENTS[id]);
+    return lowSunAureoleStrength(params.sunDirection[2], params.overcast);
+  };
+  assert.ok(strength("golden") > 0.25, "golden carries a visible warm aureole");
+  assert.ok(
+    strength("dusk") >= strength("golden"),
+    "lower dusk sun carries at least golden warmth",
+  );
+  assert.ok(strength("noon") < 0.01, "high noon has no golden-hour aureole");
+  assert.equal(strength("overcast-highland"), 0, "overcast dome owns overcast colour");
 });
 
 test("sky model: transmittance responds to sun height and turbidity", () => {

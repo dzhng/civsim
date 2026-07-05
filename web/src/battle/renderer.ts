@@ -361,7 +361,7 @@ function readoutsKey(
     key += `|${standard.unitId}:${Math.round(standard.x * 10)},${Math.round(standard.y * 10)},${Math.round(standard.z * 10)},${Math.round(standard.yaw * 100)},${Math.round(standard.scale * 100)},${standard.factionId},${standard.selected ? 1 : 0}`;
   }
   for (const readout of readouts) {
-    key += `#${readout.unitId}:${Math.round(readout.x * 10)},${Math.round(readout.y * 10)},${Math.round(readout.z * 10)},${Math.round(readout.worldPerPx * 1000)},${readout.team},${readout.mine ? 1 : 0},${readout.selected ? 1 : 0},${Math.round(readout.hp * 100)},${Math.round(readout.cohesion * 100)},${Math.round(readout.morale * 100)},${Math.round(readout.stamina * 100)},${readout.chips.map((c) => `${c.kind ?? ""}${c.text}`).join(",")}`;
+    key += `#${readout.unitId}:${Math.round(readout.x * 10)},${Math.round(readout.y * 10)},${Math.round(readout.z * 10)},${Math.round(readout.worldPerPx * 1000)},${readout.chips.map((c) => `${c.kind ?? ""}${c.text}`).join(",")}`;
   }
   return key;
 }

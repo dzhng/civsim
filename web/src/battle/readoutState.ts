@@ -1,3 +1,8 @@
+// The battle readout's state contract and its review ladder. The readout is
+// text-status chips ONLY — unit stats live in the unit card, faction identity
+// lives on the flag. The gallery ladder covers the layout envelope: one chip,
+// a pair, a full row, and the wrap-to-two-rows maximum.
+
 export type ChipKind = "plain" | "hot" | "bad";
 
 export interface BannerChip {
@@ -6,83 +11,27 @@ export interface BannerChip {
   title?: string;
 }
 
-export interface BannerState {
-  team: 0 | 1;
-  mine: boolean;
-  hp: number;
-  cohesion: number;
-  morale: number;
-  stamina: number;
+export interface ReadoutState {
   chips: BannerChip[];
-  selected: boolean;
 }
 
-export const BANNER_GALLERY: { label: string; state: BannerState }[] = [
+export const READOUT_GALLERY: { label: string; state: ReadoutState }[] = [
   {
-    label: "fresh / player",
-    state: {
-      team: 0,
-      mine: true,
-      hp: 1,
-      cohesion: 1,
-      morale: 1,
-      stamina: 1,
-      selected: false,
-      chips: [],
-    },
+    label: "single",
+    state: { chips: [{ text: "CHG!", kind: "hot", title: "charging" }] },
   },
   {
-    label: "fresh / enemy",
+    label: "pair",
     state: {
-      team: 1,
-      mine: false,
-      hp: 1,
-      cohesion: 1,
-      morale: 1,
-      stamina: 1,
-      selected: false,
-      chips: [],
-    },
-  },
-  {
-    label: "selected",
-    state: {
-      team: 0,
-      mine: true,
-      hp: 0.86,
-      cohesion: 0.93,
-      morale: 0.88,
-      stamina: 0.64,
-      selected: true,
       chips: [
         { text: "ATK", title: "attacking" },
-        { text: "CHG!", kind: "hot", title: "charging" },
+        { text: "KITE", title: "skirmishing" },
       ],
     },
   },
   {
-    label: "fighting",
+    label: "row",
     state: {
-      team: 1,
-      mine: false,
-      hp: 0.62,
-      cohesion: 0.58,
-      morale: 0.46,
-      stamina: 0.32,
-      selected: false,
-      chips: [{ text: "ATK" }, { text: "CHG!", kind: "hot" }, { text: "⚔7", kind: "hot" }],
-    },
-  },
-  {
-    label: "breaking",
-    state: {
-      team: 0,
-      mine: true,
-      hp: 0.24,
-      cohesion: 0.12,
-      morale: 0.08,
-      stamina: 0.27,
-      selected: false,
       chips: [
         { text: "ROUT", kind: "bad" },
         { text: "TIRED", kind: "bad" },
@@ -91,16 +40,15 @@ export const BANNER_GALLERY: { label: string; state: BannerState }[] = [
     },
   },
   {
-    label: "ranged / dry",
+    label: "max (wraps)",
     state: {
-      team: 1,
-      mine: false,
-      hp: 0.78,
-      cohesion: 0.71,
-      morale: 0.67,
-      stamina: 0.18,
-      selected: false,
-      chips: [{ text: "KITE" }, { text: "AMMO!", kind: "bad" }, { text: "2nd", kind: "hot" }],
+      chips: [
+        { text: "ATK" },
+        { text: "CHG!", kind: "hot" },
+        { text: "KITE" },
+        { text: "AMMO!", kind: "bad" },
+        { text: "\u26947", kind: "hot" },
+      ],
     },
   },
 ];

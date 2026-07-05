@@ -10,7 +10,6 @@ import {
   vec3,
   vec4,
 } from "three/tsl";
-import { factionForTeam } from "../../../game-renderer/src/battle/factionColors";
 import { linearAlbedo } from "./battleTsl";
 import { RENDER_ORDER } from "./terrainLayer";
 
@@ -27,27 +26,16 @@ export interface BattleReadoutInstance {
   y: number;
   z: number;
   worldPerPx: number;
-  team: 0 | 1;
-  mine: boolean;
-  hp: number;
-  cohesion: number;
-  morale: number;
-  stamina: number;
   chips: readonly BattleReadoutChip[];
-  selected: boolean;
 }
 
-interface RectInstance {
+interface ChipInstance {
   anchor: readonly [number, number, number];
   worldPerPx: number;
   offsetX: number;
   offsetY: number;
   width: number;
   height: number;
-  color: readonly [number, number, number, number];
-}
-
-interface ChipInstance extends RectInstance {
   key: string;
 }
 
@@ -64,28 +52,15 @@ const QUAD = new Float32Array([-0.5, -0.5, 0, 0.5, -0.5, 0, -0.5, 0.5, 0, 0.5, 0
 const QUAD_INDEX = [0, 1, 2, 2, 1, 3];
 // World-space nudge toward the camera so the standard's own geometry at the
 // pole top can never depth-punch through the readout plane.
-const READOUT_CAMERA_BIAS = 1.6;
+const READOUT_CAMERA_BIAS = 0.9;
 
-const BAR_WIDTH = 58;
-const BAR_HEIGHT = 4;
-const BAR_GAP = 2;
+// Row gap; the first row also clears the finial ball by this margin.
 const CHIP_GAP = 2;
 const CHIP_ROW_WIDTH = 94;
-const ENEMY_PLATE_WIDTH = 34;
-const ENEMY_PLATE_HEIGHT = 7;
-const BASELINE_OVERLAP_PX = 0.5;
-const BAR_COLORS = {
-  cohesion: [0.85, 0.78, 0.35, 0.95],
-  morale: [0.5, 0.69, 0.41, 0.95],
-  stamina: [0.35, 0.63, 0.85, 0.95],
-  track: [0.035, 0.035, 0.045, 0.74],
-  frame: [0.02, 0.018, 0.014, 0.78],
-  selected: [0.31, 0.82, 0.39, 0.72],
-} as const;
+// The finial ball sits right at the anchor — clear it or it pierces row 1.
+const FINIAL_CLEARANCE_PX = 6;
 
 export class PhotorealReadoutLayer {
-  private readonly rectMesh: THREE.Mesh;
-  private readonly rectGeometry: THREE.InstancedBufferGeometry;
   private readonly chipMesh: THREE.Mesh;
   private readonly chipGeometry: THREE.InstancedBufferGeometry;
   private readonly camRight = uniform(new THREE.Vector3(1, 0, 0));
@@ -93,79 +68,56 @@ export class PhotorealReadoutLayer {
   private readonly camPos = uniform(new THREE.Vector3(0, 0, 0));
   private readonly camFwd = uniform(new THREE.Vector3(0, 1, 0));
   private readonly atlasTexture: THREE.CanvasTexture;
-  private rectCapacity = 0;
   private chipCapacity = 0;
-  private rect0 = new Float32Array(0);
-  private rect1 = new Float32Array(0);
-  private rectColor = new Float32Array(0);
   private chip0 = new Float32Array(0);
   private chip1 = new Float32Array(0);
   private chipUv = new Float32Array(0);
-  private rectCount = 0;
   private chipCount = 0;
   private readoutCount = 0;
-  private ownBars = 0;
-  private enemyMarkers = 0;
-  private selected = 0;
   private atlasKey = "";
   private atlasEntries = new Map<string, AtlasEntry>();
   private sampleAnchors: { unitId: number; x: number; y: number; z: number }[] = [];
 
   constructor(scene: THREE.Scene) {
-    this.rectGeometry = makeBillboardGeometry();
     this.chipGeometry = makeBillboardGeometry();
-
-    const rectMaterial = new THREE.MeshBasicNodeMaterial({ transparent: true, side: THREE.DoubleSide });
-    rectMaterial.depthTest = true;
-    rectMaterial.depthWrite = false;
-    rectMaterial.fog = false;
-    const quad = attribute<"vec3">("position", "vec3");
-    const rect0 = attribute<"vec4">("readoutRect0", "vec4");
-    const rect1 = attribute<"vec4">("readoutRect1", "vec4");
-    const color = varying(attribute<"vec4">("readoutColor", "vec4"));
-    // Anchors behind the camera would rasterize mirrored garbage quads —
-    // collapse them to a point instead. Anchors in front are biased toward
-    // the camera so the standard's own pole/finial/cloth at the same point
-    // cannot depth-punch torn fragments through the readout plane (terrain
-    // occlusion still applies — the bias is small).
-    const rectAnchor0 = vec3(rect0.x, rect0.y, rect0.z);
-    const rectToCam = vec3(this.camPos).sub(rectAnchor0);
-    const rectInFront = step(0.0, rectToCam.dot(vec3(this.camFwd)).negate());
-    const rectAnchor = rectAnchor0.add(normalize(rectToCam).mul(READOUT_CAMERA_BIAS));
-    rectMaterial.positionNode = rectAnchor
-      .add(vec3(this.camRight).mul(rect1.x.add(quad.x.mul(rect1.z)).mul(rect0.w)).mul(rectInFront))
-      .add(vec3(this.camUp).mul(rect1.y.add(quad.y.mul(rect1.w)).mul(rect0.w)).mul(rectInFront));
-    rectMaterial.colorNode = vec4(linearAlbedo(color.rgb), color.a);
-
-    this.rectMesh = new THREE.Mesh(this.rectGeometry, rectMaterial);
-    this.rectMesh.name = "battle-unit-readout-bars";
-    this.rectMesh.frustumCulled = false;
-    this.rectMesh.renderOrder = RENDER_ORDER.worldOpaque + 1;
-    this.rectMesh.visible = false;
-    scene.add(this.rectMesh);
 
     const canvas = document.createElement("canvas");
     canvas.width = 1;
     canvas.height = 1;
     this.atlasTexture = new THREE.CanvasTexture(canvas);
     this.atlasTexture.name = "battle-readout-chip-glyph-atlas";
+    // Canvas-space UVs: the default flipY mirrors the multi-row atlas at
+    // upload, so every cell samples the wrong row.
+    this.atlasTexture.flipY = false;
     this.atlasTexture.colorSpace = THREE.SRGBColorSpace;
-    // Mipmapped: chips minify hard for distant units, and linear-only
-    // sampling eats the glyphs into torn strips.
-    this.atlasTexture.minFilter = THREE.LinearMipmapLinearFilter;
+    // No mipmaps: chips render at ONE screen size now (constant-size
+    // billboards), and mip levels average the dark plates into the
+    // transparent padding — a washed-out grey smear.
+    this.atlasTexture.minFilter = THREE.LinearFilter;
     this.atlasTexture.magFilter = THREE.LinearFilter;
-    this.atlasTexture.generateMipmaps = true;
+    this.atlasTexture.generateMipmaps = false;
     this.atlasTexture.needsUpdate = true;
 
-    const chipMaterial = new THREE.MeshBasicNodeMaterial({ transparent: true, side: THREE.DoubleSide });
-    chipMaterial.depthTest = true;
+    // OPAQUE + alphaTest cutout, exactly like PhotorealMarkerLayer — the
+    // ONE recipe proven to keep UI quads unwashed in this world (a
+    // `transparent: true` quad ends up veiled by the transparent-pass
+    // ordering against the sky backdrop). UI also opts out of the scene
+    // tone-map (AgX desaturates chip colors) and of aerial fog.
+    const chipMaterial = new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide });
+    chipMaterial.depthTest = false;
     chipMaterial.depthWrite = false;
+    chipMaterial.toneMapped = false;
     chipMaterial.fog = false;
-    chipMaterial.alphaTest = 0.04;
+    chipMaterial.alphaTest = 0.5;
     const chipQuad = attribute<"vec3">("position", "vec3");
     const chip0 = attribute<"vec4">("readoutChip0", "vec4");
     const chip1 = attribute<"vec4">("readoutChip1", "vec4");
     const chipUv = attribute<"vec4">("readoutChipUv", "vec4");
+    // Anchors behind the camera would rasterize mirrored garbage quads —
+    // collapse them to a point instead. Anchors in front are biased toward
+    // the camera so the standard's own pole/finial/cloth at the same point
+    // cannot depth-punch torn fragments through the readout plane (terrain
+    // occlusion still applies — the bias is small).
     const chipAnchor0 = vec3(chip0.x, chip0.y, chip0.z);
     const chipToCam = vec3(this.camPos).sub(chipAnchor0);
     const chipInFront = step(0.0, chipToCam.dot(vec3(this.camFwd)).negate());
@@ -174,16 +126,18 @@ export class PhotorealReadoutLayer {
       .add(vec3(this.camRight).mul(chip1.x.add(chipQuad.x.mul(chip1.z)).mul(chip0.w)).mul(chipInFront))
       .add(vec3(this.camUp).mul(chip1.y.add(chipQuad.y.mul(chip1.w)).mul(chip0.w)).mul(chipInFront));
     const localUv = varying(chipQuad.xy.add(vec2(0.5))).toVar();
+    // Quad-local +y is screen-up but atlas v grows downward: v1 at the
+    // quad bottom, v0 at the top.
     const uv = vec2(
       chipUv.x.add(chipUv.z.sub(chipUv.x).mul(localUv.x)),
-      chipUv.y.add(chipUv.w.sub(chipUv.y).mul(localUv.y)),
+      chipUv.w.add(chipUv.y.sub(chipUv.w).mul(localUv.y)),
     );
     chipMaterial.colorNode = texture(this.atlasTexture, uv);
 
     this.chipMesh = new THREE.Mesh(this.chipGeometry, chipMaterial);
     this.chipMesh.name = "battle-unit-readout-chip-glyphs";
     this.chipMesh.frustumCulled = false;
-    this.chipMesh.renderOrder = RENDER_ORDER.worldOpaque + 2;
+    this.chipMesh.renderOrder = RENDER_ORDER.readout;
     this.chipMesh.visible = false;
     scene.add(this.chipMesh);
   }
@@ -199,73 +153,24 @@ export class PhotorealReadoutLayer {
 
   upload(readouts: readonly BattleReadoutInstance[]): void {
     this.readoutCount = readouts.length;
-    this.ownBars = 0;
-    this.enemyMarkers = 0;
-    this.selected = 0;
     this.sampleAnchors = readouts.slice(0, 64).map((r) => ({ unitId: r.unitId, x: r.x, y: r.y, z: r.z }));
-    const rects: RectInstance[] = [];
     const chips: ChipInstance[] = [];
-    for (const readout of readouts) {
-      if (readout.selected) this.selected++;
-      layoutReadout(readout, rects, chips);
-      if (readout.mine) this.ownBars++;
-      else this.enemyMarkers++;
-    }
+    for (const readout of readouts) layoutReadout(readout, chips);
     this.ensureAtlas(chips);
-    this.uploadRects(rects);
     this.uploadChips(chips);
   }
 
   stats() {
     return {
       readouts: this.readoutCount,
-      rects: this.rectCount,
       chips: this.chipCount,
-      ownBars: this.ownBars,
-      enemyMarkers: this.enemyMarkers,
-      selected: this.selected,
       anchors: this.sampleAnchors,
       atlasWidth: this.atlasTexture.image.width,
       atlasHeight: this.atlasTexture.image.height,
       layer: "photoreal-battle-readout-glyph-atlas" as const,
-      depthPolicy: "depth-tested in-scene billboard; depthWrite=false; renderOrder after soldiers" as const,
+      depthPolicy: "depth-tested in-scene billboard; toneMapped=false (UI, ungraded); renderOrder after soldiers" as const,
       orientation: "camera-facing basis from the active three camera" as const,
     };
-  }
-
-  private uploadRects(rects: readonly RectInstance[]): void {
-    this.rectCount = rects.length;
-    this.rectMesh.visible = rects.length > 0;
-    if (rects.length === 0) {
-      this.rectGeometry.instanceCount = 0;
-      return;
-    }
-    if (rects.length > this.rectCapacity) {
-      this.rectCapacity = Math.max(rects.length, this.rectCapacity * 2, 128);
-      this.rect0 = new Float32Array(this.rectCapacity * 4);
-      this.rect1 = new Float32Array(this.rectCapacity * 4);
-      this.rectColor = new Float32Array(this.rectCapacity * 4);
-      this.rectGeometry.setAttribute("readoutRect0", new THREE.InstancedBufferAttribute(this.rect0, 4));
-      this.rectGeometry.setAttribute("readoutRect1", new THREE.InstancedBufferAttribute(this.rect1, 4));
-      this.rectGeometry.setAttribute("readoutColor", new THREE.InstancedBufferAttribute(this.rectColor, 4));
-    }
-    for (let i = 0; i < rects.length; i++) {
-      const rect = rects[i];
-      const o = i * 4;
-      this.rect0[o] = rect.anchor[0];
-      this.rect0[o + 1] = rect.anchor[1];
-      this.rect0[o + 2] = rect.anchor[2];
-      this.rect0[o + 3] = rect.worldPerPx;
-      this.rect1[o] = rect.offsetX;
-      this.rect1[o + 1] = rect.offsetY;
-      this.rect1[o + 2] = rect.width;
-      this.rect1[o + 3] = rect.height;
-      this.rectColor.set(rect.color, o);
-    }
-    for (const name of ["readoutRect0", "readoutRect1", "readoutColor"] as const) {
-      (this.rectGeometry.getAttribute(name) as THREE.InstancedBufferAttribute).needsUpdate = true;
-    }
-    this.rectGeometry.instanceCount = rects.length;
   }
 
   private uploadChips(chips: readonly ChipInstance[]): void {
@@ -332,132 +237,21 @@ function makeBillboardGeometry(): THREE.InstancedBufferGeometry {
   return geometry;
 }
 
-function layoutReadout(
-  readout: BattleReadoutInstance,
-  rects: RectInstance[],
-  chips: ChipInstance[],
-): void {
+// The readout is text-status chips ONLY — stats live in the unit card and
+// faction identity lives on the flag itself. Rows stack upward from the pole
+// top (anchor), row-wrapped by layoutChips.
+function layoutReadout(readout: BattleReadoutInstance, chips: ChipInstance[]): void {
   const anchor: [number, number, number] = [readout.x, readout.y, readout.z];
-  const faction = factionForTeam(readout.team).primary;
-  let cursorY = -BASELINE_OVERLAP_PX;
-  let width = readout.mine ? BAR_WIDTH : ENEMY_PLATE_WIDTH;
-  if (readout.mine) {
-    pushSelection(readout, rects, anchor, width, 4 * BAR_HEIGHT + 3 * BAR_GAP);
-    pushBarStack(readout, rects, anchor, faction, cursorY);
-    cursorY += 4 * BAR_HEIGHT + 3 * BAR_GAP + CHIP_GAP;
-  } else {
-    const h = ENEMY_PLATE_HEIGHT;
-    rects.push({
-      anchor,
-      worldPerPx: readout.worldPerPx,
-      offsetX: 0,
-      offsetY: cursorY + h * 0.5,
-      width: ENEMY_PLATE_WIDTH,
-      height: h,
-      color: [faction[0], faction[1], faction[2], 0.9],
-    });
-    pushSelection(readout, rects, anchor, ENEMY_PLATE_WIDTH, h);
-    cursorY += h + CHIP_GAP;
-  }
   const chipLayout = layoutChips(readout);
-  width = Math.max(width, chipLayout.width);
   for (const chip of chipLayout.chips) {
     chips.push({
       anchor,
       worldPerPx: readout.worldPerPx,
       offsetX: chip.x,
-      offsetY: cursorY + chip.y,
+      offsetY: FINIAL_CLEARANCE_PX + chip.y,
       width: chip.width,
       height: chip.height,
-      color: [1, 1, 1, 1],
       key: chip.key,
-    });
-  }
-  if (readout.selected && chipLayout.height > 0) {
-    pushSelection(readout, rects, anchor, width, cursorY + chipLayout.height + BASELINE_OVERLAP_PX);
-  }
-}
-
-function pushBarStack(
-  readout: BattleReadoutInstance,
-  rects: RectInstance[],
-  anchor: readonly [number, number, number],
-  faction: readonly [number, number, number],
-  baseY: number,
-): void {
-  const values = [
-    { value: readout.hp, color: [faction[0], faction[1], faction[2], 0.98] as const },
-    { value: readout.cohesion, color: BAR_COLORS.cohesion },
-    { value: readout.morale, color: BAR_COLORS.morale },
-    { value: readout.stamina, color: BAR_COLORS.stamina },
-  ];
-  for (let i = 0; i < values.length; i++) {
-    const y = baseY + BAR_HEIGHT * 0.5 + i * (BAR_HEIGHT + BAR_GAP);
-    rects.push({
-      anchor,
-      worldPerPx: readout.worldPerPx,
-      offsetX: 0,
-      offsetY: y,
-      width: BAR_WIDTH + 3,
-      height: BAR_HEIGHT + 2,
-      color: BAR_COLORS.frame,
-    });
-    rects.push({
-      anchor,
-      worldPerPx: readout.worldPerPx,
-      offsetX: 0,
-      offsetY: y,
-      width: BAR_WIDTH,
-      height: BAR_HEIGHT,
-      color: BAR_COLORS.track,
-    });
-    const fill = clamp01(values[i].value);
-    rects.push({
-      anchor,
-      worldPerPx: readout.worldPerPx,
-      offsetX: (fill - 1) * BAR_WIDTH * 0.5,
-      offsetY: y,
-      width: BAR_WIDTH * fill,
-      height: BAR_HEIGHT,
-      color: values[i].color,
-    });
-  }
-}
-
-function pushSelection(
-  readout: BattleReadoutInstance,
-  rects: RectInstance[],
-  anchor: readonly [number, number, number],
-  width: number,
-  height: number,
-): void {
-  if (!readout.selected) return;
-  rects.push({
-    anchor,
-    worldPerPx: readout.worldPerPx,
-    offsetX: 0,
-    offsetY: height * 0.5 - BASELINE_OVERLAP_PX,
-    width: width + 8,
-    height: height + 7,
-    color: [BAR_COLORS.selected[0], BAR_COLORS.selected[1], BAR_COLORS.selected[2], 0.16],
-  });
-  const line = 2;
-  const y0 = -BASELINE_OVERLAP_PX;
-  const y1 = height - BASELINE_OVERLAP_PX;
-  for (const [x, y, w, h] of [
-    [0, y0, width + 8, line],
-    [0, y1, width + 8, line],
-    [-(width + 8) * 0.5, height * 0.5 - BASELINE_OVERLAP_PX, line, height + 6],
-    [(width + 8) * 0.5, height * 0.5 - BASELINE_OVERLAP_PX, line, height + 6],
-  ] as const) {
-    rects.push({
-      anchor,
-      worldPerPx: readout.worldPerPx,
-      offsetX: x,
-      offsetY: y,
-      width: w,
-      height: h,
-      color: BAR_COLORS.selected,
     });
   }
 }
@@ -566,14 +360,17 @@ function drawChip(
   dpr: number,
 ): void {
   const r = Math.max(2, Math.round(2 * dpr));
-  ctx.fillStyle = "rgba(14,16,20,0.82)";
+  // Kind carries the PLATE tint; the glyphs stay near-white — colored text
+  // on a dark slab smears into unreadable blobs at gameplay size.
+  ctx.fillStyle =
+    kind === "bad" ? "rgba(74,20,14,0.94)" : kind === "hot" ? "rgba(82,54,10,0.94)" : "rgba(12,14,18,0.94)";
   ctx.beginPath();
   ctx.roundRect(x, y, w, h, r);
   ctx.fill();
-  ctx.strokeStyle = kind === "bad" ? "rgba(255,122,107,0.45)" : kind === "hot" ? "rgba(255,196,107,0.45)" : "rgba(232,228,216,0.2)";
+  ctx.strokeStyle = kind === "bad" ? "rgba(255,122,107,0.6)" : kind === "hot" ? "rgba(255,196,107,0.6)" : "rgba(232,228,216,0.25)";
   ctx.lineWidth = Math.max(1, dpr);
   ctx.stroke();
-  ctx.fillStyle = kind === "bad" ? "#ff7a6b" : kind === "hot" ? "#ffc46b" : "#e8e4d8";
+  ctx.fillStyle = "#f4f0e6";
   ctx.fillText(text, x + w * 0.5, y + h * 0.53);
 }
 

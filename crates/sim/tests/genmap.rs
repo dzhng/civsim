@@ -4,7 +4,7 @@ use sim::genmap::certify::{
     speed_zero_cells_without_blocking_tint, Side, ISOLATED_PASSABLE_POCKET_LIMIT_CELLS,
     OPEN_EDGE_THRESHOLD, SEALED_SIDE_THRESHOLD, UNREACHABLE_FLANK_THRESHOLD,
 };
-use sim::genmap::{generate, passability, terrain_hash, MapRecipe};
+use sim::genmap::{generate, generate_vista_grid, landform, passability, terrain_hash, MapRecipe};
 use sim::{build_map, MapId};
 
 const GENERATED_SEED7_HASH: u64 = 0x8ceb1a8a243ea756;
@@ -38,6 +38,29 @@ fn generated_map_different_seeds_differ() {
         ..MapRecipe::default()
     }));
     assert_ne!(a, b);
+}
+
+#[test]
+fn generated_vista_inner_boundary_matches_playable_rect_heights() {
+    let recipe = MapRecipe {
+        seed: 7,
+        ..MapRecipe::default()
+    };
+    let vista = generate_vista_grid(&recipe);
+    let band = &vista.bands[0];
+    assert_eq!(band.name, "vista");
+    assert_eq!(band.cell, recipe.cell * 4.0);
+
+    for iy in 0..=((recipe.half_h * 2.0 / band.cell).round() as usize) {
+        let y = -recipe.half_h + iy as f32 * band.cell;
+        assert_shared_height("west", &recipe, band, -recipe.half_w, y);
+        assert_shared_height("east", &recipe, band, recipe.half_w, y);
+    }
+    for ix in 0..=((recipe.half_w * 2.0 / band.cell).round() as usize) {
+        let x = -recipe.half_w + ix as f32 * band.cell;
+        assert_shared_height("south", &recipe, band, x, -recipe.half_h);
+        assert_shared_height("north", &recipe, band, x, recipe.half_h);
+    }
 }
 
 #[test]
@@ -192,6 +215,32 @@ fn assert_generated_certificates(seed: u64, t: &sim::Terrain) {
         largest_isolated_passable_pocket_cells(t) <= ISOLATED_PASSABLE_POCKET_LIMIT_CELLS,
         "seed {seed} largest isolated passable pocket {} cells",
         largest_isolated_passable_pocket_cells(t)
+    );
+}
+
+fn assert_shared_height(side: &str, recipe: &MapRecipe, band: &sim::VistaBand, x: f32, y: f32) {
+    let vx = ((x - band.origin.x) / band.cell).round() as isize;
+    let vy = ((y - band.origin.y) / band.cell).round() as isize;
+    assert!(
+        vx >= 0 && vy >= 0 && (vx as usize) < band.w && (vy as usize) < band.h,
+        "{side} shared point ({x:.1},{y:.1}) missing from vista band origin=({:.1},{:.1}) dims={}x{} cell={}",
+        band.origin.x,
+        band.origin.y,
+        band.w,
+        band.h,
+        band.cell
+    );
+    let snapped_x = band.origin.x + vx as f32 * band.cell;
+    let snapped_y = band.origin.y + vy as f32 * band.cell;
+    assert!(
+        (snapped_x - x).abs() < 1e-4 && (snapped_y - y).abs() < 1e-4,
+        "{side} shared point ({x:.1},{y:.1}) does not land on vista sample ({snapped_x:.1},{snapped_y:.1})"
+    );
+    let playable = landform::height(recipe, sim::Vec2::new(x, y));
+    let vista = band.heights[vy as usize * band.w + vx as usize];
+    assert!(
+        (playable - vista).abs() < 1e-6,
+        "{side} shared height mismatch at ({x:.1},{y:.1}): playable {playable:.6}, vista {vista:.6}"
     );
 }
 

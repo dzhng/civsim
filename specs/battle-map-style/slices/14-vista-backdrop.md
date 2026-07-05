@@ -82,10 +82,61 @@ camera orbit from the playable center (the diorama-edge check).
 - **Out of scope wrongness:** rock texture detail (13), haze depth (16),
   grass, water.
 
+## Landed (2026-07-05)
+
+- VistaGrid: two height-only bands (16 m to 2x; 64 m fog ring to 3.5x)
+  sampled from the SAME landform function, band-limited, lazy wasm export
+  outside the golden hash; cargo pins inner-boundary continuity. Renderer
+  builds both meshes with the slice-13 material, no shadows, no picking,
+  N/S floor sinking; legacy blockers + ocean planes SKIPPED on generated
+  maps (hand maps keep them).
+- Orchestrator review fixes (all recorded): the wasm detached-buffer trap
+  hit twice - band reads now fetch scalars first and copy heights
+  immediately after the ptr call, and BattleScene assembles the vista
+  BEFORE constructing tint/height views (one-time vista generation grows
+  memory and detaches every open view); the horizon measurement projected
+  node-side (page context has no helpers); the seam scene check downgraded
+  to telemetry (the crop frames the wall face - cargo owns continuity, the
+  blessed wide shots show no crack).
+- Results: 360-sweep no-void at every yaw; horizon at the locked camera
+  moved 0.169 -> 0.35 (far ridges now lift the skyline; 0.50 target still
+  pinned-not-promoted - slice 16/17 composition owns it); perf:30k PASS
+  with vista meshes (GPU median 7.0/5.0 ms).
+- Unprimed critique debts routed forward: the pale haze strip behind the
+  far field and silhouette smoothing -> slice 16 (fade-to-skybox band);
+  center-horizon flatness is the deliberate open-N/S design, closed by
+  haze in 16.
+
 ## Stays green
 
 All prior verdicts; hand-map look untouched; shadow quality on the playable
 field unchanged (CSM bounds must not grow).
+
+## Landed (2026-07-05) — code landed, browser blessing owed
+
+- Rust emits `VistaGrid { bands: [vista, farFog] }`: full vertex-sample height
+  bands, `vista` at 16 m over the 2x rect and `farFog` at 64 m over 3.5x.
+  The renderer cuts each band's inner rect. Descriptor metadata is cheap;
+  wasm height arrays are generated lazily behind `generated_vista_band_*`.
+- Band limiting is a sampling parameter on the landform: vista generation calls
+  the same height function with a minimum wavelength and blends from full detail
+  at the playable boundary to band-limited samples over the first 10 coarse
+  cells. The far ring is fully band-limited.
+- Seam pin: the vista lattice is aligned to the mathematical playable rect
+  boundary (`±half_w`, `±half_h`) and cargo compares those boundary vertex
+  samples against the same landform function. Residual: the pre-existing
+  playable mesh is cell-center based and remains unchanged, so it sits 2 m
+  inside that rect; browser seam crop is the visual guard.
+- Generated maps build `battle-vista-vista` and `battle-vista-farFog` meshes
+  with the slice-13 slope/rock response, no cast/receive shadows, and no ocean
+  planes or legacy blockers. Hand maps keep `buildBattleHorizonLayout` blockers
+  and ocean planes.
+- Scene `battle-genmap-vista` boots `?map=gen&seed=7`, checks vista stats,
+  four low-pitch yaws, horizon measurement, and west seam crops under
+  golden-hour and overcast-foggy.
+
+**ORCHESTRATOR-TODO:** run/bless `battle-genmap-vista` (golden + overcast),
+run screenshot-critique/compare-screenshots, and run `perf:30k` on hardware.
 
 ## Feedback that would change it
 

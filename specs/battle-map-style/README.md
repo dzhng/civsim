@@ -21,12 +21,11 @@ Reference images (in `assets/` and the aesthetics skill):
 
 ## Next Agent Prompt
 
-**Status 2026-07-05: slices 00–03, 10–13 DONE/CODE-LANDED (00–03,10–12
-live-verified; 13 renderer/scene landed with browser blessing +
+**Status 2026-07-05: slices 00–03, 10–14 DONE/CODE-LANDED (00–03,10–12
+live-verified; 13–14 renderer/scene landed with browser blessing +
 screenshot-critique still owed by orchestrator).** Next pickups:
 [04-hydrology](slices/04-hydrology.md) (G-track) and
-[14-vista-backdrop](slices/14-vista-backdrop.md) (V-track — reuse the
-generated-map cliff material on the render-only apron). Read slice 10's TSL
+[15-lake-render](slices/15-lake-render.md) (V-track). Read slice 10's TSL
 hazards + slice 11's integration findings before
 touching the blade field; the camera-truth trap and oracle re-anchoring live
 in [00's locked values](slices/00-composition-and-oracle-lock.md); the
@@ -64,7 +63,7 @@ Before writing any code, read:
   tripwire, and wind GIF.
 - [x] 12 — Grass LOD budgets at 30k
 - [x] 13 — Cliff material
-- [ ] 14 — Vista backdrop (DECIDED: render-only apron, world = 2× playable)
+- [x] 14 — Vista backdrop (DECIDED: render-only apron, world = 2× playable)
 - [ ] 15 — Lake render
 - [ ] 16 — Haze / mood preset
 - [ ] 17 — Compose gate (style-family verdict on 3+ seeds)

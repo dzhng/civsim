@@ -5,8 +5,13 @@ pub mod certify;
 pub mod landform;
 pub mod passability;
 
+use crate::math::Vec2;
 use crate::terrain::Terrain;
 use serde::{Deserialize, Serialize};
+
+pub const VISTA_CELL_M: f32 = 16.0;
+pub const FAR_FOG_CELL_M: f32 = 64.0;
+pub const FAR_FOG_EXTENT: f32 = 3.5;
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct MapRecipe {
@@ -33,6 +38,42 @@ pub struct SlopeBands {
     pub cliff_min: f32,
     pub cliff_dilate_cells: u16,
     pub highland_cap_min_m: f32,
+}
+
+#[derive(Clone, Debug)]
+pub struct VistaGrid {
+    pub bands: Vec<VistaBand>,
+}
+
+#[derive(Clone, Debug)]
+pub struct VistaBand {
+    pub name: &'static str,
+    pub w: usize,
+    pub h: usize,
+    /// Vertex-sample spacing in meters. Unlike `Terrain`, these are render
+    /// vertex samples, so `origin` is the first sample position, not a cell
+    /// corner. The grid is aligned so playable edge cell centers land exactly
+    /// on vista samples.
+    pub cell: f32,
+    pub origin: Vec2,
+    pub inner_half_w: f32,
+    pub inner_half_h: f32,
+    pub outer_half_w: f32,
+    pub outer_half_h: f32,
+    pub heights: Vec<f32>,
+}
+
+#[derive(Clone, Debug)]
+pub struct VistaBandSpec {
+    pub name: &'static str,
+    pub w: usize,
+    pub h: usize,
+    pub cell: f32,
+    pub origin: Vec2,
+    pub inner_half_w: f32,
+    pub inner_half_h: f32,
+    pub outer_half_w: f32,
+    pub outer_half_h: f32,
 }
 
 impl Default for SlopeBands {
@@ -129,6 +170,127 @@ pub fn generate(recipe: &MapRecipe) -> Terrain {
         "generated north deployment band is not passable"
     );
     t
+}
+
+/// Render-only generated-map vista data: two aligned vertex-sample grids.
+/// `vista` covers the 2x tile at 16 m; `farFog` covers the ~3.5x fog runway at
+/// 64 m and cuts out the 2x tile in the renderer. Both are heights only and
+/// stay out of `terrain_hash`.
+pub fn generate_vista_grid(recipe: &MapRecipe) -> VistaGrid {
+    assert!(recipe.half_w > 0.0, "generated map half_w must be positive");
+    assert!(recipe.half_h > 0.0, "generated map half_h must be positive");
+    assert!(recipe.cell > 0.0, "generated map cell must be positive");
+    VistaGrid {
+        bands: vista_band_specs(recipe)
+            .into_iter()
+            .enumerate()
+            .map(|(index, spec)| generate_vista_band(recipe, spec, index > 0))
+            .collect(),
+    }
+}
+
+pub fn vista_band_specs(recipe: &MapRecipe) -> Vec<VistaBandSpec> {
+    let vista_extent = recipe.vista_extent.max(1.0);
+    vec![
+        vista_band_spec(
+            recipe,
+            "vista",
+            VISTA_CELL_M,
+            recipe.half_w,
+            recipe.half_h,
+            recipe.half_w * vista_extent,
+            recipe.half_h * vista_extent,
+        ),
+        vista_band_spec(
+            recipe,
+            "farFog",
+            FAR_FOG_CELL_M,
+            recipe.half_w * vista_extent,
+            recipe.half_h * vista_extent,
+            recipe.half_w * FAR_FOG_EXTENT,
+            recipe.half_h * FAR_FOG_EXTENT,
+        ),
+    ]
+}
+
+fn vista_band_spec(
+    recipe: &MapRecipe,
+    name: &'static str,
+    cell: f32,
+    inner_half_w: f32,
+    inner_half_h: f32,
+    outer_half_w: f32,
+    outer_half_h: f32,
+) -> VistaBandSpec {
+    let playable_min_x = -recipe.half_w;
+    let playable_min_y = -recipe.half_h;
+    let nx_before = ((playable_min_x - -outer_half_w) / cell).ceil().max(0.0) as usize;
+    let ny_before = ((playable_min_y - -outer_half_h) / cell).ceil().max(0.0) as usize;
+    let origin = Vec2::new(
+        playable_min_x - nx_before as f32 * cell,
+        playable_min_y - ny_before as f32 * cell,
+    );
+    let w = ((outer_half_w - origin.x) / cell).ceil().max(0.0) as usize + 1;
+    let h = ((outer_half_h - origin.y) / cell).ceil().max(0.0) as usize + 1;
+    VistaBandSpec {
+        name,
+        w,
+        h,
+        cell,
+        origin,
+        inner_half_w,
+        inner_half_h,
+        outer_half_w,
+        outer_half_h,
+    }
+}
+
+fn generate_vista_band(
+    recipe: &MapRecipe,
+    spec: VistaBandSpec,
+    fully_band_limited: bool,
+) -> VistaBand {
+    let mut heights = vec![0.0; spec.w * spec.h];
+    for cy in 0..spec.h {
+        for cx in 0..spec.w {
+            let p = Vec2::new(
+                spec.origin.x + cx as f32 * spec.cell,
+                spec.origin.y + cy as f32 * spec.cell,
+            );
+            let fine = landform::height(recipe, p);
+            let limited = landform::height_band_limited(recipe, p, spec.cell * 2.0);
+            let blend = if fully_band_limited {
+                1.0
+            } else {
+                let outward = distance_outside_rect(p, recipe.half_w, recipe.half_h);
+                smoothstep(0.0, spec.cell * 10.0, outward)
+            };
+            heights[cy * spec.w + cx] = fine + (limited - fine) * blend;
+        }
+    }
+    VistaBand {
+        name: spec.name,
+        w: spec.w,
+        h: spec.h,
+        cell: spec.cell,
+        origin: spec.origin,
+        inner_half_w: spec.inner_half_w,
+        inner_half_h: spec.inner_half_h,
+        outer_half_w: spec.outer_half_w,
+        outer_half_h: spec.outer_half_h,
+        heights,
+    }
+}
+
+fn distance_outside_rect(p: Vec2, half_w: f32, half_h: f32) -> f32 {
+    let dx = (p.x.abs() - half_w).max(0.0);
+    let dy = (p.y.abs() - half_h).max(0.0);
+    dx.max(dy)
+}
+
+fn smoothstep(a: f32, b: f32, x: f32) -> f32 {
+    let t = ((x - a) / (b - a)).clamp(0.0, 1.0);
+    t * t * (3.0 - 2.0 * t)
 }
 
 pub fn terrain_hash(t: &Terrain) -> u64 {

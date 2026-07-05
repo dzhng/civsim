@@ -6,8 +6,8 @@
 //! the memory (which detaches any existing JS TypedArray views).
 
 use sim::{
-    build_map, generate_map, setup_battle, setup_battle_generated, setup_sandbox, Battle, MapId,
-    MapRecipe, Pace, Sim, Tunables, Vec2,
+    build_map, generate_map, generate_vista_grid, setup_battle, setup_battle_generated,
+    setup_sandbox, Battle, MapId, MapRecipe, Pace, Sim, Tunables, Vec2, VistaGrid,
 };
 use wasm_bindgen::prelude::*;
 
@@ -38,6 +38,7 @@ pub struct Game {
     battle: Battle,
     unit_info: Vec<f32>,
     generated_recipe: Option<MapRecipe>,
+    generated_vista: Option<VistaGrid>,
 }
 
 #[wasm_bindgen]
@@ -48,6 +49,7 @@ impl Game {
             battle: Battle::from_sim(Sim::new(Tunables::default(), seed as u64)),
             unit_info: Vec::new(),
             generated_recipe: None,
+            generated_vista: None,
         }
     }
 
@@ -60,6 +62,7 @@ impl Game {
             battle,
             unit_info: Vec::new(),
             generated_recipe: None,
+            generated_vista: None,
         };
         g.refresh_unit_info();
         g
@@ -139,6 +142,7 @@ impl Game {
     pub fn load_map(&mut self, map: u32) {
         self.battle.sim.terrain = build_map(map_id_from_index(map));
         self.generated_recipe = None;
+        self.generated_vista = None;
     }
 
     pub fn load_generated_map(&mut self, seed: u64) {
@@ -148,6 +152,7 @@ impl Game {
         };
         self.battle.sim.terrain = generate_map(&recipe);
         self.generated_recipe = Some(recipe);
+        self.generated_vista = None;
     }
 
     /// Tiny vibe-check fields: 0 = 1v1 heavies, 1 = 5v5 mixed inf + cav.
@@ -251,6 +256,7 @@ impl Game {
     pub fn start_battle(&mut self, map: u32) {
         setup_battle(&mut self.battle.sim, map_id_from_index(map));
         self.generated_recipe = None;
+        self.generated_vista = None;
         self.refresh_unit_info();
     }
 
@@ -261,6 +267,7 @@ impl Game {
         };
         setup_battle_generated(&mut self.battle.sim, &recipe);
         self.generated_recipe = Some(recipe);
+        self.generated_vista = None;
         self.refresh_unit_info();
     }
 
@@ -296,8 +303,44 @@ impl Game {
             "reliefScale": 1.0,
             "slopeBands": slope_bands,
             "terrainHash": format!("{:#018x}", sim::genmap::terrain_hash(&self.battle.sim.terrain)),
+            "vista": self.generated_recipe.map(vista_descriptor),
         })
         .to_string()
+    }
+
+    pub fn generated_vista_band_count(&self) -> u32 {
+        self.generated_recipe.map_or(0, |_| 2)
+    }
+
+    pub fn generated_vista_band_width(&mut self, band: u32) -> u32 {
+        self.ensure_generated_vista();
+        self.vista_band(band).map_or(0, |b| b.w as u32)
+    }
+
+    pub fn generated_vista_band_height(&mut self, band: u32) -> u32 {
+        self.ensure_generated_vista();
+        self.vista_band(band).map_or(0, |b| b.h as u32)
+    }
+
+    pub fn generated_vista_band_cell(&mut self, band: u32) -> f32 {
+        self.ensure_generated_vista();
+        self.vista_band(band).map_or(0.0, |b| b.cell)
+    }
+
+    pub fn generated_vista_band_origin_x(&mut self, band: u32) -> f32 {
+        self.ensure_generated_vista();
+        self.vista_band(band).map_or(0.0, |b| b.origin.x)
+    }
+
+    pub fn generated_vista_band_origin_y(&mut self, band: u32) -> f32 {
+        self.ensure_generated_vista();
+        self.vista_band(band).map_or(0.0, |b| b.origin.y)
+    }
+
+    pub fn generated_vista_band_height_ptr(&mut self, band: u32) -> *const f32 {
+        self.ensure_generated_vista();
+        self.vista_band(band)
+            .map_or(std::ptr::null(), |b| b.heights.as_ptr())
     }
 
     pub fn radius_ptr(&self) -> *const f32 {
@@ -650,6 +693,41 @@ impl Game {
             ]);
         }
     }
+
+    fn ensure_generated_vista(&mut self) {
+        if self.generated_vista.is_none() {
+            if let Some(recipe) = self.generated_recipe {
+                self.generated_vista = Some(generate_vista_grid(&recipe));
+            }
+        }
+    }
+
+    fn vista_band(&self, band: u32) -> Option<&sim::VistaBand> {
+        self.generated_vista
+            .as_ref()
+            .and_then(|v| v.bands.get(band as usize))
+    }
+}
+
+fn vista_descriptor(recipe: MapRecipe) -> serde_json::Value {
+    let bands = sim::genmap::vista_band_specs(&recipe);
+    serde_json::json!({
+        "shape": "two full vertex-sample height bands; renderer cuts the inner rect per band",
+        "bands": bands.iter().map(|b| {
+            serde_json::json!({
+                "name": b.name,
+                "width": b.w,
+                "height": b.h,
+                "cell": b.cell,
+                "originX": b.origin.x,
+                "originY": b.origin.y,
+                "innerHalfW": b.inner_half_w,
+                "innerHalfH": b.inner_half_h,
+                "outerHalfW": b.outer_half_w,
+                "outerHalfH": b.outer_half_h,
+            })
+        }).collect::<Vec<_>>(),
+    })
 }
 
 impl Default for Game {

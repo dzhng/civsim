@@ -62,7 +62,9 @@ import {
   BattleBackgroundQuads,
   createGroundMesh,
   createHorizonBlockerMesh,
+  createVistaMesh,
   RENDER_ORDER,
+  type BattleVistaGrid,
 } from "./terrainLayer";
 import {
   createOceanPlaneMesh,
@@ -85,6 +87,8 @@ import {
   PhotorealTriangleLayer,
 } from "./overlayLayer";
 import { BattlePostChain } from "../post/postChain";
+
+export type { BattleVistaGrid } from "./terrainLayer";
 
 /** The camera fields BattleRenderer snapshots from the shared Camera each
  *  frame (renderer.ts cameraSnapshot) — the whole camera contract. */
@@ -150,9 +154,11 @@ export class PhotorealBattleWorld {
 
   private ground: THREE.Mesh | null = null;
   private horizonBlockers: THREE.Mesh | null = null;
+  private vistaMeshes: THREE.Mesh[] = [];
   private oceanPlanes: THREE.Mesh[] = [];
   private sealedEdges: string[] = [];
   private groundTriangles = 0;
+  private vistaTriangles = 0;
 
   private soldierUnit = new Uint32Array(0);
   private unitTeam: number[] = [];
@@ -160,6 +166,7 @@ export class PhotorealBattleWorld {
   private staticSoldiers = 0;
   private terrainRect: [number, number, number, number] = [-220, -180, 440, 360];
   private terrainGrid: BattleTerrainGrid | null = null;
+  private vistaGrid: BattleVistaGrid | null = null;
   private heightField: TerrainHeightField | null = null;
   private groundCover: BattleGroundCover = "green-grass";
   private slopeBands: BattleSlopeBands | null = null;
@@ -228,11 +235,16 @@ export class PhotorealBattleWorld {
     );
 
     this.background = new BattleBackgroundQuads(scene, this.frame);
-    this.grass = new PhotorealBladeFieldLayer(scene, this.frame.time, [
-      { id: "near", lodTier: 0, segments: 15, minDistanceM: 0, maxDistanceM: 8 },
-      { id: "mid", lodTier: 1, segments: 5, minDistanceM: 8, maxDistanceM: 30 },
-      { id: "far", lodTier: 2, segments: 2, minDistanceM: 30, maxDistanceM: 150 },
-    ], true);
+    this.grass = new PhotorealBladeFieldLayer(
+      scene,
+      this.frame.time,
+      [
+        { id: "near", lodTier: 0, segments: 15, minDistanceM: 0, maxDistanceM: 8 },
+        { id: "mid", lodTier: 1, segments: 5, minDistanceM: 8, maxDistanceM: 30 },
+        { id: "far", lodTier: 2, segments: 2, minDistanceM: 30, maxDistanceM: 150 },
+      ],
+      true,
+    );
     this.scenery = new PhotorealScenery(scene);
     this.crowd = new PhotorealCrowd(scene, meshes, vats, kit);
     this.mountedClasses = mountedClassesFromKit(kit);
@@ -346,6 +358,7 @@ export class PhotorealBattleWorld {
     height?: Float32Array,
     wasmMapId?: number,
     slopeBands?: BattleSlopeBands | null,
+    vista?: BattleVistaGrid | null,
   ): void {
     this.terrainRect = [ox, oy, w * cell, h * cell];
     this.terrainGrid = tint
@@ -362,6 +375,7 @@ export class PhotorealBattleWorld {
     const catalog = wasmMapId !== undefined ? battleMapByWasmId(wasmMapId) : undefined;
     this.groundCover = catalog?.groundCover ?? "green-grass";
     this.slopeBands = slopeBands ?? null;
+    this.vistaGrid = vista ?? null;
     this.applyTerrain();
   }
 
@@ -416,22 +430,43 @@ export class PhotorealBattleWorld {
       scene.remove(this.horizonBlockers);
       disposeMesh(this.horizonBlockers);
     }
+    for (const mesh of this.vistaMeshes) {
+      scene.remove(mesh);
+      disposeMesh(mesh);
+    }
     for (const plane of this.oceanPlanes) {
       scene.remove(plane);
       disposeMesh(plane);
     }
-    const layout = buildBattleHorizonLayout(
-      { ox: grid.ox, oy: grid.oy, w: grid.w, h: grid.h, cell: grid.cell },
-      presentation.edges,
-      field,
-    );
-    this.sealedEdges = layout.builtEdges.map((e) => `${e.side}:${e.role}`);
-    this.horizonBlockers = createHorizonBlockerMesh(layout);
-    if (this.horizonBlockers) scene.add(this.horizonBlockers);
-    this.oceanPlanes = layout.oceanPlanes.map((spec) =>
-      createOceanPlaneMesh(this.frame, spec, this.sea),
-    );
-    for (const plane of this.oceanPlanes) scene.add(plane);
+    this.vistaMeshes = [];
+    this.oceanPlanes = [];
+    this.vistaTriangles = 0;
+    if (this.vistaGrid) {
+      this.sealedEdges = ["generated:vista"];
+      this.horizonBlockers = null;
+      for (const band of this.vistaGrid.bands) {
+        const mesh = createVistaMesh(this.frame, band, this.groundCover, {
+          slopeBands: this.slopeBands,
+        });
+        if (!mesh) continue;
+        this.vistaMeshes.push(mesh);
+        this.vistaTriangles += (mesh.geometry.index?.count ?? 0) / 3;
+        scene.add(mesh);
+      }
+    } else {
+      const layout = buildBattleHorizonLayout(
+        { ox: grid.ox, oy: grid.oy, w: grid.w, h: grid.h, cell: grid.cell },
+        presentation.edges,
+        field,
+      );
+      this.sealedEdges = layout.builtEdges.map((e) => `${e.side}:${e.role}`);
+      this.horizonBlockers = createHorizonBlockerMesh(layout);
+      if (this.horizonBlockers) scene.add(this.horizonBlockers);
+      this.oceanPlanes = layout.oceanPlanes.map((spec) =>
+        createOceanPlaneMesh(this.frame, spec, this.sea),
+      );
+      for (const plane of this.oceanPlanes) scene.add(plane);
+    }
 
     this.scenery.upload(featuresToBattleScenery(presentation.features, field, 0x77));
     this.shadowRig.setWorldRect(this.terrainRect);
@@ -664,6 +699,23 @@ export class PhotorealBattleWorld {
             fixture: "sim-tint" as const,
             layer: "photoreal-battle-ground" as const,
             groundTriangles: this.groundTriangles,
+            vistaTriangles: this.vistaTriangles,
+            vista: this.vistaGrid
+              ? {
+                  bands: this.vistaGrid.bands.map((band) => ({
+                    name: band.name,
+                    width: band.w,
+                    height: band.h,
+                    cell: band.cell,
+                    originX: band.ox,
+                    originY: band.oy,
+                    innerHalfW: band.innerHalfW,
+                    innerHalfH: band.innerHalfH,
+                    outerHalfW: band.outerHalfW,
+                    outerHalfH: band.outerHalfH,
+                  })),
+                }
+              : null,
             sealedEdges: [...this.sealedEdges],
             sea: {
               ...sea,

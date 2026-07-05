@@ -17,6 +17,17 @@ const CORRIDOR_DETAIL_M: f32 = 5.0;
 const APRON_FLATTEN: f32 = 0.36;
 
 pub fn height(recipe: &MapRecipe, p: Vec2) -> f32 {
+    height_with_min_wavelength(recipe, p, 0.0)
+}
+
+/// Same landform, sampled with detail below the requested wavelength faded out.
+/// Vista grids use this as a sampling-level budget so coarse meshes do not
+/// alias high-frequency terrain that the playable 4 m grid can represent.
+pub fn height_band_limited(recipe: &MapRecipe, p: Vec2, min_wavelength_m: f32) -> f32 {
+    height_with_min_wavelength(recipe, p, min_wavelength_m.max(0.0))
+}
+
+fn height_with_min_wavelength(recipe: &MapRecipe, p: Vec2, min_wavelength_m: f32) -> f32 {
     let vista_half_w = recipe.half_w * recipe.vista_extent.max(1.0);
     let vista_half_h = recipe.half_h * recipe.vista_extent.max(1.0);
     let corridor = corridor_mask(recipe, p);
@@ -24,25 +35,52 @@ pub fn height(recipe: &MapRecipe, p: Vec2) -> f32 {
     let apron = deployment_apron_mask(recipe, p.y);
 
     let warp = Vec2::new(
-        fbm(recipe.seed ^ 0x6e43_9d21, p.x, p.y, 620.0, 3).value - 0.5,
-        fbm(recipe.seed ^ 0x3a91_c2ef, p.x + 173.0, p.y - 97.0, 580.0, 3).value - 0.5,
+        fbm_detail(
+            recipe.seed ^ 0x6e43_9d21,
+            p.x,
+            p.y,
+            620.0,
+            3,
+            min_wavelength_m,
+        )
+        .value
+            - 0.5,
+        fbm_detail(
+            recipe.seed ^ 0x3a91_c2ef,
+            p.x + 173.0,
+            p.y - 97.0,
+            580.0,
+            3,
+            min_wavelength_m,
+        )
+        .value
+            - 0.5,
     );
     let warped = Vec2::new(p.x + warp.x * 95.0, p.y + warp.y * 115.0);
 
-    let broad = fbm(recipe.seed ^ 0x2081_9f4d, warped.x, warped.y, 420.0, 4);
-    let mid = fbm(
+    let broad = fbm_detail(
+        recipe.seed ^ 0x2081_9f4d,
+        warped.x,
+        warped.y,
+        420.0,
+        4,
+        min_wavelength_m,
+    );
+    let mid = fbm_detail(
         recipe.seed ^ 0xa9ef_0713,
         warped.x - 81.0,
         warped.y + 43.0,
         205.0,
         3,
+        min_wavelength_m,
     );
-    let fine = fbm(
+    let fine = fbm_detail(
         recipe.seed ^ 0x55d1_40af,
         warped.x + 29.0,
         warped.y - 151.0,
         92.0,
         2,
+        min_wavelength_m,
     );
 
     let detail_slope2 =
@@ -68,12 +106,13 @@ pub fn height(recipe: &MapRecipe, p: Vec2) -> f32 {
     let crest_t = smoothstep(RIDGE_FOOT_X, RIDGE_CREST_X, p.x.abs());
     let vista_side_t = (p.x.abs() / vista_half_w).clamp(0.0, 1.0);
     let ridge_domain_x = side * (p.x.abs() - recipe.half_w * 0.72);
-    let ridge_noise = fbm(
+    let ridge_noise = fbm_detail(
         recipe.seed ^ side_seed,
         ridge_domain_x + warp.x * 160.0,
         p.y + warp.y * 180.0,
         250.0,
         4,
+        min_wavelength_m,
     );
     let ridge_core = ridged(ridge_noise.value);
     let ridge_strata = ridged(value_noise(
@@ -85,12 +124,13 @@ pub fn height(recipe: &MapRecipe, p: Vec2) -> f32 {
     let edge_mass = 46.0 + 34.0 * ridge_core + 20.0 * ridge_strata + 12.0 * vista_side_t;
     let ridge = edge_mass * crest_t * (0.72 + 0.28 * flank);
 
-    let spur_noise = fbm(
+    let spur_noise = fbm_detail(
         recipe.seed ^ side_seed ^ 0xdb4f_0f35,
         p.x * 0.82 + side * 211.0,
         p.y,
         330.0,
         3,
+        min_wavelength_m,
     );
     let spur_gate = smoothstep(0.54, 0.86, ridged(spur_noise.value)) * flank * 0.62;
     let spur = spur_gate * (18.0 + 16.0 * ridged(mid.value));
@@ -127,7 +167,14 @@ struct Sample {
     dy: f32,
 }
 
-fn fbm(seed: u64, x: f32, y: f32, scale: f32, octaves: usize) -> Sample {
+fn fbm_detail(
+    seed: u64,
+    x: f32,
+    y: f32,
+    scale: f32,
+    octaves: usize,
+    min_wavelength_m: f32,
+) -> Sample {
     let mut value = 0.0;
     let mut dx = 0.0;
     let mut dy = 0.0;
@@ -135,18 +182,37 @@ fn fbm(seed: u64, x: f32, y: f32, scale: f32, octaves: usize) -> Sample {
     let mut freq = 1.0;
     let mut norm = 0.0;
     for o in 0..octaves {
+        let wavelength = scale / freq;
+        let detail_weight = if min_wavelength_m <= 0.0 {
+            1.0
+        } else {
+            smoothstep(min_wavelength_m, min_wavelength_m * 2.0, wavelength)
+        };
+        if detail_weight <= 0.0 {
+            amp *= 0.52;
+            freq *= 2.03;
+            continue;
+        }
         let s = value_noise_deriv(
             seed ^ ((o as u64).wrapping_mul(0x9e37_79b9)),
             x,
             y,
             scale / freq,
         );
-        value += s.value * amp;
-        dx += s.dx * amp;
-        dy += s.dy * amp;
-        norm += amp;
+        let weighted_amp = amp * detail_weight;
+        value += s.value * weighted_amp;
+        dx += s.dx * weighted_amp;
+        dy += s.dy * weighted_amp;
+        norm += weighted_amp;
         amp *= 0.52;
         freq *= 2.03;
+    }
+    if norm <= 0.0 {
+        return Sample {
+            value: 0.5,
+            dx: 0.0,
+            dy: 0.0,
+        };
     }
     Sample {
         value: value / norm,

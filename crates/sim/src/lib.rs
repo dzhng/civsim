@@ -46,7 +46,7 @@ pub use contract::{unit_cost, ALL_CLASSES};
 pub use force_trace::{
     CapSample, ForceBudget, ForceChannel, ForceRecord, ForceTrace, ForceTraceFilter,
 };
-pub use genmap::{generate as generate_map, MapRecipe};
+pub use genmap::{generate as generate_map, generate_vista_grid, MapRecipe, VistaBand, VistaGrid};
 pub use grid::SpatialHash;
 pub use maps::{build as build_map, MapId, MAP_HALF_H, MAP_HALF_W};
 pub use math::{dir, lerp, move_toward, rotate_toward, wrap_angle, Vec2};

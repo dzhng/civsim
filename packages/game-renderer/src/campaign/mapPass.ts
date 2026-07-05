@@ -1398,7 +1398,10 @@ function pushEdgeLines(out: number[], edge: CampaignMapEdgeData) {
       const t1 = Math.min(1, (d + dash) / len);
       const start: [number, number] = [a[0] + dx * t0, a[1] + dy * t0];
       const end: [number, number] = [a[0] + dx * t1, a[1] + dy * t1];
-      pushBand(start, end, [0.58, 0.8, 0.95, 0.5], 0.5);
+      // A dark outline under a bright core so the lane reads on BOTH deep
+      // (dark) and shallow (light) water.
+      pushBand(start, end, [0.04, 0.1, 0.2, 0.85], 1.1);
+      pushBand(start, end, [0.5, 0.8, 1.0, 1.0], 0.6);
     }
   }
 }

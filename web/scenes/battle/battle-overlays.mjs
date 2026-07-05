@@ -1,7 +1,7 @@
 // Tactical ground overlays on REAL rolling terrain — the regression this pins:
 // ground cues and selection rings used to render at flat z = 0 and sink under
-// any rise (invisible order previews, no rings). The world is river-and-crags
-// (the steepest quick-battle map), one unit selected with a queued order, so
+// any rise (invisible order previews, no rings). The world is the generated
+// Highland Vale anchor, one unit selected with a queued order, so
 // the frame proves: per-soldier campaign-style green rings seated on the
 // slope, the destination ring grid + path legs + queue diamond draped over
 // the ground, and the DOM banner planted on the block at its rendered height.
@@ -28,7 +28,7 @@ export async function run(ctx) {
     viewport: { width: 1280, height: 800 },
     errorPrefix: "overlays",
   });
-  await page.goto(`${ctx.target}?map=A&ai=off`);
+  await page.goto(`${ctx.target}?map=gen&seed=7&ai=off`);
   await page.waitForFunction(
     () => {
       const stats = window.__game?.stats?.();

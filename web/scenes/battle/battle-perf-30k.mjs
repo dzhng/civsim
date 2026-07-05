@@ -23,8 +23,8 @@ export const meta = {
 // Locked numbers (interview 2026-07-02): changing either requires David.
 const BUDGET_MS = 33;
 const SOLDIER_FLOOR = 30000;
-// The load the counts may never shrink below (map A base army 15,560 soldiers,
-// 548 scenery props; production grass is the slice-11 blade-field record
+// The load the counts may never shrink below (generated seed 7 base army plus
+// dense scenery; production grass is the slice-11 blade-field record
 // window plus slice-12 routed/thinned blade triangles).
 const SPAWN_TARGET = 30500;
 const SCENERY_FLOOR = 500;
@@ -62,7 +62,7 @@ export async function run(ctx) {
     viewport: { width: 1280, height: 800 },
     errorPrefix: "battle-perf-30k",
   });
-  await page.goto(`${ctx.target}?map=A&ai=off`);
+  await page.goto(`${ctx.target}?map=gen&seed=7&ai=off`);
   await page.waitForFunction(
     () => {
       const stats = window.__game?.stats?.();
@@ -77,7 +77,7 @@ export async function run(ctx) {
     { timeout: 90000 },
   );
 
-  // Grow the map-A battle to the 30k floor through the production spawn path.
+  // Grow the generated battle to the 30k floor through the production spawn path.
   // Fixed grid + fixed establishment => the load is identical every run.
   const spawned = await page.evaluate((target) => {
     const g = window.__game;

@@ -28,8 +28,9 @@ export const NOMINAL_BLADE_HEIGHT_M = 1.0;
 // reported stats snapshot, not the render camera.
 export const VISTA_CAMERA = {
   route: "photoreal-battle",
-  map: "A",
-  mapId: "river-and-crags",
+  map: "gen",
+  seed: 7,
+  mapId: "highland-vale",
   env: "overcast-foggy",
   t: 0,
   ticks: 60,
@@ -44,13 +45,6 @@ export const CLOSE_GATE_CAMERA = {
   profile: "close-gate",
   zoom: 7.86, // rig: pitch 0.263, distance 76, eye ~20 m - blades ratify here
 };
-
-// Geometric north-far-edge line from the locked vista camera, pinned as a
-// regression value. The style contract's horizon-at-0.50 target is
-// unreachable on a flat hand map with the terrain-seated rig (centering the
-// far ground line forces pitch ~0); it binds from slice 02's clay scene
-// onward, where generated relief gives the camera a hill to stand on.
-export const HORIZON_PIN = { ratio: 0.187, tolerance: 0.02 };
 
 export const BAND_CROPS = {
   "near-grass": { x: 0, y: 0.56, width: 1, height: 0.38 },
@@ -69,7 +63,7 @@ const SNAPSHOTS = [
 export const meta = {
   name: "battle-map-style",
   kind: "visual",
-  world: "photoreal-battle-river-and-crags",
+  world: "photoreal-battle-generated-highland-vale",
   tier: "full",
   snapshots: SNAPSHOTS,
   describe:
@@ -98,10 +92,9 @@ export async function run(ctx) {
 
     const horizon = measureFarTerrainHorizon(vista.camera3d);
     ctx.check(
-      "far-terrain horizon measurement runs on the real render camera and is pinned " +
-        "(the 0.50-centered target binds on generated relief, slice 02 onward)",
+      "far-terrain horizon measurement runs on the real render camera and meets the generated-relief target",
       Number.isFinite(horizon.horizonYRatio) &&
-        Math.abs(horizon.horizonYRatio - HORIZON_PIN.ratio) <= HORIZON_PIN.tolerance,
+        Math.abs(horizon.horizonYRatio - HORIZON_TARGET.ratio) <= HORIZON_TARGET.tolerance,
       JSON.stringify(horizon),
     );
 
@@ -206,14 +199,14 @@ async function runOracleCalibration(ctx) {
 function assertPhotorealRoute(ctx, stats) {
   const terrain = stats?.terrain;
   ctx.check(
-    "vista boots river-and-crags on the photoreal battle route with terrain, scenery, and grass",
+    "vista boots Highland Vale on the photoreal battle route with terrain, scenery, and grass",
     stats?.renderer === "gpu" &&
       stats?.projection === "camera3d" &&
       terrain?.environment?.id === "overcast-foggy" &&
       terrain?.fixture === "sim-tint" &&
       terrain?.groundCover === "green-grass" &&
       terrain?.sealedEdges?.includes("west:cliff") &&
-      terrain?.sealedEdges?.includes("east:ocean") &&
+      terrain?.sealedEdges?.includes("east:cliff") &&
       terrain?.groundTriangles > 100000 &&
       terrain?.scenery > 0 &&
       terrain?.grass?.layer === "photoreal-blade-field" &&
@@ -234,7 +227,7 @@ function assertPhotorealRoute(ctx, stats) {
 }
 
 function profileQuery(profile) {
-  return new URLSearchParams({
+  const params = new URLSearchParams({
     map: profile.map,
     ref: "1",
     env: profile.env,
@@ -255,6 +248,8 @@ function profileQuery(profile) {
       "battle-ocean",
     ].join(","),
   });
+  if (profile.seed !== undefined) params.set("seed", String(profile.seed));
+  return params;
 }
 
 function cropByRect(image, rect) {

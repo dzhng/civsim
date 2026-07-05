@@ -1,4 +1,4 @@
-import { useReducer } from "react";
+import { useEffect, useReducer, useRef } from "react";
 import {
   BATTLE_FACTIONS,
   type BattleFactionId,
@@ -20,6 +20,7 @@ import {
   armyConfig,
   DEFAULT_BATTLE_FACTIONS,
   pickArmy,
+  rerollSeed,
   type Army,
   type ArmyBuilderState,
 } from "./armyBuilderState";
@@ -31,8 +32,8 @@ function initialState(): ArmyBuilderState {
   const balanced = QUICK_BATTLE_TEMPLATES[0];
   const make = (): Army => new Map(balanced.units.map((u) => [u.classId, u.count] as const));
   return {
-    mapId: QUICK_BATTLE_MAPS[0]?.wasmMapId ?? 0,
-    generatedSeed: "7",
+    mapId: QUICK_BATTLE_GENERATED_MAP_ID,
+    generatedSeed: rerollSeed("7"),
     armies: [make(), make()],
     factions: [DEFAULT_BATTLE_FACTIONS[0], DEFAULT_BATTLE_FACTIONS[1]],
   };
@@ -50,6 +51,11 @@ interface ArmyBuilderProps {
  * faction choices remain testable without the browser. */
 export function ArmyBuilder({ open, classes, onLaunch, onClose }: ArmyBuilderProps) {
   const [state, dispatch] = useReducer(armyBuilderReducer, undefined, initialState);
+  useEffect(() => {
+    if (!open) return;
+    dispatch({ kind: "map", mapId: QUICK_BATTLE_GENERATED_MAP_ID });
+    dispatch({ kind: "rerollGeneratedSeed" });
+  }, [open]);
   const costOf: ClassCost = (classId) => classes.find((c) => c.id === classId)?.cost ?? 0;
   const validations = state.armies.map((army) =>
     validateQuickBattleArmy(pickArmy(army), costOf),
@@ -108,40 +114,47 @@ export function ArmyBuilder({ open, classes, onLaunch, onClose }: ArmyBuilderPro
             data-map="gen"
             onClick={() => dispatch({ kind: "map", mapId: QUICK_BATTLE_GENERATED_MAP_ID })}
           >
-            <strong>Generated</strong>
-            <div className="qb-generated-controls">
-              <input
-                id="qb-generated-seed"
-                aria-label="Generated battle seed"
-                value={state.generatedSeed}
-                inputMode="numeric"
-                onChange={(e) => dispatch({ kind: "generatedSeed", seed: e.currentTarget.value })}
-                onClick={(e) => e.stopPropagation()}
-              />
-              <button
-                type="button"
-                id="qb-generated-reroll"
-                className="qb-step"
-                title="Reroll generated seed"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  dispatch({ kind: "map", mapId: QUICK_BATTLE_GENERATED_MAP_ID });
-                  dispatch({ kind: "rerollGeneratedSeed" });
-                }}
-              >
-                Roll
-              </button>
-              <button
-                type="button"
-                id="qb-generated-play"
-                className="qb-template"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  window.location.search = `?map=gen&seed=${encodeURIComponent(state.generatedSeed)}`;
-                }}
-              >
-                Play
-              </button>
+            <div className="qb-generated-main">
+              <GeneratedMapPreview seed={state.generatedSeed} />
+              <div className="qb-generated-copy">
+                <strong>Generated</strong>
+                <div className="qb-generated-controls">
+                  <input
+                    id="qb-generated-seed"
+                    aria-label="Generated battle seed"
+                    value={state.generatedSeed}
+                    inputMode="numeric"
+                    onChange={(e) =>
+                      dispatch({ kind: "generatedSeed", seed: e.currentTarget.value })
+                    }
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <button
+                    type="button"
+                    id="qb-generated-reroll"
+                    className="qb-step"
+                    title="Generate random map"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      dispatch({ kind: "map", mapId: QUICK_BATTLE_GENERATED_MAP_ID });
+                      dispatch({ kind: "rerollGeneratedSeed" });
+                    }}
+                  >
+                    Random Map
+                  </button>
+                  <button
+                    type="button"
+                    id="qb-generated-play"
+                    className="qb-template"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.location.search = `?map=gen&seed=${encodeURIComponent(state.generatedSeed)}`;
+                    }}
+                  >
+                    Play
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -169,6 +182,119 @@ export function ArmyBuilder({ open, classes, onLaunch, onClose }: ArmyBuilderPro
       </div>
     </div>
   );
+}
+
+function GeneratedMapPreview({ seed }: { seed: string }) {
+  const ref = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let disposed = false;
+    let game: { free: () => void } | null = null;
+    drawPreviewLoading(ctx, canvas);
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        const wasmModule = await import("../../wasm/game_wasm.js");
+        const wasm = await wasmModule.default();
+        if (disposed) return;
+        const probe = new wasmModule.Game(0x5eed_c0de);
+        game = probe;
+        try {
+          probe.start_battle_generated(parseSeedForWasm(seed));
+          const w = probe.terrain_w();
+          const h = probe.terrain_h();
+          const n = w * h;
+          const speed = new Float32Array(wasm.memory.buffer, probe.terrain_speed_ptr(), n).slice();
+          const rough = new Float32Array(wasm.memory.buffer, probe.terrain_rough_ptr(), n).slice();
+          const tint = new Uint8Array(wasm.memory.buffer, probe.terrain_tint_ptr(), n).slice();
+          if (!disposed) drawPreviewMask(ctx, canvas, { w, h, speed, rough, tint });
+        } finally {
+          probe.free();
+          if (game === probe) game = null;
+        }
+      })().catch(() => {
+        if (!disposed) drawPreviewLoading(ctx, canvas);
+      });
+    }, 180);
+
+    return () => {
+      disposed = true;
+      window.clearTimeout(timer);
+      game?.free();
+    };
+  }, [seed]);
+
+  return (
+    <canvas
+      ref={ref}
+      id="qb-generated-preview"
+      className="qb-generated-preview"
+      width={132}
+      height={88}
+      aria-label="Generated map preview"
+    />
+  );
+}
+
+function drawPreviewLoading(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
+  ctx.fillStyle = "#10120f";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function drawPreviewMask(
+  ctx: CanvasRenderingContext2D,
+  canvas: HTMLCanvasElement,
+  grid: {
+    w: number;
+    h: number;
+    speed: Float32Array;
+    rough: Float32Array;
+    tint: Uint8Array;
+  },
+) {
+  const image = ctx.createImageData(canvas.width, canvas.height);
+  const scale = Math.min(canvas.width / grid.w, canvas.height / grid.h);
+  const mapW = grid.w * scale;
+  const mapH = grid.h * scale;
+  const offX = (canvas.width - mapW) / 2;
+  const offY = (canvas.height - mapH) / 2;
+  for (let py = 0; py < image.height; py++) {
+    for (let px = 0; px < image.width; px++) {
+      const gx = Math.floor((px - offX) / scale);
+      const gy = grid.h - 1 - Math.floor((py - offY) / scale);
+      let color: [number, number, number] = [16, 18, 15];
+      if (gx >= 0 && gy >= 0 && gx < grid.w && gy < grid.h) {
+        const i = gy * grid.w + gx;
+        if (grid.tint[i] === 1) color = [39, 96, 148];
+        else if (grid.tint[i] === 4) color = [36, 91, 43];
+        else if (grid.tint[i] === 5) color = [168, 105, 42];
+        else if (grid.tint[i] === 6) color = [156, 145, 104];
+        else if (grid.speed[i] <= 0) color = [18, 18, 17];
+        else if (grid.rough[i] >= 0.18) color = [126, 137, 84];
+        else if (grid.speed[i] < 0.9) color = [142, 129, 76];
+        else color = [78, 139, 76];
+      }
+      const o = (py * image.width + px) * 4;
+      image.data[o] = color[0];
+      image.data[o + 1] = color[1];
+      image.data[o + 2] = color[2];
+      image.data[o + 3] = 255;
+    }
+  }
+  ctx.putImageData(image, 0, 0);
+}
+
+function parseSeedForWasm(seed: string): bigint {
+  try {
+    const parsed = BigInt(seed);
+    return parsed >= 0n ? BigInt.asUintN(64, parsed) : 0n;
+  } catch {
+    return 0n;
+  }
 }
 
 function ArmyPanel(props: {

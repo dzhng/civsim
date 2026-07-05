@@ -10,10 +10,10 @@ import { PNG } from "pngjs";
 //
 // GPU only (VERIFY_GPU=1); on macOS that means headful + hardware.
 
-const GATE = "coastal-scrub";
-// The 3/4 gameplay camera aimed at the west sea flank (the default field view frames
-// a mid-field rock, no water). Fixed t for a deterministic animated-sea frame.
-const VIEW = `gate=${GATE}&view=field&cx=-1150&cy=-150&t=3.0`;
+const GATE = "shore-and-crags";
+// The 3/4 gameplay camera aimed at the curated east sea flank (the default field
+// view frames midfield, no water). Fixed t for a deterministic animated-sea frame.
+const VIEW = `gate=${GATE}&view=field&cx=1150&cy=-150&t=3.0`;
 
 export const meta = {
   name: "water-open-sea",

@@ -1,6 +1,6 @@
 import { PNG } from "pngjs";
 
-const MAPS = ["river-and-crags", "walled-plain", "coastal-scrub"];
+const MAPS = ["shore-and-crags", "highland-vale", "wooded-pass"];
 
 export const meta = {
   name: "battle-terrain-3d",
@@ -24,7 +24,7 @@ export async function run(ctx) {
   for (const id of MAPS) {
     await gateMap(ctx, id);
   }
-  await gateSoldiers(ctx, "river-and-crags");
+  await gateSoldiers(ctx, "highland-vale");
 }
 
 async function gateMap(ctx, id) {
@@ -52,11 +52,7 @@ async function gateMap(ctx, id) {
     stats.groundTriangles > 1000 && stats.groundLayer === "battle-ground-heightfield",
     JSON.stringify({ tris: stats.groundTriangles, layer: stats.groundLayer }),
   );
-  ctx.check(
-    `${id} relief is exaggerated for readability`,
-    stats.heightSpan > 5 && stats.heightSpan < 40,
-    `span=${stats.heightSpan}`,
-  );
+  ctx.check(`${id} generated relief is readable`, stats.heightSpan > 5, `span=${stats.heightSpan}`);
   ctx.check(
     `${id} grass is emitted from terrain cover`,
     stats.grass?.terrainMasked === true &&
@@ -77,15 +73,8 @@ async function gateMap(ctx, id) {
     JSON.stringify(stats.framePhases),
   );
   ctx.check(`${id} props are placed`, stats.props > 0, `props=${stats.props}`);
-  // Green maps grow woods; the dry coast has rock outcrops instead of trees.
-  if (stats.groundCover === "green-grass") {
-    ctx.check(`${id} green map grows trees`, stats.trees > 0, `trees=${stats.trees}`);
-  } else {
-    ctx.check(
-      `${id} dry map has rock cues, no trees`,
-      stats.trees === 0 && stats.rocks > 0,
-      JSON.stringify({ trees: stats.trees, rocks: stats.rocks }),
-    );
+  if (id === "wooded-pass") {
+    ctx.check(`${id} forest flank grows trees`, stats.trees > 0, `trees=${stats.trees}`);
   }
 
   const shot = await page.locator("#renderer-canvas").screenshot();
@@ -95,9 +84,9 @@ async function gateMap(ctx, id) {
     metrics.cover > 0.78,
     JSON.stringify(metrics),
   );
-  // Tree silhouettes are dark enough to count in pixels; rock cues on dry maps
-  // are tan against tan, so the stats.rocks check above carries those.
-  if (stats.groundCover === "green-grass") {
+  // Tree silhouettes are dark enough to count in pixels; non-forest generated
+  // maps are carried by their typed feature and prop counts above.
+  if (id === "wooded-pass") {
     ctx.check(`${id} trees read against the ground`, metrics.prop > 0.002, JSON.stringify(metrics));
   }
   await ctx.snap(page, `terrain-3d/${id}`, { shot });

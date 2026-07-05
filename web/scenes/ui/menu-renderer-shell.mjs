@@ -58,11 +58,28 @@ export async function run(ctx) {
   // army while overfilling slots flips the army invalid (validation drives the
   // launch gate). This exercises quickBattleCatalog through the real UI.
   await page.click("#menu-quick-battle");
+  await page.waitForFunction(
+    () => {
+      const canvas = document.getElementById("qb-generated-preview");
+      if (!(canvas instanceof HTMLCanvasElement)) return false;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return false;
+      const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      let colored = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i] !== 16 || data[i + 1] !== 18 || data[i + 2] !== 15) colored++;
+      }
+      return colored > canvas.width * canvas.height * 0.25;
+    },
+    undefined,
+    { timeout: 12000 },
+  );
   const qb = await page.evaluate(() => {
     const open = document.getElementById("quick-battle-modal")?.classList.contains("open");
     const maps = Array.from(document.querySelectorAll("#qb-maps .qb-map strong")).map(
       (e) => e.textContent,
     );
+    const randomButton = document.getElementById("qb-generated-reroll")?.textContent?.trim();
     const rows = document.querySelectorAll("#qb-army-0 .qb-row").length;
     const factions = Array.from(
       document.querySelectorAll("#qb-army-0 select, #qb-army-1 select"),
@@ -74,7 +91,7 @@ export async function run(ctx) {
     // Overfill side 0 past the slot cap by clicking the cheapest class's + many times.
     const plus = document.querySelector("#qb-army-0 .qb-row:last-child .qb-step:last-child");
     for (let i = 0; i < 30; i++) plus?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    return { open, maps, rows, factions, defaultValid };
+    return { open, maps, randomButton, rows, factions, defaultValid };
   });
   // The builder re-renders the over-budget state on its own clock (React batches
   // the dispatched clicks), so read the invalidation after it settles.
@@ -95,16 +112,14 @@ export async function run(ctx) {
   ctx.check(
     "Custom Battle setup is catalog-driven with live army validation",
     qb.open === true &&
-      qb.maps.length === 7 &&
-      [
-        "River & Crags",
-        "Walled Plain",
-        "Coastal Scrub",
-        "Shore & Crags",
-        "Highland Vale",
-        "Wooded Pass",
-        "Generated",
-      ].every((label) => qb.maps.includes(label)) &&
+      qb.maps.length === 4 &&
+      ["Shore & Crags", "Highland Vale", "Wooded Pass", "Generated"].every((label) =>
+        qb.maps.includes(label),
+      ) &&
+      !["River & Crags", "Walled Plain", "Coastal Scrub"].some((label) =>
+        qb.maps.includes(label),
+      ) &&
+      qb.randomButton === "Random Map" &&
       qb.rows >= 15 &&
       qb.factions.length === 2 &&
       qb.factions[0]?.value === "azure" &&

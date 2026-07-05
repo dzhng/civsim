@@ -221,15 +221,11 @@ fn settle_overlapping_friendly() {
     }
 }
 
-#[ignore = "formation-settle slice 03b"]
 #[test]
 fn settle_deeply_overlapping_friendly() {
-    // Half-frame-deep overlap (10m): the displaced men's weave REST SHAPE
-    // still demands they stand inside the friend, so the net pull re-feeds
-    // the separation solver even with slot pulls gated and the trajectory
-    // damp active. Needs the lattice rest shape to accommodate obstruction
-    // (bond rest lengths compressing at contact), not another pull gate —
-    // see the spec's 03 slice notes for the three measured non-fixes.
+    // Deep resting overlap: frame targets that sit under a friendly body
+    // are unachievable, so the halted-frame slide must deconflict the
+    // target geometry until the slot pulls terminate on occupiable ground.
     let overlap = 10.0f32;
     let mut sim = Sim::new(Tunables::default(), SEED);
     let unit = block(&mut sim);
@@ -245,9 +241,23 @@ fn settle_deeply_overlapping_friendly() {
     run(&mut sim, 5.0);
     sim.set_move_order_facing(unit, Vec2::new(0.0, 80.0), FRAC_PI_2);
     let arrived = march_until_arrived(&mut sim, unit);
-    println!("arrived at t={arrived:.1}s");
+    println!("[tracer] arrived at t={arrived:.1}s");
     assert_settles(&mut sim, unit, 30.0, 60.0);
     assert_settles(&mut sim, friend, 0.0, 30.0);
+
+    let mut sim = Sim::new(Tunables::default(), SEED);
+    let unit = sim.spawn_unit(Vec2::ZERO, FRAC_PI_2, 350, 35, Vec2::new(1.0, 1.0), 0, 1.0);
+    let friend = sim.spawn_unit(
+        Vec2::new(35.0 - overlap, 0.0),
+        FRAC_PI_2,
+        350,
+        35,
+        Vec2::new(1.0, 1.0),
+        0,
+        1.0,
+    );
+    assert_settles(&mut sim, unit, 40.0, 60.0);
+    assert_settles(&mut sim, friend, 40.0, 60.0);
 }
 
 #[test]

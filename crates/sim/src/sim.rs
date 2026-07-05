@@ -1001,7 +1001,7 @@ impl Sim {
         #[cfg(feature = "force-trace")]
         self.force_trace.extend(tick_force_records);
 
-        // A halted frame with slots on impassable ground slides itself clear:
+        // A halted frame with slots on unoccupiable ground slides itself clear:
         // the ideal formation must always be physically achievable, or the
         // disorder measurement would report a lie forever. (Marching past
         // rocks stays transient by design — this only acts at rest.)
@@ -1009,35 +1009,94 @@ impl Sim {
             if self.tick_count % 15 != (ui as u64) % 15 {
                 continue;
             }
-            let u = &self.units[ui];
-            if u.move_target.is_some() || u.pivoting || u.engaged > 0 || u.alive_count == 0 {
-                continue;
-            }
-            let mut esc = Vec2::ZERO;
-            let mut bad = 0;
-            // EVERY slot: a strided sample once skipped two in-wall slots
-            // forever, and the men assigned to them jittered against the
-            // wall until the whole standing lattice resonated (the shallow
-            // cliff-margin burst cycle). The check runs every 15 ticks on
-            // halted units only — full coverage is cheap and the law's
-            // guarantee ("the ideal formation is always achievable") is
-            // only as good as its weakest sample.
-            for s in 0..u.alive_count {
-                let p = u.slot_world(s);
-                if self.terrain.speed_at(p) <= 0.0 {
-                    esc = esc + self.terrain.escape_dir(p);
-                    bad += 1;
-                }
-            }
-            if bad > 0 {
-                let l = esc.len();
-                let step = if l > 1e-3 {
-                    esc * (1.0 / l)
+            let slide = {
+                let u = &self.units[ui];
+                if u.move_target.is_some() || u.pivoting || u.engaged > 0 || u.alive_count == 0 {
+                    None
                 } else {
-                    dir(self.units[ui].facing + std::f32::consts::PI)
-                };
-                self.units[ui].anchor = self.units[ui].anchor + step * 0.45;
-            }
+                    let my_center = u.center();
+                    let my_centroid = u.centroid;
+                    let my_frame_r = 0.5 * (u.width() + u.depth());
+                    let my_soldier_r = self.radius[u.start];
+                    let body_blockers: Vec<(usize, Vec2)> = self
+                        .units
+                        .iter()
+                        .enumerate()
+                        .filter_map(|(vi, v)| {
+                            if vi == ui || v.alive_count == 0 {
+                                return None;
+                            }
+                            let r = 0.5 * (v.width() + v.depth());
+                            if (v.center() - my_center).len() < my_frame_r + r + 2.0 {
+                                Some((vi, v.centroid))
+                            } else {
+                                None
+                            }
+                        })
+                        .collect();
+
+                    let mut esc = Vec2::ZERO;
+                    let mut bad = 0;
+                    // EVERY slot: a strided sample once skipped two in-wall slots
+                    // forever, and the men assigned to them jittered against the
+                    // wall until the whole standing lattice resonated (the shallow
+                    // cliff-margin burst cycle). The check runs every 15 ticks on
+                    // halted units only — full coverage is cheap and the law's
+                    // guarantee ("the ideal formation is always achievable") is
+                    // only as good as its weakest sample.
+                    for s in 0..u.alive_count {
+                        let p = u.slot_world(s);
+                        if self.terrain.speed_at(p) <= 0.0 {
+                            esc = esc + self.terrain.escape_dir(p);
+                            bad += 1;
+                        }
+
+                        if !body_blockers.is_empty() {
+                            for &(vi, other_centroid) in &body_blockers {
+                                let v = &self.units[vi];
+                                let mut occupied = false;
+                                for i in v.start..v.start + v.count {
+                                    if self.alive[i] == 0 {
+                                        continue;
+                                    }
+                                    let clearance = self.radius[i] + my_soldier_r;
+                                    if (self.soldier_pos(i) - p).len() < clearance {
+                                        occupied = true;
+                                        break;
+                                    }
+                                }
+                                if occupied {
+                                    let away = my_centroid - other_centroid;
+                                    let l = away.len();
+                                    esc = esc
+                                        + if l > 1e-3 {
+                                            away * (1.0 / l)
+                                        } else {
+                                            dir(u.facing + std::f32::consts::PI)
+                                        };
+                                    bad += 1;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if bad > 0 {
+                        let l = esc.len();
+                        let step = if l > 1e-3 {
+                            esc * (1.0 / l)
+                        } else {
+                            dir(self.units[ui].facing + std::f32::consts::PI)
+                        };
+                        Some(step * 0.45)
+                    } else {
+                        None
+                    }
+                }
+            };
+            let Some(slide) = slide else {
+                continue;
+            };
+            self.units[ui].anchor = self.units[ui].anchor + slide;
         }
 
         // Slot maps change in two distinct ways: fighting/advancing casualties

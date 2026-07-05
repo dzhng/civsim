@@ -47,7 +47,10 @@ import { installViewportGate } from "./viewportGate";
 import { Input } from "./input";
 import { MANUAL_HTML } from "./manual";
 import { groupMoveDests, UnitSnap } from "./orders";
-import { fightingFrameForTick } from "../../../packages/crowd-runtime/src/animationState";
+import {
+  fightingFrameForTick,
+  marchingStateForSpeed,
+} from "../../../packages/crowd-runtime/src/animationState";
 import {
   BATTLE_RELIEF_EXAGGERATION,
   type BattleEdgeRole,
@@ -1479,6 +1482,8 @@ export class BattleScene implements Scene {
     let renderFacings = new Float32Array(0); // per-soldier facing for the MESH (pikes ride the frontage)
     let renderPos = new Float32Array(0);
     let prevRenderPos = new Float32Array(0);
+    let prevSimPos = new Float32Array(0);
+    let gaitMoving = new Uint8Array(0);
     let renderPosTick = -1;
     let accumulator = 0;
     let lastFrame = performance.now();
@@ -1537,6 +1542,8 @@ export class BattleScene implements Scene {
           renderFacings = new Float32Array(n);
           renderPos = new Float32Array(pos);
           prevRenderPos = new Float32Array(pos);
+          prevSimPos = new Float32Array(pos);
+          gaitMoving = new Uint8Array(n);
           renderPosTick = simTick;
         }
         const renderTickDelta = Math.max(0, simTick - renderPosTick);
@@ -1613,9 +1620,16 @@ export class BattleScene implements Scene {
             // reads as give-and-take, not synchronized stabbing.
             frames[i] = fightingFrameForTick(simTick, i);
           } else {
-            const dx = updateRenderPos ? renderPos[pi] - prevRenderPos[pi] : 0;
-            const dy = updateRenderPos ? renderPos[pi + 1] - prevRenderPos[pi + 1] : 0;
-            if (dx * dx + dy * dy > 0.0004) {
+            const wasMoving = gaitMoving[i] > 0;
+            const speed = updateRenderPos
+              ? Math.hypot(pos[pi] - prevSimPos[pi], pos[pi + 1] - prevSimPos[pi + 1]) /
+                Math.max(renderTickDelta * TICK_DT, TICK_DT)
+              : wasMoving
+                ? 1
+                : 0;
+            const moving = marchingStateForSpeed(speed, wasMoving);
+            gaitMoving[i] = moving ? 1 : 0;
+            if (moving) {
               const beat = i & 1;
               frames[i] = running[sUnit[i]] ? 8 + beat : 1 + beat; // run vs march beats
             } else frames[i] = atEase[sUnit[i]] ? 6 : 0; // at ease (pikes up) or alert stand
@@ -1657,7 +1671,10 @@ export class BattleScene implements Scene {
             unitAnchorY[u] = unitSumY[u] / unitAliveCount[u];
           }
         }
-        if (updateRenderPos) renderPosTick = simTick;
+        if (updateRenderPos) {
+          prevSimPos.set(pos);
+          renderPosTick = simTick;
+        }
       }
       // Unit standards and readouts are in-scene billboards anchored to the
       // pole top. Upload BEFORE the world draw: while paused the loop only
@@ -1673,7 +1690,7 @@ export class BattleScene implements Scene {
         game.soldier_count(),
         camera,
         renderClass,
-        simTick,
+        frozen ? simTick : simTick + accumulator / TICK_DT,
       );
       // Attack arcs: every soldier mid-swing flashes his weapon's true envelope
       // (reach x arc) — readable combat, straight from the class table. The arc
@@ -2058,6 +2075,7 @@ export class BattleScene implements Scene {
         const a = new Uint8Array(wasm.memory.buffer, game.alive_ptr(), game.soldier_count());
         return a[i] ?? 0;
       },
+      debugSoldierAnim: (i: number) => renderer.debugSoldierAnim(i),
       // The renderer's canonical terrain surface — lets the harness project
       // world anchors (banners, soldiers) at their true rendered height.
       heightAt: (x: number, y: number) => renderer.heightAt(x, y),

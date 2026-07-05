@@ -28,13 +28,13 @@ export const meta = {
     "Cascaded sun shadows: per-preset scenery crops, tier identity per adapter, on/off presence.",
 };
 
-// The eastern tree grove + a soldier formation in one frame (map A). zoom
+// A generated wooded-pass grove + a soldier formation in one frame. zoom
 // clamps to the rig; the grove crop stays legible at either adapter's clamp.
 // zoom 6: the production blade field (slices 11/12) fills a zoom-28 frame
 // with near-macro grass blades - the old framing measured blades, not the
 // grove, and the on/off check read 0 forever.
-const FRAMING = "map=A&t=0&ref=1&zoom=6&cx=560&cy=-380";
-// Grove crop (fractions of the 1280×800 canvas — the eastern tree grove).
+const FRAMING = "map=gen&seed=8&t=0&ref=1&zoom=6&cx=-560&cy=-380";
+// Grove crop (fractions of the 1280×800 canvas — the wooded-pass grove).
 const SCENERY_CROP = { x0: 0.55, y0: 0.56, w: 0.13, h: 0.16 };
 // Formation crop for the golden contact snap (soldier feet on ground).
 const CONTACT_CROP = { x0: 0.22, y0: 0.2, w: 0.13, h: 0.16 };

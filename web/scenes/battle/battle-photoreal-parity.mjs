@@ -33,11 +33,11 @@ export async function run(ctx) {
   }
   const hardware = process.env.VERIFY_GPU_ADAPTER === "hardware";
 
-  // --- The full map-A world at parity framing (crowd on screen) --------------
+  // --- The full generated seed-7 world at parity framing (crowd on screen) ---
   {
     const page = await openRoute(
       ctx,
-      `?map=A&t=${FIXED_TIME}&ref=1&select=1&fx=1&zoom=4.5&cx=0&cy=-650`,
+      `?map=gen&seed=7&t=${FIXED_TIME}&ref=1&select=1&fx=1&zoom=4.5&cx=0&cy=-650&env=golden-hour`,
       "parity",
     );
     const stats = await page.evaluate(() => window.__rendererLabStats);
@@ -61,7 +61,7 @@ export async function run(ctx) {
     );
     // The heightfield firewall tripwire (battle-terrain-elevation mechanics):
     // every instance's elevation must equal the shared terrainHeightAt sample,
-    // and map A's relief must give the crowd a real span.
+    // and generated relief must give the crowd a real span.
     ctx.check(
       "soldiers seat on the shared heightfield (match=true, real relief span)",
       rs?.seating?.matches === true && rs.seating.checked >= SOLDIER_FLOOR && rs.seating.span > 0.5,
@@ -71,7 +71,7 @@ export async function run(ctx) {
       "the full world is assembled (ground + sealed edges + scenery + grass)",
       rs?.terrain?.groundTriangles > 100000 &&
         rs.terrain.sealedEdges.includes("west:cliff") &&
-        rs.terrain.sealedEdges.includes("east:ocean") &&
+        rs.terrain.sealedEdges.includes("east:cliff") &&
         rs.terrain.scenery >= 500 &&
         rs.terrain.grass.layer === "photoreal-blade-field" &&
         rs.terrain.grass.recordCount > 1000 &&
@@ -120,7 +120,7 @@ export async function run(ctx) {
   if (hardware) {
     const page = await openRoute(
       ctx,
-      "?map=A&count=30500&zoom=4.5&cx=0&cy=-650&ref=1",
+      "?map=gen&seed=7&count=30500&zoom=4.5&cx=0&cy=-650&ref=1&env=golden-hour",
       "parity-perf",
     );
     await page.waitForFunction(

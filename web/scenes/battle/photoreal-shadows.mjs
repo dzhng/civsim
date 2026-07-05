@@ -39,7 +39,9 @@ const PRESETS = [
   { env: "golden-hour", preset: "golden", radius: 1.168 },
   { env: "noon", preset: "noon", radius: 1 },
   { env: "dusk", preset: "dusk", radius: 1.448 },
-  { env: "overcast-foggy", preset: "overcast-highland", radius: 3 },
+  // turbidity 7.2 since the slice-17 compose tune (ranges must read through
+  // haze): radius = 1 + (7.2 - 2) * 0.28.
+  { env: "overcast-foggy", preset: "overcast-highland", radius: 2.456 },
 ];
 
 export async function run(ctx) {

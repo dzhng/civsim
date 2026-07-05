@@ -98,8 +98,21 @@ module and benefits from 02's findings.
 
 **Status 2026-07-06 (pass 5): 04 ATTRIBUTED with a working fix candidate
 PARKED (sweeping footprint — needs its own deliberate pass with David).
-Next: EITHER finish 04 as a foundation sub-slice, OR the parked rest-pose
-gates (02b-2, 03b), then 05.**
+The ORIGINAL REPORT is browser-VERIFIED FIXED (see below). Remaining work
+is David-gated: the 04 foundation pass, 03b, 02b-2, then 05 close-out.**
+
+Feel-check (pass 5, real game build, seed-1 gen map, 350-man units,
+sim-time driven via advance()): a 35-degree 60m move order settles to
+0.0035 m/s — statue-still — by ~60s after arrival where it used to churn
+for minutes (`assets/feelcheck3-u0.png`: dressed block, banner centered).
+BUT a unit ordered 8m into a standing friendly's flank NEVER settles at
+game scale (~2 m/s indefinitely, `assets/feelcheck3-u1.png`: two
+interleaved blocks) — the parked 03b family is much louder at 350-man
+scale than the cargo 120-man/10m gate suggests. When 03b is picked up,
+re-pin its gate at game scale (350 men, wide-frame overlap) and treat
+the at-ease-reform relabel storm as a co-suspect with the weave rest
+shape (motion ~2 m/s = men WALKING to reassigned slots, the same transit
+signature as the 04 deep-reform churn).
 
 Slice 04 findings (attribution probes committed;
 `probe_grind_lateral_by_rank` + `probe_trace_grind_lateral_forces`):

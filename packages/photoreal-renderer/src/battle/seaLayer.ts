@@ -77,14 +77,18 @@ const SEA_FOAM_SCALE = 0.74;
 const SEA_SAND_TURBIDITY_DEPTH_START = 0.04;
 const SEA_SAND_TURBIDITY_DEPTH_END = 0.26;
 const LAKE_SHORE_RAMP: WaterShoreRamp = { depthNear: 2, depthFar: 90, hazeNear: 160, hazeFar: 900 };
-const LAKE_SURFACE_LIFT_M = 0.035;
+// 0.035 z-fought the ground at vista distance (cobblestone mosaic - compose
+// rounds 1-2); 0.3 stays visually seated and clears depth precision.
+const LAKE_SURFACE_LIFT_M = 0.3;
 const LAKE_SWELL_SCALE = 0.035;
 // Enough ripple normal to break the sun disk - at ocean-glint smoothness a
 // becalmed lake becomes a mirror and renders as a blown-white patch.
 const LAKE_NORMAL_STRENGTH = 0.42;
 const LAKE_NORMAL_DETAIL_FAR = 0.08;
-const LAKE_NORMAL_DETAIL_FADE_START = 520;
-const LAKE_NORMAL_DETAIL_FADE_END = 1550;
+// Ripple normals must be GONE well before vista range: sun-glint facets
+// alias into blue/white cobblestone blobs at ~600m (compose rounds 1-2).
+const LAKE_NORMAL_DETAIL_FADE_START = 120;
+const LAKE_NORMAL_DETAIL_FADE_END = 420;
 const FIELD_WATER_DETAIL_FADE_START = 420;
 const FIELD_WATER_DETAIL_FADE_END = 1250;
 const WATER_TINT = 1;
@@ -521,8 +525,12 @@ export function createLakePlaneMesh(
   const lakeNormal = displacement.sample(fragXY, frame.time).normal;
   const surfaceNormal = normalize(mix(vec3(0.0, 0.0, 1.0), lakeNormal, normalDetail));
   material.normalNode = transformNormalToView(surfaceNormal);
-  const shoreTurbidity = smoothstepN(0.0, 0.45, depth01);
-  const surface = waterSurfaceNodes(depth01, float(0.0), shoreTurbidity);
+  // Lakes: a NARROW sandy rim only. The wide ocean turbidity regime across a
+  // shallow lake body mottles blue/cream cobblestone (compose rounds 1-2);
+  // the body floors to a deeper pale read.
+  const shoreTurbidity = smoothstepN(0.0, 0.1, depth01);
+  const lakeDepth01 = max(depth01, float(0.42));
+  const surface = waterSurfaceNodes(lakeDepth01, float(0.0), shoreTurbidity);
   material.colorNode = vec4(surface.albedo, 1.0);
   // Lakes read matte-calm, never ocean-glint smooth (see normal note above).
   material.roughnessNode = max(surface.roughness, float(0.3));

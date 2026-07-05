@@ -88,6 +88,10 @@ pub fn has_deployment_corridor(t: &Terrain) -> bool {
     deployment_reachability(t).north_connected
 }
 
+pub fn deployment_corridor_path(t: &Terrain) -> Option<Vec<usize>> {
+    deployment_reachability(t).north_path
+}
+
 pub fn flank_unreachable_fraction(t: &Terrain, side: Side) -> f32 {
     assert!(matches!(side, Side::East | Side::West));
     let reach = deployment_reachability(t);
@@ -165,6 +169,7 @@ pub fn largest_isolated_passable_pocket_cells(t: &Terrain) -> usize {
 struct Reachability {
     seen: Vec<u8>,
     north_connected: bool,
+    north_path: Option<Vec<usize>>,
 }
 
 fn deployment_reachability(t: &Terrain) -> Reachability {
@@ -172,18 +177,21 @@ fn deployment_reachability(t: &Terrain) -> Reachability {
         return Reachability {
             seen: Vec::new(),
             north_connected: false,
+            north_path: None,
         };
     }
     let Some(south) = deployment_band_cells(t, Side::South) else {
         return Reachability {
             seen: vec![0u8; t.w * t.h],
             north_connected: false,
+            north_path: None,
         };
     };
     let Some(north) = deployment_band_cells(t, Side::North) else {
         return Reachability {
             seen: vec![0u8; t.w * t.h],
             north_connected: false,
+            north_path: None,
         };
     };
     let mut target = vec![0u8; t.w * t.h];
@@ -191,43 +199,67 @@ fn deployment_reachability(t: &Terrain) -> Reachability {
         target[i] = 1;
     }
     let mut seen = vec![0u8; t.w * t.h];
+    let mut parent = vec![usize::MAX; t.w * t.h];
     let mut q = VecDeque::new();
     for i in south {
         if t.speed[i] <= 0.0 || seen[i] != 0 {
             continue;
         }
         seen[i] = 1;
+        parent[i] = i;
         q.push_back(i);
     }
     let mut north_connected = false;
+    let mut target_hit = None;
     while let Some(i) = q.pop_front() {
         if target[i] != 0 {
             north_connected = true;
+            if target_hit.is_none() {
+                target_hit = Some(i);
+            }
         }
         let cx = i % t.w;
         let cy = i / t.w;
-        let push = |ni: usize, seen: &mut [u8], q: &mut VecDeque<usize>| {
+        let push = |ni: usize,
+                    from: usize,
+                    seen: &mut [u8],
+                    parent: &mut [usize],
+                    q: &mut VecDeque<usize>| {
             if seen[ni] == 0 && t.speed[ni] > 0.0 {
                 seen[ni] = 1;
+                parent[ni] = from;
                 q.push_back(ni);
             }
         };
         if cx > 0 {
-            push(i - 1, &mut seen, &mut q);
+            push(i - 1, i, &mut seen, &mut parent, &mut q);
         }
         if cx + 1 < t.w {
-            push(i + 1, &mut seen, &mut q);
+            push(i + 1, i, &mut seen, &mut parent, &mut q);
         }
         if cy > 0 {
-            push(i - t.w, &mut seen, &mut q);
+            push(i - t.w, i, &mut seen, &mut parent, &mut q);
         }
         if cy + 1 < t.h {
-            push(i + t.w, &mut seen, &mut q);
+            push(i + t.w, i, &mut seen, &mut parent, &mut q);
         }
     }
+    let north_path = target_hit.map(|mut i| {
+        let mut path = Vec::new();
+        loop {
+            path.push(i);
+            if parent[i] == i || parent[i] == usize::MAX {
+                break;
+            }
+            i = parent[i];
+        }
+        path.reverse();
+        path
+    });
     Reachability {
         seen,
         north_connected,
+        north_path,
     }
 }
 

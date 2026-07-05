@@ -21,10 +21,13 @@ Reference images (in `assets/` and the aesthetics skill):
 
 ## Next Agent Prompt
 
-**Status 2026-07-05: slices 00–03, 10–12 DONE (live-verified; generated maps
-have slope-sealed flanks; blade grass with smooth thinning ships in
-production).** Next pickups: [04-hydrology](slices/04-hydrology.md) (G-track)
-and [13-cliff-material](slices/13-cliff-material.md) (V-track — judge on the
+**Status 2026-07-05: slices 00–04, 10–12 DONE (04 code-landed as
+BMS04-SLICE-B6D9 and corrected by BMS04-FIX-D2C7; browser/blessing
+orchestrator follow-up pending; generated maps have slope-sealed flanks,
+playable-transition priority-flood lakes, descending drainage, and passable
+mud stream beds; blade grass with smooth thinning ships in
+production).** Next pickup: [13-cliff-material](slices/13-cliff-material.md)
+(V-track — judge on the
 generated flank walls via the ?clay=1 route and slope-band constants from
 genmap). Read slice 10's TSL hazards + slice 11's integration findings before
 touching the blade field; the camera-truth trap and oracle re-anchoring live
@@ -53,7 +56,10 @@ Before writing any code, read:
 - [x] 02 — Landform (macro mask × warped noise, clay verdict; real-pipeline
       clay + apron-dish debts routed to slice 03)
 - [x] 03 — Passability from landform (BFS certificates)
-- [ ] 04 — Hydrology (priority-flood lakes, descending rivers, fords)
+- [x] 04 — Hydrology (priority-flood lakes, descending rivers, fords)
+      CODE-LANDED BMS04-SLICE-B6D9; corrected BMS04-FIX-D2C7 after browser
+      evidence; orchestrator still owes browser run and passability-mask
+      baseline blessing.
 - [ ] 05 — Edge grammar + deployment guarantees
 - [ ] 06 — Seed variety + seed browser
 - [x] 10 — False Earth grass port (close-gate ratification)

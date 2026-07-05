@@ -147,7 +147,7 @@ fn edge_connected_highland_cap(t: &Terrain, cap_min_m: f32) -> Vec<u8> {
     seen
 }
 
-fn seal_isolated_passable_pockets(t: &mut Terrain) {
+pub fn seal_isolated_passable_pockets(t: &mut Terrain) {
     if t.w == 0 || t.h == 0 {
         return;
     }

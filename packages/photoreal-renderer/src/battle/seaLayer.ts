@@ -89,8 +89,8 @@ const LAKE_NORMAL_DETAIL_FAR = 0.08;
 // alias into blue/white cobblestone blobs at ~600m (compose rounds 1-2).
 const LAKE_NORMAL_DETAIL_FADE_START = 120;
 const LAKE_NORMAL_DETAIL_FADE_END = 420;
-const FIELD_WATER_DETAIL_FADE_START = 420;
-const FIELD_WATER_DETAIL_FADE_END = 1250;
+const FIELD_WATER_DETAIL_FADE_START = LAKE_NORMAL_DETAIL_FADE_START;
+const FIELD_WATER_DETAIL_FADE_END = LAKE_NORMAL_DETAIL_FADE_END;
 const WATER_TINT = 1;
 
 export interface BattleLakeSurfaceSpec {
@@ -392,7 +392,7 @@ export function fieldWaterSurfaceNodes(
     FIELD_WATER_DETAIL_FADE_END,
     viewDist,
   );
-  const detail = float(1.0).sub(detailFade.mul(0.88)).toVar();
+  const detail = float(1.0).sub(detailFade).toVar();
   const lace = fnoiseN(p.mul(1.2).add(vec2(frame.time.mul(0.05), 0.0)))
     .mul(0.28)
     .add(0.72);

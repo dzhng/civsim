@@ -4,7 +4,7 @@
 //! mid-field ground cover. It skips the deployment frontage and never writes
 //! speed 0, so the certificate owner remains `certify`.
 
-use super::MapRecipe;
+use super::{MapRecipe, RecipeClass};
 use crate::terrain::Terrain;
 pub use contract::FieldTextureRecipe;
 use serde::{Deserialize, Serialize};
@@ -32,25 +32,22 @@ pub struct FieldTextureSummary {
 }
 
 pub fn apply(recipe: &MapRecipe, t: &mut Terrain) {
-    paint_family(
-        recipe,
-        t,
-        FieldKind::Rough,
-        recipe.field_texture.rough_fields,
-    );
-    paint_family(recipe, t, FieldKind::Mud, recipe.field_texture.mud_lowlands);
-    paint_family(
-        recipe,
-        t,
-        FieldKind::Scree,
-        recipe.field_texture.scree_patches,
-    );
-    paint_family(
-        recipe,
-        t,
-        FieldKind::Forest,
-        recipe.field_texture.forest_clumps,
-    );
+    let texture = field_texture_recipe(recipe);
+    paint_family(recipe, t, FieldKind::Rough, texture.rough_fields);
+    paint_family(recipe, t, FieldKind::Mud, texture.mud_lowlands);
+    paint_family(recipe, t, FieldKind::Scree, texture.scree_patches);
+    paint_family(recipe, t, FieldKind::Forest, texture.forest_clumps);
+}
+
+fn field_texture_recipe(recipe: &MapRecipe) -> FieldTextureRecipe {
+    let mut texture = recipe.field_texture;
+    if matches!(super::recipe_class(recipe), RecipeClass::OpenPlain) {
+        texture.forest_clumps = 0;
+        texture.scree_patches = 0;
+        texture.mud_lowlands = 0;
+        texture.rough_fields = texture.rough_fields.min(4);
+    }
+    texture
 }
 
 pub fn summary(t: &Terrain) -> FieldTextureSummary {

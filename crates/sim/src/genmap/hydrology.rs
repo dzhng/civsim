@@ -3,7 +3,7 @@
 //! Priority-flood owns lake levels; D8 accumulation owns stream traces; final
 //! terrain painting is a deterministic post-condition over those masks.
 
-use super::MapRecipe;
+use super::{MapRecipe, RecipeClass};
 use crate::terrain::Terrain;
 pub use contract::HydrologyRecipe;
 use serde::{Deserialize, Serialize};
@@ -72,13 +72,14 @@ pub struct DrainageReport {
 }
 
 pub fn apply(recipe: &MapRecipe, t: &mut Terrain, corridor_path: &[usize]) -> Drainage {
+    let hydrology = hydrology_recipe(recipe);
     let flood = priority_flood(t);
     let flow = flow_accumulation(t, &flood);
     let mut drainage = select_lakes(recipe, t, &flood, corridor_path);
     add_lake_feeder_streams(recipe, t, &mut drainage);
     let traced = trace_streams(recipe, t, &flood, &flow, &drainage.lake);
     for stream in traced {
-        if drainage.streams.len() >= recipe.hydrology.stream_count as usize {
+        if drainage.streams.len() >= hydrology.stream_count as usize {
             break;
         }
         drainage.streams.push(stream);
@@ -91,7 +92,7 @@ pub fn apply(recipe: &MapRecipe, t: &mut Terrain, corridor_path: &[usize]) -> Dr
         t,
         &drainage.lake,
         &drainage.stream,
-        recipe.hydrology.marsh_width_cells as isize,
+        hydrology.marsh_width_cells as isize,
     );
     for (i, &is_lake) in drainage.lake.iter().enumerate() {
         if is_lake != 0 {
@@ -99,6 +100,23 @@ pub fn apply(recipe: &MapRecipe, t: &mut Terrain, corridor_path: &[usize]) -> Dr
         }
     }
     drainage
+}
+
+fn hydrology_recipe(recipe: &MapRecipe) -> HydrologyRecipe {
+    let mut hydrology = recipe.hydrology;
+    match super::recipe_class(recipe) {
+        RecipeClass::FullFeatured => {}
+        RecipeClass::Dry => {
+            hydrology.lake_area_budget = 0.0;
+            hydrology.stream_count = hydrology.stream_count.min(2);
+        }
+        RecipeClass::OpenPlain => {
+            hydrology.lake_area_budget = 0.0;
+            hydrology.stream_count = 0;
+            hydrology.marsh_width_cells = 0;
+        }
+    }
+    hydrology
 }
 
 pub fn paint(drainage: &Drainage, t: &mut Terrain) {
@@ -409,6 +427,7 @@ fn select_lakes(
     flood: &Flood,
     corridor_path: &[usize],
 ) -> Drainage {
+    let hydrology = hydrology_recipe(recipe);
     let n = t.w * t.h;
     let mut wet = vec![0u8; n];
     let mut suppressed_mountain_hollow = vec![0u8; n];
@@ -466,7 +485,7 @@ fn select_lakes(
             .then_with(|| b.max_depth.total_cmp(&a.max_depth))
             .then_with(|| a.first.cmp(&b.first))
     });
-    let budget = ((n as f32) * recipe.hydrology.lake_area_budget).round() as usize;
+    let budget = ((n as f32) * hydrology.lake_area_budget).round() as usize;
     let mut lake = vec![0u8; n];
     let mut water_level = vec![f32::NAN; n];
     let mut used = 0usize;
@@ -529,8 +548,12 @@ fn trace_streams(
     flow: &Flow,
     lake: &[u8],
 ) -> Vec<Vec<usize>> {
+    let hydrology = hydrology_recipe(recipe);
+    if hydrology.stream_count == 0 {
+        return Vec::new();
+    }
     let mut candidates: Vec<usize> = (0..t.w * t.h)
-        .filter(|&i| flow.accum[i] >= recipe.hydrology.stream_accum_threshold)
+        .filter(|&i| flow.accum[i] >= hydrology.stream_accum_threshold)
         .filter(|&i| {
             let (x, y) = world_xy(t, i);
             x.abs() <= 700.0
@@ -559,14 +582,14 @@ fn trace_streams(
             starts.push(i);
             streams.push(path);
         }
-        if streams.len() >= recipe.hydrology.stream_count as usize {
+        if streams.len() >= hydrology.stream_count as usize {
             return streams;
         }
     }
     let mut fallback_candidates: Vec<usize> = (0..t.w * t.h).collect();
     fallback_candidates.sort_by(|&a, &b| flow.accum[b].cmp(&flow.accum[a]).then_with(|| a.cmp(&b)));
     for i in fallback_candidates {
-        if streams.len() >= recipe.hydrology.stream_count as usize {
+        if streams.len() >= hydrology.stream_count as usize {
             break;
         }
         if streams
@@ -611,9 +634,10 @@ fn trace_from(t: &Terrain, flow: &Flow, lake: &[u8], start: usize) -> Vec<usize>
 }
 
 fn add_lake_feeder_streams(recipe: &MapRecipe, t: &Terrain, drainage: &mut Drainage) {
+    let hydrology = hydrology_recipe(recipe);
     let lakes = playable_lake_components(t, &drainage.lake);
     for lake in lakes {
-        if drainage.streams.len() >= recipe.hydrology.stream_count as usize {
+        if drainage.streams.len() >= hydrology.stream_count as usize {
             break;
         }
         if lake.cells.len() < MIN_PLAYABLE_LAKE_CELLS {

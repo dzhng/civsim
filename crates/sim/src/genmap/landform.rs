@@ -110,8 +110,8 @@ fn corridor_mask(recipe: &MapRecipe, p: Vec2) -> f32 {
 
 fn deployment_apron_mask(recipe: &MapRecipe, y: f32) -> f32 {
     let apron_y = recipe.half_h * 0.75;
-    let south = 1.0 - smoothstep(70.0, 260.0, (y + apron_y).abs());
-    let north = 1.0 - smoothstep(70.0, 260.0, (y - apron_y).abs());
+    let south = 1.0 - smootherstep(0.0, 390.0, (y + apron_y).abs());
+    let north = 1.0 - smootherstep(0.0, 390.0, (y - apron_y).abs());
     south.max(north)
 }
 
@@ -199,6 +199,11 @@ fn smoothstep(a: f32, b: f32, x: f32) -> f32 {
 
 fn smooth(t: f32) -> f32 {
     t * t * (3.0 - 2.0 * t)
+}
+
+fn smootherstep(a: f32, b: f32, x: f32) -> f32 {
+    let t = ((x - a) / (b - a)).clamp(0.0, 1.0);
+    t * t * t * (t * (t * 6.0 - 15.0) + 10.0)
 }
 
 fn smooth_deriv(t: f32) -> f32 {

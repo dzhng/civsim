@@ -4,7 +4,7 @@
 // and framed by the SAME shared Camera — so compare-screenshots can hold this
 // route against the production battle at matched camera3d framing.
 //
-//   ?map=A|B      quick-battle map (default A)
+//   ?map=A|B|gen  quick-battle map (default A) or generated seed map
 //   ?env=golden-hour|dusk|overcast-foggy|noon
 //                 environment preset (default golden-hour; slice 09)
 //   ?ai=on        enemy AI (default off — deterministic standing armies)
@@ -19,6 +19,8 @@
 //   ?yaw=R        camera yaw override in radians (same QA knob)
 //   ?camYaw=R     REAL camera yaw (rotates the render camera, like middle-drag
 //                 — unlike ?yaw, which only patches the reported snapshot)
+//   ?clay=1       generated-map landform review: hide grass/scenery/sea and
+//                 swap the live ground mesh to neutral grey clay
 //   ?shadows=off|single|csm
 //                 sun-shadow tier override (slice 11 QA; default = adapter
 //                 probe — csm on hardware, single on software rasterizers)
@@ -26,11 +28,13 @@
 //                 photoreal sea displacement source (12a verdict: Gerstner TSL)
 //   ?post=off     bypass the whole post chain (slice-15 lab A/B)
 //   ?bloom=off    keep the chain but drop the bloom stage (glint on/off pair)
+import * as THREE from "three/webgpu";
 import {
   PhotorealBattleWorld,
   type BattleTacticalLineFrame,
 } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
 import { seaDisplacementSourceFromParam } from "../../../packages/photoreal-renderer/src/battle/seaLayer";
+import { BATTLE_RELIEF_EXAGGERATION } from "../../../packages/game-renderer/src/battle/terrainFeatures";
 import { createPhotorealStatsPublisher } from "../../../packages/photoreal-renderer/src/stats";
 import { Camera } from "../../../web/src/shared/camera";
 import { pushPie } from "../../../web/src/shared/overlays";
@@ -69,9 +73,13 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
   if (params.get("bloom") === "off") world.setBloomEnabled(false);
   const wasm = await initWasm();
   const game = new Game(0x5eed_c0de);
-  game.start_battle(params.get("map") === "B" ? 1 : 0);
+  const generatedMap = params.get("map") === "gen";
+  const generatedSeed = Number(params.get("seed") ?? 7) || 7;
+  if (generatedMap) game.start_battle_generated(BigInt(generatedSeed));
+  else game.start_battle(params.get("map") === "B" ? 1 : 0);
   if (params.get("ai") === "on") game.set_ai_team(1);
-  const wasmMapId = params.get("map") === "B" ? 1 : 0;
+  const wasmMapId = generatedMap ? undefined : params.get("map") === "B" ? 1 : 0;
+  const clayMode = params.get("clay") === "1";
 
   // Grow to ?count through the production spawn path (battle-perf-30k grid).
   const targetCount = Number(params.get("count")) || 0;
@@ -136,6 +144,51 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       if (![...onlyNames].some((n) => o.name.startsWith(n))) o.visible = false;
     });
   };
+  const applyClayMode = () => {
+    if (!clayMode) return;
+    world.setGrassVisible(false);
+    // Clay judges LANDFORM only: haze must not launder or hide silhouettes
+    // (the predecessor spec's recorded rule - clay renders fog-off).
+    (world.world.scene as unknown as { fogNode: unknown }).fogNode = null;
+    world.world.scene.traverse((obj) => {
+      const o = obj as {
+        isMesh?: boolean;
+        visible: boolean;
+        name: string;
+        material?: THREE.Material | THREE.Material[];
+      };
+      if (!o.isMesh) return;
+      if (o.name === "battle-ground") {
+        o.visible = true;
+        const current = Array.isArray(o.material) ? o.material[0] : o.material;
+        if (!current?.userData?.clayReview) {
+          if (Array.isArray(o.material)) o.material.forEach((m) => m.dispose());
+          else o.material?.dispose();
+          const clay = new THREE.MeshStandardMaterial({
+            color: new THREE.Color(0.56, 0.56, 0.54),
+            roughness: 1.0,
+            metalness: 0.0,
+            side: THREE.DoubleSide,
+            // The ground mesh carries no vertex normals (the production
+            // material derives them in TSL) - flat shading computes face
+            // normals in-shader so the relief actually shades.
+            flatShading: true,
+          });
+          clay.userData.clayReview = true;
+          o.material = clay;
+        }
+        return;
+      }
+      if (
+        o.name.startsWith("battle-grass") ||
+        o.name.startsWith("battle-scenery") ||
+        o.name.startsWith("battle-ocean") ||
+        o.name.startsWith("battle-horizon")
+      ) {
+        o.visible = false;
+      }
+    });
+  };
 
   // --- Static per-soldier data + terrain (the setStatic/setTerrain seam) ----
   const applyStatic = () => {
@@ -160,7 +213,10 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       game.terrain_origin_x(),
       game.terrain_origin_y(),
       new Uint8Array(new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), tw * th)),
-      new Float32Array(new Float32Array(wasm.memory.buffer, game.terrain_height_ptr(), tw * th)),
+      heightForPhotorealRoute(
+        new Float32Array(new Float32Array(wasm.memory.buffer, game.terrain_height_ptr(), tw * th)),
+        generatedMap,
+      ),
       wasmMapId,
     );
   }
@@ -463,6 +519,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       world.uploadDebugBlocks(buildDebugBlockTriangles(game, wasm.memory.buffer));
     }
     applyOnly();
+    applyClayMode();
     world.drawTacticalLines(tacticalFrame(), snapshot);
     const s = publish(now);
     const rs = world.stats();
@@ -477,6 +534,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       <tr><td>grass tris</td><td>${rs.terrain?.grass.submittedTriangles ?? 0}</td></tr>
       <tr><td>scenery</td><td>${rs.terrain?.scenery ?? 0}</td></tr>
       <tr><td>sea planes</td><td>${rs.terrain?.sealedEdges.join(", ") || "none"}</td></tr>
+      <tr><td>clay</td><td>${clayMode ? "on" : "off"}</td></tr>
       <tr><td>draw calls</td><td>${s.stats.drawCalls}</td></tr>
       <tr><td>median ms</td><td>${s.stats.medianMs?.toFixed(2) ?? "warmup"}</td></tr>
       <tr><td>gpu ms</td><td>${s.stats.gpuTimeMs?.toFixed(3) ?? "pending"}</td></tr>
@@ -484,6 +542,14 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
     requestAnimationFrame(loop);
   };
   requestAnimationFrame(loop);
+}
+
+function heightForPhotorealRoute(height: Float32Array, generatedMap: boolean): Float32Array {
+  if (!generatedMap) return height;
+  const out = new Float32Array(height.length);
+  const scale = 1 / BATTLE_RELIEF_EXAGGERATION;
+  for (let i = 0; i < height.length; i++) out[i] = height[i] * scale;
+  return out;
 }
 
 // The production ?debug=blocks triangles (renderer.ts buildDebugBlockTriangles).

@@ -17,6 +17,8 @@ pub const SEALED_SIDE_THRESHOLD: f32 = 0.9;
 pub const OPEN_EDGE_THRESHOLD: f32 = 0.6;
 pub const DEPLOYMENT_FRONTAGE_HALF_W: f32 = 350.0;
 pub const DEPLOYMENT_BAND_HALF_H: f32 = 45.0;
+pub const UNREACHABLE_FLANK_THRESHOLD: f32 = 0.95;
+pub const ISOLATED_PASSABLE_POCKET_LIMIT_CELLS: usize = 96;
 
 pub fn side_sealed_fraction(t: &Terrain, side: Side) -> f32 {
     assert!(matches!(side, Side::East | Side::West));
@@ -83,14 +85,106 @@ pub fn deployment_band_passable_fraction(t: &Terrain, side: Side) -> f32 {
 }
 
 pub fn has_deployment_corridor(t: &Terrain) -> bool {
+    deployment_reachability(t).north_connected
+}
+
+pub fn flank_unreachable_fraction(t: &Terrain, side: Side) -> f32 {
+    assert!(matches!(side, Side::East | Side::West));
+    let reach = deployment_reachability(t);
+    let band = edge_band_cells(t);
+    let mut total = 0usize;
+    let mut unreachable = 0usize;
+    for cy in 0..t.h {
+        for b in 0..band {
+            let cx = if side == Side::West { b } else { t.w - 1 - b };
+            let i = cy * t.w + cx;
+            if t.speed[i] <= 0.0 {
+                continue;
+            }
+            total += 1;
+            if reach.seen[i] == 0 {
+                unreachable += 1;
+            }
+        }
+    }
+    if total == 0 {
+        1.0
+    } else {
+        unreachable as f32 / total as f32
+    }
+}
+
+pub fn speed_zero_cells_without_blocking_tint(t: &Terrain) -> usize {
+    t.speed
+        .iter()
+        .zip(t.tint.iter())
+        .filter(|&(speed, tint)| *speed <= 0.0 && *tint != 1 && *tint != 2)
+        .count()
+}
+
+pub fn largest_isolated_passable_pocket_cells(t: &Terrain) -> usize {
+    let reach = deployment_reachability(t);
+    let mut seen = reach.seen.clone();
+    let mut q = VecDeque::new();
+    let mut largest = 0usize;
+    for start in 0..t.w * t.h {
+        if seen[start] != 0 || t.speed[start] <= 0.0 {
+            continue;
+        }
+        seen[start] = 1;
+        q.push_back(start);
+        let mut cells = 0usize;
+        while let Some(i) = q.pop_front() {
+            cells += 1;
+            let cx = i % t.w;
+            let cy = i / t.w;
+            let push = |ni: usize, seen: &mut [u8], q: &mut VecDeque<usize>| {
+                if seen[ni] == 0 && t.speed[ni] > 0.0 {
+                    seen[ni] = 1;
+                    q.push_back(ni);
+                }
+            };
+            if cx > 0 {
+                push(i - 1, &mut seen, &mut q);
+            }
+            if cx + 1 < t.w {
+                push(i + 1, &mut seen, &mut q);
+            }
+            if cy > 0 {
+                push(i - t.w, &mut seen, &mut q);
+            }
+            if cy + 1 < t.h {
+                push(i + t.w, &mut seen, &mut q);
+            }
+        }
+        largest = largest.max(cells);
+    }
+    largest
+}
+
+struct Reachability {
+    seen: Vec<u8>,
+    north_connected: bool,
+}
+
+fn deployment_reachability(t: &Terrain) -> Reachability {
     if t.w == 0 || t.h == 0 {
-        return false;
+        return Reachability {
+            seen: Vec::new(),
+            north_connected: false,
+        };
     }
     let Some(south) = deployment_band_cells(t, Side::South) else {
-        return false;
+        return Reachability {
+            seen: vec![0u8; t.w * t.h],
+            north_connected: false,
+        };
     };
     let Some(north) = deployment_band_cells(t, Side::North) else {
-        return false;
+        return Reachability {
+            seen: vec![0u8; t.w * t.h],
+            north_connected: false,
+        };
     };
     let mut target = vec![0u8; t.w * t.h];
     for i in north {
@@ -105,9 +199,10 @@ pub fn has_deployment_corridor(t: &Terrain) -> bool {
         seen[i] = 1;
         q.push_back(i);
     }
+    let mut north_connected = false;
     while let Some(i) = q.pop_front() {
         if target[i] != 0 {
-            return true;
+            north_connected = true;
         }
         let cx = i % t.w;
         let cy = i / t.w;
@@ -130,7 +225,10 @@ pub fn has_deployment_corridor(t: &Terrain) -> bool {
             push(i + t.w, &mut seen, &mut q);
         }
     }
-    false
+    Reachability {
+        seen,
+        north_connected,
+    }
 }
 
 fn edge_band_cells(t: &Terrain) -> usize {

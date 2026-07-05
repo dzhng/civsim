@@ -1319,7 +1319,7 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData, style: Camp
   let roadEdgesCulled = 0;
   let roadWaterGaps = 0;
   for (const edge of data.map.edges) {
-    if (edge.kind === 'sea') pushEdgeLines(lineVertices, edge);
+    if (edge.kind === 'sea') pushEdgeLines(lineVertices, edge, style.heightAt);
     else if (roadEdgeIsLandSafe(edge, roadAt)) {
       safeRoads.push(edge);
       roadWaterGaps += pushRaisedRoad(roadMeshVertices, edge, style, roadAt);
@@ -1342,7 +1342,7 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData, style: Camp
     stats: {
       roads: roads.length,
       seaLanes: seaLanes.length,
-      lineVertices: Math.floor(lineVertices.length / 6),
+      lineVertices: Math.floor(lineVertices.length / 7),
       roadMeshVertices: Math.floor(roadMeshVertices.length / 10),
       roadJunctionCaps,
       roadEdgesCulled,
@@ -1355,55 +1355,49 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData, style: Camp
   };
 }
 
-function pushEdgeLines(out: number[], edge: CampaignMapEdgeData) {
-  const pushBand = (
-    a: [number, number],
-    b: [number, number],
-    color: [number, number, number, number],
-    halfWidth: number,
-    offset = 0,
-  ) => {
-    const dx = b[0] - a[0];
-    const dy = b[1] - a[1];
+// A SOLID sea lane draped over the water surface: xyz vertices (x, y, z, rgba)
+// lifted onto the height-mapped water so the surface mesh no longer buries it,
+// a dark outline under a bright core so it reads on BOTH deep (dark) and shallow
+// (light) water. `heightAt` is the same water-surface sampler roads/borders use.
+// Built as a CONTINUOUS strip with per-vertex averaged normals so consecutive
+// segments share their offset corners at each waypoint — no notch gaps at bends.
+function pushEdgeLines(
+  out: number[],
+  edge: CampaignMapEdgeData,
+  heightAt?: (x: number, y: number) => number,
+) {
+  // Sit clearly above the animated water surface so waves never occlude it.
+  const LANE_LIFT = 0.6;
+  const pts = edge.via;
+  if (pts.length < 2) return;
+  // Unit normal at each waypoint, averaged from its neighbours so a shared
+  // waypoint yields ONE offset point for both adjacent quads (a mitre join).
+  const normals: [number, number][] = pts.map((_, i) => {
+    const prev = pts[Math.max(0, i - 1)];
+    const next = pts[Math.min(pts.length - 1, i + 1)];
+    const dx = next[0] - prev[0];
+    const dy = next[1] - prev[1];
     const len = Math.hypot(dx, dy) || 1;
-    const nx = -dy / len;
-    const ny = dx / len;
-    const ax0 = a[0] + nx * (offset - halfWidth);
-    const ay0 = a[1] + ny * (offset - halfWidth);
-    const ax1 = a[0] + nx * (offset + halfWidth);
-    const ay1 = a[1] + ny * (offset + halfWidth);
-    const bx0 = b[0] + nx * (offset - halfWidth);
-    const by0 = b[1] + ny * (offset - halfWidth);
-    const bx1 = b[0] + nx * (offset + halfWidth);
-    const by1 = b[1] + ny * (offset + halfWidth);
-    out.push(
-      ax0, ay0, ...color,
-      bx0, by0, ...color,
-      bx1, by1, ...color,
-      ax0, ay0, ...color,
-      bx1, by1, ...color,
-      ax1, ay1, ...color,
-    );
-  };
-  for (let i = 1; i < edge.via.length; i++) {
-    const a = edge.via[i - 1];
-    const b = edge.via[i];
-    const dx = b[0] - a[0];
-    const dy = b[1] - a[1];
-    const len = Math.hypot(dx, dy) || 1;
-    const dash = 12;
-    const gap = 10;
-    for (let d = 0; d < len; d += dash + gap) {
-      const t0 = d / len;
-      const t1 = Math.min(1, (d + dash) / len);
-      const start: [number, number] = [a[0] + dx * t0, a[1] + dy * t0];
-      const end: [number, number] = [a[0] + dx * t1, a[1] + dy * t1];
-      // A dark outline under a bright core so the lane reads on BOTH deep
-      // (dark) and shallow (light) water.
-      pushBand(start, end, [0.04, 0.1, 0.2, 0.85], 1.1);
-      pushBand(start, end, [0.5, 0.8, 1.0, 1.0], 0.6);
+    return [-dy / len, dx / len];
+  });
+  const strip = (halfWidth: number, color: [number, number, number, number]) => {
+    const vert = (p: [number, number], n: [number, number], s: number) => {
+      const x = p[0] + n[0] * s * halfWidth;
+      const y = p[1] + n[1] * s * halfWidth;
+      out.push(x, y, LANE_LIFT + (heightAt?.(x, y) ?? 0), ...color);
+    };
+    for (let i = 1; i < pts.length; i++) {
+      const a = pts[i - 1];
+      const b = pts[i];
+      const na = normals[i - 1];
+      const nb = normals[i];
+      // Two triangles (a-, b-, b+) and (a-, b+, a+), offset by each end's normal.
+      vert(a, na, -1); vert(b, nb, -1); vert(b, nb, 1);
+      vert(a, na, -1); vert(b, nb, 1); vert(a, na, 1);
     }
-  }
+  };
+  strip(1.8, [0.04, 0.1, 0.2, 0.95]);
+  strip(1.0, [0.55, 0.82, 1.0, 1.0]);
 }
 
 /** Returns the number of unbridged water gaps (drawn ribbon stops at a shore). */

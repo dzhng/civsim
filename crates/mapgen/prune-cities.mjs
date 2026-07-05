@@ -30,6 +30,14 @@ for (const e of map.edges) {
 }
 const isPort = (n) => portIds.has(n.id);
 
+// Sea-lane endpoints must never be pruned or merged — the lane connects these
+// exact cities, and the Sicily pair (Rhegium/Messana) sits ~16km apart, inside
+// MIN_DIST_KM. Kept in sync with descope-sea-lanes.mjs KEEP + raster STRAIT_CARVES.
+const LANE_ENDPOINTS = new Set([
+  'Gades', 'Tingi', 'Constantinopolis', 'Nicomedia', 'Rhegium', 'Messana',
+]);
+const isLaneEndpoint = (n) => LANE_ENDPOINTS.has(n.name);
+
 const cities = nodes.filter((n) => n.kind === 'city');
 // Most significant first: tier, then port, then connectivity, then id (stable).
 cities.sort((p, q) =>
@@ -52,7 +60,7 @@ for (const c of cities) {
     const d = Math.hypot(cp[0] - kp[0], cp[1] - kp[1]);
     if (d < nearD) { nearD = d; near = k; }
   }
-  if (near && !(isPort(c) && !isPort(near))) remap.set(c.id, near.id);
+  if (near && !isLaneEndpoint(c) && !(isPort(c) && !isPort(near))) remap.set(c.id, near.id);
   else kept.push(c);
 }
 const resolve = (id) => remap.get(id) ?? id;

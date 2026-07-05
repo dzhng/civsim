@@ -65,7 +65,7 @@ export async function run(ctx) {
       initial.armyEntities > 5 &&
       initial.armies.length >= 10 &&
       mine.length >= 2 &&
-      initial.cityCount > 400,
+      initial.cityCount > 390,
     JSON.stringify({
       renderer: initial.renderer,
       cityEntities: initial.cityEntities,

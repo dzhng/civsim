@@ -28,8 +28,8 @@ fn main() {
     let out_dir = "web/public/data";
     std::fs::create_dir_all(out_dir).unwrap();
 
-    let sites = sources::load_sites(&format!("{dir}/orbis_sites.csv"));
-    let routes = sources::load_routes(&format!("{dir}/orbis_routes.geojson"), &sites);
+    let mut sites = sources::load_sites(&format!("{dir}/orbis_sites.csv"));
+    let mut routes = sources::load_routes(&format!("{dir}/orbis_routes.geojson"), &sites);
     let land = sources::load_polys(&format!("{dir}/ne_50m_land.geojson"), None);
     let lakes = sources::load_polys(&format!("{dir}/ne_50m_lakes.geojson"), None);
     let mountains = sources::load_polys(
@@ -40,6 +40,10 @@ fn main() {
     let overrides: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string("crates/mapgen/overrides.json").unwrap())
             .unwrap();
+
+    // Merge hand-authored geography absent from ORBIS (Rhegium + the Sicily sea
+    // lane / mainland road) before the graph is built.
+    sources::apply_extra_geography(&mut sites, &mut routes, &overrides);
 
     eprintln!(
         "sources: {} sites, {} routes, {} land polys, {} mountain polys, {} river lines",
@@ -52,7 +56,10 @@ fn main() {
 
     let bb = BBox::of(sites.values().map(|s| s.pos)).pad(150.0);
 
-    let r = raster::paint(bb, 0.5, &land, &lakes, &mountains, &rivers);
+    let mut r = raster::paint(bb, 0.5, &land, &lakes, &mountains, &rivers);
+    // Carve straits the 50m coastline (and the 8 km frontend grid) can't resolve
+    // — the channel reads as water through the one land-truth owner.
+    r.carve_straits(raster::STRAIT_CARVES);
 
     let map = build::build(build::BuildInput {
         sites,
@@ -324,8 +331,8 @@ mod tests {
         }
 
         assert_eq!(
-            sea_edges, 2,
-            "sea routes are descoped: exactly the Gibraltar + Hellespont lanes remain"
+            sea_edges, 3,
+            "sea routes are descoped: exactly the Gibraltar + Hellespont + Messina lanes remain"
         );
         assert!(water_cities.is_empty(), "cities on water: {water_cities:?}");
         assert!(

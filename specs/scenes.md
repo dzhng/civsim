@@ -90,8 +90,8 @@ Greppable anchors the implementer will need:
 - Debug seams scenes drive through (do not add more): `window.__game`
   (`stats/unitInfo/select/setOrder/advance/groupMove/freeze/...`),
   `window.__campaign` (`armies/cities/cam/freeze/place/orderMove/tick/
-  battleReady/project/select/...`), the DOM-only banner gallery at
-  `?test=banners`.
+  battleReady/project/select/...`), and renderer-backed visual scenes such as
+  `banner-gallery`.
 - The determinism discipline lives in `.agents/skills/screenshot-regression/
   SKILL.md` — fixed 1280×800 viewport, explicit camera, freeze the clock,
   snap on Day 1 before any `tick()`, wait ~250ms after a camera move. Every
@@ -171,7 +171,7 @@ with a gate that fails when the projection has a hole. Two tiers:
     The old Babylon battle turntable is retired; generated visual coverage
     should come from the raw renderer lab/asset workbench lane.
   - highlight state: none / hover / selected.
-  - ~18 status chips (`unitBanner.ts`: OTH ATK FEN CHG! ⚔N ROUT TIRED KITE
+  - ~18 status chips (`readoutState.ts` / `scene.ts`: OTH ATK FEN CHG! ⚔N ROUT TIRED KITE
     AMMO! 2nd CRUSH BRC PUR SQZ WAIT …) × chip kind (plain/hot/bad); HP and
     cohesion bars at 100/75/50/25/0.
   - 7 battle terrain tints (0 grass,1 water,2 rock,3 wall,4 forest,5 mud,
@@ -231,7 +231,7 @@ web/scenes/fixtures/        # the builders, one per fixture
   specimen-soldier.ts          # render ONE soldier: ?fixture=specimen-soldier&class=&team=&pose= (NEW)
   specimen-marker.ts           # render ONE campaign marker at a given stance/roster (NEW)
   specimen-terrain.ts          # render ONE terrain tint / prop / tree variant (NEW)
-  specimen-banner.ts           # the DOM banner gallery, parameterised per chip (was ?test=banners)
+  specimen-readout.ts          # renderer-backed readout states, parameterised per chip/bar state
 ```
 
 Two fixture roles, matching the two coverage tiers:
@@ -243,7 +243,7 @@ Two fixture roles, matching the two coverage tiers:
   several primitives arranged to show emergent layout.
 
 A fixture is triggered by a uniform URL-param convention (`?fixture=<name>&…`,
-subsuming today's `?campaign=test` and `?test=banners`) and registered in one
+subsuming today's `?campaign=test` and readout gallery mode) and registered in one
 place so the runner and the game agree on the list. The loose `sandbox-1v1.png`
 / `labels-5v5.png` / `combat-*.png` scratch shots in `web/shots/` are the ghosts
 of visual cases that were never given a deterministic home — specimen and stage
@@ -394,7 +394,7 @@ catalog now covers exhaustively.
    `__ready`, `__campaignReady`, and the freeze/place/cam seams). Scenes
    drive through these; do not add *new* production-side hooks to make a
    scene convenient. The fixture *entry points* may be unified
-   (`?campaign=test`/`?test=banners` → a single `?fixture=<name>` convention) —
+   (`?campaign=test`/readout gallery mode → a single `?fixture=<name>` convention) —
    that is in scope; the runtime capabilities they expose are not to grow.
 4. **Sim / renderer / gameplay behavior.** This is a test-harness reorg. The
    `web/src/` changes in scope are pure test scaffolding: relocating fixture

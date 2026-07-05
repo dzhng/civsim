@@ -30,6 +30,14 @@ import {
   type CampaignSelectionInstance,
 } from "../../../packages/game-renderer/src/campaign/selectionPass";
 import {
+  standardSeed,
+  standardWindPhase,
+} from "../../../packages/game-renderer/src/models/shared/standardAsset";
+import {
+  SharedStandardPass,
+  type StandardInstance,
+} from "../../../packages/game-renderer/src/models/shared/standardPass";
+import {
   campaignFactionBorderVertices,
   CampaignTerritoryPass,
 } from "../../../packages/game-renderer/src/campaign/territoryPass";
@@ -114,6 +122,7 @@ export class CampaignRenderer {
   private markers: CampaignMarkerPass | null = null;
   private scenery: CampaignSceneryPass | null = null;
   private entities: CampaignEntityPass | null = null;
+  private standards: SharedStandardPass | null = null;
   private soldierCrowd: SkinnedCrowdPipeline | null = null;
   private soldierShadows: SoldierShadowDecalPass | null = null;
   private mountedClasses: number[] = [];
@@ -309,6 +318,7 @@ export class CampaignRenderer {
       !this.markers ||
       !this.scenery ||
       !this.entities ||
+      !this.standards ||
       !this.soldierCrowd ||
       !this.soldierShadows ||
       !this.selection ||
@@ -337,13 +347,12 @@ export class CampaignRenderer {
     const sceneryTime = animTime;
     this.shell.setTime(sceneryTime);
     this.scenery.upload(
-      campaignScenery(
-        this.sceneryCandidates,
-        campaignSceneryReservations(frame.entities),
-        opts.cam.scale,
-      ).concat(campaignRoadCarts(this.data, this.field, sceneryTime, opts)),
+      campaignScenery(this.sceneryCandidates, frame.sceneryReservations, opts.cam.scale).concat(
+        campaignRoadCarts(this.data, this.field, sceneryTime, opts),
+      ),
     );
     this.entities.upload(frame.entities);
+    this.standards.upload(frame.standards);
     this.soldierCrowd.upload(frame.crowd, { size: CAMPAIGN_FIGURE_SIZE });
     // The grounding shadow radius must track the figure size, or a 2.4x-scaled
     // soldier's default-radius shadow hides under its own body.
@@ -402,6 +411,13 @@ export class CampaignRenderer {
         draw: (pass) => this.entities!.drawOpaque(pass),
       },
       {
+        id: "campaign-standards-opaque",
+        role: "world-opaque",
+        phase: "world-depth",
+        depth: "read-write",
+        draw: (pass) => this.standards!.drawOpaque(pass),
+      },
+      {
         id: "campaign-soldier-crowd",
         role: "world-opaque",
         phase: "world-depth",
@@ -443,6 +459,13 @@ export class CampaignRenderer {
         phase: "world-depth",
         depth: "read",
         draw: (pass) => this.entities!.drawShadows(pass),
+      },
+      {
+        id: "campaign-standard-shadows",
+        role: "world-decal",
+        phase: "world-depth",
+        depth: "read",
+        draw: (pass) => this.standards!.drawShadows(pass),
       },
       {
         id: "campaign-soldier-shadows",
@@ -590,6 +613,7 @@ export class CampaignRenderer {
         3: cityMarkerRadiusPx(3),
       },
       ...this.selection?.stats(),
+      standardStats: this.standards?.stats() ?? null,
       scenery: this.scenery?.stats().scenery ?? 0,
       sceneryStats: this.scenery?.stats() ?? null,
       lineSegments: this.lines?.stats().segments ?? 0,
@@ -732,10 +756,11 @@ export class CampaignRenderer {
     this.scenery = new CampaignSceneryPass(this.shell);
     this.sceneryCandidates = buildCampaignSceneryCandidates(this.data, this.field);
     this.entities = new CampaignEntityPass(this.shell);
+    this.standards = new SharedStandardPass(this.shell);
     // The shared skinned soldier renderer. Army stacks draw a small
     // representative crowd through the SAME pipeline/meshes/VATs/shadow as
     // battle (buildStackCrowd feeds it per stack); the entity pass now only draws
-    // the city and the army's standard banner.
+    // city architecture, while standards are the shared 3D standard pass.
     const soldierKit = await loadPlaceholderKit();
     this.mountedClasses = mountedClassesFromKit(soldierKit);
     this.soldierCrowd = new SkinnedCrowdPipeline(
@@ -792,6 +817,19 @@ const CAMPAIGN_CLOSE_PITCH = 0.82;
 // construction instead of re-hardcoding the size/spacing/shadow-radius.
 export const CAMPAIGN_FIGURE_SIZE = 2.4;
 
+// Standard scale rules — exported so the renderer-lab review surfaces track
+// production by construction instead of re-hardcoding the ratios (the same
+// contract CAMPAIGN_FIGURE_SIZE carries for the figures). Sized toward the
+// Roma reference: the settlement banner towers over the town, the army
+// standard clears its figure crowd.
+export function campaignSettlementStandardScale(cityRadius: number): number {
+  return cityRadius / 2.9;
+}
+
+export function campaignArmyStandardScale(armyRadius: number): number {
+  return armyRadius / 3.5;
+}
+
 // Zoom LOD for the army-stack figures. Below FIGURE_FAR_ZOOM the stack shows the
 // standard banner alone (figures would be sub-readable and cost draw calls over
 // the whole map); the figure count ramps to CAMPAIGN_MAX_FIGURES as the camera
@@ -825,12 +863,20 @@ function buildEntityFrame(
   animTime: number,
 ) {
   const entities: CampaignEntityInstance[] = [];
+  const standards: StandardInstance[] = [];
+  const sceneryReservations: CampaignSceneryReservation[] = [];
   const selections: CampaignSelectionInstance[] = [];
   const crowd: CrowdInstance[] = [];
   const cityEntityAnchors: [number, number][] = [];
   let cityEntities = 0;
   let armyEntities = 0;
   const fixtureScale = isControlledStage(data) ? 1.82 : 1;
+  const garrisonStandardCities = new Set<number>();
+  for (const army of opts.armies) {
+    if (!visibleArmyForModel(opts, army)) continue;
+    const occupiedCity = occupiedCityForArmy(data, army);
+    if (occupiedCity) garrisonStandardCities.add(occupiedCity.index);
+  }
   for (let node = 0; node < data.map.nodes.length; node++) {
     const mapNode = data.map.nodes[node];
     if (mapNode.kind !== "city") continue;
@@ -853,6 +899,25 @@ function buildEntityFrame(
       kind: "city",
       strength: Math.min(1, (city?.garrison ?? 600) / 1200),
     });
+    sceneryReservations.push({
+      x: mapNode.pos[0],
+      y: mapNode.pos[1],
+      radius: cityModelRadius(mapNode.tier) * fixtureScale * 0.48,
+      kind: "city",
+    });
+    if (!garrisonStandardCities.has(node)) {
+      const scale = campaignSettlementStandardScale(cityModelRadius(mapNode.tier) * fixtureScale);
+      standards.push({
+        x: mapNode.pos[0] + 0.08 * scale,
+        y: mapNode.pos[1] + 0.04 * scale,
+        z: field.heightAt(mapNode.pos[0], mapNode.pos[1]),
+        tier: "settlement-banner",
+        factionId: "azure",
+        livery: { field: factionColor(data, owner) },
+        scale,
+        windPhase: standardWindPhase(standardSeed("settlement-banner", `city:${node}`)),
+      });
+    }
     cityEntities++;
     cityEntityAnchors.push([mapNode.pos[0], mapNode.pos[1]]);
     if (node === opts.selectedCity) {
@@ -876,7 +941,7 @@ function buildEntityFrame(
     // Cull by fog visibility, matching visibleCampaignArmies (labels/markers) —
     // not by allegiance. A neutral or allied army standing in the player's
     // vision must keep its close-zoom model and selection, not just its label.
-    if (opts.fogOfWar && !army.mine && !fogVisible(opts, army.x, army.y, 0.18)) continue;
+    if (!visibleArmyForModel(opts, army)) continue;
     const allegiance =
       army.mine || army.faction === opts.playerFaction
         ? Allegiance.Friend
@@ -885,15 +950,22 @@ function buildEntityFrame(
     const display = occupiedCity
       ? garrisonDisplayAnchor(data.map.nodes[occupiedCity.index])
       : { x: army.x, y: army.y };
-    entities.push({
+    const armyScale = campaignArmyStandardScale(6.4 * fixtureScale);
+    standards.push({
       x: display.x,
       y: display.y,
       z: field.heightAt(display.x, display.y),
-      radius: 6.4 * fixtureScale,
-      faction: factionColor(data, army.faction),
-      allegiance: allegianceColor(allegiance),
+      tier: "campaign-army",
+      factionId: "azure",
+      livery: { field: factionColor(data, army.faction) },
+      scale: armyScale,
+      windPhase: standardWindPhase(standardSeed("campaign-army", `army:${army.id}`)),
+    });
+    sceneryReservations.push({
+      x: display.x,
+      y: display.y,
+      radius: 6.4 * fixtureScale * 2.45,
       kind: "army",
-      strength: Math.min(1, Math.max(0.25, army.soldiers / 2600)),
     });
     // Representative figures for this stack, through the shared skinned crowd.
     // Which classes appear is sampled from the live roster; the count scales to
@@ -938,7 +1010,20 @@ function buildEntityFrame(
       });
     }
   }
-  return { entities, selections, crowd, cityEntities, armyEntities, cityEntityAnchors };
+  return {
+    entities,
+    standards,
+    sceneryReservations,
+    selections,
+    crowd,
+    cityEntities,
+    armyEntities,
+    cityEntityAnchors,
+  };
+}
+
+function visibleArmyForModel(opts: DrawOptions, army: ArmyView) {
+  return !opts.fogOfWar || army.mine || fogVisible(opts, army.x, army.y, 0.18);
 }
 
 const CITY_MARKER_BASE_RADIUS_PX = 5.2;
@@ -1245,17 +1330,28 @@ function campaignFactionLabels(data: CampaignData, opts: DrawOptions): CampaignL
   // Faction power = sum of owned city tiers, from live ownership (opts.cities),
   // keyed by faction index — the same index FactionLabel.faction carries.
   const cityTierSum = new Array(data.map.factions.length).fill(0);
+  const cityCentroidX = new Array(data.map.factions.length).fill(0);
+  const cityCentroidY = new Array(data.map.factions.length).fill(0);
   for (const [nodeIndex, city] of opts.cities) {
-    cityTierSum[city.owner] =
-      (cityTierSum[city.owner] ?? 0) + (data.map.nodes[nodeIndex]?.tier ?? 1);
+    const node = data.map.nodes[nodeIndex];
+    const tier = node?.tier ?? 1;
+    cityTierSum[city.owner] = (cityTierSum[city.owner] ?? 0) + tier;
+    cityCentroidX[city.owner] += (node?.pos[0] ?? 0) * tier;
+    cityCentroidY[city.owner] += (node?.pos[1] ?? 0) * tier;
   }
   return opts.factionLabels
     .filter((label) => !opts.fogOfWar || fogVisible(opts, label.x, label.y, 0.14))
     .map(
       (label): CampaignLabel => ({
         text: label.name,
-        x: label.x,
-        y: label.y,
+        x:
+          cityTierSum[label.faction] > 0
+            ? cityCentroidX[label.faction] / cityTierSum[label.faction]
+            : label.x,
+        y:
+          cityTierSum[label.faction] > 0
+            ? cityCentroidY[label.faction] / cityTierSum[label.faction]
+            : label.y,
         kind: "faction",
         size: label.minor ? 9 : 17,
         priority: 4,
@@ -1676,17 +1772,6 @@ interface CampaignSceneryReservation {
   y: number;
   radius: number;
   kind: "city" | "army";
-}
-
-function campaignSceneryReservations(
-  entities: CampaignEntityInstance[],
-): CampaignSceneryReservation[] {
-  return entities.map((entity) => ({
-    x: entity.x,
-    y: entity.y,
-    radius: entity.radius * (entity.kind === "city" ? 0.48 : 2.45),
-    kind: entity.kind,
-  }));
 }
 
 function clearCampaignStaticScenery(data: CampaignData, items: CampaignSceneryInstance[]) {

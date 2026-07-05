@@ -19,18 +19,7 @@ if (location.pathname.startsWith("/renderer")) {
   gpuStatus = await checkGpuSupport({ forceUnsupported: params.get("gpu") === "off" });
   publishAppShellStats();
   wasm = await init();
-
-  // Standalone component harness: render the unit-banner gallery and stop, so the
-  // component can be eyeballed and pixel-snapshotted without the sim or engine.
-  if (params.get("test") === "banners") {
-    const { mountBannerGallery } = await import("./battle/unitBanner");
-    const root = document.createElement("div");
-    document.body.appendChild(root);
-    mountBannerGallery(root);
-    (window as unknown as { __ready: boolean }).__ready = true;
-  } else {
-    await main();
-  }
+  await main();
 }
 
 async function main() {

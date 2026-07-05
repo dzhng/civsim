@@ -248,7 +248,7 @@ pub fn battle_setup_for(
         .collect();
 
     let site = def.loc;
-    let terrain = battlegen::generate(map, site, e.seed);
+    let terrain = battlegen::terrain_source(map, site, st.campaign_seed, e.seed);
     let em = st.encounters.iter_mut().find(|e| e.id == eid).unwrap();
     em.no_retreat = no_retreat;
     em.phase = EncounterPhase::Fighting;

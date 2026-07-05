@@ -5,6 +5,7 @@
 
 use super::MapRecipe;
 use crate::terrain::Terrain;
+pub use contract::HydrologyRecipe;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::collections::{BinaryHeap, VecDeque};
@@ -18,26 +19,6 @@ const STREAM_BED_RADIUS_CELLS: isize = 2;
 const FLOW_EPSILON_M: f32 = 0.000_001;
 const MIN_PLAYABLE_LAKE_CELLS: usize = 1_500;
 const MAX_PLAYABLE_LAKES: usize = 1;
-
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct HydrologyRecipe {
-    pub lake_area_budget: f32,
-    pub stream_count: u8,
-    pub stream_accum_threshold: u32,
-    pub marsh_width_cells: u8,
-}
-
-impl Default for HydrologyRecipe {
-    fn default() -> Self {
-        Self {
-            lake_area_budget: 0.018,
-            stream_count: 3,
-            stream_accum_threshold: 850,
-            marsh_width_cells: 4,
-        }
-    }
-}
 
 #[derive(Clone, Debug)]
 pub struct Drainage {

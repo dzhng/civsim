@@ -3,6 +3,93 @@ mod common;
 use campaign::state::{EncounterPhase, Loc, RosterEntry, Stance};
 use campaign::{pathfind, tunables, units, Campaign};
 use common::{inert, test_map};
+use contract::TerrainSource;
+
+fn pending_open_field_campaign(seed: u64) -> Campaign {
+    let mut c = Campaign::new(test_map(), seed, 0);
+    inert(&mut c);
+    c.state.armies[0].loc = Loc::Edge { edge: 0, tile: 3 };
+    c.state.armies[1].loc = Loc::Edge { edge: 0, tile: 4 };
+    for _ in 0..80 {
+        c.tick();
+        if c.state.battle_ready.is_some() {
+            return c;
+        }
+    }
+    panic!("open-field armies never formed a pending battle");
+}
+
+fn setup_terrain_hash(setup: &contract::BattleSetup) -> u64 {
+    match &setup.terrain {
+        TerrainSource::Recipe(recipe) => sim::genmap::terrain_hash(&sim::generate_map(recipe)),
+        TerrainSource::Ops(spec) => sim::genmap::terrain_hash(&sim::Terrain::from_spec(spec)),
+    }
+}
+
+fn spec_hash(spec: &contract::TerrainSpec) -> u64 {
+    sim::genmap::terrain_hash(&sim::Terrain::from_spec(spec))
+}
+
+fn bridge_map() -> campaign::mapdata::WorldMap {
+    campaign::mapdata::WorldMap::from_json(
+        r#"{
+          "half_w": 40, "half_h": 20,
+          "nodes": [
+            {"id": 1, "name": "A", "pos": [0,0], "kind": "junction", "tier": 0, "port": false, "owner": ""},
+            {"id": 2, "name": "B", "pos": [20,0], "kind": "junction", "tier": 0, "port": false, "owner": ""}
+          ],
+          "edges": [
+            {"a": 1, "b": 2, "kind": "road", "via": [[0,0],[20,0]], "tiles": ["open","bridge","open"]}
+          ],
+          "ambush_spots": [],
+          "factions": [
+            {"id": "red", "name": "Red", "color": [200,0,0], "playable": true},
+            {"id": "independents", "name": "Ind", "color": [90,90,90], "playable": false}
+          ],
+          "start_armies": []
+        }"#,
+    )
+}
+
+fn assert_campaign_recipe_certificates(site: Loc, recipe: &contract::MapRecipe) {
+    let t = sim::generate_map(recipe);
+    use sim::genmap::certify::{self, Side};
+    assert!(
+        certify::has_deployment_corridor(&t),
+        "site {site:?} seed {:#018x} lacks deployment corridor",
+        recipe.seed
+    );
+    assert!(
+        certify::side_sealed_fraction(&t, Side::West) > 0.9,
+        "site {site:?} seed {:#018x} west edge not sealed",
+        recipe.seed
+    );
+    assert!(
+        certify::side_sealed_fraction(&t, Side::East) > 0.9,
+        "site {site:?} seed {:#018x} east edge not sealed",
+        recipe.seed
+    );
+    assert!(
+        certify::open_edge_fraction(&t, Side::South) > 0.6,
+        "site {site:?} seed {:#018x} south edge not open",
+        recipe.seed
+    );
+    assert!(
+        certify::open_edge_fraction(&t, Side::North) > 0.6,
+        "site {site:?} seed {:#018x} north edge not open",
+        recipe.seed
+    );
+    assert!(
+        certify::deployment_band_certificate(&t, Side::South).meets_contract(),
+        "site {site:?} seed {:#018x} south deployment certificate failed",
+        recipe.seed
+    );
+    assert!(
+        certify::deployment_band_certificate(&t, Side::North).meets_contract(),
+        "site {site:?} seed {:#018x} north deployment certificate failed",
+        recipe.seed
+    );
+}
 
 #[test]
 fn hostile_meeting_preps_then_pends() {
@@ -59,6 +146,90 @@ fn faster_army_escapes_slower_chaser() {
         }
     }
     panic!("chase never resolved");
+}
+
+#[test]
+fn open_field_handoff_uses_generated_recipe_seeded_by_campaign_site() {
+    let mut c = pending_open_field_campaign(0xC0FFEE);
+    let eid = c.state.battle_ready.expect("battle pending");
+    let site = c.state.armies[c.state.encounters[0].defender as usize].loc;
+    let setup = c.battle_setup(eid).expect("setup");
+    let TerrainSource::Recipe(recipe) = setup.terrain else {
+        panic!("open-field site should use generated terrain");
+    };
+    assert_eq!(
+        recipe.seed,
+        campaign::battlegen::derived_site_seed(c.state.campaign_seed, site)
+    );
+    assert_campaign_recipe_certificates(site, &recipe);
+}
+
+#[test]
+fn city_and_bridge_sites_keep_existing_ops_templates() {
+    let city_map = campaign::mapdata::WorldMap::from_json(test_map());
+    let bridge_map = bridge_map();
+    let campaign_seed = 0xCA11_5EED;
+    let template_seed = 0xBEEFu64;
+    for (map, site) in [
+        (&city_map, Loc::Node(2)),
+        (&bridge_map, Loc::Edge { edge: 0, tile: 1 }),
+    ] {
+        let expected = campaign::battlegen::ops_template(map, site, template_seed);
+        let actual = campaign::battlegen::terrain_source(map, site, campaign_seed, template_seed);
+        let TerrainSource::Ops(actual) = actual else {
+            panic!("site {site:?} should keep ops terrain");
+        };
+        assert_eq!(spec_hash(&actual), spec_hash(&expected), "site {site:?}");
+    }
+}
+
+#[test]
+fn same_campaign_state_gives_same_generated_battlefield() {
+    let mut a = pending_open_field_campaign(0xCA11_5EED);
+    let mut b = pending_open_field_campaign(0xCA11_5EED);
+    let ha = {
+        let eid = a.state.battle_ready.expect("a battle pending");
+        setup_terrain_hash(&a.battle_setup(eid).expect("a setup"))
+    };
+    let hb = {
+        let eid = b.state.battle_ready.expect("b battle pending");
+        setup_terrain_hash(&b.battle_setup(eid).expect("b setup"))
+    };
+    assert_eq!(ha, hb, "same campaign seed + site must replay same terrain");
+}
+
+#[test]
+fn pending_save_load_replays_identical_generated_battlefield() {
+    let mut c = pending_open_field_campaign(0x51A7E);
+    let save = c.save();
+    let mut replay = Campaign::load(test_map(), &save).expect("reload pending save");
+    let h0 = {
+        let eid = c.state.battle_ready.expect("battle pending before save");
+        setup_terrain_hash(&c.battle_setup(eid).expect("setup before save"))
+    };
+    let h1 = {
+        let eid = replay
+            .state
+            .battle_ready
+            .expect("battle pending after load");
+        setup_terrain_hash(&replay.battle_setup(eid).expect("setup after load"))
+    };
+    assert_eq!(h0, h1, "save/load replay must boot the same battlefield");
+}
+
+#[test]
+fn campaign_derived_recipe_seeds_pass_generated_certificates() {
+    let campaign_seed = 0x19_BA77_1E_u64;
+    for edge in 0..4 {
+        for tile in 0..8 {
+            let site = Loc::Edge { edge, tile };
+            let recipe = contract::MapRecipe {
+                seed: campaign::battlegen::derived_site_seed(campaign_seed, site),
+                ..contract::MapRecipe::default()
+            };
+            assert_campaign_recipe_certificates(site, &recipe);
+        }
+    }
 }
 
 #[test]
@@ -312,7 +483,10 @@ fn handoff_and_outcome_rout_or_annihilation() {
     let eid = c.state.battle_ready.expect("battle pending");
     let setup = c.battle_setup(eid).expect("setup");
     assert_eq!(setup.deployments.len(), 2);
-    assert!(!setup.terrain.ops.is_empty());
+    match &setup.terrain {
+        TerrainSource::Ops(spec) => assert!(!spec.ops.is_empty()),
+        TerrainSource::Recipe(_) => panic!("city assault should keep the ops terrain template"),
+    }
     // Attacker (red, player) must be team 0... red IS the player here, and
     // red attacked, so red = attacker = team 0.
     assert_eq!(setup.deployments[0].team, 0);

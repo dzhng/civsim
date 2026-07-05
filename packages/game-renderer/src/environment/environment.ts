@@ -99,7 +99,10 @@ export const CIVSIM_ENVIRONMENTS: Record<CivsimEnvironmentId, CivsimEnvironment>
     // Battle-overcast-highland is flat HIGH-KEY: the near-white sky is the
     // light source, the direct sun is only a low-contrast grey key, and the
     // turbidity supplies the fog runway before the far ring's outer edge.
-    physical: { sunIntensity: 0.32, exposure: 1.24, turbidity: 9.8 },
+    physical: { sunIntensity: 0.32, exposure: 1.24, // 9.8 swallowed the ranges whole - the reference's identity is ranges
+    // READING THROUGH haze (compose round-2 verdict). 7.2 keeps the runway
+    // (mood scene re-checks saturation) while the walls stay present.
+    turbidity: 7.2 },
   },
 };
 

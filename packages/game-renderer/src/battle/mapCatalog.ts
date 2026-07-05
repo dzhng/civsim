@@ -20,6 +20,8 @@ export interface BattleMapCatalogEntry {
   id: string;
   /** The integer passed to Game.start_battle / load_map. */
   wasmMapId: number;
+  /** Pinned generated-map seed; present only for curated generated entries. */
+  generatedSeed?: string;
   label: string;
   description: string;
   edges: BattleEdgeRoles;
@@ -49,6 +51,14 @@ export interface GeneratedBattleMapManifest {
   };
 }
 
+export interface CuratedGeneratedBattleMapSeed {
+  id: string;
+  label: string;
+  seed: number;
+  description: string;
+  character: string;
+  manifest: GeneratedBattleMapManifest;
+}
 
 // West and east are the sealed sides on every map (open corridor runs N–S);
 // north and south dissolve into distance fog. These roles present the blockers
@@ -80,6 +90,54 @@ export const BATTLE_MAP_CATALOG: readonly BattleMapCatalogEntry[] = [
   },
 ];
 
+export const CURATED_GENERATED_BATTLE_MAP_SEEDS: readonly CuratedGeneratedBattleMapSeed[] = [
+  {
+    id: "shore-and-crags",
+    label: "Shore & Crags",
+    seed: 1,
+    description: "A cliff-bound highland field with a water reach sealing the eastern flank.",
+    character: "water flank",
+    manifest: {
+      seed: 1,
+      groundCover: "green-grass",
+      edges: { north: "open-fog", south: "open-fog", west: "cliff", east: "ocean" },
+    },
+  },
+  {
+    id: "highland-vale",
+    label: "Highland Vale",
+    seed: 7,
+    description: "The pinned generated-map vale: cliff walls on both flanks, open fog north and south.",
+    character: "cliff/cliff anchor",
+    manifest: {
+      seed: 7,
+      groundCover: "green-grass",
+      edges: { north: "open-fog", south: "open-fog", west: "cliff", east: "cliff" },
+    },
+  },
+  {
+    id: "wooded-pass",
+    label: "Wooded Pass",
+    seed: 8,
+    description: "A wooded western flank against an opposing cliff wall and rolling green corridor.",
+    character: "forest flank",
+    manifest: {
+      seed: 8,
+      groundCover: "green-grass",
+      edges: { north: "open-fog", south: "open-fog", west: "cliff", east: "cliff" },
+    },
+  },
+];
+
+export const CURATED_GENERATED_BATTLE_MAP_CATALOG: readonly BattleMapCatalogEntry[] =
+  CURATED_GENERATED_BATTLE_MAP_SEEDS.map((entry) =>
+    generatedBattleMapEntry(entry.manifest, {
+      id: entry.id,
+      label: entry.label,
+      description: entry.description,
+    }),
+  );
+
 export function battleMapById(id: string): BattleMapCatalogEntry | undefined {
   return BATTLE_MAP_CATALOG.find((m) => m.id === id);
 }
@@ -90,6 +148,7 @@ export function battleMapByWasmId(wasmMapId: number): BattleMapCatalogEntry | un
 
 export function generatedBattleMapEntry(
   manifest: GeneratedBattleMapManifest | string,
+  overrides: Partial<Pick<BattleMapCatalogEntry, "id" | "label" | "description">> = {},
 ): BattleMapCatalogEntry {
   const m =
     typeof manifest === 'string'
@@ -100,11 +159,15 @@ export function generatedBattleMapEntry(
   const lakes = features?.lakeCells ?? 0;
   const streams = features?.streams ?? 0;
   const forest = features?.passableForestCells ?? features?.forestCells ?? 0;
+  const fallbackId = `generated-${seed}`;
   return {
-    id: `generated-${seed}`,
+    id: overrides.id ?? fallbackId,
     wasmMapId: -1,
-    label: `Generated ${seed}`,
-    description: `${lakes} lake cells, ${forest} passable forest cells, ${streams} streams.`,
+    generatedSeed: seed,
+    label: overrides.label ?? `Generated ${seed}`,
+    description:
+      overrides.description ??
+      `${lakes} lake cells, ${forest} passable forest cells, ${streams} streams.`,
     edges: m.edges,
     groundCover: m.groundCover,
   };

@@ -10,44 +10,11 @@ pub mod passability;
 
 use crate::math::Vec2;
 use crate::terrain::Terrain;
-use serde::{Deserialize, Serialize};
+pub use contract::{MapRecipe, SlopeBands};
 
 pub const VISTA_CELL_M: f32 = 16.0;
 pub const FAR_FOG_CELL_M: f32 = 64.0;
 pub const FAR_FOG_EXTENT: f32 = 3.5;
-
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-pub struct MapRecipe {
-    #[serde(default)]
-    pub seed: u64,
-    #[serde(default = "default_half_w")]
-    pub half_w: f32,
-    #[serde(default = "default_half_h")]
-    pub half_h: f32,
-    #[serde(default = "default_cell")]
-    pub cell: f32,
-    #[serde(default = "default_vista_extent")]
-    pub vista_extent: f32,
-    #[serde(default)]
-    pub slope_bands: SlopeBands,
-    #[serde(default)]
-    pub hydrology: hydrology::HydrologyRecipe,
-    #[serde(default)]
-    pub edge_seals: edges::EdgeSealRecipe,
-    #[serde(default)]
-    pub field_texture: field_texture::FieldTextureRecipe,
-}
-
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SlopeBands {
-    pub flat_max: f32,
-    pub rolling_max: f32,
-    pub slow_min: f32,
-    pub cliff_min: f32,
-    pub cliff_dilate_cells: u16,
-    pub highland_cap_min_m: f32,
-}
 
 #[derive(Clone, Debug)]
 pub struct VistaGrid {
@@ -83,51 +50,6 @@ pub struct VistaBandSpec {
     pub inner_half_h: f32,
     pub outer_half_w: f32,
     pub outer_half_h: f32,
-}
-
-impl Default for SlopeBands {
-    fn default() -> Self {
-        Self {
-            flat_max: 0.035,
-            rolling_max: 0.115,
-            slow_min: 0.135,
-            cliff_min: 0.32,
-            cliff_dilate_cells: 6,
-            highland_cap_min_m: 35.0,
-        }
-    }
-}
-
-impl Default for MapRecipe {
-    fn default() -> Self {
-        Self {
-            seed: 0,
-            half_w: default_half_w(),
-            half_h: default_half_h(),
-            cell: default_cell(),
-            vista_extent: default_vista_extent(),
-            slope_bands: SlopeBands::default(),
-            hydrology: hydrology::HydrologyRecipe::default(),
-            edge_seals: edges::EdgeSealRecipe::default(),
-            field_texture: field_texture::FieldTextureRecipe::default(),
-        }
-    }
-}
-
-fn default_half_w() -> f32 {
-    1200.0
-}
-
-fn default_half_h() -> f32 {
-    800.0
-}
-
-fn default_cell() -> f32 {
-    4.0
-}
-
-fn default_vista_extent() -> f32 {
-    2.0
 }
 
 /// Pure recipe -> terrain. The heightfield is the highland-corridor landform;

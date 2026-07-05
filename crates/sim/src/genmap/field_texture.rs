@@ -6,6 +6,7 @@
 
 use super::MapRecipe;
 use crate::terrain::Terrain;
+pub use contract::FieldTextureRecipe;
 use serde::{Deserialize, Serialize};
 
 const TINT_GRASS: u8 = 0;
@@ -18,15 +19,8 @@ const TINT_SCREE: u8 = 6;
 const CORRIDOR_TEXTURE_HALF_W: f32 = 430.0;
 const DEPLOYMENT_CLEAN_HALF_W: f32 = 390.0;
 const DEPLOYMENT_CLEAN_HALF_H: f32 = 78.0;
-
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct FieldTextureRecipe {
-    pub forest_clumps: u8,
-    pub scree_patches: u8,
-    pub mud_lowlands: u8,
-    pub rough_fields: u8,
-}
+const PATCH_EDGE_JITTER_D2: f32 = 0.14;
+const PATCH_EDGE_DITHER_BAND_D2: f32 = 0.10;
 
 #[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -35,17 +29,6 @@ pub struct FieldTextureSummary {
     pub scree_cells: usize,
     pub mud_cells: usize,
     pub rough_field_cells: usize,
-}
-
-impl Default for FieldTextureRecipe {
-    fn default() -> Self {
-        Self {
-            forest_clumps: 5,
-            scree_patches: 7,
-            mud_lowlands: 5,
-            rough_fields: 8,
-        }
-    }
 }
 
 pub fn apply(recipe: &MapRecipe, t: &mut Terrain) {
@@ -200,14 +183,22 @@ fn paint_patch(
             let wobble = value_noise(seed, x, y, 54.0) * 0.34
                 + value_noise(seed ^ 0x7717, x, y, 112.0) * 0.22;
             let threshold = 1.0 + wobble - 0.22;
-            if d2 > threshold {
+            let mut signed_edge = threshold - d2;
+            if signed_edge < -PATCH_EDGE_JITTER_D2 {
                 continue;
+            }
+            if signed_edge < PATCH_EDGE_DITHER_BAND_D2 {
+                let edge_noise = hash_cell01(cx as i32, cy as i32, seed ^ 0xb04d_e6e5);
+                signed_edge += (edge_noise - 0.5) * PATCH_EDGE_JITTER_D2;
+                if signed_edge <= 0.0 {
+                    continue;
+                }
             }
             let i = cy * t.w + cx;
             if matches!(kind, FieldKind::Mud) && t.height[i] > lowland_ceiling(recipe, cy_m) {
                 continue;
             }
-            let strength = (1.0 - d2 / threshold.max(0.001)).clamp(0.0, 1.0);
+            let strength = (signed_edge / threshold.max(0.001)).clamp(0.0, 1.0);
             kind.paint_cell(t, i, strength);
         }
     }

@@ -3,7 +3,7 @@ import { cropRatio } from "./battle-map-style-legibility-lib.js";
 import { VIEWPORT, VISTA_CAMERA } from "./battle-map-style.mjs";
 
 const SEED = 7;
-const SEED7_HASH = "0x8ceb1a8a243ea756";
+const SEED7_HASH = "0x9053a4fa78867b91";
 
 const PRESETS = [
   { id: "golden-hour", label: "golden" },

@@ -20,12 +20,13 @@ export const DEFAULT_BATTLE_FACTIONS: [BattleFactionId, BattleFactionId] = ["azu
 export interface ArmyBuilderState {
   mapId: number;
   generatedSeed: string;
+  generatedMapId?: string;
   armies: [Army, Army];
   factions: [BattleFactionId, BattleFactionId];
 }
 
 export type ArmyBuilderAction =
-  | { kind: "map"; mapId: number }
+  | { kind: "map"; mapId: number; generatedSeed?: string; generatedMapId?: string }
   | { kind: "generatedSeed"; seed: string }
   | { kind: "rerollGeneratedSeed" }
   | { kind: "faction"; team: 0 | 1; factionId: BattleFactionId }
@@ -40,11 +41,17 @@ const cloneArmies = (armies: [Army, Army]): [Army, Army] => [
 export function armyBuilderReducer(s: ArmyBuilderState, a: ArmyBuilderAction): ArmyBuilderState {
   switch (a.kind) {
     case "map":
-      return { ...s, mapId: a.mapId };
+      return {
+        ...s,
+        mapId: a.mapId,
+        generatedSeed:
+          a.generatedSeed === undefined ? s.generatedSeed : sanitizeSeed(a.generatedSeed),
+        generatedMapId: a.generatedMapId,
+      };
     case "generatedSeed":
-      return { ...s, generatedSeed: sanitizeSeed(a.seed) };
+      return { ...s, generatedSeed: sanitizeSeed(a.seed), generatedMapId: undefined };
     case "rerollGeneratedSeed":
-      return { ...s, generatedSeed: rerollSeed(s.generatedSeed) };
+      return { ...s, generatedSeed: rerollSeed(s.generatedSeed), generatedMapId: undefined };
     case "faction": {
       const factions: [BattleFactionId, BattleFactionId] = [...s.factions];
       factions[a.team] = a.factionId;

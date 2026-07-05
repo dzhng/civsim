@@ -10,6 +10,7 @@ export interface CampaignDebugApi {
   orderMerge(src: number, dst: number): boolean;
   battleReady(): number;
   fightReady(): boolean;
+  derivedSiteSeed(kind: number, a: number, b: number): bigint;
   currentTick(): number;
   encounterJson(id: number): string;
   armies(): ArmyView[];

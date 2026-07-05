@@ -92,10 +92,7 @@ export class Input {
           // Total War middle-drag: horizontal rotates the view (yaw), vertical
           // tilts it (pitch). Drag down → a lower, more side-on angle.
           camera.yaw += (e.clientX - mDown[0]) * 0.006;
-          camera.pitchBias = Math.max(
-            -0.45,
-            Math.min(1.0, camera.pitchBias + (e.clientY - mDown[1]) * 0.004),
-          );
+          camera.adjustPitchBias((e.clientY - mDown[1]) * 0.004);
           mDown = [e.clientX, e.clientY];
         }
         if (rDown && this.selected.length === 0) {
@@ -241,6 +238,10 @@ export class Input {
       // Q/E rotate the camera (Total War), continuous while held.
       if (held.has("q")) camera.yaw -= 0.035;
       if (held.has("e")) camera.yaw += 0.035;
+      // Z/X tilt: z looks down (toward top-down), x looks up (toward the
+      // horizon) — the same tilt bias the middle-drag drives.
+      if (held.has("z")) camera.adjustPitchBias(-0.02);
+      if (held.has("x")) camera.adjustPitchBias(0.02);
     }, 50);
     signal.addEventListener("abort", () => clearInterval(panTimer));
 
@@ -254,6 +255,10 @@ export class Input {
           Math.pow(1.0015, -e.deltaY),
           onZoomChange,
         );
+        // Scrolling eases any manual tilt back toward the zoom rig's own
+        // pitch curve — the more you scroll, the closer to the intended
+        // orientation (~an order of magnitude per ~15 wheel notches).
+        camera.pitchBias *= Math.pow(0.9985, Math.abs(e.deltaY));
       },
       { passive: false, signal },
     );

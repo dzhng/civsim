@@ -69,6 +69,33 @@ Also standing before re-judge: the two pre-existing regressions from the
 slice-16 sweep (photoreal-shadows toggle, photoreal-sky warm band) - fix
 lane in flight.
 
+## Round 3 verdict (2026-07-05): ACCEPTED for the overcast-highland register
+
+Evidence: assets/compose-round-3/ (3 seeds x 2 presets). After the round-2
+fix lanes (200-250 m walling ranges; the white band = the far-fog ring
+restarting the N/S sink ramp; the water cobblestone = ripple glint aliasing;
+turbidity 9.8 -> 7.2 so ranges READ THROUGH haze):
+
+- The unprimed judge scores the overcast trio IN FAMILY (borderline yes,
+  s7-overcast the cleanest frame): haze language, palette, terrain-owned
+  ranges, natural water, legible armies.
+- Two judge complaints are OVERRULED against the spec's own design and
+  recorded here: the "empty center horizon" is the committed open-N/S
+  design (armies arrive there; haze closes it - README invariant), and
+  golden-hour cannot be judged against an overcast reference (the aesthetics
+  skill pins golden to its own coastal-vista references; it is a different
+  lighting condition over the same materials by design).
+- Three REAL polish debts routed onward (quality, not family): white
+  bead-speck strings on far ridge crests (vista band artifact), golden's
+  razor field/sky line at the open north (extend/soften the N fog-ring
+  edge under thin-haze presets), and residual water weave under golden on
+  stream/reach surfaces. Owners: vista mesh material / aerial / seaLayer;
+  candidates for the 18/20 polish window or a dedicated pass.
+- Gates at acceptance: full genmap+style suite green twice, perf:30k
+  hardware PASS, 64-seed certificates green. David's checkpoint was opened
+  (compose round-1 sheet + browser sheet); no response within the window -
+  proceeded on evidence per the non-blocking rule.
+
 ## Feedback that would change it
 
 David's verdict IS this slice. Each miss becomes a pointer to the owning

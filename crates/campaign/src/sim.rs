@@ -624,6 +624,7 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
         .collect();
     CampaignState {
         version: 1,
+        campaign_seed: seed,
         player_faction: player,
         tick: 0,
         rng: contract::Pcg32::new(seed, 0xCA),

@@ -5,28 +5,48 @@
 // haze comes ONLY from the shared aerial-perspective hook (scene.fogNode,
 // slice 10b) — the sea dissolves into the sky through it, never through an
 // inline haze mix.
-import * as THREE from 'three/webgpu';
+import * as THREE from "three/webgpu";
 import {
-  dot, float, length, mix, normalize, transformNormalToView, varying, vec2, vec3, vec4,
+  dot,
+  float,
+  length,
+  mix,
+  normalize,
+  transformNormalToView,
+  varying,
+  vec2,
+  vec3,
+  vec4,
   max,
-} from 'three/tsl';
-import { attribute } from 'three/tsl';
-import { bakeGerstnerWaves } from '../../../game-renderer/src/water/gerstnerField';
-import { BATTLE_OCEAN_RAMP, FIELD_WATER_RAMP, type WaterShoreRamp } from '../../../game-renderer/src/water/waterShoreRamp';
-import type { BattleOceanPlaneSpec } from '../../../game-renderer/src/battle/horizonPass';
-import type { BattleTerrainGrid } from '../../../game-renderer/src/battle/terrainFeatures';
+} from "three/tsl";
+import { attribute } from "three/tsl";
+import { bakeGerstnerWaves } from "../../../game-renderer/src/water/gerstnerField";
 import {
-  fnoiseN, linearAlbedo, rgbNode, saturateN, smoothstepN,
-  type BattleFrameUniforms, type FloatNode, type Vec2Node, type Vec3Node,
-} from './battleTsl';
+  BATTLE_OCEAN_RAMP,
+  FIELD_WATER_RAMP,
+  type WaterShoreRamp,
+} from "../../../game-renderer/src/water/waterShoreRamp";
+import type { BattleOceanPlaneSpec } from "../../../game-renderer/src/battle/horizonPass";
+import type { BattleTerrainGrid } from "../../../game-renderer/src/battle/terrainFeatures";
+import {
+  fnoiseN,
+  linearAlbedo,
+  rgbNode,
+  saturateN,
+  smoothstepN,
+  type BattleFrameUniforms,
+  type FloatNode,
+  type Vec2Node,
+  type Vec3Node,
+} from "./battleTsl";
 
 // The neutral scattering colour the sea contributes beneath its sky reflection.
 // These are display-authored effective albedos: pale Aegean turquoise in the
 // shallows and a restrained deep-water blue offshore under the golden preset.
-const WATER_SHALLOW_ALBEDO: [number, number, number] = [0.22, 0.58, 0.60];
+const WATER_SHALLOW_ALBEDO: [number, number, number] = [0.22, 0.58, 0.6];
 const WATER_DEEP_ALBEDO: [number, number, number] = [0.025, 0.095, 0.22];
 const WATER_FOAM_ALBEDO: [number, number, number] = [0.92, 0.93, 0.94];
-const WATER_SAND_TURBIDITY_ALBEDO: [number, number, number] = [0.66, 0.58, 0.40];
+const WATER_SAND_TURBIDITY_ALBEDO: [number, number, number] = [0.66, 0.58, 0.4];
 // Calm water is glossy: the sun track is standard-material GGX specular from
 // the live environment sun; foam stays matte.
 const WATER_ROUGHNESS = 0.105;
@@ -40,8 +60,8 @@ const SEA_NORMAL_DETAIL_FADE_START = 720;
 const SEA_NORMAL_DETAIL_FADE_END = 2300;
 const SEA_GLINT_HOT_LUMA_THRESHOLD = 246;
 const SEA_GLINT_HOT_FRACTION_MAX = 0.07;
-const SEA_GLINT_CENTER_SHARE_MIN = 0.60;
-const SEA_SURFACE_OWNER = 'skyModel-ibl-standard-pbr' as const;
+const SEA_GLINT_CENTER_SHARE_MIN = 0.6;
+const SEA_SURFACE_OWNER = "skyModel-ibl-standard-pbr" as const;
 // Sea state — David's register call (2026-07-02): calm Aegean, waves present
 // but not choppy, and battle water sits near shore. One knob scales every
 // wave amplitude (photoreal sea only; the shared bespoke baker is untouched).
@@ -57,11 +77,20 @@ const SEA_FOAM_SCALE = 0.74;
 const SEA_SAND_TURBIDITY_DEPTH_START = 0.04;
 const SEA_SAND_TURBIDITY_DEPTH_END = 0.26;
 const LAKE_SHORE_RAMP: WaterShoreRamp = { depthNear: 2, depthFar: 90, hazeNear: 160, hazeFar: 900 };
-const LAKE_SURFACE_LIFT_M = 0.035;
+// 0.035 z-fought the ground at vista distance (cobblestone mosaic - compose
+// rounds 1-2); 0.3 stays visually seated and clears depth precision.
+const LAKE_SURFACE_LIFT_M = 0.3;
 const LAKE_SWELL_SCALE = 0.035;
 // Enough ripple normal to break the sun disk - at ocean-glint smoothness a
 // becalmed lake becomes a mirror and renders as a blown-white patch.
 const LAKE_NORMAL_STRENGTH = 0.42;
+const LAKE_NORMAL_DETAIL_FAR = 0.08;
+// Ripple normals must be GONE well before vista range: sun-glint facets
+// alias into blue/white cobblestone blobs at ~600m (compose rounds 1-2).
+const LAKE_NORMAL_DETAIL_FADE_START = 120;
+const LAKE_NORMAL_DETAIL_FADE_END = 420;
+const FIELD_WATER_DETAIL_FADE_START = 420;
+const FIELD_WATER_DETAIL_FADE_END = 1250;
 const WATER_TINT = 1;
 
 export interface BattleLakeSurfaceSpec {
@@ -84,13 +113,13 @@ interface WaterSampleNodes {
   foam: FloatNode;
 }
 
-export type SeaDisplacementSourceId = 'gerstner-tsl';
-export type SeaDisplacementTier = 'gerstner-tsl';
+export type SeaDisplacementSourceId = "gerstner-tsl";
+export type SeaDisplacementTier = "gerstner-tsl";
 
 export interface SeaSurfaceStats {
   owner: typeof SEA_SURFACE_OWNER;
-  skyReflection: 'scene.environment:skyModel-lut';
-  sunGlint: 'mesh-standard-ggx';
+  skyReflection: "scene.environment:skyModel-lut";
+  sunGlint: "mesh-standard-ggx";
   shallowAlbedo: [number, number, number];
   deepAlbedo: [number, number, number];
   foamAlbedo: [number, number, number];
@@ -149,13 +178,13 @@ export interface SeaDisplacementSource {
 }
 
 class GerstnerSeaSource implements SeaDisplacementSource {
-  readonly source = 'gerstner-tsl' as const;
+  readonly source = "gerstner-tsl" as const;
   readonly requested: SeaDisplacementSourceId;
   readonly tier: SeaDisplacementTier;
 
   constructor(
-    requested: SeaDisplacementSourceId = 'gerstner-tsl',
-    tier: SeaDisplacementTier = 'gerstner-tsl',
+    requested: SeaDisplacementSourceId = "gerstner-tsl",
+    tier: SeaDisplacementTier = "gerstner-tsl",
   ) {
     this.requested = requested;
     this.tier = tier;
@@ -183,13 +212,15 @@ class GerstnerSeaSource implements SeaDisplacementSource {
   }
 }
 
-export function seaDisplacementSourceFromParam(value: string | null | undefined): SeaDisplacementSourceId {
-  const normalized = value === 'gerstner' || value === 'gerstner-tsl' ? value : 'gerstner-tsl';
-  return normalized === 'gerstner' ? 'gerstner-tsl' : normalized;
+export function seaDisplacementSourceFromParam(
+  value: string | null | undefined,
+): SeaDisplacementSourceId {
+  const normalized = value === "gerstner" || value === "gerstner-tsl" ? value : "gerstner-tsl";
+  return normalized === "gerstner" ? "gerstner-tsl" : normalized;
 }
 
 export function createSeaDisplacementSource(
-  requested: SeaDisplacementSourceId = 'gerstner-tsl',
+  requested: SeaDisplacementSourceId = "gerstner-tsl",
 ): SeaDisplacementSource {
   return new GerstnerSeaSource(requested);
 }
@@ -197,8 +228,8 @@ export function createSeaDisplacementSource(
 export function seaSurfaceStats(): SeaSurfaceStats {
   return {
     owner: SEA_SURFACE_OWNER,
-    skyReflection: 'scene.environment:skyModel-lut',
-    sunGlint: 'mesh-standard-ggx',
+    skyReflection: "scene.environment:skyModel-lut",
+    sunGlint: "mesh-standard-ggx",
     shallowAlbedo: WATER_SHALLOW_ALBEDO,
     deepAlbedo: WATER_DEEP_ALBEDO,
     foamAlbedo: WATER_FOAM_ALBEDO,
@@ -252,7 +283,11 @@ export function waterFieldNodes(p: Vec2Node, t: FloatNode): WaterSampleNodes {
     const w = Math.sqrt(g * k);
     // Per-wave phase offset so the trains don't all align at the world origin.
     const ph0 = fract53(Math.sin(i * 127.1 + wv.wavelength * 3.71) * 43758.5453) * 6.2831853;
-    const phase = dot(vec2(wv.dirX, wv.dirY), p).mul(k).sub(t.mul(w * 0.42)).add(ph0).toVar();
+    const phase = dot(vec2(wv.dirX, wv.dirY), p)
+      .mul(k)
+      .sub(t.mul(w * 0.42))
+      .add(ph0)
+      .toVar();
     const s = phase.sin().toVar();
     const c = phase.cos().toVar();
     const hump = s.mul(0.5).add(0.5).toVar(); // 0..1 wave profile
@@ -270,10 +305,15 @@ export function waterFieldNodes(p: Vec2Node, t: FloatNode): WaterSampleNodes {
   const crest = smoothstepN(SEA_FOAM_HEIGHT_START, SEA_FOAM_HEIGHT_END, height);
   const slopeEnergy = slopeX.mul(slopeX).add(slopeY.mul(slopeY)).toVar();
   const agitation = smoothstepN(SEA_FOAM_SLOPE_START, SEA_FOAM_SLOPE_END, slopeEnergy);
-  const speckle = fnoiseN(p.mul(0.5).add(vec2(t.mul(0.10), t.mul(0.05)))).mul(0.42)
+  const speckle = fnoiseN(p.mul(0.5).add(vec2(t.mul(0.1), t.mul(0.05))))
+    .mul(0.42)
     .add(fnoiseN(p.mul(1.3).sub(vec2(t.mul(0.06), t.mul(0.09)))).mul(0.34))
     .add(fnoiseN(p.mul(3.0).add(vec2(t.mul(0.04), t.mul(-0.07)))).mul(0.24));
-  const foam = crest.mul(agitation).mul(smoothstepN(SEA_FOAM_SPECKLE_START, SEA_FOAM_SPECKLE_END, speckle)).mul(SEA_FOAM_SCALE).toVar();
+  const foam = crest
+    .mul(agitation)
+    .mul(smoothstepN(SEA_FOAM_SPECKLE_START, SEA_FOAM_SPECKLE_END, speckle))
+    .mul(SEA_FOAM_SCALE)
+    .toVar();
   return { height, normal, foam };
 }
 
@@ -288,9 +328,17 @@ export function waterHeightNode(p: Vec2Node, t: FloatNode): FloatNode {
     const k = 6.2831853 / wv.wavelength;
     const w = Math.sqrt(g * k);
     const ph0 = fract53(Math.sin(i * 127.1 + wv.wavelength * 3.71) * 43758.5453) * 6.2831853;
-    const phase = dot(vec2(wv.dirX, wv.dirY), p).mul(k).sub(t.mul(w * 0.42)).add(ph0);
+    const phase = dot(vec2(wv.dirX, wv.dirY), p)
+      .mul(k)
+      .sub(t.mul(w * 0.42))
+      .add(ph0);
     const hump = phase.sin().mul(0.5).add(0.5).toVar();
-    h = h.add(hump.mul(hump).sub(0.333).mul(wv.amplitude * SEA_SWELL_SCALE));
+    h = h.add(
+      hump
+        .mul(hump)
+        .sub(0.333)
+        .mul(wv.amplitude * SEA_SWELL_SCALE),
+    );
   }
   return h;
 }
@@ -338,8 +386,20 @@ export function fieldWaterSurfaceNodes(
   shoreDist: FloatNode,
 ): WaterSurfaceNodes {
   const swash = smoothstepN(0.16, 0.02, shoreDist).mul(smoothstepN(0.006, 0.03, shoreDist));
-  const lace = fnoiseN(p.mul(1.2).add(vec2(frame.time.mul(0.05), 0.0))).mul(0.28).add(0.72);
-  return waterSurfaceNodes(shoreDepthNode(FIELD_WATER_RAMP, shoreDist), swash.mul(lace).mul(0.7));
+  const viewDist = length(p.sub(vec2(frame.focus))).toVar();
+  const detailFade = smoothstepN(
+    FIELD_WATER_DETAIL_FADE_START,
+    FIELD_WATER_DETAIL_FADE_END,
+    viewDist,
+  );
+  const detail = float(1.0).sub(detailFade.mul(0.88)).toVar();
+  const lace = fnoiseN(p.mul(1.2).add(vec2(frame.time.mul(0.05), 0.0)))
+    .mul(0.28)
+    .add(0.72);
+  return waterSurfaceNodes(
+    shoreDepthNode(FIELD_WATER_RAMP, shoreDist),
+    swash.mul(lace).mul(0.7).mul(detail),
+  );
 }
 
 /** One battle ocean-edge plane (waterPlanePass battle mode): the displaced
@@ -368,16 +428,20 @@ export function createOceanPlaneMesh(
       const b = a + 1;
       const c = a + side;
       const d = c + 1;
-      indices[k++] = a; indices[k++] = c; indices[k++] = b;
-      indices[k++] = b; indices[k++] = c; indices[k++] = d;
+      indices[k++] = a;
+      indices[k++] = c;
+      indices[k++] = b;
+      indices[k++] = b;
+      indices[k++] = c;
+      indices[k++] = d;
     }
   }
   const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
   geo.setIndex(new THREE.BufferAttribute(indices, 1));
 
   const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, metalness: 0 });
-  const worldXY = attribute<'vec3'>('position', 'vec3').xy;
+  const worldXY = attribute<"vec3">("position", "vec3").xy;
   material.positionNode = vec3(worldXY, displacement.height(worldXY, frame.time).add(spec.baseZ));
   const fragXY = varying(worldXY).toVar();
   // Depth and agitation ramp on DIFFERENT distances: pale turquoise near the
@@ -385,15 +449,27 @@ export function createOceanPlaneMesh(
   // only with real swell agitation.
   const shoreDist = fragXY.x.sub(spec.shoreX).abs().toVar();
   const depth01 = shoreDepthNode(BATTLE_OCEAN_RAMP, shoreDist);
-  const shoreTurbidity = smoothstepN(SEA_SAND_TURBIDITY_DEPTH_START, SEA_SAND_TURBIDITY_DEPTH_END, depth01);
+  const shoreTurbidity = smoothstepN(
+    SEA_SAND_TURBIDITY_DEPTH_START,
+    SEA_SAND_TURBIDITY_DEPTH_END,
+    depth01,
+  );
   const agitation = smoothstepN(0.0, 3200.0, shoreDist).toVar();
   const viewDist = length(fragXY.sub(vec2(frame.focus))).toVar();
-  const distanceFade = smoothstepN(SEA_NORMAL_DETAIL_FADE_START, SEA_NORMAL_DETAIL_FADE_END, viewDist).toVar();
-  const detail = mix(float(SEA_NORMAL_DETAIL_NEAR), float(SEA_NORMAL_DETAIL_FAR), distanceFade).toVar();
+  const distanceFade = smoothstepN(
+    SEA_NORMAL_DETAIL_FADE_START,
+    SEA_NORMAL_DETAIL_FADE_END,
+    viewDist,
+  ).toVar();
+  const detail = mix(
+    float(SEA_NORMAL_DETAIL_NEAR),
+    float(SEA_NORMAL_DETAIL_FAR),
+    distanceFade,
+  ).toVar();
   // Fragment-stage field sample = the crisp swell normal. Fade high-frequency
   // normal detail with distance so the grazing band cannot sparkle/moire.
   const s = displacement.sample(fragXY, frame.time);
-  const normalStrength = mix(float(0.30), float(1.0), agitation).mul(detail);
+  const normalStrength = mix(float(0.3), float(1.0), agitation).mul(detail);
   const surfaceNormal = normalize(mix(vec3(0.0, 0.0, 1.0), s.normal, normalStrength));
   material.normalNode = transformNormalToView(surfaceNormal);
   const surface = waterSurfaceNodes(depth01, s.foam.mul(agitation), shoreTurbidity);
@@ -401,7 +477,7 @@ export function createOceanPlaneMesh(
   material.roughnessNode = surface.roughness;
 
   const mesh = new THREE.Mesh(geo, material);
-  mesh.name = 'battle-ocean-plane';
+  mesh.name = "battle-ocean-plane";
   mesh.frustumCulled = false;
   return mesh;
 }
@@ -419,24 +495,42 @@ export function createLakePlaneMesh(
   if (!mesh) return null;
 
   const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(mesh.positions, 3));
-  geo.setAttribute('shoreDist', new THREE.BufferAttribute(mesh.shoreDist, 1));
+  geo.setAttribute("position", new THREE.BufferAttribute(mesh.positions, 3));
+  geo.setAttribute("shoreDist", new THREE.BufferAttribute(mesh.shoreDist, 1));
   geo.setIndex(new THREE.BufferAttribute(mesh.indices, 1));
 
   const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, metalness: 0 });
-  const worldXY = attribute<'vec3'>('position', 'vec3').xy;
+  const worldXY = attribute<"vec3">("position", "vec3").xy;
   material.positionNode = vec3(
     worldXY,
-    displacement.height(worldXY, frame.time).mul(LAKE_SWELL_SCALE).add(spec.level + LAKE_SURFACE_LIFT_M),
+    displacement
+      .height(worldXY, frame.time)
+      .mul(LAKE_SWELL_SCALE)
+      .add(spec.level + LAKE_SURFACE_LIFT_M),
   );
   const fragXY = varying(worldXY).toVar();
-  const shoreDist = varying(attribute<'float'>('shoreDist', 'float')).toVar();
+  const shoreDist = varying(attribute<"float">("shoreDist", "float")).toVar();
   const depth01 = shoreDepthNode(LAKE_SHORE_RAMP, shoreDist);
+  const viewDist = length(fragXY.sub(vec2(frame.focus))).toVar();
+  const detailFade = smoothstepN(
+    LAKE_NORMAL_DETAIL_FADE_START,
+    LAKE_NORMAL_DETAIL_FADE_END,
+    viewDist,
+  );
+  const normalDetail = mix(
+    float(LAKE_NORMAL_STRENGTH),
+    float(LAKE_NORMAL_DETAIL_FAR),
+    detailFade,
+  ).toVar();
   const lakeNormal = displacement.sample(fragXY, frame.time).normal;
-  const surfaceNormal = normalize(mix(vec3(0.0, 0.0, 1.0), lakeNormal, LAKE_NORMAL_STRENGTH));
+  const surfaceNormal = normalize(mix(vec3(0.0, 0.0, 1.0), lakeNormal, normalDetail));
   material.normalNode = transformNormalToView(surfaceNormal);
-  const shoreTurbidity = smoothstepN(0.0, 0.45, depth01);
-  const surface = waterSurfaceNodes(depth01, float(0.0), shoreTurbidity);
+  // Lakes: a NARROW sandy rim only. The wide ocean turbidity regime across a
+  // shallow lake body mottles blue/cream cobblestone (compose rounds 1-2);
+  // the body floors to a deeper pale read.
+  const shoreTurbidity = smoothstepN(0.0, 0.1, depth01);
+  const lakeDepth01 = max(depth01, float(0.42));
+  const surface = waterSurfaceNodes(lakeDepth01, float(0.0), shoreTurbidity);
   material.colorNode = vec4(surface.albedo, 1.0);
   // Lakes read matte-calm, never ocean-glint smooth (see normal note above).
   material.roughnessNode = max(surface.roughness, float(0.3));
@@ -478,7 +572,10 @@ function buildLakePlaneGeometry(
     const x1 = x0 + grid.cell;
     const y0 = grid.oy + cy * grid.cell;
     const y1 = y0 + grid.cell;
-    positions.set([x0, y0, spec.level, x1, y0, spec.level, x0, y1, spec.level, x1, y1, spec.level], pv);
+    positions.set(
+      [x0, y0, spec.level, x1, y0, spec.level, x0, y1, spec.level, x1, y1, spec.level],
+      pv,
+    );
     shoreDist.set([shore, shore, shore, shore], sv);
     const b = n * 4;
     indices.set([b, b + 2, b + 1, b + 1, b + 2, b + 3], iv);

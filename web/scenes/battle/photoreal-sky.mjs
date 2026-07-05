@@ -44,7 +44,8 @@ const PRESETS = [
   { env: "golden-hour", preset: "golden", turbidity: 2.6 },
   { env: "noon", preset: "noon", turbidity: 2.0 },
   { env: "dusk", preset: "dusk", turbidity: 3.6 },
-  { env: "overcast-foggy", preset: "overcast-highland", turbidity: 9.8 },
+  // 7.2 since the slice-17 compose tune (ranges read through haze).
+  { env: "overcast-foggy", preset: "overcast-highland", turbidity: 7.2 },
 ];
 
 export async function run(ctx) {

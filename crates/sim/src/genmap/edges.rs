@@ -9,6 +9,7 @@
 
 use super::MapRecipe;
 use crate::terrain::Terrain;
+pub use contract::{EdgeSealRecipe, EdgeSealWeights};
 use serde::{Deserialize, Serialize};
 
 const TINT_WATER: u8 = 1;
@@ -19,24 +20,6 @@ const FOREST_FOOT_OUTER_X: f32 = 760.0;
 const WATER_REACH_MIN_M: f32 = 220.0;
 const WATER_REACH_EXTRA_M: f32 = 88.0;
 const WATER_LEVEL_M: f32 = -5.5;
-
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct EdgeSealRecipe {
-    #[serde(default)]
-    pub weights: EdgeSealWeights,
-}
-
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct EdgeSealWeights {
-    #[serde(default = "default_cliff_run_weight")]
-    pub cliff_run: u16,
-    #[serde(default = "default_forest_belt_weight")]
-    pub forest_belt: u16,
-    #[serde(default = "default_water_reach_weight")]
-    pub water_reach: u16,
-}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -73,24 +56,6 @@ impl SealSegment {
         let from_end = (self.y1 - y).max(0.0);
         let d = from_start.min(from_end);
         (d / span).clamp(0.0, 1.0)
-    }
-}
-
-impl Default for EdgeSealRecipe {
-    fn default() -> Self {
-        Self {
-            weights: EdgeSealWeights::default(),
-        }
-    }
-}
-
-impl Default for EdgeSealWeights {
-    fn default() -> Self {
-        Self {
-            cliff_run: default_cliff_run_weight(),
-            forest_belt: default_forest_belt_weight(),
-            water_reach: default_water_reach_weight(),
-        }
     }
 }
 
@@ -276,16 +241,4 @@ fn mix64(mut h: u64) -> u64 {
     h ^= h >> 27;
     h = h.wrapping_mul(0x94d0_49bb_1331_11eb);
     h ^ (h >> 31)
-}
-
-fn default_cliff_run_weight() -> u16 {
-    6
-}
-
-fn default_forest_belt_weight() -> u16 {
-    2
-}
-
-fn default_water_reach_weight() -> u16 {
-    2
 }

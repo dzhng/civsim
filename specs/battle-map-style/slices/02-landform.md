@@ -92,6 +92,11 @@ preview-shots (non-blocking).
 - Key constants: corridor half-width `390 m`, transition `230 m`, ridge foot
   `520 m`, ridge crest `1320 m`, corridor detail budget `5.0 m`, flank detail
   `7..17 m`, apron detail multiplier `0.36`.
+- **BMS17B-A6E9 scale repair (2026-07-05):** flank wall mass raised from the
+  slice-02 `107-121 m` mound envelope to a 64-seed playable peak envelope of
+  `204.17..252.22 m`. Deployment frontage stayed connected with a 64-seed
+  minimum clear width of `1008.0 m`; seed 7 terrain hash intentionally moved to
+  `0x5b0bcb8dd7e7f22f`.
 - At the slice-02 checkpoint, slice-01 speed/tint passability writes remained
   unchanged: crag-circle E/W seals wrote `speed=0`, `rough=0`, `tint=2`; all
   other cells stayed speed-passable. Slice 03 replaces this with
@@ -102,7 +107,8 @@ preview-shots (non-blocking).
   - seed 3: corridor `-6.55..5.34 m`, flank peaks `112.62..115.69 m`
   - seed 4: corridor `-6.34..4.16 m`, flank peaks `111.18..116.36 m`
 - New generated seed-7 terrain hash after slice 02: `0x3138cbc0087fc0cd`
-  (slice 03 re-pins this to `0x8ceb1a8a243ea756`). Hand-map hashes
+  (slice 03 re-pinned this to `0x8ceb1a8a243ea756`; BMS17B-A6E9 now re-pins it
+  to `0x5b0bcb8dd7e7f22f`). Hand-map hashes
   stayed pinned:
   `RiverAndCrags=0x1d65c06afbab0eca`,
   `WalledPlain=0x864fe11f35ddf30c`,

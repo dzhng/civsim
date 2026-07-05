@@ -2,7 +2,8 @@
 //! reinforcements, and headless auto-resolve.
 
 use contract::{
-    BattleSetup, Deployment, PaintOp, Reinforcement, RosterUnit, TerrainSpec, UnitClassId,
+    BattleSetup, Deployment, PaintOp, Reinforcement, RosterUnit, TerrainSource, TerrainSpec,
+    UnitClassId,
 };
 use sim::runner::Battle;
 
@@ -84,7 +85,7 @@ fn terrain_spec_rasterizes_with_bridge() {
 fn auto_resolve_returns_a_verdict_and_conserves_units() {
     let setup = BattleSetup {
         seed: 42,
-        terrain: spec(),
+        terrain: TerrainSource::Ops(spec()),
         deployments: vec![
             Deployment {
                 team: 0,

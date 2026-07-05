@@ -215,6 +215,8 @@ export class CampaignScene implements Scene {
         this.fight(eid);
         return true;
       },
+      derivedSiteSeed: (kind: number, a: number, b: number) =>
+        this.cfg.campaign.derived_site_seed(kind, a, b),
       currentTick: () => this.cfg.campaign.current_tick(),
       encounterJson: (id: number) => this.cfg.campaign.encounter_json(id),
       armies: () => this.armies,

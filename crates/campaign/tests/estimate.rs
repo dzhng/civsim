@@ -5,7 +5,7 @@
 //! only the AI's mental model.
 
 use campaign::Campaign;
-use contract::{BattleSetup, Deployment, RosterUnit, TerrainSpec, UnitClassId};
+use contract::{BattleSetup, Deployment, RosterUnit, TerrainSource, TerrainSpec, UnitClassId};
 
 /// Smallest valid map — we only need *a* `WorldMap` to satisfy the signature;
 /// the synthetic setups below carry `unit_type: None`, so the class-rate
@@ -55,12 +55,12 @@ fn duel(team0: u32, team1: u32) -> BattleSetup {
     BattleSetup {
         seed: 0,
         // Estimate ignores terrain; a bare spec keeps the fixture honest.
-        terrain: TerrainSpec {
+        terrain: TerrainSource::Ops(TerrainSpec {
             half_w: 100.0,
             half_h: 100.0,
             cell: 1.0,
             ops: vec![],
-        },
+        }),
         deployments: vec![mk(0, 0x100, team0), mk(1, 0x200, team1)],
         reinforcements: vec![],
     }

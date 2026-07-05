@@ -190,6 +190,178 @@ pub enum PaintOp {
     },
 }
 
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct MapRecipe {
+    #[serde(default)]
+    pub seed: u64,
+    #[serde(default = "default_map_half_w")]
+    pub half_w: f32,
+    #[serde(default = "default_map_half_h")]
+    pub half_h: f32,
+    #[serde(default = "default_map_cell")]
+    pub cell: f32,
+    #[serde(default = "default_vista_extent")]
+    pub vista_extent: f32,
+    #[serde(default)]
+    pub slope_bands: SlopeBands,
+    #[serde(default)]
+    pub hydrology: HydrologyRecipe,
+    #[serde(default)]
+    pub edge_seals: EdgeSealRecipe,
+    #[serde(default)]
+    pub field_texture: FieldTextureRecipe,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SlopeBands {
+    pub flat_max: f32,
+    pub rolling_max: f32,
+    pub slow_min: f32,
+    pub cliff_min: f32,
+    pub cliff_dilate_cells: u16,
+    pub highland_cap_min_m: f32,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HydrologyRecipe {
+    pub lake_area_budget: f32,
+    pub stream_count: u8,
+    pub stream_accum_threshold: u32,
+    pub marsh_width_cells: u8,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EdgeSealRecipe {
+    #[serde(default)]
+    pub weights: EdgeSealWeights,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EdgeSealWeights {
+    #[serde(default = "default_cliff_run_weight")]
+    pub cliff_run: u16,
+    #[serde(default = "default_forest_belt_weight")]
+    pub forest_belt: u16,
+    #[serde(default = "default_water_reach_weight")]
+    pub water_reach: u16,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FieldTextureRecipe {
+    pub forest_clumps: u8,
+    pub scree_patches: u8,
+    pub mud_lowlands: u8,
+    pub rough_fields: u8,
+}
+
+impl Default for MapRecipe {
+    fn default() -> Self {
+        Self {
+            seed: 0,
+            half_w: default_map_half_w(),
+            half_h: default_map_half_h(),
+            cell: default_map_cell(),
+            vista_extent: default_vista_extent(),
+            slope_bands: SlopeBands::default(),
+            hydrology: HydrologyRecipe::default(),
+            edge_seals: EdgeSealRecipe::default(),
+            field_texture: FieldTextureRecipe::default(),
+        }
+    }
+}
+
+impl Default for SlopeBands {
+    fn default() -> Self {
+        Self {
+            flat_max: 0.035,
+            rolling_max: 0.115,
+            slow_min: 0.135,
+            cliff_min: 0.32,
+            cliff_dilate_cells: 6,
+            highland_cap_min_m: 35.0,
+        }
+    }
+}
+
+impl Default for HydrologyRecipe {
+    fn default() -> Self {
+        Self {
+            lake_area_budget: 0.018,
+            stream_count: 3,
+            stream_accum_threshold: 850,
+            marsh_width_cells: 4,
+        }
+    }
+}
+
+impl Default for EdgeSealRecipe {
+    fn default() -> Self {
+        Self {
+            weights: EdgeSealWeights::default(),
+        }
+    }
+}
+
+impl Default for EdgeSealWeights {
+    fn default() -> Self {
+        Self {
+            cliff_run: default_cliff_run_weight(),
+            forest_belt: default_forest_belt_weight(),
+            water_reach: default_water_reach_weight(),
+        }
+    }
+}
+
+impl Default for FieldTextureRecipe {
+    fn default() -> Self {
+        Self {
+            forest_clumps: 5,
+            scree_patches: 7,
+            mud_lowlands: 5,
+            rough_fields: 8,
+        }
+    }
+}
+
+fn default_map_half_w() -> f32 {
+    1200.0
+}
+
+fn default_map_half_h() -> f32 {
+    800.0
+}
+
+fn default_map_cell() -> f32 {
+    4.0
+}
+
+fn default_vista_extent() -> f32 {
+    2.0
+}
+
+fn default_cliff_run_weight() -> u16 {
+    6
+}
+
+fn default_forest_belt_weight() -> u16 {
+    2
+}
+
+fn default_water_reach_weight() -> u16 {
+    2
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum TerrainSource {
+    Ops(TerrainSpec),
+    Recipe(MapRecipe),
+}
+
 /// One campaign unit entering a battle. `id` is campaign-side identity,
 /// echoed back in `UnitResult` so casualties land on the right roster entry.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -230,7 +402,7 @@ pub struct Reinforcement {
 pub struct BattleSetup {
     /// Drawn from the campaign RNG; saved so replays stay deterministic.
     pub seed: u64,
-    pub terrain: TerrainSpec,
+    pub terrain: TerrainSource,
     pub deployments: Vec<Deployment>,
     pub reinforcements: Vec<Reinforcement>,
 }

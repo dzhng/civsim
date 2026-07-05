@@ -283,6 +283,8 @@ impl Default for CityState {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct CampaignState {
     pub version: u32,
+    #[serde(default)]
+    pub campaign_seed: u64,
     pub player_faction: FactionId,
     pub tick: u64,
     pub rng: Pcg32,

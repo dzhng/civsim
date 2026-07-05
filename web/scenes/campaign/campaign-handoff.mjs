@@ -1,3 +1,4 @@
+import { PNG } from "pngjs";
 import {
   hasBattleWorldDepthContract,
   hasCampaignWorldDepthContract,
@@ -54,8 +55,10 @@ export async function run(ctx) {
     window.__campaign.place(1, 1, 0, 4);
     window.__campaign.tick(2000);
     const eid = window.__campaign.battleReady();
+    const expectedSeed = window.__campaign.derivedSiteSeed(1, 0, 4);
     return {
       eid,
+      expectedSeedHex: `0x${expectedSeed.toString(16).padStart(16, "0")}`,
       encounter: eid >= 0 ? JSON.parse(window.__campaign.encounterJson(eid)) : null,
       armies: window.__campaign.armies().map((army) => ({
         id: army.id,
@@ -98,19 +101,28 @@ export async function run(ctx) {
   const battleStats = await page.evaluate(() => ({
     ready: window.__ready,
     game: window.__game.stats(),
+    manifest: window.__game.generatedManifest(),
     continueLabel: document.querySelector("#pause-exit")?.textContent ?? "",
     gameoverLabel: document.querySelector("#gameover-menu")?.textContent ?? "",
   }));
+  const soldierPixels = countFactionSoldierPixels(PNG.sync.read(await page.screenshot()));
   ctx.check(
-    "campaign battle opens in the default WebGPU battle renderer",
+    "campaign open-field battle opens as a generated WebGPU battle",
     battleStats.ready === true &&
       battleStats.game.renderer === "gpu" &&
       battleStats.game.renderStats?.ready === true &&
       battleStats.game.renderStats?.soldiers === battleStats.game.soldiers &&
       hasBattleWorldDepthContract(battleStats.game.renderStats) &&
       battleStats.game.soldiers > 0 &&
+      battleStats.manifest?.seedHex === pending.expectedSeedHex &&
+      typeof battleStats.manifest?.terrainHash === "string" &&
+      soldierPixels > 100 &&
       battleStats.continueLabel.includes("Campaign"),
-    JSON.stringify(battleStats),
+    JSON.stringify({
+      battleStats,
+      expectedSeedHex: pending.expectedSeedHex,
+      soldierPixels,
+    }),
   );
 
   await page.click("#btn-menu");
@@ -158,4 +170,19 @@ export async function run(ctx) {
   );
 
   await page.close();
+}
+
+function countFactionSoldierPixels(png) {
+  let count = 0;
+  for (let i = 0; i < png.data.length; i += 4) {
+    const r = png.data[i];
+    const g = png.data[i + 1];
+    const b = png.data[i + 2];
+    const a = png.data[i + 3];
+    if (a < 200) continue;
+    const redSoldier = r > 120 && g < 120 && b < 120;
+    const blueSoldier = b > 120 && r < 120 && g < 140;
+    if (redSoldier || blueSoldier) count++;
+  }
+  return count;
 }

@@ -1,9 +1,11 @@
 use sim::genmap::certify::{
-    deployment_band_passable_fraction, flank_unreachable_fraction, has_deployment_corridor,
-    largest_isolated_passable_pocket_cells, open_edge_fraction, side_sealed_fraction,
-    speed_zero_cells_without_blocking_tint, Side, ISOLATED_PASSABLE_POCKET_LIMIT_CELLS,
-    OPEN_EDGE_THRESHOLD, SEALED_SIDE_THRESHOLD, UNREACHABLE_FLANK_THRESHOLD,
+    deployment_band_certificate, deployment_band_passable_fraction, flank_unreachable_fraction,
+    has_deployment_corridor, largest_isolated_passable_pocket_cells, open_edge_fraction,
+    side_sealed_fraction, speed_zero_cells_without_blocking_tint, Side, DEPLOYMENT_MAX_SLOPE,
+    DEPLOYMENT_PASSABLE_THRESHOLD, ISOLATED_PASSABLE_POCKET_LIMIT_CELLS, OPEN_EDGE_THRESHOLD,
+    SEALED_SIDE_THRESHOLD, UNREACHABLE_FLANK_THRESHOLD,
 };
+use sim::genmap::edges::{self, EdgeSealKind};
 use sim::genmap::{
     drainage_report, generate, generate_vista_grid, landform, passability, terrain_hash, MapRecipe,
 };
@@ -40,6 +42,50 @@ fn generated_map_different_seeds_differ() {
         ..MapRecipe::default()
     }));
     assert_ne!(a, b);
+}
+
+#[test]
+fn generated_edge_recipe_composes_seeded_flank_kinds() {
+    let cases = [
+        (1, EdgeSealKind::CliffRun, EdgeSealKind::WaterReach),
+        (3, EdgeSealKind::WaterReach, EdgeSealKind::ForestBelt),
+        (7, EdgeSealKind::CliffRun, EdgeSealKind::CliffRun),
+        (8, EdgeSealKind::ForestBelt, EdgeSealKind::CliffRun),
+    ];
+    for (seed, west, east) in cases {
+        let recipe = MapRecipe {
+            seed,
+            ..MapRecipe::default()
+        };
+        let composition = edges::composition(&recipe);
+        assert_eq!(composition.west, west, "seed {seed} west composition");
+        assert_eq!(composition.east, east, "seed {seed} east composition");
+    }
+}
+
+#[test]
+fn generated_edge_roles_follow_composition_semantics() {
+    let cases = [
+        (1, "cliff", "ocean"),
+        (3, "ocean", "cliff"),
+        (7, "cliff", "cliff"),
+        (8, "cliff", "cliff"),
+    ];
+    for (seed, west, east) in cases {
+        let recipe = MapRecipe {
+            seed,
+            ..MapRecipe::default()
+        };
+        let t = generate(&recipe);
+        let roles = derived_edge_roles(&t);
+        let composition = edges::composition(&recipe);
+        assert_eq!(composition.west.expected_edge_role(), west);
+        assert_eq!(composition.east.expected_edge_role(), east);
+        assert_eq!(roles.west, west, "seed {seed} west role from tint band");
+        assert_eq!(roles.east, east, "seed {seed} east role from tint band");
+        assert_eq!(roles.north, "open-fog", "seed {seed} north role");
+        assert_eq!(roles.south, "open-fog", "seed {seed} south role");
+    }
 }
 
 #[test]
@@ -94,6 +140,9 @@ fn generated_passability_certificates_hold_over_seed_sweep() {
         let corridor = corridor_swell_range(&t);
         let flank = flank_peak_range(&t);
         let drainage = drainage_report(&MapRecipe { seed, ..recipe });
+        let composition = edges::composition(&MapRecipe { seed, ..recipe });
+        let south_deploy = deployment_band_certificate(&t, Side::South);
+        let north_deploy = deployment_band_certificate(&t, Side::North);
         let slopes = passability::slope_field(&t);
         let corridor_slope = slope_stats(&t, &slopes, |x, y| x.abs() <= 350.0 && y.abs() <= 720.0);
         let flank_slope = slope_stats(&t, &slopes, |x, _| x.abs() >= 520.0);
@@ -105,17 +154,28 @@ fn generated_passability_certificates_hold_over_seed_sweep() {
         if seed <= 4 || seed == 7 {
             let ratios = terrain_ratios(&t);
             eprintln!(
-                "seed {seed}: certs Wseal {:.3} Eseal {:.3} Sopen {:.3} Nopen {:.3} Wunreach {:.3} Eunreach {:.3}; ratios pass {:.3} slow {:.3} blocked {:.3} water {:.3} mud {:.3}; drainage lakes {} playable {} largestPlayable {} suppressedHollows {} streamCells {} streams {} lakeStreams {} runoffStreams {} deadEnds {} impassibleStreamCells {} fords {} marsh {}; corridor swell {:.2}..{:.2}m, flank peaks {:.2}..{:.2}m, apron mean |slope| S {:.4} N {:.4}, corridor slope p95 {:.3} max {:.3}, flank slope p50 {:.3} p95 {:.3} max {:.3}",
+                "seed {seed}: edge {:?}/{:?}; certs Wseal {:.3} Eseal {:.3} Sopen {:.3} Nopen {:.3} Wunreach {:.3} Eunreach {:.3}; deploy S pass {:.3} block {} p95 {:.3} max {:.3}, N pass {:.3} block {} p95 {:.3} max {:.3}; ratios pass {:.3} slow {:.3} blocked {:.3} water {:.3} forest {:.3} mud {:.3}; drainage lakes {} playable {} largestPlayable {} suppressedHollows {} streamCells {} streams {} lakeStreams {} runoffStreams {} deadEnds {} impassibleStreamCells {} fords {} marsh {}; corridor swell {:.2}..{:.2}m, flank peaks {:.2}..{:.2}m, apron mean |slope| S {:.4} N {:.4}, corridor slope p95 {:.3} max {:.3}, flank slope p50 {:.3} p95 {:.3} max {:.3}",
+                composition.west,
+                composition.east,
                 side_sealed_fraction(&t, Side::West),
                 side_sealed_fraction(&t, Side::East),
                 open_edge_fraction(&t, Side::South),
                 open_edge_fraction(&t, Side::North),
                 flank_unreachable_fraction(&t, Side::West),
                 flank_unreachable_fraction(&t, Side::East),
+                south_deploy.passable_fraction,
+                south_deploy.blocked_cells,
+                south_deploy.p95_slope,
+                south_deploy.max_slope,
+                north_deploy.passable_fraction,
+                north_deploy.blocked_cells,
+                north_deploy.p95_slope,
+                north_deploy.max_slope,
                 ratios.passable,
                 ratios.slow,
                 ratios.blocked,
                 ratios.water,
+                ratios.forest,
                 ratios.mud,
                 drainage.lake_count,
                 drainage.playable_lake_count,
@@ -143,6 +203,8 @@ fn generated_passability_certificates_hold_over_seed_sweep() {
             );
         }
         assert_generated_certificates(seed, &t);
+        assert_deployment_contract(seed, Side::South, south_deploy);
+        assert_deployment_contract(seed, Side::North, north_deploy);
         assert!(
             drainage.water_level_set,
             "seed {seed} water cells must sit at their basin fill level"
@@ -264,6 +326,31 @@ fn assert_generated_certificates(seed: u64, t: &sim::Terrain) {
         largest_isolated_passable_pocket_cells(t) <= ISOLATED_PASSABLE_POCKET_LIMIT_CELLS,
         "seed {seed} largest isolated passable pocket {} cells",
         largest_isolated_passable_pocket_cells(t)
+    );
+}
+
+fn assert_deployment_contract(
+    seed: u64,
+    side: Side,
+    report: sim::genmap::certify::DeploymentBandCertificate,
+) {
+    assert!(
+        report.passable_fraction >= DEPLOYMENT_PASSABLE_THRESHOLD,
+        "seed {seed} {side:?} deployment passable fraction {:.3}",
+        report.passable_fraction
+    );
+    assert_eq!(
+        report.blocked_cells, 0,
+        "seed {seed} {side:?} deployment band must be blocker-free"
+    );
+    assert!(
+        report.max_slope <= DEPLOYMENT_MAX_SLOPE,
+        "seed {seed} {side:?} deployment max slope {:.3}",
+        report.max_slope
+    );
+    assert!(
+        report.meets_contract(),
+        "seed {seed} {side:?} deployment certificate {report:?}"
     );
 }
 
@@ -409,6 +496,7 @@ struct TerrainRatios {
     slow: f32,
     blocked: f32,
     water: f32,
+    forest: f32,
     mud: f32,
 }
 
@@ -417,10 +505,20 @@ fn terrain_ratios(t: &sim::Terrain) -> TerrainRatios {
     let mut slow = 0usize;
     let mut blocked = 0usize;
     let mut water = 0usize;
+    let mut forest = 0usize;
     let mut mud = 0usize;
     for i in 0..t.w * t.h {
         if t.tint[i] == 1 {
             water += 1;
+        } else if t.tint[i] == 4 {
+            forest += 1;
+            if t.speed[i] <= 0.0 {
+                blocked += 1;
+            } else if t.speed[i] < 0.9 {
+                slow += 1;
+            } else {
+                passable += 1;
+            }
         } else if t.tint[i] == 5 {
             mud += 1;
             if t.speed[i] <= 0.0 {
@@ -444,6 +542,50 @@ fn terrain_ratios(t: &sim::Terrain) -> TerrainRatios {
         slow: slow as f32 / n,
         blocked: blocked as f32 / n,
         water: water as f32 / n,
+        forest: forest as f32 / n,
         mud: mud as f32 / n,
+    }
+}
+
+struct EdgeRoles {
+    north: &'static str,
+    south: &'static str,
+    east: &'static str,
+    west: &'static str,
+}
+
+fn derived_edge_roles(t: &sim::Terrain) -> EdgeRoles {
+    fn side_role(t: &sim::Terrain, west: bool) -> &'static str {
+        let band = ((t.w as f32) * 0.06).round().max(1.0) as usize;
+        let mut rock = 0usize;
+        let mut water = 0usize;
+        let mut wall = 0usize;
+        for cy in 0..t.h {
+            for b in 0..band.min(t.w) {
+                let cx = if west { b } else { t.w - 1 - b };
+                match t.tint[cy * t.w + cx] {
+                    1 => water += 1,
+                    2 => rock += 1,
+                    3 => wall += 1,
+                    _ => {}
+                }
+            }
+        }
+        let max = rock.max(water).max(wall);
+        if max < (t.h as f32 * 0.3) as usize {
+            "open-fog"
+        } else if max == water {
+            "ocean"
+        } else if max == wall {
+            "wall"
+        } else {
+            "cliff"
+        }
+    }
+    EdgeRoles {
+        north: "open-fog",
+        south: "open-fog",
+        west: side_role(t, true),
+        east: side_role(t, false),
     }
 }

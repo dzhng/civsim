@@ -1,6 +1,7 @@
 //! Procedural-map certificates shared by tests, wasm debug stats, and
 //! `generate` debug assertions.
 
+use super::passability;
 use crate::terrain::Terrain;
 use std::collections::VecDeque;
 
@@ -15,10 +16,33 @@ pub enum Side {
 pub const EDGE_SCAN_METERS: f32 = 90.0;
 pub const SEALED_SIDE_THRESHOLD: f32 = 0.9;
 pub const OPEN_EDGE_THRESHOLD: f32 = 0.6;
+/// Mirrors `battle.rs::deploy_default_armies`: army centers at y = +/-600 m.
+pub const DEPLOYMENT_CENTER_Y_M: f32 = 600.0;
+/// Mirrors the default battle wings: cavalry lanes extend to about +/-340 m.
 pub const DEPLOYMENT_FRONTAGE_HALF_W: f32 = 350.0;
 pub const DEPLOYMENT_BAND_HALF_H: f32 = 45.0;
+pub const DEPLOYMENT_PASSABLE_THRESHOLD: f32 = 0.95;
+pub const DEPLOYMENT_MAX_SLOPE: f32 = 0.115;
 pub const UNREACHABLE_FLANK_THRESHOLD: f32 = 0.95;
 pub const ISOLATED_PASSABLE_POCKET_LIMIT_CELLS: usize = 96;
+
+#[derive(Clone, Copy, Debug)]
+pub struct DeploymentBandCertificate {
+    pub total_cells: usize,
+    pub passable_fraction: f32,
+    pub blocked_cells: usize,
+    pub p95_slope: f32,
+    pub max_slope: f32,
+}
+
+impl DeploymentBandCertificate {
+    pub fn meets_contract(self) -> bool {
+        self.total_cells > 0
+            && self.passable_fraction >= DEPLOYMENT_PASSABLE_THRESHOLD
+            && self.blocked_cells == 0
+            && self.max_slope <= DEPLOYMENT_MAX_SLOPE
+    }
+}
 
 pub fn side_sealed_fraction(t: &Terrain, side: Side) -> f32 {
     assert!(matches!(side, Side::East | Side::West));
@@ -54,11 +78,10 @@ pub fn open_edge_fraction(t: &Terrain, side: Side) -> f32 {
 
 pub fn deployment_band_passable_fraction(t: &Terrain, side: Side) -> f32 {
     assert!(matches!(side, Side::North | Side::South));
-    let half_h = 0.5 * t.h as f32 * t.cell;
     let y = if side == Side::South {
-        -0.75 * half_h
+        -DEPLOYMENT_CENTER_Y_M
     } else {
-        0.75 * half_h
+        DEPLOYMENT_CENTER_Y_M
     };
     let mut total = 0usize;
     let mut passable = 0usize;
@@ -82,6 +105,52 @@ pub fn deployment_band_passable_fraction(t: &Terrain, side: Side) -> f32 {
         return 0.0;
     }
     passable as f32 / total as f32
+}
+
+pub fn deployment_band_certificate(t: &Terrain, side: Side) -> DeploymentBandCertificate {
+    assert!(matches!(side, Side::North | Side::South));
+    let slopes = passability::slope_field(t);
+    let y = if side == Side::South {
+        -DEPLOYMENT_CENTER_Y_M
+    } else {
+        DEPLOYMENT_CENTER_Y_M
+    };
+    let mut total = 0usize;
+    let mut passable = 0usize;
+    let mut blocked = 0usize;
+    let mut slope_values = Vec::new();
+    for cy in 0..t.h {
+        let wy = t.origin.y + (cy as f32 + 0.5) * t.cell;
+        if (wy - y).abs() > DEPLOYMENT_BAND_HALF_H {
+            continue;
+        }
+        for cx in 0..t.w {
+            let wx = t.origin.x + (cx as f32 + 0.5) * t.cell;
+            if wx.abs() > DEPLOYMENT_FRONTAGE_HALF_W {
+                continue;
+            }
+            let i = cy * t.w + cx;
+            total += 1;
+            slope_values.push(slopes[i]);
+            if t.speed[i] > 0.0 {
+                passable += 1;
+            } else {
+                blocked += 1;
+            }
+        }
+    }
+    slope_values.sort_by(|a, b| a.total_cmp(b));
+    DeploymentBandCertificate {
+        total_cells: total,
+        passable_fraction: if total == 0 {
+            0.0
+        } else {
+            passable as f32 / total as f32
+        },
+        blocked_cells: blocked,
+        p95_slope: percentile(&slope_values, 0.95),
+        max_slope: slope_values.last().copied().unwrap_or(0.0),
+    }
 }
 
 pub fn has_deployment_corridor(t: &Terrain) -> bool {
@@ -122,7 +191,7 @@ pub fn speed_zero_cells_without_blocking_tint(t: &Terrain) -> usize {
     t.speed
         .iter()
         .zip(t.tint.iter())
-        .filter(|&(speed, tint)| *speed <= 0.0 && *tint != 1 && *tint != 2)
+        .filter(|&(speed, tint)| *speed <= 0.0 && !matches!(*tint, 1 | 2 | 4))
         .count()
 }
 
@@ -270,11 +339,10 @@ fn edge_band_cells(t: &Terrain) -> usize {
 }
 
 fn deployment_band_cells(t: &Terrain, side: Side) -> Option<Vec<usize>> {
-    let half_h = 0.5 * t.h as f32 * t.cell;
     let y = if side == Side::South {
-        -0.75 * half_h
+        -DEPLOYMENT_CENTER_Y_M
     } else {
-        0.75 * half_h
+        DEPLOYMENT_CENTER_Y_M
     };
     let mut cells = Vec::new();
     for cy in 0..t.h {
@@ -294,4 +362,12 @@ fn deployment_band_cells(t: &Terrain, side: Side) -> Option<Vec<usize>> {
     } else {
         Some(cells)
     }
+}
+
+fn percentile(values: &[f32], p: f32) -> f32 {
+    if values.is_empty() {
+        return 0.0;
+    }
+    let i = ((values.len() - 1) as f32 * p).round() as usize;
+    values[i.min(values.len() - 1)]
 }

@@ -2,6 +2,7 @@
 //! given a recipe, it deterministically writes the four `Terrain` channels.
 
 pub mod certify;
+pub mod edges;
 pub mod hydrology;
 pub mod landform;
 pub mod passability;
@@ -30,6 +31,8 @@ pub struct MapRecipe {
     pub slope_bands: SlopeBands,
     #[serde(default)]
     pub hydrology: hydrology::HydrologyRecipe,
+    #[serde(default)]
+    pub edge_seals: edges::EdgeSealRecipe,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -102,6 +105,7 @@ impl Default for MapRecipe {
             vista_extent: default_vista_extent(),
             slope_bands: SlopeBands::default(),
             hydrology: hydrology::HydrologyRecipe::default(),
+            edge_seals: edges::EdgeSealRecipe::default(),
         }
     }
 }
@@ -149,6 +153,10 @@ pub fn generate(recipe: &MapRecipe) -> Terrain {
     passability::derive(recipe, &mut t);
     passability::seal_isolated_passable_pockets(&mut t);
     hydrology::paint(&drainage, &mut t);
+    edges::apply(recipe, &mut t);
+    if edges::needs_pocket_cleanup(recipe) {
+        passability::seal_isolated_passable_pockets(&mut t);
+    }
 
     debug_assert!(
         certify::has_deployment_corridor(&t),
@@ -177,6 +185,14 @@ pub fn generate(recipe: &MapRecipe) -> Terrain {
     debug_assert!(
         certify::deployment_band_passable_fraction(&t, certify::Side::North) > 0.99,
         "generated north deployment band is not passable"
+    );
+    debug_assert!(
+        certify::deployment_band_certificate(&t, certify::Side::South).meets_contract(),
+        "generated south deployment band violates the battle deployment contract"
+    );
+    debug_assert!(
+        certify::deployment_band_certificate(&t, certify::Side::North).meets_contract(),
+        "generated north deployment band violates the battle deployment contract"
     );
     t
 }

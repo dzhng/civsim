@@ -33,6 +33,21 @@ fn map_id_from_index(map: u32) -> MapId {
     }
 }
 
+fn deployment_certificate_json(
+    t: &sim::Terrain,
+    side: sim::genmap::certify::Side,
+) -> serde_json::Value {
+    let c = sim::genmap::certify::deployment_band_certificate(t, side);
+    serde_json::json!({
+        "totalCells": c.total_cells,
+        "passableFraction": c.passable_fraction,
+        "blockedCells": c.blocked_cells,
+        "p95Slope": c.p95_slope,
+        "maxSlope": c.max_slope,
+        "meetsContract": c.meets_contract(),
+    })
+}
+
 #[wasm_bindgen]
 pub struct Game {
     battle: Battle,
@@ -287,6 +302,8 @@ impl Game {
             "northOpen": certify::open_edge_fraction(t, certify::Side::North),
             "southDeployPassable": certify::deployment_band_passable_fraction(t, certify::Side::South),
             "northDeployPassable": certify::deployment_band_passable_fraction(t, certify::Side::North),
+            "southDeployment": deployment_certificate_json(t, certify::Side::South),
+            "northDeployment": deployment_certificate_json(t, certify::Side::North),
             "corridor": certify::has_deployment_corridor(t),
             "westFlankUnreachable": certify::flank_unreachable_fraction(t, certify::Side::West),
             "eastFlankUnreachable": certify::flank_unreachable_fraction(t, certify::Side::East),
@@ -302,11 +319,23 @@ impl Game {
         let slope_bands = self
             .generated_recipe
             .map_or_else(sim::genmap::SlopeBands::default, |r| r.slope_bands);
+        let edge_seals = self.generated_recipe.map(|recipe| {
+            let composition = sim::genmap::edges::composition(&recipe);
+            serde_json::json!({
+                "weights": recipe.edge_seals.weights,
+                "composition": composition,
+                "expectedRoles": {
+                    "west": composition.west.expected_edge_role(),
+                    "east": composition.east.expected_edge_role(),
+                },
+            })
+        });
         serde_json::json!({
             "seed": seed,
             "groundCover": "green-grass",
             "reliefScale": 1.0,
             "slopeBands": slope_bands,
+            "edgeSeals": edge_seals,
             "terrainHash": format!("{:#018x}", sim::genmap::terrain_hash(&self.battle.sim.terrain)),
             "vista": self.generated_recipe.map(vista_descriptor),
         })

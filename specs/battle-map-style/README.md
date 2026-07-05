@@ -21,13 +21,13 @@ Reference images (in `assets/` and the aesthetics skill):
 
 ## Next Agent Prompt
 
-**Status 2026-07-05: slices 00–04, 10–14 DONE (live-verified).** Generated
+**Status 2026-07-05: slices 00–05, 10–14 DONE (05 code-landed, browser/blessing pending; others live-verified).** Generated
 maps now have: slope-sealed highland flanks with fracture-rock material, one
 natural lake pocket with streams and marsh, the TW vista apron + far fog ring
-(no more blocker spikes), and production blade grass with smooth thinning.
-Next pickups: [05-edge-grammar](slices/05-edge-grammar.md) (G-track) and
-[15-lake-render](slices/15-lake-render.md) (V-track — the lake pocket exists;
-seaLayer generalization per the slice). Then 06 + 16. Read slice 10's TSL
+(no more blocker spikes), seeded cliff/forest/water edge-seal vocabulary with
+deployment certificates, and production blade grass with smooth thinning.
+Next pickups: [15-lake-render](slices/15-lake-render.md) (V-track — the lake pocket exists;
+seaLayer generalization per the slice) and 06 + 16. Read slice 10's TSL
 hazards, slice 11's integration findings, and slice 04's three shoreline
 lessons before touching their areas; camera/oracle traps live in
 [00's locked values](slices/00-composition-and-oracle-lock.md).
@@ -57,7 +57,10 @@ Before writing any code, read:
       CODE-LANDED BMS04-SLICE-B6D9; corrected BMS04-FIX-D2C7 after browser
       evidence; orchestrator still owes browser run and passability-mask
       baseline blessing.
-- [ ] 05 — Edge grammar + deployment guarantees
+- [x] 05 — Edge grammar + deployment guarantees
+      CODE-LANDED BMS05-SLICE-A9E1; seed 7 remains cliff/cliff and keeps its
+      existing hash pins. Orchestrator still owes browser run and
+      `battle-genmap-seeds` + generated elevation baseline blessing.
 - [ ] 06 — Seed variety + seed browser
 - [x] 10 — False Earth grass port (close-gate ratification)
 - [x] 11 — Grass battle integration (swap + delete tuft path, perf gate)

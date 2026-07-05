@@ -3950,6 +3950,13 @@ const REFERENCE_HIGHLAND_ENTRY: Terrain3dEntry = {
   groundCover: "green-grass",
 };
 
+const GENERATED_SEED7_ENTRY: Terrain3dEntry = {
+  id: "generated-seed-7",
+  label: "Generated Seed 7",
+  edges: { north: "open-fog", south: "open-fog", west: "cliff", east: "cliff" },
+  groundCover: "green-grass",
+};
+
 const REFERENCE_BACKDROP_WGSL = `
 ${WORLD_CAMERA_WGSL}
 struct VsOut {
@@ -4301,9 +4308,14 @@ async function routeBattleTerrain3d(ctx: LabContext) {
     const { default: initWasm, Game } = await import("../../../web/src/wasm/game_wasm.js");
     const wasm = await initWasm();
     const game = new Game(0x5eed_c0de);
-    const catalogEntry = battleMapById(requestedGate) ?? BATTLE_MAP_CATALOG[0];
-    game.load_map(catalogEntry.wasmMapId);
-    entry = catalogEntry;
+    if (requestedGate === GENERATED_SEED7_ENTRY.id) {
+      game.load_generated_map(7n);
+      entry = GENERATED_SEED7_ENTRY;
+    } else {
+      const catalogEntry = battleMapById(requestedGate) ?? BATTLE_MAP_CATALOG[0];
+      game.load_map(catalogEntry.wasmMapId);
+      entry = catalogEntry;
+    }
 
     const tw = game.terrain_w();
     const th = game.terrain_h();
@@ -5860,14 +5872,20 @@ function steepestSpot(
   const x1 = ox + w * cell - 200;
   const y0 = oy + 200;
   const y1 = oy + h * cell - 200;
+  // The steepest CLIMBABLE slope: on generated maps the raw steepest spot is
+  // the impassible cliff wall (soldiers can't stand there and the seating
+  // check sees zero soldier pixels). Cap dz at the sub-cliff band: the
+  // SlopeBands cliff threshold (0.32) over this 80 m sample span ~ 25 m.
+  const climbableMax = 25;
   for (let x = x0; x < x1; x += 70) {
     for (let y = y0; y < y1; y += 70) {
       const dz =
         Math.abs(terrainHeightAt(field, x + 40, y) - terrainHeightAt(field, x - 40, y)) +
         Math.abs(terrainHeightAt(field, x, y + 40) - terrainHeightAt(field, x, y - 40));
-      if (dz > best.slope) best = { x, y, slope: dz };
+      if (dz > best.slope && dz <= climbableMax) best = { x, y, slope: dz };
     }
   }
+  if (best.slope < 0) best = { x: 0, y: 0, slope: 0 };
   return best;
 }
 

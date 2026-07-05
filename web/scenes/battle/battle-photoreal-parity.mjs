@@ -105,7 +105,7 @@ export async function run(ctx) {
     const png = PNG.sync.read(shotA);
     const m = frameMetrics(png);
     ctx.check(
-      "frame shows the world: olive field, blue crowd, gold selection glow",
+      "frame shows the world: olive field, crowd mass, gold selection glow",
       // gold >= 5: PRESENCE of the selection glow. On the generated-map
       // framing the ring is a thin arc (~8px) - the old 10px floor measured
       // the hand-map close framing, not the contract.
@@ -186,8 +186,14 @@ function frameMetrics(png) {
     const g = png.data[i + 1];
     const b = png.data[i + 2];
     if (g > 90 && g > b + 30 && r > 80 && r < 200) field++;
-    if (b > r + 24 && b > g + 8 && b > 90) crowd++;
+    if (isCrowdMass(r, g, b)) crowd++;
     if (r > 200 && g > 140 && g < 240 && b < 130) gold++;
   }
   return { field, crowd, gold, total: png.width * png.height };
+}
+
+function isCrowdMass(r, g, b) {
+  const luma = r * 0.3 + g * 0.59 + b * 0.11;
+  const greenField = g > r + 22 && g > b + 12;
+  return luma > 34 && luma < 132 && r < 165 && g < 155 && b < 145 && !greenField;
 }

@@ -133,7 +133,7 @@ function kitJson(baked) {
     },
     materials: {
       channels: ['albedo', 'normal', 'orm', 'factionMask'],
-      factionTint: 'mix(albedo, factionColor, factionMask)',
+      factionTint: 'replace armband pixels only; factionMask is not a body/shield tint',
       compression: 'procedural-placeholder-uncompressed',
     },
     vat: {

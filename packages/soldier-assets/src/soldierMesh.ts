@@ -14,12 +14,10 @@ export const SOLDIER_MATERIAL_CHANNELS = {
   albedo: 'cColor.rgb',
   normal: 'cNormal, VAT-skinned into world space',
   orm: 'occlusion/roughness/metalness, canonical order from skinnedPipeline',
-  factionMask: 'high-blue cColor accent channel',
+  factionMask: 'high-blue cColor armband accent channel',
 } as const;
 
 export const SOLDIER_PBR_VALUES = {
-  // Broad tint stays low so bodies read as material; accent geometry carries faction.
-  accent: { broadMix: 0.0, maskedMix: 0.98, tierBroadMix: [0.0, 0.10, 0.18] },
   roughness: {
     bronze: 0.46,
     iron: 0.38,
@@ -172,18 +170,18 @@ function addBox(
   }
 }
 
-export function createPlaceholderSoldierMeshes(accentRgb: [number, number, number] = [0.06, 0.1, 0.98]): SoldierMeshData[] {
-  return PLACEHOLDER_LOOKS.map((_, classId) => createPlaceholderSoldierMesh(accentRgb, classId));
+export function createPlaceholderSoldierMeshes(armBandMaskRgb: [number, number, number] = [0.06, 0.1, 0.98]): SoldierMeshData[] {
+  return PLACEHOLDER_LOOKS.map((_, classId) => createPlaceholderSoldierMesh(armBandMaskRgb, classId));
 }
 
 /** L0 full / L1 reduced (drops weapon, helmet crest) / L2 coarse (body+head+legs).
  *  Tiers skin to the same bones, so one VAT drives every tier. */
-export function createPlaceholderSoldierMeshTiers(accentRgb: [number, number, number] = [0.06, 0.1, 0.98]): SoldierMeshData[][] {
-  return PLACEHOLDER_LOOKS.map((_, classId) => [0, 1, 2].map((lod) => createPlaceholderSoldierMesh(accentRgb, classId, lod)));
+export function createPlaceholderSoldierMeshTiers(armBandMaskRgb: [number, number, number] = [0.06, 0.1, 0.98]): SoldierMeshData[][] {
+  return PLACEHOLDER_LOOKS.map((_, classId) => [0, 1, 2].map((lod) => createPlaceholderSoldierMesh(armBandMaskRgb, classId, lod)));
 }
 
 export function createPlaceholderSoldierMesh(
-  accentRgb: [number, number, number] = [0.06, 0.1, 0.98],
+  armBandMaskRgb: [number, number, number] = [0.06, 0.1, 0.98],
   classId = 0,
   lod = 0,
 ): SoldierMeshData {
@@ -195,7 +193,10 @@ export function createPlaceholderSoldierMesh(
   const iron: Rgba = [0.62, 0.63, 0.62, 1];
   const leather: Rgba = look.armor === 'rag' ? [0.32, 0.22, 0.13, 1] : [0.35, 0.23, 0.13, 1];
   const horse: Rgba = [0.38, 0.27, 0.17, 1];
-  const accent: Rgba = [accentRgb[0], accentRgb[1], accentRgb[2], 1];
+  const horseBlanket: Rgba = [0.43, 0.34, 0.22, 1];
+  const shieldHide: Rgba = [0.50, 0.39, 0.26, 1];
+  const horsehair: Rgba = [0.19, 0.13, 0.08, 1];
+  const armBandMask: Rgba = [armBandMaskRgb[0], armBandMaskRgb[1], armBandMaskRgb[2], 1];
   const riderLift = look.mounted ? 0.42 : 0;
   if (look.mounted) {
     addBox(v, indices, [0, -0.04, 0.86], [0.54, 1.18, 0.38], 0, horse);
@@ -208,22 +209,23 @@ export function createPlaceholderSoldierMesh(
     addBox(v, indices, [0.24, -0.40, 0.48], [0.12, 0.14, 0.72], 0, horse);
     addBox(v, indices, [-0.24, 0.34, 0.48], [0.12, 0.14, 0.72], 0, horse);
     addBox(v, indices, [0.24, 0.34, 0.48], [0.12, 0.14, 0.72], 0, horse);
-    if (lod < 1) addBox(v, indices, [0, -0.02, 1.17], [0.46, 0.34, 0.12], 0, accent);
+    if (lod < 1) addBox(v, indices, [0, -0.02, 1.17], [0.46, 0.34, 0.12], 0, horseBlanket);
   }
   addBox(v, indices, [0, 0.02, 1.33 + riderLift], [0.48, 0.28, 0.52], 1, linen);
-  addBox(v, indices, [0, 0.02, 0.98 + riderLift], [0.48, 0.28, 0.18], 1, accent);
+  addBox(v, indices, [0, 0.02, 0.98 + riderLift], [0.48, 0.28, 0.18], 1, leather);
   addBox(v, indices, [0, 0.02, 1.82 + riderLift], [0.30, 0.24, 0.30], 2, helmetColor(look.helmet, bronze, linen));
   // L2 keeps only body, head, legs (the readable silhouette); L0/L1 add arms.
   if (lod < 2) {
     addBox(v, indices, [-0.46, 0.02, 1.38 + riderLift], [0.18, 0.18, 0.72], 3, leather);
     addBox(v, indices, [0.46, 0.02, 1.38 + riderLift], [0.18, 0.18, 0.72], 4, leather);
+    addArmBand(v, indices, armBandMask, riderLift);
   }
   addBox(v, indices, [-0.17, 0, 0.58 + riderLift * 0.34], [0.18, 0.18, look.mounted ? 0.50 : 0.78], 5, leather);
   addBox(v, indices, [0.17, 0, 0.58 + riderLift * 0.34], [0.18, 0.18, look.mounted ? 0.50 : 0.78], 6, leather);
-  addShield(v, indices, look.shield, accent, riderLift);
-  // L1+ drop the fine equipment that does not carry the distance faction read.
+  addShield(v, indices, look.shield, shieldHide, riderLift);
+  // L1+ drop fine equipment; faction identity is flags plus the tiny arm band.
   if (lod < 1) {
-    addHelmet(v, indices, look, accent, bronze, riderLift);
+    addHelmet(v, indices, look, horsehair, bronze, riderLift);
     addWeapon(v, indices, look.weapon, look.mounted, leather, bronze, iron, riderLift);
   }
   return splitInterleaved(new Float32Array(v), new Uint16Array(indices));
@@ -246,11 +248,11 @@ function helmetColor(helmet: Helmet, bronze: Rgba, linen: Rgba): Rgba {
   return bronze;
 }
 
-function addHelmet(out: number[], indices: number[], look: PlaceholderLook, accent: Rgba, bronze: Rgba, lift: number) {
+function addHelmet(out: number[], indices: number[], look: PlaceholderLook, horsehair: Rgba, bronze: Rgba, lift: number) {
   if (look.helmet === 'bare' || look.helmet === 'hood') return;
   if (look.helmet === 'crested') {
-    addBox(out, indices, [0, 0.04, 2.02 + lift], [0.38, 0.08, 0.12], 2, accent);
-    addBox(out, indices, [0, 0.04, 2.11 + lift], [0.12, 0.30, 0.16], 2, accent);
+    addBox(out, indices, [0, 0.04, 2.02 + lift], [0.38, 0.08, 0.12], 2, horsehair);
+    addBox(out, indices, [0, 0.04, 2.11 + lift], [0.12, 0.30, 0.16], 2, horsehair);
   } else if (look.helmet === 'bronze') {
     addBox(out, indices, [0, 0.02, 2.02 + lift], [0.34, 0.28, 0.10], 2, bronze);
   } else {
@@ -258,14 +260,18 @@ function addHelmet(out: number[], indices: number[], look: PlaceholderLook, acce
   }
 }
 
-function addShield(out: number[], indices: number[], shield: Shield, accent: Rgba, lift: number) {
+function addArmBand(out: number[], indices: number[], accent: Rgba, lift: number) {
+  addBox(out, indices, [0.46, 0.02, 1.58 + lift], [0.205, 0.205, 0.075], 4, accent);
+}
+
+function addShield(out: number[], indices: number[], shield: Shield, shieldHide: Rgba, lift: number) {
   if (shield === 'none') return;
   const size: Record<Exclude<Shield, 'none'>, [number, number, number]> = {
     tall: [0.14, 0.12, 0.70],
     round: [0.16, 0.12, 0.48],
     small: [0.13, 0.10, 0.36],
   };
-  addBox(out, indices, [-0.52, 0.00, 1.36 + lift], size[shield], 3, accent);
+  addBox(out, indices, [-0.52, 0.00, 1.36 + lift], size[shield], 3, shieldHide);
 }
 
 function addWeapon(out: number[], indices: number[], weapon: Weapon, mounted: boolean, wood: Rgba, bronze: Rgba, iron: Rgba, lift: number) {

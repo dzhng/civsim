@@ -878,13 +878,10 @@ async function routeSoldierMaterials(ctx: LabContext) {
   });
   ctx.status.innerHTML = reportTable({
     route: "soldier-materials",
-    "faction mask strength": strength.toFixed(2),
+    "accent strength": strength.toFixed(2),
     faction,
     classId,
-    note:
-      strength > 0
-        ? "faction color localized to mask (crest/shield/sash)"
-        : "legacy broad team tint",
+    note: "material-led body and shield; faction appears only on the upper sword-arm band",
   });
   publish("soldier-materials", true, {
     route: "soldier-materials",

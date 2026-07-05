@@ -6,8 +6,8 @@
 // Float32Array layouts drawTacticalLines/drawTris feed the bespoke passes.
 // The upload contracts carry display-referred colours (authored for the
 // bespoke swapchain); since slice 09 the frame is ACES-tonemapped sRGB, so
-// each overlay linearizes through the one linearAlbedo seam — the gold glow
-// (rule 6) and faction accents keep their authored hue through the transform.
+// each overlay linearizes through the one linearAlbedo seam, so authored overlay
+// colors keep their hue through the transform.
 import * as THREE from "three/webgpu";
 import {
   attribute,
@@ -359,10 +359,7 @@ export class PhotorealMarkerLayer {
     );
     const stripe = smoothstep(float(0.02), float(0.0), local.x.add(0.32).abs());
     const lodDim = float(1.0).sub(lod.mul(0.08));
-    material.colorNode = vec4(
-      linearAlbedo(mix(body, accent, max(stripe, 0.58)).mul(lodDim)),
-      inside,
-    );
+    material.colorNode = vec4(linearAlbedo(mix(body, accent, stripe).mul(lodDim)), inside);
 
     this.mesh = new THREE.Mesh(this.geometry, material);
     this.mesh.frustumCulled = false;

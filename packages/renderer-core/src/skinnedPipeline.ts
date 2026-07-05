@@ -107,8 +107,8 @@ struct Vat { width:f32, height:f32, bones:f32, pad:f32, data: array<f32> };
 @group(1) @binding(0) var<storage, read> vat: Vat;
 
 // Shared material bind group: albedo/normal/orm/factionMask textures + sampler,
-// and the faction-mask strength. strength = 0 keeps the legacy broad team tint
-// (default render unchanged); strength = 1 localizes faction color to the mask.
+// and the armband strength. Faction never floods the body; it stays on the
+// authored upper sword-arm band.
 struct Material { factionMaskStrength: f32, pad0: f32, pad1: f32, pad2: f32 };
 @group(2) @binding(0) var matSampler: sampler;
 @group(2) @binding(1) var albedoTex: texture_2d<f32>;
@@ -191,19 +191,19 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let neutral = vec3f(0.82, 0.70, 0.34);
   var accent = select(blue, red, in.faction > 0.5);
   accent = select(accent, neutral, in.faction > 1.5);
-  // Material channels. Placeholder textures are neutral, so albedo/mask keep the
-  // default look exact; orm/normal effects are gated by factionMaskStrength.
+  // Material channels. Placeholder textures are neutral; orm/normal effects are
+  // gated by factionMaskStrength for the material workbench.
   let uv = vec2f(0.5, 0.5);
   let albedo = textureSample(albedoTex, matSampler, uv).rgb;
   let orm = textureSample(ormTex, matSampler, uv).rgb;
   let nrm = textureSample(normalTex, matSampler, uv).xyz;
   let factionTexMask = textureSample(maskTex, matSampler, uv).r;
   let strength = mat.factionMaskStrength;
-  // Per-pixel faction mask: accent-painted regions (high blue) refined by the
-  // mask texture, instead of a global tint. strength=0 keeps the broad floor.
+  // Per-pixel faction mask: the high-blue vertex channel locates the tiny upper
+  // sword-arm band. Body, shield, crest, and armor keep material color.
   let teamMask = smoothstep(0.18, 0.55, max(in.color.b - max(in.color.r, in.color.g), 0.0)) * factionTexMask;
-  let teamMix = mix(mix(0.44, 0.0, strength), 0.90, teamMask);
-  let base = mix(in.color.rgb * albedo, accent, teamMix);
+  let armBand = mix(accent, vec3f(0.42, 0.34, 0.26), 0.35);
+  let base = mix(in.color.rgb * albedo, armBand, teamMask * strength);
   let light01 = clamp((in.light - 0.34) / 0.78, 0.0, 1.0);
   let grade = mix(SKINNED_FILL, SKINNED_KEY, light01);
   let bronzeMask = smoothstep(0.58, 0.78, in.color.r) * smoothstep(0.34, 0.52, in.color.g) * (1.0 - smoothstep(0.28, 0.46, in.color.b));
@@ -211,7 +211,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   var shaded = base * (0.62 + light01 * 0.58) * grade * SKINNED_EXPOSURE;
   shaded += vec3f(0.10, 0.055, 0.012) * bronzeMask * (0.30 + light01 * 0.70);
   shaded += vec3f(0.055, 0.045, 0.020) * linenMask * (0.25 + light01 * 0.45);
-  shaded += accent * in.rim * (0.06 + teamMask * 0.08);
+  shaded += vec3f(0.055, 0.045, 0.026) * in.rim * (0.06 + teamMask * 0.08);
   shaded = mix(shaded, vec3f(0.92, 0.84, 0.60), (1.0 - in.height) * 0.035);
   // ORM/normal material response, gated so the default render is byte-identical.
   let rough = orm.g;
@@ -286,7 +286,7 @@ export class SkinnedCrowdPipeline {
     this.vatVariants = cache.size;
   }
 
-  /** Localize faction color to the painted mask (1) vs the legacy broad tint (0). */
+  /** Tune faction color strength on the authored upper sword-arm band. */
   setFactionMaskStrength(strength: number) {
     this.shell.device.queue.writeBuffer(this.materialUniform, 0, new Float32Array([Math.max(0, Math.min(1, strength)), 0, 0, 0]));
   }
@@ -308,7 +308,7 @@ export class SkinnedCrowdPipeline {
     };
     const sampler = device.createSampler({ label: 'skinned-material-sampler', magFilter: 'linear', minFilter: 'linear' });
     const uniform = device.createBuffer({ label: 'skinned-material-uniform', size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
-    device.queue.writeBuffer(uniform, 0, new Float32Array([0, 0, 0, 0]));
+    device.queue.writeBuffer(uniform, 0, new Float32Array([1, 0, 0, 0]));
     const bindGroup = device.createBindGroup({
       label: 'skinned-material-bg',
       layout,

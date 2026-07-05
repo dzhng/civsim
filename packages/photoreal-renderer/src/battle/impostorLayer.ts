@@ -32,8 +32,6 @@ interface Bounds2 {
   maxY: number;
 }
 
-// Low broad floor keeps impostor bodies material-led while sampled accent masks retint strongly.
-const IMPOSTOR_BROAD_MIX = 0.30;
 const LIGHT_DIR = new THREE.Vector3(-0.34, -0.42, 0.84).normalize();
 
 export function createSoldierImpostorAtlas(
@@ -116,11 +114,10 @@ export class OctahedralImpostorLayer {
     const sample = texture(this.atlas.texture, atlasUv).toVar();
     const faction = varying(inst.w).toVar();
     const shade = varying(meta.w).toVar();
-    // Accent areas still go to a near-full retint; the body keeps only a low
-    // faction floor so the impostor preserves material color at range.
+    // Far impostors obey the same policy as mesh tiers: no broad team wash,
+    // only the authored upper sword-arm band receives faction color.
     const mask = smoothstep(0.05, 0.28, sample.b.sub(max(sample.r, sample.g))).toVar();
-    const tintAmount = max(mask.mul(0.95), float(IMPOSTOR_BROAD_MIX)).toVar();
-    const color = sampledFactionTintNode(vec4(sample.rgb, sample.a), faction, tintAmount).mul(vec4(vec3(shade), 1.0));
+    const color = sampledFactionAccentNode(vec4(sample.rgb, sample.a), faction, mask).mul(vec4(vec3(shade), 1.0));
     material.colorNode = vec4(color.rgb, sample.a);
 
     this.mesh = new THREE.Mesh(this.geometry, material);
@@ -188,20 +185,21 @@ export class OctahedralImpostorLayer {
       impostorDrawCalls: this.source.length > 0 ? 1 : 0,
       atlas: `${this.atlas.columns}x${this.atlas.rows}x${this.atlas.tileSize}`,
       tileSelection: 'nearest',
-      factionMask: 'sampled texture blue-dominance mask; runtime tint to faction without double-linearizing sampled RGB',
+      factionMask: 'sampled armband locator; no shield/crest/body faction tint',
     };
   }
 }
 
-function sampledFactionTintNode(color: Node<'vec4'>, faction: Node<'float'>, amount: Node<'float'>) {
+function sampledFactionAccentNode(color: Node<'vec4'>, faction: Node<'float'>, mask: Node<'float'>) {
   const blue = linearAlbedo(vec3(...factionForTeam(0).primary));
   const red = linearAlbedo(vec3(...factionForTeam(1).primary));
   const neutral = linearAlbedo(vec3(...factionForTeam(2).primary));
   let accent = mix(blue, red, step(0.5, faction));
   accent = mix(accent, neutral, step(1.5, faction));
+  const armBand = mix(accent, linearAlbedo(vec3(0.42, 0.34, 0.26)), 0.35);
   // texture() has already put the sRGB-tagged atlas sample into material color
   // space. Re-running linearAlbedo on that sample double-linearizes it to black.
-  const rgb = mix(color.rgb, accent, amount);
+  const rgb = mix(color.rgb, armBand, mask);
   return vec4(clamp(rgb, vec3(0.0), vec3(1.0)), color.a);
 }
 

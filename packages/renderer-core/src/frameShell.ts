@@ -374,7 +374,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let body = mix(vec3f(0.56, 0.41, 0.24), vec3f(0.78, 0.65, 0.42), clamp(1.0 - abs(in.local.y), 0.0, 1.0));
   let stripe = smoothstep(0.02, 0.0, abs(in.local.x + 0.32));
   let lodDim = 1.0 - in.lod * 0.08;
-  return vec4f(mix(body, accent, max(stripe, 0.58)) * lodDim, 1.0);
+  return vec4f(mix(body, accent, stripe) * lodDim, 1.0);
 }`;
 }
 

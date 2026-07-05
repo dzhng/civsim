@@ -9,7 +9,7 @@ export const meta = {
   tier: "quick",
   snapshots: ["battle-selection-dpr2"],
   describe:
-    "Production WebGPU battle selection frame at DPR2 with HUD, terrain props, ground cues, and team silhouettes.",
+    "Production WebGPU battle selection frame at DPR2 with HUD, terrain props, ground cues, and army silhouettes.",
 };
 
 export async function run(ctx) {
@@ -109,10 +109,9 @@ export async function run(ctx) {
   const shot = await page.screenshot();
   const metrics = battleVisualMetrics(PNG.sync.read(shot));
   ctx.check(
-    "WebGPU battle visual frame has HUD panels, teams, terrain, and selection pixels",
+    "WebGPU battle visual frame has HUD panels, army mass, terrain, and selection pixels",
     metrics.warmTerrain > 20000 &&
-      metrics.blueTeam > 250 &&
-      metrics.redTeam > 250 &&
+      metrics.crowdMass > 500 &&
       metrics.greenSelection > 120 &&
       metrics.darkHud > 15000,
     JSON.stringify(metrics),
@@ -123,8 +122,7 @@ export async function run(ctx) {
 
 function battleVisualMetrics(png) {
   let warmTerrain = 0;
-  let blueTeam = 0;
-  let redTeam = 0;
+  let crowdMass = 0;
   let greenSelection = 0;
   let darkHud = 0;
   for (let y = 0; y < png.height; y++) {
@@ -136,8 +134,7 @@ function battleVisualMetrics(png) {
       const a = png.data[i + 3];
       if (a < 16) continue;
       if (r > 135 && g > 115 && b < 120) warmTerrain++;
-      if (b > r + 24 && b > g + 8) blueTeam++;
-      if (r > g + 22 && r > b + 26 && r > 105) redTeam++;
+      if (y < png.height * 0.7 && isCrowdMass(r, g, b)) crowdMass++;
       if (g > r + 32 && g > b + 24 && g > 120) greenSelection++;
       if (y > png.height * 0.7 && r < 70 && g < 75 && b < 85) darkHud++;
     }
@@ -146,9 +143,14 @@ function battleVisualMetrics(png) {
     width: png.width,
     height: png.height,
     warmTerrain,
-    blueTeam,
-    redTeam,
+    crowdMass,
     greenSelection,
     darkHud,
   };
+}
+
+function isCrowdMass(r, g, b) {
+  const luma = r * 0.3 + g * 0.59 + b * 0.11;
+  const greenField = g > r + 22 && g > b + 12;
+  return luma > 34 && luma < 132 && r < 165 && g < 155 && b < 145 && !greenField;
 }

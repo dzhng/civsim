@@ -25,11 +25,14 @@ const BUDGET_MS = 33;
 const SOLDIER_FLOOR = 30000;
 // The load the counts may never shrink below (map A base army 15,560 soldiers,
 // 548 scenery props; production grass is the slice-11 blade-field record
-// window plus routed blade triangles).
+// window plus slice-12 routed/thinned blade triangles).
 const SPAWN_TARGET = 30500;
 const SCENERY_FLOOR = 500;
-const VISTA_GRASS_RECORD_FLOOR = 10000;
-const VISTA_GRASS_TRIANGLE_FLOOR = 150000;
+const PRODUCTION_GRASS_RECORDS = 110000;
+const PRODUCTION_GRASS_BUDGET_QUOTAS = [52800, 40700, 16500];
+const VISTA_GRASS_RECORD_FLOOR = PRODUCTION_GRASS_RECORDS;
+const VISTA_GRASS_TRIANGLE_FLOOR = 90000;
+const VISTA_GRASS_FAR_SURVIVOR_FLOOR = 22000;
 
 // Same production rig zooms as battle-camera-zoom: playable mid and the
 // low-oblique cinematic vista (zoomT = 1), where grass density peaks. Both
@@ -163,12 +166,35 @@ export async function run(ctx) {
 
     const stats = await page.evaluate(() => {
       const s = window.__game.stats();
+      const grass = s.renderStats.terrain?.grass;
+      const sample = grass?.sample;
       return {
         soldiers: s.soldiers,
         renderSoldiers: s.renderStats.soldiers,
         scenery: s.renderStats.terrain?.scenery ?? 0,
-        grassRecords: s.renderStats.terrain?.grass?.recordCount ?? 0,
-        grassTriangles: s.renderStats.terrain?.grass?.submittedTriangles ?? 0,
+        grassRecords: grass?.recordCount ?? 0,
+        grassTriangles: grass?.submittedTriangles ?? 0,
+        grassTierRecords: grass?.tiers
+          ? {
+              near: grass.tiers.near?.records ?? 0,
+              mid: grass.tiers.mid?.records ?? 0,
+              far: grass.tiers.far?.records ?? 0,
+            }
+          : null,
+        grassTierDroppedByThinning: grass?.tiers
+          ? {
+              near: grass.tiers.near?.droppedByThinning ?? 0,
+              mid: grass.tiers.mid?.droppedByThinning ?? 0,
+              far: grass.tiers.far?.droppedByThinning ?? 0,
+            }
+          : null,
+        grassThinnedRecords: grass?.thinnedRecords ?? 0,
+        grassSampleAccepted: sample?.acceptedRecords ?? 0,
+        grassSampleCapacity: sample?.recordCapacity ?? 0,
+        grassSampleLodCounts: sample?.lodCounts ?? null,
+        grassSampleBudgetQuotas: sample?.lodBudgetQuotas ?? null,
+        grassSampleDroppedByBudget: sample?.lodDroppedByBudget ?? null,
+        grassSampleStratifiedBudget: sample?.lodStratifiedBudget === true,
         device: s.renderStats.device,
       };
     });
@@ -179,6 +205,15 @@ export async function run(ctx) {
       scenery: stats.scenery,
       grassRecords: stats.grassRecords,
       grassTriangles: stats.grassTriangles,
+      grassTierRecords: stats.grassTierRecords,
+      grassTierDroppedByThinning: stats.grassTierDroppedByThinning,
+      grassThinnedRecords: stats.grassThinnedRecords,
+      grassSampleAccepted: stats.grassSampleAccepted,
+      grassSampleCapacity: stats.grassSampleCapacity,
+      grassSampleLodCounts: stats.grassSampleLodCounts,
+      grassSampleBudgetQuotas: stats.grassSampleBudgetQuotas,
+      grassSampleDroppedByBudget: stats.grassSampleDroppedByBudget,
+      grassSampleStratifiedBudget: stats.grassSampleStratifiedBudget,
       gpuMedianMs: round(median(sampled.gpu)),
       gpuP95Ms: round(percentile(sampled.gpu, 0.95)),
       gpuSamples: sampled.gpu.length,
@@ -204,12 +239,36 @@ export async function run(ctx) {
     "gate holds the dense foliage fill (scenery + vista blade-field floors)",
     table.every((row) => row.scenery >= SCENERY_FLOOR) &&
       vista.grassRecords >= VISTA_GRASS_RECORD_FLOOR &&
-      vista.grassTriangles >= VISTA_GRASS_TRIANGLE_FLOOR,
+      vista.grassTriangles >= VISTA_GRASS_TRIANGLE_FLOOR &&
+      vista.grassTierRecords?.far >= VISTA_GRASS_FAR_SURVIVOR_FLOOR,
     JSON.stringify({
       scenery: vista.scenery,
       vistaGrassRecords: vista.grassRecords,
       vistaGrassTriangles: vista.grassTriangles,
+      vistaGrassTierRecords: vista.grassTierRecords,
     }),
+  );
+  ctx.check(
+    "production grass sample uses the pinned slice-12 stratified record budget",
+    table.every(
+      (row) =>
+        row.grassSampleStratifiedBudget &&
+        row.grassSampleCapacity === PRODUCTION_GRASS_RECORDS &&
+        row.grassSampleAccepted === PRODUCTION_GRASS_RECORDS &&
+        sameArray(row.grassSampleBudgetQuotas, PRODUCTION_GRASS_BUDGET_QUOTAS) &&
+        Array.isArray(row.grassSampleDroppedByBudget) &&
+        row.grassSampleDroppedByBudget.some((count) => count > 0),
+    ),
+    JSON.stringify(
+      table.map((row) => ({
+        stop: row.stop,
+        accepted: row.grassSampleAccepted,
+        capacity: row.grassSampleCapacity,
+        lodCounts: row.grassSampleLodCounts,
+        quotas: row.grassSampleBudgetQuotas,
+        droppedByBudget: row.grassSampleDroppedByBudget,
+      })),
+    ),
   );
 
   // --- Visual evidence: the crowd is on screen at both stops ----------------
@@ -273,6 +332,14 @@ function percentile(values, p) {
 
 function round(value) {
   return Number.isFinite(value) ? Number(value.toFixed(2)) : null;
+}
+
+function sameArray(actual, expected) {
+  return (
+    Array.isArray(actual) &&
+    actual.length === expected.length &&
+    actual.every((value, index) => value === expected[index])
+  );
 }
 
 function crowdPixels(png) {

@@ -88,13 +88,17 @@ export interface BladeFieldStats {
       segments: number;
       minDistanceM: number;
       maxDistanceM: number;
+      candidateRecords: number;
       records: number;
+      droppedByThinning: number;
       triangles: number;
       vertices: number;
     }
   >;
-  tierCountSource: "cpu-mirror-live-distance-rule";
+  tierCountSource: "cpu-mirror-live-distance-rule" | "cpu-mirror-live-distance-hash-thinning";
   culledRecords: number;
+  thinnedRecords: number;
+  thinning: BladeFieldThinningProfile;
   sourceStorageCore: {
     packedVec4PerBlade: 4;
     packedBytesPerBlade: 64;
@@ -119,10 +123,20 @@ export interface BladeFieldStats {
   recordHash: string;
 }
 
+export interface BladeFieldThinningProfile {
+  enabled: boolean;
+  fadeStartM: number;
+  fadeEndM: number;
+  hashSource: "record.bladeSeed fract(seed01 * 7.13)";
+  survivorAlbedoBlend: number;
+}
+
 interface TierBucket {
   spec: BladeFieldTierSpec;
   mesh: THREE.Mesh<THREE.InstancedBufferGeometry, THREE.MeshStandardNodeMaterial>;
   records: number;
+  candidateRecords: number;
+  droppedByThinning: number;
   drawBuffer: THREE.IndirectStorageBufferAttribute;
   visibleIndices: unknown | null;
   drawStorage: unknown | null;
@@ -168,6 +182,7 @@ const drawIndirectStruct = struct({
   firstInstance: "uint",
   offset: "uint",
 });
+const SEED24_MASK = 0x00ff_ffff;
 
 export class PhotorealBladeFieldLayer {
   private readonly buckets: TierBucket[];
@@ -178,16 +193,14 @@ export class PhotorealBladeFieldLayer {
   private runtime: BladeFieldGpuRuntime | null = null;
   private packedRecords = new Float32Array();
   private culledRecords = 0;
+  private thinnedRecords = 0;
 
   private readonly tiers: readonly BladeFieldTierSpec[];
-  // Blend blades into the meadow tone at the cull ring (production edge
-  // treatment; the ratified close-lab envelope renders unfaded).
-  private readonly edgeFade: boolean;
+  private readonly thinning: BladeFieldThinningProfile;
 
   /** `tiers` overrides the ratified close-lab envelope (far 64 m) - the
    *  production battle passes a wider far tier so vista framing (eye ~59 m
-   *  up) does not distance-cull the whole field. Slice 12 owns real
-   *  stratified budgets/thinning. */
+   *  up) does not distance-cull the whole field. */
   constructor(
     scene: THREE.Scene,
     time: FloatNode = uniform(0) as unknown as FloatNode,
@@ -196,7 +209,7 @@ export class PhotorealBladeFieldLayer {
   ) {
     this.time = time;
     this.tiers = tiers;
-    this.edgeFade = edgeFade;
+    this.thinning = thinningProfileForTiers(tiers, edgeFade);
     const material = new THREE.MeshStandardNodeMaterial({
       side: THREE.DoubleSide,
       roughness: 0.84,
@@ -219,7 +232,16 @@ export class PhotorealBladeFieldLayer {
       mesh.receiveShadow = true;
       mesh.visible = false;
       scene.add(mesh);
-      return { spec, mesh, records: 0, drawBuffer, visibleIndices: null, drawStorage: null };
+      return {
+        spec,
+        mesh,
+        records: 0,
+        candidateRecords: 0,
+        droppedByThinning: 0,
+        drawBuffer,
+        visibleIndices: null,
+        drawStorage: null,
+      };
     });
   }
 
@@ -236,14 +258,17 @@ export class PhotorealBladeFieldLayer {
     if (this.recordCount === 0) {
       this.runtime = null;
       this.culledRecords = 0;
+      this.thinnedRecords = 0;
       for (const bucket of this.buckets) {
         bucket.records = 0;
+        bucket.candidateRecords = 0;
+        bucket.droppedByThinning = 0;
         bucket.mesh.geometry.instanceCount = 0;
         bucket.mesh.visible = false;
       }
       return;
     }
-    this.runtime = createGpuRuntime(this.packedRecords, this.buckets, this.tiers);
+    this.runtime = createGpuRuntime(this.packedRecords, this.buckets, this.tiers, this.thinning);
 
     for (const bucket of this.buckets) {
       bucket.mesh.material.dispose();
@@ -252,7 +277,7 @@ export class PhotorealBladeFieldLayer {
         bucket.visibleIndices,
         this.time,
         this.tiers[2].maxDistanceM,
-        this.edgeFade,
+        this.thinning.survivorAlbedoBlend,
       );
       bucket.records = 0;
       // Capacity, not the drawn count: the indirect buffer's GPU-routed
@@ -281,18 +306,40 @@ export class PhotorealBladeFieldLayer {
   }
 
   private updateCpuMirrorTierCounts(eye: readonly [number, number, number]): void {
-    for (const bucket of this.buckets) bucket.records = 0;
+    for (const bucket of this.buckets) {
+      bucket.records = 0;
+      bucket.candidateRecords = 0;
+      bucket.droppedByThinning = 0;
+    }
     this.culledRecords = 0;
+    this.thinnedRecords = 0;
     for (let i = 0; i < this.recordCount; i++) {
       const o = i * GRASS_FIELD_PACKED_STRIDE_FLOATS;
       const x = this.packedRecords[o];
       const y = this.packedRecords[o + 1];
       const z = this.packedRecords[o + 2];
       const dist = Math.hypot(x - eye[0], y - eye[1], z - eye[2]);
-      if (dist < this.tiers[0].maxDistanceM) this.buckets[0].records++;
-      else if (dist < this.tiers[1].maxDistanceM) this.buckets[1].records++;
-      else if (dist < this.tiers[2].maxDistanceM) this.buckets[2].records++;
-      else this.culledRecords++;
+      const bucketIndex =
+        dist < this.tiers[0].maxDistanceM
+          ? 0
+          : dist < this.tiers[1].maxDistanceM
+            ? 1
+            : dist < this.tiers[2].maxDistanceM
+              ? 2
+              : -1;
+      if (bucketIndex < 0) {
+        this.culledRecords++;
+        continue;
+      }
+      const bucket = this.buckets[bucketIndex];
+      bucket.candidateRecords++;
+      const bladeSeed = this.packedRecords[o + 10];
+      if (!bladeSurvivesDistanceThinning(dist, bladeSeed, this.thinning)) {
+        bucket.droppedByThinning++;
+        this.thinnedRecords++;
+        continue;
+      }
+      bucket.records++;
     }
   }
 
@@ -308,7 +355,9 @@ export class PhotorealBladeFieldLayer {
             segments: bucket.spec.segments,
             minDistanceM: bucket.spec.minDistanceM,
             maxDistanceM: bucket.spec.maxDistanceM,
+            candidateRecords: bucket.candidateRecords,
             records: bucket.records,
+            droppedByThinning: bucket.droppedByThinning,
             triangles: bucket.records * trianglesPerBlade,
             vertices: bucket.records * verticesPerBlade,
           },
@@ -325,8 +374,12 @@ export class PhotorealBladeFieldLayer {
       submittedTriangles: Object.values(tiers).reduce((sum, tier) => sum + tier.triangles, 0),
       submittedVertices: Object.values(tiers).reduce((sum, tier) => sum + tier.vertices, 0),
       tiers,
-      tierCountSource: "cpu-mirror-live-distance-rule",
+      tierCountSource: this.thinning.enabled
+        ? "cpu-mirror-live-distance-hash-thinning"
+        : "cpu-mirror-live-distance-rule",
       culledRecords: this.culledRecords,
+      thinnedRecords: this.thinnedRecords,
+      thinning: this.thinning,
       sourceStorageCore: {
         packedVec4PerBlade: 4,
         packedBytesPerBlade: 64,
@@ -402,6 +455,7 @@ function createGpuRuntime(
   packedRecords: Float32Array,
   buckets: readonly TierBucket[],
   tiers: readonly BladeFieldTierSpec[],
+  thinning: BladeFieldThinningProfile,
 ): BladeFieldGpuRuntime {
   const storageArray = instancedArray as unknown as (
     array: Float32Array,
@@ -450,18 +504,26 @@ function createGpuRuntime(
   const routeFn = Fn(() => {
     const data = grassData.element(instanceIndex);
     const d0 = data.get("data0") as { xyz: ReturnType<typeof vec3> };
+    const d2 = data.get("data2") as { z: FloatNode };
     const pos = d0.xyz;
     const dist = length(camera.sub(pos));
-    If(dist.lessThan(float(tiers[0].maxDistanceM)), () => {
-      appendToTier(configs[0]);
-    })
-      .ElseIf(dist.lessThan(float(tiers[1].maxDistanceM)), () => {
-        appendToTier(configs[1]);
+    const seed01 = clamp(d2.z.div(float(SEED24_MASK)), 0.0, 1.0);
+    const bladeHash = fract(seed01.mul(7.13));
+    const fade = smoothstep(float(thinning.fadeStartM), float(thinning.fadeEndM), dist);
+    // Disabled profile (ratified lab envelope) keeps every blade.
+    const survival = thinning.enabled ? float(1.0).sub(fade) : float(1.0);
+    If(bladeHash.lessThan(survival), () => {
+      If(dist.lessThan(float(tiers[0].maxDistanceM)), () => {
+        appendToTier(configs[0]);
       })
-      .ElseIf(dist.lessThan(float(tiers[2].maxDistanceM)), () => {
-        appendToTier(configs[2]);
+        .ElseIf(dist.lessThan(float(tiers[1].maxDistanceM)), () => {
+          appendToTier(configs[1]);
+        })
+        .ElseIf(dist.lessThan(float(tiers[2].maxDistanceM)), () => {
+          appendToTier(configs[2]);
+        });
       });
-  });
+    });
 
   return {
     camera,
@@ -479,7 +541,7 @@ function bladeFieldMaterial(
   visibleIndices: unknown,
   time: FloatNode,
   farMaxM: number,
-  edgeFade: boolean,
+  survivorAlbedoBlend: number,
 ): THREE.MeshStandardNodeMaterial {
   // Standard material so the environment (the mood owner) lights the canopy -
   // Lambert never samples the sky IBL here and left the field slate-grey. The
@@ -628,7 +690,7 @@ function bladeFieldMaterial(
       .mul(bladeFactor)
       .mul(0.92);
     const desat = mix(shaded, vec3(dot(shaded, vec3(0.333))), distFade.mul(0.16));
-    const albedo = mix(desat, meadow, ringFade.mul(edgeFade ? 0.85 : 0.0));
+    const albedo = mix(desat, meadow, ringFade.mul(survivorAlbedoBlend));
     vAlbedo.assign(clamp(albedo, vec3(0.0), vec3(1.0)));
     vRough.assign(mix(0.97, 0.9, smoothstepN(0.18, 1.0, t)));
 
@@ -640,6 +702,50 @@ function bladeFieldMaterial(
   material.colorNode = vec4(linearAlbedo(vAlbedo), 1.0);
   material.roughnessNode = vRough;
   return material;
+}
+
+function thinningProfileForTiers(
+  tiers: readonly BladeFieldTierSpec[],
+  blendSurvivors: boolean,
+): BladeFieldThinningProfile {
+  const farTier = tiers[tiers.length - 1] ?? BLADE_FIELD_LOD_TIERS[2];
+  return {
+    // Thinning is the production edge treatment (same flag as the survivor
+    // albedo blend); the ratified close-lab envelope renders full density.
+    enabled: blendSurvivors,
+    fadeStartM: farTier.minDistanceM,
+    fadeEndM: farTier.maxDistanceM,
+    hashSource: "record.bladeSeed fract(seed01 * 7.13)",
+    survivorAlbedoBlend: blendSurvivors ? 0.85 : 0,
+  };
+}
+
+function bladeSurvivesDistanceThinning(
+  dist: number,
+  bladeSeed: number,
+  thinning: BladeFieldThinningProfile,
+): boolean {
+  if (!thinning.enabled) return true;
+  const survival = 1 - smoothstep01(thinning.fadeStartM, thinning.fadeEndM, dist);
+  return bladeHash01(bladeSeed) < survival;
+}
+
+function bladeHash01(bladeSeed: number): number {
+  return fract01(clamp01(bladeSeed / SEED24_MASK) * 7.13);
+}
+
+function smoothstep01(edge0: number, edge1: number, value: number): number {
+  if (edge1 <= edge0) return value < edge1 ? 0 : 1;
+  const t = clamp01((value - edge0) / (edge1 - edge0));
+  return t * t * (3 - 2 * t);
+}
+
+function fract01(value: number): number {
+  return value - Math.floor(value);
+}
+
+function clamp01(value: number): number {
+  return Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
 }
 
 function hashPackedRecords(records: Float32Array): string {

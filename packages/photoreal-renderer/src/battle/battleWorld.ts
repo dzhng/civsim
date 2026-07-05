@@ -103,17 +103,17 @@ export interface BattleTacticalLineFrame {
 }
 
 const PRODUCTION_BLADE_FIELD_PROFILE = {
-  source: "BMS11-SLICE-E9C4 slice-10 accepted close-gate profile",
+  source: "BMS12-SLICE-A3B7 slice-10 accepted profile with stratified budgets",
   seed: 0x5ea7_2026,
-  // Ring must exceed the vista camera's eye height (~59 m) + ground reach or
-  // production framing distance-culls the field (slice 11 finding). Coarser
-  // production cell than the close lab keeps the record count sane; proper
-  // stratified budgets + distance thinning are slice 12.
+  // Ring follows the camera's ground position. The GPU route thins records
+  // stochastically through the far tier, so high camera stops fade out before
+  // the hard cull instead of dropping at one coverage wall.
   focusRadiusM: 150,
   fieldCellSize: 0.6,
   snapCellSize: 8,
   clumpCellSize: 1.55,
   maxRecords: 110000,
+  lodStratifiedBudget: true,
   density: 0.8,
   jitter: 0.72,
   minNormalZ: 0.45,
@@ -596,6 +596,7 @@ export class PhotorealBattleWorld {
       snapCellSize: PRODUCTION_BLADE_FIELD_PROFILE.snapCellSize,
       clumpCellSize: PRODUCTION_BLADE_FIELD_PROFILE.clumpCellSize,
       maxRecords: PRODUCTION_BLADE_FIELD_PROFILE.maxRecords,
+      lodStratifiedBudget: PRODUCTION_BLADE_FIELD_PROFILE.lodStratifiedBudget,
       density: PRODUCTION_BLADE_FIELD_PROFILE.density,
       jitter: PRODUCTION_BLADE_FIELD_PROFILE.jitter,
       minNormalZ: PRODUCTION_BLADE_FIELD_PROFILE.minNormalZ,

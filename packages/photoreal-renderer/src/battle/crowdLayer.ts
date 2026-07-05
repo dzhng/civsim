@@ -300,11 +300,13 @@ function crowdMaterial(vatTex: THREE.DataTexture, lod = 0): THREE.MeshStandardNo
   const s = a.sin().toVar();
   const p = rolled.mul(inst1.x).toVar();
   // inst2.x = terrain elevation: soldiers sit on the surface and sort by it.
-  material.positionNode = vec3(
+  const worldPosition = vec3(
     inst0.x.add(p.x.mul(c)).sub(p.y.mul(s)),
     inst0.y.add(p.x.mul(s)).add(p.y.mul(c)),
     p.z.add(inst2.x),
   );
+  material.positionNode = worldPosition;
+  material.receivedShadowPositionNode = varying(worldPosition);
 
   // The environment lights the FULLY posed normal: skinned, corpse-rolled,
   // then yaw-rotated into world space (the parity port lit the raw skinned

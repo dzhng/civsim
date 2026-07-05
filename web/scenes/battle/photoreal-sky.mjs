@@ -37,7 +37,10 @@ export const meta = {
 };
 
 // The vista rig stop (battle-perf-30k's framing): sky band + far ridge in frame.
-const FRAMING = "map=A&t=0&ref=1&zoom=9.5&cx=0&cy=-310";
+// zoom 5: the production blade field (slices 11/12) fills the lower half
+// of a zoom-9.5 frame with near blades - the sky/terrain band crops were
+// measuring grass, which dragged the overcast band warm (grass R>B).
+const FRAMING = "map=A&t=0&ref=1&zoom=5&cx=0&cy=-310";
 const SKY_TIER = "skyview-fragment-lut";
 // battle alias → the civsim preset id the stats identity must report.
 const PRESETS = [

@@ -697,7 +697,9 @@ function bladeFieldMaterial(
     return world;
   });
 
-  material.positionNode = Fn(() => buildVertex())();
+  const worldPosition = Fn(() => buildVertex())();
+  material.positionNode = worldPosition;
+  material.receivedShadowPositionNode = varying(worldPosition);
   material.normalNode = viewNormalNode(normalize(vShadeNormal));
   material.colorNode = vec4(linearAlbedo(vAlbedo), 1.0);
   material.roughnessNode = vRough;

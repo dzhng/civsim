@@ -77,7 +77,12 @@ const MS_TINT: Rgb = [0.5, 0.7, 1.0];
 /** Low-sun dust/aerosol aureole. AgX deliberately compresses chroma in the
  *  display frame, so the sky model must carry enough warm sunward radiance
  *  before tone mapping for golden-hour pixels to remain warm. */
-const LOW_SUN_AUREOLE_RADIANCE = 0.42;
+// 0.42 left the displayed golden band a hair blue after AgX + the 17a
+// horizon blend (R-B = -0.6 of 177); 0.55 restores warm-neutral without
+// overcooking noon/overcast (both gated to ~0 by the strength curve).
+const LOW_SUN_AUREOLE_RADIANCE = 0.55;
+const LOW_SUN_AUREOLE_COS_OUTER = -0.12;
+const LOW_SUN_AUREOLE_COS_INNER = 0.76;
 /** Below-horizon ground bounce tint (dry Aegean earth, applied to horizon
  *  radiance in the LUT's lower hemisphere — the IBL's up-welling light). */
 const GROUND_BOUNCE_TINT: Rgb = [0.34, 0.3, 0.25];
@@ -103,12 +108,19 @@ export function mieScale(turbidity: number): number {
 /** Overcastness derived from turbidity — the single physical axis David's
  *  overcast mood hangs on (highland T 9.8 → 1.0; the three clear presets → 0). */
 export function overcastFromTurbidity(turbidity: number): number {
-  return smoothstepJs(4.5, 8.5, turbidity);
+  // Saturates by the overcast preset's turbidity (7.2 since the 17-era
+  // compose tune). The old 8.5 endpoint let 21% of the warm physical sky
+  // bleed past the grey dome - the overcast band read warm, not cool.
+  // Extinction (the fog runway the compose gate accepted) is driven by
+  // turbidity directly and does not move with this ramp.
+  return smoothstepJs(4.0, 7.0, turbidity);
 }
 
 export function lowSunAureoleStrength(sunDirectionZ: number, overcast: number): number {
   return (
-    (1 - overcast) *
+    // Squared: a mostly-overcast sky (0.79 since the 17-era turbidity tune)
+    // must keep only a trace of aureole, or the overcast band reads warm.
+    (1 - overcast) ** 2 *
     (1 - smoothstepJs(0.25, 0.85, sunDirectionZ)) *
     LOW_SUN_AUREOLE_RADIANCE
   );
@@ -398,7 +410,11 @@ export class SkyModel {
         .mul(msAmbient / (4 * Math.PI));
       radiance.addAssign(tView.mul(single.add(multiple)).mul(dt));
     });
-    const sunwardAureole = smoothstep(float(-0.1), float(0.82), cosTheta).mul(lowSunAureole);
+    const sunwardAureole = smoothstep(
+      float(LOW_SUN_AUREOLE_COS_OUTER),
+      float(LOW_SUN_AUREOLE_COS_INNER),
+      cosTheta,
+    ).mul(lowSunAureole);
     const clearSky = radiance
       .mul(SUN_RADIANCE)
       .add(vec3(...p.sunTransmittance).mul(sunwardAureole))

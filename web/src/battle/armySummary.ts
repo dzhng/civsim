@@ -15,6 +15,8 @@ export interface ArmySummary {
   morale: number;
   /** Men-weighted mean cohesion of the living, 0..1. */
   cohesion: number;
+  /** Living player soldiers (the men count in the HUD head). */
+  aliveMen: number;
   /** Player units currently routing. */
   routing: number;
 }
@@ -44,6 +46,7 @@ export function armySummary(info: Float32Array, count: number, stride: number): 
   return {
     unitsAlive,
     unitsTotal,
+    aliveMen,
     strengthFrac: totalMen > 0 ? aliveMen / totalMen : 0,
     morale: aliveMen > 0 ? moraleMen / aliveMen : 0,
     cohesion: aliveMen > 0 ? cohesionMen / aliveMen : 0,

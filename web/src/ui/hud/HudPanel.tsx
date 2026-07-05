@@ -78,7 +78,7 @@ function RosterReadout({ s }: { s: ArmySummary }) {
         <div>
           <div className="hud-name">Army</div>
           <div className="hud-meta">
-            {s.unitsAlive}/{s.unitsTotal} units · {standing}
+            {s.unitsAlive}/{s.unitsTotal} units · {s.aliveMen.toLocaleString()} men · {standing}
           </div>
         </div>
       </div>

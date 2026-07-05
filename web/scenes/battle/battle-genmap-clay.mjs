@@ -1,7 +1,7 @@
 import { HORIZON_TARGET, VIEWPORT, VISTA_CAMERA } from "./battle-map-style.mjs";
 
 const SEED = 7;
-const SEED7_HASH = "0x38e99f04c18d3968";
+const SEED7_HASH = "0x5b0bcb8dd7e7f22f";
 const RECT = { x0: -1200, y0: -800, x1: 1200, y1: 800 };
 
 export const meta = {

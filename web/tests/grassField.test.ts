@@ -163,6 +163,32 @@ test("grass field stratified budget reserves records across lod tiers when cappe
   );
 });
 
+test("grass field stratified cap preserves coverage across the sampled radius", () => {
+  const grid = makeGrid(160, 160, 2);
+  const field = terrainHeightField(grid);
+  const radius = 120;
+  const snapshot = sampleGrassField(grid, field, {
+    ...baseConfig(),
+    focus: { x: 160, y: 160, radius },
+    fieldCellSize: 2,
+    snapCellSize: 2,
+    density: 1,
+    jitter: 0,
+    maxRecords: 400,
+    lodNearRadius: 0.05,
+    lodMidRadius: 0.2,
+    lodStratifiedBudget: true,
+  });
+
+  const maxDist = Math.max(
+    ...snapshot.records.map((record) =>
+      Math.hypot(record.x - snapshot.stats.snapX, record.y - snapshot.stats.snapY),
+    ),
+  );
+  assert.equal(snapshot.stats.acceptedRecords, 400);
+  assert.ok(maxDist > radius * 0.9, JSON.stringify({ maxDist, stats: snapshot.stats }));
+});
+
 function baseConfig(): GrassFieldConfig {
   return {
     seed: 0x1234_abcd,

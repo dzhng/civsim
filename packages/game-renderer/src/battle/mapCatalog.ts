@@ -27,6 +27,22 @@ export interface BattleMapCatalogEntry {
   intentionallyFlat?: boolean;
 }
 
+export interface GeneratedBattleMapManifest {
+  seed: number | string;
+  groundCover: BattleGroundCover;
+  edges: BattleEdgeRoles;
+  featureSummary?: {
+    lakeCells?: number;
+    forestCells?: number;
+    passableForestCells?: number;
+    streams?: number;
+    streamCells?: number;
+    mudCells?: number;
+    screeCells?: number;
+    roughFieldCells?: number;
+  };
+}
+
 type BattleTerrainPresentationSource = Pick<BattleMapCatalogEntry, 'id' | 'edges' | 'groundCover'>;
 
 // West and east are the sealed sides on every map (open corridor runs N–S);
@@ -65,6 +81,28 @@ export function battleMapById(id: string): BattleMapCatalogEntry | undefined {
 
 export function battleMapByWasmId(wasmMapId: number): BattleMapCatalogEntry | undefined {
   return BATTLE_MAP_CATALOG.find((m) => m.wasmMapId === wasmMapId);
+}
+
+export function generatedBattleMapEntry(
+  manifest: GeneratedBattleMapManifest | string,
+): BattleMapCatalogEntry {
+  const m =
+    typeof manifest === 'string'
+      ? (JSON.parse(manifest) as GeneratedBattleMapManifest)
+      : manifest;
+  const seed = String(m.seed);
+  const features = m.featureSummary;
+  const lakes = features?.lakeCells ?? 0;
+  const streams = features?.streams ?? 0;
+  const forest = features?.passableForestCells ?? features?.forestCells ?? 0;
+  return {
+    id: `generated-${seed}`,
+    wasmMapId: -1,
+    label: `Generated ${seed}`,
+    description: `${lakes} lake cells, ${forest} passable forest cells, ${streams} streams.`,
+    edges: m.edges,
+    groundCover: m.groundCover,
+  };
 }
 
 /**

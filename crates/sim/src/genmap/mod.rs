@@ -3,6 +3,7 @@
 
 pub mod certify;
 pub mod edges;
+pub mod field_texture;
 pub mod hydrology;
 pub mod landform;
 pub mod passability;
@@ -33,6 +34,8 @@ pub struct MapRecipe {
     pub hydrology: hydrology::HydrologyRecipe,
     #[serde(default)]
     pub edge_seals: edges::EdgeSealRecipe,
+    #[serde(default)]
+    pub field_texture: field_texture::FieldTextureRecipe,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -106,6 +109,7 @@ impl Default for MapRecipe {
             slope_bands: SlopeBands::default(),
             hydrology: hydrology::HydrologyRecipe::default(),
             edge_seals: edges::EdgeSealRecipe::default(),
+            field_texture: field_texture::FieldTextureRecipe::default(),
         }
     }
 }
@@ -153,6 +157,7 @@ pub fn generate(recipe: &MapRecipe) -> Terrain {
     passability::derive(recipe, &mut t);
     passability::seal_isolated_passable_pockets(&mut t);
     hydrology::paint(&drainage, &mut t);
+    field_texture::apply(recipe, &mut t);
     edges::apply(recipe, &mut t);
     if edges::needs_pocket_cleanup(recipe) {
         passability::seal_isolated_passable_pockets(&mut t);

@@ -30,11 +30,14 @@ export const meta = {
 
 // The eastern tree grove + a soldier formation in one frame (map A). zoom
 // clamps to the rig; the grove crop stays legible at either adapter's clamp.
-const FRAMING = "map=A&t=0&ref=1&zoom=28&cx=560&cy=-380";
+// zoom 6: the production blade field (slices 11/12) fills a zoom-28 frame
+// with near-macro grass blades - the old framing measured blades, not the
+// grove, and the on/off check read 0 forever.
+const FRAMING = "map=A&t=0&ref=1&zoom=6&cx=560&cy=-380";
 // Grove crop (fractions of the 1280×800 canvas — the eastern tree grove).
-const SCENERY_CROP = { x0: 0.85, y0: 0.44, w: 0.15, h: 0.16 };
+const SCENERY_CROP = { x0: 0.55, y0: 0.56, w: 0.13, h: 0.16 };
 // Formation crop for the golden contact snap (soldier feet on ground).
-const CONTACT_CROP = { x0: 0.3, y0: 0.34, w: 0.16, h: 0.12 };
+const CONTACT_CROP = { x0: 0.22, y0: 0.2, w: 0.13, h: 0.16 };
 const PRESETS = [
   { env: "golden-hour", preset: "golden", radius: 1.168 },
   { env: "noon", preset: "noon", radius: 1 },

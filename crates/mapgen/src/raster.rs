@@ -81,6 +81,20 @@ pub const STRAIT_CARVES: &[StraitCarve] = &[
         ],
         half_w_km: 5.0,
     },
+    // Bosphorus: separate Constantinopolis (European bank) from Asia Minor,
+    // connecting the Black Sea (N) to the Marmara (S). Hugs just east of
+    // Constantinopolis [917, 394] so a narrow carve keeps its harbor on land.
+    StraitCarve {
+        name: "Bosphorus",
+        centerline: &[
+            [926.0, 424.0],
+            [925.0, 404.0],
+            [924.0, 390.0],
+            [923.0, 384.0],
+            [921.0, 378.0],
+        ],
+        half_w_km: 4.5,
+    },
 ];
 
 impl Raster {

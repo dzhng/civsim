@@ -3026,10 +3026,10 @@ impl Sim {
                             tick_now,
                             i,
                             soldier_unit[i] as usize,
-                            ForceChannel::PikeLateralFriction,
+                            ForceChannel::PackedLateralFriction,
                             pre_friction * dt,
                             v * dt,
-                            "strict_formation_lateral_reversal",
+                            "packed_contact_lateral_reversal",
                         ));
                     }
                 }

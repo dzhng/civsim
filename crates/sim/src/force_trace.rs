@@ -19,7 +19,7 @@ pub enum ForceChannel {
     SpeedCap,
     FightingPaceCap,
     FightingTempoCap,
-    PikeLateralFriction,
+    PackedLateralFriction,
     IdleSettleDamp,
     BodySeparationNormal,
     BodySeparationFriendlySlide,
@@ -54,7 +54,7 @@ impl ForceChannel {
         ForceChannel::SpeedCap,
         ForceChannel::FightingPaceCap,
         ForceChannel::FightingTempoCap,
-        ForceChannel::PikeLateralFriction,
+        ForceChannel::PackedLateralFriction,
         ForceChannel::IdleSettleDamp,
         ForceChannel::BodySeparationNormal,
         ForceChannel::BodySeparationFriendlySlide,
@@ -91,7 +91,7 @@ impl ForceChannel {
             ForceChannel::SpeedCap => "sim.rs/steer_soldiers/soldier_speed_cap",
             ForceChannel::FightingPaceCap => "sim.rs/steer_soldiers/fighting_pace_cap",
             ForceChannel::FightingTempoCap => "sim.rs/steer_soldiers/fighting_tempo_cap",
-            ForceChannel::PikeLateralFriction => "sim.rs/steer_soldiers/pike_lateral_friction",
+            ForceChannel::PackedLateralFriction => "sim.rs/steer_soldiers/packed_lateral_friction",
             ForceChannel::IdleSettleDamp => "sim.rs/steer_soldiers/idle_settle_damp",
             ForceChannel::BodySeparationNormal => "collision.rs/apply_separation/body_normal",
             ForceChannel::BodySeparationFriendlySlide => {
@@ -130,7 +130,7 @@ impl ForceChannel {
                 | ForceChannel::SpeedCap
                 | ForceChannel::FightingPaceCap
                 | ForceChannel::FightingTempoCap
-                | ForceChannel::PikeLateralFriction
+                | ForceChannel::PackedLateralFriction
                 | ForceChannel::IdleSettleDamp
                 | ForceChannel::Routing
                 | ForceChannel::DisengageEscape
@@ -146,7 +146,7 @@ impl ForceChannel {
                 | ForceChannel::SpeedCap
                 | ForceChannel::FightingPaceCap
                 | ForceChannel::FightingTempoCap
-                | ForceChannel::PikeLateralFriction
+                | ForceChannel::PackedLateralFriction
                 | ForceChannel::IdleSettleDamp
                 | ForceChannel::WeaponRepel
                 | ForceChannel::BodySeparationNormal

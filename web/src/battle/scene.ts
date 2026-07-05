@@ -34,7 +34,7 @@ import {
   validateClassSpecCatalog,
   type UnitClassKey,
 } from "./classData";
-import { BANNER_GALLERY, type BannerChip, type BannerState } from "./readoutState";
+import { READOUT_GALLERY, type BannerChip } from "./readoutState";
 import { armySummary } from "./armySummary";
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
@@ -97,16 +97,20 @@ function renderClassFor(
 
 export type BattleKind = "duel" | "5v5" | "surround" | "flank" | "mapA" | "mapB";
 
-function readoutScale(zoom: number): number {
-  const t = Math.max(0, Math.min(1, (zoom - 1.4) / 3.0));
-  return 0.58 + t * 0.34;
-}
+// Chip scale: one readable screen size (text below ~9px is noise), kept
+// subordinate to the flag by HIDING chips at range instead of shrinking them
+// — Total War shows unit status as you close in, never as a bigger-than-the-
+// flag label at distance.
+const READOUT_SCALE = 0.8;
+// Below this cloth screen-width the chip row would out-scale the flag it
+// garnishes — the flag alone is the marker out there.
+const READOUT_MIN_CLOTH_PX = 30;
 
 const READOUT_TACTICAL_ZOOM = 1.1;
 
-// state index (BANNER_GALLERY order) -> unit id; see the gallery mapping note
+// state index (READOUT_GALLERY order) -> unit id; see the gallery mapping note
 // at the use site.
-const GALLERY_UNIT_FOR_STATE = [1, 13, 3, 11, 7, 10];
+const GALLERY_UNIT_FOR_STATE = [2, 0, 3, 4];
 
 // Total War legibility floor: the standard is world-scaled, but as the camera
 // pulls out it grows toward a constant screen presence instead of vanishing
@@ -501,16 +505,14 @@ export class BattleScene implements Scene {
         if (alive === 0) continue;
         const anchorX = unitAnchorX[u] > -Infinity ? unitAnchorX[u] : info[o];
         const anchorY = unitAnchorY[u] > -Infinity ? unitAnchorY[u] : info[o + 1];
-        // Gallery states sit on units spread across BOTH armies — neighbors
-        // in one column overlap each other's fixed-screen-size readouts and
-        // the review grid becomes unreadable. Own states ride blue units,
-        // enemy states red ones.
+        // Gallery states sit on units spread along one front line — column
+        // neighbors overlap each other's fixed-screen-size readouts and the
+        // review grid becomes unreadable.
         const galleryIndex = readoutGalleryMode ? GALLERY_UNIT_FOR_STATE.indexOf(u) : -1;
-        const gallery = galleryIndex >= 0 ? BANNER_GALLERY[galleryIndex].state : undefined;
-        const selected = gallery?.selected ?? u === sel;
+        const gallery = galleryIndex >= 0 ? READOUT_GALLERY[galleryIndex].state : undefined;
+        const selected = u === sel;
         const team = info[o + UNIT_INFO.team];
-        const displayTeam = gallery?.team ?? (team === 0 ? 0 : 1);
-        const mine = gallery?.mine ?? team === 0;
+        const displayTeam: 0 | 1 = team === 0 ? 0 : 1;
         const groundZ = renderer.heightAt(anchorX, anchorY);
         const tier = STANDARD_SIZE_TIERS["battle-unit"];
         // Measure through the renderer's TRUE camera — the rig's chart
@@ -542,52 +544,25 @@ export class BattleScene implements Scene {
         });
         if (!showReadouts) continue;
         if (readoutGalleryMode && !gallery) continue;
+        // No screen-bounds cull: the rig's chart worldToScreen lies in the
+        // swoop regime (it silently dropped on-screen readouts), the chip
+        // quads are cheap, and the shader collapses behind-camera anchors.
         const poleTopZ = groundZ + poleHeight * scale;
-        const [sx, sy] = camera.worldToScreen(anchorX, anchorY, poleTopZ);
-        if (sx < -80 || sy < -80 || sx > window.innerWidth + 80 || sy > window.innerHeight + 80)
-          continue;
-        const state = gallery ?? unitReadoutState(info, o, displayTeam, mine, selected, alive);
+        const chips = gallery ? gallery.chips : unitChips(info, o);
+        // Chips only: no chips, no readout — the flag is the unit marker.
+        if (chips.length === 0) continue;
+        // The gallery reviews every ladder state regardless of distance.
+        if (!readoutGalleryMode && pxPerClothWidth < READOUT_MIN_CLOTH_PX) continue;
         readouts.push({
           unitId: u,
           x: anchorX,
           y: anchorY,
           z: poleTopZ,
-          // Gallery mode magnifies the readouts — the review snapshot judges
-          // bar/chip legibility, which needs more than marker size.
-          worldPerPx:
-            ((readoutGalleryMode ? 2.6 : 1) * readoutScale(camera.zoom)) /
-            Math.max(0.001, pxPerWorld),
-          team: state.team,
-          mine: state.mine,
-          hp: state.hp,
-          cohesion: state.cohesion,
-          morale: state.morale,
-          stamina: state.stamina,
-          chips: state.chips,
-          selected: state.selected,
+          worldPerPx: READOUT_SCALE / Math.max(0.001, pxPerWorld),
+          chips,
         });
       }
       renderer.setUnitReadouts(standards, readouts);
-    }
-
-    function unitReadoutState(
-      info: Float32Array,
-      o: number,
-      team: 0 | 1,
-      mine: boolean,
-      selected: boolean,
-      alive: number,
-    ): BannerState {
-      return {
-        team,
-        mine,
-        hp: alive / info[o + 7],
-        cohesion: info[o + UNIT_INFO.cohesion],
-        morale: info[o + UNIT_INFO.morale],
-        stamina: info[o + UNIT_INFO.stamina],
-        chips: unitChips(info, o),
-        selected,
-      };
     }
 
     // --- Toolbar (React, inside <BattleHud>) --------------------------------------

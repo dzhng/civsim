@@ -16,12 +16,14 @@ How a battle (and the campaign map above it) is READ:
   army stacks, and over every settlement. No DOM/SVG flags, no static flag
   panels anywhere. Flat 2D flag glyphs survive only as map UI (far-zoom
   marker chips, label rows).
-- **The battle readout is in-scene GPU billboards.** Own units carry
-  hp/cohesion/morale/stamina bars; enemy units always carry a minimal
-  faction-colored plate (never markerless); status chips render from a glyph
-  atlas — all world-anchored at the standard's pole top, camera-facing,
-  depth-tested. No per-unit DOM UI exists in battle.
-- **Ownership reads as: bars = yours.** Enemy shows flag + event chips only.
+- **The battle readout is text-status chips ONLY** (revised 2026-07-05:
+  David cut the floating stat bars — the flag carries identity, the unit
+  card carries stats). Chips render from a glyph atlas as camera-facing
+  billboards at the pole top, at one readable screen size, and HIDE at range
+  instead of shrinking (below ~24px of cloth width the row would out-scale
+  the flag it garnishes). No per-unit DOM UI exists in battle. The review
+  ladder (single / pair / row / wrapped max) is pinned by the banner-gallery
+  scene's `banner-chips-*` baselines.
 - **Selection reads as flag glow plus green rings** (campaign green) under
   each soldier of the selected own unit; the glow is an emissive lift on the
   3D standard's cloth.
@@ -163,7 +165,15 @@ works only because nothing reads the wall clock.
 - Billboard anchors behind the camera must collapse (mirrored projection
   garbage otherwise); readout instance slots with no atlas entry must be
   zeroed, not skipped (stale buffer data rasterizes as orphan fragments).
-- Enemy units are never markerless at tactical zoom.
+- The flag itself is the unit marker; chips only ever ADD to it.
+- Readout quads are UI, not world: opaque alphaTest-cutout material,
+  `toneMapped=false`, `fog=false`, canvas atlas with `flipY=false` — the
+  PhotorealMarkerLayer recipe. A `transparent: true` readout quad gets
+  veiled by the transparent-pass ordering, the scene AgX grade desaturates
+  chip colors, and default flipY mirrors a multi-row atlas so every cell
+  samples its neighbor's padding (chips render as pale torn dashes — this
+  exact stack of symptoms cost a long diagnosis; check these four flags
+  first).
 - The golden hash never moves for any of this — every piece is render-only.
 
 ## Dead ends (do not re-walk)
@@ -187,10 +197,12 @@ works only because nothing reads the wall clock.
 
 ## Known follow-ups (recorded, not planned here)
 
-- Readout distance behavior: declutter/fade for overlapping panels at long
-  range; panels wash toward pastel against bright sky.
-- The "breaking" readout panel reads as a black box rather than "same panel,
-  depleted"; bar-stripe identity is color-only.
+- Chip declutter: overlapping units' chip rows can collide in screen space
+  (no merge/fade behavior); at mid distance a chip row can out-scale the
+  flag below it (the distance gate bounds but does not eliminate this).
+- The kill-count chip renders as a bare glyph+number and reads as an
+  orphaned token to fresh eyes; consider fusing counts into their parent
+  chip (unprimed-critique finding, 2026-07-05).
 - Garrisoned cities fly the garrison's standard at army scale — an argument
   exists for settlement scale in the occupier's livery (visual hierarchy).
 - Emblem fidelity is a placeholder (disc + diamond + bar); real per-faction

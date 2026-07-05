@@ -3,9 +3,16 @@ export const meta = {
   kind: "visual",
   world: "battle-5v5-readout-gallery",
   tier: "quick",
-  snapshots: ["banner-gallery", "battle-readout-pan-end"],
+  snapshots: [
+    "banner-gallery",
+    "banner-chips-single",
+    "banner-chips-pair",
+    "banner-chips-row",
+    "banner-chips-max",
+    "battle-readout-pan-end",
+  ],
   describe:
-    "Renderer-backed battle readout gallery: representative bar/chip states anchored to 3D standards.",
+    "Chip-readout ladder over 3D standards: single / pair / full row / wrapped max, plus a pan-rigidity frame.",
 };
 
 export async function run(ctx) {
@@ -38,31 +45,29 @@ export async function run(ctx) {
       "#gameover, #hud, #buttons, #pausemenu, #banner, #selbox, #minimap, #unitcards, #toolbar { display: none !important; }",
   });
 
+  // The ladder sits on units 2/0/3/4 (GALLERY_UNIT_FOR_STATE in
+  // web/src/battle/scene.ts). Frame their line close, at the swoop zoom where
+  // flags carry the reference look, so chip size is judged against the cloth.
   await page.evaluate(() => {
     window.__game.freezeAtTick(4000);
-    // Must match GALLERY_UNIT_FOR_STATE in web/src/battle/scene.ts.
-    const points = [1, 13, 3, 11, 7, 10].map((u) => window.__game.unitInfo(u));
+    const points = [2, 0, 3, 4].map((u) => window.__game.unitInfo(u));
     const xs = points.map((info) => info[0]);
     const ys = points.map((info) => info[1]);
-    window.__game.reviewFrame(
-      Math.min(...xs) - 22,
-      Math.min(...ys) - 10,
-      Math.max(...xs) + 22,
-      Math.max(...ys) + 18,
-      {
-        pitch: 1.08,
-        fill: 0.62,
-      },
+    const cam = window.__cam;
+    cam.yaw = 0;
+    cam.pitchBias = 0;
+    cam.zoom = 8.55;
+    cam.setViewCenter(
+      (Math.min(...xs) + Math.max(...xs)) / 2,
+      (Math.min(...ys) + Math.max(...ys)) / 2 - 24,
     );
+    cam.clampView?.();
   });
   await page.waitForFunction(
     () => {
       const stats = window.__game.stats().renderStats;
-      return (
-        stats.readouts?.readouts === 6 &&
-        stats.readouts?.ownBars === 3 &&
-        stats.readouts?.enemyMarkers === 3
-      );
+      // 1 + 2 + 3 + 5 ladder chips; live units may add their own rows.
+      return stats.readouts?.readouts >= 4 && stats.readouts?.chips >= 11;
     },
     undefined,
     { timeout: 10000 },
@@ -78,19 +83,53 @@ export async function run(ctx) {
     };
   });
   ctx.check(
-    "gallery is renderer-backed with own bars, enemy markers, chip glyphs, and no DOM banners",
+    "gallery is renderer-backed, chips-only (no bar rects), and DOM-free",
     gallery.standards?.standards >= 10 &&
-      gallery.standards?.selected >= 1 &&
-      gallery.readouts?.readouts === 6 &&
-      gallery.readouts?.ownBars === 3 &&
-      gallery.readouts?.enemyMarkers === 3 &&
+      gallery.readouts?.readouts >= 4 &&
       gallery.readouts?.chips >= 11 &&
-      gallery.readouts?.selected >= 1 &&
+      gallery.readouts?.rects === undefined &&
+      gallery.readouts?.ownBars === undefined &&
       gallery.readouts?.atlasWidth > 1 &&
       gallery.domReadouts === 0,
     JSON.stringify(gallery),
   );
   await ctx.snap(page, "banner-gallery");
+
+  // One close-up per ladder state so chip layout is reviewable at reading
+  // distance (the wide frame shows composition; far states are small there).
+  for (const [label, unit] of [
+    ["single", 2],
+    ["pair", 0],
+    ["row", 3],
+    ["max", 4],
+  ]) {
+    await page.evaluate((u) => {
+      const info = window.__game.unitInfo(u);
+      const cam = window.__cam;
+      cam.yaw = 0;
+      cam.zoom = 8.6;
+      cam.setViewCenter(info[0], info[1] - 14);
+      cam.clampView?.();
+    }, unit);
+    await page.waitForTimeout(180);
+    await ctx.snap(page, `banner-chips-${label}`);
+  }
+
+  // Restore the wide framing before the pan gate.
+  await page.evaluate(() => {
+    const points = [2, 0, 3, 4].map((u) => window.__game.unitInfo(u));
+    const xs = points.map((info) => info[0]);
+    const ys = points.map((info) => info[1]);
+    const cam = window.__cam;
+    cam.yaw = 0;
+    cam.zoom = 8.55;
+    cam.setViewCenter(
+      (Math.min(...xs) + Math.max(...xs)) / 2,
+      (Math.min(...ys) + Math.max(...ys)) / 2 - 24,
+    );
+    cam.clampView?.();
+  });
+  await page.waitForTimeout(180);
 
   // The pan pair is banner-gallery (start framing) vs pan-end — a separate
   // pan-start capture was byte-identical to the gallery frame.
@@ -114,13 +153,9 @@ export async function run(ctx) {
   });
   ctx.check(
     "pan frame keeps readouts rigidly in-scene at pinned time",
-    pan.standards >= 10 &&
-      pan.readouts === 6 &&
-      pan.time === 0 &&
-      pan.orientation === "camera-facing basis from the active three camera",
+    pan.standards >= 10 && pan.readouts >= 4 && pan.time === 0,
     JSON.stringify(pan),
   );
   await ctx.snap(page, "battle-readout-pan-end");
-
   await page.close();
 }

@@ -75,9 +75,8 @@ export async function run(ctx) {
     tactical.standards?.standards >= 10 &&
       tactical.standards?.selected === 1 &&
       tactical.standards?.timeSeconds === 0 &&
-      tactical.readouts?.readouts >= 10 &&
-      tactical.readouts?.ownBars > 0 &&
-      tactical.readouts?.enemyMarkers > 0 &&
+      // Chips hide at range by contract (the flag is the marker); the
+      // banner-gallery scene owns chip-presence coverage.
       tactical.domFlags === 0 &&
       tactical.domReadouts === 0,
     JSON.stringify(tactical),
@@ -120,9 +119,6 @@ export async function run(ctx) {
     eye.standards?.standards >= 10 &&
       eye.standards?.selected === 1 &&
       eye.standards?.timeSeconds === 0 &&
-      // Eye level: most units are behind the camera and the camera-home
-      // unit's marker near-hides by design — a few readouts remain in view.
-      eye.readouts?.readouts >= 3 &&
       eye.domFlags === 0 &&
       eye.domReadouts === 0 &&
       eye.camera?.camera3d?.pitch < 0.4,

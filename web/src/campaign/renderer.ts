@@ -1204,6 +1204,10 @@ function campaignArmyLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
       const overlapClearance = cityOverlap ? (opts.cam.scale >= 3 ? 14 : 10) : 24;
       const legion = `${ordinal(ordinalOf.get(army.id) ?? 1)} LEGION`;
       const strength = `${Math.round(army.soldiers / 100) / 10}k`;
+      // A garrisoned army REPLACES its city's plain label (same collision group),
+      // so it must carry the foe sword itself — otherwise a foe city loses the
+      // sword the moment it garrisons an army.
+      const foe = statusOf(opts.factionStatus, army.faction) === Allegiance.Foe;
       // A garrisoned army reads city-first, like the own-city cards: the CITY
       // name is the primary line and the legion is the secondary line beneath
       // it. A field army keeps the legion as its primary line.
@@ -1218,6 +1222,8 @@ function campaignArmyLabels(data: CampaignData, opts: DrawOptions): CampaignLabe
             priority: 4,
             importance: armyImportance(army.soldiers),
             iconColor: factionColor(data, army.faction),
+            rightIcon: foe ? "sword" : undefined,
+            rightIconColor: foe ? [0.83, 0.2, 0.15] : undefined,
             collisionGroup: cityCollisionGroup(occupiedCity.index),
             // The standard flies from this same anchor (see campaignMapMarkers),
             // so drop the name just beneath the flag's foot: flag over city name

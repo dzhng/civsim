@@ -3,7 +3,7 @@
 // viewport) and converts css↔world through the SAME chartCamera3d the route
 // feeds to shell.setCamera, so CPU picking and the GPU frame cannot drift.
 import { chartCamera3d, projectPoint, unprojectToPlaneZ, type Camera3DParams } from '../../../renderer-core/src/camera3d';
-import { CLASS_DEPTH, CLASS_SPACING, UNIT_INFO } from './unitInfoLayout';
+import { CLASS_DEPTH, CLASS_SPACING, UNIT_INFO, currentUnitFiles, currentUnitRanks } from './unitInfoLayout';
 
 export interface RendererBattlePickCamera {
   x: number;
@@ -46,7 +46,8 @@ export function liveBattlePickUnits(game: BattlePickGame, memory: WebAssembly.Me
     const alive = info[o + UNIT_INFO.alive] || 0;
     if (alive <= 0) continue;
     const classId = Math.max(0, Math.min(CLASS_DEPTH.length - 1, Math.floor(info[o + UNIT_INFO.classId] || 0)));
-    const files = Math.max(1, Math.ceil(alive / CLASS_DEPTH[classId]));
+    const files = currentUnitFiles(info, o);
+    const ranks = currentUnitRanks(info, o);
     units.push({
       unit,
       team: info[o + UNIT_INFO.team] === 0 ? 0 : 1,
@@ -54,7 +55,7 @@ export function liveBattlePickUnits(game: BattlePickGame, memory: WebAssembly.Me
       y: info[o + UNIT_INFO.centerY] || info[o + UNIT_INFO.y],
       facing: info[o + UNIT_INFO.facing] || 0,
       width: Math.max(10, files * CLASS_SPACING[classId]),
-      depth: Math.max(8, CLASS_DEPTH[classId] * 1.1),
+      depth: Math.max(8, ranks * 1.1),
       alive,
     });
   }

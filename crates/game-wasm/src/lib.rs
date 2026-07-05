@@ -21,8 +21,8 @@ pub use campaign_bind::*;
 ///  alive_count, engaged, at_ease, charge (0 off / 1 armed / 2 charging), ammo,
 ///  morale, routing, final_facing, has_final_facing, mode (0 move / 1 attack /
 ///  2 disengage), pursue, evade_auto, waiting, compressed, mean_pressure,
-///  centroid_x, centroid_y, render_look]
-pub const UNIT_INFO_STRIDE: usize = 33;
+///  centroid_x, centroid_y, render_look, current_files, current_ranks]
+pub const UNIT_INFO_STRIDE: usize = 35;
 
 /// Quick-battle map selector: 0 RiverAndCrags, 1 WalledPlain, 2 CoastalScrub.
 /// Out-of-range falls back to the first map.
@@ -773,6 +773,8 @@ impl Game {
                 u.centroid.x,
                 u.centroid.y,
                 u.render_look as f32,
+                u.files_eff.max(1) as f32,
+                u.alive_count.max(1).div_ceil(u.files_eff.max(1)) as f32,
             ]);
         }
     }

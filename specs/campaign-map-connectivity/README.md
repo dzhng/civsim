@@ -30,10 +30,58 @@ islands and no fake land bridges across the straits the lanes cross.
 - **Sea lanes render solid and on top of the water** — not faint dashes buried
   under the surface mesh.
 
+## Root-cause diagnosis (2026-07-05, evidence-backed)
+
+The straits render as land because of **resolution, not data corruption** — a
+redownload or a 10m-data swap will NOT fix it:
+
+- The land/sea mask is rasterized from **vector** coastlines
+  (`crates/mapgen/data/ne_50m_land.geojson`, Natural Earth 50m, deterministic
+  `fetch.sh`). Not an image, not corrupted; a re-fetch is byte-identical. The
+  "europe map image that changed" is our *output* `campaign-bg.png`, not a source.
+- Two compounding limits close narrow straits: (1) the 50m coastline polygon
+  already merges across sub-~5 km straits (Messina ~3 km, Bosphorus ~0.7–3 km
+  have no gap in the source vector; Gibraltar ~14 km survives). (2) We rasterize
+  at **2 km/px** and the frontend **downsamples to an 8 km grid**
+  (`terrain.ts:197 cell=8`) — a real 3 km strait is sub-cell and reads land no
+  matter how sharp the source is.
+- **Proof the carve fixes it:** a throwaway carve of the Messina channel,
+  re-downsampled to the 8 km grid, flips it to a clean 2-cell water gap while
+  both port cities stay on land. This validates S1's `carve_straits` at width
+  ≥16 km (2× the 8 km cell). Sicily shows the *same* class of bug as the
+  Bosphorus — both are S1's job.
+
+### Rhegium decision (David asked to add it)
+
+Rhegium is **absent from ORBIS entirely** (`orbis_sites.csv` has no row) — never
+pruned. Adding it needs a NEW **synthetic-site injection** path (overrides only
+*reference* ORBIS labels today). Placement facts (Lambert projection, verified
+against committed positions):
+- True strait coords lon 15.65/lat 38.11 → **[-205.6, 14.8]**, on the Calabrian
+  toe, ~16 km from Messana [-216.9, 26]. Its center pixel is land but its 8 km
+  neighborhood is half-sea — an inherent **waterline port** (like a real ferry
+  terminus), so it takes a `CITY_SNAP_EXEMPTIONS` entry, same as Messana.
+- **DECISION (2026-07-05, checkpoint auto-resolved, David away):** place Rhegium
+  at the **true shore [-205.6, 14.8]** with a port exemption — historically
+  correct and the sea lane reads as a real strait crossing. The carve centerline
+  threads just west of it. (Alt considered: nudge ~6 km inland to [-200,10] for a
+  clean land neighborhood without an exemption — rejected as less faithful and it
+  puts the lane's start on land. Reversible if David prefers it.)
+- **Sicily lane becomes Rhegium ↔ Messana** (replaces the Messana–Vibo Valentia
+  road ferry, which currently glues Sicily to the mainland across the painted
+  isthmus). Reconnect chain: Pompeii→Vibo Valentia→**Rhegium**, Rhegium↔Messana
+  (sea), and Messana needs a NEW road into Sicily's interior (today its only edge
+  is the ferry). This is S1 (carve) + S2 (inject + rewire) folded together.
+
+New slice needed: **synthetic-site injection** (overrides `extra_sites` +
+build.rs merge, fresh ids above max ORBIS id 50801) — owned by S2's connectivity
+step or a dedicated pre-slice.
+
 ## Next Agent Prompt
 
-**Status (2026-07-05):** Spec just materialized from three synthesized drafts.
-Nothing built yet. Pick up at **Slice 0**.
+**Status (2026-07-05):** Diagnosis + carve proof done (above); Rhegium folded in
+as the Sicily endpoint. Nothing built in code yet. Pick up at **Slice 0**, then
+S1 (carve Messina + Bosphorus) and S2 (inject Rhegium + rewire).
 
 **Build order:** S0 → S1 → S2 → S5 on the bake spine (serial); **S3 (render) runs
 in parallel** from S0 and is re-verified in S4. S4 gates the whole; S5 closes.

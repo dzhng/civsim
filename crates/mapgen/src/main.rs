@@ -52,7 +52,10 @@ fn main() {
 
     let bb = BBox::of(sites.values().map(|s| s.pos)).pad(150.0);
 
-    let r = raster::paint(bb, 0.5, &land, &lakes, &mountains, &rivers);
+    let mut r = raster::paint(bb, 0.5, &land, &lakes, &mountains, &rivers);
+    // Carve straits the 50m coastline (and the 8 km frontend grid) can't resolve
+    // — the channel reads as water through the one land-truth owner.
+    r.carve_straits(raster::STRAIT_CARVES);
 
     let map = build::build(build::BuildInput {
         sites,

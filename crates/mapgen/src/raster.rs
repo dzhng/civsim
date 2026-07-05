@@ -50,6 +50,39 @@ pub const RENDER_MASK_CLASSES: [RenderMaskClass; 5] = [
     RenderMaskClass::River,
 ];
 
+/// A strait too narrow for the 50m coastline vector — and, downstream, for the
+/// frontend's 8 km terrain grid — to resolve, so it paints as a fake land
+/// bridge. `carve_straits` repaints the channel to Sea: every raster cell within
+/// `half_w_km` of the `centerline` polyline becomes water. This is the ONE owner
+/// of "a strait is water" — `web/src/campaign/terrain.ts` reads the same
+/// committed PNG, so there is no separate frontend hack.
+///
+/// The carved channel must survive the frontend's 8 km downsample (terrain.ts
+/// cell = 8), so a corridor is sized to leave >= 2 water cells across the
+/// narrowest point after downsampling — the STRAIT-WATER invariant in main.rs
+/// measures the result, not the carve width, because the endpoint ports sit
+/// only ~16 km apart and a uniformly-16 km corridor would drown them.
+pub struct StraitCarve {
+    pub name: &'static str,
+    pub centerline: &'static [[f64; 2]],
+    pub half_w_km: f64,
+}
+
+pub const STRAIT_CARVES: &[StraitCarve] = &[
+    // Messina: separate Sicily (Messana) from the Calabrian toe (Rhegium). The
+    // centerline threads the existing sea channel so neither port is drowned.
+    StraitCarve {
+        name: "Messina",
+        centerline: &[
+            [-205.0, 44.0],
+            [-210.0, 28.0],
+            [-213.0, 14.0],
+            [-217.0, -4.0],
+        ],
+        half_w_km: 5.0,
+    },
+];
+
 impl Raster {
     pub fn new(bb: BBox, px_per_km: f64) -> Raster {
         let w = ((bb.max[0] - bb.min[0]) * px_per_km).ceil() as usize;
@@ -266,6 +299,19 @@ impl Raster {
                         self.put(x as i64 + dx, y as i64 + dy, c);
                     }
                 }
+            }
+        }
+    }
+
+    /// Repaint each strait corridor to Sea (see `StraitCarve`). Runs after
+    /// `paint()` and before `build()` so city-snap, the ownership flood, and
+    /// landroute all reason about the carved water.
+    pub fn carve_straits(&mut self, carves: &[StraitCarve]) {
+        let sea = RenderMaskClass::Sea.rgb();
+        for carve in carves {
+            let width_px = carve.half_w_km * 2.0 * self.scale;
+            for w in carve.centerline.windows(2) {
+                self.draw_line(w[0], w[1], width_px, sea);
             }
         }
     }

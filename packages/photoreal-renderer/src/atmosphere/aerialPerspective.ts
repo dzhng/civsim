@@ -14,16 +14,28 @@
 // surfaces dissolve into exactly the sky behind them (aesthetics rule 1,
 // every preset), warm toward the sun, cool away, flat white under overcast.
 import {
-  Fn, cameraPosition, equirectUV, length, normalize, output, positionWorld, texture, vec3, vec4,
-} from 'three/tsl';
-import type { Node } from 'three/webgpu';
-import type { CivsimEnvironment } from '../../../game-renderer/src/environment/environment';
-import { BETA_MIE_EXTINCTION, BETA_RAYLEIGH, mieScale, SkyModel } from './skyModel';
+  Fn,
+  cameraPosition,
+  equirectUV,
+  float,
+  length,
+  mix,
+  normalize,
+  output,
+  positionWorld,
+  smoothstep,
+  texture,
+  vec3,
+  vec4,
+} from "three/tsl";
+import type { Node } from "three/webgpu";
+import type { CivsimEnvironment } from "../../../game-renderer/src/environment/environment";
+import { BETA_MIE_EXTINCTION, BETA_RAYLEIGH, mieScale, SkyModel } from "./skyModel";
 
 type Rgb = readonly [number, number, number];
-type Vec4Node = Node<'vec4'>;
+type Vec4Node = Node<"vec4">;
 
-export const AERIAL_OWNER = 'aerialPerspective' as const;
+export const AERIAL_OWNER = "aerialPerspective" as const;
 
 /** Miniature-world amplification: battle maps are ~1–3 km across but read as
  *  many-kilometre vistas, so aerial optical depth runs this many times faster
@@ -33,14 +45,17 @@ export const AERIAL_OWNER = 'aerialPerspective' as const;
  *  near field clear (subtle far haze), overcast must swallow the ranges. */
 export const AERIAL_DISTANCE_SCALE = 4.5;
 /** Neutral ground-fog extinction (km⁻¹) per (turbidity − onset)². Calibrated
- *  so overcast (T 9) swallows the ranges 1.1–1.5 km from the focus
- *  (transmittance ~0.2–0.3 there — David's locked mood). */
+ *  so overcast-highland (T 9.8) swallows the ranges before the far-ring
+ *  edge while keeping the 1.5–2 km playable field readable. */
 const FOG_COEFF_KM = 0.026;
 const FOG_TURBIDITY_ONSET = 4.0;
 /** Legibility floor (aesthetics rule 2 — battles stay legible): optical depth
  *  starts past the immediate fighting zone around the observer, so heavy
  *  weather never washes the units the player is commanding. */
 const CLEAR_RADIUS_KM = 0.14;
+const HORIZON_SKY_Z = 0.025;
+const HORIZON_FADE_START_Z = -0.18;
+const HORIZON_FADE_END_Z = 0.06;
 
 export interface AerialParams {
   /** Per-channel extinction σ (km⁻¹, world kilometres). */
@@ -88,13 +103,17 @@ export function aerialIdentity(env: CivsimEnvironment) {
 export function aerialPerspectiveNode(
   sky: SkyModel,
   env: CivsimEnvironment,
-  observer?: Node<'vec3'>,
+  observer?: Node<"vec3">,
 ): Vec4Node {
   const params = aerialParams(env);
   const build = Fn(() => {
     const reach = positionWorld.sub(observer ?? cameraPosition).toVar();
     const distKm = length(reach).div(1000.0).sub(CLEAR_RADIUS_KM).max(0.0).toVar();
-    const transmit = vec3(...params.extinction).mul(distKm).negate().exp().toVar();
+    const transmit = vec3(...params.extinction)
+      .mul(distKm)
+      .negate()
+      .exp()
+      .toVar();
     // The in-scatter colour: the sky-view LUT along the TRUE view direction
     // (eye→fragment). Near-horizontal rays pick up the horizon sky (the
     // ranges/sea dissolve into it); downward rays land in the LUT's
@@ -102,7 +121,15 @@ export function aerialPerspectiveNode(
     // sampling the bright horizon for steep rays washed whole top-down
     // overviews out (the 10c battle-smoke finding).
     const view = normalize(positionWorld.sub(cameraPosition));
-    const skyLight = texture(sky.lut.texture, equirectUV(view)).rgb;
+    const viewSky = texture(sky.lut.texture, equirectUV(view)).rgb.toVar();
+    const horizonView = normalize(vec3(view.x, view.y, HORIZON_SKY_Z)).toVar();
+    const horizonSky = texture(sky.lut.texture, equirectUV(horizonView)).rgb;
+    const horizonWeight = smoothstep(
+      float(HORIZON_FADE_START_Z),
+      float(HORIZON_FADE_END_Z),
+      view.z,
+    );
+    const skyLight = mix(viewSky, horizonSky, horizonWeight);
     const hazed = output.rgb.mul(transmit).add(skyLight.mul(vec3(1.0).sub(transmit)));
     return vec4(hazed, output.a);
   });

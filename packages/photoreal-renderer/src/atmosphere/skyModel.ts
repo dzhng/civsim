@@ -13,19 +13,37 @@
 // LUT bakes ONCE per preset (no time input — deterministic, byte-stable), so
 // per-frame sky cost is one texture sample; SwiftShader runs the SAME tier
 // (no compute pipeline to gate). The stats identity publishes the tier.
-import * as THREE from 'three/webgpu';
+import * as THREE from "three/webgpu";
 import {
-  Fn, dot, equirectDirection, equirectUV, float, max, mix, normalize,
-  positionGeometry, positionWorldDirection, smoothstep, texture, uv, vec3, vec4,
-  cameraProjectionMatrix, modelViewMatrix, Loop,
-} from 'three/tsl';
-import type { Node } from 'three/webgpu';
-import type { CivsimEnvironment, CivsimEnvironmentId } from '../../../game-renderer/src/environment/environment';
+  Fn,
+  dot,
+  equirectDirection,
+  equirectUV,
+  float,
+  max,
+  mix,
+  normalize,
+  positionGeometry,
+  positionWorldDirection,
+  smoothstep,
+  texture,
+  uv,
+  vec3,
+  vec4,
+  cameraProjectionMatrix,
+  modelViewMatrix,
+  Loop,
+} from "three/tsl";
+import type { Node } from "three/webgpu";
+import type {
+  CivsimEnvironment,
+  CivsimEnvironmentId,
+} from "../../../game-renderer/src/environment/environment";
 
 type Rgb = readonly [number, number, number];
-type Vec3Node = Node<'vec3'>;
+type Vec3Node = Node<"vec3">;
 
-export const SKY_TIER = 'skyview-fragment-lut' as const;
+export const SKY_TIER = "skyview-fragment-lut" as const;
 export type SkyTier = typeof SKY_TIER;
 
 /** Sky-view LUT size (Hillaire uses 192×108; equirect wants 2:1). */
@@ -55,15 +73,15 @@ const SUN_RADIANCE = 25.0;
  *  sky-blue tinted — clear-sky multiple scattering is sky-coloured, which
  *  keeps the low-altitude band from washing to cream. */
 const MS_FLOOR = 0.32;
-const MS_TINT: Rgb = [0.50, 0.70, 1.0];
+const MS_TINT: Rgb = [0.5, 0.7, 1.0];
 /** Below-horizon ground bounce tint (dry Aegean earth, applied to horizon
  *  radiance in the LUT's lower hemisphere — the IBL's up-welling light). */
-const GROUND_BOUNCE_TINT: Rgb = [0.34, 0.30, 0.25];
+const GROUND_BOUNCE_TINT: Rgb = [0.34, 0.3, 0.25];
 /** Overcast dome: high-key near-white grey (David's locked overcast mood:
  *  cool, flat, HIGH-KEY — the sky IS the light source). The gradient runs
  *  BRIGHTER toward the horizon (mist register, matching the reference and
  *  the 09 stand-in), not the darker CIE-standard horizon. */
-const OVERCAST_ZENITH_RADIANCE: Rgb = [1.02, 1.05, 1.10];
+const OVERCAST_ZENITH_RADIANCE: Rgb = [1.02, 1.05, 1.1];
 /** Sun disc: ~1.2° visual radius (readable at game framing). The radiance is
  *  kept BELOW the ACES saturation knee so the transmittance tint survives —
  *  at 60 the dusk disc blew to pure white (10a critique); at 2.5 dusk reads
@@ -79,7 +97,7 @@ export function mieScale(turbidity: number): number {
 }
 
 /** Overcastness derived from turbidity — the single physical axis David's
- *  overcast mood hangs on (T 9 → 1.0; the three clear presets → 0). */
+ *  overcast mood hangs on (highland T 9.8 → 1.0; the three clear presets → 0). */
 export function overcastFromTurbidity(turbidity: number): number {
   return smoothstepJs(4.5, 8.5, turbidity);
 }
@@ -136,7 +154,8 @@ export function transmittanceToSun(direction: Rgb, turbidity: number): Rgb {
   const mieExt = mieScale(turbidity) * BETA_MIE_EXTINCTION;
   const r0 = PLANET_RADIUS_KM + EYE_ALTITUDE_KM;
   const mu = Math.max(direction[2], 0.0);
-  const tTop = -r0 * mu + Math.sqrt(r0 * r0 * (mu * mu - 1) + ATMOSPHERE_TOP_KM * ATMOSPHERE_TOP_KM);
+  const tTop =
+    -r0 * mu + Math.sqrt(r0 * r0 * (mu * mu - 1) + ATMOSPHERE_TOP_KM * ATMOSPHERE_TOP_KM);
   const steps = 64;
   const dt = tTop / steps;
   const od = [0, 0, 0];
@@ -177,10 +196,10 @@ export class SkyModel {
     });
     this.lut.texture.mapping = THREE.EquirectangularReflectionMapping;
     this.lut.texture.colorSpace = THREE.LinearSRGBColorSpace;
-    this.lut.texture.name = 'photoreal-sky-lut';
+    this.lut.texture.name = "photoreal-sky-lut";
 
     this.bakeMaterial = new THREE.NodeMaterial();
-    this.bakeMaterial.name = 'photoreal-sky-bake';
+    this.bakeMaterial.name = "photoreal-sky-bake";
     this.bakeMaterial.fog = false;
     this.bakeMaterial.lights = false;
     // The LUT texel direction vector IS the world direction (z-up) — the same
@@ -189,7 +208,7 @@ export class SkyModel {
     this.bakeMaterial.colorNode = vec4(this.radianceNode(equirectDirection(uv())), 1.0);
 
     this.mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 24), this.domeMaterial());
-    this.mesh.name = 'photoreal-sky';
+    this.mesh.name = "photoreal-sky";
     this.mesh.frustumCulled = false;
     this.mesh.renderOrder = SKY_RENDER_ORDER;
   }
@@ -213,7 +232,7 @@ export class SkyModel {
   /** The stats identity block — scenes assert WHICH tier rendered the sky. */
   identity() {
     return {
-      owner: 'skyModel' as const,
+      owner: "skyModel" as const,
       tier: this.tier,
       lut: `${SKY_LUT_WIDTH}x${SKY_LUT_HEIGHT}`,
       turbidity: this.params.turbidity,
@@ -233,7 +252,7 @@ export class SkyModel {
   private domeMaterial(): THREE.NodeMaterial {
     const p = this.params;
     const material = new THREE.MeshBasicNodeMaterial();
-    material.name = 'photoreal-sky-dome';
+    material.name = "photoreal-sky-dome";
     material.side = THREE.BackSide;
     material.depthTest = false;
     material.depthWrite = false;
@@ -282,23 +301,36 @@ export class SkyModel {
     const mu = max(dirIn.z, 0.004).toVar();
     const dir = normalize(vec3(dirIn.x, dirIn.y, mu)).toVar();
 
-    const tTop = float(r0 * r0).mul(mu.mul(mu).sub(1.0)).add(ATMOSPHERE_TOP_KM * ATMOSPHERE_TOP_KM)
-      .sqrt().sub(mu.mul(r0)).toVar();
+    const tTop = float(r0 * r0)
+      .mul(mu.mul(mu).sub(1.0))
+      .add(ATMOSPHERE_TOP_KM * ATMOSPHERE_TOP_KM)
+      .sqrt()
+      .sub(mu.mul(r0))
+      .toVar();
     const STEPS = 32;
     const SUN_STEPS = 6;
     const dt = tTop.div(STEPS).toVar();
 
     const cosTheta = dot(dir, sunDir).toVar();
-    const phaseR = cosTheta.mul(cosTheta).add(1.0).mul(3 / (16 * Math.PI)).toVar();
+    const phaseR = cosTheta
+      .mul(cosTheta)
+      .add(1.0)
+      .mul(3 / (16 * Math.PI))
+      .toVar();
     const g2 = MIE_G * MIE_G;
     const phaseM = float((1 - g2) / (4 * Math.PI))
-      .div(float(1 + g2).sub(cosTheta.mul(2 * MIE_G)).pow(1.5)).toVar();
+      .div(
+        float(1 + g2)
+          .sub(cosTheta.mul(2 * MIE_G))
+          .pow(1.5),
+      )
+      .toVar();
     // MS floor scales with delivered sun height (a dim dusk sky stays dim).
     const msAmbient = MS_FLOOR * Math.sqrt(Math.max(p.sunDirection[2], 0));
 
     const radiance = vec3(0.0).toVar();
     const odView = vec3(0.0).toVar();
-    Loop(STEPS, ({ i }: { readonly i: Node<'int'> }) => {
+    Loop(STEPS, ({ i }: { readonly i: Node<"int"> }) => {
       const t = float(i).add(0.5).mul(dt).toVar();
       const px = dir.x.mul(t).toVar();
       const py = dir.y.mul(t).toVar();
@@ -312,31 +344,45 @@ export class SkyModel {
 
       // Transmittance toward the sun from this sample (inline mini-march).
       const muS = px.mul(sunDir.x).add(py.mul(sunDir.y)).add(pz.mul(sunDir.z)).div(rp).toVar();
-      const tSunTop = rp.mul(rp).mul(muS.mul(muS).sub(1.0)).add(ATMOSPHERE_TOP_KM * ATMOSPHERE_TOP_KM)
-        .sqrt().sub(muS.mul(rp)).toVar();
+      const tSunTop = rp
+        .mul(rp)
+        .mul(muS.mul(muS).sub(1.0))
+        .add(ATMOSPHERE_TOP_KM * ATMOSPHERE_TOP_KM)
+        .sqrt()
+        .sub(muS.mul(rp))
+        .toVar();
       const dts = tSunTop.div(SUN_STEPS).toVar();
       const odSun = vec3(0.0).toVar();
-      Loop(SUN_STEPS, ({ i: j }: { readonly i: Node<'int'> }) => {
+      Loop(SUN_STEPS, ({ i: j }: { readonly i: Node<"int"> }) => {
         const ts = float(j).add(0.5).mul(dts);
         const sx = px.add(sunDir.x.mul(ts));
         const sy = py.add(sunDir.y.mul(ts));
         const sz = pz.add(sunDir.z.mul(ts));
         const hs = sx.mul(sx).add(sy.mul(sy)).add(sz.mul(sz)).sqrt().sub(PLANET_RADIUS_KM).toVar();
         odSun.addAssign(
-          betaR.mul(hs.div(-RAYLEIGH_SCALE_KM).exp())
-            .add(hs.div(-MIE_SCALE_KM).exp().mul(betaMExtinction)).mul(dts),
+          betaR
+            .mul(hs.div(-RAYLEIGH_SCALE_KM).exp())
+            .add(hs.div(-MIE_SCALE_KM).exp().mul(betaMExtinction))
+            .mul(dts),
         );
       });
       // Earth shadow: the sun set below this sample's local horizon.
-      const horizonMu = float(1.0).sub(float(PLANET_RADIUS_KM * PLANET_RADIUS_KM).div(rp.mul(rp)))
-        .max(0.0).sqrt().negate().toVar();
+      const horizonMu = float(1.0)
+        .sub(float(PLANET_RADIUS_KM * PLANET_RADIUS_KM).div(rp.mul(rp)))
+        .max(0.0)
+        .sqrt()
+        .negate()
+        .toVar();
       const shadow = smoothstep(horizonMu.sub(0.008), horizonMu.add(0.004), muS);
       const tSun = odSun.negate().exp().mul(shadow).toVar();
 
       const scatterR = betaR.mul(rhoR).toVar();
       const scatterM = rhoM.mul(betaMScatter).toVar();
       const single = tSun.mul(scatterR.mul(phaseR).add(scatterM.mul(phaseM)));
-      const multiple = scatterR.add(scatterM).mul(vec3(...MS_TINT)).mul(msAmbient / (4 * Math.PI));
+      const multiple = scatterR
+        .add(scatterM)
+        .mul(vec3(...MS_TINT))
+        .mul(msAmbient / (4 * Math.PI));
       radiance.addAssign(tView.mul(single.add(multiple)).mul(dt));
     });
     const clearSky = radiance.mul(SUN_RADIANCE).toVar();
@@ -351,9 +397,7 @@ export class SkyModel {
     // Below the horizon: fade to the ground-bounce tint (the IBL's up-welling
     // term). Under overcast the fog owns the ground view — up-welling matches
     // the fog's brightness instead of darkening to bare-earth bounce.
-    const groundTint = GROUND_BOUNCE_TINT.map(
-      (c) => c + (0.88 - c) * p.overcast,
-    ) as unknown as Rgb;
+    const groundTint = GROUND_BOUNCE_TINT.map((c) => c + (0.88 - c) * p.overcast) as unknown as Rgb;
     const ground = smoothstep(float(0.0), float(0.35), dirIn.z.negate());
     return mix(sky, sky.mul(vec3(...groundTint)), ground);
   }

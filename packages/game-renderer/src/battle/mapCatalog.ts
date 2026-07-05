@@ -13,7 +13,8 @@ import {
   type BattleGroundCover,
   type BattleTerrainGrid,
   type BattleTerrainPresentation,
-} from './terrainFeatures';
+} from "./terrainFeatures";
+import type { BattleEnvironmentId } from "../environment/environment";
 
 export interface BattleMapCatalogEntry {
   id: string;
@@ -27,35 +28,38 @@ export interface BattleMapCatalogEntry {
   intentionallyFlat?: boolean;
 }
 
-type BattleTerrainPresentationSource = Pick<BattleMapCatalogEntry, 'id' | 'edges' | 'groundCover'>;
+type BattleTerrainPresentationSource = Pick<BattleMapCatalogEntry, "id" | "edges" | "groundCover">;
+
+export const GENERATED_BATTLE_MAP_DEFAULT_ENVIRONMENT =
+  "overcast-highland" satisfies BattleEnvironmentId;
 
 // West and east are the sealed sides on every map (open corridor runs N–S);
 // north and south dissolve into distance fog. These roles present the blockers
 // the sim already paints — they never create or remove passability.
 export const BATTLE_MAP_CATALOG: readonly BattleMapCatalogEntry[] = [
   {
-    id: 'river-and-crags',
+    id: "river-and-crags",
     wasmMapId: 0,
-    label: 'River & Crags',
-    description: 'A green plain between a crag wall to the west and a broad river to the east.',
-    edges: { north: 'open-fog', south: 'open-fog', west: 'cliff', east: 'ocean' },
-    groundCover: 'green-grass',
+    label: "River & Crags",
+    description: "A green plain between a crag wall to the west and a broad river to the east.",
+    edges: { north: "open-fog", south: "open-fog", west: "cliff", east: "ocean" },
+    groundCover: "green-grass",
   },
   {
-    id: 'walled-plain',
+    id: "walled-plain",
     wasmMapId: 1,
-    label: 'Walled Plain',
-    description: 'Rolling farmland sealed by a city wall to the west and sea-cliffs to the east.',
-    edges: { north: 'open-fog', south: 'open-fog', west: 'wall', east: 'cliff' },
-    groundCover: 'green-grass',
+    label: "Walled Plain",
+    description: "Rolling farmland sealed by a city wall to the west and sea-cliffs to the east.",
+    edges: { north: "open-fog", south: "open-fog", west: "wall", east: "cliff" },
+    groundCover: "green-grass",
   },
   {
-    id: 'coastal-scrub',
+    id: "coastal-scrub",
     wasmMapId: 2,
-    label: 'Coastal Scrub',
-    description: 'Sun-bleached scrub over low dunes; ocean to the west, sea-cliffs to the east.',
-    edges: { north: 'open-fog', south: 'open-fog', west: 'ocean', east: 'cliff' },
-    groundCover: 'yellow-grass',
+    label: "Coastal Scrub",
+    description: "Sun-bleached scrub over low dunes; ocean to the west, sea-cliffs to the east.",
+    edges: { north: "open-fog", south: "open-fog", west: "ocean", east: "cliff" },
+    groundCover: "yellow-grass",
   },
 ];
 

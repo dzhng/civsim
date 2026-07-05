@@ -41,7 +41,7 @@ test("PCF softness derives from preset turbidity: monotonic, clamped [1, 3]", ()
   const clear = shadowRadiusForTurbidity(2.0);
   const golden = shadowRadiusForTurbidity(2.6);
   const dusk = shadowRadiusForTurbidity(3.6);
-  const overcast = shadowRadiusForTurbidity(9.0);
+  const overcast = shadowRadiusForTurbidity(9.8);
   assert.equal(clear, 1);
   assert.ok(golden > clear && dusk > golden && overcast > dusk, "monotonic in turbidity");
   assert.ok(overcast > 2.8 && overcast <= 3, `overcast near the cap (${overcast})`);
@@ -57,7 +57,7 @@ test("every preset maps to an in-range softness; overcast is the softest", () =>
   for (const { id, radius } of radii) {
     assert.ok(radius >= 1 && radius <= 3, `${id} radius ${radius} in [1, 3]`);
   }
-  const overcast = radii.find((r) => r.id === "overcast")!;
+  const overcast = radii.find((r) => r.id === "overcast-highland")!;
   for (const { id, radius } of radii) {
     assert.ok(overcast.radius >= radius, `overcast (${overcast.radius}) >= ${id} (${radius})`);
   }

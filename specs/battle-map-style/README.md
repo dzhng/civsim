@@ -75,7 +75,11 @@ Before writing any code, read:
       CODE-LANDED BMS15-SLICE-B8D2; orchestrator still owes browser run,
       golden + overcast lake baseline blessing, screenshot-critique,
       perf:30k hardware, and the battle-terrain-elevation tripwire.
-- [ ] 16 — Haze / mood preset
+- [x] 16 — Haze / mood preset
+      CODE-LANDED BMS16-SLICE-D5A3; overcast-highland preset + fog runway
+      + fade-to-skybox aerial blend + generated-map default scene landed.
+      Orchestrator still owes browser run/blessing, unprimed critique, and
+      final affected-baseline approval.
 - [ ] 17 — Compose gate (style-family verdict on 3+ seeds)
 - [ ] 18 — Curated seeds in the catalog
 - [ ] 19 — Campaign seam (cuttable; may move to a successor spec)

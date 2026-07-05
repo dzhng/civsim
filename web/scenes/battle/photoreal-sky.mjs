@@ -44,7 +44,7 @@ const PRESETS = [
   { env: "golden-hour", preset: "golden", turbidity: 2.6 },
   { env: "noon", preset: "noon", turbidity: 2.0 },
   { env: "dusk", preset: "dusk", turbidity: 3.6 },
-  { env: "overcast-foggy", preset: "overcast", turbidity: 9.0 },
+  { env: "overcast-foggy", preset: "overcast-highland", turbidity: 9.8 },
 ];
 
 export async function run(ctx) {

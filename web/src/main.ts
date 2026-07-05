@@ -6,6 +6,7 @@ import { BattleScene, type BattleKind, type GeneratedBattleMapDescriptor } from 
 import { CampaignScene, loadCampaignData } from "./campaign/scene";
 import type { CampaignData } from "./campaign/data";
 import { checkGpuSupport, type GpuSupportState } from "../../packages/game-renderer/src/appShell";
+import { GENERATED_BATTLE_MAP_DEFAULT_ENVIRONMENT } from "../../packages/game-renderer/src/battle/mapCatalog";
 import { setActiveFactions } from "../../packages/game-renderer/src/battle/factionColors";
 
 const params = new URLSearchParams(location.search);
@@ -69,7 +70,10 @@ async function main() {
         const game = createGame(kind);
         const generatedMap =
           kind === "gen"
-            ? (JSON.parse(game.generated_map_descriptor()) as GeneratedBattleMapDescriptor)
+            ? ({
+                ...(JSON.parse(game.generated_map_descriptor()) as GeneratedBattleMapDescriptor),
+                defaultEnvironment: GENERATED_BATTLE_MAP_DEFAULT_ENVIRONMENT,
+              } satisfies GeneratedBattleMapDescriptor)
             : undefined;
         return new BattleScene({
           wasm,

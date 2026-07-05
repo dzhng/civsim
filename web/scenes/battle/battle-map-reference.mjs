@@ -52,8 +52,8 @@ export async function run(ctx) {
   ctx.check(
     "reference candidate uses the shared overcast-foggy environment",
     stats.environment?.id === "overcast-foggy" &&
-      stats.environment?.source === "CIVSIM_ENVIRONMENTS.overcast" &&
-      stats.environment?.waterAlias === "WATER_ENVIRONMENTS.overcast" &&
+      stats.environment?.source === "CIVSIM_ENVIRONMENTS.overcast-highland" &&
+      stats.environment?.waterAlias === "WATER_ENVIRONMENTS.overcast-highland" &&
       stats.ground?.environment?.id === "overcast-foggy" &&
       stats.grass?.environment?.id === "overcast-foggy",
     JSON.stringify({

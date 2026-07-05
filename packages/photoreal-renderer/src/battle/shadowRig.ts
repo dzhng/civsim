@@ -25,11 +25,11 @@
 // preset's turbidity below (aerosols blur the solar disc): clear noon reads
 // crisp, hazy dusk/overcast read soft. No shadow field is added to the preset
 // owner — both couplings derive from fields it already has.
-import * as THREE from 'three/webgpu';
-import { CSMShadowNode } from 'three/examples/jsm/csm/CSMShadowNode.js';
-import type { CivsimEnvironment } from '../../../game-renderer/src/environment/environment';
+import * as THREE from "three/webgpu";
+import { CSMShadowNode } from "three/examples/jsm/csm/CSMShadowNode.js";
+import type { CivsimEnvironment } from "../../../game-renderer/src/environment/environment";
 
-export type SunShadowMode = 'csm' | 'single' | 'off';
+export type SunShadowMode = "csm" | "single" | "off";
 
 // --- The classic shadow knob set (slice-11 tuning constants, documented) ----
 /** Cascade count on the hardware tier. Three practical-split cascades cover
@@ -69,19 +69,23 @@ export const SHADOW_CAM_FAR = 2500;
 
 /** PCF softness from the preset's turbidity (aerosol optical depth blurs the
  *  solar disc): clear skies cast crisp shadows, hazy/overcast cast soft ones.
- *  Turbidity 2 (noon) → 1.0; 9 (overcast) → ~3.0. */
+ *  Turbidity 2 (noon) → 1.0; 9.8 (overcast-highland) → 3.0. */
 export function shadowRadiusForTurbidity(turbidity: number): number {
   return Math.min(3, Math.max(1, 1 + (turbidity - 2) * 0.28));
 }
 
 /** Adapter capability probe → shadow tier. Software rasterizers take the
  *  'single' tier by name; an explicit override (lab ?shadows= param) wins. */
-export function resolveSunShadowMode(adapterLabel: string, override?: string | null): SunShadowMode {
-  if (override === 'off' || override === 'single' || override === 'csm') return override;
-  const label = (adapterLabel || '').toLowerCase();
-  const software = ['swiftshader', 'llvmpipe', 'lavapipe', 'software', 'cpu'].some((needle) =>
-    label.includes(needle));
-  return software ? 'single' : 'csm';
+export function resolveSunShadowMode(
+  adapterLabel: string,
+  override?: string | null,
+): SunShadowMode {
+  if (override === "off" || override === "single" || override === "csm") return override;
+  const label = (adapterLabel || "").toLowerCase();
+  const software = ["swiftshader", "llvmpipe", "lavapipe", "software", "cpu"].some((needle) =>
+    label.includes(needle),
+  );
+  return software ? "single" : "csm";
 }
 
 export interface SunShadowRig {
@@ -96,7 +100,7 @@ export interface SunShadowRig {
   cullingFrusta(): THREE.Frustum[];
   /** The stats identity block — scenes assert WHICH tier cast the shadows. */
   identity(): {
-    owner: 'shadowRig';
+    owner: "shadowRig";
     mode: SunShadowMode;
     cascades: number;
     mapSize: number;
@@ -118,16 +122,19 @@ export function configureSunShadows(
   mode: SunShadowMode,
 ): SunShadowRig {
   const radius = shadowRadiusForTurbidity(env.physical.turbidity);
-  const identityFor = (cascades: number, mapSize: number): ReturnType<SunShadowRig['identity']> => ({
-    owner: 'shadowRig',
+  const identityFor = (
+    cascades: number,
+    mapSize: number,
+  ): ReturnType<SunShadowRig["identity"]> => ({
+    owner: "shadowRig",
     mode,
     cascades,
     mapSize,
     maxFar: SHADOW_MAX_FAR,
-    radius: mode === 'off' ? 0 : radius,
+    radius: mode === "off" ? 0 : radius,
   });
 
-  if (mode === 'off') {
+  if (mode === "off") {
     return {
       mode,
       update: () => {},
@@ -146,7 +153,7 @@ export function configureSunShadows(
   shadow.normalBias = SHADOW_NORMAL_BIAS;
   shadow.radius = radius;
 
-  if (mode === 'csm') {
+  if (mode === "csm") {
     shadow.mapSize.set(CSM_MAP_SIZE, CSM_MAP_SIZE);
     // Set BEFORE constructing the node: each cascade clones this shadow.
     shadow.camera.near = SHADOW_CAM_NEAR;
@@ -154,7 +161,7 @@ export function configureSunShadows(
     const csm = new CSMShadowNode(sun, {
       cascades: CSM_CASCADES,
       maxFar: SHADOW_MAX_FAR,
-      mode: 'practical',
+      mode: "practical",
       lightMargin: CSM_LIGHT_MARGIN,
     });
     csm.fade = true;
@@ -205,7 +212,11 @@ export function configureSunShadows(
   };
 }
 
-function shadowFrustaForCascadeLights(lights: Array<THREE.Object3D & { target?: THREE.Object3D; shadow?: THREE.DirectionalLightShadow }>): THREE.Frustum[] {
+function shadowFrustaForCascadeLights(
+  lights: Array<
+    THREE.Object3D & { target?: THREE.Object3D; shadow?: THREE.DirectionalLightShadow }
+  >,
+): THREE.Frustum[] {
   const out: THREE.Frustum[] = [];
   const mat = new THREE.Matrix4();
   const target = new THREE.Vector3();
@@ -221,7 +232,9 @@ function shadowFrustaForCascadeLights(lights: Array<THREE.Object3D & { target?: 
     cam.lookAt(target);
     cam.updateMatrixWorld(true);
     mat.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse);
-    out.push(new THREE.Frustum().setFromProjectionMatrix(mat, cam.coordinateSystem, cam.reversedDepth));
+    out.push(
+      new THREE.Frustum().setFromProjectionMatrix(mat, cam.coordinateSystem, cam.reversedDepth),
+    );
   }
   return out;
 }

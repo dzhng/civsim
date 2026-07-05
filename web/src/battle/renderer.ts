@@ -19,7 +19,12 @@ import {
   type BattleVistaGrid,
 } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
 import type { BattleSlopeBands } from "../../../packages/game-renderer/src/battle/terrainFeatures";
+import type { BattleEnvironmentId } from "../../../packages/game-renderer/src/environment/environment";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
+
+export interface BattleRendererOptions {
+  environment?: BattleEnvironmentId | string | null;
+}
 
 export class BattleRenderer {
   readonly ready: Promise<void>;
@@ -61,7 +66,10 @@ export class BattleRenderer {
     },
   };
 
-  constructor(private canvas: HTMLCanvasElement) {
+  constructor(
+    private canvas: HTMLCanvasElement,
+    private options: BattleRendererOptions = {},
+  ) {
     this.ready = this.init();
     window.addEventListener("resize", () => this.resize());
   }
@@ -296,7 +304,7 @@ export class BattleRenderer {
 
   private async init() {
     const world = await PhotorealBattleWorld.create(this.canvas, {
-      environment: new URLSearchParams(location.search).get("env"),
+      environment: new URLSearchParams(location.search).get("env") ?? this.options.environment,
     });
     this.world = world;
     // The bespoke shell's fatal surface, re-homed onto three's device.

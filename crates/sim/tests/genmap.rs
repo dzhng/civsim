@@ -13,7 +13,7 @@ use sim::genmap::{
 use sim::{build_map, MapId};
 use std::collections::HashSet;
 
-const GENERATED_SEED7_HASH: u64 = 0x38e99f04c18d3968;
+const GENERATED_SEED7_HASH: u64 = 0x5b0bcb8dd7e7f22f;
 const RIVER_AND_CRAGS_HASH: u64 = 0x1d65c06afbab0eca;
 const WALLED_PLAIN_HASH: u64 = 0x864fe11f35ddf30c;
 const COASTAL_SCRUB_HASH: u64 = 0x020ad95c550af7b6;
@@ -133,9 +133,16 @@ fn generated_passability_certificates_hold_over_seed_sweep() {
     const SWEEP_SEEDS: u64 = 64;
     let mut corridor_p95_max: f32 = 0.0;
     let mut corridor_max_max: f32 = 0.0;
+    let mut connected_width_min: f32 = f32::INFINITY;
     let mut flank_p50_min: f32 = f32::INFINITY;
     let mut flank_p95_min: f32 = f32::INFINITY;
     let mut flank_max_min: f32 = f32::INFINITY;
+    let mut playable_peak_min: f32 = f32::INFINITY;
+    let mut playable_peak_max: f32 = 0.0;
+    let mut vista_peak_min: f32 = f32::INFINITY;
+    let mut vista_peak_max: f32 = 0.0;
+    let mut far_fog_peak_min: f32 = f32::INFINITY;
+    let mut far_fog_peak_max: f32 = 0.0;
     let mut terrain_hashes = HashSet::new();
     let mut field_hashes = HashSet::new();
     let mut edge_compositions = HashSet::new();
@@ -146,7 +153,9 @@ fn generated_passability_certificates_hold_over_seed_sweep() {
         let south_slope = deployment_apron_mean_abs_slope(&t, Side::South);
         let north_slope = deployment_apron_mean_abs_slope(&t, Side::North);
         let corridor = corridor_swell_range(&t);
+        let connected_width = required_frontage_connected_width(&t);
         let flank = flank_peak_range(&t);
+        let vista = vista_peak_range(&MapRecipe { seed, ..recipe });
         let drainage = drainage_report(&MapRecipe { seed, ..recipe });
         let composition = edges::composition(&MapRecipe { seed, ..recipe });
         let field = field_texture::summary(&t);
@@ -160,13 +169,20 @@ fn generated_passability_certificates_hold_over_seed_sweep() {
         let flank_slope = slope_stats(&t, &slopes, |x, _| x.abs() >= 520.0);
         corridor_p95_max = corridor_p95_max.max(corridor_slope.p95);
         corridor_max_max = corridor_max_max.max(corridor_slope.max);
+        connected_width_min = connected_width_min.min(connected_width);
         flank_p50_min = flank_p50_min.min(flank_slope.p50);
         flank_p95_min = flank_p95_min.min(flank_slope.p95);
         flank_max_min = flank_max_min.min(flank_slope.max);
+        playable_peak_min = playable_peak_min.min(flank.0);
+        playable_peak_max = playable_peak_max.max(flank.1);
+        vista_peak_min = vista_peak_min.min(vista.vista.0);
+        vista_peak_max = vista_peak_max.max(vista.vista.1);
+        far_fog_peak_min = far_fog_peak_min.min(vista.far_fog.0);
+        far_fog_peak_max = far_fog_peak_max.max(vista.far_fog.1);
         if seed <= 4 || seed == 7 {
             let ratios = terrain_ratios(&t);
             eprintln!(
-                "seed {seed}: hash {hash:#018x} fieldHash {field_hash:#018x}; edge {:?}/{:?}; certs Wseal {:.3} Eseal {:.3} Sopen {:.3} Nopen {:.3} Wunreach {:.3} Eunreach {:.3}; deploy S pass {:.3} block {} p95 {:.3} max {:.3}, N pass {:.3} block {} p95 {:.3} max {:.3}; ratios pass {:.3} slow {:.3} blocked {:.3} water {:.3} forest {:.3} mud {:.3} scree {:.3} rough {:.3}; field forest {} scree {} mud {} rough {}; drainage lakes {} playable {} largestPlayable {} suppressedHollows {} streamCells {} streams {} lakeStreams {} runoffStreams {} deadEnds {} impassibleStreamCells {} fords {} marsh {}; corridor swell {:.2}..{:.2}m, flank peaks {:.2}..{:.2}m, apron mean |slope| S {:.4} N {:.4}, corridor slope p95 {:.3} max {:.3}, flank slope p50 {:.3} p95 {:.3} max {:.3}",
+                "seed {seed}: hash {hash:#018x} fieldHash {field_hash:#018x}; edge {:?}/{:?}; certs Wseal {:.3} Eseal {:.3} Sopen {:.3} Nopen {:.3} Wunreach {:.3} Eunreach {:.3}; deploy S pass {:.3} block {} p95 {:.3} max {:.3}, N pass {:.3} block {} p95 {:.3} max {:.3}; ratios pass {:.3} slow {:.3} blocked {:.3} water {:.3} forest {:.3} mud {:.3} scree {:.3} rough {:.3}; field forest {} scree {} mud {} rough {}; drainage lakes {} playable {} largestPlayable {} suppressedHollows {} streamCells {} streams {} lakeStreams {} runoffStreams {} deadEnds {} impassibleStreamCells {} fords {} marsh {}; corridor swell {:.2}..{:.2}m, connected frontage width {:.1}m, flank peaks {:.2}..{:.2}m, vista peaks {:.2}..{:.2}m, farFog peaks {:.2}..{:.2}m, apron mean |slope| S {:.4} N {:.4}, corridor slope p95 {:.3} max {:.3}, flank slope p50 {:.3} p95 {:.3} max {:.3}",
                 composition.west,
                 composition.east,
                 side_sealed_fraction(&t, Side::West),
@@ -209,8 +225,13 @@ fn generated_passability_certificates_hold_over_seed_sweep() {
                 drainage.marsh_cells,
                 corridor.0,
                 corridor.1,
+                connected_width,
                 flank.0,
                 flank.1,
+                vista.vista.0,
+                vista.vista.1,
+                vista.far_fog.0,
+                vista.far_fog.1,
                 south_slope,
                 north_slope,
                 corridor_slope.p95,
@@ -283,19 +304,42 @@ fn generated_passability_certificates_hold_over_seed_sweep() {
             corridor.1
         );
         assert!(
-            flank.0 > 40.0 && flank.1 < 125.0,
+            connected_width >= 700.0,
+            "seed {seed} connected frontage width {connected_width:.1}m"
+        );
+        assert!(
+            flank.0 >= 200.0 && flank.1 <= 280.0,
             "seed {seed} flank peak range {:.2}..{:.2}m",
             flank.0,
             flank.1
         );
+        assert!(
+            vista.vista.0 >= 200.0 && vista.vista.1 <= 285.0,
+            "seed {seed} vista peak range {:.2}..{:.2}m",
+            vista.vista.0,
+            vista.vista.1
+        );
+        assert!(
+            vista.far_fog.0 >= 200.0 && vista.far_fog.1 <= 330.0,
+            "seed {seed} farFog peak range {:.2}..{:.2}m",
+            vista.far_fog.0,
+            vista.far_fog.1
+        );
     }
     eprintln!(
-        "{SWEEP_SEEDS}-seed slope stats: corridor max p95 {:.3}, corridor max {:.3}; flank min p50 {:.3}, min p95 {:.3}, min max {:.3}; distinct edge compositions {}, unique terrain hashes {}, unique field hashes {}; bands flat {:.3} rolling {:.3} slow {:.3} cliff {:.3}, dilate {} cells, cap {:.1}m",
+        "{SWEEP_SEEDS}-seed slope stats: corridor max p95 {:.3}, corridor max {:.3}, connected frontage min {:.1}m; flank min p50 {:.3}, min p95 {:.3}, min max {:.3}; playable peaks {:.2}..{:.2}m, vista peaks {:.2}..{:.2}m, farFog peaks {:.2}..{:.2}m; distinct edge compositions {}, unique terrain hashes {}, unique field hashes {}; bands flat {:.3} rolling {:.3} slow {:.3} cliff {:.3}, dilate {} cells, cap {:.1}m",
         corridor_p95_max,
         corridor_max_max,
+        connected_width_min,
         flank_p50_min,
         flank_p95_min,
         flank_max_min,
+        playable_peak_min,
+        playable_peak_max,
+        vista_peak_min,
+        vista_peak_max,
+        far_fog_peak_min,
+        far_fog_peak_max,
         edge_compositions.len(),
         terrain_hashes.len(),
         field_hashes.len(),
@@ -485,6 +529,83 @@ fn flank_peak_range(t: &sim::Terrain) -> (f32, f32) {
     let west = height_range(t, |x, _| x < -850.0).1;
     let east = height_range(t, |x, _| x > 850.0).1;
     (west.min(east), west.max(east))
+}
+
+struct VistaPeakRange {
+    vista: (f32, f32),
+    far_fog: (f32, f32),
+}
+
+fn vista_peak_range(recipe: &MapRecipe) -> VistaPeakRange {
+    let grid = generate_vista_grid(recipe);
+    let mut vista = (f32::INFINITY, f32::NEG_INFINITY);
+    let mut far_fog = (f32::INFINITY, f32::NEG_INFINITY);
+    for band in &grid.bands {
+        let peaks = band_peak_range(band);
+        if band.name == "vista" {
+            vista = peaks;
+        } else if band.name == "farFog" {
+            far_fog = peaks;
+        }
+    }
+    VistaPeakRange { vista, far_fog }
+}
+
+fn band_peak_range(band: &sim::VistaBand) -> (f32, f32) {
+    let mut west = f32::NEG_INFINITY;
+    let mut east = f32::NEG_INFINITY;
+    for cy in 0..band.h {
+        let y = band.origin.y + cy as f32 * band.cell;
+        if y.abs() > band.outer_half_h {
+            continue;
+        }
+        for cx in 0..band.w {
+            let x = band.origin.x + cx as f32 * band.cell;
+            let outside_inner = x.abs() >= band.inner_half_w || y.abs() >= band.inner_half_h;
+            if !outside_inner || x.abs() < band.inner_half_w + 0.5 * band.cell {
+                continue;
+            }
+            let z = band.heights[cy * band.w + cx];
+            if x < 0.0 {
+                west = west.max(z);
+            } else if x > 0.0 {
+                east = east.max(z);
+            }
+        }
+    }
+    (west.min(east), west.max(east))
+}
+
+fn required_frontage_connected_width(t: &sim::Terrain) -> f32 {
+    let required_left = -350.0;
+    let required_right = 350.0;
+    let mut min_width = f32::INFINITY;
+    for cy in 0..t.h {
+        let y = t.origin.y + (cy as f32 + 0.5) * t.cell;
+        let in_deploy_band = (y - 600.0).abs() <= 45.0 || (y + 600.0).abs() <= 45.0;
+        if !in_deploy_band {
+            continue;
+        }
+        let mut row_best = 0.0f32;
+        let mut run_start: Option<usize> = None;
+        for cx in 0..=t.w {
+            let passable = cx < t.w && t.speed[cy * t.w + cx] > 0.0;
+            if passable {
+                run_start.get_or_insert(cx);
+                continue;
+            }
+            if let Some(start) = run_start.take() {
+                let end = cx - 1;
+                let x0 = t.origin.x + start as f32 * t.cell;
+                let x1 = t.origin.x + (end as f32 + 1.0) * t.cell;
+                if x0 <= required_left && x1 >= required_right {
+                    row_best = row_best.max(x1 - x0);
+                }
+            }
+        }
+        min_width = min_width.min(row_best);
+    }
+    min_width
 }
 
 fn height_range(t: &sim::Terrain, keep: impl Fn(f32, f32) -> bool) -> (f32, f32) {

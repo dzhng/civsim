@@ -64,7 +64,7 @@ Before writing any code, read:
       `battle-genmap-seeds` + generated elevation baseline blessing.
 - [x] 06 — Seed variety + seed browser
       CODE-LANDED BMS06-SLICE-C1F4; seed 7 hash moved to
-      `0x38e99f04c18d3968` from passable corridor texture. Browser scene
+      `0x5b0bcb8dd7e7f22f` after BMS17B-A6E9 raised flank/vista ranges. Browser scene
       exists and the seed-browser artifact was generated via wasm-only Node
       fallback because Playwright Chromium is blocked in this sandbox; the
       orchestrator still owes a real scene run/human checkpoint.

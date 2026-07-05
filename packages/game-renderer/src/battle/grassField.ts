@@ -258,35 +258,109 @@ function selectGrassFieldCandidates(
   stats: GrassFieldStats,
 ): GrassFieldCandidate[] {
   if (capacity <= 0 || candidates.length === 0) return [];
-  const ordered = [...candidates].sort(compareGrassFieldCandidates);
-  if (ordered.length <= capacity) return ordered;
-
   const groups: [GrassFieldCandidate[], GrassFieldCandidate[], GrassFieldCandidate[]] = [[], [], []];
-  for (const candidate of ordered) groups[candidate.record.lodTier].push(candidate);
+  for (const candidate of candidates) groups[candidate.record.lodTier].push(candidate);
+  if (candidates.length <= capacity) return sortedGrassFieldCandidates(candidates);
 
   const quotas = stats.lodBudgetQuotas;
-  const offsets: [number, number, number] = [0, 0, 0];
-  const selected: GrassFieldCandidate[] = [];
+  const desired: [number, number, number] = [0, 0, 0];
   let remaining = capacity;
 
   for (const tier of [0, 1, 2] as const) {
     const take = Math.min(groups[tier].length, quotas[tier], remaining);
-    selected.push(...groups[tier].slice(0, take));
-    offsets[tier] = take;
+    desired[tier] = take;
     remaining -= take;
   }
   for (const tier of [0, 1, 2] as const) {
     if (remaining <= 0) break;
-    const take = Math.min(groups[tier].length - offsets[tier], remaining);
-    selected.push(...groups[tier].slice(offsets[tier], offsets[tier] + take));
-    offsets[tier] += take;
+    const take = Math.min(groups[tier].length - desired[tier], remaining);
+    desired[tier] += take;
     remaining -= take;
   }
 
+  const selected: GrassFieldCandidate[] = [];
   for (const tier of [0, 1, 2] as const) {
-    stats.lodDroppedByBudget[tier] = Math.max(0, groups[tier].length - offsets[tier]);
+    pushSelectedCandidates(selected, selectStratifiedCandidates(groups[tier], desired[tier]));
+    stats.lodDroppedByBudget[tier] = Math.max(0, groups[tier].length - desired[tier]);
   }
   return selected.sort(compareGrassFieldCandidates);
+}
+
+function selectStratifiedCandidates(
+  candidates: GrassFieldCandidate[],
+  count: number,
+): GrassFieldCandidate[] {
+  if (count <= 0 || candidates.length === 0) return [];
+  if (count >= candidates.length) return candidates;
+  let minDist = Infinity;
+  let maxDist = -Infinity;
+  for (const candidate of candidates) {
+    if (candidate.dist < minDist) minDist = candidate.dist;
+    if (candidate.dist > maxDist) maxDist = candidate.dist;
+  }
+  const binCount = Math.min(96, Math.max(1, Math.ceil(Math.sqrt(count))));
+  const buckets: GrassFieldCandidate[][] = Array.from({ length: binCount }, () => []);
+  const span = Math.max(0.0001, maxDist - minDist);
+  for (const candidate of candidates) {
+    const bin = Math.min(
+      binCount - 1,
+      Math.max(0, Math.floor(((candidate.dist - minDist) / span) * binCount)),
+    );
+    buckets[bin].push(candidate);
+  }
+  const quotas = stratifiedBucketQuotas(buckets, count, candidates.length);
+  const selected: GrassFieldCandidate[] = [];
+  for (let i = 0; i < buckets.length; i++) {
+    const bucket = buckets[i];
+    const take = quotas[i] ?? 0;
+    if (take <= 0 || bucket.length === 0) continue;
+    bucket.sort((a, b) => a.order - b.order || a.dist - b.dist);
+    const limit = Math.min(take, bucket.length);
+    for (let j = 0; j < limit; j++) selected.push(bucket[j]);
+  }
+  return selected;
+}
+
+function stratifiedBucketQuotas(
+  buckets: readonly GrassFieldCandidate[][],
+  count: number,
+  total: number,
+): number[] {
+  const quotas = new Array<number>(buckets.length).fill(0);
+  const fractions: Array<{ index: number; fraction: number }> = [];
+  let assigned = 0;
+  for (let i = 0; i < buckets.length; i++) {
+    const exact = (count * buckets[i].length) / Math.max(1, total);
+    const base = Math.min(buckets[i].length, Math.floor(exact));
+    quotas[i] = base;
+    assigned += base;
+    fractions.push({ index: i, fraction: exact - base });
+  }
+  fractions.sort((a, b) => b.fraction - a.fraction || a.index - b.index);
+  let remaining = count - assigned;
+  while (remaining > 0) {
+    let moved = false;
+    for (const { index } of fractions) {
+      if (remaining <= 0) break;
+      if (quotas[index] >= buckets[index].length) continue;
+      quotas[index]++;
+      remaining--;
+      moved = true;
+    }
+    if (!moved) break;
+  }
+  return quotas;
+}
+
+function pushSelectedCandidates(
+  target: GrassFieldCandidate[],
+  selected: readonly GrassFieldCandidate[],
+): void {
+  for (const candidate of selected) target.push(candidate);
+}
+
+function sortedGrassFieldCandidates(candidates: readonly GrassFieldCandidate[]): GrassFieldCandidate[] {
+  return [...candidates].sort(compareGrassFieldCandidates);
 }
 
 function compareGrassFieldCandidates(a: GrassFieldCandidate, b: GrassFieldCandidate): number {

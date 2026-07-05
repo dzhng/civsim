@@ -21,15 +21,14 @@ Reference images (in `assets/` and the aesthetics skill):
 
 ## Next Agent Prompt
 
-**Status 2026-07-05: slices 00, 01, 02, 10, 11 DONE (live-verified; blade
-grass ships in production battles).** Next pickups:
+**Status 2026-07-05: slices 00, 01, 02, 10, 11, 12 DONE (blade grass ships in
+production battles; slice 12 is sandbox-verified, hardware/browser gates still
+orchestrator-owned).** Next pickup:
 [03-passability](slices/03-passability.md) (G-track — also owes slice 02's
-two debts: real-pipeline clay at the locked camera, apron-dish smoothing) and
-[12-grass-lod-budgets](slices/12-grass-lod-budgets.md) (V-track — the
-mid-zoom bald gap and ring-edge thinning are its named debts). Read slice
-10's TSL hazards and slice 11's integration findings before touching the
-blade field; read the camera-truth trap and the oracle re-anchoring
-amendment in
+two debts: real-pipeline clay at the locked camera, apron-dish smoothing).
+Read slice 10's TSL hazards and slice 11's integration findings before
+touching the blade field; read the camera-truth trap and the oracle
+re-anchoring amendment in
 [00's locked values](slices/00-composition-and-oracle-lock.md).
 
 Before writing any code, read:
@@ -61,7 +60,7 @@ Before writing any code, read:
   CODE-LANDED BMS11-SLICE-E9C4; orchestrator still owes battle scenes, vista +
   close-gate crops, battle baseline re-bless, perf:30k hardware, elevation
   tripwire, and wind GIF.
-- [ ] 12 — Grass LOD budgets at 30k
+- [x] 12 — Grass LOD budgets at 30k
 - [ ] 13 — Cliff material
 - [ ] 14 — Vista backdrop (DECIDED: render-only apron, world = 2× playable)
 - [ ] 15 — Lake render

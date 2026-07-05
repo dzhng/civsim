@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  GRASS_FIELD_LOD_BUDGET_RATIOS,
   GRASS_FIELD_PACKED_STRIDE_FLOATS,
   sampleGrassField,
   type GrassFieldConfig,
@@ -124,6 +125,42 @@ test("grass field publishes explicit capacity and cap counters", () => {
   assert.equal(snapshot.records.length, 3);
   assert.equal(snapshot.packedRecords.length, 3 * GRASS_FIELD_PACKED_STRIDE_FLOATS);
   assert.ok(snapshot.stats.cappedRecords > 0, JSON.stringify(snapshot.stats));
+});
+
+test("grass field stratified budget reserves records across lod tiers when capped", () => {
+  const grid = makeGrid(120, 120, 2);
+  const field = terrainHeightField(grid);
+  const snapshot = sampleGrassField(grid, field, {
+    ...baseConfig(),
+    focus: { x: 120, y: 120, radius: 90 },
+    fieldCellSize: 2,
+    snapCellSize: 2,
+    density: 1,
+    jitter: 0,
+    maxRecords: 30,
+    lodNearRadius: 0.33,
+    lodMidRadius: 0.66,
+    lodStratifiedBudget: true,
+  });
+
+  const expected = [
+    Math.floor(30 * GRASS_FIELD_LOD_BUDGET_RATIOS[0]),
+    Math.floor(30 * GRASS_FIELD_LOD_BUDGET_RATIOS[1]),
+    30 -
+      Math.floor(30 * GRASS_FIELD_LOD_BUDGET_RATIOS[0]) -
+      Math.floor(30 * GRASS_FIELD_LOD_BUDGET_RATIOS[1]),
+  ];
+  assert.equal(snapshot.stats.acceptedRecords, 30);
+  assert.deepEqual(snapshot.stats.lodBudgetQuotas, expected);
+  assert.deepEqual(snapshot.stats.lodCounts, expected);
+  assert.ok(
+    snapshot.stats.lodDroppedByBudget.every((count) => count > 0),
+    JSON.stringify(snapshot.stats),
+  );
+  assert.equal(
+    snapshot.stats.lodDroppedByBudget.reduce((sum, count) => sum + count, 0),
+    snapshot.stats.cappedRecords,
+  );
 });
 
 function baseConfig(): GrassFieldConfig {

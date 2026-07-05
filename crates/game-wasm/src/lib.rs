@@ -287,10 +287,14 @@ impl Game {
 
     pub fn generated_map_descriptor(&self) -> String {
         let seed = self.generated_recipe.map_or(0, |r| r.seed);
+        let slope_bands = self
+            .generated_recipe
+            .map_or_else(sim::genmap::SlopeBands::default, |r| r.slope_bands);
         serde_json::json!({
             "seed": seed,
             "groundCover": "green-grass",
             "reliefScale": 1.0,
+            "slopeBands": slope_bands,
             "terrainHash": format!("{:#018x}", sim::genmap::terrain_hash(&self.battle.sim.terrain)),
         })
         .to_string()

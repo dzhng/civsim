@@ -47,6 +47,7 @@ import { fightingFrameForTick } from "../../../packages/crowd-runtime/src/animat
 import {
   BATTLE_RELIEF_EXAGGERATION,
   type BattleGroundCover,
+  type BattleSlopeBands,
 } from "../../../packages/game-renderer/src/battle/terrainFeatures";
 
 const TICK_DT = 1 / 30;
@@ -101,6 +102,7 @@ export interface GeneratedBattleMapDescriptor {
   seed: number | string;
   groundCover: BattleGroundCover;
   reliefScale: number;
+  slopeBands: BattleSlopeBands;
   terrainHash: string;
 }
 
@@ -306,6 +308,7 @@ export class BattleScene implements Scene {
         new Uint8Array(tint),
         heightForRenderer,
         this.cfg.wasmMapId,
+        this.cfg.generatedMap?.slopeBands ?? null,
       );
     }
 

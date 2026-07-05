@@ -11,7 +11,7 @@
 // its own haze, ever.
 import * as THREE from 'three/webgpu';
 import {
-  attribute, clamp, float, length, mix, normalize, transformNormalToView, varying, vec2, vec3, vec4,
+  abs, attribute, clamp, float, floor, fract, length, mix, normalize, transformNormalToView, varying, vec2, vec3, vec4,
 } from 'three/tsl';
 import type { BattleGroundMesh } from '../../../game-renderer/src/battle/groundPass';
 import type { BattleHorizonLayout } from '../../../game-renderer/src/battle/horizonPass';
@@ -20,6 +20,7 @@ import {
   type BattleFrameUniforms, type FloatNode, type Rgb, type Vec2Node,
 } from './battleTsl';
 import { fieldWaterSurfaceNodes } from './seaLayer';
+import type { BattleSlopeBands } from '../../../game-renderer/src/battle/terrainFeatures';
 
 export const RENDER_ORDER = {
   backdrop: -10,
@@ -96,6 +97,14 @@ const WIDE_DETAIL_TERRAIN_STYLE: TerrainQuadStyle = {
   stoneFleckStrength: 0.32,
   dustStrength: 0.12,
 };
+
+export interface TerrainMaterialOptions {
+  slopeBands?: BattleSlopeBands | null;
+}
+
+function normalZForSlope(slope: number): number {
+  return 1 / Math.sqrt(1 + slope * slope);
+}
 
 function quadGeometry(): THREE.BufferGeometry {
   const geo = new THREE.BufferGeometry();
@@ -221,6 +230,7 @@ export class BattleBackgroundQuads {
 export function createGroundMesh(
   frame: BattleFrameUniforms,
   mesh: BattleGroundMesh,
+  options: TerrainMaterialOptions = {},
 ): THREE.Mesh {
   const geo = new THREE.BufferGeometry();
   const buffer = new THREE.InterleavedBuffer(mesh.vertices, 10);
@@ -231,15 +241,19 @@ export function createGroundMesh(
   geo.setAttribute('normal', new THREE.InterleavedBufferAttribute(buffer, 3, 3));
   geo.setAttribute('gColor', new THREE.InterleavedBufferAttribute(buffer, 3, 6));
   geo.setAttribute('gWater', new THREE.InterleavedBufferAttribute(buffer, 1, 9));
+  geo.setAttribute('gTint', new THREE.BufferAttribute(mesh.tint, 1));
   geo.setIndex(new THREE.BufferAttribute(mesh.indices, 1));
 
   const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, metalness: 0 });
   const position = attribute<'vec3'>('position', 'vec3');
   const gNormal = attribute<'vec3'>('gNormal', 'vec3');
-  material.normalNode = viewNormalNode(normalize(gNormal));
+  const worldNormal = normalize(gNormal).toVar();
+  material.normalNode = viewNormalNode(worldNormal);
   const color = varying(attribute<'vec3'>('gColor', 'vec3')).toVar();
   const water = varying(attribute<'float'>('gWater', 'float')).toVar();
+  const tint = varying(attribute<'float'>('gTint', 'float')).toVar();
   const world = varying(position.xy).toVar();
+  const waterBlend = saturateN(water).toVar();
 
   // Grass/ground micro-detail across scales (GROUND_WGSL fs, meadow off) —
   // NEUTRAL albedo variation; the sun + IBL environment light it.
@@ -256,13 +270,76 @@ export function createGroundMesh(
   const ruts = ridgeN(world.mul(vec2(0.11, 0.045)).add(vec2(2.0, 0.0)));
   const churn = clamp(clods.mul(0.72).add(ruts.mul(0.28)).add(0.58), 0.42, 1.30);
   albedo = mix(albedo, albedo.mul(churn), earth);
+  let dryRoughness: FloatNode = float(0.95);
+
+  if (options.slopeBands) {
+    // Rust passability uses central differences over true meters:
+    // slope = sqrt(dzdx^2 + dzdy^2). The mesh normal encodes that same slope
+    // as normal.z = 1 / sqrt(1 + slope^2), because generated maps arrive here
+    // with reliefScale=1.0 after the short-lived hand-map exaggeration seam.
+    const slowNz = normalZForSlope(options.slopeBands.slowMin);
+    const rollingNz = normalZForSlope(options.slopeBands.rollingMax);
+    const cliffNz = normalZForSlope(options.slopeBands.cliffMin);
+    const normalZ = clamp(worldNormal.z, 0.0, 1.0).toVar();
+    const slopeRock = float(1.0).sub(smoothstepN(cliffNz, slowNz, normalZ)).toVar();
+    const slowSlope = float(1.0).sub(smoothstepN(slowNz, rollingNz, normalZ)).toVar();
+    const rockTint = float(1.0).sub(smoothstepN(0.05, 0.45, abs(tint.sub(2.0)))).toVar();
+    const screeTint = float(1.0).sub(smoothstepN(0.05, 0.45, abs(tint.sub(6.0)))).toVar();
+    const dryOnly = float(1.0).sub(waterBlend);
+
+    const warp = fbmN(world.mul(0.035)).mul(2.2)
+      .add(fbmN(world.mul(0.12).add(vec2(4.0, 9.0))).mul(0.7))
+      .toVar();
+    // Fracture-first rock: evenly spaced elevation bands read as a topo map
+    // (unprimed critique) - the dominant structure is VERTICAL fracture
+    // streaks (fine in plan, coherent down the face), with faint noise-varied
+    // strata underneath.
+    const fracture = smoothstepN(
+      0.55,
+      0.95,
+      fbmN(world.mul(vec2(0.32, 0.32)).add(warp.mul(0.35))),
+    ).toVar();
+    const strataPhase = fract(position.z.mul(0.16).add(warp.mul(1.7))).toVar();
+    const strata = smoothstepN(0.7, 0.98, abs(strataPhase.mul(2.0).sub(1.0)))
+      .mul(smoothstepN(0.35, 0.75, fbmN(world.mul(0.021).add(vec2(11.0, 3.0)))))
+      .toVar();
+    const faceNoise = fbmN(world.mul(0.075).add(vec2(2.0, 6.0))).toVar();
+    let rock = mix(vec3(0.32, 0.32, 0.29), vec3(0.45, 0.43, 0.36), faceNoise);
+    rock = mix(rock, vec3(0.21, 0.22, 0.21), fracture.mul(slopeRock).mul(0.62));
+    rock = mix(rock, vec3(0.19, 0.20, 0.19), strata.mul(slopeRock).mul(0.34));
+
+    const pebble = smoothstepN(0.78, 0.97, hashN(floor(world.mul(0.85)))).toVar();
+    let scree = mix(
+      vec3(0.43, 0.42, 0.36),
+      vec3(0.57, 0.54, 0.45),
+      fbmN(world.mul(0.22).add(vec2(8.0, 3.0))),
+    );
+    scree = mix(scree, vec3(0.30, 0.30, 0.27), pebble.mul(0.28));
+
+    const rockMask = clamp(rockTint.add(slopeRock), 0.0, 1.0).mul(dryOnly).toVar();
+    const screeMask = clamp(
+      screeTint.mul(0.95).add(slowSlope.mul(float(1.0).sub(rockTint)).mul(0.42)),
+      0.0,
+      1.0,
+    ).mul(dryOnly).toVar();
+    const benchCreep = clamp(rockMask.add(screeTint.mul(0.45)), 0.0, 1.0)
+      .mul(smoothstepN(slowNz, rollingNz, normalZ))
+      .mul(smoothstepN(0.42, 0.84, fbmN(world.mul(0.18).add(vec2(6.0, 1.0)))))
+      .mul(0.44)
+      .toVar();
+
+    albedo = mix(albedo, scree, screeMask.mul(0.78));
+    albedo = mix(albedo, rock, rockMask);
+    albedo = mix(albedo, vec3(0.34, 0.43, 0.21), benchCreep);
+    dryRoughness = mix(dryRoughness, float(0.985), clamp(rockMask.add(screeMask).mul(0.62), 0.0, 1.0));
+  }
+
   // Field water: the shared water surface blended by the box-filtered weight
   // (albedo + roughness — wet ground gets a real sun sheen).
-  const waterBlend = saturateN(water).toVar();
   const fieldWater = fieldWaterSurfaceNodes(frame, world, water);
   albedo = mix(albedo, fieldWater.albedo, waterBlend);
   material.colorNode = vec4(linearAlbedo(clamp(albedo, vec3(0.0), vec3(1.0))), 1.0);
-  material.roughnessNode = mix(float(0.95), fieldWater.roughness, waterBlend);
+  material.roughnessNode = mix(dryRoughness, fieldWater.roughness, waterBlend);
 
   const ground = new THREE.Mesh(geo, material);
   ground.name = 'battle-ground';

@@ -77,6 +77,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
   const generatedSeed = Number(params.get("seed") ?? 7) || 7;
   if (generatedMap) game.start_battle_generated(BigInt(generatedSeed));
   else game.start_battle(params.get("map") === "B" ? 1 : 0);
+  const generatedDescriptor = generatedMap ? JSON.parse(game.generated_map_descriptor()) : null;
   if (params.get("ai") === "on") game.set_ai_team(1);
   const wasmMapId = generatedMap ? undefined : params.get("map") === "B" ? 1 : 0;
   const clayMode = params.get("clay") === "1";
@@ -218,6 +219,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
         generatedMap,
       ),
       wasmMapId,
+      generatedDescriptor?.slopeBands ?? null,
     );
   }
 
@@ -527,7 +529,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       <tr><td>route</td><td>photoreal-battle (${s.substrate})</td></tr>
       <tr><td>environment</td><td>${s.environment}</td></tr>
       <tr><td>sea</td><td>${rs.sea.source} (${rs.sea.tier})</td></tr>
-      <tr><td>map</td><td>${params.get("map") === "B" ? "B" : "A"}</td></tr>
+      <tr><td>map</td><td>${generatedMap ? `gen:${generatedSeed}` : params.get("map") === "B" ? "B" : "A"}</td></tr>
       <tr><td>soldiers</td><td>${rs.soldiers} / ${rs.expectedSoldiers}</td></tr>
       <tr><td>seating</td><td>match=${rs.seating.matches} span=${rs.seating.span}</td></tr>
       <tr><td>grass records</td><td>${rs.terrain?.grass.recordCount ?? 0}</td></tr>

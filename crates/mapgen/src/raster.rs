@@ -342,6 +342,10 @@ impl Raster {
                 self.draw_line(w[0], w[1], width_px, sea);
             }
         }
+        eprintln!(
+            "carve_straits: {}",
+            carves.iter().map(|c| c.name).collect::<Vec<_>>().join(", ")
+        );
     }
 
     pub fn write_png(&self, path: &str) {

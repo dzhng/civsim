@@ -33,6 +33,7 @@ import {
   varying,
   vec3,
   vec4,
+  cameraViewMatrix,
 } from "three/tsl";
 import {
   GRASS_FIELD_PACKED_BYTES,
@@ -583,10 +584,20 @@ function bladeFieldMaterial(
     // strong height swing so the field breaks into clumps with tip-lines at
     // many heights - the structure the close-gate oracle (and the reference)
     // shows.
-    // Near-eye dissolve: blades within ~arm's reach of the camera render as
-    // giant paddles filling the frame (David's "coarse grass" report at close
-    // battle zoom). Scale them to the turf instead of alpha (no sort issues).
-    const nearEyeFade = smoothstep(float(1.6), float(4.5), length(cameraPosition.sub(base)));
+    // Near-eye dissolve: blades near the camera render as giant paddles
+    // filling the frame (close-zoom overdraw = the zoom-28 GPU cliff). The
+    // dissolve band scales with EYE HEIGHT - a fixed 4.5m band did nothing
+    // because at close zoom the offending blades sit 5-15m out; a low eye
+    // widens the band, a vista eye keeps it tiny. Scale to turf, not alpha.
+    const eyeHeight = cameraPosition.z.sub(base.z).max(0.0);
+    const fadeEnd = clamp(eyeHeight.mul(1.2), 4.5, 16.0);
+    // Blades BEHIND the near plane project inverted into the sky (the
+    // upside-down grass band at max zoom) - collapse anything behind the
+    // camera. View space looks down -z, so keep only clearly-negative z.
+    const baseViewZ = cameraViewMatrix.mul(vec4(base, 1.0)).z;
+    const behindCull = smoothstep(0.5, -1.5, baseViewZ);
+    const nearEyeFade = smoothstep(fadeEnd.mul(0.45), fadeEnd, length(cameraPosition.sub(base)))
+      .mul(behindCull);
     const height = max(d1.y.mul(mix(0.52, 1.32, clumpWeight)), 0.16)
       .mul(nearEyeFade)
       .toVar();

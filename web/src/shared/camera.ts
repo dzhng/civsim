@@ -14,7 +14,9 @@ import {
 // There is no separate 2.5D projection here — camera3d is the single owner.
 const MIN_PITCH = 0.12; // near ground-level vista floor (radians off the ground)
 const MAX_PITCH = Math.PI / 2 - 0.02; // just shy of straight-down top-down
-const EYE_CLEARANCE = 1.6; // m above terrain at the eye's ground column
+// 3.2m: above the ~0.9m blade canopy with margin - at 1.6m the closest zoom
+// put the eye INSIDE the grass (a horizontal blade-tunnel view).
+const EYE_CLEARANCE = 3.2; // m above terrain at the eye's ground column
 const NEAR_PLANE = 1.0; // meters; reverse-Z + infinite far spends precision far out
 
 export class Camera {

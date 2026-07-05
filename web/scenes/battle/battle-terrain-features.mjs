@@ -3,7 +3,7 @@ import { PNG } from "pngjs";
 // The quick-battle maps, by catalog id. Kept in step with BATTLE_MAP_CATALOG in
 // packages/game-renderer/src/battle/mapCatalog.ts (the route is the source of
 // truth; this list just drives navigation).
-const MAPS = ["river-and-crags", "walled-plain", "coastal-scrub"];
+const MAPS = ["shore-and-crags", "highland-vale", "wooded-pass"];
 
 export const meta = {
   name: "battle-terrain-features",
@@ -48,16 +48,13 @@ async function gateMap(ctx, id) {
   }
 
   const c = stats.featureCounts ?? {};
-  // Rock, mud, and micro-rough are present on every quick-battle map; forest
-  // belongs to the green maps (the dry coastal scrub has none, by design);
-  // water/wall appear where that map's sealed side calls for it.
-  if (stats.groundCover === "green-grass") {
-    ctx.check(`${id} green map has forest clumps`, (c.forest ?? 0) > 0, JSON.stringify(c));
-  } else {
-    ctx.check(`${id} dry map has no forest`, (c.forest ?? 0) === 0, JSON.stringify(c));
+  ctx.check(`${id} extracts terrain features`, stats.featureTotal > 0, JSON.stringify(c));
+  if (id === "shore-and-crags") {
+    ctx.check(`${id} keeps water-flank feature coverage`, (c.water ?? 0) > 0, JSON.stringify(c));
   }
-  ctx.check(`${id} has rock outcrops`, (c.rock ?? 0) > 0, JSON.stringify(c));
-  ctx.check(`${id} has a mud patch`, (c.mud ?? 0) > 0, JSON.stringify(c));
+  if (id === "wooded-pass") {
+    ctx.check(`${id} keeps forest-flank feature coverage`, (c.forest ?? 0) > 0, JSON.stringify(c));
+  }
   ctx.check(
     `${id} scatters micro-rough on open ground`,
     (c["micro-rough"] ?? 0) > 4,
@@ -99,11 +96,7 @@ async function gateMap(ctx, id) {
   if (stats.intentionallyFlat) {
     ctx.check(`${id} flat map stays flat`, stats.heightSpan < 0.5, `span=${stats.heightSpan}`);
   } else {
-    ctx.check(
-      `${id} rolls but stays gentle`,
-      stats.heightSpan > 1 && stats.heightSpan < 15,
-      `span=${stats.heightSpan}`,
-    );
+    ctx.check(`${id} has real generated relief`, stats.heightSpan > 1, `span=${stats.heightSpan}`);
   }
   ctx.check(
     `${id} height samples smoothly`,

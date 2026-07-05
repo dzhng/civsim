@@ -42,6 +42,24 @@ Slices 17 + 18 accepted, and **David explicitly approves the re-bless**. This
 slice is optional to the spec's success — the spec can close with hand maps
 alive as legacy.
 
+## Landed (2026-07-05) — David approved same day
+
+- Hand maps out of the product surface (catalog/menu); sim-side data and
+  wasm ids stay for pinned tests/deep links per this slice's contract.
+- Custom Battle: Generated card is the default with a FRESH random seed
+  per menu open, a live top-down preview canvas (drawn from the wasm
+  terrain pointers, debounced, probe Game freed), and a Random Map
+  button; the three curated cards sit beside it.
+- Every hand-map scene retargeted to a curated archetype preserving its
+  coverage intent (water scenes -> Shore & Crags; wooded shadows ->
+  seed 8; style/perf/photoreal -> Highland Vale).
+- Orchestrator review fixes: parity + style scenes re-anchored to the
+  generated seal identity (generated:vista, not the legacy west:cliff
+  blocker names); the horizon target restored to the ACCEPTED 0.187 open-
+  north composition (the 0.5 aspiration predates the design ruling); the
+  photoreal-shadows grove crop re-aimed at seed 8's real forest clumps
+  (delta 2.46); selection-glow floor re-anchored to presence.
+
 ## Feedback that would change it
 
 David may prefer keeping the hand maps forever as "classic" entries — then

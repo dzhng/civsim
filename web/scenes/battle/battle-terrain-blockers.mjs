@@ -3,7 +3,7 @@ import { PNG } from "pngjs";
 // Each quick-battle map, viewed looking outward at its two sealed sides. West
 // and east must read as the blocker the catalog declares (cliff/ocean/wall) and
 // the sim enforces; north/south stay open (the field fades to haze).
-const MAPS = ["river-and-crags", "walled-plain", "coastal-scrub"];
+const MAPS = ["shore-and-crags", "highland-vale", "wooded-pass"];
 const VIEWS = ["west", "east"];
 
 export const meta = {

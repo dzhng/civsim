@@ -28,14 +28,16 @@ const FRAME_SHOOT = 12;
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 const fract = (v: number) => v - Math.floor(v);
 const ANIMATION_SECONDS_PER_TICK = 1 / 30;
-const MARCH_CYCLES_PER_SECOND = 0.28;
-const RUN_CYCLES_PER_SECOND = 0.42;
+export const MARCH_CYCLES_PER_SECOND = 2.0;
+export const RUN_CYCLES_PER_SECOND = 2.6;
 const ATTACK_CYCLES_PER_SECOND = 0.5;
 const HIT_CYCLES_PER_SECOND = 0.65;
 const SHOOT_CYCLES_PER_SECOND = 0.55;
 const IDLE_CYCLES_PER_SECOND = 0.04;
 const COHERENT_PHASE_JITTER = 0.04;
 const FIGHTING_BEAT_TICKS = 12;
+export const MARCH_ENTER_SPEED_MPS = 0.4;
+export const MARCH_EXIT_SPEED_MPS = 0.15;
 
 export function variationSeed(index: number, unit = 0): number {
   let h = (Math.imul(index + 1, 2246822507) ^ Math.imul(unit + 17, 3266489917)) >>> 0;
@@ -43,6 +45,16 @@ export function variationSeed(index: number, unit = 0): number {
   h = Math.imul(h, 668265263) >>> 0;
   h ^= h >>> 16;
   return h >>> 0;
+}
+
+export function marchingStateForSpeed(
+  speedMps: number,
+  wasMarching: boolean,
+  enterSpeedMps = MARCH_ENTER_SPEED_MPS,
+  exitSpeedMps = MARCH_EXIT_SPEED_MPS,
+): boolean {
+  if (!Number.isFinite(speedMps) || speedMps < 0) return wasMarching;
+  return wasMarching ? speedMps > exitSpeedMps : speedMps > enterSpeedMps;
 }
 
 export function animationForFrame(

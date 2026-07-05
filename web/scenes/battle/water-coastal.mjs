@@ -11,10 +11,9 @@ import { PNG } from "pngjs";
 //
 // GPU only (VERIFY_GPU=1); on macOS that means headful + hardware.
 
-const GATE = "river-and-crags";
-// The east river runs the full N–S extent at x≈1118–1260; aim the 3/4 field camera
-// at it (the default field view frames a mid-field wood, no water). Fixed t for a
-// deterministic animated-water frame.
+const GATE = "shore-and-crags";
+// Shore & Crags carries the curated generated water flank; aim the 3/4 field
+// camera at the east water reach. Fixed t for a deterministic animated-water frame.
 const VIEW = `gate=${GATE}&view=field&cx=1150&cy=-150&t=3.0`;
 
 export const meta = {

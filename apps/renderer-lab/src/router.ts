@@ -211,7 +211,11 @@ import {
 import { bakeGltf } from "../../../packages/soldier-assets/bake/gltf.mjs";
 import type { VatBake, VatClip } from "../../../packages/soldier-assets/src/schema";
 import { importedRigMesh } from "./importedRigMesh";
-import { routePhotorealCrowd, routePhotorealPbr } from "./photorealRoutes";
+import {
+  routePhotorealCrowd,
+  routePhotorealPbr,
+  routePhotorealShadowProbe,
+} from "./photorealRoutes";
 import { routePhotorealBattle } from "./photorealBattleRoute";
 import { PhotorealBattleWorld } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
 import { PhotorealBladeFieldLayer } from "../../../packages/photoreal-renderer/src/battle/bladeFieldLayer";
@@ -292,6 +296,7 @@ const routes: Record<string, LabRoute> = {
   // Photoreal ladder (slices 07+): three.js WebGPU + TSL on the camera3d spine.
   "/renderer/photoreal-pbr": routePhotorealPbr,
   "/renderer/photoreal-crowd": routePhotorealCrowd,
+  "/renderer/photoreal-shadow-probe": routePhotorealShadowProbe,
   "/renderer/photoreal-battle": routePhotorealBattle,
   "/renderer/blade-field": routeBladeField,
 };
@@ -4053,7 +4058,8 @@ async function routeBattleTerrainFeatures(ctx: LabContext) {
   const wasm = await initWasm();
   const game = new Game(0x5eed_c0de);
   const entry = battleMapById(ctx.params.get("gate") ?? "") ?? BATTLE_MAP_CATALOG[0];
-  game.load_map(entry.wasmMapId);
+  if (entry.generatedSeed !== undefined) game.load_generated_map(BigInt(entry.generatedSeed));
+  else game.load_map(entry.wasmMapId);
 
   const w = game.terrain_w();
   const h = game.terrain_h();
@@ -4525,7 +4531,9 @@ async function routeBattleTerrain3d(ctx: LabContext) {
       entry = GENERATED_SEED7_ENTRY;
     } else {
       const catalogEntry = battleMapById(requestedGate) ?? BATTLE_MAP_CATALOG[0];
-      game.load_map(catalogEntry.wasmMapId);
+      if (catalogEntry.generatedSeed !== undefined)
+        game.load_generated_map(BigInt(catalogEntry.generatedSeed));
+      else game.load_map(catalogEntry.wasmMapId);
       entry = catalogEntry;
     }
 

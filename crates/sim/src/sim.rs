@@ -52,6 +52,12 @@ const FACING_FRONT_ARC: f32 = 1.0;
 /// same rank/file. This keeps a line a connected sheet after a few deaths while
 /// still letting real holes stay open.
 const WEAVE_NEIGHBOR_SKIP: usize = 4;
+/// Cheapness gate only: an unstretched adjacent bond is too short to be a
+/// meaningful cliff-spanning spring, so terrain sampling starts after this slack.
+const WEAVE_TERRAIN_CHECK_STRETCH: f32 = 2.0;
+/// Cheapness gate only: settled men do not terrain-sample their slot vector; a
+/// far straight-line slot behind a wall is not a walkable target without pathing.
+const SLOT_TERRAIN_CHECK_DIST: f32 = 3.0;
 /// A unit that has just cleared contact waits this many ticks before lateral
 /// re-evening, so a momentary lull does not erase a fighting notch.
 const DISENGAGE_REFORM_CLEAR_TICKS: u32 = 30;
@@ -966,7 +972,14 @@ impl Sim {
             }
             let mut esc = Vec2::ZERO;
             let mut bad = 0;
-            for s in (0..u.alive_count).step_by(3) {
+            // EVERY slot: a strided sample once skipped two in-wall slots
+            // forever, and the men assigned to them jittered against the
+            // wall until the whole standing lattice resonated (the shallow
+            // cliff-margin burst cycle). The check runs every 15 ticks on
+            // halted units only — full coverage is cheap and the law's
+            // guarantee ("the ideal formation is always achievable") is
+            // only as good as its weakest sample.
+            for s in 0..u.alive_count {
                 let p = u.slot_world(s);
                 if self.terrain.speed_at(p) <= 0.0 {
                     esc = esc + self.terrain.escape_dir(p);
@@ -1841,6 +1854,15 @@ impl Sim {
                                     Vec2::new(prev_positions[2 * j], prev_positions[2 * j + 1]);
                                 let d = p - jp;
                                 let (al, rl) = (d.len(), off.len());
+                                // Same physical bond as the length spring below:
+                                // men with a cliff between them are not holding
+                                // formation together. Only stretched bonds pay
+                                // the segment sample cost.
+                                if al > rl + WEAVE_TERRAIN_CHECK_STRETCH
+                                    && !terrain.segment_passable(p, jp)
+                                {
+                                    return;
+                                }
                                 if al > 1e-3 && rl > 1e-3 {
                                     let (dh, oh) = (d * (1.0 / al), off * (1.0 / rl));
                                     let dot = (dh.x * oh.x + dh.y * oh.y).clamp(-1.0, 1.0);
@@ -2069,7 +2091,18 @@ impl Sim {
                 let local = slot_local(soldier_slot[i] as usize, u.files_eff, u.spacing);
                 let slot = u.anchor + r * local.x + f * (-local.y);
                 let to = slot - p;
-                let mut slot_pull_vec = to;
+                // Soldiers have no pathfinding: a HALTED unit's slot behind a
+                // wall must stop driving the man, or he grinds at the wall
+                // forever. Only while the frame rests — a MARCHING frame's slot
+                // sweeps past obstacles, and the through-rock pull composed
+                // with the terrain slide is exactly what walks a man around a
+                // boulder (zeroing it mid-march strands him behind it).
+                let slot_anchor_blocked = u.move_target.is_none()
+                    && u.frame_speed < 0.05
+                    && to.len() > SLOT_TERRAIN_CHECK_DIST
+                    && !terrain.segment_passable(p, slot);
+                let slot_anchor_vec = if slot_anchor_blocked { Vec2::ZERO } else { to };
+                let mut slot_pull_vec = slot_anchor_vec;
                 let mut formation_blocks_forward = false;
                 #[cfg(feature = "force-trace")]
                 let mut corridor_slot_removed = Vec2::ZERO;
@@ -2179,10 +2212,18 @@ impl Sim {
                         // lane (and re-closes the hole the charge needs).
                         if j != usize::MAX && trampled[j] <= 0.0 {
                             let jp = Vec2::new(prev_positions[2 * j], prev_positions[2 * j + 1]);
-                            nsum = nsum + jp + off;
-                            nn += 1.0;
                             let d = p - jp;
                             let (al, rl) = (d.len(), off.len());
+                            // A bond is two men holding formation together; men
+                            // with a cliff between them are not doing that. Only
+                            // stretched bonds pay the segment sample cost.
+                            if al > rl + WEAVE_TERRAIN_CHECK_STRETCH
+                                && !terrain.segment_passable(p, jp)
+                            {
+                                return;
+                            }
+                            nsum = nsum + jp + off;
+                            nn += 1.0;
                             bond_stretch += (al - rl).max(0.0);
                             if al > 1e-3 && rl > 1e-3 {
                                 let (dh, oh) = (d * (1.0 / al), off * (1.0 / rl));
@@ -2410,7 +2451,7 @@ impl Sim {
                 } else {
                     let weave_component = match net_target {
                         Some(nt) => nt * tun.weave_stiffness + comp_push,
-                        None => to + comp_push,
+                        None => slot_anchor_vec + comp_push,
                     };
                     weave_component + projected_pivot[s]
                 };
@@ -2418,7 +2459,7 @@ impl Sim {
                 if weave_active {
                     let net_component = match net_target {
                         Some(nt) => (nt - enemy_weld_component) * tun.weave_stiffness,
-                        None => to,
+                        None => slot_anchor_vec,
                     };
                     let comp_component = comp_push - enemy_inside_push;
                     let pivot_component = projected_pivot[s];

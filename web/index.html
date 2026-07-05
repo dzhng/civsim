@@ -906,6 +906,7 @@
       }
       .qb-map {
         flex: 1;
+        min-width: 0;
         text-align: left;
         padding: 8px 10px;
         background: var(--well-bg);
@@ -930,6 +931,27 @@
         font-size: 11px;
       }
       .qb-generated {
+        display: block;
+      }
+      .qb-generated-main {
+        display: grid;
+        grid-template-columns: 78px minmax(0, 1fr);
+        gap: 8px;
+        align-items: stretch;
+      }
+      .qb-generated-preview {
+        display: block;
+        width: 78px;
+        height: 52px;
+        background: #10120f;
+        border: 1px solid #3a2c18;
+        border-radius: 2px;
+        box-shadow: var(--well-shadow);
+        image-rendering: pixelated;
+        pointer-events: none;
+      }
+      .qb-generated-copy {
+        min-width: 0;
         display: flex;
         flex-direction: column;
         gap: 6px;

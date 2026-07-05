@@ -926,12 +926,17 @@ impl Sim {
         self.last_disp_y.resize(n, 0.0);
         self.ema_disp_x.resize(n, 0.0);
         self.ema_disp_y.resize(n, 0.0);
-        if self.prev_positions.len() == 2 * n {
+        {
+            // Soldiers appended since last tick (reinforcements) have no
+            // snapshot yet — update the tracked prefix, leave the newcomers'
+            // history at the zeroed resize default instead of skipping the
+            // whole pass for one tick.
+            let tracked = (self.prev_positions.len() / 2).min(n);
             // ~0.5s horizon: slow enough to average out a 2-tick solver
             // cycle AND a ~1s standing sway, fast enough to register a real
             // push within a stride.
             let a = DT / 0.5;
-            for i in 0..n {
+            for i in 0..tracked {
                 self.last_disp_x[i] = self.positions[2 * i] - self.prev_positions[2 * i];
                 self.last_disp_y[i] = self.positions[2 * i + 1] - self.prev_positions[2 * i + 1];
                 self.ema_disp_x[i] += (self.last_disp_x[i] - self.ema_disp_x[i]) * a;

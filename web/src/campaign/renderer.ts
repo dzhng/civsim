@@ -749,7 +749,9 @@ export class CampaignRenderer {
       controlledStage ? undefined : { alpha: 0.62 },
       this.surface.mesh,
     );
-    this.lines = new CampaignWorldLinePass(this.shell, "triangle-list");
+    // Sea lanes drape over the height-mapped water surface (xyz), like the
+    // borders — the flat z=0 variant was depth-buried under the surface mesh.
+    this.lines = new CampaignWorldLinePass(this.shell, "triangle-list", "xyz");
     this.roads = new CampaignRoadPass(this.shell);
     this.borders = new CampaignWorldLinePass(this.shell, "triangle-list", "xyz");
     this.markers = new CampaignMarkerPass(this.shell);

@@ -5,7 +5,10 @@
 //! must be re-fetched every frame — Vec reallocation can move them and grow
 //! the memory (which detaches any existing JS TypedArray views).
 
-use sim::{build_map, setup_battle, setup_sandbox, Battle, MapId, Pace, Sim, Tunables, Vec2};
+use sim::{
+    build_map, generate_map, generate_vista_grid, setup_battle, setup_battle_generated,
+    setup_sandbox, Battle, MapId, MapRecipe, Pace, Sim, Tunables, Vec2, VistaGrid,
+};
 use wasm_bindgen::prelude::*;
 
 mod campaign_bind;
@@ -30,10 +33,27 @@ fn map_id_from_index(map: u32) -> MapId {
     }
 }
 
+fn deployment_certificate_json(
+    t: &sim::Terrain,
+    side: sim::genmap::certify::Side,
+) -> serde_json::Value {
+    let c = sim::genmap::certify::deployment_band_certificate(t, side);
+    serde_json::json!({
+        "totalCells": c.total_cells,
+        "passableFraction": c.passable_fraction,
+        "blockedCells": c.blocked_cells,
+        "p95Slope": c.p95_slope,
+        "maxSlope": c.max_slope,
+        "meetsContract": c.meets_contract(),
+    })
+}
+
 #[wasm_bindgen]
 pub struct Game {
     battle: Battle,
     unit_info: Vec<f32>,
+    generated_recipe: Option<MapRecipe>,
+    generated_vista: Option<VistaGrid>,
 }
 
 #[wasm_bindgen]
@@ -43,6 +63,8 @@ impl Game {
         Game {
             battle: Battle::from_sim(Sim::new(Tunables::default(), seed as u64)),
             unit_info: Vec::new(),
+            generated_recipe: None,
+            generated_vista: None,
         }
     }
 
@@ -54,6 +76,8 @@ impl Game {
         let mut g = Game {
             battle,
             unit_info: Vec::new(),
+            generated_recipe: None,
+            generated_vista: None,
         };
         g.refresh_unit_info();
         g
@@ -132,6 +156,18 @@ impl Game {
     /// 0 = RiverAndCrags, 1 = WalledPlain, 2 = CoastalScrub.
     pub fn load_map(&mut self, map: u32) {
         self.battle.sim.terrain = build_map(map_id_from_index(map));
+        self.generated_recipe = None;
+        self.generated_vista = None;
+    }
+
+    pub fn load_generated_map(&mut self, seed: u64) {
+        let recipe = MapRecipe {
+            seed,
+            ..MapRecipe::default()
+        };
+        self.battle.sim.terrain = generate_map(&recipe);
+        self.generated_recipe = Some(recipe);
+        self.generated_vista = None;
     }
 
     /// Tiny vibe-check fields: 0 = 1v1 heavies, 1 = 5v5 mixed inf + cav.
@@ -234,7 +270,116 @@ impl Game {
     /// Build terrain AND deploy both full armies.
     pub fn start_battle(&mut self, map: u32) {
         setup_battle(&mut self.battle.sim, map_id_from_index(map));
+        self.generated_recipe = None;
+        self.generated_vista = None;
         self.refresh_unit_info();
+    }
+
+    pub fn start_battle_generated(&mut self, seed: u64) {
+        let recipe = MapRecipe {
+            seed,
+            ..MapRecipe::default()
+        };
+        setup_battle_generated(&mut self.battle.sim, &recipe);
+        self.generated_recipe = Some(recipe);
+        self.generated_vista = None;
+        self.refresh_unit_info();
+    }
+
+    /// Certificate verdicts computed by the ONE owner (sim::genmap::certify) on
+    /// the live terrain, so the frontend never re-implements them.
+    pub fn generated_map_certificates(&self) -> String {
+        use sim::genmap::certify;
+        let t = &self.battle.sim.terrain;
+        let drainage = self
+            .generated_recipe
+            .map(|recipe| serde_json::to_value(sim::genmap::drainage_report(&recipe)).unwrap())
+            .unwrap_or(serde_json::Value::Null);
+        serde_json::json!({
+            "westSealed": certify::side_sealed_fraction(t, certify::Side::West),
+            "eastSealed": certify::side_sealed_fraction(t, certify::Side::East),
+            "southOpen": certify::open_edge_fraction(t, certify::Side::South),
+            "northOpen": certify::open_edge_fraction(t, certify::Side::North),
+            "southDeployPassable": certify::deployment_band_passable_fraction(t, certify::Side::South),
+            "northDeployPassable": certify::deployment_band_passable_fraction(t, certify::Side::North),
+            "southDeployment": deployment_certificate_json(t, certify::Side::South),
+            "northDeployment": deployment_certificate_json(t, certify::Side::North),
+            "corridor": certify::has_deployment_corridor(t),
+            "westFlankUnreachable": certify::flank_unreachable_fraction(t, certify::Side::West),
+            "eastFlankUnreachable": certify::flank_unreachable_fraction(t, certify::Side::East),
+            "orphanBlockedCells": certify::speed_zero_cells_without_blocking_tint(t),
+            "largestIsolatedPassablePocket": certify::largest_isolated_passable_pocket_cells(t),
+            "drainage": drainage,
+        })
+        .to_string()
+    }
+
+    pub fn generated_map_descriptor(&self) -> String {
+        let seed = self.generated_recipe.map_or(0, |r| r.seed);
+        let slope_bands = self
+            .generated_recipe
+            .map_or_else(sim::genmap::SlopeBands::default, |r| r.slope_bands);
+        let edge_seals = self.generated_recipe.map(|recipe| {
+            let composition = sim::genmap::edges::composition(&recipe);
+            serde_json::json!({
+                "weights": recipe.edge_seals.weights,
+                "composition": composition,
+                "expectedRoles": {
+                    "west": composition.west.expected_edge_role(),
+                    "east": composition.east.expected_edge_role(),
+                },
+            })
+        });
+        let lake_surfaces = self
+            .generated_recipe
+            .map(|recipe| sim::genmap::drainage_report(&recipe).lakes)
+            .unwrap_or_default();
+        serde_json::json!({
+            "seed": seed,
+            "groundCover": "green-grass",
+            "reliefScale": 1.0,
+            "slopeBands": slope_bands,
+            "edgeSeals": edge_seals,
+            "terrainHash": format!("{:#018x}", sim::genmap::terrain_hash(&self.battle.sim.terrain)),
+            "lakeSurfaces": lake_surfaces,
+            "vista": self.generated_recipe.map(vista_descriptor),
+        })
+        .to_string()
+    }
+
+    pub fn generated_vista_band_count(&self) -> u32 {
+        self.generated_recipe.map_or(0, |_| 2)
+    }
+
+    pub fn generated_vista_band_width(&mut self, band: u32) -> u32 {
+        self.ensure_generated_vista();
+        self.vista_band(band).map_or(0, |b| b.w as u32)
+    }
+
+    pub fn generated_vista_band_height(&mut self, band: u32) -> u32 {
+        self.ensure_generated_vista();
+        self.vista_band(band).map_or(0, |b| b.h as u32)
+    }
+
+    pub fn generated_vista_band_cell(&mut self, band: u32) -> f32 {
+        self.ensure_generated_vista();
+        self.vista_band(band).map_or(0.0, |b| b.cell)
+    }
+
+    pub fn generated_vista_band_origin_x(&mut self, band: u32) -> f32 {
+        self.ensure_generated_vista();
+        self.vista_band(band).map_or(0.0, |b| b.origin.x)
+    }
+
+    pub fn generated_vista_band_origin_y(&mut self, band: u32) -> f32 {
+        self.ensure_generated_vista();
+        self.vista_band(band).map_or(0.0, |b| b.origin.y)
+    }
+
+    pub fn generated_vista_band_height_ptr(&mut self, band: u32) -> *const f32 {
+        self.ensure_generated_vista();
+        self.vista_band(band)
+            .map_or(std::ptr::null(), |b| b.heights.as_ptr())
     }
 
     pub fn radius_ptr(&self) -> *const f32 {
@@ -587,6 +732,41 @@ impl Game {
             ]);
         }
     }
+
+    fn ensure_generated_vista(&mut self) {
+        if self.generated_vista.is_none() {
+            if let Some(recipe) = self.generated_recipe {
+                self.generated_vista = Some(generate_vista_grid(&recipe));
+            }
+        }
+    }
+
+    fn vista_band(&self, band: u32) -> Option<&sim::VistaBand> {
+        self.generated_vista
+            .as_ref()
+            .and_then(|v| v.bands.get(band as usize))
+    }
+}
+
+fn vista_descriptor(recipe: MapRecipe) -> serde_json::Value {
+    let bands = sim::genmap::vista_band_specs(&recipe);
+    serde_json::json!({
+        "shape": "two full vertex-sample height bands; renderer cuts the inner rect per band",
+        "bands": bands.iter().map(|b| {
+            serde_json::json!({
+                "name": b.name,
+                "width": b.w,
+                "height": b.h,
+                "cell": b.cell,
+                "originX": b.origin.x,
+                "originY": b.origin.y,
+                "innerHalfW": b.inner_half_w,
+                "innerHalfH": b.inner_half_h,
+                "outerHalfW": b.outer_half_w,
+                "outerHalfH": b.outer_half_h,
+            })
+        }).collect::<Vec<_>>(),
+    })
 }
 
 impl Default for Game {

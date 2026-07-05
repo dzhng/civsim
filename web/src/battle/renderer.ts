@@ -14,8 +14,11 @@
 import type { Camera } from "../shared/camera";
 import {
   PhotorealBattleWorld,
+  type BattleLakeSurfaceSpec,
   type BattleCameraSnapshot,
+  type BattleVistaGrid,
 } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
+import type { BattleSlopeBands } from "../../../packages/game-renderer/src/battle/terrainFeatures";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
 
 export class BattleRenderer {
@@ -100,9 +103,24 @@ export class BattleRenderer {
     tint?: Uint8Array,
     height?: Float32Array,
     wasmMapId?: number,
+    slopeBands?: BattleSlopeBands | null,
+    vista?: BattleVistaGrid | null,
+    lakeSurfaces?: BattleLakeSurfaceSpec[] | null,
   ) {
     if (this.world) {
-      this.world.setTerrain(w, h, cell, ox, oy, tint, height, wasmMapId);
+      this.world.setTerrain(
+        w,
+        h,
+        cell,
+        ox,
+        oy,
+        tint,
+        height,
+        wasmMapId,
+        slopeBands,
+        vista,
+        lakeSurfaces,
+      );
     } else {
       this.pendingTerrain = [
         w,
@@ -113,6 +131,9 @@ export class BattleRenderer {
         tint ? new Uint8Array(tint) : undefined,
         height ? new Float32Array(height) : undefined,
         wasmMapId,
+        slopeBands ?? null,
+        cloneVistaGrid(vista),
+        cloneLakeSurfaces(lakeSurfaces),
       ];
     }
   }
@@ -297,6 +318,23 @@ export class BattleRenderer {
     }
     this.resize();
   }
+}
+
+function cloneVistaGrid(vista?: BattleVistaGrid | null): BattleVistaGrid | null {
+  if (!vista) return null;
+  return {
+    shape: vista.shape,
+    bands: vista.bands.map((band) => ({
+      ...band,
+      height: new Float32Array(band.height),
+    })),
+  };
+}
+
+function cloneLakeSurfaces(
+  lakeSurfaces?: BattleLakeSurfaceSpec[] | null,
+): BattleLakeSurfaceSpec[] | null {
+  return lakeSurfaces ? lakeSurfaces.map((surface) => ({ ...surface })) : null;
 }
 
 export interface BattleTacticalLineFrame {

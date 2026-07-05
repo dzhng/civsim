@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 contract = { path = "../contract" }
+serde = { version = "1", features = ["derive"] }
 # Only the `weave_shots` tool needs PNG encoding; keep it OUT of the default
 # (wasm) build behind the `shots` feature.
 png = { version = "0.17", optional = true }

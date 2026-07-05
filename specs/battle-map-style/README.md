@@ -21,13 +21,17 @@ Reference images (in `assets/` and the aesthetics skill):
 
 ## Next Agent Prompt
 
-**Status 2026-07-04: slice 00 DONE (live-verified, baselines blessed).**
-Slice 01 (genmap skeleton) is in flight in a parallel worktree; next pickups
-after it land: [02-landform](slices/02-landform.md) (G-track) and
-[10-grass-port](slices/10-grass-port.md) (V-track — reuses 00's close gate).
-Read the camera-truth trap and horizon-deferral decision recorded in
-[00's locked values](slices/00-composition-and-oracle-lock.md) before writing
-any scene against the photoreal battle route.
+**Status 2026-07-05: slices 00–05, 10–15 DONE (live-verified).** The
+generated-map pipeline is feature-complete for the compose gate: seeded
+seal grammar (organic cliff/forest/water flanks), certified corridors and
+deployments, one natural lake pocket rendering as real water, fracture-rock
+walls, the TW vista apron + fog ring, production blade grass. Next pickups:
+[06-seed-variety.md](slices/06-seed-variety.md) (G-track: variety browser +
+catalog manifest) and [16-haze-mood](slices/16-haze-mood.md) (V-track: the
+fog-runway preset owning slice 14's pale-band/silhouette debts). Then 17
+compose. Read the recorded traps: slice 10 TSL hazards, slice 11
+integration findings, slice 04 shoreline lessons, slice 15 water-classifier
+notes, and 00's camera/oracle amendments.
 
 Before writing any code, read:
 
@@ -46,18 +50,31 @@ Before writing any code, read:
 **Global TODO** (update this list and the status line before ending any pass):
 
 - [x] 00 — Composition + oracle lock (judging apparatus pinned before art)
-- [ ] 01 — Genmap skeleton (seed → playable battle, end to end)
-- [ ] 02 — Landform (macro mask × warped noise, clay verdict)
-- [ ] 03 — Passability from landform (BFS certificates)
-- [ ] 04 — Hydrology (priority-flood lakes, descending rivers, fords)
-- [ ] 05 — Edge grammar + deployment guarantees
+- [x] 01 — Genmap skeleton (seed → playable battle, end to end)
+- [x] 02 — Landform (macro mask × warped noise, clay verdict; real-pipeline
+      clay + apron-dish debts routed to slice 03)
+- [x] 03 — Passability from landform (BFS certificates)
+- [x] 04 — Hydrology (priority-flood lakes, descending rivers, fords)
+      CODE-LANDED BMS04-SLICE-B6D9; corrected BMS04-FIX-D2C7 after browser
+      evidence; orchestrator still owes browser run and passability-mask
+      baseline blessing.
+- [x] 05 — Edge grammar + deployment guarantees
+      CODE-LANDED BMS05-SLICE-A9E1; seed 7 remains cliff/cliff and keeps its
+      existing hash pins. Orchestrator still owes browser run and
+      `battle-genmap-seeds` + generated elevation baseline blessing.
 - [ ] 06 — Seed variety + seed browser
-- [ ] 10 — False Earth grass port (close-gate ratification)
-- [ ] 11 — Grass battle integration (swap + delete tuft path, perf gate)
-- [ ] 12 — Grass LOD budgets at 30k
-- [ ] 13 — Cliff material
-- [ ] 14 — Vista backdrop (DECIDED: render-only apron, world = 2× playable)
-- [ ] 15 — Lake render
+- [x] 10 — False Earth grass port (close-gate ratification)
+- [x] 11 — Grass battle integration (swap + delete tuft path, perf gate)
+  CODE-LANDED BMS11-SLICE-E9C4; orchestrator still owes battle scenes, vista +
+  close-gate crops, battle baseline re-bless, perf:30k hardware, elevation
+  tripwire, and wind GIF.
+- [x] 12 — Grass LOD budgets at 30k
+- [x] 13 — Cliff material
+- [x] 14 — Vista backdrop (DECIDED: render-only apron, world = 2× playable)
+- [x] 15 — Lake render
+      CODE-LANDED BMS15-SLICE-B8D2; orchestrator still owes browser run,
+      golden + overcast lake baseline blessing, screenshot-critique,
+      perf:30k hardware, and the battle-terrain-elevation tripwire.
 - [ ] 16 — Haze / mood preset
 - [ ] 17 — Compose gate (style-family verdict on 3+ seeds)
 - [ ] 18 — Curated seeds in the catalog

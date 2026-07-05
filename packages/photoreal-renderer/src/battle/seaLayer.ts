@@ -8,11 +8,13 @@
 import * as THREE from 'three/webgpu';
 import {
   dot, float, length, mix, normalize, transformNormalToView, varying, vec2, vec3, vec4,
+  max,
 } from 'three/tsl';
 import { attribute } from 'three/tsl';
 import { bakeGerstnerWaves } from '../../../game-renderer/src/water/gerstnerField';
 import { BATTLE_OCEAN_RAMP, FIELD_WATER_RAMP, type WaterShoreRamp } from '../../../game-renderer/src/water/waterShoreRamp';
 import type { BattleOceanPlaneSpec } from '../../../game-renderer/src/battle/horizonPass';
+import type { BattleTerrainGrid } from '../../../game-renderer/src/battle/terrainFeatures';
 import {
   fnoiseN, linearAlbedo, rgbNode, saturateN, smoothstepN,
   type BattleFrameUniforms, type FloatNode, type Vec2Node, type Vec3Node,
@@ -54,6 +56,27 @@ const SEA_FOAM_SPECKLE_END = 0.78;
 const SEA_FOAM_SCALE = 0.74;
 const SEA_SAND_TURBIDITY_DEPTH_START = 0.04;
 const SEA_SAND_TURBIDITY_DEPTH_END = 0.26;
+const LAKE_SHORE_RAMP: WaterShoreRamp = { depthNear: 2, depthFar: 90, hazeNear: 160, hazeFar: 900 };
+const LAKE_SURFACE_LIFT_M = 0.035;
+const LAKE_SWELL_SCALE = 0.035;
+// Enough ripple normal to break the sun disk - at ocean-glint smoothness a
+// becalmed lake becomes a mirror and renders as a blown-white patch.
+const LAKE_NORMAL_STRENGTH = 0.42;
+const WATER_TINT = 1;
+
+export interface BattleLakeSurfaceSpec {
+  id: number;
+  level: number;
+  minCellX: number;
+  minCellY: number;
+  maxCellX: number;
+  maxCellY: number;
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+  cells: number;
+}
 
 interface WaterSampleNodes {
   height: FloatNode;
@@ -381,6 +404,140 @@ export function createOceanPlaneMesh(
   mesh.name = 'battle-ocean-plane';
   mesh.frustumCulled = false;
   return mesh;
+}
+
+/** One generated inland lake surface: a flat basin-level patch whose coverage
+ *  is clipped to the sim-owned tint=water mask. It shares the sea material
+ *  response, but displacement is nearly becalmed so the water reads as a lake. */
+export function createLakePlaneMesh(
+  frame: BattleFrameUniforms,
+  spec: BattleLakeSurfaceSpec,
+  grid: BattleTerrainGrid,
+  displacement: SeaDisplacementSource = createSeaDisplacementSource(),
+): THREE.Mesh | null {
+  const mesh = buildLakePlaneGeometry(spec, grid);
+  if (!mesh) return null;
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(mesh.positions, 3));
+  geo.setAttribute('shoreDist', new THREE.BufferAttribute(mesh.shoreDist, 1));
+  geo.setIndex(new THREE.BufferAttribute(mesh.indices, 1));
+
+  const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, metalness: 0 });
+  const worldXY = attribute<'vec3'>('position', 'vec3').xy;
+  material.positionNode = vec3(
+    worldXY,
+    displacement.height(worldXY, frame.time).mul(LAKE_SWELL_SCALE).add(spec.level + LAKE_SURFACE_LIFT_M),
+  );
+  const fragXY = varying(worldXY).toVar();
+  const shoreDist = varying(attribute<'float'>('shoreDist', 'float')).toVar();
+  const depth01 = shoreDepthNode(LAKE_SHORE_RAMP, shoreDist);
+  const lakeNormal = displacement.sample(fragXY, frame.time).normal;
+  const surfaceNormal = normalize(mix(vec3(0.0, 0.0, 1.0), lakeNormal, LAKE_NORMAL_STRENGTH));
+  material.normalNode = transformNormalToView(surfaceNormal);
+  const shoreTurbidity = smoothstepN(0.0, 0.45, depth01);
+  const surface = waterSurfaceNodes(depth01, float(0.0), shoreTurbidity);
+  material.colorNode = vec4(surface.albedo, 1.0);
+  // Lakes read matte-calm, never ocean-glint smooth (see normal note above).
+  material.roughnessNode = max(surface.roughness, float(0.3));
+
+  const lake = new THREE.Mesh(geo, material);
+  lake.name = `battle-lake-plane-${spec.id}`;
+  lake.frustumCulled = false;
+  return lake;
+}
+
+function buildLakePlaneGeometry(
+  spec: BattleLakeSurfaceSpec,
+  grid: BattleTerrainGrid,
+): { positions: Float32Array; shoreDist: Float32Array; indices: Uint32Array } | null {
+  const minX = Math.max(0, Math.min(grid.w - 1, Math.floor(spec.minCellX)));
+  const minY = Math.max(0, Math.min(grid.h - 1, Math.floor(spec.minCellY)));
+  const maxX = Math.max(minX, Math.min(grid.w - 1, Math.floor(spec.maxCellX)));
+  const maxY = Math.max(minY, Math.min(grid.h - 1, Math.floor(spec.maxCellY)));
+  const waterCells: Array<{ cx: number; cy: number; shore: number }> = [];
+  const shoreCells = lakeShoreDistanceCells(grid, minX, minY, maxX, maxY);
+  for (let cy = minY; cy <= maxY; cy++) {
+    for (let cx = minX; cx <= maxX; cx++) {
+      const i = cy * grid.w + cx;
+      if (grid.tint[i] !== WATER_TINT) continue;
+      waterCells.push({ cx, cy, shore: (shoreCells.get(i) ?? 0) * grid.cell });
+    }
+  }
+  if (waterCells.length === 0) return null;
+
+  const positions = new Float32Array(waterCells.length * 4 * 3);
+  const shoreDist = new Float32Array(waterCells.length * 4);
+  const indices = new Uint32Array(waterCells.length * 6);
+  let pv = 0;
+  let sv = 0;
+  let iv = 0;
+  for (let n = 0; n < waterCells.length; n++) {
+    const { cx, cy, shore } = waterCells[n];
+    const x0 = grid.ox + cx * grid.cell;
+    const x1 = x0 + grid.cell;
+    const y0 = grid.oy + cy * grid.cell;
+    const y1 = y0 + grid.cell;
+    positions.set([x0, y0, spec.level, x1, y0, spec.level, x0, y1, spec.level, x1, y1, spec.level], pv);
+    shoreDist.set([shore, shore, shore, shore], sv);
+    const b = n * 4;
+    indices.set([b, b + 2, b + 1, b + 1, b + 2, b + 3], iv);
+    pv += 12;
+    sv += 4;
+    iv += 6;
+  }
+  return { positions, shoreDist, indices };
+}
+
+function lakeShoreDistanceCells(
+  grid: BattleTerrainGrid,
+  minX: number,
+  minY: number,
+  maxX: number,
+  maxY: number,
+): Map<number, number> {
+  const dist = new Map<number, number>();
+  const queue: number[] = [];
+  const push = (i: number, d: number) => {
+    if (dist.has(i)) return;
+    dist.set(i, d);
+    queue.push(i);
+  };
+  for (let cy = minY; cy <= maxY; cy++) {
+    for (let cx = minX; cx <= maxX; cx++) {
+      const i = cy * grid.w + cx;
+      if (grid.tint[i] !== WATER_TINT) continue;
+      if (
+        cx === 0 ||
+        cy === 0 ||
+        cx === grid.w - 1 ||
+        cy === grid.h - 1 ||
+        grid.tint[i - 1] !== WATER_TINT ||
+        grid.tint[i + 1] !== WATER_TINT ||
+        grid.tint[i - grid.w] !== WATER_TINT ||
+        grid.tint[i + grid.w] !== WATER_TINT
+      ) {
+        push(i, 0);
+      }
+    }
+  }
+  for (let head = 0; head < queue.length; head++) {
+    const i = queue[head];
+    const d = dist.get(i) ?? 0;
+    const cx = i % grid.w;
+    const cy = Math.floor(i / grid.w);
+    const neighbors = [
+      cx > minX ? i - 1 : -1,
+      cx < maxX ? i + 1 : -1,
+      cy > minY ? i - grid.w : -1,
+      cy < maxY ? i + grid.w : -1,
+    ];
+    for (const ni of neighbors) {
+      if (ni < 0 || grid.tint[ni] !== WATER_TINT || dist.has(ni)) continue;
+      push(ni, d + 1);
+    }
+  }
+  return dist;
 }
 
 function fract53(x: number): number {

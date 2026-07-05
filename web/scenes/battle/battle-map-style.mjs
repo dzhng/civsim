@@ -7,8 +7,12 @@ import {
   structureMetrics,
 } from "./battle-map-style-legibility-lib.js";
 
+// Close-gate oracle calibration target: the archived close-lab hero crop
+// (resolvable blades), NOT the vista reference's near-grass band - that band
+// is meadow-mass texture and calibrating on it rejects real close-up grass
+// (slice-00 trap, recorded in the slice file).
 const TARGET = new URL(
-  "../../../specs/battle-map-style/assets/target-battle-map.png",
+  "../../../specs/battle-map-style/assets/target-close-grass.png",
   import.meta.url,
 );
 
@@ -172,7 +176,7 @@ function cameraSummary(camera3d) {
 
 async function runOracleCalibration(ctx) {
   const target = PNG.sync.read(await readFile(TARGET));
-  const targetCrop = cropByRect(target, BAND_CROPS["near-grass"]);
+  const targetCrop = target;
   const samples = {
     target: targetCrop,
     "grass-off": synthGrassOff(targetCrop),
@@ -189,13 +193,13 @@ async function runOracleCalibration(ctx) {
     "oracle calibration: target passes; controls fail with named failure modes",
     verdicts.target.ok === true &&
       verdicts["grass-off"].ok === false &&
+      verdicts["grass-off"].failures.includes("no-fine-strand-detail") &&
       verdicts["grass-off"].failures.includes("low-structure-occupancy") &&
-      verdicts["grass-off"].failures.includes("bad-structure-spread") &&
       verdicts["stipple-carpet"].ok === false &&
       verdicts["stipple-carpet"].failures.includes("raw-edge-stipple") &&
       verdicts["smooth-painted-meadow"].ok === false &&
-      verdicts["smooth-painted-meadow"].failures.includes("bad-structure-spread"),
-    JSON.stringify({ oracle: ORACLE, crop: BAND_CROPS["near-grass"], verdicts, metrics }),
+      verdicts["smooth-painted-meadow"].failures.includes("no-fine-strand-detail"),
+    JSON.stringify({ oracle: ORACLE, target: "target-close-grass.png", verdicts, metrics }),
   );
 }
 
@@ -212,7 +216,14 @@ function assertPhotorealRoute(ctx, stats) {
       terrain?.sealedEdges?.includes("east:ocean") &&
       terrain?.groundTriangles > 100000 &&
       terrain?.scenery > 0 &&
-      terrain?.grass?.tuftInstances > 0,
+      terrain?.grass?.layer === "photoreal-blade-field" &&
+      terrain?.grass?.recordCount > 0 &&
+      terrain?.grass?.packedStrideFloats === 16 &&
+      terrain?.grass?.sourceStorageCore?.runtimeComputeRoute === "active" &&
+      // Tint/slope rejection counts are focus-dependent (a mid-plain 64 m
+      // window has nothing to reject) - eligibility is the data owner's
+      // contract, not this boot check's.
+      terrain?.grass?.sample?.acceptedRecords > 0,
     JSON.stringify({
       renderer: stats?.renderer,
       projection: stats?.projection,

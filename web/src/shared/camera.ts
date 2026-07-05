@@ -135,12 +135,24 @@ export class Camera {
       near: NEAR_PLANE,
     });
     if (this.groundHeight) {
-      // Eye clearance: the eye's ground column can be HIGHER than the look
-      // target's (looking up-slope from a valley). Raising target.z raises
-      // the eye 1:1, so one closed-form lift keeps the eye above terrain.
+      // Eye clearance along the WHOLE sight line, not just the eye's ground
+      // column: zooming toward a slope can put intervening higher ground
+      // between eye and target - the near plane clips into the hill and the
+      // frame floods terrain-green ("green sky"). Interior samples only
+      // guard against actual clipping (a slim margin), so ordinary relief
+      // under the sight line never nudges the framing. Raising target.z
+      // raises the eye 1:1, so one closed-form lift covers it.
       const eye = eyePosition(mk(tz));
-      const need = this.groundHeight(eye[0], eye[1]) + EYE_CLEARANCE - eye[2];
-      if (need > 0) tz += need;
+      let worst = this.groundHeight(eye[0], eye[1]) + EYE_CLEARANCE - eye[2];
+      const RAY_MARGIN = 1.5;
+      for (let i = 1; i <= 4; i++) {
+        const t = i / 6;
+        const sx = eye[0] + (tx - eye[0]) * t;
+        const sy = eye[1] + (ty - eye[1]) * t;
+        const rayZ = eye[2] + (tz - eye[2]) * t;
+        worst = Math.max(worst, (this.groundHeight(sx, sy) + RAY_MARGIN - rayZ) * (1 - t));
+      }
+      if (worst > 0) tz += worst;
     }
     return mk(tz);
   }

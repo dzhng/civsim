@@ -1319,7 +1319,7 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData, style: Camp
   let roadEdgesCulled = 0;
   let roadWaterGaps = 0;
   for (const edge of data.map.edges) {
-    if (edge.kind === 'sea') pushEdgeLines(lineVertices, edge);
+    if (edge.kind === 'sea') pushEdgeLines(lineVertices, edge, style.heightAt);
     else if (roadEdgeIsLandSafe(edge, roadAt)) {
       safeRoads.push(edge);
       roadWaterGaps += pushRaisedRoad(roadMeshVertices, edge, style, roadAt);
@@ -1342,7 +1342,7 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData, style: Camp
     stats: {
       roads: roads.length,
       seaLanes: seaLanes.length,
-      lineVertices: Math.floor(lineVertices.length / 6),
+      lineVertices: Math.floor(lineVertices.length / 7),
       roadMeshVertices: Math.floor(roadMeshVertices.length / 10),
       roadJunctionCaps,
       roadEdgesCulled,
@@ -1355,54 +1355,42 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData, style: Camp
   };
 }
 
-function pushEdgeLines(out: number[], edge: CampaignMapEdgeData) {
+// A SOLID sea lane draped over the water surface: xyz vertices (x, y, z, rgba)
+// lifted onto the height-mapped water so the surface mesh no longer buries it,
+// a dark outline under a bright core so it reads on BOTH deep (dark) and shallow
+// (light) water. `heightAt` is the same water-surface sampler roads/borders use.
+function pushEdgeLines(
+  out: number[],
+  edge: CampaignMapEdgeData,
+  heightAt?: (x: number, y: number) => number,
+) {
+  // Sit clearly above the animated water surface so waves never occlude it.
+  const LANE_LIFT = 0.6;
   const pushBand = (
     a: [number, number],
     b: [number, number],
     color: [number, number, number, number],
     halfWidth: number,
-    offset = 0,
   ) => {
     const dx = b[0] - a[0];
     const dy = b[1] - a[1];
     const len = Math.hypot(dx, dy) || 1;
     const nx = -dy / len;
     const ny = dx / len;
-    const ax0 = a[0] + nx * (offset - halfWidth);
-    const ay0 = a[1] + ny * (offset - halfWidth);
-    const ax1 = a[0] + nx * (offset + halfWidth);
-    const ay1 = a[1] + ny * (offset + halfWidth);
-    const bx0 = b[0] + nx * (offset - halfWidth);
-    const by0 = b[1] + ny * (offset - halfWidth);
-    const bx1 = b[0] + nx * (offset + halfWidth);
-    const by1 = b[1] + ny * (offset + halfWidth);
-    out.push(
-      ax0, ay0, ...color,
-      bx0, by0, ...color,
-      bx1, by1, ...color,
-      ax0, ay0, ...color,
-      bx1, by1, ...color,
-      ax1, ay1, ...color,
-    );
+    const vert = (p: [number, number], s: number) => {
+      const x = p[0] + nx * s * halfWidth;
+      const y = p[1] + ny * s * halfWidth;
+      out.push(x, y, LANE_LIFT + (heightAt?.(x, y) ?? 0), ...color);
+    };
+    // Two triangles (a-, b-, b+) and (a-, b+, a+).
+    vert(a, -1); vert(b, -1); vert(b, 1);
+    vert(a, -1); vert(b, 1); vert(a, 1);
   };
   for (let i = 1; i < edge.via.length; i++) {
     const a = edge.via[i - 1];
     const b = edge.via[i];
-    const dx = b[0] - a[0];
-    const dy = b[1] - a[1];
-    const len = Math.hypot(dx, dy) || 1;
-    const dash = 12;
-    const gap = 10;
-    for (let d = 0; d < len; d += dash + gap) {
-      const t0 = d / len;
-      const t1 = Math.min(1, (d + dash) / len);
-      const start: [number, number] = [a[0] + dx * t0, a[1] + dy * t0];
-      const end: [number, number] = [a[0] + dx * t1, a[1] + dy * t1];
-      // A dark outline under a bright core so the lane reads on BOTH deep
-      // (dark) and shallow (light) water.
-      pushBand(start, end, [0.04, 0.1, 0.2, 0.85], 1.1);
-      pushBand(start, end, [0.5, 0.8, 1.0, 1.0], 0.6);
-    }
+    pushBand(a, b, [0.04, 0.1, 0.2, 0.95], 1.8);
+    pushBand(a, b, [0.55, 0.82, 1.0, 1.0], 1.0);
   }
 }
 

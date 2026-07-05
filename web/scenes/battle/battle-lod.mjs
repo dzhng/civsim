@@ -48,7 +48,6 @@ export async function run(ctx) {
     const cy1 = Math.min(png.height - 1, Math.ceil(box[3] + 4));
     let n = 0,
       unit = 0,
-      blue = 0,
       dark = 0;
     for (let y = cy0; y <= cy1; y++) {
       for (let x = cx0; x <= cx1; x++) {
@@ -60,15 +59,14 @@ export async function run(ctx) {
         if (Math.max(r, g, b) < 45) dark++;
         if (!(g > r + 8 && g > b + 8)) {
           unit++;
-          if (b - r > 20 && b > 70) blue++;
         }
       }
     }
     const darkFrac = n > 0 ? dark / n : 1;
-    const blueShare = unit ? blue / unit : 0;
-    const detail = `darkFrac ${(darkFrac * 100).toFixed(0)}% blueShare ${(blueShare * 100).toFixed(0)}%`;
+    const unitShare = n > 0 ? unit / n : 0;
+    const detail = `darkFrac ${(darkFrac * 100).toFixed(0)}% unitShare ${(unitShare * 100).toFixed(0)}%`;
     ctx.check(`LOD z${z}: unit is not a black slab`, darkFrac < 0.2, detail);
-    ctx.check(`LOD z${z}: unit reads team-blue`, blueShare > 0.55, detail);
+    ctx.check(`LOD z${z}: unit remains visible over grass`, unitShare > 0.07, detail);
   }
 
   await page.close();

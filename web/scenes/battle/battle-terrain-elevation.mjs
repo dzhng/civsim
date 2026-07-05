@@ -81,9 +81,16 @@ function soldierMetrics(png) {
       const g = png.data[i + 1];
       const b = png.data[i + 2];
       total++;
-      // The placeholder soldiers are blue-livery — blue dominant over a green field.
-      if (b > g && b > r && b > 80) soldier++;
+      // Soldiers are material-led now: count dark armor/leather mass over the field,
+      // not blue faction livery.
+      if (isCrowdMass(r, g, b)) soldier++;
     }
   }
   return { soldier: Number((soldier / total).toFixed(4)) };
+}
+
+function isCrowdMass(r, g, b) {
+  const luma = r * 0.3 + g * 0.59 + b * 0.11;
+  const greenField = g > r + 22 && g > b + 12;
+  return luma > 34 && luma < 132 && r < 165 && g < 155 && b < 145 && !greenField;
 }

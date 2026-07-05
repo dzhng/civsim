@@ -9,7 +9,7 @@
 // shadow pass re-skins the same VAT positionNode per cascade.
 import * as THREE from 'three/webgpu';
 import {
-  abs, attribute, clamp, dot, float, floor, int, ivec2, max, mix, normalize, sin, smoothstep, step, textureLoad, varying, vec3, vec4,
+  abs, attribute, clamp, dot, float, floor, fract, int, ivec2, max, mix, normalize, sin, smoothstep, step, textureLoad, varying, vec3, vec4,
 } from 'three/tsl';
 import type { CrowdInstance } from '../../../crowd-runtime/src/instanceData';
 import type { LodCamera, LodCounts } from '../../../crowd-runtime/src/lod';
@@ -99,7 +99,7 @@ export class PhotorealCrowd {
       const tiers = meshes[classId];
       this.buckets[classId] = tiers.map((tierMesh, lod) => {
         const geometry = crowdGeometry(tierMesh);
-        const mesh = new THREE.Mesh(geometry, crowdMaterial(textureFor(vat), lod));
+        const mesh = new THREE.Mesh(geometry, crowdMaterial(textureFor(vat)));
         mesh.name = `battle-crowd-${classId}-lod${lod}`;
         mesh.frustumCulled = false;
         mesh.renderOrder = RENDER_ORDER.worldOpaque;
@@ -222,6 +222,7 @@ export class PhotorealCrowd {
       bucket.inst2[o] = inst.elevation ?? 0;
       bucket.inst2[o + 1] = inst.deathVariant ?? 0;
       bucket.inst2[o + 2] = inst.alive ? 0 : 1;
+      bucket.inst2[o + 3] = (inst.seed % 104729) / 104729;
     }
     for (const name of ['inst0', 'inst1', 'inst2'] as const) {
       const attr = bucket.geometry.getAttribute(name) as THREE.InstancedBufferAttribute;
@@ -268,9 +269,9 @@ function crowdGeometry(mesh: SoldierMeshData): THREE.InstancedBufferGeometry {
 // SkinnedCrowdPipeline SKINNED_WGSL's VAT skinning + material-channel contract,
 // with slice-14a PBR promoted onto MeshStandardNodeMaterial: albedo = cColor,
 // normal = skinned cNormal, ORM = occlusion/roughness/metalness in the canonical
-// order, factionMask = high-blue accent channel. Slice 09's baked lighting grade
-// stays gone — the environment lights the skinned, yaw/roll-rotated normal.
-function crowdMaterial(vatTex: THREE.DataTexture, lod = 0): THREE.MeshStandardNodeMaterial {
+// order, factionMask = high-blue armband locator. Slice 09's baked lighting
+// grade stays gone — the environment lights the skinned, yaw/roll-rotated normal.
+function crowdMaterial(vatTex: THREE.DataTexture): THREE.MeshStandardNodeMaterial {
   const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, roughness: SOLDIER_PBR_VALUES.roughness.default, metalness: 0 });
   // fog stays ON: the shared aerial-perspective hook (scene.fogNode, 10b)
   // hazes the crowd like every other world surface.
@@ -331,10 +332,10 @@ function crowdMaterial(vatTex: THREE.DataTexture, lod = 0): THREE.MeshStandardNo
   const vCorpse = varying(corpse).toVar();
   const vColor = varying(color).toVar();
 
-  // NEUTRAL albedo composition: faction accents + material albedo + corpse
-  // desaturation stay (they are what the soldier IS); the baked
-  // lambert/key-fill/exposure/rim grade is gone. Faction readability is tuned
-  // by accent saturation/mix, not by baking light into the base albedo.
+  // Material-led albedo composition: class-authored linen/leather/bronze/iron
+  // vertex colors plus per-soldier seed variation make the body. Faction color
+  // is a tiny authored upper sword-arm band only; shields, crests, tunics, and
+  // armor remain real materials.
   const blue = vec3(...factionForTeam(0).primary);
   const red = vec3(...factionForTeam(1).primary);
   const neutral = vec3(...factionForTeam(2).primary);
@@ -346,12 +347,6 @@ function crowdMaterial(vatTex: THREE.DataTexture, lod = 0): THREE.MeshStandardNo
     masks.factionMask.blueDelta[1],
     max(vColor.b.sub(max(vColor.r, vColor.g)), 0.0),
   ).toVar();
-  // Coarser tiers carry a stronger broad faction tint (14b): the dropped
-  // crest/shield accent geometry no longer identifies the team at distance, so
-  // the body colour must. L0 keeps the locked 14a mix.
-  const tierBroad = SOLDIER_PBR_VALUES.accent.tierBroadMix;
-  const broadMixForTier = tierBroad[Math.max(0, Math.min(tierBroad.length - 1, lod))];
-  const teamMix = mix(float(broadMixForTier), float(SOLDIER_PBR_VALUES.accent.maskedMix), teamMask);
   const bronzeMask = smoothstep(masks.bronze.r[0], masks.bronze.r[1], vColor.r)
     .mul(smoothstep(masks.bronze.g[0], masks.bronze.g[1], vColor.g))
     .mul(float(1.0).sub(smoothstep(masks.bronze.maxB[0], masks.bronze.maxB[1], vColor.b)));
@@ -369,7 +364,19 @@ function crowdMaterial(vatTex: THREE.DataTexture, lod = 0): THREE.MeshStandardNo
     .mul(smoothstep(masks.skin.g[0], masks.skin.g[1], vColor.g))
     .mul(smoothstep(masks.skin.b[0], masks.skin.b[1], vColor.b))
     .mul(float(1.0).sub(bronzeMask));
-  let albedo = mix(vColor.rgb, accent, teamMix).toVar();
+  const seed = varying(inst2.w).toVar();
+  const seedA = fract(seed.mul(7.13)).toVar();
+  const seedB = fract(seed.mul(11.71).add(0.23)).toVar();
+  const seedC = fract(seed.mul(17.19).add(0.41)).toVar();
+  const value = float(0.86).add(seedA.mul(0.14));
+  const warmth = seedB.sub(0.5);
+  const armBand = mix(accent, vec3(0.42, 0.34, 0.26), 0.35);
+  let albedo = vColor.rgb.toVar();
+  albedo = albedo.mul(value).add(vec3(warmth.mul(0.035), warmth.mul(0.018), warmth.mul(-0.025))).toVar();
+  albedo = mix(albedo, vec3(0.64, 0.43, 0.18), bronzeMask.mul(0.35)).toVar();
+  albedo = mix(albedo, vec3(0.47, 0.47, 0.44), ironMask.mul(0.28)).toVar();
+  albedo = mix(albedo, vec3(0.66, 0.60, 0.48), linenMask.mul(seedC.mul(0.20))).toVar();
+  albedo = mix(albedo, armBand, teamMask).toVar();
   albedo = albedo.add(vec3(0.05, 0.028, 0.006).mul(bronzeMask)).toVar();
   albedo = albedo.add(vec3(0.035, 0.030, 0.014).mul(linenMask).mul(0.55)).toVar();
   albedo = albedo.add(vec3(0.025, 0.026, 0.024).mul(ironMask).mul(0.45)).toVar();

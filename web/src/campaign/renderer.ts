@@ -840,7 +840,7 @@ const CAMPAIGN_MAX_FIGURES = 6;
 const FIGURE_FAR_ZOOM = 1.4;
 const FIGURE_NEAR_ZOOM = 3.6;
 
-// Allegiance → the crowd shader's faction accent slot: friend=0 (blue), foe=1
+// Allegiance → the crowd shader's tiny armband slot: friend=0 (blue), foe=1
 // (red), neutral=2 (amber). Note this is NOT the raw Allegiance enum order
 // (Neutral=1, Foe=2), so a neutral stack reads amber, not enemy-red.
 function allegianceCrowdFaction(allegiance: Allegiance): 0 | 1 | 2 {

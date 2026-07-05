@@ -40,38 +40,39 @@ test("soldier material masks decode placeholder albedo colors into PBR regions",
   assert.ok(accent.factionMask > 0.85, `accent mask ${accent.factionMask}`);
 });
 
-test("placeholder meshes carry bronze armor, iron blades, and localized accent masks in cColor", () => {
+test("placeholder meshes carry bronze armor, iron blades, and one armband accent in cColor", () => {
   const mesh = createPlaceholderSoldierMesh([0.2, 0.42, 0.88], 0);
   const { bronzeVerts, ironVerts, accentVerts, totalVerts } = countMaterialVerts(mesh.colors);
   assert.ok(bronzeVerts > 0, "heavy-sword has bronze helmet/metal regions");
   assert.ok(ironVerts > 0, "heavy-sword has iron blade regions");
-  assert.ok(accentVerts > 0, "heavy-sword has high-blue faction accent regions");
-  assert.ok(
-    accentVerts <= totalVerts / 3,
-    `faction mask stays on accent parts, not body-wide: ${accentVerts}/${totalVerts}`,
-  );
+  assert.equal(accentVerts, 24, "heavy-sword has exactly one high-blue armband box");
   assert.ok(
     totalVerts - accentVerts > accentVerts,
     `material-colored body vertices dominate accent vertices: ${accentVerts}/${totalVerts}`,
   );
 });
 
-test("placeholder LODs keep faction accents without relying on broad body tint", () => {
-  assert.deepEqual(SOLDIER_PBR_VALUES.accent.tierBroadMix, [0.0, 0.1, 0.18]);
-  assert.equal(SOLDIER_PBR_VALUES.accent.broadMix, 0.0);
-
-  for (const lod of [0, 1, 2]) {
+test("placeholder LODs keep faction to one armband, not shields or crests", () => {
+  for (const lod of [0, 1]) {
     const heavySword = createPlaceholderSoldierMesh([0.2, 0.42, 0.88], 0, lod);
-    assert.ok(
-      countMaterialVerts(heavySword.colors).accentVerts > 0,
-      `heavy-sword LOD${lod} keeps shield/tunic faction accent`,
+    assert.equal(
+      countMaterialVerts(heavySword.colors).accentVerts,
+      24,
+      `heavy-sword LOD${lod} keeps exactly one armband accent`,
     );
     const archerNoShield = createPlaceholderSoldierMesh([0.2, 0.42, 0.88], 4, lod);
-    assert.ok(
-      countMaterialVerts(archerNoShield.colors).accentVerts > 0,
-      `shieldless archer LOD${lod} keeps tunic-band faction accent`,
+    assert.equal(
+      countMaterialVerts(archerNoShield.colors).accentVerts,
+      24,
+      `shieldless archer LOD${lod} keeps the same armband accent`,
     );
   }
+  const coarse = createPlaceholderSoldierMesh([0.2, 0.42, 0.88], 0, 2);
+  assert.equal(
+    countMaterialVerts(coarse.colors).accentVerts,
+    0,
+    "LOD2 relies on flags, not faction body color",
+  );
 });
 
 test("soldier PBR constants keep metals glossy and cloth/leather rough", () => {
@@ -79,10 +80,6 @@ test("soldier PBR constants keep metals glossy and cloth/leather rough", () => {
   assert.ok(SOLDIER_PBR_VALUES.roughness.iron < SOLDIER_PBR_VALUES.roughness.bronze);
   assert.ok(SOLDIER_PBR_VALUES.roughness.bronze < SOLDIER_PBR_VALUES.roughness.leather);
   assert.ok(SOLDIER_PBR_VALUES.roughness.leather < SOLDIER_PBR_VALUES.roughness.linen);
-  assert.ok(
-    SOLDIER_PBR_VALUES.accent.maskedMix > 0.9,
-    "accent mask stays saturated for gameplay zoom",
-  );
 });
 
 function countMaterialVerts(colors: Float32Array) {

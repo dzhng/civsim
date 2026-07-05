@@ -215,6 +215,62 @@ fn probe_settle_frayed_angled_move() {
 }
 
 #[test]
+fn probe_frame_timeline_at_shallow_margin() {
+    // Slice 02b instrumentation: film the frame-level state through the
+    // margin-10 episodic bursts — anchor, files_eff, cohesion, blocked/slow
+    // slot counts, at_ease — one line per second for 180s after arrival.
+    // The oscillator hides in which of these moves FIRST at a burst.
+    let terrain = seed1_terrain();
+    let (wall_x, wall_y) = seed1_west_wall_edge(&terrain);
+    let mut sim = Sim::new(Tunables::default(), SEED);
+    sim.terrain = terrain;
+    let unit = march_class_block_to(&mut sim, Vec2::new(wall_x + 10.0, wall_y));
+    let dt_ticks = 30; // 1s
+    let mut prev_anchor = sim.units[unit].anchor;
+    for s in 0..180 {
+        for _ in 0..dt_ticks {
+            sim.tick();
+        }
+        let u = &sim.units[unit];
+        let mut blocked = 0;
+        let mut slow = 0;
+        for slot in 0..u.alive_count {
+            let sp = sim.terrain.speed_at(u.slot_world(slot));
+            if sp <= 0.0 {
+                blocked += 1;
+            } else if sp < 0.99 {
+                slow += 1;
+            }
+        }
+        let da = (u.anchor - prev_anchor).len();
+        println!(
+            "t={s:>3}s anchor=({:7.2},{:7.2}) d_anchor={da:5.2} files_eff={:>2} coh={:.3} blocked={blocked} slow={slow} at_ease={} frame_speed={:.3}",
+            u.anchor.x, u.anchor.y, u.files_eff, u.cohesion, u.at_ease, u.frame_speed
+        );
+        prev_anchor = u.anchor;
+    }
+}
+
+#[test]
+fn probe_burst_second_by_second() {
+    // 1s-resolution telemetry through the margin-10 burst cycle: slot
+    // relabels, per-man motion, and cohesion together — which moves first?
+    let terrain = seed1_terrain();
+    let (wall_x, wall_y) = seed1_west_wall_edge(&terrain);
+    let mut sim = Sim::new(Tunables::default(), SEED);
+    sim.terrain = terrain;
+    let unit = march_class_block_to(&mut sim, Vec2::new(wall_x + 10.0, wall_y));
+    for s in 0..90 {
+        let w = window_motion(&mut sim, unit, 1.0);
+        let u = &sim.units[unit];
+        println!(
+            "t={s:>3}s coh={:.3} speed={:.3} slot_changes={:>3} big_movers={:>3} max_exc={:.2}",
+            u.cohesion, w.mean_speed, w.slot_changes, w.big_movers, w.max_excursion
+        );
+    }
+}
+
+#[test]
 fn probe_settle_on_rough_patch() {
     // Halt ON painted-rough ground (scree-like 0.45, and marsh-like 0.7 with
     // a speed cut): the per-tick stumble stagger keeps re-rolling each man's

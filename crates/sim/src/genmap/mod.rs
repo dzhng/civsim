@@ -2,6 +2,7 @@
 //! given a recipe, it deterministically writes the four `Terrain` channels.
 
 pub mod certify;
+pub mod landform;
 
 use crate::math::Vec2;
 use crate::terrain::Terrain;
@@ -56,9 +57,9 @@ struct CragCircle {
     height: f32,
 }
 
-/// Pure recipe -> terrain. The first slice intentionally makes a boring,
-/// playable plain: rolling height/rough from integer-hash value noise, open
-/// north/south approaches, and crag-circle seals along west/east.
+/// Pure recipe -> terrain. The heightfield is the highland-corridor landform;
+/// speed/rough/tint are still the slice-01 writes, with crag-circle seals along
+/// west/east until passability derives from slope in slice 03.
 pub fn generate(recipe: &MapRecipe) -> Terrain {
     assert!(recipe.half_w > 0.0, "generated map half_w must be positive");
     assert!(recipe.half_h > 0.0, "generated map half_h must be positive");
@@ -77,10 +78,8 @@ pub fn generate(recipe: &MapRecipe) -> Terrain {
                 origin.y + (cy as f32 + 0.5) * recipe.cell,
             );
             let i = cy * w + cx;
-            let broad = value_noise(recipe.seed ^ 0x64b6_35db, p.x, p.y, 160.0);
-            let fine = value_noise(recipe.seed ^ 0xd1b5_4a32, p.x + 37.0, p.y - 19.0, 72.0);
-            let crown = 1.0 - (p.x / recipe.half_w).abs().min(1.0);
-            t.height[i] = (broad - 0.5) * 5.0 + (fine - 0.5) * 1.8 + crown * 1.4;
+            let fine = landform::slice01_rough_noise(recipe.seed, p);
+            t.height[i] = landform::height(recipe, p);
             t.rough[i] = 0.035 + fine * 0.08;
             t.speed[i] = 1.0;
             t.tint[i] = 0;
@@ -186,41 +185,9 @@ fn crag_contains(circles: &[CragCircle], p: Vec2, height: &mut f32) -> bool {
     hit
 }
 
-fn value_noise(seed: u64, x: f32, y: f32, scale: f32) -> f32 {
-    let gx = x / scale;
-    let gy = y / scale;
-    let x0 = gx.floor() as i32;
-    let y0 = gy.floor() as i32;
-    let fx = gx - x0 as f32;
-    let fy = gy - y0 as f32;
-    let sx = smooth(fx);
-    let sy = smooth(fy);
-    let a = hash_cell01(x0, y0, seed);
-    let b = hash_cell01(x0 + 1, y0, seed);
-    let c = hash_cell01(x0, y0 + 1, seed);
-    let d = hash_cell01(x0 + 1, y0 + 1, seed);
-    let top = a + (b - a) * sx;
-    let bot = c + (d - c) * sx;
-    top + (bot - top) * sy
-}
-
-fn smooth(t: f32) -> f32 {
-    t * t * (3.0 - 2.0 * t)
-}
-
 fn hash01(i: i32, salt: u64) -> f32 {
     let mut x = (i as u64).wrapping_mul(0x9E3779B97F4A7C15) ^ salt.wrapping_mul(0xBF58476D1CE4E5B9);
     x ^= x >> 31;
     x = x.wrapping_mul(0x94D049BB133111EB);
     (x >> 40) as f32 / 16_777_216.0
-}
-
-fn hash_cell01(x: i32, y: i32, seed: u64) -> f32 {
-    let mut h = (x as u64).wrapping_mul(0x9E3779B97F4A7C15)
-        ^ (y as u64).wrapping_mul(0xBF58476D1CE4E5B9)
-        ^ seed.wrapping_mul(0x94D049BB133111EB);
-    h ^= h >> 31;
-    h = h.wrapping_mul(0xD1B54A32D192ED03);
-    h ^= h >> 27;
-    (h >> 40) as f32 / 16_777_216.0
 }

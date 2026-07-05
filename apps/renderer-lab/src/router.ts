@@ -211,7 +211,11 @@ import {
 import { bakeGltf } from "../../../packages/soldier-assets/bake/gltf.mjs";
 import type { VatBake, VatClip } from "../../../packages/soldier-assets/src/schema";
 import { importedRigMesh } from "./importedRigMesh";
-import { routePhotorealCrowd, routePhotorealPbr } from "./photorealRoutes";
+import {
+  routePhotorealCrowd,
+  routePhotorealPbr,
+  routePhotorealShadowProbe,
+} from "./photorealRoutes";
 import { routePhotorealBattle } from "./photorealBattleRoute";
 import { PhotorealBattleWorld } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
 import { PhotorealBladeFieldLayer } from "../../../packages/photoreal-renderer/src/battle/bladeFieldLayer";
@@ -292,6 +296,7 @@ const routes: Record<string, LabRoute> = {
   // Photoreal ladder (slices 07+): three.js WebGPU + TSL on the camera3d spine.
   "/renderer/photoreal-pbr": routePhotorealPbr,
   "/renderer/photoreal-crowd": routePhotorealCrowd,
+  "/renderer/photoreal-shadow-probe": routePhotorealShadowProbe,
   "/renderer/photoreal-battle": routePhotorealBattle,
   "/renderer/blade-field": routeBladeField,
 };

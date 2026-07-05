@@ -14,6 +14,7 @@ import {
   textureLoad, transformNormalToView, varying, vec3, vec4,
 } from 'three/tsl';
 import { PhotorealWorld } from '../../../packages/photoreal-renderer/src/world';
+import { BattlePostChain } from '../../../packages/photoreal-renderer/src/post/postChain';
 import { applyCamera3d } from '../../../packages/photoreal-renderer/src/cameraBridge';
 import { applyCivsimEnvironment } from '../../../packages/photoreal-renderer/src/environment';
 import { createPhotorealStatsPublisher } from '../../../packages/photoreal-renderer/src/stats';
@@ -34,6 +35,7 @@ interface PhotorealRouteContext {
 // the live canvas; only applyCamera3d may turn these into a three camera pose.
 const YAW = -Math.PI / 2; // eye south of target, looking north (+y)
 const PBR_CAMERA = { target: [0, 0, 2], distance: 42, pitch: 0.5, yaw: YAW, fovY: 0.7, near: 1, far: 5000 } as const;
+const SHADOW_PROBE_CAMERA = { target: [0, 0, 1.5], distance: 34, pitch: 0.58, yaw: -2.35, fovY: 0.72, near: 0.1, far: 500 } as const;
 const CROWD_CAMERAS = {
   mid: { target: [0, 40, 0], distance: 380, pitch: 0.8, yaw: YAW, fovY: 0.68, near: 1, far: 8000 },
   vista: { target: [0, 90, 0], distance: 210, pitch: 0.3, yaw: YAW, fovY: 0.83, near: 1, far: 8000 },
@@ -127,6 +129,109 @@ export async function routePhotorealPbr(ctx: PhotorealRouteContext) {
       <tr><td>route</td><td>photoreal-pbr (${s.substrate})</td></tr>
       <tr><td>environment</td><td>${s.environment}</td></tr>
       <tr><td>spheres</td><td>${spheres}</td></tr>
+      <tr><td>draw calls</td><td>${s.stats.drawCalls}</td></tr>
+      <tr><td>gpu ms</td><td>${s.stats.gpuTimeMs?.toFixed(3) ?? 'pending'}</td></tr>
+    </table>`;
+  });
+}
+
+// ---------------------------------------------------------------------------
+// /renderer/photoreal-shadow-probe — minimal three/WebGPU shadow sampler probe.
+// Use:
+//   ?post=off           direct renderer.render(scene,camera)
+//   ?post=on            same scene through BattlePostChain's pass() pipeline
+//   ?shadows=off        light.castShadow=false and renderer shadow map disabled
+//   ?shadows=on         shadow map enabled before post construction (default)
+//   ?shadows=late       disable during post construction, enable before first render
+
+export async function routePhotorealShadowProbe(ctx: PhotorealRouteContext) {
+  const world = await PhotorealWorld.create(ctx.canvas, { antialias: false });
+  const { width, height } = canvasSize(ctx.canvas);
+  world.resize(width, height, Math.min(window.devicePixelRatio, 2));
+  const camera = new THREE.PerspectiveCamera();
+  applyCamera3d(camera, camera3dFor(SHADOW_PROBE_CAMERA, width / height));
+
+  const postEnabled = ctx.params.get('post') === 'on';
+  const shadowMode = ctx.params.get('shadows') ?? 'on';
+  const lateEnable = shadowMode === 'late';
+  const shadowsEnabled = shadowMode !== 'off';
+  if (!shadowsEnabled || lateEnable) world.renderer.shadowMap.enabled = false;
+  world.renderer.shadowMap.type = THREE.PCFShadowMap;
+
+  const scene = world.scene;
+  scene.background = new THREE.Color(0.78, 0.84, 0.92);
+  scene.add(new THREE.HemisphereLight(new THREE.Color(0.9, 0.96, 1.0), new THREE.Color(0.35, 0.3, 0.22), 0.35));
+
+  const sun = new THREE.DirectionalLight(new THREE.Color(1.0, 0.86, 0.62), 4.0);
+  sun.position.set(-14, -10, 22);
+  sun.target.position.set(0, 0, 0);
+  sun.castShadow = shadowsEnabled;
+  sun.shadow.mapSize.set(1024, 1024);
+  sun.shadow.bias = -0.00003;
+  sun.shadow.normalBias = 0.04;
+  sun.shadow.camera.left = -18;
+  sun.shadow.camera.right = 18;
+  sun.shadow.camera.top = 18;
+  sun.shadow.camera.bottom = -18;
+  sun.shadow.camera.near = 1;
+  sun.shadow.camera.far = 60;
+  sun.shadow.camera.updateProjectionMatrix();
+  scene.add(sun);
+  scene.add(sun.target);
+
+  const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(42, 42),
+    new THREE.MeshStandardNodeMaterial({
+      color: new THREE.Color(0.64, 0.58, 0.42),
+      roughness: 0.92,
+      metalness: 0,
+    }),
+  );
+  ground.name = 'shadow-probe-ground';
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  const box = new THREE.Mesh(
+    new THREE.BoxGeometry(4, 4, 5),
+    new THREE.MeshStandardNodeMaterial({
+      color: new THREE.Color(0.72, 0.24, 0.14),
+      roughness: 0.75,
+      metalness: 0,
+    }),
+  );
+  box.name = 'shadow-probe-caster';
+  box.position.set(0, 0, 2.5);
+  box.castShadow = true;
+  box.receiveShadow = true;
+  scene.add(box);
+
+  if (postEnabled) {
+    const post = new BattlePostChain(world.renderer, scene, camera);
+    post.enabled = true;
+    post.setBloomEnabled(false);
+    world.post = post;
+  }
+
+  if (lateEnable) {
+    world.renderer.shadowMap.enabled = true;
+    sun.castShadow = true;
+  }
+
+  const publish = createPhotorealStatsPublisher(world, 'photoreal-shadow-probe', () => ({
+    post: postEnabled ? 'on' : 'off',
+    shadows: shadowMode,
+    rendererShadowMapEnabled: world.renderer.shadowMap.enabled,
+    sunCastShadow: sun.castShadow,
+    sunShadowMapAllocated: Boolean(sun.shadow.map),
+  }));
+  startLoop(world, ctx.params, (now) => {
+    world.render(camera);
+    const s = publish(now);
+    ctx.status.innerHTML = `<table>
+      <tr><td>route</td><td>photoreal-shadow-probe</td></tr>
+      <tr><td>post</td><td>${postEnabled ? 'on' : 'off'}</td></tr>
+      <tr><td>shadows</td><td>${shadowMode}</td></tr>
+      <tr><td>shadow map</td><td>${world.renderer.shadowMap.enabled ? 'enabled' : 'disabled'} / ${sun.shadow.map ? 'allocated' : 'pending'}</td></tr>
       <tr><td>draw calls</td><td>${s.stats.drawCalls}</td></tr>
       <tr><td>gpu ms</td><td>${s.stats.gpuTimeMs?.toFixed(3) ?? 'pending'}</td></tr>
     </table>`;

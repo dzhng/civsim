@@ -190,16 +190,22 @@ export function configureSunShadows(
     // so the ortho volume needs only the map's half-diagonal.
     const dir = sun.position.clone().sub(sun.target.position).normalize();
     sun.target.position.set(cx, cy, 0);
-    sun.position.set(cx + dir.x * 400, cy + dir.y * 400, dir.z * 400);
     const half = Math.hypot(w, h) / 2 + 40;
+    // The light must sit OUTSIDE the whole ortho volume. The old 400 m
+    // offset parked it INSIDE the map's light-space span (half ~1500 m on a
+    // real battle rect), which killed shadow sampling entirely - the
+    // never-rendered-shadows regression surfaced by battle-map-style 16.
+    const reach = half + 200;
+    sun.position.set(cx + dir.x * reach, cy + dir.y * reach, dir.z * reach);
     const cam = shadow.camera;
     cam.left = -half;
     cam.right = half;
     cam.top = half;
     cam.bottom = -half;
-    cam.near = Math.max(0.1, 400 - half - 120);
-    cam.far = 400 + half + 120;
+    cam.near = 1;
+    cam.far = reach * 2;
     cam.updateProjectionMatrix();
+    shadow.needsUpdate = true;
   };
   fit([-220, -180, 440, 360]);
   return {

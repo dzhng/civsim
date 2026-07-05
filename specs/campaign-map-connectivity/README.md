@@ -232,26 +232,32 @@ The only defense is the human review of the *computed island roster* at S0 and S
 
 ## Next Agent Prompt
 
-**Status (2026-07-05):** Straits/lanes/Rhegium/render SHIPPED on `main`. **S0+S1
-DONE** (codex; `connectivity.rs` primitives + `connectivity-report` subcommand;
-`cargo test -p mapgen` 7/7 green; artifacts untouched). **Cap measured:
-`RECONNECT_MAX_GAP_KM = 140` km** (clean 133↔158 gap; see Measured ground truth) —
-awaiting David's non-blocking sign-off on the ~28-reconnect / ~43-island partition.
-Next pickup: **S2** (fold descope, artifact-identical — no cap needed, safe to
-build now), then **S3** (reconnect + honest invariant — needs the cap; refine
-`is_reconnectable` into the iterative same-landmass merge).
+**Status (2026-07-05):** **S0–S3 DONE** (codex, on branch `worktree-campaign-map-bugs`,
+not yet on `main`). The map now has ONE honest connectivity model:
+- `connectivity.rs` owns descope + reconnect + island classification via
+  `reconnect_plan` (iterative Prim, astar-DRAWABILITY not straight-line, endpoints
+  snapped to land, island-if-undrawable — no panic). `RECONNECT_MAX_GAP_KM = 140`.
+- **28 cities reconnected** (Prusias→Nicaea, Malaca→Corduba, Sinope→Amisus, all
+  Sicily interior chained to Messana, Sestus→Claudia Aprensis up the Chersonese…);
+  **43 island holdings** (Britain-14 keep internal roads / no Channel bridge;
+  Cyprus, Sardinia, Corsica, Balearics, Aegean, Crete, Rhodes, Malta, Black-Sea rim).
+- Honest invariant: asserts `reconnect_plan(committed).is_empty()` — a disconnected
+  MAINLAND city fails by name. `SEA_ONLY_CITIES` + `validate_sea_only_cities` retired;
+  `descope-sea-lanes.mjs` gone; `astar_land_path` pub.
+- `cargo test -p mapgen` 10/10; deterministic double-bake; Sicily/Bithynia/Britain
+  screenshots verified (reconnects hug the coast, islands stay roadless).
 
-**Blocker/warning for S3:** `is_reconnectable` is currently a *static per-city*
-gap. Before drawing roads, wrap it in the iterative Prim merge (a city joins if
-within 140 km of the growing set on the same landmass), so Sicily's interior and
-Cape Tainaron chain in. The invariant classifies by the merge OUTCOME.
+Next pickup: **S4** (campaign guardrail test — quick), then re-bless is in flight,
+then **S5 is optional (default NO)**, then close-spec. The S0 partition sign-off
+is superseded by the S3 island-roster which David can review in the shots.
 
 **Update this section before ending your pass.**
 
 ### Global TODO
-- [x] **S0** `mapgen connectivity-report`; `RECONNECT_MAX_GAP_KM = 140` measured; partition sign-off pending (non-blocking)
-- [x] **S1** `connectivity.rs` primitives (`landmass_labels`, `main_component`, `is_reconnectable`) + synthetic-fixture unit tests
-- [ ] **S2** fold `descope-sea-lanes.mjs` into `connectivity::descope_sea_lanes` — artifact-identical, delete the `.mjs`
-- [ ] **S3** iterative merge + `descope_and_reconnect` + honest computed invariant; retire `SEA_ONLY_CITIES` + `validate_sea_only_cities`; re-bless; find-map-bugs
+- [x] **S0** `mapgen connectivity-report`; `RECONNECT_MAX_GAP_KM = 140` measured
+- [x] **S1** `connectivity.rs` primitives + synthetic-fixture unit tests
+- [x] **S2** fold `descope-sea-lanes.mjs` into `connectivity::descope_sea_lanes` — byte-identical, `.mjs` deleted
+- [x] **S3** `reconnect_plan` (drawability) + honest computed invariant; `SEA_ONLY_CITIES`/`validate_sea_only_cities` retired; 28 reconnect / 43 island
 - [ ] **S4** `cargo test -p campaign` guardrail: islands stay non-playable + Neutral + army-less
 - [ ] **S5** (optional) ownership re-flood decision — default NO
+- [ ] re-bless campaign baselines (in flight) + close-spec

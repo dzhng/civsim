@@ -21,8 +21,9 @@ Reference images (in `assets/` and the aesthetics skill):
 
 ## Next Agent Prompt
 
-**Status 2026-07-05: slices 00, 01, 10 DONE (live-verified).** Next pickups:
-[02-landform](slices/02-landform.md) (G-track) and
+**Status 2026-07-05: slices 00, 01, 10 DONE (live-verified); 02 code/cargo
+landed, browser clay verification pending orchestrator.** Next pickups:
+[02-landform](slices/02-landform.md) browser verification (G-track) and
 [11-grass-battle-swap](slices/11-grass-battle-swap.md) (V-track — read slice
 10's recorded TSL hazards FIRST; they cost a full day). Before writing any
 scene against the photoreal battle route, read the camera-truth trap and the
@@ -47,7 +48,8 @@ Before writing any code, read:
 
 - [x] 00 — Composition + oracle lock (judging apparatus pinned before art)
 - [x] 01 — Genmap skeleton (seed → playable battle, end to end)
-- [ ] 02 — Landform (macro mask × warped noise, clay verdict)
+- [ ] 02 — Landform (macro mask × warped noise, clay verdict; code/cargo landed,
+      browser clay verdict pending)
 - [ ] 03 — Passability from landform (BFS certificates)
 - [ ] 04 — Hydrology (priority-flood lakes, descending rivers, fords)
 - [ ] 05 — Edge grammar + deployment guarantees

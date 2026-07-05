@@ -207,6 +207,15 @@ pub struct Sim {
     /// velocity") that minted momentum and chipped stun-locked men dead.
     pub(crate) kin_vx: Vec<f32>,
     pub(crate) kin_vy: Vec<f32>,
+    /// The two most recent ticks' TOTAL displacement (start -> final,
+    /// separation solver included) — the true trajectory the idle settle
+    /// damp watches for SELF-reversal; see the capture in `tick`.
+    pub(crate) last_disp_x: Vec<f32>,
+    pub(crate) last_disp_y: Vec<f32>,
+    /// ~0.5s EMA of the total displacement — the sustained drift. An
+    /// oscillation has a step but no drift; a steady push has both.
+    pub(crate) ema_disp_x: Vec<f32>,
+    pub(crate) ema_disp_y: Vec<f32>,
     pub(crate) prev_positions: Vec<f32>,
     pub(crate) body_pos: Vec<f32>,
     pub(crate) body_r: Vec<f32>,
@@ -293,6 +302,10 @@ impl Sim {
             hit_ttl: Vec::new(),
             kin_vx: Vec::new(),
             kin_vy: Vec::new(),
+            last_disp_x: Vec::new(),
+            last_disp_y: Vec::new(),
+            ema_disp_x: Vec::new(),
+            ema_disp_y: Vec::new(),
             prev_positions: Vec::new(),
             body_pos: Vec::new(),
             body_r: Vec::new(),
@@ -901,6 +914,30 @@ impl Sim {
         let n = self.soldier_count();
         #[cfg(feature = "force-trace")]
         let mut tick_force_records: Vec<ForceRecord> = Vec::new();
+
+        // Last tick's TOTAL displacement (start -> final, separation solver
+        // included) — the true trajectory, where kin_v* deliberately holds
+        // only the steer motion. The idle settle damp reads this: a limit
+        // cycle that closes through the solver (steer in, get shoved out)
+        // reverses HERE every tick while the steer-only velocity never does,
+        // so a damp watching kin_v was blind to it by construction (the
+        // friendly-overlap and corridor rest buzz).
+        self.last_disp_x.resize(n, 0.0);
+        self.last_disp_y.resize(n, 0.0);
+        self.ema_disp_x.resize(n, 0.0);
+        self.ema_disp_y.resize(n, 0.0);
+        if self.prev_positions.len() == 2 * n {
+            // ~0.5s horizon: slow enough to average out a 2-tick solver
+            // cycle AND a ~1s standing sway, fast enough to register a real
+            // push within a stride.
+            let a = DT / 0.5;
+            for i in 0..n {
+                self.last_disp_x[i] = self.positions[2 * i] - self.prev_positions[2 * i];
+                self.last_disp_y[i] = self.positions[2 * i + 1] - self.prev_positions[2 * i + 1];
+                self.ema_disp_x[i] += (self.last_disp_x[i] - self.ema_disp_x[i]) * a;
+                self.ema_disp_y[i] += (self.last_disp_y[i] - self.ema_disp_y[i]) * a;
+            }
+        }
 
         // Snapshot for velocity measurement (charges, anchor drift).
         self.prev_positions.resize(2 * n, 0.0);
@@ -1648,6 +1685,10 @@ impl Sim {
             prev_positions,
             kin_vx,
             kin_vy,
+            last_disp_x,
+            last_disp_y,
+            ema_disp_x,
+            ema_disp_y,
             mass,
             mom_x,
             mom_y,
@@ -2969,16 +3010,33 @@ impl Sim {
                 // pre-impact looseness so the collision/brace physics, not this
                 // settling damper, decide how the charge lands. It still never
                 // reaches a man with an order, a moving frame, or actual contact.
-                // (kin_v* hold last tick's steer motion, captured after the
-                // previous steer pass.)
+                //
+                // The reversal is judged against the TRUE trajectory (total
+                // displacement, separation solver included), not the steer-only
+                // kin_v*: a limit cycle that closes THROUGH the solver — steer
+                // onto an occupied spot, get shoved back out — never reverses
+                // in the steer frame, so the old steer-frame damp was blind to
+                // the friendly-overlap rest buzz by construction. The steady
+                // friendly PUSH is the mirror trap: the pressed men's restoring
+                // spring opposes the solver-carried motion forever, so
+                // resistance alone must not trigger the damp — the drift term
+                // below (sustained EMA vs instantaneous step) tells a man
+                // being TAKEN somewhere from a man oscillating in place.
                 if (u.at_ease || !mounted_threat_near)
                     && u.move_target.is_none()
                     && u.engaged == 0
                     && !engaged_i
                     && u.frame_speed < 0.5
                 {
-                    let last = Vec2::new(kin_vx[i], kin_vy[i]);
-                    if v.dot(last) < 0.0 {
+                    let last = Vec2::new(last_disp_x[i], last_disp_y[i]);
+                    let ema = Vec2::new(ema_disp_x[i], ema_disp_y[i]);
+                    // Oscillating = the spring resists the last step AND the
+                    // trajectory carries no sustained drift (the EMA projects
+                    // to less than half the instantaneous step — a shape
+                    // factor, not a magnitude knob). A steady push has drift
+                    // ~= step and is exempt; a solver cycle and a standing
+                    // sway both average to nothing and die.
+                    if v.dot(last) < 0.0 && last.dot(ema) < 0.5 * last.dot(last) {
                         #[cfg(feature = "force-trace")]
                         let pre_damp = v;
                         v = v * tun.idle_settle_damp;

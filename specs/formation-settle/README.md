@@ -96,8 +96,40 @@ module and benefits from 02's findings.
 
 ## Next Agent Prompt
 
-**Status 2026-07-05 (pass 3): 01, 02a, and 02b-part-1 SHIPPED. Next: the
-corridor buzz (02b remainder), then 03.**
+**Status 2026-07-05 (pass 4): 01, 02a, 02b-1, and 03 (grazing) SHIPPED.
+Next: slice 04 (grind slosh), then the two parked rest-pose gates (02b-2
+corridor, 03b deep overlap), then 05.**
+
+Pass 4 root fix (orchestrator, after a codex negative result steered it):
+**the idle settle damp's oscillation detector was measuring the wrong
+frame.** It watched `kin_v` (steer-only, captured before the separation
+solver), so any limit cycle closing THROUGH the solver — steer onto an
+occupied spot, get shoved back — never looked like a reversal. The damp
+now fires when the steer resists the last TRUE step (total displacement,
+solver included) AND the trajectory carries no sustained drift (a ~0.5s
+EMA projecting to < half the instantaneous step — a shape factor, no
+magnitude knob). Three gates triangulated the detector; each frame
+variant alone failed one of them: steer-vs-total ate the resistance
+spring of a steadily PUSHED block (`an_advancing_block_compresses_...`
+red); total-vs-previous-total missed the ~1s standing sway at the wall
+(`settle_with_frame_slots_in_wall` red); resist+no-drift passes all
+three. Killed the friendly-overlap buzz at 2m and 5m — gate
+`settle_overlapping_friendly` live and green, both units asserted.
+
+03b REMAINDER (`settle_deeply_overlapping_friendly`, 10m, ignored/red):
+three measured NON-fixes, do not retry them — (a) occupancy-zeroing the
+slot pull with a 3m floor: buzz 0.082; (b) with a body-width floor:
+0.373 (the floor is a flapping gate — the pull toggles as men drift
+across it); (c) floorless: 0.59 (removing the counter-anchor lets the
+weave net drape the sheet deeper into the friend). The root is the weave
+REST SHAPE: the displaced men's bonds demand they stand inside the
+friend, so nsum re-feeds the solver regardless of slot gating. The fix
+direction is bond rest lengths that accommodate obstruction (compress at
+sustained contact) — a real weave design change; instrument first.
+
+Codex slice-03 exec returned NO diff by its own stop-rule (correct
+behavior): its evidence showed slot-pull zeroing insufficient, which is
+what redirected the design to the damp frame.
 
 Pass 3 (orchestrator fixup, not codex): the margin-10/12 burst cycle was
 NOT the escape-slide/corridor oscillating — the 1s-resolution film
@@ -206,8 +238,11 @@ rationale here, and continue. Never idle waiting for sign-off.
       radius-in-width is a banned re-entry (centering treadmill). Gate
       `settle_inside_marginal_corridor`
       → [slices/02-wall-split-equilibrium.md](slices/02-wall-split-equilibrium.md)
-- [ ] 03 — Family B root fix: steer-vs-separation cycle on friendly overlap
-      → [slices/03-friendly-overlap-cycle.md](slices/03-friendly-overlap-cycle.md)
+- [x] 03 — Grazing friendly overlap (2/5m): damp reversal judged on total
+      displacement (solver included) → [slices/03-friendly-overlap-cycle.md](slices/03-friendly-overlap-cycle.md)
+- [ ] 03b — Deep overlap (10m): weave rest shape must accommodate
+      obstruction; three pull-gating variants measured dead (see Next Agent
+      Prompt) → [slices/03-friendly-overlap-cycle.md](slices/03-friendly-overlap-cycle.md)
 - [ ] 04 — Family C: attribute and bound the sustained grind lateral slosh
       → [slices/04-grind-lateral-slosh.md](slices/04-grind-lateral-slosh.md)
 - [ ] 05 — Close-out: retire the probe file, browser feel-check, vibe

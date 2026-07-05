@@ -11,7 +11,7 @@ use common::settle::{
     seed1_west_wall_edge, window_motion,
 };
 use common::{no_morale, no_morale_parade, run};
-use sim::{Sim, Terrain, Tunables, UnitClassId, Vec2};
+use sim::{Pace, Sim, Terrain, Tunables, UnitClassId, Vec2};
 use std::f32::consts::FRAC_PI_2;
 
 const SEED: u64 = 7;
@@ -30,6 +30,68 @@ fn print_settle(sim: &mut Sim, unit: usize, label: &str, windows: usize) {
             ),
             &s,
         );
+    }
+}
+
+fn run_straggler_stats(sim: &Sim, unit: usize, threshold: f32) -> (usize, f32) {
+    let u = &sim.units[unit];
+    let forward = sim::dir(u.facing);
+    let mut count = 0usize;
+    let mut worst = 0.0f32;
+    for i in u.start..u.start + u.count {
+        if sim.alive[i] != 1 {
+            continue;
+        }
+        let behind = -(sim.soldier_pos(i) - u.anchor).dot(forward);
+        if behind > worst {
+            worst = behind;
+        }
+        if behind > threshold {
+            count += 1;
+        }
+    }
+    (count, worst)
+}
+
+fn print_run_scatter(sim: &Sim, unit: usize, label: &str, start: Vec2) {
+    let (behind_10m, worst) = run_straggler_stats(sim, unit, 10.0);
+    let distance = (sim.units[unit].anchor - start).len();
+    println!(
+        "{label}: distance={distance:.1}m cohesion={:.3} stamina={:.3} worst_behind={worst:.1}m behind>10m={behind_10m}",
+        sim.units[unit].cohesion, sim.units[unit].stamina
+    );
+}
+
+fn order_arrived(sim: &Sim, unit: usize) -> bool {
+    let u = &sim.units[unit];
+    u.pending_target.is_none()
+        && u.move_target.is_none()
+        && u.final_facing.is_none()
+        && u.frame_speed < 0.05
+}
+
+#[test]
+fn probe_run_scatter_over_distance() {
+    let start = Vec2::new(0.0, -275.0);
+    let mut sim = Sim::new(no_morale_parade(), SEED);
+    sim.terrain = Terrain::flat(200, 200, 4.0, Vec2::new(-400.0, -400.0));
+    let unit = sim.spawn_unit(start, FRAC_PI_2, 120, 20, Vec2::new(1.0, 1.0), 0, 1.0);
+    sim.set_pace(unit, Pace::Run);
+    sim.set_move_order(unit, Vec2::new(0.0, 275.0));
+
+    let mut t = 0.0f32;
+    let mut next_print = 10.0f32;
+    while t < 240.0 {
+        sim.tick();
+        t += sim::DT;
+        if t + sim::DT * 0.5 >= next_print {
+            print_run_scatter(&sim, unit, &format!("t={next_print:>5.1}s"), start);
+            next_print += 10.0;
+        }
+        if order_arrived(&sim, unit) {
+            print_run_scatter(&sim, unit, &format!("arrival t={t:.1}s"), start);
+            break;
+        }
     }
 }
 

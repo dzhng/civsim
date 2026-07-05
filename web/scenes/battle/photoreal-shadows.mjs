@@ -35,7 +35,9 @@ export const meta = {
 // grove, and the on/off check read 0 forever.
 const FRAMING = "map=gen&seed=8&t=0&ref=1&zoom=6&cx=-560&cy=-380";
 // Grove crop (fractions of the 1280×800 canvas — the wooded-pass grove).
-const SCENERY_CROP = { x0: 0.55, y0: 0.56, w: 0.13, h: 0.16 };
+// Aimed at seed 8's two dense mid-field forest clumps (the old fractions
+// straddled empty grass after the hand-map retirement retarget).
+const SCENERY_CROP = { x0: 0.51, y0: 0.5, w: 0.14, h: 0.13 };
 // Formation crop for the golden contact snap (soldier feet on ground).
 const CONTACT_CROP = { x0: 0.22, y0: 0.2, w: 0.13, h: 0.16 };
 const PRESETS = [

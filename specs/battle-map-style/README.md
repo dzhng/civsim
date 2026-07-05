@@ -107,7 +107,7 @@ Before writing any code, read:
       seeds; bridge/ford and city fights remain `TerrainSource::Ops`.
       Orchestrator still owes browser scene run/blessing for the extended
       `campaign-handoff` flow.
-- [ ] 20 — Retire the hand maps (David-gated; golden re-bless is the cost)
+- [x] 20 — Retire the hand maps (David approved 2026-07-05; product surface generated-only)
 
 ## Slice graph
 

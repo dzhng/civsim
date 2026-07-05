@@ -63,7 +63,10 @@ fn golden_state_hash_stable() {
     // torque-free per unit, removing its internal solid-rotation mode.
     // (Prior re-pins: broad/deep contact re-dress; stamina cadence-coupling;
     // LightSpear reach 1.6→1.5; turn rate no longer throttled by cohesion.)
-    const EXPECTED: u64 = 0xa12f53b1d6420bac;
+    // Re-pinned by formation-settle slice 04 (packed lateral friction for
+    // stalled foot + noise-gated deep-reform beats touch every contact
+    // scenario, golden's foot clash included).
+    const EXPECTED: u64 = 0x43d5c313ca408b69;
     assert_eq!(
         h, EXPECTED,
         "sim behavior changed: golden hash {h:#018x} != pinned {EXPECTED:#018x}. \

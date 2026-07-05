@@ -443,6 +443,7 @@ impl Sim {
             resume_target: None,
             alive_count: count,
             deaths_since_reform: 0,
+            deep_beat_dead_mark: 0,
             engaged: 0,
             contact_hist: [0.0; 12],
             contact_unit: 0,
@@ -1082,14 +1083,37 @@ impl Sim {
 
             if self.units[ui].pivoting || disengage_reform || at_ease_reform || engaged_deep_reform
             {
-                reassign_slots(
-                    &self.units[ui],
-                    &self.positions,
-                    &self.fidget_offset,
-                    &self.alive,
-                    &mut self.soldier_slot,
-                );
-                self.units[ui].deaths_since_reform = 0;
+                // The engaged-deep beat fires on a cadence, but its relabels
+                // are only WORTH anything when men have fallen since the last
+                // beat: with casualties the re-sort is de-facto relief (it
+                // redistributes who stands in the kill zone — remove it and a
+                // sword block pressed on pikes dies in place, 120 -> 12).
+                // WITHOUT casualties the same re-sort is pure permutation
+                // noise against an immovable press: ~80 label flips per beat,
+                // men visibly walking sideways to swapped slots, fit gains
+                // the press erases before the next beat (measured: slot error
+                // p50 IMPROVED from 2.0 to 1.15 once the no-death churn was
+                // rejected — the transit walks were keeping men off their
+                // slots). Zero deaths is the natural, knob-free boundary.
+                // Transition reforms (pivot, disengage, at-ease recovery)
+                // stay unconditional — they fire once on a state change.
+                let cadence_only = engaged_deep_reform
+                    && !(self.units[ui].pivoting || disengage_reform || at_ease_reform);
+                let total_dead = self.units[ui].count - self.units[ui].alive_count;
+                let noise_beat = cadence_only && total_dead == self.units[ui].deep_beat_dead_mark;
+                if cadence_only {
+                    self.units[ui].deep_beat_dead_mark = total_dead;
+                }
+                if !noise_beat {
+                    reassign_slots(
+                        &self.units[ui],
+                        &self.positions,
+                        &self.fidget_offset,
+                        &self.alive,
+                        &mut self.soldier_slot,
+                    );
+                    self.units[ui].deaths_since_reform = 0;
+                }
                 if disengage_reform {
                     self.units[ui].disengage_reform_pending = false;
                 }
@@ -1688,8 +1712,6 @@ impl Sim {
             soldier_unit,
             positions,
             prev_positions,
-            kin_vx,
-            kin_vy,
             last_disp_x,
             last_disp_y,
             ema_disp_x,
@@ -2969,17 +2991,32 @@ impl Sim {
                         }
                     }
                 }
-                if !order_advancing && u.strict_formation() && u.engaged > 0 && !seeking_flank {
-                    // Packed pike contact lateral friction: a leveled sarissa
-                    // block cannot freely crab sideways in the press without
-                    // tangling shafts and neighbours. The spring/collision
-                    // lattice otherwise rings side-to-side and the phalanx
-                    // backline visibly buzzes despite taking no casualties.
-                    // Damp only the lateral component that reverses against last
-                    // tick, so a steady shove is not dragged down and true flank
-                    // wrap stays free.
+                if u.mass_advance < tun.charge_spent_speed
+                    && !u.is_mounted()
+                    && u.engaged > 0
+                    && !seeking_flank
+                    && fighting[i] == 0
+                {
+                    // Packed contact lateral friction: a man wedged in a press
+                    // cannot freely crab sideways without tangling weapons and
+                    // neighbours — pike or sword alike. The spring/collision
+                    // lattice otherwise rings side-to-side and the BACKLINE
+                    // buzzes hardest despite taking no casualties (measured:
+                    // rank 5 of an immortal grind carried MORE lateral speed
+                    // than the front rank trading blows). Damp only the
+                    // lateral component that reverses against the last TRUE
+                    // step (trajectory frame — the ring closes through the
+                    // separation solver, invisible to steer-only kin_v), so a
+                    // steady shove is not dragged down and true flank wrap
+                    // stays free (seeking_flank exempts it wholesale). Keyed
+                    // on MEASURED advance, not the order (Move==Attack): a
+                    // stalled grind gets the friction whatever its order
+                    // says; a genuinely advancing mass stays loose. A man
+                    // TRADING BLOWS keeps full lateral freedom (fighting[i]);
+                    // the measured ring lives in the ranks behind the fight,
+                    // and they alone pay the drag.
                     let lat = v.dot(r);
-                    let last_lat = Vec2::new(kin_vx[i], kin_vy[i]).dot(r);
+                    let last_lat = Vec2::new(last_disp_x[i], last_disp_y[i]).dot(r);
                     if lat * last_lat < 0.0 {
                         #[cfg(feature = "force-trace")]
                         let pre_friction = v;

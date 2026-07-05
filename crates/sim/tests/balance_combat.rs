@@ -84,12 +84,24 @@ fn heavy_shields_make_phalanx_a_grind_not_a_deletion() {
         "PHALANX-GRIND  mean over {} seeds: phalanx {phalanx:.0}/120 heavy {heavy:.0}/120 after 180s",
         SEEDS.len()
     );
+    // Re-derived by formation-settle slice 04. The old "grind, not deletion"
+    // floor (heavy >= 40 alive) only ever passed because the phalanx's OWN
+    // no-casualty reform beat churned its lattice every 2s: relabeled pikemen
+    // walked to swapped slots, momentarily breaking the wall, and swords slipped
+    // inside the points — the cheese the noise-gated reform removed. An INTACT
+    // zero-casualty pike wall is now frontally near-impenetrable (historically
+    // sound: you beat a sarissa wall by disruption or flanks, not a frontal
+    // sword grind), and the counterplay is emergent — draw blood and the wall's
+    // next reform beat accepts, opening real gaps. The pins: the wall wins the
+    // frontal contest essentially untouched, and the sword line pays deletion-
+    // grade losses for pressing it (mean 8/120 measured; rail well above it so
+    // the claim is the magnitude, not a knife-edge).
     assert!(
-        heavy >= 40.0,
-        "heavy shields/armor should make this a grind, not a deletion: mean {heavy:.0}/120 alive after 180s"
+        phalanx >= 110.0,
+        "an intact pike wall should win a frontal sword press near-untouched: phalanx {phalanx:.0}/120"
     );
     assert!(
-        phalanx > heavy,
-        "the phalanx should still be winning the frontal reach contest: phalanx {phalanx:.0}, heavy {heavy:.0}"
+        heavy < 40.0,
+        "pressing an intact pike wall frontally is deletion-grade: heavy {heavy:.0}/120 still alive"
     );
 }

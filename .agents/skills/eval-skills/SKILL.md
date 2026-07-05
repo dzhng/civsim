@@ -21,7 +21,7 @@ fuzzy wish.
 - **Target skill** — must resolve to a real `SKILL.md`. If you can't find it,
   list the skills you can see and ask which one they mean.
 - **At least one golden case** — a concrete input the skill will actually
-  receive: a screenshot, a prompt, a file, a scene. "Improve feature-slicing"
+  receive: a screenshot, a prompt, a file, a scene. "Improve write-spec"
   with no input attached is not a case.
 - **The bar per case** — the outcome a good artifact achieves and the smells
   that would make it bad, *not* an exhaustive parts list. The skill's

@@ -9,7 +9,7 @@ use crate::class::UnitClass;
 use crate::sim::Sim;
 use crate::terrain::Terrain;
 use crate::tunables::Tunables;
-use contract::{BattleResult, BattleSetup, Deployment, Reinforcement, UnitResult};
+use contract::{BattleResult, BattleSetup, Deployment, Reinforcement, TerrainSource, UnitResult};
 
 pub struct Battle {
     pub sim: Sim,
@@ -71,7 +71,7 @@ impl Battle {
         G: Fn(&contract::RosterUnit) -> u32,
     {
         let mut sim = Sim::new(Tunables::default(), setup.seed);
-        sim.terrain = Terrain::from_spec(&setup.terrain);
+        sim.terrain = terrain_from_source(&setup.terrain);
         let mut unit_map = Vec::new();
         for dep in &setup.deployments {
             for (id, idx) in
@@ -223,5 +223,12 @@ impl Battle {
         }
         let v = if b.strength(0) >= b.strength(1) { 0 } else { 1 };
         b.result_with_victor(v)
+    }
+}
+
+fn terrain_from_source(source: &TerrainSource) -> Terrain {
+    match source {
+        TerrainSource::Ops(spec) => Terrain::from_spec(spec),
+        TerrainSource::Recipe(recipe) => crate::genmap::generate(recipe),
     }
 }

@@ -227,9 +227,10 @@ export async function run(ctx) {
     );
 
     if (dpr === 1) {
-      // The banner plants at the block's on-screen top edge midpoint at ANY
-      // yaw — world-axis extremes only match the screen at north-up, and a
-      // z = 0 anchor parallaxes off the block on elevated ground.
+      // The banner plants on the unit's world centroid, so it must project
+      // inside the block's screen bounds at ANY yaw (a camera-frame anchor
+      // drifts under Q/E, and a z = 0 anchor parallaxes off the block on
+      // elevated ground).
       await page.evaluate(() => {
         const a = window.__game.unitInfo(4);
         const cam = window.__cam;

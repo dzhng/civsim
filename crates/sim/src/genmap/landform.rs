@@ -4,7 +4,7 @@
 //! even though slice 02 samples only the playable center. East/west ridge masses
 //! therefore have their feet inside the map and their bulk just beyond it.
 
-use super::MapRecipe;
+use super::{MapRecipe, FAR_FOG_EXTENT};
 use crate::math::Vec2;
 
 const CORRIDOR_HALF_W: f32 = 390.0;
@@ -15,6 +15,13 @@ const FLANK_DETAIL_MIN_M: f32 = 7.0;
 const FLANK_DETAIL_MAX_M: f32 = 17.0;
 const CORRIDOR_DETAIL_M: f32 = 5.0;
 const APRON_FLATTEN: f32 = 0.36;
+const RIDGE_BASE_M: f32 = 112.0;
+const RIDGE_CORE_M: f32 = 92.0;
+const RIDGE_STRATA_M: f32 = 54.0;
+const RIDGE_SIDE_LIFT_M: f32 = 30.0;
+const RIDGE_OUTER_SCALE: f32 = 0.78;
+const FAR_RIDGE_BASE_M: f32 = 25.0;
+const FAR_RIDGE_ROWS_M: f32 = 40.0;
 
 pub fn height(recipe: &MapRecipe, p: Vec2) -> f32 {
     height_with_min_wavelength(recipe, p, 0.0)
@@ -122,8 +129,31 @@ fn height_with_min_wavelength(recipe: &MapRecipe, p: Vec2, min_wavelength_m: f32
         p.y + ridge_noise.value * 190.0,
         150.0,
     ));
-    let edge_mass = 46.0 + 34.0 * ridge_core + 20.0 * ridge_strata + 12.0 * vista_side_t;
-    let ridge = edge_mass * crest_t * (0.72 + 0.28 * flank);
+    let edge_mass = RIDGE_BASE_M
+        + RIDGE_CORE_M * ridge_core
+        + RIDGE_STRATA_M * ridge_strata
+        + RIDGE_SIDE_LIFT_M * vista_side_t;
+    let ridge_sharpness = crest_t * crest_t * (0.62 + 0.38 * flank);
+    let ridge_outer_t = smoothstep(recipe.half_w * 0.65, vista_half_w, p.x.abs());
+    let ridge_outer_scale = mix(1.0, RIDGE_OUTER_SCALE, ridge_outer_t);
+    let ridge = edge_mass * ridge_sharpness * ridge_outer_scale;
+
+    let beyond_vista_t = smoothstep(
+        recipe.half_w * recipe.vista_extent.max(1.0),
+        recipe.half_w * FAR_FOG_EXTENT,
+        p.x.abs(),
+    );
+    let far_row_noise = fbm_detail(
+        recipe.seed ^ side_seed ^ 0xf067_6b21,
+        p.x * 0.42 + side * 911.0,
+        p.y * 0.78,
+        720.0,
+        3,
+        min_wavelength_m,
+    );
+    let far_rows = beyond_vista_t
+        * (FAR_RIDGE_BASE_M + FAR_RIDGE_ROWS_M * ridged(far_row_noise.value))
+        * (0.72 + 0.28 * ridged(ridge_strata));
 
     let spur_noise = fbm_detail(
         recipe.seed ^ side_seed ^ 0xdb4f_0f35,
@@ -136,7 +166,7 @@ fn height_with_min_wavelength(recipe: &MapRecipe, p: Vec2, min_wavelength_m: f32
     let spur_gate = smoothstep(0.54, 0.86, ridged(spur_noise.value)) * flank * 0.62;
     let spur = spur_gate * (18.0 + 16.0 * ridged(mid.value));
 
-    (floor * corridor + rolling * (1.0 - corridor) + ridge + spur).max(-8.0)
+    (floor * corridor + rolling * (1.0 - corridor) + ridge + spur + far_rows).max(-8.0)
 }
 
 pub fn slice01_rough_noise(seed: u64, p: Vec2) -> f32 {

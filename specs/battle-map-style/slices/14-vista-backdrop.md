@@ -122,6 +122,10 @@ field unchanged (CSM bounds must not grow).
   the same height function with a minimum wavelength and blends from full detail
   at the playable boundary to band-limited samples over the first 10 coarse
   cells. The far ring is fully band-limited.
+- **BMS17B-A6E9 scale repair (2026-07-05):** the 2x vista ridge continuation now
+  inherits the taller landform wall (`262.87..278.99 m` over the 64-seed sweep)
+  and the E/W far-fog ring carries raised receding rows (`264.86..287.96 m`) so
+  ridge layers survive above the haze runway.
 - Seam pin: the vista lattice is aligned to the mathematical playable rect
   boundary (`±half_w`, `±half_h`) and cargo compares those boundary vertex
   samples against the same landform function. Residual: the pre-existing

@@ -53,7 +53,7 @@ const FOG_TURBIDITY_ONSET = 4.0;
  *  starts past the immediate fighting zone around the observer, so heavy
  *  weather never washes the units the player is commanding. */
 const CLEAR_RADIUS_KM = 0.14;
-const HORIZON_SKY_Z = 0.025;
+const HORIZON_SKY_Z = 0.004;
 const HORIZON_FADE_START_Z = -0.18;
 const HORIZON_FADE_END_Z = 0.06;
 
@@ -117,18 +117,15 @@ export function aerialPerspectiveNode(
     // The in-scatter colour: the sky-view LUT along the TRUE view direction
     // (eye→fragment). Near-horizontal rays pick up the horizon sky (the
     // ranges/sea dissolve into it); downward rays land in the LUT's
-    // below-horizon ground-bounce region, which is dim like the ground —
-    // sampling the bright horizon for steep rays washed whole top-down
-    // overviews out (the 10c battle-smoke finding).
+    // below-horizon ground-bounce region, and upward rays keep their true sky
+    // gradient so golden-hour cannot collapse into a flat horizon strip.
     const view = normalize(positionWorld.sub(cameraPosition));
     const viewSky = texture(sky.lut.texture, equirectUV(view)).rgb.toVar();
     const horizonView = normalize(vec3(view.x, view.y, HORIZON_SKY_Z)).toVar();
     const horizonSky = texture(sky.lut.texture, equirectUV(horizonView)).rgb;
-    const horizonWeight = smoothstep(
-      float(HORIZON_FADE_START_Z),
-      float(HORIZON_FADE_END_Z),
-      view.z,
-    );
+    const belowHorizon = smoothstep(float(HORIZON_FADE_START_Z), float(0.0), view.z);
+    const aboveHorizon = float(1.0).sub(smoothstep(float(0.0), float(HORIZON_FADE_END_Z), view.z));
+    const horizonWeight = belowHorizon.mul(aboveHorizon);
     const skyLight = mix(viewSky, horizonSky, horizonWeight);
     const hazed = output.rgb.mul(transmit).add(skyLight.mul(vec3(1.0).sub(transmit)));
     return vec4(hazed, output.a);

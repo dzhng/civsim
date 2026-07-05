@@ -206,6 +206,18 @@ impl Campaign {
         self.inner.state.battle_ready.map_or(-1, |e| e as i32)
     }
 
+    pub fn derived_site_seed(&self, kind: u32, a: u32, b: u32) -> u64 {
+        let site = if kind == 0 {
+            campaign::state::Loc::Node(a)
+        } else {
+            campaign::state::Loc::Edge {
+                edge: a,
+                tile: b as u16,
+            }
+        };
+        campaign::battlegen::derived_site_seed(self.inner.state.campaign_seed, site)
+    }
+
     /// Modal payload for the initiation screen (sides, sizes, retreat flags).
     pub fn encounter_json(&self, id: u32) -> String {
         let st = &self.inner.state;
@@ -859,6 +871,7 @@ mod tests {
 #[wasm_bindgen]
 pub fn start_campaign_battle(c: &mut Campaign, encounter: u32) -> Option<Game> {
     let setup = c.inner.battle_setup(encounter)?;
+    let terrain_source = setup.terrain.clone();
     let mut battle = sim::Battle::from_setup_with_stats_and_looks(
         &setup,
         &resolved_unit_stats,
@@ -877,7 +890,10 @@ pub fn start_campaign_battle(c: &mut Campaign, encounter: u32) -> Option<Game> {
         battle.set_ai(0, true);
     }
     c.fighting = Some(encounter);
-    Some(Game::from_battle(battle))
+    Some(Game::from_battle_with_terrain_source(
+        battle,
+        &terrain_source,
+    ))
 }
 
 /// Battle over (sim verdict, or forced by remaining strength if cut short):

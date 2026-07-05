@@ -21,17 +21,32 @@ Reference images (in `assets/` and the aesthetics skill):
 
 ## Next Agent Prompt
 
-**Status 2026-07-05: slices 00–06, 10–15 DONE (live-verified except noted).** The
-generated-map pipeline is feature-complete for the compose gate: seeded
-seal grammar (organic cliff/forest/water flanks), certified corridors and
-deployments, one natural lake pocket rendering as real water, passable
-field-texture variety in the corridor, fracture-rock walls, the TW vista
-apron + fog ring, production blade grass. Next pickups:
-[16-haze-mood](slices/16-haze-mood.md) (V-track: the
-fog-runway preset owning slice 14's pale-band/silhouette debts). Then 17
-compose. Read the recorded traps: slice 10 TSL hazards, slice 11
-integration findings, slice 04 shoreline lessons, slice 15 water-classifier
-notes, and 00's camera/oracle amendments.
+**Status 2026-07-05: slices 00–06, 10–19 DONE (live-verified). Only slice
+20 remains, and it is David-gated.** The spec is functionally complete:
+seeded certified generator, the full reference style family (walling
+ranges, blade grass, fracture rock, real lake water, TW vista + fog
+runway, overcast-highland mood), three curated maps + free-seed reroll in
+Quick Battle, and campaign open-field battles booting generated maps
+deterministically. The compose gate (17) accepted the overcast register.
+
+Remaining, in order:
+1. **Slice 20 — retire the hand maps.** AWAITING DAVID'S SIGN-OFF (the
+   golden re-bless is the cost; the spec may close with hand maps alive as
+   legacy if he prefers). Do not start without his explicit go.
+2. **Three routed polish debts** (slice 17 round-3 verdict, quality not
+   family): white bead-speck strings on far ridge crests (vista mesh),
+   golden's razor field/sky line at the open north (aerial), residual
+   water weave under golden (seaLayer). Fair game for any pass.
+3. **Standing pre-spec regression (fix lane in flight):** sun shadows
+   never render in the photoreal battle world - all shadow modes render
+   byte-identical on hardware; the photoreal-shadows baselines were
+   blessed shadowless. Also golden's sky band marginally fails the strict
+   warm contract (R>B by -0.5). Both predate this spec; fix lane on the
+   fix-sun-shadows branch.
+
+Read the recorded traps before touching code: slice 10 TSL hazards, slice
+14 wasm-view ordering, slice 15 water-classifier notes, slice 18's
+key-order scene trap, 00's camera/oracle amendments.
 
 Before writing any code, read:
 
@@ -64,7 +79,7 @@ Before writing any code, read:
       `battle-genmap-seeds` + generated elevation baseline blessing.
 - [x] 06 — Seed variety + seed browser
       CODE-LANDED BMS06-SLICE-C1F4; seed 7 hash moved to
-      `0x38e99f04c18d3968` from passable corridor texture. Browser scene
+      `0x5b0bcb8dd7e7f22f` after BMS17B-A6E9 raised flank/vista ranges. Browser scene
       exists and the seed-browser artifact was generated via wasm-only Node
       fallback because Playwright Chromium is blocked in this sandbox; the
       orchestrator still owes a real scene run/human checkpoint.
@@ -85,9 +100,19 @@ Before writing any code, read:
       + fade-to-skybox aerial blend + generated-map default scene landed.
       Orchestrator still owes browser run/blessing, unprimed critique, and
       final affected-baseline approval.
-- [ ] 17 — Compose gate (ROUND 1 FAIL 2026-07-05: pancake-plain composition + 4 routed defects — see slice)
-- [ ] 18 — Curated seeds in the catalog
-- [ ] 19 — Campaign seam (cuttable; may move to a successor spec)
+- [x] 17 — Compose gate (round 3 ACCEPTED for overcast-highland; 3 polish debts routed — see slice)
+- [x] 18 — Curated seeds in the catalog
+      CODE-LANDED BMS18-SLICE-F7C3; curated Quick Battle entries:
+      Shore & Crags (seed 1 water flank), Highland Vale (seed 7 pinned
+      cliff/cliff), Wooded Pass (seed 8 forest flank). Cargo genmap pins
+      hashes/certificates. Orchestrator still owes browser run/blessing for
+      `battle-genmap-curated` and non-blocking visual review.
+- [x] 19 — Campaign seam
+      CODE-LANDED BMS19-SLICE-B2E7; open-field campaign battles now use
+      `TerrainSource::Recipe(MapRecipe)` with deterministic campaign-site
+      seeds; bridge/ford and city fights remain `TerrainSource::Ops`.
+      Orchestrator still owes browser scene run/blessing for the extended
+      `campaign-handoff` flow.
 - [ ] 20 — Retire the hand maps (David-gated; golden re-bless is the cost)
 
 ## Slice graph

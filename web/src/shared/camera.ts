@@ -79,7 +79,17 @@ export class Camera {
    *  past what effectivePitch can express, which would go dead: tilting back
    *  would spend invisible travel before the view moved. */
   adjustPitchBias(delta: number) {
+    // Pivot at the CAMERA, not the ground target (David 2026-07-06): tilting
+    // keeps the eye's ground column fixed and lets the look target slide,
+    // so Z/X feels like tilting your head rather than orbiting a far point.
+    const rig = this.rig();
+    const before = this.effectivePitch(rig);
     this.pitchBias = Math.max(-0.45, Math.min(1.0, this.pitchBias + delta));
+    const after = this.effectivePitch(rig);
+    const shift = rig.distance * (Math.cos(after) - Math.cos(before));
+    const [bx, by] = this.rotate(1, 0);
+    this.x -= bx * shift;
+    this.y -= by * shift;
   }
 
   private effectivePitch(rig: ZoomCameraRig) {

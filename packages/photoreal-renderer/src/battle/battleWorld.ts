@@ -700,8 +700,11 @@ export class PhotorealBattleWorld {
     // renderer law): the higher the eye, the smaller blades project and the
     // wider the margin can stretch - a vista camera pans hundreds of metres
     // without a rebuild, a ground camera keeps the tight ring fresh.
-    const margin =
-      PRODUCTION_BLADE_FIELD_PROFILE.rebuildMarginM * Math.max(1, Math.min(4, eyeZ / 60));
+    // Quantize the zoom-scaled margin to coarse steps: a continuous eyeZ
+    // fed the rebuild KEY, so zooming churned a full grass rebuild every
+    // frame (David's "still slow" report - the pan gate never zooms).
+    const zoomScale = 1 + Math.round(Math.max(0, Math.min(3, eyeZ / 60 - 1)));
+    const margin = PRODUCTION_BLADE_FIELD_PROFILE.rebuildMarginM * zoomScale;
     const radius = visibleRadius + margin;
     const step = PRODUCTION_BLADE_FIELD_PROFILE.snapCellSize;
     if (

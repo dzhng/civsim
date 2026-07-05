@@ -18,6 +18,7 @@ import {
   floor,
   fract,
   length,
+  max,
   mix,
   normalize,
   transformNormalToView,
@@ -131,6 +132,7 @@ const WIDE_DETAIL_TERRAIN_STYLE: TerrainQuadStyle = {
 
 export interface TerrainMaterialOptions {
   slopeBands?: BattleSlopeBands | null;
+  vistaBand?: BattleVistaBand["name"] | null;
 }
 
 export interface BattleVistaBand {
@@ -460,7 +462,12 @@ export function createGroundMesh(
   const fieldWater = fieldWaterSurfaceNodes(frame, world, water);
   albedo = mix(albedo, fieldWater.albedo, waterBlend);
   material.colorNode = vec4(linearAlbedo(clamp(albedo, vec3(0.0), vec3(1.0))), 1.0);
-  material.roughnessNode = mix(dryRoughness, fieldWater.roughness, waterBlend);
+  const dryRoughnessFloor = options.vistaBand
+    ? options.vistaBand === "farFog"
+      ? float(0.995)
+      : float(0.985)
+    : float(0.0);
+  material.roughnessNode = mix(max(dryRoughness, dryRoughnessFloor), fieldWater.roughness, waterBlend);
 
   const ground = new THREE.Mesh(geo, material);
   ground.name = "battle-ground";
@@ -484,7 +491,7 @@ export function createVistaMesh(
 ): THREE.Mesh | null {
   const mesh = buildVistaGroundMesh(band, cover);
   if (mesh.indices.length === 0) return null;
-  const vista = createGroundMesh(frame, mesh, options);
+  const vista = createGroundMesh(frame, mesh, { ...options, vistaBand: band.name });
   vista.name = `battle-vista-${band.name}`;
   vista.castShadow = false;
   vista.receiveShadow = false;
@@ -516,16 +523,24 @@ function buildVistaGroundMesh(band: BattleVistaBand, cover: BattleGroundCover): 
       const x = band.ox + i * band.cell;
       const y = band.oy + j * band.cell;
       const z = zAt(i, j);
-      const il = Math.max(0, i - 1);
-      const ir = Math.min(band.w - 1, i + 1);
-      const jb = Math.max(0, j - 1);
-      const jt = Math.min(band.h - 1, j + 1);
-      const dx = Math.max(0.001, (ir - il) * band.cell);
-      const dy = Math.max(0.001, (jt - jb) * band.cell);
-      const hx = zAt(ir, j) - zAt(il, j);
-      const hy = zAt(i, jt) - zAt(i, jb);
-      const nx = -hx / dx;
-      const ny = -hy / dy;
+      const wide = band.cell >= 64 ? 2 : 1;
+      const il2 = Math.max(0, i - wide);
+      const ir2 = Math.min(band.w - 1, i + wide);
+      const jb2 = Math.max(0, j - wide);
+      const jt2 = Math.min(band.h - 1, j + wide);
+      const dx2 = Math.max(0.001, (ir2 - il2) * band.cell);
+      const dy2 = Math.max(0.001, (jt2 - jb2) * band.cell);
+      const hx = zAt(ir2, j) - zAt(il2, j);
+      const hy = zAt(i, jt2) - zAt(i, jb2);
+      let nx = -hx / dx2;
+      let ny = -hy / dy2;
+      const slope = Math.hypot(nx, ny);
+      const slopeCeiling = band.cell >= 64 ? 0.52 : 0.82;
+      if (slope > slopeCeiling) {
+        const scale = slopeCeiling / slope;
+        nx *= scale;
+        ny *= scale;
+      }
       const nz = 1;
       const nlen = Math.hypot(nx, ny, nz) || 1;
       verts[v++] = x;

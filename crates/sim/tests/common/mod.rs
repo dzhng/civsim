@@ -10,6 +10,8 @@
 
 use sim::{Sim, Tunables, Vec2, DT};
 
+pub mod settle;
+
 /// The committed seed set, re-exported so every outcome test samples the SAME
 /// fixed seeds. A single duel is RNG-dependent — one seed chases noise — so any
 /// assertion on a noisy OUTCOME (who wins, survivor fractions, kill/death

@@ -518,6 +518,117 @@ fn probe_lateral_motion_during_grind() {
     }
 }
 
+#[test]
+fn probe_grind_lateral_by_rank() {
+    // Slice 04 attribution, step 3: the front trading blows may jostle;
+    // rank 5 of a static press should be near-still. If the rear carries
+    // front-level lateral speed, the lattice is ringing, not fighting.
+    let mut sim = Sim::new(no_morale_parade(), SEED);
+    let a = block(&mut sim);
+    let b = sim.spawn_unit(
+        Vec2::new(0.0, 30.0),
+        -FRAC_PI_2,
+        120,
+        20,
+        Vec2::new(1.0, 1.0),
+        1,
+        1.0,
+    );
+    for h in sim.health.iter_mut() {
+        *h = 1e9;
+    }
+    sim.set_attack_order(a, b);
+    sim.set_attack_order(b, a);
+    run(&mut sim, 75.0); // deep into the sustained grind
+                         // 20s of per-rank lateral speed: mean |lat| per rank of unit a.
+    let u_start = sim.units[a].start;
+    let u_count = sim.units[a].count;
+    let files = sim.units[a].files_eff.max(1);
+    let ticks = (20.0 / sim::DT) as usize;
+    let mut prev: Vec<Vec2> = (u_start..u_start + u_count)
+        .map(|i| sim.soldier_pos(i))
+        .collect();
+    let ranks = u_count.div_ceil(files);
+    let mut lat_sum = vec![0.0f64; ranks];
+    let mut n_sum = vec![0.0f64; ranks];
+    for _ in 0..ticks {
+        sim.tick();
+        let u = &sim.units[a];
+        let f = sim::dir(u.facing);
+        let right = Vec2::new(f.y, -f.x);
+        for (k, i) in (u_start..u_start + u_count).enumerate() {
+            if sim.alive[i] != 1 {
+                continue;
+            }
+            let rank = sim.soldier_slot[i] as usize / files;
+            let p = sim.soldier_pos(i);
+            let v = Vec2::new(p.x - prev[k].x, p.y - prev[k].y);
+            lat_sum[rank] += (v.x * right.x + v.y * right.y).abs() as f64 / sim::DT as f64;
+            n_sum[rank] += 1.0;
+            prev[k] = p;
+        }
+    }
+    for r in 0..ranks {
+        println!(
+            "rank {r} (front=0): mean |lat| = {:.3} m/s over {:.0} samples",
+            lat_sum[r] / n_sum[r].max(1.0),
+            n_sum[r]
+        );
+    }
+}
+
+#[cfg(feature = "force-trace")]
+#[test]
+fn probe_trace_grind_lateral_forces() {
+    // Slice 04 attribution, step 2: which channels carry the LATERAL
+    // component of the sustained grind motion? Projected per record onto
+    // the unit's right axis, split front ranks (0-1) vs rear (2+).
+    use std::collections::BTreeMap;
+    let mut sim = Sim::new(no_morale_parade(), SEED);
+    let a = block(&mut sim);
+    let b = sim.spawn_unit(
+        Vec2::new(0.0, 30.0),
+        -FRAC_PI_2,
+        120,
+        20,
+        Vec2::new(1.0, 1.0),
+        1,
+        1.0,
+    );
+    for h in sim.health.iter_mut() {
+        *h = 1e9;
+    }
+    sim.set_attack_order(a, b);
+    sim.set_attack_order(b, a);
+    run(&mut sim, 75.0);
+    sim.clear_force_trace();
+    run(&mut sim, 2.0);
+    let u = &sim.units[a];
+    let files = u.files_eff.max(1);
+    let f = sim::dir(u.facing);
+    let right = Vec2::new(f.y, -f.x);
+    let mut front: BTreeMap<_, f32> = BTreeMap::new();
+    let mut rear: BTreeMap<_, f32> = BTreeMap::new();
+    for rec in sim.force_trace.records() {
+        if rec.soldier < u.start || rec.soldier >= u.start + u.count {
+            continue;
+        }
+        let rank = sim.soldier_slot[rec.soldier] as usize / files;
+        let lat = (rec.vec.x * right.x + rec.vec.y * right.y).abs();
+        let bucket = if rank <= 1 { &mut front } else { &mut rear };
+        *bucket.entry(rec.channel).or_insert(0.0) += lat;
+    }
+    println!("lateral |component| by channel over 2s (unit a):");
+    println!("  FRONT (ranks 0-1):");
+    for (ch, mag) in &front {
+        println!("    {ch:?}: {mag:8.2}");
+    }
+    println!("  REAR (ranks 2+):");
+    for (ch, mag) in &rear {
+        println!("    {ch:?}: {mag:8.2}");
+    }
+}
+
 /// Slot ground audit + ASCII neighbourhood map: how many ideal slots sit on
 /// impassable / slow ground, how far are men from their slots, and where do
 /// men ('o'), slots ('S', '@' = both) and walls ('#', '.' = slow) sit around

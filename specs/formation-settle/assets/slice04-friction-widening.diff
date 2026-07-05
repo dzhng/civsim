@@ -1,0 +1,43 @@
+diff --git a/crates/sim/src/sim.rs b/crates/sim/src/sim.rs
+index 1e2af5e3..4aa25803 100644
+--- a/crates/sim/src/sim.rs
++++ b/crates/sim/src/sim.rs
+@@ -2969,17 +2969,28 @@ impl Sim {
+                         }
+                     }
+                 }
+-                if !order_advancing && u.strict_formation() && u.engaged > 0 && !seeking_flank {
+-                    // Packed pike contact lateral friction: a leveled sarissa
+-                    // block cannot freely crab sideways in the press without
+-                    // tangling shafts and neighbours. The spring/collision
+-                    // lattice otherwise rings side-to-side and the phalanx
+-                    // backline visibly buzzes despite taking no casualties.
+-                    // Damp only the lateral component that reverses against last
+-                    // tick, so a steady shove is not dragged down and true flank
+-                    // wrap stays free.
++                if u.mass_advance < tun.charge_spent_speed
++                    && !u.is_mounted()
++                    && u.engaged > 0
++                    && !seeking_flank
++                {
++                    // Packed contact lateral friction: a man wedged in a press
++                    // cannot freely crab sideways without tangling weapons and
++                    // neighbours — pike or sword alike. The spring/collision
++                    // lattice otherwise rings side-to-side and the BACKLINE
++                    // buzzes hardest despite taking no casualties (measured:
++                    // rank 5 of an immortal grind carried MORE lateral speed
++                    // than the front rank trading blows). Damp only the
++                    // lateral component that reverses against the last TRUE
++                    // step (trajectory frame — the ring closes through the
++                    // separation solver, invisible to steer-only kin_v), so a
++                    // steady shove is not dragged down and true flank wrap
++                    // stays free (seeking_flank exempts it wholesale). Keyed
++                    // on MEASURED advance, not the order (Move==Attack): a
++                    // stalled grind gets the friction whatever its order
++                    // says; a genuinely advancing mass stays loose.
+                     let lat = v.dot(r);
+-                    let last_lat = Vec2::new(kin_vx[i], kin_vy[i]).dot(r);
++                    let last_lat = Vec2::new(last_disp_x[i], last_disp_y[i]).dot(r);
+                     if lat * last_lat < 0.0 {
+                         #[cfg(feature = "force-trace")]
+                         let pre_friction = v;

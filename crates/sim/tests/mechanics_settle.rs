@@ -193,13 +193,48 @@ fn settle_inside_marginal_corridor() {
     assert_settles(&mut sim, unit, 30.0, 60.0);
 }
 
-#[ignore = "formation-settle slice 03"]
 #[test]
 fn settle_overlapping_friendly() {
+    // Destination frame intrudes into a standing friendly's flank: both
+    // blocks must come to rest in contact instead of buzzing on the
+    // steer-vs-separation cycle forever. Grazing overlaps (the realistic
+    // battle-line case) are pinned here; the half-frame-deep overlap is a
+    // separate ignored gate below (a weave-rest-shape problem).
+    for overlap in [2.0f32, 5.0] {
+        let mut sim = Sim::new(Tunables::default(), SEED);
+        let unit = block(&mut sim);
+        let friend = sim.spawn_unit(
+            Vec2::new(20.0 - overlap, 80.0),
+            FRAC_PI_2,
+            120,
+            20,
+            Vec2::new(1.0, 1.0),
+            0,
+            1.0,
+        );
+        run(&mut sim, 5.0);
+        sim.set_move_order_facing(unit, Vec2::new(0.0, 80.0), FRAC_PI_2);
+        let arrived = march_until_arrived(&mut sim, unit);
+        println!("[overlap {overlap:.0}] arrived at t={arrived:.1}s");
+        assert_settles(&mut sim, unit, 30.0, 60.0);
+        assert_settles(&mut sim, friend, 0.0, 30.0);
+    }
+}
+
+#[ignore = "formation-settle slice 03b"]
+#[test]
+fn settle_deeply_overlapping_friendly() {
+    // Half-frame-deep overlap (10m): the displaced men's weave REST SHAPE
+    // still demands they stand inside the friend, so the net pull re-feeds
+    // the separation solver even with slot pulls gated and the trajectory
+    // damp active. Needs the lattice rest shape to accommodate obstruction
+    // (bond rest lengths compressing at contact), not another pull gate —
+    // see the spec's 03 slice notes for the three measured non-fixes.
+    let overlap = 10.0f32;
     let mut sim = Sim::new(Tunables::default(), SEED);
     let unit = block(&mut sim);
-    let _friend = sim.spawn_unit(
-        Vec2::new(15.0, 80.0),
+    let friend = sim.spawn_unit(
+        Vec2::new(20.0 - overlap, 80.0),
         FRAC_PI_2,
         120,
         20,
@@ -212,6 +247,7 @@ fn settle_overlapping_friendly() {
     let arrived = march_until_arrived(&mut sim, unit);
     println!("arrived at t={arrived:.1}s");
     assert_settles(&mut sim, unit, 30.0, 60.0);
+    assert_settles(&mut sim, friend, 0.0, 30.0);
 }
 
 #[test]

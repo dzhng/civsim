@@ -79,9 +79,36 @@ step or a dedicated pre-slice.
 
 ## Next Agent Prompt
 
-**Status (2026-07-05):** Diagnosis + carve proof done (above); Rhegium folded in
-as the Sicily endpoint. Nothing built in code yet. Pick up at **Slice 0**, then
-S1 (carve Messina + Bosphorus) and S2 (inject Rhegium + rewire).
+**Status (2026-07-05):** Shipped the strait/lane vertical slice (4 commits on
+`worktree-melee-blob`, not yet on main). Sicily + Bosphorus straits carved, the
+Sicily lane + Rhegium built, all lanes render solid on top of the water. `cargo
+test -p mapgen` green (5/5). Screenshots captured in the session scratchpad.
+
+**Done this pass:**
+- **S1** `raster::carve_straits` + STRAIT_CARVES — Messina AND Bosphorus carved
+  to water; both read water at the 8 km frontend grid; Const↔Nicomedia land
+  flood-fill now returns False (no land bridge). Messana/Const are exempt
+  waterline ports.
+- **S2a** synthetic-geography injection (`sources::apply_extra_geography` +
+  overrides `extra_sites`/`extra_routes`/`drop_routes`) — Rhegium on the
+  Calabrian toe; Sicily lane Rhegium↔Messana replaces the Messana–Vibo Valentia
+  road ferry; sea-edge invariant = 3; lane endpoints protected from pruning.
+- **S3** sea lanes → `xyz` variant, solid + lifted onto the water surface
+  (`pushEdgeLines`), no dashes. Gibraltar/Bosphorus/Sicily all read boldly.
+
+**Still open (next pickup):**
+1. **Bosphorus lane cosmetic** — the lane's eastern legs still run over the Asian
+   coast to inland Nicomedia. Topology is correct (no land bridge); routing the
+   *via* through the Gulf of Izmit (a small extra carve + via rework) is a
+   later refinement.
+2. **campaign-lod baseline re-bless** is BLOCKED by a pre-existing missing anchor
+   (`Teanum`, pruned before this session). Fix that scene's anchor list, then
+   `UPDATE_SHOTS=1 VERIFY_GPU=1 VERIFY_URL=http://localhost:5199 node scene.mjs
+   campaign-lod` to re-bless the new solid lanes.
+3. **The broader connectivity feature is NOT built** — the ~47-island purge and
+   the ~24 mainland reconnects (S0 RED invariants, S2 `connectivity.rs`, S4/S5)
+   are untouched. This pass only did the strait+Sicily+render slice David asked
+   for. Sicily's interior towns are still isolated `SEA_ONLY_CITIES` islands.
 
 **Build order:** S0 → S1 → S2 → S5 on the bake spine (serial); **S3 (render) runs
 in parallel** from S0 and is re-verified in S4. S4 gates the whole; S5 closes.

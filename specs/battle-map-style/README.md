@@ -85,7 +85,7 @@ Before writing any code, read:
       + fade-to-skybox aerial blend + generated-map default scene landed.
       Orchestrator still owes browser run/blessing, unprimed critique, and
       final affected-baseline approval.
-- [ ] 17 — Compose gate (style-family verdict on 3+ seeds)
+- [ ] 17 — Compose gate (ROUND 1 FAIL 2026-07-05: pancake-plain composition + 4 routed defects — see slice)
 - [ ] 18 — Curated seeds in the catalog
 - [ ] 19 — Campaign seam (cuttable; may move to a successor spec)
 - [ ] 20 — Retire the hand maps (David-gated; golden re-bless is the cost)

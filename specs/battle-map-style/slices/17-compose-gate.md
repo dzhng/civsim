@@ -40,6 +40,35 @@ here), plus one hand map for contrast, under `overcast-highland` and
 Everything. This slice ships no code — a failed verdict routes to the owning
 slice (never patched here) and this file records which.
 
+## Round 1 verdict (2026-07-05): FAIL — routed, not patched
+
+Judged: seeds 7/3/8 x overcast-highland/golden-hour at the locked framing
+(evidence: assets/compose-round-1/). Unprimed rubric: atmosphere and unit
+legibility PASS across the board; composition FAILS - none of the six is in
+the reference family yet.
+
+- **Core miss (routes to 02+14 as recipe/scale work):** the battlefield
+  reads as a pancake plain from the center-line camera. The 107-121 m flank
+  walls sit 700+ m from the lens and project as horizon mounds; the
+  reference's walling ranges occupy ~45% of frame height. Fix direction:
+  taller flank ranges + taller vista-apron ridge rows (recipe knobs by
+  design) and/or judge from cameras nearer a wall; decide with clay
+  evidence, not in this slice.
+- **Water dither (routes to 15):** the lake/stream surface reads as a
+  blue/cream checkerboard at distance - the dither/alpha pattern is the
+  loudest texture in golden frames.
+- **Trees in the lake (routes to 06/scenery):** scenery placement does not
+  exclude water cells.
+- **White horizon band under GOLDEN (routes to 16):** the fade-to-skybox
+  was verified under overcast-highland; golden's band still shows a hard
+  full-width strip.
+- **Dirt-patch dotted edges (routes to 06):** field-texture borders show
+  polygon stepping.
+
+Also standing before re-judge: the two pre-existing regressions from the
+slice-16 sweep (photoreal-shadows toggle, photoreal-sky warm band) - fix
+lane in flight.
+
 ## Feedback that would change it
 
 David's verdict IS this slice. Each miss becomes a pointer to the owning

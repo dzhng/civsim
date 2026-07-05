@@ -563,9 +563,16 @@ function buildVistaGroundMesh(band: BattleVistaBand, cover: BattleGroundCover): 
 }
 
 function northSouthSink(band: BattleVistaBand, _x: number, y: number): number {
-  const denom = Math.max(1, band.outerHalfH - band.innerHalfH);
-  const t = Math.max(0, Math.abs(y) - band.innerHalfH) / denom;
-  const s = smoothstep(0.28, 1.0, t);
+  // ONE world-space ramp shared by every band: per-band ramps restarted at
+  // zero at each band boundary, so the farFog floor stepped 7.5 m above the
+  // sunken vista edge - a lit stepped wall that rendered as the white
+  // horizon band (compose rounds 1-2). Anchor on the band's inner edge only
+  // for the RAMP START of the innermost band; the domain end is the world
+  // sink horizon shared by all bands.
+  const SINK_START_Y = 820;
+  const SINK_END_Y = 2800;
+  const t = Math.max(0, Math.abs(y) - SINK_START_Y) / Math.max(1, SINK_END_Y - SINK_START_Y);
+  const s = smoothstep(0.15, 1.0, t);
   return -7.5 * s;
 }
 

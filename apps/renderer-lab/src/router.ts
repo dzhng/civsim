@@ -4557,7 +4557,7 @@ async function routeBattleTerrain3d(ctx: LabContext) {
     ctx.params.get("environment") ?? (view === "reference" ? "overcast-foggy" : "golden-hour"),
   );
   field.verticalScale = isReferenceFixture ? 2.35 : 2.6;
-  const scenery = featuresToBattleScenery(presentation.features, field, 0x77);
+  const scenery = featuresToBattleScenery(presentation.features, field, 0x77, grid);
 
   // Frame this map's biggest mid-field land feature (a wood, else a rock/mud
   // patch) at a three-quarter gameplay camera so the props stand up and the

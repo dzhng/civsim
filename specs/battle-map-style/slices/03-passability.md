@@ -93,7 +93,8 @@ parameters backed by certificates, so retuning is cheap.
   isolated passable pockets over `96` cells. Seed-7 mask ratios:
   passable `0.619`, slow `0.057`, blocked `0.324`, water `0.000`.
 - Seed-7 generated terrain hash re-pinned to `0x8ceb1a8a243ea756`; hand-map
-  hashes stayed pinned.
+  hashes stayed pinned. Superseded by BMS17B-A6E9: current seed-7 generated
+  terrain hash is `0x5b0bcb8dd7e7f22f`.
 - Slice-02 debts closed here: apron falloff changed to a wider smootherstep;
   `?clay=1` on the photoreal battle route provides real-pipeline neutral-clay
   generated-map review at the locked vista camera.

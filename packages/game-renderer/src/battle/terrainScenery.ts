@@ -1,6 +1,6 @@
-import type { CampaignSceneryInstance } from '../campaign/sceneryPass';
-import { terrainHeightAt, type TerrainHeightField } from '../terrain/heightField';
-import type { BattleTerrainFeature } from './terrainFeatures';
+import type { CampaignSceneryInstance } from "../campaign/sceneryPass";
+import { terrainHeightAt, type TerrainHeightField } from "../terrain/heightField";
+import type { BattleTerrainFeature, BattleTerrainGrid } from "./terrainFeatures";
 
 // Battle-specific policy that turns the slice-02 feature stream into shared
 // scenery instances seated on the terrain height. Density, scale, and the
@@ -20,14 +20,20 @@ export function featuresToBattleScenery(
   features: BattleTerrainFeature[],
   field: TerrainHeightField,
   seed: number,
+  grid?: BattleTerrainGrid,
 ): CampaignSceneryInstance[] {
   const out: CampaignSceneryInstance[] = [];
   const seat = (x: number, y: number) => terrainHeightAt(field, x, y);
+  const dry = (x: number, y: number) => !grid || terrainTintAt(grid, x, y) !== 1;
   for (let fi = 0; fi < features.length; fi++) {
     const f = features[fi];
     const rand = scatterRng(seed ^ Math.imul(fi + 1, 0x9e3779b1));
-    if (f.kind === 'forest') {
-      const n = clampInt(Math.round(f.radius * f.radius * TREES_PER_AREA), 12, MAX_TREES_PER_FOREST);
+    if (f.kind === "forest") {
+      const n = clampInt(
+        Math.round(f.radius * f.radius * TREES_PER_AREA),
+        12,
+        MAX_TREES_PER_FOREST,
+      );
       for (let k = 0; k < n; k++) {
         // Uniform area fill (sqrt keeps the density even from centre to edge) so
         // the wood reads as a packed canopy rather than a hollow ring.
@@ -35,40 +41,57 @@ export function featuresToBattleScenery(
         const a = rand() * Math.PI * 2;
         const x = f.x + Math.cos(a) * r;
         const y = f.y + Math.sin(a) * r;
+        if (!dry(x, y)) continue;
         out.push({
           x,
           y,
           z: seat(x, y),
           size: 4.2 + rand() * 2.2,
-          kind: rand() > 0.5 ? 'conifer' : 'broadleaf',
+          kind: rand() > 0.5 ? "conifer" : "broadleaf",
           yaw: rand() * Math.PI * 2,
           shade: 0.5 + rand() * 0.4,
         });
       }
-    } else if (f.kind === 'rock') {
+    } else if (f.kind === "rock") {
       const n = clampInt(Math.round(f.radius * ROCKS_PER_RADIUS), 1, MAX_ROCKS_PER_OUTCROP);
       for (let k = 0; k < n; k++) {
         const r = f.radius * 0.5 * Math.sqrt(rand());
         const a = rand() * Math.PI * 2;
         const x = f.x + Math.cos(a) * r;
         const y = f.y + Math.sin(a) * r;
+        if (!dry(x, y)) continue;
         out.push({
           x,
           y,
           z: seat(x, y),
           size: 2.4 + rand() * 1.8,
-          kind: 'rock',
+          kind: "rock",
           yaw: rand() * Math.PI * 2,
           shade: 0.55 + rand() * 0.35,
         });
       }
-    } else if (f.kind === 'micro-rough') {
+    } else if (f.kind === "micro-rough") {
       // A single tiny stone marking the spot.
-      out.push({ x: f.x, y: f.y, z: seat(f.x, f.y), size: 0.9 + rand() * 0.5, kind: 'rock', yaw: rand() * Math.PI * 2, shade: 0.6 });
+      if (!dry(f.x, f.y)) continue;
+      out.push({
+        x: f.x,
+        y: f.y,
+        z: seat(f.x, f.y),
+        size: 0.9 + rand() * 0.5,
+        kind: "rock",
+        yaw: rand() * Math.PI * 2,
+        shade: 0.6,
+      });
     }
     // water/wall/mud/scree are ground/horizon concerns, not scattered props.
   }
   return out;
+}
+
+function terrainTintAt(grid: BattleTerrainGrid, x: number, y: number): number {
+  const cx = Math.max(0, Math.min(grid.w - 1, Math.floor((x - grid.ox) / grid.cell)));
+  const cy = Math.max(0, Math.min(grid.h - 1, Math.floor((y - grid.oy) / grid.cell)));
+  return grid.tint[cy * grid.w + cx] ?? 0;
 }
 
 // A small deterministic PRNG seeded per feature so scatter is reproducible.

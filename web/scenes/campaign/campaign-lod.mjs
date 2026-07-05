@@ -21,7 +21,6 @@ const MAINLAND_ITALY_CITY_NAMES = [
   "Volsinii",
   "Casinum",
   "Aesernia",
-  "Teanum",
   "Capua",
 ];
 const CENTRAL_ITALY_ROAD_PAIRS = [
@@ -34,8 +33,6 @@ const CENTRAL_ITALY_ROAD_PAIRS = [
   ["Alba Fucens", "Tibur"],
   ["Narnia", "Spoletium"],
   ["Clusium", "Volsinii"],
-  ["Casinum", "Teanum"],
-  ["Minturnae", "Teanum"],
   ["Capua", "Minturnae"],
 ];
 // The same three world-space Apennine regions as before slice 05, reprojected

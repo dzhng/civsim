@@ -6,12 +6,15 @@
 // DirectionalLight, and toneMappingExposure. New physical fields are ADDED to
 // that owner, never forked into a parallel table — everything here is a pure
 // function of the preset (pinned by web/tests/photorealEnvironment.test.ts).
-import { Color, DirectionalLight } from 'three';
-import type { Node } from 'three/webgpu';
-import type { CivsimEnvironment, CivsimEnvironmentId } from '../../game-renderer/src/environment/environment';
-import { SkyModel, skyModelParams } from './atmosphere/skyModel';
-import { aerialIdentity, aerialPerspectiveNode } from './atmosphere/aerialPerspective';
-import type { PhotorealWorld } from './world';
+import { Color, DirectionalLight } from "three";
+import type { Node } from "three/webgpu";
+import type {
+  CivsimEnvironment,
+  CivsimEnvironmentId,
+} from "../../game-renderer/src/environment/environment";
+import { SkyModel, skyModelParams } from "./atmosphere/skyModel";
+import { aerialIdentity, aerialPerspectiveNode } from "./atmosphere/aerialPerspective";
+import type { PhotorealWorld } from "./world";
 
 type Rgb = [number, number, number];
 
@@ -56,7 +59,7 @@ export function photorealEnvironment(env: CivsimEnvironment): PhotorealEnvironme
 export interface PhotorealEnvironmentOptions {
   /** Observer point for aerial optical depth (see aerialPerspectiveNode) —
    *  the battle world passes its camera ground focus. Default: the eye. */
-  aerialObserver?: Node<'vec3'>;
+  aerialObserver?: Node<"vec3">;
 }
 
 export function applyCivsimEnvironment(
@@ -84,13 +87,17 @@ export function applyCivsimEnvironment(
   // The sun: direction from the preset angles, colour from the SAME sky
   // parameterization (linear transmittance — no display conversion).
   const sun = new DirectionalLight(new Color(...spec.sunColor), spec.sunIntensity);
-  sun.position.set(spec.sunDirection[0] * 400, spec.sunDirection[1] * 400, spec.sunDirection[2] * 400);
+  sun.position.set(
+    spec.sunDirection[0] * 400,
+    spec.sunDirection[1] * 400,
+    spec.sunDirection[2] * 400,
+  );
   sun.target.position.set(0, 0, 0);
   scene.add(sun);
   scene.add(sun.target);
   // Published for the shadow seam (battle/shadowRig.ts, slice 11): shadows are
   // cast BY this same sun, so the preset's sunIntensity already scales how
-  // strongly they read (overcast's 0.4 sun ⇒ faint shadows, by physics).
+  // strongly they read (overcast-highland's 0.32 sun ⇒ faint shadows, by physics).
   world.sunLight = sun;
 
   world.renderer.toneMappingExposure = spec.exposure;

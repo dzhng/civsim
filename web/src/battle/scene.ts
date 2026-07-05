@@ -49,6 +49,7 @@ import {
   type BattleGroundCover,
   type BattleSlopeBands,
 } from "../../../packages/game-renderer/src/battle/terrainFeatures";
+import type { BattleEnvironmentId } from "../../../packages/game-renderer/src/environment/environment";
 import type { BattleVistaGrid } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
 
 const TICK_DT = 1 / 30;
@@ -101,6 +102,7 @@ export type BattleKind = "duel" | "5v5" | "surround" | "flank" | "mapA" | "mapB"
 
 export interface GeneratedBattleMapDescriptor {
   seed: number | string;
+  defaultEnvironment?: BattleEnvironmentId;
   groundCover: BattleGroundCover;
   reliefScale: number;
   slopeBands: BattleSlopeBands;
@@ -236,7 +238,10 @@ export class BattleScene implements Scene {
 
     const canvas = document.getElementById("battlefield") as HTMLCanvasElement;
     const camera = new Camera(canvas);
-    const renderer = (sharedRenderer ??= new BattleRenderer(canvas));
+    const defaultEnvironment = this.cfg.generatedMap?.defaultEnvironment ?? null;
+    const renderer = (sharedRenderer ??= new BattleRenderer(canvas, {
+      environment: defaultEnvironment,
+    }));
     // The camera rides the terrain: look target + eye clearance sample the
     // same height field the renderer draws, so the soldier-eye zoom floor
     // stays above hills and WASD panning auto-raises.

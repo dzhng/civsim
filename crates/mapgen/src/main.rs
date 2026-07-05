@@ -2,12 +2,12 @@
 //! web/public/data/campaign-map.json (+ campaign-bg.png/.json). One command,
 //! run from the repo root:
 //!   cargo run -p mapgen --release
-//! It writes the raw map, then runs the JS post-steps in order — leagues.mjs
-//! (fold leftover independents into neutral leagues), prune-cities.mjs
-//! (drop towns too close to render cleanly), then dequalify-names.mjs
-//! (normalize display names) — so the committed map is always the finished one
-//! and a re-bake can't silently skip a step. Needs `node` on PATH. Source data:
-//! crates/mapgen/data/fetch.sh
+//! It writes the raw map, runs the post-steps in order — leagues.mjs (fold
+//! leftover independents into neutral leagues), prune-cities.mjs (drop towns too
+//! close to render cleanly), dequalify-names.mjs (normalize display names), then
+//! Rust descope/landroute cleanup — so the committed map is always the finished
+//! one and a re-bake can't silently skip a step. Needs `node` on PATH. Source
+//! data: crates/mapgen/data/fetch.sh
 
 mod build;
 mod connectivity;
@@ -125,17 +125,21 @@ fn main() {
     .unwrap();
     eprintln!("wrote {out_dir}/campaign-map.json, campaign-bg.png, campaign-bg.json");
 
-    // Finish the map in JS, in order: fold the leftover independent cities into
-    // regional neutral leagues (no ownerless grey on the political map), then
-    // thin out towns that sit too close for their 3D models to read, then
-    // normalize city/faction display names over that final city set. Run here so
-    // `cargo run -p mapgen` always emits the finished, committed map.
+    // Finish the map in order: fold the leftover independent cities into regional
+    // neutral leagues (no ownerless grey on the political map), thin out towns
+    // that sit too close for their 3D models to read, then normalize names over
+    // that final city set. Run here so `cargo run -p mapgen` always emits the
+    // finished, committed map.
     post_step("crates/mapgen/leagues.mjs");
     post_step("crates/mapgen/prune-cities.mjs");
     post_step("crates/mapgen/dequalify-names.mjs");
-    // The sea-route feature is descoped: keep only the Gibraltar and Hellespont
+    // The sea-route feature is descoped: keep only the three committed strait
     // lanes, delete the rest, and prune the junctions that only routed sea.
-    post_step("crates/mapgen/descope-sea-lanes.mjs");
+    let map_path = format!("{out_dir}/campaign-map.json");
+    let mut map: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(&map_path).unwrap()).unwrap();
+    connectivity::descope_sea_lanes(&mut map);
+    std::fs::write(&map_path, serde_json::to_string(&map).unwrap()).unwrap();
 
     landroute::make_committed_roads_land_safe(out_dir, &r, &rivers, &mountains, bb);
 

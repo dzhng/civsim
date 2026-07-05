@@ -96,6 +96,26 @@ turbidity 9.8 -> 7.2 so ranges READ THROUGH haze):
   (compose round-1 sheet + browser sheet); no response within the window -
   proceeded on evidence per the non-blocking rule.
 
+## David's checkpoint response (2026-07-05, reviewing the curated set)
+
+- **Slice 20: GO.** Retire the 3 hand maps.
+- **Variety directive:** not every map needs every terrain type - allow
+  flat-plain-only maps and waterless maps in the seed spread (generator
+  recipe work; routes to a variety pass, not this gate).
+- **Custom battle:** add a generate-random-map button with a top-down
+  preview image; a random generated map should be the default.
+- **Grass verdict:** the production grass reads coarser/sparser than the
+  ratified False Earth close-gate look - investigate (blade scale/density
+  regression at production tiers).
+- **Soldiers:** stop reading as blue/red blobs - realistic soldier
+  rendering, faction color only in subtle accents (shield/helmet);
+  identity comes from the flags.
+- Plus session bugs (tracked outside this spec): unit animations still
+  not visible / flicker (3rd attempt - needs a frame-by-frame phase
+  harness; legs full swing ~500ms when moving), ~25fps on camera move
+  (suspect grass), hold-space movement preview shows a rectangle for
+  square formations.
+
 ## Feedback that would change it
 
 David's verdict IS this slice. Each miss becomes a pointer to the owning

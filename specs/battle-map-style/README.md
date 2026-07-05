@@ -21,16 +21,16 @@ Reference images (in `assets/` and the aesthetics skill):
 
 ## Next Agent Prompt
 
-**Status 2026-07-05: slices 00–03, 10–14 DONE/CODE-LANDED (00–03,10–12
-live-verified; 13–14 renderer/scene landed with browser blessing +
-screenshot-critique still owed by orchestrator).** Next pickups:
-[04-hydrology](slices/04-hydrology.md) (G-track) and
-[15-lake-render](slices/15-lake-render.md) (V-track). Read slice 10's TSL
-hazards + slice 11's integration findings before
-touching the blade field; the camera-truth trap and oracle re-anchoring live
-in [00's locked values](slices/00-composition-and-oracle-lock.md); the
-horizon-0.50 promotion waits on slice 14's vista apron (pinned 0.169 at the
-locked camera, slice 03 notes).
+**Status 2026-07-05: slices 00–04, 10–14 DONE (live-verified).** Generated
+maps now have: slope-sealed highland flanks with fracture-rock material, one
+natural lake pocket with streams and marsh, the TW vista apron + far fog ring
+(no more blocker spikes), and production blade grass with smooth thinning.
+Next pickups: [05-edge-grammar](slices/05-edge-grammar.md) (G-track) and
+[15-lake-render](slices/15-lake-render.md) (V-track — the lake pocket exists;
+seaLayer generalization per the slice). Then 06 + 16. Read slice 10's TSL
+hazards, slice 11's integration findings, and slice 04's three shoreline
+lessons before touching their areas; camera/oracle traps live in
+[00's locked values](slices/00-composition-and-oracle-lock.md).
 
 Before writing any code, read:
 

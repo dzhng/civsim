@@ -1,6 +1,9 @@
+use crate::build;
 use crate::geo::{dist, BBox};
+use crate::landroute;
 use crate::probe;
 use crate::raster;
+use crate::sources;
 use serde::Deserialize;
 use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
@@ -17,10 +20,8 @@ pub const KEEP_SEA_LANES: &[(&str, &str)] = &[
 /// / Caucasus / Crimea rim starts at 158 km — a clean gap at 133↔158. Because the
 /// merge is ITERATIVE, interior-cluster cities (Sicily's Lilybaeum, Cape Tainaron)
 /// chain in via short hops after the first bridge, so no per-landmass rule is
-/// needed. NOTE: `is_reconnectable` below is the per-hop helper; slice 03 wraps it
-/// in the iterative merge so the classification is the merge OUTCOME, not a static
+/// needed. The classification is the iterative merge OUTCOME, not a static
 /// per-city gap.
-#[allow(dead_code)]
 pub const RECONNECT_MAX_GAP_KM: f64 = 140.0;
 
 const WATER_LABEL: u32 = u32::MAX;
@@ -246,6 +247,140 @@ pub fn main_component(map: &Value, capital_ids: &[u32]) -> BTreeSet<u32> {
     seen
 }
 
+pub fn reconnect_plan(
+    map: &Value,
+    raster: &raster::Raster,
+    capital_ids: &[u32],
+    max_gap_km: f64,
+) -> Vec<(u32, u32, Vec<[f64; 2]>)> {
+    let nodes = parse_nodes(map);
+    let labels = landmass_labels(raster);
+    let node_labels: BTreeMap<u32, Option<u32>> = nodes
+        .values()
+        .map(|node| (node.id, label_at_pos(node.pos, &labels, raster)))
+        .collect();
+    let mut grown = main_component(map, capital_ids);
+    let mut out = Vec::new();
+
+    loop {
+        let mut best: Option<(f64, u32, u32, Vec<[f64; 2]>)> = None;
+        for city in nodes
+            .values()
+            .filter(|node| node.kind == "city" && !grown.contains(&node.id))
+        {
+            let Some(city_label) = node_labels.get(&city.id).copied().flatten() else {
+                continue;
+            };
+            let Some(city_start) = snap_land(city.pos, raster) else {
+                continue;
+            };
+            let mut targets: Vec<(f64, u32, &Node)> = nodes
+                .values()
+                .filter(|node| grown.contains(&node.id))
+                .filter(|target| node_labels.get(&target.id).copied().flatten() == Some(city_label))
+                .filter_map(|target| {
+                    let gap = dist(city.pos, target.pos);
+                    (gap <= max_gap_km).then_some((gap, target.id, target))
+                })
+                .collect();
+            targets.sort_by(|a, b| a.0.total_cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
+
+            let mut city_candidate = None;
+            for (gap, target_id, target) in targets {
+                let Some(target_goal) = snap_land(target.pos, raster) else {
+                    continue;
+                };
+                let Some(interior) =
+                    landroute::astar_land_path(raster, city_start, target_goal, gap, 0)
+                else {
+                    continue;
+                };
+                let mut via = Vec::with_capacity(interior.len() + 2);
+                via.push(city.pos);
+                via.extend(interior);
+                via.push(target.pos);
+                city_candidate = Some((gap, city.id, target_id, via));
+                break;
+            }
+
+            if let Some(candidate) = city_candidate {
+                if best
+                    .as_ref()
+                    .map_or(true, |cur| reconnect_plan_order(&candidate, cur).is_lt())
+                {
+                    best = Some(candidate);
+                }
+            }
+        }
+
+        let Some((_, city_id, target_id, via)) = best else {
+            break;
+        };
+        out.push((city_id, target_id, via));
+        grown.insert(city_id);
+    }
+
+    out
+}
+
+pub fn descope_and_reconnect(
+    out_dir: &str,
+    raster: &raster::Raster,
+    rivers: &[Vec<[f64; 2]>],
+    mountains: &[sources::Poly],
+    bb: BBox,
+) {
+    let path = format!("{out_dir}/campaign-map.json");
+    let mut map: Value =
+        serde_json::from_str(&std::fs::read_to_string(&path).expect("campaign-map.json"))
+            .expect("campaign-map json");
+
+    descope_sea_lanes(&mut map);
+
+    let nodes = parse_nodes(&map);
+    let capital_ids = playable_capital_ids(&map, &nodes);
+    let plan = reconnect_plan(&map, raster, &capital_ids, RECONNECT_MAX_GAP_KM);
+    let river_grid = build::build_river_grid(bb, rivers);
+
+    for (city_id, target_id, via) in &plan {
+        let eidx = map["edges"].as_array().expect("edges array").len();
+        let (tiles, ambush) =
+            build::classify_route_tiles(via, "road", eidx, &river_grid, mountains);
+
+        map["edges"]
+            .as_array_mut()
+            .expect("edges array")
+            .push(json!({
+                "a": city_id,
+                "b": target_id,
+                "kind": "road",
+                "via": via,
+                "tiles": tiles,
+            }));
+        let ambush_spots = map["ambush_spots"]
+            .as_array_mut()
+            .expect("ambush_spots array");
+        for spot in ambush {
+            ambush_spots.push(serde_json::to_value(spot).expect("ambush spot json"));
+        }
+    }
+
+    let main = main_component(&map, &capital_ids);
+    let mut islands: Vec<String> = nodes
+        .values()
+        .filter(|node| node.kind == "city" && !main.contains(&node.id))
+        .map(|node| node.name.clone())
+        .collect();
+    islands.sort();
+    eprintln!(
+        "connectivity: reconnected {} cities; islands: {:?}",
+        plan.len(),
+        islands
+    );
+
+    std::fs::write(&path, serde_json::to_string(&map).unwrap()).unwrap();
+}
+
 pub fn nearest_main_node_on_landmass(
     city_pos: [f64; 2],
     main_nodes: &[(u32, [f64; 2])],
@@ -260,20 +395,6 @@ pub fn nearest_main_node_on_landmass(
             (label == city_label).then_some((id, dist(city_pos, pos)))
         })
         .min_by(|a, b| a.1.total_cmp(&b.1).then_with(|| a.0.cmp(&b.0)))
-}
-
-#[allow(dead_code)]
-pub fn is_reconnectable(
-    city_pos: [f64; 2],
-    in_main: bool,
-    main_nodes: &[(u32, [f64; 2])],
-    labels: &[u32],
-    raster: &raster::Raster,
-    max_gap_km: f64,
-) -> bool {
-    !in_main
-        && nearest_main_node_on_landmass(city_pos, main_nodes, labels, raster)
-            .map_or(false, |(_, gap)| gap <= max_gap_km)
 }
 
 pub fn print_report() {
@@ -418,12 +539,36 @@ fn pos_value(v: &Value) -> Option<[f64; 2]> {
     Some([arr.first()?.as_f64()?, arr.get(1)?.as_f64()?])
 }
 
+fn playable_capital_ids(map: &Value, nodes: &BTreeMap<u32, Node>) -> Vec<u32> {
+    let ids_by_name: BTreeMap<&str, u32> = nodes
+        .values()
+        .map(|node| (node.name.as_str(), node.id))
+        .collect();
+    map.get("factions")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter(|f| f.get("playable").and_then(Value::as_bool).unwrap_or(false))
+        .filter_map(|f| f.get("capital").and_then(Value::as_str))
+        .filter_map(|name| ids_by_name.get(name).copied())
+        .collect()
+}
+
 fn ordered_name_pair<'a>(a: &'a str, b: &'a str) -> (&'a str, &'a str) {
     if a <= b {
         (a, b)
     } else {
         (b, a)
     }
+}
+
+fn reconnect_plan_order(
+    a: &(f64, u32, u32, Vec<[f64; 2]>),
+    b: &(f64, u32, u32, Vec<[f64; 2]>),
+) -> std::cmp::Ordering {
+    a.0.total_cmp(&b.0)
+        .then_with(|| a.1.cmp(&b.1))
+        .then_with(|| a.2.cmp(&b.2))
 }
 
 fn off_main_city_component_sizes(
@@ -485,6 +630,25 @@ fn label_at_pos(pos: [f64; 2], labels: &[u32], raster: &raster::Raster) -> Optio
         }
     }
     None
+}
+
+fn snap_land(pos: [f64; 2], raster: &raster::Raster) -> Option<[f64; 2]> {
+    if let Some([x, y]) = raster.cell_of(pos) {
+        if raster.is_land_cell(x, y) {
+            return Some(pos);
+        }
+    }
+    raster
+        .nearest_land_neighborhood_center(pos, 40.0, 0)
+        .or_else(|| nearest_land_cell_center(pos, raster))
+}
+
+fn nearest_land_cell_center(pos: [f64; 2], raster: &raster::Raster) -> Option<[f64; 2]> {
+    let radius = raster.w.max(raster.h) as isize;
+    nearby_cells(pos, raster, radius)
+        .into_iter()
+        .find(|&(x, y)| raster.is_land_cell(x, y))
+        .map(|(x, y)| raster.cell_center(x, y))
 }
 
 fn nearby_cells(
@@ -619,23 +783,7 @@ mod tests {
         assert_eq!(label_at_pos(britain_b, &labels, &raster), Some(2));
         assert!(!main.contains(&3));
         assert!(!main.contains(&4));
-        let main_nodes = vec![(1, west), (2, east)];
-        assert!(!is_reconnectable(
-            britain_a,
-            main.contains(&3),
-            &main_nodes,
-            &labels,
-            &raster,
-            100.0
-        ));
-        assert!(!is_reconnectable(
-            britain_b,
-            main.contains(&4),
-            &main_nodes,
-            &labels,
-            &raster,
-            100.0
-        ));
+        assert!(reconnect_plan(&map, &raster, &[1], 100.0).is_empty());
     }
 
     #[test]
@@ -651,35 +799,108 @@ mod tests {
             nearest_main_node_on_landmass(city_pos, &main_nodes, &labels, &raster),
             Some((1, gap))
         );
-        assert!(!is_reconnectable(
-            city_pos,
-            false,
-            &main_nodes,
-            &labels,
-            &raster,
-            gap - 0.01
-        ));
-        assert!(is_reconnectable(
-            city_pos,
-            false,
-            &main_nodes,
-            &labels,
-            &raster,
-            gap
-        ));
-        assert!(!is_reconnectable(
-            city_pos,
-            true,
-            &main_nodes,
-            &labels,
-            &raster,
-            gap
-        ));
+        let map = json!({
+            "nodes": [
+                {"id": 1, "name": "Main", "kind": "city", "pos": main_pos},
+                {"id": 2, "name": "Off", "kind": "city", "pos": city_pos}
+            ],
+            "edges": [],
+            "factions": []
+        });
+        assert!(reconnect_plan(&map, &raster, &[1], gap - 0.01).is_empty());
+        let plan = reconnect_plan(&map, &raster, &[1], gap);
+        assert_eq!(plan.len(), 1);
+        assert_eq!((plan[0].0, plan[0].1), (2, 1));
+        assert_eq!(plan[0].2.first(), Some(&city_pos));
+        assert_eq!(plan[0].2.last(), Some(&main_pos));
+
+        let connected_map = json!({
+            "nodes": [
+                {"id": 1, "name": "Main", "kind": "city", "pos": main_pos},
+                {"id": 2, "name": "Off", "kind": "city", "pos": city_pos}
+            ],
+            "edges": [{"a": 1, "b": 2, "kind": "road"}],
+            "factions": []
+        });
+        assert!(reconnect_plan(&connected_map, &raster, &[1], gap).is_empty());
+    }
+
+    #[test]
+    fn reconnect_plan_iteratively_chains_same_landmass_cities() {
+        let raster = test_raster(&[(1, 1, 14, 3)]);
+        let main = raster.cell_center(1, 2);
+        let middle = raster.cell_center(5, 2);
+        let far = raster.cell_center(9, 2);
+        let too_far = raster.cell_center(14, 2);
+        let map = json!({
+            "nodes": [
+                {"id": 1, "name": "Main", "kind": "city", "pos": main},
+                {"id": 2, "name": "Middle", "kind": "city", "pos": middle},
+                {"id": 3, "name": "Far", "kind": "city", "pos": far},
+                {"id": 4, "name": "Too Far", "kind": "city", "pos": too_far}
+            ],
+            "edges": [],
+            "factions": []
+        });
+
+        assert_eq!(dist(main, far), 8.0);
+        let plan = reconnect_plan(&map, &raster, &[1], 4.5);
+        let pairs: Vec<(u32, u32)> = plan
+            .iter()
+            .map(|(city_id, target_id, _)| (*city_id, *target_id))
+            .collect();
+        assert_eq!(pairs, vec![(2, 1), (3, 2)]);
+    }
+
+    #[test]
+    fn reconnect_plan_uses_nearest_drawable_target_not_nearest_same_landmass_target() {
+        let raster = test_raster_sized(100, 8, &[(5, 3, 95, 3), (5, 3, 5, 5), (5, 5, 95, 5)]);
+        let near_undrawable = raster.cell_center(95, 3);
+        let far_drawable = raster.cell_center(92, 5);
+        let city = raster.cell_center(95, 5);
+        let map = json!({
+            "nodes": [
+                {"id": 1, "name": "Near Across Gap", "kind": "city", "pos": near_undrawable},
+                {"id": 2, "name": "Far Same Strip", "kind": "city", "pos": far_drawable},
+                {"id": 3, "name": "Peninsula Tip", "kind": "city", "pos": city}
+            ],
+            "edges": [{"a": 1, "b": 2, "kind": "road"}],
+            "factions": []
+        });
+
+        let labels = landmass_labels(&raster);
+        assert_eq!(
+            label_at_pos(city, &labels, &raster),
+            label_at_pos(near_undrawable, &labels, &raster)
+        );
+        assert_eq!(
+            label_at_pos(city, &labels, &raster),
+            label_at_pos(far_drawable, &labels, &raster)
+        );
+        assert!(
+            landroute::astar_land_path(
+                &raster,
+                snap_land(city, &raster).unwrap(),
+                snap_land(near_undrawable, &raster).unwrap(),
+                dist(city, near_undrawable),
+                0,
+            )
+            .is_none(),
+            "nearest same-label target should not be drawable across the water gap"
+        );
+
+        let plan = reconnect_plan(&map, &raster, &[1], 10.0);
+        assert_eq!(plan.len(), 1);
+        assert_eq!((plan[0].0, plan[0].1), (3, 2));
+        assert_eq!(plan[0].2.first(), Some(&city));
+        assert_eq!(plan[0].2.last(), Some(&far_drawable));
     }
 
     fn test_raster(rects: &[(usize, usize, usize, usize)]) -> Raster {
-        let w = 12usize;
-        let h = 6usize;
+        test_raster_sized(16, 6, rects)
+    }
+
+    fn test_raster_sized(w: usize, h: usize, rects: &[(usize, usize, usize, usize)]) -> Raster {
         let mut px = vec![0u8; w * h * 4];
         for i in 0..w * h {
             px[i * 4..i * 4 + 3].copy_from_slice(&RenderMaskClass::Sea.rgb());
@@ -696,7 +917,7 @@ mod tests {
         Raster::from_rgba(
             BBox {
                 min: [0.0, 0.0],
-                max: [12.0, 6.0],
+                max: [w as f64, h as f64],
             },
             w,
             h,

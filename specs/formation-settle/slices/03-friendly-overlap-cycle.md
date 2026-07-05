@@ -1,5 +1,32 @@
 # Slice 03 — Family B: the friendly-overlap limit cycle
 
+## SHIPPED (grazing) + RATIFIED DIRECTION for 03b (David, 2026-07-06)
+
+The 2m/5m grazing cases shipped in pass 4 via the trajectory-frame damp
+(see README). The DEEP case (`settle_deeply_overlapping_friendly`,
+ignored/red) remains, and at game scale it is loud: 350-man units, 8m
+overlap → ~2 m/s forever, men walking to relabeled slots
+(`assets/feelcheck3-u1.png`). When picking this up:
+
+- **David's design direction (primary candidate): resting anchors must
+  not overlap other soldiers.** Make the TARGET GEOMETRY conflict-free —
+  a slot another body occupies is not a valid rest target; deconflict at
+  the slot-assignment / frame level so every man's pull terminates on an
+  occupiable spot and all forces reach zero naturally. This is the
+  assignment-level cousin of `clamp_to_passable` (terrain) and the
+  achievability slide (frame): one law — "the ideal formation is always
+  physically achievable" — extended from ground to bodies.
+- The three pull-gating variants (3m floor / body-width floor /
+  floorless occupancy zeroing) are measured dead: 0.082 / 0.373 / 0.59 —
+  banned re-entries. The weave rest shape is why pull-gating alone
+  cannot converge: bonds demand men stand at rest offsets that sit
+  inside the neighbour.
+- Re-pin the gate at game scale (350-man blocks, wide-frame overlap),
+  keeping the 120-man case as the fast tracer.
+- The at-ease reform relabel storm is a co-suspect (same transit
+  signature as slice 04's deep-reform churn) — instrument both before
+  designing.
+
 ## Contract unlocked
 
 A unit whose destination frame overlaps a standing friendly reaches a REAL

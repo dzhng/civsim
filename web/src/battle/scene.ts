@@ -48,6 +48,12 @@ import { Input } from "./input";
 import { MANUAL_HTML } from "./manual";
 import { groupMoveDests, UnitSnap } from "./orders";
 import { fightingFrameForTick } from "../../../packages/crowd-runtime/src/animationState";
+import {
+  BATTLE_RELIEF_EXAGGERATION,
+  type BattleGroundCover,
+  type BattleSlopeBands,
+} from "../../../packages/game-renderer/src/battle/terrainFeatures";
+import type { BattleVistaGrid } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
 
 const TICK_DT = 1 / 30;
 const MAX_TICKS_PER_FRAME = 4;
@@ -95,7 +101,53 @@ function renderClassFor(
   return key === undefined ? undefined : map[key];
 }
 
-export type BattleKind = "duel" | "5v5" | "surround" | "flank" | "mapA" | "mapB";
+export type BattleKind = "duel" | "5v5" | "surround" | "flank" | "mapA" | "mapB" | "gen";
+
+export interface GeneratedBattleMapDescriptor {
+  seed: number | string;
+  groundCover: BattleGroundCover;
+  reliefScale: number;
+  slopeBands: BattleSlopeBands;
+  terrainHash: string;
+  lakeSurfaces?: Array<{
+    id: number;
+    level: number;
+    minCellX: number;
+    minCellY: number;
+    maxCellX: number;
+    maxCellY: number;
+    minX: number;
+    minY: number;
+    maxX: number;
+    maxY: number;
+    cells: number;
+  }>;
+  vista?: {
+    shape: string;
+    bands: Array<{
+      name: string;
+      width: number;
+      height: number;
+      cell: number;
+      originX: number;
+      originY: number;
+      innerHalfW: number;
+      innerHalfH: number;
+      outerHalfW: number;
+      outerHalfH: number;
+    }>;
+  } | null;
+}
+
+type VistaExportGame = Game & {
+  generated_vista_band_count(): number;
+  generated_vista_band_width(band: number): number;
+  generated_vista_band_height(band: number): number;
+  generated_vista_band_cell(band: number): number;
+  generated_vista_band_origin_x(band: number): number;
+  generated_vista_band_origin_y(band: number): number;
+  generated_vista_band_height_ptr(band: number): number;
+};
 
 // Chip scale: one readable screen size (text below ~9px is noise), kept
 // subordinate to the flag by HIDING chips at range instead of shrinking them
@@ -142,6 +194,7 @@ export interface BattleConfig {
   /** The catalog map index, when this battle is on a quick-battle map — drives
    *  the renderer's full-field ground cover. */
   wasmMapId?: number;
+  generatedMap?: GeneratedBattleMapDescriptor;
   /** Re-run the exact setup on Restart (a custom battle re-launches its config
    *  instead of a default `kind`). */
   restart?: () => void;
@@ -308,11 +361,29 @@ export class BattleScene implements Scene {
       renderer.setStatic(soldierUnit, teams, classes);
     };
     applyStatic();
+    let generatedVistaForDebug: BattleVistaGrid | null = null;
     {
+      // Vista assembly FIRST: its one-time generation grows wasm memory and
+      // detaches every existing view (the game-wasm pointer rule) - reading
+      // it before the tint/height views keeps them valid.
+      const vista = this.cfg.generatedMap
+        ? readGeneratedVistaGrid(wasm, game, this.cfg.generatedMap)
+        : null;
       const tw = game.terrain_w();
       const th = game.terrain_h();
       const tint = new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), tw * th);
       const height = new Float32Array(wasm.memory.buffer, game.terrain_height_ptr(), tw * th);
+      const reliefScale = this.cfg.generatedMap?.reliefScale ?? BATTLE_RELIEF_EXAGGERATION;
+      const heightForRenderer =
+        reliefScale === BATTLE_RELIEF_EXAGGERATION
+          ? new Float32Array(height)
+          : scaleHeightForRenderer(height, reliefScale);
+      const lakeSurfaces =
+        this.cfg.generatedMap?.lakeSurfaces?.map((lake) => ({
+          ...lake,
+          level: lake.level * reliefScale,
+        })) ?? null;
+      generatedVistaForDebug = vista;
       renderer.setTerrain(
         tw,
         th,
@@ -320,8 +391,11 @@ export class BattleScene implements Scene {
         game.terrain_origin_x(),
         game.terrain_origin_y(),
         new Uint8Array(tint),
-        new Float32Array(height),
+        heightForRenderer,
         this.cfg.wasmMapId,
+        this.cfg.generatedMap?.slopeBands ?? null,
+        vista,
+        lakeSurfaces,
       );
     }
 
@@ -398,6 +472,15 @@ export class BattleScene implements Scene {
         oy,
         worldWidth: w * cell,
         worldHeight: h * cell,
+        generatedMap: this.cfg.generatedMap ?? null,
+        // Verdicts come from the ONE certificate owner (sim genmap::certify via
+        // wasm) - the frontend never re-derives them from the speed field.
+        certificates: this.cfg.generatedMap
+          ? (JSON.parse(this.cfg.game.generated_map_certificates()) as Record<
+              string,
+              number | boolean
+            >)
+          : null,
         counts,
         features: {
           water: feature(terrainTint.water),
@@ -1968,6 +2051,15 @@ export class BattleScene implements Scene {
       // The renderer's canonical terrain surface — lets the harness project
       // world anchors (banners, soldiers) at their true rendered height.
       heightAt: (x: number, y: number) => renderer.heightAt(x, y),
+      vistaHeightAt: (x: number, y: number) =>
+        generatedVistaForDebug ? vistaHeightAt(generatedVistaForDebug, x, y) : null,
+      setCamera: (x: number, y: number, zoom: number, yaw = camera.yaw, pitch = camera.pitch) => {
+        camera.setViewCenter(x, y);
+        camera.zoom = zoom;
+        camera.yaw = yaw;
+        camera.pitchBias = 1.35 - pitch;
+        camera.clampView();
+      },
     };
     window.__cam = camera;
     void renderer.ready
@@ -1981,10 +2073,83 @@ export class BattleScene implements Scene {
   }
 }
 
+function vistaHeightAt(vista: BattleVistaGrid, x: number, y: number): number | null {
+  const band = vista.bands.find(
+    (b) => Math.abs(x) <= b.outerHalfW + b.cell && Math.abs(y) <= b.outerHalfH + b.cell,
+  );
+  if (!band) return null;
+  const gx = clamp((x - band.ox) / band.cell, 0, band.w - 1);
+  const gy = clamp((y - band.oy) / band.cell, 0, band.h - 1);
+  const x0 = Math.floor(gx);
+  const y0 = Math.floor(gy);
+  const x1 = Math.min(x0 + 1, band.w - 1);
+  const y1 = Math.min(y0 + 1, band.h - 1);
+  const tx = gx - x0;
+  const ty = gy - y0;
+  const top = lerp(band.height[y0 * band.w + x0], band.height[y0 * band.w + x1], tx);
+  const bot = lerp(band.height[y1 * band.w + x0], band.height[y1 * band.w + x1], tx);
+  return lerp(top, bot, ty);
+}
+
+function clamp(v: number, lo: number, hi: number): number {
+  return v < lo ? lo : v > hi ? hi : v;
+}
+
+function lerp(a: number, b: number, t: number): number {
+  return a + (b - a) * t;
+}
+
 declare global {
   interface Window {
     __game: unknown;
     __cam: unknown;
     __ready: boolean;
   }
+}
+
+function scaleHeightForRenderer(height: Float32Array, reliefScale: number): Float32Array {
+  const out = new Float32Array(height.length);
+  const scale = reliefScale / BATTLE_RELIEF_EXAGGERATION;
+  for (let i = 0; i < height.length; i++) out[i] = height[i] * scale;
+  return out;
+}
+
+function readGeneratedVistaGrid(
+  wasm: InitOutput,
+  game: Game,
+  descriptor: GeneratedBattleMapDescriptor,
+): BattleVistaGrid | null {
+  const vista = descriptor.vista;
+  if (!vista?.bands?.length) return null;
+  const g = game as VistaExportGame;
+  const count = Math.min(g.generated_vista_band_count(), vista.bands.length);
+  const bands: BattleVistaGrid["bands"] = [];
+  for (let i = 0; i < count; i++) {
+    const meta = vista.bands[i];
+    const w = g.generated_vista_band_width(i);
+    const h = g.generated_vista_band_height(i);
+    const cell = g.generated_vista_band_cell(i);
+    const ox = g.generated_vista_band_origin_x(i);
+    const oy = g.generated_vista_band_origin_y(i);
+    // The height ptr call may (re)generate the band and grow wasm memory,
+    // detaching every earlier view - fetch it LAST and copy immediately,
+    // with no wasm calls in between (the game-wasm pointer rule).
+    const ptr = g.generated_vista_band_height_ptr(i);
+    if (!meta || w <= 0 || h <= 0 || ptr === 0) continue;
+    const height = new Float32Array(new Float32Array(wasm.memory.buffer, ptr, w * h));
+    bands.push({
+      name: meta.name,
+      w,
+      h,
+      cell,
+      ox,
+      oy,
+      innerHalfW: meta.innerHalfW,
+      innerHalfH: meta.innerHalfH,
+      outerHalfW: meta.outerHalfW,
+      outerHalfH: meta.outerHalfH,
+      height,
+    });
+  }
+  return bands.length > 0 ? { shape: vista.shape, bands } : null;
 }

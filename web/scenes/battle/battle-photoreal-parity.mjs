@@ -73,8 +73,10 @@ export async function run(ctx) {
         rs.terrain.sealedEdges.includes("west:cliff") &&
         rs.terrain.sealedEdges.includes("east:ocean") &&
         rs.terrain.scenery >= 500 &&
-        rs.terrain.grass.tuftInstances > 1000 &&
-        rs.terrain.grass.bladeInstances > 10000,
+        rs.terrain.grass.layer === "photoreal-blade-field" &&
+        rs.terrain.grass.recordCount > 1000 &&
+        rs.terrain.grass.packedBytesPerRecord === 64 &&
+        rs.terrain.grass.sourceStorageCore?.runtimeComputeRoute === "active",
       JSON.stringify(
         rs?.terrain && {
           groundTriangles: rs.terrain.groundTriangles,

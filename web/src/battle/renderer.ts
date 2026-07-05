@@ -14,10 +14,11 @@
 import type { Camera } from "../shared/camera";
 import {
   PhotorealBattleWorld,
+  type BattleLakeSurfaceSpec,
   type BattleCameraSnapshot,
+  type BattleVistaGrid,
 } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
-import type { BattleReadoutInstance } from "../../../packages/photoreal-renderer/src/battle/readoutLayer";
-import type { BattleStandardInstance } from "../../../packages/photoreal-renderer/src/battle/standardLayer";
+import type { BattleSlopeBands } from "../../../packages/game-renderer/src/battle/terrainFeatures";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
 
 export class BattleRenderer {
@@ -44,7 +45,6 @@ export class BattleRenderer {
     frameCpuMs: 0,
   };
   private frameStart = 0;
-  private readoutFrameKey = "";
   private lastCamera: BattleCameraSnapshot = {
     x: 0,
     y: 0,
@@ -81,7 +81,6 @@ export class BattleRenderer {
     this.soldierUnit = new Uint32Array(soldierUnit);
     this.unitTeam = teams.map((team) => (team === 1 ? 1 : 0));
     this.frozenFrameKey = null;
-    this.readoutFrameKey = "";
     this.triangleVerts = new Float32Array();
     if (this.world) {
       this.world.setStatic(soldierUnit, teams, classes);
@@ -104,9 +103,24 @@ export class BattleRenderer {
     tint?: Uint8Array,
     height?: Float32Array,
     wasmMapId?: number,
+    slopeBands?: BattleSlopeBands | null,
+    vista?: BattleVistaGrid | null,
+    lakeSurfaces?: BattleLakeSurfaceSpec[] | null,
   ) {
     if (this.world) {
-      this.world.setTerrain(w, h, cell, ox, oy, tint, height, wasmMapId);
+      this.world.setTerrain(
+        w,
+        h,
+        cell,
+        ox,
+        oy,
+        tint,
+        height,
+        wasmMapId,
+        slopeBands,
+        vista,
+        lakeSurfaces,
+      );
     } else {
       this.pendingTerrain = [
         w,
@@ -117,6 +131,9 @@ export class BattleRenderer {
         tint ? new Uint8Array(tint) : undefined,
         height ? new Float32Array(height) : undefined,
         wasmMapId,
+        slopeBands ?? null,
+        cloneVistaGrid(vista),
+        cloneLakeSurfaces(lakeSurfaces),
       ];
     }
   }
@@ -221,27 +238,6 @@ export class BattleRenderer {
     }
   }
 
-  /** True-projection pixels-per-world-meter at a point (see
-   *  PhotorealBattleWorld.pxPerWorldAt) — the rig's chart worldToScreen lies
-   *  in the swoop regime. */
-  pxPerWorldAt(x: number, y: number, z: number): number {
-    return this.world?.pxPerWorldAt(x, y, z) ?? 0;
-  }
-
-  setUnitReadouts(
-    standards: readonly BattleStandardInstance[],
-    readouts: readonly BattleReadoutInstance[],
-  ) {
-    if (!this.world) return;
-    const key = readoutsKey(standards, readouts);
-    if (key !== this.readoutFrameKey) {
-      this.readoutFrameKey = key;
-      this.frozenFrameKey = null;
-      this.skipFrozenFrame = false;
-    }
-    this.world.uploadUnitReadouts(standards, readouts);
-  }
-
   stats() {
     const ws = this.world?.stats() ?? null;
     return {
@@ -271,8 +267,6 @@ export class BattleRenderer {
       terrain: ws?.terrain ?? null,
       tacticalLines: ws?.tacticalLines ?? { groundCues: null, rings: null, effects: null },
       markers: ws?.markers ?? null,
-      standards: ws?.standards ?? null,
-      readouts: ws?.readouts ?? null,
       performance: {
         buildMs: roundMs(this.framePerf.buildMs),
         uploadMs: roundMs(this.framePerf.uploadMs),
@@ -326,6 +320,23 @@ export class BattleRenderer {
   }
 }
 
+function cloneVistaGrid(vista?: BattleVistaGrid | null): BattleVistaGrid | null {
+  if (!vista) return null;
+  return {
+    shape: vista.shape,
+    bands: vista.bands.map((band) => ({
+      ...band,
+      height: new Float32Array(band.height),
+    })),
+  };
+}
+
+function cloneLakeSurfaces(
+  lakeSurfaces?: BattleLakeSurfaceSpec[] | null,
+): BattleLakeSurfaceSpec[] | null {
+  return lakeSurfaces ? lakeSurfaces.map((surface) => ({ ...surface })) : null;
+}
+
 export interface BattleTacticalLineFrame {
   groundCues: Float32Array;
   /** Per-soldier selection rings, (x, y, radius, r, g, b) per instance. */
@@ -350,20 +361,6 @@ function frozenSelectionGroundCues(verts: Float32Array) {
     for (let k = 0; k < stride * 2; k++) out.push(verts[i + k]);
   }
   return new Float32Array(out);
-}
-
-function readoutsKey(
-  standards: readonly BattleStandardInstance[],
-  readouts: readonly BattleReadoutInstance[],
-) {
-  let key = `${standards.length}/${readouts.length}`;
-  for (const standard of standards) {
-    key += `|${standard.unitId}:${Math.round(standard.x * 10)},${Math.round(standard.y * 10)},${Math.round(standard.z * 10)},${Math.round(standard.yaw * 100)},${Math.round(standard.scale * 100)},${standard.factionId},${standard.selected ? 1 : 0}`;
-  }
-  for (const readout of readouts) {
-    key += `#${readout.unitId}:${Math.round(readout.x * 10)},${Math.round(readout.y * 10)},${Math.round(readout.z * 10)},${Math.round(readout.worldPerPx * 1000)},${readout.chips.map((c) => `${c.kind ?? ""}${c.text}`).join(",")}`;
-  }
-  return key;
 }
 
 function roundMs(value: number) {

@@ -37077,13 +37077,6 @@
       "coast_km": 4.619
     },
     {
-      "name": "Aeclanum",
-      "x": -250.71070708023785,
-      "y": 344.5356552759668,
-      "land": true,
-      "coast_km": null
-    },
-    {
       "name": "Aelana",
       "x": 1638.479639634806,
       "y": -797.5927519292391,
@@ -37175,7 +37168,7 @@
       "coast_km": 26.488
     },
     {
-      "name": "Caesarea (Phrygia)",
+      "name": "Caesarea Phrygia",
       "x": 1144.6711563387826,
       "y": 115.02216842125604,
       "land": true,
@@ -37189,7 +37182,7 @@
       "coast_km": null
     },
     {
-      "name": "Apamea (Pisidia)",
+      "name": "Apamea Pisidia",
       "x": 1061.0912557292145,
       "y": 77.90479318481216,
       "land": true,
@@ -37441,13 +37434,6 @@
       "coast_km": null
     },
     {
-      "name": "Bonna",
-      "x": -769.8764118453005,
-      "y": 1462.673514393803,
-      "land": true,
-      "coast_km": null
-    },
-    {
       "name": "Bononia",
       "x": -527.7864002457744,
       "y": 741.2830700496863,
@@ -37455,7 +37441,7 @@
       "coast_km": null
     },
     {
-      "name": "Bononia (Moesia)",
+      "name": "Bononia Moesia",
       "x": 391.7547150258971,
       "y": 678.2974013878418,
       "land": true,
@@ -37465,13 +37451,6 @@
       "name": "Bostra",
       "x": 1720.00042897173,
       "y": -442.44514121302257,
-      "land": true,
-      "coast_km": null
-    },
-    {
-      "name": "Bovianum",
-      "x": -293.8249361423038,
-      "y": 393.243766418487,
       "land": true,
       "coast_km": null
     },
@@ -37532,7 +37511,7 @@
       "coast_km": 3.999
     },
     {
-      "name": "Caesarea (Cappadocia)",
+      "name": "Caesarea Cappadocia",
       "x": 1505.654039269165,
       "y": 223.4390280476428,
       "land": true,
@@ -37847,13 +37826,6 @@
       "coast_km": null
     },
     {
-      "name": "Dierna",
-      "x": 348.27263186647536,
-      "y": 754.019644064174,
-      "land": true,
-      "coast_km": null
-    },
-    {
       "name": "Thebai",
       "x": 1469.1077128703928,
       "y": -1256.7209285995564,
@@ -38008,25 +37980,11 @@
       "coast_km": 5.961
     },
     {
-      "name": "Gadara",
-      "x": 1660.001045498664,
-      "y": -505.9763904359213,
-      "land": true,
-      "coast_km": 37.555
-    },
-    {
       "name": "Gades",
       "x": -2134.225455153719,
       "y": 115.95355254449623,
       "land": true,
       "coast_km": 1.999
-    },
-    {
-      "name": "Gaza",
-      "x": 1552.060088108947,
-      "y": -588.1111978849501,
-      "land": true,
-      "coast_km": 6.051
     },
     {
       "name": "Germa",
@@ -38050,7 +38008,7 @@
       "coast_km": 4.47
     },
     {
-      "name": "Heliopolis (Baalbek)",
+      "name": "Heliopolis",
       "x": 1664.3530874932892,
       "y": -282.6500472498274,
       "land": true,
@@ -38127,13 +38085,6 @@
       "coast_km": null
     },
     {
-      "name": "Ilium",
-      "x": 703.3258273525503,
-      "y": 248.11206815674532,
-      "land": true,
-      "coast_km": 8.993
-    },
-    {
       "name": "Iol Caesarea",
       "x": -1400.4772994635289,
       "y": -39.969011457585566,
@@ -38186,13 +38137,6 @@
       "name": "Klaudianon",
       "x": 1535.8535955582097,
       "y": -1122.115648433625,
-      "land": true,
-      "coast_km": null
-    },
-    {
-      "name": "Lamasba",
-      "x": -1089.2011295912753,
-      "y": -196.78289561149612,
       "land": true,
       "coast_km": null
     },
@@ -38337,7 +38281,7 @@
       "coast_km": null
     },
     {
-      "name": "Mediolanum (Aquitania)",
+      "name": "Mediolanum Aquitania",
       "x": -1433.87127872805,
       "y": 1012.0897203894702,
       "land": true,
@@ -38456,7 +38400,7 @@
       "coast_km": 3.998
     },
     {
-      "name": "Nicopolis (Pontus)",
+      "name": "Nicopolis Pontus",
       "x": 1693.1487092395475,
       "y": 426.5754285423013,
       "land": true,
@@ -38771,13 +38715,6 @@
       "coast_km": 3.999
     },
     {
-      "name": "Salernum",
-      "x": -272.864329955989,
-      "y": 305.8592394701086,
-      "land": true,
-      "coast_km": 3.998
-    },
-    {
       "name": "Salona",
       "x": -120.91648300107228,
       "y": 617.7043674742722,
@@ -39009,13 +38946,6 @@
       "coast_km": 15.589
     },
     {
-      "name": "Teanum",
-      "x": -329.7730858923814,
-      "y": 368.89914435780145,
-      "land": true,
-      "coast_km": 22.044
-    },
-    {
       "name": "Tergeste",
       "x": -326.8458019004988,
       "y": 857.5852351697824,
@@ -39026,13 +38956,6 @@
       "name": "Thagaste",
       "x": -895.4935089656916,
       "y": -142.28154513511157,
-      "land": true,
-      "coast_km": null
-    },
-    {
-      "name": "Thamugadi",
-      "x": -1040.130917555461,
-      "y": -213.89500077826213,
       "land": true,
       "coast_km": null
     },
@@ -39065,13 +38988,6 @@
       "coast_km": null
     },
     {
-      "name": "Thuburnica",
-      "x": -850.4013020955957,
-      "y": -120.12269083107054,
-      "land": true,
-      "coast_km": null
-    },
-    {
       "name": "Tibiscum",
       "x": 326.9346304628319,
       "y": 836.3674928510343,
@@ -39084,13 +39000,6 @@
       "y": 452.8759700166664,
       "land": true,
       "coast_km": null
-    },
-    {
-      "name": "Tubusuctu",
-      "x": -1168.9194734171233,
-      "y": -65.67646272930752,
-      "land": true,
-      "coast_km": 21.597
     },
     {
       "name": "Tingi",
@@ -39268,13 +39177,6 @@
       "coast_km": null
     },
     {
-      "name": "Zarai",
-      "x": -1106.5833007785768,
-      "y": -172.11885419650906,
-      "land": true,
-      "coast_km": null
-    },
-    {
       "name": "Zeugma",
       "x": 1744.9328643184613,
       "y": 82.5907915943618,
@@ -39371,6 +39273,13 @@
       "y": 509.7579770112925,
       "land": true,
       "coast_km": 3.998
+    },
+    {
+      "name": "Attalea",
+      "x": 1124.554179874592,
+      "y": -46.409346456000144,
+      "land": true,
+      "coast_km": 3.556
     },
     {
       "name": "Ebusus",
@@ -39548,7 +39457,7 @@
       "coast_km": 4.47
     },
     {
-      "name": "Apollonia (Epirus)",
+      "name": "Apollonia Epirus",
       "x": 120.45150560575962,
       "y": 308.91973670371584,
       "land": true,
@@ -39569,18 +39478,18 @@
       "coast_km": 3.67
     },
     {
-      "name": "Leucas",
-      "x": 230.9627415261034,
-      "y": 93.96447300574118,
-      "land": true,
-      "coast_km": 3.998
-    },
-    {
       "name": "Patrae",
       "x": 326.9298027607879,
       "y": 33.99425608186357,
       "land": true,
       "coast_km": 3.999
+    },
+    {
+      "name": "Apollonia-Sozousa",
+      "x": 348.9222542937364,
+      "y": -557.7118842337286,
+      "land": true,
+      "coast_km": 3.998
     },
     {
       "name": "Tainaron Pr.",
@@ -39667,13 +39576,6 @@
       "coast_km": 3.998
     },
     {
-      "name": "Bargylia",
-      "x": 847.4205479109322,
-      "y": -46.50078447043546,
-      "land": true,
-      "coast_km": 6.689
-    },
-    {
       "name": "Apollonia Pontica",
       "x": 790.7705987284285,
       "y": 529.7480493192515,
@@ -39716,7 +39618,7 @@
       "coast_km": 15.182
     },
     {
-      "name": "Olbia (Borysthenes)",
+      "name": "Olbia Borysthenes",
       "x": 1052.6807033480873,
       "y": 1049.4899293261908,
       "land": true,
@@ -39919,7 +39821,7 @@
       "coast_km": 4.862
     },
     {
-      "name": "Neapolis (Thrace)",
+      "name": "Neapolis",
       "x": 542.8556905388273,
       "y": 351.8364057784147,
       "land": true,

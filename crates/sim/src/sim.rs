@@ -972,7 +972,14 @@ impl Sim {
             }
             let mut esc = Vec2::ZERO;
             let mut bad = 0;
-            for s in (0..u.alive_count).step_by(3) {
+            // EVERY slot: a strided sample once skipped two in-wall slots
+            // forever, and the men assigned to them jittered against the
+            // wall until the whole standing lattice resonated (the shallow
+            // cliff-margin burst cycle). The check runs every 15 ticks on
+            // halted units only — full coverage is cheap and the law's
+            // guarantee ("the ideal formation is always achievable") is
+            // only as good as its weakest sample.
+            for s in 0..u.alive_count {
                 let p = u.slot_world(s);
                 if self.terrain.speed_at(p) <= 0.0 {
                     esc = esc + self.terrain.escape_dir(p);

@@ -131,7 +131,6 @@ fn settle_near_impassable_pocket() {
     }
 }
 
-#[ignore = "formation-settle slice 02b"]
 #[test]
 fn settle_with_frame_slots_in_wall() {
     // Destination so close to the cliff that the frame's own slots land on

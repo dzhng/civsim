@@ -5,10 +5,63 @@ use common::settle::{
     seed1_terrain, seed1_west_wall_edge, window_motion,
 };
 use common::{no_morale_parade, run};
-use sim::{Sim, Terrain, Tunables, Vec2};
+use sim::{Pace, Sim, Terrain, Tunables, UnitClassId, Vec2};
 use std::f32::consts::FRAC_PI_2;
 
 const SEED: u64 = 7;
+
+fn flat_run_ground() -> Terrain {
+    Terrain::flat(200, 200, 4.0, Vec2::new(-400.0, -400.0))
+}
+
+fn run_straggler_stats(sim: &Sim, unit: usize) -> (f32, usize, f32) {
+    let u = &sim.units[unit];
+    let ranks = u.alive_count.div_ceil(u.files_eff.max(1));
+    let depth = (ranks.saturating_sub(1) as f32 * u.spacing.y).max(u.spacing.y);
+    let threshold = 2.0 * depth;
+    let forward = sim::dir(u.facing);
+    let mut count = 0usize;
+    let mut worst = 0.0f32;
+    for i in u.start..u.start + u.count {
+        if sim.alive[i] != 1 {
+            continue;
+        }
+        let behind = -(sim.soldier_pos(i) - u.anchor).dot(forward);
+        if behind > worst {
+            worst = behind;
+        }
+        if behind > threshold {
+            count += 1;
+        }
+    }
+    (threshold, count, worst)
+}
+
+fn print_run_arrival(sim: &Sim, unit: usize, label: &str) -> (f32, usize, f32) {
+    let (threshold, stragglers, worst) = run_straggler_stats(sim, unit);
+    println!(
+        "{label}: cohesion={:.3} stragglers>{threshold:.1}m={stragglers} worst_behind={worst:.1}m stamina={:.3}",
+        sim.units[unit].cohesion, sim.units[unit].stamina
+    );
+    (threshold, stragglers, worst)
+}
+
+fn order_arrived(sim: &Sim, unit: usize) -> bool {
+    let u = &sim.units[unit];
+    u.pending_target.is_none()
+        && u.move_target.is_none()
+        && u.final_facing.is_none()
+        && u.frame_speed < 0.05
+}
+
+fn march_550m(sim: &mut Sim, unit: usize) -> f32 {
+    sim.set_pace(unit, Pace::Run);
+    sim.set_move_order(
+        unit,
+        sim.units[unit].anchor + sim::dir(sim.units[unit].facing) * 550.0,
+    );
+    march_until_arrived(sim, unit)
+}
 
 #[test]
 fn settle_after_straight_move() {
@@ -258,6 +311,105 @@ fn settle_deeply_overlapping_friendly() {
     );
     assert_settles(&mut sim, unit, 40.0, 60.0);
     assert_settles(&mut sim, friend, 40.0, 60.0);
+}
+
+#[ignore = "formation-settle slice 06"]
+#[test]
+fn run_to_contact_arrives_formed() {
+    let mut sim = Sim::new(no_morale_parade(), SEED);
+    sim.terrain = flat_run_ground();
+    let south = sim.spawn_unit(
+        Vec2::new(0.0, -275.0),
+        FRAC_PI_2,
+        120,
+        20,
+        Vec2::new(1.0, 1.0),
+        0,
+        1.0,
+    );
+    let north = sim.spawn_unit(
+        Vec2::new(0.0, 275.0),
+        -FRAC_PI_2,
+        120,
+        20,
+        Vec2::new(1.0, 1.0),
+        1,
+        1.0,
+    );
+    sim.set_pace(south, Pace::Run);
+    sim.set_pace(north, Pace::Run);
+    sim.set_move_order(south, Vec2::new(0.0, -15.0));
+    sim.set_move_order(north, Vec2::new(0.0, 15.0));
+    let south_arrived = march_until_arrived(&mut sim, south);
+    let north_arrived = march_until_arrived(&mut sim, north);
+    println!("arrived south t={south_arrived:.1}s north(+{north_arrived:.1}s)");
+
+    let south_stats = print_run_arrival(&sim, south, "south");
+    let north_stats = print_run_arrival(&sim, north, "north");
+
+    for (unit, label, (_, stragglers, worst)) in
+        [(south, "south", south_stats), (north, "north", north_stats)]
+    {
+        let cohesion = sim.units[unit].cohesion;
+        assert!(
+            cohesion > 0.7,
+            "{label} must arrive formed: cohesion {cohesion:.3} <= 0.700"
+        );
+        assert!(
+            stragglers == 0,
+            "{label} must not trail beyond 2x unit depth: {stragglers} stragglers, worst {worst:.1}m"
+        );
+    }
+}
+
+#[ignore = "formation-settle slice 06"]
+#[test]
+fn run_to_contact_stamina() {
+    let mut foot_sim = Sim::new(no_morale_parade(), SEED);
+    foot_sim.terrain = flat_run_ground();
+    let foot = foot_sim.spawn_unit(
+        Vec2::new(0.0, -275.0),
+        FRAC_PI_2,
+        120,
+        20,
+        Vec2::new(1.0, 1.0),
+        0,
+        1.0,
+    );
+    let foot_arrived = march_550m(&mut foot_sim, foot);
+    let foot_stamina = foot_sim.units[foot].stamina;
+    let foot_distance = (foot_sim.units[foot].anchor - Vec2::new(0.0, -275.0)).len();
+    let foot_order_arrived = order_arrived(&foot_sim, foot);
+    println!(
+        "foot arrived={foot_order_arrived} t={foot_arrived:.1}s distance={foot_distance:.1}m stamina={foot_stamina:.3}"
+    );
+
+    let mut cav_sim = Sim::new(no_morale_parade(), SEED);
+    cav_sim.terrain = flat_run_ground();
+    let cav = cav_sim.spawn_class_with_files(
+        Vec2::new(0.0, -275.0),
+        FRAC_PI_2,
+        60,
+        20,
+        UnitClassId::ShockCavalry,
+        0,
+    );
+    let cav_arrived = march_550m(&mut cav_sim, cav);
+    let cav_stamina = cav_sim.units[cav].stamina;
+    let cav_distance = (cav_sim.units[cav].anchor - Vec2::new(0.0, -275.0)).len();
+    let cav_order_arrived = order_arrived(&cav_sim, cav);
+    println!(
+        "cav arrived={cav_order_arrived} t={cav_arrived:.1}s distance={cav_distance:.1}m stamina={cav_stamina:.3}"
+    );
+
+    assert!(
+        (0.4..=0.6).contains(&foot_stamina),
+        "foot must arrive with stamina in [0.4, 0.6], got {foot_stamina:.3}"
+    );
+    assert!(
+        (0.65..=0.85).contains(&cav_stamina),
+        "cav must arrive with stamina in [0.65, 0.85], got {cav_stamina:.3}"
+    );
 }
 
 #[test]

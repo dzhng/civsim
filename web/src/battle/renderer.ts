@@ -60,6 +60,9 @@ export class BattleRenderer {
   };
   private frameStart = 0;
   private readoutFrameKey = "";
+  private readonly environmentRequest: string | null;
+  private readonly onResize = () => this.resize();
+  private disposed = false;
   private lastCamera: BattleCameraSnapshot = {
     x: 0,
     y: 0,
@@ -80,8 +83,22 @@ export class BattleRenderer {
     private canvas: HTMLCanvasElement,
     private options: BattleRendererOptions = {},
   ) {
+    const params = new URLSearchParams(location.search);
+    this.environmentRequest = params.get("env") ?? options.environment ?? null;
     this.ready = this.init();
-    window.addEventListener("resize", () => this.resize());
+    window.addEventListener("resize", this.onResize);
+  }
+
+  usesEnvironment(environment: BattleRendererOptions["environment"]): boolean {
+    const params = new URLSearchParams(location.search);
+    return (params.get("env") ?? environment ?? null) === this.environmentRequest;
+  }
+
+  dispose(): void {
+    this.disposed = true;
+    window.removeEventListener("resize", this.onResize);
+    this.world?.dispose();
+    this.world = null;
   }
 
   resize() {
@@ -341,13 +358,17 @@ export class BattleRenderer {
   private async init() {
     const params = new URLSearchParams(location.search);
     const world = await PhotorealBattleWorld.create(this.canvas, {
-      environment: params.get("env") ?? this.options.environment,
+      environment: this.environmentRequest,
       shadows: params.get("shadows") ?? this.options.shadows,
       sea: params.has("sea")
         ? seaDisplacementSourceFromParam(params.get("sea"))
         : (this.options.sea ?? undefined),
       post: params.get("post") ?? this.options.post,
     });
+    if (this.disposed) {
+      world.dispose();
+      return;
+    }
     this.world = world;
     // The bespoke shell's fatal surface, re-homed onto three's device.
     const device = (world.world.renderer.backend as unknown as { device?: GPUDevice }).device;

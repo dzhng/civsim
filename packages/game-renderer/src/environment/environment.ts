@@ -49,6 +49,11 @@ export interface BattleEnvironment {
   clear: [number, number, number, number];
 }
 
+export interface BattleEnvironmentOption {
+  id: BattleEnvironmentId;
+  label: string;
+}
+
 // Toward the DEFAULT battle view: camera3d yaw 0 looks along -X (azimuth pi).
 // Authored as pi/2 for the 2.5D camera and stale after the 04a flip — the
 // references (battle-coastal-vista) compose with the sun IN view; restored at
@@ -126,6 +131,13 @@ export const BATTLE_ENVIRONMENTS: Record<BattleEnvironmentId, BattleEnvironment>
 };
 
 export const DEFAULT_BATTLE_ENVIRONMENT = "golden-hour" satisfies BattleEnvironmentId;
+
+export const BATTLE_ENVIRONMENT_OPTIONS: readonly BattleEnvironmentOption[] = [
+  { id: "golden-hour", label: "Golden Hour" },
+  { id: "overcast-highland", label: "Overcast" },
+  { id: "noon", label: "Noon" },
+  { id: "dusk", label: "Dusk" },
+];
 
 export function resolveBattleEnvironment(id: string | null | undefined): BattleEnvironment {
   if (id === "overcast" || id === "overcast-foggy") return BATTLE_ENVIRONMENTS["overcast-foggy"];

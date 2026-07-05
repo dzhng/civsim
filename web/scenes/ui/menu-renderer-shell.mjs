@@ -81,6 +81,7 @@ export async function run(ctx) {
     );
     const randomButton = document.getElementById("qb-generated-reroll")?.textContent?.trim();
     const rows = document.querySelectorAll("#qb-army-0 .qb-row").length;
+    const weather = document.getElementById("qb-weather");
     const factions = Array.from(
       document.querySelectorAll("#qb-army-0 select, #qb-army-1 select"),
     ).map((select) => ({
@@ -91,7 +92,21 @@ export async function run(ctx) {
     // Overfill side 0 past the slot cap by clicking the cheapest class's + many times.
     const plus = document.querySelector("#qb-army-0 .qb-row:last-child .qb-step:last-child");
     for (let i = 0; i < 30; i++) plus?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    return { open, maps, randomButton, rows, factions, defaultValid };
+    return {
+      open,
+      maps,
+      randomButton,
+      rows,
+      weather: weather
+        ? {
+            value: weather.value,
+            labels: Array.from(weather.options).map((option) => option.textContent),
+            values: Array.from(weather.options).map((option) => option.value),
+          }
+        : null,
+      factions,
+      defaultValid,
+    };
   });
   // The builder re-renders the over-budget state on its own clock (React batches
   // the dispatched clicks), so read the invalidation after it settles.
@@ -121,6 +136,13 @@ export async function run(ctx) {
       ) &&
       qb.randomButton === "Random Map" &&
       qb.rows >= 15 &&
+      qb.weather?.value === "golden-hour" &&
+      ["Golden Hour", "Overcast", "Noon", "Dusk"].every((label) =>
+        qb.weather?.labels.includes(label),
+      ) &&
+      ["golden-hour", "overcast-highland", "noon", "dusk"].every((value) =>
+        qb.weather?.values.includes(value),
+      ) &&
       qb.factions.length === 2 &&
       qb.factions[0]?.value === "azure" &&
       qb.factions[1]?.value === "crimson" &&
@@ -135,6 +157,7 @@ export async function run(ctx) {
     JSON.stringify({ ...qb, overInvalid }),
   );
 
+  await page.selectOption("#qb-weather", "overcast-highland");
   await page.selectOption('#qb-army-0 select[aria-label="Your Army faction"]', "crimson");
   await page.selectOption('#qb-army-1 select[aria-label="Enemy Army faction"]', "azure");
   await page.click("#qb-army-0 .qb-template");
@@ -143,8 +166,11 @@ export async function run(ctx) {
   await waitForRendererBattleUpload(page);
   const customStats = await page.evaluate(() => window.__game.stats());
   ctx.check(
-    "Custom Battle launches through the default WebGPU battle renderer",
-    battleStatsMatch(customStats) && customStats.units >= 10,
+    "Custom Battle launches through the selected WebGPU battle renderer weather",
+    battleStatsMatch(customStats) &&
+      customStats.units >= 10 &&
+      customStats.renderStats?.environment === "overcast-highland" &&
+      customStats.renderStats?.terrain?.environment?.id === "overcast-highland",
     JSON.stringify(customStats),
   );
   await returnBattleToMenu(page);

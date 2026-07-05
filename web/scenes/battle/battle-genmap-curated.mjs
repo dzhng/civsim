@@ -17,7 +17,7 @@ export const meta = {
     "battle-genmap-curated/wooded-pass",
   ],
   describe:
-    "BMS18-SLICE-F7C3: curated generated maps boot as pinned generated seeds, use catalog names, and snap overcast-highland vista beauty baselines.",
+    "BMS18-SLICE-F7C3: curated generated maps boot as pinned generated seeds, use catalog names, and snap golden-hour vista beauty baselines.",
 };
 
 export async function run(ctx) {
@@ -93,9 +93,10 @@ async function gate(ctx, id) {
     await poseVista(page);
     const stats = await page.evaluate(() => window.__game.stats().renderStats);
     ctx.check(
-      `${id} renders under the generated-map overcast-highland default`,
-      stats?.environment === "overcast-highland" &&
-        stats?.terrain?.environment?.id === "overcast-highland" &&
+      `${id} renders under the generated-map golden-hour default`,
+      stats?.environment === "golden" &&
+        stats?.terrain?.environment?.id === "golden-hour" &&
+        stats?.terrain?.environment?.source === "CIVSIM_ENVIRONMENTS.golden" &&
         stats?.terrain?.vista?.bands?.some((band) => band.name === "farFog"),
       JSON.stringify({
         environment: stats?.environment,

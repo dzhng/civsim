@@ -49,6 +49,29 @@ mechanism the ledger convicts, and fix THAT. If the fix wants a new clamp,
 flag, or threshold — stop, re-read tweak-mechanics "forces and bodies,
 never walls," and reslice.
 
+## Shipped (02a, pass 2)
+
+Both convicted mechanisms fixed force-level in `steer_soldiers`:
+weave/pivot bonds skip when stretched > rest + 2m AND
+`Terrain::segment_passable` fails between the two men (the stretch gate is
+a cheapness gate — an unstretched adjacent bond cannot span a wall);
+a slot > 3m away whose straight segment is blocked stops pulling. The slot
+gate is additionally conditioned on the frame being at REST
+(`move_target.is_none() && frame_speed < 0.05`): first attempt gated it
+unconditionally and stranded marchers behind boulders
+(`anchor_routes_around_a_rock` red) — mid-march, the through-rock pull
+composed with the terrain slide is exactly what walks a man around an
+obstacle. Halt-gating is the accepted scalpel family (a state a march can
+never be in), not a positional wall. Golden held; force nets at the pocket
+collapsed ~100x; margins 12/14/18 settle to baseline in one window.
+
+Remaining in 02b: the frame-level oscillator when resting slots are
+unstandable or wall-tight — gates `settle_with_frame_slots_in_wall`
+(margins 10/12, episodic bursts) and `settle_inside_marginal_corridor`
+(edge-file buzz, zero separation records, IdleSettleDamp constantly
+firing). Instrument one margin-10 burst (files_eff/anchor/escape-slide
+over time) before designing.
+
 ## API seam
 
 Whatever mechanism is convicted, the change lives in sim core

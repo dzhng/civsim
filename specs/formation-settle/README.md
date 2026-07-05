@@ -96,21 +96,49 @@ module and benefits from 02's findings.
 
 ## Next Agent Prompt
 
-**Status 2026-07-05 (pass 1): slice 01 SHIPPED. Start at slice 02.**
+**Status 2026-07-05 (pass 2): slices 01 + 02a SHIPPED. Next: slice 02b
+(frame clearance at walls), then 03.**
 
-Slice 01 landed via codex exec (tests-only): settle telemetry owned by
+Slice 01 (tests-only, codex): settle telemetry owned by
 `crates/sim/tests/common/settle.rs`, gates in
-`crates/sim/tests/mechanics_settle.rs` — 6 green containment tests + the
-live grind rail (sustained lateral 0.635 ≤ 0.7), and the three family
-gates red-by-design behind `#[ignore = "formation-settle slice NN"]`
-(verified genuinely red: corridor 0.107 m/s, pocket 1.74 m/s, overlap
-0.107 m/s). `SETTLE_SPEED = 0.06`, within 20s (30s for the red gates) —
-ratified by evidence, David can veto. Run the red gates with
+`crates/sim/tests/mechanics_settle.rs`. `SETTLE_SPEED = 0.06`, within 20s
+(30s for the family gates). Run remaining reds with
 `cargo test -p sim --test mechanics_settle -- --ignored`.
 
-Traps hit: none in the sim; `codex review --uncommitted` cannot start its
-app-server under the workspace-write sandbox (`Operation not permitted`) —
-run codex review from the orchestrator side, not inside the exec.
+Slice 02a (sim source, codex): the wall-split tractor is dead. Weave/pivot
+bonds skip when stretched > rest+2m AND the segment crosses impassable
+ground (`Terrain::segment_passable`); a slot > 3m away whose straight
+segment is blocked stops pulling (the man stands; cohesion honestly reads
+him missing). Cliff margins 12/14/18 settle to baseline in one window
+(was 1.7 m/s forever); force nets collapsed ~100x (WeaveNet (+49,+385) →
+(+0.03,-0.05)). Gate `settle_near_impassable_pocket` [14,18] is live.
+
+RESLICE during pass 2: the old margin sweep bundled two mechanisms.
+Margins 10/12 with slots ON impassable/slow cells (measured margin 10:
+blocked=2 slow=6) churn EPISODICALLY (quiet stretches + bursts with
+cohesion crashes and slot-change spikes ~170/10s) — that is the
+frame-level escape-slide/corridor/reform interplay, now the **02b** gate
+`settle_with_frame_slots_in_wall` [10,12], ignored alongside
+`settle_inside_marginal_corridor`. Corridor ledger evidence (committed
+attribution probes): zero separation-solver records, edge files carry
+2.3x force, IdleSettleDamp constantly firing — terrain family, not 03.
+
+Pick up at 02b: the design question is what the FRAME does when its
+resting slots are unstandable or wall-tight — the halted-frame escape
+slide (sim.rs "slides itself clear", 0.45m steps every 15 ticks), the
+corridor width machinery, and the at-ease reform each pull it a different
+way. Instrument the margin-10 burst cycle first (force-trace + files_eff/
+anchor over time through one burst), convict the oscillator, then fix
+THAT. Known limitation to preserve, not fix here: a wall-lost straggler
+stays lost until re-ordered (acceptable; a new order re-paths the unit).
+
+Carried-in red (NOT ours): `force_trace_smoke_covers_expected_channels`
+fails at HEAD (missing CorridorClamp in its open-ground scenario) — the
+feature-gated force-trace suite is not in the default run; predates this
+spec. The conservation test that matters
+(`force_trace_steering_conserves_pre_collision_displacement`) is green
+with 02a. Also: `codex review --uncommitted` cannot start its app-server
+inside the workspace-write sandbox — review from the orchestrator side.
 
 You are running one pass of
 [implement-spec](../../.claude/skills/implement-spec/SKILL.md) on this spec.
@@ -145,8 +173,12 @@ rationale here, and continue. Never idle waiting for sign-off.
 - [x] 01 — Red gates: promote settle telemetry into `tests/common`, pin the
       cleared suspects green, pin families A/A′/B/C as gates (red today) →
       [slices/01-red-gates.md](slices/01-red-gates.md)
-- [ ] 02 — Family A/A′ root fix: unreachable-slot equilibrium near
-      impassable terrain → [slices/02-wall-split-equilibrium.md](slices/02-wall-split-equilibrium.md)
+- [x] 02a — Wall-split tractor: bonds/slot-pull zero across impassable
+      ground → [slices/02-wall-split-equilibrium.md](slices/02-wall-split-equilibrium.md)
+- [ ] 02b — Frame clearance at walls: the escape-slide/corridor/reform
+      oscillator when resting slots are unstandable or wall-tight (gates
+      `settle_with_frame_slots_in_wall` + `settle_inside_marginal_corridor`)
+      → [slices/02-wall-split-equilibrium.md](slices/02-wall-split-equilibrium.md)
 - [ ] 03 — Family B root fix: steer-vs-separation cycle on friendly overlap
       → [slices/03-friendly-overlap-cycle.md](slices/03-friendly-overlap-cycle.md)
 - [ ] 04 — Family C: attribute and bound the sustained grind lateral slosh

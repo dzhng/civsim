@@ -123,7 +123,10 @@ export class CampaignSelectionPass {
         targets: [gpuAlphaBlendColorTarget(this.shell.info.format)],
       },
       primitive: { topology: "triangle-strip" },
-      depthStencil: gpuWorldDepthStencil("read", "always"),
+      // Real depth read: the ring is a ground decal, so the city/army
+      // volume standing on it must occlude the far arc — compare "always"
+      // drew the ring floating above the buildings.
+      depthStencil: gpuWorldDepthStencil("read"),
     });
   }
 

@@ -34,7 +34,11 @@ import {
   type ShaderCompilationMessage,
 } from "../../../packages/renderer-core/src/compileShader";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../../../web/src/shared/fatalError";
-import { CAMPAIGN_FIGURE_SIZE } from "../../../web/src/campaign/renderer";
+import {
+  CAMPAIGN_FIGURE_SIZE,
+  campaignArmyStandardScale,
+  campaignSettlementStandardScale,
+} from "../../../web/src/campaign/renderer";
 import { SkinnedCrowdPipeline } from "../../../packages/renderer-core/src/skinnedPipeline";
 import { animationForFrame } from "../../../packages/crowd-runtime/src/animationState";
 import {
@@ -101,6 +105,17 @@ import {
   type CampaignSceneryInstance,
 } from "../../../packages/game-renderer/src/campaign/sceneryPass";
 import { PROP_REVIEW_GROUPS } from "../../../packages/game-renderer/src/models/shared/sceneryPropRegistry";
+import {
+  STANDARD_SIZE_TIER_IDS,
+  standardSeed,
+  standardWindPhase,
+  standardWindStrength,
+  type StandardSizeTier,
+} from "../../../packages/game-renderer/src/models/shared/standardAsset";
+import {
+  SharedStandardPass,
+  type StandardInstance,
+} from "../../../packages/game-renderer/src/models/shared/standardPass";
 import {
   BATTLE_MAP_CATALOG,
   battleMapById,
@@ -261,6 +276,7 @@ const routes: Record<string, LabRoute> = {
   "/renderer/campaign-models": routeCampaignModelShots,
   "/renderer/shared-prop-models": routeSharedPropModelShots,
   "/renderer/shared-grass-models": routeSharedGrassModelShots,
+  "/renderer/shared-standard-models": routeSharedStandardModelShots,
   "/renderer/render-graph": routeRenderGraph,
   "/renderer/world-camera": routeWorldCamera,
   "/renderer/battle-terrain": routeBattleTerrain,
@@ -2227,6 +2243,7 @@ async function routeCampaignUi(ctx: LabContext) {
   const lines = new CampaignWorldLinePass(shell, "triangle-list");
   const roads = new CampaignRoadPass(shell);
   const entities = new CampaignEntityPass(shell);
+  const standards = new SharedStandardPass(shell);
   const selection = new CampaignSelectionPass(shell);
   const labelPass = new CampaignLabelPass(shell);
   const drawData = buildCampaignMapDrawData(data, { roadScale: 0.78 });
@@ -2259,6 +2276,7 @@ async function routeCampaignUi(ctx: LabContext) {
       selectedCity,
     );
     entities.upload(entityFrame.entities);
+    standards.upload(entityFrame.standards);
     selection.upload(entityFrame.selections);
     const labels = drawData.labels.concat(campaignArmyLabels(views.armies));
     const labelLayer = labelPass.upload(labels, chartSnapshot(camera, shell));
@@ -2274,11 +2292,25 @@ async function routeCampaignUi(ctx: LabContext) {
           draw: (pass) => entities.drawOpaque(pass),
         },
         {
+          id: "campaign-ui-standards-opaque",
+          role: "world-opaque",
+          phase: "world-depth",
+          depth: "read-write",
+          draw: (pass) => standards.drawOpaque(pass),
+        },
+        {
           id: "campaign-ui-entity-shadows",
           role: "world-decal",
           phase: "world-depth",
           depth: "read",
           draw: (pass) => entities.drawShadows(pass),
+        },
+        {
+          id: "campaign-ui-standard-shadows",
+          role: "world-decal",
+          phase: "world-depth",
+          depth: "read",
+          draw: (pass) => standards.drawShadows(pass),
         },
         {
           id: "campaign-ui-roads",
@@ -2332,6 +2364,7 @@ async function routeCampaignUi(ctx: LabContext) {
       selectedArmy,
       selectedCity,
       entities: entityFrame.entities.length,
+      standards: entityFrame.standards.length,
       selections: entityFrame.selections.length,
       labels: `${labelLayer.visibleLabels}/${labelLayer.labels}`,
       panels: `army:${uiStats.armyPanel} city:${uiStats.cityPanel}`,
@@ -2351,6 +2384,8 @@ async function routeCampaignUi(ctx: LabContext) {
       entities: entityFrame.entities.length,
       cityEntities: entityFrame.cityEntities,
       armyEntities: entityFrame.armyEntities,
+      standards: entityFrame.standards.length,
+      standardLayer: standards.stats().layer,
       selections: entityFrame.selections.length,
       lastPick,
       ui: uiStats,
@@ -2478,6 +2513,7 @@ async function routeCampaignModelShots(ctx: LabContext) {
   const camera = campaignModelShotCamera(gate);
   const shell = await createConfiguredShell(ctx.canvas, camera);
   const entities = new CampaignEntityPass(shell);
+  const standards = new SharedStandardPass(shell);
   const scenery = new CampaignSceneryPass(shell);
   const roads = new CampaignRoadPass(shell);
   const selection = new CampaignSelectionPass(shell);
@@ -2488,7 +2524,8 @@ async function routeCampaignModelShots(ctx: LabContext) {
       ? await campaignModelShotStandardLiveries(ctx.canvas, camera)
       : null;
   if (standardLiveries) {
-    frame.entities.push(...standardLiveries.entities);
+    frame.standards.push(...standardLiveries.standards);
+    frame.armyAnchors.push(...standardLiveries.armyAnchors);
     frame.terrainRect = standardLiveries.terrainRect;
   }
   const cityStandardSamples = campaignModelShotCityStandardSamples(gate, ctx.canvas, camera);
@@ -2499,6 +2536,7 @@ async function routeCampaignModelShots(ctx: LabContext) {
   roads.upload(frame.roads);
   selection.upload(frame.selections);
   if (markerPass && standardLiveries) markerPass.upload(standardLiveries.markers);
+  standards.upload(frame.standards);
   const labelLayer = labelPass.upload(frame.labels, chartSnapshot(camera, shell));
   // Army stacks draw the shared skinned crowd (matching the production campaign
   // renderer), so this isolated 'army'/'garrison-*' review shows the real
@@ -2516,23 +2554,21 @@ async function routeCampaignModelShots(ctx: LabContext) {
     );
     soldierShadows = new SoldierShadowDecalPass(shell);
     const modelStackRoster = [4, 0, 3, 0, 2, 1];
-    modelCrowd = frame.entities
-      .filter((entity) => entity.kind === "army")
-      .flatMap((entity, i) =>
-        buildStackCrowd(modelStackRoster, {
-          unitCount: 20,
-          stackUnitCap: 20,
-          x: entity.x,
-          y: entity.y,
-          faction: 0,
-          seed: 100 + i,
-          clip: "idle",
-          phase: 0,
-          mountedClasses: mountedClassesFromKit(soldierKit),
-          spacing: CAMPAIGN_FIGURE_SIZE * 1.1,
-          terrainHeight: () => entity.z ?? 0,
-        }),
-      );
+    modelCrowd = frame.armyAnchors.flatMap((entity, i) =>
+      buildStackCrowd(modelStackRoster, {
+        unitCount: 20,
+        stackUnitCap: 20,
+        x: entity.x,
+        y: entity.y,
+        faction: 0,
+        seed: 100 + i,
+        clip: "idle",
+        phase: 0,
+        mountedClasses: mountedClassesFromKit(soldierKit),
+        spacing: CAMPAIGN_FIGURE_SIZE * 1.1,
+        terrainHeight: () => entity.z ?? 0,
+      }),
+    );
     soldierCrowd.upload(modelCrowd, { size: CAMPAIGN_FIGURE_SIZE });
     soldierShadows.upload(modelCrowd, { radius: 0.62 * CAMPAIGN_FIGURE_SIZE });
   }
@@ -2557,6 +2593,13 @@ async function routeCampaignModelShots(ctx: LabContext) {
     depth: "read-write",
     draw: (pass) => scenery.drawOpaque(pass),
   };
+  const standardsOpaquePass: FrameGraphPass = {
+    id: "model-shot-standards-opaque",
+    role: "world-opaque",
+    phase: "world-depth",
+    depth: "read-write",
+    draw: (pass) => standards.drawOpaque(pass),
+  };
   const passes: FrameGraphPass[] = [
     {
       id: "model-shot-ground-depth",
@@ -2566,8 +2609,8 @@ async function routeCampaignModelShots(ctx: LabContext) {
       draw: (pass) => groundDepth.draw(pass),
     },
     ...(hostileDepthOrder
-      ? [entityOpaquePass, sceneryOpaquePass]
-      : [sceneryOpaquePass, entityOpaquePass]),
+      ? [entityOpaquePass, standardsOpaquePass, sceneryOpaquePass]
+      : [sceneryOpaquePass, entityOpaquePass, standardsOpaquePass]),
     ...(soldierCrowd
       ? [
           {
@@ -2592,6 +2635,13 @@ async function routeCampaignModelShots(ctx: LabContext) {
       phase: "world-depth",
       depth: "read",
       draw: (pass) => entities.drawShadows(pass),
+    },
+    {
+      id: "model-shot-standard-shadows",
+      role: "world-decal",
+      phase: "world-depth",
+      depth: "read",
+      draw: (pass) => standards.drawShadows(pass),
     },
     ...(soldierShadows
       ? [
@@ -2655,6 +2705,7 @@ async function routeCampaignModelShots(ctx: LabContext) {
     gate,
     purpose: "isolated campaign model screenshot gate",
     entities: frame.entities.length,
+    standards: frame.standards.length,
     scenery: frame.scenery.length,
     roadTriangles: roads.stats().triangles,
     cloudQuads: clouds?.stats().cloudQuads ?? 0,
@@ -2700,6 +2751,8 @@ async function routeCampaignModelShots(ctx: LabContext) {
     factions: standardLiveries?.factions,
     labelLayer: labelLayer.layer,
     entityLayer: entities.stats().layer,
+    standardLayer: standards.stats().layer,
+    standardStats: standards.stats(),
     depth: shell.stats().depth,
     framePhases: shell.stats().phases,
     hostileDrawOrder: hostileDepthOrder ? "entities-before-late-scenery" : "normal",
@@ -2816,6 +2869,105 @@ async function routeSharedGrassModelShots(ctx: LabContext) {
   });
 }
 
+// Shared standard review: one gate per size tier x faction livery. The route
+// deliberately consumes the shared asset/pass, not the campaign army marker or
+// DOM banner approximations, so slices 11/13 can port the same contract.
+// Review-only config (cameras, gate table) lives here like the grass shot
+// config — the asset module carries only the production contract.
+const STANDARD_REVIEW_FACTIONS = ["azure", "crimson"] as const;
+
+// The look-at point sits on the ground plane, so a tall standard extends
+// up-screen from its base: aim north of the pole by ~cloth mid-height
+// (compensated through the pitch) to center the flag, and zoom so the full
+// pole + finial fills the frame height with margin.
+const STANDARD_REVIEW_CAMERA_BY_TIER: Record<StandardSizeTier, ChartCameraSpec> = {
+  "battle-unit": { x: 0.05, y: 4.4, zoom: 90, pitch: 1.08, yaw: -0.05 },
+  "campaign-army": { x: 0.05, y: 5.1, zoom: 68, pitch: 1.08, yaw: -0.05 },
+  "settlement-banner": { x: 0.05, y: 8.1, zoom: 53, pitch: 1.08, yaw: -0.05 },
+};
+
+const STANDARD_REVIEW_GATES = STANDARD_SIZE_TIER_IDS.flatMap((tier) =>
+  STANDARD_REVIEW_FACTIONS.map((factionId) => ({
+    id: `${tier}-${factionId}`,
+    tier,
+    factionId,
+    camera: STANDARD_REVIEW_CAMERA_BY_TIER[tier],
+    windPhase: standardWindPhase(standardSeed(tier, factionId)),
+    windStrength: standardWindStrength(tier),
+    timeSeconds: 0.75,
+  })),
+);
+
+async function routeSharedStandardModelShots(ctx: LabContext) {
+  const gate =
+    STANDARD_REVIEW_GATES.find((candidate) => candidate.id === ctx.params.get("gate")) ??
+    STANDARD_REVIEW_GATES[0];
+  const timeSeconds = numberParam(ctx.params, "time", gate.timeSeconds);
+  const shell = await createConfiguredShell(ctx.canvas, gate.camera);
+  shell.setTime(timeSeconds);
+  const standards = new SharedStandardPass(shell);
+  const instance: StandardInstance = {
+    x: 0,
+    y: 0,
+    tier: gate.tier,
+    factionId: gate.factionId,
+    yaw: -0.02,
+    windPhase: gate.windPhase,
+    windStrength: numberParam(ctx.params, "windStrength", gate.windStrength),
+  };
+  standards.upload([instance]);
+  shell.drawFrame({
+    clear: { r: 0.09, g: 0.1, b: 0.1, a: 1 },
+    // Wide enough that the ground reaches the frame edges at every tier's
+    // review camera — a small slab reads as a floating tile, not ground.
+    terrainRect: [-9, -6, 18, 13],
+    passes: [
+      {
+        id: "shared-standard-opaque",
+        role: "world-opaque",
+        phase: "world-depth",
+        depth: "read-write",
+        draw: (pass) => standards.drawOpaque(pass),
+      },
+      {
+        id: "shared-standard-shadow",
+        role: "world-decal",
+        phase: "world-depth",
+        depth: "read",
+        draw: (pass) => standards.drawShadows(pass),
+      },
+    ],
+  });
+  const stats = standards.stats();
+  ctx.status.innerHTML = reportTable({
+    route: "shared-standard-models",
+    gate: gate.id,
+    tier: gate.tier,
+    faction: gate.factionId,
+    purpose: "isolated shared 3D standard model sheet",
+    timeSeconds: timeSeconds.toFixed(2),
+    windPhase: gate.windPhase.toFixed(3),
+    windStrength: instance.windStrength?.toFixed(3) ?? gate.windStrength.toFixed(3),
+    renderer: "raw WebGPU shared standard asset",
+  });
+  publish("shared-standard-models", true, {
+    route: "shared-standard-models",
+    gate: gate.id,
+    tier: gate.tier,
+    faction: gate.factionId,
+    camera: gate.camera,
+    timeSeconds,
+    windPhase: gate.windPhase,
+    windStrength: instance.windStrength ?? gate.windStrength,
+    reviewGates: STANDARD_REVIEW_GATES.map((reviewGate) => reviewGate.id),
+    ...stats,
+    cameraContract: shell.stats().cameraContract,
+    depth: shell.stats().depth,
+    framePhases: shell.stats().phases,
+    postCutoverScreenshots: "renderer-only",
+  });
+}
+
 type CampaignModelShot =
   | "overview"
   | "city"
@@ -2880,7 +3032,10 @@ function campaignModelShotCamera(gate: CampaignModelShot) {
   // review pitch so vertical city geometry occludes again under camera3d
   // (sightline to the embedded cloth must pass through the wall/roof volume);
   // the ground-centric gates keep their original chart-like framing.
-  const close = { x: 0, y: 0.3, zoom: 28, pitch: 1.05, yaw: 0 };
+  // Framed for the reference-scale settlement banner: the pole tops out
+  // ~15 world units, so the close gates aim higher and pull back to keep
+  // finial-to-ground in frame.
+  const close = { x: 0, y: 3.2, zoom: 20, pitch: 1.05, yaw: 0 };
   // The outside garrison stands west of the city; recentre between them so the
   // army body (its west shield reaches x ≈ −9.3) stays fully in frame.
   if (gate === "garrison-outside") return { ...close, x: -2.2 };
@@ -2905,6 +3060,8 @@ function campaignModelShotFrame(gate: CampaignModelShot) {
   const green: [number, number, number] = [0.31, 0.82, 0.39];
   const neutral: [number, number, number] = [0.93, 0.78, 0.3];
   const entities: CampaignEntityInstance[] = [];
+  const standards: StandardInstance[] = [];
+  const armyAnchors: { x: number; y: number; z?: number }[] = [];
   const scenery: CampaignSceneryInstance[] = [];
   const selections: CampaignSelectionInstance[] = [];
   const labels: CampaignLabel[] = [];
@@ -2919,8 +3076,21 @@ function campaignModelShotFrame(gate: CampaignModelShot) {
     faction = red,
     allegiance = green,
     selected = false,
+    settlementBanner = true,
   ) => {
     entities.push({ x, y, radius, faction, allegiance, kind: "city", strength: 1 });
+    if (settlementBanner) {
+      const scale = campaignSettlementStandardScale(radius);
+      standards.push({
+        x: x + 0.08 * scale,
+        y: y + 0.04 * scale,
+        tier: "settlement-banner",
+        factionId: "azure",
+        livery: { field: faction },
+        scale,
+        windPhase: standardWindPhase(standardSeed("settlement-banner", `model-city:${text}`)),
+      });
+    }
     labels.push({
       text,
       x,
@@ -2935,15 +3105,17 @@ function campaignModelShotFrame(gate: CampaignModelShot) {
       selections.push({ x, y, z: 0, radius: radius * 1.34, color: green, kind: "city" });
   };
   const addArmy = (x: number, y: number, selected = false) => {
-    entities.push({
+    const radius = 5.5;
+    standards.push({
       x,
       y,
-      radius: 5.5,
-      faction: red,
-      allegiance: green,
-      kind: "army",
-      strength: 0.86,
+      tier: "campaign-army",
+      factionId: "azure",
+      livery: { field: red },
+      scale: campaignArmyStandardScale(radius),
+      windPhase: standardWindPhase(standardSeed("campaign-army", `model-army:${x}:${y}`)),
     });
+    armyAnchors.push({ x, y });
     labels.push({
       text: "1ST LEGION",
       x,
@@ -2997,14 +3169,18 @@ function campaignModelShotFrame(gate: CampaignModelShot) {
       green,
       true,
     );
-    entities.push({
+    standards.push({
       x: MODEL_SHOT_OUTSIDE_GARRISON_ARMY_POSITION[0],
       y: MODEL_SHOT_OUTSIDE_GARRISON_ARMY_POSITION[1],
-      radius: MODEL_SHOT_GARRISON_ARMY_RADIUS,
-      faction: [0.16, 0.34, 0.78],
-      allegiance: green,
-      kind: "army",
-      strength: 0.62,
+      tier: "campaign-army",
+      factionId: "azure",
+      livery: { field: [0.16, 0.34, 0.78] },
+      scale: campaignArmyStandardScale(MODEL_SHOT_GARRISON_ARMY_RADIUS),
+      windPhase: standardWindPhase(standardSeed("campaign-army", "model-garrison-outside")),
+    });
+    armyAnchors.push({
+      x: MODEL_SHOT_OUTSIDE_GARRISON_ARMY_POSITION[0],
+      y: MODEL_SHOT_OUTSIDE_GARRISON_ARMY_POSITION[1],
     });
   }
   if (gate === "garrison-city") {
@@ -3016,15 +3192,20 @@ function campaignModelShotFrame(gate: CampaignModelShot) {
       red,
       green,
       true,
+      false,
     );
-    entities.push({
+    standards.push({
       x: MODEL_SHOT_GARRISON_ARMY_POSITION[0],
       y: MODEL_SHOT_GARRISON_ARMY_POSITION[1],
-      radius: MODEL_SHOT_GARRISON_ARMY_RADIUS,
-      faction: [0.16, 0.34, 0.78],
-      allegiance: green,
-      kind: "army",
-      strength: 0.62,
+      tier: "campaign-army",
+      factionId: "azure",
+      livery: { field: [0.16, 0.34, 0.78] },
+      scale: campaignArmyStandardScale(MODEL_SHOT_GARRISON_ARMY_RADIUS),
+      windPhase: standardWindPhase(standardSeed("campaign-army", "model-garrison-city")),
+    });
+    armyAnchors.push({
+      x: MODEL_SHOT_GARRISON_ARMY_POSITION[0],
+      y: MODEL_SHOT_GARRISON_ARMY_POSITION[1],
     });
   }
   if (gate === "garrison-hidden") {
@@ -3036,16 +3217,22 @@ function campaignModelShotFrame(gate: CampaignModelShot) {
       red,
       green,
       true,
+      false,
     );
-    entities.push({
+    standards.push({
       x: MODEL_SHOT_HIDDEN_GARRISON_ARMY_POSITION[0],
       y: MODEL_SHOT_HIDDEN_GARRISON_ARMY_POSITION[1],
       z: MODEL_SHOT_HIDDEN_GARRISON_Z,
-      radius: MODEL_SHOT_GARRISON_ARMY_RADIUS,
-      faction: [0.16, 0.34, 0.78],
-      allegiance: green,
-      kind: "army",
-      strength: 0.62,
+      tier: "campaign-army",
+      factionId: "azure",
+      livery: { field: [0.16, 0.34, 0.78] },
+      scale: campaignArmyStandardScale(MODEL_SHOT_GARRISON_ARMY_RADIUS),
+      windPhase: standardWindPhase(standardSeed("campaign-army", "model-garrison-hidden")),
+    });
+    armyAnchors.push({
+      x: MODEL_SHOT_HIDDEN_GARRISON_ARMY_POSITION[0],
+      y: MODEL_SHOT_HIDDEN_GARRISON_ARMY_POSITION[1],
+      z: MODEL_SHOT_HIDDEN_GARRISON_Z,
     });
   }
   if (gate === "selected-city")
@@ -3128,7 +3315,17 @@ function campaignModelShotFrame(gate: CampaignModelShot) {
       angle: -0.12,
     });
   }
-  return { entities, scenery, selections, labels, roads, terrainRect, cloudRect };
+  return {
+    entities,
+    standards,
+    armyAnchors,
+    scenery,
+    selections,
+    labels,
+    roads,
+    terrainRect,
+    cloudRect,
+  };
 }
 
 async function campaignModelShotStandardLiveries(
@@ -3144,7 +3341,8 @@ async function campaignModelShotStandardLiveries(
   const rows = Math.ceil(map.factions.length / columns);
   const width = (columns - 1) * spacing[0];
   const height = Math.max(0, rows - 1) * spacing[1];
-  const entities: CampaignEntityInstance[] = [];
+  const standards: StandardInstance[] = [];
+  const armyAnchors: { x: number; y: number }[] = [];
   const markers: CampaignMarker[] = [];
   const liveryCells = map.factions.map((faction, index) => {
     const col = index % columns;
@@ -3158,15 +3356,16 @@ async function campaignModelShotStandardLiveries(
     ];
     const markerAnchor: [number, number] = [x + 5, y];
     const markerSample = projectNestedPoint(canvas, camera, [markerAnchor[0], markerAnchor[1], 0]);
-    entities.push({
+    standards.push({
       x,
       y,
-      radius: 6.4,
-      faction: color,
-      allegiance: color,
-      kind: "army",
-      strength: 1,
+      tier: "campaign-army",
+      factionId: "azure",
+      livery: { field: color },
+      scale: campaignArmyStandardScale(6.4),
+      windPhase: standardWindPhase(standardSeed("campaign-army", `campaign-faction:${index}`)),
     });
+    armyAnchors.push({ x, y });
     markers.push({
       x: markerAnchor[0],
       y: markerAnchor[1],
@@ -3195,7 +3394,8 @@ async function campaignModelShotStandardLiveries(
     height + pad * 2,
   ];
   return {
-    entities,
+    standards,
+    armyAnchors,
     markers,
     terrainRect,
     liveryCells,
@@ -3208,11 +3408,15 @@ async function campaignModelShotStandardLiveries(
 // pennant cloth, and a point inside the late broadleaf's canopy blobs) via the
 // route's own projector, so the samples follow the camera.
 function campaignModelShotHostileDepthSamples(canvas: HTMLCanvasElement, camera: ChartCameraSpec) {
-  const scale = MODEL_SHOT_CITY_RADIUS / 5.0;
-  const flag = projectNestedPoint(canvas, camera, [
-    MODEL_SHOT_CITY_POSITION[0] + 0.9 * scale,
+  const scale = campaignSettlementStandardScale(MODEL_SHOT_CITY_RADIUS);
+  const bannerAnchor = [
+    MODEL_SHOT_CITY_POSITION[0] + 0.08 * scale,
     MODEL_SHOT_CITY_POSITION[1] + 0.04 * scale,
-    5.9 * scale,
+  ];
+  const flag = projectNestedPoint(canvas, camera, [
+    bannerAnchor[0] + 0.34 * scale,
+    bannerAnchor[1] - 0.088 * scale,
+    5.15 * scale,
   ]);
   // Sample the canopy body (mid-height, slightly west of the trunk) — the top
   // rim thins to nothing under the oblique review pitch.
@@ -3233,8 +3437,11 @@ function campaignModelShotCityStandardSamples(
   camera: ChartCameraSpec,
 ) {
   if (gate !== "city" && gate !== "selected-city") return null;
-  const scale = MODEL_SHOT_CITY_RADIUS / 5.0;
-  const base = MODEL_SHOT_CITY_POSITION;
+  const scale = campaignSettlementStandardScale(MODEL_SHOT_CITY_RADIUS);
+  const base: [number, number] = [
+    MODEL_SHOT_CITY_POSITION[0] + 0.08 * scale,
+    MODEL_SHOT_CITY_POSITION[1] + 0.04 * scale,
+  ];
   const worldPoint = (local: [number, number, number]) =>
     projectNestedPoint(canvas, camera, [
       base[0] + local[0] * scale,
@@ -3242,12 +3449,15 @@ function campaignModelShotCityStandardSamples(
       local[2] * scale,
     ]);
   return {
-    hiddenLowerCloth: worldPoint([-0.22, 0.08, 1.45]),
-    visibleUpperCloth: worldPoint([0.76, 0.04, 5.64]),
-    plantedMastCore: worldPoint([0.08, 0.04, 2.35]),
-    rightFlyingCloth: worldPoint([0.95, 0.04, 5.92]),
-    leftOfMastControl: worldPoint([-0.65, 0.04, 5.92]),
-    mastAboveCloth: worldPoint([0.08, 0.04, 6.76]),
+    // Below the cloth bottom: the towering banner clears the roofline, so
+    // the building zone must show roofs, never cloth.
+    hiddenLowerCloth: worldPoint([0.28, -0.088, 2.3]),
+    visibleUpperCloth: worldPoint([0.34, -0.088, 5.18]),
+    plantedMastCore: worldPoint([0.0, 0.0, 2.35]),
+    rightFlyingCloth: worldPoint([0.42, -0.088, 5.06]),
+    leftOfMastControl: worldPoint([-0.84, -0.088, 5.06]),
+    // Bare pole between cloth top (5.6) and finial bottom (~6.45).
+    mastAboveCloth: worldPoint([0.0, 0.0, 6.0]),
   };
 }
 
@@ -3259,8 +3469,10 @@ function campaignModelShotGarrisonSamples(
 ) {
   if (gate !== "garrison-outside" && gate !== "garrison-city" && gate !== "garrison-hidden")
     return null;
+  // Building-relative samples scale with the CITY MESH (authored at ~5 world
+  // units per radius), not with the standard's banner scale.
   const cityScale = MODEL_SHOT_CITY_RADIUS / 5.0;
-  const armyScale = MODEL_SHOT_GARRISON_ARMY_RADIUS / 4.4;
+  const armyScale = campaignArmyStandardScale(MODEL_SHOT_GARRISON_ARMY_RADIUS);
   const armyBase =
     gate === "garrison-outside"
       ? MODEL_SHOT_OUTSIDE_GARRISON_ARMY_POSITION
@@ -3294,7 +3506,7 @@ function campaignModelShotGarrisonSamples(
     return {
       state: "outside-city",
       visibleShieldOutsideCity: projectNestedPoint(canvas, camera, bodyWorld),
-      visibleStandardOutsideCity: armyPoint([1.3, 0.12, 4.02]),
+      visibleStandardOutsideCity: armyPoint([0.34, -0.078, 4.02]),
       cityControl: cityPoint([-0.62, 0.08, 1.5]),
     };
   }
@@ -3302,14 +3514,14 @@ function campaignModelShotGarrisonSamples(
     return {
       state: "hidden-inside-city",
       hiddenBodyInsideCity: armyPoint([-0.46, -0.42, 0.98]),
-      hiddenStandardInsideCity: armyPoint([1.3, 0.12, 4.02]),
+      hiddenStandardInsideCity: armyPoint([0.34, -0.078, 4.02]),
       occludingCityRoof: cityPoint([0.34, 0.04, 4.94]),
     };
   }
   return {
     state: "partial-inside-city",
     hiddenShieldInsideWall: armyPoint([-0.46, -0.42, 0.98]),
-    visibleStandardAboveRoofs: armyPoint([1.3, 0.12, 4.02]),
+    visibleStandardAboveRoofs: armyPoint([0.34, -0.078, 4.02]),
     occludingCityWall: cityPoint([-0.62, 0.08, 1.5]),
   };
 }
@@ -7492,6 +7704,7 @@ function buildCampaignEntityFrame(
   selectedCity: number,
 ) {
   const entities: CampaignEntityInstance[] = [];
+  const standards: StandardInstance[] = [];
   const selections: CampaignSelectionInstance[] = [];
   let cityEntities = 0;
   let armyEntities = 0;
@@ -7515,6 +7728,16 @@ function buildCampaignEntityFrame(
       kind: "city",
       strength: Math.min(1, (city?.garrison ?? 600) / 1200),
     });
+    const scale = campaignSettlementStandardScale(mapNode.tier >= 3 ? 8.4 : 7.0);
+    standards.push({
+      x: mapNode.pos[0] + 0.08 * scale,
+      y: mapNode.pos[1] + 0.04 * scale,
+      tier: "settlement-banner",
+      factionId: "azure",
+      livery: { field: factionColor(data, owner) },
+      scale,
+      windPhase: standardWindPhase(standardSeed("settlement-banner", `campaign-ui-city:${node}`)),
+    });
     cityEntities++;
     if (node === selectedCity) {
       selections.push({
@@ -7528,16 +7751,14 @@ function buildCampaignEntityFrame(
     }
   }
   for (const army of views.armies) {
-    const allegiance =
-      army.mine || army.faction === playerFaction ? Allegiance.Friend : Allegiance.Foe;
-    entities.push({
+    standards.push({
       x: army.x,
       y: army.y,
-      radius: 9.8,
-      faction: factionColor(data, army.faction),
-      allegiance: allegianceColor(allegiance),
-      kind: "army",
-      strength: Math.min(1, Math.max(0.25, army.soldiers / 2600)),
+      tier: "campaign-army",
+      factionId: "azure",
+      livery: { field: factionColor(data, army.faction) },
+      scale: campaignArmyStandardScale(9.8),
+      windPhase: standardWindPhase(standardSeed("campaign-army", `campaign-ui-army:${army.id}`)),
     });
     armyEntities++;
     if (army.id === selectedArmy) {
@@ -7551,7 +7772,7 @@ function buildCampaignEntityFrame(
       });
     }
   }
-  return { entities, selections, cityEntities, armyEntities };
+  return { entities, standards, selections, cityEntities, armyEntities };
 }
 
 function factionColor(data: CampaignData, faction: number): [number, number, number] {

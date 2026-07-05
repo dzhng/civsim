@@ -59,6 +59,10 @@ export const RENDER_ORDER = {
   effectLines: 10,
   debugBlocks: 11,
   debugTriangles: 12,
+  // UI band: drawn after every world/backdrop transparent (the reversed-sort
+  // painter contract means a lower-order transparent backdrop would wash
+  // over anything below it in the list).
+  readout: 20,
 } as const;
 
 // frameShell TerrainShaderStyle — numeric mirror of the WGSL literals.

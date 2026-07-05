@@ -36,11 +36,3 @@ export async function battle5v5(ctx, opts = {}) {
   });
   return page;
 }
-
-export async function bannerGallery(ctx) {
-  const page = await ctx.newPage({ errorPrefix: "banner" });
-  await page.goto(`${ctx.target}?test=banners`);
-  await page.waitForSelector("#banner-gallery .ubanner", { timeout: 10000 });
-  await page.waitForTimeout(150);
-  return page;
-}

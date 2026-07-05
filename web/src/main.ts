@@ -1,12 +1,14 @@
 import init, { Campaign, Game, type InitOutput } from "./wasm/game_wasm.js";
 import { currentScene, switchScene } from "./scene";
 import { MenuScene } from "./menu/scene";
-import type { QuickBattleConfig } from "./battle/quickBattleCatalog";
+import { QUICK_BATTLE_GENERATED_MAP_ID, type QuickBattleConfig } from "./battle/quickBattleCatalog";
 import { BattleScene, type BattleKind, type GeneratedBattleMapDescriptor } from "./battle/scene";
 import { CampaignScene, loadCampaignData } from "./campaign/scene";
 import type { CampaignData } from "./campaign/data";
 import { checkGpuSupport, type GpuSupportState } from "../../packages/game-renderer/src/appShell";
+import { GENERATED_BATTLE_MAP_DEFAULT_ENVIRONMENT } from "../../packages/game-renderer/src/battle/mapCatalog";
 import { setActiveFactions } from "../../packages/game-renderer/src/battle/factionColors";
+import { generatedBattleMapEntry } from "../../packages/game-renderer/src/battle/mapCatalog";
 
 const params = new URLSearchParams(location.search);
 let wasm: InitOutput;
@@ -19,18 +21,7 @@ if (location.pathname.startsWith("/renderer")) {
   gpuStatus = await checkGpuSupport({ forceUnsupported: params.get("gpu") === "off" });
   publishAppShellStats();
   wasm = await init();
-
-  // Standalone component harness: render the unit-banner gallery and stop, so the
-  // component can be eyeballed and pixel-snapshotted without the sim or engine.
-  if (params.get("test") === "banners") {
-    const { mountBannerGallery } = await import("./battle/unitBanner");
-    const root = document.createElement("div");
-    document.body.appendChild(root);
-    mountBannerGallery(root);
-    (window as unknown as { __ready: boolean }).__ready = true;
-  } else {
-    await main();
-  }
+  await main();
 }
 
 async function main() {
@@ -69,7 +60,10 @@ async function main() {
         const game = createGame(kind);
         const generatedMap =
           kind === "gen"
-            ? (JSON.parse(game.generated_map_descriptor()) as GeneratedBattleMapDescriptor)
+            ? ({
+                ...(JSON.parse(game.generated_map_descriptor()) as GeneratedBattleMapDescriptor),
+                defaultEnvironment: GENERATED_BATTLE_MAP_DEFAULT_ENVIRONMENT,
+              } satisfies GeneratedBattleMapDescriptor)
             : undefined;
         return new BattleScene({
           wasm,
@@ -93,7 +87,11 @@ async function main() {
   function createQuickBattleGame(cfg: QuickBattleConfig): Game {
     setActiveFactions(cfg.factions);
     const game = new Game(BATTLE_SEED);
-    game.load_map(cfg.mapId);
+    if (cfg.mapId === QUICK_BATTLE_GENERATED_MAP_ID) {
+      game.load_generated_map(parseGeneratedSeed(cfg.generatedSeed ?? "0"));
+    } else {
+      game.load_map(cfg.mapId);
+    }
     cfg.teams.forEach((picks, team) => {
       const units = picks.flatMap((p) => Array.from({ length: p.count }, () => p.classId));
       const y = team === 0 ? -260 : 260;
@@ -111,12 +109,31 @@ async function main() {
   }
 
   function launchQuickBattle(cfg: QuickBattleConfig) {
+    const generated = cfg.mapId === QUICK_BATTLE_GENERATED_MAP_ID;
+    const game = createQuickBattleGame(cfg);
+    const generatedMap = generated
+      ? (JSON.parse(game.generated_map_descriptor()) as GeneratedBattleMapDescriptor)
+      : undefined;
+    const generatedEntry = generatedMap
+      ? generatedBattleMapEntry({
+          seed: generatedMap.seed,
+          groundCover: generatedMap.groundCover,
+          edges: {
+            north: "open-fog",
+            south: "open-fog",
+            west: generatedMap.edgeSeals?.expectedRoles?.west ?? "cliff",
+            east: generatedMap.edgeSeals?.expectedRoles?.east ?? "cliff",
+          },
+          featureSummary: generatedMap.featureSummary,
+        })
+      : null;
     switchScene(
       new BattleScene({
         wasm,
-        game: createQuickBattleGame(cfg),
-        kind: "mapA",
-        wasmMapId: cfg.mapId,
+        game,
+        kind: generated ? "gen" : "mapA",
+        wasmMapId: generatedEntry?.wasmMapId ?? cfg.mapId,
+        generatedMap,
         restart: () => launchQuickBattle(cfg),
         onExit: () => switchScene(menu),
         onLaunch: launchBattle,

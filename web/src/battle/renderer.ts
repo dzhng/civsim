@@ -18,8 +18,22 @@ import {
   type BattleCameraSnapshot,
   type BattleVistaGrid,
 } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
+import {
+  seaDisplacementSourceFromParam,
+  type SeaDisplacementSourceId,
+} from "../../../packages/photoreal-renderer/src/battle/seaLayer";
+import type { BattleReadoutInstance } from "../../../packages/photoreal-renderer/src/battle/readoutLayer";
+import type { BattleStandardInstance } from "../../../packages/photoreal-renderer/src/battle/standardLayer";
 import type { BattleSlopeBands } from "../../../packages/game-renderer/src/battle/terrainFeatures";
+import type { BattleEnvironmentId } from "../../../packages/game-renderer/src/environment/environment";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
+
+export interface BattleRendererOptions {
+  environment?: BattleEnvironmentId | string | null;
+  shadows?: string | null;
+  sea?: SeaDisplacementSourceId | null;
+  post?: string | null;
+}
 
 export class BattleRenderer {
   readonly ready: Promise<void>;
@@ -45,6 +59,7 @@ export class BattleRenderer {
     frameCpuMs: 0,
   };
   private frameStart = 0;
+  private readoutFrameKey = "";
   private lastCamera: BattleCameraSnapshot = {
     x: 0,
     y: 0,
@@ -61,7 +76,10 @@ export class BattleRenderer {
     },
   };
 
-  constructor(private canvas: HTMLCanvasElement) {
+  constructor(
+    private canvas: HTMLCanvasElement,
+    private options: BattleRendererOptions = {},
+  ) {
     this.ready = this.init();
     window.addEventListener("resize", () => this.resize());
   }
@@ -81,6 +99,7 @@ export class BattleRenderer {
     this.soldierUnit = new Uint32Array(soldierUnit);
     this.unitTeam = teams.map((team) => (team === 1 ? 1 : 0));
     this.frozenFrameKey = null;
+    this.readoutFrameKey = "";
     this.triangleVerts = new Float32Array();
     if (this.world) {
       this.world.setStatic(soldierUnit, teams, classes);
@@ -238,6 +257,27 @@ export class BattleRenderer {
     }
   }
 
+  /** True-projection pixels-per-world-meter at a point (see
+   *  PhotorealBattleWorld.pxPerWorldAt) - the rig's chart worldToScreen lies
+   *  in the swoop regime. */
+  pxPerWorldAt(x: number, y: number, z: number): number {
+    return this.world?.pxPerWorldAt(x, y, z) ?? 0;
+  }
+
+  setUnitReadouts(
+    standards: readonly BattleStandardInstance[],
+    readouts: readonly BattleReadoutInstance[],
+  ) {
+    if (!this.world) return;
+    const key = readoutsKey(standards, readouts);
+    if (key !== this.readoutFrameKey) {
+      this.readoutFrameKey = key;
+      this.frozenFrameKey = null;
+      this.skipFrozenFrame = false;
+    }
+    this.world.uploadUnitReadouts(standards, readouts);
+  }
+
   stats() {
     const ws = this.world?.stats() ?? null;
     return {
@@ -295,8 +335,14 @@ export class BattleRenderer {
   }
 
   private async init() {
+    const params = new URLSearchParams(location.search);
     const world = await PhotorealBattleWorld.create(this.canvas, {
-      environment: new URLSearchParams(location.search).get("env"),
+      environment: params.get("env") ?? this.options.environment,
+      shadows: params.get("shadows") ?? this.options.shadows,
+      sea: params.has("sea")
+        ? seaDisplacementSourceFromParam(params.get("sea"))
+        : (this.options.sea ?? undefined),
+      post: params.get("post") ?? this.options.post,
     });
     this.world = world;
     // The bespoke shell's fatal surface, re-homed onto three's device.
@@ -361,6 +407,20 @@ function frozenSelectionGroundCues(verts: Float32Array) {
     for (let k = 0; k < stride * 2; k++) out.push(verts[i + k]);
   }
   return new Float32Array(out);
+}
+
+function readoutsKey(
+  standards: readonly BattleStandardInstance[],
+  readouts: readonly BattleReadoutInstance[],
+) {
+  let key = `${standards.length}/${readouts.length}`;
+  for (const standard of standards) {
+    key += `|${standard.unitId}:${Math.round(standard.x * 10)},${Math.round(standard.y * 10)},${Math.round(standard.z * 10)},${Math.round(standard.yaw * 100)},${Math.round(standard.scale * 100)},${standard.factionId},${standard.selected ? 1 : 0}`;
+  }
+  for (const readout of readouts) {
+    key += `#${readout.unitId}:${Math.round(readout.x * 10)},${Math.round(readout.y * 10)},${Math.round(readout.z * 10)},${Math.round(readout.worldPerPx * 1000)},${readout.chips.map((c) => `${c.kind ?? ""}${c.text}`).join(",")}`;
+  }
+  return key;
 }
 
 function roundMs(value: number) {

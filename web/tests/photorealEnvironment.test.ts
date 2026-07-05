@@ -7,6 +7,7 @@ import { CIVSIM_ENVIRONMENTS } from "../../packages/game-renderer/src/environmen
 import { photorealEnvironment } from "../../packages/photoreal-renderer/src/environment.ts";
 import {
   overcastFromTurbidity,
+  lowSunAureoleStrength,
   mieScale,
   skyModelParams,
   transmittanceToSun,
@@ -64,7 +65,7 @@ test("photoreal environment: the preset registers order physically", () => {
   const golden = spec("golden");
   const dusk = spec("dusk");
   const noon = spec("noon");
-  const overcast = spec("overcast");
+  const overcast = spec("overcast-highland");
   // Exposure monotonicity: dusk is the dim register (dim exposure, never
   // dark albedos); the three day presets sit above it.
   assert.ok(dusk.exposure < overcast.exposure, "dusk dimmer than overcast");
@@ -170,7 +171,7 @@ test("sky model: sun tint warms as the sun drops (physics, not authored keys)", 
 test("sky model: turbidity drives overcastness and mie", () => {
   // Overcastness: only the overcast preset reads as overcast.
   assert.equal(
-    overcastFromTurbidity(CIVSIM_ENVIRONMENTS.overcast.physical.turbidity),
+    overcastFromTurbidity(CIVSIM_ENVIRONMENTS["overcast-highland"].physical.turbidity),
     1,
     "overcast fully overcast",
   );
@@ -183,12 +184,12 @@ test("sky model: turbidity drives overcastness and mie", () => {
   }
   // Monotone axes.
   assert.ok(mieScale(2.0) < mieScale(2.6), "mie monotone in turbidity");
-  assert.ok(mieScale(2.6) < mieScale(9.0), "overcast carries the most mie");
+  assert.ok(mieScale(2.6) < mieScale(9.8), "overcast carries the most mie");
   assert.ok(overcastFromTurbidity(5.0) < overcastFromTurbidity(7.0), "overcastness monotone");
 });
 
 test("sky model: overcast sun light is desaturated toward grey", () => {
-  const overcast = skyModelParams(CIVSIM_ENVIRONMENTS.overcast);
+  const overcast = skyModelParams(CIVSIM_ENVIRONMENTS["overcast-highland"]);
   const spreadT = Math.max(...overcast.sunTransmittance) - Math.min(...overcast.sunTransmittance);
   const spreadL = Math.max(...overcast.sunLightColor) - Math.min(...overcast.sunLightColor);
   assert.ok(spreadL < spreadT * 0.05, "overcast kills the direct sun tint");
@@ -198,6 +199,20 @@ test("sky model: overcast sun light is desaturated toward grey", () => {
     golden.sunTransmittance,
     "clear presets keep the physical tint",
   );
+});
+
+test("sky model: low-sun aureole restores warm displayed clear skies", () => {
+  const strength = (id: keyof typeof CIVSIM_ENVIRONMENTS) => {
+    const params = skyModelParams(CIVSIM_ENVIRONMENTS[id]);
+    return lowSunAureoleStrength(params.sunDirection[2], params.overcast);
+  };
+  assert.ok(strength("golden") > 0.25, "golden carries a visible warm aureole");
+  assert.ok(
+    strength("dusk") >= strength("golden"),
+    "lower dusk sun carries at least golden warmth",
+  );
+  assert.ok(strength("noon") < 0.01, "high noon has no golden-hour aureole");
+  assert.equal(strength("overcast-highland"), 0, "overcast dome owns overcast colour");
 });
 
 test("sky model: transmittance responds to sun height and turbidity", () => {
@@ -229,13 +244,31 @@ test("aerial: pure, deterministic preset mapping with physical ordering", () => 
   // Visibility monotone with clarity: noon clearest … overcast heaviest.
   assert.ok(vis("noon") > vis("golden"), "noon clearer than golden");
   assert.ok(vis("golden") > vis("dusk"), "golden clearer than dusk");
-  assert.ok(vis("dusk") > vis("overcast"), "dusk clearer than overcast");
+  assert.ok(vis("dusk") > vis("overcast-highland"), "dusk clearer than overcast");
   // David's locked moods: golden subtle far haze, overcast HEAVY fog
   // swallowing layered ranges. "Heavy" is judged at the ranges' distance —
   // the vista eye parks ~1 km out, blockers sit 2.5–4 km out, so overcast
   // needs T < ~0.25 there (V < 8 km) while golden's near field stays clear.
   assert.ok(vis("golden") > 20, `golden haze stays subtle (V=${vis("golden")}km)`);
-  assert.ok(vis("overcast") < 5, `overcast fog swallows ranges (V=${vis("overcast")}km)`);
+  assert.ok(
+    vis("overcast-highland") < 5,
+    `overcast fog swallows ranges (V=${vis("overcast-highland")}km)`,
+  );
+  const overcast = aerialParams(CIVSIM_ENVIRONMENTS["overcast-highland"]);
+  const mean = overcast.extinction.reduce((sum, value) => sum + value, 0) / 3;
+  const transmittanceAt = (metres: number) => Math.exp(-mean * Math.max(0, metres / 1000 - 0.14));
+  assert.ok(
+    transmittanceAt(2000) > 0.12,
+    `2km playable field remains readable (T=${transmittanceAt(2000)})`,
+  );
+  assert.ok(
+    transmittanceAt(2800) < 0.08,
+    `N/S far-ring edge saturates before 2.8km (T=${transmittanceAt(2800)})`,
+  );
+  assert.ok(
+    transmittanceAt(4200) < 0.03,
+    `E/W far-ring edge saturates before 4.2km (T=${transmittanceAt(4200)})`,
+  );
 });
 
 test("aerial: clear presets scatter blue-first, overcast fog is near-neutral", () => {
@@ -247,5 +280,5 @@ test("aerial: clear presets scatter blue-first, overcast fog is near-neutral", (
   // droplet fog flattens the spectrum for overcast.
   assert.ok(spectralRatio("noon") > 2.0, "noon aerial is rayleigh-blue");
   assert.ok(spectralRatio("golden") > 1.5, "golden aerial leans blue");
-  assert.ok(spectralRatio("overcast") < 1.3, "overcast fog is spectrally near-neutral");
+  assert.ok(spectralRatio("overcast-highland") < 1.3, "overcast fog is spectrally near-neutral");
 });

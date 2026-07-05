@@ -18,6 +18,10 @@ import {
   type BattleCameraSnapshot,
   type BattleVistaGrid,
 } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
+import {
+  seaDisplacementSourceFromParam,
+  type SeaDisplacementSourceId,
+} from "../../../packages/photoreal-renderer/src/battle/seaLayer";
 import type { BattleReadoutInstance } from "../../../packages/photoreal-renderer/src/battle/readoutLayer";
 import type { BattleStandardInstance } from "../../../packages/photoreal-renderer/src/battle/standardLayer";
 import type { BattleSlopeBands } from "../../../packages/game-renderer/src/battle/terrainFeatures";
@@ -26,6 +30,9 @@ import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
 
 export interface BattleRendererOptions {
   environment?: BattleEnvironmentId | string | null;
+  shadows?: string | null;
+  sea?: SeaDisplacementSourceId | null;
+  post?: string | null;
 }
 
 export class BattleRenderer {
@@ -328,8 +335,14 @@ export class BattleRenderer {
   }
 
   private async init() {
+    const params = new URLSearchParams(location.search);
     const world = await PhotorealBattleWorld.create(this.canvas, {
-      environment: new URLSearchParams(location.search).get("env") ?? this.options.environment,
+      environment: params.get("env") ?? this.options.environment,
+      shadows: params.get("shadows") ?? this.options.shadows,
+      sea: params.has("sea")
+        ? seaDisplacementSourceFromParam(params.get("sea"))
+        : (this.options.sea ?? undefined),
+      post: params.get("post") ?? this.options.post,
     });
     this.world = world;
     // The bespoke shell's fatal surface, re-homed onto three's device.

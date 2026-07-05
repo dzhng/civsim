@@ -1,5 +1,32 @@
 # Slice 04 — Family C: sustained lateral slosh in the grind
 
+## RATIFIED GO (David, 2026-07-06) — scope for the foundation pass
+
+Attribution is DONE (pass 5): the rear rank carries more lateral speed
+than the fighting front (rank 5: 1.114 m/s vs rank 0: 0.888) —
+PivotSpring/CompPush/WeaveNet ring the lattice. The pass has two halves,
+both mandatory:
+
+1. **Apply the parked friction widening** (`assets/slice04-friction-
+   widening.diff`): pike lateral friction for ALL packed foot, keyed on
+   measured advance (`mass_advance < charge_spent_speed`, not the
+   OrderMode gate), reversal judged in the trajectory frame
+   (`last_disp`). Restores rank 5 to 0.105 with front jostle 0.70.
+2. **Fix or bound the deep-reform relabel churn it exposes**: with the
+   rear quiet, `engaged_deep_reform` relabels ~400 slots/window against
+   the front's slow shear and men take visible sideways WALKS to
+   reassigned slots (the grind rail moved 0.635 -> 0.777 from transit
+   motion alone). Instrument WHY the positional re-sort flips labels
+   every beat under shear before touching the cadence.
+
+Expected red set (deliberate, re-derive each with provenance + cause):
+golden, `ai_battle_resolves_with_pinned_scale_shape`,
+`light_horse_tramples_at_a_third_the_butchery`, the grind rail (retune
+its ceiling to the post-fix level per this slice's original contract),
+plus whatever the churn fix moves. Film before/after grind vibes; the
+jostle level is David's non-blocking taste checkpoint (preview-shots,
+~5 min, then decide on evidence and record here).
+
 ## Contract unlocked
 
 The lateral motion inside a static grind is attributed and bounded: we know

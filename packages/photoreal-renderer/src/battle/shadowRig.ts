@@ -34,7 +34,9 @@ export type SunShadowMode = "csm" | "single" | "off";
 // --- The classic shadow knob set (slice-11 tuning constants, documented) ----
 /** Cascade count on the hardware tier. Three practical-split cascades cover
  *  gameplay mid zoom (dense texels on the crowd) through the vista ridge. */
-export const CSM_CASCADES = 3;
+// 2 cascades over the tightened 1500m range: the third re-rendered the
+// whole crowd for far-field texels haze owns anyway.
+export const CSM_CASCADES = 2;
 /** Per-cascade shadow map resolution on hardware. */
 export const CSM_MAP_SIZE = 2048;
 /** The single-tier (SwiftShader) map resolution — correctness proxy, not look. */
@@ -88,7 +90,11 @@ export function resolveSunShadowMode(
   const software = ["swiftshader", "llvmpipe", "lavapipe", "software", "cpu"].some((needle) =>
     label.includes(needle),
   );
-  return software ? "single" : "csm";
+  // 'single' everywhere by default: even 2-cascade CSM re-renders the crowd
+  // per cascade and cost ~25% of the battle frame (the "unplayable"
+  // regression when shadows first actually rendered). One soft pass keeps
+  // grounded soldiers/trees at playable fps; ?shadows=csm remains for QA.
+  return "single";
 }
 
 export interface SunShadowRig {

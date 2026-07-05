@@ -103,10 +103,11 @@ export class PhotorealCrowd {
         mesh.name = `battle-crowd-${classId}-lod${lod}`;
         mesh.frustumCulled = false;
         mesh.renderOrder = RENDER_ORDER.worldOpaque;
-        // Slice 11: soldiers cast (the shadow pass reuses the VAT positionNode
-        // per cascade — the headline perf spender of the ladder) and receive
-        // (terrain/tree/soldier-on-soldier shading grounds the formation).
-        mesh.castShadow = true;
+        // Soldiers cast from the DETAILED tiers only: LOD2 impostor-distance
+        // men re-rendered per cascade tripled frame cost for shadows nobody
+        // can see at that range (the 11fps "unplayable" regression when
+        // shadows first actually rendered). All tiers still receive.
+        mesh.castShadow = lod < 2;
         mesh.receiveShadow = true;
         mesh.visible = false;
         scene.add(mesh);

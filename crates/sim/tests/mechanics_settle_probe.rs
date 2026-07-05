@@ -714,6 +714,68 @@ fn probe_trace_cliff_churn_forces() {
 
 #[cfg(feature = "force-trace")]
 #[test]
+fn probe_trace_overlap_buzz_forces() {
+    // Slice 03 conviction: the friendly-overlap standing buzz — does the
+    // cycle close through the separation solver (BodySeparation* records
+    // alternating with SlotPull/WeaveNet), and which men carry it?
+    use std::collections::BTreeMap;
+    let mut sim = Sim::new(Tunables::default(), SEED);
+    let unit = {
+        let u = sim.spawn_unit(Vec2::ZERO, FRAC_PI_2, 120, 20, Vec2::new(1.0, 1.0), 0, 1.0);
+        u
+    };
+    let _friend = sim.spawn_unit(
+        Vec2::new(15.0, 80.0),
+        FRAC_PI_2,
+        120,
+        20,
+        Vec2::new(1.0, 1.0),
+        0,
+        1.0,
+    );
+    run(&mut sim, 5.0);
+    sim.set_move_order_facing(unit, Vec2::new(0.0, 80.0), FRAC_PI_2);
+    march_until_arrived(&mut sim, unit);
+    run(&mut sim, 30.0); // settled into the buzz
+    sim.clear_force_trace();
+    run(&mut sim, 2.0);
+    for (label, uidx) in [("mover", unit), ("friend", _friend)] {
+        let u = &sim.units[uidx];
+        let mut per_channel: BTreeMap<_, f32> = BTreeMap::new();
+        let mut per_channel_net: BTreeMap<_, Vec2> = BTreeMap::new();
+        for rec in sim.force_trace.records() {
+            if rec.soldier >= u.start && rec.soldier < u.start + u.count {
+                *per_channel.entry(rec.channel).or_insert(0.0) += rec.vec.len();
+                let e = per_channel_net.entry(rec.channel).or_insert(Vec2::ZERO);
+                *e = *e + rec.vec;
+            }
+        }
+        println!("[{label}] channel |sum| (net) over 2s:");
+        for (ch, mag) in &per_channel {
+            let net = per_channel_net[ch];
+            println!("  {ch:?}: {mag:8.2}  net=({:+.2},{:+.2})", net.x, net.y);
+        }
+        // How many of the mover's slots sit under the friend's bodies?
+        let other = &sim.units[if uidx == unit { _friend } else { unit }];
+        let mut overlapped = 0;
+        for s in 0..u.alive_count {
+            let sw = u.slot_world(s);
+            let occupied = (other.start..other.start + other.count).any(|j| {
+                sim.alive[j] == 1 && (sim.soldier_pos(j) - sw).len() < sim.radius[j] * 2.0
+            });
+            if occupied {
+                overlapped += 1;
+            }
+        }
+        println!(
+            "[{label}] slots under other unit's bodies: {overlapped}/{}",
+            u.alive_count
+        );
+    }
+}
+
+#[cfg(feature = "force-trace")]
+#[test]
 fn probe_trace_corridor_buzz_forces() {
     // Family A': force ledger of the marginal-corridor standing buzz —
     // which channels alternate, and does the cycle close through the

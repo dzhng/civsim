@@ -67,8 +67,10 @@ import {
   type BattleVistaGrid,
 } from "./terrainLayer";
 import {
+  createLakePlaneMesh,
   createOceanPlaneMesh,
   createSeaDisplacementSource,
+  type BattleLakeSurfaceSpec,
   type SeaDisplacementSourceId,
 } from "./seaLayer";
 import { PhotorealBladeFieldLayer } from "./bladeFieldLayer";
@@ -89,6 +91,7 @@ import {
 import { BattlePostChain } from "../post/postChain";
 
 export type { BattleVistaGrid } from "./terrainLayer";
+export type { BattleLakeSurfaceSpec } from "./seaLayer";
 
 /** The camera fields BattleRenderer snapshots from the shared Camera each
  *  frame (renderer.ts cameraSnapshot) — the whole camera contract. */
@@ -156,6 +159,8 @@ export class PhotorealBattleWorld {
   private horizonBlockers: THREE.Mesh | null = null;
   private vistaMeshes: THREE.Mesh[] = [];
   private oceanPlanes: THREE.Mesh[] = [];
+  private lakePlanes: THREE.Mesh[] = [];
+  private lakeSurfaces: BattleLakeSurfaceSpec[] = [];
   private sealedEdges: string[] = [];
   private groundTriangles = 0;
   private vistaTriangles = 0;
@@ -359,6 +364,7 @@ export class PhotorealBattleWorld {
     wasmMapId?: number,
     slopeBands?: BattleSlopeBands | null,
     vista?: BattleVistaGrid | null,
+    lakeSurfaces?: BattleLakeSurfaceSpec[] | null,
   ): void {
     this.terrainRect = [ox, oy, w * cell, h * cell];
     this.terrainGrid = tint
@@ -376,6 +382,7 @@ export class PhotorealBattleWorld {
     this.groundCover = catalog?.groundCover ?? "green-grass";
     this.slopeBands = slopeBands ?? null;
     this.vistaGrid = vista ?? null;
+    this.lakeSurfaces = lakeSurfaces ? lakeSurfaces.map((surface) => ({ ...surface })) : [];
     this.applyTerrain();
   }
 
@@ -438,8 +445,13 @@ export class PhotorealBattleWorld {
       scene.remove(plane);
       disposeMesh(plane);
     }
+    for (const plane of this.lakePlanes) {
+      scene.remove(plane);
+      disposeMesh(plane);
+    }
     this.vistaMeshes = [];
     this.oceanPlanes = [];
+    this.lakePlanes = [];
     this.vistaTriangles = 0;
     if (this.vistaGrid) {
       this.sealedEdges = ["generated:vista"];
@@ -467,6 +479,10 @@ export class PhotorealBattleWorld {
       );
       for (const plane of this.oceanPlanes) scene.add(plane);
     }
+    this.lakePlanes = this.lakeSurfaces
+      .map((spec) => createLakePlaneMesh(this.frame, spec, grid, this.sea))
+      .filter((plane): plane is THREE.Mesh => plane !== null);
+    for (const plane of this.lakePlanes) scene.add(plane);
 
     this.scenery.upload(featuresToBattleScenery(presentation.features, field, 0x77));
     this.shadowRig.setWorldRect(this.terrainRect);
@@ -719,7 +735,13 @@ export class PhotorealBattleWorld {
             sealedEdges: [...this.sealedEdges],
             sea: {
               ...sea,
+              // `planes` keeps the legacy meaning (ocean planes only) - the
+              // vista scene asserts generated maps have none; lakes report
+              // separately.
               planes: this.oceanPlanes.length,
+              oceanPlanes: this.oceanPlanes.length,
+              lakePlanes: this.lakePlanes.length,
+              lakeSurfaces: this.lakeSurfaces.map((surface) => ({ ...surface })),
             },
             groundCover: this.groundCover,
             slopeBands: this.slopeBands,

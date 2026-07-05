@@ -21,13 +21,13 @@ Reference images (in `assets/` and the aesthetics skill):
 
 ## Next Agent Prompt
 
-**Status 2026-07-05: slices 00–04, 10–14 DONE (live-verified).** Generated
+**Status 2026-07-05: slices 00–04, 10–14 DONE (live-verified); 15 CODE-LANDED.** Generated
 maps now have: slope-sealed highland flanks with fracture-rock material, one
-natural lake pocket with streams and marsh, the TW vista apron + far fog ring
-(no more blocker spikes), and production blade grass with smooth thinning.
+natural lake pocket with streams and marsh, calm lake surfaces from the shared
+sea material family, the TW vista apron + far fog ring (no more blocker
+spikes), and production blade grass with smooth thinning.
 Next pickups: [05-edge-grammar](slices/05-edge-grammar.md) (G-track) and
-[15-lake-render](slices/15-lake-render.md) (V-track — the lake pocket exists;
-seaLayer generalization per the slice). Then 06 + 16. Read slice 10's TSL
+16 (V-track mood/haze). Then 06 + 17. Read slice 10's TSL
 hazards, slice 11's integration findings, and slice 04's three shoreline
 lessons before touching their areas; camera/oracle traps live in
 [00's locked values](slices/00-composition-and-oracle-lock.md).
@@ -67,7 +67,10 @@ Before writing any code, read:
 - [x] 12 — Grass LOD budgets at 30k
 - [x] 13 — Cliff material
 - [x] 14 — Vista backdrop (DECIDED: render-only apron, world = 2× playable)
-- [ ] 15 — Lake render
+- [x] 15 — Lake render
+      CODE-LANDED BMS15-SLICE-B8D2; orchestrator still owes browser run,
+      golden + overcast lake baseline blessing, screenshot-critique,
+      perf:30k hardware, and the battle-terrain-elevation tripwire.
 - [ ] 16 — Haze / mood preset
 - [ ] 17 — Compose gate (style-family verdict on 3+ seeds)
 - [ ] 18 — Curated seeds in the catalog

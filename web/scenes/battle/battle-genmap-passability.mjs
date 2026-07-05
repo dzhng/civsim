@@ -2,7 +2,7 @@ const SEED = 7;
 const VIEWPORT = { width: 1280, height: 800 };
 const WINDOWS = {
   passable: [0.5, 0.66],
-  slow: [0.09, 0.13],
+  slow: [0.08, 0.13],
   blocked: [0.3, 0.36],
   water: [0.005, 0.05],
   mud: [0.008, 0.025],

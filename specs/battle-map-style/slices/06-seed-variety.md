@@ -84,7 +84,8 @@ Measured verification:
   `specs/battle-map-style/visualizations/seed-browser.{png,html}` for 24
   seeds: all certificates pass; 7 edge compositions; 24 unique terrain hashes;
   24 unique field hashes.
-- Seed 7 generated terrain hash intentionally moved to `0x38e99f04c18d3968`.
+- Seed 7 generated terrain hash intentionally moved again under BMS17B-A6E9 to
+  `0x5b0bcb8dd7e7f22f` when the landform range scale changed.
 
 ORCHESTRATOR-TODO: run `node scene.mjs battle-genmap-browser` in an environment
 where Playwright Chromium can launch, then do the non-blocking human checkpoint

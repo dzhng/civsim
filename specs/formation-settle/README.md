@@ -96,7 +96,21 @@ module and benefits from 02's findings.
 
 ## Next Agent Prompt
 
-**Status 2026-07-05: spec authored, no slices started. Start at slice 01.**
+**Status 2026-07-05 (pass 1): slice 01 SHIPPED. Start at slice 02.**
+
+Slice 01 landed via codex exec (tests-only): settle telemetry owned by
+`crates/sim/tests/common/settle.rs`, gates in
+`crates/sim/tests/mechanics_settle.rs` — 6 green containment tests + the
+live grind rail (sustained lateral 0.635 ≤ 0.7), and the three family
+gates red-by-design behind `#[ignore = "formation-settle slice NN"]`
+(verified genuinely red: corridor 0.107 m/s, pocket 1.74 m/s, overlap
+0.107 m/s). `SETTLE_SPEED = 0.06`, within 20s (30s for the red gates) —
+ratified by evidence, David can veto. Run the red gates with
+`cargo test -p sim --test mechanics_settle -- --ignored`.
+
+Traps hit: none in the sim; `codex review --uncommitted` cannot start its
+app-server under the workspace-write sandbox (`Operation not permitted`) —
+run codex review from the orchestrator side, not inside the exec.
 
 You are running one pass of
 [implement-spec](../../.claude/skills/implement-spec/SKILL.md) on this spec.
@@ -128,7 +142,7 @@ rationale here, and continue. Never idle waiting for sign-off.
 
 ### Global TODO
 
-- [ ] 01 — Red gates: promote settle telemetry into `tests/common`, pin the
+- [x] 01 — Red gates: promote settle telemetry into `tests/common`, pin the
       cleared suspects green, pin families A/A′/B/C as gates (red today) →
       [slices/01-red-gates.md](slices/01-red-gates.md)
 - [ ] 02 — Family A/A′ root fix: unreachable-slot equilibrium near

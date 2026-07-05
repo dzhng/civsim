@@ -1,94 +1,20 @@
-//! PROBE (temporary): repro for "unit arrives, then its lines shift left and
-//! right for minutes before settling". Prints per-window motion telemetry;
-//! run with --nocapture. Will be replaced by a pinned mechanics test once the
-//! root cause is fixed.
+//! PROBE (temporary): diagnostic telemetry for the formation-settle churn.
+//! The pinned contracts live in `mechanics_settle.rs`; this file keeps the
+//! print-only sweeps, the slot/ASCII-map audit, and the force-trace probe
+//! that specs/formation-settle slices 02-04 diagnose with. Retired by
+//! slice 05 once the families are fixed. Run with --nocapture.
 
 mod common;
 
+use common::settle::{
+    block, decimate, march_class_block_to, march_until_arrived, print_window, seed1_terrain,
+    seed1_west_wall_edge, window_motion,
+};
 use common::{no_morale, no_morale_parade, run};
-use sim::genmap::MapRecipe;
-use sim::{Sim, Terrain, Tunables, UnitClassId, Vec2, DT};
+use sim::{Sim, Terrain, Tunables, UnitClassId, Vec2};
 use std::f32::consts::FRAC_PI_2;
 
 const SEED: u64 = 7;
-
-struct WindowStats {
-    mean_speed: f32,
-    mean_lat: f32,
-    /// Largest |cumulative lateral drift from window start| any soldier reached.
-    max_excursion: f32,
-    /// Soldiers whose lateral excursion exceeded half a spacing (visible shift).
-    big_movers: usize,
-    /// soldier_slot reassignments observed during the window.
-    slot_changes: usize,
-    /// Unit anchor drift over the window, lateral component only.
-    anchor_lat: f32,
-    /// Unit facing change over the window (radians).
-    facing_delta: f32,
-}
-
-fn window_motion(sim: &mut Sim, unit: usize, seconds: f32) -> WindowStats {
-    let u = &sim.units[unit];
-    let range = u.start..u.start + u.count;
-    let anchor0 = u.anchor;
-    let facing0 = u.facing;
-    let ticks = (seconds / DT) as usize;
-    let mut prev: Vec<Vec2> = range.clone().map(|i| sim.soldier_pos(i)).collect();
-    let start: Vec<Vec2> = prev.clone();
-    let mut prev_slot: Vec<u32> = range.clone().map(|i| sim.soldier_slot[i]).collect();
-    let mut sum_speed = 0.0f64;
-    let mut sum_lat = 0.0f64;
-    let mut max_excursion = 0.0f32;
-    let mut excursion = vec![0.0f32; prev.len()];
-    let mut slot_changes = 0usize;
-    let mut samples = 0.0f64;
-    for _ in 0..ticks {
-        sim.tick();
-        let u = &sim.units[unit];
-        let f = sim::dir(u.facing);
-        let right = Vec2::new(f.y, -f.x);
-        for (k, i) in range.clone().enumerate() {
-            if sim.alive[i] != 1 {
-                continue;
-            }
-            let p = sim.soldier_pos(i);
-            let v = Vec2::new(p.x - prev[k].x, p.y - prev[k].y);
-            let lat = v.x * right.x + v.y * right.y;
-            sum_speed += (v.x * v.x + v.y * v.y).sqrt() as f64 / DT as f64;
-            sum_lat += lat.abs() as f64 / DT as f64;
-            let cum = Vec2::new(p.x - start[k].x, p.y - start[k].y);
-            let cum_lat = (cum.x * right.x + cum.y * right.y).abs();
-            excursion[k] = excursion[k].max(cum_lat);
-            max_excursion = max_excursion.max(cum_lat);
-            if sim.soldier_slot[i] != prev_slot[k] {
-                slot_changes += 1;
-                prev_slot[k] = sim.soldier_slot[i];
-            }
-            prev[k] = p;
-            samples += 1.0;
-        }
-    }
-    let u = &sim.units[unit];
-    let f = sim::dir(facing0);
-    let right = Vec2::new(f.y, -f.x);
-    let da = Vec2::new(u.anchor.x - anchor0.x, u.anchor.y - anchor0.y);
-    WindowStats {
-        mean_speed: (sum_speed / samples) as f32,
-        mean_lat: (sum_lat / samples) as f32,
-        max_excursion,
-        big_movers: excursion.iter().filter(|&&e| e > 0.5).count(),
-        slot_changes,
-        anchor_lat: da.x * right.x + da.y * right.y,
-        facing_delta: u.facing - facing0,
-    }
-}
-
-fn print_window(label: &str, s: &WindowStats) {
-    println!(
-        "{label}: speed={:.4} lat={:.4} max_exc={:.2} big_movers={:>3} slot_changes={:>4} anchor_lat={:+.3} facing_d={:+.4}",
-        s.mean_speed, s.mean_lat, s.max_excursion, s.big_movers, s.slot_changes, s.anchor_lat, s.facing_delta
-    );
-}
 
 /// Run `windows` 10s telemetry windows, prefixing each line with `label` and
 /// the unit's cohesion at print time.
@@ -105,79 +31,6 @@ fn print_settle(sim: &mut Sim, unit: usize, label: &str, windows: usize) {
             &s,
         );
     }
-}
-
-/// Tick until the move order resolves (or 240s), returning the elapsed time.
-fn march_until_arrived(sim: &mut Sim, unit: usize) -> f32 {
-    let mut t = 0.0f32;
-    while sim.units[unit].move_target.is_some() && t < 240.0 {
-        sim.tick();
-        t += DT;
-    }
-    t
-}
-
-/// The stock probe formation: 120 men, 20 files, 1m spacing.
-fn block(sim: &mut Sim) -> usize {
-    sim.spawn_unit(Vec2::ZERO, FRAC_PI_2, 120, 20, Vec2::new(1.0, 1.0), 0, 1.0)
-}
-
-/// Kill one soldier in every `stride` to fray the block like a post-battle unit.
-fn decimate(sim: &mut Sim, unit: usize, stride: usize) {
-    let u = &sim.units[unit];
-    let range = u.start..u.start + u.count;
-    let victims: Vec<usize> = range.filter(|i| i % stride == 0).collect();
-    for i in victims {
-        sim.kill(i);
-    }
-}
-
-/// Curated generated battle map, seed 1 (the "Shore & Crags" catalog entry).
-fn seed1_terrain() -> Terrain {
-    sim::genmap::generate(&MapRecipe {
-        seed: 1,
-        ..MapRecipe::default()
-    })
-}
-
-/// First point on seed 1 with open ground east and a solid wall west: scan a
-/// few y rows for an impassable->passable transition.
-fn seed1_west_wall_edge(terrain: &Terrain) -> (f32, f32) {
-    for yi in -6..=6 {
-        let y = yi as f32 * 50.0;
-        let mut x = -900.0f32;
-        while x < 0.0 {
-            if terrain.speed_at(Vec2::new(x, y)) > 0.0
-                && terrain.speed_at(Vec2::new(x - 2.0, y)) <= 0.0
-                && terrain.speed_at(Vec2::new(x - 6.0, y)) <= 0.0
-            {
-                return (x, y);
-            }
-            x += 1.0;
-        }
-    }
-    panic!("no west wall found in scanned rows");
-}
-
-/// March a fresh MediumInfantry block from 70m south onto `dest` (drag-style
-/// order with a commanded facing) and report the arrival time.
-fn march_class_block_to(sim: &mut Sim, dest: Vec2) -> usize {
-    let unit = sim.spawn_class_with_files(
-        dest + Vec2::new(0.0, -70.0),
-        FRAC_PI_2,
-        120,
-        20,
-        UnitClassId::MediumInfantry,
-        0,
-    );
-    run(sim, 3.0);
-    sim.set_move_order_facing(unit, dest, FRAC_PI_2);
-    let t = march_until_arrived(sim, unit);
-    println!(
-        "arrived at t={t:.1}s files_eff={}",
-        sim.units[unit].files_eff
-    );
-    unit
 }
 
 #[test]

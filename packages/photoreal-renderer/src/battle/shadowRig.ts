@@ -42,7 +42,10 @@ export const SINGLE_MAP_SIZE = 1024;
 /** How far from the eye cascades reach before shadows fade out. Past this the
  *  10b aerial haze owns distance attenuation anyway; CSMShadowNode.fade blends
  *  the last cascade toward it instead of hard-clipping. */
-export const SHADOW_MAX_FAR = 2600;
+// 1500, not 2600: haze owns depth past ~1.5km and a longer range stretches
+// the far cascade's texels to ~1.3m - at 0.3m normal bias the distant field
+// self-shadowed WHOLESALE (David's giant view-following dark band).
+export const SHADOW_MAX_FAR = 1500;
 /** Light-space margin behind each cascade's near plane so off-frustum casters
  *  (a headland, a tree line just out of frame) still throw shadows in. */
 export const CSM_LIGHT_MARGIN = 300;
@@ -57,7 +60,7 @@ export const SHADOW_BIAS = -0.00003;
  *  ~0.8 world at the far tip, which contact framing still reads fine.
  *  NOTE: three reads the receiver normal from the STANDARD 'normal'
  *  attribute — every custom-named geometry aliases it (see crowdLayer). */
-export const SHADOW_NORMAL_BIAS = 0.3;
+export const SHADOW_NORMAL_BIAS = 0.6;
 /** Ortho shadow-camera depth range. CSMShadowNode sets each cascade's XY
  *  extents but leaves the CLONED DirectionalLightShadow camera's near/far at
  *  three's defaults (0.5/500) — receivers past 500 light-units compare

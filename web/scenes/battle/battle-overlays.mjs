@@ -99,6 +99,39 @@ export async function run(ctx) {
   });
   await settleFrozenFrame(page);
   await ctx.snap(page, "overlays/rings-close");
+
+  // FIXPREV-A3D6: the movement preview must mirror the sim-owned CURRENT
+  // formation, not the class/default rectangle. Pose unit 4 as a square-ish
+  // block, issue a move while the Space/path overlay is latched, then read the
+  // actual emitted preview ring grid.
+  const preview = await page.evaluate(async () => {
+    const g = window.__game;
+    const unit = 4;
+    const total = Math.max(1, g.formationDebug(unit).total);
+    const files = Math.ceil(Math.sqrt(total));
+    g.setFiles(unit, files);
+    const formation = g.formationDebug(unit);
+    g.setOrder(unit, formation.centerX + 14, formation.centerY + 4);
+    g.select(unit);
+    g.freezeAtTick(g.tickCount() + 2);
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    return {
+      formation: g.formationDebug(unit),
+      preview: g.previewDebug(unit),
+    };
+  });
+  const currentFiles = preview.formation.files;
+  const currentRanks = preview.formation.ranks;
+  const expectedAspect = currentFiles / currentRanks;
+  const actualAspect = preview.preview?.previewShapeAspect ?? 0;
+  ctx.check(
+    "hold-Space move preview uses current square formation files/ranks",
+    preview.preview !== null &&
+      preview.preview.previewFiles === currentFiles &&
+      preview.preview.previewRanks === currentRanks &&
+      Math.abs(actualAspect - expectedAspect) <= 0.05,
+    JSON.stringify({ currentFiles, currentRanks, expectedAspect, preview: preview.preview }),
+  );
   await page.close();
 }
 

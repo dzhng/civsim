@@ -26,6 +26,8 @@ export const UNIT_INFO = {
   centerX: 30,
   centerY: 31,
   renderLook: 32,
+  currentFiles: 33,
+  currentRanks: 34,
 } as const;
 
 export const CLASS_DEPTH = [8, 6, 4, 10, 4, 4, 5, 5, 4, 6, 6, 8, 7, 7, 9] as const;
@@ -38,4 +40,16 @@ export const CLASS_SPACING = [
  *  derives width through this, never its own ceil-divide. */
 export function unitFiles(classId: number, alive: number): number {
   return Math.max(1, Math.ceil(alive / (CLASS_DEPTH[classId] ?? CLASS_DEPTH[0])));
+}
+
+export function currentUnitFiles(info: ArrayLike<number>, offset: number): number {
+  const exported = Math.floor(info[offset + UNIT_INFO.currentFiles] || 0);
+  if (exported > 0) return exported;
+  return unitFiles(info[offset + UNIT_INFO.classId] || 0, info[offset + UNIT_INFO.alive] || 0);
+}
+
+export function currentUnitRanks(info: ArrayLike<number>, offset: number): number {
+  const exported = Math.floor(info[offset + UNIT_INFO.currentRanks] || 0);
+  if (exported > 0) return exported;
+  return Math.max(1, Math.ceil((info[offset + UNIT_INFO.alive] || 0) / currentUnitFiles(info, offset)));
 }

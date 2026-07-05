@@ -106,7 +106,7 @@ immediately the agent needs it:
 
 Keep a concept's definition, rules, and caveats under one heading
 (**co-location**) so reading one part brings its neighbors. Push too little
-down and the top bloats; push too much and you hide what the agent needs.
+down and the top bloats; push too much down and you hide what the agent needs.
 
 ## When to Split
 

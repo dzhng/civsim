@@ -3,8 +3,8 @@
 
 pub mod certify;
 pub mod landform;
+pub mod passability;
 
-use crate::math::Vec2;
 use crate::terrain::Terrain;
 use serde::{Deserialize, Serialize};
 
@@ -20,6 +20,32 @@ pub struct MapRecipe {
     pub cell: f32,
     #[serde(default = "default_vista_extent")]
     pub vista_extent: f32,
+    #[serde(default)]
+    pub slope_bands: SlopeBands,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SlopeBands {
+    pub flat_max: f32,
+    pub rolling_max: f32,
+    pub slow_min: f32,
+    pub cliff_min: f32,
+    pub cliff_dilate_cells: u16,
+    pub highland_cap_min_m: f32,
+}
+
+impl Default for SlopeBands {
+    fn default() -> Self {
+        Self {
+            flat_max: 0.035,
+            rolling_max: 0.115,
+            slow_min: 0.135,
+            cliff_min: 0.32,
+            cliff_dilate_cells: 6,
+            highland_cap_min_m: 35.0,
+        }
+    }
 }
 
 impl Default for MapRecipe {
@@ -30,6 +56,7 @@ impl Default for MapRecipe {
             half_h: default_half_h(),
             cell: default_cell(),
             vista_extent: default_vista_extent(),
+            slope_bands: SlopeBands::default(),
         }
     }
 }
@@ -50,51 +77,28 @@ fn default_vista_extent() -> f32 {
     2.0
 }
 
-#[derive(Clone, Copy)]
-struct CragCircle {
-    center: Vec2,
-    r2: f32,
-    height: f32,
-}
-
 /// Pure recipe -> terrain. The heightfield is the highland-corridor landform;
-/// speed/rough/tint are still the slice-01 writes, with crag-circle seals along
-/// west/east until passability derives from slope in slice 03.
+/// speed/rough/tint are derived from that same true-meter surface.
 pub fn generate(recipe: &MapRecipe) -> Terrain {
     assert!(recipe.half_w > 0.0, "generated map half_w must be positive");
     assert!(recipe.half_h > 0.0, "generated map half_h must be positive");
     assert!(recipe.cell > 0.0, "generated map cell must be positive");
     let w = ((2.0 * recipe.half_w) / recipe.cell).round() as usize;
     let h = ((2.0 * recipe.half_h) / recipe.cell).round() as usize;
-    let origin = Vec2::new(-recipe.half_w, -recipe.half_h);
+    let origin = crate::math::Vec2::new(-recipe.half_w, -recipe.half_h);
     let mut t = Terrain::flat(w, h, recipe.cell, origin);
-    let west = crag_wall(recipe, -1.0);
-    let east = crag_wall(recipe, 1.0);
 
     for cy in 0..h {
         for cx in 0..w {
-            let p = Vec2::new(
+            let p = crate::math::Vec2::new(
                 origin.x + (cx as f32 + 0.5) * recipe.cell,
                 origin.y + (cy as f32 + 0.5) * recipe.cell,
             );
             let i = cy * w + cx;
-            let fine = landform::slice01_rough_noise(recipe.seed, p);
             t.height[i] = landform::height(recipe, p);
-            t.rough[i] = 0.035 + fine * 0.08;
-            t.speed[i] = 1.0;
-            t.tint[i] = 0;
-
-            let mut crag_height = 0.0;
-            if crag_contains(&west, p, &mut crag_height)
-                || crag_contains(&east, p, &mut crag_height)
-            {
-                t.speed[i] = 0.0;
-                t.rough[i] = 0.0;
-                t.tint[i] = 2;
-                t.height[i] = t.height[i].max(crag_height);
-            }
         }
     }
+    passability::derive(recipe, &mut t);
 
     debug_assert!(
         certify::has_deployment_corridor(&t),
@@ -151,43 +155,4 @@ pub fn terrain_hash(t: &Terrain) -> u64 {
         mix(&mut h, v as u32);
     }
     h
-}
-
-fn crag_wall(recipe: &MapRecipe, side: f32) -> Vec<CragCircle> {
-    let mut out = Vec::new();
-    let start = (-(recipe.half_h / 30.0).ceil() as i32) - 2;
-    let end = ((recipe.half_h / 30.0).ceil() as i32) + 2;
-    let edge_x = side * (recipe.half_w + 5.0);
-    for k in start..=end {
-        let salt = if side < 0.0 { 0x11 } else { 0x33 };
-        let y = k as f32 * 30.0;
-        let j0 = hash01(k, recipe.seed ^ salt);
-        let j1 = hash01(k, recipe.seed ^ salt ^ 0x9e37);
-        let r = 42.0 + j0 * 34.0;
-        out.push(CragCircle {
-            center: Vec2::new(edge_x - side * j1 * 25.0, y),
-            r2: r * r,
-            height: 10.0 + hash01(k, recipe.seed ^ salt ^ 0xbeef) * 7.0,
-        });
-    }
-    out
-}
-
-fn crag_contains(circles: &[CragCircle], p: Vec2, height: &mut f32) -> bool {
-    let mut hit = false;
-    for c in circles {
-        let d = p - c.center;
-        if d.x * d.x + d.y * d.y <= c.r2 {
-            hit = true;
-            *height = (*height).max(c.height);
-        }
-    }
-    hit
-}
-
-fn hash01(i: i32, salt: u64) -> f32 {
-    let mut x = (i as u64).wrapping_mul(0x9E3779B97F4A7C15) ^ salt.wrapping_mul(0xBF58476D1CE4E5B9);
-    x ^= x >> 31;
-    x = x.wrapping_mul(0x94D049BB133111EB);
-    (x >> 40) as f32 / 16_777_216.0
 }

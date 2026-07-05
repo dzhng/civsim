@@ -48,8 +48,10 @@ test("generated seed actions sanitize numeric input and reroll", () => {
   const s0 = stateOf();
   const s1 = armyBuilderReducer(s0, { kind: "generatedSeed", seed: "00seed-42x" });
   assert.equal(s1.generatedSeed, "42");
+  assert.equal(s1.generatedMapId, undefined);
   const s2 = armyBuilderReducer(s1, { kind: "rerollGeneratedSeed" });
   assert.match(s2.generatedSeed, /^\d+$/);
+  assert.equal(s2.generatedMapId, undefined);
   assert.equal(s0.generatedSeed, "7", "s0 not mutated");
 });
 
@@ -59,6 +61,24 @@ test("map action sets mapId, leaves armies untouched (and is immutable)", () => 
   assert.equal(s1.mapId, 42);
   assert.deepEqual(armyConfig(s1).teams, armyConfig(s0).teams);
   assert.equal(s0.mapId, 0, "s0 not mutated");
+});
+
+test("curated generated map action pins seed and selected generated entry", () => {
+  const s0 = stateOf();
+  const s1 = armyBuilderReducer(s0, {
+    kind: "map",
+    mapId: -1,
+    generatedSeed: "0007",
+    generatedMapId: "highland-vale",
+  });
+  assert.equal(s1.mapId, -1);
+  assert.equal(s1.generatedSeed, "7");
+  assert.equal(s1.generatedMapId, "highland-vale");
+  assert.deepEqual(armyConfig(s1).teams, armyConfig(s0).teams);
+
+  const s2 = armyBuilderReducer(s1, { kind: "map", mapId: -1 });
+  assert.equal(s2.generatedSeed, "7");
+  assert.equal(s2.generatedMapId, undefined);
 });
 
 test("template action replaces a side in template order, leaves the other side", () => {

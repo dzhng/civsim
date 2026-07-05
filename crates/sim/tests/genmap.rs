@@ -7,11 +7,13 @@ use sim::genmap::certify::{
 };
 use sim::genmap::edges::{self, EdgeSealKind};
 use sim::genmap::{
-    drainage_report, generate, generate_vista_grid, landform, passability, terrain_hash, MapRecipe,
+    drainage_report, field_texture, generate, generate_vista_grid, landform, passability,
+    terrain_hash, MapRecipe,
 };
 use sim::{build_map, MapId};
+use std::collections::HashSet;
 
-const GENERATED_SEED7_HASH: u64 = 0xa83197564d957288;
+const GENERATED_SEED7_HASH: u64 = 0x38e99f04c18d3968;
 const RIVER_AND_CRAGS_HASH: u64 = 0x1d65c06afbab0eca;
 const WALLED_PLAIN_HASH: u64 = 0x864fe11f35ddf30c;
 const COASTAL_SCRUB_HASH: u64 = 0x020ad95c550af7b6;
@@ -128,19 +130,29 @@ fn hand_maps_stay_byte_identical() {
 #[test]
 fn generated_passability_certificates_hold_over_seed_sweep() {
     let recipe = MapRecipe::default();
+    const SWEEP_SEEDS: u64 = 64;
     let mut corridor_p95_max: f32 = 0.0;
     let mut corridor_max_max: f32 = 0.0;
     let mut flank_p50_min: f32 = f32::INFINITY;
     let mut flank_p95_min: f32 = f32::INFINITY;
     let mut flank_max_min: f32 = f32::INFINITY;
-    for seed in 1..=32 {
+    let mut terrain_hashes = HashSet::new();
+    let mut field_hashes = HashSet::new();
+    let mut edge_compositions = HashSet::new();
+    for seed in 1..=SWEEP_SEEDS {
         let t = generate(&MapRecipe { seed, ..recipe });
+        let hash = terrain_hash(&t);
+        let field_hash = field_texture_hash(&t);
         let south_slope = deployment_apron_mean_abs_slope(&t, Side::South);
         let north_slope = deployment_apron_mean_abs_slope(&t, Side::North);
         let corridor = corridor_swell_range(&t);
         let flank = flank_peak_range(&t);
         let drainage = drainage_report(&MapRecipe { seed, ..recipe });
         let composition = edges::composition(&MapRecipe { seed, ..recipe });
+        let field = field_texture::summary(&t);
+        terrain_hashes.insert(hash);
+        field_hashes.insert(field_hash);
+        edge_compositions.insert(format!("{:?}/{:?}", composition.west, composition.east));
         let south_deploy = deployment_band_certificate(&t, Side::South);
         let north_deploy = deployment_band_certificate(&t, Side::North);
         let slopes = passability::slope_field(&t);
@@ -154,7 +166,7 @@ fn generated_passability_certificates_hold_over_seed_sweep() {
         if seed <= 4 || seed == 7 {
             let ratios = terrain_ratios(&t);
             eprintln!(
-                "seed {seed}: edge {:?}/{:?}; certs Wseal {:.3} Eseal {:.3} Sopen {:.3} Nopen {:.3} Wunreach {:.3} Eunreach {:.3}; deploy S pass {:.3} block {} p95 {:.3} max {:.3}, N pass {:.3} block {} p95 {:.3} max {:.3}; ratios pass {:.3} slow {:.3} blocked {:.3} water {:.3} forest {:.3} mud {:.3}; drainage lakes {} playable {} largestPlayable {} suppressedHollows {} streamCells {} streams {} lakeStreams {} runoffStreams {} deadEnds {} impassibleStreamCells {} fords {} marsh {}; corridor swell {:.2}..{:.2}m, flank peaks {:.2}..{:.2}m, apron mean |slope| S {:.4} N {:.4}, corridor slope p95 {:.3} max {:.3}, flank slope p50 {:.3} p95 {:.3} max {:.3}",
+                "seed {seed}: hash {hash:#018x} fieldHash {field_hash:#018x}; edge {:?}/{:?}; certs Wseal {:.3} Eseal {:.3} Sopen {:.3} Nopen {:.3} Wunreach {:.3} Eunreach {:.3}; deploy S pass {:.3} block {} p95 {:.3} max {:.3}, N pass {:.3} block {} p95 {:.3} max {:.3}; ratios pass {:.3} slow {:.3} blocked {:.3} water {:.3} forest {:.3} mud {:.3} scree {:.3} rough {:.3}; field forest {} scree {} mud {} rough {}; drainage lakes {} playable {} largestPlayable {} suppressedHollows {} streamCells {} streams {} lakeStreams {} runoffStreams {} deadEnds {} impassibleStreamCells {} fords {} marsh {}; corridor swell {:.2}..{:.2}m, flank peaks {:.2}..{:.2}m, apron mean |slope| S {:.4} N {:.4}, corridor slope p95 {:.3} max {:.3}, flank slope p50 {:.3} p95 {:.3} max {:.3}",
                 composition.west,
                 composition.east,
                 side_sealed_fraction(&t, Side::West),
@@ -177,6 +189,12 @@ fn generated_passability_certificates_hold_over_seed_sweep() {
                 ratios.water,
                 ratios.forest,
                 ratios.mud,
+                ratios.scree,
+                ratios.rough,
+                field.passable_forest_cells,
+                field.scree_cells,
+                field.mud_cells,
+                field.rough_field_cells,
                 drainage.lake_count,
                 drainage.playable_lake_count,
                 drainage.largest_playable_lake_cells,
@@ -205,6 +223,18 @@ fn generated_passability_certificates_hold_over_seed_sweep() {
         assert_generated_certificates(seed, &t);
         assert_deployment_contract(seed, Side::South, south_deploy);
         assert_deployment_contract(seed, Side::North, north_deploy);
+        assert!(
+            field.passable_forest_cells >= 1_200
+                && field.scree_cells >= 1_600
+                && field.mud_cells >= 800
+                && field.rough_field_cells >= 1_600,
+            "seed {seed} field texture budget too small: {field:?}"
+        );
+        assert!(
+            deployment_band_is_texture_clean(&t, Side::South)
+                && deployment_band_is_texture_clean(&t, Side::North),
+            "seed {seed} deployment bands must stay clear of field texture"
+        );
         assert!(
             drainage.water_level_set,
             "seed {seed} water cells must sit at their basin fill level"
@@ -260,18 +290,35 @@ fn generated_passability_certificates_hold_over_seed_sweep() {
         );
     }
     eprintln!(
-        "32-seed slope stats: corridor max p95 {:.3}, corridor max {:.3}; flank min p50 {:.3}, min p95 {:.3}, min max {:.3}; bands flat {:.3} rolling {:.3} slow {:.3} cliff {:.3}, dilate {} cells, cap {:.1}m",
+        "{SWEEP_SEEDS}-seed slope stats: corridor max p95 {:.3}, corridor max {:.3}; flank min p50 {:.3}, min p95 {:.3}, min max {:.3}; distinct edge compositions {}, unique terrain hashes {}, unique field hashes {}; bands flat {:.3} rolling {:.3} slow {:.3} cliff {:.3}, dilate {} cells, cap {:.1}m",
         corridor_p95_max,
         corridor_max_max,
         flank_p50_min,
         flank_p95_min,
         flank_max_min,
+        edge_compositions.len(),
+        terrain_hashes.len(),
+        field_hashes.len(),
         recipe.slope_bands.flat_max,
         recipe.slope_bands.rolling_max,
         recipe.slope_bands.slow_min,
         recipe.slope_bands.cliff_min,
         recipe.slope_bands.cliff_dilate_cells,
         recipe.slope_bands.highland_cap_min_m,
+    );
+    assert!(
+        edge_compositions.len() >= 3,
+        "generated edge grammar collapsed: {edge_compositions:?}"
+    );
+    assert_eq!(
+        terrain_hashes.len(),
+        SWEEP_SEEDS as usize,
+        "generated terrain hashes must be unique across the fixed sweep"
+    );
+    assert_eq!(
+        field_hashes.len(),
+        SWEEP_SEEDS as usize,
+        "generated field texture hashes must be unique across the fixed sweep"
     );
 }
 
@@ -498,6 +545,8 @@ struct TerrainRatios {
     water: f32,
     forest: f32,
     mud: f32,
+    scree: f32,
+    rough: f32,
 }
 
 fn terrain_ratios(t: &sim::Terrain) -> TerrainRatios {
@@ -507,6 +556,8 @@ fn terrain_ratios(t: &sim::Terrain) -> TerrainRatios {
     let mut water = 0usize;
     let mut forest = 0usize;
     let mut mud = 0usize;
+    let mut scree = 0usize;
+    let mut rough = 0usize;
     for i in 0..t.w * t.h {
         if t.tint[i] == 1 {
             water += 1;
@@ -528,6 +579,22 @@ fn terrain_ratios(t: &sim::Terrain) -> TerrainRatios {
             } else {
                 passable += 1;
             }
+        } else if t.tint[i] == 6 {
+            scree += 1;
+            if t.speed[i] <= 0.0 {
+                blocked += 1;
+            } else if t.speed[i] < 0.9 {
+                slow += 1;
+            } else {
+                passable += 1;
+            }
+        } else if t.tint[i] == 0 && t.speed[i] > 0.0 && t.rough[i] >= 0.18 {
+            rough += 1;
+            if t.speed[i] < 0.9 {
+                slow += 1;
+            } else {
+                passable += 1;
+            }
         } else if t.speed[i] <= 0.0 {
             blocked += 1;
         } else if t.speed[i] < 0.9 {
@@ -544,7 +611,55 @@ fn terrain_ratios(t: &sim::Terrain) -> TerrainRatios {
         water: water as f32 / n,
         forest: forest as f32 / n,
         mud: mud as f32 / n,
+        scree: scree as f32 / n,
+        rough: rough as f32 / n,
     }
+}
+
+fn deployment_band_is_texture_clean(t: &sim::Terrain, side: Side) -> bool {
+    let y = if side == Side::South { -600.0 } else { 600.0 };
+    for cy in 0..t.h {
+        let wy = t.origin.y + (cy as f32 + 0.5) * t.cell;
+        if (wy - y).abs() > 45.0 {
+            continue;
+        }
+        for cx in 0..t.w {
+            let wx = t.origin.x + (cx as f32 + 0.5) * t.cell;
+            if wx.abs() > 350.0 {
+                continue;
+            }
+            let i = cy * t.w + cx;
+            if matches!(t.tint[i], 4 | 6) {
+                return false;
+            }
+        }
+    }
+    true
+}
+
+fn field_texture_hash(t: &sim::Terrain) -> u64 {
+    let mut h = 0xcbf29ce484222325u64;
+    let mut mix = |v: u32| {
+        h ^= v as u64;
+        h = h.wrapping_mul(0x100000001b3);
+    };
+    for cy in 0..t.h {
+        let y = t.origin.y + (cy as f32 + 0.5) * t.cell;
+        if y.abs() > 560.0 {
+            continue;
+        }
+        for cx in 0..t.w {
+            let x = t.origin.x + (cx as f32 + 0.5) * t.cell;
+            if x.abs() > 430.0 {
+                continue;
+            }
+            let i = cy * t.w + cx;
+            mix(t.tint[i] as u32);
+            mix((t.speed[i] * 10_000.0).round() as u32);
+            mix((t.rough[i] * 10_000.0).round() as u32);
+        }
+    }
+    h
 }
 
 struct EdgeRoles {

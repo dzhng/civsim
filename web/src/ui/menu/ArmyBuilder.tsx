@@ -4,6 +4,7 @@ import {
   type BattleFactionId,
 } from "../../../../packages/game-renderer/src/battle/factionColors";
 import {
+  QUICK_BATTLE_GENERATED_MAP_ID,
   QUICK_BATTLE_GOLD,
   QUICK_BATTLE_MAPS,
   QUICK_BATTLE_MAX_UNITS,
@@ -31,6 +32,7 @@ function initialState(): ArmyBuilderState {
   const make = (): Army => new Map(balanced.units.map((u) => [u.classId, u.count] as const));
   return {
     mapId: QUICK_BATTLE_MAPS[0]?.wasmMapId ?? 0,
+    generatedSeed: "7",
     armies: [make(), make()],
     factions: [DEFAULT_BATTLE_FACTIONS[0], DEFAULT_BATTLE_FACTIONS[1]],
   };
@@ -83,6 +85,50 @@ export function ArmyBuilder({ open, classes, onLaunch, onClose }: ArmyBuilderPro
               <small>{m.description}</small>
             </button>
           ))}
+          <div
+            className={
+              "qb-map qb-generated" +
+              (state.mapId === QUICK_BATTLE_GENERATED_MAP_ID ? " selected" : "")
+            }
+            data-map="gen"
+            onClick={() => dispatch({ kind: "map", mapId: QUICK_BATTLE_GENERATED_MAP_ID })}
+          >
+            <strong>Generated</strong>
+            <div className="qb-generated-controls">
+              <input
+                id="qb-generated-seed"
+                aria-label="Generated battle seed"
+                value={state.generatedSeed}
+                inputMode="numeric"
+                onChange={(e) => dispatch({ kind: "generatedSeed", seed: e.currentTarget.value })}
+                onClick={(e) => e.stopPropagation()}
+              />
+              <button
+                type="button"
+                id="qb-generated-reroll"
+                className="qb-step"
+                title="Reroll generated seed"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  dispatch({ kind: "map", mapId: QUICK_BATTLE_GENERATED_MAP_ID });
+                  dispatch({ kind: "rerollGeneratedSeed" });
+                }}
+              >
+                Roll
+              </button>
+              <button
+                type="button"
+                id="qb-generated-play"
+                className="qb-template"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.location.search = `?map=gen&seed=${encodeURIComponent(state.generatedSeed)}`;
+                }}
+              >
+                Play
+              </button>
+            </div>
+          </div>
         </div>
         <div className="qb-armies">
           {([0, 1] as const).map((team) => (

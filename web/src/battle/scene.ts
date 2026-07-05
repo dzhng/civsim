@@ -46,6 +46,7 @@ import { groupMoveDests, UnitSnap } from "./orders";
 import { fightingFrameForTick } from "../../../packages/crowd-runtime/src/animationState";
 import {
   BATTLE_RELIEF_EXAGGERATION,
+  type BattleEdgeRole,
   type BattleGroundCover,
   type BattleSlopeBands,
 } from "../../../packages/game-renderer/src/battle/terrainFeatures";
@@ -107,6 +108,22 @@ export interface GeneratedBattleMapDescriptor {
   reliefScale: number;
   slopeBands: BattleSlopeBands;
   terrainHash: string;
+  edgeSeals?: {
+    expectedRoles?: {
+      west?: BattleEdgeRole;
+      east?: BattleEdgeRole;
+    };
+  };
+  featureSummary?: {
+    lakeCells?: number;
+    forestCells?: number;
+    passableForestCells?: number;
+    streams?: number;
+    streamCells?: number;
+    mudCells?: number;
+    screeCells?: number;
+    roughFieldCells?: number;
+  };
   lakeSurfaces?: Array<{
     id: number;
     level: number;

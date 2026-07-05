@@ -19,12 +19,15 @@ export const DEFAULT_BATTLE_FACTIONS: [BattleFactionId, BattleFactionId] = ["azu
 
 export interface ArmyBuilderState {
   mapId: number;
+  generatedSeed: string;
   armies: [Army, Army];
   factions: [BattleFactionId, BattleFactionId];
 }
 
 export type ArmyBuilderAction =
   | { kind: "map"; mapId: number }
+  | { kind: "generatedSeed"; seed: string }
+  | { kind: "rerollGeneratedSeed" }
   | { kind: "faction"; team: 0 | 1; factionId: BattleFactionId }
   | { kind: "count"; team: 0 | 1; classId: number; delta: number }
   | { kind: "template"; team: 0 | 1; units: readonly { classId: number; count: number }[] };
@@ -38,6 +41,10 @@ export function armyBuilderReducer(s: ArmyBuilderState, a: ArmyBuilderAction): A
   switch (a.kind) {
     case "map":
       return { ...s, mapId: a.mapId };
+    case "generatedSeed":
+      return { ...s, generatedSeed: sanitizeSeed(a.seed) };
+    case "rerollGeneratedSeed":
+      return { ...s, generatedSeed: rerollSeed(s.generatedSeed) };
     case "faction": {
       const factions: [BattleFactionId, BattleFactionId] = [...s.factions];
       factions[a.team] = a.factionId;
@@ -69,7 +76,24 @@ export function pickArmy(army: Army): QuickBattleUnitPick[] {
 export function armyConfig(s: ArmyBuilderState): QuickBattleConfig {
   return {
     mapId: s.mapId,
+    generatedSeed: s.generatedSeed,
     teams: [pickArmy(s.armies[0]), pickArmy(s.armies[1])],
     factions: [s.factions[0], s.factions[1]],
   };
+}
+
+export function sanitizeSeed(raw: string): string {
+  const digits = raw.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+  return digits.slice(0, 20) || "0";
+}
+
+export function rerollSeed(current: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < current.length; i++) {
+    h ^= current.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  h ^= Date.now() & 0xffff_ffff;
+  h ^= Math.floor(Math.random() * 0xffff_ffff);
+  return String(h >>> 0);
 }

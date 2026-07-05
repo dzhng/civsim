@@ -260,7 +260,7 @@ function buildSoldierGeometry(count: number): { geo: THREE.InstancedBufferGeomet
   geo.setAttribute('bone', new THREE.BufferAttribute(mesh.bones, 1));
   geo.setIndex(new THREE.BufferAttribute(mesh.indices, 1));
 
-  // Mark accent-colored vertices (shield/crest) so the faction tint replaces them.
+  // Mark the authored upper sword-arm band so the faction tint replaces only it.
   const vcount = mesh.positions.length / 3;
   const accent = new Float32Array(vcount);
   for (let i = 0; i < vcount; i++) {
@@ -359,7 +359,8 @@ function buildSoldierMaterial(world: PhotorealWorld, vat: VatBake, geo: THREE.In
   material.normalNode = varying(transformNormalToView(worldNrm)).normalize();
 
   const tint = mix(vec3(...FACTION_BLUE), vec3(...FACTION_RED), iClip.z);
-  material.colorNode = varying(vec4(mix(vcol.rgb, tint, accent), 1.0));
+  const armBand = mix(tint, vec3(0.42, 0.34, 0.26), 0.35);
+  material.colorNode = varying(vec4(mix(vcol.rgb, armBand, accent), 1.0));
   return material;
 }
 

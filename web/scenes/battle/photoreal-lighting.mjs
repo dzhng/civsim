@@ -69,7 +69,7 @@ export async function run(ctx) {
       material?.identity === "soldier-assets-placeholder-pbr-v1" &&
         material?.mapping?.orm ===
           "occlusion/roughness/metalness, canonical order from skinnedPipeline" &&
-        material?.mapping?.factionMask === "high-blue cColor accent channel" &&
+        material?.mapping?.factionMask === "high-blue cColor armband accent channel" &&
         material?.pbr?.metalness?.iron > material?.pbr?.metalness?.bronze &&
         material?.pbr?.roughness?.linen > material?.pbr?.roughness?.leather,
       JSON.stringify(material),

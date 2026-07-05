@@ -280,18 +280,17 @@ export async function run(ctx) {
   );
 
   // --- Visual evidence: the crowd is on screen at both stops ----------------
-  // Map A is 2400x1600 world units, so team-colored soldiers are a few pixels
-  // each even at mid zoom (hardware measured mid ~2.8k / vista ~6.4k team
-  // pixels on 2026-07-02); the floors prove formations render on screen, the
-  // evidence shots are the human-readable proof of the field.
+  // Map A is 2400x1600 world units, so soldiers become mass/silhouette pixels
+  // at these stops. The floors prove formations render on screen; the evidence
+  // shots are the human-readable proof of the field.
   const pixels = {
     mid: crowdPixels(PNG.sync.read(shots.mid)),
     vista: crowdPixels(PNG.sync.read(shots.vista)),
   };
   ctx.check(
     "frames show the crowd and terrain at both stops (load is on screen)",
-    pixels.mid.team > 1400 &&
-      pixels.vista.team > 3200 &&
+    pixels.mid.crowd > 1400 &&
+      pixels.vista.crowd > 3200 &&
       pixels.vista.terrain > pixels.vista.total * 0.2,
     JSON.stringify(pixels),
   );
@@ -429,14 +428,20 @@ function sameArray(actual, expected) {
 }
 
 function crowdPixels(png) {
-  let team = 0;
+  let crowd = 0;
   let terrain = 0;
   for (let i = 0; i < png.data.length; i += 4) {
     const r = png.data[i];
     const g = png.data[i + 1];
     const b = png.data[i + 2];
-    if ((r > g + 22 && r > b + 26 && r > 105) || (b > r + 24 && b > g + 8)) team++;
+    if (isCrowdMass(r, g, b)) crowd++;
     if ((r > 100 && g > 86 && b < 125) || (g > 78 && g >= r - 12 && b < 150)) terrain++;
   }
-  return { team, terrain, total: png.width * png.height };
+  return { crowd, terrain, total: png.width * png.height };
+}
+
+function isCrowdMass(r, g, b) {
+  const luma = r * 0.3 + g * 0.59 + b * 0.11;
+  const greenField = g > r + 22 && g > b + 12;
+  return luma > 34 && luma < 132 && r < 165 && g < 155 && b < 145 && !greenField;
 }

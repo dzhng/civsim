@@ -40,8 +40,9 @@ replacement, never a precondition: nothing in the build depends on one existing.
 ## Materials (textures — consumed by slice 05, not the bake)
 
 Each material set should provide `albedo`, `normal`, `orm` (occlusion /
-roughness / metalness), and a `factionMask`. The faction mask marks **accent
-areas only** (crests, shield marks, sashes, plumes), never the whole body.
+roughness / metalness), and a `factionMask`. The faction mask marks only the
+tiny team identifier geometry, currently an upper sword-arm band. Crests,
+shield faces, tunics, plumes, and armor stay natural material colors.
 
 ## Validation
 

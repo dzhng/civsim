@@ -94,12 +94,11 @@ export async function run(ctx) {
   const shot = await page.screenshot();
   const metrics = minimapWorldMetrics(PNG.sync.read(shot));
   ctx.check(
-    "WebGPU battle minimap scene has visible world feature, minimap, HUD, and teams",
+    "WebGPU battle minimap scene has visible world feature, minimap, HUD, and army mass",
     metrics.mudFeaturePixels > 800 &&
       metrics.minimapPixels > 5000 &&
       metrics.darkHud > 15000 &&
-      metrics.blueTeam > 250 &&
-      metrics.redTeam > 250,
+      metrics.crowdMass > 500,
     JSON.stringify(metrics),
   );
   await ctx.snap(page, "battle-minimap-world-dpr2", { shot });
@@ -133,8 +132,7 @@ function minimapWorldMetrics(png) {
   let mudFeaturePixels = 0;
   let minimapPixels = 0;
   let darkHud = 0;
-  let blueTeam = 0;
-  let redTeam = 0;
+  let crowdMass = 0;
   const centerX0 = Math.floor(png.width * 0.28);
   const centerX1 = Math.floor(png.width * 0.72);
   const centerY0 = Math.floor(png.height * 0.18);
@@ -154,8 +152,7 @@ function minimapWorldMetrics(png) {
       if (x > png.width * 0.78 && y > png.height * 0.72 && g > 70 && g > r * 0.75 && b < 125)
         minimapPixels++;
       if (y > png.height * 0.7 && r < 70 && g < 75 && b < 85) darkHud++;
-      if (b > r + 24 && b > g + 8) blueTeam++;
-      if (r > g + 22 && r > b + 26 && r > 105) redTeam++;
+      if (y < png.height * 0.7 && isCrowdMass(r, g, b)) crowdMass++;
     }
   }
   return {
@@ -164,7 +161,12 @@ function minimapWorldMetrics(png) {
     mudFeaturePixels,
     minimapPixels,
     darkHud,
-    blueTeam,
-    redTeam,
+    crowdMass,
   };
+}
+
+function isCrowdMass(r, g, b) {
+  const luma = r * 0.3 + g * 0.59 + b * 0.11;
+  const greenField = g > r + 22 && g > b + 12;
+  return luma > 34 && luma < 132 && r < 165 && g < 155 && b < 145 && !greenField;
 }

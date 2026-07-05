@@ -7,17 +7,14 @@ export const meta = {
   tier: "full",
   snapshots: [],
   describe:
-    "Soldiers sample material textures; faction color localizes to the mask (crest/shield) instead of flooding the whole body.",
+    "Soldiers sample material textures; faction color is confined to a tiny upper sword-arm band.",
 };
 
-// Average RGB over a fixed body box. Terrain inside the box is identical across
-// captures, so it cancels when we difference two factions — the remaining
-// difference is the soldier's faction tint.
-function boxAverage(png) {
-  const x0 = Math.floor(png.width * 0.4),
-    x1 = Math.floor(png.width * 0.6);
-  const y0 = Math.floor(png.height * 0.26),
-    y1 = Math.floor(png.height * 0.56);
+function regionAverage(png, box) {
+  const x0 = Math.floor(png.width * box[0]),
+    x1 = Math.floor(png.width * box[1]);
+  const y0 = Math.floor(png.height * box[2]),
+    y1 = Math.floor(png.height * box[3]);
   let r = 0,
     g = 0,
     b = 0,
@@ -32,6 +29,24 @@ function boxAverage(png) {
     }
   }
   return [r / n, g / n, b / n];
+}
+
+function changedArea(a, b, threshold) {
+  if (!a || !b || a.width !== b.width || a.height !== b.height) return Infinity;
+  let changed = 0;
+  let total = 0;
+  for (let y = Math.floor(a.height * 0.16); y < Math.floor(a.height * 0.78); y++) {
+    for (let x = Math.floor(a.width * 0.24); x < Math.floor(a.width * 0.76); x++) {
+      const o = (y * a.width + x) * 4;
+      const delta =
+        Math.abs(a.data[o] - b.data[o]) +
+        Math.abs(a.data[o + 1] - b.data[o + 1]) +
+        Math.abs(a.data[o + 2] - b.data[o + 2]);
+      if (delta > threshold) changed++;
+      total++;
+    }
+  }
+  return { changed, total, share: total > 0 ? changed / total : 0 };
 }
 
 function dist(a, b) {
@@ -55,33 +70,42 @@ async function capture(ctx, strength, team) {
       { timeout: 18000 },
     );
     await page.waitForTimeout(250);
-    return boxAverage(PNG.sync.read(await page.locator("#renderer-canvas").screenshot()));
+    return PNG.sync.read(await page.locator("#renderer-canvas").screenshot());
   } finally {
     await page.close();
   }
 }
 
 export async function run(ctx) {
-  const broadBlue = await capture(ctx, 0, 0);
-  const broadRed = await capture(ctx, 0, 1);
-  const maskBlue = await capture(ctx, 1, 0);
-  const maskRed = await capture(ctx, 1, 1);
-
-  const broadFactionDiff = dist(broadBlue, broadRed);
-  const maskFactionDiff = dist(maskBlue, maskRed);
+  const blue = await capture(ctx, 1, 0);
+  const red = await capture(ctx, 1, 1);
+  const bodyBlue = regionAverage(blue, [0.43, 0.57, 0.3, 0.58]);
+  const bodyRed = regionAverage(red, [0.43, 0.57, 0.3, 0.58]);
+  const shieldBlue = regionAverage(blue, [0.3, 0.43, 0.3, 0.62]);
+  const shieldRed = regionAverage(red, [0.3, 0.43, 0.3, 0.62]);
+  const bodyFactionDiff = dist(bodyBlue, bodyRed);
+  const shieldFactionDiff = dist(shieldBlue, shieldRed);
+  const armband = changedArea(blue, red, 30);
 
   ctx.check(
-    "soldier-materials: legacy broad tint makes the two factions differ across the body",
-    broadFactionDiff > 12,
-    JSON.stringify({ broadBlue, broadRed, broadFactionDiff }),
+    "soldier-materials: body and shield do not carry faction tint",
+    bodyFactionDiff < 5 && shieldFactionDiff < 5,
+    JSON.stringify({
+      bodyBlue,
+      bodyRed,
+      bodyFactionDiff,
+      shieldBlue,
+      shieldRed,
+      shieldFactionDiff,
+    }),
   );
   ctx.check(
-    "soldier-materials: faction mask localizes color — body faction difference shrinks",
-    maskFactionDiff < broadFactionDiff * 0.6,
+    "soldier-materials: only a tiny armband-sized region changes by faction",
+    armband.changed > 8 && armband.share > 0 && armband.share < 0.012,
     JSON.stringify({
-      maskFactionDiff,
-      broadFactionDiff,
-      ratio: (maskFactionDiff / Math.max(1, broadFactionDiff)).toFixed(2),
+      changedPixels: armband.changed,
+      changedShare: Number(armband.share.toFixed(5)),
+      totalPixels: armband.total,
     }),
   );
 }

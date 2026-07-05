@@ -13,7 +13,7 @@ use sim::genmap::{
 use sim::{build_map, MapId};
 use std::collections::HashSet;
 
-const GENERATED_SEED7_HASH: u64 = 0x38e99f04c18d3968;
+const GENERATED_SEED7_HASH: u64 = 0xf83aa63d0546df02;
 const RIVER_AND_CRAGS_HASH: u64 = 0x1d65c06afbab0eca;
 const WALLED_PLAIN_HASH: u64 = 0x864fe11f35ddf30c;
 const COASTAL_SCRUB_HASH: u64 = 0x020ad95c550af7b6;

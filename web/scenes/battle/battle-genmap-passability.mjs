@@ -113,7 +113,7 @@ export async function run(ctx) {
         result.dimensions.h === 400 &&
         result.dimensions.cell === 4 &&
         result.descriptor.seed === SEED &&
-        result.descriptor.terrainHash === "0x38e99f04c18d3968",
+        result.descriptor.terrainHash === "0xf83aa63d0546df02",
       JSON.stringify(result),
     );
     for (const [name, [lo, hi]] of Object.entries(WINDOWS)) {

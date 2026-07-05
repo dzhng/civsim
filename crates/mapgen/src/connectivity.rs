@@ -10,6 +10,7 @@ use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
 pub const KEEP_SEA_LANES: &[(&str, &str)] = &[
     ("Gades", "Tingi"),
+    ("Carthago", "Lilybaeum"),
     ("Constantinopolis", "Nicomedia"),
     ("Rhegium", "Messana"),
 ];

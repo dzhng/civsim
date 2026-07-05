@@ -56,6 +56,10 @@ const CLEAR_RADIUS_KM = 0.14;
 const HORIZON_SKY_Z = 0.004;
 const HORIZON_FADE_START_Z = -0.18;
 const HORIZON_FADE_END_Z = 0.06;
+const HORIZON_CLEAR_VISIBILITY_KM = 8;
+const HORIZON_WIDE_VISIBILITY_KM = 32;
+const HORIZON_CLEAR_EXTRA_START_Z = 0.2;
+const HORIZON_CLEAR_EXTRA_END_Z = 0.08;
 
 export interface AerialParams {
   /** Per-channel extinction σ (km⁻¹, world kilometres). */
@@ -106,6 +110,16 @@ export function aerialPerspectiveNode(
   observer?: Node<"vec3">,
 ): Vec4Node {
   const params = aerialParams(env);
+  const thinHaze = Math.max(
+    0,
+    Math.min(
+      1,
+      (params.visibilityKm - HORIZON_CLEAR_VISIBILITY_KM) /
+        (HORIZON_WIDE_VISIBILITY_KM - HORIZON_CLEAR_VISIBILITY_KM),
+    ),
+  );
+  const horizonFadeStart = HORIZON_FADE_START_Z - HORIZON_CLEAR_EXTRA_START_Z * thinHaze;
+  const horizonFadeEnd = HORIZON_FADE_END_Z + HORIZON_CLEAR_EXTRA_END_Z * thinHaze;
   const build = Fn(() => {
     const reach = positionWorld.sub(observer ?? cameraPosition).toVar();
     const distKm = length(reach).div(1000.0).sub(CLEAR_RADIUS_KM).max(0.0).toVar();
@@ -123,8 +137,8 @@ export function aerialPerspectiveNode(
     const viewSky = texture(sky.lut.texture, equirectUV(view)).rgb.toVar();
     const horizonView = normalize(vec3(view.x, view.y, HORIZON_SKY_Z)).toVar();
     const horizonSky = texture(sky.lut.texture, equirectUV(horizonView)).rgb;
-    const belowHorizon = smoothstep(float(HORIZON_FADE_START_Z), float(0.0), view.z);
-    const aboveHorizon = float(1.0).sub(smoothstep(float(0.0), float(HORIZON_FADE_END_Z), view.z));
+    const belowHorizon = smoothstep(float(horizonFadeStart), float(0.0), view.z);
+    const aboveHorizon = float(1.0).sub(smoothstep(float(0.0), float(horizonFadeEnd), view.z));
     const horizonWeight = belowHorizon.mul(aboveHorizon);
     const skyLight = mix(viewSky, horizonSky, horizonWeight);
     const hazed = output.rgb.mul(transmit).add(skyLight.mul(vec3(1.0).sub(transmit)));

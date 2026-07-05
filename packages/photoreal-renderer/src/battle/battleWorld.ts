@@ -563,6 +563,10 @@ export class PhotorealBattleWorld {
     this.markerLayer.upload(this.markers);
   }
 
+  debugSoldierAnim(index: number): { clip: string; phase: number; frame: number } | null {
+    return this.crowd.debugSoldierAnim(index);
+  }
+
   uploadUnitReadouts(
     standards: readonly BattleStandardInstance[],
     readouts: readonly BattleReadoutInstance[],

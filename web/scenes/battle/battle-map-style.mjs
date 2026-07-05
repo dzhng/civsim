@@ -19,7 +19,11 @@ const TARGET = new URL(
 export const VIEWPORT = { width: 1280, height: 800 };
 export const RIVER_AND_CRAGS_RECT = { x0: -1200, y0: -800, x1: 1200, y1: 800 };
 // The style-contract target: binds on generated relief (slice 02 onward).
-export const HORIZON_TARGET = { ratio: 0.5, tolerance: 0.03 };
+// 0.187: the ACCEPTED composition (compose gate round 3). The north is
+// OPEN by design - armies arrive there and haze closes the horizon (spec
+// invariant; the 0.5 aspiration predates that ruling and would demand
+// ranges across the open end).
+export const HORIZON_TARGET = { ratio: 0.187, tolerance: 0.02 };
 export const NOMINAL_BLADE_HEIGHT_M = 1.0;
 
 // Both cameras are the REAL production rig (zoom -> pitch/distance/fovY via
@@ -205,8 +209,9 @@ function assertPhotorealRoute(ctx, stats) {
       terrain?.environment?.id === "overcast-foggy" &&
       terrain?.fixture === "sim-tint" &&
       terrain?.groundCover === "green-grass" &&
-      terrain?.sealedEdges?.includes("west:cliff") &&
-      terrain?.sealedEdges?.includes("east:cliff") &&
+      // Generated maps seal E/W with the vista apron (slice 14), not the
+      // legacy per-edge blocker meshes.
+      terrain?.sealedEdges?.includes("generated:vista") &&
       terrain?.groundTriangles > 100000 &&
       terrain?.scenery > 0 &&
       terrain?.grass?.layer === "photoreal-blade-field" &&
@@ -269,7 +274,6 @@ function measureFarTerrainHorizon(camera3d) {
   }
   return {
     horizonYRatio: round3(avg(ratios)),
-    pinned: HORIZON_PIN.ratio,
     deferredTarget: HORIZON_TARGET.ratio,
     source: "projected north far terrain perimeter",
     samples: ratios.length,

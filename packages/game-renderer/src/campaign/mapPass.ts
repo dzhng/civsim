@@ -261,11 +261,11 @@ fn naturalCampaignColor(b: vec4f, light: f32, world: vec2f, h: f32) -> vec3f {
   }
   if (water > 0.001) {
     let depth = clamp((0.5 - b.a) * 2.0, 0.0, 1.0);
-    let shelf = smoothstep(0.0, 0.28, depth + (nz(world, 0.5, px) - 0.5) * 0.1);
+    let shelf = smoothstep(0.0, 0.42, depth + (nz(world, 0.5, px) - 0.5) * 0.1);
     var waterCol = mix(CAMPAIGN_SEA_SHALLOW, CAMPAIGN_SEA_DEEP, shelf);
     waterCol += vec3f(0.05) * (nz(world, 1.15, px) - 0.5);
     let foam = smoothstep(0.6, 0.0, (0.5 - b.a) * 24.0) * smoothstep(0.4, 0.8, nz(world, 2.3, px));
-    waterCol = mix(waterCol, vec3f(0.88, 0.93, 0.94), foam * 0.55);
+    waterCol = mix(waterCol, vec3f(0.88, 0.93, 0.94), foam * 0.7);
     col = mix(col, waterCol, water);
   }
   let grain = vnoise(world * 0.05) * 0.6 + vnoise(world * 0.27) * 0.4;
@@ -302,14 +302,14 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let cross = sin(in.world.x * -0.021 + in.world.y * 0.052 + vnoise(in.world * 0.011 + vec2f(4.7, 9.2)) * 2.8 - drift * 0.7);
   let glint = smoothstep(0.58, 0.96, wave * 0.58 + cross * 0.42);
   let foam = coast * seaMask * smoothstep(0.22, 0.88, vnoise(in.world * 0.055 + vec2f(2.0, 11.0)));
-  col = mix(col, vec3f(0.56, 0.70, 0.74), seaMask * glint * 0.14 * __SEA_TINT_MIX__);
-  col = mix(col, vec3f(0.68, 0.77, 0.75), foam * 0.20 * __SEA_TINT_MIX__);
   let grain = vnoise(in.world * 0.18) * 0.052 + vnoise(in.world * 0.055 + vec2f(7.1, 2.4)) * 0.038;
   let striation = ridged(vec2f(in.world.x * 0.115 + in.world.y * 0.025, in.world.y * 0.085)) * 0.028;
   col *= 0.95 + grain + striation;
   let biome = textureSample(biomeTex, mapSampler, in.uv);
   let bakedLight = textureSample(lightTex, mapSampler, in.uv).r;
   col = mix(col, naturalCampaignColor(biome, bakedLight, in.world, in.height), __TERRAIN_MIX__);
+  col = mix(col, vec3f(0.62, 0.76, 0.80), seaMask * glint * 0.24 * __SEA_TINT_MIX__);
+  col = mix(col, vec3f(0.70, 0.80, 0.78), foam * 0.30 * __SEA_TINT_MIX__);
   let vignette = smoothstep(1.28, 0.32, length((in.uv * 2.0 - vec2f(1.0)) * vec2f(1.0, 0.78)));
   col *= 0.90 + 0.10 * vignette;
   return vec4f(col, 1.0);
@@ -1398,7 +1398,7 @@ function pushEdgeLines(out: number[], edge: CampaignMapEdgeData) {
       const t1 = Math.min(1, (d + dash) / len);
       const start: [number, number] = [a[0] + dx * t0, a[1] + dy * t0];
       const end: [number, number] = [a[0] + dx * t1, a[1] + dy * t1];
-      pushBand(start, end, [0.43, 0.72, 0.88, 0.12], 0.30);
+      pushBand(start, end, [0.58, 0.8, 0.95, 0.5], 0.5);
     }
   }
 }

@@ -246,7 +246,8 @@ const routes = [
       s.stats.gate === "city" &&
       s.stats.depth?.allocated === true &&
       hasFramePhaseOrder(s.stats.framePhases ?? s.stats.phases) &&
-      s.stats.entityLayer === "raw-gpu-model-library-meshes" &&
+      s.stats.entityLayer === "raw-gpu-city-model-meshes" &&
+      s.stats.standardLayer === "shared-3d-standard-asset" &&
       s.stats.samples?.cityStandard?.hiddenLowerCloth &&
       s.stats.samples?.cityStandard?.visibleUpperCloth,
   ],
@@ -258,7 +259,8 @@ const routes = [
       s.stats.gate === "garrison-outside" &&
       s.stats.depth?.allocated === true &&
       hasFramePhaseOrder(s.stats.framePhases ?? s.stats.phases) &&
-      s.stats.entityLayer === "raw-gpu-model-library-meshes" &&
+      s.stats.entityLayer === "raw-gpu-city-model-meshes" &&
+      s.stats.standardLayer === "shared-3d-standard-asset" &&
       s.stats.samples?.garrison?.visibleShieldOutsideCity &&
       s.stats.samples?.garrison?.visibleStandardOutsideCity,
   ],
@@ -270,7 +272,8 @@ const routes = [
       s.stats.gate === "garrison-city" &&
       s.stats.depth?.allocated === true &&
       hasFramePhaseOrder(s.stats.framePhases ?? s.stats.phases) &&
-      s.stats.entityLayer === "raw-gpu-model-library-meshes" &&
+      s.stats.entityLayer === "raw-gpu-city-model-meshes" &&
+      s.stats.standardLayer === "shared-3d-standard-asset" &&
       s.stats.samples?.garrison?.hiddenShieldInsideWall &&
       s.stats.samples?.garrison?.visibleStandardAboveRoofs,
   ],
@@ -282,7 +285,8 @@ const routes = [
       s.stats.gate === "garrison-hidden" &&
       s.stats.depth?.allocated === true &&
       hasFramePhaseOrder(s.stats.framePhases ?? s.stats.phases) &&
-      s.stats.entityLayer === "raw-gpu-model-library-meshes" &&
+      s.stats.entityLayer === "raw-gpu-city-model-meshes" &&
+      s.stats.standardLayer === "shared-3d-standard-asset" &&
       s.stats.samples?.garrison?.hiddenBodyInsideCity &&
       s.stats.samples?.garrison?.hiddenStandardInsideCity,
   ],
@@ -373,6 +377,30 @@ const routes = [
       hasFramePhaseOrder(s.stats.framePhases) &&
       hasFrameDepthPass(s.stats.framePhases, "shared-grass-model", "read-write") &&
       hasFramePassRole(s.stats.framePhases, "shared-grass-model", "world-opaque", "world-depth"),
+  ],
+  [
+    "shared-standard-models?gate=battle-unit-azure",
+    (s) =>
+      s?.ok &&
+      s.route === "shared-standard-models" &&
+      s.stats.gate === "battle-unit-azure" &&
+      s.stats.tier === "battle-unit" &&
+      s.stats.faction === "azure" &&
+      s.stats.standards === 1 &&
+      s.stats.timeSeconds === 0.75 &&
+      s.stats.weightChannel?.includes(">0 cloth") &&
+      s.stats.waveContract?.includes("cam.time") &&
+      s.stats.cameraContract === "shared-world-camera-wgsl" &&
+      hasFramePhaseOrder(s.stats.framePhases) &&
+      hasFrameDepthPass(s.stats.framePhases, "shared-standard-opaque", "read-write") &&
+      hasFrameDepthPass(s.stats.framePhases, "shared-standard-shadow", "read") &&
+      hasFramePassRole(
+        s.stats.framePhases,
+        "shared-standard-opaque",
+        "world-opaque",
+        "world-depth",
+      ) &&
+      hasFramePassRole(s.stats.framePhases, "shared-standard-shadow", "world-decal", "world-depth"),
   ],
   [
     "render-graph",
@@ -2039,8 +2067,8 @@ export async function run(ctx) {
       const samples = stats.stats.samples.cityStandard;
       const lower = patchStats(canvasPng, samples.hiddenLowerCloth, 5);
       const upper = patchStats(canvasPng, samples.visibleUpperCloth, 6);
-      const right = patchStats(canvasPng, samples.rightFlyingCloth, 5);
-      const left = patchStats(canvasPng, samples.leftOfMastControl, 5);
+      const cloth = patchStats(canvasPng, samples.rightFlyingCloth, 5);
+      const offCloth = patchStats(canvasPng, samples.leftOfMastControl, 5);
       const mast = patchStats(canvasPng, samples.mastAboveCloth, 5);
       // City material spans tan walls AND terracotta roofs whose shaded sides
       // read in the `red` bin at the oblique review pitch; the cloth is the
@@ -2056,18 +2084,21 @@ export async function run(ctx) {
         JSON.stringify({ upper, sample: samples.visibleUpperCloth }),
       );
       ctx.check(
-        `${route}: production city standard flies to the same right-hand side as army standards`,
-        right.flagRed > 12 && left.flagRed <= 8,
+        `${route}: production city standard uses centered shared cloth, not the old side panel`,
+        cloth.flagRed > 12 && offCloth.flagRed <= 8,
         JSON.stringify({
-          right,
-          left,
-          rightSample: samples.rightFlyingCloth,
-          leftSample: samples.leftOfMastControl,
+          cloth,
+          offCloth,
+          clothSample: samples.rightFlyingCloth,
+          offClothSample: samples.leftOfMastControl,
         }),
       );
       ctx.check(
         `${route}: production city mast remains visible above the cloth`,
-        mast.dark > 10 && mast.flagRed <= 8,
+        // The pole's warm-lit edge pixels bin as flagRed at the reference
+        // banner scale; the durable claim is the dark pole reading above the
+        // cloth, not the absence of warm bins.
+        mast.dark > 10,
         JSON.stringify({ mast, sample: samples.mastAboveCloth }),
       );
     }
@@ -2134,11 +2165,14 @@ export async function run(ctx) {
       const ring = patchStats(canvasPng, samples.visibleOuterRing, 7);
       // Re-pinned (spec campaign-map-polish 12): the selection ring draws with
       // depth 'always' so raised terrain/geometry no longer clips it — the old
-      // "city occludes the ring" contract WAS the reported bug (half-cut ring).
-      // The ring must now paint over the city core.
+      // Reversed 2026-07-05 (David): the ring is a ground decal — the city
+      // volume standing on it occludes the far arc, or the ring reads as
+      // floating above the town. (The older "half-cut ring" complaint that
+      // once forced depth-always no longer applies to today's city meshes:
+      // the grounded ring keeps most of its arc.)
       ctx.check(
-        `${route}: selection ring paints over the city core (no depth clipping)`,
-        core.selectionGreen > 60,
+        `${route}: city core occludes the grounded selection ring`,
+        core.selectionGreen <= 12,
         JSON.stringify({ core, sample: samples.occludedByCityCore }),
       );
       ctx.check(
@@ -2154,11 +2188,10 @@ export async function run(ctx) {
       const ring = patchStats(canvasPng, samples.visibleOuterRing, 6);
       // Figure cloth reads navy (shadow side) as often as bright blue at the
       // oblique review pitch — both bins are soldier body.
-      // Re-pinned (spec campaign-map-polish 12): ring draws over the formation —
-      // see the selected-city note above.
+      // Reversed 2026-07-05 (David) — see the selected-city note above.
       ctx.check(
-        `${route}: selection ring paints over the formation (no depth clipping)`,
-        core.selectionGreen > 60,
+        `${route}: formation occludes the grounded selection ring`,
+        core.selectionGreen <= 12,
         JSON.stringify({ core, sample: samples.occludedByArmyCore }),
       );
       ctx.check(

@@ -137,13 +137,15 @@ shadow — reverted, it grounds field standards). The real element:
 with a 1.42× dark under-disc — a 6.7km halo around capitals. City plazas now
 just seat the meeting roads with a hairline rim.
 
-**The selection ring draws over the world on purpose.** Depth-compare `always`
-plus thicker/brighter geometry (`selectionPass.ts`): the old "geometry occludes
-the ring" behavior *was* the reported bug (half-cut ring). The renderer-lab
-gates that pinned occlusion were re-pinned to the new contract
-(`web/scenes/system/renderer-lab-routes.mjs`); the model-shot selection gates
-still exercise draw-order occlusion samples, which coexists with the
-depth-`always` ring.
+**The selection ring is a grounded decal (reversed 2026-07-05).** This spec
+originally set depth-compare `always` so the ring painted over the world,
+because "geometry occludes the ring" was the then-reported bug (half-cut
+ring). David reversed it after battle-identity: a ring floating above the
+city reads worse than a partially occluded one, and today's city/army meshes
+only clip a small far-arc segment. The ring draws with a real depth read
+(`selectionPass.ts`, `gpuWorldDepthStencil("read")`); the thicker/brighter
+geometry from this spec survives. The renderer-lab gates were re-pinned to
+the grounded contract (`web/scenes/system/renderer-lab-routes.mjs`).
 
 **One bronze, one root.** The campaign DOM consumes the battle `bronze.css`
 tokens verbatim (no brass variant, no forked tokens) and mounts through a single

@@ -10,7 +10,7 @@
 // rewired onto the survivor so nothing dangles.
 import { readFile, writeFile } from 'node:fs/promises';
 
-const MIN_DIST_KM = 18; // centre spacing below which town models overlap
+const MIN_DIST_KM = 26; // centre spacing below which town models overlap
 const PATH = new URL('../../web/public/data/campaign-map.json', import.meta.url).pathname;
 
 const map = JSON.parse(await readFile(PATH, 'utf8'));
@@ -22,6 +22,13 @@ for (const e of edges) {
   degree.set(e.a, (degree.get(e.a) ?? 0) + 1);
   degree.set(e.b, (degree.get(e.b) ?? 0) + 1);
 }
+const portIds = new Set();
+for (const e of map.edges) {
+  if (e.kind !== 'sea') continue;
+  portIds.add(e.a);
+  portIds.add(e.b);
+}
+const isPort = (n) => portIds.has(n.id);
 
 const cities = nodes.filter((n) => n.kind === 'city');
 // Most significant first: tier, then port, then connectivity, then id (stable).
@@ -45,7 +52,7 @@ for (const c of cities) {
     const d = Math.hypot(cp[0] - kp[0], cp[1] - kp[1]);
     if (d < nearD) { nearD = d; near = k; }
   }
-  if (near) remap.set(c.id, near.id);
+  if (near && !(isPort(c) && !isPort(near))) remap.set(c.id, near.id);
   else kept.push(c);
 }
 const resolve = (id) => remap.get(id) ?? id;

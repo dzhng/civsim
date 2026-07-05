@@ -95,7 +95,16 @@ export async function run(ctx) {
   ctx.check(
     "Custom Battle setup is catalog-driven with live army validation",
     qb.open === true &&
-      qb.maps.length === 3 &&
+      qb.maps.length === 7 &&
+      [
+        "River & Crags",
+        "Walled Plain",
+        "Coastal Scrub",
+        "Shore & Crags",
+        "Highland Vale",
+        "Wooded Pass",
+        "Generated",
+      ].every((label) => qb.maps.includes(label)) &&
       qb.rows >= 15 &&
       qb.factions.length === 2 &&
       qb.factions[0]?.value === "azure" &&

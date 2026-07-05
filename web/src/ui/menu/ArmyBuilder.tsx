@@ -74,21 +74,36 @@ export function ArmyBuilder({ open, classes, onLaunch, onClose }: ArmyBuilderPro
       <div className="panel quick-battle-panel">
         <h2>CUSTOM BATTLE</h2>
         <div className="qb-maps" id="qb-maps">
-          {QUICK_BATTLE_MAPS.map((m) => (
-            <button
-              key={m.wasmMapId}
-              className={"qb-map" + (m.wasmMapId === state.mapId ? " selected" : "")}
-              data-map={m.wasmMapId}
-              onClick={() => dispatch({ kind: "map", mapId: m.wasmMapId })}
-            >
-              <strong>{m.label}</strong>
-              <small>{m.description}</small>
-            </button>
-          ))}
+          {QUICK_BATTLE_MAPS.map((m) => {
+            const generated = m.generatedSeed !== undefined;
+            const selected = generated
+              ? state.mapId === QUICK_BATTLE_GENERATED_MAP_ID && state.generatedMapId === m.id
+              : m.wasmMapId === state.mapId;
+            return (
+              <button
+                key={m.id}
+                className={"qb-map" + (selected ? " selected" : "")}
+                data-map={m.generatedSeed === undefined ? m.wasmMapId : m.id}
+                onClick={() =>
+                  dispatch({
+                    kind: "map",
+                    mapId: m.wasmMapId,
+                    generatedSeed: m.generatedSeed,
+                    generatedMapId: m.generatedSeed === undefined ? undefined : m.id,
+                  })
+                }
+              >
+                <strong>{m.label}</strong>
+                <small>{m.description}</small>
+              </button>
+            );
+          })}
           <div
             className={
               "qb-map qb-generated" +
-              (state.mapId === QUICK_BATTLE_GENERATED_MAP_ID ? " selected" : "")
+              (state.mapId === QUICK_BATTLE_GENERATED_MAP_ID && state.generatedMapId === undefined
+                ? " selected"
+                : "")
             }
             data-map="gen"
             onClick={() => dispatch({ kind: "map", mapId: QUICK_BATTLE_GENERATED_MAP_ID })}

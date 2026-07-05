@@ -2004,6 +2004,7 @@ export class BattleScene implements Scene {
       // what a real click or drag-box actually selected, exercising the input
       // path end to end rather than the `select` shortcut.
       selected: () => input.selected.slice(),
+      generatedManifest: () => JSON.parse(game.generated_map_manifest()),
       setPace: (u: number, pace: number) => game.set_pace(u, pace),
       attackOrder: (u: number, enemy: number) => game.set_attack_order(u, enemy),
       attackMove: (u: number, x: number, y: number) => game.set_attack_move_order(u, x, y),

@@ -341,6 +341,19 @@ pub fn descope_and_reconnect(
     let capital_ids = playable_capital_ids(&map, &nodes);
     let plan = reconnect_plan(&map, raster, &capital_ids, RECONNECT_MAX_GAP_KM);
     let river_grid = build::build_river_grid(bb, rivers);
+    let reconnected_city_ids: BTreeSet<u32> = plan.iter().map(|(city_id, _, _)| *city_id).collect();
+
+    for node in map["nodes"].as_array_mut().expect("nodes array") {
+        let id = node["id"].as_u64().expect("node id") as u32;
+        if reconnected_city_ids.contains(&id) {
+            assert_eq!(
+                node["kind"].as_str(),
+                Some("city"),
+                "reconnect plan city id {id} is not a city"
+            );
+            node["reconnected"] = json!(true);
+        }
+    }
 
     for (city_id, target_id, via) in &plan {
         let eidx = map["edges"].as_array().expect("edges array").len();
@@ -354,6 +367,7 @@ pub fn descope_and_reconnect(
                 "a": city_id,
                 "b": target_id,
                 "kind": "road",
+                "reconnect": true,
                 "via": via,
                 "tiles": tiles,
             }));

@@ -33,6 +33,12 @@ export default defineConfig({
       { find: /^three$/, replacement: threeBuild("three.module.js") },
     ],
   },
-  server: { headers: isolationHeaders },
+  server: {
+    headers: isolationHeaders,
+    // Explicit workspace root: scenes @fs-import ../packages sources. In git
+    // WORKTREES the root .git is a file, so vite's auto workspace detection
+    // falls back to web/ and 403s those imports.
+    fs: { allow: [fileURLToPath(new URL("..", import.meta.url))] },
+  },
   preview: { headers: isolationHeaders },
 });

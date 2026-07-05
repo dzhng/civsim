@@ -14,6 +14,7 @@ const FRAMINGS = [
   { name: "regional-italy", camera: [-430, 445, 3.0], factionView: true },
 ];
 const GENERATED_BY = "CODEX-00-PROBE specs/done/campaign-map-bugs/tools/render-probe.mjs";
+const DETACH_MARKER_PX = 16;
 
 function parseArgs(argv) {
   let out = null;
@@ -127,6 +128,7 @@ async function measureFraming(page, map, framing) {
     },
     markerRadiusPx,
     offshoreCities,
+    maxDrawnIconOffsetPx: round(Math.max(0, ...offshoreCities.map((city) => city.drawnIconOffsetPx ?? 0))),
     seaLabels,
     cityLabels,
     cards,
@@ -153,9 +155,13 @@ async function measureCities(page, map, stats) {
   const cityNodes = map.nodes
     .map((node, index) => ({ ...node, index }))
     .filter((node) => node.kind === "city")
+    .map((city) => {
+      const rect = stats.visibleCityLabelRects.find((rect) => rect.text === city.name.toUpperCase());
+      return rect?.iconRect ? { ...city, iconRect: rect.iconRect } : city;
+    })
     .sort((a, b) => a.name.localeCompare(b.name) || a.index - b.index);
   const result = await page.evaluate(
-    ({ cities, radiiByTier, viewport }) => {
+    ({ cities, detachPx, radiiByTier, viewport }) => {
       const api = window.__campaign;
       const out = [];
       for (const city of cities) {
@@ -174,8 +180,18 @@ async function measureCities(page, map, stats) {
         }
         const centerLand = api.renderLandAt(city.pos[0], city.pos[1], 0);
         const landFraction = markerLandFraction(api, sx, sy, radiusPx);
-        if (centerLand && landFraction >= 1) continue;
-        out.push({
+        const drawnIconLandFraction = city.iconRect ? rectLandFraction(api, city.iconRect) : undefined;
+        const drawnIconOffsetPx = city.iconRect
+          ? Math.hypot(city.iconRect.x + city.iconRect.w / 2 - sx, city.iconRect.y + city.iconRect.h / 2 - sy)
+          : undefined;
+        if (
+          centerLand &&
+          landFraction >= 1 &&
+          (city.iconRect ? drawnIconOffsetPx <= detachPx : true)
+        ) {
+          continue;
+        }
+        const row = {
           name: city.name,
           index: city.index,
           tier: city.tier,
@@ -188,7 +204,14 @@ async function measureCities(page, map, stats) {
           marginKm: marginKmToWater(api, city.pos[0], city.pos[1]),
           screen: { x: roundLocal(sx), y: roundLocal(sy) },
           markerRadiusPx: roundLocal(radiusPx),
-        });
+        };
+        if (drawnIconLandFraction !== undefined) {
+          row.drawnIconLandFraction = roundLocal(drawnIconLandFraction);
+        }
+        if (drawnIconOffsetPx !== undefined) {
+          row.drawnIconOffsetPx = roundLocal(drawnIconOffsetPx);
+        }
+        out.push(row);
       }
       return out;
 
@@ -209,6 +232,23 @@ async function measureCities(page, map, stats) {
         return total > 0 ? land / total : 0;
       }
 
+      function rectLandFraction(api, rect) {
+        let samples = 0;
+        let land = 0;
+        const cols = 13;
+        const rows = 7;
+        for (let iy = 0; iy < rows; iy++) {
+          for (let ix = 0; ix < cols; ix++) {
+            const sx = rect.x + (rect.w * (ix + 0.5)) / cols;
+            const sy = rect.y + (rect.h * (iy + 0.5)) / rows;
+            const [wx, wy] = api.screenToWorld(sx, sy);
+            samples++;
+            if (api.renderLandAt(wx, wy, 0)) land++;
+          }
+        }
+        return samples > 0 ? land / samples : 0;
+      }
+
       function marginKmToWater(api, wx, wy) {
         if (!api.renderLandAt(wx, wy, 0)) return 0;
         let lo = 0;
@@ -225,7 +265,7 @@ async function measureCities(page, map, stats) {
         return Math.round(value * 1000) / 1000;
       }
     },
-    { cities: cityNodes, radiiByTier: stats.cityMarkerRadiiPxByTier, viewport: VIEWPORT },
+    { cities: cityNodes, detachPx: DETACH_MARKER_PX, radiiByTier: stats.cityMarkerRadiiPxByTier, viewport: VIEWPORT },
   );
   return result.sort((a, b) => a.name.localeCompare(b.name) || a.index - b.index);
 }

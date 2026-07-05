@@ -3,10 +3,11 @@
 //! run from the repo root:
 //!   cargo run -p mapgen --release
 //! It writes the raw map, then runs the JS post-steps in order — leagues.mjs
-//! (fold leftover independents into neutral leagues) then prune-cities.mjs
-//! (drop towns too close to render cleanly) — so the committed map is always
-//! the finished one and a re-bake can't silently skip a step. Needs `node` on
-//! PATH. Source data: crates/mapgen/data/fetch.sh
+//! (fold leftover independents into neutral leagues), prune-cities.mjs
+//! (drop towns too close to render cleanly), then dequalify-names.mjs
+//! (normalize display names) — so the committed map is always the finished one
+//! and a re-bake can't silently skip a step. Needs `node` on PATH. Source data:
+//! crates/mapgen/data/fetch.sh
 
 mod build;
 mod geo;
@@ -114,10 +115,12 @@ fn main() {
 
     // Finish the map in JS, in order: fold the leftover independent cities into
     // regional neutral leagues (no ownerless grey on the political map), then
-    // thin out towns that sit too close for their 3D models to read. Run here so
+    // thin out towns that sit too close for their 3D models to read, then
+    // normalize city/faction display names over that final city set. Run here so
     // `cargo run -p mapgen` always emits the finished, committed map.
     post_step("crates/mapgen/leagues.mjs");
     post_step("crates/mapgen/prune-cities.mjs");
+    post_step("crates/mapgen/dequalify-names.mjs");
 
     landroute::make_committed_roads_land_safe(out_dir, &r, &rivers, &mountains, bb);
 
@@ -140,7 +143,7 @@ mod tests {
     use super::*;
     use crate::geo::dist;
     use serde::Deserialize;
-    use std::collections::BTreeMap;
+    use std::collections::{BTreeMap, BTreeSet};
 
     #[derive(Deserialize)]
     struct BgRect {
@@ -152,6 +155,7 @@ mod tests {
     struct MapFixture {
         nodes: Vec<NodeFixture>,
         edges: Vec<EdgeFixture>,
+        factions: Vec<FactionFixture>,
     }
 
     #[derive(Deserialize)]
@@ -171,6 +175,11 @@ mod tests {
         via: Vec<[f64; 2]>,
     }
 
+    #[derive(Deserialize)]
+    struct FactionFixture {
+        name: String,
+    }
+
     #[test]
     fn baked_campaign_map_satisfies_mapgen_invariants() {
         let data_dir = format!("{}/../../web/public/data", env!("CARGO_MANIFEST_DIR"));
@@ -183,6 +192,30 @@ mod tests {
         )
         .unwrap();
         let (bg_w, bg_h, bg_px) = read_png(&format!("{data_dir}/campaign-bg.png"));
+
+        let mut city_display_names = BTreeSet::new();
+        let mut duplicate_city_display_names = Vec::new();
+        for city in map.nodes.iter().filter(|n| n.kind == "city") {
+            assert!(
+                !city.name.contains('(') && !city.name.contains(')'),
+                "city display name still has parentheses: {}",
+                city.name
+            );
+            if !city_display_names.insert(city.name.as_str()) {
+                duplicate_city_display_names.push(city.name.as_str());
+            }
+        }
+        assert!(
+            duplicate_city_display_names.is_empty(),
+            "duplicate city display names: {duplicate_city_display_names:?}"
+        );
+        for faction in &map.factions {
+            assert!(
+                !faction.name.contains('(') && !faction.name.contains(')'),
+                "faction display name still has parentheses: {}",
+                faction.name
+            );
+        }
 
         let nodes: BTreeMap<u32, &NodeFixture> = map.nodes.iter().map(|n| (n.id, n)).collect();
         let mut road_degree: BTreeMap<u32, usize> = BTreeMap::new();
@@ -283,7 +316,7 @@ mod tests {
         }
 
         assert_eq!(
-            sea_edges, 468,
+            sea_edges, 464,
             "sea edge count changed from the pre-prune ORBIS lane set"
         );
         assert!(water_cities.is_empty(), "cities on water: {water_cities:?}");

@@ -701,6 +701,8 @@ export class BattleGroundPass {
 export interface BattleGroundMesh {
   /** Interleaved: x,y,z, nx,ny,nz, r,g,b, water — 10 floats per vertex. */
   vertices: Float32Array;
+  /** Source sim tint byte per vertex, kept out of the legacy interleaved stride. */
+  tint: Float32Array;
   indices: Uint32Array;
   triangles: number;
 }
@@ -715,6 +717,7 @@ export function buildBattleGroundMesh(
   const nx = Math.floor(grid.w / step) + 1;
   const ny = Math.floor(grid.h / step) + 1;
   const verts = new Float32Array(nx * ny * 10);
+  const tintVerts = new Float32Array(nx * ny);
   const cellWorld = (ci: number, cj: number): [number, number] => [
     grid.ox + Math.min(ci, grid.w - 1) * grid.cell + grid.cell * 0.5,
     grid.oy + Math.min(cj, grid.h - 1) * grid.cell + grid.cell * 0.5,
@@ -753,6 +756,7 @@ export function buildBattleGroundMesh(
     return n > 0 ? water / n : 0;
   };
   let v = 0;
+  let tv = 0;
   for (let j = 0; j < ny; j++) {
     for (let i = 0; i < nx; i++) {
       const ci = Math.min(i * step, grid.w - 1);
@@ -769,6 +773,7 @@ export function buildBattleGroundMesh(
       verts[v++] = -hx / nlen; verts[v++] = -hy / nlen; verts[v++] = (2 * d) / nlen;
       verts[v++] = color[0]; verts[v++] = color[1]; verts[v++] = color[2];
       verts[v++] = cellWater(ci, cj);
+      tintVerts[tv++] = grid.tint[cj * grid.w + ci] ?? 0;
     }
   }
   const indices: number[] = [];
@@ -781,7 +786,7 @@ export function buildBattleGroundMesh(
       indices.push(a, c, b, b, c, dd);
     }
   }
-  return { vertices: verts, indices: new Uint32Array(indices), triangles: indices.length / 3 };
+  return { vertices: verts, tint: tintVerts, indices: new Uint32Array(indices), triangles: indices.length / 3 };
 }
 
 function mix(a: [number, number, number], b: [number, number, number], t: number): [number, number, number] {

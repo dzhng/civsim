@@ -2,7 +2,7 @@ import init, { Campaign, Game, type InitOutput } from "./wasm/game_wasm.js";
 import { currentScene, switchScene } from "./scene";
 import { MenuScene } from "./menu/scene";
 import type { QuickBattleConfig } from "./battle/quickBattleCatalog";
-import { BattleScene, type BattleKind } from "./battle/scene";
+import { BattleScene, type BattleKind, type GeneratedBattleMapDescriptor } from "./battle/scene";
 import { CampaignScene, loadCampaignData } from "./campaign/scene";
 import type { CampaignData } from "./campaign/data";
 import { checkGpuSupport, type GpuSupportState } from "../../packages/game-renderer/src/appShell";
@@ -25,6 +25,7 @@ if (location.pathname.startsWith("/renderer")) {
 async function main() {
   const BATTLE_SEED = 0x5eed_c0de;
   const AI_ON = params.get("ai") !== "off";
+  const generatedSeed = parseGeneratedSeed(params.get("seed") ?? "0");
 
   // The duel bench remembers its last setup so Restart reproduces the fight.
   // AI defaults OFF for duels: the enemy stands there and takes it.
@@ -44,6 +45,7 @@ async function main() {
     if (kind === "5v5") game.start_sandbox(1);
     else if (kind === "surround") game.start_sandbox(4);
     else if (kind === "flank") game.start_sandbox(5);
+    else if (kind === "gen") game.start_battle_generated(generatedSeed);
     else game.start_battle(kind === "mapB" ? 1 : 0);
     if (AI_ON) game.set_ai_team(1);
     return game;
@@ -52,14 +54,22 @@ async function main() {
   function launchBattle(kind: BattleKind) {
     setActiveFactions();
     switchScene(
-      new BattleScene({
-        wasm,
-        game: createGame(kind),
-        kind,
-        wasmMapId: kind === "mapA" ? 0 : kind === "mapB" ? 1 : undefined,
-        onExit: () => switchScene(menu),
-        onLaunch: launchBattle,
-      }),
+      (() => {
+        const game = createGame(kind);
+        const generatedMap =
+          kind === "gen"
+            ? (JSON.parse(game.generated_map_descriptor()) as GeneratedBattleMapDescriptor)
+            : undefined;
+        return new BattleScene({
+          wasm,
+          game,
+          kind,
+          wasmMapId: kind === "mapA" ? 0 : kind === "mapB" ? 1 : undefined,
+          generatedMap,
+          onExit: () => switchScene(menu),
+          onLaunch: launchBattle,
+        });
+      })(),
     );
   }
 
@@ -459,15 +469,25 @@ async function main() {
   else if (wantsCampaign) void launchCampaign(false);
   else if (sandbox === "duel" || sandbox === "5v5" || sandbox === "surround" || sandbox === "flank")
     launchBattle(sandbox);
-  else if (params.has("map") || params.has("battle"))
-    launchBattle(params.get("map") === "B" ? "mapB" : "mapA");
-  else switchScene(menu);
+  else if (params.has("map") || params.has("battle")) {
+    const map = params.get("map")?.toLowerCase();
+    launchBattle(map === "gen" ? "gen" : params.get("map") === "B" ? "mapB" : "mapA");
+  } else switchScene(menu);
 
   function frame(now: number) {
     currentScene()?.frame(now);
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
+}
+
+function parseGeneratedSeed(raw: string): bigint {
+  try {
+    const seed = BigInt(raw);
+    return seed >= 0n ? BigInt.asUintN(64, seed) : 0n;
+  } catch {
+    return 0n;
+  }
 }
 
 function publishAppShellStats() {

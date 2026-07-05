@@ -128,6 +128,7 @@ export interface CampaignLabel {
   kind: 'city' | 'sea' | 'army' | 'faction';
   size: number;
   priority: number;
+  importance?: number;
   angle?: number;
   curve?: number;
   icon?: 'city' | 'army' | 'sword';
@@ -143,22 +144,6 @@ export interface CampaignLabel {
   screenAnchorY?: 'center' | 'top' | 'bottom';
   factionRadiusKm?: number;
   factionMinor?: boolean;
-  /** Land-aware anchor choice (B2/B8): preference-ordered alternatives for
-   * the label's screen offset+anchor. The occupancy arbitration drops the
-   * candidates whose measured ink rect lands on claimed ground (cards and
-   * higher-priority labels), then the shared placement scorer picks among the
-   * survivors (isBadAt = water). The first candidate must mirror the
-   * screenOffset/screenAnchor fields — it is the tiebreak, so labels with a
-   * clean default never move. */
-  placementCandidates?: CampaignLabelAnchor[];
-}
-
-/** One candidate screen placement for an anchored (city) label, CSS px. */
-export interface CampaignLabelAnchor {
-  screenOffsetX: number;
-  screenOffsetY: number;
-  screenAnchorX: 'center' | 'left' | 'right';
-  screenAnchorY: 'center' | 'top' | 'bottom';
 }
 
 const ICON_PATHS = {
@@ -276,11 +261,11 @@ fn naturalCampaignColor(b: vec4f, light: f32, world: vec2f, h: f32) -> vec3f {
   }
   if (water > 0.001) {
     let depth = clamp((0.5 - b.a) * 2.0, 0.0, 1.0);
-    let shelf = smoothstep(0.0, 0.28, depth + (nz(world, 0.5, px) - 0.5) * 0.1);
+    let shelf = smoothstep(0.0, 0.42, depth + (nz(world, 0.5, px) - 0.5) * 0.1);
     var waterCol = mix(CAMPAIGN_SEA_SHALLOW, CAMPAIGN_SEA_DEEP, shelf);
     waterCol += vec3f(0.05) * (nz(world, 1.15, px) - 0.5);
     let foam = smoothstep(0.6, 0.0, (0.5 - b.a) * 24.0) * smoothstep(0.4, 0.8, nz(world, 2.3, px));
-    waterCol = mix(waterCol, vec3f(0.88, 0.93, 0.94), foam * 0.55);
+    waterCol = mix(waterCol, vec3f(0.88, 0.93, 0.94), foam * 0.7);
     col = mix(col, waterCol, water);
   }
   let grain = vnoise(world * 0.05) * 0.6 + vnoise(world * 0.27) * 0.4;
@@ -317,14 +302,14 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let cross = sin(in.world.x * -0.021 + in.world.y * 0.052 + vnoise(in.world * 0.011 + vec2f(4.7, 9.2)) * 2.8 - drift * 0.7);
   let glint = smoothstep(0.58, 0.96, wave * 0.58 + cross * 0.42);
   let foam = coast * seaMask * smoothstep(0.22, 0.88, vnoise(in.world * 0.055 + vec2f(2.0, 11.0)));
-  col = mix(col, vec3f(0.56, 0.70, 0.74), seaMask * glint * 0.14 * __SEA_TINT_MIX__);
-  col = mix(col, vec3f(0.68, 0.77, 0.75), foam * 0.20 * __SEA_TINT_MIX__);
   let grain = vnoise(in.world * 0.18) * 0.052 + vnoise(in.world * 0.055 + vec2f(7.1, 2.4)) * 0.038;
   let striation = ridged(vec2f(in.world.x * 0.115 + in.world.y * 0.025, in.world.y * 0.085)) * 0.028;
   col *= 0.95 + grain + striation;
   let biome = textureSample(biomeTex, mapSampler, in.uv);
   let bakedLight = textureSample(lightTex, mapSampler, in.uv).r;
   col = mix(col, naturalCampaignColor(biome, bakedLight, in.world, in.height), __TERRAIN_MIX__);
+  col = mix(col, vec3f(0.62, 0.76, 0.80), seaMask * glint * 0.24 * __SEA_TINT_MIX__);
+  col = mix(col, vec3f(0.70, 0.80, 0.78), foam * 0.30 * __SEA_TINT_MIX__);
   let vignette = smoothstep(1.28, 0.32, length((in.uv * 2.0 - vec2f(1.0)) * vec2f(1.0, 0.78)));
   col *= 0.90 + 0.10 * vignette;
   return vec4f(col, 1.0);
@@ -597,6 +582,7 @@ export interface CampaignLabelPlacementStyle {
 export interface CampaignLabelDebugRect {
   text: string;
   kind: CampaignLabel['kind'];
+  importance?: number;
   opacity: number;
   box: { x: number; y: number; w: number; h: number };
   corners: [number, number][];
@@ -608,6 +594,9 @@ export interface CampaignLabelDebugRect {
    * than deflating `box` (the full-quad AABB) by `padPx` — consumers checking
    * overlaps must use this so the test agrees with what arbitration enforced. */
   inkRect: { x: number; y: number; w: number; h: number };
+  /** Icon-above city labels only: the drawn settlement-icon sub-rect in
+   * CSS px (the marker footprint). Absent for labels with no above-icon. */
+  iconRect?: { x: number; y: number; w: number; h: number };
   /** Faction labels only: true for the small league names (they yield to
    * cards; major engravings are background-scale and do not). */
   minor?: boolean;
@@ -1409,7 +1398,7 @@ function pushEdgeLines(out: number[], edge: CampaignMapEdgeData) {
       const t1 = Math.min(1, (d + dash) / len);
       const start: [number, number] = [a[0] + dx * t0, a[1] + dy * t0];
       const end: [number, number] = [a[0] + dx * t1, a[1] + dy * t1];
-      pushBand(start, end, [0.43, 0.72, 0.88, 0.12], 0.30);
+      pushBand(start, end, [0.58, 0.8, 0.95, 0.5], 0.5);
     }
   }
 }
@@ -1919,6 +1908,14 @@ interface MeasuredCampaignLabel extends VisibleCampaignLabel {
   height: number;
 }
 
+// League-name density: at overview only leagues whose owned-city power clears
+// this bar keep a name (majors always clear it); the bar falls to zero as the
+// camera comes in. Tuned so the whole-map view shows the handful of strong
+// leagues, not a wall of minor ones. Faction engravings retire (hide, not fade —
+// no opacity) once the camera is close enough that city labels carry the detail.
+const LEAGUE_IMPORTANCE_BAR_HI = 14;
+const FACTION_RETIRE_ZOOM = 0.95;
+
 function visibleLabels(labels: CampaignLabel[], camera: CameraSnapshot, dpr: number): VisibleCampaignLabel[] {
   const visible: VisibleCampaignLabel[] = [];
   for (const label of labels) {
@@ -1937,14 +1934,21 @@ function visibleLabels(labels: CampaignLabel[], camera: CameraSnapshot, dpr: num
       opacity = (1 - clamp01((camera.zoom - 0.26) / 0.16)) * 0.8;
       if (opacity <= 0.02) continue;
     } else if (label.kind === 'faction') {
+      // Faction/league names are SOLID — no opacity anywhere (only sea names
+      // fade). Density is by VISIBILITY, not transparency: an engraving is shown
+      // at full strength or not at all. Retire engravings at close zoom, where
+      // the city labels carry the detail view.
+      if (camera.zoom > FACTION_RETIRE_ZOOM) continue;
+      if (label.factionMinor) {
+        // Leagues declutter by owned-city power (not territory area): a league
+        // keeps its name once its power clears the zoom-scaled bar — high at
+        // overview so only the strong leagues show, falling as the camera comes
+        // in (where the tighter viewport already thins the count) — else hidden.
+        const bar = LEAGUE_IMPORTANCE_BAR_HI * (1 - clamp01((camera.zoom - 0.3) / 0.5));
+        if ((label.importance ?? 0) < bar) continue;
+      }
       const radius = label.factionRadiusKm ?? 0;
       const screenR = radius * camera.zoom;
-      const powerAlpha = 1 - clamp01((camera.zoom - 0.72) / 0.16);
-      const leagueHiFade = 1 - clamp01((camera.zoom - 0.85) / 0.18);
-      opacity = label.factionMinor
-        ? clamp01((screenR - 95) / 45) * leagueHiFade * 0.9
-        : powerAlpha;
-      if (opacity <= 0.02) continue;
       const size = label.factionMinor
         ? Math.min(22, Math.max(9, screenR * 0.4))
         : Math.min(34, Math.max(17, screenR * 0.5));
@@ -1996,9 +2000,6 @@ function labelAtlasKey(labels: VisibleCampaignLabel[], dpr: number, totalLabels:
         entry.offsetY.toFixed(2),
         label.screenAnchorX ?? 'center',
         label.screenAnchorY ?? 'center',
-        (label.placementCandidates ?? [])
-          .map((c) => `${c.screenOffsetX.toFixed(1)},${c.screenOffsetY.toFixed(1)},${c.screenAnchorX},${c.screenAnchorY}`)
-          .join(';'),
         entry.opacity.toFixed(3),
         entry.screenX.toFixed(1),
         entry.screenY.toFixed(1),
@@ -2218,21 +2219,18 @@ function arbitrateLabelOccupancy(
 
   const arbitrates = (entry: MeasuredCampaignLabel) =>
     entry.label.kind !== 'sea' && entry.opacity >= OCCUPANCY_MIN_OPACITY;
-  const stageOf = (entry: MeasuredCampaignLabel) => {
-    if (entry.label.kind === 'faction') return entry.label.factionMinor ? 1 : 0;
-    return entry.label.kind === 'army' ? 2 : 3;
-  };
+  // One occupancy budget for every kind: the label with the higher importance
+  // claims its space first, the rest cull when they collide. Importance is the
+  // unified scalar the emitters assemble (owned-city-tier power for factions,
+  // tier for cities, soldier mass for armies) — so a strong realm or a great
+  // city leads and a minor league yields, with no per-kind stage ladder.
+  const importanceOf = (entry: MeasuredCampaignLabel) => entry.label.importance ?? 0;
   const ordered = labels
     .map((entry, index) => ({ entry, index }))
     .filter(({ entry }) => arbitrates(entry))
     .sort((a, b) => {
-      const stage = stageOf(a.entry) - stageOf(b.entry);
-      if (stage !== 0) return stage;
-      // Among city labels the higher tier claims first; everything else keeps
-      // its emitter order (already deterministic per frame).
-      if (stageOf(a.entry) === 3 && a.entry.label.priority !== b.entry.label.priority) {
-        return b.entry.label.priority - a.entry.label.priority;
-      }
+      const byImportance = importanceOf(b.entry) - importanceOf(a.entry);
+      if (byImportance !== 0) return byImportance;
       return a.index - b.index;
     });
 
@@ -2286,63 +2284,21 @@ function arbitrateLabelOccupancy(
   };
 }
 
-/** City-label placement (slice 09 occupancy only): a city label always hugs
- * its marker — it never scores its candidates against the render mask (only
- * sea names chase dry ground, per David's rule). Walk the emitter's
- * preference-ordered hug candidates (attached position first) and take the
- * first whose ink rect lands on unclaimed ground, so an unobstructed label
- * keeps the classic attached anchor and a blocked one dodges to another side
- * of the SAME marker. null means every hug position is claimed → the label
- * hides rather than detach. */
+/** City-label placement (slice 09 occupancy only): a city label has one marker
+ * hug position. If that ink rect is already claimed, the label hides rather
+ * than dodging to another side. */
 function placeCityLabel(
   entry: MeasuredCampaignLabel,
   claims: OccupancyClaim[],
   dpr: number,
 ): ScreenRect | null {
-  const candidates =
-    entry.label.placementCandidates && entry.label.placementCandidates.length > 0
-      ? entry.label.placementCandidates
-      : [
-          {
-            screenOffsetX: entry.offsetX / dpr,
-            screenOffsetY: entry.offsetY / dpr,
-            screenAnchorX: entry.label.screenAnchorX ?? 'center',
-            screenAnchorY: entry.label.screenAnchorY ?? 'center',
-          } satisfies CampaignLabelAnchor,
-        ];
-  for (const candidate of candidates) {
-    const rect = candidateInkRect(entry, candidate, dpr);
-    if (claims.some((claim) => rectsOverlap(rect, claim.rect))) continue;
-    entry.offsetX = candidate.screenOffsetX * dpr;
-    entry.offsetY = candidate.screenOffsetY * dpr;
-    entry.label = {
-      ...entry.label,
-      screenAnchorX: candidate.screenAnchorX,
-      screenAnchorY: candidate.screenAnchorY,
-    };
-    return rect;
-  }
-  return null;
+  const rect = entryInkRect(entry, dpr);
+  return claims.some((claim) => rectsOverlap(rect, claim.rect)) ? null : rect;
 }
 
 /** Ink rect (CSS px AABB) of a measured label at its current anchor. */
 function entryInkRect(entry: MeasuredCampaignLabel, dpr: number): ScreenRect {
   return inkRectAt(entry, entry.offsetX, entry.offsetY, entry.label.screenAnchorX, entry.label.screenAnchorY, dpr);
-}
-
-function candidateInkRect(
-  entry: MeasuredCampaignLabel,
-  candidate: CampaignLabelAnchor,
-  dpr: number,
-): ScreenRect {
-  return inkRectAt(
-    entry,
-    candidate.screenOffsetX * dpr,
-    candidate.screenOffsetY * dpr,
-    candidate.screenAnchorX,
-    candidate.screenAnchorY,
-    dpr,
-  );
 }
 
 /** The visible ink box: the atlas rect deflated by its transparent halo
@@ -2447,14 +2403,30 @@ function labelDebugRects(entries: AtlasEntry[], dpr: number): CampaignLabelDebug
       angle,
       dpr,
     );
+    const iconAbove = label.kind === 'city' && !!label.icon;
+    const iconSize = iconAbove ? labelStyle(label, dpr).iconSize : 0;
+    const iconRect = iconAbove
+      ? cornersAabb(
+          labelCornersCss(
+            centerX,
+            centerY - entry.height * 0.5 + entry.padding + iconSize * 0.5,
+            iconSize,
+            iconSize,
+            angle,
+            dpr,
+          ),
+        )
+      : undefined;
     return {
       text: labelText(label),
       kind: label.kind,
+      importance: label.importance,
       opacity: roundPx(entry.opacity),
       box: cornersAabb(corners),
       corners,
       padPx: roundPx(entry.padding / dpr),
       inkRect: cornersAabb(inkCorners),
+      ...(iconRect ? { iconRect } : {}),
       ...(label.kind === 'faction' ? { minor: label.factionMinor === true } : {}),
     };
   });

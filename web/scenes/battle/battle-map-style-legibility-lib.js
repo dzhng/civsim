@@ -2,7 +2,7 @@ import { PNG } from "pngjs";
 
 export const ORACLE = {
   // Calibrated 2026-07-05 against the CLOSE-UP grass target
-  // (specs/battle-map-style/assets/target-close-grass.png — the archived
+  // (specs/done/battle-map-style/assets/target-close-grass.png — the archived
   // close-lab hero crop). The first calibration used the vista near-grass
   // band of the perspective reference — a soft meadow-mass texture with NO
   // resolvable blades — and rejected the true close target; recorded as a

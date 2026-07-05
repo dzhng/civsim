@@ -4,8 +4,7 @@ export const meta = {
   world: "battle-5v5",
   tier: "quick",
   snapshots: ["battle-standards-tactical", "battle-standards-approach", "battle-standards-eye"],
-  describe:
-    "Battle unit flags are in-scene 3D standards with DOM bars/chips anchored to the pole top.",
+  describe: "Battle unit flags and readouts are in-scene GPU billboards anchored to the pole top.",
 };
 
 export async function run(ctx) {
@@ -66,19 +65,21 @@ export async function run(ctx) {
     const stats = window.__game.stats().renderStats;
     return {
       standards: stats.standards,
+      readouts: stats.readouts,
       domFlags: document.querySelectorAll(".ubanner-flag, .ubanner svg").length,
-      readouts: [...document.querySelectorAll("#unitlabels .ubanner")].filter(
-        (el) => getComputedStyle(el).display !== "none",
-      ).length,
+      domReadouts: document.querySelectorAll(".ubanner, #banner-gallery").length,
     };
   });
   ctx.check(
-    "tactical standard frame has 3D standards, selected glow owner, and no DOM SVG flags",
+    "tactical standard frame has 3D standards, GPU readouts, selected glow owner, and no DOM banners",
     tactical.standards?.standards >= 10 &&
       tactical.standards?.selected === 1 &&
       tactical.standards?.timeSeconds === 0 &&
+      tactical.readouts?.readouts >= 10 &&
+      tactical.readouts?.ownBars > 0 &&
+      tactical.readouts?.enemyMarkers > 0 &&
       tactical.domFlags === 0 &&
-      tactical.readouts > 0,
+      tactical.domReadouts === 0,
     JSON.stringify(tactical),
   );
   await ctx.snap(page, "battle-standards-tactical");
@@ -109,7 +110,9 @@ export async function run(ctx) {
     return {
       camera: stats.camera,
       standards: stats.standards,
+      readouts: stats.readouts,
       domFlags: document.querySelectorAll(".ubanner-flag, .ubanner svg").length,
+      domReadouts: document.querySelectorAll(".ubanner, #banner-gallery").length,
     };
   });
   ctx.check(
@@ -117,7 +120,11 @@ export async function run(ctx) {
     eye.standards?.standards >= 10 &&
       eye.standards?.selected === 1 &&
       eye.standards?.timeSeconds === 0 &&
+      // Eye level: most units are behind the camera and the camera-home
+      // unit's marker near-hides by design — a few readouts remain in view.
+      eye.readouts?.readouts >= 3 &&
       eye.domFlags === 0 &&
+      eye.domReadouts === 0 &&
       eye.camera?.camera3d?.pitch < 0.4,
     JSON.stringify(eye),
   );

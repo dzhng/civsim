@@ -58,8 +58,61 @@ water all OFF — at the slice-00 locked camera, plus a top-down clay ortho.
 Slice-01 determinism hashes (re-pin deliberately — the field changed), hand
 maps untouched, elevation tripwire.
 
+## Landed (2026-07-05) — checkpoint accepted, two debts recorded
+
+- `genmap/landform.rs`: macro corridor/ridge mask x domain-warped
+  derivative-damped fBm, ridged flank shaping; corridor +/-6 m, flank peaks
+  107-121 m across seeds; aprons flattened; corridor amplitude clamped.
+  Certificates + hand-map pins green over the sweep; seed-7 hash re-pinned
+  (0x3138cbc0087fc0cd).
+- Verified live: smoke scene green (real render shows eroded flank masses
+  inside the grid, rolling corridor, flat aprons); elevation tripwire green;
+  clay scene green twice with synthetic hillshade snaps (top-down +
+  pseudo-vista).
+- **Debt 1 CLOSED in slice 03 (BMS03-SLICE-F1A8):** the clay scene now boots
+  `/renderer/photoreal-battle?map=gen&seed=7&clay=1` at the slice-00 locked
+  `VISTA_CAMERA`, captures the live renderer canvas, and measures the
+  far-terrain line from the live `camera3d` plus `heightAt`.
+- **Debt 2 CLOSED in slice 03 (BMS03-SLICE-F1A8):** the deployment-apron mask
+  now uses a wider quintic smootherstep falloff (`0..390 m`) instead of the
+  tight stamped smoothstep rim.
 ## Feedback that would change it
 
 "The flanks read as bumps, not walls" → amplitude/ridge parameters, possibly
 feeding slice 14's vista-apron decision early. Open clay shots with
 preview-shots (non-blocking).
+
+## Landed 2026-07-05 (code/cargo; browser pending)
+
+- `crates/sim/src/genmap/landform.rs` now owns generated height: a guaranteed
+  low central corridor, north/south deployment apron flattening, east/west ridge
+  feet inside the playable grid with crests placed beyond the boundary in the
+  `vista_extent = 2.0` domain, one domain warp, derivative-damped fBm, and
+  ridged flank shaping. No droplet erosion.
+- Key constants: corridor half-width `390 m`, transition `230 m`, ridge foot
+  `520 m`, ridge crest `1320 m`, corridor detail budget `5.0 m`, flank detail
+  `7..17 m`, apron detail multiplier `0.36`.
+- At the slice-02 checkpoint, slice-01 speed/tint passability writes remained
+  unchanged: crag-circle E/W seals wrote `speed=0`, `rough=0`, `tint=2`; all
+  other cells stayed speed-passable. Slice 03 replaces this with
+  landform-derived passability.
+- Seed sweep stats pinned by cargo for seeds 1..4:
+  - seed 1: corridor `-6.47..5.27 m`, flank peaks `115.17..119.72 m`
+  - seed 2: corridor `-5.47..6.28 m`, flank peaks `107.78..120.77 m`
+  - seed 3: corridor `-6.55..5.34 m`, flank peaks `112.62..115.69 m`
+  - seed 4: corridor `-6.34..4.16 m`, flank peaks `111.18..116.36 m`
+- New generated seed-7 terrain hash after slice 02: `0x3138cbc0087fc0cd`
+  (slice 03 re-pins this to `0x8ceb1a8a243ea756`). Hand-map hashes
+  stayed pinned:
+  `RiverAndCrags=0x1d65c06afbab0eca`,
+  `WalledPlain=0x864fe11f35ddf30c`,
+  `CoastalScrub=0x020ad95c550af7b6`.
+- New scene: `web/scenes/battle/battle-genmap-clay.mjs`. It boots
+  `?map=gen&seed=7`, samples `window.__game.heightAt`, and writes neutral-clay
+  synthetic vista/topdown snaps without renderer changes. Horizon measurement
+  records the browser-run value and whether it hits `0.50±0.03`; promote it to
+  a hard target assert after the orchestrator records the measured pin.
+- Orchestrator TODO: rebuild wasm, run `battle-genmap-smoke`,
+  `battle-genmap-clay`, and `battle-terrain-elevation`; bless/inspect the new
+  clay baselines; record the clay horizon value here; run screenshot critique /
+  compare-screenshots against the topdown inspiration for landform only.

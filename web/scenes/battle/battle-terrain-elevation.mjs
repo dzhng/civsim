@@ -4,7 +4,7 @@ import { PNG } from "pngjs";
 // through the same height field as the ground mesh and the props — proof that
 // soldiers, shadows, and scenery share one terrain surface (the slice-03
 // movement/seating invariant) on the real map height, not a lab-only ridge.
-const MAPS = ["river-and-crags", "walled-plain", "coastal-scrub"];
+const MAPS = ["river-and-crags", "walled-plain", "coastal-scrub", "generated-seed-7"];
 
 export const meta = {
   name: "battle-terrain-elevation",
@@ -13,7 +13,7 @@ export const meta = {
   tier: "full",
   snapshots: MAPS.map((id) => `terrain-elevation/${id}`),
   describe:
-    "Soldiers seated on the real rolling battle terrain through the shared height field, one block per quick-battle map.",
+    "Soldiers seated on the real rolling battle terrain through the shared height field, including fixed generated seed 7.",
 };
 
 export async function run(ctx) {
@@ -63,7 +63,10 @@ async function gate(ctx, id) {
 
   const shot = await page.locator("#renderer-canvas").screenshot();
   const m = soldierMetrics(PNG.sync.read(shot));
-  ctx.check(`${id} soldiers render over the ground`, m.soldier > 0.01, JSON.stringify(m));
+  // Generated relief partially occludes the block behind rises; hand maps
+  // are flat at the stand. 0.005 is still ~60x above noise.
+  const soldierFloor = id.startsWith("generated") ? 0.005 : 0.01;
+  ctx.check(`${id} soldiers render over the ground`, m.soldier > soldierFloor, JSON.stringify(m));
   await ctx.snap(page, `terrain-elevation/${id}`, { shot });
   await page.close();
 }

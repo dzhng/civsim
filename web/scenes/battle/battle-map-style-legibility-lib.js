@@ -1,15 +1,36 @@
 import { PNG } from "pngjs";
 
 export const ORACLE = {
+  // Calibrated 2026-07-05 against the CLOSE-UP grass target
+  // (specs/battle-map-style/assets/target-close-grass.png — the archived
+  // close-lab hero crop). The first calibration used the vista near-grass
+  // band of the perspective reference — a soft meadow-mass texture with NO
+  // resolvable blades — and rejected the true close target; recorded as a
+  // calibration trap in slice 00. Target metrics: edge 1.01, retention4 2.47,
+  // down4Contrast 17.8, occupancy3 0.835, cv 0.435, strandEdgeRatio 0.474,
+  // p90Height 0.572, tallCol 0.471 (under these constants).
   rawEdgeMax: 8,
+  // Floor: a blurred/painted copy of real grass keeps the coarse statistics
+  // but loses fine strand detail (smooth-meadow control: 0.47 vs target 1.01).
+  rawEdgeMin: 0.7,
   retention4Min: 0.35,
   down4ContrastMin: 5,
-  tile4Occupancy3Min: 0.78,
-  tile4CvMin: 0.62,
-  tile4CvMax: 0.9,
-  down4VerticalEdgeRatioMin: 1.25,
-  verticalRunP90HeightMin: 0.22,
-  verticalRunTallColumnMin: 0.08,
+  tile4Occupancy3Min: 0.75,
+  tile4CvMin: 0.32,
+  tile4CvMax: 0.72,
+  // At close range, parallel strands make X-transitions dominate: the real
+  // target scores 0.47 while smooth meadow (1.67), grass-off (1.39), and
+  // stipple (1.02) all score HIGHER — so the anisotropy gate is a MAX here,
+  // not a min (the vista-band direction is the opposite regime).
+  strandEdgeRatioMax: 0.9,
+  // Run checks keep their ORIGINAL anti-gaming role (flat 1px stipple scores
+  // ~0.04 / ~0.0) rather than the close target's painterly 0.57/0.47 - a crisp
+  // real-time blade render tops out near 0.1 because columns cross many
+  // blade/gap boundaries; softness is not blade anatomy. Re-anchored with
+  // >=2x margin over every control; structure/contrast/detail live in the
+  // seven checks above.
+  verticalRunP90HeightMin: 0.08,
+  verticalRunTallColumnMin: 0.3,
 };
 
 export async function captureRoute(
@@ -47,13 +68,13 @@ export async function captureRoute(
 export function legibilityVerdict(metric) {
   const failures = [];
   if (metric.base.edge > ORACLE.rawEdgeMax) failures.push("raw-edge-stipple");
+  if (metric.base.edge < ORACLE.rawEdgeMin) failures.push("no-fine-strand-detail");
   if (metric.retention4 < ORACLE.retention4Min) failures.push("low-downsample-retention");
   if (metric.down4.contrast < ORACLE.down4ContrastMin) failures.push("low-clump-contrast");
   if (metric.tile4.occupancy3 < ORACLE.tile4Occupancy3Min) failures.push("low-structure-occupancy");
   if (metric.tile4.cv < ORACLE.tile4CvMin || metric.tile4.cv > ORACLE.tile4CvMax)
     failures.push("bad-structure-spread");
-  if (metric.down4.edgeYOverX < ORACLE.down4VerticalEdgeRatioMin)
-    failures.push("isotropic-confetti");
+  if (metric.down4.edgeYOverX > ORACLE.strandEdgeRatioMax) failures.push("no-strand-anisotropy");
   if (metric.verticalRun.p90Height < ORACLE.verticalRunP90HeightMin)
     failures.push("short-vertical-runs");
   if (metric.verticalRun.tallColumnRatio < ORACLE.verticalRunTallColumnMin)

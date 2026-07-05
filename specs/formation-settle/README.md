@@ -96,9 +96,37 @@ module and benefits from 02's findings.
 
 ## Next Agent Prompt
 
-**Status 2026-07-05 (pass 4): 01, 02a, 02b-1, and 03 (grazing) SHIPPED.
-Next: slice 04 (grind slosh), then the two parked rest-pose gates (02b-2
-corridor, 03b deep overlap), then 05.**
+**Status 2026-07-06 (pass 5): 04 ATTRIBUTED with a working fix candidate
+PARKED (sweeping footprint — needs its own deliberate pass with David).
+Next: EITHER finish 04 as a foundation sub-slice, OR the parked rest-pose
+gates (02b-2, 03b), then 05.**
+
+Slice 04 findings (attribution probes committed;
+`probe_grind_lateral_by_rank` + `probe_trace_grind_lateral_forces`):
+- CONVICTION: rank 5 of an immortal grind carries MORE lateral speed
+  (1.114 m/s) than the front rank trading blows (0.888) — flat-to-rising
+  rear-ward profile = lattice ringing, not combat jostle. Channels:
+  PivotSpring, CompPush, WeaveNet dominate the lateral budget, capped by
+  SpeedCap.
+- FIX CANDIDATE (WORKS, PARKED): widen the pike lateral friction to all
+  packed foot — drop `strict_formation()`, key on MEASURED advance
+  (`mass_advance < charge_spent_speed`, replacing the `order_advancing`
+  OrderMode gate per the Move==Attack litmus), judge the lateral reversal
+  in the trajectory frame (`last_disp`, not steer-only kin_v). Restores
+  the physical profile: rank 5 -> 0.105, rank 4 -> 0.289, front keeps
+  0.70 of honest jostle. Diff: `assets/slice04-friction-widening.diff`.
+- WHY PARKED: sweeping footprint — golden moves (every stalled melee is
+  touched), `ai_battle_resolves_with_pinned_scale_shape`,
+  `light_horse_tramples_at_a_third_the_butchery`, and the grind rail all
+  red. The rail WORSENED (0.635 -> 0.777) while the profile improved:
+  quieting the rear EXPOSED the engaged-deep-reform churn — slot_changes
+  in the grind went 30 -> ~400/window, the reform beat now relabels
+  against the front's slow shear every cycle and men take visible
+  sideways WALKS to new slots. That transit churn is plausibly the
+  battle-time "lots of shifting left and right" David reported, and the
+  rail metric conflates it with oscillation. The 04 finish must treat
+  BOTH (friction widening + deep-reform churn) with per-pin provenance,
+  vibe frames, and David's taste checkpoint — a foundation-style pass.
 
 Pass 4 root fix (orchestrator, after a codex negative result steered it):
 **the idle settle damp's oscillation detector was measuring the wrong
@@ -243,7 +271,9 @@ rationale here, and continue. Never idle waiting for sign-off.
 - [ ] 03b — Deep overlap (10m): weave rest shape must accommodate
       obstruction; three pull-gating variants measured dead (see Next Agent
       Prompt) → [slices/03-friendly-overlap-cycle.md](slices/03-friendly-overlap-cycle.md)
-- [ ] 04 — Family C: attribute and bound the sustained grind lateral slosh
+- [ ] 04 — Family C: ATTRIBUTED, fix candidate parked in assets/ (sweeping
+      footprint: golden + 2 scenario pins + the deep-reform churn coupling
+      need per-pin provenance, vibes, and David's checkpoint)
       → [slices/04-grind-lateral-slosh.md](slices/04-grind-lateral-slosh.md)
 - [ ] 05 — Close-out: retire the probe file, browser feel-check, vibe
       re-bless if needed, ledger, then

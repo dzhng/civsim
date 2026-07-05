@@ -11,6 +11,7 @@
 // Factions are a separate per-team picker and do not affect army ordering.
 
 import type { BattleFactionId } from "../../../../packages/game-renderer/src/battle/factionColors";
+import type { BattleEnvironmentId } from "../../../../packages/game-renderer/src/environment/environment";
 import type { QuickBattleConfig, QuickBattleUnitPick } from "../../battle/quickBattleCatalog";
 
 export type Army = Map<number, number>;
@@ -21,6 +22,7 @@ export interface ArmyBuilderState {
   mapId: number;
   generatedSeed: string;
   generatedMapId?: string;
+  environment: BattleEnvironmentId;
   armies: [Army, Army];
   factions: [BattleFactionId, BattleFactionId];
 }
@@ -29,6 +31,7 @@ export type ArmyBuilderAction =
   | { kind: "map"; mapId: number; generatedSeed?: string; generatedMapId?: string }
   | { kind: "generatedSeed"; seed: string }
   | { kind: "rerollGeneratedSeed" }
+  | { kind: "environment"; environment: BattleEnvironmentId }
   | { kind: "faction"; team: 0 | 1; factionId: BattleFactionId }
   | { kind: "count"; team: 0 | 1; classId: number; delta: number }
   | { kind: "template"; team: 0 | 1; units: readonly { classId: number; count: number }[] };
@@ -52,6 +55,8 @@ export function armyBuilderReducer(s: ArmyBuilderState, a: ArmyBuilderAction): A
       return { ...s, generatedSeed: sanitizeSeed(a.seed), generatedMapId: undefined };
     case "rerollGeneratedSeed":
       return { ...s, generatedSeed: rerollSeed(s.generatedSeed), generatedMapId: undefined };
+    case "environment":
+      return { ...s, environment: a.environment };
     case "faction": {
       const factions: [BattleFactionId, BattleFactionId] = [...s.factions];
       factions[a.team] = a.factionId;
@@ -84,6 +89,7 @@ export function armyConfig(s: ArmyBuilderState): QuickBattleConfig {
   return {
     mapId: s.mapId,
     generatedSeed: s.generatedSeed,
+    environment: s.environment,
     teams: [pickArmy(s.armies[0]), pickArmy(s.armies[1])],
     factions: [s.factions[0], s.factions[1]],
   };

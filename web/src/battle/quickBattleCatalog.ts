@@ -3,6 +3,7 @@ import {
   type BattleMapCatalogEntry,
 } from "../../../packages/game-renderer/src/battle/mapCatalog";
 import type { BattleFactionId } from "../../../packages/game-renderer/src/battle/factionColors";
+import type { BattleEnvironmentId } from "../../../packages/game-renderer/src/environment/environment";
 
 // Quick Battle setup data: a pure, DOM-free catalog the setup panel and its
 // tests both consume. Map options are the frozen Slice-02 BattleMapCatalogEntry
@@ -35,6 +36,7 @@ export interface QuickBattleClassSpec {
 export interface QuickBattleConfig {
   mapId: number;
   generatedSeed?: string;
+  environment: BattleEnvironmentId;
   teams: [QuickBattleUnitPick[], QuickBattleUnitPick[]];
   factions?: [BattleFactionId, BattleFactionId];
 }

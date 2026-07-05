@@ -2,6 +2,7 @@ import { PNG } from "pngjs";
 import { BAND_CROPS, HORIZON_TARGET, VIEWPORT, VISTA_CAMERA } from "./battle-map-style.mjs";
 
 const SEED = 7;
+const ENV = "overcast-highland";
 const EDGE_DELTA_MAX = 12;
 const MID_FIELD_DELTA_MIN = 9;
 const MID_FIELD_SATURATION_MIN = 5;
@@ -9,7 +10,7 @@ const MID_FIELD_SATURATION_MIN = 5;
 export const meta = {
   name: "battle-genmap-mood",
   kind: "visual",
-  world: "battle-generated-seed-7-overcast-highland",
+  world: "battle-generated-seed-7-explicit-overcast-highland",
   tier: "full",
   snapshots: [
     "battle-genmap-mood/vista",
@@ -17,7 +18,7 @@ export const meta = {
     "battle-genmap-mood/mid-field",
   ],
   describe:
-    "BMS16-SLICE-D5A3: generated maps default to overcast-highland, fog saturates inside the far ring, and the playable field remains readable.",
+    "BMS16-SLICE-D5A3: generated maps under explicit overcast-highland fog saturate inside the far ring, and the playable field remains readable.",
 };
 
 export async function run(ctx) {
@@ -40,7 +41,7 @@ export async function run(ctx) {
 
     const stats = await page.evaluate(() => window.__game.stats().renderStats);
     ctx.check(
-      "generated map descriptor/catalog default selected overcast-highland",
+      "generated map explicit environment selected overcast-highland",
       stats?.environment === "overcast-highland" &&
         stats?.terrain?.environment?.id === "overcast-highland" &&
         stats?.terrain?.environment?.source === "CIVSIM_ENVIRONMENTS.overcast-highland" &&
@@ -96,7 +97,7 @@ export async function run(ctx) {
 }
 
 async function boot(page, target) {
-  await page.goto(`${target}/?map=gen&seed=${SEED}&ai=off`);
+  await page.goto(`${target}/?map=gen&seed=${SEED}&ai=off&env=${ENV}`);
   await page.waitForFunction(
     () =>
       window.__ready === true &&

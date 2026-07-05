@@ -6,7 +6,7 @@ import { BattleScene, type BattleKind, type GeneratedBattleMapDescriptor } from 
 import { CampaignScene, loadCampaignData } from "./campaign/scene";
 import type { CampaignData } from "./campaign/data";
 import { checkGpuSupport, type GpuSupportState } from "../../packages/game-renderer/src/appShell";
-import { GENERATED_BATTLE_MAP_DEFAULT_ENVIRONMENT } from "../../packages/game-renderer/src/battle/mapCatalog";
+import { DEFAULT_BATTLE_ENVIRONMENT } from "../../packages/game-renderer/src/environment/environment";
 import { setActiveFactions } from "../../packages/game-renderer/src/battle/factionColors";
 import { generatedBattleMapEntry } from "../../packages/game-renderer/src/battle/mapCatalog";
 
@@ -62,7 +62,7 @@ async function main() {
           kind === "gen"
             ? ({
                 ...(JSON.parse(game.generated_map_descriptor()) as GeneratedBattleMapDescriptor),
-                defaultEnvironment: GENERATED_BATTLE_MAP_DEFAULT_ENVIRONMENT,
+                defaultEnvironment: DEFAULT_BATTLE_ENVIRONMENT,
               } satisfies GeneratedBattleMapDescriptor)
             : undefined;
         return new BattleScene({
@@ -110,11 +110,12 @@ async function main() {
 
   function launchQuickBattle(cfg: QuickBattleConfig) {
     const generated = cfg.mapId === QUICK_BATTLE_GENERATED_MAP_ID;
+    const environment = cfg.environment ?? DEFAULT_BATTLE_ENVIRONMENT;
     const game = createQuickBattleGame(cfg);
     const generatedMap = generated
       ? ({
           ...(JSON.parse(game.generated_map_descriptor()) as GeneratedBattleMapDescriptor),
-          defaultEnvironment: GENERATED_BATTLE_MAP_DEFAULT_ENVIRONMENT,
+          defaultEnvironment: environment,
         } satisfies GeneratedBattleMapDescriptor)
       : undefined;
     const generatedEntry = generated
@@ -126,6 +127,7 @@ async function main() {
         game,
         kind: generated ? "gen" : "mapA",
         wasmMapId: generatedEntry?.wasmMapId ?? cfg.mapId,
+        environment,
         generatedMap,
         restart: () => launchQuickBattle(cfg),
         onExit: () => switchScene(menu),

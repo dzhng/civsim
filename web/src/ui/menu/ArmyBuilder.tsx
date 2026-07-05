@@ -4,6 +4,11 @@ import {
   type BattleFactionId,
 } from "../../../../packages/game-renderer/src/battle/factionColors";
 import {
+  BATTLE_ENVIRONMENT_OPTIONS,
+  DEFAULT_BATTLE_ENVIRONMENT,
+  type BattleEnvironmentId,
+} from "../../../../packages/game-renderer/src/environment/environment";
+import {
   QUICK_BATTLE_GENERATED_MAP_ID,
   QUICK_BATTLE_GOLD,
   QUICK_BATTLE_MAPS,
@@ -34,6 +39,7 @@ function initialState(): ArmyBuilderState {
   return {
     mapId: QUICK_BATTLE_GENERATED_MAP_ID,
     generatedSeed: rerollSeed("7"),
+    environment: DEFAULT_BATTLE_ENVIRONMENT,
     armies: [make(), make()],
     factions: [DEFAULT_BATTLE_FACTIONS[0], DEFAULT_BATTLE_FACTIONS[1]],
   };
@@ -54,6 +60,7 @@ export function ArmyBuilder({ open, classes, onLaunch, onClose }: ArmyBuilderPro
   useEffect(() => {
     if (!open) return;
     dispatch({ kind: "map", mapId: QUICK_BATTLE_GENERATED_MAP_ID });
+    dispatch({ kind: "environment", environment: DEFAULT_BATTLE_ENVIRONMENT });
     dispatch({ kind: "rerollGeneratedSeed" });
   }, [open]);
   const costOf: ClassCost = (classId) => classes.find((c) => c.id === classId)?.cost ?? 0;
@@ -79,6 +86,25 @@ export function ArmyBuilder({ open, classes, onLaunch, onClose }: ArmyBuilderPro
     >
       <div className="panel quick-battle-panel">
         <h2>CUSTOM BATTLE</h2>
+        <label className="qb-weather" htmlFor="qb-weather">
+          <span>Weather</span>
+          <select
+            id="qb-weather"
+            value={state.environment}
+            onChange={(e) =>
+              dispatch({
+                kind: "environment",
+                environment: e.currentTarget.value as BattleEnvironmentId,
+              })
+            }
+          >
+            {BATTLE_ENVIRONMENT_OPTIONS.map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
         <div className="qb-maps" id="qb-maps">
           {QUICK_BATTLE_MAPS.map((m) => {
             const generated = m.generatedSeed !== undefined;
@@ -148,7 +174,12 @@ export function ArmyBuilder({ open, classes, onLaunch, onClose }: ArmyBuilderPro
                     className="qb-template"
                     onClick={(e) => {
                       e.stopPropagation();
-                      window.location.search = `?map=gen&seed=${encodeURIComponent(state.generatedSeed)}`;
+                      const params = new URLSearchParams({
+                        map: "gen",
+                        seed: state.generatedSeed,
+                        env: state.environment,
+                      });
+                      window.location.search = `?${params}`;
                     }}
                   >
                     Play

@@ -114,18 +114,42 @@ fn settle_adjacent_group_move() {
     assert_settles(&mut sim, b, 20.0, 60.0);
 }
 
-#[ignore = "formation-settle slice 02"]
 #[test]
 fn settle_near_impassable_pocket() {
-    let terrain = seed1_terrain();
-    let (wall_x, wall_y) = seed1_west_wall_edge(&terrain);
-    let mut sim = Sim::new(Tunables::default(), SEED);
-    sim.terrain = terrain;
-    let unit = march_class_block_to(&mut sim, Vec2::new(wall_x + 14.0, wall_y));
-    assert_settles(&mut sim, unit, 30.0, 60.0);
+    // Margins where every ideal slot is on standable ground: the churn here
+    // was the wall-split bond/slot tractor (slice 02a). The shallower
+    // margins, where the FRAME itself has slots on impassable cells, are a
+    // different mechanism and live in the 02b gate below.
+    for margin in [14.0, 18.0] {
+        let terrain = seed1_terrain();
+        let (wall_x, wall_y) = seed1_west_wall_edge(&terrain);
+        let mut sim = Sim::new(Tunables::default(), SEED);
+        sim.terrain = terrain;
+        let unit = march_class_block_to(&mut sim, Vec2::new(wall_x + margin, wall_y));
+        println!("margin={margin:.1}");
+        assert_settles(&mut sim, unit, 30.0, 60.0);
+    }
 }
 
-#[ignore = "formation-settle slice 02"]
+#[ignore = "formation-settle slice 02b"]
+#[test]
+fn settle_with_frame_slots_in_wall() {
+    // Destination so close to the cliff that the frame's own slots land on
+    // impassable/slow cells (measured at margin 10: blocked=2 slow=5): the
+    // halted-frame escape slide, the corridor width machinery, and the
+    // at-ease reform churn episodically instead of converging.
+    for margin in [10.0, 12.0] {
+        let terrain = seed1_terrain();
+        let (wall_x, wall_y) = seed1_west_wall_edge(&terrain);
+        let mut sim = Sim::new(Tunables::default(), SEED);
+        sim.terrain = terrain;
+        let unit = march_class_block_to(&mut sim, Vec2::new(wall_x + margin, wall_y));
+        println!("margin={margin:.1}");
+        assert_settles(&mut sim, unit, 30.0, 60.0);
+    }
+}
+
+#[ignore = "formation-settle slice 02b"]
 #[test]
 fn settle_inside_marginal_corridor() {
     let gap_half = 9.7f32;

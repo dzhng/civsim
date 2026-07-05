@@ -46,7 +46,8 @@ Before writing any code, read:
 
 - [x] 00 — Composition + oracle lock (judging apparatus pinned before art)
 - [x] 01 — Genmap skeleton (seed → playable battle, end to end)
-- [ ] 02 — Landform (macro mask × warped noise, clay verdict)
+- [ ] 02 — Landform (macro mask × warped noise, clay verdict; code/cargo landed,
+      browser clay verdict pending)
 - [ ] 03 — Passability from landform (BFS certificates)
 - [ ] 04 — Hydrology (priority-flood lakes, descending rivers, fords)
 - [ ] 05 — Edge grammar + deployment guarantees

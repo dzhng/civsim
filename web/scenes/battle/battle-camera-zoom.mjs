@@ -56,7 +56,7 @@ export async function run(ctx) {
   });
   await page.addStyleTag({
     content:
-      "#gameover, #hud, #buttons, #pausemenu, #banner, #selbox, #minimap, #unitlabels, #unitcards, #toolbar { display: none !important; }",
+      "#gameover, #hud, #buttons, #pausemenu, #banner, #selbox, #minimap, #unitcards, #toolbar { display: none !important; }",
   });
 
   const frames = [];

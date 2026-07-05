@@ -20,6 +20,31 @@ at strategic zoom.
 
 ## Next Agent Prompt
 
+*Status (2026-07-05): slice 12 moves battle readouts into the photoreal
+world. `UnitBanner`, the `?test=banners` DOM route, the `.ubanner` CSS, and
+the UI-owned banner-gallery scene are gone. The readout state contract now
+lives as data (`web/src/battle/readoutState.ts`); `scene.ts` uploads it as
+`BattleReadoutInstance` data beside the 3D standards. `PhotorealReadoutLayer`
+renders bars as camera-facing instanced quads and chips from a canvas-backed
+glyph atlas (`layer: photoreal-battle-readout-glyph-atlas`), anchored flush
+to the standard pole top with measured projection scaling from the same
+`standardScale` inputs. Own units get hp/cohesion/morale/stamina bars; enemy
+units always get a minimal faction-colored plate at tactical zoom, even with
+no chips. Selection now has an explicit readout frame while the 3D standard
+keeps its emissive lift. The replacement `banner-gallery` scene is under
+`web/scenes/battle/` and boots the real renderer with `?test=readouts`; it
+must regenerate `web/shots/battle/banner-gallery.png`,
+`battle-readout-pan-start.png`, and `battle-readout-pan-end.png`.
+Orchestrator review fixes: readout/standard legibility now measures
+pixels-per-world-meter through the RENDERER'S live perspective camera
+(`BattleRenderer.pxPerWorldAt` → `PhotorealBattleWorld`), because the battle
+rig's chart-style `worldToScreen` diverges from the true projection in the
+swoop regime — it maxed the floor at soldier eye level (16m poles, sky-high
+readouts, and the giant plates the first readout bless produced). Billboard
+anchors behind the camera collapse in the shader (mirrored-projection
+garbage quads). The gallery scene magnifies readouts (review needs
+legibility, not marker size). Slice 13 landed separately on main.*
+
 *Status (2026-07-05): slice 11 plants the shared 3D standard in battle. The
 flag is gone from `UnitBanner`; one lit, depth-tested, waving standard is
 uploaded per visible unit through the photoreal three.js world (instanced TSL
@@ -103,7 +128,7 @@ Work in this worktree; dev server for filming MUST be this worktree's on
 - [x] 09 integrate — vibe re-bless (soldier look moves every frame), model sheets, close-spec
 - [x] 10 standard-asset-3d — ONE shared 3D standard (pole/crossbar/finial + waving swallowtail cloth), size tiers, deterministic wind; model sheet + anim GIF
 - [x] 11 battle-3d-banners — flag leaves the DOM into the scene (depth-tested, legibility floor at tactical zoom); selection glow moves onto the 3D standard; bars/chips stay DOM only until 12
-- [ ] 12 readout-billboards — bars/chips become world-anchored camera-facing GPU billboards at the pole top (glyph atlas like campaign labels); UnitBanner DOM retired; gallery becomes a renderer scene
+- [x] 12 readout-billboards — bars/chips become world-anchored camera-facing GPU billboards at the pole top (glyph atlas like campaign labels); UnitBanner DOM retired; gallery becomes a renderer scene
 - [ ] 13 campaign-3d-banners — army standard mesh → shared asset; settlement banner over cities (tier-sized, Roma ref); garrison flag keeps the city anchor without doubling up
 
 ## Slice 10 handoff (landed)
@@ -139,13 +164,12 @@ hashed per-instance phase — no wall clock). Contracts slices 11-13 consume:
 
 ## Recon facts — 3D standards (verified 2026-07-04, file:line current)
 
-**Battle flag today.** Pure DOM: `UnitBanner` (`web/src/battle/unitBanner.ts`)
-draws pole/finial/crossbar/cloth/emblem as inline SVG (:48-81), team fill from
-the faction table's `bannerCss` (`factionColors.ts:15,21`), CSS at
-`index.html:563+`. Screen-placed by `updateUnitBanners` (`scene.ts:475`),
-bottom-anchored at the projected pole foot (`place()`, unitBanner.ts:157-161).
-Bars/chips/selection live in the same component; the banner gallery
-(`?test=banners`, `mountBannerGallery`) snapshots it engine-free.
+**Battle flag before slices 11-12.** Pure DOM: `UnitBanner`
+(`web/src/battle/unitBanner.ts`, now deleted) drew the old SVG flag and later
+the temporary DOM bar/chip readout. Slice 11 moved the flag into
+`standardLayer.ts`; slice 12 moved bars/chips into `readoutLayer.ts` and
+replaced the engine-free `?test=banners` gallery with the renderer-backed
+`web/scenes/battle/banner-gallery.mjs` scene.
 
 **Campaign flags today.** Real meshes but static flat panels, no cloth
 motion: army standard = `buildCampaignStandardMesh`
@@ -177,12 +201,11 @@ The WGSL twin already has the target behavior behind
 `factionMaskStrength` (`skinnedPipeline.ts:205`).
 `web/tests/soldierMaterials.test.ts` pins mask localization.
 
-**Banners.** Per-unit DOM `UnitBanner` (`web/src/battle/unitBanner.ts`):
-inline SVG horizontal pennant (path at :45), `TEAM_HUE = [#6f9ae8, #e0604f]`
-(:22), bars = hp + cohesion ONLY (:64-74; morale/stamina are chips from
-`scene.ts:430-456`), placed at `scene.ts:481`, CSS in `index.html:562-620`,
-`.sel` glow exists. Campaign flags: `mapPass.ts:364-395` pennant band
-(moved since — current sites in the 3D-standards recon above).
+**Banners (pre-slice historical).** The removed DOM `UnitBanner`
+started as an inline SVG horizontal pennant and temporary bars/chips. Current
+battle ownership is `standardLayer.ts` for the 3D flag plus
+`readoutLayer.ts` for GPU bars/chips. Campaign flags are still the slice-13
+target (current sites in the 3D-standards recon above).
 Campaign selection ring: GPU pass, GREEN `[0.31,0.82,0.39]`
 (`selectionPass.ts`, colors at `renderer.ts:703,775`). Battle has its own
 line-ring primitive `pushRing` (`web/src/shared/overlays.ts:65-91`); selected
@@ -192,7 +215,7 @@ Ownership: team 0 = player (`info[o+6]`), selection already player-only
 
 **Colors.** SEVEN independent hardcoded sites, no shared constant:
 `crowdLayer.ts:327-331`, `impostorLayer.ts:38-39`, `overlayLayer.ts:183-186`,
-`minimapPass.ts:193-197`, `unitBanner.ts:22`, `unitCard.ts:14`
+`minimapPass.ts:193-197`, `unitCard.ts:14`
 (+ campaign has a real faction model: `campaign/data.ts:23`, `mapdata.rs`).
 
 **Menu.** FIVE battle entries (1v1 duel modal, 5v5, custom battle, campaign

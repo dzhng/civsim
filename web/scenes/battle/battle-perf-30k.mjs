@@ -9,6 +9,8 @@ import { PNG } from "pngjs";
 // shrink. Hardware adapter only for the ms assertion (VERIFY_GPU_ADAPTER=
 // hardware; SwiftShader is not a perf oracle) — under SwiftShader the scene
 // still runs as a correctness smoke and records that the budget was skipped.
+// BMSGRASS-F4B1 adds a live camera-pan phase: rAF p95 must stay under the same
+// 33 ms floor while the camera crosses multiple old 8m grass snap boundaries.
 // Every photoreal ladder slice from 08b on re-runs this gate.
 export const meta = {
   name: "battle-perf-30k",
@@ -17,7 +19,7 @@ export const meta = {
   tier: "full",
   snapshots: [],
   describe:
-    "Production battle renderer holds 33 ms median GPU frame time at 30k+ soldiers plus dense foliage.",
+    "Production battle renderer holds 33 ms static GPU median and pan rAF p95 at 30k+ soldiers plus dense foliage.",
 };
 
 // Locked numbers (interview 2026-07-02): changing either requires David.
@@ -28,11 +30,13 @@ const SOLDIER_FLOOR = 30000;
 // window plus slice-12 routed/thinned blade triangles).
 const SPAWN_TARGET = 30500;
 const SCENERY_FLOOR = 500;
-const PRODUCTION_GRASS_RECORDS = 110000;
-const PRODUCTION_GRASS_BUDGET_QUOTAS = [52800, 40700, 16500];
+const PRODUCTION_GRASS_RECORDS = 160000;
+const PRODUCTION_GRASS_BUDGET_QUOTAS = [76800, 59200, 24000];
 const VISTA_GRASS_RECORD_FLOOR = PRODUCTION_GRASS_RECORDS;
 const VISTA_GRASS_TRIANGLE_FLOOR = 90000;
 const VISTA_GRASS_FAR_SURVIVOR_FLOOR = 22000;
+const PAN_DISTANCE_M = 200;
+const PAN_DURATION_MS = 3000;
 
 // Same production rig zooms as battle-camera-zoom: playable mid and the
 // low-oblique cinematic vista (zoomT = 1), where grass density peaks. Both
@@ -140,6 +144,7 @@ export async function run(ctx) {
       cam.clampView?.();
     }, stop);
     await page.waitForTimeout(200);
+    await waitForGrassReady(page);
 
     // Warm frames, then per-frame samples: rAF wall time plus the shell's
     // timestamp-query GPU time surfaced through the production stats seam.
@@ -225,8 +230,11 @@ export async function run(ctx) {
     shots[stop.name] = await page.locator("#battlefield").screenshot({ timeout: 180000 });
   }
 
+  const pan = await sampleCameraPan(page, hardware);
+
   const [mid, vista] = table;
   console.log(`battle-perf-30k frame-time table:\n${JSON.stringify(table, null, 2)}`);
+  console.log(`battle-perf-30k pan table:\n${JSON.stringify(pan, null, 2)}`);
 
   // --- The load is real and may never shrink -------------------------------
   ctx.check(
@@ -308,6 +316,11 @@ export async function run(ctx) {
       table.every((row) => row.gpuMedianMs !== null && row.gpuMedianMs <= BUDGET_MS),
       JSON.stringify(table),
     );
+    ctx.check(
+      `continuous ${PAN_DISTANCE_M}m camera pan keeps rAF p95 within the ${BUDGET_MS} ms budget`,
+      pan.rafP95Ms !== null && pan.rafP95Ms <= BUDGET_MS,
+      JSON.stringify(pan),
+    );
   } else {
     ctx.check(
       "SwiftShader is not a perf oracle: ms budget assertion skipped (correctness smoke only)",
@@ -317,6 +330,79 @@ export async function run(ctx) {
   }
 
   await page.close();
+}
+
+async function waitForGrassReady(page) {
+  await page.waitForFunction(
+    () => {
+      const grass = window.__game?.stats?.().renderStats?.terrain?.grass;
+      return grass?.recordCount > 0 && grass?.rebuild?.pending !== true;
+    },
+    undefined,
+    { timeout: 30000 },
+  );
+}
+
+async function sampleCameraPan(page, hardware) {
+  await page.evaluate(async () => {
+    const cam = window.__cam;
+    cam.zoom = 3.0;
+    cam.clampView?.();
+    cam.setViewCenter(-100, -310);
+    cam.clampView?.();
+    await new Promise((resolve) => setTimeout(resolve, 120));
+  });
+  await waitForGrassReady(page);
+  const before = await page.evaluate(() => window.__game.stats().renderStats.terrain?.grass);
+  const sampled = await page.evaluate(
+    async ({ distance, durationMs, frames }) => {
+      const raf = () => new Promise((resolve) => requestAnimationFrame(resolve));
+      const cam = window.__cam;
+      const startX = -100;
+      const y = -310;
+      const frameMs = [];
+      const gpu = [];
+      let last = performance.now();
+      const started = last;
+      for (let i = 0; i < frames; i++) {
+        const now = performance.now();
+        const t = Math.min(1, (now - started) / durationMs);
+        cam.setViewCenter(startX + distance * t, y);
+        cam.clampView?.();
+        await raf();
+        const next = performance.now();
+        frameMs.push(next - last);
+        last = next;
+        const g = window.__game.stats().renderStats.performance.gpuTimeMs;
+        if (typeof g === "number" && Number.isFinite(g) && g >= 0) gpu.push(g);
+      }
+      cam.setViewCenter(startX + distance, y);
+      cam.clampView?.();
+      await raf();
+      return { gpu, raf: frameMs };
+    },
+    {
+      distance: PAN_DISTANCE_M,
+      durationMs: PAN_DURATION_MS,
+      frames: hardware ? Math.ceil(PAN_DURATION_MS / 16.67) : 20,
+    },
+  );
+  await waitForGrassReady(page);
+  const after = await page.evaluate(() => window.__game.stats().renderStats.terrain?.grass);
+  return {
+    distanceM: PAN_DISTANCE_M,
+    durationMs: PAN_DURATION_MS,
+    rafMedianMs: round(median(sampled.raf)),
+    rafP95Ms: round(percentile(sampled.raf, 0.95)),
+    gpuMedianMs: round(median(sampled.gpu)),
+    gpuP95Ms: round(percentile(sampled.gpu, 0.95)),
+    gpuSamples: sampled.gpu.length,
+    rebuildsBefore: before?.rebuild?.rebuilds ?? null,
+    rebuildsAfter: after?.rebuild?.rebuilds ?? null,
+    lastSampleMs: after?.rebuild?.lastSampleMs ?? null,
+    recordCount: after?.recordCount ?? null,
+    pending: after?.rebuild?.pending ?? null,
+  };
 }
 
 function median(values) {

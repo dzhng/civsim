@@ -6,7 +6,7 @@
 //
 //   ?map=A|B|gen  quick-battle map (default A) or generated seed map
 //   ?env=golden-hour|dusk|overcast-foggy|overcast-highland|noon
-//                 environment preset (default golden-hour; generated maps default highland)
+//                 environment preset (default golden-hour)
 //   ?ai=on        enemy AI (default off — deterministic standing armies)
 //   ?ticks=N      sim ticks advanced before first frame (default 60)
 //   ?count=N      grow the army to N soldiers via the production spawn path
@@ -35,7 +35,7 @@ import {
   type BattleTacticalLineFrame,
 } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
 import { seaDisplacementSourceFromParam } from "../../../packages/photoreal-renderer/src/battle/seaLayer";
-import { GENERATED_BATTLE_MAP_DEFAULT_ENVIRONMENT } from "../../../packages/game-renderer/src/battle/mapCatalog";
+import { DEFAULT_BATTLE_ENVIRONMENT } from "../../../packages/game-renderer/src/environment/environment";
 import { BATTLE_RELIEF_EXAGGERATION } from "../../../packages/game-renderer/src/battle/terrainFeatures";
 import { createPhotorealStatsPublisher } from "../../../packages/photoreal-renderer/src/stats";
 import { Camera } from "../../../web/src/shared/camera";
@@ -61,8 +61,7 @@ const TICK_DT = 1 / 30;
 export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
   const params = ctx.params;
   const generatedMap = params.get("map") === "gen";
-  const environment =
-    params.get("env") ?? (generatedMap ? GENERATED_BATTLE_MAP_DEFAULT_ENVIRONMENT : null);
+  const environment = params.get("env") ?? (generatedMap ? DEFAULT_BATTLE_ENVIRONMENT : null);
   // ?ref=1: full-viewport canvas (the compare-screenshots framing — the
   // production #battlefield also fills its viewport).
   if (params.get("ref") === "1") ctx.root.classList.add("reference-shot");
@@ -86,7 +85,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
   const generatedDescriptor = generatedMap
     ? {
         ...JSON.parse(game.generated_map_descriptor()),
-        defaultEnvironment: GENERATED_BATTLE_MAP_DEFAULT_ENVIRONMENT,
+        defaultEnvironment: DEFAULT_BATTLE_ENVIRONMENT,
       }
     : null;
   if (params.get("ai") === "on") game.set_ai_team(1);

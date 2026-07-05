@@ -5,7 +5,7 @@ export const meta = {
   tier: "quick",
   snapshots: ["menu-renderer-ready", "menu-renderer-unsupported", "menu-quick-battle-modal"],
   describe:
-    "Menu shell WebGPU status, unsupported state, and the custom-battle army builder with faction pickers.",
+    "Menu shell WebGPU status, unsupported state, and the custom-battle army builder with weather and faction pickers.",
 };
 
 export async function run(ctx) {

@@ -217,6 +217,7 @@ export interface BattleConfig {
   /** The catalog map index, when this battle is on a quick-battle map — drives
    *  the renderer's full-field ground cover. */
   wasmMapId?: number;
+  environment?: BattleEnvironmentId;
   generatedMap?: GeneratedBattleMapDescriptor;
   /** Re-run the exact setup on Restart (a custom battle re-launches its config
    *  instead of a default `kind`). */
@@ -292,7 +293,12 @@ export class BattleScene implements Scene {
 
     const canvas = document.getElementById("battlefield") as HTMLCanvasElement;
     const camera = new Camera(canvas);
-    const defaultEnvironment = this.cfg.generatedMap?.defaultEnvironment ?? null;
+    const defaultEnvironment =
+      this.cfg.environment ?? this.cfg.generatedMap?.defaultEnvironment ?? null;
+    if (sharedRenderer && !sharedRenderer.usesEnvironment(defaultEnvironment)) {
+      sharedRenderer.dispose();
+      sharedRenderer = null;
+    }
     const renderer = (sharedRenderer ??= new BattleRenderer(canvas, {
       environment: defaultEnvironment,
     }));

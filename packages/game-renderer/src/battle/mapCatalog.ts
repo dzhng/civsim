@@ -14,7 +14,6 @@ import {
   type BattleTerrainGrid,
   type BattleTerrainPresentation,
 } from "./terrainFeatures";
-import type { BattleEnvironmentId } from "../environment/environment";
 
 export interface BattleMapCatalogEntry {
   id: string;
@@ -31,9 +30,6 @@ export interface BattleMapCatalogEntry {
 }
 
 type BattleTerrainPresentationSource = Pick<BattleMapCatalogEntry, "id" | "edges" | "groundCover">;
-
-export const GENERATED_BATTLE_MAP_DEFAULT_ENVIRONMENT =
-  "overcast-highland" satisfies BattleEnvironmentId;
 
 export interface GeneratedBattleMapManifest {
   seed: number | string;

@@ -554,16 +554,15 @@ export class BattleScene implements Scene {
 
     // --- Per-unit standards + in-scene readout billboards --------------------------
     // Per-unit banner anchors are refreshed from the rendered soldiers each
-    // frame. Unit-info center fields can lag during packed fights, so banners
-    // follow the visible block instead of collapsing to the map center. The
-    // block extremes are taken in the camera's ground-projected screen frame
-    // (right/up axes), not world axes — world extremes only mean "top of the
-    // block on screen" at the default north-up yaw, and drift under Q/E.
+    // frame: the WORLD centroid of the living, render-smoothed positions.
+    // World-frame because any camera-frame anchor moves under Q/E yaw; from
+    // the rendered soldiers because unit-info center fields can lag during
+    // packed fights, letting the flag drift off the visible block.
     let unitAnchorX = new Float32Array(0);
     let unitAnchorY = new Float32Array(0);
-    let unitMinR = new Float32Array(0);
-    let unitMaxR = new Float32Array(0);
-    let unitTopU = new Float32Array(0);
+    let unitSumX = new Float32Array(0);
+    let unitSumY = new Float32Array(0);
+    let unitAliveCount = new Uint32Array(0);
     let knownUnits = game.unit_count(); // last-seen count (campaign reinforcements grow it)
     const readoutGalleryMode = new URLSearchParams(location.search).get("test") === "readouts";
 
@@ -608,8 +607,8 @@ export class BattleScene implements Scene {
         const o = u * STRIDE;
         const alive = info[o + 15];
         if (alive === 0) continue;
-        const anchorX = unitAnchorX[u] > -Infinity ? unitAnchorX[u] : info[o];
-        const anchorY = unitAnchorY[u] > -Infinity ? unitAnchorY[u] : info[o + 1];
+        const anchorX = unitAnchorX[u] > -Infinity ? unitAnchorX[u] : info[o + UNIT_INFO.centerX];
+        const anchorY = unitAnchorY[u] > -Infinity ? unitAnchorY[u] : info[o + UNIT_INFO.centerY];
         // Gallery states sit on units spread along one front line — column
         // neighbors overlap each other's fixed-screen-size readouts and the
         // review grid becomes unreadable.
@@ -1555,23 +1554,18 @@ export class BattleScene implements Scene {
           atEase[u] = info[o + 17] > 0.5 ? 1 : 0;
           running[u] = info[o + 9] > 0.5 ? 1 : 0;
         }
-        if (unitTopU.length < uc) {
+        if (unitAliveCount.length < uc) {
           unitAnchorX = new Float32Array(uc);
           unitAnchorY = new Float32Array(uc);
-          unitMinR = new Float32Array(uc);
-          unitMaxR = new Float32Array(uc);
-          unitTopU = new Float32Array(uc);
+          unitSumX = new Float32Array(uc);
+          unitSumY = new Float32Array(uc);
+          unitAliveCount = new Uint32Array(uc);
         }
         unitAnchorX.fill(-Infinity, 0, uc);
         unitAnchorY.fill(-Infinity, 0, uc);
-        unitMinR.fill(Infinity, 0, uc);
-        unitMaxR.fill(-Infinity, 0, uc);
-        unitTopU.fill(-Infinity, 0, uc);
-        // Screen frame on the ground, from the camera (the one axis owner).
-        const {
-          right: [rAxisX, rAxisY],
-          up: [uAxisX, uAxisY],
-        } = camera.groundAxes();
+        unitSumX.fill(0, 0, uc);
+        unitSumY.fill(0, 0, uc);
+        unitAliveCount.fill(0, 0, uc);
         for (let i = 0; i < n; i++) {
           aliveF32[i] = a[i];
           const pi = 2 * i;
@@ -1602,13 +1596,9 @@ export class BattleScene implements Scene {
           if (a[i]) {
             const u = sUnit[i];
             if (u < uc) {
-              const wx = renderPos[pi];
-              const wy = renderPos[pi + 1];
-              const rP = wx * rAxisX + wy * rAxisY;
-              const uP = wx * uAxisX + wy * uAxisY;
-              if (uP > unitTopU[u]) unitTopU[u] = uP; // top of the block on screen
-              if (rP < unitMinR[u]) unitMinR[u] = rP;
-              if (rP > unitMaxR[u]) unitMaxR[u] = rP;
+              unitSumX[u] += renderPos[pi];
+              unitSumY[u] += renderPos[pi + 1];
+              unitAliveCount[u]++;
             }
           }
           if (!a[i]) {
@@ -1662,12 +1652,9 @@ export class BattleScene implements Scene {
           }
         }
         for (let u = 0; u < uc; u++) {
-          // Anchor = screen-x midpoint of the block at its screen-top edge,
-          // mapped back to world through the orthonormal (R, U) basis.
-          if (unitMinR[u] < Infinity) {
-            const midR = (unitMinR[u] + unitMaxR[u]) * 0.5;
-            unitAnchorX[u] = rAxisX * midR + uAxisX * unitTopU[u];
-            unitAnchorY[u] = rAxisY * midR + uAxisY * unitTopU[u];
+          if (unitAliveCount[u] > 0) {
+            unitAnchorX[u] = unitSumX[u] / unitAliveCount[u];
+            unitAnchorY[u] = unitSumY[u] / unitAliveCount[u];
           }
         }
         if (updateRenderPos) renderPosTick = simTick;

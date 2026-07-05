@@ -21,15 +21,16 @@ Reference images (in `assets/` and the aesthetics skill):
 
 ## Next Agent Prompt
 
-**Status 2026-07-05: slices 00, 01, 02, 10, 11, 12 DONE (blade grass ships in
-production battles; slice 12 is sandbox-verified, hardware/browser gates still
-orchestrator-owned).** Next pickup:
-[03-passability](slices/03-passability.md) (G-track — also owes slice 02's
-two debts: real-pipeline clay at the locked camera, apron-dish smoothing).
-Read slice 10's TSL hazards and slice 11's integration findings before
-touching the blade field; read the camera-truth trap and the oracle
-re-anchoring amendment in
-[00's locked values](slices/00-composition-and-oracle-lock.md).
+**Status 2026-07-05: slices 00–03, 10–12 DONE (live-verified; generated maps
+have slope-sealed flanks; blade grass with smooth thinning ships in
+production).** Next pickups: [04-hydrology](slices/04-hydrology.md) (G-track)
+and [13-cliff-material](slices/13-cliff-material.md) (V-track — judge on the
+generated flank walls via the ?clay=1 route and slope-band constants from
+genmap). Read slice 10's TSL hazards + slice 11's integration findings before
+touching the blade field; the camera-truth trap and oracle re-anchoring live
+in [00's locked values](slices/00-composition-and-oracle-lock.md); the
+horizon-0.50 promotion waits on slice 14's vista apron (pinned 0.169 at the
+locked camera, slice 03 notes).
 
 Before writing any code, read:
 
@@ -51,7 +52,7 @@ Before writing any code, read:
 - [x] 01 — Genmap skeleton (seed → playable battle, end to end)
 - [x] 02 — Landform (macro mask × warped noise, clay verdict; real-pipeline
       clay + apron-dish debts routed to slice 03)
-- [ ] 03 — Passability from landform (BFS certificates)
+- [x] 03 — Passability from landform (BFS certificates)
 - [ ] 04 — Hydrology (priority-flood lakes, descending rivers, fords)
 - [ ] 05 — Edge grammar + deployment guarantees
 - [ ] 06 — Seed variety + seed browser

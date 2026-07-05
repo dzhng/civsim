@@ -1,5 +1,31 @@
 {
   "comment": "Hand-tuned game design merged over the ORBIS-derived graph. Cities are referenced by ORBIS label; unlisted cities go to 'independents'.",
+  "extra_sites": [
+    {
+      "label": "Rhegium",
+      "lon": 15.65,
+      "lat": 38.11,
+      "rank": 90
+    }
+  ],
+  "extra_routes": [
+    {
+      "a": "Rhegium",
+      "b": "Messana",
+      "kind": "sea"
+    },
+    {
+      "a": "Rhegium",
+      "b": "Vibo Valentia",
+      "kind": "road"
+    }
+  ],
+  "drop_routes": [
+    {
+      "a": "Messana",
+      "b": "Vibo Valentia"
+    }
+  ],
   "tier_overrides": {
     "Roma": 3,
     "Carthago": 3,

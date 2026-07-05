@@ -26,7 +26,6 @@ pub const ROAD_FERRY_CROSSINGS: &[(&str, &str)] = &[
     ("Delphi", "Patrae"),
     ("Forum Iulii", "Genua"),
     ("Nicopolis", "Patrae"),
-    ("Messana", "Vibo Valentia"),
     // Tagus estuary at Olisipo: the south-bank land path exceeds the detour
     // cap, so both roads keep their short (~4.5 km) mouth crossing.
     ("Olisipo", "Pax Iulia"),
@@ -67,6 +66,7 @@ pub const SEA_ONLY_CITIES: &[&str] = &[
     "Malaca",
     "Melita",
     "Meninge",
+    "Messana",
     "Mytilene",
     "Olbia",
     "Olbia Borysthenes",

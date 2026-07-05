@@ -531,9 +531,11 @@ export class BattleScene implements Scene {
           z: groundZ,
           // Yaw-billboard toward the camera (Total War banners): a cloth
           // yawed to the unit's facing is edge-on — invisible — from the
-          // default battle camera. The pole/finial are rotation-symmetric,
-          // so only the cloth reads and it must read from where you look.
-          yaw: camera.yaw,
+          // default battle camera. The +PI/2 is the rig's yaw convention:
+          // camera3d's yaw-0 view direction is -X (see groundAxes in
+          // shared/camera.ts, the one owner), while the cloth's unrotated
+          // normal is -Y — calibrated by probing rig yaws 0/pi-4/pi-2.
+          yaw: camera.yaw + Math.PI / 2,
           scale,
           factionId: factionForTeam(displayTeam).id,
           selected,
@@ -1590,7 +1592,12 @@ export class BattleScene implements Scene {
         }
         if (updateRenderPos) renderPosTick = simTick;
       }
-      // Unit standards and readouts are in-scene billboards anchored to the pole top.
+      // Unit standards and readouts are in-scene billboards anchored to the
+      // pole top. Upload BEFORE the world draw: while paused the loop only
+      // renders on demand, so an upload after the draw leaves the flags one
+      // camera-move behind — permanently, since no next frame is scheduled
+      // (the yaw-billboard visibly stops tracking Q/E rotation).
+      updateUnitStandardsAndReadouts();
       renderer.draw(
         renderPos,
         renderFacings,
@@ -1671,7 +1678,6 @@ export class BattleScene implements Scene {
         }
         if (tris.length) renderer.drawTris(new Float32Array(tris), camera);
       }
-      updateUnitStandardsAndReadouts();
       renderer.drawTacticalLines(tacticalLineFrame(showPaths), camera);
 
       // DOM selection rectangle.
@@ -1816,7 +1822,7 @@ export class BattleScene implements Scene {
           rigRange: { ...cameraRigRange },
           zoom: camera.zoom,
           pitchBias: camera.pitchBias,
-          yaw: camera.yaw,
+          yaw: camera.yaw + Math.PI / 2,
           center: camera.viewCenter(),
         };
       }

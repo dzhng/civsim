@@ -100,6 +100,55 @@ module and benefits from 02's findings.
 browser-VERIFIED FIXED. David has ratified the remaining order — pick up
 at 04.**
 
+**Status 2026-07-06 (pass 6): SLICE 04 SHIPPED — the foundation pass is
+done.** Both halves landed: the packed lateral friction (all stalled
+foot, `fighting[i]` exempt so men trading blows keep full lateral
+freedom, reversal judged on the trajectory frame) and the noise-gated
+deep reform (a cadence beat with ZERO deaths since its own watermark is
+permutation noise and is skipped; with casualties it is de-facto relief
+and runs exactly as before — `deep_beat_dead_mark` exists because the
+casualty column-close consumes `deaths_since_reform` between beats).
+Grind rail 0.635 -> ~0.36 sustained (ceiling tightened 0.7 -> 0.5); rank
+profile now monotone front-to-rear (0.80 fighting vs 0.04-0.08 standing,
+was 0.89 front / 1.11 REAR). Full suite green incl re-pinned golden.
+
+CHANGE LEDGER (pass 6, every moved test):
+- golden 0xa12f53b1d6420bac -> 0x43d5c313ca408b69 (every contact scenario
+  touched; deliberate, same commit).
+- two_attacking_lines_hold_and_never_cross: pancake floor 0.45 -> 0.40.
+  Sharp invariants (facing/gap/interpen) untouched and green; TRACE shows
+  sustained depth ~0.50-0.55, the old floor caught one breathing trough.
+- a_mortal_wrapping_line_backfills_casualty_tears: late transient rail
+  5.5 -> 6.5 (blip peaks 6.2 then closes; final-gap invariant unchanged,
+  measured 2.0m).
+- survivability_scales_with_the_reference_stats: HP4 band -> 3.7-7.2
+  (actual 6.87x), HP2 -> 1.78-2.8 (actual 2.65x) — the documented
+  seated-front super-linearity, amplified by quieter lattices.
+- a_walked_in_cav_sits_between_medium_and_heavy_foot: no-dominate rail
+  0.85 -> 0.75 (actual 0.77, ladder still monotone). BALANCE DEBT: if
+  walked-in cav reads too strong vs heavy in play, balance-unit pass on
+  the sabre grind — never a physics exception.
+- heavy_shields_make_phalanx_a_grind_not_a_deletion: REWRITTEN — the old
+  heavy>=40 floor was certified cheese (it passed only because the
+  phalanx's own zero-casualty reform beats churned its wall open every
+  2s). New contract: intact wall wins near-untouched (phalanx >= 110),
+  frontal sword press pays deletion-grade losses (heavy < 40).
+  Counterplay is emergent: draw blood and the wall's next beat accepts.
+- grind_lateral_slosh_bounded: ceiling 0.7 -> 0.5 (sustained 0.36).
+- Vibe baselines re-blessed after frame review: the old heavy-both grind
+  read as a C-shaped amoeba; the new one holds two coherent lattices on
+  one seam. 4 scenarios (cav-v-pike-wall, heavy-v-archers, penetration,
+  multi-penetration) were byte-identical — containment signal.
+
+TASTE CHECKPOINT (non-blocking, frames opened via preview-shots): the
+new grind look (front fights, rear stands) and the intact-pike-wall
+frontal verdict are presented to David; evidence strongly favors both
+(the vibes read as formations, and the wall behavior is historically
+sound). Veto path: revert the re-bless commit and reopen slice 04.
+
+Remaining: 03b (anchor deconfliction, David's direction), 02b-2 (last,
+droppable), 05 close-out.
+
 DAVID'S DECISIONS (2026-07-06, verbatim intent):
 1. **04 foundation pass: GO.** Run it as the deliberate pass this README
    describes: the parked friction widening PLUS the deep-reform relabel
@@ -296,9 +345,9 @@ rationale here, and continue. Never idle waiting for sign-off.
       → [slices/02-wall-split-equilibrium.md](slices/02-wall-split-equilibrium.md)
 - [x] 03 — Grazing friendly overlap (2/5m): damp reversal judged on total
       displacement (solver included) → [slices/03-friendly-overlap-cycle.md](slices/03-friendly-overlap-cycle.md)
-- [ ] 04 — NEXT (David: GO). The foundation pass: friction widening from
-      assets/ + the deep-reform relabel churn, per-pin provenance, vibes,
-      taste checkpoint → [slices/04-grind-lateral-slosh.md](slices/04-grind-lateral-slosh.md)
+- [x] 04 — SHIPPED (pass 6): packed lateral friction + noise-gated deep
+      reform; ledger in the Next Agent Prompt; taste checkpoint presented
+      → [slices/04-grind-lateral-slosh.md](slices/04-grind-lateral-slosh.md)
 - [ ] 03b — Deep overlap (David: GO, anchor-deconfliction direction; re-pin
       the gate at game scale — 350 men, wide-frame overlap)
       → [slices/03-friendly-overlap-cycle.md](slices/03-friendly-overlap-cycle.md)

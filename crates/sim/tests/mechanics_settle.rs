@@ -277,8 +277,12 @@ fn grind_lateral_slosh_bounded() {
         windows.push(s);
     }
     let sustained = windows[6..].iter().map(|s| s.mean_lat).sum::<f32>() / 6.0;
+    // Tightened by slice 04 (was the 0.7 not-worse rail): packed lateral
+    // friction + the earn-your-churn reform gate hold the sustained slosh
+    // near 0.36; the ceiling leaves headroom without readmitting the old
+    // 0.63 ring.
     assert!(
-        sustained <= 0.7,
-        "sustained grind lateral slosh must stay <= 0.7 m/s, got {sustained:.3}"
+        sustained <= 0.5,
+        "sustained grind lateral slosh must stay <= 0.5 m/s, got {sustained:.3}"
     );
 }

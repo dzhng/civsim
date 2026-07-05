@@ -4,10 +4,12 @@ use sim::genmap::certify::{
     speed_zero_cells_without_blocking_tint, Side, ISOLATED_PASSABLE_POCKET_LIMIT_CELLS,
     OPEN_EDGE_THRESHOLD, SEALED_SIDE_THRESHOLD, UNREACHABLE_FLANK_THRESHOLD,
 };
-use sim::genmap::{generate, generate_vista_grid, landform, passability, terrain_hash, MapRecipe};
+use sim::genmap::{
+    drainage_report, generate, generate_vista_grid, landform, passability, terrain_hash, MapRecipe,
+};
 use sim::{build_map, MapId};
 
-const GENERATED_SEED7_HASH: u64 = 0x8ceb1a8a243ea756;
+const GENERATED_SEED7_HASH: u64 = 0xa83197564d957288;
 const RIVER_AND_CRAGS_HASH: u64 = 0x1d65c06afbab0eca;
 const WALLED_PLAIN_HASH: u64 = 0x864fe11f35ddf30c;
 const COASTAL_SCRUB_HASH: u64 = 0x020ad95c550af7b6;
@@ -91,6 +93,7 @@ fn generated_passability_certificates_hold_over_seed_sweep() {
         let north_slope = deployment_apron_mean_abs_slope(&t, Side::North);
         let corridor = corridor_swell_range(&t);
         let flank = flank_peak_range(&t);
+        let drainage = drainage_report(&MapRecipe { seed, ..recipe });
         let slopes = passability::slope_field(&t);
         let corridor_slope = slope_stats(&t, &slopes, |x, y| x.abs() <= 350.0 && y.abs() <= 720.0);
         let flank_slope = slope_stats(&t, &slopes, |x, _| x.abs() >= 520.0);
@@ -102,7 +105,7 @@ fn generated_passability_certificates_hold_over_seed_sweep() {
         if seed <= 4 || seed == 7 {
             let ratios = terrain_ratios(&t);
             eprintln!(
-                "seed {seed}: certs Wseal {:.3} Eseal {:.3} Sopen {:.3} Nopen {:.3} Wunreach {:.3} Eunreach {:.3}; ratios pass {:.3} slow {:.3} blocked {:.3} water {:.3}; corridor swell {:.2}..{:.2}m, flank peaks {:.2}..{:.2}m, apron mean |slope| S {:.4} N {:.4}, corridor slope p95 {:.3} max {:.3}, flank slope p50 {:.3} p95 {:.3} max {:.3}",
+                "seed {seed}: certs Wseal {:.3} Eseal {:.3} Sopen {:.3} Nopen {:.3} Wunreach {:.3} Eunreach {:.3}; ratios pass {:.3} slow {:.3} blocked {:.3} water {:.3} mud {:.3}; drainage lakes {} playable {} largestPlayable {} suppressedHollows {} streamCells {} streams {} lakeStreams {} runoffStreams {} deadEnds {} impassibleStreamCells {} fords {} marsh {}; corridor swell {:.2}..{:.2}m, flank peaks {:.2}..{:.2}m, apron mean |slope| S {:.4} N {:.4}, corridor slope p95 {:.3} max {:.3}, flank slope p50 {:.3} p95 {:.3} max {:.3}",
                 side_sealed_fraction(&t, Side::West),
                 side_sealed_fraction(&t, Side::East),
                 open_edge_fraction(&t, Side::South),
@@ -113,6 +116,19 @@ fn generated_passability_certificates_hold_over_seed_sweep() {
                 ratios.slow,
                 ratios.blocked,
                 ratios.water,
+                ratios.mud,
+                drainage.lake_count,
+                drainage.playable_lake_count,
+                drainage.largest_playable_lake_cells,
+                drainage.suppressed_mountain_hollow_cells,
+                drainage.stream_cells,
+                drainage.stream_count,
+                drainage.stream_lake_connections,
+                drainage.stream_runoff_connections,
+                drainage.stream_dead_ends,
+                drainage.stream_impassable_cells,
+                drainage.ford_count,
+                drainage.marsh_cells,
                 corridor.0,
                 corridor.1,
                 flank.0,
@@ -128,6 +144,37 @@ fn generated_passability_certificates_hold_over_seed_sweep() {
         }
         assert_generated_certificates(seed, &t);
         assert!(
+            drainage.water_level_set,
+            "seed {seed} water cells must sit at their basin fill level"
+        );
+        assert!(
+            drainage.streams_descend,
+            "seed {seed} stream polylines must monotonically descend"
+        );
+        assert!(
+            (1..=2).contains(&drainage.playable_lake_count)
+                && drainage.largest_playable_lake_cells >= 1_500,
+            "seed {seed} must retain 1-2 readable playable-zone lakes, got {drainage:?}"
+        );
+        assert_eq!(
+            drainage.lake_count, drainage.playable_lake_count,
+            "seed {seed} selected lakes must be playable-zone lakes, got {drainage:?}"
+        );
+        assert!(
+            drainage.stream_count >= 1 && drainage.stream_cells > 0,
+            "seed {seed} must carve at least one drainage trace, got {drainage:?}"
+        );
+        assert!(
+            drainage.stream_dead_ends == 0
+                && drainage.stream_lake_connections + drainage.stream_runoff_connections
+                    == drainage.stream_count,
+            "seed {seed} streams must connect to lakes or N/S runoff, got {drainage:?}"
+        );
+        assert!(
+            drainage.stream_impassable_cells == 0,
+            "seed {seed} stream beds must stay passable mud outside lakes, got {drainage:?}"
+        );
+        assert!(
             south_slope < 0.045,
             "seed {seed} south deployment mean |slope| {south_slope:.4}"
         );
@@ -136,7 +183,9 @@ fn generated_passability_certificates_hold_over_seed_sweep() {
             "seed {seed} north deployment mean |slope| {north_slope:.4}"
         );
         assert!(
-            corridor.0 >= -8.5 && corridor.1 <= 11.5 && corridor.1 - corridor.0 >= 6.0,
+            // Dry-swell floor 5.0: flooding a seed's deepest hollow (its lake)
+            // legitimately shallows the DRY roll (pre-hydrology floor was 6.0).
+            corridor.0 >= -9.5 && corridor.1 <= 11.5 && corridor.1 - corridor.0 >= 5.0,
             "seed {seed} corridor swell {:.2}..{:.2}m",
             corridor.0,
             corridor.1
@@ -274,7 +323,28 @@ fn deployment_apron_mean_abs_slope(t: &sim::Terrain, side: Side) -> f32 {
 }
 
 fn corridor_swell_range(t: &sim::Terrain) -> (f32, f32) {
-    height_range(t, |x, y| x.abs() <= 350.0 && y.abs() <= 720.0)
+    // Dry cells only: lake fill flattens hollows to the water level, which
+    // says nothing about the corridor's rolling relief.
+    height_range_where(t, |x, y, tint| {
+        tint != 1 && x.abs() <= 350.0 && y.abs() <= 720.0
+    })
+}
+
+fn height_range_where(t: &sim::Terrain, keep: impl Fn(f32, f32, u8) -> bool) -> (f32, f32) {
+    let mut lo = f32::INFINITY;
+    let mut hi = f32::NEG_INFINITY;
+    for cy in 0..t.h {
+        let y = t.origin.y + (cy as f32 + 0.5) * t.cell;
+        for cx in 0..t.w {
+            let x = t.origin.x + (cx as f32 + 0.5) * t.cell;
+            let i = cy * t.w + cx;
+            if keep(x, y, t.tint[i]) {
+                lo = lo.min(t.height[i]);
+                hi = hi.max(t.height[i]);
+            }
+        }
+    }
+    (lo, hi)
 }
 
 fn flank_peak_range(t: &sim::Terrain) -> (f32, f32) {
@@ -339,6 +409,7 @@ struct TerrainRatios {
     slow: f32,
     blocked: f32,
     water: f32,
+    mud: f32,
 }
 
 fn terrain_ratios(t: &sim::Terrain) -> TerrainRatios {
@@ -346,9 +417,19 @@ fn terrain_ratios(t: &sim::Terrain) -> TerrainRatios {
     let mut slow = 0usize;
     let mut blocked = 0usize;
     let mut water = 0usize;
+    let mut mud = 0usize;
     for i in 0..t.w * t.h {
         if t.tint[i] == 1 {
             water += 1;
+        } else if t.tint[i] == 5 {
+            mud += 1;
+            if t.speed[i] <= 0.0 {
+                blocked += 1;
+            } else if t.speed[i] < 0.9 {
+                slow += 1;
+            } else {
+                passable += 1;
+            }
         } else if t.speed[i] <= 0.0 {
             blocked += 1;
         } else if t.speed[i] < 0.9 {
@@ -363,5 +444,6 @@ fn terrain_ratios(t: &sim::Terrain) -> TerrainRatios {
         slow: slow as f32 / n,
         blocked: blocked as f32 / n,
         water: water as f32 / n,
+        mud: mud as f32 / n,
     }
 }

@@ -97,8 +97,9 @@ fn height_with_min_wavelength(recipe: &MapRecipe, p: Vec2, min_wavelength_m: f32
     let south_rise = low_oval(p.x, p.y + 645.0, 360.0, 190.0) * 6.6;
     let north_swell = low_oval(p.x - 115.0, p.y - 360.0, 470.0, 260.0) * 4.1;
     let central_basin = low_oval(p.x + 155.0, p.y - 25.0, 430.0, 310.0) * -4.6;
+    let hydro_basin = hydrology_basin(recipe, p, apron);
     let corridor_grade = (p.y / vista_half_h).clamp(-1.0, 1.0) * 2.2;
-    let floor = (rolling + south_rise + north_swell + central_basin + corridor_grade)
+    let floor = (rolling + south_rise + north_swell + central_basin + hydro_basin + corridor_grade)
         * mix(1.0, 0.58, apron * corridor);
 
     let side = if p.x < 0.0 { -1.0 } else { 1.0 };
@@ -153,6 +154,30 @@ fn deployment_apron_mask(recipe: &MapRecipe, y: f32) -> f32 {
     let south = 1.0 - smootherstep(0.0, 390.0, (y + apron_y).abs());
     let north = 1.0 - smootherstep(0.0, 390.0, (y - apron_y).abs());
     south.max(north)
+}
+
+fn hydrology_basin(recipe: &MapRecipe, p: Vec2, apron: f32) -> f32 {
+    let transition_band =
+        smoothstep(230.0, 310.0, p.x.abs()) * (1.0 - smoothstep(560.0, 700.0, p.x.abs()));
+    let apron_gate = 1.0 - apron;
+    let mut basin = 0.0;
+    for k in 0..3 {
+        let side = if hash_cell01(k * 19 + 3, 0, recipe.seed ^ 0x42df_ba51) < 0.5 {
+            -1.0
+        } else {
+            1.0
+        };
+        let cx_j = hash_cell01(k * 29 + 7, 1, recipe.seed ^ 0x42df_ba51) - 0.5;
+        let cy_j = hash_cell01(k * 31 + 11, 2, recipe.seed ^ 0x42df_ba51) - 0.5;
+        let depth_j = hash_cell01(k * 37 + 13, 3, recipe.seed ^ 0x42df_ba51);
+        let center_x = side * (330.0 + cx_j * 130.0);
+        let center_y = -330.0 + k as f32 * 330.0 + cy_j * 130.0;
+        let rx = 150.0 + depth_j * 55.0;
+        let ry = 185.0 + (1.0 - depth_j) * 65.0;
+        let depth = 6.4 + depth_j * 3.2;
+        basin -= low_oval(p.x - center_x, p.y - center_y, rx, ry) * depth;
+    }
+    basin * transition_band * apron_gate
 }
 
 fn low_oval(x: f32, y: f32, rx: f32, ry: f32) -> f32 {

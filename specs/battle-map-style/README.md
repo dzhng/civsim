@@ -53,7 +53,10 @@ Before writing any code, read:
 - [x] 02 — Landform (macro mask × warped noise, clay verdict; real-pipeline
       clay + apron-dish debts routed to slice 03)
 - [x] 03 — Passability from landform (BFS certificates)
-- [ ] 04 — Hydrology (priority-flood lakes, descending rivers, fords)
+- [x] 04 — Hydrology (priority-flood lakes, descending rivers, fords)
+      CODE-LANDED BMS04-SLICE-B6D9; corrected BMS04-FIX-D2C7 after browser
+      evidence; orchestrator still owes browser run and passability-mask
+      baseline blessing.
 - [ ] 05 — Edge grammar + deployment guarantees
 - [ ] 06 — Seed variety + seed browser
 - [x] 10 — False Earth grass port (close-gate ratification)

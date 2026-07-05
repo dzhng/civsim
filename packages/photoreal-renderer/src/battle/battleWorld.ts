@@ -705,7 +705,13 @@ export class PhotorealBattleWorld {
     // frame (David's "still slow" report - the pan gate never zooms).
     const zoomScale = 1 + Math.round(Math.max(0, Math.min(3, eyeZ / 60 - 1)));
     const margin = PRODUCTION_BLADE_FIELD_PROFILE.rebuildMarginM * zoomScale;
-    const radius = visibleRadius + margin;
+    // Close zoom shrinks the ring (quantized bands, same churn rule): a low
+    // eye sees a few dozen metres of ground - sampling a 150m ring there is
+    // pure rebuild cost and blade overdraw (the zoom-24/28 fps cliffs).
+    const nearBand = Math.max(1, Math.min(4, Math.ceil(eyeZ / 15)));
+    const radiusScale = eyeZ >= 60 ? 1 : nearBand / 4;
+    const scaledVisible = Math.max(40, visibleRadius * radiusScale);
+    const radius = scaledVisible + margin;
     const step = PRODUCTION_BLADE_FIELD_PROFILE.snapCellSize;
     if (
       this.grassSampleFocus &&

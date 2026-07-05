@@ -120,6 +120,11 @@ pub struct Unit {
     /// Living soldiers (formation shrinks as men fall).
     pub alive_count: usize,
     pub deaths_since_reform: usize,
+    /// Total-dead watermark at the last engaged-deep reform beat: the beat's
+    /// own casualty signal. `deaths_since_reform` cannot serve — the casualty
+    /// column-close consumes it between beats, and a beat that then reads
+    /// zero would misclassify combat relief as permutation noise.
+    pub deep_beat_dead_mark: usize,
     /// Soldiers engaged in melee last tick (measured).
     pub engaged: usize,
     /// Decaying histogram of enemy-contact bearings (12 sectors, world frame):

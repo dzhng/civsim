@@ -49,6 +49,16 @@ fn deployment_certificate_json(
 }
 
 #[wasm_bindgen]
+pub fn generated_map_manifest(seed: u64) -> String {
+    let recipe = MapRecipe {
+        seed,
+        ..MapRecipe::default()
+    };
+    let terrain = generate_map(&recipe);
+    generated_manifest_json(recipe, &terrain).to_string()
+}
+
+#[wasm_bindgen]
 pub struct Game {
     battle: Battle,
     unit_info: Vec<f32>,
@@ -334,6 +344,10 @@ impl Game {
             .generated_recipe
             .map(|recipe| sim::genmap::drainage_report(&recipe).lakes)
             .unwrap_or_default();
+        let feature_summary = self
+            .generated_recipe
+            .map(|recipe| generated_feature_summary_json(recipe, &self.battle.sim.terrain))
+            .unwrap_or(serde_json::Value::Null);
         serde_json::json!({
             "seed": seed,
             "groundCover": "green-grass",
@@ -342,9 +356,28 @@ impl Game {
             "edgeSeals": edge_seals,
             "terrainHash": format!("{:#018x}", sim::genmap::terrain_hash(&self.battle.sim.terrain)),
             "lakeSurfaces": lake_surfaces,
+            "featureSummary": feature_summary,
             "vista": self.generated_recipe.map(vista_descriptor),
         })
         .to_string()
+    }
+
+    pub fn generated_map_manifest(&self) -> String {
+        match self.generated_recipe {
+            Some(recipe) => generated_manifest_json(recipe, &self.battle.sim.terrain).to_string(),
+            None => serde_json::json!({
+                "seed": 0,
+                "groundCover": "green-grass",
+                "edges": {
+                    "north": "open-fog",
+                    "south": "open-fog",
+                    "west": "cliff",
+                    "east": "cliff",
+                },
+                "featureSummary": serde_json::Value::Null,
+            })
+            .to_string(),
+        }
     }
 
     pub fn generated_vista_band_count(&self) -> u32 {
@@ -766,6 +799,45 @@ fn vista_descriptor(recipe: MapRecipe) -> serde_json::Value {
                 "outerHalfH": b.outer_half_h,
             })
         }).collect::<Vec<_>>(),
+    })
+}
+
+fn generated_manifest_json(recipe: MapRecipe, terrain: &sim::Terrain) -> serde_json::Value {
+    let composition = sim::genmap::edges::composition(&recipe);
+    serde_json::json!({
+        "seed": recipe.seed,
+        "groundCover": "green-grass",
+        "edges": {
+            "north": "open-fog",
+            "south": "open-fog",
+            "west": composition.west.expected_edge_role(),
+            "east": composition.east.expected_edge_role(),
+        },
+        "edgeSeals": {
+            "composition": composition,
+            "expectedRoles": {
+                "west": composition.west.expected_edge_role(),
+                "east": composition.east.expected_edge_role(),
+            },
+        },
+        "featureSummary": generated_feature_summary_json(recipe, terrain),
+        "terrainHash": format!("{:#018x}", sim::genmap::terrain_hash(terrain)),
+    })
+}
+
+fn generated_feature_summary_json(recipe: MapRecipe, terrain: &sim::Terrain) -> serde_json::Value {
+    let drainage = sim::genmap::drainage_report(&recipe);
+    let field = sim::genmap::field_texture::summary(terrain);
+    serde_json::json!({
+        "lakeCells": drainage.lake_cells,
+        "playableLakeCells": drainage.playable_lake_cells,
+        "forestCells": field.passable_forest_cells,
+        "passableForestCells": field.passable_forest_cells,
+        "screeCells": field.scree_cells,
+        "mudCells": field.mud_cells,
+        "roughFieldCells": field.rough_field_cells,
+        "streams": drainage.stream_count,
+        "streamCells": drainage.stream_cells,
     })
 }
 

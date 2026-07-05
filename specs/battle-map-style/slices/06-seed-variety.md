@@ -41,8 +41,52 @@ texture — not as one lucky seed. Quick battle gains pick + reroll.
 
 Everything prior; menu flows for the 3 hand maps unchanged.
 
+## Landed (2026-07-05)
+
+- field_texture pass (post-hydrology, pre-seals): passable forest clumps,
+  scree, mud, rough fields - never speed 0, deployment frontage skipped.
+- Manifest -> mapCatalog generatedBattleMapEntry -> Quick Battle "Generated"
+  row (seed input, Roll, Play). Seed browser regenerates
+  visualizations/seed-browser.{html,png}; 64-seed sweep green with variety
+  floors (9 compositions, all hashes unique); seed-7 golden moved
+  deliberately (field texture) with all pins updated by codex this time.
+- Orchestrator verification: browser scene + full genmap suite green on
+  live GPU; the 24-seed sheet eyeballed - genuinely distinct battlefields
+  (compositions, lake placement, field texture). David's sheet checkpoint
+  rides the slice-17 compose review (non-blocking).
+
 ## Feedback that would change it
 
 David flagging a *class* of degenerate seeds (corridor too canyon-like, lakes
 always centered…) — each becomes a named certificate or budget, which is the
 whole point of this slice existing before the style track composes.
+
+## Implementation Note 2026-07-05 — BMS06-SLICE-C1F4
+
+Landed field-texture variety as a sim-side `genmap::field_texture` pass after
+hydrology and before edge seals. It paints only still-passable corridor cells,
+skips the deployment frontage, and keeps every texture speed above zero:
+passable forest clumps, scree patches, mud lowlands, and rough grass fields.
+
+Wasm now exposes `generated_map_manifest(seed)` and the live game method
+`generated_map_manifest()`. The manifest reports `seed`, `groundCover`, edge
+roles derived from the seal composition, `featureSummary` counts, and the
+terrain hash. `mapCatalog.ts` has `generatedBattleMapEntry(manifest)` without
+touching the frozen 3-entry catalog. The quick-battle picker has a Generated
+map row with seed input, reroll, deep-link Play (`?map=gen&seed=N`), and normal
+custom-battle launch via `load_generated_map`.
+
+Measured verification:
+
+- `cargo test -p sim --test genmap -- --nocapture`: 64 seeds pass; 9 distinct
+  edge compositions; 64 unique terrain hashes; 64 unique field hashes.
+- Seed browser wasm fallback generated
+  `specs/battle-map-style/visualizations/seed-browser.{png,html}` for 24
+  seeds: all certificates pass; 7 edge compositions; 24 unique terrain hashes;
+  24 unique field hashes.
+- Seed 7 generated terrain hash intentionally moved to `0x38e99f04c18d3968`.
+
+ORCHESTRATOR-TODO: run `node scene.mjs battle-genmap-browser` in an environment
+where Playwright Chromium can launch, then do the non-blocking human checkpoint
+on the generated seed-browser sheet. The sandbox here fails Chromium launch at
+Mach port registration before scene code executes.

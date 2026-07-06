@@ -11,6 +11,7 @@ import { ClassBuilder, type ClassBuilderProps } from "./ClassBuilder";
 import { CampaignBattleModal, type CampaignBattleModalProps } from "./CampaignBattleModal";
 import { Sieges, type SiegeRow } from "./Sieges";
 import { MapCards, type MapCardModel, type MapCardPosition, type MapCardsHandle } from "./MapCards";
+import { GraphicsSettingsPanel } from "../graphics/GraphicsSettingsModal";
 
 export interface CampaignHudHandle {
   setMapCards(cards: MapCardModel[]): void;
@@ -34,8 +35,57 @@ interface TopBarHandle {
 
 const TopBarHost = forwardRef<TopBarHandle>(function TopBarHost(_props, ref) {
   const [props, setProps] = useState<CampaignTopBarProps | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   useImperativeHandle(ref, () => ({ set: (p) => flushSync(() => setProps(p)) }), []);
-  return <div id="cmp-topbar-root">{props ? <CampaignTopBar {...props} /> : null}</div>;
+  return (
+    <div id="cmp-topbar-root">
+      {props ? <CampaignTopBar {...props} onExit={() => setMenuOpen(true)} /> : null}
+      {props && menuOpen ? (
+        <div
+          id="cmp-game-menu-modal"
+          className="cmp-modal"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              setMenuOpen(false);
+              setSettingsOpen(false);
+            }
+          }}
+        >
+          <div className="cmp-box cmp-menu-box hud-chassis hud-chassis--tray">
+            {settingsOpen ? (
+              <GraphicsSettingsPanel onClose={() => setSettingsOpen(false)} />
+            ) : (
+              <>
+                <h2>Menu</h2>
+                <div className="cmp-actions">
+                  <button id="cmp-menu-settings" onClick={() => setSettingsOpen(true)}>
+                    Settings
+                  </button>
+                  <button id="cmp-menu-save" onClick={props.onSave}>
+                    Save Campaign
+                  </button>
+                  <button id="cmp-menu-exit" onClick={props.onExit}>
+                    Exit to Main Menu
+                  </button>
+                  <button
+                    id="cmp-menu-close"
+                    className="watch"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setSettingsOpen(false);
+                    }}
+                  >
+                    Back to Campaign
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
 });
 
 interface ArmyHandle {

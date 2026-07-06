@@ -82,6 +82,157 @@
   fill: #6e5128;
 }
 
+.gfx-settings-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 10, 14, 0.6);
+  pointer-events: auto;
+  font:
+    13px/1.4 ui-monospace,
+    Menlo,
+    monospace;
+}
+
+.gfx-settings-dialog {
+  width: min(430px, 92vw);
+  max-height: 90vh;
+  overflow: auto;
+  padding: 24px 26px;
+  border-width: 4px;
+  box-sizing: border-box;
+  color: var(--bronze-ink);
+}
+
+.gfx-settings-panel {
+  display: grid;
+  gap: 10px;
+  color: var(--bronze-ink);
+}
+
+.gfx-settings-panel h2 {
+  margin: 0 0 6px;
+  font:
+    700 16px/1.2 Cinzel,
+    Georgia,
+    serif;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #c9a461;
+}
+
+.gfx-setting-row,
+.gfx-toggle {
+  display: grid;
+  grid-template-columns: minmax(112px, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 8px;
+  background: var(--well-bg);
+  border: 1px solid #3a2c18;
+  border-radius: 2px;
+  box-shadow: var(--well-shadow);
+  box-sizing: border-box;
+}
+
+.gfx-settings-panel b {
+  display: block;
+  color: var(--bronze-ink-bright);
+  font-weight: 700;
+}
+
+.gfx-settings-panel small,
+.gfx-note {
+  display: block;
+  color: #9c8048;
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.gfx-segment {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(54px, 1fr));
+  gap: 4px;
+}
+
+.gfx-segment button,
+.gfx-close {
+  min-height: 30px;
+  padding: 0 9px;
+  cursor: pointer;
+  color: var(--bronze-ink);
+  background: #170d08;
+  border: 1px solid #3a2c18;
+  border-radius: 2px;
+  box-shadow: var(--well-shadow);
+  font:
+    12px/1.2 ui-monospace,
+    Menlo,
+    monospace;
+}
+
+#pausemenu .gfx-segment button,
+#pausemenu .gfx-close {
+  margin: 0;
+}
+
+.gfx-segment button.on,
+.gfx-segment button[aria-pressed="true"],
+/* index.html's #pausemenu button rule outguns class selectors - match its
+   ID specificity so the selected state survives inside the battle menu. */
+#pausemenu .gfx-segment button[aria-pressed="true"] {
+  color: #1a130b;
+  background: linear-gradient(#f0d98a, #c9a14e);
+  border-color: #f0d98a;
+  box-shadow: 0 0 7px rgba(240, 212, 122, 0.55);
+}
+
+.gfx-segment button:disabled,
+.gfx-toggle.disabled {
+  opacity: 0.48;
+  cursor: default;
+}
+
+.gfx-toggle {
+  cursor: pointer;
+}
+
+.gfx-toggle input[type="checkbox"] {
+  appearance: none;
+  width: 30px;
+  height: 18px;
+  margin: 0;
+  border: 1px solid #3a2c18;
+  border-radius: 2px;
+  background: #170d08;
+  box-shadow: var(--well-shadow);
+}
+
+.gfx-toggle input[type="checkbox"]:checked {
+  /* Filled gold with the knob band on the RIGHT - an all-gold track with a
+     left band read as "off" (unprimed critique). */
+  background:
+    linear-gradient(90deg, rgba(26, 19, 11, 0.18) 0 64%, transparent 64% 100%),
+    linear-gradient(#f0d98a, #c9a14e);
+  border-color: #f0d98a;
+  box-shadow: 0 0 6px rgba(240, 212, 122, 0.45);
+}
+
+.gfx-close {
+  /* A button, not a fifth settings row. */
+  border-color: #6b5226;
+  color: #e8cf8f;
+  letter-spacing: 0.08em;
+}
+
+.gfx-close {
+  width: 100%;
+  margin-top: 4px;
+}
+
 /* The richer riveted tray — corner rivets + brushed grain over the shared
  * fill/edge, with a deeper 6-layer frame. The bottom-center cards+controls
  * housing (#battle-center). Overrides .hud-chassis's plain fill/shadow. */

@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   GRASS_FIELD_LOD_BUDGET_RATIOS,
   GRASS_FIELD_PACKED_STRIDE_FLOATS,
+  createGrassFieldSampler,
   sampleGrassField,
   type GrassFieldConfig,
   type GrassFieldRecord,
@@ -46,6 +47,30 @@ test("grass field snap keeps sub-cell focus moves from reshuffling records", () 
   assert.equal(a.stats.snapX, b.stats.snapX);
   assert.equal(a.stats.snapY, b.stats.snapY);
   assert.deepEqual(Array.from(a.packedRecords), Array.from(b.packedRecords));
+});
+
+test("grass field resumable sampler matches synchronous sampling", () => {
+  const grid = makeGrid(24, 24, 5);
+  const field = terrainHeightField(grid);
+  const config: GrassFieldConfig = {
+    ...baseConfig(),
+    focus: { x: 60, y: 60, radius: 44 },
+    fieldCellSize: 2.5,
+    snapCellSize: 10,
+    maxRecords: 96,
+    lodStratifiedBudget: true,
+  };
+  const sync = sampleGrassField(grid, field, config);
+  const sampler = createGrassFieldSampler(grid, field, config);
+  let slices = 0;
+  while (!sampler.step(7)) slices++;
+  const sliced = sampler.finish();
+
+  assert.ok(slices > 4, `expected multiple slices, got ${slices}`);
+  if (!sliced) throw new Error("sliced sampler did not produce a snapshot");
+  assert.deepEqual(Array.from(sliced.packedRecords), Array.from(sync.packedRecords));
+  assert.deepEqual(sliced.stats, sync.stats);
+  assert.equal(sampler.cellsProcessed, sampler.totalCells);
 });
 
 test("grass field rejects blocked terrain tints while preserving allowed cover", () => {

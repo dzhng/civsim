@@ -92,6 +92,7 @@ export const BLADE_FIELD_PALETTE = {
 export interface BladeFieldStats {
   layer: "photoreal-blade-field";
   enabled: boolean;
+  farTierVisible: boolean;
   packedStrideFloats: number;
   packedBytesPerRecord: number;
   recordCount: number;
@@ -212,6 +213,7 @@ export class PhotorealBladeFieldLayer {
   private packedRecords = new Float32Array();
   private culledRecords = 0;
   private thinnedRecords = 0;
+  private farTierVisible = true;
 
   private readonly tiers: readonly BladeFieldTierSpec[];
   private readonly thinning: BladeFieldThinningProfile;
@@ -305,7 +307,7 @@ export class PhotorealBladeFieldLayer {
       // instanceCount decides what draws, but three skips geometry with
       // instanceCount 0 before the indirect path is consulted.
       bucket.mesh.geometry.instanceCount = this.recordCount;
-      bucket.mesh.visible = visible;
+      bucket.mesh.visible = this.tierVisible(bucket.spec, visible);
     }
   }
 
@@ -323,7 +325,14 @@ export class PhotorealBladeFieldLayer {
 
   setVisible(visible: boolean): void {
     this.enabled = visible;
-    for (const bucket of this.buckets) bucket.mesh.visible = visible;
+    for (const bucket of this.buckets) bucket.mesh.visible = this.tierVisible(bucket.spec, visible);
+  }
+
+  setFarTierVisible(visible: boolean): void {
+    this.farTierVisible = visible;
+    for (const bucket of this.buckets) {
+      bucket.mesh.visible = this.tierVisible(bucket.spec, this.enabled);
+    }
   }
 
   private updateCpuMirrorTierCounts(eye: readonly [number, number, number]): void {
@@ -388,6 +397,7 @@ export class PhotorealBladeFieldLayer {
     return {
       layer: "photoreal-blade-field",
       enabled: this.enabled,
+      farTierVisible: this.farTierVisible,
       packedStrideFloats: GRASS_FIELD_PACKED_STRIDE_FLOATS,
       packedBytesPerRecord: GRASS_FIELD_PACKED_BYTES,
       recordCount: this.recordCount,
@@ -425,6 +435,10 @@ export class PhotorealBladeFieldLayer {
       palette: BLADE_FIELD_PALETTE,
       recordHash: this.recordHash,
     };
+  }
+
+  private tierVisible(spec: BladeFieldTierSpec, visible: boolean): boolean {
+    return visible && (this.farTierVisible || spec.id !== "far");
   }
 }
 
@@ -544,8 +558,8 @@ function createGpuRuntime(
         .ElseIf(dist.lessThan(float(tiers[2].maxDistanceM)), () => {
           appendToTier(configs[2]);
         });
-      });
     });
+  });
 
   return {
     camera,
@@ -625,8 +639,11 @@ function bladeFieldMaterial(
     // camera. View space looks down -z, so keep only clearly-negative z.
     const baseViewZ = cameraViewMatrix.mul(vec4(base, 1.0)).z;
     const behindCull = smoothstep(0.5, -1.5, baseViewZ);
-    const nearEyeFade = smoothstep(fadeEnd.mul(0.45), fadeEnd, length(cameraPosition.sub(base)))
-      .mul(behindCull);
+    const nearEyeFade = smoothstep(
+      fadeEnd.mul(0.45),
+      fadeEnd,
+      length(cameraPosition.sub(base)),
+    ).mul(behindCull);
     // Coverage-edge dissolve: blades SINK into the turf across the last
     // stretch of the far transition instead of stopping full-height at a
     // hard radius (the "visible from across the room" cutoff critique).

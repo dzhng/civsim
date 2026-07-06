@@ -1154,16 +1154,44 @@ impl Sim {
                 // p50 IMPROVED from 2.0 to 1.15 once the no-death churn was
                 // rejected — the transit walks were keeping men off their
                 // slots). Zero deaths is the natural, knob-free boundary.
-                // Transition reforms (pivot, disengage, at-ease recovery)
-                // stay unconditional — they fire once on a state change.
-                let cadence_only = engaged_deep_reform
+                // The AT-EASE beat is the other standing cadence, and at
+                // rest FIT is its only job (no relief semantics to protect):
+                // its relabel is kept only when it meaningfully improves
+                // total man-slot error (scale-free 10% bar). Without this a
+                // big loose unit at rest with cohesion parked under the
+                // fire bar re-sorts every 45 ticks forever, and the sort's
+                // marginal permutation flips send batches of men on transit
+                // walks that KEEP cohesion low — the self-sustaining
+                // at-ease relabel storm (manifest on a 350-man skirmish
+                // block after an ordinary angled move on the gen map).
+                // Transition reforms (pivot, disengage) stay unconditional —
+                // they fire once on a state change.
+                let deep_cadence = engaged_deep_reform
                     && !(self.units[ui].pivoting || disengage_reform || at_ease_reform);
+                let ease_cadence = at_ease_reform && !(self.units[ui].pivoting || disengage_reform);
                 let total_dead = self.units[ui].count - self.units[ui].alive_count;
-                let noise_beat = cadence_only && total_dead == self.units[ui].deep_beat_dead_mark;
-                if cadence_only {
+                let noise_beat = deep_cadence && total_dead == self.units[ui].deep_beat_dead_mark;
+                if deep_cadence {
                     self.units[ui].deep_beat_dead_mark = total_dead;
                 }
                 if !noise_beat {
+                    let slot_fit = |slots: &[u32], u: &Unit| -> f32 {
+                        (u.start..u.start + u.count)
+                            .filter(|&i| self.alive[i] == 1)
+                            .map(|i| {
+                                let p = Vec2::new(self.positions[2 * i], self.positions[2 * i + 1]);
+                                (p - u.slot_world(slots[i] as usize)).len()
+                            })
+                            .sum()
+                    };
+                    let before = if ease_cadence {
+                        Some((
+                            self.soldier_slot.clone(),
+                            slot_fit(&self.soldier_slot, &self.units[ui]),
+                        ))
+                    } else {
+                        None
+                    };
                     reassign_slots(
                         &self.units[ui],
                         &self.positions,
@@ -1171,7 +1199,19 @@ impl Sim {
                         &self.alive,
                         &mut self.soldier_slot,
                     );
-                    self.units[ui].deaths_since_reform = 0;
+                    let mut rejected = false;
+                    if let Some((old, before_err)) = before {
+                        let after_err = slot_fit(&self.soldier_slot, &self.units[ui]);
+                        if after_err > 0.9 * before_err {
+                            let u = &self.units[ui];
+                            self.soldier_slot[u.start..u.start + u.count]
+                                .copy_from_slice(&old[u.start..u.start + u.count]);
+                            rejected = true;
+                        }
+                    }
+                    if !rejected {
+                        self.units[ui].deaths_since_reform = 0;
+                    }
                 }
                 if disengage_reform {
                     self.units[ui].disengage_reform_pending = false;
@@ -2525,10 +2565,22 @@ impl Sim {
                 // at sprint speed (a walking spear column out-shoved
                 // cavalry; the braced walk-in was annihilated). The burst
                 // INTO contact belongs to the charge machinery, untouched.
+                // ...and only while ACTUALLY GAINING GROUND: the drift EMA
+                // (sustained true displacement, solver included) collapsing
+                // toward zero means the road ahead is jammed — by anyone,
+                // enemy or friend (a friendly crowd has no nearest_enemy_d
+                // to warn with) — and a capped man never surge-slams into
+                // the press. The bar sits at a TENTH of a base stride:
+                // pressed-dead is ~0 while slow-but-real progress (a man
+                // squeezing laterally into a casualty gap at ~0.3 m/s) must
+                // stay exempt — at half a stride the guard smothered the
+                // wrap line's file backfill and dead files stayed ropes.
+                let drift = Vec2::new(ema_disp_x[i], ema_disp_y[i]).len();
                 let digging_deep = err > tun.surge_err_threshold
                     && u.move_target.is_some()
                     && matches!(u.pace, Pace::Run)
-                    && nearest_enemy_d[i] > 2.0 * tun.surge_speed;
+                    && nearest_enemy_d[i] > 2.0 * tun.surge_speed
+                    && drift > 0.1 * tun.base_speed * DT;
                 if !digging_deep {
                     max_sp = max_sp.min((0.62 + 0.44 * stagger01(mkey, 0xCAFE)) * sprint_sp);
                 }

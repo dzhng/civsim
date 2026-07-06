@@ -798,7 +798,12 @@ export class PhotorealBattleWorld {
   ): void {
     this.standardLayer.upload(standards);
     this.readoutLayer.upload(readouts);
+    // Published for verification (battle-input banner-plant checks): the
+    // banner anchors left the DOM for GPU billboards, so scenes consume the
+    // owner's uploaded positions instead of re-deriving them.
+    this.lastStandards = standards.map((s) => ({ unitId: s.unitId, x: s.x, y: s.y, z: s.z }));
   }
+  private lastStandards: { unitId: number; x: number; y: number; z: number }[] = [];
 
   drawTris(verts: Float32Array, camera: BattleCameraSnapshot): void {
     this.setCamera(camera);
@@ -1116,6 +1121,7 @@ export class PhotorealBattleWorld {
                 }
               : null,
             sealedEdges: [...this.sealedEdges],
+            standards: this.lastStandards,
             sea: {
               ...sea,
               // `planes` keeps the legacy meaning (ocean planes only) - the

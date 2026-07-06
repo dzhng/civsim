@@ -21,12 +21,12 @@ test("software rasterizer adapters resolve to the single tier by name", () => {
   assert.equal(resolveSunShadowMode("some vendor / software renderer"), "single");
 });
 
-test("hardware adapters resolve to csm", () => {
-  assert.equal(resolveSunShadowMode("apple / metal-3 / Apple M3"), "csm");
-  assert.equal(resolveSunShadowMode("nvidia / ampere / RTX"), "csm");
+test("every adapter defaults to the single soft tier (perf: csm re-renders the crowd per cascade)", () => {
+  assert.equal(resolveSunShadowMode("apple / metal-3 / Apple M3"), "single");
+  assert.equal(resolveSunShadowMode("nvidia / ampere / RTX"), "single");
   // Unlabelled adapters (adapterInfo withheld) assume hardware — SwiftShader
   // always self-identifies; the SwiftShader scene run proves the fallback.
-  assert.equal(resolveSunShadowMode("unknown"), "csm");
+  assert.equal(resolveSunShadowMode("unknown"), "single");
 });
 
 test("an explicit tier override wins over the probe", () => {

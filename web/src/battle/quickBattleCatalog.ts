@@ -123,17 +123,6 @@ export const QUICK_BATTLE_TEMPLATES: readonly QuickBattleArmyTemplate[] = [
     ],
   },
   {
-    id: "cheap-swarm",
-    name: "Cheap Swarm",
-    units: [
-      { classId: 9, count: 8 },
-      { classId: 10, count: 6 },
-      { classId: 5, count: 3 },
-      { classId: 12, count: 2 },
-      { classId: 0, count: 1 },
-    ],
-  },
-  {
     id: "duel",
     name: "Duel",
     units: [{ classId: 0, count: 1 }],

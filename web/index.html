@@ -1030,19 +1030,65 @@
         font-size: 11px;
         box-shadow: var(--well-shadow);
       }
-      .qb-rows {
-        max-height: 40vh;
+      /* Recruitment cards: the battle unit-card chassis (.ucard well, faction top
+       rim, baked portrait, name strip) with a cost strip above the portrait and a
+       −/+ stepper strip below the name. Count > 0 borrows the .sel gold glow. */
+      .qb-cards {
+        --card-w: 76px;
+        --card-h: 124px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        max-height: 50vh;
         overflow: auto;
+        padding: 3px;
       }
-      .qb-row {
-        display: grid;
-        grid-template-columns: 1fr auto auto auto;
-        gap: 6px;
+      .qb-card {
+        flex: none;
+      }
+      /* A picked card keeps its faction rim: .sel's gold would otherwise repaint
+       the top stripe and read as a third, accidental card state. */
+      .qb-card.sel {
+        border-top-color: var(--fac);
+      }
+      /* Class names must be readable in a picker: wrap to two lines instead of
+       the battle bar's single-line ellipsis. */
+      .qb-card .ucard-name {
+        white-space: normal;
+        line-height: 1.2;
+        height: 2.4em;
+        overflow: hidden;
+      }
+      .qb-card-cost {
+        flex: none;
+        height: 12px;
+        line-height: 12px;
+        text-align: center;
+        background: rgba(6, 8, 5, 0.82);
+        box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+        font:
+          700 9px ui-monospace,
+          monospace;
+        color: #e0bd63;
+      }
+      .qb-card-steps {
+        flex: none;
+        display: flex;
         align-items: center;
-        padding: 2px 0;
+        gap: 2px;
+        padding: 2px 3px 3px;
       }
-      .qb-label {
-        font-size: 12px;
+      .qb-card-steps .qb-step {
+        flex: 1 1 0;
+        width: auto;
+        padding: 1px 0;
+        font-size: 11px;
+        line-height: 14px;
+      }
+      .qb-card-steps .qb-count {
+        flex: none;
+        min-width: 14px;
+        font-size: 11px;
       }
       .qb-step {
         width: 24px;

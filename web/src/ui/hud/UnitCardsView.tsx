@@ -57,8 +57,9 @@ export interface UnitCardsViewProps {
 }
 
 /** Baked-model portrait <img>, falling back to the flat canvas drawing if the
- * look is unbaked or the PNG fails — same contract as the vanilla portrait(). */
-function Portrait({ u }: { u: UnitCardInit }) {
+ * look is unbaked or the PNG fails — same contract as the vanilla portrait().
+ * Shared with the custom-battle army builder's recruitment cards. */
+export function Portrait({ u }: { u: UnitCardInit }) {
   const look = u.look ?? modelLookForClass(u.cls);
   const url = cardThumbUrl(look);
   const [failed, setFailed] = useState(false);

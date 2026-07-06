@@ -461,36 +461,3 @@ fn grind_lateral_slosh_bounded() {
         "sustained grind lateral slosh must stay <= 0.5 m/s, got {sustained:.3}"
     );
 }
-
-#[ignore = "slice-05 diagnostic: slide-chain convergence at line scale"]
-#[test]
-fn probe_slide_chain_convergence() {
-    // A packed 6-unit line 22m apart (2m gaps); order unit 0 onto unit 2's
-    // ground. The 03b deconfliction slide must CONVERGE (the chain resolves
-    // outward), not cycle. Prints per-30s motion of every unit.
-    let mut sim = Sim::new(Tunables::default(), SEED);
-    let mut units = Vec::new();
-    for k in 0..6 {
-        units.push(sim.spawn_unit(
-            Vec2::new(k as f32 * 22.0, 0.0),
-            FRAC_PI_2,
-            120,
-            20,
-            Vec2::new(1.0, 1.0),
-            0,
-            1.0,
-        ));
-    }
-    run(&mut sim, 5.0);
-    sim.set_move_order_facing(units[0], Vec2::new(44.0, 0.0), FRAC_PI_2); // onto unit 2
-    let arrived = march_until_arrived(&mut sim, units[0]);
-    println!("arrived t={arrived:.1}s");
-    for w in 0..14 {
-        let mut line = format!("t={:>3}-{:>3}s ", w * 30, (w + 1) * 30);
-        for (k, &u) in units.iter().enumerate() {
-            let s = window_motion(&mut sim, u, 30.0);
-            line += &format!("u{k}={:.3} ", s.mean_speed);
-        }
-        println!("{line}");
-    }
-}

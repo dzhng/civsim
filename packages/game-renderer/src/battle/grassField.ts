@@ -1,8 +1,13 @@
-import { terrainHeightAt, terrainNormalAt, type TerrainHeightField } from '../terrain/heightField';
-import { battleGrassTintWeight, isBattleGrassBlockedTint, type BattleTerrainGrid } from './terrainFeatures';
+import { terrainHeightAt, terrainNormalAt, type TerrainHeightField } from "../terrain/heightField";
+import {
+  battleGrassTintWeight,
+  isBattleGrassBlockedTint,
+  type BattleTerrainGrid,
+} from "./terrainFeatures";
 
 export const GRASS_FIELD_PACKED_STRIDE_FLOATS = 16;
-export const GRASS_FIELD_PACKED_BYTES = GRASS_FIELD_PACKED_STRIDE_FLOATS * Float32Array.BYTES_PER_ELEMENT;
+export const GRASS_FIELD_PACKED_BYTES =
+  GRASS_FIELD_PACKED_STRIDE_FLOATS * Float32Array.BYTES_PER_ELEMENT;
 
 export type GrassFieldLodTier = 0 | 1 | 2;
 
@@ -103,153 +108,481 @@ const DEFAULT_CLUMP_CELL_SIZE = 42;
 const DEFAULT_MAX_RECORDS = 4096;
 const DEFAULT_MIN_NORMAL_Z = 0.62;
 const SEED24_MASK = 0x00ff_ffff;
+const STRATIFIED_STREAM_BINS = 512;
+const STRATIFIED_STREAM_OVERSAMPLE = 1.25;
 export const GRASS_FIELD_LOD_BUDGET_RATIOS = [0.48, 0.37, 0.15] as const;
 
-export function sampleGrassField(grid: BattleTerrainGrid, field: TerrainHeightField, config: GrassFieldConfig): GrassFieldSnapshot {
-  const seed = toU32(config.seed ?? 0x6a55);
-  const focus = config.focus;
-  const radius = Math.max(0, finiteOr(focus.radius, 0));
-  const fieldCellSize = Math.max(0.5, finiteOr(config.fieldCellSize, DEFAULT_FIELD_CELL_SIZE));
-  const snapCellSize = Math.max(fieldCellSize, finiteOr(config.snapCellSize, DEFAULT_SNAP_CELL_SIZE));
-  const clumpCellSize = Math.max(fieldCellSize, finiteOr(config.clumpCellSize, DEFAULT_CLUMP_CELL_SIZE));
-  const recordCapacity = clampInt(finiteOr(config.maxRecords, DEFAULT_MAX_RECORDS), 0, 1_000_000);
-  const density = clamp01(finiteOr(config.density, 1));
-  const jitter = clamp01(finiteOr(config.jitter, 0.68));
-  const minNormalZ = clamp01(finiteOr(config.minNormalZ, DEFAULT_MIN_NORMAL_Z));
-  const lodNearRadius = clamp01(finiteOr(config.lodNearRadius, 0.34));
-  const lodMidRadius = Math.max(lodNearRadius, clamp01(finiteOr(config.lodMidRadius, 0.72)));
-  const lodStratifiedBudget = config.lodStratifiedBudget === true;
-  const baseHeight = Math.max(0.01, finiteOr(config.baseHeight, 0.72));
-  const heightJitter = Math.max(0, finiteOr(config.heightJitter, 0.34));
-  const baseWidth = Math.max(0.001, finiteOr(config.baseWidth, 0.055));
-  const widthJitter = Math.max(0, finiteOr(config.widthJitter, 0.28));
-  const baseBend = Math.max(0, finiteOr(config.baseBend, 0.24));
-  const bendJitter = Math.max(0, finiteOr(config.bendJitter, 0.22));
-  const snapX = snapCoord(finiteOr(focus.x, 0), snapCellSize);
-  const snapY = snapCoord(finiteOr(focus.y, 0), snapCellSize);
-  const records: GrassFieldRecord[] = [];
-  const candidates: GrassFieldCandidate[] = [];
-  const lodBudgetQuotas = lodBudgetQuotasFor(recordCapacity);
-  const stats: GrassFieldStats = {
-    seed,
-    snapX,
-    snapY,
-    snapCellSize,
-    fieldCellSize,
-    clumpCellSize,
-    minNormalZ,
-    lodNearRadius,
-    lodMidRadius,
-    lodStratifiedBudget,
-    candidateCells: 0,
-    acceptedRecords: 0,
-    recordCapacity,
-    cappedRecords: 0,
-    outOfBoundsCells: 0,
-    rejectedTintCells: 0,
-    rejectedSlopeCells: 0,
-    rejectedDensityCells: 0,
-    openGrassCells: 0,
-    forestCells: 0,
-    roughCells: 0,
-    lodCandidateCounts: [0, 0, 0],
-    lodBudgetQuotas,
-    lodDroppedByBudget: [0, 0, 0],
-    lodCounts: [0, 0, 0],
-    packedStrideFloats: GRASS_FIELD_PACKED_STRIDE_FLOATS,
-    packedStrideBytes: GRASS_FIELD_PACKED_BYTES,
-    packedBytes: 0,
-  };
-  if (radius <= 0 || density <= 0 || recordCapacity <= 0 || grid.w <= 0 || grid.h <= 0) {
-    return finishSnapshot(records, stats);
+export function sampleGrassField(
+  grid: BattleTerrainGrid,
+  field: TerrainHeightField,
+  config: GrassFieldConfig,
+): GrassFieldSnapshot {
+  const sampler = createGrassFieldSampler(grid, field, config);
+  while (!sampler.step(16384)) {
+    // Legacy synchronous API. Production drives the same sampler in rAF slices.
   }
+  const snapshot = sampler.finish();
+  if (!snapshot) throw new Error("grass field sampler finished without a snapshot");
+  return snapshot;
+}
 
-  const startX = Math.floor((snapX - radius) / fieldCellSize);
-  const endX = Math.floor((snapX + radius) / fieldCellSize);
-  const startY = Math.floor((snapY - radius) / fieldCellSize);
-  const endY = Math.floor((snapY + radius) / fieldCellSize);
+export interface GrassFieldSampler {
+  readonly done: boolean;
+  readonly cellsProcessed: number;
+  readonly totalCells: number;
+  readonly stats: GrassFieldStats;
+  step(maxCells?: number): boolean;
+  finish(): GrassFieldSnapshot | null;
+}
 
-  for (let gy = startY; gy <= endY; gy++) {
-    for (let gx = startX; gx <= endX; gx++) {
-      const cellSeed = hashCell(seed, gx, gy);
-      const centerX = (gx + 0.5) * fieldCellSize;
-      const centerY = (gy + 0.5) * fieldCellSize;
-      const jitterX = (hash01(cellSeed ^ 0x35a3_9821) - 0.5) * fieldCellSize * jitter;
-      const jitterY = (hash01(cellSeed ^ 0x6f4c_5b37) - 0.5) * fieldCellSize * jitter;
-      const x = centerX + jitterX;
-      const y = centerY + jitterY;
-      const dist = Math.hypot(x - snapX, y - snapY);
-      if (dist > radius) continue;
-      stats.candidateCells++;
+export function createGrassFieldSampler(
+  grid: BattleTerrainGrid,
+  field: TerrainHeightField,
+  config: GrassFieldConfig,
+): GrassFieldSampler {
+  return new GrassFieldSamplerTask(grid, field, config);
+}
 
-      const terrainCell = terrainCellAt(grid, x, y);
-      if (!terrainCell) {
-        stats.outOfBoundsCells++;
-        continue;
-      }
-      const tint = grid.tint[terrainCell.cy * grid.w + terrainCell.cx] ?? 0;
-      if (isBattleGrassBlockedTint(tint)) {
-        stats.rejectedTintCells++;
-        continue;
-      }
-      const tintWeight = battleGrassTintWeight(tint);
-      if (tintWeight <= 0 || hash01(cellSeed ^ 0x91e2_1a4f) > density * tintWeight) {
-        stats.rejectedDensityCells++;
-        continue;
-      }
+class GrassFieldSamplerTask implements GrassFieldSampler {
+  private readonly grid: BattleTerrainGrid;
+  private readonly field: TerrainHeightField;
+  private readonly radius: number;
+  private readonly fieldCellSize: number;
+  private readonly clumpCellSize: number;
+  private readonly recordCapacity: number;
+  private readonly density: number;
+  private readonly jitter: number;
+  private readonly minNormalZ: number;
+  private readonly lodNearRadius: number;
+  private readonly lodMidRadius: number;
+  private readonly lodStratifiedBudget: boolean;
+  private readonly baseHeight: number;
+  private readonly heightJitter: number;
+  private readonly baseWidth: number;
+  private readonly widthJitter: number;
+  private readonly baseBend: number;
+  private readonly bendJitter: number;
+  private readonly startX: number;
+  private readonly endX: number;
+  private readonly startY: number;
+  private readonly endY: number;
+  private gx: number;
+  private gy: number;
+  private records: GrassFieldRecord[] = [];
+  private candidates: GrassFieldCandidate[] = [];
+  private stratifiedBins: [
+    GrassFieldCandidate[][],
+    GrassFieldCandidate[][],
+    GrassFieldCandidate[][],
+  ];
+  private stratifiedBinCapacity: number;
+  private phase: "cells" | "select" | "pack" | "done" = "cells";
+  private packedRecords = new Float32Array();
+  private packIndex = 0;
+  private selectionQuotas: [number[], number[], number[]] | null = null;
+  private selectionFlat: GrassFieldCandidate[] | null = null;
+  private selectTier = 0;
+  private selectBin = 0;
+  private selectOffset = 0;
+  private selectionIndex = 0;
+  private snapshot: GrassFieldSnapshot | null = null;
 
-      const normal = terrainNormalAt(field, x, y, Math.max(0.5, field.cell));
-      if (!isFiniteNormal(normal) || normal[2] < minNormalZ) {
-        stats.rejectedSlopeCells++;
-        continue;
-      }
-      if (!lodStratifiedBudget && candidates.length >= recordCapacity) {
-        stats.cappedRecords++;
-        continue;
-      }
+  readonly totalCells: number;
+  readonly stats: GrassFieldStats;
+  cellsProcessed = 0;
+  done = false;
 
-      const lodTier = lodTierForDistance(dist, radius, lodNearRadius, lodMidRadius);
-      const bladeSeed = hashCell(seed ^ 0xa511_e9b3, gx, gy) & SEED24_MASK;
-      const clump = clumpFor(x, y, seed, clumpCellSize);
-      const heightScale = 1 - heightJitter * 0.5 + hash01(cellSeed ^ 0x4b1d_2d3f) * heightJitter;
-      const widthScale = 1 - widthJitter * 0.5 + hash01(cellSeed ^ 0x8cb3_5f15) * widthJitter;
-      const bendScale = 1 - bendJitter * 0.5 + hash01(cellSeed ^ 0xb529_7a4d) * bendJitter;
-      const record: GrassFieldRecord = {
-        x,
-        y,
-        z: terrainHeightAt(field, x, y),
-        worldCellX: gx,
-        worldCellY: gy,
-        tint,
-        lodTier,
-        normalX: normal[0],
-        normalY: normal[1],
-        normalZ: normal[2],
-        width: baseWidth * widthScale,
-        height: baseHeight * heightScale,
-        bend: baseBend * bendScale,
-        windPhase: hash01(cellSeed ^ 0x2d6a_99f5) * Math.PI * 2,
-        yaw: hash01(cellSeed ^ 0x7c15_3a91) * Math.PI * 2,
-        clumpSeed: clump.seed,
-        bladeSeed,
-        clumpWeight: clump.weight,
-      };
-      candidates.push({ record, dist, order: hash01(cellSeed ^ 0xd2b7_4c19) });
-      stats.lodCandidateCounts[lodTier]++;
+  constructor(grid: BattleTerrainGrid, field: TerrainHeightField, config: GrassFieldConfig) {
+    this.grid = grid;
+    this.field = field;
+    const seed = toU32(config.seed ?? 0x6a55);
+    const focus = config.focus;
+    this.radius = Math.max(0, finiteOr(focus.radius, 0));
+    this.fieldCellSize = Math.max(0.5, finiteOr(config.fieldCellSize, DEFAULT_FIELD_CELL_SIZE));
+    const snapCellSize = Math.max(
+      this.fieldCellSize,
+      finiteOr(config.snapCellSize, DEFAULT_SNAP_CELL_SIZE),
+    );
+    this.clumpCellSize = Math.max(
+      this.fieldCellSize,
+      finiteOr(config.clumpCellSize, DEFAULT_CLUMP_CELL_SIZE),
+    );
+    this.recordCapacity = clampInt(finiteOr(config.maxRecords, DEFAULT_MAX_RECORDS), 0, 1_000_000);
+    this.density = clamp01(finiteOr(config.density, 1));
+    this.jitter = clamp01(finiteOr(config.jitter, 0.68));
+    this.minNormalZ = clamp01(finiteOr(config.minNormalZ, DEFAULT_MIN_NORMAL_Z));
+    this.lodNearRadius = clamp01(finiteOr(config.lodNearRadius, 0.34));
+    this.lodMidRadius = Math.max(this.lodNearRadius, clamp01(finiteOr(config.lodMidRadius, 0.72)));
+    this.lodStratifiedBudget = config.lodStratifiedBudget === true;
+    this.baseHeight = Math.max(0.01, finiteOr(config.baseHeight, 0.72));
+    this.heightJitter = Math.max(0, finiteOr(config.heightJitter, 0.34));
+    this.baseWidth = Math.max(0.001, finiteOr(config.baseWidth, 0.055));
+    this.widthJitter = Math.max(0, finiteOr(config.widthJitter, 0.28));
+    this.baseBend = Math.max(0, finiteOr(config.baseBend, 0.24));
+    this.bendJitter = Math.max(0, finiteOr(config.bendJitter, 0.22));
+    const snapX = snapCoord(finiteOr(focus.x, 0), snapCellSize);
+    const snapY = snapCoord(finiteOr(focus.y, 0), snapCellSize);
+    this.stats = {
+      seed,
+      snapX,
+      snapY,
+      snapCellSize,
+      fieldCellSize: this.fieldCellSize,
+      clumpCellSize: this.clumpCellSize,
+      minNormalZ: this.minNormalZ,
+      lodNearRadius: this.lodNearRadius,
+      lodMidRadius: this.lodMidRadius,
+      lodStratifiedBudget: this.lodStratifiedBudget,
+      candidateCells: 0,
+      acceptedRecords: 0,
+      recordCapacity: this.recordCapacity,
+      cappedRecords: 0,
+      outOfBoundsCells: 0,
+      rejectedTintCells: 0,
+      rejectedSlopeCells: 0,
+      rejectedDensityCells: 0,
+      openGrassCells: 0,
+      forestCells: 0,
+      roughCells: 0,
+      lodCandidateCounts: [0, 0, 0],
+      lodBudgetQuotas: lodBudgetQuotasFor(this.recordCapacity),
+      lodDroppedByBudget: [0, 0, 0],
+      lodCounts: [0, 0, 0],
+      packedStrideFloats: GRASS_FIELD_PACKED_STRIDE_FLOATS,
+      packedStrideBytes: GRASS_FIELD_PACKED_BYTES,
+      packedBytes: 0,
+    };
+    this.startX = Math.floor((snapX - this.radius) / this.fieldCellSize);
+    this.endX = Math.floor((snapX + this.radius) / this.fieldCellSize);
+    this.startY = Math.floor((snapY - this.radius) / this.fieldCellSize);
+    this.endY = Math.floor((snapY + this.radius) / this.fieldCellSize);
+    this.gx = this.startX;
+    this.gy = this.startY;
+    this.stratifiedBins = [createStratifiedBins(), createStratifiedBins(), createStratifiedBins()];
+    this.stratifiedBinCapacity = Math.max(
+      1,
+      Math.ceil((this.recordCapacity * STRATIFIED_STREAM_OVERSAMPLE) / STRATIFIED_STREAM_BINS),
+    );
+    this.totalCells =
+      Math.max(0, this.endX - this.startX + 1) * Math.max(0, this.endY - this.startY + 1);
+    if (
+      this.radius <= 0 ||
+      this.density <= 0 ||
+      this.recordCapacity <= 0 ||
+      grid.w <= 0 ||
+      grid.h <= 0
+    ) {
+      this.done = true;
+      this.phase = "done";
+      this.snapshot = finishSnapshot(this.records, this.stats);
     }
   }
-  const selected = lodStratifiedBudget
-    ? selectGrassFieldCandidates(candidates, recordCapacity, stats)
-    : candidates;
-  if (lodStratifiedBudget) stats.cappedRecords = Math.max(0, candidates.length - selected.length);
-  for (const { record } of selected) {
-    records.push(record);
-    stats.lodCounts[record.lodTier]++;
-    if (record.tint === 0) stats.openGrassCells++;
-    else if (record.tint === 4) stats.forestCells++;
-    else if (record.tint === 6) stats.roughCells++;
+
+  step(maxCells = 2048): boolean {
+    if (this.done) return true;
+    if (this.phase === "select") {
+      this.selectRecords(maxCells);
+      return this.done;
+    }
+    if (this.phase === "pack") {
+      this.packRecords(maxCells);
+      return this.done;
+    }
+    let remaining = Math.max(1, Math.floor(maxCells));
+    while (this.gy <= this.endY && remaining > 0) {
+      this.processCell(this.gx, this.gy);
+      this.cellsProcessed++;
+      remaining--;
+      this.gx++;
+      if (this.gx > this.endX) {
+        this.gx = this.startX;
+        this.gy++;
+      }
+    }
+    if (this.gy > this.endY) this.beginSelect();
+    return this.done;
   }
-  return finishSnapshot(records, stats);
+
+  finish(): GrassFieldSnapshot | null {
+    return this.snapshot;
+  }
+
+  private processCell(gx: number, gy: number): void {
+    const cellSeed = hashCell(this.stats.seed, gx, gy);
+    const centerX = (gx + 0.5) * this.fieldCellSize;
+    const centerY = (gy + 0.5) * this.fieldCellSize;
+    const jitterX = (hash01(cellSeed ^ 0x35a3_9821) - 0.5) * this.fieldCellSize * this.jitter;
+    const jitterY = (hash01(cellSeed ^ 0x6f4c_5b37) - 0.5) * this.fieldCellSize * this.jitter;
+    const x = centerX + jitterX;
+    const y = centerY + jitterY;
+    const dist = Math.hypot(x - this.stats.snapX, y - this.stats.snapY);
+    if (dist > this.radius) return;
+    this.stats.candidateCells++;
+
+    const terrainCell = terrainCellAt(this.grid, x, y);
+    if (!terrainCell) {
+      this.stats.outOfBoundsCells++;
+      return;
+    }
+    const tint = this.grid.tint[terrainCell.cy * this.grid.w + terrainCell.cx] ?? 0;
+    if (isBattleGrassBlockedTint(tint)) {
+      this.stats.rejectedTintCells++;
+      return;
+    }
+    const tintWeight = battleGrassTintWeight(tint);
+    if (tintWeight <= 0 || hash01(cellSeed ^ 0x91e2_1a4f) > this.density * tintWeight) {
+      this.stats.rejectedDensityCells++;
+      return;
+    }
+
+    const normal = terrainNormalAt(this.field, x, y, Math.max(0.5, this.field.cell));
+    if (!isFiniteNormal(normal) || normal[2] < this.minNormalZ) {
+      this.stats.rejectedSlopeCells++;
+      return;
+    }
+    if (!this.lodStratifiedBudget && this.candidates.length >= this.recordCapacity) {
+      this.stats.cappedRecords++;
+      return;
+    }
+
+    const lodTier = lodTierForDistance(dist, this.radius, this.lodNearRadius, this.lodMidRadius);
+    const bladeSeed = hashCell(this.stats.seed ^ 0xa511_e9b3, gx, gy) & SEED24_MASK;
+    const clump = clumpFor(x, y, this.stats.seed, this.clumpCellSize);
+    const heightScale =
+      1 - this.heightJitter * 0.5 + hash01(cellSeed ^ 0x4b1d_2d3f) * this.heightJitter;
+    const widthScale =
+      1 - this.widthJitter * 0.5 + hash01(cellSeed ^ 0x8cb3_5f15) * this.widthJitter;
+    const bendScale = 1 - this.bendJitter * 0.5 + hash01(cellSeed ^ 0xb529_7a4d) * this.bendJitter;
+    const record: GrassFieldRecord = {
+      x,
+      y,
+      z: terrainHeightAt(this.field, x, y),
+      worldCellX: gx,
+      worldCellY: gy,
+      tint,
+      lodTier,
+      normalX: normal[0],
+      normalY: normal[1],
+      normalZ: normal[2],
+      width: this.baseWidth * widthScale,
+      height: this.baseHeight * heightScale,
+      bend: this.baseBend * bendScale,
+      windPhase: hash01(cellSeed ^ 0x2d6a_99f5) * Math.PI * 2,
+      yaw: hash01(cellSeed ^ 0x7c15_3a91) * Math.PI * 2,
+      clumpSeed: clump.seed,
+      bladeSeed,
+      clumpWeight: clump.weight,
+    };
+    const candidate = { record, dist, order: hash01(cellSeed ^ 0xd2b7_4c19) };
+    if (this.lodStratifiedBudget) this.pushStratifiedCandidate(candidate);
+    else this.candidates.push(candidate);
+    this.stats.lodCandidateCounts[lodTier]++;
+  }
+
+  private pushStratifiedCandidate(candidate: GrassFieldCandidate): void {
+    const tierBins = this.stratifiedBins[candidate.record.lodTier];
+    const bin = tierBins[stratifiedStreamBin(candidate.dist, this.radius)];
+    if (bin.length >= this.stratifiedBinCapacity) return;
+    bin.push(candidate);
+  }
+
+  private beginSelect(): void {
+    if (this.lodStratifiedBudget) {
+      this.stats.cappedRecords = Math.max(
+        0,
+        this.stats.lodCandidateCounts.reduce((sum, count) => sum + count, 0) - this.recordCapacity,
+      );
+      this.selectionQuotas = stratifiedStreamQuotas(
+        this.stratifiedBins,
+        this.recordCapacity,
+        this.stats,
+      );
+    } else {
+      this.selectionFlat = this.candidates;
+    }
+    this.phase = "select";
+    this.selectRecords(0);
+  }
+
+  private selectRecords(maxRecords: number): void {
+    const limit = maxRecords <= 0 ? 0 : Math.max(1, Math.floor(maxRecords));
+    let remaining = limit;
+    if (this.selectionQuotas) {
+      while (remaining > 0 && this.selectTier < 3) {
+        const quotas = this.selectionQuotas[this.selectTier];
+        const bins = this.stratifiedBins[this.selectTier];
+        const quota = quotas[this.selectBin] ?? 0;
+        const bin = bins[this.selectBin] ?? [];
+        while (this.selectOffset < quota && remaining > 0) {
+          this.addSelectedRecord(bin[this.selectOffset]);
+          this.selectOffset++;
+          remaining--;
+        }
+        if (this.selectOffset < quota) break;
+        this.selectOffset = 0;
+        this.selectBin++;
+        if (this.selectBin < bins.length) continue;
+        this.selectBin = 0;
+        this.selectTier++;
+      }
+      if (this.selectTier >= 3) this.finishSelect();
+      return;
+    }
+
+    const flat = this.selectionFlat ?? [];
+    while (this.selectionIndex < flat.length && remaining > 0) {
+      this.addSelectedRecord(flat[this.selectionIndex]);
+      this.selectionIndex++;
+      remaining--;
+    }
+    if (this.selectionIndex >= flat.length) this.finishSelect();
+  }
+
+  private addSelectedRecord(candidate: GrassFieldCandidate | undefined): void {
+    if (!candidate) return;
+    const record = candidate.record;
+    this.records.push(record);
+    this.stats.lodCounts[record.lodTier]++;
+    if (record.tint === 0) this.stats.openGrassCells++;
+    else if (record.tint === 4) this.stats.forestCells++;
+    else if (record.tint === 6) this.stats.roughCells++;
+  }
+
+  private finishSelect(): void {
+    if (this.lodStratifiedBudget) {
+      this.stats.cappedRecords = Math.max(
+        0,
+        this.stats.lodCandidateCounts.reduce((sum, count) => sum + count, 0) - this.records.length,
+      );
+      this.stats.lodDroppedByBudget = [
+        Math.max(0, this.stats.lodCandidateCounts[0] - this.stats.lodCounts[0]),
+        Math.max(0, this.stats.lodCandidateCounts[1] - this.stats.lodCounts[1]),
+        Math.max(0, this.stats.lodCandidateCounts[2] - this.stats.lodCounts[2]),
+      ];
+    }
+    this.packedRecords = new Float32Array(this.records.length * GRASS_FIELD_PACKED_STRIDE_FLOATS);
+    this.candidates = [];
+    this.stratifiedBins = [createStratifiedBins(), createStratifiedBins(), createStratifiedBins()];
+    this.selectionQuotas = null;
+    this.selectionFlat = null;
+    this.phase = "pack";
+    this.packRecords(0);
+  }
+
+  private packRecords(maxRecords: number): void {
+    const limit =
+      maxRecords <= 0
+        ? this.packIndex
+        : Math.min(this.records.length, this.packIndex + Math.max(1, Math.floor(maxRecords)));
+    while (this.packIndex < limit) {
+      packGrassFieldRecord(this.packedRecords, this.packIndex, this.records[this.packIndex]);
+      this.packIndex++;
+    }
+    if (this.packIndex < this.records.length) return;
+    this.stats.acceptedRecords = this.records.length;
+    this.stats.packedBytes = this.packedRecords.byteLength;
+    this.snapshot = { records: this.records, packedRecords: this.packedRecords, stats: this.stats };
+    this.phase = "done";
+    this.done = true;
+  }
+}
+
+function createStratifiedBins(): GrassFieldCandidate[][] {
+  return Array.from({ length: STRATIFIED_STREAM_BINS }, () => []);
+}
+
+function stratifiedStreamBin(dist: number, radius: number): number {
+  const t = radius > 0 ? dist / radius : 0;
+  return Math.min(STRATIFIED_STREAM_BINS - 1, Math.max(0, Math.floor(t * STRATIFIED_STREAM_BINS)));
+}
+
+function stratifiedStreamQuotas(
+  bins: readonly [GrassFieldCandidate[][], GrassFieldCandidate[][], GrassFieldCandidate[][]],
+  capacity: number,
+  stats: GrassFieldStats,
+): [number[], number[], number[]] {
+  const empty: [number[], number[], number[]] = [
+    Array.from({ length: STRATIFIED_STREAM_BINS }, () => 0),
+    Array.from({ length: STRATIFIED_STREAM_BINS }, () => 0),
+    Array.from({ length: STRATIFIED_STREAM_BINS }, () => 0),
+  ];
+  if (capacity <= 0) return empty;
+  const available: [number, number, number] = [
+    stratifiedBinTotal(bins[0]),
+    stratifiedBinTotal(bins[1]),
+    stratifiedBinTotal(bins[2]),
+  ];
+  const desired: [number, number, number] = [0, 0, 0];
+  let remaining = capacity;
+
+  for (const tier of [0, 1, 2] as const) {
+    const take = Math.min(available[tier], stats.lodBudgetQuotas[tier], remaining);
+    desired[tier] = take;
+    remaining -= take;
+  }
+  for (const tier of [0, 1, 2] as const) {
+    if (remaining <= 0) break;
+    const take = Math.min(available[tier] - desired[tier], remaining);
+    desired[tier] += take;
+    remaining -= take;
+  }
+
+  return [
+    stratifiedBucketQuotasForCounts(bins[0], desired[0], available[0]),
+    stratifiedBucketQuotasForCounts(bins[1], desired[1], available[1]),
+    stratifiedBucketQuotasForCounts(bins[2], desired[2], available[2]),
+  ];
+}
+
+function stratifiedBinTotal(bins: readonly GrassFieldCandidate[][]): number {
+  let total = 0;
+  for (const bin of bins) total += bin.length;
+  return total;
+}
+
+function stratifiedBucketQuotasForCounts(
+  buckets: readonly GrassFieldCandidate[][],
+  count: number,
+  total: number,
+): number[] {
+  const quotas = new Array<number>(buckets.length).fill(0);
+  if (count <= 0 || total <= 0) return quotas;
+  const fractions: Array<{ index: number; fraction: number }> = [];
+  let assigned = 0;
+  for (let i = 0; i < buckets.length; i++) {
+    const exact = (count * buckets[i].length) / total;
+    const base = Math.min(buckets[i].length, Math.floor(exact));
+    quotas[i] = base;
+    assigned += base;
+    fractions.push({ index: i, fraction: exact - base });
+  }
+  fractions.sort((a, b) => b.fraction - a.fraction || b.index - a.index);
+  let remaining = count - assigned;
+  while (remaining > 0) {
+    let moved = false;
+    for (const { index } of fractions) {
+      if (remaining <= 0) break;
+      if (quotas[index] >= buckets[index].length) continue;
+      quotas[index]++;
+      remaining--;
+      moved = true;
+    }
+    if (!moved) break;
+  }
+  return quotas;
+}
+
+function droppedByBudgetFromSelection(
+  stats: GrassFieldStats,
+  selected: readonly GrassFieldCandidate[],
+): [number, number, number] {
+  const selectedCounts: [number, number, number] = [0, 0, 0];
+  for (const candidate of selected) selectedCounts[candidate.record.lodTier]++;
+  return [
+    Math.max(0, stats.lodCandidateCounts[0] - selectedCounts[0]),
+    Math.max(0, stats.lodCandidateCounts[1] - selectedCounts[1]),
+    Math.max(0, stats.lodCandidateCounts[2] - selectedCounts[2]),
+  ];
 }
 
 function selectGrassFieldCandidates(
@@ -258,7 +591,11 @@ function selectGrassFieldCandidates(
   stats: GrassFieldStats,
 ): GrassFieldCandidate[] {
   if (capacity <= 0 || candidates.length === 0) return [];
-  const groups: [GrassFieldCandidate[], GrassFieldCandidate[], GrassFieldCandidate[]] = [[], [], []];
+  const groups: [GrassFieldCandidate[], GrassFieldCandidate[], GrassFieldCandidate[]] = [
+    [],
+    [],
+    [],
+  ];
   for (const candidate of candidates) groups[candidate.record.lodTier].push(candidate);
   if (candidates.length <= capacity) return sortedGrassFieldCandidates(candidates);
 
@@ -359,7 +696,9 @@ function pushSelectedCandidates(
   for (const candidate of selected) target.push(candidate);
 }
 
-function sortedGrassFieldCandidates(candidates: readonly GrassFieldCandidate[]): GrassFieldCandidate[] {
+function sortedGrassFieldCandidates(
+  candidates: readonly GrassFieldCandidate[],
+): GrassFieldCandidate[] {
   return [...candidates].sort(compareGrassFieldCandidates);
 }
 
@@ -383,29 +722,36 @@ function finishSnapshot(records: GrassFieldRecord[], stats: GrassFieldStats): Gr
 export function packGrassFieldRecords(records: readonly GrassFieldRecord[]): Float32Array {
   const out = new Float32Array(records.length * GRASS_FIELD_PACKED_STRIDE_FLOATS);
   for (let i = 0; i < records.length; i++) {
-    const record = records[i];
-    const o = i * GRASS_FIELD_PACKED_STRIDE_FLOATS;
-    out[o] = record.x;
-    out[o + 1] = record.y;
-    out[o + 2] = record.z;
-    out[o + 3] = record.lodTier;
-    out[o + 4] = record.width;
-    out[o + 5] = record.height;
-    out[o + 6] = record.bend;
-    out[o + 7] = record.windPhase;
-    out[o + 8] = record.yaw;
-    out[o + 9] = record.clumpSeed;
-    out[o + 10] = record.bladeSeed;
-    out[o + 11] = record.clumpWeight;
-    out[o + 12] = record.normalX;
-    out[o + 13] = record.normalY;
-    out[o + 14] = record.normalZ;
-    out[o + 15] = 0;
+    packGrassFieldRecord(out, i, records[i]);
   }
   return out;
 }
 
-function terrainCellAt(grid: BattleTerrainGrid, x: number, y: number): { cx: number; cy: number } | null {
+function packGrassFieldRecord(out: Float32Array, index: number, record: GrassFieldRecord): void {
+  const o = index * GRASS_FIELD_PACKED_STRIDE_FLOATS;
+  out[o] = record.x;
+  out[o + 1] = record.y;
+  out[o + 2] = record.z;
+  out[o + 3] = record.lodTier;
+  out[o + 4] = record.width;
+  out[o + 5] = record.height;
+  out[o + 6] = record.bend;
+  out[o + 7] = record.windPhase;
+  out[o + 8] = record.yaw;
+  out[o + 9] = record.clumpSeed;
+  out[o + 10] = record.bladeSeed;
+  out[o + 11] = record.clumpWeight;
+  out[o + 12] = record.normalX;
+  out[o + 13] = record.normalY;
+  out[o + 14] = record.normalZ;
+  out[o + 15] = 0;
+}
+
+function terrainCellAt(
+  grid: BattleTerrainGrid,
+  x: number,
+  y: number,
+): { cx: number; cy: number } | null {
   const cx = Math.floor((x - grid.ox) / grid.cell);
   const cy = Math.floor((y - grid.oy) / grid.cell);
   if (cx < 0 || cy < 0 || cx >= grid.w || cy >= grid.h) return null;
@@ -422,7 +768,12 @@ function clumpFor(x: number, y: number, seed: number, clumpCellSize: number) {
   return { seed: seed24, weight: clamp01(1 - falloff) };
 }
 
-function lodTierForDistance(distance: number, radius: number, nearT: number, midT: number): GrassFieldLodTier {
+function lodTierForDistance(
+  distance: number,
+  radius: number,
+  nearT: number,
+  midT: number,
+): GrassFieldLodTier {
   const t = radius > 0 ? distance / radius : 0;
   if (t <= nearT) return 0;
   if (t <= midT) return 1;

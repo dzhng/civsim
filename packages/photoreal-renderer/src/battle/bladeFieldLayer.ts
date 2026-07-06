@@ -21,6 +21,7 @@ import {
   instancedArray,
   length,
   max,
+  min,
   mix,
   normalize,
   pow,
@@ -69,6 +70,16 @@ export interface BladeFieldTransitionProfile {
   edgeSinkStartM?: number;
 }
 
+type FloatUniformNode = FloatNode & { value: number };
+
+export interface BladeFieldTransitionUniforms {
+  profile: BladeFieldTransitionProfile;
+  denseBladeEndM: FloatUniformNode;
+  farGrassStartM: FloatUniformNode;
+  farGrassEndM: FloatUniformNode;
+  edgeSinkStartM: FloatUniformNode;
+}
+
 export const BLADE_FIELD_LOD_TIERS: readonly BladeFieldTierSpec[] = [
   { id: "near", lodTier: 0, segments: 15, minDistanceM: 0, maxDistanceM: 5 },
   { id: "mid", lodTier: 1, segments: 5, minDistanceM: 5, maxDistanceM: 20 },
@@ -80,6 +91,32 @@ export const DEFAULT_BLADE_FIELD_TRANSITION: BladeFieldTransitionProfile = {
   farGrassStartM: 20,
   farGrassEndM: 64,
 };
+
+export function createBladeFieldTransitionUniforms(
+  profile: BladeFieldTransitionProfile,
+): BladeFieldTransitionUniforms {
+  const normalized = normalizedTransitionProfile(profile);
+  return {
+    profile: normalized,
+    denseBladeEndM: uniform(normalized.denseBladeEndM) as unknown as FloatUniformNode,
+    farGrassStartM: uniform(normalized.farGrassStartM) as unknown as FloatUniformNode,
+    farGrassEndM: uniform(normalized.farGrassEndM) as unknown as FloatUniformNode,
+    edgeSinkStartM: uniform(edgeSinkStartUniformValue(normalized)) as unknown as FloatUniformNode,
+  };
+}
+
+export function updateBladeFieldTransitionUniforms(
+  uniforms: BladeFieldTransitionUniforms,
+  profile: BladeFieldTransitionProfile,
+): BladeFieldTransitionProfile {
+  const normalized = normalizedTransitionProfile(profile);
+  uniforms.profile = normalized;
+  uniforms.denseBladeEndM.value = normalized.denseBladeEndM;
+  uniforms.farGrassStartM.value = normalized.farGrassStartM;
+  uniforms.farGrassEndM.value = normalized.farGrassEndM;
+  uniforms.edgeSinkStartM.value = edgeSinkStartUniformValue(normalized);
+  return normalized;
+}
 
 export const BLADE_FIELD_PALETTE = {
   source: "packages/photoreal-renderer/src/battle/foliageLayer.ts GRASS_ALBEDO_* olive family",
@@ -216,8 +253,9 @@ export class PhotorealBladeFieldLayer {
   private farTierVisible = true;
 
   private readonly tiers: readonly BladeFieldTierSpec[];
-  private readonly thinning: BladeFieldThinningProfile;
-  private readonly transition: BladeFieldTransitionProfile;
+  private thinning: BladeFieldThinningProfile;
+  private transition: BladeFieldTransitionProfile;
+  private readonly transitionUniforms: BladeFieldTransitionUniforms;
 
   /** `tiers` overrides the ratified close-lab envelope (far 64 m) - the
    *  production battle passes a wider far tier so vista framing (eye ~59 m
@@ -227,11 +265,13 @@ export class PhotorealBladeFieldLayer {
     time: FloatNode = uniform(0) as unknown as FloatNode,
     tiers: readonly BladeFieldTierSpec[] = BLADE_FIELD_LOD_TIERS,
     edgeFade = false,
-    transition: BladeFieldTransitionProfile = DEFAULT_BLADE_FIELD_TRANSITION,
+    transition: BladeFieldTransitionProfile | BladeFieldTransitionUniforms = DEFAULT_BLADE_FIELD_TRANSITION,
   ) {
     this.time = time;
     this.tiers = tiers;
-    this.transition = transitionProfileForTiers(tiers, transition);
+    this.transitionUniforms =
+      "profile" in transition ? transition : createBladeFieldTransitionUniforms(transition);
+    this.transition = this.applyTransitionProfile(this.transitionUniforms.profile);
     this.thinning = thinningProfileForTransition(this.transition, edgeFade);
     const material = new THREE.MeshStandardNodeMaterial({
       side: THREE.DoubleSide,
@@ -291,7 +331,13 @@ export class PhotorealBladeFieldLayer {
       }
       return;
     }
-    this.runtime = createGpuRuntime(this.packedRecords, this.buckets, this.tiers, this.thinning);
+    this.runtime = createGpuRuntime(
+      this.packedRecords,
+      this.buckets,
+      this.tiers,
+      this.transitionUniforms,
+      this.thinning,
+    );
 
     for (const bucket of this.buckets) {
       bucket.mesh.material.dispose();
@@ -299,7 +345,7 @@ export class PhotorealBladeFieldLayer {
         this.runtime.grassData,
         bucket.visibleIndices,
         this.time,
-        this.transition,
+        this.transitionUniforms,
         this.thinning.survivorAlbedoBlend,
       );
       bucket.records = 0;
@@ -333,6 +379,12 @@ export class PhotorealBladeFieldLayer {
     for (const bucket of this.buckets) {
       bucket.mesh.visible = this.tierVisible(bucket.spec, this.enabled);
     }
+  }
+
+  setTransition(profile: BladeFieldTransitionProfile): BladeFieldTransitionProfile {
+    this.transition = this.applyTransitionProfile(profile);
+    this.thinning = thinningProfileForTransition(this.transition, this.thinning.enabled);
+    return this.transition;
   }
 
   private updateCpuMirrorTierCounts(eye: readonly [number, number, number]): void {
@@ -440,6 +492,11 @@ export class PhotorealBladeFieldLayer {
   private tierVisible(spec: BladeFieldTierSpec, visible: boolean): boolean {
     return visible && (this.farTierVisible || spec.id !== "far");
   }
+
+  private applyTransitionProfile(profile: BladeFieldTransitionProfile): BladeFieldTransitionProfile {
+    const clamped = transitionProfileForTiers(this.tiers, profile);
+    return updateBladeFieldTransitionUniforms(this.transitionUniforms, clamped);
+  }
 }
 
 function bladeGeometry(segments: number): THREE.InstancedBufferGeometry {
@@ -491,6 +548,7 @@ function createGpuRuntime(
   packedRecords: Float32Array,
   buckets: readonly TierBucket[],
   tiers: readonly BladeFieldTierSpec[],
+  transition: BladeFieldTransitionUniforms,
   thinning: BladeFieldThinningProfile,
 ): BladeFieldGpuRuntime {
   const storageArray = instancedArray as unknown as (
@@ -545,7 +603,8 @@ function createGpuRuntime(
     const dist = length(camera.sub(pos));
     const seed01 = clamp(d2.z.div(float(SEED24_MASK)), 0.0, 1.0);
     const bladeHash = fract(seed01.mul(7.13));
-    const fade = smoothstep(float(thinning.fadeStartM), float(thinning.fadeEndM), dist);
+    const fadeStart = min(transition.farGrassStartM, transition.farGrassEndM.mul(0.55));
+    const fade = smoothstep(fadeStart, transition.farGrassEndM, dist);
     // Disabled profile (ratified lab envelope) keeps every blade.
     const survival = thinning.enabled ? float(1.0).sub(fade) : float(1.0);
     If(bladeHash.lessThan(survival), () => {
@@ -576,7 +635,7 @@ function bladeFieldMaterial(
   grassData: unknown,
   visibleIndices: unknown,
   time: FloatNode,
-  transition: BladeFieldTransitionProfile,
+  transition: BladeFieldTransitionUniforms,
   survivorAlbedoBlend: number,
 ): THREE.MeshStandardNodeMaterial {
   // Standard material so the environment (the mood owner) lights the canopy -
@@ -614,8 +673,8 @@ function bladeFieldMaterial(
     const base = vec3(d0.x, d0.y, d0.z).toVar();
     const eyeDist = length(cameraPosition.sub(base)).toVar();
     const farSoft = smoothstep(
-      float(transition.farGrassStartM),
-      float(transition.farGrassEndM),
+      transition.farGrassStartM,
+      transition.farGrassEndM,
       eyeDist,
     ).toVar();
     // Tall clumps widen too: a clump reads as one bright mass, not stripes.
@@ -647,10 +706,7 @@ function bladeFieldMaterial(
     // Coverage-edge dissolve: blades SINK into the turf across the last
     // stretch of the far transition instead of stopping full-height at a
     // hard radius (the "visible from across the room" cutoff critique).
-    const edgeSink =
-      transition.edgeSinkStartM === undefined
-        ? float(1.0)
-        : smoothstep(float(transition.farGrassEndM), float(transition.edgeSinkStartM), eyeDist);
+    const edgeSink = smoothstep(transition.farGrassEndM, transition.edgeSinkStartM, eyeDist);
     const height = max(d1.y.mul(mix(0.52, 1.32, clumpWeight)), 0.16)
       .mul(nearEyeFade)
       .mul(mix(1.0, 0.72, farSoft))
@@ -749,8 +805,8 @@ function bladeFieldMaterial(
     // Blend into the meadow tone toward the cull ring so the coverage edge
     // dissolves instead of cutting a hard disc (slice 12 owns real thinning).
     const ringFade = smoothstep(
-      float(transition.farGrassStartM),
-      float(transition.farGrassEndM),
+      transition.farGrassStartM,
+      transition.farGrassEndM,
       eyeDist,
     );
     const meadow = vec3(0.47, 0.53, 0.32);
@@ -799,6 +855,26 @@ function transitionProfileForTiers(
         ? undefined
         : Math.min(Math.max(transition.edgeSinkStartM, farTier.minDistanceM), farGrassEndM),
   };
+}
+
+function normalizedTransitionProfile(
+  transition: BladeFieldTransitionProfile,
+): BladeFieldTransitionProfile {
+  const farGrassEndM = Math.max(0, transition.farGrassEndM);
+  const farGrassStartM = Math.min(Math.max(0, transition.farGrassStartM), farGrassEndM);
+  return {
+    denseBladeEndM: Math.min(Math.max(transition.denseBladeEndM, 0), farGrassEndM),
+    farGrassStartM,
+    farGrassEndM,
+    edgeSinkStartM:
+      transition.edgeSinkStartM === undefined
+        ? undefined
+        : Math.min(Math.max(transition.edgeSinkStartM, 0), farGrassEndM),
+  };
+}
+
+function edgeSinkStartUniformValue(transition: BladeFieldTransitionProfile): number {
+  return transition.edgeSinkStartM ?? Math.max(0, transition.farGrassEndM - 0.001);
 }
 
 function thinningProfileForTransition(

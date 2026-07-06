@@ -75,7 +75,11 @@ import {
   type BattleLakeSurfaceSpec,
   type SeaDisplacementSourceId,
 } from "./seaLayer";
-import { PhotorealBladeFieldLayer, type BladeFieldTransitionProfile } from "./bladeFieldLayer";
+import {
+  PhotorealBladeFieldLayer,
+  createBladeFieldTransitionUniforms,
+  type BladeFieldTransitionProfile,
+} from "./bladeFieldLayer";
 import { PhotorealScenery } from "./foliageLayer";
 import { PhotorealCrowd, type CrowdVisibilityScope } from "./crowdLayer";
 import {
@@ -119,16 +123,21 @@ const PRODUCTION_BLADE_FIELD_PROFILE = {
   source:
     "GRASSFAR-D6B3 False Earth production profile: lab near/mid fidelity plus blurred far-grass band",
   seed: 0x5ea7_2026,
-  // Dense blades follow the camera's ground position. A widened far-impression
-  // band uses the same source-storage records, then terrain detail takes over
-  // on the same transition instead of exposing a hard LOD edge.
-  focusRadiusM: 260,
-  farGrassTransition: {
+  // Dense blades follow the camera's ground position. The active transition is
+  // scaled from this vista profile so blade thinning, blade sink, and terrain
+  // far-grass rise share one owner at every zoom.
+  vistaVisibleRadiusM: 260,
+  // The FULL three-part structure at vista scale: dense blades, thinning
+  // from the visible ring (260) through the blurred far band to 480, sink
+  // from 380. Collapsing farEnd to the visible ring deleted the blur band
+  // (far-tier survivors 22k -> 7k) - the active profile scales ALL of it.
+  vistaTransitionDefaults: {
     edgeSinkStartM: 380,
-    denseBladeEndM: 260,
+    denseBladeEndM: 143,
     farGrassStartM: 260,
     farGrassEndM: 480,
   } satisfies BladeFieldTransitionProfile,
+  closeVisibleRadiusM: 40,
   // Records are sampled beyond the render ring so ordinary camera pans stay
   // inside an already-uploaded field. Rebuilds happen on this margin cadence,
   // not the old 8m sampler snap, which was the panning hitch source.
@@ -225,11 +234,12 @@ export class PhotorealBattleWorld {
   private grassSampleStats: GrassFieldStats | null = null;
   private grassRebuildStats = {
     strategy: "margin-raf-timesliced-swap",
-    focusRadiusM: PRODUCTION_BLADE_FIELD_PROFILE.focusRadiusM,
+    focusRadiusM: PRODUCTION_BLADE_FIELD_PROFILE.vistaVisibleRadiusM,
     rebuildMarginM: PRODUCTION_BLADE_FIELD_PROFILE.rebuildMarginM,
     coverageRadiusM:
-      PRODUCTION_BLADE_FIELD_PROFILE.farGrassTransition.farGrassEndM +
+      PRODUCTION_BLADE_FIELD_PROFILE.vistaVisibleRadiusM +
       PRODUCTION_BLADE_FIELD_PROFILE.rebuildMarginM,
+    activeTransition: null as BladeFieldTransitionProfile | null,
     activeFocus: null as GrassSampleFocus | null,
     pendingFocus: null as GrassSampleFocus | null,
     pending: false,
@@ -243,6 +253,10 @@ export class PhotorealBattleWorld {
     totalCells: 0,
   };
   private grassEnabled = true;
+  private readonly grassTransition = createBladeFieldTransitionUniforms(
+    activeGrassTransitionProfile(PRODUCTION_BLADE_FIELD_PROFILE.vistaVisibleRadiusM),
+  );
+  private activeGrassTransition: BladeFieldTransitionProfile = this.grassTransition.profile;
   private instances: CrowdInstance[] = [];
   private markers: MarkerInstance[] = [];
   private seating = { checked: 0, matches: true, span: 0 };
@@ -314,7 +328,7 @@ export class PhotorealBattleWorld {
         { id: "far", lodTier: 2, segments: 2, minDistanceM: 20, maxDistanceM: 480 },
       ],
       true,
-      PRODUCTION_BLADE_FIELD_PROFILE.farGrassTransition,
+      this.grassTransition,
     );
     this.scenery = new PhotorealScenery(scene);
     this.crowd = new PhotorealCrowd(scene, meshes, vats, kit);
@@ -529,7 +543,7 @@ export class PhotorealBattleWorld {
     this.groundTriangles = groundMesh.triangles;
     this.ground = createGroundMesh(this.frame, groundMesh, {
       slopeBands: this.slopeBands,
-      farGrass: PRODUCTION_BLADE_FIELD_PROFILE.farGrassTransition,
+      farGrass: this.grassTransition,
     });
     scene.add(this.ground);
 
@@ -559,7 +573,7 @@ export class PhotorealBattleWorld {
       for (const band of this.vistaGrid.bands) {
         const mesh = createVistaMesh(this.frame, band, this.groundCover, {
           slopeBands: this.slopeBands,
-          farGrass: PRODUCTION_BLADE_FIELD_PROFILE.farGrassTransition,
+          farGrass: this.grassTransition,
         });
         if (!mesh) continue;
         this.vistaMeshes.push(mesh);
@@ -762,7 +776,9 @@ export class PhotorealBattleWorld {
   private updateGrassForCamera(eyeX: number, eyeY: number, eyeZ = 0): void {
     if (!this.grassEnabled) return;
     if (!this.terrainGrid || !this.heightField) return;
-    const visibleRadius = PRODUCTION_BLADE_FIELD_PROFILE.focusRadiusM;
+    const visibleRadius = activeGrassVisibleRadiusM(eyeZ);
+    const transition = activeGrassTransitionProfile(visibleRadius);
+    this.activeGrassTransition = this.grass.setTransition(transition);
     // Camera-travel resampling scales with ZOOM and stays throttled (David's
     // renderer law): the higher the eye, the smaller blades project and the
     // wider the margin can stretch - a vista camera pans hundreds of metres
@@ -776,29 +792,27 @@ export class PhotorealBattleWorld {
     // eye sees a few dozen metres of ground - sampling the full far-grass
     // window there is pure rebuild cost and blade overdraw (the zoom-24/28
     // fps cliffs).
-    const nearBand = Math.max(1, Math.min(4, Math.ceil(eyeZ / 15)));
-    const radiusScale = eyeZ >= 60 ? 1 : nearBand / 4;
-    const scaledVisible = Math.max(40, visibleRadius * radiusScale);
-    const scaledFarGrass = Math.max(
-      scaledVisible,
-      PRODUCTION_BLADE_FIELD_PROFILE.farGrassTransition.farGrassEndM * radiusScale,
-    );
-    const radius = scaledFarGrass + margin;
+    // Sample to the ACTIVE blur-band end, not just the dense ring - the
+    // 260-480m far band needs records to exist.
+    const radius = transition.farGrassEndM + margin;
+    this.grassRebuildStats.coverageRadiusM = radius;
+    this.grassRebuildStats.activeTransition = this.activeGrassTransition;
     const step = PRODUCTION_BLADE_FIELD_PROFILE.snapCellSize;
-    if (
-      this.grassSampleFocus &&
-      this.grassTerrainKey &&
-      Math.hypot(eyeX - this.grassSampleFocus.x, eyeY - this.grassSampleFocus.y) <= margin
-    ) {
-      this.grassRebuildStats.skippedWithinMargin++;
-      return;
-    }
     const focus = {
       x: snapGrassFocus(eyeX, step),
       y: snapGrassFocus(eyeY, step),
       radius,
     };
     const key = this.grassSampleKey(focus);
+    if (
+      this.grassSampleFocus &&
+      this.grassTerrainKey &&
+      Math.hypot(eyeX - this.grassSampleFocus.x, eyeY - this.grassSampleFocus.y) <= margin &&
+      key === this.grassTerrainKey
+    ) {
+      this.grassRebuildStats.skippedWithinMargin++;
+      return;
+    }
     if (key === this.grassTerrainKey || key === this.grassPendingTerrainKey) return;
     this.grassPendingTerrainKey = key;
     this.startGrassSampleTask(focus, key);
@@ -1009,6 +1023,8 @@ export class PhotorealBattleWorld {
             grass: {
               ...this.grass.stats(),
               productionSamplingProfile: PRODUCTION_BLADE_FIELD_PROFILE,
+              transitionOwner: "battleWorld.updateGrassForCamera" as const,
+              activeTransition: this.activeGrassTransition,
               sample: this.grassSampleStats,
               rebuild: this.grassRebuildStats,
             },
@@ -1049,6 +1065,32 @@ function disposeMesh(mesh: THREE.Mesh): void {
 
 function snapGrassFocus(value: number, step: number): number {
   return Math.floor(value / step) * step;
+}
+
+function activeGrassVisibleRadiusM(eyeZ: number): number {
+  if (eyeZ >= 60) return PRODUCTION_BLADE_FIELD_PROFILE.vistaVisibleRadiusM;
+  const band = Math.max(1, Math.min(4, Math.ceil(Math.max(0, eyeZ) / 15)));
+  const bandRadii = [
+    PRODUCTION_BLADE_FIELD_PROFILE.closeVisibleRadiusM,
+    90,
+    160,
+    PRODUCTION_BLADE_FIELD_PROFILE.vistaVisibleRadiusM,
+  ] as const;
+  return bandRadii[band - 1];
+}
+
+function activeGrassTransitionProfile(visibleRadiusM: number): BladeFieldTransitionProfile {
+  const vista = PRODUCTION_BLADE_FIELD_PROFILE.vistaTransitionDefaults;
+  // Scale by the VISIBLE ring against its vista-scale anchor (farGrassStartM
+  // = where thinning begins = the ring); the blur band extends proportionally
+  // past it (vista: 260 ring -> 480 blur end; low eye: 40 -> ~74).
+  const scale = visibleRadiusM / Math.max(1, vista.farGrassStartM);
+  return {
+    denseBladeEndM: Math.max(1, vista.denseBladeEndM * scale),
+    farGrassStartM: Math.max(1, vista.farGrassStartM * scale),
+    farGrassEndM: Math.max(2, vista.farGrassEndM * scale),
+    edgeSinkStartM: Math.max(1, (vista.edgeSinkStartM ?? vista.farGrassStartM) * scale),
+  };
 }
 
 function scheduleGrassSampleFrame(callback: () => void): void {

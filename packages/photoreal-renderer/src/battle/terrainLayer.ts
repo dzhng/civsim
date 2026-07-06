@@ -23,6 +23,7 @@ import {
   mix,
   normalize,
   positionWorld,
+  smoothstep as smoothstepNode,
   transformNormalToView,
   varying,
   vec2,
@@ -51,7 +52,7 @@ import type {
   BattleGroundCover,
   BattleSlopeBands,
 } from "../../../game-renderer/src/battle/terrainFeatures";
-import type { BladeFieldTransitionProfile } from "./bladeFieldLayer";
+import type { BladeFieldTransitionUniforms } from "./bladeFieldLayer";
 
 export const RENDER_ORDER = {
   backdrop: -10,
@@ -136,7 +137,7 @@ const WIDE_DETAIL_TERRAIN_STYLE: TerrainQuadStyle = {
 export interface TerrainMaterialOptions {
   slopeBands?: BattleSlopeBands | null;
   vistaBand?: BattleVistaBand["name"] | null;
-  farGrass?: BladeFieldTransitionProfile | null;
+  farGrass?: BladeFieldTransitionUniforms | null;
 }
 
 export interface BattleVistaBand {
@@ -395,12 +396,14 @@ export function createGroundMesh(
     const farGrass = options.farGrass;
     const cameraGround = cameraPosition.xy;
     const viewDist = length(world.sub(cameraGround)).toVar();
-    const farRiseEnd = farGrass.farGrassStartM + (farGrass.farGrassEndM - farGrass.farGrassStartM) * 0.58;
-    const farIn = smoothstepN(farGrass.farGrassStartM, farRiseEnd, viewDist).toVar();
+    const farRiseEnd = farGrass.farGrassStartM
+      .add(farGrass.farGrassEndM.sub(farGrass.farGrassStartM).mul(0.58))
+      .toVar();
+    const farIn = smoothstepNode(farGrass.farGrassStartM, farRiseEnd, viewDist).toVar();
     // Sustain far past the blade edge - the term hands off to distance fog,
     // not to bare green ground (the "bare strip before the treeline").
     const farOut = float(1.0).sub(
-      smoothstepN(farGrass.farGrassEndM + 300, farGrass.farGrassEndM + 900, viewDist),
+      smoothstepNode(farGrass.farGrassEndM.add(300), farGrass.farGrassEndM.add(900), viewDist),
     );
     const farMask = farIn.mul(farOut).mul(float(1.0).sub(waterBlend)).toVar();
     const wind = frame.time.mul(0.035);

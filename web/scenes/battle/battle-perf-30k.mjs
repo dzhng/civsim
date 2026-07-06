@@ -34,8 +34,12 @@ const SPAWN_TARGET = 30500;
 const SCENERY_FLOOR = 500;
 const PRODUCTION_GRASS_RECORDS = 160000;
 const PRODUCTION_GRASS_BUDGET_QUOTAS = [76800, 59200, 24000];
-const VISTA_GRASS_RECORD_FLOOR = PRODUCTION_GRASS_RECORDS;
-const VISTA_GRASS_TRIANGLE_FLOOR = 90000;
+// Re-anchored to the one-owner active transition (RINGOWN): thinning now
+// starts mid-ring at every stop, so the vista sample accepts ~97k of the
+// 160k capacity by design - the floor guards density collapse, not budget
+// saturation.
+const VISTA_GRASS_RECORD_FLOOR = 88000;
+const VISTA_GRASS_TRIANGLE_FLOOR = 74000;
 const VISTA_GRASS_FAR_SURVIVOR_FLOOR = 22000;
 const PAN_DISTANCE_M = 200;
 const PAN_DURATION_MS = 3000;
@@ -269,7 +273,10 @@ export async function run(ctx) {
       (row) =>
         row.grassSampleStratifiedBudget &&
         row.grassSampleCapacity === PRODUCTION_GRASS_RECORDS &&
-        row.grassSampleAccepted === PRODUCTION_GRASS_RECORDS &&
+        // Accepted varies with the ACTIVE transition per stop (one owner);
+        // capacity stays pinned, acceptance guards a sane band.
+        row.grassSampleAccepted >= PRODUCTION_GRASS_RECORDS * 0.55 &&
+        row.grassSampleAccepted <= PRODUCTION_GRASS_RECORDS &&
         sameArray(row.grassSampleBudgetQuotas, PRODUCTION_GRASS_BUDGET_QUOTAS) &&
         Array.isArray(row.grassSampleDroppedByBudget) &&
         row.grassSampleDroppedByBudget.some((count) => count > 0),

@@ -204,7 +204,13 @@ fn settle_with_frame_slots_in_wall() {
     }
 }
 
-#[ignore = "formation-settle slice 02b"]
+#[ignore = "KNOWN LIMITATION (formation-settle 02b-2, dropped per David): a \
+unit resting in a gap narrower than frontage + body clearance buzzes at \
+~0.10 m/s / 4cm amplitude. Three fixes measured dead: radius-in-corridor-width \
+re-arms the centering shift into a sideways treadmill; slide-level clearance \
+sampling fights the corridor width machinery (width flaps 19<->20 with reform \
+storms); the root is the quantized, hysteresis-free corridor machinery itself \
+— Tier-1 first-principles backlog. Revisit with that rebuild."]
 #[test]
 fn settle_inside_marginal_corridor() {
     let gap_half = 9.7f32;
@@ -316,10 +322,6 @@ fn settle_deeply_overlapping_friendly() {
     assert_settles(&mut sim, friend, 40.0, 60.0);
 }
 
-#[ignore = "formation-settle slice 06b: the catch-up surge exemption needs a \
-front-clear condition — uncapped it fixes the 94m tail (measured 10.1m) but \
-lets trailing men slam into crowd presses at surge speed (cavalry_mass_shoves \
-inverted, braced walk-in annihilated); see the spec's 06 notes"]
 #[test]
 fn run_to_contact_arrives_formed() {
     let mut sim = Sim::new(no_morale_parade(), SEED);

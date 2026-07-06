@@ -368,11 +368,24 @@ rationale here, and continue. Never idle waiting for sign-off.
 - [x] 06-stamina — SHIPPED (pass 7): run_drain 1/340 (foot 0.507 / cav
       0.819 at map-mid, gate live); fatigue + freshness pins re-derived
       → [slices/06-run-to-contact.md](slices/06-run-to-contact.md)
-- [ ] 06b — Formed arrival: the surge exemption needs a front-clear
-      condition (tail fix proven 94m -> 10m; crowd-press collateral
-      measured and parked in the slice notes). The at-ease fit gate rides
-      with this pass too
+- [x] 06b — SHIPPED: the catch-up surge escapes the personal ceiling
+      only on a RUNNING march with the enemy beyond two strides
+      (nearest_enemy_d > 2*surge_speed — no new knob); formed-arrival gate
+      live (tail 10.1m, 15s dress to 1.000). Collateral battery green;
+      counter-web strengthened to 9 seeds (the 5-seed HeavySword/LongSwords
+      flip was the coin, not the web); saturated-regime monotonicity
+      tolerance 0.02 -> 0.04; arrows floor re-derived (shielded runners
+      cross at full correction speed); golden re-pinned. The at-ease fit
+      gate still needs its own contained pass (below)
       → [slices/06-run-to-contact.md](slices/06-run-to-contact.md)
+- [x] at-ease-fit-gate — CLOSED AS BACKLOG, not shipped: applied alone on
+      the shipped tree it inverts cavalry_mass_shoves (cav 2.45 vs inf
+      3.92 — a qualitative comparison; the gate reshuffles the standing
+      crowd's pre-contact arrangement). The latent at-ease relabel storm
+      it guards has only ever been observed in one perturbed microstate
+      that no longer exists; the designed guard (fit-improvement
+      acceptance, 0.9 ratio) is on file in this README's pass-7 notes for
+      whenever the storm shows up at shipped physics
 - [ ] 02b-2 — LAST, droppable (David). Corridor rest pose; naive
       radius-in-width is a banned re-entry (centering treadmill). Gate
       `settle_inside_marginal_corridor`; if it keeps breaking things, close

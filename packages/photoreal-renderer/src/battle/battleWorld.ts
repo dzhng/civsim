@@ -65,6 +65,7 @@ import {
   createHorizonBlockerMesh,
   createVistaMesh,
   RENDER_ORDER,
+  vistaSurfaceHeightAt,
   type BattleVistaGrid,
 } from "./terrainLayer";
 import {
@@ -94,6 +95,7 @@ import { PhotorealStandardLayer, type BattleStandardInstance } from "./standardL
 import { BattlePostChain } from "../post/postChain";
 
 export type { BattleVistaGrid } from "./terrainLayer";
+export { vistaSurfaceHeightAt } from "./terrainLayer";
 export type { BattleLakeSurfaceSpec } from "./seaLayer";
 
 /** The camera fields BattleRenderer snapshots from the shared Camera each
@@ -606,11 +608,24 @@ export class PhotorealBattleWorld {
     return field ? (x, y) => terrainHeightAt(field, x, y) : undefined;
   }
 
-  /** Terrain surface height (render exaggeration applied) at a world point —
-   *  the ONE canonical surface (soldier seats, scenery, ground mesh, overlay
-   *  decals) exposed for DOM anchors and pickers. 0 before terrain arrives. */
+  /** Rendered surface height at a world point. Inside the playable field this
+   *  is the sim terrain. Outside generated maps it is the vista apron/far-fog
+   *  mesh, not the edge-clamped heightfield, so the close camera cannot dive
+   *  under terrain that only the renderer knows about. */
   heightAt(x: number, y: number): number {
-    return this.heightField ? terrainHeightAt(this.heightField, x, y) : 0;
+    const playable = this.heightField ? terrainHeightAt(this.heightField, x, y) : 0;
+    const vista = this.vistaGrid ? vistaSurfaceHeightAt(this.vistaGrid, x, y) : null;
+    if (this.isInsidePlayableRect(x, y)) return vista === null ? playable : Math.max(playable, vista);
+    return vista ?? playable;
+  }
+
+  surfaceHeightAt(x: number, y: number): number {
+    return this.heightAt(x, y);
+  }
+
+  private isInsidePlayableRect(x: number, y: number): boolean {
+    const [x0, y0, w, h] = this.terrainRect;
+    return x >= x0 && x <= x0 + w && y >= y0 && y <= y0 + h;
   }
 
   draw(

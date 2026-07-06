@@ -59,7 +59,11 @@ import {
   type BattleSlopeBands,
 } from "../../../packages/game-renderer/src/battle/terrainFeatures";
 import type { BattleEnvironmentId } from "../../../packages/game-renderer/src/environment/environment";
-import type { BattleVistaGrid } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
+import { eyePosition } from "../../../packages/renderer-core/src/camera3d";
+import {
+  vistaSurfaceHeightAt,
+  type BattleVistaGrid,
+} from "../../../packages/photoreal-renderer/src/battle/battleWorld";
 
 const TICK_DT = 1 / 30;
 const MAX_TICKS_PER_FRAME = 4;
@@ -2188,6 +2192,22 @@ export class BattleScene implements Scene {
       heightAt: (x: number, y: number) => renderer.heightAt(x, y),
       vistaHeightAt: (x: number, y: number) =>
         generatedVistaForDebug ? vistaHeightAt(generatedVistaForDebug, x, y) : null,
+      cameraSurfaceDebug: () => {
+        const params = camera.params();
+        const eye = eyePosition(params);
+        const height = renderer.heightAt(eye[0], eye[1]);
+        const vista = generatedVistaForDebug
+          ? vistaSurfaceHeightAt(generatedVistaForDebug, eye[0], eye[1])
+          : null;
+        return {
+          eye,
+          heightAt: height,
+          vistaHeightAt: vista,
+          renderedSurfaceHeightAt: height,
+          clearance: eye[2] - height,
+          camera3d: params,
+        };
+      },
       setCamera: (x: number, y: number, zoom: number, yaw = camera.yaw, pitch = camera.pitch) => {
         camera.setViewCenter(x, y);
         camera.zoom = zoom;
@@ -2209,29 +2229,7 @@ export class BattleScene implements Scene {
 }
 
 function vistaHeightAt(vista: BattleVistaGrid, x: number, y: number): number | null {
-  const band = vista.bands.find(
-    (b) => Math.abs(x) <= b.outerHalfW + b.cell && Math.abs(y) <= b.outerHalfH + b.cell,
-  );
-  if (!band) return null;
-  const gx = clamp((x - band.ox) / band.cell, 0, band.w - 1);
-  const gy = clamp((y - band.oy) / band.cell, 0, band.h - 1);
-  const x0 = Math.floor(gx);
-  const y0 = Math.floor(gy);
-  const x1 = Math.min(x0 + 1, band.w - 1);
-  const y1 = Math.min(y0 + 1, band.h - 1);
-  const tx = gx - x0;
-  const ty = gy - y0;
-  const top = lerp(band.height[y0 * band.w + x0], band.height[y0 * band.w + x1], tx);
-  const bot = lerp(band.height[y1 * band.w + x0], band.height[y1 * band.w + x1], tx);
-  return lerp(top, bot, ty);
-}
-
-function clamp(v: number, lo: number, hi: number): number {
-  return v < lo ? lo : v > hi ? hi : v;
-}
-
-function lerp(a: number, b: number, t: number): number {
-  return a + (b - a) * t;
+  return vistaSurfaceHeightAt(vista, x, y);
 }
 
 declare global {

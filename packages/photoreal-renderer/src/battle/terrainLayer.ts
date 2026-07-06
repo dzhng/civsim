@@ -160,6 +160,25 @@ export interface BattleVistaGrid {
   bands: BattleVistaBand[];
 }
 
+export function vistaSurfaceHeightAt(vista: BattleVistaGrid, x: number, y: number): number | null {
+  const band = vista.bands.find(
+    (b) => Math.abs(x) <= b.outerHalfW + b.cell && Math.abs(y) <= b.outerHalfH + b.cell,
+  );
+  if (!band) return null;
+  if (Math.abs(x) < band.innerHalfW && Math.abs(y) < band.innerHalfH) return null;
+  const gx = clampNumber((x - band.ox) / band.cell, 0, band.w - 1);
+  const gy = clampNumber((y - band.oy) / band.cell, 0, band.h - 1);
+  const x0 = Math.floor(gx);
+  const y0 = Math.floor(gy);
+  const x1 = Math.min(x0 + 1, band.w - 1);
+  const y1 = Math.min(y0 + 1, band.h - 1);
+  const tx = gx - x0;
+  const ty = gy - y0;
+  const top = lerpNumber(band.height[y0 * band.w + x0], band.height[y0 * band.w + x1], tx);
+  const bot = lerpNumber(band.height[y1 * band.w + x0], band.height[y1 * band.w + x1], tx);
+  return lerpNumber(top, bot, ty) + northSouthSink(band, x, y);
+}
+
 function normalZForSlope(slope: number): number {
   return 1 / Math.sqrt(1 + slope * slope);
 }
@@ -167,7 +186,7 @@ function normalZForSlope(slope: number): number {
 function quadGeometry(): THREE.BufferGeometry {
   const geo = new THREE.BufferGeometry();
   geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(12), 3));
-  geo.setIndex([0, 2, 1, 1, 2, 3]); // the shell's triangle-strip order, listed
+  geo.setIndex([0, 1, 2, 1, 3, 2]);
   return geo;
 }
 
@@ -196,7 +215,7 @@ function terrainQuadMaterial(
   frame: BattleFrameUniforms,
 ): THREE.MeshStandardNodeMaterial {
   const material = new THREE.MeshStandardNodeMaterial({
-    side: THREE.DoubleSide,
+    side: THREE.FrontSide,
     roughness: 0.96,
     metalness: 0,
   });
@@ -266,7 +285,7 @@ function terrainQuadMaterial(
 
 function backdropMaterial(): THREE.MeshStandardNodeMaterial {
   const material = new THREE.MeshStandardNodeMaterial({
-    side: THREE.DoubleSide,
+    side: THREE.FrontSide,
     roughness: 0.98,
     metalness: 0,
   });
@@ -349,9 +368,9 @@ export function createGroundMesh(
   geo.setAttribute("gColor", new THREE.InterleavedBufferAttribute(buffer, 3, 6));
   geo.setAttribute("gWater", new THREE.InterleavedBufferAttribute(buffer, 1, 9));
   geo.setAttribute("gTint", new THREE.BufferAttribute(mesh.tint, 1));
-  geo.setIndex(new THREE.BufferAttribute(mesh.indices, 1));
+  geo.setIndex(new THREE.BufferAttribute(frontSideIndexBuffer(mesh.indices), 1));
 
-  const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, metalness: 0 });
+  const material = new THREE.MeshStandardNodeMaterial({ side: THREE.FrontSide, metalness: 0 });
   const position = attribute<"vec3">("position", "vec3");
   const gNormal = attribute<"vec3">("gNormal", "vec3");
   const worldNormal = normalize(gNormal).toVar();
@@ -646,6 +665,24 @@ function smoothstep(a: number, b: number, x: number): number {
   return t * t * (3 - 2 * t);
 }
 
+function clampNumber(v: number, lo: number, hi: number): number {
+  return v < lo ? lo : v > hi ? hi : v;
+}
+
+function lerpNumber(a: number, b: number, t: number): number {
+  return a + (b - a) * t;
+}
+
+function frontSideIndexBuffer(indices: Uint32Array): Uint32Array {
+  const out = new Uint32Array(indices.length);
+  for (let i = 0; i + 2 < indices.length; i += 3) {
+    out[i] = indices[i];
+    out[i + 1] = indices[i + 2];
+    out[i + 2] = indices[i + 1];
+  }
+  return out;
+}
+
 /** The sealed-edge blocker mesh (horizonPass port — cliffs/walls/aprons). */
 export function createHorizonBlockerMesh(layout: BattleHorizonLayout): THREE.Mesh | null {
   if (layout.mesh.indices.length === 0) return null;
@@ -659,7 +696,7 @@ export function createHorizonBlockerMesh(layout: BattleHorizonLayout): THREE.Mes
   geo.setIndex(new THREE.BufferAttribute(layout.mesh.indices, 1));
 
   const material = new THREE.MeshStandardNodeMaterial({
-    side: THREE.DoubleSide,
+    side: THREE.FrontSide,
     roughness: 0.92,
     metalness: 0,
   });

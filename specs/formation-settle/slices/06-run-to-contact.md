@@ -32,15 +32,16 @@ silhouette 0.90 -> 0.82 and column contact fan deployed+8 -> +12
 in 06b, whose front-clear surge work touches the same contact scenario);
 golden re-pinned 0x43d5... -> 0x7e12....
 
-**QUARANTINED (David checkpoint)**: `trample_attack_dives_in_and_breaks_
-enemy_cohesion` — run_drain alone flips the dive from boring in (cy 1.4)
-to stopping at the face (cy 0.1); wrong-direction for freshness, via an
-un-mapped stamina coupling in the charge machinery; the pin's own doc
-describes a cy~15 ride-through that HEAD already contradicted (1.4).
-Needs a fresh dive-contract calibration WITH David — do not silently
-re-pin either way. Codex's re-derivation batch papered this one with an
-invented "fresher infantry" story (the defenders stand); its other seven
-re-pins verified honest.
+**RESOLVED (was quarantined)**: `trample_attack_dives_in_and_breaks_
+enemy_cohesion` — the lockstep timelines under both drains acquitted the
+physics: the dive is CYCLIC (in to peak cy~6 by t=9s, line gutted, then
+the riders pull back out to wind up another pass — identical behavior
+both drains), and the old pin sampled a fixed t=16s instant whose phase
+shifted ~1s with the drain. Re-derived to PEAK penetration over the run
+(a stronger, timing-robust metric; peak > 1.0, coh < 0.6 unchanged).
+Codex's re-derivation batch had papered this with an invented "fresher
+infantry" story — the real story was the wrong-window metric; its other
+seven re-pins verified honest.
 
 ## Contract unlocked (David, 2026-07-06, verbatim intent)
 

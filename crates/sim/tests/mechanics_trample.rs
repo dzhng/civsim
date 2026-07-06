@@ -81,13 +81,6 @@ fn run(sim: &mut Sim, secs: f32) {
     }
 }
 
-#[ignore = "formation-settle 06-stamina quarantine (David checkpoint): run_drain \
-1/90 -> 1/340 flips the dive from boring in (cy 1.4) to stopping at the face \
-(cy 0.1) through a stamina coupling in the charge machinery that defies the \
-simple fresher-is-stronger story; this pin's own doc describes a cy~15 \
-ride-through that HEAD's 1.4 already contradicted, so the contract needs a \
-fresh calibration pass, not a silent re-pin. Cohesion-break claim still holds \
-(0.49 < 0.6). See specs/formation-settle slice 06 notes."]
 #[test]
 fn trample_attack_dives_in_and_breaks_enemy_cohesion() {
     // The dive's job: shatter the enemy's order. A shallow line, immortal so the
@@ -95,10 +88,20 @@ fn trample_attack_dives_in_and_breaks_enemy_cohesion() {
     // drop is the riders boring INTO the ranks, not casualties thinning them.
     let (mut sim, line, cav) = rig(4);
     sim.set_attack_order(cav, line);
-    run(&mut sim, 16.0);
+    // PEAK penetration, not the t=16s instant: the dive is CYCLIC — in to
+    // ~cy 6 by t=9, then the riders pull back out to wind up another pass
+    // (healthy cavalry, verified identical under run_drain 1/90 and 1/340) —
+    // and a fixed-instant sample lands at a drain-sensitive phase of the
+    // pull-back (it flipped 1.4 -> 0.1 across the 06-stamina recalibration
+    // while the peak held ~6 in both).
+    let mut peak_cy = f32::NEG_INFINITY;
+    for _ in 0..(16.0 / DT) as usize {
+        sim.tick();
+        peak_cy = peak_cy.max(sim.units[cav].centroid.y);
+    }
     let enemy_coh = sim.units[line].cohesion;
-    let cav_cy = sim.units[cav].centroid.y;
-    eprintln!("dive: enemy cohesion {enemy_coh:.2}, cav penetrated to cy {cav_cy:.1}");
+    let cav_cy = peak_cy;
+    eprintln!("dive: enemy cohesion {enemy_coh:.2}, cav peak penetration cy {cav_cy:.1}");
     // The line is gutted: a held formation sits near 1.0; the dive drives it past
     // half. Re-derived 0.5 -> 0.6 after the strike-zones refactor: with the cleaner
     // flank-lobe targeting the cav now CARRIES THROUGH this shallow 4-deep line

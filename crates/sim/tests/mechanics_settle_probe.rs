@@ -1088,3 +1088,86 @@ fn probe_trace_corridor_buzz_forces() {
         center_n
     );
 }
+
+#[test]
+fn probe_dive_drain_divergence() {
+    // The trample dive under run_drain 1/90 vs 1/340, rig replicated from
+    // mechanics_trample::rig(4): print the cav's stamina/charging/pace
+    // timeline for both — the coupling is the charge-budget path
+    // (slice 06-stamina quarantined pin).
+    use sim::{class, class_stats, strike, UnitClassId, Weapon, WeaponKind};
+    let fake_weapon = |reach: f32| Weapon {
+        reach,
+        min_range: 0.0,
+        zones: strike::front(0.7),
+        attack_interval: 3.0,
+        damage: 0.0,
+        cleave: false,
+        impales: false,
+        kind: WeaponKind::Standard,
+    };
+    let build = |run_drain: f32| -> (Sim, usize, usize) {
+        let mut tun = Tunables {
+            micro_rough: 0.0,
+            morale_enabled: false,
+            ..Tunables::default()
+        };
+        tun.run_drain = run_drain;
+        let mut sim = Sim::new(tun, 7);
+        let files = 16usize;
+        let line = sim.spawn_unit(
+            Vec2::new(0.0, 0.0),
+            -std::f32::consts::FRAC_PI_2,
+            files * 4,
+            files,
+            Vec2::new(0.9, 1.1),
+            1,
+            0.8,
+        );
+        let mut bh = class_stats(UnitClassId::HeavySword);
+        bh.weapons = class::one(fake_weapon(1.1));
+        sim.units[line].stats = bh;
+        for k in sim.units[line].start..sim.units[line].start + sim.units[line].count {
+            sim.health[k] = 1.0e9;
+        }
+        let cav = sim.spawn_class(
+            Vec2::new(0.0, -40.0),
+            std::f32::consts::FRAC_PI_2,
+            64,
+            UnitClassId::ShockCavalry,
+            0,
+        );
+        let mut ch = class_stats(UnitClassId::ShockCavalry);
+        ch.weapons = class::one(Weapon {
+            zones: strike::flanks(1.55, 0.85),
+            ..fake_weapon(2.0)
+        });
+        sim.units[cav].stats = ch;
+        for k in sim.units[cav].start..sim.units[cav].start + sim.units[cav].count {
+            sim.health[k] = 1.0e9;
+            sim.mount_health[k] = 1.0e9;
+        }
+        sim.set_pace(cav, sim::Pace::Run);
+        sim.set_attack_order(cav, line);
+        (sim, line, cav)
+    };
+    for (label, drain) in [("1/90", 1.0f32 / 90.0), ("1/340", 1.0 / 340.0)] {
+        let (mut sim, _line, cav) = build(drain);
+        println!("--- run_drain {label} ---");
+        for s in 0..16 {
+            for _ in 0..30 {
+                sim.tick();
+            }
+            let u = &sim.units[cav];
+            println!(
+                "t={:>2}s stamina={:.3} charging={} charge_time={:.2} mass_adv={:.2} cy={:.1}",
+                s + 1,
+                u.stamina,
+                u.charging,
+                u.charge_time,
+                u.mass_advance,
+                u.centroid.y
+            );
+        }
+    }
+}

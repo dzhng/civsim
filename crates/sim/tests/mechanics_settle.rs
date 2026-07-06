@@ -204,7 +204,13 @@ fn settle_with_frame_slots_in_wall() {
     }
 }
 
-#[ignore = "formation-settle slice 02b"]
+#[ignore = "KNOWN LIMITATION (formation-settle 02b-2, dropped per David): a \
+unit resting in a gap narrower than frontage + body clearance buzzes at \
+~0.10 m/s / 4cm amplitude. Three fixes measured dead: radius-in-corridor-width \
+re-arms the centering shift into a sideways treadmill; slide-level clearance \
+sampling fights the corridor width machinery (width flaps 19<->20 with reform \
+storms); the root is the quantized, hysteresis-free corridor machinery itself \
+— Tier-1 first-principles backlog. Revisit with that rebuild."]
 #[test]
 fn settle_inside_marginal_corridor() {
     let gap_half = 9.7f32;

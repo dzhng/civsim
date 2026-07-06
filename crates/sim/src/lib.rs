@@ -39,7 +39,10 @@ pub use ai::ai_commander;
 pub use balance::{
     report, run_once, run_over_seeds, Aggregate, Outcome, ReportRow, Scenario, SEEDS,
 };
-pub use battle::{deploy_roster, setup_battle, setup_battle_generated, setup_duel, setup_sandbox};
+pub use battle::{
+    deploy_custom_army, deploy_roster, setup_battle, setup_battle_generated, setup_duel,
+    setup_sandbox,
+};
 pub use class::{class_stats, BalanceConfig, UnitClass, UnitClassId, Weapon, WeaponKind};
 pub use contract::{unit_cost, ALL_CLASSES};
 #[cfg(feature = "force-trace")]

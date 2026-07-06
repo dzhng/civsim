@@ -7,8 +7,9 @@
 
 use contract::TerrainSource;
 use sim::{
-    build_map, generate_map, generate_vista_grid, setup_battle, setup_battle_generated,
-    setup_sandbox, Battle, MapId, MapRecipe, Pace, Sim, Tunables, Vec2, VistaGrid,
+    build_map, deploy_custom_army, generate_map, generate_vista_grid, setup_battle,
+    setup_battle_generated, setup_sandbox, Battle, MapId, MapRecipe, Pace, Sim, Tunables, Vec2,
+    VistaGrid,
 };
 use wasm_bindgen::prelude::*;
 
@@ -164,6 +165,15 @@ impl Game {
         );
         self.refresh_unit_info();
         id as u32
+    }
+
+    pub fn deploy_custom_army(&mut self, team: u32, class_ids: Vec<u32>) {
+        let classes: Vec<contract::UnitClassId> = class_ids
+            .into_iter()
+            .filter_map(|id| contract::ALL_CLASSES.get(id as usize).copied())
+            .collect();
+        deploy_custom_army(&mut self.battle.sim, team, &classes);
+        self.refresh_unit_info();
     }
 
     pub fn set_move_order(&mut self, unit: u32, x: f32, y: f32) {

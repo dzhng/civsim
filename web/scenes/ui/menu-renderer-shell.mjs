@@ -165,6 +165,23 @@ export async function run(ctx) {
   await page.click("#qb-launch");
   await waitForRendererBattleUpload(page);
   const customStats = await page.evaluate(() => window.__game.stats());
+  const deploymentRows = await page.evaluate(() => {
+    const g = window.__game;
+    const units = g.stats().units;
+    const rows = [];
+    for (let u = 0; u < units; u++) {
+      const info = g.unitInfo(u);
+      rows.push({
+        unit: u,
+        team: Math.floor(info[6]),
+        cls: Math.floor(info[13]),
+        x: info[30],
+        y: info[31],
+      });
+    }
+    return rows;
+  });
+  const deployment = customDeploymentMetrics(deploymentRows);
   ctx.check(
     "Custom Battle launches through the selected WebGPU battle renderer weather",
     battleStatsMatch(customStats) &&
@@ -172,6 +189,11 @@ export async function run(ctx) {
       customStats.renderStats?.environment === "overcast-highland" &&
       customStats.renderStats?.terrain?.environment?.id === "overcast-highland",
     JSON.stringify(customStats),
+  );
+  ctx.check(
+    "Custom Battle deploys role lines through the wasm formation seam",
+    deployment.teams.every((team) => team.linesOrdered && team.cavalryFlanks),
+    JSON.stringify(deployment),
   );
   await returnBattleToMenu(page);
 
@@ -333,4 +355,51 @@ function battleStatsMatch(stats) {
     stats.renderStats.expectedSoldiers === stats.soldiers &&
     hasBattleWorldDepthContract(stats.renderStats)
   );
+}
+
+function customDeploymentMetrics(allRows) {
+  const teams = [0, 1].map((team) => {
+    const rows = allRows
+      .filter((row) => row.team === team)
+      .map((row) => ({ ...row, line: roleLine(row.cls), score: team === 0 ? row.y : -row.y }));
+    const front = rows.filter((r) => r.line === "front").map((r) => r.score);
+    const second = rows.filter((r) => r.line === "second").map((r) => r.score);
+    const third = rows.filter((r) => r.line === "third").map((r) => r.score);
+    const left = rows.reduce((best, row) => (row.x < best.x ? row : best), rows[0]);
+    const right = rows.reduce((best, row) => (row.x > best.x ? row : best), rows[0]);
+    const frontRear = Math.min(...front);
+    const secondFront = Math.max(...second);
+    const secondRear = Math.min(...second);
+    const thirdFront = Math.max(...third);
+    return {
+      team,
+      counts: {
+        front: front.length,
+        second: second.length,
+        third: third.length,
+        cavalry: rows.filter((r) => r.line === "cavalry").length,
+      },
+      linesOrdered:
+        front.length > 0 &&
+        second.length > 0 &&
+        third.length > 0 &&
+        frontRear > secondFront + 15 &&
+        secondRear > thirdFront + 15,
+      cavalryFlanks: left?.line === "cavalry" && right?.line === "cavalry",
+      left,
+      right,
+      frontRear,
+      secondFront,
+      secondRear,
+      thirdFront,
+    };
+  });
+  return { teams };
+}
+
+function roleLine(cls) {
+  if ([0, 3, 11, 12, 13, 14].includes(cls)) return "front";
+  if ([6, 7].includes(cls)) return "cavalry";
+  if ([4, 8].includes(cls)) return "third";
+  return "second";
 }

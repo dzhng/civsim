@@ -40,14 +40,23 @@ fn cavalry_mass_shoves_through_infantry() {
         sim.set_move_order(atk, Vec2::new(0.0, 120.0));
         let u_start = sim.units[inf].start;
         let u_count = sim.units[inf].count;
-        // PEAK displacement per man, tracked through the pass — not the final
-        // residual: the line reforms behind the rider, so net displacement
-        // recovers to ~zero. The shove lives at the moment of passing.
+        // PEAK per-tick displacement per man (the IMPULSE of the shove, in
+        // m/s), not the 50s peak-carry: carry distance scales with how LONG
+        // the attacker chaperones a man (a slow foot column walking men
+        // along for tens of seconds out-carries a horse that blasts through
+        // in three), and it also inhaled the crowd's own post-pass reform
+        // churn. "Shoves men aside far harder" is violence — the speed a
+        // body is sent flying at the moment of contact — and that is what
+        // horse mass buys. Re-derived for formation-settle 05 (the at-ease
+        // fit gate calms the crowd and exposed the old metric's leaks).
         let mut peak = vec![0.0f32; u_count];
+        let mut prev = before.clone();
         for _ in 0..(50.0 / DT) as usize {
             sim.tick();
             for (k, i) in (u_start..u_start + u_count).enumerate() {
-                peak[k] = peak[k].max((sim.soldier_pos(i) - before[k]).len());
+                let p = sim.soldier_pos(i);
+                peak[k] = peak[k].max((p - prev[k]).len() / DT);
+                prev[k] = p;
             }
         }
         peak.sort_by(|a, b| b.total_cmp(a)); // most-displaced first

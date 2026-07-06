@@ -73,7 +73,7 @@ import {
   type BattleLakeSurfaceSpec,
   type SeaDisplacementSourceId,
 } from "./seaLayer";
-import { PhotorealBladeFieldLayer } from "./bladeFieldLayer";
+import { PhotorealBladeFieldLayer, type BladeFieldTransitionProfile } from "./bladeFieldLayer";
 import { PhotorealScenery } from "./foliageLayer";
 import { PhotorealCrowd, type CrowdVisibilityScope } from "./crowdLayer";
 import {
@@ -114,32 +114,38 @@ export interface BattleTacticalLineFrame {
 
 const PRODUCTION_BLADE_FIELD_PROFILE = {
   source:
-    "BMSGRASS-F4B1 margin-cached production profile: 48m rebuild margin, denser near/mid sampling",
+    "GRASSFAR-D6B3 False Earth production profile: lab near/mid fidelity plus blurred far-grass band",
   seed: 0x5ea7_2026,
-  // Ring follows the camera's ground position. The GPU route thins records
-  // stochastically through the far tier, so high camera stops fade out before
-  // the hard cull instead of dropping at one coverage wall.
-  focusRadiusM: 150,
+  // Dense blades follow the camera's ground position. A widened far-impression
+  // band uses the same source-storage records, then terrain detail takes over
+  // on the same transition instead of exposing a hard LOD edge.
+  focusRadiusM: 260,
+  farGrassTransition: {
+    edgeSinkStartM: 380,
+    denseBladeEndM: 260,
+    farGrassStartM: 260,
+    farGrassEndM: 480,
+  } satisfies BladeFieldTransitionProfile,
   // Records are sampled beyond the render ring so ordinary camera pans stay
   // inside an already-uploaded field. Rebuilds happen on this margin cadence,
   // not the old 8m sampler snap, which was the panning hitch source.
   rebuildMarginM: 48,
-  fieldCellSize: 0.5,
+  fieldCellSize: 0.42,
   snapCellSize: 48,
   clumpCellSize: 1.55,
   maxRecords: 160000,
   lodStratifiedBudget: true,
-  density: 0.8,
+  density: 1.0,
   jitter: 0.72,
   minNormalZ: 0.45,
   // Pull gameplay near/mid density back toward the ratified close-gate profile
   // (5/20/64m full-density lab envelope) while keeping the wider production
   // far tier for vista framing.
-  lodNearRadiusM: 6,
-  lodMidRadiusM: 28,
+  lodNearRadiusM: 5,
+  lodMidRadiusM: 20,
   baseHeight: 1.25,
   heightJitter: 0.5,
-  baseWidth: 0.11,
+  baseWidth: 0.13,
   widthJitter: 0.22,
   baseBend: 0.45,
   bendJitter: 0.35,
@@ -204,7 +210,7 @@ export class PhotorealBattleWorld {
     focusRadiusM: PRODUCTION_BLADE_FIELD_PROFILE.focusRadiusM,
     rebuildMarginM: PRODUCTION_BLADE_FIELD_PROFILE.rebuildMarginM,
     coverageRadiusM:
-      PRODUCTION_BLADE_FIELD_PROFILE.focusRadiusM +
+      PRODUCTION_BLADE_FIELD_PROFILE.farGrassTransition.farGrassEndM +
       PRODUCTION_BLADE_FIELD_PROFILE.rebuildMarginM,
     activeFocus: null as GrassSampleFocus | null,
     pending: false,
@@ -279,11 +285,12 @@ export class PhotorealBattleWorld {
       scene,
       this.frame.time,
       [
-        { id: "near", lodTier: 0, segments: 15, minDistanceM: 0, maxDistanceM: 8 },
-        { id: "mid", lodTier: 1, segments: 5, minDistanceM: 8, maxDistanceM: 30 },
-        { id: "far", lodTier: 2, segments: 2, minDistanceM: 30, maxDistanceM: 150 },
+        { id: "near", lodTier: 0, segments: 15, minDistanceM: 0, maxDistanceM: 5 },
+        { id: "mid", lodTier: 1, segments: 5, minDistanceM: 5, maxDistanceM: 20 },
+        { id: "far", lodTier: 2, segments: 2, minDistanceM: 20, maxDistanceM: 480 },
       ],
       true,
+      PRODUCTION_BLADE_FIELD_PROFILE.farGrassTransition,
     );
     this.scenery = new PhotorealScenery(scene);
     this.crowd = new PhotorealCrowd(scene, meshes, vats, kit);
@@ -483,7 +490,10 @@ export class PhotorealBattleWorld {
     }
     const groundMesh = buildBattleGroundMesh(grid, field, this.groundCover);
     this.groundTriangles = groundMesh.triangles;
-    this.ground = createGroundMesh(this.frame, groundMesh, { slopeBands: this.slopeBands });
+    this.ground = createGroundMesh(this.frame, groundMesh, {
+      slopeBands: this.slopeBands,
+      farGrass: PRODUCTION_BLADE_FIELD_PROFILE.farGrassTransition,
+    });
     scene.add(this.ground);
 
     if (this.horizonBlockers) {
@@ -512,6 +522,7 @@ export class PhotorealBattleWorld {
       for (const band of this.vistaGrid.bands) {
         const mesh = createVistaMesh(this.frame, band, this.groundCover, {
           slopeBands: this.slopeBands,
+          farGrass: PRODUCTION_BLADE_FIELD_PROFILE.farGrassTransition,
         });
         if (!mesh) continue;
         this.vistaMeshes.push(mesh);
@@ -706,12 +717,17 @@ export class PhotorealBattleWorld {
     const zoomScale = 1 + Math.round(Math.max(0, Math.min(3, eyeZ / 60 - 1)));
     const margin = PRODUCTION_BLADE_FIELD_PROFILE.rebuildMarginM * zoomScale;
     // Close zoom shrinks the ring (quantized bands, same churn rule): a low
-    // eye sees a few dozen metres of ground - sampling a 150m ring there is
-    // pure rebuild cost and blade overdraw (the zoom-24/28 fps cliffs).
+    // eye sees a few dozen metres of ground - sampling the full far-grass
+    // window there is pure rebuild cost and blade overdraw (the zoom-24/28
+    // fps cliffs).
     const nearBand = Math.max(1, Math.min(4, Math.ceil(eyeZ / 15)));
     const radiusScale = eyeZ >= 60 ? 1 : nearBand / 4;
     const scaledVisible = Math.max(40, visibleRadius * radiusScale);
-    const radius = scaledVisible + margin;
+    const scaledFarGrass = Math.max(
+      scaledVisible,
+      PRODUCTION_BLADE_FIELD_PROFILE.farGrassTransition.farGrassEndM * radiusScale,
+    );
+    const radius = scaledFarGrass + margin;
     const step = PRODUCTION_BLADE_FIELD_PROFILE.snapCellSize;
     if (
       this.grassSampleFocus &&

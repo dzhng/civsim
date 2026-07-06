@@ -13,6 +13,7 @@ import * as THREE from "three/webgpu";
 import {
   abs,
   attribute,
+  cameraPosition,
   clamp,
   float,
   floor,
@@ -49,6 +50,7 @@ import type {
   BattleGroundCover,
   BattleSlopeBands,
 } from "../../../game-renderer/src/battle/terrainFeatures";
+import type { BladeFieldTransitionProfile } from "./bladeFieldLayer";
 
 export const RENDER_ORDER = {
   backdrop: -10,
@@ -133,6 +135,7 @@ const WIDE_DETAIL_TERRAIN_STYLE: TerrainQuadStyle = {
 export interface TerrainMaterialOptions {
   slopeBands?: BattleSlopeBands | null;
   vistaBand?: BattleVistaBand["name"] | null;
+  farGrass?: BladeFieldTransitionProfile | null;
 }
 
 export interface BattleVistaBand {
@@ -368,6 +371,36 @@ export function createGroundMesh(
     .add(fbmN(world.mul(12.0)).sub(0.5).mul(0.06));
   const detail = clamp(drift.add(mottle).add(blade).add(1.0), 0.68, 1.32);
   let albedo = color.mul(detail);
+  if (options.farGrass) {
+    const farGrass = options.farGrass;
+    const cameraGround = cameraPosition.xy;
+    const viewDist = length(world.sub(cameraGround)).toVar();
+    const farIn = smoothstepN(farGrass.farGrassStartM, farGrass.farGrassEndM, viewDist).toVar();
+    // Sustain far past the blade edge - the term hands off to distance fog,
+    // not to bare green ground (the "bare strip before the treeline").
+    const farOut = float(1.0).sub(
+      smoothstepN(farGrass.farGrassEndM + 300, farGrass.farGrassEndM + 900, viewDist),
+    );
+    const farMask = farIn.mul(farOut).mul(float(1.0).sub(waterBlend)).toVar();
+    const wind = frame.time.mul(0.035);
+    const brush = ridgeN(
+      vec2(
+        world.x.mul(0.78).add(world.y.mul(0.16)).add(wind),
+        world.y.mul(0.32).sub(world.x.mul(0.035)).sub(wind.mul(0.6)),
+      ),
+    ).toVar();
+    const broadClump = fbmN(world.mul(0.045).add(vec2(2.5, 7.0))).toVar();
+    // Tone family leans toward the blade canopy's desaturated khaki - a
+    // green far field against a khaki canopy flags the blade edge by hue
+    // alone (unprimed critique).
+    const farTone = mix(
+      vec3(0.44, 0.49, 0.28),
+      vec3(0.6, 0.62, 0.38),
+      clamp(broadClump.mul(0.7).add(brush.mul(0.3)), 0.0, 1.0),
+    );
+    const brushedTone = mix(farTone, vec3(0.36, 0.41, 0.23), brush.mul(0.18));
+    albedo = mix(albedo, brushedTone, farMask.mul(0.55));
+  }
   // Churn: trodden mud reads as broken ground (brown AND dark keys the earth).
   const brown = smoothstepN(0.0, 0.05, color.r.sub(color.g));
   const dark = float(1.0).sub(smoothstepN(0.3, 0.46, color.r.add(color.g).add(color.b).div(3.0)));

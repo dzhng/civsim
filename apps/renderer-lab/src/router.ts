@@ -1841,7 +1841,7 @@ function battleGroundCueDepthFixtureVertices() {
   const verts: number[] = [];
   const color: [number, number, number] = [1.0, 0.78, 0.22];
   for (const y of [-0.08, -0.04, 0.0, 0.04, 0.08]) {
-    verts.push(-2.25, y, ...color, 2.25, y, ...color);
+    verts.push(-2.25, y, ...color, 1, 2.25, y, ...color, 1);
   }
   return new Float32Array(verts);
 }

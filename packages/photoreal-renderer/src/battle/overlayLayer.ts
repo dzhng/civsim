@@ -29,19 +29,20 @@ import type { MarkerInstance } from "../../../renderer-core/src/frameShell";
 import { linearAlbedo } from "./battleTsl";
 import { RENDER_ORDER } from "./terrainLayer";
 
-/** A growable line-list layer fed by (x, y, r, g, b)-stride vertex arrays —
- *  the BattleGroundCuePass / BattleEffectLinePass upload contract. With
- *  `perVertexZ` the stride is (x, y, z, r, g, b) so lines can leave the
- *  ground plane (mid-flight arrows); the layer z becomes a bias only. With
- *  `drape` the (x, y) contract instead seats every vertex on the canonical
- *  terrain surface, subdividing long segments so a cross-field order line
- *  follows the ground instead of tunnelling through rises; the layer z is
- *  the lift above the surface. */
+/** A growable line-list layer fed by (x, y, r, g, b, a)-stride vertex arrays —
+ *  the BattleGroundCuePass upload contract; the per-vertex alpha scales the
+ *  layer alpha so transient cues fade to transparent. With `perVertexZ` the
+ *  stride is instead (x, y, z, r, g, b) — the BattleEffectLinePass contract,
+ *  alpha 1 — so lines can leave the ground plane (mid-flight arrows); the
+ *  layer z becomes a bias only. With `drape` the (x, y) contract seats every
+ *  vertex on the canonical terrain surface, subdividing long segments so a
+ *  cross-field order line follows the ground instead of tunnelling through
+ *  rises; the layer z is the lift above the surface. */
 export class PhotorealLineLayer {
   private readonly lines: THREE.LineSegments;
   private capacity = 0;
   private vertexCount = 0;
-  private readonly stride: number;
+  private readonly perVertexZ: boolean;
   private readonly drape?: { heightAt: (x: number, y: number) => number; step: number };
 
   constructor(
@@ -55,7 +56,7 @@ export class PhotorealLineLayer {
       drape?: { heightAt: (x: number, y: number) => number; step: number };
     },
   ) {
-    this.stride = opts.perVertexZ ? 6 : 5;
+    this.perVertexZ = opts.perVertexZ ?? false;
     this.drape = opts.perVertexZ ? undefined : opts.drape;
     const material = new THREE.LineBasicNodeMaterial({ transparent: true });
     material.depthTest = opts.depthTest;
@@ -63,7 +64,7 @@ export class PhotorealLineLayer {
     material.fog = false;
     material.colorNode = vec4(
       linearAlbedo(varying(attribute<"vec3">("lineColor", "vec3"))),
-      opts.alpha,
+      varying(attribute<"float">("lineAlpha", "float")).mul(opts.alpha),
     );
     this.lines = new THREE.LineSegments(this.makeGeometry(128), material);
     this.lines.frustumCulled = false;
@@ -77,15 +78,17 @@ export class PhotorealLineLayer {
     const geo = new THREE.BufferGeometry();
     geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(capacity * 3), 3));
     geo.setAttribute("lineColor", new THREE.BufferAttribute(new Float32Array(capacity * 3), 3));
+    geo.setAttribute("lineAlpha", new THREE.BufferAttribute(new Float32Array(capacity), 1));
     return geo;
   }
 
-  /** Same contract as the bespoke pass: floor(len / stride) vertices of
-   *  (x, y, rgb) or (x, y, z, rgb) with perVertexZ. */
+  /** Same contract as the bespoke passes: floor(len / stride) vertices of
+   *  (x, y, rgb, a) or (x, y, z, rgb) with perVertexZ. */
   upload(vertices: Float32Array): void {
     const src = this.drape ? this.drapeSegments(vertices) : vertices;
-    const stride = this.drape ? 6 : this.stride;
-    const zOff = stride === 6 ? 1 : 0;
+    // Internal layouts: perVertexZ (x,y,z,rgb) · drape (x,y,z,rgb,a) · flat (x,y,rgb,a).
+    const stride = this.drape ? 7 : 6;
+    const zOff = this.perVertexZ || this.drape ? 1 : 0;
     const count = Math.floor(src.length / stride);
     this.vertexCount = count;
     this.lines.visible = count > 0;
@@ -96,8 +99,10 @@ export class PhotorealLineLayer {
     }
     const position = this.lines.geometry.getAttribute("position") as THREE.BufferAttribute;
     const color = this.lines.geometry.getAttribute("lineColor") as THREE.BufferAttribute;
+    const alpha = this.lines.geometry.getAttribute("lineAlpha") as THREE.BufferAttribute;
     const pos = position.array as Float32Array;
     const col = color.array as Float32Array;
+    const alp = alpha.array as Float32Array;
     for (let i = 0; i < count; i++) {
       const o = i * stride;
       pos[i * 3] = src[o];
@@ -106,23 +111,25 @@ export class PhotorealLineLayer {
       col[i * 3] = src[o + 2 + zOff];
       col[i * 3 + 1] = src[o + 3 + zOff];
       col[i * 3 + 2] = src[o + 4 + zOff];
+      alp[i] = this.perVertexZ ? 1 : src[o + 5 + zOff];
     }
     position.needsUpdate = true;
     color.needsUpdate = true;
+    alpha.needsUpdate = true;
     this.lines.geometry.setDrawRange(0, count);
   }
 
-  /** Resample (x, y, rgb) segments onto the terrain surface: split anything
+  /** Resample (x, y, rgb, a) segments onto the terrain surface: split anything
    *  longer than the drape step and give every vertex the sampled ground z
-   *  (the layer z is added as lift in upload). Output stride is 6. */
+   *  (the layer z is added as lift in upload). Output stride is 7. */
   private drapeSegments(vertices: Float32Array): Float32Array {
     const { heightAt, step } = this.drape!;
     const out: number[] = [];
-    for (let i = 0; i + 10 <= vertices.length; i += 10) {
+    for (let i = 0; i + 12 <= vertices.length; i += 12) {
       const x0 = vertices[i];
       const y0 = vertices[i + 1];
-      const x1 = vertices[i + 5];
-      const y1 = vertices[i + 6];
+      const x1 = vertices[i + 6];
+      const y1 = vertices[i + 7];
       const pieces = Math.max(1, Math.min(96, Math.ceil(Math.hypot(x1 - x0, y1 - y0) / step)));
       for (let s = 0; s < pieces; s++) {
         const ta = s / pieces;
@@ -131,8 +138,8 @@ export class PhotorealLineLayer {
         const ay = y0 + (y1 - y0) * ta;
         const bx = x0 + (x1 - x0) * tb;
         const by = y0 + (y1 - y0) * tb;
-        out.push(ax, ay, heightAt(ax, ay), vertices[i + 2], vertices[i + 3], vertices[i + 4]);
-        out.push(bx, by, heightAt(bx, by), vertices[i + 7], vertices[i + 8], vertices[i + 9]);
+        out.push(ax, ay, heightAt(ax, ay), vertices[i + 2], vertices[i + 3], vertices[i + 4], vertices[i + 5]);
+        out.push(bx, by, heightAt(bx, by), vertices[i + 8], vertices[i + 9], vertices[i + 10], vertices[i + 11]);
       }
     }
     return new Float32Array(out);
@@ -211,7 +218,8 @@ export class PhotorealTriangleLayer {
  *  ported to the battle world for per-soldier selection. Each instance seats
  *  on the canonical terrain surface at upload and is depth-tested read-only,
  *  so soldiers and rises occlude it like any world decal. Upload contract:
- *  (x, y, radius, r, g, b) per ring. */
+ *  (x, y, radius, r, g, b, a) per ring — the alpha scales the profile's ring
+ *  and fill alphas so preview rings fade to transparent. */
 export class PhotorealRingLayer {
   private readonly mesh: THREE.Mesh;
   private readonly geometry: THREE.InstancedBufferGeometry;
@@ -239,7 +247,7 @@ export class PhotorealRingLayer {
     material.fog = false;
     const quad = attribute<"vec3">("position", "vec3");
     const inst = attribute<"vec4">("ringInst", "vec4"); // (x, y, z, radius)
-    const ringTint = attribute<"vec3">("ringColor", "vec3");
+    const ringTint = attribute<"vec4">("ringColor", "vec4"); // (r, g, b, a)
     material.positionNode = vec3(
       inst.x.add(quad.x.mul(inst.w)),
       inst.y.add(quad.y.mul(inst.w)),
@@ -261,7 +269,10 @@ export class PhotorealRingLayer {
         ),
       )
       .mul(P.fillAlpha);
-    material.colorNode = vec4(linearAlbedo(color.mul(1.08)), max(ring.mul(P.ringAlpha), fill));
+    material.colorNode = vec4(
+      linearAlbedo(color.rgb.mul(1.08)),
+      max(ring.mul(P.ringAlpha), fill).mul(color.a),
+    );
 
     this.mesh = new THREE.Mesh(this.geometry, material);
     this.mesh.frustumCulled = false;
@@ -271,7 +282,7 @@ export class PhotorealRingLayer {
   }
 
   upload(rings: Float32Array): void {
-    const count = Math.floor(rings.length / 6);
+    const count = Math.floor(rings.length / 7);
     this.count = count;
     this.mesh.visible = count > 0;
     if (count === 0) {
@@ -281,21 +292,22 @@ export class PhotorealRingLayer {
     if (count > this.capacity) {
       this.capacity = Math.max(count, this.capacity * 2, 256);
       this.inst = new Float32Array(this.capacity * 4);
-      this.tint = new Float32Array(this.capacity * 3);
+      this.tint = new Float32Array(this.capacity * 4);
       this.geometry.setAttribute("ringInst", new THREE.InstancedBufferAttribute(this.inst, 4));
-      this.geometry.setAttribute("ringColor", new THREE.InstancedBufferAttribute(this.tint, 3));
+      this.geometry.setAttribute("ringColor", new THREE.InstancedBufferAttribute(this.tint, 4));
     }
     for (let i = 0; i < count; i++) {
-      const o = i * 6;
+      const o = i * 7;
       const x = rings[o];
       const y = rings[o + 1];
       this.inst[i * 4] = x;
       this.inst[i * 4 + 1] = y;
       this.inst[i * 4 + 2] = this.heightAt(x, y) + this.lift;
       this.inst[i * 4 + 3] = rings[o + 2];
-      this.tint[i * 3] = rings[o + 3];
-      this.tint[i * 3 + 1] = rings[o + 4];
-      this.tint[i * 3 + 2] = rings[o + 5];
+      this.tint[i * 4] = rings[o + 3];
+      this.tint[i * 4 + 1] = rings[o + 4];
+      this.tint[i * 4 + 2] = rings[o + 5];
+      this.tint[i * 4 + 3] = rings[o + 6];
     }
     for (const name of ["ringInst", "ringColor"] as const) {
       (this.geometry.getAttribute(name) as THREE.InstancedBufferAttribute).needsUpdate = true;

@@ -455,8 +455,9 @@ function cloneLakeSurfaces(
 }
 
 export interface BattleTacticalLineFrame {
+  /** Ground cue lines, (x, y, r, g, b, a) per vertex. */
   groundCues: Float32Array;
-  /** Per-soldier selection rings, (x, y, radius, r, g, b) per instance. */
+  /** Per-soldier selection rings, (x, y, radius, r, g, b, a) per instance. */
   rings: Float32Array;
   effects: Float32Array;
 }
@@ -466,7 +467,7 @@ export interface BattleTacticalLineFrame {
  *  endpoints churn between runs. Selection rings travel in their own layer
  *  and pass through untouched. */
 function frozenSelectionGroundCues(verts: Float32Array) {
-  const stride = 5;
+  const stride = 6;
   const maxSegmentLength = 12;
   const out: number[] = [];
   for (let i = 0; i + stride * 2 <= verts.length; i += stride * 2) {

@@ -13,11 +13,11 @@ const GROUND_CUE_WGSL = `
 ${WORLD_CAMERA_WGSL}
 struct VsOut {
   @builtin(position) pos: vec4f,
-  @location(0) color: vec3f,
+  @location(0) color: vec4f,
 };
 
 @vertex
-fn vs(@location(0) world: vec2f, @location(1) color: vec3f) -> VsOut {
+fn vs(@location(0) world: vec2f, @location(1) color: vec4f) -> VsOut {
   var out: VsOut;
   out.pos = projectWorld(vec3f(world, 0.02));
   out.color = color;
@@ -26,7 +26,7 @@ fn vs(@location(0) world: vec2f, @location(1) color: vec3f) -> VsOut {
 
 @fragment
 fn fs(in: VsOut) -> @location(0) vec4f {
-  return vec4f(in.color, 0.88);
+  return vec4f(in.color.rgb, in.color.a * 0.88);
 }`;
 
 export class BattleGroundCuePass {
@@ -45,10 +45,10 @@ export class BattleGroundCuePass {
         module,
         entryPoint: 'vs',
         buffers: [{
-          arrayStride: 20,
+          arrayStride: 24,
           attributes: [
             { shaderLocation: 0, offset: 0, format: 'float32x2' },
-            { shaderLocation: 1, offset: 8, format: 'float32x3' },
+            { shaderLocation: 1, offset: 8, format: 'float32x4' },
           ],
         }],
       },
@@ -63,18 +63,18 @@ export class BattleGroundCuePass {
     });
     this.vertexBuffer = device.createBuffer({
       label: 'battle-ground-cue-empty',
-      size: 5 * 2 * 4,
+      size: 6 * 2 * 4,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
   }
 
   upload(vertices: Float32Array) {
-    this.vertexCount = Math.floor(vertices.length / 5);
+    this.vertexCount = Math.floor(vertices.length / 6);
     if (this.vertexCount > this.capacity) {
       this.capacity = Math.max(this.vertexCount, this.capacity * 2, 128);
       this.vertexBuffer = this.shell.device.createBuffer({
         label: 'battle-ground-cue-vertices',
-        size: this.capacity * 5 * 4,
+        size: this.capacity * 6 * 4,
         usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
       });
     }
@@ -155,5 +155,5 @@ function pushGhost(
 }
 
 function pushLine(verts: number[], x0: number, y0: number, x1: number, y1: number, color: [number, number, number]) {
-  verts.push(x0, y0, ...color, x1, y1, ...color);
+  verts.push(x0, y0, ...color, 1, x1, y1, ...color, 1);
 }

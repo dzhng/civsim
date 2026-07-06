@@ -1,9 +1,14 @@
 ---
 name: write-tests
-description: How to write and iterate on tests in this repo — one test at a time (tracer bullets), fast cargo first, scale 1v1 before armies, control variables, measure mechanisms not noise. Use when adding sim behavior, fixing a red test, or verifying changes. Pairs with [debug](../debug/SKILL.md), [tweak-mechanics](../tweak-mechanics/SKILL.md), and [balance-unit](../balance-unit/SKILL.md) (the seed-set balance harness).
+description: How to write and iterate on tests in this repo — one test at a time (tracer bullets), fast cargo first, scale 1v1 before armies, control variables, measure mechanisms not noise. Use when adding sim behavior, fixing a red or brittle test, reviewing a test diff, or verifying changes. Pairs with [debug](../debug/SKILL.md), [tweak-mechanics](../tweak-mechanics/SKILL.md), and [balance-unit](../balance-unit/SKILL.md) (the seed-set balance harness).
 ---
 
 # Writing and iterating on tests in this repo
+
+A good test fails ONLY when real behavior breaks, and passes through every
+refactor, retune, or config change that preserves it. Most bad tests fail the
+opposite way: red on harmless changes, green while the real path is broken.
+Every rule below serves that one goal.
 
 ## The loop: bottom-up buckets, cargo first, browser last
 
@@ -62,6 +67,15 @@ cycle tells you what the next test should actually assert.
 - **Don't anticipate future mechanics.** Minimal scenario for THIS claim; the
   next cycle gets its own. Speculative tests for behavior you haven't built yet
   go `#[ignore]` with a rationale, not green-by-accident.
+- **Assert nothing the compiler already guarantees.** A test that re-asserts a
+  type's shape (field exists, wrong argument rejected) can only fail if
+  rustc/tsc failed first. Spend the budget on behavior: rules, arithmetic,
+  branching, ordering, edge cases.
+- **Actual values, not collection sizes.** On dedup/normalize/idempotency
+  paths (mostly web state), `length == 1` passes even when normalization is
+  broken — also assert the stored value equals the expected canonical form.
+- **If the only callers of a function are its tests**, delete the function and
+  the tests together; coverage of dead code is negative value.
 
 ## Scale: 1v1 before armies
 
@@ -84,6 +98,27 @@ Every comparison test isolates ONE variable; everything else is pinned:
 - Same seed, same counts, same classes across arms. Change ONE thing.
 If a test breaks after a sim change, first ask "did an unrelated mechanic
 leak into this experiment?" before touching constants.
+
+## Seams and mocks (web tests)
+
+The Rust side needs no mocks — immortal fakes and REFERENCE units are its
+seam. For the vitest / node-test web suites:
+
+- **Mock only at the system's edges** (wasm boundary, network, clock, DOM
+  globals), never internal modules. A stubbed internal hard-codes its current
+  contract, so a refactor makes the test lie; if testing one function needs
+  three internal mocks, test one layer up where they're real. Never make
+  "was called with" the primary assertion when an observable outcome exists.
+- **Don't couple a test to live config or tunable defaults.** A test keyed to
+  a current default breaks on a legitimate retune with no logic change — and
+  the fix is never a skipIf/conditional (a skipped assertion hides the
+  coupling and stops covering the path): feed fixed inputs or stub the lookup.
+  Litmus: "would this break if a config value changed with no logic change?"
+  This is the same rule the fake REFERENCE units enforce on the Rust side.
+- **Harnesses must wire the system the way production does.** If a bug only
+  reproduced against the real app, the harness skipped an input production
+  always sets — fix the harness, don't just fix the bug. (The stale-wasm story
+  above is one instance.)
 
 ## Validate, don't assume — in a sim EVERYTHING is measurable
 

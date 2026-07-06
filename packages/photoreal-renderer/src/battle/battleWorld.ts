@@ -844,6 +844,16 @@ export class PhotorealBattleWorld {
     this.grassRebuildStats.pendingFocus = focus;
     this.grassRebuildStats.inProgressCells = 0;
     this.grassRebuildStats.totalCells = sampler.totalCells;
+    // The FIRST build (no live records yet) completes synchronously - an
+    // empty field on the opening frame is worse than load-time cost, and
+    // scenes read grass stats right after boot. Only REbuilds are sliced.
+    if (this.grassTerrainKey === null) {
+      while (!sampler.step(16384)) {
+        /* run to completion */
+      }
+      this.runGrassSampleSlice();
+      return;
+    }
     this.scheduleGrassSampleSlice();
   }
 

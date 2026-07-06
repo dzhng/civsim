@@ -351,11 +351,13 @@ rationale here, and continue. Never idle waiting for sign-off.
 - [ ] 03b — Deep overlap (David: GO, anchor-deconfliction direction; re-pin
       the gate at game scale — 350 men, wide-frame overlap)
       → [slices/03-friendly-overlap-cycle.md](slices/03-friendly-overlap-cycle.md)
-- [ ] 06 — Run to contact (David, 2026-07-06): armies that run at each
-      other must ARRIVE FORMED (catch-up surge escapes the personal
-      ceiling / formation paces to its slowest; the scatter screenshot)
-      and ARRIVE FRESH (foot ~50% stamina at map-mid, cav ~75%, most
-      drain in-battle; today the run empties the tank)
+- [x] 06-stamina — SHIPPED (pass 7): run_drain 1/340 (foot 0.507 / cav
+      0.819 at map-mid, gate live); fatigue + freshness pins re-derived
+      → [slices/06-run-to-contact.md](slices/06-run-to-contact.md)
+- [ ] 06b — Formed arrival: the surge exemption needs a front-clear
+      condition (tail fix proven 94m -> 10m; crowd-press collateral
+      measured and parked in the slice notes). The at-ease fit gate rides
+      with this pass too
       → [slices/06-run-to-contact.md](slices/06-run-to-contact.md)
 - [ ] 02b-2 — LAST, droppable (David). Corridor rest pose; naive
       radius-in-width is a banned re-entry (centering treadmill). Gate

@@ -66,7 +66,8 @@ fn golden_state_hash_stable() {
     // Re-pinned by formation-settle slice 04 (packed lateral friction for
     // stalled foot + noise-gated deep-reform beats touch every contact
     // scenario, golden's foot clash included).
-    const EXPECTED: u64 = 0x43d5c313ca408b69;
+    // re-pinned for formation-settle 06-stamina (run_drain recalibration reaches every scenario with running)
+    const EXPECTED: u64 = 0x7e124deb8114ffac;
     assert_eq!(
         h, EXPECTED,
         "sim behavior changed: golden hash {h:#018x} != pinned {EXPECTED:#018x}. \

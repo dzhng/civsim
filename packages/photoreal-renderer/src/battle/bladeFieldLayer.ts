@@ -64,6 +64,9 @@ export interface BladeFieldTransitionProfile {
   denseBladeEndM: number;
   farGrassStartM: number;
   farGrassEndM: number;
+  nearTierEndM?: number;
+  midTierEndM?: number;
+  farSoftWidthScale?: number;
   /** Blades sink to turf across [start, end] so the coverage radius never
    *  shows a full-height cutoff. Production-scale rings only - the ratified
    *  close-lab profile (64m ring) keeps its hard edge (undefined = no sink). */
@@ -77,6 +80,9 @@ export interface BladeFieldTransitionUniforms {
   denseBladeEndM: FloatUniformNode;
   farGrassStartM: FloatUniformNode;
   farGrassEndM: FloatUniformNode;
+  nearTierEndM: FloatUniformNode;
+  midTierEndM: FloatUniformNode;
+  farSoftWidthScale: FloatUniformNode;
   edgeSinkStartM: FloatUniformNode;
 }
 
@@ -90,6 +96,8 @@ export const DEFAULT_BLADE_FIELD_TRANSITION: BladeFieldTransitionProfile = {
   denseBladeEndM: 20,
   farGrassStartM: 20,
   farGrassEndM: 64,
+  nearTierEndM: 5,
+  midTierEndM: 20,
 };
 
 export function createBladeFieldTransitionUniforms(
@@ -101,6 +109,9 @@ export function createBladeFieldTransitionUniforms(
     denseBladeEndM: uniform(normalized.denseBladeEndM) as unknown as FloatUniformNode,
     farGrassStartM: uniform(normalized.farGrassStartM) as unknown as FloatUniformNode,
     farGrassEndM: uniform(normalized.farGrassEndM) as unknown as FloatUniformNode,
+    nearTierEndM: uniform(nearTierEndUniformValue(normalized)) as unknown as FloatUniformNode,
+    midTierEndM: uniform(midTierEndUniformValue(normalized)) as unknown as FloatUniformNode,
+    farSoftWidthScale: uniform(farSoftWidthScaleUniformValue(normalized)) as unknown as FloatUniformNode,
     edgeSinkStartM: uniform(edgeSinkStartUniformValue(normalized)) as unknown as FloatUniformNode,
   };
 }
@@ -114,6 +125,9 @@ export function updateBladeFieldTransitionUniforms(
   uniforms.denseBladeEndM.value = normalized.denseBladeEndM;
   uniforms.farGrassStartM.value = normalized.farGrassStartM;
   uniforms.farGrassEndM.value = normalized.farGrassEndM;
+  uniforms.nearTierEndM.value = nearTierEndUniformValue(normalized);
+  uniforms.midTierEndM.value = midTierEndUniformValue(normalized);
+  uniforms.farSoftWidthScale.value = farSoftWidthScaleUniformValue(normalized);
   uniforms.edgeSinkStartM.value = edgeSinkStartUniformValue(normalized);
   return normalized;
 }
@@ -334,7 +348,6 @@ export class PhotorealBladeFieldLayer {
     this.runtime = createGpuRuntime(
       this.packedRecords,
       this.buckets,
-      this.tiers,
       this.transitionUniforms,
       this.thinning,
     );
@@ -395,6 +408,7 @@ export class PhotorealBladeFieldLayer {
     }
     this.culledRecords = 0;
     this.thinnedRecords = 0;
+    const tierRanges = tierRangesForTransition(this.transition);
     for (let i = 0; i < this.recordCount; i++) {
       const o = i * GRASS_FIELD_PACKED_STRIDE_FLOATS;
       const x = this.packedRecords[o];
@@ -402,11 +416,11 @@ export class PhotorealBladeFieldLayer {
       const z = this.packedRecords[o + 2];
       const dist = Math.hypot(x - eye[0], y - eye[1], z - eye[2]);
       const bucketIndex =
-        dist < this.tiers[0].maxDistanceM
+        dist < tierRanges.near.maxDistanceM
           ? 0
-          : dist < this.tiers[1].maxDistanceM
+          : dist < tierRanges.mid.maxDistanceM
             ? 1
-            : dist < this.tiers[2].maxDistanceM
+            : dist < tierRanges.far.maxDistanceM
               ? 2
               : -1;
       if (bucketIndex < 0) {
@@ -428,6 +442,7 @@ export class PhotorealBladeFieldLayer {
   stats(): BladeFieldStats {
     const tiers = Object.fromEntries(
       this.buckets.map((bucket) => {
+        const range = tierRangesForTransition(this.transition)[bucket.spec.id];
         const verticesPerBlade = (bucket.spec.segments + 1) * 2;
         const trianglesPerBlade = bucket.spec.segments * 2;
         return [
@@ -435,8 +450,8 @@ export class PhotorealBladeFieldLayer {
           {
             lodTier: bucket.spec.lodTier,
             segments: bucket.spec.segments,
-            minDistanceM: bucket.spec.minDistanceM,
-            maxDistanceM: bucket.spec.maxDistanceM,
+            minDistanceM: range.minDistanceM,
+            maxDistanceM: range.maxDistanceM,
             candidateRecords: bucket.candidateRecords,
             records: bucket.records,
             droppedByThinning: bucket.droppedByThinning,
@@ -547,7 +562,6 @@ function bladeGeometry(segments: number): THREE.InstancedBufferGeometry {
 function createGpuRuntime(
   packedRecords: Float32Array,
   buckets: readonly TierBucket[],
-  tiers: readonly BladeFieldTierSpec[],
   transition: BladeFieldTransitionUniforms,
   thinning: BladeFieldThinningProfile,
 ): BladeFieldGpuRuntime {
@@ -608,13 +622,13 @@ function createGpuRuntime(
     // Disabled profile (ratified lab envelope) keeps every blade.
     const survival = thinning.enabled ? float(1.0).sub(fade) : float(1.0);
     If(bladeHash.lessThan(survival), () => {
-      If(dist.lessThan(float(tiers[0].maxDistanceM)), () => {
+      If(dist.lessThan(transition.nearTierEndM), () => {
         appendToTier(configs[0]);
       })
-        .ElseIf(dist.lessThan(float(tiers[1].maxDistanceM)), () => {
+        .ElseIf(dist.lessThan(transition.midTierEndM), () => {
           appendToTier(configs[1]);
         })
-        .ElseIf(dist.lessThan(float(tiers[2].maxDistanceM)), () => {
+        .ElseIf(dist.lessThan(transition.farGrassEndM), () => {
           appendToTier(configs[2]);
         });
     });
@@ -679,7 +693,7 @@ function bladeFieldMaterial(
     ).toVar();
     // Tall clumps widen too: a clump reads as one bright mass, not stripes.
     const width = max(d1.x.mul(mix(0.85, 1.35, clamp(d2.w, 0.0, 1.0))), 0.018)
-      .mul(mix(1.0, 2.55, farSoft))
+      .mul(mix(1.0, transition.farSoftWidthScale, farSoft))
       .toVar();
     const clumpWeight = clamp(d2.w, 0.0, 1.0);
     // Clump-scale canopy: the Voronoi clumpWeight (1.55 m cells) drives a
@@ -712,7 +726,7 @@ function bladeFieldMaterial(
       .mul(mix(1.0, 0.72, farSoft))
       .mul(edgeSink)
       .toVar();
-    const bend = d1.z.mul(mix(1.15, 0.72, farSoft)).toVar();
+    const bend = d1.z.mul(mix(1.34, 0.94, farSoft)).toVar();
     const phase = d1.w;
     const yaw = d2.x;
     const clumpSeed = d2.y;
@@ -819,7 +833,7 @@ function bladeFieldMaterial(
     const desat = mix(shaded, vec3(dot(shaded, vec3(0.333))), distFade.mul(0.16));
     const albedo = mix(desat, meadow, ringFade.mul(survivorAlbedoBlend));
     vAlbedo.assign(clamp(albedo, vec3(0.0), vec3(1.0)));
-    vRough.assign(mix(0.97, 0.9, smoothstepN(0.18, 1.0, t)));
+    vRough.assign(mix(0.98, 0.84, smoothstepN(0.18, 1.0, t)));
 
     return world;
   });
@@ -846,10 +860,22 @@ function transitionProfileForTiers(
     Math.max(transition.farGrassStartM, farTier.minDistanceM),
     farGrassEndM,
   );
+  const denseBladeEndM = Math.min(Math.max(transition.denseBladeEndM, 0), farGrassEndM);
+  const nearTierEndM = Math.min(
+    Math.max(transition.nearTierEndM ?? denseBladeEndM, 0),
+    farGrassEndM,
+  );
+  const midTierEndM = Math.min(
+    Math.max(transition.midTierEndM ?? farGrassStartM, nearTierEndM),
+    farGrassEndM,
+  );
   return {
-    denseBladeEndM: Math.min(Math.max(transition.denseBladeEndM, 0), farGrassEndM),
+    denseBladeEndM,
     farGrassStartM,
     farGrassEndM,
+    nearTierEndM,
+    midTierEndM,
+    farSoftWidthScale: farSoftWidthScaleUniformValue(transition),
     edgeSinkStartM:
       transition.edgeSinkStartM === undefined
         ? undefined
@@ -862,15 +888,58 @@ function normalizedTransitionProfile(
 ): BladeFieldTransitionProfile {
   const farGrassEndM = Math.max(0, transition.farGrassEndM);
   const farGrassStartM = Math.min(Math.max(0, transition.farGrassStartM), farGrassEndM);
+  const denseBladeEndM = Math.min(Math.max(transition.denseBladeEndM, 0), farGrassEndM);
+  const nearTierEndM = Math.min(
+    Math.max(transition.nearTierEndM ?? denseBladeEndM, 0),
+    farGrassEndM,
+  );
+  const midTierEndM = Math.min(
+    Math.max(transition.midTierEndM ?? farGrassStartM, nearTierEndM),
+    farGrassEndM,
+  );
   return {
-    denseBladeEndM: Math.min(Math.max(transition.denseBladeEndM, 0), farGrassEndM),
+    denseBladeEndM,
     farGrassStartM,
     farGrassEndM,
+    nearTierEndM,
+    midTierEndM,
+    farSoftWidthScale: farSoftWidthScaleUniformValue(transition),
     edgeSinkStartM:
       transition.edgeSinkStartM === undefined
         ? undefined
         : Math.min(Math.max(transition.edgeSinkStartM, 0), farGrassEndM),
   };
+}
+
+function tierRangesForTransition(transition: BladeFieldTransitionProfile): Record<
+  BladeFieldTierId,
+  {
+    minDistanceM: number;
+    maxDistanceM: number;
+  }
+> {
+  const normalized = normalizedTransitionProfile(transition);
+  const nearEnd = nearTierEndUniformValue(normalized);
+  const midEnd = midTierEndUniformValue(normalized);
+  const farEnd = normalized.farGrassEndM;
+  return {
+    near: { minDistanceM: 0, maxDistanceM: nearEnd },
+    mid: { minDistanceM: nearEnd, maxDistanceM: midEnd },
+    far: { minDistanceM: midEnd, maxDistanceM: farEnd },
+  };
+}
+
+function nearTierEndUniformValue(transition: BladeFieldTransitionProfile): number {
+  return transition.nearTierEndM ?? transition.denseBladeEndM;
+}
+
+function midTierEndUniformValue(transition: BladeFieldTransitionProfile): number {
+  return transition.midTierEndM ?? transition.farGrassStartM;
+}
+
+function farSoftWidthScaleUniformValue(transition: BladeFieldTransitionProfile): number {
+  const value = transition.farSoftWidthScale ?? 1.6;
+  return Math.max(1, Math.min(3, Number.isFinite(value) ? value : 1.6));
 }
 
 function edgeSinkStartUniformValue(transition: BladeFieldTransitionProfile): number {

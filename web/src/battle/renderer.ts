@@ -70,6 +70,7 @@ export class BattleRenderer {
   private readoutFrameKey = "";
   private readonly environmentRequest: string | null;
   private readonly shadowRequest: GraphicsSettings["shadows"];
+  private readonly grassQualityRequest: GraphicsSettings["grassQuality"];
   private graphicsUnsubscribe: (() => void) | null = null;
   private readonly onResize = () => this.resize();
   private disposed = false;
@@ -95,10 +96,12 @@ export class BattleRenderer {
   ) {
     const params = new URLSearchParams(location.search);
     this.environmentRequest = params.get("env") ?? options.environment ?? null;
-    this.shadowRequest = resolveGraphicsSettings(
+    const settings = resolveGraphicsSettings(
       location.search,
       options.graphics ?? getGraphicsSettings(),
-    ).shadows;
+    );
+    this.shadowRequest = settings.shadows;
+    this.grassQualityRequest = settings.grassQuality;
     this.ready = this.init();
     window.addEventListener("resize", this.onResize);
   }
@@ -110,7 +113,7 @@ export class BattleRenderer {
 
   usesGraphicsSettings(settings: GraphicsSettings): boolean {
     const next = resolveGraphicsSettings(location.search, settings);
-    return next.shadows === this.shadowRequest;
+    return next.shadows === this.shadowRequest && next.grassQuality === this.grassQualityRequest;
   }
 
   dispose(): void {
@@ -395,6 +398,7 @@ export class BattleRenderer {
         ? seaDisplacementSourceFromParam(params.get("sea"))
         : (this.options.sea ?? undefined),
       post: params.get("post") ?? this.options.post,
+      grassQuality: settings.grassQuality,
     });
     if (this.disposed) {
       world.dispose();

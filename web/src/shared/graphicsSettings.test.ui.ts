@@ -23,20 +23,30 @@ describe("graphicsSettings", () => {
   it("persists and reloads a complete settings roundtrip", () => {
     const seen: unknown[] = [];
     const unsubscribe = subscribeGraphicsSettings((settings) => seen.push(settings));
-    setGraphicsSettings({ shadows: "csm", grass: false, farGrass: false, bloom: false });
-    unsubscribe();
-
-    expect(JSON.parse(localStorage.getItem(GRAPHICS_SETTINGS_STORAGE_KEY) ?? "{}")).toEqual({
+    setGraphicsSettings({
       shadows: "csm",
+      grassQuality: "fine",
       grass: false,
       farGrass: false,
       bloom: false,
     });
-    expect(seen).toEqual([{ shadows: "csm", grass: false, farGrass: false, bloom: false }]);
+    unsubscribe();
+
+    expect(JSON.parse(localStorage.getItem(GRAPHICS_SETTINGS_STORAGE_KEY) ?? "{}")).toEqual({
+      shadows: "csm",
+      grassQuality: "fine",
+      grass: false,
+      farGrass: false,
+      bloom: false,
+    });
+    expect(seen).toEqual([
+      { shadows: "csm", grassQuality: "fine", grass: false, farGrass: false, bloom: false },
+    ]);
 
     reloadGraphicsSettingsForTests();
     expect(getGraphicsSettings()).toEqual({
       shadows: "csm",
+      grassQuality: "fine",
       grass: false,
       farGrass: false,
       bloom: false,
@@ -44,9 +54,18 @@ describe("graphicsSettings", () => {
   });
 
   it("lets query params override only the named settings", () => {
-    const base = { shadows: "csm" as const, grass: true, farGrass: true, bloom: true };
-    expect(resolveGraphicsSettings("?shadows=off&grass=off&nofar&post=off", base)).toEqual({
+    const base = {
+      shadows: "csm" as const,
+      grassQuality: "standard" as const,
+      grass: true,
+      farGrass: true,
+      bloom: true,
+    };
+    expect(
+      resolveGraphicsSettings("?shadows=off&grassQuality=low&grass=off&nofar&post=off", base),
+    ).toEqual({
       shadows: "off",
+      grassQuality: "low",
       grass: false,
       farGrass: false,
       bloom: false,
@@ -57,8 +76,16 @@ describe("graphicsSettings", () => {
     });
     expect(graphicsQueryOverrides("?shadows=off&nofar")).toEqual({
       shadows: true,
+      grassQuality: false,
       grass: false,
       farGrass: true,
+      bloom: false,
+    });
+    expect(graphicsQueryOverrides("?grassQuality=fine")).toEqual({
+      shadows: false,
+      grassQuality: true,
+      grass: false,
+      farGrass: false,
       bloom: false,
     });
   });

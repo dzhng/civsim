@@ -198,7 +198,7 @@ class GrassFieldSamplerTask implements GrassFieldSampler {
     const seed = toU32(config.seed ?? 0x6a55);
     const focus = config.focus;
     this.radius = Math.max(0, finiteOr(focus.radius, 0));
-    this.fieldCellSize = Math.max(0.5, finiteOr(config.fieldCellSize, DEFAULT_FIELD_CELL_SIZE));
+    this.fieldCellSize = Math.max(0.35, finiteOr(config.fieldCellSize, DEFAULT_FIELD_CELL_SIZE));
     const snapCellSize = Math.max(
       this.fieldCellSize,
       finiteOr(config.snapCellSize, DEFAULT_SNAP_CELL_SIZE),

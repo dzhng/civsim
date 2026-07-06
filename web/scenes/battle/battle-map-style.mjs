@@ -77,6 +77,15 @@ export const GRASS_RING_EDGE_MAX_ZOOM_CAMERA = {
   cy: -310,
 };
 
+export const GRASS_COVERAGE_ZOOM_SWEEP = [
+  { ...VISTA_CAMERA, profile: "grass-coverage-z5", zoom: 5.4, cx: -40, cy: -360 },
+  { ...VISTA_CAMERA, profile: "grass-coverage-z8", zoom: 7.86, cx: 0, cy: -360 },
+  { ...VISTA_CAMERA, profile: "grass-coverage-z12", zoom: 12, cx: 0, cy: -310 },
+  { ...VISTA_CAMERA, profile: "grass-coverage-z18", zoom: 18, cx: 0, cy: -310 },
+  { ...VISTA_CAMERA, profile: "grass-coverage-z24", zoom: 24, cx: 0, cy: -310 },
+  { ...VISTA_CAMERA, profile: "grass-coverage-z28", zoom: 28, cx: 0, cy: -310 },
+];
+
 export const BAND_CROPS = {
   "near-grass": { x: 0, y: 0.56, width: 1, height: 0.38 },
   "mid-field": { x: 0.12, y: 0.38, width: 0.76, height: 0.18 },
@@ -179,6 +188,8 @@ export async function run(ctx) {
     await ctx.snap(null, "battle-map-style/production-mid-grass", {
       shot: PNG.sync.write(productionMidCrop),
     });
+
+    await assertGrassCoverageAcrossZoomBands(ctx, page);
 
     const ringEdge = await loadProfile(ctx, page, GRASS_RING_EDGE_CAMERA);
     const ringEdgeShot = await page.screenshot({
@@ -319,13 +330,51 @@ function assertProductionMidGrassStructure(ctx, crop, stats) {
     "production mid-zoom grass keeps the close-gate structure family with looser battle-camera floors",
     Object.values(verdict).every(Boolean) &&
       stats?.terrain?.grass?.productionSamplingProfile?.fieldCellSize <= 0.42 &&
-      stats?.terrain?.grass?.productionSamplingProfile?.baseWidth >= 0.13,
+      stats?.terrain?.grass?.productionSamplingProfile?.baseWidth >= 0.06 &&
+      stats?.terrain?.grass?.productionSamplingProfile?.baseWidth <= 0.085 &&
+      stats?.terrain?.grass?.tiers?.mid?.segments === 8 &&
+      stats?.terrain?.grass?.transition?.farSoftWidthScale <= 1.6,
     JSON.stringify({
       verdict,
       metric,
       oracle: ORACLE,
       profile: stats?.terrain?.grass?.productionSamplingProfile,
     }),
+  );
+}
+
+async function assertGrassCoverageAcrossZoomBands(ctx, page) {
+  const results = [];
+  for (const profile of GRASS_COVERAGE_ZOOM_SWEEP) {
+    const loaded = await loadProfile(ctx, page, profile);
+    const shot = await page.screenshot({
+      clip: await page.locator("#renderer-canvas").boundingBox(),
+      timeout: 180000,
+    });
+    const image = PNG.sync.read(shot);
+    const transition = activeGrassTransition(loaded.stats);
+    const band = grassCoverageProbeBand(transition);
+    const crop = distanceBandCrop(image, loaded.camera3d, band.nearM, band.farM);
+    const metric = crop ? structureMetrics(crop) : null;
+    const coverage = grassCoverageMetric(metric);
+    results.push({
+      profile: profile.profile,
+      zoom: profile.zoom,
+      band,
+      transition,
+      crop: crop ? { width: crop.width, height: crop.height } : null,
+      coverage,
+      ok:
+        Boolean(crop) &&
+        coverage.green >= 0.04 &&
+        coverage.texture >= 0.22 &&
+        coverage.darkVoid <= 0.18,
+    });
+  }
+  ctx.check(
+    "grass coverage sweep: every zoom band reads grassy without widening near/mid blades",
+    results.every((result) => result.ok),
+    JSON.stringify(results),
   );
 }
 
@@ -414,6 +463,32 @@ function assertGroundKhakiPastBladeEdge(ctx, image, camera3d, stats) {
       greenRatio: metric?.base.green ?? null,
     }),
   );
+}
+
+function grassCoverageProbeBand(transition) {
+  if (!transition) return { nearM: 8, farM: 40 };
+  const nearTierEnd = transition.nearTierEndM ?? transition.denseBladeEndM ?? 5;
+  const midTierEnd = transition.midTierEndM ?? transition.farGrassStartM ?? 20;
+  const farStart = transition.farGrassStartM ?? midTierEnd;
+  const farEnd = Math.max(nearTierEnd + 2, transition.farGrassEndM ?? farStart);
+  const nearM = Math.max(2, Math.min(nearTierEnd, farEnd * 0.28));
+  const farM = Math.max(nearM + 4, Math.min(farEnd * 0.88, Math.max(midTierEnd, farStart * 0.75)));
+  return { nearM: round3(nearM), farM: round3(farM) };
+}
+
+function grassCoverageMetric(metric) {
+  if (!metric) {
+    return { green: 0, texture: 0, darkVoid: 1 };
+  }
+  const texture = round3(
+    Math.min(1, metric.base.edge / Math.max(0.001, ORACLE.rawEdgeMin)) * 0.6 +
+      Math.min(1, metric.down4.contrast / Math.max(0.001, ORACLE.down4ContrastMin)) * 0.4,
+  );
+  return {
+    green: metric.base.green,
+    texture,
+    darkVoid: metric.base.darkVoid,
+  };
 }
 
 function grassDistanceBins(image, camera3d, distances) {

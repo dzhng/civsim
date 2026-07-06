@@ -248,13 +248,26 @@ fn find_passable_anchor(sim: &Sim, class: UnitClassId, anchor: Vec2, facing: f32
     anchor
 }
 
-fn deploy_custom_row(sim: &mut Sim, classes: &[UnitClassId], center: Vec2, facing: f32, team: u32) {
+/// Depth between successive wrapped rows within one deployed foot line.
+const CUSTOM_ROW_BACKSTEP: f32 = 14.0;
+/// Frontage kept clear of foot units on each flank so the cavalry wings,
+/// anchored at the frontage edges, always end up the outermost element.
+const CUSTOM_WING_CLEARANCE: f32 = 40.0;
+
+/// Lays out one foot line, wrapping into extra rows behind the first when the
+/// roster outgrows the frontage. Returns the number of rows laid.
+fn deploy_custom_row(
+    sim: &mut Sim,
+    classes: &[UnitClassId],
+    center: Vec2,
+    facing: f32,
+    team: u32,
+) -> usize {
     const GAP: f32 = 10.0;
-    const ROW_BACKSTEP: f32 = 14.0;
-    const MAX_ROW_W: f32 = DEPLOYMENT_FRONTAGE_HALF_W * 2.0;
+    const MAX_ROW_W: f32 = (DEPLOYMENT_FRONTAGE_HALF_W - CUSTOM_WING_CLEARANCE) * 2.0;
 
     if classes.is_empty() {
-        return;
+        return 0;
     }
 
     let f = dir(facing);
@@ -283,7 +296,7 @@ fn deploy_custom_row(sim: &mut Sim, classes: &[UnitClassId], center: Vec2, facin
     for (row_idx, row) in rows.iter().enumerate() {
         let total = row.iter().map(|&c| unit_width(c)).sum::<f32>()
             + GAP * row.len().saturating_sub(1) as f32;
-        let row_center = center - f * (row_idx as f32 * ROW_BACKSTEP);
+        let row_center = center - f * (row_idx as f32 * CUSTOM_ROW_BACKSTEP);
         let mut x = -0.5 * total;
         for &class in row {
             let w = unit_width(class);
@@ -293,12 +306,13 @@ fn deploy_custom_row(sim: &mut Sim, classes: &[UnitClassId], center: Vec2, facin
             x += w + GAP;
         }
     }
+    rows.len()
 }
 
 fn deploy_custom_cavalry(
     sim: &mut Sim,
     classes: &[UnitClassId],
-    front_center: Vec2,
+    center: Vec2,
     facing: f32,
     team: u32,
 ) {
@@ -345,7 +359,7 @@ fn deploy_custom_cavalry(
                 DEPLOYMENT_FRONTAGE_HALF_W - total
             };
             let mut x = left_edge;
-            let row_center = front_center - f * (row_idx as f32 * ROW_BACKSTEP);
+            let row_center = center - f * (row_idx as f32 * ROW_BACKSTEP);
             for &class in row {
                 let w = unit_width(class);
                 let anchor = row_center + right * (x + 0.5 * w);
@@ -359,7 +373,9 @@ fn deploy_custom_cavalry(
 
 /// Deploy a custom-battle army from class ids chosen by the frontend. The sim
 /// owns the formation: three role lines inside the generated-map deployment
-/// frontage, with cavalry on both wings and every footprint nudged onto
+/// frontage, with cavalry wings on their own line one backstep behind the
+/// front block — anchored at the frontage edges the foot lines keep clear of,
+/// so the wings stay the outermost element — and every footprint nudged onto
 /// passable, non-blocking ground.
 pub fn deploy_custom_army(sim: &mut Sim, team: u32, classes: &[UnitClassId]) {
     use std::f32::consts::FRAC_PI_2;
@@ -390,10 +406,11 @@ pub fn deploy_custom_army(sim: &mut Sim, team: u32, classes: &[UnitClassId]) {
         }
     }
 
-    deploy_custom_row(sim, &front, front_center, facing, team);
+    let front_rows = deploy_custom_row(sim, &front, front_center, facing, team);
     deploy_custom_row(sim, &second, second_center, facing, team);
     deploy_custom_row(sim, &third, third_center, facing, team);
-    deploy_custom_cavalry(sim, &cavalry, front_center, facing, team);
+    let cavalry_center = front_center - f * (front_rows as f32 * CUSTOM_ROW_BACKSTEP);
+    deploy_custom_cavalry(sim, &cavalry, cavalry_center, facing, team);
 }
 
 /// Deploy a campaign roster. Entries are split into battle-sized units

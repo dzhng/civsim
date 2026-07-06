@@ -69,6 +69,14 @@ export const GRASS_RING_EDGE_CAMERA = {
   cy: -360,
 };
 
+export const GRASS_RING_EDGE_MAX_ZOOM_CAMERA = {
+  ...VISTA_CAMERA,
+  profile: "grass-ring-edge-max-zoom",
+  zoom: 28,
+  cx: 0,
+  cy: -310,
+};
+
 export const BAND_CROPS = {
   "near-grass": { x: 0, y: 0.56, width: 1, height: 0.38 },
   "mid-field": { x: 0.12, y: 0.38, width: 0.76, height: 0.18 },
@@ -82,6 +90,7 @@ const SNAPSHOTS = [
   "battle-map-style/close-gate",
   "battle-map-style/production-mid-grass",
   "battle-map-style/grass-ring-edge",
+  "battle-map-style/grass-ring-edge-max-zoom",
   ...Object.keys(BAND_CROPS).map((name) => `battle-map-style/${name}`),
 ];
 
@@ -177,9 +186,31 @@ export async function run(ctx) {
       timeout: 180000,
     });
     const ringEdgeImage = PNG.sync.read(ringEdgeShot);
-    assertNoHardGrassRingEdge(ctx, ringEdgeImage, ringEdge.camera3d, ringEdge.stats);
+    assertNoHardGrassRingEdge(ctx, ringEdgeImage, ringEdge.camera3d, ringEdge.stats, {
+      label: "vista",
+    });
     await ctx.snap(null, "battle-map-style/grass-ring-edge", {
       shot: PNG.sync.write(cropByRect(ringEdgeImage, BAND_CROPS["near-grass"])),
+    });
+
+    const maxZoomRingEdge = await loadProfile(ctx, page, GRASS_RING_EDGE_MAX_ZOOM_CAMERA);
+    const maxZoomShot = await page.screenshot({
+      clip: await page.locator("#renderer-canvas").boundingBox(),
+      timeout: 180000,
+    });
+    const maxZoomImage = PNG.sync.read(maxZoomShot);
+    assertNoHardGrassRingEdge(ctx, maxZoomImage, maxZoomRingEdge.camera3d, maxZoomRingEdge.stats, {
+      label: "max-zoom",
+      farGrassEndRange: [38, 42],
+    });
+    assertGroundKhakiPastBladeEdge(
+      ctx,
+      maxZoomImage,
+      maxZoomRingEdge.camera3d,
+      maxZoomRingEdge.stats,
+    );
+    await ctx.snap(null, "battle-map-style/grass-ring-edge-max-zoom", {
+      shot: PNG.sync.write(cropByRect(maxZoomImage, BAND_CROPS["near-grass"])),
     });
   } finally {
     await page.close();
@@ -298,8 +329,12 @@ function assertProductionMidGrassStructure(ctx, crop, stats) {
   );
 }
 
-function assertNoHardGrassRingEdge(ctx, image, camera3d, stats) {
-  const bins = grassDistanceBins(image, camera3d, [90, 120, 150, 185, 230, 300, 390, 470]);
+function assertNoHardGrassRingEdge(ctx, image, camera3d, stats, options = {}) {
+  const transition = activeGrassTransition(stats);
+  const distances = transition
+    ? grassRingProbeDistances(transition)
+    : [90, 120, 150, 185, 230, 300, 390, 470];
+  const bins = grassDistanceBins(image, camera3d, distances);
   const usable = bins.filter((bin) => bin.heightPx >= 10 && bin.metric.base.green > 0.04);
   const jumps = [];
   for (let i = 1; i < usable.length; i++) {
@@ -313,20 +348,70 @@ function assertNoHardGrassRingEdge(ctx, image, camera3d, stats) {
     });
   }
   const oldEdge = jumps.find((jump) => jump.from[1] <= 150 && jump.to[0] >= 150);
+  const activeEdge = transition
+    ? jumps.find(
+        (jump) => jump.from[0] <= transition.farGrassEndM && jump.to[1] >= transition.farGrassEndM,
+      )
+    : null;
   const maxJump = Math.max(0, ...jumps.map((jump) => jump.relative));
+  const inRange =
+    !options.farGrassEndRange ||
+    (transition?.farGrassEndM >= options.farGrassEndRange[0] &&
+      transition?.farGrassEndM <= options.farGrassEndRange[1]);
   ctx.check(
-    "grass ring-edge check: projected density bins stay smooth across the old 150m cutoff",
+    `grass ring-edge check (${options.label ?? "default"}): projected density bins stay smooth across the active transition`,
     usable.length >= 4 &&
       maxJump <= 1.15 &&
       (!oldEdge || oldEdge.relative <= 0.72) &&
-      stats?.terrain?.grass?.transition?.farGrassEndM >= 400,
+      (!activeEdge || activeEdge.relative <= 0.82) &&
+      stats?.terrain?.grass?.transitionOwner === "battleWorld.updateGrassForCamera" &&
+      inRange,
     JSON.stringify({
       bins,
       jumps,
       oldEdge,
+      activeEdge,
       maxJump: round3(maxJump),
+      distances,
+      expectedFarGrassEndRange: options.farGrassEndRange ?? null,
+      activeTransition: stats?.terrain?.grass?.activeTransition,
       transition: stats?.terrain?.grass?.transition,
       tiers: stats?.terrain?.grass?.tiers,
+    }),
+  );
+}
+
+function assertGroundKhakiPastBladeEdge(ctx, image, camera3d, stats) {
+  const transition = activeGrassTransition(stats);
+  const beyond = transition
+    ? distanceBandCrop(
+        image,
+        camera3d,
+        transition.farGrassEndM * 1.08,
+        transition.farGrassEndM * 1.38,
+      )
+    : null;
+  const metric = beyond ? structureMetrics(beyond) : null;
+  const hue = metric ? rgbHue(metric.base.avg) : Number.NaN;
+  const canopyHue = 62;
+  const bareGreenHue = 105;
+  const verdict =
+    transition &&
+    metric &&
+    metric.base.green > 0.05 &&
+    hueDistance(hue, canopyHue) < hueDistance(hue, bareGreenHue);
+  ctx.check(
+    "grass max-zoom ground term rises past the blade edge with khaki canopy hue, not bare green",
+    verdict,
+    JSON.stringify({
+      transition,
+      avg: metric?.base.avg ?? null,
+      hue: round3(hue),
+      canopyHue,
+      bareGreenHue,
+      canopyDistance: round3(hueDistance(hue, canopyHue)),
+      bareGreenDistance: round3(hueDistance(hue, bareGreenHue)),
+      greenRatio: metric?.base.green ?? null,
     }),
   );
 }
@@ -381,6 +466,54 @@ function grassDistanceBins(image, camera3d, distances) {
     });
   }
   return bins;
+}
+
+function grassRingProbeDistances(transition) {
+  const end = Math.max(1, transition.farGrassEndM);
+  const start = Math.max(1, transition.farGrassStartM);
+  const values = [
+    Math.max(1, start * 0.65),
+    start,
+    start + (end - start) * 0.45,
+    end,
+    end * 1.22,
+    end * 1.55,
+    end * 2.0,
+  ];
+  return [...new Set(values.map((v) => Math.round(v)))].sort((a, b) => a - b);
+}
+
+function activeGrassTransition(stats) {
+  return stats?.terrain?.grass?.activeTransition ?? stats?.terrain?.grass?.transition ?? null;
+}
+
+function distanceBandCrop(image, camera3d, nearM, farM) {
+  if (!camera3d) return null;
+  const eye = eyePosition(camera3d);
+  const target = camera3d.target;
+  const groundDir = normalize([target[0] - eye[0], target[1] - eye[1]]);
+  const a = projectPoint(
+    camera3d,
+    [eye[0] + groundDir[0] * nearM, eye[1] + groundDir[1] * nearM, 0],
+    VIEWPORT,
+  );
+  const b = projectPoint(
+    camera3d,
+    [eye[0] + groundDir[0] * farM, eye[1] + groundDir[1] * farM, 0],
+    VIEWPORT,
+  );
+  if (!a || !b) return null;
+  const y0 = Math.max(0, Math.min(image.height - 1, Math.min(a.y, b.y)));
+  const y1 = Math.max(0, Math.min(image.height, Math.max(a.y, b.y)));
+  const height = y1 - y0;
+  if (height < 8) return null;
+  return cropRatio(
+    image,
+    0.16,
+    y0 / image.height,
+    0.68,
+    Math.max(1 / image.height, height / image.height),
+  );
 }
 
 function profileQuery(profile) {
@@ -566,6 +699,24 @@ function clampByte(value) {
 
 function luma(r, g, b) {
   return r * 0.2126 + g * 0.7152 + b * 0.0722;
+}
+
+function rgbHue(rgb) {
+  const [r0, g0, b0] = rgb.map((v) => v / 255);
+  const max = Math.max(r0, g0, b0);
+  const min = Math.min(r0, g0, b0);
+  const delta = max - min;
+  if (delta <= 1e-6) return 0;
+  let hue;
+  if (max === r0) hue = ((g0 - b0) / delta) % 6;
+  else if (max === g0) hue = (b0 - r0) / delta + 2;
+  else hue = (r0 - g0) / delta + 4;
+  return (hue * 60 + 360) % 360;
+}
+
+function hueDistance(a, b) {
+  const d = Math.abs(a - b) % 360;
+  return Math.min(d, 360 - d);
 }
 
 function round3(value) {

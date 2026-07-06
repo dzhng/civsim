@@ -429,18 +429,18 @@ export function createOceanPlaneMesh(
       const c = a + side;
       const d = c + 1;
       indices[k++] = a;
-      indices[k++] = c;
-      indices[k++] = b;
       indices[k++] = b;
       indices[k++] = c;
+      indices[k++] = b;
       indices[k++] = d;
+      indices[k++] = c;
     }
   }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
   geo.setIndex(new THREE.BufferAttribute(indices, 1));
 
-  const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, metalness: 0 });
+  const material = new THREE.MeshStandardNodeMaterial({ side: THREE.FrontSide, metalness: 0 });
   const worldXY = attribute<"vec3">("position", "vec3").xy;
   material.positionNode = vec3(worldXY, displacement.height(worldXY, frame.time).add(spec.baseZ));
   const fragXY = varying(worldXY).toVar();
@@ -499,7 +499,7 @@ export function createLakePlaneMesh(
   geo.setAttribute("shoreDist", new THREE.BufferAttribute(mesh.shoreDist, 1));
   geo.setIndex(new THREE.BufferAttribute(mesh.indices, 1));
 
-  const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, metalness: 0 });
+  const material = new THREE.MeshStandardNodeMaterial({ side: THREE.FrontSide, metalness: 0 });
   const worldXY = attribute<"vec3">("position", "vec3").xy;
   material.positionNode = vec3(
     worldXY,
@@ -578,7 +578,7 @@ function buildLakePlaneGeometry(
     );
     shoreDist.set([shore, shore, shore, shore], sv);
     const b = n * 4;
-    indices.set([b, b + 2, b + 1, b + 1, b + 2, b + 3], iv);
+    indices.set([b, b + 1, b + 2, b + 1, b + 3, b + 2], iv);
     pv += 12;
     sv += 4;
     iv += 6;

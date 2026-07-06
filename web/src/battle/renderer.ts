@@ -336,10 +336,16 @@ export class BattleRenderer {
     };
   }
 
-  /** Terrain surface height at a world point — the world's canonical surface
-   *  contract, for DOM anchors that must sit where the rendered ground is. */
+  /** Rendered surface height at a world point — playable terrain inside the
+   *  field, generated vista apron/far-fog terrain outside it. This is the
+   *  camera/anchor contract; soldier seating still uses the playable terrain
+   *  sampler inside PhotorealBattleWorld. */
   heightAt(x: number, y: number): number {
-    return this.world?.heightAt(x, y) ?? 0;
+    return this.surfaceHeightAt(x, y);
+  }
+
+  surfaceHeightAt(x: number, y: number): number {
+    return this.world?.surfaceHeightAt(x, y) ?? 0;
   }
 
   debugSoldierAnim(index: number): { clip: string; phase: number; frame: number } | null {

@@ -29,6 +29,14 @@ it — tiny fixups, plan reconciliation, integration conflicts.
 
 - You own every result: read the full diff and run the verification yourself.
   "Codex says it's done" is never done.
+- **Visual results carry two extra proofs before you claim them.** (1) A
+  byte/pixel diff against the pre-change baseline on the PRODUCTION route —
+  static checks and re-anchored scene assertions all pass on a no-op (a
+  soldier-look pass once shipped "verified" while the production frame was
+  byte-identical to main). (2) An unprimed
+  [screenshot-critique](../screenshot-critique/SKILL.md) at the user's
+  reported framing before declaring their visual bug fixed — the orchestrator's
+  eyes are primed by the fix and repeatedly pass what fresh eyes catch.
 - A sandboxed Codex ships code it never saw run — browser-verify every visual
   slice yourself and budget fix rounds. Send a red gate back as a resumed
   follow-up with the failing evidence; fix it yourself only when that's

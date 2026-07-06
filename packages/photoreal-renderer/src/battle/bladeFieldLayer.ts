@@ -59,11 +59,27 @@ export interface BladeFieldTierSpec {
   maxDistanceM: number;
 }
 
+export interface BladeFieldTransitionProfile {
+  denseBladeEndM: number;
+  farGrassStartM: number;
+  farGrassEndM: number;
+  /** Blades sink to turf across [start, end] so the coverage radius never
+   *  shows a full-height cutoff. Production-scale rings only - the ratified
+   *  close-lab profile (64m ring) keeps its hard edge (undefined = no sink). */
+  edgeSinkStartM?: number;
+}
+
 export const BLADE_FIELD_LOD_TIERS: readonly BladeFieldTierSpec[] = [
   { id: "near", lodTier: 0, segments: 15, minDistanceM: 0, maxDistanceM: 5 },
   { id: "mid", lodTier: 1, segments: 5, minDistanceM: 5, maxDistanceM: 20 },
   { id: "far", lodTier: 2, segments: 2, minDistanceM: 20, maxDistanceM: 64 },
 ];
+
+export const DEFAULT_BLADE_FIELD_TRANSITION: BladeFieldTransitionProfile = {
+  denseBladeEndM: 20,
+  farGrassStartM: 20,
+  farGrassEndM: 64,
+};
 
 export const BLADE_FIELD_PALETTE = {
   source: "packages/photoreal-renderer/src/battle/foliageLayer.ts GRASS_ALBEDO_* olive family",
@@ -100,6 +116,7 @@ export interface BladeFieldStats {
   culledRecords: number;
   thinnedRecords: number;
   thinning: BladeFieldThinningProfile;
+  transition: BladeFieldTransitionProfile;
   sourceStorageCore: {
     packedVec4PerBlade: 4;
     packedBytesPerBlade: 64;
@@ -198,6 +215,7 @@ export class PhotorealBladeFieldLayer {
 
   private readonly tiers: readonly BladeFieldTierSpec[];
   private readonly thinning: BladeFieldThinningProfile;
+  private readonly transition: BladeFieldTransitionProfile;
 
   /** `tiers` overrides the ratified close-lab envelope (far 64 m) - the
    *  production battle passes a wider far tier so vista framing (eye ~59 m
@@ -207,10 +225,12 @@ export class PhotorealBladeFieldLayer {
     time: FloatNode = uniform(0) as unknown as FloatNode,
     tiers: readonly BladeFieldTierSpec[] = BLADE_FIELD_LOD_TIERS,
     edgeFade = false,
+    transition: BladeFieldTransitionProfile = DEFAULT_BLADE_FIELD_TRANSITION,
   ) {
     this.time = time;
     this.tiers = tiers;
-    this.thinning = thinningProfileForTiers(tiers, edgeFade);
+    this.transition = transitionProfileForTiers(tiers, transition);
+    this.thinning = thinningProfileForTransition(this.transition, edgeFade);
     const material = new THREE.MeshStandardNodeMaterial({
       side: THREE.DoubleSide,
       roughness: 0.84,
@@ -277,7 +297,7 @@ export class PhotorealBladeFieldLayer {
         this.runtime.grassData,
         bucket.visibleIndices,
         this.time,
-        this.tiers[2].maxDistanceM,
+        this.transition,
         this.thinning.survivorAlbedoBlend,
       );
       bucket.records = 0;
@@ -381,6 +401,7 @@ export class PhotorealBladeFieldLayer {
       culledRecords: this.culledRecords,
       thinnedRecords: this.thinnedRecords,
       thinning: this.thinning,
+      transition: this.transition,
       sourceStorageCore: {
         packedVec4PerBlade: 4,
         packedBytesPerBlade: 64,
@@ -541,7 +562,7 @@ function bladeFieldMaterial(
   grassData: unknown,
   visibleIndices: unknown,
   time: FloatNode,
-  farMaxM: number,
+  transition: BladeFieldTransitionProfile,
   survivorAlbedoBlend: number,
 ): THREE.MeshStandardNodeMaterial {
   // Standard material so the environment (the mood owner) lights the canopy -
@@ -577,8 +598,16 @@ function bladeFieldMaterial(
     const d3 = record.get("data3").toConst();
 
     const base = vec3(d0.x, d0.y, d0.z).toVar();
+    const eyeDist = length(cameraPosition.sub(base)).toVar();
+    const farSoft = smoothstep(
+      float(transition.farGrassStartM),
+      float(transition.farGrassEndM),
+      eyeDist,
+    ).toVar();
     // Tall clumps widen too: a clump reads as one bright mass, not stripes.
-    const width = max(d1.x.mul(mix(0.85, 1.35, clamp(d2.w, 0.0, 1.0))), 0.018).toVar();
+    const width = max(d1.x.mul(mix(0.85, 1.35, clamp(d2.w, 0.0, 1.0))), 0.018)
+      .mul(mix(1.0, 2.55, farSoft))
+      .toVar();
     const clumpWeight = clamp(d2.w, 0.0, 1.0);
     // Clump-scale canopy: the Voronoi clumpWeight (1.55 m cells) drives a
     // strong height swing so the field breaks into clumps with tip-lines at
@@ -598,10 +627,19 @@ function bladeFieldMaterial(
     const behindCull = smoothstep(0.5, -1.5, baseViewZ);
     const nearEyeFade = smoothstep(fadeEnd.mul(0.45), fadeEnd, length(cameraPosition.sub(base)))
       .mul(behindCull);
+    // Coverage-edge dissolve: blades SINK into the turf across the last
+    // stretch of the far transition instead of stopping full-height at a
+    // hard radius (the "visible from across the room" cutoff critique).
+    const edgeSink =
+      transition.edgeSinkStartM === undefined
+        ? float(1.0)
+        : smoothstep(float(transition.farGrassEndM), float(transition.edgeSinkStartM), eyeDist);
     const height = max(d1.y.mul(mix(0.52, 1.32, clumpWeight)), 0.16)
       .mul(nearEyeFade)
+      .mul(mix(1.0, 0.72, farSoft))
+      .mul(edgeSink)
       .toVar();
-    const bend = d1.z.mul(1.15).toVar();
+    const bend = d1.z.mul(mix(1.15, 0.72, farSoft)).toVar();
     const phase = d1.w;
     const yaw = d2.x;
     const clumpSeed = d2.y;
@@ -653,7 +691,7 @@ function bladeFieldMaterial(
     const widthFactor = t
       .mul(0.5)
       .add(0.5)
-      .mul(pow(float(1.0).sub(t), 1.6))
+      .mul(pow(float(1.0).sub(t), mix(1.6, 2.35, farSoft)))
       .toVar();
     const cameraDir = normalize(cameraPosition.sub(center)).toVar();
     const viewSideSigned = dot(cameraDir, side).toVar();
@@ -690,13 +728,12 @@ function bladeFieldMaterial(
     // Clump shade is what turns the canopy into bright tall columns over dark
     // short clumps - the vertical-run structure the close target shows.
     const clumpShade = mix(0.42, 1.18, clumpWeight);
-    const eyeDist = length(cameraPosition.sub(base)).toVar();
     const distFade = smoothstep(float(18.0), float(42.0), eyeDist);
     // Blend into the meadow tone toward the cull ring so the coverage edge
     // dissolves instead of cutting a hard disc (slice 12 owns real thinning).
     const ringFade = smoothstep(
-      float(farMaxM * 0.72),
-      float(farMaxM * 0.95),
+      float(transition.farGrassStartM),
+      float(transition.farGrassEndM),
       eyeDist,
     );
     const meadow = vec3(0.47, 0.53, 0.32);
@@ -705,7 +742,7 @@ function bladeFieldMaterial(
       .mul(clumpShade)
       .mul(clumpFactor)
       .mul(bladeFactor)
-      .mul(0.92);
+      .mul(mix(0.92, 0.72, farSoft));
     const desat = mix(shaded, vec3(dot(shaded, vec3(0.333))), distFade.mul(0.16));
     const albedo = mix(desat, meadow, ringFade.mul(survivorAlbedoBlend));
     vAlbedo.assign(clamp(albedo, vec3(0.0), vec3(1.0)));
@@ -723,17 +760,36 @@ function bladeFieldMaterial(
   return material;
 }
 
-function thinningProfileForTiers(
+function transitionProfileForTiers(
   tiers: readonly BladeFieldTierSpec[],
+  transition: BladeFieldTransitionProfile,
+): BladeFieldTransitionProfile {
+  const farTier = tiers[tiers.length - 1] ?? BLADE_FIELD_LOD_TIERS[2];
+  const farGrassEndM = Math.min(
+    Math.max(transition.farGrassEndM, transition.farGrassStartM),
+    farTier.maxDistanceM,
+  );
+  const farGrassStartM = Math.min(
+    Math.max(transition.farGrassStartM, farTier.minDistanceM),
+    farGrassEndM,
+  );
+  return {
+    denseBladeEndM: Math.min(Math.max(transition.denseBladeEndM, 0), farGrassEndM),
+    farGrassStartM,
+    farGrassEndM,
+  };
+}
+
+function thinningProfileForTransition(
+  transition: BladeFieldTransitionProfile,
   blendSurvivors: boolean,
 ): BladeFieldThinningProfile {
-  const farTier = tiers[tiers.length - 1] ?? BLADE_FIELD_LOD_TIERS[2];
   return {
     // Thinning is the production edge treatment (same flag as the survivor
     // albedo blend); the ratified close-lab envelope renders full density.
     enabled: blendSurvivors,
-    fadeStartM: farTier.minDistanceM,
-    fadeEndM: farTier.maxDistanceM,
+    fadeStartM: transition.farGrassStartM,
+    fadeEndM: transition.farGrassEndM,
     hashSource: "record.bladeSeed fract(seed01 * 7.13)",
     survivorAlbedoBlend: blendSurvivors ? 0.85 : 0,
   };

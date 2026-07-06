@@ -50,6 +50,25 @@ export const CLOSE_GATE_CAMERA = {
   zoom: 7.86, // rig: pitch 0.263, distance 76, eye ~20 m - blades ratify here
 };
 
+export const PRODUCTION_MID_GRASS_CAMERA = {
+  ...VISTA_CAMERA,
+  profile: "production-mid-grass",
+  // zoom 12: the crop must frame BLADES at the battle camera (10-60m out).
+  // At 4.5 under overcast the crop measured sub-pixel blades through haze -
+  // an oracle pointed at fog.
+  zoom: 12,
+  cx: 0,
+  cy: -310,
+};
+
+export const GRASS_RING_EDGE_CAMERA = {
+  ...VISTA_CAMERA,
+  profile: "grass-ring-edge",
+  zoom: 5.4,
+  cx: -40,
+  cy: -360,
+};
+
 export const BAND_CROPS = {
   "near-grass": { x: 0, y: 0.56, width: 1, height: 0.38 },
   "mid-field": { x: 0.12, y: 0.38, width: 0.76, height: 0.18 },
@@ -61,6 +80,8 @@ export const BAND_CROPS = {
 const SNAPSHOTS = [
   "battle-map-style/vista",
   "battle-map-style/close-gate",
+  "battle-map-style/production-mid-grass",
+  "battle-map-style/grass-ring-edge",
   ...Object.keys(BAND_CROPS).map((name) => `battle-map-style/${name}`),
 ];
 
@@ -136,6 +157,29 @@ export async function run(ctx) {
         clip: await page.locator("#renderer-canvas").boundingBox(),
         timeout: 180000,
       }),
+    });
+
+    const productionMid = await loadProfile(ctx, page, PRODUCTION_MID_GRASS_CAMERA);
+    const productionMidShot = await page.screenshot({
+      clip: await page.locator("#renderer-canvas").boundingBox(),
+      timeout: 180000,
+    });
+    const productionMidImage = PNG.sync.read(productionMidShot);
+    const productionMidCrop = cropByRect(productionMidImage, BAND_CROPS["near-grass"]);
+    assertProductionMidGrassStructure(ctx, productionMidCrop, productionMid.stats);
+    await ctx.snap(null, "battle-map-style/production-mid-grass", {
+      shot: PNG.sync.write(productionMidCrop),
+    });
+
+    const ringEdge = await loadProfile(ctx, page, GRASS_RING_EDGE_CAMERA);
+    const ringEdgeShot = await page.screenshot({
+      clip: await page.locator("#renderer-canvas").boundingBox(),
+      timeout: 180000,
+    });
+    const ringEdgeImage = PNG.sync.read(ringEdgeShot);
+    assertNoHardGrassRingEdge(ctx, ringEdgeImage, ringEdge.camera3d, ringEdge.stats);
+    await ctx.snap(null, "battle-map-style/grass-ring-edge", {
+      shot: PNG.sync.write(cropByRect(ringEdgeImage, BAND_CROPS["near-grass"])),
     });
   } finally {
     await page.close();
@@ -229,6 +273,114 @@ function assertPhotorealRoute(ctx, stats) {
       terrain,
     }),
   );
+}
+
+function assertProductionMidGrassStructure(ctx, crop, stats) {
+  const metric = structureMetrics(crop);
+  const verdict = {
+    rawEdge: metric.base.edge >= ORACLE.rawEdgeMin * 0.55 && metric.base.edge <= ORACLE.rawEdgeMax,
+    retention: metric.retention4 >= ORACLE.retention4Min * 0.58,
+    contrast: metric.down4.contrast >= ORACLE.down4ContrastMin * 0.62,
+    occupancy: metric.tile4.occupancy3 >= ORACLE.tile4Occupancy3Min * 0.62,
+    verticalRuns: metric.verticalRun.tallColumnRatio >= ORACLE.verticalRunTallColumnMin * 0.62,
+  };
+  ctx.check(
+    "production mid-zoom grass keeps the close-gate structure family with looser battle-camera floors",
+    Object.values(verdict).every(Boolean) &&
+      stats?.terrain?.grass?.productionSamplingProfile?.fieldCellSize <= 0.42 &&
+      stats?.terrain?.grass?.productionSamplingProfile?.baseWidth >= 0.13,
+    JSON.stringify({
+      verdict,
+      metric,
+      oracle: ORACLE,
+      profile: stats?.terrain?.grass?.productionSamplingProfile,
+    }),
+  );
+}
+
+function assertNoHardGrassRingEdge(ctx, image, camera3d, stats) {
+  const bins = grassDistanceBins(image, camera3d, [90, 120, 150, 185, 230, 300, 390, 470]);
+  const usable = bins.filter((bin) => bin.heightPx >= 10 && bin.metric.base.green > 0.04);
+  const jumps = [];
+  for (let i = 1; i < usable.length; i++) {
+    const a = usable[i - 1].density;
+    const b = usable[i].density;
+    jumps.push({
+      from: usable[i - 1].rangeM,
+      to: usable[i].rangeM,
+      delta: round3(Math.abs(a - b)),
+      relative: round3(Math.abs(a - b) / Math.max(0.001, (a + b) * 0.5)),
+    });
+  }
+  const oldEdge = jumps.find((jump) => jump.from[1] <= 150 && jump.to[0] >= 150);
+  const maxJump = Math.max(0, ...jumps.map((jump) => jump.relative));
+  ctx.check(
+    "grass ring-edge check: projected density bins stay smooth across the old 150m cutoff",
+    usable.length >= 4 &&
+      maxJump <= 1.15 &&
+      (!oldEdge || oldEdge.relative <= 0.72) &&
+      stats?.terrain?.grass?.transition?.farGrassEndM >= 400,
+    JSON.stringify({
+      bins,
+      jumps,
+      oldEdge,
+      maxJump: round3(maxJump),
+      transition: stats?.terrain?.grass?.transition,
+      tiers: stats?.terrain?.grass?.tiers,
+    }),
+  );
+}
+
+function grassDistanceBins(image, camera3d, distances) {
+  if (!camera3d) return [];
+  const eye = eyePosition(camera3d);
+  const target = camera3d.target;
+  const groundDir = normalize([target[0] - eye[0], target[1] - eye[1]]);
+  const samples = distances
+    .map((distance) => {
+      const point = projectPoint(
+        camera3d,
+        [eye[0] + groundDir[0] * distance, eye[1] + groundDir[1] * distance, 0],
+        VIEWPORT,
+      );
+      return point ? { distance, y: point.y } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.distance - b.distance);
+  const bins = [];
+  for (let i = 0; i < samples.length - 1; i++) {
+    const a = samples[i];
+    const b = samples[i + 1];
+    const y0 = Math.max(0, Math.min(VIEWPORT.height - 1, Math.min(a.y, b.y)));
+    const y1 = Math.max(0, Math.min(VIEWPORT.height, Math.max(a.y, b.y)));
+    const height = y1 - y0;
+    if (height < 1) continue;
+    const crop = cropRatio(
+      image,
+      0.16,
+      y0 / image.height,
+      0.68,
+      Math.max(1 / image.height, height / image.height),
+    );
+    const metric = structureMetrics(crop);
+    const density = round3(
+      metric.base.green *
+        Math.min(2.2, metric.base.edge / Math.max(0.001, ORACLE.rawEdgeMin)) *
+        Math.min(1.6, metric.down4.contrast / Math.max(0.001, ORACLE.down4ContrastMin)),
+    );
+    bins.push({
+      rangeM: [a.distance, b.distance],
+      y: [round3(y0), round3(y1)],
+      heightPx: round3(height),
+      density,
+      metric: {
+        base: metric.base,
+        down4: metric.down4,
+        retention4: metric.retention4,
+      },
+    });
+  }
+  return bins;
 }
 
 function profileQuery(profile) {

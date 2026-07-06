@@ -378,9 +378,14 @@ rationale here, and continue. Never idle waiting for sign-off.
       cross at full correction speed); golden re-pinned. The at-ease fit
       gate still needs its own contained pass (below)
       → [slices/06-run-to-contact.md](slices/06-run-to-contact.md)
-- [ ] at-ease-fit-gate — contained pass: the 0.9-ratio acceptance on the
-      at-ease cadence (guards a latent standing relabel storm); measure
-      its mop-up effects (braced-line moved under it once) before shipping
+- [x] at-ease-fit-gate — CLOSED AS BACKLOG, not shipped: applied alone on
+      the shipped tree it inverts cavalry_mass_shoves (cav 2.45 vs inf
+      3.92 — a qualitative comparison; the gate reshuffles the standing
+      crowd's pre-contact arrangement). The latent at-ease relabel storm
+      it guards has only ever been observed in one perturbed microstate
+      that no longer exists; the designed guard (fit-improvement
+      acceptance, 0.9 ratio) is on file in this README's pass-7 notes for
+      whenever the storm shows up at shipped physics
 - [ ] 02b-2 — LAST, droppable (David). Corridor rest pose; naive
       radius-in-width is a banned re-entry (centering treadmill). Gate
       `settle_inside_marginal_corridor`; if it keeps breaking things, close

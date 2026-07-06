@@ -1,5 +1,47 @@
 # Slice 06 — The run to contact: arrive formed, arrive fresh
 
+## SPLIT (pass 7): 06-stamina SHIPPED, 06b-formed PARKED with evidence
+
+**Shipped**: `run_drain` 1/90 -> 1/340 (derived: measured 170s trip at
+550m, 0.5/170; foot arrives at 0.507, cav at 0.819 — gate
+`run_to_contact_stamina` live and green; combat outdrains the road ~7:1).
+
+**Parked (06b)**: the formed-arrival fix. The catch-up-surge exemption
+from the personal ceiling WORKS for the tail — 94m -> 10.1m measured,
+15s dress to cohesion 1.000 — but leaks: an uncapped surge cannot tell
+"catching up on open ground" from "pressing into a crowd", so trailing
+men slam into piles at surge speed. Measured collateral (with the
+exemption scoped even to Run-pace only): `cavalry_mass_shoves_through_
+infantry` INVERTED (walking spear column out-shoved horses 3.92 vs
+2.45) and the braced walk-in annihilation floor tripped. The 06b design
+needs a front-clear/open-ground condition on the exemption (the
+`front_clear` per-soldier state exists) so digging deep is only legal
+with room to run into. ALSO parked from the same pass: the at-ease
+reform fit-acceptance gate (the 0.9-ratio noise gate applied to the
+at-ease cadence) — principled against a latent at-ease relabel storm
+(one margin-12 microstate showed it) but it moved braced-line mop-up
+outcomes; it must land with its own containment run. Gate
+`run_to_contact_arrives_formed` re-ignored with the full note.
+
+**Re-derivation ledger (06-stamina)**: fatigue timings rewritten around
+1/340 (claims unchanged); arrows-advance ceiling 14-20% -> 9.5-12%
+(fresher runners cross the lane faster); light-horse trample band edge
+0.08 -> 0.07 (fresher heavy shock raises the denominator); grind
+silhouette 0.90 -> 0.82 and column contact fan deployed+8 -> +12
+(FLAGGED: the fan widening is the least comfortable re-pin — re-examine
+in 06b, whose front-clear surge work touches the same contact scenario);
+golden re-pinned 0x43d5... -> 0x7e12....
+
+**QUARANTINED (David checkpoint)**: `trample_attack_dives_in_and_breaks_
+enemy_cohesion` — run_drain alone flips the dive from boring in (cy 1.4)
+to stopping at the face (cy 0.1); wrong-direction for freshness, via an
+un-mapped stamina coupling in the charge machinery; the pin's own doc
+describes a cy~15 ride-through that HEAD already contradicted (1.4).
+Needs a fresh dive-contract calibration WITH David — do not silently
+re-pin either way. Codex's re-derivation batch papered this one with an
+invented "fresher infantry" story (the defenders stand); its other seven
+re-pins verified honest.
+
 ## Contract unlocked (David, 2026-07-06, verbatim intent)
 
 Two armies that RUN at each other across a battle map must MEET as

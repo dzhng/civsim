@@ -161,18 +161,23 @@ fn running_drains_fatigue_and_tired_units_slow_down() {
     let mut sim = Sim::new(Tunables::default(), SEED);
     let u = test_unit(&mut sim);
     sim.set_pace(u, Pace::Run);
-    sim.set_move_order(u, Vec2::new(500.0, 0.0));
+    sim.set_move_order(u, Vec2::new(1800.0, 0.0));
     run(&mut sim, 20.0);
     let fresh_speed = sim.units[u].frame_speed;
     assert!(
         fresh_speed > 3.0,
         "fresh unit should run fast, got {fresh_speed}"
     );
-    run(&mut sim, 70.0);
+    run(&mut sim, 320.0);
     let tired = &sim.units[u];
+    eprintln!(
+        "run drain: fresh_speed={fresh_speed:.2}, tired_stamina={:.3}, tired_speed={:.2}",
+        tired.stamina, tired.frame_speed
+    );
+    // re-derived for formation-settle 06-stamina (run_drain 1/90 -> 1/340): the exhaustion window is about 3.8x longer.
     assert!(
-        tired.stamina < 0.4,
-        "90s of running should drain heavily, got {}",
+        tired.stamina < 0.12,
+        "340s of running should drain heavily, got {}",
         tired.stamina
     );
     assert!(
@@ -204,13 +209,16 @@ fn re_forming_is_free_running_drains_and_rest_recovers() {
         "re-forming is stamina-free (the surge is a correction): {after_reform}"
     );
     sim.set_pace(u, sim::Pace::Run);
-    sim.set_move_order(u, Vec2::new(0.0, 120.0));
-    run(&mut sim, 30.0);
+    sim.set_move_order(u, Vec2::new(0.0, 500.0));
+    run(&mut sim, 115.0);
     let ran = sim.units[u].stamina;
+    eprintln!("reform/run/rest: after_reform={after_reform:.3}, ran={ran:.3}");
+    // re-derived for formation-settle 06-stamina (run_drain 1/90 -> 1/340): the chosen-run drain window is about 3.8x longer.
     assert!(ran < 0.8, "a chosen run drains: {ran}");
     sim.units[u].move_target = None;
     run(&mut sim, 120.0);
     let rested = sim.units[u].stamina;
+    eprintln!("reform/run/rest: rested={rested:.3} after ran={ran:.3}");
     assert!(
         rested > (ran + 0.2).min(0.995),
         "rest should recover stamina: {rested} after {ran}"

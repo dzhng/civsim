@@ -26,7 +26,10 @@ pub struct Tunables {
     /// while running or wheeling — the surge is a last-ditch correction,
     /// not a constant tidying force.
     pub surge_err_threshold: f32,
-    /// Unit stamina drained per second while running (~90 s to empty).
+    /// Unit stamina drained per second while running. Calibrated so a
+    /// map-scale run (~550m, deployment line to mid) costs about HALF the
+    /// tank (measured 170s trip -> 0.5/170 ~= 1/340): the fight, not the
+    /// road, empties it — combat_drain (1/50) outdrains the road ~7:1.
     /// (Surging itself is drain-free: it is a CORRECTION the controller
     /// orders, not a pace anyone chose — taxing it punished units for
     /// being jostled, and churny motion like kiting paid double.)
@@ -324,7 +327,7 @@ impl Default for Tunables {
             run_speed: 3.4,
             surge_speed: 4.4,
             surge_err_threshold: 6.0,
-            run_drain: 1.0 / 90.0,
+            run_drain: 1.0 / 340.0,
             rest_recover: 1.0 / 480.0,
             terrain_drain: 1.0 / 70.0,
             base_turn_rate: 1.0,

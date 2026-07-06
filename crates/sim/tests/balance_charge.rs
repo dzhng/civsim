@@ -71,8 +71,9 @@ fn light_horse_tramples_at_a_third_the_butchery() {
     // knockback). Through this thin 2-deep line the heavy's mass tells hardest, so
     // the light horse's shock lands at ~a fifth of the shock arm's. Wide band: the
     // claim is the magnitude — a clear fraction, not a knife-edge number.
+    // re-derived for formation-settle 06-stamina (run_drain 1/90 -> 1/340): fresher heavy shock raises the denominator and nudges the ratio below the old edge.
     assert!(
-        (0.08..=0.45).contains(&ratio),
+        (0.07..=0.45).contains(&ratio),
         "light horse tramples at a clear fraction of heavy's butchery: ratio {ratio:.2}"
     );
 }

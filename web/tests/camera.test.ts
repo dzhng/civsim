@@ -6,7 +6,7 @@
 // camera3d's yaw-0 view direction is −X) goes red here. Runs in node, no GPU.
 import assert from "node:assert/strict";
 import test from "node:test";
-import { projectPoint } from "../../packages/renderer-core/src/camera3d.ts";
+import { eyePosition, projectPoint } from "../../packages/renderer-core/src/camera3d.ts";
 import { Camera } from "../src/shared/camera.ts";
 
 function makeCamera(yaw: number): Camera {
@@ -92,4 +92,75 @@ test("panSpeed slows monotonically as you zoom in, and caps past ~75% out", () =
     assert.ok(s < prev, `speed must fall as zoom rises: t=${t} gave ${s} >= ${prev}`);
     prev = s;
   }
+});
+
+// Rotation is a head-turn, not an orbit (David 2026-07-07): yawAboutEye and
+// pitchAboutEye must hold the camera's world-space EYE fixed while the look
+// target swings around it. Verified through camera3d's real eye derivation.
+test("yawAboutEye holds the eye fixed at any yaw", () => {
+  for (const yaw of YAWS) {
+    const camera = makeCamera(yaw);
+    camera.zoom = 3;
+    const before = eyePosition(camera.params());
+    camera.yawAboutEye(0.6);
+    const after = eyePosition(camera.params());
+    const drift = Math.hypot(after[0] - before[0], after[1] - before[1], after[2] - before[2]);
+    assert.ok(drift < 1e-6, `yaw ${yaw}: eye drifted ${drift}m during yawAboutEye`);
+    assert.ok(Math.abs(camera.yaw - yaw - 0.6) < 1e-9, `yaw ${yaw}: yaw must advance by the delta`);
+  }
+});
+
+test("pitchAboutEye holds the eye fixed and tilts the view", () => {
+  // zoom 7 sits where the rig's zoom→distance curve has headroom both ways;
+  // at the curve's flat zoomed-out ceiling the eye instead dollies along the
+  // aim ray (the rig cannot reach past its max distance) — pinned below.
+  for (const yaw of YAWS) {
+    for (const delta of [0.12, -0.3]) {
+      const camera = makeCamera(yaw);
+      camera.zoom = 7;
+      const pitchBefore = camera.pitch;
+      const before = eyePosition(camera.params());
+      camera.pitchAboutEye(delta);
+      const after = eyePosition(camera.params());
+      const drift = Math.hypot(after[0] - before[0], after[1] - before[1], after[2] - before[2]);
+      assert.ok(
+        drift < 0.01,
+        `yaw ${yaw} delta ${delta}: eye drifted ${drift}m during pitchAboutEye`,
+      );
+      assert.ok(
+        Math.abs(camera.pitch - pitchBefore - delta) < 1e-3,
+        `yaw ${yaw} delta ${delta}: pitch moved ${camera.pitch - pitchBefore}, wanted ${delta}`,
+      );
+    }
+  }
+});
+
+test("pitchAboutEye at the rig's distance ceiling degrades to a dolly along the aim ray", () => {
+  // Zoomed far out the rig already sits at max distance, so tilting toward
+  // the horizon cannot hold the eye. It must still tilt by the full delta,
+  // keep the zoom dial where it was, and move the eye ONLY along the new
+  // view direction (a slight dolly-in, never a sideways orbit swing).
+  const camera = makeCamera(0.7);
+  camera.zoom = 3;
+  const pitchBefore = camera.pitch;
+  const before = eyePosition(camera.params());
+  camera.pitchAboutEye(-0.3);
+  const params = camera.params();
+  const after = eyePosition(params);
+  assert.ok(Math.abs(camera.pitch - pitchBefore + 0.3) < 1e-3, "must tilt by the full delta");
+  assert.ok(Math.abs(camera.zoom - 3) < 1e-9, "zoom dial must not slide on the flat curve");
+  const move = [after[0] - before[0], after[1] - before[1], after[2] - before[2]];
+  const view = [
+    params.target[0] - after[0],
+    params.target[1] - after[1],
+    params.target[2] - after[2],
+  ];
+  const viewLen = Math.hypot(...view);
+  const moveLen = Math.hypot(...move);
+  const along = (move[0] * view[0] + move[1] * view[1] + move[2] * view[2]) / viewLen;
+  assert.ok(moveLen > 1, "the ceiling case does move the eye (the rig cannot reach)");
+  assert.ok(
+    Math.abs(along - moveLen) < 0.01 * moveLen,
+    `eye movement must be along the view ray, along=${along} of ${moveLen}`,
+  );
 });

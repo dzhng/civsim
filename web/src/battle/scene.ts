@@ -44,6 +44,7 @@ import { mountBattleHud, type BattleHudHandle } from "../ui/hud/BattleHud";
 import { type ToolButtonState } from "../ui/hud/Toolbar";
 import { type HudData, type HudUnit } from "../ui/hud/HudPanel";
 import { GameOver, PauseMenu } from "../ui/hud/BattleModals";
+import { getGraphicsSettings } from "../shared/graphicsSettings";
 import { installViewportGate } from "./viewportGate";
 import { Input } from "./input";
 import { MANUAL_HTML } from "./manual";
@@ -299,12 +300,18 @@ export class BattleScene implements Scene {
     const camera = new Camera(canvas);
     const defaultEnvironment =
       this.cfg.environment ?? this.cfg.generatedMap?.defaultEnvironment ?? null;
-    if (sharedRenderer && !sharedRenderer.usesEnvironment(defaultEnvironment)) {
+    const graphics = getGraphicsSettings();
+    if (
+      sharedRenderer &&
+      (!sharedRenderer.usesEnvironment(defaultEnvironment) ||
+        !sharedRenderer.usesGraphicsSettings(graphics))
+    ) {
       sharedRenderer.dispose();
       sharedRenderer = null;
     }
     const renderer = (sharedRenderer ??= new BattleRenderer(canvas, {
       environment: defaultEnvironment,
+      graphics,
     }));
     // The camera rides the terrain: look target + eye clearance sample the
     // same height field the renderer draws, so the soldier-eye zoom floor

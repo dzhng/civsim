@@ -29,6 +29,11 @@ export async function run(ctx) {
   await page.waitForFunction(() => window.__appShellStats?.gpu?.checked === true, undefined, {
     timeout: 18000,
   });
+  await page.evaluate(() => localStorage.removeItem("civsim.graphicsSettings"));
+  await page.reload();
+  await page.waitForFunction(() => window.__appShellStats?.gpu?.checked === true, undefined, {
+    timeout: 18000,
+  });
   const shell = await page.evaluate(() => ({
     stats: window.__appShellStats,
     menuDisplay: getComputedStyle(document.getElementById("menu-ui")).display,
@@ -52,6 +57,41 @@ export async function run(ctx) {
       shell.statusText.includes("WebGPU ready"),
     JSON.stringify(shell),
   );
+
+  await page.click("#menu-settings");
+  await page.waitForSelector("#graphics-settings-modal .gfx-settings-panel", { timeout: 4000 });
+  const mainSettingsDefault = await page.evaluate(() => ({
+    modal: document.getElementById("graphics-settings-modal") !== null,
+    bloom: document.getElementById("gfx-bloom")?.checked,
+  }));
+  await page.click("#gfx-bloom");
+  await page.waitForFunction(
+    () => localStorage.getItem("civsim.graphicsSettings")?.includes('"bloom":false'),
+    undefined,
+    { timeout: 4000 },
+  );
+  await page.reload();
+  await page.waitForFunction(() => window.__appShellStats?.gpu?.checked === true, undefined, {
+    timeout: 18000,
+  });
+  await page.click("#menu-settings");
+  await page.waitForSelector("#graphics-settings-modal .gfx-settings-panel", { timeout: 4000 });
+  const mainSettingsPersisted = await page.evaluate(() => ({
+    modal: document.getElementById("graphics-settings-modal") !== null,
+    bloom: document.getElementById("gfx-bloom")?.checked,
+    stored: localStorage.getItem("civsim.graphicsSettings"),
+  }));
+  ctx.check(
+    "graphics settings modal opens from the main menu and persists across reload",
+    mainSettingsDefault.modal === true &&
+      mainSettingsDefault.bloom === true &&
+      mainSettingsPersisted.modal === true &&
+      mainSettingsPersisted.bloom === false &&
+      mainSettingsPersisted.stored?.includes('"bloom":false'),
+    JSON.stringify({ mainSettingsDefault, mainSettingsPersisted }),
+  );
+  await page.click("#gfx-bloom");
+  await page.click("#gfx-back");
 
   // Custom Battle setup: map options come from the shared catalog, both army
   // builders show class rows + live validation, and a template loads a valid
@@ -195,6 +235,22 @@ export async function run(ctx) {
     deployment.teams.every((team) => team.linesOrdered && team.cavalryFlanks),
     JSON.stringify(deployment),
   );
+  await page.click("#btn-menu");
+  await page.click("#pause-settings");
+  const battleSettings = await page.evaluate(() => ({
+    pause: getComputedStyle(document.getElementById("pausemenu")).display,
+    panel: document.querySelector("#pausemenu .gfx-settings-panel") !== null,
+    bloom: document.getElementById("gfx-bloom")?.checked,
+  }));
+  ctx.check(
+    "graphics settings opens from the battle menu",
+    battleSettings.pause === "flex" &&
+      battleSettings.panel === true &&
+      battleSettings.bloom === true,
+    JSON.stringify(battleSettings),
+  );
+  await page.click("#gfx-back");
+  await page.click("#pause-close");
   await returnBattleToMenu(page);
 
   await page.click("#menu-manual");
@@ -228,6 +284,19 @@ export async function run(ctx) {
     JSON.stringify(campaignStats),
   );
   await page.click("#cmp-exit");
+  await page.waitForSelector("#cmp-game-menu-modal", { timeout: 4000 });
+  await page.click("#cmp-menu-settings");
+  const campaignSettings = await page.evaluate(() => ({
+    menu: document.getElementById("cmp-game-menu-modal") !== null,
+    panel: document.querySelector("#cmp-game-menu-modal .gfx-settings-panel") !== null,
+  }));
+  ctx.check(
+    "graphics settings opens from the campaign menu",
+    campaignSettings.menu === true && campaignSettings.panel === true,
+    JSON.stringify(campaignSettings),
+  );
+  await page.click("#gfx-back");
+  await page.click("#cmp-menu-exit");
   await page.waitForFunction(
     () => getComputedStyle(document.getElementById("menu-ui")).display === "flex",
     undefined,

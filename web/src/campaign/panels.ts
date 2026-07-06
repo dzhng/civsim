@@ -162,6 +162,10 @@ export function campaignDomHtml(): string {
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-warn { color:#ff9a8a;font-weight:bold;margin-top:6px; }
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-actions { justify-content:center;margin-top:12px; }
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-actions button { font-size:14px;min-height:34px;padding:0 18px; }
+      :is(#campaign-ui, .renderer-campaign-ui) .cmp-menu-box { min-width:min(390px,92vw); }
+      :is(#campaign-ui, .renderer-campaign-ui) .cmp-menu-box .cmp-actions { display:grid;gap:8px; }
+      :is(#campaign-ui, .renderer-campaign-ui) .cmp-menu-box .cmp-actions button { width:100%; }
+      :is(#campaign-ui, .renderer-campaign-ui) .cmp-menu-box .watch { background:none;border:none;box-shadow:none;color:#9c8048;font-size:12px; }
       @media (max-width:1100px) {
         #campaign-ui .cmp-panel,
         #campaign-ui .cmp-panel--diplomacy,

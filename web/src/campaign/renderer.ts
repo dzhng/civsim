@@ -68,6 +68,13 @@ import type { CampaignData, MapNode } from "./data";
 import { isControlledStage } from "./data";
 import type { CamView } from "./camera";
 import { SELECTION_GREEN } from "../shared/overlays";
+import {
+  getGraphicsSettings,
+  graphicsQueryOverrides,
+  resolveGraphicsSettings,
+  subscribeGraphicsSettings,
+  type GraphicsSettings,
+} from "../shared/graphicsSettings";
 import { Allegiance } from "./status";
 import { TEMPERATE_Y_KM, type TerrainField } from "./terrain";
 import { campaignSurface, type CampaignSurface } from "./surface";
@@ -75,6 +82,10 @@ import { type FactionLabel, type Territory } from "./territory";
 import type { ArmyView, CityView } from "./views";
 
 export const MAX_CAMPAIGN_ZOOM = 8;
+
+export interface CampaignRendererOptions {
+  graphics?: GraphicsSettings;
+}
 
 /** One visible DOM map card's screen rect (CSS px), reported per frame by the
  * scene's card loop after its card-vs-card pass. The label occupancy
@@ -162,6 +173,8 @@ export class CampaignRenderer {
     drawMs: 0,
     frameCpuMs: 0,
   };
+  private graphics: GraphicsSettings;
+  private graphicsUnsubscribe: (() => void) | null = null;
   private readonly onResize = () => this.resize();
 
   constructor(
@@ -169,9 +182,18 @@ export class CampaignRenderer {
     private data: CampaignData,
     private field: TerrainField,
     territory: Territory,
+    options: CampaignRendererOptions = {},
   ) {
     this.surface = campaignSurface(field);
+    this.graphics = resolveGraphicsSettings(
+      location.search,
+      options.graphics ?? getGraphicsSettings(),
+    );
     this.ready = this.init(territory);
+    const overrides = graphicsQueryOverrides(location.search);
+    this.graphicsUnsubscribe = subscribeGraphicsSettings((settings) => {
+      if (!overrides.shadows) this.graphics = resolveGraphicsSettings(location.search, settings);
+    });
     window.addEventListener("resize", this.onResize);
   }
 
@@ -446,34 +468,38 @@ export class CampaignRenderer {
             },
           ]
         : []),
-      {
-        id: "campaign-scenery-shadows",
-        role: "world-decal",
-        phase: "world-depth",
-        depth: "read",
-        draw: (pass) => this.scenery!.drawShadows(pass),
-      },
-      {
-        id: "campaign-entity-shadows",
-        role: "world-decal",
-        phase: "world-depth",
-        depth: "read",
-        draw: (pass) => this.entities!.drawShadows(pass),
-      },
-      {
-        id: "campaign-standard-shadows",
-        role: "world-decal",
-        phase: "world-depth",
-        depth: "read",
-        draw: (pass) => this.standards!.drawShadows(pass),
-      },
-      {
-        id: "campaign-soldier-shadows",
-        role: "world-decal",
-        phase: "world-depth",
-        depth: "read",
-        draw: (pass) => this.soldierShadows!.draw(pass),
-      },
+      ...(this.graphics.shadows === "off"
+        ? []
+        : [
+            {
+              id: "campaign-scenery-shadows",
+              role: "world-decal" as const,
+              phase: "world-depth" as const,
+              depth: "read" as const,
+              draw: (pass: WorldRenderPass) => this.scenery!.drawShadows(pass),
+            },
+            {
+              id: "campaign-entity-shadows",
+              role: "world-decal" as const,
+              phase: "world-depth" as const,
+              depth: "read" as const,
+              draw: (pass: WorldRenderPass) => this.entities!.drawShadows(pass),
+            },
+            {
+              id: "campaign-standard-shadows",
+              role: "world-decal" as const,
+              phase: "world-depth" as const,
+              depth: "read" as const,
+              draw: (pass: WorldRenderPass) => this.standards!.drawShadows(pass),
+            },
+            {
+              id: "campaign-soldier-shadows",
+              role: "world-decal" as const,
+              phase: "world-depth" as const,
+              depth: "read" as const,
+              draw: (pass: WorldRenderPass) => this.soldierShadows!.draw(pass),
+            },
+          ]),
       {
         id: "campaign-roads",
         role: "world-decal",
@@ -561,6 +587,8 @@ export class CampaignRenderer {
 
   destroy() {
     window.removeEventListener("resize", this.onResize);
+    this.graphicsUnsubscribe?.();
+    this.graphicsUnsubscribe = null;
     this.shell?.destroy();
     this.shell = null;
     publishStats(this.stats());
@@ -602,6 +630,7 @@ export class CampaignRenderer {
       fogEnabled: this.fog?.stats().fogEnabled ?? false,
       fogSources: this.fog?.stats().fogSources ?? 0,
       factionView: this.lastFactionView,
+      graphics: this.graphics,
       territoryPixels: this.territoryPass?.stats().pixels ?? 0,
       borderSegments: this.borders?.stats().segments ?? 0,
       mapMarkers: markerStats?.markers ?? 0,

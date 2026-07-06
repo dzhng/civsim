@@ -1,6 +1,9 @@
 // S6e: the battle decision overlays as React. Each renders the .panel content
 // into its existing #gameover / #pausemenu shell (which keeps the CSS backdrop,
 // z-index, and display toggle). Ported 1:1 from the index.html markup.
+import { useState } from "react";
+
+import { GraphicsSettingsPanel } from "../graphics/GraphicsSettingsModal";
 
 export interface GameOverProps {
   inCampaign?: boolean;
@@ -42,23 +45,33 @@ export interface PauseMenuProps {
 }
 
 export function PauseMenu({ inCampaign, onRestart, onManual, onExit, onClose }: PauseMenuProps) {
+  const [settingsOpen, setSettingsOpen] = useState(false);
   return (
     <div className="panel">
-      <h2>MENU</h2>
-      {!inCampaign ? (
-        <button id="pause-restart" onClick={onRestart}>
-          Restart Battle
-        </button>
-      ) : null}
-      <button id="pause-manual" onClick={onManual}>
-        Field Manual
-      </button>
-      <button id="pause-exit" onClick={onExit}>
-        {inCampaign ? "Exit to Campaign" : "Exit to Main Menu"}
-      </button>
-      <button className="watch" id="pause-close" onClick={onClose}>
-        back to the field
-      </button>
+      {settingsOpen ? (
+        <GraphicsSettingsPanel onClose={() => setSettingsOpen(false)} />
+      ) : (
+        <>
+          <h2>MENU</h2>
+          {!inCampaign ? (
+            <button id="pause-restart" onClick={onRestart}>
+              Restart Battle
+            </button>
+          ) : null}
+          <button id="pause-settings" onClick={() => setSettingsOpen(true)}>
+            Settings
+          </button>
+          <button id="pause-manual" onClick={onManual}>
+            Field Manual
+          </button>
+          <button id="pause-exit" onClick={onExit}>
+            {inCampaign ? "Exit to Campaign" : "Exit to Main Menu"}
+          </button>
+          <button className="watch" id="pause-close" onClick={onClose}>
+            back to the field
+          </button>
+        </>
+      )}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { GpuSupportState } from "../../../../packages/game-renderer/src/appShell";
 import type { QuickBattleClassSpec, QuickBattleConfig } from "../../battle/quickBattleCatalog";
+import { GraphicsSettingsModal } from "../graphics/GraphicsSettingsModal";
 import { ArmyBuilder } from "./ArmyBuilder";
 
 /** Everything the React menu needs from MenuScene. The cfg-shaped callbacks are
@@ -32,12 +33,14 @@ export function Menu(props: MenuProps) {
   const msg = gpuStatus.message;
 
   const [qbOpen, setQbOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Escape closes the custom battle modal and the field manual.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       setQbOpen(false);
+      setSettingsOpen(false);
       props.onHideManual();
     };
     window.addEventListener("keydown", onKey);
@@ -91,6 +94,9 @@ export function Menu(props: MenuProps) {
         </div>
 
         <div className="menu-section">
+          <button id="menu-settings" onClick={() => setSettingsOpen(true)}>
+            Settings <small>graphics</small>
+          </button>
           <button id="menu-manual" onClick={props.onToggleManual}>
             Field Manual
           </button>
@@ -107,6 +113,7 @@ export function Menu(props: MenuProps) {
         onLaunch={props.onCustomBattle}
         onClose={() => setQbOpen(false)}
       />
+      <GraphicsSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </>
   );
 }

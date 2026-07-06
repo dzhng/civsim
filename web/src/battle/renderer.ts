@@ -22,6 +22,13 @@ import {
   seaDisplacementSourceFromParam,
   type SeaDisplacementSourceId,
 } from "../../../packages/photoreal-renderer/src/battle/seaLayer";
+import {
+  getGraphicsSettings,
+  graphicsQueryOverrides,
+  resolveGraphicsSettings,
+  subscribeGraphicsSettings,
+  type GraphicsSettings,
+} from "../shared/graphicsSettings";
 import type { BattleReadoutInstance } from "../../../packages/photoreal-renderer/src/battle/readoutLayer";
 import type { BattleStandardInstance } from "../../../packages/photoreal-renderer/src/battle/standardLayer";
 import type { BattleSlopeBands } from "../../../packages/game-renderer/src/battle/terrainFeatures";
@@ -33,6 +40,7 @@ export interface BattleRendererOptions {
   shadows?: string | null;
   sea?: SeaDisplacementSourceId | null;
   post?: string | null;
+  graphics?: GraphicsSettings;
 }
 
 export class BattleRenderer {
@@ -61,6 +69,8 @@ export class BattleRenderer {
   private frameStart = 0;
   private readoutFrameKey = "";
   private readonly environmentRequest: string | null;
+  private readonly shadowRequest: GraphicsSettings["shadows"];
+  private graphicsUnsubscribe: (() => void) | null = null;
   private readonly onResize = () => this.resize();
   private disposed = false;
   private lastCamera: BattleCameraSnapshot = {
@@ -85,6 +95,10 @@ export class BattleRenderer {
   ) {
     const params = new URLSearchParams(location.search);
     this.environmentRequest = params.get("env") ?? options.environment ?? null;
+    this.shadowRequest = resolveGraphicsSettings(
+      location.search,
+      options.graphics ?? getGraphicsSettings(),
+    ).shadows;
     this.ready = this.init();
     window.addEventListener("resize", this.onResize);
   }
@@ -94,9 +108,16 @@ export class BattleRenderer {
     return (params.get("env") ?? environment ?? null) === this.environmentRequest;
   }
 
+  usesGraphicsSettings(settings: GraphicsSettings): boolean {
+    const next = resolveGraphicsSettings(location.search, settings);
+    return next.shadows === this.shadowRequest;
+  }
+
   dispose(): void {
     this.disposed = true;
     window.removeEventListener("resize", this.onResize);
+    this.graphicsUnsubscribe?.();
+    this.graphicsUnsubscribe = null;
     this.world?.dispose();
     this.world = null;
   }
@@ -363,9 +384,13 @@ export class BattleRenderer {
 
   private async init() {
     const params = new URLSearchParams(location.search);
+    const settings = resolveGraphicsSettings(
+      location.search,
+      this.options.graphics ?? getGraphicsSettings(),
+    );
     const world = await PhotorealBattleWorld.create(this.canvas, {
       environment: this.environmentRequest,
-      shadows: params.get("shadows") ?? this.options.shadows,
+      shadows: params.get("shadows") ?? this.options.shadows ?? settings.shadows,
       sea: params.has("sea")
         ? seaDisplacementSourceFromParam(params.get("sea"))
         : (this.options.sea ?? undefined),
@@ -375,9 +400,18 @@ export class BattleRenderer {
       world.dispose();
       return;
     }
-    world.setGrassVisible(params.get("grass") !== "off");
-    world.setFarGrassVisible(!params.has("nofar"));
+    world.setGrassVisible(settings.grass);
+    world.setFarGrassVisible(settings.farGrass);
+    world.setBloomEnabled(settings.bloom);
     this.world = world;
+    const overrides = graphicsQueryOverrides(location.search);
+    this.graphicsUnsubscribe = subscribeGraphicsSettings((nextSettings) => {
+      if (!this.world) return;
+      const next = resolveGraphicsSettings(location.search, nextSettings);
+      if (!overrides.grass) this.world.setGrassVisible(next.grass);
+      if (!overrides.farGrass) this.world.setFarGrassVisible(next.farGrass);
+      if (!overrides.bloom) this.world.setBloomEnabled(next.bloom);
+    });
     // The bespoke shell's fatal surface, re-homed onto three's device.
     const device = (world.world.renderer.backend as unknown as { device?: GPUDevice }).device;
     void device?.lost?.then((info) =>

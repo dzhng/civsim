@@ -26,6 +26,7 @@ import { Allegiance } from "./status";
 import type { MapCardModel, MapCardPosition } from "../ui/campaign/MapCards";
 import { installCampaignDebugApi, markCampaignReady } from "./debugApi";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
+import { getGraphicsSettings } from "../shared/graphicsSettings";
 import {
   campaignDomHtml,
   type ArmyRosterRow,
@@ -166,7 +167,9 @@ export class CampaignScene implements Scene {
       this.territory = new Territory(this.cfg.data, this.field);
     }
     this.terrainReady = false;
-    this.renderer = new CampaignRenderer(this.canvas, this.cfg.data, this.field!, this.territory!);
+    this.renderer = new CampaignRenderer(this.canvas, this.cfg.data, this.field!, this.territory!, {
+      graphics: getGraphicsSettings(),
+    });
     void this.renderer.ready
       .then(() => {
         this.terrainReady = true;

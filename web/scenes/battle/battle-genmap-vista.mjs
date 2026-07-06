@@ -4,6 +4,12 @@ import { HORIZON_TARGET, VIEWPORT, VISTA_CAMERA } from "./battle-map-style.mjs";
 const SEED = 7;
 const YAWS = [-Math.PI / 2, 0, Math.PI / 2, Math.PI];
 const HORIZON_PIN = { ratio: 0.5, tolerance: 0.03 };
+const SURFACE_CLEARANCE_MIN_M = 1;
+const MAX_ZOOM_SWEEP_SPOTS = [
+  { name: "center", x: 0, y: -650, yaw: -Math.PI / 2, pitch: 0.305 },
+  { name: "west-flank", x: -1040, y: -180, yaw: Math.PI, pitch: 0.305 },
+  { name: "west-map-edge", x: -1198, y: 120, yaw: Math.PI, pitch: 0.24 },
+];
 
 export const meta = {
   name: "battle-genmap-vista",
@@ -43,6 +49,8 @@ export async function run(ctx) {
           terrain?.sea?.planes === 0,
         JSON.stringify(terrain),
       );
+
+      await assertMaxZoomSurfaceClearance(ctx, page, env);
 
       const yawChecks = [];
       for (const yaw of YAWS) {
@@ -102,6 +110,85 @@ export async function run(ctx) {
       await page.close();
     }
   }
+}
+
+async function assertMaxZoomSurfaceClearance(ctx, page, env) {
+  const box = await page.locator("#battlefield").boundingBox();
+  if (!box) {
+    ctx.check(`${env}: max-zoom surface clearance can find the battlefield canvas`, false);
+    return;
+  }
+  const samples = [];
+  for (const spot of MAX_ZOOM_SWEEP_SPOTS) {
+    await pose(page, spot.x, spot.y, 4.2, spot.yaw, spot.pitch);
+    await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.55);
+    let previousZoom = -Infinity;
+    for (let step = 0; step < 18; step++) {
+      await page.mouse.wheel(0, -600);
+      const stepSamples = await page.evaluate(
+        async ({ spotName, step }) => {
+          const read = (phase) => {
+            const debug = window.__game.cameraSurfaceDebug();
+            const stats = window.__game.stats().renderStats;
+            return {
+              spot: spotName,
+              step,
+              phase,
+              zoom: stats.camera.zoom,
+              eye: debug.eye,
+              heightAt: debug.heightAt,
+              vistaHeightAt: debug.vistaHeightAt,
+              renderedSurfaceHeightAt: debug.renderedSurfaceHeightAt,
+              clearance: debug.clearance,
+            };
+          };
+          const out = [read("wheel-task")];
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+          out.push(read("raf1"));
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+          out.push(read("raf2"));
+          return out;
+        },
+        { spotName: spot.name, step },
+      );
+      samples.push(...stepSamples);
+      const zoom = stepSamples.at(-1)?.zoom ?? previousZoom;
+      if (zoom >= 7.99 && Math.abs(zoom - previousZoom) < 1e-4) break;
+      previousZoom = zoom;
+    }
+  }
+  const measured = samples.map(surfaceSampleSummary);
+  const worst = measured.reduce((lo, sample) => (sample.clearance < lo.clearance ? sample : lo), {
+    clearance: Infinity,
+  });
+  const bad = measured.filter((sample) => sample.clearance < SURFACE_CLEARANCE_MIN_M);
+  ctx.check(
+    `${env}: max wheel zoom keeps the camera eye above playable/vista rendered surface`,
+    bad.length === 0,
+    JSON.stringify({
+      minClearanceM: round3(worst.clearance),
+      thresholdM: SURFACE_CLEARANCE_MIN_M,
+      worst,
+      bad: bad.slice(0, 8),
+    }),
+  );
+  console.log(
+    `${env} max-zoom surface clearance worst:\n${JSON.stringify({ worst, thresholdM: SURFACE_CLEARANCE_MIN_M }, null, 2)}`,
+  );
+}
+
+function surfaceSampleSummary(sample) {
+  return {
+    spot: sample.spot,
+    step: sample.step,
+    phase: sample.phase,
+    zoom: round3(sample.zoom),
+    eye: sample.eye.map(round3),
+    heightAt: round3(sample.heightAt),
+    vistaHeightAt: sample.vistaHeightAt === null ? null : round3(sample.vistaHeightAt),
+    renderedSurfaceHeightAt: round3(sample.renderedSurfaceHeightAt),
+    clearance: round3(sample.clearance),
+  };
 }
 
 async function boot(page, target, env) {

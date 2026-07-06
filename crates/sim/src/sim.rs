@@ -2513,7 +2513,25 @@ impl Sim {
                 let slot_id = soldier_slot[i] as usize;
                 let (file_id, rank_id) = (slot_id % files_n, slot_id / files_n);
                 let mkey = rank_id * files_n + file_id.min(files_n - 1 - file_id);
-                max_sp = max_sp.min((0.62 + 0.44 * stagger01(mkey, 0xCAFE)) * sprint_sp);
+                // The personal ceiling is MARCHING TEXTURE; the catch-up is
+                // the controller's correction and escapes it — but only on a
+                // RUNNING march with the enemy still beyond a couple of
+                // strides. A slow-legged straggler on a map-scale run who
+                // could never out-pace the line falls behind monotonically
+                // (measured 0.38 m/s divergence, a 94m tail over 550m);
+                // digging deep on the open road caps that tail at ~10m.
+                // Approaching contact the cap returns: an uncapped surge
+                // near enemy bodies slammed trailing men into crowd presses
+                // at sprint speed (a walking spear column out-shoved
+                // cavalry; the braced walk-in was annihilated). The burst
+                // INTO contact belongs to the charge machinery, untouched.
+                let digging_deep = err > tun.surge_err_threshold
+                    && u.move_target.is_some()
+                    && matches!(u.pace, Pace::Run)
+                    && nearest_enemy_d[i] > 2.0 * tun.surge_speed;
+                if !digging_deep {
+                    max_sp = max_sp.min((0.62 + 0.44 * stagger01(mkey, 0xCAFE)) * sprint_sp);
+                }
                 let idle = u.at_ease
                     && u.move_target.is_none()
                     && u.engaged == 0

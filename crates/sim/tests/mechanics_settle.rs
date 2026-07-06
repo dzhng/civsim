@@ -316,10 +316,6 @@ fn settle_deeply_overlapping_friendly() {
     assert_settles(&mut sim, friend, 40.0, 60.0);
 }
 
-#[ignore = "formation-settle slice 06b: the catch-up surge exemption needs a \
-front-clear condition — uncapped it fixes the 94m tail (measured 10.1m) but \
-lets trailing men slam into crowd presses at surge speed (cavalry_mass_shoves \
-inverted, braced walk-in annihilated); see the spec's 06 notes"]
 #[test]
 fn run_to_contact_arrives_formed() {
     let mut sim = Sim::new(no_morale_parade(), SEED);

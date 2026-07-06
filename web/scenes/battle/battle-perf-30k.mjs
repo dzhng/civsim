@@ -11,6 +11,8 @@ import { PNG } from "pngjs";
 // still runs as a correctness smoke and records that the budget was skipped.
 // BMSGRASS-F4B1 adds a live camera-pan phase: rAF p95 must stay under the same
 // 33 ms floor while the camera crosses multiple old 8m grass snap boundaries.
+// PERFDIG-F2C6 adds the wheel path: dispatch real wheel events during the
+// sample so the input handler must keep applying zoom while grass catches up.
 // Every photoreal ladder slice from 08b on re-runs this gate.
 export const meta = {
   name: "battle-perf-30k",
@@ -37,6 +39,8 @@ const VISTA_GRASS_TRIANGLE_FLOOR = 90000;
 const VISTA_GRASS_FAR_SURVIVOR_FLOOR = 22000;
 const PAN_DISTANCE_M = 200;
 const PAN_DURATION_MS = 3000;
+const WHEEL_BURST_EVENTS = 30;
+const WHEEL_BURST_DURATION_MS = 1000;
 
 // Same production rig zooms as battle-camera-zoom: playable mid and the
 // low-oblique cinematic vista (zoomT = 1), where grass density peaks. Both
@@ -232,10 +236,12 @@ export async function run(ctx) {
 
   const pan = await sampleCameraPan(page, hardware);
   const zoomSweep = await sampleCameraZoomSweep(page, hardware);
+  const wheelBurst = await sampleWheelBurst(page, hardware);
 
   const [mid, vista] = table;
   console.log(`battle-perf-30k frame-time table:\n${JSON.stringify(table, null, 2)}`);
   console.log(`battle-perf-30k pan table:\n${JSON.stringify(pan, null, 2)}`);
+  console.log(`battle-perf-30k wheel-burst table:\n${JSON.stringify(wheelBurst, null, 2)}`);
 
   // --- The load is real and may never shrink -------------------------------
   ctx.check(
@@ -325,6 +331,16 @@ export async function run(ctx) {
       `continuous zoom sweep keeps rAF p95 within the ${BUDGET_MS} ms budget`,
       zoomSweep.rafP95Ms !== null && zoomSweep.rafP95Ms <= BUDGET_MS,
       JSON.stringify(zoomSweep),
+    );
+    ctx.check(
+      `wheel burst keeps rAF p95 within the ${BUDGET_MS} ms budget`,
+      wheelBurst.rafP95Ms !== null && wheelBurst.rafP95Ms <= BUDGET_MS,
+      JSON.stringify(wheelBurst),
+    );
+    ctx.check(
+      "wheel burst final zoom stays between min and max clamps",
+      wheelBurst.finalZoom > wheelBurst.minZoom && wheelBurst.finalZoom < wheelBurst.maxZoom,
+      JSON.stringify(wheelBurst),
     );
   } else {
     ctx.check(
@@ -451,6 +467,108 @@ async function sampleCameraPan(page, hardware) {
     lastSampleMs: after?.rebuild?.lastSampleMs ?? null,
     recordCount: after?.recordCount ?? null,
     pending: after?.rebuild?.pending ?? null,
+  };
+}
+
+async function sampleWheelBurst(page, hardware) {
+  await page.evaluate(async () => {
+    const cam = window.__cam;
+    cam.zoom = 3.0;
+    cam.clampView?.();
+    cam.setViewCenter(-100, -310);
+    cam.clampView?.();
+    await new Promise((resolve) => setTimeout(resolve, 120));
+  });
+  await waitForGrassReady(page);
+  const before = await page.evaluate(() => {
+    const s = window.__game.stats();
+    return {
+      zoom: window.__cam.zoom,
+      rebuilds: s.renderStats.terrain?.grass?.rebuild?.rebuilds ?? null,
+    };
+  });
+  const sampled = await page.evaluate(
+    async ({ eventCount, durationMs, frames }) => {
+      const canvas = document.querySelector("#battlefield");
+      if (!canvas) throw new Error("battlefield canvas not found");
+      const raf = () => new Promise((resolve) => requestAnimationFrame(resolve));
+      const frameMs = [];
+      let sent = 0;
+      let last = performance.now();
+      const started = last;
+      let nextEventAt = started;
+      const eventSpacing = durationMs / eventCount;
+      for (let i = 0; i < frames; i++) {
+        const now = performance.now();
+        while (sent < eventCount && now >= nextEventAt) {
+          canvas.dispatchEvent(
+            new WheelEvent("wheel", {
+              bubbles: true,
+              cancelable: true,
+              clientX: window.innerWidth * 0.52,
+              clientY: window.innerHeight * 0.58,
+              deltaY: sent < eventCount / 2 ? -38 : 26,
+            }),
+          );
+          sent++;
+          nextEventAt = started + sent * eventSpacing;
+        }
+        await raf();
+        const next = performance.now();
+        frameMs.push(next - last);
+        last = next;
+      }
+      while (sent < eventCount) {
+        canvas.dispatchEvent(
+          new WheelEvent("wheel", {
+            bubbles: true,
+            cancelable: true,
+            clientX: window.innerWidth * 0.52,
+            clientY: window.innerHeight * 0.58,
+            deltaY: 26,
+          }),
+        );
+        sent++;
+      }
+      await raf();
+      return { raf: frameMs, sent, finalZoom: window.__cam.zoom };
+    },
+    {
+      eventCount: WHEEL_BURST_EVENTS,
+      durationMs: WHEEL_BURST_DURATION_MS,
+      frames: hardware ? Math.ceil(WHEEL_BURST_DURATION_MS / 16.67) + 12 : 20,
+    },
+  );
+  await waitForGrassReady(page);
+  const after = await page.evaluate(() => {
+    const s = window.__game.stats();
+    const grass = s.renderStats.terrain?.grass;
+    return {
+      zoom: window.__cam.zoom,
+      rebuilds: grass?.rebuild?.rebuilds ?? null,
+      pending: grass?.rebuild?.pending ?? null,
+      lastSampleMs: grass?.rebuild?.lastSampleMs ?? null,
+      lastSlices: grass?.rebuild?.lastSlices ?? null,
+      lastMaxSliceMs: grass?.rebuild?.lastMaxSliceMs ?? null,
+    };
+  });
+  return {
+    events: WHEEL_BURST_EVENTS,
+    durationMs: WHEEL_BURST_DURATION_MS,
+    sent: sampled.sent,
+    startZoom: round(before.zoom),
+    finalZoom: round(sampled.finalZoom),
+    settledZoom: round(after.zoom),
+    minZoom: 0.4,
+    maxZoom: 60,
+    rafMedianMs: round(median(sampled.raf)),
+    rafP95Ms: round(percentile(sampled.raf, 0.95)),
+    rebuildsBefore: before.rebuilds,
+    rebuildsAfter: after.rebuilds,
+    pending: after.pending,
+    lastSampleMs: after.lastSampleMs,
+    lastSlices: after.lastSlices,
+    lastMaxSliceMs: after.lastMaxSliceMs,
   };
 }
 

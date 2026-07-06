@@ -369,6 +369,8 @@ export class BattleRenderer {
       world.dispose();
       return;
     }
+    world.setGrassVisible(params.get("grass") !== "off");
+    world.setFarGrassVisible(!params.has("nofar"));
     this.world = world;
     // The bespoke shell's fatal surface, re-homed onto three's device.
     const device = (world.world.renderer.backend as unknown as { device?: GPUDevice }).device;

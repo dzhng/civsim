@@ -73,6 +73,23 @@ test("grass field resumable sampler matches synchronous sampling", () => {
   assert.equal(sampler.cellsProcessed, sampler.totalCells);
 });
 
+test("grass field accepts fine production cell sizes below the old half-metre floor", () => {
+  const grid = makeGrid(16, 16, 1);
+  const field = terrainHeightField(grid);
+  const snapshot = sampleGrassField(grid, field, {
+    ...baseConfig(),
+    focus: { x: 8, y: 8, radius: 6 },
+    fieldCellSize: 0.36,
+    snapCellSize: 4,
+    maxRecords: 32,
+    density: 1,
+    jitter: 0,
+  });
+
+  assert.equal(snapshot.stats.fieldCellSize, 0.36);
+  assert.ok(snapshot.stats.candidateCells > 700, JSON.stringify(snapshot.stats));
+});
+
 test("grass field rejects blocked terrain tints while preserving allowed cover", () => {
   const tint = new Uint8Array([0, 1, 2, 0, 3, 0, 5, 0, 0, 4, 6, 0, 0, 0, 0, 0]);
   const grid = makeGrid(4, 4, 10, tint);

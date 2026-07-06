@@ -5,6 +5,7 @@ import {
   subscribeGraphicsSettings,
   updateGraphicsSettings,
   type GraphicsSettings,
+  type GraphicsGrassQuality,
   type GraphicsShadowMode,
 } from "../../shared/graphicsSettings";
 
@@ -12,6 +13,12 @@ const SHADOW_CHOICES: Array<{ value: GraphicsShadowMode; label: string }> = [
   { value: "off", label: "Off" },
   { value: "single", label: "Fast" },
   { value: "csm", label: "High" },
+];
+
+const GRASS_QUALITY_CHOICES: Array<{ value: GraphicsGrassQuality; label: string }> = [
+  { value: "low", label: "Low" },
+  { value: "standard", label: "Standard" },
+  { value: "fine", label: "Fine" },
 ];
 
 export interface GraphicsSettingsPanelProps {
@@ -23,7 +30,7 @@ export function GraphicsSettingsPanel({ onClose }: GraphicsSettingsPanelProps) {
   useEffect(() => subscribeGraphicsSettings(setSettings), []);
   const overrides =
     typeof location === "undefined"
-      ? { shadows: false, grass: false, farGrass: false, bloom: false }
+      ? { shadows: false, grassQuality: false, grass: false, farGrass: false, bloom: false }
       : graphicsQueryOverrides(location.search);
 
   return (
@@ -44,6 +51,27 @@ export function GraphicsSettingsPanel({ onClose }: GraphicsSettingsPanelProps) {
               aria-pressed={settings.shadows === choice.value}
               disabled={overrides.shadows}
               onClick={() => updateGraphicsSettings({ shadows: choice.value })}
+            >
+              {choice.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="gfx-setting-row">
+        <div>
+          <b>Grass quality</b>
+          <small>Applies at next battle</small>
+        </div>
+        <div className="gfx-segment" role="radiogroup" aria-label="Grass quality">
+          {GRASS_QUALITY_CHOICES.map((choice) => (
+            <button
+              key={choice.value}
+              type="button"
+              id={`gfx-grass-quality-${choice.value}`}
+              className={settings.grassQuality === choice.value ? "on" : ""}
+              aria-pressed={settings.grassQuality === choice.value}
+              disabled={overrides.grassQuality}
+              onClick={() => updateGraphicsSettings({ grassQuality: choice.value })}
             >
               {choice.label}
             </button>

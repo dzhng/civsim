@@ -40,7 +40,10 @@ const PRODUCTION_GRASS_BUDGET_QUOTAS = [76800, 59200, 24000];
 // saturation.
 const VISTA_GRASS_RECORD_FLOOR = 88000;
 const VISTA_GRASS_TRIANGLE_FLOOR = 74000;
-const VISTA_GRASS_FAR_SURVIVOR_FLOOR = 22000;
+// 15k: the fineness contract (GRASSFINE) spends more of the record cap on
+// the 8-segment fine mid tier; the blur band's coverage is guarded by the
+// no-bald zoom sweep + ring-edge bins, this floor only catches collapse.
+const VISTA_GRASS_FAR_SURVIVOR_FLOOR = 15000;
 const PAN_DISTANCE_M = 200;
 const PAN_DURATION_MS = 3000;
 const WHEEL_BURST_EVENTS = 30;

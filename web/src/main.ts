@@ -78,12 +78,6 @@ async function main() {
     );
   }
 
-  // 1x establishment soldiers per class — mirrors contract::unit_size (close-order
-  // foot 500, loose foot 350, horse 200, gun crew 80), keyed by class id.
-  const QUICK_BATTLE_ESTABLISHMENT = [
-    500, 500, 350, 500, 350, 350, 200, 200, 80, 500, 500, 500, 500, 500, 500,
-  ];
-
   function createQuickBattleGame(cfg: QuickBattleConfig): Game {
     setActiveFactions(cfg.factions);
     const game = new Game(BATTLE_SEED);
@@ -94,15 +88,7 @@ async function main() {
     }
     cfg.teams.forEach((picks, team) => {
       const units = picks.flatMap((p) => Array.from({ length: p.count }, () => p.classId));
-      const y = team === 0 ? -260 : 260;
-      const facing = team === 0 ? Math.PI / 2 : -Math.PI / 2;
-      const spread = Math.min(1700, Math.max(200, units.length * 70));
-      units.forEach((classId, i) => {
-        const x = units.length > 1 ? -spread / 2 + (spread * i) / (units.length - 1) : 0;
-        const soldiers = QUICK_BATTLE_ESTABLISHMENT[classId] ?? 500;
-        const files = Math.max(6, Math.round(Math.sqrt(soldiers * 1.6)));
-        game.spawn_class(x, y, facing, soldiers, files, classId, team);
-      });
+      game.deploy_custom_army(team, new Uint32Array(units));
     });
     if (AI_ON) game.set_ai_team(1);
     return game;

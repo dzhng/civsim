@@ -2,9 +2,11 @@
 //! in 20 units per side, mixed classes, mirrored rosters.
 
 use crate::class::{class_stats, UnitClass, UnitClassId};
+use crate::genmap::certify::{DEPLOYMENT_CENTER_Y_M, DEPLOYMENT_FRONTAGE_HALF_W};
 use crate::maps::{build, MapId};
 use crate::math::{dir, Vec2};
 use crate::sim::Sim;
+use crate::terrain::Terrain;
 
 use UnitClassId::*;
 
@@ -164,6 +166,234 @@ fn deploy_army(sim: &mut Sim, base: Vec2, facing: f32, team: u32) {
         HorseArchers,
         team,
     );
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum CustomLine {
+    Front,
+    Second,
+    Third,
+    Cavalry,
+}
+
+fn custom_line(c: UnitClassId) -> CustomLine {
+    match c {
+        HeavySword | HeavyPhalanx | HeavySpear | MediumInfantry | MediumSpear | MediumPhalanx => {
+            CustomLine::Front
+        }
+        ShockCavalry | HorseArchers => CustomLine::Cavalry,
+        Archers | ArtilleryCrew => CustomLine::Third,
+        LightSpear | LongSwords | Skirmishers | Peasant | LightSword => CustomLine::Second,
+    }
+}
+
+fn terrain_index(t: &Terrain, p: Vec2) -> Option<usize> {
+    let cx = ((p.x - t.origin.x) / t.cell).floor();
+    let cy = ((p.y - t.origin.y) / t.cell).floor();
+    if cx < 0.0 || cy < 0.0 || cx >= t.w as f32 || cy >= t.h as f32 {
+        return None;
+    }
+    Some(cy as usize * t.w + cx as usize)
+}
+
+fn seat_passable(t: &Terrain, p: Vec2) -> bool {
+    if p.x.abs() > DEPLOYMENT_FRONTAGE_HALF_W {
+        return false;
+    }
+    let Some(i) = terrain_index(t, p) else {
+        return false;
+    };
+    t.speed[i] > 0.0 && !matches!(t.tint[i], 1 | 2 | 4)
+}
+
+fn footprint_passable(t: &Terrain, class: UnitClassId, anchor: Vec2, facing: f32) -> bool {
+    let stats = class_stats(class);
+    let count = unit_size(class);
+    let files = count.div_ceil(stats.default_depth.max(1));
+    let f = dir(facing);
+    let right = Vec2::new(f.y, -f.x);
+    for slot in 0..count {
+        let file = slot % files;
+        let rank = slot / files;
+        let local = Vec2::new(
+            (file as f32 - (files as f32 - 1.0) * 0.5) * stats.spacing.x,
+            rank as f32 * stats.spacing.y,
+        );
+        let p = anchor + right * local.x + f * -local.y;
+        if !seat_passable(t, p) {
+            return false;
+        }
+    }
+    true
+}
+
+fn find_passable_anchor(sim: &Sim, class: UnitClassId, anchor: Vec2, facing: f32) -> Vec2 {
+    if footprint_passable(&sim.terrain, class, anchor, facing) {
+        return anchor;
+    }
+
+    let step = sim.terrain.cell.max(1.0);
+    let max_steps = (DEPLOYMENT_FRONTAGE_HALF_W / step).ceil() as i32;
+    for s in 1..=max_steps {
+        let dx = s as f32 * step;
+        for candidate in [
+            Vec2::new(anchor.x + dx, anchor.y),
+            Vec2::new(anchor.x - dx, anchor.y),
+        ] {
+            if footprint_passable(&sim.terrain, class, candidate, facing) {
+                return candidate;
+            }
+        }
+    }
+    anchor
+}
+
+fn deploy_custom_row(sim: &mut Sim, classes: &[UnitClassId], center: Vec2, facing: f32, team: u32) {
+    const GAP: f32 = 10.0;
+    const ROW_BACKSTEP: f32 = 14.0;
+    const MAX_ROW_W: f32 = DEPLOYMENT_FRONTAGE_HALF_W * 2.0;
+
+    if classes.is_empty() {
+        return;
+    }
+
+    let f = dir(facing);
+    let right = Vec2::new(f.y, -f.x);
+    let mut rows: Vec<Vec<UnitClassId>> = vec![Vec::new()];
+    let mut width = 0.0;
+    for &class in classes {
+        let w = unit_width(class);
+        let next = if rows.last().unwrap().is_empty() {
+            w
+        } else {
+            width + GAP + w
+        };
+        if next > MAX_ROW_W && !rows.last().unwrap().is_empty() {
+            rows.push(Vec::new());
+            width = 0.0;
+        }
+        width = if rows.last().unwrap().is_empty() {
+            w
+        } else {
+            width + GAP + w
+        };
+        rows.last_mut().unwrap().push(class);
+    }
+
+    for (row_idx, row) in rows.iter().enumerate() {
+        let total = row.iter().map(|&c| unit_width(c)).sum::<f32>()
+            + GAP * row.len().saturating_sub(1) as f32;
+        let row_center = center - f * (row_idx as f32 * ROW_BACKSTEP);
+        let mut x = -0.5 * total;
+        for &class in row {
+            let w = unit_width(class);
+            let anchor = row_center + right * (x + 0.5 * w);
+            let anchor = find_passable_anchor(sim, class, anchor, facing);
+            sim.spawn_class(anchor, facing, unit_size(class), class, team);
+            x += w + GAP;
+        }
+    }
+}
+
+fn deploy_custom_cavalry(
+    sim: &mut Sim,
+    classes: &[UnitClassId],
+    front_center: Vec2,
+    facing: f32,
+    team: u32,
+) {
+    const GAP: f32 = 12.0;
+    const ROW_BACKSTEP: f32 = 18.0;
+    const MAX_WING_W: f32 = DEPLOYMENT_FRONTAGE_HALF_W - 20.0;
+
+    let split = classes.len().div_ceil(2);
+    let wings = [(&classes[..split], -1.0f32), (&classes[split..], 1.0f32)];
+    let f = dir(facing);
+    let right = Vec2::new(f.y, -f.x);
+
+    for (members, side) in wings {
+        if members.is_empty() {
+            continue;
+        }
+        let mut rows: Vec<Vec<UnitClassId>> = vec![Vec::new()];
+        let mut width = 0.0;
+        for &class in members {
+            let w = unit_width(class);
+            let next = if rows.last().unwrap().is_empty() {
+                w
+            } else {
+                width + GAP + w
+            };
+            if next > MAX_WING_W && !rows.last().unwrap().is_empty() {
+                rows.push(Vec::new());
+                width = 0.0;
+            }
+            width = if rows.last().unwrap().is_empty() {
+                w
+            } else {
+                width + GAP + w
+            };
+            rows.last_mut().unwrap().push(class);
+        }
+
+        for (row_idx, row) in rows.iter().enumerate() {
+            let total = row.iter().map(|&c| unit_width(c)).sum::<f32>()
+                + GAP * row.len().saturating_sub(1) as f32;
+            let left_edge = if side < 0.0 {
+                -DEPLOYMENT_FRONTAGE_HALF_W
+            } else {
+                DEPLOYMENT_FRONTAGE_HALF_W - total
+            };
+            let mut x = left_edge;
+            let row_center = front_center - f * (row_idx as f32 * ROW_BACKSTEP);
+            for &class in row {
+                let w = unit_width(class);
+                let anchor = row_center + right * (x + 0.5 * w);
+                let anchor = find_passable_anchor(sim, class, anchor, facing);
+                sim.spawn_class(anchor, facing, unit_size(class), class, team);
+                x += w + GAP;
+            }
+        }
+    }
+}
+
+/// Deploy a custom-battle army from class ids chosen by the frontend. The sim
+/// owns the formation: three role lines inside the generated-map deployment
+/// frontage, with cavalry on both wings and every footprint nudged onto
+/// passable, non-blocking ground.
+pub fn deploy_custom_army(sim: &mut Sim, team: u32, classes: &[UnitClassId]) {
+    use std::f32::consts::FRAC_PI_2;
+
+    let team = team.min(1);
+    let facing = if team == 0 { FRAC_PI_2 } else { -FRAC_PI_2 };
+    let base_y = if team == 0 {
+        -DEPLOYMENT_CENTER_Y_M
+    } else {
+        DEPLOYMENT_CENTER_Y_M
+    };
+    let base = Vec2::new(0.0, base_y);
+    let f = dir(facing);
+    let front_center = base + f * 40.0;
+    let second_center = base;
+    let third_center = base - f * 40.0;
+
+    let mut front = Vec::new();
+    let mut second = Vec::new();
+    let mut third = Vec::new();
+    let mut cavalry = Vec::new();
+    for &class in classes {
+        match custom_line(class) {
+            CustomLine::Front => front.push(class),
+            CustomLine::Second => second.push(class),
+            CustomLine::Third => third.push(class),
+            CustomLine::Cavalry => cavalry.push(class),
+        }
+    }
+
+    deploy_custom_row(sim, &front, front_center, facing, team);
+    deploy_custom_row(sim, &second, second_center, facing, team);
+    deploy_custom_row(sim, &third, third_center, facing, team);
+    deploy_custom_cavalry(sim, &cavalry, front_center, facing, team);
 }
 
 /// Deploy a campaign roster. Entries are split into battle-sized units

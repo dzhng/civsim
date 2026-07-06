@@ -100,6 +100,20 @@ module and benefits from 02's findings.
 browser-VERIFIED FIXED. David has ratified the remaining order — pick up
 at 04.**
 
+**Status 2026-07-06 (pass 7): 06-stamina SHIPPED (run_drain 1/340,
+David's arrival bands live-gated: foot 0.507, cav 0.819; freshness pins
+re-derived with ledger; the dive gate re-derived to PEAK penetration
+after lockstep timelines proved the physics identical under both drains
+— the old pin sampled a drain-phase-sensitive instant of the cyclic
+in-gut-withdraw-recharge behavior). PARKED with full evidence: 06b
+formed-arrival (surge exemption needs a front-clear condition — tail fix
+proven 94m -> 10.1m, crowd-press collateral measured) and the at-ease
+fit-acceptance gate (own contained pass). NEXT: 06b, then 02b-2
+(droppable), then 05 close-out. Operational lesson for the next pass:
+after cargo fmt, verify python-replace reverts with git diff — a missed
+needle left an experiment in the tree and contaminated two isolation
+runs this pass.**
+
 **Status 2026-07-06 (pass 6): SLICE 04 SHIPPED — the foundation pass is
 done.** Both halves landed: the packed lateral friction (all stalled
 foot, `fighting[i]` exempt so men trading blows keep full lateral

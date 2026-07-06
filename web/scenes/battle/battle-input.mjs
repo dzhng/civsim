@@ -264,9 +264,11 @@ export async function run(ctx) {
             if (sy < minY) minY = sy;
             if (sy > maxY) maxY = sy;
           }
+          // Banners are GPU billboards now - read the owner's uploaded
+          // standard anchors (renderStats.terrain.standards).
           const anchor = g
             .stats()
-            .renderStats?.readouts?.anchors?.find((candidate) => candidate.unitId === u);
+            .renderStats?.terrain?.standards?.find((candidate) => candidate.unitId === u);
           const projected = anchor ? cam.worldToScreen(anchor.x, anchor.y, anchor.z) : null;
           return {
             minX,

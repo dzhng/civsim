@@ -22,6 +22,7 @@ import {
   max,
   mix,
   normalize,
+  positionWorld,
   transformNormalToView,
   varying,
   vec2,
@@ -375,7 +376,8 @@ export function createGroundMesh(
     const farGrass = options.farGrass;
     const cameraGround = cameraPosition.xy;
     const viewDist = length(world.sub(cameraGround)).toVar();
-    const farIn = smoothstepN(farGrass.farGrassStartM, farGrass.farGrassEndM, viewDist).toVar();
+    const farRiseEnd = farGrass.farGrassStartM + (farGrass.farGrassEndM - farGrass.farGrassStartM) * 0.58;
+    const farIn = smoothstepN(farGrass.farGrassStartM, farRiseEnd, viewDist).toVar();
     // Sustain far past the blade edge - the term hands off to distance fog,
     // not to bare green ground (the "bare strip before the treeline").
     const farOut = float(1.0).sub(
@@ -389,6 +391,12 @@ export function createGroundMesh(
         world.y.mul(0.32).sub(world.x.mul(0.035)).sub(wind.mul(0.6)),
       ),
     ).toVar();
+    const raked = ridgeN(
+      vec2(
+        world.x.mul(1.18).add(world.y.mul(0.22)).sub(wind.mul(0.4)),
+        world.y.mul(0.48).sub(world.x.mul(0.055)).add(wind.mul(0.25)),
+      ),
+    ).toVar();
     const broadClump = fbmN(world.mul(0.045).add(vec2(2.5, 7.0))).toVar();
     // Tone family leans toward the blade canopy's desaturated khaki - a
     // green far field against a khaki canopy flags the blade edge by hue
@@ -396,10 +404,10 @@ export function createGroundMesh(
     const farTone = mix(
       vec3(0.44, 0.49, 0.28),
       vec3(0.6, 0.62, 0.38),
-      clamp(broadClump.mul(0.7).add(brush.mul(0.3)), 0.0, 1.0),
+      clamp(broadClump.mul(0.58).add(brush.mul(0.3)).add(raked.mul(0.12)), 0.0, 1.0),
     );
-    const brushedTone = mix(farTone, vec3(0.36, 0.41, 0.23), brush.mul(0.18));
-    albedo = mix(albedo, brushedTone, farMask.mul(0.55));
+    const brushedTone = mix(farTone, vec3(0.34, 0.39, 0.21), brush.mul(0.22).add(raked.mul(0.12)));
+    albedo = mix(albedo, brushedTone, farMask.mul(0.74));
   }
   // Churn: trodden mud reads as broken ground (brown AND dark keys the earth).
   const brown = smoothstepN(0.0, 0.05, color.r.sub(color.g));
@@ -501,6 +509,15 @@ export function createGroundMesh(
       : float(0.985)
     : float(0.0);
   material.roughnessNode = mix(max(dryRoughness, dryRoughnessFloor), fieldWater.roughness, waterBlend);
+  if (options.vistaBand === "farFog") {
+    // The 64 m far-fog ring is real terrain below the horizon, but from a low
+    // eye its coarse vertices can project into the sky as giant grazing tiles.
+    // Let saturated aerial perspective own those near/above-horizon rays.
+    const view = normalize(positionWorld.sub(cameraPosition));
+    material.transparent = true;
+    material.depthWrite = false;
+    material.opacityNode = float(1.0).sub(smoothstepN(-0.012, 0.05, view.z));
+  }
 
   const ground = new THREE.Mesh(geo, material);
   ground.name = "battle-ground";

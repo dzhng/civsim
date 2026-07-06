@@ -431,11 +431,11 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
     const groundCues: number[] = [];
     const rings: number[] = [];
     // Effects are (x, y, z, r, g, b) per vertex — ground cues (pies included)
-    // are 5-stride and live in groundCues, which drapes onto the terrain.
+    // are (x, y, r, g, b, a) and live in groundCues, which drapes onto the terrain.
     const effects: number[] = [];
     const info = unitInfo();
     if (fxAt) {
-      pushPie(groundCues, fxAt[0], fxAt[1], 0.66, 7, 1, 1, 1);
+      pushPie(groundCues, fxAt[0], fxAt[1], 0.66, 7, 1, 1, 1, 1);
       for (let i = 0; i < 6; i++) {
         const px = fxAt[0] - 18 + i * 7;
         const py = fxAt[1] + 14 + i * 2;
@@ -444,12 +444,12 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
     }
     for (let u = 0; u < game.unit_count(); u++) {
       const o = u * STRIDE;
-      if (info[o + 14] > 0) pushPie(groundCues, info[o], info[o + 1], info[o + 14], 7, 1, 1, 1);
+      if (info[o + 14] > 0) pushPie(groundCues, info[o], info[o + 1], info[o + 14], 7, 1, 1, 1, 1);
     }
     if (selected >= 0) {
       const [cx, cy] = unitCenter(selected);
-      rings.push(cx, cy, 8.5, 1.0, 0.78, 0.22);
-      rings.push(cx, cy, 5.4, 1.0, 0.92, 0.45);
+      rings.push(cx, cy, 8.5, 1.0, 0.78, 0.22, 1);
+      rings.push(cx, cy, 5.4, 1.0, 0.92, 0.45, 1);
     }
     const pCount = game.projectile_count();
     if (pCount > 0) {

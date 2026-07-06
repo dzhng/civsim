@@ -253,7 +253,17 @@ fn the_counter_web_holds() {
     // genuine but CLOSE relationships, so a one-seed gate is a coin that
     // occasionally lands the wrong way. The majority-of-seeds winner is the robust
     // directional verdict; the full golden matrix is the exhaustive board.
-    let seeds: [u64; 5] = [SEED, SEED ^ 0xA1, SEED ^ 0xB2, SEED ^ 0xC3, SEED ^ 0xD4];
+    let seeds: [u64; 9] = [
+        SEED,
+        SEED ^ 0xA1,
+        SEED ^ 0xB2,
+        SEED ^ 0xC3,
+        SEED ^ 0xD4,
+        SEED ^ 0xE5,
+        SEED ^ 0xF6,
+        SEED ^ 0x17,
+        SEED ^ 0x28,
+    ];
     for (a, d, want, why) in expect {
         let agg = run_over_seeds(&Scenario::duel(a, d), &base, &tun, &seeds);
         assert_eq!(

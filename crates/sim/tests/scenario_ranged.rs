@@ -132,8 +132,11 @@ fn arrows_dent_every_advance_but_gate_none() {
         (0.095..=0.12).contains(&ceil_frac),
         "the bare reference marks the no-gate CEILING — a dent that still never gates: {ceiling}/240"
     );
+    // re-derived for formation-settle 06b (distance-guarded catch-up surge):
+    // shielded runners cross the lane at full correction speed, 4/240 —
+    // still bitten, never zero.
     assert!(
-        (0.03..=0.062).contains(&floor_frac),
+        (0.012..=0.062).contains(&floor_frac),
         "the shielded reference marks the protected FLOOR — arrows still bite the protected end: {floor}/240"
     );
     assert!(

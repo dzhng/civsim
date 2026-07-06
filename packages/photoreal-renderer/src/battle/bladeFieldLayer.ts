@@ -794,6 +794,10 @@ function transitionProfileForTiers(
     denseBladeEndM: Math.min(Math.max(transition.denseBladeEndM, 0), farGrassEndM),
     farGrassStartM,
     farGrassEndM,
+    edgeSinkStartM:
+      transition.edgeSinkStartM === undefined
+        ? undefined
+        : Math.min(Math.max(transition.edgeSinkStartM, farTier.minDistanceM), farGrassEndM),
   };
 }
 
@@ -802,10 +806,11 @@ function thinningProfileForTransition(
   blendSurvivors: boolean,
 ): BladeFieldThinningProfile {
   return {
-    // Thinning is the production edge treatment (same flag as the survivor
-    // albedo blend); the ratified close-lab envelope renders full density.
+    // Thinning is the production edge treatment: density starts falling just
+    // past mid-ring and reaches zero at the coverage edge. Height sink remains
+    // a secondary softener, never the primary edge signal.
     enabled: blendSurvivors,
-    fadeStartM: transition.farGrassStartM,
+    fadeStartM: Math.min(transition.farGrassStartM, transition.farGrassEndM * 0.55),
     fadeEndM: transition.farGrassEndM,
     hashSource: "record.bladeSeed fract(seed01 * 7.13)",
     survivorAlbedoBlend: blendSurvivors ? 0.85 : 0,

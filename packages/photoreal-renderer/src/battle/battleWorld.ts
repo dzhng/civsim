@@ -1096,6 +1096,26 @@ export class PhotorealBattleWorld {
       this.scheduleGrassSampleSlice();
       return;
     }
+    this.completeGrassSampleTask(task);
+  }
+
+  /** Run any in-flight grass rebuild to completion and apply it synchronously.
+   *  The sliced rebuild is driven by requestAnimationFrame; a still camera with
+   *  no continuous render loop (a settle-then-capture probe, or a paused view)
+   *  can leave the last-requested field pending. Draining here guarantees a
+   *  presented frame reflects the settled field for the current camera - e.g.
+   *  the dense close ring after an over-zoom, not a stale wider disc. */
+  private drainGrassSampleTask(): boolean {
+    const task = this.grassSampleTask;
+    if (!task || task.generation !== this.grassSampleGeneration) return false;
+    while (!task.sampler.step(16384)) {
+      /* run to completion */
+    }
+    this.completeGrassSampleTask(task);
+    return true;
+  }
+
+  private completeGrassSampleTask(task: GrassSampleTask): void {
     const snapshot = task.sampler.finish();
     if (!snapshot) {
       this.grassSampleTask = null;
@@ -1230,6 +1250,12 @@ export class PhotorealBattleWorld {
   }
 
   async settlePresentedFrame(): Promise<void> {
+    // Finish any pending grass rebuild before the frame settles, so the capture
+    // reflects the settled field for the current camera rather than a stale disc
+    // whose sliced rebuild the still-camera rAF loop never got to finish. Redraw
+    // once the drained records are applied so they are routed and presented (a
+    // GPU-fence-only settle would keep showing the pre-drain frame).
+    if (this.drainGrassSampleTask() && this.lastCamera) this.render();
     await this.world.settlePresentedFrame();
   }
 

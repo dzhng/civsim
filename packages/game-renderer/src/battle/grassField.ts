@@ -175,6 +175,10 @@ class GrassFieldSamplerTask implements GrassFieldSampler {
     GrassFieldCandidate[][],
     GrassFieldCandidate[][],
   ];
+  // Per-bin index of the currently-kept candidate with the largest `order`
+  // key (-1 until the bin fills). Lets the reservoir replace the weakest
+  // survivor in O(1) instead of rescanning every full bin per candidate.
+  private stratifiedBinMaxIdx: [number[], number[], number[]];
   private stratifiedBinCapacity: number;
   private phase: "cells" | "select" | "pack" | "done" = "cells";
   private packedRecords = new Float32Array();
@@ -259,6 +263,11 @@ class GrassFieldSamplerTask implements GrassFieldSampler {
     this.gx = this.startX;
     this.gy = this.startY;
     this.stratifiedBins = [createStratifiedBins(), createStratifiedBins(), createStratifiedBins()];
+    this.stratifiedBinMaxIdx = [
+      createStratifiedMaxIdx(),
+      createStratifiedMaxIdx(),
+      createStratifiedMaxIdx(),
+    ];
     this.stratifiedBinCapacity = Math.max(
       1,
       Math.ceil((this.recordCapacity * STRATIFIED_STREAM_OVERSAMPLE) / STRATIFIED_STREAM_BINS),
@@ -380,10 +389,36 @@ class GrassFieldSamplerTask implements GrassFieldSampler {
   }
 
   private pushStratifiedCandidate(candidate: GrassFieldCandidate): void {
-    const tierBins = this.stratifiedBins[candidate.record.lodTier];
-    const bin = tierBins[stratifiedStreamBin(candidate.dist, this.radius)];
-    if (bin.length >= this.stratifiedBinCapacity) return;
-    bin.push(candidate);
+    const tier = candidate.record.lodTier;
+    const binIndex = stratifiedStreamBin(candidate.dist, this.radius);
+    const bin = this.stratifiedBins[tier][binIndex];
+    const cap = this.stratifiedBinCapacity;
+    if (bin.length < cap) {
+      bin.push(candidate);
+      return;
+    }
+    // Bin full: keep the `cap` candidates with the SMALLEST `order` key - a
+    // uniform random subset of this radial shell that ignores arrival order.
+    // The old code kept the first `cap` in scan order, and because cells are
+    // visited row-major from the south pole of the disc (where only x~0 cells
+    // fall inside the radius) every shell's quota was spent on its southern,
+    // x~0 arc before the wide arcs were ever reached - collapsing the whole
+    // disc to a narrow vertical strip. Reservoir-by-smallest-order restores an
+    // angularly uniform shell, matching the non-streaming selection path.
+    const maxIdxArr = this.stratifiedBinMaxIdx[tier];
+    let mi = maxIdxArr[binIndex];
+    if (mi < 0) {
+      mi = 0;
+      for (let i = 1; i < cap; i++) if (bin[i].order > bin[mi].order) mi = i;
+    }
+    if (candidate.order < bin[mi].order) {
+      bin[mi] = candidate;
+      let nm = 0;
+      for (let i = 1; i < cap; i++) if (bin[i].order > bin[nm].order) nm = i;
+      maxIdxArr[binIndex] = nm;
+    } else {
+      maxIdxArr[binIndex] = mi;
+    }
   }
 
   private beginSelect(): void {
@@ -463,6 +498,11 @@ class GrassFieldSamplerTask implements GrassFieldSampler {
     this.packedRecords = new Float32Array(this.records.length * GRASS_FIELD_PACKED_STRIDE_FLOATS);
     this.candidates = [];
     this.stratifiedBins = [createStratifiedBins(), createStratifiedBins(), createStratifiedBins()];
+    this.stratifiedBinMaxIdx = [
+      createStratifiedMaxIdx(),
+      createStratifiedMaxIdx(),
+      createStratifiedMaxIdx(),
+    ];
     this.selectionQuotas = null;
     this.selectionFlat = null;
     this.phase = "pack";
@@ -489,6 +529,10 @@ class GrassFieldSamplerTask implements GrassFieldSampler {
 
 function createStratifiedBins(): GrassFieldCandidate[][] {
   return Array.from({ length: STRATIFIED_STREAM_BINS }, () => []);
+}
+
+function createStratifiedMaxIdx(): number[] {
+  return new Array<number>(STRATIFIED_STREAM_BINS).fill(-1);
 }
 
 function stratifiedStreamBin(dist: number, radius: number): number {

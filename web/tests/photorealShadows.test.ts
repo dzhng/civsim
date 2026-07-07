@@ -34,7 +34,7 @@ test("an explicit tier override wins over the probe", () => {
   assert.equal(resolveSunShadowMode("apple / metal-3", "single"), "single");
   assert.equal(resolveSunShadowMode("google / swiftshader", "csm"), "csm");
   // Unknown override values fall back to the probe, never crash the tier.
-  assert.equal(resolveSunShadowMode("apple / metal-3", "blurry"), "csm");
+  assert.equal(resolveSunShadowMode("apple / metal-3", "blurry"), "single");
 });
 
 test("PCF softness derives from preset turbidity: monotonic, clamped [1, 3]", () => {

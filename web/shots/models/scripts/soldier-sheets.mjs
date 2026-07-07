@@ -17,7 +17,6 @@ import { GPU_HARDWARE_FLAGS, GPU_SWIFTSHADER_FLAGS } from "../../../renderer-pro
 const TARGET = process.env.VERIFY_URL ?? "http://localhost:5173";
 const LAB_PANEL_W = 360;
 const LAB_HEADER_H = 42;
-const INGAME_CAMERA_X = -1.5;
 const GROUP = "models/shared/soldiers/ingame";
 
 // Thumbnail = the whole (small) viewport, so the montage just tiles screenshots
@@ -25,9 +24,11 @@ const GROUP = "models/shared/soldiers/ingame";
 const TW = 360,
   TH = 360;
 
-// Battle's real max tilt (near top-down), so the sheet reviews actual in-game
-// readability.
-const PITCH = 0.42; // view tilt from straight-down, radians
+// Battle's zoomed-in review tilt (~24° above the ground — the close view where
+// model readability matters). The lab pitch is measured from straight-down, so
+// this is π/2 − 0.42; the old constant 0.42 predates the eye-pivot camera
+// rework, which flipped the lab's pitch convention.
+const PITCH = 1.15; // view tilt from straight-down, radians
 const YAW = -0.08;
 
 const CLASS_NAMES = [
@@ -61,8 +62,8 @@ const classId = (name) => {
 // Tallest extent (metres) of each model at ease, so each class is framed to its
 // own height — a phalanx's 3.4 m pike and a peasant's knife both fill the frame.
 const CLASS_H = [
-  1.75, 2.05, 1.85, 3.5, 1.75, 1.6, 3.4, 2.6, 1.7, 1.55, 1.75, 2.05, 1.9, 2.05, 3.1, 3.4, 3.5, 3.1,
-  3.5, 3.1,
+  2.0, 2.6, 2.1, 3.2, 2.0, 2.3, 3.4, 2.6, 1.7, 1.9, 1.9, 2.75, 1.9, 2.75, 3.1, 3.4, 3.2, 3.2, 3.2,
+  3.2,
 ];
 const REVIEW_H = [...CLASS_H];
 REVIEW_H[classId("phalanx")] = 3.2;
@@ -73,9 +74,9 @@ REVIEW_H[classId("medium-phalanx")] = 3.0;
 const frameFor = (cls) => {
   const h = REVIEW_H[cls] ?? CLASS_H[cls] ?? 1.8;
   return {
-    zoom: Math.max(72, Math.min(108, (0.48 * TH) / h)),
-    camX: INGAME_CAMERA_X,
-    camY: 0.72 * h,
+    zoom: Math.max(48, Math.min(65, (0.46 * TH) / h)),
+    camX: -0.5 * h,
+    camY: 0.135 * h,
   };
 };
 

@@ -19,9 +19,11 @@ import { PNG } from "pngjs";
 const TARGET = process.env.VERIFY_URL ?? "http://localhost:5173";
 const LAB_PANEL_W = 360;
 const LAB_HEADER_H = 42;
-const MODEL_CAMERA_X = -2.1;
 const TW = 360,
   TH = 360,
+  // Hero 3/4 view. Lab pitch is measured from straight-down; this predates the
+  // eye-pivot camera rework only in spirit — the value is calibrated for the
+  // current convention (~35° above the ground).
   PITCH = 0.95;
 const here = path.dirname(fileURLToPath(import.meta.url));
 const WEB_ROOT = path.join(here, "..", "..", "..");
@@ -56,8 +58,8 @@ const classId = (name) => {
   return id;
 };
 const CLASS_H = [
-  1.75, 2.05, 1.85, 3.5, 1.75, 1.6, 3.4, 2.6, 1.7, 1.55, 1.75, 2.05, 1.9, 2.05, 3.1, 3.4, 3.5, 3.1,
-  3.5, 3.1,
+  2.0, 2.6, 2.1, 3.2, 2.0, 2.3, 3.4, 2.6, 1.7, 1.9, 1.9, 2.75, 1.9, 2.75, 3.1, 3.4, 3.2, 3.2, 3.2,
+  3.2,
 ];
 const REVIEW_H = [...CLASS_H];
 REVIEW_H[classId("phalanx")] = 2.55;
@@ -127,10 +129,9 @@ page.on("console", (m) => {
 
 for (const cls of only) {
   const h = REVIEW_H[cls] ?? CLASS_H[cls] ?? 1.8;
-  const zoom = Math.max(64, Math.min(136, (0.68 * TH) / h));
-  const isMountedReview = cls === classId("shock-cav") || cls === classId("horse-archers");
-  const camX = isMountedReview ? -1.6 : MODEL_CAMERA_X;
-  const camY = isMountedReview ? 3.2 : 1.25 * h;
+  const zoom = Math.max(48, Math.min(65, (0.46 * TH) / h));
+  const camX = -0.5 * h;
+  const camY = 0.135 * h;
   for (const [name, anim] of Object.entries(ANIMS)) {
     const frames = [];
     // Two cycles for the looping anims so the GIF has a natural rhythm.
@@ -139,8 +140,8 @@ for (const cls of only) {
     for (let r = 0; r < reps; r++) {
       for (const s of anim.steps) {
         const poseH = name === "die" ? h * 1.55 : h;
-        const poseZoom = Math.max(64, Math.min(136, (0.68 * TH) / poseH));
-        const poseCamY = name === "die" ? 0.96 * h : camY;
+        const poseZoom = Math.max(48, Math.min(65, (0.46 * TH) / poseH));
+        const poseCamY = camY;
         phase = (phase + s.dt) % 1;
         frames.push(
           pngToRGBA(
@@ -152,7 +153,7 @@ for (const cls of only) {
               facing,
               zoom: poseZoom,
               camX,
-              camY: isMountedReview ? Math.min(camY, poseCamY) : poseCamY,
+              camY: poseCamY,
               pitch: PITCH,
               yaw: -0.18,
               size: cls === classId("shock-cav") ? 1.05 : 1.15,

@@ -781,7 +781,13 @@ function lodTierForDistance(
 }
 
 function snapCoord(v: number, snapCellSize: number): number {
-  return Math.floor(v / snapCellSize) * snapCellSize;
+  // The +epsilon guards the idempotent case: a caller that already snapped the
+  // focus onto THIS grid (battleWorld passes its ring-scaled step) hands us an
+  // exact k*cell, and k*cell/cell can land a hair below k in float - a bare
+  // floor would then drop a whole cell and displace the disc off the look
+  // target (the bald ground-level frame). Epsilon is inert for genuine sub-cell
+  // positions (their fraction dwarfs it), so sub-cell moves still share a cell.
+  return Math.floor(v / snapCellSize + 1e-6) * snapCellSize;
 }
 
 function hashCell(seed: number, x: number, y: number): number {

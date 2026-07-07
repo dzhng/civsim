@@ -29,10 +29,10 @@ export function placeholderRig() {
     { name: 'hips', parent: -1, bind: { T: [0, 0, 0.95], R: [0, 0, 0, 1], S: [1, 1, 1] } },
     { name: 'spine', parent: 0, bind: { T: [0, 0.02, 0.45], R: [0, 0, 0, 1], S: [1, 1, 1] } },
     { name: 'head', parent: 1, bind: { T: [0, 0, 0.42], R: [0, 0, 0, 1], S: [1, 1, 1] } },
-    { name: 'arm_l', parent: 1, bind: { T: [-0.36, 0, 0.28], R: [0, 0, 0, 1], S: [1, 1, 1] } },
-    { name: 'arm_r', parent: 1, bind: { T: [0.36, 0, 0.28], R: [0, 0, 0, 1], S: [1, 1, 1] } },
-    { name: 'leg_l', parent: 0, bind: { T: [-0.16, 0, -0.58], R: [0, 0, 0, 1], S: [1, 1, 1] } },
-    { name: 'leg_r', parent: 0, bind: { T: [0.16, 0, -0.58], R: [0, 0, 0, 1], S: [1, 1, 1] } },
+    { name: 'arm_l', parent: 1, bind: { T: [-0.33, 0, 0.14], R: [0, 0, 0, 1], S: [1, 1, 1] } },
+    { name: 'arm_r', parent: 1, bind: { T: [0.33, 0, 0.14], R: [0, 0, 0, 1], S: [1, 1, 1] } },
+    { name: 'leg_l', parent: 0, bind: { T: [-0.16, 0, 0.00], R: [0, 0, 0, 1], S: [1, 1, 1] } },
+    { name: 'leg_r', parent: 0, bind: { T: [0.16, 0, 0.00], R: [0, 0, 0, 1], S: [1, 1, 1] } },
   ];
   const inverse = inverseBindTranslations(binds);
   const bones = binds.map((b, i) => ({ ...b, inverseBind: inverse[i] }));
@@ -42,19 +42,19 @@ export function placeholderRig() {
     { name: 'idle', duration: 1, tracks: { 1: { R: channel(loop, loop.map((t) => qy(Math.sin(t * Math.PI * 2) * 0.03))) } } },
     {
       name: 'march', duration: 1, tracks: {
-        3: { R: channel(loop, swing(0.28, 0)) },
-        4: { R: channel(loop, swing(0.28, Math.PI)) },
-        5: { R: channel(loop, swing(0.36, Math.PI)) },
-        6: { R: channel(loop, swing(0.36, 0)) },
+        3: { R: channel(loop, swing(0.38, 0)) },
+        4: { R: channel(loop, swing(0.38, Math.PI)) },
+        5: { R: channel(loop, swing(0.26, Math.PI)) },
+        6: { R: channel(loop, swing(0.26, 0)) },
       },
     },
     {
       name: 'run', duration: 0.65, tracks: {
         0: { R: channel([0, 0.5, 1], [qx(-0.1), qx(0.08), qx(-0.1)]) },
-        3: { R: channel(loop, swing(0.48, 0)) },
-        4: { R: channel(loop, swing(0.48, Math.PI)) },
-        5: { R: channel(loop, swing(0.62, Math.PI)) },
-        6: { R: channel(loop, swing(0.62, 0)) },
+        3: { R: channel(loop, swing(0.46, 0)) },
+        4: { R: channel(loop, swing(0.46, Math.PI)) },
+        5: { R: channel(loop, swing(0.38, Math.PI)) },
+        6: { R: channel(loop, swing(0.38, 0)) },
       },
     },
     {

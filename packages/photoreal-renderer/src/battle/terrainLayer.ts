@@ -15,6 +15,7 @@ import {
   attribute,
   cameraPosition,
   clamp,
+  dot,
   float,
   floor,
   fract,
@@ -380,7 +381,8 @@ export function createGroundMesh(
   const water = varying(attribute<"float">("gWater", "float")).toVar();
   const tint = varying(attribute<"float">("gTint", "float")).toVar();
   const world = varying(position.xy).toVar();
-  const waterBlend = saturateN(water).toVar();
+  const rawWaterBlend = saturateN(water).toVar();
+  const waterBlend = smoothstepN(0.08, 0.55, rawWaterBlend).toVar();
 
   // Grass/ground micro-detail across scales (GROUND_WGSL fs, meadow off) —
   // NEUTRAL albedo variation; the sun + IBL environment light it.
@@ -396,17 +398,29 @@ export function createGroundMesh(
     const farGrass = options.farGrass;
     const cameraGround = cameraPosition.xy;
     const viewDist = length(world.sub(cameraGround)).toVar();
-    const farRiseEnd = farGrass.farGrassStartM
-      .add(farGrass.farGrassEndM.sub(farGrass.farGrassStartM).mul(0.58))
+    const detailStart = max(float(5.0), farGrass.nearTierEndM.mul(0.45)).toVar();
+    const detailFull = max(detailStart.add(4.0), farGrass.denseBladeEndM).toVar();
+    const detailIn = smoothstepNode(detailStart, detailFull, viewDist).toVar();
+    const bladeSparse = smoothstepNode(farGrass.denseBladeEndM, farGrass.farGrassStartM, viewDist)
       .toVar();
-    const farIn = smoothstepNode(farGrass.farGrassStartM, farRiseEnd, viewDist).toVar();
     // Sustain far past the blade edge - the term hands off to distance fog,
     // not to bare green ground (the "bare strip before the treeline").
     const farOut = float(1.0).sub(
       smoothstepNode(farGrass.farGrassEndM.add(300), farGrass.farGrassEndM.add(900), viewDist),
     );
-    const farMask = farIn.mul(farOut).mul(float(1.0).sub(waterBlend)).toVar();
+    const farMask = detailIn.mul(farOut).mul(float(1.0).sub(waterBlend)).toVar();
     const wind = frame.time.mul(0.035);
+    const view = normalize(positionWorld.sub(cameraPosition)).toVar();
+    const incidence = clamp(abs(dot(view, worldNormal)), 0.08, 1.0).toVar();
+    const grazingT = float(1.0)
+      .sub(smoothstepN(0.2, 0.62, incidence))
+      .toVar();
+    const viewDelta = world.sub(cameraGround).toVar();
+    const viewDir2 = viewDelta.div(max(0.001, length(viewDelta))).toVar();
+    const viewCross = vec2(viewDir2.y.mul(-1.0), viewDir2.x).toVar();
+    const alongView = dot(world, viewDir2).toVar();
+    const acrossView = dot(world, viewCross).toVar();
+    const viewStretch = mix(float(1.0), float(3.6), grazingT).toVar();
     const brush = ridgeN(
       vec2(
         world.x.mul(0.78).add(world.y.mul(0.16)).add(wind),
@@ -419,6 +433,24 @@ export function createGroundMesh(
         world.y.mul(0.48).sub(world.x.mul(0.055)).add(wind.mul(0.25)),
       ),
     ).toVar();
+    const viewBrush = ridgeN(
+      vec2(
+        alongView.mul(0.22).div(viewStretch).add(wind.mul(0.5)),
+        acrossView.mul(0.28).sub(wind.mul(0.35)),
+      ),
+    ).toVar();
+    const viewRake = ridgeN(
+      vec2(
+        alongView.mul(0.36).div(viewStretch).sub(wind.mul(0.25)),
+        acrossView.mul(0.46).add(wind.mul(0.18)),
+      ),
+    ).toVar();
+    const grazingFiber = mix(brush, viewBrush.mul(0.64).add(viewRake.mul(0.36)), grazingT).toVar();
+    const nearDetailStrength = float(1.0)
+      .sub(smoothstepNode(farGrass.farGrassStartM, farGrass.farGrassEndM, viewDist))
+      .toVar();
+    const pastBladeEdge = smoothstepNode(farGrass.farGrassStartM, farGrass.farGrassEndM, viewDist)
+      .toVar();
     const broadClump = fbmN(world.mul(0.045).add(vec2(2.5, 7.0))).toVar();
     // Tone family leans toward the blade canopy's desaturated khaki - a
     // green far field against a khaki canopy flags the blade edge by hue
@@ -426,10 +458,19 @@ export function createGroundMesh(
     const farTone = mix(
       vec3(0.44, 0.49, 0.28),
       vec3(0.6, 0.62, 0.38),
-      clamp(broadClump.mul(0.58).add(brush.mul(0.3)).add(raked.mul(0.12)), 0.0, 1.0),
+      clamp(broadClump.mul(0.52).add(grazingFiber.mul(0.36)).add(raked.mul(0.12)), 0.0, 1.0),
     );
-    const brushedTone = mix(farTone, vec3(0.34, 0.39, 0.21), brush.mul(0.22).add(raked.mul(0.12)));
-    albedo = mix(albedo, brushedTone, farMask.mul(0.74));
+    const grazingShadow = grazingFiber.mul(0.22).add(viewRake.mul(grazingT).mul(0.16));
+    const brushedTone = mix(farTone, vec3(0.34, 0.39, 0.21), grazingShadow.add(raked.mul(0.12)));
+    const grazingLift = mix(brushedTone, vec3(0.66, 0.67, 0.43), viewBrush.mul(grazingT).mul(0.18));
+    const bladeZoneDetail = bladeSparse.mul(nearDetailStrength).toVar();
+    const postEdgeDetail = max(bladeZoneDetail, pastBladeEdge).toVar();
+    const detailAmount = mix(float(0.26), float(0.92), postEdgeDetail).add(grazingT.mul(0.08));
+    albedo = mix(
+      albedo,
+      grazingLift,
+      farMask.mul(farGrass.terrainDetailStrength).mul(clamp(detailAmount, 0.0, 0.98)),
+    );
   }
   // Churn: trodden mud reads as broken ground (brown AND dark keys the earth).
   const brown = smoothstepN(0.0, 0.05, color.r.sub(color.g));
@@ -458,11 +499,16 @@ export function createGroundMesh(
     const slowSlope = float(1.0)
       .sub(smoothstepN(slowNz, rollingNz, normalZ))
       .toVar();
+    const tintDither = hashN(floor(world.mul(1.7)))
+      .sub(0.5)
+      .mul(0.5)
+      .add(fbmN(world.mul(0.12)).sub(0.5).mul(0.24))
+      .toVar();
     const rockTint = float(1.0)
-      .sub(smoothstepN(0.05, 0.45, abs(tint.sub(2.0))))
+      .sub(smoothstepN(0.18, 0.95, abs(tint.sub(2.0).add(tintDither))))
       .toVar();
     const screeTint = float(1.0)
-      .sub(smoothstepN(0.05, 0.45, abs(tint.sub(6.0))))
+      .sub(smoothstepN(0.18, 0.95, abs(tint.sub(6.0).add(tintDither))))
       .toVar();
     const dryOnly = float(1.0).sub(waterBlend);
 
@@ -522,7 +568,7 @@ export function createGroundMesh(
 
   // Field water: the shared water surface blended by the box-filtered weight
   // (albedo + roughness — wet ground gets a real sun sheen).
-  const fieldWater = fieldWaterSurfaceNodes(frame, world, water);
+  const fieldWater = fieldWaterSurfaceNodes(frame, world, rawWaterBlend);
   albedo = mix(albedo, fieldWater.albedo, waterBlend);
   material.colorNode = vec4(linearAlbedo(clamp(albedo, vec3(0.0), vec3(1.0))), 1.0);
   const dryRoughnessFloor = options.vistaBand
@@ -530,7 +576,11 @@ export function createGroundMesh(
       ? float(0.995)
       : float(0.985)
     : float(0.0);
-  material.roughnessNode = mix(max(dryRoughness, dryRoughnessFloor), fieldWater.roughness, waterBlend);
+  material.roughnessNode = mix(
+    max(dryRoughness, dryRoughnessFloor),
+    fieldWater.roughness,
+    waterBlend,
+  );
   if (options.vistaBand === "farFog") {
     // The 64 m far-fog ring is real terrain below the horizon, but from a low
     // eye its coarse vertices can project into the sky as giant grazing tiles.

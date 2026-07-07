@@ -44,6 +44,9 @@ interface RigCurve {
   distInFactor: number;
   /** Optional absolute cap for the zoomed-in endpoint, in world meters. */
   distInMeters?: number;
+  /** Optional continued distance descent after zoomT reaches 1. Battle uses
+   *  this for inspection zooms beyond the authored close-vista endpoint. */
+  overZoomMinFactor?: number;
   /** Forward look-ahead at max zoom, as a fraction of the field's short axis. */
   maxForwardFraction: number;
   /** >1 keeps the framing near-top-down for more of the zoom range before it
@@ -61,6 +64,7 @@ const BATTLE_CURVE: RigCurve = {
   distOutFactor: 2.0,
   distInFactor: 0.6,
   distInMeters: 10,
+  overZoomMinFactor: 0.35,
   maxForwardFraction: 0.3,
   easeBias: 20,
 };
@@ -115,7 +119,12 @@ function rigForZoom(
     fieldReach * curve.distInFactor,
     curve.distInMeters ?? Number.POSITIVE_INFINITY,
   );
-  const distance = lerp(fieldReach * curve.distOutFactor, closeDistance, eased);
+  const baseDistance = lerp(fieldReach * curve.distOutFactor, closeDistance, eased);
+  const overZoomScale = curve.overZoomMinFactor && zoom > max ? max / Math.max(max, zoom) : 1;
+  const minCloseDistance = curve.overZoomMinFactor
+    ? Math.max(1.5, closeDistance * curve.overZoomMinFactor)
+    : closeDistance;
+  const distance = Math.max(minCloseDistance, baseDistance * overZoomScale);
   const closeForward = Math.min(fieldReach * curve.maxForwardFraction, closeDistance * 1.25);
   const forward = lerp(0, closeForward, eased);
   return {

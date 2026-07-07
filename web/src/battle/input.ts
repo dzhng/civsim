@@ -27,6 +27,7 @@ export interface OrderSink {
 }
 
 const DRAG_PX = 7;
+const WHEEL_ZOOM_SENSITIVITY = 0.2;
 
 export class Input {
   selected: number[] = [];
@@ -250,16 +251,17 @@ export class Input {
       "wheel",
       (e) => {
         e.preventDefault();
+        const wheelDelta = e.deltaY * WHEEL_ZOOM_SENSITIVITY;
         camera.zoomAt(
           e.clientX * dpr(),
           e.clientY * dpr(),
-          Math.pow(1.0015, -e.deltaY),
+          Math.pow(1.0015, -wheelDelta),
           onZoomChange,
         );
         // Scrolling eases any manual tilt back toward the zoom rig's own
         // pitch curve — the more you scroll, the closer to the intended
         // orientation (~an order of magnitude per ~15 wheel notches).
-        camera.pitchBias *= Math.pow(0.9985, Math.abs(e.deltaY));
+        camera.pitchBias *= Math.pow(0.9985, Math.abs(wheelDelta));
       },
       { passive: false, signal },
     );

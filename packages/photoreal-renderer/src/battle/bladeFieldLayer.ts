@@ -47,6 +47,7 @@ import {
   viewNormalNode,
   type FloatNode,
   type Rgb,
+  type Vec2Node,
 } from "./battleTsl";
 import { RENDER_ORDER } from "./terrainLayer";
 
@@ -71,9 +72,13 @@ export interface BladeFieldTransitionProfile {
    *  shows a full-height cutoff. Production-scale rings only - the ratified
    *  close-lab profile (64m ring) keeps its hard edge (undefined = no sink). */
   edgeSinkStartM?: number;
+  /** Strength of the terrain-only far grass brush. Blade-field lab routes can
+   *  keep ratified blade statistics by setting this to zero. */
+  terrainDetailStrength?: number;
 }
 
 type FloatUniformNode = FloatNode & { value: number };
+type Vec2UniformNode = Vec2Node & { value: THREE.Vector2 };
 
 export interface BladeFieldTransitionUniforms {
   profile: BladeFieldTransitionProfile;
@@ -84,6 +89,7 @@ export interface BladeFieldTransitionUniforms {
   midTierEndM: FloatUniformNode;
   farSoftWidthScale: FloatUniformNode;
   edgeSinkStartM: FloatUniformNode;
+  terrainDetailStrength: FloatUniformNode;
 }
 
 export const BLADE_FIELD_LOD_TIERS: readonly BladeFieldTierSpec[] = [
@@ -111,8 +117,13 @@ export function createBladeFieldTransitionUniforms(
     farGrassEndM: uniform(normalized.farGrassEndM) as unknown as FloatUniformNode,
     nearTierEndM: uniform(nearTierEndUniformValue(normalized)) as unknown as FloatUniformNode,
     midTierEndM: uniform(midTierEndUniformValue(normalized)) as unknown as FloatUniformNode,
-    farSoftWidthScale: uniform(farSoftWidthScaleUniformValue(normalized)) as unknown as FloatUniformNode,
+    farSoftWidthScale: uniform(
+      farSoftWidthScaleUniformValue(normalized),
+    ) as unknown as FloatUniformNode,
     edgeSinkStartM: uniform(edgeSinkStartUniformValue(normalized)) as unknown as FloatUniformNode,
+    terrainDetailStrength: uniform(
+      terrainDetailStrengthUniformValue(normalized),
+    ) as unknown as FloatUniformNode,
   };
 }
 
@@ -129,6 +140,7 @@ export function updateBladeFieldTransitionUniforms(
   uniforms.midTierEndM.value = midTierEndUniformValue(normalized);
   uniforms.farSoftWidthScale.value = farSoftWidthScaleUniformValue(normalized);
   uniforms.edgeSinkStartM.value = edgeSinkStartUniformValue(normalized);
+  uniforms.terrainDetailStrength.value = terrainDetailStrengthUniformValue(normalized);
   return normalized;
 }
 
@@ -214,6 +226,7 @@ interface TierBucket {
 
 interface BladeFieldGpuRuntime {
   camera: { value: THREE.Vector3 };
+  anchor: Vec2UniformNode;
   reset: unknown;
   route: unknown;
   routed: boolean;
@@ -279,7 +292,9 @@ export class PhotorealBladeFieldLayer {
     time: FloatNode = uniform(0) as unknown as FloatNode,
     tiers: readonly BladeFieldTierSpec[] = BLADE_FIELD_LOD_TIERS,
     edgeFade = false,
-    transition: BladeFieldTransitionProfile | BladeFieldTransitionUniforms = DEFAULT_BLADE_FIELD_TRANSITION,
+    transition:
+      | BladeFieldTransitionProfile
+      | BladeFieldTransitionUniforms = DEFAULT_BLADE_FIELD_TRANSITION,
   ) {
     this.time = time;
     this.tiers = tiers;
@@ -359,6 +374,7 @@ export class PhotorealBladeFieldLayer {
         bucket.visibleIndices,
         this.time,
         this.transitionUniforms,
+        this.runtime.anchor,
         this.thinning.survivorAlbedoBlend,
       );
       bucket.records = 0;
@@ -370,10 +386,15 @@ export class PhotorealBladeFieldLayer {
     }
   }
 
-  routeGpu(renderer: THREE.WebGPURenderer, eye: readonly [number, number, number]): void {
+  routeGpu(
+    renderer: THREE.WebGPURenderer,
+    eye: readonly [number, number, number],
+    anchor: readonly [number, number] = [eye[0], eye[1]],
+  ): void {
     if (!this.runtime) return;
     this.runtime.camera.value.set(eye[0], eye[1], eye[2]);
-    this.updateCpuMirrorTierCounts(eye);
+    this.runtime.anchor.value.set(anchor[0], anchor[1]);
+    this.updateCpuMirrorTierCounts(anchor);
     const compute = (renderer as unknown as { compute(node: unknown): void }).compute.bind(
       renderer,
     );
@@ -400,7 +421,7 @@ export class PhotorealBladeFieldLayer {
     return this.transition;
   }
 
-  private updateCpuMirrorTierCounts(eye: readonly [number, number, number]): void {
+  private updateCpuMirrorTierCounts(anchor: readonly [number, number]): void {
     for (const bucket of this.buckets) {
       bucket.records = 0;
       bucket.candidateRecords = 0;
@@ -413,14 +434,15 @@ export class PhotorealBladeFieldLayer {
       const o = i * GRASS_FIELD_PACKED_STRIDE_FLOATS;
       const x = this.packedRecords[o];
       const y = this.packedRecords[o + 1];
-      const z = this.packedRecords[o + 2];
-      const dist = Math.hypot(x - eye[0], y - eye[1], z - eye[2]);
+      // GROUND-anchor distance: band by the looked-at/focused field point, not
+      // the camera footprint. Shallow cameras sit tens of metres behind target.
+      const dist = Math.hypot(x - anchor[0], y - anchor[1]);
       const bucketIndex =
         dist < tierRanges.near.maxDistanceM
           ? 0
           : dist < tierRanges.mid.maxDistanceM
             ? 1
-            : dist < tierRanges.far.maxDistanceM
+            : dist < tierRanges.far.maxDistanceM || !this.thinning.enabled
               ? 2
               : -1;
       if (bucketIndex < 0) {
@@ -508,7 +530,9 @@ export class PhotorealBladeFieldLayer {
     return visible && (this.farTierVisible || spec.id !== "far");
   }
 
-  private applyTransitionProfile(profile: BladeFieldTransitionProfile): BladeFieldTransitionProfile {
+  private applyTransitionProfile(
+    profile: BladeFieldTransitionProfile,
+  ): BladeFieldTransitionProfile {
     const clamped = transitionProfileForTiers(this.tiers, profile);
     return updateBladeFieldTransitionUniforms(this.transitionUniforms, clamped);
   }
@@ -577,6 +601,7 @@ function createGpuRuntime(
     "PhotorealBladeFieldRecords",
   );
   const camera = uniform(new THREE.Vector3(0, 0, 0));
+  const anchor = uniform(new THREE.Vector2(0, 0)) as unknown as Vec2UniformNode;
   const configs: RuntimeConfig[] = buckets.map((bucket) => {
     const visibleIndices = instancedArray(
       new Uint32Array(packedRecords.length / 16),
@@ -614,13 +639,19 @@ function createGpuRuntime(
     const d0 = data.get("data0") as { xyz: ReturnType<typeof vec3> };
     const d2 = data.get("data2") as { z: FloatNode };
     const pos = d0.xyz;
-    const dist = length(camera.sub(pos));
+    const dist = length(anchor.sub(pos.xy));
     const seed01 = clamp(d2.z.div(float(SEED24_MASK)), 0.0, 1.0);
     const bladeHash = fract(seed01.mul(7.13));
-    const fadeStart = min(transition.farGrassStartM, transition.farGrassEndM.mul(0.55));
+    const fadeStart = min(
+      transition.farGrassStartM,
+      max(transition.denseBladeEndM, transition.farGrassEndM.sub(float(80.0))),
+    );
     const fade = smoothstep(fadeStart, transition.farGrassEndM, dist);
     // Disabled profile (ratified lab envelope) keeps every blade.
     const survival = thinning.enabled ? float(1.0).sub(fade) : float(1.0);
+    const farTierEnd = thinning.enabled
+      ? transition.farGrassEndM
+      : transition.farGrassEndM.add(float(1_000_000.0));
     If(bladeHash.lessThan(survival), () => {
       If(dist.lessThan(transition.nearTierEndM), () => {
         appendToTier(configs[0]);
@@ -628,7 +659,7 @@ function createGpuRuntime(
         .ElseIf(dist.lessThan(transition.midTierEndM), () => {
           appendToTier(configs[1]);
         })
-        .ElseIf(dist.lessThan(transition.farGrassEndM), () => {
+        .ElseIf(dist.lessThan(farTierEnd), () => {
           appendToTier(configs[2]);
         });
     });
@@ -636,6 +667,7 @@ function createGpuRuntime(
 
   return {
     camera,
+    anchor,
     reset: resetFn().compute(1).setName("PhotorealBladeFieldResetIndirect"),
     route: routeFn()
       .compute(packedRecords.length / 16)
@@ -650,6 +682,7 @@ function bladeFieldMaterial(
   visibleIndices: unknown,
   time: FloatNode,
   transition: BladeFieldTransitionUniforms,
+  anchor: Vec2UniformNode,
   survivorAlbedoBlend: number,
 ): THREE.MeshStandardNodeMaterial {
   // Standard material so the environment (the mood owner) lights the canopy -
@@ -685,15 +718,20 @@ function bladeFieldMaterial(
     const d3 = record.get("data3").toConst();
 
     const base = vec3(d0.x, d0.y, d0.z).toVar();
-    const eyeDist = length(cameraPosition.sub(base)).toVar();
-    const farSoft = smoothstep(
-      transition.farGrassStartM,
-      transition.farGrassEndM,
-      eyeDist,
-    ).toVar();
+    // Ground-anchor distance (see CPU mirror note): tiers/transitions band by
+    // the looked-at field point, not the camera footprint.
+    const eyeDist = length(anchor.sub(base.xy)).toVar();
+    const farSoft = smoothstep(transition.farGrassStartM, transition.farGrassEndM, eyeDist).toVar();
+    // Far-LOD blade RESHAPING (widen + height-sink + taper + darken) is a
+    // PRODUCTION coverage treatment: it trades blade fineness for a soft edge
+    // past the dense ring. The ratified close-lab envelope (survivorAlbedoBlend
+    // === 0) OMITS it - routing the lab through farSoft turns its fine tall
+    // strands into stubby wide paddles and collapses the clump structure the
+    // close-gate oracle measures (the round-3 leak).
+    const farSoftShape = survivorAlbedoBlend > 0 ? farSoft : float(0.0);
     // Tall clumps widen too: a clump reads as one bright mass, not stripes.
     const width = max(d1.x.mul(mix(0.85, 1.35, clamp(d2.w, 0.0, 1.0))), 0.018)
-      .mul(mix(1.0, transition.farSoftWidthScale, farSoft))
+      .mul(mix(1.0, transition.farSoftWidthScale, farSoftShape))
       .toVar();
     const clumpWeight = clamp(d2.w, 0.0, 1.0);
     // Clump-scale canopy: the Voronoi clumpWeight (1.55 m cells) drives a
@@ -712,21 +750,30 @@ function bladeFieldMaterial(
     // camera. View space looks down -z, so keep only clearly-negative z.
     const baseViewZ = cameraViewMatrix.mul(vec4(base, 1.0)).z;
     const behindCull = smoothstep(0.5, -1.5, baseViewZ);
-    const nearEyeFade = smoothstep(
-      fadeEnd.mul(0.45),
-      fadeEnd,
-      length(cameraPosition.sub(base)),
-    ).mul(behindCull);
+    // Near-eye paddle DISSOLVE (blades within ~16 m of the lens sink to turf) is
+    // a PRODUCTION anti-overdraw treatment for the max-zoom cliff. The ratified
+    // close-lab envelope (survivorAlbedoBlend === 0) omits it - it is exactly
+    // the close-gate foreground, and dissolving it leaves the ratified frame
+    // bare (the round max-zoom-fix leak). behindCull stays (correctness: keeps
+    // blades behind the lens out of the sky).
+    const nearEyeDissolve =
+      survivorAlbedoBlend > 0
+        ? smoothstep(fadeEnd.mul(0.45), fadeEnd, length(cameraPosition.sub(base)))
+        : float(1.0);
+    const nearEyeFade = nearEyeDissolve.mul(behindCull);
     // Coverage-edge dissolve: blades SINK into the turf across the last
     // stretch of the far transition instead of stopping full-height at a
     // hard radius (the "visible from across the room" cutoff critique).
-    const edgeSink = smoothstep(transition.farGrassEndM, transition.edgeSinkStartM, eyeDist);
+    const edgeSink =
+      survivorAlbedoBlend > 0
+        ? smoothstep(transition.farGrassEndM, transition.edgeSinkStartM, eyeDist)
+        : float(1.0);
     const height = max(d1.y.mul(mix(0.52, 1.32, clumpWeight)), 0.16)
       .mul(nearEyeFade)
-      .mul(mix(1.0, 0.72, farSoft))
+      .mul(mix(1.0, 0.72, farSoftShape))
       .mul(edgeSink)
       .toVar();
-    const bend = d1.z.mul(mix(1.34, 0.94, farSoft)).toVar();
+    const bend = d1.z.mul(mix(1.34, 0.94, farSoftShape)).toVar();
     const phase = d1.w;
     const yaw = d2.x;
     const clumpSeed = d2.y;
@@ -778,7 +825,7 @@ function bladeFieldMaterial(
     const widthFactor = t
       .mul(0.5)
       .add(0.5)
-      .mul(pow(float(1.0).sub(t), mix(1.6, 2.35, farSoft)))
+      .mul(pow(float(1.0).sub(t), mix(1.6, 2.35, farSoftShape)))
       .toVar();
     const cameraDir = normalize(cameraPosition.sub(center)).toVar();
     const viewSideSigned = dot(cameraDir, side).toVar();
@@ -818,18 +865,14 @@ function bladeFieldMaterial(
     const distFade = smoothstep(float(18.0), float(42.0), eyeDist);
     // Blend into the meadow tone toward the cull ring so the coverage edge
     // dissolves instead of cutting a hard disc (slice 12 owns real thinning).
-    const ringFade = smoothstep(
-      transition.farGrassStartM,
-      transition.farGrassEndM,
-      eyeDist,
-    );
+    const ringFade = smoothstep(transition.farGrassStartM, transition.farGrassEndM, eyeDist);
     const meadow = vec3(0.47, 0.53, 0.32);
     const shaded = mix(body, tip, dryTip)
       .mul(heightAo)
       .mul(clumpShade)
       .mul(clumpFactor)
       .mul(bladeFactor)
-      .mul(mix(0.92, 0.72, farSoft));
+      .mul(mix(0.92, 0.72, farSoftShape));
     const desat = mix(shaded, vec3(dot(shaded, vec3(0.333))), distFade.mul(0.16));
     const albedo = mix(desat, meadow, ringFade.mul(survivorAlbedoBlend));
     vAlbedo.assign(clamp(albedo, vec3(0.0), vec3(1.0)));
@@ -876,6 +919,7 @@ function transitionProfileForTiers(
     nearTierEndM,
     midTierEndM,
     farSoftWidthScale: farSoftWidthScaleUniformValue(transition),
+    terrainDetailStrength: terrainDetailStrengthUniformValue(transition),
     edgeSinkStartM:
       transition.edgeSinkStartM === undefined
         ? undefined
@@ -904,6 +948,7 @@ function normalizedTransitionProfile(
     nearTierEndM,
     midTierEndM,
     farSoftWidthScale: farSoftWidthScaleUniformValue(transition),
+    terrainDetailStrength: terrainDetailStrengthUniformValue(transition),
     edgeSinkStartM:
       transition.edgeSinkStartM === undefined
         ? undefined
@@ -946,6 +991,11 @@ function edgeSinkStartUniformValue(transition: BladeFieldTransitionProfile): num
   return transition.edgeSinkStartM ?? Math.max(0, transition.farGrassEndM - 0.001);
 }
 
+function terrainDetailStrengthUniformValue(transition: BladeFieldTransitionProfile): number {
+  const value = transition.terrainDetailStrength ?? 1;
+  return Math.max(0, Math.min(1, Number.isFinite(value) ? value : 1));
+}
+
 function thinningProfileForTransition(
   transition: BladeFieldTransitionProfile,
   blendSurvivors: boolean,
@@ -955,11 +1005,18 @@ function thinningProfileForTransition(
     // past mid-ring and reaches zero at the coverage edge. Height sink remains
     // a secondary softener, never the primary edge signal.
     enabled: blendSurvivors,
-    fadeStartM: Math.min(transition.farGrassStartM, transition.farGrassEndM * 0.55),
+    fadeStartM: productionFadeStartM(transition),
     fadeEndM: transition.farGrassEndM,
     hashSource: "record.bladeSeed fract(seed01 * 7.13)",
     survivorAlbedoBlend: blendSurvivors ? 0.85 : 0,
   };
+}
+
+function productionFadeStartM(transition: BladeFieldTransitionProfile): number {
+  return Math.min(
+    transition.farGrassStartM,
+    Math.max(transition.denseBladeEndM, transition.farGrassEndM - 80),
+  );
 }
 
 function bladeSurvivesDistanceThinning(

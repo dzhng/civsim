@@ -32,22 +32,14 @@ const SOLDIER_FLOOR = 30000;
 // window plus slice-12 routed/thinned blade triangles).
 const SPAWN_TARGET = 30500;
 const SCENERY_FLOOR = 500;
-const PRODUCTION_GRASS_RECORDS = 160000;
-const PRODUCTION_GRASS_BUDGET_QUOTAS = [76800, 59200, 24000];
-// Re-anchored to the one-owner active transition (RINGOWN): thinning now
-// starts mid-ring at every stop, so the vista sample accepts ~97k of the
-// 160k capacity by design - the floor guards density collapse, not budget
-// saturation.
-const VISTA_GRASS_RECORD_FLOOR = 88000;
-const VISTA_GRASS_TRIANGLE_FLOOR = 74000;
-// 15k: the fineness contract (GRASSFINE) spends more of the record cap on
-// the 8-segment fine mid tier; the blur band's coverage is guarded by the
-// no-bald zoom sweep + ring-edge bins, this floor only catches collapse.
-const VISTA_GRASS_FAR_SURVIVOR_FLOOR = 15000;
+const PRODUCTION_GRASS_RECORD_CAP = 160000;
+const CLOSE_GRASS_RECORD_FLOOR = 40000;
+const CLOSE_GRASS_TRIANGLE_FLOOR = 90000;
 const PAN_DISTANCE_M = 200;
 const PAN_DURATION_MS = 3000;
 const WHEEL_BURST_EVENTS = 30;
 const WHEEL_BURST_DURATION_MS = 1000;
+const CLOSE_ZOOM_FILL_STOPS = [24, 28];
 
 // Same production rig zooms as battle-camera-zoom: playable mid and the
 // low-oblique cinematic vista (zoomT = 1), where grass density peaks. Both
@@ -211,6 +203,9 @@ export async function run(ctx) {
         grassSampleBudgetQuotas: sample?.lodBudgetQuotas ?? null,
         grassSampleDroppedByBudget: sample?.lodDroppedByBudget ?? null,
         grassSampleStratifiedBudget: sample?.lodStratifiedBudget === true,
+        grassActiveRecordBudget: grass?.rebuild?.activeRecordBudget ?? 0,
+        grassAreaBudgetScale: grass?.rebuild?.areaBudgetScale ?? 0,
+        grassVistaRecordBudget: grass?.rebuild?.vistaRecordBudget ?? 0,
         device: s.renderStats.device,
       };
     });
@@ -230,6 +225,9 @@ export async function run(ctx) {
       grassSampleBudgetQuotas: stats.grassSampleBudgetQuotas,
       grassSampleDroppedByBudget: stats.grassSampleDroppedByBudget,
       grassSampleStratifiedBudget: stats.grassSampleStratifiedBudget,
+      grassActiveRecordBudget: stats.grassActiveRecordBudget,
+      grassAreaBudgetScale: stats.grassAreaBudgetScale,
+      grassVistaRecordBudget: stats.grassVistaRecordBudget,
       gpuMedianMs: round(median(sampled.gpu)),
       gpuP95Ms: round(percentile(sampled.gpu, 0.95)),
       gpuSamples: sampled.gpu.length,
@@ -244,11 +242,13 @@ export async function run(ctx) {
   const pan = await sampleCameraPan(page, hardware);
   const zoomSweep = await sampleCameraZoomSweep(page, hardware);
   const wheelBurst = await sampleWheelBurst(page, hardware);
+  const closeZoomFill = await sampleCloseZoomFill(page, hardware);
 
   const [mid, vista] = table;
   console.log(`battle-perf-30k frame-time table:\n${JSON.stringify(table, null, 2)}`);
   console.log(`battle-perf-30k pan table:\n${JSON.stringify(pan, null, 2)}`);
   console.log(`battle-perf-30k wheel-burst table:\n${JSON.stringify(wheelBurst, null, 2)}`);
+  console.log(`battle-perf-30k close-zoom-fill table:\n${JSON.stringify(closeZoomFill, null, 2)}`);
 
   // --- The load is real and may never shrink -------------------------------
   ctx.check(
@@ -258,29 +258,38 @@ export async function run(ctx) {
     JSON.stringify({ spawned, mid: mid.soldiers, vista: vista.soldiers }),
   );
   ctx.check(
-    "gate holds the dense foliage fill (scenery + vista blade-field floors)",
+    "gate holds the dense foliage fill with area-scaled active blade budgets",
     table.every((row) => row.scenery >= SCENERY_FLOOR) &&
-      vista.grassRecords >= VISTA_GRASS_RECORD_FLOOR &&
-      vista.grassTriangles >= VISTA_GRASS_TRIANGLE_FLOOR &&
-      vista.grassTierRecords?.far >= VISTA_GRASS_FAR_SURVIVOR_FLOOR,
+      table.every(
+        (row) =>
+          row.grassActiveRecordBudget >= CLOSE_GRASS_RECORD_FLOOR &&
+          row.grassActiveRecordBudget <= PRODUCTION_GRASS_RECORD_CAP &&
+          row.grassRecords >= Math.min(row.grassActiveRecordBudget, CLOSE_GRASS_RECORD_FLOOR) &&
+          row.grassTriangles >= CLOSE_GRASS_TRIANGLE_FLOOR,
+      ),
     JSON.stringify({
-      scenery: vista.scenery,
-      vistaGrassRecords: vista.grassRecords,
-      vistaGrassTriangles: vista.grassTriangles,
-      vistaGrassTierRecords: vista.grassTierRecords,
+      table: table.map((row) => ({
+        stop: row.stop,
+        scenery: row.scenery,
+        grassRecords: row.grassRecords,
+        grassTriangles: row.grassTriangles,
+        activeBudget: row.grassActiveRecordBudget,
+        areaScale: row.grassAreaBudgetScale,
+        tierRecords: row.grassTierRecords,
+      })),
     }),
   );
   ctx.check(
-    "production grass sample uses the pinned slice-12 stratified record budget",
+    "production grass sample uses the area-scaled stratified record budget",
     table.every(
       (row) =>
         row.grassSampleStratifiedBudget &&
-        row.grassSampleCapacity === PRODUCTION_GRASS_RECORDS &&
-        // Accepted varies with the ACTIVE transition per stop (one owner);
-        // capacity stays pinned, acceptance guards a sane band.
-        row.grassSampleAccepted >= PRODUCTION_GRASS_RECORDS * 0.55 &&
-        row.grassSampleAccepted <= PRODUCTION_GRASS_RECORDS &&
-        sameArray(row.grassSampleBudgetQuotas, PRODUCTION_GRASS_BUDGET_QUOTAS) &&
+        row.grassSampleCapacity === row.grassActiveRecordBudget &&
+        row.grassSampleCapacity >= CLOSE_GRASS_RECORD_FLOOR &&
+        row.grassSampleCapacity <= PRODUCTION_GRASS_RECORD_CAP &&
+        row.grassSampleAccepted >= row.grassSampleCapacity * 0.55 &&
+        row.grassSampleAccepted <= row.grassSampleCapacity &&
+        budgetQuotasMatchCapacity(row.grassSampleBudgetQuotas, row.grassSampleCapacity) &&
         Array.isArray(row.grassSampleDroppedByBudget) &&
         row.grassSampleDroppedByBudget.some((count) => count > 0),
     ),
@@ -289,11 +298,24 @@ export async function run(ctx) {
         stop: row.stop,
         accepted: row.grassSampleAccepted,
         capacity: row.grassSampleCapacity,
+        activeBudget: row.grassActiveRecordBudget,
+        areaScale: row.grassAreaBudgetScale,
         lodCounts: row.grassSampleLodCounts,
         quotas: row.grassSampleBudgetQuotas,
         droppedByBudget: row.grassSampleDroppedByBudget,
       })),
     ),
+  );
+  ctx.check(
+    "close zoom fill keeps the close-gate-density grass budget active",
+    closeZoomFill.every(
+      (row) =>
+        row.grassEnabled &&
+        row.pending !== true &&
+        row.activeBudget >= CLOSE_GRASS_RECORD_FLOOR &&
+        row.recordCount >= CLOSE_GRASS_RECORD_FLOOR,
+    ),
+    JSON.stringify(closeZoomFill),
   );
 
   // --- Visual evidence: the crowd is on screen at both stops ----------------
@@ -348,6 +370,11 @@ export async function run(ctx) {
       JSON.stringify(wheelBurst),
     );
     ctx.check(
+      `close zoom ${CLOSE_ZOOM_FILL_STOPS.join("/")} grass-on fill keeps rAF p95 within the ${BUDGET_MS} ms budget`,
+      closeZoomFill.every((row) => row.rafP95Ms !== null && row.rafP95Ms <= BUDGET_MS),
+      JSON.stringify(closeZoomFill),
+    );
+    ctx.check(
       "wheel burst final zoom stays between min and max clamps",
       wheelBurst.finalZoom > wheelBurst.minZoom && wheelBurst.finalZoom < wheelBurst.maxZoom,
       JSON.stringify(wheelBurst),
@@ -361,6 +388,62 @@ export async function run(ctx) {
   }
 
   await page.close();
+}
+
+async function sampleCloseZoomFill(page, hardware) {
+  const out = [];
+  for (const zoom of CLOSE_ZOOM_FILL_STOPS) {
+    await page.evaluate(
+      async ({ zoom }) => {
+        const cam = window.__cam;
+        cam.zoom = zoom;
+        cam.clampView?.();
+        cam.setViewCenter(0, -310);
+        cam.clampView?.();
+        await new Promise((resolve) => setTimeout(resolve, 120));
+      },
+      { zoom },
+    );
+    await waitForGrassReady(page);
+    const sampled = await page.evaluate(
+      async ({ warmup, frames }) => {
+        const raf = () => new Promise((resolve) => requestAnimationFrame(resolve));
+        for (let i = 0; i < warmup; i++) await raf();
+        const frameMs = [];
+        let last = performance.now();
+        for (let i = 0; i < frames; i++) {
+          await raf();
+          const now = performance.now();
+          frameMs.push(now - last);
+          last = now;
+        }
+        const s = window.__game.stats();
+        const grass = s.renderStats.terrain?.grass;
+        return {
+          raf: frameMs,
+          settledZoom: window.__cam.zoom,
+          grassEnabled: grass?.enabled === true,
+          recordCount: grass?.recordCount ?? 0,
+          activeBudget: grass?.rebuild?.activeRecordBudget ?? 0,
+          areaScale: grass?.rebuild?.areaBudgetScale ?? 0,
+          pending: grass?.rebuild?.pending ?? null,
+        };
+      },
+      { warmup: hardware ? 30 : 3, frames: hardware ? 90 : 10 },
+    );
+    out.push({
+      zoom,
+      settledZoom: round(sampled.settledZoom),
+      grassEnabled: sampled.grassEnabled,
+      recordCount: sampled.recordCount,
+      activeBudget: sampled.activeBudget,
+      areaScale: sampled.areaScale,
+      pending: sampled.pending,
+      rafMedianMs: round(median(sampled.raf)),
+      rafP95Ms: round(percentile(sampled.raf, 0.95)),
+    });
+  }
+  return out;
 }
 
 async function waitForGrassReady(page) {
@@ -597,11 +680,12 @@ function round(value) {
   return Number.isFinite(value) ? Number(value.toFixed(2)) : null;
 }
 
-function sameArray(actual, expected) {
+function budgetQuotasMatchCapacity(actual, capacity) {
+  if (!Array.isArray(actual) || actual.length !== 3) return false;
+  const near = Math.floor(capacity * 0.48);
+  const mid = Math.floor(capacity * 0.37);
   return (
-    Array.isArray(actual) &&
-    actual.length === expected.length &&
-    actual.every((value, index) => value === expected[index])
+    actual[0] === near && actual[1] === mid && actual[2] === Math.max(0, capacity - near - mid)
   );
 }
 

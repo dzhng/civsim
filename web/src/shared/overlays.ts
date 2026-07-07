@@ -1,5 +1,7 @@
-// Tactical overlay vertex helpers: line cues are (x, y, r, g, b) per vertex
-// (GL_LINES pairs); ring instances are (x, y, radius, r, g, b).
+// Tactical overlay vertex helpers: line cues are (x, y, r, g, b, a) per vertex
+// (GL_LINES pairs); ring instances are (x, y, radius, r, g, b, a). Alpha rides
+// each vertex so transient cues (the order-preview flash) fade to TRANSPARENT;
+// fading the color instead would sink the cue to black over lit ground.
 
 /** The ONE selection/status green — campaign selection rings, battle soldier
  *  rings, and the player's order-preview cues all read this. */
@@ -24,6 +26,7 @@ export function pushDestRings(
   r: number,
   g: number,
   b: number,
+  a: number,
 ) {
   const fx = Math.cos(facing),
     fy = Math.sin(facing);
@@ -37,7 +40,7 @@ export function pushDestRings(
     const rankCount = Math.min(perRank, n - rank * perRank);
     const off = (i % perRank) * spacing - ((rankCount - 1) * spacing) / 2;
     const back = rank * rankGap;
-    rings.push(x + rx * off - fx * back, y + ry * off - fy * back, SOLDIER_RING_RADIUS, r, g, b);
+    rings.push(x + rx * off - fx * back, y + ry * off - fy * back, SOLDIER_RING_RADIUS, r, g, b, a);
   }
 }
 
@@ -51,6 +54,7 @@ export function pushPie(
   r: number,
   g: number,
   b: number,
+  a: number,
 ) {
   const segs = Math.max(2, Math.ceil(16 * frac));
   for (let s = 0; s < segs; s++) {
@@ -62,11 +66,13 @@ export function pushPie(
       r,
       g,
       b,
+      a,
       x + Math.cos(a1) * R,
       y + Math.sin(a1) * R,
       r,
       g,
       b,
+      a,
     );
   }
 }

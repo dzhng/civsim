@@ -1163,9 +1163,10 @@ export class BattleScene implements Scene {
       r: number,
       g: number,
       b: number,
+      a: number,
     ) => {
       const start = rings.length;
-      pushDestRings(rings, x, y, facing, alive, files, spacing, r, g, b);
+      pushDestRings(rings, x, y, facing, alive, files, spacing, r, g, b, a);
       if (rings.length === start) return;
       const fx = Math.cos(facing);
       const fy = Math.sin(facing);
@@ -1179,7 +1180,7 @@ export class BattleScene implements Scene {
       let lat1 = -Infinity;
       let back0 = Infinity;
       let back1 = -Infinity;
-      for (let i = start; i < rings.length; i += 6) {
+      for (let i = start; i < rings.length; i += 7) {
         const px = rings[i];
         const py = rings[i + 1];
         x0 = Math.min(x0, px);
@@ -1207,7 +1208,7 @@ export class BattleScene implements Scene {
         y0,
         x1,
         y1,
-        count: (rings.length - start) / 6,
+        count: (rings.length - start) / 7,
         files,
         ranks,
         width,
@@ -1237,10 +1238,23 @@ export class BattleScene implements Scene {
         if (withPaths) {
           const fx = Math.cos(facing);
           const fy = Math.sin(facing);
-          groundCues.push(ax, ay, r, g, b, ax + fx * 4, ay + fy * 4, r, g, b);
-          groundCues.push(ax - fy * 2, ay + fx * 2, r, g, b, ax + fy * 2, ay - fx * 2, r, g, b);
+          groundCues.push(ax, ay, r, g, b, 1, ax + fx * 4, ay + fy * 4, r, g, b, 1);
+          groundCues.push(
+            ax - fy * 2,
+            ay + fx * 2,
+            r,
+            g,
+            b,
+            1,
+            ax + fy * 2,
+            ay - fx * 2,
+            r,
+            g,
+            b,
+            1,
+          );
           if (info[o + 12] > 0.5) {
-            groundCues.push(ax, ay, r, g, b, info[o + 10], info[o + 11], r, g, b);
+            groundCues.push(ax, ay, r, g, b, 1, info[o + 10], info[o + 11], r, g, b, 1);
           }
           // The SHIFT-queued chain BEHIND the active order: active dest -> q0 ->
           // q1 -> ... drawn dimmer than the live leg, a small diamond at each
@@ -1256,12 +1270,12 @@ export class BattleScene implements Scene {
             for (let j = 0; j + 2 < q.length; j += 3) {
               const qx = q[j],
                 qy = q[j + 1];
-              groundCues.push(px, py, qr, qg, qb, qx, qy, qr, qg, qb);
+              groundCues.push(px, py, qr, qg, qb, 1, qx, qy, qr, qg, qb, 1);
               const s = 2.5; // diamond waypoint marker
-              groundCues.push(qx - s, qy, qr, qg, qb, qx, qy + s, qr, qg, qb);
-              groundCues.push(qx, qy + s, qr, qg, qb, qx + s, qy, qr, qg, qb);
-              groundCues.push(qx + s, qy, qr, qg, qb, qx, qy - s, qr, qg, qb);
-              groundCues.push(qx, qy - s, qr, qg, qb, qx - s, qy, qr, qg, qb);
+              groundCues.push(qx - s, qy, qr, qg, qb, 1, qx, qy + s, qr, qg, qb, 1);
+              groundCues.push(qx, qy + s, qr, qg, qb, 1, qx + s, qy, qr, qg, qb, 1);
+              groundCues.push(qx + s, qy, qr, qg, qb, 1, qx, qy - s, qr, qg, qb, 1);
+              groundCues.push(qx, qy - s, qr, qg, qb, 1, qx - s, qy, qr, qg, qb, 1);
               px = qx;
               py = qy;
             }
@@ -1271,7 +1285,8 @@ export class BattleScene implements Scene {
         // slots (flashes on every order; hold Space to keep them all visible).
         const age = performance.now() - (orderFlash.get(u) ?? -1e9);
         if (info[o + 12] > 0.5 && (withPaths || (showTransient && age < 2500))) {
-          // Recent orders fade out; Space shows them at full strength.
+          // Recent orders fade out (to transparent, alpha not color — a color
+          // fade sinks the cue to black); Space shows them at full strength.
           const k = withPaths ? 1 : Math.max(0, 1 - age / 2500);
           const cls = info[o + 13];
           const alive = info[o + 15];
@@ -1289,28 +1304,31 @@ export class BattleScene implements Scene {
             files,
             ranks,
             CLASS_SPACING[cls],
-            r * k,
-            g * k,
-            b * k,
+            r,
+            g,
+            b,
+            k,
           );
           groundCues.push(
             ax,
             ay,
-            r * 0.8 * k,
-            g * 0.8 * k,
-            b * 0.8 * k,
+            r * 0.8,
+            g * 0.8,
+            b * 0.8,
+            k,
             info[o + 10],
             info[o + 11],
-            r * 0.8 * k,
-            g * 0.8 * k,
-            b * 0.8 * k,
+            r * 0.8,
+            g * 0.8,
+            b * 0.8,
+            k,
           );
         }
         // Progress pie: WHITE = order transmitting down the line. A ground cue
         // (5-stride, draped on terrain) — the effects buffer is 6-stride with
         // per-vertex z, so pushing it there shears every later vertex.
         if (showTransient && info[o + 14] > 0)
-          pushPie(groundCues, ax, ay, info[o + 14], 7, 1, 1, 1);
+          pushPie(groundCues, ax, ay, info[o + 14], 7, 1, 1, 1, 1);
       }
       // Right-drag preview: where every man will stand, facing the cursor —
       // the soldier-ring grid in the selection green.
@@ -1333,6 +1351,7 @@ export class BattleScene implements Scene {
               currentUnitRanks(info, o),
               CLASS_SPACING[cls],
               ...SELECTION_GREEN,
+              1,
             );
           }
           // The arrow itself.
@@ -1341,9 +1360,11 @@ export class BattleScene implements Scene {
             a.x,
             a.y,
             ...SELECTION_GREEN,
+            1,
             a.x + Math.cos(a.facing) * 14,
             a.y + Math.sin(a.facing) * 14,
             ...SELECTION_GREEN,
+            1,
           );
         }
       }
@@ -1368,6 +1389,7 @@ export class BattleScene implements Scene {
             currentUnitRanks(info, o),
             CLASS_SPACING[cls],
             ...SELECTION_GREEN,
+            1,
           );
         }
       }
@@ -1388,7 +1410,7 @@ export class BattleScene implements Scene {
           for (let i = start; i < end; i++) {
             if (aliveSoldiers[i] === 0) continue;
             const p = i * 2;
-            rings.push(pos[p], pos[p + 1], SOLDIER_RING_RADIUS, ...SELECTION_GREEN);
+            rings.push(pos[p], pos[p + 1], SOLDIER_RING_RADIUS, ...SELECTION_GREEN, 1);
           }
         }
       }

@@ -1,8 +1,10 @@
-import { useEffect, useReducer, useRef } from "react";
+import { useEffect, useReducer, useRef, type CSSProperties } from "react";
 import {
   BATTLE_FACTIONS,
+  factionPrimaryCss,
   type BattleFactionId,
 } from "../../../../packages/game-renderer/src/battle/factionColors";
+import { Portrait } from "../hud/UnitCardsView";
 import {
   BATTLE_ENVIRONMENT_OPTIONS,
   DEFAULT_BATTLE_ENVIRONMENT,
@@ -337,6 +339,8 @@ function ArmyPanel(props: {
   dispatch: (a: import("./armyBuilderState").ArmyBuilderAction) => void;
 }) {
   const { team, classes, army, factionId, validation: v, dispatch } = props;
+  const faction = BATTLE_FACTIONS.find((f) => f.id === factionId) ?? BATTLE_FACTIONS[team];
+  const factionCss = factionPrimaryCss(faction);
   const footerCls =
     "qb-footer" + (v.overBudget || v.overSlots ? " over" : "") + (v.empty ? " empty" : "");
   const title = team === 0 ? "Your Army" : "Enemy Army";
@@ -382,27 +386,45 @@ function ArmyPanel(props: {
           </button>
         ))}
       </div>
-      <div className="qb-rows">
-        {classes.map((c) => (
-          <div className="qb-row" key={c.id}>
-            <span className="qb-label">
-              {c.name} · {c.cost}g
-            </span>
-            <button
-              className="qb-step"
-              onClick={() => dispatch({ kind: "count", team, classId: c.id, delta: -1 })}
-            >
-              −
-            </button>
-            <span className="qb-count">{army.get(c.id) ?? 0}</span>
-            <button
-              className="qb-step"
+      <div className="qb-cards">
+        {classes.map((c) => {
+          const count = army.get(c.id) ?? 0;
+          return (
+            <div
+              className={"ucard qb-card" + (count > 0 ? " sel" : "")}
+              key={c.id}
+              style={{ ["--fac"]: factionCss } as CSSProperties}
               onClick={() => dispatch({ kind: "count", team, classId: c.id, delta: 1 })}
             >
-              +
-            </button>
-          </div>
-        ))}
+              <div className="qb-card-cost">{c.cost}g</div>
+              <Portrait u={{ unit: -1, cls: c.id, team, name: c.name }} />
+              <div className="ucard-name">{c.name}</div>
+              <div className="qb-card-steps">
+                <button
+                  className="qb-step"
+                  aria-label={`Remove ${c.name}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    dispatch({ kind: "count", team, classId: c.id, delta: -1 });
+                  }}
+                >
+                  −
+                </button>
+                <span className="qb-count">{count}</span>
+                <button
+                  className="qb-step"
+                  aria-label={`Add ${c.name}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    dispatch({ kind: "count", team, classId: c.id, delta: 1 });
+                  }}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          );
+        })}
       </div>
       <div className={footerCls}>
         {v.goldSpent} / {QUICK_BATTLE_GOLD}g · {v.slotsUsed} / {QUICK_BATTLE_MAX_UNITS} units

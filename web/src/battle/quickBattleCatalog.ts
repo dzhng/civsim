@@ -82,7 +82,8 @@ export interface QuickBattleArmyTemplate {
   units: QuickBattleUnitPick[];
 }
 
-// Prebuilt armies that fill close to the 20-unit cap and stay under 15,000 gold.
+// Prebuilt armies. The full hosts fill close to the 20-unit cap and stay under
+// 15,000 gold; Duel is a deliberate single-unit army for balance testing.
 // (Class ids: 0 HeavySword, 1 LightSpear, 3 HeavyPhalanx, 4 Archers,
 //  5 Skirmishers, 6 ShockCavalry, 7 HorseArchers, 9 Peasant, 10 LightSword,
 //  11 HeavySpear, 12 MediumInfantry, 13 MediumSpear, 14 MediumPhalanx.)
@@ -122,15 +123,9 @@ export const QUICK_BATTLE_TEMPLATES: readonly QuickBattleArmyTemplate[] = [
     ],
   },
   {
-    id: "cheap-swarm",
-    name: "Cheap Swarm",
-    units: [
-      { classId: 9, count: 8 },
-      { classId: 10, count: 6 },
-      { classId: 5, count: 3 },
-      { classId: 12, count: 2 },
-      { classId: 0, count: 1 },
-    ],
+    id: "duel",
+    name: "Duel",
+    units: [{ classId: 0, count: 1 }],
   },
 ];
 

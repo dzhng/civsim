@@ -94,7 +94,7 @@ export async function run(ctx) {
   await page.click("#gfx-back");
 
   // Custom Battle setup: map options come from the shared catalog, both army
-  // builders show class rows + live validation, and a template loads a valid
+  // builders show class recruitment cards + live validation, and a template loads a valid
   // army while overfilling slots flips the army invalid (validation drives the
   // launch gate). This exercises quickBattleCatalog through the real UI.
   await page.click("#menu-quick-battle");
@@ -120,7 +120,7 @@ export async function run(ctx) {
       (e) => e.textContent,
     );
     const randomButton = document.getElementById("qb-generated-reroll")?.textContent?.trim();
-    const rows = document.querySelectorAll("#qb-army-0 .qb-row").length;
+    const cards = document.querySelectorAll("#qb-army-0 .qb-card").length;
     const weather = document.getElementById("qb-weather");
     const factions = Array.from(
       document.querySelectorAll("#qb-army-0 select, #qb-army-1 select"),
@@ -129,14 +129,14 @@ export async function run(ctx) {
       options: Array.from(select.options).map((option) => option.value),
     }));
     const defaultValid = document.getElementById("qb-launch")?.disabled === false;
-    // Overfill side 0 past the slot cap by clicking the cheapest class's + many times.
-    const plus = document.querySelector("#qb-army-0 .qb-row:last-child .qb-step:last-child");
+    // Overfill side 0 past the slot cap by clicking the last class card's + many times.
+    const plus = document.querySelector("#qb-army-0 .qb-card:last-child .qb-step:last-child");
     for (let i = 0; i < 30; i++) plus?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     return {
       open,
       maps,
       randomButton,
-      rows,
+      cards,
       weather: weather
         ? {
             value: weather.value,
@@ -175,7 +175,7 @@ export async function run(ctx) {
         qb.maps.includes(label),
       ) &&
       qb.randomButton === "Random Map" &&
-      qb.rows >= 15 &&
+      qb.cards >= 15 &&
       qb.weather?.value === "golden-hour" &&
       ["Golden Hour", "Overcast", "Noon", "Dusk"].every((label) =>
         qb.weather?.labels.includes(label),

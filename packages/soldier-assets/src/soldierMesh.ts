@@ -170,11 +170,75 @@ function addBox(
   }
 }
 
+function addSegmentBox(
+  out: number[],
+  indices: number[],
+  a: [number, number, number],
+  b: [number, number, number],
+  thickness: number,
+  bone: number,
+  color: Rgba,
+) {
+  const axis = normalize([b[0] - a[0], b[1] - a[1], b[2] - a[2]]);
+  const sideSeed: [number, number, number] = Math.abs(axis[2]) > 0.8 ? [1, 0, 0] : [0, 0, 1];
+  const side = normalize(cross(axis, sideSeed));
+  const up = normalize(cross(side, axis));
+  const cx = (a[0] + b[0]) * 0.5;
+  const cy = (a[1] + b[1]) * 0.5;
+  const cz = (a[2] + b[2]) * 0.5;
+  const halfLen = distance(a, b) * 0.5;
+  const halfThick = thickness * 0.5;
+  const corners: [number, number, number][] = [];
+  for (const da of [-1, 1]) {
+    for (const ds of [-1, 1]) {
+      for (const du of [-1, 1]) {
+        corners.push([
+          cx + axis[0] * halfLen * da + side[0] * halfThick * ds + up[0] * halfThick * du,
+          cy + axis[1] * halfLen * da + side[1] * halfThick * ds + up[1] * halfThick * du,
+          cz + axis[2] * halfLen * da + side[2] * halfThick * ds + up[2] * halfThick * du,
+        ]);
+      }
+    }
+  }
+  const faces: [number[], [number, number, number]][] = [
+    [[0, 2, 3, 1], [-axis[0], -axis[1], -axis[2]]],
+    [[4, 5, 7, 6], axis],
+    [[0, 1, 5, 4], [-side[0], -side[1], -side[2]]],
+    [[2, 6, 7, 3], side],
+    [[0, 4, 6, 2], [-up[0], -up[1], -up[2]]],
+    [[1, 3, 7, 5], up],
+  ];
+  for (const [face, normal] of faces) {
+    const base = out.length / 11;
+    for (const idx of face) {
+      out.push(...corners[idx], ...normal, ...color, bone);
+    }
+    indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+  }
+}
+
+function normalize(v: [number, number, number]): [number, number, number] {
+  const len = Math.hypot(v[0], v[1], v[2]) || 1;
+  return [v[0] / len, v[1] / len, v[2] / len];
+}
+
+function cross(a: [number, number, number], b: [number, number, number]): [number, number, number] {
+  return [
+    a[1] * b[2] - a[2] * b[1],
+    a[2] * b[0] - a[0] * b[2],
+    a[0] * b[1] - a[1] * b[0],
+  ];
+}
+
+function distance(a: [number, number, number], b: [number, number, number]): number {
+  return Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
+}
+
 export function createPlaceholderSoldierMeshes(armBandMaskRgb: [number, number, number] = [0.06, 0.1, 0.98]): SoldierMeshData[] {
   return PLACEHOLDER_LOOKS.map((_, classId) => createPlaceholderSoldierMesh(armBandMaskRgb, classId));
 }
 
-/** L0 full / L1 reduced (drops weapon, helmet crest) / L2 coarse (body+head+legs).
+/** L0 full / L1 reduced silhouette equipment / L2 coarse body+head+legs.
  *  Tiers skin to the same bones, so one VAT drives every tier. */
 export function createPlaceholderSoldierMeshTiers(armBandMaskRgb: [number, number, number] = [0.06, 0.1, 0.98]): SoldierMeshData[][] {
   return PLACEHOLDER_LOOKS.map((_, classId) => [0, 1, 2].map((lod) => createPlaceholderSoldierMesh(armBandMaskRgb, classId, lod)));
@@ -216,17 +280,26 @@ export function createPlaceholderSoldierMesh(
   addBox(v, indices, [0, 0.02, 1.82 + riderLift], [0.30, 0.24, 0.30], 2, helmetColor(look.helmet, bronze, linen));
   // L2 keeps only body, head, legs (the readable silhouette); L0/L1 add arms.
   if (lod < 2) {
-    addBox(v, indices, [-0.46, 0.02, 1.38 + riderLift], [0.18, 0.18, 0.72], 3, leather);
-    addBox(v, indices, [0.46, 0.02, 1.38 + riderLift], [0.18, 0.18, 0.72], 4, leather);
+    addBox(v, indices, [-0.34, 0.02, 1.28 + riderLift], [0.18, 0.18, 0.58], 3, leather);
+    addBox(v, indices, [0.34, 0.02, 1.28 + riderLift], [0.18, 0.18, 0.58], 4, leather);
     addArmBand(v, indices, armBandMask, riderLift);
   }
-  addBox(v, indices, [-0.17, 0, 0.58 + riderLift * 0.34], [0.18, 0.18, look.mounted ? 0.50 : 0.78], 5, leather);
-  addBox(v, indices, [0.17, 0, 0.58 + riderLift * 0.34], [0.18, 0.18, look.mounted ? 0.50 : 0.78], 6, leather);
-  addShield(v, indices, look.shield, shieldHide, riderLift);
-  // L1+ drop fine equipment; faction identity is flags plus the tiny arm band.
+  if (look.mounted) {
+    // Rider legs straddle the horse's flanks. They ride the hips bone (0), not
+    // the leg bones, so the march/run leg swing never kicks while mounted. Linen,
+    // not leather — leather thighs vanish against the near-identical horse coat.
+    addBox(v, indices, [-0.31, 0.10, 1.04], [0.14, 0.18, 0.52], 0, linen);
+    addBox(v, indices, [0.31, 0.10, 1.04], [0.14, 0.18, 0.52], 0, linen);
+  } else {
+    addBox(v, indices, [-0.17, 0, 0.58], [0.18, 0.18, 0.78], 5, leather);
+    addBox(v, indices, [0.17, 0, 0.58], [0.18, 0.18, 0.78], 6, leather);
+  }
+  if (lod < 2) addShield(v, indices, look.shield, shieldHide, bronze, riderLift);
   if (lod < 1) {
     addHelmet(v, indices, look, horsehair, bronze, riderLift);
-    addWeapon(v, indices, look.weapon, look.mounted, leather, bronze, iron, riderLift);
+  }
+  if (lod < 2) {
+    addWeapon(v, indices, look, lod, leather, bronze, iron, riderLift);
   }
   return splitInterleaved(new Float32Array(v), new Uint16Array(indices));
 }
@@ -261,77 +334,132 @@ function addHelmet(out: number[], indices: number[], look: PlaceholderLook, hors
 }
 
 function addArmBand(out: number[], indices: number[], accent: Rgba, lift: number) {
-  addBox(out, indices, [0.46, 0.02, 1.58 + lift], [0.205, 0.205, 0.075], 4, accent);
+  addBox(out, indices, [0.34, 0.02, 1.42 + lift], [0.205, 0.205, 0.070], 4, accent);
 }
 
-function addShield(out: number[], indices: number[], shield: Shield, shieldHide: Rgba, lift: number) {
+function addShield(out: number[], indices: number[], shield: Shield, shieldHide: Rgba, bronze: Rgba, lift: number) {
   if (shield === 'none') return;
   const size: Record<Exclude<Shield, 'none'>, [number, number, number]> = {
-    tall: [0.14, 0.12, 0.70],
-    round: [0.16, 0.12, 0.48],
-    small: [0.13, 0.10, 0.36],
+    tall: [0.17, 0.13, 0.78],
+    round: [0.20, 0.14, 0.54],
+    small: [0.15, 0.11, 0.38],
   };
-  addBox(out, indices, [-0.52, 0.00, 1.36 + lift], size[shield], 3, shieldHide);
+  addBox(out, indices, [-0.41, 0.00, 1.29 + lift], size[shield], 3, shieldHide);
+  // Bronze boss on the outer face so the slab reads as a shield, not a plank.
+  addBox(out, indices, [-0.41 - size[shield][0] * 0.5, 0.00, 1.29 + lift], [0.05, 0.14, 0.14], 3, bronze);
 }
 
-function addWeapon(out: number[], indices: number[], weapon: Weapon, mounted: boolean, wood: Rgba, bronze: Rgba, iron: Rgba, lift: number) {
-  const z = 1.36 + lift;
-  const addUprightPole = (x: number, baseZ: number, height: number) => {
-    addBox(out, indices, [x, 0.01, baseZ + height * 0.5], [0.060, 0.060, height], 1, wood);
-    addBox(out, indices, [x, 0.01, baseZ + height + 0.08], [0.090, 0.090, 0.16], 1, bronze);
+function addWeapon(out: number[], indices: number[], look: PlaceholderLook, lod: number, wood: Rgba, bronze: Rgba, iron: Rgba, lift: number) {
+  const weapon = look.weapon;
+  const rightHand: [number, number, number] = [0.38, 0.02, 1.02 + lift];
+  const leftHand: [number, number, number] = [-0.38, 0.02, 1.04 + lift];
+  const poleTipColor = iron;
+  const skin: Rgba = [0.72, 0.50, 0.34, 1];
+  // A fist where the shaft crosses hand height, so the weapon reads as held.
+  const addHand = (at: [number, number, number], bone = 4) => {
+    addBox(out, indices, at, [0.11, 0.13, 0.11], bone, skin);
   };
-  const addSword = () => {
-    addBox(out, indices, [0.43, 0.28, z], [0.065, 0.62, 0.065], 4, iron);
-    addBox(out, indices, [0.43, -0.04, z - 0.03], [0.18, 0.050, 0.050], 4, wood);
+  const addPole = (
+    start: [number, number, number],
+    end: [number, number, number],
+    thickness: number,
+    bone = 4,
+    head = true,
+  ) => {
+    addSegmentBox(out, indices, start, end, thickness, bone, wood);
+    if (head) addBox(out, indices, end, [0.09, 0.09, 0.20], bone, poleTipColor);
   };
+  const addSword = (long = false) => {
+    const bladeEnd: [number, number, number] = long ? [0.62, 0.34, 2.10 + lift] : [0.58, 0.24, 1.86 + lift];
+    addSegmentBox(out, indices, rightHand, bladeEnd, long ? 0.070 : 0.065, 4, iron);
+    addSegmentBox(out, indices, [0.27, 0.02, 1.04 + lift], [0.51, 0.02, 1.04 + lift], 0.040, 4, bronze);
+    addSegmentBox(out, indices, [0.38, -0.02, 0.88 + lift], [0.38, 0.02, 1.07 + lift], 0.055, 4, wood);
+    addHand([0.38, 0.02, 1.00 + lift]);
+  };
+  const addBow = (detail: boolean) => {
+    // The bow bends in the forward (y) plane so the D-shape reads from the
+    // side and three-quarter camera, not just dead-on.
+    const lower: [number, number, number] = [-0.44, -0.24, 0.72 + lift];
+    const grip: [number, number, number] = leftHand;
+    const upper: [number, number, number] = [-0.44, -0.24, 1.92 + lift];
+    addSegmentBox(out, indices, lower, [-0.40, 0.06, 1.10 + lift], 0.060, 3, wood);
+    addSegmentBox(out, indices, [-0.40, 0.06, 1.10 + lift], [-0.40, 0.06, 1.50 + lift], 0.060, 3, wood);
+    addSegmentBox(out, indices, [-0.40, 0.06, 1.50 + lift], upper, 0.060, 3, wood);
+    if (!detail) return;
+    addSegmentBox(out, indices, [grip[0], grip[1] - 0.02, grip[2] - 0.12], [grip[0], grip[1] + 0.02, grip[2] + 0.12], 0.070, 3, wood);
+    addSegmentBox(out, indices, lower, upper, 0.030, 3, iron);
+    addHand([-0.39, 0.02, 1.04 + lift], 3);
+    if (look.mounted) addBox(out, indices, [0.30, -0.08, 1.46 + lift], [0.10, 0.42, 0.10], 1, wood);
+  };
+  if (lod === 1) {
+    switch (weapon) {
+      case 'pike':
+      case 'pike_upright':
+      case 'pike_sidearm':
+      case 'lance':
+      case 'lance_sidearm':
+      case 'spear':
+      case 'javelin':
+        addPole(rightHand, [0.46, 0.42, (weapon === 'javelin' ? 2.20 : 2.70) + lift], weapon === 'javelin' ? 0.045 : 0.055, 4, false);
+        break;
+      case 'bow':
+        addBow(false);
+        break;
+      default:
+        break;
+    }
+    return;
+  }
   switch (weapon) {
     case 'pike':
-      addBox(out, indices, [0.42, 0.78, z + 0.02], [0.055, 1.85, 0.055], 4, wood);
-      addBox(out, indices, [0.42, 1.74, z + 0.02], [0.085, 0.15, 0.085], 4, bronze);
+      addPole(rightHand, [0.46, 0.72, 3.02 + lift], 0.055);
+      addHand([0.39, 0.10, 1.02 + lift]);
       break;
     case 'pike_upright':
-      addUprightPole(0.36, 0.36 + lift * 0.34, 2.70);
+      addPole([0.36, 0.02, 0.44 + lift * 0.30], [0.36, 0.02, 3.08 + lift * 0.30], 0.060);
       break;
     case 'pike_sidearm':
-      addUprightPole(-0.34, 0.36 + lift * 0.34, 2.70);
+      addPole([0.36, 0.02, 0.44 + lift * 0.30], [0.36, 0.02, 3.08 + lift * 0.30], 0.060);
       addSword();
       break;
     case 'lance':
-      addBox(out, indices, [0.43, 0.90, z + 0.02], [0.055, 1.72, 0.055], 4, wood);
-      addBox(out, indices, [0.43, 1.78, z + 0.02], [0.085, 0.14, 0.085], 4, bronze);
+      addPole([0.46, 0.02, 1.28 + lift], [0.66, 0.98, 3.04 + lift], 0.055);
+      addHand([0.46, 0.02, 1.28 + lift]);
       break;
     case 'lance_sidearm':
-      addUprightPole(-0.34, 0.82, 2.25);
+      addPole([0.34, -0.03, 0.92 + lift * 0.25], [0.34, -0.03, 2.92 + lift * 0.25], 0.055);
       addSword();
       break;
     case 'spear':
-      addBox(out, indices, [0.43, 0.56, z + 0.02], [0.055, 1.20, 0.055], 4, wood);
-      addBox(out, indices, [0.43, 1.18, z + 0.02], [0.080, 0.13, 0.080], 4, bronze);
+      if (look.armor === 'light') {
+        addPole([0.41, 0.01, 0.90 + lift * 0.15], [0.50, 0.16, 2.50 + lift * 0.15], 0.050);
+        addHand([0.42, 0.02, 1.02 + lift * 0.15]);
+      } else {
+        addPole([0.38, 0.02, 0.88 + lift * 0.15], [0.46, 0.54, 2.62 + lift * 0.15], 0.060);
+        addHand([0.39, 0.06, 1.02 + lift * 0.15]);
+      }
       break;
     case 'javelin':
-      addBox(out, indices, [0.43, 0.48, z + 0.08], [0.045, 0.95, 0.045], 4, wood);
-      addBox(out, indices, [0.43, 0.98, z + 0.10], [0.070, 0.11, 0.070], 4, bronze);
+      addPole([0.41, 0.02, 0.96 + lift], [0.50, 0.24, 2.14 + lift], 0.045);
+      addHand([0.42, 0.03, 1.02 + lift]);
       break;
     case 'greatsword':
-      addBox(out, indices, [0.43, 0.30, z + 0.04], [0.070, 0.96, 0.070], 4, iron);
-      addBox(out, indices, [0.43, -0.18, z - 0.03], [0.20, 0.055, 0.055], 4, wood);
+      addSword(true);
       break;
     case 'sword':
       addSword();
       break;
     case 'bow':
-      addBox(out, indices, [0.46, 0.22, z + 0.18], [0.060, 0.74, 0.050], 4, wood);
-      addBox(out, indices, [0.46, 0.22, z - 0.18], [0.052, 0.74, 0.045], 4, wood);
-      if (mounted) addBox(out, indices, [0.58, -0.05, z + 0.06], [0.08, 0.36, 0.08], 4, bronze);
+      addBow(true);
       break;
     case 'artillery':
       addBox(out, indices, [0.58, 0.26, 0.50], [0.94, 0.58, 0.14], 0, wood);
       addBox(out, indices, [0.18, 0.02, 0.40], [0.16, 0.18, 0.48], 0, wood);
       addBox(out, indices, [0.98, 0.02, 0.40], [0.16, 0.18, 0.48], 0, wood);
-      addBox(out, indices, [0.04, 0.42, 0.38], [0.18, 0.18, 0.42], 0, bronze);
-      addBox(out, indices, [1.12, 0.42, 0.38], [0.18, 0.18, 0.42], 0, bronze);
+      addBox(out, indices, [0.04, 0.42, 0.38], [0.18, 0.18, 0.42], 0, iron);
+      addBox(out, indices, [1.12, 0.42, 0.38], [0.18, 0.18, 0.42], 0, iron);
       addBox(out, indices, [0.58, 0.82, 0.94], [0.10, 1.10, 0.10], 0, wood);
-      addBox(out, indices, [0.58, 1.40, 1.06], [0.22, 0.22, 0.22], 0, bronze);
+      addBox(out, indices, [0.58, 1.40, 1.06], [0.22, 0.22, 0.22], 0, iron);
       addBox(out, indices, [0.58, -0.14, 0.74], [0.72, 0.10, 0.10], 0, wood);
       break;
     case 'none':

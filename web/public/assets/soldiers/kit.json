@@ -325,6 +325,6 @@
     "format": "RGBA32F-json",
     "path": "baked/human-placeholder.vat.json",
     "layout": "pixel(x=globalFrame, y=bone*4+col) = joint matrix column",
-    "sha256": "579a632c16bf5d8e1d8252b4e9812f77fd9f280b0ec919c2e06ef78e507cff6c"
+    "sha256": "78469a9923465bf5d6f6cc5711bf6ea51371e953954c53df54f338c0ddee1e5a"
   }
 }

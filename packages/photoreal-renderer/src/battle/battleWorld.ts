@@ -1018,7 +1018,12 @@ export class PhotorealBattleWorld {
       seed: this.grassProfile.seed,
       focus,
       fieldCellSize: this.grassProfile.fieldCellSize,
-      snapCellSize: this.grassProfile.snapCellSize,
+      // Snap the disc on the SAME ring-scaled grid the focus was snapped to
+      // (updateGrassForCamera). Passing the coarse 48 m profile cell here made
+      // the sampler re-snap the already-snapped focus onto a wider grid,
+      // displacing the close-ring record disc ~30 m off the look target and
+      // starving the near tier (the bald ground-level frame).
+      snapCellSize: Math.min(this.grassProfile.snapCellSize, Math.max(8, focus.radius / 8)),
       clumpCellSize: this.grassProfile.clumpCellSize,
       maxRecords: focus.maxRecords,
       lodStratifiedBudget: this.grassProfile.lodStratifiedBudget,

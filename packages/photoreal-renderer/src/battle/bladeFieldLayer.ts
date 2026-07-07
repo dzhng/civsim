@@ -768,9 +768,14 @@ function bladeFieldMaterial(
       survivorAlbedoBlend > 0
         ? smoothstep(transition.farGrassEndM, transition.edgeSinkStartM, eyeDist)
         : float(1.0);
+    // Far blades lose height across the whole soft band (1.0 -> 0.42), not a
+    // shallow step to 0.72 that held the canopy full-height until the sink and
+    // drew a hard tip-line front against the ground (the "blades stop at a hard
+    // horizontal front" critique). A continuous taper + the edge sink slopes the
+    // canopy down into the textured ground term.
     const height = max(d1.y.mul(mix(0.52, 1.32, clumpWeight)), 0.16)
       .mul(nearEyeFade)
-      .mul(mix(1.0, 0.72, farSoftShape))
+      .mul(mix(1.0, 0.42, farSoftShape))
       .mul(edgeSink)
       .toVar();
     const bend = d1.z.mul(mix(1.34, 0.94, farSoftShape)).toVar();

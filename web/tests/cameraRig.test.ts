@@ -94,6 +94,25 @@ test("battle zoom rig distance scales with the field short axis", () => {
   assert.ok(big.distance > small.distance, "a bigger field frames from farther out");
 });
 
+test("battle zoom rig keeps descending after the close-vista endpoint", () => {
+  const endpoint = battleCameraRig(9, range, bounds);
+  const z12 = battleCameraRig(12, range, bounds);
+  const z28 = battleCameraRig(28, range, bounds);
+
+  assert.equal(z12.zoomT, 1);
+  assert.equal(z28.zoomT, 1);
+  assert.equal(z12.pitch, endpoint.pitch);
+  assert.equal(z28.fovY, endpoint.fovY);
+  assert.ok(
+    z12.distance < endpoint.distance,
+    `z12 ${z12.distance} should descend from endpoint ${endpoint.distance}`,
+  );
+  assert.ok(
+    z28.distance < z12.distance,
+    `z28 ${z28.distance} should descend from z12 ${z12.distance}`,
+  );
+});
+
 test("campaign zoom rig stays a flatter, near-top-down chart", () => {
   const bOut = battleCameraRig(1, range, bounds);
   const bIn = battleCameraRig(9, range, bounds);

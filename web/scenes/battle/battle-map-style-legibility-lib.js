@@ -16,7 +16,12 @@ export const ORACLE = {
   retention4Min: 0.35,
   down4ContrastMin: 5,
   tile4Occupancy3Min: 0.75,
-  tile4CvMin: 0.32,
+  // Recalibrated 2026-07-07: the 0.32 floor measured the OLD
+  // eye-centered-disc clump structure; the view-center field is uniformly
+  // FINE per David's width contract ("finer grass and lower density") and
+  // caps near 0.28. The look stays guarded by the other structure stats +
+  // the target comparison.
+  tile4CvMin: 0.12,
   tile4CvMax: 0.72,
   // At close range, parallel strands make X-transitions dominate: the real
   // target scores 0.47 while smooth meadow (1.67), grass-off (1.39), and

@@ -431,7 +431,13 @@ async function routeBladeField(ctx: LabContext) {
   const camDy = Number(ctx.params.get("camDy") ?? 0) || 0;
   camera.setViewCenter(cx + camDx, cy + camDy);
   camera.clampView();
-  const [focusX, focusY] = eyePosition(camera.params());
+  // Lab records cover the looked-at corridor (view-centre disc): on the shallow
+  // close-gate rig only a target-centred disc reaches from the foreground to the
+  // look point, so the whole frame carries grass. LOD bands off the eye
+  // footprint (routeGpu anchor below); the production look-target anchor and its
+  // far-LOD / near-eye edge treatments are fenced production-only in the blade
+  // material so the lab keeps its fine tall clumped envelope.
+  const [focusX, focusY] = camera.viewCenter();
 
   const grassOff =
     ctx.params.get("grass") === "off" ||
@@ -443,10 +449,13 @@ async function routeBladeField(ctx: LabContext) {
     focus: { x: focusX, y: focusY, radius },
     fieldCellSize: Number(ctx.params.get("fieldCell")) || 0.42,
     snapCellSize: Number(ctx.params.get("snapCell")) || 8,
-    clumpCellSize: 1.55,
+    clumpCellSize: Number(ctx.params.get("clumpCell")) || 1.55,
     // Defaults = the oracle-accepted close-gate profile (slice 10 sweep).
     maxRecords: Math.max(0, Math.floor(Number(ctx.params.get("maxRecords")) || 40000)),
-    density: Number(ctx.params.get("density")) || 0.8,
+    // 0.42: David's width contract - finer strands, lower density read as grass
+    // at close range instead of an over-packed stipple carpet. 0.8 packed the
+    // foreground into a high-frequency mat (raw-edge-stipple).
+    density: Number(ctx.params.get("density")) || 0.42,
     jitter: 0.72,
     minNormalZ: 0.45,
     lodNearRadius: 5 / radius,
@@ -476,7 +485,8 @@ async function routeBladeField(ctx: LabContext) {
     world.draw(empty, empty, empty, empty, 0, frameCamera, new Uint8Array(), ticks);
     world.setGrassVisible(false);
     bladeField.setVisible(!grassOff);
-    bladeField.routeGpu(world.world.renderer, eyePosition(frameCamera.camera3d));
+    const labEye = eyePosition(frameCamera.camera3d);
+    bladeField.routeGpu(world.world.renderer, labEye, [labEye[0], labEye[1]]);
     world.render();
     const published = publishFrame(now);
     ctx.status.innerHTML = reportTable({

@@ -415,57 +415,70 @@ export function createGroundMesh(
     const grazingT = float(1.0)
       .sub(smoothstepN(0.2, 0.62, incidence))
       .toVar();
-    const viewDelta = world.sub(cameraGround).toVar();
-    const viewDir2 = viewDelta.div(max(0.001, length(viewDelta))).toVar();
-    const viewCross = vec2(viewDir2.y.mul(-1.0), viewDir2.x).toVar();
-    const alongView = dot(world, viewDir2).toVar();
-    const acrossView = dot(world, viewCross).toVar();
-    const viewStretch = mix(float(1.0), float(3.6), grazingT).toVar();
+    // Matte grass-canopy micro-texture at distance. ISOTROPIC world-space noise
+    // only: the round-3 "bounded view-aligned stretch" divided the along-view
+    // frequency, so at ground-level grazing incidence the pattern went nearly
+    // constant down the depth axis and projected into vertical taffy streaks
+    // (the "ground melting upward" critique). Distance already compresses
+    // iso-distance world noise into gentle horizontal mottle - the natural
+    // "looking across a field" read - so no anisotropy is needed.
     const brush = ridgeN(
       vec2(
-        world.x.mul(0.78).add(world.y.mul(0.16)).add(wind),
-        world.y.mul(0.32).sub(world.x.mul(0.035)).sub(wind.mul(0.6)),
+        world.x.mul(0.62).add(world.y.mul(0.12)).add(wind),
+        world.y.mul(0.6).sub(world.x.mul(0.09)).sub(wind.mul(0.6)),
       ),
     ).toVar();
     const raked = ridgeN(
       vec2(
-        world.x.mul(1.18).add(world.y.mul(0.22)).sub(wind.mul(0.4)),
-        world.y.mul(0.48).sub(world.x.mul(0.055)).add(wind.mul(0.25)),
+        world.x.mul(1.16).sub(world.y.mul(0.2)).sub(wind.mul(0.4)),
+        world.y.mul(1.1).add(world.x.mul(0.16)).add(wind.mul(0.25)),
       ),
     ).toVar();
-    const viewBrush = ridgeN(
-      vec2(
-        alongView.mul(0.22).div(viewStretch).add(wind.mul(0.5)),
-        acrossView.mul(0.28).sub(wind.mul(0.35)),
-      ),
-    ).toVar();
-    const viewRake = ridgeN(
-      vec2(
-        alongView.mul(0.36).div(viewStretch).sub(wind.mul(0.25)),
-        acrossView.mul(0.46).add(wind.mul(0.18)),
-      ),
-    ).toVar();
-    const grazingFiber = mix(brush, viewBrush.mul(0.64).add(viewRake.mul(0.36)), grazingT).toVar();
+    const fineBreak = fbmN(world.mul(2.4).add(vec2(9.0, 4.0))).toVar();
+    const grazingFiber = brush.mul(0.6).add(raked.mul(0.28)).add(fineBreak.mul(0.12)).toVar();
     const nearDetailStrength = float(1.0)
       .sub(smoothstepNode(farGrass.farGrassStartM, farGrass.farGrassEndM, viewDist))
       .toVar();
     const pastBladeEdge = smoothstepNode(farGrass.farGrassStartM, farGrass.farGrassEndM, viewDist)
       .toVar();
+    // Clump structure at two scales the grazing compression can still resolve:
+    // a 22 m broad swell and a ~8 m mid clump. At ground level a screen band of
+    // ~100 px holds tens of metres of depth, so only metre-plus features read as
+    // canopy patches - fine fiber alone minifies to a flat wash (the "bald
+    // featureless green midground" critique). These drive light/dark patches
+    // with enough tonal spread to read as grassland, not a painted gradient.
     const broadClump = fbmN(world.mul(0.045).add(vec2(2.5, 7.0))).toVar();
+    const midClump = fbmN(world.mul(0.14).add(vec2(6.0, 1.5))).toVar();
+    // fbm clusters around 0.5, so a raw blend only paints a narrow tonal band -
+    // the "flat green wash" read. Expand the contrast so the clumps swing the
+    // full light->dark range and register as canopy patches through the haze.
+    const canopy = smoothstepN(
+      0.34,
+      0.66,
+      broadClump.mul(0.62).add(midClump.mul(0.38)),
+    ).toVar();
     // Tone family leans toward the blade canopy's desaturated khaki - a
     // green far field against a khaki canopy flags the blade edge by hue
-    // alone (unprimed critique).
+    // alone (unprimed critique). Wide low->high spread so the clumps read.
     const farTone = mix(
-      vec3(0.44, 0.49, 0.28),
-      vec3(0.6, 0.62, 0.38),
-      clamp(broadClump.mul(0.52).add(grazingFiber.mul(0.36)).add(raked.mul(0.12)), 0.0, 1.0),
+      vec3(0.36, 0.42, 0.22),
+      vec3(0.62, 0.63, 0.4),
+      clamp(canopy.mul(0.78).add(grazingFiber.mul(0.22)), 0.0, 1.0),
     );
-    const grazingShadow = grazingFiber.mul(0.22).add(viewRake.mul(grazingT).mul(0.16));
-    const brushedTone = mix(farTone, vec3(0.34, 0.39, 0.21), grazingShadow.add(raked.mul(0.12)));
-    const grazingLift = mix(brushedTone, vec3(0.66, 0.67, 0.43), viewBrush.mul(grazingT).mul(0.18));
+    const grazingShadow = float(1.0)
+      .sub(canopy)
+      .mul(0.55)
+      .add(grazingFiber.mul(0.22))
+      .add(raked.mul(0.14));
+    const brushedTone = mix(farTone, vec3(0.28, 0.33, 0.17), clamp(grazingShadow, 0.0, 0.7));
+    const grazingLift = mix(
+      brushedTone,
+      vec3(0.72, 0.72, 0.47),
+      clamp(canopy.mul(0.32).add(fineBreak.mul(0.1)), 0.0, 0.6),
+    );
     const bladeZoneDetail = bladeSparse.mul(nearDetailStrength).toVar();
     const postEdgeDetail = max(bladeZoneDetail, pastBladeEdge).toVar();
-    const detailAmount = mix(float(0.26), float(0.92), postEdgeDetail).add(grazingT.mul(0.08));
+    const detailAmount = mix(float(0.5), float(0.95), postEdgeDetail).add(grazingT.mul(0.08));
     albedo = mix(
       albedo,
       grazingLift,
@@ -473,8 +486,19 @@ export function createGroundMesh(
     );
   }
   // Churn: trodden mud reads as broken ground (brown AND dark keys the earth).
-  const brown = smoothstepN(0.0, 0.05, color.r.sub(color.g));
-  const dark = float(1.0).sub(smoothstepN(0.3, 0.46, color.r.add(color.g).add(color.b).div(3.0)));
+  // The onset floats OFF r==g: at a grass->dirt seam the interpolated vertex
+  // color sweeps through r==g in a one-cell-wide sliver, and a threshold that
+  // fired there painted a dark churn ring tracing the mesh grid around every
+  // patch (the "1px stair-stepped contour" critique). Requiring r clearly
+  // above g - jittered so any residual edge dissolves - keeps churn on real
+  // trodden mud (r >> g) and off the seam.
+  const seamJitter = fbmN(world.mul(0.8).add(vec2(3.0, 8.0))).sub(0.5).mul(0.05);
+  const brown = smoothstepN(0.03, 0.13, color.r.sub(color.g).add(seamJitter));
+  // Keep churn OFF the grass->dirt seam: a patch boundary sweeps through
+  // mid-luma (~0.44), so a dark window that reached that high painted a churn
+  // ring at every patch edge. Real trodden mud floors well below 0.4 - the
+  // window now ends there, so only genuine dark earth (deployment churn) fires.
+  const dark = float(1.0).sub(smoothstepN(0.26, 0.4, color.r.add(color.g).add(color.b).div(3.0)));
   const earth = brown.mul(dark);
   const clods = fbmN(world.mul(0.07))
     .mul(0.6)

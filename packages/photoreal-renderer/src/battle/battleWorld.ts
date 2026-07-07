@@ -184,10 +184,15 @@ const STANDARD_BLADE_FIELD_PROFILE = {
   clumpCellSize: 1.55,
   maxRecords: 160000,
   minActiveRecords: 18000,
-  // The lab close-gate profile that ratified the blade carpet accepts >12k
-  // records in a 64m ring. Use that density for close/mid active rings instead
-  // of deriving close density from the 528m vista sample.
-  closeDensityReferenceRecords: 12000,
+  // Close/mid active-ring density. The lab close-gate ratified >12k records in
+  // a 64m ring - but that lab envelope draws EVERY blade (survivorAlbedoBlend
+  // === 0: no thinning, no height taper, no edge sink). Production applies all
+  // three past the dense ring, culling ~2/3 of the records that fall in the
+  // 22->74m band, so the same 12k/64m raw density rendered a bald mid-ground on
+  // a mid-session close rebuild (fresh loads kept the 160k vista set and looked
+  // full - the inconsistency David saw). Provision the raw density to net the
+  // ratified VISIBLE carpet after production culls; capped by maxRecords.
+  closeDensityReferenceRecords: 42000,
   closeDensityReferenceRadiusM: 64,
   lodStratifiedBudget: true,
   density: 1.0,

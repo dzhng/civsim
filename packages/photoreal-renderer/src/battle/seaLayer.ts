@@ -510,7 +510,19 @@ export function createLakePlaneMesh(
   );
   const fragXY = varying(worldXY).toVar();
   const shoreDist = varying(attribute<"float">("shoreDist", "float")).toVar();
-  const depth01 = shoreDepthNode(LAKE_SHORE_RAMP, shoreDist);
+  // Wobble the depth ramp with world-space noise before it bands: the raw
+  // per-vertex shore distance ramps linearly across coarse triangles, so the
+  // clean smoothstep drew concentric depth contours - a posterized heightmap
+  // read with a quantized sandy rim (unprimed z5 critique). A few meters of
+  // two-octave jitter turns the contours into an organic shore.
+  const shoreJitter = fnoiseN(fragXY.mul(0.09).add(vec2(3.0, 7.0)))
+    .sub(0.5)
+    .mul(13.0)
+    .add(fnoiseN(fragXY.mul(0.28).add(vec2(11.0, 2.0))).sub(0.5).mul(5.0))
+    .add(fnoiseN(fragXY.mul(0.62).add(vec2(5.0, 9.0))).sub(0.5).mul(2.2))
+    .toVar();
+  const jShore = shoreDist.add(shoreJitter).max(float(0.0)).toVar();
+  const depth01 = shoreDepthNode(LAKE_SHORE_RAMP, jShore);
   const viewDist = length(fragXY.sub(vec2(frame.focus))).toVar();
   const detailFade = smoothstepN(
     LAKE_NORMAL_DETAIL_FADE_START,
@@ -528,7 +540,10 @@ export function createLakePlaneMesh(
   // Lakes: a NARROW sandy rim only. The wide ocean turbidity regime across a
   // shallow lake body mottles blue/cream cobblestone (compose rounds 1-2);
   // the body floors to a deeper pale read.
-  const shoreTurbidity = smoothstepN(0.0, 0.1, depth01);
+  // Wider sandy-rim ramp: a 0->0.1 step drew a hard quantized beach ring; the
+  // jittered depth already wobbles the shore, and a broader ramp lets the sand
+  // fade in instead of banding.
+  const shoreTurbidity = smoothstepN(0.0, 0.22, depth01);
   const lakeDepth01 = max(depth01, float(0.42));
   const surface = waterSurfaceNodes(lakeDepth01, float(0.0), shoreTurbidity);
   material.colorNode = vec4(surface.albedo, 1.0);

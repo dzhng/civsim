@@ -334,6 +334,7 @@ export class PhotorealBattleWorld {
   private grassSampleStats: GrassFieldStats | null = null;
   private grassRebuildStats: {
     strategy: "margin-raf-timesliced-swap";
+    routeAnchor?: number[];
     focusRadiusM: number;
     rebuildMarginM: number;
     coverageRadiusM: number;
@@ -879,6 +880,13 @@ export class PhotorealBattleWorld {
         target[0],
         target[1],
       ]);
+    this.grassRebuildStats.routeAnchor = [
+      Math.round(target[0]),
+      Math.round(target[1]),
+      Math.round(eye[0]),
+      Math.round(eye[1]),
+      Math.round(eye[2] * 10) / 10,
+    ];
     this.crowd.refreshCamera(this.camera);
     this.markerLayer.setCameraBasis(this.camera);
     this.readoutLayer.setCameraBasis(this.camera);
@@ -959,7 +967,10 @@ export class PhotorealBattleWorld {
     this.grassRebuildStats.activeTransition = this.activeGrassTransition;
     this.grassRebuildStats.activeRecordBudget = budget.maxRecords;
     this.grassRebuildStats.areaBudgetScale = budget.areaScale;
-    const step = this.grassProfile.snapCellSize;
+    // The snap step scales DOWN with the ring: 48m stability cells suit the
+    // 480m vista disc, but on a ~122m close ring a whole cell is a third of
+    // the radius - the disc must track the target much closer.
+    const step = Math.min(this.grassProfile.snapCellSize, Math.max(8, radius / 8));
     const focus = {
       x: snapGrassFocus(focusX, step),
       y: snapGrassFocus(focusY, step),
@@ -1228,7 +1239,12 @@ function disposeMesh(mesh: THREE.Mesh): void {
 }
 
 function snapGrassFocus(value: number, step: number): number {
-  return Math.floor(value / step) * step;
+  // ROUND, never floor: a floored 48m grid displaces the disc up to ~34m per
+  // axis, and at the close ring (r~122m) that pushed the stratified record
+  // concentration ~60m off the look target - a bald frame at ground level
+  // with all records "far". Rounding halves the worst error and keeps the
+  // key-stability contract (same cell -> same key).
+  return Math.round(value / step) * step;
 }
 
 function productionBladeFieldProfile(

@@ -90,10 +90,11 @@ export class Input {
         mouseY = e.clientY;
         this.mouseCss = [e.clientX, e.clientY];
         if (mDown) {
-          // Total War middle-drag: horizontal rotates the view (yaw), vertical
-          // tilts it (pitch). Drag down → a lower, more side-on angle.
-          camera.yaw += (e.clientX - mDown[0]) * 0.006;
-          camera.adjustPitchBias((e.clientY - mDown[1]) * 0.004);
+          // Middle-drag reorients ABOUT THE EYE: the camera stays put and the
+          // view ray re-aims. Drag right → look right, drag down → look down
+          // (directions flipped from the old orbit per David, 2026-07-07).
+          camera.yawAboutEye(-(e.clientX - mDown[0]) * 0.006);
+          camera.pitchAboutEye((e.clientY - mDown[1]) * 0.004);
           mDown = [e.clientX, e.clientY];
         }
         if (rDown && this.selected.length === 0) {
@@ -236,14 +237,14 @@ export class Input {
       }
       this.panX = px;
       this.panY = py;
-      // Q/E rotate the camera (Total War), continuous while held.
+      // Q/E rotate, Z/X tilt — continuous while held, all about the EYE (the
+      // camera holds its spot and looks around, same contract as middle-drag).
       // Q/E swapped per David (2026-07-06): Q rotates right, E rotates left.
-      if (held.has("q")) camera.yaw += 0.035;
-      if (held.has("e")) camera.yaw -= 0.035;
-      // Z/X tilt: z looks down (toward top-down), x looks up (toward the
-      // horizon) — the same tilt bias the middle-drag drives.
-      if (held.has("z")) camera.adjustPitchBias(-0.02);
-      if (held.has("x")) camera.adjustPitchBias(0.02);
+      if (held.has("q")) camera.yawAboutEye(0.035);
+      if (held.has("e")) camera.yawAboutEye(-0.035);
+      // Z looks down (toward top-down), X up (toward the horizon).
+      if (held.has("z")) camera.pitchAboutEye(0.02);
+      if (held.has("x")) camera.pitchAboutEye(-0.02);
     }, 50);
     signal.addEventListener("abort", () => clearInterval(panTimer));
 

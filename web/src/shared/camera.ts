@@ -76,22 +76,61 @@ export class Camera {
     return this.effectivePitch(this.rig());
   }
 
-  /** Nudge the user tilt bias (middle-drag vertical, Z/X keys — the one owner
-   *  of the bias range). The stored bias is bounded so it can't accumulate far
-   *  past what effectivePitch can express, which would go dead: tilting back
-   *  would spend invisible travel before the view moved. */
-  adjustPitchBias(delta: number) {
-    // Pivot at the CAMERA, not the ground target (David 2026-07-06): tilting
-    // keeps the eye's ground column fixed and lets the look target slide,
-    // so Z/X feels like tilting your head rather than orbiting a far point.
+  /** Rotate the view about the EYE (David 2026-07-07): the camera stays at the
+   *  same point in space and the view ray re-aims, swinging the ground look
+   *  target around it — turning your head, never orbiting the target. Pitch
+   *  and rig distance are untouched, so this is exact. */
+  yawAboutEye(delta: number) {
     const rig = this.rig();
-    const before = this.effectivePitch(rig);
-    this.pitchBias = Math.max(-0.45, Math.min(1.0, this.pitchBias + delta));
-    const after = this.effectivePitch(rig);
-    const shift = rig.distance * (Math.cos(after) - Math.cos(before));
-    const [bx, by] = this.rotate(1, 0);
-    this.x -= bx * shift;
-    this.y -= by * shift;
+    const reach = rig.distance * Math.cos(this.effectivePitch(rig));
+    const [tx, ty] = this.viewCenter();
+    const ex = tx + reach * Math.cos(this.yaw);
+    const ey = ty + reach * Math.sin(this.yaw);
+    this.yaw += delta;
+    this.setViewCenter(ex - reach * Math.cos(this.yaw), ey - reach * Math.sin(this.yaw));
+  }
+
+  /** Tilt the view about the EYE (middle-drag vertical, Z/X — same head-turn
+   *  contract as `yawAboutEye`). The zoom rig pins eye→target distance to
+   *  zoom, and tilting a fixed eye changes how far the view ray reaches the
+   *  ground, so holding the eye means re-deriving zoom from the new ray
+   *  length and folding the rest of the tilt into `pitchBias`. Positive delta
+   *  looks down (toward top-down), negative toward the horizon. */
+  pitchAboutEye(delta: number) {
+    const params = this.params();
+    const eye = eyePosition(params);
+    const pitch = Math.max(MIN_PITCH, Math.min(MAX_PITCH, params.pitch + delta));
+    const height = eye[2] - params.target[2];
+    if (height <= 0.1) return;
+    const distance = height / Math.sin(pitch);
+    this.zoom = this.zoomForDistance(distance);
+    const rig = this.rig();
+    // Bounded so the bias can't accumulate far past what effectivePitch can
+    // express, which would go dead: tilting back would spend invisible travel.
+    this.pitchBias = Math.max(-0.45, Math.min(1.0, rig.pitch - pitch));
+    const reach = distance * Math.cos(pitch);
+    this.setViewCenter(eye[0] - reach * Math.cos(this.yaw), eye[1] - reach * Math.sin(this.yaw));
+  }
+
+  /** Invert the rig's zoom→distance curve (monotonically decreasing) so a
+   *  desired eye→target distance can be expressed as a zoom. Where the
+   *  distance is out of the rig's reach — or the current zoom already gives
+   *  it (the curve is flat through most of the zoomed-out range) — the zoom
+   *  stays put rather than sliding to an arbitrary equivalent point. */
+  private zoomForDistance(distance: number): number {
+    const dist = (z: number) => battleCameraRig(z, this.zoomRange, this.rigBounds).distance;
+    let lo = this.zoomRange.min;
+    let hi = this.zoomRange.max;
+    const reachable = Math.max(dist(hi), Math.min(dist(lo), distance));
+    if (Math.abs(dist(this.zoom) - reachable) < 1e-3) return this.zoom;
+    if (reachable >= dist(lo)) return lo;
+    if (reachable <= dist(hi)) return hi;
+    for (let i = 0; i < 32; i++) {
+      const mid = (lo + hi) / 2;
+      if (dist(mid) > reachable) lo = mid;
+      else hi = mid;
+    }
+    return (lo + hi) / 2;
   }
 
   private effectivePitch(rig: ZoomCameraRig) {

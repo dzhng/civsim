@@ -5,8 +5,8 @@ description: Use the local Codex CLI as an independent second agent. Two branche
 
 # Codex
 
-Codex is an independent agent on PATH (`codex`), sharing this working tree and
-already authenticated. It is a second opinion, not ground truth: verify what it
+Codex is an independent agent on PATH (`codex` — invoke as `command codex` if
+a shell alias shadows it), sharing this working tree and already authenticated. It is a second opinion, not ground truth: verify what it
 reports, own what it changes. It reads the same `.agents/skills` you do.
 
 ## If `codex` is not installed
@@ -94,11 +94,16 @@ work without a fresh ask.
      that blindness for zero OS control: only in a dedicated git worktree, only
      with a prompt you authored end-to-end (never relaying third-party text),
      and the diff review you owe afterwards is the control.
-   Use `-o <file>` to capture the final message and background long calls.
-   Non-interactive runs never ask for approval either way.
+   Use `-o <file>` to capture the final message and background long calls;
+   suppress codex's stderr thinking-noise with `2>/dev/null` so it doesn't
+   bloat your context (drop it only to debug a failing run), and add
+   `--skip-git-repo-check` to run outside a git repo. Non-interactive runs
+   never ask for approval either way.
 4. Follow up with `codex exec resume <session-id> "<follow-up>"`, taking the
    id from the run header. `resume --last` means the most recent session
-   globally — a review or any other codex run in between will hijack it.
+   globally — a review or any other codex run in between will hijack it. If
+   two resume rounds don't converge, stop delegating and finish it yourself —
+   iterating a confused agent costs more than taking over.
 5. You own the result: read the full diff, run the tests, and only then report
    it. "Codex says it's done" is not done.
 
@@ -108,9 +113,14 @@ A backgrounded `codex exec` can wedge at startup: process alive at ~0% CPU, but
 no session file under `~/.codex/sessions/<Y/M/D>/`, no network socket, no tree
 changes. "Process running" is NOT "working."
 
-- **Redirect stdin every launch.** With a piped stdin, exec prints `Reading
+- **Stdin is always a file or `/dev/null`, never an inherited terminal.** Left
+  on an interactive/piped stdin with no prompt source, exec prints `Reading
   additional input from stdin...` and blocks forever — the most common hang.
-  Always `codex exec ... < /dev/null` (with `nohup`/`&` as needed).
+  Either pass the prompt as a positional arg with `< /dev/null`, or feed a
+  prompt file with `codex exec [flags] - < prompt.txt` (the `-` makes codex
+  read the task from stdin, and a missing file fails the redirect loudly —
+  unlike `"$(cat prompt.txt)"`, which silently sends the fallback string as
+  the task). Add `nohup`/`&` as needed.
 - **Watchdog:** put a unique marker in the prompt, then kill the exec if
   `grep -rl "<marker>" ~/.codex/sessions/<Y/M/D>/` finds no session within
   ~3 minutes. Relaunching after a kill reliably works.
@@ -125,10 +135,8 @@ changes. "Process running" is NOT "working."
 - **Launch from the repo/worktree ROOT.** The writable sandbox root is the
   CWD at launch: exec'd from a subdirectory (e.g. `web/`), every edit outside
   it is rejected as "writing outside of the project" and a `never` approval
-  policy can't recover — the run burns with zero files changed.
-- **Long prompts via file:** `codex exec ... "$(cat prompt.txt)"` — check the
-  file exists first; a missing file silently sends the fallback string as the
-  task.
+  policy can't recover — the run burns with zero files changed. Pass
+  `-C <root>` to set the working root explicitly instead of `cd`-ing into it.
 
 ## Rules
 
@@ -137,7 +145,9 @@ changes. "Process running" is NOT "working."
   `workspace-write` only for delegated implementation.
 - `--dangerously-bypass-approvals-and-sandbox` is reserved for tasks that must
   run browsers/servers/full suites (above) — dedicated worktree, self-authored
-  prompt, mandatory diff review after. `--full-auto` is deprecated (just an
-  alias for workspace-write) — don't reach for it.
-- Leave `--effort` unset (accepted: none, minimal, low, medium, high, xhigh)
-  and omit model overrides unless the user asks — tighten the prompt first.
+  prompt, mandatory diff review after. `--full-auto` has been removed (it
+  aliased workspace-write) — don't reach for it.
+- Reasoning effort and model are config/flag overrides — `-c
+  model_reasoning_effort=high`, `-m <model>` (the old `--effort` flag is gone
+  in current Codex). Leave both at their defaults unless the user asks —
+  tighten the prompt first.

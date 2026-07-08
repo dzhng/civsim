@@ -1,5 +1,5 @@
 ---
-name: review
+name: code-review
 description: Review changed code for naming, stale references, unnecessary complexity, and comment quality. Use after completing implementation work, before committing, or when the user asks to review or audit code. Enforces at review time the authoring rules of [write-tests](../write-tests/SKILL.md) and [tweak-mechanics](../tweak-mechanics/SKILL.md).
 allowed-tools: Read Grep Glob Bash
 ---

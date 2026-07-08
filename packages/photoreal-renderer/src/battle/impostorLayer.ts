@@ -1,14 +1,26 @@
-import * as THREE from 'three/webgpu';
+import * as THREE from "three/webgpu";
 import {
-  attribute, clamp, float, max, mix, smoothstep, step, texture, uniform, varying, vec2, vec3, vec4,
-} from 'three/tsl';
-import type { Node } from 'three/webgpu';
-import type { CrowdInstance } from '../../../crowd-runtime/src/instanceData';
-import { factionForTeam } from '../../../game-renderer/src/battle/factionColors';
-import type { VatBake } from '../../../soldier-assets/src/schema';
-import type { SoldierMeshData } from '../../../soldier-assets/src/soldierMesh';
-import { linearAlbedo } from './battleTsl';
-import { RENDER_ORDER } from './terrainLayer';
+  attribute,
+  clamp,
+  float,
+  max,
+  mix,
+  smoothstep,
+  step,
+  texture,
+  uniform,
+  varying,
+  vec2,
+  vec3,
+  vec4,
+} from "three/tsl";
+import type { Node } from "three/webgpu";
+import type { CrowdInstance } from "../../../crowd-runtime/src/instanceData";
+import { factionForTeam } from "../../../game-renderer/src/battle/factionColors";
+import type { VatBake } from "../../../soldier-assets/src/schema";
+import type { SoldierMeshData } from "../../../soldier-assets/src/soldierMesh";
+import { linearAlbedo } from "./battleTsl";
+import { RENDER_ORDER } from "./terrainLayer";
 
 export interface ImpostorAtlas {
   texture: THREE.CanvasTexture;
@@ -42,17 +54,20 @@ export function createSoldierImpostorAtlas(
   const columns = opts.columns ?? 8;
   const rows = opts.rows ?? 8;
   const tileSize = opts.tileSize ?? 96;
-  const posedMesh = poseMeshWithVat(mesh, vat, 'march', 0.18);
+  const posedMesh = poseMeshWithVat(mesh, vat, "march", 0.18);
   const directions = hemiOctDirections(columns, rows);
-  const canvas = document.createElement('canvas');
+  const canvas = document.createElement("canvas");
   canvas.width = columns * tileSize;
   canvas.height = rows * tileSize;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('2D canvas unavailable for impostor atlas bake');
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("2D canvas unavailable for impostor atlas bake");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const projectedBounds = directions.map((dir) => projectedMeshBounds(posedMesh, viewBasis(dir)));
-  const maxSpan = Math.max(...projectedBounds.map((b) => Math.max(b.maxX - b.minX, b.maxY - b.minY)), 1e-3);
+  const maxSpan = Math.max(
+    ...projectedBounds.map((b) => Math.max(b.maxX - b.minX, b.maxY - b.minY)),
+    1e-3,
+  );
   for (let tile = 0; tile < directions.length; tile++) {
     const col = tile % columns;
     const row = Math.floor(tile / columns);
@@ -65,7 +80,7 @@ export function createSoldierImpostorAtlas(
   }
 
   const textureAtlas = new THREE.CanvasTexture(canvas);
-  textureAtlas.name = 'battle-crowd-shared-soldier-impostor-atlas';
+  textureAtlas.name = "battle-crowd-shared-soldier-impostor-atlas";
   textureAtlas.colorSpace = THREE.SRGBColorSpace;
   textureAtlas.minFilter = THREE.LinearMipmapLinearFilter;
   textureAtlas.magFilter = THREE.LinearFilter;
@@ -73,6 +88,19 @@ export function createSoldierImpostorAtlas(
   textureAtlas.needsUpdate = true;
   return { texture: textureAtlas, tileSize, columns, rows, directions };
 }
+
+// The impostor billboard's world-space size. A standing soldier is ~2.18 m tall
+// and ~0.92 m wide at the shoulders.
+const IMPOSTOR_BASE_HEIGHT_M = 2.18;
+const IMPOSTOR_BASE_WIDTH_M = 0.92;
+// Minimum on-screen billboard height as a fraction of viewport height. The
+// battle rig's eye parks hundreds of metres up at max zoom-out, so a fixed
+// world-space sprite projects to ~2 px — small enough that the mipmapped,
+// alpha-tested atlas averages the soldier silhouette into its transparent
+// margin and the whole sprite fails alphaTest at once (the army vanishing over
+// one scroll tick). Flooring the projected size keeps the crowd readable as at
+// least a small blob at any zoom. ~0.008 ≈ 6-9 px on typical viewports.
+const IMPOSTOR_MIN_SCREEN_FRACTION = 0.008;
 
 export class OctahedralImpostorLayer {
   private readonly mesh: THREE.Mesh;
@@ -84,11 +112,15 @@ export class OctahedralImpostorLayer {
   private meta = new Float32Array(0);
   private source: CrowdInstance[] = [];
 
-  constructor(scene: THREE.Scene, private readonly atlas: ImpostorAtlas) {
+  constructor(
+    scene: THREE.Scene,
+    private readonly atlas: ImpostorAtlas,
+  ) {
     this.geometry = new THREE.InstancedBufferGeometry();
-    this.geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array([
-      -1, -1, 0, 1, -1, 0, -1, 1, 0, 1, 1, 0,
-    ]), 3));
+    this.geometry.setAttribute(
+      "position",
+      new THREE.BufferAttribute(new Float32Array([-1, -1, 0, 1, -1, 0, -1, 1, 0, 1, 1, 0]), 3),
+    );
     this.geometry.setIndex([0, 1, 2, 2, 1, 3]);
     this.geometry.instanceCount = 0;
 
@@ -96,12 +128,14 @@ export class OctahedralImpostorLayer {
     material.alphaTest = 0.08;
     material.depthWrite = true;
     material.fog = true;
-    const quad = attribute<'vec3'>('position', 'vec3');
-    const inst = attribute<'vec4'>('impostorInst', 'vec4'); // x, y, elevation, faction
-    const meta = attribute<'vec4'>('impostorMeta', 'vec4'); // tile, width, height, shade
+    const quad = attribute<"vec3">("position", "vec3");
+    const inst = attribute<"vec4">("impostorInst", "vec4"); // x, y, elevation, faction
+    const meta = attribute<"vec4">("impostorMeta", "vec4"); // tile, width, height, shade
     const right = vec3(this.camRight).mul(quad.x.mul(meta.y).mul(0.5));
     const up = vec3(this.camUp).mul(quad.y.mul(meta.z).mul(0.5));
-    material.positionNode = vec3(inst.x, inst.y, inst.z.add(meta.z.mul(0.5))).add(right).add(up);
+    material.positionNode = vec3(inst.x, inst.y, inst.z.add(meta.z.mul(0.5)))
+      .add(right)
+      .add(up);
 
     const tile = varying(meta.x).toVar();
     const localUv = varying(quad.xy.mul(0.5).add(vec2(0.5))).toVar();
@@ -117,11 +151,13 @@ export class OctahedralImpostorLayer {
     // Far impostors obey the same policy as mesh tiers: no broad team wash,
     // only the authored upper sword-arm band receives faction color.
     const mask = smoothstep(0.05, 0.28, sample.b.sub(max(sample.r, sample.g))).toVar();
-    const color = sampledFactionAccentNode(vec4(sample.rgb, sample.a), faction, mask).mul(vec4(vec3(shade), 1.0));
+    const color = sampledFactionAccentNode(vec4(sample.rgb, sample.a), faction, mask).mul(
+      vec4(vec3(shade), 1.0),
+    );
     material.colorNode = vec4(color.rgb, sample.a);
 
     this.mesh = new THREE.Mesh(this.geometry, material);
-    this.mesh.name = 'battle-crowd-far-impostors';
+    this.mesh.name = "battle-crowd-far-impostors";
     this.mesh.frustumCulled = false;
     this.mesh.renderOrder = RENDER_ORDER.worldOpaque;
     this.mesh.castShadow = false;
@@ -140,8 +176,8 @@ export class OctahedralImpostorLayer {
       this.capacity = Math.max(instances.length, this.capacity * 2, 512);
       this.inst = new Float32Array(this.capacity * 4);
       this.meta = new Float32Array(this.capacity * 4);
-      this.geometry.setAttribute('impostorInst', new THREE.InstancedBufferAttribute(this.inst, 4));
-      this.geometry.setAttribute('impostorMeta', new THREE.InstancedBufferAttribute(this.meta, 4));
+      this.geometry.setAttribute("impostorInst", new THREE.InstancedBufferAttribute(this.inst, 4));
+      this.geometry.setAttribute("impostorMeta", new THREE.InstancedBufferAttribute(this.meta, 4));
     }
     for (let i = 0; i < instances.length; i++) {
       const src = instances[i];
@@ -151,12 +187,14 @@ export class OctahedralImpostorLayer {
       this.inst[o + 2] = src.elevation ?? 0;
       this.inst[o + 3] = src.faction;
       this.meta[o] = 0;
-      this.meta[o + 1] = 0.92;
-      this.meta[o + 2] = 2.18;
+      this.meta[o + 1] = IMPOSTOR_BASE_WIDTH_M;
+      this.meta[o + 2] = IMPOSTOR_BASE_HEIGHT_M;
       this.meta[o + 3] = 1;
     }
-    (this.geometry.getAttribute('impostorInst') as THREE.InstancedBufferAttribute).needsUpdate = true;
-    (this.geometry.getAttribute('impostorMeta') as THREE.InstancedBufferAttribute).needsUpdate = true;
+    (this.geometry.getAttribute("impostorInst") as THREE.InstancedBufferAttribute).needsUpdate =
+      true;
+    (this.geometry.getAttribute("impostorMeta") as THREE.InstancedBufferAttribute).needsUpdate =
+      true;
     this.geometry.instanceCount = instances.length;
   }
 
@@ -166,16 +204,36 @@ export class OctahedralImpostorLayer {
     this.camUp.value.set(m[4], m[5], m[6]).normalize();
     const eye = new THREE.Vector3();
     camera.getWorldPosition(eye);
+    // Half-angle of the vertical FOV, for the projected screen-size floor below.
+    const fovY = "fov" in camera ? ((camera as THREE.PerspectiveCamera).fov * Math.PI) / 180 : 0;
+    const tanHalfFov = fovY > 0 ? Math.tan(fovY / 2) : 0;
     const localDir = new THREE.Vector3();
     for (let i = 0; i < this.source.length; i++) {
       const src = this.source[i];
-      localDir.set(eye.x - src.x, eye.y - src.y, eye.z - (src.elevation ?? 0)).normalize();
+      localDir.set(eye.x - src.x, eye.y - src.y, eye.z - (src.elevation ?? 0));
+      const dist = localDir.length();
+      localDir.normalize();
       rotateViewDirectionIntoSoldierLocal(localDir, src.facing);
       const o = i * 4;
       this.meta[o] = nearestTile(localDir, this.atlas.directions);
+      // Screen-size floor: enlarge the world-space billboard whenever it would
+      // project below the minimum viewport fraction, so a far crowd stays a
+      // visible blob instead of sub-pixel-vanishing through the alpha-tested
+      // mip chain. screenFraction is the projected height as a fraction of the
+      // viewport (perspective: worldHeight / (2 · depth · tan(fovY/2))).
+      let scale = 1;
+      if (tanHalfFov > 0 && dist > 0) {
+        const screenFraction = IMPOSTOR_BASE_HEIGHT_M / (2 * dist * tanHalfFov);
+        if (screenFraction < IMPOSTOR_MIN_SCREEN_FRACTION)
+          scale = IMPOSTOR_MIN_SCREEN_FRACTION / screenFraction;
+      }
+      this.meta[o + 1] = IMPOSTOR_BASE_WIDTH_M * scale;
+      this.meta[o + 2] = IMPOSTOR_BASE_HEIGHT_M * scale;
       this.meta[o + 3] = clampShade(0.72 + 0.28 * Math.max(0, localDir.dot(LIGHT_DIR)));
     }
-    const attr = this.geometry.getAttribute('impostorMeta') as THREE.InstancedBufferAttribute | undefined;
+    const attr = this.geometry.getAttribute("impostorMeta") as
+      | THREE.InstancedBufferAttribute
+      | undefined;
     if (attr) attr.needsUpdate = true;
   }
 
@@ -184,13 +242,17 @@ export class OctahedralImpostorLayer {
       impostorInstances: this.source.length,
       impostorDrawCalls: this.source.length > 0 ? 1 : 0,
       atlas: `${this.atlas.columns}x${this.atlas.rows}x${this.atlas.tileSize}`,
-      tileSelection: 'nearest',
-      factionMask: 'sampled armband locator; no shield/crest/body faction tint',
+      tileSelection: "nearest",
+      factionMask: "sampled armband locator; no shield/crest/body faction tint",
     };
   }
 }
 
-function sampledFactionAccentNode(color: Node<'vec4'>, faction: Node<'float'>, mask: Node<'float'>) {
+function sampledFactionAccentNode(
+  color: Node<"vec4">,
+  faction: Node<"float">,
+  mask: Node<"float">,
+) {
   const blue = linearAlbedo(vec3(...factionForTeam(0).primary));
   const red = linearAlbedo(vec3(...factionForTeam(1).primary));
   const neutral = linearAlbedo(vec3(...factionForTeam(2).primary));
@@ -203,9 +265,17 @@ function sampledFactionAccentNode(color: Node<'vec4'>, faction: Node<'float'>, m
   return vec4(clamp(rgb, vec3(0.0), vec3(1.0)), color.a);
 }
 
-function poseMeshWithVat(mesh: SoldierMeshData, vat: VatBake, clipName: string, phase: number): PosedMeshData {
+function poseMeshWithVat(
+  mesh: SoldierMeshData,
+  vat: VatBake,
+  clipName: string,
+  phase: number,
+): PosedMeshData {
   const clip = vat.clips.find((c) => c.name === clipName) ?? vat.clips[0];
-  const frame = Math.min(clip.start + clip.frames - 1, clip.start + Math.floor(phase * Math.max(clip.frames - 1, 1)));
+  const frame = Math.min(
+    clip.start + clip.frames - 1,
+    clip.start + Math.floor(phase * Math.max(clip.frames - 1, 1)),
+  );
   const positions = new Float32Array(mesh.positions.length);
   const normals = new Float32Array(mesh.normals.length);
   for (let i = 0; i < mesh.positions.length / 3; i++) {
@@ -234,8 +304,13 @@ function poseMeshWithVat(mesh: SoldierMeshData, vat: VatBake, clipName: string, 
   return { positions, normals, colors: mesh.colors, indices: mesh.indices };
 }
 
-function vatColumn(vat: VatBake, frame: number, bone: number, col: number): [number, number, number, number] {
-  const o = (((bone * 4 + col) * vat.width + frame) * 4);
+function vatColumn(
+  vat: VatBake,
+  frame: number,
+  bone: number,
+  col: number,
+): [number, number, number, number] {
+  const o = ((bone * 4 + col) * vat.width + frame) * 4;
   return [vat.data[o], vat.data[o + 1], vat.data[o + 2], vat.data[o + 3]];
 }
 
@@ -262,7 +337,8 @@ function hemiOctDirections(columns: number, rows: number): THREE.Vector3[] {
 
 function viewBasis(dir: THREE.Vector3) {
   const forward = dir.clone().normalize();
-  const fallback = Math.abs(forward.z) > 0.96 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(0, 0, 1);
+  const fallback =
+    Math.abs(forward.z) > 0.96 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(0, 0, 1);
   const right = new THREE.Vector3().crossVectors(fallback, forward).normalize();
   const up = new THREE.Vector3().crossVectors(forward, right).normalize();
   return { forward, right, up };
@@ -290,7 +366,7 @@ function bakeTile(
   tile: { x: number; y: number; tileSize: number; maxSpan: number },
 ): void {
   const basis = viewBasis(dir);
-  const scale = tile.tileSize * 0.78 / tile.maxSpan;
+  const scale = (tile.tileSize * 0.78) / tile.maxSpan;
   const cx = (bounds.minX + bounds.maxX) * 0.5;
   const cy = (bounds.minY + bounds.maxY) * 0.5;
   const tris: { i0: number; i1: number; i2: number; depth: number }[] = [];
@@ -302,7 +378,10 @@ function bakeTile(
       i0,
       i1,
       i2,
-      depth: vertexDepth(mesh, i0, basis.forward) + vertexDepth(mesh, i1, basis.forward) + vertexDepth(mesh, i2, basis.forward),
+      depth:
+        vertexDepth(mesh, i0, basis.forward) +
+        vertexDepth(mesh, i1, basis.forward) +
+        vertexDepth(mesh, i2, basis.forward),
     });
   }
   tris.sort((a, b) => a.depth - b.depth);
@@ -322,7 +401,11 @@ function bakeTile(
 }
 
 function vertexDepth(mesh: PosedMeshData, i: number, forward: THREE.Vector3): number {
-  return mesh.positions[i * 3] * forward.x + mesh.positions[i * 3 + 1] * forward.y + mesh.positions[i * 3 + 2] * forward.z;
+  return (
+    mesh.positions[i * 3] * forward.x +
+    mesh.positions[i * 3 + 1] * forward.y +
+    mesh.positions[i * 3 + 2] * forward.z
+  );
 }
 
 function projectedVertex(
@@ -334,13 +417,23 @@ function projectedVertex(
   tile: { x: number; y: number; tileSize: number },
   scale: number,
 ): [number, number] {
-  const p = new THREE.Vector3(mesh.positions[i * 3], mesh.positions[i * 3 + 1], mesh.positions[i * 3 + 2]);
+  const p = new THREE.Vector3(
+    mesh.positions[i * 3],
+    mesh.positions[i * 3 + 1],
+    mesh.positions[i * 3 + 2],
+  );
   const x = (p.dot(basis.right) - cx) * scale;
   const y = (p.dot(basis.up) - cy) * scale;
   return [tile.x + tile.tileSize * 0.5 + x, tile.y + tile.tileSize * 0.52 - y];
 }
 
-function shadedTriangleColor(mesh: PosedMeshData, i0: number, i1: number, i2: number, viewDir: THREE.Vector3): [number, number, number] {
+function shadedTriangleColor(
+  mesh: PosedMeshData,
+  i0: number,
+  i1: number,
+  i2: number,
+  viewDir: THREE.Vector3,
+): [number, number, number] {
   const rgb = [0, 0, 0];
   const n = new THREE.Vector3();
   for (const i of [i0, i1, i2]) {

@@ -101,6 +101,31 @@ export function campaignCameraRig(
   return rigForZoom(CAMPAIGN_CURVE, zoom, zoomRange, bounds);
 }
 
+/** The zoom above which the battle rig's framing stops changing: distance has
+ *  bottomed out at its overzoom floor and pitch/fovY are saturated. Callers
+ *  clamp the stored `zoom` here (not at some far hard cap) so wheel input past
+ *  the closest usable view isn't banked as invisible travel you'd have to
+ *  "unwind" before the camera moved again. */
+export function battleZoomCeiling(zoomRange: CameraRigRange, bounds: CameraRigBounds): number {
+  return zoomCeiling(BATTLE_CURVE, zoomRange, bounds);
+}
+
+function zoomCeiling(curve: RigCurve, zoomRange: CameraRigRange, bounds: CameraRigBounds): number {
+  const min = Math.max(0.0001, Math.min(zoomRange.min, zoomRange.max));
+  const max = Math.max(min + 0.0001, Math.max(zoomRange.min, zoomRange.max));
+  if (!curve.overZoomMinFactor) return max;
+  const fieldReach = Math.max(1, Math.min(bounds.width, bounds.height));
+  const closeDistance = Math.min(
+    fieldReach * curve.distInFactor,
+    curve.distInMeters ?? Number.POSITIVE_INFINITY,
+  );
+  const minCloseDistance = Math.max(1.5, closeDistance * curve.overZoomMinFactor);
+  // Past `max` the rig sets distance = closeDistance * max / zoom, floored at
+  // minCloseDistance. The zoom where the floor takes over is the last one that
+  // changes the frame — beyond it every zoom is identical, so it's the ceiling.
+  return (max * closeDistance) / minCloseDistance;
+}
+
 function rigForZoom(
   curve: RigCurve,
   zoom: number,

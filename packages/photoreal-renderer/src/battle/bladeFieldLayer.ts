@@ -430,7 +430,16 @@ export class PhotorealBladeFieldLayer {
     this.culledRecords = 0;
     this.thinnedRecords = 0;
     const tierRanges = tierRangesForTransition(this.transition);
-    for (let i = 0; i < this.recordCount; i++) {
+    // These counts are STATS ONLY — the GPU route pass owns what actually draws.
+    // A static whole-map field holds ~1M records, so touching every one each
+    // frame would spend milliseconds of CPU on numbers nobody renders. Sample a
+    // stride and scale the tallies; small fields (labs) keep stride 1 and stay
+    // exact. Records are packed in scan order, so an index stride is spatially
+    // even enough for a stats mirror.
+    const MIRROR_SAMPLE_CAP = 200_000;
+    const stride =
+      this.recordCount > MIRROR_SAMPLE_CAP ? Math.ceil(this.recordCount / MIRROR_SAMPLE_CAP) : 1;
+    for (let i = 0; i < this.recordCount; i += stride) {
       const o = i * GRASS_FIELD_PACKED_STRIDE_FLOATS;
       const x = this.packedRecords[o];
       const y = this.packedRecords[o + 1];
@@ -458,6 +467,15 @@ export class PhotorealBladeFieldLayer {
         continue;
       }
       bucket.records++;
+    }
+    if (stride > 1) {
+      for (const bucket of this.buckets) {
+        bucket.records *= stride;
+        bucket.candidateRecords *= stride;
+        bucket.droppedByThinning *= stride;
+      }
+      this.culledRecords *= stride;
+      this.thinnedRecords *= stride;
     }
   }
 

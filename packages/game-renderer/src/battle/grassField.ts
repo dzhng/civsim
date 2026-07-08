@@ -170,6 +170,8 @@ class GrassFieldSamplerTask implements GrassFieldSampler {
   private gy: number;
   private records: GrassFieldRecord[] = [];
   private candidates: GrassFieldCandidate[] = [];
+  // Accepted-candidate counter for the flat path's reservoir (Algorithm R).
+  private flatSeen = 0;
   private stratifiedBins: [
     GrassFieldCandidate[][],
     GrassFieldCandidate[][],
@@ -349,9 +351,22 @@ class GrassFieldSamplerTask implements GrassFieldSampler {
       this.stats.rejectedSlopeCells++;
       return;
     }
-    if (!this.lodStratifiedBudget && this.candidates.length >= this.recordCapacity) {
-      this.stats.cappedRecords++;
-      return;
+    // Flat (uniform) path: reservoir-sample so an over-capacity field thins
+    // UNIFORMLY. The old row-major cap filled to capacity then rejected every
+    // later cell, so a field with more grass area than the record cap went bald
+    // wherever the south→north scan ran out of budget. Algorithm R keeps a
+    // uniform random subset instead, deterministic through the cell hash.
+    let flatSlot = -1;
+    if (!this.lodStratifiedBudget) {
+      const seen = this.flatSeen++;
+      if (seen < this.recordCapacity) {
+        flatSlot = seen;
+      } else {
+        this.stats.cappedRecords++;
+        const j = Math.floor(hash01(cellSeed ^ 0x1b7f_2c5d) * (seen + 1));
+        if (j >= this.recordCapacity) return;
+        flatSlot = j;
+      }
     }
 
     const lodTier = lodTierForDistance(dist, this.radius, this.lodNearRadius, this.lodMidRadius);
@@ -384,6 +399,7 @@ class GrassFieldSamplerTask implements GrassFieldSampler {
     };
     const candidate = { record, dist, order: hash01(cellSeed ^ 0xd2b7_4c19) };
     if (this.lodStratifiedBudget) this.pushStratifiedCandidate(candidate);
+    else if (flatSlot < this.candidates.length) this.candidates[flatSlot] = candidate;
     else this.candidates.push(candidate);
     this.stats.lodCandidateCounts[lodTier]++;
   }

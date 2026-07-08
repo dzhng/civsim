@@ -141,11 +141,6 @@ import {
   BattleGrassPass,
   type BattleGrassBounds,
   type BattleGrassParams,
-  type GrassAccentAggregation,
-  type GrassFiberShellVariant,
-  type GrassPrimitiveFamily,
-  type TextureVolumeProfile,
-  type TextureVolumeRenderModel,
 } from "../../../packages/game-renderer/src/battle/grassPass";
 import { sampleGrassField } from "../../../packages/game-renderer/src/battle/grassField";
 import { BattleHorizonPass } from "../../../packages/game-renderer/src/battle/horizonPass";
@@ -169,7 +164,6 @@ import {
   MeshBuilder,
   type Rgb,
 } from "../../../packages/game-renderer/src/models/shared/meshBuilder";
-import type { GrassAccentStyle } from "../../../packages/game-renderer/src/models/shared/grassModels";
 import {
   CampaignSelectionPass,
   type CampaignSelectionInstance,
@@ -4166,13 +4160,6 @@ async function routeBattleTerrainFeatures(ctx: LabContext) {
 
 type Terrain3dEntry = Pick<BattleMapCatalogEntry, "id" | "label" | "edges" | "groundCover">;
 
-const REFERENCE_HIGHLAND_ENTRY: Terrain3dEntry = {
-  id: "highland-valley",
-  label: "Highland Valley Reference Fixture",
-  edges: { north: "open-fog", south: "open-fog", west: "cliff", east: "ocean" },
-  groundCover: "green-grass",
-};
-
 const GENERATED_SEED7_ENTRY: Terrain3dEntry = {
   id: "generated-seed-7",
   label: "Generated Seed 7",
@@ -4180,384 +4167,40 @@ const GENERATED_SEED7_ENTRY: Terrain3dEntry = {
   groundCover: "green-grass",
 };
 
-const REFERENCE_BACKDROP_WGSL = `
-${WORLD_CAMERA_WGSL}
-struct VsOut {
-  @builtin(position) pos: vec4f,
-  @location(0) color: vec3f,
-  @location(1) fog: f32,
-  @location(2) light: f32,
-};
-
-@vertex
-fn vs(@location(0) world: vec3f, @location(1) normal: vec3f, @location(2) color: vec3f, @location(3) alpha: f32) -> VsOut {
-  var out: VsOut;
-  out.pos = projectWorld(world);
-  let axesY = length(world.xy - cam.focus);
-  let distanceFog = smoothstep(780.0, 2400.0, axesY);
-  let heightFog = smoothstep(120.0, 330.0, world.z);
-  out.fog = clamp(distanceFog * 0.72 + heightFog * 0.20 + (1.0 - alpha) * 0.35, 0.0, 0.92);
-  let sun = normalize(vec3f(-0.35, -0.18, 0.92));
-  out.light = clamp(dot(normalize(normal), sun) * 0.22 + 0.88, 0.66, 1.08);
-  out.color = color;
-  return out;
-}
-
-@fragment
-fn fs(in: VsOut) -> @location(0) vec4f {
-  let haze = vec3f(0.80, 0.83, 0.84);
-  let col = mix(in.color * in.light, haze, in.fog);
-  return vec4f(clamp(col, vec3f(0.0), vec3f(1.0)), 1.0);
-}`;
-
-const REFERENCE_SKY_WGSL = `
-struct VsOut {
-  @builtin(position) pos: vec4f,
-  @location(0) uv: vec2f,
-};
-
-fn hash(p: vec2f) -> f32 {
-  let p3 = fract(vec3f(p.xyx) * 0.1031);
-  let q = p3 + dot(p3, p3.yzx + vec3f(33.33));
-  return fract((q.x + q.y) * q.z);
-}
-
-fn vnoise(p: vec2f) -> f32 {
-  let i = floor(p);
-  let f = fract(p);
-  let u = f * f * (3.0 - 2.0 * f);
-  return mix(mix(hash(i), hash(i + vec2f(1.0, 0.0)), u.x),
-             mix(hash(i + vec2f(0.0, 1.0)), hash(i + vec2f(1.0, 1.0)), u.x), u.y);
-}
-
-@vertex
-fn vs(@builtin(vertex_index) index: u32) -> VsOut {
-  let positions = array<vec2f, 6>(
-    vec2f(-1.0, -1.0), vec2f(1.0, -1.0), vec2f(-1.0, 1.0),
-    vec2f(-1.0, 1.0), vec2f(1.0, -1.0), vec2f(1.0, 1.0)
-  );
-  let p = positions[index];
-  var out: VsOut;
-  out.pos = vec4f(p, 0.0, 1.0);
-  out.uv = p * 0.5 + vec2f(0.5);
-  return out;
-}
-
-@fragment
-fn fs(in: VsOut) -> @location(0) vec4f {
-  let top = vec3f(0.73, 0.78, 0.81);
-  let horizon = vec3f(0.86, 0.88, 0.88);
-  var col = mix(horizon, top, smoothstep(0.18, 1.0, in.uv.y));
-  let lowMist = 1.0 - smoothstep(0.20, 0.48, in.uv.y);
-  col = mix(col, vec3f(0.88, 0.90, 0.89), lowMist * 0.45);
-  let cloudP = in.uv * vec2f(3.0, 6.0) + vec2f(1.3, 0.4);
-  let cloud = vnoise(cloudP) * 0.58 + vnoise(cloudP * 2.1 + vec2f(4.0, 7.0)) * 0.42;
-  let cloudMask = smoothstep(0.50, 0.78, cloud) * smoothstep(0.28, 0.94, in.uv.y);
-  col = mix(col, vec3f(0.91, 0.92, 0.91), cloudMask * 0.42);
-  let shadow = smoothstep(0.55, 0.78, cloud) * smoothstep(0.40, 0.98, in.uv.y);
-  col = mix(col, vec3f(0.67, 0.72, 0.76), shadow * 0.10);
-  return vec4f(clamp(col, vec3f(0.0), vec3f(1.0)), 1.0);
-}`;
-
-class ReferenceHighlandSkyPass {
-  private pipeline: GPURenderPipeline;
-
-  constructor(shell: RawFrameShell) {
-    const module = compileShader(shell.device, REFERENCE_SKY_WGSL, "reference-highland-sky");
-    this.pipeline = shell.device.createRenderPipeline({
-      label: "reference-highland-sky-pipeline",
-      layout: shell.device.createPipelineLayout({ bindGroupLayouts: [] }),
-      vertex: { module, entryPoint: "vs" },
-      fragment: { module, entryPoint: "fs", targets: [gpuOpaqueColorTarget(shell.info.format)] },
-      primitive: { topology: "triangle-list" },
-    });
-  }
-
-  draw(pass: BackgroundRenderPass) {
-    pass.setPipeline(this.pipeline);
-    pass.draw(6);
-  }
-
-  stats() {
-    return { layer: "reference-highland-sky" as const };
-  }
-}
-
-class ReferenceHighlandBackdropPass {
-  private pipeline: GPURenderPipeline;
-  private vertexBuffer: GPUBuffer | null = null;
-  private indexBuffer: GPUBuffer | null = null;
-  private indexCount = 0;
-  private triangles = 0;
-
-  constructor(private shell: RawFrameShell) {
-    const module = compileShader(
-      shell.device,
-      REFERENCE_BACKDROP_WGSL,
-      "reference-highland-backdrop",
-    );
-    this.pipeline = shell.device.createRenderPipeline({
-      label: "reference-highland-backdrop-pipeline",
-      layout: shell.device.createPipelineLayout({
-        bindGroupLayouts: [shell.cameraBindGroupLayout],
-      }),
-      vertex: {
-        module,
-        entryPoint: "vs",
-        buffers: [
-          {
-            arrayStride: 40,
-            attributes: [
-              { shaderLocation: 0, offset: 0, format: "float32x3" },
-              { shaderLocation: 1, offset: 12, format: "float32x3" },
-              { shaderLocation: 2, offset: 24, format: "float32x3" },
-              { shaderLocation: 3, offset: 36, format: "float32" },
-            ],
-          },
-        ],
-      },
-      fragment: { module, entryPoint: "fs", targets: [gpuOpaqueColorTarget(shell.info.format)] },
-      primitive: { topology: "triangle-list", cullMode: "none" },
-      depthStencil: gpuWorldDepthStencil("read-write"),
-    });
-  }
-
-  setValley(
-    bounds: { ox: number; oy: number; w: number; h: number; cell: number },
-    field: TerrainHeightField,
-  ) {
-    const builder = new MeshBuilder();
-    const x0 = bounds.ox;
-    const x1 = bounds.ox + bounds.w * bounds.cell;
-    const y0 = bounds.oy;
-    const y1 = bounds.oy + bounds.h * bounds.cell;
-
-    this.addDistantValleyFloor(builder, x0, x1, y0, y1);
-    this.addWaterInlet(builder, field);
-    this.addLeftRidgeWall(builder, field, y0, y1);
-    this.addFarRidgeBands(builder, y1);
-    this.addForegroundHummockApron(builder, field);
-
-    const mesh = builder.finish("reference highland backdrop");
-    this.upload(mesh.opaque.vertices, mesh.opaque.indices);
-    this.triangles = mesh.opaque.indices.length / 3;
-  }
-
-  private addDistantValleyFloor(
-    builder: MeshBuilder,
-    x0: number,
-    x1: number,
-    y0: number,
-    y1: number,
-  ) {
-    const nearGrass: Rgb = [0.5, 0.6, 0.43];
-    const midMist: Rgb = [0.67, 0.74, 0.7];
-    const farMist: Rgb = [0.8, 0.84, 0.83];
-    builder.gradQuad(
-      [x0 + 210, y0 + 610, -9],
-      [x1 - 120, y0 + 520, -12],
-      [x1 + 840, y1 + 1240, -98],
-      [x0 - 220, y1 + 1280, -82],
-      nearGrass,
-      farMist,
-    );
-    builder.gradQuad(
-      [x0 + 470, y0 + 780, -5],
-      [x1 - 520, y0 + 850, -7],
-      [x1 - 40, y1 + 940, -86],
-      [x0 + 30, y1 + 860, -62],
-      midMist,
-      farMist,
-    );
-  }
-
-  private addWaterInlet(builder: MeshBuilder, field: TerrainHeightField) {
-    const waterNear: Rgb = [0.58, 0.7, 0.73];
-    const waterFar: Rgb = [0.76, 0.82, 0.84];
-    const z0 = terrainHeightAt(field, 620, -120) - 6.5;
-    builder.gradQuad(
-      [520, -170, z0],
-      [1030, -130, z0 - 4],
-      [1160, 360, z0 - 34],
-      [650, 330, z0 - 24],
-      waterNear,
-      waterFar,
-    );
-    builder.gradQuad(
-      [690, 290, z0 - 20],
-      [1220, 390, z0 - 32],
-      [1330, 820, z0 - 66],
-      [790, 700, z0 - 52],
-      waterFar,
-      [0.82, 0.86, 0.86],
-    );
-  }
-
-  private addLeftRidgeWall(
-    builder: MeshBuilder,
-    field: TerrainHeightField,
-    y0: number,
-    y1: number,
-  ) {
-    const nearStone: Rgb = [0.38, 0.42, 0.42];
-    const midStone: Rgb = [0.52, 0.56, 0.56];
-    const haze: Rgb = [0.8, 0.83, 0.84];
-    builder.gradQuad(
-      [-910, y0 + 340, terrainHeightAt(field, -820, y0 + 340) - 2],
-      [-650, y0 + 820, terrainHeightAt(field, -650, y0 + 820) - 10],
-      [-500, y1 + 520, -58],
-      [-930, y1 + 300, -42],
-      [0.42, 0.51, 0.39],
-      [0.76, 0.81, 0.8],
-    );
-    const rows = [
-      {
-        x: -980,
-        yStart: -300,
-        yEnd: 620,
-        radius: 155,
-        height: 175,
-        fog: 0.12,
-        step: 155,
-        salt: 17,
-      },
-      { x: -820, yStart: -70, yEnd: 900, radius: 190, height: 160, fog: 0.46, step: 175, salt: 53 },
-      { x: -610, yStart: 230, yEnd: 1120, radius: 230, height: 130, fog: 0.7, step: 220, salt: 89 },
-    ];
-    for (const row of rows) {
-      const count = Math.ceil((row.yEnd - row.yStart) / row.step);
-      for (let i = 0; i <= count; i++) {
-        const y = row.yStart + i * row.step;
-        const x = row.x + Math.sin((i + row.salt) * 1.7) * row.radius * 0.2;
-        const base = terrainHeightAt(field, x + 80, y) - 18 - row.fog * 34;
-        const radius = row.radius * (0.82 + hashUnit(i, row.salt) * 0.34);
-        const height = row.height * (0.78 + hashUnit(i, row.salt + 11) * 0.34);
-        const baseC = mixRgb(nearStone, haze, row.fog);
-        const topC = mixRgb(midStone, haze, Math.min(0.88, row.fog + 0.18));
-        builder.peak([x, y, base], radius, height, 12, baseC, topC, row.salt + i * 13);
-      }
-    }
-  }
-
-  private addFarRidgeBands(builder: MeshBuilder, y1: number) {
-    const ridgeA: Rgb = [0.54, 0.59, 0.6];
-    const ridgeB: Rgb = [0.7, 0.75, 0.76];
-    const haze: Rgb = [0.82, 0.85, 0.85];
-    const bands = [
-      { y: y1 + 220, x0: -360, x1: 1030, z: -42, h: 135, c: ridgeA, fog: 0.3 },
-      { y: y1 + 610, x0: -150, x1: 1180, z: -78, h: 118, c: ridgeB, fog: 0.58 },
-      { y: y1 + 980, x0: 100, x1: 1320, z: -112, h: 92, c: haze, fog: 0.78 },
-    ];
-    for (const band of bands) {
-      const steps = 7;
-      for (let i = 0; i < steps; i++) {
-        const t0 = i / steps;
-        const t1 = (i + 1) / steps;
-        const xa = band.x0 + (band.x1 - band.x0) * t0;
-        const xb = band.x0 + (band.x1 - band.x0) * t1;
-        const topA = band.z + band.h * (0.78 + Math.sin((i + 1) * 1.7) * 0.18);
-        const topB = band.z + band.h * (0.78 + Math.sin((i + 2) * 1.7) * 0.18);
-        builder.gradQuad(
-          [xa, band.y, band.z],
-          [xb, band.y + 35 * Math.sin(i), band.z - 8],
-          [xb, band.y + 55, topB],
-          [xa, band.y + 25, topA],
-          mixRgb(band.c, haze, band.fog * 0.25),
-          mixRgb(band.c, haze, band.fog),
-        );
-      }
-    }
-  }
-
-  private addForegroundHummockApron(builder: MeshBuilder, field: TerrainHeightField) {
-    const grass: Rgb = [0.48, 0.6, 0.39];
-    const hazeGrass: Rgb = [0.66, 0.74, 0.66];
-    builder.gradQuad(
-      [20, -560, terrainHeightAt(field, 20, -560) + 1.0],
-      [650, -520, terrainHeightAt(field, 650, -520) + 1.8],
-      [760, -250, terrainHeightAt(field, 760, -250) - 4.0],
-      [120, -280, terrainHeightAt(field, 120, -280) - 3.0],
-      grass,
-      hazeGrass,
-    );
-  }
-
-  private upload(verts: Float32Array, indices: Uint16Array) {
-    const device = this.shell.device;
-    this.vertexBuffer?.destroy();
-    this.indexBuffer?.destroy();
-    this.vertexBuffer = device.createBuffer({
-      label: "reference-highland-backdrop-vertices",
-      size: Math.max(4, verts.byteLength),
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
-    if (verts.byteLength > 0) device.queue.writeBuffer(this.vertexBuffer, 0, verts);
-    const padded = indices.byteLength % 4 === 0 ? indices : new Uint16Array(indices.length + 1);
-    if (padded !== indices) padded.set(indices);
-    this.indexBuffer = device.createBuffer({
-      label: "reference-highland-backdrop-indices",
-      size: Math.max(4, padded.byteLength),
-      usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
-    });
-    if (padded.byteLength > 0) device.queue.writeBuffer(this.indexBuffer, 0, padded);
-    this.indexCount = indices.length;
-  }
-
-  draw(pass: WorldRenderPass) {
-    if (!this.vertexBuffer || !this.indexBuffer || this.indexCount === 0) return;
-    pass.setPipeline(this.pipeline);
-    pass.setBindGroup(0, this.shell.cameraBindGroup);
-    pass.setVertexBuffer(0, this.vertexBuffer);
-    pass.setIndexBuffer(this.indexBuffer, "uint16");
-    pass.drawIndexed(this.indexCount);
-  }
-
-  stats() {
-    return { layer: "reference-highland-backdrop" as const, triangles: this.triangles };
-  }
-}
-
 // The rolling 3D battle terrain: height-displaced ground + shared scenery props
 // seated on the same height, viewed at the gameplay camera. Proves the slice-03
 // foundation — soldiers and props will share this ground.
 async function routeBattleTerrain3d(ctx: LabContext) {
   const requestedGate = ctx.params.get("gate") ?? "";
+  const { default: initWasm, Game } = await import("../../../web/src/wasm/game_wasm.js");
+  const wasm = await initWasm();
+  const game = new Game(0x5eed_c0de);
   let entry: BattleMapCatalogEntry | Terrain3dEntry;
-  let grid: BattleTerrainGrid;
-  if (requestedGate === REFERENCE_HIGHLAND_ENTRY.id) {
-    entry = REFERENCE_HIGHLAND_ENTRY;
-    grid = buildReferenceHighlandGrid();
+  if (requestedGate === GENERATED_SEED7_ENTRY.id) {
+    game.load_generated_map(7n);
+    entry = GENERATED_SEED7_ENTRY;
   } else {
-    const { default: initWasm, Game } = await import("../../../web/src/wasm/game_wasm.js");
-    const wasm = await initWasm();
-    const game = new Game(0x5eed_c0de);
-    if (requestedGate === GENERATED_SEED7_ENTRY.id) {
-      game.load_generated_map(7n);
-      entry = GENERATED_SEED7_ENTRY;
-    } else {
-      const catalogEntry = battleMapById(requestedGate) ?? BATTLE_MAP_CATALOG[0];
-      if (catalogEntry.generatedSeed !== undefined)
-        game.load_generated_map(BigInt(catalogEntry.generatedSeed));
-      else game.load_map(catalogEntry.wasmMapId);
-      entry = catalogEntry;
-    }
-
-    const tw = game.terrain_w();
-    const th = game.terrain_h();
-    const tcell = game.terrain_cell();
-    const tox = game.terrain_origin_x();
-    const toy = game.terrain_origin_y();
-    grid = {
-      w: tw,
-      h: th,
-      cell: tcell,
-      ox: tox,
-      oy: toy,
-      tint: new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), tw * th).slice(),
-      speed: new Float32Array(wasm.memory.buffer, game.terrain_speed_ptr(), tw * th).slice(),
-      height: new Float32Array(wasm.memory.buffer, game.terrain_height_ptr(), tw * th).slice(),
-    };
+    const catalogEntry = battleMapById(requestedGate) ?? BATTLE_MAP_CATALOG[0];
+    if (catalogEntry.generatedSeed !== undefined)
+      game.load_generated_map(BigInt(catalogEntry.generatedSeed));
+    else game.load_map(catalogEntry.wasmMapId);
+    entry = catalogEntry;
   }
+  const tw = game.terrain_w();
+  const th = game.terrain_h();
+  const tcell = game.terrain_cell();
+  const tox = game.terrain_origin_x();
+  const toy = game.terrain_origin_y();
+  const grid: BattleTerrainGrid = {
+    w: tw,
+    h: th,
+    cell: tcell,
+    ox: tox,
+    oy: toy,
+    tint: new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), tw * th).slice(),
+    speed: new Float32Array(wasm.memory.buffer, game.terrain_speed_ptr(), tw * th).slice(),
+    height: new Float32Array(wasm.memory.buffer, game.terrain_height_ptr(), tw * th).slice(),
+  };
   const { w, h, cell, ox, oy } = grid;
   const presentation = buildBattleTerrainPresentation(entry, grid, 0x1234);
   // Exaggerate the gentle metre-scale relief for readability at the gameplay
@@ -4565,11 +4208,10 @@ async function routeBattleTerrain3d(ctx: LabContext) {
   // field drives ground, props, and soldiers so they share the exact surface.
   const field = presentation.height;
   const view = ctx.params.get("view") ?? "field";
-  const isReferenceFixture = presentation.mapId === REFERENCE_HIGHLAND_ENTRY.id;
   const environment = resolveBattleEnvironment(
-    ctx.params.get("environment") ?? (view === "reference" ? "overcast-foggy" : "golden-hour"),
+    ctx.params.get("environment") ?? "golden-hour",
   );
-  field.verticalScale = isReferenceFixture ? 2.35 : 2.6;
+  field.verticalScale = 2.6;
   const scenery = featuresToBattleScenery(presentation.features, field, 0x77, grid);
 
   // Frame this map's biggest mid-field land feature (a wood, else a rock/mud
@@ -4589,9 +4231,7 @@ async function routeBattleTerrain3d(ctx: LabContext) {
   );
   // Camera: 'field' frames a mid-field wood (pass cx/cy to aim it, e.g. at a
   // coastal shore); 'west'/'east' look outward toward that sealed edge so its
-  // blocker fills the distance. 'reference' uses the zoom-coupled vista endpoint
-  // for the battle-map-reference comparison shot.
-  if (view === "reference") ctx.root.classList.add("reference-shot");
+  // blocker fills the distance.
   const halfW = (w * cell) / 2;
   const midY = oy + (h * cell) / 2;
   // For the soldiers view, find the steepest slope on the field so the block
@@ -4610,29 +4250,13 @@ async function routeBattleTerrain3d(ctx: LabContext) {
         ? { x: halfW - 360, y: midY, zoom: 0.95, pitch: 0.26, yaw: Math.PI / 2 }
         : view === "soldiers"
           ? { x: standX, y: standY + 4, zoom: 9.0, pitch: 0.4, yaw: -0.04 }
-          : view === "reference"
-            ? isReferenceFixture
-              ? {
-                  x: Number(ctx.params.get("cx") ?? -380),
-                  y: Number(ctx.params.get("cy") ?? -720),
-                  zoom: Number(ctx.params.get("zoom") ?? 1.92),
-                  pitch: 1.03,
-                  yaw: -0.035,
-                }
-              : {
-                  x: Number(ctx.params.get("cx") ?? -70),
-                  y: Number(ctx.params.get("cy") ?? -650),
-                  zoom: Number(ctx.params.get("zoom") ?? 2.4),
-                  pitch: 1.02,
-                  yaw: -0.04,
-                }
-            : {
-                x: Number(ctx.params.get("cx") ?? focus?.x ?? 0),
-                y: Number(ctx.params.get("cy") ?? focus?.y ?? 0) - 110,
-                zoom: 3.3,
-                pitch: 0.44,
-                yaw: -0.05,
-              };
+          : {
+              x: Number(ctx.params.get("cx") ?? focus?.x ?? 0),
+              y: Number(ctx.params.get("cy") ?? focus?.y ?? 0) - 110,
+              zoom: 3.3,
+              pitch: 0.44,
+              yaw: -0.05,
+            };
   const shell = await createConfiguredShell(ctx.canvas, camera, environment);
   // Field water animates on cam.time; snap at a fixed t for deterministic shots
   // (defaults to 0, matching the pre-water frozen frame for non-water maps).
@@ -4640,347 +4264,30 @@ async function routeBattleTerrain3d(ctx: LabContext) {
   const ground = new BattleGroundPass(shell, environment);
   ground.setTerrain(grid, field, presentation.groundCover);
   const grass = new BattleGrassPass(shell, environment);
-  const grassZoomT = view === "reference" ? 1.0 : view === "soldiers" ? 0.82 : 0.58;
-  const requestedGrassTechnique = ctx.params.get("grassTechnique");
-  const grassTechnique =
-    view === "reference" && isReferenceFixture
-      ? requestedGrassTechnique === "cards"
-        ? "cards"
-        : requestedGrassTechnique === "field-meadow"
-          ? "field-meadow"
-          : "field-accent"
-      : "cards";
+  const grassZoomT = view === "soldiers" ? 0.82 : 0.58;
+  const grassTechnique = "cards";
   const grassFocus = {
     x: camera.x,
     y: camera.y,
-    radius:
-      view === "reference"
-        ? Number(ctx.params.get("grassRadius") ?? (isReferenceFixture ? 500 : 320))
-        : view === "soldiers"
-          ? 150
-          : 340,
-    ...(view === "reference" && isReferenceFixture
-      ? {
-          yaw: camera.yaw,
-          depthNear: numberParam(ctx.params, "grassDepthNear", 35),
-          depthFar: numberParam(ctx.params, "grassDepthFar", 540),
-          nearBoost: numberParam(ctx.params, "grassNearBoost", 2.2),
-          farWeight: numberParam(ctx.params, "grassFarWeight", 0.035),
-        }
-      : {}),
+    radius: view === "soldiers" ? 150 : 340,
   };
-  let referenceFieldSnapshot: ReturnType<typeof sampleGrassField> | null = null;
-  if (view === "reference" && isReferenceFixture && grassTechnique !== "cards") {
-    referenceFieldSnapshot = sampleGrassField(grid, field, {
-      seed: integerParam(ctx.params, "grassSeed", 0x7a55, 0, 0x7fff_ffff),
-      focus: grassFocus,
-      fieldCellSize: numberParam(ctx.params, "grassFieldCell", 4.6),
-      snapCellSize: numberParam(ctx.params, "grassSnapCell", 28),
-      clumpCellSize: numberParam(ctx.params, "grassClumpCell", 46),
-      density: numberParam(ctx.params, "grassFieldDensity", 1.0),
-      jitter: numberParam(ctx.params, "grassFieldJitter", 0.58),
-      minNormalZ: numberParam(ctx.params, "grassMinNormalZ", 0.54),
-      maxRecords: integerParam(ctx.params, "grassFieldRecords", 7000, 0, 20000),
-      baseHeight: numberParam(ctx.params, "grassBladeHeight", 0.82),
-      baseWidth: numberParam(ctx.params, "grassBladeWidth", 0.052),
-      baseBend: numberParam(ctx.params, "grassBend", 0.28),
-    });
-    ground.setMeadowFromGrassField(
-      referenceFieldSnapshot,
-      { x: ox, y: oy, width: w * cell, height: h * cell },
-      {
-        depthNear: numberParam(ctx.params, "meadowDepthNear", 0),
-        depthFar: numberParam(ctx.params, "meadowDepthFar", 1040),
-        nearStrength: numberParam(ctx.params, "meadowNear", 0.96),
-        farStrength: numberParam(ctx.params, "meadowFar", 0.48),
-        cellSize: numberParam(ctx.params, "meadowCell", 16),
-        spread: numberParam(ctx.params, "meadowSpread", 86),
-        coverageSpread: numberParam(ctx.params, "meadowCoverageSpread", 180),
-        densityScale: numberParam(ctx.params, "meadowDensityScale", 1.08),
-        streakStrength: numberParam(ctx.params, "meadowStreak", 0.28),
-        fieldFloor: numberParam(ctx.params, "meadowFloor", 0.07),
-        rootMassStrength:
-          grassTechnique === "field-accent" ? numberParam(ctx.params, "rootMassStrength", 1.24) : 0,
-        rootMassContrast: numberParam(ctx.params, "rootMassContrast", 0.78),
-        rootMassSpread: numberParam(ctx.params, "rootMassSpread", 32),
-      },
-    );
-    const fiberShellVariant = fiberShellVariantParam(ctx.params, "fiberShellVariant", "normal");
-    const requestedPrimitiveFamily = grassPrimitiveFamilyParam(
-      ctx.params,
-      "grassPrimitiveFamily",
-      "field-fiber-shell",
-    );
-    const defaultAccentStyle =
-      grassTechnique === "field-meadow"
-        ? "tuft"
-        : accentStyleForPrimitiveFamily(requestedPrimitiveFamily, fiberShellVariant);
-    const grassAccentStyle = grassAccentStyleParam(
-      ctx.params,
-      "grassAccentStyle",
-      defaultAccentStyle,
-    );
-    const grassPrimitiveFamily = grassPrimitiveFamilyForRequest(
-      requestedPrimitiveFamily,
-      grassAccentStyle,
-    );
-    const texturePrimitive = isTextureGrassPrimitiveFamily(grassPrimitiveFamily);
-    const textureCarrier = grassPrimitiveFamily === "texture-carrier";
-    const textureMicroCarrier = grassPrimitiveFamily === "texture-micro-carrier";
-    const textureVolumeProfile = texturePrimitive
-      ? textureVolumeProfileParam(ctx.params, "textureVolumeProfile", "current")
-      : "current";
-    const textureVolumeRenderModel =
-      grassPrimitiveFamily === "texture-volume"
-        ? textureVolumeRenderModelParam(ctx.params, "textureVolumeRenderModel", "opaque-card")
-        : "opaque-card";
-    const grassAccentAggregation =
-      grassTechnique === "field-accent" && texturePrimitive
-        ? grassAccentAggregationParam(ctx.params, "grassAccentAggregation", "field-cell")
-        : grassTechnique === "field-accent" && isFieldFiberShellStyle(grassAccentStyle)
-          ? "field-near"
-          : grassTechnique === "field-accent" && isClumpGrassAccentStyle(grassAccentStyle)
-            ? grassAccentAggregationParam(ctx.params, "grassAccentAggregation", "clump")
-            : "record";
-    const fieldShellStyle = isFieldFiberShellStyle(grassAccentStyle);
-    const workbenchPrimitive = isWorkbenchGrassPrimitiveFamily(grassPrimitiveFamily);
-    grass.setGrassFieldSnapshot(referenceFieldSnapshot, presentation.groundCover, {
-      seed: 0x7a55,
-      bladesPerTuft: integerParam(
-        ctx.params,
-        "grassBlades",
-        grassTechnique === "field-meadow"
-          ? 0
-          : fieldShellStyle
-            ? 1
-            : textureMicroCarrier
-              ? 2
-              : textureCarrier
-                ? 4
-                : texturePrimitive
-                  ? 4
-                  : grassPrimitiveFamily === "alpha-impostor"
-                    ? 4
-                    : grassPrimitiveFamily === "volume-card"
-                      ? 5
-                      : 5,
-        0,
-        96,
-      ),
-      maxTufts: integerParam(
-        ctx.params,
-        "grassAccentTufts",
-        grassTechnique === "field-meadow"
-          ? referenceFieldSnapshot.records.length
-          : fieldShellStyle
-            ? 5200
-            : workbenchPrimitive
-              ? referenceFieldSnapshot.records.length
-              : 2600,
-        0,
-        20000,
-      ),
-      accentMaxClumps: integerParam(
-        ctx.params,
-        "grassAccentClumps",
-        grassTechnique === "field-accent"
-          ? textureMicroCarrier
-            ? 4600
-            : textureCarrier
-              ? 2400
-              : texturePrimitive
-                ? 1900
-                : workbenchPrimitive
-                  ? 420
-                  : 760
-          : 0,
-        0,
-        20000,
-      ),
-      bladeHeight: numberParam(
-        ctx.params,
-        "grassBladeHeight",
-        grassTechnique === "field-meadow"
-          ? 0.82
-          : grassAccentStyle === "field-fiber-shell-visibility"
-            ? 0.86
-            : fieldShellStyle
-              ? 0.62
-              : textureMicroCarrier
-                ? 0.68
-                : textureCarrier
-                  ? 0.92
-                  : texturePrimitive
-                    ? 1.06
-                    : grassPrimitiveFamily === "alpha-impostor"
-                      ? 0.74
-                      : grassPrimitiveFamily === "billboard-cluster"
-                        ? 0.92
-                        : grassPrimitiveFamily === "volume-card"
-                          ? 0.7
-                          : 0.56,
-      ),
-      bladeWidth: numberParam(
-        ctx.params,
-        "grassBladeWidth",
-        grassTechnique === "field-meadow"
-          ? 0.052
-          : grassAccentStyle === "field-fiber-shell-visibility"
-            ? 0.052
-            : fieldShellStyle
-              ? 0.036
-              : textureMicroCarrier
-                ? 0.044
-                : textureCarrier
-                  ? 0.12
-                  : texturePrimitive
-                    ? 0.074
-                    : grassPrimitiveFamily === "volume-card"
-                      ? 0.09
-                      : 0.07,
-      ),
-      bend: numberParam(
-        ctx.params,
-        "grassBend",
-        grassTechnique === "field-meadow"
-          ? 0.28
-          : grassAccentStyle === "field-fiber-shell-visibility"
-            ? 0.08
-            : fieldShellStyle
-              ? 0.14
-              : textureMicroCarrier
-                ? 0.05
-                : textureCarrier
-                  ? 0.035
-                  : texturePrimitive
-                    ? 0.05
-                    : grassPrimitiveFamily === "volume-card"
-                      ? 0.06
-                      : 0.12,
-      ),
-      spread: numberParam(
-        ctx.params,
-        "grassSpread",
-        grassTechnique === "field-meadow"
-          ? 0.16
-          : grassAccentStyle === "field-fiber-shell-visibility"
-            ? 0.055
-            : fieldShellStyle
-              ? 0.04
-              : textureMicroCarrier
-                ? 0.052
-                : textureCarrier
-                  ? 0.12
-                  : texturePrimitive
-                    ? 0.082
-                    : grassPrimitiveFamily === "volume-card"
-                      ? 0.07
-                      : 0.09,
-      ),
-      windPhase: numberParam(ctx.params, "grassPhase", 0),
-      windStrength: grassTechnique === "field-meadow" ? 0.032 : 0.016,
-      zoomT: grassZoomT,
-      focus: grassFocus,
-      accentDepthNear: numberParam(
-        ctx.params,
-        "grassAccentDepthNear",
-        fieldShellStyle || workbenchPrimitive ? 35 : -40,
-      ),
-      accentDepthFar: numberParam(
-        ctx.params,
-        "grassAccentDepthFar",
-        textureMicroCarrier
-          ? 460
-          : textureCarrier
-            ? 460
-            : fieldShellStyle || workbenchPrimitive
-              ? 360
-              : 120,
-      ),
-      surfaceBlend: numberParam(
-        ctx.params,
-        "grassAccentSurface",
-        grassTechnique === "field-meadow"
-          ? 0
-          : grassAccentAggregation === "field-cell"
-            ? textureMicroCarrier
-              ? 0.34
-              : textureCarrier
-                ? 0.38
-                : 0.26
-            : grassAccentAggregation === "clump"
-              ? workbenchPrimitive
-                ? 0.38
-                : 0.56
-              : grassAccentStyle === "field-fiber-shell-visibility"
-                ? 0.42
-                : grassAccentAggregation === "field-near"
-                  ? 0.7
-                  : 0.98,
-      ),
-      accentStyle: grassAccentStyle,
-      accentAggregation: grassAccentAggregation,
-      accentClumpFootprint: numberParam(
-        ctx.params,
-        "grassAccentFootprint",
-        grassAccentAggregation === "field-cell"
-          ? textureMicroCarrier
-            ? 1.9
-            : textureCarrier
-              ? 5.8
-              : 3.4
-          : grassAccentAggregation === "clump"
-            ? workbenchPrimitive
-              ? 8.2
-              : 6.8
-            : 1,
-      ),
-      fiberShellVariant,
-      grassPrimitiveFamily,
-      grassPrimitiveBaseline:
-        grassPrimitiveFamily === "field-fiber-shell" ? "none" : "field-fiber-shell-normal",
-      textureVolumeProfile,
-      textureVolumeRenderModel,
-    });
-  } else {
-    grass.setTerrain(grid, field, presentation.groundCover, {
-      seed: 0x7a55,
-      density: view === "reference" ? (isReferenceFixture ? 1.15 : 0.72) : 0.5,
-      maxTufts: view === "reference" ? (isReferenceFixture ? 24000 : 8000) : 4200,
-      zoomT: grassZoomT,
-      focus: grassFocus,
-      ...(view === "reference"
-        ? { bladesPerTuft: integerParam(ctx.params, "grassBlades", 12, 1, 96) }
-        : {}),
-      bladeHeight:
-        view === "reference"
-          ? numberParam(ctx.params, "grassBladeHeight", isReferenceFixture ? 1.45 : 1.24)
-          : 1.0,
-      bladeWidth:
-        view === "reference"
-          ? numberParam(ctx.params, "grassBladeWidth", isReferenceFixture ? 0.096 : 0.088)
-          : 0.072,
-      bend:
-        view === "reference"
-          ? numberParam(ctx.params, "grassBend", isReferenceFixture ? 0.46 : 0.4)
-          : 0.32,
-      spread:
-        view === "reference"
-          ? numberParam(ctx.params, "grassSpread", isReferenceFixture ? 0.34 : 0.25)
-          : 0.2,
-      windPhase: numberParam(ctx.params, "grassPhase", 0),
-      windStrength: isReferenceFixture ? 0.058 : 0.078,
-    });
-  }
+  grass.setTerrain(grid, field, presentation.groundCover, {
+    seed: 0x7a55,
+    density: 0.5,
+    maxTufts: 4200,
+    zoomT: grassZoomT,
+    focus: grassFocus,
+    bladeHeight: 1.0,
+    bladeWidth: 0.072,
+    bend: 0.32,
+    spread: 0.2,
+    windPhase: numberParam(ctx.params, "grassPhase", 0),
+    windStrength: 0.078,
+  });
   const props = new CampaignSceneryPass(shell);
   props.upload(scenery);
   const horizon = new BattleHorizonPass(shell, environment);
   horizon.setEdges({ ox, oy, w, h, cell }, presentation.edges, field);
-  const referenceSky =
-    view === "reference" && isReferenceFixture ? new ReferenceHighlandSkyPass(shell) : null;
-  const referenceBackdrop =
-    view === "reference" && isReferenceFixture ? new ReferenceHighlandBackdropPass(shell) : null;
-  referenceBackdrop?.setValley({ ox, oy, w, h, cell }, field);
 
   // view=soldiers: plant a block on the rolling ground, seated through the SAME
   // height field as the terrain mesh and props, so feet and shadows ride the
@@ -5035,35 +4342,13 @@ async function routeBattleTerrain3d(ctx: LabContext) {
   shell.drawFrame({
     clear: clearForEnvironment(environment),
     passes: [
-      ...(referenceSky
-        ? [
-            {
-              id: "battle-reference-sky",
-              role: "background-underpaint" as const,
-              phase: "background" as const,
-              draw: (pass: BackgroundRenderPass) => referenceSky.draw(pass),
-            },
-          ]
-        : []),
-      ...(referenceBackdrop
-        ? [
-            {
-              id: "battle-reference-backdrop",
-              role: "world-opaque" as const,
-              phase: "world-depth" as const,
-              depth: "read-write" as const,
-              draw: (pass: WorldRenderPass) => referenceBackdrop.draw(pass),
-            },
-          ]
-        : [
-            {
-              id: "battle-3d-horizon",
-              role: "world-opaque" as const,
-              phase: "world-depth" as const,
-              depth: "read-write" as const,
-              draw: (pass: WorldRenderPass) => horizon.draw(pass),
-            },
-          ]),
+      {
+        id: "battle-3d-horizon",
+        role: "world-opaque",
+        phase: "world-depth",
+        depth: "read-write",
+        draw: (pass) => horizon.draw(pass),
+      },
       {
         id: "battle-3d-ground",
         role: "world-opaque",
@@ -5158,9 +4443,7 @@ async function routeBattleTerrain3d(ctx: LabContext) {
     view,
     environment: battleEnvironmentStats(environment),
     edges: presentation.edges,
-    sealedEdges: referenceBackdrop ? [] : horizon.stats().sealedEdges,
-    referenceSky: referenceSky?.stats() ?? null,
-    referenceBackdrop: referenceBackdrop?.stats() ?? null,
+    sealedEdges: horizon.stats().sealedEdges,
     groundCover: presentation.groundCover,
     groundTriangles: groundStats.triangles,
     groundLayer: groundStats.layer,
@@ -5177,105 +4460,6 @@ async function routeBattleTerrain3d(ctx: LabContext) {
     depth: shell.stats().depth,
     framePhases: shell.stats().phases,
   });
-}
-
-function buildReferenceHighlandGrid(): BattleTerrainGrid {
-  const w = 360;
-  const h = 250;
-  const cell = 6;
-  const ox = -1080;
-  const oy = -930;
-  const tint = new Uint8Array(w * h);
-  const speed = new Float32Array(w * h);
-  const height = new Float32Array(w * h);
-
-  for (let cy = 0; cy < h; cy++) {
-    for (let cx = 0; cx < w; cx++) {
-      const i = cy * w + cx;
-      const x = ox + (cx + 0.5) * cell;
-      const y = oy + (cy + 0.5) * cell;
-      const nx = (cx + 0.5) / w;
-      const ny = (cy + 0.5) / h;
-
-      const leftWall = Math.pow(clampUnit((0.24 - nx) / 0.24), 1.55) * (6.0 + 1.8 * ny);
-      const leftToe = 2.2 * gaussian2(x, y, -700, -220, 300, 570);
-      const valleyFloor =
-        -4.8 * gaussian2(x, y, -20, -105, 760, 560) -
-        2.8 * gaussian2(x, y, 260, 220, 780, 520) -
-        1.4 * smoothUnit((ny - 0.43) / 0.42);
-      const nearHummock =
-        4.1 * gaussian2(x, y, 360, -710, 560, 170) + 2.2 * gaussian2(x, y, -210, -760, 470, 125);
-      const midHummock =
-        2.7 * gaussian2(x, y, 150, -420, 310, 135) + 1.8 * gaussian2(x, y, 520, -485, 290, 175);
-      const distantShelves = 0.9 * smoothUnit((ny - 0.54) / 0.34);
-      const roll = 0.42 * Math.sin(x * 0.006 + y * 0.003) + 0.33 * Math.sin(x * 0.013 - y * 0.005);
-      let z =
-        leftWall + leftToe + valleyFloor + nearHummock + midHummock + distantShelves + roll - 0.8;
-
-      let t = 0;
-      const westCliff = x < -905 + Math.sin(y * 0.009) * 36 + Math.sin(y * 0.021) * 18;
-      const shore = 450 + Math.sin(y * 0.004) * 80 - smoothUnit((y + 80) / 620) * 170;
-      const inletMouth =
-        gaussian2(x, y, 690, 20, 360, 280) > 0.4 || gaussian2(x, y, 860, 360, 420, 330) > 0.5;
-      const eastWater = y > -260 && x > shore && inletMouth;
-      const darkDrain = y > -500 && y < 160 && Math.abs(x + 190 - (y + 340) * 0.36) < 11;
-      const screeToe = !westCliff && x < -650 + Math.sin(y * 0.006) * 50 && y > -650;
-      const rockOutcrop =
-        gaussian2(x, y, -520, -390, 78, 100) > 0.62 ||
-        gaussian2(x, y, -80, -210, 64, 66) > 0.66 ||
-        gaussian2(x, y, 180, -315, 70, 64) > 0.66 ||
-        gaussian2(x, y, 520, -620, 58, 52) > 0.68;
-
-      if (westCliff) {
-        t = 2;
-      } else if (eastWater) {
-        t = 1;
-        z = -2.35 + ny * 0.32;
-      } else if (rockOutcrop) {
-        t = 2;
-        z += 0.55;
-      } else if (screeToe) {
-        t = 6;
-      } else if (darkDrain) {
-        t = 5;
-        z -= 0.45;
-      }
-
-      tint[i] = t;
-      speed[i] = t === 1 || t === 2 ? 0 : t === 5 ? 0.72 : t === 6 ? 0.82 : 1;
-      height[i] = z;
-    }
-  }
-
-  return { w, h, cell, ox, oy, tint, speed, height };
-}
-
-function gaussian2(x: number, y: number, cx: number, cy: number, sx: number, sy: number): number {
-  const dx = (x - cx) / sx;
-  const dy = (y - cy) / sy;
-  return Math.exp(-(dx * dx + dy * dy));
-}
-
-function smoothUnit(t: number): number {
-  const u = clampUnit(t);
-  return u * u * (3 - 2 * u);
-}
-
-function clampUnit(v: number): number {
-  return v < 0 ? 0 : v > 1 ? 1 : v;
-}
-
-function mixRgb(a: Rgb, b: Rgb, t: number): Rgb {
-  const u = clampUnit(t);
-  return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, a[2] + (b[2] - a[2]) * u];
-}
-
-function hashUnit(k: number, salt: number): number {
-  let n = Math.imul(k + 1, 0x9e3779b1) ^ Math.imul(salt + 1, 0x85ebca6b);
-  n ^= n >>> 13;
-  n = Math.imul(n, 0xc2b2ae35);
-  n ^= n >>> 16;
-  return (n >>> 0) / 4294967296;
 }
 
 // Scan the field for the spot with the steepest local slope, so a soldier block
@@ -6205,234 +5389,6 @@ function integerParam(
 ) {
   const value = Math.floor(numberParam(params, key, fallback));
   return Math.max(min, Math.min(max, value));
-}
-
-function grassAccentStyleParam(
-  params: URLSearchParams,
-  key: string,
-  fallback: GrassAccentStyle,
-): GrassAccentStyle {
-  const raw = params.get(key);
-  return raw === "root-shadow" ||
-    raw === "soft-root-mass" ||
-    raw === "soft-root-fiber" ||
-    raw === "field-fiber-shell" ||
-    raw === "field-fiber-shell-visibility" ||
-    raw === "field-fiber-body" ||
-    raw === "field-fiber-bundle" ||
-    raw === "field-strand-mat" ||
-    raw === "field-woven-mat" ||
-    raw === "field-domain-shell" ||
-    raw === "field-domain-micro-strand" ||
-    raw === "alpha-impostor" ||
-    raw === "billboard-cluster" ||
-    raw === "volume-card" ||
-    raw === "fiber-ribbon" ||
-    raw === "hybrid-root-fiber" ||
-    raw === "tuft"
-    ? raw
-    : fallback;
-}
-
-function grassAccentAggregationParam(
-  params: URLSearchParams,
-  key: string,
-  fallback: GrassAccentAggregation,
-): GrassAccentAggregation {
-  const raw = params.get(key);
-  return raw === "clump" ||
-    raw === "record" ||
-    raw === "field-cell" ||
-    raw === "field-near" ||
-    raw === "field-subcell"
-    ? raw
-    : fallback;
-}
-
-function fiberShellVariantParam(
-  params: URLSearchParams,
-  key: string,
-  fallback: GrassFiberShellVariant,
-): GrassFiberShellVariant {
-  const raw = params.get(key);
-  return raw === "off" ||
-    raw === "normal" ||
-    raw === "visibility" ||
-    raw === "width" ||
-    raw === "lift" ||
-    raw === "view-thickness"
-    ? raw
-    : fallback;
-}
-
-function textureVolumeProfileParam(
-  params: URLSearchParams,
-  key: string,
-  fallback: TextureVolumeProfile,
-): TextureVolumeProfile {
-  const raw = params.get(key);
-  return raw === "current" ||
-    raw === "seated-soft" ||
-    raw === "overlap-stagger" ||
-    raw === "broken-lattice"
-    ? raw
-    : fallback;
-}
-
-function textureVolumeRenderModelParam(
-  params: URLSearchParams,
-  key: string,
-  fallback: TextureVolumeRenderModel,
-): TextureVolumeRenderModel {
-  const raw = params.get(key);
-  return raw === "opaque-card" ||
-    raw === "alpha-cutout" ||
-    raw === "hard-cutout" ||
-    raw === "dither-cutout" ||
-    raw === "sparse-dither"
-    ? raw
-    : fallback;
-}
-
-function bodyDomainIdParam(
-  params: URLSearchParams,
-  key: string,
-  fallback: "field-strand-material" | "field-continuous-strand-texture",
-): "field-strand-material" | "field-continuous-strand-texture" {
-  const raw = params.get(key);
-  if (raw === "field-strand-material" || raw === "field-continuous-strand-texture") return raw;
-  return fallback;
-}
-
-function grassPrimitiveFamilyParam(
-  params: URLSearchParams,
-  key: string,
-  fallback: GrassPrimitiveFamily,
-): GrassPrimitiveFamily {
-  const raw = params.get(key);
-  return raw === "legacy-tuft" ||
-    raw === "root-shadow" ||
-    raw === "soft-root-mass" ||
-    raw === "soft-root-fiber" ||
-    raw === "field-fiber-shell" ||
-    raw === "field-fiber-body" ||
-    raw === "field-fiber-bundle" ||
-    raw === "field-strand-mat" ||
-    raw === "field-woven-mat" ||
-    raw === "field-domain-shell" ||
-    raw === "field-domain-micro-strand" ||
-    raw === "alpha-impostor" ||
-    raw === "billboard-cluster" ||
-    raw === "volume-card" ||
-    raw === "texture-volume" ||
-    raw === "texture-carrier" ||
-    raw === "texture-micro-carrier" ||
-    raw === "fiber-ribbon" ||
-    raw === "hybrid-root-fiber"
-    ? raw
-    : fallback;
-}
-
-function accentStyleForPrimitiveFamily(
-  family: GrassPrimitiveFamily,
-  fiberShellVariant: GrassFiberShellVariant,
-): GrassAccentStyle {
-  if (family === "field-fiber-shell")
-    return fiberShellVariant === "visibility"
-      ? "field-fiber-shell-visibility"
-      : "field-fiber-shell";
-  if (family === "field-fiber-body") return "field-fiber-body";
-  if (family === "field-fiber-bundle") return "field-fiber-bundle";
-  if (family === "field-strand-mat") return "field-strand-mat";
-  if (family === "field-woven-mat") return "field-woven-mat";
-  if (family === "field-domain-shell") return "field-domain-shell";
-  if (family === "field-domain-micro-strand") return "field-domain-micro-strand";
-  if (family === "alpha-impostor") return "alpha-impostor";
-  if (family === "billboard-cluster") return "billboard-cluster";
-  if (
-    family === "volume-card" ||
-    family === "texture-volume" ||
-    family === "texture-carrier" ||
-    family === "texture-micro-carrier"
-  )
-    return "volume-card";
-  if (family === "root-shadow") return "root-shadow";
-  if (family === "soft-root-mass") return "soft-root-mass";
-  if (family === "soft-root-fiber") return "soft-root-fiber";
-  if (family === "fiber-ribbon") return "fiber-ribbon";
-  if (family === "hybrid-root-fiber") return "hybrid-root-fiber";
-  return "tuft";
-}
-
-function grassPrimitiveFamilyForAccentStyle(style: GrassAccentStyle): GrassPrimitiveFamily {
-  if (style === "field-fiber-shell" || style === "field-fiber-shell-visibility")
-    return "field-fiber-shell";
-  if (style === "field-fiber-body") return "field-fiber-body";
-  if (style === "field-fiber-bundle") return "field-fiber-bundle";
-  if (style === "field-strand-mat") return "field-strand-mat";
-  if (style === "field-woven-mat") return "field-woven-mat";
-  if (style === "field-domain-shell") return "field-domain-shell";
-  if (style === "field-domain-micro-strand") return "field-domain-micro-strand";
-  if (style === "alpha-impostor") return "alpha-impostor";
-  if (style === "billboard-cluster") return "billboard-cluster";
-  if (style === "volume-card") return "volume-card";
-  if (style === "root-shadow") return "root-shadow";
-  if (style === "soft-root-mass") return "soft-root-mass";
-  if (style === "soft-root-fiber") return "soft-root-fiber";
-  if (style === "fiber-ribbon") return "fiber-ribbon";
-  if (style === "hybrid-root-fiber") return "hybrid-root-fiber";
-  return "legacy-tuft";
-}
-
-function grassPrimitiveFamilyForRequest(
-  requested: GrassPrimitiveFamily,
-  style: GrassAccentStyle,
-): GrassPrimitiveFamily {
-  if (requested === "texture-volume" && style === "volume-card") return "texture-volume";
-  if (requested === "texture-carrier" && style === "volume-card") return "texture-carrier";
-  if (requested === "texture-micro-carrier" && style === "volume-card")
-    return "texture-micro-carrier";
-  return grassPrimitiveFamilyForAccentStyle(style);
-}
-
-function isClumpGrassAccentStyle(style: GrassAccentStyle): boolean {
-  return (
-    style === "root-shadow" ||
-    style === "soft-root-mass" ||
-    style === "soft-root-fiber" ||
-    style === "alpha-impostor" ||
-    style === "billboard-cluster" ||
-    style === "volume-card"
-  );
-}
-
-function isWorkbenchGrassPrimitiveFamily(family: GrassPrimitiveFamily): boolean {
-  return (
-    family === "field-fiber-body" ||
-    family === "field-fiber-bundle" ||
-    family === "field-strand-mat" ||
-    family === "field-woven-mat" ||
-    family === "field-domain-shell" ||
-    family === "field-domain-micro-strand" ||
-    family === "alpha-impostor" ||
-    family === "billboard-cluster" ||
-    family === "volume-card" ||
-    family === "texture-volume" ||
-    family === "texture-carrier" ||
-    family === "texture-micro-carrier"
-  );
-}
-
-function isFieldFiberShellStyle(style: GrassAccentStyle): boolean {
-  return style === "field-fiber-shell" || style === "field-fiber-shell-visibility";
-}
-
-function isTextureGrassPrimitiveFamily(family: GrassPrimitiveFamily): boolean {
-  return (
-    family === "texture-volume" ||
-    family === "texture-carrier" ||
-    family === "texture-micro-carrier"
-  );
 }
 
 function animateShell(shell: RawFrameShell, status: HTMLElement, frame: () => FrameGraphCommands) {

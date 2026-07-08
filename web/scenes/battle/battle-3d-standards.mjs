@@ -100,7 +100,10 @@ export async function run(ctx) {
     const info = window.__game.unitInfo(4);
     const cam = window.__cam;
     cam.zoom = 9.5;
-    cam.setViewCenter(info[0] - 10, info[1] - 2);
+    // Centre on the selected unit: at this low-pitch eye level the camera eye
+    // sits ~9 m behind the target along the view ray, so a forward x-offset
+    // would push the subject unit behind the eye and cull its standard.
+    cam.setViewCenter(info[0], info[1] - 2);
     cam.clampView?.();
   });
   await page.waitForTimeout(180);

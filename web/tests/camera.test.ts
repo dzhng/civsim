@@ -164,3 +164,24 @@ test("pitchAboutEye at the rig's distance ceiling degrades to a dolly along the 
     `eye movement must be along the view ray, along=${along} of ${moveLen}`,
   );
 });
+
+test("wheel-zoom cannot bank dead travel past the rig's saturation point", () => {
+  // The bug: `zoom` clamped to a far hard cap (60) while the rig's framing
+  // stops changing at ~22.9, so scrolling in past the closest view piled up an
+  // invisible reserve you had to unwind before the camera moved back out. The
+  // fix clamps zoom to the ceiling where the frame last changes, so ONE notch
+  // of reverse scroll pulls the framing straight back.
+  const camera = makeCamera(0);
+  const cx = camera["canvas"].width / 2;
+  const cy = camera["canvas"].height / 2;
+  // Slam all the way in with many notches, well past saturation.
+  for (let i = 0; i < 200; i++) camera.zoomAt(cx, cy, 1.05);
+  const distIn = camera.params().distance;
+  // A single notch back out must immediately widen the frame — no dead band.
+  camera.zoomAt(cx, cy, 1 / 1.05);
+  const distOut = camera.params().distance;
+  assert.ok(
+    distOut > distIn + 1e-6,
+    `one notch out must move the camera, got ${distIn} -> ${distOut}`,
+  );
+});

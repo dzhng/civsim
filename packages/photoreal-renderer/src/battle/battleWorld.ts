@@ -82,7 +82,6 @@ import {
   type BladeFieldTransitionProfile,
   type BladeFieldTransitionUniforms,
 } from "./bladeFieldLayer";
-import { activeGrassRecordBudget } from "./grassBudget";
 import { PhotorealScenery } from "./foliageLayer";
 import { PhotorealCrowd, type CrowdVisibilityScope } from "./crowdLayer";
 import {
@@ -159,9 +158,10 @@ const STANDARD_BLADE_FIELD_PROFILE = {
   source:
     "GRASSFINE-L2D8 False Earth production profile: narrow curved mid blades plus zoom-aware near tier",
   seed: 0x5ea7_2026,
-  // Dense blades follow the camera's ground position. The active transition is
-  // scaled from this vista profile so blade thinning, blade sink, and terrain
-  // far-grass rise share one owner at every zoom.
+  // The active transition is scaled from this vista profile so blade thinning,
+  // blade sink, and terrain far-grass rise share one owner at every zoom. (The
+  // field itself is a static whole-map sample now — see the STATIC_GRASS_*
+  // constants — not a camera-following disc; only this GPU transition tracks zoom.)
   vistaVisibleRadiusM: 260,
   // The FULL three-part structure at vista scale: dense blades, thinning
   // from the visible ring (260) through the blurred far band to 480, sink
@@ -175,9 +175,8 @@ const STANDARD_BLADE_FIELD_PROFILE = {
     farSoftWidthScale: 1.6,
   } satisfies BladeFieldTransitionProfile,
   closeVisibleRadiusM: 40,
-  // Records are sampled beyond the render ring so ordinary camera pans stay
-  // inside an already-uploaded field. Rebuilds happen on this margin cadence,
-  // not the old 8m sampler snap, which was the panning hitch source.
+  // Vestigial since the static-field rework (the field never rebuilds on a
+  // camera move) — retained only so the grass stats keep a stable shape.
   rebuildMarginM: 48,
   fieldCellSize: 0.42,
   snapCellSize: 48,
@@ -265,6 +264,20 @@ const PRODUCTION_BLADE_FIELD_PROFILES: Record<BattleGrassQuality, ProductionBlad
 };
 
 const PRODUCTION_BLADE_FIELD_PROFILE = STANDARD_BLADE_FIELD_PROFILE;
+
+// Static whole-map grass. The field is sampled ONCE over the entire map at a
+// fixed UNIFORM density (no camera-follow, no rebuild); every frame the GPU
+// route pass (bladeFieldLayer) culls it to a camera-relative disc, so draw cost
+// and the near/far LOD look are unchanged while the multi-second resample lag is
+// gone. Density is the one memory/look knob: one candidate blade per cell, so a
+// smaller cell = denser grass = more records. 1.5m cell ≈ 0.44 blades/m², which
+// lands under the record cap on a full 2400×1600 map's grass-eligible terrain.
+const STATIC_GRASS_FIELD_CELL_M = 1.5;
+const STATIC_GRASS_MAX_RECORDS = 1_000_000;
+// Zoomed-out past this vista fraction (0 = top-down overview, 1 = ground vista)
+// blades project to a sub-pixel smear that only costs fill and cull, so grass is
+// hidden outright — the "don't render grass at all when far out" contract.
+const GRASS_ZOOM_CUTOFF_T = 0.5;
 
 interface GrassSampleFocus {
   x: number;
@@ -757,9 +770,7 @@ export class PhotorealBattleWorld {
     this.grassRebuildStats.pendingFocus = null;
     this.grassRebuildStats.inProgressCells = 0;
     this.grassRebuildStats.totalCells = 0;
-    const terrainEye = eyePosition(this.lastCamera.camera3d);
-    const terrainTarget = this.lastCamera.camera3d.target;
-    this.updateGrassForCamera(terrainTarget[0], terrainTarget[1], terrainEye[2]);
+    this.updateGrassForCamera(eyePosition(this.lastCamera.camera3d)[2]);
   }
 
   private terrainHeightSampler(): ((x: number, y: number) => number) | undefined {
@@ -816,12 +827,7 @@ export class PhotorealBattleWorld {
     this.instances = built.instances;
     this.markers = [];
     this.updateSeating(built.instances);
-    // Same anchor as the render path: the look target owns the focus. Two
-    // callers with different anchors alternate sample keys every frame and
-    // cancel each other's rebuild before it can finish.
-    const uploadEye = eyePosition(this.lastCamera.camera3d);
-    const uploadTarget = this.lastCamera.camera3d.target;
-    this.updateGrassForCamera(uploadTarget[0], uploadTarget[1], uploadEye[2]);
+    this.updateGrassForCamera(eyePosition(this.lastCamera.camera3d)[2]);
     applyCamera3d(this.camera, this.lastCamera.camera3d);
     this.shadowRig.update(this.camera);
     this.crowd.upload(this.instances, this.crowdVisibilityScope());
@@ -879,12 +885,14 @@ export class PhotorealBattleWorld {
     // the band; the target owns where the disc lives.
     const eye = eyePosition(this.lastCamera.camera3d);
     const target = this.lastCamera.camera3d.target;
-    this.updateGrassForCamera(target[0], target[1], eye[2]);
-    if (this.grassEnabled)
-      this.grass.routeGpu(this.world.renderer, [eye[0], eye[1], eye[2]], [
-        target[0],
-        target[1],
-      ]);
+    this.updateGrassForCamera(eye[2]);
+    // Zoom cutoff: hide the blades and skip the GPU route/cull pass entirely
+    // once zoomed out past the resolvable range (blades would be a sub-pixel
+    // smear). setVisible only toggles mesh.visible, so this is cheap per-frame.
+    const grassOn = this.grassVisibleNow();
+    this.grass.setVisible(grassOn);
+    if (grassOn)
+      this.grass.routeGpu(this.world.renderer, [eye[0], eye[1], eye[2]], [target[0], target[1]]);
     this.grassRebuildStats.routeAnchor = [
       Math.round(target[0]),
       Math.round(target[1]),
@@ -942,56 +950,42 @@ export class PhotorealBattleWorld {
   /** Focus-following blade-record window. The sampled disc carries a rebuild
    *  margin around the visible grass ring, so panning keeps routing the live
    *  GPU LOD from old records until the eye leaves that margin. */
-  private updateGrassForCamera(focusX: number, focusY: number, eyeZ = 0): void {
+  /** Whether the blades should render at all this frame: on only when grass is
+   *  enabled AND the view is zoomed in enough that blades are resolvable. Past
+   *  the cutoff blades are a sub-pixel smear, so they are hidden and the GPU
+   *  route pass is skipped (the render loop gates `routeGpu` on this too). */
+  private grassVisibleNow(): boolean {
+    return this.grassEnabled && this.lastCamera.zoomT >= GRASS_ZOOM_CUTOFF_T;
+  }
+
+  private updateGrassForCamera(eyeZ = 0): void {
     if (!this.grassEnabled) return;
     if (!this.terrainGrid || !this.heightField) return;
+    // The visible falloff/LOD ring still tracks zoom — these are cheap GPU
+    // uniforms, not a rebuild — so the near tier stays detailed and the GPU
+    // cull radius shrinks when zoomed in. Only the RECORD field is static.
     const visibleRadius = activeGrassVisibleRadiusM(this.grassProfile, eyeZ);
     const transition = activeGrassTransitionProfile(this.grassProfile, visibleRadius);
     this.activeGrassTransition = this.grass.setTransition(transition);
     this.grassTransition.terrainDetailStrength.value = this.farGrassEnabled
       ? (this.activeGrassTransition.terrainDetailStrength ?? 1)
       : 0;
-    // Camera-travel resampling scales with ZOOM and stays throttled (David's
-    // renderer law): the higher the eye, the smaller blades project and the
-    // wider the margin can stretch - a vista camera pans hundreds of metres
-    // without a rebuild, a ground camera keeps the tight ring fresh.
-    // Quantize the zoom-scaled margin to coarse steps: a continuous eyeZ
-    // fed the rebuild KEY, so zooming churned a full grass rebuild every
-    // frame (David's "still slow" report - the pan gate never zooms).
-    const zoomScale = 1 + Math.round(Math.max(0, Math.min(3, eyeZ / 60 - 1)));
-    const margin = this.grassProfile.rebuildMarginM * zoomScale;
-    // Close zoom shrinks the ring (quantized bands, same churn rule): a low
-    // eye sees a few dozen metres of ground - sampling the full far-grass
-    // window there is pure rebuild cost and blade overdraw (the zoom-24/28
-    // fps cliffs).
-    // Sample to the ACTIVE blur-band end, not just the dense ring - the
-    // 260-480m far band needs records to exist.
-    const radius = transition.farGrassEndM + margin;
-    const budget = activeGrassRecordBudget(this.grassProfile, radius);
-    this.grassRebuildStats.coverageRadiusM = radius;
-    this.grassRebuildStats.activeTransition = this.activeGrassTransition;
-    this.grassRebuildStats.activeRecordBudget = budget.maxRecords;
-    this.grassRebuildStats.areaBudgetScale = budget.areaScale;
-    // The snap step scales DOWN with the ring: 48m stability cells suit the
-    // 480m vista disc, but on a ~122m close ring a whole cell is a third of
-    // the radius - the disc must track the target much closer.
-    const step = Math.min(this.grassProfile.snapCellSize, Math.max(8, radius / 8));
+    // The field is sampled ONCE over the whole map. Focus (map centre) and
+    // radius (half the map diagonal, so the disc covers every corner) are map
+    // constants, so the rebuild key never changes on a camera move — the field
+    // is built at load and never resampled. That deletes the old zoom-scaled
+    // margin/quantize machinery and the multi-second catch-up it produced.
+    const [ox, oy, w, h] = this.terrainRect;
     const focus = {
-      x: snapGrassFocus(focusX, step),
-      y: snapGrassFocus(focusY, step),
-      radius,
-      maxRecords: budget.maxRecords,
+      x: ox + w / 2,
+      y: oy + h / 2,
+      radius: Math.hypot(w, h) / 2,
+      maxRecords: STATIC_GRASS_MAX_RECORDS,
     };
+    this.grassRebuildStats.coverageRadiusM = focus.radius;
+    this.grassRebuildStats.activeTransition = this.activeGrassTransition;
+    this.grassRebuildStats.activeRecordBudget = focus.maxRecords;
     const key = this.grassSampleKey(focus);
-    if (
-      this.grassSampleFocus &&
-      this.grassTerrainKey &&
-      Math.hypot(focusX - this.grassSampleFocus.x, focusY - this.grassSampleFocus.y) <= margin &&
-      key === this.grassTerrainKey
-    ) {
-      this.grassRebuildStats.skippedWithinMargin++;
-      return;
-    }
     if (key === this.grassTerrainKey || key === this.grassPendingTerrainKey) return;
     this.grassPendingTerrainKey = key;
     this.startGrassSampleTask(focus, key);
@@ -1022,17 +1016,16 @@ export class PhotorealBattleWorld {
     const sampler = createGrassFieldSampler(this.terrainGrid, this.heightField, {
       seed: this.grassProfile.seed,
       focus,
-      fieldCellSize: this.grassProfile.fieldCellSize,
-      // Snap the disc on the SAME ring-scaled grid the focus was snapped to
-      // (updateGrassForCamera). Passing the coarse 48 m profile cell here made
-      // the sampler re-snap the already-snapped focus onto a wider grid,
-      // displacing the close-ring record disc ~30 m off the look target and
-      // starving the near tier (the bald ground-level frame).
-      snapCellSize: Math.min(this.grassProfile.snapCellSize, Math.max(8, focus.radius / 8)),
+      // UNIFORM whole-map density: one candidate blade per static cell, every
+      // candidate accepted (density 1), no LOD-stratified centre concentration
+      // — the field must read the same wherever the camera pans. Blade shape,
+      // clumping and slope/tint masking still come from the active profile.
+      fieldCellSize: STATIC_GRASS_FIELD_CELL_M,
+      snapCellSize: this.grassProfile.snapCellSize,
       clumpCellSize: this.grassProfile.clumpCellSize,
       maxRecords: focus.maxRecords,
-      lodStratifiedBudget: this.grassProfile.lodStratifiedBudget,
-      density: this.grassProfile.density,
+      lodStratifiedBudget: false,
+      density: 1,
       jitter: this.grassProfile.jitter,
       minNormalZ: this.grassProfile.minNormalZ,
       lodNearRadius: this.grassProfile.lodNearRadiusM / focus.radius,
@@ -1057,17 +1050,14 @@ export class PhotorealBattleWorld {
     this.grassRebuildStats.pendingFocus = focus;
     this.grassRebuildStats.inProgressCells = 0;
     this.grassRebuildStats.totalCells = sampler.totalCells;
-    // The FIRST build (no live records yet) completes synchronously - an
-    // empty field on the opening frame is worse than load-time cost, and
-    // scenes read grass stats right after boot. Only REbuilds are sliced.
-    if (this.grassTerrainKey === null) {
-      while (!sampler.step(16384)) {
-        /* run to completion */
-      }
-      this.runGrassSampleSlice();
-      return;
+    // The static whole-map field is built ONCE, synchronously, at load: an
+    // empty field on the opening frame is worse than the ~250-480ms build cost,
+    // and scenes read grass stats right after boot. The map-constant sample key
+    // means this is the only build — there is no rebuild path.
+    while (!sampler.step(16384)) {
+      /* run to completion */
     }
-    this.scheduleGrassSampleSlice();
+    this.runGrassSampleSlice();
   }
 
   private scheduleGrassSampleSlice(): void {
@@ -1272,15 +1262,6 @@ function disposeMesh(mesh: THREE.Mesh): void {
   const material = mesh.material;
   if (Array.isArray(material)) material.forEach((m) => m.dispose());
   else material.dispose();
-}
-
-function snapGrassFocus(value: number, step: number): number {
-  // ROUND, never floor: a floored 48m grid displaces the disc up to ~34m per
-  // axis, and at the close ring (r~122m) that pushed the stratified record
-  // concentration ~60m off the look target - a bald frame at ground level
-  // with all records "far". Rounding halves the worst error and keeps the
-  // key-stability contract (same cell -> same key).
-  return Math.round(value / step) * step;
 }
 
 function productionBladeFieldProfile(

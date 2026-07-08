@@ -1,4 +1,9 @@
-import { battleCameraRig, type CameraRigRange, type ZoomCameraRig } from "../battle/cameraRig";
+import {
+  battleCameraRig,
+  battleZoomCeiling,
+  type CameraRigRange,
+  type ZoomCameraRig,
+} from "../battle/cameraRig";
 import {
   eyePosition,
   projectPoint,
@@ -55,6 +60,12 @@ export class Camera {
 
   private rig(): ZoomCameraRig {
     return battleCameraRig(this.zoom, this.zoomRange, this.rigBounds);
+  }
+
+  /** Highest zoom that still changes the framing. Above it the rig saturates,
+   *  so clamping here keeps wheel input from banking dead travel. */
+  private maxZoom() {
+    return battleZoomCeiling(this.zoomRange, this.rigBounds);
   }
 
   /** Normalized zoom-rig state: 0 = tactical top-down, 1 = close vista. */
@@ -243,7 +254,7 @@ export class Camera {
    *  space; in the oblique vista the view sees far past the field toward the
    *  horizon, so panning stays free and only the look target is clamped to bounds. */
   clampView() {
-    this.zoom = Math.min(60, Math.max(this.zoomRange.min, this.zoom));
+    this.zoom = Math.min(this.maxZoom(), Math.max(this.zoomRange.min, this.zoom));
     if (!this.bounds) return;
     const [x0, y0, x1, y1] = this.bounds;
     // Only the near-top-down overview centres the field; the vista pans freely.
@@ -303,7 +314,7 @@ export class Camera {
   /** Zoom keeping the world point under the cursor fixed. */
   zoomAt(px: number, py: number, factor: number, afterZoom?: () => void) {
     const [wx, wy] = this.screenToWorld(px, py);
-    this.zoom = Math.min(60, Math.max(0.4, this.zoom * factor));
+    this.zoom = Math.min(this.maxZoom(), Math.max(this.zoomRange.min, this.zoom * factor));
     afterZoom?.();
     const [nx, ny] = this.screenToWorld(px, py);
     this.x += wx - nx;

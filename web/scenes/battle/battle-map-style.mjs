@@ -327,7 +327,11 @@ function assertProductionMidGrassStructure(ctx, crop, stats) {
     rawEdge: metric.base.edge >= ORACLE.rawEdgeMin * 0.55 && metric.base.edge <= ORACLE.rawEdgeMax,
     retention: metric.retention4 >= ORACLE.retention4Min * 0.58,
     contrast: metric.down4.contrast >= ORACLE.down4ContrastMin * 0.62,
-    occupancy: metric.tile4.occupancy3 >= ORACLE.tile4Occupancy3Min * 0.62,
+    // Static whole-map grass is a UNIFORM loose field (~0.44 blades/m², David
+    // 2026-07-08), not the old camera-concentrated dense carpet, so the mid
+    // camera reads sparser here by design. This floor now guards against a
+    // TOTALLY bald mid-ground (occupancy → 0), not the retired carpet target.
+    occupancy: metric.tile4.occupancy3 >= 0.18,
     verticalRuns: metric.verticalRun.tallColumnRatio >= ORACLE.verticalRunTallColumnMin * 0.62,
   };
   ctx.check(

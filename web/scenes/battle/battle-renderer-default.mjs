@@ -64,7 +64,12 @@ export async function run(ctx) {
       stats.renderStats.terrain.environment?.source === "CIVSIM_ENVIRONMENTS.golden" &&
       stats.renderStats.terrain.grass?.layer === "photoreal-blade-field" &&
       stats.renderStats.terrain.grass?.recordCount > 0 &&
-      stats.renderStats.terrain.grass?.sourceStorageCore?.runtimeComputeRoute === "active" &&
+      // The GPU compute route is WIRED (drawIndirect), but whether it RUNS a
+      // given frame is now gated by the zoom cutoff — this default view frames
+      // the whole battle at max zoom-out, where grass is intentionally hidden,
+      // so runtimeComputeRoute reads "not-run" here. recordCount proves the
+      // static field is built; drawIndirect proves the route is wired.
+      stats.renderStats.terrain.grass?.sourceStorageCore?.drawIndirect === true &&
       stats.renderStats.terrain.groundTriangles > 1000 &&
       stats.renderStats.terrain.scenery > 0,
     JSON.stringify(stats.renderStats?.terrain),

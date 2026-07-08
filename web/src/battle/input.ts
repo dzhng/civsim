@@ -252,7 +252,15 @@ export class Input {
       "wheel",
       (e) => {
         e.preventDefault();
-        const wheelDelta = e.deltaY * WHEEL_ZOOM_SENSITIVITY;
+        // Normalize across devices before scaling: deltaY is in PIXELS on
+        // trackpads and most mice (~100/notch) but LINES on some mice/Firefox
+        // (~3/notch) and PAGES rarely — untranslated, the same gesture zooms
+        // ~30x differently between them. Fold line/page back to pixels so the
+        // sensitivity is one tuned constant. (We already scale by the real
+        // delta, not Math.sign, so a trackpad's event stream zooms smoothly in
+        // proportion to the swipe rather than slamming through the range.)
+        const unitPx = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? window.innerHeight : 1;
+        const wheelDelta = e.deltaY * unitPx * WHEEL_ZOOM_SENSITIVITY;
         camera.zoomAt(
           e.clientX * dpr(),
           e.clientY * dpr(),

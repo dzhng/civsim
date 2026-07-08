@@ -42,17 +42,19 @@ const GIF_PATH = new URL("rhythm.gif", GIF_DIR).pathname;
 
 function seaQuery(t) {
   return new URLSearchParams({
-    // Map C = CoastalScrub: ocean on the WEST edge; look west over the water.
+    // Map C = CoastalScrub: stand in the shallows facing the coast so deep blue
+    // sea fills the frame; noon sky keeps the water blue.
     map: "C",
     ref: "1",
+    env: "noon",
     t: String(t),
     ticks: "60",
     sea: "gerstner",
     zoom: "8.0",
-    cx: "-1115",
+    cx: "-1180",
     cy: "-150",
     pitch: "0.28",
-    yaw: "0",
+    yaw: String(Math.PI),
   });
 }
 

@@ -32,9 +32,11 @@ const SOLDIER_FLOOR = 30000;
 // window plus slice-12 routed/thinned blade triangles).
 const SPAWN_TARGET = 30500;
 const SCENERY_FLOOR = 500;
-const PRODUCTION_GRASS_RECORD_CAP = 160000;
+// Static whole-map grass: the field is sampled once at the sampler's 1M ceiling
+// (STATIC_GRASS_MAX_RECORDS in battleWorld.ts) and uniformly, not the retired
+// per-camera area-scaled stratified budget (old cap 160k).
+const STATIC_GRASS_RECORD_CAP = 1_000_000;
 const CLOSE_GRASS_RECORD_FLOOR = 40000;
-const CLOSE_GRASS_TRIANGLE_FLOOR = 90000;
 const PAN_DISTANCE_M = 200;
 const PAN_DURATION_MS = 3000;
 const WHEEL_BURST_EVENTS = 30;
@@ -258,14 +260,14 @@ export async function run(ctx) {
     JSON.stringify({ spawned, mid: mid.soldiers, vista: vista.soldiers }),
   );
   ctx.check(
-    "gate holds the dense foliage fill with area-scaled active blade budgets",
+    "gate holds the dense foliage fill on the static whole-map blade field",
     table.every((row) => row.scenery >= SCENERY_FLOOR) &&
       table.every(
         (row) =>
-          row.grassActiveRecordBudget >= CLOSE_GRASS_RECORD_FLOOR &&
-          row.grassActiveRecordBudget <= PRODUCTION_GRASS_RECORD_CAP &&
-          row.grassRecords >= Math.min(row.grassActiveRecordBudget, CLOSE_GRASS_RECORD_FLOOR) &&
-          row.grassTriangles >= CLOSE_GRASS_TRIANGLE_FLOOR,
+          row.grassActiveRecordBudget === STATIC_GRASS_RECORD_CAP &&
+          row.grassAreaBudgetScale === 1 &&
+          row.grassRecords >= CLOSE_GRASS_RECORD_FLOOR &&
+          row.grassRecords <= STATIC_GRASS_RECORD_CAP,
       ),
     JSON.stringify({
       table: table.map((row) => ({
@@ -275,34 +277,24 @@ export async function run(ctx) {
         grassTriangles: row.grassTriangles,
         activeBudget: row.grassActiveRecordBudget,
         areaScale: row.grassAreaBudgetScale,
-        tierRecords: row.grassTierRecords,
       })),
     }),
   );
   ctx.check(
-    "production grass sample uses the area-scaled stratified record budget",
+    "static grass is sampled uniformly to the record cap (no stratified/area budget)",
     table.every(
       (row) =>
-        row.grassSampleStratifiedBudget &&
-        row.grassSampleCapacity === row.grassActiveRecordBudget &&
-        row.grassSampleCapacity >= CLOSE_GRASS_RECORD_FLOOR &&
-        row.grassSampleCapacity <= PRODUCTION_GRASS_RECORD_CAP &&
-        row.grassSampleAccepted >= row.grassSampleCapacity * 0.55 &&
-        row.grassSampleAccepted <= row.grassSampleCapacity &&
-        budgetQuotasMatchCapacity(row.grassSampleBudgetQuotas, row.grassSampleCapacity) &&
-        Array.isArray(row.grassSampleDroppedByBudget) &&
-        row.grassSampleDroppedByBudget.some((count) => count > 0),
+        row.grassSampleStratifiedBudget === false &&
+        row.grassSampleCapacity === STATIC_GRASS_RECORD_CAP &&
+        row.grassSampleAccepted >= CLOSE_GRASS_RECORD_FLOOR &&
+        row.grassSampleAccepted <= row.grassSampleCapacity,
     ),
     JSON.stringify(
       table.map((row) => ({
         stop: row.stop,
         accepted: row.grassSampleAccepted,
         capacity: row.grassSampleCapacity,
-        activeBudget: row.grassActiveRecordBudget,
-        areaScale: row.grassAreaBudgetScale,
-        lodCounts: row.grassSampleLodCounts,
-        quotas: row.grassSampleBudgetQuotas,
-        droppedByBudget: row.grassSampleDroppedByBudget,
+        stratified: row.grassSampleStratifiedBudget,
       })),
     ),
   );
@@ -678,15 +670,6 @@ function percentile(values, p) {
 
 function round(value) {
   return Number.isFinite(value) ? Number(value.toFixed(2)) : null;
-}
-
-function budgetQuotasMatchCapacity(actual, capacity) {
-  if (!Array.isArray(actual) || actual.length !== 3) return false;
-  const near = Math.floor(capacity * 0.48);
-  const mid = Math.floor(capacity * 0.37);
-  return (
-    actual[0] === near && actual[1] === mid && actual[2] === Math.max(0, capacity - near - mid)
-  );
 }
 
 function crowdPixels(png) {

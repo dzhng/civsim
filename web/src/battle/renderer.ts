@@ -348,6 +348,11 @@ export class BattleRenderer {
       terrain: ws?.terrain ?? null,
       tacticalLines: ws?.tacticalLines ?? { groundCues: null, rings: null, effects: null },
       markers: ws?.markers ?? null,
+      // Forward the standard/readout layer stats the world publishes — scenes
+      // (battle-3d-standards, banner-gallery) read renderStats.standards, and
+      // without this the wrapper dropped them so those waits never resolved.
+      standards: ws?.standards ?? null,
+      readouts: ws?.readouts ?? null,
       performance: {
         buildMs: roundMs(this.framePerf.buildMs),
         uploadMs: roundMs(this.framePerf.uploadMs),

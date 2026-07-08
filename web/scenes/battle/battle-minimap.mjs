@@ -41,10 +41,13 @@ export async function run(ctx) {
 
   // Zoom IN for the click-navigation check: at the whole-map overview zoom the
   // view already covers the field, so clampView pins the camera to centre and a
-  // minimap click cannot move it. A gameplay zoom leaves room to recentre, which
-  // is the behaviour a player actually exercises.
+  // minimap click cannot move it. A gameplay (non-overview) zoom leaves room to
+  // recentre, which is the behaviour a player actually exercises. The zoom scale
+  // is DPR-dependent (it tracks on-screen soldier size), so a value that's a
+  // close vista at DPR1 can still be the pinned overview at this DPR2 capture:
+  // zoom 20 clears the overview pitch threshold here where zoom 10 did not.
   await page.evaluate(() => {
-    window.__cam.zoom = 10.0;
+    window.__cam.zoom = 20.0;
     window.__cam.yaw = 0;
     window.__cam.clampView?.();
   });

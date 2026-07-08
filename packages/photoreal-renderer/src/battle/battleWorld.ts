@@ -289,15 +289,10 @@ interface GrassSampleFocus {
 interface GrassSampleTask {
   key: string;
   focus: GrassSampleFocus;
-  generation: number;
   sampler: GrassFieldSampler;
   startedAt: number;
-  slices: number;
-  maxSliceMs: number;
+  buildMs: number;
 }
-
-const GRASS_SAMPLE_SLICE_MS = 3.5;
-const GRASS_SAMPLE_CELLS_PER_STEP = 512;
 
 export class PhotorealBattleWorld {
   readonly world: PhotorealWorld;
@@ -345,16 +340,11 @@ export class PhotorealBattleWorld {
   private slopeBands: BattleSlopeBands | null = null;
   private grassTerrainKey: string | null = null;
   private grassPendingTerrainKey: string | null = null;
-  private grassSampleFocus: GrassSampleFocus | null = null;
-  private grassSampleGeneration = 0;
   private grassSampleTask: GrassSampleTask | null = null;
-  private grassSampleSliceScheduled = false;
   private grassSampleStats: GrassFieldStats | null = null;
   private grassRebuildStats: {
-    strategy: "margin-raf-timesliced-swap";
+    strategy: "static-whole-map";
     routeAnchor?: number[];
-    focusRadiusM: number;
-    rebuildMarginM: number;
     coverageRadiusM: number;
     activeTransition: BladeFieldTransitionProfile | null;
     activeRecordBudget: number;
@@ -364,30 +354,22 @@ export class PhotorealBattleWorld {
     pendingFocus: GrassSampleFocus | null;
     pending: boolean;
     rebuilds: number;
-    skippedWithinMargin: number;
-    coalescedRequests: number;
     lastSampleMs: number;
     lastSlices: number;
     lastMaxSliceMs: number;
     inProgressCells: number;
     totalCells: number;
   } = {
-    strategy: "margin-raf-timesliced-swap",
-    focusRadiusM: PRODUCTION_BLADE_FIELD_PROFILE.vistaVisibleRadiusM,
-    rebuildMarginM: PRODUCTION_BLADE_FIELD_PROFILE.rebuildMarginM,
-    coverageRadiusM:
-      PRODUCTION_BLADE_FIELD_PROFILE.vistaVisibleRadiusM +
-      PRODUCTION_BLADE_FIELD_PROFILE.rebuildMarginM,
+    strategy: "static-whole-map",
+    coverageRadiusM: PRODUCTION_BLADE_FIELD_PROFILE.vistaVisibleRadiusM,
     activeTransition: null as BladeFieldTransitionProfile | null,
-    activeRecordBudget: PRODUCTION_BLADE_FIELD_PROFILE.maxRecords,
+    activeRecordBudget: STATIC_GRASS_MAX_RECORDS,
     vistaRecordBudget: PRODUCTION_BLADE_FIELD_PROFILE.maxRecords,
     areaBudgetScale: 1,
     activeFocus: null as GrassSampleFocus | null,
     pendingFocus: null as GrassSampleFocus | null,
     pending: false,
     rebuilds: 0,
-    skippedWithinMargin: 0,
-    coalescedRequests: 0,
     lastSampleMs: 0,
     lastSlices: 0,
     lastMaxSliceMs: 0,
@@ -432,10 +414,7 @@ export class PhotorealBattleWorld {
     this.environment = environment;
     this.grassProfile = grassProfile;
     this.sea = sea;
-    this.grassRebuildStats.focusRadiusM = grassProfile.vistaVisibleRadiusM;
-    this.grassRebuildStats.rebuildMarginM = grassProfile.rebuildMarginM;
-    this.grassRebuildStats.coverageRadiusM =
-      grassProfile.vistaVisibleRadiusM + grassProfile.rebuildMarginM;
+    this.grassRebuildStats.coverageRadiusM = grassProfile.vistaVisibleRadiusM;
     this.grassRebuildStats.vistaRecordBudget = grassProfile.maxRecords;
     this.grassRebuildStats.activeRecordBudget = grassProfile.maxRecords;
     this.grassRebuildStats.areaBudgetScale = 1;
@@ -761,10 +740,7 @@ export class PhotorealBattleWorld {
     this.background.setRects(this.terrainRect, expandedTerrainRect(this.terrainRect));
     this.grassTerrainKey = null;
     this.grassPendingTerrainKey = null;
-    this.grassSampleFocus = null;
     this.grassSampleTask = null;
-    this.grassSampleSliceScheduled = false;
-    this.grassSampleGeneration++;
     this.grassRebuildStats.pending = false;
     this.grassRebuildStats.activeFocus = null;
     this.grassRebuildStats.pendingFocus = null;
@@ -1011,8 +987,6 @@ export class PhotorealBattleWorld {
 
   private startGrassSampleTask(focus: GrassSampleFocus, key: string): void {
     if (!this.terrainGrid || !this.heightField) return;
-    if (this.grassSampleTask) this.grassRebuildStats.coalescedRequests++;
-    const generation = ++this.grassSampleGeneration;
     const sampler = createGrassFieldSampler(this.terrainGrid, this.heightField, {
       seed: this.grassProfile.seed,
       focus,
@@ -1037,72 +1011,29 @@ export class PhotorealBattleWorld {
       baseBend: this.grassProfile.baseBend,
       bendJitter: this.grassProfile.bendJitter,
     });
-    this.grassSampleTask = {
+    const task: GrassSampleTask = {
       key,
       focus,
-      generation,
       sampler,
       startedAt: performance.now(),
-      slices: 0,
-      maxSliceMs: 0,
+      buildMs: 0,
     };
+    this.grassSampleTask = task;
     this.grassRebuildStats.pending = true;
     this.grassRebuildStats.pendingFocus = focus;
-    this.grassRebuildStats.inProgressCells = 0;
     this.grassRebuildStats.totalCells = sampler.totalCells;
     // The static whole-map field is built ONCE, synchronously, at load: an
     // empty field on the opening frame is worse than the ~250-480ms build cost,
     // and scenes read grass stats right after boot. The map-constant sample key
-    // means this is the only build — there is no rebuild path.
+    // means this is the only build — there is no rebuild or time-sliced path.
+    const buildStarted = performance.now();
     while (!sampler.step(16384)) {
-      /* run to completion */
+      /* run the whole field to completion */
     }
-    this.runGrassSampleSlice();
-  }
-
-  private scheduleGrassSampleSlice(): void {
-    if (this.grassSampleSliceScheduled) return;
-    this.grassSampleSliceScheduled = true;
-    scheduleGrassSampleFrame(() => {
-      this.grassSampleSliceScheduled = false;
-      this.runGrassSampleSlice();
-    });
-  }
-
-  private runGrassSampleSlice(): void {
-    const task = this.grassSampleTask;
-    if (!task || task.generation !== this.grassSampleGeneration) return;
-    const sliceStarted = performance.now();
-    let done = false;
-    do {
-      done = task.sampler.step(GRASS_SAMPLE_CELLS_PER_STEP);
-    } while (!done && performance.now() - sliceStarted < GRASS_SAMPLE_SLICE_MS);
-    const sliceMs = performance.now() - sliceStarted;
-    task.slices++;
-    task.maxSliceMs = Math.max(task.maxSliceMs, sliceMs);
-    this.grassRebuildStats.inProgressCells = task.sampler.cellsProcessed;
-    this.grassRebuildStats.totalCells = task.sampler.totalCells;
-    if (!done) {
-      this.scheduleGrassSampleSlice();
-      return;
-    }
+    task.buildMs = performance.now() - buildStarted;
+    this.grassRebuildStats.inProgressCells = sampler.cellsProcessed;
+    this.grassRebuildStats.totalCells = sampler.totalCells;
     this.completeGrassSampleTask(task);
-  }
-
-  /** Run any in-flight grass rebuild to completion and apply it synchronously.
-   *  The sliced rebuild is driven by requestAnimationFrame; a still camera with
-   *  no continuous render loop (a settle-then-capture probe, or a paused view)
-   *  can leave the last-requested field pending. Draining here guarantees a
-   *  presented frame reflects the settled field for the current camera - e.g.
-   *  the dense close ring after an over-zoom, not a stale wider disc. */
-  private drainGrassSampleTask(): boolean {
-    const task = this.grassSampleTask;
-    if (!task || task.generation !== this.grassSampleGeneration) return false;
-    while (!task.sampler.step(16384)) {
-      /* run to completion */
-    }
-    this.completeGrassSampleTask(task);
-    return true;
   }
 
   private completeGrassSampleTask(task: GrassSampleTask): void {
@@ -1122,7 +1053,6 @@ export class PhotorealBattleWorld {
     );
     this.grassTerrainKey = task.key;
     this.grassPendingTerrainKey = null;
-    this.grassSampleFocus = task.focus;
     this.grassSampleTask = null;
     this.grassRebuildStats = {
       ...this.grassRebuildStats,
@@ -1131,8 +1061,8 @@ export class PhotorealBattleWorld {
       pending: false,
       rebuilds: this.grassRebuildStats.rebuilds + 1,
       lastSampleMs: Number(sampleMs.toFixed(3)),
-      lastSlices: task.slices,
-      lastMaxSliceMs: Number(task.maxSliceMs.toFixed(3)),
+      lastSlices: 1,
+      lastMaxSliceMs: Number(task.buildMs.toFixed(3)),
       inProgressCells: task.sampler.cellsProcessed,
       totalCells: task.sampler.totalCells,
     };
@@ -1240,12 +1170,8 @@ export class PhotorealBattleWorld {
   }
 
   async settlePresentedFrame(): Promise<void> {
-    // Finish any pending grass rebuild before the frame settles, so the capture
-    // reflects the settled field for the current camera rather than a stale disc
-    // whose sliced rebuild the still-camera rAF loop never got to finish. Redraw
-    // once the drained records are applied so they are routed and presented (a
-    // GPU-fence-only settle would keep showing the pre-drain frame).
-    if (this.drainGrassSampleTask() && this.lastCamera) this.render();
+    // The static grass field is built synchronously at setTerrain, so nothing is
+    // ever pending here — just settle the GPU frame.
     await this.world.settlePresentedFrame();
   }
 
@@ -1312,14 +1238,6 @@ function activeGrassTransitionProfile(
     farSoftWidthScale: vista.farSoftWidthScale,
     edgeSinkStartM: Math.max(1, (vista.edgeSinkStartM ?? vista.farGrassStartM) * scale),
   };
-}
-
-function scheduleGrassSampleFrame(callback: () => void): void {
-  if (typeof requestAnimationFrame === "function") {
-    requestAnimationFrame(() => callback());
-    return;
-  }
-  setTimeout(callback, 16);
 }
 
 /** BattleRenderer's expandedTerrainRect — the backdrop margin. */

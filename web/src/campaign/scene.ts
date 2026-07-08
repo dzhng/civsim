@@ -696,7 +696,11 @@ export class CampaignScene implements Scene {
       "wheel",
       (e) => {
         e.preventDefault();
-        const f = Math.exp(-e.deltaY * 0.0015);
+        // Normalize deltaMode to pixels before scaling so LINE-mode mice/Firefox
+        // (~3/notch) and PIXEL-mode trackpads/mice (~100/notch) share one
+        // sensitivity — same fold as the battle wheel handler (battle/input.ts).
+        const unitPx = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? window.innerHeight : 1;
+        const f = Math.exp(-e.deltaY * unitPx * 0.0015);
         const [wx, wy] = this.renderer.toWorld(
           e.offsetX * devicePixelRatio,
           e.offsetY * devicePixelRatio,

@@ -112,7 +112,11 @@ export async function run(ctx) {
       baseline.stats.grass?.accentAggregation === "field-near" &&
       baseline.stats.grass?.fiberShellVariant === "normal" &&
       baseline.stats.grass?.fiberShellRecords === baseline.stats.grass?.accentTufts &&
-      baseline.stats.grass?.submittedTriangles === 41600,
+      // Shifted from 41600 when the shared grass sampler's flat-path cap became
+      // an unbiased reservoir (grassField.ts): the capped tuft set is now a
+      // spatially-uniform subset, so a different count survives the accent-depth
+      // band feeding the fiber-shell reference.
+      baseline.stats.grass?.submittedTriangles === 24608,
     JSON.stringify(baseline.stats.grass),
   );
   ctx.check(

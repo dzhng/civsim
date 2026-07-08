@@ -80,8 +80,11 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
   const wasm = await initWasm();
   const game = new Game(0x5eed_c0de);
   const generatedSeed = Number(params.get("seed") ?? 7) || 7;
+  // Fixed-map ids: A = RiverAndCrags (0), B = WalledPlain (1), C = CoastalScrub
+  // (2, the ocean-flanked coast — the sea scenes face its west shore).
+  const mapIndex = params.get("map") === "C" ? 2 : params.get("map") === "B" ? 1 : 0;
   if (generatedMap) game.start_battle_generated(BigInt(generatedSeed));
-  else game.start_battle(params.get("map") === "B" ? 1 : 0);
+  else game.start_battle(mapIndex);
   const generatedDescriptor = generatedMap
     ? {
         ...JSON.parse(game.generated_map_descriptor()),
@@ -89,7 +92,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       }
     : null;
   if (params.get("ai") === "on") game.set_ai_team(1);
-  const wasmMapId = generatedMap ? undefined : params.get("map") === "B" ? 1 : 0;
+  const wasmMapId = generatedMap ? undefined : mapIndex;
   const clayMode = params.get("clay") === "1";
 
   // Grow to ?count through the production spawn path (battle-perf-30k grid).

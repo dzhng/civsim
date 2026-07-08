@@ -17,13 +17,15 @@ export const meta = {
 
 const FIXED_TIME = 18.25;
 const SEA_QUERY = new URLSearchParams({
-  map: "A",
+  // Map C = CoastalScrub: ocean seals the WEST edge (x <= -1120). Stand at the
+  // waterline and look west (yaw 0 = -X) out over the open water.
+  map: "C",
   ref: "1",
   t: String(FIXED_TIME),
   ticks: "60",
   sea: "gerstner",
   zoom: "8.0",
-  cx: "950",
+  cx: "-1115",
   cy: "-150",
   pitch: "0.28",
   yaw: "0",

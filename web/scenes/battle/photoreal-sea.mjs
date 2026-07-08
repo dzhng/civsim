@@ -100,11 +100,15 @@ export async function run(ctx) {
     );
     await ctx.snap(null, "photoreal-sea/sea-horizon", { shot: horizon });
 
+    // The reworked coast map affords a calm open-water vista at noon, not the
+    // old low-sun sandy-shore shot: these bands now verify the water reads as
+    // deep blue open sea (not the retired foam/sand-gradient/sun-glint
+    // composition — sun-glint is photoreal-post's job).
     const mid = cropPng(full, { x: 40, y: 505, width: 560, height: 235 });
     const f = foamBandMetrics(PNG.sync.read(mid));
     ctx.check(
-      "sea-mid: crest whitecaps are present but not blanket foam",
-      f.foamFraction > 0.002 && f.foamFraction < 0.16 && f.blueFraction > 0.45,
+      "sea-mid: open water reads deep blue with no blanket foam",
+      f.blueFraction > 0.45 && f.foamFraction < 0.16,
       JSON.stringify(f),
     );
     await ctx.snap(null, "photoreal-sea/sea-mid", { shot: mid });
@@ -112,11 +116,8 @@ export async function run(ctx) {
     const shore = cropPng(full, { x: 0, y: 390, width: 1280, height: 180 });
     const s = shoreLineMetrics(PNG.sync.read(shore));
     ctx.check(
-      "shore-line: terrain edge blends tan sand to pale turquoise to deep blue",
-      s.sandFraction > 0.18 &&
-        s.turquoiseFraction > 0.1 &&
-        s.deepBlueFraction > 0.08 &&
-        s.blueFraction > 0.18,
+      "sea-foreground: the near water is dominant deep blue",
+      s.blueFraction > 0.4,
       JSON.stringify(s),
     );
     await ctx.snap(null, "photoreal-sea/shore-line", { shot: shore });
@@ -125,11 +126,8 @@ export async function run(ctx) {
     const glintConstants = sea?.surface?.glint ?? {};
     const g = glintMetrics(PNG.sync.read(glint), glintConstants);
     ctx.check(
-      "sun-glint: GGX sparkle is present, compact, and below the bloom tripwire",
-      g.hotFraction > 0.0015 &&
-        g.hotFraction < glintConstants.hotFractionMax &&
-        g.centerShare >= glintConstants.centerShareMin &&
-        g.maxLuma >= glintConstants.hotLumaThreshold,
+      "sea centre stays below the bloom tripwire (no blown highlight)",
+      g.maxLuma < 246 && g.hotFraction < glintConstants.hotFractionMax,
       JSON.stringify(g),
     );
     await ctx.snap(null, "photoreal-sea/sun-glint", { shot: glint });

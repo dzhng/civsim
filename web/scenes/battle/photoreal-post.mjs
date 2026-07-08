@@ -24,13 +24,15 @@ export const meta = {
 const FIXED_TIME = 18.25;
 // The 12e sun-glint vista, verbatim (sea/sun/glint framing).
 const BASE = {
-  map: "A",
+  // Map C = CoastalScrub: ocean on the WEST edge; look west so the sun-glint
+  // vista falls on open water.
+  map: "C",
   ref: "1",
   t: String(FIXED_TIME),
   ticks: "60",
   sea: "gerstner",
   zoom: "8.0",
-  cx: "950",
+  cx: "-1115",
   cy: "-150",
   pitch: "0.28",
   yaw: "0",

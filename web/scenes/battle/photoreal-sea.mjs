@@ -17,18 +17,20 @@ export const meta = {
 
 const FIXED_TIME = 18.25;
 const SEA_QUERY = new URLSearchParams({
-  // Map C = CoastalScrub: ocean seals the WEST edge (x <= -1120). Stand at the
-  // waterline and look west (yaw 0 = -X) out over the open water.
+  // Map C = CoastalScrub: ocean seals the WEST edge (x <= -1120). Stand in the
+  // shallows and look back across the open water toward the coast so deep blue
+  // sea fills the foreground. Noon sky keeps the water blue, not golden-hazed.
   map: "C",
   ref: "1",
+  env: "noon",
   t: String(FIXED_TIME),
   ticks: "60",
   sea: "gerstner",
   zoom: "8.0",
-  cx: "-1115",
+  cx: "-1180",
   cy: "-150",
   pitch: "0.28",
-  yaw: "0",
+  yaw: String(Math.PI),
 });
 
 export async function run(ctx) {

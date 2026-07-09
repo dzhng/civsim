@@ -13,7 +13,7 @@ import {
 import type { Scene } from "../scene";
 import { type EncounterSideView } from "../ui/campaign/CampaignBattleModal";
 import { mountCampaignHud, type CampaignHudHandle } from "../ui/campaign/CampaignHud";
-import { loadCampaignData, nearestLoc, tilePos, type CampaignData } from "./data";
+import { nearestLoc, tilePos, type CampaignData } from "./data";
 import type { CamView } from "./camera";
 import {
   rectsOverlap,
@@ -1278,5 +1278,3 @@ function ordinal(k: number) {
   const suffix = value >= 11 && value <= 13 ? "th" : (["th", "st", "nd", "rd"][k % 10] ?? "th");
   return `${k}${suffix}`;
 }
-
-export { loadCampaignData };

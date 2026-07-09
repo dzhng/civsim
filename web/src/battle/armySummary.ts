@@ -1,10 +1,13 @@
 // Army-wide readout for the bottom-left info card when nothing is selected — so
 // the card is never empty (specs/done/hud-housings, slice 04). Pure over the same
-// unit_info Float32Array the HUD already reads, using the same raw field offsets
-// as scene.ts (team +6, total +7, cohesion +4, alive +15, morale +20, routing
-// +21). Men-weighted so a big battered unit counts more than a small fresh one —
+// unit_info Float32Array the HUD already reads, via the shared UNIT_INFO field
+// names. Men-weighted so a big battered unit counts more than a small fresh one —
 // the doubling test: twice the men at the same morale must not change the average.
 // No wasm/sim change; headless-testable (armySummary.test.mjs).
+
+// The .ts extension is load-bearing: node --test runs this module through
+// type-stripping (armySummary.test.mjs), which resolves only explicit paths.
+import { UNIT_INFO } from "../../../packages/game-renderer/src/battle/unitInfoLayout.ts";
 
 export interface ArmySummary {
   unitsAlive: number;
@@ -31,16 +34,16 @@ export function armySummary(info: Float32Array, count: number, stride: number): 
   let routing = 0;
   for (let u = 0; u < count; u++) {
     const o = u * stride;
-    if (info[o + 6] !== 0) continue; // player units only (team 0)
+    if (info[o + UNIT_INFO.team] !== 0) continue; // player units only (team 0)
     unitsTotal++;
-    const alive = info[o + 15] || 0;
-    totalMen += info[o + 7] || 0;
+    const alive = info[o + UNIT_INFO.alive] || 0;
+    totalMen += info[o + UNIT_INFO.total] || 0;
     if (alive > 0) {
       unitsAlive++;
       aliveMen += alive;
-      moraleMen += (info[o + 20] || 0) * alive;
-      cohesionMen += (info[o + 4] || 0) * alive;
-      if (info[o + 21] > 0.5) routing++;
+      moraleMen += (info[o + UNIT_INFO.morale] || 0) * alive;
+      cohesionMen += (info[o + UNIT_INFO.cohesion] || 0) * alive;
+      if (info[o + UNIT_INFO.routing] > 0.5) routing++;
     }
   }
   return {

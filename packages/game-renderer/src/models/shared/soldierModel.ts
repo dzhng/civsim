@@ -39,11 +39,6 @@ export function modelLookForClass(cls: number): number {
   return CLASS_MODEL_LOOK[cls] ?? CLASS_MODEL_LOOK[0];
 }
 
-export function modelLookForUnit(cls: number, unitTypeId?: number): number {
-  void unitTypeId;
-  return modelLookForClass(cls);
-}
-
 export function lookForModel(model: number): ClassLook {
   return CLASS_LOOK[model] ?? CLASS_LOOK[modelLookForClass(0)];
 }

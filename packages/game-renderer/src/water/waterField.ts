@@ -1,6 +1,3 @@
-import type { RawFrameShell } from '../../../renderer-core/src/frameShell';
-import { GerstnerWaterField } from './gerstnerField';
-
 // The water-field firewall for civsim's water look. Every consumer — the open-sea
 // plane pass and (through it) the production surfaces — is written against this seam,
 // never against a technique: a pass only ever calls `wgslSample()` (to inline the
@@ -9,9 +6,9 @@ import { GerstnerWaterField } from './gerstnerField';
 // The Slice 1 bake-off picked **Gerstner** (analytic sum-of-waves) as the single
 // production field: it is closed-form, needs no GPU compute or per-frame upload, and
 // therefore runs on every adapter — it is its own weak-GPU fallback. The IFFT loser
-// was deleted in Slice 11. The seam and this factory are kept anyway (collapsed to the
-// one producer): they are cheap, they keep consumers untouched, and they are the
-// contract the look and production surfaces are written against.
+// was deleted in Slice 11. The seam is kept anyway: it is cheap, it keeps consumers
+// untouched, and it is the contract the look and production surfaces are written
+// against (`GerstnerWaterField` in `gerstnerField.ts` is the one producer).
 //
 // The frozen WGSL sampling contract the field satisfies:
 //
@@ -46,10 +43,4 @@ export interface WaterFieldSource {
   bindGroup(): GPUBindGroup | null;
   stats(): WaterFieldStats;
   destroy(): void;
-}
-
-// The one producer. `shell` is unused by the analytic field but kept in the signature
-// so a future GPU-backed field could slot in behind the seam without touching callers.
-export function createWaterField(_shell: RawFrameShell): WaterFieldSource {
-  return new GerstnerWaterField();
 }

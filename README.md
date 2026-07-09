@@ -30,7 +30,7 @@ in TypeScript.
   bespoke WGSL passes that still render the campaign (and the renderer lab)
   until the photoreal ladder decides their fate. The conversion rationale and
   the in-flight ladder live in
-  [specs/3d-perspective-renderer/README.md](specs/3d-perspective-renderer/README.md).
+  [specs/done/3d-perspective-renderer/README.md](specs/done/3d-perspective-renderer/README.md).
 - `web` — Vite + TypeScript shell (routes, input, HUD, wasm glue); the
   rendering machinery itself lives in `packages`. How battle terrain becomes a
   place — rolling ground, sealed edges, shared scenery, and the seating
@@ -336,7 +336,7 @@ swap replaced the machinery without touching the scene, the input, or the
 harness. Today the contract is fulfilled by the one engine-wide perspective
 camera — `packages/renderer-core/src/camera3d.ts`, the same view/projection
 matrices, reverse-Z depth, and ray-cast picking battle uses (see
-[specs/3d-perspective-renderer/README.md](specs/3d-perspective-renderer/README.md)).
+[specs/done/3d-perspective-renderer/README.md](specs/done/3d-perspective-renderer/README.md)).
 Define the boundary as a small projection contract and the machinery behind it
 stops being load-bearing.
 

@@ -9,10 +9,7 @@ import {
   currentUnitFiles,
   currentUnitRanks,
 } from "../../../packages/game-renderer/src/battle/unitInfoLayout";
-import {
-  modelLookForClass,
-  modelLookForUnit,
-} from "../../../packages/game-renderer/src/models/shared/soldierModel";
+import { modelLookForClass } from "../../../packages/game-renderer/src/models/shared/soldierModel";
 import { STANDARD_SIZE_TIERS } from "../../../packages/game-renderer/src/models/shared/standardAsset";
 import { factionForTeam } from "../../../packages/game-renderer/src/battle/factionColors";
 import {
@@ -129,7 +126,6 @@ export interface GeneratedBattleMapDescriptor {
   };
   featureSummary?: {
     lakeCells?: number;
-    forestCells?: number;
     passableForestCells?: number;
     streams?: number;
     streamCells?: number;
@@ -354,8 +350,8 @@ export class BattleScene implements Scene {
         const o = u * STRIDE;
         x0 = Math.min(x0, info[o]);
         x1 = Math.max(x1, info[o]);
-        y0 = Math.min(y0, info[o + 1]);
-        y1 = Math.max(y1, info[o + 1]);
+        y0 = Math.min(y0, info[o + UNIT_INFO.y]);
+        y1 = Math.max(y1, info[o + UNIT_INFO.y]);
       }
       const dpr = window.devicePixelRatio || 1;
       const mapZoom = (canvas.clientHeight * dpr) / Math.min(mapH * 0.62, 1000);
@@ -399,8 +395,14 @@ export class BattleScene implements Scene {
         game.soldier_count(),
       );
       const info = unitInfo();
-      const teams = Array.from({ length: game.unit_count() }, (_, u) => info[u * STRIDE + 6]);
-      const classes = Array.from({ length: game.unit_count() }, (_, u) => info[u * STRIDE + 13]);
+      const teams = Array.from(
+        { length: game.unit_count() },
+        (_, u) => info[u * STRIDE + UNIT_INFO.team],
+      );
+      const classes = Array.from(
+        { length: game.unit_count() },
+        (_, u) => info[u * STRIDE + UNIT_INFO.classId],
+      );
       renderer.setStatic(soldierUnit, teams, classes);
     };
     applyStatic();
@@ -554,9 +556,14 @@ export class BattleScene implements Scene {
       const info = unitInfo();
       for (let u = 0; u < game.unit_count(); u++) {
         const o = u * STRIDE;
-        if (info[o + 15] === 0) continue;
-        const [mx, my] = worldToMini(info[o], info[o + 1]);
-        g.fillStyle = info[o + 21] > 0.5 ? "#888" : info[o + 6] === 0 ? "#6f9ae8" : "#e0604f";
+        if (info[o + UNIT_INFO.alive] === 0) continue;
+        const [mx, my] = worldToMini(info[o], info[o + UNIT_INFO.y]);
+        g.fillStyle =
+          info[o + UNIT_INFO.routing] > 0.5
+            ? "#888"
+            : info[o + UNIT_INFO.team] === 0
+              ? "#6f9ae8"
+              : "#e0604f";
         g.fillRect(mx - 1.5, my - 1.5, 3, 3);
       }
       const [ax, ay] = camera.screenToWorld(0, 0);
@@ -591,29 +598,39 @@ export class BattleScene implements Scene {
     // the physical facts the press makes true.
     function unitChips(info: Float32Array, o: number): BannerChip[] {
       const chips: BannerChip[] = [];
-      const cls2 = info[o + 13];
-      const mode = info[o + 24];
-      if (info[o + 21] > 0.5) chips.push({ text: "ROUT", kind: "bad" });
+      const cls2 = info[o + UNIT_INFO.classId];
+      const mode = info[o + UNIT_INFO.mode];
+      if (info[o + UNIT_INFO.routing] > 0.5) chips.push({ text: "ROUT", kind: "bad" });
       else if (mode === 2) chips.push({ text: "DIS", title: "disengaging" });
       else if (mode === 1) chips.push({ text: "ATK", title: "attacking" });
-      if (info[o + 18] === 2) chips.push({ text: "CHG!", kind: "hot", title: "charging" });
-      if (info[o + 25] > 0.5) chips.push({ text: "PUR", title: "pursue: latch onto contact" });
-      if (info[o + 26] > 0.5) chips.push({ text: "KITE", title: "kiting reflex on" });
-      if (info[o + 3] < 0.3 && info[o + 16] > 0)
+      if (info[o + UNIT_INFO.charge] === 2)
+        chips.push({ text: "CHG!", kind: "hot", title: "charging" });
+      if (info[o + UNIT_INFO.pursue] > 0.5)
+        chips.push({ text: "PUR", title: "pursue: latch onto contact" });
+      if (info[o + UNIT_INFO.evadeAuto] > 0.5)
+        chips.push({ text: "KITE", title: "kiting reflex on" });
+      if (info[o + UNIT_INFO.frameSpeed] < 0.3 && info[o + UNIT_INFO.engaged] > 0)
         chips.push({ text: "BRC", title: "braced: planted mass" });
-      if (info[o + 8] < 0.35) chips.push({ text: "TIRED", kind: "bad", title: "winded" });
-      if (info[o + 28] > 0.5) chips.push({ text: "SQZ", title: "squeezed into a corridor" });
-      if (info[o + 27] > 0.5) chips.push({ text: "WAIT", title: "queued behind friends" });
-      if (info[o + 29] > 0.55)
+      if (info[o + UNIT_INFO.stamina] < 0.35)
+        chips.push({ text: "TIRED", kind: "bad", title: "winded" });
+      if (info[o + UNIT_INFO.squeezed] > 0.5)
+        chips.push({ text: "SQZ", title: "squeezed into a corridor" });
+      if (info[o + UNIT_INFO.waiting] > 0.5)
+        chips.push({ text: "WAIT", title: "queued behind friends" });
+      if (info[o + UNIT_INFO.pressure] > 0.55)
         chips.push({
           text: "CRUSH",
           kind: "bad",
           title: "crushed in the press: no room, evade dying",
         });
-      if (MISSILE_CLASS_IDS.includes(cls2) && info[o + 19] === 0)
+      if (MISSILE_CLASS_IDS.includes(cls2) && info[o + UNIT_INFO.ammo] === 0)
         chips.push({ text: "AMMO!", kind: "bad", title: "quivers empty" });
-      if (info[o + 16] > 0)
-        chips.push({ text: `⚔${info[o + 16]}`, kind: "hot", title: "men trading blows" });
+      if (info[o + UNIT_INFO.engaged] > 0)
+        chips.push({
+          text: `⚔${info[o + UNIT_INFO.engaged]}`,
+          kind: "hot",
+          title: "men trading blows",
+        });
       return chips;
     }
 
@@ -626,7 +643,7 @@ export class BattleScene implements Scene {
       const readouts: BattleReadoutInstance[] = [];
       for (let u = 0; u < n; u++) {
         const o = u * STRIDE;
-        const alive = info[o + 15];
+        const alive = info[o + UNIT_INFO.alive];
         if (alive === 0) continue;
         const anchorX = unitAnchorX[u] > -Infinity ? unitAnchorX[u] : info[o + UNIT_INFO.centerX];
         const anchorY = unitAnchorY[u] > -Infinity ? unitAnchorY[u] : info[o + UNIT_INFO.centerY];
@@ -732,20 +749,23 @@ export class BattleScene implements Scene {
       const sel = myUnits(input.selected);
       const info = unitInfo();
       const o = sel.length ? sel[0] * STRIDE : -1;
-      const classes = sel.map((u) => info[u * STRIDE + 13]);
+      const classes = sel.map((u) => info[u * STRIDE + UNIT_INFO.classId]);
       const supports = (allowed: number[]) => classes.some((c) => allowed.includes(c));
       const selEmpty = sel.length === 0;
       // Same command state the old imperative updateToolbar computed: .on per
       // order/time state, disabled unless a unit (and the right class) is selected.
       const state: Record<string, ToolButtonState> = {
-        pace: { on: o >= 0 && info[o + 9] > 0.5, disabled: selEmpty },
+        pace: { on: o >= 0 && info[o + UNIT_INFO.running] > 0.5, disabled: selEmpty },
         reform: { on: false, disabled: selEmpty },
-        pursue: { on: o >= 0 && info[o + 25] > 0.5, disabled: selEmpty },
+        pursue: { on: o >= 0 && info[o + UNIT_INFO.pursue] > 0.5, disabled: selEmpty },
         fire: {
           on: o >= 0 && sel.length > 0 && fireOn,
           disabled: selEmpty || !supports(MISSILE_CLASS_IDS),
         },
-        kite: { on: o >= 0 && info[o + 26] > 0.5, disabled: selEmpty || !supports(KITE_CLASS_IDS) },
+        kite: {
+          on: o >= 0 && info[o + UNIT_INFO.evadeAuto] > 0.5,
+          disabled: selEmpty || !supports(KITE_CLASS_IDS),
+        },
         pause: { on: paused, disabled: false },
         x1: { on: !paused && timeScale === 1, disabled: false },
         x3: { on: !paused && timeScale === 3, disabled: false },
@@ -843,19 +863,22 @@ export class BattleScene implements Scene {
 
     const soldierStartOf = (u: number, info = unitInfo()) => {
       let start = 0;
-      for (let k = 0; k < u; k++) start += Math.max(0, Math.floor(info[k * STRIDE + 7]));
+      for (let k = 0; k < u; k++)
+        start += Math.max(0, Math.floor(info[k * STRIDE + UNIT_INFO.total]));
       return start;
     };
 
     const myUnits = (units: number[]) => {
       const info = unitInfo();
-      return units.filter((u) => info[u * STRIDE + 6] === 0 && info[u * STRIDE + 15] > 0);
+      return units.filter(
+        (u) => info[u * STRIDE + UNIT_INFO.team] === 0 && info[u * STRIDE + UNIT_INFO.alive] > 0,
+      );
     };
 
     const unitSnap = (u: number): UnitSnap => {
       const info = unitInfo();
       const [cx, cy] = unitCenter(u);
-      const cls = info[u * STRIDE + 13];
+      const cls = info[u * STRIDE + UNIT_INFO.classId];
       const files = currentUnitFiles(info, u * STRIDE);
       return { u, x: cx, y: cy, r: 0.5 * files * CLASS_SPACING[cls] };
     };
@@ -910,7 +933,7 @@ export class BattleScene implements Scene {
         const sel = myUnits(ga.units);
         if (sel.length === 0) return false;
         const to = ga.target * STRIDE;
-        if (info[to + 15] === 0) return false; // target destroyed
+        if (info[to + UNIT_INFO.alive] === 0) return false; // target destroyed
         const [tx, ty] = unitCenter(ga.target);
         let cx = 0,
           cy = 0;
@@ -945,7 +968,8 @@ export class BattleScene implements Scene {
         const info = unitInfo();
         const out: number[] = [];
         for (let u = 0; u < game.unit_count(); u++) {
-          if (info[u * STRIDE + 6] !== 0 || info[u * STRIDE + 15] === 0) continue;
+          if (info[u * STRIDE + UNIT_INFO.team] !== 0 || info[u * STRIDE + UNIT_INFO.alive] === 0)
+            continue;
           const [cx, cy] = unitCenter(u);
           if (cx >= x0 && cx <= x1 && cy >= y0 && cy <= y1) out.push(u);
         }
@@ -960,7 +984,8 @@ export class BattleScene implements Scene {
         const info = unitInfo();
         const out: number[] = [];
         for (let u = 0; u < game.unit_count(); u++) {
-          if (info[u * STRIDE + 6] === 0 && info[u * STRIDE + 15] > 0) out.push(u);
+          if (info[u * STRIDE + UNIT_INFO.team] === 0 && info[u * STRIDE + UNIT_INFO.alive] > 0)
+            out.push(u);
         }
         return out;
       },
@@ -970,7 +995,7 @@ export class BattleScene implements Scene {
         const info = unitInfo();
         for (const u of sel) {
           const [cx, cy] = unitCenter(u);
-          game.set_move_order_facing(u, cx + dx, cy + dy, info[u * STRIDE + 2]);
+          game.set_move_order_facing(u, cx + dx, cy + dy, info[u * STRIDE + UNIT_INFO.facing]);
         }
         markFlash(sel);
       },
@@ -989,8 +1014,8 @@ export class BattleScene implements Scene {
         const targetUnit = game.pick_unit(x, y, 25);
         const isEnemy =
           targetUnit >= 0 &&
-          info[targetUnit * STRIDE + 6] !== 0 &&
-          info[targetUnit * STRIDE + 15] > 0;
+          info[targetUnit * STRIDE + UNIT_INFO.team] !== 0 &&
+          info[targetUnit * STRIDE + UNIT_INFO.alive] > 0;
         if (!shift) sel.forEach((u) => game.set_pace(u, double ? 1 : 0));
         if (isEnemy) {
           if (shift) {
@@ -1039,14 +1064,14 @@ export class BattleScene implements Scene {
       togglePace: (units: number[]) => {
         const sel = myUnits(units);
         const info = unitInfo();
-        const anyWalk = sel.some((u) => info[u * STRIDE + 9] < 0.5);
+        const anyWalk = sel.some((u) => info[u * STRIDE + UNIT_INFO.running] < 0.5);
         sel.forEach((u) => game.set_pace(u, anyWalk ? 1 : 0));
       },
       reform: (units: number[]) => myUnits(units).forEach((u) => game.set_reform(u)),
       toggleKite: (units: number[]) => {
         const sel = myUnits(units);
         const info = unitInfo();
-        const anyOff = sel.some((u) => info[u * STRIDE + 26] < 0.5);
+        const anyOff = sel.some((u) => info[u * STRIDE + UNIT_INFO.evadeAuto] < 0.5);
         sel.forEach((u) => game.set_evade_auto(u, anyOff ? 1 : 0));
       },
       togglePursue: (units: number[]) => {
@@ -1081,14 +1106,16 @@ export class BattleScene implements Scene {
       cardUnits = [];
       const inits = [];
       for (let u = 0; u < game.unit_count(); u++) {
-        if (info[u * STRIDE + 6] !== 0) continue; // player units only
+        if (info[u * STRIDE + UNIT_INFO.team] !== 0) continue; // player units only
         cardUnits.push(u);
         inits.push({
           unit: u,
-          cls: info[u * STRIDE + 13],
-          look: info[u * STRIDE + UNIT_INFO.renderLook] ?? modelLookForUnit(info[u * STRIDE + 13]),
+          cls: info[u * STRIDE + UNIT_INFO.classId],
+          look:
+            info[u * STRIDE + UNIT_INFO.renderLook] ??
+            modelLookForClass(info[u * STRIDE + UNIT_INFO.classId]),
           team: 0 as const,
-          name: CLASS_NAMES[info[u * STRIDE + 13]] ?? "?",
+          name: CLASS_NAMES[info[u * STRIDE + UNIT_INFO.classId]] ?? "?",
         });
       }
       battleHud.buildCards(inits);
@@ -1100,15 +1127,15 @@ export class BattleScene implements Scene {
       battleHud.cards.update(
         cardUnits.map((u) => {
           const o = u * STRIDE;
-          const alive = info[o + 15];
+          const alive = info[o + UNIT_INFO.alive];
           if (alive === 0) return null;
           return {
             alive,
-            total: info[o + 7],
-            cohesion: info[o + 4],
-            morale: info[o + 20],
-            stamina: info[o + 8],
-            routing: info[o + 21] > 0.5,
+            total: info[o + UNIT_INFO.total],
+            cohesion: info[o + UNIT_INFO.cohesion],
+            morale: info[o + UNIT_INFO.morale],
+            stamina: info[o + UNIT_INFO.stamina],
+            routing: info[o + UNIT_INFO.routing] > 0.5,
             selected: sel.has(u),
           };
         }),
@@ -1231,7 +1258,12 @@ export class BattleScene implements Scene {
       const showTransient = !frozen || withPaths || frozenEffects;
       for (let u = 0; u < n; u++) {
         const o = u * STRIDE;
-        const [ax, ay, facing, team] = [info[o], info[o + 1], info[o + 2], info[o + 6]];
+        const [ax, ay, facing, team] = [
+          info[o],
+          info[o + UNIT_INFO.y],
+          info[o + UNIT_INFO.facing],
+          info[o + UNIT_INFO.team],
+        ];
         // The player's cues share the selection-ring green (one style for
         // "mine"); the enemy's keep the red accent.
         const [r, g, b] = team === 0 ? SELECTION_GREEN : [1.0, 0.55, 0.45];
@@ -1253,8 +1285,21 @@ export class BattleScene implements Scene {
             b,
             1,
           );
-          if (info[o + 12] > 0.5) {
-            groundCues.push(ax, ay, r, g, b, 1, info[o + 10], info[o + 11], r, g, b, 1);
+          if (info[o + UNIT_INFO.hasTarget] > 0.5) {
+            groundCues.push(
+              ax,
+              ay,
+              r,
+              g,
+              b,
+              1,
+              info[o + UNIT_INFO.targetX],
+              info[o + UNIT_INFO.targetY],
+              r,
+              g,
+              b,
+              1,
+            );
           }
           // The SHIFT-queued chain BEHIND the active order: active dest -> q0 ->
           // q1 -> ... drawn dimmer than the live leg, a small diamond at each
@@ -1262,8 +1307,8 @@ export class BattleScene implements Scene {
           // no-op (empty array) for everyone else.
           const q = game.queued_orders(u);
           if (q.length >= 3) {
-            let px = info[o + 12] > 0.5 ? info[o + 10] : ax;
-            let py = info[o + 12] > 0.5 ? info[o + 11] : ay;
+            let px = info[o + UNIT_INFO.hasTarget] > 0.5 ? info[o + UNIT_INFO.targetX] : ax;
+            let py = info[o + UNIT_INFO.hasTarget] > 0.5 ? info[o + UNIT_INFO.targetY] : ay;
             const qr = r * 0.55,
               qg = g * 0.55,
               qb = b * 0.55;
@@ -1284,21 +1329,23 @@ export class BattleScene implements Scene {
         // Destination preview: the soldier-ring grid at the final formation
         // slots (flashes on every order; hold Space to keep them all visible).
         const age = performance.now() - (orderFlash.get(u) ?? -1e9);
-        if (info[o + 12] > 0.5 && (withPaths || (showTransient && age < 2500))) {
+        if (info[o + UNIT_INFO.hasTarget] > 0.5 && (withPaths || (showTransient && age < 2500))) {
           // Recent orders fade out (to transparent, alpha not color — a color
           // fade sinks the cue to black); Space shows them at full strength.
           const k = withPaths ? 1 : Math.max(0, 1 - age / 2500);
-          const cls = info[o + 13];
-          const alive = info[o + 15];
+          const cls = info[o + UNIT_INFO.classId];
+          const alive = info[o + UNIT_INFO.alive];
           const files = currentUnitFiles(info, o);
           const ranks = currentUnitRanks(info, o);
           const gf =
-            info[o + 23] > 0.5 ? info[o + 22] : Math.atan2(info[o + 11] - ay, info[o + 10] - ax);
+            info[o + UNIT_INFO.hasGoalFacing] > 0.5
+              ? info[o + UNIT_INFO.goalFacing]
+              : Math.atan2(info[o + UNIT_INFO.targetY] - ay, info[o + UNIT_INFO.targetX] - ax);
           pushPreviewRings(
             rings,
             u,
-            info[o + 10],
-            info[o + 11],
+            info[o + UNIT_INFO.targetX],
+            info[o + UNIT_INFO.targetY],
             gf,
             alive,
             files,
@@ -1316,8 +1363,8 @@ export class BattleScene implements Scene {
             g * 0.8,
             b * 0.8,
             k,
-            info[o + 10],
-            info[o + 11],
+            info[o + UNIT_INFO.targetX],
+            info[o + UNIT_INFO.targetY],
             r * 0.8,
             g * 0.8,
             b * 0.8,
@@ -1327,8 +1374,8 @@ export class BattleScene implements Scene {
         // Progress pie: WHITE = order transmitting down the line. A ground cue
         // (5-stride, draped on terrain) — the effects buffer is 6-stride with
         // per-vertex z, so pushing it there shears every later vertex.
-        if (showTransient && info[o + 14] > 0)
-          pushPie(groundCues, ax, ay, info[o + 14], 7, 1, 1, 1, 1);
+        if (showTransient && info[o + UNIT_INFO.orderProgress] > 0)
+          pushPie(groundCues, ax, ay, info[o + UNIT_INFO.orderProgress], 7, 1, 1, 1, 1);
       }
       // Right-drag preview: where every man will stand, facing the cursor —
       // the soldier-ring grid in the selection green.
@@ -1338,8 +1385,8 @@ export class BattleScene implements Scene {
           const snaps = sel.map(unitSnap);
           for (const dst of groupMoveDests(snaps, input.rightDrag.x, input.rightDrag.y)) {
             const o = dst.u * STRIDE;
-            const cls = info[o + 13];
-            const alive = info[o + 15];
+            const cls = info[o + UNIT_INFO.classId];
+            const alive = info[o + UNIT_INFO.alive];
             pushPreviewRings(
               rings,
               dst.u,
@@ -1374,8 +1421,8 @@ export class BattleScene implements Scene {
         const [dx, dy] = input.dragDelta;
         for (const u of input.selected) {
           const o = u * STRIDE;
-          const cls = info[o + 13];
-          const alive = info[o + 15];
+          const cls = info[o + UNIT_INFO.classId];
+          const alive = info[o + UNIT_INFO.alive];
           if (alive === 0) continue;
           const [cx, cy] = unitCenter(u);
           pushPreviewRings(
@@ -1383,7 +1430,7 @@ export class BattleScene implements Scene {
             u,
             cx + dx,
             cy + dy,
-            info[o + 2],
+            info[o + UNIT_INFO.facing],
             alive,
             currentUnitFiles(info, o),
             currentUnitRanks(info, o),
@@ -1403,9 +1450,9 @@ export class BattleScene implements Scene {
         );
         for (const u of input.selected) {
           const o = u * STRIDE;
-          if (info[o + 15] === 0) continue;
+          if (info[o + UNIT_INFO.alive] === 0) continue;
           const start = soldierStartOf(u, info);
-          const count = Math.max(0, Math.floor(info[o + 7]));
+          const count = Math.max(0, Math.floor(info[o + UNIT_INFO.total]));
           const end = Math.min(start + count, aliveSoldiers.length);
           for (let i = start; i < end; i++) {
             if (aliveSoldiers[i] === 0) continue;
@@ -1686,8 +1733,8 @@ export class BattleScene implements Scene {
         const running = new Uint8Array(uc);
         for (let u = 0; u < uc; u++) {
           const o = u * STRIDE;
-          atEase[u] = info[o + 17] > 0.5 ? 1 : 0;
-          running[u] = info[o + 9] > 0.5 ? 1 : 0;
+          atEase[u] = info[o + UNIT_INFO.atEase] > 0.5 ? 1 : 0;
+          running[u] = info[o + UNIT_INFO.running] > 0.5 ? 1 : 0;
         }
         if (unitAliveCount.length < uc) {
           unitAnchorX = new Float32Array(uc);
@@ -1849,18 +1896,18 @@ export class BattleScene implements Scene {
           const y = pos[2 * i + 1];
           if (x < wx0 || x > wx1 || y < wy0 || y > wy1) continue;
           const u = soldierUnit[i];
-          const cls = info[u * STRIDE + 13];
+          const cls = info[u * STRIDE + UNIT_INFO.classId];
           const w = CLASS_SPECS[cls]?.weapons[curWeapon[i]];
           if (!w) continue;
           const { reach, arc } = w;
-          const team = info[u * STRIDE + 6];
+          const team = info[u * STRIDE + UNIT_INFO.team];
           const [r, g, b] = team === 0 ? [0.55, 0.85, 1.0] : [1.0, 0.72, 0.35];
           const a = 0.26;
           const half = Math.max(arc, 0.18) / 2;
           const segs = arc > 1.2 ? 5 : 3;
           // A braced pike can't be slewed in the ranks — it bears along the unit's
           // facing, not the man's; everything else tracks the man as he squares up.
-          const f0 = w?.braced ? info[u * STRIDE + 2] : face[i];
+          const f0 = w?.braced ? info[u * STRIDE + UNIT_INFO.facing] : face[i];
           const R = reach + 0.45; // surface-to-surface reach + a body radius
           for (let s = 0; s < segs; s++) {
             const a0 = f0 - half + (s / segs) * arc;
@@ -1932,19 +1979,20 @@ export class BattleScene implements Scene {
       if (cardUnit >= 0) {
         const info = unitInfo();
         const o = cardUnit * STRIDE;
-        const cohesion = info[o + 4];
-        const fatigue = info[o + 8];
-        const pace = info[o + 9] > 0.5 ? "run" : "walk";
-        const clsId = info[o + 13];
+        const cohesion = info[o + UNIT_INFO.cohesion];
+        const fatigue = info[o + UNIT_INFO.stamina];
+        const pace = info[o + UNIT_INFO.running] > 0.5 ? "run" : "walk";
+        const clsId = info[o + UNIT_INFO.classId];
         const cls = CLASS_NAMES[clsId] ?? "?";
-        const side = info[o + 6] === 0 ? "YOUR" : "ENEMY";
-        const alive = info[o + 15],
-          total = info[o + 7];
+        const side = info[o + UNIT_INFO.team] === 0 ? "YOUR" : "ENEMY";
+        const alive = info[o + UNIT_INFO.alive],
+          total = info[o + UNIT_INFO.total];
         const hpFrac = total > 0 ? alive / total : 0;
-        const charge = info[o + 18] === 2 ? " · CHARGING" : "";
-        const ammo = info[o + 19] > 0 ? ` · ammo ${info[o + 19]}` : "";
-        const routing = info[o + 21] > 0.5 ? " · ROUTING" : "";
-        const engaged = info[o + 16] > 0 ? ` · engaged ${info[o + 16]}` : "";
+        const charge = info[o + UNIT_INFO.charge] === 2 ? " · CHARGING" : "";
+        const ammo = info[o + UNIT_INFO.ammo] > 0 ? ` · ammo ${info[o + UNIT_INFO.ammo]}` : "";
+        const routing = info[o + UNIT_INFO.routing] > 0.5 ? " · ROUTING" : "";
+        const engaged =
+          info[o + UNIT_INFO.engaged] > 0 ? ` · engaged ${info[o + UNIT_INFO.engaged]}` : "";
         const thumb = cardThumbUrl(modelLookForClass(clsId));
         const detail: string[] = [];
         const spec = CLASS_SPECS[clsId];
@@ -1985,7 +2033,7 @@ export class BattleScene implements Scene {
           hpColor,
           cohesion,
           fatigue,
-          morale: info[o + 20],
+          morale: info[o + UNIT_INFO.morale],
           detail,
         };
       }

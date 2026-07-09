@@ -7,12 +7,20 @@
 // the shape develops on screen, not guessed from a single frame.
 //   ATK=0 DEF=0 POSTURE=both node vibe/duel-posture.mjs   # heavy v heavy, both attack
 //   ATK=0 DEF=3 POSTURE=hold node vibe/duel-posture.mjs   # heavy attacks a holding phalanx
-import { openBattle, closeBattle, vibeCapture, fitDuel, duelSample, duelLabel } from "./_lib.mjs";
+import {
+  openBattle,
+  closeBattle,
+  vibeCapture,
+  fitDuel,
+  duelSample,
+  duelLabel,
+  scenarioName,
+} from "./_lib.mjs";
 
 const ATK = Number(process.env.ATK ?? 0); // class id, 0 = HeavySword
 const DEF = Number(process.env.DEF ?? 0);
 const POSTURE = process.env.POSTURE ?? "both"; // 'both' | 'hold'
-const NAME = process.env.NAME ?? `duel-${ATK}v${DEF}-${POSTURE}`;
+const NAME = scenarioName(`duel-${ATK}v${DEF}-${POSTURE}`);
 
 const { browser, page, errs } = await openBattle(`battle=duel&a=${ATK}&b=${DEF}&ai=off`);
 await page.evaluate((posture) => {

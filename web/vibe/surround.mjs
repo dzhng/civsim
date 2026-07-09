@@ -5,7 +5,7 @@
 // unit is pressed from its side and back at the same time.
 //   node vibe/surround.mjs              # middle holds (square defence)
 //   ATTACK=1 node vibe/surround.mjs     # middle attacks out, surrounded
-import { openBattle, closeBattle, vibeCapture, fitBattleUnits } from "./_lib.mjs";
+import { openBattle, closeBattle, vibeCapture, fitBattleUnits, scenarioName } from "./_lib.mjs";
 
 const ATTACK = process.env.ATTACK === "1";
 const { browser, page, errs } = await openBattle("battle=duel&a=0&b=0&ai=off");
@@ -46,7 +46,7 @@ const label = (s, m) =>
 
 const { frames, fails } = await vibeCapture(
   page,
-  process.env.NAME ?? (ATTACK ? "surround-attack" : "surround"),
+  scenarioName(ATTACK ? "surround-attack" : "surround"),
   {
     stepSecs: 12,
     maxSteps: ATTACK ? 12 : 9,

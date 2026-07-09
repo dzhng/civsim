@@ -15,11 +15,12 @@ import {
   duelLabel,
   UNIT_CENTER_X,
   UNIT_CENTER_Y,
+  scenarioName,
 } from "./_lib.mjs";
 
 const ATK = Number(process.env.ATK ?? 0);
 const DEF = Number(process.env.DEF ?? 0);
-const NAME = process.env.NAME ?? `move-clash-${ATK}v${DEF}`;
+const NAME = scenarioName(`move-clash-${ATK}v${DEF}`);
 
 const { browser, page, errs } = await openBattle(`battle=duel&a=${ATK}&b=${DEF}&ai=off`);
 await page.evaluate(

@@ -175,7 +175,6 @@ const routes = [
       s.route === "campaign-map" &&
       s.stats.roads > 20 &&
       s.stats.seaLanes > 0 &&
-      s.stats.cityMarkers > 20 &&
       s.stats.visibleLabels > 5 &&
       s.stats.labelVertices > 20 &&
       s.stats.factions > 5 &&
@@ -827,7 +826,6 @@ async function findCampaignDepthOnlyFootguns() {
   const checks = [
     ["drawDepth method", /\bdrawDepth\s*\(/],
     ["parallel depth pipeline field", /\bprivate\s+depthPipeline\b/],
-    ["phase-selected line class", /\blines\s*=\s*new\s+CampaignLinePass\b/],
   ];
   const matches = [];
   for (const file of files) {
@@ -1076,12 +1074,8 @@ async function findPhaseBrandFootguns() {
       file: new URL("../../../packages/game-renderer/src/campaign/mapPass.ts", import.meta.url),
       checks: [
         [
-          "campaign map draw requires background pass",
-          /export class CampaignMapPass[\s\S]*?\bdraw\s*\(\s*pass:\s*BackgroundRenderPass\s*\)/,
-        ],
-        [
-          "campaign flat lines draw requires background pass",
-          /export class CampaignLinePass[\s\S]*?\bdraw\s*\(\s*pass:\s*BackgroundRenderPass\s*\)/,
+          "campaign map draw requires world pass",
+          /export class CampaignMapPass[\s\S]*?\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/,
         ],
         [
           "campaign world lines draw requires world pass",

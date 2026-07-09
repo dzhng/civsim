@@ -37,7 +37,6 @@ export interface GeneratedBattleMapManifest {
   edges: BattleEdgeRoles;
   featureSummary?: {
     lakeCells?: number;
-    forestCells?: number;
     passableForestCells?: number;
     streams?: number;
     streamCells?: number;
@@ -162,7 +161,7 @@ export function generatedBattleMapEntry(
   const features = m.featureSummary;
   const lakes = features?.lakeCells ?? 0;
   const streams = features?.streams ?? 0;
-  const forest = features?.passableForestCells ?? features?.forestCells ?? 0;
+  const forest = features?.passableForestCells ?? 0;
   const fallbackId = `generated-${seed}`;
   return {
     id: overrides.id ?? fallbackId,

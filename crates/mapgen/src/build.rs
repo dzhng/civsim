@@ -97,7 +97,6 @@ pub struct EdgeJson {
 pub struct AmbushJson {
     pub edge: usize,
     pub tile: usize,
-    pub side: i8,
 }
 
 fn hash(a: u64, b: u64) -> u64 {
@@ -195,11 +194,6 @@ pub fn classify_route_tiles(
             ambush_spots.push(AmbushJson {
                 edge: eidx,
                 tile: k,
-                side: if hash(eidx as u64, k as u64 + 7) % 2 == 0 {
-                    -1
-                } else {
-                    1
-                },
             });
         }
         tiles.push(t);
@@ -675,11 +669,7 @@ mod tests {
                 tiles: vec!["sea"],
             },
         ];
-        let mut ambush_spots = vec![AmbushJson {
-            edge: 0,
-            tile: 0,
-            side: 1,
-        }];
+        let mut ambush_spots = vec![AmbushJson { edge: 0, tile: 0 }];
         let city_sites = BTreeSet::from([1, 3]);
 
         let removed = prune_road_stub_junctions(&mut edges, &mut ambush_spots, &city_sites);

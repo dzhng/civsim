@@ -200,7 +200,7 @@ impl Battle {
         BattleResult { victor, units }
     }
 
-    /// Remaining cost-weighted strength per team (tie-break for capped runs).
+    /// Remaining alive headcount per team (tie-break for capped runs).
     fn strength(&self, team: u32) -> u32 {
         self.unit_map
             .iter()

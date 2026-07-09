@@ -332,10 +332,6 @@ pub struct CampaignState {
 }
 
 impl CampaignState {
-    pub fn road_level(&self, edge: EdgeId) -> u8 {
-        self.road_levels.get(edge as usize).copied().unwrap_or(1)
-    }
-
     /// Diplomatic stance between two factions (own faction counts as Peace).
     pub fn relation(&self, a: FactionId, b: FactionId) -> Relation {
         if a == b {
@@ -350,10 +346,6 @@ impl CampaignState {
     /// Are these two factions shooting at each other? (False for self.)
     pub fn at_war(&self, a: FactionId, b: FactionId) -> bool {
         a != b && self.relation(a, b) == Relation::War
-    }
-
-    pub fn allied(&self, a: FactionId, b: FactionId) -> bool {
-        self.relation(a, b) == Relation::Alliance
     }
 
     /// Set (and normalize) a treaty between two distinct factions.

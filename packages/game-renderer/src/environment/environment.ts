@@ -12,7 +12,7 @@ export interface CivsimPhysicalLight {
   /** Sun DirectionalLight intensity (linear radiance units). Overcast is a
    *  weak diffuse key; the bright flat sky (IBL) carries the high-key look. */
   sunIntensity: number;
-  /** ACES toneMappingExposure for the preset. */
+  /** toneMappingExposure for the preset (AgX tone map — see photoreal world.ts). */
   exposure: number;
   /** Atmospheric turbidity — drives the physical sky model (slice 10a). */
   turbidity: number;

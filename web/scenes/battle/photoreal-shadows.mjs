@@ -1,15 +1,15 @@
 import { PNG } from "pngjs";
 
-// Slice 11 — cascaded sun shadows. One visual variable: cast-shadow
+// Slice 11 — sun shadows. One visual variable: cast-shadow
 // presence/direction/quality, crop `shadow-scenery` (a tree grove whose
 // shadows are legible even on the low-res fallback tier) per preset at the
 // SAME fixed setTime, plus the golden `shadow-contact` formation crop.
-// Asserts the shadow-tier identity per adapter (the standing SwiftShader
-// capability gate: software rasterizers run mode:'single' — one low-res
-// ortho map — BY NAME; hardware runs mode:'csm', 3×2048 cascades split from
-// the live camera3d projection), shadow PRESENCE (?shadows=off must move the
-// grove crop), per-preset softness (radius derives from turbidity — no new
-// preset field), and fixed-time byte-determinism with shadows on.
+// Asserts the shadow-tier identity (EVERY adapter defaults to mode:'single'
+// — one soft ortho map — since the CSM perf verdict; ?shadows=csm stays the
+// QA override, asserted on hardware runs), shadow PRESENCE (?shadows=off
+// must move the grove crop), per-preset softness (radius derives from
+// turbidity — no new preset field), and fixed-time byte-determinism with
+// shadows on.
 // Out of scope: soldier materials (14a), contact AO (14c), sea receiving (12).
 export const meta = {
   name: "battle-photoreal-shadows",
@@ -25,7 +25,7 @@ export const meta = {
     "photoreal-shadows/golden-hour-full",
   ],
   describe:
-    "Cascaded sun shadows: per-preset scenery crops, tier identity per adapter, on/off presence.",
+    "Sun shadows: per-preset scenery crops, single-tier identity, csm QA override, on/off presence.",
 };
 
 // A generated wooded-pass grove + a soldier formation in one frame. zoom
@@ -55,7 +55,6 @@ export async function run(ctx) {
     return;
   }
   const hardware = process.env.VERIFY_GPU_ADAPTER === "hardware";
-  const expectedMode = hardware ? "csm" : "single";
   let goldenScenery = null;
 
   for (const { env, preset, radius } of PRESETS) {
@@ -63,12 +62,11 @@ export async function run(ctx) {
     const stats = await page.evaluate(() => window.__rendererLabStats);
     const shadows = stats?.stats?.renderStats?.shadows;
     ctx.check(
-      `${env}: shadow identity names the tier that ran (${expectedMode} on ${hardware ? "hardware" : "swiftshader"})`,
+      `${env}: shadow identity names the tier that ran (single is the default on every adapter)`,
       shadows?.owner === "shadowRig" &&
-        shadows?.mode === expectedMode &&
-        (hardware
-          ? shadows?.cascades === 3 && shadows?.mapSize === 2048
-          : shadows?.cascades === 1 && shadows?.mapSize === 1024),
+        shadows?.mode === "single" &&
+        shadows?.cascades === 1 &&
+        shadows?.mapSize === 1024,
       JSON.stringify(shadows),
     );
     ctx.check(
@@ -134,6 +132,21 @@ export async function run(ctx) {
       "shadows move the grove crop (on vs off mean|Δ| > 1.2)",
       delta > 1.2,
       JSON.stringify({ meanAbsDiff: Number(delta.toFixed(2)) }),
+    );
+    await page.close();
+  }
+
+  // The QA override: ?shadows=csm still runs the cascade tier (2×2048 split
+  // from the live camera3d projection). Hardware-only — CSM re-renders the
+  // crowd per cascade, which SwiftShader cannot do in scene budget.
+  if (hardware) {
+    const page = await openRoute(ctx, `?${FRAMING}&env=golden-hour&shadows=csm`, "shadows-csm");
+    const stats = await page.evaluate(() => window.__rendererLabStats);
+    const shadows = stats?.stats?.renderStats?.shadows;
+    ctx.check(
+      "?shadows=csm runs the cascade tier (identity proves the QA override)",
+      shadows?.mode === "csm" && shadows?.cascades === 2 && shadows?.mapSize === 2048,
+      JSON.stringify(shadows),
     );
     await page.close();
   }

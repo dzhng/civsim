@@ -72,7 +72,7 @@ the same pass sorts props against the campaign ground or the battle ground.
   `packages/photoreal-renderer` (which samples the same catalog, features, and
   height field); the bespoke WGSL passes beside the data still serve the
   campaign and the renderer lab until the photoreal ladder retires them
-  ([specs/3d-perspective-renderer](../specs/3d-perspective-renderer/README.md)).
+  ([specs/done/3d-perspective-renderer](../specs/done/3d-perspective-renderer/README.md)).
 - Shared props: `packages/game-renderer/src/models/shared/`.
 - The visual gates that prove all of it are the `battle-terrain-*` scenes under
   `web/scenes/battle/`; the snapshot discipline they obey is

@@ -51,7 +51,6 @@ pub struct Edge {
 pub struct AmbushSpot {
     pub edge: EdgeId,
     pub tile: u16,
-    pub side: i8,
 }
 
 /// How a faction's AI commander behaves. The dispatch in `ai.rs` is a single
@@ -180,7 +179,6 @@ struct RawEdge {
 struct RawAmbush {
     edge: u32,
     tile: u16,
-    side: i8,
 }
 
 #[derive(Deserialize)]
@@ -358,7 +356,6 @@ impl WorldMap {
                 .map(|a| AmbushSpot {
                     edge: a.edge,
                     tile: a.tile,
-                    side: a.side,
                 })
                 .collect(),
             factions: raw

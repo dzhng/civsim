@@ -7,6 +7,10 @@
 
 ## Implementation status (2026-06-14) — partially landed; keep this spec
 
+> Counts below are as measured at writing (9 classes / 8 weapons); the
+> registry has since grown — `crates/contract/src/lib.rs` (`ALL_CLASSES`) is
+> the source of truth for the current roster.
+
 **Done and green** (golden hash byte-identical throughout):
 - `WeaponSet`: `UnitClass.weapons` owns its weapons inline so a class can be
   built at runtime (`class.rs`).

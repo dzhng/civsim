@@ -611,38 +611,6 @@ function addRootShadowAccents(
   }
 }
 
-function addLowCrownAccents(
-  builder: MeshBuilder,
-  seed: number,
-  count: number,
-  height: number,
-  width: number,
-  bend: number,
-  spread: number,
-  palette: { root: Rgb; mid: Rgb; tip: Rgb; dry: Rgb },
-) {
-  const crownColor = scaleColor(mixColor(palette.root, palette.mid, 0.36), 0.68);
-  for (let i = 0; i < count; i++) {
-    const yaw = (i / Math.max(1, count)) * Math.PI + jitter(seed + i * 31, 1, 0.70);
-    const rootRadius = spread * (0.08 + hash2(seed + i, 2) * 0.30);
-    const root: [number, number, number] = [
-      Math.cos(yaw) * rootRadius,
-      Math.sin(yaw) * rootRadius,
-      height * 0.050,
-    ];
-    addTaperedPanel(builder, {
-      root,
-      yaw,
-      height: height * (0.20 + hash2(seed + i, 3) * 0.13),
-      width: width * (4.2 + hash2(seed + i, 4) * 1.6),
-      bend: bend * height * (0.12 + hash2(seed + i, 5) * 0.16),
-      lowerColor: scaleColor(crownColor, 0.76),
-      upperColor: crownColor,
-      tipScale: 0.50,
-    });
-  }
-}
-
 function addRootMatFibers(
   builder: MeshBuilder,
   seed: number,
@@ -808,19 +776,6 @@ function addFiberRibbons(
       tipScale: 0.18,
     });
   }
-}
-
-function addDiamondPatch(builder: MeshBuilder, center: [number, number, number], rx: number, ry: number, yaw: number, color: Rgb) {
-  const fx = Math.cos(yaw);
-  const fy = Math.sin(yaw);
-  const lx = -fy;
-  const ly = fx;
-  builder.panel3d([
-    [center[0] + fx * rx, center[1] + fy * rx, center[2]],
-    [center[0] + lx * ry, center[1] + ly * ry, center[2] + 0.001],
-    [center[0] - fx * rx, center[1] - fy * rx, center[2]],
-    [center[0] - lx * ry, center[1] - ly * ry, center[2] + 0.001],
-  ], color, 1);
 }
 
 function addOvalPatch(builder: MeshBuilder, center: [number, number, number], rx: number, ry: number, yaw: number, color: Rgb, seed: number) {

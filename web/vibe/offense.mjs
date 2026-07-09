@@ -3,7 +3,7 @@
 // they should curl IN and the cloth should DRAPE around it (envelop). Eyeball
 // web/shots/vibe/offense/. Built with the spawn hook so the block is narrow and
 // shallow enough to actually engage (a deep tank just stalls the line).
-import { openBattle, closeBattle, vibeCapture, fitBattleUnits } from "./_lib.mjs";
+import { openBattle, closeBattle, vibeCapture, fitBattleUnits, scenarioName } from "./_lib.mjs";
 
 const { browser, page, errs } = await openBattle("battle=duel&a=0&b=0&ai=off");
 
@@ -31,7 +31,7 @@ const sample = () =>
 const label = (s, m) =>
   `t=${String(s).padStart(3)}s  line ${m.lineAlive}/${m.lineTotal}  block ${m.blockAlive}/${m.blockTotal}`;
 
-const { frames, fails } = await vibeCapture(page, process.env.NAME ?? "offense", {
+const { frames, fails } = await vibeCapture(page, scenarioName("offense"), {
   stepSecs: 12,
   maxSteps: 12,
   frame,

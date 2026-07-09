@@ -1,10 +1,11 @@
 // /renderer/photoreal-battle (slice 08a): the FULL production battle world on
 // the photoreal substrate, booted from the SAME wasm worlds the production
-// battle page runs (Game + start_battle map A/B, same seed, same spawn path)
-// and framed by the SAME shared Camera — so compare-screenshots can hold this
-// route against the production battle at matched camera3d framing.
+// battle page runs (Game + start_battle fixed maps, same seed, same spawn
+// path) and framed by the SAME shared Camera — so compare-screenshots can hold
+// this route against the production battle at matched camera3d framing.
 //
-//   ?map=A|B|gen  quick-battle map (default A) or generated seed map
+//   ?map=A|B|C|gen  fixed map (default A; C = the ocean-flanked coast) or
+//                 generated seed map
 //   ?env=golden-hour|dusk|overcast-foggy|overcast-highland|noon
 //                 environment preset (default golden-hour)
 //   ?ai=on        enemy AI (default off — deterministic standing armies)
@@ -22,8 +23,8 @@
 //   ?clay=1       generated-map landform review: hide grass/scenery/sea and
 //                 swap the live ground mesh to neutral grey clay
 //   ?shadows=off|single|csm
-//                 sun-shadow tier override (slice 11 QA; default = adapter
-//                 probe — csm on hardware, single on software rasterizers)
+//                 sun-shadow tier override (slice 11 QA; default: 'single'
+//                 on every adapter — CSM is the QA override)
 //   ?sea=gerstner
 //                 photoreal sea displacement source (12a verdict: Gerstner TSL)
 //   ?post=off     bypass the whole post chain (slice-15 lab A/B)
@@ -37,6 +38,7 @@ import {
 import { seaDisplacementSourceFromParam } from "../../../packages/photoreal-renderer/src/battle/seaLayer";
 import { DEFAULT_BATTLE_ENVIRONMENT } from "../../../packages/game-renderer/src/environment/environment";
 import { BATTLE_RELIEF_EXAGGERATION } from "../../../packages/game-renderer/src/battle/terrainFeatures";
+import { UNIT_INFO } from "../../../packages/game-renderer/src/battle/unitInfoLayout";
 import { createPhotorealStatsPublisher } from "../../../packages/photoreal-renderer/src/stats";
 import { Camera } from "../../../web/src/shared/camera";
 import { pushPie } from "../../../web/src/shared/overlays";
@@ -212,8 +214,8 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       game.soldier_count(),
     );
     const info = unitInfo();
-    const teams = Array.from({ length: game.unit_count() }, (_, u) => info[u * STRIDE + 6]);
-    const classes = Array.from({ length: game.unit_count() }, (_, u) => info[u * STRIDE + 13]);
+    const teams = Array.from({ length: game.unit_count() }, (_, u) => info[u * STRIDE + UNIT_INFO.team]);
+    const classes = Array.from({ length: game.unit_count() }, (_, u) => info[u * STRIDE + UNIT_INFO.classId]);
     world.setStatic(soldierUnit, teams, classes);
   };
   applyStatic();
@@ -274,7 +276,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
     const info = unitInfo();
     const uc = game.unit_count();
     const atEase = new Uint8Array(uc);
-    for (let u = 0; u < uc; u++) atEase[u] = info[u * STRIDE + 17] > 0.5 ? 1 : 0;
+    for (let u = 0; u < uc; u++) atEase[u] = info[u * STRIDE + UNIT_INFO.atEase] > 0.5 ? 1 : 0;
     const t = nowSeconds;
     for (let i = 0; i < n; i++) {
       aliveF32[i] = a[i];
@@ -322,15 +324,15 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       const y = pos[2 * i + 1];
       if (x < wx0 || x > wx1 || y < wy0 || y > wy1) continue;
       const u = sUnit[i];
-      const cls = info[u * STRIDE + 13];
+      const cls = info[u * STRIDE + UNIT_INFO.classId];
       const w = CLASS_SPECS[cls]?.weapons[curWeapon[i]];
       if (!w) continue;
-      const team = info[u * STRIDE + 6];
+      const team = info[u * STRIDE + UNIT_INFO.team];
       const [r, g, b] = team === 0 ? [0.55, 0.85, 1.0] : [1.0, 0.72, 0.35];
       const alpha = 0.26;
       const half = Math.max(w.arc, 0.18) / 2;
       const segs = w.arc > 1.2 ? 5 : 3;
-      const f0 = w.braced ? info[u * STRIDE + 2] : face[i];
+      const f0 = w.braced ? info[u * STRIDE + UNIT_INFO.facing] : face[i];
       const R = w.reach + 0.45;
       for (let s = 0; s < segs; s++) {
         const a0 = f0 - half + (s / segs) * w.arc;
@@ -367,7 +369,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
   function firstPlayerUnit(): number {
     const info = unitInfo();
     for (let u = 0; u < game.unit_count(); u++) {
-      if (info[u * STRIDE + 6] === 0 && info[u * STRIDE + 15] > 0) return u;
+      if (info[u * STRIDE + UNIT_INFO.team] === 0 && info[u * STRIDE + UNIT_INFO.alive] > 0) return u;
     }
     return -1;
   }
@@ -386,7 +388,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       count++;
     }
     const info = unitInfo();
-    return count > 0 ? [cx / count, cy / count] : [info[u * STRIDE], info[u * STRIDE + 1]];
+    return count > 0 ? [cx / count, cy / count] : [info[u * STRIDE], info[u * STRIDE + UNIT_INFO.y]];
   };
   // ?fx=1: a deterministic overlay fixture at the first player unit — an
   // order-progress pie + projectile streaks (effect lines) and a pair of
@@ -447,7 +449,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
     }
     for (let u = 0; u < game.unit_count(); u++) {
       const o = u * STRIDE;
-      if (info[o + 14] > 0) pushPie(groundCues, info[o], info[o + 1], info[o + 14], 7, 1, 1, 1, 1);
+      if (info[o + UNIT_INFO.orderProgress] > 0) pushPie(groundCues, info[o], info[o + UNIT_INFO.y], info[o + UNIT_INFO.orderProgress], 7, 1, 1, 1, 1);
     }
     if (selected >= 0) {
       const [cx, cy] = unitCenter(selected);
@@ -543,7 +545,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       <tr><td>route</td><td>photoreal-battle (${s.substrate})</td></tr>
       <tr><td>environment</td><td>${s.environment}</td></tr>
       <tr><td>sea</td><td>${rs.sea.source} (${rs.sea.tier})</td></tr>
-      <tr><td>map</td><td>${generatedMap ? `gen:${generatedSeed}` : params.get("map") === "B" ? "B" : "A"}</td></tr>
+      <tr><td>map</td><td>${generatedMap ? `gen:${generatedSeed}` : ["A", "B", "C"][mapIndex]}</td></tr>
       <tr><td>soldiers</td><td>${rs.soldiers} / ${rs.expectedSoldiers}</td></tr>
       <tr><td>seating</td><td>match=${rs.seating.matches} span=${rs.seating.span}</td></tr>
       <tr><td>grass records</td><td>${rs.terrain?.grass.recordCount ?? 0}</td></tr>

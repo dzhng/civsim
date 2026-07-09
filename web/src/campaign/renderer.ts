@@ -634,8 +634,6 @@ export class CampaignRenderer {
       territoryPixels: this.territoryPass?.stats().pixels ?? 0,
       borderSegments: this.borders?.stats().segments ?? 0,
       mapMarkers: markerStats?.markers ?? 0,
-      markerRadiusPx: markerStats?.cityMarkerRadiusPx ?? 0,
-      cityMarkerRadiiPx: markerStats?.cityMarkerRadiiPx ?? [],
       cityMarkerRadiiPxByTier: {
         1: cityMarkerRadiusPx(1),
         2: cityMarkerRadiusPx(2),
@@ -1366,9 +1364,9 @@ function campaignFactionLabels(data: CampaignData, opts: DrawOptions): CampaignL
   const edge = mapEdgeProjector(data);
   // Faction power = sum of owned city tiers, from live ownership (opts.cities),
   // keyed by faction index — the same index FactionLabel.faction carries.
-  const cityTierSum = new Array(data.map.factions.length).fill(0);
-  const cityCentroidX = new Array(data.map.factions.length).fill(0);
-  const cityCentroidY = new Array(data.map.factions.length).fill(0);
+  const cityTierSum = Array.from({ length: data.map.factions.length }, () => 0);
+  const cityCentroidX = Array.from({ length: data.map.factions.length }, () => 0);
+  const cityCentroidY = Array.from({ length: data.map.factions.length }, () => 0);
   for (const [nodeIndex, city] of opts.cities) {
     const node = data.map.nodes[nodeIndex];
     const tier = node?.tier ?? 1;

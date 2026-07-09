@@ -351,20 +351,10 @@ impl Campaign {
         ok
     }
 
-    pub fn order_disband(&mut self, army: u32, entry: u32) -> bool {
-        let ok = self.owns(army) && self.inner.order_disband(army, entry as usize);
-        self.refresh();
-        ok
-    }
-
     pub fn order_merge(&mut self, src: u32, dst: u32) -> bool {
         let ok = self.owns(src) && self.owns(dst) && self.inner.order_merge(src, dst);
         self.refresh();
         ok
-    }
-
-    pub fn road_level(&self, edge: u32) -> u32 {
-        self.inner.state.road_level(edge) as u32
     }
 
     /// Zero-copy view: one byte per edge, the current road level.
@@ -609,33 +599,29 @@ impl Campaign {
                     .filter(|r| r.class == class)
                     .map(|r| r.max)
                     .sum();
-                let options: Vec<serde_json::Value> = campaign::units::available_options(
-                    &self.inner.map,
-                    f,
-                    class,
-                )
-                .into_iter()
-                .map(|u| {
-                    let apply_cost = campaign::economy::class_doctrine_cost(
-                        &self.inner.map,
-                        st,
-                        f,
-                        class,
-                        u.id,
-                        size,
-                    );
-                    serde_json::json!({
-                        "id": u.id.0,
-                        "name": u.name,
-                        "costPerSoldier": u.cost_per_soldier_milligold as f32 / 1000.0,
-                        "upkeepPerSoldier": u.upkeep_per_soldier_milligold as f32 / 1000.0,
-                        "recruitTicksPerSoldier": u.recruit_ticks_per_soldier,
-                        "option": u.option,
-                        "unlocked": matches!(u.unlock, campaign::units::UnitUnlock::Default),
-                        "applyCost": apply_cost,
-                    })
-                })
-                .collect();
+                let options: Vec<serde_json::Value> =
+                    campaign::units::available_options(&self.inner.map, f, class)
+                        .into_iter()
+                        .map(|u| {
+                            let apply_cost = campaign::economy::class_doctrine_cost(
+                                &self.inner.map,
+                                st,
+                                f,
+                                class,
+                                u.id,
+                                size,
+                            );
+                            serde_json::json!({
+                                "id": u.id.0,
+                                "name": u.name,
+                                "costPerSoldier": u.cost_per_soldier_milligold as f32 / 1000.0,
+                                "upkeepPerSoldier": u.upkeep_per_soldier_milligold as f32 / 1000.0,
+                                "recruitTicksPerSoldier": u.recruit_ticks_per_soldier,
+                                "option": u.option,
+                                "applyCost": apply_cost,
+                            })
+                        })
+                        .collect();
                 serde_json::json!({
                     "classIndex": ci,
                     "class": format!("{class:?}"),

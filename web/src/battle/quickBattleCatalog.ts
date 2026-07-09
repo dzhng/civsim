@@ -128,7 +128,3 @@ export const QUICK_BATTLE_TEMPLATES: readonly QuickBattleArmyTemplate[] = [
     units: [{ classId: 0, count: 1 }],
   },
 ];
-
-export function quickBattleTemplate(id: string): QuickBattleArmyTemplate | undefined {
-  return QUICK_BATTLE_TEMPLATES.find((t) => t.id === id);
-}

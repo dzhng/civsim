@@ -46,7 +46,6 @@ export interface CampaignMapStats {
   roadEdgesCulled: number;
   /** Unbridged water gaps where a drawn road ribbon stops at a shore. */
   roadWaterGaps: number;
-  cityMarkers: number;
   labels: number;
   seaLabelFits: CampaignSeaLabelFit[];
   seaLabelFitZoom: number;
@@ -81,8 +80,8 @@ export interface CampaignMapDrawStyle {
   surfaceAt?: (x: number, y: number) => 'land' | 'water';
   /** Full-resolution render-mask classifier (TerrainField.renderLandAt, the
    * slice-00 land-truth owner). Point-truth queries — sea-label placement —
-   * use this; the coarse `surfaceAt` stays the owner of area statistics
-   * (road drop decisions). */
+   * use this; the coarse `surfaceAt` stays the owner of area statistics,
+   * while road drop decisions read `roadSurfaceAt`. */
   renderSurfaceAt?: (x: number, y: number) => 'land' | 'water';
   /** Smallest zoom the camera clamp allows (CSS px per km). Sea labels are
    * screen-space text, so their world footprint is widest here; the fitter
@@ -106,7 +105,6 @@ export interface CampaignMapSurfaceMesh {
 export interface CampaignMapDrawData {
   lineVertices: Float32Array;
   roadMeshVertices: Float32Array;
-  cityMarkers: CampaignMarker[];
   labels: CampaignLabel[];
   stats: CampaignMapStats;
 }
@@ -785,55 +783,6 @@ function padRgbaRows(rgba: Uint8Array, width: number, height: number, bytesPerRo
   return padded;
 }
 
-export class CampaignLinePass {
-  private pipeline: GPURenderPipeline;
-  private geometry: CampaignLineGeometry;
-
-  constructor(private shell: RawFrameShell, private topology: GPUPrimitiveTopology = 'line-list') {
-    const device = shell.device;
-    const module = device.createShaderModule({ label: 'campaign-line-wgsl', code: LINE_WGSL });
-    this.pipeline = this.makePipeline(module);
-    this.geometry = new CampaignLineGeometry(shell, topology, 'campaign-line-empty');
-  }
-
-  private makePipeline(module: GPUShaderModule) {
-    const device = this.shell.device;
-    return device.createRenderPipeline({
-      label: 'campaign-line-background-pipeline',
-      layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout] }),
-      vertex: {
-        module,
-        entryPoint: 'vs',
-        buffers: [{
-          arrayStride: 24,
-          attributes: [
-            { shaderLocation: 0, offset: 0, format: 'float32x2' },
-            { shaderLocation: 1, offset: 8, format: 'float32x4' },
-          ],
-        }],
-      },
-      fragment: {
-        module,
-        entryPoint: 'fs',
-        targets: [gpuAlphaBlendColorTarget(this.shell.info.format)],
-      },
-      primitive: { topology: this.topology },
-    });
-  }
-
-  upload(vertices: Float32Array) {
-    this.geometry.upload(vertices);
-  }
-
-  draw(pass: BackgroundRenderPass) {
-    this.geometry.draw(pass, this.pipeline);
-  }
-
-  stats() {
-    return this.geometry.stats();
-  }
-}
-
 export class CampaignWorldLinePass {
   private pipeline: GPURenderPipeline;
   private geometry: CampaignLineGeometry;
@@ -1014,7 +963,6 @@ export class CampaignMarkerPass {
   private instanceBuffer: GPUBuffer;
   private capacity = 0;
   private markerCount = 0;
-  private cityMarkerRadiiPx: number[] = [];
 
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
@@ -1066,11 +1014,6 @@ export class CampaignMarkerPass {
 
   upload(markers: CampaignMarker[]) {
     this.markerCount = markers.length;
-    this.cityMarkerRadiiPx = [...new Set(
-      markers
-        .filter((marker) => marker.kind === 'city')
-        .map((marker) => Number(marker.radius.toFixed(3))),
-    )].sort((a, b) => a - b);
     if (markers.length > this.capacity) {
       this.capacity = Math.max(markers.length, this.capacity * 2, 128);
       this.instanceBuffer = this.shell.device.createBuffer({
@@ -1108,11 +1051,7 @@ export class CampaignMarkerPass {
   }
 
   stats() {
-    return {
-      markers: this.markerCount,
-      cityMarkerRadiiPx: this.cityMarkerRadiiPx,
-      cityMarkerRadiusPx: this.cityMarkerRadiiPx[this.cityMarkerRadiiPx.length - 1] ?? 0,
-    };
+    return { markers: this.markerCount };
   }
 }
 
@@ -1328,8 +1267,6 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData, style: Camp
     }
   }
   const roadJunctionCaps = pushRoadJunctionCaps(roadMeshVertices, data, safeRoads, style);
-  const cityNodes = data.map.nodes.filter((node) => node.kind === 'city');
-  const cityMarkers = cityNodes.map((node) => markerForNode(data, node));
   const seaLabelFit =
     data.map.nodes.length > 20
       ? fitSeaLabels(seaLabels(), style)
@@ -1337,7 +1274,6 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData, style: Camp
   return {
     lineVertices: new Float32Array(lineVertices),
     roadMeshVertices: new Float32Array(roadMeshVertices),
-    cityMarkers,
     labels: seaLabelFit.labels,
     stats: {
       roads: roads.length,
@@ -1347,7 +1283,6 @@ export function buildCampaignMapDrawData(data: CampaignMapInputData, style: Camp
       roadJunctionCaps,
       roadEdgesCulled,
       roadWaterGaps,
-      cityMarkers: cityMarkers.length,
       labels: seaLabelFit.labels.length,
       seaLabelFits: seaLabelFit.fits,
       seaLabelFitZoom: seaLabelFit.fitZoom,
@@ -1621,18 +1556,6 @@ function pushRoadRibbon(
 }
 
 const ROAD_SURFACE_SAMPLE_KM = 0.9;
-
-function markerForNode(data: CampaignMapInputData, node: CampaignMapNodeData): CampaignMarker {
-  const factionIndex = Math.max(0, data.map.factions.findIndex((faction) => faction.id === node.owner));
-  const faction = data.map.factions[factionIndex]?.color ?? [154, 132, 90];
-  return {
-    x: node.pos[0],
-    y: node.pos[1],
-    radius: node.tier >= 3 ? 10 : 7,
-    faction: [faction[0] / 255, faction[1] / 255, faction[2] / 255],
-    allegiance: [faction[0] / 255, faction[1] / 255, faction[2] / 255],
-  };
-}
 
 // Anchors sit at each sea's open-water center (measured against the render
 // mask; slice 03 moved Adriatic/Aegean/Black Sea in from shore) and angles

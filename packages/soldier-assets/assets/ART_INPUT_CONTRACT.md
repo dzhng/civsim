@@ -29,7 +29,8 @@ replacement, never a precondition: nothing in the build depends on one existing.
 
 - One glTF `animation` per clip. The animation `name` is the clip id.
 - Required human clip names: `idle`, `march`, `run`, `attack_a`, `hit_a`,
-  `death_a`, `at_ease`. Required horse clips: `idle`, `walk`, `canter`.
+  `shoot`, `death_a`, `at_ease` (the source of truth is `REQUIRED_HUMAN_CLIPS`
+  in `../src/schema.ts`). Required horse clips: `idle`, `walk`, `canter`.
 - A name mismatch can be bridged at bake time with a `clipNames` map
   (`{ "<glTF name|index>": "<clip id>" }`) rather than re-exporting.
 - Channels target joint nodes via `translation`/`rotation`/`scale` samplers;

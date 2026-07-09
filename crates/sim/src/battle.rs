@@ -413,25 +413,14 @@ pub fn deploy_custom_army(sim: &mut Sim, team: u32, classes: &[UnitClassId]) {
     deploy_custom_cavalry(sim, &cavalry, cavalry_center, facing, team);
 }
 
-/// Deploy a campaign roster. Entries are split into battle-sized units
-/// (`unit_size` per class) and grouped into the same role rows as the
-/// hand-built armies. `column: true` lays the army strung out along the
-/// march axis instead — marching order, the corridor machinery's natural
-/// prey. Returns (campaign unit id, sim unit index) for result mapping.
+/// Deploy a campaign roster: one roster slot is one battle unit (no split),
+/// grouped into the same role rows as the hand-built armies. `column: true`
+/// lays the army strung out along the march axis instead — marching order,
+/// the corridor machinery's natural prey. Returns (campaign unit id, sim unit
+/// index) for result mapping.
 pub fn deploy_roster(sim: &mut Sim, dep: &contract::Deployment) -> Vec<(u64, usize)> {
     let balance = sim.balance.clone();
-    deploy_roster_with_stats(sim, dep, &|r| balance.get(r.class))
-}
-
-pub fn deploy_roster_with_stats<F>(
-    sim: &mut Sim,
-    dep: &contract::Deployment,
-    stats_for: &F,
-) -> Vec<(u64, usize)>
-where
-    F: Fn(&contract::RosterUnit) -> UnitClass,
-{
-    deploy_roster_with_stats_and_looks(sim, dep, stats_for, &|r| r.class as u32)
+    deploy_roster_with_stats_and_looks(sim, dep, &|r| balance.get(r.class), &|r| r.class as u32)
 }
 
 pub fn deploy_roster_with_stats_and_looks<F, G>(

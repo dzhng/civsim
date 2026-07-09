@@ -10,8 +10,9 @@ test("photoreal sea: route params select the displacement source", () => {
   assert.equal(seaDisplacementSourceFromParam(null), "gerstner-tsl");
   assert.equal(seaDisplacementSourceFromParam("gerstner"), "gerstner-tsl");
   assert.equal(seaDisplacementSourceFromParam("gerstner-tsl"), "gerstner-tsl");
-  assert.equal(seaDisplacementSourceFromParam("ifft"), "gerstner-tsl");
-  assert.equal(seaDisplacementSourceFromParam("ifft-tsl"), "gerstner-tsl");
+  // Retired or unknown params (e.g. the deleted IFFT source) fall back to the
+  // one live source rather than erroring.
+  assert.equal(seaDisplacementSourceFromParam("no-such-source"), "gerstner-tsl");
 });
 
 test("photoreal sea: Gerstner is the default active source", () => {

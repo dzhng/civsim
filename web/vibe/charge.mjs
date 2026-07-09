@@ -18,6 +18,7 @@ import {
   duelSample,
   duelLabel,
   CLS,
+  scenarioName,
 } from "./_lib.mjs";
 
 const ATK = Number(process.env.ATK ?? CLS.cavalry); // unit 0, charges
@@ -91,7 +92,7 @@ const sampleUnits = () =>
     };
   }, ids);
 
-const { frames, resolved, fails } = await vibeCapture(page, process.env.NAME ?? "charge", {
+const { frames, resolved, fails } = await vibeCapture(page, scenarioName("charge"), {
   frame: () => (customStage ? fitUnits() : fitDuel(page)),
   sample: () => (customStage ? sampleUnits() : duelSample(page)),
   label: duelLabel,

@@ -33,7 +33,6 @@ export interface UnitOptionRow {
   upkeepPerSoldier: number;
   recruitTicksPerSoldier: number;
   option: number;
-  unlocked: boolean;
   applyCost: number | null;
 }
 

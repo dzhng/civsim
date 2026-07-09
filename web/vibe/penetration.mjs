@@ -12,6 +12,7 @@ import {
   CLS,
   UNIT_CENTER_X,
   UNIT_CENTER_Y,
+  scenarioName,
 } from "./_lib.mjs";
 
 const COL = Number(process.env.COL ?? CLS.heavy); // unit 0, the penetrating column
@@ -49,7 +50,7 @@ const sample = () =>
 const label = (s, m) =>
   `t=${String(s).padStart(3)}s  column ${m.aAlive}/${m.aTotal}  defender ${m.bAlive}/${m.bTotal} (coh ${m.bCoh.toFixed(2)})  victor ${m.victor}`;
 
-const { frames, fails } = await vibeCapture(page, process.env.NAME ?? "penetration", {
+const { frames, fails } = await vibeCapture(page, scenarioName("penetration"), {
   stepSecs: 12,
   maxSteps: 16,
   frame,

@@ -5,3 +5,10 @@ bun.lock
 # Static data + baked assets: the campaign map, backgrounds, soldier kit, and
 # baked VAT are produced by tooling, not edited by hand.
 public/
+
+# Build output (git-ignored at the repo root, which oxfmt run from web/ can't
+# see — it must be ignored here too or a stale build breaks fmt:check).
+dist/
+
+# Generated wasm-bindgen output (bun run build:wasm).
+src/wasm/

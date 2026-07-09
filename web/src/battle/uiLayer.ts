@@ -1,5 +1,5 @@
 import { UNIT_INFO } from "../../../packages/game-renderer/src/battle/unitInfoLayout";
-import { modelLookForUnit } from "../../../packages/game-renderer/src/models/shared/soldierModel";
+import { modelLookForClass } from "../../../packages/game-renderer/src/models/shared/soldierModel";
 import { CLASS_NAMES } from "./classData";
 import type { UnitCardInit, UnitCardState } from "./unitCard";
 import { UnitCardsReact } from "../ui/hud/UnitCardsReact";
@@ -104,7 +104,7 @@ export function buildBattleUiModel(
         init: {
           unit,
           cls,
-          look: Number.isFinite(renderLook) ? renderLook : modelLookForUnit(cls),
+          look: Number.isFinite(renderLook) ? renderLook : modelLookForClass(cls),
           team,
           name: CLASS_NAMES[cls] ?? `Class ${cls}`,
         },

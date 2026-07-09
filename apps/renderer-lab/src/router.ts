@@ -4413,9 +4413,6 @@ async function routeBattleTerrain3d(ctx: LabContext) {
     groundCover: presentation.groundCover,
     groundTriangles: groundStats.triangles,
     grassTechnique,
-    meadow: groundStats.meadow.enabled
-      ? `${groundStats.meadow.nearStrength.toFixed(2)} → ${groundStats.meadow.farStrength.toFixed(2)}`
-      : "off",
     grassTufts: grassStats.tuftInstances,
     grassAccent: `${grassStats.accentStyle}/${grassStats.accentAggregation}`,
     grassPrimitiveFamily: grassStats.grassPrimitiveFamily,

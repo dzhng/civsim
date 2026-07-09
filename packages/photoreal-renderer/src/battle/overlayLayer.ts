@@ -5,7 +5,7 @@
 // camera-facing TSL billboards. Upload contracts are unchanged: the SAME
 // Float32Array layouts drawTacticalLines/drawTris feed the bespoke passes.
 // The upload contracts carry display-referred colours (authored for the
-// bespoke swapchain); since slice 09 the frame is ACES-tonemapped sRGB, so
+// bespoke swapchain); since slice 09 the frame is tonemapped sRGB (AgX), so
 // each overlay linearizes through the one linearAlbedo seam, so authored overlay
 // colors keep their hue through the transform.
 import * as THREE from "three/webgpu";

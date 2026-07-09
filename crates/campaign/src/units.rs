@@ -21,12 +21,6 @@ pub fn option_mil_dev_req(option: u8) -> f32 {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub enum UnitUnlock {
-    Default,
-    Conquest(crate::mapdata::NodeId),
-}
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct UnitType {
     pub id: UnitTypeId,
@@ -37,7 +31,6 @@ pub struct UnitType {
     pub cost_per_soldier_milligold: u32,
     pub upkeep_per_soldier_milligold: u32,
     pub recruit_ticks_per_soldier: u32,
-    pub unlock: UnitUnlock,
 }
 
 pub fn unit_type_id(faction: FactionId, class: UnitClassId, option: u8) -> UnitTypeId {
@@ -82,10 +75,6 @@ pub fn unit_type(map: &WorldMap, faction: FactionId, class: UnitClassId, option:
         cost_per_soldier_milligold: cost,
         upkeep_per_soldier_milligold: cost / 2,
         recruit_ticks_per_soldier: (tun::recruit_ticks_per_soldier(class) * time_mult / 100).max(1),
-        // Every catalog option is faction-selectable in the class builder; the
-        // military-development requirement is a *per-city* gate enforced at
-        // recruitment (`recruit` / `option_mil_dev_req`), not a doctrine lock.
-        unlock: UnitUnlock::Default,
     }
 }
 

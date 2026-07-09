@@ -2116,7 +2116,6 @@ async function routeCampaignMap(ctx: LabContext) {
   const lines = new CampaignWorldLinePass(shell, "triangle-list");
   const roads = new CampaignRoadPass(shell);
   const borders = new CampaignWorldLinePass(shell);
-  const markers = new CampaignMarkerPass(shell);
   const labelPass = new CampaignLabelPass(shell);
   const drawData = buildCampaignMapDrawData(data, {
     roadScale: 0.78,
@@ -2129,7 +2128,6 @@ async function routeCampaignMap(ctx: LabContext) {
   lines.upload(drawData.lineVertices);
   roads.upload(drawData.roadMeshVertices);
   borders.upload(campaignBorderVertices(territoryData.borders));
-  markers.upload(drawData.cityMarkers);
   const labels = drawData.labels.concat(campaignFactionLabels(territoryData.labels));
   const labelLayer = labelPass.upload(labels, chartSnapshot(camera, shell));
   shell.drawFrame({
@@ -2172,12 +2170,6 @@ async function routeCampaignMap(ctx: LabContext) {
         draw: (pass) => lines.draw(pass),
       },
       {
-        id: "campaign-city-markers",
-        role: "overlay-ui",
-        phase: "overlay",
-        draw: (pass) => markers.draw(pass),
-      },
-      {
         id: "campaign-clouds",
         role: "overlay-effect",
         phase: "overlay",
@@ -2196,7 +2188,6 @@ async function routeCampaignMap(ctx: LabContext) {
     preset,
     roads: drawData.stats.roads,
     seaLanes: drawData.stats.seaLanes,
-    cities: drawData.stats.cityMarkers,
     labels: `${labelLayer.visibleLabels}/${labelLayer.labels}`,
     factions: territoryData.labels.length,
     borders: borders.stats().segments,
@@ -2225,7 +2216,6 @@ async function routeCampaignMap(ctx: LabContext) {
     labelVertices: labelLayer.vertices,
     lineSegments: lines.stats().segments,
     roadTriangles: roads.stats().triangles,
-    markerStats: markers.stats(),
     labelLayer: "raw-gpu-glyph-atlas",
     territoryLayer: "raw-gpu-texture",
     atmosphereLayer: "raw-gpu-clouds",
@@ -2973,7 +2963,6 @@ async function routeSharedStandardModelShots(ctx: LabContext) {
 }
 
 type CampaignModelShot =
-  | "overview"
   | "city"
   | "garrison-outside"
   | "garrison-city"
@@ -3043,7 +3032,6 @@ function campaignModelShotCamera(gate: CampaignModelShot) {
   // The outside garrison stands west of the city; recentre between them so the
   // army body (its west shield reaches x ≈ −9.3) stays fully in frame.
   if (gate === "garrison-outside") return { ...close, x: -2.2 };
-  if (gate === "overview") return { x: 0, y: -0.6, zoom: 28, pitch: 0.54, yaw: 0 };
   // Zoom 10 keeps every livery cell (and its screen-space marker) inside the
   // 970 px lab canvas: the perspective pitch widens the bottom rows, and at
   // zoom 12 corner markers projected off-canvas, so their pixel gates sampled
@@ -3134,7 +3122,6 @@ function campaignModelShotFrame(gate: CampaignModelShot) {
     if (selected) selections.push({ x, y, z: 0, radius: 6.5, color: green, kind: "army" });
   };
 
-  if (gate === "overview") addCity(-6.0, -2.0, 7.0, "ROMA", red, green, false);
   if (gate === "city")
     addCity(
       MODEL_SHOT_CITY_POSITION[0],
@@ -3249,10 +3236,9 @@ function campaignModelShotFrame(gate: CampaignModelShot) {
       green,
       true,
     );
-  if (gate === "overview") addCity(6.0, -2.0, 5.2, "NEAPOLIS", amber, neutral, false);
   if (gate === "town") addCity(0.0, -1.8, 5.0, "NEAPOLIS", amber, neutral, true);
-  if (gate === "overview" || gate === "army") addArmy(0.0, -2.2, gate === "army");
-  if (gate === "overview" || gate === "road" || gate === "road-only") {
+  if (gate === "army") addArmy(0.0, -2.2, true);
+  if (gate === "road" || gate === "road-only") {
     roads = roadGateVertices([
       [-8.7, -2.0],
       [-2.5, -2.4],
@@ -3264,21 +3250,17 @@ function campaignModelShotFrame(gate: CampaignModelShot) {
       addCity(8.4, -2.0, 5.0, "NEAPOLIS", amber, neutral);
     }
   }
-  if (gate === "overview" || gate === "terrain-grass-scrub") {
+  if (gate === "terrain-grass-scrub") {
     scenery.push(
       { x: -3.8, y: 2.2, size: 3.7, kind: "conifer" },
       { x: -1.5, y: 2.0, size: 3.2, kind: "broadleaf" },
       { x: 1.2, y: 2.3, size: 4.0, kind: "broadleaf" },
       { x: 3.6, y: 1.8, size: 3.0, kind: "conifer" },
+      { x: -5.2, y: 1.6, size: 2.7, kind: "conifer", shade: 0.5 },
+      { x: 5.0, y: 1.3, size: 2.4, kind: "broadleaf", shade: 0.55 },
     );
-    if (gate === "terrain-grass-scrub") {
-      scenery.push(
-        { x: -5.2, y: 1.6, size: 2.7, kind: "conifer", shade: 0.5 },
-        { x: 5.0, y: 1.3, size: 2.4, kind: "broadleaf", shade: 0.55 },
-      );
-    }
   }
-  if (gate === "overview" || gate === "terrain-stone-relief") {
+  if (gate === "terrain-stone-relief") {
     scenery.push(
       { x: -2.4, y: 4.2, size: 6.6, kind: "mountain" },
       { x: 2.7, y: 3.8, size: 5.4, kind: "mountain" },

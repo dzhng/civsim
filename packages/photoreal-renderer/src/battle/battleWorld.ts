@@ -1,6 +1,6 @@
 // PhotorealBattleWorld — the FULL production battle world on the three.js
 // WebGPU + TSL substrate (born slice 08a at parity; physically lit since
-// slice 09: sun + IBL + ACES from CIVSIM_ENVIRONMENTS, neutral-albedo
+// slice 09: sun + IBL + AgX from CIVSIM_ENVIRONMENTS, neutral-albedo
 // standard materials). Accepts the EXACT production inputs BattleRenderer
 // holds (terrain grid + tint + heightfield from setTerrain,
 // buildCrowdInstances soldier frames, drawTris/drawTacticalLines Float32Array
@@ -427,7 +427,8 @@ export class PhotorealBattleWorld {
     const scene = world.scene;
     const env = this.environment;
 
-    // Slice 09 — lighting core: sun DirectionalLight + ACES tonemap +
+    // Slice 09 — lighting core: sun DirectionalLight + AgX tonemap (see
+    // world.ts — AgX replaced ACES) +
     // per-preset exposure; slice 10a — the physical sky (SkyModel dome +
     // sky-view-LUT IBL, one source); slice 10b — the ONE aerial-perspective
     // owner (scene.fogNode) hazes every fog-enabled world material, replacing

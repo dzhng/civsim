@@ -196,8 +196,7 @@ pub fn make_committed_roads_land_safe(
             for spot in spots {
                 new_spots.push(serde_json::json!({
                     "edge": spot.edge,
-                    "tile": spot.tile,
-                    "side": spot.side
+                    "tile": spot.tile
                 }));
             }
         }

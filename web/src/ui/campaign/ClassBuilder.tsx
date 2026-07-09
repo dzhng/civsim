@@ -50,7 +50,7 @@ export function ClassBuilder({ rows, onSelectUnit, onSelectSize, onApply }: Clas
             <div className="cmp-unit-options">
               {row.options.map((o) => {
                 const sel = o.id === row.selected;
-                const disabled = !o.unlocked || row.cooldown > 0;
+                const disabled = row.cooldown > 0;
                 const cost = o.applyCost == null ? "cooldown" : `${o.applyCost.toLocaleString()}g`;
                 return (
                   <div className={"cmp-unit " + (sel ? "sel" : "")} key={o.id}>

@@ -14,18 +14,13 @@ use crate::math::{dir, rotate_toward, wrap_angle, Vec2};
 use crate::movement::{
     drift_factor, pace_speed, soldier_charge_speed, soldier_surge_speed, update_unit_motion,
 };
-use crate::rng::Pcg32;
 use crate::terrain::{stagger01, Terrain};
 use crate::tunables::{Pace, Tunables, DT};
 use crate::unit::{
     bridge_large_column_gaps, compact_columns, reassign_slots, slot_local, OrderMode, Unit,
 };
+use contract::Pcg32;
 
-/// Idle-fidget drift amplitude (m, peak ≈ this) and glance drift (rad, peak). A
-/// standing man is never a fence-post: he drifts off his slot and his eye
-/// wanders, off the sim RNG (stagger01) so it's reproducible. Gated on true
-/// ease — no order, no contact, no nearby threat — so alert formations stop
-/// casual sway before it can ring through the lattice.
 // A trampler is barely tied to its formation slot: it rides in as a loose blob
 // and each rider's real pull is the enemy SEEK, so the lattice can't reel a
 // diving rider back. The whole point of a trample is to scatter INTO the enemy
@@ -38,6 +33,11 @@ const TRAMPLE_SLOT_GRIP: f32 = 0.3;
 /// a column when a Move order rides it off the enemy — the lattice re-forms it,
 /// no "re-form" rule. Set above the 0.4 "out of the blob" bar so it clears it.
 const REFORM_COH: f32 = 0.55;
+/// Idle-fidget drift amplitude (m, peak ≈ this) and glance drift (rad, peak). A
+/// standing man is never a fence-post: he drifts off his slot and his eye
+/// wanders, off the sim RNG (stagger01) so it's reproducible. Gated on true
+/// ease — no order, no contact, no nearby threat — so alert formations stop
+/// casual sway before it can ring through the lattice.
 const IDLE_FIDGET: f32 = 0.12;
 const IDLE_GLANCE: f32 = 0.18;
 /// A soldier re-aims his facing only once the threat is more than this far off it

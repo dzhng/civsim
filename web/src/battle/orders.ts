@@ -17,7 +17,7 @@ export interface UnitDest {
 }
 
 /** Chain-link clustering: units within `gap` of each other share a cluster. */
-export function clusterUnits(units: UnitSnap[], gap = 100): UnitSnap[][] {
+function clusterUnits(units: UnitSnap[], gap = 100): UnitSnap[][] {
   const n = units.length;
   const parent = Array.from({ length: n }, (_, i) => i);
   const find = (i: number): number => (parent[i] === i ? i : (parent[i] = find(parent[i])));

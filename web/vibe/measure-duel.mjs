@@ -103,15 +103,19 @@ console.log(
 console.log(
   `2. top stays on top (no cross/swirl): minGapY=${minGapY.toFixed(1)}m @${minGapYAt}s  => ${crossed ? `FAIL crossed @${crossedAt}s` : "PASS"}`,
 );
+let routDirFailed = false;
 if (typeof finalTopY === "number" && topRoutY !== null) {
+  routDirFailed = finalTopY - topRoutY <= 0;
   console.log(
-    `3. top routs UP:   ${(finalTopY - topRoutY).toFixed(1)}m  => ${finalTopY - topRoutY > 0 ? "PASS" : "FAIL"}`,
+    `3. top routs UP:   ${(finalTopY - topRoutY).toFixed(1)}m  => ${routDirFailed ? "FAIL" : "PASS"}`,
   );
 } else if (typeof finalTopY === "number" && botRoutY !== null) {
+  routDirFailed = finalBotY - botRoutY >= 0;
   console.log(
-    `3. bottom routs DOWN: ${(finalBotY - botRoutY).toFixed(1)}m  => ${finalBotY - botRoutY < 0 ? "PASS" : "FAIL"}`,
+    `3. bottom routs DOWN: ${(finalBotY - botRoutY).toFixed(1)}m  => ${routDirFailed ? "FAIL" : "PASS"}`,
   );
 } else {
   console.log(`3. rout direction:  no clean rout captured in window`);
 }
 await closeBattle(browser, page);
+process.exit(minCohPreRout <= 0.8 || crossed || routDirFailed ? 1 : 0);

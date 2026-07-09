@@ -38,38 +38,6 @@ export const ORACLE = {
   verticalRunTallColumnMin: 0.3,
 };
 
-export async function captureRoute(
-  ctx,
-  query,
-  id,
-  sceneName = "battle-map-style-legibility-oracle",
-) {
-  const page = await ctx.newPage({
-    viewport: { width: 1280, height: 800 },
-    errorPrefix: `${sceneName}:${id}`,
-  });
-  await page.goto(`${ctx.target}/renderer/battle-terrain-3d?${query}`);
-  await page.waitForFunction(
-    () =>
-      window.__rendererLabReady === true &&
-      window.__rendererLabStats?.stats?.view === "heightmap-vista" &&
-      window.__rendererLabStats?.stats?.terrainSource === "heightmap-layout",
-    { timeout: 20000 },
-  );
-  await page.waitForTimeout(180);
-  const stats = await page.evaluate(() => window.__rendererLabStats?.stats ?? null);
-  const rawShot = await page.locator("#renderer-canvas").screenshot();
-  const canvasSize = await page.evaluate(() => {
-    const canvas = document.querySelector("#renderer-canvas");
-    return canvas ? { width: canvas.width, height: canvas.height } : null;
-  });
-  await page.close();
-  return {
-    stats,
-    image: cropToSize(PNG.sync.read(rawShot), canvasSize?.width, canvasSize?.height),
-  };
-}
-
 export function legibilityVerdict(metric) {
   const failures = [];
   if (metric.base.edge > ORACLE.rawEdgeMax) failures.push("raw-edge-stipple");

@@ -17,6 +17,22 @@ const SHOTS = fileURLToPath(new URL("../shots/", import.meta.url));
 
 export const TPS = 30; // sim ticks per second (the harness's advance(300) == 10 s)
 const TARGET = process.env.VERIFY_URL ?? "http://localhost:5173";
+
+/** The scenario's baseline-folder name. `vibe/all.mjs` is the canonical name
+ *  registry and always passes NAME; a direct ad-hoc run may fall back to the
+ *  script's derived name for viewing, but must NOT bless a baseline under a
+ *  non-canonical folder — one parameter set, one baseline owner. */
+export function scenarioName(fallback) {
+  if (process.env.NAME) return process.env.NAME;
+  if (process.env.UPDATE_SHOTS) {
+    console.error(
+      `UPDATE_SHOTS without NAME would bless a non-canonical baseline ("${fallback}"); ` +
+        "run via vibe/all.mjs or pass NAME=<scenario> explicitly.",
+    );
+    process.exit(1);
+  }
+  return fallback;
+}
 export const UNIT_CENTER_X = 30;
 export const UNIT_CENTER_Y = 31;
 

@@ -436,10 +436,6 @@ impl Game {
             .map_or(std::ptr::null(), |b| b.heights.as_ptr())
     }
 
-    pub fn radius_ptr(&self) -> *const f32 {
-        self.battle.sim.radius.as_ptr()
-    }
-
     pub fn terrain_w(&self) -> u32 {
         self.battle.sim.terrain.w as u32
     }
@@ -714,6 +710,9 @@ impl Game {
         UNIT_INFO_STRIDE as u32
     }
 
+    // Field order is the packed unit_info contract; the TS reader names these
+    // offsets in packages/game-renderer/src/battle/unitInfoLayout.ts
+    // (UNIT_INFO) — extend both together.
     fn refresh_unit_info(&mut self) {
         self.unit_info.clear();
         for u in &self.battle.sim.units {
@@ -859,7 +858,6 @@ fn generated_feature_summary_json(recipe: MapRecipe, terrain: &sim::Terrain) -> 
     serde_json::json!({
         "lakeCells": drainage.lake_cells,
         "playableLakeCells": drainage.playable_lake_cells,
-        "forestCells": field.passable_forest_cells,
         "passableForestCells": field.passable_forest_cells,
         "screeCells": field.scree_cells,
         "mudCells": field.mud_cells,

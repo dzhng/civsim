@@ -42,18 +42,24 @@ army is already nearby (≤2 tiles), the nearest free army of meaningful strengt
 (≥¼ of the threat) is recalled to the city.
 
 ### 2. Economy — solvent and supplied
-The commander keeps a **war chest** of `AI_RESERVE_DAYS` of income and only
-spends above it (`solvent`). While solvent it, in priority order:
+The commander keeps a **war chest** — `AI_RESERVE_MONTHS` of income plus next
+month's upkeep (upkeep settles monthly and is heavy, so this is what it must
+already hold to pay its army) — and only spends above it (`solvent`). While
+solvent it:
 
 - **Recruits** toward a 50 / 25 / 25 line / ranged / cavalry mix at its
-  highest-tier city — but only while its field army is below the **supply
-  ceiling** `cities × AI_SOLDIERS_PER_CITY`. Army size is therefore bound by
-  *territory*, not gold: upkeep is ~1% of income and never bites, so the way to
-  field a bigger army is to conquer more cities. This replaced an older rule
-  that recruited whenever it had >400 gold, which ballooned armies to 3× while
-  treasuries hit zero and triggered a desertion death-spiral.
-- **Builds a market** (an income investment) at its richest market-able city.
-- **Paves the worst road** out of its capital.
+  highest-tier city, drawing no more men than that city's population pool
+  holds — but only while its field army is below the **supply ceiling**
+  `cities × AI_SOLDIERS_PER_CITY`. Army size is therefore bound by
+  *territory*: the way to field a bigger army is to conquer more cities, and
+  the reserve gates a doomstack because a bigger army is a bigger monthly bill.
+  This replaced an older rule that recruited whenever it had >400 gold, which
+  ballooned armies to 3× while treasuries hit zero and triggered a desertion
+  death-spiral.
+- **Steers each city's policy dials**: a frontier city (neighbouring enemy
+  territory) develops Military to stand a deeper garrison; the safe interior
+  develops Economy. The dials are idempotent set-and-forget, so re-issuing
+  them each cycle is free.
 
 ### 3. Offensive — mass + advance to contact
 The **strongest `AI_ATTACKERS` free armies** each go on the attack (not just
@@ -94,7 +100,7 @@ out is annihilated outright at battle's end (`resolve::rout_path` → `None`).
 
 | Constant | Meaning |
 |---|---|
-| `AI_RESERVE_DAYS` | Days of income kept as a war chest before any spending |
+| `AI_RESERVE_MONTHS` | Months of income (plus next month's upkeep) kept as a war chest before any spending |
 | `AI_SOLDIERS_PER_CITY` | Field-army supply ceiling per owned city |
 | `AI_ATTACKERS` | How many of the strongest free armies attack per cycle |
 | `AI_TARGET_CANDIDATES` | Nearest enemy cities given the defender probe |

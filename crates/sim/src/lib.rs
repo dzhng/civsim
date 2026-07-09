@@ -27,7 +27,6 @@ pub mod missiles;
 pub mod morale;
 pub mod movement;
 pub mod path;
-pub mod rng;
 pub mod runner;
 pub mod sim;
 pub mod strike;
@@ -44,6 +43,7 @@ pub use battle::{
     setup_sandbox,
 };
 pub use class::{class_stats, BalanceConfig, UnitClass, UnitClassId, Weapon, WeaponKind};
+pub use contract::Pcg32;
 pub use contract::{unit_cost, ALL_CLASSES};
 #[cfg(feature = "force-trace")]
 pub use force_trace::{
@@ -54,7 +54,6 @@ pub use grid::SpatialHash;
 pub use maps::{build as build_map, MapId, MAP_HALF_H, MAP_HALF_W};
 pub use math::{dir, lerp, move_toward, rotate_toward, wrap_angle, Vec2};
 pub use missiles::{missile_spec, MissileKind, MissileSpec, Projectiles};
-pub use rng::Pcg32;
 pub use runner::Battle;
 pub use sim::Sim;
 pub use terrain::{micro_rough, Terrain};

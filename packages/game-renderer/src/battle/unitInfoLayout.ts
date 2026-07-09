@@ -1,10 +1,14 @@
-// Mirrors the packed unit_info layout exported by game-wasm. Keep WebGPU-side
-// readers on these names instead of scattering raw offsets across slices.
+// Mirrors the packed unit_info layout exported by game-wasm
+// (`refresh_unit_info` in crates/game-wasm/src/lib.rs — the field order there
+// is the source of truth). Keep readers on these names instead of scattering
+// raw offsets across slices.
 export const UNIT_INFO = {
   x: 0,
   y: 1,
   facing: 2,
+  frameSpeed: 3,
   cohesion: 4,
+  disorder: 5,
   team: 6,
   total: 7,
   stamina: 8,
@@ -15,14 +19,25 @@ export const UNIT_INFO = {
   classId: 13,
   orderProgress: 14,
   alive: 15,
+  /** Men currently trading blows. */
+  engaged: 16,
   atEase: 17,
+  /** 0 = charge off, 1 = charge enabled, 2 = charging now. */
+  charge: 18,
+  ammo: 19,
   morale: 20,
   routing: 21,
   goalFacing: 22,
   hasGoalFacing: 23,
   mode: 24,
-  fireAtWill: 25,
+  pursue: 25,
   evadeAuto: 26,
+  /** Queued behind friends. */
+  waiting: 27,
+  /** Squeezed into a corridor (effective files below formation files). */
+  squeezed: 28,
+  /** Mean crowd pressure over living soldiers (the CRUSH readout). */
+  pressure: 29,
   centerX: 30,
   centerY: 31,
   renderLook: 32,

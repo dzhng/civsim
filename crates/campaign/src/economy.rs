@@ -560,37 +560,6 @@ pub fn set_auto_replenish(st: &mut CampaignState, army: ArmyId, on: bool) -> boo
     true
 }
 
-/// Disband a roster entry. At a friendly city, half the men join the
-/// garrison pool; elsewhere they just go home.
-pub fn disband(st: &mut CampaignState, army: ArmyId, entry: usize) -> bool {
-    let Some(a) = st.armies.get(army as usize) else {
-        return false;
-    };
-    if !a.alive() || a.encounter.is_some() || entry >= a.roster.len() {
-        return false;
-    }
-    let (class, count, faction, loc, halted) = (
-        a.roster[entry].class,
-        a.roster[entry].count,
-        a.faction,
-        a.loc,
-        a.halted(),
-    );
-    if let Loc::Node(n) = loc {
-        if halted && st.cities.get(&n).is_some_and(|c| c.owner == faction) {
-            add_to_roster(
-                &mut st.cities.get_mut(&n).unwrap().garrison,
-                class,
-                count / 2,
-            );
-        }
-    }
-    let a = &mut st.armies[army as usize];
-    a.roster[entry].count = 0;
-    a.roster[entry].max = 0;
-    true
-}
-
 /// Merge `src` into `dst`: both halted, same faction, same or adjacent tile.
 /// `src` is tombstoned; `dst` absorbs the roster (count-weighted morale).
 pub fn merge(map: &WorldMap, st: &mut CampaignState, src: ArmyId, dst: ArmyId) -> bool {

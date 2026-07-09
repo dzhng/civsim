@@ -1,4 +1,5 @@
 import { PNG } from "pngjs";
+import { REQUIRED_HUMAN_CLIP_NAMES } from "../../../packages/soldier-assets/bake/clip-contract.mjs";
 
 export const meta = {
   name: "asset-workbench",
@@ -19,7 +20,7 @@ function countNonBlank(png) {
   return n;
 }
 
-const REQUIRED_HUMAN_CLIPS = ["idle", "march", "run", "attack_a", "hit_a", "death_a", "at_ease"];
+const REQUIRED_HUMAN_CLIPS = REQUIRED_HUMAN_CLIP_NAMES;
 
 export async function run(ctx) {
   const page = await ctx.newPage({

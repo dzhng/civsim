@@ -15,7 +15,7 @@
 //!
 //! Runs at 10 Hz per soldier (round-robin thirds), deterministic.
 
-use crate::class::{UnitClassId, Weapon};
+use crate::class::Weapon;
 #[cfg(feature = "force-trace")]
 use crate::force_trace::{ForceChannel, ForceRecord};
 use crate::math::{dir, wrap_angle, Vec2};
@@ -1184,12 +1184,4 @@ fn pick_weapon_index(weapons: &[Weapon], d: f32) -> Option<usize> {
             let last = weapons.len().checked_sub(1)?;
             (d <= weapons[last].reach).then_some(last)
         })
-}
-
-/// Skirmish-class check used by later phases.
-pub fn is_missile_class(class: UnitClassId) -> bool {
-    matches!(
-        class,
-        UnitClassId::Archers | UnitClassId::Skirmishers | UnitClassId::HorseArchers
-    )
 }

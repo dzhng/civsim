@@ -91,11 +91,10 @@ fn vs(@location(0) world: vec3f, @location(1) normal: vec3f, @location(2) color:
   out.light = clamp(dot(normalize(normal), sun) * 0.45 + 0.74, 0.5, 1.18);
   out.color = color;
   out.world = world.xy;
-  // The legacy chart "depth" axis (see chartDepthDist) — the key the fog was
-  // tuned against; kept value-identical to the blessed battle baselines through
-  // the projector collapse.
-  let dist = chartDepthDist(world.xy);
-  out.fog = smoothstep(720.0, 1850.0, dist) * 0.52;
+  // Distance haze keyed on how far the ground lies beyond the view centre along
+  // view-forward, so the far field fades toward the horizon.
+  let dist = viewForwardDist(world.xy);
+  out.fog = smoothstep(900.0, 2400.0, dist) * 0.52;
   out.water = water;
   return out;
 }

@@ -1,5 +1,5 @@
 // Shared TSL vocabulary for the photoreal battle world: the noise helpers the
-// bespoke WGSL passes shared (cameraWgsl.ts chartDepthDist, the groundPass
+// bespoke WGSL passes shared (cameraWgsl.ts viewForwardDist, the groundPass
 // hash/vnoise/fbm/ridge family), ported once at 08a, plus the slice-09
 // standard-material seams every battle layer uses (linearAlbedo — the one
 // display→linear conversion; viewNormalNode — the one normalNode hook).

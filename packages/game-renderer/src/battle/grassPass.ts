@@ -276,7 +276,7 @@ fn vs(
   out.alpha = colorAndAlpha.a;
   out.heightT = heightT;
   out.terrainT = terrainT;
-  out.fog = smoothstep(620.0, 1650.0, chartDepthDist(world.xy)) * 0.64;
+  out.fog = smoothstep(800.0, 2100.0, viewForwardDist(world.xy)) * 0.64;
   return out;
 }
 
@@ -379,7 +379,7 @@ fn vs(
   out.light = clamp(dot(tiltedNormal, sun) * 0.24 + 0.84, 0.62, 1.08);
   out.heightT = heightT;
   out.terrainT = terrainT;
-  out.fog = smoothstep(620.0, 1650.0, chartDepthDist(world.xy)) * 0.64;
+  out.fog = smoothstep(800.0, 2100.0, viewForwardDist(world.xy)) * 0.64;
   out.dither = hash31(vec3f(world.xy * 0.47, instOrient.z * 0.00017 + uvTileAlpha.z));
   out.carrierT = smoothstep(0.82, 0.96, instOrient.w);
   return out;

@@ -57,17 +57,12 @@ fn projectWorld(world: vec3f) -> vec4f {
   return cam.viewProj * vec4f(world, 1.0);
 }
 
-// The battle fog/meadow grading axis: signed ground distance from the view
-// centre along the axis the pre-3D chart projection called "depth"
-// (legacy cameraSpace(world).y — the +Y/"north" axis rotated by the view yaw).
-// Under the real battle camera (yaw = view azimuth, forward = −(cos, sin))
-// that axis is the view's screen-right direction, reconstructed here as the
-// perpendicular of the eye→focus ground direction. Every fog/meadow range in
-// the battle ground/grass passes was tuned against this exact axis, so it is
-// kept value-identical through the projector collapse; re-aiming those ramps
-// along true view-forward is a deliberate look change for a polish slice.
-fn chartDepthDist(world: vec2f) -> f32 {
+// The battle fog grading axis: signed ground distance from the view centre
+// along view-forward (the eye→focus ground direction). The ground and grass
+// passes ramp their distance haze against it, so ground beyond the view centre
+// fades toward the horizon while the near field stays clear.
+fn viewForwardDist(world: vec2f) -> f32 {
   let fwd = normalize(cam.focus - cam.eye.xy);
-  return dot(world - cam.focus, vec2f(fwd.y, -fwd.x));
+  return dot(world - cam.focus, fwd);
 }
 `;

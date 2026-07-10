@@ -14,7 +14,7 @@ import { MapCards, type MapCardModel, type MapCardPosition, type MapCardsHandle 
 import { GraphicsSettingsPanel } from "../graphics/GraphicsSettingsModal";
 
 export interface CampaignHudHandle {
-  setMapCards(cards: MapCardModel[]): void;
+  setMapCards(cards: MapCardModel[], onCardClick?: (id: string) => void): void;
   updateMapCards(positions: MapCardPosition[]): void;
   measureMapCards(): Map<string, { w: number; h: number }>;
   setTopBar(props: CampaignTopBarProps): void;
@@ -252,7 +252,7 @@ const CampaignHud = forwardRef<CampaignHudInnerHandle>(function CampaignHud(_pro
   useImperativeHandle(
     ref,
     () => ({
-      setMapCards: (cards) => mapCardsRef.current?.set(cards),
+      setMapCards: (cards, onCardClick) => mapCardsRef.current?.set(cards, onCardClick),
       updateMapCards: (positions) => mapCardsRef.current?.update(positions),
       measureMapCards: () => mapCardsRef.current?.measure() ?? new Map(),
       setTopBar: (p) => topBarRef.current?.set(p),

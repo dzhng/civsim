@@ -130,13 +130,15 @@ export async function run(ctx) {
   await page.waitForTimeout(200);
   const cluster = await collectCollisionState(page);
   const clusterNames = cluster.cards.map((card) => card.name);
-  // Cards sit at a FIXED position under their city and simply hide when they
-  // would overlap a higher-priority card — no nudging or stacking (the user
-  // zooms in to see a hidden one). So the contract is: the top card of the
-  // cluster (ROMA, tier 3) always wins its ground, and nothing overlaps.
+  // Past the full-tilt zoom every own-city card MUST be visible: fixed-size
+  // DOM cards over close neighbours (Ostia is 19km from Roma) overlap at every
+  // zoom, so "zoom in to see the hidden one" never resolves — a colliding city
+  // card slides down below the claimed ground instead of hiding. Contract:
+  // the whole Roma cluster is visible and pairwise disjoint, no city culls.
   ctx.check(
-    "Roma card stays visible (highest-priority card wins its ground on overlap)",
-    clusterNames.includes("ROMA"),
+    "Roma cluster city cards all visible at full-tilt zoom (nudged, never culled)",
+    ["ROMA", "TIBUR", "OSTIA/PORTUS"].every((name) => clusterNames.includes(name)) &&
+      !cluster.culled.some((cull) => cull.startsWith("card:") && !cull.includes("LEGION")),
     JSON.stringify({ visible: clusterNames, culled: cluster.culled }),
   );
   checkNoReadableOverlap(ctx, "collision regional-roma", cluster);

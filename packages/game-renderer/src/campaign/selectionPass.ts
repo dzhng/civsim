@@ -19,6 +19,21 @@ export interface CampaignSelectionInstance {
 // profile (battle's TSL ring layer reads the same object).
 const P = SELECTION_RING_PROFILE;
 
+// Ring geometry is a CPU-tessellated annulus whose vertices sample the
+// terrain height field (the same drape contract as faction borders), so the
+// ring hugs slopes instead of getting buried where the ground rises across a
+// flat quad. `local` carries the radial coordinate the band profile reads.
+const RING_SEGMENTS = 48;
+/** Innermost tessellated radius fraction — just under the tightest
+ *  discard cut (garrisoned 0.856 minus the fill band below it). */
+const RING_INNER_FRACTION = 0.8;
+/** Lift above the sampled surface; world geometry still occludes via depth.
+ *  Sits above the road ribbons (height + 0.32) so a selection cue reads over
+ *  every ground decal, below the sea lanes (0.6). */
+const RING_SURFACE_LIFT = 0.42;
+const RING_FLOATS_PER_VERTEX = 9;
+const RING_VERTS_PER_INSTANCE = RING_SEGMENTS * 6;
+
 const SELECTION_WGSL = `
 ${WORLD_CAMERA_WGSL}
 struct VsOut {
@@ -29,16 +44,17 @@ struct VsOut {
 };
 
 @vertex
-fn vs(@location(0) quad: vec2f, @location(1) inst0: vec4f, @location(2) inst1: vec4f) -> VsOut {
-  let axisScale = select(0.76, 0.64, inst0.w > 0.5);
-  let world = inst0.xy + vec2f(quad.x * inst0.z, quad.y * inst0.z * axisScale);
-  // Lift just above the terrain surface; world geometry still occludes via depth.
-  let z = inst1.a + 0.045;
+fn vs(
+  @location(0) pos: vec3f,
+  @location(1) local: vec2f,
+  @location(2) color: vec3f,
+  @location(3) kind: f32,
+) -> VsOut {
   var out: VsOut;
-  out.pos = projectWorld(vec3f(world, z));
-  out.local = quad;
-  out.color = inst1.rgb;
-  out.kind = inst0.w;
+  out.pos = projectWorld(pos);
+  out.local = local;
+  out.color = color;
+  out.kind = kind;
   return out;
 }
 
@@ -70,8 +86,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 
 export class CampaignSelectionPass {
   private pipeline: GPURenderPipeline;
-  private quadBuffer: GPUBuffer;
-  private instanceBuffer: GPUBuffer;
+  private vertexBuffer: GPUBuffer;
   private capacity = 0;
   private count = 0;
   private garrisonedArmyCount = 0;
@@ -84,15 +99,9 @@ export class CampaignSelectionPass {
       code: SELECTION_WGSL,
     });
     this.pipeline = this.makePipeline(module);
-    this.quadBuffer = device.createBuffer({
-      label: "campaign-selection-quad",
-      size: 8 * 4,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
-    device.queue.writeBuffer(this.quadBuffer, 0, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]));
-    this.instanceBuffer = device.createBuffer({
+    this.vertexBuffer = device.createBuffer({
       label: "campaign-selection-empty",
-      size: 8 * 4,
+      size: RING_FLOATS_PER_VERTEX * 4,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
   }
@@ -106,13 +115,13 @@ export class CampaignSelectionPass {
         module,
         entryPoint: "vs",
         buffers: [
-          { arrayStride: 8, attributes: [{ shaderLocation: 0, offset: 0, format: "float32x2" }] },
           {
-            arrayStride: 32,
-            stepMode: "instance",
+            arrayStride: RING_FLOATS_PER_VERTEX * 4,
             attributes: [
-              { shaderLocation: 1, offset: 0, format: "float32x4" },
-              { shaderLocation: 2, offset: 16, format: "float32x4" },
+              { shaderLocation: 0, offset: 0, format: "float32x3" },
+              { shaderLocation: 1, offset: 12, format: "float32x2" },
+              { shaderLocation: 2, offset: 20, format: "float32x3" },
+              { shaderLocation: 3, offset: 32, format: "float32" },
             ],
           },
         ],
@@ -122,7 +131,7 @@ export class CampaignSelectionPass {
         entryPoint: "fs",
         targets: [gpuAlphaBlendColorTarget(this.shell.info.format)],
       },
-      primitive: { topology: "triangle-strip" },
+      primitive: { topology: "triangle-list" },
       // Real depth read: the ring is a ground decal, so the city/army
       // volume standing on it must occlude the far arc — compare "always"
       // drew the ring floating above the buildings.
@@ -130,44 +139,68 @@ export class CampaignSelectionPass {
     });
   }
 
-  upload(instances: CampaignSelectionInstance[]) {
+  /** Tessellate each ring against the terrain surface. `heightAt` is the one
+   *  height owner (the same field the terrain mesh and border drapes read);
+   *  without it a vertex falls back to the instance's center height. */
+  upload(instances: CampaignSelectionInstance[], heightAt?: (x: number, y: number) => number) {
     this.count = instances.length;
     this.garrisonedArmyCount = instances.filter((inst) => inst.kind === "garrisoned-army").length;
     this.maxRadius = instances.reduce((max, inst) => Math.max(max, inst.radius), 0);
-    if (instances.length > this.capacity) {
-      this.capacity = Math.max(instances.length, this.capacity * 2, 8);
-      this.instanceBuffer = this.shell.device.createBuffer({
-        label: "campaign-selection-instances",
-        size: this.capacity * 8 * 4,
+    const floats = instances.length * RING_VERTS_PER_INSTANCE * RING_FLOATS_PER_VERTEX;
+    if (floats > this.capacity) {
+      this.capacity = Math.max(floats, this.capacity * 2);
+      this.vertexBuffer = this.shell.device.createBuffer({
+        label: "campaign-selection-rings",
+        size: this.capacity * 4,
         usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
       });
     }
     if (instances.length === 0) return;
-    const data = new Float32Array(instances.length * 8);
-    for (let i = 0; i < instances.length; i++) {
-      const inst = instances[i];
-      const o = i * 8;
-      data[o] = inst.x;
-      data[o + 1] = inst.y;
-      data[o + 2] = inst.radius;
-      data[o + 3] = inst.kind === "city" ? 0 : inst.kind === "garrisoned-army" ? 2 : 1;
-      data.set(inst.color, o + 4);
-      data[o + 7] = inst.z;
+    const data = new Float32Array(floats);
+    let o = 0;
+    const vertex = (
+      inst: CampaignSelectionInstance,
+      kind: number,
+      axisScale: number,
+      seg: number,
+      fraction: number,
+    ) => {
+      const angle = (seg / RING_SEGMENTS) * Math.PI * 2;
+      const lx = Math.cos(angle) * fraction;
+      const ly = Math.sin(angle) * fraction;
+      const x = inst.x + lx * inst.radius;
+      const y = inst.y + ly * inst.radius * axisScale;
+      data[o++] = x;
+      data[o++] = y;
+      data[o++] = (heightAt ? heightAt(x, y) : inst.z) + RING_SURFACE_LIFT;
+      data[o++] = lx;
+      data[o++] = ly;
+      data[o++] = inst.color[0];
+      data[o++] = inst.color[1];
+      data[o++] = inst.color[2];
+      data[o++] = kind;
+    };
+    for (const inst of instances) {
+      const kind = inst.kind === "city" ? 0 : inst.kind === "garrisoned-army" ? 2 : 1;
+      const axisScale = kind === 0 ? 0.76 : 0.64;
+      for (let seg = 0; seg < RING_SEGMENTS; seg++) {
+        vertex(inst, kind, axisScale, seg, RING_INNER_FRACTION);
+        vertex(inst, kind, axisScale, seg, 1);
+        vertex(inst, kind, axisScale, seg + 1, 1);
+        vertex(inst, kind, axisScale, seg, RING_INNER_FRACTION);
+        vertex(inst, kind, axisScale, seg + 1, 1);
+        vertex(inst, kind, axisScale, seg + 1, RING_INNER_FRACTION);
+      }
     }
-    this.shell.device.queue.writeBuffer(this.instanceBuffer, 0, data);
+    this.shell.device.queue.writeBuffer(this.vertexBuffer, 0, data);
   }
 
   draw(pass: WorldRenderPass) {
-    this.drawWithPipeline(pass, this.pipeline);
-  }
-
-  private drawWithPipeline(pass: WorldRenderPass, pipeline: GPURenderPipeline) {
     if (this.count === 0) return;
-    pass.setPipeline(pipeline);
+    pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
-    pass.setVertexBuffer(0, this.quadBuffer);
-    pass.setVertexBuffer(1, this.instanceBuffer);
-    pass.draw(4, this.count);
+    pass.setVertexBuffer(0, this.vertexBuffer);
+    pass.draw(this.count * RING_VERTS_PER_INSTANCE);
   }
 
   stats() {

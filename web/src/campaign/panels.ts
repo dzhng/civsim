@@ -135,7 +135,7 @@ export function campaignDomHtml(): string {
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-siege b { font-family:Cinzel,Georgia,serif;color:#ffd9a0; }
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-map-cards { position:fixed;inset:0;z-index:8;pointer-events:none;overflow:hidden; }
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-map-card { position:absolute;left:0;top:0;display:none;min-width:56px;max-width:118px;
-        pointer-events:none;color:var(--bronze-ink);border:2px solid transparent;border-radius:5px;
+        pointer-events:auto;cursor:pointer;color:var(--bronze-ink);border:2px solid transparent;border-radius:5px;
         background:var(--bronze-fill) padding-box,var(--bronze-edge) border-box;box-shadow:var(--bronze-frame);
         overflow:hidden;will-change:transform;box-sizing:border-box; }
       :is(#campaign-ui, .renderer-campaign-ui) .cmp-map-card__band { height:3px;background:var(--cmp-card-faction);box-shadow:inset 0 -1px 0 rgba(0,0,0,0.5); }

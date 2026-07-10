@@ -22,7 +22,7 @@ export interface MapCardPosition {
 }
 
 export interface MapCardsHandle {
-  set(cards: MapCardModel[]): void;
+  set(cards: MapCardModel[], onClick?: (id: string) => void): void;
   update(positions: MapCardPosition[]): void;
   measure(): Map<string, { w: number; h: number }>;
 }
@@ -30,11 +30,13 @@ export interface MapCardsHandle {
 export const MapCards = forwardRef<MapCardsHandle>(function MapCards(_props, ref) {
   const [cards, setCards] = useState<MapCardModel[]>([]);
   const nodeRefs = useRef(new Map<string, HTMLDivElement>());
+  const onClickRef = useRef<((id: string) => void) | undefined>(undefined);
 
   useImperativeHandle(
     ref,
     () => ({
-      set: (next) => {
+      set: (next, onClick) => {
+        onClickRef.current = onClick;
         flushSync(() => setCards(next));
         const nextIds = new Set(next.map((card) => card.id));
         for (const id of nodeRefs.current.keys()) {
@@ -80,6 +82,7 @@ export const MapCards = forwardRef<MapCardsHandle>(function MapCards(_props, ref
           }}
           className={`cmp-map-card cmp-map-card--${card.kind}`}
           style={{ "--cmp-card-faction": card.factionColor } as CSSProperties}
+          onClick={() => onClickRef.current?.(card.id)}
         >
           <div className="cmp-map-card__band" />
           <div className="cmp-map-card__body">

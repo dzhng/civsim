@@ -288,17 +288,20 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let coast = clamp(abs(seaMask - seaN) + abs(seaMask - seaS) + abs(seaMask - seaE) + abs(seaMask - seaW), 0.0, 1.0);
   col = mix(col, vec3f(0.72, 0.76, 0.62), coast * (1.0 - seaMask) * 0.42);
   col = mix(col, vec3f(0.30, 0.48, 0.58), coast * seaMask * 0.20);
-  // Subtle sea shimmer: the glint waves crawl on cam.time, gated so the map reads as a
-  // still painted chart from altitude and comes gently alive close in — opened by
-  // EITHER zoom (cam.zoom, the chart scale, grows as the camera closes in) OR tilt
-  // (cam.tilt = sin of the camera pitch; 1 = top-down, falls as the camera descends).
-  // cam.time is 0 in frozen snapshots, so the drift vanishes and the map stays
-  // byte-identical.
+  // Subtle sea shimmer, gated so the map reads as a still painted chart from
+  // altitude and comes gently alive close in — opened by EITHER zoom (cam.zoom,
+  // the chart scale, grows as the camera closes in) OR tilt (cam.tilt; 1 =
+  // top-down, falls as the camera descends). The gate scales the glint
+  // AMPLITUDE, never the drift phase: phase = time * gate(zoom) made the whole
+  // glint field lurch sideways during a zoom (accumulated time times a moving
+  // gate), and ungated amplitude left ~100km pale patches on the open sea at
+  // overview. cam.time is 0 in frozen snapshots, so the drift vanishes and the
+  // map stays byte-identical.
   let seaMotion = max(smoothstep(0.8, 2.0, cam.zoom), smoothstep(0.95, 0.70, cam.tilt));
-  let drift = cam.time * 0.09 * seaMotion;
+  let drift = cam.time * 0.09;
   let wave = sin(in.world.x * 0.045 + in.world.y * 0.018 + vnoise(in.world * 0.022) * 2.2 + drift);
   let cross = sin(in.world.x * -0.021 + in.world.y * 0.052 + vnoise(in.world * 0.011 + vec2f(4.7, 9.2)) * 2.8 - drift * 0.7);
-  let glint = smoothstep(0.58, 0.96, wave * 0.58 + cross * 0.42);
+  let glint = smoothstep(0.58, 0.96, wave * 0.58 + cross * 0.42) * seaMotion;
   let foam = coast * seaMask * smoothstep(0.22, 0.88, vnoise(in.world * 0.055 + vec2f(2.0, 11.0)));
   let grain = vnoise(in.world * 0.18) * 0.052 + vnoise(in.world * 0.055 + vec2f(7.1, 2.4)) * 0.038;
   let striation = ridged(vec2f(in.world.x * 0.115 + in.world.y * 0.025, in.world.y * 0.085)) * 0.028;

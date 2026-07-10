@@ -19,7 +19,12 @@ import {
   rectsOverlap,
   type ScreenRect,
 } from "../../../packages/game-renderer/src/campaign/mapPass";
-import { CampaignRenderer, MAX_CAMPAIGN_ZOOM, type CampaignCardRect } from "./renderer";
+import {
+  CAMPAIGN_FULL_TILT_ZOOM,
+  CampaignRenderer,
+  MAX_CAMPAIGN_ZOOM,
+  type CampaignCardRect,
+} from "./renderer";
 import { TerrainField } from "./terrain";
 import { Territory } from "./territory";
 import { Allegiance } from "./status";
@@ -142,6 +147,11 @@ export class CampaignScene implements Scene {
    *  flicker back in unarbitrated next frame; the cache keeps it a contender.
    *  Cleared when the card set/content changes (sizes follow content). */
   private cardSizeCache = new Map<string, { w: number; h: number }>();
+
+  /** Held camera keys + last cursor position (CSS px; -1 = mouse never seen,
+   *  edge-pan stays off) — the battle input contract, applied per frame. */
+  private heldKeys = new Set<string>();
+  private edgeMouse: [number, number] = [-1, -1];
 
   constructor(private cfg: CampaignConfig) {
     this.cam = { x: 0, y: 0, scale: 0.18 };
@@ -335,6 +345,7 @@ export class CampaignScene implements Scene {
     const dt = Math.min((now - this.last) / 1000, 0.25);
     this.last = now;
     const c = this.cfg.campaign;
+    this.applyCameraKeys(dt);
 
     if (!this.paused && !this.autoResolving) {
       this.acc += dt * TICKS_PER_SEC * SPEEDS[this.speed];
@@ -494,13 +505,33 @@ export class CampaignScene implements Scene {
     if (sig === this.mapCardsSig) return;
     this.mapCardsSig = sig;
     this.cardSizeCache.clear();
-    hud.setMapCards(cards);
+    hud.setMapCards(cards, (id) => this.onMapCardClick(id));
+  }
+
+  /** A card is a click target for the thing it labels: city cards select the
+   *  city (same path as clicking the model), army cards select the army. */
+  private onMapCardClick(id: string) {
+    const [kind, rawNode] = id.split(":");
+    const node = Number(rawNode);
+    if (!Number.isFinite(node)) return;
+    if (kind === "city") {
+      this.selected = -1;
+      this.openCityPanel(node);
+    } else if (kind === "army") {
+      this.selected = node;
+      this.closeCityPanel();
+    }
+    this.updateArmyPanel();
   }
 
   /** Lay the DOM map cards out for this frame: anchor each card directly under
-   *  its city/army, then hide lower-priority cards that overlap already-claimed
-   *  ground. The visible rects and culls are REPORTED to the renderer: cards
-   *  report, the label authority arbitrates labels. */
+   *  its city/army, then resolve overlaps against already-claimed ground.
+   *  Below the full-tilt zoom the loser hides; once the camera rides fully
+   *  tilted every city card must stay visible (that close, hiding reads as a
+   *  missing city — Ostia next to Roma), so a colliding city card slides
+   *  straight down below the claimed ground instead. The visible rects and
+   *  culls are REPORTED to the renderer: cards report, the label authority
+   *  arbitrates labels. */
   private layoutMapCards(): {
     positions: MapCardPosition[];
     rects: CampaignCardRect[];
@@ -520,6 +551,11 @@ export class CampaignScene implements Scene {
       name: string;
       /** Who wins ground: cities above armies, higher tier above lower. */
       priority: number;
+      /** City cards at full-tilt zoom nudge on collision; everything else culls. */
+      city: boolean;
+      /** The city's own screen anchor (model base) — other cards must not
+       *  cover it (the campaign-lod "does not bury its own marker" contract). */
+      anchor?: [number, number];
       x: number;
       y: number;
       size: { w: number; h: number } | undefined;
@@ -543,6 +579,8 @@ export class CampaignScene implements Scene {
         id,
         name: mapNode.name.toUpperCase(),
         priority: 10 + mapNode.tier,
+        city: true,
+        anchor: [ax, ay],
         x,
         y,
         size,
@@ -562,6 +600,7 @@ export class CampaignScene implements Scene {
         // key card outcomes by name.
         name: `${ordinal(ordinalOf.get(army.id) ?? 1)} LEGION`.toUpperCase(),
         priority: 0,
+        city: false,
         x,
         y,
         size: cardSizes.get(id),
@@ -571,6 +610,7 @@ export class CampaignScene implements Scene {
     // Card-vs-card: claim ground in priority order (emitter order breaks
     // ties — deterministic per frame). A card not yet measured (first DOM
     // frame) can't claim or yield; it joins next frame.
+    const cityCardsMustShow = this.cam.scale >= CAMPAIGN_FULL_TILT_ZOOM;
     const claimed: ScreenRect[] = [];
     const culls: string[] = [];
     const contenders = entries
@@ -580,7 +620,36 @@ export class CampaignScene implements Scene {
       .map(({ entry }) => entry);
     for (const entry of contenders) {
       const size = entry.size!;
-      const rect = cardRectAt(entry.x, entry.y, size);
+      let rect = cardRectAt(entry.x, entry.y, size);
+      if (cityCardsMustShow && entry.city) {
+        // Slide below the claimed ground — other cards AND other cities'
+        // anchors (a card over a neighbour's model base buries its marker) —
+        // until free. Each step permanently clears at least one obstacle
+        // (y only grows), so the obstacle count bounds the loop.
+        const anchors = contenders
+          .filter((other) => other.city && other !== entry && other.anchor)
+          .map((other) => other.anchor!);
+        for (let i = 0; i < claimed.length + anchors.length; i++) {
+          const rectHits = claimed.filter((other) => rectsOverlap(rect, other));
+          const anchorHits = anchors.filter(
+            ([x, y]) =>
+              x >= rect.x - ANCHOR_CLEAR_PX &&
+              x <= rect.x + rect.w + ANCHOR_CLEAR_PX &&
+              y >= rect.y - ANCHOR_CLEAR_PX &&
+              y <= rect.y + rect.h,
+          );
+          if (rectHits.length === 0 && anchorHits.length === 0) break;
+          entry.y =
+            Math.max(
+              ...rectHits.map((other) => other.y + other.h),
+              ...anchorHits.map(([, y]) => y + ANCHOR_CLEAR_PX),
+            ) + CARD_NUDGE_GAP_PX;
+          rect = cardRectAt(entry.x, entry.y, size);
+        }
+        entry.rect = rect;
+        claimed.push(rect);
+        continue;
+      }
       if (!claimed.some((other) => rectsOverlap(rect, other))) {
         entry.rect = rect;
         claimed.push(rect);
@@ -679,8 +748,13 @@ export class CampaignScene implements Scene {
       (e) => {
         if (dragging && (e.movementX || e.movementY)) {
           moved = true;
-          this.cam.x -= e.movementX / this.cam.scale;
-          this.cam.y += e.movementY / this.cam.scale;
+          // View-relative drag: a screen delta maps through the user yaw so
+          // the map follows the cursor whatever way the chart is rotated.
+          const yaw = this.cam.yaw ?? 0;
+          const sx = e.movementX / this.cam.scale;
+          const sy = e.movementY / this.cam.scale;
+          this.cam.x -= sx * Math.cos(yaw) + sy * Math.sin(yaw);
+          this.cam.y -= sx * Math.sin(yaw) - sy * Math.cos(yaw);
           return;
         }
         // Hover mirrors click: pick the rendered marker, not a ground-plane
@@ -728,6 +802,7 @@ export class CampaignScene implements Scene {
     window.addEventListener(
       "keydown",
       (e) => {
+        this.heldKeys.add(e.key.toLowerCase());
         if (this.modalOpen) return;
         if (e.key === " ") {
           e.preventDefault();
@@ -744,10 +819,68 @@ export class CampaignScene implements Scene {
         } else if (e.key === "f") {
           this.fogOfWar = !this.fogOfWar;
           this.renderTopBar();
+        } else if (e.key === "Backspace" || e.key === "Home") {
+          // Camera reset, same key as battle: back to the north-up chart.
+          this.cam.yaw = 0;
+          e.preventDefault();
         }
       },
       { signal },
     );
+    window.addEventListener("keyup", (e) => this.heldKeys.delete(e.key.toLowerCase()), {
+      signal,
+    });
+    // Edge-pan needs the cursor wherever it is — over HUD panels and DOM
+    // cards too — so it tracks on window, not the canvas.
+    window.addEventListener(
+      "mousemove",
+      (e) => {
+        this.edgeMouse = [e.clientX, e.clientY];
+      },
+      { signal },
+    );
+  }
+
+  /** Held-key + screen-edge camera, the battle contract (battle/input.ts):
+   *  WASD/arrows pan view-relative (Shift sprints ×3), the screen edges pan,
+   *  Q/E rotate about the look target, and Z/X ride the tilt axis — which on
+   *  the campaign chart is zoom, since pitch derives from scale. Rates match
+   *  battle's 50ms cadence, expressed per second. */
+  private applyCameraKeys(dt: number) {
+    if (this.modalOpen) return;
+    const held = this.heldKeys;
+    const sprint = held.has("shift") ? 3 : 1;
+    const speed = this.renderer.panSpeed(this.cam.scale) * sprint;
+    let px =
+      (held.has("d") || held.has("arrowright") ? speed : 0) -
+      (held.has("a") || held.has("arrowleft") ? speed : 0);
+    let py =
+      (held.has("w") || held.has("arrowup") ? speed : 0) -
+      (held.has("s") || held.has("arrowdown") ? speed : 0);
+    const EDGE = 14;
+    const [mx, my] = this.edgeMouse;
+    if (mx >= 0 && my >= 0) {
+      if (mx < EDGE) px -= speed;
+      if (mx > window.innerWidth - EDGE) px += speed;
+      if (my < EDGE) py += speed;
+      if (my > window.innerHeight - EDGE) py -= speed;
+    }
+    const yaw = this.cam.yaw ?? 0;
+    if (px !== 0 || py !== 0) {
+      this.cam.x += (px * Math.cos(yaw) - py * Math.sin(yaw)) * dt;
+      this.cam.y += (px * Math.sin(yaw) + py * Math.cos(yaw)) * dt;
+      this.clampCam();
+    }
+    // 0.035 rad and ~5% zoom per 50ms battle tick → per-second rates.
+    if (held.has("q")) this.cam.yaw = yaw + 0.7 * dt;
+    if (held.has("e")) this.cam.yaw = yaw - 0.7 * dt;
+    if (held.has("z")) this.zoomBy(Math.exp(-1.0 * dt)); // toward top-down
+    if (held.has("x")) this.zoomBy(Math.exp(1.0 * dt)); // toward the tilted close-up
+  }
+
+  private zoomBy(factor: number) {
+    this.cam.scale = Math.min(MAX_CAMPAIGN_ZOOM, this.cam.scale * factor);
+    this.clampCam();
   }
 
   private click(px: number, py: number) {
@@ -1259,9 +1392,14 @@ function formatStrength(soldiers: number) {
 }
 
 function cityCardOffsetY(zoom: number, tier: number) {
-  if (zoom < 0.6) return 12 + tier * 1.4;
-  return 15 + Math.min(8, zoom * 2.2);
+  if (zoom < 0.6) return 6 + tier * 0.7;
+  return 7.5 + Math.min(4, zoom * 1.1);
 }
+
+/** Breathing room between a nudged city card and the rect it slid below. */
+const CARD_NUDGE_GAP_PX = 4;
+/** Clearance a nudged card keeps around a neighbour city's anchor point. */
+const ANCHOR_CLEAR_PX = 6;
 
 function onScreen(x: number, y: number, width: number, height: number) {
   return x >= -160 && y >= -90 && x <= width + 160 && y <= height + 120;

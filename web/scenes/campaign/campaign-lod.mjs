@@ -740,8 +740,9 @@ async function checkOwnCityCards(page, ctx, name) {
     }
     return audited;
   });
-  // Cards sit at a FIXED position directly under their city — no landward
-  // dodge — so a coastal city's card legitimately hangs over near-shore water
+  // Cards anchor directly under their city — no landward dodge, and at
+  // full-tilt zoom a collision slides a card straight DOWN (never sideways) — so a
+  // coastal city's card legitimately hangs over near-shore water
   // (landFraction is informational, not a gate). The real contract: the card
   // belongs to an on-screen city model and does not bury its own marker.
   const bad = audit.filter(

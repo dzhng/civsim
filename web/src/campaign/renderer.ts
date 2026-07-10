@@ -83,6 +83,13 @@ import type { ArmyView, CityView } from "./views";
 
 export const MAX_CAMPAIGN_ZOOM = 8;
 
+/** Zoom band of the camera tilt: pitch eases in from START and completes at
+ * FULL (campaignPitch's smoothstep edges). FULL doubles as the card contract
+ * boundary: once the camera rides fully tilted, every on-screen own-city card
+ * must be visible (nudged on collision, never culled). */
+export const CAMPAIGN_TILT_START_ZOOM = 0.62;
+export const CAMPAIGN_FULL_TILT_ZOOM = 1.6;
+
 export interface CampaignRendererOptions {
   graphics?: GraphicsSettings;
 }
@@ -379,7 +386,7 @@ export class CampaignRenderer {
     // The grounding shadow radius must track the figure size, or a 2.4x-scaled
     // soldier's default-radius shadow hides under its own body.
     this.soldierShadows.upload(frame.crowd, { radius: 0.62 * CAMPAIGN_FIGURE_SIZE });
-    this.selection.upload(frame.selections);
+    this.selection.upload(frame.selections, (x, y) => this.field.heightAt(x, y));
     this.markers.upload(campaignMapMarkers(this.data, opts));
     this.lastFog = { enabled: opts.fogOfWar, sources: opts.visionSources };
     this.fog.upload(opts.visionSources, opts.fogOfWar);
@@ -580,6 +587,16 @@ export class CampaignRenderer {
     return campaignPitch(scale);
   }
 
+  /** Keyboard/edge pan speed, world km/s: the battle camera's curve
+   *  (shared/camera.ts panSpeed) run against the campaign zoom range, so the
+   *  two maps pan with one feel. */
+  panSpeed(scale: number) {
+    const { min, max } = this.campaignZoomRange();
+    const z = Math.max(scale, min + 0.25 * (max - min));
+    const t = Math.max(0, Math.min(1, (z - min) / Math.max(1e-6, max - min)));
+    return (600 / z) * (12 - 11.5 * t);
+  }
+
   /** Verification probe: the full static scenery candidate set (world km). */
   sceneryCandidateSnapshot(): CampaignSceneryInstance[] {
     return this.sceneryCandidates.map((item) => ({ ...item }));
@@ -711,7 +728,8 @@ export class CampaignRenderer {
 
   /** The real 3D perspective camera for the campaign this frame. yaw = −π/2 keeps
    *  the map's world orientation (east = +X → screen right, north = +Y → screen
-   *  up) so the geography reads as it did under the 2.5D chart. The rig curve owns
+   *  up) so the geography reads as it did under the 2.5D chart; the user's Q/E
+   *  yaw (cam.yaw) rotates about that base. The rig curve owns
    *  pitch/fovY (near-top-down chart out, gentle tilt in); distance is derived
    *  from cam.scale so the vertical ground span at the look target stays exactly
    *  the chart scale (device px per world km) — labels, clampCam, and every scene
@@ -727,7 +745,7 @@ export class CampaignRenderer {
       target: [cam.x, cam.y, 0],
       distance: viewHeight / (2 * Math.tan(rig.fovY / 2)),
       pitch: rig.pitch,
-      yaw: -Math.PI / 2,
+      yaw: -Math.PI / 2 + (cam.yaw ?? 0),
       fovY: rig.fovY,
       aspect: width / height,
       near: 1.0,
@@ -875,7 +893,7 @@ function allegianceCrowdFaction(allegiance: Allegiance): 0 | 1 | 2 {
 }
 
 function campaignPitch(zoom: number) {
-  const t = smoothstep(0.62, 1.6, zoom);
+  const t = smoothstep(CAMPAIGN_TILT_START_ZOOM, CAMPAIGN_FULL_TILT_ZOOM, zoom);
   return CAMPAIGN_CLOSE_PITCH * t;
 }
 

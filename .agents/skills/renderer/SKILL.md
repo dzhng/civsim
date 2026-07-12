@@ -155,6 +155,14 @@ this skill knows today's module layout.
   healthy. Per-instance work must re-apply instancing explicitly.
 - **`normalNode` is view-space.** Lighting math that assumes world-space normals
   reads plausibly wrong (moves with the camera); transform deliberately.
+- **`DoubleSide` flips shading normals on back faces — but only on the stock
+  normal path.** The flip is right for closed solids and wrong for thin lit
+  cards (foliage, grass, cloth), where the back of a brightly lit card renders
+  dark. Setting a custom `normalNode` bypasses the flip entirely: both faces
+  shade with the authored normal. Choose per material which behavior you are
+  getting — the smell is double-sided geometry whose two sides read as
+  different materials under one light, especially imported foliage assets
+  left on the stock normal path.
 - **The TSL `time` node is BANNED in renderer code** — it breaks byte-stable
   snapshots. All animation keys off an owned, injectable time uniform plus
   seeded RNG.

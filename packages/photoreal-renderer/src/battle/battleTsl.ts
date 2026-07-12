@@ -98,7 +98,14 @@ export function linearAlbedo(display: Vec3Node): Vec3Node {
 /** The standard-material normal hook for battle geometry: attributes are
  *  authored in world (z-up) space on identity-transform meshes, and
  *  `normalNode` expects a VIEW-space normal (07's recorded hazard) — transform
- *  in the vertex stage, interpolate, renormalize. */
+ *  in the vertex stage, interpolate, renormalize.
+ *
+ *  Setting `normalNode` also OPTS OUT of three's DoubleSide back-face normal
+ *  flip (`negateOnBackSide` only wraps geometry-derived normals): both faces
+ *  shade with the authored normal. That is deliberate for thin double-sided
+ *  cards (grass blades, banners, foliage), where the flip renders the back of
+ *  a lit card dark. Any future material that skips this hook and uses the
+ *  stock normal path with DoubleSide re-inherits the flip. */
 export function viewNormalNode(worldNormal: Vec3Node): Vec3Node {
   return varying(transformNormalToView(worldNormal)).normalize();
 }

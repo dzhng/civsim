@@ -15,6 +15,65 @@ pub const KEEP_SEA_LANES: &[(&str, &str)] = &[
     ("Rhegium", "Messana"),
 ];
 
+/// The connectivity contract (David, 2026-07-14): every city has a route back
+/// to Rome EXCEPT the ones deliberately left off — island cities whose sea
+/// lane was descoped away. These are the island cities (Britain plus the
+/// Mediterranean islands without one of the four kept lanes).
+pub const OFF_MAIN_ISLAND_CITIES: &[&str] = &[
+    // Britain — no Channel lane.
+    "Calleva",
+    "Camulodunum",
+    "Deva",
+    "Durnonovaria",
+    "Eburacum",
+    "Glevum",
+    "Isca",
+    "Lindum",
+    "Londinium",
+    "Luguvalium",
+    "Venta",
+    "Venta Icenorum",
+    "Verulamium",
+    "Viroconium",
+    // Mediterranean islands.
+    "Aleria",
+    "Amathous",
+    "Caralis",
+    "Chersonasos",
+    "Chios",
+    "Corcyra",
+    "Ebusus",
+    "Krane",
+    "Lapethos",
+    "Melita",
+    "Meninge",
+    "Mytilene",
+    "Olbia",
+    "Palma",
+    "Paphos",
+    "Rhodos",
+    "Salamis",
+    "Samos",
+    "Thasos",
+];
+
+/// NOT islands, but stranded anyway: the Black-Sea / Crimea / Caucasus rim
+/// sits beyond RECONNECT_MAX_GAP_KM (first hop 158+ km), so the iterative
+/// reconnect never reaches it. Ledgered separately so the island contract
+/// stays honest; connecting or cutting these is an open product call.
+pub const OFF_MAIN_BEYOND_RECONNECT_CAP_CITIES: &[&str] = &[
+    "Chersonesos",
+    "Dioscurias",
+    "Gorgippia",
+    "Kalos Limen",
+    "Olbia Borysthenes",
+    "Pantikapaion",
+    "Phasis",
+    "Tanais",
+    "Theodosia",
+    "Tyras",
+];
+
 /// Max per-hop straight-line gap (km) for the same-landmass iterative reconnect
 /// merge (slice 03). Measured from the S0 `connectivity-report`: mainland-coastal
 /// + Sicily's first hop (Syracusae→Messana 131 km) all sit ≤133 km, the Black-Sea
@@ -49,12 +108,9 @@ pub fn descope_sea_lanes(map: &mut Value) {
             .into_iter()
             .collect();
 
+    tag_edge_original_indices(map);
     {
         let edges = map["edges"].as_array_mut().expect("edges array");
-        for (i, edge) in edges.iter_mut().enumerate() {
-            edge["_oi"] = json!(i);
-        }
-
         let mut kept_sea = Vec::new();
         edges.retain(|edge| {
             let a = edge["a"].as_u64().expect("edge a") as u32;
@@ -84,6 +140,34 @@ pub fn descope_sea_lanes(map: &mut Value) {
         );
     }
 
+    prune_stub_junctions(map);
+    remap_ambush_spots_by_original_index(map);
+
+    eprintln!(
+        "descope-sea-lanes: {} junctions, {} edges remain",
+        map["nodes"]
+            .as_array()
+            .expect("nodes array")
+            .iter()
+            .filter(|node| node["kind"].as_str() == Some("junction"))
+            .count(),
+        map["edges"].as_array().expect("edges array").len()
+    );
+}
+
+/// Stamp every edge with its current array index (`_oi`) so a later
+/// `remap_ambush_spots_by_original_index` can survive edge removals.
+pub fn tag_edge_original_indices(map: &mut Value) {
+    let edges = map["edges"].as_array_mut().expect("edges array");
+    for (i, edge) in edges.iter_mut().enumerate() {
+        edge["_oi"] = json!(i);
+    }
+}
+
+/// Cascade away junctions an edge removal left dangling: a junction at total
+/// degree <= 1 is a dead end, so it goes, its last edge goes with it, and the
+/// loop reruns until stable.
+pub fn prune_stub_junctions(map: &mut Value) {
     loop {
         let mut degree: BTreeMap<u32, usize> = BTreeMap::new();
         for edge in map["edges"].as_array().expect("edges array") {
@@ -123,7 +207,12 @@ pub fn descope_sea_lanes(map: &mut Value) {
                 !drop.contains(&a) && !drop.contains(&b)
             });
     }
+}
 
+/// Rewrite ambush-spot edge indices against the surviving edge array (keyed by
+/// the `_oi` tags `tag_edge_original_indices` stamped), dropping spots whose
+/// edge is gone, then strip the tags.
+pub fn remap_ambush_spots_by_original_index(map: &mut Value) {
     let mut old_to_new = BTreeMap::new();
     for (new_idx, edge) in map["edges"]
         .as_array()
@@ -155,17 +244,6 @@ pub fn descope_sea_lanes(map: &mut Value) {
     for edge in map["edges"].as_array_mut().expect("edges array") {
         edge.as_object_mut().expect("edge object").remove("_oi");
     }
-
-    eprintln!(
-        "descope-sea-lanes: {} junctions, {} edges remain",
-        map["nodes"]
-            .as_array()
-            .expect("nodes array")
-            .iter()
-            .filter(|node| node["kind"].as_str() == Some("junction"))
-            .count(),
-        map["edges"].as_array().expect("edges array").len()
-    );
 }
 
 pub fn landmass_labels(raster: &raster::Raster) -> Vec<u32> {
@@ -209,6 +287,58 @@ pub fn landmass_labels(raster: &raster::Raster) -> Vec<u32> {
     }
 
     labels
+}
+
+/// The partition of CITY node ids into connected components (roads + sea
+/// lanes), optionally excluding one edge by index — the debraid safety
+/// currency: a drop is legal only when the partition it leaves equals the
+/// partition it found.
+pub fn city_partition(map: &Value, skip_edge: Option<usize>) -> BTreeSet<BTreeSet<u32>> {
+    let mut adj: BTreeMap<u32, Vec<u32>> = BTreeMap::new();
+    for (idx, edge) in map["edges"]
+        .as_array()
+        .expect("edges array")
+        .iter()
+        .enumerate()
+    {
+        if Some(idx) == skip_edge {
+            continue;
+        }
+        let a = edge["a"].as_u64().expect("edge a") as u32;
+        let b = edge["b"].as_u64().expect("edge b") as u32;
+        adj.entry(a).or_default().push(b);
+        adj.entry(b).or_default().push(a);
+    }
+    let cities: BTreeSet<u32> = map["nodes"]
+        .as_array()
+        .expect("nodes array")
+        .iter()
+        .filter(|node| node["kind"].as_str() == Some("city"))
+        .map(|node| node["id"].as_u64().expect("node id") as u32)
+        .collect();
+
+    let mut seen: BTreeSet<u32> = BTreeSet::new();
+    let mut partition = BTreeSet::new();
+    for &start in &cities {
+        if seen.contains(&start) {
+            continue;
+        }
+        let mut component = BTreeSet::new();
+        let mut q = VecDeque::from([start]);
+        seen.insert(start);
+        while let Some(id) = q.pop_front() {
+            if cities.contains(&id) {
+                component.insert(id);
+            }
+            for &next in adj.get(&id).into_iter().flatten() {
+                if seen.insert(next) {
+                    q.push_back(next);
+                }
+            }
+        }
+        partition.insert(component);
+    }
+    partition
 }
 
 pub fn main_component(map: &Value, capital_ids: &[u32]) -> BTreeSet<u32> {
@@ -471,6 +601,17 @@ pub fn print_report() {
         capital_ids.iter().filter(|id| main.contains(id)).count(),
         capital_ids.len()
     );
+    let ledgered: BTreeSet<&str> = OFF_MAIN_ISLAND_CITIES
+        .iter()
+        .chain(OFF_MAIN_BEYOND_RECONNECT_CAP_CITIES)
+        .copied()
+        .collect();
+    let unledgered: Vec<&str> = nodes
+        .values()
+        .filter(|n| n.kind == "city" && !main.contains(&n.id) && !ledgered.contains(n.name.as_str()))
+        .map(|n| n.name.as_str())
+        .collect();
+    println!("off-main cities not in the deliberate ledger: {unledgered:?}");
 
     let mut rows: Vec<ReportRow> = nodes
         .values()

@@ -28,6 +28,12 @@ fn main() {
         connectivity::print_report();
         return;
     }
+    // Debraid the COMMITTED map in place — the only bake step that needs no
+    // source data, so it can run standalone against the shipped artifact.
+    if std::env::args().nth(1).as_deref() == Some("debraid") {
+        landroute::debraid_committed_roads("web/public/data");
+        return;
+    }
 
     let dir = "crates/mapgen/data";
     let out_dir = "web/public/data";
@@ -139,6 +145,7 @@ fn main() {
     post_step("crates/mapgen/claim-reconnected.mjs");
 
     landroute::make_committed_roads_land_safe(out_dir, &r, &rivers, &mountains, bb);
+    landroute::debraid_committed_roads(out_dir);
 
     probe::write_committed_probe();
 }
@@ -435,6 +442,60 @@ mod tests {
         assert_eq!(
             ferry_pairs_seen, ferry_pairs,
             "ROAD_FERRY_CROSSINGS entries must name existing road edges that still cross painted water"
+        );
+
+        // No braided roads: no two road edges share a long corridor (the
+        // prune rewire used to leave bypass edges shadowing the local legs).
+        // The BRAID_LEDGER pairs are pinned exceptions where both members are
+        // load-bearing.
+        let ledgered = |pair: &landroute::BraidedPair| {
+            let ends = |idx: usize| {
+                let edge = &map.edges[idx];
+                landroute::ordered_pair(&nodes[&edge.a].name, &nodes[&edge.b].name)
+            };
+            landroute::BRAID_LEDGER.iter().any(|&(p, q)| {
+                let (p, q) = (landroute::ordered_pair(p.0, p.1), landroute::ordered_pair(q.0, q.1));
+                (ends(pair.longer) == p && ends(pair.shorter) == q)
+                    || (ends(pair.longer) == q && ends(pair.shorter) == p)
+            })
+        };
+        let braids: Vec<String> = landroute::braided_road_pairs(&map_value)
+            .iter()
+            .filter(|pair| !ledgered(pair))
+            .map(|pair| {
+                let edge_ends = |idx: usize| {
+                    let edge = &map.edges[idx];
+                    format!("{}--{}", nodes[&edge.a].name, nodes[&edge.b].name)
+                };
+                format!(
+                    "{} || {} ({:.0}km corridor)",
+                    edge_ends(pair.longer),
+                    edge_ends(pair.shorter),
+                    pair.overlap_km
+                )
+            })
+            .collect();
+        assert!(braids.is_empty(), "unledgered braided road corridors: {braids:?}");
+
+        // The connectivity contract (David 2026-07-14): every city reaches
+        // Rome except the deliberately-stranded ledger — island cities whose
+        // sea lane was descoped, plus the Black-Sea rim beyond the reconnect
+        // cap. Any other city off the main component is a regression.
+        let main = connectivity::main_component(&map_value, &capital_ids);
+        let expected_off_main: BTreeSet<&str> = connectivity::OFF_MAIN_ISLAND_CITIES
+            .iter()
+            .chain(connectivity::OFF_MAIN_BEYOND_RECONNECT_CAP_CITIES)
+            .copied()
+            .collect();
+        let off_main: BTreeSet<&str> = map
+            .nodes
+            .iter()
+            .filter(|n| n.kind == "city" && !main.contains(&n.id))
+            .map(|n| n.name.as_str())
+            .collect();
+        assert_eq!(
+            off_main, expected_off_main,
+            "cities without a route to Rome changed (left: actual, right: ledgered islands + Black-Sea rim)"
         );
     }
 

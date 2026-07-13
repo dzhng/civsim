@@ -28,10 +28,18 @@ fn main() {
         connectivity::print_report();
         return;
     }
-    // Debraid the COMMITTED map in place — the only bake step that needs no
-    // source data, so it can run standalone against the shipped artifact.
+    // Debraid the COMMITTED map in place — needs no source data, so it can
+    // run standalone against the shipped artifact.
     if std::env::args().nth(1).as_deref() == Some("debraid") {
         landroute::debraid_committed_roads("web/public/data");
+        return;
+    }
+    // Materialize the hand-authored Black-Sea coast roads against the
+    // COMMITTED map + raster. Without source data the river grid is empty and
+    // there are no mountain polys, so tiles classify plain until the next
+    // full bake refines them.
+    if std::env::args().nth(1).as_deref() == Some("black-sea-roads") {
+        connectivity::connect_black_sea_rim_committed("web/public/data");
         return;
     }
 
@@ -478,15 +486,13 @@ mod tests {
         assert!(braids.is_empty(), "unledgered braided road corridors: {braids:?}");
 
         // The connectivity contract (David 2026-07-14): every city reaches
-        // Rome except the deliberately-stranded ledger — island cities whose
-        // sea lane was descoped, plus the Black-Sea rim beyond the reconnect
-        // cap. Any other city off the main component is a regression.
+        // Rome except the deliberately-stranded islands (Britain + the
+        // descoped Mediterranean islands). Any other city off the main
+        // component — mainland included, now that the hand-authored Black-Sea
+        // coast roads exist — is a regression.
         let main = connectivity::main_component(&map_value, &capital_ids);
-        let expected_off_main: BTreeSet<&str> = connectivity::OFF_MAIN_ISLAND_CITIES
-            .iter()
-            .chain(connectivity::OFF_MAIN_BEYOND_RECONNECT_CAP_CITIES)
-            .copied()
-            .collect();
+        let expected_off_main: BTreeSet<&str> =
+            connectivity::OFF_MAIN_ISLAND_CITIES.iter().copied().collect();
         let off_main: BTreeSet<&str> = map
             .nodes
             .iter()
@@ -495,7 +501,7 @@ mod tests {
             .collect();
         assert_eq!(
             off_main, expected_off_main,
-            "cities without a route to Rome changed (left: actual, right: ledgered islands + Black-Sea rim)"
+            "cities without a route to Rome changed (left: actual, right: ledgered islands)"
         );
     }
 

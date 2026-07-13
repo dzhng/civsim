@@ -57,22 +57,139 @@ pub const OFF_MAIN_ISLAND_CITIES: &[&str] = &[
     "Thasos",
 ];
 
-/// NOT islands, but stranded anyway: the Black-Sea / Crimea / Caucasus rim
-/// sits beyond RECONNECT_MAX_GAP_KM (first hop 158+ km), so the iterative
-/// reconnect never reaches it. Ledgered separately so the island contract
-/// stays honest; connecting or cutting these is an open product call.
-pub const OFF_MAIN_BEYOND_RECONNECT_CAP_CITIES: &[&str] = &[
-    "Chersonesos",
-    "Dioscurias",
-    "Gorgippia",
-    "Kalos Limen",
-    "Olbia Borysthenes",
-    "Pantikapaion",
-    "Phasis",
-    "Tanais",
-    "Theodosia",
-    "Tyras",
+/// Hand-authored Black-Sea coast roads (David 2026-07-14): the rim cities are
+/// mainland, so the routes-to-Rome contract covers them, but every hop sits
+/// beyond RECONNECT_MAX_GAP_KM (first gap 158 km) and the measured reconnect
+/// never reaches the rim. Two coastal chains anchor into the main component
+/// (Salsovia up the west coast through Crimea; Trapezus along Colchis) and
+/// meet at Gorgippia, with the Bosporan strait crossing ferry-ledgered
+/// (ROAD_FERRY_CROSSINGS) like every other strait. Paths are A*-routed over
+/// the committed land raster; the strait pair falls back to the straight
+/// crossing the ferry ledger permits.
+pub const BLACK_SEA_COAST_ROUTES: &[(&str, &str)] = &[
+    ("Salsovia", "Tyras"),
+    ("Tyras", "Olbia Borysthenes"),
+    ("Olbia Borysthenes", "Kalos Limen"),
+    ("Kalos Limen", "Chersonesos"),
+    ("Chersonesos", "Theodosia"),
+    ("Theodosia", "Pantikapaion"),
+    ("Pantikapaion", "Gorgippia"),
+    ("Gorgippia", "Tanais"),
+    ("Trapezus", "Phasis"),
+    ("Phasis", "Dioscurias"),
+    ("Dioscurias", "Gorgippia"),
 ];
+
+/// Materialize BLACK_SEA_COAST_ROUTES as road edges (idempotent: existing
+/// pairs are skipped). Tiles/ambush spots classify through the same owner as
+/// every other road; the standalone application passes an empty river grid
+/// and no mountains (no source data), so those edges carry plain tiles until
+/// the next full bake refines them.
+pub fn connect_black_sea_rim(
+    map: &mut Value,
+    raster: &raster::Raster,
+    river_grid: &crate::geo::SegGrid,
+    mountains: &[sources::Poly],
+) {
+    let nodes = parse_nodes(map);
+    let ids_by_name: BTreeMap<&str, u32> = nodes
+        .values()
+        .map(|node| (node.name.as_str(), node.id))
+        .collect();
+    let existing: BTreeSet<(u32, u32)> = map["edges"]
+        .as_array()
+        .expect("edges array")
+        .iter()
+        .map(|edge| {
+            let a = edge["a"].as_u64().expect("edge a") as u32;
+            let b = edge["b"].as_u64().expect("edge b") as u32;
+            (a.min(b), a.max(b))
+        })
+        .collect();
+
+    let mut added = Vec::new();
+    for &(a_name, b_name) in BLACK_SEA_COAST_ROUTES {
+        let a = *ids_by_name
+            .get(a_name)
+            .unwrap_or_else(|| panic!("Black-Sea route names missing city {a_name}"));
+        let b = *ids_by_name
+            .get(b_name)
+            .unwrap_or_else(|| panic!("Black-Sea route names missing city {b_name}"));
+        if existing.contains(&(a.min(b), a.max(b))) {
+            continue;
+        }
+        let (pa, pb) = (nodes[&a].pos, nodes[&b].pos);
+        let mut via = landroute::astar_land_path(raster, pa, pb, dist(pa, pb), 0)
+            .unwrap_or_else(|| {
+                assert!(
+                    landroute::ferry_pair_allowed(landroute::ordered_pair(a_name, b_name)),
+                    "no land path {a_name}--{b_name} and the pair is not ferry-ledgered"
+                );
+                vec![pa, pb]
+            });
+        // A* runs cell-center to cell-center; the edge contract is exact node
+        // endpoints (via[0] == a.pos, via[last] == b.pos).
+        via[0] = pa;
+        *via.last_mut().expect("non-empty via") = pb;
+
+        let eidx = map["edges"].as_array().expect("edges array").len();
+        let (tiles, ambush) = build::classify_route_tiles(&via, "road", eidx, river_grid, mountains);
+        map["edges"]
+            .as_array_mut()
+            .expect("edges array")
+            .push(json!({ "a": a, "b": b, "kind": "road", "via": via, "tiles": tiles }));
+        let ambush_spots = map["ambush_spots"]
+            .as_array_mut()
+            .expect("ambush_spots array");
+        for spot in ambush {
+            ambush_spots.push(serde_json::to_value(spot).expect("ambush spot json"));
+        }
+        added.push(format!("{a_name}--{b_name}"));
+    }
+    eprintln!(
+        "black-sea-roads: added {} coastal roads{}",
+        added.len(),
+        if added.is_empty() {
+            String::new()
+        } else {
+            format!(" -> {}", added.join("; "))
+        }
+    );
+}
+
+/// Standalone application of `connect_black_sea_rim` over the committed
+/// artifacts (map json + bg raster) — no source data, so the river grid is
+/// empty and no mountains classify; a full bake refines those tiles.
+pub fn connect_black_sea_rim_committed(data_dir: &str) {
+    let path = format!("{data_dir}/campaign-map.json");
+    let mut map: Value =
+        serde_json::from_str(&std::fs::read_to_string(&path).expect("campaign-map.json"))
+            .expect("campaign-map json");
+    let bg: BgRect = serde_json::from_str(
+        &std::fs::read_to_string(format!("{data_dir}/campaign-bg.json")).unwrap(),
+    )
+    .unwrap();
+    let (bg_w, bg_h, bg_px) =
+        probe::read_png(std::path::Path::new(&format!("{data_dir}/campaign-bg.png")));
+    let raster = raster::Raster::from_rgba(
+        BBox {
+            min: bg.min,
+            max: bg.max,
+        },
+        bg_w,
+        bg_h,
+        bg_px,
+    );
+    let empty_river_grid = build::build_river_grid(
+        BBox {
+            min: bg.min,
+            max: bg.max,
+        },
+        &[],
+    );
+    connect_black_sea_rim(&mut map, &raster, &empty_river_grid, &[]);
+    std::fs::write(&path, serde_json::to_string(&map).unwrap()).unwrap();
+}
 
 /// Max per-hop straight-line gap (km) for the same-landmass iterative reconnect
 /// merge (slice 03). Measured from the S0 `connectivity-report`: mainland-coastal
@@ -468,10 +585,12 @@ pub fn descope_and_reconnect(
 
     descope_sea_lanes(&mut map);
 
+    let river_grid = build::build_river_grid(bb, rivers);
+    connect_black_sea_rim(&mut map, raster, &river_grid, mountains);
+
     let nodes = parse_nodes(&map);
     let capital_ids = playable_capital_ids(&map, &nodes);
     let plan = reconnect_plan(&map, raster, &capital_ids, RECONNECT_MAX_GAP_KM);
-    let river_grid = build::build_river_grid(bb, rivers);
     let reconnected_city_ids: BTreeSet<u32> = plan.iter().map(|(city_id, _, _)| *city_id).collect();
 
     for node in map["nodes"].as_array_mut().expect("nodes array") {
@@ -601,11 +720,7 @@ pub fn print_report() {
         capital_ids.iter().filter(|id| main.contains(id)).count(),
         capital_ids.len()
     );
-    let ledgered: BTreeSet<&str> = OFF_MAIN_ISLAND_CITIES
-        .iter()
-        .chain(OFF_MAIN_BEYOND_RECONNECT_CAP_CITIES)
-        .copied()
-        .collect();
+    let ledgered: BTreeSet<&str> = OFF_MAIN_ISLAND_CITIES.iter().copied().collect();
     let unledgered: Vec<&str> = nodes
         .values()
         .filter(|n| n.kind == "city" && !main.contains(&n.id) && !ledgered.contains(n.name.as_str()))

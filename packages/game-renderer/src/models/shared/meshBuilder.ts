@@ -4,6 +4,11 @@ export interface IndexedMeshData {
   vertices: Float32Array;
   indices: Uint16Array;
   indexCount: number;
+  /**
+   * Optional per-vertex leaf-atlas UVs (2 floats per vertex). u < 0 marks an
+   * untextured vertex (solid vertex color). Absent = whole mesh untextured.
+   */
+  uvs?: Float32Array;
 }
 
 export interface MeshData {

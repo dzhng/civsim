@@ -262,9 +262,11 @@ export async function run(ctx) {
 }
 
 function hasTerrainFeatureDensity(stats) {
-  const scenery = stats.sceneryStats;
+  // Candidate tallies, not per-frame uploads: uploads are LOD- and
+  // view-culled, so they say nothing about whole-map feature density.
+  const scenery = stats.sceneryCandidateStats;
   return (
-    stats.scenery >= 4000 &&
+    scenery?.total >= 4000 &&
     scenery?.mountains >= 1000 &&
     scenery?.trees >= 2400 &&
     scenery?.rocks >= 700

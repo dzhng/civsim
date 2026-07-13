@@ -3,14 +3,25 @@
 // the blade-field layer. Scenery remains the TSL port of CampaignSceneryPass
 // over the shared prop meshes (SCENERY_PROP_MODELS).
 import * as THREE from "three/webgpu";
-import { attribute, clamp, normalize, varying, vec3, vec4 } from "three/tsl";
+import { attribute, clamp, float, mix, normalize, step, texture, varying, vec2, vec3, vec4 } from "three/tsl";
 import type { CampaignSceneryInstance } from "../../../game-renderer/src/campaign/sceneryPass";
-import { SCENERY_PROP_MODELS } from "../../../game-renderer/src/models/shared/sceneryPropRegistry";
+import {
+  buildLeafAtlas,
+  LEAF_ATLAS_RGB_GAIN,
+} from "../../../game-renderer/src/models/shared/leafAtlas";
+import {
+  SCENERY_PROP_IDS,
+  SCENERY_PROP_MODELS,
+  type SceneryPropId,
+} from "../../../game-renderer/src/models/shared/sceneryPropRegistry";
 import { linearAlbedo, rotateYawN, viewNormalNode } from "./battleTsl";
 import { RENDER_ORDER } from "./terrainLayer";
 
-type SceneryKind = "conifer" | "broadleaf" | "rock";
-const SCENERY_KINDS: SceneryKind[] = ["conifer", "broadleaf", "rock"];
+// Battle scenery is trees and rocks; mountains and carts stay campaign-only.
+const SCENERY_KINDS: SceneryPropId[] = SCENERY_PROP_IDS.filter((id) => {
+  const family = SCENERY_PROP_MODELS[id].family;
+  return family === "tree" || family === "rock";
+});
 
 interface SceneryBucket {
   opaque: THREE.Mesh;
@@ -20,15 +31,16 @@ interface SceneryBucket {
 /** The battle scenery (trees/rocks from featuresToBattleScenery), instanced on
  *  the shared prop meshes with the sceneryPass shading ported to TSL. */
 export class PhotorealScenery {
-  private buckets = new Map<SceneryKind, SceneryBucket>();
+  private buckets = new Map<SceneryPropId, SceneryBucket>();
   private total = 0;
 
   constructor(scene: THREE.Scene) {
+    const leafMap = leafAtlasTexture();
     for (const kind of SCENERY_KINDS) {
       const model = SCENERY_PROP_MODELS[kind].build();
       const opaque = new THREE.Mesh(
-        sceneryGeometry(model.opaque.vertices, model.opaque.indices),
-        sceneryMaterial(),
+        sceneryGeometry(model.opaque.vertices, model.opaque.indices, model.opaque.uvs),
+        sceneryMaterial(leafMap),
       );
       opaque.name = `battle-scenery-${kind}`;
       opaque.renderOrder = RENDER_ORDER.worldOpaque;
@@ -46,9 +58,7 @@ export class PhotorealScenery {
   upload(instances: CampaignSceneryInstance[]): void {
     this.total = 0;
     for (const kind of SCENERY_KINDS) {
-      const list = instances.filter(
-        (inst) => (inst.kind === "tree" ? "conifer" : inst.kind) === kind,
-      );
+      const list = instances.filter((inst) => inst.kind === kind);
       const bucket = this.buckets.get(kind)!;
       bucket.count = list.length;
       this.total += list.length;
@@ -80,6 +90,7 @@ export class PhotorealScenery {
 function sceneryGeometry(
   vertices: Float32Array,
   indices: Uint16Array,
+  uvs?: Float32Array,
 ): THREE.InstancedBufferGeometry {
   const geo = new THREE.InstancedBufferGeometry();
   const count = vertices.length / 10;
@@ -97,9 +108,26 @@ function sceneryGeometry(
   // 'normal' alias for shadow.normalBias (see crowdLayer note, slice 11).
   geo.setAttribute("normal", new THREE.BufferAttribute(normals, 3));
   geo.setAttribute("sColor", new THREE.BufferAttribute(colors, 4));
+  // Leaf-atlas UVs; u=-1 marks untextured vertices (see meshBuilder contract).
+  geo.setAttribute(
+    "sUv",
+    new THREE.BufferAttribute(uvs ?? new Float32Array(count * 2).fill(-1), 2),
+  );
   geo.setIndex(new THREE.BufferAttribute(indices, 1));
   geo.instanceCount = 0;
   return geo;
+}
+
+function leafAtlasTexture(): THREE.DataTexture {
+  const atlas = buildLeafAtlas();
+  const map = new THREE.DataTexture(atlas.rgba, atlas.width, atlas.height, THREE.RGBAFormat);
+  map.magFilter = THREE.LinearFilter;
+  map.minFilter = THREE.LinearMipmapLinearFilter;
+  map.generateMipmaps = true;
+  map.wrapS = THREE.ClampToEdgeWrapping;
+  map.wrapT = THREE.ClampToEdgeWrapping;
+  map.needsUpdate = true;
+  return map;
 }
 
 // sceneryPass SCENERY_WGSL pose port; since slice 09 the opaque props are a
@@ -108,7 +136,7 @@ function sceneryGeometry(
 // + IBL light the rotated normals. Per-instance shade variation stays as
 // albedo character. (The unlit shadow-decal variant died at 11 — props cast
 // real sun shadows through this same positionNode now.)
-function sceneryMaterial(): THREE.MeshStandardNodeMaterial {
+function sceneryMaterial(leafMap: THREE.DataTexture): THREE.MeshStandardNodeMaterial {
   const material = new THREE.MeshStandardNodeMaterial({
     side: THREE.DoubleSide,
     roughness: 0.9,
@@ -117,6 +145,7 @@ function sceneryMaterial(): THREE.MeshStandardNodeMaterial {
   const local = attribute<"vec3">("position", "vec3");
   const normal = attribute<"vec3">("sNormal", "vec3");
   const colorAndAlpha = attribute<"vec4">("sColor", "vec4");
+  const uv = attribute<"vec2">("sUv", "vec2");
   const instPose = attribute<"vec4">("instPose", "vec4");
   const instStyle = attribute<"vec4">("instStyle", "vec4");
   const scale = instPose.z;
@@ -141,8 +170,17 @@ function sceneryMaterial(): THREE.MeshStandardNodeMaterial {
   const vAlpha = varying(colorAndAlpha.a);
   const shade = varying(clamp(instStyle.x, 0.0, 1.0));
 
+  // Leaf quads alpha-cut through the leaf atlas (u=-1 sentinel = untextured):
+  // one quad reads as a cluster of small leaves, matching the campaign pass.
+  const vUv = varying(uv);
+  const leafMask = step(0.0, vUv.x);
+  const texel = texture(leafMap, clamp(vUv, vec2(0.0), vec2(1.0)));
+  const detail = mix(vec3(1.0), texel.rgb.mul(LEAF_ATLAS_RGB_GAIN), leafMask);
+  material.opacityNode = mix(float(1.0), texel.a, leafMask);
+  material.alphaTest = 0.5;
+
   const variation = shade.mul(0.18).add(0.88);
-  const albedo = clamp(vColor.mul(variation), vec3(0.0), vec3(1.0));
+  const albedo = clamp(vColor.mul(variation).mul(detail), vec3(0.0), vec3(1.0));
   material.colorNode = vec4(linearAlbedo(albedo), vAlpha);
   return material;
 }

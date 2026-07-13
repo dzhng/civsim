@@ -11,6 +11,9 @@ export const meta = {
     "shared/props/trees",
     "shared/props/conifer",
     "shared/props/broadleaf",
+    "shared/props/ash",
+    "shared/props/aspen",
+    "shared/props/bush",
     "shared/props/rocks",
     "shared/props/mountain",
     "shared/props/cart",
@@ -21,10 +24,23 @@ export const meta = {
 
 // Each prop family alone on neutral ground. Thresholds gate that the silhouette
 // actually renders (foliage/stone/wood), not merely that the frame is non-blank.
+// Tree floors sit at ~60% of what the ez-tree generated meshes measure: their
+// tapered cylindrical trunks show far fewer wood-hue pixels than the old box
+// trunks did, and the cypress conifer hides its trunk inside the foliage column.
 const CONTENT_REQUIREMENTS = {
-  trees: { foliageRatio: 0.05, trunkRatio: 0.004 },
-  conifer: { foliageRatio: 0.04 },
-  broadleaf: { foliageRatio: 0.03, trunkRatio: 0.004 },
+  // Foliage floors sit at ~60% of what the alpha-cutout canopies measure:
+  // cutout leaves show far fewer opaque pixels than solid quads did, and the
+  // dark pine needles mostly fall outside the green-hue window entirely.
+  trees: { foliageRatio: 0.03, trunkRatio: 0.001 },
+  // The pine trunk is deliberately slim and dark (it recedes behind the
+  // needles), so its wood-hue floor is the loosest of the family.
+  conifer: { foliageRatio: 0.006, trunkRatio: 0.0002 },
+  broadleaf: { foliageRatio: 0.028, trunkRatio: 0.001 },
+  ash: { foliageRatio: 0.018, trunkRatio: 0.001 },
+  // Aspen bark is deliberately pale (birch register), outside the wood-hue
+  // window, so only its foliage is gated.
+  aspen: { foliageRatio: 0.03 },
+  bush: { foliageRatio: 0.008 },
   rocks: { stoneRatio: 0.05 },
   mountain: { stoneRatio: 0.08, darkRatio: 0.01 },
   cart: { trunkRatio: 0.01, darkRatio: 0.01 },
@@ -48,6 +64,24 @@ const gates = [
     label: "Broadleaf Tree",
     criteria:
       "Individual broadleaf model has trunk, rounded low-poly canopy, non-square contact shadow, and shared lighting.",
+  },
+  {
+    id: "ash",
+    label: "Ash Tree",
+    criteria:
+      "Individual ash model reads as a tall shade tree: grey-brown trunk, visible limb skeleton, deep-green small-leaf canopy.",
+  },
+  {
+    id: "aspen",
+    label: "Aspen Tree",
+    criteria:
+      "Individual aspen model reads as a slender pale-barked tree with a light yellow-green crown.",
+  },
+  {
+    id: "bush",
+    label: "Bush",
+    criteria:
+      "Bush pair reads as low scrub: no tall trunk, rounded foliage mass sitting on the ground with a contact shadow.",
   },
   {
     id: "rocks",

@@ -3391,7 +3391,7 @@ async function campaignModelShotStandardLiveries(
 }
 
 // Derived from the fixture's world geometry (a point inside the city flag's
-// pennant cloth, and a point inside the late broadleaf's canopy blobs) via the
+// pennant cloth, and a point inside the late broadleaf's canopy) via the
 // route's own projector, so the samples follow the camera.
 function campaignModelShotHostileDepthSamples(canvas: HTMLCanvasElement, camera: ChartCameraSpec) {
   const scale = campaignSettlementStandardScale(MODEL_SHOT_CITY_RADIUS);
@@ -3404,12 +3404,13 @@ function campaignModelShotHostileDepthSamples(canvas: HTMLCanvasElement, camera:
     bannerAnchor[1] - 0.088 * scale,
     5.15 * scale,
   ]);
-  // Sample the canopy body (mid-height, slightly west of the trunk) — the top
-  // rim thins to nothing under the oblique review pitch.
+  // Sample the sunlit west side of the upper canopy — the ez-tree oak carries
+  // its leaf mass around the crown (mesh z ≈ 0.9-1.3), not at mid-trunk, and
+  // the cutout foliage only reads reliably where the crown is dense and lit.
   const tree = projectNestedPoint(canvas, camera, [
-    MODEL_SHOT_LATE_TREE.x - 0.2 * MODEL_SHOT_LATE_TREE.size,
+    MODEL_SHOT_LATE_TREE.x - 0.25 * MODEL_SHOT_LATE_TREE.size,
     MODEL_SHOT_LATE_TREE.y,
-    0.78 * MODEL_SHOT_LATE_TREE.size,
+    1.0 * MODEL_SHOT_LATE_TREE.size,
   ]);
   return {
     flagOverLateTree: { ...flag, note: "visible city flag in front of late scenery" },

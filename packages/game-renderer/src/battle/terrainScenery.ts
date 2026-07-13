@@ -47,7 +47,7 @@ export function featuresToBattleScenery(
           y,
           z: seat(x, y),
           size: 4.2 + rand() * 2.2,
-          kind: rand() > 0.5 ? "conifer" : "broadleaf",
+          kind: battleTreeSpecies(rand()),
           yaw: rand() * Math.PI * 2,
           shade: 0.5 + rand() * 0.4,
         });
@@ -86,6 +86,16 @@ export function featuresToBattleScenery(
     // water/wall/mud/scree are ground/horizon concerns, not scattered props.
   }
   return out;
+}
+
+// Mixed wood: conifer- and oak-led with ash/aspen accents and the odd bush at
+// the sampled spot, so a forest reads as varied canopy instead of two clones.
+function battleTreeSpecies(roll: number): CampaignSceneryInstance['kind'] {
+  if (roll < 0.34) return "conifer";
+  if (roll < 0.62) return "broadleaf";
+  if (roll < 0.78) return "ash";
+  if (roll < 0.92) return "aspen";
+  return "bush";
 }
 
 function terrainTintAt(grid: BattleTerrainGrid, x: number, y: number): number {

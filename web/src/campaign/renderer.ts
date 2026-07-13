@@ -24,6 +24,7 @@ import {
 import {
   CampaignSceneryPass,
   type CampaignSceneryInstance,
+  type CampaignSceneryKind,
 } from "../../../packages/game-renderer/src/campaign/sceneryPass";
 import {
   CampaignSelectionPass,
@@ -375,10 +376,27 @@ export class CampaignRenderer {
     // stays byte-identical; runtime advances it live.
     const sceneryTime = animTime;
     this.shell.setTime(sceneryTime);
-    this.scenery.upload(
-      campaignScenery(this.sceneryCandidates, frame.sceneryReservations, opts.cam.scale).concat(
-        campaignRoadCarts(this.data, this.field, sceneryTime, opts),
+    // View cull for the instanced props: the ez-tree meshes run thousands of
+    // triangles each, so offscreen forests must not reach the vertex shader.
+    // Radial bound (screen diagonal in km, pitch-expanded) stays correct under
+    // any camera yaw; the per-item margin covers footprint plus the screen
+    // shift tall props get from elevation under tilt.
+    const cosP = Math.max(0.2, Math.cos(this.pitchForScale(opts.cam.scale)));
+    const sceneryView = {
+      x: opts.cam.x,
+      y: opts.cam.y,
+      radiusKm: Math.hypot(
+        (this.canvas.width || 1) / (2 * opts.cam.scale),
+        (this.canvas.height || 1) / (2 * opts.cam.scale * cosP),
       ),
+    };
+    this.scenery.upload(
+      campaignScenery(
+        this.sceneryCandidates,
+        frame.sceneryReservations,
+        opts.cam.scale,
+        sceneryView,
+      ).concat(campaignRoadCarts(this.data, this.field, sceneryTime, opts)),
     );
     this.entities.upload(frame.entities);
     this.standards.upload(frame.standards);
@@ -660,6 +678,9 @@ export class CampaignRenderer {
       standardStats: this.standards?.stats() ?? null,
       scenery: this.scenery?.stats().scenery ?? 0,
       sceneryStats: this.scenery?.stats() ?? null,
+      // Whole-map candidate density (pre LOD + view cull): what feature-density
+      // gates should assert, since per-frame uploads now depend on the camera.
+      sceneryCandidateStats: tallySceneryCandidates(this.sceneryCandidates),
       lineSegments: this.lines?.stats().segments ?? 0,
       roadTriangles: this.roads?.stats().triangles ?? 0,
       roadJunctionCaps: this.mapDrawStats?.roadJunctionCaps ?? 0,
@@ -1490,12 +1511,30 @@ function sceneryFootprintOnLand(field: TerrainField, x: number, y: number, size:
   return field.renderLandAt(x, y, size * 0.5);
 }
 
+function tallySceneryCandidates(candidates: CampaignSceneryInstance[]) {
+  const tally = { total: candidates.length, mountains: 0, trees: 0, rocks: 0 };
+  for (const item of candidates) {
+    if (item.kind === "mountain") tally.mountains++;
+    else if (item.kind === "rock") tally.rocks++;
+    else if (item.kind !== "cart") tally.trees++;
+  }
+  return tally;
+}
+
+const SCENERY_VIEW_MARGIN_KM = 16;
+
 function campaignScenery(
   candidates: CampaignSceneryInstance[],
   reservations: CampaignSceneryReservation[] = [],
   scale = 1,
+  view?: { x: number; y: number; radiusKm: number },
 ): CampaignSceneryInstance[] {
-  const lodFiltered = candidates.filter((item) => scale >= sceneryMinScale(item));
+  const lodFiltered = candidates.filter((item) => {
+    if (scale < sceneryMinScale(item)) return false;
+    if (!view) return true;
+    const reach = view.radiusKm + SCENERY_VIEW_MARGIN_KM + item.size * 2;
+    return (item.x - view.x) ** 2 + (item.y - view.y) ** 2 <= reach * reach;
+  });
   return clearCampaignDynamicScenery(lodFiltered, reservations);
 }
 
@@ -1653,13 +1692,32 @@ function buildCampaignSceneryCandidates(
             z: Math.max(0, field.heightAt(x, y) - 0.05),
             size,
             height: heightScale * 1.1,
-            kind:
-              hash2(gx * 5 + t, gy * 11) < (y > TEMPERATE_Y_KM ? 0.75 : 0.25)
-                ? "conifer"
-                : "broadleaf",
+            kind: campaignTreeSpecies(hash2(gx * 5 + t, gy * 11), y > TEMPERATE_Y_KM),
             shade: hash2(gx + t * 19, gy + t * 23),
             yaw: hash2(gx * 13 + t, gy * 7 + t) * Math.PI * 2,
             score: forest + hash2(gx + t * 3, gy + t * 11) * 0.08,
+            gx,
+            gy,
+          });
+        }
+      } else if (forest >= 0.09 && hash2(gx * 11 + 3, gy * 5 + 7) < 0.45) {
+        // Forest fringe: scrub instead of full trees, so woods fade into open
+        // ground through bushes rather than ending at a hard tree line.
+        const x = x0 + (hash2(gx * 9 + 2, gy * 13 + 4) - 0.5) * field.cell * 1.2;
+        const y = y0 + (hash2(gx * 5 + 6, gy * 11 + 8) - 0.5) * field.cell * 1.2;
+        const heightScale = 0.9 + hash2(gx + 7, gy + 3) * 0.6;
+        const size = heightScale * 0.85 * CAMPAIGN_TREE_VISUAL_SCALE;
+        if (sceneryFootprintOnLand(field, x, y, size)) {
+          trees.push({
+            x,
+            y,
+            z: Math.max(0, field.heightAt(x, y) - 0.05),
+            size,
+            height: heightScale,
+            kind: "bush",
+            shade: hash2(gx + 29, gy + 31),
+            yaw: hash2(gx * 17 + 1, gy * 3 + 9) * Math.PI * 2,
+            score: forest * 0.6 + hash2(gx + 13, gy + 17) * 0.08,
             gx,
             gy,
           });
@@ -1672,6 +1730,21 @@ function buildCampaignSceneryCandidates(
     ...selectRegionalScenery(trees, CAMPAIGN_MAX_TREES),
     ...selectRegionalScenery(rocks, CAMPAIGN_MAX_ROCKS),
   ]);
+}
+
+// Deterministic species pick per biome band: boreal forests run conifer-led
+// with pale aspen accents, temperate forests mix oak/ash/aspen over a conifer
+// minority — variety within one muted register, not a per-cell monoculture.
+function campaignTreeSpecies(roll: number, boreal: boolean): CampaignSceneryKind {
+  if (boreal) {
+    if (roll < 0.6) return "conifer";
+    if (roll < 0.85) return "aspen";
+    return "ash";
+  }
+  if (roll < 0.2) return "conifer";
+  if (roll < 0.55) return "broadleaf";
+  if (roll < 0.8) return "ash";
+  return "aspen";
 }
 
 type ScoredCampaignSceneryInstance = CampaignSceneryInstance & {

@@ -1498,7 +1498,9 @@ function patchStats(png, sample, radius = 4) {
       if (r < 90 && g < 80 && b < 70) dark++;
       // Canopy foliage at any lighting: green-dominant over red AND blue, so
       // shaded tree bodies count without catching ground grass (g ≈ r there).
-      if (g > 55 && g > r + 25 && g > b + 25) foliage++;
+      // Floors sized for the alpha-cutout canopies, whose shaded leaves sit
+      // darker than the old solid blobs did.
+      if (g > 42 && g > r + 14 && g > b + 14) foliage++;
       // Soldier cloth in shadow: blue-dominant but darker than the `blue` bin
       // (campaign figures read ≈ rgb(54, 72, 112) at the oblique review pitch).
       if (b > 70 && b > r + 25 && b > g + 25) navy++;

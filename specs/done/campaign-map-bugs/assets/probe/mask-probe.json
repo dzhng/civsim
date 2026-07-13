@@ -39868,6 +39868,13 @@
       "y": 14.004183773904517,
       "land": true,
       "coast_km": 3.999
+    },
+    {
+      "name": "Phanagoreia",
+      "x": 1471.0,
+      "y": 970.0,
+      "land": true,
+      "coast_km": 5.099
     }
   ]
 }

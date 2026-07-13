@@ -35,7 +35,7 @@ const isPort = (n) => portIds.has(n.id);
 // MIN_DIST_KM. Kept in sync with connectivity::KEEP_SEA_LANES + raster STRAIT_CARVES.
 const LANE_ENDPOINTS = new Set([
   'Gades', 'Tingi', 'Constantinopolis', 'Nicomedia', 'Rhegium', 'Messana',
-  'Carthago', 'Lilybaeum', 'Pantikapaion', 'Gorgippia',
+  'Carthago', 'Lilybaeum', 'Pantikapaion', 'Phanagoreia',
 ]);
 const isLaneEndpoint = (n) => LANE_ENDPOINTS.has(n.name);
 

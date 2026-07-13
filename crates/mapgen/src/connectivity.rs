@@ -13,9 +13,33 @@ pub const KEEP_SEA_LANES: &[(&str, &str)] = &[
     ("Constantinopolis", "Nicomedia"),
     ("Rhegium", "Messana"),
     // Bosporan strait (Kerch): joins the Crimea and Taman coast chains —
-    // a proper lane (David 2026-07-14), not an implied road ferry.
-    ("Pantikapaion", "Gorgippia"),
+    // a proper lane (David 2026-07-14), not an implied road ferry. It runs
+    // to Phanagoreia (the hand-authored Bosporan twin), not Gorgippia — the
+    // direct Gorgippia line grazes the Taman headland.
+    ("Pantikapaion", "Phanagoreia"),
 ];
+
+/// Hand-authored city: Phanagoreia, the Bosporan twin colony across the
+/// strait from Pantikapaion. Exists so the Kerch lane is a straight
+/// open-water shot. Position picked against the committed raster: land with
+/// a 2-cell margin whose straight line to Pantikapaion is 100% water
+/// (45 km); the coast road continues to Gorgippia. Fixed id above the baked
+/// range so reapplication is deterministic.
+const PHANAGOREIA: HandAuthoredCity = HandAuthoredCity {
+    id: 61000,
+    name: "Phanagoreia",
+    pos: [1471.0, 970.0],
+    owner: "league_chersonesos",
+    tier: 2,
+};
+
+struct HandAuthoredCity {
+    id: u32,
+    name: &'static str,
+    pos: [f64; 2],
+    owner: &'static str,
+    tier: u32,
+}
 
 /// The connectivity contract (David, 2026-07-14): every city has a route back
 /// to Rome EXCEPT the ones deliberately left off — island cities whose sea
@@ -73,6 +97,7 @@ pub const BLACK_SEA_COAST_ROUTES: &[(&str, &str)] = &[
     ("Kalos Limen", "Chersonesos"),
     ("Chersonesos", "Theodosia"),
     ("Theodosia", "Pantikapaion"),
+    ("Phanagoreia", "Gorgippia"),
     ("Gorgippia", "Tanais"),
     ("Trapezus", "Phasis"),
     ("Phasis", "Dioscurias"),
@@ -97,6 +122,44 @@ pub fn connect_black_sea_rim(
     river_grid: &crate::geo::SegGrid,
     mountains: &[sources::Poly],
 ) {
+    // Hand-authored cities go in first so the route/lane ledgers below can
+    // name them like any baked city (idempotent: existing names skip).
+    for city in [&PHANAGOREIA] {
+        let exists = map["nodes"]
+            .as_array()
+            .expect("nodes array")
+            .iter()
+            .any(|node| node["name"].as_str() == Some(city.name));
+        if exists {
+            continue;
+        }
+        assert!(
+            raster
+                .cell_of(city.pos)
+                .is_some_and(|[x, y]| raster.is_land_neighborhood(x, y, 1)),
+            "{} must sit on land with the city snap margin",
+            city.name
+        );
+        map["nodes"].as_array_mut().expect("nodes array").push(json!({
+            "id": city.id,
+            "kind": "city",
+            "name": city.name,
+            "owner": city.owner,
+            "port": true,
+            "pos": city.pos,
+            "tier": city.tier,
+        }));
+        for faction in map["factions"].as_array_mut().expect("factions array") {
+            if faction["id"].as_str() == Some(city.owner) {
+                faction["cities"]
+                    .as_array_mut()
+                    .expect("faction cities")
+                    .push(json!(city.id));
+            }
+        }
+        eprintln!("black-sea-roads: added city {}", city.name);
+    }
+
     let nodes = parse_nodes(map);
     let ids_by_name: BTreeMap<&str, u32> = nodes
         .values()

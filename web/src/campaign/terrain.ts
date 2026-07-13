@@ -410,6 +410,11 @@ export class TerrainField {
   }
 
   /** Bilinear relief height (km) at a world point; 0 off-grid. */
+  /** Ground elevation at (wx, wy), interpolated on the SAME two triangles per
+   *  cell the campaign surface mesh draws (surface.ts splits each cell along
+   *  the (x0+1,y0)-(x0,y0+1) diagonal). A bilinear sample can sit under the
+   *  drawn triangle by more than a decal's lift on steep coastal cells —
+   *  roads/rings/models placed off a mismatched sampler bury into the ground. */
   heightAt(wx: number, wy: number): number {
     const gx = (wx - this.minX) / this.cell - 0.5;
     const gy = (this.maxY - wy) / this.cell - 0.5;
@@ -423,7 +428,8 @@ export class TerrainField {
     const b = this.height[i + 1];
     const c = this.height[i + this.w];
     const d = this.height[i + this.w + 1];
-    return (a * (1 - fx) + b * fx) * (1 - fy) + (c * (1 - fx) + d * fx) * fy;
+    if (fx + fy <= 1) return a + (b - a) * fx + (c - a) * fy;
+    return d + (c - d) * (1 - fx) + (b - d) * (1 - fy);
   }
 
   landAt(wx: number, wy: number, radiusKm = 0): boolean {

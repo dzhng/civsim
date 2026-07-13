@@ -57,6 +57,22 @@ export interface SoldierKitManifest {
   /** Optional per-class baked VAT paths (classId → url). Classes absent here
    *  fall back to the shared `vat` placeholder. */
   classVats?: Record<string, string>;
+  /** Optional per-class baked mesh paths (classId → url). A class listed here
+   *  renders the baked mesh (all LOD tiers) instead of its generated
+   *  placeholder; it must be skinned to the VAT the class binds via
+   *  `classVats` — bone indices are rows into that bake. */
+  classMeshes?: Record<string, string>;
+}
+
+/** The on-disk shape of a `classMeshes` entry: the same stride-11 interleaved
+ *  layout `SoldierMeshData` splits (position, normal, RGBA, bone). */
+export interface SoldierMeshJson {
+  schema: 1;
+  source: string;
+  skeleton: string;
+  vertexStrideFloats: 11;
+  vertices: number[];
+  indices: number[];
 }
 
 export interface VatClip {

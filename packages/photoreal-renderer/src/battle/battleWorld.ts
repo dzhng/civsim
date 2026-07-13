@@ -49,6 +49,7 @@ import {
 import type { MarkerInstance } from "../../../renderer-core/src/frameShell";
 import type { Camera3DParams } from "../../../renderer-core/src/camera3d";
 import {
+  loadClassMeshes,
   loadClassVats,
   loadPlaceholderKit,
   mountedClassesFromKit,
@@ -514,6 +515,14 @@ export class PhotorealBattleWorld {
     ]);
     const sea = createSeaDisplacementSource(options.sea ?? "gerstner-tsl");
     const vats = await loadClassVats(kit);
+    // Classes with a baked real mesh (kit.classMeshes) replace all their
+    // placeholder LOD tiers with it; every other class keeps the generated
+    // placeholder. The baked mesh skins to the class VAT from kit.classVats.
+    const classMeshes = await loadClassMeshes(kit);
+    const meshes = createPlaceholderSoldierMeshTiers([0.06, 0.1, 0.98]);
+    classMeshes.forEach((mesh, classId) => {
+      if (mesh && meshes[classId]) meshes[classId] = meshes[classId].map(() => mesh);
+    });
     // Shadow tier: adapter capability probe (SwiftShader → 'single'), lab
     // ?shadows= override wins. Resolved here because the adapter identity
     // only exists once the renderer is initialized.
@@ -524,7 +533,7 @@ export class PhotorealBattleWorld {
       world,
       environment,
       sea,
-      createPlaceholderSoldierMeshTiers([0.06, 0.1, 0.98]),
+      meshes,
       vats,
       kit,
       shadowMode,

@@ -25,9 +25,6 @@ pub const ROAD_FERRY_CROSSINGS: &[(&str, &str)] = &[
     ("Constantinopolis", "Perinthus"),
     ("Delphi", "Patrae"),
     ("Forum Iulii", "Genua"),
-    // Bosporan strait (Kerch): the Crimea and Taman coast chains meet across
-    // ~15 painted-water km no land path can close.
-    ("Gorgippia", "Pantikapaion"),
     ("Nicopolis", "Patrae"),
     // Tagus estuary at Olisipo: the south-bank land path exceeds the detour
     // cap, so both roads keep their short (~4.5 km) mouth crossing.

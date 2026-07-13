@@ -332,8 +332,9 @@ mod tests {
         }
 
         assert_eq!(
-            sea_edges, 4,
-            "sea routes are descoped: exactly the Gibraltar + Sicilian-channel + Hellespont + Messina lanes remain"
+            sea_edges,
+            connectivity::KEEP_SEA_LANES.len(),
+            "sea routes are descoped: exactly the KEEP_SEA_LANES (Gibraltar, Sicilian channel, Hellespont, Messina, Bosporus) remain"
         );
         assert!(water_cities.is_empty(), "cities on water: {water_cities:?}");
         assert!(

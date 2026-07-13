@@ -12,6 +12,9 @@ pub const KEEP_SEA_LANES: &[(&str, &str)] = &[
     ("Carthago", "Lilybaeum"),
     ("Constantinopolis", "Nicomedia"),
     ("Rhegium", "Messana"),
+    // Bosporan strait (Kerch): joins the Crimea and Taman coast chains —
+    // a proper lane (David 2026-07-14), not an implied road ferry.
+    ("Pantikapaion", "Gorgippia"),
 ];
 
 /// The connectivity contract (David, 2026-07-14): every city has a route back
@@ -61,10 +64,8 @@ pub const OFF_MAIN_ISLAND_CITIES: &[&str] = &[
 /// beyond RECONNECT_MAX_GAP_KM (first gap 158 km) and the measured reconnect
 /// never reaches the rim. Two coastal chains anchor into the main component
 /// (Salsovia up the west coast through Crimea; Trapezus along Colchis) and
-/// meet at Gorgippia, with the Bosporan strait crossing ferry-ledgered
-/// (ROAD_FERRY_CROSSINGS) like every other strait. Paths are A*-routed over
-/// the committed land raster; the strait pair falls back to the straight
-/// crossing the ferry ledger permits.
+/// join across the Bosporan strait sea lane (KEEP_SEA_LANES). Paths are
+/// A*-routed over the committed land raster.
 pub const BLACK_SEA_COAST_ROUTES: &[(&str, &str)] = &[
     ("Salsovia", "Tyras"),
     ("Tyras", "Olbia Borysthenes"),
@@ -72,12 +73,18 @@ pub const BLACK_SEA_COAST_ROUTES: &[(&str, &str)] = &[
     ("Kalos Limen", "Chersonesos"),
     ("Chersonesos", "Theodosia"),
     ("Theodosia", "Pantikapaion"),
-    ("Pantikapaion", "Gorgippia"),
     ("Gorgippia", "Tanais"),
     ("Trapezus", "Phasis"),
     ("Phasis", "Dioscurias"),
     ("Dioscurias", "Gorgippia"),
 ];
+
+/// Prefer this much all-land neighborhood (raster cells, 2 km each) around a
+/// routed coastal road: a path that hugs the bake-resolution shoreline dips
+/// into the renderer's coarser water and the drawn ribbon dashes. Tight
+/// coasts (mountains to the waterline) may only pass at smaller margins, so
+/// routing degrades margin -> 0 before giving up.
+const COAST_ROAD_MARGIN_CELLS: usize = 2;
 
 /// Materialize BLACK_SEA_COAST_ROUTES as road edges (idempotent: existing
 /// pairs are skipped). Tiles/ambush spots classify through the same owner as
@@ -107,6 +114,27 @@ pub fn connect_black_sea_rim(
         .collect();
 
     let mut added = Vec::new();
+    let mut push_edge = |map: &mut Value,
+                         a: u32,
+                         b: u32,
+                         kind: &str,
+                         via: Vec<[f64; 2]>,
+                         label: String| {
+        let eidx = map["edges"].as_array().expect("edges array").len();
+        let (tiles, ambush) = build::classify_route_tiles(&via, kind, eidx, river_grid, mountains);
+        map["edges"]
+            .as_array_mut()
+            .expect("edges array")
+            .push(json!({ "a": a, "b": b, "kind": kind, "via": via, "tiles": tiles }));
+        let ambush_spots = map["ambush_spots"]
+            .as_array_mut()
+            .expect("ambush_spots array");
+        for spot in ambush {
+            ambush_spots.push(serde_json::to_value(spot).expect("ambush spot json"));
+        }
+        added.push(label);
+    };
+
     for &(a_name, b_name) in BLACK_SEA_COAST_ROUTES {
         let a = *ids_by_name
             .get(a_name)
@@ -118,35 +146,44 @@ pub fn connect_black_sea_rim(
             continue;
         }
         let (pa, pb) = (nodes[&a].pos, nodes[&b].pos);
-        let mut via = landroute::astar_land_path(raster, pa, pb, dist(pa, pb), 0)
-            .unwrap_or_else(|| {
-                assert!(
-                    landroute::ferry_pair_allowed(landroute::ordered_pair(a_name, b_name)),
-                    "no land path {a_name}--{b_name} and the pair is not ferry-ledgered"
-                );
-                vec![pa, pb]
-            });
+        let mut via = (0..=COAST_ROAD_MARGIN_CELLS)
+            .rev()
+            .find_map(|margin| landroute::astar_land_path(raster, pa, pb, dist(pa, pb), margin))
+            .unwrap_or_else(|| panic!("no land path {a_name}--{b_name} at any margin"));
         // A* runs cell-center to cell-center; the edge contract is exact node
         // endpoints (via[0] == a.pos, via[last] == b.pos).
         via[0] = pa;
         *via.last_mut().expect("non-empty via") = pb;
+        push_edge(map, a, b, "road", via, format!("{a_name}--{b_name}"));
+    }
 
-        let eidx = map["edges"].as_array().expect("edges array").len();
-        let (tiles, ambush) = build::classify_route_tiles(&via, "road", eidx, river_grid, mountains);
-        map["edges"]
-            .as_array_mut()
-            .expect("edges array")
-            .push(json!({ "a": a, "b": b, "kind": "road", "via": via, "tiles": tiles }));
-        let ambush_spots = map["ambush_spots"]
-            .as_array_mut()
-            .expect("ambush_spots array");
-        for spot in ambush {
-            ambush_spots.push(serde_json::to_value(spot).expect("ambush spot json"));
+    // Any KEEP_SEA_LANES pair absent from the committed map is laid as a
+    // straight lane — the descope can only KEEP lanes the source data had,
+    // and the Bosporan lane has no ORBIS route to survive from.
+    for &(a_name, b_name) in KEEP_SEA_LANES {
+        let (Some(&a), Some(&b)) = (ids_by_name.get(a_name), ids_by_name.get(b_name)) else {
+            continue; // endpoint pruned or renamed: descope owns that failure
+        };
+        if existing.contains(&(a.min(b), a.max(b))) {
+            continue;
         }
-        added.push(format!("{a_name}--{b_name}"));
+        push_edge(
+            map,
+            a,
+            b,
+            "sea",
+            vec![nodes[&a].pos, nodes[&b].pos],
+            format!("{a_name}<->{b_name} (sea)"),
+        );
+        for node in map["nodes"].as_array_mut().expect("nodes array") {
+            let id = node["id"].as_u64().expect("node id") as u32;
+            if id == a || id == b {
+                node["port"] = json!(true);
+            }
+        }
     }
     eprintln!(
-        "black-sea-roads: added {} coastal roads{}",
+        "black-sea-roads: added {} edges{}",
         added.len(),
         if added.is_empty() {
             String::new()

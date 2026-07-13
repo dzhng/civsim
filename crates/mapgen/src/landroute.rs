@@ -776,11 +776,11 @@ pub const BRAID_LEDGER: &[((&str, &str), (&str, &str))] = &[(
 )];
 
 /// Two roads this close read as one braided road at map zooms.
-pub const BRAID_NEAR_KM: f64 = 3.0;
+const BRAID_NEAR_KM: f64 = 3.0;
 /// Fraction of the shorter edge that must hug the longer one.
-pub const BRAID_OVERLAP_FRAC: f64 = 0.6;
+const BRAID_OVERLAP_FRAC: f64 = 0.6;
 /// Ignore short shared approaches into a town: only corridors this long braid.
-pub const BRAID_MIN_OVERLAP_KM: f64 = 24.0;
+const BRAID_MIN_OVERLAP_KM: f64 = 24.0;
 const BRAID_SAMPLE_KM: f64 = 2.0;
 
 pub struct BraidedPair {
@@ -901,12 +901,9 @@ pub struct DebraidReport {
     pub kept_braids: Vec<String>,
 }
 
-/// Remove braided road edges from the committed map, connectivity-preserving:
-/// per pair the longer (bypass) edge goes first; if that would disconnect its
-/// endpoints the shorter is tried; if both are load-bearing the braid stays
-/// and is reported. Ferry-ledger edges are never dropped (the invariants test
-/// requires each ROAD_FERRY_CROSSINGS pair to exist). Reruns detection after
-/// every drop, then cascades stub junctions and remaps ambush spots.
+/// Remove braided road edges from the committed map via `debraid_map` and
+/// write it back, reporting what was dropped and what load-bearing braids
+/// survive.
 pub fn debraid_committed_roads(out_dir: &str) {
     let path = format!("{out_dir}/campaign-map.json");
     let mut map: Value =
@@ -930,12 +927,18 @@ pub fn debraid_committed_roads(out_dir: &str) {
     );
 }
 
+/// Remove braided road edges, keeping every city exactly as connected as it
+/// was: a drop must preserve the city partition and spare the ferry ledger
+/// (the invariants test requires each ROAD_FERRY_CROSSINGS pair to exist).
+/// Pairs neither of whose members can go are reported as kept. Stub junctions
+/// the drops strand are cascaded away and ambush spots remapped.
 pub fn debraid_map(map: &mut Value) -> DebraidReport {
     let before = crate::connectivity::city_partition(map, None);
     crate::connectivity::tag_edge_original_indices(map);
 
-    let edge_names = |map: &Value, idx: usize| -> (String, String) {
-        let nodes = read_nodes(map);
+    // Node ids/names are stable until the post-search stub cascade.
+    let nodes = read_nodes(map);
+    let edge_names = move |map: &Value, idx: usize| -> (String, String) {
         let edge = &map["edges"].as_array().expect("edges array")[idx];
         let a = edge["a"].as_u64().expect("edge a") as u32;
         let b = edge["b"].as_u64().expect("edge b") as u32;
@@ -1175,9 +1178,9 @@ mod tests {
     }
 
     #[test]
-    fn debraid_keeps_both_edges_when_dropping_would_disconnect() {
+    fn debraid_drops_only_one_of_two_parallel_roads() {
         // Two cities joined by two parallel 100km roads 2km apart: a braid,
-        // but ONE of them may go — the second is load-bearing.
+        // but only ONE of them may go — the survivor is load-bearing.
         let mut map = serde_json::json!({
             "nodes": [
                 {"id": 1, "name": "A", "kind": "city", "pos": [0.0, 0.0]},

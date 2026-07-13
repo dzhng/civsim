@@ -136,6 +136,12 @@ function kitJson(baked) {
       factionTint: 'replace armband pixels only; factionMask is not a body/shield tint',
       compression: 'procedural-placeholder-uncompressed',
     },
+    // Real-skeleton tracer: class 2 (longsword) renders the UAL mannequin,
+    // baked by bake/ual-mannequin.mjs (CC0 — assets/incoming/PROVENANCE.md).
+    // Class 2 and not 0 because the shared far-LOD impostor atlas bakes from
+    // class 0 and must stay placeholder-fed while this is a tracer.
+    classVats: { 2: '/assets/soldiers/baked/ual-mannequin.vat.json' },
+    classMeshes: { 2: '/assets/soldiers/baked/ual-mannequin.mesh.json' },
     vat: {
       format: 'RGBA32F-json',
       path: 'baked/human-placeholder.vat.json',

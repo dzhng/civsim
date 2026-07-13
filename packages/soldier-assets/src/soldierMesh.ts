@@ -484,7 +484,10 @@ export function soldierMaterialIdentity(kit?: { materials?: { channels?: string[
   };
 }
 
-function splitInterleaved(vertices: Float32Array, indices: Uint16Array): SoldierMeshData {
+/** Split stride-11 interleaved soldier vertices (position, normal, RGBA,
+ *  bone) into the attribute arrays the crowd geometry binds. Also the entry
+ *  point for baked `classMeshes` assets, which ship this exact layout. */
+export function splitInterleaved(vertices: Float32Array, indices: Uint16Array): SoldierMeshData {
   const count = vertices.length / 11;
   const positions = new Float32Array(count * 3);
   const normals = new Float32Array(count * 3);

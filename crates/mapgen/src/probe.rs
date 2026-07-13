@@ -217,6 +217,26 @@ fn build_probe(data_dir: &Path) -> MaskProbe {
     }
 }
 
+/// The committed background raster (campaign-bg.json + campaign-bg.png),
+/// rebuilt through the same classifier the bake used — the one loader for
+/// every step that runs against the shipped artifacts.
+pub fn read_committed_raster(data_dir: &str) -> Raster {
+    let bg: BgRect = serde_json::from_str(
+        &std::fs::read_to_string(format!("{data_dir}/campaign-bg.json")).unwrap(),
+    )
+    .unwrap();
+    let (w, h, px) = read_png(Path::new(&format!("{data_dir}/campaign-bg.png")));
+    Raster::from_rgba(
+        BBox {
+            min: bg.min,
+            max: bg.max,
+        },
+        w,
+        h,
+        px,
+    )
+}
+
 pub(crate) fn read_png(path: &Path) -> (usize, usize, Vec<u8>) {
     let file = std::fs::File::open(path).unwrap();
     let decoder = png::Decoder::new(file);

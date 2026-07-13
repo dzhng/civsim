@@ -177,12 +177,6 @@ mod tests {
     use std::collections::{BTreeMap, BTreeSet};
 
     #[derive(Deserialize)]
-    struct BgRect {
-        min: [f64; 2],
-        max: [f64; 2],
-    }
-
-    #[derive(Deserialize)]
     struct MapFixture {
         nodes: Vec<NodeFixture>,
         edges: Vec<EdgeFixture>,
@@ -216,20 +210,12 @@ mod tests {
         let map_text = std::fs::read_to_string(format!("{data_dir}/campaign-map.json")).unwrap();
         let map_value: serde_json::Value = serde_json::from_str(&map_text).unwrap();
         let map: MapFixture = serde_json::from_str(&map_text).unwrap();
-        let bg: BgRect = serde_json::from_str(
+        let bg: probe::BgRect = serde_json::from_str(
             &std::fs::read_to_string(format!("{data_dir}/campaign-bg.json")).unwrap(),
         )
         .unwrap();
         let (bg_w, bg_h, bg_px) = read_png(&format!("{data_dir}/campaign-bg.png"));
-        let committed_raster = raster::Raster::from_rgba(
-            BBox {
-                min: bg.min,
-                max: bg.max,
-            },
-            bg_w,
-            bg_h,
-            bg_px.clone(),
-        );
+        let committed_raster = probe::read_committed_raster(&data_dir);
 
         let mut city_display_names = BTreeSet::new();
         let mut duplicate_city_display_names = Vec::new();
@@ -505,7 +491,7 @@ mod tests {
         );
     }
 
-    fn cell_of(p: [f64; 2], bg: &BgRect, w: usize, h: usize) -> Option<[usize; 2]> {
+    fn cell_of(p: [f64; 2], bg: &probe::BgRect, w: usize, h: usize) -> Option<[usize; 2]> {
         let x = ((p[0] - bg.min[0]) / (bg.max[0] - bg.min[0]) * w as f64).floor() as isize;
         let y = ((bg.max[1] - p[1]) / (bg.max[1] - bg.min[1]) * h as f64).floor() as isize;
         if x < 0 || y < 0 || x >= w as isize || y >= h as isize {
@@ -514,7 +500,7 @@ mod tests {
         Some([x as usize, y as usize])
     }
 
-    fn land_at(p: [f64; 2], bg: &BgRect, w: usize, h: usize, px: &[u8]) -> bool {
+    fn land_at(p: [f64; 2], bg: &probe::BgRect, w: usize, h: usize, px: &[u8]) -> bool {
         let Some([x, y]) = cell_of(p, bg, w, h) else {
             return false;
         };
@@ -523,7 +509,7 @@ mod tests {
 
     fn land_neighborhood_at(
         p: [f64; 2],
-        bg: &BgRect,
+        bg: &probe::BgRect,
         w: usize,
         h: usize,
         px: &[u8],

@@ -4,7 +4,6 @@ use crate::landroute;
 use crate::probe;
 use crate::raster;
 use crate::sources;
-use serde::Deserialize;
 use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
@@ -165,28 +164,8 @@ pub fn connect_black_sea_rim_committed(data_dir: &str) {
     let mut map: Value =
         serde_json::from_str(&std::fs::read_to_string(&path).expect("campaign-map.json"))
             .expect("campaign-map json");
-    let bg: BgRect = serde_json::from_str(
-        &std::fs::read_to_string(format!("{data_dir}/campaign-bg.json")).unwrap(),
-    )
-    .unwrap();
-    let (bg_w, bg_h, bg_px) =
-        probe::read_png(std::path::Path::new(&format!("{data_dir}/campaign-bg.png")));
-    let raster = raster::Raster::from_rgba(
-        BBox {
-            min: bg.min,
-            max: bg.max,
-        },
-        bg_w,
-        bg_h,
-        bg_px,
-    );
-    let empty_river_grid = build::build_river_grid(
-        BBox {
-            min: bg.min,
-            max: bg.max,
-        },
-        &[],
-    );
+    let raster = probe::read_committed_raster(data_dir);
+    let empty_river_grid = build::build_river_grid(raster.bbox(), &[]);
     connect_black_sea_rim(&mut map, &raster, &empty_river_grid, &[]);
     std::fs::write(&path, serde_json::to_string(&map).unwrap()).unwrap();
 }
@@ -218,10 +197,10 @@ pub fn descope_sea_lanes(map: &mut Value) {
         .collect();
     let keep_keys: BTreeSet<(&str, &str)> = KEEP_SEA_LANES
         .iter()
-        .map(|&(a, b)| ordered_name_pair(a, b))
+        .map(|&(a, b)| landroute::ordered_pair(a, b))
         .collect();
     let drop_road_keys: BTreeSet<(&str, &str)> =
-        [ordered_name_pair("Constantinopolis", "Nicomedia")]
+        [landroute::ordered_pair("Constantinopolis", "Nicomedia")]
             .into_iter()
             .collect();
 
@@ -238,7 +217,7 @@ pub fn descope_sea_lanes(map: &mut Value) {
             let b_name = id_to_name
                 .get(&b)
                 .unwrap_or_else(|| panic!("edge references missing node {b}"));
-            let key = ordered_name_pair(a_name, b_name);
+            let key = landroute::ordered_pair(a_name, b_name);
 
             if edge["kind"].as_str() == Some("sea") {
                 if keep_keys.contains(&key) {
@@ -667,21 +646,7 @@ pub fn print_report() {
         &std::fs::read_to_string(format!("{data_dir}/campaign-map.json")).unwrap(),
     )
     .unwrap();
-    let bg: BgRect = serde_json::from_str(
-        &std::fs::read_to_string(format!("{data_dir}/campaign-bg.json")).unwrap(),
-    )
-    .unwrap();
-    let (bg_w, bg_h, bg_px) =
-        probe::read_png(std::path::Path::new(&format!("{data_dir}/campaign-bg.png")));
-    let raster = raster::Raster::from_rgba(
-        BBox {
-            min: bg.min,
-            max: bg.max,
-        },
-        bg_w,
-        bg_h,
-        bg_px,
-    );
+    let raster = probe::read_committed_raster(data_dir);
 
     let nodes = parse_nodes(&map);
     let ids_by_name: BTreeMap<&str, u32> = nodes
@@ -764,12 +729,6 @@ pub fn print_report() {
     }
 }
 
-#[derive(Deserialize)]
-struct BgRect {
-    min: [f64; 2],
-    max: [f64; 2],
-}
-
 #[derive(Clone)]
 struct Node {
     id: u32,
@@ -823,14 +782,6 @@ fn playable_capital_ids(map: &Value, nodes: &BTreeMap<u32, Node>) -> Vec<u32> {
         .filter_map(|f| f.get("capital").and_then(Value::as_str))
         .filter_map(|name| ids_by_name.get(name).copied())
         .collect()
-}
-
-fn ordered_name_pair<'a>(a: &'a str, b: &'a str) -> (&'a str, &'a str) {
-    if a <= b {
-        (a, b)
-    } else {
-        (b, a)
-    }
 }
 
 fn reconnect_plan_order(

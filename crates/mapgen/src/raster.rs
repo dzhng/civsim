@@ -112,6 +112,10 @@ pub const STRAIT_CARVES: &[StraitCarve] = &[
 ];
 
 impl Raster {
+    pub fn bbox(&self) -> BBox {
+        self.bb
+    }
+
     pub fn new(bb: BBox, px_per_km: f64) -> Raster {
         let w = ((bb.max[0] - bb.min[0]) * px_per_km).ceil() as usize;
         let h = ((bb.max[1] - bb.min[1]) * px_per_km).ceil() as usize;

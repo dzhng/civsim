@@ -19,7 +19,9 @@ in TypeScript.
   meet. Thin wasm-bindgen boundary: JS issues rare small calls (orders); bulk
   state is read zero-copy via pointers into wasm memory.
 - `crates/mapgen` — offline pipeline that bakes the campaign map (road graph +
-  a painted background raster) from source geodata.
+  a painted background raster) from source geodata. The baked map carries a
+  test-pinned connectivity contract: every city has a route back to Rome
+  except the ledgered islands, and no two roads braid down one corridor.
 - `packages` — the TypeScript rendering stack, shared by battle and campaign.
   `renderer-core` owns the one real 3D perspective camera (`camera3d`:
   view/projection matrices, reverse-Z `depth32float` engine-wide, ray-cast

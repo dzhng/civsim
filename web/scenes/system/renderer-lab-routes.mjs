@@ -1662,9 +1662,13 @@ export async function run(ctx) {
     if (route === "skinned-depth") {
       const canvasPng = PNG.sync.read(await page.locator("#renderer-canvas").screenshot());
       const front = patchStats(canvasPng, stats.stats.sample, 7);
+      // Soldier cloth reads warm linen (tan) with small faction accents since
+      // the soldier-materials rework — if the rear mounted bucket won depth,
+      // the patch would show its darker horse hide (and faction-1 red), not
+      // the front soldier's linen.
       ctx.check(
         `${route}: front skinned soldier wins hostile cross-bucket draw order`,
-        front.blue > 12 && front.red <= 10,
+        front.tan > 12 && front.red <= 10,
         JSON.stringify({
           front,
           sample: stats.stats.sample,
@@ -1677,11 +1681,15 @@ export async function run(ctx) {
       const samples = stats.stats.samples;
       const covered = patchStats(canvasPng, samples.coveredCueUnderSoldier, 6);
       const exposed = patchStats(canvasPng, samples.exposedCueControl, 5);
+      // The soldier's linen body (tan) must dominate the covered point; its
+      // own gold trim contributes a little gold, so the cue-leak guard is
+      // "less gold than the exposed cue control", not near-zero.
       ctx.check(
         `${route}: skinned soldier occludes later-submitted ground cue`,
-        covered.blue > 12 && covered.gold <= 8,
+        covered.tan > 12 && covered.gold < exposed.gold,
         JSON.stringify({
           covered,
+          exposed,
           sample: samples.coveredCueUnderSoldier,
           hostileDrawOrder: stats.stats.hostileDrawOrder,
         }),

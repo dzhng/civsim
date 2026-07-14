@@ -85,7 +85,11 @@ export async function run(ctx) {
     `${saved.length} chars`,
   );
 
+  // The top-bar exit opens the in-game menu overlay; the actual return to the
+  // main menu is its "Exit to Main Menu" action.
   await page.click("#cmp-exit");
+  await page.waitForSelector("#cmp-menu-exit", { timeout: 6000 });
+  await page.click("#cmp-menu-exit");
   await page.waitForFunction(
     () => {
       const menu = document.getElementById("menu-ui");

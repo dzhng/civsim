@@ -1,14 +1,14 @@
 # 01 — meadow palette owner (zero-diff refactor)
 
 **Visual variable:** none. The gate IS zero pixel movement.
-**Unblocks:** 02 (contrast expressed as value/warmth around one anchor), 03 (bake palette
-input), 04 (earth albedo constants). Independent of 00.
+**Unblocks:** 02 (contrast expressed as value/warmth around one anchor), 03 (shared
+ground/blade/quad family), 04 (earth albedo constants). Independent of 00.
 
 ## Contract unlocked
 
 Every color in the battle meadow family is written in exactly one module, derived from one
-anchor — so a future anchor change moves ground, blades, quads, farGrass, and the turf bake
-coherently. Today the family exists in five independent copies (see README recon).
+anchor — so a future anchor change moves ground, blades, quads, and farGrass coherently.
+Today the family exists in five independent copies (see README recon).
 
 ## API seam
 
@@ -23,7 +23,6 @@ export interface MeadowFamily {
   farGrass: { low; high; shadow; lift };            // absorbs terrainLayer.ts:463–477 literals
   quad: { oliveLow; oliveHigh; dry; stubble; darkFleck; /* per style */ };
   earth: { mud; forestFloor; roadDust };            // for 04; values = today's TINT_COLOR entries
-  turfBake: TurfBakePalette;                        // for 03
 }
 export function meadowFamily(base: Rgb): MeadowFamily; // explicit per-channel factors on base
 ```
@@ -52,9 +51,9 @@ for future hue-continuity review; if added, it is a NEW baseline, not a moved on
   test: changing `base` moves every derived role (a fake derivation of independent finals
   fails it).
 - Full screenshot suite **byte-identical, zero re-blesses** — the strongest gate the repo has.
-- Capture the carried-red ledger: run the full scene sweep BEFORE the change, record every
-  already-red scene in `specs/battle-ground-turf/notes/red-at-start.md`. All later slices
-  bless against this ledger.
+- Reconcile against the carried-red ledger already captured by slice 00 in
+  `specs/battle-ground-turf/reports/carried-red-at-start.md`. All later slices bless
+  against this ledger.
 - Blade record hash/count/tiers/widths unchanged (palette VALUES only moved homes).
 - Campaign byte-identical; cargo untouched.
 

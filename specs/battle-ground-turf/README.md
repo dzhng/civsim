@@ -6,42 +6,41 @@ isotropic camouflage blobs. Technique target (not palette target): SeloSlav's
 olive family stays authoritative.
 
 Synthesized 2026-07-16 from three independent drafts (fewest-slices / seam-quality /
-risk-first[codex]) after repo recon. Decisions locked with David: baked procedural
-strand texture (no photographic asset), scope = battle playable ground + vista +
-backdrop quad band (campaign untouched), keep hues / fix contrast.
+risk-first[codex]) after repo recon. Scope locked with David: battle playable ground +
+vista + backdrop quad band (campaign untouched), no photographic asset, keep hues / fix
+contrast. Slice 00 rejected the baked-strand technique; the production direction is now
+continuous anisotropic in-shader detail.
 
 ## Next Agent Prompt
 
-Status: slice 00 completed with a KILL verdict on 2026-07-16. A maintenance
-checkpoint must now re-slice 03 before production work continues.
+Status: slice 00 completed with a KILL verdict on 2026-07-16, and its maintenance
+checkpoint re-sliced 03 toward analytic anisotropic detail. Production work resumes at
+slice 01, then 02 supplies the quiet contrast base required by 03.
 
-The baked-texture experiment is rejected: top-down became fuzzy grain and RTS
-became near-field looping straw plus far-field blur. Before any production turf
-integration, run the required maintenance checkpoint and rewrite slice 03 toward
-anisotropic in-shader strand noise. Slice 01 remains independent and may proceed.
+The baked-texture experiment is preserved only as negative evidence: top-down became
+fuzzy grain and RTS became near-field looping straw plus far-field blur. Do not promote
+its renderer-lab sampler or recreate a production texture owner.
 
 Global TODO:
 - [x] 00 — strand-readability + anti-tiling spike — **KILL** → `slices/00-strand-spike.md`
 - [ ] 01 — meadow palette owner, zero-diff → `slices/01-meadow-palette.md`
 - [ ] 02 — camo attribution + mottle contrast down → `slices/02-mottle-contrast.md`
-- [ ] 03 — production turf integration → `slices/03-turf-integration.md`
+- [ ] 03 — anisotropic in-shader turf detail → `slices/03-turf-integration.md`
 - [ ] 04 — feathered earth edges → `slices/04-earth-edge-feather.md`
 - [ ] 05 — closeout: sweep, perf ledger, close-spec → `slices/05-closeout.md`
 
 Active warnings:
-- Slice 00 invalidated slice 03's baked-texture dependency. Do not promote the
-  renderer-lab experiment or create a production `turfTexture.ts` owner.
-- Some save-load/visual scenes are red at HEAD (see memory/braided-roads note). Slice 01
-  captures the carried-red ledger (`notes/red-at-start.md`) before any bless; never bless
-  a scene that was red at start without attribution.
+- Slice 00 killed baked strands. Slice 03 replaces isotropic fine fbm inside the existing
+  detail owner; it must not promote the lab experiment or create `turfTexture.ts`.
+- Five visual checks were already red at the starting commit. Slice 00 captured them in
+  `reports/carried-red-at-start.md`; never bless one without attribution.
 
 ## Slice graph
 
 ```
-00 strand spike (kill/commit, workbench only, no production change)
-        │
-01 meadow palette owner (zero-diff) ──► 02 mottle contrast ──► 03 turf integration ──► 04 earth edges ──► 05 closeout
-        (00 ∥ 01/02; 03 needs 00's verdict + 02's quiet base)
+00 strand spike — KILL evidence (complete; no production dependency)
+
+01 meadow palette owner (zero-diff) ──► 02 mottle contrast ──► 03 analytic turf detail ──► 04 earth edges ──► 05 closeout
 ```
 
 Ordering rationale (all three drafts agreed independently): contrast-first —
@@ -52,16 +51,15 @@ de-risks the scariest bet before any production wiring.
 
 | Concept | Single owner | Consumers |
 |---|---|---|
-| Meadow color family (cover bases, blade root/mid/tip, blade ring-fade meadow, quad olive/dry/stubble/fleck colors, farGrass tones, strand-bake palette, earth/mud albedo) | NEW `packages/game-renderer/src/battle/meadowPalette.ts` | groundPass, terrainLayer (ground+vista+quads), bladeFieldLayer, turfTexture |
-| Baked turf strand texture (bake, seed, tiling, mips, anti-tiled sampling node) | NEW `packages/photoreal-renderer/src/battle/turfTexture.ts` | terrainLayer via groundDetail; baked once by battleWorld |
-| Detail/contrast constants (drift/mottle/blade amplitudes, clamp, canopy spread, quad fleck strengths, turf strength, edge feather params) + the one detail-composition node + the one edge-coverage node | NEW `packages/photoreal-renderer/src/battle/groundDetail.ts` | terrainLayer (both materials) |
+| Meadow color family (cover bases, blade root/mid/tip, blade ring-fade meadow, quad olive/dry/stubble/fleck colors, farGrass tones, earth/mud albedo) | NEW `packages/game-renderer/src/battle/meadowPalette.ts` | groundPass, terrainLayer (ground+vista+quads), bladeFieldLayer |
+| Detail/contrast constants (drift/mottle/analytic-strand amplitudes, clamp, canopy spread, quad fleck strengths, edge feather params) + the one detail-composition node + the one edge-coverage node | NEW `packages/photoreal-renderer/src/battle/groundDetail.ts` | terrainLayer (both materials) |
 | Ground materials (composition of the above) | `terrainLayer.ts` (existing) | battleWorld |
 
 Dependency direction stays photoreal-renderer → game-renderer, never reverse.
 End state must read as designed-today: no consumer retains a private meadow color,
-amplitude, or edge constant (slice 05 grep-audits this); no parallel abstraction
-survives (the spike's workbench-only material param is transitional, removed in 03;
-losing anti-tiling candidates are deleted in 03).
+amplitude, strand-shape, or edge constant (slice 05 grep-audits this); no parallel
+abstraction survives. Slice 03 replaces the rejected lab helper with its analytic
+workbench while preserving the KILL evidence under this spec.
 
 ## Current state (recon facts, verified at HEAD 2026-07-16)
 
@@ -93,7 +91,9 @@ losing anti-tiling candidates are deleted in 03).
 - Verification: scenes in `web/scenes/battle/*.mjs` snap via shared snapCheck into
   `web/shots/battle/**` (~123 PNGs frame ground). Perf: `battle-perf-30k.mjs`,
   hardware adapter, locked 33 ms assertions.
-- Bake precedent: impostorLayer bakes a canvas atlas → texture (no GPU-RT bake exists).
+- Slice 00's deterministic canvas bake and continuous sampler were mechanically viable
+  but visually rejected; see its result and critique reports. They are not a production
+  precedent for this feature.
 
 ## Shared verification protocol (every visual slice inherits this)
 
@@ -113,7 +113,7 @@ losing anti-tiling candidates are deleted in 03).
    carried-red ledger respected.
 7. Perf gate: 33 ms assertions stay green AND paired same-hardware before/after
    (before-report captured in slice 00): ≤ +0.3 ms median GPU, ≤ +1.5 ms rAF p95;
-   bake count 1 per terrain load, zero per-frame bakes/uploads/readbacks.
+   zero new texture resources, uploads/readbacks, or draw calls.
 
 ## Firewalls (must NOT touch)
 
@@ -132,10 +132,11 @@ losing anti-tiling candidates are deleted in 03).
 
 - Camo attribution: mottle vs farGrass canopy vs quad flecks — measured in 02, scope
   narrows to the guilty terms.
-- Two-sample anti-tiling may ghost or wash strands: escalation to 3-tap hex tiling
-  (Heitz & Deliot) lives INSIDE turfTexture's sampler seam; consumers never change.
-- Quad-band strand sampling may be invisible under minification: dropping it (band keeps
-  palette+contrast family only) is an allowed narrowing, recorded in 03.
+- Analytic directional ridges may read as combed wire, carpet, or moiré. Slice 03 varies
+  orientation/length bands, warp, clustering, and derivative attenuation inside
+  `groundDetailNode`, with real-camera negative controls.
+- Quad-band strand detail may be invisible under honest minification: dropping that term
+  there (band keeps palette+contrast family only) is an allowed narrowing, recorded in 03.
 - Edge mechanism ladder (04): primary = new box-filtered `gEarth` scalar vertex attribute
   + noise-thresholded smoothstep; escalation = CPU signed-distance-field texture if the
   vertex ramp can't honestly measure 1–2 m. Draft-recorded alternative (shader-only gTint
@@ -149,10 +150,8 @@ losing anti-tiling candidates are deleted in 03).
 
 ## Research
 
-- Stochastic texturing / anti-tiling: Heitz & Deliot 2019 —
-  https://eheitzresearch.wordpress.com/738-2/ ;
-  Unity implementation write-up: https://blog.unity.com/technology/procedural-stochastic-texturing-in-unity ;
-  survey of practical variants: https://medium.com/@jasonbooth_86226/stochastic-texturing-3c2e58d76a14
+- Stochastic texturing / anti-tiling was explored in slice 00 and rejected for this
+  feature; its reports preserve the rationale rather than leaving a latent fallback.
 - Reference video: https://x.com/SeloSlav/status/2077026419314454603 (crops in `assets/`;
   analysis in memory `ref-seloslav-terrain-video`).
 
@@ -160,9 +159,9 @@ losing anti-tiling candidates are deleted in 03).
 
 | Slice | David judges | Against |
 |---|---|---|
-| 00 | do baked strands read as tangle at the real cameras? | `assets/ref-topdown-turf.png`, `assets/ref-rts-meadow.png` |
+| 00 | why were baked strands killed at the real cameras? | `assets/ref-topdown-turf.png`, `assets/ref-rts-meadow.png`, `reports/strand-spike-critique.md` |
 | 01 | nothing (zero-diff) | byte-identical suite |
 | 02 | are the camo islands gone without going flat? | `assets/ref-rts-meadow.png`, `assets/before-photoreal-parity.png` |
-| 03 | combed dry turf, no tile lattice, one family near→far | `assets/ref-topdown-turf.png` |
+| 03 | tangled dry turf, no comb/wire/moiré, one family near→far | `assets/ref-topdown-turf.png`, `assets/ref-rts-meadow.png` |
 | 04 | earth seams bitten-into, ~1–2 m, no halo/stair-step | `assets/ref-dirt-edge.png` |
 | 05 | final contact sheet before/reference/after | all of the above |

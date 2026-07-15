@@ -1,76 +1,106 @@
-# 03 — production turf integration
+# 03 — anisotropic in-shader turf detail
 
-**Visual variable:** strand-scale detail presence/strength and material-family continuity.
-Contrast frozen at 02's accepted values (if strands make 02's numbers feel wrong, record it
-for a single 05 trim — don't twiddle both here). Edges (04), blade geometry, hue: frozen.
-**Depends on:** 00's COMMIT verdict + 02.
+**Visual variable:** directional strand-scale structure and its near-to-far
+survival. Contrast stays frozen at 02's accepted values; earth edges (04), blade
+geometry, palette hue, shadows, and environment remain out of scope.
+**Depends on:** 02. Slice 00 is a recorded KILL that constrains this technique:
+do not reintroduce a baked strand texture or rotated texture taps.
 
 ## Contract unlocked
 
-The proven turf resource is the production fine-detail layer for playable ground, vista
-meshes, and both terrain-quad styles — REPLACING the isotropic fine terms, not stacking on
-them. One texture, one sampler, one bake per terrain load.
+The production fine-detail layer reads as tangled dry turf through continuous,
+analytic world-space noise rather than isotropic speckle or a repeated image.
+One shader owner supplies playable ground, vista mesh, and the terrain-quad band;
+there is no texture resource, bake lifecycle, sampler lattice, upload, or readback.
 
 ## API seam
 
-- `battleWorld` owns the resource lifetime: bake once when `setTerrain()` resolves the
-  cover (`meadowPalette` supplies `turfBake` for that cover); rebake only if a later
-  terrain load changes cover; never for camera/zoom/environment/mesh-rebuild. Dispose with
-  the world. Publish `renderStats.terrain.turfDetail = { seed, sizePx, bakeCount, consumers }`.
-- Same `BakedTurfTexture` handed to `createGroundMesh` (playable + vista via existing
-  options passthrough) and `BattleBackgroundQuads` — no consumer allocates or clones its own.
-- Composition happens only inside `groundDetailNode` (02's owner): the `blade` fbm terms
-  (@4.7 + @12.0) are REPLACED by `turfDetailNode`; quad light/dark/stone flecks and stubble
-  ridges likewise at a coarser world scale (`backdropMaterial`'s speck term zeroed — it
-  lives beyond haze). Turf strength + the fold-down of the removed fbm amplitudes are new
-  `TURF_CONTRAST` entries.
-- The spike's workbench-only material param is removed — this slice makes the resource a
-  real terrain dependency. Losing anti-tiling candidates are deleted.
-- Distance behavior: mips do most fading; strand strength additionally ramps down into the
-  existing farGrass transition uniforms (no new distance system) so minified strands hand
-  off to 02's mottle instead of greying to mush. Suppressed under waterBlend, slope-rock,
-  and churn masks (they own those pixels).
-- Sample from absolute world XY only — never camera focus or per-band origin.
+`packages/photoreal-renderer/src/battle/groundDetail.ts` remains the one owner of
+detail composition and its constants. Extend that owner with an internal
+anisotropic strand field; do not create a sibling `turfTexture` module.
+
+The strand field is built from continuous absolute world XY:
+
+- two or three nonparallel directional ridges, with deliberately different
+  length/frequency bands rather than one repeated curl vocabulary;
+- low-frequency coordinate warp to bend ridges and a separate cluster envelope
+  to create tangles, sparse gaps, and overlap without hue islands;
+- short-blade breakup that prevents long wire/noodle lines in the RTS near field;
+- derivative-aware or camera-distance attenuation that removes sub-pixel energy
+  before it aliases, while retaining mid-scale directional character through the
+  real top-down and RTS stops;
+- fixed numeric phases only: no texture, wall clock, camera-relative origin, or
+  unseeded randomness.
+
+`groundDetailNode` replaces the current isotropic fine `blade` fbm terms
+(`4.7`/`12.0`) with this field; it does not stack both. The accepted broad drift,
+mottle, and farGrass handoff from 02 stay intact. Playable and vista materials,
+plus both terrain-quad styles, call the same owner at absolute world phase.
+Backdrop underpaint remains detail-free beyond haze. Water, rock/scree, and churn
+masks suppress the strand term where those materials own the pixel.
+
+The rejected renderer-lab canvas helper is deleted when the analytic workbench
+replaces it. Its negative reference/candidate evidence remains under the spec's
+`assets/` and `reports/`; no workbench-only implementation survives as a second
+production concept.
 
 ## Runnable artifact
 
-`battle-ground-turf.mjs` re-snapped: `topdown.png` (primary judgment), `rts.png`,
-`far-band.png` (both zoom stops — the band must show the same family), plus new
-`strands-close.png` at the `battle-map-style-grass-close` framing proving the texture
-doesn't fight the real blade field where blades render, and a filmed zoom ladder (or short
-vibe) across the blade-field cutoff to confirm no pop.
+Replace the rejected bake panels on `/renderer/battle-ground-turf` with analytic
+negative controls: flat, current isotropic fine fbm, and strand field, all under
+the production camera rig. The scene keeps addressable shots:
+
+- `turf-spike-topdown` — primary structure judgment;
+- `turf-spike-rts` — near/mid/far filtering judgment with labels outside the
+  transition under review;
+- `turf-spike-sizes` is replaced by an orientation/scale strip that varies the
+  shader's strand band, not a nonexistent texture resolution;
+- `turf-tile` is replaced by a wide phase-continuity field with no image-tile
+  premise.
+
+Add the production fixture frames `topdown`, `rts`, `far-band`, and
+`strands-close`; film or sample a deterministic zoom ladder across the blade-field
+cutoff to prove there is no pop.
 
 ## Verification
 
-- **compare-screenshots**: `topdown.png` vs `assets/ref-topdown-turf.png` — does the ground
-  read as combed dry turf rather than dithered noise, with no visible tile period? Also vs
-  02's accepted `topdown.png` (less-wrong: added tangle, unchanged contrast).
-- **screenshot-critique** (unprimed) on all four shots — last check before blessing.
-- 00's anti-tiling check re-run in situ (≥8×8 tiles in frame, no lattice, no phase seam at
-  the playable/quad boundary — quads and mesh must agree on world phase).
-- Determinism: two cold boots byte-identical on the fixture shots.
-- Resource discipline: bakeCount stays 1 through pan/zoom/style-flip/mesh-rebuild; disposal
-  exactly once at teardown; no per-frame upload/readback/draw-call growth.
-- Perf: paired hardware `battle-perf-30k` vs `reports/perf-before.json` — ≤ +0.3 ms median
-  GPU, ≤ +1.5 ms rAF p95, all 33 ms assertions green; record with sampler force-disabled to
-  isolate the taps' cost.
-- Re-bless wave per protocol (no-update sweep → enumerate → mask-diff → one commit).
-  Campaign byte-identical; `turf-tile.png` unchanged (bake untouched by integration).
-- Non-blocking preview-shots checkpoint (~5 min).
+- Compare top-down and RTS crops against `ref-topdown-turf.png` and
+  `ref-rts-meadow.png` on structure only: multidirectional tangle and clumped
+  gaps, without carpet grain, looping straw, or homogeneous far blur.
+- Run a fresh unprimed screenshot critique on every accepted frame. The slice is
+  red if either real camera stop repeats slice 00's failure, even when metrics
+  improve.
+- Inspect tight 3× crops of top-down, RTS near, RTS mid, and RTS far. Record the
+  near-to-far transition explicitly; a full-frame thumbnail is insufficient.
+- Prove continuous world phase across playable→vista→quad boundaries and across
+  a camera pan. No hard seam, orientation flip, macro-cell reset, or phase pop.
+- Double cold boots are pixel-identical. No `time`, `Math.random`, texture
+  allocation, per-frame upload/readback, or new draw call exists.
+- Pair hardware `battle-perf-30k` with `reports/perf-before.json`: all 33 ms
+  assertions remain green, median GPU delta ≤ +0.3 ms, rAF p95 delta ≤ +1.5 ms.
+  Add a strand-off shader control to attribute cost without changing geometry,
+  blade density, shadows, or post.
+- Use the normal no-update sweep → enumerate → mask-diff → reviewed bless wave.
+  Campaign remains byte-identical and carried-red failures are not blessed.
 
 ## Stays green
 
-02's contrast telemetry (re-run on the strand-off capture), blade
-close/ring/width/static-field contracts, battle-map-style, photoreal-parity,
-battle-camera-zoom, water/slope/shadow/sky/post scenes, campaign, cargo.
+02's contrast telemetry (also re-run with strand strength zero), blade
+close/ring/width/static-field contracts, battle-map-style, photoreal parity,
+battle camera zoom, water/slope/shadow/sky/post scenes, campaign, and cargo.
 
 ## Feedback that changes this slice
 
-- Ghost lattice / contrast wash → hex-tiling escalation inside `turfDetailNode` (perf re-run).
-- Strands invisible on the quad band under minification → REMOVE band sampling and record
-  the narrowing (family then defined by shared palette+contrast, not shared taps).
-- "Carpeted"/repetitive at top-down → raise tileWorldM / strokeCount in the bake spec, one
-  variable at a time.
-- "Competes with unit readability" → lower strand strength while holding 00's readability floor.
-- Perf gate fails on two taps → one tap + stronger mottle masking, recorded; never buy time
-  with blade density or shadow quality.
+- Carpet/felt → widen length distribution and cluster envelope; do not add
+  isotropic high-frequency noise.
+- Straw/wire/noodles → shorten long ridges, increase short breakup, and reduce
+  curvature coherence.
+- Far-field mush → preserve a lower-frequency directional band while attenuating
+  only sub-pixel ridges.
+- Moiré/crawling → strengthen derivative/distance attenuation; never stabilize by
+  snapping to camera or macro cells.
+- Quad-band detail does not survive honest minification → drop its strand term and
+  keep the band in family through shared palette + accepted broad contrast; record
+  the narrowing.
+- Perf red → reduce analytic octave/direction count inside `groundDetailNode`;
+  never buy budget with blade density, shadow quality, or post.

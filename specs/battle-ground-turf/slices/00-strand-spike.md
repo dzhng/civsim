@@ -1,5 +1,39 @@
 # 00 — strand-readability + anti-tiling spike (kill/commit)
 
+## Result — KILL (2026-07-16)
+
+The baked-strand path is rejected. The experiment proved deterministic canvas
+baking and a continuous two-tap sampler are mechanically feasible, but it did
+not prove credible turf structure at both production camera stops:
+
+- Top-down minification collapsed the bake to evenly distributed fuzzy grain.
+- The RTS near field exposed long looping straw/noodle arcs, while the far field
+  converged to homogeneous blur.
+- Continuous global transforms removed the rejected 12 m macro-cell phase seams
+  and no hard lattice remained, but the same-scale loop vocabulary still read
+  synthetic.
+
+Two controlled visual passes were tried. The second added density clumps, broader
+length/curvature variation, and a less aggressive mip bias; a second fresh,
+unprimed critique still returned **KILL**. Do not integrate this sampler into the
+production terrain path. Slice 03 must use an anisotropic in-shader strand-noise
+seam instead.
+
+The negative experiment remains addressable at
+`/renderer/battle-ground-turf`; its helper is owned by renderer-lab, not the
+production photoreal package. Evidence and telemetry live in this spec's
+`assets/`, `reports/`, and the regression shots under
+`web/shots/battle/ground-turf/`.
+
+Mechanical evidence retained from the rejected path:
+
+- cold-boot pixel hash `6130c40d`; alternate seed `f61692b7`;
+- hardware one-tap `0.3440 ms` vs two-tap `0.4484 ms`, delta `+0.1044 ms`
+  (within the `+0.3 ms` ceiling before the visual rejection);
+- feature-wide production baseline captured at `9a18f22e`; every locked 33 ms
+  performance assertion passed;
+- no production terrain consumer or pre-existing baseline moved.
+
 **Visual variable:** projected strand structure (and its repetition), nothing else.
 **Production change:** none. This slice must not move a single existing baseline.
 
@@ -12,8 +46,8 @@ Everything expensive downstream depends on this answer; that is why it runs firs
 
 ## API seam
 
-New module `packages/photoreal-renderer/src/battle/turfTexture.ts` (final home, built
-spike-first):
+The rejected API was prototyped workbench-first and now lives only under
+renderer-lab ownership:
 
 ```ts
 export interface TurfBakeSpec {

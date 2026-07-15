@@ -1,0 +1,11 @@
+{
+  "capturedAt": "2026-07-16",
+  "command": "VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome VERIFY_URL=http://localhost:5176 node scene.mjs battle-ground-turf-perf (renamed after capture to turf-sampler-perf)",
+  "adapter": "apple / metal-3",
+  "samplesPerCase": 120,
+  "naiveMedianGpuMs": 0.344,
+  "antiTiledMedianGpuMs": 0.4484,
+  "deltaMedianGpuMs": 0.1044,
+  "budgetDeltaMs": 0.3,
+  "verdict": "PASS"
+}

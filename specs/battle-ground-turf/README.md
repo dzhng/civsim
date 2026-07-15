@@ -12,19 +12,16 @@ backdrop quad band (campaign untouched), keep hues / fix contrast.
 
 ## Next Agent Prompt
 
-Status: spec drafted 2026-07-16, no implementation begun. Last updated: 2026-07-16.
+Status: slice 00 completed with a KILL verdict on 2026-07-16. A maintenance
+checkpoint must now re-slice 03 before production work continues.
 
-You are implementing this spec. Start with **slice 00** (`slices/00-strand-spike.md`)
-— it is a kill-or-commit spike; do not start slices 02+ production work until its
-verdict is recorded here. Slice 01 is independent of 00 and may be done in the same
-pass. Read the Ownership Map and Shared Verification Protocol below before any slice;
-every slice inherits them. Before ending your pass: update this section (status, date,
-verdict/warnings, next pickup point, checklist), and run the
-[change-report](../../.claude/skills/change-report/SKILL.md) ledger if any test or
-baseline moved.
+The baked-texture experiment is rejected: top-down became fuzzy grain and RTS
+became near-field looping straw plus far-field blur. Before any production turf
+integration, run the required maintenance checkpoint and rewrite slice 03 toward
+anisotropic in-shader strand noise. Slice 01 remains independent and may proceed.
 
 Global TODO:
-- [ ] 00 — strand-readability + anti-tiling spike (kill/commit) → `slices/00-strand-spike.md`
+- [x] 00 — strand-readability + anti-tiling spike — **KILL** → `slices/00-strand-spike.md`
 - [ ] 01 — meadow palette owner, zero-diff → `slices/01-meadow-palette.md`
 - [ ] 02 — camo attribution + mottle contrast down → `slices/02-mottle-contrast.md`
 - [ ] 03 — production turf integration → `slices/03-turf-integration.md`
@@ -32,6 +29,8 @@ Global TODO:
 - [ ] 05 — closeout: sweep, perf ledger, close-spec → `slices/05-closeout.md`
 
 Active warnings:
+- Slice 00 invalidated slice 03's baked-texture dependency. Do not promote the
+  renderer-lab experiment or create a production `turfTexture.ts` owner.
 - Some save-load/visual scenes are red at HEAD (see memory/braided-roads note). Slice 01
   captures the carried-red ledger (`notes/red-at-start.md`) before any bless; never bless
   a scene that was red at start without attribution.

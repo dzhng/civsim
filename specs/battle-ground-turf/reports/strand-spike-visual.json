@@ -1,0 +1,21 @@
+{
+  "capturedAt": "2026-07-16",
+  "target": "Dry multidirectional strand structure survives both production camera rig stops without tile lattice, carpet weave, straw overlay, or far-field mush.",
+  "comparability": "Flat, isotropic-fbm, and strand panels share route, viewport, camera rig, DPR, frozen time, base albedo, and adapter. References are structure targets; their hue is explicitly out of scope.",
+  "candidate": {
+    "pixelHash": "6130c40d",
+    "alternateSeedHash": "f61692b7",
+    "hardLatticeVisible": false,
+    "macroPhaseSeamsVisible": false
+  },
+  "topdown": {
+    "verdict": "KILL",
+    "finding": "The full frame and 3x crop collapse to soft, evenly distributed grain; strand identity and local density structure do not survive credibly."
+  },
+  "rts": {
+    "verdict": "KILL",
+    "finding": "The near field exposes long same-scale looping straw arcs while the far field becomes homogeneous blur; filtering is smooth but does not preserve turf character."
+  },
+  "overallVerdict": "KILL: the candidate is structurally different from isotropic fbm, but still wrong against the named turf contract at both real framings.",
+  "nextTechnique": "anisotropic in-shader strand noise"
+}

@@ -1,0 +1,40 @@
+{
+  "capturedAt": "2026-07-16",
+  "commit": "9a18f22e",
+  "command": "VERIFY_URL=http://localhost:5176 bun run perf:30k",
+  "adapter": "apple / metal-3",
+  "productionChanged": false,
+  "frameStops": [
+    {
+      "stop": "mid",
+      "zoom": 3,
+      "soldiers": 30560,
+      "scenery": 585,
+      "gpuMedianMs": 20.63,
+      "gpuP95Ms": 28.63,
+      "rafMedianMs": 16.45,
+      "rafP95Ms": 21.03
+    },
+    {
+      "stop": "vista",
+      "zoom": 9.5,
+      "soldiers": 30560,
+      "scenery": 585,
+      "gpuMedianMs": 26.41,
+      "gpuP95Ms": 31.08,
+      "rafMedianMs": 21.24,
+      "rafP95Ms": 26.83
+    }
+  ],
+  "pan": {
+    "distanceM": 200,
+    "gpuMedianMs": 20.66,
+    "gpuP95Ms": 27.41,
+    "rafMedianMs": 16.64,
+    "rafP95Ms": 20.46
+  },
+  "zoomSweepRafP95Ms": 28.21,
+  "wheelBurstRafP95Ms": 20.39,
+  "closeZoomRafP95Ms": [31.75, 24.56],
+  "verdict": "PASS: every locked 33 ms production assertion passed on the hardware adapter"
+}

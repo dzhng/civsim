@@ -19,40 +19,45 @@ decals consume this seam.
 Today `buildBattleGroundMesh` box-filters tints into vertex colors at ~8 m vertex spacing —
 an un-noised grid-aligned airbrush the shader cannot un-mix.
 
-**Primary — `gEarth` scalar vertex attribute:** `buildBattleGroundMesh` grows one
-interleaved float: the box-filtered earth fraction (exactly the existing `gWater` pattern,
-groundPass.ts:261–273), and stops pre-mixing earth tints into vertex color. The fragment
-shader composes earth albedo from `MEADOW.earth` with
-`coverage = smoothstep(0.5−f, 0.5+f, gEarth + fbm(world·~1.5)·±0.25)` — thresholding a
-smooth field with noise yields thin 1–2 m fingers even from an 8 m ramp. Turf strength
-modulates through the same coverage for the spill.
+**Primary — separate photoreal coverage attributes:** preserve `BattleGroundMesh.vertices`
+at its existing stride 10 so the bespoke renderer remains byte-identical. Alongside the
+already-separate photoreal `tint` attribute, add box-filtered `mudCoverage` and
+`roadCoverage` arrays (using the exact existing `gWater` kernel) plus an un-premixed
+`surfaceColor` array. Two coverages are required because mud and classified road have
+different albedos and only mud owns churn. The fragment shader composes the appropriate
+`MEADOW.earth` albedo with
+`coverage = smoothstep(0.5−f, 0.5+f, sourceCoverage + centeredFbm(world·~1.5)·±0.25)` —
+thresholding a smooth field with centered noise yields thin 1–2 m fingers even from an
+8 m ramp. Turf strength modulates through the same combined earth coverage for the spill.
 
 **Escalation (recorded, only if the measured-width probe fails):** CPU signed-distance
 field built once per terrain load from the tint grid, uploaded as one compact filterable
 texture, sampled in world space. A mechanical widening, not a redesign.
 
 Hazards owned in the same commit:
-- **Stride 10 → 11 is shared** with the legacy bespoke `GROUND_WGSL` pass: update its
-  vertex layout AND reproduce the old pre-mix in its shader from `gEarth` — its baselines
-  are a zero-diff gate for this slice.
+- **Legacy isolation:** `GROUND_WGSL` consumes only the existing stride-10 interleaved
+  buffer. Do not change its layout, upload, or reconstructed color; its baselines and a
+  byte-equality mesh test are the zero-diff gate for this slice.
 - **Churn coupling:** churn (terrainLayer.ts:495–508) keys off `color.r − color.g` of the
-  PRE-MIXED color; with mud un-mixed its input moves. Re-key churn's earth detection off
-  `gEarth` — one owner for "is this earth" instead of a color heuristic.
+  pre-mixed color. Re-key it to an interior-only mud mask derived from `mudCoverage`, not
+  the feathered visual coverage and never combined mud+road coverage.
 - **Road-vs-scree classifier:** the cosmetic road is tint 6 + rough 0.0 + speed 1.0
   (battlegen.rs:270); real scree is tint 6 with high rough / low speed. Thread `rough`
   (and `speed` if needed) through the existing wasm pointers → `setTerrain()` handoff
   (read-only; no sim change), classify
-  `road = tint===6 && rough<=ROAD_ROUGH_MAX && speed>=ROAD_SPEED_MIN`, pin thresholds
-  against battlegen fixtures in a unit test. If it does not pin cleanly, feather mud only
-  and record roads as follow-up — do not guess thresholds.
+  `road = tint===6 && rough<=0.05 && speed>=0.95` (epsilon-aware), pin thresholds against
+  battlegen fixtures in a unit test. This includes the authored road and bridge while
+  excluding every reconned scree/hill tuple. Missing fields classify as not-road. If it
+  does not pin cleanly, feather mud only and record roads as follow-up — do not guess.
 
 Feather width, warp amplitude, and spill strength are `TURF_CONTRAST.edge` entries
 (groundDetail.ts stays the constants owner; `coverEdgeNode` lives there).
 
 ## Runnable artifact
 
-`battle-ground-turf.mjs` fixture already contains a mud patch and the cosmetic road; add a
-scree control region. Shots: `ground-turf/dirt-edge.png` (close-mid crop on the grass↔mud
+The generated browser fixture does **not** contain the campaign-only cosmetic road. Add a
+lab-only synthetic terrain override with separated mud, road, and scree control regions;
+do not mutate campaign/sim data. Shots: `ground-turf/dirt-edge.png` (close-mid crop on the grass↔mud
 seam), `ground-turf/road-edge.png` (RTS + close road crops, scree control in frame), and a
 world-meter ruler case for the width probe.
 

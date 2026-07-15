@@ -34,6 +34,8 @@ Active warnings:
   detail owner; it must not promote the lab experiment or create `turfTexture.ts`.
 - Five visual checks were already red at the starting commit. Slice 00 captured them in
   `reports/carried-red-at-start.md`; never bless one without attribution.
+- Slice 04 recon invalidated its original stride-change premise: preserve the bespoke
+  stride-10 buffer and carry separate photoreal mud/road coverage attributes instead.
 
 ## Slice graph
 
@@ -137,10 +139,10 @@ workbench while preserving the KILL evidence under this spec.
   `groundDetailNode`, with real-camera negative controls.
 - Quad-band strand detail may be invisible under honest minification: dropping that term
   there (band keeps palette+contrast family only) is an allowed narrowing, recorded in 03.
-- Edge mechanism ladder (04): primary = new box-filtered `gEarth` scalar vertex attribute
-  + noise-thresholded smoothstep; escalation = CPU signed-distance-field texture if the
-  vertex ramp can't honestly measure 1–2 m. Draft-recorded alternative (shader-only gTint
-  window) rejected: categorical + quantized at step=2.
+- Edge mechanism ladder (04): primary = separate box-filtered photoreal mud/road coverage
+  attributes + noise-thresholded smoothstep while the legacy stride-10 buffer stays
+  byte-identical; escalation = CPU signed-distance-field texture if the vertex ramp can't
+  honestly measure 1–2 m. A categorical interpolated gTint window remains rejected.
 - Road-vs-scree classifier (tint 6 + rough/speed thresholds) must pin against battlegen
   fixtures; if it doesn't pin cleanly, 04 feathers mud only and roads become a follow-up.
 - Whether WIDE_DETAIL_TERRAIN_STYLE still earns its existence once flecks are replaced —

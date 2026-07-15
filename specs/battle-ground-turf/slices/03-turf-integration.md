@@ -32,23 +32,35 @@ The strand field is built from continuous absolute world XY:
 - fixed numeric phases only: no texture, wall clock, camera-relative origin, or
   unseeded randomness.
 
+Start with six single-octave `vnoiseN` evaluations total—the same noise-call count as the
+two replaced 3-octave fine fbms: one warp, one cluster envelope, one continuous short
+breakup envelope, and three materially different directional ridge bands. Filter each
+band from the fragment-coordinate footprint (`fwidth` of its warped coordinates), with
+the lowest-frequency band surviving farthest. Three/TSL 0.185.1 exposes typed fragment
+derivatives; keep this field out of vertex/normal paths.
+
 `groundDetailNode` replaces the current isotropic fine `blade` fbm terms
-(`4.7`/`12.0`) with this field; it does not stack both. The accepted broad drift,
-mottle, and farGrass handoff from 02 stay intact. Playable and vista materials,
-plus both terrain-quad styles, call the same owner at absolute world phase.
+(`4.7`/`12.0`) with this field; it does not stack both. Preserve 02's accepted macro
+drift/mottle call **before** farGrass, then apply a strand-only call **after** farGrass;
+otherwise the real RTS mid/far band overwrites the structure this slice is meant to add.
+The quad calls the same strand-only owner after its accepted composition. Playable and
+vista share the same ground path and both terrain-quad styles use absolute world phase.
 Backdrop underpaint remains detail-free beyond haze. Water, rock/scree, and churn
 masks suppress the strand term where those materials own the pixel.
 
-The rejected renderer-lab canvas helper is deleted when the analytic workbench
-replaces it. Its negative reference/candidate evidence remains under the spec's
-`assets/` and `reports/`; no workbench-only implementation survives as a second
+The rejected renderer-lab canvas helper and its unit test are deleted when the analytic
+workbench replaces them; the texture-sampler perf scene is also removed in favor of the
+production perf oracle. Its negative reference/candidate evidence remains under the
+spec's `assets/` and `reports/`; no workbench-only implementation survives as a second
 production concept.
 
 ## Runnable artifact
 
 Replace the rejected bake panels on `/renderer/battle-ground-turf` with analytic
 negative controls: flat, current isotropic fine fbm, and strand field, all under
-the production camera rig. The scene keeps addressable shots:
+the production camera rig. Use absolute `positionWorld.xy` in every panel; translated
+meshes with `positionLocal` would create a false phase reset. Keep legends in DOM/status
+instead of allocating label textures. The scene keeps addressable shots:
 
 - `turf-spike-topdown` — primary structure judgment;
 - `turf-spike-rts` — near/mid/far filtering judgment with labels outside the

@@ -32,6 +32,10 @@ import {
   vec4,
 } from "three/tsl";
 import type { BattleGroundMesh } from "../../../game-renderer/src/battle/groundPass";
+import {
+  GROUND_COVER_COLOR,
+  MEADOW,
+} from "../../../game-renderer/src/battle/meadowPalette";
 import type { BattleHorizonLayout } from "../../../game-renderer/src/battle/horizonPass";
 import {
   fbmN,
@@ -94,9 +98,9 @@ interface TerrainQuadStyle {
 }
 
 const DEFAULT_TERRAIN_STYLE: TerrainQuadStyle = {
-  oliveLow: [0.43, 0.56, 0.22],
-  oliveHigh: [0.66, 0.69, 0.33],
-  dry: [0.76, 0.67, 0.39],
+  oliveLow: MEADOW.quad.default.oliveLow,
+  oliveHigh: MEADOW.quad.default.oliveHigh,
+  dry: MEADOW.quad.default.dry,
   lightFleckLow: 0.884,
   lightFleckHigh: 0.99,
   darkFleckLow: 0.82,
@@ -106,18 +110,18 @@ const DEFAULT_TERRAIN_STYLE: TerrainQuadStyle = {
   speckleStrength: 0.315,
   dryMixBase: 0.22,
   trampleMix: 0.15,
-  stubbleColor: [0.53, 0.48, 0.25],
+  stubbleColor: MEADOW.quad.default.stubble,
   stubbleStrength: 0.055,
-  darkFleckColor: [0.47, 0.43, 0.32],
+  darkFleckColor: MEADOW.quad.default.darkFleck,
   darkFleckStrength: 0.38,
   stoneFleckStrength: 0.3,
   dustStrength: 0.14,
 };
 
 const WIDE_DETAIL_TERRAIN_STYLE: TerrainQuadStyle = {
-  oliveLow: [0.44, 0.58, 0.22],
-  oliveHigh: [0.68, 0.71, 0.33],
-  dry: [0.75, 0.67, 0.39],
+  oliveLow: MEADOW.quad.wideDetail.oliveLow,
+  oliveHigh: MEADOW.quad.wideDetail.oliveHigh,
+  dry: MEADOW.quad.wideDetail.dry,
   lightFleckLow: 0.876,
   lightFleckHigh: 0.988,
   darkFleckLow: 0.8,
@@ -127,9 +131,9 @@ const WIDE_DETAIL_TERRAIN_STYLE: TerrainQuadStyle = {
   speckleStrength: 0.325,
   dryMixBase: 0.2,
   trampleMix: 0.14,
-  stubbleColor: [0.52, 0.47, 0.25],
+  stubbleColor: MEADOW.quad.wideDetail.stubble,
   stubbleStrength: 0.063,
-  darkFleckColor: [0.45, 0.42, 0.31],
+  darkFleckColor: MEADOW.quad.wideDetail.darkFleck,
   darkFleckStrength: 0.42,
   stoneFleckStrength: 0.32,
   dustStrength: 0.12,
@@ -269,18 +273,22 @@ function terrainQuadMaterial(
   );
   const speckle = lightFleck.mul(style.speckleStrength);
   let grass = mix(olive, rgbNode(style.dry), trample.mul(style.trampleMix).add(style.dryMixBase));
-  grass = mix(grass, vec3(0.31, 0.39, 0.18), scrubPatch.mul(0.34));
-  grass = mix(grass, vec3(0.88, 0.75, 0.47), rakedDust);
-  grass = grass.add(vec3(0.13, 0.12, 0.055).mul(speckle));
+  grass = mix(grass, rgbNode(MEADOW.quad.scrub), scrubPatch.mul(0.34));
+  grass = mix(grass, rgbNode(MEADOW.quad.rakedDust), rakedDust);
+  grass = grass.add(rgbNode(MEADOW.quad.lightFleck).mul(speckle));
   grass = mix(grass, rgbNode(style.stubbleColor), stubble.mul(style.stubbleStrength));
   grass = mix(
     grass,
     grass.mul(rgbNode(style.darkFleckColor)),
     darkFleck.mul(style.darkFleckStrength),
   );
-  grass = mix(grass, vec3(0.46, 0.43, 0.32), stoneFleck.mul(style.stoneFleckStrength));
+  grass = mix(
+    grass,
+    rgbNode(MEADOW.quad.stoneFleck),
+    stoneFleck.mul(style.stoneFleckStrength),
+  );
   const dust = smoothstepN(18.0, 96.0, dist).mul(style.dustStrength);
-  const sunBleached = mix(grass, vec3(0.86, 0.72, 0.46), dust);
+  const sunBleached = mix(grass, rgbNode(MEADOW.quad.sunBleached), dust);
   material.colorNode = vec4(linearAlbedo(sunBleached), 1.0);
   return material;
 }
@@ -298,9 +306,17 @@ function backdropMaterial(): THREE.MeshStandardNodeMaterial {
   const broad = vnoiseN(world.mul(0.055).add(vec2(4.7, 8.1)));
   const mid = vnoiseN(world.mul(0.42).add(vec2(11.3, 1.9)));
   const speck = smoothstepN(0.78, 0.98, vnoiseN(world.mul(2.8)));
-  let grass = mix(vec3(0.16, 0.25, 0.12), vec3(0.3, 0.42, 0.2), broad);
-  grass = mix(grass, vec3(0.11, 0.18, 0.1), smoothstepN(0.62, 0.94, mid).mul(0.38));
-  grass = grass.add(vec3(0.1, 0.12, 0.04).mul(speck));
+  let grass = mix(
+    rgbNode(MEADOW.quad.backdrop.low),
+    rgbNode(MEADOW.quad.backdrop.high),
+    broad,
+  );
+  grass = mix(
+    grass,
+    rgbNode(MEADOW.quad.backdrop.shadow),
+    smoothstepN(0.62, 0.94, mid).mul(0.38),
+  );
+  grass = grass.add(rgbNode(MEADOW.quad.backdrop.fleck).mul(speck));
   material.colorNode = vec4(linearAlbedo(grass), 1.0);
   return material;
 }
@@ -461,8 +477,8 @@ export function createGroundMesh(
     // green far field against a khaki canopy flags the blade edge by hue
     // alone (unprimed critique). Wide low->high spread so the clumps read.
     const farTone = mix(
-      vec3(0.36, 0.42, 0.22),
-      vec3(0.62, 0.63, 0.4),
+      rgbNode(MEADOW.farGrass.low),
+      rgbNode(MEADOW.farGrass.high),
       clamp(canopy.mul(0.78).add(grazingFiber.mul(0.22)), 0.0, 1.0),
     );
     const grazingShadow = float(1.0)
@@ -470,10 +486,14 @@ export function createGroundMesh(
       .mul(0.55)
       .add(grazingFiber.mul(0.22))
       .add(raked.mul(0.14));
-    const brushedTone = mix(farTone, vec3(0.28, 0.33, 0.17), clamp(grazingShadow, 0.0, 0.7));
+    const brushedTone = mix(
+      farTone,
+      rgbNode(MEADOW.farGrass.shadow),
+      clamp(grazingShadow, 0.0, 0.7),
+    );
     const grazingLift = mix(
       brushedTone,
-      vec3(0.72, 0.72, 0.47),
+      rgbNode(MEADOW.farGrass.lift),
       clamp(canopy.mul(0.32).add(fineBreak.mul(0.1)), 0.0, 0.6),
     );
     const bladeZoneDetail = bladeSparse.mul(nearDetailStrength).toVar();
@@ -646,14 +666,7 @@ export function createVistaMesh(
 }
 
 function buildVistaGroundMesh(band: BattleVistaBand, cover: BattleGroundCover): BattleGroundMesh {
-  const base =
-    cover === "sand"
-      ? [0.74, 0.66, 0.46]
-      : cover === "yellow-grass"
-        ? [0.6, 0.57, 0.31]
-        : cover === "scrub-grass"
-          ? [0.52, 0.53, 0.34]
-          : [0.4, 0.49, 0.26];
+  const base = GROUND_COVER_COLOR[cover];
   const verts = new Float32Array(band.w * band.h * 10);
   const tint = new Float32Array(band.w * band.h);
   const zAt = (i: number, j: number): number => {

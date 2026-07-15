@@ -125,7 +125,7 @@ function assertBladeFieldStats(ctx, stats, layerDisabled) {
       blade?.sourceStorageCore?.bezierBladeSpine === true &&
       blade?.sourceStorageCore?.viewDependentThickness === true &&
       blade?.enabled === !layerDisabled &&
-      blade?.palette?.source?.includes("foliageLayer.ts GRASS_ALBEDO"),
+      blade?.palette?.source?.includes("meadowPalette.ts MEADOW.blade"),
     JSON.stringify({
       sample: stats?.sample,
       bladeField: blade,

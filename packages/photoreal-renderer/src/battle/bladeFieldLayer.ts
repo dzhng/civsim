@@ -40,13 +40,13 @@ import {
   GRASS_FIELD_PACKED_BYTES,
   GRASS_FIELD_PACKED_STRIDE_FLOATS,
 } from "../../../game-renderer/src/battle/grassField";
+import { MEADOW } from "../../../game-renderer/src/battle/meadowPalette";
 import {
   linearAlbedo,
   rgbNode,
   smoothstepN,
   viewNormalNode,
   type FloatNode,
-  type Rgb,
   type Vec2Node,
 } from "./battleTsl";
 import { RENDER_ORDER } from "./terrainLayer";
@@ -144,13 +144,7 @@ export function updateBladeFieldTransitionUniforms(
   return normalized;
 }
 
-export const BLADE_FIELD_PALETTE = {
-  source: "packages/photoreal-renderer/src/battle/foliageLayer.ts GRASS_ALBEDO_* olive family",
-  root: [0.46, 0.52, 0.25] as Rgb,
-  mid: [0.58, 0.61, 0.32] as Rgb,
-  tip: [0.71, 0.71, 0.42] as Rgb,
-  dryTipMix: 0.05,
-} as const;
+export const BLADE_FIELD_PALETTE = MEADOW.blade;
 
 export interface BladeFieldStats {
   layer: "photoreal-blade-field";
@@ -889,7 +883,7 @@ function bladeFieldMaterial(
     // Blend into the meadow tone toward the cull ring so the coverage edge
     // dissolves instead of cutting a hard disc (slice 12 owns real thinning).
     const ringFade = smoothstep(transition.farGrassStartM, transition.farGrassEndM, eyeDist);
-    const meadow = vec3(0.47, 0.53, 0.32);
+    const meadow = rgbNode(BLADE_FIELD_PALETTE.ringMeadow);
     const shaded = mix(body, tip, dryTip)
       .mul(heightAo)
       .mul(clumpShade)

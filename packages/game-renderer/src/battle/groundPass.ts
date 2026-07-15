@@ -11,6 +11,7 @@ import {
   battleEnvironmentWgsl,
   type BattleEnvironment,
 } from '../environment/environment';
+import { GROUND_COVER_COLOR, MEADOW, type Rgb } from './meadowPalette';
 
 // The rolling battle ground: a height-displaced grid mesh that replaces the flat
 // terrain quads, so soldiers, shadows, and props (which seat on the same height
@@ -18,23 +19,16 @@ import {
 // (grass/yellow/scrub/sand) is the base; sim terrain tints layer feature colour
 // on top. Lit by the surface normal so the relief reads.
 
-const GROUND_COVER_COLOR: Record<BattleGroundCover, [number, number, number]> = {
-  'green-grass': [0.40, 0.49, 0.26],
-  'yellow-grass': [0.60, 0.57, 0.31],
-  'scrub-grass': [0.52, 0.53, 0.34],
-  sand: [0.74, 0.66, 0.46],
-};
-
 // Feature tints (sim tint byte → overlay colour); grass (0) keeps the cover.
 // Water (tint 1, WATER_TINT) is deliberately absent — it is no longer a flat overlay
 // colour but the shared `waterShade` material, keyed per-vertex by the box-filtered
 // water weight (the location(3) `water` attribute) and blended in the fs water branch.
-const TINT_COLOR: Record<number, [number, number, number]> = {
+const TINT_COLOR: Record<number, Rgb> = {
   2: [0.50, 0.47, 0.42], // rock
   3: [0.55, 0.52, 0.47], // wall
-  4: [0.24, 0.34, 0.19], // forest floor
-  5: [0.40, 0.33, 0.23], // mud
-  6: [0.56, 0.53, 0.45], // scree/rough
+  4: MEADOW.earth.forestFloor,
+  5: MEADOW.earth.mud,
+  6: MEADOW.earth.roadDust,
 };
 
 // The sim tint byte that means water — its cells carry the shared water material.
@@ -229,7 +223,7 @@ export function buildBattleGroundMesh(
   cover: BattleGroundCover,
   step = 2,
 ): BattleGroundMesh {
-  const base = GROUND_COVER_COLOR[cover] ?? GROUND_COVER_COLOR['green-grass'];
+  const base = GROUND_COVER_COLOR[cover];
   const nx = Math.floor(grid.w / step) + 1;
   const ny = Math.floor(grid.h / step) + 1;
   const verts = new Float32Array(nx * ny * 10);
@@ -240,7 +234,7 @@ export function buildBattleGroundMesh(
   ];
   // Box-filter the feature tint over the step block so a forest/mud boundary
   // fades across cells instead of stair-stepping per coarse vertex.
-  const cellColor = (ci: number, cj: number): [number, number, number] => {
+  const cellColor = (ci: number, cj: number): Rgb => {
     let r = 0, g = 0, b = 0, n = 0;
     for (let dy = -step; dy <= step; dy++) {
       for (let dx = -step; dx <= step; dx++) {
@@ -305,6 +299,6 @@ export function buildBattleGroundMesh(
   return { vertices: verts, tint: tintVerts, indices: new Uint32Array(indices), triangles: indices.length / 3 };
 }
 
-function mix(a: [number, number, number], b: [number, number, number], t: number): [number, number, number] {
+function mix(a: Rgb, b: Rgb, t: number): Rgb {
   return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 }

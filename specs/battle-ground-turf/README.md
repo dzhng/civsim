@@ -13,9 +13,14 @@ continuous anisotropic in-shader detail.
 
 ## Next Agent Prompt
 
-Status: slice 00 completed with a KILL verdict on 2026-07-16, and its maintenance
-checkpoint re-sliced 03 toward analytic anisotropic detail. Production work resumes at
-slice 01, then 02 supplies the quiet contrast base required by 03.
+Status: slice 01 is complete at `36d89dd4`; next pickup is slice 02 (mottle contrast).
+Slice 01 centralized the battle meadow family in `meadowPalette.ts`, migrated the
+ground/vista/blade/quad/far-grass/earth consumers with no turf pixel movement, and updated
+blade provenance to the canonical owner. Verification: 101/101 unit tests, typecheck,
+lint, format, focused grass-close 10/10 (0 px; hash `e72c1663`), and a full 75-scene
+before/after sweep with the same five carried snapshot reds at identical counts plus the
+carried SwiftShader perf red. All 42 campaign snapshots were byte-identical. See
+`notes/red-at-start.md`.
 
 The baked-texture experiment is preserved only as negative evidence: top-down became
 fuzzy grain and RTS became near-field looping straw plus far-field blur. Do not promote
@@ -23,7 +28,7 @@ its renderer-lab sampler or recreate a production texture owner.
 
 Global TODO:
 - [x] 00 — strand-readability + anti-tiling spike — **KILL** → `slices/00-strand-spike.md`
-- [ ] 01 — meadow palette owner, zero-diff → `slices/01-meadow-palette.md`
+- [x] 01 — meadow palette owner, zero-diff → `slices/01-meadow-palette.md`
 - [ ] 02 — camo attribution + mottle contrast down → `slices/02-mottle-contrast.md`
 - [ ] 03 — anisotropic in-shader turf detail → `slices/03-turf-integration.md`
 - [ ] 04 — feathered earth edges → `slices/04-earth-edge-feather.md`

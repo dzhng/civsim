@@ -8,8 +8,11 @@ composition. Playable ground, vista, and both quad styles consume that family wi
 camera-radius onset or finite outer fade, and canonical earth/forest/rock/scree/water
 masks protect non-turf materials.
 
-The fixed fixture moved mid-band RMS -48.55%, mean hue +1.30 degrees, and mean luminance
-+0.43/255 while narrowing hue/chroma spread. The final ground-crop critique accepted the
+The corrected ground-only fixture moved mid-band RMS -81.63%, mean hue +1.56 degrees,
+and mean luminance +0.54/255 while narrowing hue/chroma spread. The original telemetry
+was blade-confounded because route isolation hid the blade meshes only once; slice 03
+fixed the route to keep them disabled before every draw and recaptured both sides. The
+final ground-crop critique accepted the
 field and both far views; the uncropped fog-envelope dissent and attribution are archived
 in `../reports/slice02-visual-gate.md`. All locked 33 ms performance assertions pass; the
 noisy +0.625 ms aggregate mid-stop soft-budget miss remains explicit in
@@ -17,8 +20,8 @@ noisy +0.625 ms aggregate mid-stop soft-budget miss remains explicit in
 
 **Visual variable:** mid-frequency tonal contrast only. Strand detail (03), edges (04),
 blade geometry, hue: frozen / out of scope for judgment.
-**Depends on:** 01. Turf sampling does not exist in production yet — this slice is judged
-with the old fbm fine layer still in place; ignore that layer when judging.
+**Depends on:** 01. Slice 03 later removed the old fbm fine layer; this slice's corrected
+telemetry measures the macro/canopy substrate alone.
 
 ## Contract unlocked
 
@@ -34,7 +37,7 @@ detail-composition and its constants:
 
 ```ts
 export const TURF_CONTRAST = {
-  driftAmp, mottleAmp, bladeAmp, blade12Amp, detailClamp: [lo, hi],  // today .10/.13/.10/.06/[.68,1.32]
+  ground: { driftStrength, mottleStrength, minimum, maximum },
   canopy: { spreadLo, spreadHi, shadowMax, liftMax },                 // farGrass overlay terms
   quad: { speckleStrength, darkFleckStrength, scrubMix, dustStrength /* per style */ },
 } as const;

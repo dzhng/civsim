@@ -151,6 +151,8 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
   // Debug isolation: ?only=battle-ground,battle-crowd keeps just those meshes.
   const only = params.get("only");
   const onlyNames = only ? new Set(only.split(",")) : null;
+  const isolationGrassVisible =
+    onlyNames === null || [...onlyNames].some((name) => "battle-grass".startsWith(name));
   const applyOnly = () => {
     if (!onlyNames) return;
     world.world.scene.traverse((obj) => {
@@ -502,6 +504,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       soldiers: s.soldiers,
       expectedSoldiers: s.expectedSoldiers,
       groundDetail: s.groundDetail,
+      isolation: { only, grassVisible: isolationGrassVisible },
     };
   });
 
@@ -539,6 +542,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
     const n = game.soldier_count();
     const positions = new Float32Array(wasm.memory.buffer, game.positions_ptr(), n * 2);
     const snapshot = cameraSnapshot();
+    if (!isolationGrassVisible) world.setGrassVisible(false);
     world.draw(positions, renderFacings, frames, aliveF32, n, snapshot, renderClass, simTick);
     const arcs = attackArcs();
     world.drawTris(arcs.length > 0 ? arcs : fxArcs(), snapshot);

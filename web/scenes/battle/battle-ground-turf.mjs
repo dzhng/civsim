@@ -5,72 +5,19 @@ import { turfTelemetry } from "./turf-telemetry-lib.js";
 export const meta = {
   name: "battle-ground-turf",
   kind: "visual",
-  world: "battle-ground-turf-workbench",
+  world: "production-photoreal-battle",
   tier: "full",
   snapshots: [
-    "ground-turf/turf-tile",
-    "ground-turf/turf-spike-topdown",
-    "ground-turf/turf-spike-rts",
-    "ground-turf/turf-spike-sizes",
-    "ground-turf/rts",
-    "ground-turf/topdown",
-    "ground-turf/far-band",
-    "ground-turf/attribution/mottle-off",
-    "ground-turf/attribution/canopy-off",
-    "ground-turf/attribution/mottle-topdown-off",
-    "ground-turf/attribution/canopy-topdown-off",
-    "ground-turf/attribution/quad-owner",
-    "ground-turf/attribution/quad-flecks-quad-off",
-    "ground-turf/attribution/scrub-quad-off",
+    "ground-turf/full-close",
+    "ground-turf/full-rts",
+    "ground-turf/full-topdown",
+    "ground-turf/ground-only-close",
+    "ground-turf/ground-only-rts",
+    "ground-turf/ground-only-topdown",
   ],
   describe:
-    "The archived turf bake workbench plus a fixed production meadow fixture, term-off attribution, and pure contrast telemetry.",
+    "Production grass-visible meadow proof at real cameras, paired with substrate-only controls.",
 };
-
-const VIEWS = [
-  ["tile", "ground-turf/turf-tile"],
-  ["topdown", "ground-turf/turf-spike-topdown"],
-  ["rts", "ground-turf/turf-spike-rts"],
-  ["sizes", "ground-turf/turf-spike-sizes"],
-];
-
-export async function run(ctx) {
-  if (process.env.VERIFY_GPU !== "1") {
-    ctx.check("turf workbench requires browser GPU flags", true, "set VERIFY_GPU=1 to capture");
-    return;
-  }
-
-  let firstHash = null;
-  for (const [view, snapshot] of VIEWS) {
-    const page = await openWorkbench(ctx, view);
-    const stats = await page.evaluate(() => window.__rendererLabStats?.stats ?? null);
-    ctx.check(
-      `${view} bake is byte-deterministic within a cold boot`,
-      stats?.deterministic === true,
-    );
-    ctx.check(
-      `${view} different seed changes baked bytes`,
-      stats?.differentSeedDiffers === true && stats?.primaryHash !== stats?.alternateHash,
-      JSON.stringify(stats),
-    );
-    if (firstHash === null) firstHash = stats?.primaryHash;
-    else
-      ctx.check(
-        `${view} cold boot reproduces the primary byte hash`,
-        stats?.primaryHash === firstHash,
-        JSON.stringify({ firstHash, hash: stats?.primaryHash }),
-      );
-    if (view === "topdown" || view === "rts")
-      ctx.check(
-        `${view} framing comes from the production battle camera rig`,
-        stats?.cameraContract === "battleCameraRig",
-      );
-    await ctx.snap(page, snapshot, { shot: await page.locator("#renderer-canvas").screenshot() });
-    await page.close();
-  }
-
-  await captureProductionMeadow(ctx);
-}
 
 const GROUND_LAYERS = [
   "photoreal-sky",
@@ -80,123 +27,111 @@ const GROUND_LAYERS = [
   "battle-vista",
   "battle-horizon",
 ].join(",");
-const QUAD_LAYERS = ["photoreal-sky", "battle-backdrop", "battle-terrain-quad"].join(",");
-const RTS_CROP = { x: 0.12, y: 0.36, width: 0.76, height: 0.3 };
-const TOPDOWN_CROP = { x: 0.08, y: 0.08, width: 0.84, height: 0.84 };
-const FAR_CROP = { x: 0.08, y: 0.28, width: 0.84, height: 0.34 };
 
-async function captureProductionMeadow(ctx) {
+const PROFILES = [
+  {
+    name: "close",
+    grassEnabled: true,
+    camera: { ...VISTA_CAMERA, zoom: 7.86, cx: 0, cy: -360 },
+  },
+  {
+    name: "rts",
+    grassEnabled: true,
+    camera: { ...VISTA_CAMERA },
+  },
+  {
+    name: "topdown",
+    grassEnabled: false,
+    camera: { ...VISTA_CAMERA, zoom: 1, cx: 0, cy: -100 },
+  },
+];
+
+export async function run(ctx) {
+  if (process.env.VERIFY_GPU !== "1") {
+    ctx.check("turf production proof requires browser GPU flags", true, "set VERIFY_GPU=1");
+    return;
+  }
+
   const page = await ctx.newPage({
     viewport: VIEWPORT,
     errorPrefix: "battle-ground-turf-production",
   });
   try {
-    const rts = await captureProfile(ctx, page, { ...VISTA_CAMERA, only: GROUND_LAYERS });
-    const rtsCrop = cropRatio(PNG.sync.read(rts.shot), RTS_CROP);
-    const telemetry = turfTelemetry(rtsCrop);
-    ctx.check(
-      "production meadow telemetry is finite and published from the fixed ground-only crop",
-      Object.values({
-        meanLuma: telemetry.meanLuma,
-        span: telemetry.lumaSpanP90P10,
-        rms: telemetry.midBandRms,
-        hue: telemetry.oklab.meanHueDeg,
-        chroma: telemetry.oklab.meanChroma,
-      }).every(Number.isFinite),
-      JSON.stringify(telemetry),
-    );
-    await ctx.snap(null, "ground-turf/rts", { shot: PNG.sync.write(rtsCrop) });
+    for (const profile of PROFILES) {
+      const full = await captureProfile(ctx, page, profile.camera);
+      const fullCold = await captureProfile(ctx, page, profile.camera);
+      ctx.check(
+        `${profile.name} full-production frame is deterministic across cold boots`,
+        changedPixelCount(full.shot, fullCold.shot) === 0,
+      );
+      ctx.check(
+        `${profile.name} full-production frame keeps blade-field ownership and its production cutoff`,
+        full.isolation?.grassVisible === true &&
+          full.grass?.recordCount > 0 &&
+          full.grass?.enabled === profile.grassEnabled,
+        JSON.stringify({ isolation: full.isolation, grass: full.grass }),
+      );
+      ctx.check(
+        `${profile.name} production substrate exposes no synthetic fine-detail mode`,
+        full.groundDetail?.fineMode === undefined &&
+          ["ground", "vista", "terrain-quad"].every((owner) =>
+            full.groundDetail?.appliedTo?.includes(owner),
+          ),
+        JSON.stringify(full.groundDetail),
+      );
+      await ctx.snap(null, `ground-turf/full-${profile.name}`, { shot: full.shot });
 
-    const topdown = await captureProfile(ctx, page, {
-      ...VISTA_CAMERA,
-      zoom: 1,
-      cx: 0,
-      cy: -100,
-      only: GROUND_LAYERS,
-    });
-    await ctx.snap(null, "ground-turf/topdown", {
-      shot: PNG.sync.write(cropRatio(PNG.sync.read(topdown.shot), TOPDOWN_CROP)),
-    });
-
-    const farDefault = await captureProfile(ctx, page, {
-      ...VISTA_CAMERA,
-      zoom: 1.3,
-      cx: 0,
-      cy: -100,
-      only: GROUND_LAYERS,
-    });
-    const farWide = await captureProfile(ctx, page, {
-      ...VISTA_CAMERA,
-      zoom: 1,
-      cx: 0,
-      cy: -100,
-      only: GROUND_LAYERS,
-    });
-    await ctx.snap(null, "ground-turf/far-band", {
-      shot: PNG.sync.write(
-        stackVertical([
-          cropRatio(PNG.sync.read(farDefault.shot), FAR_CROP),
-          cropRatio(PNG.sync.read(farWide.shot), FAR_CROP),
-        ]),
-      ),
-    });
-
-    for (const detail of ["mottle", "canopy"]) {
-      const attribution = await captureProfile(ctx, page, {
-        ...VISTA_CAMERA,
+      const groundOnly = await captureProfile(ctx, page, {
+        ...profile.camera,
         only: GROUND_LAYERS,
-        detail,
+      });
+      const groundOnlyCold = await captureProfile(ctx, page, {
+        ...profile.camera,
+        only: GROUND_LAYERS,
       });
       ctx.check(
-        `${detail} attribution cold boot disables exactly that ground term`,
-        attribution.groundDetail?.disabled === detail,
-        JSON.stringify(attribution.groundDetail),
+        `${profile.name} ground-only control is deterministic across cold boots`,
+        changedPixelCount(groundOnly.shot, groundOnlyCold.shot) === 0,
       );
-      const crop = cropRatio(PNG.sync.read(attribution.shot), RTS_CROP);
       ctx.check(
-        `${detail} attribution telemetry is finite`,
-        Number.isFinite(turfTelemetry(crop).midBandRms),
-        JSON.stringify(turfTelemetry(crop)),
+        `${profile.name} ground-only control persistently disables blade geometry`,
+        groundOnly.isolation?.grassVisible === false,
+        JSON.stringify(groundOnly.isolation),
       );
-      await ctx.snap(null, `ground-turf/attribution/${detail}-off`, {
-        shot: PNG.sync.write(crop),
-      });
-      const topdownAttribution = await captureProfile(ctx, page, {
-        ...VISTA_CAMERA,
-        zoom: 1,
-        cx: 0,
-        cy: -100,
-        only: GROUND_LAYERS,
-        detail,
-      });
-      await ctx.snap(null, `ground-turf/attribution/${detail}-topdown-off`, {
-        shot: PNG.sync.write(cropRatio(PNG.sync.read(topdownAttribution.shot), TOPDOWN_CROP)),
+      ctx.check(
+        `${profile.name} ground-only frame telemetry is finite`,
+        finiteTelemetry(groundOnly.shot),
+        JSON.stringify(turfTelemetry(PNG.sync.read(groundOnly.shot))),
+      );
+      await ctx.snap(null, `ground-turf/ground-only-${profile.name}`, {
+        shot: groundOnly.shot,
       });
     }
-
-    const quadOwner = await captureQuadPair(ctx, page);
-    await ctx.snap(null, "ground-turf/attribution/quad-owner", { shot: quadOwner.shot });
-    for (const detail of ["quad-flecks", "scrub"]) {
-      const attribution = await captureQuadPair(ctx, page, detail);
-      ctx.check(
-        `${detail} attribution is applied by the world to the quad material family`,
-        attribution.groundDetail?.disabled === detail &&
-          attribution.groundDetail?.appliedTo?.includes("terrain-quad"),
-        JSON.stringify(attribution.groundDetail),
-      );
-      const changed = changedPixelCount(quadOwner.shot, attribution.shot);
-      ctx.check(
-        `${detail} attribution changes pixels in its owning quad capture`,
-        changed > 0,
-        `${changed} changed pixels`,
-      );
-      await ctx.snap(null, `ground-turf/attribution/${detail}-quad-off`, {
-        shot: attribution.shot,
-      });
-    }
+    await checkPhaseReturn(ctx, page);
   } finally {
     await page.close();
   }
+}
+
+async function checkPhaseReturn(ctx, page) {
+  const initial = await captureProfile(ctx, page, { ...VISTA_CAMERA, only: GROUND_LAYERS });
+  await page.evaluate(() => {
+    window.__cam?.setViewCenter(260, -650);
+    window.__cam?.clampView();
+  });
+  await page.waitForTimeout(400);
+  await page.evaluate(() => window.__photorealBattleWorld?.settlePresentedFrame?.());
+  await page.evaluate(() => {
+    window.__cam?.setViewCenter(0, -650);
+    window.__cam?.clampView();
+  });
+  await page.waitForTimeout(400);
+  await page.evaluate(() => window.__photorealBattleWorld?.settlePresentedFrame?.());
+  const returned = await page.locator("#renderer-canvas").screenshot({ timeout: 180000 });
+  ctx.check(
+    "ground substrate returns pixel-identically after a camera pan",
+    changedPixelCount(initial.shot, returned) === 0,
+  );
 }
 
 async function captureProfile(ctx, page, profile) {
@@ -211,9 +146,8 @@ async function captureProfile(ctx, page, profile) {
     cx: String(profile.cx),
     cy: String(profile.cy),
     camYaw: String(profile.camYaw),
-    only: profile.only,
   });
-  if (profile.detail) params.set("detail", profile.detail);
+  if (profile.only) params.set("only", profile.only);
   await page.goto(`${ctx.target}/renderer/photoreal-battle?${params}`);
   await page.waitForFunction(
     () =>
@@ -224,6 +158,16 @@ async function captureProfile(ctx, page, profile) {
     undefined,
     { timeout: 180000 },
   );
+  if (!profile.only) {
+    await page.waitForFunction(
+      () => {
+        const grass = window.__rendererLabStats?.stats?.renderStats?.terrain?.grass;
+        return grass?.recordCount > 0 && grass?.rebuild?.pending !== true;
+      },
+      undefined,
+      { timeout: 30000 },
+    );
+  }
   await page.waitForTimeout(400);
   await page.evaluate(() => window.__photorealBattleWorld?.settlePresentedFrame?.());
   return {
@@ -231,25 +175,22 @@ async function captureProfile(ctx, page, profile) {
     groundDetail: await page.evaluate(
       () => window.__rendererLabStats?.stats?.renderStats?.groundDetail ?? null,
     ),
+    grass: await page.evaluate(
+      () => window.__rendererLabStats?.stats?.renderStats?.terrain?.grass ?? null,
+    ),
+    isolation: await page.evaluate(() => window.__rendererLabStats?.stats?.isolation ?? null),
   };
 }
 
-async function captureQuadPair(ctx, page, detail) {
-  const frames = [];
-  let groundDetail = null;
-  for (const zoom of [1.3, 1]) {
-    const capture = await captureProfile(ctx, page, {
-      ...VISTA_CAMERA,
-      zoom,
-      cx: 0,
-      cy: -100,
-      only: QUAD_LAYERS,
-      detail,
-    });
-    frames.push(cropRatio(PNG.sync.read(capture.shot), FAR_CROP));
-    groundDetail = capture.groundDetail;
-  }
-  return { shot: PNG.sync.write(stackVertical(frames)), groundDetail };
+function finiteTelemetry(buffer) {
+  const telemetry = turfTelemetry(PNG.sync.read(buffer));
+  return [
+    telemetry.meanLuma,
+    telemetry.lumaSpanP90P10,
+    telemetry.midBandRms,
+    telemetry.oklab.meanHueDeg,
+    telemetry.oklab.meanChroma,
+  ].every(Number.isFinite);
 }
 
 function changedPixelCount(a, b) {
@@ -267,44 +208,4 @@ function changedPixelCount(a, b) {
       changed++;
   }
   return changed;
-}
-
-function cropRatio(source, rect) {
-  const x = Math.floor(source.width * rect.x);
-  const y = Math.floor(source.height * rect.y);
-  const width = Math.max(1, Math.floor(source.width * rect.width));
-  const height = Math.max(1, Math.floor(source.height * rect.height));
-  const out = new PNG({ width, height });
-  PNG.bitblt(source, out, x, y, width, height, 0, 0);
-  return out;
-}
-
-function stackVertical(images) {
-  const width = Math.max(...images.map((image) => image.width));
-  const height = images.reduce((sum, image) => sum + image.height, 0);
-  const out = new PNG({ width, height });
-  let y = 0;
-  for (const image of images) {
-    PNG.bitblt(image, out, 0, 0, image.width, image.height, 0, y);
-    y += image.height;
-  }
-  return out;
-}
-
-async function openWorkbench(ctx, view) {
-  const page = await ctx.newPage({
-    viewport: { width: 1280, height: 800 },
-    errorPrefix: `battle-ground-turf-${view}`,
-  });
-  await page.goto(`${ctx.target}/renderer/battle-ground-turf?view=${view}`);
-  await page.waitForFunction(
-    (expected) =>
-      window.__rendererLabReady === true &&
-      window.__rendererLabStats?.ok === true &&
-      window.__rendererLabStats?.stats?.view === expected,
-    view,
-    { timeout: 30000 },
-  );
-  await page.waitForTimeout(250);
-  return page;
 }

@@ -1,0 +1,221 @@
+{
+  "generatedAt": "2026-07-16T03:49:19.855Z",
+  "target": "http://127.0.0.1:5173",
+  "browser": "Google Chrome hardware WebGPU",
+  "fixture": {
+    "viewport": "1280x800",
+    "framesPerRun": 120,
+    "warmupFrames": 30,
+    "order": [
+      "off",
+      "strands",
+      "strands",
+      "off"
+    ]
+  },
+  "criteria": {
+    "maxGpuMedianDeltaMs": 0.3,
+    "maxRafP95DeltaMs": 1.5,
+    "maxRafP95Ms": 33
+  },
+  "aggregate": {
+    "close": {
+      "offGpuMedianMs": null,
+      "strandsGpuMedianMs": null,
+      "gpuDeltaMs": null,
+      "offRafP95Ms": 18.769999980926514,
+      "strandsRafP95Ms": 18.759999990463257,
+      "rafP95DeltaMs": -0.009999990463256836,
+      "under33ms": true,
+      "withinDeltaGate": false
+    },
+    "rts": {
+      "offGpuMedianMs": null,
+      "strandsGpuMedianMs": null,
+      "gpuDeltaMs": null,
+      "offRafP95Ms": 18.90000009536743,
+      "strandsRafP95Ms": 18.699999809265137,
+      "rafP95DeltaMs": -0.20000028610229492,
+      "under33ms": true,
+      "withinDeltaGate": false
+    }
+  },
+  "runs": [
+    {
+      "profile": "close",
+      "fine": "off",
+      "gpuSamples": 0,
+      "gpuMedianMs": null,
+      "gpuP95Ms": null,
+      "rafMedianMs": 16.675000190734863,
+      "rafP95Ms": 18.769999980926514,
+      "groundDetail": {
+        "disabled": null,
+        "fineMode": "off",
+        "appliedTo": [
+          "ground",
+          "vista",
+          "terrain-quad"
+        ]
+      },
+      "isolation": {
+        "only": "photoreal-sky,battle-backdrop,battle-terrain,battle-ground,battle-vista,battle-horizon",
+        "grassVisible": false
+      }
+    },
+    {
+      "profile": "close",
+      "fine": "strands",
+      "gpuSamples": 0,
+      "gpuMedianMs": null,
+      "gpuP95Ms": null,
+      "rafMedianMs": 16.680000066757202,
+      "rafP95Ms": 18.759999990463257,
+      "groundDetail": {
+        "disabled": null,
+        "fineMode": "strands",
+        "appliedTo": [
+          "ground",
+          "vista",
+          "terrain-quad"
+        ]
+      },
+      "isolation": {
+        "only": "photoreal-sky,battle-backdrop,battle-terrain,battle-ground,battle-vista,battle-horizon",
+        "grassVisible": false
+      }
+    },
+    {
+      "profile": "close",
+      "fine": "strands",
+      "gpuSamples": 0,
+      "gpuMedianMs": null,
+      "gpuP95Ms": null,
+      "rafMedianMs": 16.66000008583069,
+      "rafP95Ms": 18.710000038146973,
+      "groundDetail": {
+        "disabled": null,
+        "fineMode": "strands",
+        "appliedTo": [
+          "ground",
+          "vista",
+          "terrain-quad"
+        ]
+      },
+      "isolation": {
+        "only": "photoreal-sky,battle-backdrop,battle-terrain,battle-ground,battle-vista,battle-horizon",
+        "grassVisible": false
+      }
+    },
+    {
+      "profile": "close",
+      "fine": "off",
+      "gpuSamples": 0,
+      "gpuMedianMs": null,
+      "gpuP95Ms": null,
+      "rafMedianMs": 16.670000076293945,
+      "rafP95Ms": 18.740000009536743,
+      "groundDetail": {
+        "disabled": null,
+        "fineMode": "off",
+        "appliedTo": [
+          "ground",
+          "vista",
+          "terrain-quad"
+        ]
+      },
+      "isolation": {
+        "only": "photoreal-sky,battle-backdrop,battle-terrain,battle-ground,battle-vista,battle-horizon",
+        "grassVisible": false
+      }
+    },
+    {
+      "profile": "rts",
+      "fine": "off",
+      "gpuSamples": 0,
+      "gpuMedianMs": null,
+      "gpuP95Ms": null,
+      "rafMedianMs": 16.644999980926514,
+      "rafP95Ms": 18.725000143051147,
+      "groundDetail": {
+        "disabled": null,
+        "fineMode": "off",
+        "appliedTo": [
+          "ground",
+          "vista",
+          "terrain-quad"
+        ]
+      },
+      "isolation": {
+        "only": "photoreal-sky,battle-backdrop,battle-terrain,battle-ground,battle-vista,battle-horizon",
+        "grassVisible": false
+      }
+    },
+    {
+      "profile": "rts",
+      "fine": "strands",
+      "gpuSamples": 0,
+      "gpuMedianMs": null,
+      "gpuP95Ms": null,
+      "rafMedianMs": 16.670000076293945,
+      "rafP95Ms": 18.699999809265137,
+      "groundDetail": {
+        "disabled": null,
+        "fineMode": "strands",
+        "appliedTo": [
+          "ground",
+          "vista",
+          "terrain-quad"
+        ]
+      },
+      "isolation": {
+        "only": "photoreal-sky,battle-backdrop,battle-terrain,battle-ground,battle-vista,battle-horizon",
+        "grassVisible": false
+      }
+    },
+    {
+      "profile": "rts",
+      "fine": "strands",
+      "gpuSamples": 0,
+      "gpuMedianMs": null,
+      "gpuP95Ms": null,
+      "rafMedianMs": 16.710000038146973,
+      "rafP95Ms": 18.605000019073486,
+      "groundDetail": {
+        "disabled": null,
+        "fineMode": "strands",
+        "appliedTo": [
+          "ground",
+          "vista",
+          "terrain-quad"
+        ]
+      },
+      "isolation": {
+        "only": "photoreal-sky,battle-backdrop,battle-terrain,battle-ground,battle-vista,battle-horizon",
+        "grassVisible": false
+      }
+    },
+    {
+      "profile": "rts",
+      "fine": "off",
+      "gpuSamples": 0,
+      "gpuMedianMs": null,
+      "gpuP95Ms": null,
+      "rafMedianMs": 16.639999866485596,
+      "rafP95Ms": 18.90000009536743,
+      "groundDetail": {
+        "disabled": null,
+        "fineMode": "off",
+        "appliedTo": [
+          "ground",
+          "vista",
+          "terrain-quad"
+        ]
+      },
+      "isolation": {
+        "only": "photoreal-sky,battle-backdrop,battle-terrain,battle-ground,battle-vista,battle-horizon",
+        "grassVisible": false
+      }
+    }
+  ]
+}

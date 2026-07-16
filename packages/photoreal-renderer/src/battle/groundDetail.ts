@@ -1,6 +1,13 @@
 import { clamp, dot, float, mix, vec2, vec3 } from "three/tsl";
 import { MEADOW } from "../../../game-renderer/src/battle/meadowPalette";
-import { fbmN, rgbNode, smoothstepN, type FloatNode, type Vec2Node, type Vec3Node } from "./battleTsl";
+import {
+  fbmN,
+  rgbNode,
+  smoothstepN,
+  type FloatNode,
+  type Vec2Node,
+  type Vec3Node,
+} from "./battleTsl";
 
 export const GROUND_DETAIL_TERMS = ["mottle", "canopy", "quad-flecks", "scrub"] as const;
 export type GroundDetailTerm = (typeof GROUND_DETAIL_TERMS)[number];
@@ -17,8 +24,6 @@ export const TURF_CONTRAST = {
   ground: {
     driftStrength: 0.1,
     mottleStrength: 0.13,
-    bladeStrength: 0.1,
-    fineBladeStrength: 0.06,
     minimum: 0.68,
     maximum: 1.32,
   },
@@ -63,8 +68,6 @@ export const TURF_SHAPE = {
   ground: {
     driftScale: 0.08,
     mottleScale: 1.1,
-    bladeScale: 4.7,
-    fineBladeScale: 12,
   },
   canopy: {
     broadScale: 0.045,
@@ -80,6 +83,22 @@ export const TURF_SHAPE = {
 export interface GroundDetailOptions {
   disabledTerm?: GroundDetailTerm | null;
   coverage?: FloatNode;
+}
+
+/** Apply only the macro drift/mottle accepted by slice 02.
+ * Real blade geometry owns near turf; the canopy owner carries distance. */
+export function groundDetailNode(
+  world: Vec2Node,
+  color: Vec3Node,
+  options: GroundDetailOptions = {},
+): Vec3Node {
+  const c = TURF_CONTRAST.ground;
+  const shape = TURF_SHAPE.ground;
+  const drift = fbmN(world.mul(shape.driftScale)).sub(0.5).mul(c.driftStrength);
+  const mottleStrength = options.disabledTerm === "mottle" ? 0 : c.mottleStrength;
+  const mottle = fbmN(world.mul(shape.mottleScale)).sub(0.5).mul(mottleStrength);
+  const detail = clamp(drift.add(mottle).add(float(1)), c.minimum, c.maximum);
+  return mix(color, color.mul(detail), options.coverage ?? float(1));
 }
 
 /** Compose the fixed-hue turf family from already-owned broad/mid signals. */
@@ -101,9 +120,7 @@ export function turfCanopyFromSignalsNode(
     .mul(c.anchorLift)
     .mul(vec3(1 + c.anchorWarmth, 1, 1 - c.anchorWarmth));
   const value = clamp(
-    float(1)
-      .add(canopy.sub(0.5).mul(c.valueSpread))
-      .add(fiber.sub(0.5).mul(c.fiberSpread)),
+    float(1).add(canopy.sub(0.5).mul(c.valueSpread)).add(fiber.sub(0.5).mul(c.fiberSpread)),
     c.valueMinimum,
     c.valueMaximum,
   );
@@ -116,22 +133,4 @@ export function turfCanopyNode(world: Vec2Node, fiber: FloatNode): Vec3Node {
   const broad = fbmN(world.mul(shape.broadScale).add(vec2(2.5, 7))).toVar();
   const mid = fbmN(world.mul(shape.midScale).add(vec2(6, 1.5))).toVar();
   return turfCanopyFromSignalsNode(broad, mid, fiber);
-}
-
-export function groundDetailNode(
-  world: Vec2Node,
-  color: Vec3Node,
-  options: GroundDetailOptions = {},
-): Vec3Node {
-  const c = TURF_CONTRAST.ground;
-  const shape = TURF_SHAPE.ground;
-  const drift = fbmN(world.mul(shape.driftScale)).sub(0.5).mul(c.driftStrength);
-  const mottleStrength = options.disabledTerm === "mottle" ? 0 : c.mottleStrength;
-  const mottle = fbmN(world.mul(shape.mottleScale)).sub(0.5).mul(mottleStrength);
-  const blade = fbmN(world.mul(shape.bladeScale))
-    .sub(0.5)
-    .mul(c.bladeStrength)
-    .add(fbmN(world.mul(shape.fineBladeScale)).sub(0.5).mul(c.fineBladeStrength));
-  const detail = clamp(drift.add(mottle).add(blade).add(float(1)), c.minimum, c.maximum);
-  return mix(color, color.mul(detail), options.coverage ?? float(1));
 }

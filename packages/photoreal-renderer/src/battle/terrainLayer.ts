@@ -464,8 +464,7 @@ export function createGroundMesh(
   }
   const turfExclusion = max(earth, max(forestTint, max(rockMask, screeMask))).toVar();
 
-  // Grass/ground micro-detail across scales (GROUND_WGSL fs, meadow off) —
-  // NEUTRAL albedo variation; the sun + IBL environment light it.
+  // Broad neutral albedo variation; real blade geometry owns fine turf.
   let albedo = groundDetailNode(world, color, {
     disabledTerm: options.disabledGroundDetail,
     coverage: float(1).sub(turfExclusion),

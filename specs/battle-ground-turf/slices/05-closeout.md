@@ -46,7 +46,8 @@ byte-identical.
 
 ## Feedback routing (post-ship)
 
-- Weak/noisy/repeating strands → groundDetail's analytic strand field.
+- Weak/noisy/repeating near turf → blade-field geometry and its existing transition;
+  do not add substrate fibers after slice 03's binding KILL.
 - Camo or flatness → groundDetail TURF_CONTRAST.
 - Hue anywhere → meadowPalette anchor/factors.
 - Hard or haloed edge → TURF_CONTRAST.edge / coverEdgeNode.

@@ -1,0 +1,241 @@
+{
+  "capturedAt": "2026-07-16",
+  "pairing": {
+    "order": [
+      "baseline",
+      "current"
+    ],
+    "concurrent": false,
+    "baseline": {
+      "commit": "8c34d402",
+      "worktree": "/private/tmp/civsim-turf02-base",
+      "serverCommand": "bunx vite --port 5187 --strictPort",
+      "gateCommand": "VERIFY_URL=http://localhost:5187 SCENARIO_REPORT_JSON=/private/tmp/turf05-perf-baseline-report.json bun run perf:30k",
+      "expandedGateCommand": "VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs battle-perf-30k",
+      "log": "/private/tmp/turf05-perf-baseline.log",
+      "scenarioReport": "/private/tmp/turf05-perf-baseline-report.json"
+    },
+    "current": {
+      "commit": "978a13b7",
+      "worktree": "/Users/homeserver/dev/civsim",
+      "serverCommand": "bunx vite --port 5188 --strictPort",
+      "gateCommand": "VERIFY_URL=http://localhost:5188 SCENARIO_REPORT_JSON=/private/tmp/turf05-perf-current-report.json bun run perf:30k",
+      "expandedGateCommand": "VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome node scene.mjs battle-perf-30k",
+      "log": "/private/tmp/turf05-perf-current.log",
+      "scenarioReport": "/private/tmp/turf05-perf-current-report.json"
+    }
+  },
+  "adapter": "apple / metal-3",
+  "workload": {
+    "soldiers": 30560,
+    "scenery": 585,
+    "grassRecords": 992334,
+    "grassSampleCapacity": 1000000,
+    "grassSampleAccepted": 992334,
+    "grassSampleStratifiedBudget": false,
+    "grassActiveRecordBudget": 1000000,
+    "grassAreaBudgetScale": 1,
+    "gpuSamplesPerStaticStop": 150,
+    "midGrassTriangles": 0,
+    "vistaGrassTriangles": 48150
+  },
+  "measurements": {
+    "baseline": {
+      "frameStops": {
+        "mid": {
+          "zoom": 3,
+          "gpuMedianMs": 24.57,
+          "gpuP95Ms": 27.05,
+          "rafMedianMs": 16.59,
+          "rafP95Ms": 22.28
+        },
+        "vista": {
+          "zoom": 9.5,
+          "gpuMedianMs": 24.17,
+          "gpuP95Ms": 29.51,
+          "rafMedianMs": 20.37,
+          "rafP95Ms": 25.99
+        }
+      },
+      "pan": {
+        "distanceM": 200,
+        "durationMs": 3000,
+        "gpuMedianMs": 23.38,
+        "gpuP95Ms": 27.24,
+        "gpuSamples": 180,
+        "rafMedianMs": 16.38,
+        "rafP95Ms": 23.11,
+        "rebuildsBefore": 1,
+        "rebuildsAfter": 1,
+        "pending": false
+      },
+      "zoomSweep": {
+        "durationMs": 3000,
+        "rafMedianMs": 20.5,
+        "rafP95Ms": 26.38
+      },
+      "wheelBurst": {
+        "events": 30,
+        "durationMs": 1000,
+        "sent": 30,
+        "startZoom": 3,
+        "finalZoom": 3.17,
+        "settledZoom": 3.17,
+        "rafMedianMs": 16.37,
+        "rafP95Ms": 22.54,
+        "rebuildsBefore": 1,
+        "rebuildsAfter": 1,
+        "pending": false
+      },
+      "closeZoomFill": {
+        "zoom24": {
+          "settledZoom": 22.86,
+          "grassEnabled": true,
+          "recordCount": 992334,
+          "activeBudget": 1000000,
+          "pending": false,
+          "rafMedianMs": 17.7,
+          "rafP95Ms": 25.08
+        },
+        "zoom28": {
+          "settledZoom": 22.86,
+          "grassEnabled": true,
+          "recordCount": 992334,
+          "activeBudget": 1000000,
+          "pending": false,
+          "rafMedianMs": 17.81,
+          "rafP95Ms": 23.39
+        }
+      }
+    },
+    "current": {
+      "frameStops": {
+        "mid": {
+          "zoom": 3,
+          "gpuMedianMs": 23.08,
+          "gpuP95Ms": 25.27,
+          "rafMedianMs": 16.36,
+          "rafP95Ms": 22.94
+        },
+        "vista": {
+          "zoom": 9.5,
+          "gpuMedianMs": 22.95,
+          "gpuP95Ms": 28.46,
+          "rafMedianMs": 20.26,
+          "rafP95Ms": 25.49
+        }
+      },
+      "pan": {
+        "distanceM": 200,
+        "durationMs": 3000,
+        "gpuMedianMs": 23.28,
+        "gpuP95Ms": 26.08,
+        "gpuSamples": 180,
+        "rafMedianMs": 16.58,
+        "rafP95Ms": 22.36,
+        "rebuildsBefore": 1,
+        "rebuildsAfter": 1,
+        "pending": false
+      },
+      "zoomSweep": {
+        "durationMs": 3000,
+        "rafMedianMs": 20.27,
+        "rafP95Ms": 24.63
+      },
+      "wheelBurst": {
+        "events": 30,
+        "durationMs": 1000,
+        "sent": 30,
+        "startZoom": 3,
+        "finalZoom": 3.17,
+        "settledZoom": 3.17,
+        "rafMedianMs": 16.58,
+        "rafP95Ms": 22.6,
+        "rebuildsBefore": 1,
+        "rebuildsAfter": 1,
+        "pending": false
+      },
+      "closeZoomFill": {
+        "zoom24": {
+          "settledZoom": 22.86,
+          "grassEnabled": true,
+          "recordCount": 992334,
+          "activeBudget": 1000000,
+          "pending": false,
+          "rafMedianMs": 17.3,
+          "rafP95Ms": 22.12
+        },
+        "zoom28": {
+          "settledZoom": 22.86,
+          "grassEnabled": true,
+          "recordCount": 992334,
+          "activeBudget": 1000000,
+          "pending": false,
+          "rafMedianMs": 17.3,
+          "rafP95Ms": 22.01
+        }
+      }
+    },
+    "deltaCurrentMinusBaselineMs": {
+      "frameStops": {
+        "mid": {
+          "gpuMedian": -1.49,
+          "gpuP95": -1.78,
+          "rafMedian": -0.23,
+          "rafP95": 0.66
+        },
+        "vista": {
+          "gpuMedian": -1.22,
+          "gpuP95": -1.05,
+          "rafMedian": -0.11,
+          "rafP95": -0.5
+        }
+      },
+      "pan": {
+        "gpuMedian": -0.1,
+        "gpuP95": -1.16,
+        "rafMedian": 0.2,
+        "rafP95": -0.75
+      },
+      "zoomSweep": {
+        "rafMedian": -0.23,
+        "rafP95": -1.75
+      },
+      "wheelBurst": {
+        "rafMedian": 0.21,
+        "rafP95": 0.06
+      },
+      "closeZoomFill": {
+        "zoom24RafMedian": -0.4,
+        "zoom24RafP95": -2.96,
+        "zoom28RafMedian": -0.51,
+        "zoom28RafP95": -1.38
+      }
+    }
+  },
+  "gates": {
+    "hard33ms": {
+      "result": "pass",
+      "detail": "Both revisions passed every locked production assertion: static GPU median at mid and vista, pan rAF p95, zoom-sweep rAF p95, wheel-burst rAF p95, and close-zoom-fill rAF p95 were all at or below 33 ms. Load floors, on-screen content, hardware timestamp provenance, wheel clamps, and the no-page-error check also passed."
+    },
+    "softPerformanceBudget": {
+      "gpuMedianMaxIncreaseMs": 0.3,
+      "rafP95MaxIncreaseMs": 1.5,
+      "result": "pass",
+      "detail": "GPU median improved by 1.49 ms at mid and 1.22 ms at vista. The largest static-stop rAF p95 increase was 0.66 ms at mid, within the 1.5 ms allowance; vista improved by 0.50 ms."
+    },
+    "resourceBudget": {
+      "originalTarget": "zero new texture resources, per-frame uploads, readbacks, or draw calls",
+      "result": "resource budget miss",
+      "detail": "The zero-texture primary edge mechanism passed scalar telemetry but was visually killed because it exposed 4/8 m facets and a false categorical-tint halo. The spec's declared SDF escalation therefore adds one compact RG8 distance texture at terrain load. It uploads once when terrain is created, is sampled by the playable ground, and adds no draw calls, per-frame uploads, or readbacks."
+    }
+  },
+  "resourceDelta": {
+    "textures": 1,
+    "textureDescription": "one RG8 terrain-load earth/road signed-distance texture",
+    "drawCalls": 0,
+    "perFrameUploads": 0,
+    "readbacks": 0
+  },
+  "verdict": "HARD GATE PASS / SOFT PERFORMANCE BUDGET PASS / ORIGINAL ZERO-TEXTURE RESOURCE BUDGET MISS: the paired hardware run improved GPU medians and stayed within the rAF allowance, while the accepted SDF escalation adds one terrain-load RG8 texture with no new draws, per-frame uploads, or readbacks."
+}

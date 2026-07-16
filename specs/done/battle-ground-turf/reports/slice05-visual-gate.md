@@ -1,8 +1,8 @@
 # Slice 05 final visual gate
 
 The final contact sheet is `../visualizations/final-contact-sheet.html`. It loads
-17 source frames with no missing images and distinguishes reference intent from
-matched verification evidence:
+17 image placements from 16 unique source files with no missing images and
+distinguishes reference intent from matched verification evidence:
 
 - RTS uses a fixed before/final ground crop plus the final production-camera
   context.

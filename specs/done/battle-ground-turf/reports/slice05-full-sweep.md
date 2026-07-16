@@ -10,7 +10,7 @@ env -u UPDATE_SHOTS \
   VERIFY_URL=http://127.0.0.1:5193 \
   VERIFY_GPU=1 \
   SCENARIO_REPORT_GENERATED_AT=2026-07-16T00:00:00.000Z \
-  SCENARIO_REPORT_JSON=../specs/battle-ground-turf/reports/scenario-runs/turf-final-full.json \
+  SCENARIO_REPORT_JSON=../specs/done/battle-ground-turf/reports/scenario-runs/turf-final-full.json \
   node scene.mjs battle
 ```
 
@@ -26,7 +26,7 @@ env -u UPDATE_SHOTS \
   VERIFY_URL=http://127.0.0.1:5193 \
   VERIFY_GPU=1 \
   SCENARIO_REPORT_GENERATED_AT=2026-07-16T00:00:00.000Z \
-  SCENARIO_REPORT_JSON=../specs/battle-ground-turf/reports/scenario-runs/turf-final-focused-reconciled.json \
+  SCENARIO_REPORT_JSON=../specs/done/battle-ground-turf/reports/scenario-runs/turf-final-focused-reconciled.json \
   node scene.mjs battle-map-style battle-photoreal-lighting
 ```
 

@@ -61,10 +61,11 @@ strength through `TURF_CONTRAST.quad`; the farGrass canopy block reads `TURF_CON
 
 ## Runnable artifact
 
-`battle-ground-turf.mjs` gains the meadow fixture (fixed genmap seed containing open meadow,
-a mud patch, and the cosmetic road): shots `ground-turf/rts.png` (RTS framing, ground-only
-crop), `ground-turf/topdown.png`, `ground-turf/far-band.png` (playable→quad handoff, judged
-at BOTH zoom stops — the style flips wide-detail below zoom 1.2).
+`battle-ground-turf.mjs` gains the meadow fixture (fixed genmap seed containing open meadow
+and mud controls; the campaign-only cosmetic road is added synthetically in 04): shots
+`ground-turf/rts.png` (RTS framing, ground-only crop), `ground-turf/topdown.png`,
+`ground-turf/far-band.png` (playable→quad handoff, judged at BOTH zoom stops — the style
+flips wide-detail below zoom 1.2).
 
 ## Verification
 

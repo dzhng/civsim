@@ -93,3 +93,16 @@ grass-width contract, all of 02/03's accepted telemetry on open meadow.
 - "Real tufts spilling over the edge" (geometry, not albedo) → separately approved slice;
   it touches the sacred blade contract and is NOT this feature.
 - Measured width unreachable from the vertex ramp → the SDF escalation, recorded.
+
+## Result — ACCEPT (2026-07-16)
+
+The primary vertex-coverage mechanism was visually **KILLED** despite passing its scalar
+probe: it exposed 4/8 m facets and a false categorical-tint halo. The pre-declared SDF
+escalation shipped instead. One terrain-load RG8 field carries earth-union and classified
+road distance; the playable ground samples it once and vista does not sample it.
+
+Measured widths are 1.747 m mud and 1.431/1.142 m road, with zero detached islands. Fresh
+unprimed critique accepted dirt close, road close, and the wide road+scree control. The
+30k Apple/Metal gate passed at 25.13/24.77 ms median GPU. See
+`../reports/slice04-visual-gate.md`, `../reports/slice04-change-ledger.md`, and
+`../reports/perf-after-slice04.json`.

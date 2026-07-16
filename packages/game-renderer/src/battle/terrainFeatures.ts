@@ -46,6 +46,8 @@ export interface BattleTerrainGrid {
   tint: Uint8Array;
   /** Ground speed per cell, 0..1 (0 = impassable). Optional; needed for edge-seal validation. */
   speed?: Float32Array;
+  /** Surface roughness per cell, 0..1. Optional; photoreal roads require both fields. */
+  rough?: Float32Array;
   /** Ground elevation per cell, meters. Optional; flat if absent. */
   height?: Float32Array;
 }

@@ -166,6 +166,8 @@ export class BattleRenderer {
     slopeBands?: BattleSlopeBands | null,
     vista?: BattleVistaGrid | null,
     lakeSurfaces?: BattleLakeSurfaceSpec[] | null,
+    rough?: Float32Array,
+    speed?: Float32Array,
   ) {
     if (this.world) {
       this.world.setTerrain(
@@ -180,6 +182,8 @@ export class BattleRenderer {
         slopeBands,
         vista,
         lakeSurfaces,
+        rough,
+        speed,
       );
     } else {
       this.pendingTerrain = [
@@ -194,6 +198,8 @@ export class BattleRenderer {
         slopeBands ?? null,
         cloneVistaGrid(vista),
         cloneLakeSurfaces(lakeSurfaces),
+        rough ? new Float32Array(rough) : undefined,
+        speed ? new Float32Array(speed) : undefined,
       ];
     }
   }

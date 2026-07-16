@@ -51,6 +51,7 @@ import {
   MEDIUM_PHALANX_SIDEARM_CLASS,
   SHOCK_CAV_SIDEARM_CLASS,
 } from "../../../packages/soldier-assets/src/soldierMesh";
+import { createBattleGroundEdgeFixture } from "./battleGroundEdgeFixture";
 
 interface PhotorealBattleContext {
   root: HTMLElement;
@@ -91,6 +92,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
   const mapIndex = params.get("map") === "C" ? 2 : params.get("map") === "B" ? 1 : 0;
   if (generatedMap) game.start_battle_generated(BigInt(generatedSeed));
   else game.start_battle(mapIndex);
+  const edgeFixture = params.get("terrain") === "edge" ? createBattleGroundEdgeFixture() : null;
   const generatedDescriptor = generatedMap
     ? {
         ...JSON.parse(game.generated_map_descriptor()),
@@ -125,10 +127,14 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
   const unitInfo = () =>
     new Float32Array(wasm.memory.buffer, game.unit_info_ptr(), game.unit_count() * STRIDE);
   {
-    const mapW = game.terrain_w() * game.terrain_cell();
-    const mapH = game.terrain_h() * game.terrain_cell();
-    const ox = game.terrain_origin_x();
-    const oy = game.terrain_origin_y();
+    const mapW = edgeFixture
+      ? edgeFixture.grid.w * edgeFixture.grid.cell
+      : game.terrain_w() * game.terrain_cell();
+    const mapH = edgeFixture
+      ? edgeFixture.grid.h * edgeFixture.grid.cell
+      : game.terrain_h() * game.terrain_cell();
+    const ox = edgeFixture?.grid.ox ?? game.terrain_origin_x();
+    const oy = edgeFixture?.grid.oy ?? game.terrain_origin_y();
     camera.bounds = [ox, oy, ox + mapW, oy + mapH];
     const mapZoom = (cssH * dpr) / Math.min(mapH * 0.62, 1000);
     const topDownCos = 0.95;
@@ -226,24 +232,46 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
   };
   applyStatic();
   {
-    const tw = game.terrain_w();
-    const th = game.terrain_h();
+    const tw = edgeFixture?.grid.w ?? game.terrain_w();
+    const th = edgeFixture?.grid.h ?? game.terrain_h();
+    const fixtureGrid = edgeFixture?.grid;
     world.setTerrain(
       tw,
       th,
-      game.terrain_cell(),
-      game.terrain_origin_x(),
-      game.terrain_origin_y(),
-      new Uint8Array(new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), tw * th)),
-      heightForPhotorealRoute(
-        new Float32Array(new Float32Array(wasm.memory.buffer, game.terrain_height_ptr(), tw * th)),
-        generatedMap,
-      ),
-      wasmMapId,
-      generatedDescriptor?.slopeBands ?? null,
-      generatedDescriptor ? readGeneratedVistaGrid(wasm, game, generatedDescriptor) : null,
+      fixtureGrid?.cell ?? game.terrain_cell(),
+      fixtureGrid?.ox ?? game.terrain_origin_x(),
+      fixtureGrid?.oy ?? game.terrain_origin_y(),
+      fixtureGrid?.tint ??
+        new Uint8Array(new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), tw * th)),
+      fixtureGrid?.height ??
+        heightForPhotorealRoute(
+          new Float32Array(
+            new Float32Array(wasm.memory.buffer, game.terrain_height_ptr(), tw * th),
+          ),
+          generatedMap,
+        ),
+      edgeFixture ? undefined : wasmMapId,
+      edgeFixture
+        ? {
+            flatMax: 0.07,
+            rollingMax: 0.115,
+            slowMin: 0.135,
+            cliffMin: 0.32,
+            cliffDilateCells: 2,
+            highlandCapMinM: 150,
+          }
+        : (generatedDescriptor?.slopeBands ?? null),
+      edgeFixture || !generatedDescriptor
+        ? null
+        : readGeneratedVistaGrid(wasm, game, generatedDescriptor),
+      null,
+      fixtureGrid?.rough ??
+        new Float32Array(new Float32Array(wasm.memory.buffer, game.terrain_rough_ptr(), tw * th)),
+      fixtureGrid?.speed ??
+        new Float32Array(new Float32Array(wasm.memory.buffer, game.terrain_speed_ptr(), tw * th)),
     );
   }
+  if (edgeFixture) addEdgeRuler(world.world.scene, edgeFixture.anchors.ruler);
 
   // --- Pose computation: the scene.ts per-soldier frame/render-class port ---
   const CLASS_SPECS = JSON.parse(game.class_specs()) as Array<{
@@ -504,6 +532,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       soldiers: s.soldiers,
       expectedSoldiers: s.expectedSoldiers,
       groundDetail: s.groundDetail,
+      edgeFixture: edgeFixture?.telemetry ?? null,
       isolation: { only, grassVisible: isolationGrassVisible },
     };
   });
@@ -558,7 +587,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       <tr><td>route</td><td>photoreal-battle (${s.substrate})</td></tr>
       <tr><td>environment</td><td>${s.environment}</td></tr>
       <tr><td>sea</td><td>${rs.sea.source} (${rs.sea.tier})</td></tr>
-      <tr><td>map</td><td>${generatedMap ? `gen:${generatedSeed}` : ["A", "B", "C"][mapIndex]}</td></tr>
+      <tr><td>map</td><td>${edgeFixture ? "synthetic-edge" : generatedMap ? `gen:${generatedSeed}` : ["A", "B", "C"][mapIndex]}</td></tr>
       <tr><td>soldiers</td><td>${rs.soldiers} / ${rs.expectedSoldiers}</td></tr>
       <tr><td>seating</td><td>match=${rs.seating.matches} span=${rs.seating.span}</td></tr>
       <tr><td>grass records</td><td>${rs.terrain?.grass.recordCount ?? 0}</td></tr>
@@ -574,6 +603,29 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
     requestAnimationFrame(loop);
   };
   requestAnimationFrame(loop);
+}
+
+function addEdgeRuler(scene: THREE.Scene, anchor: [number, number]): void {
+  const [x, y] = anchor;
+  const vertices: number[] = [x, y, 0.45, x + 10, y, 0.45];
+  for (let meter = 0; meter <= 10; meter++) {
+    const tick = meter % 5 === 0 ? 1.8 : 0.9;
+    vertices.push(x + meter, y - tick, 0.45, x + meter, y + tick, 0.45);
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+  const ruler = new THREE.LineSegments(
+    geometry,
+    new THREE.LineBasicMaterial({
+      color: new THREE.Color(1, 0.76, 0.08),
+      depthTest: false,
+      depthWrite: false,
+    }),
+  );
+  ruler.name = "battle-edge-ruler";
+  ruler.renderOrder = 20;
+  ruler.frustumCulled = false;
+  scene.add(ruler);
 }
 
 function heightForPhotorealRoute(height: Float32Array, generatedMap: boolean): Float32Array {

@@ -418,6 +418,8 @@ export class BattleScene implements Scene {
       const th = game.terrain_h();
       const tint = new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), tw * th);
       const height = new Float32Array(wasm.memory.buffer, game.terrain_height_ptr(), tw * th);
+      const rough = new Float32Array(wasm.memory.buffer, game.terrain_rough_ptr(), tw * th);
+      const speed = new Float32Array(wasm.memory.buffer, game.terrain_speed_ptr(), tw * th);
       const reliefScale = this.cfg.generatedMap?.reliefScale ?? BATTLE_RELIEF_EXAGGERATION;
       const heightForRenderer =
         reliefScale === BATTLE_RELIEF_EXAGGERATION
@@ -441,6 +443,8 @@ export class BattleScene implements Scene {
         this.cfg.generatedMap?.slopeBands ?? null,
         vista,
         lakeSurfaces,
+        new Float32Array(rough),
+        new Float32Array(speed),
       );
     }
 

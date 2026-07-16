@@ -14,6 +14,10 @@ export const meta = {
     "ground-turf/ground-only-close",
     "ground-turf/ground-only-rts",
     "ground-turf/ground-only-topdown",
+    "ground-turf/dirt-edge",
+    "ground-turf/road-edge",
+    "ground-turf/road-scree-rts",
+    "ground-turf/edge-ruler",
   ],
   describe:
     "Production grass-visible meadow proof at real cameras, paired with substrate-only controls.",
@@ -27,6 +31,31 @@ const GROUND_LAYERS = [
   "battle-vista",
   "battle-horizon",
 ].join(",");
+
+const EDGE_LAYERS = ["battle-ground", "battle-grass", "battle-edge-ruler"].join(",");
+const EDGE_RULER_LAYERS = ["battle-ground", "battle-edge-ruler"].join(",");
+
+const EDGE_PROFILES = [
+  { name: "dirt-edge", zoom: 12, cx: -69, cy: -35, camYaw: -Math.PI / 2 },
+  { name: "road-edge", zoom: 12, cx: 0, cy: -35, camYaw: -Math.PI / 2 },
+  { name: "road-scree-rts", zoom: 9, cx: 20, cy: -105 },
+  {
+    name: "edge-ruler",
+    zoom: 20,
+    cx: -69,
+    cy: -10,
+    camYaw: -Math.PI / 2,
+    only: EDGE_RULER_LAYERS,
+  },
+].map((profile) => ({
+  ...VISTA_CAMERA,
+  ...profile,
+  map: "A",
+  env: "golden-hour",
+  camYaw: profile.camYaw ?? 0,
+  terrain: "edge",
+  only: profile.only ?? EDGE_LAYERS,
+}));
 
 const PROFILES = [
   {
@@ -57,57 +86,82 @@ export async function run(ctx) {
     errorPrefix: "battle-ground-turf-production",
   });
   try {
-    for (const profile of PROFILES) {
-      const full = await captureProfile(ctx, page, profile.camera);
-      const fullCold = await captureProfile(ctx, page, profile.camera);
-      ctx.check(
-        `${profile.name} full-production frame is deterministic across cold boots`,
-        changedPixelCount(full.shot, fullCold.shot) === 0,
-      );
-      ctx.check(
-        `${profile.name} full-production frame keeps blade-field ownership and its production cutoff`,
-        full.isolation?.grassVisible === true &&
-          full.grass?.recordCount > 0 &&
-          full.grass?.enabled === profile.grassEnabled,
-        JSON.stringify({ isolation: full.isolation, grass: full.grass }),
-      );
-      ctx.check(
-        `${profile.name} production substrate exposes no synthetic fine-detail mode`,
-        full.groundDetail?.fineMode === undefined &&
-          ["ground", "vista", "terrain-quad"].every((owner) =>
-            full.groundDetail?.appliedTo?.includes(owner),
-          ),
-        JSON.stringify(full.groundDetail),
-      );
-      await ctx.snap(null, `ground-turf/full-${profile.name}`, { shot: full.shot });
+    if (process.env.TURF_EDGE_ONLY !== "1") {
+      for (const profile of PROFILES) {
+        const full = await captureProfile(ctx, page, profile.camera);
+        const fullCold = await captureProfile(ctx, page, profile.camera);
+        ctx.check(
+          `${profile.name} full-production frame is deterministic across cold boots`,
+          changedPixelCount(full.shot, fullCold.shot) === 0,
+        );
+        ctx.check(
+          `${profile.name} full-production frame keeps blade-field ownership and its production cutoff`,
+          full.isolation?.grassVisible === true &&
+            full.grass?.recordCount > 0 &&
+            full.grass?.enabled === profile.grassEnabled,
+          JSON.stringify({ isolation: full.isolation, grass: full.grass }),
+        );
+        ctx.check(
+          `${profile.name} production substrate exposes no synthetic fine-detail mode`,
+          full.groundDetail?.fineMode === undefined &&
+            ["ground", "vista", "terrain-quad"].every((owner) =>
+              full.groundDetail?.appliedTo?.includes(owner),
+            ),
+          JSON.stringify(full.groundDetail),
+        );
+        await ctx.snap(null, `ground-turf/full-${profile.name}`, { shot: full.shot });
 
-      const groundOnly = await captureProfile(ctx, page, {
-        ...profile.camera,
-        only: GROUND_LAYERS,
-      });
-      const groundOnlyCold = await captureProfile(ctx, page, {
-        ...profile.camera,
-        only: GROUND_LAYERS,
-      });
-      ctx.check(
-        `${profile.name} ground-only control is deterministic across cold boots`,
-        changedPixelCount(groundOnly.shot, groundOnlyCold.shot) === 0,
-      );
-      ctx.check(
-        `${profile.name} ground-only control persistently disables blade geometry`,
-        groundOnly.isolation?.grassVisible === false,
-        JSON.stringify(groundOnly.isolation),
-      );
-      ctx.check(
-        `${profile.name} ground-only frame telemetry is finite`,
-        finiteTelemetry(groundOnly.shot),
-        JSON.stringify(turfTelemetry(PNG.sync.read(groundOnly.shot))),
-      );
-      await ctx.snap(null, `ground-turf/ground-only-${profile.name}`, {
-        shot: groundOnly.shot,
-      });
+        const groundOnly = await captureProfile(ctx, page, {
+          ...profile.camera,
+          only: GROUND_LAYERS,
+        });
+        const groundOnlyCold = await captureProfile(ctx, page, {
+          ...profile.camera,
+          only: GROUND_LAYERS,
+        });
+        ctx.check(
+          `${profile.name} ground-only control is deterministic across cold boots`,
+          changedPixelCount(groundOnly.shot, groundOnlyCold.shot) === 0,
+        );
+        ctx.check(
+          `${profile.name} ground-only control persistently disables blade geometry`,
+          groundOnly.isolation?.grassVisible === false,
+          JSON.stringify(groundOnly.isolation),
+        );
+        ctx.check(
+          `${profile.name} ground-only frame telemetry is finite`,
+          finiteTelemetry(groundOnly.shot),
+          JSON.stringify(turfTelemetry(PNG.sync.read(groundOnly.shot))),
+        );
+        await ctx.snap(null, `ground-turf/ground-only-${profile.name}`, {
+          shot: groundOnly.shot,
+        });
+      }
     }
-    await checkPhaseReturn(ctx, page);
+    const requestedEdgeProfile = process.env.TURF_EDGE_PROFILE;
+    for (const profile of EDGE_PROFILES.filter(
+      ({ name }) => !requestedEdgeProfile || name === requestedEdgeProfile,
+    )) {
+      const edge = await captureProfile(ctx, page, profile);
+      const widths = edge.edgeFixture;
+      ctx.check(
+        `${profile.name} uses the single playable-ground RG8 earth-edge resource`,
+        edge.groundDetail?.earthEdges?.owner === "playable-ground" &&
+          edge.groundDetail?.earthEdges?.format === "rg8-unorm" &&
+          edge.groundDetail?.earthEdges?.textureResources === 1 &&
+          edge.groundDetail?.earthEdges?.vistaSamples === 0,
+        JSON.stringify(edge.groundDetail?.earthEdges),
+      );
+      ctx.check(
+        `${profile.name} keeps every measured 10-90 edge feather within 1-2m`,
+        [widths?.mudWidthMeters, widths?.roadLeftWidthMeters, widths?.roadRightWidthMeters].every(
+          (width) => Number.isFinite(width) && width >= 1 && width <= 2,
+        ) && widths?.detachedIslands === 0,
+        JSON.stringify(widths),
+      );
+      await ctx.snap(null, `ground-turf/${profile.name}`, { shot: edge.shot });
+    }
+    if (process.env.TURF_EDGE_ONLY !== "1") await checkPhaseReturn(ctx, page);
   } finally {
     await page.close();
   }
@@ -148,6 +202,7 @@ async function captureProfile(ctx, page, profile) {
     camYaw: String(profile.camYaw),
   });
   if (profile.only) params.set("only", profile.only);
+  if (profile.terrain) params.set("terrain", profile.terrain);
   await page.goto(`${ctx.target}/renderer/photoreal-battle?${params}`);
   await page.waitForFunction(
     () =>
@@ -179,6 +234,7 @@ async function captureProfile(ctx, page, profile) {
       () => window.__rendererLabStats?.stats?.renderStats?.terrain?.grass ?? null,
     ),
     isolation: await page.evaluate(() => window.__rendererLabStats?.stats?.isolation ?? null),
+    edgeFixture: await page.evaluate(() => window.__rendererLabStats?.stats?.edgeFixture ?? null),
   };
 }
 

@@ -12,6 +12,13 @@ import {
   type BattleEnvironment,
 } from '../environment/environment';
 import { GROUND_COVER_COLOR, MEADOW, type Rgb } from './meadowPalette';
+import {
+  buildPhotorealEarthDistance,
+  isBattleRoadSurface,
+  type PhotorealEarthDistanceField,
+} from './photorealEarthDistance';
+
+export { isBattleRoadSurface } from './photorealEarthDistance';
 
 // The rolling battle ground: a height-displaced grid mesh that replaces the flat
 // terrain quads, so soldiers, shadows, and props (which seat on the same height
@@ -217,6 +224,13 @@ export interface BattleGroundMesh {
   triangles: number;
 }
 
+export interface PhotorealBattleGroundMesh extends BattleGroundMesh {
+  /** Photoreal base surface before mud/road albedo is composed. */
+  surfaceColor: Float32Array;
+  /** Signed earthy-union/road distance in compact RG8, positive inside each surface. */
+  earthDistance: PhotorealEarthDistanceField;
+}
+
 export function buildBattleGroundMesh(
   grid: BattleTerrainGrid,
   field: TerrainHeightField,
@@ -297,6 +311,64 @@ export function buildBattleGroundMesh(
     }
   }
   return { vertices: verts, tint: tintVerts, indices: new Uint32Array(indices), triangles: indices.length / 3 };
+}
+
+export function buildPhotorealBattleGroundMesh(
+  grid: BattleTerrainGrid,
+  field: TerrainHeightField,
+  cover: BattleGroundCover,
+  step = 2,
+): PhotorealBattleGroundMesh {
+  const mesh = buildBattleGroundMesh(grid, field, cover, step);
+  const base = GROUND_COVER_COLOR[cover];
+  const nx = Math.floor(grid.w / step) + 1;
+  const ny = Math.floor(grid.h / step) + 1;
+  const photorealTint = new Float32Array(mesh.tint);
+  const surfaceColor = new Float32Array(nx * ny * 3);
+  let vertex = 0;
+  for (let j = 0; j < ny; j++) {
+    for (let i = 0; i < nx; i++, vertex++) {
+      const ci = Math.min(i * step, grid.w - 1);
+      const cj = Math.min(j * step, grid.h - 1);
+      const sourceIndex = cj * grid.w + ci;
+      if (
+        grid.tint[sourceIndex] === 5 ||
+        isBattleRoadSurface(grid.tint[sourceIndex], grid.rough?.[sourceIndex], grid.speed?.[sourceIndex])
+      ) {
+        photorealTint[vertex] = 0;
+      }
+      let r = 0;
+      let g = 0;
+      let b = 0;
+      let count = 0;
+      for (let dy = -step; dy <= step; dy++) {
+        for (let dx = -step; dx <= step; dx++) {
+          const sx = ci + dx;
+          const sy = cj + dy;
+          if (sx < 0 || sy < 0 || sx >= grid.w || sy >= grid.h) continue;
+          const index = sy * grid.w + sx;
+          const tint = grid.tint[index];
+          const isMud = tint === 5;
+          const isRoad = isBattleRoadSurface(tint, grid.rough?.[index], grid.speed?.[index]);
+          const overlay = isMud || isRoad ? undefined : TINT_COLOR[tint];
+          const color = overlay ? mix(base, overlay, 0.82) : base;
+          r += color[0];
+          g += color[1];
+          b += color[2];
+          count++;
+        }
+      }
+      surfaceColor[vertex * 3] = count > 0 ? r / count : base[0];
+      surfaceColor[vertex * 3 + 1] = count > 0 ? g / count : base[1];
+      surfaceColor[vertex * 3 + 2] = count > 0 ? b / count : base[2];
+    }
+  }
+  return {
+    ...mesh,
+    tint: photorealTint,
+    surfaceColor,
+    earthDistance: buildPhotorealEarthDistance(grid),
+  };
 }
 
 function mix(a: Rgb, b: Rgb, t: number): Rgb {

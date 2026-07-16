@@ -1,0 +1,25 @@
+{
+  "date": "2026-07-16",
+  "adapter": "apple / metal-3",
+  "soldiers": 30560,
+  "mid": {
+    "gpuMedianMs": 25.13,
+    "gpuP95Ms": 26.85,
+    "rafMedianMs": 16.14,
+    "rafP95Ms": 22.58
+  },
+  "vista": {
+    "gpuMedianMs": 24.77,
+    "gpuP95Ms": 28.76,
+    "rafMedianMs": 22.76,
+    "rafP95Ms": 28.21
+  },
+  "budgetMedianGpuMs": 33,
+  "result": "pass",
+  "resourceDelta": {
+    "textures": 1,
+    "drawCalls": 0,
+    "perFrameUploads": 0,
+    "readbacks": 0
+  }
+}

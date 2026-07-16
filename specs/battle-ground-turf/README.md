@@ -13,12 +13,14 @@ uses real blade geometry near and the shared macro/canopy owner at distance.
 
 ## Next Agent Prompt
 
-Status (updated 2026-07-16): slices 01–03 are complete. Slice 03 killed baked,
+Status (updated 2026-07-16): slices 01–04 are complete. Slice 03 killed baked,
 ridge, and cell-capsule substrate fibers, then narrowed successfully: production
 has no synthetic fine-detail substrate. Real blade geometry owns close/RTS turf;
 the slice 02 macro/canopy owner carries distance and top-down. The six full/control
 production frames passed fresh critique, cold boots, phase return, and the 30k
-hardware GPU gate. Pick up slice 04.
+hardware GPU gate. Slice 04 escalated from killed vertex coverage to one RG8 earth/road
+SDF, accepted 1–2 m mud and road seams without touching blade eligibility, and preserved
+hard scree ownership. Pick up slice 05 closeout.
 Slice 02 extracted the one battle-ground contrast owner into `groundDetail.ts`, measured
 the far canopy as the camouflage culprit, and replaced its hue islands with shared,
 fixed-hue value/warmth modulation across playable ground, vista, and both quad styles.
@@ -50,7 +52,7 @@ Global TODO:
 - [x] 01 — meadow palette owner, zero-diff → `slices/01-meadow-palette.md`
 - [x] 02 — camo attribution + mottle contrast down → `slices/02-mottle-contrast.md`
 - [x] 03 — synthetic fine-detail KILL + narrowed production ownership → `slices/03-turf-integration.md`
-- [ ] 04 — feathered earth edges → `slices/04-earth-edge-feather.md`
+- [x] 04 — feathered earth edges → `slices/04-earth-edge-feather.md`
 - [ ] 05 — closeout: sweep, perf ledger, close-spec → `slices/05-closeout.md`
 
 Active warnings:

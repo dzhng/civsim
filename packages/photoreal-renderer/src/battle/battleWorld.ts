@@ -33,7 +33,7 @@ import {
   battleMapByWasmId,
   buildBattleTerrainPresentation,
 } from "../../../game-renderer/src/battle/mapCatalog";
-import { buildBattleGroundMesh } from "../../../game-renderer/src/battle/groundPass";
+import { buildPhotorealBattleGroundMesh } from "../../../game-renderer/src/battle/groundPass";
 import { buildBattleHorizonLayout } from "../../../game-renderer/src/battle/horizonPass";
 import {
   createGrassFieldSampler,
@@ -629,6 +629,8 @@ export class PhotorealBattleWorld {
     slopeBands?: BattleSlopeBands | null,
     vista?: BattleVistaGrid | null,
     lakeSurfaces?: BattleLakeSurfaceSpec[] | null,
+    rough?: Float32Array,
+    speed?: Float32Array,
   ): void {
     this.terrainRect = [ox, oy, w * cell, h * cell];
     this.terrainGrid = tint
@@ -640,6 +642,8 @@ export class PhotorealBattleWorld {
           oy,
           tint: new Uint8Array(tint),
           height: height ? new Float32Array(height) : undefined,
+          rough: rough ? new Float32Array(rough) : undefined,
+          speed: speed ? new Float32Array(speed) : undefined,
         }
       : null;
     const catalog = wasmMapId !== undefined ? battleMapByWasmId(wasmMapId) : undefined;
@@ -692,12 +696,13 @@ export class PhotorealBattleWorld {
       scene.remove(this.ground);
       disposeMesh(this.ground);
     }
-    const groundMesh = buildBattleGroundMesh(grid, field, this.groundCover);
+    const groundMesh = buildPhotorealBattleGroundMesh(grid, field, this.groundCover);
     this.groundTriangles = groundMesh.triangles;
     this.ground = createGroundMesh(this.frame, groundMesh, {
       slopeBands: this.slopeBands,
       farGrass: this.grassTransition,
       disabledGroundDetail: this.disabledGroundDetail,
+      earthEdges: true,
     });
     scene.add(this.ground);
 
@@ -1113,6 +1118,7 @@ export class PhotorealBattleWorld {
       groundDetail: {
         disabled: this.disabledGroundDetail,
         appliedTo: ["ground", "vista", "terrain-quad"] as const,
+        earthEdges: this.ground?.userData.earthDistance ?? null,
       },
       // The engine depth convention, read off the live renderer: three owns the
       // depth buffer since 08b, posed reverse-Z to match camera3d.
@@ -1208,6 +1214,8 @@ export class PhotorealBattleWorld {
  *  sides of the swapped meshes. */
 function disposeMesh(mesh: THREE.Mesh): void {
   mesh.geometry.dispose();
+  const earthDistanceTexture = mesh.userData.earthDistanceTexture;
+  if (earthDistanceTexture instanceof THREE.Texture) earthDistanceTexture.dispose();
   const material = mesh.material;
   if (Array.isArray(material)) material.forEach((m) => m.dispose());
   else material.dispose();

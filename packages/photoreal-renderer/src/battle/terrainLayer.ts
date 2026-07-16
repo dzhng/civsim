@@ -20,20 +20,20 @@ import {
   fract,
   length,
   max,
+  min,
   mix,
   normalize,
   positionWorld,
+  step,
+  texture,
   transformNormalToView,
   varying,
   vec2,
   vec3,
   vec4,
 } from "three/tsl";
-import type { BattleGroundMesh } from "../../../game-renderer/src/battle/groundPass";
-import {
-  GROUND_COVER_COLOR,
-  MEADOW,
-} from "../../../game-renderer/src/battle/meadowPalette";
+import type { PhotorealBattleGroundMesh } from "../../../game-renderer/src/battle/groundPass";
+import { GROUND_COVER_COLOR, MEADOW } from "../../../game-renderer/src/battle/meadowPalette";
 import type { BattleHorizonLayout } from "../../../game-renderer/src/battle/horizonPass";
 import {
   fbmN,
@@ -52,6 +52,11 @@ import {
 } from "./battleTsl";
 import {
   groundDetailNode,
+  coverEdgeNode,
+  coverEdgeNoiseNode,
+  mudInteriorCoverageNode,
+  roadInteriorCoverageNode,
+  turfEdgeCoverageNode,
   turfCanopyFromSignalsNode,
   turfCanopyNode,
   TURF_CONTRAST,
@@ -128,6 +133,7 @@ export interface TerrainMaterialOptions {
   vistaBand?: BattleVistaBand["name"] | null;
   farGrass?: BladeFieldTransitionUniforms | null;
   disabledGroundDetail?: GroundDetailTerm | null;
+  earthEdges?: boolean;
 }
 
 export interface BattleVistaBand {
@@ -389,7 +395,7 @@ export class BattleBackgroundQuads {
 /** The rolling battle ground mesh (groundPass port, meadow disabled). */
 export function createGroundMesh(
   frame: BattleFrameUniforms,
-  mesh: BattleGroundMesh,
+  mesh: PhotorealBattleGroundMesh,
   options: TerrainMaterialOptions = {},
 ): THREE.Mesh {
   const geo = new THREE.BufferGeometry();
@@ -399,9 +405,11 @@ export function createGroundMesh(
   // 'normal' alias (same interleaved view): shadow.normalBias reads
   // normalWorld by attribute name — absent, the offset is silently zero (11).
   geo.setAttribute("normal", new THREE.InterleavedBufferAttribute(buffer, 3, 3));
-  geo.setAttribute("gColor", new THREE.InterleavedBufferAttribute(buffer, 3, 6));
   geo.setAttribute("gWater", new THREE.InterleavedBufferAttribute(buffer, 1, 9));
   geo.setAttribute("gTint", new THREE.BufferAttribute(mesh.tint, 1));
+  geo.setAttribute("gSurfaceColor", new THREE.BufferAttribute(mesh.surfaceColor, 3));
+  const earthEdgesEnabled = options.earthEdges === true;
+  let earthDistanceTexture: THREE.DataTexture | null = null;
   geo.setIndex(new THREE.BufferAttribute(frontSideIndexBuffer(mesh.indices), 1));
 
   const material = new THREE.MeshStandardNodeMaterial({ side: THREE.FrontSide, metalness: 0 });
@@ -409,7 +417,7 @@ export function createGroundMesh(
   const gNormal = attribute<"vec3">("gNormal", "vec3");
   const worldNormal = normalize(gNormal).toVar();
   material.normalNode = viewNormalNode(worldNormal);
-  const color = varying(attribute<"vec3">("gColor", "vec3")).toVar();
+  const surfaceColor = varying(attribute<"vec3">("gSurfaceColor", "vec3")).toVar();
   const water = varying(attribute<"float">("gWater", "float")).toVar();
   const tint = varying(attribute<"float">("gTint", "float")).toVar();
   const world = varying(position.xy).toVar();
@@ -418,10 +426,53 @@ export function createGroundMesh(
 
   // Turf exclusions are computed before the far canopy so that the same masks
   // also protect mud, rock, and scree from the distance replacement.
-  const seamJitter = fbmN(world.mul(0.8).add(vec2(3.0, 8.0))).sub(0.5).mul(0.05);
-  const brown = smoothstepN(0.03, 0.13, color.r.sub(color.g).add(seamJitter));
-  const dark = float(1.0).sub(smoothstepN(0.26, 0.4, color.r.add(color.g).add(color.b).div(3.0)));
-  const earth = brown.mul(dark).toVar();
+  let unionDistance: FloatNode = float(-mesh.earthDistance.rangeMeters);
+  let roadDistance: FloatNode = float(-mesh.earthDistance.rangeMeters);
+  if (earthEdgesEnabled) {
+    const sdf = mesh.earthDistance;
+    earthDistanceTexture = new THREE.DataTexture(
+      sdf.data,
+      sdf.width,
+      sdf.height,
+      THREE.RGFormat,
+      THREE.UnsignedByteType,
+    );
+    earthDistanceTexture.magFilter = THREE.LinearFilter;
+    earthDistanceTexture.minFilter = THREE.LinearFilter;
+    earthDistanceTexture.wrapS = THREE.ClampToEdgeWrapping;
+    earthDistanceTexture.wrapT = THREE.ClampToEdgeWrapping;
+    earthDistanceTexture.generateMipmaps = false;
+    earthDistanceTexture.unpackAlignment = 1;
+    earthDistanceTexture.colorSpace = THREE.NoColorSpace;
+    earthDistanceTexture.flipY = false;
+    earthDistanceTexture.needsUpdate = true;
+    const uv = vec2(
+      world.x.sub(sdf.ox).div(sdf.cell * sdf.width),
+      world.y.sub(sdf.oy).div(sdf.cell * sdf.height),
+    ).toVar();
+    const encoded = texture(earthDistanceTexture, clamp(uv, vec2(0), vec2(1))).toVar();
+    const inBounds = step(0, uv.x).mul(step(uv.x, 1)).mul(step(0, uv.y)).mul(step(uv.y, 1));
+    unionDistance = mix(
+      -sdf.rangeMeters,
+      encoded.r.sub(0.5).mul(2 * sdf.rangeMeters),
+      inBounds,
+    ).toVar();
+    roadDistance = mix(
+      -sdf.rangeMeters,
+      encoded.g.sub(0.5).mul(2 * sdf.rangeMeters),
+      inBounds,
+    ).toVar();
+  }
+  const edgeNoise = earthEdgesEnabled ? coverEdgeNoiseNode(world).toVar() : float(0);
+  const earth = earthEdgesEnabled ? coverEdgeNode(unionDistance, edgeNoise).toVar() : float(0);
+  const noisyRoad = earthEdgesEnabled ? coverEdgeNode(roadDistance, edgeNoise).toVar() : float(0);
+  const roadEdge = min(noisyRoad, earth).toVar();
+  const mudEdge = earth.sub(roadEdge).toVar();
+  const turfAtEdge = turfEdgeCoverageNode(earth).toVar();
+  const roadInterior = roadInteriorCoverageNode(roadDistance).toVar();
+  const mudInterior = mudInteriorCoverageNode(unionDistance)
+    .mul(float(1).sub(roadInterior))
+    .toVar();
   const normalZ = clamp(worldNormal.z, 0.0, 1.0).toVar();
   let slowNz = 1;
   let rollingNz = 1;
@@ -440,6 +491,11 @@ export function createGroundMesh(
   const forestTint = float(1)
     .sub(smoothstepN(0.18, 0.95, abs(tint.sub(4).add(tintDither))))
     .toVar();
+  screeTint = float(1)
+    .sub(smoothstepN(0.18, 0.95, abs(tint.sub(6).add(tintDither))))
+    .mul(float(1).sub(roadEdge))
+    .toVar();
+  screeMask = screeTint.mul(0.95).mul(float(1).sub(waterBlend)).toVar();
   if (options.slopeBands) {
     slowNz = normalZForSlope(options.slopeBands.slowMin);
     rollingNz = normalZForSlope(options.slopeBands.rollingMax);
@@ -448,9 +504,6 @@ export function createGroundMesh(
     slowSlope = float(1).sub(smoothstepN(slowNz, rollingNz, normalZ)).toVar();
     rockTint = float(1)
       .sub(smoothstepN(0.18, 0.95, abs(tint.sub(2).add(tintDither))))
-      .toVar();
-    screeTint = float(1)
-      .sub(smoothstepN(0.18, 0.95, abs(tint.sub(6).add(tintDither))))
       .toVar();
     const dryOnly = float(1).sub(waterBlend);
     rockMask = clamp(rockTint.add(slopeRock), 0, 1).mul(dryOnly).toVar();
@@ -462,12 +515,16 @@ export function createGroundMesh(
       .mul(dryOnly)
       .toVar();
   }
-  const turfExclusion = max(earth, max(forestTint, max(rockMask, screeMask))).toVar();
+  const nonEarthExclusion = max(forestTint, max(rockMask, screeMask)).toVar();
 
   // Broad neutral albedo variation; real blade geometry owns fine turf.
-  let albedo = groundDetailNode(world, color, {
+  const baseAlbedo = surfaceColor
+    .mul(float(1).sub(earth))
+    .add(rgbNode(MEADOW.earth.mud).mul(mudEdge))
+    .add(rgbNode(MEADOW.earth.roadDust).mul(roadEdge));
+  let albedo = groundDetailNode(world, baseAlbedo, {
     disabledTerm: options.disabledGroundDetail,
-    coverage: float(1).sub(turfExclusion),
+    coverage: float(1).sub(nonEarthExclusion).mul(turfAtEdge),
   });
   if (options.farGrass) {
     const farGrass = options.farGrass;
@@ -476,7 +533,8 @@ export function createGroundMesh(
     // the sole far handoff, not a return to bare green ground.
     const farMask = float(1)
       .sub(waterBlend)
-      .mul(float(1).sub(turfExclusion))
+      .mul(float(1).sub(nonEarthExclusion))
+      .mul(turfAtEdge)
       .toVar();
     const wind = frame.time.mul(0.035);
     // Matte grass-canopy micro-texture at distance. ISOTROPIC world-space noise
@@ -536,7 +594,7 @@ export function createGroundMesh(
     .add(fbmN(world.mul(0.16).add(vec2(5.0, 2.0))).mul(0.4));
   const ruts = ridgeN(world.mul(vec2(0.11, 0.045)).add(vec2(2.0, 0.0)));
   const churn = clamp(clods.mul(0.72).add(ruts.mul(0.28)).add(0.58), 0.42, 1.3);
-  albedo = mix(albedo, albedo.mul(churn), earth);
+  albedo = mix(albedo, albedo.mul(churn), mudInterior);
   let dryRoughness: FloatNode = float(0.95);
 
   if (options.slopeBands) {
@@ -626,6 +684,20 @@ export function createGroundMesh(
   // erases every soldier-sized shadow (verified on hardware shots). Terrain
   // self-occlusion is owned by 13 (relief look) / 14c (contact AO) instead.
   ground.receiveShadow = true;
+  if (earthDistanceTexture) {
+    ground.userData.earthDistanceTexture = earthDistanceTexture;
+    ground.userData.earthDistance = {
+      owner: "playable-ground",
+      format: "rg8-unorm",
+      width: mesh.earthDistance.width,
+      height: mesh.earthDistance.height,
+      rangeMeters: mesh.earthDistance.rangeMeters,
+      channels: ["earth-union", "road"],
+      filters: ["linear", "linear"],
+      textureResources: 1,
+      vistaSamples: 0,
+    } as const;
+  }
   return ground;
 }
 
@@ -637,7 +709,11 @@ export function createVistaMesh(
 ): THREE.Mesh | null {
   const mesh = buildVistaGroundMesh(band, cover);
   if (mesh.indices.length === 0) return null;
-  const vista = createGroundMesh(frame, mesh, { ...options, vistaBand: band.name });
+  const vista = createGroundMesh(frame, mesh, {
+    ...options,
+    vistaBand: band.name,
+    earthEdges: false,
+  });
   vista.name = `battle-vista-${band.name}`;
   vista.castShadow = false;
   vista.receiveShadow = false;
@@ -645,10 +721,14 @@ export function createVistaMesh(
   return vista;
 }
 
-function buildVistaGroundMesh(band: BattleVistaBand, cover: BattleGroundCover): BattleGroundMesh {
+function buildVistaGroundMesh(
+  band: BattleVistaBand,
+  cover: BattleGroundCover,
+): PhotorealBattleGroundMesh {
   const base = GROUND_COVER_COLOR[cover];
   const verts = new Float32Array(band.w * band.h * 10);
   const tint = new Float32Array(band.w * band.h);
+  const surfaceColor = new Float32Array(band.w * band.h * 3);
   const zAt = (i: number, j: number): number => {
     const x = band.ox + i * band.cell;
     const y = band.oy + j * band.cell;
@@ -692,6 +772,9 @@ function buildVistaGroundMesh(band: BattleVistaBand, cover: BattleGroundCover): 
       verts[v++] = base[1];
       verts[v++] = base[2];
       verts[v++] = 0;
+      surfaceColor[tv * 3] = base[0];
+      surfaceColor[tv * 3 + 1] = base[1];
+      surfaceColor[tv * 3 + 2] = base[2];
       tint[tv++] = 0;
     }
   }
@@ -711,6 +794,16 @@ function buildVistaGroundMesh(band: BattleVistaBand, cover: BattleGroundCover): 
   return {
     vertices: verts,
     tint,
+    surfaceColor,
+    earthDistance: {
+      data: new Uint8Array([0, 0]),
+      width: 1,
+      height: 1,
+      cell: 1,
+      ox: 0,
+      oy: 0,
+      rangeMeters: 1,
+    },
     indices: new Uint32Array(indices),
     triangles: indices.length / 3,
   };

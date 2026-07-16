@@ -1,0 +1,60 @@
+{
+  "capturedAt": "2026-07-16",
+  "baselineCommit": "8c34d402",
+  "adapter": "apple / metal-3",
+  "command": "VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome bun run --cwd web scene battle-perf-30k",
+  "pairedRun": {
+    "before": {
+      "midGpuMedianMs": 27.19,
+      "vistaGpuMedianMs": 22.58,
+      "midRafP95Ms": 18.98,
+      "vistaRafP95Ms": 23.34
+    },
+    "after": {
+      "midGpuMedianMs": 26.89,
+      "vistaGpuMedianMs": 23.3,
+      "midRafP95Ms": 18.89,
+      "vistaRafP95Ms": 21.16
+    },
+    "delta": {
+      "midGpuMedianMs": -0.3,
+      "vistaGpuMedianMs": 0.72,
+      "midRafP95Ms": -0.09,
+      "vistaRafP95Ms": -2.18
+    }
+  },
+  "repeat": {
+    "before": {
+      "midGpuMedianMs": 25.71,
+      "vistaGpuMedianMs": 25.5,
+      "midRafP95Ms": 20.47,
+      "vistaRafP95Ms": 23.56
+    },
+    "after": {
+      "midGpuMedianMs": 27.26,
+      "vistaGpuMedianMs": 23.54,
+      "midRafP95Ms": 18.69,
+      "vistaRafP95Ms": 20.44
+    }
+  },
+  "aggregate": {
+    "sampleCountPerRevision": 2,
+    "before": {
+      "midGpuMedianOfMediansMs": 26.45,
+      "midGpuMedianRangeMs": [25.71, 27.19],
+      "vistaGpuMedianOfMediansMs": 24.04,
+      "vistaGpuMedianRangeMs": [22.58, 25.5]
+    },
+    "after": {
+      "midGpuMedianOfMediansMs": 27.075,
+      "midGpuMedianRangeMs": [26.89, 27.26],
+      "vistaGpuMedianOfMediansMs": 23.42,
+      "vistaGpuMedianRangeMs": [23.3, 23.54]
+    },
+    "delta": {
+      "midGpuMedianMs": 0.625,
+      "vistaGpuMedianMs": -0.62
+    }
+  },
+  "verdict": "HARD GATE PASS / SOFT BUDGET MISS: all production 33 ms assertions passed and aggregate vista GPU improved by 0.62 ms, but aggregate mid GPU rose 0.625 ms versus the +0.3 ms soft budget. Alternating clean-HEAD repeats themselves spanned 1.48 ms at mid and 2.92 ms at vista, so the miss is noisy but remains explicit for maintenance review. rAF p95 improved in the paired run."
+}

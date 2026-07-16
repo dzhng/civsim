@@ -69,6 +69,7 @@ import {
   vistaSurfaceHeightAt,
   type BattleVistaGrid,
 } from "./terrainLayer";
+import type { GroundDetailTerm } from "./groundDetail";
 import {
   createLakePlaneMesh,
   createOceanPlaneMesh,
@@ -299,6 +300,7 @@ export class PhotorealBattleWorld {
   readonly world: PhotorealWorld;
   readonly camera = new THREE.PerspectiveCamera();
   private readonly environment: BattleEnvironment;
+  private readonly disabledGroundDetail: GroundDetailTerm | null;
   private readonly grassProfile: ProductionBladeFieldProfile;
   private readonly frame: BattleFrameUniforms;
   private readonly background: BattleBackgroundQuads;
@@ -410,10 +412,12 @@ export class PhotorealBattleWorld {
     shadowMode: SunShadowMode,
     postEnabled: boolean,
     grassProfile: ProductionBladeFieldProfile,
+    disabledGroundDetail: GroundDetailTerm | null,
   ) {
     this.world = world;
     this.environment = environment;
     this.grassProfile = grassProfile;
+    this.disabledGroundDetail = disabledGroundDetail;
     this.sea = sea;
     this.grassRebuildStats.coverageRadiusM = grassProfile.vistaVisibleRadiusM;
     this.grassRebuildStats.vistaRecordBudget = grassProfile.maxRecords;
@@ -453,7 +457,7 @@ export class PhotorealBattleWorld {
       shadowMode,
     );
 
-    this.background = new BattleBackgroundQuads(scene, this.frame);
+    this.background = new BattleBackgroundQuads(scene, this.frame, disabledGroundDetail);
     this.grass = new PhotorealBladeFieldLayer(
       scene,
       this.frame.time,
@@ -505,6 +509,8 @@ export class PhotorealBattleWorld {
       sea?: SeaDisplacementSourceId;
       post?: string | null;
       grassQuality?: BattleGrassQuality;
+      /** Renderer-lab attribution only; production leaves every term enabled. */
+      disabledGroundDetail?: GroundDetailTerm | null;
     } = {},
   ): Promise<PhotorealBattleWorld> {
     const environment = resolveBattleEnvironment(options.environment);
@@ -539,6 +545,7 @@ export class PhotorealBattleWorld {
       shadowMode,
       postEnabled,
       grassProfile,
+      options.disabledGroundDetail ?? null,
     );
   }
 
@@ -690,6 +697,7 @@ export class PhotorealBattleWorld {
     this.ground = createGroundMesh(this.frame, groundMesh, {
       slopeBands: this.slopeBands,
       farGrass: this.grassTransition,
+      disabledGroundDetail: this.disabledGroundDetail,
     });
     scene.add(this.ground);
 
@@ -720,6 +728,7 @@ export class PhotorealBattleWorld {
         const mesh = createVistaMesh(this.frame, band, this.groundCover, {
           slopeBands: this.slopeBands,
           farGrass: this.grassTransition,
+          disabledGroundDetail: this.disabledGroundDetail,
         });
         if (!mesh) continue;
         this.vistaMeshes.push(mesh);
@@ -1101,6 +1110,10 @@ export class PhotorealBattleWorld {
       crowd: crowdStats,
       lod: { skinned: skinnedCount, impostors: markerCount },
       device: world.device,
+      groundDetail: {
+        disabled: this.disabledGroundDetail,
+        appliedTo: ["ground", "vista", "terrain-quad"] as const,
+      },
       // The engine depth convention, read off the live renderer: three owns the
       // depth buffer since 08b, posed reverse-Z to match camera3d.
       depth: {

@@ -1,0 +1,36 @@
+{
+  "fixture": "photoreal-battle generated seed 7, overcast-foggy, t=0, ticks=60, zoom=7.76, center=(0,-650), yaw=-pi/2",
+  "crop": { "x": 0.12, "y": 0.36, "width": 0.76, "height": 0.3 },
+  "luminance": "linear-sRGB Rec.709 Y",
+  "midBand": "RMS difference between radius-2 and radius-12 separable box blurs",
+  "before": {
+    "meanLuma": 0.17274522662638905,
+    "lumaP10": 0.12430050791367091,
+    "lumaP90": 0.22362284695144727,
+    "lumaSpanP90P10": 0.09932233903777636,
+    "midBandRms": 0.015448228355396108,
+    "meanHueDeg": 115.95233534514841,
+    "meanChroma": 0.045531591410863125,
+    "hueSpreadDeg": 3.7268455385125483,
+    "chromaSpread": 0.007798992041415546
+  },
+  "after": {
+    "meanLuma": 0.1744176701914777,
+    "lumaP10": 0.13861384259705511,
+    "lumaP90": 0.19415393008745593,
+    "lumaSpanP90P10": 0.05554008749040082,
+    "midBandRms": 0.00794869284099828,
+    "meanHueDeg": 117.25258082427081,
+    "meanChroma": 0.0421873790909801,
+    "hueSpreadDeg": 2.500535873634917,
+    "chromaSpread": 0.006143156828480262
+  },
+  "delta": {
+    "midBandRmsPercent": -48.54624971787279,
+    "meanLuma": 0.0016724435650886382,
+    "meanLumaIn255": 0.4264731090976027,
+    "meanHueDeg": 1.3002454791223954,
+    "hueSpreadDeg": -1.2263096648776313,
+    "chromaSpread": -0.0016558352129352836
+  }
+}

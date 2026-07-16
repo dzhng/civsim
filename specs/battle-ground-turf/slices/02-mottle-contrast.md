@@ -1,5 +1,20 @@
 # 02 — camo attribution, then mottle contrast down
 
+## Shipped result
+
+The far canopy was the measured culprit; disabling mottle barely changed the production
+crop. `groundDetail.ts` now owns contrast amplitudes and the shared fixed-hue canopy
+composition. Playable ground, vista, and both quad styles consume that family without a
+camera-radius onset or finite outer fade, and canonical earth/forest/rock/scree/water
+masks protect non-turf materials.
+
+The fixed fixture moved mid-band RMS -48.55%, mean hue +1.30 degrees, and mean luminance
++0.43/255 while narrowing hue/chroma spread. The final ground-crop critique accepted the
+field and both far views; the uncropped fog-envelope dissent and attribution are archived
+in `../reports/slice02-visual-gate.md`. All locked 33 ms performance assertions pass; the
+noisy +0.625 ms aggregate mid-stop soft-budget miss remains explicit in
+`../reports/perf-after-slice02.json`.
+
 **Visual variable:** mid-frequency tonal contrast only. Strand detail (03), edges (04),
 blade geometry, hue: frozen / out of scope for judgment.
 **Depends on:** 01. Turf sampling does not exist in production yet — this slice is judged

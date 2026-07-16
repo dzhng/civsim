@@ -1,0 +1,50 @@
+{
+  "kind": "screenshot-parity-diff",
+  "generatedAt": "2026-07-15T23:41:13.122Z",
+  "note": "Lower parityDistance means the candidate is closer to the reference for this fixed pair. This is a distance metric, not an acceptance gate.",
+  "pairCount": 1,
+  "worstPair": "rts",
+  "results": [
+    {
+      "id": "rts",
+      "current": "../../../../tmp/turf02-compare-final/before/rts.png",
+      "candidate": "../../../../tmp/turf02-compare-final/after/rts.png",
+      "dimensions": {
+        "width": 972,
+        "height": 240
+      },
+      "parityDistance": 0.04143,
+      "grayscale": {
+        "mae": 6.244,
+        "rmse": 8.10415,
+        "diffRatio16": 0.05672,
+        "diffRatio32": 0,
+        "diffRatio64": 0,
+        "pixelmatchRatio": 0.00017
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.97277,
+        "terrainLikeRatioCandidate": 0.97277,
+        "avgLuminanceCurrent": 113.79839,
+        "avgLuminanceCandidate": 114.80618,
+        "avgLuminanceDelta": 1.00778,
+        "edgeEnergyCurrent": 0.19479,
+        "edgeEnergyCandidate": 0.17984,
+        "edgeEnergyRatio": 0.92322,
+        "edgeDiffRatio32": 0.0964
+      },
+      "artifacts": {
+        "sideBySide": "before-diff/rts-side-by-side.png",
+        "currentGray": "before-diff/rts-current-gray.png",
+        "candidateGray": "before-diff/rts-candidate-gray.png",
+        "absDiff": "before-diff/rts-absdiff.png",
+        "pixelmatch": "before-diff/rts-pixelmatch.png",
+        "currentEdges": "before-diff/rts-current-edges.png",
+        "candidateEdges": "before-diff/rts-candidate-edges.png",
+        "edgeDiff": "before-diff/rts-edge-diff.png"
+      }
+    }
+  ]
+}

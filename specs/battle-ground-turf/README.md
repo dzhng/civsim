@@ -13,14 +13,20 @@ continuous anisotropic in-shader detail.
 
 ## Next Agent Prompt
 
-Status: slice 01 is complete at `36d89dd4`; next pickup is slice 02 (mottle contrast).
-Slice 01 centralized the battle meadow family in `meadowPalette.ts`, migrated the
-ground/vista/blade/quad/far-grass/earth consumers with no turf pixel movement, and updated
-blade provenance to the canonical owner. Verification: 101/101 unit tests, typecheck,
-lint, format, focused grass-close 10/10 (0 px; hash `e72c1663`), and a full 75-scene
-before/after sweep with the same five carried snapshot reds at identical counts plus the
-carried SwiftShader perf red. All 42 campaign snapshots were byte-identical. See
-`notes/red-at-start.md`.
+Status: slice 02 is complete; next pickup is slice 03 (analytic turf integration).
+Slice 02 extracted the one battle-ground contrast owner into `groundDetail.ts`, measured
+the far canopy as the camouflage culprit, and replaced its hue islands with shared,
+fixed-hue value/warmth modulation across playable ground, vista, and both quad styles.
+The fixed production fixture records term-off attribution, pure telemetry, and the two
+quad owners. Mid-band RMS moved -48.55%, mean hue +1.30 degrees, mean luminance +0.43/255,
+and both hue/chroma spreads narrowed. The ground-crop visual gate accepted broad tonal
+life without camo or a quad handoff seam. See `reports/slice02-visual-gate.md` and
+`assets/telemetry/contrast.json`.
+
+Performance remains under every locked 33 ms assertion. The alternating hardware pair
+has a noisy soft-budget miss at the mid stop (+0.625 ms aggregate versus +0.3 ms), while
+vista improves by 0.62 ms and rAF p95 improves; carry this explicitly into slice 03 rather
+than treating it as a hard regression. See `reports/perf-after-slice02.json`.
 
 The baked-texture experiment is preserved only as negative evidence: top-down became
 fuzzy grain and RTS became near-field looping straw plus far-field blur. Do not promote
@@ -29,7 +35,7 @@ its renderer-lab sampler or recreate a production texture owner.
 Global TODO:
 - [x] 00 — strand-readability + anti-tiling spike — **KILL** → `slices/00-strand-spike.md`
 - [x] 01 — meadow palette owner, zero-diff → `slices/01-meadow-palette.md`
-- [ ] 02 — camo attribution + mottle contrast down → `slices/02-mottle-contrast.md`
+- [x] 02 — camo attribution + mottle contrast down → `slices/02-mottle-contrast.md`
 - [ ] 03 — anisotropic in-shader turf detail → `slices/03-turf-integration.md`
 - [ ] 04 — feathered earth edges → `slices/04-earth-edge-feather.md`
 - [ ] 05 — closeout: sweep, perf ledger, close-spec → `slices/05-closeout.md`
@@ -81,10 +87,11 @@ workbench while preserving the KILL evidence under this spec.
   covers re-inlined in buildVistaGroundMesh (terrainLayer.ts:649); BLADE_FIELD_PALETTE
   (bladeFieldLayer.ts:147); bladeFieldLayer's private ring meadow vec3 (:892); the quad
   styles' olive/dry/stubble families (terrainLayer.ts:96–136).
-- The "camo" read has more than one candidate owner; the farGrass canopy overlay
-  (terrainLayer.ts:450–486, contrast-expanding smoothstep with hue+value swings, active
-  from ~5 m) is a prime suspect alongside the mottle term and the quad fleck stack.
-  Slice 02 measures before it tunes.
+- Slice 02 attributed the "camo" read to the old farGrass canopy's multi-hue contrast
+  expansion. The mottle term was negligible in the production crop. The replacement is
+  uniform in world space—no camera-radius onset or finite outer fade—and uses shared
+  material exclusions so turf detail does not spill onto earth, forest, rock, scree,
+  roads, or water.
 - Battle earth surfaces: tint 5 = mud, tint 4 = forest floor, tint 6 = scree AND the
   cosmetic road — `crates/campaign/src/battlegen.rs:270` paints the road as a tint-6
   capsule (radius 9, rough 0.0, speed 1.0); real scree has high rough / low speed. The

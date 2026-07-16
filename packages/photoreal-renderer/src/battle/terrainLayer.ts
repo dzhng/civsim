@@ -15,7 +15,6 @@ import {
   attribute,
   cameraPosition,
   clamp,
-  dot,
   float,
   floor,
   fract,
@@ -24,7 +23,6 @@ import {
   mix,
   normalize,
   positionWorld,
-  smoothstep as smoothstepNode,
   transformNormalToView,
   varying,
   vec2,
@@ -52,6 +50,13 @@ import {
   type Rgb,
   type Vec2Node,
 } from "./battleTsl";
+import {
+  groundDetailNode,
+  turfCanopyFromSignalsNode,
+  turfCanopyNode,
+  TURF_CONTRAST,
+  type GroundDetailTerm,
+} from "./groundDetail";
 import { fieldWaterSurfaceNodes } from "./seaLayer";
 import type {
   BattleGroundCover,
@@ -86,15 +91,8 @@ interface TerrainQuadStyle {
   darkFleckHigh: number;
   stoneFleckLow: number;
   stoneFleckHigh: number;
-  speckleStrength: number;
-  dryMixBase: number;
-  trampleMix: number;
   stubbleColor: Rgb;
-  stubbleStrength: number;
   darkFleckColor: Rgb;
-  darkFleckStrength: number;
-  stoneFleckStrength: number;
-  dustStrength: number;
 }
 
 const DEFAULT_TERRAIN_STYLE: TerrainQuadStyle = {
@@ -107,15 +105,8 @@ const DEFAULT_TERRAIN_STYLE: TerrainQuadStyle = {
   darkFleckHigh: 0.982,
   stoneFleckLow: 0.924,
   stoneFleckHigh: 0.996,
-  speckleStrength: 0.315,
-  dryMixBase: 0.22,
-  trampleMix: 0.15,
   stubbleColor: MEADOW.quad.default.stubble,
-  stubbleStrength: 0.055,
   darkFleckColor: MEADOW.quad.default.darkFleck,
-  darkFleckStrength: 0.38,
-  stoneFleckStrength: 0.3,
-  dustStrength: 0.14,
 };
 
 const WIDE_DETAIL_TERRAIN_STYLE: TerrainQuadStyle = {
@@ -128,21 +119,15 @@ const WIDE_DETAIL_TERRAIN_STYLE: TerrainQuadStyle = {
   darkFleckHigh: 0.976,
   stoneFleckLow: 0.916,
   stoneFleckHigh: 0.995,
-  speckleStrength: 0.325,
-  dryMixBase: 0.2,
-  trampleMix: 0.14,
   stubbleColor: MEADOW.quad.wideDetail.stubble,
-  stubbleStrength: 0.063,
   darkFleckColor: MEADOW.quad.wideDetail.darkFleck,
-  darkFleckStrength: 0.42,
-  stoneFleckStrength: 0.32,
-  dustStrength: 0.12,
 };
 
 export interface TerrainMaterialOptions {
   slopeBands?: BattleSlopeBands | null;
   vistaBand?: BattleVistaBand["name"] | null;
   farGrass?: BladeFieldTransitionUniforms | null;
+  disabledGroundDetail?: GroundDetailTerm | null;
 }
 
 export interface BattleVistaBand {
@@ -218,7 +203,11 @@ function quadGroundHeight(p: Vec2Node): FloatNode {
 
 function terrainQuadMaterial(
   style: TerrainQuadStyle,
+  contrast:
+    | typeof TURF_CONTRAST.quad.default
+    | typeof TURF_CONTRAST.quad.wideDetail,
   frame: BattleFrameUniforms,
+  disabledTerm: GroundDetailTerm | null,
 ): THREE.MeshStandardNodeMaterial {
   const material = new THREE.MeshStandardNodeMaterial({
     side: THREE.FrontSide,
@@ -243,11 +232,13 @@ function terrainQuadMaterial(
     0.86,
     ridgeN(vec2(world.x.mul(0.12).add(world.y.mul(0.03)), world.y.mul(0.09))),
   ).toVar();
-  const olive = mix(
+  const oliveNoise = mix(
     rgbNode(style.oliveLow),
     rgbNode(style.oliveHigh),
     mid.mul(0.66).add(fine.mul(0.16)).add(relief.mul(0.18)),
   );
+  const oliveAnchor = mix(rgbNode(style.oliveLow), rgbNode(style.oliveHigh), 0.5);
+  const olive = mix(oliveAnchor, oliveNoise, contrast.oliveSpread);
   const scrubPatch = smoothstepN(0.5, 0.86, broad).mul(
     float(1.0).sub(smoothstepN(0.86, 0.98, fine)),
   );
@@ -271,23 +262,39 @@ function terrainQuadMaterial(
   const stoneFleck = smoothstepN(style.stoneFleckLow, style.stoneFleckHigh, pebble).mul(
     relief.mul(0.46).add(0.36),
   );
-  const speckle = lightFleck.mul(style.speckleStrength);
-  let grass = mix(olive, rgbNode(style.dry), trample.mul(style.trampleMix).add(style.dryMixBase));
-  grass = mix(grass, rgbNode(MEADOW.quad.scrub), scrubPatch.mul(0.34));
+  const flecksEnabled = disabledTerm === "quad-flecks" ? 0 : 1;
+  const scrubStrength = disabledTerm === "scrub" ? 0 : TURF_CONTRAST.quad.scrubStrength;
+  const speckle = lightFleck.mul(contrast.speckleStrength * flecksEnabled);
+  let grass = mix(
+    olive,
+    rgbNode(style.dry),
+    trample.mul(contrast.trampleMix).add(contrast.dryMixBase),
+  );
+  grass = mix(grass, rgbNode(MEADOW.quad.scrub), scrubPatch.mul(scrubStrength));
   grass = mix(grass, rgbNode(MEADOW.quad.rakedDust), rakedDust);
   grass = grass.add(rgbNode(MEADOW.quad.lightFleck).mul(speckle));
-  grass = mix(grass, rgbNode(style.stubbleColor), stubble.mul(style.stubbleStrength));
+  grass = mix(
+    grass,
+    rgbNode(style.stubbleColor),
+    stubble.mul(contrast.stubbleStrength),
+  );
   grass = mix(
     grass,
     grass.mul(rgbNode(style.darkFleckColor)),
-    darkFleck.mul(style.darkFleckStrength),
+    darkFleck.mul(contrast.darkFleckStrength * flecksEnabled),
   );
   grass = mix(
     grass,
     rgbNode(MEADOW.quad.stoneFleck),
-    stoneFleck.mul(style.stoneFleckStrength),
+    stoneFleck.mul(contrast.stoneFleckStrength * flecksEnabled),
   );
-  const dust = smoothstepN(18.0, 96.0, dist).mul(style.dustStrength);
+  const canopyEnabled = disabledTerm === "canopy" ? 0 : 1;
+  grass = mix(
+    grass,
+    turfCanopyFromSignalsNode(broad, mid, fine),
+    TURF_CONTRAST.canopy.mixStrength * canopyEnabled,
+  );
+  const dust = smoothstepN(18.0, 96.0, dist).mul(contrast.dustStrength);
   const sunBleached = mix(grass, rgbNode(MEADOW.quad.sunBleached), dust);
   material.colorNode = vec4(linearAlbedo(sunBleached), 1.0);
   return material;
@@ -332,19 +339,28 @@ export class BattleBackgroundQuads {
   readonly terrainDefault: THREE.Mesh;
   readonly terrainWide: THREE.Mesh;
 
-  constructor(scene: THREE.Scene, frame: BattleFrameUniforms) {
+  constructor(
+    scene: THREE.Scene,
+    frame: BattleFrameUniforms,
+    disabledTerm: GroundDetailTerm | null = null,
+  ) {
     this.backdrop = new THREE.Mesh(quadGeometry(), backdropMaterial());
     this.backdrop.name = "battle-backdrop";
     this.backdrop.renderOrder = RENDER_ORDER.backdrop;
     this.terrainDefault = new THREE.Mesh(
       quadGeometry(),
-      terrainQuadMaterial(DEFAULT_TERRAIN_STYLE, frame),
+      terrainQuadMaterial(DEFAULT_TERRAIN_STYLE, TURF_CONTRAST.quad.default, frame, disabledTerm),
     );
     this.terrainDefault.name = "battle-terrain-quad";
     this.terrainDefault.renderOrder = RENDER_ORDER.terrain;
     this.terrainWide = new THREE.Mesh(
       quadGeometry(),
-      terrainQuadMaterial(WIDE_DETAIL_TERRAIN_STYLE, frame),
+      terrainQuadMaterial(
+        WIDE_DETAIL_TERRAIN_STYLE,
+        TURF_CONTRAST.quad.wideDetail,
+        frame,
+        disabledTerm,
+      ),
     );
     this.terrainWide.name = "battle-terrain-quad-wide";
     this.terrainWide.renderOrder = RENDER_ORDER.terrain;
@@ -400,37 +416,70 @@ export function createGroundMesh(
   const rawWaterBlend = saturateN(water).toVar();
   const waterBlend = smoothstepN(0.08, 0.55, rawWaterBlend).toVar();
 
+  // Turf exclusions are computed before the far canopy so that the same masks
+  // also protect mud, rock, and scree from the distance replacement.
+  const seamJitter = fbmN(world.mul(0.8).add(vec2(3.0, 8.0))).sub(0.5).mul(0.05);
+  const brown = smoothstepN(0.03, 0.13, color.r.sub(color.g).add(seamJitter));
+  const dark = float(1.0).sub(smoothstepN(0.26, 0.4, color.r.add(color.g).add(color.b).div(3.0)));
+  const earth = brown.mul(dark).toVar();
+  const normalZ = clamp(worldNormal.z, 0.0, 1.0).toVar();
+  let slowNz = 1;
+  let rollingNz = 1;
+  let cliffNz = 1;
+  let slopeRock: FloatNode = float(0);
+  let slowSlope: FloatNode = float(0);
+  let rockTint: FloatNode = float(0);
+  let screeTint: FloatNode = float(0);
+  let rockMask: FloatNode = float(0);
+  let screeMask: FloatNode = float(0);
+  const tintDither = hashN(floor(world.mul(1.7)))
+    .sub(0.5)
+    .mul(0.5)
+    .add(fbmN(world.mul(0.12)).sub(0.5).mul(0.24))
+    .toVar();
+  const forestTint = float(1)
+    .sub(smoothstepN(0.18, 0.95, abs(tint.sub(4).add(tintDither))))
+    .toVar();
+  if (options.slopeBands) {
+    slowNz = normalZForSlope(options.slopeBands.slowMin);
+    rollingNz = normalZForSlope(options.slopeBands.rollingMax);
+    cliffNz = normalZForSlope(options.slopeBands.cliffMin);
+    slopeRock = float(1).sub(smoothstepN(cliffNz, slowNz, normalZ)).toVar();
+    slowSlope = float(1).sub(smoothstepN(slowNz, rollingNz, normalZ)).toVar();
+    rockTint = float(1)
+      .sub(smoothstepN(0.18, 0.95, abs(tint.sub(2).add(tintDither))))
+      .toVar();
+    screeTint = float(1)
+      .sub(smoothstepN(0.18, 0.95, abs(tint.sub(6).add(tintDither))))
+      .toVar();
+    const dryOnly = float(1).sub(waterBlend);
+    rockMask = clamp(rockTint.add(slopeRock), 0, 1).mul(dryOnly).toVar();
+    screeMask = clamp(
+      screeTint.mul(0.95).add(slowSlope.mul(float(1).sub(rockTint)).mul(0.42)),
+      0,
+      1,
+    )
+      .mul(dryOnly)
+      .toVar();
+  }
+  const turfExclusion = max(earth, max(forestTint, max(rockMask, screeMask))).toVar();
+
   // Grass/ground micro-detail across scales (GROUND_WGSL fs, meadow off) —
   // NEUTRAL albedo variation; the sun + IBL environment light it.
-  const drift = fbmN(world.mul(0.08)).sub(0.5).mul(0.1);
-  const mottle = fbmN(world.mul(1.1)).sub(0.5).mul(0.13);
-  const blade = fbmN(world.mul(4.7))
-    .sub(0.5)
-    .mul(0.1)
-    .add(fbmN(world.mul(12.0)).sub(0.5).mul(0.06));
-  const detail = clamp(drift.add(mottle).add(blade).add(1.0), 0.68, 1.32);
-  let albedo = color.mul(detail);
+  let albedo = groundDetailNode(world, color, {
+    disabledTerm: options.disabledGroundDetail,
+    coverage: float(1).sub(turfExclusion),
+  });
   if (options.farGrass) {
     const farGrass = options.farGrass;
-    const cameraGround = cameraPosition.xy;
-    const viewDist = length(world.sub(cameraGround)).toVar();
-    const detailStart = max(float(5.0), farGrass.nearTierEndM.mul(0.45)).toVar();
-    const detailFull = max(detailStart.add(4.0), farGrass.denseBladeEndM).toVar();
-    const detailIn = smoothstepNode(detailStart, detailFull, viewDist).toVar();
-    const bladeSparse = smoothstepNode(farGrass.denseBladeEndM, farGrass.farGrassStartM, viewDist)
+    // Sustain past the blade edge across the whole vista. A finite outer fade
+    // created a camera-centred olive island at top-down zoom; distance fog is
+    // the sole far handoff, not a return to bare green ground.
+    const farMask = float(1)
+      .sub(waterBlend)
+      .mul(float(1).sub(turfExclusion))
       .toVar();
-    // Sustain far past the blade edge - the term hands off to distance fog,
-    // not to bare green ground (the "bare strip before the treeline").
-    const farOut = float(1.0).sub(
-      smoothstepNode(farGrass.farGrassEndM.add(300), farGrass.farGrassEndM.add(900), viewDist),
-    );
-    const farMask = detailIn.mul(farOut).mul(float(1.0).sub(waterBlend)).toVar();
     const wind = frame.time.mul(0.035);
-    const view = normalize(positionWorld.sub(cameraPosition)).toVar();
-    const incidence = clamp(abs(dot(view, worldNormal)), 0.08, 1.0).toVar();
-    const grazingT = float(1.0)
-      .sub(smoothstepN(0.2, 0.62, incidence))
-      .toVar();
     // Matte grass-canopy micro-texture at distance. ISOTROPIC world-space noise
     // only: the round-3 "bounded view-aligned stretch" divided the along-view
     // frequency, so at ground-level grazing incidence the pattern went nearly
@@ -452,57 +501,24 @@ export function createGroundMesh(
     ).toVar();
     const fineBreak = fbmN(world.mul(2.4).add(vec2(9.0, 4.0))).toVar();
     const grazingFiber = brush.mul(0.6).add(raked.mul(0.28)).add(fineBreak.mul(0.12)).toVar();
-    const nearDetailStrength = float(1.0)
-      .sub(smoothstepNode(farGrass.farGrassStartM, farGrass.farGrassEndM, viewDist))
-      .toVar();
-    const pastBladeEdge = smoothstepNode(farGrass.farGrassStartM, farGrass.farGrassEndM, viewDist)
-      .toVar();
     // Clump structure at two scales the grazing compression can still resolve:
     // a 22 m broad swell and a ~8 m mid clump. At ground level a screen band of
     // ~100 px holds tens of metres of depth, so only metre-plus features read as
     // canopy patches - fine fiber alone minifies to a flat wash (the "bald
     // featureless green midground" critique). These drive light/dark patches
     // with enough tonal spread to read as grassland, not a painted gradient.
-    const broadClump = fbmN(world.mul(0.045).add(vec2(2.5, 7.0))).toVar();
-    const midClump = fbmN(world.mul(0.14).add(vec2(6.0, 1.5))).toVar();
-    // fbm clusters around 0.5, so a raw blend only paints a narrow tonal band -
-    // the "flat green wash" read. Expand the contrast so the clumps swing the
-    // full light->dark range and register as canopy patches through the haze.
-    const canopy = smoothstepN(
-      0.34,
-      0.66,
-      broadClump.mul(0.62).add(midClump.mul(0.38)),
-    ).toVar();
-    // Tone family leans toward the blade canopy's desaturated khaki - a
-    // green far field against a khaki canopy flags the blade edge by hue
-    // alone (unprimed critique). Wide low->high spread so the clumps read.
-    const farTone = mix(
-      rgbNode(MEADOW.farGrass.low),
-      rgbNode(MEADOW.farGrass.high),
-      clamp(canopy.mul(0.78).add(grazingFiber.mul(0.22)), 0.0, 1.0),
-    );
-    const grazingShadow = float(1.0)
-      .sub(canopy)
-      .mul(0.55)
-      .add(grazingFiber.mul(0.22))
-      .add(raked.mul(0.14));
-    const brushedTone = mix(
-      farTone,
-      rgbNode(MEADOW.farGrass.shadow),
-      clamp(grazingShadow, 0.0, 0.7),
-    );
-    const grazingLift = mix(
-      brushedTone,
-      rgbNode(MEADOW.farGrass.lift),
-      clamp(canopy.mul(0.32).add(fineBreak.mul(0.1)), 0.0, 0.6),
-    );
-    const bladeZoneDetail = bladeSparse.mul(nearDetailStrength).toVar();
-    const postEdgeDetail = max(bladeZoneDetail, pastBladeEdge).toVar();
-    const detailAmount = mix(float(0.5), float(0.95), postEdgeDetail).add(grazingT.mul(0.08));
+    // One fixed khaki anchor keeps hue stable. Canopy and fiber now scale all
+    // channels together at low amplitude instead of sweeping between four
+    // differently hued palette endpoints (the measured camouflage culprit).
+    const grazingLift = turfCanopyNode(world, grazingFiber);
+    const canopyEnabled = options.disabledGroundDetail === "canopy" ? 0 : 1;
     albedo = mix(
       albedo,
       grazingLift,
-      farMask.mul(farGrass.terrainDetailStrength).mul(clamp(detailAmount, 0.0, 0.98)),
+      farMask
+        .mul(farGrass.terrainDetailStrength)
+        .mul(canopyEnabled)
+        .mul(TURF_CONTRAST.canopy.mixStrength),
     );
   }
   // Churn: trodden mud reads as broken ground (brown AND dark keys the earth).
@@ -512,14 +528,10 @@ export function createGroundMesh(
   // patch (the "1px stair-stepped contour" critique). Requiring r clearly
   // above g - jittered so any residual edge dissolves - keeps churn on real
   // trodden mud (r >> g) and off the seam.
-  const seamJitter = fbmN(world.mul(0.8).add(vec2(3.0, 8.0))).sub(0.5).mul(0.05);
-  const brown = smoothstepN(0.03, 0.13, color.r.sub(color.g).add(seamJitter));
   // Keep churn OFF the grass->dirt seam: a patch boundary sweeps through
   // mid-luma (~0.44), so a dark window that reached that high painted a churn
   // ring at every patch edge. Real trodden mud floors well below 0.4 - the
   // window now ends there, so only genuine dark earth (deployment churn) fires.
-  const dark = float(1.0).sub(smoothstepN(0.26, 0.4, color.r.add(color.g).add(color.b).div(3.0)));
-  const earth = brown.mul(dark);
   const clods = fbmN(world.mul(0.07))
     .mul(0.6)
     .add(fbmN(world.mul(0.16).add(vec2(5.0, 2.0))).mul(0.4));
@@ -533,29 +545,6 @@ export function createGroundMesh(
     // slope = sqrt(dzdx^2 + dzdy^2). The mesh normal encodes that same slope
     // as normal.z = 1 / sqrt(1 + slope^2), because generated maps arrive here
     // with reliefScale=1.0 after the short-lived hand-map exaggeration seam.
-    const slowNz = normalZForSlope(options.slopeBands.slowMin);
-    const rollingNz = normalZForSlope(options.slopeBands.rollingMax);
-    const cliffNz = normalZForSlope(options.slopeBands.cliffMin);
-    const normalZ = clamp(worldNormal.z, 0.0, 1.0).toVar();
-    const slopeRock = float(1.0)
-      .sub(smoothstepN(cliffNz, slowNz, normalZ))
-      .toVar();
-    const slowSlope = float(1.0)
-      .sub(smoothstepN(slowNz, rollingNz, normalZ))
-      .toVar();
-    const tintDither = hashN(floor(world.mul(1.7)))
-      .sub(0.5)
-      .mul(0.5)
-      .add(fbmN(world.mul(0.12)).sub(0.5).mul(0.24))
-      .toVar();
-    const rockTint = float(1.0)
-      .sub(smoothstepN(0.18, 0.95, abs(tint.sub(2.0).add(tintDither))))
-      .toVar();
-    const screeTint = float(1.0)
-      .sub(smoothstepN(0.18, 0.95, abs(tint.sub(6.0).add(tintDither))))
-      .toVar();
-    const dryOnly = float(1.0).sub(waterBlend);
-
     const warp = fbmN(world.mul(0.035))
       .mul(2.2)
       .add(fbmN(world.mul(0.12).add(vec2(4.0, 9.0))).mul(0.7))
@@ -586,14 +575,6 @@ export function createGroundMesh(
     );
     scree = mix(scree, vec3(0.3, 0.3, 0.27), pebble.mul(0.28));
 
-    const rockMask = clamp(rockTint.add(slopeRock), 0.0, 1.0).mul(dryOnly).toVar();
-    const screeMask = clamp(
-      screeTint.mul(0.95).add(slowSlope.mul(float(1.0).sub(rockTint)).mul(0.42)),
-      0.0,
-      1.0,
-    )
-      .mul(dryOnly)
-      .toVar();
     const benchCreep = clamp(rockMask.add(screeTint.mul(0.45)), 0.0, 1.0)
       .mul(smoothstepN(slowNz, rollingNz, normalZ))
       .mul(smoothstepN(0.42, 0.84, fbmN(world.mul(0.18).add(vec2(6.0, 1.0)))))

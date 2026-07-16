@@ -36,6 +36,7 @@ import {
   type BattleTacticalLineFrame,
 } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
 import { seaDisplacementSourceFromParam } from "../../../packages/photoreal-renderer/src/battle/seaLayer";
+import { groundDetailTermFromParam } from "../../../packages/photoreal-renderer/src/battle/groundDetail";
 import { DEFAULT_BATTLE_ENVIRONMENT } from "../../../packages/game-renderer/src/environment/environment";
 import { BATTLE_RELIEF_EXAGGERATION } from "../../../packages/game-renderer/src/battle/terrainFeatures";
 import { UNIT_INFO } from "../../../packages/game-renderer/src/battle/unitInfoLayout";
@@ -64,6 +65,8 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
   const params = ctx.params;
   const generatedMap = params.get("map") === "gen";
   const environment = params.get("env") ?? (generatedMap ? DEFAULT_BATTLE_ENVIRONMENT : null);
+  // Lab-only cold-boot attribution: ?detail=X disables exactly one term.
+  const disabledGroundDetail = groundDetailTermFromParam(params.get("detail"));
   // ?ref=1: full-viewport canvas (the compare-screenshots framing — the
   // production #battlefield also fills its viewport).
   if (params.get("ref") === "1") ctx.root.classList.add("reference-shot");
@@ -74,6 +77,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       shadows: params.get("shadows"),
       sea: seaDisplacementSourceFromParam(params.get("sea")),
       post: params.get("post"),
+      disabledGroundDetail,
     }),
   ]);
   if (params.get("bloom") === "off") world.setBloomEnabled(false);
@@ -493,7 +497,12 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
   const fixedT = params.has("t") ? Number(params.get("t")) : null;
   const publish = createPhotorealStatsPublisher(world.world, "photoreal-battle", () => {
     const s = world.stats();
-    return { renderStats: s, soldiers: s.soldiers, expectedSoldiers: s.expectedSoldiers };
+    return {
+      renderStats: s,
+      soldiers: s.soldiers,
+      expectedSoldiers: s.expectedSoldiers,
+      groundDetail: s.groundDetail,
+    };
   });
 
   const pitchOverride = params.has("pitch") ? Number(params.get("pitch")) : null;
@@ -553,6 +562,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       <tr><td>scenery</td><td>${rs.terrain?.scenery ?? 0}</td></tr>
       <tr><td>sea planes</td><td>${rs.terrain?.sealedEdges.join(", ") || "none"}</td></tr>
       <tr><td>clay</td><td>${clayMode ? "on" : "off"}</td></tr>
+      <tr><td>ground detail off</td><td>${disabledGroundDetail ?? "none"}</td></tr>
       <tr><td>draw calls</td><td>${s.stats.drawCalls}</td></tr>
       <tr><td>median ms</td><td>${s.stats.medianMs?.toFixed(2) ?? "warmup"}</td></tr>
       <tr><td>gpu ms</td><td>${s.stats.gpuTimeMs?.toFixed(3) ?? "pending"}</td></tr>

@@ -1,0 +1,103 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-07-16T00:00:00.000Z",
+  "target": "http://127.0.0.1:5193",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 1,
+  "status": "fail",
+  "scenarios": [
+    {
+      "name": "battle-smoke",
+      "file": "battle/battle-smoke.mjs",
+      "kind": "flow",
+      "tier": "quick"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-smoke",
+      "name": "full battle spawned",
+      "ok": true,
+      "detail": "15560 soldiers, 40 units"
+    },
+    {
+      "scenario": "battle-smoke",
+      "name": "battle camera zoom-out frames a tactical overview",
+      "ok": true,
+      "detail": "visible 2780x1684, field 2400x1600"
+    },
+    {
+      "scenario": "battle-smoke",
+      "name": "battle camera cannot pan the look target off the field",
+      "ok": true,
+      "detail": "target (0.0,0.0) field [-1200,1200]x[-800,800]"
+    },
+    {
+      "scenario": "battle-smoke",
+      "name": "snapshot battle-initial",
+      "ok": false,
+      "detail": "2376 px differ (0.2320%) — see shots/diff/battle-initial.png"
+    },
+    {
+      "scenario": "battle-smoke",
+      "name": "snapshot battle-banner",
+      "ok": true,
+      "detail": "201 px differ (0.0196%)"
+    },
+    {
+      "scenario": "battle-smoke",
+      "name": "the field manual opens in-game",
+      "ok": true,
+      "detail": "13231 chars"
+    },
+    {
+      "scenario": "battle-smoke",
+      "name": "snapshot battle-manual",
+      "ok": true,
+      "detail": "201 px differ (0.0196%)"
+    },
+    {
+      "scenario": "battle-smoke",
+      "name": "ordered unit marches",
+      "ok": true,
+      "detail": "soldier moved 15.8 m"
+    },
+    {
+      "scenario": "battle-smoke",
+      "name": "unit is in motion",
+      "ok": true,
+      "detail": "speed 1.70 m/s"
+    },
+    {
+      "scenario": "battle-smoke",
+      "name": "cohesion responds to maneuver",
+      "ok": true,
+      "detail": "cohesion 0.843"
+    },
+    {
+      "scenario": "battle-smoke",
+      "name": "tick under budget",
+      "ok": true,
+      "detail": "16.20 ms avg at 15560 soldiers"
+    },
+    {
+      "scenario": "battle-smoke",
+      "name": "frame rate alive (headless/software GL)",
+      "ok": true,
+      "detail": "46 fps"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [
+    "battle-smoke: snapshot battle-initial"
+  ],
+  "pageErrors": []
+}

@@ -1,0 +1,128 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-07-16T00:00:00.000Z",
+  "target": "http://127.0.0.1:5193",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 1,
+  "status": "fail",
+  "scenarios": [
+    {
+      "name": "battle-photoreal-lighting",
+      "file": "battle/photoreal-lighting.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-photoreal-lighting",
+      "name": "golden-hour: identity maps through the ONE preset owner (golden)",
+      "ok": true,
+      "detail": "{\"environment\":\"golden\",\"source\":\"CIVSIM_ENVIRONMENTS.golden\"}"
+    },
+    {
+      "scenario": "battle-photoreal-lighting",
+      "name": "golden-hour: crowd publishes the soldier material identity",
+      "ok": true,
+      "detail": "{\"identity\":\"soldier-assets-placeholder-pbr-v1\",\"channels\":[\"albedo\",\"normal\",\"orm\",\"factionMask\"],\"mapping\":{\"albedo\":\"cColor.rgb\",\"normal\":\"cNormal, VAT-skinned into world space\",\"orm\":\"occlusion/roughness/metalness, canonical order from skinnedPipeline\",\"factionMask\":\"high-blue cColor armband accent channel\"},\"masks\":{\"bronze\":{\"r\":[0.58,0.78],\"g\":[0.34,0.52],\"maxB\":[0.28,0.46]},\"iron\":{\"greySpreadScale\":6.5,\"brightness\":[0.44,0.66]},\"linen\":{\"r\":[0.58,0.76],\"g\":[0.48,0.66],\"b\":[0.32,0.48]},\"leather\":{\"r\":[0.24,0.42],\"g\":[0.16,0.32],\"maxB\":[0.24,0.42]},\"skin\":{\"r\":[0.62,0.78],\"g\":[0.42,0.58],\"b\":[0.24,0.42]},\"factionMask\":{\"blueDelta\":[0.18,0.55]}},\"pbr\":{\"roughness\":{\"bronze\":0.46,\"iron\":0.38,\"linen\":0.9,\"leather\":0.74,\"skin\":0.66,\"default\":0.84},\"metalness\":{\"bronze\":0.82,\"iron\":0.92},\"contactAo\":{\"band\":0.42,\"strength\":0.55}},\"classes\":{\"0\":{\"name\":\"heavy-sword\",\"material\":\"heavy\"},\"1\":{\"name\":\"light-spear\",\"material\":\"light\"},\"2\":{\"name\":\"longsword\",\"material\":\"medium\"},\"3\":{\"name\":\"phalanx\",\"material\":\"heavy\"},\"4\":{\"name\":\"archers\",\"material\":\"cloth\"},\"5\":{\"name\":\"skirmishers\",\"material\":\"light\"},\"6\":{\"name\":\"shock-cav\",\"material\":\"heavy\"},\"7\":{\"name\":\"horse-archers\",\"material\":\"light\"},\"8\":{\"name\":\"artillery-crew\",\"material\":\"cloth\"},\"9\":{\"name\":\"peasant\",\"material\":\"rag\"},\"10\":{\"name\":\"light-sword\",\"material\":\"light\"},\"11\":{\"name\":\"heavy-spear\",\"material\":\"heavy\"},\"12\":{\"name\":\"medium-infantry\",\"material\":\"medium\"},\"13\":{\"name\":\"medium-spear\",\"material\":\"medium\"},\"14\":{\"name\":\"medium-phalanx\",\"material\":\"medium\"},\"15\":{\"name\":\"shock-cav-sidearm\",\"material\":\"heavy\"},\"16\":{\"name\":\"heavy-phalanx-rest\",\"material\":\"heavy\"},\"17\":{\"name\":\"medium-phalanx-rest\",\"material\":\"medium\"},\"18\":{\"name\":\"heavy-phalanx-sidearm\",\"material\":\"heavy\"},\"19\":{\"name\":\"medium-phalanx-sidearm\",\"material\":\"medium\"}}}"
+    },
+    {
+      "scenario": "battle-photoreal-lighting",
+      "name": "fixed setTime renders byte-identical frames under the physical lighting/materials",
+      "ok": true,
+      "detail": "{\"bytesA\":1003886,\"bytesB\":1003886}"
+    },
+    {
+      "scenario": "battle-photoreal-lighting",
+      "name": "snapshot photoreal-lighting/golden-hour-crowd-mid",
+      "ok": false,
+      "detail": "5731 px differ (2.7983%) — see shots/diff/photoreal-lighting/golden-hour-crowd-mid.png"
+    },
+    {
+      "scenario": "battle-photoreal-lighting",
+      "name": "noon: identity maps through the ONE preset owner (noon)",
+      "ok": true,
+      "detail": "{\"environment\":\"noon\",\"source\":\"CIVSIM_ENVIRONMENTS.noon\"}"
+    },
+    {
+      "scenario": "battle-photoreal-lighting",
+      "name": "noon: crowd publishes the soldier material identity",
+      "ok": true,
+      "detail": "{\"identity\":\"soldier-assets-placeholder-pbr-v1\",\"channels\":[\"albedo\",\"normal\",\"orm\",\"factionMask\"],\"mapping\":{\"albedo\":\"cColor.rgb\",\"normal\":\"cNormal, VAT-skinned into world space\",\"orm\":\"occlusion/roughness/metalness, canonical order from skinnedPipeline\",\"factionMask\":\"high-blue cColor armband accent channel\"},\"masks\":{\"bronze\":{\"r\":[0.58,0.78],\"g\":[0.34,0.52],\"maxB\":[0.28,0.46]},\"iron\":{\"greySpreadScale\":6.5,\"brightness\":[0.44,0.66]},\"linen\":{\"r\":[0.58,0.76],\"g\":[0.48,0.66],\"b\":[0.32,0.48]},\"leather\":{\"r\":[0.24,0.42],\"g\":[0.16,0.32],\"maxB\":[0.24,0.42]},\"skin\":{\"r\":[0.62,0.78],\"g\":[0.42,0.58],\"b\":[0.24,0.42]},\"factionMask\":{\"blueDelta\":[0.18,0.55]}},\"pbr\":{\"roughness\":{\"bronze\":0.46,\"iron\":0.38,\"linen\":0.9,\"leather\":0.74,\"skin\":0.66,\"default\":0.84},\"metalness\":{\"bronze\":0.82,\"iron\":0.92},\"contactAo\":{\"band\":0.42,\"strength\":0.55}},\"classes\":{\"0\":{\"name\":\"heavy-sword\",\"material\":\"heavy\"},\"1\":{\"name\":\"light-spear\",\"material\":\"light\"},\"2\":{\"name\":\"longsword\",\"material\":\"medium\"},\"3\":{\"name\":\"phalanx\",\"material\":\"heavy\"},\"4\":{\"name\":\"archers\",\"material\":\"cloth\"},\"5\":{\"name\":\"skirmishers\",\"material\":\"light\"},\"6\":{\"name\":\"shock-cav\",\"material\":\"heavy\"},\"7\":{\"name\":\"horse-archers\",\"material\":\"light\"},\"8\":{\"name\":\"artillery-crew\",\"material\":\"cloth\"},\"9\":{\"name\":\"peasant\",\"material\":\"rag\"},\"10\":{\"name\":\"light-sword\",\"material\":\"light\"},\"11\":{\"name\":\"heavy-spear\",\"material\":\"heavy\"},\"12\":{\"name\":\"medium-infantry\",\"material\":\"medium\"},\"13\":{\"name\":\"medium-spear\",\"material\":\"medium\"},\"14\":{\"name\":\"medium-phalanx\",\"material\":\"medium\"},\"15\":{\"name\":\"shock-cav-sidearm\",\"material\":\"heavy\"},\"16\":{\"name\":\"heavy-phalanx-rest\",\"material\":\"heavy\"},\"17\":{\"name\":\"medium-phalanx-rest\",\"material\":\"medium\"},\"18\":{\"name\":\"heavy-phalanx-sidearm\",\"material\":\"heavy\"},\"19\":{\"name\":\"medium-phalanx-sidearm\",\"material\":\"medium\"}}}"
+    },
+    {
+      "scenario": "battle-photoreal-lighting",
+      "name": "snapshot photoreal-lighting/noon-crowd-mid",
+      "ok": false,
+      "detail": "7237 px differ (3.5337%) — see shots/diff/photoreal-lighting/noon-crowd-mid.png"
+    },
+    {
+      "scenario": "battle-photoreal-lighting",
+      "name": "dusk: identity maps through the ONE preset owner (dusk)",
+      "ok": true,
+      "detail": "{\"environment\":\"dusk\",\"source\":\"CIVSIM_ENVIRONMENTS.dusk\"}"
+    },
+    {
+      "scenario": "battle-photoreal-lighting",
+      "name": "dusk: crowd publishes the soldier material identity",
+      "ok": true,
+      "detail": "{\"identity\":\"soldier-assets-placeholder-pbr-v1\",\"channels\":[\"albedo\",\"normal\",\"orm\",\"factionMask\"],\"mapping\":{\"albedo\":\"cColor.rgb\",\"normal\":\"cNormal, VAT-skinned into world space\",\"orm\":\"occlusion/roughness/metalness, canonical order from skinnedPipeline\",\"factionMask\":\"high-blue cColor armband accent channel\"},\"masks\":{\"bronze\":{\"r\":[0.58,0.78],\"g\":[0.34,0.52],\"maxB\":[0.28,0.46]},\"iron\":{\"greySpreadScale\":6.5,\"brightness\":[0.44,0.66]},\"linen\":{\"r\":[0.58,0.76],\"g\":[0.48,0.66],\"b\":[0.32,0.48]},\"leather\":{\"r\":[0.24,0.42],\"g\":[0.16,0.32],\"maxB\":[0.24,0.42]},\"skin\":{\"r\":[0.62,0.78],\"g\":[0.42,0.58],\"b\":[0.24,0.42]},\"factionMask\":{\"blueDelta\":[0.18,0.55]}},\"pbr\":{\"roughness\":{\"bronze\":0.46,\"iron\":0.38,\"linen\":0.9,\"leather\":0.74,\"skin\":0.66,\"default\":0.84},\"metalness\":{\"bronze\":0.82,\"iron\":0.92},\"contactAo\":{\"band\":0.42,\"strength\":0.55}},\"classes\":{\"0\":{\"name\":\"heavy-sword\",\"material\":\"heavy\"},\"1\":{\"name\":\"light-spear\",\"material\":\"light\"},\"2\":{\"name\":\"longsword\",\"material\":\"medium\"},\"3\":{\"name\":\"phalanx\",\"material\":\"heavy\"},\"4\":{\"name\":\"archers\",\"material\":\"cloth\"},\"5\":{\"name\":\"skirmishers\",\"material\":\"light\"},\"6\":{\"name\":\"shock-cav\",\"material\":\"heavy\"},\"7\":{\"name\":\"horse-archers\",\"material\":\"light\"},\"8\":{\"name\":\"artillery-crew\",\"material\":\"cloth\"},\"9\":{\"name\":\"peasant\",\"material\":\"rag\"},\"10\":{\"name\":\"light-sword\",\"material\":\"light\"},\"11\":{\"name\":\"heavy-spear\",\"material\":\"heavy\"},\"12\":{\"name\":\"medium-infantry\",\"material\":\"medium\"},\"13\":{\"name\":\"medium-spear\",\"material\":\"medium\"},\"14\":{\"name\":\"medium-phalanx\",\"material\":\"medium\"},\"15\":{\"name\":\"shock-cav-sidearm\",\"material\":\"heavy\"},\"16\":{\"name\":\"heavy-phalanx-rest\",\"material\":\"heavy\"},\"17\":{\"name\":\"medium-phalanx-rest\",\"material\":\"medium\"},\"18\":{\"name\":\"heavy-phalanx-sidearm\",\"material\":\"heavy\"},\"19\":{\"name\":\"medium-phalanx-sidearm\",\"material\":\"medium\"}}}"
+    },
+    {
+      "scenario": "battle-photoreal-lighting",
+      "name": "snapshot photoreal-lighting/dusk-crowd-mid",
+      "ok": true,
+      "detail": "3699 px differ (1.8062%)"
+    },
+    {
+      "scenario": "battle-photoreal-lighting",
+      "name": "overcast-foggy: identity maps through the ONE preset owner (overcast-highland)",
+      "ok": true,
+      "detail": "{\"environment\":\"overcast-highland\",\"source\":\"CIVSIM_ENVIRONMENTS.overcast-highland\"}"
+    },
+    {
+      "scenario": "battle-photoreal-lighting",
+      "name": "overcast-foggy: crowd publishes the soldier material identity",
+      "ok": true,
+      "detail": "{\"identity\":\"soldier-assets-placeholder-pbr-v1\",\"channels\":[\"albedo\",\"normal\",\"orm\",\"factionMask\"],\"mapping\":{\"albedo\":\"cColor.rgb\",\"normal\":\"cNormal, VAT-skinned into world space\",\"orm\":\"occlusion/roughness/metalness, canonical order from skinnedPipeline\",\"factionMask\":\"high-blue cColor armband accent channel\"},\"masks\":{\"bronze\":{\"r\":[0.58,0.78],\"g\":[0.34,0.52],\"maxB\":[0.28,0.46]},\"iron\":{\"greySpreadScale\":6.5,\"brightness\":[0.44,0.66]},\"linen\":{\"r\":[0.58,0.76],\"g\":[0.48,0.66],\"b\":[0.32,0.48]},\"leather\":{\"r\":[0.24,0.42],\"g\":[0.16,0.32],\"maxB\":[0.24,0.42]},\"skin\":{\"r\":[0.62,0.78],\"g\":[0.42,0.58],\"b\":[0.24,0.42]},\"factionMask\":{\"blueDelta\":[0.18,0.55]}},\"pbr\":{\"roughness\":{\"bronze\":0.46,\"iron\":0.38,\"linen\":0.9,\"leather\":0.74,\"skin\":0.66,\"default\":0.84},\"metalness\":{\"bronze\":0.82,\"iron\":0.92},\"contactAo\":{\"band\":0.42,\"strength\":0.55}},\"classes\":{\"0\":{\"name\":\"heavy-sword\",\"material\":\"heavy\"},\"1\":{\"name\":\"light-spear\",\"material\":\"light\"},\"2\":{\"name\":\"longsword\",\"material\":\"medium\"},\"3\":{\"name\":\"phalanx\",\"material\":\"heavy\"},\"4\":{\"name\":\"archers\",\"material\":\"cloth\"},\"5\":{\"name\":\"skirmishers\",\"material\":\"light\"},\"6\":{\"name\":\"shock-cav\",\"material\":\"heavy\"},\"7\":{\"name\":\"horse-archers\",\"material\":\"light\"},\"8\":{\"name\":\"artillery-crew\",\"material\":\"cloth\"},\"9\":{\"name\":\"peasant\",\"material\":\"rag\"},\"10\":{\"name\":\"light-sword\",\"material\":\"light\"},\"11\":{\"name\":\"heavy-spear\",\"material\":\"heavy\"},\"12\":{\"name\":\"medium-infantry\",\"material\":\"medium\"},\"13\":{\"name\":\"medium-spear\",\"material\":\"medium\"},\"14\":{\"name\":\"medium-phalanx\",\"material\":\"medium\"},\"15\":{\"name\":\"shock-cav-sidearm\",\"material\":\"heavy\"},\"16\":{\"name\":\"heavy-phalanx-rest\",\"material\":\"heavy\"},\"17\":{\"name\":\"medium-phalanx-rest\",\"material\":\"medium\"},\"18\":{\"name\":\"heavy-phalanx-sidearm\",\"material\":\"heavy\"},\"19\":{\"name\":\"medium-phalanx-sidearm\",\"material\":\"medium\"}}}"
+    },
+    {
+      "scenario": "battle-photoreal-lighting",
+      "name": "snapshot photoreal-lighting/overcast-foggy-crowd-mid",
+      "ok": true,
+      "detail": "1127 px differ (0.5503%)"
+    },
+    {
+      "scenario": "battle-photoreal-lighting",
+      "name": "preset swap golden-hour → overcast-foggy moves the surface response (mean|Δ| > 4)",
+      "ok": true,
+      "detail": "{\"meanAbsDiff\":18.5}"
+    },
+    {
+      "scenario": "battle-photoreal-lighting",
+      "name": "preset swap golden-hour → noon moves the surface response (mean|Δ| > 4)",
+      "ok": true,
+      "detail": "{\"meanAbsDiff\":16.68}"
+    },
+    {
+      "scenario": "battle-photoreal-lighting",
+      "name": "preset swap golden-hour → dusk moves the surface response (mean|Δ| > 4)",
+      "ok": true,
+      "detail": "{\"meanAbsDiff\":21.57}"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [
+    "battle-photoreal-lighting: snapshot photoreal-lighting/golden-hour-crowd-mid",
+    "battle-photoreal-lighting: snapshot photoreal-lighting/noon-crowd-mid"
+  ],
+  "pageErrors": []
+}

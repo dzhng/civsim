@@ -557,17 +557,17 @@ export function createGroundMesh(
       ),
     ).toVar();
     const fineBreak = fbmN(world.mul(2.4).add(vec2(9.0, 4.0))).toVar();
-    const grazingFiber = brush.mul(0.6).add(raked.mul(0.28)).add(fineBreak.mul(0.12)).toVar();
+    const grazingFine = brush.mul(0.6).add(raked.mul(0.28)).add(fineBreak.mul(0.12)).toVar();
     // Clump structure at two scales the grazing compression can still resolve:
     // a 22 m broad swell and a ~8 m mid clump. At ground level a screen band of
     // ~100 px holds tens of metres of depth, so only metre-plus features read as
-    // canopy patches - fine fiber alone minifies to a flat wash (the "bald
+    // canopy patches - fine noise alone minifies to a flat wash (the "bald
     // featureless green midground" critique). These drive light/dark patches
     // with enough tonal spread to read as grassland, not a painted gradient.
-    // One fixed khaki anchor keeps hue stable. Canopy and fiber now scale all
+    // One fixed khaki anchor keeps hue stable. Canopy and fine noise scale all
     // channels together at low amplitude instead of sweeping between four
     // differently hued palette endpoints (the measured camouflage culprit).
-    const grazingLift = turfCanopyNode(world, grazingFiber);
+    const grazingLift = turfCanopyNode(world, grazingFine);
     const canopyEnabled = options.disabledGroundDetail === "canopy" ? 0 : 1;
     albedo = mix(
       albedo,

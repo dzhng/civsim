@@ -22,4 +22,3 @@ The hardware `battle-perf-30k` oracle ran on Apple Metal with 30,560 soldiers.
 Mid measured 27.12 ms median / 30.04 ms p95 GPU; vista measured 22.84 ms /
 27.76 ms. Continuous pan, zoom, wheel burst, and close-fill rAF p95 all remained
 below 23.4 ms. Every locked 33 ms assertion passed.
-

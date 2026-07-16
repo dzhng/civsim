@@ -33,7 +33,7 @@ export const TURF_CONTRAST = {
     anchorLift: 1.015,
     anchorWarmth: 0.048,
     valueSpread: 0.14,
-    fiberSpread: 0.04,
+    fineSpread: 0.04,
     valueMinimum: 0.88,
     valueMaximum: 1.12,
     mixStrength: 0.42,
@@ -174,7 +174,7 @@ export function groundDetailNode(
 export function turfCanopyFromSignalsNode(
   broad: FloatNode,
   mid: FloatNode,
-  fiber: FloatNode,
+  fine: FloatNode,
 ): Vec3Node {
   const c = TURF_CONTRAST.canopy;
   const shape = TURF_SHAPE.canopy;
@@ -189,7 +189,7 @@ export function turfCanopyFromSignalsNode(
     .mul(c.anchorLift)
     .mul(vec3(1 + c.anchorWarmth, 1, 1 - c.anchorWarmth));
   const value = clamp(
-    float(1).add(canopy.sub(0.5).mul(c.valueSpread)).add(fiber.sub(0.5).mul(c.fiberSpread)),
+    float(1).add(canopy.sub(0.5).mul(c.valueSpread)).add(fine.sub(0.5).mul(c.fineSpread)),
     c.valueMinimum,
     c.valueMaximum,
   );
@@ -197,11 +197,11 @@ export function turfCanopyFromSignalsNode(
 }
 
 /** The fixed-hue far-turf family shared by playable and vista ground. */
-export function turfCanopyNode(world: Vec2Node, fiber: FloatNode): Vec3Node {
+export function turfCanopyNode(world: Vec2Node, fine: FloatNode): Vec3Node {
   const shape = TURF_SHAPE.canopy;
   const broad = fbmN(world.mul(shape.broadScale).add(vec2(2.5, 7))).toVar();
   const mid = fbmN(world.mul(shape.midScale).add(vec2(6, 1.5))).toVar();
-  return turfCanopyFromSignalsNode(broad, mid, fiber);
+  return turfCanopyFromSignalsNode(broad, mid, fine);
 }
 
 function smoothstep(low: number, high: number, value: number): number {

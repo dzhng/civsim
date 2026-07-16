@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Battle ground turf — final contact sheet</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #eee3c6;
+      --muted: #b8aa87;
+      --bronze: #b88545;
+      --line: #4b402d;
+      --panel: #171713;
+      --ground: #0d0e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--ground);
+      color: var(--ink);
+      font: 15px/1.45 ui-serif, Georgia, serif;
+    }
+    main { width: min(1500px, 100%); margin: 0 auto; padding: 28px; }
+    header { border-bottom: 1px solid var(--line); margin-bottom: 28px; padding-bottom: 18px; }
+    h1, h2 { font-weight: 500; letter-spacing: .025em; margin: 0; }
+    h1 { font-size: clamp(24px, 4vw, 42px); }
+    h2 { color: var(--bronze); font-size: 19px; margin-bottom: 12px; }
+    header p, figcaption { color: var(--muted); }
+    header p { margin: 6px 0 0; }
+    section { margin: 0 0 34px; }
+    .grid { display: grid; gap: 14px; grid-template-columns: repeat(12, minmax(0, 1fr)); }
+    figure { background: var(--panel); border: 1px solid var(--line); margin: 0; min-width: 0; }
+    figure.third { grid-column: span 4; }
+    figure.half { grid-column: span 6; }
+    figure.quarter { grid-column: span 3; }
+    img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: #080906; }
+    .native img { aspect-ratio: auto; object-fit: contain; }
+    .battle img { aspect-ratio: 16 / 7; object-position: center top; }
+    .top img { object-position: center 47%; }
+    figcaption { padding: 9px 11px 10px; }
+    figcaption strong { color: var(--ink); display: block; font-weight: 500; }
+    @media (max-width: 920px) {
+      figure.third, figure.quarter { grid-column: span 6; }
+    }
+    @media (max-width: 620px) {
+      main { padding: 18px; }
+      figure.third, figure.half, figure.quarter { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Battle ground turf</h1>
+    <p>Reference intent, inherited ground, and the final production surface at battle camera pitch.</p>
+  </header>
+
+  <section>
+    <h2>RTS read · matched ground crop plus reference intent</h2>
+    <div class="grid">
+      <figure class="quarter native"><img src="../assets/ref-rts-meadow.png" alt="RTS meadow reference"><figcaption><strong>Reference intent</strong>Broad living field structure without woven grain.</figcaption></figure>
+      <figure class="quarter native"><img src="../assets/telemetry/corrected-before-rts.png" alt="Inherited RTS ground crop"><figcaption><strong>Before · fixed crop</strong>Camouflage-scale value patches.</figcaption></figure>
+      <figure class="quarter native"><img src="../assets/telemetry/corrected-after-rts.png" alt="Corrected RTS ground crop"><figcaption><strong>Final · same crop</strong>Lower-amplitude macro field; no synthetic fibers.</figcaption></figure>
+      <figure class="quarter"><img src="../../../web/shots/battle/ground-turf/full-rts.png" alt="Final RTS production context"><figcaption><strong>Final context</strong>Real blades own the near field and formations stay readable.</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="top">
+    <h2>Top-down read · matched production frame plus reference intent</h2>
+    <div class="grid">
+      <figure class="quarter native"><img src="../assets/ref-topdown-turf.png" alt="Top-down turf reference"><figcaption><strong>Reference intent</strong>Fine irregularity without repeating weave.</figcaption></figure>
+      <figure class="quarter"><img src="../assets/before-photoreal-parity.png" alt="Inherited top-down production frame"><figcaption><strong>Before · fixed frame</strong>Inherited open-ground palette and contrast.</figcaption></figure>
+      <figure class="quarter"><img src="../../../web/shots/battle/photoreal-parity.png" alt="Final top-down production frame"><figcaption><strong>Final · same frame</strong>Shared meadow palette with restrained macro variation.</figcaption></figure>
+      <figure class="quarter"><img src="../../../web/shots/battle/ground-turf/full-topdown.png" alt="Final top-down ownership fixture"><figcaption><strong>Final control</strong>Dedicated fixed-seed ownership frame.</figcaption></figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>Earth ownership · soft boundary, hard category</h2>
+    <div class="grid">
+      <figure class="quarter"><img src="../../../web/shots/battle/ground-turf/dirt-edge.png" alt="Mud turf edge close-up"><figcaption><strong>Mud edge</strong>Irregular narrow feather without a dark halo.</figcaption></figure>
+      <figure class="quarter"><img src="../../../web/shots/battle/ground-turf/road-edge.png" alt="Road turf edge close-up"><figcaption><strong>Road edge</strong>Narrow grass spill without a dark halo.</figcaption></figure>
+      <figure class="quarter native"><img src="../../../web/shots/battle/ground-turf/road-scree-rts.png" alt="Mud circle, road bar, and scree circle at RTS pitch"><figcaption><strong>Category control</strong>Top: mud. Middle: road. Bottom: scree. Only earth categories feather.</figcaption></figure>
+      <figure class="quarter"><img src="../../../web/shots/battle/ground-turf/edge-ruler.png" alt="Edge width telemetry ruler"><figcaption><strong>Width context</strong>Visual companion to measured 1.747 m mud and 1.431 m road transitions.</figcaption></figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>World continuity · playable → vista → quad</h2>
+    <div class="grid">
+      <figure class="half native"><img src="../../../web/shots/battle/battle-genmap-vista/golden.png" alt="Full golden-hour battlefield across playable, vista, and terrain quad"><figcaption><strong>Golden full frame</strong>Playable ground, vista band, and distant quad remain legible as one world.</figcaption></figure>
+      <figure class="half native"><img src="../../../web/shots/battle/battle-genmap-vista/overcast.png" alt="Full overcast battlefield across playable, vista, and terrain quad"><figcaption><strong>Overcast full frame</strong>The same three-owner composition under flat light.</figcaption></figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>Lighting preservation and battle composition</h2>
+    <div class="grid">
+      <figure class="third"><img src="../../../web/shots/battle/photoreal-lighting/golden-hour-crowd-mid.png" alt="Golden-hour battle crowd"><figcaption><strong>Golden hour</strong>Warm light remains the owner of time-of-day color.</figcaption></figure>
+      <figure class="third"><img src="../../../web/shots/battle/photoreal-lighting/overcast-foggy-crowd-mid.png" alt="Overcast battle crowd"><figcaption><strong>Overcast</strong>Turf holds value separation without camouflage noise.</figcaption></figure>
+      <figure class="third battle"><img src="../../../web/shots/battle/battle-genmap-vista/golden.png" alt="Composed battlefield with formations"><figcaption><strong>Composed battle</strong>Ground supports formations and distance read at the production camera.</figcaption></figure>
+    </div>
+  </section>
+</main>
+</body>
+</html>

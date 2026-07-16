@@ -324,7 +324,6 @@ function assertPhotorealRoute(ctx, stats) {
 function assertProductionMidGrassStructure(ctx, crop, stats) {
   const metric = structureMetrics(crop);
   const verdict = {
-    rawEdge: metric.base.edge >= ORACLE.rawEdgeMin * 0.55 && metric.base.edge <= ORACLE.rawEdgeMax,
     retention: metric.retention4 >= ORACLE.retention4Min * 0.58,
     contrast: metric.down4.contrast >= ORACLE.down4ContrastMin * 0.62,
     // Static whole-map grass is a UNIFORM loose field (~0.44 blades/m², David
@@ -344,6 +343,13 @@ function assertProductionMidGrassStructure(ctx, crop, stats) {
       stats?.terrain?.grass?.transition?.farSoftWidthScale <= 1.6,
     JSON.stringify({
       verdict,
+      // Raw full-resolution edge energy is diagnostic only here: it combines
+      // blade edges with substrate detail, so the turf owner's deliberate
+      // removal of synthetic fine grain must not masquerade as missing blades.
+      rawEdgeDiagnostic: {
+        value: metric.base.edge,
+        closeGrassRange: [ORACLE.rawEdgeMin * 0.55, ORACLE.rawEdgeMax],
+      },
       metric,
       oracle: ORACLE,
       profile: stats?.terrain?.grass?.productionSamplingProfile,

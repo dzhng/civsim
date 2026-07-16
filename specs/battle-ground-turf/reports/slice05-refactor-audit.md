@@ -34,4 +34,3 @@ view-aligned ridge, cell-capsule fiber, or alternate meadow palette. Historical
 mentions remain only in archived evidence and grass-model experiment names; those
 model-family identifiers refer to real grass geometry and are not substrate
 owners.
-

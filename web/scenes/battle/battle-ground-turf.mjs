@@ -101,14 +101,6 @@ export async function run(ctx) {
             full.grass?.enabled === profile.grassEnabled,
           JSON.stringify({ isolation: full.isolation, grass: full.grass }),
         );
-        ctx.check(
-          `${profile.name} production substrate exposes no synthetic fine-detail mode`,
-          full.groundDetail?.fineMode === undefined &&
-            ["ground", "vista", "terrain-quad"].every((owner) =>
-              full.groundDetail?.appliedTo?.includes(owner),
-            ),
-          JSON.stringify(full.groundDetail),
-        );
         await ctx.snap(null, `ground-turf/full-${profile.name}`, { shot: full.shot });
 
         const groundOnly = await captureProfile(ctx, page, {

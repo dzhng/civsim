@@ -42,7 +42,8 @@ export interface BattleTerrainGrid {
   cell: number;
   ox: number;
   oy: number;
-  /** Render tint per cell: 0 grass,1 water,2 rock,3 wall,4 forest,5 mud,6 scree. */
+  /** Render tint per cell: 0 grass,1 water,2 rock,3 wall,4 forest,5 mud,6 scree/road.
+   *  Smooth, full-speed tint-6 cells are authored roads; rough/slow cells are scree. */
   tint: Uint8Array;
   /** Ground speed per cell, 0..1 (0 = impassable). Optional; needed for edge-seal validation. */
   speed?: Float32Array;

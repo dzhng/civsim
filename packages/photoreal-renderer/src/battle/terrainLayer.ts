@@ -33,6 +33,7 @@ import {
   vec4,
 } from "three/tsl";
 import type { PhotorealBattleGroundMesh } from "../../../game-renderer/src/battle/groundPass";
+import type { PhotorealEarthDistanceField } from "../../../game-renderer/src/battle/photorealEarthDistance";
 import { GROUND_COVER_COLOR, MEADOW } from "../../../game-renderer/src/battle/meadowPalette";
 import type { BattleHorizonLayout } from "../../../game-renderer/src/battle/horizonPass";
 import {
@@ -133,8 +134,10 @@ export interface TerrainMaterialOptions {
   vistaBand?: BattleVistaBand["name"] | null;
   farGrass?: BladeFieldTransitionUniforms | null;
   disabledGroundDetail?: GroundDetailTerm | null;
-  earthEdges?: boolean;
+  earthDistance?: PhotorealEarthDistanceField;
 }
+
+type PhotorealGroundMesh = Omit<PhotorealBattleGroundMesh, "earthDistance">;
 
 export interface BattleVistaBand {
   name: "vista" | "farFog" | string;
@@ -392,10 +395,10 @@ export class BattleBackgroundQuads {
   }
 }
 
-/** The rolling battle ground mesh (groundPass port, meadow disabled). */
+/** The rolling battle ground mesh shared by playable and vista terrain. */
 export function createGroundMesh(
   frame: BattleFrameUniforms,
-  mesh: PhotorealBattleGroundMesh,
+  mesh: PhotorealGroundMesh,
   options: TerrainMaterialOptions = {},
 ): THREE.Mesh {
   const geo = new THREE.BufferGeometry();
@@ -408,7 +411,8 @@ export function createGroundMesh(
   geo.setAttribute("gWater", new THREE.InterleavedBufferAttribute(buffer, 1, 9));
   geo.setAttribute("gTint", new THREE.BufferAttribute(mesh.tint, 1));
   geo.setAttribute("gSurfaceColor", new THREE.BufferAttribute(mesh.surfaceColor, 3));
-  const earthEdgesEnabled = options.earthEdges === true;
+  const earthDistance = options.earthDistance;
+  const earthEdgesEnabled = earthDistance !== undefined;
   let earthDistanceTexture: THREE.DataTexture | null = null;
   geo.setIndex(new THREE.BufferAttribute(frontSideIndexBuffer(mesh.indices), 1));
 
@@ -426,10 +430,10 @@ export function createGroundMesh(
 
   // Turf exclusions are computed before the far canopy so that the same masks
   // also protect mud, rock, and scree from the distance replacement.
-  let unionDistance: FloatNode = float(-mesh.earthDistance.rangeMeters);
-  let roadDistance: FloatNode = float(-mesh.earthDistance.rangeMeters);
-  if (earthEdgesEnabled) {
-    const sdf = mesh.earthDistance;
+  let unionDistance: FloatNode = float(-(earthDistance?.rangeMeters ?? 1));
+  let roadDistance: FloatNode = float(-(earthDistance?.rangeMeters ?? 1));
+  if (earthDistance) {
+    const sdf = earthDistance;
     earthDistanceTexture = new THREE.DataTexture(
       sdf.data,
       sdf.width,
@@ -537,13 +541,9 @@ export function createGroundMesh(
       .mul(turfAtEdge)
       .toVar();
     const wind = frame.time.mul(0.035);
-    // Matte grass-canopy micro-texture at distance. ISOTROPIC world-space noise
-    // only: the round-3 "bounded view-aligned stretch" divided the along-view
-    // frequency, so at ground-level grazing incidence the pattern went nearly
-    // constant down the depth axis and projected into vertical taffy streaks
-    // (the "ground melting upward" critique). Distance already compresses
-    // iso-distance world noise into gentle horizontal mottle - the natural
-    // "looking across a field" read - so no anisotropy is needed.
+    // Keep the distance canopy isotropic and world-space. Camera-aligned
+    // stretching would turn grazing views into camera-dependent streaks and
+    // break the phase-return contract.
     const brush = ridgeN(
       vec2(
         world.x.mul(0.62).add(world.y.mul(0.12)).add(wind),
@@ -558,15 +558,9 @@ export function createGroundMesh(
     ).toVar();
     const fineBreak = fbmN(world.mul(2.4).add(vec2(9.0, 4.0))).toVar();
     const grazingFine = brush.mul(0.6).add(raked.mul(0.28)).add(fineBreak.mul(0.12)).toVar();
-    // Clump structure at two scales the grazing compression can still resolve:
-    // a 22 m broad swell and a ~8 m mid clump. At ground level a screen band of
-    // ~100 px holds tens of metres of depth, so only metre-plus features read as
-    // canopy patches - fine noise alone minifies to a flat wash (the "bald
-    // featureless green midground" critique). These drive light/dark patches
-    // with enough tonal spread to read as grassland, not a painted gradient.
-    // One fixed khaki anchor keeps hue stable. Canopy and fine noise scale all
-    // channels together at low amplitude instead of sweeping between four
-    // differently hued palette endpoints (the measured camouflage culprit).
+    // Grazing views compress tens of metres into a narrow screen band, so the
+    // canopy uses metre-scale clumps. One khaki anchor keeps hue stable while
+    // low-amplitude value variation survives minification.
     const grazingLift = turfCanopyNode(world, grazingFine);
     const canopyEnabled = options.disabledGroundDetail === "canopy" ? 0 : 1;
     albedo = mix(
@@ -578,17 +572,8 @@ export function createGroundMesh(
         .mul(TURF_CONTRAST.canopy.mixStrength),
     );
   }
-  // Churn: trodden mud reads as broken ground (brown AND dark keys the earth).
-  // The onset floats OFF r==g: at a grass->dirt seam the interpolated vertex
-  // color sweeps through r==g in a one-cell-wide sliver, and a threshold that
-  // fired there painted a dark churn ring tracing the mesh grid around every
-  // patch (the "1px stair-stepped contour" critique). Requiring r clearly
-  // above g - jittered so any residual edge dissolves - keeps churn on real
-  // trodden mud (r >> g) and off the seam.
-  // Keep churn OFF the grass->dirt seam: a patch boundary sweeps through
-  // mid-luma (~0.44), so a dark window that reached that high painted a churn
-  // ring at every patch edge. Real trodden mud floors well below 0.4 - the
-  // window now ends there, so only genuine dark earth (deployment churn) fires.
+  // Churn uses the unwarped mud interior so the noisy visual feather cannot
+  // paint a dark ring around earth boundaries.
   const clods = fbmN(world.mul(0.07))
     .mul(0.6)
     .add(fbmN(world.mul(0.16).add(vec2(5.0, 2.0))).mul(0.4));
@@ -598,18 +583,14 @@ export function createGroundMesh(
   let dryRoughness: FloatNode = float(0.95);
 
   if (options.slopeBands) {
-    // Rust passability uses central differences over true meters:
-    // slope = sqrt(dzdx^2 + dzdy^2). The mesh normal encodes that same slope
-    // as normal.z = 1 / sqrt(1 + slope^2), because generated maps arrive here
-    // with reliefScale=1.0 after the short-lived hand-map exaggeration seam.
+    // Rust passability measures slope over true metres. The mesh normal carries
+    // the same quantity as normal.z = 1 / sqrt(1 + slope^2).
     const warp = fbmN(world.mul(0.035))
       .mul(2.2)
       .add(fbmN(world.mul(0.12).add(vec2(4.0, 9.0))).mul(0.7))
       .toVar();
-    // Fracture-first rock: evenly spaced elevation bands read as a topo map
-    // (unprimed critique) - the dominant structure is VERTICAL fracture
-    // streaks (fine in plan, coherent down the face), with faint noise-varied
-    // strata underneath.
+    // Vertical fracture streaks dominate rock faces; strata stay faint so the
+    // material does not read as evenly spaced elevation bands.
     const fracture = smoothstepN(
       0.55,
       0.95,
@@ -684,14 +665,14 @@ export function createGroundMesh(
   // erases every soldier-sized shadow (verified on hardware shots). Terrain
   // self-occlusion is owned by 13 (relief look) / 14c (contact AO) instead.
   ground.receiveShadow = true;
-  if (earthDistanceTexture) {
+  if (earthDistanceTexture && earthDistance) {
     ground.userData.earthDistanceTexture = earthDistanceTexture;
     ground.userData.earthDistance = {
       owner: "playable-ground",
       format: "rg8-unorm",
-      width: mesh.earthDistance.width,
-      height: mesh.earthDistance.height,
-      rangeMeters: mesh.earthDistance.rangeMeters,
+      width: earthDistance.width,
+      height: earthDistance.height,
+      rangeMeters: earthDistance.rangeMeters,
       channels: ["earth-union", "road"],
       filters: ["linear", "linear"],
       textureResources: 1,
@@ -712,7 +693,7 @@ export function createVistaMesh(
   const vista = createGroundMesh(frame, mesh, {
     ...options,
     vistaBand: band.name,
-    earthEdges: false,
+    earthDistance: undefined,
   });
   vista.name = `battle-vista-${band.name}`;
   vista.castShadow = false;
@@ -724,7 +705,7 @@ export function createVistaMesh(
 function buildVistaGroundMesh(
   band: BattleVistaBand,
   cover: BattleGroundCover,
-): PhotorealBattleGroundMesh {
+): PhotorealGroundMesh {
   const base = GROUND_COVER_COLOR[cover];
   const verts = new Float32Array(band.w * band.h * 10);
   const tint = new Float32Array(band.w * band.h);
@@ -795,15 +776,6 @@ function buildVistaGroundMesh(
     vertices: verts,
     tint,
     surfaceColor,
-    earthDistance: {
-      data: new Uint8Array([0, 0]),
-      width: 1,
-      height: 1,
-      cell: 1,
-      ox: 0,
-      oy: 0,
-      rangeMeters: 1,
-    },
     indices: new Uint32Array(indices),
     triangles: indices.length / 3,
   };

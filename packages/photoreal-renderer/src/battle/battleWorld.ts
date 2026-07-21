@@ -702,7 +702,7 @@ export class PhotorealBattleWorld {
       slopeBands: this.slopeBands,
       farGrass: this.grassTransition,
       disabledGroundDetail: this.disabledGroundDetail,
-      earthEdges: true,
+      earthDistance: groundMesh.earthDistance,
     });
     scene.add(this.ground);
 
@@ -1117,7 +1117,6 @@ export class PhotorealBattleWorld {
       device: world.device,
       groundDetail: {
         disabled: this.disabledGroundDetail,
-        appliedTo: ["ground", "vista", "terrain-quad"] as const,
         earthEdges: this.ground?.userData.earthDistance ?? null,
       },
       // The engine depth convention, read off the live renderer: three owns the

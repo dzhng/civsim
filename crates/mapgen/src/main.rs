@@ -449,7 +449,10 @@ mod tests {
                 landroute::ordered_pair(&nodes[&edge.a].name, &nodes[&edge.b].name)
             };
             landroute::BRAID_LEDGER.iter().any(|&(p, q)| {
-                let (p, q) = (landroute::ordered_pair(p.0, p.1), landroute::ordered_pair(q.0, q.1));
+                let (p, q) = (
+                    landroute::ordered_pair(p.0, p.1),
+                    landroute::ordered_pair(q.0, q.1),
+                );
                 (ends(pair.longer) == p && ends(pair.shorter) == q)
                     || (ends(pair.longer) == q && ends(pair.shorter) == p)
             })
@@ -470,7 +473,10 @@ mod tests {
                 )
             })
             .collect();
-        assert!(braids.is_empty(), "unledgered braided road corridors: {braids:?}");
+        assert!(
+            braids.is_empty(),
+            "unledgered braided road corridors: {braids:?}"
+        );
 
         // The connectivity contract (David 2026-07-14): every city reaches
         // Rome except the deliberately-stranded islands (Britain + the
@@ -478,8 +484,10 @@ mod tests {
         // component — mainland included, now that the hand-authored Black-Sea
         // coast roads exist — is a regression.
         let main = connectivity::main_component(&map_value, &capital_ids);
-        let expected_off_main: BTreeSet<&str> =
-            connectivity::OFF_MAIN_ISLAND_CITIES.iter().copied().collect();
+        let expected_off_main: BTreeSet<&str> = connectivity::OFF_MAIN_ISLAND_CITIES
+            .iter()
+            .copied()
+            .collect();
         let off_main: BTreeSet<&str> = map
             .nodes
             .iter()

@@ -140,15 +140,18 @@ pub fn connect_black_sea_rim(
             "{} must sit on land with the city snap margin",
             city.name
         );
-        map["nodes"].as_array_mut().expect("nodes array").push(json!({
-            "id": city.id,
-            "kind": "city",
-            "name": city.name,
-            "owner": city.owner,
-            "port": true,
-            "pos": city.pos,
-            "tier": city.tier,
-        }));
+        map["nodes"]
+            .as_array_mut()
+            .expect("nodes array")
+            .push(json!({
+                "id": city.id,
+                "kind": "city",
+                "name": city.name,
+                "owner": city.owner,
+                "port": true,
+                "pos": city.pos,
+                "tier": city.tier,
+            }));
         for faction in map["factions"].as_array_mut().expect("factions array") {
             if faction["id"].as_str() == Some(city.owner) {
                 faction["cities"]
@@ -177,26 +180,23 @@ pub fn connect_black_sea_rim(
         .collect();
 
     let mut added = Vec::new();
-    let mut push_edge = |map: &mut Value,
-                         a: u32,
-                         b: u32,
-                         kind: &str,
-                         via: Vec<[f64; 2]>,
-                         label: String| {
-        let eidx = map["edges"].as_array().expect("edges array").len();
-        let (tiles, ambush) = build::classify_route_tiles(&via, kind, eidx, river_grid, mountains);
-        map["edges"]
-            .as_array_mut()
-            .expect("edges array")
-            .push(json!({ "a": a, "b": b, "kind": kind, "via": via, "tiles": tiles }));
-        let ambush_spots = map["ambush_spots"]
-            .as_array_mut()
-            .expect("ambush_spots array");
-        for spot in ambush {
-            ambush_spots.push(serde_json::to_value(spot).expect("ambush spot json"));
-        }
-        added.push(label);
-    };
+    let mut push_edge =
+        |map: &mut Value, a: u32, b: u32, kind: &str, via: Vec<[f64; 2]>, label: String| {
+            let eidx = map["edges"].as_array().expect("edges array").len();
+            let (tiles, ambush) =
+                build::classify_route_tiles(&via, kind, eidx, river_grid, mountains);
+            map["edges"]
+                .as_array_mut()
+                .expect("edges array")
+                .push(json!({ "a": a, "b": b, "kind": kind, "via": via, "tiles": tiles }));
+            let ambush_spots = map["ambush_spots"]
+                .as_array_mut()
+                .expect("ambush_spots array");
+            for spot in ambush {
+                ambush_spots.push(serde_json::to_value(spot).expect("ambush spot json"));
+            }
+            added.push(label);
+        };
 
     for &(a_name, b_name) in BLACK_SEA_COAST_ROUTES {
         let a = *ids_by_name
@@ -788,7 +788,9 @@ pub fn print_report() {
     let ledgered: BTreeSet<&str> = OFF_MAIN_ISLAND_CITIES.iter().copied().collect();
     let unledgered: Vec<&str> = nodes
         .values()
-        .filter(|n| n.kind == "city" && !main.contains(&n.id) && !ledgered.contains(n.name.as_str()))
+        .filter(|n| {
+            n.kind == "city" && !main.contains(&n.id) && !ledgered.contains(n.name.as_str())
+        })
         .map(|n| n.name.as_str())
         .collect();
     println!("off-main cities not in the deliberate ledger: {unledgered:?}");

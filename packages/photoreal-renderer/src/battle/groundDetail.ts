@@ -154,8 +154,8 @@ export function mudInteriorCoverage(mudDistanceMeters: number): number {
   return smoothstep(edge.mudInteriorStartMeters, edge.mudInteriorEndMeters, mudDistanceMeters);
 }
 
-/** Apply only the macro drift/mottle accepted by slice 02.
- * Real blade geometry owns near turf; the canopy owner carries distance. */
+/** Macro ground variation only; real blade geometry owns near turf and the
+ * canopy owner carries distance. */
 export function groundDetailNode(
   world: Vec2Node,
   color: Vec3Node,

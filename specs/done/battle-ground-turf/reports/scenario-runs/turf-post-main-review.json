@@ -1,0 +1,233 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-07-21T13:26:32.082Z",
+  "target": "http://localhost:5193",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "battle-ground-turf",
+      "file": "battle/battle-ground-turf.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-ground-turf",
+      "name": "close full-production frame is deterministic across cold boots",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "close full-production frame keeps blade-field ownership and its production cutoff",
+      "ok": true,
+      "detail": "{\"isolation\":{\"only\":null,\"grassVisible\":true},\"grass\":{\"layer\":\"photoreal-blade-field\",\"enabled\":true,\"farTierVisible\":true,\"packedStrideFloats\":16,\"packedBytesPerRecord\":64,\"recordCount\":992334,\"drawCalls\":3,\"submittedTriangles\":271840,\"submittedVertices\":315950,\"tiers\":{\"near\":{\"lodTier\":0,\"segments\":15,\"minDistanceM\":0,\"maxDistanceM\":49.5,\"candidateRecords\":3430,\"records\":3430,\"droppedByThinning\":0,\"triangles\":102900,\"vertices\":109760},\"mid\":{\"lodTier\":1,\"segments\":8,\"minDistanceM\":49.5,\"maxDistanceM\":90,\"candidateRecords\":7875,\"records\":7870,\"droppedByThinning\":5,\"triangles\":125920,\"vertices\":141660},\"far\":{\"lodTier\":2,\"segments\":2,\"minDistanceM\":90,\"maxDistanceM\":166.15384615384616,\"candidateRecords\":25100,\"records\":10755,\"droppedByThinning\":14345,\"triangles\":43020,\"vertices\":64530}},\"tierCountSource\":\"cpu-mirror-live-distance-hash-thinning\",\"culledRecords\":955930,\"thinnedRecords\":14350,\"thinning\":{\"enabled\":true,\"fadeStartM\":86.15384615384616,\"fadeEndM\":166.15384615384616,\"hashSource\":\"record.bladeSeed fract(seed01 * 7.13)\",\"survivorAlbedoBlend\":0.85},\"transition\":{\"denseBladeEndM\":49.5,\"farGrassStartM\":90,\"farGrassEndM\":166.15384615384616,\"nearTierEndM\":49.5,\"midTierEndM\":90,\"farSoftWidthScale\":1.6,\"terrainDetailStrength\":1,\"edgeSinkStartM\":131.53846153846155},\"sourceStorageCore\":{\"packedVec4PerBlade\":4,\"packedBytesPerBlade\":64,\"cpuRecordsOnly\":true,\"cameraSnappedPlacement\":true,\"voronoiClumpBlend\":true,\"bezierBladeSpine\":true,\"viewDependentThickness\":true,\"distanceDesaturation\":true,\"drawIndirect\":true,\"visibleIndexBuffers\":3,\"runtimeComputeRoute\":\"active\"},\"wind\":{\"timeUniform\":\"PhotorealWorld.uTime\",\"phaseSpeed\":0.82,\"spatialScaleX\":0.035,\"spatialScaleY\":0.021,\"tipAmplitudeM\":0.034},\"palette\":{\"source\":\"packages/game-renderer/src/battle/meadowPalette.ts MEADOW.blade\",\"root\":[0.45999999999999996,0.52,0.25],\"mid\":[0.58,0.61,0.32],\"tip\":[0.71,0.71,0.42],\"dryTipMix\":0.05,\"ringMeadow\":[0.47,0.53,0.32]},\"recordHash\":\"e8a3e2d6\",\"productionSamplingProfile\":{\"quality\":\"standard\",\"source\":\"GRASSFINE-L2D8 False Earth production profile: narrow curved mid blades plus zoom-aware near tier\",\"seed\":1588011046,\"vistaVisibleRadiusM\":260,\"vistaTransitionDefaults\":{\"edgeSinkStartM\":380,\"denseBladeEndM\":143,\"farGrassStartM\":260,\"farGrassEndM\":480,\"farSoftWidthScale\":1.6},\"closeVisibleRadiusM\":40,\"rebuildMarginM\":48,\"fieldCellSize\":0.42,\"snapCellSize\":48,\"clumpCellSize\":1.55,\"maxRecords\":160000,\"minActiveRecords\":18000,\"closeDensityReferenceRecords\":42000,\"closeDensityReferenceRadiusM\":64,\"lodStratifiedBudget\":true,\"density\":1,\"jitter\":0.72,\"minNormalZ\":0.45,\"lodNearRadiusM\":5,\"lodMidRadiusM\":20,\"baseHeight\":1.25,\"heightJitter\":0.62,\"baseWidth\":0.08,\"widthJitter\":0.2,\"baseBend\":0.62,\"bendJitter\":0.45,\"tiers\":[{\"id\":\"near\",\"lodTier\":0,\"segments\":15,\"minDistanceM\":0,\"maxDistanceM\":5},{\"id\":\"mid\",\"lodTier\":1,\"segments\":8,\"minDistanceM\":5,\"maxDistanceM\":20},{\"id\":\"far\",\"lodTier\":2,\"segments\":2,\"minDistanceM\":20,\"maxDistanceM\":480}]},\"transitionOwner\":\"battleWorld.updateGrassForCamera\",\"activeTransition\":{\"denseBladeEndM\":49.5,\"farGrassStartM\":90,\"farGrassEndM\":166.15384615384616,\"nearTierEndM\":49.5,\"midTierEndM\":90,\"farSoftWidthScale\":1.6,\"terrainDetailStrength\":1,\"edgeSinkStartM\":131.53846153846155},\"sample\":{\"seed\":1588011046,\"snapX\":0,\"snapY\":0,\"snapCellSize\":48,\"fieldCellSize\":1.5,\"clumpCellSize\":1.55,\"minNormalZ\":0.45,\"lodNearRadius\":0.003466876226407682,\"lodMidRadius\":0.013867504905630728,\"lodStratifiedBudget\":false,\"candidateCells\":2904244,\"acceptedRecords\":992334,\"recordCapacity\":1000000,\"cappedRecords\":0,\"outOfBoundsCells\":1197777,\"rejectedTintCells\":632022,\"rejectedSlopeCells\":0,\"rejectedDensityCells\":82111,\"openGrassCells\":969914,\"forestCells\":9153,\"roughCells\":13267,\"lodCandidateCounts\":[32,525,991777],\"lodBudgetQuotas\":[480000,370000,150000],\"lodDroppedByBudget\":[0,0,0],\"lodCounts\":[32,525,991777],\"packedStrideFloats\":16,\"packedStrideBytes\":64,\"packedBytes\":63509376},\"rebuild\":{\"strategy\":\"static-whole-map\",\"coverageRadiusM\":1442.2205101855957,\"activeTransition\":{\"denseBladeEndM\":49.5,\"farGrassStartM\":90,\"farGrassEndM\":166.15384615384616,\"nearTierEndM\":49.5,\"midTierEndM\":90,\"farSoftWidthScale\":1.6,\"terrainDetailStrength\":1,\"edgeSinkStartM\":131.53846153846155},\"activeRecordBudget\":1000000,\"vistaRecordBudget\":160000,\"areaBudgetScale\":1,\"activeFocus\":{\"x\":0,\"y\":0,\"radius\":1442.2205101855957,\"maxRecords\":1000000},\"pendingFocus\":null,\"pending\":false,\"rebuilds\":1,\"lastSampleMs\":329.67,\"lastSlices\":1,\"lastMaxSliceMs\":329.58,\"inProgressCells\":3701776,\"totalCells\":3701776,\"routeAnchor\":[0,-360,0,-433,19.7]}}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "snapshot ground-turf/full-close",
+      "ok": true,
+      "detail": "903 px differ (0.0882%)"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "close ground-only control is deterministic across cold boots",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "close ground-only control persistently disables blade geometry",
+      "ok": true,
+      "detail": "{\"only\":\"photoreal-sky,battle-backdrop,battle-terrain,battle-ground,battle-vista,battle-horizon\",\"grassVisible\":false}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "close ground-only frame telemetry is finite",
+      "ok": true,
+      "detail": "{\"sampleCount\":1024000,\"meanLuma\":0.2745946853479302,\"lumaP10\":0.17024494011219887,\"lumaP90\":0.5901820005345266,\"lumaSpanP90P10\":0.41993706042232776,\"midBandRms\":0.0055465486093903985,\"oklab\":{\"meanHueDeg\":119.37567926761147,\"meanChroma\":0.0328110055232348,\"hueSpreadDeg\":17.824145349613122,\"chromaSpread\":0.018157110664408036}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "snapshot ground-turf/ground-only-close",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "rts full-production frame is deterministic across cold boots",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "rts full-production frame keeps blade-field ownership and its production cutoff",
+      "ok": true,
+      "detail": "{\"isolation\":{\"only\":null,\"grassVisible\":true},\"grass\":{\"layer\":\"photoreal-blade-field\",\"enabled\":true,\"farTierVisible\":true,\"packedStrideFloats\":16,\"packedBytesPerRecord\":64,\"recordCount\":992334,\"drawCalls\":3,\"submittedTriangles\":572030,\"submittedVertices\":854500,\"tiers\":{\"near\":{\"lodTier\":0,\"segments\":15,\"minDistanceM\":0,\"maxDistanceM\":5,\"candidateRecords\":35,\"records\":35,\"droppedByThinning\":0,\"triangles\":1050,\"vertices\":1120},\"mid\":{\"lodTier\":1,\"segments\":8,\"minDistanceM\":5,\"maxDistanceM\":20,\"candidateRecords\":515,\"records\":515,\"droppedByThinning\":0,\"triangles\":8240,\"vertices\":9270},\"far\":{\"lodTier\":2,\"segments\":2,\"minDistanceM\":20,\"maxDistanceM\":480,\"candidateRecords\":208630,\"records\":140685,\"droppedByThinning\":67945,\"triangles\":562740,\"vertices\":844110}},\"tierCountSource\":\"cpu-mirror-live-distance-hash-thinning\",\"culledRecords\":783155,\"thinnedRecords\":67945,\"thinning\":{\"enabled\":true,\"fadeStartM\":260,\"fadeEndM\":480,\"hashSource\":\"record.bladeSeed fract(seed01 * 7.13)\",\"survivorAlbedoBlend\":0.85},\"transition\":{\"denseBladeEndM\":143,\"farGrassStartM\":260,\"farGrassEndM\":480,\"nearTierEndM\":5,\"midTierEndM\":20,\"farSoftWidthScale\":1.6,\"terrainDetailStrength\":1,\"edgeSinkStartM\":380},\"sourceStorageCore\":{\"packedVec4PerBlade\":4,\"packedBytesPerBlade\":64,\"cpuRecordsOnly\":true,\"cameraSnappedPlacement\":true,\"voronoiClumpBlend\":true,\"bezierBladeSpine\":true,\"viewDependentThickness\":true,\"distanceDesaturation\":true,\"drawIndirect\":true,\"visibleIndexBuffers\":3,\"runtimeComputeRoute\":\"active\"},\"wind\":{\"timeUniform\":\"PhotorealWorld.uTime\",\"phaseSpeed\":0.82,\"spatialScaleX\":0.035,\"spatialScaleY\":0.021,\"tipAmplitudeM\":0.034},\"palette\":{\"source\":\"packages/game-renderer/src/battle/meadowPalette.ts MEADOW.blade\",\"root\":[0.45999999999999996,0.52,0.25],\"mid\":[0.58,0.61,0.32],\"tip\":[0.71,0.71,0.42],\"dryTipMix\":0.05,\"ringMeadow\":[0.47,0.53,0.32]},\"recordHash\":\"e8a3e2d6\",\"productionSamplingProfile\":{\"quality\":\"standard\",\"source\":\"GRASSFINE-L2D8 False Earth production profile: narrow curved mid blades plus zoom-aware near tier\",\"seed\":1588011046,\"vistaVisibleRadiusM\":260,\"vistaTransitionDefaults\":{\"edgeSinkStartM\":380,\"denseBladeEndM\":143,\"farGrassStartM\":260,\"farGrassEndM\":480,\"farSoftWidthScale\":1.6},\"closeVisibleRadiusM\":40,\"rebuildMarginM\":48,\"fieldCellSize\":0.42,\"snapCellSize\":48,\"clumpCellSize\":1.55,\"maxRecords\":160000,\"minActiveRecords\":18000,\"closeDensityReferenceRecords\":42000,\"closeDensityReferenceRadiusM\":64,\"lodStratifiedBudget\":true,\"density\":1,\"jitter\":0.72,\"minNormalZ\":0.45,\"lodNearRadiusM\":5,\"lodMidRadiusM\":20,\"baseHeight\":1.25,\"heightJitter\":0.62,\"baseWidth\":0.08,\"widthJitter\":0.2,\"baseBend\":0.62,\"bendJitter\":0.45,\"tiers\":[{\"id\":\"near\",\"lodTier\":0,\"segments\":15,\"minDistanceM\":0,\"maxDistanceM\":5},{\"id\":\"mid\",\"lodTier\":1,\"segments\":8,\"minDistanceM\":5,\"maxDistanceM\":20},{\"id\":\"far\",\"lodTier\":2,\"segments\":2,\"minDistanceM\":20,\"maxDistanceM\":480}]},\"transitionOwner\":\"battleWorld.updateGrassForCamera\",\"activeTransition\":{\"denseBladeEndM\":143,\"farGrassStartM\":260,\"farGrassEndM\":480,\"nearTierEndM\":5,\"midTierEndM\":20,\"farSoftWidthScale\":1.6,\"terrainDetailStrength\":1,\"edgeSinkStartM\":380},\"sample\":{\"seed\":1588011046,\"snapX\":0,\"snapY\":0,\"snapCellSize\":48,\"fieldCellSize\":1.5,\"clumpCellSize\":1.55,\"minNormalZ\":0.45,\"lodNearRadius\":0.003466876226407682,\"lodMidRadius\":0.013867504905630728,\"lodStratifiedBudget\":false,\"candidateCells\":2904244,\"acceptedRecords\":992334,\"recordCapacity\":1000000,\"cappedRecords\":0,\"outOfBoundsCells\":1197777,\"rejectedTintCells\":632022,\"rejectedSlopeCells\":0,\"rejectedDensityCells\":82111,\"openGrassCells\":969914,\"forestCells\":9153,\"roughCells\":13267,\"lodCandidateCounts\":[32,525,991777],\"lodBudgetQuotas\":[480000,370000,150000],\"lodDroppedByBudget\":[0,0,0],\"lodCounts\":[32,525,991777],\"packedStrideFloats\":16,\"packedStrideBytes\":64,\"packedBytes\":63509376},\"rebuild\":{\"strategy\":\"static-whole-map\",\"coverageRadiusM\":1442.2205101855957,\"activeTransition\":{\"denseBladeEndM\":143,\"farGrassStartM\":260,\"farGrassEndM\":480,\"nearTierEndM\":5,\"midTierEndM\":20,\"farSoftWidthScale\":1.6,\"terrainDetailStrength\":1,\"edgeSinkStartM\":380},\"activeRecordBudget\":1000000,\"vistaRecordBudget\":160000,\"areaBudgetScale\":1,\"activeFocus\":{\"x\":0,\"y\":0,\"radius\":1442.2205101855957,\"maxRecords\":1000000},\"pendingFocus\":null,\"pending\":false,\"rebuilds\":1,\"lastSampleMs\":324.705,\"lastSlices\":1,\"lastMaxSliceMs\":324.69,\"inProgressCells\":3701776,\"totalCells\":3701776,\"routeAnchor\":[0,-650,0,-839,59.4]}}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "snapshot ground-turf/full-rts",
+      "ok": true,
+      "detail": "2622 px differ (0.2561%)"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "rts ground-only control is deterministic across cold boots",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "rts ground-only control persistently disables blade geometry",
+      "ok": true,
+      "detail": "{\"only\":\"photoreal-sky,battle-backdrop,battle-terrain,battle-ground,battle-vista,battle-horizon\",\"grassVisible\":false}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "rts ground-only frame telemetry is finite",
+      "ok": true,
+      "detail": "{\"sampleCount\":1024000,\"meanLuma\":0.2716028353027077,\"lumaP10\":0.17342976779123284,\"lumaP90\":0.5901820005345266,\"lumaSpanP90P10\":0.41675223274329376,\"midBandRms\":0.00569515609119528,\"oklab\":{\"meanHueDeg\":120.01718510383773,\"meanChroma\":0.03235489730707217,\"hueSpreadDeg\":19.6818641589281,\"chromaSpread\":0.018375214494604775}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "snapshot ground-turf/ground-only-rts",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "topdown full-production frame is deterministic across cold boots",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "topdown full-production frame keeps blade-field ownership and its production cutoff",
+      "ok": true,
+      "detail": "{\"isolation\":{\"only\":null,\"grassVisible\":true},\"grass\":{\"layer\":\"photoreal-blade-field\",\"enabled\":false,\"farTierVisible\":true,\"packedStrideFloats\":16,\"packedBytesPerRecord\":64,\"recordCount\":992334,\"drawCalls\":3,\"submittedTriangles\":0,\"submittedVertices\":0,\"tiers\":{\"near\":{\"lodTier\":0,\"segments\":15,\"minDistanceM\":0,\"maxDistanceM\":5,\"candidateRecords\":0,\"records\":0,\"droppedByThinning\":0,\"triangles\":0,\"vertices\":0},\"mid\":{\"lodTier\":1,\"segments\":8,\"minDistanceM\":5,\"maxDistanceM\":20,\"candidateRecords\":0,\"records\":0,\"droppedByThinning\":0,\"triangles\":0,\"vertices\":0},\"far\":{\"lodTier\":2,\"segments\":2,\"minDistanceM\":20,\"maxDistanceM\":480,\"candidateRecords\":0,\"records\":0,\"droppedByThinning\":0,\"triangles\":0,\"vertices\":0}},\"tierCountSource\":\"cpu-mirror-live-distance-hash-thinning\",\"culledRecords\":0,\"thinnedRecords\":0,\"thinning\":{\"enabled\":true,\"fadeStartM\":260,\"fadeEndM\":480,\"hashSource\":\"record.bladeSeed fract(seed01 * 7.13)\",\"survivorAlbedoBlend\":0.85},\"transition\":{\"denseBladeEndM\":143,\"farGrassStartM\":260,\"farGrassEndM\":480,\"nearTierEndM\":5,\"midTierEndM\":20,\"farSoftWidthScale\":1.6,\"terrainDetailStrength\":1,\"edgeSinkStartM\":380},\"sourceStorageCore\":{\"packedVec4PerBlade\":4,\"packedBytesPerBlade\":64,\"cpuRecordsOnly\":true,\"cameraSnappedPlacement\":true,\"voronoiClumpBlend\":true,\"bezierBladeSpine\":true,\"viewDependentThickness\":true,\"distanceDesaturation\":true,\"drawIndirect\":true,\"visibleIndexBuffers\":3,\"runtimeComputeRoute\":\"not-run\"},\"wind\":{\"timeUniform\":\"PhotorealWorld.uTime\",\"phaseSpeed\":0.82,\"spatialScaleX\":0.035,\"spatialScaleY\":0.021,\"tipAmplitudeM\":0.034},\"palette\":{\"source\":\"packages/game-renderer/src/battle/meadowPalette.ts MEADOW.blade\",\"root\":[0.45999999999999996,0.52,0.25],\"mid\":[0.58,0.61,0.32],\"tip\":[0.71,0.71,0.42],\"dryTipMix\":0.05,\"ringMeadow\":[0.47,0.53,0.32]},\"recordHash\":\"e8a3e2d6\",\"productionSamplingProfile\":{\"quality\":\"standard\",\"source\":\"GRASSFINE-L2D8 False Earth production profile: narrow curved mid blades plus zoom-aware near tier\",\"seed\":1588011046,\"vistaVisibleRadiusM\":260,\"vistaTransitionDefaults\":{\"edgeSinkStartM\":380,\"denseBladeEndM\":143,\"farGrassStartM\":260,\"farGrassEndM\":480,\"farSoftWidthScale\":1.6},\"closeVisibleRadiusM\":40,\"rebuildMarginM\":48,\"fieldCellSize\":0.42,\"snapCellSize\":48,\"clumpCellSize\":1.55,\"maxRecords\":160000,\"minActiveRecords\":18000,\"closeDensityReferenceRecords\":42000,\"closeDensityReferenceRadiusM\":64,\"lodStratifiedBudget\":true,\"density\":1,\"jitter\":0.72,\"minNormalZ\":0.45,\"lodNearRadiusM\":5,\"lodMidRadiusM\":20,\"baseHeight\":1.25,\"heightJitter\":0.62,\"baseWidth\":0.08,\"widthJitter\":0.2,\"baseBend\":0.62,\"bendJitter\":0.45,\"tiers\":[{\"id\":\"near\",\"lodTier\":0,\"segments\":15,\"minDistanceM\":0,\"maxDistanceM\":5},{\"id\":\"mid\",\"lodTier\":1,\"segments\":8,\"minDistanceM\":5,\"maxDistanceM\":20},{\"id\":\"far\",\"lodTier\":2,\"segments\":2,\"minDistanceM\":20,\"maxDistanceM\":480}]},\"transitionOwner\":\"battleWorld.updateGrassForCamera\",\"activeTransition\":{\"denseBladeEndM\":143,\"farGrassStartM\":260,\"farGrassEndM\":480,\"nearTierEndM\":5,\"midTierEndM\":20,\"farSoftWidthScale\":1.6,\"terrainDetailStrength\":1,\"edgeSinkStartM\":380},\"sample\":{\"seed\":1588011046,\"snapX\":0,\"snapY\":0,\"snapCellSize\":48,\"fieldCellSize\":1.5,\"clumpCellSize\":1.55,\"minNormalZ\":0.45,\"lodNearRadius\":0.003466876226407682,\"lodMidRadius\":0.013867504905630728,\"lodStratifiedBudget\":false,\"candidateCells\":2904244,\"acceptedRecords\":992334,\"recordCapacity\":1000000,\"cappedRecords\":0,\"outOfBoundsCells\":1197777,\"rejectedTintCells\":632022,\"rejectedSlopeCells\":0,\"rejectedDensityCells\":82111,\"openGrassCells\":969914,\"forestCells\":9153,\"roughCells\":13267,\"lodCandidateCounts\":[32,525,991777],\"lodBudgetQuotas\":[480000,370000,150000],\"lodDroppedByBudget\":[0,0,0],\"lodCounts\":[32,525,991777],\"packedStrideFloats\":16,\"packedStrideBytes\":64,\"packedBytes\":63509376},\"rebuild\":{\"strategy\":\"static-whole-map\",\"coverageRadiusM\":1442.2205101855957,\"activeTransition\":{\"denseBladeEndM\":143,\"farGrassStartM\":260,\"farGrassEndM\":480,\"nearTierEndM\":5,\"midTierEndM\":20,\"farSoftWidthScale\":1.6,\"terrainDetailStrength\":1,\"edgeSinkStartM\":380},\"activeRecordBudget\":1000000,\"vistaRecordBudget\":160000,\"areaBudgetScale\":1,\"activeFocus\":{\"x\":0,\"y\":0,\"radius\":1442.2205101855957,\"maxRecords\":1000000},\"pendingFocus\":null,\"pending\":false,\"rebuilds\":1,\"lastSampleMs\":314.48,\"lastSlices\":1,\"lastMaxSliceMs\":314.47,\"inProgressCells\":3701776,\"totalCells\":3701776,\"routeAnchor\":[0,0,0,-701,3122.3]}}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "snapshot ground-turf/full-topdown",
+      "ok": true,
+      "detail": "14 px differ (0.0014%)"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "topdown ground-only control is deterministic across cold boots",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "topdown ground-only control persistently disables blade geometry",
+      "ok": true,
+      "detail": "{\"only\":\"photoreal-sky,battle-backdrop,battle-terrain,battle-ground,battle-vista,battle-horizon\",\"grassVisible\":false}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "topdown ground-only frame telemetry is finite",
+      "ok": true,
+      "detail": "{\"sampleCount\":1024000,\"meanLuma\":0.3209456101917256,\"lumaP10\":0.23730232750129862,\"lumaP90\":0.37894092805782503,\"lumaSpanP90P10\":0.1416386005565264,\"midBandRms\":0.0037654401185749035,\"oklab\":{\"meanHueDeg\":171.941089835551,\"meanChroma\":0.010871238965331766,\"hueSpreadDeg\":63.74305878920742,\"chromaSpread\":0.0079158228570731}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "snapshot ground-turf/ground-only-topdown",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "dirt-edge uses the single playable-ground RG8 earth-edge resource",
+      "ok": true,
+      "detail": "{\"owner\":\"playable-ground\",\"format\":\"rg8-unorm\",\"width\":320,\"height\":240,\"rangeMeters\":32,\"channels\":[\"earth-union\",\"road\"],\"filters\":[\"linear\",\"linear\"],\"textureResources\":1,\"vistaSamples\":0}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "dirt-edge keeps every measured 10-90 edge feather within 1-2m",
+      "ok": true,
+      "detail": "{\"mudWidthMeters\":1.7468950124429483,\"roadLeftWidthMeters\":1.431255304382419,\"roadRightWidthMeters\":1.1416124979513569,\"displacementBoundMeters\":2.5,\"detachedIslands\":0}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "snapshot ground-turf/dirt-edge",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "road-edge uses the single playable-ground RG8 earth-edge resource",
+      "ok": true,
+      "detail": "{\"owner\":\"playable-ground\",\"format\":\"rg8-unorm\",\"width\":320,\"height\":240,\"rangeMeters\":32,\"channels\":[\"earth-union\",\"road\"],\"filters\":[\"linear\",\"linear\"],\"textureResources\":1,\"vistaSamples\":0}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "road-edge keeps every measured 10-90 edge feather within 1-2m",
+      "ok": true,
+      "detail": "{\"mudWidthMeters\":1.7468950124429483,\"roadLeftWidthMeters\":1.431255304382419,\"roadRightWidthMeters\":1.1416124979513569,\"displacementBoundMeters\":2.5,\"detachedIslands\":0}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "snapshot ground-turf/road-edge",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "road-scree-rts uses the single playable-ground RG8 earth-edge resource",
+      "ok": true,
+      "detail": "{\"owner\":\"playable-ground\",\"format\":\"rg8-unorm\",\"width\":320,\"height\":240,\"rangeMeters\":32,\"channels\":[\"earth-union\",\"road\"],\"filters\":[\"linear\",\"linear\"],\"textureResources\":1,\"vistaSamples\":0}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "road-scree-rts keeps every measured 10-90 edge feather within 1-2m",
+      "ok": true,
+      "detail": "{\"mudWidthMeters\":1.7468950124429483,\"roadLeftWidthMeters\":1.431255304382419,\"roadRightWidthMeters\":1.1416124979513569,\"displacementBoundMeters\":2.5,\"detachedIslands\":0}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "snapshot ground-turf/road-scree-rts",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "edge-ruler uses the single playable-ground RG8 earth-edge resource",
+      "ok": true,
+      "detail": "{\"owner\":\"playable-ground\",\"format\":\"rg8-unorm\",\"width\":320,\"height\":240,\"rangeMeters\":32,\"channels\":[\"earth-union\",\"road\"],\"filters\":[\"linear\",\"linear\"],\"textureResources\":1,\"vistaSamples\":0}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "edge-ruler keeps every measured 10-90 edge feather within 1-2m",
+      "ok": true,
+      "detail": "{\"mudWidthMeters\":1.7468950124429483,\"roadLeftWidthMeters\":1.431255304382419,\"roadRightWidthMeters\":1.1416124979513569,\"displacementBoundMeters\":2.5,\"detachedIslands\":0}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "snapshot ground-turf/edge-ruler",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "ground substrate returns pixel-identically after a camera pan",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

@@ -1,17 +1,17 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from "vitest";
 import {
   buildBattleGroundMesh,
   buildPhotorealBattleGroundMesh,
-  isBattleRoadSurface,
-} from '../../../packages/game-renderer/src/battle/groundPass';
+} from "../../../packages/game-renderer/src/battle/groundPass";
+import { isBattleRoadSurface } from "../../../packages/game-renderer/src/battle/photorealEarthDistance";
 import {
   coverEdgeCoverage,
   mudInteriorCoverage,
   TURF_CONTRAST,
-} from '../../../packages/photoreal-renderer/src/battle/groundDetail';
+} from "../../../packages/photoreal-renderer/src/battle/groundDetail";
 
-describe('photoreal battle ground surfaces', () => {
-  it('preserves the legacy stride-10 vertex bytes', () => {
+describe("photoreal battle ground surfaces", () => {
+  it("preserves the legacy stride-10 vertex bytes", () => {
     const w = 7;
     const h = 6;
     const cell = 4;
@@ -21,14 +21,20 @@ describe('photoreal battle ground surfaces', () => {
       { length: w * h },
       (_, i) => [0, 5, 6, 1, 2, 4, 3][(i * 5 + Math.floor(i / w) * 2) % 7],
     );
-    const height = Float32Array.from({ length: w * h }, (_, i) => Math.fround(Math.sin(i * 0.31) * 7 + (i % w) * 0.25));
+    const height = Float32Array.from({ length: w * h }, (_, i) =>
+      Math.fround(Math.sin(i * 0.31) * 7 + (i % w) * 0.25),
+    );
     const mesh = buildBattleGroundMesh(
       { w, h, cell, ox, oy, tint, height },
-      { w, h, cell, ox, oy, height, units: 'meters', verticalScale: 1.6 },
-      'yellow-grass',
+      { w, h, cell, ox, oy, height, units: "meters", verticalScale: 1.6 },
+      "yellow-grass",
       2,
     );
-    const bytes = new Uint8Array(mesh.vertices.buffer, mesh.vertices.byteOffset, mesh.vertices.byteLength);
+    const bytes = new Uint8Array(
+      mesh.vertices.buffer,
+      mesh.vertices.byteOffset,
+      mesh.vertices.byteLength,
+    );
 
     expect(mesh.vertices.length % 10).toBe(0);
     let hash = 2166136261;
@@ -36,10 +42,10 @@ describe('photoreal battle ground surfaces', () => {
       hash ^= byte;
       hash = Math.imul(hash, 16777619);
     }
-    expect((hash >>> 0).toString(16)).toBe('8e8938da');
+    expect((hash >>> 0).toString(16)).toBe("8e8938da");
   });
 
-  it('classifies authored road and bridge cells without admitting scree', () => {
+  it("classifies authored road and bridge cells without admitting scree", () => {
     expect(isBattleRoadSurface(6, 0, 1)).toBe(true);
     expect(isBattleRoadSurface(6, 0.05, 1)).toBe(true);
     expect(isBattleRoadSurface(6, Math.fround(0.05), 1)).toBe(true);
@@ -54,7 +60,7 @@ describe('photoreal battle ground surfaces', () => {
     expect(isBattleRoadSurface(6, 0, Number.POSITIVE_INFINITY)).toBe(false);
   });
 
-  it('keeps mud, road, and scree ownership separate through the mesh kernel', () => {
+  it("keeps mud, road, and scree ownership separate through the mesh kernel", () => {
     const w = 18;
     const h = 9;
     const tint = new Uint8Array(w * h);
@@ -70,8 +76,8 @@ describe('photoreal battle ground surfaces', () => {
     const height = new Float32Array(w * h);
     const mesh = buildPhotorealBattleGroundMesh(
       { w, h, cell: 4, ox: -6, oy: -6, tint, rough, speed, height },
-      { w, h, cell: 4, ox: -6, oy: -6, height, units: 'meters', verticalScale: 1 },
-      'green-grass',
+      { w, h, cell: 4, ox: -6, oy: -6, height, units: "meters", verticalScale: 1 },
+      "green-grass",
       1,
     );
     const center = 4 * (w + 1) + 4;
@@ -85,14 +91,16 @@ describe('photoreal battle ground surfaces', () => {
     expect(mesh.tint[roadCenter]).toBe(0);
     expect(mesh.tint[screeCenter]).toBe(6);
     const decode = (index: number, channel: 0 | 1) =>
-      (mesh.earthDistance.data[index * 2 + channel] / 255 - 0.5) * 2 * mesh.earthDistance.rangeMeters;
+      (mesh.earthDistance.data[index * 2 + channel] / 255 - 0.5) *
+      2 *
+      mesh.earthDistance.rangeMeters;
     const distanceWidth = mesh.earthDistance.width;
     expect(decode((4 * 2 + 1) * distanceWidth + (4 * 2 + 1), 0)).toBeGreaterThan(0);
     expect(decode((4 * 2 + 1) * distanceWidth + (12 * 2 + 1), 1)).toBeGreaterThan(0);
     expect(decode((4 * 2 + 1) * distanceWidth + (16 * 2 + 1), 1)).toBeLessThan(0);
   });
 
-  it('packs a deterministic, correctly oriented padded earth field', () => {
+  it("packs a deterministic, correctly oriented padded earth field", () => {
     const w = 7;
     const h = 5;
     const tint = new Uint8Array(w * h);
@@ -101,14 +109,15 @@ describe('photoreal battle ground surfaces', () => {
     const height = new Float32Array(w * h);
     const mesh = buildPhotorealBattleGroundMesh(
       { w, h, cell: 4, ox: 40, oy: -20, tint, height },
-      { w, h, cell: 4, ox: 40, oy: -20, height, units: 'meters', verticalScale: 1 },
-      'green-grass',
+      { w, h, cell: 4, ox: 40, oy: -20, height, units: "meters", verticalScale: 1 },
+      "green-grass",
       1,
     );
     const sdf = mesh.earthDistance;
     const decode = (x: number, y: number, channel: 0 | 1) =>
       (sdf.data[(y * sdf.width + x) * 2 + channel] / 255 - 0.5) * 2 * sdf.rangeMeters;
-    const sourceCenter = (x: number, y: number, channel: 0 | 1 = 0) => decode(x * 2 + 1, y * 2 + 1, channel);
+    const sourceCenter = (x: number, y: number, channel: 0 | 1 = 0) =>
+      decode(x * 2 + 1, y * 2 + 1, channel);
 
     expect(sdf).toMatchObject({ width: 14, height: 10, cell: 2, ox: 40, oy: -20 });
     expect(sourceCenter(2, 1)).toBeGreaterThan(0);
@@ -122,19 +131,19 @@ describe('photoreal battle ground surfaces', () => {
       hash ^= byte;
       hash = Math.imul(hash, 16777619);
     }
-    expect((hash >>> 0).toString(16)).toBe('e4705ea6');
+    expect((hash >>> 0).toString(16)).toBe("e4705ea6");
 
     const emptyTint = new Uint8Array(w * h);
     const empty = buildPhotorealBattleGroundMesh(
       { w, h, cell: 4, ox: 40, oy: -20, tint: emptyTint, height },
-      { w, h, cell: 4, ox: 40, oy: -20, height, units: 'meters', verticalScale: 1 },
-      'green-grass',
+      { w, h, cell: 4, ox: 40, oy: -20, height, units: "meters", verticalScale: 1 },
+      "green-grass",
       1,
     ).earthDistance;
     expect(Array.from(empty.data).every((byte) => byte === 0)).toBe(true);
   });
 
-  it('keeps the earth union continuous through a mud-road seam', () => {
+  it("keeps the earth union continuous through a mud-road seam", () => {
     const w = 16;
     const h = 12;
     const tint = new Uint8Array(w * h);
@@ -146,12 +155,14 @@ describe('photoreal battle ground surfaces', () => {
     const height = new Float32Array(w * h);
     const sdf = buildPhotorealBattleGroundMesh(
       { w, h, cell: 4, ox: 0, oy: 0, tint, rough, speed, height },
-      { w, h, cell: 4, ox: 0, oy: 0, height, units: 'meters', verticalScale: 1 },
-      'green-grass',
+      { w, h, cell: 4, ox: 0, oy: 0, height, units: "meters", verticalScale: 1 },
+      "green-grass",
       1,
     ).earthDistance;
     const decode = (x: number, y: number, channel: 0 | 1) =>
-      (sdf.data[((y * 2 + 1) * sdf.width + (x * 2 + 1)) * 2 + channel] / 255 - 0.5) * 2 * sdf.rangeMeters;
+      (sdf.data[((y * 2 + 1) * sdf.width + (x * 2 + 1)) * 2 + channel] / 255 - 0.5) *
+      2 *
+      sdf.rangeMeters;
 
     for (let x = 5; x <= 10; x++) {
       const unionDistance = decode(x, 6, 0);
@@ -170,7 +181,7 @@ describe('photoreal battle ground surfaces', () => {
     expect(decode(9, 6, 1)).toBeLessThan(0);
   });
 
-  it('keeps churn on mud interiors while the visual feather stays narrow', () => {
+  it("pins the pure churn and edge-coverage math", () => {
     expect(mudInteriorCoverage(1.5)).toBe(0);
     expect(mudInteriorCoverage(2.5)).toBeGreaterThan(0);
     expect(mudInteriorCoverage(2.5)).toBeLessThan(1);
@@ -186,6 +197,8 @@ describe('photoreal battle ground surfaces', () => {
     const width = crossing(0.9) - crossing(0.1);
     expect(width).toBeGreaterThanOrEqual(1);
     expect(width).toBeLessThanOrEqual(2);
-    expect(TURF_CONTRAST.edge.noiseDisplacementMeters).toBeLessThanOrEqual(TURF_CONTRAST.edge.displacementBoundMeters);
+    expect(TURF_CONTRAST.edge.noiseDisplacementMeters).toBeLessThanOrEqual(
+      TURF_CONTRAST.edge.displacementBoundMeters,
+    );
   });
 });

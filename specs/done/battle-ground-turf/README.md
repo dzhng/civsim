@@ -1,13 +1,22 @@
 # Battle ground turf
 
+> **Post-main review status (2026-07-21): visual gate rejected.** Deterministic
+> snapshots and mechanical checks pass, but a new unprimed critique found
+> oversized synthetic blades, visible distance bands, camouflage-like top-down
+> masking, and painted earth transitions. See
+> `reports/post-main-fresh-eyes-review.md`. The archived rationale below describes
+> the implemented attempt; it is not a current claim that the aesthetic work is
+> complete.
+
 ## Purpose
 
-Battle ground reads as a dry Bronze-Age Aegean meadow instead of a camouflage
-texture. Real blade geometry supplies the fine near-field read; restrained
-world-space value structure carries turf through tactical, overhead, vista, and
-distant-quad cameras. Mud and authored roads interrupt that meadow with narrow,
-irregular grass edges, while rock, forest, water, and scree keep categorical
-ownership.
+The attempted design makes battle ground a dry Bronze-Age Aegean meadow instead
+of a camouflage texture. Real blade geometry is intended to supply the fine
+near-field read; restrained world-space value structure carries turf through
+tactical, overhead, vista, and distant-quad cameras. Mud and authored roads use
+narrow measured edge feathers, while rock, forest, water, and scree keep
+categorical ownership. The current visual rejection above means those mechanisms
+have not yet achieved the intended read.
 
 This record explains why those owners exist and what future changes must
 preserve. The live mechanics belong to the code and tests linked below.
@@ -48,8 +57,10 @@ owner, not simplify equivalent policy.
 - Photoreal turf contrast and earth-feather amplitudes have one source:
   `TURF_CONTRAST` and `TURF_SHAPE` in
   `packages/photoreal-renderer/src/battle/groundDetail.ts`.
-- Real blades are the only fine turf owner in the photoreal production route.
-  That route exposes no baked texture, synthetic strand, ridge, or capsule mode.
+- Real blades are the only near-camera fine turf geometry in the photoreal
+  production route. Distance canopy and terrain-quad flecks remain broad or
+  minification-specific value structure; the route exposes no baked texture,
+  synthetic strand, ridge, or capsule mode.
 - Ground, vista, and terrain quads share the meadow family and canopy
   composition. Ground and vista also share the same phase; every owner is
   world-space, so camera motion must not reset its pattern.
@@ -75,10 +86,12 @@ valid categorical exceptions; they are not alternate meadow palettes.
 
 The original no-texture edge target was not met. The vertex-only primary
 mechanism passed scalar checks but failed visual review, so the declared SDF
-escalation became the shipped path. Paired Apple/Metal measurements still pass
-the hard and soft performance budgets, but the resource ledger correctly marks
-the original zero-texture target as a miss: one RG8 terrain-load texture was
-added.
+escalation became the shipped path. The corrected pre-feature/final Apple/Metal
+pair passes every hard 33 ms gate. Its single-pair soft A/B result is marked
+inconclusive because two measurements exceed the original thresholds while an earlier
+same-adapter pair moved in the opposite direction, and the spec defined no repeat
+or variance rule. The resource ledger also marks the original zero-texture target
+as a miss: one RG8 terrain-load texture was added.
 
 The production-mid grass oracle once gated full-resolution edge energy. That
 metric combined real blades with the synthetic substrate detail this work
@@ -112,6 +125,9 @@ to turf.
   (`isBattleRoadSurface`, `buildPhotorealEarthDistance`).
 - Contrast, canopy, coverage, and churn policy:
   `packages/photoreal-renderer/src/battle/groundDetail.ts`.
+- Near-camera blade geometry and its meadow-palette handoff:
+  `packages/photoreal-renderer/src/battle/bladeFieldLayer.ts`
+  (`BLADE_FIELD_PALETTE`).
 - Playable, vista, and quad composition:
   `packages/photoreal-renderer/src/battle/terrainLayer.ts`
   (`createGroundMesh`, `createVistaMesh`).
@@ -121,15 +137,20 @@ to turf.
 - Deterministic production visual gate:
   `web/scenes/battle/battle-ground-turf.mjs` and
   `web/shots/battle/ground-turf/`.
+- Blade-structure and distance-transition gate:
+  `web/scenes/battle/battle-map-style.mjs`.
 - Pure palette/telemetry tests:
   `web/tests/meadowPalette.test.ts` and
   `web/tests/turfTelemetry.test.ts`.
-- Mesh, classifier, SDF, ownership, width, and legacy-byte tests:
+- Mesh, classifier, SDF, scalar width, and legacy-byte tests:
   `web/src/battle/groundSurface.test.ui.ts`.
 
-The final evidence is indexed in `reports/slice05-full-sweep.md`,
+Historical closeout evidence is indexed in `reports/slice05-full-sweep.md`,
 `reports/perf-after.json`, `reports/slice05-change-ledger.md`, and
-`reports/slice05-visual-gate.md`. The authoritative production baselines are
+`reports/slice05-visual-gate.md`. The current status is owned by
+`reports/post-main-fresh-eyes-review.md`, which supersedes the historical visual
+acceptance, plus `reports/scenario-runs/turf-post-main-review.json` for the latest
+mechanical no-update run. The authoritative production baselines are
 under `web/shots/battle`; the similarly named
 `assets/slice03-narrowed-gate` images are dated provenance, not claimed to be
 byte-identical to the final frames.
@@ -144,9 +165,13 @@ byte-identical to the final frames.
   meadow and exposed earth. It was supplied with the original spec, but its
   source URL and capture frame were not preserved; treat it as visual intent,
   not independently sourced reference evidence.
-- `assets/before-photoreal-parity.png` and
+- `assets/ref-overview-context.jpg` was supplied with the original spec as a
+  broad meadow-and-road composition reference. Its source URL was not
+  preserved, so it establishes contextual intent only and is not matched proof.
+- `assets/before-battle-initial.png`, `assets/before-photoreal-parity.png`, and
   `assets/telemetry/corrected-before-rts.png` preserve the inherited
-  camouflage-scale ground for matched comparison.
+  camouflage-scale ground at the battle, parity, and cropped RTS views for
+  before/final comparison.
 - `assets/00-rts-reference-candidate.png` and
   `assets/00-topdown-reference-candidate.png` preserve the rejected baked
   strand comparison at the real cameras.
@@ -156,10 +181,11 @@ byte-identical to the final frames.
   negative evidence for the baked, ridge, and capsule families.
 - `assets/slice03-narrowed-gate/` preserves the accepted blade-versus-substrate
   ownership checkpoint before earth-edge work.
-- `visualizations/final-contact-sheet.html` is the final
+- `visualizations/final-contact-sheet.html` is the archived
   before/reference/production comparison. Its first version failed fresh-eyes
-  review; the archived version is the corrected, independently accepted sheet.
-  The exact review record is `reports/slice05-fresh-eyes-review.md`.
+  review and its replacement was accepted at the time, as recorded in
+  `reports/slice05-fresh-eyes-review.md`; the post-main fresh-eyes rejection now
+  supersedes that historical verdict.
 
 The external reference is preserved by URL for provenance:
 https://x.com/SeloSlav/status/2077026419314454603

@@ -1162,7 +1162,11 @@ mod tests {
         let report = debraid_map(&mut map);
 
         assert_eq!(report.dropped.len(), 1, "dropped: {:?}", report.dropped);
-        assert!(report.dropped[0].starts_with("A--B"), "{:?}", report.dropped);
+        assert!(
+            report.dropped[0].starts_with("A--B"),
+            "{:?}",
+            report.dropped
+        );
         assert!(report.kept_braids.is_empty(), "{:?}", report.kept_braids);
         let edges = map["edges"].as_array().unwrap();
         assert_eq!(edges.len(), 2);
@@ -1233,7 +1237,10 @@ mod tests {
             .iter()
             .map(|n| n["name"].as_str().unwrap())
             .collect();
-        assert!(!names.contains(&"x"), "stub junction must cascade: {names:?}");
+        assert!(
+            !names.contains(&"x"),
+            "stub junction must cascade: {names:?}"
+        );
         assert!(braided_road_pairs(&map).is_empty());
         assert_eq!(map["edges"].as_array().unwrap().len(), 2);
     }

@@ -1,0 +1,107 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-07-21T13:09:48.780Z",
+  "target": "http://127.0.0.1:5194",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": "chrome",
+  "gpuAdapter": "hardware",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "battle-perf-30k",
+      "file": "battle/battle-perf-30k.mjs",
+      "kind": "flow",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-perf-30k",
+      "name": "sim is paused for the renderer measurement (rAF frames stay live draws)",
+      "ok": true,
+      "detail": "{\"tickBefore\":39,\"tickAfter\":39}"
+    },
+    {
+      "scenario": "battle-perf-30k",
+      "name": "gate holds >= 30000 soldiers on the production battle renderer",
+      "ok": true,
+      "detail": "{\"spawned\":{\"before\":15560,\"added\":15000},\"mid\":30560,\"vista\":30560}"
+    },
+    {
+      "scenario": "battle-perf-30k",
+      "name": "gate holds the dense foliage fill on the static whole-map blade field",
+      "ok": true,
+      "detail": "{\"table\":[{\"stop\":\"mid\",\"scenery\":585,\"grassRecords\":992334,\"grassTriangles\":0,\"activeBudget\":1000000,\"areaScale\":1},{\"stop\":\"vista\",\"scenery\":585,\"grassRecords\":992334,\"grassTriangles\":48150,\"activeBudget\":1000000,\"areaScale\":1}]}"
+    },
+    {
+      "scenario": "battle-perf-30k",
+      "name": "static grass is sampled uniformly to the record cap (no stratified/area budget)",
+      "ok": true,
+      "detail": "[{\"stop\":\"mid\",\"accepted\":992334,\"capacity\":1000000,\"stratified\":false},{\"stop\":\"vista\",\"accepted\":992334,\"capacity\":1000000,\"stratified\":false}]"
+    },
+    {
+      "scenario": "battle-perf-30k",
+      "name": "close zoom fill keeps the close-gate-density grass budget active",
+      "ok": true,
+      "detail": "[{\"zoom\":24,\"settledZoom\":22.86,\"grassEnabled\":true,\"recordCount\":992334,\"activeBudget\":1000000,\"areaScale\":1,\"pending\":false,\"rafMedianMs\":19.47,\"rafP95Ms\":28.04},{\"zoom\":28,\"settledZoom\":22.86,\"grassEnabled\":true,\"recordCount\":992334,\"activeBudget\":1000000,\"areaScale\":1,\"pending\":false,\"rafMedianMs\":20.48,\"rafP95Ms\":29.3}]"
+    },
+    {
+      "scenario": "battle-perf-30k",
+      "name": "frames show the crowd and terrain at both stops (load is on screen)",
+      "ok": true,
+      "detail": "{\"mid\":{\"crowd\":866444,\"terrain\":1010395,\"total\":1024000},\"vista\":{\"crowd\":534256,\"terrain\":802670,\"total\":1024000}}"
+    },
+    {
+      "scenario": "battle-perf-30k",
+      "name": "hardware run measured a real (non-software) adapter with live GPU timestamps",
+      "ok": true,
+      "detail": "{\"device\":\"apple / metal-3\",\"gpuSamples\":[150,150]}"
+    },
+    {
+      "scenario": "battle-perf-30k",
+      "name": "median GPU frame time within the 33 ms budget at both zoom stops",
+      "ok": true,
+      "detail": "[{\"stop\":\"mid\",\"zoom\":3,\"soldiers\":30560,\"scenery\":585,\"grassRecords\":992334,\"grassTriangles\":0,\"grassTierRecords\":{\"near\":0,\"mid\":0,\"far\":0},\"grassTierDroppedByThinning\":{\"near\":0,\"mid\":0,\"far\":0},\"grassThinnedRecords\":0,\"grassSampleAccepted\":992334,\"grassSampleCapacity\":1000000,\"grassSampleLodCounts\":[32,525,991777],\"grassSampleBudgetQuotas\":[480000,370000,150000],\"grassSampleDroppedByBudget\":[0,0,0],\"grassSampleStratifiedBudget\":false,\"grassActiveRecordBudget\":1000000,\"grassAreaBudgetScale\":1,\"grassVistaRecordBudget\":160000,\"gpuMedianMs\":22.58,\"gpuP95Ms\":23.79,\"gpuSamples\":150,\"rafMedianMs\":12.86,\"rafP95Ms\":17.79,\"device\":\"apple / metal-3\"},{\"stop\":\"vista\",\"zoom\":9.5,\"soldiers\":30560,\"scenery\":585,\"grassRecords\":992334,\"grassTriangles\":48150,\"grassTierRecords\":{\"near\":695,\"mid\":1370,\"far\":1345},\"grassTierDroppedByThinning\":{\"near\":0,\"mid\":140,\"far\":4065},\"grassThinnedRecords\":4205,\"grassSampleAccepted\":992334,\"grassSampleCapacity\":1000000,\"grassSampleLodCounts\":[32,525,991777],\"grassSampleBudgetQuotas\":[480000,370000,150000],\"grassSampleDroppedByBudget\":[0,0,0],\"grassSampleStratifiedBudget\":false,\"grassActiveRecordBudget\":1000000,\"grassAreaBudgetScale\":1,\"grassVistaRecordBudget\":160000,\"gpuMedianMs\":22.9,\"gpuP95Ms\":29.93,\"gpuSamples\":150,\"rafMedianMs\":21.93,\"rafP95Ms\":29.63,\"device\":\"apple / metal-3\"}]"
+    },
+    {
+      "scenario": "battle-perf-30k",
+      "name": "continuous 200m camera pan keeps rAF p95 within the 33 ms budget",
+      "ok": true,
+      "detail": "{\"distanceM\":200,\"durationMs\":3000,\"rafMedianMs\":14.13,\"rafP95Ms\":21.74,\"gpuMedianMs\":23.95,\"gpuP95Ms\":27.44,\"gpuSamples\":180,\"rebuildsBefore\":1,\"rebuildsAfter\":1,\"lastSampleMs\":310.345,\"recordCount\":992334,\"pending\":false}"
+    },
+    {
+      "scenario": "battle-perf-30k",
+      "name": "continuous zoom sweep keeps rAF p95 within the 33 ms budget",
+      "ok": true,
+      "detail": "{\"durationMs\":3000,\"rafMedianMs\":20.6,\"rafP95Ms\":26.94}"
+    },
+    {
+      "scenario": "battle-perf-30k",
+      "name": "wheel burst keeps rAF p95 within the 33 ms budget",
+      "ok": true,
+      "detail": "{\"events\":30,\"durationMs\":1000,\"sent\":30,\"startZoom\":3,\"finalZoom\":3.17,\"settledZoom\":3.17,\"minZoom\":0.4,\"maxZoom\":60,\"rafMedianMs\":14.2,\"rafP95Ms\":21.42,\"rebuildsBefore\":1,\"rebuildsAfter\":1,\"pending\":false,\"lastSampleMs\":310.345,\"lastSlices\":1,\"lastMaxSliceMs\":310.285}"
+    },
+    {
+      "scenario": "battle-perf-30k",
+      "name": "close zoom 24/28 grass-on fill keeps rAF p95 within the 33 ms budget",
+      "ok": true,
+      "detail": "[{\"zoom\":24,\"settledZoom\":22.86,\"grassEnabled\":true,\"recordCount\":992334,\"activeBudget\":1000000,\"areaScale\":1,\"pending\":false,\"rafMedianMs\":19.47,\"rafP95Ms\":28.04},{\"zoom\":28,\"settledZoom\":22.86,\"grassEnabled\":true,\"recordCount\":992334,\"activeBudget\":1000000,\"areaScale\":1,\"pending\":false,\"rafMedianMs\":20.48,\"rafP95Ms\":29.3}]"
+    },
+    {
+      "scenario": "battle-perf-30k",
+      "name": "wheel burst final zoom stays between min and max clamps",
+      "ok": true,
+      "detail": "{\"events\":30,\"durationMs\":1000,\"sent\":30,\"startZoom\":3,\"finalZoom\":3.17,\"settledZoom\":3.17,\"minZoom\":0.4,\"maxZoom\":60,\"rafMedianMs\":14.2,\"rafP95Ms\":21.42,\"rebuildsBefore\":1,\"rebuildsAfter\":1,\"pending\":false,\"lastSampleMs\":310.345,\"lastSlices\":1,\"lastMaxSliceMs\":310.285}"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

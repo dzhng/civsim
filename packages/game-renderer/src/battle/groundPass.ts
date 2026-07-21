@@ -18,8 +18,6 @@ import {
   type PhotorealEarthDistanceField,
 } from './photorealEarthDistance';
 
-export { isBattleRoadSurface } from './photorealEarthDistance';
-
 // The rolling battle ground: a height-displaced grid mesh that replaces the flat
 // terrain quads, so soldiers, shadows, and props (which seat on the same height
 // source) sit ON the ground instead of floating over it. Full-field ground cover

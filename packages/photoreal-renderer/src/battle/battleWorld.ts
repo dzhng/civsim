@@ -808,7 +808,9 @@ export class PhotorealBattleWorld {
     camera: BattleCameraSnapshot,
     renderClass?: Uint8Array | number[] | null,
     simTick?: number,
+    frameDt = 0,
   ): void {
+    this.frame.dt.value = Number.isFinite(frameDt) ? Math.max(0, frameDt) : 0;
     this.setCamera(camera);
     const built = buildCrowdInstances({
       positions,

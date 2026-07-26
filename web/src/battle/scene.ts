@@ -1870,6 +1870,7 @@ export class BattleScene implements Scene {
         camera,
         renderClass,
         frozen ? simTick : simTick + accumulator / TICK_DT,
+        frameDt,
       );
       // Attack arcs: every soldier mid-swing flashes his weapon's true envelope
       // (reach x arc) — readable combat, straight from the class table. The arc

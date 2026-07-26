@@ -12,10 +12,19 @@ Reference (MIT, © Lentils): `assets/pen-source/index.html` (a WebGL/GLSL demo �
 
 ## Next Agent Prompt
 
-**Status:** Plan drafted 2026-07-26 (branch `living-meadow`). Not yet started.
-**Pick up at:** slice `00-lab-fixture-and-probes` (foundation). The audio track
-(`20-audio-engine-skeleton`) can start in parallel immediately — it does **not**
-depend on the grass spike.
+**Status:** 2026-07-26 — slices `00` and `20` are DONE (gates green, verdicts in
+their slice files, decisions in `choices.md`); slice `21` is in flight on the
+audio lane. Two-lane build: grass lane = worktree `civsim-living-meadow`
+(branch `living-meadow`, vite :5185), audio lane = worktree `civsim-lm-audio`
+(branch `lm-audio`, vite :5186, merged back after each pass). Codex (gpt-5.5,
+workspace-write sandbox) implements; the orchestrator owns browser gates,
+review, and commits.
+**Pick up at:** slice `01-wind-signal-owner` (grass lane). Then the `02` spike.
+**Probe verdicts banked (slice 00):** R2 wind-RT VIABLE in TSL (analytic
+uniforms still first choice for 07); R3 backlight VIABLE on
+MeshStandardNodeMaterial emissive, shadow scalar NOT cheaply reachable (03
+builds emissive-term family, not shadow-gated). R4 OfflineAudioContext landed
+via `node-web-audio-api`; R5 gesture gate proven live (slice 20).
 
 **Read first:** this README top-to-bottom, then the two foundation slices (`00`,
 `01`), then the spike (`02`). Skim `specs/done/battle-map-reference/README.md` for
@@ -172,7 +181,7 @@ while `21`/`22` land → `07`+`23` (wind join) → `05`/`06` + `24`/`25` → `08
 ## TODO checklist
 
 Foundation
-- [ ] `00` lab fixture + `dt` seam + R2/R3/R4/R5 probes
+- [x] `00` lab fixture + `dt` seam + probes (R2/R3 here; R4/R5 via `20`)
 - [ ] `01` windSignal source-of-truth + determinism proof
 
 Grass
@@ -186,7 +195,7 @@ Grass
 - [ ] `09` production wire-in (hard cutover)
 
 Audio
-- [ ] `20` engine skeleton + Offline test harness
+- [x] `20` engine skeleton + Offline test harness (commit 833801df, lm-audio)
 - [ ] `21` wind bed (+ rustle)
 - [ ] `22` reverb + master voicing
 - [ ] `23` director wind coupling (join → windSignal)

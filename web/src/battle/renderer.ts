@@ -213,6 +213,7 @@ export class BattleRenderer {
     camera: Camera,
     renderClass?: Uint8Array | number[] | null,
     simTick?: number,
+    frameDt = 0,
   ) {
     if (!this.world) return;
     const frameKey =
@@ -241,6 +242,7 @@ export class BattleRenderer {
       this.lastCamera,
       renderClass,
       simTick ?? Math.floor(seconds * 30),
+      frameDt,
     );
     const buildEnd = performance.now();
     if (this.blockMode) {

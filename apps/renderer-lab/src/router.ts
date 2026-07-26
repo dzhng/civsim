@@ -212,6 +212,7 @@ import {
 } from "./photorealRoutes";
 import { routePhotorealBattle } from "./photorealBattleRoute";
 import { routeBattleGroundTurf } from "./battleGroundTurfRoute";
+import { routeLivingMeadow } from "./livingMeadowRoute";
 import { PhotorealBattleWorld } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
 import { PhotorealBladeFieldLayer } from "../../../packages/photoreal-renderer/src/battle/bladeFieldLayer";
 import { createPhotorealStatsPublisher } from "../../../packages/photoreal-renderer/src/stats";
@@ -292,6 +293,7 @@ const routes: Record<string, LabRoute> = {
   "/renderer/photoreal-shadow-probe": routePhotorealShadowProbe,
   "/renderer/photoreal-battle": routePhotorealBattle,
   "/renderer/battle-ground-turf": routeBattleGroundTurf,
+  "/renderer/living-meadow": routeLivingMeadow,
   "/renderer/blade-field": routeBladeField,
 };
 

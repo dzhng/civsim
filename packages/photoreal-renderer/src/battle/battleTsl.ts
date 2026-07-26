@@ -25,14 +25,16 @@ export function rgbNode(c: Rgb): Vec3Node {
 
 /** The per-frame camera/clock uniforms the ported battle shaders read — the
  *  TSL mirror of the bespoke `cam` uniform scalars that survive projection
- *  (focus, time). One owner: PhotorealBattleWorld writes them; the aerial
+ *  (focus, time, dt). One owner: PhotorealBattleWorld writes them; the aerial
  *  hook reads `focus` as its observer.
  *  `time` mirrors cam.time — the production battle never sets it, so parity
- *  captures freeze it at 0; live viewing may drive it. */
+ *  captures freeze it at 0; live viewing may drive it. `dt` is the single
+ *  rAF delta threaded from scene.ts for future stateful render/audio updates. */
 export function createBattleFrameUniforms() {
   return {
     focus: uniform(new Vector2(0, 0)),
     time: uniform(0),
+    dt: uniform(0),
   };
 }
 

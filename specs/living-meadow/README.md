@@ -12,14 +12,12 @@ Reference (MIT, © Lentils): `assets/pen-source/index.html` (a WebGL/GLSL demo �
 
 ## Next Agent Prompt
 
-**Status:** 2026-07-26 — slices `00` and `20` are DONE (gates green, verdicts in
-their slice files, decisions in `choices.md`); slice `21` is in flight on the
-audio lane. Two-lane build: grass lane = worktree `civsim-living-meadow`
+**Status:** 2026-07-26 — DONE: `00`, `01`, `02` (SPIKE VERDICT: **EVOLVE** — see the slice file's evidence; fresh port deleted), `20`, `21`, `22`, `23`, `25`. All gates green, decisions in `choices.md`. Two-lane build: grass lane = worktree `civsim-living-meadow`
 (branch `living-meadow`, vite :5185), audio lane = worktree `civsim-lm-audio`
 (branch `lm-audio`, vite :5186, merged back after each pass). Codex (gpt-5.5,
 workspace-write sandbox) implements; the orchestrator owns browser gates,
 review, and commits.
-**Pick up at:** slice `01-wind-signal-owner` (grass lane). Then the `02` spike.
+**Pick up at:** slice `03-translucency` (grass lane, on the evolve substrate). Audio lane: `24-water-bed`, then `26`. Spike findings routed: near-field bald ground -> `05`; ground-underlayer color -> `04`/`05`; flat-tip fix -> `06`.
 **Probe verdicts banked (slice 00):** R2 wind-RT VIABLE in TSL (analytic
 uniforms still first choice for 07); R3 backlight VIABLE on
 MeshStandardNodeMaterial emissive, shadow scalar NOT cheaply reachable (03
@@ -182,10 +180,10 @@ while `21`/`22` land → `07`+`23` (wind join) → `05`/`06` + `24`/`25` → `08
 
 Foundation
 - [x] `00` lab fixture + `dt` seam + probes (R2/R3 here; R4/R5 via `20`)
-- [ ] `01` windSignal source-of-truth + determinism proof
+- [x] `01` windSignal source-of-truth + determinism proof
 
 Grass
-- [ ] `02` SPIKE evolve vs fresh port + verdict (deletes loser)
+- [x] `02` SPIKE — verdict: EVOLVE (fresh deleted; evidence in slice file)
 - [ ] `03` translucency (backlight + subsurface)
 - [ ] `04` color / 5-stop ramp — **David sign-off**
 - [ ] `05` density-to-horizon LOD
@@ -196,11 +194,11 @@ Grass
 
 Audio
 - [x] `20` engine skeleton + Offline test harness (commit 833801df, lm-audio)
-- [ ] `21` wind bed (+ rustle)
-- [ ] `22` reverb + master voicing
-- [ ] `23` director wind coupling (join → windSignal)
+- [x] `21` wind bed (+ rustle)
+- [x] `22` reverb + master voicing
+- [x] `23` director wind coupling (join → windSignal)
 - [ ] `24` water bed (join → seaLayer)
-- [ ] `25` bird scheduler
+- [x] `25` bird scheduler
 - [ ] `26` battle integration + settings + teardown
 
 Perf (deferred, D2)

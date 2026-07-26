@@ -41,6 +41,7 @@ import {
   GRASS_FIELD_PACKED_STRIDE_FLOATS,
 } from "../../../game-renderer/src/battle/grassField";
 import { MEADOW } from "../../../game-renderer/src/battle/meadowPalette";
+import type { MeadowGrassLayer } from "./meadowGrassLayer";
 import {
   linearAlbedo,
   rgbNode,
@@ -91,6 +92,22 @@ export interface BladeFieldTransitionUniforms {
   edgeSinkStartM: FloatUniformNode;
   terrainDetailStrength: FloatUniformNode;
 }
+
+export interface BladeFieldMeadowFarDensityProfile {
+  farGrassEndM: number;
+  densityReferenceM: number;
+  falloffPower: 1.5;
+  farSoftWidthScale?: number;
+  edgeSinkStartM?: number;
+}
+
+export const LIVING_MEADOW_FAR_DENSITY_PROFILE: BladeFieldMeadowFarDensityProfile = {
+  farGrassEndM: 720,
+  densityReferenceM: 260,
+  falloffPower: 1.5,
+  farSoftWidthScale: 1.72,
+  edgeSinkStartM: 560,
+};
 
 export const BLADE_FIELD_LOD_TIERS: readonly BladeFieldTierSpec[] = [
   { id: "near", lodTier: 0, segments: 15, minDistanceM: 0, maxDistanceM: 5 },
@@ -174,6 +191,7 @@ export interface BladeFieldStats {
   culledRecords: number;
   thinnedRecords: number;
   thinning: BladeFieldThinningProfile;
+  meadowFarDensity: BladeFieldMeadowFarDensityProfile | null;
   transition: BladeFieldTransitionProfile;
   sourceStorageCore: {
     packedVec4PerBlade: 4;
@@ -203,6 +221,9 @@ export interface BladeFieldThinningProfile {
   enabled: boolean;
   fadeStartM: number;
   fadeEndM: number;
+  densityLaw: "smoothstep-to-zero" | "pen-1.5-power";
+  densityReferenceM: number;
+  falloffPower: 1 | 1.5;
   hashSource: "record.bladeSeed fract(seed01 * 7.13)";
   survivorAlbedoBlend: number;
 }
@@ -261,7 +282,7 @@ const drawIndirectStruct = struct({
 });
 const SEED24_MASK = 0x00ff_ffff;
 
-export class PhotorealBladeFieldLayer {
+export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
   private readonly buckets: TierBucket[];
   private readonly time: FloatNode;
   private recordCount = 0;
@@ -277,6 +298,7 @@ export class PhotorealBladeFieldLayer {
   private thinning: BladeFieldThinningProfile;
   private transition: BladeFieldTransitionProfile;
   private readonly transitionUniforms: BladeFieldTransitionUniforms;
+  private meadowFarDensity: BladeFieldMeadowFarDensityProfile | null = null;
 
   /** `tiers` overrides the ratified close-lab envelope (far 64 m) - the
    *  production battle passes a wider far tier so vista framing (eye ~59 m
@@ -411,7 +433,21 @@ export class PhotorealBladeFieldLayer {
 
   setTransition(profile: BladeFieldTransitionProfile): BladeFieldTransitionProfile {
     this.transition = this.applyTransitionProfile(profile);
-    this.thinning = thinningProfileForTransition(this.transition, this.thinning.enabled);
+    this.thinning = thinningProfileForTransition(
+      this.transition,
+      this.thinning.enabled,
+      this.meadowFarDensity,
+    );
+    return this.transition;
+  }
+
+  setMeadowFarDensityProfile(
+    profile: BladeFieldMeadowFarDensityProfile | null,
+  ): BladeFieldTransitionProfile {
+    this.meadowFarDensity = profile;
+    this.transition = this.applyTransitionProfile(this.transition);
+    this.thinning = thinningProfileForTransition(this.transition, this.thinning.enabled, profile);
+    if (this.recordCount > 0) this.applyPackedRecords(this.packedRecords, this.enabled);
     return this.transition;
   }
 
@@ -512,6 +548,7 @@ export class PhotorealBladeFieldLayer {
       culledRecords: this.culledRecords,
       thinnedRecords: this.thinnedRecords,
       thinning: this.thinning,
+      meadowFarDensity: this.meadowFarDensity,
       transition: this.transition,
       sourceStorageCore: {
         packedVec4PerBlade: 4,
@@ -545,7 +582,11 @@ export class PhotorealBladeFieldLayer {
   private applyTransitionProfile(
     profile: BladeFieldTransitionProfile,
   ): BladeFieldTransitionProfile {
-    const clamped = transitionProfileForTiers(this.tiers, profile);
+    const clamped = transitionProfileForTiers(
+      this.tiers,
+      profile,
+      this.meadowFarDensity ?? undefined,
+    );
     return updateBladeFieldTransitionUniforms(this.transitionUniforms, clamped);
   }
 }
@@ -659,8 +700,16 @@ function createGpuRuntime(
       max(transition.denseBladeEndM, transition.farGrassEndM.sub(float(80.0))),
     );
     const fade = smoothstep(fadeStart, transition.farGrassEndM, dist);
+    const penDensity = min(
+      float(1.0),
+      pow(float(thinning.densityReferenceM).div(max(dist, float(0.001))), thinning.falloffPower),
+    );
     // Disabled profile (ratified lab envelope) keeps every blade.
-    const survival = thinning.enabled ? float(1.0).sub(fade) : float(1.0);
+    const survival = thinning.enabled
+      ? thinning.densityLaw === "pen-1.5-power"
+        ? penDensity
+        : float(1.0).sub(fade)
+      : float(1.0);
     const farTierEnd = thinning.enabled
       ? transition.farGrassEndM
       : transition.farGrassEndM.add(float(1_000_000.0));
@@ -910,11 +959,13 @@ function bladeFieldMaterial(
 function transitionProfileForTiers(
   tiers: readonly BladeFieldTierSpec[],
   transition: BladeFieldTransitionProfile,
+  meadowFarDensity?: BladeFieldMeadowFarDensityProfile,
 ): BladeFieldTransitionProfile {
   const farTier = tiers[tiers.length - 1] ?? BLADE_FIELD_LOD_TIERS[2];
+  const farTierMaxDistanceM = Math.max(farTier.maxDistanceM, meadowFarDensity?.farGrassEndM ?? 0);
   const farGrassEndM = Math.min(
-    Math.max(transition.farGrassEndM, transition.farGrassStartM),
-    farTier.maxDistanceM,
+    Math.max(meadowFarDensity?.farGrassEndM ?? transition.farGrassEndM, transition.farGrassStartM),
+    farTierMaxDistanceM,
   );
   const farGrassStartM = Math.min(
     Math.max(transition.farGrassStartM, farTier.minDistanceM),
@@ -935,12 +986,21 @@ function transitionProfileForTiers(
     farGrassEndM,
     nearTierEndM,
     midTierEndM,
-    farSoftWidthScale: farSoftWidthScaleUniformValue(transition),
+    farSoftWidthScale: farSoftWidthScaleUniformValue({
+      ...transition,
+      farSoftWidthScale: meadowFarDensity?.farSoftWidthScale ?? transition.farSoftWidthScale,
+    }),
     terrainDetailStrength: terrainDetailStrengthUniformValue(transition),
     edgeSinkStartM:
-      transition.edgeSinkStartM === undefined
+      (meadowFarDensity?.edgeSinkStartM ?? transition.edgeSinkStartM) === undefined
         ? undefined
-        : Math.min(Math.max(transition.edgeSinkStartM, farTier.minDistanceM), farGrassEndM),
+        : Math.min(
+            Math.max(
+              meadowFarDensity?.edgeSinkStartM ?? transition.edgeSinkStartM!,
+              farTier.minDistanceM,
+            ),
+            farGrassEndM,
+          ),
   };
 }
 
@@ -1016,7 +1076,9 @@ function terrainDetailStrengthUniformValue(transition: BladeFieldTransitionProfi
 function thinningProfileForTransition(
   transition: BladeFieldTransitionProfile,
   blendSurvivors: boolean,
+  meadowFarDensity: BladeFieldMeadowFarDensityProfile | null = null,
 ): BladeFieldThinningProfile {
+  const densityLaw = meadowFarDensity ? "pen-1.5-power" : "smoothstep-to-zero";
   return {
     // Thinning is the production edge treatment: density starts falling just
     // past mid-ring and reaches zero at the coverage edge. Height sink remains
@@ -1024,6 +1086,9 @@ function thinningProfileForTransition(
     enabled: blendSurvivors,
     fadeStartM: productionFadeStartM(transition),
     fadeEndM: transition.farGrassEndM,
+    densityLaw,
+    densityReferenceM: meadowFarDensity?.densityReferenceM ?? productionFadeStartM(transition),
+    falloffPower: meadowFarDensity?.falloffPower ?? 1,
     hashSource: "record.bladeSeed fract(seed01 * 7.13)",
     survivorAlbedoBlend: blendSurvivors ? 0.85 : 0,
   };
@@ -1042,7 +1107,10 @@ function bladeSurvivesDistanceThinning(
   thinning: BladeFieldThinningProfile,
 ): boolean {
   if (!thinning.enabled) return true;
-  const survival = 1 - smoothstep01(thinning.fadeStartM, thinning.fadeEndM, dist);
+  const survival =
+    thinning.densityLaw === "pen-1.5-power"
+      ? Math.min(1, Math.pow(thinning.densityReferenceM / Math.max(0.001, dist), 1.5))
+      : 1 - smoothstep01(thinning.fadeStartM, thinning.fadeEndM, dist);
   return bladeHash01(bladeSeed) < survival;
 }
 

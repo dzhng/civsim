@@ -1,7 +1,13 @@
 // /renderer/living-meadow (slice 00): production PhotorealBattleWorld grass
 // fixture for the living-meadow visual slices. Determinism: every animated term
 // reads PhotorealWorld.uTime via world.setTime(); the TSL time node is banned.
+// The slice-02 spike verdict picked the EVOLVE substrate: the fixture mounts the
+// production blade layer with the living-meadow far-density profile opted in.
 import { PhotorealBattleWorld } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
+import {
+  LIVING_MEADOW_FAR_DENSITY_PROFILE,
+  type PhotorealBladeFieldLayer,
+} from "../../../packages/photoreal-renderer/src/battle/bladeFieldLayer";
 import { seaDisplacementSourceFromParam } from "../../../packages/photoreal-renderer/src/battle/seaLayer";
 import { createPhotorealStatsPublisher } from "../../../packages/photoreal-renderer/src/stats";
 import { Camera } from "../../../web/src/shared/camera";
@@ -61,7 +67,6 @@ export async function routeLivingMeadow(ctx: LivingMeadowContext) {
   if (ctx.params.get("ref") === "1") ctx.root.classList.add("reference-shot");
   const crop = cropParam(ctx.params);
   const preset = CROP_PRESETS[crop];
-  const impl = ctx.params.get("impl") || "evolve";
   const fixedT = fixedSeconds(ctx.params);
   const mapIndex = 0;
   const [{ default: initWasm, Game }, world] = await Promise.all([
@@ -91,6 +96,8 @@ export async function routeLivingMeadow(ctx: LivingMeadowContext) {
   world.setTerrain(grid.w, grid.h, grid.cell, grid.ox, grid.oy, grid.tint, grid.height, mapIndex);
 
   const camera = createCropCamera(ctx.canvas, grid, field, preset, cssW, cssH, dpr);
+  const bladeLayer = (world as unknown as { grass?: PhotorealBladeFieldLayer }).grass;
+  bladeLayer?.setMeadowFarDensityProfile(LIVING_MEADOW_FAR_DENSITY_PROFILE);
 
   (window as unknown as { __livingMeadowWorld?: PhotorealBattleWorld }).__livingMeadowWorld =
     world;
@@ -108,11 +115,17 @@ export async function routeLivingMeadow(ctx: LivingMeadowContext) {
     const grass = stats.terrain?.grass;
     return {
       crop,
-      impl,
       fixedTimeSeconds: fixedT,
       map: "A",
-      productionGrassOwner: "PhotorealBattleWorld.PhotorealBladeFieldLayer",
+      productionGrassOwner:
+        "PhotorealBattleWorld.PhotorealBladeFieldLayer + living-meadow far-density opt-in",
       submittedTriangles: grass?.submittedTriangles ?? 0,
+      implementationStats: {
+        records: grass?.recordCount ?? 0,
+        submittedTriangles: grass?.submittedTriangles ?? 0,
+        drawCalls: grass?.drawCalls ?? 0,
+        gpuTimeMs: stats.performance.gpuTimeMs,
+      },
       grass,
       renderStats: stats,
       camera: cameraSnapshot(),
@@ -129,7 +142,6 @@ export async function routeLivingMeadow(ctx: LivingMeadowContext) {
     ctx.status.innerHTML = table({
       route: "living-meadow",
       crop,
-      impl,
       time: fixedT.toFixed(3),
       environment: published.environment ?? "none",
       "grass records": stats.terrain?.grass.recordCount ?? 0,
@@ -208,8 +220,8 @@ function table(values: Record<string, string | number>): string {
     .join("")}</table>`;
 }
 
-/** URL-derived values (?impl=, ?env=) flow into this table — escape like the
- *  other lab status tables do. */
+/** URL-derived values (?env=) flow into this table — escape like the other lab
+ *  status tables do. */
 function escapeHtml(value: string): string {
   return value
     .replaceAll("&", "&amp;")

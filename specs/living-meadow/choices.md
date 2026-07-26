@@ -45,3 +45,26 @@ consolidated at close per implement-spec step 11.
 - **Route builds the graph up-front and only `resume()`s on gesture** (vs
   constructing on first click). Confirmed the gesture gate holds live
   (suspended→running). *Sound.*
+
+## Pass: slice 02 spike (2026-07-26)
+
+- **VERDICT: EVOLVE.** Recorded with full evidence in the slice file. The
+  unprimed neutral judge reversed the orchestrator's primed read (brighter
+  fresh blades had read as "denser"; measured coverage said otherwise) —
+  the unprimed gate earned its keep. *Sound.*
+- **Fresh port deleted** as a rejected primitive (was honest-but-reduced:
+  single LOD, CPU prefix, no compute route, 5x triangles). Its one finding —
+  warmer blade shading reads meadow-softer — handed to slices 03/04. *Sound.*
+- **MeadowGrassLayer interface kept** (single grass-layer contract for the 09
+  cutover); simplified post-verdict to drop the hash param only the deleted
+  fork needed. `applyPackedRecords` reverted to its original signature.
+  *Sound — no parallel abstraction survives.*
+- **`?impl=` param removed** from the fixture (verdict is final; the fixture
+  now always opts into the far-density profile). If a later slice needs
+  pre/post A/B it re-adds a param deliberately. *Sound; cosmetic.*
+- **Far-density profile constants** (720 m end, 260 m reference, 1.5 power)
+  are first-guess values — slice 05 owns tuning them against the vista crop.
+  *Provisional — owned by slice 05.*
+- **Spike finding for the ladder:** near-field bald ground is the biggest gap
+  vs the hero; ground-underlayer color match flagged into slice 04/05; flat-cut
+  tip fix flagged into slice 06. *Sound — recorded in the slice file.*

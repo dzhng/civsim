@@ -6,6 +6,7 @@ export type AmbientBedSendLevels = Partial<Record<AmbientAudioBed, number>>;
 export interface AmbientAudioSettings {
   masterVolume?: number;
   muted?: boolean;
+  birds?: boolean;
   bedVolumes?: AmbientBedVolumes;
   reverbSendLevels?: AmbientBedSendLevels;
   rampTimeConstant?: number;
@@ -17,7 +18,7 @@ export const DEFAULT_REVERB_SEND_LEVELS: Readonly<Record<AmbientAudioBed, number
   wind: 0.32,
   grass: 0,
   water: 0,
-  birds: 0,
+  birds: 0.18,
   test: 0,
 };
 

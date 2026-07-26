@@ -4,6 +4,9 @@ import { OfflineAudioContext } from "node-web-audio-api";
 import {
   AmbientAudioDirector,
   AmbientAudioEngine,
+  BirdScheduler,
+  BIRD_INTERVAL_FLOOR_SECONDS,
+  MAX_CONCURRENT_BIRD_VOICES,
   VALLEY_EARLY_REFLECTION_SECONDS,
   VALLEY_REVERB_SECONDS,
   VALLEY_REVERB_SEED,
@@ -11,6 +14,7 @@ import {
   WIND_BED_DIRECTOR_MAPPING,
   WIND_BED_FIXED_NODE_COUNT,
   buildValleyImpulseResponse,
+  type AudioMixer,
   type AmbientOfflineAudioContextConstructor,
   type WindBedControl,
 } from "../../packages/ambient-audio/src/index.ts";
@@ -49,6 +53,7 @@ describe("AmbientAudioEngine", () => {
     expect(graph.reverb.wetGain).toBeCloseTo(VALLEY_REVERB_WET_GAIN, 4);
     expect(graph.reverb.bufferDuration).toBeCloseTo(VALLEY_REVERB_SECONDS, 3);
     expect(graph.sendLevels.wind).toBeCloseTo(0.32, 4);
+    expect(graph.sendLevels.birds).toBeCloseTo(0.18, 4);
     expect(graph.hasReverbSendBus).toBe(true);
   });
 
@@ -182,6 +187,103 @@ describe("AmbientAudioEngine", () => {
       expect(control.grassNear).toBeGreaterThanOrEqual(0);
       expect(control.grassNear).toBeLessThanOrEqual(WIND_BED_DIRECTOR_MAPPING.maxGrassNear);
     }
+  });
+
+  it("schedules 60 simulated seconds of birds without breaking the interval floor or voice cap", () => {
+    const ctx = new FakeBirdAudioContext();
+    const scheduler = new BirdScheduler(ctx as unknown as BaseAudioContext, fakeBirdMixer(ctx), {
+      seed: 25,
+      initialDelaySeconds: 0,
+      intervalRangeSeconds: 0,
+      lookAheadSeconds: 60,
+      maxConcurrentVoices: MAX_CONCURRENT_BIRD_VOICES,
+    });
+
+    for (let t = 0; t <= 60; t += 0.1) {
+      ctx.currentTime = t;
+      scheduler.tick();
+    }
+
+    const schedule = scheduler.inspectSchedule();
+    expect(schedule.scheduledStarts.length).toBeGreaterThan(8);
+    expect(schedule.maxObservedActiveVoices).toBeLessThanOrEqual(MAX_CONCURRENT_BIRD_VOICES);
+    for (let i = 1; i < schedule.scheduledStarts.length; i++) {
+      expect(schedule.scheduledStarts[i] - schedule.scheduledStarts[i - 1]).toBeGreaterThanOrEqual(
+        BIRD_INTERVAL_FLOOR_SECONDS - 1e-6,
+      );
+    }
+  });
+
+  it("returns to the wind-bed node floor after a bird storm", async () => {
+    const sampleRate = 44_100;
+    const seconds = 8;
+    const engine = AmbientAudioEngine.create({
+      AudioContext: OfflineCtor,
+      audioContextArgs: [1, sampleRate * seconds, sampleRate],
+      settings: { masterVolume: 0.75 },
+      birds: {
+        seed: 25,
+        initialDelaySeconds: 0,
+        intervalRangeSeconds: 0,
+        lookAheadSeconds: 60,
+      },
+    });
+
+    engine.windBed.start(0);
+    const bedFloor = engine.activeNodes;
+    engine.birdScheduler.tick();
+    expect(engine.activeNodes).toBeGreaterThan(bedFloor);
+    expect(engine.birdScheduler.inspectSchedule().maxObservedActiveVoices).toBeLessThanOrEqual(
+      MAX_CONCURRENT_BIRD_VOICES,
+    );
+
+    await (engine.ctx as unknown as OfflineAudioContext).startRendering();
+    engine.birdScheduler.setEnabled(false);
+    engine.birdScheduler.tick();
+
+    expect(engine.activeNodes).toBe(bedFloor);
+  });
+
+  it("renders at least one bird phrase with transient peaks above the noise floor", async () => {
+    const sampleRate = 44_100;
+    const seconds = 2.5;
+    const engine = AmbientAudioEngine.create({
+      AudioContext: OfflineCtor,
+      audioContextArgs: [1, sampleRate * seconds, sampleRate],
+      settings: {
+        masterVolume: 1,
+        bedVolumes: { wind: 0, grass: 0, water: 0, birds: 1 },
+        reverbSendLevels: { birds: 0 },
+      },
+      birds: { seed: 250, initialDelaySeconds: 0.1, lookAheadSeconds: 0.25 },
+    });
+
+    engine.birdScheduler.tick();
+    const buffer = await (engine.ctx as unknown as OfflineAudioContext).startRendering();
+    const samples = buffer.getChannelData(0);
+
+    expect(peakAbs(samples)).toBeGreaterThan(0.01);
+    expect(windowedRms(samples, sampleRate, 0, 0.08)).toBeLessThan(0.0002);
+  });
+
+  it("does not schedule birds while disabled", () => {
+    const sampleRate = 44_100;
+    const engine = AmbientAudioEngine.create({
+      AudioContext: OfflineCtor,
+      audioContextArgs: [1, sampleRate, sampleRate],
+      settings: { birds: false },
+      birds: {
+        initialDelaySeconds: 0,
+        lookAheadSeconds: 60,
+      },
+    });
+
+    for (let t = 0; t <= 60; t += 1) {
+      engine.birdScheduler.tick(t);
+    }
+
+    expect(engine.activeVoices).toBe(0);
+    expect(engine.birdScheduler.inspectSchedule().scheduledStarts).toEqual([]);
   });
 });
 
@@ -469,4 +571,78 @@ function biquadCoefficients(
     a1: (-2 * cos) / a0,
     a2: (1 - alpha) / a0,
   };
+}
+
+function peakAbs(samples: Float32Array): number {
+  let peak = 0;
+  for (const sample of samples) peak = Math.max(peak, Math.abs(sample));
+  return peak;
+}
+
+class FakeAudioParam {
+  value = 0;
+
+  setValueAtTime(value: number): FakeAudioParam {
+    this.value = value;
+    return this;
+  }
+
+  linearRampToValueAtTime(value: number): FakeAudioParam {
+    this.value = value;
+    return this;
+  }
+
+  exponentialRampToValueAtTime(value: number): FakeAudioParam {
+    this.value = value;
+    return this;
+  }
+}
+
+class FakeAudioNode {
+  connect(): FakeAudioNode {
+    return this;
+  }
+
+  disconnect(): void {}
+}
+
+class FakeGainNode extends FakeAudioNode {
+  gain = new FakeAudioParam();
+}
+
+class FakeStereoPannerNode extends FakeAudioNode {
+  pan = new FakeAudioParam();
+}
+
+class FakeOscillatorNode extends FakeAudioNode {
+  frequency = new FakeAudioParam();
+  type: OscillatorType = "sine";
+  onended: (() => void) | null = null;
+
+  start(): void {}
+
+  stop(): void {}
+}
+
+class FakeBirdAudioContext {
+  currentTime = 0;
+  destination = new FakeAudioNode();
+
+  createGain(): FakeGainNode {
+    return new FakeGainNode();
+  }
+
+  createStereoPanner(): FakeStereoPannerNode {
+    return new FakeStereoPannerNode();
+  }
+
+  createOscillator(): FakeOscillatorNode {
+    return new FakeOscillatorNode();
+  }
+}
+
+function fakeBirdMixer(ctx: FakeBirdAudioContext) {
+  return {
+    bedInput: () => ctx.destination,
+  } satisfies Pick<AudioMixer, "bedInput">;
 }

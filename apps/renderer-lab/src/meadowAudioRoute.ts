@@ -15,6 +15,7 @@ interface MeadowAudioContext {
 type RendererAudioStats = {
   rms: number;
   activeNodes: number;
+  activeVoices: number;
   ctxState: AudioContextState | "unsupported";
 };
 
@@ -32,7 +33,7 @@ export async function routeMeadowAudio(ctx: MeadowAudioContext): Promise<void> {
   const w = window as WindowWithWebkitAudio;
   const AudioContextCtor = window.AudioContext ?? w.webkitAudioContext;
   if (!AudioContextCtor) {
-    publishStats({ rms: 0, activeNodes: 0, ctxState: "unsupported" });
+    publishStats({ rms: 0, activeNodes: 0, activeVoices: 0, ctxState: "unsupported" });
     ctx.status.textContent = "Web Audio is unavailable in this browser.";
     return;
   }
@@ -41,7 +42,7 @@ export async function routeMeadowAudio(ctx: MeadowAudioContext): Promise<void> {
     AudioContext: AudioContextCtor,
     settings: { masterVolume: 0.7 },
   });
-  const director = new AmbientAudioDirector(engine.windBed);
+  const director = new AmbientAudioDirector(engine.windBed, engine.birdScheduler);
   const analyser = engine.ctx.createAnalyser();
   analyser.fftSize = 2048;
   engine.monitorNode.connect(analyser);
@@ -90,10 +91,17 @@ export async function routeMeadowAudio(ctx: MeadowAudioContext): Promise<void> {
   mute.type = "checkbox";
   mute.checked = engine.mixer.isMuted;
   muteLabel.append(mute, "Mute");
+  const birdsLabel = document.createElement("label");
+  birdsLabel.className = "meadow-audio-toggle";
+  const birds = document.createElement("input");
+  birds.type = "checkbox";
+  birds.checked = true;
+  birdsLabel.append(birds, "Birds");
 
   controls.append(
     startButton,
     liveWindLabel,
+    birdsLabel,
     fieldPair("Listener XY", listenerX, listenerY),
     label("Volume", volume),
     label("Wind speed (m/s)", windSpeed),
@@ -133,6 +141,8 @@ export async function routeMeadowAudio(ctx: MeadowAudioContext): Promise<void> {
       waterProximity: 0,
       waterPan: 0,
       grassNear: 1,
+      birds: birds.checked,
+      birdIntensity: 1,
       listenerXY: [x, y],
       dtSeconds: 1 / 60,
     });
@@ -146,6 +156,7 @@ export async function routeMeadowAudio(ctx: MeadowAudioContext): Promise<void> {
       lastLiveWind.gust,
       [x, y],
       liveWind.checked,
+      birds.checked,
       Number(reverbSend.value),
     );
   };
@@ -174,6 +185,7 @@ export async function routeMeadowAudio(ctx: MeadowAudioContext): Promise<void> {
   });
   listenerX.addEventListener("input", updateSoundscape);
   listenerY.addEventListener("input", updateSoundscape);
+  birds.addEventListener("change", updateSoundscape);
   reverbSend.addEventListener("input", () => {
     engine.mixer.setSendLevel("wind", Number(reverbSend.value));
     updateSoundscape();
@@ -193,11 +205,12 @@ export async function routeMeadowAudio(ctx: MeadowAudioContext): Promise<void> {
     publishStats({
       rms: lastRms,
       activeNodes: engine.activeNodes,
+      activeVoices: engine.activeVoices,
       ctxState: engine.ctx.state,
     });
     requestAnimationFrame(draw);
   };
-  publishStats({ rms: 0, activeNodes: 0, ctxState: engine.ctx.state });
+  publishStats({ rms: 0, activeNodes: 0, activeVoices: 0, ctxState: engine.ctx.state });
   requestAnimationFrame(draw);
 }
 
@@ -243,6 +256,7 @@ function renderStatus(
   liveWindGust: number,
   listenerXY: [number, number],
   liveWindEnabled: boolean,
+  birdsEnabled: boolean,
   reverbSend: number,
 ): void {
   ctx.status.innerHTML = table({
@@ -250,8 +264,10 @@ function renderStatus(
     ctxState: engine.ctx.state,
     rms: rmsValue.toFixed(5),
     activeNodes: engine.activeNodes,
+    activeVoices: engine.activeVoices,
     masterTarget: engine.mixer.targetMasterGain.toFixed(3),
     windMode: liveWindEnabled ? "live" : "manual",
+    birds: birdsEnabled ? "on" : "off",
     windSpeed: appliedWindSpeed.toFixed(1),
     windGust: appliedWindGust.toFixed(2),
     liveSpeed: liveWindSpeed.toFixed(1),

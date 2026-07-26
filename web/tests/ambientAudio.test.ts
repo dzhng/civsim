@@ -11,6 +11,7 @@ import {
   VALLEY_REVERB_SECONDS,
   VALLEY_REVERB_SEED,
   VALLEY_REVERB_WET_GAIN,
+  WATER_BED_FIXED_NODE_COUNT,
   WIND_BED_DIRECTOR_MAPPING,
   WIND_BED_FIXED_NODE_COUNT,
   buildValleyImpulseResponse,
@@ -53,6 +54,7 @@ describe("AmbientAudioEngine", () => {
     expect(graph.reverb.wetGain).toBeCloseTo(VALLEY_REVERB_WET_GAIN, 4);
     expect(graph.reverb.bufferDuration).toBeCloseTo(VALLEY_REVERB_SECONDS, 3);
     expect(graph.sendLevels.wind).toBeCloseTo(0.32, 4);
+    expect(graph.sendLevels.water).toBeCloseTo(0.16, 4);
     expect(graph.sendLevels.birds).toBeCloseTo(0.18, 4);
     expect(graph.hasReverbSendBus).toBe(true);
   });
@@ -165,6 +167,47 @@ describe("AmbientAudioEngine", () => {
 
     expect(rendered.activeNodesBeforeRender).toBe(0);
     expect(rms(rendered.samples)).toBeLessThan(0.0002);
+  });
+
+  it("raises water RMS monotonically with proximity and scopes out at zero", async () => {
+    const silent = await renderWaterBed({ waterProximity: 0, waterPan: 0 });
+    const middle = await renderWaterBed({ waterProximity: 0.5, waterPan: 0 });
+    const close = await renderWaterBed({ waterProximity: 1, waterPan: 0 });
+
+    expect(silent.activeNodesBeforeRender).toBe(WATER_BED_FIXED_NODE_COUNT);
+    expect(rms(stereoMixdown(silent))).toBeLessThan(0.0002);
+    expect(rms(stereoMixdown(middle))).toBeGreaterThan(0.0006);
+    expect(rms(stereoMixdown(close))).toBeGreaterThan(rms(stereoMixdown(middle)) * 2);
+  });
+
+  it("pans water toward the louder side", async () => {
+    const left = await renderWaterBed({ waterProximity: 1, waterPan: -1 });
+    const right = await renderWaterBed({ waterProximity: 1, waterPan: 1 });
+
+    expect(rms(left.left)).toBeGreaterThan(rms(left.right) * 2);
+    expect(rms(right.right)).toBeGreaterThan(rms(right.left) * 2);
+  });
+
+  it("renders the water bed silent when muted", async () => {
+    const rendered = await renderWaterBed({
+      waterProximity: 1,
+      waterPan: 0,
+      muted: true,
+      waterReverbSend: 1,
+    });
+
+    expect(rms(stereoMixdown(rendered))).toBeLessThan(0.0002);
+  });
+
+  it("renders the water bed silent after stop", async () => {
+    const rendered = await renderWaterBed({
+      waterProximity: 1,
+      waterPan: 0,
+      stopBeforeRender: true,
+    });
+
+    expect(rendered.activeNodesBeforeRender).toBe(0);
+    expect(rms(stereoMixdown(rendered))).toBeLessThan(0.0002);
   });
 
   it("drives deterministic wind bed automation from battle wind samples", () => {
@@ -429,6 +472,53 @@ async function renderWindBed(options: {
   return { samples: buffer.getChannelData(0), sampleRate, activeNodesBeforeRender };
 }
 
+async function renderWaterBed(options: {
+  waterProximity: number;
+  waterPan: number;
+  muted?: boolean;
+  stopBeforeRender?: boolean;
+  waterReverbSend?: number;
+}): Promise<{
+  left: Float32Array;
+  right: Float32Array;
+  sampleRate: number;
+  activeNodesBeforeRender: number;
+}> {
+  const sampleRate = 44_100;
+  const seconds = 1.25;
+  const engine = AmbientAudioEngine.create({
+    AudioContext: OfflineCtor,
+    audioContextArgs: [2, Math.floor(sampleRate * seconds), sampleRate],
+    settings: {
+      masterVolume: 0.75,
+      muted: options.muted ?? false,
+      reverbSendLevels: { water: options.waterReverbSend ?? 0 },
+    },
+  });
+  const director = new AmbientAudioDirector(engine.windBed, engine.waterBed);
+
+  engine.waterBed.start(0);
+  director.update({
+    windSpeed: 0,
+    windGust: 0,
+    grassNear: 0,
+    waterProximity: options.waterProximity,
+    waterPan: options.waterPan,
+    listenerXY: [0, 0],
+    dtSeconds: 1 / 60,
+  });
+  if (options.stopBeforeRender) engine.waterBed.stop(0);
+
+  const activeNodesBeforeRender = engine.activeNodes;
+  const buffer = await (engine.ctx as unknown as OfflineAudioContext).startRendering();
+  return {
+    left: buffer.getChannelData(0),
+    right: buffer.getChannelData(1),
+    sampleRate,
+    activeNodesBeforeRender,
+  };
+}
+
 async function renderShortWindSourceTail(windReverbSend: number): Promise<{ tailRms: number }> {
   const sampleRate = 44_100;
   const seconds = 1.4;
@@ -485,6 +575,14 @@ function rms(samples: Float32Array): number {
   let sum = 0;
   for (const sample of samples) sum += sample * sample;
   return Math.sqrt(sum / samples.length);
+}
+
+function stereoMixdown(rendered: { left: Float32Array; right: Float32Array }): Float32Array {
+  const out = new Float32Array(Math.min(rendered.left.length, rendered.right.length));
+  for (let i = 0; i < out.length; i++) {
+    out[i] = (rendered.left[i] + rendered.right[i]) * 0.5;
+  }
+  return out;
 }
 
 function variance(values: number[]): number {

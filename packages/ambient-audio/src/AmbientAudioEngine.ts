@@ -1,5 +1,6 @@
 import { AudioMixer, type AmbientAudioSettings } from "./AudioMixer";
 import { BirdScheduler, type BirdSchedulerOptions } from "./BirdScheduler";
+import { WaterBed } from "./beds/WaterBed";
 import { WindBed } from "./beds/WindBed";
 import { VALLEY_REVERB_SEED, VALLEY_REVERB_WET_GAIN, buildValleyImpulseResponse } from "./reverb";
 
@@ -79,6 +80,7 @@ export class AmbientAudioEngine {
   readonly reverbWet: GainNode;
   readonly monitorNode: AudioNode;
   readonly windBed: WindBed;
+  readonly waterBed: WaterBed;
   readonly birdScheduler: BirdScheduler;
 
   private disposed = false;
@@ -96,6 +98,7 @@ export class AmbientAudioEngine {
       reverbConvolver: ConvolverNode;
       reverbWet: GainNode;
       windBed: WindBed;
+      waterBed: WaterBed;
       birdScheduler: BirdScheduler;
     },
     private readonly graphConnections: string[],
@@ -111,6 +114,7 @@ export class AmbientAudioEngine {
     this.reverbWet = nodes.reverbWet;
     this.monitorNode = nodes.compressor;
     this.windBed = nodes.windBed;
+    this.waterBed = nodes.waterBed;
     this.birdScheduler = nodes.birdScheduler;
   }
 
@@ -144,6 +148,7 @@ export class AmbientAudioEngine {
     const reverbWet = ctx.createGain();
     reverbWet.gain.value = VALLEY_REVERB_WET_GAIN;
     const windBed = new WindBed(ctx, mixer);
+    const waterBed = new WaterBed(ctx, mixer);
     const birdScheduler = new BirdScheduler(ctx, mixer, {
       ...options.birds,
       enabled: options.birds?.enabled ?? options.settings?.birds,
@@ -174,6 +179,7 @@ export class AmbientAudioEngine {
         reverbConvolver,
         reverbWet,
         windBed,
+        waterBed,
         birdScheduler,
       },
       graphConnections,
@@ -189,7 +195,12 @@ export class AmbientAudioEngine {
   }
 
   get activeNodes(): number {
-    return this.activeOneShots + this.windBed.activeNodes + this.birdScheduler.activeNodes;
+    return (
+      this.activeOneShots +
+      this.windBed.activeNodes +
+      this.waterBed.activeNodes +
+      this.birdScheduler.activeNodes
+    );
   }
 
   get activeVoices(): number {
@@ -210,6 +221,7 @@ export class AmbientAudioEngine {
     if (this.disposed) return;
     this.disposed = true;
     this.windBed.stop();
+    this.waterBed.stop();
     this.birdScheduler.disconnect();
     this.mixer.disconnect();
     for (const node of [

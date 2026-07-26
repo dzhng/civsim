@@ -10,7 +10,9 @@ export {
 } from "./AmbientAudioEngine";
 export {
   AmbientAudioDirector,
+  WATER_BED_DIRECTOR_MAPPING,
   WIND_BED_DIRECTOR_MAPPING,
+  mapWaterBedControl,
   mapWindBedControl,
   type MeadowSoundscapeInput,
   type MeadowSoundscapeState,
@@ -47,4 +49,5 @@ export {
   VALLEY_REVERB_WET_GAIN,
   buildValleyImpulseResponse,
 } from "./reverb";
+export { WaterBed, WATER_BED_FIXED_NODE_COUNT } from "./beds/WaterBed";
 export { WindBed, WIND_BED_FIXED_NODE_COUNT, type WindBedControl } from "./beds/WindBed";

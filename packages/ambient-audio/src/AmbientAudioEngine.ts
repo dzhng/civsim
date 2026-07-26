@@ -1,5 +1,18 @@
 import { AudioMixer, type AmbientAudioSettings } from "./AudioMixer";
 import { WindBed } from "./beds/WindBed";
+import { VALLEY_REVERB_SEED, VALLEY_REVERB_WET_GAIN, buildValleyImpulseResponse } from "./reverb";
+
+export const MEADOW_MASTER_VOICING = {
+  lowshelfFrequency: 220,
+  lowshelfGain: 2.5,
+  highshelfFrequency: 9000,
+  highshelfGain: -3,
+  compressorThreshold: -16,
+  compressorKnee: 22,
+  compressorRatio: 3.2,
+  compressorAttack: 0.02,
+  compressorRelease: 0.35,
+} as const;
 
 export type AmbientAudioContext = BaseAudioContext & {
   resume?: () => Promise<void>;
@@ -45,6 +58,8 @@ export interface AmbientAudioGraphInspection {
   lowshelf: { frequency: number; gain: number };
   highshelf: { frequency: number; gain: number };
   compressor: { threshold: number; knee: number; ratio: number; attack: number; release: number };
+  reverb: { wetGain: number; bufferDuration: number; bufferChannels: number };
+  sendLevels: Record<string, number>;
   hasReverbSendBus: boolean;
 }
 
@@ -96,30 +111,31 @@ export class AmbientAudioEngine {
     const ctx = createAudioContext(options);
 
     const masterGain = ctx.createGain();
-    const mixer = new AudioMixer(ctx, masterGain, options.settings);
+    const reverbInput = ctx.createGain();
+    reverbInput.gain.value = 1;
+    const mixer = new AudioMixer(ctx, masterGain, reverbInput, options.settings);
 
     const lowshelf = ctx.createBiquadFilter();
     lowshelf.type = "lowshelf";
-    lowshelf.frequency.value = 220;
-    lowshelf.gain.value = 2.5;
+    lowshelf.frequency.value = MEADOW_MASTER_VOICING.lowshelfFrequency;
+    lowshelf.gain.value = MEADOW_MASTER_VOICING.lowshelfGain;
 
     const highshelf = ctx.createBiquadFilter();
     highshelf.type = "highshelf";
-    highshelf.frequency.value = 9000;
-    highshelf.gain.value = -3;
+    highshelf.frequency.value = MEADOW_MASTER_VOICING.highshelfFrequency;
+    highshelf.gain.value = MEADOW_MASTER_VOICING.highshelfGain;
 
     const compressor = ctx.createDynamicsCompressor();
-    compressor.threshold.value = -16;
-    compressor.knee.value = 22;
-    compressor.ratio.value = 3.2;
-    compressor.attack.value = 0.02;
-    compressor.release.value = 0.35;
+    compressor.threshold.value = MEADOW_MASTER_VOICING.compressorThreshold;
+    compressor.knee.value = MEADOW_MASTER_VOICING.compressorKnee;
+    compressor.ratio.value = MEADOW_MASTER_VOICING.compressorRatio;
+    compressor.attack.value = MEADOW_MASTER_VOICING.compressorAttack;
+    compressor.release.value = MEADOW_MASTER_VOICING.compressorRelease;
 
-    const reverbInput = ctx.createGain();
-    reverbInput.gain.value = 1;
     const reverbConvolver = ctx.createConvolver();
+    reverbConvolver.buffer = buildValleyImpulseResponse(ctx, VALLEY_REVERB_SEED);
     const reverbWet = ctx.createGain();
-    reverbWet.gain.value = 0;
+    reverbWet.gain.value = VALLEY_REVERB_WET_GAIN;
     const windBed = new WindBed(ctx, mixer);
 
     const graphConnections: string[] = [];
@@ -206,6 +222,14 @@ export class AmbientAudioEngine {
         attack: this.compressor.attack.value,
         release: this.compressor.release.value,
       },
+      reverb: {
+        wetGain: this.reverbWet.gain.value,
+        bufferDuration: this.reverbConvolver.buffer?.duration ?? 0,
+        bufferChannels: this.reverbConvolver.buffer?.numberOfChannels ?? 0,
+      },
+      sendLevels: Object.fromEntries(
+        Object.entries(this.mixer.reverbSendGains).map(([bed, gain]) => [bed, gain.gain.value]),
+      ),
       hasReverbSendBus:
         this.graphConnections.includes("reverbInput->reverbConvolver") &&
         this.graphConnections.includes("reverbConvolver->reverbWet") &&
@@ -213,7 +237,9 @@ export class AmbientAudioEngine {
     };
   }
 
-  playTestTone(options: { frequency?: number; durationSeconds?: number; level?: number; when?: number } = {}): void {
+  playTestTone(
+    options: { frequency?: number; durationSeconds?: number; level?: number; when?: number } = {},
+  ): void {
     if (!this.mounted) return;
     const now = this.ctx.currentTime;
     const start = Math.max(now, options.when ?? now);

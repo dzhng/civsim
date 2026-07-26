@@ -4,7 +4,12 @@ import { OfflineAudioContext } from "node-web-audio-api";
 import {
   AmbientAudioDirector,
   AmbientAudioEngine,
+  VALLEY_EARLY_REFLECTION_SECONDS,
+  VALLEY_REVERB_SECONDS,
+  VALLEY_REVERB_SEED,
+  VALLEY_REVERB_WET_GAIN,
   WIND_BED_FIXED_NODE_COUNT,
+  buildValleyImpulseResponse,
   type AmbientOfflineAudioContextConstructor,
 } from "../../packages/ambient-audio/src/index.ts";
 
@@ -38,7 +43,45 @@ describe("AmbientAudioEngine", () => {
     expect(graph.compressor.threshold).toBeCloseTo(-16, 4);
     expect(graph.compressor.knee).toBeCloseTo(22, 4);
     expect(graph.compressor.ratio).toBeCloseTo(3.2, 4);
+    expect(graph.reverb.wetGain).toBeCloseTo(VALLEY_REVERB_WET_GAIN, 4);
+    expect(graph.reverb.bufferDuration).toBeCloseTo(VALLEY_REVERB_SECONDS, 3);
+    expect(graph.sendLevels.wind).toBeCloseTo(0.32, 4);
     expect(graph.hasReverbSendBus).toBe(true);
+  });
+
+  it("builds deterministic valley impulse responses for a seed", () => {
+    const first = buildValleyImpulseResponse(
+      createOfflineContext(2, VALLEY_REVERB_SECONDS),
+      20_260_722,
+    );
+    const second = buildValleyImpulseResponse(
+      createOfflineContext(2, VALLEY_REVERB_SECONDS),
+      20_260_722,
+    );
+    const other = buildValleyImpulseResponse(
+      createOfflineContext(2, VALLEY_REVERB_SECONDS),
+      20_260_723,
+    );
+
+    expect(first.numberOfChannels).toBe(2);
+    expect(hashBuffer(first)).toBe(hashBuffer(second));
+    expect(hashBuffer(first)).not.toBe(hashBuffer(other));
+  });
+
+  it("shapes the valley impulse as decaying noise with early reflection energy", () => {
+    const ir = buildValleyImpulseResponse(
+      createOfflineContext(2, VALLEY_REVERB_SECONDS),
+      VALLEY_REVERB_SEED,
+    );
+    const ch0 = ir.getChannelData(0);
+    const firstHalfSecond = windowedRms(ch0, ir.sampleRate, 0, 0.5);
+    const lastHalfSecond = windowedRms(ch0, ir.sampleRate, VALLEY_REVERB_SECONDS - 0.5, 0.5);
+    const early = windowedRms(ch0, ir.sampleRate, 0, VALLEY_EARLY_REFLECTION_SECONDS);
+    const first120Ms = windowedRms(ch0, ir.sampleRate, 0, 0.12);
+
+    expect(firstHalfSecond).toBeGreaterThan(lastHalfSecond * 18);
+    expect(early).toBeGreaterThan(0.05);
+    expect(first120Ms).toBeGreaterThan(0.05);
   });
 
   it("routes mute through the mixer-owned master gain", () => {
@@ -90,9 +133,18 @@ describe("AmbientAudioEngine", () => {
       windGust: 1.2,
       grassNear: 1,
       muted: true,
+      windReverbSend: 1,
     });
 
     expect(rms(rendered.samples)).toBeLessThan(0.0002);
+  });
+
+  it("renders a decay tail after the wind bed source stops when the send is open", async () => {
+    const dry = await renderShortWindSourceTail(0);
+    const wet = await renderShortWindSourceTail(1);
+
+    expect(wet.tailRms).toBeGreaterThan(0.0008);
+    expect(wet.tailRms).toBeGreaterThan(dry.tailRms * 20 + 0.0006);
   });
 
   it("renders the wind bed silent after stop", async () => {
@@ -119,6 +171,11 @@ function createOfflineEngine(
   });
 }
 
+function createOfflineContext(channels: number, seconds: number): OfflineAudioContext {
+  const sampleRate = 44_100;
+  return new OfflineAudioContext(channels, Math.floor(sampleRate * seconds), sampleRate);
+}
+
 async function renderTestTone(muted: boolean): Promise<number> {
   const sampleRate = 44_100;
   const seconds = 1;
@@ -138,6 +195,7 @@ async function renderWindBed(options: {
   grassNear: number;
   muted?: boolean;
   stopBeforeRender?: boolean;
+  windReverbSend?: number;
 }): Promise<{ samples: Float32Array; sampleRate: number; activeNodesBeforeRender: number }> {
   const sampleRate = 44_100;
   const seconds = 1.25;
@@ -146,6 +204,9 @@ async function renderWindBed(options: {
     audioContextArgs: [1, Math.floor(sampleRate * seconds), sampleRate],
     settings: { masterVolume: 0.75, muted: options.muted ?? false },
   });
+  if (options.windReverbSend !== undefined) {
+    engine.mixer.setSendLevel("wind", options.windReverbSend);
+  }
   const director = new AmbientAudioDirector(engine.windBed);
 
   engine.windBed.start(0);
@@ -165,10 +226,79 @@ async function renderWindBed(options: {
   return { samples: buffer.getChannelData(0), sampleRate, activeNodesBeforeRender };
 }
 
+async function renderShortWindSourceTail(windReverbSend: number): Promise<{ tailRms: number }> {
+  const sampleRate = 44_100;
+  const seconds = 1.4;
+  const engine = AmbientAudioEngine.create({
+    AudioContext: OfflineCtor,
+    audioContextArgs: [1, Math.floor(sampleRate * seconds), sampleRate],
+    settings: {
+      masterVolume: 0.75,
+      reverbSendLevels: { wind: windReverbSend },
+    },
+  });
+  const source = engine.ctx.createBufferSource();
+  source.buffer = makeShortWindBuffer(engine.ctx, 0.5);
+  const gain = engine.ctx.createGain();
+  gain.gain.value = 0.18;
+  source.connect(gain);
+  gain.connect(engine.mixer.bedInput("wind"));
+  source.start(0);
+  source.stop(0.5);
+
+  const buffer = await (engine.ctx as unknown as OfflineAudioContext).startRendering();
+  const samples = buffer.getChannelData(0);
+  return { tailRms: windowedRms(samples, sampleRate, 0.72, 0.45) };
+}
+
+function makeShortWindBuffer(ctx: BaseAudioContext, seconds: number): AudioBuffer {
+  const buffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * seconds), ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  let state = 12_345;
+  for (let i = 0; i < data.length; i++) {
+    state = (Math.imul(state, 1_664_525) + 1_013_904_223) | 0;
+    data[i] = (((state >>> 0) / 4294967296) * 2 - 1) * 0.5;
+  }
+  return buffer;
+}
+
+function hashBuffer(buffer: AudioBuffer): string {
+  let hash = 0x811c9dc5;
+  const word = new DataView(new ArrayBuffer(4));
+  for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+    const samples = buffer.getChannelData(channel);
+    for (const sample of samples) {
+      word.setFloat32(0, sample, true);
+      for (let byte = 0; byte < 4; byte++) {
+        hash ^= word.getUint8(byte);
+        hash = Math.imul(hash, 0x01000193);
+      }
+    }
+  }
+  return (hash >>> 0).toString(16);
+}
+
 function rms(samples: Float32Array): number {
   let sum = 0;
   for (const sample of samples) sum += sample * sample;
   return Math.sqrt(sum / samples.length);
+}
+
+function windowedRms(
+  samples: Float32Array,
+  sampleRate: number,
+  startSeconds: number,
+  durationSeconds: number,
+): number {
+  const start = Math.max(0, Math.floor(startSeconds * sampleRate));
+  const end = Math.min(samples.length, Math.floor((startSeconds + durationSeconds) * sampleRate));
+  let sum = 0;
+  let count = 0;
+  for (let i = start; i < end; i++) {
+    sum += samples[i] * samples[i];
+    count++;
+  }
+  return Math.sqrt(sum / Math.max(1, count));
 }
 
 function filteredRms(

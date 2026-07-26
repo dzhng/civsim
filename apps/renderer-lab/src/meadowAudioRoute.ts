@@ -68,6 +68,12 @@ export async function routeMeadowAudio(ctx: MeadowAudioContext): Promise<void> {
   windGust.max = String(WIND_BED_DIRECTOR_MAPPING.maxWindGust);
   windGust.step = "0.01";
   windGust.value = "0.35";
+  const reverbSend = document.createElement("input");
+  reverbSend.type = "range";
+  reverbSend.min = "0";
+  reverbSend.max = "1";
+  reverbSend.step = "0.01";
+  reverbSend.value = String(engine.mixer.sendLevel("wind"));
 
   const muteLabel = document.createElement("label");
   muteLabel.className = "meadow-audio-toggle";
@@ -81,6 +87,7 @@ export async function routeMeadowAudio(ctx: MeadowAudioContext): Promise<void> {
     label("Volume", volume),
     label("Wind speed (m/s)", windSpeed),
     label("Gust", windGust),
+    label("Reverb send", reverbSend),
     muteLabel,
     pokeButton,
   );
@@ -97,29 +104,75 @@ export async function routeMeadowAudio(ctx: MeadowAudioContext): Promise<void> {
       listenerXY: [0, 0],
       dtSeconds: 1 / 60,
     });
-    renderStatus(ctx, engine, lastRms, Number(windSpeed.value), Number(windGust.value));
+    renderStatus(
+      ctx,
+      engine,
+      lastRms,
+      Number(windSpeed.value),
+      Number(windGust.value),
+      Number(reverbSend.value),
+    );
   };
   updateSoundscape();
 
   startButton.addEventListener("click", async () => {
     engine.windBed.start();
     await engine.resume();
-    renderStatus(ctx, engine, lastRms, Number(windSpeed.value), Number(windGust.value));
+    renderStatus(
+      ctx,
+      engine,
+      lastRms,
+      Number(windSpeed.value),
+      Number(windGust.value),
+      Number(reverbSend.value),
+    );
   });
   pokeButton.addEventListener("click", async () => {
     await engine.resume();
     engine.playTestTone();
-    renderStatus(ctx, engine, lastRms, Number(windSpeed.value), Number(windGust.value));
+    renderStatus(
+      ctx,
+      engine,
+      lastRms,
+      Number(windSpeed.value),
+      Number(windGust.value),
+      Number(reverbSend.value),
+    );
   });
   volume.addEventListener("input", () => {
     engine.mixer.setMasterVolume(Number(volume.value));
-    renderStatus(ctx, engine, lastRms, Number(windSpeed.value), Number(windGust.value));
+    renderStatus(
+      ctx,
+      engine,
+      lastRms,
+      Number(windSpeed.value),
+      Number(windGust.value),
+      Number(reverbSend.value),
+    );
   });
   windSpeed.addEventListener("input", updateSoundscape);
   windGust.addEventListener("input", updateSoundscape);
+  reverbSend.addEventListener("input", () => {
+    engine.mixer.setSendLevel("wind", Number(reverbSend.value));
+    renderStatus(
+      ctx,
+      engine,
+      lastRms,
+      Number(windSpeed.value),
+      Number(windGust.value),
+      Number(reverbSend.value),
+    );
+  });
   mute.addEventListener("change", () => {
     engine.mixer.setMuted(mute.checked);
-    renderStatus(ctx, engine, lastRms, Number(windSpeed.value), Number(windGust.value));
+    renderStatus(
+      ctx,
+      engine,
+      lastRms,
+      Number(windSpeed.value),
+      Number(windGust.value),
+      Number(reverbSend.value),
+    );
   });
 
   const waveform = new Float32Array(analyser.fftSize);
@@ -128,7 +181,14 @@ export async function routeMeadowAudio(ctx: MeadowAudioContext): Promise<void> {
     analyser.getFloatTimeDomainData(waveform);
     lastRms = rms(waveform);
     drawWaveform(ctx.canvas, waveform, lastRms);
-    renderStatus(ctx, engine, lastRms, Number(windSpeed.value), Number(windGust.value));
+    renderStatus(
+      ctx,
+      engine,
+      lastRms,
+      Number(windSpeed.value),
+      Number(windGust.value),
+      Number(reverbSend.value),
+    );
     publishStats({
       rms: lastRms,
       activeNodes: engine.activeNodes,
@@ -159,6 +219,7 @@ function renderStatus(
   rmsValue: number,
   windSpeed: number,
   windGust: number,
+  reverbSend: number,
 ): void {
   ctx.status.innerHTML = table({
     route: "meadow-audio",
@@ -168,13 +229,16 @@ function renderStatus(
     masterTarget: engine.mixer.targetMasterGain.toFixed(3),
     windSpeed: windSpeed.toFixed(1),
     windGust: windGust.toFixed(2),
+    reverbSend: reverbSend.toFixed(2),
     mounted: engine.mounted,
   });
 }
 
 function table(values: Record<string, unknown>): string {
   return `<table>${Object.entries(values)
-    .map(([key, value]) => `<tr><th>${escapeHtml(key)}</th><td>${escapeHtml(String(value))}</td></tr>`)
+    .map(
+      ([key, value]) => `<tr><th>${escapeHtml(key)}</th><td>${escapeHtml(String(value))}</td></tr>`,
+    )
     .join("")}</table>`;
 }
 

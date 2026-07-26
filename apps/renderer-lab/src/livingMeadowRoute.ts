@@ -68,6 +68,7 @@ export async function routeLivingMeadow(ctx: LivingMeadowContext) {
   const crop = cropParam(ctx.params);
   const preset = CROP_PRESETS[crop];
   const fixedT = fixedSeconds(ctx.params);
+  const yawOverride = yawParam(ctx.params);
   const mapIndex = 0;
   const [{ default: initWasm, Game }, world] = await Promise.all([
     import("../../../web/src/wasm/game_wasm.js"),
@@ -107,6 +108,7 @@ export async function routeLivingMeadow(ctx: LivingMeadowContext) {
     const [x, y] = camera.viewCenter();
     const camera3d = camera.params();
     if (preset.pitchOverride !== null) camera3d.pitch = preset.pitchOverride;
+    if (yawOverride !== null) camera3d.yaw = yawOverride;
     return { x, y, zoom: camera.zoom, zoomT: camera.zoomT, camera3d };
   };
 
@@ -116,6 +118,7 @@ export async function routeLivingMeadow(ctx: LivingMeadowContext) {
     return {
       crop,
       fixedTimeSeconds: fixedT,
+      yawOverride,
       map: "A",
       productionGrassOwner:
         "PhotorealBattleWorld.PhotorealBladeFieldLayer + living-meadow far-density opt-in",
@@ -161,6 +164,12 @@ function cropParam(params: URLSearchParams): Crop {
 function fixedSeconds(params: URLSearchParams): number {
   const t = Number(params.get("t") ?? 0);
   return Number.isFinite(t) ? t : 0;
+}
+
+function yawParam(params: URLSearchParams): number | null {
+  if (!params.has("yaw")) return null;
+  const yaw = Number(params.get("yaw"));
+  return Number.isFinite(yaw) ? yaw : null;
 }
 
 function readTerrainGrid(

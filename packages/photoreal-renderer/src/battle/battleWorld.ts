@@ -303,6 +303,7 @@ export class PhotorealBattleWorld {
   private readonly disabledGroundDetail: GroundDetailTerm | null;
   private readonly grassProfile: ProductionBladeFieldProfile;
   private readonly frame: BattleFrameUniforms;
+  private readonly sunDirectionScratch = new THREE.Vector3(0, 0, 1);
   private readonly background: BattleBackgroundQuads;
   private readonly grass: PhotorealBladeFieldLayer;
   private readonly scenery: PhotorealScenery;
@@ -880,6 +881,13 @@ export class PhotorealBattleWorld {
     // Cascade splits track the live projection (the zoom rig moves fovY/pitch
     // continuously) — re-fit them after every camera pose.
     this.shadowRig.update(this.camera);
+    if (this.world.sunLight) {
+      this.sunDirectionScratch
+        .copy(this.world.sunLight.position)
+        .sub(this.world.sunLight.target.position)
+        .normalize();
+      this.grass.setSunDirection(this.sunDirectionScratch);
+    }
     // ONE ground anchor owns both sampling and routing: the look target. A
     // footprint-centered sample puts most of the disc BEHIND a shallow-pitch
     // camera (at zoom 3 the eye grounds ~400m behind the frame) and the

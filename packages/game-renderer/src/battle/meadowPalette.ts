@@ -26,6 +26,7 @@ export interface MeadowFamily {
     readonly root: Rgb;
     readonly mid: Rgb;
     readonly tip: Rgb;
+    readonly trans: Rgb;
     readonly dryTipMix: number;
     readonly ringMeadow: Rgb;
   };
@@ -72,6 +73,7 @@ export function meadowFamily(base: Rgb): MeadowFamily {
     root: color([0.46, 0.52, 0.25]),
     mid: color([0.58, 0.61, 0.32]),
     tip: color([0.71, 0.71, 0.42]),
+    trans: color([0.91, 0.93, 0.49]),
     dryTipMix: 0.05,
     ringMeadow: color([0.47, 0.53, 0.32]),
   } as const;

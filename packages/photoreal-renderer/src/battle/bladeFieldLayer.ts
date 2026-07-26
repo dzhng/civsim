@@ -49,6 +49,7 @@ import {
   viewNormalNode,
   type FloatNode,
   type Vec2Node,
+  type Vec3Node,
 } from "./battleTsl";
 import { RENDER_ORDER } from "./terrainLayer";
 
@@ -80,6 +81,20 @@ export interface BladeFieldTransitionProfile {
 
 type FloatUniformNode = FloatNode & { value: number };
 type Vec2UniformNode = Vec2Node & { value: THREE.Vector2 };
+type Vec3UniformNode = Vec3Node & { value: THREE.Vector3 };
+
+export const BLADE_FIELD_TRANSLUCENCY = {
+  // Baked from the orchestrator's live sweep (2026-07-26): with the display
+  // cap + distance fade in place, the timid post-fix defaults were invisible;
+  // these read as soft warm backlight with no far-field sparkle.
+  rimStrength: 2.2,
+  subsurfaceStrength: 4.5,
+  maxDisplayEmission: 1.1,
+  nearDissolveFloor: 0.3,
+  rimExponent: 4.2,
+  subsurfaceViewPower: 3.2,
+  subsurfaceSunEdgePower: 2.2,
+} as const;
 
 export interface BladeFieldTransitionUniforms {
   profile: BladeFieldTransitionProfile;
@@ -285,6 +300,13 @@ const SEED24_MASK = 0x00ff_ffff;
 export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
   private readonly buckets: TierBucket[];
   private readonly time: FloatNode;
+  private readonly sunDirection = uniform(new THREE.Vector3(0, 0, 1)) as unknown as Vec3UniformNode;
+  private readonly rimStrength = uniform(
+    BLADE_FIELD_TRANSLUCENCY.rimStrength,
+  ) as unknown as FloatUniformNode;
+  private readonly subsurfaceStrength = uniform(
+    BLADE_FIELD_TRANSLUCENCY.subsurfaceStrength,
+  ) as unknown as FloatUniformNode;
   private recordCount = 0;
   private recordHash = "00000000";
   private enabled = true;
@@ -392,6 +414,9 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
         this.transitionUniforms,
         this.runtime.anchor,
         this.thinning.survivorAlbedoBlend,
+        this.sunDirection,
+        this.rimStrength,
+        this.subsurfaceStrength,
       );
       bucket.records = 0;
       // Capacity, not the drawn count: the indirect buffer's GPU-routed
@@ -417,6 +442,26 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     compute(this.runtime.reset);
     compute(this.runtime.route);
     this.runtime.routed = true;
+  }
+
+  setSunDirection(direction: THREE.Vector3 | readonly [number, number, number]): void {
+    const isTuple = Array.isArray(direction);
+    const x = isTuple ? direction[0] : (direction as THREE.Vector3).x;
+    const y = isTuple ? direction[1] : (direction as THREE.Vector3).y;
+    const z = isTuple ? direction[2] : (direction as THREE.Vector3).z;
+    const len = Math.hypot(x, y, z);
+    if (len > 1e-6 && Number.isFinite(len)) {
+      this.sunDirection.value.set(x / len, y / len, z / len);
+    }
+  }
+
+  setTranslucencyStrengths(strengths: { rim?: number; subsurface?: number }): void {
+    if (strengths.rim !== undefined && Number.isFinite(strengths.rim)) {
+      this.rimStrength.value = Math.max(0, strengths.rim);
+    }
+    if (strengths.subsurface !== undefined && Number.isFinite(strengths.subsurface)) {
+      this.subsurfaceStrength.value = Math.max(0, strengths.subsurface);
+    }
   }
 
   setVisible(visible: boolean): void {
@@ -745,6 +790,9 @@ function bladeFieldMaterial(
   transition: BladeFieldTransitionUniforms,
   anchor: Vec2UniformNode,
   survivorAlbedoBlend: number,
+  sunDirection: Vec3UniformNode,
+  rimStrength: FloatUniformNode,
+  subsurfaceStrength: FloatUniformNode,
 ): THREE.MeshStandardNodeMaterial {
   // Standard material so the environment (the mood owner) lights the canopy -
   // Lambert never samples the sky IBL here and left the field slate-grey. The
@@ -768,6 +816,8 @@ function bladeFieldMaterial(
   // chain) renders garbage/white; a x0 position anchor gets constant-folded.
   const vAlbedo = varying(vec3(0.0));
   const vShadeNormal = varying(vec3(0.0, 0.0, 1.0));
+  const vWorldPosition = varying(vec3(0.0));
+  const vTranslucencyWeight = varying(float(0.0));
   const vRough = varying(float(0.96));
 
   const buildVertex = Fn(() => {
@@ -822,6 +872,11 @@ function bladeFieldMaterial(
         ? smoothstep(fadeEnd.mul(0.45), fadeEnd, length(cameraPosition.sub(base)))
         : float(1.0);
     const nearEyeFade = nearEyeDissolve.mul(behindCull);
+    const translucencyNearFade = mix(
+      BLADE_FIELD_TRANSLUCENCY.nearDissolveFloor,
+      1.0,
+      nearEyeFade,
+    );
     // Coverage-edge dissolve: blades SINK into the turf across the last
     // stretch of the far transition instead of stopping full-height at a
     // hard radius (the "visible from across the room" cutoff critique).
@@ -902,6 +957,7 @@ function bladeFieldMaterial(
       .add(side.mul(width).mul(widthFactor).mul(bladeSide))
       .add(geoNormal.mul(viewBulk).mul(bladeSide))
       .toVar();
+    vWorldPosition.assign(world);
 
     // Grass shades with the FIELD's normal (the GoT trick): blade-face
     // normals give half the field black backsides under a directional sun or
@@ -921,6 +977,7 @@ function bladeFieldMaterial(
     const mid = rgbNode(BLADE_FIELD_PALETTE.mid);
     const tip = rgbNode(BLADE_FIELD_PALETTE.tip);
     const body = mix(mix(root, mid, smoothstepN(0.0, 0.58, t)), tip, smoothstepN(0.38, 1.0, t));
+    const tipWeight = smoothstepN(0.38, 1.0, t);
     const dryTip = smoothstepN(0.72, 1.0, t).mul(BLADE_FIELD_PALETTE.dryTipMix);
     const heightAo = mix(0.5, 1.0, clamp(pow(t, 0.6), 0.0, 1.0));
     const clumpFactor = mix(0.92, 1.08, clamp(clumpSeed, 0.0, 1.0));
@@ -942,6 +999,13 @@ function bladeFieldMaterial(
     const desat = mix(shaded, vec3(dot(shaded, vec3(0.333))), distFade.mul(0.16));
     const albedo = mix(desat, meadow, ringFade.mul(survivorAlbedoBlend));
     vAlbedo.assign(clamp(albedo, vec3(0.0), vec3(1.0)));
+    const cameraGroundDist = length(cameraPosition.xy.sub(base.xy));
+    const distanceFalloff = float(1.0).sub(
+      smoothstep(transition.nearTierEndM, transition.midTierEndM, cameraGroundDist),
+    );
+    vTranslucencyWeight.assign(
+      tipWeight.mul(heightAo).mul(translucencyNearFade).mul(edgeSink).mul(distanceFalloff),
+    );
     vRough.assign(mix(0.98, 0.84, smoothstepN(0.18, 1.0, t)));
 
     return world;
@@ -952,6 +1016,30 @@ function bladeFieldMaterial(
   material.receivedShadowPositionNode = varying(worldPosition);
   material.normalNode = viewNormalNode(normalize(vShadeNormal));
   material.colorNode = vec4(linearAlbedo(vAlbedo), 1.0);
+  const viewDir = normalize(cameraPosition.sub(vWorldPosition));
+  const sunDir = normalize(sunDirection);
+  const backDir = sunDir.mul(-1.0);
+  const towardBacklight = clamp(dot(viewDir, backDir), 0.0, 1.0);
+  const fresnel = pow(
+    float(1.0).sub(clamp(dot(normalize(vShadeNormal), viewDir), 0.0, 1.0)),
+    BLADE_FIELD_TRANSLUCENCY.rimExponent,
+  );
+  const back = smoothstep(float(0.05), float(0.85), towardBacklight);
+  const rim = back.mul(fresnel).mul(vTranslucencyWeight).mul(rimStrength);
+  const throughBlade = pow(towardBacklight, BLADE_FIELD_TRANSLUCENCY.subsurfaceViewPower);
+  const sunEdge = pow(
+    clamp(float(1.0).sub(abs(dot(normalize(vShadeNormal), sunDir))), 0.0, 1.0),
+    BLADE_FIELD_TRANSLUCENCY.subsurfaceSunEdgePower,
+  );
+  const subsurface = throughBlade.mul(sunEdge).mul(vTranslucencyWeight).mul(subsurfaceStrength);
+  const emissiveDisplayStrength = clamp(
+    rim.add(subsurface),
+    0.0,
+    BLADE_FIELD_TRANSLUCENCY.maxDisplayEmission,
+  );
+  material.emissiveNode = linearAlbedo(
+    rgbNode(BLADE_FIELD_PALETTE.trans).mul(emissiveDisplayStrength),
+  );
   material.roughnessNode = vRough;
   return material;
 }

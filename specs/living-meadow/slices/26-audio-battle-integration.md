@@ -35,3 +35,10 @@ on dispose.
 ## Delegated
 HUD control placement; `grassNear` source (reuse grass coverage or a cheap splat
 sample); **default-on vs default-muted**, default `masterVolume`.
+
+## Implementation note — 2026-07-26
+Default-muted shipped provisionally: `graphicsSettings.audio.muted = true`,
+`masterVolume = 0.55`. Battle integration uses a 3x3 terrain-tint `grassNear`
+proxy around camera focus and nearest lake/ocean rectangle proximity with
+screen-side pan. Browser battle behavior, analyzer graph liveness, and snapshot
+neutrality remain pending orchestrator verification.

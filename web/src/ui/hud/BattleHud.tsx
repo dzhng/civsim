@@ -16,12 +16,20 @@
 // toolbar refresh. Slices 03–07 turn this composition into the three bronze
 // housings; slice 01 keeps every element's id and position identical.
 
-import { forwardRef, useImperativeHandle, useRef, useState, type Ref, type RefObject } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+  type Ref,
+  type RefObject,
+} from "react";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import { HudPanel, type HudData } from "./HudPanel";
 import { Toolbar, type ToolButtonState } from "./Toolbar";
-import { TooltipProvider } from "./Tooltip";
+import { Tooltip, TooltipProvider } from "./Tooltip";
 import { UnitCardsView, type UnitCardsHandle } from "./UnitCardsView";
 import {
   BOTTOM_CARD_LEFT_RESERVE,
@@ -29,6 +37,13 @@ import {
   type UnitCardInit,
   type UnitCardState,
 } from "../../battle/unitCard";
+import { toolbarIcon } from "../../battle/toolbarIcons";
+import {
+  getGraphicsSettings,
+  subscribeGraphicsSettings,
+  updateGraphicsSettings,
+  type GraphicsSettings,
+} from "../../shared/graphicsSettings";
 
 export interface BattleHudHandle {
   /** Left info card content (≤5Hz, flushSync). */
@@ -87,6 +102,39 @@ const FpsReadout = forwardRef<FpsHandle>(function FpsReadout(_props, ref) {
     </div>
   );
 });
+
+function AudioControls() {
+  const [settings, setSettings] = useState<GraphicsSettings>(() => getGraphicsSettings());
+  useEffect(() => subscribeGraphicsSettings(setSettings), []);
+  const audio = settings.audio;
+  const muted = audio.muted || audio.masterVolume <= 0;
+  const setAudio = (patch: Partial<GraphicsSettings["audio"]>) =>
+    updateGraphicsSettings({ audio: { ...audio, ...patch } });
+  return (
+    <div id="battle-audio-controls" className="hud-chassis" data-muted={muted ? "true" : "false"}>
+      <Tooltip label={muted ? "Ambient audio muted" : "Ambient audio on"}>
+        <button
+          id="battle-audio-mute"
+          type="button"
+          aria-label={muted ? "Unmute ambient audio" : "Mute ambient audio"}
+          className={muted ? "on" : undefined}
+          onClick={() => setAudio({ muted: !audio.muted })}
+          dangerouslySetInnerHTML={{ __html: toolbarIcon(muted ? "audioOff" : "audio") }}
+        />
+      </Tooltip>
+      <input
+        id="battle-audio-volume"
+        type="range"
+        min="0"
+        max="100"
+        step="1"
+        aria-label="Ambient audio volume"
+        value={Math.round(audio.masterVolume * 100)}
+        onChange={(event) => setAudio({ masterVolume: Number(event.currentTarget.value) / 100 })}
+      />
+    </div>
+  );
+}
 
 interface ToolbarHandle {
   set(state: Record<string, ToolButtonState>): void;
@@ -199,6 +247,7 @@ const BattleHud = forwardRef<BattleHudInnerHandle, BattleHudProps>(function Batt
     <TooltipProvider>
       <LeftInfoCard ref={infoRef} />
       <FpsReadout ref={fpsRef} />
+      <AudioControls />
       <CenterCard ref={centerRef} onSelect={props.onCardSelect} onToolbarCmd={props.onToolbarCmd} />
       <canvas id="minimap" className="hud-chassis" width={240} height={160} ref={miniRef} />
     </TooltipProvider>

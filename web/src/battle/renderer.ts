@@ -31,7 +31,12 @@ import {
 } from "../shared/graphicsSettings";
 import type { BattleReadoutInstance } from "../../../packages/photoreal-renderer/src/battle/readoutLayer";
 import type { BattleStandardInstance } from "../../../packages/photoreal-renderer/src/battle/standardLayer";
-import type { BattleSlopeBands } from "../../../packages/game-renderer/src/battle/terrainFeatures";
+import {
+  deriveBattleEdgeRoles,
+  type BattleSlopeBands,
+  type BattleTerrainGrid,
+} from "../../../packages/game-renderer/src/battle/terrainFeatures";
+import { battleMapByWasmId } from "../../../packages/game-renderer/src/battle/mapCatalog";
 import type { BattleEnvironmentId } from "../../../packages/game-renderer/src/environment/environment";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
 
@@ -41,6 +46,27 @@ export interface BattleRendererOptions {
   sea?: SeaDisplacementSourceId | null;
   post?: string | null;
   graphics?: GraphicsSettings;
+}
+
+export interface BattleRendererAudioSurface {
+  kind: "lake" | "ocean";
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+}
+
+export interface BattleRendererAudioTerrain {
+  w: number;
+  h: number;
+  cell: number;
+  ox: number;
+  oy: number;
+  tint: Uint8Array;
+}
+
+export interface BattleRendererDisposeHook {
+  dispose(): void;
 }
 
 export class BattleRenderer {
@@ -72,6 +98,9 @@ export class BattleRenderer {
   private readonly shadowRequest: GraphicsSettings["shadows"];
   private readonly grassQualityRequest: GraphicsSettings["grassQuality"];
   private graphicsUnsubscribe: (() => void) | null = null;
+  private battleAudio: BattleRendererDisposeHook | null = null;
+  private audioTerrain: BattleRendererAudioTerrain | null = null;
+  private audioWaterSurfaces: BattleRendererAudioSurface[] = [];
   private readonly onResize = () => this.resize();
   private disposed = false;
   private lastCamera: BattleCameraSnapshot = {
@@ -121,8 +150,19 @@ export class BattleRenderer {
     window.removeEventListener("resize", this.onResize);
     this.graphicsUnsubscribe?.();
     this.graphicsUnsubscribe = null;
+    this.battleAudio?.dispose();
+    this.battleAudio = null;
     this.world?.dispose();
     this.world = null;
+  }
+
+  setBattleAudio(audio: BattleRendererDisposeHook | null): void {
+    if (this.battleAudio && this.battleAudio !== audio) this.battleAudio.dispose();
+    this.battleAudio = audio;
+  }
+
+  clearBattleAudio(audio: BattleRendererDisposeHook): void {
+    if (this.battleAudio === audio) this.battleAudio = null;
   }
 
   resize() {
@@ -202,6 +242,32 @@ export class BattleRenderer {
         speed ? new Float32Array(speed) : undefined,
       ];
     }
+    this.audioTerrain = tint
+      ? {
+          w,
+          h,
+          cell,
+          ox,
+          oy,
+          tint: new Uint8Array(tint),
+        }
+      : null;
+    this.audioWaterSurfaces = buildAudioWaterSurfaces(
+      this.audioTerrain,
+      wasmMapId,
+      vista,
+      lakeSurfaces,
+    );
+  }
+
+  battleAudioTerrain(): BattleRendererAudioTerrain | null {
+    return this.audioTerrain
+      ? { ...this.audioTerrain, tint: new Uint8Array(this.audioTerrain.tint) }
+      : null;
+  }
+
+  battleAudioWaterSurfaces(): BattleRendererAudioSurface[] {
+    return this.audioWaterSurfaces.map((surface) => ({ ...surface }));
   }
 
   draw(
@@ -465,6 +531,56 @@ function cloneLakeSurfaces(
   lakeSurfaces?: BattleLakeSurfaceSpec[] | null,
 ): BattleLakeSurfaceSpec[] | null {
   return lakeSurfaces ? lakeSurfaces.map((surface) => ({ ...surface })) : null;
+}
+
+function buildAudioWaterSurfaces(
+  grid: BattleTerrainGrid | null,
+  wasmMapId: number | undefined,
+  vista: BattleVistaGrid | null | undefined,
+  lakeSurfaces?: BattleLakeSurfaceSpec[] | null,
+): BattleRendererAudioSurface[] {
+  const surfaces: BattleRendererAudioSurface[] = [];
+  if (lakeSurfaces) {
+    for (const lake of lakeSurfaces) {
+      surfaces.push({
+        kind: "lake",
+        x0: lake.minX,
+        y0: lake.minY,
+        x1: lake.maxX,
+        y1: lake.maxY,
+      });
+    }
+  }
+  if (!grid || vista) return surfaces;
+
+  const roles = battleMapByWasmId(wasmMapId ?? -1)?.edges ?? deriveBattleEdgeRoles(grid);
+  const worldX0 = grid.ox;
+  const worldX1 = grid.ox + grid.w * grid.cell;
+  const worldY0 = grid.oy;
+  const worldY1 = grid.oy + grid.h * grid.cell;
+  const y0 = worldY0 - 400;
+  const y1 = worldY1 + 400;
+  const oceanLap = 12;
+  const oceanFar = 2600;
+  if (roles.west === "ocean") {
+    surfaces.push({
+      kind: "ocean",
+      x0: worldX0 - oceanFar,
+      y0,
+      x1: worldX0 + oceanLap,
+      y1,
+    });
+  }
+  if (roles.east === "ocean") {
+    surfaces.push({
+      kind: "ocean",
+      x0: worldX1 - oceanLap,
+      y0,
+      x1: worldX1 + oceanFar,
+      y1,
+    });
+  }
+  return surfaces;
 }
 
 export interface BattleTacticalLineFrame {

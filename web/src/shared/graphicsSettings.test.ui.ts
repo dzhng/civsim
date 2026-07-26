@@ -29,6 +29,12 @@ describe("graphicsSettings", () => {
       grass: false,
       farGrass: false,
       bloom: false,
+      audio: {
+        masterVolume: 0.8,
+        muted: false,
+        birds: false,
+        water: false,
+      },
     });
     unsubscribe();
 
@@ -38,9 +44,27 @@ describe("graphicsSettings", () => {
       grass: false,
       farGrass: false,
       bloom: false,
+      audio: {
+        masterVolume: 0.8,
+        muted: false,
+        birds: false,
+        water: false,
+      },
     });
     expect(seen).toEqual([
-      { shadows: "csm", grassQuality: "fine", grass: false, farGrass: false, bloom: false },
+      {
+        shadows: "csm",
+        grassQuality: "fine",
+        grass: false,
+        farGrass: false,
+        bloom: false,
+        audio: {
+          masterVolume: 0.8,
+          muted: false,
+          birds: false,
+          water: false,
+        },
+      },
     ]);
 
     reloadGraphicsSettingsForTests();
@@ -50,6 +74,12 @@ describe("graphicsSettings", () => {
       grass: false,
       farGrass: false,
       bloom: false,
+      audio: {
+        masterVolume: 0.8,
+        muted: false,
+        birds: false,
+        water: false,
+      },
     });
   });
 
@@ -60,6 +90,7 @@ describe("graphicsSettings", () => {
       grass: true,
       farGrass: true,
       bloom: true,
+      audio: DEFAULT_GRAPHICS_SETTINGS.audio,
     };
     expect(
       resolveGraphicsSettings("?shadows=off&grassQuality=low&grass=off&nofar&post=off", base),
@@ -69,6 +100,7 @@ describe("graphicsSettings", () => {
       grass: false,
       farGrass: false,
       bloom: false,
+      audio: DEFAULT_GRAPHICS_SETTINGS.audio,
     });
     expect(resolveGraphicsSettings("?post=on", { ...base, bloom: false })).toEqual({
       ...base,
@@ -87,6 +119,30 @@ describe("graphicsSettings", () => {
       grass: false,
       farGrass: false,
       bloom: false,
+    });
+  });
+
+  it("sanitizes stored audio settings and ships muted by default", () => {
+    expect(DEFAULT_GRAPHICS_SETTINGS.audio.muted).toBe(true);
+    localStorage.setItem(
+      GRAPHICS_SETTINGS_STORAGE_KEY,
+      JSON.stringify({
+        audio: {
+          masterVolume: 9,
+          muted: false,
+          birds: false,
+          water: false,
+        },
+      }),
+    );
+
+    reloadGraphicsSettingsForTests();
+
+    expect(getGraphicsSettings().audio).toEqual({
+      masterVolume: 1,
+      muted: false,
+      birds: false,
+      water: false,
     });
   });
 });

@@ -1,12 +1,20 @@
 export type GraphicsShadowMode = "off" | "single" | "csm";
 export type GraphicsGrassQuality = "low" | "standard" | "fine";
 
+export interface GraphicsAudioSettings {
+  masterVolume: number;
+  muted: boolean;
+  birds: boolean;
+  water: boolean;
+}
+
 export interface GraphicsSettings {
   shadows: GraphicsShadowMode;
   grassQuality: GraphicsGrassQuality;
   grass: boolean;
   farGrass: boolean;
   bloom: boolean;
+  audio: GraphicsAudioSettings;
 }
 
 export interface GraphicsQueryOverrides {
@@ -25,6 +33,12 @@ export const DEFAULT_GRAPHICS_SETTINGS: GraphicsSettings = {
   grass: true,
   farGrass: true,
   bloom: true,
+  audio: {
+    masterVolume: 0.55,
+    muted: true,
+    birds: true,
+    water: true,
+  },
 };
 
 type Listener = (settings: GraphicsSettings) => void;
@@ -33,7 +47,7 @@ let current = readStoredGraphicsSettings();
 const listeners = new Set<Listener>();
 
 export function getGraphicsSettings(): GraphicsSettings {
-  return { ...current };
+  return cloneGraphicsSettings(current);
 }
 
 export function setGraphicsSettings(next: GraphicsSettings): void {
@@ -45,7 +59,7 @@ export function setGraphicsSettings(next: GraphicsSettings): void {
 }
 
 export function updateGraphicsSettings(patch: Partial<GraphicsSettings>): void {
-  setGraphicsSettings({ ...current, ...patch });
+  setGraphicsSettings({ ...current, ...patch, audio: patch.audio ?? current.audio });
 }
 
 export function subscribeGraphicsSettings(listener: Listener): () => void {
@@ -124,6 +138,20 @@ function sanitizeGraphicsSettings(value: unknown, fallback: GraphicsSettings): G
     grass: typeof candidate?.grass === "boolean" ? candidate.grass : fallback.grass,
     farGrass: typeof candidate?.farGrass === "boolean" ? candidate.farGrass : fallback.farGrass,
     bloom: typeof candidate?.bloom === "boolean" ? candidate.bloom : fallback.bloom,
+    audio: sanitizeAudioSettings(candidate?.audio, fallback.audio),
+  };
+}
+
+function sanitizeAudioSettings(
+  value: unknown,
+  fallback: GraphicsAudioSettings,
+): GraphicsAudioSettings {
+  const candidate = value as Partial<GraphicsAudioSettings> | null;
+  return {
+    masterVolume: clamp01Number(candidate?.masterVolume, fallback.masterVolume),
+    muted: typeof candidate?.muted === "boolean" ? candidate.muted : fallback.muted,
+    birds: typeof candidate?.birds === "boolean" ? candidate.birds : fallback.birds,
+    water: typeof candidate?.water === "boolean" ? candidate.water : fallback.water,
   };
 }
 
@@ -156,8 +184,21 @@ function graphicsSettingsEqual(a: GraphicsSettings, b: GraphicsSettings): boolea
     a.grassQuality === b.grassQuality &&
     a.grass === b.grass &&
     a.farGrass === b.farGrass &&
-    a.bloom === b.bloom
+    a.bloom === b.bloom &&
+    a.audio.masterVolume === b.audio.masterVolume &&
+    a.audio.muted === b.audio.muted &&
+    a.audio.birds === b.audio.birds &&
+    a.audio.water === b.audio.water
   );
+}
+
+function cloneGraphicsSettings(settings: GraphicsSettings): GraphicsSettings {
+  return { ...settings, audio: { ...settings.audio } };
+}
+
+function clamp01Number(value: unknown, fallback: number): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
+  return Math.min(1, Math.max(0, value));
 }
 
 function localStorageOrNull(): Storage | null {

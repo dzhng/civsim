@@ -62,6 +62,7 @@ import {
   vistaSurfaceHeightAt,
   type BattleVistaGrid,
 } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
+import { BattleAmbientAudio } from "./battleAudio";
 
 const TICK_DT = 1 / 30;
 const MAX_TICKS_PER_FRAME = 4;
@@ -309,6 +310,13 @@ export class BattleScene implements Scene {
       environment: defaultEnvironment,
       graphics,
     }));
+    const battleAudio = new BattleAmbientAudio();
+    renderer.setBattleAudio(battleAudio);
+    this.cleanups.push(() => {
+      renderer.clearBattleAudio(battleAudio);
+      battleAudio.dispose();
+    });
+    battleAudio.resume();
     // The camera rides the terrain: look target + eye clearance sample the
     // same height field the renderer draws, so the soldier-eye zoom floor
     // stays above hills and WASD panning auto-raises.
@@ -446,6 +454,7 @@ export class BattleScene implements Scene {
         new Float32Array(rough),
         new Float32Array(speed),
       );
+      battleAudio.setTerrain(renderer.battleAudioTerrain(), renderer.battleAudioWaterSurfaces());
     }
 
     // --- Minimap ---------------------------------------------------------------
@@ -785,6 +794,9 @@ export class BattleScene implements Scene {
     let paused = false;
     let pausedBeforeFreeze = false;
     let frozen = false; // snapshot mode: no wall-clock pixels (HUD perf line, shader clock)
+    const syncAudioSuspension = () => battleAudio.setSuspended(document.hidden || frozen);
+    document.addEventListener("visibilitychange", syncAudioSuspension, { signal });
+    syncAudioSuspension();
     // Absolute sim ticks driven so far (real-time loop + scripted advance). The
     // verify harness reads this to pin a snapshot to a fixed tick: idle men carry
     // a fidget sway that re-rolls every few ticks, so a stable pixel snapshot must
@@ -1678,6 +1690,7 @@ export class BattleScene implements Scene {
       // Pan in the view's rotated frame so W/S/A/D track the screen at any yaw.
       applyBattleCameraRig();
       camera.panWorld(input.panX * frameDt, input.panY * frameDt);
+      battleAudio.update(camera, frameDt, now / 1000);
 
       accumulator += paused ? 0 : frameDt * timeScale;
       let ticks = 0;
@@ -2061,6 +2074,7 @@ export class BattleScene implements Scene {
       if (!on) frozenEffects = false;
       renderer.fixedTime = on ? 0 : null;
       renderer.preserveFrozenEffects = on && frozenEffects;
+      syncAudioSuspension();
     };
     const freezeAtTick = (target: number, options: { effects?: boolean } = {}) => {
       frozenEffects = options.effects === true;
@@ -2269,6 +2283,7 @@ export class BattleScene implements Scene {
         return a[i] ?? 0;
       },
       debugSoldierAnim: (i: number) => renderer.debugSoldierAnim(i),
+      audio: () => battleAudio.inspect(),
       // The renderer's canonical terrain surface — lets the harness project
       // world anchors (banners, soldiers) at their true rendered height.
       heightAt: (x: number, y: number) => renderer.heightAt(x, y),

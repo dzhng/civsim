@@ -21,6 +21,7 @@ in `23`.
 ## Verification
 Offline render asserts low/mid/high band energy present; `muted` → silent. By-ear on
 `/renderer/meadow-audio`.
+Fixed node count recorded for `41`: 12 active nodes (2 BufferSource + 5 BiquadFilter + 5 Gain).
 
 ## Delegated
 Filter constants (copy pen values, tune by ear); the `grassNear` proxy source

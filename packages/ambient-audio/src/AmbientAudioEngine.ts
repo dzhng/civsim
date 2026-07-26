@@ -1,4 +1,5 @@
 import { AudioMixer, type AmbientAudioSettings } from "./AudioMixer";
+import { WindBed } from "./beds/WindBed";
 
 export type AmbientAudioContext = BaseAudioContext & {
   resume?: () => Promise<void>;
@@ -58,6 +59,7 @@ export class AmbientAudioEngine {
   readonly reverbConvolver: ConvolverNode;
   readonly reverbWet: GainNode;
   readonly monitorNode: AudioNode;
+  readonly windBed: WindBed;
 
   private disposed = false;
   private activeOneShots = 0;
@@ -73,6 +75,7 @@ export class AmbientAudioEngine {
       reverbInput: GainNode;
       reverbConvolver: ConvolverNode;
       reverbWet: GainNode;
+      windBed: WindBed;
     },
     private readonly graphConnections: string[],
   ) {
@@ -86,6 +89,7 @@ export class AmbientAudioEngine {
     this.reverbConvolver = nodes.reverbConvolver;
     this.reverbWet = nodes.reverbWet;
     this.monitorNode = nodes.compressor;
+    this.windBed = nodes.windBed;
   }
 
   static create(options: AmbientAudioEngineOptions): AmbientAudioEngine {
@@ -116,6 +120,7 @@ export class AmbientAudioEngine {
     const reverbConvolver = ctx.createConvolver();
     const reverbWet = ctx.createGain();
     reverbWet.gain.value = 0;
+    const windBed = new WindBed(ctx, mixer);
 
     const graphConnections: string[] = [];
     connect("masterGain->lowshelf", masterGain, lowshelf, graphConnections);
@@ -133,7 +138,16 @@ export class AmbientAudioEngine {
     return new AmbientAudioEngine(
       ctx,
       mixer,
-      { masterGain, lowshelf, highshelf, compressor, reverbInput, reverbConvolver, reverbWet },
+      {
+        masterGain,
+        lowshelf,
+        highshelf,
+        compressor,
+        reverbInput,
+        reverbConvolver,
+        reverbWet,
+        windBed,
+      },
       graphConnections,
     );
   }
@@ -147,7 +161,7 @@ export class AmbientAudioEngine {
   }
 
   get activeNodes(): number {
-    return this.activeOneShots;
+    return this.activeOneShots + this.windBed.activeNodes;
   }
 
   async resume(): Promise<void> {
@@ -163,6 +177,7 @@ export class AmbientAudioEngine {
   async dispose(): Promise<void> {
     if (this.disposed) return;
     this.disposed = true;
+    this.windBed.stop();
     this.mixer.disconnect();
     for (const node of [
       this.masterGain,

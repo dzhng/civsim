@@ -1,3 +1,5 @@
+import type { WindBed, WindBedControl } from "./beds/WindBed";
+
 export interface MeadowSoundscapeInput {
   windSpeed: number;
   windGust: number;
@@ -18,6 +20,12 @@ export interface MeadowSoundscapeState {
   dtSeconds: number;
 }
 
+export const WIND_BED_DIRECTOR_MAPPING = {
+  maxWindSpeed: 12,
+  maxWindGust: 1.5,
+  maxGrassNear: 1,
+} as const;
+
 export class AmbientAudioDirector {
   private state: MeadowSoundscapeState = {
     windSpeed: 0,
@@ -29,16 +37,19 @@ export class AmbientAudioDirector {
     dtSeconds: 0,
   };
 
+  constructor(private readonly windBed?: WindBed) {}
+
   update(input: MeadowSoundscapeInput): MeadowSoundscapeState {
     this.state = {
       windSpeed: Math.max(0, finite(input.windSpeed)),
-      windGust: clamp(input.windGust, 0, 1.5),
+      windGust: clamp(input.windGust, 0, WIND_BED_DIRECTOR_MAPPING.maxWindGust),
       waterProximity: clamp01(input.waterProximity),
       waterPan: clamp(input.waterPan, -1, 1),
-      grassNear: clamp01(input.grassNear),
+      grassNear: clamp(input.grassNear, 0, WIND_BED_DIRECTOR_MAPPING.maxGrassNear),
       listenerXY: [finite(input.listenerXY[0]), finite(input.listenerXY[1])],
       dtSeconds: Math.max(0, finite(input.dtSeconds)),
     };
+    this.windBed?.setWind(mapWindBedControl(this.state));
     return this.snapshot();
   }
 
@@ -48,6 +59,14 @@ export class AmbientAudioDirector {
       listenerXY: [this.state.listenerXY[0], this.state.listenerXY[1]],
     };
   }
+}
+
+export function mapWindBedControl(state: MeadowSoundscapeState): WindBedControl {
+  return {
+    speed: clamp(finite(state.windSpeed), 0, WIND_BED_DIRECTOR_MAPPING.maxWindSpeed),
+    gust: clamp(finite(state.windGust), 0, WIND_BED_DIRECTOR_MAPPING.maxWindGust),
+    grassNear: clamp(finite(state.grassNear), 0, WIND_BED_DIRECTOR_MAPPING.maxGrassNear),
+  };
 }
 
 function finite(value: number): number {

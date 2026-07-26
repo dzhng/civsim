@@ -1,4 +1,8 @@
-import { AmbientAudioEngine } from "../../../packages/ambient-audio/src";
+import {
+  AmbientAudioDirector,
+  AmbientAudioEngine,
+  WIND_BED_DIRECTOR_MAPPING,
+} from "../../../packages/ambient-audio/src";
 
 interface MeadowAudioContext {
   root: HTMLElement;
@@ -36,6 +40,7 @@ export async function routeMeadowAudio(ctx: MeadowAudioContext): Promise<void> {
     AudioContext: AudioContextCtor,
     settings: { masterVolume: 0.7 },
   });
+  const director = new AmbientAudioDirector(engine.windBed);
   const analyser = engine.ctx.createAnalyser();
   analyser.fftSize = 2048;
   engine.monitorNode.connect(analyser);
@@ -51,6 +56,24 @@ export async function routeMeadowAudio(ctx: MeadowAudioContext): Promise<void> {
   volume.max = "1";
   volume.step = "0.01";
   volume.value = String(engine.mixer.masterVolume);
+  const windSpeed = document.createElement("input");
+  windSpeed.type = "range";
+  windSpeed.min = "0";
+  windSpeed.max = String(WIND_BED_DIRECTOR_MAPPING.maxWindSpeed);
+  windSpeed.step = "0.1";
+  windSpeed.value = "4";
+  const windGust = document.createElement("input");
+  windGust.type = "range";
+  windGust.min = "0";
+  windGust.max = String(WIND_BED_DIRECTOR_MAPPING.maxWindGust);
+  windGust.step = "0.01";
+  windGust.value = "0.35";
+  const reverbSend = document.createElement("input");
+  reverbSend.type = "range";
+  reverbSend.min = "0";
+  reverbSend.max = "1";
+  reverbSend.step = "0.01";
+  reverbSend.value = String(engine.mixer.sendLevel("wind"));
 
   const muteLabel = document.createElement("label");
   muteLabel.className = "meadow-audio-toggle";
@@ -59,35 +82,113 @@ export async function routeMeadowAudio(ctx: MeadowAudioContext): Promise<void> {
   mute.checked = engine.mixer.isMuted;
   muteLabel.append(mute, "Mute");
 
-  controls.append(startButton, label("Volume", volume), muteLabel, pokeButton);
+  controls.append(
+    startButton,
+    label("Volume", volume),
+    label("Wind speed (m/s)", windSpeed),
+    label("Gust", windGust),
+    label("Reverb send", reverbSend),
+    muteLabel,
+    pokeButton,
+  );
   ctx.panel.insertBefore(controls, ctx.status);
 
+  let lastRms = 0;
+  const updateSoundscape = () => {
+    director.update({
+      windSpeed: Number(windSpeed.value),
+      windGust: Number(windGust.value),
+      waterProximity: 0,
+      waterPan: 0,
+      grassNear: 1,
+      listenerXY: [0, 0],
+      dtSeconds: 1 / 60,
+    });
+    renderStatus(
+      ctx,
+      engine,
+      lastRms,
+      Number(windSpeed.value),
+      Number(windGust.value),
+      Number(reverbSend.value),
+    );
+  };
+  updateSoundscape();
+
   startButton.addEventListener("click", async () => {
+    engine.windBed.start();
     await engine.resume();
-    renderStatus(ctx, engine, lastRms);
+    renderStatus(
+      ctx,
+      engine,
+      lastRms,
+      Number(windSpeed.value),
+      Number(windGust.value),
+      Number(reverbSend.value),
+    );
   });
   pokeButton.addEventListener("click", async () => {
     await engine.resume();
     engine.playTestTone();
-    renderStatus(ctx, engine, lastRms);
+    renderStatus(
+      ctx,
+      engine,
+      lastRms,
+      Number(windSpeed.value),
+      Number(windGust.value),
+      Number(reverbSend.value),
+    );
   });
   volume.addEventListener("input", () => {
     engine.mixer.setMasterVolume(Number(volume.value));
-    renderStatus(ctx, engine, lastRms);
+    renderStatus(
+      ctx,
+      engine,
+      lastRms,
+      Number(windSpeed.value),
+      Number(windGust.value),
+      Number(reverbSend.value),
+    );
+  });
+  windSpeed.addEventListener("input", updateSoundscape);
+  windGust.addEventListener("input", updateSoundscape);
+  reverbSend.addEventListener("input", () => {
+    engine.mixer.setSendLevel("wind", Number(reverbSend.value));
+    renderStatus(
+      ctx,
+      engine,
+      lastRms,
+      Number(windSpeed.value),
+      Number(windGust.value),
+      Number(reverbSend.value),
+    );
   });
   mute.addEventListener("change", () => {
     engine.mixer.setMuted(mute.checked);
-    renderStatus(ctx, engine, lastRms);
+    renderStatus(
+      ctx,
+      engine,
+      lastRms,
+      Number(windSpeed.value),
+      Number(windGust.value),
+      Number(reverbSend.value),
+    );
   });
 
   const waveform = new Float32Array(analyser.fftSize);
-  let lastRms = 0;
   const draw = () => {
     sizeCanvasToCss(ctx.canvas);
     analyser.getFloatTimeDomainData(waveform);
     lastRms = rms(waveform);
     drawWaveform(ctx.canvas, waveform, lastRms);
-    renderStatus(ctx, engine, lastRms);
+    renderStatus(
+      ctx,
+      engine,
+      lastRms,
+      Number(windSpeed.value),
+      Number(windGust.value),
+      Number(reverbSend.value),
+    );
     publishStats({
       rms: lastRms,
       activeNodes: engine.activeNodes,
@@ -112,20 +213,32 @@ function label(text: string, control: HTMLElement): HTMLLabelElement {
   return el;
 }
 
-function renderStatus(ctx: MeadowAudioContext, engine: AmbientAudioEngine, rmsValue: number): void {
+function renderStatus(
+  ctx: MeadowAudioContext,
+  engine: AmbientAudioEngine,
+  rmsValue: number,
+  windSpeed: number,
+  windGust: number,
+  reverbSend: number,
+): void {
   ctx.status.innerHTML = table({
     route: "meadow-audio",
     ctxState: engine.ctx.state,
     rms: rmsValue.toFixed(5),
     activeNodes: engine.activeNodes,
     masterTarget: engine.mixer.targetMasterGain.toFixed(3),
+    windSpeed: windSpeed.toFixed(1),
+    windGust: windGust.toFixed(2),
+    reverbSend: reverbSend.toFixed(2),
     mounted: engine.mounted,
   });
 }
 
 function table(values: Record<string, unknown>): string {
   return `<table>${Object.entries(values)
-    .map(([key, value]) => `<tr><th>${escapeHtml(key)}</th><td>${escapeHtml(String(value))}</td></tr>`)
+    .map(
+      ([key, value]) => `<tr><th>${escapeHtml(key)}</th><td>${escapeHtml(String(value))}</td></tr>`,
+    )
     .join("")}</table>`;
 }
 

@@ -23,3 +23,5 @@ By-ear.
 
 ## Delegated
 Species timbres; call cadence / interval floor; voice-pool cap size.
+
+Implementation note: selected cap `MAX_CONCURRENT_BIRD_VOICES = 4`, interval floor `1.4 s`, per-phrase node count `5-13` (`StereoPanner` plus 2-6 oscillator/gain pairs).

@@ -233,6 +233,59 @@
   margin-top: 4px;
 }
 
+#battle-audio-controls {
+  position: fixed;
+  right: 12px;
+  bottom: 190px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-width: 3px;
+  pointer-events: auto;
+}
+
+#battle-audio-controls button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  cursor: pointer;
+  color: #e7cfa0;
+  background: #1a130b;
+  border: 1px solid #3a2c18;
+  border-radius: 2px;
+  box-shadow: var(--well-shadow);
+}
+
+#battle-audio-controls button svg {
+  display: block;
+  width: 17px;
+  height: 17px;
+  fill: currentColor;
+}
+
+#battle-audio-controls button:hover {
+  color: #f6e4ba;
+  box-shadow: var(--well-hover);
+}
+
+#battle-audio-controls button.on,
+#battle-audio-controls[data-muted="true"] button {
+  color: #1a130b;
+  background: linear-gradient(#f0d98a, #c9a14e);
+  border-color: #f0d98a;
+  box-shadow: 0 0 7px rgba(240, 212, 122, 0.55);
+}
+
+#battle-audio-controls input[type="range"] {
+  width: 86px;
+  accent-color: #c9a14e;
+}
+
 /* The richer riveted tray — corner rivets + brushed grain over the shared
  * fill/edge, with a deeper 6-layer frame. The bottom-center cards+controls
  * housing (#battle-center). Overrides .hud-chassis's plain fill/shadow. */

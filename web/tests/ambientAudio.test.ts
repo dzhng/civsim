@@ -4,14 +4,22 @@ import { OfflineAudioContext } from "node-web-audio-api";
 import {
   AmbientAudioDirector,
   AmbientAudioEngine,
+  BirdScheduler,
+  BIRD_INTERVAL_FLOOR_SECONDS,
+  MAX_CONCURRENT_BIRD_VOICES,
   VALLEY_EARLY_REFLECTION_SECONDS,
   VALLEY_REVERB_SECONDS,
   VALLEY_REVERB_SEED,
   VALLEY_REVERB_WET_GAIN,
+  WATER_BED_FIXED_NODE_COUNT,
+  WIND_BED_DIRECTOR_MAPPING,
   WIND_BED_FIXED_NODE_COUNT,
   buildValleyImpulseResponse,
+  type AudioMixer,
   type AmbientOfflineAudioContextConstructor,
+  type WindBedControl,
 } from "../../packages/ambient-audio/src/index.ts";
+import { sampleBattleWind } from "../../packages/game-renderer/src/battle/windSignal.ts";
 
 const OfflineCtor = OfflineAudioContext as unknown as AmbientOfflineAudioContextConstructor;
 
@@ -46,6 +54,8 @@ describe("AmbientAudioEngine", () => {
     expect(graph.reverb.wetGain).toBeCloseTo(VALLEY_REVERB_WET_GAIN, 4);
     expect(graph.reverb.bufferDuration).toBeCloseTo(VALLEY_REVERB_SECONDS, 3);
     expect(graph.sendLevels.wind).toBeCloseTo(0.32, 4);
+    expect(graph.sendLevels.water).toBeCloseTo(0.16, 4);
+    expect(graph.sendLevels.birds).toBeCloseTo(0.18, 4);
     expect(graph.hasReverbSendBus).toBe(true);
   });
 
@@ -158,7 +168,243 @@ describe("AmbientAudioEngine", () => {
     expect(rendered.activeNodesBeforeRender).toBe(0);
     expect(rms(rendered.samples)).toBeLessThan(0.0002);
   });
+
+  it("raises water RMS monotonically with proximity and scopes out at zero", async () => {
+    const silent = await renderWaterBed({ waterProximity: 0, waterPan: 0 });
+    const middle = await renderWaterBed({ waterProximity: 0.5, waterPan: 0 });
+    const close = await renderWaterBed({ waterProximity: 1, waterPan: 0 });
+
+    expect(silent.activeNodesBeforeRender).toBe(WATER_BED_FIXED_NODE_COUNT);
+    expect(rms(stereoMixdown(silent))).toBeLessThan(0.0002);
+    expect(rms(stereoMixdown(middle))).toBeGreaterThan(0.0006);
+    expect(rms(stereoMixdown(close))).toBeGreaterThan(rms(stereoMixdown(middle)) * 2);
+  });
+
+  it("pans water toward the louder side", async () => {
+    const left = await renderWaterBed({ waterProximity: 1, waterPan: -1 });
+    const right = await renderWaterBed({ waterProximity: 1, waterPan: 1 });
+
+    expect(rms(left.left)).toBeGreaterThan(rms(left.right) * 2);
+    expect(rms(right.right)).toBeGreaterThan(rms(right.left) * 2);
+  });
+
+  it("renders the water bed silent when muted", async () => {
+    const rendered = await renderWaterBed({
+      waterProximity: 1,
+      waterPan: 0,
+      muted: true,
+      waterReverbSend: 1,
+    });
+
+    expect(rms(stereoMixdown(rendered))).toBeLessThan(0.0002);
+  });
+
+  it("renders the water bed silent after stop", async () => {
+    const rendered = await renderWaterBed({
+      waterProximity: 1,
+      waterPan: 0,
+      stopBeforeRender: true,
+    });
+
+    expect(rendered.activeNodesBeforeRender).toBe(0);
+    expect(rms(stereoMixdown(rendered))).toBeLessThan(0.0002);
+  });
+
+  it("drives deterministic wind bed automation from battle wind samples", () => {
+    const first = recordBattleWindSweep();
+    const second = recordBattleWindSweep();
+
+    expect(first.controls).toEqual(second.controls);
+    expect(first.targets).toEqual(second.targets);
+    expect(variance(first.controls.map((control) => control.speed))).toBeGreaterThan(0);
+    expect(variance(first.controls.map((control) => control.gust))).toBeGreaterThan(0);
+    expect(variance(targetValues(first.targets, "lowGain"))).toBeGreaterThan(0);
+    expect(variance(targetValues(first.targets, "midGain"))).toBeGreaterThan(0);
+    expect(variance(targetValues(first.targets, "hissGain"))).toBeGreaterThan(0);
+
+    for (const control of first.controls) {
+      expect(control.speed).toBeGreaterThanOrEqual(0);
+      expect(control.speed).toBeLessThanOrEqual(WIND_BED_DIRECTOR_MAPPING.maxWindSpeed);
+      expect(control.gust).toBeGreaterThanOrEqual(0);
+      expect(control.gust).toBeLessThanOrEqual(WIND_BED_DIRECTOR_MAPPING.maxWindGust);
+      expect(control.grassNear).toBeGreaterThanOrEqual(0);
+      expect(control.grassNear).toBeLessThanOrEqual(WIND_BED_DIRECTOR_MAPPING.maxGrassNear);
+    }
+  });
+
+  it("schedules 60 simulated seconds of birds without breaking the interval floor or voice cap", () => {
+    const ctx = new FakeBirdAudioContext();
+    const scheduler = new BirdScheduler(ctx as unknown as BaseAudioContext, fakeBirdMixer(ctx), {
+      seed: 25,
+      initialDelaySeconds: 0,
+      intervalRangeSeconds: 0,
+      lookAheadSeconds: 60,
+      maxConcurrentVoices: MAX_CONCURRENT_BIRD_VOICES,
+    });
+
+    for (let t = 0; t <= 60; t += 0.1) {
+      ctx.currentTime = t;
+      scheduler.tick();
+    }
+
+    const schedule = scheduler.inspectSchedule();
+    expect(schedule.scheduledStarts.length).toBeGreaterThan(8);
+    expect(schedule.maxObservedActiveVoices).toBeLessThanOrEqual(MAX_CONCURRENT_BIRD_VOICES);
+    for (let i = 1; i < schedule.scheduledStarts.length; i++) {
+      expect(schedule.scheduledStarts[i] - schedule.scheduledStarts[i - 1]).toBeGreaterThanOrEqual(
+        BIRD_INTERVAL_FLOOR_SECONDS - 1e-6,
+      );
+    }
+  });
+
+  it("returns to the wind-bed node floor after a bird storm", async () => {
+    const sampleRate = 44_100;
+    const seconds = 8;
+    const engine = AmbientAudioEngine.create({
+      AudioContext: OfflineCtor,
+      audioContextArgs: [1, sampleRate * seconds, sampleRate],
+      settings: { masterVolume: 0.75 },
+      birds: {
+        seed: 25,
+        initialDelaySeconds: 0,
+        intervalRangeSeconds: 0,
+        lookAheadSeconds: 60,
+      },
+    });
+
+    engine.windBed.start(0);
+    const bedFloor = engine.activeNodes;
+    engine.birdScheduler.tick();
+    expect(engine.activeNodes).toBeGreaterThan(bedFloor);
+    expect(engine.birdScheduler.inspectSchedule().maxObservedActiveVoices).toBeLessThanOrEqual(
+      MAX_CONCURRENT_BIRD_VOICES,
+    );
+
+    await (engine.ctx as unknown as OfflineAudioContext).startRendering();
+    engine.birdScheduler.setEnabled(false);
+    engine.birdScheduler.tick();
+
+    expect(engine.activeNodes).toBe(bedFloor);
+  });
+
+  it("renders at least one bird phrase with transient peaks above the noise floor", async () => {
+    const sampleRate = 44_100;
+    const seconds = 2.5;
+    const engine = AmbientAudioEngine.create({
+      AudioContext: OfflineCtor,
+      audioContextArgs: [1, sampleRate * seconds, sampleRate],
+      settings: {
+        masterVolume: 1,
+        bedVolumes: { wind: 0, grass: 0, water: 0, birds: 1 },
+        reverbSendLevels: { birds: 0 },
+      },
+      birds: { seed: 250, initialDelaySeconds: 0.1, lookAheadSeconds: 0.25 },
+    });
+
+    engine.birdScheduler.tick();
+    const buffer = await (engine.ctx as unknown as OfflineAudioContext).startRendering();
+    const samples = buffer.getChannelData(0);
+
+    expect(peakAbs(samples)).toBeGreaterThan(0.01);
+    expect(windowedRms(samples, sampleRate, 0, 0.08)).toBeLessThan(0.0002);
+  });
+
+  it("does not schedule birds while disabled", () => {
+    const sampleRate = 44_100;
+    const engine = AmbientAudioEngine.create({
+      AudioContext: OfflineCtor,
+      audioContextArgs: [1, sampleRate, sampleRate],
+      settings: { birds: false },
+      birds: {
+        initialDelaySeconds: 0,
+        lookAheadSeconds: 60,
+      },
+    });
+
+    for (let t = 0; t <= 60; t += 1) {
+      engine.birdScheduler.tick(t);
+    }
+
+    expect(engine.activeVoices).toBe(0);
+    expect(engine.birdScheduler.inspectSchedule().scheduledStarts).toEqual([]);
+  });
 });
+
+type ScheduledWindTarget = {
+  param: string;
+  value: number;
+  startTime: number;
+  timeConstant: number;
+};
+
+type InspectableWindBed = {
+  setWind: (control: WindBedControl) => void;
+  nodes: {
+    low: { gain: GainNode };
+    mid: { gain: GainNode };
+    hiss: { gain: GainNode };
+    whis: { gain: GainNode };
+    rustleGain: GainNode;
+  } | null;
+};
+
+function recordBattleWindSweep(): {
+  controls: WindBedControl[];
+  targets: ScheduledWindTarget[];
+} {
+  const engine = createOfflineEngine();
+  const windBed = engine.windBed as unknown as InspectableWindBed;
+  const controls: WindBedControl[] = [];
+  const targets: ScheduledWindTarget[] = [];
+  const originalSetWind = windBed.setWind.bind(engine.windBed);
+  windBed.setWind = (control) => {
+    originalSetWind(control);
+    controls.push({ ...control });
+  };
+
+  engine.windBed.start(0);
+  captureGainTargets(windBed, targets);
+  const director = new AmbientAudioDirector(engine.windBed);
+
+  for (let t = 0; t < 30; t += 0.5) {
+    const wind = sampleBattleWind(0, -650, t);
+    director.update({
+      windSpeed: wind.speed,
+      windGust: wind.gust,
+      grassNear: 1,
+      waterProximity: 0,
+      waterPan: 0,
+      listenerXY: [0, -650],
+      dtSeconds: 0.5,
+    });
+  }
+
+  return { controls, targets };
+}
+
+function captureGainTargets(windBed: InspectableWindBed, targets: ScheduledWindTarget[]): void {
+  const nodes = windBed.nodes;
+  expect(nodes).not.toBeNull();
+  if (!nodes) return;
+
+  patchSetTarget(nodes.low.gain.gain, "lowGain", targets);
+  patchSetTarget(nodes.mid.gain.gain, "midGain", targets);
+  patchSetTarget(nodes.hiss.gain.gain, "hissGain", targets);
+  patchSetTarget(nodes.whis.gain.gain, "whisGain", targets);
+  patchSetTarget(nodes.rustleGain.gain, "rustleGain", targets);
+}
+
+function patchSetTarget(param: AudioParam, name: string, targets: ScheduledWindTarget[]): void {
+  const original = param.setTargetAtTime.bind(param);
+  param.setTargetAtTime = ((value: number, startTime: number, timeConstant: number) => {
+    targets.push({ param: name, value, startTime, timeConstant });
+    return original(value, startTime, timeConstant);
+  }) as AudioParam["setTargetAtTime"];
+}
+
+function targetValues(targets: ScheduledWindTarget[], param: string): number[] {
+  return targets.filter((target) => target.param === param).map((target) => target.value);
+}
 
 function createOfflineEngine(
   settings: Parameters<typeof AmbientAudioEngine.create>[0]["settings"] = {},
@@ -226,6 +472,53 @@ async function renderWindBed(options: {
   return { samples: buffer.getChannelData(0), sampleRate, activeNodesBeforeRender };
 }
 
+async function renderWaterBed(options: {
+  waterProximity: number;
+  waterPan: number;
+  muted?: boolean;
+  stopBeforeRender?: boolean;
+  waterReverbSend?: number;
+}): Promise<{
+  left: Float32Array;
+  right: Float32Array;
+  sampleRate: number;
+  activeNodesBeforeRender: number;
+}> {
+  const sampleRate = 44_100;
+  const seconds = 1.25;
+  const engine = AmbientAudioEngine.create({
+    AudioContext: OfflineCtor,
+    audioContextArgs: [2, Math.floor(sampleRate * seconds), sampleRate],
+    settings: {
+      masterVolume: 0.75,
+      muted: options.muted ?? false,
+      reverbSendLevels: { water: options.waterReverbSend ?? 0 },
+    },
+  });
+  const director = new AmbientAudioDirector(engine.windBed, engine.waterBed);
+
+  engine.waterBed.start(0);
+  director.update({
+    windSpeed: 0,
+    windGust: 0,
+    grassNear: 0,
+    waterProximity: options.waterProximity,
+    waterPan: options.waterPan,
+    listenerXY: [0, 0],
+    dtSeconds: 1 / 60,
+  });
+  if (options.stopBeforeRender) engine.waterBed.stop(0);
+
+  const activeNodesBeforeRender = engine.activeNodes;
+  const buffer = await (engine.ctx as unknown as OfflineAudioContext).startRendering();
+  return {
+    left: buffer.getChannelData(0),
+    right: buffer.getChannelData(1),
+    sampleRate,
+    activeNodesBeforeRender,
+  };
+}
+
 async function renderShortWindSourceTail(windReverbSend: number): Promise<{ tailRms: number }> {
   const sampleRate = 44_100;
   const seconds = 1.4;
@@ -282,6 +575,19 @@ function rms(samples: Float32Array): number {
   let sum = 0;
   for (const sample of samples) sum += sample * sample;
   return Math.sqrt(sum / samples.length);
+}
+
+function stereoMixdown(rendered: { left: Float32Array; right: Float32Array }): Float32Array {
+  const out = new Float32Array(Math.min(rendered.left.length, rendered.right.length));
+  for (let i = 0; i < out.length; i++) {
+    out[i] = (rendered.left[i] + rendered.right[i]) * 0.5;
+  }
+  return out;
+}
+
+function variance(values: number[]): number {
+  const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
+  return values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / values.length;
 }
 
 function windowedRms(
@@ -363,4 +669,78 @@ function biquadCoefficients(
     a1: (-2 * cos) / a0,
     a2: (1 - alpha) / a0,
   };
+}
+
+function peakAbs(samples: Float32Array): number {
+  let peak = 0;
+  for (const sample of samples) peak = Math.max(peak, Math.abs(sample));
+  return peak;
+}
+
+class FakeAudioParam {
+  value = 0;
+
+  setValueAtTime(value: number): FakeAudioParam {
+    this.value = value;
+    return this;
+  }
+
+  linearRampToValueAtTime(value: number): FakeAudioParam {
+    this.value = value;
+    return this;
+  }
+
+  exponentialRampToValueAtTime(value: number): FakeAudioParam {
+    this.value = value;
+    return this;
+  }
+}
+
+class FakeAudioNode {
+  connect(): FakeAudioNode {
+    return this;
+  }
+
+  disconnect(): void {}
+}
+
+class FakeGainNode extends FakeAudioNode {
+  gain = new FakeAudioParam();
+}
+
+class FakeStereoPannerNode extends FakeAudioNode {
+  pan = new FakeAudioParam();
+}
+
+class FakeOscillatorNode extends FakeAudioNode {
+  frequency = new FakeAudioParam();
+  type: OscillatorType = "sine";
+  onended: (() => void) | null = null;
+
+  start(): void {}
+
+  stop(): void {}
+}
+
+class FakeBirdAudioContext {
+  currentTime = 0;
+  destination = new FakeAudioNode();
+
+  createGain(): FakeGainNode {
+    return new FakeGainNode();
+  }
+
+  createStereoPanner(): FakeStereoPannerNode {
+    return new FakeStereoPannerNode();
+  }
+
+  createOscillator(): FakeOscillatorNode {
+    return new FakeOscillatorNode();
+  }
+}
+
+function fakeBirdMixer(ctx: FakeBirdAudioContext) {
+  return {
+    bedInput: () => ctx.destination,
+  } satisfies Pick<AudioMixer, "bedInput">;
 }

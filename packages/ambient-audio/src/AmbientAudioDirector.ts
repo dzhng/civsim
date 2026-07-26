@@ -1,11 +1,16 @@
+import type { BirdScheduler } from "./BirdScheduler";
+import type { WaterBed } from "./beds/WaterBed";
 import type { WindBed, WindBedControl } from "./beds/WindBed";
 
 export interface MeadowSoundscapeInput {
+  // Supplied by callers from windSignal.sampleBattleWind, the single wind owner.
   windSpeed: number;
   windGust: number;
   waterProximity: number;
   waterPan: number;
   grassNear: number;
+  birds?: boolean;
+  birdIntensity?: number;
   listenerXY: [number, number];
   dtSeconds: number;
 }
@@ -16,6 +21,8 @@ export interface MeadowSoundscapeState {
   waterProximity: number;
   waterPan: number;
   grassNear: number;
+  birds: boolean;
+  birdIntensity: number;
   listenerXY: [number, number];
   dtSeconds: number;
 }
@@ -26,6 +33,11 @@ export const WIND_BED_DIRECTOR_MAPPING = {
   maxGrassNear: 1,
 } as const;
 
+export const WATER_BED_DIRECTOR_MAPPING = {
+  maxProximity: 1,
+  maxAbsPan: 1,
+} as const;
+
 export class AmbientAudioDirector {
   private state: MeadowSoundscapeState = {
     windSpeed: 0,
@@ -33,23 +45,44 @@ export class AmbientAudioDirector {
     waterProximity: 0,
     waterPan: 0,
     grassNear: 0,
+    birds: true,
+    birdIntensity: 1,
     listenerXY: [0, 0],
     dtSeconds: 0,
   };
 
-  constructor(private readonly windBed?: WindBed) {}
+  constructor(
+    private readonly windBed?: WindBed,
+    private readonly waterBed?: WaterBed,
+    private readonly birdScheduler?: BirdScheduler,
+  ) {}
 
   update(input: MeadowSoundscapeInput): MeadowSoundscapeState {
     this.state = {
       windSpeed: Math.max(0, finite(input.windSpeed)),
       windGust: clamp(input.windGust, 0, WIND_BED_DIRECTOR_MAPPING.maxWindGust),
-      waterProximity: clamp01(input.waterProximity),
-      waterPan: clamp(input.waterPan, -1, 1),
+      waterProximity: clamp(
+        input.waterProximity,
+        0,
+        WATER_BED_DIRECTOR_MAPPING.maxProximity,
+      ),
+      waterPan: clamp(
+        input.waterPan,
+        -WATER_BED_DIRECTOR_MAPPING.maxAbsPan,
+        WATER_BED_DIRECTOR_MAPPING.maxAbsPan,
+      ),
       grassNear: clamp(input.grassNear, 0, WIND_BED_DIRECTOR_MAPPING.maxGrassNear),
+      birds: input.birds ?? true,
+      birdIntensity: clamp01(input.birdIntensity ?? 1),
       listenerXY: [finite(input.listenerXY[0]), finite(input.listenerXY[1])],
       dtSeconds: Math.max(0, finite(input.dtSeconds)),
     };
     this.windBed?.setWind(mapWindBedControl(this.state));
+    const water = mapWaterBedControl(this.state);
+    this.waterBed?.setWater(water.proximity01, water.panMinus1To1);
+    this.birdScheduler?.setEnabled(this.state.birds);
+    this.birdScheduler?.setIntensity(this.state.birdIntensity);
+    this.birdScheduler?.tick();
     return this.snapshot();
   }
 
@@ -59,6 +92,20 @@ export class AmbientAudioDirector {
       listenerXY: [this.state.listenerXY[0], this.state.listenerXY[1]],
     };
   }
+}
+
+export function mapWaterBedControl(state: MeadowSoundscapeState): {
+  proximity01: number;
+  panMinus1To1: number;
+} {
+  return {
+    proximity01: clamp(finite(state.waterProximity), 0, WATER_BED_DIRECTOR_MAPPING.maxProximity),
+    panMinus1To1: clamp(
+      finite(state.waterPan),
+      -WATER_BED_DIRECTOR_MAPPING.maxAbsPan,
+      WATER_BED_DIRECTOR_MAPPING.maxAbsPan,
+    ),
+  };
 }
 
 export function mapWindBedControl(state: MeadowSoundscapeState): WindBedControl {

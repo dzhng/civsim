@@ -21,6 +21,7 @@ this voice scopes out (silent) — it does not invent a source.
 ## Verification
 Offline probe: RMS rises as the proximity input rises; pan sign correct for
 left/right. By-ear walking the harness listener toward water.
+Fixed node count recorded for `41`: 29 active nodes (1 BufferSource + 6 BiquadFilter + 6 band Gain + 6 Oscillator + 6 LFO Gain + lowpass + highshelf + output Gain + StereoPanner).
 
 ## Delegated
 Which surfaces count (lakes only vs ocean edge too); the proximity/pan curve;

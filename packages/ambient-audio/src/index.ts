@@ -10,7 +10,9 @@ export {
 } from "./AmbientAudioEngine";
 export {
   AmbientAudioDirector,
+  WATER_BED_DIRECTOR_MAPPING,
   WIND_BED_DIRECTOR_MAPPING,
+  mapWaterBedControl,
   mapWindBedControl,
   type MeadowSoundscapeInput,
   type MeadowSoundscapeState,
@@ -24,6 +26,18 @@ export {
   type AmbientBedVolumes,
 } from "./AudioMixer";
 export {
+  BirdScheduler,
+  BirdVoice,
+  BIRD_INITIAL_DELAY_SECONDS,
+  BIRD_INTERVAL_FLOOR_SECONDS,
+  BIRD_INTERVAL_RANGE_SECONDS,
+  BIRD_LOOKAHEAD_SECONDS,
+  BIRD_SCHEDULER_DEFAULT_SEED,
+  MAX_CONCURRENT_BIRD_VOICES,
+  type BirdSchedulerInspection,
+  type BirdSchedulerOptions,
+} from "./BirdScheduler";
+export {
   VALLEY_EARLY_REFLECTION_SECONDS,
   VALLEY_EARLY_REFLECTIONS,
   VALLEY_REVERB_DARKENING_COEFFICIENT,
@@ -35,4 +49,5 @@ export {
   VALLEY_REVERB_WET_GAIN,
   buildValleyImpulseResponse,
 } from "./reverb";
+export { WaterBed, WATER_BED_FIXED_NODE_COUNT } from "./beds/WaterBed";
 export { WindBed, WIND_BED_FIXED_NODE_COUNT, type WindBedControl } from "./beds/WindBed";

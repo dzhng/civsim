@@ -23,5 +23,7 @@ tracking a scripted wind-speed ramp; by-ear on the harness sliders.
 gust and its whistle are phase-aligned. This slice works off `windSignal` even before
 `07` ships — `07` only *tightens* the visual coupling.
 
+Implementation confirmation: `/renderer/meadow-audio` samples `listenerXY` as the camera focus position (default `[0, -650]`, matching what slice `26` will pass), and grass slice `07` will read the same `windSignal.sampleBattleWind` source.
+
 ## Delegated
 Gain-mapping curve from wind speed → band gains.

@@ -3,6 +3,7 @@ import {
   AmbientAudioEngine,
   WIND_BED_DIRECTOR_MAPPING,
 } from "../../../packages/ambient-audio/src";
+import { sampleBattleWind } from "../../../packages/game-renderer/src/battle/windSignal";
 
 interface MeadowAudioContext {
   root: HTMLElement;
@@ -14,6 +15,9 @@ interface MeadowAudioContext {
 type RendererAudioStats = {
   rms: number;
   activeNodes: number;
+  activeVoices: number;
+  waterProximity: number;
+  waterPan: number;
   ctxState: AudioContextState | "unsupported";
 };
 
@@ -31,7 +35,14 @@ export async function routeMeadowAudio(ctx: MeadowAudioContext): Promise<void> {
   const w = window as WindowWithWebkitAudio;
   const AudioContextCtor = window.AudioContext ?? w.webkitAudioContext;
   if (!AudioContextCtor) {
-    publishStats({ rms: 0, activeNodes: 0, ctxState: "unsupported" });
+    publishStats({
+      rms: 0,
+      activeNodes: 0,
+      activeVoices: 0,
+      waterProximity: 0,
+      waterPan: 0,
+      ctxState: "unsupported",
+    });
     ctx.status.textContent = "Web Audio is unavailable in this browser.";
     return;
   }
@@ -40,7 +51,7 @@ export async function routeMeadowAudio(ctx: MeadowAudioContext): Promise<void> {
     AudioContext: AudioContextCtor,
     settings: { masterVolume: 0.7 },
   });
-  const director = new AmbientAudioDirector(engine.windBed);
+  const director = new AmbientAudioDirector(engine.windBed, engine.waterBed, engine.birdScheduler);
   const analyser = engine.ctx.createAnalyser();
   analyser.fftSize = 2048;
   engine.monitorNode.connect(analyser);
@@ -68,6 +79,26 @@ export async function routeMeadowAudio(ctx: MeadowAudioContext): Promise<void> {
   windGust.max = String(WIND_BED_DIRECTOR_MAPPING.maxWindGust);
   windGust.step = "0.01";
   windGust.value = "0.35";
+  const waterProximity = document.createElement("input");
+  waterProximity.type = "range";
+  waterProximity.min = "0";
+  waterProximity.max = "1";
+  waterProximity.step = "0.01";
+  waterProximity.value = "0";
+  const waterPan = document.createElement("input");
+  waterPan.type = "range";
+  waterPan.min = "-1";
+  waterPan.max = "1";
+  waterPan.step = "0.01";
+  waterPan.value = "0";
+  const liveWindLabel = document.createElement("label");
+  liveWindLabel.className = "meadow-audio-toggle";
+  const liveWind = document.createElement("input");
+  liveWind.type = "checkbox";
+  liveWind.checked = true;
+  liveWindLabel.append(liveWind, "Live wind");
+  const listenerX = numberInput("-900", "900", "10", "0");
+  const listenerY = numberInput("-900", "900", "10", "-650");
   const reverbSend = document.createElement("input");
   reverbSend.type = "range";
   reverbSend.min = "0";
@@ -81,12 +112,23 @@ export async function routeMeadowAudio(ctx: MeadowAudioContext): Promise<void> {
   mute.type = "checkbox";
   mute.checked = engine.mixer.isMuted;
   muteLabel.append(mute, "Mute");
+  const birdsLabel = document.createElement("label");
+  birdsLabel.className = "meadow-audio-toggle";
+  const birds = document.createElement("input");
+  birds.type = "checkbox";
+  birds.checked = true;
+  birdsLabel.append(birds, "Birds");
 
   controls.append(
     startButton,
+    liveWindLabel,
+    birdsLabel,
+    fieldPair("Listener XY", listenerX, listenerY),
     label("Volume", volume),
     label("Wind speed (m/s)", windSpeed),
     label("Gust", windGust),
+    label("Water proximity", waterProximity),
+    label("Water pan", waterPan),
     label("Reverb send", reverbSend),
     muteLabel,
     pokeButton,
@@ -94,85 +136,95 @@ export async function routeMeadowAudio(ctx: MeadowAudioContext): Promise<void> {
   ctx.panel.insertBefore(controls, ctx.status);
 
   let lastRms = 0;
+  let lastAppliedWind = { speed: Number(windSpeed.value), gust: Number(windGust.value) };
+  let lastLiveWind = sampleBattleWind(Number(listenerX.value), Number(listenerY.value), 0);
+  const routeStartedAtMs = performance.now();
+
+  const routeTimeSeconds = () => Math.max(0, (performance.now() - routeStartedAtMs) / 1000);
+
+  const listenerXY = (): [number, number] => [
+    finiteNumber(listenerX.value, 0),
+    finiteNumber(listenerY.value, -650),
+  ];
+
+  const syncWindControlState = () => {
+    windSpeed.disabled = liveWind.checked;
+    windGust.disabled = liveWind.checked;
+  };
+
   const updateSoundscape = () => {
+    const [x, y] = listenerXY();
+    lastLiveWind = sampleBattleWind(x, y, routeTimeSeconds());
+    lastAppliedWind = liveWind.checked
+      ? { speed: lastLiveWind.speed, gust: lastLiveWind.gust }
+      : { speed: Number(windSpeed.value), gust: Number(windGust.value) };
+    const water = {
+      proximity: Number(waterProximity.value),
+      pan: Number(waterPan.value),
+    };
     director.update({
-      windSpeed: Number(windSpeed.value),
-      windGust: Number(windGust.value),
-      waterProximity: 0,
-      waterPan: 0,
+      windSpeed: lastAppliedWind.speed,
+      windGust: lastAppliedWind.gust,
+      waterProximity: water.proximity,
+      waterPan: water.pan,
       grassNear: 1,
-      listenerXY: [0, 0],
+      birds: birds.checked,
+      birdIntensity: 1,
+      listenerXY: [x, y],
       dtSeconds: 1 / 60,
     });
     renderStatus(
       ctx,
       engine,
       lastRms,
-      Number(windSpeed.value),
-      Number(windGust.value),
+      lastAppliedWind.speed,
+      lastAppliedWind.gust,
+      lastLiveWind.speed,
+      lastLiveWind.gust,
+      [x, y],
+      liveWind.checked,
+      birds.checked,
       Number(reverbSend.value),
+      water.proximity,
+      water.pan,
     );
   };
+  syncWindControlState();
   updateSoundscape();
 
   startButton.addEventListener("click", async () => {
     engine.windBed.start();
+    engine.waterBed.start();
     await engine.resume();
-    renderStatus(
-      ctx,
-      engine,
-      lastRms,
-      Number(windSpeed.value),
-      Number(windGust.value),
-      Number(reverbSend.value),
-    );
+    updateSoundscape();
   });
   pokeButton.addEventListener("click", async () => {
     await engine.resume();
     engine.playTestTone();
-    renderStatus(
-      ctx,
-      engine,
-      lastRms,
-      Number(windSpeed.value),
-      Number(windGust.value),
-      Number(reverbSend.value),
-    );
+    updateSoundscape();
   });
   volume.addEventListener("input", () => {
     engine.mixer.setMasterVolume(Number(volume.value));
-    renderStatus(
-      ctx,
-      engine,
-      lastRms,
-      Number(windSpeed.value),
-      Number(windGust.value),
-      Number(reverbSend.value),
-    );
+    updateSoundscape();
   });
   windSpeed.addEventListener("input", updateSoundscape);
   windGust.addEventListener("input", updateSoundscape);
+  waterProximity.addEventListener("input", updateSoundscape);
+  waterPan.addEventListener("input", updateSoundscape);
+  liveWind.addEventListener("change", () => {
+    syncWindControlState();
+    updateSoundscape();
+  });
+  listenerX.addEventListener("input", updateSoundscape);
+  listenerY.addEventListener("input", updateSoundscape);
+  birds.addEventListener("change", updateSoundscape);
   reverbSend.addEventListener("input", () => {
     engine.mixer.setSendLevel("wind", Number(reverbSend.value));
-    renderStatus(
-      ctx,
-      engine,
-      lastRms,
-      Number(windSpeed.value),
-      Number(windGust.value),
-      Number(reverbSend.value),
-    );
+    updateSoundscape();
   });
   mute.addEventListener("change", () => {
     engine.mixer.setMuted(mute.checked);
-    renderStatus(
-      ctx,
-      engine,
-      lastRms,
-      Number(windSpeed.value),
-      Number(windGust.value),
-      Number(reverbSend.value),
-    );
+    updateSoundscape();
   });
 
   const waveform = new Float32Array(analyser.fftSize);
@@ -181,22 +233,25 @@ export async function routeMeadowAudio(ctx: MeadowAudioContext): Promise<void> {
     analyser.getFloatTimeDomainData(waveform);
     lastRms = rms(waveform);
     drawWaveform(ctx.canvas, waveform, lastRms);
-    renderStatus(
-      ctx,
-      engine,
-      lastRms,
-      Number(windSpeed.value),
-      Number(windGust.value),
-      Number(reverbSend.value),
-    );
+    updateSoundscape();
     publishStats({
       rms: lastRms,
       activeNodes: engine.activeNodes,
+      activeVoices: engine.activeVoices,
+      waterProximity: Number(waterProximity.value),
+      waterPan: Number(waterPan.value),
       ctxState: engine.ctx.state,
     });
     requestAnimationFrame(draw);
   };
-  publishStats({ rms: 0, activeNodes: 0, ctxState: engine.ctx.state });
+  publishStats({
+    rms: 0,
+    activeNodes: 0,
+    activeVoices: 0,
+    waterProximity: Number(waterProximity.value),
+    waterPan: Number(waterPan.value),
+    ctxState: engine.ctx.state,
+  });
   requestAnimationFrame(draw);
 }
 
@@ -207,9 +262,28 @@ function button(text: string): HTMLButtonElement {
   return el;
 }
 
+function numberInput(min: string, max: string, step: string, value: string): HTMLInputElement {
+  const el = document.createElement("input");
+  el.type = "number";
+  el.min = min;
+  el.max = max;
+  el.step = step;
+  el.value = value;
+  return el;
+}
+
 function label(text: string, control: HTMLElement): HTMLLabelElement {
   const el = document.createElement("label");
   el.append(text, control);
+  return el;
+}
+
+function fieldPair(text: string, left: HTMLElement, right: HTMLElement): HTMLLabelElement {
+  const el = document.createElement("label");
+  const row = document.createElement("span");
+  row.className = "meadow-audio-field-pair";
+  row.append(left, right);
+  el.append(text, row);
   return el;
 }
 
@@ -217,18 +291,34 @@ function renderStatus(
   ctx: MeadowAudioContext,
   engine: AmbientAudioEngine,
   rmsValue: number,
-  windSpeed: number,
-  windGust: number,
+  appliedWindSpeed: number,
+  appliedWindGust: number,
+  liveWindSpeed: number,
+  liveWindGust: number,
+  listenerXY: [number, number],
+  liveWindEnabled: boolean,
+  birdsEnabled: boolean,
   reverbSend: number,
+  waterProximity: number,
+  waterPan: number,
 ): void {
   ctx.status.innerHTML = table({
     route: "meadow-audio",
     ctxState: engine.ctx.state,
     rms: rmsValue.toFixed(5),
     activeNodes: engine.activeNodes,
+    activeVoices: engine.activeVoices,
     masterTarget: engine.mixer.targetMasterGain.toFixed(3),
-    windSpeed: windSpeed.toFixed(1),
-    windGust: windGust.toFixed(2),
+    windMode: liveWindEnabled ? "live" : "manual",
+    birds: birdsEnabled ? "on" : "off",
+    windSpeed: appliedWindSpeed.toFixed(1),
+    windGust: appliedWindGust.toFixed(2),
+    waterProximity: waterProximity.toFixed(2),
+    waterPan: waterPan.toFixed(2),
+    liveSpeed: liveWindSpeed.toFixed(1),
+    liveGust: liveWindGust.toFixed(2),
+    listenerX: listenerXY[0].toFixed(0),
+    listenerY: listenerXY[1].toFixed(0),
     reverbSend: reverbSend.toFixed(2),
     mounted: engine.mounted,
   });
@@ -252,6 +342,11 @@ function rms(values: Float32Array): number {
   let sum = 0;
   for (const value of values) sum += value * value;
   return Math.sqrt(sum / values.length);
+}
+
+function finiteNumber(value: string, fallback: number): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
 }
 
 function sizeCanvasToCss(canvas: HTMLCanvasElement): void {
@@ -316,10 +411,26 @@ function installRouteStyles(): void {
       font-size: 12px;
     }
     .meadow-audio-controls input[type="range"] { width: 100%; }
+    .meadow-audio-controls input[type="number"] {
+      min-width: 0;
+      width: 100%;
+      border: 1px solid #4e4432;
+      border-radius: 4px;
+      background: #191813;
+      color: #ead8ad;
+      padding: 6px 7px;
+      font: 12px ui-sans-serif, system-ui, sans-serif;
+    }
+    .meadow-audio-controls input:disabled { opacity: 0.55; }
     .meadow-audio-controls .meadow-audio-toggle {
       display: flex;
       align-items: center;
       gap: 7px;
+    }
+    .meadow-audio-field-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
     }
   `;
   document.head.appendChild(style);

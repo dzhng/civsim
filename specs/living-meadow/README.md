@@ -12,17 +12,31 @@ Reference (MIT, © Lentils): `assets/pen-source/index.html` (a WebGL/GLSL demo �
 
 ## Next Agent Prompt
 
-**Status:** 2026-07-26 — DONE: `00`, `01`, `02` (SPIKE VERDICT: **EVOLVE** — see the slice file's evidence; fresh port deleted), `20`, `21`, `22`, `23`, `25`. All gates green, decisions in `choices.md`. Two-lane build: grass lane = worktree `civsim-living-meadow`
-(branch `living-meadow`, vite :5185), audio lane = worktree `civsim-lm-audio`
-(branch `lm-audio`, vite :5186, merged back after each pass). Codex (gpt-5.5,
-workspace-write sandbox) implements; the orchestrator owns browser gates,
-review, and commits.
-**Pick up at:** slice `03-translucency` (grass lane, on the evolve substrate). Audio lane: `24-water-bed`, then `26`. Spike findings routed: near-field bald ground -> `05`; ground-underlayer color -> `04`/`05`; flat-tip fix -> `06`.
-**Probe verdicts banked (slice 00):** R2 wind-RT VIABLE in TSL (analytic
-uniforms still first choice for 07); R3 backlight VIABLE on
-MeshStandardNodeMaterial emissive, shadow scalar NOT cheaply reachable (03
-builds emissive-term family, not shadow-gated). R4 OfflineAudioContext landed
-via `node-web-audio-api`; R5 gesture gate proven live (slice 20).
+**Status:** 2026-07-26 late — DONE + committed on `living-meadow`: `00 01 02 03 20 21 22 23 24 25`
+(spike verdict: **EVOLVE**, fresh port deleted; slice 03 translucency landed with
+magnitude judgment deferred to 04/08 — see its slice file's gate history).
+`26` (audio battle integration) is IN FLIGHT via codex on the lm-audio worktree.
+**Process:** two lanes — grass = worktree `civsim-living-meadow` (branch
+`living-meadow`, vite :5185), audio = worktree `civsim-lm-audio` (branch
+`lm-audio`, vite :5186); codex (gpt-5.5, workspace-write, prompts via files)
+implements, the orchestrator owns browser gates (capture.mjs in the session
+scratchpad; CANVAS_ONLY=1 for byte-stable canvas shots), unprimed critiques,
+review, commits, and lane merges (merge lm-audio into living-meadow after each
+audio pass; sync back before the next audio slice).
+**Pick up at:** integrate `26` when its codex run lands (verify in-battle by
+scene run + snapshot neutrality, commit on lm-audio, merge). Then grass `04`
+(color ramp — non-blocking David sign-off under golden-hour AND overcast),
+`05` density (owns far-density constants + near-bald-ground gap + ground
+underlayer idea), `06` silhouette (flat-tip fix), `07` wind motion (windSignal
+GPU uniforms + write-vibe GIF gate), `08` fog, `09` cutover, then `40`/`41`
+perf, whole-spec review, ledger consolidation, close-spec.
+**DEBTS:** (1) battle grass-scene snapshot baselines not swept since slice 03's
+shader change — battle-genmap-clay (grass-free) passed 0px; a grass-bearing
+scene sweep + deliberate re-bless is owed BEFORE slice 09. (2) Audio ships
+default-muted (provisional, David to flip).
+**Probe verdicts banked:** R2 wind-RT viable (analytic uniforms first for 07);
+R3 backlight on MeshStandardNodeMaterial emissive, no cheap shadow scalar;
+R4 node-web-audio-api OfflineAudioContext gate; R5 gesture gate proven.
 
 **Read first:** this README top-to-bottom, then the two foundation slices (`00`,
 `01`), then the spike (`02`). Skim `specs/done/battle-map-reference/README.md` for
@@ -184,7 +198,7 @@ Foundation
 
 Grass
 - [x] `02` SPIKE — verdict: EVOLVE (fresh deleted; evidence in slice file)
-- [ ] `03` translucency (backlight + subsurface)
+- [x] `03` translucency (magnitude re-judged at 04/08)
 - [ ] `04` color / 5-stop ramp — **David sign-off**
 - [ ] `05` density-to-horizon LOD
 - [ ] `06` blade silhouette / soft tip
@@ -197,7 +211,7 @@ Audio
 - [x] `21` wind bed (+ rustle)
 - [x] `22` reverb + master voicing
 - [x] `23` director wind coupling (join → windSignal)
-- [ ] `24` water bed (join → seaLayer)
+- [x] `24` water bed (join → seaLayer)
 - [x] `25` bird scheduler
 - [ ] `26` battle integration + settings + teardown
 

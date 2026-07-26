@@ -1,6 +1,7 @@
 import type { WindBed, WindBedControl } from "./beds/WindBed";
 
 export interface MeadowSoundscapeInput {
+  // Supplied by callers from windSignal.sampleBattleWind, the single wind owner.
   windSpeed: number;
   windGust: number;
   waterProximity: number;

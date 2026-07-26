@@ -8,10 +8,13 @@ import {
   VALLEY_REVERB_SECONDS,
   VALLEY_REVERB_SEED,
   VALLEY_REVERB_WET_GAIN,
+  WIND_BED_DIRECTOR_MAPPING,
   WIND_BED_FIXED_NODE_COUNT,
   buildValleyImpulseResponse,
   type AmbientOfflineAudioContextConstructor,
+  type WindBedControl,
 } from "../../packages/ambient-audio/src/index.ts";
+import { sampleBattleWind } from "../../packages/game-renderer/src/battle/windSignal.ts";
 
 const OfflineCtor = OfflineAudioContext as unknown as AmbientOfflineAudioContextConstructor;
 
@@ -158,7 +161,105 @@ describe("AmbientAudioEngine", () => {
     expect(rendered.activeNodesBeforeRender).toBe(0);
     expect(rms(rendered.samples)).toBeLessThan(0.0002);
   });
+
+  it("drives deterministic wind bed automation from battle wind samples", () => {
+    const first = recordBattleWindSweep();
+    const second = recordBattleWindSweep();
+
+    expect(first.controls).toEqual(second.controls);
+    expect(first.targets).toEqual(second.targets);
+    expect(variance(first.controls.map((control) => control.speed))).toBeGreaterThan(0);
+    expect(variance(first.controls.map((control) => control.gust))).toBeGreaterThan(0);
+    expect(variance(targetValues(first.targets, "lowGain"))).toBeGreaterThan(0);
+    expect(variance(targetValues(first.targets, "midGain"))).toBeGreaterThan(0);
+    expect(variance(targetValues(first.targets, "hissGain"))).toBeGreaterThan(0);
+
+    for (const control of first.controls) {
+      expect(control.speed).toBeGreaterThanOrEqual(0);
+      expect(control.speed).toBeLessThanOrEqual(WIND_BED_DIRECTOR_MAPPING.maxWindSpeed);
+      expect(control.gust).toBeGreaterThanOrEqual(0);
+      expect(control.gust).toBeLessThanOrEqual(WIND_BED_DIRECTOR_MAPPING.maxWindGust);
+      expect(control.grassNear).toBeGreaterThanOrEqual(0);
+      expect(control.grassNear).toBeLessThanOrEqual(WIND_BED_DIRECTOR_MAPPING.maxGrassNear);
+    }
+  });
 });
+
+type ScheduledWindTarget = {
+  param: string;
+  value: number;
+  startTime: number;
+  timeConstant: number;
+};
+
+type InspectableWindBed = {
+  setWind: (control: WindBedControl) => void;
+  nodes: {
+    low: { gain: GainNode };
+    mid: { gain: GainNode };
+    hiss: { gain: GainNode };
+    whis: { gain: GainNode };
+    rustleGain: GainNode;
+  } | null;
+};
+
+function recordBattleWindSweep(): {
+  controls: WindBedControl[];
+  targets: ScheduledWindTarget[];
+} {
+  const engine = createOfflineEngine();
+  const windBed = engine.windBed as unknown as InspectableWindBed;
+  const controls: WindBedControl[] = [];
+  const targets: ScheduledWindTarget[] = [];
+  const originalSetWind = windBed.setWind.bind(engine.windBed);
+  windBed.setWind = (control) => {
+    originalSetWind(control);
+    controls.push({ ...control });
+  };
+
+  engine.windBed.start(0);
+  captureGainTargets(windBed, targets);
+  const director = new AmbientAudioDirector(engine.windBed);
+
+  for (let t = 0; t < 30; t += 0.5) {
+    const wind = sampleBattleWind(0, -650, t);
+    director.update({
+      windSpeed: wind.speed,
+      windGust: wind.gust,
+      grassNear: 1,
+      waterProximity: 0,
+      waterPan: 0,
+      listenerXY: [0, -650],
+      dtSeconds: 0.5,
+    });
+  }
+
+  return { controls, targets };
+}
+
+function captureGainTargets(windBed: InspectableWindBed, targets: ScheduledWindTarget[]): void {
+  const nodes = windBed.nodes;
+  expect(nodes).not.toBeNull();
+  if (!nodes) return;
+
+  patchSetTarget(nodes.low.gain.gain, "lowGain", targets);
+  patchSetTarget(nodes.mid.gain.gain, "midGain", targets);
+  patchSetTarget(nodes.hiss.gain.gain, "hissGain", targets);
+  patchSetTarget(nodes.whis.gain.gain, "whisGain", targets);
+  patchSetTarget(nodes.rustleGain.gain, "rustleGain", targets);
+}
+
+function patchSetTarget(param: AudioParam, name: string, targets: ScheduledWindTarget[]): void {
+  const original = param.setTargetAtTime.bind(param);
+  param.setTargetAtTime = ((value: number, startTime: number, timeConstant: number) => {
+    targets.push({ param: name, value, startTime, timeConstant });
+    return original(value, startTime, timeConstant);
+  }) as AudioParam["setTargetAtTime"];
+}
+
+function targetValues(targets: ScheduledWindTarget[], param: string): number[] {
+  return targets.filter((target) => target.param === param).map((target) => target.value);
+}
 
 function createOfflineEngine(
   settings: Parameters<typeof AmbientAudioEngine.create>[0]["settings"] = {},
@@ -282,6 +383,11 @@ function rms(samples: Float32Array): number {
   let sum = 0;
   for (const sample of samples) sum += sample * sample;
   return Math.sqrt(sum / samples.length);
+}
+
+function variance(values: number[]): number {
+  const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
+  return values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / values.length;
 }
 
 function windowedRms(

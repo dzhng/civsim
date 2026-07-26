@@ -36,7 +36,12 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
-    include: ["src/**/*.test.tsx", "src/**/*.test.ui.ts", "tests/ambientAudio.test.ts"],
+    include: [
+      "src/**/*.test.tsx",
+      "src/**/*.test.ui.ts",
+      "tests/ambientAudio.test.ts",
+      "tests/windSignal.test.ts",
+    ],
     exclude: ["**/node_modules/**", "**/dist/**"],
     setupFiles: ["./setup-tests.ts"],
     globals: false,

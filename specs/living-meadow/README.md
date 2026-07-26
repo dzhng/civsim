@@ -15,7 +15,7 @@ Reference (MIT, © Lentils): `assets/pen-source/index.html` (a WebGL/GLSL demo �
 **Status:** 2026-07-26 late — DONE + committed on `living-meadow`: `00 01 02 03 20 21 22 23 24 25`
 (spike verdict: **EVOLVE**, fresh port deleted; slice 03 translucency landed with
 magnitude judgment deferred to 04/08 — see its slice file's gate history).
-`26` (audio battle integration) is IN FLIGHT via codex on the lm-audio worktree.
+The AUDIO TRACK IS COMPLETE (20-26 all landed; battle ships default-muted).
 **Process:** two lanes — grass = worktree `civsim-living-meadow` (branch
 `living-meadow`, vite :5185), audio = worktree `civsim-lm-audio` (branch
 `lm-audio`, vite :5186); codex (gpt-5.5, workspace-write, prompts via files)
@@ -213,7 +213,7 @@ Audio
 - [x] `23` director wind coupling (join → windSignal)
 - [x] `24` water bed (join → seaLayer)
 - [x] `25` bird scheduler
-- [ ] `26` battle integration + settings + teardown
+- [x] `26` battle integration (default-muted, provisional)
 
 Perf (deferred, D2)
 - [ ] `40` grass perf-tune

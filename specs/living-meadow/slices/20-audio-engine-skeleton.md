@@ -52,3 +52,19 @@ Exact master compressor/EQ values; whether audio settings live in
 `20a` OfflineAudioContext graph + RMS test harness (the CI gate); `20b` the manual
 audible route; `20c` the `__rendererLabStats` RMS/waveform publish + a `web/scenes`
 scene asserting non-silence via the Offline probe.
+
+## R4/R5 probe verdicts (2026-07-26)
+
+R4: The headless gate is realized with `node-web-audio-api` as a `web` dev
+dependency. `web/tests/ambientAudio.test.ts` injects its `OfflineAudioContext`
+into `AmbientAudioEngine.create()`, asserts the recorded master chain and reverb
+stub shape, then renders the built-in test tone and checks unmuted RMS is audible
+while muted RMS is near zero.
+
+R5: `/renderer/meadow-audio` constructs the graph up front and only calls
+`engine.resume()` from the Start/Poke button handlers, preserving the browser
+gesture gate. The route publishes `window.__rendererLabReady` plus
+`window.__rendererLabStats = { rms, activeNodes, ctxState }`. Live browser
+confirmation (orchestrator, SwiftShader headless, 2026-07-26): ctxState read
+`suspended` on load and `running` after a synthetic Start click — the gesture
+gate holds; UI (start/volume/mute/poke/meter) renders correctly.

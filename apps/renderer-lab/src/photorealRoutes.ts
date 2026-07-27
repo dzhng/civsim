@@ -206,7 +206,7 @@ export async function routePhotorealShadowProbe(ctx: PhotorealRouteContext) {
   scene.add(box);
 
   if (postEnabled) {
-    const post = new BattlePostChain(world.renderer, scene, camera);
+    const post = new BattlePostChain(world.renderer, scene, camera, "golden");
     post.enabled = true;
     post.setBloomEnabled(false);
     world.post = post;

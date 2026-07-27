@@ -5,6 +5,7 @@
 // this fixture inherits the same grass contract as /renderer/photoreal-battle.
 import { PhotorealBattleWorld } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
 import { seaDisplacementSourceFromParam } from "../../../packages/photoreal-renderer/src/battle/seaLayer";
+import { postGradeUniformsFromParams } from "../../../packages/photoreal-renderer/src/post/postChain";
 import { createPhotorealStatsPublisher } from "../../../packages/photoreal-renderer/src/stats";
 import { Camera } from "../../../web/src/shared/camera";
 import { DEFAULT_BATTLE_ENVIRONMENT } from "../../../packages/game-renderer/src/environment/environment";
@@ -73,6 +74,7 @@ export async function routeLivingMeadow(ctx: LivingMeadowContext) {
       shadows: ctx.params.get("shadows") ?? "single",
       sea: seaDisplacementSourceFromParam(ctx.params.get("sea")),
       post: ctx.params.get("post"),
+      postGrade: postGradeUniformsFromParams(ctx.params),
     }),
   ]);
   const wasm = await initWasm();

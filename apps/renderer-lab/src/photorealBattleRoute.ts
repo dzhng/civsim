@@ -29,12 +29,16 @@
 //                 photoreal sea displacement source (12a verdict: Gerstner TSL)
 //   ?post=off     bypass the whole post chain (slice-15 lab A/B)
 //   ?bloom=off    keep the chain but drop the bloom stage (glint on/off pair)
+//   ?grade=N      override the preset post-grade strength uniform for capture sweeps
+//   ?gradeSat=N|gradeContrast=N|gradeSplit=N|gradeLift=N
+//                 optional post-grade uniform overrides for look-grade sweeps
 import * as THREE from "three/webgpu";
 import {
   PhotorealBattleWorld,
   type BattleVistaGrid,
   type BattleTacticalLineFrame,
 } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
+import { postGradeUniformsFromParams } from "../../../packages/photoreal-renderer/src/post/postChain";
 import { seaDisplacementSourceFromParam } from "../../../packages/photoreal-renderer/src/battle/seaLayer";
 import { groundDetailTermFromParam } from "../../../packages/photoreal-renderer/src/battle/groundDetail";
 import { DEFAULT_BATTLE_ENVIRONMENT } from "../../../packages/game-renderer/src/environment/environment";
@@ -78,6 +82,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       shadows: params.get("shadows"),
       sea: seaDisplacementSourceFromParam(params.get("sea")),
       post: params.get("post"),
+      postGrade: postGradeUniformsFromParams(params),
       disabledGroundDetail,
     }),
   ]);

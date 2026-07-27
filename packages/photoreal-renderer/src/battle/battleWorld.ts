@@ -104,6 +104,7 @@ import {
 import { PhotorealReadoutLayer, type BattleReadoutInstance } from "./readoutLayer";
 import { PhotorealStandardLayer, type BattleStandardInstance } from "./standardLayer";
 import { BattlePostChain } from "../post/postChain";
+import type { BattlePostGradeUniforms } from "../post/postChain";
 
 export type { BattleVistaGrid } from "./terrainLayer";
 export { vistaSurfaceHeightAt } from "./terrainLayer";
@@ -416,6 +417,7 @@ export class PhotorealBattleWorld {
     kit: Awaited<ReturnType<typeof loadPlaceholderKit>>,
     shadowMode: SunShadowMode,
     postEnabled: boolean,
+    postGrade: Partial<BattlePostGradeUniforms> | null,
     grassProfile: ProductionBladeFieldProfile,
     disabledGroundDetail: GroundDetailTerm | null,
   ) {
@@ -496,13 +498,14 @@ export class PhotorealBattleWorld {
     this.standardLayer = new PhotorealStandardLayer(scene, world.uTime);
     this.readoutLayer = new PhotorealReadoutLayer(scene);
 
-    // Slice 15 — the post chain: one bloom stage over the whole scene pass, the
-    // ONE tone-map applied at the tail. Threshold-disciplined (linear-HDR
-    // luminance), so only the sky sun disc + the GGX sea glint spill; the
-    // in-scene tactical overlays sit below threshold and the DOM HUD is outside
-    // the canvas — neither blooms. ?post=off (lab A/B) bypasses the chain.
-    this.post = new BattlePostChain(world.renderer, scene, this.camera);
+    // Slice 15/P1 — the post chain: one bloom stage, the preset-gated look
+    // grade, and the ONE tone-map applied at the tail. Threshold-disciplined
+    // bloom means only the sky sun disc + the GGX sea glint spill; the grade is
+    // full-frame linear HDR before AgX, never material-local. ?post=off (lab
+    // A/B) bypasses the chain.
+    this.post = new BattlePostChain(world.renderer, scene, this.camera, env.environment.id);
     this.post.enabled = postEnabled;
+    if (postGrade) this.post.setGradeUniforms(postGrade);
     world.post = this.post;
   }
 
@@ -514,6 +517,8 @@ export class PhotorealBattleWorld {
       sea?: SeaDisplacementSourceId;
       post?: string | null;
       grassQuality?: BattleGrassQuality;
+      /** Lab/capture-only post-grade override; preset defaults apply when null. */
+      postGrade?: Partial<BattlePostGradeUniforms> | null;
       /** Renderer-lab attribution only; production leaves every term enabled. */
       disabledGroundDetail?: GroundDetailTerm | null;
     } = {},
@@ -549,6 +554,7 @@ export class PhotorealBattleWorld {
       kit,
       shadowMode,
       postEnabled,
+      options.postGrade ?? null,
       grassProfile,
       options.disabledGroundDetail ?? null,
     );
@@ -562,6 +568,10 @@ export class PhotorealBattleWorld {
    *  pair proving bloom did not re-break the 12e glint discipline). */
   setBloomEnabled(on: boolean): void {
     this.post.setBloomEnabled(on);
+  }
+
+  setPostGrade(uniforms: Partial<BattlePostGradeUniforms>): void {
+    this.post.setGradeUniforms(uniforms);
   }
 
   /** Lab-only blade-field A/B hook; production leaves this on. */

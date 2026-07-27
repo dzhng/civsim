@@ -19,6 +19,10 @@ import {
   type BattleVistaGrid,
 } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
 import {
+  postGradeUniformsFromParams,
+  type BattlePostGradeUniforms,
+} from "../../../packages/photoreal-renderer/src/post/postChain";
+import {
   seaDisplacementSourceFromParam,
   type SeaDisplacementSourceId,
 } from "../../../packages/photoreal-renderer/src/battle/seaLayer";
@@ -45,6 +49,7 @@ export interface BattleRendererOptions {
   shadows?: string | null;
   sea?: SeaDisplacementSourceId | null;
   post?: string | null;
+  postGrade?: Partial<BattlePostGradeUniforms> | null;
   graphics?: GraphicsSettings;
 }
 
@@ -477,6 +482,7 @@ export class BattleRenderer {
         ? seaDisplacementSourceFromParam(params.get("sea"))
         : (this.options.sea ?? undefined),
       post: params.get("post") ?? this.options.post,
+      postGrade: postGradeUniformsFromParams(params) ?? this.options.postGrade ?? null,
       grassQuality: settings.grassQuality,
     });
     if (this.disposed) {

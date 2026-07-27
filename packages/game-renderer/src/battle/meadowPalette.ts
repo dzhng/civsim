@@ -6,10 +6,18 @@ const MEADOW_ANCHOR: Rgb = [0.4, 0.49, 0.26];
 const GREEN_GRASS_UNDERLAYER: Rgb = fromAnchor(MEADOW_ANCHOR, [0.47, 0.56, 0.28]);
 
 function fromAnchor(base: Rgb, legacy: Rgb): Rgb {
+  // Renormalized: the lifted green-grass anchor can scale bright roles past
+  // 1.0 (branch review P1 — blade.trans reached ~1.07). Dividing the whole
+  // triple by its over-unity max keeps hue AND keeps every channel following
+  // the base (a hard clamp froze channels and broke the palette invariant).
+  const r0 = base[0] * (legacy[0] / MEADOW_ANCHOR[0]);
+  const r1 = base[1] * (legacy[1] / MEADOW_ANCHOR[1]);
+  const r2 = base[2] * (legacy[2] / MEADOW_ANCHOR[2]);
+  const over = Math.max(1, r0, r1, r2);
   return [
-    base[0] * (legacy[0] / MEADOW_ANCHOR[0]),
-    base[1] * (legacy[1] / MEADOW_ANCHOR[1]),
-    base[2] * (legacy[2] / MEADOW_ANCHOR[2]),
+    r0 / over,
+    r1 / over,
+    r2 / over,
   ];
 }
 

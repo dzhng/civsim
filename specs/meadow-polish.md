@@ -197,3 +197,19 @@ REMAINING vs the locked 33ms budget (decision + one optional round):
    (~66ms p95 during engage/rebuild windows). Fix if wanted: chunked/steamed
    record upload across frames in applyPackedRecords (a bladeFieldLayer
    round), or accept as a rare transition hitch.
+
+## P3.6 directives (David, 2026-07-28) + handoff state
+
+DECISIONS: (1) the 33ms budget HOLDS everywhere — the ring look must get
+cheaper, no budget raise; (2) chunk the ring upload; (3) explore perf levers
+BEYOND lod/density: route-compute frustum culling (300m ring vs the camera's
+wedge — likely the biggest untapped win), varying/interpolant reduction (the
+pen names vertex-export bandwidth as the wall), 16-bit instance packing
+(pen-style, vs our 64B float32), segment trims, front-to-back tier order.
+
+OPEN RED: node:test meadowPalette "every role follows a changed base" — the
+branch's lifted anchor pushes trans/sheen raw values >1.0 (review P1). A hard
+clamp and an over-unity renormalize both pin saturated channels. REAL FIX:
+re-author the trans/sheen legacy triples ~12% darker so nothing exceeds 1.0
+under the production anchor (fromAnchor stays pure); visual delta absorbed by
+the translucency strength uniforms. vitest 41/41 green; ONLY this node test red.

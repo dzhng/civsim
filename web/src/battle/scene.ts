@@ -1679,6 +1679,7 @@ export class BattleScene implements Scene {
     let accumulator = 0;
     let lastFrame = performance.now();
     let tickMsAvg = 0;
+    let audioUpdateMsAvg = 0;
     let fpsAvg = 60;
     let hudTimer = 0;
 
@@ -1690,7 +1691,9 @@ export class BattleScene implements Scene {
       // Pan in the view's rotated frame so W/S/A/D track the screen at any yaw.
       applyBattleCameraRig();
       camera.panWorld(input.panX * frameDt, input.panY * frameDt);
+      const audioUpdateStart = performance.now();
       battleAudio.update(camera, frameDt, now / 1000);
+      audioUpdateMsAvg += (performance.now() - audioUpdateStart - audioUpdateMsAvg) * 0.05;
 
       accumulator += paused ? 0 : frameDt * timeScale;
       let ticks = 0;
@@ -2190,6 +2193,7 @@ export class BattleScene implements Scene {
         soldiers: game.soldier_count(),
         units: game.unit_count(),
         tickMs: tickMsAvg,
+        audioUpdateMs: audioUpdateMsAvg,
         fps: fpsAvg,
         victor: game.victor(),
         renderer: "gpu",

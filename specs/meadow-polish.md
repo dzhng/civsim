@@ -28,3 +28,22 @@ Gate: coverage measurement + unprimed density critique + perf re-run.
 
 Both: determinism (setTime only), no new owners, no schema changes.
 Evidence into specs/done/living-meadow/assets/polish-evidence/.
+
+## Landed (2026-07-27)
+
+**P1 look-grade:** BattlePostChain pre-AgX grade (S-curve, violet/cream
+split-tone, shadow lift, saturation mix), golden-gated. Two codex rounds left
+the saturation path inverted/dead (default boost 0.18); orchestrator sweep
+landed 1.15 -> grass S 24->39% (hero band), hue 69deg keeping the green
+undertone after 1.3 read mustard (unprimed critique). Overcast neutral (27%).
+
+**P2 density:** fan-out 3x near/mid + width lifts -> close-crop coverage
+near 9.3->18.6%, mid 19.6->30%, at 1.31M tris (vs 2.4M budget).
+perf:30k re-run: 22.26/30.21/22.43ms — unchanged from pre-polish, PASS.
+
+**Final unprimed verdict vs the hero: PARTIAL** (up from the implicit
+STILL-FAR that triggered this pass) — color/mood approaching; the two
+remaining gaps are (a) full sward continuity at the very-near band and (b) the
+fixture map's placeholder cone mountains reading graphic (test-map art, not
+grass/atmosphere — real battle maps have modeled terrain). Diminishing returns
+past this point without a photo-mode camera + map dressing.

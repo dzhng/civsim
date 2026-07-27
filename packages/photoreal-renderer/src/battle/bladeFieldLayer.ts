@@ -159,7 +159,8 @@ export interface BladeFieldMeadowFarDensityProfile {
   nearCoverageWidthScale?: number;
   /** Moves the 8-segment mid tier into the close crop's real foreground band. */
   midTierEndM?: number;
-  /** Extra lower-far width so 64-120m does not fall back to scattered spikes. */
+  /** Extra lower-far width so the close foreground band does not fall
+   *  back to scattered spikes. */
   lowerFarWidthScale?: number;
   lowerFarWidthEndM?: number;
 }
@@ -170,11 +171,11 @@ export const LIVING_MEADOW_FAR_DENSITY_PROFILE: BladeFieldMeadowFarDensityProfil
   falloffPower: 1.5,
   farSoftWidthScale: 2.2,
   edgeSinkStartM: 1120,
-  bladesPerRecord: { near: 2, mid: 2, far: 1 },
-  nearCoverageWidthScale: 1.55,
+  bladesPerRecord: { near: 3, mid: 3, far: 1 },
+  nearCoverageWidthScale: 2.1,
   midTierEndM: 64,
-  lowerFarWidthScale: 1.9,
-  lowerFarWidthEndM: 120,
+  lowerFarWidthScale: 2.35,
+  lowerFarWidthEndM: 112,
 };
 
 export const BLADE_FIELD_LOD_TIERS: readonly BladeFieldTierSpec[] = [

@@ -73,3 +73,13 @@ entry is standalone.
 18. `web/tests/*.test.ts` are NOT in the default vitest include (pre-existing
     repo state); this spec's tests were added to the include list explicitly.
     Flag if you expected the legacy files to run by default.
+
+## Addendum: meadow-polish pass (2026-07-27, David reopened items #3/#7)
+
+19. **Look-grade landed at saturationBoost 1.15** (S 39%, hue 69deg) after the
+    critique called 1.3 mustard; strengths remain URL/live tunable
+    (?grade=&gradeSat= on the fixture, setPostGrade at runtime). *Provisional —
+    David's eye owns the final number.*
+20. **Density doubled at the close crop** (near 18.6%, mid 30%) for ~0 perf
+    cost; the residual "unbroken sward" gap needs a ground-level camera to
+    matter further. *Sound.*

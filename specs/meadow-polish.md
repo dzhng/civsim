@@ -62,3 +62,29 @@ density — fieldCellSize 1.5 -> ~0.8 + budget >1M (memory/CPU cost, the real
 fix); (2) ground grain scaled up at this camera range (current mottle reads
 too fine); (3) a photo-mode camera would change the requirement. Perf re-check
 owed after the 3.59M-tri state (was PASS at 2.4M).
+
+## P2 round 4 (2026-07-27): the pen's actual params — record density was the wall
+
+David asked whether we'd copied the reference implementation params exactly.
+Extracted them: the pen runs **blades/m2 = K/d^1.5 with K~17600** (1100/m2 in
+its near ring; 25-70/m2 at our visible 40-80m band) and keeps blades HAIR-THIN
+(angular width floor 1.7-2.75 px) — coverage comes from count, never width.
+We had been at ~6/m2 with width lifts: exactly backwards on both axes.
+
+Changes: fan-out 6/28/3, width lifts killed (1.0/1.1), and — the real lever —
+the fixture now focus-samples records at the crop (radius 300m, 0.6m cells,
+599k records, baseWidth 0.055) via the sampler's existing focus support,
+mirroring the pen's camera-centred rings. 12.0M submitted triangles — the
+pen's own per-frame scale.
+
+Unprimed critique: bare ground 35-50% -> 15-20% (much now reading as shadow),
+no moire, graceful LOD; verdict at pixel-zoom still short of the reference's
+painted un-resolvable nap (our strokes resolve; theirs are brushwork — partly
+irreducible), mild diagonal-comb monotony flagged.
+
+**Caveats before productionizing:** (1) this is a FIXTURE demonstrator — the
+production battle still uses static-whole-map records; shipping it needs the
+camera-following focus rebuild (machinery exists: pendingFocus/rebuilds) as a
+proper slice with hysteresis; (2) 12M tris needs a Metal perf gate and likely
+the pen's depth-prepass trick; (3) sample build time at 0.6m cells needs the
+async slicing path, not the synchronous fixture build.

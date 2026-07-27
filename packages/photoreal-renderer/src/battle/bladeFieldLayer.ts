@@ -171,10 +171,10 @@ export const LIVING_MEADOW_FAR_DENSITY_PROFILE: BladeFieldMeadowFarDensityProfil
   falloffPower: 1.5,
   farSoftWidthScale: 2.2,
   edgeSinkStartM: 1120,
-  bladesPerRecord: { near: 5, mid: 14, far: 3 },
-  nearCoverageWidthScale: 1.3,
+  bladesPerRecord: { near: 6, mid: 28, far: 3 },
+  nearCoverageWidthScale: 1.0,
   midTierEndM: 64,
-  lowerFarWidthScale: 1.5,
+  lowerFarWidthScale: 1.1,
   lowerFarWidthEndM: 112,
 };
 

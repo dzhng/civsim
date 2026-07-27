@@ -18,6 +18,7 @@ import {
   terrainHeightAt,
   type TerrainHeightField,
 } from "../../../packages/game-renderer/src/terrain/heightField";
+import { createGrassFieldSampler } from "../../../packages/game-renderer/src/battle/grassField";
 
 interface LivingMeadowContext {
   root: HTMLElement;
@@ -95,6 +96,47 @@ export async function routeLivingMeadow(ctx: LivingMeadowContext) {
   world.setTerrain(grid.w, grid.h, grid.cell, grid.ox, grid.oy, grid.tint, grid.height, mapIndex);
 
   const camera = createCropCamera(ctx.canvas, grid, field, preset, cssW, cssH, dpr);
+
+  // Pen-density demonstrator (meadow-polish P2): the pen concentrates blades
+  // near the camera (K~17600, blades/m2 = K/d^1.5 -> 25-70/m2 in the visible
+  // band). The production static-whole-map profile spreads 1M records over the
+  // entire map (~0.26 records/m2), which fan-out cannot fully hide. Focus the
+  // record budget on the crop neighborhood at sub-meter cell size instead.
+  // ?focusDensity=0 restores the production distribution for comparison.
+  if (ctx.params.get("focusDensity") !== "0") {
+    const focus = { x: preset.cx, y: preset.cy, radius: 300, maxRecords: 1_000_000 };
+    const sampler = createGrassFieldSampler(grid, field, {
+      seed: 0x5ea7_2026,
+      focus,
+      fieldCellSize: 0.6,
+      snapCellSize: 48,
+      clumpCellSize: 1.55,
+      maxRecords: focus.maxRecords,
+      lodStratifiedBudget: false,
+      density: 1,
+      jitter: 0.72,
+      minNormalZ: 0.45,
+      lodNearRadius: 5 / focus.radius,
+      lodMidRadius: 20 / focus.radius,
+      baseHeight: 1.25,
+      heightJitter: 0.62,
+      // Pen-thin strokes: coverage comes from count, not width (wpx floor 1.7-2.75px).
+      baseWidth: 0.055,
+      widthJitter: 0.2,
+      baseBend: 0.62,
+      bendJitter: 0.45,
+    });
+    while (!sampler.step(16384)) {
+      /* synchronous fixture build, same as the production static path */
+    }
+    const snapshot = sampler.finish();
+    const grassLayer = (
+      world as unknown as {
+        grass?: { applyPackedRecords(records: Float32Array, visible?: boolean): void };
+      }
+    ).grass;
+    if (snapshot && grassLayer) grassLayer.applyPackedRecords(snapshot.packedRecords, true);
+  }
 
   (window as unknown as { __livingMeadowWorld?: PhotorealBattleWorld }).__livingMeadowWorld =
     world;

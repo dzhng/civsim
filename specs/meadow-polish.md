@@ -125,3 +125,19 @@ Three optimizations, in order:
    thinning stays fair during transitions).
 Gates: Metal rAF median/p95 on the fixture; perf:30k for production; all
 snapshots deterministic; 41/41 vitest.
+
+## P3.1 + P3.2 landed (2026-07-27)
+
+**Dedupe (P3.1):** far-ring records inside focus-radius-20m filtered before
+concat: 1.60M -> 1.54M records, 15.6M -> 14.4M tris.
+**Depth prepass (P3.2): built, verified, DEFAULT OFF.** Pixel-identity proven
+(byte-identical on/off). Metal A/B: ON 27.2ms median / p95 67 vs OFF 26.8 /
+63 — net-negative on apple/metal-3 because TBDR hardware HSR already removes
+opaque overdraw and the prepass doubles near/mid vertex load (we are
+vertex-bound at ~14M tris; the pen was fragment-bound on WebGL). Toggle +
+stats kept for immediate-mode GPUs.
+**Perf vs pre-spec (production, perf:30k):** before 22.58 gpu-median mid /
+~30.7 vista; now 21.65 / 22.09 — production is faster than before the spec
+with the full meadow look on. The p2g fixture look runs 26.8ms median (~37fps)
+on Metal, above the 26fps floor.
+Remaining: P3.3 camera-following focus rebuild (productionizes the dense ring).

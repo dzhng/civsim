@@ -161,9 +161,26 @@ export async function routeLivingMeadow(ctx: LivingMeadowContext) {
       const focused = snapshot.packedRecords;
       const worldRecords = grassLayer.packedRecords;
       if (worldRecords && worldRecords.length > 0 && ctx.params.get("farRing") !== "0") {
-        const merged = new Float32Array(focused.length + worldRecords.length);
+        // Ring-overlap dedupe (P3.1): the focused set owns everything inside
+        // the focus radius; keep only the world records beyond it (small
+        // overlap band so the seam never shows). Records pack x,y at floats
+        // 0,1 of the 16-float stride.
+        const STRIDE = 16;
+        const DEDUPE_RADIUS = focus.radius - 20;
+        const dedupeSq = DEDUPE_RADIUS * DEDUPE_RADIUS;
+        const farKeep = new Float32Array(worldRecords.length);
+        let kept = 0;
+        for (let o = 0; o < worldRecords.length; o += STRIDE) {
+          const dx = worldRecords[o] - focus.x;
+          const dy = worldRecords[o + 1] - focus.y;
+          if (dx * dx + dy * dy >= dedupeSq) {
+            farKeep.set(worldRecords.subarray(o, o + STRIDE), kept);
+            kept += STRIDE;
+          }
+        }
+        const merged = new Float32Array(focused.length + kept);
         merged.set(focused, 0);
-        merged.set(worldRecords, focused.length);
+        merged.set(farKeep.subarray(0, kept), focused.length);
         grassLayer.applyPackedRecords(merged, true);
       } else {
         grassLayer.applyPackedRecords(focused, true);

@@ -12,6 +12,7 @@
 // preserveFrozenEffects), the ?debug=blocks triangle builder, and the CPU
 // frame-perf split. The world renders what it is handed.
 import type { Camera } from "../shared/camera";
+import type { BattleGroundCover } from "../../../packages/game-renderer/src/battle/terrainFeatures";
 import {
   PhotorealBattleWorld,
   type BattleLakeSurfaceSpec,
@@ -68,6 +69,8 @@ export interface BattleRendererAudioTerrain {
   ox: number;
   oy: number;
   tint: Uint8Array;
+  /** Ground-cover family for rustle scaling (sand/scrub maps rustle less). */
+  groundCover: BattleGroundCover;
 }
 
 export interface BattleRendererDisposeHook {
@@ -213,6 +216,7 @@ export class BattleRenderer {
     lakeSurfaces?: BattleLakeSurfaceSpec[] | null,
     rough?: Float32Array,
     speed?: Float32Array,
+    groundCover: BattleGroundCover = "green-grass",
   ) {
     if (this.world) {
       this.world.setTerrain(
@@ -255,6 +259,7 @@ export class BattleRenderer {
           ox,
           oy,
           tint: new Uint8Array(tint),
+          groundCover,
         }
       : null;
     this.audioWaterSurfaces = buildAudioWaterSurfaces(

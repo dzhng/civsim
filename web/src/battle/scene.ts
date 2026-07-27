@@ -454,6 +454,7 @@ export class BattleScene implements Scene {
         lakeSurfaces,
         new Float32Array(rough),
         new Float32Array(speed),
+        this.cfg.generatedMap?.groundCover ?? "green-grass",
       );
       battleAudio.setTerrain(renderer.battleAudioTerrain(), renderer.battleAudioWaterSurfaces());
     }

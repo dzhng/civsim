@@ -25,3 +25,16 @@ All battle scenes after re-bless; `battle-grass*` isolation name; cargo sim test
 After this slice the battle reads as designed today: one grass layer, one wind
 source feeding eye and ear, no parallel abstraction. (Perf tuning is `40`, run after
 this.)
+
+## Landed (2026-07-27)
+
+Meadow behavior is the production default (far law, fan-out, width lifts,
+mid-tier reach); the opt-in plumbing, nullable profile state, dynamic rebuild
+path, and smoothstep fallback are DELETED. Two constructor sites remain
+(production battleWorld + blade-field lab), both inheriting the default.
+Baseline sweep: `bun run verify:full` (battle-renderer-default, smoke, lod,
+selection, 3d-standards, banner-gallery, cavalry-plow, ai) — ALL GREEN, exit 0:
+no snapshot moved beyond the 2% budget at suite cameras (tactical zoom keeps
+blades sub-threshold/cut off). The slice-03 re-bless debt closes as
+"no re-bless required at suite cameras"; the living-meadow fixture is the
+gate where the new look is actually judged.

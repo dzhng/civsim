@@ -23,7 +23,7 @@ implements, the orchestrator owns browser gates (capture.mjs in the session
 scratchpad; CANVAS_ONLY=1 for byte-stable canvas shots), unprimed critiques,
 review, commits, and lane merges (merge lm-audio into living-meadow after each
 audio pass; sync back before the next audio slice).
-**Pick up at:** `09` production cutover + baseline re-bless (incl. slice-03 debt), then `40`/`41` perf, whole-spec review, ledger consolidation, close-spec. (verify in-battle by
+**Pick up at:** `40` grass perf-tune (named-hardware run per its slice file) and `41` audio budget audit, then the whole-spec review pass, choices-ledger consolidation (implement-spec step 11), and close-spec. DEBTS cleared except: audio default-muted (David to flip by ear); optional post-owner look-grade mini-slice (recorded in 08). (verify in-battle by
 scene run + snapshot neutrality, commit on lm-audio, merge). Then grass `04`
 (color ramp — non-blocking David sign-off under golden-hour AND overcast),
 `05` density (owns far-density constants + near-bald-ground gap + ground
@@ -204,7 +204,7 @@ Grass
 - [x] `06` blade silhouette / soft tip
 - [x] `07` wind motion (64m analytic front; windSignal sole owner)
 - [x] `08` fog / horizon (0.34 bisect; look-grade recorded as future work)
-- [ ] `09` production wire-in (hard cutover)
+- [x] `09` production wire-in (verify:full green, no re-bless needed)
 
 Audio
 - [x] `20` engine skeleton + Offline test harness (commit 833801df, lm-audio)

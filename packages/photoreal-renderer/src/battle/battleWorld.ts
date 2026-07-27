@@ -431,7 +431,6 @@ export class PhotorealBattleWorld {
     this.grassTransition = createBladeFieldTransitionUniforms(
       activeGrassTransitionProfile(grassProfile, grassProfile.vistaVisibleRadiusM),
     );
-    this.activeGrassTransition = this.grassTransition.profile;
     this.frame = createBattleFrameUniforms();
     this.frame.time = world.uTime;
     const scene = world.scene;
@@ -470,6 +469,7 @@ export class PhotorealBattleWorld {
       this.grassTransition,
       this.wind,
     );
+    this.activeGrassTransition = this.grassTransition.profile;
     this.scenery = new PhotorealScenery(scene);
     this.crowd = new PhotorealCrowd(scene, meshes, vats, kit);
     this.mountedClasses = mountedClassesFromKit(kit);
@@ -1253,20 +1253,13 @@ function activeGrassTransitionProfile(
   visibleRadiusM: number,
 ): BladeFieldTransitionProfile {
   const vista = profile.vistaTransitionDefaults;
-  // The blade coverage EDGE (farGrassEndM) tracks the visible ring, and the
-  // blur EXTENSION past it collapses to zero as the eye drops. At the vista the
-  // ring sees far, so blades extend well past it (260 ring -> 480 edge); at a
-  // ground-level eye you cannot resolve grass tens of metres out, so the carpet
-  // ends AT the ring (40 ring -> 40 edge) and the khaki ground term takes over
-  // past it. Anchoring the START on the ring (the old rule) instead stretched
-  // the edge to ~74 m at max zoom, leaving blades where the checks expect bare
-  // canopy and pushing the far-grass probe band off the bottom of the frame.
-  // Scale by the VISIBLE ring against its vista-scale anchor (farGrassStartM
-  // = where thinning begins = the ring); the blur band extends proportionally
-  // past it (vista: 260 ring -> 480 blur end; low eye: 40 -> ~74). The battle
-  // camera foreground sits tens of metres out even at high zoom, so the blade
-  // carpet must reach past the ring - shrinking farGrassEndM to the ring blanks
-  // the mid-zoom foreground (production-mid-grass).
+  // This returns the zoom-scaled base transition. PhotorealBladeFieldLayer owns
+  // the living-meadow far-density contract and normalizes the shared uniforms
+  // with the production far reach, fan-out, and width lifts.
+  // Scale the dense and far-soft anchors by the visible ring so near-tier detail
+  // stays tied to eye height. The layer then extends the production far edge
+  // and lower-far width over that base, which is what keeps mid-zoom foreground
+  // coverage from falling back to scattered spikes.
   const scale = visibleRadiusM / Math.max(1, vista.farGrassStartM);
   const denseBladeEndM = Math.max(1, vista.denseBladeEndM * scale);
   const farGrassStartM = Math.max(1, vista.farGrassStartM * scale);

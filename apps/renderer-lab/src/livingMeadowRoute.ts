@@ -1,13 +1,9 @@
 // /renderer/living-meadow (slice 00): production PhotorealBattleWorld grass
 // fixture for the living-meadow visual slices. Determinism: every animated term
 // reads PhotorealWorld.uTime via world.setTime(); the TSL time node is banned.
-// The slice-02 spike verdict picked the EVOLVE substrate: the fixture mounts the
-// production blade layer with the living-meadow far-density profile opted in.
+// Slice 09 cut over the production blade layer to the living-meadow defaults, so
+// this fixture inherits the same grass contract as /renderer/photoreal-battle.
 import { PhotorealBattleWorld } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
-import {
-  LIVING_MEADOW_FAR_DENSITY_PROFILE,
-  type PhotorealBladeFieldLayer,
-} from "../../../packages/photoreal-renderer/src/battle/bladeFieldLayer";
 import { seaDisplacementSourceFromParam } from "../../../packages/photoreal-renderer/src/battle/seaLayer";
 import { createPhotorealStatsPublisher } from "../../../packages/photoreal-renderer/src/stats";
 import { Camera } from "../../../web/src/shared/camera";
@@ -97,8 +93,6 @@ export async function routeLivingMeadow(ctx: LivingMeadowContext) {
   world.setTerrain(grid.w, grid.h, grid.cell, grid.ox, grid.oy, grid.tint, grid.height, mapIndex);
 
   const camera = createCropCamera(ctx.canvas, grid, field, preset, cssW, cssH, dpr);
-  const bladeLayer = (world as unknown as { grass?: PhotorealBladeFieldLayer }).grass;
-  bladeLayer?.setMeadowFarDensityProfile(LIVING_MEADOW_FAR_DENSITY_PROFILE);
 
   (window as unknown as { __livingMeadowWorld?: PhotorealBattleWorld }).__livingMeadowWorld =
     world;
@@ -120,8 +114,7 @@ export async function routeLivingMeadow(ctx: LivingMeadowContext) {
       fixedTimeSeconds: fixedT,
       yawOverride,
       map: "A",
-      productionGrassOwner:
-        "PhotorealBattleWorld.PhotorealBladeFieldLayer + living-meadow far-density opt-in",
+      productionGrassOwner: "PhotorealBattleWorld.PhotorealBladeFieldLayer",
       submittedTriangles: grass?.submittedTriangles ?? 0,
       implementationStats: {
         records: grass?.recordCount ?? 0,

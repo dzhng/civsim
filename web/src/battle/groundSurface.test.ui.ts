@@ -42,7 +42,7 @@ describe("photoreal battle ground surfaces", () => {
       hash ^= byte;
       hash = Math.imul(hash, 16777619);
     }
-    expect((hash >>> 0).toString(16)).toBe("ea5218e3");
+    expect((hash >>> 0).toString(16)).toBe("cefa5f24");
   });
 
   it("classifies authored road and bridge cells without admitting scree", () => {

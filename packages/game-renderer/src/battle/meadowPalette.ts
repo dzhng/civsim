@@ -3,7 +3,7 @@ import type { BattleGroundCover } from "./terrainFeatures";
 export type Rgb = readonly [number, number, number];
 
 const MEADOW_ANCHOR: Rgb = [0.4, 0.49, 0.26];
-const GREEN_GRASS_UNDERLAYER: Rgb = fromAnchor(MEADOW_ANCHOR, [0.42, 0.52, 0.27]);
+const GREEN_GRASS_UNDERLAYER: Rgb = fromAnchor(MEADOW_ANCHOR, [0.47, 0.56, 0.28]);
 
 function fromAnchor(base: Rgb, legacy: Rgb): Rgb {
   return [

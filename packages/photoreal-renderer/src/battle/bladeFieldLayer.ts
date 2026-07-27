@@ -171,10 +171,10 @@ export const LIVING_MEADOW_FAR_DENSITY_PROFILE: BladeFieldMeadowFarDensityProfil
   falloffPower: 1.5,
   farSoftWidthScale: 2.2,
   edgeSinkStartM: 1120,
-  bladesPerRecord: { near: 3, mid: 3, far: 1 },
-  nearCoverageWidthScale: 2.1,
+  bladesPerRecord: { near: 5, mid: 14, far: 3 },
+  nearCoverageWidthScale: 1.3,
   midTierEndM: 64,
-  lowerFarWidthScale: 2.35,
+  lowerFarWidthScale: 1.5,
   lowerFarWidthEndM: 112,
 };
 
@@ -363,6 +363,7 @@ const drawIndirectStruct = struct({
   offset: "uint",
 });
 const SEED24_MASK = 0x00ff_ffff;
+const MAX_BLADES_PER_RECORD = 6;
 
 export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
   private readonly buckets: TierBucket[];
@@ -697,7 +698,10 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
 }
 
 function bladeGeometry(segments: number, bladesPerRecord: number): THREE.InstancedBufferGeometry {
-  const bladeCopies = Math.max(1, Math.min(4, Math.floor(bladesPerRecord)));
+  const bladeCopies = Math.max(
+    1,
+    Math.min(MAX_BLADES_PER_RECORD, Math.floor(bladesPerRecord)),
+  );
   const vertexCount = (segments + 1) * 2 * bladeCopies;
   const indexCount = segments * 6 * bladeCopies;
   const positions = new Float32Array(vertexCount * 3);
@@ -926,11 +930,12 @@ function bladeFieldMaterial(
       fanForward.sub(terrainNormal.mul(dot(fanForward, terrainNormal))),
     ).toVar();
     const fanSide = normalize(cross(fanTangentForward, terrainNormal)).toVar();
-    const fanSpread = max(width.mul(5.4), 0.12).mul(copyScatter);
+    const fanAngle = fanHashA.mul(6.28318530718);
+    const fanRadius = mix(0.35, 0.95, fanHashB).mul(copyScatter);
     base.assign(
       base
-        .add(fanSide.mul(fanHashA.sub(0.5)).mul(fanSpread))
-        .add(fanTangentForward.mul(fanHashB.sub(0.5)).mul(fanSpread).mul(0.72)),
+        .add(fanSide.mul(cos(fanAngle)).mul(fanRadius))
+        .add(fanTangentForward.mul(sin(fanAngle)).mul(fanRadius).mul(0.72)),
     );
     // Clump-scale canopy: the Voronoi clumpWeight (1.55 m cells) drives a
     // strong height swing so the field breaks into clumps with tip-lines at
@@ -1348,7 +1353,10 @@ function bladesPerRecordFor(
   tier: BladeFieldTierId,
 ): number {
   const value = profile.bladesPerRecord?.[tier] ?? 1;
-  return Math.max(1, Math.min(4, Number.isFinite(value) ? Math.floor(value) : 1));
+  return Math.max(
+    1,
+    Math.min(MAX_BLADES_PER_RECORD, Number.isFinite(value) ? Math.floor(value) : 1),
+  );
 }
 
 function thinningProfileForTransition(

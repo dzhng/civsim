@@ -47,3 +47,18 @@ remaining gaps are (a) full sward continuity at the very-near band and (b) the
 fixture map's placeholder cone mountains reading graphic (test-map art, not
 grass/atmosphere — real battle maps have modeled terrain). Diminishing returns
 past this point without a photo-mode camera + map dressing.
+
+## P2 continued (2026-07-27, David: "thicker not denser — keep going")
+
+Round 2 (count-not-width): fan-out near/mid/far 4/10/3 with seeded 0.35-0.95m
+clone spread, widths pulled back (1.3/1.5). Critique: mid band bare ground
+40-50% -> 25-30%; near band ~50%; gaps still read as flat dirt.
+Round 3: fan-out 5/14/3 (3.59M tris), underlayer lifted toward blade family
+(ground-hash re-pinned cefa5f24), turf mottle/stubble strengthened via
+TURF_CONTRAST (its owner). Mid band now approaches reference-class packing;
+NEAR band (40-55m) remains gapped — the 1.5m record grid is the structural
+limiter (codex + critique concur). Remaining levers, in order: (1) record
+density — fieldCellSize 1.5 -> ~0.8 + budget >1M (memory/CPU cost, the real
+fix); (2) ground grain scaled up at this camera range (current mottle reads
+too fine); (3) a photo-mode camera would change the requirement. Perf re-check
+owed after the 3.59M-tri state (was PASS at 2.4M).

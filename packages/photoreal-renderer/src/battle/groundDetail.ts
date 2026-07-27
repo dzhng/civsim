@@ -22,10 +22,10 @@ export function groundDetailTermFromParam(value: string | null): GroundDetailTer
  */
 export const TURF_CONTRAST = {
   ground: {
-    driftStrength: 0.1,
-    mottleStrength: 0.13,
-    minimum: 0.68,
-    maximum: 1.32,
+    driftStrength: 0.12,
+    mottleStrength: 0.24,
+    minimum: 0.56,
+    maximum: 1.36,
   },
   canopy: {
     anchorMix: 0.5,
@@ -45,7 +45,7 @@ export const TURF_CONTRAST = {
       speckleStrength: 0.19,
       dryMixBase: 0.22,
       trampleMix: 0.15,
-      stubbleStrength: 0.055,
+      stubbleStrength: 0.11,
       darkFleckStrength: 0.23,
       stoneFleckStrength: 0.18,
       dustStrength: 0.14,

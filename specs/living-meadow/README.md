@@ -216,5 +216,5 @@ Audio
 - [x] `26` battle integration (default-muted, provisional)
 
 Perf (deferred, D2)
-- [ ] `40` grass perf-tune
-- [ ] `41` audio CPU-budget audit
+- [x] `40` grass perf-tune (measured: 22.5/30.7/22.8ms vs 22.58 baseline; floor held; no tuning)
+- [x] `41` audio CPU-budget audit

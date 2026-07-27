@@ -35,3 +35,12 @@ different budgets.
 
 ## Delegated
 Per-tier budgets; the wind realization's cost (analytic uniform vs RT, from `07`).
+
+## Landed (2026-07-27) — measurement pass, no tuning required
+
+perf:30k on named hardware (Metal, chrome channel), 150 samples per camera:
+gpuMedianMs 22.5 / 30.74 / 22.84 across the scene's cameras (turf baseline
+22.58; the 30.74 heaviest camera ≈ 32 fps GPU-side). All above David's loose
+26 fps floor (D2), two cameras at baseline — the meadow look ships without
+knob changes. The knob map (tier budgets, far cutoff, thinning, quality
+ladder) stays documented above for any future tightening.

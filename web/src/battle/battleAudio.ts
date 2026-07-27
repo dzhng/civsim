@@ -47,6 +47,13 @@ export interface BattleAmbientAudioInspection {
   state: MeadowSoundscapeState | null;
 }
 
+// One battle owns ambient audio at a time; the HUD's unmute button needs a
+// gesture-scoped resume without holding the instance.
+let activeBattleAudio: BattleAmbientAudio | null = null;
+export function resumeActiveBattleAudio(): void {
+  activeBattleAudio?.resume();
+}
+
 export class BattleAmbientAudio {
   private engine: AmbientAudioEngine | null = null;
   private director: AmbientAudioDirector | null = null;
@@ -89,6 +96,10 @@ export class BattleAmbientAudio {
   ): void {
     this.terrain = terrain ? { ...terrain, tint: new Uint8Array(terrain.tint) } : null;
     this.waterSurfaces = waterSurfaces.map((surface) => ({ ...surface }));
+  }
+
+  register(): void {
+    activeBattleAudio = this;
   }
 
   resume(): void {
@@ -144,6 +155,7 @@ export class BattleAmbientAudio {
   }
 
   dispose(): void {
+    if (activeBattleAudio === this) activeBattleAudio = null;
     this.unsubscribe?.();
     this.unsubscribe = null;
     const engine = this.engine;

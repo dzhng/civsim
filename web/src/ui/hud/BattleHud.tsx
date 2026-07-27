@@ -16,6 +16,7 @@
 // toolbar refresh. Slices 03–07 turn this composition into the three bronze
 // housings; slice 01 keeps every element's id and position identical.
 
+import { resumeActiveBattleAudio } from "../../battle/battleAudio";
 import {
   forwardRef,
   useEffect,
@@ -118,7 +119,11 @@ function AudioControls() {
           type="button"
           aria-label={muted ? "Unmute ambient audio" : "Mute ambient audio"}
           className={muted ? "on" : undefined}
-          onClick={() => setAudio({ muted: !audio.muted })}
+          onClick={() => {
+            const nextMuted = !audio.muted;
+            if (!nextMuted) resumeActiveBattleAudio();
+            setAudio({ muted: nextMuted });
+          }}
           dangerouslySetInnerHTML={{ __html: toolbarIcon(muted ? "audioOff" : "audio") }}
         />
       </Tooltip>

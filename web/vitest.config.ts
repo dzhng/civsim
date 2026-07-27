@@ -39,8 +39,8 @@ export default defineConfig({
     include: [
       "src/**/*.test.tsx",
       "src/**/*.test.ui.ts",
-      "tests/ambientAudio.test.ts",
-      "tests/windSignal.test.ts",
+      "tests/vitest/ambientAudio.test.ts",
+      "tests/vitest/windSignal.test.ts",
     ],
     exclude: ["**/node_modules/**", "**/dist/**"],
     setupFiles: ["./setup-tests.ts"],

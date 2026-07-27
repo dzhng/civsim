@@ -311,6 +311,7 @@ export class BattleScene implements Scene {
       graphics,
     }));
     const battleAudio = new BattleAmbientAudio();
+    battleAudio.register();
     renderer.setBattleAudio(battleAudio);
     this.cleanups.push(() => {
       renderer.clearBattleAudio(battleAudio);

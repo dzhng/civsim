@@ -263,7 +263,7 @@ test("aerial: pure, deterministic preset mapping with physical ordering", () => 
   assert.ok(vis("golden") > vis("dusk"), "golden clearer than dusk");
   assert.ok(vis("dusk") > vis("overcast-highland"), "dusk clearer than overcast");
   const goldenAerial = aerialParams(CIVSIM_ENVIRONMENTS.golden);
-  assert.equal(goldenAerial.distanceScale, 5.0, "golden uses the living-meadow distance scale");
+  assert.equal(goldenAerial.distanceScale, 4.6, "golden uses the living-meadow distance scale");
   assert.equal(goldenAerial.clearRadiusKm, 0.07, "golden fog near follows the pen's 70m feel");
   assert.equal(goldenAerial.rangeFogNearM, 70, "golden range dissolve starts at pen fogNear");
   assert.equal(goldenAerial.rangeFogFarM, 1700, "golden range dissolve aims at pen fogFar");

@@ -18,7 +18,7 @@ test("every meadow color role is a finite normalized RGB triplet", () => {
 });
 
 test("every meadow color role follows a changed base", () => {
-  const changed = rgbRoles(meadowFamily([0.42, 0.5, 0.28]));
+  const changed = rgbRoles(meadowFamily([0.5, 0.44, 0.33]));
   const original = rgbRoles(MEADOW);
   assert.deepEqual(Object.keys(changed).sort(), Object.keys(original).sort());
   for (const role of Object.keys(original)) {

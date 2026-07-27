@@ -16,6 +16,33 @@ export interface CivsimPhysicalLight {
   exposure: number;
   /** Atmospheric turbidity — drives the physical sky model (slice 10a). */
   turbidity: number;
+  /** Preset-owned aerial curve knobs for the single scene.fogNode owner. */
+  aerial?: CivsimAerialAtmosphere;
+}
+
+export interface CivsimAerialAtmosphere {
+  /** Multiplier for Rayleigh/Mie distance extinction in miniature battle metres. */
+  distanceScale?: number;
+  /** Clear fighting radius before distance haze accrues. */
+  clearRadiusM?: number;
+  /** Pen-style dissolve range: starts after this camera-focus distance. */
+  rangeFogNearM?: number;
+  /** Pen-style dissolve range: reaches its authored runway at this distance. */
+  rangeFogFarM?: number;
+  rangeFogPower?: number;
+  rangeFogStrength?: number;
+  /** Directional Mie tint applied sunward, inside the single aerial owner. */
+  sunMieTint?: [number, number, number];
+  sunMieStrength?: number;
+  sunMiePower?: number;
+  /** Low, far valley mist pooling. Kept preset-owned, not material-local. */
+  valleyMistColor?: [number, number, number];
+  valleyMistHeightBottomM?: number;
+  valleyMistHeightTopM?: number;
+  valleyMistDistanceStartM?: number;
+  valleyMistDistanceFullM?: number;
+  valleyMistColorStrength?: number;
+  valleyMistOpacityBoost?: number;
 }
 
 export interface CivsimEnvironment {
@@ -67,11 +94,35 @@ export const CIVSIM_ENVIRONMENTS: Record<CivsimEnvironmentId, CivsimEnvironment>
     // A true golden-hour sun (20 deg): the physical sky warms the light and
     // the sun-ward sky by transmittance — "golden's warm sky" (locked mood).
     sunElevation: 0.35,
-    keyColor: [1.0, 0.86, 0.62],
-    fillColor: [0.46, 0.58, 0.78],
-    hazeColor: [0.82, 0.8, 0.7],
-    exposure: 1.18,
-    physical: { sunIntensity: 3.4, exposure: 1.12, turbidity: 2.6 },
+    keyColor: [1.0, 0.88, 0.66],
+    fillColor: [0.42, 0.53, 0.72],
+    hazeColor: [0.86, 0.82, 0.68],
+    exposure: 1.16,
+    physical: {
+      sunIntensity: 3.75,
+      exposure: 1.06,
+      turbidity: 2.9,
+      aerial: {
+        distanceScale: 4.6,
+        clearRadiusM: 70,
+        rangeFogNearM: 70,
+        rangeFogFarM: 1700,
+        rangeFogPower: 1.28,
+        rangeFogStrength: 0.34,
+        sunMieTint: [1.0, 0.8, 0.52],
+        sunMieStrength: 0.34,
+        sunMiePower: 3.4,
+        valleyMistColor: [0.84, 0.82, 0.72],
+        valleyMistHeightBottomM: 8,
+        valleyMistHeightTopM: 46,
+        // Starts beyond the living-meadow far-grass band (480 m), so mist
+        // dissolves the valley vista without concealing grass work.
+        valleyMistDistanceStartM: 520,
+        valleyMistDistanceFullM: 1600,
+        valleyMistColorStrength: 0.18,
+        valleyMistOpacityBoost: 0.08,
+      },
+    },
   },
   dusk: {
     id: "dusk",

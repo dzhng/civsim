@@ -262,6 +262,30 @@ test("aerial: pure, deterministic preset mapping with physical ordering", () => 
   assert.ok(vis("noon") > vis("golden"), "noon clearer than golden");
   assert.ok(vis("golden") > vis("dusk"), "golden clearer than dusk");
   assert.ok(vis("dusk") > vis("overcast-highland"), "dusk clearer than overcast");
+  const goldenAerial = aerialParams(CIVSIM_ENVIRONMENTS.golden);
+  assert.equal(goldenAerial.distanceScale, 5.0, "golden uses the living-meadow distance scale");
+  assert.equal(goldenAerial.clearRadiusKm, 0.07, "golden fog near follows the pen's 70m feel");
+  assert.equal(goldenAerial.rangeFogNearM, 70, "golden range dissolve starts at pen fogNear");
+  assert.equal(goldenAerial.rangeFogFarM, 1700, "golden range dissolve aims at pen fogFar");
+  assert.equal(goldenAerial.rangeFogPower, 1.28, "golden range dissolve uses the pen curve");
+  assert.ok(goldenAerial.rangeFogStrength > 0, "golden carries range dissolve");
+  assert.ok(goldenAerial.sunMieStrength > 0, "golden carries sunward Mie tint");
+  assert.ok(
+    goldenAerial.valleyMistDistanceStartM > 480,
+    "golden valley mist starts beyond the living-meadow far grass band",
+  );
+  assert.ok(goldenAerial.valleyMistOpacityBoost > 0, "golden carries low/far valley mist");
+  const overcastAerial = aerialParams(CIVSIM_ENVIRONMENTS["overcast-highland"]);
+  assert.equal(
+    overcastAerial.rangeFogStrength,
+    0,
+    "overcast keeps its neutral turbidity fog, not golden range dissolve",
+  );
+  assert.equal(
+    overcastAerial.valleyMistOpacityBoost,
+    0,
+    "overcast neutrality is not changed by golden valley mist",
+  );
   // David's locked moods: golden subtle far haze, overcast HEAVY fog
   // swallowing layered ranges. "Heavy" is judged at the ranges' distance —
   // the vista eye parks ~1 km out, blockers sit 2.5–4 km out, so overcast

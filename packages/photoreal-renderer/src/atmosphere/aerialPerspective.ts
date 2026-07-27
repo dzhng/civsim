@@ -5,17 +5,21 @@
 // material adds its own haze, ever — the per-material "Aerial stand-in"
 // albedo mixes and the THREE.Fog parity stand-in died here.
 //
-// The model shares the SkyModel parameterization (sun elevation + turbidity
-// drive everything): per-channel Beer–Lambert extinction from the same
-// Rayleigh/Mie coefficients, plus a spectrally neutral ground-fog term that
-// turbidity switches on (David's locked overcast mood: HEAVY fog swallowing
-// layered ranges). The in-scattered light is the SKY ITSELF — the sky-view
-// LUT sampled at the horizon along the fragment's view azimuth — so far
-// surfaces dissolve into exactly the sky behind them (aesthetics rule 1,
-// every preset), warm toward the sun, cool away, flat white under overcast.
+// The model shares the SkyModel parameterization (sun elevation + turbidity)
+// and reads optional preset-owned aerial curve knobs: per-channel
+// Beer–Lambert extinction from the same Rayleigh/Mie coefficients, a
+// spectrally neutral ground-fog term that turbidity switches on (David's
+// locked overcast mood: HEAVY fog swallowing layered ranges), plus
+// preset-specific range dissolve, sunward Mie tint, and low/far valley mist.
+// The in-scattered base light is the SKY ITSELF — the sky-view LUT sampled at
+// the horizon along the fragment's view azimuth — so far surfaces dissolve
+// into the sky behind them (aesthetics rule 1, every preset), warm toward the
+// sun, cool away, flat white under overcast.
 import {
   Fn,
+  clamp,
   cameraPosition,
+  dot,
   equirectUV,
   float,
   length,
@@ -60,28 +64,84 @@ const HORIZON_CLEAR_VISIBILITY_KM = 8;
 const HORIZON_WIDE_VISIBILITY_KM = 32;
 const HORIZON_CLEAR_EXTRA_START_Z = 0.2;
 const HORIZON_CLEAR_EXTRA_END_Z = 0.08;
+const DEFAULT_RANGE_FOG_NEAR_M = CLEAR_RADIUS_KM * 1000;
+const DEFAULT_RANGE_FOG_FAR_M = 1700;
+const DEFAULT_RANGE_FOG_POWER = 1.28;
+const DEFAULT_RANGE_FOG_STRENGTH = 0;
+const DEFAULT_SUN_MIE_TINT: Rgb = [1.0, 0.86, 0.62];
+const DEFAULT_SUN_MIE_STRENGTH = 0;
+const DEFAULT_SUN_MIE_POWER = 3.4;
+const DEFAULT_VALLEY_MIST_COLOR: Rgb = [0.84, 0.82, 0.72];
+const DEFAULT_VALLEY_MIST_HEIGHT_BOTTOM_M = 8;
+const DEFAULT_VALLEY_MIST_HEIGHT_TOP_M = 46;
+const DEFAULT_VALLEY_MIST_DISTANCE_START_M = 520;
+const DEFAULT_VALLEY_MIST_DISTANCE_FULL_M = 1600;
+const DEFAULT_VALLEY_MIST_COLOR_STRENGTH = 0;
+const DEFAULT_VALLEY_MIST_OPACITY_BOOST = 0;
 
 export interface AerialParams {
   /** Per-channel extinction σ (km⁻¹, world kilometres). */
   extinction: Rgb;
   /** Koschmieder meteorological visibility (km) — evidence/test telemetry. */
   visibilityKm: number;
+  distanceScale: number;
+  clearRadiusKm: number;
+  rangeFogNearM: number;
+  rangeFogFarM: number;
+  rangeFogPower: number;
+  rangeFogStrength: number;
+  sunMieTint: Rgb;
+  sunMieStrength: number;
+  sunMiePower: number;
+  valleyMistColor: Rgb;
+  valleyMistHeightBottomM: number;
+  valleyMistHeightTopM: number;
+  valleyMistDistanceStartM: number;
+  valleyMistDistanceFullM: number;
+  valleyMistColorStrength: number;
+  valleyMistOpacityBoost: number;
 }
 
-/** The pure preset → aerial mapping (no GPU). Turbidity drives everything:
- *  Mie extinction scales with it and the neutral fog term switches on above
- *  the onset — pinned by web/tests/photorealEnvironment.test.ts. */
+/** The pure preset → aerial mapping (no GPU). Turbidity drives the physical
+ *  extinction; optional physical.aerial fields tune the single scene.fogNode
+ *  curve per preset — pinned by web/tests/photorealEnvironment.test.ts. */
 export function aerialParams(env: CivsimEnvironment): AerialParams {
   const turbidity = env.physical.turbidity;
+  const aerial = env.physical.aerial;
+  const distanceScale = aerial?.distanceScale ?? AERIAL_DISTANCE_SCALE;
   const mie = mieScale(turbidity) * BETA_MIE_EXTINCTION;
   const fog = FOG_COEFF_KM * Math.max(0, turbidity - FOG_TURBIDITY_ONSET) ** 2;
-  const extinction = BETA_RAYLEIGH.map((betaR) => (betaR + mie) * AERIAL_DISTANCE_SCALE + fog) as [
+  const extinction = BETA_RAYLEIGH.map((betaR) => (betaR + mie) * distanceScale + fog) as [
     number,
     number,
     number,
   ];
   const mean = (extinction[0] + extinction[1] + extinction[2]) / 3;
-  return { extinction, visibilityKm: 3.912 / mean };
+  return {
+    extinction,
+    visibilityKm: 3.912 / mean,
+    distanceScale,
+    clearRadiusKm: (aerial?.clearRadiusM ?? CLEAR_RADIUS_KM * 1000) / 1000,
+    rangeFogNearM: aerial?.rangeFogNearM ?? DEFAULT_RANGE_FOG_NEAR_M,
+    rangeFogFarM: aerial?.rangeFogFarM ?? DEFAULT_RANGE_FOG_FAR_M,
+    rangeFogPower: aerial?.rangeFogPower ?? DEFAULT_RANGE_FOG_POWER,
+    rangeFogStrength: aerial?.rangeFogStrength ?? DEFAULT_RANGE_FOG_STRENGTH,
+    sunMieTint: aerial?.sunMieTint ?? DEFAULT_SUN_MIE_TINT,
+    sunMieStrength: aerial?.sunMieStrength ?? DEFAULT_SUN_MIE_STRENGTH,
+    sunMiePower: aerial?.sunMiePower ?? DEFAULT_SUN_MIE_POWER,
+    valleyMistColor: aerial?.valleyMistColor ?? DEFAULT_VALLEY_MIST_COLOR,
+    valleyMistHeightBottomM:
+      aerial?.valleyMistHeightBottomM ?? DEFAULT_VALLEY_MIST_HEIGHT_BOTTOM_M,
+    valleyMistHeightTopM: aerial?.valleyMistHeightTopM ?? DEFAULT_VALLEY_MIST_HEIGHT_TOP_M,
+    valleyMistDistanceStartM:
+      aerial?.valleyMistDistanceStartM ?? DEFAULT_VALLEY_MIST_DISTANCE_START_M,
+    valleyMistDistanceFullM:
+      aerial?.valleyMistDistanceFullM ?? DEFAULT_VALLEY_MIST_DISTANCE_FULL_M,
+    valleyMistColorStrength:
+      aerial?.valleyMistColorStrength ?? DEFAULT_VALLEY_MIST_COLOR_STRENGTH,
+    valleyMistOpacityBoost:
+      aerial?.valleyMistOpacityBoost ?? DEFAULT_VALLEY_MIST_OPACITY_BOOST,
+  };
 }
 
 /** The stats identity block — scenes assert the ONE aerial owner hazed. */
@@ -91,6 +151,28 @@ export function aerialIdentity(env: CivsimEnvironment) {
     owner: AERIAL_OWNER,
     extinctionKm: params.extinction.map((c) => Number(c.toFixed(4))),
     visibilityKm: Number(params.visibilityKm.toFixed(2)),
+    distanceScale: params.distanceScale,
+    clearRadiusM: Number((params.clearRadiusKm * 1000).toFixed(1)),
+    rangeFog: {
+      nearM: params.rangeFogNearM,
+      farM: params.rangeFogFarM,
+      power: params.rangeFogPower,
+      strength: params.rangeFogStrength,
+    },
+    sunMie: {
+      tint: params.sunMieTint,
+      strength: params.sunMieStrength,
+      power: params.sunMiePower,
+    },
+    valleyMist: {
+      color: params.valleyMistColor,
+      heightBottomM: params.valleyMistHeightBottomM,
+      heightTopM: params.valleyMistHeightTopM,
+      distanceStartM: params.valleyMistDistanceStartM,
+      distanceFullM: params.valleyMistDistanceFullM,
+      colorStrength: params.valleyMistColorStrength,
+      opacityBoost: params.valleyMistOpacityBoost,
+    },
   };
 }
 
@@ -122,9 +204,32 @@ export function aerialPerspectiveNode(
   const horizonFadeEnd = HORIZON_FADE_END_Z + HORIZON_CLEAR_EXTRA_END_Z * thinHaze;
   const build = Fn(() => {
     const reach = positionWorld.sub(observer ?? cameraPosition).toVar();
-    const distKm = length(reach).div(1000.0).sub(CLEAR_RADIUS_KM).max(0.0).toVar();
+    const distM = length(reach).toVar();
+    const distKm = distM.div(1000.0).sub(params.clearRadiusKm).max(0.0).toVar();
+    const rangeDepth = distM
+      .sub(params.rangeFogNearM)
+      .max(0.0)
+      .div(params.rangeFogFarM)
+      .pow(params.rangeFogPower)
+      .mul(params.rangeFogStrength)
+      .toVar();
+    const heightMist = float(1.0).sub(
+      smoothstep(
+        float(params.valleyMistHeightBottomM),
+        float(params.valleyMistHeightTopM),
+        positionWorld.z,
+      ),
+    );
+    const farMist = smoothstep(
+      float(params.valleyMistDistanceStartM),
+      float(params.valleyMistDistanceFullM),
+      distM,
+    );
+    const mistWeight = heightMist.mul(farMist).toVar();
     const transmit = vec3(...params.extinction)
       .mul(distKm)
+      .add(rangeDepth)
+      .add(mistWeight.mul(params.valleyMistOpacityBoost))
       .negate()
       .exp()
       .toVar();
@@ -140,8 +245,25 @@ export function aerialPerspectiveNode(
     const belowHorizon = smoothstep(float(horizonFadeStart), float(0.0), view.z);
     const aboveHorizon = float(1.0).sub(smoothstep(float(0.0), float(horizonFadeEnd), view.z));
     const horizonWeight = belowHorizon.mul(aboveHorizon);
-    const skyLight = mix(viewSky, horizonSky, horizonWeight);
-    const hazed = output.rgb.mul(transmit).add(skyLight.mul(vec3(1.0).sub(transmit)));
+    const sunDir = vec3(
+      Math.cos(env.sunElevation) * Math.cos(env.sunAzimuth),
+      Math.cos(env.sunElevation) * Math.sin(env.sunAzimuth),
+      Math.sin(env.sunElevation),
+    );
+    const sunMie = clamp(dot(view, sunDir), 0.0, 1.0)
+      .pow(params.sunMiePower)
+      .mul(params.sunMieStrength);
+    const skyLight = mix(
+      mix(viewSky, horizonSky, horizonWeight),
+      vec3(...params.sunMieTint),
+      sunMie,
+    );
+    const mistSkyLight = mix(
+      skyLight,
+      vec3(...params.valleyMistColor),
+      mistWeight.mul(params.valleyMistColorStrength),
+    );
+    const hazed = output.rgb.mul(transmit).add(mistSkyLight.mul(vec3(1.0).sub(transmit)));
     return vec4(hazed, output.a);
   });
   // The cast re-types the untyped Fn return (@types/three drops the node type).

@@ -99,3 +99,12 @@ consolidated at close per implement-spec step 11.
   by diff-heatmap band coherence rather than a human vibe watch (economical
   gate; the GIF is archived for David). *Provisional — David may retune by eye.*
 - Flaky ambient water RMS test observed once (passed on rerun) — noted for 41.
+
+## Pass: slice 08 fog (2026-07-27)
+
+- **rangeFogStrength 0.34** = bisect between close-crop depth (wants 0.5+) and
+  vista readability (white-out at 0.52). *Provisional — a camera-aware fog
+  curve or the post-grade mini-slice would resolve the tension properly.*
+- **Hero saturation formally attributed to the missing look-grade** (post
+  owner), after two owners (albedo 04, environment 08) each moved rendered S
+  by <1pp. Optional future mini-slice recorded. *Sound — evidence from both.*

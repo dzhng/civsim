@@ -82,6 +82,7 @@ import {
   PhotorealBladeFieldLayer,
   createBladeFieldWindUniforms,
   createBladeFieldTransitionUniforms,
+  type BladeFieldStats,
   type BladeFieldWindUniforms,
   type BladeFieldTierSpec,
   type BladeFieldTransitionProfile,
@@ -323,7 +324,8 @@ export class PhotorealBattleWorld {
   private readonly frame: BattleFrameUniforms;
   private readonly sunDirectionScratch = new THREE.Vector3(0, 0, 1);
   private readonly background: BattleBackgroundQuads;
-  private readonly grass: PhotorealBladeFieldLayer;
+  private readonly grassBase: PhotorealBladeFieldLayer;
+  private readonly grassRing: PhotorealBladeFieldLayer;
   private readonly scenery: PhotorealScenery;
   private readonly crowd: PhotorealCrowd;
   private readonly shadowRig: SunShadowRig;
@@ -526,13 +528,22 @@ export class PhotorealBattleWorld {
     );
 
     this.background = new BattleBackgroundQuads(scene, this.frame, disabledGroundDetail);
-    this.grass = new PhotorealBladeFieldLayer(
+    this.grassBase = new PhotorealBladeFieldLayer(
       scene,
       this.grassProfile.tiers,
       true,
       this.grassTransition,
       this.wind,
     );
+    this.grassRing = new PhotorealBladeFieldLayer(
+      scene,
+      this.grassProfile.tiers,
+      true,
+      this.grassTransition,
+      this.wind,
+      { nameSuffix: "ring" },
+    );
+    this.grassRing.setVisible(false);
     this.activeGrassTransition = this.grassTransition.profile;
     this.scenery = new PhotorealScenery(scene);
     this.crowd = new PhotorealCrowd(scene, meshes, vats, kit);
@@ -644,7 +655,7 @@ export class PhotorealBattleWorld {
   /** Lab-only blade-field A/B hook; production leaves this on. */
   setGrassVisible(visible: boolean): void {
     this.grassEnabled = visible;
-    this.grass.setVisible(visible);
+    this.updateGrassLayerRoutingState();
     if (!visible) {
       this.grassSampleTask = null;
       this.grassPendingTerrainKey = null;
@@ -658,7 +669,8 @@ export class PhotorealBattleWorld {
   /** Lab-only far blade-tier A/B hook; leaves near/mid close-gate density intact. */
   setFarGrassVisible(visible: boolean): void {
     this.farGrassEnabled = visible;
-    this.grass.setFarTierVisible(visible);
+    this.grassBase.setFarTierVisible(visible);
+    this.grassRing.setFarTierVisible(visible);
     this.grassTransition.terrainDetailStrength.value = visible
       ? (this.activeGrassTransition.terrainDetailStrength ?? 1)
       : 0;
@@ -861,6 +873,8 @@ export class PhotorealBattleWorld {
     this.grassRebuildStats.mergedRecordCount = 0;
     this.grassRebuildStats.inProgressCells = 0;
     this.grassRebuildStats.totalCells = 0;
+    this.grassBase.applyPackedRecords(new Float32Array(), false);
+    this.grassRing.applyPackedRecords(new Float32Array(), false);
     this.updateGrassForCamera(eyePosition(this.lastCamera.camera3d)[2]);
   }
 
@@ -976,7 +990,8 @@ export class PhotorealBattleWorld {
         .copy(this.world.sunLight.position)
         .sub(this.world.sunLight.target.position)
         .normalize();
-      this.grass.setSunDirection(this.sunDirectionScratch);
+      this.grassBase.setSunDirection(this.sunDirectionScratch);
+      this.grassRing.setSunDirection(this.sunDirectionScratch);
     }
     updateWindUniforms(this.wind, this.world.time);
     // ONE ground anchor owns both sampling and routing: the look target. A
@@ -990,10 +1005,22 @@ export class PhotorealBattleWorld {
     // Zoom cutoff: hide the blades and skip the GPU route/cull pass entirely
     // once zoomed out past the resolvable range (blades would be a sub-pixel
     // smear). setVisible only toggles mesh.visible, so this is cheap per-frame.
+    this.updateGrassLayerRoutingState();
     const grassOn = this.grassVisibleNow();
-    this.grass.setVisible(grassOn);
-    if (grassOn)
-      this.grass.routeGpu(this.world.renderer, [eye[0], eye[1], eye[2]], [target[0], target[1]]);
+    if (grassOn) {
+      this.grassBase.routeGpu(
+        this.world.renderer,
+        [eye[0], eye[1], eye[2]],
+        [target[0], target[1]],
+      );
+      if (this.grassRingVisibleNow()) {
+        this.grassRing.routeGpu(
+          this.world.renderer,
+          [eye[0], eye[1], eye[2]],
+          [target[0], target[1]],
+        );
+      }
+    }
     this.grassRebuildStats.routeAnchor = [
       Math.round(target[0]),
       Math.round(target[1]),
@@ -1057,6 +1084,16 @@ export class PhotorealBattleWorld {
     return this.grassEnabled && this.lastCamera.zoomT >= GRASS_ZOOM_CUTOFF_T;
   }
 
+  private grassRingVisibleNow(): boolean {
+    return (
+      this.grassVisibleNow() &&
+      this.meadowFocusRingEnabled &&
+      this.meadowFocusRingZoomEngaged &&
+      this.grassFocusRecords !== null &&
+      this.grassRebuildStats.activeFocus !== null
+    );
+  }
+
   private updateGrassForCamera(eyeZ = 0): void {
     if (!this.grassEnabled) return;
     if (!this.terrainGrid || !this.heightField) return;
@@ -1065,7 +1102,8 @@ export class PhotorealBattleWorld {
     // cull radius shrinks when zoomed in.
     const visibleRadius = activeGrassVisibleRadiusM(this.grassProfile, eyeZ);
     const transition = activeGrassTransitionProfile(this.grassProfile, visibleRadius);
-    this.activeGrassTransition = this.grass.setTransition(transition);
+    this.activeGrassTransition = this.grassBase.setTransition(transition);
+    this.grassRing.setTransition(this.activeGrassTransition);
     this.grassTransition.terrainDetailStrength.value = this.farGrassEnabled
       ? (this.activeGrassTransition.terrainDetailStrength ?? 1)
       : 0;
@@ -1080,29 +1118,25 @@ export class PhotorealBattleWorld {
       ? MEADOW_FOCUS_RING_RADIUS_M
       : this.baseGrassFocus().radius;
     this.grassRebuildStats.activeTransition = this.activeGrassTransition;
-    // The merged set is base-outside-ring + ring, so the honest cap while the
-    // ring is engaged is the sum of both budgets.
+    // Base and ring stay in separate buffers; the active raw-record cap while
+    // the ring is engaged is still the sum of both budgets.
     this.grassRebuildStats.activeRecordBudget = focusRingActive
       ? STATIC_GRASS_MAX_RECORDS + MEADOW_FOCUS_RING_MAX_RECORDS
       : STATIC_GRASS_MAX_RECORDS;
+    this.grassSampleStats =
+      focusRingActive && this.grassFocusSampleStats
+        ? this.grassFocusSampleStats
+        : this.grassBaseSampleStats;
+    this.updateGrassLayerRoutingState();
 
     if (!this.cameraInitialized) return;
     if (!focusRingActive) {
-      // Edge-triggered teardown: only clear + reapply when the ring actually
-      // had records or pending work. Running this every released frame
-      // re-uploaded the 1M-record base set per frame (measured rAF ~140 ms
-      // at the perf mid stop).
-      if (this.grassFocusRecords === null && this.grassSampleTask === null) return;
       this.grassSampleTask = null;
       this.grassPendingTerrainKey = null;
       this.grassRebuildStats.pending = false;
       this.grassRebuildStats.pendingFocus = null;
-      this.grassRebuildStats.activeFocus = null;
-      this.grassFocusTerrainKey = null;
-      this.grassFocusRecords = null;
-      this.grassFocusSampleStats = null;
       this.grassSampleStats = this.grassBaseSampleStats;
-      this.applyGrassRecordSets();
+      this.updateGrassLayerRoutingState();
       return;
     }
 
@@ -1229,7 +1263,8 @@ export class PhotorealBattleWorld {
     this.grassRebuildStats.lastSampleMs = Number((performance.now() - started).toFixed(3));
     this.grassRebuildStats.lastSlices = 1;
     this.grassRebuildStats.lastMaxSliceMs = this.grassRebuildStats.lastSampleMs;
-    this.applyGrassRecordSets();
+    this.grassBase.applyPackedRecords(snapshot.packedRecords, this.grassVisibleNow());
+    this.updateGrassLayerRoutingState();
   }
 
   private startGrassSampleTask(focus: GrassSampleFocus, key: string): void {
@@ -1330,61 +1365,50 @@ export class PhotorealBattleWorld {
       inProgressCells: task.sampler.cellsProcessed,
       totalCells: task.sampler.totalCells,
     };
-    this.applyGrassRecordSets();
+    this.grassRing.applyPackedRecords(snapshot.packedRecords, this.grassRingVisibleNow());
+    this.updateGrassLayerRoutingState();
   }
 
-  private applyGrassRecordSets(): void {
-    const base = this.grassBaseRecords;
-    const focus =
-      this.meadowFocusRingEnabled && this.meadowFocusRingZoomEngaged
-        ? this.grassFocusRecords
-        : null;
-    const activeFocus = this.grassRebuildStats.activeFocus;
-    if (!base && !focus) {
-      this.grass.applyPackedRecords(new Float32Array(), false);
-      this.grassRebuildStats.baseRecordCount = 0;
-      this.grassRebuildStats.focusRecordCount = 0;
-      this.grassRebuildStats.mergedRecordCount = 0;
-      return;
-    }
-    if (!focus || !activeFocus) {
-      const records = base ?? new Float32Array();
-      this.grass.applyPackedRecords(records, this.grassEnabled && records.length > 0);
-      this.grassRebuildStats.baseRecordCount =
-        records.length / GRASS_FIELD_PACKED_STRIDE_FLOATS;
-      this.grassRebuildStats.focusRecordCount = 0;
-      this.grassRebuildStats.mergedRecordCount =
-        records.length / GRASS_FIELD_PACKED_STRIDE_FLOATS;
-      return;
-    }
-    if (!base || base.length === 0) {
-      this.grass.applyPackedRecords(focus, this.grassEnabled && focus.length > 0);
-      this.grassRebuildStats.baseRecordCount = 0;
-      this.grassRebuildStats.focusRecordCount = focus.length / GRASS_FIELD_PACKED_STRIDE_FLOATS;
-      this.grassRebuildStats.mergedRecordCount = focus.length / GRASS_FIELD_PACKED_STRIDE_FLOATS;
-      return;
-    }
+  private updateGrassLayerRoutingState(): void {
+    const baseVisible = this.grassVisibleNow();
+    const ringVisible = this.grassRingVisibleNow();
+    this.grassBase.setVisible(baseVisible);
+    this.grassRing.setVisible(ringVisible);
 
-    const dedupeRadius = Math.max(0, activeFocus.radius - MEADOW_FOCUS_RING_DEDUPE_MARGIN_M);
+    const activeFocus = this.grassRebuildStats.activeFocus;
+    const dedupeRadius = Math.max(
+      0,
+      MEADOW_FOCUS_RING_RADIUS_M - MEADOW_FOCUS_RING_DEDUPE_MARGIN_M,
+    );
     const dedupeSq = dedupeRadius * dedupeRadius;
-    const farKeep = new Float32Array(base.length);
-    let kept = 0;
-    for (let o = 0; o < base.length; o += GRASS_FIELD_PACKED_STRIDE_FLOATS) {
-      const dx = base[o] - activeFocus.x;
-      const dy = base[o + 1] - activeFocus.y;
-      if (dx * dx + dy * dy >= dedupeSq) {
-        farKeep.set(base.subarray(o, o + GRASS_FIELD_PACKED_STRIDE_FLOATS), kept);
-        kept += GRASS_FIELD_PACKED_STRIDE_FLOATS;
-      }
+    if (ringVisible && activeFocus) {
+      this.grassBase.setRouteCullCircle({
+        center: [activeFocus.x, activeFocus.y],
+        radiusSq: dedupeSq,
+        enabled: true,
+      });
+    } else {
+      this.grassBase.setRouteCullCircle(null);
     }
-    const merged = new Float32Array(focus.length + kept);
-    merged.set(focus, 0);
-    merged.set(farKeep.subarray(0, kept), focus.length);
-    this.grass.applyPackedRecords(merged, this.grassEnabled && merged.length > 0);
-    this.grassRebuildStats.baseRecordCount = base.length / GRASS_FIELD_PACKED_STRIDE_FLOATS;
-    this.grassRebuildStats.focusRecordCount = focus.length / GRASS_FIELD_PACKED_STRIDE_FLOATS;
-    this.grassRebuildStats.mergedRecordCount = merged.length / GRASS_FIELD_PACKED_STRIDE_FLOATS;
+    this.grassRing.setRouteCullCircle(null);
+
+    const baseRecords = this.grassBaseRecords?.length ?? 0;
+    const focusRecords = this.grassFocusRecords?.length ?? 0;
+    this.grassRebuildStats.baseRecordCount =
+      baseRecords / GRASS_FIELD_PACKED_STRIDE_FLOATS;
+    this.grassRebuildStats.focusRecordCount =
+      ringVisible ? focusRecords / GRASS_FIELD_PACKED_STRIDE_FLOATS : 0;
+    this.grassRebuildStats.mergedRecordCount =
+      this.grassRebuildStats.baseRecordCount + this.grassRebuildStats.focusRecordCount;
     this.grassRebuildStats.dedupeRadiusM = dedupeRadius;
+  }
+
+  private grassStats(): BladeFieldStats {
+    return mergeBladeFieldStats(
+      this.grassBase.stats(),
+      this.grassRing.stats(),
+      this.grassRingVisibleNow(),
+    );
   }
 
   stats() {
@@ -1469,7 +1493,7 @@ export class PhotorealBattleWorld {
             environment: battleEnvironmentStats(this.environment),
             scenery: this.scenery.stats().scenery,
             grass: {
-              ...this.grass.stats(),
+              ...this.grassStats(),
               productionSamplingProfile: this.grassProfile,
               transitionOwner: "battleWorld.updateGrassForCamera" as const,
               activeTransition: this.activeGrassTransition,
@@ -1525,6 +1549,48 @@ function disposeMesh(mesh: THREE.Mesh): void {
   const material = mesh.material;
   if (Array.isArray(material)) material.forEach((m) => m.dispose());
   else material.dispose();
+}
+
+function mergeBladeFieldStats(
+  base: BladeFieldStats,
+  ring: BladeFieldStats,
+  includeRing: boolean,
+): BladeFieldStats {
+  if (!includeRing) return base;
+  const tiers = { ...base.tiers };
+  for (const tierId of Object.keys(tiers) as Array<keyof BladeFieldStats["tiers"]>) {
+    const baseTier = base.tiers[tierId];
+    const ringTier = ring.tiers[tierId];
+    tiers[tierId] = {
+      ...baseTier,
+      candidateRecords: baseTier.candidateRecords + ringTier.candidateRecords,
+      records: baseTier.records + ringTier.records,
+      droppedByThinning: baseTier.droppedByThinning + ringTier.droppedByThinning,
+      triangles: baseTier.triangles + ringTier.triangles,
+      vertices: baseTier.vertices + ringTier.vertices,
+    };
+  }
+  const runtimeComputeRoute =
+    base.sourceStorageCore.runtimeComputeRoute === "active" ||
+    ring.sourceStorageCore.runtimeComputeRoute === "active"
+      ? "active"
+      : "not-run";
+  return {
+    ...base,
+    enabled: base.enabled || ring.enabled,
+    recordCount: base.recordCount + ring.recordCount,
+    drawCalls: base.drawCalls + ring.drawCalls,
+    submittedTriangles: base.submittedTriangles + ring.submittedTriangles,
+    submittedVertices: (base.submittedVertices ?? 0) + (ring.submittedVertices ?? 0),
+    tiers,
+    culledRecords: base.culledRecords + ring.culledRecords,
+    thinnedRecords: base.thinnedRecords + ring.thinnedRecords,
+    sourceStorageCore: {
+      ...base.sourceStorageCore,
+      runtimeComputeRoute,
+    },
+    recordHash: `${base.recordHash}+${ring.recordHash}`,
+  };
 }
 
 function productionBladeFieldProfile(

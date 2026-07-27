@@ -27,6 +27,7 @@ import {
   pow,
   sin,
   smoothstep,
+  step,
   storage,
   struct,
   uint,
@@ -248,6 +249,11 @@ export interface BladeFieldStats {
   layer: "photoreal-blade-field";
   enabled: boolean;
   farTierVisible: boolean;
+  routeCullMask: {
+    enabled: boolean;
+    center: [number, number];
+    radiusSq: number;
+  };
   depthPrepass: {
     enabled: boolean;
     tiers: BladeFieldTierId[];
@@ -332,6 +338,9 @@ interface TierBucket {
 interface BladeFieldGpuRuntime {
   camera: { value: THREE.Vector3 };
   anchor: Vec2UniformNode;
+  cullMaskCenter: Vec2UniformNode;
+  cullMaskRadiusSq: FloatUniformNode;
+  cullMaskEnabled: FloatUniformNode;
   reset: unknown;
   route: unknown;
   routed: boolean;
@@ -377,6 +386,7 @@ const BLADE_FIELD_PREPASS_RENDER_ORDER = RENDER_ORDER.worldOpaque - 0.01;
 
 export interface BladeFieldLayerOptions {
   depthPrepass?: boolean;
+  nameSuffix?: string;
 }
 
 export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
@@ -398,6 +408,11 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
   private thinnedRecords = 0;
   private farTierVisible = true;
   private depthPrepassEnabled: boolean;
+  private cullMask = {
+    enabled: false,
+    center: new THREE.Vector2(0, 0),
+    radiusSq: 0,
+  };
 
   private readonly tiers: readonly BladeFieldTierSpec[];
   private thinning: BladeFieldThinningProfile;
@@ -446,7 +461,7 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
       const mesh = new THREE.Mesh(geometry, material);
       // Scenes and debug isolation filters (?only=...battle-grass...) select
       // grass by this prefix.
-      mesh.name = `${MEADOW_GRASS_MESH_NAME_PREFIX}-blades-${spec.id}`;
+      mesh.name = grassMeshName(options.nameSuffix, `blades-${spec.id}`);
       mesh.frustumCulled = false;
       mesh.renderOrder = RENDER_ORDER.worldOpaque;
       mesh.receiveShadow = true;
@@ -456,7 +471,10 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
         ? new THREE.Mesh(geometry, emptyBladeFieldDepthPrepassMaterial())
         : null;
       if (prepassMesh) {
-        prepassMesh.name = `${MEADOW_GRASS_MESH_NAME_PREFIX}-blades-${spec.id}-depth-prepass`;
+        prepassMesh.name = grassMeshName(
+          options.nameSuffix,
+          `blades-${spec.id}-depth-prepass`,
+        );
         prepassMesh.frustumCulled = false;
         prepassMesh.renderOrder = BLADE_FIELD_PREPASS_RENDER_ORDER;
         prepassMesh.visible = false;
@@ -507,6 +525,7 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
       this.transitionUniforms,
       this.thinning,
     );
+    this.applyCullMaskToRuntime();
 
     for (const bucket of this.buckets) {
       bucket.mesh.material.dispose();
@@ -602,6 +621,20 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     }
   }
 
+  setRouteCullCircle(
+    mask: { center: readonly [number, number]; radiusSq: number; enabled: boolean } | null,
+  ): void {
+    if (!mask || !mask.enabled || !Number.isFinite(mask.radiusSq) || mask.radiusSq <= 0) {
+      this.cullMask.enabled = false;
+      this.cullMask.radiusSq = 0;
+    } else {
+      this.cullMask.enabled = true;
+      this.cullMask.center.set(mask.center[0], mask.center[1]);
+      this.cullMask.radiusSq = Math.max(0, mask.radiusSq);
+    }
+    this.applyCullMaskToRuntime();
+  }
+
   setTransition(profile: BladeFieldTransitionProfile): BladeFieldTransitionProfile {
     this.transition = this.applyTransitionProfile(profile);
     this.thinning = thinningProfileForTransition(
@@ -634,6 +667,14 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
       const o = i * GRASS_FIELD_PACKED_STRIDE_FLOATS;
       const x = this.packedRecords[o];
       const y = this.packedRecords[o + 1];
+      if (this.cullMask.enabled) {
+        const dx = x - this.cullMask.center.x;
+        const dy = y - this.cullMask.center.y;
+        if (dx * dx + dy * dy < this.cullMask.radiusSq) {
+          this.culledRecords++;
+          continue;
+        }
+      }
       // GROUND-anchor distance: band by the looked-at/focused field point, not
       // the camera footprint. Shallow cameras sit tens of metres behind target.
       const dist = Math.hypot(x - anchor[0], y - anchor[1]);
@@ -701,6 +742,14 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
       layer: "photoreal-blade-field",
       enabled: this.enabled,
       farTierVisible: this.farTierVisible,
+      routeCullMask: {
+        enabled: this.cullMask.enabled,
+        center: [
+          Number(this.cullMask.center.x.toFixed(3)),
+          Number(this.cullMask.center.y.toFixed(3)),
+        ],
+        radiusSq: Number(this.cullMask.radiusSq.toFixed(3)),
+      },
       depthPrepass: {
         enabled: this.depthPrepassEnabled,
         tiers: prepassTiers,
@@ -757,6 +806,14 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     if (!bucket.prepassMesh) return;
     bucket.prepassMesh.visible =
       this.depthPrepassEnabled && this.tierVisible(bucket.spec, visible);
+  }
+
+  private applyCullMaskToRuntime(): void {
+    const runtime = this.runtime;
+    if (!runtime) return;
+    runtime.cullMaskCenter.value.copy(this.cullMask.center);
+    runtime.cullMaskRadiusSq.value = this.cullMask.radiusSq;
+    runtime.cullMaskEnabled.value = this.cullMask.enabled ? 1 : 0;
   }
 
   private applyTransitionProfile(
@@ -842,6 +899,9 @@ function createGpuRuntime(
   );
   const camera = uniform(new THREE.Vector3(0, 0, 0));
   const anchor = uniform(new THREE.Vector2(0, 0)) as unknown as Vec2UniformNode;
+  const cullMaskCenter = uniform(new THREE.Vector2(0, 0)) as unknown as Vec2UniformNode;
+  const cullMaskRadiusSq = uniform(0) as unknown as FloatUniformNode;
+  const cullMaskEnabled = uniform(0) as unknown as FloatUniformNode;
   const configs: RuntimeConfig[] = buckets.map((bucket) => {
     const visibleIndices = instancedArray(
       new Uint32Array(packedRecords.length / 16),
@@ -880,6 +940,9 @@ function createGpuRuntime(
     const d2 = data.get("data2") as { z: FloatNode };
     const pos = d0.xyz;
     const dist = length(anchor.sub(pos.xy));
+    const maskDelta = pos.xy.sub(cullMaskCenter);
+    const outsideMask = step(cullMaskRadiusSq, dot(maskDelta, maskDelta));
+    const maskSurvival = mix(1.0, outsideMask, cullMaskEnabled);
     const seed01 = clamp(d2.z.div(float(SEED24_MASK)), 0.0, 1.0);
     const bladeHash = fract(seed01.mul(7.13));
     const penDensity = min(
@@ -890,7 +953,7 @@ function createGpuRuntime(
     const farTierEnd = thinning.enabled
       ? transition.farGrassEndM
       : transition.farGrassEndM.add(float(1_000_000.0));
-    If(bladeHash.lessThan(survival), () => {
+    If(bladeHash.lessThan(survival.mul(maskSurvival)), () => {
       If(dist.lessThan(transition.nearTierEndM), () => {
         appendToTier(configs[0]);
       })
@@ -906,6 +969,9 @@ function createGpuRuntime(
   return {
     camera,
     anchor,
+    cullMaskCenter,
+    cullMaskRadiusSq,
+    cullMaskEnabled,
     reset: resetFn().compute(1).setName("PhotorealBladeFieldResetIndirect"),
     route: routeFn()
       .compute(packedRecords.length / 16)
@@ -1539,6 +1605,12 @@ function bladeSurvivesDistanceThinning(
 
 function bladeHash01(bladeSeed: number): number {
   return fract01(clamp01(bladeSeed / SEED24_MASK) * 7.13);
+}
+
+function grassMeshName(suffix: string | undefined, leaf: string): string {
+  return suffix
+    ? `${MEADOW_GRASS_MESH_NAME_PREFIX}-${suffix}-${leaf}`
+    : `${MEADOW_GRASS_MESH_NAME_PREFIX}-${leaf}`;
 }
 
 function fract01(value: number): number {

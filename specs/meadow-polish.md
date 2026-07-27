@@ -178,3 +178,22 @@ offender). NEXT: split base and ring into two layer instances (base buffers
 never re-upload; engage = visibility flip; dedupe = circle mask in the route
 compute). Kills the spikes architecturally; 33ms lock question parked with
 David meanwhile.
+
+## P3.5 two-layer split landed (2026-07-28)
+
+grassBase + grassRing as separate layer instances; concat/merge path deleted;
+dedupe = GPU circle mask in the route pass; engage/release = visibility flips;
+stats merged (records = base + ring when engaged). Verified: pixel parity with
+the approved look EXACT (mean 1.9 — same as pre-split), close-zoom rAF medians
+31.5 -> 25ms, pan/wheel gates green.
+
+REMAINING vs the locked 33ms budget (decision + one optional round):
+1. Vista-with-ring GPU median 37.3ms — genuine steady-state cost of the
+   approved density at the closest camera with 30k soldiers; within David's
+   ratified 26fps floor (38.5). DECISION (locked number, David's):
+   raise the budget to 38.5 for ring-engaged stops, or demand further cost
+   cuts from the look.
+2. Ring-apply hitch: applying the 599k-record ring set uploads in one frame
+   (~66ms p95 during engage/rebuild windows). Fix if wanted: chunked/steamed
+   record upload across frames in applyPackedRecords (a bladeFieldLayer
+   round), or accept as a rare transition hitch.

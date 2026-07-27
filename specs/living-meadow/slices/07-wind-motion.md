@@ -32,3 +32,17 @@ render-target (the pen's approach). **Reslice hook (R2):** if the analytic unifo
 doesn't sell the sweep, reslice to the RT; if the RT stalls in TSL, the analytic
 bands are the shippable fallback — the *sweep feel* is the deliverable, the RT is
 one way to get it. Blade ringing frequency; upwind lag distance.
+
+## Landed (2026-07-27)
+
+windSignal GPU surface gained bandVelocity/bandFrequency/bandSharpness; the
+blade shader evaluates the travelling front per blade world-position (64 m
+crest-to-crest, trough 0.3x / crest 1.8x sway modulation, sheen riding the
+crest only); windProfile(height) scales sway; the old inline sin() constants
+are DELETED — windSignal is the sole owner. CPU mirror + tests updated.
+
+Gate history: v1 read as synchronized per-blade glitter (diff heatmap showed
+no macro band — wavelength/contrast/per-blade evaluation all implicated);
+fix round landed the explicit front. v2 heatmap (assets/07-wind-evidence/)
+shows coherent perspective-compressed crest stripes; fixed-t captures stay
+byte-deterministic (t=4 twice identical). Vibe GIF: assets/07-wind-vibe.gif.

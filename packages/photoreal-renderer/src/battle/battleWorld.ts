@@ -79,11 +79,14 @@ import {
 } from "./seaLayer";
 import {
   PhotorealBladeFieldLayer,
+  createBladeFieldWindUniforms,
   createBladeFieldTransitionUniforms,
+  type BladeFieldWindUniforms,
   type BladeFieldTierSpec,
   type BladeFieldTransitionProfile,
   type BladeFieldTransitionUniforms,
 } from "./bladeFieldLayer";
+import { updateWindUniforms } from "../../../game-renderer/src/battle/windSignal";
 import { PhotorealScenery } from "./foliageLayer";
 import { PhotorealCrowd, type CrowdVisibilityScope } from "./crowdLayer";
 import {
@@ -383,6 +386,7 @@ export class PhotorealBattleWorld {
   private grassEnabled = true;
   private farGrassEnabled = true;
   private readonly grassTransition: BladeFieldTransitionUniforms;
+  private readonly wind: BladeFieldWindUniforms = createBladeFieldWindUniforms();
   private activeGrassTransition: BladeFieldTransitionProfile;
   private instances: CrowdInstance[] = [];
   private markers: MarkerInstance[] = [];
@@ -461,10 +465,10 @@ export class PhotorealBattleWorld {
     this.background = new BattleBackgroundQuads(scene, this.frame, disabledGroundDetail);
     this.grass = new PhotorealBladeFieldLayer(
       scene,
-      this.frame.time,
       this.grassProfile.tiers,
       true,
       this.grassTransition,
+      this.wind,
     );
     this.scenery = new PhotorealScenery(scene);
     this.crowd = new PhotorealCrowd(scene, meshes, vats, kit);
@@ -888,6 +892,7 @@ export class PhotorealBattleWorld {
         .normalize();
       this.grass.setSunDirection(this.sunDirectionScratch);
     }
+    updateWindUniforms(this.wind, this.world.time);
     // ONE ground anchor owns both sampling and routing: the look target. A
     // footprint-centered sample puts most of the disc BEHIND a shallow-pitch
     // camera (at zoom 3 the eye grounds ~400m behind the frame) and the

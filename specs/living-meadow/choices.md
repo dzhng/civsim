@@ -90,3 +90,12 @@ consolidated at close per implement-spec step 11.
 - **Cost 1.65-1.67x accepted** under D2 (perf deferred); slice 40 owns tuning.
 - Second fix round taught: tier *transition* constants do not re-route bucket
   membership; the working levers were width/fan-out/thinning. *Recorded for 40.*
+
+## Pass: slice 07 wind (2026-07-27)
+
+- **Analytic band chosen over the render-target** (per the R2 reslice ladder);
+  the RT stays available if production wants curl-noise gusts later. *Sound.*
+- **64 m wavelength / 0.3-1.8x modulation** landed from the fix round; judged
+  by diff-heatmap band coherence rather than a human vibe watch (economical
+  gate; the GIF is archived for David). *Provisional — David may retune by eye.*
+- Flaky ambient water RMS test observed once (passed on rerun) — noted for 41.

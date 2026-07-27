@@ -20,6 +20,7 @@ import {
   instanceIndex,
   instancedArray,
   length,
+  log,
   max,
   min,
   mix,
@@ -32,6 +33,7 @@ import {
   uint,
   uniform,
   varying,
+  vec2,
   vec3,
   vec4,
   cameraViewMatrix,
@@ -52,6 +54,10 @@ import {
   type Vec3Node,
 } from "./battleTsl";
 import { RENDER_ORDER } from "./terrainLayer";
+import {
+  createWindUniforms,
+  type BattleWindUniforms,
+} from "../../../game-renderer/src/battle/windSignal";
 
 export type BladeFieldTierId = "near" | "mid" | "far";
 
@@ -115,6 +121,28 @@ export interface BladeFieldTransitionUniforms {
   nearCoverageWidthScale: FloatUniformNode;
   lowerFarWidthScale: FloatUniformNode;
   lowerFarWidthEndM: FloatUniformNode;
+}
+
+export interface BladeFieldWindUniforms extends BattleWindUniforms {
+  meanDirection: Vec2UniformNode;
+  speed: FloatUniformNode;
+  gustPhase: FloatUniformNode;
+  gustStrength: FloatUniformNode;
+  bandVelocity: Vec2UniformNode;
+  bandFrequency: FloatUniformNode;
+  bandSharpness: FloatUniformNode;
+}
+
+export function createBladeFieldWindUniforms(): BladeFieldWindUniforms {
+  return createWindUniforms({
+    meanDirection: uniform(new THREE.Vector2(0, 0)) as unknown as Vec2UniformNode,
+    speed: uniform(0) as unknown as FloatUniformNode,
+    gustPhase: uniform(0) as unknown as FloatUniformNode,
+    gustStrength: uniform(0) as unknown as FloatUniformNode,
+    bandVelocity: uniform(new THREE.Vector2(0, 0)) as unknown as Vec2UniformNode,
+    bandFrequency: uniform(0) as unknown as FloatUniformNode,
+    bandSharpness: uniform(0) as unknown as FloatUniformNode,
+  });
 }
 
 export interface BladeFieldMeadowFarDensityProfile {
@@ -258,11 +286,12 @@ export interface BladeFieldStats {
     runtimeComputeRoute: "not-run" | "active";
   };
   wind: {
-    timeUniform: "PhotorealWorld.uTime";
-    phaseSpeed: number;
-    spatialScaleX: number;
-    spatialScaleY: number;
-    tipAmplitudeM: number;
+    source: "packages/game-renderer/src/battle/windSignal.ts";
+    timeUniform: "PhotorealWorld.uTime -> updateWindUniforms";
+    bandFunction: "sin-front cheap mirror of windBandAnalytic";
+    bandWavelengthM: number;
+    modulationDepth: { trough: number; crest: number };
+    tipAmplitudeScaleM: number;
   };
   palette: typeof BLADE_FIELD_PALETTE;
   recordHash: string;
@@ -336,7 +365,7 @@ const SEED24_MASK = 0x00ff_ffff;
 
 export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
   private readonly buckets: TierBucket[];
-  private readonly time: FloatNode;
+  private readonly wind: BladeFieldWindUniforms;
   private readonly sunDirection = uniform(new THREE.Vector3(0, 0, 1)) as unknown as Vec3UniformNode;
   private readonly rimStrength = uniform(
     BLADE_FIELD_TRANSLUCENCY.rimStrength,
@@ -364,14 +393,14 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
    *  up) does not distance-cull the whole field. */
   constructor(
     scene: THREE.Scene,
-    time: FloatNode = uniform(0) as unknown as FloatNode,
     tiers: readonly BladeFieldTierSpec[] = BLADE_FIELD_LOD_TIERS,
     edgeFade = false,
     transition:
       | BladeFieldTransitionProfile
       | BladeFieldTransitionUniforms = DEFAULT_BLADE_FIELD_TRANSITION,
+    wind: BladeFieldWindUniforms = createBladeFieldWindUniforms(),
   ) {
-    this.time = time;
+    this.wind = wind;
     this.tiers = tiers;
     this.transitionUniforms =
       "profile" in transition ? transition : createBladeFieldTransitionUniforms(transition);
@@ -449,13 +478,13 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
       bucket.mesh.material = bladeFieldMaterial(
         this.runtime.grassData,
         bucket.visibleIndices,
-        this.time,
         this.transitionUniforms,
         this.runtime.anchor,
         this.thinning.survivorAlbedoBlend,
         this.sunDirection,
         this.rimStrength,
         this.subsurfaceStrength,
+        this.wind,
       );
       bucket.records = 0;
       // Capacity, not the drawn count: the indirect buffer's GPU-routed
@@ -663,11 +692,12 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
         runtimeComputeRoute: this.runtime?.routed ? "active" : "not-run",
       },
       wind: {
-        timeUniform: "PhotorealWorld.uTime",
-        phaseSpeed: 0.82,
-        spatialScaleX: 0.035,
-        spatialScaleY: 0.021,
-        tipAmplitudeM: 0.034,
+        source: "packages/game-renderer/src/battle/windSignal.ts",
+        timeUniform: "PhotorealWorld.uTime -> updateWindUniforms",
+        bandFunction: "sin-front cheap mirror of windBandAnalytic",
+        bandWavelengthM: 64,
+        modulationDepth: { trough: 0.3, crest: 1.8 },
+        tipAmplitudeScaleM: 0.018,
       },
       palette: BLADE_FIELD_PALETTE,
       recordHash: this.recordHash,
@@ -844,13 +874,13 @@ function createGpuRuntime(
 function bladeFieldMaterial(
   grassData: unknown,
   visibleIndices: unknown,
-  time: FloatNode,
   transition: BladeFieldTransitionUniforms,
   anchor: Vec2UniformNode,
   survivorAlbedoBlend: number,
   sunDirection: Vec3UniformNode,
   rimStrength: FloatUniformNode,
   subsurfaceStrength: FloatUniformNode,
+  wind: BladeFieldWindUniforms,
 ): THREE.MeshStandardNodeMaterial {
   // Standard material so the environment (the mood owner) lights the canopy -
   // Lambert never samples the sky IBL here and left the field slate-grey. The
@@ -876,6 +906,7 @@ function bladeFieldMaterial(
   const vShadeNormal = varying(vec3(0.0, 0.0, 1.0));
   const vWorldPosition = varying(vec3(0.0));
   const vTranslucencyWeight = varying(float(0.0));
+  const vWindFlash = varying(float(0.0));
   const vRough = varying(float(0.96));
 
   const buildVertex = Fn(() => {
@@ -998,10 +1029,42 @@ function bladeFieldMaterial(
     const u = float(1.0).sub(t).toVar();
     const t2 = t.mul(t).toVar();
     const u2 = u.mul(u).toVar();
-    const windDir = normalize(vec3(0.82, 0.22, 0.0));
-    const windWave = sin(
-      phase.add(time.mul(0.82)).add(base.x.mul(0.035)).add(base.y.mul(0.021)),
+    const windSpeed = max(wind.speed, 0.0);
+    const bandSeconds = wind.gustPhase.div(max(length(wind.bandVelocity), 0.001));
+    const bandPoint = base.xy.sub(wind.bandVelocity.mul(bandSeconds)).toVar();
+    const windSide = vec2(wind.meanDirection.y.mul(-1.0), wind.meanDirection.x);
+    const bandAlong = dot(bandPoint, wind.meanDirection);
+    const bandCross = dot(bandPoint, windSide);
+    const bandPhase = bandAlong
+      .mul(wind.bandFrequency)
+      .add(sin(bandCross.mul(0.045)).mul(0.85))
+      .add(sin(bandAlong.add(bandCross.mul(0.55)).mul(0.019)).mul(0.3));
+    const bandWave = sin(bandPhase).toVar();
+    const gustPeak = pow(smoothstep(float(0.05), float(1.0), bandWave), wind.bandSharpness)
+      .toVar();
+    const gustTrough = pow(smoothstep(float(0.05), float(1.0), bandWave.mul(-1.0)), 1.2)
+      .toVar();
+    const gustBand = clamp(gustPeak.mul(1.8).sub(gustTrough.mul(0.85)), -0.8, 1.8).toVar();
+    const windJitter = fanHashA.sub(0.5).mul(0.22).add(clumpSeed01.sub(0.5).mul(0.08));
+    const jitterCos = cos(windJitter);
+    const jitterSin = sin(windJitter);
+    const windDir = normalize(
+      vec3(
+        wind.meanDirection.x.mul(jitterCos).sub(wind.meanDirection.y.mul(jitterSin)),
+        wind.meanDirection.x.mul(jitterSin).add(wind.meanDirection.y.mul(jitterCos)),
+        0.0,
+      ),
     ).toVar();
+    const heightWindProfile = log(max(height, float(0.015)).add(0.06).div(0.06)).mul(0.19523);
+    const bandModulation = clamp(float(0.55).add(gustBand.mul(0.72)), 0.3, 1.8).toVar();
+    const windAmplitude = heightWindProfile.mul(windSpeed).mul(bandModulation).mul(0.018).toVar();
+    const windWave = sin(
+      phase
+        .add(bandPhase.mul(0.8))
+        .add(clumpSeed01.mul(1.7))
+        .sub(t.mul(0.75)),
+    ).toVar();
+    const windOffset = windDir.mul(windWave).mul(height).mul(windAmplitude).toVar();
     const clumpBend = mix(0.76, 1.18, clumpWeight);
     const p0 = base;
     const p1 = base
@@ -1010,11 +1073,11 @@ function bladeFieldMaterial(
     const p2 = base
       .add(terrainNormal.mul(height).mul(0.7))
       .add(tangentForward.mul(bend).mul(height).mul(0.34).mul(clumpBend))
-      .add(windDir.mul(windWave).mul(height).mul(0.018));
+      .add(windOffset.mul(0.56));
     const p3 = base
       .add(terrainNormal.mul(height))
       .add(tangentForward.mul(bend).mul(height).mul(0.62).mul(clumpBend))
-      .add(windDir.mul(windWave).mul(height).mul(0.034));
+      .add(windOffset);
     const center = p0
       .mul(u2.mul(u))
       .add(p1.mul(3.0).mul(u2).mul(t))
@@ -1073,6 +1136,7 @@ function bladeFieldMaterial(
     const upper = rgbNode(BLADE_FIELD_PALETTE.upper);
     const tip = rgbNode(BLADE_FIELD_PALETTE.tip);
     const dry = rgbNode(BLADE_FIELD_PALETTE.dry);
+    const sheen = rgbNode(BLADE_FIELD_PALETTE.sheen);
     const body = mix(
       mix(
         mix(
@@ -1105,9 +1169,16 @@ function bladeFieldMaterial(
       .mul(clumpFactor)
       .mul(bladeFactor)
       .mul(mix(0.92, 0.72, farSoftShape));
+    const gustTipFlash = gustPeak
+      .mul(smoothstepN(0.58, 1.0, t))
+      .mul(translucencyNearFade)
+      .mul(edgeSink)
+      .mul(mix(1.0, 0.5, farSoftShape));
     const desat = mix(shaded, vec3(dot(shaded, vec3(0.333))), distFade.mul(0.16));
-    const albedo = mix(desat, meadow, ringFade.mul(survivorAlbedoBlend));
+    const windSheen = mix(desat, sheen, clamp(gustTipFlash.mul(0.5), 0.0, 0.58));
+    const albedo = mix(windSheen, meadow, ringFade.mul(survivorAlbedoBlend));
     vAlbedo.assign(clamp(albedo, vec3(0.0), vec3(1.0)));
+    vWindFlash.assign(clamp(gustTipFlash.mul(0.24), 0.0, 0.22));
     const cameraGroundDist = length(cameraPosition.xy.sub(base.xy));
     const distanceFalloff = float(1.0).sub(
       smoothstep(transition.nearTierEndM, transition.midTierEndM, cameraGroundDist),
@@ -1148,6 +1219,8 @@ function bladeFieldMaterial(
   );
   material.emissiveNode = linearAlbedo(
     rgbNode(BLADE_FIELD_PALETTE.trans).mul(emissiveDisplayStrength),
+  ).add(
+    linearAlbedo(rgbNode(BLADE_FIELD_PALETTE.sheen).mul(vWindFlash)),
   );
   material.roughnessNode = vRough;
   return material;

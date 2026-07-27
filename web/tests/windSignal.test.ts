@@ -13,7 +13,7 @@ describe("windSignal", () => {
     const b = sampleBattleWind(42.25, -17.5, 9.75);
 
     expect(b).toEqual(a);
-    expect(hashWindSweep()).toBe("5b5ef7963d5af5bd");
+    expect(hashWindSweep()).toBe("cca0878136ac00e8");
   });
 
   it("keeps the boundary-layer profile finite and monotonic", () => {
@@ -69,6 +69,11 @@ describe("windSignal", () => {
     expect(uniforms.speed.value).toBe(4.2);
     expect(uniforms.gustPhase.value).toBeCloseTo(64.05, 8);
     expect(uniforms.gustStrength.value).toBe(sampleBattleWind(0, 0, 12.5).gust);
+    expect(uniforms.bandVelocity.value.x).toBeCloseTo(4.750890070800221, 12);
+    expect(uniforms.bandVelocity.value.y).toBeCloseTo(-1.9194841846631279, 12);
+    expect(uniforms.bandFrequency.value).toBeCloseTo(0.09817477042468103, 14);
+    expect((Math.PI * 2) / uniforms.bandFrequency.value).toBeCloseTo(64, 12);
+    expect(uniforms.bandSharpness.value).toBe(2.7);
   });
 });
 

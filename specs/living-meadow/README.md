@@ -23,7 +23,7 @@ implements, the orchestrator owns browser gates (capture.mjs in the session
 scratchpad; CANVAS_ONLY=1 for byte-stable canvas shots), unprimed critiques,
 review, commits, and lane merges (merge lm-audio into living-meadow after each
 audio pass; sync back before the next audio slice).
-**Pick up at:** `06` silhouette, then `07` wind (verify in-battle by
+**Pick up at:** `08` fog, then `09` cutover (+ baseline re-bless debt) (verify in-battle by
 scene run + snapshot neutrality, commit on lm-audio, merge). Then grass `04`
 (color ramp — non-blocking David sign-off under golden-hour AND overcast),
 `05` density (owns far-density constants + near-bald-ground gap + ground
@@ -201,8 +201,8 @@ Grass
 - [x] `03` translucency (magnitude re-judged at 04/08)
 - [x] `04` color / 5-stop ramp (hue landed; saturation gap -> 08; sign-off silent, evidence call)
 - [x] `05` density-to-horizon (near-band residual ruled out of scope — tactical camera)
-- [ ] `06` blade silhouette / soft tip
-- [ ] `07` wind motion on grass (join → windSignal)
+- [x] `06` blade silhouette / soft tip
+- [x] `07` wind motion (64m analytic front; windSignal sole owner)
 - [ ] `08` fog / horizon dissolve (via `scene.fogNode`)
 - [ ] `09` production wire-in (hard cutover)
 

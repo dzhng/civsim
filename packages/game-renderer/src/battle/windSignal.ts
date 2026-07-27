@@ -20,6 +20,9 @@ export interface BattleWindUniforms {
   speed: WindUniformValue<number>;
   gustPhase: WindUniformValue<number>;
   gustStrength: WindUniformValue<number>;
+  bandVelocity: WindUniformValue<WindVector2Like>;
+  bandFrequency: WindUniformValue<number>;
+  bandSharpness: WindUniformValue<number>;
 }
 
 const DEG_TO_RAD = Math.PI / 180;
@@ -33,6 +36,12 @@ const SIDE_DIR_X = -MEAN_DIR_Y;
 const SIDE_DIR_Y = MEAN_DIR_X;
 const GUSTINESS = 1.0;
 const TURBULENCE_INTENSITY = 0.19;
+const BAND_ADVECTION_SCALE = 1.22;
+const BAND_WAVELENGTH_M = 64;
+const BAND_SPATIAL_FREQUENCY = (Math.PI * 2) / BAND_WAVELENGTH_M;
+const BAND_SHARPNESS = 2.7;
+const BAND_VEL_X = MEAN_VEL_X * BAND_ADVECTION_SCALE;
+const BAND_VEL_Y = MEAN_VEL_Y * BAND_ADVECTION_SCALE;
 const CELL_ADVECT_SPEED = MEAN_WIND_SPEED * 1.25;
 const CELL_WRAP_SPAN = 1840;
 const CELL_WRAP_MIN = -1280;
@@ -141,38 +150,52 @@ export function windProfile(height: number): number {
   return Math.log((z + 0.06) / 0.06) * 0.19523;
 }
 
-export function createWindUniforms(): BattleWindUniforms {
-  return updateWindUniforms(
-    {
-      meanDirection: { value: { x: MEAN_DIR_X, y: MEAN_DIR_Y } },
-      speed: { value: MEAN_WIND_SPEED },
-      gustPhase: { value: 0 },
-      gustStrength: { value: 0 },
-    },
-    0,
-  );
+export function createWindUniforms(): BattleWindUniforms;
+export function createWindUniforms<T extends BattleWindUniforms>(target: T): T;
+export function createWindUniforms<T extends BattleWindUniforms>(
+  target?: T,
+): BattleWindUniforms | T {
+  const uniforms = target ?? {
+    meanDirection: { value: { x: MEAN_DIR_X, y: MEAN_DIR_Y } },
+    speed: { value: MEAN_WIND_SPEED },
+    gustPhase: { value: 0 },
+    gustStrength: { value: 0 },
+    bandVelocity: { value: { x: BAND_VEL_X, y: BAND_VEL_Y } },
+    bandFrequency: { value: BAND_SPATIAL_FREQUENCY },
+    bandSharpness: { value: BAND_SHARPNESS },
+  };
+  return updateWindUniforms(uniforms, 0);
 }
 
-export function updateWindUniforms(
-  uniforms: BattleWindUniforms,
+export function updateWindUniforms<T extends BattleWindUniforms>(
+  uniforms: T,
   tSeconds: number,
-): BattleWindUniforms {
+): T {
   const t = finiteOr(tSeconds, 0);
   const origin = sampleBattleWind(0, 0, t);
   writeVec2(uniforms.meanDirection.value, MEAN_DIR_X, MEAN_DIR_Y);
   uniforms.speed.value = MEAN_WIND_SPEED;
-  uniforms.gustPhase.value = t * MEAN_WIND_SPEED * 1.22;
+  uniforms.gustPhase.value = t * Math.hypot(BAND_VEL_X, BAND_VEL_Y);
   uniforms.gustStrength.value = origin.gust;
+  writeVec2(uniforms.bandVelocity.value, BAND_VEL_X, BAND_VEL_Y);
+  uniforms.bandFrequency.value = BAND_SPATIAL_FREQUENCY;
+  uniforms.bandSharpness.value = BAND_SHARPNESS;
   return uniforms;
 }
 
 function windBandAnalytic(x: number, y: number, t: number): number {
-  const qx = x - MEAN_VEL_X * (t * 1.22);
-  const qy = y - MEAN_VEL_Y * (t * 1.22);
-  const a = fbm2(qx * 0.0052, qy * 0.0052, 3);
-  const b = pn2(qx * 0.0168 + 13, qy * 0.0168 + 13);
-  const c = pn2(qx * 0.055 + 41, qy * 0.055 + 41);
-  return clamp(a * 1.3 + b * 0.55 + c * 0.22, -1.2, 1.4);
+  const qx = x - BAND_VEL_X * t;
+  const qy = y - BAND_VEL_Y * t;
+  const along = qx * MEAN_DIR_X + qy * MEAN_DIR_Y;
+  const cross = qx * SIDE_DIR_X + qy * SIDE_DIR_Y;
+  const phase =
+    along * BAND_SPATIAL_FREQUENCY +
+    Math.sin(cross * 0.045) * 0.85 +
+    Math.sin((along + cross * 0.55) * 0.019) * 0.3;
+  const wave = Math.sin(phase);
+  const crest = Math.pow(smoothstep(0.05, 1.0, wave), BAND_SHARPNESS);
+  const trough = Math.pow(smoothstep(0.05, 1.0, -wave), 1.2);
+  return clamp(crest * 1.8 - trough * 0.85, -0.8, 1.8);
 }
 
 function turbulence2(x: number, y: number, t: number): { x: number; y: number } {
@@ -196,22 +219,6 @@ function travellingStation(initialStation: number, t: number): number {
     CELL_WRAP_SPAN,
   );
   return CELL_WRAP_MIN + offset;
-}
-
-function fbm2(x: number, y: number, octaves: number): number {
-  let amplitude = 0.5;
-  let sum = 0;
-  let norm = 0;
-  let px = x;
-  let py = y;
-  for (let i = 0; i < octaves; i++) {
-    sum += amplitude * pn2(px, py);
-    norm += amplitude;
-    px = px * 2.02 + 3.1;
-    py = py * 2.02 + 1.7;
-    amplitude *= 0.5;
-  }
-  return norm > 0 ? sum / norm : 0;
 }
 
 function pn2(x: number, y: number): number {

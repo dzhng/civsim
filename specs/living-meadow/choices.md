@@ -80,3 +80,13 @@ consolidated at close per implement-spec step 11.
 - **David sign-off**: window opened, silent; proceeded on unprimed-critique
   evidence (hue family right, both-lights believable). Reversible. *User-owned
   entry, provisional call recorded.*
+
+## Pass: slice 05 density (2026-07-27)
+
+- **Near-band residual ruled out of scope**: the hero's continuous foreground
+  carpet exists only at a ground-level camera the game does not use; judged
+  coverage at game framings reached reference parity mid/far. Recorded in the
+  slice file. *Provisional — reopen only if a photo-mode/low camera ships.*
+- **Cost 1.65-1.67x accepted** under D2 (perf deferred); slice 40 owns tuning.
+- Second fix round taught: tier *transition* constants do not re-route bucket
+  membership; the working levers were width/fan-out/thinning. *Recorded for 40.*

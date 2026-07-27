@@ -29,3 +29,21 @@ floor (perf *tuning* is `40`, not this gate — D2).
 Ring radii / per-ring density constants; whether to stretch the far tier or add a
 4th far ring. Heed the `battle-map-reference` rejection ledger — do **not**
 re-litigate flat-paint far proxies it already rejected.
+
+## Landed (2026-07-27)
+
+Levers: far law extended to 1250m (ref 300m, softWidth 2.2, edgeSink 1120);
+bladesPerRecord 2x near/mid fan-out; near width lift 1.55; mid-tier reach
+extended to 64m + lower-far width boost 1.9 fading by 120m (all meadow-opt-in;
+production defaults untouched until 09). Cost: close 739k -> 1.22M submitted
+tris (1.65x), vista 867k -> 1.45M (1.67x) — inside budget.
+
+Unprimed judge: **MATERIAL IMPROVEMENT** — near-band frame coverage 4% -> 11%
+(2.5x), mid band 31% -> 39%, far at parity with the reference (~77%).
+
+**Scope ruling (recorded):** the residual gap the judge names — the reference's
+continuous bottom-quarter carpet — is a property of the hero's ground-level
+first-person camera. Our ratified close gate is the game's nearest tactical
+framing (~74 m out); at game cameras the sward now reads dense from the
+mid-field to the horizon. The in-the-grass carpet band is intentionally out of
+scope for this spec (a hypothetical photo-mode camera would reopen it).

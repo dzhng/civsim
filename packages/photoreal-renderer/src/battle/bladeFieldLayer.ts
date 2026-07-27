@@ -77,6 +77,12 @@ export interface BladeFieldTransitionProfile {
   /** Strength of the terrain-only far grass brush. Blade-field lab routes can
    *  keep ratified blade statistics by setting this to zero. */
   terrainDetailStrength?: number;
+  /** Opt-in near/mid width lift for living-meadow density. Defaults to 1. */
+  nearCoverageWidthScale?: number;
+  /** Opt-in lower-far width lift. Defaults to 1 and fades out by
+   *  lowerFarWidthEndM so true horizon density stays sampling-owned. */
+  lowerFarWidthScale?: number;
+  lowerFarWidthEndM?: number;
 }
 
 type FloatUniformNode = FloatNode & { value: number };
@@ -106,6 +112,9 @@ export interface BladeFieldTransitionUniforms {
   farSoftWidthScale: FloatUniformNode;
   edgeSinkStartM: FloatUniformNode;
   terrainDetailStrength: FloatUniformNode;
+  nearCoverageWidthScale: FloatUniformNode;
+  lowerFarWidthScale: FloatUniformNode;
+  lowerFarWidthEndM: FloatUniformNode;
 }
 
 export interface BladeFieldMeadowFarDensityProfile {
@@ -114,14 +123,28 @@ export interface BladeFieldMeadowFarDensityProfile {
   falloffPower: 1.5;
   farSoftWidthScale?: number;
   edgeSinkStartM?: number;
+  /** Local mesh fan-out per packed record; keeps the 16-float record schema. */
+  bladesPerRecord?: Partial<Record<BladeFieldTierId, number>>;
+  /** Width lift applied before the far-soft band. */
+  nearCoverageWidthScale?: number;
+  /** Moves the 8-segment mid tier into the close crop's real foreground band. */
+  midTierEndM?: number;
+  /** Extra lower-far width so 64-120m does not fall back to scattered spikes. */
+  lowerFarWidthScale?: number;
+  lowerFarWidthEndM?: number;
 }
 
 export const LIVING_MEADOW_FAR_DENSITY_PROFILE: BladeFieldMeadowFarDensityProfile = {
-  farGrassEndM: 720,
-  densityReferenceM: 260,
+  farGrassEndM: 1250,
+  densityReferenceM: 300,
   falloffPower: 1.5,
-  farSoftWidthScale: 1.72,
-  edgeSinkStartM: 560,
+  farSoftWidthScale: 2.2,
+  edgeSinkStartM: 1120,
+  bladesPerRecord: { near: 2, mid: 2, far: 1 },
+  nearCoverageWidthScale: 1.55,
+  midTierEndM: 64,
+  lowerFarWidthScale: 1.9,
+  lowerFarWidthEndM: 120,
 };
 
 export const BLADE_FIELD_LOD_TIERS: readonly BladeFieldTierSpec[] = [
@@ -156,6 +179,15 @@ export function createBladeFieldTransitionUniforms(
     terrainDetailStrength: uniform(
       terrainDetailStrengthUniformValue(normalized),
     ) as unknown as FloatUniformNode,
+    nearCoverageWidthScale: uniform(
+      nearCoverageWidthScaleUniformValue(normalized),
+    ) as unknown as FloatUniformNode,
+    lowerFarWidthScale: uniform(
+      lowerFarWidthScaleUniformValue(normalized),
+    ) as unknown as FloatUniformNode,
+    lowerFarWidthEndM: uniform(
+      lowerFarWidthEndUniformValue(normalized),
+    ) as unknown as FloatUniformNode,
   };
 }
 
@@ -173,6 +205,9 @@ export function updateBladeFieldTransitionUniforms(
   uniforms.farSoftWidthScale.value = farSoftWidthScaleUniformValue(normalized);
   uniforms.edgeSinkStartM.value = edgeSinkStartUniformValue(normalized);
   uniforms.terrainDetailStrength.value = terrainDetailStrengthUniformValue(normalized);
+  uniforms.nearCoverageWidthScale.value = nearCoverageWidthScaleUniformValue(normalized);
+  uniforms.lowerFarWidthScale.value = lowerFarWidthScaleUniformValue(normalized);
+  uniforms.lowerFarWidthEndM.value = lowerFarWidthEndUniformValue(normalized);
   return normalized;
 }
 
@@ -195,6 +230,7 @@ export interface BladeFieldStats {
       segments: number;
       minDistanceM: number;
       maxDistanceM: number;
+      bladesPerRecord: number;
       candidateRecords: number;
       records: number;
       droppedByThinning: number;
@@ -249,6 +285,7 @@ interface TierBucket {
   records: number;
   candidateRecords: number;
   droppedByThinning: number;
+  bladesPerRecord: number;
   drawBuffer: THREE.IndirectStorageBufferAttribute;
   visibleIndices: unknown | null;
   drawStorage: unknown | null;
@@ -346,7 +383,7 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
       metalness: 0,
     });
     this.buckets = tiers.map((spec) => {
-      const geometry = bladeGeometry(spec.segments);
+      const geometry = bladeGeometry(spec.segments, 1);
       const drawBuffer = new THREE.IndirectStorageBufferAttribute(
         new Uint32Array([geometry.index?.count ?? 0, 0, 0, 0, 0]),
         5,
@@ -368,6 +405,7 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
         records: 0,
         candidateRecords: 0,
         droppedByThinning: 0,
+        bladesPerRecord: 1,
         drawBuffer,
         visibleIndices: null,
         drawStorage: null,
@@ -376,6 +414,7 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
   }
 
   applyPackedRecords(packedRecords: Float32Array, visible = true): void {
+    this.updateBucketGeometriesForMeadowProfile();
     if (packedRecords.length % GRASS_FIELD_PACKED_STRIDE_FLOATS !== 0) {
       throw new Error(
         `blade field expected ${GRASS_FIELD_PACKED_STRIDE_FLOATS}-float records, got ${packedRecords.length}`,
@@ -490,10 +529,24 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     profile: BladeFieldMeadowFarDensityProfile | null,
   ): BladeFieldTransitionProfile {
     this.meadowFarDensity = profile;
+    this.updateBucketGeometriesForMeadowProfile();
     this.transition = this.applyTransitionProfile(this.transition);
     this.thinning = thinningProfileForTransition(this.transition, this.thinning.enabled, profile);
     if (this.recordCount > 0) this.applyPackedRecords(this.packedRecords, this.enabled);
     return this.transition;
+  }
+
+  private updateBucketGeometriesForMeadowProfile(): void {
+    for (const bucket of this.buckets) {
+      const bladesPerRecord = bladesPerRecordFor(this.meadowFarDensity, bucket.spec.id);
+      if (bucket.bladesPerRecord === bladesPerRecord) continue;
+      const geometry = bladeGeometry(bucket.spec.segments, bladesPerRecord);
+      geometry.instanceCount = bucket.mesh.geometry.instanceCount;
+      geometry.setIndirect(bucket.drawBuffer);
+      bucket.mesh.geometry.dispose();
+      bucket.mesh.geometry = geometry;
+      bucket.bladesPerRecord = bladesPerRecord;
+    }
   }
 
   private updateCpuMirrorTierCounts(anchor: readonly [number, number]): void {
@@ -558,8 +611,8 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     const tiers = Object.fromEntries(
       this.buckets.map((bucket) => {
         const range = tierRangesForTransition(this.transition)[bucket.spec.id];
-        const verticesPerBlade = (bucket.spec.segments + 1) * 2;
-        const trianglesPerBlade = bucket.spec.segments * 2;
+        const verticesPerRecord = (bucket.spec.segments + 1) * 2 * bucket.bladesPerRecord;
+        const trianglesPerRecord = bucket.spec.segments * 2 * bucket.bladesPerRecord;
         return [
           bucket.spec.id,
           {
@@ -567,11 +620,12 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
             segments: bucket.spec.segments,
             minDistanceM: range.minDistanceM,
             maxDistanceM: range.maxDistanceM,
+            bladesPerRecord: bucket.bladesPerRecord,
             candidateRecords: bucket.candidateRecords,
             records: bucket.records,
             droppedByThinning: bucket.droppedByThinning,
-            triangles: bucket.records * trianglesPerBlade,
-            vertices: bucket.records * verticesPerBlade,
+            triangles: bucket.records * trianglesPerRecord,
+            vertices: bucket.records * verticesPerRecord,
           },
         ];
       }),
@@ -636,9 +690,10 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
   }
 }
 
-function bladeGeometry(segments: number): THREE.InstancedBufferGeometry {
-  const vertexCount = (segments + 1) * 2;
-  const indexCount = segments * 6;
+function bladeGeometry(segments: number, bladesPerRecord: number): THREE.InstancedBufferGeometry {
+  const bladeCopies = Math.max(1, Math.min(4, Math.floor(bladesPerRecord)));
+  const vertexCount = (segments + 1) * 2 * bladeCopies;
+  const indexCount = segments * 6 * bladeCopies;
   const positions = new Float32Array(vertexCount * 3);
   const normals = new Float32Array(vertexCount * 3);
   const uvs = new Float32Array(vertexCount * 2);
@@ -647,30 +702,33 @@ function bladeGeometry(segments: number): THREE.InstancedBufferGeometry {
   let np = 0;
   let up = 0;
   let ip = 0;
-  for (let s = 0; s <= segments; s++) {
-    const t = s / segments;
-    for (const side of [-0.5, 0.5]) {
-      positions[vp++] = side;
-      positions[vp++] = t;
-      positions[vp++] = 0;
-      normals[np++] = 0;
-      normals[np++] = 0;
-      normals[np++] = 1;
-      uvs[up++] = side + 0.5;
-      uvs[up++] = t;
+  for (let copy = 0; copy < bladeCopies; copy++) {
+    for (let s = 0; s <= segments; s++) {
+      const t = s / segments;
+      for (const side of [-0.5, 0.5]) {
+        positions[vp++] = side;
+        positions[vp++] = t;
+        positions[vp++] = copy;
+        normals[np++] = 0;
+        normals[np++] = 0;
+        normals[np++] = 1;
+        uvs[up++] = side + 0.5;
+        uvs[up++] = t;
+      }
     }
-  }
-  for (let s = 0; s < segments; s++) {
-    const a = s * 2;
-    const b = a + 1;
-    const c = a + 2;
-    const d = a + 3;
-    indices[ip++] = a;
-    indices[ip++] = c;
-    indices[ip++] = b;
-    indices[ip++] = b;
-    indices[ip++] = c;
-    indices[ip++] = d;
+    const base = copy * (segments + 1) * 2;
+    for (let s = 0; s < segments; s++) {
+      const a = base + s * 2;
+      const b = a + 1;
+      const c = a + 2;
+      const d = a + 3;
+      indices[ip++] = a;
+      indices[ip++] = c;
+      indices[ip++] = b;
+      indices[ip++] = b;
+      indices[ip++] = c;
+      indices[ip++] = d;
+    }
   }
   const geometry = new THREE.InstancedBufferGeometry();
   geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
@@ -840,11 +898,43 @@ function bladeFieldMaterial(
     // strands into stubby wide paddles and collapses the clump structure the
     // close-gate oracle measures (the round-3 leak).
     const farSoftShape = survivorAlbedoBlend > 0 ? farSoft : float(0.0);
+    const lowerFarWidthBoost = smoothstep(
+      transition.midTierEndM,
+      transition.midTierEndM.add(float(0.001)),
+      eyeDist,
+    ).mul(
+      float(1.0).sub(smoothstep(transition.midTierEndM, transition.lowerFarWidthEndM, eyeDist)),
+    );
     // Tall clumps widen too: a clump reads as one bright mass, not stripes.
     const width = max(d1.x.mul(mix(0.85, 1.35, clamp(d2.w, 0.0, 1.0))), 0.018)
+      .mul(mix(transition.nearCoverageWidthScale, 1.0, farSoft))
+      .mul(mix(1.0, transition.lowerFarWidthScale, lowerFarWidthBoost))
       .mul(mix(1.0, transition.farSoftWidthScale, farSoftShape))
       .toVar();
     const clumpWeight = clamp(d2.w, 0.0, 1.0);
+    const bladeSeed01 = clamp(d2.z.div(float(SEED24_MASK)), 0.0, 1.0);
+    const clumpSeed01 = clamp(d2.y.div(float(SEED24_MASK)), 0.0, 1.0);
+    const bladeCopy = local.z.toVar();
+    const copyScatter = smoothstep(float(0.01), float(0.99), bladeCopy);
+    const fanHashA = fract(
+      bladeSeed01.mul(7.13).add(bladeCopy.mul(0.37)).add(clumpSeed01.mul(0.19)),
+    );
+    const fanHashB = fract(
+      bladeSeed01.mul(5.31).add(bladeCopy.mul(0.61)).add(clumpSeed01.mul(0.43)),
+    );
+    const fanYaw = d2.x.add(fanHashA.sub(0.5).mul(0.72).mul(copyScatter));
+    const terrainNormal = normalize(vec3(d3.x, d3.y, max(d3.z, 0.08))).toVar();
+    const fanForward = normalize(vec3(cos(fanYaw), sin(fanYaw), 0.0)).toVar();
+    const fanTangentForward = normalize(
+      fanForward.sub(terrainNormal.mul(dot(fanForward, terrainNormal))),
+    ).toVar();
+    const fanSide = normalize(cross(fanTangentForward, terrainNormal)).toVar();
+    const fanSpread = max(width.mul(5.4), 0.12).mul(copyScatter);
+    base.assign(
+      base
+        .add(fanSide.mul(fanHashA.sub(0.5)).mul(fanSpread))
+        .add(fanTangentForward.mul(fanHashB.sub(0.5)).mul(fanSpread).mul(0.72)),
+    );
     // Clump-scale canopy: the Voronoi clumpWeight (1.55 m cells) drives a
     // strong height swing so the field breaks into clumps with tip-lines at
     // many heights - the structure the close-gate oracle (and the reference)
@@ -896,10 +986,9 @@ function bladeFieldMaterial(
       .toVar();
     const bend = d1.z.mul(mix(1.34, 0.94, farSoftShape)).toVar();
     const phase = d1.w;
-    const yaw = d2.x;
+    const yaw = fanYaw;
     const clumpSeed = d2.y;
     const bladeSeed = d2.z;
-    const terrainNormal = normalize(vec3(d3.x, d3.y, max(d3.z, 0.08))).toVar();
     const forward = normalize(vec3(cos(yaw), sin(yaw), 0.0)).toVar();
     const tangentForward = normalize(
       forward.sub(terrainNormal.mul(dot(forward, terrainNormal))),
@@ -1080,7 +1169,10 @@ function transitionProfileForTiers(
     farGrassEndM,
   );
   const midTierEndM = Math.min(
-    Math.max(transition.midTierEndM ?? farGrassStartM, nearTierEndM),
+    Math.max(
+      meadowFarDensity?.midTierEndM ?? transition.midTierEndM ?? farGrassStartM,
+      nearTierEndM,
+    ),
     farGrassEndM,
   );
   return {
@@ -1092,6 +1184,19 @@ function transitionProfileForTiers(
     farSoftWidthScale: farSoftWidthScaleUniformValue({
       ...transition,
       farSoftWidthScale: meadowFarDensity?.farSoftWidthScale ?? transition.farSoftWidthScale,
+    }),
+    nearCoverageWidthScale: nearCoverageWidthScaleUniformValue({
+      ...transition,
+      nearCoverageWidthScale:
+        meadowFarDensity?.nearCoverageWidthScale ?? transition.nearCoverageWidthScale,
+    }),
+    lowerFarWidthScale: lowerFarWidthScaleUniformValue({
+      ...transition,
+      lowerFarWidthScale: meadowFarDensity?.lowerFarWidthScale ?? transition.lowerFarWidthScale,
+    }),
+    lowerFarWidthEndM: lowerFarWidthEndUniformValue({
+      ...transition,
+      lowerFarWidthEndM: meadowFarDensity?.lowerFarWidthEndM ?? transition.lowerFarWidthEndM,
     }),
     terrainDetailStrength: terrainDetailStrengthUniformValue(transition),
     edgeSinkStartM:
@@ -1128,6 +1233,9 @@ function normalizedTransitionProfile(
     nearTierEndM,
     midTierEndM,
     farSoftWidthScale: farSoftWidthScaleUniformValue(transition),
+    nearCoverageWidthScale: nearCoverageWidthScaleUniformValue(transition),
+    lowerFarWidthScale: lowerFarWidthScaleUniformValue(transition),
+    lowerFarWidthEndM: lowerFarWidthEndUniformValue(transition),
     terrainDetailStrength: terrainDetailStrengthUniformValue(transition),
     edgeSinkStartM:
       transition.edgeSinkStartM === undefined
@@ -1167,6 +1275,21 @@ function farSoftWidthScaleUniformValue(transition: BladeFieldTransitionProfile):
   return Math.max(1, Math.min(3, Number.isFinite(value) ? value : 1.6));
 }
 
+function nearCoverageWidthScaleUniformValue(transition: BladeFieldTransitionProfile): number {
+  const value = transition.nearCoverageWidthScale ?? 1;
+  return Math.max(1, Math.min(2.5, Number.isFinite(value) ? value : 1));
+}
+
+function lowerFarWidthScaleUniformValue(transition: BladeFieldTransitionProfile): number {
+  const value = transition.lowerFarWidthScale ?? 1;
+  return Math.max(1, Math.min(3, Number.isFinite(value) ? value : 1));
+}
+
+function lowerFarWidthEndUniformValue(transition: BladeFieldTransitionProfile): number {
+  const value = transition.lowerFarWidthEndM ?? midTierEndUniformValue(transition);
+  return Math.max(midTierEndUniformValue(transition), Number.isFinite(value) ? value : 0);
+}
+
 function edgeSinkStartUniformValue(transition: BladeFieldTransitionProfile): number {
   return transition.edgeSinkStartM ?? Math.max(0, transition.farGrassEndM - 0.001);
 }
@@ -1174,6 +1297,14 @@ function edgeSinkStartUniformValue(transition: BladeFieldTransitionProfile): num
 function terrainDetailStrengthUniformValue(transition: BladeFieldTransitionProfile): number {
   const value = transition.terrainDetailStrength ?? 1;
   return Math.max(0, Math.min(1, Number.isFinite(value) ? value : 1));
+}
+
+function bladesPerRecordFor(
+  profile: BladeFieldMeadowFarDensityProfile | null,
+  tier: BladeFieldTierId,
+): number {
+  const value = profile?.bladesPerRecord?.[tier] ?? 1;
+  return Math.max(1, Math.min(4, Number.isFinite(value) ? Math.floor(value) : 1));
 }
 
 function thinningProfileForTransition(

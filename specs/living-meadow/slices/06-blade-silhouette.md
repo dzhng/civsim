@@ -21,3 +21,14 @@ Near/mid density from `05`; the close-gate anatomy oracle.
 
 ## Delegated
 Segment counts per tier; width taper exponent.
+
+## Landed (2026-07-27)
+
+Taper converges to a point on all tiers (near shoulder curve + terminal tip;
+far 2-seg top vertex pair converges; view-facing bulk capped so rolled-leaf
+thickness can't blunt the tip). Applies to shared production geometry
+(shape-only improvement); production baseline movement folds into the slice-09
+re-bless. Unprimed critique on the matched foreground zoom: MIXED leaning
+NATURAL-STROKE — dominant blades correctly tapered/pointed; ~10-15% of small
+background blades read teardrop (shoulder bulge under the slice-05 width lift).
+Residual recorded as an optional polish nit for slice 40/09, not re-opened.

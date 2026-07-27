@@ -149,7 +149,7 @@ export const LIVING_MEADOW_FAR_DENSITY_PROFILE: BladeFieldMeadowFarDensityProfil
 
 export const BLADE_FIELD_LOD_TIERS: readonly BladeFieldTierSpec[] = [
   { id: "near", lodTier: 0, segments: 15, minDistanceM: 0, maxDistanceM: 5 },
-  { id: "mid", lodTier: 1, segments: 5, minDistanceM: 5, maxDistanceM: 20 },
+  { id: "mid", lodTier: 1, segments: 8, minDistanceM: 5, maxDistanceM: 20 },
   { id: "far", lodTier: 2, segments: 2, minDistanceM: 20, maxDistanceM: 64 },
 ];
 
@@ -706,7 +706,7 @@ function bladeGeometry(segments: number, bladesPerRecord: number): THREE.Instanc
     for (let s = 0; s <= segments; s++) {
       const t = s / segments;
       for (const side of [-0.5, 0.5]) {
-        positions[vp++] = side;
+        positions[vp++] = s === segments ? 0 : side;
         positions[vp++] = t;
         positions[vp++] = copy;
         normals[np++] = 0;
@@ -1030,16 +1030,21 @@ function bladeFieldMaterial(
         .add(p3.sub(p2).mul(3.0).mul(t2)),
     ).toVar();
     const geoNormal = normalize(cross(side, tangent)).toVar();
-    // Sharper taper: fat straight wedges read as agave, not grass (unprimed
-    // critique). Narrow shoulders, fine tip.
-    const widthFactor = t
-      .mul(0.5)
-      .add(0.5)
-      .mul(pow(float(1.0).sub(t), mix(1.6, 2.35, farSoftShape)))
-      .toVar();
+    // Pen-style silhouette: a slight shoulder above the root, then a terminal
+    // collapse so the final span resolves to a point instead of a flat paddle.
+    const shoulderFactor = mix(0.6, 1.02, smoothstep(float(0.0), float(0.16), t));
+    const bodyTaper = pow(float(1.0).sub(t), mix(0.5, 0.62, farSoftShape));
+    const tipTaper = pow(
+      float(1.0).sub(smoothstep(float(0.78), float(1.0), t)),
+      mix(1.15, 1.55, farSoftShape),
+    );
+    const widthFactor = shoulderFactor.mul(bodyTaper).mul(tipTaper).toVar();
     const cameraDir = normalize(cameraPosition.sub(center)).toVar();
     const viewSideSigned = dot(cameraDir, side).toVar();
-    const centerMask = pow(float(1.0).sub(t), 0.48).mul(pow(t.add(0.05), 0.33));
+    const centerMask = min(
+      pow(float(1.0).sub(t), 0.48).mul(pow(t.add(0.05), 0.33)),
+      widthFactor.mul(1.1),
+    );
     const viewBulk = pow(abs(viewSideSigned), 1.12).mul(centerMask).mul(width).mul(2.35);
     const bladeSide = local.x.mul(2.0);
     const world = center

@@ -68,3 +68,15 @@ consolidated at close per implement-spec step 11.
 - **Spike finding for the ladder:** near-field bald ground is the biggest gap
   vs the hero; ground-underlayer color match flagged into slice 04/05; flat-cut
   tip fix flagged into slice 06. *Sound — recorded in the slice file.*
+
+## Pass: slice 04 color (2026-07-27)
+
+- **Ground underlayer moved through its owner** (GROUND_COVER_COLOR green-grass)
+  toward the ramp's low/mid family; deterministic ground-hash test re-pinned
+  8e8938da -> ea5218e3 (deliberate palette change, correct re-pin). *Sound.*
+- **Saturation gap assigned to slice 08**, not albedo: measured albedo-chroma
+  insensitivity (+0.2pp rendered S per 1.3x albedo boost) proves the hero's
+  richness needs environment/grade work. *Sound — evidence-backed.*
+- **David sign-off**: window opened, silent; proceeded on unprimed-critique
+  evidence (hue family right, both-lights believable). Reversible. *User-owned
+  entry, provisional call recorded.*

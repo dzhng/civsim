@@ -973,10 +973,25 @@ function bladeFieldMaterial(
     // 2. sin(seed * 43758.5453) - the classic hash - returns garbage/NaN on
     //    Metal for large arguments; one NaN turns the whole albedo white.
     //    Blade-level noise must use small-argument hashes (fract-based).
-    const root = rgbNode(BLADE_FIELD_PALETTE.root);
+    const baseColor = rgbNode(BLADE_FIELD_PALETTE.base);
+    const low = rgbNode(BLADE_FIELD_PALETTE.low);
     const mid = rgbNode(BLADE_FIELD_PALETTE.mid);
+    const upper = rgbNode(BLADE_FIELD_PALETTE.upper);
     const tip = rgbNode(BLADE_FIELD_PALETTE.tip);
-    const body = mix(mix(root, mid, smoothstepN(0.0, 0.58, t)), tip, smoothstepN(0.38, 1.0, t));
+    const dry = rgbNode(BLADE_FIELD_PALETTE.dry);
+    const body = mix(
+      mix(
+        mix(
+          mix(baseColor, low, smoothstepN(0.0, 0.28, t)),
+          mid,
+          smoothstepN(0.18, 0.54, t),
+        ),
+        upper,
+        smoothstepN(0.46, 0.78, t),
+      ),
+      tip,
+      smoothstepN(0.72, 1.0, t),
+    );
     const tipWeight = smoothstepN(0.38, 1.0, t);
     const dryTip = smoothstepN(0.72, 1.0, t).mul(BLADE_FIELD_PALETTE.dryTipMix);
     const heightAo = mix(0.5, 1.0, clamp(pow(t, 0.6), 0.0, 1.0));
@@ -990,7 +1005,7 @@ function bladeFieldMaterial(
     // dissolves instead of cutting a hard disc (slice 12 owns real thinning).
     const ringFade = smoothstep(transition.farGrassStartM, transition.farGrassEndM, eyeDist);
     const meadow = rgbNode(BLADE_FIELD_PALETTE.ringMeadow);
-    const shaded = mix(body, tip, dryTip)
+    const shaded = mix(body, dry, dryTip)
       .mul(heightAo)
       .mul(clumpShade)
       .mul(clumpFactor)

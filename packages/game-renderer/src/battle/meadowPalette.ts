@@ -3,6 +3,7 @@ import type { BattleGroundCover } from "./terrainFeatures";
 export type Rgb = readonly [number, number, number];
 
 const MEADOW_ANCHOR: Rgb = [0.4, 0.49, 0.26];
+const GREEN_GRASS_UNDERLAYER: Rgb = fromAnchor(MEADOW_ANCHOR, [0.42, 0.52, 0.27]);
 
 function fromAnchor(base: Rgb, legacy: Rgb): Rgb {
   return [
@@ -13,7 +14,7 @@ function fromAnchor(base: Rgb, legacy: Rgb): Rgb {
 }
 
 export const GROUND_COVER_COLOR: Readonly<Record<BattleGroundCover, Rgb>> = {
-  "green-grass": MEADOW_ANCHOR,
+  "green-grass": GREEN_GRASS_UNDERLAYER,
   "yellow-grass": fromAnchor(MEADOW_ANCHOR, [0.6, 0.57, 0.31]),
   "scrub-grass": fromAnchor(MEADOW_ANCHOR, [0.52, 0.53, 0.34]),
   sand: fromAnchor(MEADOW_ANCHOR, [0.74, 0.66, 0.46]),
@@ -23,10 +24,16 @@ export interface MeadowFamily {
   readonly base: Rgb;
   readonly blade: {
     readonly source: "packages/game-renderer/src/battle/meadowPalette.ts MEADOW.blade";
+    readonly base: Rgb;
+    readonly low: Rgb;
+    /** @deprecated Use base/low/mid/upper/tip for the blade ramp. */
     readonly root: Rgb;
     readonly mid: Rgb;
+    readonly upper: Rgb;
     readonly tip: Rgb;
     readonly trans: Rgb;
+    readonly sheen: Rgb;
+    readonly dry: Rgb;
     readonly dryTipMix: number;
     readonly ringMeadow: Rgb;
   };
@@ -70,12 +77,17 @@ export function meadowFamily(base: Rgb): MeadowFamily {
   const color = (legacy: Rgb): Rgb => fromAnchor(base, legacy);
   const blade = {
     source: "packages/game-renderer/src/battle/meadowPalette.ts MEADOW.blade",
+    base: color([0.385, 0.489, 0.216]),
+    low: color([0.475, 0.553, 0.202]),
     root: color([0.46, 0.52, 0.25]),
-    mid: color([0.58, 0.61, 0.32]),
-    tip: color([0.71, 0.71, 0.42]),
+    mid: color([0.603, 0.642, 0.265]),
+    upper: color([0.677, 0.703, 0.3]),
+    tip: color([0.739, 0.739, 0.362]),
     trans: color([0.91, 0.93, 0.49]),
+    sheen: color([0.86, 0.88, 0.65]),
+    dry: color([0.778, 0.7, 0.362]),
     dryTipMix: 0.05,
-    ringMeadow: color([0.47, 0.53, 0.32]),
+    ringMeadow: color([0.48, 0.55, 0.31]),
   } as const;
   const defaultQuad = {
     oliveLow: color([0.43, 0.56, 0.22]),

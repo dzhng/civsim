@@ -30,3 +30,24 @@ Neutral-albedo principle; ground/vista turf (re-blessed here, not broken silentl
 ## Delegated
 Whether to shift the existing anchor or add a sibling `MEADOW.bladeGhibli` family
 (prefer extending the anchor).
+
+## Landed (2026-07-27)
+
+5-stop ramp (base/low/mid/upper/tip + sheen + dry) through the existing
+fromAnchor anchors; ground underlayer moved via its owner
+GROUND_COVER_COLOR["green-grass"] (the spike's carpet finding) with the ground
+vertex-hash test deliberately re-pinned. Ramp stops given a 1.3x luma-preserving
+chroma boost after the critique.
+
+Unprimed color critique: **hue family correct** (yellow-green, "unambiguously
+closer to the reference than flat olive-gray"), believable natural grass under
+BOTH golden-hour and overcast, no baked warmth (Aegean rule holds). Remaining
+gap: under-saturation vs the hero (S ~24% vs 30-45%) — measured to be
+**lighting/tonemap-dominated, not albedo**: a further 1.3x albedo chroma boost
+moved rendered median S by only +0.2pp. The saturation gap is therefore OWNED BY
+SLICE 08 (environment preset / optional look-grade on the post owner), keeping
+albedo neutral per the locked aesthetic rule.
+
+David sign-off window: opened (hero + 4-preset matrix in Preview), no response
+within the window — proceeded on the critique evidence; the call is reversible
+via the palette stops.

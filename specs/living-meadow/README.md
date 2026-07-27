@@ -23,7 +23,7 @@ implements, the orchestrator owns browser gates (capture.mjs in the session
 scratchpad; CANVAS_ONLY=1 for byte-stable canvas shots), unprimed critiques,
 review, commits, and lane merges (merge lm-audio into living-meadow after each
 audio pass; sync back before the next audio slice).
-**Pick up at:** integrate `26` when its codex run lands (verify in-battle by
+**Pick up at:** `05` density-to-horizon (verify in-battle by
 scene run + snapshot neutrality, commit on lm-audio, merge). Then grass `04`
 (color ramp — non-blocking David sign-off under golden-hour AND overcast),
 `05` density (owns far-density constants + near-bald-ground gap + ground
@@ -199,7 +199,7 @@ Foundation
 Grass
 - [x] `02` SPIKE — verdict: EVOLVE (fresh deleted; evidence in slice file)
 - [x] `03` translucency (magnitude re-judged at 04/08)
-- [ ] `04` color / 5-stop ramp — **David sign-off**
+- [x] `04` color / 5-stop ramp (hue landed; saturation gap -> 08; sign-off silent, evidence call)
 - [ ] `05` density-to-horizon LOD
 - [ ] `06` blade silhouette / soft tip
 - [ ] `07` wind motion on grass (join → windSignal)

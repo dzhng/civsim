@@ -107,3 +107,21 @@ records inside ~280m of focus before concat (~15-20% tris back); (2) the
 pen's depth prepass (it calls this "the single most valuable thing in this
 renderer" at 1200 blades/m2 — our early-Z story at 15M tris is the p95);
 (3) the camera-following focus rebuild slice.
+
+## Slice P3 — productionize the p2g look (David approved 2026-07-27)
+
+Three optimizations, in order:
+1. **Ring-overlap dedupe** (route-level now; rebuild-level when P3c lands):
+   filter world records within ~280m of the focus centre out of the far ring
+   before concat (~15-20% tris back).
+2. **Depth prepass for the blade field** — the pen's biggest win at this
+   density (30 blades deep per pixel of overdraw without it). Two near tiers
+   drawn depth-only first (no fragment work), then the beauty pass rides
+   early-Z with LESS-EQUAL. Targets the p95 spikes (69ms) and should pull the
+   median under ~20ms.
+3. **Camera-following focus rebuild** — the dense ring follows the battle
+   camera via the existing pendingFocus/rebuild machinery with hysteresis
+   (rebuild when focus moves > ~80m, async sliced, prefix-shuffled records so
+   thinning stays fair during transitions).
+Gates: Metal rAF median/p95 on the fixture; perf:30k for production; all
+snapshots deterministic; 41/41 vitest.

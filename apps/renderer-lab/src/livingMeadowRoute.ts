@@ -18,7 +18,6 @@ import {
   terrainHeightAt,
   type TerrainHeightField,
 } from "../../../packages/game-renderer/src/terrain/heightField";
-import { createGrassFieldSampler } from "../../../packages/game-renderer/src/battle/grassField";
 
 interface LivingMeadowContext {
   root: HTMLElement;
@@ -76,6 +75,7 @@ export async function routeLivingMeadow(ctx: LivingMeadowContext) {
       sea: seaDisplacementSourceFromParam(ctx.params.get("sea")),
       post: ctx.params.get("post"),
       postGrade: postGradeUniformsFromParams(ctx.params),
+      meadowFocusRing: ctx.params.get("focusDensity") !== "0", // fixture opts IN (production defaults off pending zoom gate)
     }),
   ]);
   const wasm = await initWasm();
@@ -96,97 +96,6 @@ export async function routeLivingMeadow(ctx: LivingMeadowContext) {
   world.setTerrain(grid.w, grid.h, grid.cell, grid.ox, grid.oy, grid.tint, grid.height, mapIndex);
 
   const camera = createCropCamera(ctx.canvas, grid, field, preset, cssW, cssH, dpr);
-
-  // Pen-density demonstrator (meadow-polish P2): the pen concentrates blades
-  // near the camera (K~17600, blades/m2 = K/d^1.5 -> 25-70/m2 in the visible
-  // band). The production static-whole-map profile spreads 1M records over the
-  // entire map (~0.26 records/m2), which fan-out cannot fully hide. Focus the
-  // record budget on the crop neighborhood at sub-meter cell size instead.
-  // ?focusDensity=0 restores the production distribution for comparison.
-  if (ctx.params.get("focusDensity") !== "0") {
-    const focus = { x: preset.cx, y: preset.cy, radius: 300, maxRecords: 1_000_000 };
-    const sampler = createGrassFieldSampler(grid, field, {
-      seed: 0x5ea7_2026,
-      focus,
-      fieldCellSize: 0.6,
-      snapCellSize: 48,
-      clumpCellSize: 1.55,
-      maxRecords: focus.maxRecords,
-      lodStratifiedBudget: false,
-      density: 1,
-      jitter: 0.72,
-      minNormalZ: 0.45,
-      lodNearRadius: 5 / focus.radius,
-      lodMidRadius: 20 / focus.radius,
-      baseHeight: 1.25,
-      heightJitter: 0.62,
-      // Pen-thin strokes: coverage comes from count, not width (wpx floor 1.7-2.75px).
-      baseWidth: 0.055,
-      widthJitter: 0.2,
-      baseBend: 0.62,
-      bendJitter: 0.45,
-    });
-    while (!sampler.step(16384)) {
-      /* synchronous fixture build, same as the production static path */
-    }
-    const snapshot = sampler.finish();
-    const grassLayer = (
-      world as unknown as {
-        grass?: {
-          applyPackedRecords(records: Float32Array, visible?: boolean): void;
-          stats(): { recordCount: number };
-          // lab-only reach into the layer's retained copy of the applied
-          // records; the production API has no reason to expose it.
-          packedRecords?: Float32Array;
-        };
-      }
-    ).grass;
-    if (snapshot && grassLayer) {
-      // The world builds its own whole-map record set asynchronously; wait for
-      // it so (a) it cannot overwrite the merged set later and (b) we can use
-      // it as the far ring. Pen-style ring merge: focused records own the
-      // near/mid field, the whole-map set keeps the horizon populated.
-      const worldGrassSettled = async () => {
-        for (let i = 0; i < 600; i++) {
-          const rebuild = (
-            world.stats() as unknown as {
-              terrain?: { grass?: { rebuild?: { pending?: boolean }; recordCount?: number } };
-            }
-          ).terrain?.grass;
-          if (rebuild && rebuild.recordCount && !(rebuild.rebuild?.pending ?? false)) return;
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        }
-      };
-      await worldGrassSettled();
-      const focused = snapshot.packedRecords;
-      const worldRecords = grassLayer.packedRecords;
-      if (worldRecords && worldRecords.length > 0 && ctx.params.get("farRing") !== "0") {
-        // Ring-overlap dedupe (P3.1): the focused set owns everything inside
-        // the focus radius; keep only the world records beyond it (small
-        // overlap band so the seam never shows). Records pack x,y at floats
-        // 0,1 of the 16-float stride.
-        const STRIDE = 16;
-        const DEDUPE_RADIUS = focus.radius - 20;
-        const dedupeSq = DEDUPE_RADIUS * DEDUPE_RADIUS;
-        const farKeep = new Float32Array(worldRecords.length);
-        let kept = 0;
-        for (let o = 0; o < worldRecords.length; o += STRIDE) {
-          const dx = worldRecords[o] - focus.x;
-          const dy = worldRecords[o + 1] - focus.y;
-          if (dx * dx + dy * dy >= dedupeSq) {
-            farKeep.set(worldRecords.subarray(o, o + STRIDE), kept);
-            kept += STRIDE;
-          }
-        }
-        const merged = new Float32Array(focused.length + kept);
-        merged.set(focused, 0);
-        merged.set(farKeep.subarray(0, kept), focused.length);
-        grassLayer.applyPackedRecords(merged, true);
-      } else {
-        grassLayer.applyPackedRecords(focused, true);
-      }
-    }
-  }
 
   (window as unknown as { __livingMeadowWorld?: PhotorealBattleWorld }).__livingMeadowWorld =
     world;

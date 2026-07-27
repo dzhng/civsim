@@ -141,3 +141,19 @@ stats kept for immediate-mode GPUs.
 with the full meadow look on. The p2g fixture look runs 26.8ms median (~37fps)
 on Metal, above the 26fps floor.
 Remaining: P3.3 camera-following focus rebuild (productionizes the dense ring).
+
+## P3.3 landed (2026-07-27) — verified, ring opt-in pending zoom gate
+
+Two-set architecture in battleWorld (static base + async camera-following
+300m ring, 80m hysteresis, 48m snap, latest-wins). Verified: fixture parity
+with the approved p2g shot (mean diff 1.9 — dedupe + ring-snap residual),
+byte-stable, ring follows a moved focus (rebuild observed, 1.61M records at
+the new centre). One fix round: first-build lifecycle (setTerrain-before-
+camera race; hysteresis must not gate the first ring).
+
+OPEN: with the ring always on, perf:30k vista hit 37.25ms gpu (>33 budget) —
+the ring is invisible at tactical zoom; production default is OFF until the
+ring is gated by the grass zoom cutoff (the named next step). Final perf reads
+of the session (34.7ms vista with ring off vs 22.1 earlier) are confounded by
+suspected thermal throttle after ~10 consecutive GPU runs — needs one cold
+perf:30k to disambiguate before flipping the default.

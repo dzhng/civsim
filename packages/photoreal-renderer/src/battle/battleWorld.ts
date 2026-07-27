@@ -36,6 +36,7 @@ import {
 import { buildPhotorealBattleGroundMesh } from "../../../game-renderer/src/battle/groundPass";
 import { buildBattleHorizonLayout } from "../../../game-renderer/src/battle/horizonPass";
 import {
+  GRASS_FIELD_PACKED_STRIDE_FLOATS,
   createGrassFieldSampler,
   type GrassFieldSampler,
   type GrassFieldStats,
@@ -280,6 +281,15 @@ const PRODUCTION_BLADE_FIELD_PROFILE = STANDARD_BLADE_FIELD_PROFILE;
 // lands under the record cap on a full 2400×1600 map's grass-eligible terrain.
 const STATIC_GRASS_FIELD_CELL_M = 1.5;
 const STATIC_GRASS_MAX_RECORDS = 1_000_000;
+const MEADOW_FOCUS_RING_RADIUS_M = 300;
+const MEADOW_FOCUS_RING_REBUILD_HYSTERESIS_M = 80;
+const MEADOW_FOCUS_RING_SNAP_CELL_M = 48;
+const MEADOW_FOCUS_RING_FIELD_CELL_M = 0.6;
+const MEADOW_FOCUS_RING_BASE_WIDTH_M = 0.055;
+const MEADOW_FOCUS_RING_MAX_RECORDS = 1_000_000;
+const MEADOW_FOCUS_RING_DEDUPE_MARGIN_M = 20;
+const GRASS_SAMPLE_SLICE_CELLS = 16384;
+const GRASS_SAMPLE_SLICE_BUDGET_MS = 4;
 // Zoomed-out past this vista fraction (0 = top-down overview, 1 = ground vista)
 // blades project to a sub-pixel smear that only costs fill and cull, so grass is
 // hidden outright — the "don't render grass at all when far out" contract.
@@ -298,6 +308,8 @@ interface GrassSampleTask {
   sampler: GrassFieldSampler;
   startedAt: number;
   buildMs: number;
+  slices: number;
+  maxSliceMs: number;
 }
 
 export class PhotorealBattleWorld {
@@ -346,18 +358,34 @@ export class PhotorealBattleWorld {
   private viewportHeight = 800;
   private groundCover: BattleGroundCover = "green-grass";
   private slopeBands: BattleSlopeBands | null = null;
-  private grassTerrainKey: string | null = null;
+  private grassBaseTerrainKey: string | null = null;
+  private grassBaseRecords: Float32Array | null = null;
+  private grassBaseSampleStats: GrassFieldStats | null = null;
+  private grassFocusTerrainKey: string | null = null;
+  private grassFocusRecords: Float32Array | null = null;
+  private grassFocusSampleStats: GrassFieldStats | null = null;
   private grassPendingTerrainKey: string | null = null;
   private grassSampleTask: GrassSampleTask | null = null;
   private grassSampleStats: GrassFieldStats | null = null;
   private grassRebuildStats: {
-    strategy: "static-whole-map";
+    strategy: "static-whole-map" | "static-whole-map+camera-focus-ring";
     routeAnchor?: number[];
     coverageRadiusM: number;
     activeTransition: BladeFieldTransitionProfile | null;
     activeRecordBudget: number;
     vistaRecordBudget: number;
     areaBudgetScale: number;
+    baseRecordCount: number;
+    focusRecordCount: number;
+    mergedRecordCount: number;
+    focusRingEnabled: boolean;
+    focusRingRadiusM: number;
+    focusRingHysteresisM: number;
+    focusRingSnapCellM: number;
+    focusRingFieldCellM: number;
+    focusRingBaseWidthM: number;
+    focusRingMaxRecords: number;
+    dedupeRadiusM: number;
     activeFocus: GrassSampleFocus | null;
     pendingFocus: GrassSampleFocus | null;
     pending: boolean;
@@ -374,6 +402,17 @@ export class PhotorealBattleWorld {
     activeRecordBudget: STATIC_GRASS_MAX_RECORDS,
     vistaRecordBudget: PRODUCTION_BLADE_FIELD_PROFILE.maxRecords,
     areaBudgetScale: 1,
+    baseRecordCount: 0,
+    focusRecordCount: 0,
+    mergedRecordCount: 0,
+    focusRingEnabled: true,
+    focusRingRadiusM: MEADOW_FOCUS_RING_RADIUS_M,
+    focusRingHysteresisM: MEADOW_FOCUS_RING_REBUILD_HYSTERESIS_M,
+    focusRingSnapCellM: MEADOW_FOCUS_RING_SNAP_CELL_M,
+    focusRingFieldCellM: MEADOW_FOCUS_RING_FIELD_CELL_M,
+    focusRingBaseWidthM: MEADOW_FOCUS_RING_BASE_WIDTH_M,
+    focusRingMaxRecords: MEADOW_FOCUS_RING_MAX_RECORDS,
+    dedupeRadiusM: MEADOW_FOCUS_RING_RADIUS_M - MEADOW_FOCUS_RING_DEDUPE_MARGIN_M,
     activeFocus: null as GrassSampleFocus | null,
     pendingFocus: null as GrassSampleFocus | null,
     pending: false,
@@ -385,10 +424,12 @@ export class PhotorealBattleWorld {
     totalCells: 0,
   };
   private grassEnabled = true;
+  private readonly meadowFocusRingEnabled: boolean;
   private farGrassEnabled = true;
   private readonly grassTransition: BladeFieldTransitionUniforms;
   private readonly wind: BladeFieldWindUniforms = createBladeFieldWindUniforms();
   private activeGrassTransition: BladeFieldTransitionProfile;
+  private cameraInitialized = false;
   private instances: CrowdInstance[] = [];
   private markers: MarkerInstance[] = [];
   private seating = { checked: 0, matches: true, span: 0 };
@@ -419,17 +460,23 @@ export class PhotorealBattleWorld {
     postEnabled: boolean,
     postGrade: Partial<BattlePostGradeUniforms> | null,
     grassProfile: ProductionBladeFieldProfile,
+    meadowFocusRingEnabled: boolean,
     disabledGroundDetail: GroundDetailTerm | null,
   ) {
     this.world = world;
     this.environment = environment;
     this.grassProfile = grassProfile;
+    this.meadowFocusRingEnabled = meadowFocusRingEnabled;
     this.disabledGroundDetail = disabledGroundDetail;
     this.sea = sea;
     this.grassRebuildStats.coverageRadiusM = grassProfile.vistaVisibleRadiusM;
     this.grassRebuildStats.vistaRecordBudget = grassProfile.maxRecords;
     this.grassRebuildStats.activeRecordBudget = grassProfile.maxRecords;
     this.grassRebuildStats.areaBudgetScale = 1;
+    this.grassRebuildStats.strategy = meadowFocusRingEnabled
+      ? "static-whole-map+camera-focus-ring"
+      : "static-whole-map";
+    this.grassRebuildStats.focusRingEnabled = meadowFocusRingEnabled;
     this.grassTransition = createBladeFieldTransitionUniforms(
       activeGrassTransitionProfile(grassProfile, grassProfile.vistaVisibleRadiusM),
     );
@@ -517,6 +564,8 @@ export class PhotorealBattleWorld {
       sea?: SeaDisplacementSourceId;
       post?: string | null;
       grassQuality?: BattleGrassQuality;
+      /** Lab A/B only; production defaults to the approved camera-following meadow ring. */
+      meadowFocusRing?: boolean;
       /** Lab/capture-only post-grade override; preset defaults apply when null. */
       postGrade?: Partial<BattlePostGradeUniforms> | null;
       /** Renderer-lab attribution only; production leaves every term enabled. */
@@ -556,6 +605,12 @@ export class PhotorealBattleWorld {
       postEnabled,
       options.postGrade ?? null,
       grassProfile,
+      // Default OFF pending the zoom gate: with the ring always on, the
+      // perf:30k vista stop regressed to 37.25ms gpu median (> 33ms budget) —
+      // the dense 300m ring is invisible at tactical zoom. The fixture (and
+      // any close-camera surface) opts in explicitly until the ring is gated
+      // by the grass zoom cutoff. See specs/meadow-polish.md P3.3.
+      options.meadowFocusRing === true,
       options.disabledGroundDetail ?? null,
     );
   }
@@ -777,12 +832,21 @@ export class PhotorealBattleWorld {
     this.scenery.upload(featuresToBattleScenery(presentation.features, field, 0x77, grid));
     this.shadowRig.setWorldRect(this.terrainRect);
     this.background.setRects(this.terrainRect, expandedTerrainRect(this.terrainRect));
-    this.grassTerrainKey = null;
+    this.grassBaseTerrainKey = null;
+    this.grassBaseRecords = null;
+    this.grassBaseSampleStats = null;
+    this.grassFocusTerrainKey = null;
+    this.grassFocusRecords = null;
+    this.grassFocusSampleStats = null;
     this.grassPendingTerrainKey = null;
     this.grassSampleTask = null;
+    this.grassSampleStats = null;
     this.grassRebuildStats.pending = false;
     this.grassRebuildStats.activeFocus = null;
     this.grassRebuildStats.pendingFocus = null;
+    this.grassRebuildStats.baseRecordCount = 0;
+    this.grassRebuildStats.focusRecordCount = 0;
+    this.grassRebuildStats.mergedRecordCount = 0;
     this.grassRebuildStats.inProgressCells = 0;
     this.grassRebuildStats.totalCells = 0;
     this.updateGrassForCamera(eyePosition(this.lastCamera.camera3d)[2]);
@@ -934,6 +998,7 @@ export class PhotorealBattleWorld {
 
   private setCamera(camera: BattleCameraSnapshot): void {
     this.lastCamera = camera;
+    this.cameraInitialized = true;
     this.frame.focus.value.set(camera.x, camera.y);
   }
 
@@ -972,9 +1037,6 @@ export class PhotorealBattleWorld {
     this.seating = { checked: instances.length, matches, span: Number((hi - lo).toFixed(3)) };
   }
 
-  /** Focus-following blade-record window. The sampled disc carries a rebuild
-   *  margin around the visible grass ring, so panning keeps routing the live
-   *  GPU LOD from old records until the eye leaves that margin. */
   /** Whether the blades should render at all this frame: on only when grass is
    *  enabled AND the view is zoomed in enough that blades are resolvable. Past
    *  the cutoff blades are a sub-pixel smear, so they are hidden and the GPU
@@ -988,37 +1050,82 @@ export class PhotorealBattleWorld {
     if (!this.terrainGrid || !this.heightField) return;
     // The visible falloff/LOD ring still tracks zoom — these are cheap GPU
     // uniforms, not a rebuild — so the near tier stays detailed and the GPU
-    // cull radius shrinks when zoomed in. Only the RECORD field is static.
+    // cull radius shrinks when zoomed in.
     const visibleRadius = activeGrassVisibleRadiusM(this.grassProfile, eyeZ);
     const transition = activeGrassTransitionProfile(this.grassProfile, visibleRadius);
     this.activeGrassTransition = this.grass.setTransition(transition);
     this.grassTransition.terrainDetailStrength.value = this.farGrassEnabled
       ? (this.activeGrassTransition.terrainDetailStrength ?? 1)
       : 0;
-    // The field is sampled ONCE over the whole map. Focus (map centre) and
-    // radius (half the map diagonal, so the disc covers every corner) are map
-    // constants, so the rebuild key never changes on a camera move — the field
-    // is built at load and never resampled. That deletes the old zoom-scaled
-    // margin/quantize machinery and the multi-second catch-up it produced.
+    this.ensureBaseGrassRecords();
+    this.grassRebuildStats.strategy = this.meadowFocusRingEnabled
+      ? "static-whole-map+camera-focus-ring"
+      : "static-whole-map";
+    this.grassRebuildStats.focusRingEnabled = this.meadowFocusRingEnabled;
+    this.grassRebuildStats.coverageRadiusM = this.meadowFocusRingEnabled
+      ? MEADOW_FOCUS_RING_RADIUS_M
+      : this.baseGrassFocus().radius;
+    this.grassRebuildStats.activeTransition = this.activeGrassTransition;
+    this.grassRebuildStats.activeRecordBudget = this.meadowFocusRingEnabled
+      ? MEADOW_FOCUS_RING_MAX_RECORDS
+      : STATIC_GRASS_MAX_RECORDS;
+
+    if (!this.cameraInitialized) return;
+    if (!this.meadowFocusRingEnabled) {
+      this.grassSampleTask = null;
+      this.grassPendingTerrainKey = null;
+      this.grassRebuildStats.pending = false;
+      this.grassRebuildStats.pendingFocus = null;
+      this.grassRebuildStats.activeFocus = null;
+      this.applyGrassRecordSets();
+      return;
+    }
+
+    const target = this.lastCamera.camera3d.target;
+    const focus = this.focusRingForCamera(target[0], target[1]);
+    const key = this.grassSampleKey("focus", focus);
+    const active = this.grassRebuildStats.activeFocus;
+    const pending = this.grassRebuildStats.pendingFocus;
+    if (!active) {
+      if (key !== this.grassPendingTerrainKey) this.startGrassSampleTask(focus, key);
+      return;
+    }
+    const currentCenter = pending ?? active;
+    const needsMovedFocus =
+      Math.hypot(target[0] - currentCenter.x, target[1] - currentCenter.y) >
+      MEADOW_FOCUS_RING_REBUILD_HYSTERESIS_M;
+    if (!needsMovedFocus) return;
+    if (key === this.grassFocusTerrainKey || key === this.grassPendingTerrainKey) return;
+    this.startGrassSampleTask(focus, key);
+  }
+
+  private baseGrassFocus(): GrassSampleFocus {
     const [ox, oy, w, h] = this.terrainRect;
-    const focus = {
+    return {
       x: ox + w / 2,
       y: oy + h / 2,
       radius: Math.hypot(w, h) / 2,
       maxRecords: STATIC_GRASS_MAX_RECORDS,
     };
-    this.grassRebuildStats.coverageRadiusM = focus.radius;
-    this.grassRebuildStats.activeTransition = this.activeGrassTransition;
-    this.grassRebuildStats.activeRecordBudget = focus.maxRecords;
-    const key = this.grassSampleKey(focus);
-    if (key === this.grassTerrainKey || key === this.grassPendingTerrainKey) return;
-    this.grassPendingTerrainKey = key;
-    this.startGrassSampleTask(focus, key);
   }
 
-  private grassSampleKey(focus: GrassSampleFocus): string {
+  private focusRingForCamera(x: number, y: number): GrassSampleFocus {
+    return {
+      x: snapToGrassFocusGrid(x),
+      y: snapToGrassFocusGrid(y),
+      radius: MEADOW_FOCUS_RING_RADIUS_M,
+      maxRecords: MEADOW_FOCUS_RING_MAX_RECORDS,
+    };
+  }
+
+  private grassSampleKey(kind: "base" | "focus", focus: GrassSampleFocus): string {
     if (!this.terrainGrid) return "";
+    const fieldCellSize =
+      kind === "focus" ? MEADOW_FOCUS_RING_FIELD_CELL_M : STATIC_GRASS_FIELD_CELL_M;
+    const baseWidth =
+      kind === "focus" ? MEADOW_FOCUS_RING_BASE_WIDTH_M : this.grassProfile.baseWidth;
     return [
+      kind,
       this.terrainGrid.w,
       this.terrainGrid.h,
       this.terrainGrid.cell,
@@ -1026,7 +1133,8 @@ export class PhotorealBattleWorld {
       this.terrainGrid.oy,
       this.groundCover,
       this.grassProfile.source,
-      this.grassProfile.fieldCellSize,
+      fieldCellSize,
+      baseWidth,
       focus.maxRecords,
       Math.round(focus.x),
       Math.round(focus.y),
@@ -1034,15 +1142,18 @@ export class PhotorealBattleWorld {
     ].join(":");
   }
 
-  private startGrassSampleTask(focus: GrassSampleFocus, key: string): void {
+  private ensureBaseGrassRecords(): void {
     if (!this.terrainGrid || !this.heightField) return;
+    const focus = this.baseGrassFocus();
+    const key = this.grassSampleKey("base", focus);
+    if (key === this.grassBaseTerrainKey && this.grassBaseRecords) return;
     const sampler = createGrassFieldSampler(this.terrainGrid, this.heightField, {
       seed: this.grassProfile.seed,
       focus,
       // UNIFORM whole-map density: one candidate blade per static cell, every
       // candidate accepted (density 1), no LOD-stratified centre concentration
-      // — the field must read the same wherever the camera pans. Blade shape,
-      // clumping and slope/tint masking still come from the active profile.
+      // — this retained far ring keeps the horizon populated under the dense
+      // camera-following focus set.
       fieldCellSize: STATIC_GRASS_FIELD_CELL_M,
       snapCellSize: this.grassProfile.snapCellSize,
       clumpCellSize: this.grassProfile.clumpCellSize,
@@ -1060,32 +1171,89 @@ export class PhotorealBattleWorld {
       baseBend: this.grassProfile.baseBend,
       bendJitter: this.grassProfile.bendJitter,
     });
+    const started = performance.now();
+    while (!sampler.step(GRASS_SAMPLE_SLICE_CELLS)) {
+      /* existing static whole-map build: retained and map-scoped */
+    }
+    const snapshot = sampler.finish();
+    if (!snapshot) return;
+    this.grassBaseTerrainKey = key;
+    this.grassBaseRecords = snapshot.packedRecords;
+    this.grassBaseSampleStats = snapshot.stats;
+    this.grassSampleStats = this.grassFocusSampleStats ?? this.grassBaseSampleStats;
+    this.grassRebuildStats.baseRecordCount = snapshot.stats.acceptedRecords;
+    this.grassRebuildStats.lastSampleMs = Number((performance.now() - started).toFixed(3));
+    this.grassRebuildStats.lastSlices = 1;
+    this.grassRebuildStats.lastMaxSliceMs = this.grassRebuildStats.lastSampleMs;
+    this.applyGrassRecordSets();
+  }
+
+  private startGrassSampleTask(focus: GrassSampleFocus, key: string): void {
+    if (!this.terrainGrid || !this.heightField) return;
+    const sampler = createGrassFieldSampler(this.terrainGrid, this.heightField, {
+      seed: this.grassProfile.seed,
+      focus,
+      fieldCellSize: MEADOW_FOCUS_RING_FIELD_CELL_M,
+      snapCellSize: MEADOW_FOCUS_RING_SNAP_CELL_M,
+      clumpCellSize: this.grassProfile.clumpCellSize,
+      maxRecords: focus.maxRecords,
+      lodStratifiedBudget: false,
+      density: 1,
+      jitter: this.grassProfile.jitter,
+      minNormalZ: this.grassProfile.minNormalZ,
+      lodNearRadius: this.grassProfile.lodNearRadiusM / focus.radius,
+      lodMidRadius: this.grassProfile.lodMidRadiusM / focus.radius,
+      baseHeight: this.grassProfile.baseHeight,
+      heightJitter: this.grassProfile.heightJitter,
+      baseWidth: MEADOW_FOCUS_RING_BASE_WIDTH_M,
+      widthJitter: this.grassProfile.widthJitter,
+      baseBend: this.grassProfile.baseBend,
+      bendJitter: this.grassProfile.bendJitter,
+    });
     const task: GrassSampleTask = {
       key,
       focus,
       sampler,
       startedAt: performance.now(),
       buildMs: 0,
+      slices: 0,
+      maxSliceMs: 0,
     };
     this.grassSampleTask = task;
+    this.grassPendingTerrainKey = key;
     this.grassRebuildStats.pending = true;
     this.grassRebuildStats.pendingFocus = focus;
     this.grassRebuildStats.totalCells = sampler.totalCells;
-    // The static whole-map field is built ONCE, synchronously, at load: an
-    // empty field on the opening frame is worse than the ~250-480ms build cost,
-    // and scenes read grass stats right after boot. The map-constant sample key
-    // means this is the only build — there is no rebuild or time-sliced path.
-    const buildStarted = performance.now();
-    while (!sampler.step(16384)) {
-      /* run the whole field to completion */
-    }
-    task.buildMs = performance.now() - buildStarted;
-    this.grassRebuildStats.inProgressCells = sampler.cellsProcessed;
-    this.grassRebuildStats.totalCells = sampler.totalCells;
-    this.completeGrassSampleTask(task);
+    this.grassRebuildStats.inProgressCells = 0;
+    this.scheduleGrassSampleSlice(task);
+  }
+
+  private scheduleGrassSampleSlice(task: GrassSampleTask): void {
+    scheduleNextFrame(() => this.runGrassSampleSlice(task));
+  }
+
+  private runGrassSampleSlice(task: GrassSampleTask): void {
+    if (task !== this.grassSampleTask || !this.grassEnabled || !this.meadowFocusRingEnabled)
+      return;
+    const sliceStarted = performance.now();
+    let done = false;
+    do {
+      done = task.sampler.step(GRASS_SAMPLE_SLICE_CELLS);
+    } while (!done && performance.now() - sliceStarted < GRASS_SAMPLE_SLICE_BUDGET_MS);
+    const sliceMs = performance.now() - sliceStarted;
+    task.slices += 1;
+    task.buildMs += sliceMs;
+    task.maxSliceMs = Math.max(task.maxSliceMs, sliceMs);
+    this.grassRebuildStats.inProgressCells = task.sampler.cellsProcessed;
+    this.grassRebuildStats.totalCells = task.sampler.totalCells;
+    this.grassRebuildStats.lastSlices = task.slices;
+    this.grassRebuildStats.lastMaxSliceMs = Number(task.maxSliceMs.toFixed(3));
+    if (done) this.completeGrassSampleTask(task);
+    else this.scheduleGrassSampleSlice(task);
   }
 
   private completeGrassSampleTask(task: GrassSampleTask): void {
+    if (task !== this.grassSampleTask) return;
     const snapshot = task.sampler.finish();
     if (!snapshot) {
       this.grassSampleTask = null;
@@ -1095,12 +1263,10 @@ export class PhotorealBattleWorld {
       return;
     }
     const sampleMs = performance.now() - task.startedAt;
+    this.grassFocusSampleStats = snapshot.stats;
+    this.grassFocusRecords = snapshot.packedRecords;
     this.grassSampleStats = snapshot.stats;
-    this.grass.applyPackedRecords(
-      snapshot.packedRecords,
-      this.grassEnabled && snapshot.stats.acceptedRecords > 0,
-    );
-    this.grassTerrainKey = task.key;
+    this.grassFocusTerrainKey = task.key;
     this.grassPendingTerrainKey = null;
     this.grassSampleTask = null;
     this.grassRebuildStats = {
@@ -1110,11 +1276,63 @@ export class PhotorealBattleWorld {
       pending: false,
       rebuilds: this.grassRebuildStats.rebuilds + 1,
       lastSampleMs: Number(sampleMs.toFixed(3)),
-      lastSlices: 1,
-      lastMaxSliceMs: Number(task.buildMs.toFixed(3)),
+      lastSlices: task.slices,
+      lastMaxSliceMs: Number(task.maxSliceMs.toFixed(3)),
       inProgressCells: task.sampler.cellsProcessed,
       totalCells: task.sampler.totalCells,
     };
+    this.applyGrassRecordSets();
+  }
+
+  private applyGrassRecordSets(): void {
+    const base = this.grassBaseRecords;
+    const focus = this.meadowFocusRingEnabled ? this.grassFocusRecords : null;
+    const activeFocus = this.grassRebuildStats.activeFocus;
+    if (!base && !focus) {
+      this.grass.applyPackedRecords(new Float32Array(), false);
+      this.grassRebuildStats.baseRecordCount = 0;
+      this.grassRebuildStats.focusRecordCount = 0;
+      this.grassRebuildStats.mergedRecordCount = 0;
+      return;
+    }
+    if (!focus || !activeFocus) {
+      const records = base ?? new Float32Array();
+      this.grass.applyPackedRecords(records, this.grassEnabled && records.length > 0);
+      this.grassRebuildStats.baseRecordCount =
+        records.length / GRASS_FIELD_PACKED_STRIDE_FLOATS;
+      this.grassRebuildStats.focusRecordCount = 0;
+      this.grassRebuildStats.mergedRecordCount =
+        records.length / GRASS_FIELD_PACKED_STRIDE_FLOATS;
+      return;
+    }
+    if (!base || base.length === 0) {
+      this.grass.applyPackedRecords(focus, this.grassEnabled && focus.length > 0);
+      this.grassRebuildStats.baseRecordCount = 0;
+      this.grassRebuildStats.focusRecordCount = focus.length / GRASS_FIELD_PACKED_STRIDE_FLOATS;
+      this.grassRebuildStats.mergedRecordCount = focus.length / GRASS_FIELD_PACKED_STRIDE_FLOATS;
+      return;
+    }
+
+    const dedupeRadius = Math.max(0, activeFocus.radius - MEADOW_FOCUS_RING_DEDUPE_MARGIN_M);
+    const dedupeSq = dedupeRadius * dedupeRadius;
+    const farKeep = new Float32Array(base.length);
+    let kept = 0;
+    for (let o = 0; o < base.length; o += GRASS_FIELD_PACKED_STRIDE_FLOATS) {
+      const dx = base[o] - activeFocus.x;
+      const dy = base[o + 1] - activeFocus.y;
+      if (dx * dx + dy * dy >= dedupeSq) {
+        farKeep.set(base.subarray(o, o + GRASS_FIELD_PACKED_STRIDE_FLOATS), kept);
+        kept += GRASS_FIELD_PACKED_STRIDE_FLOATS;
+      }
+    }
+    const merged = new Float32Array(focus.length + kept);
+    merged.set(focus, 0);
+    merged.set(farKeep.subarray(0, kept), focus.length);
+    this.grass.applyPackedRecords(merged, this.grassEnabled && merged.length > 0);
+    this.grassRebuildStats.baseRecordCount = base.length / GRASS_FIELD_PACKED_STRIDE_FLOATS;
+    this.grassRebuildStats.focusRecordCount = focus.length / GRASS_FIELD_PACKED_STRIDE_FLOATS;
+    this.grassRebuildStats.mergedRecordCount = merged.length / GRASS_FIELD_PACKED_STRIDE_FLOATS;
+    this.grassRebuildStats.dedupeRadiusM = dedupeRadius;
   }
 
   stats() {
@@ -1223,14 +1441,26 @@ export class PhotorealBattleWorld {
   }
 
   async settlePresentedFrame(): Promise<void> {
-    // The static grass field is built synchronously at setTerrain, so nothing is
-    // ever pending here — just settle the GPU frame.
+    if (this.cameraInitialized) this.updateGrassForCamera(eyePosition(this.lastCamera.camera3d)[2]);
+    this.drainGrassSampleTaskForSettling();
     await this.world.settlePresentedFrame();
   }
 
   dispose(): void {
     this.shadowRig.dispose();
     this.world.dispose();
+  }
+
+  private drainGrassSampleTaskForSettling(): void {
+    const task = this.grassSampleTask;
+    if (!task) return;
+    while (task === this.grassSampleTask && !task.sampler.step(GRASS_SAMPLE_SLICE_CELLS)) {
+      task.slices += 1;
+    }
+    if (task === this.grassSampleTask) {
+      task.slices += 1;
+      this.completeGrassSampleTask(task);
+    }
   }
 }
 
@@ -1286,6 +1516,20 @@ function activeGrassTransitionProfile(
     farSoftWidthScale: vista.farSoftWidthScale,
     edgeSinkStartM: Math.max(1, (vista.edgeSinkStartM ?? vista.farGrassStartM) * scale),
   };
+}
+
+function snapToGrassFocusGrid(v: number): number {
+  return (
+    Math.floor(v / MEADOW_FOCUS_RING_SNAP_CELL_M + 1e-6) * MEADOW_FOCUS_RING_SNAP_CELL_M
+  );
+}
+
+function scheduleNextFrame(callback: () => void): void {
+  if (typeof requestAnimationFrame === "function") {
+    requestAnimationFrame(() => callback());
+    return;
+  }
+  setTimeout(callback, 0);
 }
 
 /** BattleRenderer's expandedTerrainRect — the backdrop margin. */

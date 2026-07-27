@@ -10,64 +10,36 @@ Reference (MIT, © Lentils): `assets/pen-source/index.html` (a WebGL/GLSL demo �
 
 ---
 
-## Next Agent Prompt
+## Shipped (2026-07-27) — rationale record
 
-**Status:** 2026-07-26 late — DONE + committed on `living-meadow`: `00 01 02 03 20 21 22 23 24 25`
-(spike verdict: **EVOLVE**, fresh port deleted; slice 03 translucency landed with
-magnitude judgment deferred to 04/08 — see its slice file's gate history).
-The AUDIO TRACK IS COMPLETE (20-26 all landed; battle ships default-muted).
-**Process:** two lanes — grass = worktree `civsim-living-meadow` (branch
-`living-meadow`, vite :5185), audio = worktree `civsim-lm-audio` (branch
-`lm-audio`, vite :5186); codex (gpt-5.5, workspace-write, prompts via files)
-implements, the orchestrator owns browser gates (capture.mjs in the session
-scratchpad; CANVAS_ONLY=1 for byte-stable canvas shots), unprimed critiques,
-review, commits, and lane merges (merge lm-audio into living-meadow after each
-audio pass; sync back before the next audio slice).
-**Pick up at:** `40` grass perf-tune (named-hardware run per its slice file) and `41` audio budget audit, then the whole-spec review pass, choices-ledger consolidation (implement-spec step 11), and close-spec. DEBTS cleared except: audio default-muted (David to flip by ear); optional post-owner look-grade mini-slice (recorded in 08). (verify in-battle by
-scene run + snapshot neutrality, commit on lm-audio, merge). Then grass `04`
-(color ramp — non-blocking David sign-off under golden-hour AND overcast),
-`05` density (owns far-density constants + near-bald-ground gap + ground
-underlayer idea), `06` silhouette (flat-tip fix), `07` wind motion (windSignal
-GPU uniforms + write-vibe GIF gate), `08` fog, `09` cutover, then `40`/`41`
-perf, whole-spec review, ledger consolidation, close-spec.
-**DEBTS:** (1) battle grass-scene snapshot baselines not swept since slice 03's
-shader change — battle-genmap-clay (grass-free) passed 0px; a grass-bearing
-scene sweep + deliberate re-bless is owed BEFORE slice 09. (2) Audio ships
-default-muted (provisional, David to flip).
-**Probe verdicts banked:** R2 wind-RT viable (analytic uniforms first for 07);
-R3 backlight on MeshStandardNodeMaterial emissive, no cheap shadow scalar;
-R4 node-web-audio-api OfflineAudioContext gate; R5 gesture gate proven.
+All 19 slices landed on branch `living-meadow`. This README is now the durable
+record of WHY; the HOW lives in the code owners below. The user's review
+surface for every decision made without them is [`choices.md`](choices.md).
 
-**Read first:** this README top-to-bottom, then the two foundation slices (`00`,
-`01`), then the spike (`02`). Skim `specs/done/battle-map-reference/README.md` for
-the prior grass spec's hard-won rules (do not re-litigate them).
+**What shipped:** the battle meadow reads dense to the horizon (pen 1.5-power
+density law, per-record fan-out, ground underlayer in the blade color family),
+with travelling 64 m gust fronts + crest sheen driven by the single
+deterministic wind owner (`windSignal.ts` — grass GPU and audio CPU read the
+same signal), warm backlit blade translucency (emissive family; no cheap
+shadow scalar exists on this stack), a 5-stop neutral-albedo ramp, tapered
+blade silhouettes, and a warm Mie horizon through the one aerial owner. A
+net-new procedural ambient-audio subsystem (`packages/ambient-audio`: wind,
+rustle, valley reverb, birds, water) is wired into battle behind a gesture
+gate, default-muted, verified via OfflineAudioContext (screenshots have no
+sound). Perf measured on Metal: 22.5-30.7 ms GPU medians vs the 22.58 turf
+baseline — above the agreed floor, no knob-tuning needed.
 
-**Hard constraints that will bite you if ignored:**
-1. **Determinism.** The TSL `time` node is banned in this renderer; all animation
-   keys off `PhotorealWorld.setTime`/`uTime`. The ported wind field **must** be a
-   pure function of that scalar (GPU uniforms authored CPU-side), never
-   `performance.now()`/wall-clock. Violating this silently breaks every screenshot
-   baseline. Audio is exempt (it runs on the real `AudioContext` clock and is
-   outside every snapshot path).
-2. **One-visual-variable-per-slice** with one named comparison crop, judged at the
-   right camera (blade anatomy at the *close* gate ≈12 px/blade; integration at the
-   *vista*). This is a ratified rule from `battle-map-reference`.
-3. **Single owners** — see the ownership table below. No slice may fork wind, the
-   palette, the grass record schema, the aerial-perspective owner, or the tonemap.
+**Durable invariants** (violating any of these re-opens a spec):
+one wind owner (`windSignal`), one aerial owner (`scene.fogNode` preset path),
+one palette owner (`MEADOW`), one grass layer (`PhotorealBladeFieldLayer`
+behind `MeadowGrassLayer`), the 16-float record contract, determinism off
+`setTime` (TSL `time` node banned), neutral albedo with mood in the
+environment, audio outside every snapshot path.
 
-**Every visual slice** ends with a mandatory unprimed
-[screenshot-critique](../../.claude/skills/screenshot-critique/SKILL.md) told
-exactly which variable it may judge, plus
-[compare-screenshots](../../.claude/skills/compare-screenshots/SKILL.md) against the
-owning crop of `assets/pen-reference-hero.jpeg`. Motion slices use
-[write-vibe](../../.claude/skills/write-vibe/SKILL.md) GIFs. **Every audio slice**
-ends with an `OfflineAudioContext` RMS/FFT assertion (headless capture has no
-sound) plus a manual by-ear check on the audio lab route.
-
-**Before you end your pass:** update this section (status, pickup point, blockers)
-and tick the TODO checklist below.
-
----
+**Deliberately not done** (recorded, reversible): the hero's ground-level
+foreground carpet (tactical-camera scope ruling, slice 05); the filmic
+look-grade that owns the hero's saturation richness (optional post-owner
+mini-slice, slice 08); audio default-on (David's ear pending).
 
 ## Locked decisions (David, this conversation)
 

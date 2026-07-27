@@ -88,3 +88,22 @@ camera-following focus rebuild (machinery exists: pendingFocus/rebuilds) as a
 proper slice with hysteresis; (2) 12M tris needs a Metal perf gate and likely
 the pen's depth-prepass trick; (3) sample build time at 0.6m cells needs the
 async slicing path, not the synchronous fixture build.
+
+## P2 round 5 (2026-07-27): ring merge + measured perf
+
+David: p2f best look but grass vanished past the focus radius; p2e great reach
+but sparse close. Fix = the pen's own shape: RING MERGE — the fixture concats
+the focused 300m set (599k records) with the world's whole-map set (992k) so
+the horizon stays populated. 1.6M records / 15.6M tris.
+
+Measured on Metal (rAF frame times, 12s window, chrome channel):
+- p2e whole-map: 3.7M tris — 11.4ms median (~87fps), p95 26ms
+- p2f focused:  12.0M tris — 20.4ms median (~49fps), p95 54ms
+- p2g merged:   15.6M tris — 26.2ms median (~38fps), p95 69ms
+All above the 26fps floor; merged has real p95 spikes.
+
+Productionizing needs (in order): (1) dedupe the overlap — filter world
+records inside ~280m of focus before concat (~15-20% tris back); (2) the
+pen's depth prepass (it calls this "the single most valuable thing in this
+renderer" at 1200 blades/m2 — our early-Z story at 15M tris is the p95);
+(3) the camera-following focus rebuild slice.

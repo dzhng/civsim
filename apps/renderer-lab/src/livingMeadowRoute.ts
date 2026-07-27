@@ -132,10 +132,43 @@ export async function routeLivingMeadow(ctx: LivingMeadowContext) {
     const snapshot = sampler.finish();
     const grassLayer = (
       world as unknown as {
-        grass?: { applyPackedRecords(records: Float32Array, visible?: boolean): void };
+        grass?: {
+          applyPackedRecords(records: Float32Array, visible?: boolean): void;
+          stats(): { recordCount: number };
+          // lab-only reach into the layer's retained copy of the applied
+          // records; the production API has no reason to expose it.
+          packedRecords?: Float32Array;
+        };
       }
     ).grass;
-    if (snapshot && grassLayer) grassLayer.applyPackedRecords(snapshot.packedRecords, true);
+    if (snapshot && grassLayer) {
+      // The world builds its own whole-map record set asynchronously; wait for
+      // it so (a) it cannot overwrite the merged set later and (b) we can use
+      // it as the far ring. Pen-style ring merge: focused records own the
+      // near/mid field, the whole-map set keeps the horizon populated.
+      const worldGrassSettled = async () => {
+        for (let i = 0; i < 600; i++) {
+          const rebuild = (
+            world.stats() as unknown as {
+              terrain?: { grass?: { rebuild?: { pending?: boolean }; recordCount?: number } };
+            }
+          ).terrain?.grass;
+          if (rebuild && rebuild.recordCount && !(rebuild.rebuild?.pending ?? false)) return;
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+      };
+      await worldGrassSettled();
+      const focused = snapshot.packedRecords;
+      const worldRecords = grassLayer.packedRecords;
+      if (worldRecords && worldRecords.length > 0 && ctx.params.get("farRing") !== "0") {
+        const merged = new Float32Array(focused.length + worldRecords.length);
+        merged.set(focused, 0);
+        merged.set(worldRecords, focused.length);
+        grassLayer.applyPackedRecords(merged, true);
+      } else {
+        grassLayer.applyPackedRecords(focused, true);
+      }
+    }
   }
 
   (window as unknown as { __livingMeadowWorld?: PhotorealBattleWorld }).__livingMeadowWorld =

@@ -12,6 +12,11 @@ Reference (MIT, © Lentils): `assets/pen-source/index.html` (a WebGL/GLSL demo �
 
 ## Shipped (2026-07-27) — rationale record
 
+> **2026-07-28 addendum:** David reopened density + color depth; the polish
+> pass (specs/meadow-polish.md) landed the pen-exact density (camera-following
+> focus ring, two-layer split), the filmic look-grade, and re-held the locked
+> 33ms perf budget. Current state + the one open item live in that spec.
+
 All 19 slices landed on branch `living-meadow`. This README is now the durable
 record of WHY; the HOW lives in the code owners below. The user's review
 surface for every decision made without them is [`choices.md`](choices.md).

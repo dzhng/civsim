@@ -83,3 +83,17 @@ entry is standalone.
 20. **Density doubled at the close crop** (near 18.6%, mid 30%) for ~0 perf
     cost; the residual "unbroken sward" gap needs a ground-level camera to
     matter further. *Sound.*
+
+## Addendum 2: meadow-polish P3 optimization (2026-07-28)
+
+21. **The 33ms budget held at David's explicit direction** (offered 38.5;
+    he chose cost-cuts). Landed via: route-compute wedge cull, varying trim,
+    mid segments 8->6, and the pen's far count-for-width trade (fan 3->2,
+    width up) — vista 37.9 -> 31.0ms, look visually intact. *Sound.*
+22. **Chunked ring upload disabled as defective** (sustained churn, rAF 77ms;
+    worse than the transition hitch it replaced). The two rAF-p95 transition
+    checks stay red until a proven-completing incremental upload lands —
+    the ONE open engineering item. *Sound — honest red, recorded.*
+23. **Depth prepass ships default-OFF** (TBDR finding, entry in P3.2). *Sound.*
+24. **Palette P1**: trans/sheen/rakedDust/sunBleached re-authored under 1.0;
+    fromAnchor pure; translucency strengths compensated. *Sound.*

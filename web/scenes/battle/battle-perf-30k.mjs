@@ -27,6 +27,7 @@ export const meta = {
 // Locked numbers (interview 2026-07-02): changing either requires David.
 const BUDGET_MS = 33;
 const SOLDIER_FLOOR = 30000;
+const MEADOW_RING_RECORD_CAP = 1_000_000; // meadow-polish P3.3 focus ring
 // The load the counts may never shrink below (generated seed 7 base army plus
 // dense scenery; production grass is the slice-11 blade-field record
 // window plus slice-12 routed/thinned blade triangles).
@@ -264,10 +265,14 @@ export async function run(ctx) {
     table.every((row) => row.scenery >= SCENERY_FLOOR) &&
       table.every(
         (row) =>
-          row.grassActiveRecordBudget === STATIC_GRASS_RECORD_CAP &&
+          // Two-set contract (meadow-polish P3.3): base-only stops report the
+          // static cap; ring-engaged stops report base+ring. Records must stay
+          // within whichever budget the world declares for the stop.
+          (row.grassActiveRecordBudget === STATIC_GRASS_RECORD_CAP ||
+            row.grassActiveRecordBudget === STATIC_GRASS_RECORD_CAP + MEADOW_RING_RECORD_CAP) &&
           row.grassAreaBudgetScale === 1 &&
           row.grassRecords >= CLOSE_GRASS_RECORD_FLOOR &&
-          row.grassRecords <= STATIC_GRASS_RECORD_CAP,
+          row.grassRecords <= row.grassActiveRecordBudget,
       ),
     JSON.stringify({
       table: table.map((row) => ({

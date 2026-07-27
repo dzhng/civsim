@@ -288,6 +288,8 @@ const MEADOW_FOCUS_RING_FIELD_CELL_M = 0.6;
 const MEADOW_FOCUS_RING_BASE_WIDTH_M = 0.055;
 const MEADOW_FOCUS_RING_MAX_RECORDS = 1_000_000;
 const MEADOW_FOCUS_RING_DEDUPE_MARGIN_M = 20;
+const MEADOW_RING_ZOOM_T = 0.62;
+const MEADOW_RING_RELEASE_ZOOM_T = 0.54;
 const GRASS_SAMPLE_SLICE_CELLS = 16384;
 const GRASS_SAMPLE_SLICE_BUDGET_MS = 4;
 // Zoomed-out past this vista fraction (0 = top-down overview, 1 = ground vista)
@@ -385,6 +387,12 @@ export class PhotorealBattleWorld {
     focusRingFieldCellM: number;
     focusRingBaseWidthM: number;
     focusRingMaxRecords: number;
+    ringZoomGate: {
+      state: "engaged" | "released";
+      zoomT: number;
+      threshold: number;
+      releaseThreshold: number;
+    };
     dedupeRadiusM: number;
     activeFocus: GrassSampleFocus | null;
     pendingFocus: GrassSampleFocus | null;
@@ -412,6 +420,12 @@ export class PhotorealBattleWorld {
     focusRingFieldCellM: MEADOW_FOCUS_RING_FIELD_CELL_M,
     focusRingBaseWidthM: MEADOW_FOCUS_RING_BASE_WIDTH_M,
     focusRingMaxRecords: MEADOW_FOCUS_RING_MAX_RECORDS,
+    ringZoomGate: {
+      state: "released",
+      zoomT: 0,
+      threshold: MEADOW_RING_ZOOM_T,
+      releaseThreshold: MEADOW_RING_RELEASE_ZOOM_T,
+    },
     dedupeRadiusM: MEADOW_FOCUS_RING_RADIUS_M - MEADOW_FOCUS_RING_DEDUPE_MARGIN_M,
     activeFocus: null as GrassSampleFocus | null,
     pendingFocus: null as GrassSampleFocus | null,
@@ -425,6 +439,7 @@ export class PhotorealBattleWorld {
   };
   private grassEnabled = true;
   private readonly meadowFocusRingEnabled: boolean;
+  private meadowFocusRingZoomEngaged = false;
   private farGrassEnabled = true;
   private readonly grassTransition: BladeFieldTransitionUniforms;
   private readonly wind: BladeFieldWindUniforms = createBladeFieldWindUniforms();
@@ -605,12 +620,9 @@ export class PhotorealBattleWorld {
       postEnabled,
       options.postGrade ?? null,
       grassProfile,
-      // Default OFF pending the zoom gate: with the ring always on, the
-      // perf:30k vista stop regressed to 37.25ms gpu median (> 33ms budget) —
-      // the dense 300m ring is invisible at tactical zoom. The fixture (and
-      // any close-camera surface) opts in explicitly until the ring is gated
-      // by the grass zoom cutoff. See specs/meadow-polish.md P3.3.
-      options.meadowFocusRing === true,
+      // Default ON: the zoom gate below owns the perf cost, while explicit
+      // lab/capture disables such as ?focusDensity=0 still pass false here.
+      options.meadowFocusRing !== false,
       options.disabledGroundDetail ?? null,
     );
   }
@@ -1058,25 +1070,38 @@ export class PhotorealBattleWorld {
       ? (this.activeGrassTransition.terrainDetailStrength ?? 1)
       : 0;
     this.ensureBaseGrassRecords();
-    this.grassRebuildStats.strategy = this.meadowFocusRingEnabled
+    const ringGateEngaged = this.updateMeadowFocusRingZoomGate();
+    const focusRingActive = this.meadowFocusRingEnabled && ringGateEngaged;
+    this.grassRebuildStats.strategy = focusRingActive
       ? "static-whole-map+camera-focus-ring"
       : "static-whole-map";
     this.grassRebuildStats.focusRingEnabled = this.meadowFocusRingEnabled;
-    this.grassRebuildStats.coverageRadiusM = this.meadowFocusRingEnabled
+    this.grassRebuildStats.coverageRadiusM = focusRingActive
       ? MEADOW_FOCUS_RING_RADIUS_M
       : this.baseGrassFocus().radius;
     this.grassRebuildStats.activeTransition = this.activeGrassTransition;
-    this.grassRebuildStats.activeRecordBudget = this.meadowFocusRingEnabled
-      ? MEADOW_FOCUS_RING_MAX_RECORDS
+    // The merged set is base-outside-ring + ring, so the honest cap while the
+    // ring is engaged is the sum of both budgets.
+    this.grassRebuildStats.activeRecordBudget = focusRingActive
+      ? STATIC_GRASS_MAX_RECORDS + MEADOW_FOCUS_RING_MAX_RECORDS
       : STATIC_GRASS_MAX_RECORDS;
 
     if (!this.cameraInitialized) return;
-    if (!this.meadowFocusRingEnabled) {
+    if (!focusRingActive) {
+      // Edge-triggered teardown: only clear + reapply when the ring actually
+      // had records or pending work. Running this every released frame
+      // re-uploaded the 1M-record base set per frame (measured rAF ~140 ms
+      // at the perf mid stop).
+      if (this.grassFocusRecords === null && this.grassSampleTask === null) return;
       this.grassSampleTask = null;
       this.grassPendingTerrainKey = null;
       this.grassRebuildStats.pending = false;
       this.grassRebuildStats.pendingFocus = null;
       this.grassRebuildStats.activeFocus = null;
+      this.grassFocusTerrainKey = null;
+      this.grassFocusRecords = null;
+      this.grassFocusSampleStats = null;
+      this.grassSampleStats = this.grassBaseSampleStats;
       this.applyGrassRecordSets();
       return;
     }
@@ -1097,6 +1122,25 @@ export class PhotorealBattleWorld {
     if (!needsMovedFocus) return;
     if (key === this.grassFocusTerrainKey || key === this.grassPendingTerrainKey) return;
     this.startGrassSampleTask(focus, key);
+  }
+
+  private updateMeadowFocusRingZoomGate(): boolean {
+    // The dense ring engages whenever the camera is in the close band
+    // (zoomT >= 0.62; hysteresis releases below 0.54). Deeper zoom only makes
+    // the ring MORE visible, so there is deliberately no upper cap — the cost
+    // at the closest cameras is judged against the ratified 26 fps floor, not
+    // the tactical-zoom budget (see specs/meadow-polish.md P3.4).
+    const zoomT = this.lastCamera.zoomT;
+    this.meadowFocusRingZoomEngaged = this.meadowFocusRingZoomEngaged
+      ? zoomT >= MEADOW_RING_RELEASE_ZOOM_T
+      : zoomT >= MEADOW_RING_ZOOM_T;
+    this.grassRebuildStats.ringZoomGate = {
+      state: this.meadowFocusRingZoomEngaged ? "engaged" : "released",
+      zoomT: Number(zoomT.toFixed(4)),
+      threshold: MEADOW_RING_ZOOM_T,
+      releaseThreshold: MEADOW_RING_RELEASE_ZOOM_T,
+    };
+    return this.meadowFocusRingZoomEngaged;
   }
 
   private baseGrassFocus(): GrassSampleFocus {
@@ -1233,7 +1277,12 @@ export class PhotorealBattleWorld {
   }
 
   private runGrassSampleSlice(task: GrassSampleTask): void {
-    if (task !== this.grassSampleTask || !this.grassEnabled || !this.meadowFocusRingEnabled)
+    if (
+      task !== this.grassSampleTask ||
+      !this.grassEnabled ||
+      !this.meadowFocusRingEnabled ||
+      !this.meadowFocusRingZoomEngaged
+    )
       return;
     const sliceStarted = performance.now();
     let done = false;
@@ -1286,7 +1335,10 @@ export class PhotorealBattleWorld {
 
   private applyGrassRecordSets(): void {
     const base = this.grassBaseRecords;
-    const focus = this.meadowFocusRingEnabled ? this.grassFocusRecords : null;
+    const focus =
+      this.meadowFocusRingEnabled && this.meadowFocusRingZoomEngaged
+        ? this.grassFocusRecords
+        : null;
     const activeFocus = this.grassRebuildStats.activeFocus;
     if (!base && !focus) {
       this.grass.applyPackedRecords(new Float32Array(), false);

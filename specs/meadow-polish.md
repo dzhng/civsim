@@ -157,3 +157,24 @@ ring is gated by the grass zoom cutoff (the named next step). Final perf reads
 of the session (34.7ms vista with ring off vs 22.1 earlier) are confounded by
 suspected thermal throttle after ~10 consecutive GPU runs — needs one cold
 perf:30k to disambiguate before flipping the default.
+
+## P3.4 zoom gate landed (2026-07-28) + the remaining finish line
+
+Gate: zoomT-only hysteresis (engage >= 0.62, release < 0.54) — codex's raw-zoom
+upper cap was removed after the zoomT mapping showed the perf scene's zoom-9.5
+stop is the MOST zoomed-in camera (zoomT 1.0), exactly where the ring belongs.
+Ring default ON. Two bugs fixed en route: level-triggered release re-applied
+the 1M base set EVERY released frame (rAF 140ms at the mid stop — now
+edge-triggered), and activeRecordBudget under-reported the merged cap (now
+base+ring = 2M; perf-scene foliage contract re-pinned to the two-set
+architecture). Cold runs settled the thermal question: vista-with-ring 37.15
+-37.28ms GPU median is real steady-state, not throttle.
+
+perf:30k with ring on: ALL contracts green except three checks against the
+LOCKED 33ms budget: vista GPU median 37.15 (within David's ratified 26fps
+floor), zoom-sweep p95 33.32 (marginal), close-zoom p95 ~68ms (ring
+engage/rebuild re-uploads the 1.5M merged buffer in one frame — the real
+offender). NEXT: split base and ring into two layer instances (base buffers
+never re-upload; engage = visibility flip; dedupe = circle mask in the route
+compute). Kills the spikes architecturally; 33ms lock question parked with
+David meanwhile.

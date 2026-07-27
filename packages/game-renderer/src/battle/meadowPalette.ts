@@ -6,18 +6,10 @@ const MEADOW_ANCHOR: Rgb = [0.4, 0.49, 0.26];
 const GREEN_GRASS_UNDERLAYER: Rgb = fromAnchor(MEADOW_ANCHOR, [0.47, 0.56, 0.28]);
 
 function fromAnchor(base: Rgb, legacy: Rgb): Rgb {
-  // Renormalized: the lifted green-grass anchor can scale bright roles past
-  // 1.0 (branch review P1 — blade.trans reached ~1.07). Dividing the whole
-  // triple by its over-unity max keeps hue AND keeps every channel following
-  // the base (a hard clamp froze channels and broke the palette invariant).
-  const r0 = base[0] * (legacy[0] / MEADOW_ANCHOR[0]);
-  const r1 = base[1] * (legacy[1] / MEADOW_ANCHOR[1]);
-  const r2 = base[2] * (legacy[2] / MEADOW_ANCHOR[2]);
-  const over = Math.max(1, r0, r1, r2);
   return [
-    r0 / over,
-    r1 / over,
-    r2 / over,
+    base[0] * (legacy[0] / MEADOW_ANCHOR[0]),
+    base[1] * (legacy[1] / MEADOW_ANCHOR[1]),
+    base[2] * (legacy[2] / MEADOW_ANCHOR[2]),
   ];
 }
 
@@ -91,8 +83,8 @@ export function meadowFamily(base: Rgb): MeadowFamily {
     mid: color([0.603, 0.642, 0.265]),
     upper: color([0.677, 0.703, 0.3]),
     tip: color([0.739, 0.739, 0.362]),
-    trans: color([0.91, 0.93, 0.49]),
-    sheen: color([0.86, 0.88, 0.65]),
+    trans: color([0.801, 0.818, 0.431]),
+    sheen: color([0.757, 0.774, 0.572]),
     dry: color([0.778, 0.7, 0.362]),
     dryTipMix: 0.05,
     ringMeadow: color([0.48, 0.55, 0.31]),
@@ -125,10 +117,10 @@ export function meadowFamily(base: Rgb): MeadowFamily {
       default: defaultQuad,
       wideDetail: wideDetailQuad,
       scrub: color([0.31, 0.39, 0.18]),
-      rakedDust: color([0.88, 0.75, 0.47]),
+      rakedDust: color([0.774, 0.66, 0.414]),
       lightFleck: color([0.13, 0.12, 0.055]),
       stoneFleck: color([0.46, 0.43, 0.32]),
-      sunBleached: color([0.86, 0.72, 0.46]),
+      sunBleached: color([0.757, 0.634, 0.405]),
       backdrop: {
         low: color([0.16, 0.25, 0.12]),
         high: color([0.3, 0.42, 0.2]),

@@ -213,3 +213,19 @@ clamp and an over-unity renormalize both pin saturated channels. REAL FIX:
 re-author the trans/sheen legacy triples ~12% darker so nothing exceeds 1.0
 under the production anchor (fromAnchor stays pure); visual delta absorbed by
 the translucency strength uniforms. vitest 41/41 green; ONLY this node test red.
+
+## P3.6 landed (2026-07-28): THE LOCKED 33ms BUDGET HOLDS, look intact
+
+Levers that worked (measured): route-compute camera-wedge cull on the ring
+(vista tris 15.2M -> 11.2M; helped rAF, not GPU median — vista was not
+cull-bound), varying trim + mid segments 8->6 (mid stop 21.5 -> 19.4-20.5ms),
+and the decisive one: the pen's far count-for-width rule — far fan 3->2 with
+farSoft width 2.2->3.1 (vista 37.9 -> 31.0ms GPU median, visually identical
+at the fixture). Total vista tris now 9.0M. Palette P1 fixed properly
+(trans/sheen/rakedDust/sunBleached legacy triples re-authored under 1.0,
+fromAnchor pure again, translucency strengths compensated; node palette suite
+green). perf:30k: ALL checks green except the two rAF-p95 TRANSITION checks —
+the one-frame 599k ring upload on engage/rebuild. The chunked-upload attempt
+CHURNED (uploads never completed; rAF 77ms sustained) and is disabled with
+rationale at the call site; the open item is a proven-completing incremental
+upload. Steady-state is fully within every locked number.

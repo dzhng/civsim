@@ -102,9 +102,9 @@ export const BLADE_FIELD_TRANSLUCENCY = {
   // Baked from the orchestrator's live sweep (2026-07-26): with the display
   // cap + distance fade in place, the timid post-fix defaults were invisible;
   // these read as soft warm backlight with no far-field sparkle.
-  rimStrength: 2.2,
-  subsurfaceStrength: 4.5,
-  maxDisplayEmission: 1.1,
+  rimStrength: 2.5,
+  subsurfaceStrength: 5.1,
+  maxDisplayEmission: 1.25,
   nearDissolveFloor: 0.3,
   rimExponent: 4.2,
   subsurfaceViewPower: 3.2,
@@ -158,7 +158,7 @@ export interface BladeFieldMeadowFarDensityProfile {
   bladesPerRecord?: Partial<Record<BladeFieldTierId, number>>;
   /** Width lift applied before the far-soft band. */
   nearCoverageWidthScale?: number;
-  /** Moves the 8-segment mid tier into the close crop's real foreground band. */
+  /** Moves the mid tier into the close crop's real foreground band. */
   midTierEndM?: number;
   /** Extra lower-far width so the close foreground band does not fall
    *  back to scattered spikes. */
@@ -170,18 +170,22 @@ export const LIVING_MEADOW_FAR_DENSITY_PROFILE: BladeFieldMeadowFarDensityProfil
   farGrassEndM: 1250,
   densityReferenceM: 300,
   falloffPower: 1.5,
-  farSoftWidthScale: 2.2,
+  farSoftWidthScale: 3.1,
   edgeSinkStartM: 1120,
-  bladesPerRecord: { near: 6, mid: 28, far: 3 },
+  // Far tier trades count for width one-for-one (the pen's own far-ring rule:
+  // "a quarter fewer blades at a proportionally wider stroke ... identical").
+  // fan 3->2 with farSoft width 2.2->3.1 bought the last ~2-3ms of the locked
+  // 33ms vista budget without a visible density change.
+  bladesPerRecord: { near: 6, mid: 28, far: 2 },
   nearCoverageWidthScale: 1.0,
   midTierEndM: 64,
-  lowerFarWidthScale: 1.1,
+  lowerFarWidthScale: 1.35,
   lowerFarWidthEndM: 112,
 };
 
 export const BLADE_FIELD_LOD_TIERS: readonly BladeFieldTierSpec[] = [
   { id: "near", lodTier: 0, segments: 15, minDistanceM: 0, maxDistanceM: 5 },
-  { id: "mid", lodTier: 1, segments: 8, minDistanceM: 5, maxDistanceM: 20 },
+  { id: "mid", lodTier: 1, segments: 6, minDistanceM: 5, maxDistanceM: 20 },
   { id: "far", lodTier: 2, segments: 2, minDistanceM: 20, maxDistanceM: 64 },
 ];
 
@@ -253,6 +257,20 @@ export interface BladeFieldStats {
     enabled: boolean;
     center: [number, number];
     radiusSq: number;
+  };
+  routeCullWedge: {
+    enabled: boolean;
+    forward: [number, number];
+    side: [number, number];
+    halfWidthSlope: number;
+    backMarginM: number;
+    farMarginM: number;
+  };
+  packedUpload: {
+    mode: "idle" | "chunking";
+    targetFrames: number;
+    uploadedRecords: number;
+    totalRecords: number;
   };
   depthPrepass: {
     enabled: boolean;
@@ -341,10 +359,18 @@ interface BladeFieldGpuRuntime {
   cullMaskCenter: Vec2UniformNode;
   cullMaskRadiusSq: FloatUniformNode;
   cullMaskEnabled: FloatUniformNode;
+  cullWedgeForward: Vec2UniformNode;
+  cullWedgeSide: Vec2UniformNode;
+  cullWedgeHalfWidthSlope: FloatUniformNode;
+  cullWedgeBackMarginM: FloatUniformNode;
+  cullWedgeFarMarginM: FloatUniformNode;
+  cullWedgeEnabled: FloatUniformNode;
   reset: unknown;
   route: unknown;
+  uploadTouch: unknown;
   routed: boolean;
-  grassData: unknown;
+  grassData: StorageNodeWithValue;
+  recordData: StorageUploadAttribute;
 }
 
 interface RuntimeConfig {
@@ -366,6 +392,30 @@ interface StorageRecordNode {
   get(field: string): { toConst(): Vec4StorageNode };
 }
 
+interface StorageUploadAttribute {
+  array: Float32Array;
+  addUpdateRange(start: number, count: number): void;
+  clearUpdateRanges(): void;
+  setUsage?(usage: number): StorageUploadAttribute;
+  needsUpdate: boolean;
+}
+
+interface StorageNodeWithValue {
+  value: StorageUploadAttribute;
+  element(index: unknown): any;
+}
+
+interface PendingPackedRecordUpload {
+  source: Float32Array;
+  visible: boolean;
+  runtime: BladeFieldGpuRuntime;
+  uploadedFloats: number;
+  floatsPerFrame: number;
+  hashState: number;
+  hashComplete: string | null;
+  recordCount: number;
+}
+
 const grassStorageStruct = struct({
   data0: "vec4",
   data1: "vec4",
@@ -381,12 +431,17 @@ const drawIndirectStruct = struct({
 });
 const SEED24_MASK = 0x00ff_ffff;
 const MAX_BLADES_PER_RECORD = 6;
+const BLADE_FIELD_PACKED_UPLOAD_FRAMES = 6;
 const BLADE_FIELD_PREPASS_TIERS = new Set<BladeFieldTierId>(["near", "mid"]);
 const BLADE_FIELD_PREPASS_RENDER_ORDER = RENDER_ORDER.worldOpaque - 0.01;
 
 export interface BladeFieldLayerOptions {
   depthPrepass?: boolean;
   nameSuffix?: string;
+}
+
+export interface BladeFieldPackedRecordApplyOptions {
+  incremental?: boolean;
 }
 
 export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
@@ -403,7 +458,8 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
   private recordHash = "00000000";
   private enabled = true;
   private runtime: BladeFieldGpuRuntime | null = null;
-  private packedRecords = new Float32Array();
+  private pendingPackedUpload: PendingPackedRecordUpload | null = null;
+  private packedRecords: Float32Array<ArrayBufferLike> = new Float32Array();
   private culledRecords = 0;
   private thinnedRecords = 0;
   private farTierVisible = true;
@@ -412,6 +468,14 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     enabled: false,
     center: new THREE.Vector2(0, 0),
     radiusSq: 0,
+  };
+  private cullWedge = {
+    enabled: false,
+    forward: new THREE.Vector2(0, 1),
+    side: new THREE.Vector2(1, 0),
+    halfWidthSlope: 1,
+    backMarginM: 0,
+    farMarginM: 0,
   };
 
   private readonly tiers: readonly BladeFieldTierSpec[];
@@ -463,7 +527,7 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
       // grass by this prefix.
       mesh.name = grassMeshName(options.nameSuffix, `blades-${spec.id}`);
       mesh.frustumCulled = false;
-      mesh.renderOrder = RENDER_ORDER.worldOpaque;
+      mesh.renderOrder = tierRenderOrder(spec.id);
       mesh.receiveShadow = true;
       mesh.visible = false;
       scene.add(mesh);
@@ -476,7 +540,7 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
           `blades-${spec.id}-depth-prepass`,
         );
         prepassMesh.frustumCulled = false;
-        prepassMesh.renderOrder = BLADE_FIELD_PREPASS_RENDER_ORDER;
+        prepassMesh.renderOrder = tierPrepassRenderOrder(spec.id);
         prepassMesh.visible = false;
         scene.add(prepassMesh);
       }
@@ -495,16 +559,44 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     });
   }
 
-  applyPackedRecords(packedRecords: Float32Array, visible = true): void {
+  applyPackedRecords(
+    packedRecords: Float32Array,
+    visible = true,
+    options: BladeFieldPackedRecordApplyOptions = {},
+  ): void {
     if (packedRecords.length % GRASS_FIELD_PACKED_STRIDE_FLOATS !== 0) {
       throw new Error(
         `blade field expected ${GRASS_FIELD_PACKED_STRIDE_FLOATS}-float records, got ${packedRecords.length}`,
       );
     }
+    if (options.incremental && packedRecords.length > 0) {
+      this.startIncrementalPackedRecordUpload(packedRecords, visible);
+      return;
+    }
+    this.pendingPackedUpload = null;
+    const copiedRecords = new Float32Array(packedRecords);
+    this.activatePackedRecords(
+      copiedRecords,
+      visible,
+      createGpuRuntime(copiedRecords, this.buckets, this.transitionUniforms, this.thinning),
+      hashPackedRecords(packedRecords),
+    );
+  }
+
+  settlePackedRecordUpload(renderer: THREE.WebGPURenderer): void {
+    while (this.pendingPackedUpload) this.advancePendingPackedRecordUpload(renderer);
+  }
+
+  private activatePackedRecords(
+    packedRecords: Float32Array,
+    visible: boolean,
+    runtime: BladeFieldGpuRuntime,
+    recordHash: string,
+  ): void {
     this.enabled = visible;
     this.recordCount = packedRecords.length / GRASS_FIELD_PACKED_STRIDE_FLOATS;
-    this.recordHash = hashPackedRecords(packedRecords);
-    this.packedRecords = new Float32Array(packedRecords);
+    this.recordHash = recordHash;
+    this.packedRecords = packedRecords;
     if (this.recordCount === 0) {
       this.runtime = null;
       this.culledRecords = 0;
@@ -519,13 +611,9 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
       }
       return;
     }
-    this.runtime = createGpuRuntime(
-      this.packedRecords,
-      this.buckets,
-      this.transitionUniforms,
-      this.thinning,
-    );
+    this.runtime = runtime;
     this.applyCullMaskToRuntime();
+    this.applyCullWedgeToRuntime();
 
     for (const bucket of this.buckets) {
       bucket.mesh.material.dispose();
@@ -566,6 +654,7 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     eye: readonly [number, number, number],
     anchor: readonly [number, number] = [eye[0], eye[1]],
   ): void {
+    this.advancePendingPackedRecordUpload(renderer);
     if (!this.runtime) return;
     this.runtime.camera.value.set(eye[0], eye[1], eye[2]);
     this.runtime.anchor.value.set(anchor[0], anchor[1]);
@@ -635,6 +724,48 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     this.applyCullMaskToRuntime();
   }
 
+  setRouteCullWedge(
+    wedge: {
+      forward: readonly [number, number];
+      side: readonly [number, number];
+      halfWidthSlope: number;
+      backMarginM: number;
+      farMarginM: number;
+      enabled: boolean;
+    } | null,
+  ): void {
+    if (
+      !wedge ||
+      !wedge.enabled ||
+      !Number.isFinite(wedge.halfWidthSlope) ||
+      wedge.halfWidthSlope <= 0 ||
+      !Number.isFinite(wedge.farMarginM) ||
+      wedge.farMarginM <= 0
+    ) {
+      this.cullWedge.enabled = false;
+      this.cullWedge.backMarginM = 0;
+      this.cullWedge.farMarginM = 0;
+    } else {
+      const fx = wedge.forward[0];
+      const fy = wedge.forward[1];
+      const fl = Math.hypot(fx, fy);
+      const sx = wedge.side[0];
+      const sy = wedge.side[1];
+      const sl = Math.hypot(sx, sy);
+      if (fl < 1e-6 || sl < 1e-6) {
+        this.cullWedge.enabled = false;
+      } else {
+        this.cullWedge.enabled = true;
+        this.cullWedge.forward.set(fx / fl, fy / fl);
+        this.cullWedge.side.set(sx / sl, sy / sl);
+        this.cullWedge.halfWidthSlope = Math.max(0.1, wedge.halfWidthSlope);
+        this.cullWedge.backMarginM = Math.max(0, wedge.backMarginM);
+        this.cullWedge.farMarginM = Math.max(0, wedge.farMarginM);
+      }
+    }
+    this.applyCullWedgeToRuntime();
+  }
+
   setTransition(profile: BladeFieldTransitionProfile): BladeFieldTransitionProfile {
     this.transition = this.applyTransitionProfile(profile);
     this.thinning = thinningProfileForTransition(
@@ -674,6 +805,10 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
           this.culledRecords++;
           continue;
         }
+      }
+      if (this.cullWedge.enabled && !recordSurvivesCullWedge(x, y, anchor, this.cullWedge)) {
+        this.culledRecords++;
+        continue;
       }
       // GROUND-anchor distance: band by the looked-at/focused field point, not
       // the camera footprint. Shallow cameras sit tens of metres behind target.
@@ -750,6 +885,34 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
         ],
         radiusSq: Number(this.cullMask.radiusSq.toFixed(3)),
       },
+      routeCullWedge: {
+        enabled: this.cullWedge.enabled,
+        forward: [
+          Number(this.cullWedge.forward.x.toFixed(4)),
+          Number(this.cullWedge.forward.y.toFixed(4)),
+        ],
+        side: [
+          Number(this.cullWedge.side.x.toFixed(4)),
+          Number(this.cullWedge.side.y.toFixed(4)),
+        ],
+        halfWidthSlope: Number(this.cullWedge.halfWidthSlope.toFixed(4)),
+        backMarginM: Number(this.cullWedge.backMarginM.toFixed(3)),
+        farMarginM: Number(this.cullWedge.farMarginM.toFixed(3)),
+      },
+      packedUpload: this.pendingPackedUpload
+        ? {
+            mode: "chunking",
+            targetFrames: BLADE_FIELD_PACKED_UPLOAD_FRAMES,
+            uploadedRecords:
+              this.pendingPackedUpload.uploadedFloats / GRASS_FIELD_PACKED_STRIDE_FLOATS,
+            totalRecords: this.pendingPackedUpload.recordCount,
+          }
+        : {
+            mode: "idle",
+            targetFrames: BLADE_FIELD_PACKED_UPLOAD_FRAMES,
+            uploadedRecords: this.recordCount,
+            totalRecords: this.recordCount,
+          },
       depthPrepass: {
         enabled: this.depthPrepassEnabled,
         tiers: prepassTiers,
@@ -808,12 +971,76 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
       this.depthPrepassEnabled && this.tierVisible(bucket.spec, visible);
   }
 
-  private applyCullMaskToRuntime(): void {
-    const runtime = this.runtime;
+  private applyCullMaskToRuntime(runtime = this.runtime): void {
     if (!runtime) return;
     runtime.cullMaskCenter.value.copy(this.cullMask.center);
     runtime.cullMaskRadiusSq.value = this.cullMask.radiusSq;
     runtime.cullMaskEnabled.value = this.cullMask.enabled ? 1 : 0;
+  }
+
+  private applyCullWedgeToRuntime(runtime = this.runtime): void {
+    if (!runtime) return;
+    runtime.cullWedgeForward.value.copy(this.cullWedge.forward);
+    runtime.cullWedgeSide.value.copy(this.cullWedge.side);
+    runtime.cullWedgeHalfWidthSlope.value = this.cullWedge.halfWidthSlope;
+    runtime.cullWedgeBackMarginM.value = this.cullWedge.backMarginM;
+    runtime.cullWedgeFarMarginM.value = this.cullWedge.farMarginM;
+    runtime.cullWedgeEnabled.value = this.cullWedge.enabled ? 1 : 0;
+  }
+
+  private startIncrementalPackedRecordUpload(
+    packedRecords: Float32Array,
+    visible: boolean,
+  ): void {
+    const target = new Float32Array(packedRecords.length);
+    const runtime = createGpuRuntime(target, this.buckets, this.transitionUniforms, this.thinning);
+    runtime.recordData.setUsage?.(THREE.DynamicDrawUsage);
+    this.applyCullMaskToRuntime(runtime);
+    this.applyCullWedgeToRuntime(runtime);
+    const floatsPerRecord = GRASS_FIELD_PACKED_STRIDE_FLOATS;
+    const recordsPerFrame = Math.max(
+      1,
+      Math.ceil(
+        packedRecords.length / floatsPerRecord / BLADE_FIELD_PACKED_UPLOAD_FRAMES,
+      ),
+    );
+    this.pendingPackedUpload = {
+      source: packedRecords,
+      visible,
+      runtime,
+      uploadedFloats: 0,
+      floatsPerFrame: recordsPerFrame * floatsPerRecord,
+      hashState: 0x811c9dc5,
+      hashComplete: null,
+      recordCount: packedRecords.length / floatsPerRecord,
+    };
+  }
+
+  private advancePendingPackedRecordUpload(renderer: THREE.WebGPURenderer): void {
+    const pending = this.pendingPackedUpload;
+    if (!pending) return;
+    const start = pending.uploadedFloats;
+    const end = Math.min(pending.source.length, start + pending.floatsPerFrame);
+    if (end > start) {
+      pending.runtime.recordData.array.set(pending.source.subarray(start, end), start);
+      pending.runtime.recordData.addUpdateRange(start, end - start);
+      pending.runtime.recordData.needsUpdate = true;
+      pending.hashState = hashPackedRecordsRange(pending.source, start, end, pending.hashState);
+      pending.uploadedFloats = end;
+      const compute = (renderer as unknown as { compute(node: unknown): void }).compute.bind(
+        renderer,
+      );
+      compute(pending.runtime.uploadTouch);
+    }
+    if (pending.uploadedFloats < pending.source.length) return;
+    pending.hashComplete ??= hashToString(pending.hashState);
+    this.pendingPackedUpload = null;
+    this.activatePackedRecords(
+      pending.runtime.recordData.array,
+      pending.visible,
+      pending.runtime,
+      pending.hashComplete,
+    );
   }
 
   private applyTransitionProfile(
@@ -889,19 +1116,30 @@ function createGpuRuntime(
   const storageArray = instancedArray as unknown as (
     array: Float32Array,
     type: unknown,
-  ) => {
+  ) => StorageNodeWithValue & {
     setName(name: string): {
       element(index: unknown): { get(field: string): unknown };
+      value: StorageUploadAttribute;
     };
   };
   const grassData = storageArray(packedRecords, grassStorageStruct).setName(
     "PhotorealBladeFieldRecords",
-  );
+  ) as StorageNodeWithValue;
+  const recordData = grassData.value;
   const camera = uniform(new THREE.Vector3(0, 0, 0));
   const anchor = uniform(new THREE.Vector2(0, 0)) as unknown as Vec2UniformNode;
   const cullMaskCenter = uniform(new THREE.Vector2(0, 0)) as unknown as Vec2UniformNode;
   const cullMaskRadiusSq = uniform(0) as unknown as FloatUniformNode;
   const cullMaskEnabled = uniform(0) as unknown as FloatUniformNode;
+  const cullWedgeForward = uniform(new THREE.Vector2(0, 1)) as unknown as Vec2UniformNode;
+  const cullWedgeSide = uniform(new THREE.Vector2(1, 0)) as unknown as Vec2UniformNode;
+  const cullWedgeHalfWidthSlope = uniform(1) as unknown as FloatUniformNode;
+  const cullWedgeBackMarginM = uniform(0) as unknown as FloatUniformNode;
+  const cullWedgeFarMarginM = uniform(0) as unknown as FloatUniformNode;
+  const cullWedgeEnabled = uniform(0) as unknown as FloatUniformNode;
+  const uploadScratch = instancedArray(new Float32Array([0]), "float").setName(
+    "PhotorealBladeFieldUploadTouch",
+  ) as { element(index: unknown): { assign(value: unknown): void } };
   const configs: RuntimeConfig[] = buckets.map((bucket) => {
     const visibleIndices = instancedArray(
       new Uint32Array(packedRecords.length / 16),
@@ -943,6 +1181,21 @@ function createGpuRuntime(
     const maskDelta = pos.xy.sub(cullMaskCenter);
     const outsideMask = step(cullMaskRadiusSq, dot(maskDelta, maskDelta));
     const maskSurvival = mix(1.0, outsideMask, cullMaskEnabled);
+    const wedgeDelta = pos.xy.sub(anchor);
+    const wedgeDepth = dot(wedgeDelta, cullWedgeForward);
+    const wedgeLateral = abs(dot(wedgeDelta, cullWedgeSide));
+    const insideWedgeDepth = step(cullWedgeBackMarginM.mul(-1.0), wedgeDepth).mul(
+      step(wedgeDepth, cullWedgeFarMarginM),
+    );
+    const wedgeHalfWidth = wedgeDepth
+      .add(cullWedgeBackMarginM)
+      .mul(cullWedgeHalfWidthSlope)
+      .add(float(24.0));
+    const wedgeSurvival = mix(
+      1.0,
+      insideWedgeDepth.mul(step(wedgeLateral, wedgeHalfWidth)),
+      cullWedgeEnabled,
+    );
     const seed01 = clamp(d2.z.div(float(SEED24_MASK)), 0.0, 1.0);
     const bladeHash = fract(seed01.mul(7.13));
     const penDensity = min(
@@ -953,7 +1206,7 @@ function createGpuRuntime(
     const farTierEnd = thinning.enabled
       ? transition.farGrassEndM
       : transition.farGrassEndM.add(float(1_000_000.0));
-    If(bladeHash.lessThan(survival.mul(maskSurvival)), () => {
+    If(bladeHash.lessThan(survival.mul(maskSurvival).mul(wedgeSurvival)), () => {
       If(dist.lessThan(transition.nearTierEndM), () => {
         appendToTier(configs[0]);
       })
@@ -965,6 +1218,11 @@ function createGpuRuntime(
         });
     });
   });
+  const uploadTouchFn = Fn(() => {
+    const data = grassData.element(uint(0));
+    const d0 = data.get("data0") as { x: FloatNode };
+    uploadScratch.element(uint(0)).assign(d0.x);
+  });
 
   return {
     camera,
@@ -972,12 +1230,20 @@ function createGpuRuntime(
     cullMaskCenter,
     cullMaskRadiusSq,
     cullMaskEnabled,
+    cullWedgeForward,
+    cullWedgeSide,
+    cullWedgeHalfWidthSlope,
+    cullWedgeBackMarginM,
+    cullWedgeFarMarginM,
+    cullWedgeEnabled,
     reset: resetFn().compute(1).setName("PhotorealBladeFieldResetIndirect"),
     route: routeFn()
       .compute(packedRecords.length / 16)
       .setName("PhotorealBladeFieldRouteLod"),
+    uploadTouch: uploadTouchFn().compute(1).setName("PhotorealBladeFieldUploadTouch"),
     routed: false,
     grassData,
+    recordData,
   };
 }
 
@@ -1080,9 +1346,7 @@ function createBladeFieldMaterial(
         albedo: varying(vec3(0.0)),
         shadeNormal: varying(vec3(0.0, 0.0, 1.0)),
         worldPosition: varying(vec3(0.0)),
-        translucencyWeight: varying(float(0.0)),
-        windFlash: varying(float(0.0)),
-        roughness: varying(float(0.96)),
+        lightWeights: varying(vec2(0.0)),
       };
 
   const buildVertex = Fn(() => {
@@ -1356,15 +1620,19 @@ function createBladeFieldMaterial(
       const windSheen = mix(desat, sheen, clamp(gustTipFlash.mul(0.5), 0.0, 0.58));
       const albedo = mix(windSheen, meadow, ringFade.mul(survivorAlbedoBlend));
       beautyVaryings.albedo.assign(clamp(albedo, vec3(0.0), vec3(1.0)));
-      beautyVaryings.windFlash.assign(clamp(gustTipFlash.mul(0.24), 0.0, 0.22));
+      const windFlash = clamp(gustTipFlash.mul(0.24), 0.0, 0.22);
       const cameraGroundDist = length(cameraPosition.xy.sub(base.xy));
       const distanceFalloff = float(1.0).sub(
         smoothstep(transition.nearTierEndM, transition.midTierEndM, cameraGroundDist),
       );
-      beautyVaryings.translucencyWeight.assign(
-        tipWeight.mul(heightAo).mul(translucencyNearFade).mul(edgeSink).mul(distanceFalloff),
+      const translucencyWeight = tipWeight
+        .mul(heightAo)
+        .mul(translucencyNearFade)
+        .mul(edgeSink)
+        .mul(distanceFalloff);
+      beautyVaryings.lightWeights.assign(
+        vec2(translucencyWeight, windFlash),
       );
-      beautyVaryings.roughness.assign(mix(0.98, 0.84, smoothstepN(0.18, 1.0, t)));
     }
 
     return world;
@@ -1387,16 +1655,15 @@ function createBladeFieldMaterial(
     BLADE_FIELD_TRANSLUCENCY.rimExponent,
   );
   const back = smoothstep(float(0.05), float(0.85), towardBacklight);
-  const rim = back.mul(fresnel).mul(beautyVaryings.translucencyWeight).mul(rimStrength);
+  const translucencyWeight = beautyVaryings.lightWeights.x;
+  const windFlash = beautyVaryings.lightWeights.y;
+  const rim = back.mul(fresnel).mul(translucencyWeight).mul(rimStrength);
   const throughBlade = pow(towardBacklight, BLADE_FIELD_TRANSLUCENCY.subsurfaceViewPower);
   const sunEdge = pow(
     clamp(float(1.0).sub(abs(dot(normalize(beautyVaryings.shadeNormal), sunDir))), 0.0, 1.0),
     BLADE_FIELD_TRANSLUCENCY.subsurfaceSunEdgePower,
   );
-  const subsurface = throughBlade
-    .mul(sunEdge)
-    .mul(beautyVaryings.translucencyWeight)
-    .mul(subsurfaceStrength);
+  const subsurface = throughBlade.mul(sunEdge).mul(translucencyWeight).mul(subsurfaceStrength);
   const emissiveDisplayStrength = clamp(
     rim.add(subsurface),
     0.0,
@@ -1405,9 +1672,8 @@ function createBladeFieldMaterial(
   beautyMaterial.emissiveNode = linearAlbedo(
     rgbNode(BLADE_FIELD_PALETTE.trans).mul(emissiveDisplayStrength),
   ).add(
-    linearAlbedo(rgbNode(BLADE_FIELD_PALETTE.sheen).mul(beautyVaryings.windFlash)),
+    linearAlbedo(rgbNode(BLADE_FIELD_PALETTE.sheen).mul(windFlash)),
   );
-  beautyMaterial.roughnessNode = beautyVaryings.roughness;
   return beautyMaterial;
 }
 
@@ -1603,6 +1869,40 @@ function bladeSurvivesDistanceThinning(
   return bladeHash01(bladeSeed) < survival;
 }
 
+function recordSurvivesCullWedge(
+  x: number,
+  y: number,
+  anchor: readonly [number, number],
+  wedge: {
+    enabled: boolean;
+    forward: THREE.Vector2;
+    side: THREE.Vector2;
+    halfWidthSlope: number;
+    backMarginM: number;
+    farMarginM: number;
+  },
+): boolean {
+  if (!wedge.enabled) return true;
+  const dx = x - anchor[0];
+  const dy = y - anchor[1];
+  const depth = dx * wedge.forward.x + dy * wedge.forward.y;
+  if (depth < -wedge.backMarginM || depth > wedge.farMarginM) return false;
+  const lateral = Math.abs(dx * wedge.side.x + dy * wedge.side.y);
+  return lateral <= (depth + wedge.backMarginM) * wedge.halfWidthSlope + 24;
+}
+
+function tierRenderOrder(id: BladeFieldTierId): number {
+  return RENDER_ORDER.worldOpaque + tierDrawOrderOffset(id);
+}
+
+function tierPrepassRenderOrder(id: BladeFieldTierId): number {
+  return BLADE_FIELD_PREPASS_RENDER_ORDER + tierDrawOrderOffset(id);
+}
+
+function tierDrawOrderOffset(id: BladeFieldTierId): number {
+  return id === "near" ? 0 : id === "mid" ? 0.001 : 0.002;
+}
+
 function bladeHash01(bladeSeed: number): number {
   return fract01(clamp01(bladeSeed / SEED24_MASK) * 7.13);
 }
@@ -1622,8 +1922,17 @@ function clamp01(value: number): number {
 }
 
 function hashPackedRecords(records: Float32Array): string {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < records.length; i++) {
+  return hashToString(hashPackedRecordsRange(records, 0, records.length, 0x811c9dc5));
+}
+
+function hashPackedRecordsRange(
+  records: Float32Array,
+  start: number,
+  end: number,
+  initial: number,
+): number {
+  let h = initial;
+  for (let i = start; i < end; i++) {
     const q = Math.round(records[i] * 1000);
     h ^= q & 0xff;
     h = Math.imul(h, 0x01000193);
@@ -1634,5 +1943,9 @@ function hashPackedRecords(records: Float32Array): string {
     h ^= (q >>> 24) & 0xff;
     h = Math.imul(h, 0x01000193);
   }
+  return h;
+}
+
+function hashToString(h: number): string {
   return (h >>> 0).toString(16).padStart(8, "0");
 }

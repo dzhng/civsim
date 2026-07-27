@@ -218,7 +218,7 @@ const STANDARD_BLADE_FIELD_PROFILE = {
   bendJitter: 0.45,
   tiers: [
     { id: "near", lodTier: 0, segments: 15, minDistanceM: 0, maxDistanceM: 5 },
-    { id: "mid", lodTier: 1, segments: 8, minDistanceM: 5, maxDistanceM: 20 },
+    { id: "mid", lodTier: 1, segments: 6, minDistanceM: 5, maxDistanceM: 20 },
     { id: "far", lodTier: 2, segments: 2, minDistanceM: 20, maxDistanceM: 480 },
   ],
 } as const satisfies ProductionBladeFieldProfile;
@@ -265,7 +265,7 @@ const PRODUCTION_BLADE_FIELD_PROFILES: Record<BattleGrassQuality, ProductionBlad
     widthJitter: 0.16,
     tiers: [
       { id: "near", lodTier: 0, segments: 15, minDistanceM: 0, maxDistanceM: 5 },
-      { id: "mid", lodTier: 1, segments: 8, minDistanceM: 5, maxDistanceM: 20 },
+      { id: "mid", lodTier: 1, segments: 6, minDistanceM: 5, maxDistanceM: 20 },
       { id: "far", lodTier: 2, segments: 2, minDistanceM: 20, maxDistanceM: 480 },
     ],
   },
@@ -1007,6 +1007,11 @@ export class PhotorealBattleWorld {
     // smear). setVisible only toggles mesh.visible, so this is cheap per-frame.
     this.updateGrassLayerRoutingState();
     const grassOn = this.grassVisibleNow();
+    this.grassRing.setRouteCullWedge(
+      this.grassRingVisibleNow()
+        ? grassRouteCullWedgeForCamera(this.lastCamera.camera3d, MEADOW_FOCUS_RING_RADIUS_M)
+        : null,
+    );
     if (grassOn) {
       this.grassBase.routeGpu(
         this.world.renderer,
@@ -1365,7 +1370,12 @@ export class PhotorealBattleWorld {
       inProgressCells: task.sampler.cellsProcessed,
       totalCells: task.sampler.totalCells,
     };
-    this.grassRing.applyPackedRecords(snapshot.packedRecords, this.grassRingVisibleNow());
+    this.grassRing.applyPackedRecords(snapshot.packedRecords, this.grassRingVisibleNow(), {
+      // Disabled: the chunked path churned perpetually (rAF 77ms sustained at
+      // engaged stops vs the 66ms one-frame transition hitch it replaced).
+      // Re-enable only with a proven-completing implementation.
+      incremental: false,
+    });
     this.updateGrassLayerRoutingState();
   }
 
@@ -1519,6 +1529,7 @@ export class PhotorealBattleWorld {
   async settlePresentedFrame(): Promise<void> {
     if (this.cameraInitialized) this.updateGrassForCamera(eyePosition(this.lastCamera.camera3d)[2]);
     this.drainGrassSampleTaskForSettling();
+    this.grassRing.settlePackedRecordUpload(this.world.renderer);
     await this.world.settlePresentedFrame();
   }
 
@@ -1640,6 +1651,44 @@ function snapToGrassFocusGrid(v: number): number {
   return (
     Math.floor(v / MEADOW_FOCUS_RING_SNAP_CELL_M + 1e-6) * MEADOW_FOCUS_RING_SNAP_CELL_M
   );
+}
+
+function grassRouteCullWedgeForCamera(
+  camera: Camera3DParams,
+  radiusM: number,
+): {
+  forward: [number, number];
+  side: [number, number];
+  halfWidthSlope: number;
+  backMarginM: number;
+  farMarginM: number;
+  enabled: boolean;
+} {
+  const eye = eyePosition(camera);
+  const fx = camera.target[0] - eye[0];
+  const fy = camera.target[1] - eye[1];
+  const fl = Math.hypot(fx, fy);
+  if (fl < 1e-6) {
+    return {
+      forward: [0, 1],
+      side: [1, 0],
+      halfWidthSlope: 1,
+      backMarginM: 0,
+      farMarginM: 0,
+      enabled: false,
+    };
+  }
+  const forward: [number, number] = [fx / fl, fy / fl];
+  const side: [number, number] = [forward[1], -forward[0]];
+  const tanHalfX = Math.tan(camera.fovY / 2) * Math.max(0.5, camera.aspect);
+  return {
+    forward,
+    side,
+    halfWidthSlope: Math.max(0.65, tanHalfX * 1.18),
+    backMarginM: radiusM * 0.58,
+    farMarginM: radiusM * 1.08,
+    enabled: true,
+  };
 }
 
 function scheduleNextFrame(callback: () => void): void {

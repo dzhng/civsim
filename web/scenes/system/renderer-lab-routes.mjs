@@ -799,6 +799,7 @@ async function findUnguardedRendererReadyFootguns() {
   const roots = [
     new URL("../../src/battle/", import.meta.url),
     new URL("../../src/campaign/", import.meta.url),
+    new URL("../../src/shared/", import.meta.url),
   ];
   const root = new URL("../../../", import.meta.url).pathname;
   const matches = [];

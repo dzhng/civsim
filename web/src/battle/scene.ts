@@ -1,8 +1,9 @@
 import { Game, type InitOutput } from "../wasm/game_wasm.js";
 import type { Scene } from "../scene";
 import { Camera } from "../shared/camera";
+import { awaitRendererReady } from "../shared/rendererReady";
+import { SimClock } from "../shared/simClock";
 import { pushDestRings, pushPie, SELECTION_GREEN, SOLDIER_RING_RADIUS } from "../shared/overlays";
-import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
 import {
   CLASS_SPACING,
   UNIT_INFO,
@@ -722,6 +723,8 @@ export class BattleScene implements Scene {
       renderer.setUnitReadouts(standards, readouts);
     }
 
+    const clock = new SimClock({ tickHz: 1 / TICK_DT, maxTicksPerFrame: MAX_TICKS_PER_FRAME });
+
     // --- Toolbar (React, inside <BattleHud>) --------------------------------------
     const onToolbarCmd = (cmd: string) => {
       const sel = input.selected;
@@ -742,15 +745,15 @@ export class BattleScene implements Scene {
           sink.toggleKite(sel);
           break;
         case "pause":
-          paused = !paused;
+          clock.paused = !clock.paused;
           break;
         case "x1":
-          paused = false;
-          timeScale = 1;
+          clock.paused = false;
+          clock.timeScale = 1;
           break;
         case "x3":
-          paused = false;
-          timeScale = 3;
+          clock.paused = false;
+          clock.timeScale = 3;
           break;
         case "paths":
           showPaths = !showPaths;
@@ -781,9 +784,9 @@ export class BattleScene implements Scene {
           on: o >= 0 && info[o + UNIT_INFO.evadeAuto] > 0.5,
           disabled: selEmpty || !supports(KITE_CLASS_IDS),
         },
-        pause: { on: paused, disabled: false },
-        x1: { on: !paused && timeScale === 1, disabled: false },
-        x3: { on: !paused && timeScale === 3, disabled: false },
+        pause: { on: clock.paused, disabled: false },
+        x1: { on: !clock.paused && clock.timeScale === 1, disabled: false },
+        x3: { on: !clock.paused && clock.timeScale === 3, disabled: false },
         paths: { on: showPaths, disabled: false },
       };
       const sig = JSON.stringify(state);
@@ -793,10 +796,8 @@ export class BattleScene implements Scene {
     }
 
     // --- Time control ------------------------------------------------------------
-    let paused = false;
     let pausedBeforeFreeze = false;
-    let frozen = false; // snapshot mode: no wall-clock pixels (HUD perf line, shader clock)
-    const syncAudioSuspension = () => battleAudio.setSuspended(document.hidden || frozen);
+    const syncAudioSuspension = () => battleAudio.setSuspended(document.hidden || clock.frozen);
     document.addEventListener("visibilitychange", syncAudioSuspension, { signal });
     syncAudioSuspension();
     // Absolute sim ticks driven so far (real-time loop + scripted advance). The
@@ -848,15 +849,14 @@ export class BattleScene implements Scene {
         );
       }
     };
-    let timeScale = 1;
     let showPaths = false;
     let frozenEffects = false;
     window.addEventListener(
       "keydown",
       (e) => {
-        if (e.key === "p") paused = !paused;
-        if (e.key === "1") timeScale = 1;
-        if (e.key === "3") timeScale = 3;
+        if (e.key === "p") clock.paused = !clock.paused;
+        if (e.key === "1") clock.timeScale = 1;
+        if (e.key === "3") clock.timeScale = 3;
         if (e.key === " ") {
           showPaths = true;
           e.preventDefault();
@@ -1104,7 +1104,7 @@ export class BattleScene implements Scene {
     const input = new Input(canvas, camera, sink, signal, applyBattleCameraRig);
     let pursueOn = false;
     let fireOn = true;
-    updateToolbar(); // initial React paint now that paused/timeScale/showPaths/fireOn exist
+    updateToolbar(); // initial React paint now that clock/showPaths/fireOn exist
 
     // --- Bottom unit-card strip: one card per player unit (Total War style) -------
     // The strip is React (spike verdict: MIGRATE — Δmedian/Δp95 ≈ 0), rendered
@@ -1273,7 +1273,7 @@ export class BattleScene implements Scene {
       const rings: number[] = [];
       const effects: number[] = [];
       lastPreviewBounds = new Map();
-      const showTransient = !frozen || withPaths || frozenEffects;
+      const showTransient = !clock.frozen || withPaths || frozenEffects;
       for (let u = 0; u < n; u++) {
         const o = u * STRIDE;
         const [ax, ay, facing, team] = [
@@ -1678,8 +1678,8 @@ export class BattleScene implements Scene {
     let prevSimPos = new Float32Array(0);
     let gaitMoving = new Uint8Array(0);
     let renderPosTick = -1;
-    let accumulator = 0;
     let lastFrame = performance.now();
+    clock.advance(lastFrame);
     let tickMsAvg = 0;
     let audioUpdateMsAvg = 0;
     let fpsAvg = 60;
@@ -1692,25 +1692,18 @@ export class BattleScene implements Scene {
 
       // Pan in the view's rotated frame so W/S/A/D track the screen at any yaw.
       applyBattleCameraRig();
-      camera.panWorld(input.panX * frameDt, input.panY * frameDt);
+      input.updateCamera(frameDt);
       const audioUpdateStart = performance.now();
       battleAudio.update(camera, frameDt, now / 1000);
       audioUpdateMsAvg += (performance.now() - audioUpdateStart - audioUpdateMsAvg) * 0.05;
 
-      accumulator += paused ? 0 : frameDt * timeScale;
-      let ticks = 0;
-      const maxTicks = MAX_TICKS_PER_FRAME * timeScale;
-      while (accumulator >= TICK_DT && ticks < maxTicks) {
-        accumulator -= TICK_DT;
-        ticks++;
-      }
+      const ticks = clock.advance(now);
       if (ticks > 0) {
         const t0 = performance.now();
         game.advance_ticks(ticks);
         simTick += ticks;
         tickMsAvg += ((performance.now() - t0) / ticks - tickMsAvg) * 0.1;
       }
-      if (ticks === maxTicks) accumulator = 0;
 
       // Reinforcements: campaign battles grow units mid-fight.
       if (game.unit_count() > knownUnits) {
@@ -1773,7 +1766,7 @@ export class BattleScene implements Scene {
         for (let i = 0; i < n; i++) {
           aliveF32[i] = a[i];
           const pi = 2 * i;
-          if (frozen) {
+          if (clock.frozen) {
             // Snapshot mode: draw the TRUE sim positions, no render smoothing —
             // a frozen frame must be deterministic and agree with picking and the
             // verify harness (which read the sim positions), not a lagged ease.
@@ -1887,7 +1880,7 @@ export class BattleScene implements Scene {
         game.soldier_count(),
         camera,
         renderClass,
-        frozen ? simTick : simTick + accumulator / TICK_DT,
+        clock.frozen ? simTick : simTick + clock.alpha,
         frameDt,
       );
       // Attack arcs: every soldier mid-swing flashes his weapon's true envelope
@@ -1895,7 +1888,7 @@ export class BattleScene implements Scene {
       // tracks the weapon ACTUALLY in hand (pike vs side-sword) and, for a braced
       // pike, the UNIT's frontage — never the man's own facing — so a flanked
       // phalanx shows side-swords, not a porcupine of sideways pikes.
-      if (!frozen && camera.zoom > 2.5) {
+      if (!clock.frozen && camera.zoom > 2.5) {
         const tris: number[] = [];
         const pos = positions();
         const face = facings();
@@ -1988,7 +1981,7 @@ export class BattleScene implements Scene {
     function updateHud() {
       // Bare dev telemetry, not part of the diegetic card: "—" when frozen so
       // snapshots are deterministic (the sim clock is stopped).
-      battleHud.setFps(frozen ? "fps —" : `fps ${fpsAvg.toFixed(0)}`);
+      battleHud.setFps(clock.frozen ? "fps —" : `fps ${fpsAvg.toFixed(0)}`);
       let unit: HudUnit | undefined;
       let cardUnit = -1;
       // One unit selected (or hovered) → its detail; otherwise the army summary.
@@ -2073,9 +2066,9 @@ export class BattleScene implements Scene {
     // screenshots are reproducible (see snapshot.mjs). It must not OWN the pause
     // state (an unfreeze after a user pause should stay paused).
     const doFreeze = (on = true) => {
-      if (on && !frozen) pausedBeforeFreeze = paused;
-      paused = on ? true : pausedBeforeFreeze;
-      frozen = on;
+      if (on && !clock.frozen) pausedBeforeFreeze = clock.paused;
+      clock.paused = on ? true : pausedBeforeFreeze;
+      clock.frozen = on;
       if (!on) frozenEffects = false;
       renderer.fixedTime = on ? 0 : null;
       renderer.preserveFrozenEffects = on && frozenEffects;
@@ -2320,14 +2313,9 @@ export class BattleScene implements Scene {
       },
     };
     window.__cam = camera;
-    void renderer.ready
-      .then(() => {
-        window.__ready = true;
-      })
-      .catch((error: unknown) => {
-        const message = error instanceof Error ? error.message : String(error);
-        showFatalErrorSurface(canvas, fatalSurfaceFor("init", message));
-      });
+    awaitRendererReady(renderer.ready, canvas, () => {
+      window.__ready = true;
+    });
   }
 }
 

@@ -1,6 +1,7 @@
 import { buildStackCrowd } from "@packages/crowd-runtime/src/stackCrowd";
 import type { CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
-import { drawnRoadRuns, type CampaignMarker } from "./mapPass";
+import type { CampaignMarker } from "@packages/game-renderer/src/campaign/mapPass";
+import { drawnRoadRuns } from "@packages/game-renderer/src/campaign/roadGeometry";
 import type { CampaignEntityInstance } from "./entityPass";
 import type { CampaignSceneryInstance } from "./sceneryPass";
 import type { CampaignSelectionInstance } from "./selectionPass";

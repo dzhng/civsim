@@ -17,7 +17,7 @@ import type { CampaignTopBarActions, CampaignTopBarState } from "../ui/campaign/
 import { createHudStore } from "../ui/hudStore";
 import { nearestLoc, tilePos, type CampaignData } from "./data";
 import type { CamView } from "./camera";
-import { rectsOverlap, type ScreenRect } from "@packages/game-renderer/src/campaign/mapPass";
+import { rectsOverlap, type ScreenRect } from "@packages/game-renderer/src/campaign/labelLayout";
 import {
   CAMPAIGN_FULL_TILT_ZOOM,
   CampaignRenderer,

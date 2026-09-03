@@ -1,5 +1,6 @@
 import { CampaignEntityPass } from "@packages/game-renderer/src/campaign/entityPass";
-import { buildCampaignMapDrawData, CampaignLabelPass, CampaignRoadPass, CampaignWorldLinePass } from "@packages/game-renderer/src/campaign/mapPass";
+import { CampaignLabelPass, CampaignRoadPass, CampaignWorldLinePass } from "@packages/game-renderer/src/campaign/mapPass";
+import { buildCampaignMapDrawData } from "@packages/game-renderer/src/campaign/roadGeometry";
 import { SharedStandardPass } from "@packages/game-renderer/src/models/shared/standardPass";
 import { CampaignSelectionPass } from "@packages/game-renderer/src/campaign/selectionPass";
 import { nearestLoc } from "../../../../web/src/campaign/data";

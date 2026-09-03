@@ -18,6 +18,13 @@ every record each frame (779-848, "STATS ONLY") moves to rebuild time or is
 sampled; measure `stats()` cost before and after and write the numbers in this
 file.
 
+**Measured in lane W (1,000,000 records, SwiftShader, 5,000 warmed
+`window.__game.stats()` calls):** before 0.004925 ms/call median (p10 0.004825,
+p90 0.007750); after 0.005450 ms/call median (p10 0.005350, p90 0.009050).
+The published stats call remains effectively constant-time; the 200k-record
+sample now runs once when records or transition bands change instead of on
+every rendered frame.
+
 ## Decisions resolved here
 
 Stats are computed when records change, not when the frame renders.

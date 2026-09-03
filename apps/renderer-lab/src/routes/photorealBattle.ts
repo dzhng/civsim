@@ -236,30 +236,28 @@ export async function route(ctx: LabContext) {
   {
     const grid = edgeFixture?.grid ?? readBattleTerrainGrid(game, wasm.memory);
     world.setTerrain(
-      grid.w,
-      grid.h,
-      grid.cell,
-      grid.ox,
-      grid.oy,
-      grid.tint,
-      edgeFixture ? grid.height : heightForPhotorealRoute(grid.height!, generatedMap),
-      edgeFixture ? undefined : wasmMapId,
-      edgeFixture
-        ? {
-            flatMax: 0.07,
-            rollingMax: 0.115,
-            slowMin: 0.135,
-            cliffMin: 0.32,
-            cliffDilateCells: 2,
-            highlandCapMinM: 150,
-          }
-        : (generatedDescriptor?.slopeBands ?? null),
-      edgeFixture || !generatedDescriptor
-        ? null
-        : readGeneratedVistaGrid(wasm, game, generatedDescriptor),
-      null,
-      grid.rough,
-      grid.speed,
+      {
+        ...grid,
+        height: edgeFixture ? grid.height : heightForPhotorealRoute(grid.height!, generatedMap),
+      },
+      {
+        wasmMapId: edgeFixture ? undefined : wasmMapId,
+        slopeBands: edgeFixture
+          ? {
+              flatMax: 0.07,
+              rollingMax: 0.115,
+              slowMin: 0.135,
+              cliffMin: 0.32,
+              cliffDilateCells: 2,
+              highlandCapMinM: 150,
+            }
+          : (generatedDescriptor?.slopeBands ?? null),
+        vista:
+          edgeFixture || !generatedDescriptor
+            ? null
+            : readGeneratedVistaGrid(wasm, game, generatedDescriptor),
+        lakeSurfaces: null,
+      },
     );
   }
   if (edgeFixture) addEdgeRuler(world.world.scene, edgeFixture.anchors.ruler);

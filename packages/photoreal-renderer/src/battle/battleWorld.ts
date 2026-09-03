@@ -93,6 +93,13 @@ export interface BattleTacticalLineFrame {
   rings: Float32Array;
 }
 
+export interface BattleTerrainOptions {
+  wasmMapId?: number;
+  slopeBands?: BattleSlopeBands | null;
+  vista?: BattleVistaGrid | null;
+  lakeSurfaces?: BattleLakeSurfaceSpec[] | null;
+}
+
 export class PhotorealBattleWorld {
   readonly world: PhotorealWorld;
   readonly camera = new THREE.PerspectiveCamera();
@@ -307,40 +314,23 @@ export class PhotorealBattleWorld {
     this.debugBlocks.upload(new Float32Array());
   }
 
-  setTerrain(
-    w: number,
-    h: number,
-    cell: number,
-    ox: number,
-    oy: number,
-    tint?: Uint8Array,
-    height?: Float32Array,
-    wasmMapId?: number,
-    slopeBands?: BattleSlopeBands | null,
-    vista?: BattleVistaGrid | null,
-    lakeSurfaces?: BattleLakeSurfaceSpec[] | null,
-    rough?: Float32Array,
-    speed?: Float32Array,
-  ): void {
-    this.terrainRect = [ox, oy, w * cell, h * cell];
-    this.terrainGrid = tint
-      ? {
-          w,
-          h,
-          cell,
-          ox,
-          oy,
-          tint: new Uint8Array(tint),
-          height: height ? new Float32Array(height) : undefined,
-          rough: rough ? new Float32Array(rough) : undefined,
-          speed: speed ? new Float32Array(speed) : undefined,
-        }
-      : null;
-    const catalog = wasmMapId !== undefined ? battleMapByWasmId(wasmMapId) : undefined;
+  setTerrain(grid: BattleTerrainGrid, options: BattleTerrainOptions = {}): void {
+    this.terrainRect = [grid.ox, grid.oy, grid.w * grid.cell, grid.h * grid.cell];
+    this.terrainGrid = {
+      ...grid,
+      tint: new Uint8Array(grid.tint),
+      height: grid.height ? new Float32Array(grid.height) : undefined,
+      rough: grid.rough ? new Float32Array(grid.rough) : undefined,
+      speed: grid.speed ? new Float32Array(grid.speed) : undefined,
+    };
+    const catalog =
+      options.wasmMapId !== undefined ? battleMapByWasmId(options.wasmMapId) : undefined;
     this.groundCover = catalog?.groundCover ?? "green-grass";
-    this.slopeBands = slopeBands ?? null;
-    this.vistaGrid = vista ?? null;
-    this.lakeSurfaces = lakeSurfaces ? lakeSurfaces.map((surface) => ({ ...surface })) : [];
+    this.slopeBands = options.slopeBands ?? null;
+    this.vistaGrid = options.vista ?? null;
+    this.lakeSurfaces = options.lakeSurfaces
+      ? options.lakeSurfaces.map((surface) => ({ ...surface }))
+      : [];
     this.applyTerrain();
   }
 
@@ -431,6 +421,47 @@ export class PhotorealBattleWorld {
 
   uploadDebugBlocks(verts: Float32Array): void {
     this.debugBlocks.upload(verts);
+  }
+
+  debugBlockTriangles(positions: Float32Array, alive: Float32Array, count: number): Float32Array {
+    const bounds = new Map<
+      number,
+      { x0: number; y0: number; x1: number; y1: number; team: number }
+    >();
+    for (let i = 0; i < count; i++) {
+      if ((alive[i] ?? 0) <= 0.5) continue;
+      const unit = this.soldierUnit[i] ?? 0;
+      const x = positions[i * 2];
+      const y = positions[i * 2 + 1];
+      const prev = bounds.get(unit);
+      if (prev) {
+        prev.x0 = Math.min(prev.x0, x);
+        prev.y0 = Math.min(prev.y0, y);
+        prev.x1 = Math.max(prev.x1, x);
+        prev.y1 = Math.max(prev.y1, y);
+      } else {
+        bounds.set(unit, {
+          x0: x,
+          y0: y,
+          x1: x,
+          y1: y,
+          team: this.unitTeam[unit] ?? 0,
+        });
+      }
+    }
+    const verts: number[] = [];
+    for (const bound of bounds.values()) {
+      const pad = 2.4;
+      const x0 = bound.x0 - pad;
+      const y0 = bound.y0 - pad;
+      const x1 = bound.x1 + pad;
+      const y1 = bound.y1 + pad;
+      const color: [number, number, number, number] =
+        bound.team === 1 ? [0.88, 0.2, 0.16, 0.88] : [0.18, 0.44, 1.0, 0.88];
+      pushTriangle(verts, x0, y0, x1, y0, x1, y1, color);
+      pushTriangle(verts, x0, y0, x1, y1, x0, y1, color);
+    }
+    return new Float32Array(verts);
   }
 
   drawTacticalLines(lines: BattleTacticalLineFrame, camera: BattleCameraSnapshot): void {
@@ -533,6 +564,7 @@ export class PhotorealBattleWorld {
       triangles: world.triangles,
       crowd: crowdStats,
       lod: { skinned: skinnedCount, impostors: markerCount },
+      markerLayer: markerCount > 0 ? ("far-lod-impostor" as const) : ("none" as const),
       device: world.device,
       groundDetail: {
         earthEdges: this.terrainSurface.ground?.userData.earthDistance ?? null,
@@ -585,4 +617,17 @@ export class PhotorealBattleWorld {
     this.shadowRig.dispose();
     this.world.dispose();
   }
+}
+
+function pushTriangle(
+  verts: number[],
+  ax: number,
+  ay: number,
+  bx: number,
+  by: number,
+  cx: number,
+  cy: number,
+  color: [number, number, number, number],
+): void {
+  verts.push(ax, ay, ...color, bx, by, ...color, cx, cy, ...color);
 }

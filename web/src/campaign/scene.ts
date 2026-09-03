@@ -24,7 +24,7 @@ import {
 } from "./renderer";
 import { TerrainField } from "./terrain";
 import { Territory } from "./territory";
-import { Allegiance } from "./status";
+import { Allegiance } from "@packages/game-renderer/src/campaign/entityFrame";
 import type { MapCardModel, MapCardPosition } from "../ui/campaign/MapCards";
 import { installCampaignDebugApi, markCampaignReady } from "./debugApi";
 import { createCameraKeyController } from "../shared/cameraKeys";
@@ -39,7 +39,11 @@ import {
   type DiplomacyAction,
   type DiplomacyRow,
 } from "./panels";
-import { readCampaignViews, type ArmyView, type CityView } from "./views";
+import { readCampaignViews } from "./views";
+import type { ArmyView, CityView } from "@packages/game-renderer/src/campaign/entityFrame";
+import { writeCampaignSave } from "./save";
+import { occupiedCityForArmy } from "@packages/game-renderer/src/campaign/entityFrame";
+import { ordinal } from "@packages/game-renderer/src/campaign/labels";
 
 /** Campaign ticks per real second at base speed. A tick covers
  * MINUTES_PER_TICK game-minutes (campaign tunables), so at 10 min/tick the base
@@ -49,7 +53,6 @@ import { readCampaignViews, type ArmyView, type CityView } from "./views";
 const TICKS_PER_SEC = 60;
 const SPEEDS = [1, 2, 4];
 const SPEED_LABELS = SPEEDS.map((speed) => `${speed}x`);
-const SAVE_KEY = "campaign-save";
 /** Ticks between a snapshot and applying the decisions it yields — must match
  *  campaign tunables AI_LATENCY. */
 const AI_LATENCY = 60;
@@ -658,7 +661,7 @@ export class CampaignScene implements Scene {
     const ordinalOf = this.playerArmyOrdinals();
     for (const army of this.armies) {
       if (!this.isOwnArmy(army)) continue;
-      const city = this.occupiedCityForArmy(army);
+      const city = occupiedCityForArmy(this.cfg.data, army);
       if (city === null) continue;
       const existing = footers.get(city.index);
       if (existing && existing.soldiers >= army.soldiers) continue;
@@ -687,20 +690,9 @@ export class CampaignScene implements Scene {
    *  when the player OWNS it — an own army on a foreign city (siege/occupation)
    *  must keep its own army card or the stack has no label at all. */
   private ownGarrisonCityForArmy(army: ArmyView) {
-    const hit = this.occupiedCityForArmy(army);
+    const hit = occupiedCityForArmy(this.cfg.data, army);
     if (!hit) return null;
     return this.cities.get(hit.index)?.owner === this.playerFaction() ? hit : null;
-  }
-
-  private occupiedCityForArmy(army: ArmyView) {
-    let best: { index: number; d: number } | null = null;
-    for (let index = 0; index < this.cfg.data.map.nodes.length; index++) {
-      const node = this.cfg.data.map.nodes[index];
-      if (node.kind !== "city") continue;
-      const d = Math.hypot(node.pos[0] - army.x, node.pos[1] - army.y);
-      if (d < 8 && (!best || d < best.d)) best = { index, d };
-    }
-    return best;
   }
 
   // ---- input ------------------------------------------------------------------
@@ -961,9 +953,6 @@ export class CampaignScene implements Scene {
   private fight(eid: number) {
     this.closeModal();
     const c = this.cfg.campaign;
-    try {
-      localStorage.setItem(SAVE_KEY + "-auto", c.save());
-    } catch {}
     const game = start_campaign_battle(c, eid);
     if (!game) return;
     this.cfg.onBattle(game, () => {
@@ -1024,7 +1013,7 @@ export class CampaignScene implements Scene {
     const c = this.cfg.campaign;
     if (c.can_save()) {
       try {
-        localStorage.setItem(SAVE_KEY, c.save());
+        writeCampaignSave(c.save());
       } catch {}
     }
   }
@@ -1352,10 +1341,4 @@ function onScreen(x: number, y: number, width: number, height: number) {
  *  (translate3d(x,y) translate(-50%,0) in MapCards). */
 function cardRectAt(x: number, y: number, size: { w: number; h: number }): ScreenRect {
   return { x: x - size.w / 2, y, w: size.w, h: size.h };
-}
-
-function ordinal(k: number) {
-  const value = k % 100;
-  const suffix = value >= 11 && value <= 13 ? "th" : (["th", "st", "nd", "rd"][k % 10] ?? "th");
-  return `${k}${suffix}`;
 }

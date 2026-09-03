@@ -1,0 +1,382 @@
+import type { CampaignSceneryInstance, CampaignSceneryKind } from "./sceneryPass";
+import type {
+  CampaignRenderData,
+  CampaignSceneryReservation,
+  CampaignTerrainField,
+} from "./entityFrame";
+import { testStageScenery } from "../fixtures/campaignScenery";
+import { hash2 } from "../math";
+
+const CAMPAIGN_MOUNTAIN_MIN_SCALE = 0.28;
+const CAMPAIGN_TREE_MIN_SCALE = 0.45;
+const CAMPAIGN_ROCK_MIN_SCALE = 0.45;
+const CAMPAIGN_MAX_MOUNTAINS = 3200;
+const CAMPAIGN_MAX_TREES = 7200;
+const CAMPAIGN_MAX_ROCKS = 1000;
+const CAMPAIGN_MOUNTAIN_VISUAL_SCALE = 2.25;
+const CAMPAIGN_ROCK_VISUAL_SCALE = 1.75;
+const CAMPAIGN_TREE_VISUAL_SCALE = 1.72;
+// Land gate (B9): every static candidate must pass renderLandAt — the
+// full-res rendered coast, not the 8 km grid — with the instance's own
+// footprint radius as the margin (`size` is roughly the footprint diameter in
+// km), so no prop hangs over the water side of the drawn coastline.
+function sceneryFootprintOnLand(field: CampaignTerrainField, x: number, y: number, size: number) {
+  return field.renderLandAt(x, y, size * 0.5);
+}
+
+export function tallySceneryCandidates(candidates: CampaignSceneryInstance[]) {
+  const tally = { total: candidates.length, mountains: 0, trees: 0, rocks: 0 };
+  for (const item of candidates) {
+    if (item.kind === "mountain") tally.mountains++;
+    else if (item.kind === "rock") tally.rocks++;
+    else if (item.kind !== "cart") tally.trees++;
+  }
+  return tally;
+}
+
+const SCENERY_VIEW_MARGIN_KM = 16;
+
+export function campaignScenery(
+  candidates: CampaignSceneryInstance[],
+  reservations: CampaignSceneryReservation[] = [],
+  scale = 1,
+  view?: { x: number; y: number; radiusKm: number },
+): CampaignSceneryInstance[] {
+  const lodFiltered = candidates.filter((item) => {
+    if (scale < sceneryMinScale(item)) return false;
+    if (!view) return true;
+    const reach = view.radiusKm + SCENERY_VIEW_MARGIN_KM + item.size * 2;
+    return (item.x - view.x) ** 2 + (item.y - view.y) ** 2 <= reach * reach;
+  });
+  return clearCampaignDynamicScenery(lodFiltered, reservations);
+}
+
+export function buildCampaignSceneryCandidates(
+  data: CampaignRenderData,
+  field: CampaignTerrainField,
+  controlledStage: boolean,
+  temperateYKm: number,
+): CampaignSceneryInstance[] {
+  if (data.map.attribution === "test")
+    return clearCampaignStaticScenery(data, testStageScenery(data), controlledStage);
+  const mountains: ScoredCampaignSceneryInstance[] = [];
+  const trees: ScoredCampaignSceneryInstance[] = [];
+  const rocks: ScoredCampaignSceneryInstance[] = [];
+  for (let gy = 0; gy < field.h; gy++) {
+    for (let gx = 0; gx < field.w; gx++) {
+      const i = gy * field.w + gx;
+      if (!field.land[i]) continue;
+      const x0 = field.minX + (gx + 0.5) * field.cell;
+      const y0 = field.maxY - (gy + 0.5) * field.cell;
+      const rock = field.biome[i * 4 + 2] / 255;
+      const forest = field.biome[i * 4 + 1] / 255;
+      const height = field.height[i] / Math.max(1, field.maxH);
+      const mountainScore = height * 0.85 + rock * 0.5;
+      // Thinner than before: a few deliberate massifs let the terrain relief and
+      // rock shading carry the range mass, instead of a wall of cones on every
+      // high cell that buries cities and roads.
+      const mountainChance =
+        mountainScore > 0.66 ? 0.58 : height > 0.2 ? 0.6 : rock > 0.18 && height > 0.04 ? 0.4 : 0;
+      if (mountainChance > 0 && hash2(gx * 3 + 1, gy * 7 + 2) < mountainChance) {
+        const x = x0 + (hash2(gx, gy * 2) - 0.5) * field.cell * 0.7;
+        const y = y0 + (hash2(gx * 2, gy) - 0.5) * field.cell * 0.7;
+        const radius = field.cell * 0.5 * (0.7 + rock * 0.5);
+        const size = radius * CAMPAIGN_MOUNTAIN_VISUAL_SCALE;
+        // Gate only the mountain push: a failed land check must not skip the
+        // cell's forest block below.
+        if (sceneryFootprintOnLand(field, x, y, size)) {
+          mountains.push({
+            x,
+            y,
+            z: Math.max(0, field.heightAt(x, y)),
+            size,
+            // Lower silhouette: broad ridges rather than spires that tower over
+            // labels. Vertical scale trimmed alongside the broader massif mesh.
+            height: (2.1 + rock * 3.1 + height * 3.3) * 1.0,
+            kind: "mountain",
+            shade: hash2(gx + 3, gy + 5),
+            yaw: hash2(gx * 9 + 1, gy * 4 + 7) * Math.PI * 2,
+            score: mountainScore + hash2(gx + 17, gy + 29) * 0.08,
+            gx,
+            gy,
+          });
+        }
+      } else if (rock > 0.3 && hash2(gx * 5, gy * 9) < rock * 0.6) {
+        const count = 1 + Math.floor(hash2(gx, gy) * 2.5);
+        for (let t = 0; t < count; t++) {
+          const x = x0 + (hash2(gx * 7 + t, gy * 11) - 0.5) * field.cell * 1.2;
+          const y = y0 + (hash2(gx * 5 + t, gy * 13) - 0.5) * field.cell * 1.2;
+          const radius = 0.9 + hash2(gx + t, gy) * 1.7;
+          const size = radius * CAMPAIGN_ROCK_VISUAL_SCALE;
+          if (!sceneryFootprintOnLand(field, x, y, size)) continue;
+          rocks.push({
+            x,
+            y,
+            z: Math.max(0, field.heightAt(x, y)),
+            size,
+            height: (0.7 + hash2(gx, gy + t) * 1.4) * 1.12,
+            kind: "rock",
+            shade: hash2(t + 1, gx),
+            yaw: hash2(gx * 7 + t, gy * 3 + 11) * Math.PI * 2,
+            score: rock + hash2(gx + t * 5, gy + t * 7) * 0.1,
+            gx,
+            gy,
+          });
+        }
+      }
+      if (forest >= 0.16) {
+        const count = Math.max(1, Math.round(forest * 7.0 * (0.6 + hash2(gx, gy) * 0.9)));
+        for (let t = 0; t < count; t++) {
+          const x = x0 + (hash2(gx * 7 + t, gy * 13 + 1) - 0.5) * field.cell * 1.4;
+          const y = y0 + (hash2(gx * 3 + t, gy * 17 + 5) - 0.5) * field.cell * 1.4;
+          const heightScale = 2.0 + hash2(gx + t, gy + t) * 1.8;
+          const size = heightScale * 0.72 * CAMPAIGN_TREE_VISUAL_SCALE;
+          if (!sceneryFootprintOnLand(field, x, y, size)) continue;
+          trees.push({
+            x,
+            y,
+            z: Math.max(0, field.heightAt(x, y) - 0.05),
+            size,
+            height: heightScale * 1.1,
+            kind: campaignTreeSpecies(hash2(gx * 5 + t, gy * 11), y > temperateYKm),
+            shade: hash2(gx + t * 19, gy + t * 23),
+            yaw: hash2(gx * 13 + t, gy * 7 + t) * Math.PI * 2,
+            score: forest + hash2(gx + t * 3, gy + t * 11) * 0.08,
+            gx,
+            gy,
+          });
+        }
+      } else if (forest >= 0.09 && hash2(gx * 11 + 3, gy * 5 + 7) < 0.45) {
+        // Forest fringe: scrub instead of full trees, so woods fade into open
+        // ground through bushes rather than ending at a hard tree line.
+        const x = x0 + (hash2(gx * 9 + 2, gy * 13 + 4) - 0.5) * field.cell * 1.2;
+        const y = y0 + (hash2(gx * 5 + 6, gy * 11 + 8) - 0.5) * field.cell * 1.2;
+        const heightScale = 0.9 + hash2(gx + 7, gy + 3) * 0.6;
+        const size = heightScale * 0.85 * CAMPAIGN_TREE_VISUAL_SCALE;
+        if (sceneryFootprintOnLand(field, x, y, size)) {
+          trees.push({
+            x,
+            y,
+            z: Math.max(0, field.heightAt(x, y) - 0.05),
+            size,
+            height: heightScale,
+            kind: "bush",
+            shade: hash2(gx + 29, gy + 31),
+            yaw: hash2(gx * 17 + 1, gy * 3 + 9) * Math.PI * 2,
+            score: forest * 0.6 + hash2(gx + 13, gy + 17) * 0.08,
+            gx,
+            gy,
+          });
+        }
+      }
+    }
+  }
+  return clearCampaignStaticScenery(
+    data,
+    [
+      ...selectRegionalScenery(mountains, CAMPAIGN_MAX_MOUNTAINS),
+      ...selectRegionalScenery(trees, CAMPAIGN_MAX_TREES),
+      ...selectRegionalScenery(rocks, CAMPAIGN_MAX_ROCKS),
+    ],
+    controlledStage,
+  );
+}
+
+// Deterministic species pick per biome band: boreal forests run conifer-led
+// with pale aspen accents, temperate forests mix oak/ash/aspen over a conifer
+// minority — variety within one muted register, not a per-cell monoculture.
+function campaignTreeSpecies(roll: number, boreal: boolean): CampaignSceneryKind {
+  if (boreal) {
+    if (roll < 0.6) return "conifer";
+    if (roll < 0.85) return "aspen";
+    return "ash";
+  }
+  if (roll < 0.2) return "conifer";
+  if (roll < 0.55) return "broadleaf";
+  if (roll < 0.8) return "ash";
+  return "aspen";
+}
+
+type ScoredCampaignSceneryInstance = CampaignSceneryInstance & {
+  score: number;
+  gx: number;
+  gy: number;
+};
+
+const CAMPAIGN_SCENERY_REGION_CELLS = 24;
+
+export function selectRegionalScenery(
+  items: ScoredCampaignSceneryInstance[],
+  limit: number,
+): CampaignSceneryInstance[] {
+  if (items.length <= limit) return items.map(toCampaignSceneryInstance);
+  const buckets = new Map<string, ScoredCampaignSceneryInstance[]>();
+  for (const item of items) {
+    const key = `${Math.floor(item.gx / CAMPAIGN_SCENERY_REGION_CELLS)},${Math.floor(item.gy / CAMPAIGN_SCENERY_REGION_CELLS)}`;
+    const bucket = buckets.get(key);
+    if (bucket) bucket.push(item);
+    else buckets.set(key, [item]);
+  }
+  for (const bucket of buckets.values()) bucket.sort(compareSceneryScore);
+
+  const selected: ScoredCampaignSceneryInstance[] = [];
+  const selectedSet = new Set<ScoredCampaignSceneryInstance>();
+  const regions = [...buckets.values()].sort((a, b) => b[0].score - a[0].score);
+  const regionalReserve = Math.min(limit, Math.floor(limit * 0.32));
+  const perRegionSeed = Math.max(1, Math.floor(regionalReserve / Math.max(1, regions.length)));
+  for (const bucket of regions) {
+    if (selected.length >= limit) break;
+    for (const item of bucket.slice(0, perRegionSeed)) {
+      if (selected.length >= limit) break;
+      selected.push(item);
+      selectedSet.add(item);
+    }
+  }
+
+  const remainingQuota = limit - selected.length;
+  let spent = 0;
+  for (const bucket of regions) {
+    if (spent >= remainingQuota) break;
+    const seeded = bucket.reduce((count, item) => count + (selectedSet.has(item) ? 1 : 0), 0);
+    const quota = Math.min(
+      bucket.length - seeded,
+      Math.floor((bucket.length / items.length) * remainingQuota),
+    );
+    let taken = 0;
+    for (const item of bucket) {
+      if (spent >= remainingQuota || taken >= quota) break;
+      if (selectedSet.has(item)) continue;
+      selected.push(item);
+      selectedSet.add(item);
+      spent++;
+      taken++;
+    }
+  }
+
+  if (selected.length < limit) {
+    const global = [...items].sort(compareSceneryScore);
+    for (const item of global) {
+      if (selected.length >= limit) break;
+      if (selectedSet.has(item)) continue;
+      selected.push(item);
+      selectedSet.add(item);
+    }
+  }
+
+  return selected.sort(compareSceneryScore).map(toCampaignSceneryInstance);
+}
+
+function compareSceneryScore(a: ScoredCampaignSceneryInstance, b: ScoredCampaignSceneryInstance) {
+  return b.score - a.score;
+}
+
+function toCampaignSceneryInstance(item: ScoredCampaignSceneryInstance): CampaignSceneryInstance {
+  return {
+    x: item.x,
+    y: item.y,
+    z: item.z,
+    size: item.size,
+    height: item.height,
+    kind: item.kind,
+    shade: item.shade,
+    yaw: item.yaw,
+  };
+}
+
+function clearCampaignStaticScenery(
+  data: CampaignRenderData,
+  items: CampaignSceneryInstance[],
+  controlledStage: boolean,
+) {
+  const roadSegments = data.map.edges
+    .filter((edge) => edge.kind === "road")
+    .flatMap((edge) =>
+      edge.via
+        .slice(1)
+        .map((point, index): [[number, number], [number, number]] => [edge.via[index], point]),
+    );
+  const cityFootprints = data.map.nodes
+    .filter((node) => node.kind === "city")
+    .map((node) => ({
+      x: node.pos[0],
+      y: node.pos[1],
+      tier: node.tier ?? 1,
+    }));
+  return items.filter((item) => {
+    const propRadius = sceneryReservationRadius(item);
+    if (
+      cityFootprints.some(
+        (city) =>
+          Math.hypot(item.x - city.x, item.y - city.y) <
+          citySceneryClearance(item, city.tier, controlledStage) + propRadius,
+      )
+    )
+      return false;
+    const clearance = roadSceneryClearance(item, controlledStage);
+    return !roadSegments.some(([a, b]) => distanceToSegment(item.x, item.y, a, b) < clearance);
+  });
+}
+
+function clearCampaignDynamicScenery(
+  items: CampaignSceneryInstance[],
+  reservations: CampaignSceneryReservation[],
+) {
+  if (reservations.length === 0) return items;
+  return items.filter((item) => {
+    const propRadius = sceneryReservationRadius(item);
+    return !reservations.some((entity) => {
+      const radius = entity.kind === "city" ? entity.radius * 0.92 : entity.radius;
+      return Math.hypot(item.x - entity.x, item.y - entity.y) < radius + propRadius;
+    });
+  });
+}
+
+function sceneryReservationRadius(item: CampaignSceneryInstance) {
+  if (item.kind === "mountain") return Math.max(4.8, item.size * 0.42);
+  if (item.kind === "rock") return Math.max(2.8, item.size * 0.34);
+  return Math.max(1.6, item.size * 0.24);
+}
+
+// Only the candidate scenery (mountains/trees/rocks) flows through this LoD
+// filter. Carts are gated by their own scale check in campaignRoadCarts and
+// never reach here.
+function sceneryMinScale(item: CampaignSceneryInstance) {
+  if (item.kind === "mountain") return CAMPAIGN_MOUNTAIN_MIN_SCALE;
+  if (item.kind === "rock") return CAMPAIGN_ROCK_MIN_SCALE;
+  return CAMPAIGN_TREE_MIN_SCALE;
+}
+
+function citySceneryClearance(
+  item: CampaignSceneryInstance,
+  tier: number,
+  controlledStage: boolean,
+) {
+  const fixtureScale = controlledStage ? 1.82 : 1;
+  if (controlledStage) return (tier >= 3 ? 12.0 : 10.5) * fixtureScale;
+  // Mountains get a wide apron so no city ends up embedded in the massif.
+  if (item.kind === "mountain") return tier >= 3 ? 11.0 : 9.4;
+  if (item.kind === "rock") return tier >= 3 ? 5.2 : 4.4;
+  return tier >= 3 ? 5.4 : 4.4;
+}
+
+function roadSceneryClearance(item: CampaignSceneryInstance, controlledStage: boolean) {
+  const fixtureScale = controlledStage ? 1.36 : 1;
+  const base = item.kind === "mountain" ? 8.6 : item.kind === "rock" ? 4.4 : 2.4;
+  const sizeScale = item.kind === "mountain" ? 0.44 : item.kind === "rock" ? 0.34 : 0.22;
+  return Math.max(base, item.size * sizeScale) * fixtureScale;
+}
+
+function distanceToSegment(x: number, y: number, a: [number, number], b: [number, number]) {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  const lenSq = dx * dx + dy * dy || 1;
+  const t = clamp(((x - a[0]) * dx + (y - a[1]) * dy) / lenSq, 0, 1);
+  const px = a[0] + dx * t;
+  const py = a[1] + dy * t;
+  return Math.hypot(x - px, y - py);
+}
+
+function clamp(value: number, min: number, max: number) {
+  if (max < min) return (min + max) * 0.5;
+  return Math.max(min, Math.min(max, value));
+}

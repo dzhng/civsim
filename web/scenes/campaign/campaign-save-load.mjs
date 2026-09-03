@@ -27,6 +27,8 @@ export async function run(ctx) {
   await page.waitForFunction(() => window.__appShellStats?.gpu?.ok === true, undefined, {
     timeout: 18000,
   });
+  // Keep this literal aligned with CAMPAIGN_SAVE_KEY in web/src/campaign/save.ts;
+  // node scene files cannot import the browser TypeScript module.
   await page.evaluate(() => localStorage.removeItem("campaign-save"));
   await page.reload();
   await page.waitForFunction(() => window.__appShellStats?.gpu?.ok === true, undefined, {

@@ -12,6 +12,7 @@
 // preserveFrozenEffects), the ?debug=blocks triangle builder, and the CPU
 // frame-perf split. The world renders what it is handed.
 import type { Camera } from "../shared/camera";
+import { roundMs } from "@packages/game-renderer/src/math";
 import type { BattleGroundCover } from "@packages/game-renderer/src/battle/terrainFeatures";
 import {
   PhotorealBattleWorld,
@@ -633,10 +634,6 @@ function readoutsKey(
     key += `#${readout.unitId}:${Math.round(readout.x * 10)},${Math.round(readout.y * 10)},${Math.round(readout.z * 10)},${Math.round(readout.worldPerPx * 1000)},${readout.chips.map((c) => `${c.kind ?? ""}${c.text}`).join(",")}`;
   }
   return key;
-}
-
-function roundMs(value: number) {
-  return Number.isFinite(value) ? Number(value.toFixed(3)) : 0;
 }
 
 function cameraSnapshot(camera: Camera): BattleCameraSnapshot {

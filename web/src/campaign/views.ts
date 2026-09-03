@@ -1,31 +1,5 @@
 import { type Campaign, type InitOutput } from "../wasm/game_wasm.js";
-
-export interface ArmyView {
-  id: number;
-  x: number;
-  y: number;
-  faction: number;
-  soldiers: number;
-  stance: number;
-  pieKind: number;
-  pieFrac: number;
-  marching: boolean;
-  encounter: number;
-  moraleCap: number;
-  mine: boolean;
-  /** soldiers per class (index = UnitClassId), for the 3D army marker */
-  roster: number[];
-  /** live roster entries in this stack */
-  unitCount: number;
-  /** live roster entries per class (index = UnitClassId), for representative markers */
-  unitsByClass: number[];
-}
-
-export interface CityView {
-  owner: number;
-  garrison: number;
-  queue: number;
-}
+import type { ArmyView, CityView } from "@packages/game-renderer/src/campaign/entityFrame";
 
 export interface CampaignViews {
   armies: ArmyView[];

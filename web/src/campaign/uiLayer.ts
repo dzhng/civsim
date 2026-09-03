@@ -2,7 +2,7 @@ import type { Campaign } from "../wasm/game_wasm.js";
 import type { CampaignData } from "./data";
 import type { ArmyRosterRow, CityDetail, ClassDoctrineRow, DiplomacyRow } from "./panels";
 import { campaignDomHtml } from "./panels";
-import type { ArmyView, CityView } from "./views";
+import type { ArmyView, CityView } from "@packages/game-renderer/src/campaign/entityFrame";
 import { mountCampaignHud, type CampaignHudHandle } from "../ui/campaign/CampaignHud";
 
 export interface CampaignUiModel {

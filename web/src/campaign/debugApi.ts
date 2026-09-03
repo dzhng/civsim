@@ -1,5 +1,5 @@
 import type { CampaignSceneryInstance } from "@packages/game-renderer/src/campaign/sceneryPass";
-import type { ArmyView, CityView } from "./views";
+import type { ArmyView, CityView } from "@packages/game-renderer/src/campaign/entityFrame";
 import type { Territory } from "./territory";
 
 export interface CampaignDebugApi {

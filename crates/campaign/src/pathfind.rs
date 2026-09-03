@@ -85,19 +85,14 @@ fn tile_cost(f: TileFeature) -> f32 {
     }
 }
 
-fn level_of(roads: &[u8], e: EdgeId) -> u8 {
-    roads.get(e as usize).copied().unwrap_or(1)
-}
-
-fn edge_cost(map: &WorldMap, roads: &[u8], e: EdgeId) -> f32 {
+fn edge_cost(map: &WorldMap, e: EdgeId) -> f32 {
     let edge = &map.edges[e as usize];
     let base: f32 = edge.tiles.iter().map(|&t| tile_cost(t)).sum();
     // Embark + disembark overhead for hopping onto a sea lane.
     if edge.sea {
         base + 1.0
     } else {
-        // Good roads are cheaper to route over, so planning prefers them.
-        base / tunables::road_mult(level_of(roads, e))
+        base
     }
 }
 
@@ -128,7 +123,6 @@ fn other_end(map: &WorldMap, e: EdgeId, from: NodeId) -> NodeId {
 /// Dijkstra from a set of seeded nodes. Returns (cost, came_from_edge) maps.
 fn dijkstra(
     map: &WorldMap,
-    roads: &[u8],
     seeds: &[(NodeId, f32)],
     allow_sea: bool,
 ) -> (BTreeMap<NodeId, f32>, BTreeMap<NodeId, EdgeId>) {
@@ -151,7 +145,7 @@ fn dijkstra(
                 continue;
             }
             let m = other_end(map, e, n);
-            let c = cost[&n] + edge_cost(map, roads, e);
+            let c = cost[&n] + edge_cost(map, e);
             if cost.get(&m).map_or(true, |&old| c < old) {
                 cost.insert(m, c);
                 from.insert(m, e);
@@ -165,12 +159,7 @@ fn dijkstra(
 /// Seed costs for a Dijkstra starting at `start`: a node seeds at cost 0; a
 /// mid-edge start seeds both endpoints by the partial-edge walk. `None` if the
 /// start sits on a sea lane and sea travel is disallowed.
-fn start_seeds(
-    map: &WorldMap,
-    roads: &[u8],
-    start: Loc,
-    allow_sea: bool,
-) -> Option<Vec<(NodeId, f32)>> {
+fn start_seeds(map: &WorldMap, start: Loc, allow_sea: bool) -> Option<Vec<(NodeId, f32)>> {
     Some(match start {
         Loc::Node(n) => vec![(n, 0.0)],
         Loc::Edge { edge, tile } => {
@@ -179,19 +168,8 @@ fn start_seeds(
                 return None;
             }
             let n = e.tiles.len() as u16;
-            let m = if e.sea {
-                1.0
-            } else {
-                tunables::road_mult(level_of(roads, edge))
-            };
-            let to_a: f32 = (0..=tile)
-                .map(|t| tile_cost(e.tiles[t as usize]))
-                .sum::<f32>()
-                / m;
-            let to_b: f32 = (tile..n)
-                .map(|t| tile_cost(e.tiles[t as usize]))
-                .sum::<f32>()
-                / m;
+            let to_a: f32 = (0..=tile).map(|t| tile_cost(e.tiles[t as usize])).sum();
+            let to_b: f32 = (tile..n).map(|t| tile_cost(e.tiles[t as usize])).sum();
             vec![(e.a, to_a), (e.b, to_b)]
         }
     })
@@ -199,14 +177,9 @@ fn start_seeds(
 
 /// Road cost from `start` to every reachable node — for "march to the nearest
 /// X" queries that don't need a full route planned to each candidate.
-pub fn costs_from(
-    map: &WorldMap,
-    roads: &[u8],
-    start: Loc,
-    allow_sea: bool,
-) -> BTreeMap<NodeId, f32> {
-    match start_seeds(map, roads, start, allow_sea) {
-        Some(seeds) => dijkstra(map, roads, &seeds, allow_sea).0,
+pub fn costs_from(map: &WorldMap, start: Loc, allow_sea: bool) -> BTreeMap<NodeId, f32> {
+    match start_seeds(map, start, allow_sea) {
+        Some(seeds) => dijkstra(map, &seeds, allow_sea).0,
         None => BTreeMap::new(),
     }
 }
@@ -217,13 +190,12 @@ pub fn costs_from(
 /// targets a full flood would surface, but far cheaper when targets are near.
 pub fn nearest_targets(
     map: &WorldMap,
-    roads: &[u8],
     start: Loc,
     allow_sea: bool,
     is_target: impl Fn(NodeId) -> bool,
     k: usize,
 ) -> Vec<(NodeId, f32)> {
-    let Some(seeds) = start_seeds(map, roads, start, allow_sea) else {
+    let Some(seeds) = start_seeds(map, start, allow_sea) else {
         return Vec::new();
     };
     let mut cost: BTreeMap<NodeId, f32> = BTreeMap::new();
@@ -251,7 +223,7 @@ pub fn nearest_targets(
                 continue;
             }
             let m = other_end(map, e, n);
-            let c = cost[&n] + edge_cost(map, roads, e);
+            let c = cost[&n] + edge_cost(map, e);
             if cost.get(&m).map_or(true, |&old| c < old) {
                 cost.insert(m, c);
                 heap.push(Reverse((key(c), m)));
@@ -262,13 +234,7 @@ pub fn nearest_targets(
 }
 
 /// Plan a tile-by-tile route. Returns None if unreachable.
-pub fn plan(
-    map: &WorldMap,
-    roads: &[u8],
-    start: Loc,
-    dest: Loc,
-    allow_sea: bool,
-) -> Option<Vec<Loc>> {
+pub fn plan(map: &WorldMap, start: Loc, dest: Loc, allow_sea: bool) -> Option<Vec<Loc>> {
     if start == dest {
         return Some(Vec::new());
     }
@@ -292,8 +258,8 @@ pub fn plan(
 
     // From a mid-edge start, both endpoints are reachable by walking the
     // partial edge; from a node, cost 0.
-    let seeds = start_seeds(map, roads, start, allow_sea)?;
-    let (cost, from) = dijkstra(map, roads, &seeds, allow_sea);
+    let seeds = start_seeds(map, start, allow_sea)?;
+    let (cost, from) = dijkstra(map, &seeds, allow_sea);
 
     // Pick the cheapest entry to the destination.
     let (goal_node, tail): (NodeId, Vec<Loc>) = match dest {
@@ -307,19 +273,8 @@ pub fn plan(
                 return None;
             }
             let n = e.tiles.len() as u16;
-            let m = if e.sea {
-                1.0
-            } else {
-                tunables::road_mult(level_of(roads, edge))
-            };
-            let from_a: f32 = (0..tile)
-                .map(|t| tile_cost(e.tiles[t as usize]))
-                .sum::<f32>()
-                / m;
-            let from_b: f32 = (tile + 1..n)
-                .map(|t| tile_cost(e.tiles[t as usize]))
-                .sum::<f32>()
-                / m;
+            let from_a: f32 = (0..tile).map(|t| tile_cost(e.tiles[t as usize])).sum();
+            let from_b: f32 = (tile + 1..n).map(|t| tile_cost(e.tiles[t as usize])).sum();
             let ca = cost.get(&e.a).map(|c| c + from_a);
             let cb = cost.get(&e.b).map(|c| c + from_b);
             let via_a = match (ca, cb) {

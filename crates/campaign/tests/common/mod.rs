@@ -61,29 +61,3 @@ pub fn test_map() -> &'static str {
           ]
         }"#
 }
-
-pub fn diamond_map() -> &'static str {
-    r#"{
-          "half_w": 100, "half_h": 100,
-          "nodes": [
-            {"id": 1, "name": "A", "pos": [0,0],   "kind": "city", "tier": 2, "port": false, "owner": "red"},
-            {"id": 2, "name": "N", "pos": [20,10], "kind": "junction", "tier": 0, "port": false, "owner": ""},
-            {"id": 3, "name": "S", "pos": [20,-10],"kind": "junction", "tier": 0, "port": false, "owner": ""},
-            {"id": 4, "name": "C", "pos": [40,0],  "kind": "city", "tier": 1, "port": false, "owner": "red"}
-          ],
-          "edges": [
-            {"a": 1, "b": 2, "kind": "road", "via": [[0,0],[20,10]],  "tiles": ["open","open","open","open","open","open"]},
-            {"a": 2, "b": 4, "kind": "road", "via": [[20,10],[40,0]], "tiles": ["open","open","open","open","open","open"]},
-            {"a": 1, "b": 3, "kind": "road", "via": [[0,0],[20,-10]], "tiles": ["open","open","open","open","open","open"]},
-            {"a": 3, "b": 4, "kind": "road", "via": [[20,-10],[40,0]],"tiles": ["open","open","open","open","open","open"]}
-          ],
-          "ambush_spots": [],
-          "factions": [
-            {"id": "red", "name": "Red", "color": [200,0,0], "playable": true},
-            {"id": "independents", "name": "Ind", "color": [99,99,99], "playable": false}
-          ],
-          "start_armies": [
-            {"faction": "red", "at": "A", "roster": [["LightSpear", 1]]}
-          ]
-        }"#
-}

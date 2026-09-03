@@ -357,11 +357,6 @@ impl Campaign {
         ok
     }
 
-    /// Zero-copy view: one byte per edge, the current road level.
-    pub fn road_levels_ptr(&self) -> *const u8 {
-        self.inner.state.road_levels.as_ptr()
-    }
-
     /// Set a city's policy dials: focus (−1 Economy … +1 Military) and throttle
     /// (0 Grow … 1 Exploit). The player's whole city interaction — the city
     /// auto-develops from there (no build menu).

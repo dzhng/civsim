@@ -102,7 +102,6 @@ pub fn candidates(
     for &(army, aloc, astr) in &attackers {
         let nearest = pathfind::nearest_targets(
             map,
-            &st.road_levels,
             aloc,
             false,
             |n| st.cities.get(&n).is_some_and(|c| st.at_war(f, c.owner)),
@@ -175,7 +174,7 @@ fn weakest_reachable_city(
     attackers: &[(ArmyId, Loc, u64)],
 ) -> Option<NodeId> {
     let from = attackers.first().map(|&(_, l, _)| l)?;
-    let costs = pathfind::costs_from(map, &st.road_levels, from, false);
+    let costs = pathfind::costs_from(map, from, false);
     st.cities
         .iter()
         .filter(|(_, c)| c.owner == owner)

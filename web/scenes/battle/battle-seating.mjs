@@ -53,9 +53,17 @@ export async function run(ctx) {
       );
       ctx.check(`${id} the block climbs the slope`, seating?.span > 0.5, JSON.stringify(seating));
 
+      // Ready means the world booted, not that the crowd has drawn; under a
+      // loaded SwiftShader the first presented frames can be empty. Shoot until
+      // soldiers are on screen (bounded), then judge that frame.
       const clip = await page.locator("#renderer-canvas").boundingBox();
-      const shot = await page.screenshot({ clip, timeout: 180000 });
-      const soldier = soldierFraction(PNG.sync.read(shot));
+      let shot = await page.screenshot({ clip, timeout: 180000 });
+      let soldier = soldierFraction(PNG.sync.read(shot));
+      for (let attempt = 0; attempt < 8 && soldier <= 0.005; attempt++) {
+        await page.waitForTimeout(1000);
+        shot = await page.screenshot({ clip, timeout: 180000 });
+        soldier = soldierFraction(PNG.sync.read(shot));
+      }
       ctx.check(`${id} soldiers render over the ground`, soldier > 0.005, `soldier=${soldier}`);
       await ctx.snap(page, `seating/${id}`, { shot });
     } finally {

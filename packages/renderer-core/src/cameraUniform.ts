@@ -27,9 +27,8 @@ export interface CameraSnapshot {
    *  drive time-varying effects (water, scenery) without a second bind group.
    *  Defaults to 0 — unset means a frozen frame. */
   time?: number;
-  /** Sun azimuth/elevation (radians) — the frame's light direction for water
-   *  glint (and future sky/effects). Defaults to the battle sun convention so
-   *  an unset sun matches terrain lighting. */
+  /** Sun azimuth/elevation (radians) — the frame's environment-owned light
+   *  direction for water glint and other shared effects. */
   sunAzimuth?: number;
   sunElevation?: number;
 }
@@ -66,19 +65,15 @@ const ZFAR_OFFSET = 43;
 const SUN_AZ_OFFSET = 44;
 const SUN_EL_OFFSET = 45;
 
-// The battle sun convention (cf. horizonPass/groundPass inline `normalize(...)`),
-// expressed as azimuth/elevation so water glint agrees with terrain lighting when
-// no preset overrides it.
-export const DEFAULT_SUN_AZIMUTH = Math.atan2(-0.28, -0.40);
-export const DEFAULT_SUN_ELEVATION = Math.asin(0.87 / Math.hypot(0.40, 0.28, 0.87));
-
 // camera3d params with aspect pinned to the live viewport — the single owner
 // for both the GPU packing and the CPU projection helpers below.
 function realParams(camera: CameraSnapshot): Camera3DParams {
   return { ...camera.camera3d, aspect: camera.width / Math.max(1, camera.height) };
 }
 
-export function cameraUniformData(camera: CameraSnapshot): Float32Array {
+export function cameraUniformData(
+  camera: CameraSnapshot & Required<Pick<CameraSnapshot, 'sunAzimuth' | 'sunElevation'>>,
+): Float32Array {
   const data = new Float32Array(CAMERA_UNIFORM_FLOATS);
   const params = realParams(camera);
   data.set(viewProjMatrix(params), VIEW_PROJ_OFFSET);
@@ -96,8 +91,8 @@ export function cameraUniformData(camera: CameraSnapshot): Float32Array {
   data[TILT_OFFSET] = Math.sin(Math.min(Math.PI / 2, Math.max(0, params.pitch)));
   data[TIME_OFFSET] = camera.time ?? 0;
   data[ZFAR_OFFSET] = params.far ?? 0; // 0 = infinite far sentinel
-  data[SUN_AZ_OFFSET] = camera.sunAzimuth ?? DEFAULT_SUN_AZIMUTH;
-  data[SUN_EL_OFFSET] = camera.sunElevation ?? DEFAULT_SUN_ELEVATION;
+  data[SUN_AZ_OFFSET] = camera.sunAzimuth;
+  data[SUN_EL_OFFSET] = camera.sunElevation;
   return data;
 }
 

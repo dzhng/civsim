@@ -2,6 +2,7 @@ import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 import { gpuAlphaBlendColorTarget, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 import { buildCityMesh } from '../models/campaign/campaignEntityModels';
+import { campaignPassSunDirectionWgsl } from './environment';
 
 export interface CampaignEntityInstance {
   x: number;
@@ -45,7 +46,7 @@ fn vs(
   out.alpha = colorAndAlpha.a;
   out.faction = inst1.rgb;
   out.allegiance = vec3f(inst1.a, inst2.r, inst2.g);
-  let sun = normalize(vec3f(-0.42, -0.34, 0.84));
+  let sun = ${campaignPassSunDirectionWgsl()};
   let n = normalize(normal);
   out.light = clamp(dot(n, sun) * 0.38 + 0.76, 0.42, 1.12);
   out.shade = clamp(world.z / max(scale * 8.5, 0.001), 0.0, 1.0);

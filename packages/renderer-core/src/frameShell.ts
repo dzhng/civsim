@@ -1,5 +1,5 @@
 import { chartCamera3d } from './camera3d';
-import { cameraUniformData, CAMERA_UNIFORM_BYTES, DEFAULT_SUN_AZIMUTH, DEFAULT_SUN_ELEVATION, PROJECTION_IDENTITY, type CameraSnapshot } from './cameraUniform';
+import { cameraUniformData, CAMERA_UNIFORM_BYTES, PROJECTION_IDENTITY, type CameraSnapshot } from './cameraUniform';
 import { GPU_DEPTH_CLEAR, GPU_DEPTH_FORMAT, isGpuDepthMode, type GpuDepthMode } from './depthContract';
 import { requestGpuDevice, type DeviceLostReport, type UncapturedErrorReport, type GpuDeviceInfo } from './device';
 import {
@@ -28,6 +28,8 @@ export interface FrameShellHealth {
 }
 
 export interface FrameShellOptions {
+  /** Environment-owned initial sun; the shell does not choose a visual default. */
+  sun: Required<Pick<CameraSnapshot, 'sunAzimuth' | 'sunElevation'>>;
   /** Called once when the device is lost; the shell stops submitting frames. */
   onDeviceLost?: (report: DeviceLostReport) => void;
   /** Called when any GPU fault makes the shell unrenderable (device loss, bad submit). */
@@ -194,7 +196,7 @@ function createGpuFrameTimer(device: GPUDevice): GpuFrameTimer {
   return timer;
 }
 
-export async function createFrameShell(canvas: HTMLCanvasElement, options: FrameShellOptions = {}): Promise<RawFrameShell> {
+export async function createFrameShell(canvas: HTMLCanvasElement, options: FrameShellOptions): Promise<RawFrameShell> {
   let shell: RawFrameShellImpl | null = null;
   const info = await requestGpuDevice({
     callbacks: {
@@ -220,8 +222,8 @@ export class RawFrameShellImpl implements RawFrameShell {
   // keeps a freshly-created shell renderable (a chart-framed origin view).
   private camera: Omit<CameraSnapshot, 'width' | 'height'> = { x: 0, y: 0, zoom: 12, camera3d: chartCamera3d({ x: 0, y: 0, zoom: 12, pitch: 0.35 }, 600) };
   private time = 0;
-  private sunAzimuth = DEFAULT_SUN_AZIMUTH;
-  private sunElevation = DEFAULT_SUN_ELEVATION;
+  private sunAzimuth: number;
+  private sunElevation: number;
   private width = 1;
   private height = 1;
   private dpr = 1;
@@ -240,8 +242,10 @@ export class RawFrameShellImpl implements RawFrameShell {
   private msaaWidth = 0;
   private msaaHeight = 0;
 
-  constructor(readonly canvas: HTMLCanvasElement, readonly info: GpuDeviceInfo, options: FrameShellOptions = {}) {
+  constructor(readonly canvas: HTMLCanvasElement, readonly info: GpuDeviceInfo, options: FrameShellOptions) {
     this.device = info.device;
+    this.sunAzimuth = options.sun.sunAzimuth;
+    this.sunElevation = options.sun.sunElevation;
     this.onDeviceLost = options.onDeviceLost;
     this.onFatalError = options.onFatalError;
     this.depthFormat = GPU_DEPTH_FORMAT;
@@ -297,8 +301,7 @@ export class RawFrameShellImpl implements RawFrameShell {
     this.writeCamera();
   }
 
-  /** Set the frame sun direction (radians) — the light for water glint and future
-   *  sky/effects. Defaults to the battle sun convention. */
+  /** Set the environment-owned frame sun direction (radians). */
   setSun(azimuth: number, elevation: number) {
     this.sunAzimuth = azimuth;
     this.sunElevation = elevation;

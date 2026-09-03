@@ -96,7 +96,7 @@ fn deploy_row(sim: &mut Sim, classes: &[UnitClassId], center: Vec2, facing: f32,
     let total: f32 =
         classes.iter().map(|&c| unit_width(c)).sum::<f32>() + GAP * (classes.len() - 1) as f32;
     let f = dir(facing);
-    let right = Vec2::new(f.y, -f.x);
+    let right = f.perp();
     let mut x = -0.5 * total;
     for &c in classes {
         let w = unit_width(c);
@@ -111,7 +111,7 @@ fn deploy_row(sim: &mut Sim, classes: &[UnitClassId], center: Vec2, facing: f32,
 /// `facing` points at the enemy.
 fn deploy_army(sim: &mut Sim, base: Vec2, facing: f32, team: u32) {
     let f = dir(facing);
-    let right = Vec2::new(f.y, -f.x);
+    let right = f.perp();
     let row = |fwd: f32| base + f * fwd;
 
     deploy_row(sim, &[Skirmishers, Skirmishers], row(45.0), facing, team);
@@ -211,7 +211,7 @@ fn footprint_passable(t: &Terrain, class: UnitClassId, anchor: Vec2, facing: f32
     let count = unit_size(class);
     let files = count.div_ceil(stats.default_depth.max(1));
     let f = dir(facing);
-    let right = Vec2::new(f.y, -f.x);
+    let right = f.perp();
     for slot in 0..count {
         let file = slot % files;
         let rank = slot / files;
@@ -271,7 +271,7 @@ fn deploy_custom_row(
     }
 
     let f = dir(facing);
-    let right = Vec2::new(f.y, -f.x);
+    let right = f.perp();
     let mut rows: Vec<Vec<UnitClassId>> = vec![Vec::new()];
     let mut width = 0.0;
     for &class in classes {
@@ -323,7 +323,7 @@ fn deploy_custom_cavalry(
     let split = classes.len().div_ceil(2);
     let wings = [(&classes[..split], -1.0f32), (&classes[split..], 1.0f32)];
     let f = dir(facing);
-    let right = Vec2::new(f.y, -f.x);
+    let right = f.perp();
 
     for (members, side) in wings {
         if members.is_empty() {
@@ -476,7 +476,7 @@ where
 
     // Formed: group by role, lay rows like deploy_army does.
     let f = dir(facing);
-    let right = Vec2::new(f.y, -f.x);
+    let right = f.perp();
     const MAX_ROW_W: f32 = 1500.0;
     const GAP: f32 = 14.0;
     let row_fwd = [45.0, 0.0, -55.0, -110.0, -150.0];
@@ -679,7 +679,7 @@ pub fn setup_sandbox(sim: &mut Sim, kind: u32) {
     // of horse on the wing.
     let side = |sim: &mut Sim, y: f32, facing: f32, team: u32| {
         let f = dir(facing);
-        let right = Vec2::new(f.y, -f.x);
+        let right = f.perp();
         let row = |o: f32, lat: f32| Vec2::new(0.0, y) + f * o + right * lat;
         sim.spawn_class(row(25.0, 30.0), facing, 120, UnitClassId::Skirmishers, team);
         sim.spawn_class(row(0.0, -110.0), facing, 280, UnitClassId::HeavySword, team);

@@ -249,7 +249,7 @@ impl Sim {
                     )
                 };
                 let tf = crate::math::dir(t_facing);
-                let tr = Vec2::new(tf.y, -tf.x);
+                let tr = tf.perp();
                 let lx = (self.rng.unit_f32() - 0.5) * t_w;
                 let ly = self.rng.unit_f32() * t_d;
                 let mut aim = t_anchor + tr * lx + tf * (-ly);

@@ -4,7 +4,10 @@
 //! mid-field ground cover. It skips the deployment frontage and never writes
 //! speed 0, so the certificate owner remains `certify`.
 
-use super::{MapRecipe, RecipeClass};
+use super::{
+    noise::{hash01, hash_cell01, value_noise_nearest},
+    MapRecipe, RecipeClass,
+};
 use crate::terrain::Terrain;
 pub use contract::FieldTextureRecipe;
 use serde::{Deserialize, Serialize};
@@ -177,8 +180,8 @@ fn paint_patch(
             if d2 > 1.25 {
                 continue;
             }
-            let wobble = value_noise(seed, x, y, 54.0) * 0.34
-                + value_noise(seed ^ 0x7717, x, y, 112.0) * 0.22;
+            let wobble = value_noise_nearest(seed, x, y, 54.0) * 0.34
+                + value_noise_nearest(seed ^ 0x7717, x, y, 112.0) * 0.22;
             let threshold = 1.0 + wobble - 0.22;
             let mut signed_edge = threshold - d2;
             if signed_edge < -PATCH_EDGE_JITTER_D2 {
@@ -231,32 +234,4 @@ fn cell_x(t: &Terrain, cx: usize) -> f32 {
 
 fn cell_y(t: &Terrain, cy: usize) -> f32 {
     t.origin.y + (cy as f32 + 0.5) * t.cell
-}
-
-fn value_noise(seed: u64, x: f32, y: f32, scale: f32) -> f32 {
-    let gx = (x / scale).floor() as i32;
-    let gy = (y / scale).floor() as i32;
-    hash_cell01(gx, gy, seed)
-}
-
-fn hash01(seed: u64) -> f32 {
-    ((mix64(seed) >> 40) as f32) / 16_777_216.0
-}
-
-fn hash_cell01(x: i32, y: i32, seed: u64) -> f32 {
-    let mut h = (x as u64).wrapping_mul(0x9E37_79B9_7F4A_7C15)
-        ^ (y as u64).wrapping_mul(0xBF58_476D_1CE4_E5B9)
-        ^ seed.wrapping_mul(0x94D0_49BB_1331_11EB);
-    h ^= h >> 31;
-    h = h.wrapping_mul(0xD1B5_4A32_D192_ED03);
-    h ^= h >> 27;
-    (h >> 40) as f32 / 16_777_216.0
-}
-
-fn mix64(mut h: u64) -> u64 {
-    h ^= h >> 30;
-    h = h.wrapping_mul(0xbf58_476d_1ce4_e5b9);
-    h ^= h >> 27;
-    h = h.wrapping_mul(0x94d0_49bb_1331_11eb);
-    h ^ (h >> 31)
 }

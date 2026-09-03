@@ -83,6 +83,23 @@ struct UnitMeasure {
     pivot_sum: f32,
 }
 
+fn covered_fighting_files(
+    u: &Unit,
+    alive: &[u8],
+    fighting: &[u8],
+    soldier_slot: &[u32],
+) -> Vec<bool> {
+    let files = u.files_eff.max(1);
+    let mut covered = vec![false; files];
+    for s in 0..u.count {
+        let i = u.start + s;
+        if alive[i] == 1 && fighting[i] == 1 {
+            covered[soldier_slot[i] as usize % files] = true;
+        }
+    }
+    covered
+}
+
 pub struct Sim {
     pub tun: Tunables,
     /// Per-class balance surface (stats/weapons), injected. Units capture their
@@ -1114,14 +1131,15 @@ impl Sim {
             let files = self.units[ui].files_eff.max(1);
             let ranks = self.units[ui].alive_count as f32 / files as f32;
             let broad_contact_files = if self.units[ui].engaged > 0 && files >= 12 {
-                let mut fighting_files = vec![false; files];
-                for s in 0..self.units[ui].count {
-                    let i = self.units[ui].start + s;
-                    if self.alive[i] == 1 && self.fighting[i] == 1 {
-                        fighting_files[self.soldier_slot[i] as usize % files] = true;
-                    }
-                }
-                fighting_files.iter().filter(|&&covered| covered).count()
+                covered_fighting_files(
+                    &self.units[ui],
+                    &self.alive,
+                    &self.fighting,
+                    &self.soldier_slot,
+                )
+                .iter()
+                .filter(|&&covered| covered)
+                .count()
             } else {
                 0
             };
@@ -1402,7 +1420,7 @@ impl Sim {
             )
         };
         let f = dir(facing);
-        let r = Vec2::new(f.y, -f.x);
+        let r = f.perp();
         let half_full = (files.max(1) - 1) as f32 * spacing_x * 0.5 + 2.0;
         let clearance = |origin: Vec2, side: Vec2| -> f32 {
             let mut s = 1.0;
@@ -1471,7 +1489,7 @@ impl Sim {
                 false
             } else {
                 let f = dir(u.facing);
-                let r = Vec2::new(f.y, -f.x);
+                let r = f.perp();
                 let half_w = u.width() * 0.5;
                 self.units.iter().enumerate().any(|(vi, v)| {
                     if vi == ui || v.team != u.team || v.alive_count == 0 {
@@ -1605,7 +1623,7 @@ impl Sim {
                     let l = approach.len().max(0.5);
                     let a = approach * (1.0 / l);
                     let ef = dir(ev.facing);
-                    let er = Vec2::new(ef.y, -ef.x);
+                    let er = ef.perp();
                     a.dot(ef).abs() * 0.5 * ev.depth() + a.dot(er).abs() * 0.5 * ev.width()
                 };
                 // The chase point sits BEYOND the enemy mass — past its far
@@ -1852,7 +1870,7 @@ impl Sim {
         let mut measures = Vec::with_capacity(units.len());
         for u in units.iter() {
             let f = dir(u.facing);
-            let r = Vec2::new(f.y, -f.x);
+            let r = f.perp();
             let surge_sp = soldier_surge_speed(&tun, u);
             // The per-man sprint ceiling: a CHARGING unit's men may run all the way
             // to charge pace; otherwise the ceiling is the catch-up surge. Without
@@ -1904,16 +1922,12 @@ impl Sim {
             // Count covered FILES, not min/max lateral span, so three distinct
             // breach patches don't masquerade as one continuous wall of pressure.
             // (fighting[] is last tick's — a contact band doesn't jump rank to rank.)
-            let broad_press = {
-                let mut fighting_files = vec![false; my_files];
-                for s in 0..u.count {
-                    let i = u.start + s;
-                    if alive[i] == 1 && fighting[i] == 1 {
-                        fighting_files[soldier_slot[i] as usize % my_files] = true;
-                    }
-                }
-                fighting_files.iter().filter(|&&covered| covered).count() * 2 > my_files
-            };
+            let broad_press = covered_fighting_files(u, alive, fighting, soldier_slot)
+                .iter()
+                .filter(|&&covered| covered)
+                .count()
+                * 2
+                > my_files;
             let narrow_against_much_wider_foot = advancing
                 && !strict_formation
                 && !u.is_mounted()
@@ -1931,7 +1945,7 @@ impl Sim {
                     if f.dot(vf) > -0.35 {
                         return false;
                     }
-                    let vr = Vec2::new(vf.y, -vf.x);
+                    let vr = vf.perp();
                     let lateral = (u.center() - v.center()).dot(vr).abs();
                     let lateral_overlap = lateral < 0.5 * (u.width() + v.width()) + u.spacing.x;
                     let axial = (v.center() - u.center()).dot(f);
@@ -2290,7 +2304,7 @@ impl Sim {
                         if f.dot(vf) > -0.35 {
                             continue;
                         }
-                        let vr = Vec2::new(vf.y, -vf.x);
+                        let vr = vf.perp();
                         let corridor_files = if tun.corridor_deployed_width {
                             v.files.max(v.files_eff)
                         } else {

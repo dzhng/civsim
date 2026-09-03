@@ -14,8 +14,6 @@ use campaign::state::{CampaignState, Outcome};
 use campaign::Campaign;
 mod common;
 
-mod common;
-
 use common::{lopsided_map, real_map};
 
 /// How long a single battle may run headless before the stronger remnant is

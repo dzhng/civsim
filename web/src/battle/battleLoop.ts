@@ -1,5 +1,6 @@
 import { SimClock } from "../shared/simClock";
-import { mountBattleHud, type BattleHudHandle } from "../ui/hud/BattleHud";
+import { mountBattleHud, type BattleHudHandle, type BattleHudState } from "../ui/hud/BattleHud";
+import { createHudStore } from "../ui/hudStore";
 import { installBattleDebugApi } from "./battleDebugApi";
 import { createBattleMinimap } from "./battleMinimap";
 import { BattleFreeze } from "./battleFreeze";
@@ -34,10 +35,15 @@ export function enterBattleScene(
 
   let handleToolbarCmd: (cmd: string) => void = () => {};
   let handleCardSelect: (unit: number, additive: boolean) => void = () => {};
-  const battleHud: BattleHudHandle = mountBattleHud(document.getElementById("battle-hud")!, {
-    onToolbarCmd: (cmd) => handleToolbarCmd(cmd),
-    onCardSelect: (unit, additive) => handleCardSelect(unit, additive),
-  });
+  const battleHudStore = createHudStore<BattleHudState>({ info: null, fps: "", toolbar: null });
+  const battleHud: BattleHudHandle = mountBattleHud(
+    document.getElementById("battle-hud")!,
+    battleHudStore,
+    {
+      onToolbarCmd: (cmd) => handleToolbarCmd(cmd),
+      onCardSelect: (unit, additive) => handleCardSelect(unit, additive),
+    },
+  );
   let hudBridge: BattleHudBridge;
   cleanups.push(() => battleHud.destroy());
 
@@ -81,6 +87,7 @@ export function enterBattleScene(
   handleCardSelect = controls.onCardSelect;
   hudBridge = createBattleHudBridge(
     battleHud,
+    battleHudStore,
     {
       ...controls.toolbarCommands,
       victor: () => game.victor(),
@@ -156,7 +163,6 @@ export function enterBattleScene(
       orders.tickGroupAttacks();
       hudBridge.updateHud(clock.frozen ? "fps —" : `fps ${fpsAvg.toFixed(0)}`);
       hudBridge.checkGameover();
-      hudBridge.updateToolbar();
       battleMinimap.drawMinimap();
     }
   };

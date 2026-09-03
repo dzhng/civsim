@@ -1,3 +1,5 @@
+import { createHudStore, useHudStore } from "../ui/hudStore";
+
 export type GraphicsShadowMode = "off" | "single" | "csm";
 export type GraphicsGrassQuality = "low" | "standard" | "fine";
 
@@ -44,7 +46,7 @@ export const DEFAULT_GRAPHICS_SETTINGS: GraphicsSettings = {
 type Listener = (settings: GraphicsSettings) => void;
 
 let current = readStoredGraphicsSettings();
-const listeners = new Set<Listener>();
+const graphicsSettingsStore = createHudStore(cloneGraphicsSettings(current));
 
 export function getGraphicsSettings(): GraphicsSettings {
   return cloneGraphicsSettings(current);
@@ -55,7 +57,7 @@ export function setGraphicsSettings(next: GraphicsSettings): void {
   if (graphicsSettingsEqual(clean, current)) return;
   current = clean;
   writeStoredGraphicsSettings(current);
-  for (const listener of listeners) listener(getGraphicsSettings());
+  graphicsSettingsStore.set(cloneGraphicsSettings(current));
 }
 
 export function updateGraphicsSettings(patch: Partial<GraphicsSettings>): void {
@@ -63,10 +65,11 @@ export function updateGraphicsSettings(patch: Partial<GraphicsSettings>): void {
 }
 
 export function subscribeGraphicsSettings(listener: Listener): () => void {
-  listeners.add(listener);
-  return () => {
-    listeners.delete(listener);
-  };
+  return graphicsSettingsStore.subscribe(() => listener(getGraphicsSettings()));
+}
+
+export function useGraphicsSettings(): GraphicsSettings {
+  return useHudStore(graphicsSettingsStore, (settings) => settings);
 }
 
 export function graphicsQueryOverrides(search: string): GraphicsQueryOverrides {
@@ -107,7 +110,7 @@ export function resolveGraphicsSettings(
 
 export function reloadGraphicsSettingsForTests(): void {
   current = readStoredGraphicsSettings();
-  for (const listener of listeners) listener(getGraphicsSettings());
+  graphicsSettingsStore.set(cloneGraphicsSettings(current));
 }
 
 function readStoredGraphicsSettings(): GraphicsSettings {

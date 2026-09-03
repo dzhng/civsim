@@ -9,14 +9,7 @@ mod common;
 
 use campaign::tunables as tun;
 use campaign::Campaign;
-
-fn real_map() -> String {
-    let path = concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../../web/public/data/campaign-map.json"
-    );
-    std::fs::read_to_string(path).expect("real campaign map should be present")
-}
+use common::real_map;
 
 /// Drive the whole map AI-vs-AI to a finished state.
 fn run(map_json: &str, seed: u64, ticks: u32) -> Campaign {

@@ -51,7 +51,7 @@ pub use force_trace::{
 };
 pub use genmap::{generate as generate_map, generate_vista_grid, MapRecipe, VistaBand, VistaGrid};
 pub use grid::SpatialHash;
-pub use maps::{build as build_map, MapId, MAP_HALF_H, MAP_HALF_W};
+pub use maps::{build as build_map, MapId};
 pub use math::{dir, lerp, move_toward, rotate_toward, wrap_angle, Vec2};
 pub use missiles::{missile_spec, MissileKind, MissileSpec, Projectiles};
 pub use runner::Battle;

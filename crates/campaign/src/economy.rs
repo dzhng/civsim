@@ -92,9 +92,7 @@ pub fn cost_per_soldier_milligold(
     class: UnitClassId,
 ) -> u32 {
     let id = units::selected_unit_type(st, f, class);
-    units::unit_type_by_id(map, id)
-        .map(|u| u.cost_per_soldier_milligold)
-        .unwrap_or_else(|| tun::recruit_cost_milligold(class))
+    per_soldier_milligold(map, Some(id), class, Cost::Recruit)
 }
 
 pub fn upkeep_per_soldier_milligold(
@@ -104,9 +102,7 @@ pub fn upkeep_per_soldier_milligold(
     class: UnitClassId,
 ) -> u32 {
     let id = units::selected_unit_type(st, f, class);
-    units::unit_type_by_id(map, id)
-        .map(|u| u.upkeep_per_soldier_milligold)
-        .unwrap_or_else(|| tun::upkeep_per_soldier_milligold(class))
+    per_soldier_milligold(map, Some(id), class, Cost::Upkeep)
 }
 
 /// The AI's *value* yardstick for a soldier — how much an army is worth when the
@@ -122,9 +118,35 @@ pub fn value_per_soldier_milligold(
     class: UnitClassId,
 ) -> u32 {
     let id = units::selected_unit_type(st, f, class);
-    units::unit_type_by_id(map, id)
-        .map(|u| (u.cost_per_soldier_milligold / 50).max(1))
-        .unwrap_or_else(|| (tun::recruit_cost_milligold(class) / 50).max(1))
+    per_soldier_milligold(map, Some(id), class, Cost::Value)
+}
+
+pub(crate) enum Cost {
+    Recruit,
+    Upkeep,
+    Value,
+}
+
+pub(crate) fn per_soldier_milligold(
+    map: &WorldMap,
+    unit_type: Option<UnitTypeId>,
+    class: UnitClassId,
+    kind: Cost,
+) -> u32 {
+    let unit_type = unit_type.and_then(|id| units::unit_type_by_id(map, id));
+    match kind {
+        Cost::Recruit => unit_type
+            .map(|unit| unit.cost_per_soldier_milligold)
+            .unwrap_or_else(|| tun::recruit_cost_milligold(class)),
+        Cost::Upkeep => unit_type
+            .map(|unit| unit.upkeep_per_soldier_milligold)
+            .unwrap_or_else(|| tun::upkeep_per_soldier_milligold(class)),
+        Cost::Value => (unit_type
+            .map(|unit| unit.cost_per_soldier_milligold)
+            .unwrap_or_else(|| tun::recruit_cost_milligold(class))
+            / 50)
+            .max(1),
+    }
 }
 
 /// At a friendly city node, halted?
@@ -363,26 +385,17 @@ fn deliver_recruits(
         .any(|a| a.alive() && a.halted() && a.loc == Loc::Node(node));
     if node_free {
         let id = st.armies.len() as ArmyId;
-        st.armies.push(Army {
+        st.armies.push(Army::new(
             id,
-            faction: owner,
-            garrison_of: None,
-            roster: vec![RosterEntry {
+            owner,
+            vec![RosterEntry {
                 class,
                 count,
                 max: count,
                 morale_cap: 1.0,
             }],
-            loc: Loc::Node(node),
-            path: Vec::new(),
-            path_idx: 0,
-            progress: 0.0,
-            stance: Stance::Hold,
-            encounter: None,
-            auto_replenish: true,
-            sack_intent: false,
-            embark_ticks_left: 0,
-        });
+            Loc::Node(node),
+        ));
     } else {
         let c = st.cities.get_mut(&node).unwrap();
         add_to_roster(&mut c.garrison, class, count);
@@ -530,7 +543,7 @@ pub fn set_class_doctrine(
     if st.factions[faction as usize].treasury < cost {
         return false;
     }
-    let new_cap = tun::unit_establishment(class) * size_mult as u32;
+    let new_cap = contract::unit_size(class) * size_mult as u32;
     if st
         .armies
         .iter()
@@ -765,21 +778,7 @@ pub fn split(map: &WorldMap, st: &mut CampaignState, army: ArmyId, entries: &[us
         r.max = 0;
     }
     let id = st.armies.len() as ArmyId;
-    st.armies.push(Army {
-        id,
-        faction,
-        garrison_of: None,
-        roster,
-        loc: spot,
-        path: Vec::new(),
-        path_idx: 0,
-        progress: 0.0,
-        stance: Stance::Hold,
-        encounter: None,
-        auto_replenish: true,
-        sack_intent: false,
-        embark_ticks_left: 0,
-    });
+    st.armies.push(Army::new(id, faction, roster, spot));
     true
 }
 
@@ -821,21 +820,8 @@ pub fn garrison_sorties(map: &WorldMap, st: &mut CampaignState) {
         let owner = st.cities[&node].owner;
         let garrison = std::mem::take(&mut st.cities.get_mut(&node).unwrap().garrison);
         let id = st.armies.len() as ArmyId;
-        st.armies.push(Army {
-            id,
-            faction: owner,
-            garrison_of: Some(node),
-            roster: garrison,
-            loc: Loc::Node(node),
-            path: Vec::new(),
-            path_idx: 0,
-            progress: 0.0,
-            stance: Stance::Hold,
-            encounter: None,
-            auto_replenish: true,
-            sack_intent: false,
-            embark_ticks_left: 0,
-        });
+        st.armies
+            .push(Army::new(id, owner, garrison, Loc::Node(node)).garrisoned(node));
     }
 }
 

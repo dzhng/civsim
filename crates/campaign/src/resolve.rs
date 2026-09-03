@@ -2,6 +2,7 @@
 //! `BattleResult` → casualties, routs, and annihilations on the map.
 
 use crate::battlegen;
+use crate::economy::{self, Cost};
 use crate::mapdata::{NodeKind, WorldMap};
 use crate::pathfind;
 use crate::state::*;
@@ -413,10 +414,7 @@ pub fn apply_battle_outcome(
 /// heavy monthly upkeep — so the estimate agrees with how the AI sizes up armies.
 pub fn estimate(map: &WorldMap, setup: &BattleSetup) -> BattleResult {
     let weight = |u: &RosterUnit| -> u64 {
-        u.unit_type
-            .and_then(|id| crate::units::unit_type_by_id(map, id))
-            .map(|t| (t.cost_per_soldier_milligold / 50).max(1))
-            .unwrap_or_else(|| (tun::recruit_cost_milligold(u.class) / 50).max(1)) as u64
+        economy::per_soldier_milligold(map, u.unit_type, u.class, Cost::Value) as u64
     };
 
     // Both sides' rosters tagged with their team, deployments + reinforcements.

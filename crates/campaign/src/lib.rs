@@ -182,11 +182,6 @@ impl Campaign {
         let f = self.state.player_faction;
         economy::set_city_policy(&mut self.state, node, f, focus, throttle)
     }
-    /// Flag an owned army to sack (vs hold) the next city it captures.
-    pub fn order_sack_intent(&mut self, army: ArmyId, on: bool) -> bool {
-        let f = self.state.player_faction;
-        ai::orders::apply(&self.map, &mut self.state, f, &ai::Order::Sack { army, on })
-    }
     pub fn order_merge(&mut self, src: ArmyId, dst: ArmyId) -> bool {
         economy::merge(&self.map, &mut self.state, src, dst)
     }

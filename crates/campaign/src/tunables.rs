@@ -64,16 +64,6 @@ pub fn march_mult(class: UnitClassId) -> f32 {
     }
 }
 
-/// Baseline establishment strength for one army slot. ONE army slot IS exactly one
-/// battle unit, so this is simply the shared unit size (`contract::unit_size`):
-/// 500 close-order foot / 350 loose foot / 200 horse / 80 crew. The class builder's
-/// 1x/2x/3x multiplies it, and
-/// replenishment fills toward it. (There is no separate "pool that splits into
-/// battle units" any more — a campaign unit and a battle unit are the same thing.)
-pub fn unit_establishment(class: UnitClassId) -> u32 {
-    contract::unit_size(class)
-}
-
 /// Sea lanes: fixed fleet speed regardless of composition (km/day / tile).
 pub const SEA_TILES_PER_TICK: f32 = (120.0 / TILE_KM) / TICKS_PER_DAY as f32;
 /// Embark/disembark at a port — 2 game-hours.
@@ -296,11 +286,10 @@ pub const SACK_POP_REMAINING: f32 = 0.1;
 
 /// Daily desertion per roster entry while the treasury is empty.
 pub const DESERTION_PER_DAY: f32 = 0.02;
-/// Passive replenishment per day, as a fraction of missing strength:
-/// halted at a friendly city / in friendly territory / elsewhere.
+/// Paid passive replenishment per day, as a fraction of missing strength:
+/// halted at a friendly city / in friendly territory. Hostile territory gives none.
 pub const REPLENISH_CITY: f32 = 0.05;
 pub const REPLENISH_FRIENDLY: f32 = 0.02;
-pub const REPLENISH_HOSTILE: f32 = 0.005;
 /// Rally-scar recovery per day while halted at a friendly city.
 pub const MORALE_CAP_REGEN: f32 = 0.05;
 

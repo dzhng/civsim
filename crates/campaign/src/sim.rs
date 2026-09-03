@@ -83,21 +83,15 @@ fn ambush_triggers(map: &WorldMap, st: &mut CampaignState) {
                 && !matches!(v.stance, Stance::Routed { .. } | Stance::AtSea | Stance::Camp { .. })
         });
         let Some(j) = victim else { continue };
-        let id = st.next_encounter_id;
-        let seed = ((st.rng.next_u32() as u64) << 32) | st.rng.next_u32() as u64;
-        st.encounters.push(Encounter {
-            id,
-            attacker: st.armies[j].id, // the victim walked into it
-            defender: st.armies[i].id, // the ambusher holds the ground
-            prep_attacker: tun::PREP_SURPRISED_TICKS,
-            prep_defender: 0,
-            phase: EncounterPhase::Preparing,
-            ambush: true,
-            seed,
-            reinforcements: Vec::new(),
-            no_retreat: [false, false],
-        });
-        st.next_encounter_id += 1;
+        let encounter = Encounter::new(
+            st,
+            st.armies[j].id, // the victim walked into it
+            st.armies[i].id, // the ambusher holds the ground
+            [tun::PREP_SURPRISED_TICKS, 0],
+            true,
+        );
+        let id = encounter.id;
+        st.encounters.push(encounter);
         st.armies[i].encounter = Some(id);
         st.armies[j].encounter = Some(id);
         // Sprung: the ambusher is revealed and the victim is pinned.
@@ -503,22 +497,16 @@ fn encounters(map: &WorldMap, st: &mut CampaignState, visited: &mut pathfind::Vi
                     tun::PREP_TICKS,
                 )
             };
-            let id = st.next_encounter_id;
-            let seed = ((st.rng.next_u32() as u64) << 32) | st.rng.next_u32() as u64;
             let (ai, bi) = (st.armies[i].id, st.armies[j].id);
-            st.encounters.push(Encounter {
-                id,
-                attacker: if attacker_is_a { ai } else { bi },
-                defender: if attacker_is_a { bi } else { ai },
-                prep_attacker: prep_att,
-                prep_defender: prep_def,
-                phase: EncounterPhase::Preparing,
-                ambush: false,
-                seed,
-                reinforcements: Vec::new(),
-                no_retreat: [false, false],
-            });
-            st.next_encounter_id += 1;
+            let encounter = Encounter::new(
+                st,
+                if attacker_is_a { ai } else { bi },
+                if attacker_is_a { bi } else { ai },
+                [prep_att, prep_def],
+                false,
+            );
+            let id = encounter.id;
+            st.encounters.push(encounter);
             st.armies[i].encounter = Some(id);
             st.armies[j].encounter = Some(id);
         }
@@ -614,13 +602,10 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
         .start_armies
         .iter()
         .enumerate()
-        .map(|(i, s)| Army {
-            id: i as ArmyId,
-            faction: s.faction,
-            garrison_of: None,
+        .map(|(i, s)| {
             // Expand each `(class, units)` entry into `units` full-strength
             // slots of `unit_size` soldiers (see `StartArmy::roster`).
-            roster: s
+            let roster = s
                 .roster
                 .iter()
                 .flat_map(|&(class, units)| {
@@ -632,16 +617,8 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
                         morale_cap: 1.0,
                     })
                 })
-                .collect(),
-            loc: Loc::Node(s.at),
-            path: Vec::new(),
-            path_idx: 0,
-            progress: 0.0,
-            stance: Stance::Hold,
-            encounter: None,
-            auto_replenish: true,
-            sack_intent: false,
-            embark_ticks_left: 0,
+                .collect();
+            Army::new(i as ArmyId, s.faction, roster, Loc::Node(s.at))
         })
         .collect();
     let doctrines = (0..factions.len() as u32)

@@ -3,8 +3,8 @@
 //! (the golden hash guards that separately). The sealed sides are WEST and
 //! EAST — relief never changes which ground is passable.
 
-use contract::{PaintOp, TerrainSpec};
-use sim::{build_map, MapId, Terrain, Vec2, MAP_HALF_H, MAP_HALF_W};
+use contract::{PaintOp, TerrainSpec, FIELD_HALF_H, FIELD_HALF_W};
+use sim::{build_map, MapId, Terrain, Vec2};
 
 const ALL_MAPS: [MapId; 3] = [
     MapId::RiverAndCrags,
@@ -148,13 +148,14 @@ fn west_and_east_are_sealed_while_north_and_south_stay_open() {
         let mut east_sealed = 0;
         let samples = 100;
         for k in 0..samples {
-            let y =
-                -MAP_HALF_H + 40.0 + (MAP_HALF_H * 2.0 - 80.0) * k as f32 / (samples - 1) as f32;
+            let y = -FIELD_HALF_H
+                + 40.0
+                + (FIELD_HALF_H * 2.0 - 80.0) * k as f32 / (samples - 1) as f32;
             // Scan inward from each side for an impassable cell.
             let west = (0..((band / t.cell) as i32))
-                .any(|i| t.speed_at(Vec2::new(-MAP_HALF_W + 6.0 + i as f32 * t.cell, y)) <= 0.0);
+                .any(|i| t.speed_at(Vec2::new(-FIELD_HALF_W + 6.0 + i as f32 * t.cell, y)) <= 0.0);
             let east = (0..((band / t.cell) as i32))
-                .any(|i| t.speed_at(Vec2::new(MAP_HALF_W - 6.0 - i as f32 * t.cell, y)) <= 0.0);
+                .any(|i| t.speed_at(Vec2::new(FIELD_HALF_W - 6.0 - i as f32 * t.cell, y)) <= 0.0);
             west_sealed += west as i32;
             east_sealed += east as i32;
         }
@@ -170,8 +171,9 @@ fn west_and_east_are_sealed_while_north_and_south_stay_open() {
 
         // The central corridor is open the full length of the field.
         for k in 0..samples {
-            let y =
-                -MAP_HALF_H + 40.0 + (MAP_HALF_H * 2.0 - 80.0) * k as f32 / (samples - 1) as f32;
+            let y = -FIELD_HALF_H
+                + 40.0
+                + (FIELD_HALF_H * 2.0 - 80.0) * k as f32 / (samples - 1) as f32;
             assert!(
                 t.speed_at(Vec2::new(0.0, y)) > 0.0,
                 "{map:?} center blocked at y={y}",
@@ -179,11 +181,11 @@ fn west_and_east_are_sealed_while_north_and_south_stay_open() {
         }
         // North and south edges read as open ground at mid-field.
         assert!(
-            t.speed_at(Vec2::new(0.0, MAP_HALF_H - 10.0)) > 0.0,
+            t.speed_at(Vec2::new(0.0, FIELD_HALF_H - 10.0)) > 0.0,
             "{map:?} north sealed"
         );
         assert!(
-            t.speed_at(Vec2::new(0.0, -MAP_HALF_H + 10.0)) > 0.0,
+            t.speed_at(Vec2::new(0.0, -FIELD_HALF_H + 10.0)) > 0.0,
             "{map:?} south sealed"
         );
     }

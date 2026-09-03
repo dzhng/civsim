@@ -4,10 +4,57 @@
 use crate::mapdata::WorldMap;
 use crate::state::{CampaignState, FactionId};
 use crate::tunables as tun;
-use contract::{UnitClassId, UnitTypeId};
+use contract::{StatModifiers, StatTransform, UnitClassId, UnitTypeId};
 use serde::{Deserialize, Serialize};
 
 pub const DEFAULT_OPTIONS_PER_CLASS: u8 = 3;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum UnitOption {
+    Regular,
+    Auxiliary,
+    Elite,
+}
+
+impl UnitOption {
+    pub fn from_unit_type(id: UnitTypeId) -> Self {
+        match option_index(id) {
+            1 => Self::Auxiliary,
+            2 => Self::Elite,
+            _ => Self::Regular,
+        }
+    }
+
+    pub fn modifiers(self) -> StatModifiers {
+        match self {
+            Self::Regular => StatModifiers::IDENTITY,
+            Self::Auxiliary => StatModifiers {
+                health: StatTransform::scale(0.9),
+                mass: StatTransform::scale(0.92),
+                block: StatTransform::scale(0.86),
+                evade: StatTransform::offset_max(0.05, 0.7),
+                training: StatTransform::offset_min(-0.08, 0.2),
+                bravery: StatTransform::scale(0.9),
+                morale_aura: StatTransform::scale(0.9),
+                pace_mult: StatTransform::scale(1.06),
+                fight_drain_mult: StatTransform::scale(0.88),
+                move_drain_mult: StatTransform::scale(0.88),
+            },
+            Self::Elite => StatModifiers {
+                health: StatTransform::scale(1.1),
+                mass: StatTransform::scale(1.08),
+                block: StatTransform::offset_max(0.06, 0.75),
+                evade: StatTransform::scale(0.92),
+                training: StatTransform::offset_max(0.1, 1.0),
+                bravery: StatTransform::scale(1.15),
+                morale_aura: StatTransform::scale(1.08),
+                fight_drain_mult: StatTransform::scale(1.12),
+                move_drain_mult: StatTransform::scale(1.12),
+                ..StatModifiers::IDENTITY
+            },
+        }
+    }
+}
 
 /// Minimum military development a city must have reached to field a given class
 /// option. The default option is always available; the "auxiliary" and "elite"
@@ -51,18 +98,8 @@ pub fn unit_type(map: &WorldMap, faction: FactionId, class: UnitClassId, option:
         .get(faction as usize)
         .map(|f| f.id.as_str())
         .unwrap_or("unknown");
-    let up_mult = match option {
-        0 => 100,
-        1 => 82,
-        2 => 126,
-        _ => 145 + option as u32 * 10,
-    };
-    let time_mult = match option {
-        0 => 100,
-        1 => 85,
-        2 => 115,
-        _ => 125,
-    };
+    let up_mult = [100, 82, 126][option as usize];
+    let time_mult = [100, 85, 115][option as usize];
     // Upkeep is exactly half the raise cost (the 50%-of-recruitment rule), so the
     // ratio holds for every option, not just the base unit.
     let cost = tun::recruit_cost_milligold(class) * up_mult / 100;
@@ -130,12 +167,7 @@ pub fn option_index(id: UnitTypeId) -> u8 {
 
 fn unit_name(faction: &str, class: UnitClassId, option: u8) -> String {
     let fallback = || {
-        let arm = match option {
-            0 => "Regular",
-            1 => "Auxiliary",
-            2 => "Elite",
-            _ => "Reform",
-        };
+        let arm = ["Regular", "Auxiliary", "Elite"][option as usize];
         format!("{arm} {class:?}")
     };
     let names: Option<[&str; 3]> = match faction {

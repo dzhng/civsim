@@ -209,30 +209,11 @@ impl Game {
     /// weapons, missile spec. Static data — call once. Weapon display
     /// names live here (the sim's Weapon struct is anonymous physics).
     pub fn class_specs(&self) -> String {
-        let weapon_names: [&[&str]; contract::ALL_CLASSES.len()] = [
-            &["sword"],
-            &["spear"],
-            &["great sword"],
-            &["pike", "side sword"],
-            &["sword"],
-            &["dagger"],
-            &["lance", "sword"],
-            &["sword"],
-            &["dagger"],
-            &["dagger"],             // peasant
-            &["sword"],              // light sword
-            &["spear"],              // heavy spear
-            &["sword"],              // medium infantry
-            &["spear"],              // medium spear
-            &["pike", "side sword"], // medium phalanx
-        ];
-        let missile_names: [&str; contract::ALL_CLASSES.len()] = [
-            "", "", "", "", "bow", "javelin", "", "bow", "ballista", "", "", "", "", "", "",
-        ];
-        let specs: Vec<serde_json::Value> = contract::ALL_CLASSES
+        let specs: Vec<serde_json::Value> = contract::CLASS_SPECS
             .iter()
             .enumerate()
-            .map(|(ci, &id)| {
+            .map(|(ci, spec)| {
+                let id = spec.class;
                 let c = sim::class_stats(id);
                 let weapons: Vec<serde_json::Value> = c
                     .weapons
@@ -240,7 +221,7 @@ impl Game {
                     .enumerate()
                     .map(|(wi, w)| {
                         serde_json::json!({
-                            "name": weapon_names[ci].get(wi).copied().unwrap_or("weapon"),
+                            "name": spec.weapon_names.get(wi).copied().unwrap_or("weapon"),
                             "reach": w.reach,
                             "minRange": w.min_range,
                             "arc": w.zones.swing_arc(),
@@ -254,7 +235,7 @@ impl Game {
                     .collect();
                 let missile = sim::missile_spec(id).map(|m| {
                     serde_json::json!({
-                        "name": missile_names[ci],
+                        "name": spec.missile_name,
                         "range": m.range,
                         "interval": m.interval,
                         "ammo": m.ammo,
@@ -383,22 +364,7 @@ impl Game {
     }
 
     pub fn generated_map_manifest(&self) -> String {
-        match self.generated_recipe {
-            Some(recipe) => generated_manifest_json(recipe, &self.battle.sim.terrain).to_string(),
-            None => serde_json::json!({
-                "seed": 0,
-                "seedHex": "0x0000000000000000",
-                "groundCover": "green-grass",
-                "edges": {
-                    "north": "open-fog",
-                    "south": "open-fog",
-                    "west": "cliff",
-                    "east": "cliff",
-                },
-                "featureSummary": serde_json::Value::Null,
-            })
-            .to_string(),
-        }
+        generated_map_manifest(self.generated_recipe.unwrap_or_default().seed)
     }
 
     pub fn generated_vista_band_count(&self) -> u32 {

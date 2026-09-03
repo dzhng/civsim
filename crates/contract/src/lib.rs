@@ -47,6 +47,75 @@ pub enum UnitClassId {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct UnitTypeId(pub u32);
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct StatTransform {
+    pub scale: f32,
+    pub offset: f32,
+    pub min: Option<f32>,
+    pub max: Option<f32>,
+}
+
+impl StatTransform {
+    pub const IDENTITY: Self = Self {
+        scale: 1.0,
+        offset: 0.0,
+        min: None,
+        max: None,
+    };
+
+    pub const fn scale(scale: f32) -> Self {
+        Self {
+            scale,
+            ..Self::IDENTITY
+        }
+    }
+
+    pub const fn offset_min(offset: f32, min: f32) -> Self {
+        Self {
+            offset,
+            min: Some(min),
+            ..Self::IDENTITY
+        }
+    }
+
+    pub const fn offset_max(offset: f32, max: f32) -> Self {
+        Self {
+            offset,
+            max: Some(max),
+            ..Self::IDENTITY
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct StatModifiers {
+    pub health: StatTransform,
+    pub mass: StatTransform,
+    pub block: StatTransform,
+    pub evade: StatTransform,
+    pub training: StatTransform,
+    pub bravery: StatTransform,
+    pub morale_aura: StatTransform,
+    pub pace_mult: StatTransform,
+    pub fight_drain_mult: StatTransform,
+    pub move_drain_mult: StatTransform,
+}
+
+impl StatModifiers {
+    pub const IDENTITY: Self = Self {
+        health: StatTransform::IDENTITY,
+        mass: StatTransform::IDENTITY,
+        block: StatTransform::IDENTITY,
+        evade: StatTransform::IDENTITY,
+        training: StatTransform::IDENTITY,
+        bravery: StatTransform::IDENTITY,
+        morale_aura: StatTransform::IDENTITY,
+        pace_mult: StatTransform::IDENTITY,
+        fight_drain_mult: StatTransform::IDENTITY,
+        move_drain_mult: StatTransform::IDENTITY,
+    };
+}
+
 /// Gold cost of a full unit at duel strength. Anchors per David: light
 /// infantry 300, heavy 1000 (one heavy unit beats two light units head-on
 /// — the premium prices concentration of force). The rest follow the
@@ -87,23 +156,50 @@ pub fn unit_size(c: UnitClassId) -> u32 {
     }
 }
 
-pub const ALL_CLASSES: [UnitClassId; 15] = [
-    UnitClassId::HeavySword,
-    UnitClassId::LightSpear,
-    UnitClassId::LongSwords,
-    UnitClassId::HeavyPhalanx,
-    UnitClassId::Archers,
-    UnitClassId::Skirmishers,
-    UnitClassId::ShockCavalry,
-    UnitClassId::HorseArchers,
-    UnitClassId::ArtilleryCrew,
-    UnitClassId::Peasant,
-    UnitClassId::LightSword,
-    UnitClassId::HeavySpear,
-    UnitClassId::MediumInfantry,
-    UnitClassId::MediumSpear,
-    UnitClassId::MediumPhalanx,
-];
+pub struct ClassSpec {
+    pub class: UnitClassId,
+    pub weapon_names: &'static [&'static str],
+    pub missile_name: &'static str,
+}
+
+macro_rules! class_specs {
+    ($( $class:ident => ($weapons:expr, $missile:expr) ),+ $(,)?) => {
+        pub const ALL_CLASSES: [UnitClassId; class_specs!(@count $( $class )+)] = [
+            $(UnitClassId::$class),+
+        ];
+
+        /// Display names paired with the class whose battle stats they describe.
+        pub const CLASS_SPECS: [ClassSpec; ALL_CLASSES.len()] = [
+            $(ClassSpec {
+                class: UnitClassId::$class,
+                weapon_names: $weapons,
+                missile_name: $missile,
+            }),+
+        ];
+    };
+    (@count $( $class:ident )+) => {
+        <[()]>::len(&[$(class_specs!(@unit $class)),+])
+    };
+    (@unit $class:ident) => { () };
+}
+
+class_specs! {
+    HeavySword => (&["sword"], ""),
+    LightSpear => (&["spear"], ""),
+    LongSwords => (&["great sword"], ""),
+    HeavyPhalanx => (&["pike", "side sword"], ""),
+    Archers => (&["sword"], "bow"),
+    Skirmishers => (&["dagger"], "javelin"),
+    ShockCavalry => (&["lance", "sword"], ""),
+    HorseArchers => (&["sword"], "bow"),
+    ArtilleryCrew => (&["dagger"], "ballista"),
+    Peasant => (&["dagger"], ""),
+    LightSword => (&["sword"], ""),
+    HeavySpear => (&["spear"], ""),
+    MediumInfantry => (&["sword"], ""),
+    MediumSpear => (&["spear"], ""),
+    MediumPhalanx => (&["pike", "side sword"], ""),
+}
 
 pub fn unit_class_key(c: UnitClassId) -> &'static str {
     match c {

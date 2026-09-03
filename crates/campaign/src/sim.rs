@@ -13,6 +13,56 @@ use crate::pathfind;
 use crate::state::*;
 use crate::tunables as tun;
 
+/// Campaign marker state: stance, progress-ring kind, progress fraction.
+pub fn army_marker_state(st: &CampaignState, army: &Army) -> (u8, u8, f32) {
+    let (stance, mut pie_kind, mut pie_frac) = match army.stance {
+        Stance::March | Stance::Hold | Stance::Pursuing { .. } => (0, 0, 0.0),
+        Stance::Camp { build_ticks_left } => (
+            1,
+            if build_ticks_left > 0 { 2 } else { 0 },
+            1.0 - build_ticks_left as f32 / tun::CAMP_BUILD_TICKS as f32,
+        ),
+        Stance::Ambush {
+            settle_ticks_left, ..
+        } if settle_ticks_left > 0 => (
+            2,
+            4,
+            1.0 - settle_ticks_left as f32 / tun::AMBUSH_SETTLE_TICKS as f32,
+        ),
+        Stance::Ambush { .. } => (3, 0, 0.0),
+        Stance::Routed { .. } => (4, 0, 0.0),
+        Stance::Occupying { ticks_left, .. } => {
+            (5, 2, 1.0 - ticks_left as f32 / tun::OCCUPY_TICKS as f32)
+        }
+        Stance::AtSea => (6, 0, 0.0),
+    };
+    if army.embark_ticks_left > 0 {
+        pie_kind = 3;
+        pie_frac = 1.0 - army.embark_ticks_left as f32 / tun::EMBARK_TICKS as f32;
+    }
+    if let Some(encounter) = army
+        .encounter
+        .and_then(|id| st.encounters.iter().find(|encounter| encounter.id == id))
+        .filter(|encounter| encounter.phase == EncounterPhase::Preparing)
+    {
+        let (remaining, total) = if encounter.attacker == army.id {
+            (
+                encounter.prep_attacker,
+                if encounter.ambush {
+                    tun::PREP_SURPRISED_TICKS
+                } else {
+                    tun::PREP_TICKS
+                },
+            )
+        } else {
+            (encounter.prep_defender, tun::PREP_TICKS)
+        };
+        pie_kind = 1;
+        pie_frac = 1.0 - remaining as f32 / total.max(1) as f32;
+    }
+    (stance, pie_kind, pie_frac.clamp(0.0, 1.0))
+}
+
 pub fn tick(map: &WorldMap, st: &mut CampaignState, visited: &mut pathfind::Visited) {
     st.tick += 1;
     if st.tick % tun::TICKS_PER_DAY as u64 == 0 {

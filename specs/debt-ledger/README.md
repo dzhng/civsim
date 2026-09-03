@@ -11,11 +11,11 @@ ledger in [visualizations/audit-ledger.html](visualizations/audit-ledger.html).
 
 ## Next Agent Prompt
 
-**Status (2026-09-03):** slices 15, 28, 29 landed on main (integration
+**Status (2026-09-03):** slices 15, 16, 22, 28, 29, 30 landed on main (integration
 `bun run check` green after 15+28; typecheck + campaign tests + wasm rebuild
 green after 29; slice 29 pixel-neutral — campaign-visual diff numbers identical
 to main). In flight in lane worktrees `/Users/david/dev/game-wt/{r,w,s,c}`
-(branches `debt-ledger/{r,w,s,c}`): 01 (R), 16 (W), 22 (S), 30 (C). Codex
+(branches `debt-ledger/{r,w,s,c}`): 01 (R), 17 (W), 23 (S), 31 (C). Codex
 implements in the worktree; the orchestrator runs browser gates against the
 lane's own dev server (`vite --port 5173+lane --strictPort`, `VERIFY_URL`),
 commits, and merges to main. `choices.md` has a union merge driver.
@@ -82,13 +82,13 @@ parallel in separate worktrees (see the lane table for file disjointness).
 - [ ] Battle renderer wrapper forwards `world.stats()`; mirrors deleted [13]
 - [ ] Dispose measured; dispose written only on measured growth [14]
 - [x] One test runner (vitest); loaders deleted [15]
-- [ ] `@packages/*` alias; 70 relative imports rewritten [16]
+- [x] `@packages/*` alias; 70 relative imports rewritten [16]
 - [ ] `SimClock`, `cameraKeyController`, `awaitRendererReady` shared [17]
 - [ ] Campaign builders → game-renderer; fixtures out of main.ts; one save owner [18]
 - [ ] Battle scene `enter()` split behind unchanged `__game/__cam/__ready` [19]
 - [ ] HUD store via `useSyncExternalStore`; one `useGraphicsSettings()` [20]
 - [ ] Scene boot helpers; orphan URL params deleted [21]
-- [ ] `Vec2::perp`, covered-files helper, `genmap/noise.rs` [22]
+- [x] `Vec2::perp`, covered-files helper, `genmap/noise.rs` [22]
 - [ ] `Tracer` replaces 70 cfg blocks [23]
 - [ ] Dead knobs → constants; ignored probes and copied test helpers gone [24]
 - [ ] One `spawn(SpawnSpec)`; `Unit::files_bounds`; wrapper chains gone [25]
@@ -96,7 +96,7 @@ parallel in separate worktrees (see the lane table for file disjointness).
 - [ ] `Unit::bound_radius()`; pins re-verified per consumer [27]
 - [x] Campaign golden pin [28]
 - [x] `road_levels` gone end to end [29]
-- [ ] One flood, one Dijkstra, one partial-edge cost [30]
+- [x] One flood, one Dijkstra, one partial-edge cost [30]
 - [ ] `Army::new`, one cost shape, one field-dims owner, dead knobs, test helpers [31]
 - [ ] game-wasm thin: stat resolution, manifest, class table in the crates that own them [32]
 - [ ] mapgen `[lib]`, one wire schema, helpers single-owned, shipped migrations deleted [33]

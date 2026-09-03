@@ -23,3 +23,4 @@ _(append below, newest last)_
 
 - slice 01 — re-home the four-map seating contract in a dedicated production `battle-seating` scene; alternative extend `battle-photoreal-parity`; why the focused gate keeps terrain seating coverage independent of parity's full-world overlay and performance contract.
 - slice 01 — classify `water-coastal` and `water-open-sea` as bespoke lab-renderer pixel coverage and delete them; alternative re-home shared water math beside `photorealSea.test.ts`; why both scenes measured the doomed `battle-terrain-3d` GPU plane while surviving photoreal sea scenes and tests already own production water behavior.
+- slice 01 — (orchestrator fixup) dropped `generated-seed-7` from the seating scene: the catalog generates highland-vale from seed 7, so the two baselines were byte-identical (as the old elevation baselines already were); alternative keep both names; why one owner per fixture — a duplicate gate tests nothing twice.

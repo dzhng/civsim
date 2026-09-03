@@ -1,10 +1,12 @@
 import { PNG } from "pngjs";
 
+// Catalog seeds (mapCatalog.ts): the three named maps are generated from seeds
+// 1, 7 and 8; the old elevation scene also carried "generated-seed-7", which is
+// highland-vale under another name, so it is not repeated here.
 const MAPS = [
   ["shore-and-crags", 1],
   ["highland-vale", 7],
   ["wooded-pass", 8],
-  ["generated-seed-7", 7],
 ];
 
 export const meta = {

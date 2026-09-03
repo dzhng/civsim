@@ -307,10 +307,6 @@ pub struct CampaignState {
     /// Per-faction sets of armies it can currently see (fog of war).
     #[serde(default)]
     pub visible: Vec<std::collections::BTreeSet<ArmyId>>,
-    /// Per-edge road level (1..=3); speed/routing multipliers in tunables.
-    /// Normalized to the map's edge count at load.
-    #[serde(default)]
-    pub road_levels: Vec<u8>,
     /// Set once the war is decided; `None` while it is still being fought.
     #[serde(default)]
     pub outcome: Option<Outcome>,

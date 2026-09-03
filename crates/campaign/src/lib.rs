@@ -339,10 +339,6 @@ impl Campaign {
     pub fn load(map_json: &str, save: &str) -> Result<Campaign, String> {
         let map = WorldMap::from_json(map_json);
         let mut state: CampaignState = serde_json::from_str(save).map_err(|e| e.to_string())?;
-        // Saves predating static road levels carry an empty vec.
-        if state.road_levels.len() != map.edges.len() {
-            state.road_levels = vec![1; map.edges.len()];
-        }
         normalize_state(&mut state);
         Ok(Campaign {
             map,

@@ -131,7 +131,6 @@ export class CampaignScene implements Scene {
   private classDraft = new Map<number, { unit: number; size: number }>();
   private armies: ArmyView[] = [];
   private cities = new Map<number, CityView>();
-  private roadLevels: Uint8Array = new Uint8Array(0);
   private stackUnitCap = 1;
   private recruitClasses: string[] = [];
   private spotPos: [number, number][] = [];
@@ -420,14 +419,9 @@ export class CampaignScene implements Scene {
   // ---- state out of wasm ----------------------------------------------------
 
   private refreshViews() {
-    const views = readCampaignViews(
-      this.cfg.campaign,
-      this.cfg.wasm,
-      this.cfg.data.map.edges.length,
-    );
+    const views = readCampaignViews(this.cfg.campaign, this.cfg.wasm);
     this.armies = views.armies;
     this.cities = views.cities;
-    this.roadLevels = views.roadLevels;
     this.stackUnitCap = views.stackUnitCap;
     // Keep allegiance fresh for status treatment (cheap; the renderer reads it
     // every frame). City/army flags are faction-coloured, so they only need a

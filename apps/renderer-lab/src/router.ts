@@ -2094,7 +2094,7 @@ async function routeCampaignMap(ctx: LabContext) {
   ]);
   const wasm = await initWasm();
   const campaign = new Campaign(mapJson, 0x5eed_2026, 0);
-  const views = readCampaignViews(campaign, wasm, data.map.edges.length);
+  const views = readCampaignViews(campaign, wasm);
   const field = new TerrainField(data);
   const surface = campaignSurface(field);
   const territoryData = new Territory(data, field);
@@ -2255,11 +2255,11 @@ async function routeCampaignUi(ctx: LabContext) {
     draw("replenish");
   });
   const recruitClasses = JSON.parse(campaign.unit_class_names_json()) as string[];
-  let views = readCampaignViews(campaign, wasm, data.map.edges.length);
+  let views = readCampaignViews(campaign, wasm);
   let selectedArmy = views.armies.find((army) => army.mine)?.id ?? -1;
   if (selectedArmy >= 0) {
     campaign.debug_place(selectedArmy, 1, 0, 4);
-    views = readCampaignViews(campaign, wasm, data.map.edges.length);
+    views = readCampaignViews(campaign, wasm);
   }
   let selectedCity = data.map.nodes.findIndex(
     (node) => node.kind === "city" && node.owner === "rome",
@@ -2267,7 +2267,7 @@ async function routeCampaignUi(ctx: LabContext) {
   let lastPick = { kind: "initial", army: selectedArmy, city: selectedCity, worldX: 0, worldY: 0 };
 
   const draw = (reason = "draw") => {
-    views = readCampaignViews(campaign, wasm, data.map.edges.length);
+    views = readCampaignViews(campaign, wasm);
     const entityFrame = buildCampaignEntityFrame(
       data,
       views,

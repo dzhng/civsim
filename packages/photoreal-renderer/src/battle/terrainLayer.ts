@@ -337,8 +337,8 @@ function backdropMaterial(): THREE.MeshStandardNodeMaterial {
   return material;
 }
 
-/** The background band: backdrop quad + builtin terrain quad (two styles,
- *  toggled by zoom exactly like drawFrame's terrainStyle). Deliberately
+/** The background band: backdrop quad + terrain quad (two detail styles,
+ *  toggled by the battle world's zoom policy). Deliberately
  *  OUTSIDE the slice-11 shadow set (neither casts nor receives): they are
  *  depthTest-off underlays beyond the heightfield, always shaded fullscreen
  *  under the real ground — receiving would pay per-pixel cascade sampling

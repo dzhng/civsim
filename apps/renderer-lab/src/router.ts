@@ -3,7 +3,6 @@ import {
   type BackgroundRenderPass,
   type FrameGraphCommands,
   type FrameGraphPass,
-  type MarkerInstance,
   type OverlayRenderPass,
   type RawFrameShell,
   type WorldRenderPass,
@@ -276,9 +275,17 @@ export async function mountRendererLab(path = location.pathname) {
 async function routeDevice(ctx: LabContext) {
   const info = await requestGpuDevice();
   const shell = await createFrameShell(ctx.canvas);
-  const markers = generatedMarkers(18, -8, -4, 0).concat(generatedMarkers(18, 8, 2, 1));
+  const markers = generatedCrowd(18, -8, -4, 0).concat(generatedCrowd(18, 8, 2, 1));
+  const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88]);
+  pipeline.upload(markers);
+  const ground = new LabGroundPass(shell, [-42, -28, 84, 56]);
   shell.setCamera(chartSnapshot({ x: 0, y: 0, zoom: 10, pitch: 0.25, yaw: 0 }, shell));
-  shell.drawFrame({ markers, markerLayer: "lab-placeholder" });
+  shell.drawFrame({
+    passes: [
+      labGroundFramePass(ground, "device-ground"),
+      skinnedCrowdPass(pipeline, "device-crowd"),
+    ],
+  });
   ctx.status.innerHTML = reportTable({
     route: "device",
     status: "WebGPU ready",
@@ -1029,12 +1036,14 @@ async function routeCapabilities(ctx: LabContext) {
   }
 
   shell.setCamera(chartSnapshot({ x: 0, y: 0, zoom: 9, pitch: 0.34, yaw: -0.12 }, shell));
-  const markers = generatedMarkers(80, -10, -9, 0).concat(generatedMarkers(80, 10, 3, 1));
+  const markers = generatedCrowd(80, -10, -9, 0).concat(generatedCrowd(80, 10, 3, 1));
+  const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88]);
+  pipeline.upload(markers);
+  const ground = new LabGroundPass(shell, [-42, -28, 84, 56]);
   const fixture = new Nested3dFixturePass(shell);
   const draw = (): FrameGraphCommands => ({
-    markers,
-    markerLayer: "lab-placeholder",
     passes: [
+      labGroundFramePass(ground, "capabilities-ground"),
       {
         id: "capabilities-nested-3d",
         role: "world-opaque",
@@ -1042,6 +1051,7 @@ async function routeCapabilities(ctx: LabContext) {
         depth: "read-write",
         draw: (pass) => fixture.draw(pass),
       },
+      skinnedCrowdPass(pipeline, "capabilities-crowd"),
     ],
   });
 
@@ -1131,8 +1141,17 @@ async function routeFaultInjection(ctx: LabContext) {
       ),
   });
   shell.setCamera(chartSnapshot({ x: 0, y: 0, zoom: 10, pitch: 0.25, yaw: 0 }, shell));
-  const markers = generatedMarkers(18, -8, -4, 0).concat(generatedMarkers(18, 8, 2, 1));
-  shell.drawFrame({ markers, markerLayer: "lab-placeholder" });
+  const markers = generatedCrowd(18, -8, -4, 0).concat(generatedCrowd(18, 8, 2, 1));
+  const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88]);
+  pipeline.upload(markers);
+  const ground = new LabGroundPass(shell, [-42, -28, 84, 56]);
+  const draw = (): FrameGraphCommands => ({
+    passes: [
+      labGroundFramePass(ground, "fault-injection-ground"),
+      skinnedCrowdPass(pipeline, "fault-injection-crowd"),
+    ],
+  });
+  shell.drawFrame(draw());
   state.initialFrameRendered = true;
 
   const sync = () => {
@@ -1196,7 +1215,7 @@ async function routeFaultInjection(ctx: LabContext) {
     await lost;
     // A defined post-loss state: the renderer shows the reload panel rather than
     // hanging. (Default policy: surface, do not silently auto-reinit.)
-    shell.drawFrame({ markers, markerLayer: "lab-placeholder" }); // no-op while fatal
+    shell.drawFrame(draw()); // no-op while fatal
     state.deviceLoss = {
       triggered: true,
       reason: shell.health().lastError?.message ?? "",
@@ -1259,9 +1278,10 @@ async function routeFrameShell(ctx: LabContext) {
     pitch: 0.38,
     yaw: -0.18,
   });
-  const markers = generatedMarkers(80, -10, -9, 0).concat(generatedMarkers(80, 10, 3, 1));
+  const markers = generatedCrowd(80, -10, -9, 0).concat(generatedCrowd(80, 10, 3, 1));
+  const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88]);
   const frameGraphContractFixtures = liveFrameGraphContractFixtures(shell);
-  animateShell(shell, ctx.status, () => ({ markers, markerLayer: "lab-placeholder" }));
+  animateSkinned(shell, pipeline, () => markers);
   publish("frame-shell", true, {
     ...shell.stats(),
     markers: markers.length,
@@ -1417,10 +1437,8 @@ async function routeCrowdData(ctx: LabContext) {
     pitch: 0.24,
     yaw: 0,
   });
-  animateShell(shell, ctx.status, () => ({
-    markers: instances.map(instanceMarker),
-    markerLayer: "lab-placeholder",
-  }));
+  const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88]);
+  animateSkinned(shell, pipeline, () => instances);
   const packed = buildCrowdInstances(toCrowdBuildInputs(instances));
   publish("crowd-data", true, {
     route: "crowd-data",
@@ -1437,14 +1455,15 @@ async function routeAnimationState(ctx: LabContext) {
     pitch: 0.2,
     yaw: 0,
   });
-  const markers = Array.from({ length: 12 }, (_, i) => ({
+  const markers = generatedFormation(12, { frame: 1 }).map((instance, i) => ({
+    ...instance,
     x: (i - 5.5) * 2.4,
     y: i % 2 ? 1.4 : -1.4,
     facing: Math.PI / 2,
     faction: (i % 2) as 0 | 1,
-    size: 1.3,
   }));
-  animateShell(shell, ctx.status, () => ({ markers, markerLayer: "lab-placeholder" }));
+  const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88]);
+  animateSkinned(shell, pipeline, () => markers, { size: 1.3 });
   const rows = Array.from({ length: 12 }, (_, frame) => {
     const state = animationForFrame(frame, 240, frame * 19, frame !== 4);
     return `<tr><td>${frame}</td><td>${state.clip}</td><td>${state.phase.toFixed(3)}</td><td>${state.loop}</td></tr>`;
@@ -1566,10 +1585,11 @@ async function routeSkinnedDepth(ctx: LabContext) {
     },
   ];
   pipeline.upload(instances, { forcedClip: "idle", phaseOffset: 0, size: 1.35 });
+  const ground = new LabGroundPass(shell, [-4, -3, 8, 6]);
   shell.drawFrame({
     clear: { r: 0.7, g: 0.78, b: 0.62, a: 1 },
-    terrainRect: [-4, -3, 8, 6],
     passes: [
+      labGroundFramePass(ground, "skinned-depth-ground"),
       {
         id: "skinned-depth-crowd",
         role: "world-opaque",
@@ -1614,14 +1634,9 @@ async function routeLod(ctx: LabContext) {
   const lods = assignCrowdLods(instances, zoom);
   const counts = countLods(lods);
   const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: -1, zoom, pitch: 0.24, yaw: 0 });
-  animateShell(shell, ctx.status, () => ({
-    markers: instances.map((inst, i) => ({
-      ...instanceMarker(inst),
-      lod: lods[i].level,
-      size: Math.max(0.5, 1.15 - lods[i].level * 0.14),
-    })),
-    markerLayer: "lab-placeholder",
-  }));
+  const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88]);
+  const renderInstances = instances.map((instance, i) => ({ ...instance, lod: lods[i].level }));
+  animateSkinned(shell, pipeline, () => renderInstances);
   ctx.status.innerHTML = reportTable({
     route: "lod",
     zoom,
@@ -1711,7 +1726,6 @@ async function routeCampaignMap(ctx: LabContext) {
   const labelLayer = labelPass.upload(labels, chartSnapshot(camera, shell));
   shell.drawFrame({
     clear: { r: 0.68, g: 0.72, b: 0.69, a: 1 },
-    terrainRect: [0, 0, 0, 0],
     passes: [
       {
         id: "campaign-map-surface",
@@ -1813,6 +1827,7 @@ async function routeCampaignUi(ctx: LabContext) {
   const preset = ctx.params.get("preset") ?? "fixture";
   const camera = campaignPresetCamera(preset);
   const shell = await createConfiguredShell(ctx.canvas, camera);
+  const ground = new LabGroundPass(shell, campaignBgTerrainRect(data.bgRect));
   const lines = new CampaignWorldLinePass(shell, "triangle-list");
   const roads = new CampaignRoadPass(shell);
   const entities = new CampaignEntityPass(shell);
@@ -1886,8 +1901,8 @@ async function routeCampaignUi(ctx: LabContext) {
     const labelLayer = labelPass.upload(labels, chartSnapshot(camera, shell));
     shell.drawFrame({
       clear: { r: 0.68, g: 0.72, b: 0.69, a: 1 },
-      terrainRect: campaignBgTerrainRect(data.bgRect),
       passes: [
+        labGroundFramePass(ground, "campaign-ui-ground"),
         {
           id: "campaign-ui-entities-opaque",
           role: "world-opaque",
@@ -2112,6 +2127,183 @@ async function routeCampaignUi(ctx: LabContext) {
   draw();
 }
 
+interface LabGroundShaderStyle {
+  oliveLow: string;
+  oliveHigh: string;
+  dry: string;
+  lightFleckLow: string;
+  lightFleckHigh: string;
+  darkFleckLow: string;
+  darkFleckHigh: string;
+  stoneFleckLow: string;
+  stoneFleckHigh: string;
+  speckleStrength: string;
+  dryMixBase: string;
+  trampleMix: string;
+  stubbleColor: string;
+  stubbleStrength: string;
+  darkFleckColor: string;
+  darkFleckStrength: string;
+  stoneFleckStrength: string;
+  dustStrength: string;
+  aerialStrength: string;
+}
+
+const LAB_GROUND_STYLE: LabGroundShaderStyle = {
+  oliveLow: 'vec3f(0.43, 0.56, 0.22)',
+  oliveHigh: 'vec3f(0.66, 0.69, 0.33)',
+  dry: 'vec3f(0.76, 0.67, 0.39)',
+  lightFleckLow: '0.884',
+  lightFleckHigh: '0.990',
+  darkFleckLow: '0.820',
+  darkFleckHigh: '0.982',
+  stoneFleckLow: '0.924',
+  stoneFleckHigh: '0.996',
+  speckleStrength: '0.315',
+  dryMixBase: '0.22',
+  trampleMix: '0.15',
+  stubbleColor: 'vec3f(0.53, 0.48, 0.25)',
+  stubbleStrength: '0.055',
+  darkFleckColor: 'vec3f(0.47, 0.43, 0.32)',
+  darkFleckStrength: '0.38',
+  stoneFleckStrength: '0.30',
+  dustStrength: '0.14',
+  aerialStrength: '0.22',
+};
+
+function labGroundWgsl(style: LabGroundShaderStyle) {
+  return `
+${WORLD_CAMERA_WGSL}
+struct VsOut { @builtin(position) pos: vec4f, @location(0) world: vec2f, @location(1) dist: f32 };
+@vertex
+fn vs(@location(0) world: vec2f) -> VsOut {
+  var out: VsOut;
+  out.pos = projectWorld(vec3f(world, 0.0));
+  out.world = world;
+  out.dist = length(world - cam.focus);
+  return out;
+}
+fn hash(p: vec2f) -> f32 {
+  let p3 = fract(vec3f(p.xyx) * 0.1031);
+  let q = p3 + dot(p3, p3.yzx + vec3f(33.33));
+  return fract((q.x + q.y) * q.z);
+}
+fn vnoise(p: vec2f) -> f32 {
+  let i = floor(p);
+  let f = fract(p);
+  let u = f * f * (3.0 - 2.0 * f);
+  return mix(
+    mix(hash(i), hash(i + vec2f(1.0, 0.0)), u.x),
+    mix(hash(i + vec2f(0.0, 1.0)), hash(i + vec2f(1.0, 1.0)), u.x),
+    u.y,
+  );
+}
+fn ridged(p: vec2f) -> f32 {
+  let r = 1.0 - abs(vnoise(p) * 2.0 - 1.0);
+  return r * r;
+}
+fn groundHeight(p: vec2f) -> f32 {
+  let broad = vnoise(p * 0.018 + vec2f(8.1, 2.4)) * 0.58;
+  let folds = ridged(vec2f(p.x * 0.052 + p.y * 0.018, p.y * 0.038 - p.x * 0.012)) * 0.26;
+  let scratch = ridged(vec2f(p.x * 0.42 + p.y * 0.09, p.y * 0.26)) * 0.16;
+  return broad + folds + scratch;
+}
+@fragment
+fn fs(in: VsOut) -> @location(0) vec4f {
+  let fine = vnoise(in.world * 2.2);
+  let mid = vnoise(in.world * 0.47 + vec2f(5.2, 1.8));
+  let broad = vnoise(in.world * 0.085 + vec2f(0.7, 9.3));
+  let relief = groundHeight(in.world);
+  let hx = groundHeight(in.world + vec2f(1.8, 0.0)) - relief;
+  let hy = groundHeight(in.world + vec2f(0.0, 1.8)) - relief;
+  let sun = normalize(vec3f(-0.46, -0.34, 0.82));
+  let normal = normalize(vec3f(-hx * 1.45, -hy * 1.45, 1.0));
+  let lambert = clamp(dot(normal, sun), 0.0, 1.0);
+  let grazing = smoothstep(0.16, 0.86, ridged(vec2f(in.world.x * 0.12 + in.world.y * 0.03, in.world.y * 0.09)));
+  let olive = mix(${style.oliveLow}, ${style.oliveHigh}, mid * 0.66 + fine * 0.16 + relief * 0.18);
+  let dry = ${style.dry};
+  let scrubPatch = smoothstep(0.50, 0.86, broad) * (1.0 - smoothstep(0.86, 0.98, fine));
+  let trample = smoothstep(0.72, 0.98, vnoise((in.world + vec2f(13.0, -7.0)) * 0.18));
+  let rakedDust = smoothstep(0.58, 0.92, grazing) * (0.08 + relief * 0.08);
+  let seed = floor(in.world * 6.8);
+  let fleck = hash(seed);
+  let blade = hash(seed + vec2f(19.0, 41.0));
+  let pebble = hash(seed + vec2f(73.0, 11.0));
+  let stubble = smoothstep(0.66, 0.95, ridged(vec2f(in.world.x * 1.26 + in.world.y * 0.18, in.world.y * 0.84)));
+  let lightFleck = smoothstep(${style.lightFleckLow}, ${style.lightFleckHigh}, fleck) * (0.46 + 0.54 * fine);
+  let darkFleck = smoothstep(${style.darkFleckLow}, ${style.darkFleckHigh}, blade) * (1.0 - smoothstep(0.76, 0.98, broad));
+  let stoneFleck = smoothstep(${style.stoneFleckLow}, ${style.stoneFleckHigh}, pebble) * (0.36 + relief * 0.46);
+  let speckle = lightFleck * ${style.speckleStrength};
+  var grass = mix(olive, dry, ${style.dryMixBase} + trample * ${style.trampleMix});
+  grass = mix(grass, vec3f(0.31, 0.39, 0.18), scrubPatch * 0.34);
+  grass = mix(grass, vec3f(0.88, 0.75, 0.47), rakedDust);
+  grass *= 0.70 + lambert * 0.34;
+  grass += vec3f(0.13, 0.12, 0.055) * speckle;
+  grass = mix(grass, ${style.stubbleColor}, stubble * ${style.stubbleStrength});
+  grass = mix(grass, grass * ${style.darkFleckColor}, darkFleck * ${style.darkFleckStrength});
+  grass = mix(grass, vec3f(0.46, 0.43, 0.32), stoneFleck * ${style.stoneFleckStrength});
+  let dust = ${style.dustStrength} * smoothstep(18.0, 96.0, in.dist);
+  let aerial = smoothstep(120.0, 420.0, in.dist);
+  let sunBleached = mix(grass, vec3f(0.86, 0.72, 0.46), dust);
+  let haze = vec3f(0.78, 0.75, 0.64);
+  return vec4f(mix(sunBleached, haze, aerial * ${style.aerialStrength}), 1.0);
+}`;
+}
+
+class LabGroundPass {
+  private readonly pipeline: GPURenderPipeline;
+  private readonly vertexBuffer: GPUBuffer;
+
+  constructor(private readonly shell: RawFrameShell, rect: [number, number, number, number]) {
+    const module = compileShader(shell.device, labGroundWgsl(LAB_GROUND_STYLE), "lab-ground");
+    this.pipeline = shell.device.createRenderPipeline({
+      label: "lab-ground-pipeline",
+      layout: shell.device.createPipelineLayout({
+        bindGroupLayouts: [shell.cameraBindGroupLayout],
+      }),
+      vertex: {
+        module,
+        entryPoint: "vs",
+        buffers: [
+          { arrayStride: 8, attributes: [{ shaderLocation: 0, offset: 0, format: "float32x2" }] },
+        ],
+      },
+      fragment: { module, entryPoint: "fs", targets: [{ format: shell.info.format }] },
+      primitive: { topology: "triangle-strip" },
+      multisample: { count: shell.sampleCount },
+    });
+    this.vertexBuffer = shell.device.createBuffer({
+      label: "lab-ground-quad",
+      size: 8 * 4,
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+    });
+    this.setRect(rect);
+  }
+
+  draw(pass: BackgroundRenderPass) {
+    pass.setPipeline(this.pipeline);
+    pass.setVertexBuffer(0, this.vertexBuffer);
+    pass.draw(4);
+  }
+
+  private setRect([x, y, w, h]: [number, number, number, number]) {
+    this.shell.device.queue.writeBuffer(
+      this.vertexBuffer,
+      0,
+      new Float32Array([x, y, x + w, y, x, y + h, x + w, y + h]),
+    );
+  }
+}
+
+function labGroundFramePass(ground: LabGroundPass, id: string): FrameGraphPass {
+  return {
+    id,
+    role: "background-underpaint",
+    phase: "background",
+    draw: (pass) => ground.draw(pass),
+  };
+}
+
 const MODEL_SHOT_GROUND_DEPTH_WGSL = `
 ${WORLD_CAMERA_WGSL}
 @vertex
@@ -2125,7 +2317,7 @@ fn fs() -> @location(0) vec4f {
 
 // The fixture ground as a real depth surface, mirroring the production
 // campaign frame (campaign-map-surface is a world-depth-fill). Writes reverse-Z
-// ground depth without touching color — the shell's background terrain stays
+// ground depth without touching color — the lab-owned background terrain stays
 // the visual — so below-ground fixtures (the hidden garrison) are genuinely
 // underground while ground decals (z ≥ 0.03) still pass their reads.
 class ModelShotGroundDepthPass {
@@ -2251,6 +2443,7 @@ async function routeCampaignModelShots(ctx: LabContext) {
   const hostileDepthOrder = gate === "hostile-depth-order";
   const groundDepth = new ModelShotGroundDepthPass(shell);
   groundDepth.setRect(frame.terrainRect);
+  const ground = new LabGroundPass(shell, frame.terrainRect);
   const entityOpaquePass: FrameGraphPass = {
     id: "model-shot-entities-opaque",
     role: "world-opaque",
@@ -2273,6 +2466,7 @@ async function routeCampaignModelShots(ctx: LabContext) {
     draw: (pass) => standards.drawOpaque(pass),
   };
   const passes: FrameGraphPass[] = [
+    labGroundFramePass(ground, "model-shot-ground"),
     {
       id: "model-shot-ground-depth",
       role: "world-depth-fill",
@@ -2369,7 +2563,6 @@ async function routeCampaignModelShots(ctx: LabContext) {
   ];
   shell.drawFrame({
     clear: { r: 0.09, g: 0.1, b: 0.1, a: 1 },
-    terrainRect: frame.terrainRect,
     passes,
   });
   ctx.status.innerHTML = reportTable({
@@ -2451,10 +2644,11 @@ async function routeSharedPropModelShots(ctx: LabContext) {
     yaw: prop.yaw,
   }));
   scenery.upload(instances);
+  const ground = new LabGroundPass(shell, [-18, -12, 36, 24]);
   shell.drawFrame({
     clear: { r: 0.09, g: 0.1, b: 0.1, a: 1 },
-    terrainRect: [-18, -12, 36, 24],
     passes: [
+      labGroundFramePass(ground, "shared-prop-ground"),
       {
         id: "shared-prop-opaque",
         role: "world-opaque",
@@ -2537,12 +2731,11 @@ async function routeSharedStandardModelShots(ctx: LabContext) {
     windStrength: numberParam(ctx.params, "windStrength", gate.windStrength),
   };
   standards.upload([instance]);
+  const ground = new LabGroundPass(shell, [-9, -6, 18, 13]);
   shell.drawFrame({
     clear: { r: 0.09, g: 0.1, b: 0.1, a: 1 },
-    // Wide enough that the ground reaches the frame edges at every tier's
-    // review camera — a small slab reads as a floating tile, not ground.
-    terrainRect: [-9, -6, 18, 13],
     passes: [
+      labGroundFramePass(ground, "shared-standard-ground"),
       {
         id: "shared-standard-opaque",
         role: "world-opaque",
@@ -3246,9 +3439,10 @@ async function routeWorldCamera(ctx: LabContext) {
       : { x: 0, y: -0.6, zoom: 38, pitch: 1.1, yaw: -0.04 };
   const shell = await createConfiguredShell(ctx.canvas, camera);
   const nested = new Nested3dFixturePass(shell);
+  const ground = new LabGroundPass(shell, [-14, -7, 28, 15]);
   shell.drawFrame({
-    terrainRect: [-14, -7, 28, 15],
     passes: [
+      labGroundFramePass(ground, "world-camera-ground"),
       {
         id: "world-camera-nested-3d",
         role: "world-opaque",
@@ -3406,6 +3600,16 @@ async function createSkinnedPipeline(
   );
 }
 
+function skinnedCrowdPass(pipeline: SkinnedCrowdPipeline, id: string): FrameGraphPass {
+  return {
+    id,
+    role: "world-opaque",
+    phase: "world-depth",
+    depth: "read-write",
+    draw: (pass) => pipeline.draw(pass),
+  };
+}
+
 function numberParam(params: URLSearchParams, key: string, fallback: number) {
   const raw = params.get(key);
   if (raw === null || raw.trim() === "") return fallback;
@@ -3422,15 +3626,6 @@ function integerParam(
 ) {
   const value = Math.floor(numberParam(params, key, fallback));
   return Math.max(min, Math.min(max, value));
-}
-
-function animateShell(shell: RawFrameShell, status: HTMLElement, frame: () => FrameGraphCommands) {
-  const tick = () => {
-    shell.drawFrame(frame());
-    if (!status.innerHTML) status.innerHTML = reportTable({ route: "frame", ...shell.stats() });
-    requestAnimationFrame(tick);
-  };
-  tick();
 }
 
 function liveFrameGraphContractFixtures(shell: RawFrameShell) {
@@ -3552,21 +3747,10 @@ function liveFrameGraphContractFixtures(shell: RawFrameShell) {
         },
       ],
     },
-    {
-      id: "markersMissingLayer",
-      expected: "background markers must declare markerLayer",
-      commands: {
-        markers: [{ x: 0, y: 0, faction: 0 as const }],
-      },
-    },
   ];
   return fixtures.map((fixture) => {
     try {
-      shell.drawFrame(
-        "commands" in fixture
-          ? fixture.commands
-          : { passes: fixture.passes as unknown as FrameGraphPass[] },
-      );
+      shell.drawFrame({ passes: fixture.passes as unknown as FrameGraphPass[] });
       return { id: fixture.id, expected: fixture.expected, rejected: false, diagnostics: [] };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -3593,13 +3777,14 @@ function animateSkinned(
   } = {},
 ) {
   const start = performance.now();
+  const ground = new LabGroundPass(shell, [-42, -28, 84, 56]);
   const tick = () => {
     const phaseOffset =
       (opts.phaseOffset ?? 0) + ((performance.now() - start) / 1000) * (opts.phaseSpeed ?? 0);
     pipeline.upload(getInstances(), { forcedClip: opts.forcedClip, phaseOffset, size: opts.size });
     shell.drawFrame({
-      markers: [],
       passes: [
+        labGroundFramePass(ground, "animated-skinned-ground"),
         {
           id: "animated-skinned-crowd",
           role: "world-opaque",
@@ -3615,23 +3800,14 @@ function animateSkinned(
   tick();
 }
 
-function generatedMarkers(
-  count: number,
-  x: number,
-  y: number,
-  faction: 0 | 1 | 2,
-): MarkerInstance[] {
+function generatedCrowd(count: number, x: number, y: number, faction: 0 | 1 | 2): CrowdInstance[] {
   return generatedFormation(count, {
     x,
     y,
     faction: faction === 2 ? 0 : faction,
     columns: Math.ceil(Math.sqrt(count)),
     frame: 1,
-  }).map((inst) => ({ ...instanceMarker(inst), faction }));
-}
-
-function instanceMarker(inst: CrowdInstance): MarkerInstance {
-  return { x: inst.x, y: inst.y, facing: inst.facing, faction: inst.faction, size: 1.1 };
+  }).map((instance) => ({ ...instance, faction }));
 }
 
 function toCrowdBuildInputs(instances: CrowdInstance[]) {

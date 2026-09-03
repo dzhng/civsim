@@ -25,9 +25,17 @@ import {
 } from "three/tsl";
 import { factionForTeam } from "../../../game-renderer/src/battle/factionColors";
 import { SELECTION_RING_PROFILE } from "../../../game-renderer/src/selectionRing";
-import type { MarkerInstance } from "../../../renderer-core/src/frameShell";
 import { linearAlbedo } from "./battleTsl";
 import { RENDER_ORDER } from "./terrainLayer";
+
+export interface MarkerInstance {
+  x: number;
+  y: number;
+  facing?: number;
+  faction?: 0 | 1 | 2;
+  size?: number;
+  lod?: number;
+}
 
 /** A growable line-list layer fed by (x, y, r, g, b, a)-stride vertex arrays —
  *  the BattleGroundCuePass upload contract; the per-vertex alpha scales the
@@ -321,7 +329,7 @@ export class PhotorealRingLayer {
 }
 
 /** Far-LOD marker impostors as camera-facing billboards (the 04c/04d re-home).
- *  Same MarkerInstance inputs and fragment shading as the frameShell builtin;
+ *  Retains the production battle marker upload and shading contract;
  *  same background-band ordering (before the depth-tested world, so terrain
  *  painted after them covers them exactly like the bespoke frame). */
 export class PhotorealMarkerLayer {

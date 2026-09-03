@@ -254,42 +254,8 @@ const CHARGE: Weapon = Weapon {
     ..MELEE
 };
 
-pub fn class_stats(id: UnitClassId) -> UnitClass {
+fn heavy_and_specialist_stats(id: UnitClassId, foot: UnitClass) -> UnitClass {
     use UnitClassId::*;
-    let foot = UnitClass {
-        id,
-        pace_mult: 1.0,
-        accel_mult: 1.0,
-        soldier_radius: 0.33,
-        mass: 1.0,
-        brace_mult: 1.3,
-        mounted: false,
-        spacing: Vec2::new(1.0, 1.2),
-        default_depth: 6,
-        health: 1.21,
-        mount_health: 0.0,
-        block: 0.15,
-        evade: 0.2,
-        training: 0.6,
-        bravery: 1.0,
-        morale_aura: 1.0,
-        charge: true,
-        doctrine: Doctrine::Standard,
-        knockback_mult: 0.35, // a charging mass of men hurts what it fells
-        fight_drain_mult: 1.0,
-        // Foot moves at the same wind cost it fights (move == fight). Every class
-        // below sets BOTH explicitly; only cavalry splits them (cheap to move).
-        move_drain_mult: 1.0,
-        turn_mult: 1.0,
-        // Generic one-handed sword; every class below defines its own array.
-        weapons: one(Weapon {
-            reach: 1.1,
-            zones: crate::strike::front(0.7),
-            attack_interval: 4.1,
-            damage: 0.5,
-            ..MELEE
-        }),
-    };
     match id {
         HeavySword => UnitClass {
             fight_drain_mult: 1.35,
@@ -462,6 +428,13 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             }),
             ..foot
         },
+        _ => unreachable!("class routed to the wrong stat family"),
+    }
+}
+
+fn mounted_and_support_stats(id: UnitClassId, foot: UnitClass) -> UnitClass {
+    use UnitClassId::*;
+    match id {
         ShockCavalry => UnitClass {
             // ~+30% on the run/charge gaits (pace_mult scales the above-walk
             // range): run 6.1->7.6 m/s, charge 9.2->12.1 m/s at full stamina.
@@ -610,6 +583,13 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             }),
             ..foot
         },
+        _ => unreachable!("class routed to the wrong stat family"),
+    }
+}
+
+fn line_extension_stats(id: UnitClassId, foot: UnitClass) -> UnitClass {
+    use UnitClassId::*;
+    match id {
         // The cheap sword line: light infantry's body, a sword instead of a
         // spear. More aggressive (sword arc, a touch more dodge) but the same
         // light shield — HeavySword is the armoured sword.
@@ -758,6 +738,56 @@ pub fn class_stats(id: UnitClassId) -> UnitClass {
             ),
             ..foot
         },
+        _ => unreachable!("class routed to the wrong stat family"),
+    }
+}
+
+pub fn class_stats(id: UnitClassId) -> UnitClass {
+    use UnitClassId::*;
+    let foot = UnitClass {
+        id,
+        pace_mult: 1.0,
+        accel_mult: 1.0,
+        soldier_radius: 0.33,
+        mass: 1.0,
+        brace_mult: 1.3,
+        mounted: false,
+        spacing: Vec2::new(1.0, 1.2),
+        default_depth: 6,
+        health: 1.21,
+        mount_health: 0.0,
+        block: 0.15,
+        evade: 0.2,
+        training: 0.6,
+        bravery: 1.0,
+        morale_aura: 1.0,
+        charge: true,
+        doctrine: Doctrine::Standard,
+        knockback_mult: 0.35, // a charging mass of men hurts what it fells
+        fight_drain_mult: 1.0,
+        // Foot moves at the same wind cost it fights (move == fight). Every class
+        // below sets BOTH explicitly; only cavalry splits them (cheap to move).
+        move_drain_mult: 1.0,
+        turn_mult: 1.0,
+        // Generic one-handed sword; every class below defines its own array.
+        weapons: one(Weapon {
+            reach: 1.1,
+            zones: crate::strike::front(0.7),
+            attack_interval: 4.1,
+            damage: 0.5,
+            ..MELEE
+        }),
+    };
+    match id {
+        HeavySword | LightSpear | LongSwords | HeavyPhalanx | Archers | Skirmishers => {
+            heavy_and_specialist_stats(id, foot)
+        }
+        ShockCavalry | HorseArchers | ArtilleryCrew | Peasant => {
+            mounted_and_support_stats(id, foot)
+        }
+        LightSword | MediumInfantry | HeavySpear | MediumSpear | MediumPhalanx => {
+            line_extension_stats(id, foot)
+        }
     }
 }
 

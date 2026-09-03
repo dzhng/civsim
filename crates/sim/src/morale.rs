@@ -64,7 +64,183 @@ const ODDS_PULL: f32 = 0.1;
 /// same weight, so it cuts symmetrically.
 const MOUNT_WEIGHT: f32 = 0.35;
 
+type MoraleSummary = (Vec2, u32, usize, bool, f32, f32, f32, f32, f32);
+
+struct MoralePressure {
+    intimidation: f32,
+    rout_contagion: f32,
+    steady_friends: f32,
+    enemy_threat: f32,
+    enemy_backs: f32,
+    friend_power: f32,
+    enemy_power: f32,
+}
+
 impl Sim {
+    fn morale_pressure(
+        &self,
+        ui: usize,
+        my_team: u32,
+        my_center: Vec2,
+        my_half: f32,
+        alive_n: f32,
+        summaries: &[MoraleSummary],
+    ) -> MoralePressure {
+        let u = &self.units[ui];
+        // Charge intimidation: incoming kinetic energy, pre-contact.
+        let mut intimidation = 0.0f32;
+        // Nearby friendly routs: panic is contagious in sight range.
+        let mut rout_contagion = 0.0f32;
+        // Steady friends nearby brace the will.
+        let mut steady_friends = 0.0f32;
+        // Standing enemies nearby press the will — the mirror of steady
+        // friends. Their size×aura summed; folded against my own backing as
+        // ODDS, so an even matchup is neutral and only being OUT-massed
+        // (outnumbered, or facing a high-aura shock arm) accelerates the break.
+        let mut enemy_threat = 0.0f32;
+        // The sight of enemy BACKS: a routing enemy emits nothing to
+        // fear — it emits relief. This is what breaks the mutual-rout
+        // race: the side that holds one beat longer gets paid for it.
+        let mut enemy_backs = 0.0f32;
+        // Local fighting power, proximity-weighted, for the odds baseline:
+        // the standing combat WEIGHT of nearby friends (plus my own) versus
+        // nearby enemies, as a SHARE (even fight ~0.5). Per-man weight is
+        // dps × durability — kill-rate times the body that must be dropped to
+        // fell the man, so one armoured heavy is worth ~3 peasants. Durability
+        // for a horseman is rider + MOUNT (a lancer is a ~10-HP target on a
+        // half-tonne animal); counting only the rider would make cavalry read
+        // as fragile foot and rout it against lines it should ride over.
+        let my_durab =
+            self.units[ui].stats.health + MOUNT_WEIGHT * self.units[ui].stats.mount_health;
+        let my_weight = summaries[ui].6 * my_durab; // offense × per-man durability
+        let mut friend_power = my_weight;
+        let mut enemy_power = 0.0f32;
+        let my_mass = alive_n * u.stats.mass;
+        let my_morale = u.morale;
+        let my_pool = summaries[ui].7;
+        for (vi, &(c, team, alive_v, v_routing, advance, mass_total, v_offense, _, v_morale)) in
+            summaries.iter().enumerate()
+        {
+            if vi == ui || alive_v == 0 {
+                continue;
+            }
+            // EDGE-to-edge is the default for steadiness/relief geometry.
+            // CHARGE intimidation is the one exception that keeps CENTRE
+            // distance: it is the momentum of an approaching MASS (its whole
+            // body bears down, not just the near rank), and it is finely
+            // calibrated against the morale_scenarios — edge distance double-
+            // counts the wall's depth and breaks a line before contact.
+            let their_half = 0.5 * self.units[vi].width().max(self.units[vi].depth());
+            let d_center = (c - my_center).len();
+            let d = (d_center - my_half - their_half).max(0.0);
+            if team != my_team {
+                if v_routing {
+                    if d < 90.0 {
+                        // Relief scales with the SIZE of the rout you
+                        // watch: a broken main line pays more than a
+                        // fleeing handful of skirmishers.
+                        let _ = v_offense;
+                        let weight = (mass_total / my_mass).min(2.0);
+                        enemy_backs += weight * (1.0 - d / 90.0);
+                    }
+                    continue; // a broken enemy frightens nobody
+                }
+                // Standing-enemy pressure: the same size×aura×proximity the
+                // friendly branch reads, summed for the foes in steadiness
+                // range. This is the SLOW will-drain of being pressed by a
+                // big bold enemy, distinct from the pre-contact charge fear
+                // below (which is momentum, centre-distance, and habituates).
+                if d < 80.0 {
+                    let aura = self.units[vi].stats.morale_aura;
+                    enemy_threat += (alive_v as f32 / 100.0) * aura * (1.0 - d / 80.0);
+                    // Power that bears on ME: proximity, but also whether the
+                    // foe FACES me (a unit fighting the other way, or fleeing,
+                    // presses little) and whether it is actually ENGAGED (a
+                    // line locked in melee is bringing its weight to bear; one
+                    // standing off is a lesser, if looming, presence). A
+                    // back-turned or idle foe keeps a small floor — it is still
+                    // a body on the field — but a facing, fighting mass counts full.
+                    let facing_me =
+                        dir(self.units[vi].facing).dot((my_center - c) * (1.0 / d_center.max(0.1)));
+                    let oriented = 0.35 + 0.65 * facing_me.max(0.0);
+                    let engaged = if self.units[vi].engaged > 0 { 1.0 } else { 0.6 };
+                    let durab = self.units[vi].stats.health
+                        + MOUNT_WEIGHT * self.units[vi].stats.mount_health;
+                    enemy_power += v_offense * durab * (1.0 - d / 80.0) * oriented * engaged;
+                }
+                if d_center < 70.0 {
+                    // Approaching MOMENTUM, relative to the mass it's
+                    // aimed at: a wall of horse at the gallop is
+                    // terrifying; five survivors of that wall are not.
+                    // Measured advance, not commanded pace — a unit
+                    // pinned in a jam frightens nobody.
+                    let closing = ((my_center - c) * (1.0 / d_center.max(0.1)))
+                        .dot(dir(self.units[vi].facing))
+                        * advance;
+                    if closing > 3.5 {
+                        // Fear is ANTICIPATED HARM, both ledgers: the
+                        // blood their weapons will draw (men x dps)
+                        // PLUS the trample (mass x closing — the same
+                        // momentum the collision system will cash on
+                        // impact as knockdowns and displacement). The
+                        // kinetic term is why horse out-frightens
+                        // foot of equal dps: it arrives as a wall.
+                        // 20 lancers on 100 heavies project ~nothing;
+                        // 400 project a massacre. Confidence SHOWS:
+                        // a wavering mass doesn't thunder — you fear
+                        // units bolder than you, never shakier ones.
+                        // The cap sits HIGH: a 10:1 mass closing in is
+                        // hopeless, and hopelessness reads as exactly
+                        // that — a token line breaks before the wall
+                        // arrives, at full courage.
+                        let arriving = v_offense + 0.01 * mass_total * closing;
+                        // Cap sits HIGH so a TRULY hopeless projection (a
+                        // 10:1 wall) overwhelms habituation and breaks a
+                        // token line before contact; moderate odds sit well
+                        // under it and are unchanged.
+                        let projected = (arriving / my_pool.max(1.0)).min(4.0);
+                        let edge = ((v_morale - my_morale) / 0.25 + 1.0).clamp(0.0, 1.0);
+                        intimidation += projected
+                            * (closing / 6.0).min(1.5)
+                            * (1.0 - d / 70.0)
+                            * 3.0
+                            * v_morale
+                            * edge;
+                    }
+                }
+            } else if d < 80.0 {
+                if v_routing {
+                    // Panic spreads from fleeing BODIES, not banners:
+                    // an 8-man remnant streaming past is a sad sight,
+                    // a 300-man collapse is a catastrophe.
+                    let weight = (mass_total / my_mass).min(2.0);
+                    rout_contagion += weight * (1.0 - d / 80.0);
+                } else if alive_v > 0 {
+                    // Steady friends brace the will — weighted by how MANY
+                    // they are and how much their CLASS inspires (heavy horse
+                    // and a general's retinue carry a high aura; a wavering
+                    // skirmisher screen, low). A line ringed by big, bold
+                    // friends holds far past where it would break alone.
+                    let aura = self.units[vi].stats.morale_aura;
+                    steady_friends += (alive_v as f32 / 100.0) * aura * (1.0 - d / 80.0);
+                    let durab = self.units[vi].stats.health
+                        + MOUNT_WEIGHT * self.units[vi].stats.mount_health;
+                    friend_power += v_offense * durab * (1.0 - d / 80.0);
+                }
+            }
+        }
+
+        MoralePressure {
+            intimidation,
+            rout_contagion,
+            steady_friends,
+            enemy_threat,
+            enemy_backs,
+            friend_power,
+            enemy_power,
+        }
+    }
+
     pub(crate) fn run_morale(&mut self, dt: f32) {
         if !self.tun.morale_enabled {
             return;
@@ -89,7 +265,7 @@ impl Sim {
         // total living mass, offense = men x damage-per-second, pool =
         // men x health, morale). Formulas read men, mass, and measured
         // motion — never banners or commanded state (see README).
-        let summaries: Vec<(Vec2, u32, usize, bool, f32, f32, f32, f32, f32)> = self
+        let summaries: Vec<MoraleSummary> = self
             .units
             .iter()
             .map(|u| {
@@ -167,149 +343,15 @@ impl Sim {
             let active_count = active.iter().filter(|&&a| a).count();
             let surrounded = groups >= 3 || active_count >= 8;
 
-            // Charge intimidation: incoming kinetic energy, pre-contact.
-            let mut intimidation = 0.0f32;
-            // Nearby friendly routs: panic is contagious in sight range.
-            let mut rout_contagion = 0.0f32;
-            // Steady friends nearby brace the will.
-            let mut steady_friends = 0.0f32;
-            // Standing enemies nearby press the will — the mirror of steady
-            // friends. Their size×aura summed; folded against my own backing as
-            // ODDS, so an even matchup is neutral and only being OUT-massed
-            // (outnumbered, or facing a high-aura shock arm) accelerates the break.
-            let mut enemy_threat = 0.0f32;
-            // The sight of enemy BACKS: a routing enemy emits nothing to
-            // fear — it emits relief. This is what breaks the mutual-rout
-            // race: the side that holds one beat longer gets paid for it.
-            let mut enemy_backs = 0.0f32;
-            // Local fighting power, proximity-weighted, for the odds baseline:
-            // the standing combat WEIGHT of nearby friends (plus my own) versus
-            // nearby enemies, as a SHARE (even fight ~0.5). Per-man weight is
-            // dps × durability — kill-rate times the body that must be dropped to
-            // fell the man, so one armoured heavy is worth ~3 peasants. Durability
-            // for a horseman is rider + MOUNT (a lancer is a ~10-HP target on a
-            // half-tonne animal); counting only the rider would make cavalry read
-            // as fragile foot and rout it against lines it should ride over.
-            let my_durab =
-                self.units[ui].stats.health + MOUNT_WEIGHT * self.units[ui].stats.mount_health;
-            let my_weight = summaries[ui].6 * my_durab; // offense × per-man durability
-            let mut friend_power = my_weight;
-            let mut enemy_power = 0.0f32;
-            let my_mass = alive_n * u.stats.mass;
-            let my_morale = u.morale;
-            let my_pool = summaries[ui].7;
-            for (vi, &(c, team, alive_v, v_routing, advance, mass_total, v_offense, _, v_morale)) in
-                summaries.iter().enumerate()
-            {
-                if vi == ui || alive_v == 0 {
-                    continue;
-                }
-                // EDGE-to-edge is the default for steadiness/relief geometry.
-                // CHARGE intimidation is the one exception that keeps CENTRE
-                // distance: it is the momentum of an approaching MASS (its whole
-                // body bears down, not just the near rank), and it is finely
-                // calibrated against the morale_scenarios — edge distance double-
-                // counts the wall's depth and breaks a line before contact.
-                let their_half = 0.5 * self.units[vi].width().max(self.units[vi].depth());
-                let d_center = (c - my_center).len();
-                let d = (d_center - my_half - their_half).max(0.0);
-                if team != my_team {
-                    if v_routing {
-                        if d < 90.0 {
-                            // Relief scales with the SIZE of the rout you
-                            // watch: a broken main line pays more than a
-                            // fleeing handful of skirmishers.
-                            let _ = v_offense;
-                            let weight = (mass_total / my_mass).min(2.0);
-                            enemy_backs += weight * (1.0 - d / 90.0);
-                        }
-                        continue; // a broken enemy frightens nobody
-                    }
-                    // Standing-enemy pressure: the same size×aura×proximity the
-                    // friendly branch reads, summed for the foes in steadiness
-                    // range. This is the SLOW will-drain of being pressed by a
-                    // big bold enemy, distinct from the pre-contact charge fear
-                    // below (which is momentum, centre-distance, and habituates).
-                    if d < 80.0 {
-                        let aura = self.units[vi].stats.morale_aura;
-                        enemy_threat += (alive_v as f32 / 100.0) * aura * (1.0 - d / 80.0);
-                        // Power that bears on ME: proximity, but also whether the
-                        // foe FACES me (a unit fighting the other way, or fleeing,
-                        // presses little) and whether it is actually ENGAGED (a
-                        // line locked in melee is bringing its weight to bear; one
-                        // standing off is a lesser, if looming, presence). A
-                        // back-turned or idle foe keeps a small floor — it is still
-                        // a body on the field — but a facing, fighting mass counts full.
-                        let facing_me = dir(self.units[vi].facing)
-                            .dot((my_center - c) * (1.0 / d_center.max(0.1)));
-                        let oriented = 0.35 + 0.65 * facing_me.max(0.0);
-                        let engaged = if self.units[vi].engaged > 0 { 1.0 } else { 0.6 };
-                        let durab = self.units[vi].stats.health
-                            + MOUNT_WEIGHT * self.units[vi].stats.mount_health;
-                        enemy_power += v_offense * durab * (1.0 - d / 80.0) * oriented * engaged;
-                    }
-                    if d_center < 70.0 {
-                        // Approaching MOMENTUM, relative to the mass it's
-                        // aimed at: a wall of horse at the gallop is
-                        // terrifying; five survivors of that wall are not.
-                        // Measured advance, not commanded pace — a unit
-                        // pinned in a jam frightens nobody.
-                        let closing = ((my_center - c) * (1.0 / d_center.max(0.1)))
-                            .dot(dir(self.units[vi].facing))
-                            * advance;
-                        if closing > 3.5 {
-                            // Fear is ANTICIPATED HARM, both ledgers: the
-                            // blood their weapons will draw (men x dps)
-                            // PLUS the trample (mass x closing — the same
-                            // momentum the collision system will cash on
-                            // impact as knockdowns and displacement). The
-                            // kinetic term is why horse out-frightens
-                            // foot of equal dps: it arrives as a wall.
-                            // 20 lancers on 100 heavies project ~nothing;
-                            // 400 project a massacre. Confidence SHOWS:
-                            // a wavering mass doesn't thunder — you fear
-                            // units bolder than you, never shakier ones.
-                            // The cap sits HIGH: a 10:1 mass closing in is
-                            // hopeless, and hopelessness reads as exactly
-                            // that — a token line breaks before the wall
-                            // arrives, at full courage.
-                            let arriving = v_offense + 0.01 * mass_total * closing;
-                            // Cap sits HIGH so a TRULY hopeless projection (a
-                            // 10:1 wall) overwhelms habituation and breaks a
-                            // token line before contact; moderate odds sit well
-                            // under it and are unchanged.
-                            let projected = (arriving / my_pool.max(1.0)).min(4.0);
-                            let edge = ((v_morale - my_morale) / 0.25 + 1.0).clamp(0.0, 1.0);
-                            intimidation += projected
-                                * (closing / 6.0).min(1.5)
-                                * (1.0 - d / 70.0)
-                                * 3.0
-                                * v_morale
-                                * edge;
-                        }
-                    }
-                } else if d < 80.0 {
-                    if v_routing {
-                        // Panic spreads from fleeing BODIES, not banners:
-                        // an 8-man remnant streaming past is a sad sight,
-                        // a 300-man collapse is a catastrophe.
-                        let weight = (mass_total / my_mass).min(2.0);
-                        rout_contagion += weight * (1.0 - d / 80.0);
-                    } else if alive_v > 0 {
-                        // Steady friends brace the will — weighted by how MANY
-                        // they are and how much their CLASS inspires (heavy horse
-                        // and a general's retinue carry a high aura; a wavering
-                        // skirmisher screen, low). A line ringed by big, bold
-                        // friends holds far past where it would break alone.
-                        let aura = self.units[vi].stats.morale_aura;
-                        steady_friends += (alive_v as f32 / 100.0) * aura * (1.0 - d / 80.0);
-                        let durab = self.units[vi].stats.health
-                            + MOUNT_WEIGHT * self.units[vi].stats.mount_health;
-                        friend_power += v_offense * durab * (1.0 - d / 80.0);
-                    }
-                }
-            }
-
+            let MoralePressure {
+                intimidation,
+                rout_contagion,
+                steady_friends,
+                enemy_threat,
+                enemy_backs,
+                friend_power,
+                enemy_power,
+            } = self.morale_pressure(ui, my_team, my_center, my_half, alive_n, &summaries);
             // --- amplifiers -------------------------------------------------
             let u = &self.units[ui];
             // Discipline is the endurance of the will: a drilled line eats

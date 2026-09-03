@@ -13,7 +13,7 @@
 mod common;
 
 use common::weave::{bend, kill_to, scale_x, scale_y, shear, wrap_u};
-use sim::{Pace, Sim, Tunables, UnitClassId, Vec2, DT};
+use sim::{Pace, Sim, SpawnSpec, Tunables, UnitClassId, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
 use std::fs::{create_dir_all, remove_dir_all, File};
 use std::io::{BufWriter, ErrorKind};
@@ -197,16 +197,7 @@ fn invuln(sim: &mut Sim) {
     }
 }
 
-fn main() {
-    println!("rendering weave vibe shots → web/shots/weave/");
-    let root = weave_root();
-    if let Err(err) = remove_dir_all(&root) {
-        if err.kind() != ErrorKind::NotFound {
-            panic!("failed to clear old weave shots at {root}: {err}");
-        }
-    }
-    create_dir_all(&root).unwrap();
-
+fn shoot_foundation_scenarios() {
     // HELD line (north, no order) vs a WALKING attacker (south) — does the held
     // front lean in to MEET the press (David's "holders fight back"), and is the
     // grind even, or does the holder collapse? (a_held_braced.)
@@ -308,6 +299,19 @@ fn main() {
         sim.set_move_order(a, Vec2::new(0.0, 30.0));
         shoot("t1-press", sim, 16.0, 0.5);
     }
+}
+
+fn main() {
+    println!("rendering weave vibe shots → web/shots/weave/");
+    let root = weave_root();
+    if let Err(err) = remove_dir_all(&root) {
+        if err.kind() != ErrorKind::NotFound {
+            panic!("failed to clear old weave shots at {root}: {err}");
+        }
+    }
+    create_dir_all(&root).unwrap();
+
+    shoot_foundation_scenarios();
 
     // --- Tier 2: enemies, magnet, invulnerable -----------------------------
     // Attacking line WRAPS the column.
@@ -440,7 +444,7 @@ fn main() {
     // straight THROUGH it? (a_wide_line_wraps_a_narrow_block.)
     {
         let mut sim = Sim::new(base_tun(), 11);
-        let block = sim.spawn(crate::sim::SpawnSpec {
+        let block = sim.spawn(SpawnSpec {
             anchor: Vec2::new(0.0, 13.0),
             facing: -FRAC_PI_2,
             count: 120,
@@ -450,7 +454,7 @@ fn main() {
             look: UnitClassId::HeavySword as u32,
             team: 1,
         });
-        let line = sim.spawn(crate::sim::SpawnSpec {
+        let line = sim.spawn(SpawnSpec {
             anchor: Vec2::new(0.0, -13.0),
             facing: FRAC_PI_2,
             count: 210,
@@ -474,7 +478,7 @@ fn main() {
     // it and walk through? (a_column_bulges_a_held_line_it_does_not_part_it.)
     {
         let mut sim = Sim::new(base_tun(), 11);
-        let _line = sim.spawn(crate::sim::SpawnSpec {
+        let _line = sim.spawn(SpawnSpec {
             anchor: Vec2::new(0.0, 13.0),
             facing: -FRAC_PI_2,
             count: 280,
@@ -484,7 +488,7 @@ fn main() {
             look: UnitClassId::HeavySword as u32,
             team: 1,
         });
-        let col = sim.spawn(crate::sim::SpawnSpec {
+        let col = sim.spawn(SpawnSpec {
             anchor: Vec2::new(0.0, -25.0),
             facing: FRAC_PI_2,
             count: 128,

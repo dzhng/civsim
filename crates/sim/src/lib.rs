@@ -15,7 +15,6 @@ pub mod ai;
 pub mod balance;
 pub mod battle;
 pub mod class;
-pub mod collision;
 pub mod combat;
 #[cfg(not(feature = "force-trace"))]
 mod force_trace;
@@ -30,7 +29,9 @@ pub mod morale;
 pub mod movement;
 pub mod path;
 pub mod runner;
+mod separation;
 pub mod sim;
+mod steer;
 pub mod strike;
 pub mod terrain;
 pub mod tunables;

@@ -447,7 +447,7 @@ function assertNoHardGrassRingEdge(ctx, image, camera3d, stats, options = {}) {
       maxJump <= 1.15 &&
       (!oldEdge || oldEdge.relative <= 0.72) &&
       (!activeEdge || activeEdge.relative <= 0.82) &&
-      stats?.terrain?.grass?.transitionOwner === "battleWorld.updateGrassForCamera" &&
+      stats?.terrain?.grass?.transitionOwner === "battleGrassField.update" &&
       inRange,
     JSON.stringify({
       bins,

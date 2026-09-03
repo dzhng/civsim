@@ -43,6 +43,10 @@ contract is judged by pixel-count equality against a main-tree run of the
 same scenes, not by PASS.** Campaign scenes pass. Non-snapshot checks pass.
 Re-blessing these baselines is out of scope (repo-weight decision); a slice
 that must move a battle baseline compares its diff numbers against main.
+Also pre-existing under SwiftShader: `full-game-rendering-performance`'s
+"perf campaign measures the normal raw-WebGPU campaign route" check (its
+`perfStatsOk` clause), `battle-minimap` (`battle-minimap-world-dpr2` ≈89.9k px),
+and load-dependent screenshot timeouts in `battle-lod` / `banner-gallery`.
 
 **Pick up here:** slice [01-lab-estate-routes](slices/01-lab-estate-routes.md).
 It is the largest lever and it settles what survives, so every other renderer

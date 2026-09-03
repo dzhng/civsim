@@ -2,8 +2,9 @@ import type { CameraSnapshot } from '@packages/renderer-core/src/cameraUniform';
 import { screenToWorld, worldToScreen } from '@packages/renderer-core/src/cameraUniform';
 import { WORLD_CAMERA_WGSL } from '@packages/renderer-core/src/cameraWgsl';
 import type { BackgroundRenderPass, OverlayRenderPass, RawFrameShell, WorldRenderPass } from '@packages/renderer-core/src/frameShell';
+import { GrowableBuffer, makeVertexBuffer } from '@packages/renderer-core/src/gpuBuffers';
 import { NOISE_WGSL } from '@packages/renderer-core/src/noiseWgsl';
-import { gpuAlphaBlendColorTarget, gpuWorldDepthStencil } from '@packages/renderer-core/src/pipelineContracts';
+import { cameraOnlyPipeline } from '@packages/renderer-core/src/pipelineContracts';
 import { CAMPAIGN_SEA_PALETTE_WGSL } from '../water/waterPalette';
 
 type CampaignLineRenderPass = BackgroundRenderPass | WorldRenderPass;
@@ -654,37 +655,28 @@ export class CampaignMapPass {
         { binding: 3, resource: lightTexture.createView() },
       ],
     });
-    this.pipeline = device.createRenderPipeline({
+    this.pipeline = cameraOnlyPipeline(shell, {
       label: 'campaign-map-pipeline',
-      layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout, texLayout] }),
-      vertex: {
-        module,
-        entryPoint: 'vs',
-        buffers: [{
+      module,
+      buffers: [{
           arrayStride: 20,
           attributes: [
             { shaderLocation: 0, offset: 0, format: 'float32x3' },
             { shaderLocation: 1, offset: 12, format: 'float32x2' },
           ],
-        }],
-      },
-      fragment: { module, entryPoint: 'fs', targets: [{ format: shell.info.format }] },
-      primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: gpuWorldDepthStencil('write'),
+      }],
+      target: 'opaque',
+      depth: 'write',
+      extraBindGroupLayouts: [texLayout],
     });
     const mesh = surface ?? flatMapSurface(rect);
     this.indexCount = mesh.indices.length;
-    this.vertexBuffer = device.createBuffer({
-      label: 'campaign-map-surface-vertices',
-      size: mesh.vertices.byteLength,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
+    this.vertexBuffer = makeVertexBuffer(device, 'campaign-map-surface-vertices', mesh.vertices);
     this.indexBuffer = device.createBuffer({
       label: 'campaign-map-surface-indices',
       size: mesh.indices.byteLength,
       usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
     });
-    device.queue.writeBuffer(this.vertexBuffer, 0, mesh.vertices);
     device.queue.writeBuffer(this.indexBuffer, 0, mesh.indices);
   }
 
@@ -790,29 +782,20 @@ export class CampaignWorldLinePass {
   }
 
   private makePipeline(module: GPUShaderModule) {
-    const device = this.shell.device;
     const positionSize = this.vertexFormat === 'xyz' ? 12 : 8;
-    return device.createRenderPipeline({
+    return cameraOnlyPipeline(this.shell, {
       label: 'campaign-line-world-depth-pipeline',
-      layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout] }),
-      vertex: {
-        module,
-        entryPoint: 'vs',
-        buffers: [{
+      module,
+      buffers: [{
           arrayStride: positionSize + 16,
           attributes: [
             { shaderLocation: 0, offset: 0, format: this.vertexFormat === 'xyz' ? 'float32x3' : 'float32x2' },
             { shaderLocation: 1, offset: positionSize, format: 'float32x4' },
           ],
-        }],
-      },
-      fragment: {
-        module,
-        entryPoint: 'fs',
-        targets: [gpuAlphaBlendColorTarget(this.shell.info.format)],
-      },
-      primitive: { topology: this.topology },
-      depthStencil: gpuWorldDepthStencil('read'),
+      }],
+      target: 'alpha',
+      depth: 'read',
+      topology: this.topology,
     });
   }
 
@@ -830,8 +813,7 @@ export class CampaignWorldLinePass {
 }
 
 class CampaignLineGeometry {
-  private vertexBuffer: GPUBuffer;
-  private capacity = 0;
+  private vertexBuffer: GrowableBuffer;
   private vertexCount = 0;
 
   constructor(
@@ -840,31 +822,19 @@ class CampaignLineGeometry {
     emptyLabel: string,
     private floatsPerVertex = 6,
   ) {
-    this.vertexBuffer = shell.device.createBuffer({
-      label: emptyLabel,
-      size: this.floatsPerVertex * 4,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
+    this.vertexBuffer = new GrowableBuffer(shell.device, emptyLabel, GPUBufferUsage.VERTEX, 512 * this.floatsPerVertex * 4);
   }
 
   upload(vertices: Float32Array) {
     this.vertexCount = Math.floor(vertices.length / this.floatsPerVertex);
-    if (this.vertexCount > this.capacity) {
-      this.capacity = Math.max(this.vertexCount, this.capacity * 2, 512);
-      this.vertexBuffer = this.shell.device.createBuffer({
-        label: 'campaign-line-vertices',
-        size: this.capacity * this.floatsPerVertex * 4,
-        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-      });
-    }
-    if (vertices.length > 0) this.shell.device.queue.writeBuffer(this.vertexBuffer, 0, vertices);
+    this.vertexBuffer.write(vertices);
   }
 
   draw(pass: CampaignLineRenderPass, pipeline: GPURenderPipeline) {
     if (this.vertexCount === 0) return;
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
-    pass.setVertexBuffer(0, this.vertexBuffer);
+    pass.setVertexBuffer(0, this.vertexBuffer.buffer);
     pass.draw(this.vertexCount);
   }
 
@@ -876,20 +846,16 @@ class CampaignLineGeometry {
 
 export class CampaignRoadPass {
   private pipeline: GPURenderPipeline;
-  private vertexBuffer: GPUBuffer;
-  private capacity = 0;
+  private vertexBuffer: GrowableBuffer;
   private vertexCount = 0;
 
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
     const module = device.createShaderModule({ label: 'campaign-road-wgsl', code: ROAD_WGSL });
-    this.pipeline = device.createRenderPipeline({
+    this.pipeline = cameraOnlyPipeline(shell, {
       label: 'campaign-road-depth-pipeline',
-      layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout] }),
-      vertex: {
-        module,
-        entryPoint: 'vs',
-        buffers: [{
+      module,
+      buffers: [{
           arrayStride: 40,
           attributes: [
             { shaderLocation: 0, offset: 0, format: 'float32x3' },
@@ -897,41 +863,23 @@ export class CampaignRoadPass {
             { shaderLocation: 2, offset: 28, format: 'float32x2' },
             { shaderLocation: 3, offset: 36, format: 'float32' },
           ],
-        }],
-      },
-      fragment: {
-        module,
-        entryPoint: 'fs',
-        targets: [gpuAlphaBlendColorTarget(this.shell.info.format)],
-      },
-      primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: gpuWorldDepthStencil('read'),
+      }],
+      target: 'alpha',
+      depth: 'read',
     });
-    this.vertexBuffer = device.createBuffer({
-      label: 'campaign-road-empty',
-      size: 10 * 4,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
+    this.vertexBuffer = new GrowableBuffer(device, 'campaign-road-vertices', GPUBufferUsage.VERTEX, 1024 * 10 * 4);
   }
 
   upload(vertices: Float32Array) {
     this.vertexCount = Math.floor(vertices.length / 10);
-    if (this.vertexCount > this.capacity) {
-      this.capacity = Math.max(this.vertexCount, this.capacity * 2, 1024);
-      this.vertexBuffer = this.shell.device.createBuffer({
-        label: 'campaign-road-vertices',
-        size: this.capacity * 10 * 4,
-        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-      });
-    }
-    if (vertices.length > 0) this.shell.device.queue.writeBuffer(this.vertexBuffer, 0, vertices);
+    this.vertexBuffer.write(vertices);
   }
 
   draw(pass: WorldRenderPass) {
     if (this.vertexCount === 0) return;
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
-    pass.setVertexBuffer(0, this.vertexBuffer);
+    pass.setVertexBuffer(0, this.vertexBuffer.buffer);
     pass.draw(this.vertexCount);
   }
 
@@ -943,20 +891,16 @@ export class CampaignRoadPass {
 export class CampaignMarkerPass {
   private pipeline: GPURenderPipeline;
   private quadBuffer: GPUBuffer;
-  private instanceBuffer: GPUBuffer;
-  private capacity = 0;
+  private instanceBuffer: GrowableBuffer;
   private markerCount = 0;
 
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
     const module = device.createShaderModule({ label: 'campaign-marker-wgsl', code: MARKER_WGSL });
-    this.pipeline = device.createRenderPipeline({
+    this.pipeline = cameraOnlyPipeline(shell, {
       label: 'campaign-marker-pipeline',
-      layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),
-      vertex: {
-        module,
-        entryPoint: 'vs',
-        buffers: [
+      module,
+      buffers: [
           { arrayStride: 8, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x2' }] },
           {
             arrayStride: 48,
@@ -967,44 +911,17 @@ export class CampaignMarkerPass {
               { shaderLocation: 3, offset: 32, format: 'float32x4' },
             ],
           },
-        ],
-      },
-      fragment: {
-        module,
-        entryPoint: 'fs',
-        targets: [{
-          format: shell.info.format,
-          blend: {
-            color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha' },
-            alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' },
-          },
-        }],
-      },
-      primitive: { topology: 'triangle-strip' },
+      ],
+      target: 'alpha',
+      depth: null,
+      topology: 'triangle-strip',
     });
-    this.quadBuffer = device.createBuffer({
-      label: 'campaign-marker-quad',
-      size: 8 * 4,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
-    device.queue.writeBuffer(this.quadBuffer, 0, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]));
-    this.instanceBuffer = device.createBuffer({
-      label: 'campaign-marker-empty',
-      size: 12 * 4,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
+    this.quadBuffer = makeVertexBuffer(device, 'campaign-marker-quad', new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]));
+    this.instanceBuffer = new GrowableBuffer(device, 'campaign-marker-instances', GPUBufferUsage.VERTEX, 128 * 12 * 4);
   }
 
   upload(markers: CampaignMarker[]) {
     this.markerCount = markers.length;
-    if (markers.length > this.capacity) {
-      this.capacity = Math.max(markers.length, this.capacity * 2, 128);
-      this.instanceBuffer = this.shell.device.createBuffer({
-        label: 'campaign-marker-instances',
-        size: this.capacity * 12 * 4,
-        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-      });
-    }
     if (markers.length === 0) return;
     const data = new Float32Array(markers.length * 12);
     const dpr = Math.max(1, this.shell.stats().dpr || 1);
@@ -1021,7 +938,7 @@ export class CampaignMarkerPass {
       data[o + 9] = marker.allegiance[2];
       data[o + 10] = marker.selected ? 1 : 0;
     }
-    this.shell.device.queue.writeBuffer(this.instanceBuffer, 0, data);
+    this.instanceBuffer.write(data);
   }
 
   draw(pass: OverlayRenderPass) {
@@ -1029,7 +946,7 @@ export class CampaignMarkerPass {
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
     pass.setVertexBuffer(0, this.quadBuffer);
-    pass.setVertexBuffer(1, this.instanceBuffer);
+    pass.setVertexBuffer(1, this.instanceBuffer.buffer);
     pass.draw(4, this.markerCount);
   }
 
@@ -1044,8 +961,7 @@ export class CampaignLabelPass {
   private bindGroup: GPUBindGroup;
   private sampler: GPUSampler;
   private texture: GPUTexture;
-  private vertexBuffer: GPUBuffer;
-  private capacity = 0;
+  private vertexBuffer: GrowableBuffer;
   private vertexCount = 0;
   private atlasKey = '';
   private statsValue: CampaignLabelPassStats = {
@@ -1083,39 +999,22 @@ export class CampaignLabelPass {
     });
     this.texture = this.createTexture(1, 1);
     this.bindGroup = this.createBindGroup();
-    this.pipeline = device.createRenderPipeline({
+    this.pipeline = cameraOnlyPipeline(shell, {
       label: 'campaign-label-pipeline',
-      layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout, this.bindGroupLayout] }),
-      vertex: {
-        module,
-        entryPoint: 'vs',
-        buffers: [{
+      module,
+      buffers: [{
           arrayStride: 24,
           attributes: [
             { shaderLocation: 0, offset: 0, format: 'float32x2' },
             { shaderLocation: 1, offset: 8, format: 'float32x2' },
             { shaderLocation: 2, offset: 16, format: 'float32x2' },
           ],
-        }],
-      },
-      fragment: {
-        module,
-        entryPoint: 'fs',
-        targets: [{
-          format: shell.info.format,
-          blend: {
-            color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha' },
-            alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' },
-          },
-        }],
-      },
-      primitive: { topology: 'triangle-list' },
+      }],
+      target: 'alpha',
+      depth: null,
+      extraBindGroupLayouts: [this.bindGroupLayout],
     });
-    this.vertexBuffer = device.createBuffer({
-      label: 'campaign-label-empty',
-      size: 6 * 4,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
+    this.vertexBuffer = new GrowableBuffer(device, 'campaign-label-vertices', GPUBufferUsage.VERTEX, 256 * 6 * 4);
   }
 
   upload(
@@ -1163,15 +1062,7 @@ export class CampaignLabelPass {
     );
     const vertices = buildLabelVertices(atlas.entries);
     this.vertexCount = Math.floor(vertices.length / 6);
-    if (this.vertexCount > this.capacity) {
-      this.capacity = Math.max(this.vertexCount, this.capacity * 2, 256);
-      this.vertexBuffer = this.shell.device.createBuffer({
-        label: 'campaign-label-vertices',
-        size: this.capacity * 6 * 4,
-        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-      });
-    }
-    this.shell.device.queue.writeBuffer(this.vertexBuffer, 0, vertices);
+    this.vertexBuffer.write(vertices);
     const debugRects = labelDebugRects(atlas.entries, dpr);
     this.statsValue = {
       labels: labels.length,
@@ -1196,7 +1087,7 @@ export class CampaignLabelPass {
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
     pass.setBindGroup(1, this.bindGroup);
-    pass.setVertexBuffer(0, this.vertexBuffer);
+    pass.setVertexBuffer(0, this.vertexBuffer.buffer);
     pass.draw(this.vertexCount);
   }
 

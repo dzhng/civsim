@@ -1,4 +1,5 @@
 import { GPU_DEPTH_FORMAT, type GpuDepthMode } from './depthContract';
+import type { RawFrameShell } from './frameShell';
 
 const GPU_ALPHA_BLEND: GPUBlendState = {
   color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha' },
@@ -33,4 +34,37 @@ export function gpuWorldDepthStencil(
     depthWriteEnabled: mode === 'write' || mode === 'read-write',
     depthCompare: compare,
   };
+}
+
+export function cameraOnlyPipeline(
+  shell: RawFrameShell,
+  spec: {
+    label: string;
+    module: GPUShaderModule;
+    buffers: GPUVertexBufferLayout[];
+    target: 'opaque' | 'alpha';
+    depth: GpuDepthMode | null;
+    topology?: GPUPrimitiveTopology;
+    extraBindGroupLayouts?: GPUBindGroupLayout[];
+  },
+): GPURenderPipeline {
+  return shell.device.createRenderPipeline({
+    label: spec.label,
+    layout: shell.device.createPipelineLayout({
+      bindGroupLayouts: [shell.cameraBindGroupLayout, ...(spec.extraBindGroupLayouts ?? [])],
+    }),
+    vertex: { module: spec.module, entryPoint: 'vs', buffers: spec.buffers },
+    fragment: {
+      module: spec.module,
+      entryPoint: 'fs',
+      targets: [
+        spec.target === 'opaque'
+          ? gpuOpaqueColorTarget(shell.info.format)
+          : gpuAlphaBlendColorTarget(shell.info.format),
+      ],
+    },
+    primitive: { topology: spec.topology ?? 'triangle-list' },
+    ...(spec.depth ? { depthStencil: gpuWorldDepthStencil(spec.depth) } : {}),
+    multisample: gpuMultisample(shell.sampleCount),
+  });
 }

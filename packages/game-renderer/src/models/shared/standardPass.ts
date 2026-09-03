@@ -1,10 +1,7 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../../renderer-core/src/cameraWgsl';
-import {
-  gpuAlphaBlendColorTarget,
-  gpuOpaqueColorTarget,
-  gpuWorldDepthStencil,
-} from '../../../../renderer-core/src/pipelineContracts';
+import { GrowableBuffer, makeIndexBuffer, makeVertexBuffer } from '../../../../renderer-core/src/gpuBuffers';
+import { cameraOnlyPipeline } from '../../../../renderer-core/src/pipelineContracts';
 import {
   buildStandardMesh,
   STANDARD_SIZE_TIER_IDS,
@@ -144,8 +141,7 @@ export class SharedStandardPass {
   private indexBuffers: Record<StandardSizeTier, GPUBuffer>;
   private shadowVertexBuffers: Record<StandardSizeTier, GPUBuffer>;
   private shadowIndexBuffers: Record<StandardSizeTier, GPUBuffer>;
-  private instanceBuffers: Record<StandardSizeTier, GPUBuffer>;
-  private capacities: Record<StandardSizeTier, number>;
+  private instanceBuffers: Record<StandardSizeTier, GrowableBuffer>;
   private counts: Record<StandardSizeTier, number>;
   private shell: RawFrameShell;
 
@@ -173,9 +169,8 @@ export class SharedStandardPass {
       makeIndexBuffer(device, `shared-standard-${tier}-shadow-indices`, this.meshes[tier].shadow.indices),
     );
     this.instanceBuffers = standardTierRecord((tier) =>
-      makeEmptyInstanceBuffer(device, `shared-standard-${tier}-empty-instances`),
+      new GrowableBuffer(device, `shared-standard-${tier}-instances`, GPUBufferUsage.VERTEX, 32 * 16 * 4),
     );
-    this.capacities = standardTierRecord(() => 0);
     this.counts = standardTierRecord(() => 0);
   }
 
@@ -183,14 +178,7 @@ export class SharedStandardPass {
     for (const tier of STANDARD_SIZE_TIER_IDS) {
       const bucket = instances.filter((instance) => instance.tier === tier);
       this.counts[tier] = bucket.length;
-      this.instanceBuffers[tier] = this.ensureInstanceBuffer(
-        this.instanceBuffers[tier],
-        `shared-standard-${tier}-instances`,
-        bucket.length,
-        tier,
-      );
-      if (bucket.length > 0)
-        this.shell.device.queue.writeBuffer(this.instanceBuffers[tier], 0, packInstances(bucket));
+      this.instanceBuffers[tier].write(packInstances(bucket));
     }
   }
 
@@ -224,17 +212,13 @@ export class SharedStandardPass {
   }
 
   private makePipeline(module: GPUShaderModule, material: 'opaque' | 'shadow') {
-    const device = this.shell.device;
-    return device.createRenderPipeline({
+    return cameraOnlyPipeline(this.shell, {
       label:
         material === 'opaque'
           ? 'shared-standard-opaque-depth-pipeline'
           : 'shared-standard-shadow-decal-pipeline',
-      layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout] }),
-      vertex: {
-        module,
-        entryPoint: 'vs',
-        buffers: [
+      module,
+      buffers: [
           {
             arrayStride: STANDARD_VERTEX_STRIDE_FLOATS * 4,
             attributes: [
@@ -253,19 +237,9 @@ export class SharedStandardPass {
               { shaderLocation: 6, offset: 48, format: 'float32x4' },
             ],
           },
-        ],
-      },
-      fragment: {
-        module,
-        entryPoint: 'fs',
-        targets: [
-          material === 'opaque'
-            ? gpuOpaqueColorTarget(this.shell.info.format)
-            : gpuAlphaBlendColorTarget(this.shell.info.format),
-        ],
-      },
-      primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: gpuWorldDepthStencil(material === 'opaque' ? 'read-write' : 'read'),
+      ],
+      target: material === 'opaque' ? 'opaque' : 'alpha',
+      depth: material === 'opaque' ? 'read-write' : 'read',
     });
   }
 
@@ -279,26 +253,15 @@ export class SharedStandardPass {
       if (shadow) {
         pass.setVertexBuffer(0, this.shadowVertexBuffers[tier]);
         pass.setIndexBuffer(this.shadowIndexBuffers[tier], 'uint16');
-        pass.setVertexBuffer(1, this.instanceBuffers[tier]);
+        pass.setVertexBuffer(1, this.instanceBuffers[tier].buffer);
         pass.drawIndexed(mesh.shadow.indexCount, count);
       } else {
         pass.setVertexBuffer(0, this.vertexBuffers[tier]);
         pass.setIndexBuffer(this.indexBuffers[tier], 'uint16');
-        pass.setVertexBuffer(1, this.instanceBuffers[tier]);
+        pass.setVertexBuffer(1, this.instanceBuffers[tier].buffer);
         pass.drawIndexed(mesh.opaque.indexCount, count);
       }
     }
-  }
-
-  private ensureInstanceBuffer(buffer: GPUBuffer, label: string, count: number, tier: StandardSizeTier) {
-    if (count <= this.capacities[tier]) return buffer;
-    const next = Math.max(count, this.capacities[tier] * 2, 32);
-    this.capacities[tier] = next;
-    return this.shell.device.createBuffer({
-      label,
-      size: next * 16 * 4,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
   }
 }
 
@@ -330,36 +293,6 @@ function instanceLivery(instance: StandardInstance, fallback: StandardLivery): S
     trim: instance.livery?.trim ?? fallback.trim,
     emblem: instance.livery?.emblem ?? fallback.emblem,
   };
-}
-
-function makeVertexBuffer(device: GPUDevice, label: string, data: Float32Array) {
-  const buffer = device.createBuffer({
-    label,
-    size: Math.max(4, data.byteLength),
-    usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-  });
-  if (data.byteLength > 0) device.queue.writeBuffer(buffer, 0, data);
-  return buffer;
-}
-
-function makeIndexBuffer(device: GPUDevice, label: string, data: Uint16Array) {
-  const upload = data.byteLength % 4 === 0 ? data : new Uint16Array(data.length + 1);
-  if (upload !== data) upload.set(data);
-  const buffer = device.createBuffer({
-    label,
-    size: Math.max(4, upload.byteLength),
-    usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
-  });
-  if (upload.byteLength > 0) device.queue.writeBuffer(buffer, 0, upload);
-  return buffer;
-}
-
-function makeEmptyInstanceBuffer(device: GPUDevice, label: string) {
-  return device.createBuffer({
-    label,
-    size: 16 * 4,
-    usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-  });
 }
 
 function standardTierRecord<T>(build: (tier: StandardSizeTier) => T): Record<StandardSizeTier, T> {

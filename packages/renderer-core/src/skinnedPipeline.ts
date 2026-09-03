@@ -3,10 +3,11 @@ import type { SoldierMeshData } from '../../soldier-assets/src/soldierMesh';
 import type { SoldierKitManifest, VatBake } from '../../soldier-assets/src/schema';
 import { assertStorageBufferFits } from './capabilities';
 import { compileShader } from './compileShader';
+import { GrowableBuffer, makeIndexBuffer, makeVertexBuffer } from './gpuBuffers';
 import { createVatLayout, resolveVatClip, type VatLayout } from './vatLayout';
 import type { RawFrameShell, WorldRenderPass } from './frameShell';
 import { WORLD_CAMERA_WGSL } from './cameraWgsl';
-import { gpuMultisample, gpuOpaqueColorTarget, gpuWorldDepthStencil } from './pipelineContracts';
+import { cameraOnlyPipeline } from './pipelineContracts';
 
 interface SkinnedCrowdStats {
   instances: number;
@@ -53,8 +54,7 @@ interface MeshResource {
   lod: number;
   vertexBuffer: GPUBuffer;
   indexBuffer: GPUBuffer;
-  instanceBuffer: GPUBuffer;
-  instanceCapacity: number;
+  instanceBuffer: GrowableBuffer;
   instanceCount: number;
 }
 
@@ -364,7 +364,7 @@ export class SkinnedCrowdPipeline {
       if (resource.instanceCount === 0) continue;
       pass.setBindGroup(1, resource.vat.bindGroup);
       pass.setVertexBuffer(0, resource.vertexBuffer);
-      pass.setVertexBuffer(1, resource.instanceBuffer);
+      pass.setVertexBuffer(1, resource.instanceBuffer.buffer);
       pass.setIndexBuffer(resource.indexBuffer, 'uint16');
       pass.drawIndexed(resource.mesh.indices.length, resource.instanceCount);
     }
@@ -394,24 +394,10 @@ export class SkinnedCrowdPipeline {
 
   private createMeshResource(mesh: SoldierMeshData, index: number, vat: VatResource, classId: number, lod: number): MeshResource {
     const device = this.shell.device;
-    const vertexBuffer = device.createBuffer({
-      label: `skinned-soldier-${index}-vertices`,
-      size: mesh.vertices.byteLength,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
-    device.queue.writeBuffer(vertexBuffer, 0, mesh.vertices);
-    const indexBuffer = device.createBuffer({
-      label: `skinned-soldier-${index}-indices`,
-      size: mesh.indices.byteLength,
-      usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
-    });
-    device.queue.writeBuffer(indexBuffer, 0, mesh.indices);
-    const instanceBuffer = device.createBuffer({
-      label: `skinned-empty-${index}-instances`,
-      size: 12 * 4,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
-    return { mesh, vat, index, classId, lod, vertexBuffer, indexBuffer, instanceBuffer, instanceCapacity: 0, instanceCount: 0 };
+    const vertexBuffer = makeVertexBuffer(device, `skinned-soldier-${index}-vertices`, mesh.vertices);
+    const indexBuffer = makeIndexBuffer(device, `skinned-soldier-${index}-indices`, mesh.indices);
+    const instanceBuffer = new GrowableBuffer(device, `skinned-crowd-${index}-instances`, GPUBufferUsage.VERTEX, 256 * 12 * 4);
+    return { mesh, vat, index, classId, lod, vertexBuffer, indexBuffer, instanceBuffer, instanceCount: 0 };
   }
 
   // Route each instance to its (classId, lod) resource. A requested lod beyond
@@ -429,14 +415,6 @@ export class SkinnedCrowdPipeline {
 
   private uploadGroup(resource: MeshResource, instances: CrowdInstance[], opts: { forcedClip?: string | null; phaseOffset?: number; size?: number }) {
     const stride = 12;
-    if (instances.length > resource.instanceCapacity) {
-      resource.instanceCapacity = Math.max(instances.length, resource.instanceCapacity * 2, 256);
-      resource.instanceBuffer = this.shell.device.createBuffer({
-        label: 'skinned-crowd-instances',
-        size: resource.instanceCapacity * stride * 4,
-        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-      });
-    }
     if (instances.length === 0) return;
     const data = new Float32Array(instances.length * stride);
     for (let i = 0; i < instances.length; i++) {
@@ -455,19 +433,16 @@ export class SkinnedCrowdPipeline {
       data[o + 9] = inst.deathVariant ?? 0;       // inst2.y: corpse variant 0..2
       data[o + 10] = inst.alive ? 0 : 1;          // inst2.z: corpse flag
     }
-    this.shell.device.queue.writeBuffer(resource.instanceBuffer, 0, data);
+    resource.instanceBuffer.write(data);
   }
 
   private makePipeline(vatLayout: GPUBindGroupLayout, materialLayout: GPUBindGroupLayout) {
     const device = this.shell.device;
     const module = compileShader(device, SKINNED_WGSL(this.lighting), 'skinned-crowd');
-    return device.createRenderPipeline({
+    return cameraOnlyPipeline(this.shell, {
       label: 'skinned-crowd-pipeline',
-      layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout, vatLayout, materialLayout] }),
-      vertex: {
-        module,
-        entryPoint: 'vs',
-        buffers: [
+      module,
+      buffers: [
           {
             arrayStride: 44,
             attributes: [
@@ -486,12 +461,10 @@ export class SkinnedCrowdPipeline {
               { shaderLocation: 6, offset: 32, format: 'float32x4' },
             ],
           },
-        ],
-      },
-      fragment: { module, entryPoint: 'fs', targets: [gpuOpaqueColorTarget(this.shell.info.format)] },
-      primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: gpuWorldDepthStencil('read-write'),
-      multisample: gpuMultisample(this.shell.sampleCount),
+      ],
+      target: 'opaque',
+      depth: 'read-write',
+      extraBindGroupLayouts: [vatLayout, materialLayout],
     });
   }
 }

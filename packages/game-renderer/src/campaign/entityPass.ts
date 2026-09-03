@@ -1,6 +1,7 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
-import { gpuAlphaBlendColorTarget, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import { GrowableBuffer, makeIndexBuffer, makeVertexBuffer } from '../../../renderer-core/src/gpuBuffers';
+import { cameraOnlyPipeline } from '../../../renderer-core/src/pipelineContracts';
 import { buildCityMesh } from '../models/campaign/campaignEntityModels';
 
 export interface CampaignEntityInstance {
@@ -72,8 +73,7 @@ export class CampaignEntityPass {
   private cityIndexBuffer: GPUBuffer;
   private cityShadowVertexBuffer: GPUBuffer;
   private cityShadowIndexBuffer: GPUBuffer;
-  private cityInstanceBuffer: GPUBuffer;
-  private cityCapacity = 0;
+  private cityInstanceBuffer: GrowableBuffer;
   private cityCount = 0;
   private cityMesh = buildCityMesh();
 
@@ -86,18 +86,14 @@ export class CampaignEntityPass {
     this.cityIndexBuffer = makeIndexBuffer(device, 'campaign-city-model-indices', this.cityMesh.opaque.indices);
     this.cityShadowVertexBuffer = makeVertexBuffer(device, 'campaign-city-shadow-vertices', this.cityMesh.shadow.vertices);
     this.cityShadowIndexBuffer = makeIndexBuffer(device, 'campaign-city-shadow-indices', this.cityMesh.shadow.indices);
-    this.cityInstanceBuffer = makeEmptyInstanceBuffer(device, 'campaign-city-empty-instances');
+    this.cityInstanceBuffer = new GrowableBuffer(device, 'campaign-city-instances', GPUBufferUsage.VERTEX, 64 * 12 * 4);
   }
 
   private makePipeline(module: GPUShaderModule, material: 'opaque' | 'shadow') {
-    const device = this.shell.device;
-    return device.createRenderPipeline({
+    return cameraOnlyPipeline(this.shell, {
       label: material === 'opaque' ? 'campaign-entity-opaque-depth-pipeline' : 'campaign-entity-shadow-decal-pipeline',
-      layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout] }),
-      vertex: {
-        module,
-        entryPoint: 'vs',
-        buffers: [
+      module,
+      buffers: [
           {
             arrayStride: 40,
             attributes: [
@@ -115,26 +111,15 @@ export class CampaignEntityPass {
               { shaderLocation: 5, offset: 32, format: 'float32x4' },
             ],
           },
-        ],
-      },
-      fragment: {
-        module,
-        entryPoint: 'fs',
-        targets: [
-          material === 'opaque'
-            ? gpuOpaqueColorTarget(this.shell.info.format)
-            : gpuAlphaBlendColorTarget(this.shell.info.format),
-        ],
-      },
-      primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: gpuWorldDepthStencil(material === 'opaque' ? 'read-write' : 'read'),
+      ],
+      target: material === 'opaque' ? 'opaque' : 'alpha',
+      depth: material === 'opaque' ? 'read-write' : 'read',
     });
   }
 
   upload(instances: CampaignEntityInstance[]) {
     this.cityCount = instances.length;
-    this.cityInstanceBuffer = this.ensureInstanceBuffer(this.cityInstanceBuffer, 'campaign-city-instances', instances.length);
-    if (instances.length > 0) this.shell.device.queue.writeBuffer(this.cityInstanceBuffer, 0, packInstances(instances, 5.0));
+    this.cityInstanceBuffer.write(packInstances(instances, 5.0));
   }
 
   drawShadows(pass: WorldRenderPass) {
@@ -142,7 +127,7 @@ export class CampaignEntityPass {
     pass.setPipeline(this.shadowPipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
     pass.setVertexBuffer(0, this.cityShadowVertexBuffer);
-    pass.setVertexBuffer(1, this.cityInstanceBuffer);
+    pass.setVertexBuffer(1, this.cityInstanceBuffer.buffer);
     pass.setIndexBuffer(this.cityShadowIndexBuffer, 'uint16');
     pass.drawIndexed(this.cityMesh.shadow.indexCount, this.cityCount);
   }
@@ -152,7 +137,7 @@ export class CampaignEntityPass {
     pass.setPipeline(this.opaquePipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
     pass.setVertexBuffer(0, this.cityVertexBuffer);
-    pass.setVertexBuffer(1, this.cityInstanceBuffer);
+    pass.setVertexBuffer(1, this.cityInstanceBuffer.buffer);
     pass.setIndexBuffer(this.cityIndexBuffer, 'uint16');
     pass.drawIndexed(this.cityMesh.opaque.indexCount, this.cityCount);
   }
@@ -165,17 +150,6 @@ export class CampaignEntityPass {
       materialClasses: ['opaque-depth-write', 'shadow-depth-read'] as const,
       layer: 'raw-gpu-city-model-meshes',
     };
-  }
-
-  private ensureInstanceBuffer(buffer: GPUBuffer, label: string, count: number) {
-    if (count <= this.cityCapacity) return buffer;
-    const next = Math.max(count, this.cityCapacity * 2, 64);
-    this.cityCapacity = next;
-    return this.shell.device.createBuffer({
-      label,
-      size: next * 12 * 4,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
   }
 }
 
@@ -195,22 +169,4 @@ function packInstances(instances: CampaignEntityInstance[], radiusToScale: numbe
     data[o + 10] = inst.strength ?? 1;
   }
   return data;
-}
-
-function makeVertexBuffer(device: GPUDevice, label: string, data: Float32Array) {
-  const buffer = device.createBuffer({ label, size: Math.max(4, data.byteLength), usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
-  if (data.byteLength > 0) device.queue.writeBuffer(buffer, 0, data);
-  return buffer;
-}
-
-function makeIndexBuffer(device: GPUDevice, label: string, data: Uint16Array) {
-  const upload = data.byteLength % 4 === 0 ? data : new Uint16Array(data.length + 1);
-  if (upload !== data) upload.set(data);
-  const buffer = device.createBuffer({ label, size: Math.max(4, upload.byteLength), usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST });
-  if (upload.byteLength > 0) device.queue.writeBuffer(buffer, 0, upload);
-  return buffer;
-}
-
-function makeEmptyInstanceBuffer(device: GPUDevice, label: string) {
-  return device.createBuffer({ label, size: 12 * 4, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
 }

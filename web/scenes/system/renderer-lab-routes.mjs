@@ -906,18 +906,24 @@ async function findWorldMaterialContractFootguns() {
   for (const file of files) {
     const source = await readFile(file, "utf8");
     const label = file.pathname.replace(root, "");
-    if (!/\bgpuOpaqueColorTarget\b/.test(source) || !/\bgpuWorldDepthStencil\b/.test(source)) {
+    // Depth-writing world geometry builds its pipeline through the one owner
+    // (cameraOnlyPipeline) with an explicit 'read-write' depth mode; the owner
+    // maps target/depth to the opaque and world-depth contracts.
+    if (
+      !/\bcameraOnlyPipeline\s*\(/.test(source) ||
+      !/\bdepth:\s*(?:[^,\n]*\?\s*)?['"]read-write['"]/.test(source)
+    ) {
       matches.push(
-        `${label}: depth-writing world geometry must use the opaque world material contract`,
+        `${label}: depth-writing world geometry must build through cameraOnlyPipeline with depth 'read-write'`,
       );
+    }
+    if (/\bcreateRenderPipeline\s*\(/.test(source)) {
+      matches.push(`${label}: raw createRenderPipeline bypasses the world material contract`);
     }
     if (/\bdepthWriteEnabled:\s*true\b/.test(source)) {
       matches.push(
         `${label}: inline depth-write pipeline state bypasses the world material contract`,
       );
-    }
-    if (/gpuWorldDepthStencil\s*\(\s*(?:true|false)\s*\)/.test(source)) {
-      matches.push(`${label}: boolean world depth material bypasses explicit depth modes`);
     }
     if (/\bblend:\s*\{/.test(source)) {
       matches.push(
@@ -933,7 +939,7 @@ async function findWorldMaterialContractFootguns() {
     const source = await readFile(file, "utf8");
     const label = file.pathname.replace(root, "");
     if (
-      !/\bgpuAlphaBlendColorTarget\b/.test(source) ||
+      !/\btarget:\s*[^,\n]*['"]alpha['"]/.test(source) ||
       !/materialClasses:\s*\['opaque-depth-write',\s*'shadow-depth-read'\]/.test(source)
     ) {
       matches.push(

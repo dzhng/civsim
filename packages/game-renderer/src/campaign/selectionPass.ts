@@ -1,9 +1,7 @@
 import type { RawFrameShell, WorldRenderPass } from "../../../renderer-core/src/frameShell";
 import { WORLD_CAMERA_WGSL } from "../../../renderer-core/src/cameraWgsl";
-import {
-  gpuAlphaBlendColorTarget,
-  gpuWorldDepthStencil,
-} from "../../../renderer-core/src/pipelineContracts";
+import { GrowableBuffer } from "../../../renderer-core/src/gpuBuffers";
+import { cameraOnlyPipeline } from "../../../renderer-core/src/pipelineContracts";
 import { SELECTION_RING_PROFILE } from "../selectionRing";
 
 export interface CampaignSelectionInstance {
@@ -86,8 +84,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 
 export class CampaignSelectionPass {
   private pipeline: GPURenderPipeline;
-  private vertexBuffer: GPUBuffer;
-  private capacity = 0;
+  private vertexBuffer: GrowableBuffer;
   private count = 0;
   private garrisonedArmyCount = 0;
   private maxRadius = 0;
@@ -99,22 +96,14 @@ export class CampaignSelectionPass {
       code: SELECTION_WGSL,
     });
     this.pipeline = this.makePipeline(module);
-    this.vertexBuffer = device.createBuffer({
-      label: "campaign-selection-empty",
-      size: RING_FLOATS_PER_VERTEX * 4,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
+    this.vertexBuffer = new GrowableBuffer(device, "campaign-selection-rings", GPUBufferUsage.VERTEX, 128);
   }
 
   private makePipeline(module: GPUShaderModule) {
-    const device = this.shell.device;
-    return device.createRenderPipeline({
+    return cameraOnlyPipeline(this.shell, {
       label: "campaign-selection-depth-pipeline",
-      layout: device.createPipelineLayout({ bindGroupLayouts: [this.shell.cameraBindGroupLayout] }),
-      vertex: {
-        module,
-        entryPoint: "vs",
-        buffers: [
+      module,
+      buffers: [
           {
             arrayStride: RING_FLOATS_PER_VERTEX * 4,
             attributes: [
@@ -124,18 +113,12 @@ export class CampaignSelectionPass {
               { shaderLocation: 3, offset: 32, format: "float32" },
             ],
           },
-        ],
-      },
-      fragment: {
-        module,
-        entryPoint: "fs",
-        targets: [gpuAlphaBlendColorTarget(this.shell.info.format)],
-      },
-      primitive: { topology: "triangle-list" },
+      ],
+      target: "alpha",
       // Real depth read: the ring is a ground decal, so the city/army
       // volume standing on it must occlude the far arc — compare "always"
       // drew the ring floating above the buildings.
-      depthStencil: gpuWorldDepthStencil("read"),
+      depth: "read",
     });
   }
 
@@ -147,14 +130,6 @@ export class CampaignSelectionPass {
     this.garrisonedArmyCount = instances.filter((inst) => inst.kind === "garrisoned-army").length;
     this.maxRadius = instances.reduce((max, inst) => Math.max(max, inst.radius), 0);
     const floats = instances.length * RING_VERTS_PER_INSTANCE * RING_FLOATS_PER_VERTEX;
-    if (floats > this.capacity) {
-      this.capacity = Math.max(floats, this.capacity * 2);
-      this.vertexBuffer = this.shell.device.createBuffer({
-        label: "campaign-selection-rings",
-        size: this.capacity * 4,
-        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-      });
-    }
     if (instances.length === 0) return;
     const data = new Float32Array(floats);
     let o = 0;
@@ -192,14 +167,14 @@ export class CampaignSelectionPass {
         vertex(inst, kind, axisScale, seg + 1, RING_INNER_FRACTION);
       }
     }
-    this.shell.device.queue.writeBuffer(this.vertexBuffer, 0, data);
+    this.vertexBuffer.write(data);
   }
 
   draw(pass: WorldRenderPass) {
     if (this.count === 0) return;
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
-    pass.setVertexBuffer(0, this.vertexBuffer);
+    pass.setVertexBuffer(0, this.vertexBuffer.buffer);
     pass.draw(this.count * RING_VERTS_PER_INSTANCE);
   }
 

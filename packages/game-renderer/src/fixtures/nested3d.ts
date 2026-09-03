@@ -2,7 +2,7 @@ import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 import { compileShader } from '../../../renderer-core/src/compileShader';
 import { GPU_DEPTH_FORMAT } from '../../../renderer-core/src/depthContract';
-import { gpuMultisample, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import { cameraOnlyPipeline } from '../../../renderer-core/src/pipelineContracts';
 
 interface Nested3dFixtureStats {
   layer: 'depth-tested-nested-3d-fixture';
@@ -46,28 +46,18 @@ export class Nested3dFixturePass {
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
     const module = compileShader(device, NESTED_3D_WGSL, 'nested-3d-fixture');
-    this.pipeline = device.createRenderPipeline({
+    this.pipeline = cameraOnlyPipeline(shell, {
       label: 'nested-3d-fixture-depth-pipeline',
-      layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),
-      vertex: {
-        module,
-        entryPoint: 'vs',
-        buffers: [{
-          arrayStride: 28,
-          attributes: [
-            { shaderLocation: 0, offset: 0, format: 'float32x3' },
-            { shaderLocation: 1, offset: 12, format: 'float32x4' },
-          ],
-        }],
-      },
-      fragment: {
-        module,
-        entryPoint: 'fs',
-        targets: [gpuOpaqueColorTarget(shell.info.format)],
-      },
-      primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: gpuWorldDepthStencil('read-write'),
-      multisample: gpuMultisample(shell.sampleCount),
+      module,
+      buffers: [{
+        arrayStride: 28,
+        attributes: [
+          { shaderLocation: 0, offset: 0, format: 'float32x3' },
+          { shaderLocation: 1, offset: 12, format: 'float32x4' },
+        ],
+      }],
+      target: 'opaque',
+      depth: 'read-write',
     });
     const vertices = buildNestedFixtureVertices();
     this.vertexCount = vertices.length / 7;

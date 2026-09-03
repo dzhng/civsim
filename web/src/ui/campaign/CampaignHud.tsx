@@ -3,7 +3,11 @@ import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import "../theme/bronze.css";
 import { TooltipProvider } from "../hud/Tooltip";
-import { CampaignTopBar, type CampaignTopBarProps } from "./CampaignTopBar";
+import {
+  CampaignTopBar,
+  type CampaignTopBarActions,
+  type CampaignTopBarState,
+} from "./CampaignTopBar";
 import { ArmyPanel, type ArmyPanelProps } from "./ArmyPanel";
 import { CityPanel, type CityPanelProps } from "./CityPanel";
 import { DiplomacyPanel, type DiplomacyPanelProps } from "./DiplomacyPanel";
@@ -12,12 +16,12 @@ import { CampaignBattleModal, type CampaignBattleModalProps } from "./CampaignBa
 import { Sieges, type SiegeRow } from "./Sieges";
 import { MapCards, type MapCardModel, type MapCardPosition, type MapCardsHandle } from "./MapCards";
 import { GraphicsSettingsPanel } from "../graphics/GraphicsSettingsModal";
+import { useHudStore, type HudStore } from "../hudStore";
 
 export interface CampaignHudHandle {
   setMapCards(cards: MapCardModel[], onCardClick?: (id: string) => void): void;
   updateMapCards(positions: MapCardPosition[]): void;
   measureMapCards(): Map<string, { w: number; h: number }>;
-  setTopBar(props: CampaignTopBarProps): void;
   setArmy(props: ArmyPanelProps | null): void;
   setCity(props: CityPanelProps | null): void;
   setJunction(name: string): void;
@@ -29,19 +33,15 @@ export interface CampaignHudHandle {
   destroy(): void;
 }
 
-interface TopBarHandle {
-  set(props: CampaignTopBarProps): void;
-}
-
-const TopBarHost = forwardRef<TopBarHandle>(function TopBarHost(_props, ref) {
-  const [props, setProps] = useState<CampaignTopBarProps | null>(null);
+function TopBarHost(props: { store: HudStore<CampaignTopBarState>; on: CampaignTopBarActions }) {
+  const state = useHudStore(props.store, (snapshot) => snapshot);
   const [menuOpen, setMenuOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  useImperativeHandle(ref, () => ({ set: (p) => flushSync(() => setProps(p)) }), []);
+  const on = { ...props.on, exit: () => setMenuOpen(true) };
   return (
     <div id="cmp-topbar-root">
-      {props ? <CampaignTopBar {...props} onExit={() => setMenuOpen(true)} /> : null}
-      {props && menuOpen ? (
+      <CampaignTopBar state={state} on={on} />
+      {menuOpen ? (
         <div
           id="cmp-game-menu-modal"
           className="cmp-modal"
@@ -62,10 +62,10 @@ const TopBarHost = forwardRef<TopBarHandle>(function TopBarHost(_props, ref) {
                   <button id="cmp-menu-settings" onClick={() => setSettingsOpen(true)}>
                     Settings
                   </button>
-                  <button id="cmp-menu-save" onClick={props.onSave}>
+                  <button id="cmp-menu-save" onClick={props.on.save}>
                     Save Campaign
                   </button>
-                  <button id="cmp-menu-exit" onClick={props.onExit}>
+                  <button id="cmp-menu-exit" onClick={props.on.exit}>
                     Exit to Main Menu
                   </button>
                   <button
@@ -86,7 +86,7 @@ const TopBarHost = forwardRef<TopBarHandle>(function TopBarHost(_props, ref) {
       ) : null}
     </div>
   );
-});
+}
 
 interface ArmyHandle {
   set(props: ArmyPanelProps | null): void;
@@ -240,8 +240,10 @@ const ModalHost = forwardRef<ModalHandle>(function ModalHost(_props, ref) {
 
 type CampaignHudInnerHandle = Omit<CampaignHudHandle, "destroy">;
 
-const CampaignHud = forwardRef<CampaignHudInnerHandle>(function CampaignHud(_props, ref) {
-  const topBarRef = useRef<TopBarHandle>(null);
+const CampaignHud = forwardRef<
+  CampaignHudInnerHandle,
+  { topBarStore: HudStore<CampaignTopBarState>; topBarActions: CampaignTopBarActions }
+>(function CampaignHud(props, ref) {
   const armyRef = useRef<ArmyHandle>(null);
   const cityRef = useRef<CityHandle>(null);
   const diplomacyRef = useRef<DiplomacyHandle>(null);
@@ -255,7 +257,6 @@ const CampaignHud = forwardRef<CampaignHudInnerHandle>(function CampaignHud(_pro
       setMapCards: (cards, onCardClick) => mapCardsRef.current?.set(cards, onCardClick),
       updateMapCards: (positions) => mapCardsRef.current?.update(positions),
       measureMapCards: () => mapCardsRef.current?.measure() ?? new Map(),
-      setTopBar: (p) => topBarRef.current?.set(p),
       setArmy: (p) => armyRef.current?.set(p),
       setCity: (p) => cityRef.current?.set(p),
       setJunction: (name) => cityRef.current?.setJunction(name),
@@ -270,7 +271,7 @@ const CampaignHud = forwardRef<CampaignHudInnerHandle>(function CampaignHud(_pro
   return (
     <TooltipProvider>
       <MapCards ref={mapCardsRef} />
-      <TopBarHost ref={topBarRef} />
+      <TopBarHost store={props.topBarStore} on={props.topBarActions} />
       <ArmyHost ref={armyRef} />
       <CityHost ref={cityRef} />
       <SiegesHost ref={siegesRef} />
@@ -281,14 +282,20 @@ const CampaignHud = forwardRef<CampaignHudInnerHandle>(function CampaignHud(_pro
   );
 });
 
-export function mountCampaignHud(container: HTMLElement): CampaignHudHandle {
+export function mountCampaignHud(
+  container: HTMLElement,
+  topBarStore: HudStore<CampaignTopBarState>,
+  topBarActions: CampaignTopBarActions,
+): CampaignHudHandle {
   const root = createRoot(container);
   let inner: CampaignHudInnerHandle | null = null;
   const capture: Ref<CampaignHudInnerHandle> = (h) => {
     inner = h;
   };
   flushSync(() => {
-    root.render(<CampaignHud ref={capture} />);
+    root.render(
+      <CampaignHud ref={capture} topBarStore={topBarStore} topBarActions={topBarActions} />,
+    );
   });
   return Object.assign(inner!, { destroy: () => root.unmount() });
 }

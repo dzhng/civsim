@@ -4,6 +4,8 @@ import type { ArmyRosterRow, CityDetail, ClassDoctrineRow, DiplomacyRow } from "
 import { campaignDomHtml } from "./panels";
 import type { ArmyView, CityView } from "@packages/game-renderer/src/campaign/entityFrame";
 import { mountCampaignHud, type CampaignHudHandle } from "../ui/campaign/CampaignHud";
+import type { CampaignTopBarState } from "../ui/campaign/CampaignTopBar";
+import { createHudStore } from "../ui/hudStore";
 
 export interface CampaignUiModel {
   campaign: Campaign;
@@ -31,6 +33,16 @@ export class CampaignUiLayer {
   private diplomacyPanel: HTMLDivElement;
   private classesPanel: HTMLDivElement;
   private campaignHud: CampaignHudHandle;
+  private readonly topBarStore = createHudStore<CampaignTopBarState>({
+    dateText: "",
+    goldText: "",
+    paused: true,
+    speed: 0,
+    factionView: false,
+    fog: false,
+    diploOpen: false,
+    classesOpen: false,
+  });
 
   constructor(
     host: HTMLElement,
@@ -41,7 +53,20 @@ export class CampaignUiLayer {
     this.root.className = "renderer-campaign-ui";
     this.root.innerHTML = campaignDomHtml();
     host.appendChild(this.root);
-    this.campaignHud = mountCampaignHud(this.root.querySelector("#cmp-hud-root")!);
+    this.campaignHud = mountCampaignHud(
+      this.root.querySelector("#cmp-hud-root")!,
+      this.topBarStore,
+      {
+        pause: NOOP,
+        speed: NOOP,
+        factions: NOOP,
+        fog: NOOP,
+        diplomacy: NOOP,
+        classes: NOOP,
+        save: NOOP,
+        exit: NOOP,
+      },
+    );
     this.armyPanel = this.root.querySelector("#cmp-army") as HTMLDivElement;
     this.cityPanel = this.root.querySelector("#cmp-city") as HTMLDivElement;
     this.diplomacyPanel = this.root.querySelector("#cmp-diplomacy") as HTMLDivElement;
@@ -53,7 +78,7 @@ export class CampaignUiLayer {
     const mins = model.tick % 1440;
     const hh = String(Math.floor(mins / 60)).padStart(2, "0");
     const mm = String(Math.floor(mins % 60)).padStart(2, "0");
-    this.campaignHud.setTopBar({
+    this.topBarStore.set({
       dateText: `Day ${day}, ${hh}:${mm}  PAUSED`,
       goldText: `${model.treasury.toLocaleString()} gold`,
       paused: true,
@@ -62,14 +87,6 @@ export class CampaignUiLayer {
       fog: false,
       diploOpen: model.diplomacyOpen,
       classesOpen: model.classBuilderOpen,
-      onPause: NOOP,
-      onSpeed: NOOP,
-      onFactions: NOOP,
-      onFog: NOOP,
-      onDiplomacy: NOOP,
-      onClasses: NOOP,
-      onSave: NOOP,
-      onExit: NOOP,
     });
     this.renderArmy(model);
     this.renderCity(model);

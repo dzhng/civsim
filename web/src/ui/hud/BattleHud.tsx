@@ -1,31 +1,19 @@
 // The whole battle HUD as ONE React tree under a single root (see
 // specs/done/hud-housings, slice 01). This collapses the three separate createRoot
 // calls (#hud, #toolbar, #unitcards) and the imperative minimap canvas that the
-// ui-react-migration left as scaffolding into one <BattleHud>. scene.ts drives it
-// through the imperative BattleHudHandle at the same cadences as before:
+// ui-react-migration left as scaffolding into one <BattleHud>. battleLoop.ts drives it
+// through its scene-owned store at the same cadences as before:
 //   - cards.update(): every rAF frame, straight to ref'd DOM nodes (60Hz firewall,
 //     never React state — see UnitCardsView).
-//   - setInfo()/setToolbar(): ≤5Hz, each flushSync so snapshots stay deterministic
-//     exactly like the old flushSync(root.render(...)) calls.
+//   - HUD state: ≤5Hz through useSyncExternalStore.
 //   - buildCards(): rare (roster change), flushSync so refs are live before update.
-//   - minimapCanvas: a <canvas> React only DECLARES; scene.ts owns its pixels.
+//   - minimapCanvas: a <canvas> React only DECLARES; the battle loop owns its pixels.
 //
-// Each surface is its own stateful island: setInfo re-renders only the left card,
-// setToolbar only the toolbar. The parent <BattleHud> holds no data state, so it
-// never re-renders and the card grid (a sibling) is never reconciled by a HUD or
-// toolbar refresh. Slices 03–07 turn this composition into the three bronze
-// housings; slice 01 keeps every element's id and position identical.
+// Each surface selects only its own store field, so the card grid (a sibling) is
+// never reconciled by a HUD or toolbar refresh.
 
 import { resumeActiveBattleAudio } from "../../battle/battleAudio";
-import {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-  type Ref,
-  type RefObject,
-} from "react";
+import { forwardRef, useImperativeHandle, useRef, useState, type Ref, type RefObject } from "react";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import { HudPanel, type HudData } from "./HudPanel";
@@ -40,50 +28,42 @@ import {
 } from "../../battle/unitCard";
 import { toolbarIcon } from "../../battle/toolbarIcons";
 import {
-  getGraphicsSettings,
-  subscribeGraphicsSettings,
   updateGraphicsSettings,
+  useGraphicsSettings,
   type GraphicsSettings,
 } from "../../shared/graphicsSettings";
+import { useHudStore, type HudStore } from "../hudStore";
+
+export interface BattleHudState {
+  info: HudData | null;
+  fps: string;
+  toolbar: Record<string, ToolButtonState> | null;
+}
 
 export interface BattleHudHandle {
-  /** Left info card content (≤5Hz, flushSync). */
-  setInfo(data: HudData): void;
-  /** Bare top-left FPS telemetry text, e.g. "fps 60" (or "fps —" when frozen). */
-  setFps(text: string): void;
-  /** Toolbar button state (≤5Hz, flushSync); onCmd is wired at mount. */
-  setToolbar(state: Record<string, ToolButtonState>): void;
   /** Rebuild the card structure on a roster change (flushSync). */
   buildCards(units: UnitCardInit[]): void;
   /** The unchanged 60Hz per-frame card paint handle. */
   cards: UnitCardsHandle;
-  /** The minimap canvas scene.ts draws into. */
+  /** The minimap canvas the battle loop draws into. */
   readonly minimapCanvas: HTMLCanvasElement;
   destroy(): void;
 }
 
-interface InfoHandle {
-  set(data: HudData): void;
-}
-const LeftInfoCard = forwardRef<InfoHandle>(function LeftInfoCard(_props, ref) {
-  const [data, setData] = useState<HudData | null>(null);
-  useImperativeHandle(ref, () => ({ set: (d) => flushSync(() => setData(d)) }), []);
+function LeftInfoCard({ store }: { store: HudStore<BattleHudState> }) {
+  const data = useHudStore(store, (state) => state.info);
   return (
     <div id="hud" className="hud-chassis">
       {data ? <HudPanel data={data} /> : "loading wasm…"}
     </div>
   );
-});
-
-interface FpsHandle {
-  set(text: string): void;
 }
+
 // Bare, non-diegetic dev telemetry — NOT HUD chrome, so intentionally a faint
 // transparent-background readout with no housing (the aesthetics "no transparency"
 // rule governs game panels, not this). pointer-events:none so it never eats clicks.
-const FpsReadout = forwardRef<FpsHandle>(function FpsReadout(_props, ref) {
-  const [text, setText] = useState("");
-  useImperativeHandle(ref, () => ({ set: (t) => flushSync(() => setText(t)) }), []);
+function FpsReadout({ store }: { store: HudStore<BattleHudState> }) {
+  const text = useHudStore(store, (state) => state.fps);
   return (
     <div
       id="fps-readout"
@@ -102,11 +82,10 @@ const FpsReadout = forwardRef<FpsHandle>(function FpsReadout(_props, ref) {
       {text}
     </div>
   );
-});
+}
 
 function AudioControls() {
-  const [settings, setSettings] = useState<GraphicsSettings>(() => getGraphicsSettings());
-  useEffect(() => subscribeGraphicsSettings(setSettings), []);
+  const settings = useGraphicsSettings();
   const audio = settings.audio;
   const muted = audio.muted || audio.masterVolume <= 0;
   const setAudio = (patch: Partial<GraphicsSettings["audio"]>) =>
@@ -141,16 +120,10 @@ function AudioControls() {
   );
 }
 
-interface ToolbarHandle {
-  set(state: Record<string, ToolButtonState>): void;
+function ToolbarHost(props: { store: HudStore<BattleHudState>; onCmd(cmd: string): void }) {
+  const state = useHudStore(props.store, (snapshot) => snapshot.toolbar);
+  return <div id="toolbar">{state ? <Toolbar state={state} onCmd={props.onCmd} /> : null}</div>;
 }
-const ToolbarHost = forwardRef<ToolbarHandle, { onCmd(cmd: string): void }>(
-  function ToolbarHost(props, ref) {
-    const [state, setState] = useState<Record<string, ToolButtonState> | null>(null);
-    useImperativeHandle(ref, () => ({ set: (s) => flushSync(() => setState(s)) }), []);
-    return <div id="toolbar">{state ? <Toolbar state={state} onCmd={props.onCmd} /> : null}</div>;
-  },
-);
 
 interface CardsHostHandle {
   build(units: UnitCardInit[]): void;
@@ -190,7 +163,6 @@ const CardsHost = forwardRef<CardsHostHandle, CardsHostProps>(function CardsHost
 interface CenterHandle {
   buildCards(units: UnitCardInit[]): void;
   updateCards(states: (UnitCardState | null)[]): void;
-  setToolbar(state: Record<string, ToolButtonState>): void;
 }
 // The bottom-center housing: card wells on top, order/time control strip below,
 // in ONE bronze tray (specs/done/hud-housings, slice 05). A structural wrapper holding
@@ -199,29 +171,32 @@ interface CenterHandle {
 // the 60Hz card grid. applyCardGrid writes onto this #battle-center element.
 const CenterCard = forwardRef<
   CenterHandle,
-  { onSelect(unit: number, additive: boolean): void; onToolbarCmd(cmd: string): void }
+  {
+    store: HudStore<BattleHudState>;
+    onSelect(unit: number, additive: boolean): void;
+    onToolbarCmd(cmd: string): void;
+  }
 >(function CenterCard(props, ref) {
   const centerRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<CardsHostHandle>(null);
-  const toolbarRef = useRef<ToolbarHandle>(null);
   useImperativeHandle(
     ref,
     () => ({
       buildCards: (u) => cardsRef.current?.build(u),
       updateCards: (s) => cardsRef.current?.update(s),
-      setToolbar: (s) => toolbarRef.current?.set(s),
     }),
     [],
   );
   return (
     <div id="battle-center" className="hud-chassis hud-chassis--tray" ref={centerRef}>
       <CardsHost ref={cardsRef} onSelect={props.onSelect} gridRootRef={centerRef} />
-      <ToolbarHost ref={toolbarRef} onCmd={props.onToolbarCmd} />
+      <ToolbarHost store={props.store} onCmd={props.onToolbarCmd} />
     </div>
   );
 });
 
 interface BattleHudProps {
+  store: HudStore<BattleHudState>;
   onCardSelect(unit: number, additive: boolean): void;
   onToolbarCmd(cmd: string): void;
 }
@@ -230,16 +205,11 @@ interface BattleHudProps {
 type BattleHudInnerHandle = Omit<BattleHudHandle, "destroy">;
 
 const BattleHud = forwardRef<BattleHudInnerHandle, BattleHudProps>(function BattleHud(props, ref) {
-  const infoRef = useRef<InfoHandle>(null);
-  const fpsRef = useRef<FpsHandle>(null);
   const centerRef = useRef<CenterHandle>(null);
   const miniRef = useRef<HTMLCanvasElement>(null);
   useImperativeHandle(
     ref,
     () => ({
-      setInfo: (d) => infoRef.current?.set(d),
-      setFps: (t) => fpsRef.current?.set(t),
-      setToolbar: (s) => centerRef.current?.setToolbar(s),
       buildCards: (u) => centerRef.current?.buildCards(u),
       cards: { update: (s) => centerRef.current?.updateCards(s) },
       get minimapCanvas() {
@@ -250,20 +220,26 @@ const BattleHud = forwardRef<BattleHudInnerHandle, BattleHudProps>(function Batt
   );
   return (
     <TooltipProvider>
-      <LeftInfoCard ref={infoRef} />
-      <FpsReadout ref={fpsRef} />
+      <LeftInfoCard store={props.store} />
+      <FpsReadout store={props.store} />
       <AudioControls />
-      <CenterCard ref={centerRef} onSelect={props.onCardSelect} onToolbarCmd={props.onToolbarCmd} />
+      <CenterCard
+        ref={centerRef}
+        store={props.store}
+        onSelect={props.onCardSelect}
+        onToolbarCmd={props.onToolbarCmd}
+      />
       <canvas id="minimap" className="hud-chassis" width={240} height={160} ref={miniRef} />
     </TooltipProvider>
   );
 });
 
 /** Mount the single-root battle HUD into `container` and return the imperative
- * handle scene.ts drives. flushSync so the child refs (minimap canvas, card view)
+ * handle the battle loop drives. flushSync so the child refs (minimap canvas, card view)
  * are live before enter() continues past this call. */
 export function mountBattleHud(
   container: HTMLElement,
+  store: HudStore<BattleHudState>,
   cb: { onCardSelect(unit: number, additive: boolean): void; onToolbarCmd(cmd: string): void },
 ): BattleHudHandle {
   const root = createRoot(container);
@@ -273,7 +249,12 @@ export function mountBattleHud(
   };
   flushSync(() => {
     root.render(
-      <BattleHud ref={capture} onCardSelect={cb.onCardSelect} onToolbarCmd={cb.onToolbarCmd} />,
+      <BattleHud
+        ref={capture}
+        store={store}
+        onCardSelect={cb.onCardSelect}
+        onToolbarCmd={cb.onToolbarCmd}
+      />,
     );
   });
   // Own the Root's lifecycle here; every other method is the component's own.

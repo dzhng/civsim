@@ -13,6 +13,8 @@ import {
 import type { Scene } from "../scene";
 import { type EncounterSideView } from "../ui/campaign/CampaignBattleModal";
 import { mountCampaignHud, type CampaignHudHandle } from "../ui/campaign/CampaignHud";
+import type { CampaignTopBarActions, CampaignTopBarState } from "../ui/campaign/CampaignTopBar";
+import { createHudStore } from "../ui/hudStore";
 import { nearestLoc, tilePos, type CampaignData } from "./data";
 import type { CamView } from "./camera";
 import { rectsOverlap, type ScreenRect } from "@packages/game-renderer/src/campaign/mapPass";
@@ -97,7 +99,16 @@ export class CampaignScene implements Scene {
   private canvas!: HTMLCanvasElement;
   private ui!: HTMLDivElement;
   private campaignHud: CampaignHudHandle | null = null;
-  private lastTopBarKey = "";
+  private readonly topBarStore = createHudStore<CampaignTopBarState>({
+    dateText: "",
+    goldText: "",
+    paused: true,
+    speed: 0,
+    factionView: true,
+    fog: false,
+    diploOpen: false,
+    classesOpen: false,
+  });
   private renderer!: CampaignRenderer;
   // Terrain/territory live across battle round-trips (enter/exit cycles).
   private field: TerrainField | null = null;
@@ -107,6 +118,7 @@ export class CampaignScene implements Scene {
   private cam: CamView;
   private speed = 0; // index into SPEEDS
   private last = 0;
+  private hudTimer = 0;
   private readonly clock = new SimClock({ tickHz: TICKS_PER_SEC, maxTicksPerFrame: 4 });
   /** The off-thread AI worker — the sole driver of the campaign AI. */
   private aiWorker: Worker | null = null;
@@ -343,6 +355,7 @@ export class CampaignScene implements Scene {
   frame(now: number) {
     const dt = Math.min((now - this.last) / 1000, 0.25);
     this.last = now;
+    this.hudTimer += dt;
     const c = this.cfg.campaign;
     this.cameraKeys?.update(dt);
 
@@ -361,11 +374,11 @@ export class CampaignScene implements Scene {
     // backdrop: stop redrawing the world behind it. The WebGPU map render is
     // the frame's whole cost, so skipping it keeps the decision UI responsive.
     if (!this.terrainReady) {
-      this.updateHud();
+      this.updateHudAtCadence();
       return;
     }
     if (!this.autoResolving && !this.modalOpen) this.drawWorld();
-    this.updateHud();
+    this.updateHudAtCadence();
   }
 
   /** One full world render at the current camera. The frame's whole cost. */
@@ -1011,7 +1024,39 @@ export class CampaignScene implements Scene {
     ui.style.display = "none";
     ui.innerHTML = campaignDomHtml();
     document.body.appendChild(ui);
-    this.campaignHud = mountCampaignHud(ui.querySelector("#cmp-hud-root")!);
+    const topBarActions: CampaignTopBarActions = {
+      pause: () => {
+        this.clock.paused = !this.clock.paused;
+        this.renderTopBar();
+      },
+      speed: (index) => {
+        this.setSpeed(index);
+        this.renderTopBar();
+      },
+      factions: () => {
+        this.factionView = !this.factionView;
+        this.renderTopBar();
+      },
+      fog: () => {
+        this.fogOfWar = !this.fogOfWar;
+        this.renderTopBar();
+      },
+      diplomacy: () => {
+        this.toggleDiplomacy();
+        this.renderTopBar();
+      },
+      classes: () => {
+        this.toggleClassBuilder();
+        this.renderTopBar();
+      },
+      save: () => this.saveCampaign(),
+      exit: () => this.cfg.onExit(),
+    };
+    this.campaignHud = mountCampaignHud(
+      ui.querySelector("#cmp-hud-root")!,
+      this.topBarStore,
+      topBarActions,
+    );
     this.renderTopBar();
   }
 
@@ -1024,11 +1069,9 @@ export class CampaignScene implements Scene {
     }
   }
 
-  /** Render the React top bar with current state — the ≤5Hz bridge. Skips when
-   * nothing visible changed (called every updateHud, i.e. per render frame). */
+  /** Publish current top-bar state through the scene-owned HUD store. */
   private renderTopBar() {
-    const hud = this.campaignHud;
-    if (!hud) return;
+    if (!this.campaignHud) return;
     const t = this.cfg.campaign.current_tick();
     const day = Math.floor(t / 1440) + 1;
     const mins = t % 1440;
@@ -1043,10 +1086,7 @@ export class CampaignScene implements Scene {
     };
     const sign = eco.monthly_net >= 0 ? "+" : "";
     const goldText = `${eco.treasury.toLocaleString()} gold  (${sign}${eco.monthly_net.toLocaleString()}/mo: +${eco.monthly_income.toLocaleString()} −${eco.monthly_upkeep.toLocaleString()})`;
-    const key = `${dateText}|${goldText}|${this.factionView}|${this.fogOfWar}|${this.diploOpen}|${this.classBuilderOpen}`;
-    if (key === this.lastTopBarKey) return;
-    this.lastTopBarKey = key;
-    hud.setTopBar({
+    this.topBarStore.set({
       dateText,
       goldText,
       paused: this.clock.paused,
@@ -1055,32 +1095,6 @@ export class CampaignScene implements Scene {
       fog: this.fogOfWar,
       diploOpen: this.diploOpen,
       classesOpen: this.classBuilderOpen,
-      onPause: () => {
-        this.clock.paused = !this.clock.paused;
-        this.renderTopBar();
-      },
-      onSpeed: (i) => {
-        this.setSpeed(i);
-        this.renderTopBar();
-      },
-      onFactions: () => {
-        this.factionView = !this.factionView;
-        this.renderTopBar();
-      },
-      onFog: () => {
-        this.fogOfWar = !this.fogOfWar;
-        this.renderTopBar();
-      },
-      onDiplomacy: () => {
-        this.toggleDiplomacy();
-        this.renderTopBar();
-      },
-      onClasses: () => {
-        this.toggleClassBuilder();
-        this.renderTopBar();
-      },
-      onSave: () => this.saveCampaign(),
-      onExit: () => this.cfg.onExit(),
     });
   }
 
@@ -1123,10 +1137,16 @@ export class CampaignScene implements Scene {
 
   private updateHud() {
     // The date/gold readout, speed lights, and view-toggle lights are the React
-    // top bar now — renderTopBar() formats them and skips when nothing changed.
+    // top bar now — renderTopBar() formats and publishes them.
     this.renderTopBar();
     this.updateDiplomacyPanel(); // cheap no-op unless open and changed
     this.updateClassBuilderPanel(); // cheap no-op unless open and changed
+  }
+
+  private updateHudAtCadence() {
+    if (this.hudTimer < 0.2) return;
+    this.hudTimer = 0;
+    this.updateHud();
   }
 
   private updateClassBuilderPanel(force = false) {

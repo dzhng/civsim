@@ -1,3 +1,4 @@
+import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   DEFAULT_GRAPHICS_SETTINGS,
@@ -8,6 +9,8 @@ import {
   resolveGraphicsSettings,
   setGraphicsSettings,
   subscribeGraphicsSettings,
+  updateGraphicsSettings,
+  useGraphicsSettings,
 } from "./graphicsSettings";
 
 describe("graphicsSettings", () => {
@@ -18,6 +21,21 @@ describe("graphicsSettings", () => {
 
   it("defaults to the production settings", () => {
     expect(getGraphicsSettings()).toEqual(DEFAULT_GRAPHICS_SETTINGS);
+  });
+
+  it("keeps a stable React snapshot until settings change", () => {
+    const { result, rerender } = renderHook(() => useGraphicsSettings());
+    const initial = result.current;
+    rerender();
+    expect(result.current).toBe(initial);
+
+    act(() => updateGraphicsSettings({ bloom: false }));
+    const changed = result.current;
+    expect(changed).not.toBe(initial);
+    expect(changed.bloom).toBe(false);
+
+    act(() => setGraphicsSettings(getGraphicsSettings()));
+    expect(result.current).toBe(changed);
   });
 
   it("persists and reloads a complete settings roundtrip", () => {

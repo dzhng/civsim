@@ -9,7 +9,8 @@ import type { BattleWorld } from "./battleWorld";
 import type { SimClock } from "../shared/simClock";
 import type { HudData, HudUnit } from "../ui/hud/HudPanel";
 import type { ToolButtonState } from "../ui/hud/Toolbar";
-import type { BattleHudHandle } from "../ui/hud/BattleHud";
+import type { BattleHudHandle, BattleHudState } from "../ui/hud/BattleHud";
+import type { HudStore } from "../ui/hudStore";
 import { GameOver, PauseMenu } from "../ui/hud/BattleModals";
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
@@ -27,6 +28,7 @@ export interface BattleHudBridge {
 
 export function createBattleHudBridge(
   hud: BattleHudHandle,
+  hudStore: HudStore<BattleHudState>,
   commands: {
     selected(): number[];
     togglePace(units: number[]): void;
@@ -50,12 +52,38 @@ export function createBattleHudBridge(
 ): BattleHudBridge {
   let ended = false;
   let cardUnits: number[] = [];
-  let lastToolbarSignature = "";
   const measureCards = new URLSearchParams(location.search).has("measurecards");
   const cardUpdateSamples: number[] = [];
   if (measureCards)
     (window as unknown as { __cardUpdateSamples?: number[] }).__cardUpdateSamples =
       cardUpdateSamples;
+
+  const toolbarState = () => {
+    const { clock, controls, input, world } = view;
+    const selected = controls.myUnits(input.selected);
+    const info = world.unitInfo();
+    const offset = selected.length ? selected[0] * world.stride : -1;
+    const classes = selected.map((unit) => info[unit * world.stride + UNIT_INFO.classId]);
+    const supports = (allowed: number[]) => classes.some((classId) => allowed.includes(classId));
+    const empty = selected.length === 0;
+    return {
+      pace: { on: offset >= 0 && info[offset + UNIT_INFO.running] > 0.5, disabled: empty },
+      reform: { on: false, disabled: empty },
+      pursue: { on: offset >= 0 && info[offset + UNIT_INFO.pursue] > 0.5, disabled: empty },
+      fire: {
+        on: offset >= 0 && selected.length > 0 && controls.fireOn(),
+        disabled: empty || !supports(MISSILE_CLASS_IDS),
+      },
+      kite: {
+        on: offset >= 0 && info[offset + UNIT_INFO.evadeAuto] > 0.5,
+        disabled: empty || !supports(KITE_CLASS_IDS),
+      },
+      pause: { on: clock.paused, disabled: false },
+      x1: { on: !clock.paused && clock.timeScale === 1, disabled: false },
+      x3: { on: !clock.paused && clock.timeScale === 3, disabled: false },
+      paths: { on: controls.showPaths(), disabled: false },
+    } satisfies Record<string, ToolButtonState>;
+  };
 
   const bridge: BattleHudBridge = {
     buildCards() {
@@ -147,7 +175,6 @@ export function createBattleHudBridge(
       if (measureCards) cardUpdateSamples.push(performance.now() - started);
     },
     updateHud(fps) {
-      hud.setFps(fps);
       const { camera, game, stride } = view.world;
       let unit: HudUnit | undefined;
       let cardUnit = -1;
@@ -165,37 +192,10 @@ export function createBattleHudBridge(
         ? undefined
         : armySummary(view.world.unitInfo(), game.unit_count(), stride);
       const data: HudData = { unit, roster };
-      hud.setInfo(data);
+      hudStore.set({ info: data, fps, toolbar: toolbarState() });
     },
     updateToolbar() {
-      const { clock, controls, input, world } = view;
-      const selected = controls.myUnits(input.selected);
-      const info = world.unitInfo();
-      const offset = selected.length ? selected[0] * world.stride : -1;
-      const classes = selected.map((unit) => info[unit * world.stride + UNIT_INFO.classId]);
-      const supports = (allowed: number[]) => classes.some((classId) => allowed.includes(classId));
-      const empty = selected.length === 0;
-      const state: Record<string, ToolButtonState> = {
-        pace: { on: offset >= 0 && info[offset + UNIT_INFO.running] > 0.5, disabled: empty },
-        reform: { on: false, disabled: empty },
-        pursue: { on: offset >= 0 && info[offset + UNIT_INFO.pursue] > 0.5, disabled: empty },
-        fire: {
-          on: offset >= 0 && selected.length > 0 && controls.fireOn(),
-          disabled: empty || !supports(MISSILE_CLASS_IDS),
-        },
-        kite: {
-          on: offset >= 0 && info[offset + UNIT_INFO.evadeAuto] > 0.5,
-          disabled: empty || !supports(KITE_CLASS_IDS),
-        },
-        pause: { on: clock.paused, disabled: false },
-        x1: { on: !clock.paused && clock.timeScale === 1, disabled: false },
-        x3: { on: !clock.paused && clock.timeScale === 3, disabled: false },
-        paths: { on: controls.showPaths(), disabled: false },
-      };
-      const signature = JSON.stringify(state);
-      if (signature === lastToolbarSignature) return;
-      lastToolbarSignature = signature;
-      hud.setToolbar(state);
+      hudStore.set({ ...hudStore.get(), toolbar: toolbarState() });
     },
   };
   bridge.buildCards();

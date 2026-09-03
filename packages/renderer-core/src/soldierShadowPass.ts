@@ -1,7 +1,8 @@
 import type { RawFrameShell, WorldRenderPass } from './frameShell';
 import { WORLD_CAMERA_WGSL } from './cameraWgsl';
 import { compileShader } from './compileShader';
-import { gpuAlphaBlendColorTarget, gpuMultisample, gpuWorldDepthStencil } from './pipelineContracts';
+import { GrowableBuffer, makeVertexBuffer } from './gpuBuffers';
+import { cameraOnlyPipeline } from './pipelineContracts';
 import type { CrowdInstance } from '../../crowd-runtime/src/instanceData';
 
 // A grounding shadow per soldier: a soft dark ellipse on the terrain surface at
@@ -36,44 +37,29 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 export class SoldierShadowDecalPass {
   private pipeline: GPURenderPipeline;
   private quadBuffer: GPUBuffer;
-  private instanceBuffer: GPUBuffer;
-  private capacity = 0;
+  private instanceBuffer: GrowableBuffer;
   private count = 0;
 
   constructor(private shell: RawFrameShell) {
     const device = shell.device;
     const module = compileShader(device, SHADOW_WGSL, 'soldier-shadow');
-    this.pipeline = device.createRenderPipeline({
+    this.pipeline = cameraOnlyPipeline(shell, {
       label: 'soldier-shadow-pipeline',
-      layout: device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),
-      vertex: {
-        module,
-        entryPoint: 'vs',
-        buffers: [
+      module,
+      buffers: [
           { arrayStride: 8, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x2' }] },
           { arrayStride: 16, stepMode: 'instance', attributes: [{ shaderLocation: 1, offset: 0, format: 'float32x4' }] },
-        ],
-      },
-      fragment: { module, entryPoint: 'fs', targets: [gpuAlphaBlendColorTarget(shell.info.format)] },
-      primitive: { topology: 'triangle-strip' },
-      depthStencil: gpuWorldDepthStencil('read'),
-      multisample: gpuMultisample(shell.sampleCount),
+      ],
+      target: 'alpha',
+      depth: 'read',
+      topology: 'triangle-strip',
     });
-    this.quadBuffer = device.createBuffer({ label: 'soldier-shadow-quad', size: 8 * 4, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
-    device.queue.writeBuffer(this.quadBuffer, 0, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]));
-    this.instanceBuffer = device.createBuffer({ label: 'soldier-shadow-empty', size: 4 * 4, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
+    this.quadBuffer = makeVertexBuffer(device, 'soldier-shadow-quad', new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]));
+    this.instanceBuffer = new GrowableBuffer(device, 'soldier-shadow-instances', GPUBufferUsage.VERTEX, 256 * 4 * 4);
   }
 
   upload(instances: CrowdInstance[], opts: { radius?: number } = {}) {
     this.count = instances.length;
-    if (instances.length > this.capacity) {
-      this.capacity = Math.max(instances.length, this.capacity * 2, 256);
-      this.instanceBuffer = this.shell.device.createBuffer({
-        label: 'soldier-shadow-instances',
-        size: this.capacity * 4 * 4,
-        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-      });
-    }
     if (instances.length === 0) return;
     const radius = opts.radius ?? 0.62;
     const data = new Float32Array(instances.length * 4);
@@ -85,7 +71,7 @@ export class SoldierShadowDecalPass {
       data[o + 2] = radius * (inst.mounted ? 1.5 : 1) * (inst.alive ? 1 : 1.25);
       data[o + 3] = inst.elevation ?? 0;
     }
-    this.shell.device.queue.writeBuffer(this.instanceBuffer, 0, data);
+    this.instanceBuffer.write(data);
   }
 
   draw(pass: WorldRenderPass) {
@@ -93,7 +79,7 @@ export class SoldierShadowDecalPass {
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
     pass.setVertexBuffer(0, this.quadBuffer);
-    pass.setVertexBuffer(1, this.instanceBuffer);
+    pass.setVertexBuffer(1, this.instanceBuffer.buffer);
     pass.draw(4, this.count);
   }
 

@@ -1,6 +1,7 @@
 import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
-import { gpuAlphaBlendColorTarget, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import { GrowableBuffer, makeIndexBuffer, makeVertexBuffer } from '../../../renderer-core/src/gpuBuffers';
+import { cameraOnlyPipeline } from '../../../renderer-core/src/pipelineContracts';
 import { buildLeafAtlas, LEAF_ATLAS_RGB_GAIN } from '../models/shared/leafAtlas';
 import type { MeshData } from '../models/shared/meshBuilder';
 import { SCENERY_PROP_IDS, SCENERY_PROP_MODELS, type SceneryPropId } from '../models/shared/sceneryPropRegistry';
@@ -89,8 +90,7 @@ interface SceneryBucket {
   shadowVertexBuffer: GPUBuffer;
   shadowIndexBuffer: GPUBuffer;
   shadowUvBuffer: GPUBuffer;
-  instanceBuffer: GPUBuffer;
-  capacity: number;
+  instanceBuffer: GrowableBuffer;
   count: number;
 }
 
@@ -124,24 +124,17 @@ export class CampaignSceneryPass {
         shadowVertexBuffer: makeVertexBuffer(device, `campaign-${id}-shadow-vertices`, mesh.shadow.vertices),
         shadowIndexBuffer: makeIndexBuffer(device, `campaign-${id}-shadow-indices`, mesh.shadow.indices),
         shadowUvBuffer: makeUvBuffer(device, `campaign-${id}-shadow-uvs`, mesh.shadow.vertices.length / 10, mesh.shadow.uvs),
-        instanceBuffer: makeEmptyInstanceBuffer(device, `campaign-${id}-empty-instances`),
-        capacity: 0,
+        instanceBuffer: new GrowableBuffer(device, `campaign-${id}-instances`, GPUBufferUsage.VERTEX, 128 * 8 * 4),
         count: 0,
       });
     }
   }
 
   private makePipeline(module: GPUShaderModule, material: 'opaque' | 'shadow') {
-    const device = this.shell.device;
-    return device.createRenderPipeline({
+    return cameraOnlyPipeline(this.shell, {
       label: material === 'opaque' ? 'campaign-scenery-opaque-depth-pipeline' : 'campaign-scenery-shadow-decal-pipeline',
-      layout: device.createPipelineLayout({
-        bindGroupLayouts: [this.shell.cameraBindGroupLayout, this.leafBindGroupLayout],
-      }),
-      vertex: {
-        module,
-        entryPoint: 'vs',
-        buffers: [
+      module,
+      buffers: [
           {
             arrayStride: 40,
             attributes: [
@@ -162,19 +155,10 @@ export class CampaignSceneryPass {
             arrayStride: 8,
             attributes: [{ shaderLocation: 5, offset: 0, format: 'float32x2' }],
           },
-        ],
-      },
-      fragment: {
-        module,
-        entryPoint: 'fs',
-        targets: [
-          material === 'opaque'
-            ? gpuOpaqueColorTarget(this.shell.info.format)
-            : gpuAlphaBlendColorTarget(this.shell.info.format),
-        ],
-      },
-      primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: gpuWorldDepthStencil(material === 'opaque' ? 'read-write' : 'read'),
+      ],
+      target: material === 'opaque' ? 'opaque' : 'alpha',
+      depth: material === 'opaque' ? 'read-write' : 'read',
+      extraBindGroupLayouts: [this.leafBindGroupLayout],
     });
   }
 
@@ -188,15 +172,7 @@ export class CampaignSceneryPass {
     for (const [id, bucket] of this.buckets) {
       const list = grouped.get(id) ?? [];
       bucket.count = list.length;
-      if (list.length > bucket.capacity) {
-        bucket.capacity = Math.max(list.length, bucket.capacity * 2, 128);
-        bucket.instanceBuffer = this.shell.device.createBuffer({
-          label: `campaign-${id}-instances`,
-          size: bucket.capacity * 8 * 4,
-          usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-        });
-      }
-      if (list.length > 0) this.shell.device.queue.writeBuffer(bucket.instanceBuffer, 0, packInstances(list));
+      bucket.instanceBuffer.write(packInstances(list));
     }
   }
 
@@ -220,7 +196,7 @@ export class CampaignSceneryPass {
       const part = bucket.mesh[layer];
       if (part.indexCount === 0) continue;
       pass.setVertexBuffer(0, layer === 'opaque' ? bucket.vertexBuffer : bucket.shadowVertexBuffer);
-      pass.setVertexBuffer(1, bucket.instanceBuffer);
+      pass.setVertexBuffer(1, bucket.instanceBuffer.buffer);
       pass.setVertexBuffer(2, layer === 'opaque' ? bucket.uvBuffer : bucket.shadowUvBuffer);
       pass.setIndexBuffer(layer === 'opaque' ? bucket.indexBuffer : bucket.shadowIndexBuffer, 'uint16');
       pass.drawIndexed(part.indexCount, bucket.count);
@@ -265,20 +241,6 @@ function packInstances(instances: CampaignSceneryInstance[]) {
   return data;
 }
 
-function makeVertexBuffer(device: GPUDevice, label: string, data: Float32Array) {
-  const buffer = device.createBuffer({ label, size: Math.max(4, data.byteLength), usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
-  if (data.byteLength > 0) device.queue.writeBuffer(buffer, 0, data);
-  return buffer;
-}
-
-function makeIndexBuffer(device: GPUDevice, label: string, data: Uint16Array) {
-  const upload = data.byteLength % 4 === 0 ? data : new Uint16Array(data.length + 1);
-  if (upload !== data) upload.set(data);
-  const buffer = device.createBuffer({ label, size: Math.max(4, upload.byteLength), usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST });
-  if (upload.byteLength > 0) device.queue.writeBuffer(buffer, 0, upload);
-  return buffer;
-}
-
 /** Per-vertex leaf-atlas UVs; vertices without UVs get the u=-1 sentinel. */
 function makeUvBuffer(device: GPUDevice, label: string, vertexCount: number, uvs?: Float32Array) {
   const data = uvs ?? new Float32Array(vertexCount * 2).fill(-1);
@@ -314,10 +276,6 @@ function makeLeafAtlasBindGroup(device: GPUDevice, layout: GPUBindGroupLayout) {
       { binding: 1, resource: sampler },
     ],
   });
-}
-
-function makeEmptyInstanceBuffer(device: GPUDevice, label: string) {
-  return device.createBuffer({ label, size: 8 * 4, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
 }
 
 function hash2(x: number, y: number): number {

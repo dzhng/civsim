@@ -1697,6 +1697,7 @@ async function routeCampaignMap(ctx: LabContext) {
   const preset = ctx.params.get("preset") ?? "whole";
   const camera = campaignPresetCamera(preset);
   const shell = await createConfiguredShell(ctx.canvas, camera);
+  applyCampaignEnvironment(shell);
   // The sea shimmer rides cam.time (pitch-gated); snap at a fixed t for deterministic
   // shots (default 0 = the still painted chart, matching production snapshots).
   shell.setTime(numberParam(ctx.params, "t", 0));
@@ -1834,6 +1835,7 @@ async function routeCampaignUi(ctx: LabContext) {
   const preset = ctx.params.get("preset") ?? "fixture";
   const camera = campaignPresetCamera(preset);
   const shell = await createConfiguredShell(ctx.canvas, camera);
+  applyCampaignEnvironment(shell);
   const ground = new LabGroundPass(shell, campaignBgTerrainRect(data.bgRect));
   const lines = new CampaignWorldLinePass(shell, "triangle-list");
   const roads = new CampaignRoadPass(shell);
@@ -2383,6 +2385,7 @@ async function routeCampaignModelShots(ctx: LabContext) {
   const gate = campaignModelShot(ctx.params.get("gate"));
   const camera = campaignModelShotCamera(gate);
   const shell = await createConfiguredShell(ctx.canvas, camera);
+  applyCampaignEnvironment(shell);
   const entities = new CampaignEntityPass(shell);
   const standards = new SharedStandardPass(shell);
   const scenery = new CampaignSceneryPass(shell);
@@ -2641,6 +2644,7 @@ async function routeSharedPropModelShots(ctx: LabContext) {
   const group = PROP_REVIEW_GROUPS.find((g) => g.id === requested) ?? PROP_REVIEW_GROUPS[0];
   const camera = group.camera;
   const shell = await createConfiguredShell(ctx.canvas, camera);
+  applyCampaignEnvironment(shell);
   const scenery = new CampaignSceneryPass(shell);
   const instances: CampaignSceneryInstance[] = group.props.map((prop) => ({
     x: prop.x,

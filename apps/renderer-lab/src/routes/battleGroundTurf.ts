@@ -1,24 +1,19 @@
 import * as THREE from "three/webgpu";
 import { positionWorld, vec3 } from "three/tsl";
 import type { Camera3DParams } from "@packages/renderer-core/src/camera3d";
-import { battleCameraRig } from "../../../web/src/battle/cameraRig";
+import { battleCameraRig } from "../../../../web/src/battle/cameraRig";
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
 import { linearAlbedo } from "@packages/photoreal-renderer/src/battle/battleTsl";
 import { groundDetailNode } from "@packages/photoreal-renderer/src/battle/groundDetail";
 import { MEADOW } from "@packages/game-renderer/src/battle/meadowPalette";
 import { PhotorealWorld } from "@packages/photoreal-renderer/src/world";
-
-interface BattleGroundTurfContext {
-  canvas: HTMLCanvasElement;
-  status: HTMLElement;
-  params: URLSearchParams;
-}
+import type { LabContext } from "../labShell";
 
 type TurfView = "topdown" | "rts";
 
 const OLIVE = vec3(...MEADOW.base);
 
-export async function routeBattleGroundTurf(ctx: BattleGroundTurfContext): Promise<void> {
+export async function route(ctx: LabContext): Promise<void> {
   const view = parseView(ctx.params.get("view"));
   const world = await PhotorealWorld.create(ctx.canvas, { antialias: false });
   const width = ctx.canvas.clientWidth || 1000;
@@ -80,7 +75,7 @@ function addNeutralLights(scene: THREE.Scene): void {
 }
 
 function publishReady(
-  ctx: BattleGroundTurfContext,
+  ctx: LabContext,
   view: TurfView,
   worldStats: ReturnType<PhotorealWorld["stats"]>,
 ): void {

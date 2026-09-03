@@ -1,66 +1,35 @@
-// Photoreal ladder lab routes (slice 07): the 06 bake-off's verdict-grade
-// three.js probes, promoted onto the packages/photoreal-renderer substrate
-// (PhotorealWorld + cameraBridge + environment + stats):
-//   /renderer/photoreal-pbr    — 7×7 metal×roughness sphere grid under real
-//                                PMREM IBL from the golden preset.
-//   /renderer/photoreal-crowd  — 30,400 VAT-skinned soldiers + 200k grass
-//                                blades + 3k trees (?cam=mid|vista, ?count= up
-//                                to the 60k stress mode, ?t= fixed time).
-// All animation keys off PhotorealWorld.setTime — the TSL `time` node is banned
-// (byte-determinism; see packages/photoreal-renderer/src/world.ts).
 import * as THREE from 'three/webgpu';
-import {
-  attribute, cos, floor, fract, int, ivec2, mix, positionLocal, sin,
-  textureLoad, transformNormalToView, varying, vec3, vec4,
-} from 'three/tsl';
+
+import { attribute, cos, floor, fract, int, ivec2, mix, positionLocal, sin, textureLoad, transformNormalToView, varying, vec3, vec4 } from 'three/tsl';
+
 import { PhotorealWorld } from '@packages/photoreal-renderer/src/world';
+
 import { applyCamera3d } from '@packages/photoreal-renderer/src/cameraBridge';
+
 import { applyCivsimEnvironment } from '@packages/photoreal-renderer/src/environment';
+
 import { createPhotorealStatsPublisher } from '@packages/photoreal-renderer/src/stats';
+
 import { CIVSIM_ENVIRONMENTS } from '@packages/game-renderer/src/environment/environment';
-import type { Camera3DParams } from '@packages/renderer-core/src/camera3d';
+
 import { loadPlaceholderVat } from '@packages/soldier-assets/src/placeholders';
+
 import { createPlaceholderSoldierMeshes } from '@packages/soldier-assets/src/soldierMesh';
-import type { VatBake } from '@packages/soldier-assets/src/schema';
 
-interface PhotorealRouteContext {
-  canvas: HTMLCanvasElement;
-  status: HTMLElement;
-  params: URLSearchParams;
-}
+import { type VatBake } from '@packages/soldier-assets/src/schema';
 
-// Camera presets carried over from the 06 bake-off contract (same framing the
-// verdict shots and frame-time tables were judged at). Aspect is filled from
-// the live canvas; only applyCamera3d may turn these into a three camera pose.
-const YAW = -Math.PI / 2; // eye south of target, looking north (+y)
-const PBR_CAMERA = { target: [0, 0, 2], distance: 42, pitch: 0.5, yaw: YAW, fovY: 0.7, near: 1, far: 5000 } as const;
+import { type PhotorealRouteContext, YAW, camera3dFor, canvasSize, startLoop } from "../labPhotoreal";
+
+
+
 const CROWD_CAMERAS = {
   mid: { target: [0, 40, 0], distance: 380, pitch: 0.8, yaw: YAW, fovY: 0.68, near: 1, far: 8000 },
   vista: { target: [0, 90, 0], distance: 210, pitch: 0.3, yaw: YAW, fovY: 0.83, near: 1, far: 8000 },
 } as const;
 
 const FACTION_BLUE: [number, number, number] = [0.20, 0.42, 0.88];
+
 const FACTION_RED: [number, number, number] = [0.84, 0.24, 0.20];
-
-function camera3dFor(
-  preset: { target: readonly number[]; distance: number; pitch: number; yaw: number; fovY: number; near: number; far: number },
-  aspect: number,
-): Camera3DParams {
-  return {
-    target: [preset.target[0], preset.target[1], preset.target[2]],
-    distance: preset.distance,
-    pitch: preset.pitch,
-    yaw: preset.yaw,
-    fovY: preset.fovY,
-    aspect,
-    near: preset.near,
-    far: preset.far,
-  };
-}
-
-function canvasSize(canvas: HTMLCanvasElement): { width: number; height: number } {
-  return { width: canvas.clientWidth || 1000, height: canvas.clientHeight || 600 };
-}
 
 // Deterministic LCG so fixed-time frames (and their snapshots) are stable.
 function makeRng(seed: number) {
@@ -69,68 +38,6 @@ function makeRng(seed: number) {
     s = (s * 1664525 + 1013904223) >>> 0;
     return s / 4294967296;
   };
-}
-
-function startLoop(world: PhotorealWorld, params: URLSearchParams, frame: (nowMs: number) => void) {
-  const fixedT = params.has('t') ? Number(params.get('t')) : null;
-  const t0 = performance.now();
-  const loop = (now: number) => {
-    world.setTime(fixedT ?? (now - t0) / 1000);
-    frame(now);
-    requestAnimationFrame(loop);
-  };
-  requestAnimationFrame(loop);
-}
-
-// ---------------------------------------------------------------------------
-// /renderer/photoreal-pbr — metal by row (south→north 0→1), roughness by column
-// (west→east 0.05→1), bronze dielectric base over a neutral ground plane, lit
-// by the golden preset's sun + real PMREM IBL.
-
-export async function routePhotorealPbr(ctx: PhotorealRouteContext) {
-  const world = await PhotorealWorld.create(ctx.canvas);
-  const { width, height } = canvasSize(ctx.canvas);
-  world.resize(width, height, Math.min(window.devicePixelRatio, 2));
-  const camera = new THREE.PerspectiveCamera();
-  applyCamera3d(camera, camera3dFor(PBR_CAMERA, width / height));
-  applyCivsimEnvironment(world, CIVSIM_ENVIRONMENTS.golden);
-
-  const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(400, 400),
-    new THREE.MeshStandardNodeMaterial({ color: new THREE.Color(0.45, 0.42, 0.34), roughness: 0.95, metalness: 0.0 }),
-  );
-  world.scene.add(ground);
-
-  const grid = 7;
-  const spacing = 4.0;
-  const sphereGeo = new THREE.SphereGeometry(1.5, 48, 32);
-  const baseColor = new THREE.Color(0.72, 0.45, 0.20);
-  for (let row = 0; row < grid; row++) {
-    for (let col = 0; col < grid; col++) {
-      const material = new THREE.MeshStandardNodeMaterial({
-        color: baseColor.clone(),
-        metalness: row / (grid - 1),
-        roughness: 0.05 + (col / (grid - 1)) * 0.95,
-      });
-      const mesh = new THREE.Mesh(sphereGeo, material);
-      mesh.position.set((col - (grid - 1) / 2) * spacing, (row - (grid - 1) / 2) * spacing, 2);
-      world.scene.add(mesh);
-    }
-  }
-
-  const spheres = grid * grid;
-  const publish = createPhotorealStatsPublisher(world, 'photoreal-pbr', () => ({ spheres }));
-  startLoop(world, ctx.params, (now) => {
-    world.render(camera);
-    const s = publish(now);
-    ctx.status.innerHTML = `<table>
-      <tr><td>route</td><td>photoreal-pbr (${s.substrate})</td></tr>
-      <tr><td>environment</td><td>${s.environment}</td></tr>
-      <tr><td>spheres</td><td>${spheres}</td></tr>
-      <tr><td>draw calls</td><td>${s.stats.drawCalls}</td></tr>
-      <tr><td>gpu ms</td><td>${s.stats.gpuTimeMs?.toFixed(3) ?? 'pending'}</td></tr>
-    </table>`;
-  });
 }
 
 function inFormation(x: number, y: number): boolean {
@@ -390,7 +297,7 @@ function buildTrees(total: number): { meshes: THREE.InstancedMesh[]; placed: num
   return { meshes, placed };
 }
 
-export async function routePhotorealCrowd(ctx: PhotorealRouteContext) {
+export async function route(ctx: PhotorealRouteContext) {
   const soldierCount = Math.max(2, Number(ctx.params.get('count')) || 30400);
   const grassCount = Math.max(0, Number(ctx.params.get('grass')) || 200000);
   const treeCount = Math.max(0, Number(ctx.params.get('trees')) || 3000);

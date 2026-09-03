@@ -437,6 +437,7 @@ async function findUnguardedRendererReadyFootguns() {
     new URL("../../src/battle/", import.meta.url),
     new URL("../../src/campaign/", import.meta.url),
     new URL("../../src/shared/", import.meta.url),
+    new URL("../../../apps/renderer-lab/src/", import.meta.url),
   ];
   const root = new URL("../../../", import.meta.url).pathname;
   const matches = [];
@@ -452,13 +453,14 @@ async function findUnguardedRendererReadyFootguns() {
 }
 
 async function findCampaignDepthOnlyFootguns() {
+  const rendererLabRoot = new URL("../../../apps/renderer-lab/src/", import.meta.url);
   const files = [
     new URL("../../../packages/game-renderer/src/campaign/entityPass.ts", import.meta.url),
     new URL("../../../packages/game-renderer/src/campaign/sceneryPass.ts", import.meta.url),
     new URL("../../../packages/game-renderer/src/campaign/selectionPass.ts", import.meta.url),
     new URL("../../../packages/game-renderer/src/campaign/mapPass.ts", import.meta.url),
     new URL("../../src/campaign/renderer.ts", import.meta.url),
-    new URL("../../../apps/renderer-lab/src/router.ts", import.meta.url),
+    ...(await tsFiles(rendererLabRoot)),
   ];
   const root = new URL("../../../", import.meta.url).pathname;
   const checks = [
@@ -666,9 +668,10 @@ async function findRawRenderPassEncoderFootguns() {
 
 async function findAdHocFrameCallbackFootguns() {
   const root = new URL("../../../", import.meta.url).pathname;
+  const rendererLabRoot = new URL("../../../apps/renderer-lab/src/", import.meta.url);
   const files = [
     new URL("../../../packages/renderer-core/src/frameShell.ts", import.meta.url),
-    new URL("../../../apps/renderer-lab/src/router.ts", import.meta.url),
+    ...(await tsFiles(rendererLabRoot)),
     new URL("../../src/battle/renderer.ts", import.meta.url),
     new URL("../../src/campaign/renderer.ts", import.meta.url),
   ];
@@ -687,8 +690,13 @@ async function findAdHocFrameCallbackFootguns() {
 
 async function findWorldDepthPassMetadataFootguns() {
   const root = new URL("../../../", import.meta.url).pathname;
+  const rendererLabRoot = new URL("../../../apps/renderer-lab/src/", import.meta.url);
+  const frameShellRoute = new URL(
+    "../../../apps/renderer-lab/src/routes/frameShell.ts",
+    import.meta.url,
+  ).pathname;
   const files = [
-    new URL("../../../apps/renderer-lab/src/router.ts", import.meta.url),
+    ...(await tsFiles(rendererLabRoot)),
     new URL("../../src/battle/renderer.ts", import.meta.url),
     new URL("../../src/campaign/renderer.ts", import.meta.url),
   ];
@@ -697,11 +705,7 @@ async function findWorldDepthPassMetadataFootguns() {
     const source = await readFile(file, "utf8");
     const passObjects = source.match(/\{[^{}]*phase:\s*'world-depth'[^{}]*\}/g) ?? [];
     for (const passObject of passObjects) {
-      if (
-        file.pathname.endsWith("/apps/renderer-lab/src/router.ts") &&
-        /\bid:\s*'bad-/.test(passObject)
-      )
-        continue;
+      if (file.pathname === frameShellRoute && /\bid:\s*'bad-/.test(passObject)) continue;
       if (!/\bdepth:\s*'(?:read|read-write|write)'/.test(passObject)) {
         const id = passObject.match(/\bid:\s*'([^']+)'/)?.[1] ?? "unknown pass";
         matches.push(`${file.pathname.replace(root, "")}: ${id} missing world-depth depth mode`);
@@ -713,8 +717,13 @@ async function findWorldDepthPassMetadataFootguns() {
 
 async function findFrameGraphRoleFootguns() {
   const root = new URL("../../../", import.meta.url).pathname;
+  const rendererLabRoot = new URL("../../../apps/renderer-lab/src/", import.meta.url);
+  const frameShellRoute = new URL(
+    "../../../apps/renderer-lab/src/routes/frameShell.ts",
+    import.meta.url,
+  ).pathname;
   const files = [
-    new URL("../../../apps/renderer-lab/src/router.ts", import.meta.url),
+    ...(await tsFiles(rendererLabRoot)),
     new URL("../../src/battle/renderer.ts", import.meta.url),
     new URL("../../src/campaign/renderer.ts", import.meta.url),
   ];
@@ -723,11 +732,7 @@ async function findFrameGraphRoleFootguns() {
     const source = await readFile(file, "utf8");
     const passObjects = source.match(/\{[^{}]*id:\s*'[^']+'[^{}]*phase:\s*'[^']+'[^{}]*\}/g) ?? [];
     for (const passObject of passObjects) {
-      if (
-        file.pathname.endsWith("/apps/renderer-lab/src/router.ts") &&
-        /\bid:\s*'bad-/.test(passObject)
-      )
-        continue;
+      if (file.pathname === frameShellRoute && /\bid:\s*'bad-/.test(passObject)) continue;
       const phase = passObject.match(/\bphase:\s*'([^']+)'/)?.[1] ?? "";
       if (phase !== "background" && phase !== "world-depth" && phase !== "overlay") continue;
       if (

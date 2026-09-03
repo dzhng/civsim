@@ -1,5 +1,9 @@
 import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
-import { BATTLE_RELIEF_EXAGGERATION } from "@packages/game-renderer/src/battle/terrainFeatures";
+import {
+  BATTLE_RELIEF_EXAGGERATION,
+  type BattleTerrainGrid,
+} from "@packages/game-renderer/src/battle/terrainFeatures";
+import { readBattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainGrid";
 import type { BattleVistaGrid } from "@packages/photoreal-renderer/src/battle/battleWorld";
 import type { Game } from "../wasm/game_wasm.js";
 import type { BattleWorld, GeneratedBattleMapDescriptor } from "./battleWorld";
@@ -16,6 +20,7 @@ type VistaExportGame = Game & {
 
 export interface BattleTerrain {
   generatedVista: BattleVistaGrid | null;
+  grid: BattleTerrainGrid;
   refreshStatic(): void;
 }
 
@@ -41,44 +46,35 @@ export function buildBattleTerrain(world: BattleWorld): BattleTerrain {
   refreshStatic();
 
   const generatedVista = cfg.generatedMap ? readGeneratedVistaGrid(world, cfg.generatedMap) : null;
-  const width = game.terrain_w();
-  const height = game.terrain_h();
-  const tint = new Uint8Array(world.memory.buffer, game.terrain_tint_ptr(), width * height);
-  const terrainHeight = new Float32Array(
-    world.memory.buffer,
-    game.terrain_height_ptr(),
-    width * height,
-  );
-  const rough = new Float32Array(world.memory.buffer, game.terrain_rough_ptr(), width * height);
-  const speed = new Float32Array(world.memory.buffer, game.terrain_speed_ptr(), width * height);
+  const grid = readBattleTerrainGrid(game, world.memory);
   const reliefScale = cfg.generatedMap?.reliefScale ?? BATTLE_RELIEF_EXAGGERATION;
   const heightForRenderer =
     reliefScale === BATTLE_RELIEF_EXAGGERATION
-      ? new Float32Array(terrainHeight)
-      : scaleHeightForRenderer(terrainHeight, reliefScale);
+      ? grid.height!
+      : scaleHeightForRenderer(grid.height!, reliefScale);
   const lakeSurfaces =
     cfg.generatedMap?.lakeSurfaces?.map((lake) => ({
       ...lake,
       level: lake.level * reliefScale,
     })) ?? null;
   renderer.setTerrain(
-    width,
-    height,
-    game.terrain_cell(),
-    game.terrain_origin_x(),
-    game.terrain_origin_y(),
-    new Uint8Array(tint),
+    grid.w,
+    grid.h,
+    grid.cell,
+    grid.ox,
+    grid.oy,
+    grid.tint,
     heightForRenderer,
     cfg.wasmMapId,
     cfg.generatedMap?.slopeBands ?? null,
     generatedVista,
     lakeSurfaces,
-    new Float32Array(rough),
-    new Float32Array(speed),
+    grid.rough!,
+    grid.speed!,
     cfg.generatedMap?.groundCover ?? "green-grass",
   );
   audio.setTerrain(renderer.battleAudioTerrain(), renderer.battleAudioWaterSurfaces());
-  return { generatedVista, refreshStatic };
+  return { generatedVista, grid, refreshStatic };
 }
 
 function scaleHeightForRenderer(height: Float32Array, reliefScale: number): Float32Array {

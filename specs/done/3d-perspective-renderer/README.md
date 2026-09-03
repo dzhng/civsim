@@ -158,9 +158,10 @@ dense foliage (vista 184.8k grass blades / 1.48M grass triangles) — GPU median
   **SwiftShader** when `VERIFY_GPU=1` (renders correctness fine, incl. reverse-Z +
   the sky LUT; a weak-GPU CI proxy that enforces capability fallbacks). Perf runs on
   hardware (`VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome`).
-- Routes: `apps/renderer-lab/src/router.ts` + `photorealBattleRoute.ts`. Scenes:
+- Routes: `apps/renderer-lab/src/router.ts` registers the one-route modules under
+  `apps/renderer-lab/src/routes/`. Scenes:
   `web/scenes/**` (baselines `web/shots/**` via `snapCheck`, `web/snapshot.mjs`).
-  Seam unit tests: `bun run --cwd web test:unit` (`web/tests/*.test.ts`, incl.
+  Seam unit tests: `bun run --cwd web test` (`web/tests/*.test.ts`, incl.
   `photoreal*.test.ts`). Rust: `cargo test --workspace`. Animated gates snap at a
   fixed `world.setTime(t)`.
 - **House traps:** do not run `bunx oxfmt` (wrong formatter/quotes); match the

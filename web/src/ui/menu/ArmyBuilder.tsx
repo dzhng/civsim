@@ -4,6 +4,7 @@ import {
   factionPrimaryCss,
   type BattleFactionId,
 } from "@packages/game-renderer/src/battle/factionColors";
+import { readBattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainGrid";
 import { Portrait } from "../hud/UnitCardsView";
 import {
   BATTLE_ENVIRONMENT_OPTIONS,
@@ -238,13 +239,8 @@ function GeneratedMapPreview({ seed }: { seed: string }) {
         game = probe;
         try {
           probe.start_battle_generated(parseSeedForWasm(seed));
-          const w = probe.terrain_w();
-          const h = probe.terrain_h();
-          const n = w * h;
-          const speed = new Float32Array(wasm.memory.buffer, probe.terrain_speed_ptr(), n).slice();
-          const rough = new Float32Array(wasm.memory.buffer, probe.terrain_rough_ptr(), n).slice();
-          const tint = new Uint8Array(wasm.memory.buffer, probe.terrain_tint_ptr(), n).slice();
-          if (!disposed) drawPreviewMask(ctx, canvas, { w, h, speed, rough, tint });
+          const { w, h, speed, rough, tint } = readBattleTerrainGrid(probe, wasm.memory);
+          if (!disposed) drawPreviewMask(ctx, canvas, { w, h, speed: speed!, rough: rough!, tint });
         } finally {
           probe.free();
           if (game === probe) game = null;

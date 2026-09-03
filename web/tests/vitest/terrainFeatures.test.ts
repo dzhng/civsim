@@ -9,7 +9,7 @@ import {
   buildBattleTerrainPresentation,
   presentationEdgeMismatches,
 } from "@packages/game-renderer/src/battle/mapCatalog.ts";
-import type { BattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainFeatures.ts";
+import { readBattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainGrid.ts";
 import { heightSpan, terrainHeightAt } from "@packages/game-renderer/src/terrain/heightField.ts";
 import initWasm, { Game } from "../../src/wasm/game_wasm.js";
 
@@ -27,21 +27,8 @@ describe("battle terrain presentation", () => {
       if (entry.generatedSeed !== undefined) game.load_generated_map(BigInt(entry.generatedSeed));
       else game.load_map(entry.wasmMapId);
 
-      const w = game.terrain_w();
-      const h = game.terrain_h();
-      const cell = game.terrain_cell();
-      const ox = game.terrain_origin_x();
-      const oy = game.terrain_origin_y();
-      const grid: BattleTerrainGrid = {
-        w,
-        h,
-        cell,
-        ox,
-        oy,
-        tint: new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), w * h).slice(),
-        speed: new Float32Array(wasm.memory.buffer, game.terrain_speed_ptr(), w * h).slice(),
-        height: new Float32Array(wasm.memory.buffer, game.terrain_height_ptr(), w * h).slice(),
-      };
+      const grid = readBattleTerrainGrid(game, wasm.memory);
+      const { w, h, cell, ox, oy } = grid;
       const presentation = buildBattleTerrainPresentation(entry, grid, 0x1234);
       const featureCounts: Record<string, unknown[]> = {};
       for (const feature of presentation.features) {

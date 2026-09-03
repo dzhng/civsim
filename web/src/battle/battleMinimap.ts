@@ -1,5 +1,6 @@
 import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
-import type { Game, InitOutput } from "../wasm/game_wasm.js";
+import type { BattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainFeatures";
+import type { Game } from "../wasm/game_wasm.js";
 import type { Camera } from "../shared/camera";
 
 export interface BattleMinimap {
@@ -15,8 +16,8 @@ export function createBattleMinimap({
   minimap,
   signal,
   stride,
+  terrain,
   unitInfo,
-  wasm,
 }: {
   canvas: HTMLCanvasElement;
   camera: Camera;
@@ -25,17 +26,17 @@ export function createBattleMinimap({
   minimap: HTMLCanvasElement;
   signal: AbortSignal;
   stride: number;
+  terrain: BattleTerrainGrid;
   unitInfo: () => Float32Array;
-  wasm: InitOutput;
 }): BattleMinimap {
   const miniBack = document.createElement("canvas");
   {
-    const tw = game.terrain_w();
-    const th = game.terrain_h();
+    const tw = terrain.w;
+    const th = terrain.h;
     miniBack.width = minimap.width;
     miniBack.height = minimap.height;
     const g = miniBack.getContext("2d")!;
-    const tint = new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), tw * th);
+    const tint = terrain.tint;
     const palette = ["#5a6a40", "#2c455c", "#6f6c66", "#7a6c5b", "#37512c", "#56503c", "#6e6651"];
     const img = g.createImageData(minimap.width, minimap.height);
     for (let py = 0; py < minimap.height; py++) {
@@ -55,9 +56,9 @@ export function createBattleMinimap({
   }
 
   const worldToMini = (x: number, y: number): [number, number] => {
-    const [ox, oy] = [game.terrain_origin_x(), game.terrain_origin_y()];
-    const w = game.terrain_w() * game.terrain_cell();
-    const h = game.terrain_h() * game.terrain_cell();
+    const [ox, oy] = [terrain.ox, terrain.oy];
+    const w = terrain.w * terrain.cell;
+    const h = terrain.h * terrain.cell;
     return [((x - ox) / w) * minimap.width, (1 - (y - oy) / h) * minimap.height];
   };
 
@@ -68,8 +69,8 @@ export function createBattleMinimap({
       const fx = (event.clientX - rect.left) / rect.width;
       const fy = (event.clientY - rect.top) / rect.height;
       camera.setViewCenter(
-        game.terrain_origin_x() + fx * game.terrain_w() * game.terrain_cell(),
-        game.terrain_origin_y() + (1 - fy) * game.terrain_h() * game.terrain_cell(),
+        terrain.ox + fx * terrain.w * terrain.cell,
+        terrain.oy + (1 - fy) * terrain.h * terrain.cell,
       );
       camera.clampView();
     },
@@ -107,12 +108,7 @@ export function createBattleMinimap({
       );
     },
     terrainDebug() {
-      const w = game.terrain_w();
-      const h = game.terrain_h();
-      const cell = game.terrain_cell();
-      const ox = game.terrain_origin_x();
-      const oy = game.terrain_origin_y();
-      const tint = new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), w * h);
+      const { w, h, cell, ox, oy, tint } = terrain;
       const counts = Array.from({ length: 7 }, () => 0);
       const sums = Array.from({ length: 7 }, () => ({ x: 0, y: 0, n: 0 }));
       for (let y = 0; y < h; y++) {

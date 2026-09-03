@@ -27,8 +27,10 @@ import { Territory } from "./territory";
 import { Allegiance } from "./status";
 import type { MapCardModel, MapCardPosition } from "../ui/campaign/MapCards";
 import { installCampaignDebugApi, markCampaignReady } from "./debugApi";
-import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
+import { createCameraKeyController } from "../shared/cameraKeys";
+import { awaitRendererReady } from "../shared/rendererReady";
 import { getGraphicsSettings } from "../shared/graphicsSettings";
+import { SimClock } from "../shared/simClock";
 import {
   campaignDomHtml,
   type ArmyRosterRow,
@@ -46,7 +48,7 @@ import { readCampaignViews, type ArmyView, type CityView } from "./views";
  * the AI cost per real-second tracks the multiplier, not the tick scale. */
 const TICKS_PER_SEC = 60;
 const SPEEDS = [1, 2, 4];
-const SPEED_LABELS = ["1x", "3x", "10x"];
+const SPEED_LABELS = SPEEDS.map((speed) => `${speed}x`);
 const SAVE_KEY = "campaign-save";
 /** Ticks between a snapshot and applying the decisions it yields — must match
  *  campaign tunables AI_LATENCY. */
@@ -100,10 +102,9 @@ export class CampaignScene implements Scene {
   private ownerHash = 0;
   private ac: AbortController | null = null;
   private cam: CamView;
-  private speed = 0; // index into SPEEDS, -1 = paused
-  private paused = true;
-  private acc = 0;
+  private speed = 0; // index into SPEEDS
   private last = 0;
+  private readonly clock = new SimClock({ tickHz: TICKS_PER_SEC, maxTicksPerFrame: 4 });
   /** The off-thread AI worker — the sole driver of the campaign AI. */
   private aiWorker: Worker | null = null;
   private selected = -1;
@@ -145,16 +146,15 @@ export class CampaignScene implements Scene {
    *  Cleared when the card set/content changes (sizes follow content). */
   private cardSizeCache = new Map<string, { w: number; h: number }>();
 
-  /** Held camera keys + last cursor position (CSS px; -1 = mouse never seen,
-   *  edge-pan stays off) — the battle input contract, applied per frame. */
-  private heldKeys = new Set<string>();
-  private edgeMouse: [number, number] = [-1, -1];
+  private cameraKeys: ReturnType<typeof createCameraKeyController> | null = null;
 
   constructor(private cfg: CampaignConfig) {
     this.cam = { x: 0, y: 0, scale: 0.18 };
+    this.clock.paused = true;
   }
 
   enter() {
+    this.clock.frozen = false;
     // Warm the map font (Cinzel) so the canvas labels engrave from the first
     // frames rather than flashing the serif fallback.
     void document.fonts.load("700 40px Cinzel");
@@ -177,20 +177,16 @@ export class CampaignScene implements Scene {
     this.renderer = new CampaignRenderer(this.canvas, this.cfg.data, this.field!, this.territory!, {
       graphics: getGraphicsSettings(),
     });
-    void this.renderer.ready
-      .then(() => {
-        this.terrainReady = true;
-        markCampaignReady(true);
-      })
-      .catch((error: unknown) => {
-        const message = error instanceof Error ? error.message : String(error);
-        showFatalErrorSurface(this.canvas, fatalSurfaceFor("init", message));
-      });
+    awaitRendererReady(this.renderer.ready, this.canvas, () => {
+      this.terrainReady = true;
+      markCampaignReady(true);
+    });
     this.ownerHash = 0; // force a territory recolor on (re)entry
     this.ac = new AbortController();
     this.wireInput(this.ac.signal);
     if (!this.aiWorker) this.startAiWorker();
     this.last = performance.now();
+    this.clock.advance(this.last);
     this.refreshViews();
     if (this.recruitClasses.length === 0) {
       this.recruitClasses = JSON.parse(this.cfg.campaign.unit_class_names_json()) as string[];
@@ -236,7 +232,7 @@ export class CampaignScene implements Scene {
       save: () => this.cfg.campaign.save(),
       select: (id: number) => (this.selected = id),
       selected: () => this.selected,
-      paused: () => this.paused,
+      paused: () => this.clock.paused,
       /** Test/verify hook: flip the political (faction) overlay on or off. */
       factionView: (on?: boolean) => {
         this.factionView = on ?? !this.factionView;
@@ -279,6 +275,7 @@ export class CampaignScene implements Scene {
       sceneryCandidates: () => this.renderer.sceneryCandidateSnapshot(),
       /** Snapshot mode: pin the water clock (campaign is already paused). */
       freeze: (on = true) => {
+        this.clock.frozen = on;
         this.renderer.fixedTime = on ? 0 : null;
       },
       terrStats: () => {
@@ -309,6 +306,8 @@ export class CampaignScene implements Scene {
     this.aiWorker = null;
     this.ac?.abort();
     this.ac = null;
+    this.cameraKeys?.dispose();
+    this.cameraKeys = null;
     this.renderer?.destroy();
     this.canvas.style.display = "none";
     this.ui.style.display = "none";
@@ -342,19 +341,15 @@ export class CampaignScene implements Scene {
     const dt = Math.min((now - this.last) / 1000, 0.25);
     this.last = now;
     const c = this.cfg.campaign;
-    this.applyCameraKeys(dt);
+    this.cameraKeys?.update(dt);
 
-    if (!this.paused && !this.autoResolving) {
-      this.acc += dt * TICKS_PER_SEC * SPEEDS[this.speed];
-      const n = Math.floor(this.acc);
-      if (n > 0) {
-        this.acc -= n;
-        this.advance(n);
-        this.refreshViews();
-        if (c.battle_ready() >= 0 && !this.modalOpen) {
-          this.paused = true; // auto-pause: a battle wants a decision
-          this.showBattleModal(c.battle_ready());
-        }
+    const n = this.clock.advance(now);
+    if (n > 0 && !this.autoResolving) {
+      this.advance(n);
+      this.refreshViews();
+      if (c.battle_ready() >= 0 && !this.modalOpen) {
+        this.clock.paused = true; // auto-pause: a battle wants a decision
+        this.showBattleModal(c.battle_ready());
       }
     }
 
@@ -764,31 +759,6 @@ export class CampaignScene implements Scene {
       { signal },
     );
     cv.addEventListener(
-      "wheel",
-      (e) => {
-        e.preventDefault();
-        // Normalize deltaMode to pixels before scaling so LINE-mode mice/Firefox
-        // (~3/notch) and PIXEL-mode trackpads/mice (~100/notch) share one
-        // sensitivity — same fold as the battle wheel handler (battle/input.ts).
-        const unitPx = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? window.innerHeight : 1;
-        const f = Math.exp(-e.deltaY * unitPx * 0.0015);
-        const [wx, wy] = this.renderer.toWorld(
-          e.offsetX * devicePixelRatio,
-          e.offsetY * devicePixelRatio,
-        );
-        this.cam.scale = Math.min(MAX_CAMPAIGN_ZOOM, this.cam.scale * f);
-        this.clampCam(); // zoom floor + new basis for zoom-to-cursor
-        const [nx, ny] = this.renderer.toWorld(
-          e.offsetX * devicePixelRatio,
-          e.offsetY * devicePixelRatio,
-        );
-        this.cam.x += wx - nx;
-        this.cam.y += wy - ny;
-        this.clampCam();
-      },
-      { signal, passive: false },
-    );
-    cv.addEventListener(
       "contextmenu",
       (e) => {
         e.preventDefault();
@@ -799,11 +769,10 @@ export class CampaignScene implements Scene {
     window.addEventListener(
       "keydown",
       (e) => {
-        this.heldKeys.add(e.key.toLowerCase());
         if (this.modalOpen) return;
         if (e.key === " ") {
           e.preventDefault();
-          this.paused = !this.paused;
+          this.clock.paused = !this.clock.paused;
         } else if (e.key === "1") this.setSpeed(0);
         else if (e.key === "2") this.setSpeed(1);
         else if (e.key === "3") this.setSpeed(2);
@@ -824,55 +793,37 @@ export class CampaignScene implements Scene {
       },
       { signal },
     );
-    window.addEventListener("keyup", (e) => this.heldKeys.delete(e.key.toLowerCase()), {
-      signal,
-    });
-    // Edge-pan needs the cursor wherever it is — over HUD panels and DOM
-    // cards too — so it tracks on window, not the canvas.
-    window.addEventListener(
-      "mousemove",
-      (e) => {
-        this.edgeMouse = [e.clientX, e.clientY];
+    this.cameraKeys = createCameraKeyController(
+      {
+        panWorld: (dx, dy) => {
+          const yaw = this.cam.yaw ?? 0;
+          this.cam.x += dx * Math.cos(yaw) - dy * Math.sin(yaw);
+          this.cam.y += dx * Math.sin(yaw) + dy * Math.cos(yaw);
+          this.clampCam();
+        },
+        yaw: (delta) => {
+          this.cam.yaw = (this.cam.yaw ?? 0) + delta;
+        },
+        pitchOrZoom: (delta) => this.zoomBy(Math.exp(-2.5 * delta)),
+        zoomAt: (px, py, factor) => {
+          const wheelDelta = Math.log(factor) / (-0.2 * Math.log(1.0015));
+          const campaignFactor = Math.exp(-wheelDelta * 0.0015);
+          const dpr = window.devicePixelRatio || 1;
+          const rect = cv.getBoundingClientRect();
+          const canvasX = px - rect.left * dpr;
+          const canvasY = py - rect.top * dpr;
+          const [wx, wy] = this.renderer.toWorld(canvasX, canvasY);
+          this.cam.scale = Math.min(MAX_CAMPAIGN_ZOOM, this.cam.scale * campaignFactor);
+          this.clampCam();
+          const [nx, ny] = this.renderer.toWorld(canvasX, canvasY);
+          this.cam.x += wx - nx;
+          this.cam.y += wy - ny;
+          this.clampCam();
+        },
+        panSpeed: () => this.renderer.panSpeed(this.cam.scale),
       },
-      { signal },
+      { enabled: () => !this.modalOpen },
     );
-  }
-
-  /** Held-key + screen-edge camera, the battle contract (battle/input.ts):
-   *  WASD/arrows pan view-relative (Shift sprints ×3), the screen edges pan,
-   *  Q/E rotate about the look target, and Z/X ride the tilt axis — which on
-   *  the campaign chart is zoom, since pitch derives from scale. Rates match
-   *  battle's 50ms cadence, expressed per second. */
-  private applyCameraKeys(dt: number) {
-    if (this.modalOpen) return;
-    const held = this.heldKeys;
-    const sprint = held.has("shift") ? 3 : 1;
-    const speed = this.renderer.panSpeed(this.cam.scale) * sprint;
-    let px =
-      (held.has("d") || held.has("arrowright") ? speed : 0) -
-      (held.has("a") || held.has("arrowleft") ? speed : 0);
-    let py =
-      (held.has("w") || held.has("arrowup") ? speed : 0) -
-      (held.has("s") || held.has("arrowdown") ? speed : 0);
-    const EDGE = 14;
-    const [mx, my] = this.edgeMouse;
-    if (mx >= 0 && my >= 0) {
-      if (mx < EDGE) px -= speed;
-      if (mx > window.innerWidth - EDGE) px += speed;
-      if (my < EDGE) py += speed;
-      if (my > window.innerHeight - EDGE) py -= speed;
-    }
-    const yaw = this.cam.yaw ?? 0;
-    if (px !== 0 || py !== 0) {
-      this.cam.x += (px * Math.cos(yaw) - py * Math.sin(yaw)) * dt;
-      this.cam.y += (px * Math.sin(yaw) + py * Math.cos(yaw)) * dt;
-      this.clampCam();
-    }
-    // 0.035 rad and ~5% zoom per 50ms battle tick → per-second rates.
-    if (held.has("q")) this.cam.yaw = yaw + 0.7 * dt;
-    if (held.has("e")) this.cam.yaw = yaw - 0.7 * dt;
-    if (held.has("z")) this.zoomBy(Math.exp(-1.0 * dt)); // toward top-down
-    if (held.has("x")) this.zoomBy(Math.exp(1.0 * dt)); // toward the tilted close-up
   }
 
   private zoomBy(factor: number) {
@@ -964,7 +915,8 @@ export class CampaignScene implements Scene {
 
   private setSpeed(i: number) {
     this.speed = i;
-    this.paused = false;
+    this.clock.timeScale = SPEEDS[i];
+    this.clock.paused = false;
   }
 
   // ---- battle handoff ---------------------------------------------------------
@@ -1023,7 +975,7 @@ export class CampaignScene implements Scene {
     this.cfg.onBattle(game, () => {
       report_battle(c, game);
       this.refreshViews();
-      this.paused = true;
+      this.clock.paused = true;
     });
   }
 
@@ -1093,7 +1045,7 @@ export class CampaignScene implements Scene {
     const mins = t % 1440;
     const hh = String(Math.floor(mins / 60)).padStart(2, "0");
     const mm = String(Math.floor(mins % 60)).padStart(2, "0");
-    const dateText = `Day ${day}, ${hh}:${mm}${this.paused ? "  PAUSED" : `  ${SPEED_LABELS[this.speed]}`}`;
+    const dateText = `Day ${day}, ${hh}:${mm}${this.clock.paused ? "  PAUSED" : `  ${SPEED_LABELS[this.speed]}`}`;
     const eco = JSON.parse(this.cfg.campaign.economy_json()) as {
       treasury: number;
       monthly_income: number;
@@ -1108,14 +1060,14 @@ export class CampaignScene implements Scene {
     hud.setTopBar({
       dateText,
       goldText,
-      paused: this.paused,
+      paused: this.clock.paused,
       speed: this.speed,
       factionView: this.factionView,
       fog: this.fogOfWar,
       diploOpen: this.diploOpen,
       classesOpen: this.classBuilderOpen,
       onPause: () => {
-        this.paused = !this.paused;
+        this.clock.paused = !this.clock.paused;
         this.renderTopBar();
       },
       onSpeed: (i) => {

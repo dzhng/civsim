@@ -20,3 +20,8 @@ audit-choices before close-spec.
 ## Implementation
 
 _(append below, newest last)_
+
+- slice 28 — run exactly 400 ticks with commander AI disabled and two existing hostile armies placed on adjacent tiles of the committed map, then resolve the resulting battle through the campaign estimator; alternative run the whole map autonomously until contact; why the scripted contact exercises encounter and rout traversal deterministically in 0.02 s instead of depending on a slow, seed-sensitive commander search.
+- slice 28 — hash the specified army movement and stance state, ordered city owners, faction treasuries, and every encounter payload plus `next_encounter_id`, with collection lengths and enum tags as delimiters; alternative hash serialized `CampaignState` wholesale; why the explicit projection pins the campaign behaviors the following slices may move without coupling the golden to unrelated save-schema fields.
+- slice 28 — use campaign seed 7; alternative choose a new arbitrary fixed seed; why 7 is already the fixed-seed reference in the campaign determinism tests and also drives the scripted encounter seed.
+- slice 28 — use the sim golden's word-wise FNV-1a convention and initial hash value; alternative introduce canonical byte-wise FNV-1a just for campaign; why matching the repository's existing golden makes float-bit and integer mixing consistent across both simulation crates.

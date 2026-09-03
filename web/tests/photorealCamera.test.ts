@@ -9,13 +9,13 @@ import { PerspectiveCamera, Matrix4, Vector4 } from "three";
 import {
   applyCamera3d,
   PHOTOREAL_FAR_FALLBACK,
-} from "../../packages/photoreal-renderer/src/cameraBridge.ts";
+} from "@packages/photoreal-renderer/src/cameraBridge.ts";
 import {
   eyePosition,
   projectPoint,
   viewProjMatrix,
   type Camera3DParams,
-} from "../../packages/renderer-core/src/camera3d.ts";
+} from "@packages/renderer-core/src/camera3d.ts";
 
 // The battle-ish zoom ladder: close inspection → mid battle → oblique vista →
 // far campaign, across pitches/yaws/aspects. Finite far everywhere except the

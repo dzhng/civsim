@@ -7,7 +7,7 @@ import {
   type OverlayRenderPass,
   type RawFrameShell,
   type WorldRenderPass,
-} from "../../../packages/renderer-core/src/frameShell";
+} from "@packages/renderer-core/src/frameShell";
 import * as THREE from "three/webgpu";
 import {
   PROJECTION_IDENTITY,
@@ -15,57 +15,57 @@ import {
   world3dToScreen,
   worldToScreen,
   type CameraSnapshot,
-} from "../../../packages/renderer-core/src/cameraUniform";
+} from "@packages/renderer-core/src/cameraUniform";
 import {
   GPU_DEPTH_FORMAT,
   GPU_WORLD_DEPTH_ATTACHMENT,
-} from "../../../packages/renderer-core/src/depthContract";
-import { requestGpuDevice, gpuFailureMessage } from "../../../packages/renderer-core/src/device";
-import { assertStorageBufferFits } from "../../../packages/renderer-core/src/capabilities";
-import { WORLD_CAMERA_WGSL } from "../../../packages/renderer-core/src/cameraWgsl";
+} from "@packages/renderer-core/src/depthContract";
+import { requestGpuDevice, gpuFailureMessage } from "@packages/renderer-core/src/device";
+import { assertStorageBufferFits } from "@packages/renderer-core/src/capabilities";
+import { WORLD_CAMERA_WGSL } from "@packages/renderer-core/src/cameraWgsl";
 import {
   gpuOpaqueColorTarget,
   gpuWorldDepthStencil,
-} from "../../../packages/renderer-core/src/pipelineContracts";
+} from "@packages/renderer-core/src/pipelineContracts";
 import {
   compileShader,
   setShaderErrorHandler,
   shaderCompilationMessages,
   type ShaderCompilationMessage,
-} from "../../../packages/renderer-core/src/compileShader";
+} from "@packages/renderer-core/src/compileShader";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../../../web/src/shared/fatalError";
 import {
   CAMPAIGN_FIGURE_SIZE,
   campaignArmyStandardScale,
   campaignSettlementStandardScale,
 } from "../../../web/src/campaign/renderer";
-import { SkinnedCrowdPipeline } from "../../../packages/renderer-core/src/skinnedPipeline";
-import { animationForFrame } from "../../../packages/crowd-runtime/src/animationState";
+import { SkinnedCrowdPipeline } from "@packages/renderer-core/src/skinnedPipeline";
+import { animationForFrame } from "@packages/crowd-runtime/src/animationState";
 import {
   buildCrowdInstances,
   generatedFormation,
   type CrowdInstance,
-} from "../../../packages/crowd-runtime/src/instanceData";
-import { buildStackCrowd } from "../../../packages/crowd-runtime/src/stackCrowd";
+} from "@packages/crowd-runtime/src/instanceData";
+import { buildStackCrowd } from "@packages/crowd-runtime/src/stackCrowd";
 import {
   assignCrowdLods,
   assignCrowdLodsByDistance,
   countLods,
   lodWithHysteresis,
-} from "../../../packages/crowd-runtime/src/lod";
-import { createPerfAverager } from "../../../packages/crowd-runtime/src/perfStats";
-import { buildLiveBattleCrowdFrame } from "../../../packages/game-renderer/src/battle/crowdPass";
-import { BattleMinimapPass } from "../../../packages/game-renderer/src/battle/minimapPass";
+} from "@packages/crowd-runtime/src/lod";
+import { createPerfAverager } from "@packages/crowd-runtime/src/perfStats";
+import { buildLiveBattleCrowdFrame } from "@packages/game-renderer/src/battle/crowdPass";
+import { BattleMinimapPass } from "@packages/game-renderer/src/battle/minimapPass";
 import {
   BattleGroundCuePass,
   selectedUnitGroundCueVertices,
-} from "../../../packages/game-renderer/src/battle/groundCuePass";
-import { BattleEffectLinePass } from "../../../packages/game-renderer/src/battle/effectLinePass";
-import { SoldierShadowDecalPass } from "../../../packages/renderer-core/src/soldierShadowPass";
+} from "@packages/game-renderer/src/battle/groundCuePass";
+import { BattleEffectLinePass } from "@packages/game-renderer/src/battle/effectLinePass";
+import { SoldierShadowDecalPass } from "@packages/renderer-core/src/soldierShadowPass";
 import {
   BattleParticlePass,
   type BattleParticle,
-} from "../../../packages/game-renderer/src/battle/particlePass";
+} from "@packages/game-renderer/src/battle/particlePass";
 import {
   battleUnitsInRect,
   battleWorldToCss,
@@ -74,22 +74,22 @@ import {
   pickBattleUnit,
   type BattlePickUnit,
   type RendererBattlePickCamera,
-} from "../../../packages/game-renderer/src/battle/pickingDebug";
+} from "@packages/game-renderer/src/battle/pickingDebug";
 import {
   BattleTerrainPass,
   type BattleTerrainFixture,
-} from "../../../packages/game-renderer/src/battle/terrainPass";
+} from "@packages/game-renderer/src/battle/terrainPass";
 import {
   CLASS_DEPTH,
   CLASS_SPACING,
   UNIT_INFO,
   unitFiles,
-} from "../../../packages/game-renderer/src/battle/unitInfoLayout";
-import { CampaignCloudPass } from "../../../packages/game-renderer/src/campaign/atmospherePass";
+} from "@packages/game-renderer/src/battle/unitInfoLayout";
+import { CampaignCloudPass } from "@packages/game-renderer/src/campaign/atmospherePass";
 import {
   CampaignEntityPass,
   type CampaignEntityInstance,
-} from "../../../packages/game-renderer/src/campaign/entityPass";
+} from "@packages/game-renderer/src/campaign/entityPass";
 import {
   buildCampaignMapDrawData,
   CampaignLabelPass,
@@ -99,51 +99,51 @@ import {
   CampaignRoadPass,
   CampaignWorldLinePass,
   type CampaignLabel,
-} from "../../../packages/game-renderer/src/campaign/mapPass";
+} from "@packages/game-renderer/src/campaign/mapPass";
 import {
   CampaignSceneryPass,
   type CampaignSceneryInstance,
-} from "../../../packages/game-renderer/src/campaign/sceneryPass";
-import { PROP_REVIEW_GROUPS } from "../../../packages/game-renderer/src/models/shared/sceneryPropRegistry";
+} from "@packages/game-renderer/src/campaign/sceneryPass";
+import { PROP_REVIEW_GROUPS } from "@packages/game-renderer/src/models/shared/sceneryPropRegistry";
 import {
   STANDARD_SIZE_TIER_IDS,
   standardSeed,
   standardWindPhase,
   standardWindStrength,
   type StandardSizeTier,
-} from "../../../packages/game-renderer/src/models/shared/standardAsset";
+} from "@packages/game-renderer/src/models/shared/standardAsset";
 import {
   SharedStandardPass,
   type StandardInstance,
-} from "../../../packages/game-renderer/src/models/shared/standardPass";
+} from "@packages/game-renderer/src/models/shared/standardPass";
 import {
   BATTLE_MAP_CATALOG,
   battleMapById,
   buildBattleTerrainPresentation,
   presentationEdgeMismatches,
   type BattleMapCatalogEntry,
-} from "../../../packages/game-renderer/src/battle/mapCatalog";
+} from "@packages/game-renderer/src/battle/mapCatalog";
 import {
   flatHeightField,
   heightSpan,
   terrainHeightAt,
   type TerrainHeightField,
-} from "../../../packages/game-renderer/src/terrain/heightField";
+} from "@packages/game-renderer/src/terrain/heightField";
 import {
   BATTLE_RELIEF_EXAGGERATION,
   terrainHeightField,
   type BattleTerrainFeature,
   type BattleTerrainFeatureKind,
   type BattleTerrainGrid,
-} from "../../../packages/game-renderer/src/battle/terrainFeatures";
-import { BattleGroundPass } from "../../../packages/game-renderer/src/battle/groundPass";
+} from "@packages/game-renderer/src/battle/terrainFeatures";
+import { BattleGroundPass } from "@packages/game-renderer/src/battle/groundPass";
 import {
   BattleGrassPass,
   type BattleGrassBounds,
   type BattleGrassParams,
-} from "../../../packages/game-renderer/src/battle/grassPass";
-import { sampleGrassField } from "../../../packages/game-renderer/src/battle/grassField";
-import { BattleHorizonPass } from "../../../packages/game-renderer/src/battle/horizonPass";
+} from "@packages/game-renderer/src/battle/grassPass";
+import { sampleGrassField } from "@packages/game-renderer/src/battle/grassField";
+import { BattleHorizonPass } from "@packages/game-renderer/src/battle/horizonPass";
 import {
   chartCamera3d,
   eyePosition,
@@ -151,59 +151,59 @@ import {
   unprojectToPlaneZ,
   type Camera3DParams,
   type ChartCameraSpec,
-} from "../../../packages/renderer-core/src/camera3d";
+} from "@packages/renderer-core/src/camera3d";
 import {
   applyBattleEnvironment,
   battleEnvironmentStats,
   resolveBattleEnvironment,
   skinnedLightingForBattleEnvironment,
   type BattleEnvironment,
-} from "../../../packages/game-renderer/src/environment/environment";
-import { featuresToBattleScenery } from "../../../packages/game-renderer/src/battle/terrainScenery";
+} from "@packages/game-renderer/src/environment/environment";
+import { featuresToBattleScenery } from "@packages/game-renderer/src/battle/terrainScenery";
 import {
   MeshBuilder,
   type Rgb,
-} from "../../../packages/game-renderer/src/models/shared/meshBuilder";
+} from "@packages/game-renderer/src/models/shared/meshBuilder";
 import {
   CampaignSelectionPass,
   type CampaignSelectionInstance,
-} from "../../../packages/game-renderer/src/campaign/selectionPass";
+} from "@packages/game-renderer/src/campaign/selectionPass";
 import {
   campaignBorderVertices,
   CampaignTerritoryPass,
-} from "../../../packages/game-renderer/src/campaign/territoryPass";
-import { Nested3dFixturePass } from "../../../packages/game-renderer/src/fixtures/nested3d";
+} from "@packages/game-renderer/src/campaign/territoryPass";
+import { Nested3dFixturePass } from "@packages/game-renderer/src/fixtures/nested3d";
 import {
   formatPerfSummary,
   makeFullGamePerfReport,
-} from "../../../packages/game-renderer/src/perfReport";
+} from "@packages/game-renderer/src/perfReport";
 import {
   compileRenderGraph,
   fullGameRenderGraphReport,
   type RenderGraphPass,
-} from "../../../packages/game-renderer/src/renderGraph";
+} from "@packages/game-renderer/src/renderGraph";
 import {
   loadPlaceholderKit,
   loadPlaceholderVat,
   mountedClassesFromKit,
   placeholderClipNames,
-} from "../../../packages/soldier-assets/src/placeholders";
+} from "@packages/soldier-assets/src/placeholders";
 import {
   REAL_UNIT_CLASS_COUNT,
   PLACEHOLDER_RENDER_CLASS_COUNT,
   SHOCK_CAV_SIDEARM_CLASS,
   createPlaceholderSoldierMeshes,
   createPlaceholderSoldierMeshTiers,
-} from "../../../packages/soldier-assets/src/soldierMesh";
+} from "@packages/soldier-assets/src/soldierMesh";
 import {
   badArtistPackFixture,
   validateRig,
   validateSoldierKit,
   type ImportedRig,
   type ValidationReport,
-} from "../../../packages/soldier-assets/src/validate";
-import { bakeGltf } from "../../../packages/soldier-assets/bake/gltf.mjs";
-import type { VatBake, VatClip } from "../../../packages/soldier-assets/src/schema";
+} from "@packages/soldier-assets/src/validate";
+import { bakeGltf } from "@packages/soldier-assets/bake/gltf.mjs";
+import type { VatBake, VatClip } from "@packages/soldier-assets/src/schema";
 import { importedRigMesh } from "./importedRigMesh";
 import {
   routePhotorealCrowd,
@@ -214,10 +214,10 @@ import { routePhotorealBattle } from "./photorealBattleRoute";
 import { routeBattleGroundTurf } from "./battleGroundTurfRoute";
 import { routeLivingMeadow } from "./livingMeadowRoute";
 import { routeMeadowAudio } from "./meadowAudioRoute";
-import { PhotorealBattleWorld } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
-import { PhotorealBladeFieldLayer } from "../../../packages/photoreal-renderer/src/battle/bladeFieldLayer";
-import { createPhotorealStatsPublisher } from "../../../packages/photoreal-renderer/src/stats";
-import { seaDisplacementSourceFromParam } from "../../../packages/photoreal-renderer/src/battle/seaLayer";
+import { PhotorealBattleWorld } from "@packages/photoreal-renderer/src/battle/battleWorld";
+import { PhotorealBladeFieldLayer } from "@packages/photoreal-renderer/src/battle/bladeFieldLayer";
+import { createPhotorealStatsPublisher } from "@packages/photoreal-renderer/src/stats";
+import { seaDisplacementSourceFromParam } from "@packages/photoreal-renderer/src/battle/seaLayer";
 import { buildBattleUiModel, BattleUiLayer } from "../../../web/src/battle/uiLayer";
 import { UNIT_CLASS_BY_KEY, UnitClass, CLASS_NAMES } from "../../../web/src/battle/classData";
 import { Camera } from "../../../web/src/shared/camera";

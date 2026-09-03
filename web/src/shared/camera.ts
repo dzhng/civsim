@@ -9,7 +9,7 @@ import {
   projectPoint,
   unprojectToPlaneZ,
   type Camera3DParams,
-} from "../../../packages/renderer-core/src/camera3d";
+} from "@packages/renderer-core/src/camera3d";
 
 // Battle camera, Total War style. World units are meters, XY is the ground plane
 // and +Z is up. This is a thin owner over the real 3D perspective camera

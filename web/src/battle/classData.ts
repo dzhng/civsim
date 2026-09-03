@@ -1,7 +1,7 @@
 // Baked model-portrait manifest (S3), look index → PNG filename. The bake writes
 // it as the single source of truth, so cardThumbUrl reads it rather than
 // re-listing names here.
-import cardManifest from "../../../packages/soldier-assets/assets/cards/manifest.json";
+import cardManifest from "@packages/soldier-assets/assets/cards/manifest.json";
 
 export const UnitClass = {
   HeavySword: "heavy_sword",

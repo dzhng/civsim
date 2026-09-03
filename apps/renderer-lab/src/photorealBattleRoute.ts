@@ -37,14 +37,14 @@ import {
   PhotorealBattleWorld,
   type BattleVistaGrid,
   type BattleTacticalLineFrame,
-} from "../../../packages/photoreal-renderer/src/battle/battleWorld";
-import { postGradeUniformsFromParams } from "../../../packages/photoreal-renderer/src/post/postChain";
-import { seaDisplacementSourceFromParam } from "../../../packages/photoreal-renderer/src/battle/seaLayer";
-import { groundDetailTermFromParam } from "../../../packages/photoreal-renderer/src/battle/groundDetail";
-import { DEFAULT_BATTLE_ENVIRONMENT } from "../../../packages/game-renderer/src/environment/environment";
-import { BATTLE_RELIEF_EXAGGERATION } from "../../../packages/game-renderer/src/battle/terrainFeatures";
-import { UNIT_INFO } from "../../../packages/game-renderer/src/battle/unitInfoLayout";
-import { createPhotorealStatsPublisher } from "../../../packages/photoreal-renderer/src/stats";
+} from "@packages/photoreal-renderer/src/battle/battleWorld";
+import { postGradeUniformsFromParams } from "@packages/photoreal-renderer/src/post/postChain";
+import { seaDisplacementSourceFromParam } from "@packages/photoreal-renderer/src/battle/seaLayer";
+import { groundDetailTermFromParam } from "@packages/photoreal-renderer/src/battle/groundDetail";
+import { DEFAULT_BATTLE_ENVIRONMENT } from "@packages/game-renderer/src/environment/environment";
+import { BATTLE_RELIEF_EXAGGERATION } from "@packages/game-renderer/src/battle/terrainFeatures";
+import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
+import { createPhotorealStatsPublisher } from "@packages/photoreal-renderer/src/stats";
 import { Camera } from "../../../web/src/shared/camera";
 import { pushPie } from "../../../web/src/shared/overlays";
 import { UNIT_CLASS_BY_KEY, UnitClass } from "../../../web/src/battle/classData";
@@ -54,7 +54,7 @@ import {
   MEDIUM_PHALANX_REST_CLASS,
   MEDIUM_PHALANX_SIDEARM_CLASS,
   SHOCK_CAV_SIDEARM_CLASS,
-} from "../../../packages/soldier-assets/src/soldierMesh";
+} from "@packages/soldier-assets/src/soldierMesh";
 import { createBattleGroundEdgeFixture } from "./battleGroundEdgeFixture";
 
 interface PhotorealBattleContext {

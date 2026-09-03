@@ -7,7 +7,7 @@ import {
   world3dToScreen,
   worldToScreen,
   type CameraSnapshot,
-} from "../../packages/renderer-core/src/cameraUniform.ts";
+} from "@packages/renderer-core/src/cameraUniform.ts";
 
 // Campaign picking is a real 3D ray-cast against the ground plane (z = 0) and
 // label/marker placement is a real projection — both flow through

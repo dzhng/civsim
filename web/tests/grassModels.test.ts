@@ -8,8 +8,8 @@ import {
   buildGrassTuftMesh,
   grassTuftStats,
   type GrassAccentStyle,
-} from "../../packages/game-renderer/src/models/shared/grassModels.ts";
-import type { MeshData } from "../../packages/game-renderer/src/models/shared/meshBuilder.ts";
+} from "@packages/game-renderer/src/models/shared/grassModels.ts";
+import type { MeshData } from "@packages/game-renderer/src/models/shared/meshBuilder.ts";
 
 test("grass tuft mesh is deterministic for identical inputs", () => {
   const a = buildGrassTuftMesh({ seed: 0xabc, blades: 11, palette: "green-grass" });

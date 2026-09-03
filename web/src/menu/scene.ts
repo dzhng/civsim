@@ -4,7 +4,7 @@ import { flushSync } from "react-dom";
 import "../ui/tailwind.css";
 import type { Scene } from "../scene";
 import { MANUAL_HTML } from "../battle/manual";
-import type { GpuSupportState } from "../../../packages/game-renderer/src/appShell";
+import type { GpuSupportState } from "@packages/game-renderer/src/appShell";
 import { Menu } from "../ui/menu/Menu";
 import type { QuickBattleClassSpec, QuickBattleConfig } from "../battle/quickBattleCatalog";
 

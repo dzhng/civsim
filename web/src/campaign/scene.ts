@@ -15,10 +15,7 @@ import { type EncounterSideView } from "../ui/campaign/CampaignBattleModal";
 import { mountCampaignHud, type CampaignHudHandle } from "../ui/campaign/CampaignHud";
 import { nearestLoc, tilePos, type CampaignData } from "./data";
 import type { CamView } from "./camera";
-import {
-  rectsOverlap,
-  type ScreenRect,
-} from "../../../packages/game-renderer/src/campaign/mapPass";
+import { rectsOverlap, type ScreenRect } from "@packages/game-renderer/src/campaign/mapPass";
 import {
   CAMPAIGN_FULL_TILT_ZOOM,
   CampaignRenderer,

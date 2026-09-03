@@ -1,5 +1,5 @@
-import { UNIT_INFO } from "../../../packages/game-renderer/src/battle/unitInfoLayout";
-import { modelLookForClass } from "../../../packages/game-renderer/src/models/shared/soldierModel";
+import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
+import { modelLookForClass } from "@packages/game-renderer/src/models/shared/soldierModel";
 import { CLASS_NAMES } from "./classData";
 import type { UnitCardInit, UnitCardState } from "./unitCard";
 import { UnitCardsReact } from "../ui/hud/UnitCardsReact";

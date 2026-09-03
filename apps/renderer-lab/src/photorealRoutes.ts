@@ -13,16 +13,16 @@ import {
   attribute, cos, floor, fract, int, ivec2, mix, positionLocal, sin,
   textureLoad, transformNormalToView, varying, vec3, vec4,
 } from 'three/tsl';
-import { PhotorealWorld } from '../../../packages/photoreal-renderer/src/world';
-import { BattlePostChain } from '../../../packages/photoreal-renderer/src/post/postChain';
-import { applyCamera3d } from '../../../packages/photoreal-renderer/src/cameraBridge';
-import { applyCivsimEnvironment } from '../../../packages/photoreal-renderer/src/environment';
-import { createPhotorealStatsPublisher } from '../../../packages/photoreal-renderer/src/stats';
-import { CIVSIM_ENVIRONMENTS } from '../../../packages/game-renderer/src/environment/environment';
-import type { Camera3DParams } from '../../../packages/renderer-core/src/camera3d';
-import { loadPlaceholderVat } from '../../../packages/soldier-assets/src/placeholders';
-import { createPlaceholderSoldierMeshes } from '../../../packages/soldier-assets/src/soldierMesh';
-import type { VatBake } from '../../../packages/soldier-assets/src/schema';
+import { PhotorealWorld } from '@packages/photoreal-renderer/src/world';
+import { BattlePostChain } from '@packages/photoreal-renderer/src/post/postChain';
+import { applyCamera3d } from '@packages/photoreal-renderer/src/cameraBridge';
+import { applyCivsimEnvironment } from '@packages/photoreal-renderer/src/environment';
+import { createPhotorealStatsPublisher } from '@packages/photoreal-renderer/src/stats';
+import { CIVSIM_ENVIRONMENTS } from '@packages/game-renderer/src/environment/environment';
+import type { Camera3DParams } from '@packages/renderer-core/src/camera3d';
+import { loadPlaceholderVat } from '@packages/soldier-assets/src/placeholders';
+import { createPlaceholderSoldierMeshes } from '@packages/soldier-assets/src/soldierMesh';
+import type { VatBake } from '@packages/soldier-assets/src/schema';
 
 interface PhotorealRouteContext {
   canvas: HTMLCanvasElement;

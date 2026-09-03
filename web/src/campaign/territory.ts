@@ -9,7 +9,7 @@
 import type { CampaignData } from "./data";
 import type { CityView } from "./views";
 import { TerrainField, hash2 } from "./terrain";
-import type { CampaignBorderPolyline } from "../../../packages/game-renderer/src/campaign/territoryPass";
+import type { CampaignBorderPolyline } from "@packages/game-renderer/src/campaign/territoryPass";
 
 /** Land farther than this from any city is no one's (deep deserts, steppe).
  *  Generous enough that a faction's coastal cities reach into one contiguous

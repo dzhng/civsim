@@ -2,11 +2,11 @@ import {
   CampaignCloudPass,
   CampaignFogPass,
   type CampaignFogSource,
-} from "../../../packages/game-renderer/src/campaign/atmospherePass";
+} from "@packages/game-renderer/src/campaign/atmospherePass";
 import {
   CampaignEntityPass,
   type CampaignEntityInstance,
-} from "../../../packages/game-renderer/src/campaign/entityPass";
+} from "@packages/game-renderer/src/campaign/entityPass";
 import {
   buildCampaignMapDrawData,
   CampaignLabelPass,
@@ -20,51 +20,51 @@ import {
   type CampaignMapStats,
   type CampaignMarker,
   type ScreenRect,
-} from "../../../packages/game-renderer/src/campaign/mapPass";
+} from "@packages/game-renderer/src/campaign/mapPass";
 import {
   CampaignSceneryPass,
   type CampaignSceneryInstance,
   type CampaignSceneryKind,
-} from "../../../packages/game-renderer/src/campaign/sceneryPass";
+} from "@packages/game-renderer/src/campaign/sceneryPass";
 import {
   CampaignSelectionPass,
   type CampaignSelectionInstance,
-} from "../../../packages/game-renderer/src/campaign/selectionPass";
+} from "@packages/game-renderer/src/campaign/selectionPass";
 import {
   standardSeed,
   standardWindPhase,
-} from "../../../packages/game-renderer/src/models/shared/standardAsset";
+} from "@packages/game-renderer/src/models/shared/standardAsset";
 import {
   SharedStandardPass,
   type StandardInstance,
-} from "../../../packages/game-renderer/src/models/shared/standardPass";
+} from "@packages/game-renderer/src/models/shared/standardPass";
 import {
   campaignFactionBorderVertices,
   CampaignTerritoryPass,
-} from "../../../packages/game-renderer/src/campaign/territoryPass";
+} from "@packages/game-renderer/src/campaign/territoryPass";
 import {
   createFrameShell,
   type FrameGraphPass,
   type RawFrameShell,
   type WorldRenderPass,
-} from "../../../packages/renderer-core/src/frameShell";
+} from "@packages/renderer-core/src/frameShell";
 import {
   screenToWorld,
   world3dToScreen,
   type CameraSnapshot,
-} from "../../../packages/renderer-core/src/cameraUniform";
+} from "@packages/renderer-core/src/cameraUniform";
 import { campaignCameraRig, type CameraRigRange } from "../battle/cameraRig";
-import { chartCamera3d, type Camera3DParams } from "../../../packages/renderer-core/src/camera3d";
-import { SkinnedCrowdPipeline } from "../../../packages/renderer-core/src/skinnedPipeline";
-import { SoldierShadowDecalPass } from "../../../packages/renderer-core/src/soldierShadowPass";
-import { buildStackCrowd } from "../../../packages/crowd-runtime/src/stackCrowd";
-import type { CrowdInstance } from "../../../packages/crowd-runtime/src/instanceData";
+import { chartCamera3d, type Camera3DParams } from "@packages/renderer-core/src/camera3d";
+import { SkinnedCrowdPipeline } from "@packages/renderer-core/src/skinnedPipeline";
+import { SoldierShadowDecalPass } from "@packages/renderer-core/src/soldierShadowPass";
+import { buildStackCrowd } from "@packages/crowd-runtime/src/stackCrowd";
+import type { CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
 import {
   loadPlaceholderKit,
   loadPlaceholderVat,
   mountedClassesFromKit,
-} from "../../../packages/soldier-assets/src/placeholders";
-import { createPlaceholderSoldierMeshes } from "../../../packages/soldier-assets/src/soldierMesh";
+} from "@packages/soldier-assets/src/placeholders";
+import { createPlaceholderSoldierMeshes } from "@packages/soldier-assets/src/soldierMesh";
 import type { CampaignData, MapNode } from "./data";
 import { isControlledStage } from "./data";
 import type { CamView } from "./camera";

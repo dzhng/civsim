@@ -7,7 +7,7 @@
 
 // The explicit .ts import keeps tests and production on the same source instead
 // of maintaining a test-only JavaScript copy.
-import { UNIT_INFO } from "../../../packages/game-renderer/src/battle/unitInfoLayout.ts";
+import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout.ts";
 
 export interface ArmySummary {
   unitsAlive: number;

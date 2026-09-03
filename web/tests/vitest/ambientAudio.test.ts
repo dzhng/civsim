@@ -19,8 +19,8 @@ import {
   type AudioMixer,
   type AmbientOfflineAudioContextConstructor,
   type WindBedControl,
-} from "../../../packages/ambient-audio/src/index.ts";
-import { sampleBattleWind } from "../../../packages/game-renderer/src/battle/windSignal.ts";
+} from "@packages/ambient-audio/src/index.ts";
+import { sampleBattleWind } from "@packages/game-renderer/src/battle/windSignal.ts";
 
 const OfflineCtor = OfflineAudioContext as unknown as AmbientOfflineAudioContextConstructor;
 

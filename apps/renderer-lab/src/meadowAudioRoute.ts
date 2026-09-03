@@ -2,8 +2,8 @@ import {
   AmbientAudioDirector,
   AmbientAudioEngine,
   WIND_BED_DIRECTOR_MAPPING,
-} from "../../../packages/ambient-audio/src";
-import { sampleBattleWind } from "../../../packages/game-renderer/src/battle/windSignal";
+} from "@packages/ambient-audio/src";
+import { sampleBattleWind } from "@packages/game-renderer/src/battle/windSignal";
 
 interface MeadowAudioContext {
   root: HTMLElement;

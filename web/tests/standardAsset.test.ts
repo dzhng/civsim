@@ -4,7 +4,7 @@ import { test } from "vitest";
 import {
   BATTLE_FACTIONS,
   type BattleFaction,
-} from "../../packages/game-renderer/src/battle/factionColors.ts";
+} from "@packages/game-renderer/src/battle/factionColors.ts";
 import {
   STANDARD_CLOTH_MATERIAL,
   STANDARD_EMBLEM_MATERIAL,
@@ -19,7 +19,7 @@ import {
   standardWindStrength,
   type StandardMaterialId,
   type StandardSizeTier,
-} from "../../packages/game-renderer/src/models/shared/standardAsset.ts";
+} from "@packages/game-renderer/src/models/shared/standardAsset.ts";
 
 test("standard asset publishes the three required size tiers", () => {
   assert.deepEqual(STANDARD_SIZE_TIER_IDS, ["battle-unit", "campaign-army", "settlement-banner"]);

@@ -181,7 +181,7 @@ function shotContentCheck(gateId, shot) {
 // the registry, never from their own copy of the builder list.
 function sharedRegistryOwnsProps() {
   const sceneryPass = readSource("../../../packages/game-renderer/src/campaign/sceneryPass.ts");
-  const route = readSource("../../../apps/renderer-lab/src/router.ts");
+  const route = readSource("../../../apps/renderer-lab/src/routes/sharedPropModels.ts");
   const passUsesRegistry =
     sceneryPass.includes("from '../models/shared/sceneryPropRegistry'") &&
     !/build(Conifer|Broadleaf|Rock|Mountain|Cart)\w*Mesh\s*\(/.test(sceneryPass);

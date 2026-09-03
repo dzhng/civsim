@@ -58,8 +58,8 @@ export function enterBattleScene(
     minimap: battleHud.minimapCanvas,
     signal,
     stride: STRIDE,
+    terrain: terrain.grid,
     unitInfo,
-    wasm,
   });
 
   const unitPresentation = new BattleUnitPresentation(world);

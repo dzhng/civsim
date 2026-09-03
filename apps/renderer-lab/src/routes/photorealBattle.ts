@@ -42,11 +42,12 @@ import { postGradeUniformsFromParams } from "@packages/photoreal-renderer/src/po
 import { seaDisplacementSourceFromParam } from "@packages/photoreal-renderer/src/battle/seaLayer";
 import { DEFAULT_BATTLE_ENVIRONMENT } from "@packages/game-renderer/src/environment/environment";
 import { BATTLE_RELIEF_EXAGGERATION } from "@packages/game-renderer/src/battle/terrainFeatures";
+import { readBattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainGrid";
 import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
 import { createPhotorealStatsPublisher } from "@packages/photoreal-renderer/src/stats";
-import { Camera } from "../../../web/src/shared/camera";
-import { pushPie } from "../../../web/src/shared/overlays";
-import { UNIT_CLASS_BY_KEY, UnitClass } from "../../../web/src/battle/classData";
+import { Camera } from "../../../../web/src/shared/camera";
+import { pushPie } from "../../../../web/src/shared/overlays";
+import { UNIT_CLASS_BY_KEY, UnitClass } from "../../../../web/src/battle/classData";
 import {
   HEAVY_PHALANX_REST_CLASS,
   HEAVY_PHALANX_SIDEARM_CLASS,
@@ -54,18 +55,12 @@ import {
   MEDIUM_PHALANX_SIDEARM_CLASS,
   SHOCK_CAV_SIDEARM_CLASS,
 } from "@packages/soldier-assets/src/soldierMesh";
-import { createBattleGroundEdgeFixture } from "./battleGroundEdgeFixture";
-
-interface PhotorealBattleContext {
-  root: HTMLElement;
-  canvas: HTMLCanvasElement;
-  status: HTMLElement;
-  params: URLSearchParams;
-}
+import { createBattleGroundEdgeFixture } from "../battleGroundEdgeFixture";
+import type { LabContext } from "../labShell";
 
 const TICK_DT = 1 / 30;
 
-export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
+export async function route(ctx: LabContext) {
   const params = ctx.params;
   const generatedMap = params.get("map") === "gen";
   const environment = params.get("env") ?? (generatedMap ? DEFAULT_BATTLE_ENVIRONMENT : null);
@@ -73,7 +68,7 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
   // production #battlefield also fills its viewport).
   if (params.get("ref") === "1") ctx.root.classList.add("reference-shot");
   const [{ default: initWasm, Game }, world] = await Promise.all([
-    import("../../../web/src/wasm/game_wasm.js"),
+    import("../../../../web/src/wasm/game_wasm.js"),
     PhotorealBattleWorld.create(ctx.canvas, {
       environment,
       shadows: params.get("shadows"),
@@ -239,24 +234,15 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
   };
   applyStatic();
   {
-    const tw = edgeFixture?.grid.w ?? game.terrain_w();
-    const th = edgeFixture?.grid.h ?? game.terrain_h();
-    const fixtureGrid = edgeFixture?.grid;
+    const grid = edgeFixture?.grid ?? readBattleTerrainGrid(game, wasm.memory);
     world.setTerrain(
-      tw,
-      th,
-      fixtureGrid?.cell ?? game.terrain_cell(),
-      fixtureGrid?.ox ?? game.terrain_origin_x(),
-      fixtureGrid?.oy ?? game.terrain_origin_y(),
-      fixtureGrid?.tint ??
-        new Uint8Array(new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), tw * th)),
-      fixtureGrid?.height ??
-        heightForPhotorealRoute(
-          new Float32Array(
-            new Float32Array(wasm.memory.buffer, game.terrain_height_ptr(), tw * th),
-          ),
-          generatedMap,
-        ),
+      grid.w,
+      grid.h,
+      grid.cell,
+      grid.ox,
+      grid.oy,
+      grid.tint,
+      edgeFixture ? grid.height : heightForPhotorealRoute(grid.height!, generatedMap),
       edgeFixture ? undefined : wasmMapId,
       edgeFixture
         ? {
@@ -272,10 +258,8 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
         ? null
         : readGeneratedVistaGrid(wasm, game, generatedDescriptor),
       null,
-      fixtureGrid?.rough ??
-        new Float32Array(new Float32Array(wasm.memory.buffer, game.terrain_rough_ptr(), tw * th)),
-      fixtureGrid?.speed ??
-        new Float32Array(new Float32Array(wasm.memory.buffer, game.terrain_speed_ptr(), tw * th)),
+      grid.rough,
+      grid.speed,
     );
   }
   if (edgeFixture) addEdgeRuler(world.world.scene, edgeFixture.anchors.ruler);

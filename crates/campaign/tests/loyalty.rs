@@ -3,9 +3,9 @@
 
 mod common;
 
-use campaign::state::{Loc, RosterEntry, Stance};
+use campaign::state::{Loc, RosterEntry};
 use campaign::{economy, tunables, Campaign};
-use common::inert;
+use common::{inert, run_month};
 
 /// A 1-D chain of four cities X0–X1–X2–X3 through junctions, all blue but X3.
 /// Red can take a middle city and find it surrounded by blue neighbours — the
@@ -42,12 +42,6 @@ fn chain_map() -> &'static str {
     }"#
 }
 
-fn run_month(c: &mut Campaign) {
-    for _ in 0..tunables::TICKS_PER_MONTH {
-        c.tick();
-    }
-}
-
 /// A full-strength field army (`units` battle units) for `faction`, placed `loc`.
 fn place_army(c: &mut Campaign, faction: u32, loc: Loc, units: u32) -> u32 {
     let id = c.state.armies.len() as u32;
@@ -59,21 +53,9 @@ fn place_army(c: &mut Campaign, faction: u32, loc: Loc, units: u32) -> u32 {
             morale_cap: 1.0,
         })
         .collect();
-    c.state.armies.push(campaign::state::Army {
-        id,
-        faction,
-        garrison_of: None,
-        roster,
-        loc,
-        path: Vec::new(),
-        path_idx: 0,
-        progress: 0.0,
-        stance: Stance::Hold,
-        encounter: None,
-        auto_replenish: true,
-        sack_intent: false,
-        embark_ticks_left: 0,
-    });
+    c.state
+        .armies
+        .push(campaign::state::Army::new(id, faction, roster, loc));
     id
 }
 

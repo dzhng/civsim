@@ -5,34 +5,9 @@
 use campaign::state::Loc;
 use campaign::Campaign;
 
-/// Strong red, weak blue, a junction between. Node ids reindex to 0-based on
-/// load: red's city is Node(0), the junction Node(1), blue's city Node(2). Red
-/// can march the map's length and crush blue — the shape of
-/// `full_game::lopsided_war_concludes`, small enough to roll forward fast.
-fn lopsided_map() -> &'static str {
-    r#"{
-      "half_w": 100, "half_h": 100,
-      "nodes": [
-        {"id": 1, "name": "Red",  "pos": [0,0],  "kind": "city", "tier": 2, "port": false, "owner": "red"},
-        {"id": 2, "name": "Mid",  "pos": [20,0], "kind": "junction", "tier": 0, "port": false, "owner": ""},
-        {"id": 3, "name": "Blue", "pos": [40,0], "kind": "city", "tier": 1, "port": false, "owner": "blue"}
-      ],
-      "edges": [
-        {"a": 1, "b": 2, "kind": "road", "via": [[0,0],[20,0]], "tiles": ["open","open","open","open","open","open"]},
-        {"a": 2, "b": 3, "kind": "road", "via": [[20,0],[40,0]], "tiles": ["open","open","open","open","open","open"]}
-      ],
-      "ambush_spots": [],
-      "factions": [
-        {"id": "red",  "name": "Red",  "color": [200,0,0], "playable": true},
-        {"id": "blue", "name": "Blue", "color": [0,0,200], "playable": true},
-        {"id": "independents", "name": "Ind", "color": [99,99,99], "playable": false}
-      ],
-      "start_armies": [
-        {"faction": "red",  "at": "Red",  "roster": [["HeavySword", 3], ["Archers", 1], ["ShockCavalry", 1]]},
-        {"faction": "blue", "at": "Blue", "roster": [["LightSpear", 1]]}
-      ]
-    }"#
-}
+mod common;
+
+use common::lopsided_map;
 
 fn all_ai(c: &mut Campaign) {
     for f in &mut c.state.factions {

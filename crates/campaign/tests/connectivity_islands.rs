@@ -5,13 +5,9 @@
 use campaign::mapdata::{AiPersona, NodeId, NodeKind, WorldMap};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
-fn real_map_json() -> String {
-    let path = concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../../web/public/data/campaign-map.json"
-    );
-    std::fs::read_to_string(path).expect("real campaign map should be present")
-}
+mod common;
+
+use common::real_map;
 
 fn playable_capital_names(map_json: &str) -> Vec<String> {
     let raw: serde_json::Value =
@@ -74,7 +70,7 @@ fn main_component(map: &WorldMap, seeds: &[NodeId]) -> BTreeSet<NodeId> {
 
 #[test]
 fn island_holdings_stay_neutral_armyless_and_inert() {
-    let map_json = real_map_json();
+    let map_json = real_map();
     let map = WorldMap::from_json(&map_json);
     let capitals: Vec<NodeId> = playable_capital_names(&map_json)
         .iter()

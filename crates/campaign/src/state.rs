@@ -139,6 +139,29 @@ fn default_auto_replenish() -> bool {
 }
 
 impl Army {
+    pub fn new(id: ArmyId, faction: FactionId, roster: Vec<RosterEntry>, loc: Loc) -> Self {
+        Self {
+            id,
+            faction,
+            garrison_of: None,
+            roster,
+            loc,
+            path: Vec::new(),
+            path_idx: 0,
+            progress: 0.0,
+            stance: Stance::Hold,
+            encounter: None,
+            auto_replenish: true,
+            sack_intent: false,
+            embark_ticks_left: 0,
+        }
+    }
+
+    pub fn garrisoned(mut self, node: NodeId) -> Self {
+        self.garrison_of = Some(node);
+        self
+    }
+
     pub fn alive(&self) -> bool {
         self.roster.iter().any(|r| r.count > 0)
     }
@@ -182,6 +205,33 @@ pub struct Encounter {
     /// Pending and shown on the initiation screen: true = no road out,
     /// defeat means annihilation.
     pub no_retreat: [bool; 2],
+}
+
+impl Encounter {
+    pub fn new(
+        st: &mut CampaignState,
+        attacker: ArmyId,
+        defender: ArmyId,
+        prep: [u16; 2],
+        ambush: bool,
+    ) -> Self {
+        let id = st.next_encounter_id;
+        let seed = ((st.rng.next_u32() as u64) << 32) | st.rng.next_u32() as u64;
+        st.next_encounter_id += 1;
+        let [prep_attacker, prep_defender] = prep;
+        Self {
+            id,
+            attacker,
+            defender,
+            prep_attacker,
+            prep_defender,
+            phase: EncounterPhase::Preparing,
+            ambush,
+            seed,
+            reinforcements: Vec::new(),
+            no_retreat: [false, false],
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

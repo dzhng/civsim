@@ -370,13 +370,6 @@ impl Campaign {
         ok
     }
 
-    /// Flag an army to sack (vs hold) the next city it takes.
-    pub fn order_sack_intent(&mut self, army: u32, on: bool) -> bool {
-        let ok = self.inner.order_sack_intent(army, on);
-        self.refresh();
-        ok
-    }
-
     // ---- diplomacy --------------------------------------------------------
 
     /// The great powers and the player's standing with each, for the diplomacy

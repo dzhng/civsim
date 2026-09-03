@@ -328,16 +328,23 @@ impl Default for FieldTextureRecipe {
     }
 }
 
+/// Canonical half-width of a generated battlefield.
+pub const FIELD_HALF_W: f32 = 1200.0;
+/// Canonical half-height of a generated battlefield.
+pub const FIELD_HALF_H: f32 = 800.0;
+/// Canonical terrain-grid cell size for generated battlefields.
+pub const FIELD_CELL: f32 = 4.0;
+
 fn default_map_half_w() -> f32 {
-    1200.0
+    FIELD_HALF_W
 }
 
 fn default_map_half_h() -> f32 {
-    800.0
+    FIELD_HALF_H
 }
 
 fn default_map_cell() -> f32 {
-    4.0
+    FIELD_CELL
 }
 
 fn default_vista_extent() -> f32 {

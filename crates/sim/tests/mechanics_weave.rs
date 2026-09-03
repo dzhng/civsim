@@ -18,6 +18,10 @@
 //! Facing is fixed NORTH (+y) so the unit's right-axis is +x and its
 //! forward-axis is +y; "width" is the x-spread, "depth" is the y-spread.
 
+mod common;
+
+use common::weave::{bend, kill_to, scale_x, scale_y, shear, wrap_u};
+use common::{block, no_morale_parade};
 use sim::{class_stats, Pace, Sim, Tunables, UnitClassId, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
 
@@ -241,10 +245,8 @@ const HEAVY_CHARGE: f32 = 3.44;
 const CAV_CHARGE: f32 = 10.53;
 
 /// A clean rectangular block, facing north, on a parade ground.
-fn block(files: usize, ranks: usize, spacing: f32) -> (Sim, usize) {
-    let mut tun = Tunables::default();
-    tun.micro_rough = 0.0;
-    tun.morale_enabled = false;
+fn tier0_tunables() -> Tunables {
+    let mut tun = no_morale_parade();
     // Tier 0 isolates the SPRINGS: give a holding unit the same (low) slot pull
     // as an attacking one, so these tests read the lattice restoring force, not
     // the hold-vs-attack slot-stiffness policy (a Tier 1/2 concern).
@@ -253,21 +255,7 @@ fn block(files: usize, ranks: usize, spacing: f32) -> (Sim, usize) {
         tun.slot_pull = v.parse().unwrap();
         tun.slot_pull_hold = tun.slot_pull;
     }
-    let mut sim = Sim::new(tun, SEED);
-    let u = sim.spawn_unit(
-        Vec2::new(0.0, 0.0),
-        FRAC_PI_2,
-        files * ranks,
-        files,
-        Vec2::new(spacing, spacing),
-        0,
-        0.8,
-    );
-    // settle once so it starts from its own rest state
-    for _ in 0..30 {
-        sim.tick();
-    }
-    (sim, u)
+    tun
 }
 
 /// (width = x-spread, depth = y-spread) of the living men, world axes.
@@ -344,88 +332,6 @@ fn lean(sim: &Sim, unit: usize) -> f32 {
         cov / vary
     } else {
         0.0
-    }
-}
-
-/// Kill men (from the rear) until the unit is down to `target` alive.
-fn kill_to(sim: &mut Sim, unit: usize, target: usize) {
-    let (s, e) = (
-        sim.units[unit].start,
-        sim.units[unit].start + sim.units[unit].count,
-    );
-    for i in (s..e).rev() {
-        if sim.units[unit].alive_count <= target {
-            break;
-        }
-        if sim.alive[i] == 1 {
-            sim.kill(i);
-        }
-    }
-}
-
-// --- the perturbations: write world positions directly ---------------------
-
-/// Scale every man's x-offset from the unit centroid by `k` (lateral stretch
-/// if k>1, compress if k<1).
-fn scale_x(sim: &mut Sim, unit: usize, k: f32) {
-    let u = &sim.units[unit];
-    let (s, e) = (u.start, u.start + u.count);
-    let cx = sim.units[unit].centroid.x;
-    for i in s..e {
-        sim.positions[2 * i] = cx + (sim.positions[2 * i] - cx) * k;
-    }
-}
-
-fn scale_y(sim: &mut Sim, unit: usize, k: f32) {
-    let u = &sim.units[unit];
-    let (s, e) = (u.start, u.start + u.count);
-    let cy = sim.units[unit].centroid.y;
-    for i in s..e {
-        sim.positions[2 * i + 1] = cy + (sim.positions[2 * i + 1] - cy) * k;
-    }
-}
-
-/// Bow the block forward into a parabola: y += amp * (x/halfwidth)^2.
-fn bend(sim: &mut Sim, unit: usize, amp: f32) {
-    let u = &sim.units[unit];
-    let (s, e) = (u.start, u.start + u.count);
-    let cx = sim.units[unit].centroid.x;
-    let hw = extent(sim, unit).0 * 0.5 + 0.01;
-    for i in s..e {
-        let t = (sim.positions[2 * i] - cx) / hw;
-        sim.positions[2 * i + 1] += amp * t * t;
-    }
-}
-
-/// Shear the block into a parallelogram: x += k * (y - cy).
-fn shear(sim: &mut Sim, unit: usize, k: f32) {
-    let u = &sim.units[unit];
-    let (s, e) = (u.start, u.start + u.count);
-    let cy = sim.units[unit].centroid.y;
-    for i in s..e {
-        sim.positions[2 * i] += k * (sim.positions[2 * i + 1] - cy);
-    }
-}
-
-/// Wrap the block into a U (semicircle opening forward): map each man's x to an
-/// arc angle and place him on a circle, ranks stacked radially. A 180° span is a
-/// full U around a column.
-fn wrap_u(sim: &mut Sim, unit: usize, span_rad: f32) {
-    let u = &sim.units[unit];
-    let (s, e, files, sp) = (u.start, u.start + u.count, u.files_eff.max(1), u.spacing.y);
-    let cx = sim.units[unit].centroid.x;
-    let cy = sim.units[unit].centroid.y;
-    let hw = (extent(sim, unit).0 * 0.5).max(0.5);
-    let radius = hw / (span_rad * 0.5).max(0.1);
-    for i in s..e {
-        // recover (file, rank) from the live slot
-        let slot = sim.soldier_slot[i] as usize;
-        let (file, rank) = (slot % files, slot / files);
-        let t = (file as f32 / (files.max(2) - 1) as f32) * 2.0 - 1.0; // -1..1
-        let a = t * span_rad * 0.5;
-        let rr = radius + rank as f32 * sp;
-        sim.positions[2 * i] = cx + rr * a.sin();
-        sim.positions[2 * i + 1] = cy + rr * (1.0 - a.cos());
     }
 }
 
@@ -643,7 +549,7 @@ fn a_two_sided_squeeze_reads_as_a_vice_a_one_sided_shove_does_not() {
     // almost no vice, even though he is pressed just as hard. This is exactly
     // what combat reads to pin a wedged man's arms while sparing the man merely
     // shoved from one side — and it now comes straight off the weave springs.
-    let (mut sim, u) = block(6, 8, 1.0); // 6 wide, 8 deep, facing +y
+    let (mut sim, u) = block(tier0_tunables(), SEED, 6, 8, 1.0, 0.8, 30); // 6 wide, 8 deep, facing +y
     scale_y(&mut sim, u, 0.55); // crush the depth: every rank driven inside rest
                                 // A few ticks for the spring loads to register in the EMA; the block barely
                                 // relaxes in that time (full recovery takes ~1.5 s).
@@ -999,7 +905,7 @@ fn an_attacking_stem_drapes_along_the_bar() {
 
 #[test]
 fn a_u_wrapped_line_loses_about_20_percent_cohesion() {
-    let (mut sim, u) = block(24, 3, 1.0);
+    let (mut sim, u) = block(tier0_tunables(), SEED, 24, 3, 1.0, 0.8, 30);
     let coh_flat = sim.units[u].cohesion;
     // Hold the U (re-impose it each tick) so cohesion settles to the wrapped
     // shape rather than springing flat — this isolates the cohesion MEASURE.
@@ -1024,7 +930,7 @@ fn a_u_wrapped_line_loses_about_20_percent_cohesion() {
 
 #[test]
 fn a_stretched_block_recovers_its_rest_width() {
-    let (mut sim, u) = block(10, 5, 1.0);
+    let (mut sim, u) = block(tier0_tunables(), SEED, 10, 5, 1.0, 0.8, 30);
     let (w0, _) = extent(&sim, u);
     scale_x(&mut sim, u, 1.6); // yank it 60% wider
     assert!(
@@ -1047,7 +953,7 @@ fn a_stretched_block_recovers_its_rest_width() {
 
 #[test]
 fn a_compressed_block_recovers_its_rest_depth() {
-    let (mut sim, u) = block(8, 6, 1.0);
+    let (mut sim, u) = block(tier0_tunables(), SEED, 8, 6, 1.0, 0.8, 30);
     let (_, d0) = extent(&sim, u);
     scale_y(&mut sim, u, 0.6); // squash the ranks together (still > body diameter)
     assert!(
@@ -1073,7 +979,7 @@ fn a_bent_block_straightens() {
     // A LEGAL block (>=3 deep, so the 3-deep rule doesn't reshape it). Bow the
     // whole thing forward into a banana; with no other force it must straighten
     // back to its rest depth.
-    let (mut sim, u) = block(24, 3, 1.0);
+    let (mut sim, u) = block(tier0_tunables(), SEED, 24, 3, 1.0, 0.8, 30);
     let (_, d0) = extent(&sim, u); // rest depth ~2 (3 ranks)
     bend(&mut sim, u, 3.0); // wings bowed 3m forward of the centre
     let (_, d_bent) = extent(&sim, u);
@@ -1098,7 +1004,7 @@ fn a_bent_block_straightens() {
 
 #[test]
 fn a_sheared_block_squares_up() {
-    let (mut sim, u) = block(10, 5, 1.0);
+    let (mut sim, u) = block(tier0_tunables(), SEED, 10, 5, 1.0, 0.8, 30);
     shear(&mut sim, u, 1.5); // lean it over hard: x += 1.5*(y-cy) → shear slope ~1.5
     let lean0 = lean(&sim, u);
     assert!(
@@ -1120,7 +1026,7 @@ fn a_sheared_block_squares_up() {
 fn a_dying_block_sheds_depth_then_width() {
     // The 3-deep rule: as men die the block gets SHALLOWER at full width until
     // it would drop below 3 ranks, then it closes up and sheds WIDTH instead.
-    let (mut sim, u) = block(12, 8, 1.0); // 96 men, 12 wide × 8 deep
+    let (mut sim, u) = block(tier0_tunables(), SEED, 12, 8, 1.0, 0.8, 30); // 96 men, 12 wide × 8 deep
     let w0 = sim.units[u].files_eff;
     assert_eq!(w0, 12, "setup: starts 12 wide");
     // Down to half: alive/3 = 16 > 12, so width holds and DEPTH sheds (to ~4).
@@ -1149,7 +1055,7 @@ fn a_dying_block_sheds_depth_then_width() {
 
 #[test]
 fn the_lattice_settles_without_oscillating() {
-    let (mut sim, u) = block(10, 5, 1.0);
+    let (mut sim, u) = block(tier0_tunables(), SEED, 10, 5, 1.0, 0.8, 30);
     scale_x(&mut sim, u, 1.5);
     // Watch the per-tick motion: after a brief transient it must DECAY to ~0,
     // and never grow (a springy lattice with no damping would ring).

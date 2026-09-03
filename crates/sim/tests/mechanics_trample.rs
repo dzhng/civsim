@@ -10,6 +10,9 @@
 //! Pure-physics rig: immortal, zero-damage fakes, morale off, so the trace shows
 //! ONLY the steering contest (seek vs weave vs momentum), immune to balance.
 
+mod common;
+
+use common::run;
 use sim::{class_stats, OrderMode, Pace, Sim, Tunables, UnitClassId, Vec2, Weapon, DT};
 use std::f32::consts::FRAC_PI_2;
 
@@ -73,12 +76,6 @@ fn rig(depth: usize) -> (Sim, usize, usize) {
     }
     sim.set_pace(cav, Pace::Run);
     (sim, line, cav)
-}
-
-fn run(sim: &mut Sim, secs: f32) {
-    for _ in 0..(secs / DT) as usize {
-        sim.tick();
-    }
 }
 
 #[test]

@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { OfflineAudioContext } from "node-web-audio-api";
 
@@ -769,6 +770,6 @@ class FakeBirdAudioContext {
 
 function fakeBirdMixer(ctx: FakeBirdAudioContext) {
   return {
-    bedInput: () => ctx.destination,
+    bedInput: () => ctx.destination as unknown as GainNode,
   } satisfies Pick<AudioMixer, "bedInput">;
 }

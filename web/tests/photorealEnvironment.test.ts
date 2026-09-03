@@ -1,8 +1,9 @@
+// @vitest-environment node
 // Environment seam pin: every CIVSIM_ENVIRONMENTS preset maps into the
 // photoreal spec, no preset is invented, and the mapping is a pure function of
 // the ONE preset owner (packages/game-renderer/src/environment/environment.ts).
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "vitest";
 import { CIVSIM_ENVIRONMENTS } from "../../packages/game-renderer/src/environment/environment.ts";
 import { photorealEnvironment } from "../../packages/photoreal-renderer/src/environment.ts";
 import {

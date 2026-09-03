@@ -4,11 +4,10 @@ import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
-// Vitest for the React UI overlay. The React plugin transforms JSX/TSX the same
-// way the app build does, jsdom gives the components a DOM, and setup-tests.ts
-// wires @testing-library/jest-dom matchers. The pure, DOM-free `.test.mjs`
-// suites (cardGrid, armyBuilderState) stay on `node --test` (bun run test:ui);
-// vitest owns the `.test.tsx` component tests.
+// The React plugin transforms JSX/TSX the same way the app build does, jsdom
+// gives component tests a DOM, and setup-tests.ts wires
+// @testing-library/jest-dom matchers. DOM-free suites select Vitest's node
+// environment with a per-file directive.
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -37,10 +36,10 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     include: [
-      "src/**/*.test.tsx",
+      "src/**/*.test.{ts,tsx,mjs}",
       "src/**/*.test.ui.ts",
-      "tests/vitest/ambientAudio.test.ts",
-      "tests/vitest/windSignal.test.ts",
+      "tests/**/*.test.ts",
+      "snapshot.test.mjs",
     ],
     exclude: ["**/node_modules/**", "**/dist/**"],
     setupFiles: ["./setup-tests.ts"],

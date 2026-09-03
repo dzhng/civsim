@@ -1,6 +1,6 @@
 // Pure state for the React custom-battle army builder — no runtime catalog
 // import (the catalog types come in type-only, erased at build/strip time), so
-// the emitted launch config is unit-testable under `node --test`.
+// the emitted launch config is unit-testable without mounting React.
 //
 // The output `armyConfig` MUST match what the old vanilla builder produced for
 // the same click sequence. The load-bearing subtlety: picks come out in Map

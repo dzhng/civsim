@@ -1,9 +1,10 @@
+// @vitest-environment node
 // Spine-fidelity pin for the whole photoreal ladder: applyCamera3d must pose a
 // three.js PerspectiveCamera so that projectionMatrix × matrixWorldInverse IS
 // camera3d.viewProjMatrix — one projector engine-wide, no drift between the
 // bespoke spine and the three substrate. Runs in node, no GPU.
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "vitest";
 import { PerspectiveCamera, Matrix4, Vector4 } from "three";
 import {
   applyCamera3d,

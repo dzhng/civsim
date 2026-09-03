@@ -1,12 +1,13 @@
+// @vitest-environment node
 // Byte-identical-output contract for the React army-builder reducer (S4).
-// `node --test web/src/ui/menu/armyBuilderState.test.mjs` — Node strips the
-// types from the imported `.ts`. No DOM, no catalog (synthetic templates), so
-// it isolates the one thing that must not drift: picks in Map INSERTION order
+// Vitest runs this suite in its node environment. Synthetic templates keep it
+// independent of the DOM and catalog, isolating the one thing that must not
+// drift: picks in Map INSERTION order
 // (template-first, then click-added classes), 0-count classes filtered out but
 // holding their slot for a re-increment.
 
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "vitest";
 import {
   DEFAULT_BATTLE_FACTIONS,
   armyBuilderReducer,

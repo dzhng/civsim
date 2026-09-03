@@ -266,7 +266,7 @@ impl Sim {
             let my_r = self.radius[i];
             let p = self.soldier_pos(i);
             let local_f = dir(self.facings[i]);
-            let local_r = Vec2::new(local_f.y, -local_f.x);
+            let local_r = local_f.perp();
             // Targeting strike field (slice 01): a man targets the foe he can bring
             // his blade to bear on SOONEST (cost = turn-to-edge + travel), not the
             // nearest body. The field is the GRIND weapon's zones (the widest-arc

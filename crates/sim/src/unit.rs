@@ -290,7 +290,7 @@ impl Unit {
     pub fn slot_world(&self, slot: usize) -> Vec2 {
         let local = slot_local(slot, self.files_eff, self.spacing);
         let f = dir(self.facing);
-        let r = Vec2::new(f.y, -f.x);
+        let r = f.perp();
         self.anchor + r * local.x + f * (-local.y)
     }
 
@@ -375,7 +375,7 @@ pub(crate) fn reassign_slots(
     soldier_slot: &mut [u32],
 ) {
     let f = dir(u.facing);
-    let r = Vec2::new(f.y, -f.x);
+    let r = f.perp();
     let mut order: Vec<(f32, f32, u32)> = (0..u.count)
         .filter(|&s| alive[u.start + s] == 1)
         .map(|s| {

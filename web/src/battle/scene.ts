@@ -3,7 +3,8 @@ import type { Scene } from "../scene";
 import { Camera } from "../shared/camera";
 import { awaitRendererReady } from "../shared/rendererReady";
 import { SimClock } from "../shared/simClock";
-import { pushDestRings, pushPie, SELECTION_GREEN, SOLDIER_RING_RADIUS } from "../shared/overlays";
+import { pushDestRings, pushPie, SOLDIER_RING_RADIUS } from "../shared/overlays";
+import { SELECTION_GREEN } from "@packages/game-renderer/src/overlays";
 import {
   CLASS_SPACING,
   UNIT_INFO,

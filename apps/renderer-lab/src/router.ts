@@ -35,10 +35,13 @@ import {
 } from "@packages/renderer-core/src/compileShader";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../../../web/src/shared/fatalError";
 import {
+  Allegiance,
   CAMPAIGN_FIGURE_SIZE,
   campaignArmyStandardScale,
   campaignSettlementStandardScale,
-} from "../../../web/src/campaign/renderer";
+  type ArmyView,
+  type CityView,
+} from "@packages/game-renderer/src/campaign/entityFrame";
 import { SkinnedCrowdPipeline } from "@packages/renderer-core/src/skinnedPipeline";
 import { animationForFrame } from "@packages/crowd-runtime/src/animationState";
 import {
@@ -225,16 +228,10 @@ import type { UnitCardInit, UnitCardState } from "../../../web/src/battle/unitCa
 import { UnitCardsReact } from "../../../web/src/ui/hud/UnitCardsReact";
 import { installViewportGate } from "../../../web/src/battle/viewportGate";
 import { loadCampaignData, nearestLoc, type CampaignData } from "../../../web/src/campaign/data";
-import { Allegiance } from "../../../web/src/campaign/status";
 import { campaignSurface } from "../../../web/src/campaign/surface";
 import { TerrainField } from "../../../web/src/campaign/terrain";
 import { Territory, type FactionLabel } from "../../../web/src/campaign/territory";
-import {
-  readCampaignViews,
-  type ArmyView,
-  type CampaignViews,
-  type CityView,
-} from "../../../web/src/campaign/views";
+import { readCampaignViews, type CampaignViews } from "../../../web/src/campaign/views";
 import { CampaignUiLayer } from "../../../web/src/campaign/uiLayer";
 
 type LabRoute = (ctx: LabContext) => Promise<void> | void;

@@ -1,19 +1,6 @@
-import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
-import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
-import { gpuMultisample, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
-import { compileShader } from '../../../renderer-core/src/compileShader';
 import { MeshBuilder } from '../models/shared/meshBuilder';
 import type { BattleEdgeRole, BattleEdgeRoles } from './terrainFeatures';
 import { terrainHeightAt, type TerrainHeightField } from '../terrain/heightField';
-import { WaterPlanePass } from '../water/waterPlanePass';
-import { GerstnerWaterField } from '../water/gerstnerField';
-import { BATTLE_OCEAN_RAMP } from '../water/waterShoreRamp';
-import {
-  BATTLE_ENVIRONMENTS,
-  battleEnvironmentStats,
-  battleEnvironmentWgsl,
-  type BattleEnvironment,
-} from '../environment/environment';
 
 // The sealed-side backdrop: the west/east edges read at a glance as the blocker
 // the sim already enforces — cliffs/mountains as a tall stone ridge, a wall as a
@@ -35,132 +22,9 @@ const OCEAN_FAR = 7200;
 const OCEAN_LAP = 24;
 const OCEAN_RES = 440;
 
-const HORIZON_WGSL = (env: BattleEnvironment) => `
-${WORLD_CAMERA_WGSL}
-${battleEnvironmentWgsl(env)}
-struct VsOut {
-  @builtin(position) pos: vec4f,
-  @location(0) color: vec3f,
-  @location(1) light: f32,
-};
-
-@vertex
-fn vs(@location(0) world: vec3f, @location(1) normal: vec3f, @location(2) color: vec3f) -> VsOut {
-  var out: VsOut;
-  out.pos = projectWorld(world);
-  let sun = sunDirection();
-  out.light = clamp(dot(normalize(normal), sun) * 0.5 + 0.7, 0.42, 1.2);
-  out.color = color;
-  return out;
-}
-
-@fragment
-fn fs(in: VsOut) -> @location(0) vec4f {
-  // Push the blocker slightly toward the cool haze with height so it reads as
-  // standing off in the distance behind the field.
-  let col = clamp(mix(in.color * in.light * BATTLE_EXPOSURE, BATTLE_HAZE, 0.10), vec3f(0.0), vec3f(1.0));
-  return vec4f(col, 1.0);
-}`;
-
-export class BattleHorizonPass {
-  private pipeline: GPURenderPipeline;
-  private vertexBuffer: GPUBuffer | null = null;
-  private indexBuffer: GPUBuffer | null = null;
-  private indexCount = 0;
-  private builtEdges: Array<{ side: keyof BattleEdgeRoles; role: BattleEdgeRole }> = [];
-  // The open sea is the shared animated water surface (Slice 9), one plane per ocean
-  // edge on the same material the on-field water uses (Slice 8) so the shoreline seam
-  // cannot exist. Analytic Gerstner — one shared field, no per-frame compute.
-  private readonly oceanField = new GerstnerWaterField();
-  private oceanPlanes: WaterPlanePass[] = [];
-
-  constructor(private shell: RawFrameShell, private environment: BattleEnvironment = BATTLE_ENVIRONMENTS['golden-hour']) {
-    const module = compileShader(shell.device, HORIZON_WGSL(environment), `battle-horizon-${environment.id}`);
-    this.pipeline = shell.device.createRenderPipeline({
-      label: 'battle-horizon-pipeline',
-      layout: shell.device.createPipelineLayout({ bindGroupLayouts: [shell.cameraBindGroupLayout] }),
-      vertex: {
-        module,
-        entryPoint: 'vs',
-        buffers: [{
-          arrayStride: 40,
-          attributes: [
-            { shaderLocation: 0, offset: 0, format: 'float32x3' },
-            { shaderLocation: 1, offset: 12, format: 'float32x3' },
-            { shaderLocation: 2, offset: 24, format: 'float32x3' },
-          ],
-        }],
-      },
-      fragment: { module, entryPoint: 'fs', targets: [gpuOpaqueColorTarget(shell.info.format)] },
-      primitive: { topology: 'triangle-list', cullMode: 'none' },
-      depthStencil: gpuWorldDepthStencil('read-write'),
-      multisample: gpuMultisample(shell.sampleCount),
-    });
-  }
-
-  /** Build the blocker geometry just outside each sealed edge. `bounds` is the
-   *  playable rect; the field height datum seats the bases. */
-  setEdges(bounds: { ox: number; oy: number; w: number; h: number; cell: number }, edges: BattleEdgeRoles, field: TerrainHeightField) {
-    const layout = buildBattleHorizonLayout(bounds, edges, field);
-    this.builtEdges = layout.builtEdges;
-    for (const plane of this.oceanPlanes) plane.destroy();
-    this.oceanPlanes = layout.oceanPlanes.map(
-      (spec) => new WaterPlanePass(this.shell, this.oceanField, spec.rect, this.environment.environment, {
-        baseZ: spec.baseZ,
-        shoreX: spec.shoreX,
-        shoreRamp: BATTLE_OCEAN_RAMP,
-      }),
-    );
-    this.upload(layout.mesh.vertices, layout.mesh.indices);
-  }
-
-  private upload(verts: Float32Array, indices: Uint16Array) {
-    const device = this.shell.device;
-    this.vertexBuffer?.destroy();
-    this.indexBuffer?.destroy();
-    this.vertexBuffer = device.createBuffer({ label: 'battle-horizon-vertices', size: Math.max(4, verts.byteLength), usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
-    if (verts.byteLength > 0) device.queue.writeBuffer(this.vertexBuffer, 0, verts);
-    const padded = indices.byteLength % 4 === 0 ? indices : new Uint16Array(indices.length + 1);
-    if (padded !== indices) padded.set(indices);
-    this.indexBuffer = device.createBuffer({ label: 'battle-horizon-indices', size: Math.max(4, padded.byteLength), usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST });
-    if (padded.byteLength > 0) device.queue.writeBuffer(this.indexBuffer, 0, padded);
-    this.indexCount = indices.length;
-  }
-
-  draw(pass: WorldRenderPass) {
-    // Blocker mesh (cliffs/walls/aprons) first, then the sea plane(s) on top in the
-    // same world-depth pass so props/crowd occlude both by depth.
-    if (this.vertexBuffer && this.indexBuffer && this.indexCount > 0) {
-      pass.setPipeline(this.pipeline);
-      pass.setBindGroup(0, this.shell.cameraBindGroup);
-      pass.setVertexBuffer(0, this.vertexBuffer);
-      pass.setIndexBuffer(this.indexBuffer, 'uint16');
-      pass.drawIndexed(this.indexCount);
-    }
-    for (const plane of this.oceanPlanes) plane.draw(pass);
-  }
-
-  stats() {
-    return {
-      sealedEdges: this.builtEdges.map((e) => `${e.side}:${e.role}`),
-      layer: 'battle-horizon-blockers' as const,
-      environment: battleEnvironmentStats(this.environment),
-    };
-  }
-
-  destroy() {
-    for (const plane of this.oceanPlanes) plane.destroy();
-    this.oceanPlanes = [];
-    this.vertexBuffer?.destroy();
-    this.indexBuffer?.destroy();
-    this.oceanField.destroy();
-  }
-}
-
 /** The sealed-edge presentation, CPU-built: blocker mesh (MeshBuilder stride-10
- *  vertices) + the ocean plane specs (rect + shoreline datum). Extracted from
- *  BattleHorizonPass.setEdges so the photoreal battle world (slice 08a) seals
- *  the exact same edges with the exact same geometry. */
+ *  vertices) + the ocean plane specs (rect + shoreline datum). The photoreal
+ *  battle world seals edges from this shared geometry. */
 export interface BattleOceanPlaneSpec {
   rect: { x0: number; y0: number; x1: number; y1: number; res: number };
   baseZ: number;

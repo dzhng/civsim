@@ -531,37 +531,6 @@ async function findPhaseBrandFootguns() {
       ],
     },
     {
-      file: new URL("../../../packages/game-renderer/src/battle/groundCuePass.ts", import.meta.url),
-      checks: [
-        [
-          "battle ground cue draw requires world pass",
-          /\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/,
-        ],
-        ["battle ground cue uses the shared projector", /projectWorld\s*\(/],
-        [
-          "battle ground cue uses depth-read material contract",
-          /gpuWorldDepthStencil\s*\(\s*'read'\s*\)/,
-        ],
-        ["selected unit cue helper uses ground-cue naming", /selectedUnitGroundCueVertices/],
-      ],
-    },
-    {
-      file: new URL(
-        "../../../packages/game-renderer/src/battle/effectLinePass.ts",
-        import.meta.url,
-      ),
-      checks: [
-        [
-          "battle effect line draw requires overlay pass",
-          /\bdraw\s*\(\s*pass:\s*OverlayRenderPass\s*\)/,
-        ],
-        [
-          "battle effect line does not use world depth stencil",
-          (v) => !/gpuWorldDepthStencil|depthStencil/.test(v),
-        ],
-      ],
-    },
-    {
       // Since slice 08b the production battle renders through the photoreal
       // seam: BattleRenderer owns no bespoke passes and no frame shell.
       file: new URL("../../src/battle/renderer.ts", import.meta.url),

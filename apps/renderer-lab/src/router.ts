@@ -55,10 +55,6 @@ import {
 } from "../../../packages/crowd-runtime/src/lod";
 import { SoldierShadowDecalPass } from "../../../packages/renderer-core/src/soldierShadowPass";
 import {
-  BattleParticlePass,
-  type BattleParticle,
-} from "../../../packages/game-renderer/src/battle/particlePass";
-import {
   CLASS_DEPTH,
   CLASS_SPACING,
   UNIT_INFO,
@@ -100,7 +96,6 @@ import {
   terrainHeightField,
   type BattleTerrainGrid,
 } from "../../../packages/game-renderer/src/battle/terrainFeatures";
-import { BattleGroundPass } from "../../../packages/game-renderer/src/battle/groundPass";
 import { sampleGrassField } from "../../../packages/game-renderer/src/battle/grassField";
 import {
   chartCamera3d,
@@ -131,10 +126,6 @@ import {
   CampaignTerritoryPass,
 } from "../../../packages/game-renderer/src/campaign/territoryPass";
 import { Nested3dFixturePass } from "../../../packages/game-renderer/src/fixtures/nested3d";
-import {
-  formatPerfSummary,
-  makeFullGamePerfReport,
-} from "../../../packages/game-renderer/src/perfReport";
 import {
   loadPlaceholderKit,
   loadPlaceholderVat,
@@ -171,6 +162,13 @@ import type { UnitCardInit, UnitCardState } from "../../../web/src/battle/unitCa
 import { UnitCardsReact } from "../../../web/src/ui/hud/UnitCardsReact";
 import { installViewportGate } from "../../../web/src/battle/viewportGate";
 import { loadCampaignData, nearestLoc, type CampaignData } from "../../../web/src/campaign/data";
+import {
+  campaignDomHtml,
+  type ArmyRosterRow,
+  type CityDetail,
+  type ClassDoctrineRow,
+  type DiplomacyRow,
+} from "../../../web/src/campaign/panels";
 import { Allegiance } from "../../../web/src/campaign/status";
 import { campaignSurface } from "../../../web/src/campaign/surface";
 import { TerrainField } from "../../../web/src/campaign/terrain";
@@ -181,7 +179,7 @@ import {
   type CampaignViews,
   type CityView,
 } from "../../../web/src/campaign/views";
-import { CampaignUiLayer } from "../../../web/src/campaign/uiLayer";
+import { mountCampaignHud } from "../../../web/src/ui/campaign/CampaignHud";
 
 type LabRoute = (ctx: LabContext) => Promise<void> | void;
 
@@ -202,7 +200,6 @@ const routes: Record<string, LabRoute> = {
   "/renderer/mounted-units": routeMountedUnits,
   "/renderer/lod-tiers": routeLodTiers,
   "/renderer/battle-elevation": routeBattleElevation,
-  "/renderer/battle-effects": routeBattleEffects,
   "/renderer/asset-workbench": routeAssetWorkbench,
   "/renderer/fault-injection": routeFaultInjection,
   "/renderer/frame-shell": routeFrameShell,
@@ -476,105 +473,6 @@ function stretchVat(vat: VatBake, factor: number): VatBake {
     }
   }
   return { ...vat, width, clips, data };
-}
-
-async function routeBattleEffects(ctx: LabContext) {
-  const vat = await loadPlaceholderVat();
-  const cols = 10;
-  const rows = 5;
-  const n = cols * rows;
-  const positions = new Float32Array(n * 2);
-  const alive = new Float32Array(n);
-  const frames = new Float32Array(n);
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const i = r * cols + c;
-      positions[i * 2] = (c - (cols - 1) / 2) * 2.0;
-      positions[i * 2 + 1] = (r - (rows - 1) / 2) * 2.0;
-      // Front two rows stand; the rest are fallen — a field of corpses.
-      alive[i] = r < 2 ? 1 : 0;
-      frames[i] = r < 2 ? 1 : 4; // FRAME_FALLEN
-    }
-  }
-  const built = buildCrowdInstances({ positions, alive, frames, simTick: 200 });
-  const instances = built.instances.map((inst) => ({ ...inst, facing: Math.PI / 2 }));
-  const corpses = instances.filter((inst) => !inst.alive);
-  const variantSet = new Set(corpses.map((inst) => inst.deathVariant ?? 0));
-
-  // Impact dust + blood at varied ages so the fade is visible.
-  const particles: BattleParticle[] = [];
-  for (let i = 0; i < 40; i++) {
-    const inst = corpses[i % corpses.length];
-    particles.push({
-      x: inst.x + ((i % 3) - 1) * 0.4,
-      y: inst.y,
-      z: (inst.elevation ?? 0) + 0.4,
-      age: (i % 10) / 10,
-      kind: i % 2 === 0 ? "dust" : "blood",
-      size: 0.5,
-    });
-  }
-
-  const shell = await createConfiguredShell(ctx.canvas, {
-    x: 0,
-    y: 0,
-    zoom: 24,
-    pitch: 0.28,
-    yaw: 0,
-  });
-  const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88], vat);
-  const shadows = new SoldierShadowDecalPass(shell);
-  const fx = new BattleParticlePass(shell);
-  shadows.upload(instances);
-  fx.upload(particles);
-
-  const start = performance.now();
-  const tick = () => {
-    const phaseOffset = ((performance.now() - start) / 1000) * 0.6;
-    pipeline.upload(instances, { phaseOffset, size: 1 });
-    shell.drawFrame({
-      passes: [
-        {
-          id: "effects-crowd",
-          role: "world-opaque",
-          phase: "world-depth",
-          depth: "read-write",
-          draw: (pass) => pipeline.draw(pass),
-        },
-        {
-          id: "effects-shadows",
-          role: "world-decal",
-          phase: "world-depth",
-          depth: "read",
-          draw: (pass) => shadows.draw(pass),
-        },
-        {
-          id: "effects-particles",
-          role: "overlay-effect",
-          phase: "overlay",
-          draw: (pass) => fx.draw(pass),
-        },
-      ],
-    });
-    requestAnimationFrame(tick);
-  };
-  tick();
-  ctx.status.innerHTML = reportTable({
-    route: "battle-effects",
-    living: instances.length - corpses.length,
-    corpses: corpses.length,
-    "death variants used": [...variantSet].sort().join(","),
-    particles: fx.stats().particles,
-    "particles capped": fx.stats().capped,
-  });
-  publish("battle-effects", true, {
-    route: "battle-effects",
-    living: instances.length - corpses.length,
-    corpses: corpses.length,
-    deathVariants: [...variantSet].sort(),
-    particles: fx.stats().particles,
-    capped: fx.stats().capped,
-  });
 }
 
 async function routeBattleElevation(ctx: LabContext) {
@@ -1923,10 +1821,17 @@ async function routeCampaignUi(ctx: LabContext) {
   lines.upload(drawData.lineVertices);
   roads.upload(drawData.roadMeshVertices);
   const host = ctx.canvas.parentElement ?? ctx.root;
-  const ui = new CampaignUiLayer(host, (army, on) => {
-    campaign.order_auto_replenish(army, on);
-    draw("replenish");
-  });
+  host.querySelector(".renderer-campaign-ui")?.remove();
+  const uiRoot = document.createElement("div");
+  uiRoot.className = "renderer-campaign-ui";
+  uiRoot.innerHTML = campaignDomHtml();
+  host.appendChild(uiRoot);
+  const campaignHud = mountCampaignHud(uiRoot.querySelector("#cmp-hud-root")!);
+  const armyPanel = uiRoot.querySelector("#cmp-army") as HTMLDivElement;
+  const cityPanel = uiRoot.querySelector("#cmp-city") as HTMLDivElement;
+  const diplomacyPanel = uiRoot.querySelector("#cmp-diplomacy") as HTMLDivElement;
+  const classesPanel = uiRoot.querySelector("#cmp-classes") as HTMLDivElement;
+  const noop = () => {};
   const recruitClasses = JSON.parse(campaign.unit_class_names_json()) as string[];
   let views = readCampaignViews(campaign, wasm, data.map.edges.length);
   let selectedArmy = views.armies.find((army) => army.mine)?.id ?? -1;
@@ -2014,20 +1919,96 @@ async function routeCampaignUi(ctx: LabContext) {
         },
       ],
     });
-    ui.render({
-      campaign,
-      data,
-      armies: views.armies,
-      cities: views.cities,
-      selectedArmy,
-      selectedCity,
-      treasury: campaign.treasury(),
-      tick: campaign.current_tick(),
-      recruitClasses,
-      diplomacyOpen: true,
-      classBuilderOpen: true,
+    const tick = campaign.current_tick();
+    const day = Math.floor(tick / 1440) + 1;
+    const mins = tick % 1440;
+    const hh = String(Math.floor(mins / 60)).padStart(2, "0");
+    const mm = String(Math.floor(mins % 60)).padStart(2, "0");
+    campaignHud.setTopBar({
+      dateText: `Day ${day}, ${hh}:${mm}  PAUSED`,
+      goldText: `${campaign.treasury().toLocaleString()} gold`,
+      paused: true,
+      speed: 0,
+      factionView: false,
+      fog: false,
+      diploOpen: true,
+      classesOpen: true,
+      onPause: noop,
+      onSpeed: noop,
+      onFactions: noop,
+      onFog: noop,
+      onDiplomacy: noop,
+      onClasses: noop,
+      onSave: noop,
+      onExit: noop,
     });
-    const uiStats = ui.stats();
+    const roster =
+      selectedArmy < 0
+        ? null
+        : (JSON.parse(campaign.army_roster_json(selectedArmy)) as ArmyRosterRow[] | null);
+    if (selectedArmy < 0 || !roster) {
+      campaignHud.setArmy(null);
+    } else {
+      const armyId = selectedArmy;
+      const me = views.armies.find((army) => army.id === armyId);
+      campaignHud.setArmy({
+        armyId,
+        roster,
+        me,
+        buddy: undefined,
+        spotIdx: -1,
+        autoReplenish: campaign.army_auto_replenish(armyId),
+        onAutoReplenish: (on) => {
+          campaign.order_auto_replenish(armyId, on);
+          draw("replenish");
+        },
+        onHalt: noop,
+        onAmbush: noop,
+        onCamp: noop,
+        onSplit: noop,
+        onMerge: noop,
+      });
+    }
+    const city = selectedCity < 0 ? undefined : views.cities.get(selectedCity);
+    const detail = city
+      ? (JSON.parse(campaign.city_json(selectedCity)) as CityDetail | null)
+      : null;
+    if (!city || !detail) {
+      campaignHud.setCity(null);
+    } else {
+      const node = data.map.nodes[selectedCity];
+      campaignHud.setCity({
+        name: node.name,
+        tier: node.tier,
+        factionName: data.map.factions[city.owner]?.name ?? "?",
+        garrison: city.garrison,
+        queue: city.queue,
+        mineCity: city.owner === campaign.player_faction(),
+        detail,
+        recruitClasses,
+        onPolicy: noop,
+        onRecruit: noop,
+      });
+    }
+    const diplomacy = JSON.parse(campaign.diplomacy_json()) as DiplomacyRow[];
+    campaignHud.setDiplomacy({ list: diplomacy, onAction: noop });
+    const classRows = JSON.parse(campaign.class_doctrine_json()) as ClassDoctrineRow[];
+    campaignHud.setClasses({
+      rows: classRows,
+      onSelectUnit: noop,
+      onSelectSize: noop,
+      onApply: noop,
+    });
+    const uiStats = {
+      armyPanel: armyPanel.style.display !== "none",
+      cityPanel: cityPanel.style.display !== "none",
+      diplomacyRows: diplomacyPanel.querySelectorAll(".cmp-diplo-row").length,
+      classRows: classesPanel.querySelectorAll(".cmp-class-row").length,
+      autoReplenishToggle: armyPanel.querySelector("#cmp-auto-replenish") !== null,
+      rendererSurfaces: 3,
+      domSurfaces: 5,
+      postCutoverScreenshots: "renderer-only",
+    };
     ctx.status.innerHTML = reportTable({
       route: "campaign-ui",
       fixture: fixture.kind,

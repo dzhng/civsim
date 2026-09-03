@@ -11,11 +11,11 @@ ledger in [visualizations/audit-ledger.html](visualizations/audit-ledger.html).
 
 ## Next Agent Prompt
 
-**Status (2026-09-03):** slices 01, 15-19, 22-24, 28-31 landed on main, plus 32 (14 of 34) (integration
+**Status (2026-09-03):** slices 01, 15-19, 22-24, 28-31 landed on main, plus 20 and 32 (15 of 34) (integration
 `bun run check` green after 15+28; typecheck + campaign tests + wasm rebuild
 green after 29; slice 29 pixel-neutral — campaign-visual diff numbers identical
 to main). In flight in lane worktrees `/Users/david/dev/game-wt/{r,w,s,c}`
-(branches `debt-ledger/{r,w,s,c}`): 02 (R), 20 (W), 25 (S), 33 (C). Slice 32 note: the first pass promoted sim to a production dependency of campaign to reach UnitClass; sent back — campaign owns option modifiers as contract::StatModifiers, sim applies them, game-wasm composes. Slice 01 notes: the seating tripwire now lives in `battle-seating` (three catalog maps; `generated-seed-7` was highland-vale under another name and was dropped) and shoots until the crowd has drawn; terrain builder invariants live in `web/tests/vitest/terrainFeatures.test.ts`; the render-graph static fixtures died with that route while `frame-shell` keeps its live fixture list. Codex
+(branches `debt-ledger/{r,w,s,c}`): 02 (R), 21 (W), 25 (S), 33 (C). Slice 32 note: the first pass promoted sim to a production dependency of campaign to reach UnitClass; sent back — campaign owns option modifiers as contract::StatModifiers, sim applies them, game-wasm composes. Slice 01 notes: the seating tripwire now lives in `battle-seating` (three catalog maps; `generated-seed-7` was highland-vale under another name and was dropped) and shoots until the crowd has drawn; terrain builder invariants live in `web/tests/vitest/terrainFeatures.test.ts`; the render-graph static fixtures died with that route while `frame-shell` keeps its live fixture list. Codex
 implements in the worktree; the orchestrator runs browser gates against the
 lane's own dev server (`vite --port 5173+lane --strictPort`, `VERIFY_URL`),
 commits, and merges to main. `choices.md` has a union merge driver.
@@ -91,7 +91,7 @@ parallel in separate worktrees (see the lane table for file disjointness).
 - [x] `SimClock`, `cameraKeyController`, `awaitRendererReady` shared [17]
 - [x] Campaign builders → game-renderer; fixtures out of main.ts; one save owner [18]
 - [x] Battle scene `enter()` split behind unchanged `__game/__cam/__ready` [19]
-- [ ] HUD store via `useSyncExternalStore`; one `useGraphicsSettings()` [20]
+- [x] HUD store via `useSyncExternalStore`; one `useGraphicsSettings()` [20]
 - [ ] Scene boot helpers; orphan URL params deleted [21]
 - [x] `Vec2::perp`, covered-files helper, `genmap/noise.rs` [22]
 - [x] `Tracer` replaces 70 cfg blocks [23]

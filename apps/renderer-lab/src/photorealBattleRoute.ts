@@ -243,39 +243,48 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
     const th = edgeFixture?.grid.h ?? game.terrain_h();
     const fixtureGrid = edgeFixture?.grid;
     world.setTerrain(
-      tw,
-      th,
-      fixtureGrid?.cell ?? game.terrain_cell(),
-      fixtureGrid?.ox ?? game.terrain_origin_x(),
-      fixtureGrid?.oy ?? game.terrain_origin_y(),
-      fixtureGrid?.tint ??
-        new Uint8Array(new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), tw * th)),
-      fixtureGrid?.height ??
-        heightForPhotorealRoute(
-          new Float32Array(
-            new Float32Array(wasm.memory.buffer, game.terrain_height_ptr(), tw * th),
+      {
+        w: tw,
+        h: th,
+        cell: fixtureGrid?.cell ?? game.terrain_cell(),
+        ox: fixtureGrid?.ox ?? game.terrain_origin_x(),
+        oy: fixtureGrid?.oy ?? game.terrain_origin_y(),
+        tint:
+          fixtureGrid?.tint ??
+          new Uint8Array(new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), tw * th)),
+        height:
+          fixtureGrid?.height ??
+          heightForPhotorealRoute(
+            new Float32Array(
+              new Float32Array(wasm.memory.buffer, game.terrain_height_ptr(), tw * th),
+            ),
+            generatedMap,
           ),
-          generatedMap,
-        ),
-      edgeFixture ? undefined : wasmMapId,
-      edgeFixture
-        ? {
-            flatMax: 0.07,
-            rollingMax: 0.115,
-            slowMin: 0.135,
-            cliffMin: 0.32,
-            cliffDilateCells: 2,
-            highlandCapMinM: 150,
-          }
-        : (generatedDescriptor?.slopeBands ?? null),
-      edgeFixture || !generatedDescriptor
-        ? null
-        : readGeneratedVistaGrid(wasm, game, generatedDescriptor),
-      null,
-      fixtureGrid?.rough ??
-        new Float32Array(new Float32Array(wasm.memory.buffer, game.terrain_rough_ptr(), tw * th)),
-      fixtureGrid?.speed ??
-        new Float32Array(new Float32Array(wasm.memory.buffer, game.terrain_speed_ptr(), tw * th)),
+        rough:
+          fixtureGrid?.rough ??
+          new Float32Array(new Float32Array(wasm.memory.buffer, game.terrain_rough_ptr(), tw * th)),
+        speed:
+          fixtureGrid?.speed ??
+          new Float32Array(new Float32Array(wasm.memory.buffer, game.terrain_speed_ptr(), tw * th)),
+      },
+      {
+        wasmMapId: edgeFixture ? undefined : wasmMapId,
+        slopeBands: edgeFixture
+          ? {
+              flatMax: 0.07,
+              rollingMax: 0.115,
+              slowMin: 0.135,
+              cliffMin: 0.32,
+              cliffDilateCells: 2,
+              highlandCapMinM: 150,
+            }
+          : (generatedDescriptor?.slopeBands ?? null),
+        vista:
+          edgeFixture || !generatedDescriptor
+            ? null
+            : readGeneratedVistaGrid(wasm, game, generatedDescriptor),
+        lakeSurfaces: null,
+      },
     );
   }
   if (edgeFixture) addEdgeRuler(world.world.scene, edgeFixture.anchors.ruler);

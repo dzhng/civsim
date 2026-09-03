@@ -116,10 +116,7 @@ import {
   type BattleEnvironment,
 } from "@packages/game-renderer/src/environment/environment";
 import { featuresToBattleScenery } from "@packages/game-renderer/src/battle/terrainScenery";
-import {
-  MeshBuilder,
-  type Rgb,
-} from "@packages/game-renderer/src/models/shared/meshBuilder";
+import { MeshBuilder, type Rgb } from "@packages/game-renderer/src/models/shared/meshBuilder";
 import {
   CampaignSelectionPass,
   type CampaignSelectionInstance,
@@ -338,7 +335,7 @@ async function routeBladeField(ctx: LabContext) {
   };
   const field = { ...terrainHeightField(grid), verticalScale: BATTLE_RELIEF_EXAGGERATION };
   world.setStatic(new Uint32Array(0), [], []);
-  world.setTerrain(grid.w, grid.h, grid.cell, grid.ox, grid.oy, grid.tint, grid.height, wasmMapId);
+  world.setTerrain(grid, { wasmMapId });
 
   const camera = new Camera(ctx.canvas);
   const mapW = grid.w * grid.cell;

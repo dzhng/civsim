@@ -1,7 +1,16 @@
 import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
-import { BATTLE_RELIEF_EXAGGERATION } from "@packages/game-renderer/src/battle/terrainFeatures";
-import type { BattleVistaGrid } from "@packages/photoreal-renderer/src/battle/battleWorld";
+import {
+  BATTLE_RELIEF_EXAGGERATION,
+  deriveBattleEdgeRoles,
+  type BattleTerrainGrid,
+} from "@packages/game-renderer/src/battle/terrainFeatures";
+import { battleMapByWasmId } from "@packages/game-renderer/src/battle/mapCatalog";
+import type {
+  BattleLakeSurfaceSpec,
+  BattleVistaGrid,
+} from "@packages/photoreal-renderer/src/battle/battleWorld";
 import type { Game } from "../wasm/game_wasm.js";
+import type { BattleAudioWaterSurface } from "./battleAudio";
 import type { BattleWorld, GeneratedBattleMapDescriptor } from "./battleWorld";
 
 type VistaExportGame = Game & {
@@ -61,24 +70,80 @@ export function buildBattleTerrain(world: BattleWorld): BattleTerrain {
       ...lake,
       level: lake.level * reliefScale,
     })) ?? null;
-  renderer.setTerrain(
-    width,
-    height,
-    game.terrain_cell(),
-    game.terrain_origin_x(),
-    game.terrain_origin_y(),
-    new Uint8Array(tint),
-    heightForRenderer,
-    cfg.wasmMapId,
-    cfg.generatedMap?.slopeBands ?? null,
-    generatedVista,
+  const terrainGrid: BattleTerrainGrid = {
+    w: width,
+    h: height,
+    cell: game.terrain_cell(),
+    ox: game.terrain_origin_x(),
+    oy: game.terrain_origin_y(),
+    tint: new Uint8Array(tint),
+    height: heightForRenderer,
+    rough: new Float32Array(rough),
+    speed: new Float32Array(speed),
+  };
+  renderer.setTerrain(terrainGrid, {
+    wasmMapId: cfg.wasmMapId,
+    slopeBands: cfg.generatedMap?.slopeBands ?? null,
+    vista: generatedVista,
     lakeSurfaces,
-    new Float32Array(rough),
-    new Float32Array(speed),
-    cfg.generatedMap?.groundCover ?? "green-grass",
+  });
+  const { w, h, cell, ox, oy } = terrainGrid;
+  audio.setTerrain(
+    {
+      w,
+      h,
+      cell,
+      ox,
+      oy,
+      tint: terrainGrid.tint,
+      groundCover: cfg.generatedMap?.groundCover ?? "green-grass",
+    },
+    buildAudioWaterSurfaces(terrainGrid, cfg.wasmMapId, generatedVista, lakeSurfaces),
   );
-  audio.setTerrain(renderer.battleAudioTerrain(), renderer.battleAudioWaterSurfaces());
   return { generatedVista, refreshStatic };
+}
+
+function buildAudioWaterSurfaces(
+  grid: BattleTerrainGrid,
+  wasmMapId: number | undefined,
+  vista: BattleVistaGrid | null,
+  lakeSurfaces: BattleLakeSurfaceSpec[] | null,
+): BattleAudioWaterSurface[] {
+  const surfaces: BattleAudioWaterSurface[] =
+    lakeSurfaces?.map((lake) => ({
+      kind: "lake",
+      x0: lake.minX,
+      y0: lake.minY,
+      x1: lake.maxX,
+      y1: lake.maxY,
+    })) ?? [];
+  if (vista) return surfaces;
+
+  const roles = battleMapByWasmId(wasmMapId ?? -1)?.edges ?? deriveBattleEdgeRoles(grid);
+  const worldX1 = grid.ox + grid.w * grid.cell;
+  const y0 = grid.oy - 400;
+  const y1 = grid.oy + grid.h * grid.cell + 400;
+  const oceanLap = 12;
+  const oceanFar = 2600;
+  if (roles.west === "ocean") {
+    surfaces.push({
+      kind: "ocean",
+      x0: grid.ox - oceanFar,
+      y0,
+      x1: grid.ox + oceanLap,
+      y1,
+    });
+  }
+  if (roles.east === "ocean") {
+    surfaces.push({
+      kind: "ocean",
+      x0: worldX1 - oceanLap,
+      y0,
+      x1: worldX1 + oceanFar,
+      y1,
+    });
+  }
+  return surfaces;
 }
 
 function scaleHeightForRenderer(height: Float32Array, reliefScale: number): Float32Array {

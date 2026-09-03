@@ -17,6 +17,8 @@ pub mod battle;
 pub mod class;
 pub mod collision;
 pub mod combat;
+#[cfg(not(feature = "force-trace"))]
+mod force_trace;
 #[cfg(feature = "force-trace")]
 pub mod force_trace;
 pub mod genmap;

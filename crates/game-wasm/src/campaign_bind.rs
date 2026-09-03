@@ -224,6 +224,10 @@ impl Campaign {
         let Some(e) = st.encounters.iter().find(|e| e.id == id) else {
             return "null".into();
         };
+        let mut visited = campaign::pathfind::Visited::new(&self.inner.map);
+        let reinforcements =
+            campaign::resolve::eligible_reinforcements(&self.inner.map, st, e.id, &mut visited)
+                .len();
         let army = |id: u32| {
             let a = &st.armies[id as usize];
             serde_json::json!({
@@ -240,7 +244,7 @@ impl Campaign {
             "defender": army(e.defender),
             "no_retreat": e.no_retreat,
             // not committed until Fight — show what WOULD join
-            "reinforcements": campaign::resolve::eligible_reinforcements(&self.inner.map, st, e.id).len(),
+            "reinforcements": reinforcements,
             "player_faction": st.player_faction,
         })
         .to_string()

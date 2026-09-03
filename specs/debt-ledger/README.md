@@ -11,11 +11,11 @@ ledger in [visualizations/audit-ledger.html](visualizations/audit-ledger.html).
 
 ## Next Agent Prompt
 
-**Status (2026-09-03):** slices 15, 16, 22, 28, 29, 30 landed on main (integration
+**Status (2026-09-03):** slices 01, 15, 16, 17, 22, 28, 29, 30 landed on main (integration
 `bun run check` green after 15+28; typecheck + campaign tests + wasm rebuild
 green after 29; slice 29 pixel-neutral — campaign-visual diff numbers identical
 to main). In flight in lane worktrees `/Users/david/dev/game-wt/{r,w,s,c}`
-(branches `debt-ledger/{r,w,s,c}`): 01 (R), 17 (W), 23 (S), 31 (C). Codex
+(branches `debt-ledger/{r,w,s,c}`): 02 (R), 18 (W), 23 (S), 31 (C). Slice 01 notes: the seating tripwire now lives in `battle-seating` (three catalog maps; `generated-seed-7` was highland-vale under another name and was dropped) and shoots until the crowd has drawn; terrain builder invariants live in `web/tests/vitest/terrainFeatures.test.ts`; the render-graph static fixtures died with that route while `frame-shell` keeps its live fixture list. Codex
 implements in the worktree; the orchestrator runs browser gates against the
 lane's own dev server (`vite --port 5173+lane --strictPort`, `VERIFY_URL`),
 commits, and merges to main. `choices.md` has a union merge driver.
@@ -67,7 +67,7 @@ parallel in separate worktrees (see the lane table for file disjointness).
 
 **Global TODO** (owning slice in brackets; tick as they land):
 
-- [ ] Lab estate routes, scenes, scripts, baselines gone [01]
+- [x] Lab estate routes, scenes, scripts, baselines gone [01]
 - [ ] Lab estate modules + HUD shims gone; rationale record written [02]
 - [ ] frameShell terrain/backdrop/marker pipelines gone; command type shrunk [03]
 - [ ] Lab router one file per route; one wasm terrain-grid reader; scanners widened [04]
@@ -83,7 +83,7 @@ parallel in separate worktrees (see the lane table for file disjointness).
 - [ ] Dispose measured; dispose written only on measured growth [14]
 - [x] One test runner (vitest); loaders deleted [15]
 - [x] `@packages/*` alias; 70 relative imports rewritten [16]
-- [ ] `SimClock`, `cameraKeyController`, `awaitRendererReady` shared [17]
+- [x] `SimClock`, `cameraKeyController`, `awaitRendererReady` shared [17]
 - [ ] Campaign builders → game-renderer; fixtures out of main.ts; one save owner [18]
 - [ ] Battle scene `enter()` split behind unchanged `__game/__cam/__ready` [19]
 - [ ] HUD store via `useSyncExternalStore`; one `useGraphicsSettings()` [20]

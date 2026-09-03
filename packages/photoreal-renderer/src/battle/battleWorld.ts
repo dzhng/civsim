@@ -47,7 +47,6 @@ import {
   terrainHeightAt,
   type TerrainHeightField,
 } from "../../../game-renderer/src/terrain/heightField";
-import type { MarkerInstance } from "../../../renderer-core/src/frameShell";
 import type { Camera3DParams } from "../../../renderer-core/src/camera3d";
 import {
   loadClassMeshes,
@@ -102,6 +101,7 @@ import {
   PhotorealMarkerLayer,
   PhotorealRingLayer,
   PhotorealTriangleLayer,
+  type MarkerInstance,
 } from "./overlayLayer";
 import { PhotorealReadoutLayer, type BattleReadoutInstance } from "./readoutLayer";
 import { PhotorealStandardLayer, type BattleStandardInstance } from "./standardLayer";

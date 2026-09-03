@@ -573,7 +573,6 @@ export class CampaignRenderer {
     ];
     this.shell.drawFrame({
       clear: { r: 0.06, g: 0.07, b: 0.075, a: 1 },
-      terrainRect: [0, 0, 0, 0],
       passes,
     });
     const done = performance.now();

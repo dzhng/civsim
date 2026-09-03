@@ -351,7 +351,6 @@ function frameGraphContractFixturesRejected(fixtures) {
     "mismatchedDepthRole",
     "readOnlyBeforeWrite",
     "topLevelTypeBucketPass",
-    "markersMissingLayer",
   ]);
   return (
     Array.isArray(fixtures) &&
@@ -487,14 +486,6 @@ async function findPhaseBrandFootguns() {
         [
           "frame shell imports shared bucket-pass guard",
           /import\s*\{[\s\S]*?isTopLevelTypeBucketPass[\s\S]*?\}\s*from\s*['"]\.\/frameGraphContract['"]/,
-        ],
-        [
-          "frame commands require explicit marker layer for background markers",
-          /markerLayer\?:\s*Exclude<MarkerLayerIntent,\s*'none'>[\s\S]*?background markers must declare markerLayer/,
-        ],
-        [
-          "frame stats publish marker layer intent",
-          /markerLayer:\s*MarkerLayerIntent[\s\S]*?markerLayer:\s*this\.markerLayer/,
         ],
         [
           "frame graph command list is phase-branded",

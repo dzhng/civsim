@@ -5,11 +5,9 @@
 
 use crate::mapdata::{NodeKind, TileFeature, WorldMap};
 use crate::state::Loc;
-use contract::{MapRecipe, PaintOp, Pcg32, TerrainSource, TerrainSpec};
-
-pub const HALF_W: f32 = 1200.0;
-pub const HALF_H: f32 = 800.0;
-const CELL: f32 = 4.0;
+use contract::{
+    MapRecipe, PaintOp, Pcg32, TerrainSource, TerrainSpec, FIELD_CELL, FIELD_HALF_H, FIELD_HALF_W,
+};
 const CERTIFIED_CAMPAIGN_RECIPE_SEEDS: u64 = 64;
 
 /// The battle convention: armies fight along Y (attacker south, defender
@@ -112,9 +110,9 @@ pub fn ops_template(map: &WorldMap, site: Loc, seed: u64) -> TerrainSpec {
 
     // Flank seals: ragged crag walls east and west, like the hand maps.
     for side in [-1.0f32, 1.0] {
-        let x = side * (HALF_W - 30.0);
-        let mut y = -HALF_H;
-        while y < HALF_H {
+        let x = side * (FIELD_HALF_W - 30.0);
+        let mut y = -FIELD_HALF_H;
+        while y < FIELD_HALF_H {
             let r = 38.0 + rng.unit_f32() * 36.0;
             ops.push(PaintOp::Circle {
                 center: [x + rng.range_f32(-20.0, 20.0), y],
@@ -128,12 +126,17 @@ pub fn ops_template(map: &WorldMap, site: Loc, seed: u64) -> TerrainSpec {
         // Scree at the foot.
         ops.push(PaintOp::Rect {
             min: [
-                side.min(0.0) * HALF_W + if side > 0.0 { HALF_W - 95.0 } else { 0.0 },
-                -HALF_H,
+                side.min(0.0) * FIELD_HALF_W + if side > 0.0 { FIELD_HALF_W - 95.0 } else { 0.0 },
+                -FIELD_HALF_H,
             ],
             max: [
-                side.max(0.0) * HALF_W + if side < 0.0 { -HALF_W + 95.0 } else { 0.0 },
-                HALF_H,
+                side.max(0.0) * FIELD_HALF_W
+                    + if side < 0.0 {
+                        -FIELD_HALF_W + 95.0
+                    } else {
+                        0.0
+                    },
+                FIELD_HALF_H,
             ],
             speed: 0.6,
             rough: 0.45,
@@ -145,7 +148,7 @@ pub fn ops_template(map: &WorldMap, site: Loc, seed: u64) -> TerrainSpec {
         TileFeature::Bridge | TileFeature::Ford => {
             // The river runs across the field; the road crosses it mid-map.
             let tilt = rng.range_f32(-120.0, 120.0);
-            let (a, b) = ([-HALF_W, -tilt], [HALF_W, tilt]);
+            let (a, b) = ([-FIELD_HALF_W, -tilt], [FIELD_HALF_W, tilt]);
             let half_river = 55.0;
             // Marshy banks first, water over them, crossing last (paint order
             // is z-order).
@@ -189,7 +192,7 @@ pub fn ops_template(map: &WorldMap, site: Loc, seed: u64) -> TerrainSpec {
             // Cliff tongues pinch the corridor to a few hundred meters.
             for side in [-1.0f32, 1.0] {
                 let reach = rng.range_f32(550.0, 750.0);
-                let mut x = side * HALF_W;
+                let mut x = side * FIELD_HALF_W;
                 while side * x > reach * 0.45 {
                     ops.push(PaintOp::Circle {
                         center: [x, rng.range_f32(-90.0, 90.0)],
@@ -236,17 +239,17 @@ pub fn ops_template(map: &WorldMap, site: Loc, seed: u64) -> TerrainSpec {
     if let Some(tier) = city {
         // City outskirts: the wall runs along the defender's rear. Terrain
         // only — assaults come later.
-        let wall_y = HALF_H - 120.0;
+        let wall_y = FIELD_HALF_H - 120.0;
         ops.push(PaintOp::Rect {
-            min: [-HALF_W, wall_y],
-            max: [HALF_W, wall_y + 60.0],
+            min: [-FIELD_HALF_W, wall_y],
+            max: [FIELD_HALF_W, wall_y + 60.0],
             speed: 0.0,
             rough: 0.0,
             tint: 3,
         });
         let towers = 4 + tier as i32 * 2;
         for k in 0..towers {
-            let x = -HALF_W + (k as f32 + 0.5) * (2.0 * HALF_W / towers as f32);
+            let x = -FIELD_HALF_W + (k as f32 + 0.5) * (2.0 * FIELD_HALF_W / towers as f32);
             ops.push(PaintOp::Circle {
                 center: [x, wall_y],
                 radius: 16.0,
@@ -269,8 +272,8 @@ pub fn ops_template(map: &WorldMap, site: Loc, seed: u64) -> TerrainSpec {
     }
     // The road itself, cosmetic.
     ops.push(PaintOp::Capsule {
-        a: [0.0, -HALF_H],
-        b: [0.0, HALF_H],
+        a: [0.0, -FIELD_HALF_H],
+        b: [0.0, FIELD_HALF_H],
         radius: 9.0,
         speed: 1.0,
         rough: 0.0,
@@ -278,9 +281,9 @@ pub fn ops_template(map: &WorldMap, site: Loc, seed: u64) -> TerrainSpec {
     });
 
     TerrainSpec {
-        half_w: HALF_W,
-        half_h: HALF_H,
-        cell: CELL,
+        half_w: FIELD_HALF_W,
+        half_h: FIELD_HALF_H,
+        cell: FIELD_CELL,
         ops,
     }
 }
@@ -291,7 +294,7 @@ pub fn entry_point(bearing: f32) -> ([f32; 2], f32) {
     let (c, s) = (bearing.cos(), bearing.sin());
     // Walk from center to the window edge along the bearing, inset from the
     // sealed flanks so columns arrive on open ground.
-    let t = ((HALF_W - 220.0) / c.abs()).min((HALF_H - 60.0) / s.abs().max(1e-3));
+    let t = ((FIELD_HALF_W - 220.0) / c.abs()).min((FIELD_HALF_H - 60.0) / s.abs().max(1e-3));
     let p = [c * t, s * t];
     // March in toward the center.
     (p, (-p[1]).atan2(-p[0]))

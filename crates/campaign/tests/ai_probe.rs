@@ -10,10 +10,14 @@
 
 use campaign::ai::{eval, orders, plan, Order};
 use campaign::pathfind;
-use campaign::state::{Loc, RosterEntry};
+use campaign::state::Loc;
 use campaign::tunables as tun;
 use campaign::Campaign;
 use contract::UnitClassId;
+
+mod common;
+
+use common::garrison;
 
 /// Red sits on its city with a solid army between two adjacent enemy cities: a
 /// heavily-garrisoned wall it cannot crack, and a near-empty one it can take in
@@ -42,15 +46,6 @@ fn fork_map() -> &'static str {
         {"faction": "red", "at": "Red", "roster": [["HeavySword", 1]]}
       ]
     }"#
-}
-
-fn garrison(class: UnitClassId, count: u32) -> Vec<RosterEntry> {
-    vec![RosterEntry {
-        class,
-        count,
-        max: count,
-        morale_cap: 1.0,
-    }]
 }
 
 #[test]

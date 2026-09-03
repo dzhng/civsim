@@ -2,12 +2,13 @@
 //! `BattleResult` → casualties, routs, and annihilations on the map.
 
 use crate::battlegen;
+use crate::economy::{self, Cost};
 use crate::mapdata::{NodeKind, WorldMap};
 use crate::pathfind;
 use crate::state::*;
 use crate::tunables as tun;
 use contract::{BattleResult, BattleSetup, Deployment, Reinforcement, RosterUnit, UnitResult};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 /// Campaign roster entry identity inside a battle: army id in the high bits,
 /// roster index in the low byte.
@@ -37,26 +38,23 @@ fn world_bearing(map: &WorldMap, from: Loc, to: Loc) -> f32 {
 }
 
 /// BFS over road tiles (land only) up to `radius`, returning (loc, depth).
-fn tiles_within(map: &WorldMap, start: Loc, radius: u32) -> Vec<(Loc, u32)> {
-    let mut out = vec![(start, 0)];
-    let mut seen: BTreeSet<Loc> = BTreeSet::new();
-    seen.insert(start);
-    let mut frontier = vec![start];
-    for depth in 1..=radius {
-        let mut next = Vec::new();
-        for &l in &frontier {
-            for n in pathfind::neighbors(map, l) {
-                if matches!(n, Loc::Edge { edge, .. } if map.edges[edge as usize].sea) {
-                    continue;
-                }
-                if seen.insert(n) {
-                    out.push((n, depth));
-                    next.push(n);
-                }
-            }
-        }
-        frontier = next;
-    }
+fn tiles_within(
+    map: &WorldMap,
+    visited: &mut pathfind::Visited,
+    start: Loc,
+    radius: u32,
+) -> Vec<(Loc, u32)> {
+    let mut out = Vec::new();
+    visited.flood(
+        map,
+        start,
+        radius,
+        |loc| !matches!(loc, Loc::Edge { edge, .. } if map.edges[edge as usize].sea),
+        |loc, depth, _| {
+            out.push((loc, depth));
+            pathfind::Flow::Continue
+        },
+    );
     out
 }
 
@@ -66,6 +64,7 @@ pub fn eligible_reinforcements(
     map: &WorldMap,
     st: &CampaignState,
     eid: EncounterId,
+    visited: &mut pathfind::Visited,
 ) -> Vec<(ArmyId, f32, f32)> {
     let Some(e) = st.encounters.iter().find(|e| e.id == eid) else {
         return Vec::new();
@@ -77,7 +76,7 @@ pub fn eligible_reinforcements(
     let factions = [att.faction, def.faction];
     let site = def.loc;
     let att_bearing = world_bearing(map, site, att.loc);
-    let near = tiles_within(map, site, tun::REINFORCE_RADIUS_TILES);
+    let near = tiles_within(map, visited, site, tun::REINFORCE_RADIUS_TILES);
 
     let mut committed: Vec<(ArmyId, f32, f32)> = Vec::new();
     for a in &st.armies {
@@ -114,8 +113,13 @@ pub fn eligible_reinforcements(
 }
 
 /// Commit the eligible armies: freeze them by tagging with the encounter id.
-fn commit_reinforcements(map: &WorldMap, st: &mut CampaignState, eid: EncounterId) {
-    let committed = eligible_reinforcements(map, st, eid);
+fn commit_reinforcements(
+    map: &WorldMap,
+    st: &mut CampaignState,
+    eid: EncounterId,
+    visited: &mut pathfind::Visited,
+) {
+    let committed = eligible_reinforcements(map, st, eid, visited);
     for &(id, ..) in &committed {
         st.armies[id as usize].encounter = Some(eid);
     }
@@ -125,7 +129,12 @@ fn commit_reinforcements(map: &WorldMap, st: &mut CampaignState, eid: EncounterI
 
 /// Can this army retreat: a friendly city or `ROUT_TILES` of road reachable
 /// without crossing a tile any other faction's army stands on or moves in?
-fn rout_path(map: &WorldMap, st: &CampaignState, army: &Army) -> Option<Vec<Loc>> {
+fn rout_path(
+    map: &WorldMap,
+    st: &CampaignState,
+    army: &Army,
+    visited: &mut pathfind::Visited,
+) -> Option<Vec<Loc>> {
     let blocked: BTreeSet<Loc> = st
         .armies
         .iter()
@@ -140,49 +149,45 @@ fn rout_path(map: &WorldMap, st: &CampaignState, army: &Army) -> Option<Vec<Loc>
         _ => false,
     };
 
-    let mut seen: BTreeSet<Loc> = BTreeSet::new();
-    seen.insert(army.loc);
-    let mut parents: Vec<(Loc, Option<usize>)> = vec![(army.loc, None)];
-    let mut frontier: Vec<usize> = vec![0];
-    let mut deep: Option<usize> = None; // first index reached at full depth
-    for depth in 1..=tun::ROUT_TILES as u32 {
-        let mut next = Vec::new();
-        for &pi in &frontier {
-            let l = parents[pi].0;
-            for n in pathfind::neighbors(map, l) {
-                if blocked.contains(&n)
-                    || matches!(n, Loc::Edge { edge, .. } if map.edges[edge as usize].sea)
-                    || !seen.insert(n)
-                {
-                    continue;
-                }
-                parents.push((n, Some(pi)));
-                let ni = parents.len() - 1;
-                if friendly_city(n) || depth == tun::ROUT_TILES as u32 {
-                    deep.get_or_insert(ni);
-                    if friendly_city(n) {
-                        deep = Some(ni); // a city beats raw distance
+    let mut parents: BTreeMap<Loc, Loc> = BTreeMap::new();
+    let mut city_goal: Option<(u32, Loc)> = None;
+    let mut deep = None;
+    visited.flood(
+        map,
+        army.loc,
+        tun::ROUT_TILES as u32,
+        |loc| {
+            !blocked.contains(&loc)
+                && !matches!(loc, Loc::Edge { edge, .. } if map.edges[edge as usize].sea)
+        },
+        |loc, depth, parent| {
+            if let Some(parent) = parent {
+                parents.insert(loc, parent);
+            }
+            if depth == tun::ROUT_TILES as u32 && deep.is_none() {
+                deep = Some(loc);
+            }
+            if depth > 0 && friendly_city(loc) {
+                match city_goal {
+                    None => city_goal = Some((depth, loc)),
+                    Some((goal_depth, _)) if goal_depth == depth => {
+                        city_goal = Some((depth, loc));
                     }
+                    _ => {}
                 }
-                next.push(ni);
             }
-        }
-        if let Some(g) = deep {
-            if friendly_city(parents[g].0) || depth == tun::ROUT_TILES as u32 {
-                let mut path = Vec::new();
-                let mut cur = Some(g);
-                while let Some(i) = cur {
-                    path.push(parents[i].0);
-                    cur = parents[i].1;
-                }
-                path.pop(); // drop the start loc
-                path.reverse();
-                return Some(path);
-            }
-        }
-        frontier = next;
+            pathfind::Flow::Continue
+        },
+    );
+
+    let mut cur = city_goal.map(|(_, loc)| loc).or(deep)?;
+    let mut path = Vec::new();
+    while cur != army.loc {
+        path.push(cur);
+        cur = parents[&cur];
     }
-    None
+    path.reverse();
+    Some(path)
 }
 
 /// Promote a Pending encounter into a `BattleSetup`. `player_faction` gets
@@ -194,8 +199,9 @@ pub fn battle_setup_for(
     st: &mut CampaignState,
     eid: EncounterId,
     player_faction: FactionId,
+    visited: &mut pathfind::Visited,
 ) -> Option<BattleSetup> {
-    commit_reinforcements(map, st, eid);
+    commit_reinforcements(map, st, eid, visited);
     let e = st
         .encounters
         .iter()
@@ -207,8 +213,8 @@ pub fn battle_setup_for(
     let def_team = 1 - att_team;
 
     let no_retreat = [
-        rout_path(map, st, att).is_none(),
-        rout_path(map, st, def).is_none(),
+        rout_path(map, st, att, visited).is_none(),
+        rout_path(map, st, def, visited).is_none(),
     ];
 
     let deployments = vec![
@@ -269,6 +275,7 @@ pub fn apply_battle_outcome(
     eid: EncounterId,
     result: &BattleResult,
     player_faction: FactionId,
+    visited: &mut pathfind::Visited,
 ) {
     let Some(e) = st.encounters.iter().find(|e| e.id == eid).cloned() else {
         return;
@@ -369,7 +376,7 @@ pub fn apply_battle_outcome(
         }
         // Otherwise rout along a hostile-free road, or be annihilated.
         let a = &st.armies[id as usize];
-        match rout_path(map, st, a) {
+        match rout_path(map, st, a, visited) {
             Some(path) => {
                 let a = &mut st.armies[id as usize];
                 let tiles = path.len() as u16;
@@ -407,10 +414,7 @@ pub fn apply_battle_outcome(
 /// heavy monthly upkeep — so the estimate agrees with how the AI sizes up armies.
 pub fn estimate(map: &WorldMap, setup: &BattleSetup) -> BattleResult {
     let weight = |u: &RosterUnit| -> u64 {
-        u.unit_type
-            .and_then(|id| crate::units::unit_type_by_id(map, id))
-            .map(|t| (t.cost_per_soldier_milligold / 50).max(1))
-            .unwrap_or_else(|| (tun::recruit_cost_milligold(u.class) / 50).max(1)) as u64
+        economy::per_soldier_milligold(map, u.unit_type, u.class, Cost::Value) as u64
     };
 
     // Both sides' rosters tagged with their team, deployments + reinforcements.
@@ -455,4 +459,74 @@ pub fn estimate(map: &WorldMap, setup: &BattleSetup) -> BattleResult {
         })
         .collect();
     BattleResult { victor, units }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn test_map() -> WorldMap {
+        WorldMap::from_json(include_str!("../tests/fixtures/test-map.json"))
+    }
+
+    #[test]
+    fn traversal_consumers_keep_visit_order() {
+        let map = test_map();
+        let state = crate::sim::new_state(&map, 7, 0);
+        let mut visited = pathfind::Visited::new(&map);
+
+        let mut expected_near = vec![(Loc::Node(1), 0)];
+        for depth in 1..=12u16 {
+            expected_near.push((
+                Loc::Edge {
+                    edge: 0,
+                    tile: 12 - depth,
+                },
+                depth as u32,
+            ));
+            expected_near.push((
+                Loc::Edge {
+                    edge: 1,
+                    tile: depth - 1,
+                },
+                depth as u32,
+            ));
+        }
+        assert_eq!(
+            tiles_within(&map, &mut visited, Loc::Node(1), 12),
+            expected_near
+        );
+
+        assert_eq!(
+            rout_path(&map, &state, &state.armies[0], &mut visited),
+            Some(
+                (0..12)
+                    .rev()
+                    .map(|tile| Loc::Edge { edge: 0, tile })
+                    .chain(std::iter::once(Loc::Node(0)))
+                    .collect()
+            )
+        );
+
+        assert_eq!(
+            [0, 1, 2].map(|node| crate::economy::territory_of(
+                &map,
+                &state,
+                &mut visited,
+                Loc::Node(node)
+            )),
+            [Some(0), None, Some(1)]
+        );
+
+        assert_eq!(
+            pathfind::nearest_targets(
+                &map,
+                Loc::Node(1),
+                false,
+                |node| map.nodes[node as usize].kind == NodeKind::City,
+                2,
+            ),
+            vec![(0, 12.0), (2, 12.176_471)]
+        );
+    }
 }

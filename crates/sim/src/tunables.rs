@@ -57,8 +57,6 @@ pub struct Tunables {
     pub soldier_turn_rate: f32,
     /// Distance from move target at which the order completes (m).
     pub arrive_radius: f32,
-    /// Slot error is normalized by this many multiples of file spacing.
-    pub disorder_norm_spacings: f32,
     /// Time constant for disorder rising (s).
     pub disorder_rise_tau: f32,
     /// Time constant for disorder falling at training=0.5 (s); training divides it.
@@ -261,31 +259,14 @@ pub struct Tunables {
     /// rest — the equilibrium a standing line must reach. Only an idle, enemy-
     /// free, unordered unit is damped, so it never touches a fight or a march.
     pub idle_settle_damp: f32,
-    /// Diagnostic switch for the broad-contact engaged slot re-sort. Defaults
-    /// on; attribution probes may disable it to test whether re-dress ratchets
-    /// accumulated lattice rotation.
-    pub engaged_deep_reform: bool,
     /// In blade-lock range a man cannot CROSS his nearest enemy's front
     /// faster than fighting tempo (multiplier on base_speed, tangential
     /// component only) — the melee-blob slice 05 orbit fix. f32::INFINITY
     /// disables (pre-fix behavior).
     pub fighting_tempo_tangent_mult: f32,
-    /// The forward corridor a fighting formation contests is its DEPLOYED
-    /// frontage, not its casualty-shrunken live width: dead files leave a
-    /// notch, not a free lane, until the unit breaks or reforms narrower.
-    /// The melee-blob slice 05 candidate for the mortal orbit (the couple
-    /// forms when both corridors shrink and both flanks unblock).
-    pub corridor_deployed_width: bool,
     /// Surface gap to the nearest enemy under which the tangential tempo cap
     /// binds — true blade-lock, tighter than the fighting flag's reach+0.3.
     pub fighting_tempo_radius: f32,
-    /// Diagnostic cadence (ticks) for that re-sort. Default preserves the
-    /// historical 60-tick beat; attribution probes sweep it to test whether
-    /// rotation rate scales with relabel frequency.
-    pub engaged_deep_reform_ticks: u64,
-    /// Diagnostic switch for flank curl: when on, overhanging attackers drop
-    /// frame feed-forward and let the enemy magnet curl them inward.
-    pub seeking_flank_curl: bool,
     /// Charge burst speed (m/s, fresh foot unit; class pace_mult applies).
     pub charge_speed: f32,
     /// Final-approach window: charge engages within this many seconds of
@@ -335,7 +316,6 @@ impl Default for Tunables {
             soldier_gain: 3.0,
             soldier_turn_rate: 1.6,
             arrive_radius: 1.5,
-            disorder_norm_spacings: 3.0,
             disorder_rise_tau: 0.4,
             disorder_fall_tau: 1.6,
             cohesion_k: 2.5,
@@ -392,12 +372,8 @@ impl Default for Tunables {
             stamina_cadence_floor: 0.75,
             at_ease_range: 60.0,
             idle_settle_damp: 0.5,
-            engaged_deep_reform: true,
             fighting_tempo_tangent_mult: f32::INFINITY,
-            corridor_deployed_width: false,
             fighting_tempo_radius: 0.55,
-            engaged_deep_reform_ticks: 60,
-            seeking_flank_curl: true,
         }
     }
 }

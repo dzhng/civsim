@@ -3,13 +3,13 @@ import {
   BATTLE_FACTIONS,
   factionPrimaryCss,
   type BattleFactionId,
-} from "../../../../packages/game-renderer/src/battle/factionColors";
+} from "@packages/game-renderer/src/battle/factionColors";
 import { Portrait } from "../hud/UnitCardsView";
 import {
   BATTLE_ENVIRONMENT_OPTIONS,
   DEFAULT_BATTLE_ENVIRONMENT,
   type BattleEnvironmentId,
-} from "../../../../packages/game-renderer/src/environment/environment";
+} from "@packages/game-renderer/src/environment/environment";
 import {
   QUICK_BATTLE_GENERATED_MAP_ID,
   QUICK_BATTLE_GOLD,

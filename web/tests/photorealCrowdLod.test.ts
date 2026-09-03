@@ -1,8 +1,9 @@
+// @vitest-environment node
 import assert from "node:assert/strict";
-import test from "node:test";
-import { generatedFormation } from "../../packages/crowd-runtime/src/instanceData.ts";
-import { DEFAULT_LOD_POLICY } from "../../packages/crowd-runtime/src/lod.ts";
-import { planPhotorealCrowdLods } from "../../packages/photoreal-renderer/src/battle/crowdLod.ts";
+import { test } from "vitest";
+import { generatedFormation } from "@packages/crowd-runtime/src/instanceData.ts";
+import { DEFAULT_LOD_POLICY } from "@packages/crowd-runtime/src/lod.ts";
+import { planPhotorealCrowdLods } from "@packages/photoreal-renderer/src/battle/crowdLod.ts";
 
 test("photoreal crowd LOD coarsens monotonically by screen size and reaches the impostor tier", () => {
   const instances = [0, 30, 150, 420].map((y) => ({

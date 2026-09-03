@@ -204,6 +204,37 @@ pub struct UnitClass {
     pub weapons: WeaponSet,
 }
 
+impl UnitClass {
+    pub fn with_modifiers(mut self, modifiers: &contract::StatModifiers) -> Self {
+        fn apply(value: &mut f32, transform: &contract::StatTransform) {
+            if transform.scale != 1.0 {
+                *value *= transform.scale;
+            }
+            if transform.offset != 0.0 {
+                *value += transform.offset;
+            }
+            if let Some(min) = transform.min {
+                *value = value.max(min);
+            }
+            if let Some(max) = transform.max {
+                *value = value.min(max);
+            }
+        }
+
+        apply(&mut self.health, &modifiers.health);
+        apply(&mut self.mass, &modifiers.mass);
+        apply(&mut self.block, &modifiers.block);
+        apply(&mut self.evade, &modifiers.evade);
+        apply(&mut self.training, &modifiers.training);
+        apply(&mut self.bravery, &modifiers.bravery);
+        apply(&mut self.morale_aura, &modifiers.morale_aura);
+        apply(&mut self.pace_mult, &modifiers.pace_mult);
+        apply(&mut self.fight_drain_mult, &modifiers.fight_drain_mult);
+        apply(&mut self.move_drain_mult, &modifiers.move_drain_mult);
+        self
+    }
+}
+
 /// Offset of a mounted body's two circles from its center, along facing (m).
 pub const HORSE_HALF_LEN: f32 = 0.55;
 /// Radius of each mounted body circle (m).

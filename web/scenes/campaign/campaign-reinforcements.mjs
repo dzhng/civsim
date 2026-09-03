@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { approachTilesForCity, nearestIndependentCityFromRoma } from "../_campaign-map-helpers.mjs";
 import { hasBattleWorldDepthContract } from "../_renderer-contract.mjs";
+import { ready } from "../worlds.mjs";
 
 export const meta = {
   name: "campaign-reinforcements",
@@ -41,11 +42,7 @@ export async function run(ctx) {
     timeout: 18000,
   });
   await page.click("#menu-new-campaign");
-  await page.waitForFunction(
-    () => window.__campaignReady === true && window.__campaignGpuStats?.ready === true,
-    undefined,
-    { timeout: 30000 },
-  );
+  await ready(page, "__campaignReady", 30000);
 
   const staged = await page.evaluate(
     ([edgeIndex, mainTile, detachmentTile]) => {

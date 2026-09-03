@@ -3,10 +3,6 @@
 // each vertex so transient cues (the order-preview flash) fade to TRANSPARENT;
 // fading the color instead would sink the cue to black over lit ground.
 
-/** The ONE selection/status green — campaign selection rings, battle soldier
- *  rings, and the player's order-preview cues all read this. */
-export const SELECTION_GREEN: [number, number, number] = [0.31, 0.82, 0.39];
-
 /** Soldier-ring footprint radius, meters — selection and destination previews. */
 export const SOLDIER_RING_RADIUS = 0.45;
 

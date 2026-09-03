@@ -6,8 +6,10 @@ pub mod edges;
 pub mod field_texture;
 pub mod hydrology;
 pub mod landform;
+mod noise;
 pub mod passability;
 
+use self::noise::{mix64, smoothstep};
 use crate::math::Vec2;
 use crate::terrain::Terrain;
 pub use contract::{MapRecipe, SlopeBands};
@@ -56,14 +58,6 @@ pub fn recipe_class(recipe: &MapRecipe) -> RecipeClass {
     } else {
         RecipeClass::OpenPlain
     }
-}
-
-fn mix64(mut h: u64) -> u64 {
-    h ^= h >> 30;
-    h = h.wrapping_mul(0xbf58_476d_1ce4_e5b9);
-    h ^= h >> 27;
-    h = h.wrapping_mul(0x94d0_49bb_1331_11eb);
-    h ^ (h >> 31)
 }
 
 #[derive(Clone, Debug)]
@@ -288,11 +282,6 @@ fn distance_outside_rect(p: Vec2, half_w: f32, half_h: f32) -> f32 {
     let dx = (p.x.abs() - half_w).max(0.0);
     let dy = (p.y.abs() - half_h).max(0.0);
     dx.max(dy)
-}
-
-fn smoothstep(a: f32, b: f32, x: f32) -> f32 {
-    let t = ((x - a) / (b - a)).clamp(0.0, 1.0);
-    t * t * (3.0 - 2.0 * t)
 }
 
 pub fn drainage_report(recipe: &MapRecipe) -> hydrology::DrainageReport {

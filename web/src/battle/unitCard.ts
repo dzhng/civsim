@@ -6,11 +6,11 @@
 import {
   lookForModel,
   modelLookForClass,
-} from "../../../packages/game-renderer/src/models/shared/soldierModel";
+} from "@packages/game-renderer/src/models/shared/soldierModel";
 import {
   factionForTeam,
   factionPrimaryCss,
-} from "../../../packages/game-renderer/src/battle/factionColors";
+} from "@packages/game-renderer/src/battle/factionColors";
 import { computeCardGrid, type CardGridOpts } from "./cardGrid";
 
 // Faction accents keep cards, banners, and WebGPU soldier colours reading as

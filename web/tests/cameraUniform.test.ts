@@ -1,5 +1,6 @@
+// @vitest-environment node
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "vitest";
 import {
   cameraUniformData,
   CAMERA_UNIFORM_BYTES,
@@ -7,13 +8,13 @@ import {
   DEFAULT_SUN_AZIMUTH,
   DEFAULT_SUN_ELEVATION,
   type CameraSnapshot,
-} from "../../packages/renderer-core/src/cameraUniform.ts";
+} from "@packages/renderer-core/src/cameraUniform.ts";
 import {
   eyePosition,
   invViewProj,
   viewProjMatrix,
   type Camera3DParams,
-} from "../../packages/renderer-core/src/camera3d.ts";
+} from "@packages/renderer-core/src/camera3d.ts";
 
 // Packed float offsets (cameraUniform.ts): viewProj @0..15, invViewProj @16..31,
 // eye @32..34, znear @35, focus @36..37, width @38, height @39, zoom @40,

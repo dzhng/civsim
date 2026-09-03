@@ -1,3 +1,5 @@
+import { battle5v5 } from "../worlds.mjs";
+
 export const meta = {
   name: "battle-3d-standards",
   kind: "visual",
@@ -17,24 +19,11 @@ export async function run(ctx) {
     return;
   }
 
-  const page = await ctx.newPage({
+  const page = await battle5v5(ctx, {
     viewport: { width: 1280, height: 800 },
     errorPrefix: "battle-3d-standards",
+    ai: "off",
   });
-  await page.goto(`${ctx.target}?battle=5v5&ai=off`);
-  await page.waitForFunction(
-    () => {
-      const stats = window.__game?.stats?.();
-      return (
-        window.__ready === true &&
-        stats?.renderer === "gpu" &&
-        stats.renderStats?.ready === true &&
-        stats.renderStats.soldiers === stats.soldiers
-      );
-    },
-    undefined,
-    { timeout: 20000 },
-  );
 
   await page.addStyleTag({
     content:

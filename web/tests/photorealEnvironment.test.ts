@@ -1,21 +1,22 @@
+// @vitest-environment node
 // Environment seam pin: every CIVSIM_ENVIRONMENTS preset maps into the
 // photoreal spec, no preset is invented, and the mapping is a pure function of
 // the ONE preset owner (packages/game-renderer/src/environment/environment.ts).
 import assert from "node:assert/strict";
-import test from "node:test";
-import { CIVSIM_ENVIRONMENTS } from "../../packages/game-renderer/src/environment/environment.ts";
-import { photorealEnvironment } from "../../packages/photoreal-renderer/src/environment.ts";
+import { test } from "vitest";
+import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment.ts";
+import { photorealEnvironment } from "@packages/photoreal-renderer/src/environment.ts";
 import {
   overcastFromTurbidity,
   lowSunAureoleStrength,
   mieScale,
   skyModelParams,
   transmittanceToSun,
-} from "../../packages/photoreal-renderer/src/atmosphere/skyModel.ts";
+} from "@packages/photoreal-renderer/src/atmosphere/skyModel.ts";
 import {
   AERIAL_DISTANCE_SCALE,
   aerialParams,
-} from "../../packages/photoreal-renderer/src/atmosphere/aerialPerspective.ts";
+} from "@packages/photoreal-renderer/src/atmosphere/aerialPerspective.ts";
 
 const PRESET_IDS = Object.keys(CIVSIM_ENVIRONMENTS) as (keyof typeof CIVSIM_ENVIRONMENTS)[];
 

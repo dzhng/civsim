@@ -19,6 +19,11 @@ pub struct Visited {
     epoch: u32,
 }
 
+pub enum Flow {
+    Continue,
+    Stop,
+}
+
 impl Visited {
     pub fn new(map: &WorldMap) -> Visited {
         Visited {
@@ -28,12 +33,12 @@ impl Visited {
     }
 
     /// Begin a fresh traversal; everything is unvisited again.
-    pub fn clear(&mut self) {
+    fn clear(&mut self) {
         self.epoch += 1;
     }
 
     /// Mark `loc` visited. Returns true if it was newly inserted this traversal.
-    pub fn insert(&mut self, map: &WorldMap, loc: Loc) -> bool {
+    fn insert(&mut self, map: &WorldMap, loc: Loc) -> bool {
         let i = map.loc_index(loc);
         if self.seen[i] == self.epoch {
             false
@@ -43,30 +48,31 @@ impl Visited {
         }
     }
 
-    /// Road distance from `from` to the nearest tile satisfying `hit`, capped
-    /// at `radius`. Self-contained: clears before traversing.
-    pub fn within<F: Fn(Loc) -> bool>(
+    /// Visit passable road locations breadth-first through `radius`, preserving
+    /// neighbor order. Returns the location whose callback stopped the flood.
+    pub fn flood(
         &mut self,
         map: &WorldMap,
         from: Loc,
         radius: u32,
-        hit: F,
-    ) -> Option<u32> {
-        if hit(from) {
-            return Some(0);
-        }
+        pass: impl Fn(Loc) -> bool,
+        mut visit: impl FnMut(Loc, u32, Option<Loc>) -> Flow,
+    ) -> Option<Loc> {
         self.clear();
         self.insert(map, from);
+        if matches!(visit(from, 0, None), Flow::Stop) {
+            return Some(from);
+        }
         let mut frontier = vec![from];
         for depth in 1..=radius {
             let mut next = Vec::new();
             for &l in &frontier {
                 for n in neighbors(map, l) {
-                    if !self.insert(map, n) {
+                    if !pass(n) || !self.insert(map, n) {
                         continue;
                     }
-                    if hit(n) {
-                        return Some(depth);
+                    if matches!(visit(n, depth, Some(l)), Flow::Stop) {
+                        return Some(n);
                     }
                     next.push(n);
                 }
@@ -85,19 +91,27 @@ fn tile_cost(f: TileFeature) -> f32 {
     }
 }
 
-fn level_of(roads: &[u8], e: EdgeId) -> u8 {
-    roads.get(e as usize).copied().unwrap_or(1)
-}
-
-fn edge_cost(map: &WorldMap, roads: &[u8], e: EdgeId) -> f32 {
+fn edge_cost(map: &WorldMap, e: EdgeId) -> f32 {
     let edge = &map.edges[e as usize];
     let base: f32 = edge.tiles.iter().map(|&t| tile_cost(t)).sum();
     // Embark + disembark overhead for hopping onto a sea lane.
     if edge.sea {
         base + 1.0
     } else {
-        // Good roads are cheaper to route over, so planning prefers them.
-        base / tunables::road_mult(level_of(roads, e))
+        base
+    }
+}
+
+/// Cost of the edge tiles from `tile` through endpoint `from`, including
+/// `tile`. Iteration order matches the route planner's historical sums.
+fn edge_partial_cost(map: &WorldMap, e: EdgeId, from: NodeId, tile: u16) -> f32 {
+    let edge = &map.edges[e as usize];
+    if edge.a == from {
+        (0..=tile).map(|t| tile_cost(edge.tiles[t as usize])).sum()
+    } else {
+        (tile..edge.tiles.len() as u16)
+            .map(|t| tile_cost(edge.tiles[t as usize]))
+            .sum()
     }
 }
 
@@ -128,9 +142,9 @@ fn other_end(map: &WorldMap, e: EdgeId, from: NodeId) -> NodeId {
 /// Dijkstra from a set of seeded nodes. Returns (cost, came_from_edge) maps.
 fn dijkstra(
     map: &WorldMap,
-    roads: &[u8],
     seeds: &[(NodeId, f32)],
     allow_sea: bool,
+    mut on_settle: impl FnMut(NodeId, f32) -> Flow,
 ) -> (BTreeMap<NodeId, f32>, BTreeMap<NodeId, EdgeId>) {
     let mut cost: BTreeMap<NodeId, f32> = BTreeMap::new();
     let mut from: BTreeMap<NodeId, EdgeId> = BTreeMap::new();
@@ -146,12 +160,15 @@ fn dijkstra(
         if k > key(cost[&n]) {
             continue;
         }
+        if matches!(on_settle(n, cost[&n]), Flow::Stop) {
+            break;
+        }
         for &e in &map.nodes[n as usize].edges {
             if map.edges[e as usize].sea && !allow_sea {
                 continue;
             }
             let m = other_end(map, e, n);
-            let c = cost[&n] + edge_cost(map, roads, e);
+            let c = cost[&n] + edge_cost(map, e);
             if cost.get(&m).map_or(true, |&old| c < old) {
                 cost.insert(m, c);
                 from.insert(m, e);
@@ -165,12 +182,7 @@ fn dijkstra(
 /// Seed costs for a Dijkstra starting at `start`: a node seeds at cost 0; a
 /// mid-edge start seeds both endpoints by the partial-edge walk. `None` if the
 /// start sits on a sea lane and sea travel is disallowed.
-fn start_seeds(
-    map: &WorldMap,
-    roads: &[u8],
-    start: Loc,
-    allow_sea: bool,
-) -> Option<Vec<(NodeId, f32)>> {
+fn start_seeds(map: &WorldMap, start: Loc, allow_sea: bool) -> Option<Vec<(NodeId, f32)>> {
     Some(match start {
         Loc::Node(n) => vec![(n, 0.0)],
         Loc::Edge { edge, tile } => {
@@ -178,20 +190,8 @@ fn start_seeds(
             if e.sea && !allow_sea {
                 return None;
             }
-            let n = e.tiles.len() as u16;
-            let m = if e.sea {
-                1.0
-            } else {
-                tunables::road_mult(level_of(roads, edge))
-            };
-            let to_a: f32 = (0..=tile)
-                .map(|t| tile_cost(e.tiles[t as usize]))
-                .sum::<f32>()
-                / m;
-            let to_b: f32 = (tile..n)
-                .map(|t| tile_cost(e.tiles[t as usize]))
-                .sum::<f32>()
-                / m;
+            let to_a = edge_partial_cost(map, edge, e.a, tile);
+            let to_b = edge_partial_cost(map, edge, e.b, tile);
             vec![(e.a, to_a), (e.b, to_b)]
         }
     })
@@ -199,14 +199,9 @@ fn start_seeds(
 
 /// Road cost from `start` to every reachable node — for "march to the nearest
 /// X" queries that don't need a full route planned to each candidate.
-pub fn costs_from(
-    map: &WorldMap,
-    roads: &[u8],
-    start: Loc,
-    allow_sea: bool,
-) -> BTreeMap<NodeId, f32> {
-    match start_seeds(map, roads, start, allow_sea) {
-        Some(seeds) => dijkstra(map, roads, &seeds, allow_sea).0,
+pub fn costs_from(map: &WorldMap, start: Loc, allow_sea: bool) -> BTreeMap<NodeId, f32> {
+    match start_seeds(map, start, allow_sea) {
+        Some(seeds) => dijkstra(map, &seeds, allow_sea, |_, _| Flow::Continue).0,
         None => BTreeMap::new(),
     }
 }
@@ -217,58 +212,29 @@ pub fn costs_from(
 /// targets a full flood would surface, but far cheaper when targets are near.
 pub fn nearest_targets(
     map: &WorldMap,
-    roads: &[u8],
     start: Loc,
     allow_sea: bool,
     is_target: impl Fn(NodeId) -> bool,
     k: usize,
 ) -> Vec<(NodeId, f32)> {
-    let Some(seeds) = start_seeds(map, roads, start, allow_sea) else {
+    let Some(seeds) = start_seeds(map, start, allow_sea) else {
         return Vec::new();
     };
-    let mut cost: BTreeMap<NodeId, f32> = BTreeMap::new();
-    let mut heap: BinaryHeap<Reverse<(u64, NodeId)>> = BinaryHeap::new();
-    let key = |c: f32| (c * 1024.0) as u64; // matches dijkstra's int key + tie-break
-    for &(n, c) in &seeds {
-        if cost.get(&n).map_or(true, |&old| c < old) {
-            cost.insert(n, c);
-            heap.push(Reverse((key(c), n)));
-        }
-    }
     let mut found: Vec<(NodeId, f32)> = Vec::new();
-    while let Some(Reverse((kk, n))) = heap.pop() {
-        if kk > key(cost[&n]) {
-            continue;
-        }
+    dijkstra(map, &seeds, allow_sea, |n, cost| {
         if is_target(n) {
-            found.push((n, cost[&n]));
+            found.push((n, cost));
             if found.len() >= k {
-                break;
+                return Flow::Stop;
             }
         }
-        for &e in &map.nodes[n as usize].edges {
-            if map.edges[e as usize].sea && !allow_sea {
-                continue;
-            }
-            let m = other_end(map, e, n);
-            let c = cost[&n] + edge_cost(map, roads, e);
-            if cost.get(&m).map_or(true, |&old| c < old) {
-                cost.insert(m, c);
-                heap.push(Reverse((key(c), m)));
-            }
-        }
-    }
+        Flow::Continue
+    });
     found
 }
 
 /// Plan a tile-by-tile route. Returns None if unreachable.
-pub fn plan(
-    map: &WorldMap,
-    roads: &[u8],
-    start: Loc,
-    dest: Loc,
-    allow_sea: bool,
-) -> Option<Vec<Loc>> {
+pub fn plan(map: &WorldMap, start: Loc, dest: Loc, allow_sea: bool) -> Option<Vec<Loc>> {
     if start == dest {
         return Some(Vec::new());
     }
@@ -292,8 +258,8 @@ pub fn plan(
 
     // From a mid-edge start, both endpoints are reachable by walking the
     // partial edge; from a node, cost 0.
-    let seeds = start_seeds(map, roads, start, allow_sea)?;
-    let (cost, from) = dijkstra(map, roads, &seeds, allow_sea);
+    let seeds = start_seeds(map, start, allow_sea)?;
+    let (cost, from) = dijkstra(map, &seeds, allow_sea, |_, _| Flow::Continue);
 
     // Pick the cheapest entry to the destination.
     let (goal_node, tail): (NodeId, Vec<Loc>) = match dest {
@@ -307,19 +273,16 @@ pub fn plan(
                 return None;
             }
             let n = e.tiles.len() as u16;
-            let m = if e.sea {
-                1.0
+            let from_a = if tile == 0 {
+                0.0
             } else {
-                tunables::road_mult(level_of(roads, edge))
+                edge_partial_cost(map, edge, e.a, tile - 1)
             };
-            let from_a: f32 = (0..tile)
-                .map(|t| tile_cost(e.tiles[t as usize]))
-                .sum::<f32>()
-                / m;
-            let from_b: f32 = (tile + 1..n)
-                .map(|t| tile_cost(e.tiles[t as usize]))
-                .sum::<f32>()
-                / m;
+            let from_b = if tile + 1 == n {
+                0.0
+            } else {
+                edge_partial_cost(map, edge, e.b, tile + 1)
+            };
             let ca = cost.get(&e.a).map(|c| c + from_a);
             let cb = cost.get(&e.b).map(|c| c + from_b);
             let via_a = match (ca, cb) {
@@ -428,31 +391,4 @@ pub fn neighbors(map: &WorldMap, loc: Loc) -> Vec<Loc> {
 /// Within encounter range: same tile or adjacent.
 pub fn in_contact(map: &WorldMap, a: Loc, b: Loc) -> bool {
     a == b || neighbors(map, a).contains(&b)
-}
-
-/// Road distance between two locations is at most `k` tiles (BFS).
-/// Discrete stepping makes a chase oscillate between distance 1 and 2, so
-/// encounters initiate at <=1 but sustain at <=2.
-pub fn dist_le(map: &WorldMap, a: Loc, b: Loc, k: u32) -> bool {
-    if a == b {
-        return true;
-    }
-    let mut frontier = vec![a];
-    let mut seen = std::collections::BTreeSet::new();
-    seen.insert(a);
-    for _ in 0..k {
-        let mut next = Vec::new();
-        for &l in &frontier {
-            for n in neighbors(map, l) {
-                if n == b {
-                    return true;
-                }
-                if seen.insert(n) {
-                    next.push(n);
-                }
-            }
-        }
-        frontier = next;
-    }
-    false
 }

@@ -8,12 +8,9 @@ import {
   BATTLE_MAP_CATALOG,
   buildBattleTerrainPresentation,
   presentationEdgeMismatches,
-} from "../../../packages/game-renderer/src/battle/mapCatalog.ts";
-import type { BattleTerrainGrid } from "../../../packages/game-renderer/src/battle/terrainFeatures.ts";
-import {
-  heightSpan,
-  terrainHeightAt,
-} from "../../../packages/game-renderer/src/terrain/heightField.ts";
+} from "@packages/game-renderer/src/battle/mapCatalog.ts";
+import type { BattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainFeatures.ts";
+import { heightSpan, terrainHeightAt } from "@packages/game-renderer/src/terrain/heightField.ts";
 import initWasm, { Game } from "../../src/wasm/game_wasm.js";
 
 let wasm: Awaited<ReturnType<typeof initWasm>>;
@@ -46,7 +43,10 @@ describe("battle terrain presentation", () => {
         height: new Float32Array(wasm.memory.buffer, game.terrain_height_ptr(), w * h).slice(),
       };
       const presentation = buildBattleTerrainPresentation(entry, grid, 0x1234);
-      const featureCounts = Object.groupBy(presentation.features, (feature) => feature.kind);
+      const featureCounts: Record<string, unknown[]> = {};
+      for (const feature of presentation.features) {
+        (featureCounts[feature.kind] ??= []).push(feature);
+      }
       const inBounds = presentation.features.every(
         (feature) =>
           feature.x >= ox &&

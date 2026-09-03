@@ -1,3 +1,5 @@
+import { createHudStore, useHudStore } from "../ui/hudStore";
+
 export type GraphicsShadowMode = "off" | "single" | "csm";
 export type GraphicsGrassQuality = "low" | "standard" | "fine";
 
@@ -44,7 +46,7 @@ export const DEFAULT_GRAPHICS_SETTINGS: GraphicsSettings = {
 type Listener = (settings: GraphicsSettings) => void;
 
 let current = readStoredGraphicsSettings();
-const listeners = new Set<Listener>();
+const graphicsSettingsStore = createHudStore(cloneGraphicsSettings(current));
 
 export function getGraphicsSettings(): GraphicsSettings {
   return cloneGraphicsSettings(current);
@@ -55,7 +57,7 @@ export function setGraphicsSettings(next: GraphicsSettings): void {
   if (graphicsSettingsEqual(clean, current)) return;
   current = clean;
   writeStoredGraphicsSettings(current);
-  for (const listener of listeners) listener(getGraphicsSettings());
+  graphicsSettingsStore.set(cloneGraphicsSettings(current));
 }
 
 export function updateGraphicsSettings(patch: Partial<GraphicsSettings>): void {
@@ -63,20 +65,20 @@ export function updateGraphicsSettings(patch: Partial<GraphicsSettings>): void {
 }
 
 export function subscribeGraphicsSettings(listener: Listener): () => void {
-  listeners.add(listener);
-  return () => {
-    listeners.delete(listener);
-  };
+  return graphicsSettingsStore.subscribe(() => listener(getGraphicsSettings()));
+}
+
+export function useGraphicsSettings(): GraphicsSettings {
+  return useHudStore(graphicsSettingsStore, (settings) => settings);
 }
 
 export function graphicsQueryOverrides(search: string): GraphicsQueryOverrides {
   const params = searchParams(search);
   return {
     shadows: params.has("shadows"),
-    grassQuality:
-      params.has("grassQuality") || params.has("grassquality") || params.has("grass-quality"),
-    grass: params.has("grass"),
-    farGrass: params.has("nofar") || params.has("fargrass"),
+    grassQuality: false,
+    grass: false,
+    farGrass: false,
     bloom: params.has("post") || params.has("bloom"),
   };
 }
@@ -89,15 +91,6 @@ export function resolveGraphicsSettings(
   const resolved = sanitizeGraphicsSettings(base, DEFAULT_GRAPHICS_SETTINGS);
   const shadow = parseShadowMode(params.get("shadows"));
   if (shadow) resolved.shadows = shadow;
-  const grassQuality = parseGrassQuality(
-    params.get("grassQuality") ?? params.get("grassquality") ?? params.get("grass-quality"),
-  );
-  if (grassQuality) resolved.grassQuality = grassQuality;
-  const grass = parseBooleanParam(params.get("grass"));
-  if (grass !== null) resolved.grass = grass;
-  if (params.has("nofar")) resolved.farGrass = false;
-  const farGrass = parseBooleanParam(params.get("fargrass"));
-  if (farGrass !== null) resolved.farGrass = farGrass;
   const post = params.get("post");
   if (post !== null) resolved.bloom = post !== "off";
   const bloom = parseBooleanParam(params.get("bloom"));
@@ -107,7 +100,7 @@ export function resolveGraphicsSettings(
 
 export function reloadGraphicsSettingsForTests(): void {
   current = readStoredGraphicsSettings();
-  for (const listener of listeners) listener(getGraphicsSettings());
+  graphicsSettingsStore.set(cloneGraphicsSettings(current));
 }
 
 function readStoredGraphicsSettings(): GraphicsSettings {

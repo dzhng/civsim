@@ -1,3 +1,5 @@
+import { campaign } from "../worlds.mjs";
+
 // Slice 09 (campaign-map-bugs B7): one occupancy authority across canvas
 // labels and DOM cards — nothing readable overlaps. Asserts the arbitration
 // outcomes the renderer stats report (the same rects the arbitration ran on):
@@ -33,21 +35,11 @@ export async function run(ctx) {
     return;
   }
 
-  const page = await ctx.newPage({
+  const page = await campaign(ctx, "new", {
     viewport: { width: 1280, height: 800 },
     errorPrefix: "campaign-collision",
+    timeout: 30000,
   });
-  await page.goto(`${ctx.target}/`);
-  await page.waitForSelector("#menu-new-campaign", { timeout: 20000 });
-  await page.click("#menu-new-campaign");
-  await page.waitForFunction(
-    () =>
-      window.__campaignReady === true &&
-      window.__campaignGpuStats?.ready === true &&
-      window.__campaignGpuStats?.renderer === "renderer-campaign",
-    undefined,
-    { timeout: 30000 },
-  );
   await page.evaluate(() => {
     window.__campaign.freeze(true);
     window.__campaign.factionView(true);

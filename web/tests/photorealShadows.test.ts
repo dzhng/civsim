@@ -1,3 +1,4 @@
+// @vitest-environment node
 // Slice 11 seam pins — the pure halves of the sun-shadow rig
 // (packages/photoreal-renderer/src/battle/shadowRig.ts): the adapter-probe
 // tier resolution (SwiftShader must land on 'single' BY NAME — the standing
@@ -5,14 +6,14 @@
 // environment: PCF radius derives from the preset's turbidity, no new field
 // on the ONE preset owner).
 import assert from "node:assert/strict";
-import test from "node:test";
-import { CIVSIM_ENVIRONMENTS } from "../../packages/game-renderer/src/environment/environment.ts";
+import { test } from "vitest";
+import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment.ts";
 import {
   CSM_CASCADES,
   CSM_MAP_SIZE,
   resolveSunShadowMode,
   shadowRadiusForTurbidity,
-} from "../../packages/photoreal-renderer/src/battle/shadowRig.ts";
+} from "@packages/photoreal-renderer/src/battle/shadowRig.ts";
 
 test("software rasterizer adapters resolve to the single tier by name", () => {
   assert.equal(resolveSunShadowMode("google / swiftshader / SwiftShader driver"), "single");

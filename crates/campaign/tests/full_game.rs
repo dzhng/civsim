@@ -14,6 +14,10 @@ use campaign::state::{CampaignState, Outcome};
 use campaign::Campaign;
 use sim::Battle;
 
+mod common;
+
+use common::{lopsided_map, real_map};
+
 /// How long a single battle may run headless before the stronger remnant is
 /// declared the winner. Bounded so a stalemated stack-vs-stack can't dominate
 /// the harness; the forced result still picks the stronger remnant.
@@ -301,11 +305,7 @@ fn print_report(r: &Report) {
 #[test]
 #[ignore]
 fn grand_map_report() {
-    let path = concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../../web/public/data/campaign-map.json"
-    );
-    let map_json = std::fs::read_to_string(path).expect("real campaign map should be present");
+    let map_json = real_map();
 
     // Horizon override for probing: CAMPAIGN_DAYS=365 cargo test ...
     let days: u64 = std::env::var("CAMPAIGN_DAYS")
@@ -327,34 +327,6 @@ fn grand_map_report() {
         r.battles > 0,
         "the powers never fought a single battle in 3 years"
     );
-}
-
-/// A 2-city map, red far stronger than blue: red's AI must march on blue's
-/// weak city, win the battle through the real sim, take the city, and trip the
-/// victory latch. The always-on proof that the loop concludes end-to-end.
-fn lopsided_map() -> &'static str {
-    r#"{
-      "half_w": 100, "half_h": 100,
-      "nodes": [
-        {"id": 1, "name": "Red",  "pos": [0,0],  "kind": "city", "tier": 2, "port": false, "owner": "red"},
-        {"id": 2, "name": "Mid",  "pos": [20,0], "kind": "junction", "tier": 0, "port": false, "owner": ""},
-        {"id": 3, "name": "Blue", "pos": [40,0], "kind": "city", "tier": 1, "port": false, "owner": "blue"}
-      ],
-      "edges": [
-        {"a": 1, "b": 2, "kind": "road", "via": [[0,0],[20,0]], "tiles": ["open","open","open","open","open","open"]},
-        {"a": 2, "b": 3, "kind": "road", "via": [[20,0],[40,0]], "tiles": ["open","open","open","open","open","open"]}
-      ],
-      "ambush_spots": [],
-      "factions": [
-        {"id": "red",  "name": "Red",  "color": [200,0,0], "playable": true},
-        {"id": "blue", "name": "Blue", "color": [0,0,200], "playable": true},
-        {"id": "independents", "name": "Ind", "color": [99,99,99], "playable": false}
-      ],
-      "start_armies": [
-        {"faction": "red",  "at": "Red",  "roster": [["HeavySword", 3], ["Archers", 1], ["ShockCavalry", 1]]},
-        {"faction": "blue", "at": "Blue", "roster": [["LightSpear", 1]]}
-      ]
-    }"#
 }
 
 #[test]

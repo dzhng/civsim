@@ -8,18 +8,10 @@ mod common;
 use campaign::ai::{persona, plan};
 use campaign::mapdata::AiPersona;
 use campaign::pathfind;
-use campaign::state::{Loc, RosterEntry};
+use campaign::state::Loc;
 use campaign::Campaign;
+use common::garrison;
 use contract::UnitClassId;
-
-fn garrison(class: UnitClassId, count: u32) -> Vec<RosterEntry> {
-    vec![RosterEntry {
-        class,
-        count,
-        max: count,
-        morale_cap: 1.0,
-    }]
-}
 
 #[test]
 fn every_persona_parses_and_only_neutral_sits_still() {

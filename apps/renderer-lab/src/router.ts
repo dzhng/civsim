@@ -6,7 +6,7 @@ import {
   type OverlayRenderPass,
   type RawFrameShell,
   type WorldRenderPass,
-} from "../../../packages/renderer-core/src/frameShell";
+} from "@packages/renderer-core/src/frameShell";
 import * as THREE from "three/webgpu";
 import {
   PROJECTION_IDENTITY,
@@ -14,56 +14,59 @@ import {
   world3dToScreen,
   worldToScreen,
   type CameraSnapshot,
-} from "../../../packages/renderer-core/src/cameraUniform";
+} from "@packages/renderer-core/src/cameraUniform";
 import {
   GPU_DEPTH_FORMAT,
   GPU_WORLD_DEPTH_ATTACHMENT,
-} from "../../../packages/renderer-core/src/depthContract";
-import { requestGpuDevice, gpuFailureMessage } from "../../../packages/renderer-core/src/device";
-import { assertStorageBufferFits } from "../../../packages/renderer-core/src/capabilities";
-import { WORLD_CAMERA_WGSL } from "../../../packages/renderer-core/src/cameraWgsl";
+} from "@packages/renderer-core/src/depthContract";
+import { requestGpuDevice, gpuFailureMessage } from "@packages/renderer-core/src/device";
+import { assertStorageBufferFits } from "@packages/renderer-core/src/capabilities";
+import { WORLD_CAMERA_WGSL } from "@packages/renderer-core/src/cameraWgsl";
 import {
   gpuOpaqueColorTarget,
   gpuWorldDepthStencil,
-} from "../../../packages/renderer-core/src/pipelineContracts";
+} from "@packages/renderer-core/src/pipelineContracts";
 import {
   compileShader,
   setShaderErrorHandler,
   shaderCompilationMessages,
   type ShaderCompilationMessage,
-} from "../../../packages/renderer-core/src/compileShader";
+} from "@packages/renderer-core/src/compileShader";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../../../web/src/shared/fatalError";
 import {
+  Allegiance,
   CAMPAIGN_FIGURE_SIZE,
   campaignArmyStandardScale,
   campaignSettlementStandardScale,
-} from "../../../web/src/campaign/renderer";
-import { SkinnedCrowdPipeline } from "../../../packages/renderer-core/src/skinnedPipeline";
-import { animationForFrame } from "../../../packages/crowd-runtime/src/animationState";
+  type ArmyView,
+  type CityView,
+} from "@packages/game-renderer/src/campaign/entityFrame";
+import { SkinnedCrowdPipeline } from "@packages/renderer-core/src/skinnedPipeline";
+import { animationForFrame } from "@packages/crowd-runtime/src/animationState";
 import {
   buildCrowdInstances,
   generatedFormation,
   type CrowdInstance,
-} from "../../../packages/crowd-runtime/src/instanceData";
-import { buildStackCrowd } from "../../../packages/crowd-runtime/src/stackCrowd";
+} from "@packages/crowd-runtime/src/instanceData";
+import { buildStackCrowd } from "@packages/crowd-runtime/src/stackCrowd";
 import {
   assignCrowdLods,
   assignCrowdLodsByDistance,
   countLods,
   lodWithHysteresis,
-} from "../../../packages/crowd-runtime/src/lod";
-import { SoldierShadowDecalPass } from "../../../packages/renderer-core/src/soldierShadowPass";
+} from "@packages/crowd-runtime/src/lod";
+import { SoldierShadowDecalPass } from "@packages/renderer-core/src/soldierShadowPass";
 import {
   CLASS_DEPTH,
   CLASS_SPACING,
   UNIT_INFO,
   unitFiles,
-} from "../../../packages/game-renderer/src/battle/unitInfoLayout";
-import { CampaignCloudPass } from "../../../packages/game-renderer/src/campaign/atmospherePass";
+} from "@packages/game-renderer/src/battle/unitInfoLayout";
+import { CampaignCloudPass } from "@packages/game-renderer/src/campaign/atmospherePass";
 import {
   CampaignEntityPass,
   type CampaignEntityInstance,
-} from "../../../packages/game-renderer/src/campaign/entityPass";
+} from "@packages/game-renderer/src/campaign/entityPass";
 import {
   buildCampaignMapDrawData,
   CampaignLabelPass,
@@ -73,29 +76,29 @@ import {
   CampaignRoadPass,
   CampaignWorldLinePass,
   type CampaignLabel,
-} from "../../../packages/game-renderer/src/campaign/mapPass";
+} from "@packages/game-renderer/src/campaign/mapPass";
 import {
   CampaignSceneryPass,
   type CampaignSceneryInstance,
-} from "../../../packages/game-renderer/src/campaign/sceneryPass";
-import { PROP_REVIEW_GROUPS } from "../../../packages/game-renderer/src/models/shared/sceneryPropRegistry";
+} from "@packages/game-renderer/src/campaign/sceneryPass";
+import { PROP_REVIEW_GROUPS } from "@packages/game-renderer/src/models/shared/sceneryPropRegistry";
 import {
   STANDARD_SIZE_TIER_IDS,
   standardSeed,
   standardWindPhase,
   standardWindStrength,
   type StandardSizeTier,
-} from "../../../packages/game-renderer/src/models/shared/standardAsset";
+} from "@packages/game-renderer/src/models/shared/standardAsset";
 import {
   SharedStandardPass,
   type StandardInstance,
-} from "../../../packages/game-renderer/src/models/shared/standardPass";
+} from "@packages/game-renderer/src/models/shared/standardPass";
 import {
   BATTLE_RELIEF_EXAGGERATION,
   terrainHeightField,
   type BattleTerrainGrid,
-} from "../../../packages/game-renderer/src/battle/terrainFeatures";
-import { sampleGrassField } from "../../../packages/game-renderer/src/battle/grassField";
+} from "@packages/game-renderer/src/battle/terrainFeatures";
+import { sampleGrassField } from "@packages/game-renderer/src/battle/grassField";
 import {
   chartCamera3d,
   eyePosition,
@@ -103,64 +106,68 @@ import {
   unprojectToPlaneZ,
   type Camera3DParams,
   type ChartCameraSpec,
-} from "../../../packages/renderer-core/src/camera3d";
+} from "@packages/renderer-core/src/camera3d";
 import {
   applyBattleEnvironment,
   battleEnvironmentStats,
   resolveBattleEnvironment,
   skinnedLightingForBattleEnvironment,
   type BattleEnvironment,
-} from "../../../packages/game-renderer/src/environment/environment";
-import { featuresToBattleScenery } from "../../../packages/game-renderer/src/battle/terrainScenery";
+} from "@packages/game-renderer/src/environment/environment";
+import { featuresToBattleScenery } from "@packages/game-renderer/src/battle/terrainScenery";
 import {
   MeshBuilder,
   type Rgb,
-} from "../../../packages/game-renderer/src/models/shared/meshBuilder";
+} from "@packages/game-renderer/src/models/shared/meshBuilder";
 import {
   CampaignSelectionPass,
   type CampaignSelectionInstance,
-} from "../../../packages/game-renderer/src/campaign/selectionPass";
+} from "@packages/game-renderer/src/campaign/selectionPass";
 import {
   campaignBorderVertices,
   CampaignTerritoryPass,
-} from "../../../packages/game-renderer/src/campaign/territoryPass";
-import { Nested3dFixturePass } from "../../../packages/game-renderer/src/fixtures/nested3d";
+} from "@packages/game-renderer/src/campaign/territoryPass";
+import { Nested3dFixturePass } from "@packages/game-renderer/src/fixtures/nested3d";
 import {
   loadPlaceholderKit,
   loadPlaceholderVat,
   mountedClassesFromKit,
   placeholderClipNames,
-} from "../../../packages/soldier-assets/src/placeholders";
+} from "@packages/soldier-assets/src/placeholders";
 import {
   REAL_UNIT_CLASS_COUNT,
   PLACEHOLDER_RENDER_CLASS_COUNT,
   SHOCK_CAV_SIDEARM_CLASS,
   createPlaceholderSoldierMeshes,
   createPlaceholderSoldierMeshTiers,
-} from "../../../packages/soldier-assets/src/soldierMesh";
+} from "@packages/soldier-assets/src/soldierMesh";
 import {
   badArtistPackFixture,
   validateRig,
   validateSoldierKit,
   type ImportedRig,
   type ValidationReport,
-} from "../../../packages/soldier-assets/src/validate";
-import { bakeGltf } from "../../../packages/soldier-assets/bake/gltf.mjs";
-import type { VatBake, VatClip } from "../../../packages/soldier-assets/src/schema";
+} from "@packages/soldier-assets/src/validate";
+import { bakeGltf } from "@packages/soldier-assets/bake/gltf.mjs";
+import type { VatBake, VatClip } from "@packages/soldier-assets/src/schema";
 import { importedRigMesh } from "./importedRigMesh";
 import { routePhotorealCrowd, routePhotorealPbr } from "./photorealRoutes";
 import { routePhotorealBattle } from "./photorealBattleRoute";
 import { routeBattleGroundTurf } from "./battleGroundTurfRoute";
-import { PhotorealBattleWorld } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
-import { PhotorealBladeFieldLayer } from "../../../packages/photoreal-renderer/src/battle/bladeFieldLayer";
-import { createPhotorealStatsPublisher } from "../../../packages/photoreal-renderer/src/stats";
-import { seaDisplacementSourceFromParam } from "../../../packages/photoreal-renderer/src/battle/seaLayer";
+import { PhotorealBattleWorld } from "@packages/photoreal-renderer/src/battle/battleWorld";
+import { PhotorealBladeFieldLayer } from "@packages/photoreal-renderer/src/battle/bladeFieldLayer";
+import { createPhotorealStatsPublisher } from "@packages/photoreal-renderer/src/stats";
+import { seaDisplacementSourceFromParam } from "@packages/photoreal-renderer/src/battle/seaLayer";
 import { UNIT_CLASS_BY_KEY, UnitClass, CLASS_NAMES } from "../../../web/src/battle/classData";
 import { Camera } from "../../../web/src/shared/camera";
 import type { UnitCardInit, UnitCardState } from "../../../web/src/battle/unitCard";
 import { UnitCardsReact } from "../../../web/src/ui/hud/UnitCardsReact";
 import { installViewportGate } from "../../../web/src/battle/viewportGate";
 import { loadCampaignData, nearestLoc, type CampaignData } from "../../../web/src/campaign/data";
+import { campaignSurface } from "../../../web/src/campaign/surface";
+import { TerrainField } from "../../../web/src/campaign/terrain";
+import { Territory, type FactionLabel } from "../../../web/src/campaign/territory";
+import { readCampaignViews, type CampaignViews } from "../../../web/src/campaign/views";
 import {
   campaignDomHtml,
   type ArmyRosterRow,
@@ -168,17 +175,12 @@ import {
   type ClassDoctrineRow,
   type DiplomacyRow,
 } from "../../../web/src/campaign/panels";
-import { Allegiance } from "../../../web/src/campaign/status";
-import { campaignSurface } from "../../../web/src/campaign/surface";
-import { TerrainField } from "../../../web/src/campaign/terrain";
-import { Territory, type FactionLabel } from "../../../web/src/campaign/territory";
-import {
-  readCampaignViews,
-  type ArmyView,
-  type CampaignViews,
-  type CityView,
-} from "../../../web/src/campaign/views";
 import { mountCampaignHud } from "../../../web/src/ui/campaign/CampaignHud";
+import type {
+  CampaignTopBarActions,
+  CampaignTopBarState,
+} from "../../../web/src/ui/campaign/CampaignTopBar";
+import { createHudStore } from "../../../web/src/ui/hudStore";
 
 type LabRoute = (ctx: LabContext) => Promise<void> | void;
 
@@ -1680,7 +1682,7 @@ async function routeCampaignMap(ctx: LabContext) {
   ]);
   const wasm = await initWasm();
   const campaign = new Campaign(mapJson, 0x5eed_2026, 0);
-  const views = readCampaignViews(campaign, wasm, data.map.edges.length);
+  const views = readCampaignViews(campaign, wasm);
   const field = new TerrainField(data);
   const surface = campaignSurface(field);
   const territoryData = new Territory(data, field);
@@ -1841,18 +1843,42 @@ async function routeCampaignUi(ctx: LabContext) {
   uiRoot.className = "renderer-campaign-ui";
   uiRoot.innerHTML = campaignDomHtml();
   host.appendChild(uiRoot);
-  const campaignHud = mountCampaignHud(uiRoot.querySelector("#cmp-hud-root")!);
+  const noop = () => {};
+  const topBarStore = createHudStore<CampaignTopBarState>({
+    dateText: "",
+    goldText: "",
+    paused: true,
+    speed: 0,
+    factionView: false,
+    fog: false,
+    diploOpen: true,
+    classesOpen: true,
+  });
+  const topBarActions: CampaignTopBarActions = {
+    pause: noop,
+    speed: noop,
+    factions: noop,
+    fog: noop,
+    diplomacy: noop,
+    classes: noop,
+    save: noop,
+    exit: noop,
+  };
+  const campaignHud = mountCampaignHud(
+    uiRoot.querySelector("#cmp-hud-root")!,
+    topBarStore,
+    topBarActions,
+  );
   const armyPanel = uiRoot.querySelector("#cmp-army") as HTMLDivElement;
   const cityPanel = uiRoot.querySelector("#cmp-city") as HTMLDivElement;
   const diplomacyPanel = uiRoot.querySelector("#cmp-diplomacy") as HTMLDivElement;
   const classesPanel = uiRoot.querySelector("#cmp-classes") as HTMLDivElement;
-  const noop = () => {};
   const recruitClasses = JSON.parse(campaign.unit_class_names_json()) as string[];
-  let views = readCampaignViews(campaign, wasm, data.map.edges.length);
+  let views = readCampaignViews(campaign, wasm);
   let selectedArmy = views.armies.find((army) => army.mine)?.id ?? -1;
   if (selectedArmy >= 0) {
     campaign.debug_place(selectedArmy, 1, 0, 4);
-    views = readCampaignViews(campaign, wasm, data.map.edges.length);
+    views = readCampaignViews(campaign, wasm);
   }
   let selectedCity = data.map.nodes.findIndex(
     (node) => node.kind === "city" && node.owner === "rome",
@@ -1860,7 +1886,7 @@ async function routeCampaignUi(ctx: LabContext) {
   let lastPick = { kind: "initial", army: selectedArmy, city: selectedCity, worldX: 0, worldY: 0 };
 
   const draw = (reason = "draw") => {
-    views = readCampaignViews(campaign, wasm, data.map.edges.length);
+    views = readCampaignViews(campaign, wasm);
     const entityFrame = buildCampaignEntityFrame(
       data,
       views,
@@ -1939,7 +1965,7 @@ async function routeCampaignUi(ctx: LabContext) {
     const mins = tick % 1440;
     const hh = String(Math.floor(mins / 60)).padStart(2, "0");
     const mm = String(Math.floor(mins % 60)).padStart(2, "0");
-    campaignHud.setTopBar({
+    topBarStore.set({
       dateText: `Day ${day}, ${hh}:${mm}  PAUSED`,
       goldText: `${campaign.treasury().toLocaleString()} gold`,
       paused: true,
@@ -1948,14 +1974,6 @@ async function routeCampaignUi(ctx: LabContext) {
       fog: false,
       diploOpen: true,
       classesOpen: true,
-      onPause: noop,
-      onSpeed: noop,
-      onFactions: noop,
-      onFog: noop,
-      onDiplomacy: noop,
-      onClasses: noop,
-      onSave: noop,
-      onExit: noop,
     });
     const roster =
       selectedArmy < 0

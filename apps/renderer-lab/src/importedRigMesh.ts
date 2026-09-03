@@ -1,5 +1,5 @@
-import type { SoldierMeshData } from '../../../packages/soldier-assets/src/soldierMesh';
-import type { ImportedRig } from '../../../packages/soldier-assets/src/validate';
+import type { SoldierMeshData } from '@packages/soldier-assets/src/soldierMesh';
+import type { ImportedRig } from '@packages/soldier-assets/src/validate';
 
 // A generic skeleton-preview mesh for an imported rig: a joint cube at each
 // bone plus a segment to its parent, every box skinned to its bone so the

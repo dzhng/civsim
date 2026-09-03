@@ -4,7 +4,12 @@
 //! even though slice 02 samples only the playable center. East/west ridge masses
 //! therefore have their feet inside the map and their bulk just beyond it.
 
-use super::{MapRecipe, RecipeClass, FAR_FOG_EXTENT};
+use super::{
+    noise::{
+        hash_cell01, smoothstep, value_noise_bilinear, value_noise_bilinear_deriv, NoiseSample,
+    },
+    MapRecipe, RecipeClass, FAR_FOG_EXTENT,
+};
 use crate::math::Vec2;
 
 const CORRIDOR_HALF_W: f32 = 390.0;
@@ -133,7 +138,7 @@ fn height_with_min_wavelength(recipe: &MapRecipe, p: Vec2, min_wavelength_m: f32
         min_wavelength_m,
     );
     let ridge_core = ridged(ridge_noise.value);
-    let ridge_strata = ridged(value_noise(
+    let ridge_strata = ridged(value_noise_bilinear(
         recipe.seed ^ side_seed ^ 0x9c2b_7f91,
         ridge_domain_x * 1.7,
         p.y + ridge_noise.value * 190.0,
@@ -180,11 +185,11 @@ fn height_with_min_wavelength(recipe: &MapRecipe, p: Vec2, min_wavelength_m: f32
 }
 
 pub fn slice01_rough_noise(seed: u64, p: Vec2) -> f32 {
-    value_noise(seed ^ 0xd1b5_4a32, p.x + 37.0, p.y - 19.0, 72.0)
+    value_noise_bilinear(seed ^ 0xd1b5_4a32, p.x + 37.0, p.y - 19.0, 72.0)
 }
 
 fn corridor_mask(recipe: &MapRecipe, p: Vec2) -> f32 {
-    let width_noise = value_noise(recipe.seed ^ 0xce17_44a9, 0.0, p.y, 520.0) - 0.5;
+    let width_noise = value_noise_bilinear(recipe.seed ^ 0xce17_44a9, 0.0, p.y, 520.0) - 0.5;
     let half = CORRIDOR_HALF_W + width_noise * 70.0;
     1.0 - smoothstep(half, half + CORRIDOR_EDGE_W, p.x.abs())
 }
@@ -225,13 +230,6 @@ fn low_oval(x: f32, y: f32, rx: f32, ry: f32) -> f32 {
     1.0 - smoothstep(0.25, 1.0, d2)
 }
 
-#[derive(Clone, Copy)]
-struct Sample {
-    value: f32,
-    dx: f32,
-    dy: f32,
-}
-
 fn fbm_detail(
     seed: u64,
     x: f32,
@@ -239,7 +237,7 @@ fn fbm_detail(
     scale: f32,
     octaves: usize,
     min_wavelength_m: f32,
-) -> Sample {
+) -> NoiseSample {
     let mut value = 0.0;
     let mut dx = 0.0;
     let mut dy = 0.0;
@@ -258,7 +256,7 @@ fn fbm_detail(
             freq *= 2.03;
             continue;
         }
-        let s = value_noise_deriv(
+        let s = value_noise_bilinear_deriv(
             seed ^ ((o as u64).wrapping_mul(0x9e37_79b9)),
             x,
             y,
@@ -273,45 +271,17 @@ fn fbm_detail(
         freq *= 2.03;
     }
     if norm <= 0.0 {
-        return Sample {
+        return NoiseSample {
             value: 0.5,
             dx: 0.0,
             dy: 0.0,
         };
     }
-    Sample {
+    NoiseSample {
         value: value / norm,
         dx: dx / norm,
         dy: dy / norm,
     }
-}
-
-fn value_noise_deriv(seed: u64, x: f32, y: f32, scale: f32) -> Sample {
-    let gx = x / scale;
-    let gy = y / scale;
-    let x0 = gx.floor() as i32;
-    let y0 = gy.floor() as i32;
-    let fx = gx - x0 as f32;
-    let fy = gy - y0 as f32;
-    let sx = smooth(fx);
-    let sy = smooth(fy);
-    let dsx = smooth_deriv(fx) / scale;
-    let dsy = smooth_deriv(fy) / scale;
-    let a = hash_cell01(x0, y0, seed);
-    let b = hash_cell01(x0 + 1, y0, seed);
-    let c = hash_cell01(x0, y0 + 1, seed);
-    let d = hash_cell01(x0 + 1, y0 + 1, seed);
-    let top = a + (b - a) * sx;
-    let bot = c + (d - c) * sx;
-    Sample {
-        value: top + (bot - top) * sy,
-        dx: ((b - a) * (1.0 - sy) + (d - c) * sy) * dsx,
-        dy: (bot - top) * dsy,
-    }
-}
-
-fn value_noise(seed: u64, x: f32, y: f32, scale: f32) -> f32 {
-    value_noise_deriv(seed, x, y, scale).value
 }
 
 fn ridged(v: f32) -> f32 {
@@ -323,30 +293,7 @@ fn mix(a: f32, b: f32, t: f32) -> f32 {
     a + (b - a) * t.clamp(0.0, 1.0)
 }
 
-fn smoothstep(a: f32, b: f32, x: f32) -> f32 {
-    let t = ((x - a) / (b - a)).clamp(0.0, 1.0);
-    smooth(t)
-}
-
-fn smooth(t: f32) -> f32 {
-    t * t * (3.0 - 2.0 * t)
-}
-
 fn smootherstep(a: f32, b: f32, x: f32) -> f32 {
     let t = ((x - a) / (b - a)).clamp(0.0, 1.0);
     t * t * t * (t * (t * 6.0 - 15.0) + 10.0)
-}
-
-fn smooth_deriv(t: f32) -> f32 {
-    6.0 * t * (1.0 - t)
-}
-
-fn hash_cell01(x: i32, y: i32, seed: u64) -> f32 {
-    let mut h = (x as u64).wrapping_mul(0x9E3779B97F4A7C15)
-        ^ (y as u64).wrapping_mul(0xBF58476D1CE4E5B9)
-        ^ seed.wrapping_mul(0x94D049BB133111EB);
-    h ^= h >> 31;
-    h = h.wrapping_mul(0xD1B54A32D192ED03);
-    h ^= h >> 27;
-    (h >> 40) as f32 / 16_777_216.0
 }

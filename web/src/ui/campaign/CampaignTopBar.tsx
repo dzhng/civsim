@@ -1,7 +1,7 @@
 import { uiIcon } from "../../campaign/icons";
 import { Tooltip } from "../hud/Tooltip";
 
-export interface CampaignTopBarProps {
+export interface CampaignTopBarState {
   dateText: string;
   goldText: string;
   paused: boolean;
@@ -10,33 +10,42 @@ export interface CampaignTopBarProps {
   fog: boolean;
   diploOpen: boolean;
   classesOpen: boolean;
-  onPause(): void;
-  onSpeed(i: number): void;
-  onFactions(): void;
-  onFog(): void;
-  onDiplomacy(): void;
-  onClasses(): void;
-  onSave(): void;
-  onExit(): void;
+}
+
+export interface CampaignTopBarActions {
+  pause(): void;
+  speed(index: number): void;
+  factions(): void;
+  fog(): void;
+  diplomacy(): void;
+  classes(): void;
+  save(): void;
+  exit(): void;
+}
+
+export interface CampaignTopBarProps {
+  state: CampaignTopBarState;
+  on: CampaignTopBarActions;
 }
 
 const html = (s: string) => ({ __html: s });
 
 export function CampaignTopBar(p: CampaignTopBarProps) {
+  const { state, on } = p;
   return (
     <div className="cmp-top hud-chassis hud-chassis--tray">
       <span id="cmp-date" className="cmp-readout">
-        {p.dateText}
+        {state.dateText}
       </span>
       <span id="cmp-gold" className="cmp-readout">
-        {p.goldText}
+        {state.goldText}
       </span>
       <Tooltip label="Pause">
         <button
           id="cmp-pause"
           className="cmp-tool"
           aria-label="Pause"
-          onClick={p.onPause}
+          onClick={on.pause}
           dangerouslySetInnerHTML={html(uiIcon("pause"))}
         />
       </Tooltip>
@@ -44,8 +53,8 @@ export function CampaignTopBar(p: CampaignTopBarProps) {
         <button
           key={i}
           data-speed={i}
-          className={!p.paused && p.speed === i ? "on" : ""}
-          onClick={() => p.onSpeed(i)}
+          className={!state.paused && state.speed === i ? "on" : ""}
+          onClick={() => on.speed(i)}
         >
           {label}
         </button>
@@ -53,27 +62,27 @@ export function CampaignTopBar(p: CampaignTopBarProps) {
       <button
         id="cmp-factions"
         aria-label="Toggle faction view"
-        className={p.factionView ? "on" : ""}
-        onClick={p.onFactions}
+        className={state.factionView ? "on" : ""}
+        onClick={on.factions}
         dangerouslySetInnerHTML={html(uiIcon("map") + " Factions")}
       />
       <button
         id="cmp-fog"
         aria-label="Toggle fog of war"
-        className={p.fog ? "on" : ""}
-        onClick={p.onFog}
+        className={state.fog ? "on" : ""}
+        onClick={on.fog}
         dangerouslySetInnerHTML={html(uiIcon("cloudFog") + " Fog")}
       />
       <button
         id="cmp-diplo-btn"
-        className={p.diploOpen ? "on" : ""}
-        onClick={p.onDiplomacy}
+        className={state.diploOpen ? "on" : ""}
+        onClick={on.diplomacy}
         dangerouslySetInnerHTML={html(uiIcon("flag") + " Diplomacy")}
       />
       <button
         id="cmp-classes-btn"
-        className={p.classesOpen ? "on" : ""}
-        onClick={p.onClasses}
+        className={state.classesOpen ? "on" : ""}
+        onClick={on.classes}
         dangerouslySetInnerHTML={html(uiIcon("shield") + " Classes")}
       />
       <span style={{ flex: 1 }} />
@@ -82,7 +91,7 @@ export function CampaignTopBar(p: CampaignTopBarProps) {
           id="cmp-save"
           className="cmp-tool"
           aria-label="Save campaign"
-          onClick={p.onSave}
+          onClick={on.save}
           dangerouslySetInnerHTML={html(uiIcon("save"))}
         />
       </Tooltip>
@@ -91,7 +100,7 @@ export function CampaignTopBar(p: CampaignTopBarProps) {
           id="cmp-exit"
           className="cmp-tool"
           aria-label="Menu"
-          onClick={p.onExit}
+          onClick={on.exit}
           dangerouslySetInnerHTML={html(uiIcon("door"))}
         />
       </Tooltip>

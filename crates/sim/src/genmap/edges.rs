@@ -7,7 +7,10 @@
 //! edge. Every speed-0 cell this module writes carries the visual tint that
 //! explains the block.
 
-use super::MapRecipe;
+use super::{
+    noise::{hash01, mix64},
+    MapRecipe,
+};
 use crate::terrain::Terrain;
 pub use contract::{EdgeSealRecipe, EdgeSealWeights};
 use serde::{Deserialize, Serialize};
@@ -229,16 +232,4 @@ fn value_noise_1d(seed: u64, side: EdgeSide, cy: usize) -> f32 {
     let f = ((cy % 9) as f32) / 9.0;
     let s = f * f * (3.0 - 2.0 * f);
     a + (b - a) * s
-}
-
-fn hash01(seed: u64) -> f32 {
-    ((mix64(seed) >> 40) as f32) / 16_777_216.0
-}
-
-fn mix64(mut h: u64) -> u64 {
-    h ^= h >> 30;
-    h = h.wrapping_mul(0xbf58_476d_1ce4_e5b9);
-    h ^= h >> 27;
-    h = h.wrapping_mul(0x94d0_49bb_1331_11eb);
-    h ^ (h >> 31)
 }

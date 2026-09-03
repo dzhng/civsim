@@ -1,10 +1,11 @@
+// @vitest-environment node
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "vitest";
 import {
   createSeaDisplacementSource,
   seaDisplacementSourceFromParam,
-} from "../../packages/photoreal-renderer/src/battle/seaLayer.ts";
-import { BATTLE_OCEAN_RAMP } from "../../packages/game-renderer/src/water/waterShoreRamp.ts";
+} from "@packages/photoreal-renderer/src/battle/seaLayer.ts";
+import { BATTLE_OCEAN_RAMP } from "@packages/game-renderer/src/water/waterShoreRamp.ts";
 
 test("photoreal sea: route params select the displacement source", () => {
   assert.equal(seaDisplacementSourceFromParam(null), "gerstner-tsl");

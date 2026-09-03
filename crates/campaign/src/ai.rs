@@ -126,7 +126,22 @@ fn road_dist(
     to: Loc,
     cap: u32,
 ) -> Option<u32> {
-    bfs.within(map, from, cap, |l| l == to)
+    let mut distance = None;
+    bfs.flood(
+        map,
+        from,
+        cap,
+        |_| true,
+        |loc, depth, _| {
+            if loc == to {
+                distance = Some(depth);
+                pathfind::Flow::Stop
+            } else {
+                pathfind::Flow::Continue
+            }
+        },
+    );
+    distance
 }
 
 /// Re-draw the diplomatic map. Each active power focuses war on the weakest

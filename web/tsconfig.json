@@ -12,11 +12,12 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "paths": {
+      "@packages/*": ["../packages/*"],
       "three": ["./node_modules/@types/three/index.d.ts"],
       "three/webgpu": ["./node_modules/@types/three/build/three.webgpu.d.ts"],
       "three/tsl": ["./node_modules/@types/three/build/three.tsl.d.ts"],
       "three/examples/jsm/*": ["./node_modules/@types/three/examples/jsm/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "tests"]
 }

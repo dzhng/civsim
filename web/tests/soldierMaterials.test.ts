@@ -1,7 +1,8 @@
+// @vitest-environment node
 // Slice 14a seam pin: the photoreal crowd consumes the soldier asset channel
 // contract instead of inventing a renderer-local material encoding.
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "vitest";
 import {
   SOLDIER_MATERIAL_CHANNELS,
   SOLDIER_MATERIAL_IDENTITY,
@@ -9,7 +10,7 @@ import {
   createPlaceholderSoldierMesh,
   soldierMaterialIdentity,
   soldierMaterialMasksFromColor,
-} from "../../packages/soldier-assets/src/soldierMesh.ts";
+} from "@packages/soldier-assets/src/soldierMesh.ts";
 
 test("soldier material identity publishes the canonical channel order", () => {
   const kit = {

@@ -1,4 +1,5 @@
 import { PNG } from "pngjs";
+import { campaign } from "../worlds.mjs";
 
 export const meta = {
   name: "campaign-map-alignment",
@@ -44,19 +45,11 @@ export async function run(ctx) {
     return;
   }
 
-  const page = await ctx.newPage({
+  const page = await campaign(ctx, "alignment", {
     viewport: { width: 1280, height: 800 },
     errorPrefix: "campaign-map-alignment",
+    timeout: 30000,
   });
-  await page.goto(`${ctx.target}/?campaign=alignment`);
-  await page.waitForFunction(
-    () =>
-      window.__campaignReady === true &&
-      window.__campaignGpuStats?.ready === true &&
-      window.__campaignGpuStats?.renderer === "renderer-campaign",
-    undefined,
-    { timeout: 30000 },
-  );
   await page.evaluate(() => {
     window.__campaign.freeze(true);
     window.__campaign.factionView(true);

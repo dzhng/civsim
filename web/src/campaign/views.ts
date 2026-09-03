@@ -1,45 +1,14 @@
 import { type Campaign, type InitOutput } from "../wasm/game_wasm.js";
-
-export interface ArmyView {
-  id: number;
-  x: number;
-  y: number;
-  faction: number;
-  soldiers: number;
-  stance: number;
-  pieKind: number;
-  pieFrac: number;
-  marching: boolean;
-  encounter: number;
-  moraleCap: number;
-  mine: boolean;
-  /** soldiers per class (index = UnitClassId), for the 3D army marker */
-  roster: number[];
-  /** live roster entries in this stack */
-  unitCount: number;
-  /** live roster entries per class (index = UnitClassId), for representative markers */
-  unitsByClass: number[];
-}
-
-export interface CityView {
-  owner: number;
-  garrison: number;
-  queue: number;
-}
+import type { ArmyView, CityView } from "@packages/game-renderer/src/campaign/entityFrame";
 
 export interface CampaignViews {
   armies: ArmyView[];
   cities: Map<number, CityView>;
-  roadLevels: Uint8Array;
   ownerHash: number;
   stackUnitCap: number;
 }
 
-export function readCampaignViews(
-  campaign: Campaign,
-  wasm: InitOutput,
-  edgeCount: number,
-): CampaignViews {
+export function readCampaignViews(campaign: Campaign, wasm: InitOutput): CampaignViews {
   const mem = wasm.memory.buffer;
   const an = campaign.army_count();
   const armyStride = campaign.army_info_stride();
@@ -68,7 +37,6 @@ export function readCampaignViews(
     });
   }
 
-  const roadLevels = new Uint8Array(mem, campaign.road_levels_ptr(), edgeCount);
   const cn = campaign.city_count();
   const cityStride = campaign.city_info_stride();
   const cf = new Float32Array(mem, campaign.city_info_ptr(), cn * cityStride);
@@ -80,5 +48,5 @@ export function readCampaignViews(
     ownerHash = (Math.imul(ownerHash, 31) + cf[o] * 7 + cf[o + 1]) | 0;
   }
 
-  return { armies, cities, roadLevels, ownerHash, stackUnitCap: campaign.army_stack_unit_cap() };
+  return { armies, cities, ownerHash, stackUnitCap: campaign.army_stack_unit_cap() };
 }

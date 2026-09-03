@@ -6,6 +6,7 @@
 
 import type { CampaignData } from "./data";
 import { isControlledStage } from "./data";
+import { hash2 } from "@packages/game-renderer/src/math";
 
 // Must match crates/mapgen/src/raster.rs. Mountain height is graded later by range
 // size (interior of a broad mass climbs higher than a narrow ridge).
@@ -113,13 +114,6 @@ export const SUN: [number, number, number] = (() => {
   const l = Math.hypot(...s);
   return [s[0] / l, s[1] / l, s[2] / l];
 })();
-
-/** Deterministic [0,1) hash of a grid cell. */
-export function hash2(x: number, y: number): number {
-  let n = (x * 374761393 + y * 668265263) | 0;
-  n = Math.imul(n ^ (n >>> 13), 1274126177);
-  return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
-}
 
 /** Smooth value noise over the cell grid, [0,1). */
 function vnoise2(x: number, y: number): number {

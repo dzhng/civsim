@@ -1,20 +1,21 @@
+// @vitest-environment node
 // Spine-fidelity pin for the whole photoreal ladder: applyCamera3d must pose a
 // three.js PerspectiveCamera so that projectionMatrix × matrixWorldInverse IS
 // camera3d.viewProjMatrix — one projector engine-wide, no drift between the
 // bespoke spine and the three substrate. Runs in node, no GPU.
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "vitest";
 import { PerspectiveCamera, Matrix4, Vector4 } from "three";
 import {
   applyCamera3d,
   PHOTOREAL_FAR_FALLBACK,
-} from "../../packages/photoreal-renderer/src/cameraBridge.ts";
+} from "@packages/photoreal-renderer/src/cameraBridge.ts";
 import {
   eyePosition,
   projectPoint,
   viewProjMatrix,
   type Camera3DParams,
-} from "../../packages/renderer-core/src/camera3d.ts";
+} from "@packages/renderer-core/src/camera3d.ts";
 
 // The battle-ish zoom ladder: close inspection → mid battle → oblique vista →
 // far campaign, across pitches/yaws/aspects. Finite far everywhere except the

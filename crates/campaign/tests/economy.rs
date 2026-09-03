@@ -2,14 +2,7 @@ mod common;
 
 use campaign::state::{Loc, RosterEntry};
 use campaign::{economy, tunables, units, Campaign};
-use common::{inert, test_map};
-
-/// Tick to the next month boundary, where the economy settles.
-fn run_month(c: &mut Campaign) {
-    for _ in 0..tunables::TICKS_PER_MONTH {
-        c.tick();
-    }
-}
+use common::{inert, run_month, test_map};
 
 #[test]
 fn replenishment_and_garrison_regen_are_daily() {
@@ -425,7 +418,7 @@ fn class_size_change_raises_establishment_without_free_soldiers() {
 
     let r = &c.state.armies[0].roster[0];
     assert_eq!(r.count, 500, "size change should not mint soldiers");
-    assert_eq!(r.max, tunables::unit_establishment(class) * 2);
+    assert_eq!(r.max, contract::unit_size(class) * 2);
     assert_eq!(
         c.state.factions[0].treasury,
         1_000 - tunables::CLASS_SWITCH_FEE
@@ -501,7 +494,8 @@ fn auto_replenish_charges_for_single_soldier_trickles() {
     let before = c.state.factions[0].treasury;
     // The daily heartbeat charges replenishment only — income/upkeep settle
     // monthly — so the one topped-up soldier is the only cost this day.
-    economy::day_tick(&c.map, &mut c.state);
+    let mut visited = campaign::pathfind::Visited::new(&c.map);
+    economy::day_tick(&c.map, &mut c.state, &mut visited);
 
     assert_eq!(c.state.armies[0].roster[0].count, 880);
     assert_eq!(

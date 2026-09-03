@@ -7,13 +7,9 @@
 use campaign::tunables as tun;
 use campaign::Campaign;
 
-fn real_map() -> String {
-    let path = concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../../web/public/data/campaign-map.json"
-    );
-    std::fs::read_to_string(path).expect("real campaign map should be present")
-}
+mod common;
+
+use common::real_map;
 
 struct Out {
     state_json: String,

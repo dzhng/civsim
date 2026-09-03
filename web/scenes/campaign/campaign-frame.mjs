@@ -1,4 +1,5 @@
 import { PNG } from "pngjs";
+import { campaign } from "../worlds.mjs";
 
 // Slice 01 (campaign-map-polish): the camera must never see past the map edge.
 // At the max-zoom-out floor the four corners of the map viewport must be map
@@ -32,18 +33,7 @@ export async function run(ctx) {
 }
 
 async function snapFrame(ctx, name, viewport) {
-  const page = await ctx.newPage({ viewport, errorPrefix: name });
-  await page.goto(`${ctx.target}/`);
-  await page.waitForSelector("#menu-new-campaign", { timeout: 20000 });
-  await page.click("#menu-new-campaign");
-  await page.waitForFunction(
-    () =>
-      window.__campaignReady === true &&
-      window.__campaignGpuStats?.ready === true &&
-      window.__campaignGpuStats?.renderer === "renderer-campaign",
-    undefined,
-    { timeout: 30000 },
-  );
+  const page = await campaign(ctx, "new", { viewport, errorPrefix: name, timeout: 30000 });
   await page.evaluate(() => window.__campaign.freeze());
   await page.evaluate(
     ([cx, cy, scale]) => {

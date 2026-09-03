@@ -11,8 +11,46 @@ ledger in [visualizations/audit-ledger.html](visualizations/audit-ledger.html).
 
 ## Next Agent Prompt
 
-**Status (2026-09-02):** spec authored; nothing implemented. Tree clean at
-`08d8c5fe`.
+**Status (2026-09-03):** slices 01, 15-19, 22-24, 28-31 plus 02, 20, 21 and 32 landed on main (17 of 34); lane W's own list is complete and it has taken the photoreal chain (integration
+`bun run check` green after 15+28; typecheck + campaign tests + wasm rebuild
+green after 29; slice 29 pixel-neutral — campaign-visual diff numbers identical
+to main). In flight in lane worktrees `/Users/david/dev/game-wt/{r,w,s,c}`
+(branches `debt-ledger/{r,w,s,c}`): 03 (R), 10 (W, branch merged up to main), 25 review (S), 33 review (C). Slice 32 note: the first pass promoted sim to a production dependency of campaign to reach UnitClass; sent back — campaign owns option modifiers as contract::StatModifiers, sim applies them, game-wasm composes. Slice 01 notes: the seating tripwire now lives in `battle-seating` (three catalog maps; `generated-seed-7` was highland-vale under another name and was dropped) and shoots until the crowd has drawn; terrain builder invariants live in `web/tests/vitest/terrainFeatures.test.ts`; the render-graph static fixtures died with that route while `frame-shell` keeps its live fixture list. Codex
+implements in the worktree; the orchestrator runs browser gates against the
+lane's own dev server (`vite --port 5173+lane --strictPort`, `VERIFY_URL`),
+commits, and merges to main. `choices.md` has a union merge driver.
+
+**Incident (2026-09-03 03:20–06:35):** the Mac idle-slept twice and every Codex lane died mid-turn with no report (work preserved uncommitted in the worktrees). Lanes were resumed with `codex exec resume <id>` and `caffeinate -i -s` now holds the machine awake for the rest of the run; start it first if you resume this cold.
+
+**Pickup if resuming cold:** read each lane's `git status`; a dirty lane with
+a `<lane>-<slice>.out` file in the session scratchpad is a finished Codex
+pass awaiting review + commit; a dirty lane without one is mid-pass (check
+`~/.codex/sessions` for a live session before relaunching).
+
+**Baseline at HEAD (evidence ledger):** `bun run check` green once
+`bun install --cwd web` restored the missing `node-web-audio-api` package
+(environment, not code). `cargo test --workspace` green. **Pre-existing red:**
+`cargo test -p sim --features force-trace --test force_trace` →
+`force_trace_smoke_covers_expected_channels` panics "missing force channel
+CorridorClamp" — the feature-gated file drifted from the channel set nobody
+ran. Slice 23 treats that as pre-existing and fixes the drift only if the
+fix is one line; otherwise records it.
+**Pre-existing red (battle snapshots):** at HEAD on this machine (SwiftShader
+default), `battle-smoke`, `banner-gallery`, `battle-3d-standards` fail their
+committed baselines by 5–41 % (`battle-initial` 57688 px, `banner-gallery`
+199319 px, `battle-standards-eye` 204743 px …). Static frames reproduce the
+same pixel counts run to run; mid-battle frames (`battle-banner`,
+`battle-manual`) vary by timing. **So for battle scenes the "no new reds"
+contract is judged by pixel-count equality against a main-tree run of the
+same scenes, not by PASS.** Campaign scenes pass. Non-snapshot checks pass.
+Re-blessing these baselines is out of scope (repo-weight decision); a slice
+that must move a battle baseline compares its diff numbers against main.
+Also pre-existing under SwiftShader: `full-game-rendering-performance`'s
+"perf campaign measures the normal raw-WebGPU campaign route" check (its
+`perfStatsOk` clause), `battle-minimap` (`battle-minimap-world-dpr2` ≈89.9k px), `battle-overlays`
+(`overlays/rings-close` 49302 px), `battle-input`'s freezeAtTick pixel-stability
+check (22 bytes, intermittent, also on main),
+and load-dependent screenshot timeouts in `battle-lod` / `banner-gallery`.
 
 **Pick up here:** slice [01-lab-estate-routes](slices/01-lab-estate-routes.md).
 It is the largest lever and it settles what survives, so every other renderer
@@ -37,8 +75,8 @@ parallel in separate worktrees (see the lane table for file disjointness).
 
 **Global TODO** (owning slice in brackets; tick as they land):
 
-- [ ] Lab estate routes, scenes, scripts, baselines gone [01]
-- [ ] Lab estate modules + HUD shims gone; rationale record written [02]
+- [x] Lab estate routes, scenes, scripts, baselines gone [01]
+- [x] Lab estate modules + HUD shims gone; rationale record written [02]
 - [ ] frameShell terrain/backdrop/marker pipelines gone; command type shrunk [03]
 - [ ] Lab router one file per route; one wasm terrain-grid reader; scanners widened [04]
 - [ ] `noiseWgsl.ts` owns hash/vnoise/fbm [05]
@@ -51,24 +89,24 @@ parallel in separate worktrees (see the lane table for file disjointness).
 - [ ] `typedUniform<T>`; transition snapshot; stats stride off the frame [12]
 - [ ] Battle renderer wrapper forwards `world.stats()`; mirrors deleted [13]
 - [ ] Dispose measured; dispose written only on measured growth [14]
-- [ ] One test runner (vitest); loaders deleted [15]
-- [ ] `@packages/*` alias; 70 relative imports rewritten [16]
-- [ ] `SimClock`, `cameraKeyController`, `awaitRendererReady` shared [17]
-- [ ] Campaign builders → game-renderer; fixtures out of main.ts; one save owner [18]
-- [ ] Battle scene `enter()` split behind unchanged `__game/__cam/__ready` [19]
-- [ ] HUD store via `useSyncExternalStore`; one `useGraphicsSettings()` [20]
-- [ ] Scene boot helpers; orphan URL params deleted [21]
-- [ ] `Vec2::perp`, covered-files helper, `genmap/noise.rs` [22]
-- [ ] `Tracer` replaces 70 cfg blocks [23]
-- [ ] Dead knobs → constants; ignored probes and copied test helpers gone [24]
+- [x] One test runner (vitest); loaders deleted [15]
+- [x] `@packages/*` alias; 70 relative imports rewritten [16]
+- [x] `SimClock`, `cameraKeyController`, `awaitRendererReady` shared [17]
+- [x] Campaign builders → game-renderer; fixtures out of main.ts; one save owner [18]
+- [x] Battle scene `enter()` split behind unchanged `__game/__cam/__ready` [19]
+- [x] HUD store via `useSyncExternalStore`; one `useGraphicsSettings()` [20]
+- [x] Scene boot helpers; orphan URL params deleted [21]
+- [x] `Vec2::perp`, covered-files helper, `genmap/noise.rs` [22]
+- [x] `Tracer` replaces 70 cfg blocks [23]
+- [x] Dead knobs → constants; ignored probes and copied test helpers gone [24]
 - [ ] One `spawn(SpawnSpec)`; `Unit::files_bounds`; wrapper chains gone [25]
 - [ ] `steer/` module, slot policy in unit.rs, separation owners [26]
 - [ ] `Unit::bound_radius()`; pins re-verified per consumer [27]
-- [ ] Campaign golden pin [28]
-- [ ] `road_levels` gone end to end [29]
-- [ ] One flood, one Dijkstra, one partial-edge cost [30]
-- [ ] `Army::new`, one cost shape, one field-dims owner, dead knobs, test helpers [31]
-- [ ] game-wasm thin: stat resolution, manifest, class table in the crates that own them [32]
+- [x] Campaign golden pin [28]
+- [x] `road_levels` gone end to end [29]
+- [x] One flood, one Dijkstra, one partial-edge cost [30]
+- [x] `Army::new`, one cost shape, one field-dims owner, dead knobs, test helpers [31]
+- [x] game-wasm thin: stat resolution, manifest, class table in the crates that own them [32]
 - [ ] mapgen `[lib]`, one wire schema, helpers single-owned, shipped migrations deleted [33]
 - [ ] Slice-narrative comments replaced by invariants [34]
 - [ ] close-spec this plan

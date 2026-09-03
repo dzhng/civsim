@@ -1,4 +1,5 @@
 import type { Camera } from "../shared/camera";
+import { createCameraKeyController } from "../shared/cameraKeys";
 
 export interface OrderSink {
   /** All player units whose centers fall in the world-space rect. */
@@ -27,13 +28,8 @@ export interface OrderSink {
 }
 
 const DRAG_PX = 7;
-const WHEEL_ZOOM_SENSITIVITY = 0.2;
-
 export class Input {
   selected: number[] = [];
-  /** Pan velocity from held keys + screen edges (read by main). */
-  panX = 0;
-  panY = 0;
   /** Screen-space selection box while dragging, for the DOM rectangle. */
   box: { x0: number; y0: number; x1: number; y1: number } | null = null;
   /** Latest mouse position (CSS px), for hover cards. */
@@ -42,8 +38,9 @@ export class Input {
   dragDelta: [number, number] | null = null;
   /** In-progress right-drag: press point + current cursor (world). */
   rightDrag: { x: number; y: number; facing: number } | null = null;
+  private readonly cameraKeys: ReturnType<typeof createCameraKeyController>;
 
-  /** All listeners detach (and the pan interval stops) when `signal` aborts. */
+  /** All listeners detach when `signal` aborts. */
   constructor(
     canvas: HTMLCanvasElement,
     camera: Camera,
@@ -52,15 +49,11 @@ export class Input {
     onZoomChange: () => void = () => {},
   ) {
     const dpr = () => window.devicePixelRatio || 1;
-    const held = new Set<string>();
-
     let lDown: [number, number] | null = null;
     let rDown: [number, number] | null = null;
     let lastRightUp = 0;
 
     let dragMoving = false;
-    let mouseX = -1; // -1 = mouse never seen: edge-pan stays off
-    let mouseY = -1;
     let mDown: [number, number] | null = null;
     canvas.addEventListener(
       "mousedown",
@@ -86,8 +79,6 @@ export class Input {
     window.addEventListener(
       "mousemove",
       (e) => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
         this.mouseCss = [e.clientX, e.clientY];
         if (mDown) {
           // Middle-drag reorients ABOUT THE EYE: the camera stays put and the
@@ -192,7 +183,6 @@ export class Input {
     window.addEventListener(
       "keydown",
       (e) => {
-        held.add(e.key.toLowerCase());
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
           e.preventDefault();
           this.selected = sink.allUnits();
@@ -215,64 +205,21 @@ export class Input {
       },
       { signal },
     );
-    window.addEventListener("keyup", (e) => held.delete(e.key.toLowerCase()), { signal });
-
-    // Continuous pan: held keys + screen edges, applied by the main loop.
-    const panTimer = setInterval(() => {
-      // Shift sprints the camera; the zoom-scaled base speed lives on Camera.
-      const sprint = held.has("shift") ? 3 : 1;
-      const speed = camera.panSpeed() * sprint;
-      let px =
-        (held.has("d") || held.has("arrowright") ? speed : 0) -
-        (held.has("a") || held.has("arrowleft") ? speed : 0);
-      let py =
-        (held.has("w") || held.has("arrowup") ? speed : 0) -
-        (held.has("s") || held.has("arrowdown") ? speed : 0);
-      const EDGE = 14;
-      if (mouseX >= 0 && mouseY >= 0) {
-        if (mouseX < EDGE) px -= speed;
-        if (mouseX > window.innerWidth - EDGE) px += speed;
-        if (mouseY < EDGE) py += speed;
-        if (mouseY > window.innerHeight - EDGE) py -= speed;
-      }
-      this.panX = px;
-      this.panY = py;
-      // Q/E rotate, Z/X tilt — continuous while held, all about the EYE (the
-      // camera holds its spot and looks around, same contract as middle-drag).
-      // Q/E swapped per David (2026-07-06): Q rotates right, E rotates left.
-      if (held.has("q")) camera.yawAboutEye(0.035);
-      if (held.has("e")) camera.yawAboutEye(-0.035);
-      // Z looks down (toward top-down), X up (toward the horizon).
-      if (held.has("z")) camera.pitchAboutEye(0.02);
-      if (held.has("x")) camera.pitchAboutEye(-0.02);
-    }, 50);
-    signal.addEventListener("abort", () => clearInterval(panTimer));
-
-    canvas.addEventListener(
-      "wheel",
-      (e) => {
-        e.preventDefault();
-        // Normalize across devices before scaling: deltaY is in PIXELS on
-        // trackpads and most mice (~100/notch) but LINES on some mice/Firefox
-        // (~3/notch) and PAGES rarely — untranslated, the same gesture zooms
-        // ~30x differently between them. Fold line/page back to pixels so the
-        // sensitivity is one tuned constant. (We already scale by the real
-        // delta, not Math.sign, so a trackpad's event stream zooms smoothly in
-        // proportion to the swipe rather than slamming through the range.)
-        const unitPx = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? window.innerHeight : 1;
-        const wheelDelta = e.deltaY * unitPx * WHEEL_ZOOM_SENSITIVITY;
-        camera.zoomAt(
-          e.clientX * dpr(),
-          e.clientY * dpr(),
-          Math.pow(1.0015, -wheelDelta),
-          onZoomChange,
-        );
-        // Scrolling eases any manual tilt back toward the zoom rig's own
-        // pitch curve — the more you scroll, the closer to the intended
-        // orientation (~an order of magnitude per ~15 wheel notches).
+    this.cameraKeys = createCameraKeyController({
+      panWorld: (dx, dy) => camera.panWorld(dx, dy),
+      yaw: (delta) => camera.yawAboutEye(delta),
+      pitchOrZoom: (delta) => camera.pitchAboutEye(delta),
+      zoomAt: (px, py, factor) => {
+        const wheelDelta = Math.log(factor) / -Math.log(1.0015);
+        camera.zoomAt(px, py, factor, onZoomChange);
         camera.pitchBias *= Math.pow(0.9985, Math.abs(wheelDelta));
       },
-      { passive: false, signal },
-    );
+      panSpeed: () => camera.panSpeed(),
+    });
+    signal.addEventListener("abort", () => this.cameraKeys.dispose());
+  }
+
+  updateCamera(dt: number): void {
+    this.cameraKeys.update(dt);
   }
 }

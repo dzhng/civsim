@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { PNG } from "pngjs";
+import { campaign } from "../worlds.mjs";
 
 const CAMPAIGN_MAP_JSON = new URL("../../public/data/campaign-map.json", import.meta.url);
 const WHOLE_MAP_CAMERA = [-100, 250, 0.16];
@@ -78,21 +79,11 @@ export async function run(ctx) {
     return;
   }
 
-  const page = await ctx.newPage({
+  const page = await campaign(ctx, "new", {
     viewport: { width: 1280, height: 800 },
     errorPrefix: "campaign-lod",
+    timeout: 30000,
   });
-  await page.goto(`${ctx.target}/`);
-  await page.waitForSelector("#menu-new-campaign", { timeout: 20000 });
-  await page.click("#menu-new-campaign");
-  await page.waitForFunction(
-    () =>
-      window.__campaignReady === true &&
-      window.__campaignGpuStats?.ready === true &&
-      window.__campaignGpuStats?.renderer === "renderer-campaign",
-    undefined,
-    { timeout: 30000 },
-  );
   await page.evaluate(() => window.__campaign.freeze());
 
   const anchors = await page.evaluate(async () => {

@@ -5,6 +5,7 @@ import {
   hasBattleWorldDepthContract,
   hasCampaignWorldDepthContract,
 } from "../_renderer-contract.mjs";
+import { campaign, ready } from "../worlds.mjs";
 
 export const meta = {
   name: "full-game-rendering-performance",
@@ -186,11 +187,7 @@ async function measureCampaign(ctx) {
   });
   const startupStart = performance.now();
   await page.click("#menu-new-campaign");
-  await page.waitForFunction(
-    () => window.__campaignReady === true && window.__campaignGpuStats?.ready === true,
-    undefined,
-    { timeout: 30000 },
-  );
+  await ready(page, "__campaignReady", 30000);
   const startupMs = performance.now() - startupStart;
   await page.evaluate(() => {
     window.__campaign.freeze(true);
@@ -223,16 +220,11 @@ async function measureCampaign(ctx) {
 }
 
 async function measureHandoff(ctx) {
-  const page = await ctx.newPage({
+  const page = await campaign(ctx, "handoff", {
     viewport: { width: 1280, height: 800 },
     errorPrefix: "perf-handoff",
+    timeout: 18000,
   });
-  await page.goto(`${ctx.target}/?campaign=handoff`);
-  await page.waitForFunction(
-    () => window.__campaignReady === true && window.__campaignGpuStats?.ready === true,
-    undefined,
-    { timeout: 18000 },
-  );
   const handoffStart = Date.now();
   const launched = await page.evaluate(() => {
     window.__campaign.place(0, 1, 0, 3);

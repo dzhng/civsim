@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { prettyClass, type ArmyRosterRow } from "../../campaign/panels";
-import type { ArmyView } from "../../campaign/views";
+import type { ArmyView } from "@packages/game-renderer/src/campaign/entityFrame";
 import { UiIcon } from "./UiIcon";
 
 // Selected-army panel. Split selection is local React state; campaign commands

@@ -4,6 +4,7 @@
 
 use crate::math::Vec2;
 use crate::terrain::Terrain;
+use contract::{FIELD_CELL, FIELD_HALF_H, FIELD_HALF_W};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum MapId {
@@ -18,13 +19,6 @@ pub enum MapId {
     CoastalScrub,
 }
 
-/// World extents: the armies fight along Y (player south, enemy north);
-/// the EAST and WEST edges are sealed by terrain. The open corridor is
-/// ~2100m wide against a ~700m army frontage — room to maneuver, twice over.
-pub const MAP_HALF_W: f32 = 1200.0;
-pub const MAP_HALF_H: f32 = 800.0;
-const CELL: f32 = 4.0;
-
 /// Deterministic jitter for natural-looking edges.
 fn jitter(i: i32, salt: u64) -> f32 {
     let mut x = (i as u64).wrapping_mul(0x9E3779B97F4A7C15) ^ salt.wrapping_mul(0xBF58476D1CE4E5B9);
@@ -34,10 +28,10 @@ fn jitter(i: i32, salt: u64) -> f32 {
 }
 
 pub fn build(map: MapId) -> Terrain {
-    let w = (2.0 * MAP_HALF_W / CELL) as usize;
-    let h = (2.0 * MAP_HALF_H / CELL) as usize;
-    let origin = Vec2::new(-MAP_HALF_W, -MAP_HALF_H);
-    let mut t = Terrain::flat(w, h, CELL, origin);
+    let w = (2.0 * FIELD_HALF_W / FIELD_CELL) as usize;
+    let h = (2.0 * FIELD_HALF_H / FIELD_CELL) as usize;
+    let origin = Vec2::new(-FIELD_HALF_W, -FIELD_HALF_H);
+    let mut t = Terrain::flat(w, h, FIELD_CELL, origin);
 
     match map {
         MapId::RiverAndCrags => {

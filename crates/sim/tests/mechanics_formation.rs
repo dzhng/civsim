@@ -6,26 +6,12 @@
 
 mod common;
 
-use common::{no_morale_parade, run};
+use common::{block, no_morale_parade, run};
 use sim::{Pace, Sim, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
 
 const SEED: u64 = 7;
 const CLEAR_BEAT_TICKS: usize = 30;
-
-fn block(files: usize, ranks: usize) -> (Sim, usize) {
-    let mut sim = Sim::new(no_morale_parade(), SEED);
-    let unit = sim.spawn_unit(
-        Vec2::ZERO,
-        FRAC_PI_2,
-        files * ranks,
-        files,
-        Vec2::new(1.0, 1.0),
-        0,
-        1.0,
-    );
-    (sim, unit)
-}
 
 fn kill_slot(sim: &mut Sim, unit: usize, slot: usize) {
     let u = &sim.units[unit];
@@ -129,7 +115,7 @@ fn advancing_casualties_close_forward_within_the_same_file() {
     let files = 5;
     let killed_file = 1;
     let killed_rank = 2;
-    let (mut sim, unit) = block(files, 5);
+    let (mut sim, unit) = block(no_morale_parade(), SEED, files, 5, 1.0, 1.0, 0);
     let before = sim.soldier_slot.clone();
     kill_slot(&mut sim, unit, killed_rank * files + killed_file);
     sim.set_move_order(unit, Vec2::new(0.0, 80.0));
@@ -160,7 +146,7 @@ fn wiped_file_stays_notched_until_the_clear_beat_reform() {
     let files = 5;
     let ranks = 4;
     let wiped_file = 2;
-    let (mut sim, unit) = block(files, ranks);
+    let (mut sim, unit) = block(no_morale_parade(), SEED, files, ranks, 1.0, 1.0, 0);
     let before = sim.soldier_slot.clone();
     kill_file(&mut sim, unit, wiped_file, ranks);
     sim.units[unit].engaged = 2;
@@ -203,7 +189,7 @@ fn rear_ranks_do_not_crab_sideways_while_engaged_casualties_close() {
     let files = 7;
     let ranks = 7;
     let killed_file = 3;
-    let (mut sim, unit) = block(files, ranks);
+    let (mut sim, unit) = block(no_morale_parade(), SEED, files, ranks, 1.0, 1.0, 0);
     let before_slots = sim.soldier_slot.clone();
     let before_positions = sim.positions.clone();
     let before_anchor = sim.units[unit].anchor;
@@ -246,7 +232,7 @@ fn rear_ranks_do_not_crab_sideways_while_engaged_casualties_close() {
 fn adjacent_wiped_files_get_bounded_rear_donors() {
     let files = 6;
     let ranks = 6;
-    let (mut sim, unit) = block(files, ranks);
+    let (mut sim, unit) = block(no_morale_parade(), SEED, files, ranks, 1.0, 1.0, 0);
     let before = sim.soldier_slot.clone();
     kill_file(&mut sim, unit, 2, ranks);
     kill_file(&mut sim, unit, 3, ranks);

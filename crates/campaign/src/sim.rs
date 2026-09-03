@@ -13,10 +13,60 @@ use crate::pathfind;
 use crate::state::*;
 use crate::tunables as tun;
 
-pub fn tick(map: &WorldMap, st: &mut CampaignState) {
+/// Campaign marker state: stance, progress-ring kind, progress fraction.
+pub fn army_marker_state(st: &CampaignState, army: &Army) -> (u8, u8, f32) {
+    let (stance, mut pie_kind, mut pie_frac) = match army.stance {
+        Stance::March | Stance::Hold | Stance::Pursuing { .. } => (0, 0, 0.0),
+        Stance::Camp { build_ticks_left } => (
+            1,
+            if build_ticks_left > 0 { 2 } else { 0 },
+            1.0 - build_ticks_left as f32 / tun::CAMP_BUILD_TICKS as f32,
+        ),
+        Stance::Ambush {
+            settle_ticks_left, ..
+        } if settle_ticks_left > 0 => (
+            2,
+            4,
+            1.0 - settle_ticks_left as f32 / tun::AMBUSH_SETTLE_TICKS as f32,
+        ),
+        Stance::Ambush { .. } => (3, 0, 0.0),
+        Stance::Routed { .. } => (4, 0, 0.0),
+        Stance::Occupying { ticks_left, .. } => {
+            (5, 2, 1.0 - ticks_left as f32 / tun::OCCUPY_TICKS as f32)
+        }
+        Stance::AtSea => (6, 0, 0.0),
+    };
+    if army.embark_ticks_left > 0 {
+        pie_kind = 3;
+        pie_frac = 1.0 - army.embark_ticks_left as f32 / tun::EMBARK_TICKS as f32;
+    }
+    if let Some(encounter) = army
+        .encounter
+        .and_then(|id| st.encounters.iter().find(|encounter| encounter.id == id))
+        .filter(|encounter| encounter.phase == EncounterPhase::Preparing)
+    {
+        let (remaining, total) = if encounter.attacker == army.id {
+            (
+                encounter.prep_attacker,
+                if encounter.ambush {
+                    tun::PREP_SURPRISED_TICKS
+                } else {
+                    tun::PREP_TICKS
+                },
+            )
+        } else {
+            (encounter.prep_defender, tun::PREP_TICKS)
+        };
+        pie_kind = 1;
+        pie_frac = 1.0 - remaining as f32 / total.max(1) as f32;
+    }
+    (stance, pie_kind, pie_frac.clamp(0.0, 1.0))
+}
+
+pub fn tick(map: &WorldMap, st: &mut CampaignState, visited: &mut pathfind::Visited) {
     st.tick += 1;
     if st.tick % tun::TICKS_PER_DAY as u64 == 0 {
-        crate::economy::day_tick(map, st);
+        crate::economy::day_tick(map, st, visited);
         check_outcome(map, st);
     }
     // The economy settles on the monthly pulse — income, heavy upkeep, population,
@@ -29,7 +79,7 @@ pub fn tick(map: &WorldMap, st: &mut CampaignState) {
     run_down_routers(map, st);
     crate::economy::garrison_sorties(map, st);
     ambush_triggers(map, st);
-    encounters(map, st);
+    encounters(map, st, visited);
     crate::economy::garrison_returns(map, st);
     crate::economy::occupations(map, st);
     timers(st);
@@ -46,7 +96,7 @@ pub fn tick(map: &WorldMap, st: &mut CampaignState) {
     // time is a fine approximation. Contact and encounters are physical, not
     // fog-gated, so battles still form and resolve correctly in a rollout.
     if !st.in_rollout && st.tick % crate::visibility::VIS_EVERY == 0 {
-        crate::visibility::recompute(map, st);
+        crate::visibility::recompute(map, st, visited);
     }
 }
 
@@ -83,21 +133,15 @@ fn ambush_triggers(map: &WorldMap, st: &mut CampaignState) {
                 && !matches!(v.stance, Stance::Routed { .. } | Stance::AtSea | Stance::Camp { .. })
         });
         let Some(j) = victim else { continue };
-        let id = st.next_encounter_id;
-        let seed = ((st.rng.next_u32() as u64) << 32) | st.rng.next_u32() as u64;
-        st.encounters.push(Encounter {
-            id,
-            attacker: st.armies[j].id, // the victim walked into it
-            defender: st.armies[i].id, // the ambusher holds the ground
-            prep_attacker: tun::PREP_SURPRISED_TICKS,
-            prep_defender: 0,
-            phase: EncounterPhase::Preparing,
-            ambush: true,
-            seed,
-            reinforcements: Vec::new(),
-            no_retreat: [false, false],
-        });
-        st.next_encounter_id += 1;
+        let encounter = Encounter::new(
+            st,
+            st.armies[j].id, // the victim walked into it
+            st.armies[i].id, // the ambusher holds the ground
+            [tun::PREP_SURPRISED_TICKS, 0],
+            true,
+        );
+        let id = encounter.id;
+        st.encounters.push(encounter);
         st.armies[i].encounter = Some(id);
         st.armies[j].encounter = Some(id);
         // Sprung: the ambusher is revealed and the victim is pinned.
@@ -110,7 +154,7 @@ fn ambush_triggers(map: &WorldMap, st: &mut CampaignState) {
 
 /// Base pace, before the prep slowdown — used both for movement and for the
 /// escape rule's "who is faster" comparison.
-fn army_base_speed(map: &WorldMap, roads: &[u8], a: &Army) -> f32 {
+fn army_base_speed(map: &WorldMap, a: &Army) -> f32 {
     let on_sea = matches!(a.loc, Loc::Edge { edge, .. } if map.edges[edge as usize].sea);
     if on_sea {
         return tun::SEA_TILES_PER_TICK;
@@ -121,14 +165,13 @@ fn army_base_speed(map: &WorldMap, roads: &[u8], a: &Army) -> f32 {
         .filter(|r| r.count > 0)
         .map(|r| tun::march_mult(r.class))
         .fold(f32::INFINITY, f32::min);
-    let (feature, road) = match a.loc {
-        Loc::Edge { edge, tile } => (
-            tun::feature_mult(map.edges[edge as usize].tiles[tile as usize]),
-            tun::road_mult(roads.get(edge as usize).copied().unwrap_or(1)),
-        ),
-        Loc::Node(_) => (1.0, 1.0),
+    let feature = match a.loc {
+        Loc::Edge { edge, tile } => {
+            tun::feature_mult(map.edges[edge as usize].tiles[tile as usize])
+        }
+        Loc::Node(_) => 1.0,
     };
-    tun::BASE_TILES_PER_TICK * slowest * feature * road
+    tun::BASE_TILES_PER_TICK * slowest * feature
 }
 
 pub fn loc_pos(map: &WorldMap, loc: Loc) -> [f32; 2] {
@@ -159,8 +202,8 @@ fn moving_toward(map: &WorldMap, a: &Army, to: Loc) -> bool {
     eucl(loc_pos(map, a.path[a.path_idx]), t) < eucl(loc_pos(map, a.loc), t) - 0.01
 }
 
-fn army_speed(map: &WorldMap, st: &CampaignState, a: &Army) -> f32 {
-    let mut speed = army_base_speed(map, &st.road_levels, a);
+fn army_speed(map: &WorldMap, a: &Army) -> f32 {
+    let mut speed = army_base_speed(map, a);
     if a.encounter.is_some() {
         speed *= tun::PREP_SPEED_MULT; // forming up while marching
     }
@@ -213,7 +256,7 @@ fn movement(map: &WorldMap, st: &mut CampaignState) {
             continue;
         }
 
-        let speed = army_speed(map, st, a);
+        let speed = army_speed(map, a);
         let a = &mut st.armies[i];
         a.progress = (a.progress + speed).min(1.0);
         if a.progress < 1.0 {
@@ -313,13 +356,12 @@ fn run_down_routers(map: &WorldMap, st: &mut CampaignState) {
     }
 }
 
-fn encounters(map: &WorldMap, st: &mut CampaignState) {
+fn encounters(map: &WorldMap, st: &mut CampaignState, visited: &mut pathfind::Visited) {
     // Tick existing encounters: dissolve on lost contact, count down prep,
     // promote to Pending when both sides are formed.
     let mut dissolved: Vec<EncounterId> = Vec::new();
     let mut st_no_rematch: Vec<((ArmyId, ArmyId), u64)> = Vec::new();
     let st_tick = st.tick;
-    let road_levels = &st.road_levels;
     for e in &mut st.encounters {
         if e.phase != EncounterPhase::Preparing {
             continue;
@@ -342,7 +384,22 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
         }
         // Sustain range is one tile slacker than initiation: discrete steps
         // make an equal-speed chase oscillate between distance 1 and 2.
-        if !pathfind::dist_le(map, la, ld, 2) || is_sea_tile(map, la) || is_sea_tile(map, ld) {
+        let in_range = visited
+            .flood(
+                map,
+                la,
+                2,
+                |_| true,
+                |loc, _, _| {
+                    if loc == ld {
+                        pathfind::Flow::Stop
+                    } else {
+                        pathfind::Flow::Continue
+                    }
+                },
+            )
+            .is_some();
+        if !in_range || is_sea_tile(map, la) || is_sea_tile(map, ld) {
             dissolved.push(e.id); // the gap opened: chase failed
             continue;
         }
@@ -352,8 +409,25 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
         // defender, so a deliberate disengage order is never hijacked.
         if st.armies[def].marching() && st.armies[att].marching() {
             let tail = st.armies[att].path.last().copied();
-            if tail != Some(ld) && tail.is_some_and(|t| pathfind::dist_le(map, t, ld, 2)) {
-                if let Some(path) = pathfind::plan(map, road_levels, la, ld, false) {
+            let tail_near = tail.is_some_and(|t| {
+                visited
+                    .flood(
+                        map,
+                        t,
+                        2,
+                        |_| true,
+                        |loc, _, _| {
+                            if loc == ld {
+                                pathfind::Flow::Stop
+                            } else {
+                                pathfind::Flow::Continue
+                            }
+                        },
+                    )
+                    .is_some()
+            });
+            if tail != Some(ld) && tail_near {
+                if let Some(path) = pathfind::plan(map, la, ld, false) {
                     let a = &mut st.armies[att];
                     a.path = path;
                     a.path_idx = 0;
@@ -369,10 +443,7 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
             // or if nobody pursues. Equal or slower while chased = run down,
             // and the battle initiates mid-flight (column deployment).
             let (a, d) = (&st.armies[att], &st.armies[def]);
-            let (sa, sd) = (
-                army_base_speed(map, road_levels, a),
-                army_base_speed(map, road_levels, d),
-            );
+            let (sa, sd) = (army_base_speed(map, a), army_base_speed(map, d));
             let def_escapes =
                 moving_away(map, d, a.loc) && (sd > sa * 1.01 || !moving_toward(map, a, d.loc));
             let att_escapes =
@@ -476,22 +547,16 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
                     tun::PREP_TICKS,
                 )
             };
-            let id = st.next_encounter_id;
-            let seed = ((st.rng.next_u32() as u64) << 32) | st.rng.next_u32() as u64;
             let (ai, bi) = (st.armies[i].id, st.armies[j].id);
-            st.encounters.push(Encounter {
-                id,
-                attacker: if attacker_is_a { ai } else { bi },
-                defender: if attacker_is_a { bi } else { ai },
-                prep_attacker: prep_att,
-                prep_defender: prep_def,
-                phase: EncounterPhase::Preparing,
-                ambush: false,
-                seed,
-                reinforcements: Vec::new(),
-                no_retreat: [false, false],
-            });
-            st.next_encounter_id += 1;
+            let encounter = Encounter::new(
+                st,
+                if attacker_is_a { ai } else { bi },
+                if attacker_is_a { bi } else { ai },
+                [prep_att, prep_def],
+                false,
+            );
+            let id = encounter.id;
+            st.encounters.push(encounter);
             st.armies[i].encounter = Some(id);
             st.armies[j].encounter = Some(id);
         }
@@ -587,13 +652,10 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
         .start_armies
         .iter()
         .enumerate()
-        .map(|(i, s)| Army {
-            id: i as ArmyId,
-            faction: s.faction,
-            garrison_of: None,
+        .map(|(i, s)| {
             // Expand each `(class, units)` entry into `units` full-strength
             // slots of `unit_size` soldiers (see `StartArmy::roster`).
-            roster: s
+            let roster = s
                 .roster
                 .iter()
                 .flat_map(|&(class, units)| {
@@ -605,16 +667,8 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
                         morale_cap: 1.0,
                     })
                 })
-                .collect(),
-            loc: Loc::Node(s.at),
-            path: Vec::new(),
-            path_idx: 0,
-            progress: 0.0,
-            stance: Stance::Hold,
-            encounter: None,
-            auto_replenish: true,
-            sack_intent: false,
-            embark_ticks_left: 0,
+                .collect();
+            Army::new(i as ArmyId, s.faction, roster, Loc::Node(s.at))
         })
         .collect();
     let doctrines = (0..factions.len() as u32)
@@ -637,7 +691,6 @@ pub fn new_state(map: &WorldMap, seed: u64, player_faction: u32) -> CampaignStat
         battle_ready: None,
         no_rematch: std::collections::BTreeMap::new(),
         visible: Vec::new(),
-        road_levels: vec![1; map.edges.len()],
         outcome: None,
         relations: std::collections::BTreeMap::new(),
         diplo_target: std::collections::BTreeMap::new(),
@@ -695,7 +748,7 @@ fn pursue(map: &WorldMap, st: &mut CampaignState) {
         if la == tloc || st.armies[i].path.last() == Some(&tloc) {
             continue;
         }
-        if let Some(path) = crate::pathfind::plan(map, &st.road_levels, la, tloc, true) {
+        if let Some(path) = crate::pathfind::plan(map, la, tloc, true) {
             let a = &mut st.armies[i];
             let keep = a.marching() && path.first() == Some(&a.path[a.path_idx]);
             a.path = path;
@@ -738,7 +791,7 @@ pub(crate) fn order_pursue(
         }
     }
     let (la, tloc) = (st.armies[army as usize].loc, st.armies[target as usize].loc);
-    let Some(path) = crate::pathfind::plan(map, &st.road_levels, la, tloc, true) else {
+    let Some(path) = crate::pathfind::plan(map, la, tloc, true) else {
         return false;
     };
     let a = &mut st.armies[army as usize];
@@ -775,7 +828,7 @@ pub(crate) fn try_move(
             return false; // frozen: ambushed, pending, or fighting
         }
     }
-    let Some(path) = crate::pathfind::plan(map, &st.road_levels, a.loc, dest, allow_sea) else {
+    let Some(path) = crate::pathfind::plan(map, a.loc, dest, allow_sea) else {
         return false;
     };
     let a = &mut st.armies[army as usize];

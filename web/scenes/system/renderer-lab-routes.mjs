@@ -12,6 +12,7 @@ import {
   hasFramePassRole,
   hasFramePhaseOrder,
 } from "../_renderer-contract.mjs";
+import { labRoute } from "../worlds.mjs";
 
 export const meta = {
   name: "renderer-lab-routes",
@@ -435,6 +436,7 @@ async function findUnguardedRendererReadyFootguns() {
   const roots = [
     new URL("../../src/battle/", import.meta.url),
     new URL("../../src/campaign/", import.meta.url),
+    new URL("../../src/shared/", import.meta.url),
   ];
   const root = new URL("../../../", import.meta.url).pathname;
   const matches = [];
@@ -1133,20 +1135,7 @@ export async function run(ctx) {
   );
 
   for (const [route, predicate] of routes) {
-    const page = await ctx.newPage({
-      viewport: { width: 900, height: 620 },
-      errorPrefix: `gpu-${route}`,
-    });
-    await page.goto(`${ctx.target}/renderer/${route}`);
-    const expectedRoute = route.split("?")[0];
-    await page.waitForFunction(
-      (expected) =>
-        window.__rendererLabReady === true &&
-        window.__rendererLabStats?.ok === true &&
-        window.__rendererLabStats?.route === expected,
-      expectedRoute,
-      { timeout: 18000 },
-    );
+    const page = await labRoute(ctx, route);
     await page.waitForTimeout(280);
     const stats = await page.evaluate(() => window.__rendererLabStats);
     ctx.check(`${route}: route stats satisfy contract`, predicate(stats), JSON.stringify(stats));

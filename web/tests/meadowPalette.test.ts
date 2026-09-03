@@ -1,10 +1,11 @@
+// @vitest-environment node
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "vitest";
 import {
   MEADOW,
   meadowFamily,
   type Rgb,
-} from "../../packages/game-renderer/src/battle/meadowPalette.ts";
+} from "@packages/game-renderer/src/battle/meadowPalette.ts";
 
 test("every meadow color role is a finite normalized RGB triplet", () => {
   const roles = rgbRoles(MEADOW);

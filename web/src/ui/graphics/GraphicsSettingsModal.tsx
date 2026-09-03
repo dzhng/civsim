@@ -1,10 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
-  getGraphicsSettings,
   graphicsQueryOverrides,
-  subscribeGraphicsSettings,
   updateGraphicsSettings,
-  type GraphicsSettings,
+  useGraphicsSettings,
   type GraphicsGrassQuality,
   type GraphicsShadowMode,
 } from "../../shared/graphicsSettings";
@@ -26,8 +24,7 @@ export interface GraphicsSettingsPanelProps {
 }
 
 export function GraphicsSettingsPanel({ onClose }: GraphicsSettingsPanelProps) {
-  const [settings, setSettings] = useState<GraphicsSettings>(() => getGraphicsSettings());
-  useEffect(() => subscribeGraphicsSettings(setSettings), []);
+  const settings = useGraphicsSettings();
   const overrides =
     typeof location === "undefined"
       ? { shadows: false, grassQuality: false, grass: false, farGrass: false, bloom: false }

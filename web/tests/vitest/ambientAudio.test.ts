@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { OfflineAudioContext } from "node-web-audio-api";
 
@@ -18,8 +19,8 @@ import {
   type AudioMixer,
   type AmbientOfflineAudioContextConstructor,
   type WindBedControl,
-} from "../../../packages/ambient-audio/src/index.ts";
-import { sampleBattleWind } from "../../../packages/game-renderer/src/battle/windSignal.ts";
+} from "@packages/ambient-audio/src/index.ts";
+import { sampleBattleWind } from "@packages/game-renderer/src/battle/windSignal.ts";
 
 const OfflineCtor = OfflineAudioContext as unknown as AmbientOfflineAudioContextConstructor;
 
@@ -769,6 +770,6 @@ class FakeBirdAudioContext {
 
 function fakeBirdMixer(ctx: FakeBirdAudioContext) {
   return {
-    bedInput: () => ctx.destination,
+    bedInput: () => ctx.destination as unknown as GainNode,
   } satisfies Pick<AudioMixer, "bedInput">;
 }

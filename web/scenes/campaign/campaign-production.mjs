@@ -1,5 +1,6 @@
 import { PNG } from "pngjs";
 import { hasCampaignWorldDepthContract } from "../_renderer-contract.mjs";
+import { campaign } from "../worlds.mjs";
 
 export const meta = {
   name: "campaign-production",
@@ -11,16 +12,11 @@ export const meta = {
 };
 
 export async function run(ctx) {
-  const page = await ctx.newPage({
+  const page = await campaign(ctx, "test", {
     viewport: { width: 1280, height: 800 },
     errorPrefix: "campaign-production",
+    timeout: 18000,
   });
-  await page.goto(`${ctx.target}/?campaign=test`);
-  await page.waitForFunction(
-    () => window.__campaignReady === true && window.__campaignGpuStats?.ready === true,
-    undefined,
-    { timeout: 18000 },
-  );
   await page.evaluate(() => {
     window.__campaign.freeze(true);
     window.__campaign.cam(0, 450, 6);
@@ -110,28 +106,6 @@ export async function run(ctx) {
   );
 
   await page.close();
-
-  const retired = await ctx.newPage({
-    viewport: { width: 1280, height: 800 },
-    errorPrefix: "campaign-retired-gfx-legacy",
-  });
-  await retired.goto(`${ctx.target}/?campaign=test&gfx=legacy`);
-  await retired.waitForFunction(
-    () => window.__campaignReady === true && window.__campaignGpuStats?.ready === true,
-    undefined,
-    { timeout: 18000 },
-  );
-  const retiredStats = await retired.evaluate(() => window.__campaignGpuStats);
-  ctx.check(
-    "retired campaign gfx=legacy route still uses raw WebGPU",
-    retiredStats.renderer === "renderer-campaign" &&
-      retiredStats.ready === true &&
-      retiredStats.labelLayer === "raw-gpu-glyph-atlas" &&
-      retiredStats.postCutoverScreenshots === "renderer-only" &&
-      hasCampaignWorldDepthContract(retiredStats),
-    JSON.stringify(retiredStats),
-  );
-  await retired.close();
 }
 
 function countPixels(png) {

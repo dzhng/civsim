@@ -1,5 +1,6 @@
+// @vitest-environment node
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "vitest";
 import {
   GRASS_FIELD_LOD_BUDGET_RATIOS,
   GRASS_FIELD_PACKED_STRIDE_FLOATS,
@@ -7,9 +8,9 @@ import {
   sampleGrassField,
   type GrassFieldConfig,
   type GrassFieldRecord,
-} from "../../packages/game-renderer/src/battle/grassField.ts";
-import { terrainHeightField } from "../../packages/game-renderer/src/battle/terrainFeatures.ts";
-import type { BattleTerrainGrid } from "../../packages/game-renderer/src/battle/terrainFeatures.ts";
+} from "@packages/game-renderer/src/battle/grassField.ts";
+import { terrainHeightField } from "@packages/game-renderer/src/battle/terrainFeatures.ts";
+import type { BattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainFeatures.ts";
 
 test("grass field records are byte-stable for the same seed and focus", () => {
   const grid = makeGrid(6, 6, 10);

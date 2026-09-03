@@ -12,21 +12,22 @@
 // preserveFrozenEffects), the ?debug=blocks triangle builder, and the CPU
 // frame-perf split. The world renders what it is handed.
 import type { Camera } from "../shared/camera";
-import type { BattleGroundCover } from "../../../packages/game-renderer/src/battle/terrainFeatures";
+import { roundMs } from "@packages/game-renderer/src/math";
+import type { BattleGroundCover } from "@packages/game-renderer/src/battle/terrainFeatures";
 import {
   PhotorealBattleWorld,
   type BattleLakeSurfaceSpec,
   type BattleCameraSnapshot,
   type BattleVistaGrid,
-} from "../../../packages/photoreal-renderer/src/battle/battleWorld";
+} from "@packages/photoreal-renderer/src/battle/battleWorld";
 import {
   postGradeUniformsFromParams,
   type BattlePostGradeUniforms,
-} from "../../../packages/photoreal-renderer/src/post/postChain";
+} from "@packages/photoreal-renderer/src/post/postChain";
 import {
   seaDisplacementSourceFromParam,
   type SeaDisplacementSourceId,
-} from "../../../packages/photoreal-renderer/src/battle/seaLayer";
+} from "@packages/photoreal-renderer/src/battle/seaLayer";
 import {
   getGraphicsSettings,
   graphicsQueryOverrides,
@@ -34,15 +35,15 @@ import {
   subscribeGraphicsSettings,
   type GraphicsSettings,
 } from "../shared/graphicsSettings";
-import type { BattleReadoutInstance } from "../../../packages/photoreal-renderer/src/battle/readoutLayer";
-import type { BattleStandardInstance } from "../../../packages/photoreal-renderer/src/battle/standardLayer";
+import type { BattleReadoutInstance } from "@packages/photoreal-renderer/src/battle/readoutLayer";
+import type { BattleStandardInstance } from "@packages/photoreal-renderer/src/battle/standardLayer";
 import {
   deriveBattleEdgeRoles,
   type BattleSlopeBands,
   type BattleTerrainGrid,
-} from "../../../packages/game-renderer/src/battle/terrainFeatures";
-import { battleMapByWasmId } from "../../../packages/game-renderer/src/battle/mapCatalog";
-import type { BattleEnvironmentId } from "../../../packages/game-renderer/src/environment/environment";
+} from "@packages/game-renderer/src/battle/terrainFeatures";
+import { battleMapByWasmId } from "@packages/game-renderer/src/battle/mapCatalog";
+import type { BattleEnvironmentId } from "@packages/game-renderer/src/environment/environment";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
 
 export interface BattleRendererOptions {
@@ -633,10 +634,6 @@ function readoutsKey(
     key += `#${readout.unitId}:${Math.round(readout.x * 10)},${Math.round(readout.y * 10)},${Math.round(readout.z * 10)},${Math.round(readout.worldPerPx * 1000)},${readout.chips.map((c) => `${c.kind ?? ""}${c.text}`).join(",")}`;
   }
   return key;
-}
-
-function roundMs(value: number) {
-  return Number.isFinite(value) ? Number(value.toFixed(3)) : 0;
 }
 
 function cameraSnapshot(camera: Camera): BattleCameraSnapshot {

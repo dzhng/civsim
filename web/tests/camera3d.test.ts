@@ -1,5 +1,6 @@
+// @vitest-environment node
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "vitest";
 import {
   eyePosition,
   invViewProj,
@@ -9,8 +10,8 @@ import {
   viewMatrix,
   viewProjMatrix,
   type Camera3DParams,
-} from "../../packages/renderer-core/src/camera3d.ts";
-import { identity, multiply, type Mat4 } from "../../packages/renderer-core/src/mat4.ts";
+} from "@packages/renderer-core/src/camera3d.ts";
+import { identity, multiply, type Mat4 } from "@packages/renderer-core/src/mat4.ts";
 
 // A representative oblique battle-ish camera. Finite far keeps the reverse-Z
 // depth mapping exact at both planes for the monotonic test.

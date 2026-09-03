@@ -23,9 +23,10 @@ use crate::state::{ArmyId, CampaignState, Loc, Stance};
 pub fn forward(map: &WorldMap, st: &mut CampaignState, ticks: u32) {
     let was = st.in_rollout;
     st.in_rollout = true;
+    let mut visited = crate::pathfind::Visited::new(map);
     for _ in 0..ticks {
-        crate::sim::tick(map, st);
-        resolve_pending(map, st);
+        crate::sim::tick(map, st, &mut visited);
+        resolve_pending(map, st, &mut visited);
     }
     st.in_rollout = was;
 }
@@ -47,11 +48,12 @@ pub fn forward_plan(
 ) -> u32 {
     let was = st.in_rollout;
     st.in_rollout = true;
+    let mut visited = crate::pathfind::Visited::new(map);
     let mut t = 0;
     while t < cap {
         reissue(map, st, orders);
-        crate::sim::tick(map, st);
-        resolve_pending(map, st);
+        crate::sim::tick(map, st, &mut visited);
+        resolve_pending(map, st, &mut visited);
         t += 1;
         if t >= min_ticks && settled(st, orders) {
             break;
@@ -101,13 +103,13 @@ fn reissue(map: &WorldMap, st: &mut CampaignState, orders: &[(ArmyId, Loc)]) {
 /// one can free armies that immediately make contact, so loop until quiet.
 /// Mirrors the campaign→battle→campaign handoff the real loop drives, with the
 /// estimate standing in for the physics sim.
-fn resolve_pending(map: &WorldMap, st: &mut CampaignState) {
+fn resolve_pending(map: &WorldMap, st: &mut CampaignState, visited: &mut crate::pathfind::Visited) {
     let pf = st.player_faction;
     while let Some(eid) = st.battle_ready {
-        match resolve::battle_setup_for(map, st, eid, pf) {
+        match resolve::battle_setup_for(map, st, eid, pf, visited) {
             Some(setup) => {
                 let result = resolve::estimate(map, &setup);
-                resolve::apply_battle_outcome(map, st, eid, &result, pf);
+                resolve::apply_battle_outcome(map, st, eid, &result, pf, visited);
             }
             // A pending encounter that won't set up would otherwise spin
             // forever — drop the flag and move on (matches the live harness).

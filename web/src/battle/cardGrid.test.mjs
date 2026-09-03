@@ -1,12 +1,12 @@
+// @vitest-environment node
 // Headless test for the Total-War card-bar grid math (slice 01).
-// No DOM, no browser, no wasm — `node --test web/src/battle/cardGrid.test.mjs`.
-// Node strips the types from the imported `.ts` (erasable TypeScript).
+// No DOM, no browser, no wasm — Vitest runs this suite in its node environment.
 //
 // The pinned behavior: cards are a FIXED size and the bar wraps into more rows
 // as the roster grows — cards never resize to chase the count (David, 2026-06-30).
 
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "vitest";
 import { computeCardGrid } from "./cardGrid.ts";
 
 const CARD_W = 72;

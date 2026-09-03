@@ -6,7 +6,7 @@ import {
   sampleBattleWind,
   updateWindUniforms,
   windProfile,
-} from "../../../packages/game-renderer/src/battle/windSignal.ts";
+} from "@packages/game-renderer/src/battle/windSignal.ts";
 
 describe("windSignal", () => {
   it("is deterministic for repeated samples and a fixed sweep", () => {

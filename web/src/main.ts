@@ -5,10 +5,10 @@ import { QUICK_BATTLE_GENERATED_MAP_ID, type QuickBattleConfig } from "./battle/
 import { BattleScene, type BattleKind, type GeneratedBattleMapDescriptor } from "./battle/scene";
 import { CampaignScene } from "./campaign/scene";
 import { loadCampaignData, type CampaignData } from "./campaign/data";
-import { checkGpuSupport, type GpuSupportState } from "../../packages/game-renderer/src/appShell";
-import { DEFAULT_BATTLE_ENVIRONMENT } from "../../packages/game-renderer/src/environment/environment";
-import { setActiveFactions } from "../../packages/game-renderer/src/battle/factionColors";
-import { generatedBattleMapEntry } from "../../packages/game-renderer/src/battle/mapCatalog";
+import { checkGpuSupport, type GpuSupportState } from "@packages/game-renderer/src/appShell";
+import { DEFAULT_BATTLE_ENVIRONMENT } from "@packages/game-renderer/src/environment/environment";
+import { setActiveFactions } from "@packages/game-renderer/src/battle/factionColors";
+import { generatedBattleMapEntry } from "@packages/game-renderer/src/battle/mapCatalog";
 
 const params = new URLSearchParams(location.search);
 let wasm: InitOutput;

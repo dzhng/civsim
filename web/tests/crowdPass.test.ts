@@ -1,8 +1,8 @@
 // @vitest-environment node
 import assert from "node:assert/strict";
 import { test } from "vitest";
-import { buildLiveBattleCrowdFrame } from "../../packages/game-renderer/src/battle/crowdPass.ts";
-import { UNIT_INFO } from "../../packages/game-renderer/src/battle/unitInfoLayout.ts";
+import { buildLiveBattleCrowdFrame } from "@packages/game-renderer/src/battle/crowdPass.ts";
+import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout.ts";
 
 const SOLDIERS = 2;
 const STRIDE = 33;

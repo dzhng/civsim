@@ -8,20 +8,20 @@ import {
   UNIT_INFO,
   currentUnitFiles,
   currentUnitRanks,
-} from "../../../packages/game-renderer/src/battle/unitInfoLayout";
-import { modelLookForClass } from "../../../packages/game-renderer/src/models/shared/soldierModel";
-import { STANDARD_SIZE_TIERS } from "../../../packages/game-renderer/src/models/shared/standardAsset";
-import { factionForTeam } from "../../../packages/game-renderer/src/battle/factionColors";
+} from "@packages/game-renderer/src/battle/unitInfoLayout";
+import { modelLookForClass } from "@packages/game-renderer/src/models/shared/soldierModel";
+import { STANDARD_SIZE_TIERS } from "@packages/game-renderer/src/models/shared/standardAsset";
+import { factionForTeam } from "@packages/game-renderer/src/battle/factionColors";
 import {
   HEAVY_PHALANX_REST_CLASS,
   HEAVY_PHALANX_SIDEARM_CLASS,
   MEDIUM_PHALANX_REST_CLASS,
   MEDIUM_PHALANX_SIDEARM_CLASS,
   SHOCK_CAV_SIDEARM_CLASS,
-} from "../../../packages/soldier-assets/src/soldierMesh";
+} from "@packages/soldier-assets/src/soldierMesh";
 import { BattleRenderer, type BattleTacticalLineFrame } from "./renderer";
-import type { BattleReadoutInstance } from "../../../packages/photoreal-renderer/src/battle/readoutLayer";
-import type { BattleStandardInstance } from "../../../packages/photoreal-renderer/src/battle/standardLayer";
+import type { BattleReadoutInstance } from "@packages/photoreal-renderer/src/battle/readoutLayer";
+import type { BattleStandardInstance } from "@packages/photoreal-renderer/src/battle/standardLayer";
 import { type CameraRigRange } from "./cameraRig";
 import {
   CLASS_NAMES,
@@ -49,19 +49,19 @@ import { groupMoveDests, UnitSnap } from "./orders";
 import {
   fightingFrameForTick,
   marchingStateForSpeed,
-} from "../../../packages/crowd-runtime/src/animationState";
+} from "@packages/crowd-runtime/src/animationState";
 import {
   BATTLE_RELIEF_EXAGGERATION,
   type BattleEdgeRole,
   type BattleGroundCover,
   type BattleSlopeBands,
-} from "../../../packages/game-renderer/src/battle/terrainFeatures";
-import type { BattleEnvironmentId } from "../../../packages/game-renderer/src/environment/environment";
-import { eyePosition } from "../../../packages/renderer-core/src/camera3d";
+} from "@packages/game-renderer/src/battle/terrainFeatures";
+import type { BattleEnvironmentId } from "@packages/game-renderer/src/environment/environment";
+import { eyePosition } from "@packages/renderer-core/src/camera3d";
 import {
   vistaSurfaceHeightAt,
   type BattleVistaGrid,
-} from "../../../packages/photoreal-renderer/src/battle/battleWorld";
+} from "@packages/photoreal-renderer/src/battle/battleWorld";
 import { BattleAmbientAudio } from "./battleAudio";
 
 const TICK_DT = 1 / 30;

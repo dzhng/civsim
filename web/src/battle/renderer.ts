@@ -12,21 +12,21 @@
 // preserveFrozenEffects), the ?debug=blocks triangle builder, and the CPU
 // frame-perf split. The world renders what it is handed.
 import type { Camera } from "../shared/camera";
-import type { BattleGroundCover } from "../../../packages/game-renderer/src/battle/terrainFeatures";
+import type { BattleGroundCover } from "@packages/game-renderer/src/battle/terrainFeatures";
 import {
   PhotorealBattleWorld,
   type BattleLakeSurfaceSpec,
   type BattleCameraSnapshot,
   type BattleVistaGrid,
-} from "../../../packages/photoreal-renderer/src/battle/battleWorld";
+} from "@packages/photoreal-renderer/src/battle/battleWorld";
 import {
   postGradeUniformsFromParams,
   type BattlePostGradeUniforms,
-} from "../../../packages/photoreal-renderer/src/post/postChain";
+} from "@packages/photoreal-renderer/src/post/postChain";
 import {
   seaDisplacementSourceFromParam,
   type SeaDisplacementSourceId,
-} from "../../../packages/photoreal-renderer/src/battle/seaLayer";
+} from "@packages/photoreal-renderer/src/battle/seaLayer";
 import {
   getGraphicsSettings,
   graphicsQueryOverrides,
@@ -34,15 +34,15 @@ import {
   subscribeGraphicsSettings,
   type GraphicsSettings,
 } from "../shared/graphicsSettings";
-import type { BattleReadoutInstance } from "../../../packages/photoreal-renderer/src/battle/readoutLayer";
-import type { BattleStandardInstance } from "../../../packages/photoreal-renderer/src/battle/standardLayer";
+import type { BattleReadoutInstance } from "@packages/photoreal-renderer/src/battle/readoutLayer";
+import type { BattleStandardInstance } from "@packages/photoreal-renderer/src/battle/standardLayer";
 import {
   deriveBattleEdgeRoles,
   type BattleSlopeBands,
   type BattleTerrainGrid,
-} from "../../../packages/game-renderer/src/battle/terrainFeatures";
-import { battleMapByWasmId } from "../../../packages/game-renderer/src/battle/mapCatalog";
-import type { BattleEnvironmentId } from "../../../packages/game-renderer/src/environment/environment";
+} from "@packages/game-renderer/src/battle/terrainFeatures";
+import { battleMapByWasmId } from "@packages/game-renderer/src/battle/mapCatalog";
+import type { BattleEnvironmentId } from "@packages/game-renderer/src/environment/environment";
 import { fatalSurfaceFor, showFatalErrorSurface } from "../shared/fatalError";
 
 export interface BattleRendererOptions {

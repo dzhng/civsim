@@ -10,7 +10,7 @@ import {
   createPlaceholderSoldierMesh,
   soldierMaterialIdentity,
   soldierMaterialMasksFromColor,
-} from "../../packages/soldier-assets/src/soldierMesh.ts";
+} from "@packages/soldier-assets/src/soldierMesh.ts";
 
 test("soldier material identity publishes the canonical channel order", () => {
   const kit = {

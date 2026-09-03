@@ -25,7 +25,7 @@ import {
   type CSSProperties,
   type RefObject,
 } from "react";
-import { modelLookForClass } from "../../../../packages/game-renderer/src/models/shared/soldierModel";
+import { modelLookForClass } from "@packages/game-renderer/src/models/shared/soldierModel";
 import { cardThumbUrl } from "../../battle/classData";
 import {
   applyCardGrid,

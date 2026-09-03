@@ -5,7 +5,7 @@ import {
   projectPoint,
   unprojectToPlaneZ,
   type Camera3DParams,
-} from "../../packages/renderer-core/src/camera3d.ts";
+} from "@packages/renderer-core/src/camera3d.ts";
 import { battleCameraRig } from "../src/battle/cameraRig.ts";
 
 // Slice 04: battle picking is a real 3D ray-cast against the ground plane (z = 0).

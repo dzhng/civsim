@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { GpuSupportState } from "../../../../packages/game-renderer/src/appShell";
+import type { GpuSupportState } from "@packages/game-renderer/src/appShell";
 import type { QuickBattleClassSpec, QuickBattleConfig } from "../../battle/quickBattleCatalog";
 import { GraphicsSettingsModal } from "../graphics/GraphicsSettingsModal";
 import { ArmyBuilder } from "./ArmyBuilder";

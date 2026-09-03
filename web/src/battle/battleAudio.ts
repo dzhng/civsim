@@ -4,12 +4,12 @@ import {
   type AmbientAudioSettings,
   type AmbientRealtimeAudioContextConstructor,
   type MeadowSoundscapeState,
-} from "../../../packages/ambient-audio/src/index";
+} from "@packages/ambient-audio/src/index";
 import {
   battleGrassTintWeight,
   type BattleGroundCover,
-} from "../../../packages/game-renderer/src/battle/terrainFeatures";
-import { sampleBattleWind } from "../../../packages/game-renderer/src/battle/windSignal";
+} from "@packages/game-renderer/src/battle/terrainFeatures";
+import { sampleBattleWind } from "@packages/game-renderer/src/battle/windSignal";
 import {
   getGraphicsSettings,
   subscribeGraphicsSettings,

@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   buildBattleGroundMesh,
   buildPhotorealBattleGroundMesh,
-} from "../../../packages/game-renderer/src/battle/groundPass";
-import { isBattleRoadSurface } from "../../../packages/game-renderer/src/battle/photorealEarthDistance";
+} from "@packages/game-renderer/src/battle/groundPass";
+import { isBattleRoadSurface } from "@packages/game-renderer/src/battle/photorealEarthDistance";
 import {
   coverEdgeCoverage,
   mudInteriorCoverage,
   TURF_CONTRAST,
-} from "../../../packages/photoreal-renderer/src/battle/groundDetail";
+} from "@packages/photoreal-renderer/src/battle/groundDetail";
 
 describe("photoreal battle ground surfaces", () => {
   it("preserves the legacy stride-10 vertex bytes", () => {

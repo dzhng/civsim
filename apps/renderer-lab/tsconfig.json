@@ -1,0 +1,4 @@
+{
+  "extends": "../../web/tsconfig.json",
+  "include": ["src", "../../web/src/renderer-globals.d.ts", "../../web/src/vite-env.d.ts"]
+}

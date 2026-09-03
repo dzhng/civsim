@@ -10,8 +10,8 @@
 // exactly; a plain numeric-keyed object would silently reorder integer keys.
 // Factions are a separate per-team picker and do not affect army ordering.
 
-import type { BattleFactionId } from "../../../../packages/game-renderer/src/battle/factionColors";
-import type { BattleEnvironmentId } from "../../../../packages/game-renderer/src/environment/environment";
+import type { BattleFactionId } from "@packages/game-renderer/src/battle/factionColors";
+import type { BattleEnvironmentId } from "@packages/game-renderer/src/environment/environment";
 import type { QuickBattleConfig, QuickBattleUnitPick } from "../../battle/quickBattleCatalog";
 
 export type Army = Map<number, number>;

@@ -7,7 +7,7 @@
 // camera3d's yaw-0 view direction is −X) goes red here. Runs in node, no GPU.
 import assert from "node:assert/strict";
 import { test } from "vitest";
-import { eyePosition, projectPoint } from "../../packages/renderer-core/src/camera3d.ts";
+import { eyePosition, projectPoint } from "@packages/renderer-core/src/camera3d.ts";
 import { Camera } from "../src/shared/camera.ts";
 
 function makeCamera(yaw: number): Camera {

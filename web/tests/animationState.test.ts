@@ -8,7 +8,7 @@ import {
   MARCH_CYCLES_PER_SECOND,
   marchingStateForSpeed,
   RUN_CYCLES_PER_SECOND,
-} from "../../packages/crowd-runtime/src/animationState.ts";
+} from "@packages/crowd-runtime/src/animationState.ts";
 
 function phaseAdvance(from: number, to: number): number {
   return (((to - from) % 1) + 1) % 1;

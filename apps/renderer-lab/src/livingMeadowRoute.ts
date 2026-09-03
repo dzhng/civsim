@@ -3,21 +3,21 @@
 // reads PhotorealWorld.uTime via world.setTime(); the TSL time node is banned.
 // Slice 09 cut over the production blade layer to the living-meadow defaults, so
 // this fixture inherits the same grass contract as /renderer/photoreal-battle.
-import { PhotorealBattleWorld } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
-import { seaDisplacementSourceFromParam } from "../../../packages/photoreal-renderer/src/battle/seaLayer";
-import { postGradeUniformsFromParams } from "../../../packages/photoreal-renderer/src/post/postChain";
-import { createPhotorealStatsPublisher } from "../../../packages/photoreal-renderer/src/stats";
+import { PhotorealBattleWorld } from "@packages/photoreal-renderer/src/battle/battleWorld";
+import { seaDisplacementSourceFromParam } from "@packages/photoreal-renderer/src/battle/seaLayer";
+import { postGradeUniformsFromParams } from "@packages/photoreal-renderer/src/post/postChain";
+import { createPhotorealStatsPublisher } from "@packages/photoreal-renderer/src/stats";
 import { Camera } from "../../../web/src/shared/camera";
-import { DEFAULT_BATTLE_ENVIRONMENT } from "../../../packages/game-renderer/src/environment/environment";
+import { DEFAULT_BATTLE_ENVIRONMENT } from "@packages/game-renderer/src/environment/environment";
 import {
   BATTLE_RELIEF_EXAGGERATION,
   terrainHeightField,
   type BattleTerrainGrid,
-} from "../../../packages/game-renderer/src/battle/terrainFeatures";
+} from "@packages/game-renderer/src/battle/terrainFeatures";
 import {
   terrainHeightAt,
   type TerrainHeightField,
-} from "../../../packages/game-renderer/src/terrain/heightField";
+} from "@packages/game-renderer/src/terrain/heightField";
 
 interface LivingMeadowContext {
   root: HTMLElement;

@@ -23,6 +23,10 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: [
+      {
+        find: /^@packages\//,
+        replacement: fileURLToPath(new URL("../packages/", import.meta.url)),
+      },
       { find: /^three\/webgpu$/, replacement: threeBuild("three.webgpu.js") },
       { find: /^three\/tsl$/, replacement: threeBuild("three.tsl.js") },
       // Addons (slice 11: csm/CSMShadowNode) — same pinned three package.

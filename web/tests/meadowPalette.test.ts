@@ -5,7 +5,7 @@ import {
   MEADOW,
   meadowFamily,
   type Rgb,
-} from "../../packages/game-renderer/src/battle/meadowPalette.ts";
+} from "@packages/game-renderer/src/battle/meadowPalette.ts";
 
 test("every meadow color role is a finite normalized RGB triplet", () => {
   const roles = rgbRoles(MEADOW);

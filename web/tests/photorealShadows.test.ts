@@ -7,13 +7,13 @@
 // on the ONE preset owner).
 import assert from "node:assert/strict";
 import { test } from "vitest";
-import { CIVSIM_ENVIRONMENTS } from "../../packages/game-renderer/src/environment/environment.ts";
+import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment.ts";
 import {
   CSM_CASCADES,
   CSM_MAP_SIZE,
   resolveSunShadowMode,
   shadowRadiusForTurbidity,
-} from "../../packages/photoreal-renderer/src/battle/shadowRig.ts";
+} from "@packages/photoreal-renderer/src/battle/shadowRig.ts";
 
 test("software rasterizer adapters resolve to the single tier by name", () => {
   assert.equal(resolveSunShadowMode("google / swiftshader / SwiftShader driver"), "single");

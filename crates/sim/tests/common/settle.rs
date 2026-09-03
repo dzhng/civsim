@@ -184,14 +184,16 @@ pub fn seed1_west_wall_edge(terrain: &Terrain) -> (f32, f32) {
 /// March a fresh MediumInfantry block from 70m south onto `dest` (drag-style
 /// order with a commanded facing) and report the arrival time.
 pub fn march_class_block_to(sim: &mut Sim, dest: Vec2) -> usize {
-    let unit = sim.spawn_class_with_files(
-        dest + Vec2::new(0.0, -70.0),
-        FRAC_PI_2,
-        120,
-        20,
-        UnitClassId::MediumInfantry,
-        0,
-    );
+    let unit = sim.spawn(sim::SpawnSpec {
+        anchor: dest + Vec2::new(0.0, -70.0),
+        facing: FRAC_PI_2,
+        count: 120,
+        files: Some(20),
+        class: UnitClassId::MediumInfantry,
+        stats: sim.balance.get(UnitClassId::MediumInfantry),
+        look: UnitClassId::MediumInfantry as u32,
+        team: 0,
+    });
     run(sim, 3.0);
     sim.set_move_order_facing(unit, dest, FRAC_PI_2);
     let t = march_until_arrived(sim, unit);

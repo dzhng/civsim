@@ -1110,15 +1110,16 @@ fn shape_orientation_detector_reads_settled_and_synthetic_rotation() {
     let mut tun = no_morale();
     tun.micro_rough = 0.0;
     let mut sim = Sim::new(tun, 0x5105);
-    let unit = sim.spawn_class_stats_with_files(
-        Vec2::new(0.0, 0.0),
-        FRAC_PI_2,
-        N,
-        24,
-        UnitClassId::HeavySword,
-        class_stats(UnitClassId::HeavySword),
-        0,
-    );
+    let unit = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, 0.0),
+        facing: FRAC_PI_2,
+        count: N,
+        files: Some(24),
+        class: UnitClassId::HeavySword,
+        stats: class_stats(UnitClassId::HeavySword),
+        look: UnitClassId::HeavySword as u32,
+        team: 0,
+    });
     let points: Vec<Vec2> = unit_live_positions(&sim, unit)
         .into_iter()
         .map(|(_, p)| p)
@@ -1279,23 +1280,27 @@ fn a_wide_line_wraps_a_narrow_block() {
     tun.morale_enabled = false;
     let mut sim = Sim::new(tun, 11);
     // Narrow block, holding.
-    let block = sim.spawn_class_with_files(
-        Vec2::new(0.0, 13.0),
-        -FRAC_PI_2,
-        120,
-        12,
-        UnitClassId::HeavySword,
-        1,
-    );
+    let block = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, 13.0),
+        facing: -FRAC_PI_2,
+        count: 120,
+        files: Some(12),
+        class: UnitClassId::HeavySword,
+        stats: sim.balance.get(UnitClassId::HeavySword),
+        look: UnitClassId::HeavySword as u32,
+        team: 1,
+    });
     // Wide attacking line, ~3 deep — it overhangs the block on both flanks.
-    let line = sim.spawn_class_with_files(
-        Vec2::new(0.0, -13.0),
-        FRAC_PI_2,
-        210,
-        70,
-        UnitClassId::HeavySword,
-        0,
-    );
+    let line = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, -13.0),
+        facing: FRAC_PI_2,
+        count: 210,
+        files: Some(70),
+        class: UnitClassId::HeavySword,
+        stats: sim.balance.get(UnitClassId::HeavySword),
+        look: UnitClassId::HeavySword as u32,
+        team: 0,
+    });
     // Immortal: this is a formation-mechanics test. Lethality/rout can scatter
     // survivors and belongs in balance/scenario coverage; here the question is
     // whether a living attacking sheet drapes as one connected cloth.
@@ -1400,22 +1405,26 @@ fn a_mortal_wrapping_line_backfills_casualty_tears() {
     tun.micro_rough = 0.0;
     tun.morale_enabled = false;
     let mut sim = Sim::new(tun, 11);
-    let block = sim.spawn_class_with_files(
-        Vec2::new(0.0, 13.0),
-        -FRAC_PI_2,
-        120,
-        12,
-        UnitClassId::HeavySword,
-        1,
-    );
-    let line = sim.spawn_class_with_files(
-        Vec2::new(0.0, -13.0),
-        FRAC_PI_2,
-        210,
-        70,
-        UnitClassId::HeavySword,
-        0,
-    );
+    let block = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, 13.0),
+        facing: -FRAC_PI_2,
+        count: 120,
+        files: Some(12),
+        class: UnitClassId::HeavySword,
+        stats: sim.balance.get(UnitClassId::HeavySword),
+        look: UnitClassId::HeavySword as u32,
+        team: 1,
+    });
+    let line = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, -13.0),
+        facing: FRAC_PI_2,
+        count: 210,
+        files: Some(70),
+        class: UnitClassId::HeavySword,
+        stats: sim.balance.get(UnitClassId::HeavySword),
+        look: UnitClassId::HeavySword as u32,
+        team: 0,
+    });
     sim.set_pace(line, Pace::Run);
     sim.set_attack_order(line, block);
 
@@ -1497,22 +1506,26 @@ fn mortal_wide_line_center_files_do_not_trample_through_a_living_block() {
     let mut tun = Tunables::default();
     tun.micro_rough = 0.0;
     let mut sim = Sim::new(tun, 11);
-    let block = sim.spawn_class_with_files(
-        Vec2::new(0.0, 13.0),
-        -FRAC_PI_2,
-        120,
-        12,
-        UnitClassId::HeavySword,
-        1,
-    );
-    let line = sim.spawn_class_with_files(
-        Vec2::new(0.0, -13.0),
-        FRAC_PI_2,
-        210,
-        70,
-        UnitClassId::HeavySword,
-        0,
-    );
+    let block = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, 13.0),
+        facing: -FRAC_PI_2,
+        count: 120,
+        files: Some(12),
+        class: UnitClassId::HeavySword,
+        stats: sim.balance.get(UnitClassId::HeavySword),
+        look: UnitClassId::HeavySword as u32,
+        team: 1,
+    });
+    let line = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, -13.0),
+        facing: FRAC_PI_2,
+        count: 210,
+        files: Some(70),
+        class: UnitClassId::HeavySword,
+        stats: sim.balance.get(UnitClassId::HeavySword),
+        look: UnitClassId::HeavySword as u32,
+        team: 0,
+    });
     sim.set_pace(line, Pace::Run);
     sim.set_attack_order(line, block);
 
@@ -1638,23 +1651,27 @@ fn a_column_bulges_a_held_line_it_does_not_part_it() {
     tun.morale_enabled = false;
     let mut sim = Sim::new(tun, 11);
     // Wide held line (no order — it defends), ~4 deep, immortal.
-    let line = sim.spawn_class_with_files(
-        Vec2::new(0.0, 13.0),
-        -FRAC_PI_2,
-        280,
-        70,
-        UnitClassId::HeavySword,
-        1,
-    );
+    let line = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, 13.0),
+        facing: -FRAC_PI_2,
+        count: 280,
+        files: Some(70),
+        class: UnitClassId::HeavySword,
+        stats: sim.balance.get(UnitClassId::HeavySword),
+        look: UnitClassId::HeavySword as u32,
+        team: 1,
+    });
     // Narrow deep column, ordered THROUGH the centre, immortal.
-    let col = sim.spawn_class_with_files(
-        Vec2::new(0.0, -25.0),
-        FRAC_PI_2,
-        128,
-        8,
-        UnitClassId::HeavySword,
-        0,
-    );
+    let col = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, -25.0),
+        facing: FRAC_PI_2,
+        count: 128,
+        files: Some(8),
+        class: UnitClassId::HeavySword,
+        stats: sim.balance.get(UnitClassId::HeavySword),
+        look: UnitClassId::HeavySword as u32,
+        team: 0,
+    });
     for u in [line, col] {
         let (s, e) = (sim.units[u].start, sim.units[u].start + sim.units[u].count);
         for k in s..e {
@@ -1733,26 +1750,30 @@ fn separated_columns_dimple_a_held_line_without_tearing_the_sheet() {
     // three narrow deep columns punching separate lanes through it. The line
     // should form three local dimples while remaining one connected sheet; the
     // untouched files between lanes are the contract.
-    let line = sim.spawn_class_with_files(
-        Vec2::new(0.0, 0.0),
-        FRAC_PI_2,
-        600,
-        150,
-        UnitClassId::HeavySword,
-        0,
-    );
+    let line = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, 0.0),
+        facing: FRAC_PI_2,
+        count: 600,
+        files: Some(150),
+        class: UnitClassId::HeavySword,
+        stats: sim.balance.get(UnitClassId::HeavySword),
+        look: UnitClassId::HeavySword as u32,
+        team: 0,
+    });
     let lanes = [-65.0, 0.0, 65.0];
     let cols: Vec<usize> = lanes
         .iter()
         .map(|&x| {
-            sim.spawn_class_with_files(
-                Vec2::new(x, 130.0),
-                -FRAC_PI_2,
-                160,
-                8,
-                UnitClassId::HeavySword,
-                1,
-            )
+            sim.spawn(sim::SpawnSpec {
+                anchor: Vec2::new(x, 130.0),
+                facing: -FRAC_PI_2,
+                count: 160,
+                files: Some(8),
+                class: UnitClassId::HeavySword,
+                stats: sim.balance.get(UnitClassId::HeavySword),
+                look: UnitClassId::HeavySword as u32,
+                team: 1,
+            })
         })
         .collect();
     for (&col, &x) in cols.iter().zip(&lanes) {
@@ -1846,10 +1867,26 @@ fn blob_clash(
     tun.micro_rough = 0.0;
     apply_melee_env_overrides(&mut tun);
     let mut sim = Sim::new(tun, seed);
-    let a =
-        sim.spawn_class_stats_with_files(Vec2::new(0.0, -13.0), FRAC_PI_2, N, 24, class, stats, 0);
-    let b =
-        sim.spawn_class_stats_with_files(Vec2::new(0.0, 13.0), -FRAC_PI_2, N, 24, class, stats, 1);
+    let a = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, -13.0),
+        facing: FRAC_PI_2,
+        count: N,
+        files: Some(24),
+        class,
+        stats,
+        look: class as u32,
+        team: 0,
+    });
+    let b = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, 13.0),
+        facing: -FRAC_PI_2,
+        count: N,
+        files: Some(24),
+        class,
+        stats,
+        look: class as u32,
+        team: 1,
+    });
     if immortal {
         make_immortal(&mut sim);
     }
@@ -1930,24 +1967,26 @@ fn metrology_detectors_are_quiet_on_controls() {
     tun.micro_rough = 0.0;
 
     let mut approach = Sim::new(tun, 0x4202);
-    let a = approach.spawn_class_stats_with_files(
-        Vec2::new(0.0, -40.0),
-        FRAC_PI_2,
-        N,
-        24,
-        UnitClassId::HeavySword,
+    let a = approach.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, -40.0),
+        facing: FRAC_PI_2,
+        count: N,
+        files: Some(24),
+        class: UnitClassId::HeavySword,
         stats,
-        0,
-    );
-    let b = approach.spawn_class_stats_with_files(
-        Vec2::new(0.0, 40.0),
-        -FRAC_PI_2,
-        N,
-        24,
-        UnitClassId::HeavySword,
+        look: UnitClassId::HeavySword as u32,
+        team: 0,
+    });
+    let b = approach.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, 40.0),
+        facing: -FRAC_PI_2,
+        count: N,
+        files: Some(24),
+        class: UnitClassId::HeavySword,
         stats,
-        1,
-    );
+        look: UnitClassId::HeavySword as u32,
+        team: 1,
+    });
     approach.set_pace(a, Pace::Run);
     approach.set_pace(b, Pace::Run);
     approach.set_attack_order(a, b);
@@ -1974,24 +2013,26 @@ fn metrology_detectors_are_quiet_on_controls() {
     );
 
     let mut settled = Sim::new(tun, 0x4203);
-    let c = settled.spawn_class_stats_with_files(
-        Vec2::new(0.0, -18.0),
-        FRAC_PI_2,
-        N,
-        24,
-        UnitClassId::HeavySword,
+    let c = settled.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, -18.0),
+        facing: FRAC_PI_2,
+        count: N,
+        files: Some(24),
+        class: UnitClassId::HeavySword,
         stats,
-        0,
-    );
-    let d = settled.spawn_class_stats_with_files(
-        Vec2::new(0.0, 18.0),
-        -FRAC_PI_2,
-        N,
-        24,
-        UnitClassId::HeavySword,
+        look: UnitClassId::HeavySword as u32,
+        team: 0,
+    });
+    let d = settled.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, 18.0),
+        facing: -FRAC_PI_2,
+        count: N,
+        files: Some(24),
+        class: UnitClassId::HeavySword,
         stats,
-        1,
-    );
+        look: UnitClassId::HeavySword as u32,
+        team: 1,
+    });
     for _ in 0..(20.0 / DT) as usize {
         settled.tick();
     }
@@ -2028,24 +2069,26 @@ fn a_long_grind_keeps_the_seam_band_bounded() {
 fn a_symmetric_grind_does_not_pinwheel() {
     let stats = class_stats(UnitClassId::HeavySword);
     let mut sim = Sim::new(controlled_heavy_tun(), 0x4202);
-    let a = sim.spawn_class_stats_with_files(
-        Vec2::new(0.0, -13.0),
-        FRAC_PI_2,
-        N,
-        24,
-        UnitClassId::HeavySword,
+    let a = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, -13.0),
+        facing: FRAC_PI_2,
+        count: N,
+        files: Some(24),
+        class: UnitClassId::HeavySword,
         stats,
-        0,
-    );
-    let b = sim.spawn_class_stats_with_files(
-        Vec2::new(0.0, 13.0),
-        -FRAC_PI_2,
-        N,
-        24,
-        UnitClassId::HeavySword,
+        look: UnitClassId::HeavySword as u32,
+        team: 0,
+    });
+    let b = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, 13.0),
+        facing: -FRAC_PI_2,
+        count: N,
+        files: Some(24),
+        class: UnitClassId::HeavySword,
         stats,
-        1,
-    );
+        look: UnitClassId::HeavySword as u32,
+        team: 1,
+    });
     sim.set_pace(a, Pace::Run);
     sim.set_pace(b, Pace::Run);
     sim.set_attack_order(a, b);
@@ -2111,24 +2154,26 @@ fn grinding_blocks_keep_their_deployed_silhouette() {
         .into_iter()
         .map(|seed| {
             let mut sim = Sim::new(controlled_heavy_tun(), seed);
-            let a = sim.spawn_class_stats_with_files(
-                Vec2::new(0.0, -13.0),
-                FRAC_PI_2,
-                N,
-                24,
-                UnitClassId::HeavySword,
+            let a = sim.spawn(sim::SpawnSpec {
+                anchor: Vec2::new(0.0, -13.0),
+                facing: FRAC_PI_2,
+                count: N,
+                files: Some(24),
+                class: UnitClassId::HeavySword,
                 stats,
-                0,
-            );
-            let b = sim.spawn_class_stats_with_files(
-                Vec2::new(0.0, 13.0),
-                -FRAC_PI_2,
-                N,
-                24,
-                UnitClassId::HeavySword,
+                look: UnitClassId::HeavySword as u32,
+                team: 0,
+            });
+            let b = sim.spawn(sim::SpawnSpec {
+                anchor: Vec2::new(0.0, 13.0),
+                facing: -FRAC_PI_2,
+                count: N,
+                files: Some(24),
+                class: UnitClassId::HeavySword,
                 stats,
-                1,
-            );
+                look: UnitClassId::HeavySword as u32,
+                team: 1,
+            });
             sim.set_pace(a, Pace::Run);
             sim.set_pace(b, Pace::Run);
             sim.set_attack_order(a, b);

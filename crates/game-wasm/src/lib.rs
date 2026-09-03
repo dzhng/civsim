@@ -155,14 +155,16 @@ impl Game {
         team: u32,
     ) -> u32 {
         let class = contract::ALL_CLASSES[(class_id as usize).min(contract::ALL_CLASSES.len() - 1)];
-        let id = self.battle.sim.spawn_class_with_files(
-            Vec2::new(x, y),
+        let id = self.battle.sim.spawn(sim::SpawnSpec {
+            anchor: Vec2::new(x, y),
             facing,
-            count as usize,
-            files as usize,
+            count: count as usize,
+            files: Some(files as usize),
             class,
+            stats: self.battle.sim.balance.get(class),
+            look: class as u32,
             team,
-        );
+        });
         self.refresh_unit_info();
         id as u32
     }

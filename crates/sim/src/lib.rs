@@ -41,8 +41,7 @@ pub use balance::{
     report, run_once, run_over_seeds, Aggregate, Outcome, ReportRow, Scenario, SEEDS,
 };
 pub use battle::{
-    deploy_custom_army, deploy_roster, setup_battle, setup_battle_generated, setup_duel,
-    setup_sandbox,
+    deploy_custom_army, setup_battle, setup_battle_generated, setup_duel, setup_sandbox,
 };
 pub use class::{class_stats, BalanceConfig, UnitClass, UnitClassId, Weapon, WeaponKind};
 pub use contract::Pcg32;
@@ -57,7 +56,7 @@ pub use maps::{build as build_map, MapId, MAP_HALF_H, MAP_HALF_W};
 pub use math::{dir, lerp, move_toward, rotate_toward, wrap_angle, Vec2};
 pub use missiles::{missile_spec, MissileKind, MissileSpec, Projectiles};
 pub use runner::Battle;
-pub use sim::Sim;
+pub use sim::{Sim, SpawnSpec};
 pub use terrain::{micro_rough, Terrain};
 pub use tunables::{Pace, Tunables, DT};
 pub use unit::{OrderMode, Unit};

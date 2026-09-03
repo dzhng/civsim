@@ -2,7 +2,7 @@
 //! and read out whether the strategic loop is *alive* — do the powers make
 //! contact, fight, take ground, and eventually decide a war — or do they sit
 //! inert in their corners? Battles resolve through the real sim
-//! (`Battle::auto_resolve`), so this drives the same campaign→battle→campaign
+//! (the shared test auto-resolver), so this drives the same campaign→battle→campaign
 //! loop a player drives, not a stubbed model of it.
 //!
 //! `grand_map_report` is the instrument (heavy, #[ignore]d — run on demand with
@@ -12,7 +12,7 @@
 
 use campaign::state::{CampaignState, Outcome};
 use campaign::Campaign;
-use sim::Battle;
+mod common;
 
 /// How long a single battle may run headless before the stronger remnant is
 /// declared the winner. Bounded so a stalemated stack-vs-stack can't dominate
@@ -140,7 +140,7 @@ fn play(
                     let result = if fast {
                         campaign::resolve::estimate(&c.map, &setup)
                     } else {
-                        Battle::auto_resolve(&setup, BATTLE_CAP)
+                        common::auto_resolve(&setup, BATTLE_CAP)
                     };
                     c.apply_outcome(eid, &result);
                     battles += 1;

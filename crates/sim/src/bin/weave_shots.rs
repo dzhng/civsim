@@ -440,22 +440,26 @@ fn main() {
     // straight THROUGH it? (a_wide_line_wraps_a_narrow_block.)
     {
         let mut sim = Sim::new(base_tun(), 11);
-        let block = sim.spawn_class_with_files(
-            Vec2::new(0.0, 13.0),
-            -FRAC_PI_2,
-            120,
-            12,
-            UnitClassId::HeavySword,
-            1,
-        );
-        let line = sim.spawn_class_with_files(
-            Vec2::new(0.0, -13.0),
-            FRAC_PI_2,
-            210,
-            70,
-            UnitClassId::HeavySword,
-            0,
-        );
+        let block = sim.spawn(crate::sim::SpawnSpec {
+            anchor: Vec2::new(0.0, 13.0),
+            facing: -FRAC_PI_2,
+            count: 120,
+            files: Some(12),
+            class: UnitClassId::HeavySword,
+            stats: sim.balance.get(UnitClassId::HeavySword),
+            look: UnitClassId::HeavySword as u32,
+            team: 1,
+        });
+        let line = sim.spawn(crate::sim::SpawnSpec {
+            anchor: Vec2::new(0.0, -13.0),
+            facing: FRAC_PI_2,
+            count: 210,
+            files: Some(70),
+            class: UnitClassId::HeavySword,
+            stats: sim.balance.get(UnitClassId::HeavySword),
+            look: UnitClassId::HeavySword as u32,
+            team: 0,
+        });
         // Match `a_wide_line_wraps_a_narrow_block`: this shot is the pure
         // formation invariant (does the sheet drape, or split), not the separate
         // casualty/backfill contract.
@@ -470,22 +474,26 @@ fn main() {
     // it and walk through? (a_column_bulges_a_held_line_it_does_not_part_it.)
     {
         let mut sim = Sim::new(base_tun(), 11);
-        let _line = sim.spawn_class_with_files(
-            Vec2::new(0.0, 13.0),
-            -FRAC_PI_2,
-            280,
-            70,
-            UnitClassId::HeavySword,
-            1,
-        );
-        let col = sim.spawn_class_with_files(
-            Vec2::new(0.0, -25.0),
-            FRAC_PI_2,
-            128,
-            8,
-            UnitClassId::HeavySword,
-            0,
-        );
+        let _line = sim.spawn(crate::sim::SpawnSpec {
+            anchor: Vec2::new(0.0, 13.0),
+            facing: -FRAC_PI_2,
+            count: 280,
+            files: Some(70),
+            class: UnitClassId::HeavySword,
+            stats: sim.balance.get(UnitClassId::HeavySword),
+            look: UnitClassId::HeavySword as u32,
+            team: 1,
+        });
+        let col = sim.spawn(crate::sim::SpawnSpec {
+            anchor: Vec2::new(0.0, -25.0),
+            facing: FRAC_PI_2,
+            count: 128,
+            files: Some(8),
+            class: UnitClassId::HeavySword,
+            stats: sim.balance.get(UnitClassId::HeavySword),
+            look: UnitClassId::HeavySword as u32,
+            team: 0,
+        });
         invuln(&mut sim);
         sim.set_pace(col, Pace::Run);
         sim.set_attack_move_order(col, Vec2::new(0.0, 60.0));

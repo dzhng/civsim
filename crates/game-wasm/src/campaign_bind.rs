@@ -858,11 +858,8 @@ mod tests {
 pub fn start_campaign_battle(c: &mut Campaign, encounter: u32) -> Option<Game> {
     let setup = c.inner.battle_setup(encounter)?;
     let terrain_source = setup.terrain.clone();
-    let mut battle = sim::Battle::from_setup_with_stats_and_looks(
-        &setup,
-        &resolved_unit_stats,
-        &resolved_unit_render_look,
-    );
+    let mut battle =
+        sim::Battle::from_setup(&setup, &resolved_unit_stats, &resolved_unit_render_look);
     // Whoever isn't the player fights themselves; battle_setup_for puts the
     // player on team 0 when involved.
     battle.set_ai(1, true);

@@ -22,6 +22,17 @@ use crate::unit::{
 };
 use contract::Pcg32;
 
+pub struct SpawnSpec {
+    pub anchor: Vec2,
+    pub facing: f32,
+    pub count: usize,
+    pub files: Option<usize>,
+    pub class: UnitClassId,
+    pub stats: UnitClass,
+    pub look: u32,
+    pub team: u32,
+}
+
 // A trampler is barely tied to its formation slot: it rides in as a loose blob
 // and each rider's real pull is the enemy SEEK, so the lattice can't reel a
 // diving rider back. The whole point of a trample is to scatter INTO the enemy
@@ -400,17 +411,23 @@ impl Sim {
         (u.slot_world(self.soldier_slot[i] as usize) - self.soldier_pos(i)).len()
     }
 
-    /// Spawn a unit in perfect formation. `anchor` is the front-center.
-    pub fn spawn_unit(
-        &mut self,
-        anchor: Vec2,
-        facing: f32,
-        count: usize,
-        files: usize,
-        spacing: Vec2,
-        team: u32,
-        training: f32,
-    ) -> usize {
+    /// Spawn a fully resolved unit in perfect formation. `anchor` is the
+    /// front-center; omitted frontage comes from the class's default depth.
+    pub fn spawn(&mut self, spec: SpawnSpec) -> usize {
+        let SpawnSpec {
+            anchor,
+            facing,
+            count,
+            files,
+            class,
+            stats,
+            look,
+            team,
+        } = spec;
+        let files_bounds = Unit::files_bounds(count);
+        let files = files
+            .unwrap_or_else(|| count.div_ceil(stats.default_depth.max(1)))
+            .clamp(*files_bounds.start(), *files_bounds.end());
         let unit_index = self.units.len();
         // Which way home lies: the half of the field this unit deploys in fixes
         // the edge it will flee to if broken (the same edge campaign
@@ -418,12 +435,12 @@ impl Sim {
         // past its own edge still flees outward, not back into the fight.
         let map_mid_y = self.terrain.origin.y + 0.5 * self.terrain.h as f32 * self.terrain.cell;
         let home_dir_y = if anchor.y >= map_mid_y { 1.0 } else { -1.0 };
-        let unit = Unit {
-            class: UnitClassId::LightSpear,
-            render_look: UnitClassId::LightSpear as u32,
-            stats: class_stats(UnitClassId::LightSpear),
-            pace_mult: 1.0,
-            accel_mult: 1.0,
+        let mut unit = Unit {
+            class,
+            render_look: look,
+            stats,
+            pace_mult: stats.pace_mult,
+            accel_mult: stats.accel_mult,
             start: self.soldier_count(),
             count,
             files: files.max(1),
@@ -431,7 +448,7 @@ impl Sim {
             path: Vec::new(),
             path_idx: 0,
             waiting: false,
-            spacing,
+            spacing: stats.spacing,
             anchor,
             facing,
             frame_speed: 0.0,
@@ -444,20 +461,20 @@ impl Sim {
             pending_total: 0.0,
             pace: Pace::Walk,
             stamina: 1.0,
-            training: training.clamp(0.0, 1.0),
+            training: stats.training.clamp(0.0, 1.0),
             team,
             home_dir_y,
             disorder: 0.0,
             cohesion: 1.0,
             pivoting: false,
             mode: OrderMode::Move,
-            charge_enabled: false,
+            charge_enabled: stats.charge,
             charging: false,
             fear_adapt: 0.0,
             charge_time: 0.0,
             charge_at_speed: false,
-            fight_drain_mult: 1.0,
-            move_drain_mult: 1.0,
+            fight_drain_mult: stats.fight_drain_mult,
+            move_drain_mult: stats.move_drain_mult,
             resume_target: None,
             alive_count: count,
             deaths_since_reform: 0,
@@ -477,7 +494,7 @@ impl Sim {
             missile_override: None,
             fire_at_will: true,
             evade_auto: false,
-            morale: 0.7 + 0.3 * training.clamp(0.0, 1.0),
+            morale: 0.7 + 0.3 * stats.training.clamp(0.0, 1.0),
             morale_ceiling: 1.0,
             routing: false,
             recent_missiles: 0.0,
@@ -503,18 +520,24 @@ impl Sim {
             self.positions.push(p.x);
             self.positions.push(p.y);
             self.facings.push(facing);
-            self.health.push(1.0);
-            self.mass.push(1.0);
-            self.radius.push(self.tun.soldier_radius);
-            self.mounted.push(0);
-            self.mount_health.push(0.0);
+            self.health.push(stats.health);
+            self.mass.push(stats.mass);
+            self.radius.push(stats.soldier_radius);
+            self.mounted.push(stats.mounted as u8);
+            self.mount_health.push(stats.mount_health);
             self.pressure.push(0.0);
             self.press_x.push(0.0);
             self.press_y.push(0.0);
             self.attack_cd.push(0.0);
             self.mom_x.push(0.0);
             self.mom_y.push(0.0);
-            self.cur_weapon.push(0);
+            self.cur_weapon.push(
+                stats
+                    .weapons
+                    .iter()
+                    .position(|weapon| !weapon.is_charge())
+                    .unwrap_or(0) as u8,
+            );
             self.charge_wpn_spent.push(false);
             self.switch_cd.push(0.0);
             self.stun.push(0.0);
@@ -537,8 +560,54 @@ impl Sim {
             self.soldier_slot.push(s as u32);
             self.fidget_offset.push(Vec2::ZERO);
         }
+        self.max_radius = self.max_radius.max(stats.soldier_radius);
+        if let Some(missile) = crate::missiles::missile_spec(class) {
+            unit.ammo = missile.ammo * count as u32;
+        }
+        unit.evade_auto = matches!(class, UnitClassId::Skirmishers | UnitClassId::HorseArchers);
         self.units.push(unit);
         unit_index
+    }
+
+    /// Convenience for test-owned formations with custom spacing and drill.
+    pub fn spawn_unit(
+        &mut self,
+        anchor: Vec2,
+        facing: f32,
+        count: usize,
+        files: usize,
+        spacing: Vec2,
+        team: u32,
+        training: f32,
+    ) -> usize {
+        let original_stats = class_stats(UnitClassId::LightSpear);
+        let stats = UnitClass {
+            pace_mult: 1.0,
+            accel_mult: 1.0,
+            soldier_radius: self.tun.soldier_radius,
+            mass: 1.0,
+            mounted: false,
+            spacing,
+            health: 1.0,
+            mount_health: 0.0,
+            training,
+            charge: false,
+            fight_drain_mult: 1.0,
+            move_drain_mult: 1.0,
+            ..original_stats
+        };
+        let idx = self.spawn(SpawnSpec {
+            anchor,
+            facing,
+            count,
+            files: Some(files),
+            class: UnitClassId::LightSpear,
+            stats,
+            look: UnitClassId::LightSpear as u32,
+            team,
+        });
+        self.units[idx].stats = original_stats;
+        idx
     }
 
     /// Spawn a unit of a class: stats, body size, mass, spacing, and depth
@@ -552,146 +621,16 @@ impl Sim {
         team: u32,
     ) -> usize {
         let stats = self.balance.get(class);
-        let files = count.div_ceil(stats.default_depth.max(1));
-        self.spawn_class_with_files(anchor, facing, count, files, class, team)
-    }
-
-    /// Spawn a class unit already dressed at a chosen frontage. This is for
-    /// scenario/test setup where the initial shape is part of the experiment.
-    /// Use `set_files` for live player reshapes; it deliberately keeps the men
-    /// in place and makes them reform into the new slots over time.
-    pub fn spawn_class_with_files(
-        &mut self,
-        anchor: Vec2,
-        facing: f32,
-        count: usize,
-        files: usize,
-        class: UnitClassId,
-        team: u32,
-    ) -> usize {
-        let stats = self.balance.get(class);
-        // Respect the caller's chosen width down to a single rank — a wide, shallow
-        // line (a 2-deep pike screen, a skirmish line) is a valid deployment. Only
-        // guard the degenerate too-NARROW case (a 1-file column); depth coherence as
-        // the unit bleeds is the reform's job, not a spawn-time floor.
-        let lower = 4.min(count.max(1));
-        let files = files.clamp(lower, count.max(lower));
-        let idx = self.spawn_unit(
+        self.spawn(SpawnSpec {
             anchor,
             facing,
             count,
-            files,
-            stats.spacing,
-            team,
-            stats.training,
-        );
-        let start = self.units[idx].start;
-        // Default weapon is the GRIND sidearm, not the charge lance: a horseman
-        // rides with his sabre and only couches the lance when he actually charges
-        // (see the weapon-selection latch). For non-cav this is just weapon 0.
-        let default_weapon = stats
-            .weapons
-            .iter()
-            .position(|w| !w.is_charge())
-            .unwrap_or(0) as u8;
-        for s in 0..count {
-            self.health[start + s] = stats.health;
-            self.mass[start + s] = stats.mass;
-            self.radius[start + s] = stats.soldier_radius;
-            self.mounted[start + s] = stats.mounted as u8;
-            self.mount_health[start + s] = stats.mount_health;
-            self.cur_weapon[start + s] = default_weapon;
-        }
-        self.max_radius = self.max_radius.max(stats.soldier_radius);
-        let u = &mut self.units[idx];
-        u.class = class;
-        u.render_look = class as u32;
-        u.stats = stats;
-        u.pace_mult = stats.pace_mult;
-        u.accel_mult = stats.accel_mult;
-        u.charge_enabled = stats.charge;
-        u.fight_drain_mult = stats.fight_drain_mult;
-        u.move_drain_mult = stats.move_drain_mult;
-        if let Some(spec) = crate::missiles::missile_spec(class) {
-            u.ammo = spec.ammo * count as u32;
-        }
-        u.evade_auto = matches!(class, UnitClassId::Skirmishers | UnitClassId::HorseArchers);
-        idx
-    }
-
-    /// Spawn a class unit with explicitly resolved stats. Campaign unit types
-    /// use this to keep the tactical role (`class`) while varying the actual
-    /// equipment/drill numbers per faction doctrine.
-    pub fn spawn_class_stats_with_files(
-        &mut self,
-        anchor: Vec2,
-        facing: f32,
-        count: usize,
-        files: usize,
-        class: UnitClassId,
-        stats: UnitClass,
-        team: u32,
-    ) -> usize {
-        self.spawn_class_stats_look_with_files(
-            anchor,
-            facing,
-            count,
-            files,
+            files: None,
             class,
             stats,
-            class as u32,
+            look: class as u32,
             team,
-        )
-    }
-
-    /// Spawn a class unit with resolved stats and an explicit render look. The
-    /// extra look id is visual-only: campaign unit variants can dress the same
-    /// tactical class differently while combat keeps reading `class`/`stats`.
-    pub fn spawn_class_stats_look_with_files(
-        &mut self,
-        anchor: Vec2,
-        facing: f32,
-        count: usize,
-        files: usize,
-        class: UnitClassId,
-        stats: UnitClass,
-        render_look: u32,
-        team: u32,
-    ) -> usize {
-        let lower = 4.min(count.max(1));
-        let files = files.clamp(lower, (count / 3).max(lower));
-        let idx = self.spawn_unit(
-            anchor,
-            facing,
-            count,
-            files,
-            stats.spacing,
-            team,
-            stats.training,
-        );
-        let start = self.units[idx].start;
-        for s in 0..count {
-            self.health[start + s] = stats.health;
-            self.mass[start + s] = stats.mass;
-            self.radius[start + s] = stats.soldier_radius;
-            self.mounted[start + s] = stats.mounted as u8;
-            self.mount_health[start + s] = stats.mount_health;
-        }
-        self.max_radius = self.max_radius.max(stats.soldier_radius);
-        let u = &mut self.units[idx];
-        u.class = class;
-        u.render_look = render_look;
-        u.stats = stats;
-        u.pace_mult = stats.pace_mult;
-        u.accel_mult = stats.accel_mult;
-        u.charge_enabled = stats.charge;
-        u.fight_drain_mult = stats.fight_drain_mult;
-        u.move_drain_mult = stats.move_drain_mult;
-        if let Some(spec) = crate::missiles::missile_spec(class) {
-            u.ammo = spec.ammo * count as u32;
-        }
-        u.evade_auto = matches!(class, UnitClassId::Skirmishers | UnitClassId::HorseArchers);
-        idx
+        })
     }
 
     pub fn set_fire_at_will(&mut self, unit: usize, on: bool) {
@@ -834,12 +773,8 @@ impl Sim {
         if unit >= self.units.len() {
             return;
         }
-        let count = self.units[unit].count;
-        // Never wider than 3 ranks deep — a line thinner than that isn't a line,
-        // it's a brittle string. (Enforced here so any width control, including
-        // a future right-drag-to-widen, can't cross it.)
-        let lower = 4.min(count.max(1));
-        let files = files.clamp(lower, (count / 3).max(lower));
+        let files_bounds = Unit::files_bounds(self.units[unit].count);
+        let files = files.clamp(*files_bounds.start(), *files_bounds.end());
         let u = &mut self.units[unit];
         u.files = files;
         u.files_eff = files;

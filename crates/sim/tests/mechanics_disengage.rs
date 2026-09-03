@@ -39,15 +39,16 @@ fn disengage_progress(escape: Vec2) -> (f32, f32) {
     let cu = spawn_cav(&mut sim, Vec2::new(0.0, -22.0), FRAC_PI_2, 120, 0);
     // 200 men, 10 files = 20 ranks: deep enough that the charge STALLS into a
     // grind instead of the immortal horse riding clean through.
-    let fu = sim.spawn_class_stats_with_files(
-        Vec2::new(0.0, 8.0),
-        -FRAC_PI_2,
-        200,
-        10,
-        UnitClassId::HeavySpear,
-        ref_spear(2.4, 0.5, true),
-        1,
-    );
+    let fu = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, 8.0),
+        facing: -FRAC_PI_2,
+        count: 200,
+        files: Some(10),
+        class: UnitClassId::HeavySpear,
+        stats: ref_spear(2.4, 0.5, true),
+        look: UnitClassId::HeavySpear as u32,
+        team: 1,
+    });
     for u in [cu, fu] {
         let (s, e) = (sim.units[u].start, sim.units[u].start + sim.units[u].count);
         for k in s..e {

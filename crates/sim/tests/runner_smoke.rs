@@ -1,11 +1,13 @@
 //! The campaign-facing battle runner: spec-built terrain, roster deployment,
 //! reinforcements, and headless auto-resolve.
 
+mod common;
+
 use contract::{
     BattleSetup, Deployment, PaintOp, Reinforcement, RosterUnit, TerrainSource, TerrainSpec,
     UnitClassId,
 };
-use sim::runner::Battle;
+use sim::Battle;
 
 fn spec() -> TerrainSpec {
     TerrainSpec {
@@ -82,6 +84,36 @@ fn terrain_spec_rasterizes_with_bridge() {
 }
 
 #[test]
+fn campaign_cavalry_spawns_with_its_grind_sidearm() {
+    let setup = BattleSetup {
+        seed: 42,
+        terrain: TerrainSource::Ops(spec()),
+        deployments: vec![Deployment {
+            team: 0,
+            units: vec![RosterUnit {
+                id: 100,
+                class: UnitClassId::ShockCavalry,
+                unit_type: None,
+                count: 12,
+                training: 0.7,
+                morale_cap: 1.0,
+            }],
+            center: [0.0, -250.0],
+            facing: std::f32::consts::FRAC_PI_2,
+            column: false,
+        }],
+        reinforcements: Vec::new(),
+    };
+    let battle = Battle::from_setup(&setup, &|unit| sim::class_stats(unit.class), &|unit| {
+        unit.class as u32
+    });
+    let unit = &battle.sim.units[0];
+    assert!(battle.sim.cur_weapon[unit.start..unit.start + unit.count]
+        .iter()
+        .all(|&weapon| weapon == 1));
+}
+
+#[test]
 fn auto_resolve_returns_a_verdict_and_conserves_units() {
     let setup = BattleSetup {
         seed: 42,
@@ -135,7 +167,7 @@ fn auto_resolve_returns_a_verdict_and_conserves_units() {
             },
         ],
     };
-    let r = Battle::auto_resolve(&setup, 30 * 60 * 12); // cap: 12 battle-minutes
+    let r = common::auto_resolve(&setup, 30 * 60 * 12); // cap: 12 battle-minutes
                                                         // Every campaign unit id comes back exactly once.
     let mut ids: Vec<u64> = r.units.iter().map(|u| u.id).collect();
     ids.sort_unstable();
@@ -149,7 +181,7 @@ fn auto_resolve_returns_a_verdict_and_conserves_units() {
     let cav = r.units.iter().find(|u| u.id == 102).unwrap();
     assert!(cav.deployed && cav.survivors <= 140);
     // Determinism: same setup, same outcome.
-    let r2 = Battle::auto_resolve(&setup, 30 * 60 * 12);
+    let r2 = common::auto_resolve(&setup, 30 * 60 * 12);
     assert_eq!(
         serde_json::to_string(&r).unwrap(),
         serde_json::to_string(&r2).unwrap()

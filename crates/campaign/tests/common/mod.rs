@@ -2,6 +2,23 @@
 
 use campaign::tunables as tun;
 use campaign::Campaign;
+use contract::{BattleResult, BattleSetup};
+use sim::Battle;
+
+pub fn auto_resolve(setup: &BattleSetup, max_ticks: u64) -> BattleResult {
+    let mut battle = Battle::from_setup(setup, &|unit| sim::class_stats(unit.class), &|unit| {
+        unit.class as u32
+    });
+    battle.set_ai(0, true);
+    battle.set_ai(1, true);
+    for _ in 0..max_ticks {
+        battle.tick();
+        if let Some(result) = battle.result() {
+            return result;
+        }
+    }
+    battle.forced_result()
+}
 
 pub fn inert(c: &mut Campaign) {
     for f in &mut c.state.factions {

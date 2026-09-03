@@ -30,24 +30,26 @@ fn cav_charge_vs_foot(
         let mut tun = Tunables::default();
         tun.morale_enabled = false; // measure killing, not rout
         let mut sim = Sim::new(tun, s);
-        let cu = sim.spawn_class_stats_with_files(
-            Vec2::new(0.0, -42.0),
-            FRAC_PI_2,
-            120,
-            24,
-            UnitClassId::ShockCavalry,
-            cav,
-            0,
-        );
-        let fu = sim.spawn_class_stats_with_files(
-            Vec2::new(0.0, 42.0),
-            -FRAC_PI_2,
-            120,
-            30,
-            foot_class,
-            foot,
-            1,
-        );
+        let cu = sim.spawn(sim::SpawnSpec {
+            anchor: Vec2::new(0.0, -42.0),
+            facing: FRAC_PI_2,
+            count: 120,
+            files: Some(24),
+            class: UnitClassId::ShockCavalry,
+            stats: cav,
+            look: UnitClassId::ShockCavalry as u32,
+            team: 0,
+        });
+        let fu = sim.spawn(sim::SpawnSpec {
+            anchor: Vec2::new(0.0, 42.0),
+            facing: -FRAC_PI_2,
+            count: 120,
+            files: Some(30),
+            class: foot_class,
+            stats: foot,
+            look: foot_class as u32,
+            team: 1,
+        });
         sim.set_attack_order(cu, fu);
         sim.set_attack_order(fu, cu);
         for _ in 0..(secs / DT) as usize {
@@ -164,24 +166,26 @@ fn cav_walkin_exchange(foe: sim::UnitClass) -> f32 {
         let mut sim = Sim::new(tun, s);
         let mut cav = ref_shock_cav();
         cav.charge = false; // WALK in — the cav's edge is the charge, not the grind
-        let cu = sim.spawn_class_stats_with_files(
-            Vec2::new(0.0, -30.0),
-            FRAC_PI_2,
-            n0 as usize,
-            24,
-            UnitClassId::ShockCavalry,
-            cav,
-            0,
-        );
-        let fu = sim.spawn_class_stats_with_files(
-            Vec2::new(0.0, 30.0),
-            -FRAC_PI_2,
-            n0 as usize,
-            24,
-            UnitClassId::LightSword,
-            foe,
-            1,
-        );
+        let cu = sim.spawn(sim::SpawnSpec {
+            anchor: Vec2::new(0.0, -30.0),
+            facing: FRAC_PI_2,
+            count: n0 as usize,
+            files: Some(24),
+            class: UnitClassId::ShockCavalry,
+            stats: cav,
+            look: UnitClassId::ShockCavalry as u32,
+            team: 0,
+        });
+        let fu = sim.spawn(sim::SpawnSpec {
+            anchor: Vec2::new(0.0, 30.0),
+            facing: -FRAC_PI_2,
+            count: n0 as usize,
+            files: Some(24),
+            class: UnitClassId::LightSword,
+            stats: foe,
+            look: UnitClassId::LightSword as u32,
+            team: 1,
+        });
         sim.set_pace(cu, Pace::Walk);
         sim.set_attack_order(cu, fu);
         sim.set_attack_order(fu, cu);

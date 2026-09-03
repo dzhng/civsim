@@ -527,11 +527,11 @@ fn move_order_into_a_deep_braced_column_bogs_into_melee() {
 }
 
 #[test]
-fn a_frontal_charge_through_a_thin_line_is_a_bloodbath() {
-    // 400 horse four deep into 200 light foot two deep: the impact itself
+fn a_frontal_charge_through_a_minimum_depth_line_is_a_bloodbath() {
+    // 400 horse four deep into 200 light foot at the minimum-depth frontage cap: the impact itself
     // — bodies thrown by half a ton at the gallop — nearly annihilates the line.
     // With charge-impact lethality calibrated so even a repulsed frontal charge
-    // bloodies heavy infantry, a 2-deep line has nothing behind it to absorb the
+    // bloodies heavy infantry, a minimum-depth line has little behind it to absorb the
     // ride-through.
     let dead = |seed: u64| -> usize {
         let mut sim = Sim::new(
@@ -578,23 +578,19 @@ fn a_frontal_charge_through_a_thin_line_is_a_bloodbath() {
         200 - sim.units[line].alive_count
     };
     let seeds = [SEED, SEED + 1, SEED + 2, SEED + 3, SEED + 4];
-    let mean = seeds.iter().map(|&s| dead(s)).sum::<usize>() as f32 / seeds.len() as f32;
-    println!(
-        "impact + 4s mean over {} seeds: {mean:.0} of 200 down",
-        seeds.len()
-    );
+    let deaths: Vec<usize> = seeds.iter().map(|&s| dead(s)).collect();
+    let mean = deaths.iter().sum::<usize>() as f32 / deaths.len() as f32;
+    println!("impact + 4s deaths {deaths:?}; mean {mean:.0} of 200 down",);
     // MECHANISM: the rebuilt charge mostly STUNS on impact and caps lethality at
     // ~one kill per horse (the lance, one-use; the trample rides over downed men
     // rather than mowing whole rows), plus charge evade/block. So a single pass
-    // through a 2-deep line now fells ~a third of it in impact+4s — measured
-    // 52..69 across the seed set, mean ~62 — instead of the old multi-kill
-    // near-annihilation where one horse scythed a row. A third of the line gone
-    // in seconds is still a heavy bloodying; only the OUTCOME count dropped under
-    // the impact cap, so the floor is re-derived just below the mean (above the
-    // worst seed, 52).
+    // through the shallowest legal line still fells well over half of it in
+    // impact+4s. The frontage cap concentrates the same men into more depth, so
+    // the charge kills fewer than it did against the former two-rank deployment;
+    // the outcome floor is pinned below the measured seed spread.
     assert!(
-        mean >= 55.0,
-        "a frontal charge through a thin line must heavily bloody it: mean {mean:.0}/200"
+        mean >= 120.0,
+        "a frontal charge through a minimum-depth line must heavily bloody it: mean {mean:.0}/200"
     );
 }
 

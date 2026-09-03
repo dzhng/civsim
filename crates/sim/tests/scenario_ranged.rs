@@ -48,15 +48,16 @@ fn arrow_toll(target: UnitClass, n: usize) -> usize {
     let mut sim = Sim::new(no_morale(), SEED);
     let archers = sim.spawn_class(Vec2::new(0.0, 0.0), FRAC_PI_2, 140, UnitClassId::Archers, 0);
     sim.set_missile_spec(archers, REF_BOW);
-    let adv = sim.spawn_class_stats_with_files(
-        Vec2::new(0.0, 160.0),
-        -FRAC_PI_2,
-        n,
-        n.div_ceil(6),
-        UnitClassId::HeavySword,
-        target,
-        1,
-    );
+    let adv = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, 160.0),
+        facing: -FRAC_PI_2,
+        count: n,
+        files: Some(n.div_ceil(6)),
+        class: UnitClassId::HeavySword,
+        stats: target,
+        look: UnitClassId::HeavySword as u32,
+        team: 1,
+    });
     sim.set_pace(adv, Pace::Run); // you cross a kill zone at the run
     sim.set_attack_order(adv, archers);
     for _ in 0..(120.0 / DT) as usize {
@@ -203,24 +204,26 @@ fn a_phalanx_outlasts_the_quiver_frontally_but_not_from_behind() {
         let mut sim = Sim::new(Tunables::default(), SEED);
         let facing = if face_them { FRAC_PI_2 } else { -FRAC_PI_2 };
         // FAKE references: a shielded pike block vs a quivered horse-archer band.
-        let pik = sim.spawn_class_stats_with_files(
-            Vec2::new(0.0, 0.0),
+        let pik = sim.spawn(sim::SpawnSpec {
+            anchor: Vec2::new(0.0, 0.0),
             facing,
-            200,
-            40,
-            UnitClassId::HeavyPhalanx,
-            ref_pike(),
-            0,
-        );
-        let har = sim.spawn_class_stats_with_files(
-            Vec2::new(0.0, 70.0),
-            -FRAC_PI_2,
-            160,
-            40,
-            UnitClassId::HorseArchers,
-            ref_horse_archer(),
-            1,
-        );
+            count: 200,
+            files: Some(40),
+            class: UnitClassId::HeavyPhalanx,
+            stats: ref_pike(),
+            look: UnitClassId::HeavyPhalanx as u32,
+            team: 0,
+        });
+        let har = sim.spawn(sim::SpawnSpec {
+            anchor: Vec2::new(0.0, 70.0),
+            facing: -FRAC_PI_2,
+            count: 160,
+            files: Some(40),
+            class: UnitClassId::HorseArchers,
+            stats: ref_horse_archer(),
+            look: UnitClassId::HorseArchers as u32,
+            team: 1,
+        });
         sim.set_missile_spec(har, REF_HORSE_BOW);
         let mut dry_at = None;
         for step in 0..(220.0 / DT) as usize {
@@ -297,25 +300,27 @@ fn the_line_pays_dearly_but_breaks_the_archers() {
     // ~69/240 — the heavy bleed is nearly done (69→67 over the next 60s).
     // FAKE references: a soft archer line (REF_BOW) and a heavy melee assault.
     let mut sim = Sim::new(no_morale(), SEED);
-    let archers = sim.spawn_class_stats_with_files(
-        Vec2::new(0.0, 0.0),
-        FRAC_PI_2,
-        140,
-        35,
-        UnitClassId::Archers,
-        ref_archer(),
-        0,
-    );
+    let archers = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, 0.0),
+        facing: FRAC_PI_2,
+        count: 140,
+        files: Some(35),
+        class: UnitClassId::Archers,
+        stats: ref_archer(),
+        look: UnitClassId::Archers as u32,
+        team: 0,
+    });
     sim.set_missile_spec(archers, REF_BOW);
-    let heavies = sim.spawn_class_stats_with_files(
-        Vec2::new(0.0, 160.0),
-        -FRAC_PI_2,
-        240,
-        40,
-        UnitClassId::Peasant,
-        ref_melee(true),
-        1,
-    );
+    let heavies = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, 160.0),
+        facing: -FRAC_PI_2,
+        count: 240,
+        files: Some(40),
+        class: UnitClassId::Peasant,
+        stats: ref_melee(true),
+        look: UnitClassId::Peasant as u32,
+        team: 1,
+    });
     sim.set_attack_order(heavies, archers);
     for _ in 0..(360.0 / DT) as usize {
         sim.tick();

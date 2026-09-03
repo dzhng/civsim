@@ -174,6 +174,7 @@ interface GrassSampleTask {
 
 export interface GrassRebuildStats {
   strategy: "static-whole-map+camera-focus-ring";
+  shaderCompileCount: number;
   activeRecordBudget: number;
   vistaRecordBudget: number;
   areaBudgetScale: number;
@@ -237,12 +238,14 @@ export class BattleGrassField {
   ) {
     this.base = new PhotorealBladeFieldLayer(scene, profile.tiers, true, transition, wind);
     this.ring = new PhotorealBladeFieldLayer(scene, profile.tiers, true, transition, wind, {
+      materials: this.base.materialSet(),
       nameSuffix: "ring",
     });
     this.ring.setVisible(false);
     this.activeTransition = transition.profile;
     this.rebuild = {
       strategy: "static-whole-map+camera-focus-ring",
+      shaderCompileCount: this.base.materialCompileCount(),
       activeRecordBudget: profile.maxRecords,
       vistaRecordBudget: profile.maxRecords,
       areaBudgetScale: 1,
@@ -349,7 +352,6 @@ export class BattleGrassField {
 
   setSunDirection(direction: THREE.Vector3): void {
     this.base.setSunDirection(direction);
-    this.ring.setSunDirection(direction);
   }
 
   setFarVisible(visible: boolean): void {
@@ -376,6 +378,7 @@ export class BattleGrassField {
   stats(): BattleGrassStats {
     const rebuild: GrassRebuildStats = {
       strategy: this.rebuild.strategy,
+      shaderCompileCount: this.rebuild.shaderCompileCount,
       activeRecordBudget: this.rebuild.activeRecordBudget,
       vistaRecordBudget: this.rebuild.vistaRecordBudget,
       areaBudgetScale: this.rebuild.areaBudgetScale,

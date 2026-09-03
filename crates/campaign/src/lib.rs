@@ -22,6 +22,8 @@ use std::collections::{BTreeMap, BTreeSet};
 pub struct Campaign {
     pub map: WorldMap,
     pub state: CampaignState,
+    /// Reused flood marks are shell scratch, outside the serialized state.
+    visited: pathfind::Visited,
     /// External-AI scheduling — the host-driven deferred-command queue. Not part
     /// of the saved state: a snapshot the worker reads is a plain paused game.
     sched: ExternalAi,
@@ -47,15 +49,17 @@ impl Campaign {
         let map = WorldMap::from_json(map_json);
         let mut state = sim::new_state(&map, seed, player_faction);
         normalize_state(&mut state);
+        let visited = pathfind::Visited::new(&map);
         Campaign {
             map,
             state,
+            visited,
             sched: ExternalAi::default(),
         }
     }
 
     pub fn tick(&mut self) {
-        sim::tick(&self.map, &mut self.state);
+        sim::tick(&self.map, &mut self.state, &mut self.visited);
     }
 
     /// Order an army to march. Rejected (false) if the army can't take orders
@@ -89,7 +93,7 @@ impl Campaign {
     /// Hand off a Pending encounter to the battle layer.
     pub fn battle_setup(&mut self, encounter: state::EncounterId) -> Option<contract::BattleSetup> {
         let pf = self.state.player_faction;
-        resolve::battle_setup_for(&self.map, &mut self.state, encounter, pf)
+        resolve::battle_setup_for(&self.map, &mut self.state, encounter, pf, &mut self.visited)
     }
 
     /// Apply a finished battle's result back onto the campaign.
@@ -99,7 +103,14 @@ impl Campaign {
         result: &contract::BattleResult,
     ) {
         let pf = self.state.player_faction;
-        resolve::apply_battle_outcome(&self.map, &mut self.state, encounter, result, pf);
+        resolve::apply_battle_outcome(
+            &self.map,
+            &mut self.state,
+            encounter,
+            result,
+            pf,
+            &mut self.visited,
+        );
     }
 
     /// Slip off the road into a hiding spot. Valid while halted on the
@@ -300,7 +311,7 @@ impl Campaign {
             if self.sched.awaiting.contains(&next) && !self.sched.queue.contains_key(&next) {
                 return (advanced, 2, next);
             }
-            sim::tick(&self.map, &mut self.state);
+            sim::tick(&self.map, &mut self.state, &mut self.visited);
             advanced += 1;
             // Apply anything scheduled for the tick we just reached.
             if let Some(ds) = self.sched.queue.remove(&self.state.tick) {
@@ -340,9 +351,11 @@ impl Campaign {
         let map = WorldMap::from_json(map_json);
         let mut state: CampaignState = serde_json::from_str(save).map_err(|e| e.to_string())?;
         normalize_state(&mut state);
+        let visited = pathfind::Visited::new(&map);
         Ok(Campaign {
             map,
             state,
+            visited,
             sched: ExternalAi::default(),
         })
     }

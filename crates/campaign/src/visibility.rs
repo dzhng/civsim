@@ -35,10 +35,9 @@ fn concealed(a: &Army) -> bool {
     )
 }
 
-pub fn recompute(map: &WorldMap, st: &mut CampaignState) {
+pub fn recompute(map: &WorldMap, st: &mut CampaignState, bfs: &mut pathfind::Visited) {
     let nfactions = st.factions.len();
     let mut visible: Vec<BTreeSet<ArmyId>> = vec![BTreeSet::new(); nfactions];
-    let mut bfs = pathfind::Visited::new(map);
     let camp_radius = VISION_ARMY + crate::tunables::CAMP_VISION_BONUS;
 
     // Who stands where: one pass, so each tile's occupants are an O(1) lookup
@@ -67,22 +66,16 @@ pub fn recompute(map: &WorldMap, st: &mut CampaignState) {
 
         // Flood out to max_radius, recording depth per tile.
         reached.clear();
-        reached.push((a.loc, 0));
-        bfs.clear();
-        bfs.insert(map, a.loc);
-        let mut frontier = vec![a.loc];
-        for depth in 1..=max_radius {
-            let mut next = Vec::new();
-            for &l in &frontier {
-                for n in pathfind::neighbors(map, l) {
-                    if bfs.insert(map, n) {
-                        reached.push((n, depth));
-                        next.push(n);
-                    }
-                }
-            }
-            frontier = next;
-        }
+        bfs.flood(
+            map,
+            a.loc,
+            max_radius,
+            |_| true,
+            |loc, depth, _| {
+                reached.push((loc, depth));
+                pathfind::Flow::Continue
+            },
+        );
 
         for s in seen_by.iter_mut() {
             *s = false;

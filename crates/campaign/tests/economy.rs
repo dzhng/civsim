@@ -501,7 +501,8 @@ fn auto_replenish_charges_for_single_soldier_trickles() {
     let before = c.state.factions[0].treasury;
     // The daily heartbeat charges replenishment only — income/upkeep settle
     // monthly — so the one topped-up soldier is the only cost this day.
-    economy::day_tick(&c.map, &mut c.state);
+    let mut visited = campaign::pathfind::Visited::new(&c.map);
+    economy::day_tick(&c.map, &mut c.state, &mut visited);
 
     assert_eq!(c.state.armies[0].roster[0].count, 880);
     assert_eq!(

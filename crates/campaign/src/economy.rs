@@ -33,32 +33,29 @@ pub fn garrison_establishment(tier: u8, mil_dev: f32) -> Vec<(UnitClassId, u32)>
 /// Which faction's territory a location lies in: owner of the nearest city
 /// within a small road radius, else None (wilderness counts as hostile for
 /// replenishment).
-pub(crate) fn territory_of(map: &WorldMap, st: &CampaignState, loc: Loc) -> Option<FactionId> {
-    let mut frontier = vec![loc];
-    let mut seen = std::collections::BTreeSet::new();
-    seen.insert(loc);
-    for _ in 0..=8 {
-        for &l in &frontier {
+pub(crate) fn territory_of(
+    map: &WorldMap,
+    st: &CampaignState,
+    visited: &mut pathfind::Visited,
+    loc: Loc,
+) -> Option<FactionId> {
+    let mut owner = None;
+    visited.flood(
+        map,
+        loc,
+        8,
+        |nb| !matches!(nb, Loc::Edge { edge, .. } if map.edges[edge as usize].sea),
+        |l, _, _| {
             if let Loc::Node(n) = l {
                 if let Some(c) = st.cities.get(&n) {
-                    return Some(c.owner);
+                    owner = Some(c.owner);
+                    return pathfind::Flow::Stop;
                 }
             }
-        }
-        let mut next = Vec::new();
-        for &l in &frontier {
-            for nb in pathfind::neighbors(map, l) {
-                if matches!(nb, Loc::Edge { edge, .. } if map.edges[edge as usize].sea) {
-                    continue;
-                }
-                if seen.insert(nb) {
-                    next.push(nb);
-                }
-            }
-        }
-        frontier = next;
-    }
-    None
+            pathfind::Flow::Continue
+        },
+    );
+    owner
 }
 
 /// One city's monthly gold: population × economic development × throttle, dragged
@@ -140,7 +137,7 @@ fn at_friendly_city(st: &CampaignState, a: &Army) -> bool {
 /// rally-scar recovery, garrison regeneration, and recruit-queue progress. The
 /// *economy* — income, heavy upkeep, population, development, loyalty — settles
 /// monthly in `month_tick`; between settlements a broke realm still bleeds daily.
-pub fn day_tick(map: &WorldMap, st: &mut CampaignState) {
+pub fn day_tick(map: &WorldMap, st: &mut CampaignState, visited: &mut pathfind::Visited) {
     let nfactions = st.factions.len();
 
     // A faction whose treasury is empty can't pay its troops: desertion starts
@@ -160,7 +157,7 @@ pub fn day_tick(map: &WorldMap, st: &mut CampaignState) {
             (
                 a.faction as usize,
                 at_friendly_city(st, &st.armies[i]),
-                territory_of(map, st, st.armies[i].loc),
+                territory_of(map, st, visited, st.armies[i].loc),
             )
         };
         let unit_costs: Vec<u32> = contract::ALL_CLASSES
@@ -225,7 +222,21 @@ pub fn day_tick(map: &WorldMap, st: &mut CampaignState) {
                 a.alive()
                     && st.at_war(a.faction, owner)
                     && !matches!(a.stance, Stance::Routed { .. } | Stance::AtSea)
-                    && pathfind::dist_le(map, a.loc, Loc::Node(node), tun::GARRISON_SAFE_TILES)
+                    && visited
+                        .flood(
+                            map,
+                            a.loc,
+                            tun::GARRISON_SAFE_TILES,
+                            |_| true,
+                            |loc, _, _| {
+                                if loc == Loc::Node(node) {
+                                    pathfind::Flow::Stop
+                                } else {
+                                    pathfind::Flow::Continue
+                                }
+                            },
+                        )
+                        .is_some()
             })
         })
         .collect();

@@ -13,10 +13,10 @@ use crate::pathfind;
 use crate::state::*;
 use crate::tunables as tun;
 
-pub fn tick(map: &WorldMap, st: &mut CampaignState) {
+pub fn tick(map: &WorldMap, st: &mut CampaignState, visited: &mut pathfind::Visited) {
     st.tick += 1;
     if st.tick % tun::TICKS_PER_DAY as u64 == 0 {
-        crate::economy::day_tick(map, st);
+        crate::economy::day_tick(map, st, visited);
         check_outcome(map, st);
     }
     // The economy settles on the monthly pulse — income, heavy upkeep, population,
@@ -29,7 +29,7 @@ pub fn tick(map: &WorldMap, st: &mut CampaignState) {
     run_down_routers(map, st);
     crate::economy::garrison_sorties(map, st);
     ambush_triggers(map, st);
-    encounters(map, st);
+    encounters(map, st, visited);
     crate::economy::garrison_returns(map, st);
     crate::economy::occupations(map, st);
     timers(st);
@@ -46,7 +46,7 @@ pub fn tick(map: &WorldMap, st: &mut CampaignState) {
     // time is a fine approximation. Contact and encounters are physical, not
     // fog-gated, so battles still form and resolve correctly in a rollout.
     if !st.in_rollout && st.tick % crate::visibility::VIS_EVERY == 0 {
-        crate::visibility::recompute(map, st);
+        crate::visibility::recompute(map, st, visited);
     }
 }
 
@@ -312,7 +312,7 @@ fn run_down_routers(map: &WorldMap, st: &mut CampaignState) {
     }
 }
 
-fn encounters(map: &WorldMap, st: &mut CampaignState) {
+fn encounters(map: &WorldMap, st: &mut CampaignState, visited: &mut pathfind::Visited) {
     // Tick existing encounters: dissolve on lost contact, count down prep,
     // promote to Pending when both sides are formed.
     let mut dissolved: Vec<EncounterId> = Vec::new();
@@ -340,7 +340,22 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
         }
         // Sustain range is one tile slacker than initiation: discrete steps
         // make an equal-speed chase oscillate between distance 1 and 2.
-        if !pathfind::dist_le(map, la, ld, 2) || is_sea_tile(map, la) || is_sea_tile(map, ld) {
+        let in_range = visited
+            .flood(
+                map,
+                la,
+                2,
+                |_| true,
+                |loc, _, _| {
+                    if loc == ld {
+                        pathfind::Flow::Stop
+                    } else {
+                        pathfind::Flow::Continue
+                    }
+                },
+            )
+            .is_some();
+        if !in_range || is_sea_tile(map, la) || is_sea_tile(map, ld) {
             dissolved.push(e.id); // the gap opened: chase failed
             continue;
         }
@@ -350,7 +365,24 @@ fn encounters(map: &WorldMap, st: &mut CampaignState) {
         // defender, so a deliberate disengage order is never hijacked.
         if st.armies[def].marching() && st.armies[att].marching() {
             let tail = st.armies[att].path.last().copied();
-            if tail != Some(ld) && tail.is_some_and(|t| pathfind::dist_le(map, t, ld, 2)) {
+            let tail_near = tail.is_some_and(|t| {
+                visited
+                    .flood(
+                        map,
+                        t,
+                        2,
+                        |_| true,
+                        |loc, _, _| {
+                            if loc == ld {
+                                pathfind::Flow::Stop
+                            } else {
+                                pathfind::Flow::Continue
+                            }
+                        },
+                    )
+                    .is_some()
+            });
+            if tail != Some(ld) && tail_near {
                 if let Some(path) = pathfind::plan(map, la, ld, false) {
                     let a = &mut st.armies[att];
                     a.path = path;

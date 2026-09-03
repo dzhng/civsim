@@ -20,6 +20,8 @@ implements in the worktree; the orchestrator runs browser gates against the
 lane's own dev server (`vite --port 5173+lane --strictPort`, `VERIFY_URL`),
 commits, and merges to main. `choices.md` has a union merge driver.
 
+**Incident (2026-09-03 03:20–06:35):** the Mac idle-slept twice and every Codex lane died mid-turn with no report (work preserved uncommitted in the worktrees). Lanes were resumed with `codex exec resume <id>` and `caffeinate -i -s` now holds the machine awake for the rest of the run; start it first if you resume this cold.
+
 **Pickup if resuming cold:** read each lane's `git status`; a dirty lane with
 a `<lane>-<slice>.out` file in the session scratchpad is a finished Codex
 pass awaiting review + commit; a dirty lane without one is mid-pass (check

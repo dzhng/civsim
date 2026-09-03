@@ -18,7 +18,7 @@ import { CampaignSelectionPass, type CampaignSelectionInstance } from "@packages
 import { loadPlaceholderKit, loadPlaceholderVat, mountedClassesFromKit } from "@packages/soldier-assets/src/placeholders";
 import { createPlaceholderSoldierMeshes } from "@packages/soldier-assets/src/soldierMesh";
 import { projectNestedPoint } from "../labCampaign";
-import { type LabContext, LabGroundPass, chartSnapshot, createConfiguredShell, labGroundFramePass, publish, reportTable } from "../labShell";
+import { type LabContext, LabGroundPass, chartSnapshot, createCampaignShell, labGroundFramePass, publish, reportTable } from "../labShell";
 
 const MODEL_SHOT_GROUND_DEPTH_WGSL = `
 ${WORLD_CAMERA_WGSL}
@@ -91,7 +91,7 @@ class ModelShotGroundDepthPass {
 export async function route(ctx: LabContext) {
   const gate = campaignModelShot(ctx.params.get("gate"));
   const camera = campaignModelShotCamera(gate);
-  const shell = await createConfiguredShell(ctx.canvas, camera);
+  const shell = await createCampaignShell(ctx.canvas, camera);
   const entities = new CampaignEntityPass(shell);
   const standards = new SharedStandardPass(shell);
   const scenery = new CampaignSceneryPass(shell);

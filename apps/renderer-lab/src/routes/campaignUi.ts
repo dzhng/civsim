@@ -9,7 +9,7 @@ import { mountCampaignHud } from "../../../../web/src/ui/campaign/CampaignHud";
 import { type CampaignTopBarActions, type CampaignTopBarState } from "../../../../web/src/ui/campaign/CampaignTopBar";
 import { createHudStore } from "../../../../web/src/ui/hudStore";
 import { buildCampaignEntityFrame, campaignArmyLabels, campaignBgTerrainRect, campaignCssToWorld, campaignPick, campaignPresetCamera, loadCampaignUiFixture, publishCampaignUiDebug } from "../labCampaign";
-import { type LabContext, LabGroundPass, chartSnapshot, createConfiguredShell, labGroundFramePass, publish, reportTable } from "../labShell";
+import { type LabContext, LabGroundPass, chartSnapshot, createCampaignShell, labGroundFramePass, publish, reportTable } from "../labShell";
 
 export async function route(ctx: LabContext) {
   const [{ default: initWasm, Campaign }, fixture] = await Promise.all([
@@ -21,7 +21,7 @@ export async function route(ctx: LabContext) {
   const data = fixture.data;
   const preset = ctx.params.get("preset") ?? "fixture";
   const camera = campaignPresetCamera(preset);
-  const shell = await createConfiguredShell(ctx.canvas, camera);
+  const shell = await createCampaignShell(ctx.canvas, camera);
   const ground = new LabGroundPass(shell, campaignBgTerrainRect(data.bgRect));
   const lines = new CampaignWorldLinePass(shell, "triangle-list");
   const roads = new CampaignRoadPass(shell);

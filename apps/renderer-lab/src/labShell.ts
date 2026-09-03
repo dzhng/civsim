@@ -5,11 +5,10 @@ import { compileShader } from "@packages/renderer-core/src/compileShader";
 import { SkinnedCrowdPipeline } from "@packages/renderer-core/src/skinnedPipeline";
 import { type CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
 import { chartCamera3d, type ChartCameraSpec } from "@packages/renderer-core/src/camera3d";
-import { applyBattleEnvironment, resolveBattleEnvironment, skinnedLightingForBattleEnvironment, type BattleEnvironment } from "@packages/game-renderer/src/environment/environment";
+import { resolveBattleEnvironment, skinnedLightingForBattleEnvironment, type BattleEnvironment } from "@packages/game-renderer/src/environment/environment";
 import { loadPlaceholderVat } from "@packages/soldier-assets/src/placeholders";
 import { createPlaceholderSoldierMeshes } from "@packages/soldier-assets/src/soldierMesh";
 import {
-  applyCampaignEnvironment,
   CAMPAIGN_ENVIRONMENT,
 } from "@packages/game-renderer/src/campaign/environment";
 
@@ -225,15 +224,21 @@ function chartSnapshot(
   };
 }
 
+/** Battle-lit lab shell: the sun comes from a battle environment (golden hour by default). */
 export async function createConfiguredShell(
   canvas: HTMLCanvasElement,
   camera: ChartCameraSpec,
   environment: BattleEnvironment = resolveBattleEnvironment("golden-hour"),
 ) {
-  const shell = await createFrameShell(canvas, { sun: CAMPAIGN_ENVIRONMENT });
-  applyCampaignEnvironment(shell);
+  const shell = await createFrameShell(canvas, { sun: environment.environment });
   shell.setCamera(chartSnapshot(camera, shell));
-  applyBattleEnvironment(shell, environment);
+  return shell;
+}
+
+/** Campaign-chart lab shell: the sun is the campaign environment's, never a battle preset. */
+export async function createCampaignShell(canvas: HTMLCanvasElement, camera: ChartCameraSpec) {
+  const shell = await createFrameShell(canvas, { sun: CAMPAIGN_ENVIRONMENT });
+  shell.setCamera(chartSnapshot(camera, shell));
   return shell;
 }
 

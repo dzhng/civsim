@@ -18,7 +18,9 @@ export interface CampaignEnvironment {
   hazeColor: [number, number, number];
 }
 export const CAMPAIGN_ENVIRONMENT: CampaignEnvironment;
-export function applyCampaignEnvironment(shell: RawFrameShell, env?: CampaignEnvironment): void; // shell.setSun + haze uniform
+// The shell takes its sun at construction: createFrameShell(canvas, { sun: CAMPAIGN_ENVIRONMENT }).
+// No apply helper: a second setter made the CALL ORDER decide the picture (merge incident, README).
+export function campaignEnvironmentWgsl(env?: CampaignEnvironment): string;   // haze constant
 ```
 
 - Seed with **two named constants** so 06a is provably zero-pixel: the

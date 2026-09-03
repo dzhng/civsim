@@ -1,6 +1,6 @@
 import { CampaignSceneryPass, type CampaignSceneryInstance } from "@packages/game-renderer/src/campaign/sceneryPass";
 import { PROP_REVIEW_GROUPS } from "@packages/game-renderer/src/models/shared/sceneryPropRegistry";
-import { type LabContext, LabGroundPass, createConfiguredShell, labGroundFramePass, publish, reportTable } from "../labShell";
+import { type LabContext, LabGroundPass, createCampaignShell, labGroundFramePass, publish, reportTable } from "../labShell";
 
 export // Reusable scenery props posed for model-sheet review: each family alone on
 // neutral ground, no cities, labels, roads, water, or fog. The compositions are
@@ -9,7 +9,7 @@ async function route(ctx: LabContext) {
   const requested = ctx.params.get("gate");
   const group = PROP_REVIEW_GROUPS.find((g) => g.id === requested) ?? PROP_REVIEW_GROUPS[0];
   const camera = group.camera;
-  const shell = await createConfiguredShell(ctx.canvas, camera);
+  const shell = await createCampaignShell(ctx.canvas, camera);
   const scenery = new CampaignSceneryPass(shell);
   const instances: CampaignSceneryInstance[] = group.props.map((prop) => ({
     x: prop.x,

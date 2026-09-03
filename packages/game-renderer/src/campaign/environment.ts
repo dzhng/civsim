@@ -1,5 +1,3 @@
-import type { RawFrameShell } from "../../../renderer-core/src/frameShell";
-
 export interface CampaignEnvironment {
   /** Sun direction in the camera uniform's azimuth/elevation convention. */
   sunAzimuth: number;
@@ -17,13 +15,6 @@ export const CAMPAIGN_ENVIRONMENT: CampaignEnvironment = {
   ),
   hazeColor: [0.8, 0.82, 0.8],
 };
-
-export function applyCampaignEnvironment(
-  shell: RawFrameShell,
-  env: CampaignEnvironment = CAMPAIGN_ENVIRONMENT,
-): void {
-  shell.setSun(env.sunAzimuth, env.sunElevation);
-}
 
 export function campaignEnvironmentWgsl(
   env: CampaignEnvironment = CAMPAIGN_ENVIRONMENT,

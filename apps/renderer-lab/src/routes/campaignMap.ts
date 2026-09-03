@@ -7,7 +7,7 @@ import { TerrainField } from "../../../../web/src/campaign/terrain";
 import { Territory } from "../../../../web/src/campaign/territory";
 import { readCampaignViews } from "../../../../web/src/campaign/views";
 import { campaignFactionLabels, campaignPresetCamera } from "../labCampaign";
-import { type LabContext, chartSnapshot, createConfiguredShell, numberParam, publish, reportTable } from "../labShell";
+import { type LabContext, chartSnapshot, createCampaignShell, numberParam, publish, reportTable } from "../labShell";
 
 export async function route(ctx: LabContext) {
   const [{ default: initWasm, Campaign }, { data, mapJson }] = await Promise.all([
@@ -23,7 +23,7 @@ export async function route(ctx: LabContext) {
   territoryData.rebuild(views.cities);
   const preset = ctx.params.get("preset") ?? "whole";
   const camera = campaignPresetCamera(preset);
-  const shell = await createConfiguredShell(ctx.canvas, camera);
+  const shell = await createCampaignShell(ctx.canvas, camera);
   // The sea shimmer rides cam.time (pitch-gated); snap at a fixed t for deterministic
   // shots (default 0 = the still painted chart, matching production snapshots).
   shell.setTime(numberParam(ctx.params, "t", 0));

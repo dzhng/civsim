@@ -1,4 +1,3 @@
-import type { RawFrameShell } from "../../../renderer-core/src/frameShell";
 import type { SkinnedLightingEnvironment } from "../../../renderer-core/src/skinnedPipeline";
 
 export type CivsimEnvironmentId = "golden" | "dusk" | "noon" | "overcast-highland";
@@ -186,10 +185,6 @@ export function resolveBattleEnvironment(id: string | null | undefined): BattleE
   if (id === "dusk") return BATTLE_ENVIRONMENTS.dusk;
   if (id === "noon") return BATTLE_ENVIRONMENTS.noon;
   return BATTLE_ENVIRONMENTS[DEFAULT_BATTLE_ENVIRONMENT];
-}
-
-export function applyBattleEnvironment(shell: RawFrameShell, env: BattleEnvironment): void {
-  shell.setSun(env.environment.sunAzimuth, env.environment.sunElevation);
 }
 
 export function battleEnvironmentStats(env: BattleEnvironment) {

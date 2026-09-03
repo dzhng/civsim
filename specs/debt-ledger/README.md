@@ -20,7 +20,7 @@ implements in the worktree; the orchestrator runs browser gates against the
 lane's own dev server (`vite --port 5173+lane --strictPort`, `VERIFY_URL`),
 commits, and merges to main. `choices.md` has a union merge driver.
 
-**Incident (2026-09-03 03:20–06:35):** the Mac idle-slept twice and every Codex lane died mid-turn with no report (work preserved uncommitted in the worktrees). Lanes were resumed with `codex exec resume <id>` and `caffeinate -i -s` now holds the machine awake for the rest of the run; start it first if you resume this cold. Separately, Codex ends a turn silently (`task_complete`, no message, no `-o` file) at roughly the 60-minute mark even while awake; a watchdog (`scratchpad/codex/watchdog.sh`, state in `lane-state`) resumes any lane whose process is gone without a report. Slice 06a landed (both suns named, zero pixels); 06b runs on lane C.
+**Incident (2026-09-03 03:20–06:35):** the Mac idle-slept twice and every Codex lane died mid-turn with no report (work preserved uncommitted in the worktrees). Lanes were resumed with `codex exec resume <id>` and `caffeinate -i -s` now holds the machine awake for the rest of the run; start it first if you resume this cold. Separately, Codex ends a turn silently (`task_complete`, no message, no `-o` file) at roughly the 60-minute mark even while awake; a watchdog (`scratchpad/codex/watchdog.sh`, state in `lane-state`) resumes any lane whose process is gone without a report. Slice 06a landed (both suns named, zero pixels); 06b runs on lane C. **Incident 2 (2026-09-03 ~14:00–16:50):** the Codex backend stream disconnected for every lane (`stream disconnected before completion`, five failed reconnects); the watchdog resumed all four once the network returned — no code lost. **Merge incident (06b):** merging 06b's router hunks into the split `labShell.ts` placed `applyCampaignEnvironment` before the builder's `applyBattleEnvironment`, so every campaign lab mesh rendered under the golden-hour battle sun (campaign-models road 48254 px, stone-relief 92797 px, three occlusion gates red; production campaign-visual drifted a few px). Fixed by giving campaign routes `createCampaignShell` and deleting both apply helpers — `createFrameShell`'s `sun` option is the only setter; all campaign and lab gates back to 0 px.
 
 **Pickup if resuming cold:** read each lane's `git status`; a dirty lane with
 a `<lane>-<slice>.out` file in the session scratchpad is a finished Codex
@@ -81,7 +81,7 @@ parallel in separate worktrees (see the lane table for file disjointness).
 - [x] frameShell terrain/backdrop/marker pipelines gone; command type shrunk [03]
 - [x] Lab router one file per route; one wasm terrain-grid reader; scanners widened [04]
 - [x] `noiseWgsl.ts` owns hash/vnoise/fbm [05]
-- [ ] `CampaignEnvironment` owns campaign sun/haze (plumbing, then one sun) [06]
+- [x] `CampaignEnvironment` owns campaign sun/haze (plumbing, then one sun) [06]
 - [x] Renderer sediment: env aliases, palette legacy anchor, rock colours, tree presets, dead exports, JS math [07]
 - [ ] `growableVertexBuffer` + `cameraOnlyPipeline` own pass boilerplate [08]
 - [ ] `mapPass.ts` split into surface/roads/sea-labels/label-layout owners [09]
@@ -101,7 +101,7 @@ parallel in separate worktrees (see the lane table for file disjointness).
 - [x] `Tracer` replaces 70 cfg blocks [23]
 - [x] Dead knobs → constants; ignored probes and copied test helpers gone [24]
 - [x] One `spawn(SpawnSpec)`; `Unit::files_bounds`; wrapper chains gone [25]
-- [ ] `steer/` module, slot policy in unit.rs, separation owners [26]
+- [x] `steer/` module, slot policy in unit.rs, separation owners [26]
 - [ ] `Unit::bound_radius()`; pins re-verified per consumer [27]
 - [x] Campaign golden pin [28]
 - [x] `road_levels` gone end to end [29]

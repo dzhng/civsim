@@ -5,7 +5,7 @@ import { PNG } from "pngjs";
 // the photoreal substrate. Asserts the stats identity fields (single owners),
 // the soldier-count floor (buildCrowdInstances output = sim count), the
 // seating tripwire (every soldier's elevation equals the shared heightfield
-// sample — mirrors battle-terrain-elevation's mechanics), the sealed-edge/
+// sample), the sealed-edge/
 // scenery/grass floors, the overlay ports (gold selection cues + effect
 // lines), and fixed-time byte-determinism. On a hardware adapter it also runs
 // the 30.5k full-world frame-time leg (budget 33 ms; SwiftShader is never a
@@ -62,7 +62,7 @@ export async function run(ctx) {
       rs?.soldiers >= SOLDIER_FLOOR && rs.soldiers === rs.expectedSoldiers,
       JSON.stringify({ soldiers: rs?.soldiers, expected: rs?.expectedSoldiers }),
     );
-    // The heightfield firewall tripwire (battle-terrain-elevation mechanics):
+    // The heightfield firewall tripwire:
     // every instance's elevation must equal the shared terrainHeightAt sample,
     // and generated relief must give the crowd a real span.
     ctx.check(

@@ -25,7 +25,7 @@ export const FACTION_CSS = [
 // more rows as the roster grows (David, 2026-06-30). Tunable at the S2 checkpoint.
 const CARD_W = 58; // fixed card width in px (cardH derives from the 3:4 aspect); 20% smaller (David, 2026-07-01)
 // The centered bar must clear the bottom-right minimap (a GPU overlay the DOM
-// can't measure): minimapPass sizes it ≤188px wide with a 16px margin, so a
+// can't measure): the minimap compositor sizes it ≤188px wide with a 16px margin, so a
 // centered bar collides once it is wider than viewport − 2×~204. Reserve that
 // zone (symmetric, to stay centered). The lab harness has no minimap and passes
 // a bare margin instead. Tunable at the S2 checkpoint.

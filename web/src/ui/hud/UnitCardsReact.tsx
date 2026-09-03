@@ -2,7 +2,7 @@
 //
 // The card STRUCTURE lives in the shared <UnitCardsView> leaf (see UnitCardsView.tsx
 // for the 60Hz firewall rationale). This class keeps the vanilla-compatible
-// build/update surface so the renderer-lab (src/battle/uiLayer.ts) can drop it onto
+// build/update surface so renderer-lab's card-bar route can drop it onto
 // a bare `#unitcards` element without a surrounding React tree. The production HUD
 // uses <BattleHud> instead, which composes <UnitCardsView> directly under its own
 // single root.

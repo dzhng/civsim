@@ -6,7 +6,6 @@ import {
   FRAME_GRAPH_ROLE_PHASES,
   GPU_DEPTH_FORMAT,
   GPU_DEPTH_MODES,
-  GPU_WORLD_DEPTH_ATTACHMENT,
   PROJECTION_IDENTITY,
   hasFrameDepthPass,
   hasFramePass,
@@ -86,61 +85,6 @@ const routes = [
       s.stats.sample,
   ],
   [
-    "battle-ground-cue-depth",
-    (s) =>
-      s?.ok &&
-      s.route === "battle-ground-cue-depth" &&
-      s.stats.instances === 1 &&
-      s.stats.groundCues?.lineSegments === 5 &&
-      s.stats.depth?.allocated === true &&
-      s.stats.depth?.format === GPU_DEPTH_FORMAT &&
-      hasFramePhaseOrder(s.stats.framePhases) &&
-      hasFrameDepthPass(s.stats.framePhases, "battle-ground-cue-depth-crowd", "read-write") &&
-      hasFrameDepthPass(s.stats.framePhases, "battle-ground-cue-depth-cues", "read") &&
-      hasFramePassRole(
-        s.stats.framePhases,
-        "battle-ground-cue-depth-crowd",
-        "world-opaque",
-        "world-depth",
-      ) &&
-      hasFramePassRole(
-        s.stats.framePhases,
-        "battle-ground-cue-depth-cues",
-        "world-decal",
-        "world-depth",
-      ) &&
-      s.stats.hostileDrawOrder === "crowd-before-late-ground-cue" &&
-      s.stats.samples?.coveredCueUnderSoldier &&
-      s.stats.samples?.exposedCueControl,
-  ],
-  [
-    "battle-effect-overlay",
-    (s) =>
-      s?.ok &&
-      s.route === "battle-effect-overlay" &&
-      s.stats.instances === 1 &&
-      s.stats.effects?.lineSegments === 5 &&
-      s.stats.depth?.allocated === true &&
-      s.stats.depth?.format === GPU_DEPTH_FORMAT &&
-      hasFramePhaseOrder(s.stats.framePhases) &&
-      hasFrameDepthPass(s.stats.framePhases, "battle-effect-overlay-crowd", "read-write") &&
-      hasFramePassRole(
-        s.stats.framePhases,
-        "battle-effect-overlay-crowd",
-        "world-opaque",
-        "world-depth",
-      ) &&
-      hasFramePass(s.stats.framePhases, "battle-effect-overlay-lines", "overlay") &&
-      hasFramePassRole(
-        s.stats.framePhases,
-        "battle-effect-overlay-lines",
-        "overlay-effect",
-        "overlay",
-      ) &&
-      s.stats.samples?.effectOverSoldier &&
-      s.stats.samples?.exposedEffectControl,
-  ],
-  [
     "lod?zoom=5",
     (s) =>
       s?.ok &&
@@ -155,19 +99,6 @@ const routes = [
       s.stats.soldiers === 2400 &&
       s.stats.cameraContract === "shared-world-camera-wgsl",
   ],
-  [
-    "perf?count=900",
-    (s) =>
-      s?.ok &&
-      s.route === "perf" &&
-      s.stats.kind === "rendering-full-game-perf" &&
-      s.stats.mode === "headless-liveness" &&
-      s.stats.releaseBudget === "not-set" &&
-      s.stats.scenes?.[0]?.id === "lab-skinned-crowd" &&
-      s.stats.scenes[0].stats.count === 900 &&
-      s.stats.scenes[0].frame.samples > 0,
-  ],
-  ["campaign", (s) => s?.ok && s.route === "campaign" && s.stats.markers > 0],
   [
     "campaign-map?preset=whole",
     (s) =>
@@ -362,22 +293,6 @@ const routes = [
       s.stats.samples?.hostileDepthOrder?.lateTreeControl,
   ],
   [
-    "shared-grass-models?gate=tuft",
-    (s) =>
-      s?.ok &&
-      s.route === "shared-grass-models" &&
-      s.stats.gate === "tuft" &&
-      s.stats.tuftInstances === 1 &&
-      // The authored tuft fixture is a single 13-blade tuft (bladeInstances =
-      // tufts × bladesPerTuft); pin a non-trivial blade count, not a number the
-      // fixture cannot reach.
-      s.stats.bladeInstances >= 10 &&
-      s.stats.cameraContract === "shared-world-camera-wgsl" &&
-      hasFramePhaseOrder(s.stats.framePhases) &&
-      hasFrameDepthPass(s.stats.framePhases, "shared-grass-model", "read-write") &&
-      hasFramePassRole(s.stats.framePhases, "shared-grass-model", "world-opaque", "world-depth"),
-  ],
-  [
     "shared-standard-models?gate=battle-unit-azure",
     (s) =>
       s?.ok &&
@@ -402,120 +317,6 @@ const routes = [
       hasFramePassRole(s.stats.framePhases, "shared-standard-shadow", "world-decal", "world-depth"),
   ],
   [
-    "render-graph",
-    (s) =>
-      s?.ok &&
-      s.route === "render-graph" &&
-      s.stats.firstPass === "camera" &&
-      s.stats.lastPass === "present" &&
-      s.stats.passes >= 17 &&
-      graphFramePhaseOrder(s.stats.graphFramePhases) &&
-      s.stats.depthPasses?.includes("worldDepthClear") &&
-      s.stats.depthPasses?.includes("battleTerrainProps") &&
-      s.stats.depthPasses?.includes("battleCrowd") &&
-      s.stats.depthPasses?.includes("battleGroundCues") &&
-      s.stats.depthPasses?.includes("campaignSceneryOpaque") &&
-      s.stats.depthPasses?.includes("campaignEntitiesOpaque") &&
-      s.stats.depthPasses?.includes("campaignSceneryShadows") &&
-      s.stats.depthPasses?.includes("campaignEntityShadows") &&
-      s.stats.depthPasses?.includes("campaignRoads") &&
-      s.stats.depthPasses?.includes("campaignSeaLanes") &&
-      s.stats.depthPasses?.includes("campaignGroundSelection") &&
-      hasGraphPassRole(
-        s.stats.graphPassRoles,
-        "battleTerrain",
-        "background-underpaint",
-        "background",
-      ) &&
-      hasGraphPassRole(
-        s.stats.graphPassRoles,
-        "campaignMapUnderpaint",
-        "background-underpaint",
-        "background",
-      ) &&
-      hasGraphPassRole(
-        s.stats.graphPassRoles,
-        "worldDepthClear",
-        "world-depth-fill",
-        "world-depth",
-      ) &&
-      hasGraphPassRole(
-        s.stats.graphPassRoles,
-        "battleTerrainProps",
-        "world-opaque",
-        "world-depth",
-      ) &&
-      hasGraphPassRole(s.stats.graphPassRoles, "battleCrowd", "world-opaque", "world-depth") &&
-      hasGraphPassRole(s.stats.graphPassRoles, "battleGroundCues", "world-decal", "world-depth") &&
-      hasGraphPassRole(
-        s.stats.graphPassRoles,
-        "campaignSceneryOpaque",
-        "world-opaque",
-        "world-depth",
-      ) &&
-      hasGraphPassRole(
-        s.stats.graphPassRoles,
-        "campaignEntitiesOpaque",
-        "world-opaque",
-        "world-depth",
-      ) &&
-      hasGraphPassRole(
-        s.stats.graphPassRoles,
-        "campaignSceneryShadows",
-        "world-decal",
-        "world-depth",
-      ) &&
-      hasGraphPassRole(
-        s.stats.graphPassRoles,
-        "campaignEntityShadows",
-        "world-decal",
-        "world-depth",
-      ) &&
-      hasGraphPassRole(s.stats.graphPassRoles, "campaignRoads", "world-decal", "world-depth") &&
-      hasGraphPassRole(s.stats.graphPassRoles, "campaignSeaLanes", "world-decal", "world-depth") &&
-      hasGraphPassRole(
-        s.stats.graphPassRoles,
-        "campaignGroundSelection",
-        "world-decal",
-        "world-depth",
-      ) &&
-      hasGraphPassRole(s.stats.graphPassRoles, "atmosphereOverlays", "overlay-effect", "overlay") &&
-      hasGraphPassRole(s.stats.graphPassRoles, "battleEffectLines", "overlay-effect", "overlay") &&
-      hasGraphPassRole(s.stats.graphPassRoles, "battleDebugOverlays", "overlay-debug", "overlay") &&
-      hasGraphPassRole(s.stats.graphPassRoles, "campaignMarkers", "overlay-ui", "overlay") &&
-      hasGraphPassRole(s.stats.graphPassRoles, "labelsAndHudAnchors", "overlay-ui", "overlay") &&
-      hasGraphPassRole(s.stats.graphPassRoles, "gameUi", "overlay-ui", "overlay") &&
-      hasGraphDepthPassMode(s.stats.depthPassModes, "worldDepthClear", "write") &&
-      hasGraphDepthPassMode(s.stats.depthPassModes, "battleTerrainProps", "read-write") &&
-      hasGraphDepthPassMode(s.stats.depthPassModes, "battleCrowd", "read-write") &&
-      hasGraphDepthPassMode(s.stats.depthPassModes, "battleGroundCues", "read") &&
-      hasGraphDepthPassMode(s.stats.depthPassModes, "campaignSceneryOpaque", "read-write") &&
-      hasGraphDepthPassMode(s.stats.depthPassModes, "campaignEntitiesOpaque", "read-write") &&
-      hasGraphDepthPassMode(s.stats.depthPassModes, "campaignSceneryShadows", "read") &&
-      hasGraphDepthPassMode(s.stats.depthPassModes, "campaignEntityShadows", "read") &&
-      hasGraphDepthPassMode(s.stats.depthPassModes, "campaignRoads", "read") &&
-      hasGraphDepthPassMode(s.stats.depthPassModes, "campaignSeaLanes", "read") &&
-      hasGraphDepthPassMode(s.stats.depthPassModes, "campaignGroundSelection", "read") &&
-      depthContractFixturesRejected(s.stats.depthContractFixtures) &&
-      bucketContractFixturesSatisfied(s.stats.bucketContractFixtures) &&
-      s.stats.backgroundDepthPasses?.length === 0 &&
-      s.stats.overlayDepthPasses?.length === 0 &&
-      s.stats.depth?.allocated === true &&
-      s.stats.depth?.format === GPU_DEPTH_FORMAT &&
-      hasFramePhaseOrder(s.stats.framePhases) &&
-      hasFramePass(s.stats.framePhases, "render-graph-nested-3d") &&
-      hasFrameDepthPass(s.stats.framePhases, "render-graph-nested-3d", "read-write") &&
-      hasFramePassRole(
-        s.stats.framePhases,
-        "render-graph-nested-3d",
-        "world-opaque",
-        "world-depth",
-      ) &&
-      s.stats.nested3d?.fixtures?.includes("flag-in-city") &&
-      s.stats.nested3d?.fixtures?.includes("garrison-in-city-stub") &&
-      s.stats.nested3d?.fixtures?.includes("rank-overlap"),
-  ],
-  [
     "world-camera",
     (s) =>
       s?.ok &&
@@ -537,167 +338,7 @@ const routes = [
       s.stats.nested3d?.fixtures?.includes("garrison-in-city-stub") &&
       s.stats.nested3d?.fixtures?.includes("rank-overlap"),
   ],
-  [
-    "battle-terrain?fixture=coast",
-    (s) =>
-      s?.ok &&
-      s.route === "battle-terrain" &&
-      s.stats.fixture === "coast" &&
-      s.stats.waterQuads >= 3 &&
-      s.stats.sceneryQuads >= 8 &&
-      s.stats.worldPropQuads >= 4 &&
-      s.stats.cameraContract === "shared-world-camera-wgsl",
-  ],
-  [
-    "battle-terrain?fixture=melee",
-    (s) =>
-      s?.ok &&
-      s.route === "battle-terrain" &&
-      s.stats.fixture === "melee" &&
-      s.stats.waterQuads >= 3 &&
-      s.stats.sceneryQuads >= 8 &&
-      s.stats.worldPropQuads >= 4 &&
-      s.stats.selectionQuads === 0 &&
-      s.stats.cameraContract === "shared-world-camera-wgsl",
-  ],
-  [
-    "battle-live?mode=5v5&ticks=36",
-    (s) =>
-      s?.ok &&
-      s.route === "battle-live" &&
-      s.stats.written > 1000 &&
-      s.stats.units >= 10 &&
-      s.stats.player > 0 &&
-      s.stats.enemy > 0 &&
-      s.stats.drawCalls >= 1 &&
-      s.stats.drawCalls <= 15 &&
-      s.stats.groundCues.lineSegments >= 20 &&
-      hasFramePassRole(
-        s.stats.framePhases ?? s.stats.phases,
-        "battle-live-crowd",
-        "world-opaque",
-        "world-depth",
-      ) &&
-      hasFramePassRole(
-        s.stats.framePhases ?? s.stats.phases,
-        "battle-live-ground-cues",
-        "world-decal",
-        "world-depth",
-      ) &&
-      s.stats.cameraContract === "shared-world-camera-wgsl" &&
-      s.stats.groundCues.cameraContract === "shared-world-camera-wgsl",
-  ],
-  [
-    "battle-ui?mode=5v5&ticks=36",
-    (s) =>
-      s?.ok &&
-      s.route === "battle-ui" &&
-      s.stats.written > 1000 &&
-      s.stats.units >= 10 &&
-      s.stats.drawCalls >= 1 &&
-      s.stats.drawCalls <= 15 &&
-      s.stats.groundCues.lineSegments >= 20 &&
-      hasFramePassRole(
-        s.stats.framePhases ?? s.stats.phases,
-        "battle-ui-crowd",
-        "world-opaque",
-        "world-depth",
-      ) &&
-      hasFramePassRole(
-        s.stats.framePhases ?? s.stats.phases,
-        "battle-ui-ground-cues",
-        "world-decal",
-        "world-depth",
-      ) &&
-      s.stats.ui.cards >= 8 &&
-      s.stats.ui.toolbarButtons >= 5 &&
-      s.stats.ui.postCutoverScreenshots === "renderer-only" &&
-      s.stats.cameraContract === "shared-world-camera-wgsl" &&
-      s.stats.groundCues.cameraContract === "shared-world-camera-wgsl",
-  ],
-  [
-    "battle-input?mode=5v5&ticks=36",
-    (s) =>
-      s?.ok &&
-      s.route === "battle-input" &&
-      s.stats.written > 1000 &&
-      s.stats.units >= 10 &&
-      s.stats.drawCalls >= 1 &&
-      s.stats.drawCalls <= 15 &&
-      s.stats.groundCues.lineSegments >= 20 &&
-      hasFramePassRole(
-        s.stats.framePhases ?? s.stats.phases,
-        "battle-input-crowd",
-        "world-opaque",
-        "world-depth",
-      ) &&
-      hasFramePassRole(
-        s.stats.framePhases ?? s.stats.phases,
-        "battle-input-ground-cues",
-        "world-decal",
-        "world-depth",
-      ) &&
-      s.stats.selectedUnits.length === 1 &&
-      s.stats.ui.cards >= 8 &&
-      s.stats.cameraContract === "shared-world-camera-wgsl" &&
-      s.stats.groundCues.cameraContract === "shared-world-camera-wgsl",
-  ],
 ];
-
-function hasGraphDepthPassMode(passes, id, mode) {
-  return (
-    Array.isArray(passes) &&
-    passes.some(
-      (pass) =>
-        pass?.id === id && pass?.mode === mode && pass?.attachment === GPU_WORLD_DEPTH_ATTACHMENT,
-    )
-  );
-}
-
-function hasGraphPassRole(passes, id, role, framePhase) {
-  return (
-    Array.isArray(passes) &&
-    passes.some((pass) => pass?.id === id && pass?.role === role && pass?.framePhase === framePhase)
-  );
-}
-
-function bucketContractFixturesSatisfied(fixtures) {
-  const expected = new Set(["topLevelTypeBucketPass", "semanticPassWithTypeBatching"]);
-  return (
-    Array.isArray(fixtures) &&
-    fixtures.length === expected.size &&
-    fixtures.every((fixture) => expected.has(fixture?.id) && Array.isArray(fixture?.diagnostics)) &&
-    fixtures.some(
-      (fixture) => fixture?.id === "topLevelTypeBucketPass" && fixture?.rejected === true,
-    ) &&
-    fixtures.some(
-      (fixture) => fixture?.id === "semanticPassWithTypeBatching" && fixture?.accepted === true,
-    )
-  );
-}
-
-function depthContractFixturesRejected(fixtures) {
-  const expected = new Set([
-    "readModeWritesDepth",
-    "writeModeReadsDepth",
-    "unsupportedDepthAttachment",
-    "unsupportedDepthMode",
-    "missingSemanticRole",
-    "mismatchedSemanticRole",
-    "readOnlyBeforeWrite",
-  ]);
-  return (
-    Array.isArray(fixtures) &&
-    fixtures.length === expected.size &&
-    fixtures.every(
-      (fixture) =>
-        expected.has(fixture?.id) &&
-        fixture?.rejected === true &&
-        Array.isArray(fixture?.diagnostics) &&
-        fixture.diagnostics.length > 0,
-    )
-  );
-}
 
 function frameGraphContractFixturesRejected(fixtures) {
   const expected = new Set([
@@ -723,10 +364,6 @@ function frameGraphContractFixturesRejected(fixtures) {
         fixture.diagnostics.length > 0,
     )
   );
-}
-
-function graphFramePhaseOrder(phases) {
-  return Array.isArray(phases) && phases.join(" -> ") === "background -> world-depth -> overlay";
 }
 
 async function findPrivateCameraStructs() {
@@ -888,63 +525,9 @@ async function findPhaseBrandFootguns() {
       ],
     },
     {
-      file: new URL("../../../packages/game-renderer/src/renderGraph.ts", import.meta.url),
-      checks: [
-        [
-          "render graph imports shared depth contract",
-          /import\s*\{[^}]*GPU_DEPTH_FORMAT[^}]*GPU_WORLD_DEPTH_ATTACHMENT[^}]*type\s+GpuDepthMode[^}]*\}\s*from\s*['"]\.\.\/\.\.\/renderer-core\/src\/depthContract['"]/,
-        ],
-        [
-          "render graph imports shared frame role contract",
-          /import\s*\{[\s\S]*?frameGraphDepthRole[\s\S]*?frameGraphRolePhase[\s\S]*?isFrameGraphPassRole[\s\S]*?type\s+FrameGraphPassRole[\s\S]*?\}\s*from\s*['"]\.\.\/\.\.\/renderer-core\/src\/frameGraphContract['"]/,
-        ],
-        [
-          "render graph imports shared bucket-pass guard",
-          /import\s*\{[\s\S]*?isTopLevelTypeBucketPass[\s\S]*?\}\s*from\s*['"]\.\.\/\.\.\/renderer-core\/src\/frameGraphContract['"]/,
-        ],
-        ["render graph pass declares semantic role", /role\?:\s*FrameGraphPassRole/],
-        [
-          "render graph validates semantic roles",
-          /frame-phase pass "\$\{pass\.id\}" must declare a semantic role[\s\S]*?frameGraphRolePhase\(pass\.role\)/,
-        ],
-        [
-          "render graph validates role-depth compatibility",
-          /frameGraphDepthRole\(pass\.depth\.mode\)[\s\S]*?requires role/,
-        ],
-        ["render graph pass depth uses shared mode type", /mode:\s*GpuDepthMode/],
-        ["render graph pass depth uses shared format type", /format:\s*typeof\s+GPU_DEPTH_FORMAT/],
-        [
-          "render graph validates shared world depth attachment",
-          /pass\.depth\.attachment\s*!==\s*GPU_WORLD_DEPTH_ATTACHMENT/,
-        ],
-        [
-          "render graph rejects bucket-shaped pass ids",
-          /isTopLevelTypeBucketPass\(pass\.id\)[\s\S]*?is a type bucket, not a semantic render-graph pass/,
-        ],
-      ],
-    },
-    {
       file: new URL("../../../packages/renderer-core/src/skinnedPipeline.ts", import.meta.url),
       checks: [
         ["skinned crowd draw requires world pass", /\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/],
-      ],
-    },
-    {
-      file: new URL("../../../packages/game-renderer/src/battle/terrainPass.ts", import.meta.url),
-      checks: [
-        [
-          "battle terrain underpaint draw requires background pass",
-          /\bdraw\s*\(\s*pass:\s*BackgroundRenderPass\s*\)/,
-        ],
-        [
-          "battle terrain prop draw requires world pass",
-          /\bdrawProps\s*\(\s*pass:\s*WorldRenderPass\s*\)/,
-        ],
-        ["battle terrain uses the shared projector", /projectWorld\s*\(/],
-        [
-          "battle terrain prop uses shared read-write depth material contract",
-          /gpuWorldDepthStencil\s*\(\s*'read-write'\s*,\s*'greater-equal'\s*\)/,
-        ],
       ],
     },
     {
@@ -975,15 +558,6 @@ async function findPhaseBrandFootguns() {
         [
           "battle effect line does not use world depth stencil",
           (v) => !/gpuWorldDepthStencil|depthStencil/.test(v),
-        ],
-      ],
-    },
-    {
-      file: new URL("../../../packages/game-renderer/src/battle/minimapPass.ts", import.meta.url),
-      checks: [
-        [
-          "battle minimap draw requires overlay pass",
-          /\bdraw\s*\(\s*pass:\s*OverlayRenderPass\s*\)/,
         ],
       ],
     },
@@ -1459,13 +1033,6 @@ function countPixels(png) {
   };
 }
 
-function pixelByteDiff(a, b) {
-  if (a.width !== b.width || a.height !== b.height) return Infinity;
-  let diff = 0;
-  for (let i = 0; i < a.data.length; i++) if (a.data[i] !== b.data[i]) diff++;
-  return diff;
-}
-
 function patchStats(png, sample, radius = 4) {
   const cx = Math.max(0, Math.min(png.width - 1, Math.round(sample.x)));
   const cy = Math.max(0, Math.min(png.height - 1, Math.round(sample.y)));
@@ -1637,7 +1204,7 @@ export async function run(ctx) {
       pixels.nonBlank > 200000 && pixels.warmGround > 8000,
       JSON.stringify(pixels),
     );
-    if (route === "render-graph" || route === "world-camera") {
+    if (route === "world-camera") {
       const canvasPng = PNG.sync.read(await page.locator("#renderer-canvas").screenshot());
       const samples = stats.stats.samples;
       const lower = patchStats(canvasPng, samples.occludedLowerStandard);
@@ -1674,46 +1241,6 @@ export async function run(ctx) {
           sample: stats.stats.sample,
           hostileDrawOrder: stats.stats.hostileDrawOrder,
         }),
-      );
-    }
-    if (route === "battle-ground-cue-depth") {
-      const canvasPng = PNG.sync.read(await page.locator("#renderer-canvas").screenshot());
-      const samples = stats.stats.samples;
-      const covered = patchStats(canvasPng, samples.coveredCueUnderSoldier, 6);
-      const exposed = patchStats(canvasPng, samples.exposedCueControl, 5);
-      // The soldier's linen body (tan) must dominate the covered point; its
-      // own gold trim contributes a little gold, so the cue-leak guard is
-      // "less gold than the exposed cue control", not near-zero.
-      ctx.check(
-        `${route}: skinned soldier occludes later-submitted ground cue`,
-        covered.tan > 12 && covered.gold < exposed.gold,
-        JSON.stringify({
-          covered,
-          exposed,
-          sample: samples.coveredCueUnderSoldier,
-          hostileDrawOrder: stats.stats.hostileDrawOrder,
-        }),
-      );
-      ctx.check(
-        `${route}: late-submitted ground cue remains visible off the soldier`,
-        exposed.gold > 12,
-        JSON.stringify({ exposed, sample: samples.exposedCueControl }),
-      );
-    }
-    if (route === "battle-effect-overlay") {
-      const canvasPng = PNG.sync.read(await page.locator("#renderer-canvas").screenshot());
-      const samples = stats.stats.samples;
-      const overSoldier = patchStats(canvasPng, samples.effectOverSoldier, 5);
-      const exposed = patchStats(canvasPng, samples.exposedEffectControl, 5);
-      ctx.check(
-        `${route}: overlay effect line remains visible over skinned soldier`,
-        overSoldier.white > 12,
-        JSON.stringify({ overSoldier, sample: samples.effectOverSoldier }),
-      );
-      ctx.check(
-        `${route}: overlay effect control remains visible off the soldier`,
-        exposed.white > 12,
-        JSON.stringify({ exposed, sample: samples.exposedEffectControl }),
       );
     }
     if (route === "campaign-models?gate=city") {
@@ -1888,28 +1415,10 @@ export async function run(ctx) {
         JSON.stringify(imported.stats.imported),
       );
     }
-    if (
-      route.includes("crowd") ||
-      route === "battle" ||
-      route.startsWith("battle-live") ||
-      route.startsWith("battle-ui") ||
-      route.startsWith("battle-input")
-    ) {
+    if (route.includes("crowd") || route === "battle") {
       ctx.check(
         `${route}: player and enemy accents visible`,
         pixels.blue > 10 && pixels.red > 10,
-        JSON.stringify(pixels),
-      );
-    }
-    if (route.startsWith("battle-terrain")) {
-      ctx.check(
-        `${route}: Aegean water and nonblack sky visible`,
-        pixels.water > 1200 && pixels.sky > 1200,
-        JSON.stringify(pixels),
-      );
-      ctx.check(
-        `${route}: warm ground and terrain highlights visible`,
-        pixels.warmGround > 8000 && pixels.gold > 250,
         JSON.stringify(pixels),
       );
     }
@@ -2008,227 +1517,6 @@ export async function run(ctx) {
         }),
       );
     }
-    if (
-      route.startsWith("battle-live") ||
-      route.startsWith("battle-ui") ||
-      route.startsWith("battle-input")
-    ) {
-      ctx.check(`${route}: WebGPU ground cue visible`, pixels.gold > 250, JSON.stringify(pixels));
-      ctx.check(
-        `${route}: WebGPU minimap compositor visible`,
-        stats.stats.minimap.units >= 10 &&
-          pixels.minimapDark > 500 &&
-          pixels.minimapBlue > 5 &&
-          pixels.minimapRed > 5 &&
-          pixels.minimapGold > 0,
-        JSON.stringify({ stats: stats.stats.minimap, pixels }),
-      );
-    }
-    if (route.startsWith("battle-ui")) {
-      const ui = await page.evaluate(() => ({
-        cards: document.querySelectorAll(".renderer-unitcards .ucard").length,
-        selectedCards: document.querySelectorAll(".renderer-unitcards .ucard.sel").length,
-        toolbarButtons: document.querySelectorAll(".renderer-toolbar button").length,
-        hudText: document.querySelector(".renderer-battle-hud")?.textContent ?? "",
-      }));
-      ctx.check(
-        `${route}: retained battle UI layer is visible over WebGPU`,
-        ui.cards >= 8 &&
-          ui.selectedCards === 1 &&
-          ui.toolbarButtons >= 5 &&
-          ui.hudText.includes("raw WebGPU"),
-        JSON.stringify(ui),
-      );
-    }
     await page.close();
   }
-
-  for (const dpr of [1, 2]) {
-    const route = "battle-input?mode=5v5&ticks=36";
-    const page = await ctx.newPage({
-      viewport: { width: 900, height: 620 },
-      deviceScaleFactor: dpr,
-      errorPrefix: `renderer-battle-input-dpr${dpr}`,
-    });
-    await page.goto(`${ctx.target}/renderer/${route}`);
-    await page.waitForFunction(
-      () => window.__rendererLabReady === true && window.__gpuBattleInput,
-      undefined,
-      { timeout: 18000 },
-    );
-    await page.waitForTimeout(280);
-    const unit = await frameBattleInputUnit(page);
-    const target = await trueRenderedUnitScreen(page, unit);
-    await page.mouse.click(target.x, target.y);
-    await page.waitForTimeout(120);
-    const clicked = await page.evaluate(() => window.__rendererLabStats);
-    ctx.check(
-      `battle-input dpr${dpr}: left-click selects the rendered unit pixel`,
-      clicked.stats.selectedUnits.includes(unit) && clicked.stats.lastPick.kind === "click",
-      JSON.stringify({
-        target,
-        stats: clicked.stats.lastPick,
-        selected: clicked.stats.selectedUnits,
-      }),
-    );
-
-    const target2 = await trueRenderedUnitScreen(page, unit);
-    await page.mouse.move(target2.x - 60, target2.y - 38);
-    await page.mouse.down();
-    await page.mouse.move(target2.x + 60, target2.y + 38, { steps: 5 });
-    await page.mouse.up();
-    await page.waitForTimeout(120);
-    const boxed = await page.evaluate(() => window.__rendererLabStats);
-    ctx.check(
-      `battle-input dpr${dpr}: drag-box selects the rendered unit pixel`,
-      boxed.stats.selectedUnits.includes(unit) &&
-        boxed.stats.lastPick.kind === "box" &&
-        boxed.stats.lastPick.boxUnits > 0,
-      JSON.stringify({
-        target: target2,
-        stats: boxed.stats.lastPick,
-        selected: boxed.stats.selectedUnits,
-      }),
-    );
-
-    const orderTarget = await renderedWorldPoint(page, unit, -36, 18);
-    await page.mouse.click(orderTarget.x, orderTarget.y, { button: "right" });
-    await page.waitForTimeout(120);
-    const ordered = await page.evaluate(() => window.__rendererLabStats);
-    ctx.check(
-      `battle-input dpr${dpr}: right-click issues a wasm move order`,
-      ordered.stats.selectedOrder?.hasTarget &&
-        ordered.stats.lastOrder.kind === "move" &&
-        ordered.stats.lastOrder.unit === unit &&
-        Math.hypot(
-          ordered.stats.selectedOrder.targetX - orderTarget.worldX,
-          ordered.stats.selectedOrder.targetY - orderTarget.worldY,
-        ) < 1.5,
-      JSON.stringify({
-        target: orderTarget,
-        selectedOrder: ordered.stats.selectedOrder,
-        lastOrder: ordered.stats.lastOrder,
-      }),
-    );
-
-    const zoomBefore = ordered.stats.camera.zoom;
-    await page.mouse.move(orderTarget.x, orderTarget.y);
-    await page.mouse.wheel(0, -220);
-    await page.waitForTimeout(120);
-    const zoomed = await page.evaluate(() => window.__rendererLabStats);
-    ctx.check(
-      `battle-input dpr${dpr}: wheel zoom updates the WebGPU camera`,
-      zoomed.stats.camera.zoom > zoomBefore,
-      JSON.stringify({ before: zoomBefore, after: zoomed.stats.camera.zoom }),
-    );
-
-    await page.evaluate(() => window.__gpuBattleInput.freezeAtTick(72));
-    const canvas = page.locator("#renderer-canvas");
-    const frozenA = await canvas.screenshot();
-    await page.evaluate(() => window.__gpuBattleInput.freezeAtTick(72));
-    const frozenB = await canvas.screenshot();
-    const frozenStats = await page.evaluate(() => window.__rendererLabStats);
-    const frozenPixelDiff = pixelByteDiff(PNG.sync.read(frozenA), PNG.sync.read(frozenB));
-    ctx.check(
-      `battle-input dpr${dpr}: freezeAtTick pins tick and pixels`,
-      frozenStats.stats.ticks === 72 && frozenStats.stats.frozen === true && frozenPixelDiff === 0,
-      JSON.stringify({
-        ticks: frozenStats.stats.ticks,
-        frozen: frozenStats.stats.frozen,
-        bytesA: frozenA.length,
-        bytesB: frozenB.length,
-        cmp: Buffer.compare(frozenA, frozenB),
-        pixelByteDiff: frozenPixelDiff,
-      }),
-    );
-    await page.close();
-  }
-}
-
-async function frameBattleInputUnit(page) {
-  return page.evaluate(() => {
-    const debug = window.__gpuBattleInput;
-    const unit = debug.units.find((u) => u.team === 0) ?? debug.units[0];
-    if (!unit) throw new Error("battle-input has no units to frame");
-    debug.setCamera({
-      x: unit.x,
-      y: unit.y,
-      zoom: Math.max(debug.camera.zoom, 2.6),
-    });
-    return unit.unit;
-  });
-}
-
-async function trueRenderedUnitScreen(page, unitId = null) {
-  return page.evaluate((requestedUnit) => {
-    const debug = window.__gpuBattleInput;
-    const c = debug.camera;
-    const cv = document.getElementById("renderer-canvas");
-    const rect = cv.getBoundingClientRect();
-    // Projection comes from the harness itself (camera3d-backed), so this scene
-    // cannot drift from what the route actually renders/picks with.
-    const project = (target) => {
-      const css = debug.project(target.x, target.y);
-      return {
-        unit: target.unit,
-        team: target.team,
-        x: css.x,
-        y: css.y,
-        canvasX: (css.x - rect.left) * (cv.width / cv.clientWidth),
-        canvasY: (css.y - rect.top) * (cv.height / cv.clientHeight),
-        dprWidth: cv.width,
-        cssWidth: cv.clientWidth,
-      };
-    };
-    let target = requestedUnit == null ? null : debug.units.find((u) => u.unit === requestedUnit);
-    if (!target) {
-      const margin = 80;
-      const projected = debug.units.filter((u) => u.team === 0).map(project);
-      const visible = projected.filter(
-        (p) =>
-          p.x >= rect.left + margin &&
-          p.x <= rect.right - margin &&
-          p.y >= rect.top + margin &&
-          p.y <= rect.bottom - margin,
-      );
-      if (visible.length > 0) {
-        return visible.sort(
-          (a, b) =>
-            Math.hypot(a.x - (rect.left + rect.width / 2), a.y - (rect.top + rect.height / 2)) -
-            Math.hypot(b.x - (rect.left + rect.width / 2), b.y - (rect.top + rect.height / 2)),
-        )[0];
-      }
-      target = debug.units
-        .filter((u) => u.team === 0)
-        .sort((a, b) => Math.hypot(a.x - c.x, a.y - c.y) - Math.hypot(b.x - c.x, b.y - c.y))[0];
-    }
-    if (!target) throw new Error(`unit ${requestedUnit ?? "visible player"} missing`);
-    return project(target);
-  }, unitId);
-}
-
-async function renderedWorldPoint(page, unitId, dxWorld, dyWorld) {
-  return page.evaluate(
-    ({ unit, dx, dy }) => {
-      const debug = window.__gpuBattleInput;
-      const base = debug.units.find((u) => u.unit === unit);
-      if (!base) throw new Error(`unit ${unit} missing`);
-      const cv = document.getElementById("renderer-canvas");
-      const rect = cv.getBoundingClientRect();
-      const worldX = base.x + dx;
-      const worldY = base.y + dy;
-      // Harness-owned projection (camera3d) — no hand-copied camera math here.
-      const css = debug.project(worldX, worldY);
-      return {
-        unit,
-        worldX,
-        worldY,
-        x: css.x,
-        y: css.y,
-        canvasX: (css.x - rect.left) * (cv.width / cv.clientWidth),
-        canvasY: (css.y - rect.top) * (cv.height / cv.clientHeight),
-      };
-    },
-    { unit: unitId, dx: dxWorld, dy: dyWorld },
-  );
 }

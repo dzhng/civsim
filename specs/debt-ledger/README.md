@@ -11,9 +11,19 @@ ledger in [visualizations/audit-ledger.html](visualizations/audit-ledger.html).
 
 ## Next Agent Prompt
 
-**Status (2026-09-02):** spec committed (`cdb6b9e8`); implementation running
-in four lane worktrees at `/Users/david/dev/game-wt/{r,w,s,c}` on branches
-`debt-ledger/{r,w,s,c}`, Codex implementing, orchestrator committing.
+**Status (2026-09-03):** slices 15, 28, 29 landed on main (integration
+`bun run check` green after 15+28; typecheck + campaign tests + wasm rebuild
+green after 29; slice 29 pixel-neutral — campaign-visual diff numbers identical
+to main). In flight in lane worktrees `/Users/david/dev/game-wt/{r,w,s,c}`
+(branches `debt-ledger/{r,w,s,c}`): 01 (R), 16 (W), 22 (S), 30 (C). Codex
+implements in the worktree; the orchestrator runs browser gates against the
+lane's own dev server (`vite --port 5173+lane --strictPort`, `VERIFY_URL`),
+commits, and merges to main. `choices.md` has a union merge driver.
+
+**Pickup if resuming cold:** read each lane's `git status`; a dirty lane with
+a `<lane>-<slice>.out` file in the session scratchpad is a finished Codex
+pass awaiting review + commit; a dirty lane without one is mid-pass (check
+`~/.codex/sessions` for a live session before relaunching).
 
 **Baseline at HEAD (evidence ledger):** `bun run check` green once
 `bun install --cwd web` restored the missing `node-web-audio-api` package
@@ -62,7 +72,7 @@ parallel in separate worktrees (see the lane table for file disjointness).
 - [ ] `typedUniform<T>`; transition snapshot; stats stride off the frame [12]
 - [ ] Battle renderer wrapper forwards `world.stats()`; mirrors deleted [13]
 - [ ] Dispose measured; dispose written only on measured growth [14]
-- [ ] One test runner (vitest); loaders deleted [15]
+- [x] One test runner (vitest); loaders deleted [15]
 - [ ] `@packages/*` alias; 70 relative imports rewritten [16]
 - [ ] `SimClock`, `cameraKeyController`, `awaitRendererReady` shared [17]
 - [ ] Campaign builders → game-renderer; fixtures out of main.ts; one save owner [18]
@@ -75,8 +85,8 @@ parallel in separate worktrees (see the lane table for file disjointness).
 - [ ] One `spawn(SpawnSpec)`; `Unit::files_bounds`; wrapper chains gone [25]
 - [ ] `steer/` module, slot policy in unit.rs, separation owners [26]
 - [ ] `Unit::bound_radius()`; pins re-verified per consumer [27]
-- [ ] Campaign golden pin [28]
-- [ ] `road_levels` gone end to end [29]
+- [x] Campaign golden pin [28]
+- [x] `road_levels` gone end to end [29]
 - [ ] One flood, one Dijkstra, one partial-edge cost [30]
 - [ ] `Army::new`, one cost shape, one field-dims owner, dead knobs, test helpers [31]
 - [ ] game-wasm thin: stat resolution, manifest, class table in the crates that own them [32]

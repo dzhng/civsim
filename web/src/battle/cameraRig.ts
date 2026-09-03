@@ -1,3 +1,5 @@
+import { clamp01, smoothstep } from "@packages/renderer-core/src/scalar";
+
 export interface CameraRigBounds {
   width: number;
   height: number;
@@ -138,7 +140,7 @@ function rigForZoom(
   // One eased parameter drives every axis, so pitch/fovY/distance/target move
   // together and each stays monotonic in zoom. `easeBias` shapes how long the
   // framing lingers near top-down before committing to the vista.
-  const eased = Math.pow(smoothstep(zoomT), curve.easeBias);
+  const eased = Math.pow(smoothstep(0, 1, zoomT), curve.easeBias);
   const fieldReach = Math.max(1, Math.min(bounds.width, bounds.height));
   const closeDistance = Math.min(
     fieldReach * curve.distInFactor,
@@ -169,14 +171,6 @@ function curveLimits(curve: RigCurve) {
     vistaFovY: curve.vistaFovY,
     maxForwardFraction: curve.maxForwardFraction,
   } as const;
-}
-
-function clamp01(value: number) {
-  return Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
-}
-
-function smoothstep(t: number) {
-  return t * t * (3 - 2 * t);
 }
 
 function lerp(a: number, b: number, t: number) {

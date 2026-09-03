@@ -12,7 +12,7 @@ import type { TreeOptions } from './tree/options';
 import { buildLeafAtlas, type LeafStyle } from './leafAtlas';
 import { MeshBuilder, type MeshData, type Rgb } from './meshBuilder';
 
-export interface EzTreePalette {
+interface EzTreePalette {
   bark: Rgb;
   /** Canopy color at the lowest leaves. */
   leafLow: Rgb;
@@ -20,7 +20,7 @@ export interface EzTreePalette {
   leafHigh: Rgb;
 }
 
-export interface EzTreeMeshSpec {
+interface EzTreeMeshSpec {
   label: string;
   options: TreeOptions;
   palette: EzTreePalette;

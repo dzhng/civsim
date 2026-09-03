@@ -62,8 +62,9 @@ import {
   createWindUniforms,
   type BattleWindUniforms,
 } from "../../../game-renderer/src/battle/windSignal";
+import { clamp01 } from "../../../renderer-core/src/scalar";
 
-export type BladeFieldTierId = "near" | "mid" | "far";
+type BladeFieldTierId = "near" | "mid" | "far";
 
 export interface BladeFieldTierSpec {
   id: BladeFieldTierId;
@@ -99,7 +100,7 @@ type FloatUniformNode = UniformNode<number>;
 type Vec2UniformNode = UniformNode<THREE.Vector2>;
 type Vec3UniformNode = UniformNode<THREE.Vector3>;
 
-export const BLADE_FIELD_TRANSLUCENCY = {
+const BLADE_FIELD_TRANSLUCENCY = {
   // Baked from the orchestrator's live sweep (2026-07-26): with the display
   // cap + distance fade in place, the timid post-fix defaults were invisible;
   // these read as soft warm backlight with no far-field sparkle.
@@ -193,7 +194,7 @@ export function createBladeFieldWindUniforms(): BladeFieldWindUniforms {
   });
 }
 
-export interface BladeFieldMeadowFarDensityProfile {
+interface BladeFieldMeadowFarDensityProfile {
   farGrassEndM: number;
   densityReferenceM: number;
   falloffPower: 1.5;
@@ -211,7 +212,7 @@ export interface BladeFieldMeadowFarDensityProfile {
   lowerFarWidthEndM?: number;
 }
 
-export const LIVING_MEADOW_FAR_DENSITY_PROFILE: BladeFieldMeadowFarDensityProfile = {
+const LIVING_MEADOW_FAR_DENSITY_PROFILE: BladeFieldMeadowFarDensityProfile = {
   farGrassEndM: 1250,
   densityReferenceM: 300,
   falloffPower: 1.5,
@@ -228,13 +229,13 @@ export const LIVING_MEADOW_FAR_DENSITY_PROFILE: BladeFieldMeadowFarDensityProfil
   lowerFarWidthEndM: 112,
 };
 
-export const BLADE_FIELD_LOD_TIERS: readonly BladeFieldTierSpec[] = [
+const BLADE_FIELD_LOD_TIERS: readonly BladeFieldTierSpec[] = [
   { id: "near", lodTier: 0, segments: 15, minDistanceM: 0, maxDistanceM: 5 },
   { id: "mid", lodTier: 1, segments: 6, minDistanceM: 5, maxDistanceM: 20 },
   { id: "far", lodTier: 2, segments: 2, minDistanceM: 20, maxDistanceM: 64 },
 ];
 
-export const DEFAULT_BLADE_FIELD_TRANSITION: BladeFieldTransitionProfile = {
+const DEFAULT_BLADE_FIELD_TRANSITION: BladeFieldTransitionProfile = {
   denseBladeEndM: 20,
   farGrassStartM: 20,
   farGrassEndM: 64,
@@ -248,7 +249,7 @@ export function createBladeFieldTransitionUniforms(
   return new BladeFieldTransitionUniforms(profile);
 }
 
-export const BLADE_FIELD_PALETTE = MEADOW.blade;
+const BLADE_FIELD_PALETTE = MEADOW.blade;
 
 export interface BladeFieldStats {
   layer: "photoreal-blade-field";
@@ -332,7 +333,7 @@ export interface BladeFieldStats {
   recordHash: string;
 }
 
-export interface BladeFieldThinningProfile {
+interface BladeFieldThinningProfile {
   enabled: boolean;
   densityLaw: "pen-1.5-power";
   densityReferenceM: number;
@@ -452,13 +453,13 @@ const BLADE_FIELD_PACKED_UPLOAD_FRAMES = 6;
 const BLADE_FIELD_PREPASS_TIERS = new Set<BladeFieldTierId>(["near", "mid"]);
 const BLADE_FIELD_PREPASS_RENDER_ORDER = RENDER_ORDER.worldOpaque - 0.01;
 
-export interface BladeFieldLayerOptions {
+interface BladeFieldLayerOptions {
   depthPrepass?: boolean;
   materials?: BladeFieldMaterialSet;
   nameSuffix?: string;
 }
 
-export interface BladeFieldPackedRecordApplyOptions {
+interface BladeFieldPackedRecordApplyOptions {
   incremental?: boolean;
 }
 
@@ -2069,10 +2070,6 @@ function grassMeshName(suffix: string | undefined, leaf: string): string {
 
 function fract01(value: number): number {
   return value - Math.floor(value);
-}
-
-function clamp01(value: number): number {
-  return Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
 }
 
 function hashPackedRecords(records: Float32Array): string {

@@ -9,9 +9,9 @@ export const GRASS_FIELD_PACKED_STRIDE_FLOATS = 16;
 export const GRASS_FIELD_PACKED_BYTES =
   GRASS_FIELD_PACKED_STRIDE_FLOATS * Float32Array.BYTES_PER_ELEMENT;
 
-export type GrassFieldLodTier = 0 | 1 | 2;
+type GrassFieldLodTier = 0 | 1 | 2;
 
-export interface GrassFieldFocus {
+interface GrassFieldFocus {
   x: number;
   y: number;
   radius: number;
@@ -90,7 +90,7 @@ export interface GrassFieldStats {
   packedBytes: number;
 }
 
-export interface GrassFieldSnapshot {
+interface GrassFieldSnapshot {
   records: GrassFieldRecord[];
   packedRecords: Float32Array;
   stats: GrassFieldStats;
@@ -645,7 +645,7 @@ function finishSnapshot(records: GrassFieldRecord[], stats: GrassFieldStats): Gr
   return { records, packedRecords, stats };
 }
 
-export function packGrassFieldRecords(records: readonly GrassFieldRecord[]): Float32Array {
+function packGrassFieldRecords(records: readonly GrassFieldRecord[]): Float32Array {
   const out = new Float32Array(records.length * GRASS_FIELD_PACKED_STRIDE_FLOATS);
   for (let i = 0; i < records.length; i++) {
     packGrassFieldRecord(out, i, records[i]);

@@ -23,7 +23,7 @@ import type { CivsimEnvironmentId } from '../../game-renderer/src/environment/en
 // and over-saturated — the "Instagram" look the slice warns against. AgX's one
 // cost, slightly muted team pips, stays legible (they remain unambiguous) and
 // is a team-colour-layer concern, not the grade's. ACES is deleted, not flagged.
-export const BATTLE_TONE_MAPPING: THREE.ToneMapping = THREE.AgXToneMapping;
+const BATTLE_TONE_MAPPING: THREE.ToneMapping = THREE.AgXToneMapping;
 
 interface SortItem {
   groupOrder: number | null;
@@ -36,11 +36,11 @@ interface SortItem {
  *  15). When null, render() draws straight to the swapchain. Kept as a minimal
  *  interface so world.ts owns no post dependency — the battle world installs a
  *  BattlePostChain; lab/other routes stay chain-free. */
-export interface WorldPostRenderer {
+interface WorldPostRenderer {
   render(scene: THREE.Scene, camera: THREE.Camera): void;
 }
 
-export interface PhotorealWorldStats {
+interface PhotorealWorldStats {
   drawCalls: number;
   triangles: number;
   /** GPU render-pass ms via trackTimestamp; null until resolved or when the

@@ -8,7 +8,7 @@ export type StandardSizeTier = 'battle-unit' | 'campaign-army' | 'settlement-ban
 
 export type StandardMaterialId = 0 | 1 | 2 | 3 | 4 | 5;
 
-export interface StandardIndexedMeshData {
+interface StandardIndexedMeshData {
   vertices: Float32Array;
   indices: Uint16Array;
   indexCount: number;
@@ -22,12 +22,12 @@ export interface StandardMeshData {
   tier: StandardSizeTier;
 }
 
-export interface StandardBounds {
+interface StandardBounds {
   min: readonly [number, number, number];
   max: readonly [number, number, number];
 }
 
-export interface StandardTierSpec {
+interface StandardTierSpec {
   id: StandardSizeTier;
   poleHeight: number;
   poleRadius: number;
@@ -47,7 +47,7 @@ export interface StandardLivery {
   emblem: readonly [number, number, number];
 }
 
-export interface StandardWaveInput {
+interface StandardWaveInput {
   local: readonly [number, number, number];
   weight: number;
   timeSeconds: number;

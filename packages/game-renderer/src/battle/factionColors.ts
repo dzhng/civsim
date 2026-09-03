@@ -28,7 +28,7 @@ export const BATTLE_FACTIONS = [
   },
 ] as const satisfies readonly BattleFaction[];
 
-export type ActiveBattleFactions = readonly [BattleFactionId, BattleFactionId];
+type ActiveBattleFactions = readonly [BattleFactionId, BattleFactionId];
 
 let activeFactions: ActiveBattleFactions | undefined;
 

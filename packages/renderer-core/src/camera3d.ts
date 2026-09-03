@@ -84,7 +84,7 @@ function worldFromNdc(inv: Mat4, ndcX: number, ndcY: number, ndcZ: number): Vec3
 // pixel. Anchoring at the eye (rather than differencing near/far NDC points)
 // keeps this well-defined for an infinite far plane, where the far-plane
 // unprojection is a point at infinity.
-export function screenRay(p: Camera3DParams, ndcX: number, ndcY: number): { origin: Vec3; dir: Vec3 } {
+function screenRay(p: Camera3DParams, ndcX: number, ndcY: number): { origin: Vec3; dir: Vec3 } {
   const eye = eyePosition(p);
   const near = worldFromNdc(invViewProj(p), ndcX, ndcY, 1); // reverse-Z: near plane = depth 1
   let dx = near[0] - eye[0], dy = near[1] - eye[1], dz = near[2] - eye[2];
@@ -124,7 +124,7 @@ export interface ChartCameraSpec {
 // The one vertical FOV every chart-framed lab route shares. Narrow enough that
 // a chart framing stays chart-like; the production battle/campaign rigs own
 // their own curves.
-export const CHART_CAMERA_FOV_Y = 0.55;
+const CHART_CAMERA_FOV_Y = 0.55;
 
 export function chartCamera3d(spec: ChartCameraSpec, viewportHeightPx: number): Camera3DParams {
   const zoom = Math.max(0.0001, spec.zoom);

@@ -34,7 +34,7 @@ export interface StandardInstance {
   windStrength?: number;
 }
 
-export interface StandardInstanceLivery {
+interface StandardInstanceLivery {
   field: readonly [number, number, number];
   trim?: readonly [number, number, number];
   emblem?: readonly [number, number, number];

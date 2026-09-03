@@ -8,7 +8,7 @@ import type { CrowdInstance } from '../../crowd-runtime/src/instanceData';
 // the soldier's (x, y, elevation), so each figure is anchored to the ground
 // beneath it. Shared by battle and campaign — the crowd instances drive it.
 
-export interface SoldierShadowStats {
+interface SoldierShadowStats {
   shadows: number;
   cameraContract: 'shared-world-camera-wgsl';
 }

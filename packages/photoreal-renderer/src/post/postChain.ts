@@ -41,21 +41,21 @@ type Vec4Node = Node<'vec4'>;
  *  sky sun disc and the disciplined GGX sea glint — spills. Strength/radius and
  *  highpass softness lean toward the pen's five-level glow without turning
  *  bright grass into bloom. */
-export const BLOOM_STRENGTH = 0.085;
-export const BLOOM_RADIUS = 0.56;
-export const BLOOM_THRESHOLD = 1.02;
-export const BLOOM_SMOOTH_WIDTH = 0.75;
-export const BLOOM_LEVELS = 5;
+const BLOOM_STRENGTH = 0.085;
+const BLOOM_RADIUS = 0.56;
+const BLOOM_THRESHOLD = 1.02;
+const BLOOM_SMOOTH_WIDTH = 0.75;
+const BLOOM_LEVELS = 5;
 
 /** Pen print-grade constants, ported as post-chain policy rather than material
  *  albedo. Shadow tint follows the #5C6E9E violet family; highlight tint follows
  *  the pen's warm cream push. */
 // 1.15 lands close-crop grass at the hero band low end with the green undertone kept
 // (1.3 read mustard/uniform per unprimed critique) — orchestrator sweep 2026-07-27.
-export const GRADE_SATURATION_BOOST = 1.15;
-export const GRADE_CONTRAST = 0.16;
-export const GRADE_SPLIT_TONE = 0.85;
-export const GRADE_SHADOW_LIFT = 1.0;
+const GRADE_SATURATION_BOOST = 1.15;
+const GRADE_CONTRAST = 0.16;
+const GRADE_SPLIT_TONE = 0.85;
+const GRADE_SHADOW_LIFT = 1.0;
 const GRADE_LUMA = vec3(0.2126, 0.7152, 0.0722);
 const GRADE_SHADOW_TINT = vec3(0.9, 0.95, 1.16);
 const GRADE_HIGHLIGHT_TINT = vec3(1.055, 1.012, 0.925);
@@ -77,7 +77,7 @@ export interface BattlePostGradeUniforms {
   shadowLift: number;
 }
 
-export interface BattlePostChainStats {
+interface BattlePostChainStats {
   owner: 'battlePostChain';
   enabled: boolean;
   bloom: {
@@ -101,7 +101,7 @@ export interface BattlePostChainStats {
 /** Names the active tone-map operator for the stats identity — the slice-15
  *  ACES-vs-AgX decision reads out here (agx is the verdict; aces is named so a
  *  temporary flip back to the loser stays legible in a lab A/B). */
-export function toneMappingName(toneMapping: THREE.ToneMapping): string {
+function toneMappingName(toneMapping: THREE.ToneMapping): string {
   if (toneMapping === THREE.AgXToneMapping) return 'agx';
   if (toneMapping === THREE.ACESFilmicToneMapping) return 'aces-filmic';
   return 'other';
@@ -245,7 +245,7 @@ export class BattlePostChain {
   }
 }
 
-export function gradeStrengthForPreset(environmentId: CivsimEnvironmentId): number {
+function gradeStrengthForPreset(environmentId: CivsimEnvironmentId): number {
   return PRESET_GRADE_STRENGTH[environmentId];
 }
 

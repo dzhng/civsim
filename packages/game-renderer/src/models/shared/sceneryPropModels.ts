@@ -77,7 +77,7 @@ export function buildCartMesh(): MeshData {
 // upstream size ratio (~5-7% of tree height); the earlier huge-quad canopies
 // read as slabs. Colors stay in the muted olive register.
 
-export type TreeSpeciesId = 'conifer' | 'broadleaf' | 'ash' | 'aspen' | 'bush';
+type TreeSpeciesId = 'conifer' | 'broadleaf' | 'ash' | 'aspen' | 'bush';
 
 interface TreeSpecies {
   label: string;

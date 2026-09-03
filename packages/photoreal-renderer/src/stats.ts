@@ -10,7 +10,7 @@ export const PHOTOREAL_SUBSTRATE = 'threejs-webgpu-tsl';
 // three camera gets posed, and camera3d is the only projector behind it.
 export const PHOTOREAL_PROJECTION = 'camera3d';
 
-export interface PhotorealPublishedStats {
+interface PhotorealPublishedStats {
   ok: true;
   route: string;
   substrate: typeof PHOTOREAL_SUBSTRATE;

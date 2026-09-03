@@ -14,14 +14,14 @@ import {
   type FramePhaseKind,
 } from './frameGraphContract';
 
-export type FrameShellFatalPhase = 'device-lost' | 'submission' | 'context';
+type FrameShellFatalPhase = 'device-lost' | 'submission' | 'context';
 
-export interface FrameShellFatalReport {
+interface FrameShellFatalReport {
   phase: FrameShellFatalPhase;
   message: string;
 }
 
-export interface FrameShellHealth {
+interface FrameShellHealth {
   fatal: boolean;
   deviceLost: boolean;
   lastError: FrameShellFatalReport | null;
@@ -111,7 +111,7 @@ export interface FrameGraphCommands {
   precompute?: (encoder: GPUCommandEncoder) => void;
 }
 
-export interface FramePhaseStats {
+interface FramePhaseStats {
   kind: FramePhaseKind;
   label: string;
   passIds: string[];
@@ -121,7 +121,7 @@ export interface FramePhaseStats {
   loadOp: 'clear' | 'load';
 }
 
-export interface FrameShellStats {
+interface FrameShellStats {
   width: number;
   height: number;
   dpr: number;
@@ -208,7 +208,7 @@ export async function createFrameShell(canvas: HTMLCanvasElement, options: Frame
   return shell;
 }
 
-export class RawFrameShellImpl implements RawFrameShell {
+class RawFrameShellImpl implements RawFrameShell {
   readonly device: GPUDevice;
   readonly cameraBindGroupLayout: GPUBindGroupLayout;
   readonly cameraBindGroup: GPUBindGroup;

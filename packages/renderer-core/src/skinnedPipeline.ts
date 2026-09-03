@@ -8,7 +8,7 @@ import type { RawFrameShell, WorldRenderPass } from './frameShell';
 import { WORLD_CAMERA_WGSL } from './cameraWgsl';
 import { gpuMultisample, gpuOpaqueColorTarget, gpuWorldDepthStencil } from './pipelineContracts';
 
-export interface SkinnedCrowdStats {
+interface SkinnedCrowdStats {
   instances: number;
   drawCalls: number;
   vertices: number;
@@ -28,7 +28,7 @@ export interface SkinnedLightingEnvironment {
   exposure: number;
 }
 
-export interface SkinnedLightingStats {
+interface SkinnedLightingStats {
   source: string;
   sunAzimuth: number;
   sunElevation: number;
@@ -59,10 +59,10 @@ interface MeshResource {
 }
 
 /** A per-class VAT registry: index by classId. A single VatBake applies to all. */
-export type SkinnedVatInput = VatBake | VatBake[];
+type SkinnedVatInput = VatBake | VatBake[];
 
 /** Meshes: one (L0), per-class (`[classId]`), or per-class-per-lod (`[classId][lod]`). */
-export type SkinnedMeshInput = SoldierMeshData | SoldierMeshData[] | SoldierMeshData[][];
+type SkinnedMeshInput = SoldierMeshData | SoldierMeshData[] | SoldierMeshData[][];
 
 const DEFAULT_SKINNED_LIGHTING: SkinnedLightingEnvironment = {
   source: 'skinned-default',

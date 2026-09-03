@@ -7,14 +7,14 @@
 // color (leaves keep the species palette; the texture only adds per-leaf
 // shading grain), so one atlas serves every species.
 
-export interface LeafAtlasRegion {
+interface LeafAtlasRegion {
   u0: number;
   v0: number;
   u1: number;
   v1: number;
 }
 
-export interface LeafAtlas {
+interface LeafAtlas {
   width: number;
   height: number;
   /** RGBA8, row-major from v=0. */

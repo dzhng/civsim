@@ -3,7 +3,7 @@ import type { BackgroundRenderPass, OverlayRenderPass, RawFrameShell } from '@pa
 import { NOISE_WGSL } from '@packages/renderer-core/src/noiseWgsl';
 import { campaignEnvironmentWgsl } from './environment';
 
-export interface CampaignAtmosphereRect {
+interface CampaignAtmosphereRect {
   min: [number, number];
   max: [number, number];
 }

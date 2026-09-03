@@ -36,6 +36,7 @@ import type { PhotorealBattleGroundMesh } from "../../../game-renderer/src/battl
 import type { PhotorealEarthDistanceField } from "../../../game-renderer/src/battle/photorealEarthDistance";
 import { GROUND_COVER_COLOR, MEADOW } from "../../../game-renderer/src/battle/meadowPalette";
 import type { BattleHorizonLayout } from "../../../game-renderer/src/battle/horizonPass";
+import { smoothstep } from "../../../renderer-core/src/scalar";
 import {
   fbmN,
   hashN,
@@ -128,7 +129,7 @@ const WIDE_DETAIL_TERRAIN_STYLE: TerrainQuadStyle = {
   darkFleckColor: MEADOW.quad.wideDetail.darkFleck,
 };
 
-export interface TerrainMaterialOptions {
+interface TerrainMaterialOptions {
   slopeBands?: BattleSlopeBands | null;
   vistaBand?: BattleVistaBand["name"] | null;
   farGrass?: BladeFieldTransitionUniforms | null;
@@ -137,7 +138,7 @@ export interface TerrainMaterialOptions {
 
 type PhotorealGroundMesh = Omit<PhotorealBattleGroundMesh, "earthDistance">;
 
-export interface BattleVistaBand {
+interface BattleVistaBand {
   name: "vista" | "farFog" | string;
   w: number;
   h: number;
@@ -563,17 +564,17 @@ export function createGroundMesh(
       .mul(smoothstepN(0.35, 0.75, fbmN(world.mul(0.021).add(vec2(11.0, 3.0)))))
       .toVar();
     const faceNoise = fbmN(world.mul(0.075).add(vec2(2.0, 6.0))).toVar();
-    let rock = mix(vec3(0.32, 0.32, 0.29), vec3(0.45, 0.43, 0.36), faceNoise);
-    rock = mix(rock, vec3(0.21, 0.22, 0.21), fracture.mul(slopeRock).mul(0.62));
-    rock = mix(rock, vec3(0.19, 0.2, 0.19), strata.mul(slopeRock).mul(0.34));
+    let rock = mix(rgbNode(MEADOW.rock.faceLow), rgbNode(MEADOW.rock.faceHigh), faceNoise);
+    rock = mix(rock, rgbNode(MEADOW.rock.fracture), fracture.mul(slopeRock).mul(0.62));
+    rock = mix(rock, rgbNode(MEADOW.rock.strata), strata.mul(slopeRock).mul(0.34));
 
     const pebble = smoothstepN(0.78, 0.97, hashN(floor(world.mul(0.85)))).toVar();
     let scree = mix(
-      vec3(0.43, 0.42, 0.36),
-      vec3(0.57, 0.54, 0.45),
+      rgbNode(MEADOW.rock.screeLow),
+      rgbNode(MEADOW.rock.screeHigh),
       fbmN(world.mul(0.22).add(vec2(8.0, 3.0))),
     );
-    scree = mix(scree, vec3(0.3, 0.3, 0.27), pebble.mul(0.28));
+    scree = mix(scree, rgbNode(MEADOW.rock.screePebble), pebble.mul(0.28));
 
     const benchCreep = clamp(rockMask.add(screeTint.mul(0.45)), 0.0, 1.0)
       .mul(smoothstepN(slowNz, rollingNz, normalZ))
@@ -583,7 +584,7 @@ export function createGroundMesh(
 
     albedo = mix(albedo, scree, screeMask.mul(0.78));
     albedo = mix(albedo, rock, rockMask);
-    albedo = mix(albedo, vec3(0.34, 0.43, 0.21), benchCreep);
+    albedo = mix(albedo, rgbNode(MEADOW.rock.bench), benchCreep);
     dryRoughness = mix(
       dryRoughness,
       float(0.985),
@@ -755,11 +756,6 @@ function northSouthSink(band: BattleVistaBand, _x: number, y: number): number {
   const t = Math.max(0, Math.abs(y) - SINK_START_Y) / Math.max(1, SINK_END_Y - SINK_START_Y);
   const s = smoothstep(0.15, 1.0, t);
   return -7.5 * s;
-}
-
-function smoothstep(a: number, b: number, x: number): number {
-  const t = Math.max(0, Math.min(1, (x - a) / (b - a)));
-  return t * t * (3 - 2 * t);
 }
 
 function clampNumber(v: number, lo: number, hi: number): number {

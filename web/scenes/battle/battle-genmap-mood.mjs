@@ -45,7 +45,7 @@ export async function run(ctx) {
       stats?.environment === "overcast-highland" &&
         stats?.terrain?.environment?.id === "overcast-highland" &&
         stats?.terrain?.environment?.source === "CIVSIM_ENVIRONMENTS.overcast-highland" &&
-        stats?.terrain?.environment?.waterAlias === "WATER_ENVIRONMENTS.overcast-highland" &&
+        stats?.terrain?.environment?.waterAlias === "CIVSIM_ENVIRONMENTS.overcast-highland" &&
         stats?.terrain?.vista?.bands?.some((b) => b.name === "farFog"),
       JSON.stringify({
         environment: stats?.environment,

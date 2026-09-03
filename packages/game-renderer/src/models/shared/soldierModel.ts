@@ -1,7 +1,7 @@
 // Soldier look metadata shared by WebGPU battle/campaign UI. Raw WebGPU assets
 // flow through packages/soldier-assets.
 
-export interface ClassLook {
+interface ClassLook {
   weapon: 'sword' | 'spear' | 'greatsword' | 'pike' | 'bow' | 'javelin' | 'lance' | 'artillery' | 'none';
   shield: 'tall' | 'round' | 'small' | 'none';
   armor: 'heavy' | 'medium' | 'light' | 'cloth' | 'rag';
@@ -10,7 +10,7 @@ export interface ClassLook {
   mounted: boolean;
 }
 
-export const CLASS_LOOK: ClassLook[] = [
+const CLASS_LOOK: ClassLook[] = [
   { weapon: 'sword', shield: 'tall', armor: 'heavy', helmet: 'crested', crest: true, mounted: false },
   { weapon: 'spear', shield: 'round', armor: 'light', helmet: 'cap', crest: false, mounted: false },
   { weapon: 'greatsword', shield: 'none', armor: 'medium', helmet: 'bronze', crest: false, mounted: false },
@@ -29,12 +29,8 @@ export const CLASS_LOOK: ClassLook[] = [
   { weapon: 'sword', shield: 'round', armor: 'heavy', helmet: 'crested', crest: true, mounted: true },
 ];
 
-export const REAL_UNIT_CLASS_COUNT = 15;
-export const SHOCK_CAV_SIDEARM_LOOK = REAL_UNIT_CLASS_COUNT;
-export const CLASS_MODEL_LOOK: number[] = CLASS_LOOK.slice(0, REAL_UNIT_CLASS_COUNT).map((_, i) => i);
-export const UNIT_CLASS_LOOK_COUNT = CLASS_MODEL_LOOK.length;
-export const MODEL_LOOK_COUNT = CLASS_LOOK.length;
-
+const REAL_UNIT_CLASS_COUNT = 15;
+const CLASS_MODEL_LOOK: number[] = CLASS_LOOK.slice(0, REAL_UNIT_CLASS_COUNT).map((_, i) => i);
 export function modelLookForClass(cls: number): number {
   return CLASS_MODEL_LOOK[cls] ?? CLASS_MODEL_LOOK[0];
 }

@@ -66,8 +66,8 @@ import {
   buildEntityFrame,
   campaignMapMarkers,
   campaignRoadCarts,
-  smoothstep,
 } from "@packages/game-renderer/src/campaign/entityFrame";
+import { smoothstep } from "@packages/renderer-core/src/scalar";
 import {
   campaignArmyLabels,
   campaignCityLabels,

@@ -31,7 +31,7 @@ export interface BattleMapCatalogEntry {
 
 type BattleTerrainPresentationSource = Pick<BattleMapCatalogEntry, "id" | "edges" | "groundCover">;
 
-export interface GeneratedBattleMapManifest {
+interface GeneratedBattleMapManifest {
   seed: number | string;
   groundCover: BattleGroundCover;
   edges: BattleEdgeRoles;
@@ -46,7 +46,7 @@ export interface GeneratedBattleMapManifest {
   };
 }
 
-export interface CuratedGeneratedBattleMapSeed {
+interface CuratedGeneratedBattleMapSeed {
   id: string;
   label: string;
   seed: number;
@@ -140,10 +140,6 @@ const ALL_BATTLE_MAP_CATALOG: readonly BattleMapCatalogEntry[] = [
   ...BATTLE_MAP_CATALOG,
   ...LEGACY_HAND_BATTLE_MAP_CATALOG,
 ];
-
-export function battleMapById(id: string): BattleMapCatalogEntry | undefined {
-  return ALL_BATTLE_MAP_CATALOG.find((m) => m.id === id);
-}
 
 export function battleMapByWasmId(wasmMapId: number): BattleMapCatalogEntry | undefined {
   return LEGACY_HAND_BATTLE_MAP_CATALOG.find((m) => m.wasmMapId === wasmMapId);

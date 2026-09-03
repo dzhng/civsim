@@ -1,17 +1,17 @@
-export interface BattleWindSample {
+interface BattleWindSample {
   speed: number;
   gust: number;
   dirX: number;
   dirY: number;
 }
 
-export interface WindVector2Like {
+interface WindVector2Like {
   x: number;
   y: number;
   set?: (x: number, y: number) => unknown;
 }
 
-export interface WindUniformValue<T> {
+interface WindUniformValue<T> {
   value: T;
 }
 

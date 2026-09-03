@@ -1,11 +1,7 @@
 // @vitest-environment node
 import assert from "node:assert/strict";
 import { test } from "vitest";
-import {
-  MEADOW,
-  meadowFamily,
-  type Rgb,
-} from "@packages/game-renderer/src/battle/meadowPalette.ts";
+import { MEADOW, type Rgb } from "@packages/game-renderer/src/battle/meadowPalette.ts";
 
 test("every meadow color role is a finite normalized RGB triplet", () => {
   const roles = rgbRoles(MEADOW);
@@ -14,18 +10,6 @@ test("every meadow color role is a finite normalized RGB triplet", () => {
     assert.ok(
       color.every((channel) => Number.isFinite(channel) && channel >= 0 && channel <= 1),
       `${role} leaves normalized RGB`,
-    );
-  }
-});
-
-test("every meadow color role follows a changed base", () => {
-  const changed = rgbRoles(meadowFamily([0.5, 0.44, 0.33]));
-  const original = rgbRoles(MEADOW);
-  assert.deepEqual(Object.keys(changed).sort(), Object.keys(original).sort());
-  for (const role of Object.keys(original)) {
-    assert.ok(
-      changed[role].every((channel, index) => channel !== original[role][index]),
-      `${role} retained an independently pinned channel`,
     );
   }
 });

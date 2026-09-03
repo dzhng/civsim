@@ -11,11 +11,11 @@ ledger in [visualizations/audit-ledger.html](visualizations/audit-ledger.html).
 
 ## Next Agent Prompt
 
-**Status (2026-09-03):** slices 01, 15-19, 22-24, 28-31 plus 02-05, 06a, 10-12, 20, 21, 25, 32 and 33 landed on main (25 of 34, 06 half); lane C's own list is complete; lane W's own list is complete and it has taken the photoreal chain (integration
+**Status (2026-09-03):** slices 01, 15-19, 22-24, 28-31 plus 02-05, 06a, 07, 10-12, 20, 21, 25, 32 and 33 landed on main (26 of 34, 06 half); lane C's own list is complete; lane W's own list is complete and it has taken the photoreal chain (integration
 `bun run check` green after 15+28; typecheck + campaign tests + wasm rebuild
 green after 29; slice 29 pixel-neutral — campaign-visual diff numbers identical
 to main). In flight in lane worktrees `/Users/david/dev/game-wt/{r,w,s,c}`
-(branches `debt-ledger/{r,w,s,c}`): 07 (R), 13 (W), 26 follow-up (S — first pass moved ownership but left steer_soldiers/apply_separation/run_combat at 1,060/967/706 lines; sent back to finish the split at ≤300 lines per function, golden after each extraction), 06b (C). Slice 32 note: the first pass promoted sim to a production dependency of campaign to reach UnitClass; sent back — campaign owns option modifiers as contract::StatModifiers, sim applies them, game-wasm composes. Slice 01 notes: the seating tripwire now lives in `battle-seating` (three catalog maps; `generated-seed-7` was highland-vale under another name and was dropped) and shoots until the crowd has drawn; terrain builder invariants live in `web/tests/vitest/terrainFeatures.test.ts`; the render-graph static fixtures died with that route while `frame-shell` keeps its live fixture list. Codex
+(branches `debt-ledger/{r,w,s,c}`): 08 (R), 13 (W), 26 follow-up (S — first pass moved ownership but left steer_soldiers/apply_separation/run_combat at 1,060/967/706 lines; sent back to finish the split at ≤300 lines per function, golden after each extraction), 06b (C). Slice 32 note: the first pass promoted sim to a production dependency of campaign to reach UnitClass; sent back — campaign owns option modifiers as contract::StatModifiers, sim applies them, game-wasm composes. Slice 01 notes: the seating tripwire now lives in `battle-seating` (three catalog maps; `generated-seed-7` was highland-vale under another name and was dropped) and shoots until the crowd has drawn; terrain builder invariants live in `web/tests/vitest/terrainFeatures.test.ts`; the render-graph static fixtures died with that route while `frame-shell` keeps its live fixture list. Codex
 implements in the worktree; the orchestrator runs browser gates against the
 lane's own dev server (`vite --port 5173+lane --strictPort`, `VERIFY_URL`),
 commits, and merges to main. `choices.md` has a union merge driver.
@@ -82,7 +82,7 @@ parallel in separate worktrees (see the lane table for file disjointness).
 - [x] Lab router one file per route; one wasm terrain-grid reader; scanners widened [04]
 - [x] `noiseWgsl.ts` owns hash/vnoise/fbm [05]
 - [ ] `CampaignEnvironment` owns campaign sun/haze (plumbing, then one sun) [06]
-- [ ] Renderer sediment: env aliases, palette legacy anchor, rock colours, tree presets, dead exports, JS math [07]
+- [x] Renderer sediment: env aliases, palette legacy anchor, rock colours, tree presets, dead exports, JS math [07]
 - [ ] `growableVertexBuffer` + `cameraOnlyPipeline` own pass boilerplate [08]
 - [ ] `mapPass.ts` split into surface/roads/sea-labels/label-layout owners [09]
 - [x] `battleWorld.ts` split: grass field + terrain build + orchestrator; dead options retired [10]

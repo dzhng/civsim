@@ -3,16 +3,16 @@
 // tints, materials, and trellis system are dropped because civsim trees are
 // vertex-colored MeshData (the adapter owns color).
 
-export type TreeType = 'deciduous' | 'evergreen';
+type TreeType = 'deciduous' | 'evergreen';
 
 /** 'double' adds a second quad perpendicular to the first per leaf. */
-export type LeafBillboard = 'single' | 'double';
+type LeafBillboard = 'single' | 'double';
 
 /**
  * Per-recursion-level tables. Level 0 is the trunk; entries above
  * `branch.levels` are ignored. Angles are degrees.
  */
-export interface BranchOptions {
+interface BranchOptions {
   /** Number of branch recursion levels. 0 = trunk only. */
   levels: number;
   /** Angle of child branches relative to the parent branch (degrees). */
@@ -39,7 +39,7 @@ export interface BranchOptions {
   twist: Record<number, number>;
 }
 
-export interface LeavesOptions {
+interface LeavesOptions {
   billboard: LeafBillboard;
   /** Angle of leaves relative to the parent branch (degrees). */
   angle: number;

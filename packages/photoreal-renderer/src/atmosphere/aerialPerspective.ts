@@ -39,7 +39,7 @@ import { BETA_MIE_EXTINCTION, BETA_RAYLEIGH, mieScale, SkyModel } from "./skyMod
 type Rgb = readonly [number, number, number];
 type Vec4Node = Node<"vec4">;
 
-export const AERIAL_OWNER = "aerialPerspective" as const;
+const AERIAL_OWNER = "aerialPerspective" as const;
 
 /** Miniature-world amplification: battle maps are ~1–3 km across but read as
  *  many-kilometre vistas, so aerial optical depth runs this many times faster
@@ -79,7 +79,7 @@ const DEFAULT_VALLEY_MIST_DISTANCE_FULL_M = 1600;
 const DEFAULT_VALLEY_MIST_COLOR_STRENGTH = 0;
 const DEFAULT_VALLEY_MIST_OPACITY_BOOST = 0;
 
-export interface AerialParams {
+interface AerialParams {
   /** Per-channel extinction σ (km⁻¹, world kilometres). */
   extinction: Rgb;
   /** Koschmieder meteorological visibility (km) — evidence/test telemetry. */

@@ -8,7 +8,7 @@ export type CivsimEnvironmentId = "golden" | "dusk" | "noon" | "overcast-highlan
  *  (campaign/water passes) until 16/17; the photoreal renderer lights the
  *  world from THIS block plus the shared sun/sky colours — mood lives in the
  *  environment, never baked into albedo. */
-export interface CivsimPhysicalLight {
+interface CivsimPhysicalLight {
   /** Sun DirectionalLight intensity (linear radiance units). Overcast is a
    *  weak diffuse key; the bright flat sky (IBL) carries the high-key look. */
   sunIntensity: number;
@@ -20,7 +20,7 @@ export interface CivsimPhysicalLight {
   aerial?: CivsimAerialAtmosphere;
 }
 
-export interface CivsimAerialAtmosphere {
+interface CivsimAerialAtmosphere {
   /** Multiplier for Rayleigh/Mie distance extinction in miniature battle metres. */
   distanceScale?: number;
   /** Clear fighting radius before distance haze accrues. */
@@ -76,7 +76,7 @@ export interface BattleEnvironment {
   clear: [number, number, number, number];
 }
 
-export interface BattleEnvironmentOption {
+interface BattleEnvironmentOption {
   id: BattleEnvironmentId;
   label: string;
 }
@@ -162,23 +162,12 @@ export const CIVSIM_ENVIRONMENTS: Record<CivsimEnvironmentId, CivsimEnvironment>
   },
 };
 
-export type WaterEnvironment = CivsimEnvironment;
-export const WATER_ENVIRONMENTS = CIVSIM_ENVIRONMENTS;
-
-const BATTLE_ALIASES: Record<BattleEnvironmentId, CivsimEnvironmentId> = {
-  "golden-hour": "golden",
-  "overcast-foggy": "overcast-highland",
-  "overcast-highland": "overcast-highland",
-  dusk: "dusk",
-  noon: "noon",
-};
-
-export const BATTLE_ENVIRONMENTS: Record<BattleEnvironmentId, BattleEnvironment> = {
-  "golden-hour": battleEnvironment("golden-hour"),
-  "overcast-foggy": battleEnvironment("overcast-foggy"),
-  "overcast-highland": battleEnvironment("overcast-highland"),
-  dusk: battleEnvironment("dusk"),
-  noon: battleEnvironment("noon"),
+const BATTLE_ENVIRONMENTS: Record<BattleEnvironmentId, BattleEnvironment> = {
+  "golden-hour": battleEnvironment("golden-hour", "golden"),
+  "overcast-foggy": battleEnvironment("overcast-foggy", "overcast-highland"),
+  "overcast-highland": battleEnvironment("overcast-highland", "overcast-highland"),
+  dusk: battleEnvironment("dusk", "dusk"),
+  noon: battleEnvironment("noon", "noon"),
 };
 
 export const DEFAULT_BATTLE_ENVIRONMENT = "golden-hour" satisfies BattleEnvironmentId;
@@ -191,9 +180,9 @@ export const BATTLE_ENVIRONMENT_OPTIONS: readonly BattleEnvironmentOption[] = [
 ];
 
 export function resolveBattleEnvironment(id: string | null | undefined): BattleEnvironment {
-  if (id === "overcast" || id === "overcast-foggy") return BATTLE_ENVIRONMENTS["overcast-foggy"];
+  if (id === "overcast-foggy") return BATTLE_ENVIRONMENTS["overcast-foggy"];
   if (id === "overcast-highland") return BATTLE_ENVIRONMENTS["overcast-highland"];
-  if (id === "golden" || id === "golden-hour") return BATTLE_ENVIRONMENTS["golden-hour"];
+  if (id === "golden-hour") return BATTLE_ENVIRONMENTS["golden-hour"];
   if (id === "dusk") return BATTLE_ENVIRONMENTS.dusk;
   if (id === "noon") return BATTLE_ENVIRONMENTS.noon;
   return BATTLE_ENVIRONMENTS[DEFAULT_BATTLE_ENVIRONMENT];
@@ -203,29 +192,12 @@ export function applyBattleEnvironment(shell: RawFrameShell, env: BattleEnvironm
   shell.setSun(env.environment.sunAzimuth, env.environment.sunElevation);
 }
 
-export function environmentWgsl(prefix: "WATER" | "BATTLE", env: CivsimEnvironment): string {
-  return `
-const ${prefix}_KEY = ${wgslVec3(env.keyColor)};
-const ${prefix}_FILL = ${wgslVec3(env.fillColor)};
-const ${prefix}_HAZE = ${wgslVec3(env.hazeColor)};
-const ${prefix}_EXPOSURE = ${env.exposure.toFixed(3)};
-`;
-}
-
-export function waterEnvironmentWgsl(env: WaterEnvironment): string {
-  return environmentWgsl("WATER", env);
-}
-
-export function battleEnvironmentWgsl(env: BattleEnvironment): string {
-  return environmentWgsl("BATTLE", env.environment);
-}
-
 export function battleEnvironmentStats(env: BattleEnvironment) {
   return {
     id: env.id,
     source: env.source,
     sharedPreset: env.environment.id,
-    waterAlias: `WATER_ENVIRONMENTS.${env.environment.id}`,
+    waterAlias: `CIVSIM_ENVIRONMENTS.${env.environment.id}`,
     sunAzimuth: round(env.environment.sunAzimuth),
     sunElevation: round(env.environment.sunElevation),
     keyColor: env.environment.keyColor,
@@ -248,8 +220,10 @@ export function skinnedLightingForBattleEnvironment(
   };
 }
 
-function battleEnvironment(id: BattleEnvironmentId): BattleEnvironment {
-  const sourceId = BATTLE_ALIASES[id];
+function battleEnvironment(
+  id: BattleEnvironmentId,
+  sourceId: CivsimEnvironmentId,
+): BattleEnvironment {
   const environment = CIVSIM_ENVIRONMENTS[sourceId];
   return {
     id,
@@ -257,10 +231,6 @@ function battleEnvironment(id: BattleEnvironmentId): BattleEnvironment {
     environment,
     clear: [...environment.hazeColor, 1],
   };
-}
-
-function wgslVec3(c: readonly [number, number, number]): string {
-  return `vec3f(${c[0].toFixed(3)}, ${c[1].toFixed(3)}, ${c[2].toFixed(3)})`;
 }
 
 function round(value: number): number {

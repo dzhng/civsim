@@ -22,7 +22,7 @@ import type { SoldierMeshData } from "../../../soldier-assets/src/soldierMesh";
 import { linearAlbedo } from "./battleTsl";
 import { RENDER_ORDER } from "./terrainLayer";
 
-export interface ImpostorAtlas {
+interface ImpostorAtlas {
   texture: THREE.CanvasTexture;
   tileSize: number;
   columns: number;

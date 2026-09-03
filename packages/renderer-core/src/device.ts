@@ -21,14 +21,14 @@ export interface UncapturedErrorReport {
   message: string;
 }
 
-export interface GpuDeviceCallbacks {
+interface GpuDeviceCallbacks {
   /** Fires when the GPU device is lost (driver reset, eviction, or destroy()). */
   onDeviceLost?: (report: DeviceLostReport) => void;
   /** Fires on an uncaptured validation/out-of-memory error the renderer did not guard. */
   onUncapturedError?: (report: UncapturedErrorReport) => void;
 }
 
-export interface RequestGpuDeviceOptions {
+interface RequestGpuDeviceOptions {
   callbacks?: GpuDeviceCallbacks;
   /** Defaults to 'high-performance' — we always want the discrete GPU when present. */
   powerPreference?: GpuPowerPreference;
@@ -114,7 +114,7 @@ function numericLimits(limits: GPUSupportedLimits): Record<string, number> {
 }
 
 /** Wire `device.lost` and `onuncapturederror` so no GPU fault is silent. */
-export function attachDeviceErrorHandlers(device: GPUDevice, callbacks?: GpuDeviceCallbacks): void {
+function attachDeviceErrorHandlers(device: GPUDevice, callbacks?: GpuDeviceCallbacks): void {
   const lost = (device as { lost?: Promise<GPUDeviceLostInfo> }).lost;
   if (lost && typeof lost.then === 'function') {
     void lost.then((info) => {

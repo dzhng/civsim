@@ -6,6 +6,7 @@
 
 use crate::class::UnitClassId;
 use crate::math::{dir, Vec2};
+use crate::sim::Sim;
 use crate::tunables::Pace;
 use std::ops::RangeInclusive;
 
@@ -354,6 +355,228 @@ impl Unit {
     pub fn center(&self) -> Vec2 {
         self.anchor + dir(self.facing) * (-0.5 * self.depth())
     }
+}
+
+/// A halted frame with slots on unoccupiable ground slides itself clear: the
+/// ideal formation must always be physically achievable, or the disorder
+/// measurement would report a lie forever. Marching past rocks stays transient
+/// by design; this only acts at rest.
+pub(crate) fn slide_halted_frames(sim: &mut Sim) {
+    for ui in 0..sim.units.len() {
+        if sim.tick_count % 15 != (ui as u64) % 15 {
+            continue;
+        }
+        let slide = {
+            let u = &sim.units[ui];
+            if u.move_target.is_some() || u.pivoting || u.engaged > 0 || u.alive_count == 0 {
+                None
+            } else {
+                let my_center = u.center();
+                let my_centroid = u.centroid;
+                let my_frame_r = 0.5 * (u.width() + u.depth());
+                let my_soldier_r = sim.radius[u.start];
+                let body_blockers: Vec<(usize, Vec2)> = sim
+                    .units
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(vi, v)| {
+                        if vi == ui || v.alive_count == 0 {
+                            return None;
+                        }
+                        let r = 0.5 * (v.width() + v.depth());
+                        if (v.center() - my_center).len() < my_frame_r + r + 2.0 {
+                            Some((vi, v.centroid))
+                        } else {
+                            None
+                        }
+                    })
+                    .collect();
+
+                let mut esc = Vec2::ZERO;
+                let mut bad = 0;
+                // EVERY slot: a strided sample once skipped two in-wall slots
+                // forever, and the men assigned to them jittered against the
+                // wall until the whole standing lattice resonated (the shallow
+                // cliff-margin burst cycle). The check runs every 15 ticks on
+                // halted units only — full coverage is cheap and the law's
+                // guarantee ("the ideal formation is always achievable") is
+                // only as good as its weakest sample.
+                for s in 0..u.alive_count {
+                    let p = u.slot_world(s);
+                    if sim.terrain.speed_at(p) <= 0.0 {
+                        esc = esc + sim.terrain.escape_dir(p);
+                        bad += 1;
+                    }
+
+                    if !body_blockers.is_empty() {
+                        for &(vi, other_centroid) in &body_blockers {
+                            let v = &sim.units[vi];
+                            let mut occupied = false;
+                            for i in v.start..v.start + v.count {
+                                if sim.alive[i] == 0 {
+                                    continue;
+                                }
+                                let clearance = sim.radius[i] + my_soldier_r;
+                                if (sim.soldier_pos(i) - p).len() < clearance {
+                                    occupied = true;
+                                    break;
+                                }
+                            }
+                            if occupied {
+                                let away = my_centroid - other_centroid;
+                                let l = away.len();
+                                esc = esc
+                                    + if l > 1e-3 {
+                                        away * (1.0 / l)
+                                    } else {
+                                        dir(u.facing + std::f32::consts::PI)
+                                    };
+                                bad += 1;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if bad > 0 {
+                    let l = esc.len();
+                    let step = if l > 1e-3 {
+                        esc * (1.0 / l)
+                    } else {
+                        dir(sim.units[ui].facing + std::f32::consts::PI)
+                    };
+                    Some(step * 0.45)
+                } else {
+                    None
+                }
+            }
+        };
+        let Some(slide) = slide else {
+            continue;
+        };
+        sim.units[ui].anchor = sim.units[ui].anchor + slide;
+    }
+}
+
+/// Slot maps close casualties forward within fixed files, while lateral
+/// re-evening is reserved for reform beats and broad, deep contact.
+pub(crate) fn reform_slots(sim: &mut Sim) {
+    const DISENGAGE_REFORM_CLEAR_TICKS: u32 = 30;
+
+    for ui in 0..sim.units.len() {
+        let advancing = sim.units[ui].move_target.is_some()
+            || matches!(sim.units[ui].mode, OrderMode::Attack(_));
+        let casualties_to_close =
+            sim.units[ui].deaths_since_reform * 50 > sim.units[ui].alive_count.max(1);
+        let column_close = casualties_to_close && (sim.units[ui].engaged > 0 || advancing);
+        let disengage_reform = sim.units[ui].disengage_reform_pending
+            && sim.units[ui].quiet_ticks == DISENGAGE_REFORM_CLEAR_TICKS;
+        let files = sim.units[ui].files_eff.max(1);
+        let ranks = sim.units[ui].alive_count as f32 / files as f32;
+        let broad_contact_files = if sim.units[ui].engaged > 0 && files >= 12 {
+            covered_fighting_files(&sim.units[ui], &sim.alive, &sim.fighting, &sim.soldier_slot)
+                .iter()
+                .filter(|&&covered| covered)
+                .count()
+        } else {
+            0
+        };
+        let engaged_deep_reform = broad_contact_files * 2 > files
+            && ranks >= 5.0
+            && sim.tick_count % 60 == (ui as u64) % 60;
+        // A SETTLED, AT-EASE unit (halted, no enemy near) that frayed on
+        // the march RE-FORMS on a slow drumbeat so order RECOVERS — without
+        // this a unit kept its march disorder forever (nothing re-sorted a
+        // standing, unengaged line). Gated on at_ease so it NEVER fires near
+        // a fight (re-sorting mid-combat would perturb the scrum).
+        let at_ease_reform = sim.units[ui].at_ease
+            && sim.units[ui].frame_speed < 0.3
+            && sim.units[ui].cohesion < 0.9
+            && sim.tick_count % 45 == (ui as u64) % 45;
+
+        if sim.units[ui].pivoting || disengage_reform || at_ease_reform || engaged_deep_reform {
+            // An engaged-deep cadence only relabels after casualties; without
+            // them it is permutation noise. An at-ease cadence is retained only
+            // when it improves total man-slot error by the scale-free 10% bar.
+            // Transition reforms (pivot, disengage) stay unconditional.
+            let deep_cadence = engaged_deep_reform
+                && !(sim.units[ui].pivoting || disengage_reform || at_ease_reform);
+            let ease_cadence = at_ease_reform && !(sim.units[ui].pivoting || disengage_reform);
+            let total_dead = sim.units[ui].count - sim.units[ui].alive_count;
+            let noise_beat = deep_cadence && total_dead == sim.units[ui].deep_beat_dead_mark;
+            if deep_cadence {
+                sim.units[ui].deep_beat_dead_mark = total_dead;
+            }
+            if !noise_beat {
+                let slot_fit = |slots: &[u32], u: &Unit| -> f32 {
+                    (u.start..u.start + u.count)
+                        .filter(|&i| sim.alive[i] == 1)
+                        .map(|i| {
+                            let p = Vec2::new(sim.positions[2 * i], sim.positions[2 * i + 1]);
+                            (p - u.slot_world(slots[i] as usize)).len()
+                        })
+                        .sum()
+                };
+                let before = if ease_cadence {
+                    Some((
+                        sim.soldier_slot.clone(),
+                        slot_fit(&sim.soldier_slot, &sim.units[ui]),
+                    ))
+                } else {
+                    None
+                };
+                reassign_slots(
+                    &sim.units[ui],
+                    &sim.positions,
+                    &sim.fidget_offset,
+                    &sim.alive,
+                    &mut sim.soldier_slot,
+                );
+                let mut rejected = false;
+                if let Some((old, before_err)) = before {
+                    let after_err = slot_fit(&sim.soldier_slot, &sim.units[ui]);
+                    if after_err > 0.9 * before_err {
+                        let u = &sim.units[ui];
+                        sim.soldier_slot[u.start..u.start + u.count]
+                            .copy_from_slice(&old[u.start..u.start + u.count]);
+                        rejected = true;
+                    }
+                }
+                if !rejected {
+                    sim.units[ui].deaths_since_reform = 0;
+                }
+            }
+            if disengage_reform {
+                sim.units[ui].disengage_reform_pending = false;
+            }
+        } else if column_close {
+            compact_columns(&sim.units[ui], &sim.alive, &mut sim.soldier_slot);
+            bridge_large_column_gaps(
+                &sim.units[ui],
+                &sim.alive,
+                &sim.fighting,
+                &sim.front_clear,
+                &mut sim.soldier_slot,
+            );
+            sim.units[ui].deaths_since_reform = 0;
+        }
+    }
+}
+
+pub(crate) fn covered_fighting_files(
+    u: &Unit,
+    alive: &[u8],
+    fighting: &[u8],
+    soldier_slot: &[u32],
+) -> Vec<bool> {
+    let files = u.files_eff.max(1);
+    let mut covered = vec![false; files];
+    for s in 0..u.count {
+        let i = u.start + s;
+        if alive[i] == 1 && fighting[i] == 1 {
+            covered[soldier_slot[i] as usize % files] = true;
+        }
+    }
+    covered
 }
 
 /// Give every soldier the nearest slot in the unit's current frame: sort by

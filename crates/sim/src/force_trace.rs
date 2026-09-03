@@ -41,13 +41,13 @@ impl<'a> Tracer<'a> {
 }
 
 #[cfg(not(feature = "force-trace"))]
-pub(crate) struct Tracer;
+pub(crate) struct Tracer<'a>(core::marker::PhantomData<&'a mut ()>);
 
 #[cfg(not(feature = "force-trace"))]
-impl Tracer {
+impl Tracer<'_> {
     #[inline(always)]
     pub(crate) fn new(_: u64) -> Self {
-        Self
+        Self(core::marker::PhantomData)
     }
 
     #[inline(always)]
@@ -137,41 +137,67 @@ impl ForceChannel {
 
     pub fn source_site(self) -> &'static str {
         match self {
-            ForceChannel::WeaveNet => "sim.rs/steer_soldiers/weave_net",
-            ForceChannel::CompPush => "sim.rs/steer_soldiers/comp_push",
-            ForceChannel::PivotSpring => "sim.rs/steer_soldiers/pivot_spring",
-            ForceChannel::EnemyBondWeld => "sim.rs/steer_soldiers/enemy_bond_weld",
+            ForceChannel::WeaveNet => "steer/weave.rs/compose_weave_and_corridor/weave_net",
+            ForceChannel::CompPush => "steer/weave.rs/compose_weave_and_corridor/comp_push",
+            ForceChannel::PivotSpring => {
+                "steer/weave.rs/compose_weave_and_corridor/pivot_spring"
+            }
+            ForceChannel::EnemyBondWeld => {
+                "steer/weave.rs/compose_weave_and_corridor/enemy_bond_weld"
+            }
             ForceChannel::EnemyBondInsideReachPush => {
-                "sim.rs/steer_soldiers/enemy_bond_inside_reach_push"
+                "steer/weave.rs/compose_weave_and_corridor/enemy_bond_inside_reach_push"
             }
-            ForceChannel::SlotPull => "sim.rs/steer_soldiers/slot_pull",
-            ForceChannel::SlotPullLean => "sim.rs/steer_soldiers/slot_pull_lean_0_65",
-            ForceChannel::CorridorClamp => "sim.rs/steer_soldiers/forward_corridor_clamp",
-            ForceChannel::Magnet => "sim.rs/steer_soldiers/enemy_magnet",
-            ForceChannel::Cruise => "sim.rs/steer_soldiers/frame_cruise",
-            ForceChannel::SpeedCap => "sim.rs/steer_soldiers/soldier_speed_cap",
-            ForceChannel::FightingPaceCap => "sim.rs/steer_soldiers/fighting_pace_cap",
-            ForceChannel::FightingTempoCap => "sim.rs/steer_soldiers/fighting_tempo_cap",
-            ForceChannel::PackedLateralFriction => "sim.rs/steer_soldiers/packed_lateral_friction",
-            ForceChannel::IdleSettleDamp => "sim.rs/steer_soldiers/idle_settle_damp",
-            ForceChannel::BodySeparationNormal => "collision.rs/apply_separation/body_normal",
+            ForceChannel::SlotPull => "steer/weave.rs/compose_weave_and_corridor/slot_pull",
+            ForceChannel::SlotPullLean => {
+                "steer/weave.rs/compose_weave_and_corridor/slot_pull_lean_0_65"
+            }
+            ForceChannel::CorridorClamp => {
+                "steer/weave.rs/apply_magnet+compose_weave_and_corridor;steer/speed_caps.rs/drive_velocity"
+            }
+            ForceChannel::Magnet => "steer/weave.rs/apply_magnet/enemy_magnet",
+            ForceChannel::Cruise => "steer/speed_caps.rs/apply_cruise/frame_cruise",
+            ForceChannel::SpeedCap => "steer/speed_caps.rs/drive_velocity/soldier_speed_cap",
+            ForceChannel::FightingPaceCap => {
+                "steer/speed_caps.rs/apply_fighting_pace/fighting_pace_cap"
+            }
+            ForceChannel::FightingTempoCap => {
+                "steer/speed_caps.rs/apply_fighting_pace/fighting_tempo_cap"
+            }
+            ForceChannel::PackedLateralFriction => {
+                "steer/speed_caps.rs/apply_lateral_friction/packed_lateral_friction"
+            }
+            ForceChannel::IdleSettleDamp => "steer/facing.rs/finish_soldier/idle_settle_damp",
+            ForceChannel::BodySeparationNormal => {
+                "separation/bodies.rs/separate_pairs;separation/walls.rs/apply"
+            }
             ForceChannel::BodySeparationFriendlySlide => {
-                "collision.rs/apply_separation/friendly_slide"
+                "separation/bodies.rs/separate_pairs/friendly_slide"
             }
-            ForceChannel::BodySeparationTieBreak => "collision.rs/apply_separation/index_tiebreak",
-            ForceChannel::HardWall => "collision.rs/apply_separation/hard_wall",
-            ForceChannel::ProjectionPass => "collision.rs/apply_separation/projection_pass",
-            ForceChannel::WeaponRepel => "collision.rs/apply_separation/weapon_repel",
-            ForceChannel::HitPush => "combat.rs/strike/hit_push",
-            ForceChannel::KnockbackMomentum => "collision.rs/apply_separation/charge_momentum",
-            ForceChannel::ImpactPush => "collision.rs/apply_separation/impact_push",
-            ForceChannel::Routing => "sim.rs/steer_soldiers/routing",
-            ForceChannel::DisengageEscape => "sim.rs/steer_soldiers/disengage_escape",
-            ForceChannel::Fidget => "sim.rs/steer_soldiers/idle_fidget",
-            ForceChannel::TerrainProject => "sim.rs/steer_soldiers/terrain_projection",
-            ForceChannel::SoldierFacing => "sim.rs/steer_soldiers/soldier_facing",
-            ForceChannel::UnitFacing => "sim.rs/contact_facing/unit_facing",
-            ForceChannel::UnitFrame => "movement.rs/update_unit_motion/unit_frame",
+            ForceChannel::BodySeparationTieBreak => {
+                "separation/bodies.rs/separate_pairs/index_tiebreak"
+            }
+            ForceChannel::HardWall => "separation/walls.rs/apply/hard_wall",
+            ForceChannel::ProjectionPass => "separation/walls.rs/apply/projection_pass",
+            ForceChannel::WeaponRepel => {
+                "separation/weapon_repel.rs/apply;separation/walls.rs/apply"
+            }
+            ForceChannel::HitPush => "combat/damage.rs/apply_staged_damage/hit_push",
+            ForceChannel::KnockbackMomentum => {
+                "combat.rs/strike;separation/bodies.rs/apply_momentum;steer/routing.rs/prepare_soldier"
+            }
+            ForceChannel::ImpactPush => "separation/bodies.rs/resolve_impact/impact_push",
+            ForceChannel::Routing => "steer/routing.rs/route_soldier/routing",
+            ForceChannel::DisengageEscape => {
+                "steer/speed_caps.rs/apply_cruise/disengage_escape"
+            }
+            ForceChannel::Fidget => "steer/speed_caps.rs/drive_velocity/idle_fidget",
+            ForceChannel::TerrainProject => "steer/facing.rs/finish_soldier/terrain_projection",
+            ForceChannel::SoldierFacing => {
+                "steer/facing.rs/soldier_facing;steer/routing.rs/route_soldier"
+            }
+            ForceChannel::UnitFacing => "sim.rs/contact_facing+integrate_units/unit_facing",
+            ForceChannel::UnitFrame => "sim.rs/tick+integrate_units/unit_frame",
         }
     }
 

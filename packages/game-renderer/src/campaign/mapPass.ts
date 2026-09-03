@@ -1,9 +1,10 @@
-import type { CameraSnapshot } from '../../../renderer-core/src/cameraUniform';
-import { screenToWorld, worldToScreen } from '../../../renderer-core/src/cameraUniform';
-import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
-import { gpuAlphaBlendColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
+import type { CameraSnapshot } from '@packages/renderer-core/src/cameraUniform';
+import { screenToWorld, worldToScreen } from '@packages/renderer-core/src/cameraUniform';
+import { WORLD_CAMERA_WGSL } from '@packages/renderer-core/src/cameraWgsl';
+import type { BackgroundRenderPass, OverlayRenderPass, RawFrameShell, WorldRenderPass } from '@packages/renderer-core/src/frameShell';
+import { NOISE_WGSL } from '@packages/renderer-core/src/noiseWgsl';
+import { gpuAlphaBlendColorTarget, gpuWorldDepthStencil } from '@packages/renderer-core/src/pipelineContracts';
 import { CAMPAIGN_SEA_PALETTE_WGSL } from '../water/waterPalette';
-import type { BackgroundRenderPass, OverlayRenderPass, RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/frameShell';
 
 type CampaignLineRenderPass = BackgroundRenderPass | WorldRenderPass;
 
@@ -152,6 +153,7 @@ const ICON_PATHS = {
 
 const MAP_WGSL = `
 ${WORLD_CAMERA_WGSL}
+${NOISE_WGSL}
 ${CAMPAIGN_SEA_PALETTE_WGSL}
 @group(1) @binding(0) var mapTex: texture_2d<f32>;
 @group(1) @binding(1) var mapSampler: sampler;
@@ -173,23 +175,6 @@ fn vs(@location(0) world: vec3f, @location(1) uv: vec2f) -> VsOut {
   out.world = world.xy;
   out.height = world.z;
   return out;
-}
-
-fn hash(p: vec2f) -> f32 {
-  let p3 = fract(vec3f(p.xyx) * 0.1031);
-  let q = p3 + dot(p3, p3.yzx + vec3f(33.33));
-  return fract((q.x + q.y) * q.z);
-}
-
-fn vnoise(p: vec2f) -> f32 {
-  let i = floor(p);
-  let f = fract(p);
-  let u = f * f * (3.0 - 2.0 * f);
-  return mix(
-    mix(hash(i), hash(i + vec2f(1.0, 0.0)), u.x),
-    mix(hash(i + vec2f(0.0, 1.0)), hash(i + vec2f(1.0, 1.0)), u.x),
-    u.y,
-  );
 }
 
 fn ridged(p: vec2f) -> f32 {
@@ -357,6 +342,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 
 const ROAD_WGSL = `
 ${WORLD_CAMERA_WGSL}
+${NOISE_WGSL}
 
 struct VsOut {
   @builtin(position) pos: vec4f,
@@ -380,12 +366,6 @@ fn vs(
   out.uv = uv;
   out.material = material;
   return out;
-}
-
-fn hash(p: vec2f) -> f32 {
-  let p3 = fract(vec3f(p.xyx) * 0.1031);
-  let q = p3 + dot(p3, p3.yzx + vec3f(33.33));
-  return fract((q.x + q.y) * q.z);
 }
 
 @fragment

@@ -1,25 +1,6 @@
-export type WaterFieldId = 'gerstner';
-
-export interface WaterFieldStats {
-  id: WaterFieldId;
-  fieldResolution: number;
-  storageBytes: number;
-}
-
-export interface WaterFieldSource {
-  readonly id: WaterFieldId;
-  wgslSample(): string;
-  bindGroupLayout(): GPUBindGroupLayout | null;
-  ensureFrame(enc: GPUCommandEncoder, t: number): void;
-  bindGroup(): GPUBindGroup | null;
-  stats(): WaterFieldStats;
-  destroy(): void;
-}
-
 // The production water field is a sum of directional gravity waves with deep-water
 // dispersion (ω = √(gk)) and sharpened crests, evaluated in closed form with an
-// analytic normal. No GPU resources, no compute, no per-frame upload:
-// `bindGroupLayout()`/`bindGroup()` are null and `ensureFrame` is a no-op.
+// analytic normal. No GPU resources, no compute, no per-frame upload.
 //
 // The wave set is a discretised ocean spectrum baked once on the CPU: wavelengths
 // log-spaced from long swell to short chop, amplitudes falling with wavelength,
@@ -41,10 +22,8 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-/** One baked directional wave. The numbers are quantised exactly as the WGSL
- *  literal prints them, so any consumer (the photoreal TSL sea included)
- *  evaluates the same field the production shader compiles in. */
-export interface GerstnerWave {
+/** One baked directional wave shared by every Gerstner-family water surface. */
+interface GerstnerWave {
   dirX: number;
   dirY: number;
   /** metres */
@@ -71,7 +50,7 @@ export function bakeGerstnerWaves(): GerstnerWave[] {
     // Longer waves carry more amplitude (a red spectrum); jittered so no single
     // train dominates the grain.
     const amp = 2.7 * (wavelength / longL) ** 0.7 * (0.7 + 0.6 * rng());
-    // Quantise like the WGSL literal so all consumers see identical waves.
+    // Quantise once so all consumers see identical waves.
     waves.push({
       dirX: Number(dx.toFixed(4)),
       dirY: Number(dy.toFixed(4)),
@@ -80,106 +59,4 @@ export function bakeGerstnerWaves(): GerstnerWave[] {
     });
   }
   return waves;
-}
-
-// vec4(dirX, dirY, wavelength m, amplitude m) per wave, as a WGSL array literal.
-function bakeWaveArray(): string {
-  const rows = bakeGerstnerWaves().map(
-    (w) => `vec4f(${w.dirX.toFixed(4)}, ${w.dirY.toFixed(4)}, ${w.wavelength.toFixed(2)}, ${w.amplitude.toFixed(3)})`,
-  );
-  return `array<vec4f, ${WAVE_COUNT}>(\n    ${rows.join(',\n    ')}\n  )`;
-}
-
-function gerstnerWgsl(): string {
-  return `
-struct WaterSample { height: f32, normal: vec3f, foam: f32 };
-
-const WATER_WAVES = ${bakeWaveArray()};
-
-fn fhash(p: vec2f) -> f32 {
-  return fract(sin(dot(p, vec2f(127.1, 311.7))) * 43758.5453);
-}
-fn fnoise(p: vec2f) -> f32 {
-  let i = floor(p);
-  let f = fract(p);
-  let u = f * f * (3.0 - 2.0 * f);
-  return mix(mix(fhash(i), fhash(i + vec2f(1.0, 0.0)), u.x),
-             mix(fhash(i + vec2f(0.0, 1.0)), fhash(i + vec2f(1.0, 1.0)), u.x), u.y);
-}
-
-fn waterField(p: vec2f, t: f32) -> WaterSample {
-  var waves = WATER_WAVES;
-  let g = 9.81;
-  var h = 0.0;
-  var slopeX = 0.0;
-  var slopeY = 0.0;
-  for (var i = 0; i < ${WAVE_COUNT}; i = i + 1) {
-    let wv = waves[i];
-    let dir = wv.xy;
-    let k = 6.2831853 / wv.z;             // angular wavenumber from wavelength
-    let amp = wv.w;
-    let w = sqrt(g * k);                  // deep-water dispersion
-    // Per-wave phase offset so the trains don't all align at the world origin
-    // (which otherwise focuses into a standing rosette in the middle of the view).
-    let ph0 = fract(sin(f32(i) * 127.1 + wv.z * 3.71) * 43758.5453) * 6.2831853;
-    let phase = dot(dir, p) * k - w * t * 0.42 + ph0;
-    let s = sin(phase);
-    let c = cos(phase);
-    let hump = s * 0.5 + 0.5;             // 0..1 wave profile
-    let sharp = pow(hump, 2.0);           // narrow peaks, wide flat troughs (trochoidal read)
-    h = h + amp * (sharp - 0.333);
-    let dHump = pow(hump, 1.0) * c;       // d(sharp)/d(phase)
-    let dphase = amp * 2.0 * dHump * k;
-    slopeX = slopeX + dphase * dir.x;
-    slopeY = slopeY + dphase * dir.y;
-  }
-  var out: WaterSample;
-  out.height = h;
-  out.normal = normalize(vec3f(-slopeX, -slopeY, 1.0));
-  // Whitecaps cap the crest TOPS — keyed on height (a scalar, so the foam is
-  // isotropic blobs, not the radial streaks a slope-face signal makes under this
-  // foreshortened camera). Two octaves of fine grain break the caps into dense
-  // granular spray rather than flat white or hard slivers.
-  let cover = smoothstep(1.3, 3.1, h);
-  // Speckle: foam appears only where a three-octave noise is high, so the crest
-  // caps break into granular spray instead of solid white regions. The finest
-  // octave keeps the near-foreground patches from clumping into opaque blobs.
-  let speckle = fnoise(p * 0.5 + vec2f(t * 0.10, t * 0.05)) * 0.42
-              + fnoise(p * 1.3 - vec2f(t * 0.06, t * 0.09)) * 0.34
-              + fnoise(p * 3.0 + vec2f(t * 0.04, -t * 0.07)) * 0.24;
-  out.foam = cover * smoothstep(0.42, 0.66, speckle) * 0.9;
-  return out;
-}`;
-}
-
-// The analytic field WGSL: the `WaterSample` struct + `waterField(p, t)` + its noise
-// helpers. Exported for renderers that evaluate the same sea spectrum.
-export const GERSTNER_WGSL = gerstnerWgsl();
-
-export class GerstnerWaterField implements WaterFieldSource {
-  readonly id: WaterFieldId = 'gerstner';
-
-  wgslSample(): string {
-    return GERSTNER_WGSL;
-  }
-
-  bindGroupLayout(): GPUBindGroupLayout | null {
-    return null;
-  }
-
-  ensureFrame(): void {
-    // analytic — nothing to dispatch.
-  }
-
-  bindGroup(): GPUBindGroup | null {
-    return null;
-  }
-
-  stats(): WaterFieldStats {
-    return { id: this.id, fieldResolution: 1, storageBytes: 0 };
-  }
-
-  destroy(): void {
-    // no GPU resources.
-  }
 }

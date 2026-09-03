@@ -205,7 +205,7 @@ type ScoredCampaignSceneryInstance = CampaignSceneryInstance & {
 
 const CAMPAIGN_SCENERY_REGION_CELLS = 24;
 
-export function selectRegionalScenery(
+function selectRegionalScenery(
   items: ScoredCampaignSceneryInstance[],
   limit: number,
 ): CampaignSceneryInstance[] {

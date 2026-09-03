@@ -1,5 +1,6 @@
 import { clamp, dot, float, mix, vec2, vec3 } from "three/tsl";
 import { MEADOW } from "../../../game-renderer/src/battle/meadowPalette";
+import { smoothstep } from "../../../renderer-core/src/scalar";
 import {
   fbmN,
   rgbNode,
@@ -9,7 +10,7 @@ import {
   type Vec3Node,
 } from "./battleTsl";
 
-export const GROUND_DETAIL_TERMS = ["mottle", "canopy", "quad-flecks", "scrub"] as const;
+const GROUND_DETAIL_TERMS = ["mottle", "canopy", "quad-flecks", "scrub"] as const;
 export type GroundDetailTerm = (typeof GROUND_DETAIL_TERMS)[number];
 
 export function groundDetailTermFromParam(value: string | null): GroundDetailTerm | null {
@@ -76,7 +77,7 @@ export const TURF_CONTRAST = {
 } as const;
 
 /** Fixed spatial vocabulary; amplitudes and material weights live above. */
-export const TURF_SHAPE = {
+const TURF_SHAPE = {
   ground: {
     driftScale: 0.08,
     mottleScale: 1.1,
@@ -92,7 +93,7 @@ export const TURF_SHAPE = {
 } as const;
 
 /** Compose the shared neutral ground-scale modulation before feature materials. */
-export interface GroundDetailOptions {
+interface GroundDetailOptions {
   disabledTerm?: GroundDetailTerm | null;
   coverage?: FloatNode;
 }
@@ -202,11 +203,6 @@ export function turfCanopyNode(world: Vec2Node, fine: FloatNode): Vec3Node {
   const broad = fbmN(world.mul(shape.broadScale).add(vec2(2.5, 7))).toVar();
   const mid = fbmN(world.mul(shape.midScale).add(vec2(6, 1.5))).toVar();
   return turfCanopyFromSignalsNode(broad, mid, fine);
-}
-
-function smoothstep(low: number, high: number, value: number): number {
-  const t = Math.max(0, Math.min(1, (value - low) / (high - low)));
-  return t * t * (3 - 2 * t);
 }
 
 function fbm(x: number, y: number): number {

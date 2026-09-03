@@ -1,7 +1,7 @@
 import type { BackgroundRenderPass, OverlayRenderPass, RawFrameShell } from '../../../renderer-core/src/frameShell';
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 
-export interface CampaignAtmosphereRect {
+interface CampaignAtmosphereRect {
   min: [number, number];
   max: [number, number];
 }

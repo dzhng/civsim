@@ -40,37 +40,37 @@ export const CSM_CASCADES = 2;
 /** Per-cascade shadow map resolution on hardware. */
 export const CSM_MAP_SIZE = 2048;
 /** The single-tier (SwiftShader) map resolution — correctness proxy, not look. */
-export const SINGLE_MAP_SIZE = 1024;
+const SINGLE_MAP_SIZE = 1024;
 /** How far from the eye cascades reach before shadows fade out. Past this the
  *  10b aerial haze owns distance attenuation anyway; CSMShadowNode.fade blends
  *  the last cascade toward it instead of hard-clipping. */
 // 1500, not 2600: haze owns depth past ~1.5km and a longer range stretches
 // the far cascade's texels to ~1.3m - at 0.3m normal bias the distant field
 // self-shadowed WHOLESALE (David's giant view-following dark band).
-export const SHADOW_MAX_FAR = 1500;
+const SHADOW_MAX_FAR = 1500;
 /** Light-space margin behind each cascade's near plane so off-frustum casters
  *  (a headland, a tree line just out of frame) still throw shadows in. */
-export const CSM_LIGHT_MARGIN = 300;
+const CSM_LIGHT_MARGIN = 300;
 /** Depth-compare bias in [0,1] depth units — the acne knob. Multiply by
  *  SHADOW_CAM_FAR for world units (-0.00003 ≈ 0.075 world). CSMShadowNode
  *  multiplies it by (cascade + 1), so coarser far cascades get more. Tuned
  *  DOWN from -0.0005: over-biasing silently erased every soldier-sized
  *  shadow (a bias deeper than the caster is a deleted caster). */
-export const SHADOW_BIAS = -0.00003;
+const SHADOW_BIAS = -0.00003;
 /** World-unit push along the receiver normal: the peter-panning-vs-acne
  *  trade. 0.3 ≈ a boot height; shrinks a golden-hour soldier shadow by
  *  ~0.8 world at the far tip, which contact framing still reads fine.
  *  NOTE: three reads the receiver normal from the STANDARD 'normal'
  *  attribute — every custom-named geometry aliases it (see crowdLayer). */
-export const SHADOW_NORMAL_BIAS = 0.6;
+const SHADOW_NORMAL_BIAS = 0.6;
 /** Ortho shadow-camera depth range. CSMShadowNode sets each cascade's XY
  *  extents but leaves the CLONED DirectionalLightShadow camera's near/far at
  *  three's defaults (0.5/500) — receivers past 500 light-units compare
  *  against cleared depth and read fully shadowed (a giant smooth blackout,
  *  caught on the first hardware shot). Size it to the light-space depth of a
  *  whole battle map + the light margin. */
-export const SHADOW_CAM_NEAR = 1;
-export const SHADOW_CAM_FAR = 2500;
+const SHADOW_CAM_NEAR = 1;
+const SHADOW_CAM_FAR = 2500;
 
 /** PCF softness from the preset's turbidity (aerosol optical depth blurs the
  *  solar disc): clear skies cast crisp shadows, hazy/overcast cast soft ones.

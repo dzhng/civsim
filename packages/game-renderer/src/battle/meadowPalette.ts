@@ -2,138 +2,75 @@ import type { BattleGroundCover } from "./terrainFeatures";
 
 export type Rgb = readonly [number, number, number];
 
-const MEADOW_ANCHOR: Rgb = [0.4, 0.49, 0.26];
-const GREEN_GRASS_UNDERLAYER: Rgb = fromAnchor(MEADOW_ANCHOR, [0.47, 0.56, 0.28]);
-
-function fromAnchor(base: Rgb, legacy: Rgb): Rgb {
-  return [
-    base[0] * (legacy[0] / MEADOW_ANCHOR[0]),
-    base[1] * (legacy[1] / MEADOW_ANCHOR[1]),
-    base[2] * (legacy[2] / MEADOW_ANCHOR[2]),
-  ];
-}
-
 export const GROUND_COVER_COLOR: Readonly<Record<BattleGroundCover, Rgb>> = {
-  "green-grass": GREEN_GRASS_UNDERLAYER,
-  "yellow-grass": fromAnchor(MEADOW_ANCHOR, [0.6, 0.57, 0.31]),
-  "scrub-grass": fromAnchor(MEADOW_ANCHOR, [0.52, 0.53, 0.34]),
-  sand: fromAnchor(MEADOW_ANCHOR, [0.74, 0.66, 0.46]),
+  "green-grass": [0.47, 0.56, 0.28],
+  "yellow-grass": [0.6, 0.57, 0.31],
+  "scrub-grass": [0.52, 0.53, 0.34],
+  sand: [0.74, 0.66, 0.46],
 };
 
-export interface MeadowFamily {
-  readonly base: Rgb;
-  readonly blade: {
-    readonly source: "packages/game-renderer/src/battle/meadowPalette.ts MEADOW.blade";
-    readonly base: Rgb;
-    readonly low: Rgb;
-    /** @deprecated Use base/low/mid/upper/tip for the blade ramp. */
-    readonly root: Rgb;
-    readonly mid: Rgb;
-    readonly upper: Rgb;
-    readonly tip: Rgb;
-    readonly trans: Rgb;
-    readonly sheen: Rgb;
-    readonly dry: Rgb;
-    readonly dryTipMix: number;
-    readonly ringMeadow: Rgb;
-  };
-  readonly farGrass: {
-    readonly low: Rgb;
-    readonly high: Rgb;
-    readonly shadow: Rgb;
-    readonly lift: Rgb;
-  };
-  readonly quad: {
-    readonly default: MeadowQuadStylePalette;
-    readonly wideDetail: MeadowQuadStylePalette;
-    readonly scrub: Rgb;
-    readonly rakedDust: Rgb;
-    readonly lightFleck: Rgb;
-    readonly stoneFleck: Rgb;
-    readonly sunBleached: Rgb;
-    readonly backdrop: {
-      readonly low: Rgb;
-      readonly high: Rgb;
-      readonly shadow: Rgb;
-      readonly fleck: Rgb;
-    };
-  };
-  readonly earth: {
-    readonly forestFloor: Rgb;
-    readonly mud: Rgb;
-    readonly roadDust: Rgb;
-  };
-}
-
-export interface MeadowQuadStylePalette {
-  readonly oliveLow: Rgb;
-  readonly oliveHigh: Rgb;
-  readonly dry: Rgb;
-  readonly stubble: Rgb;
-  readonly darkFleck: Rgb;
-}
-
-export function meadowFamily(base: Rgb): MeadowFamily {
-  const color = (legacy: Rgb): Rgb => fromAnchor(base, legacy);
-  const blade = {
+export const MEADOW = {
+  base: [0.47, 0.56, 0.28],
+  blade: {
     source: "packages/game-renderer/src/battle/meadowPalette.ts MEADOW.blade",
-    base: color([0.385, 0.489, 0.216]),
-    low: color([0.475, 0.553, 0.202]),
-    root: color([0.46, 0.52, 0.25]),
-    mid: color([0.603, 0.642, 0.265]),
-    upper: color([0.677, 0.703, 0.3]),
-    tip: color([0.739, 0.739, 0.362]),
-    trans: color([0.801, 0.818, 0.431]),
-    sheen: color([0.757, 0.774, 0.572]),
-    dry: color([0.778, 0.7, 0.362]),
+    base: [0.45237499999999997, 0.5588571428571429, 0.2326153846153846],
+    low: [0.5581249999999999, 0.6320000000000002, 0.21753846153846157],
+    root: [0.5405, 0.5942857142857144, 0.2692307692307692],
+    mid: [0.7085249999999998, 0.7337142857142858, 0.2853846153846154],
+    upper: [0.795475, 0.8034285714285715, 0.3230769230769231],
+    tip: [0.8683249999999999, 0.8445714285714288, 0.38984615384615384],
+    trans: [0.9411749999999999, 0.9348571428571429, 0.46415384615384614],
+    sheen: [0.8894749999999999, 0.8845714285714287, 0.616],
+    dry: [0.91415, 0.8, 0.38984615384615384],
     dryTipMix: 0.05,
-    ringMeadow: color([0.48, 0.55, 0.31]),
-  } as const;
-  const defaultQuad = {
-    oliveLow: color([0.43, 0.56, 0.22]),
-    oliveHigh: color([0.66, 0.69, 0.33]),
-    dry: color([0.76, 0.67, 0.39]),
-    stubble: color([0.53, 0.48, 0.25]),
-    darkFleck: color([0.47, 0.43, 0.32]),
-  };
-  const wideDetailQuad = {
-    oliveLow: color([0.44, 0.58, 0.22]),
-    oliveHigh: color([0.68, 0.71, 0.33]),
-    dry: color([0.75, 0.67, 0.39]),
-    stubble: color([0.52, 0.47, 0.25]),
-    darkFleck: color([0.45, 0.42, 0.31]),
-  };
-
-  return {
-    base: [base[0], base[1], base[2]],
-    blade,
-    farGrass: {
-      low: color([0.36, 0.42, 0.22]),
-      high: color([0.62, 0.63, 0.4]),
-      shadow: color([0.28, 0.33, 0.17]),
-      lift: color([0.72, 0.72, 0.47]),
+    ringMeadow: [0.564, 0.6285714285714287, 0.33384615384615385],
+  },
+  farGrass: {
+    low: [0.42299999999999993, 0.48000000000000004, 0.23692307692307693],
+    high: [0.7284999999999999, 0.7200000000000001, 0.43076923076923085],
+    shadow: [0.329, 0.3771428571428572, 0.1830769230769231],
+    lift: [0.8459999999999999, 0.822857142857143, 0.5061538461538462],
+  },
+  quad: {
+    default: {
+      oliveLow: [0.50525, 0.6400000000000001, 0.23692307692307693],
+      oliveHigh: [0.7755, 0.7885714285714287, 0.3553846153846154],
+      dry: [0.8929999999999999, 0.7657142857142859, 0.42000000000000004],
+      stubble: [0.6227499999999999, 0.5485714285714286, 0.2692307692307692],
+      darkFleck: [0.5522499999999999, 0.49142857142857144, 0.34461538461538466],
     },
-    quad: {
-      default: defaultQuad,
-      wideDetail: wideDetailQuad,
-      scrub: color([0.31, 0.39, 0.18]),
-      rakedDust: color([0.774, 0.66, 0.414]),
-      lightFleck: color([0.13, 0.12, 0.055]),
-      stoneFleck: color([0.46, 0.43, 0.32]),
-      sunBleached: color([0.757, 0.634, 0.405]),
-      backdrop: {
-        low: color([0.16, 0.25, 0.12]),
-        high: color([0.3, 0.42, 0.2]),
-        shadow: color([0.11, 0.18, 0.1]),
-        fleck: color([0.1, 0.12, 0.04]),
-      },
+    wideDetail: {
+      oliveLow: [0.5169999999999999, 0.6628571428571429, 0.23692307692307693],
+      oliveHigh: [0.7989999999999999, 0.8114285714285715, 0.3553846153846154],
+      dry: [0.88125, 0.7657142857142859, 0.42000000000000004],
+      stubble: [0.611, 0.5371428571428571, 0.2692307692307692],
+      darkFleck: [0.5287499999999999, 0.48000000000000004, 0.33384615384615385],
     },
-    earth: {
-      forestFloor: color([0.24, 0.34, 0.19]),
-      mud: color([0.4, 0.33, 0.23]),
-      roadDust: color([0.56, 0.53, 0.45]),
+    scrub: [0.36424999999999996, 0.44571428571428573, 0.19384615384615386],
+    rakedDust: [0.90945, 0.7542857142857144, 0.44584615384615384],
+    lightFleck: [0.15275, 0.13714285714285715, 0.05923076923076923],
+    stoneFleck: [0.5405, 0.49142857142857144, 0.34461538461538466],
+    sunBleached: [0.8894749999999999, 0.7245714285714286, 0.4361538461538462],
+    backdrop: {
+      low: [0.18799999999999997, 0.28571428571428575, 0.12923076923076923],
+      high: [0.3524999999999999, 0.48000000000000004, 0.21538461538461542],
+      shadow: [0.12924999999999998, 0.20571428571428574, 0.10769230769230771],
+      fleck: [0.1175, 0.13714285714285715, 0.04307692307692308],
     },
-  };
-}
-
-export const MEADOW = meadowFamily(GROUND_COVER_COLOR["green-grass"]);
+  },
+  earth: {
+    forestFloor: [0.282, 0.3885714285714287, 0.20461538461538462],
+    mud: [0.47, 0.3771428571428572, 0.2476923076923077],
+    roadDust: [0.658, 0.6057142857142859, 0.48461538461538467],
+  },
+  rock: {
+    faceLow: [0.32, 0.32, 0.29],
+    faceHigh: [0.45, 0.43, 0.36],
+    fracture: [0.21, 0.22, 0.21],
+    strata: [0.19, 0.2, 0.19],
+    screeLow: [0.43, 0.42, 0.36],
+    screeHigh: [0.57, 0.54, 0.45],
+    screePebble: [0.3, 0.3, 0.27],
+    bench: [0.34, 0.43, 0.21],
+  },
+} as const;

@@ -1,6 +1,6 @@
 import type * as THREE from "three/webgpu";
 
-export interface MeadowGrassStats {
+interface MeadowGrassStats {
   layer: string;
   enabled: boolean;
   farTierVisible: boolean;

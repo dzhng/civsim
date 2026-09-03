@@ -8,7 +8,7 @@ export interface GpuSupportState {
   message: string;
 }
 
-export type GpuSupportOptions = GpuCapabilityOptions;
+type GpuSupportOptions = GpuCapabilityOptions;
 
 export async function checkGpuSupport(options: GpuSupportOptions = {}): Promise<GpuSupportState> {
   const capabilities = await probeGpuCapabilities(options);

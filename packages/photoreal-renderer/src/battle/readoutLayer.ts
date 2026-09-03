@@ -13,9 +13,9 @@ import {
 import { linearAlbedo } from "./battleTsl";
 import { RENDER_ORDER } from "./terrainLayer";
 
-export type BattleReadoutChipKind = "plain" | "hot" | "bad";
+type BattleReadoutChipKind = "plain" | "hot" | "bad";
 
-export interface BattleReadoutChip {
+interface BattleReadoutChip {
   text: string;
   kind?: BattleReadoutChipKind;
 }
@@ -399,10 +399,6 @@ function chipWidth(text: string): number {
   }
   const measured = chipMeasureCtx ? Math.ceil(chipMeasureCtx.measureText(text).width) : text.length * 5;
   return Math.min(52, Math.max(18, measured + 8));
-}
-
-function clamp01(value: number): number {
-  return Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
 }
 
 function nextPow2(value: number): number {

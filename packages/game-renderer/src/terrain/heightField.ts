@@ -5,7 +5,7 @@
 // a per-surface guess. This is a typed VIEW over height data the canonical
 // terrain owns, never the authoritative store.
 
-export type TerrainHeightUnits = 'meters' | 'kilometers' | 'visual';
+type TerrainHeightUnits = 'meters' | 'kilometers' | 'visual';
 
 export interface TerrainHeightField {
   w: number;

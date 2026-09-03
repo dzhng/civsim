@@ -14,7 +14,7 @@ export interface TreeGeometryPart {
   indices: number[];
 }
 
-export interface TreeGeometry {
+interface TreeGeometry {
   branches: TreeGeometryPart;
   leaves: TreeGeometryPart;
 }

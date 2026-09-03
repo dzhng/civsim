@@ -7,7 +7,7 @@
 
 import { flatHeightField, type TerrainHeightField } from '../terrain/heightField';
 
-export type BattleTerrainFeatureKind =
+type BattleTerrainFeatureKind =
   | 'water'
   | 'rock'
   | 'wall'

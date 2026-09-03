@@ -18,7 +18,7 @@ import type { PhotorealWorld } from "./world";
 
 type Rgb = [number, number, number];
 
-export interface PhotorealEnvironmentSpec {
+interface PhotorealEnvironmentSpec {
   id: CivsimEnvironmentId;
   /** Unit vector toward the sun, from the preset azimuth/elevation (z-up). */
   sunDirection: Rgb;
@@ -56,7 +56,7 @@ export function photorealEnvironment(env: CivsimEnvironment): PhotorealEnvironme
   };
 }
 
-export interface PhotorealEnvironmentOptions {
+interface PhotorealEnvironmentOptions {
   /** Observer point for aerial optical depth (see aerialPerspectiveNode) —
    *  the battle world passes its camera ground focus. Default: the eye. */
   aerialObserver?: Node<"vec3">;

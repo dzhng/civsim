@@ -7,7 +7,7 @@ import type { BackgroundRenderPass, OverlayRenderPass, RawFrameShell, WorldRende
 
 type CampaignLineRenderPass = BackgroundRenderPass | WorldRenderPass;
 
-export interface CampaignMapNodeData {
+interface CampaignMapNodeData {
   id?: number;
   name: string;
   pos: [number, number];
@@ -16,19 +16,19 @@ export interface CampaignMapNodeData {
   owner: string;
 }
 
-export interface CampaignMapEdgeData {
+interface CampaignMapEdgeData {
   a?: number;
   b?: number;
   kind: 'road' | 'sea';
   via: [number, number][];
 }
 
-export interface CampaignMapFactionData {
+interface CampaignMapFactionData {
   id: string;
   color: [number, number, number];
 }
 
-export interface CampaignMapInputData {
+interface CampaignMapInputData {
   map: {
     nodes: CampaignMapNodeData[];
     edges: CampaignMapEdgeData[];
@@ -54,20 +54,20 @@ export interface CampaignMapStats {
 /** Per-sea-label fit verdict: the accepted scale, how far the label moved
  * from its authored anchor, and the land fraction of the accepted placement's
  * sample cloud (0 = fully on water at the fit zoom). */
-export interface CampaignSeaLabelFit {
+interface CampaignSeaLabelFit {
   text: string;
   scale: number;
   nudgeKm: number;
   landFraction: number;
 }
 
-export interface CampaignMapStyle {
+interface CampaignMapStyle {
   seaTintMix?: number;
   terrainMix?: number;
   terrain?: CampaignMapTerrainTextures;
 }
 
-export interface CampaignMapDrawStyle {
+interface CampaignMapDrawStyle {
   roadScale?: number;
   /** Road land test — point truth against the pixels the player sees (the
    * renderer supplies the full-res render mask). Roads draw where their
@@ -90,7 +90,7 @@ export interface CampaignMapDrawStyle {
   heightAt?: (x: number, y: number) => number;
 }
 
-export interface CampaignMapTerrainTextures {
+interface CampaignMapTerrainTextures {
   width: number;
   height: number;
   biome: Uint8Array;
@@ -102,7 +102,7 @@ export interface CampaignMapSurfaceMesh {
   indices: Uint32Array;
 }
 
-export interface CampaignMapDrawData {
+interface CampaignMapDrawData {
   lineVertices: Float32Array;
   roadMeshVertices: Float32Array;
   labels: CampaignLabel[];
@@ -572,7 +572,7 @@ export function rectsOverlap(a: ScreenRect, b: ScreenRect): boolean {
  * against. Absent the style, the occupancy arbitration still runs (with no
  * card blockers) but candidates are not water-scored: the first
  * occupancy-clear candidate wins. */
-export interface CampaignLabelPlacementStyle {
+interface CampaignLabelPlacementStyle {
   renderSurfaceAt: (x: number, y: number) => 'land' | 'water';
   /** Visible DOM card rects (CSS px), reported per frame by the scene's card
    * loop. Cards outrank canvas labels: the occupancy arbitration treats these
@@ -580,7 +580,7 @@ export interface CampaignLabelPlacementStyle {
   blockedRects?: ScreenRect[];
 }
 
-export interface CampaignLabelDebugRect {
+interface CampaignLabelDebugRect {
   text: string;
   kind: CampaignLabel['kind'];
   importance?: number;
@@ -1613,12 +1613,12 @@ const SEA_LABEL_PADDING_EM = 0.34;
  * and return the first fully-clean candidate — else the least-bad earliest
  * one. "Bad" is the caller's polarity: land under a sea label, water under a
  * city label. */
-export interface PlacementVerdict<C> {
+interface PlacementVerdict<C> {
   candidate: C;
   badFraction: number;
 }
 
-export function bestPlacement<C>(
+function bestPlacement<C>(
   candidates: Iterable<C>,
   worldSamplesOf: (candidate: C) => [number, number][],
   isBadAt: (x: number, y: number) => boolean,

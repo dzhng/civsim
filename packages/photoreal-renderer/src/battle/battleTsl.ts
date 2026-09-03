@@ -15,8 +15,6 @@ import type { Node } from 'three/webgpu';
 export type FloatNode = Node<'float'>;
 export type Vec2Node = Node<'vec2'>;
 export type Vec3Node = Node<'vec3'>;
-export type Vec4Node = Node<'vec4'>;
-
 export type Rgb = readonly [number, number, number];
 
 export function rgbNode(c: Rgb): Vec3Node {

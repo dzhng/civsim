@@ -8,7 +8,7 @@
 
 export type Mat4 = Float32Array; // length 16, column-major
 export type Vec3 = readonly [number, number, number];
-export type Vec4 = readonly [number, number, number, number];
+type Vec4 = readonly [number, number, number, number];
 
 export function identity(): Mat4 {
   const m = new Float32Array(16);

@@ -9,7 +9,7 @@ import {
   type LodPolicy,
 } from '../../../crowd-runtime/src/lod';
 
-export interface PhotorealCrowdLodPlan {
+interface PhotorealCrowdLodPlan {
   assignments: LodAssignment[];
   counts: LodCounts;
   policy: LodPolicy;

@@ -1,4 +1,4 @@
-export interface GpuCapabilities {
+interface GpuCapabilities {
   ok: boolean;
   adapter: string;
   format: string;
@@ -24,9 +24,9 @@ export interface GpuDeviceCaps {
 
 // 4x is the sample count WebGPU core guarantees for every renderable format, so
 // it is the one MSAA tier we rely on without a per-format query.
-export const GPU_MSAA_SAMPLE_COUNT = 4 as const;
+const GPU_MSAA_SAMPLE_COUNT = 4 as const;
 
-export interface ResolveDeviceCapsInput {
+interface ResolveDeviceCapsInput {
   adapterLimits: Record<string, number>;
   deviceFeatures: Iterable<string>;
   powerPreference: GpuPowerPreference;

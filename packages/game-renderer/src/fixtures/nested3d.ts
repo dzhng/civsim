@@ -4,7 +4,7 @@ import { compileShader } from '../../../renderer-core/src/compileShader';
 import { GPU_DEPTH_FORMAT } from '../../../renderer-core/src/depthContract';
 import { gpuMultisample, gpuOpaqueColorTarget, gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 
-export interface Nested3dFixtureStats {
+interface Nested3dFixtureStats {
   layer: 'depth-tested-nested-3d-fixture';
   vertices: number;
   drawCalls: number;

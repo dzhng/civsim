@@ -114,9 +114,9 @@ interface WaterSampleNodes {
 }
 
 export type SeaDisplacementSourceId = "gerstner-tsl";
-export type SeaDisplacementTier = "gerstner-tsl";
+type SeaDisplacementTier = "gerstner-tsl";
 
-export interface SeaSurfaceStats {
+interface SeaSurfaceStats {
   owner: typeof SEA_SURFACE_OWNER;
   skyReflection: "scene.environment:skyModel-lut";
   sunGlint: "mesh-standard-ggx";
@@ -157,7 +157,7 @@ export interface SeaSurfaceStats {
   };
 }
 
-export interface SeaDisplacementStats {
+interface SeaDisplacementStats {
   requested: SeaDisplacementSourceId;
   source: SeaDisplacementSourceId;
   tier: SeaDisplacementTier;
@@ -168,7 +168,7 @@ export interface SeaDisplacementStats {
   surface: SeaSurfaceStats;
 }
 
-export interface SeaDisplacementSource {
+interface SeaDisplacementSource {
   readonly requested: SeaDisplacementSourceId;
   readonly source: SeaDisplacementSourceId;
   readonly tier: SeaDisplacementTier;
@@ -225,7 +225,7 @@ export function createSeaDisplacementSource(
   return new GerstnerSeaSource(requested);
 }
 
-export function seaSurfaceStats(): SeaSurfaceStats {
+function seaSurfaceStats(): SeaSurfaceStats {
   return {
     owner: SEA_SURFACE_OWNER,
     skyReflection: "scene.environment:skyModel-lut",
@@ -271,7 +271,7 @@ export function seaSurfaceStats(): SeaSurfaceStats {
 /** The analytic Gerstner field (gerstnerField.ts waterField), evaluated as a
  *  TSL node graph over the shared baked wave list. Wave phases are baked in JS
  *  (the WGSL hashed them per-wave from the same constants). */
-export function waterFieldNodes(p: Vec2Node, t: FloatNode): WaterSampleNodes {
+function waterFieldNodes(p: Vec2Node, t: FloatNode): WaterSampleNodes {
   const waves = bakeGerstnerWaves();
   const g = 9.81;
   let h: FloatNode = float(0.0);
@@ -319,7 +319,7 @@ export function waterFieldNodes(p: Vec2Node, t: FloatNode): WaterSampleNodes {
 
 /** The vertex-stage displacement height only (the plane pass evaluates the
  *  field twice: vertex for displacement, fragment for the crisp normal). */
-export function waterHeightNode(p: Vec2Node, t: FloatNode): FloatNode {
+function waterHeightNode(p: Vec2Node, t: FloatNode): FloatNode {
   const waves = bakeGerstnerWaves();
   const g = 9.81;
   let h: FloatNode = float(0.0);
@@ -345,11 +345,11 @@ export function waterHeightNode(p: Vec2Node, t: FloatNode): FloatNode {
 
 /** waterShoreRamp(shoreDist) → depth01 (the haze leg of the shared ramp
  *  table is a bespoke-WGSL knob; photoreal haze is the aerial owner's). */
-export function shoreDepthNode(ramp: WaterShoreRamp, shoreDist: FloatNode): FloatNode {
+function shoreDepthNode(ramp: WaterShoreRamp, shoreDist: FloatNode): FloatNode {
   return smoothstepN(ramp.depthNear, ramp.depthFar, shoreDist);
 }
 
-export interface WaterSurfaceNodes {
+interface WaterSurfaceNodes {
   /** Neutral albedo (depth-graded blue + foam). */
   albedo: Vec3Node;
   foam: FloatNode;
@@ -360,7 +360,7 @@ export interface WaterSurfaceNodes {
  *  (ocean planes, on-field water in the ground material) composes through
  *  this, so shorelines cannot show a stripe. Neutral albedo — the environment
  *  lights it, the aerial owner hazes it. */
-export function waterSurfaceNodes(
+function waterSurfaceNodes(
   depth01: FloatNode,
   foamRaw: FloatNode,
   shoreTurbidity: FloatNode | null = null,

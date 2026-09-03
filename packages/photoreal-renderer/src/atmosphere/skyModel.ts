@@ -39,26 +39,27 @@ import type {
   CivsimEnvironment,
   CivsimEnvironmentId,
 } from "../../../game-renderer/src/environment/environment";
+import { smoothstep as smoothstepScalar } from "../../../renderer-core/src/scalar";
 
 type Rgb = readonly [number, number, number];
 type Vec3Node = Node<"vec3">;
 
-export const SKY_TIER = "skyview-fragment-lut" as const;
-export type SkyTier = typeof SKY_TIER;
+const SKY_TIER = "skyview-fragment-lut" as const;
+type SkyTier = typeof SKY_TIER;
 
 /** Sky-view LUT size (Hillaire uses 192×108; equirect wants 2:1). */
-export const SKY_LUT_WIDTH = 384;
-export const SKY_LUT_HEIGHT = 192;
+const SKY_LUT_WIDTH = 384;
+const SKY_LUT_HEIGHT = 192;
 
 // Earth atmosphere constants (Hillaire, EGSR 2020) — km units, z-up world.
-export const PLANET_RADIUS_KM = 6360;
-export const ATMOSPHERE_TOP_KM = 6460;
-export const RAYLEIGH_SCALE_KM = 8.0;
-export const MIE_SCALE_KM = 1.2;
+const PLANET_RADIUS_KM = 6360;
+const ATMOSPHERE_TOP_KM = 6460;
+const RAYLEIGH_SCALE_KM = 8.0;
+const MIE_SCALE_KM = 1.2;
 /** Rayleigh scattering coefficient at sea level (km⁻¹, rgb). */
 export const BETA_RAYLEIGH: Rgb = [5.802e-3, 13.558e-3, 33.1e-3];
 /** Mie scattering/extinction at sea level for turbidity 2 (km⁻¹). */
-export const BETA_MIE_SCATTER = 3.996e-3;
+const BETA_MIE_SCATTER = 3.996e-3;
 export const BETA_MIE_EXTINCTION = 4.44e-3;
 const MIE_G = 0.8;
 const EYE_ALTITUDE_KM = 0.2;
@@ -113,7 +114,7 @@ export function overcastFromTurbidity(turbidity: number): number {
   // bleed past the grey dome - the overcast band read warm, not cool.
   // Extinction (the fog runway the compose gate accepted) is driven by
   // turbidity directly and does not move with this ramp.
-  return smoothstepJs(4.0, 7.0, turbidity);
+  return smoothstepScalar(4.0, 7.0, turbidity);
 }
 
 export function lowSunAureoleStrength(sunDirectionZ: number, overcast: number): number {
@@ -121,12 +122,12 @@ export function lowSunAureoleStrength(sunDirectionZ: number, overcast: number): 
     // Squared: a mostly-overcast sky (0.79 since the 17-era turbidity tune)
     // must keep only a trace of aureole, or the overcast band reads warm.
     (1 - overcast) ** 2 *
-    (1 - smoothstepJs(0.25, 0.85, sunDirectionZ)) *
+    (1 - smoothstepScalar(0.25, 0.85, sunDirectionZ)) *
     LOW_SUN_AUREOLE_RADIANCE
   );
 }
 
-export interface SkyModelParams {
+interface SkyModelParams {
   id: CivsimEnvironmentId;
   /** Unit vector toward the sun (z-up). */
   sunDirection: Rgb;
@@ -438,9 +439,4 @@ export class SkyModel {
 
 /** The sky draws before every world layer in the painter band (battle layers
  *  start at renderOrder -10). Depth is not consulted (depthTest false). */
-export const SKY_RENDER_ORDER = -100;
-
-function smoothstepJs(edge0: number, edge1: number, x: number): number {
-  const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)));
-  return t * t * (3 - 2 * t);
-}
+const SKY_RENDER_ORDER = -100;

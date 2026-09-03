@@ -7,7 +7,7 @@
 // scalars. Each survives for a named consumer purpose (documented inline) —
 // none of them participates in projection, which has exactly one owner:
 // cam.viewProj.
-export const CAMERA_UNIFORM_WGSL = `
+const CAMERA_UNIFORM_WGSL = `
 struct Camera {
   // camera3d's reverse-Z perspective view-projection — the ONE projector.
   viewProj: mat4x4<f32>,

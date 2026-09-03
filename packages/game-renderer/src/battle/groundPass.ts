@@ -31,7 +31,7 @@ const WATER_TINT = 1;
 /** The battle ground mesh, CPU-built: interleaved stride-10 vertices
  *  (pos3, normal3, color3, waterWeight1) + uint32 triangle indices. Photoreal
  *  displaces and tints the surface from this shared data. */
-export interface BattleGroundMesh {
+interface BattleGroundMesh {
   /** Interleaved: x,y,z, nx,ny,nz, r,g,b, water — 10 floats per vertex. */
   vertices: Float32Array;
   /** Source sim tint byte per vertex, kept out of the legacy interleaved stride. */

@@ -24,9 +24,9 @@ export type SceneryPropId =
   | 'cart';
 
 /** Coarse grouping surfaces use for placement mixes and stats. */
-export type SceneryPropFamily = 'tree' | 'rock' | 'mountain' | 'cart';
+type SceneryPropFamily = 'tree' | 'rock' | 'mountain' | 'cart';
 
-export interface SceneryPropModel {
+interface SceneryPropModel {
   id: SceneryPropId;
   /** Human label for review sheets. */
   label: string;
@@ -49,13 +49,9 @@ export const SCENERY_PROP_MODELS: Record<SceneryPropId, SceneryPropModel> = {
 
 export const SCENERY_PROP_IDS = Object.keys(SCENERY_PROP_MODELS) as SceneryPropId[];
 
-export const TREE_PROP_IDS = SCENERY_PROP_IDS.filter(
-  (id) => SCENERY_PROP_MODELS[id].family === 'tree',
-);
-
 // One placed prop on the neutral review ground. `kind` is a prop id; sizes are
 // authored per-sheet so each family frames tightly at its own camera.
-export interface PropReviewInstance {
+interface PropReviewInstance {
   kind: SceneryPropId;
   x: number;
   y: number;
@@ -64,7 +60,7 @@ export interface PropReviewInstance {
   yaw?: number;
 }
 
-export interface PropReviewCamera {
+interface PropReviewCamera {
   x: number;
   y: number;
   zoom: number;
@@ -75,7 +71,7 @@ export interface PropReviewCamera {
 // A review sheet: one reusable prop family posed on neutral ground with no
 // cities, labels, roads, water, or fog competing for the eye. These are the
 // canonical compositions battle and campaign both trust the props at.
-export interface PropReviewGroup {
+interface PropReviewGroup {
   id: string;
   label: string;
   camera: PropReviewCamera;

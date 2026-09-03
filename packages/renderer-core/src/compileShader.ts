@@ -13,7 +13,7 @@ export interface ShaderCompilationMessage {
   column: number;
 }
 
-export type ShaderErrorHandler = (report: { label: string; messages: ShaderCompilationMessage[]; text: string }) => void;
+type ShaderErrorHandler = (report: { label: string; messages: ShaderCompilationMessage[]; text: string }) => void;
 
 let shaderErrorHandler: ShaderErrorHandler | null = null;
 
@@ -48,7 +48,7 @@ export async function shaderCompilationMessages(module: GPUShaderModule, label: 
 }
 
 /** Human-readable block for a set of compile messages, keyed by shader label. */
-export function formatShaderErrors(label: string, messages: ShaderCompilationMessage[]): string {
+function formatShaderErrors(label: string, messages: ShaderCompilationMessage[]): string {
   const lines = [`WGSL compile error in shader "${label}":`];
   for (const msg of messages) {
     lines.push(`  ${msg.type} at ${msg.line}:${msg.column} — ${msg.message}`);

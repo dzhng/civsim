@@ -1,6 +1,6 @@
 export type Rgb = [number, number, number];
 
-export interface IndexedMeshData {
+interface IndexedMeshData {
   vertices: Float32Array;
   indices: Uint16Array;
   indexCount: number;

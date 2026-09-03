@@ -4,7 +4,7 @@ import { gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContrac
 import { CAMPAIGN_SEA_PALETTE_WGSL } from '../water/waterPalette';
 import type { CampaignDrawnCoast, CampaignMapSurfaceMesh } from './mapPass';
 
-export interface CampaignTerritoryTextureData {
+interface CampaignTerritoryTextureData {
   width: number;
   height: number;
   rgba: Uint8Array;
@@ -18,16 +18,16 @@ export interface CampaignBorderPolyline {
   right?: CampaignBorderSide | null;
 }
 
-export interface CampaignTerritoryStyle {
+interface CampaignTerritoryStyle {
   alpha?: number;
 }
 
-export interface CampaignBorderSide {
+interface CampaignBorderSide {
   owner: number;
   color: [number, number, number];
 }
 
-export const CAMPAIGN_FACTION_BORDER_TOTAL_WIDTH_KM = 4.1;
+const CAMPAIGN_FACTION_BORDER_TOTAL_WIDTH_KM = 4.1;
 const CAMPAIGN_FACTION_BORDER_SEAM_WIDTH_KM = 0.7;
 const CAMPAIGN_FACTION_BORDER_STRIP_WIDTH_KM =
   (CAMPAIGN_FACTION_BORDER_TOTAL_WIDTH_KM - CAMPAIGN_FACTION_BORDER_SEAM_WIDTH_KM) * 0.5;

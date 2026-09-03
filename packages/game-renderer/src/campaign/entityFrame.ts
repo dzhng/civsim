@@ -9,8 +9,9 @@ import type { StandardInstance } from "../models/shared/standardPass";
 import type { CampaignFogSource } from "./atmospherePass";
 import { SELECTION_GREEN } from "../overlays";
 import { hash2 } from "../math";
+import { smoothstep } from "../../../renderer-core/src/scalar";
 
-export interface CampaignMapNode {
+interface CampaignMapNode {
   id: number;
   name: string;
   pos: [number, number];
@@ -74,7 +75,7 @@ export interface CityView {
   queue: number;
 }
 
-export interface CampaignFactionLabel {
+interface CampaignFactionLabel {
   faction: number;
   name: string;
   x: number;
@@ -111,11 +112,6 @@ export enum Allegiance {
   Friend = 0,
   Neutral = 1,
   Foe = 2,
-}
-
-export function smoothstep(edge0: number, edge1: number, value: number) {
-  const t = Math.max(0, Math.min(1, (value - edge0) / (edge1 - edge0)));
-  return t * t * (3 - 2 * t);
 }
 
 export const CAMPAIGN_FIGURE_SIZE = 2.4;
@@ -376,17 +372,17 @@ export function factionColor(data: CampaignRenderData, faction: number): [number
   return [color[0] / 255, color[1] / 255, color[2] / 255];
 }
 
-export function allegianceColor(allegiance: Allegiance): [number, number, number] {
+function allegianceColor(allegiance: Allegiance): [number, number, number] {
   if (allegiance === Allegiance.Friend) return SELECTION_GREEN;
   if (allegiance === Allegiance.Foe) return [0.88, 0.27, 0.23];
   return [0.93, 0.78, 0.3];
 }
 
-export function cityModelRadius(tier: number) {
+function cityModelRadius(tier: number) {
   return tier >= 3 ? 6.2 : 5.2;
 }
 
-export function citySelectionRadius(tier: number) {
+function citySelectionRadius(tier: number) {
   return tier >= 3 ? 10.8 : 9.4;
 }
 
@@ -423,7 +419,7 @@ export function fogVisible(opts: CampaignFrameOptions, x: number, y: number, thr
   return fogVisibility(opts.visionSources, x, y) >= threshold;
 }
 
-export function fogVisibility(sources: CampaignFogSource[], x: number, y: number) {
+function fogVisibility(sources: CampaignFogSource[], x: number, y: number) {
   let visible = 0;
   for (const source of sources) {
     const d = Math.hypot(x - source.x, y - source.y);

@@ -11,8 +11,19 @@ ledger in [visualizations/audit-ledger.html](visualizations/audit-ledger.html).
 
 ## Next Agent Prompt
 
-**Status (2026-09-02):** spec authored; nothing implemented. Tree clean at
-`08d8c5fe`.
+**Status (2026-09-02):** spec committed (`cdb6b9e8`); implementation running
+in four lane worktrees at `/Users/david/dev/game-wt/{r,w,s,c}` on branches
+`debt-ledger/{r,w,s,c}`, Codex implementing, orchestrator committing.
+
+**Baseline at HEAD (evidence ledger):** `bun run check` green once
+`bun install --cwd web` restored the missing `node-web-audio-api` package
+(environment, not code). `cargo test --workspace` green. **Pre-existing red:**
+`cargo test -p sim --features force-trace --test force_trace` →
+`force_trace_smoke_covers_expected_channels` panics "missing force channel
+CorridorClamp" — the feature-gated file drifted from the channel set nobody
+ran. Slice 23 treats that as pre-existing and fixes the drift only if the
+fix is one line; otherwise records it. Scene suites not yet baselined
+(slice 01 records them before deleting).
 
 **Pick up here:** slice [01-lab-estate-routes](slices/01-lab-estate-routes.md).
 It is the largest lever and it settles what survives, so every other renderer

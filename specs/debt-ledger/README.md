@@ -32,8 +32,17 @@ pass awaiting review + commit; a dirty lane without one is mid-pass (check
 `force_trace_smoke_covers_expected_channels` panics "missing force channel
 CorridorClamp" — the feature-gated file drifted from the channel set nobody
 ran. Slice 23 treats that as pre-existing and fixes the drift only if the
-fix is one line; otherwise records it. Scene suites not yet baselined
-(slice 01 records them before deleting).
+fix is one line; otherwise records it.
+**Pre-existing red (battle snapshots):** at HEAD on this machine (SwiftShader
+default), `battle-smoke`, `banner-gallery`, `battle-3d-standards` fail their
+committed baselines by 5–41 % (`battle-initial` 57688 px, `banner-gallery`
+199319 px, `battle-standards-eye` 204743 px …). Static frames reproduce the
+same pixel counts run to run; mid-battle frames (`battle-banner`,
+`battle-manual`) vary by timing. **So for battle scenes the "no new reds"
+contract is judged by pixel-count equality against a main-tree run of the
+same scenes, not by PASS.** Campaign scenes pass. Non-snapshot checks pass.
+Re-blessing these baselines is out of scope (repo-weight decision); a slice
+that must move a battle baseline compares its diff numbers against main.
 
 **Pick up here:** slice [01-lab-estate-routes](slices/01-lab-estate-routes.md).
 It is the largest lever and it settles what survives, so every other renderer

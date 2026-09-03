@@ -20,7 +20,7 @@ Four formulas exist today:
 | form | sites |
 |---|---|
 | `0.5*w.hypot(d)` | `sim.rs:1318, 1896-1897`, `unit.rs:280` |
-| `0.5*w.max(d)` | `sim.rs:1641-1642`, `collision.rs:191,197`, `combat.rs:216,221`, `missiles.rs:200`, `morale.rs:138,213` |
+| `0.5*w.max(d)` | `sim.rs` (deliver_orders), `separation/*` (was `collision.rs:191,197`), `combat/run.rs` (was `combat.rs:216,221`), `missiles.rs:200`, `morale.rs:138,213` |
 | `0.5*(w+d)` | `sim.rs:1019, 1029` (slot policy) |
 
 `deliver_orders` (1636-1643) and `mounted_threat_near` (1890-1898) re-derive
@@ -33,8 +33,10 @@ are asymmetric; do not "fix" that here — it is a mechanics change.
 
 - **27a** — hypot sites → `bound_radius()`. No behaviour change; G-infra
   identical.
-- **27b** — `max` sites, one file per commit (collision → combat → missiles →
-  morale → `sim.rs:1641`). Thresholds widen by up to 41 %; after each commit
+- **27b** — `max` sites, one file per commit (separation → combat/run → missiles →
+  morale → `sim.rs` deliver_orders). After slice 26 the files are `steer/`,
+  `separation/` and `combat/`; grep `0.5 * ` with `.max(` rather than trusting
+  the audit's line numbers. Thresholds widen by up to 41 %; after each commit
   run the full suite, classify each red with tweak-mechanics (mechanism vs
   pinned expectation; memory: a test can encode wrong reality), re-pin
   individually. Never fix a balance pin by changing physics or a tunable.

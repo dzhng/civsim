@@ -11,6 +11,13 @@ made and judged; the renderer spec's firewalls do not apply here (this spec DOES
 touch `crates/sim`), but the combat design contract memory and the seed-stable
 test suite are sacred.
 
+
+> **2026-09-03 (debt-ledger slice 26):** `crates/sim/src/collision.rs` and the
+> steering/combat god functions were split into `steer/`, `separation/` and
+> `combat/` owners. `assets/perf-instrumentation.patch` targets the old files
+> and no longer applies; re-derive the instrumentation against the new owners
+> before following the pickup below.
+
 ## Next Agent Prompt
 
 **Status:** Spec authored 2026-07-02 from the codex investigation

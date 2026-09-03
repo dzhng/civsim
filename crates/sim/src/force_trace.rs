@@ -1,8 +1,67 @@
 use crate::math::Vec2;
+#[cfg(feature = "force-trace")]
 use std::collections::{BTreeMap, BTreeSet};
+#[cfg(feature = "force-trace")]
 use std::fs::File;
+#[cfg(feature = "force-trace")]
 use std::io::{BufWriter, Write};
+#[cfg(feature = "force-trace")]
 use std::path::Path;
+
+#[cfg(feature = "force-trace")]
+pub(crate) struct Tracer<'a> {
+    buf: &'a mut Vec<ForceRecord>,
+    tick: u64,
+}
+
+#[cfg(feature = "force-trace")]
+impl<'a> Tracer<'a> {
+    #[inline(always)]
+    pub(crate) fn new(buf: &'a mut Vec<ForceRecord>, tick: u64) -> Self {
+        Self { buf, tick }
+    }
+
+    #[inline(always)]
+    pub(crate) fn record(
+        &mut self,
+        soldier: usize,
+        unit: usize,
+        channel: ForceChannel,
+        before: Option<Vec2>,
+        after: Vec2,
+        meta: &'static str,
+    ) {
+        self.buf.push(match before {
+            Some(before) => {
+                ForceRecord::cap(self.tick, soldier, unit, channel, before, after, meta)
+            }
+            None => ForceRecord::new(self.tick, soldier, unit, channel, after, meta),
+        });
+    }
+}
+
+#[cfg(not(feature = "force-trace"))]
+pub(crate) struct Tracer;
+
+#[cfg(not(feature = "force-trace"))]
+impl Tracer {
+    #[inline(always)]
+    pub(crate) fn new(_: u64) -> Self {
+        Self
+    }
+
+    #[inline(always)]
+    pub(crate) fn record(
+        &mut self,
+        _: usize,
+        _: usize,
+        _: ForceChannel,
+        _: Option<Vec2>,
+        _: Vec2,
+        _: &'static str,
+    ) {
+    }
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum ForceChannel {
@@ -27,6 +86,7 @@ pub enum ForceChannel {
     HardWall,
     ProjectionPass,
     WeaponRepel,
+    #[cfg(feature = "force-trace")]
     HitPush,
     KnockbackMomentum,
     ImpactPush,
@@ -39,6 +99,7 @@ pub enum ForceChannel {
     UnitFrame,
 }
 
+#[cfg(feature = "force-trace")]
 impl ForceChannel {
     pub const ALL: &'static [ForceChannel] = &[
         ForceChannel::WeaveNet,
@@ -154,6 +215,7 @@ impl ForceChannel {
     }
 }
 
+#[cfg(feature = "force-trace")]
 #[derive(Clone, Debug)]
 pub struct ForceRecord {
     pub tick: u64,
@@ -166,6 +228,7 @@ pub struct ForceRecord {
     pub meta: &'static str,
 }
 
+#[cfg(feature = "force-trace")]
 impl ForceRecord {
     pub fn new(
         tick: u64,
@@ -209,6 +272,7 @@ impl ForceRecord {
     }
 }
 
+#[cfg(feature = "force-trace")]
 #[derive(Clone, Debug, Default)]
 pub struct ForceTraceFilter {
     pub units: Option<BTreeSet<usize>>,
@@ -217,6 +281,7 @@ pub struct ForceTraceFilter {
     pub channels: Option<BTreeSet<ForceChannel>>,
 }
 
+#[cfg(feature = "force-trace")]
 impl ForceTraceFilter {
     pub fn matches(&self, record: &ForceRecord) -> bool {
         if let Some(units) = &self.units {
@@ -243,12 +308,14 @@ impl ForceTraceFilter {
     }
 }
 
+#[cfg(feature = "force-trace")]
 #[derive(Clone, Debug, Default)]
 pub struct ForceTrace {
     records: Vec<ForceRecord>,
     filter: ForceTraceFilter,
 }
 
+#[cfg(feature = "force-trace")]
 impl ForceTrace {
     pub fn new() -> Self {
         Self::default()
@@ -369,6 +436,7 @@ impl ForceTrace {
     }
 }
 
+#[cfg(feature = "force-trace")]
 #[derive(Clone, Copy, Debug)]
 pub struct ForceBudget {
     pub channel: ForceChannel,
@@ -376,6 +444,7 @@ pub struct ForceBudget {
     pub torque: f32,
 }
 
+#[cfg(feature = "force-trace")]
 #[derive(Clone, Copy, Debug)]
 pub struct CapSample {
     pub tick: u64,
@@ -386,6 +455,7 @@ pub struct CapSample {
     pub post: Vec2,
 }
 
+#[cfg(feature = "force-trace")]
 fn fmt_vec(v: Option<Vec2>) -> String {
     match v {
         Some(v) => format!("{{\"x\":{},\"y\":{}}}", v.x, v.y),

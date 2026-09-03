@@ -1,7 +1,22 @@
-import type { WaterFieldId, WaterFieldSource, WaterFieldStats } from './waterField';
+export type WaterFieldId = 'gerstner';
 
-// Candidate A — analytic Gerstner-style ocean, and (per the Slice 1 bake-off) the
-// production water field. A sum of many directional gravity waves with deep-water
+export interface WaterFieldStats {
+  id: WaterFieldId;
+  fieldResolution: number;
+  storageBytes: number;
+}
+
+export interface WaterFieldSource {
+  readonly id: WaterFieldId;
+  wgslSample(): string;
+  bindGroupLayout(): GPUBindGroupLayout | null;
+  ensureFrame(enc: GPUCommandEncoder, t: number): void;
+  bindGroup(): GPUBindGroup | null;
+  stats(): WaterFieldStats;
+  destroy(): void;
+}
+
+// The production water field is a sum of directional gravity waves with deep-water
 // dispersion (ω = √(gk)) and sharpened crests, evaluated in closed form with an
 // analytic normal. No GPU resources, no compute, no per-frame upload:
 // `bindGroupLayout()`/`bindGroup()` are null and `ensureFrame` is a no-op.
@@ -138,9 +153,7 @@ fn waterField(p: vec2f, t: f32) -> WaterSample {
 }
 
 // The analytic field WGSL: the `WaterSample` struct + `waterField(p, t)` + its noise
-// helpers. Exported so the per-fragment field-water material (fieldWaterWgsl) can
-// inline it directly — field water is always analytic Gerstner (a per-fragment pass
-// cannot bind a compute-IFFT field), so it needs the WGSL, not the seam.
+// helpers. Exported for renderers that evaluate the same sea spectrum.
 export const GERSTNER_WGSL = gerstnerWgsl();
 
 export class GerstnerWaterField implements WaterFieldSource {

@@ -12,7 +12,7 @@ import {
   hasFramePassRole,
   hasFramePhaseOrder,
 } from "../_renderer-contract.mjs";
-import { labRoute, ready } from "../worlds.mjs";
+import { labRoute } from "../worlds.mjs";
 
 export const meta = {
   name: "renderer-lab-routes",
@@ -530,37 +530,6 @@ async function findPhaseBrandFootguns() {
       file: new URL("../../../packages/renderer-core/src/skinnedPipeline.ts", import.meta.url),
       checks: [
         ["skinned crowd draw requires world pass", /\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/],
-      ],
-    },
-    {
-      file: new URL("../../../packages/game-renderer/src/battle/groundCuePass.ts", import.meta.url),
-      checks: [
-        [
-          "battle ground cue draw requires world pass",
-          /\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/,
-        ],
-        ["battle ground cue uses the shared projector", /projectWorld\s*\(/],
-        [
-          "battle ground cue uses depth-read material contract",
-          /gpuWorldDepthStencil\s*\(\s*'read'\s*\)/,
-        ],
-        ["selected unit cue helper uses ground-cue naming", /selectedUnitGroundCueVertices/],
-      ],
-    },
-    {
-      file: new URL(
-        "../../../packages/game-renderer/src/battle/effectLinePass.ts",
-        import.meta.url,
-      ),
-      checks: [
-        [
-          "battle effect line draw requires overlay pass",
-          /\bdraw\s*\(\s*pass:\s*OverlayRenderPass\s*\)/,
-        ],
-        [
-          "battle effect line does not use world depth stencil",
-          (v) => !/gpuWorldDepthStencil|depthStencil/.test(v),
-        ],
       ],
     },
     {

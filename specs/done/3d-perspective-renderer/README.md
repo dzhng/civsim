@@ -12,6 +12,10 @@ an antique painted chart, not photorealism (see *The campaign split*).
 This document is the record of *why* it took this shape and *what must stay true*.
 The code is the source of truth for *how*; every claim below points at it.
 
+The later [renderer-lab retirement](../renderer-lab-exhibits.md) supersedes the
+legacy kept-list below; its former `battle-terrain-elevation` seating tripwire is
+now the four-map production `battle-seating` gate.
+
 ## The motivating symptom (why this existed)
 
 `/renderer/water-bakeoff` rendered a "dome + radial streaks" wedge: the old
@@ -77,7 +81,7 @@ sweep (see *The legacy sweep*).
   substrate change. Bespoke was *not* kept for sunk-cost reasons.
 - **SIM is untouched — a hard firewall.** No edits under `crates/**`; no change to
   `terrainHeightAt`, `heightField`, pathing, ranges, or `pickUnit`. The
-  `battle-terrain-elevation` seating gate (`match=true`) is the tripwire that proves
+  `battle-seating` gate (`match=true`) is the tripwire that proves
   the heightfield firewall every slice.
 
 ## The campaign split (the most consequential ruling)
@@ -167,7 +171,7 @@ dense foliage (vista 184.8k grass blades / 1.48M grass triangles) — GPU median
 
 1. `cargo test --workspace` — sim firewall; zero diffs under `crates/**`.
 2. `bun run --cwd web test:unit` (incl. `photoreal*.test.ts` seam pins).
-3. Full battle scene suite under SwiftShader, incl. the `battle-terrain-elevation`
+3. Full battle scene suite under SwiftShader, incl. the `battle-seating`
    seating tripwire `match=true`.
 4. Campaign scene suites (bespoke renderer) green.
 5. Hardware perf gate `perf:30k` — 30k+ soldiers + dense foliage, median ≤ ~33 ms,

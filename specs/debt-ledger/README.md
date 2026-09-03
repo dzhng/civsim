@@ -11,11 +11,11 @@ ledger in [visualizations/audit-ledger.html](visualizations/audit-ledger.html).
 
 ## Next Agent Prompt
 
-**Status (2026-09-03):** slices 01, 15-19, 22-24, 28-31 plus 02-05, 06a, 10, 11, 20, 21, 25, 32 and 33 landed on main (24 of 34, 06 half); lane C's own list is complete; lane W's own list is complete and it has taken the photoreal chain (integration
+**Status (2026-09-03):** slices 01, 15-19, 22-24, 28-31 plus 02-05, 06a, 10-12, 20, 21, 25, 32 and 33 landed on main (25 of 34, 06 half); lane C's own list is complete; lane W's own list is complete and it has taken the photoreal chain (integration
 `bun run check` green after 15+28; typecheck + campaign tests + wasm rebuild
 green after 29; slice 29 pixel-neutral — campaign-visual diff numbers identical
 to main). In flight in lane worktrees `/Users/david/dev/game-wt/{r,w,s,c}`
-(branches `debt-ledger/{r,w,s,c}`): 07 (R), 12 (W), 26 follow-up (S — first pass moved ownership but left steer_soldiers/apply_separation/run_combat at 1,060/967/706 lines; sent back to finish the split at ≤300 lines per function, golden after each extraction), 06b (C). Slice 32 note: the first pass promoted sim to a production dependency of campaign to reach UnitClass; sent back — campaign owns option modifiers as contract::StatModifiers, sim applies them, game-wasm composes. Slice 01 notes: the seating tripwire now lives in `battle-seating` (three catalog maps; `generated-seed-7` was highland-vale under another name and was dropped) and shoots until the crowd has drawn; terrain builder invariants live in `web/tests/vitest/terrainFeatures.test.ts`; the render-graph static fixtures died with that route while `frame-shell` keeps its live fixture list. Codex
+(branches `debt-ledger/{r,w,s,c}`): 07 (R), 13 (W), 26 follow-up (S — first pass moved ownership but left steer_soldiers/apply_separation/run_combat at 1,060/967/706 lines; sent back to finish the split at ≤300 lines per function, golden after each extraction), 06b (C). Slice 32 note: the first pass promoted sim to a production dependency of campaign to reach UnitClass; sent back — campaign owns option modifiers as contract::StatModifiers, sim applies them, game-wasm composes. Slice 01 notes: the seating tripwire now lives in `battle-seating` (three catalog maps; `generated-seed-7` was highland-vale under another name and was dropped) and shoots until the crowd has drawn; terrain builder invariants live in `web/tests/vitest/terrainFeatures.test.ts`; the render-graph static fixtures died with that route while `frame-shell` keeps its live fixture list. Codex
 implements in the worktree; the orchestrator runs browser gates against the
 lane's own dev server (`vite --port 5173+lane --strictPort`, `VERIFY_URL`),
 commits, and merges to main. `choices.md` has a union merge driver.
@@ -45,6 +45,7 @@ contract is judged by pixel-count equality against a main-tree run of the
 same scenes, not by PASS.** Campaign scenes pass. Non-snapshot checks pass.
 Re-blessing these baselines is out of scope (repo-weight decision); a slice
 that must move a battle baseline compares its diff numbers against main.
+`cargo clippy -p sim` reports 12 deny-level `approx_constant` errors (SQRT_2 / FRAC_1_SQRT_2 literals) on main as well; clippy is not a repo gate and the literals predate this spec.
 Also pre-existing under SwiftShader: `full-game-rendering-performance`'s
 "perf campaign measures the normal raw-WebGPU campaign route" check (its
 `perfStatsOk` clause), `battle-minimap` (`battle-minimap-world-dpr2` ≈89.9k px), `battle-overlays`
@@ -86,7 +87,7 @@ parallel in separate worktrees (see the lane table for file disjointness).
 - [ ] `mapPass.ts` split into surface/roads/sea-labels/label-layout owners [09]
 - [x] `battleWorld.ts` split: grass field + terrain build + orchestrator; dead options retired [10]
 - [x] Base/ring blade layers share one material per tier [11]
-- [ ] `typedUniform<T>`; transition snapshot; stats stride off the frame [12]
+- [x] `typedUniform<T>`; transition snapshot; stats stride off the frame [12]
 - [ ] Battle renderer wrapper forwards `world.stats()`; mirrors deleted [13]
 - [ ] Dispose measured; dispose written only on measured growth [14]
 - [x] One test runner (vitest); loaders deleted [15]

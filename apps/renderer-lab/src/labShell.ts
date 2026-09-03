@@ -8,7 +8,10 @@ import { chartCamera3d, type ChartCameraSpec } from "@packages/renderer-core/src
 import { applyBattleEnvironment, resolveBattleEnvironment, skinnedLightingForBattleEnvironment, type BattleEnvironment } from "@packages/game-renderer/src/environment/environment";
 import { loadPlaceholderVat } from "@packages/soldier-assets/src/placeholders";
 import { createPlaceholderSoldierMeshes } from "@packages/soldier-assets/src/soldierMesh";
-import { CAMPAIGN_ENVIRONMENT } from "@packages/game-renderer/src/campaign/environment";
+import {
+  applyCampaignEnvironment,
+  CAMPAIGN_ENVIRONMENT,
+} from "@packages/game-renderer/src/campaign/environment";
 
 export type LabRoute = (ctx: LabContext) => Promise<void> | void;
 
@@ -228,6 +231,7 @@ export async function createConfiguredShell(
   environment: BattleEnvironment = resolveBattleEnvironment("golden-hour"),
 ) {
   const shell = await createFrameShell(canvas, { sun: CAMPAIGN_ENVIRONMENT });
+  applyCampaignEnvironment(shell);
   shell.setCamera(chartSnapshot(camera, shell));
   applyBattleEnvironment(shell, environment);
   return shell;

@@ -19,7 +19,6 @@ import {
   type StandardSizeTier,
 } from './standardAsset';
 import type { BattleFactionId } from '../../battle/factionColors';
-import { campaignPassSunDirectionWgsl } from '../../campaign/environment';
 
 export interface StandardInstance {
   x: number;
@@ -109,7 +108,7 @@ fn vs(
     normal.z
   ));
   let base = materialColor(material, fieldPhase.rgb, trimStrength.rgb, emblemShade.rgb);
-  let sun = ${campaignPassSunDirectionWgsl()};
+  let sun = sunDirection();
   let lift = clamp(world.z / 6.6, 0.0, 1.0);
   var out: VsOut;
   out.pos = projectWorld(world);

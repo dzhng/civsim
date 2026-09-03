@@ -7,8 +7,6 @@ export interface CampaignEnvironment {
   hazeColor: [number, number, number];
 }
 
-/** Authored model-lighting direction used by campaign mesh passes. */
-export const CAMPAIGN_PASS_SUN_DIRECTION = [-0.42, -0.34, 0.84] as const;
 /** Camera-uniform direction used by shared effects and the skinned pipeline. */
 export const CAMPAIGN_CAMERA_SUN_DIRECTION = [-0.4, -0.28, 0.87] as const;
 
@@ -31,10 +29,6 @@ export function campaignEnvironmentWgsl(
   env: CampaignEnvironment = CAMPAIGN_ENVIRONMENT,
 ): string {
   return `const CAMPAIGN_HAZE = ${wgslVec3(env.hazeColor)};`;
-}
-
-export function campaignPassSunDirectionWgsl(): string {
-  return `normalize(${wgslVec3(CAMPAIGN_PASS_SUN_DIRECTION)})`;
 }
 
 function wgslVec3(value: readonly [number, number, number]): string {

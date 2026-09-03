@@ -242,7 +242,7 @@ export class BattleGrassField {
       nameSuffix: "ring",
     });
     this.ring.setVisible(false);
-    this.activeTransition = transition.profile;
+    this.activeTransition = transition.transition();
     this.rebuild = {
       strategy: "static-whole-map+camera-focus-ring",
       shaderCompileCount: this.base.materialCompileCount(),

@@ -9,13 +9,26 @@
 import {
   abs, clamp, cos, dot, float, floor, fract, mix, sRGBTransferEOTF, sin, smoothstep, transformNormalToView, uniform, varying, vec2, vec3,
 } from 'three/tsl';
-import { Vector2 } from 'three';
-import type { Node } from 'three/webgpu';
+import { Vector2, Vector3 } from 'three';
+import type { Node, UniformNode as ThreeUniformNode } from 'three/webgpu';
 
 export type FloatNode = Node<'float'>;
 export type Vec2Node = Node<'vec2'>;
 export type Vec3Node = Node<'vec3'>;
 export type Vec4Node = Node<'vec4'>;
+
+type UniformValue = number | Vector2 | Vector3;
+type UniformNodeType<T extends UniformValue> = T extends number
+  ? "float"
+  : T extends Vector2
+    ? "vec2"
+    : "vec3";
+
+export type UniformNode<T extends UniformValue> = ThreeUniformNode<UniformNodeType<T>, T>;
+
+export function typedUniform<T extends UniformValue>(value: T): UniformNode<T> {
+  return uniform(value as never) as unknown as UniformNode<T>;
+}
 
 export type Rgb = readonly [number, number, number];
 

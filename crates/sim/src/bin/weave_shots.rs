@@ -9,6 +9,10 @@
 //! Run:  cargo run -p sim --bin weave_shots --features shots
 //! Then flip through web/shots/weave/<name>/t###.png.
 
+#[path = "../../tests/common/mod.rs"]
+mod common;
+
+use common::weave::{bend, kill_to, scale_x, scale_y, shear, wrap_u};
 use sim::{Pace, Sim, Tunables, UnitClassId, Vec2, DT};
 use std::f32::consts::FRAC_PI_2;
 use std::fs::{create_dir_all, remove_dir_all, File};
@@ -190,73 +194,6 @@ fn settle(sim: &mut Sim, n: usize) {
 fn invuln(sim: &mut Sim) {
     for h in sim.health.iter_mut() {
         *h = 1.0e9;
-    }
-}
-
-// Tier-0 perturbations (write world positions directly).
-fn scale_x(sim: &mut Sim, u: usize, k: f32) {
-    let cx = sim.units[u].centroid.x;
-    let (s, e) = (sim.units[u].start, sim.units[u].start + sim.units[u].count);
-    for i in s..e {
-        sim.positions[2 * i] = cx + (sim.positions[2 * i] - cx) * k;
-    }
-}
-fn scale_y(sim: &mut Sim, u: usize, k: f32) {
-    let cy = sim.units[u].centroid.y;
-    let (s, e) = (sim.units[u].start, sim.units[u].start + sim.units[u].count);
-    for i in s..e {
-        sim.positions[2 * i + 1] = cy + (sim.positions[2 * i + 1] - cy) * k;
-    }
-}
-fn shear(sim: &mut Sim, u: usize, k: f32) {
-    let cy = sim.units[u].centroid.y;
-    let (s, e) = (sim.units[u].start, sim.units[u].start + sim.units[u].count);
-    for i in s..e {
-        sim.positions[2 * i] += k * (sim.positions[2 * i + 1] - cy);
-    }
-}
-fn bend(sim: &mut Sim, u: usize, amp: f32) {
-    let cx = sim.units[u].centroid.x;
-    let (s, e) = (sim.units[u].start, sim.units[u].start + sim.units[u].count);
-    let mut hw = 0.01f32;
-    for i in s..e {
-        hw = hw.max((sim.positions[2 * i] - cx).abs());
-    }
-    for i in s..e {
-        let t = (sim.positions[2 * i] - cx) / hw;
-        sim.positions[2 * i + 1] += amp * t * t;
-    }
-}
-fn wrap_u(sim: &mut Sim, u: usize, span: f32) {
-    let files = sim.units[u].files_eff.max(1);
-    let sp = sim.units[u].spacing.y;
-    let cx = sim.units[u].centroid.x;
-    let cy = sim.units[u].centroid.y;
-    let (s, e) = (sim.units[u].start, sim.units[u].start + sim.units[u].count);
-    let mut hw = 0.5f32;
-    for i in s..e {
-        hw = hw.max((sim.positions[2 * i] - cx).abs());
-    }
-    let radius = hw / (span * 0.5).max(0.1);
-    for i in s..e {
-        let slot = sim.soldier_slot[i] as usize;
-        let (file, rank) = (slot % files, slot / files);
-        let t = (file as f32 / (files.max(2) - 1) as f32) * 2.0 - 1.0;
-        let a = t * span * 0.5;
-        let rr = radius + rank as f32 * sp;
-        sim.positions[2 * i] = cx + rr * a.sin();
-        sim.positions[2 * i + 1] = cy + rr * (1.0 - a.cos());
-    }
-}
-fn kill_to(sim: &mut Sim, u: usize, target: usize) {
-    let (s, e) = (sim.units[u].start, sim.units[u].start + sim.units[u].count);
-    for i in (s..e).rev() {
-        if sim.units[u].alive_count <= target {
-            break;
-        }
-        if sim.alive[i] == 1 {
-            sim.kill(i);
-        }
     }
 }
 

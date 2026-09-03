@@ -88,6 +88,145 @@ pub fn run(sim: &mut Sim, seconds: f32) {
     }
 }
 
+/// Principal axis of a point cloud, with anisotropy for rejecting nearly
+/// circular samples whose orientation is undefined.
+#[derive(Clone, Copy, Debug)]
+pub struct OrientedAxis {
+    pub angle_deg: f32,
+    pub anisotropy: f32,
+}
+
+pub fn pca_major_axis(points: &[Vec2]) -> Option<OrientedAxis> {
+    if points.len() < 3 {
+        return None;
+    }
+    let n = points.len() as f32;
+    let center = points.iter().fold(Vec2::ZERO, |acc, &p| acc + p) * (1.0 / n);
+    let (mut xx, mut xy, mut yy) = (0.0f32, 0.0f32, 0.0f32);
+    for &p in points {
+        let d = p - center;
+        xx += d.x * d.x;
+        xy += d.x * d.y;
+        yy += d.y * d.y;
+    }
+    xx /= n;
+    xy /= n;
+    yy /= n;
+    let trace = (xx + yy).max(1.0e-6);
+    let spread = ((xx - yy) * (xx - yy) + 4.0 * xy * xy).sqrt();
+    Some(OrientedAxis {
+        angle_deg: (0.5 * (2.0 * xy).atan2(xx - yy)).to_degrees(),
+        anisotropy: spread / trace,
+    })
+}
+
+/// Spawn the rectangular formation shared by formation and weave mechanics.
+pub fn block(
+    tunables: Tunables,
+    seed: u64,
+    files: usize,
+    ranks: usize,
+    spacing: f32,
+    initial_cohesion: f32,
+    settle_ticks: usize,
+) -> (Sim, usize) {
+    let mut sim = Sim::new(tunables, seed);
+    let unit = sim.spawn_unit(
+        Vec2::ZERO,
+        std::f32::consts::FRAC_PI_2,
+        files * ranks,
+        files,
+        Vec2::new(spacing, spacing),
+        0,
+        initial_cohesion,
+    );
+    for _ in 0..settle_ticks {
+        sim.tick();
+    }
+    (sim, unit)
+}
+
+pub mod weave {
+    use sim::Sim;
+
+    pub fn scale_x(sim: &mut Sim, unit: usize, factor: f32) {
+        let cx = sim.units[unit].centroid.x;
+        let range = sim.units[unit].start..sim.units[unit].start + sim.units[unit].count;
+        for soldier in range {
+            sim.positions[2 * soldier] = cx + (sim.positions[2 * soldier] - cx) * factor;
+        }
+    }
+
+    pub fn scale_y(sim: &mut Sim, unit: usize, factor: f32) {
+        let cy = sim.units[unit].centroid.y;
+        let range = sim.units[unit].start..sim.units[unit].start + sim.units[unit].count;
+        for soldier in range {
+            sim.positions[2 * soldier + 1] = cy + (sim.positions[2 * soldier + 1] - cy) * factor;
+        }
+    }
+
+    pub fn shear(sim: &mut Sim, unit: usize, factor: f32) {
+        let cy = sim.units[unit].centroid.y;
+        let range = sim.units[unit].start..sim.units[unit].start + sim.units[unit].count;
+        for soldier in range {
+            sim.positions[2 * soldier] += factor * (sim.positions[2 * soldier + 1] - cy);
+        }
+    }
+
+    pub fn bend(sim: &mut Sim, unit: usize, amplitude: f32) {
+        let cx = sim.units[unit].centroid.x;
+        let range = sim.units[unit].start..sim.units[unit].start + sim.units[unit].count;
+        let (min_x, max_x) = range
+            .clone()
+            .filter(|&soldier| sim.alive[soldier] == 1)
+            .map(|soldier| sim.positions[2 * soldier])
+            .fold((f32::INFINITY, f32::NEG_INFINITY), |(min_x, max_x), x| {
+                (min_x.min(x), max_x.max(x))
+            });
+        let half_width = (max_x - min_x) * 0.5 + 0.01;
+        for soldier in range {
+            let t = (sim.positions[2 * soldier] - cx) / half_width;
+            sim.positions[2 * soldier + 1] += amplitude * t * t;
+        }
+    }
+
+    pub fn wrap_u(sim: &mut Sim, unit: usize, span: f32) {
+        let files = sim.units[unit].files_eff.max(1);
+        let rank_spacing = sim.units[unit].spacing.y;
+        let cx = sim.units[unit].centroid.x;
+        let cy = sim.units[unit].centroid.y;
+        let range = sim.units[unit].start..sim.units[unit].start + sim.units[unit].count;
+        let half_width = range
+            .clone()
+            .filter(|&soldier| sim.alive[soldier] == 1)
+            .map(|soldier| (sim.positions[2 * soldier] - cx).abs())
+            .fold(0.0f32, f32::max)
+            .max(0.5);
+        let radius = half_width / (span * 0.5).max(0.1);
+        for soldier in range {
+            let slot = sim.soldier_slot[soldier] as usize;
+            let (file, rank) = (slot % files, slot / files);
+            let t = (file as f32 / (files.max(2) - 1) as f32) * 2.0 - 1.0;
+            let angle = t * span * 0.5;
+            let radius = radius + rank as f32 * rank_spacing;
+            sim.positions[2 * soldier] = cx + radius * angle.sin();
+            sim.positions[2 * soldier + 1] = cy + radius * (1.0 - angle.cos());
+        }
+    }
+
+    pub fn kill_to(sim: &mut Sim, unit: usize, target: usize) {
+        let range = sim.units[unit].start..sim.units[unit].start + sim.units[unit].count;
+        for soldier in range.rev() {
+            if sim.units[unit].alive_count <= target {
+                break;
+            }
+            if sim.alive[soldier] == 1 {
+                sim.kill(soldier);
+            }
+        }
+    }
+}
+
 pub fn deaths(sim: &Sim, unit: usize) -> usize {
     sim.units[unit].count - sim.units[unit].alive_count
 }
@@ -197,28 +336,11 @@ pub fn ref_archer() -> UnitClass {
 
 #[cfg(feature = "force-trace")]
 pub mod force_trace {
-    use sim::{ForceBudget, ForceChannel, ForceRecord, ForceTrace, Vec2};
+    use sim::{ForceChannel, ForceRecord, ForceTrace, Vec2};
     use std::collections::BTreeMap;
 
     pub fn per_soldier_ledger(trace: &ForceTrace, soldier: usize) -> Vec<&ForceRecord> {
         trace.ledger_for_soldier(soldier)
-    }
-
-    pub fn unit_force_budget_by_channel(
-        trace: &ForceTrace,
-        unit: usize,
-        tick: u64,
-        positions: &[(usize, Vec2)],
-    ) -> Vec<ForceBudget> {
-        let net = trace.net_force_by_channel(unit, tick);
-        let torque = trace.torque_about_centroid_by_channel(unit, tick, positions);
-        net.into_iter()
-            .map(|(channel, net)| ForceBudget {
-                channel,
-                net,
-                torque: torque.get(&channel).copied().unwrap_or(0.0),
-            })
-            .collect()
     }
 
     pub fn seam_crossing_decomposition(

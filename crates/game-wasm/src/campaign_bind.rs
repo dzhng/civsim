@@ -51,57 +51,6 @@ fn loc_decode(kind: u32, a: u32, b: u32) -> Loc {
     }
 }
 
-fn resolved_unit_stats(r: &contract::RosterUnit) -> sim::UnitClass {
-    let mut s = sim::class_stats(r.class);
-    let option = r.unit_type.map(campaign::units::option_index).unwrap_or(0);
-    match option {
-        // Auxiliary / irregular: cheaper, quicker to move and recover, but
-        // materially less able to stand in a hard front-line press.
-        1 => {
-            s.health *= 0.9;
-            s.mass *= 0.92;
-            s.block *= 0.86;
-            s.evade = (s.evade + 0.05).min(0.7);
-            s.training = (s.training - 0.08).max(0.2);
-            s.bravery *= 0.9;
-            s.morale_aura *= 0.9;
-            s.pace_mult *= 1.06;
-            s.fight_drain_mult *= 0.88;
-            s.move_drain_mult *= 0.88;
-        }
-        // Professional / specialist: more staying power and discipline, paid
-        // for in cost and stamina.
-        2 => {
-            s.health *= 1.1;
-            s.mass *= 1.08;
-            s.block = (s.block + 0.06).min(0.75);
-            s.evade *= 0.92;
-            s.training = (s.training + 0.1).min(1.0);
-            s.bravery *= 1.15;
-            s.morale_aura *= 1.08;
-            s.fight_drain_mult *= 1.12;
-            s.move_drain_mult *= 1.12;
-        }
-        n if n > 2 => {
-            s.health *= 1.16;
-            s.mass *= 1.12;
-            s.training = (s.training + 0.14).min(1.0);
-            s.bravery *= 1.2;
-            s.fight_drain_mult *= 1.18;
-            s.move_drain_mult *= 1.18;
-        }
-        _ => {}
-    }
-    s
-}
-
-fn resolved_unit_render_look(r: &contract::RosterUnit) -> u32 {
-    // The tactical class is the default model id today. Keeping this beside
-    // `resolved_unit_stats` gives campaign unit types a single future hook for
-    // visual variants without mixing art choices into combat stats.
-    r.class as u32
-}
-
 #[wasm_bindgen]
 impl Campaign {
     #[wasm_bindgen(constructor)]
@@ -207,14 +156,7 @@ impl Campaign {
     }
 
     pub fn derived_site_seed(&self, kind: u32, a: u32, b: u32) -> u64 {
-        let site = if kind == 0 {
-            campaign::state::Loc::Node(a)
-        } else {
-            campaign::state::Loc::Edge {
-                edge: a,
-                tile: b as u16,
-            }
-        };
+        let site = loc_decode(kind, a, b);
         campaign::battlegen::derived_site_seed(self.inner.state.campaign_seed, site)
     }
 
@@ -700,56 +642,7 @@ impl Campaign {
                     p
                 }
             };
-            let (stance, mut pie_kind, mut pie_frac) = match a.stance {
-                // Pursuing renders like an ordinary march — it *is* a march, just
-                // one re-aimed at a moving target each tick.
-                Stance::March | Stance::Hold | Stance::Pursuing { .. } => (0.0, 0.0, 0.0),
-                Stance::Camp { build_ticks_left } => (
-                    1.0,
-                    if build_ticks_left > 0 { 2.0 } else { 0.0 },
-                    1.0 - build_ticks_left as f32 / campaign::tunables::CAMP_BUILD_TICKS as f32,
-                ),
-                Stance::Ambush {
-                    settle_ticks_left, ..
-                } if settle_ticks_left > 0 => (
-                    2.0,
-                    4.0,
-                    1.0 - settle_ticks_left as f32 / campaign::tunables::AMBUSH_SETTLE_TICKS as f32,
-                ),
-                Stance::Ambush { .. } => (3.0, 0.0, 0.0),
-                Stance::Routed { .. } => (4.0, 0.0, 0.0),
-                Stance::Occupying { ticks_left, .. } => (
-                    5.0,
-                    2.0,
-                    1.0 - ticks_left as f32 / campaign::tunables::OCCUPY_TICKS as f32,
-                ),
-                Stance::AtSea => (6.0, 0.0, 0.0),
-            };
-            if a.embark_ticks_left > 0 {
-                pie_kind = 3.0;
-                pie_frac =
-                    1.0 - a.embark_ticks_left as f32 / campaign::tunables::EMBARK_TICKS as f32;
-            }
-            if let Some(eid) = a.encounter {
-                if let Some(e) = st.encounters.iter().find(|e| e.id == eid) {
-                    if e.phase == EncounterPhase::Preparing {
-                        let (mine_prep, total) = if e.attacker == a.id {
-                            (
-                                e.prep_attacker,
-                                if e.ambush {
-                                    campaign::tunables::PREP_SURPRISED_TICKS
-                                } else {
-                                    campaign::tunables::PREP_TICKS
-                                },
-                            )
-                        } else {
-                            (e.prep_defender, campaign::tunables::PREP_TICKS)
-                        };
-                        pie_kind = 1.0;
-                        pie_frac = 1.0 - mine_prep as f32 / total.max(1) as f32;
-                    }
-                }
-            }
+            let (stance, pie_kind, pie_frac) = campaign::sim::army_marker_state(st, a);
             let cap = {
                 let (mut num, mut den) = (0.0f32, 0u32);
                 for r in &a.roster {
@@ -764,9 +657,9 @@ impl Campaign {
                 pos[1],
                 a.faction as f32,
                 a.soldiers() as f32,
-                stance,
-                pie_kind,
-                pie_frac.clamp(0.0, 1.0),
+                stance as f32,
+                pie_kind as f32,
+                pie_frac,
                 if a.marching() { 1.0 } else { 0.0 },
                 a.encounter.map_or(-1.0, |e| e as f32),
                 cap,
@@ -852,8 +745,14 @@ pub fn start_campaign_battle(c: &mut Campaign, encounter: u32) -> Option<Game> {
     let terrain_source = setup.terrain.clone();
     let mut battle = sim::Battle::from_setup_with_stats_and_looks(
         &setup,
-        &resolved_unit_stats,
-        &resolved_unit_render_look,
+        &|unit| {
+            let option = unit
+                .unit_type
+                .map(campaign::units::UnitOption::from_unit_type)
+                .unwrap_or(campaign::units::UnitOption::Regular);
+            sim::class_stats(unit.class).with_modifiers(&option.modifiers())
+        },
+        &|unit| unit.class as u32,
     );
     // Whoever isn't the player fights themselves; battle_setup_for puts the
     // player on team 0 when involved.

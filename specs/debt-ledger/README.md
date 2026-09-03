@@ -11,11 +11,11 @@ ledger in [visualizations/audit-ledger.html](visualizations/audit-ledger.html).
 
 ## Next Agent Prompt
 
-**Status (2026-09-03):** slices 01, 15-19, 22-24, 28-31 landed on main, plus 20 and 32 (15 of 34) (integration
+**Status (2026-09-03):** slices 01, 15-19, 22-24, 28-31 landed on main, plus 20, 21 and 32 (16 of 34); lane W's slice list is complete (integration
 `bun run check` green after 15+28; typecheck + campaign tests + wasm rebuild
 green after 29; slice 29 pixel-neutral — campaign-visual diff numbers identical
 to main). In flight in lane worktrees `/Users/david/dev/game-wt/{r,w,s,c}`
-(branches `debt-ledger/{r,w,s,c}`): 02 (R), 21 (W), 25 (S), 33 (C). Slice 32 note: the first pass promoted sim to a production dependency of campaign to reach UnitClass; sent back — campaign owns option modifiers as contract::StatModifiers, sim applies them, game-wasm composes. Slice 01 notes: the seating tripwire now lives in `battle-seating` (three catalog maps; `generated-seed-7` was highland-vale under another name and was dropped) and shoots until the crowd has drawn; terrain builder invariants live in `web/tests/vitest/terrainFeatures.test.ts`; the render-graph static fixtures died with that route while `frame-shell` keeps its live fixture list. Codex
+(branches `debt-ledger/{r,w,s,c}`): 02 (R), W idle — takes the photoreal chain 10-14 once 02 lands while R does 03-09, 25 (S), 33 (C). Slice 32 note: the first pass promoted sim to a production dependency of campaign to reach UnitClass; sent back — campaign owns option modifiers as contract::StatModifiers, sim applies them, game-wasm composes. Slice 01 notes: the seating tripwire now lives in `battle-seating` (three catalog maps; `generated-seed-7` was highland-vale under another name and was dropped) and shoots until the crowd has drawn; terrain builder invariants live in `web/tests/vitest/terrainFeatures.test.ts`; the render-graph static fixtures died with that route while `frame-shell` keeps its live fixture list. Codex
 implements in the worktree; the orchestrator runs browser gates against the
 lane's own dev server (`vite --port 5173+lane --strictPort`, `VERIFY_URL`),
 commits, and merges to main. `choices.md` has a union merge driver.
@@ -48,7 +48,8 @@ that must move a battle baseline compares its diff numbers against main.
 Also pre-existing under SwiftShader: `full-game-rendering-performance`'s
 "perf campaign measures the normal raw-WebGPU campaign route" check (its
 `perfStatsOk` clause), `battle-minimap` (`battle-minimap-world-dpr2` ≈89.9k px), `battle-overlays`
-(`overlays/rings-close` 49302 px),
+(`overlays/rings-close` 49302 px), `battle-input`'s freezeAtTick pixel-stability
+check (22 bytes, intermittent, also on main),
 and load-dependent screenshot timeouts in `battle-lod` / `banner-gallery`.
 
 **Pick up here:** slice [01-lab-estate-routes](slices/01-lab-estate-routes.md).
@@ -94,7 +95,7 @@ parallel in separate worktrees (see the lane table for file disjointness).
 - [x] Campaign builders → game-renderer; fixtures out of main.ts; one save owner [18]
 - [x] Battle scene `enter()` split behind unchanged `__game/__cam/__ready` [19]
 - [x] HUD store via `useSyncExternalStore`; one `useGraphicsSettings()` [20]
-- [ ] Scene boot helpers; orphan URL params deleted [21]
+- [x] Scene boot helpers; orphan URL params deleted [21]
 - [x] `Vec2::perp`, covered-files helper, `genmap/noise.rs` [22]
 - [x] `Tracer` replaces 70 cfg blocks [23]
 - [x] Dead knobs → constants; ignored probes and copied test helpers gone [24]

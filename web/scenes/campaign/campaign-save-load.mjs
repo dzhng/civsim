@@ -1,4 +1,5 @@
 import { hasCampaignWorldDepthContract } from "../_renderer-contract.mjs";
+import { ready } from "../worlds.mjs";
 
 export const meta = {
   name: "campaign-save-load",
@@ -53,11 +54,7 @@ export async function run(ctx) {
   );
 
   await page.click("#menu-new-campaign");
-  await page.waitForFunction(
-    () => window.__campaignReady === true && window.__campaignGpuStats?.ready === true,
-    undefined,
-    { timeout: 30000 },
-  );
+  await ready(page, "__campaignReady", 30000);
   const initial = await page.evaluate(() => ({
     renderer: window.__campaignGpuStats?.renderer,
     gpu: window.__campaignGpuStats,
@@ -111,11 +108,7 @@ export async function run(ctx) {
   );
 
   await page.click("#menu-load-save");
-  await page.waitForFunction(
-    () => window.__campaignReady === true && window.__campaignGpuStats?.ready === true,
-    undefined,
-    { timeout: 30000 },
-  );
+  await ready(page, "__campaignReady", 30000);
   const loaded = await page.evaluate(
     (savedText) => ({
       renderer: window.__campaignGpuStats?.renderer,

@@ -1,6 +1,7 @@
 import { PNG } from "pngjs";
 import { UNIT_INFO, unitScreen, worldPointNearUnit } from "../_battle-unit-info.mjs";
 import { hasBattleWorldDepthContract } from "../_renderer-contract.mjs";
+import { battle5v5 } from "../worlds.mjs";
 
 export const meta = {
   name: "battle-input",
@@ -23,21 +24,11 @@ export async function run(ctx) {
   }
 
   for (const dpr of [1, 2]) {
-    const page = await ctx.newPage({ deviceScaleFactor: dpr, errorPrefix: `gpu-input-dpr${dpr}` });
-    await page.goto(`${ctx.target}?battle=5v5&ai=off`);
-    await page.waitForFunction(
-      () => {
-        const stats = window.__game?.stats?.();
-        return (
-          window.__ready === true &&
-          stats?.renderer === "gpu" &&
-          stats.renderStats?.ready === true &&
-          stats.renderStats.soldiers === stats.soldiers
-        );
-      },
-      undefined,
-      { timeout: 20000 },
-    );
+    const page = await battle5v5(ctx, {
+      deviceScaleFactor: dpr,
+      errorPrefix: `gpu-input-dpr${dpr}`,
+      ai: "off",
+    });
     await page.waitForTimeout(300);
 
     await frameUnit(page, 4);

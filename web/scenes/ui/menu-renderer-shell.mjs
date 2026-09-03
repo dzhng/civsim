@@ -2,6 +2,7 @@ import {
   hasBattleWorldDepthContract,
   hasCampaignWorldDepthContract,
 } from "../_renderer-contract.mjs";
+import { ready } from "../worlds.mjs";
 
 export const meta = {
   name: "menu-renderer-shell",
@@ -270,11 +271,7 @@ export async function run(ctx) {
   ctx.check("Escape closes menu manual", manualClosed === "none", manualClosed);
 
   await page.click("#menu-new-campaign");
-  await page.waitForFunction(
-    () => window.__campaignReady === true && window.__campaignGpuStats?.ready === true,
-    undefined,
-    { timeout: 30000 },
-  );
+  await ready(page, "__campaignReady", 30000);
   const campaignStats = await page.evaluate(() => window.__campaignGpuStats);
   ctx.check(
     "menu starts the normal WebGPU campaign route",

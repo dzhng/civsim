@@ -52,11 +52,6 @@ export function createBattleHudBridge(
 ): BattleHudBridge {
   let ended = false;
   let cardUnits: number[] = [];
-  const measureCards = new URLSearchParams(location.search).has("measurecards");
-  const cardUpdateSamples: number[] = [];
-  if (measureCards)
-    (window as unknown as { __cardUpdateSamples?: number[] }).__cardUpdateSamples =
-      cardUpdateSamples;
 
   const toolbarState = () => {
     const { clock, controls, input, world } = view;
@@ -152,7 +147,6 @@ export function createBattleHudBridge(
       bridge.updateToolbar();
     },
     tickCards() {
-      const started = measureCards ? performance.now() : 0;
       const { stride } = view.world;
       const info = view.world.unitInfo();
       const selected = new Set(view.input.selected);
@@ -172,7 +166,6 @@ export function createBattleHudBridge(
           };
         }),
       );
-      if (measureCards) cardUpdateSamples.push(performance.now() - started);
     },
     updateHud(fps) {
       const { camera, game, stride } = view.world;

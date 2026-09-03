@@ -101,7 +101,7 @@ describe("graphicsSettings", () => {
     });
   });
 
-  it("lets query params override only the named settings", () => {
+  it("lets supported query params override only shadows and post-processing", () => {
     const base = {
       shadows: "csm" as const,
       grassQuality: "standard" as const,
@@ -110,13 +110,11 @@ describe("graphicsSettings", () => {
       bloom: true,
       audio: DEFAULT_GRAPHICS_SETTINGS.audio,
     };
-    expect(
-      resolveGraphicsSettings("?shadows=off&grassQuality=low&grass=off&nofar&post=off", base),
-    ).toEqual({
+    expect(resolveGraphicsSettings("?shadows=off&post=off", base)).toEqual({
       shadows: "off",
-      grassQuality: "low",
-      grass: false,
-      farGrass: false,
+      grassQuality: "standard",
+      grass: true,
+      farGrass: true,
       bloom: false,
       audio: DEFAULT_GRAPHICS_SETTINGS.audio,
     });
@@ -124,16 +122,9 @@ describe("graphicsSettings", () => {
       ...base,
       bloom: true,
     });
-    expect(graphicsQueryOverrides("?shadows=off&nofar")).toEqual({
+    expect(graphicsQueryOverrides("?shadows=off")).toEqual({
       shadows: true,
       grassQuality: false,
-      grass: false,
-      farGrass: true,
-      bloom: false,
-    });
-    expect(graphicsQueryOverrides("?grassQuality=fine")).toEqual({
-      shadows: false,
-      grassQuality: true,
       grass: false,
       farGrass: false,
       bloom: false,

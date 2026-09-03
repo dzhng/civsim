@@ -11,11 +11,11 @@ ledger in [visualizations/audit-ledger.html](visualizations/audit-ledger.html).
 
 ## Next Agent Prompt
 
-**Status (2026-09-03):** slices 01, 15-19, 22-24, 28-31 landed on main (13 of 34) (integration
+**Status (2026-09-03):** slices 01, 15-19, 22-24, 28-31 landed on main, plus 32 (14 of 34) (integration
 `bun run check` green after 15+28; typecheck + campaign tests + wasm rebuild
 green after 29; slice 29 pixel-neutral — campaign-visual diff numbers identical
 to main). In flight in lane worktrees `/Users/david/dev/game-wt/{r,w,s,c}`
-(branches `debt-ledger/{r,w,s,c}`): 02 (R), 20 (W), 25 (S), 32 follow-up (C — first pass added sim as a production dependency of campaign to reach UnitClass; sent back: campaign owns option modifiers as contract data, sim applies them, game-wasm composes). Slice 01 notes: the seating tripwire now lives in `battle-seating` (three catalog maps; `generated-seed-7` was highland-vale under another name and was dropped) and shoots until the crowd has drawn; terrain builder invariants live in `web/tests/vitest/terrainFeatures.test.ts`; the render-graph static fixtures died with that route while `frame-shell` keeps its live fixture list. Codex
+(branches `debt-ledger/{r,w,s,c}`): 02 (R), 20 (W), 25 (S), 33 (C). Slice 32 note: the first pass promoted sim to a production dependency of campaign to reach UnitClass; sent back — campaign owns option modifiers as contract::StatModifiers, sim applies them, game-wasm composes. Slice 01 notes: the seating tripwire now lives in `battle-seating` (three catalog maps; `generated-seed-7` was highland-vale under another name and was dropped) and shoots until the crowd has drawn; terrain builder invariants live in `web/tests/vitest/terrainFeatures.test.ts`; the render-graph static fixtures died with that route while `frame-shell` keeps its live fixture list. Codex
 implements in the worktree; the orchestrator runs browser gates against the
 lane's own dev server (`vite --port 5173+lane --strictPort`, `VERIFY_URL`),
 commits, and merges to main. `choices.md` has a union merge driver.
@@ -103,7 +103,7 @@ parallel in separate worktrees (see the lane table for file disjointness).
 - [x] `road_levels` gone end to end [29]
 - [x] One flood, one Dijkstra, one partial-edge cost [30]
 - [x] `Army::new`, one cost shape, one field-dims owner, dead knobs, test helpers [31]
-- [ ] game-wasm thin: stat resolution, manifest, class table in the crates that own them [32]
+- [x] game-wasm thin: stat resolution, manifest, class table in the crates that own them [32]
 - [ ] mapgen `[lib]`, one wire schema, helpers single-owned, shipped migrations deleted [33]
 - [ ] Slice-narrative comments replaced by invariants [34]
 - [ ] close-spec this plan

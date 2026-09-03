@@ -1,6 +1,7 @@
 import { WORLD_CAMERA_WGSL } from '@packages/renderer-core/src/cameraWgsl';
 import type { BackgroundRenderPass, OverlayRenderPass, RawFrameShell } from '@packages/renderer-core/src/frameShell';
 import { NOISE_WGSL } from '@packages/renderer-core/src/noiseWgsl';
+import { campaignEnvironmentWgsl } from './environment';
 
 export interface CampaignAtmosphereRect {
   min: [number, number];
@@ -60,6 +61,7 @@ const MAX_FOG_SOURCES = 64;
 const FOG_WGSL = `
 ${WORLD_CAMERA_WGSL}
 ${NOISE_WGSL}
+${campaignEnvironmentWgsl()}
 
 struct FogUniform {
   params: vec4f,
@@ -115,7 +117,7 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let edge = min(min(in.uv.x, 1.0 - in.uv.x), min(in.uv.y, 1.0 - in.uv.y));
   let rim = 1.0 - smoothstep(0.02, 0.20, edge);
   let veil = clamp(hidden * (0.58 + cloud * 0.26 + rim * 0.16), 0.0, 0.88);
-  let color = mix(vec3f(0.035, 0.045, 0.045), vec3f(0.80, 0.82, 0.80), cloud * hidden);
+  let color = mix(vec3f(0.035, 0.045, 0.045), CAMPAIGN_HAZE, cloud * hidden);
   return vec4f(color, veil);
 }`;
 

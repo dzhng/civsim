@@ -4,6 +4,7 @@ import { gpuAlphaBlendColorTarget, gpuOpaqueColorTarget, gpuWorldDepthStencil } 
 import { buildLeafAtlas, LEAF_ATLAS_RGB_GAIN } from '../models/shared/leafAtlas';
 import type { MeshData } from '../models/shared/meshBuilder';
 import { SCENERY_PROP_IDS, SCENERY_PROP_MODELS, type SceneryPropId } from '../models/shared/sceneryPropRegistry';
+import { campaignPassSunDirectionWgsl } from './environment';
 
 export type CampaignSceneryKind = SceneryPropId;
 
@@ -55,7 +56,7 @@ fn vs(
   let world = vec3f(instPose.x + rlx * scale, instPose.y + rly * scale, baseZ + local.z * heightScale);
   var out: VsOut;
   out.pos = projectWorld(world);
-  let sun = normalize(vec3f(-0.42, -0.34, 0.84));
+  let sun = ${campaignPassSunDirectionWgsl()};
   let rnormal = vec3f(normal.x * cy - normal.y * sy, normal.x * sy + normal.y * cy, normal.z);
   out.color = colorAndAlpha.rgb;
   out.alpha = colorAndAlpha.a;

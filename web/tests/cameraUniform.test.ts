@@ -5,8 +5,6 @@ import {
   cameraUniformData,
   CAMERA_UNIFORM_BYTES,
   CAMERA_UNIFORM_FLOATS,
-  DEFAULT_SUN_AZIMUTH,
-  DEFAULT_SUN_ELEVATION,
   type CameraSnapshot,
 } from "@packages/renderer-core/src/cameraUniform.ts";
 import {
@@ -31,7 +29,7 @@ const CAM3D: Camera3DParams = {
   near: 1,
   far: 4000,
 };
-const SNAPSHOT: CameraSnapshot = {
+const SNAPSHOT = {
   camera3d: CAM3D,
   x: 12,
   y: -30,
@@ -41,7 +39,7 @@ const SNAPSHOT: CameraSnapshot = {
   time: 3,
   sunAzimuth: 0.7,
   sunElevation: 0.9,
-};
+} satisfies CameraSnapshot;
 
 function f32(value: number): number {
   return new Float32Array([value])[0];
@@ -101,10 +99,8 @@ test("cameraUniform: the survivor scalars land at their offsets", () => {
   assert.equal(data[47], 0); // pad
 });
 
-test("cameraUniform: unset time/sun default to 0 and the battle sun convention", () => {
-  const { time: _time, sunAzimuth: _az, sunElevation: _el, ...bare } = SNAPSHOT;
+test("cameraUniform: unset time defaults to a frozen frame", () => {
+  const { time: _time, ...bare } = SNAPSHOT;
   const data = cameraUniformData(bare);
   assert.equal(data[42], 0); // time: frozen frame
-  assert.equal(data[44], f32(DEFAULT_SUN_AZIMUTH));
-  assert.equal(data[45], f32(DEFAULT_SUN_ELEVATION));
 });

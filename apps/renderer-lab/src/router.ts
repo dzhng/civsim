@@ -64,6 +64,10 @@ import {
 } from "@packages/game-renderer/src/battle/unitInfoLayout";
 import { CampaignCloudPass } from "@packages/game-renderer/src/campaign/atmospherePass";
 import {
+  applyCampaignEnvironment,
+  CAMPAIGN_ENVIRONMENT,
+} from "@packages/game-renderer/src/campaign/environment";
+import {
   CampaignEntityPass,
   type CampaignEntityInstance,
 } from "@packages/game-renderer/src/campaign/entityPass";
@@ -274,7 +278,8 @@ export async function mountRendererLab(path = location.pathname) {
 
 async function routeDevice(ctx: LabContext) {
   const info = await requestGpuDevice();
-  const shell = await createFrameShell(ctx.canvas);
+  const shell = await createFrameShell(ctx.canvas, { sun: CAMPAIGN_ENVIRONMENT });
+  applyCampaignEnvironment(shell);
   const markers = generatedCrowd(18, -8, -4, 0).concat(generatedCrowd(18, 8, 2, 1));
   const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88]);
   pipeline.upload(markers);
@@ -1013,6 +1018,7 @@ async function routeAssetWorkbench(ctx: LabContext) {
 async function routeCapabilities(ctx: LabContext) {
   const sampleParam = integerParam(ctx.params, "msaa", 1, 1, 4);
   const shell = await createFrameShell(ctx.canvas, {
+    sun: CAMPAIGN_ENVIRONMENT,
     enableGpuTimer: true,
     sampleCount: sampleParam,
   });
@@ -1131,6 +1137,7 @@ async function routeFaultInjection(ctx: LabContext) {
   });
 
   const shell = await createFrameShell(ctx.canvas, {
+    sun: CAMPAIGN_ENVIRONMENT,
     onFatalError: (report) =>
       showFatalErrorSurface(
         ctx.canvas,
@@ -3577,7 +3584,7 @@ async function createConfiguredShell(
   camera: ChartCameraSpec,
   environment: BattleEnvironment = resolveBattleEnvironment("golden-hour"),
 ) {
-  const shell = await createFrameShell(canvas);
+  const shell = await createFrameShell(canvas, { sun: environment.environment });
   shell.setCamera(chartSnapshot(camera, shell));
   applyBattleEnvironment(shell, environment);
   return shell;

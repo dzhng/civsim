@@ -80,6 +80,10 @@ import {
   tallySceneryCandidates,
 } from "@packages/game-renderer/src/campaign/scenery";
 import { roundMs } from "@packages/game-renderer/src/math";
+import {
+  applyCampaignEnvironment,
+  CAMPAIGN_ENVIRONMENT,
+} from "@packages/game-renderer/src/campaign/environment";
 
 export const MAX_CAMPAIGN_ZOOM = 8;
 
@@ -763,7 +767,8 @@ export class CampaignRenderer {
   private async init(territory: Territory) {
     // One projector engine-wide: every pass projects through camera3d's viewProj
     // and depth-tests reverse-Z against the shell's depth32float world buffer.
-    const shell = await createFrameShell(this.canvas);
+    const shell = await createFrameShell(this.canvas, { sun: CAMPAIGN_ENVIRONMENT });
+    applyCampaignEnvironment(shell);
     const controlledStage = isControlledStage(this.data);
     const map = new CampaignMapPass(
       shell,

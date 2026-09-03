@@ -20,7 +20,7 @@ implements in the worktree; the orchestrator runs browser gates against the
 lane's own dev server (`vite --port 5173+lane --strictPort`, `VERIFY_URL`),
 commits, and merges to main. `choices.md` has a union merge driver.
 
-**Incident (2026-09-03 03:20–06:35):** the Mac idle-slept twice and every Codex lane died mid-turn with no report (work preserved uncommitted in the worktrees). Lanes were resumed with `codex exec resume <id>` and `caffeinate -i -s` now holds the machine awake for the rest of the run; start it first if you resume this cold.
+**Incident (2026-09-03 03:20–06:35):** the Mac idle-slept twice and every Codex lane died mid-turn with no report (work preserved uncommitted in the worktrees). Lanes were resumed with `codex exec resume <id>` and `caffeinate -i -s` now holds the machine awake for the rest of the run; start it first if you resume this cold. Separately, Codex ends a turn silently (`task_complete`, no message, no `-o` file) at roughly the 60-minute mark even while awake; a watchdog (`scratchpad/codex/watchdog.sh`, state in `lane-state`) resumes any lane whose process is gone without a report. Slice 06a landed (both suns named, zero pixels); 06b runs on lane C.
 
 **Pickup if resuming cold:** read each lane's `git status`; a dirty lane with
 a `<lane>-<slice>.out` file in the session scratchpad is a finished Codex

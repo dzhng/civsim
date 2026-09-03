@@ -36,8 +36,8 @@ pub const ARMY_STACK_UNIT_CAP: usize = 20;
 pub const CLASS_SWITCH_FEE: u32 = 75;
 /// Cooldown before a faction can change the same class doctrine again.
 pub const CLASS_SWITCH_COOLDOWN_TICKS: u64 = 7 * TICKS_PER_DAY as u64;
-/// One road tile of march, in km (must match mapgen's TILE_KM).
-pub const TILE_KM: f32 = 5.0;
+/// One road tile of march, in km.
+pub const TILE_KM: f32 = contract::mapjson::TILE_KM as f32;
 
 /// Baseline infantry march: 30 km/day => one 5 km tile per 4 campaign hours.
 pub const BASE_TILES_PER_TICK: f32 = (30.0 / TILE_KM) / TICKS_PER_DAY as f32;

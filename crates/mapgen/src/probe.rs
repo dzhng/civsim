@@ -1,4 +1,5 @@
 use crate::geo::{dist, BBox};
+use crate::map_io;
 use crate::raster::Raster;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
@@ -41,32 +42,18 @@ pub struct CityProbe {
     pub coast_km: Option<f64>,
 }
 
-#[derive(Deserialize)]
-struct MapFixture {
-    nodes: Vec<NodeFixture>,
-}
-
-#[derive(Deserialize)]
-struct NodeFixture {
-    name: String,
-    pos: [f64; 2],
-    kind: String,
-}
-
 struct BgMask {
     rect: BgRect,
-    w: usize,
-    h: usize,
-    px: Vec<u8>,
+    raster: Raster,
 }
 
 impl BgMask {
     fn sx(&self) -> f64 {
-        self.w as f64 / (self.rect.max[0] - self.rect.min[0])
+        self.raster.w as f64 / (self.rect.max[0] - self.rect.min[0])
     }
 
     fn sy(&self) -> f64 {
-        self.h as f64 / (self.rect.max[1] - self.rect.min[1])
+        self.raster.h as f64 / (self.rect.max[1] - self.rect.min[1])
     }
 
     fn pixel_of(&self, p: [f64; 2]) -> Option<[usize; 2]> {
@@ -80,8 +67,8 @@ impl BgMask {
         let x = ((p[0] - self.rect.min[0]) * self.sx()).floor();
         let y = ((self.rect.max[1] - p[1]) * self.sy()).floor();
         Some([
-            (x as isize).clamp(0, self.w as isize - 1) as usize,
-            (y as isize).clamp(0, self.h as isize - 1) as usize,
+            (x as isize).clamp(0, self.raster.w as isize - 1) as usize,
+            (y as isize).clamp(0, self.raster.h as isize - 1) as usize,
         ])
     }
 
@@ -93,14 +80,11 @@ impl BgMask {
     }
 
     fn land_cell(&self, x: usize, y: usize) -> bool {
-        let i = (y * self.w + x) * 4;
-        Raster::rgb_is_land([self.px[i], self.px[i + 1], self.px[i + 2]])
+        self.raster.is_land_cell(x, y)
     }
 
     fn land_at(&self, p: [f64; 2]) -> bool {
-        self.pixel_of(p)
-            .map(|[x, y]| self.land_cell(x, y))
-            .unwrap_or(false)
+        self.raster.is_land_at(p)
     }
 
     fn coast_km(&self, p: [f64; 2], max_radius_km: f64) -> Option<f64> {
@@ -110,12 +94,12 @@ impl BgMask {
         let mut best: Option<f64> = None;
         for dy in -r..=r {
             let y = cy as isize + dy;
-            if y < 0 || y >= self.h as isize {
+            if y < 0 || y >= self.raster.h as isize {
                 continue;
             }
             for dx in -r..=r {
                 let x = cx as isize + dx;
-                if x < 0 || x >= self.w as isize {
+                if x < 0 || x >= self.raster.w as isize {
                     continue;
                 }
                 if self.land_cell(x as usize, y as usize) == center_land {
@@ -163,14 +147,23 @@ fn write_probe(data_dir: &Path, out_path: &Path) {
 }
 
 fn build_probe(data_dir: &Path) -> MaskProbe {
-    let map: MapFixture =
-        serde_json::from_str(&std::fs::read_to_string(data_dir.join("campaign-map.json")).unwrap())
-            .unwrap();
+    let map: contract::mapjson::Map = map_io::load_committed_map(data_dir);
     let rect: BgRect =
         serde_json::from_str(&std::fs::read_to_string(data_dir.join("campaign-bg.json")).unwrap())
             .unwrap();
     let (w, h, px) = read_png(&data_dir.join("campaign-bg.png"));
-    let bg = BgMask { rect, w, h, px };
+    let bg = BgMask {
+        rect,
+        raster: Raster::from_rgba(
+            BBox {
+                min: rect.min,
+                max: rect.max,
+            },
+            w,
+            h,
+            px,
+        ),
+    };
 
     let mut grid = Vec::new();
     let bb = BBox {

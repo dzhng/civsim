@@ -1,12 +1,14 @@
 //! Graph construction: ORBIS sites/routes + Natural Earth features → campaign map JSON.
 
-use crate::geo::{dist, point_along, point_in_poly, polyline_len, BBox, SegGrid};
+use crate::gazetteer::CITY_SNAP_EXEMPTIONS;
+use crate::geo::{
+    dist, point_along, point_in_poly, point_segment_dist, polyline_len, BBox, SegGrid,
+};
 use crate::raster::Raster;
 use crate::sources::{OrbisRoute, OrbisSite, Poly, RouteKind};
-use serde::Serialize;
+use contract::mapjson::{AmbushSpot, Edge, Map, Node, TILE_KM};
 use std::collections::{BTreeMap, BTreeSet};
 
-pub const TILE_KM: f64 = 5.0;
 pub const SIMPLIFY_TOL_KM: f64 = 1.0;
 /// Forest patches: deterministic hash over this cell size, below the threshold.
 const FOREST_CELL_KM: f64 = 40.0;
@@ -14,90 +16,6 @@ const FOREST_FRAC: u64 = 22; // percent
 pub const CITY_SNAP_MARGIN_CELLS: usize = 1;
 pub const MAX_CITY_SNAP_MOVE_KM: f64 = 6.0;
 const CITY_SNAP_SEARCH_KM: f64 = 80.0;
-
-pub struct CitySnapExemption {
-    pub name: &'static str,
-    pub reason: &'static str,
-}
-
-pub const CITY_SNAP_EXEMPTIONS: &[CitySnapExemption] = &[
-    CitySnapExemption {
-        name: "Tainaron Pr.",
-        reason: "small peninsula; nearest 3x3-safe cell would move the harbor over 14km",
-    },
-    CitySnapExemption {
-        name: "Cnidus",
-        reason: "small peninsula harbor; nearest 3x3-safe cell would move the city over 12km",
-    },
-    CitySnapExemption {
-        name: "Apollonia Pontica",
-        reason: "coastal harbor; nearest 3x3-safe cell would move the port over 8km",
-    },
-    CitySnapExemption {
-        name: "Perinthus",
-        reason: "strait harbor; nearest 3x3-safe cell would move the port over 7km",
-    },
-    CitySnapExemption {
-        name: "Meninge",
-        reason: "small-island city; nearest 3x3-safe cell would move it over 7km",
-    },
-    CitySnapExemption {
-        name: "Constantinopolis",
-        reason: "strait harbor; nearest 3x3-safe cell would move the port over 6km",
-    },
-    CitySnapExemption {
-        name: "Gades",
-        reason: "harbor on a narrow island/coast; nearest 3x3-safe cell would move it over 6km",
-    },
-    CitySnapExemption {
-        name: "Thaenae",
-        reason: "coastal harbor; nearest 3x3-safe cell would move the port over 6km",
-    },
-    CitySnapExemption {
-        name: "Messana",
-        reason: "Messina-strait harbor; carve_straits opens water on its NE shore",
-    },
-];
-
-#[derive(Serialize)]
-pub struct MapJson {
-    pub half_w: f64,
-    pub half_h: f64,
-    pub attribution: String,
-    pub nodes: Vec<NodeJson>,
-    pub edges: Vec<EdgeJson>,
-    pub ambush_spots: Vec<AmbushJson>,
-    pub factions: Vec<serde_json::Value>,
-    pub start_armies: Vec<serde_json::Value>,
-}
-
-#[derive(Serialize)]
-pub struct NodeJson {
-    pub id: u32,
-    pub name: String,
-    pub pos: [f64; 2],
-    #[serde(rename = "srcPos")]
-    pub src_pos: [f64; 2],
-    pub kind: &'static str, // "city" | "junction"
-    pub tier: u8,           // 0 for junctions
-    pub port: bool,
-    pub owner: String, // faction id, "independents" for unassigned cities, "" for junctions
-}
-
-#[derive(Serialize)]
-pub struct EdgeJson {
-    pub a: u32,
-    pub b: u32,
-    pub kind: &'static str, // "road" | "sea"
-    pub via: Vec<[f64; 2]>,
-    pub tiles: Vec<&'static str>,
-}
-
-#[derive(Serialize)]
-pub struct AmbushJson {
-    pub edge: usize,
-    pub tile: usize,
-}
 
 fn hash(a: u64, b: u64) -> u64 {
     let mut x = a.wrapping_mul(0x9E3779B97F4A7C15) ^ b.wrapping_mul(0xBF58476D1CE4E5B9);
@@ -110,18 +28,9 @@ pub fn simplify(pts: &[[f64; 2]], tol: f64) -> Vec<[f64; 2]> {
     if pts.len() < 3 {
         return pts.to_vec();
     }
-    fn seg_dist(p: [f64; 2], a: [f64; 2], b: [f64; 2]) -> f64 {
-        let (dx, dy) = (b[0] - a[0], b[1] - a[1]);
-        let len2 = dx * dx + dy * dy;
-        if len2 == 0.0 {
-            return dist(p, a);
-        }
-        let t = (((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / len2).clamp(0.0, 1.0);
-        dist(p, [a[0] + dx * t, a[1] + dy * t])
-    }
     let (mut imax, mut dmax) = (0, 0.0);
     for i in 1..pts.len() - 1 {
-        let d = seg_dist(pts[i], pts[0], pts[pts.len() - 1]);
+        let d = point_segment_dist(pts[i], pts[0], pts[pts.len() - 1]);
         if d > dmax {
             dmax = d;
             imax = i;
@@ -156,11 +65,11 @@ pub fn classify_route_tiles(
     eidx: usize,
     river_grid: &SegGrid,
     mountains: &[Poly],
-) -> (Vec<&'static str>, Vec<AmbushJson>) {
+) -> (Vec<String>, Vec<AmbushSpot>) {
     let len = polyline_len(via);
     let ntiles = ((len / TILE_KM).round() as usize).max(1);
     let step = len / ntiles as f64;
-    let mut tiles: Vec<&'static str> = Vec::with_capacity(ntiles);
+    let mut tiles = Vec::with_capacity(ntiles);
     let mut ambush_spots = Vec::new();
     for k in 0..ntiles {
         let mid = point_along(via, (k as f64 + 0.5) * step);
@@ -191,12 +100,13 @@ pub fn classify_route_tiles(
             "open"
         };
         if matches!(t, "forest" | "hill" | "pass") {
-            ambush_spots.push(AmbushJson {
+            ambush_spots.push(AmbushSpot {
                 edge: eidx,
-                tile: k,
+                tile: k as u16,
+                side: None,
             });
         }
-        tiles.push(t);
+        tiles.push(t.to_string());
     }
     (tiles, ambush_spots)
 }
@@ -210,7 +120,7 @@ pub struct BuildInput<'a> {
     pub land_raster: &'a Raster,
 }
 
-pub fn build(input: BuildInput<'_>) -> MapJson {
+pub fn build(input: BuildInput<'_>) -> Map {
     let BuildInput {
         sites,
         routes,
@@ -231,8 +141,8 @@ pub fn build(input: BuildInput<'_>) -> MapJson {
     // Dedupe routes: upstream/downstream are the same river twice; keep one per
     // (pair, kind). Parallel road+sea between the same pair both survive.
     let mut seen: BTreeSet<(u32, u32, u8)> = BTreeSet::new();
-    let mut edges: Vec<EdgeJson> = Vec::new();
-    let mut ambush_spots: Vec<AmbushJson> = Vec::new();
+    let mut edges: Vec<Edge> = Vec::new();
+    let mut ambush_spots: Vec<AmbushSpot> = Vec::new();
 
     for r in &routes {
         let key = (
@@ -264,12 +174,13 @@ pub fn build(input: BuildInput<'_>) -> MapJson {
         };
         let (tiles, spots) = classify_route_tiles(&via, kind, eidx, &river_grid, &mountains);
         ambush_spots.extend(spots);
-        edges.push(EdgeJson {
+        edges.push(Edge {
             a: r.a,
             b: r.b,
-            kind,
+            kind: kind.to_string(),
             via,
             tiles,
+            reconnect: false,
         });
     }
 
@@ -349,7 +260,14 @@ pub fn build(input: BuildInput<'_>) -> MapJson {
         .collect();
     is_city.extend(owner_site.keys().copied());
 
-    let removed_junctions = prune_road_stub_junctions(&mut edges, &mut ambush_spots, &is_city);
+    let removed_junctions = crate::graph::stub_junctions(
+        edges.iter().flat_map(|edge| [edge.a, edge.b]),
+        &is_city,
+        edges
+            .iter()
+            .map(|edge| (edge.a, edge.b, edge.kind == "sea")),
+    );
+    remove_nodes_and_remap_ambush(&mut edges, &mut ambush_spots, &removed_junctions);
     let ports = port_sites(&edges);
     // Drop sites with no surviving edges (isolated points render as noise), but
     // keep cities protected from road-stub pruning.
@@ -508,7 +426,7 @@ pub fn build(input: BuildInput<'_>) -> MapJson {
         owner_of.insert(id_to_label[&site].to_string(), fid);
     }
 
-    let mut nodes: Vec<NodeJson> = Vec::new();
+    let mut nodes: Vec<Node> = Vec::new();
     let mut resolved: BTreeSet<&str> = BTreeSet::new();
     let city_positions = snapped_city_positions(&sites, &is_city, &land_raster);
     snap_edge_endpoints(&mut edges, &city_positions);
@@ -540,15 +458,16 @@ pub fn build(input: BuildInput<'_>) -> MapJson {
         } else {
             String::new()
         };
-        nodes.push(NodeJson {
+        nodes.push(Node {
             id: s.id,
             name: s.label.clone(),
             pos: city_positions.get(&s.id).copied().unwrap_or(s.pos),
-            src_pos: s.pos,
-            kind: if is_city { "city" } else { "junction" },
+            src_pos: Some(s.pos),
+            kind: if is_city { "city" } else { "junction" }.to_string(),
             tier,
             port: ports.contains(&s.id),
             owner,
+            reconnected: false,
         });
     }
     for label in owner_of.keys() {
@@ -557,7 +476,7 @@ pub fn build(input: BuildInput<'_>) -> MapJson {
         }
     }
 
-    MapJson {
+    Map {
         half_w,
         half_h,
         attribution: "Road/sea network: ORBIS (Stanford, via github.com/emeeks/orbis_v2, MIT). \
@@ -566,12 +485,12 @@ pub fn build(input: BuildInput<'_>) -> MapJson {
         nodes,
         edges,
         ambush_spots,
-        factions: overrides["factions"].as_array().unwrap().clone(),
-        start_armies: overrides["start_armies"].as_array().unwrap().clone(),
+        factions: serde_json::from_value(overrides["factions"].clone()).unwrap(),
+        start_armies: serde_json::from_value(overrides["start_armies"].clone()).unwrap(),
     }
 }
 
-fn port_sites(edges: &[EdgeJson]) -> BTreeSet<u32> {
+fn port_sites(edges: &[Edge]) -> BTreeSet<u32> {
     edges
         .iter()
         .filter(|e| e.kind == "sea")
@@ -579,55 +498,15 @@ fn port_sites(edges: &[EdgeJson]) -> BTreeSet<u32> {
         .collect()
 }
 
-fn prune_road_stub_junctions(
-    edges: &mut Vec<EdgeJson>,
-    ambush_spots: &mut Vec<AmbushJson>,
-    city_sites: &BTreeSet<u32>,
-) -> BTreeSet<u32> {
-    let mut alive = vec![true; edges.len()];
-    let mut removed = BTreeSet::new();
-    loop {
-        let mut endpoints = BTreeSet::new();
-        let mut road_degree: BTreeMap<u32, usize> = BTreeMap::new();
-        let mut sea_degree: BTreeMap<u32, usize> = BTreeMap::new();
-        for (i, e) in edges.iter().enumerate() {
-            if !alive[i] {
-                continue;
-            }
-            endpoints.insert(e.a);
-            endpoints.insert(e.b);
-            if e.kind == "road" {
-                *road_degree.entry(e.a).or_default() += 1;
-                *road_degree.entry(e.b).or_default() += 1;
-            } else if e.kind == "sea" {
-                *sea_degree.entry(e.a).or_default() += 1;
-                *sea_degree.entry(e.b).or_default() += 1;
-            }
-        }
-
-        let doomed: BTreeSet<u32> = endpoints
-            .into_iter()
-            .filter(|id| {
-                !city_sites.contains(id)
-                    && road_degree.get(id).copied().unwrap_or(0) <= 1
-                    && sea_degree.get(id).copied().unwrap_or(0) == 0
-            })
-            .collect();
-        if doomed.is_empty() {
-            break;
-        }
-        removed.extend(doomed.iter().copied());
-        for (i, e) in edges.iter().enumerate() {
-            if alive[i] && (doomed.contains(&e.a) || doomed.contains(&e.b)) {
-                alive[i] = false;
-            }
-        }
-    }
-
+fn remove_nodes_and_remap_ambush(
+    edges: &mut Vec<Edge>,
+    ambush_spots: &mut Vec<AmbushSpot>,
+    removed: &BTreeSet<u32>,
+) {
     let mut edge_remap = vec![usize::MAX; edges.len()];
     let mut retained = Vec::new();
     for (i, e) in edges.drain(..).enumerate() {
-        if alive[i] && !removed.contains(&e.a) && !removed.contains(&e.b) {
+        if !removed.contains(&e.a) && !removed.contains(&e.b) {
             edge_remap[i] = retained.len();
             retained.push(e);
         }
@@ -643,8 +522,6 @@ fn prune_road_stub_junctions(
             true
         }
     });
-
-    removed
 }
 
 #[cfg(test)]
@@ -654,25 +531,38 @@ mod tests {
     #[test]
     fn road_stub_prune_preserves_sea_lane_junctions() {
         let mut edges = vec![
-            EdgeJson {
+            Edge {
                 a: 1,
                 b: 2,
-                kind: "road",
+                kind: "road".to_string(),
                 via: vec![[0.0, 0.0], [1.0, 0.0]],
-                tiles: vec!["open"],
+                tiles: vec!["open".to_string()],
+                reconnect: false,
             },
-            EdgeJson {
+            Edge {
                 a: 2,
                 b: 3,
-                kind: "sea",
+                kind: "sea".to_string(),
                 via: vec![[1.0, 0.0], [2.0, 0.0]],
-                tiles: vec!["sea"],
+                tiles: vec!["sea".to_string()],
+                reconnect: false,
             },
         ];
-        let mut ambush_spots = vec![AmbushJson { edge: 0, tile: 0 }];
+        let mut ambush_spots = vec![AmbushSpot {
+            edge: 0,
+            tile: 0,
+            side: None,
+        }];
         let city_sites = BTreeSet::from([1, 3]);
 
-        let removed = prune_road_stub_junctions(&mut edges, &mut ambush_spots, &city_sites);
+        let removed = crate::graph::stub_junctions(
+            edges.iter().flat_map(|edge| [edge.a, edge.b]),
+            &city_sites,
+            edges
+                .iter()
+                .map(|edge| (edge.a, edge.b, edge.kind == "sea")),
+        );
+        remove_nodes_and_remap_ambush(&mut edges, &mut ambush_spots, &removed);
 
         assert!(
             removed.is_empty(),
@@ -758,7 +648,7 @@ fn snapped_city_positions(
     out
 }
 
-fn snap_edge_endpoints(edges: &mut [EdgeJson], city_positions: &BTreeMap<u32, [f64; 2]>) {
+fn snap_edge_endpoints(edges: &mut [Edge], city_positions: &BTreeMap<u32, [f64; 2]>) {
     for e in edges {
         if let Some(&p) = city_positions.get(&e.a) {
             e.via[0] = p;

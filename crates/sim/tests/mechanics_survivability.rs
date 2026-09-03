@@ -74,15 +74,16 @@ fn ref_stats(hp: f32, block: f32, evade: f32) -> UnitClass {
 /// Spawn a fake reference (wide shallow line) at `(0,y)` facing `f`, on `team`.
 fn spawn_ref(sim: &mut Sim, stats: UnitClass, count: usize, y: f32, f: f32, team: u32) -> usize {
     let files = (count / REF_DEPTH).max(4);
-    sim.spawn_class_stats_with_files(
-        Vec2::new(0.0, y),
-        f,
+    sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, y),
+        facing: f,
         count,
-        files,
-        UnitClassId::Peasant,
+        files: Some(files),
+        class: UnitClassId::Peasant,
         stats,
+        look: UnitClassId::Peasant as u32,
         team,
-    )
+    })
 }
 
 /// SURVIVABILITY: seconds for a 60-man victim to lose half its men under a fixed
@@ -222,14 +223,16 @@ fn survivability_scales_with_the_reference_stats() {
         (
             name,
             surv(&move |sim| {
-                sim.spawn_class_with_files(
-                    Vec2::new(0.0, 0.0),
-                    -FRAC_PI_2,
-                    60,
-                    60 / REF_DEPTH,
-                    c,
-                    1,
-                )
+                sim.spawn(sim::SpawnSpec {
+                    anchor: Vec2::new(0.0, 0.0),
+                    facing: -FRAC_PI_2,
+                    count: 60,
+                    files: Some(60 / REF_DEPTH),
+                    class: c,
+                    stats: sim.balance.get(c),
+                    look: c as u32,
+                    team: 1,
+                })
             }),
         )
     })

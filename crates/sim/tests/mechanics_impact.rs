@@ -50,17 +50,26 @@ fn cav_deaths_by_cause(
         if flank {
             cav.charge = false; // a stalled horse: isolate the grind, no charge
         }
-        let cu = sim.spawn_class_stats_with_files(
-            cav_pos,
-            cav_face,
-            120,
-            24,
-            UnitClassId::ShockCavalry,
-            cav,
-            0,
-        );
-        let fu =
-            sim.spawn_class_stats_with_files(foot_pos, foot_face, 120, 30, foot_class, foot, 1);
+        let cu = sim.spawn(sim::SpawnSpec {
+            anchor: cav_pos,
+            facing: cav_face,
+            count: 120,
+            files: Some(24),
+            class: UnitClassId::ShockCavalry,
+            stats: cav,
+            look: UnitClassId::ShockCavalry as u32,
+            team: 0,
+        });
+        let fu = sim.spawn(sim::SpawnSpec {
+            anchor: foot_pos,
+            facing: foot_face,
+            count: 120,
+            files: Some(30),
+            class: foot_class,
+            stats: foot,
+            look: foot_class as u32,
+            team: 1,
+        });
         sim.set_attack_order(fu, cu);
         if !flank {
             sim.set_attack_order(cu, fu);
@@ -134,19 +143,28 @@ fn rider_share(side: Vec2, foot: sim::UnitClass, foot_class: UnitClassId) -> f32
     cav.block = 0.0; // remove the held shield — we test the BODY's shielding, not it
     cav.evade = 0.0; // every blow lands, so the split is the pure geometry
     let n_cav = 12;
-    let horse = sim.spawn_class_stats_with_files(
-        Vec2::ZERO,
-        FRAC_PI_2,
-        n_cav,
-        4,
-        UnitClassId::ShockCavalry,
-        cav,
-        0,
-    );
+    let horse = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::ZERO,
+        facing: FRAC_PI_2,
+        count: n_cav,
+        files: Some(4),
+        class: UnitClassId::ShockCavalry,
+        stats: cav,
+        look: UnitClassId::ShockCavalry as u32,
+        team: 0,
+    });
 
     let foot_facing = (-side.y).atan2(-side.x); // points from the foot toward the horse
-    let foot =
-        sim.spawn_class_stats_with_files(side * 7.0, foot_facing, 48, 8, foot_class, foot, 1);
+    let foot = sim.spawn(sim::SpawnSpec {
+        anchor: side * 7.0,
+        facing: foot_facing,
+        count: 48,
+        files: Some(8),
+        class: foot_class,
+        stats: foot,
+        look: foot_class as u32,
+        team: 1,
+    });
     sim.set_attack_order(foot, horse);
 
     let u = &sim.units[horse];
@@ -403,15 +421,16 @@ fn cav_vs_light(charge: bool, morale: bool) -> Outcome {
         let mut sim = Sim::new(tun, s);
         // FAKE references: shock cav vs a 2:1 light line — balance-independent.
         let cav = spawn_cav(&mut sim, Vec2::new(0.0, -42.0), FRAC_PI_2, 120, 0);
-        let light = sim.spawn_class_stats_with_files(
-            Vec2::new(0.0, 42.0),
-            -FRAC_PI_2,
-            240,
-            60,
-            UnitClassId::Peasant,
-            ref_melee(false),
-            1,
-        );
+        let light = sim.spawn(sim::SpawnSpec {
+            anchor: Vec2::new(0.0, 42.0),
+            facing: -FRAC_PI_2,
+            count: 240,
+            files: Some(60),
+            class: UnitClassId::Peasant,
+            stats: ref_melee(false),
+            look: UnitClassId::Peasant as u32,
+            team: 1,
+        });
         if !charge {
             sim.set_charge_enabled(cav, false);
             sim.set_pace(cav, Pace::Walk);

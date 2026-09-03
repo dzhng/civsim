@@ -8,9 +8,25 @@
 //! helpers read as dead in any single binary — expected for a shared module.)
 #![allow(dead_code)]
 
-use sim::{Sim, Tunables, Vec2, DT};
+use contract::{BattleResult, BattleSetup};
+use sim::{Battle, Sim, Tunables, Vec2, DT};
 
 pub mod settle;
+
+pub fn auto_resolve(setup: &BattleSetup, max_ticks: u64) -> BattleResult {
+    let mut battle = Battle::from_setup(setup, &|unit| sim::class_stats(unit.class), &|unit| {
+        unit.class as u32
+    });
+    battle.set_ai(0, true);
+    battle.set_ai(1, true);
+    for _ in 0..max_ticks {
+        battle.tick();
+        if let Some(result) = battle.result() {
+            return result;
+        }
+    }
+    battle.forced_result()
+}
 
 /// The committed seed set, re-exported so every outcome test samples the SAME
 /// fixed seeds. A single duel is RNG-dependent — one seed chases noise — so any
@@ -458,13 +474,14 @@ pub fn ref_spear(reach: f32, damage: f32, impales: bool) -> UnitClass {
 
 /// Spawn a FAKE shock-cav unit (test-owned stats — balance-independent), 24 files.
 pub fn spawn_cav(sim: &mut Sim, pos: Vec2, facing: f32, n: usize, team: u32) -> usize {
-    sim.spawn_class_stats_with_files(
-        pos,
+    sim.spawn(sim::SpawnSpec {
+        anchor: pos,
         facing,
-        n,
-        24,
-        UnitClassId::ShockCavalry,
-        ref_shock_cav(),
+        count: n,
+        files: Some(24),
+        class: UnitClassId::ShockCavalry,
+        stats: ref_shock_cav(),
+        look: UnitClassId::ShockCavalry as u32,
         team,
-    )
+    })
 }

@@ -67,16 +67,16 @@ fn spawn_plan(
     out: &mut Vec<(u64, usize)>,
 ) {
     let files = plan.count.div_ceil(plan.stats.default_depth.max(1));
-    let idx = sim.spawn_class_stats_look_with_files(
+    let idx = sim.spawn(crate::sim::SpawnSpec {
         anchor,
-        face,
-        plan.count,
-        files,
-        plan.class,
-        plan.stats,
-        plan.render_look,
-        dep_team,
-    );
+        facing: face,
+        count: plan.count,
+        files: Some(files),
+        class: plan.class,
+        stats: plan.stats,
+        look: plan.render_look,
+        team: dep_team,
+    });
     let u = &mut sim.units[idx];
     u.training = plan.training.clamp(0.05, 1.0);
     u.morale_ceiling = plan.morale_cap.clamp(0.2, 1.0);
@@ -418,12 +418,7 @@ pub fn deploy_custom_army(sim: &mut Sim, team: u32, classes: &[UnitClassId]) {
 /// lays the army strung out along the march axis instead — marching order,
 /// the corridor machinery's natural prey. Returns (campaign unit id, sim unit
 /// index) for result mapping.
-pub fn deploy_roster(sim: &mut Sim, dep: &contract::Deployment) -> Vec<(u64, usize)> {
-    let balance = sim.balance.clone();
-    deploy_roster_with_stats_and_looks(sim, dep, &|r| balance.get(r.class), &|r| r.class as u32)
-}
-
-pub fn deploy_roster_with_stats_and_looks<F, G>(
+pub(crate) fn deploy_resolved_roster<F, G>(
     sim: &mut Sim,
     dep: &contract::Deployment,
     stats_for: &F,

@@ -11,11 +11,11 @@ ledger in [visualizations/audit-ledger.html](visualizations/audit-ledger.html).
 
 ## Next Agent Prompt
 
-**Status (2026-09-03):** slices 01, 15-19, 22-24, 28-31 plus 02, 20, 21 and 32 landed on main (17 of 34); lane W's own list is complete and it has taken the photoreal chain (integration
+**Status (2026-09-03):** slices 01, 15-19, 22-24, 28-31 plus 02, 03, 20, 21, 25 and 32 landed on main (19 of 34); lane W's own list is complete and it has taken the photoreal chain (integration
 `bun run check` green after 15+28; typecheck + campaign tests + wasm rebuild
 green after 29; slice 29 pixel-neutral — campaign-visual diff numbers identical
 to main). In flight in lane worktrees `/Users/david/dev/game-wt/{r,w,s,c}`
-(branches `debt-ledger/{r,w,s,c}`): 03 (R), 10 (W, branch merged up to main), 25 review (S), 33 review (C). Slice 32 note: the first pass promoted sim to a production dependency of campaign to reach UnitClass; sent back — campaign owns option modifiers as contract::StatModifiers, sim applies them, game-wasm composes. Slice 01 notes: the seating tripwire now lives in `battle-seating` (three catalog maps; `generated-seed-7` was highland-vale under another name and was dropped) and shoots until the crowd has drawn; terrain builder invariants live in `web/tests/vitest/terrainFeatures.test.ts`; the render-graph static fixtures died with that route while `frame-shell` keeps its live fixture list. Codex
+(branches `debt-ledger/{r,w,s,c}`): 04 (R, merged up to main), 10 (W, merged up to main), 26 (S), 33 review + re-bake (C). Slice 32 note: the first pass promoted sim to a production dependency of campaign to reach UnitClass; sent back — campaign owns option modifiers as contract::StatModifiers, sim applies them, game-wasm composes. Slice 01 notes: the seating tripwire now lives in `battle-seating` (three catalog maps; `generated-seed-7` was highland-vale under another name and was dropped) and shoots until the crowd has drawn; terrain builder invariants live in `web/tests/vitest/terrainFeatures.test.ts`; the render-graph static fixtures died with that route while `frame-shell` keeps its live fixture list. Codex
 implements in the worktree; the orchestrator runs browser gates against the
 lane's own dev server (`vite --port 5173+lane --strictPort`, `VERIFY_URL`),
 commits, and merges to main. `choices.md` has a union merge driver.
@@ -77,7 +77,7 @@ parallel in separate worktrees (see the lane table for file disjointness).
 
 - [x] Lab estate routes, scenes, scripts, baselines gone [01]
 - [x] Lab estate modules + HUD shims gone; rationale record written [02]
-- [ ] frameShell terrain/backdrop/marker pipelines gone; command type shrunk [03]
+- [x] frameShell terrain/backdrop/marker pipelines gone; command type shrunk [03]
 - [ ] Lab router one file per route; one wasm terrain-grid reader; scanners widened [04]
 - [ ] `noiseWgsl.ts` owns hash/vnoise/fbm [05]
 - [ ] `CampaignEnvironment` owns campaign sun/haze (plumbing, then one sun) [06]
@@ -99,7 +99,7 @@ parallel in separate worktrees (see the lane table for file disjointness).
 - [x] `Vec2::perp`, covered-files helper, `genmap/noise.rs` [22]
 - [x] `Tracer` replaces 70 cfg blocks [23]
 - [x] Dead knobs → constants; ignored probes and copied test helpers gone [24]
-- [ ] One `spawn(SpawnSpec)`; `Unit::files_bounds`; wrapper chains gone [25]
+- [x] One `spawn(SpawnSpec)`; `Unit::files_bounds`; wrapper chains gone [25]
 - [ ] `steer/` module, slot policy in unit.rs, separation owners [26]
 - [ ] `Unit::bound_radius()`; pins re-verified per consumer [27]
 - [x] Campaign golden pin [28]

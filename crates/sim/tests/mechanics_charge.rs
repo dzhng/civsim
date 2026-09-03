@@ -231,7 +231,16 @@ fn class_charge_mass_progress(def_class: UnitClassId, flank: bool) -> f32 {
         },
         SEED,
     );
-    let def = sim.spawn_class_with_files(Vec2::ZERO, FRAC_PI_2, 160, 8, def_class, 1);
+    let def = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::ZERO,
+        facing: FRAC_PI_2,
+        count: 160,
+        files: Some(8),
+        class: def_class,
+        stats: sim.balance.get(def_class),
+        look: def_class as u32,
+        team: 1,
+    });
     let (start, facing, goal, axis) = if flank {
         (
             Vec2::new(-70.0, 0.0),
@@ -288,8 +297,16 @@ fn cav_closest_approach_to_phalanx(flank: bool) -> f32 {
     );
     // Defender holds facing +y. A phalanx therefore presents points only to the
     // north; a flank charge from the west crosses the shafts, not their tips.
-    let def =
-        sim.spawn_class_with_files(Vec2::ZERO, FRAC_PI_2, 160, 8, UnitClassId::HeavyPhalanx, 1);
+    let def = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::ZERO,
+        facing: FRAC_PI_2,
+        count: 160,
+        files: Some(8),
+        class: UnitClassId::HeavyPhalanx,
+        stats: sim.balance.get(UnitClassId::HeavyPhalanx),
+        look: UnitClassId::HeavyPhalanx as u32,
+        team: 1,
+    });
     let (start, facing, goal) = if flank {
         (Vec2::new(-70.0, 0.0), 0.0, Vec2::new(70.0, 0.0))
     } else {
@@ -353,8 +370,16 @@ fn flank_wheel_charge(wheel: bool) -> (f32, bool, f32) {
         SEED,
     );
     // Wide immortal heavy line, facing +y (front north, flanks east/west).
-    let block =
-        sim.spawn_class_with_files(Vec2::ZERO, FRAC_PI_2, 160, 20, UnitClassId::HeavySword, 1);
+    let block = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::ZERO,
+        facing: FRAC_PI_2,
+        count: 160,
+        files: Some(20),
+        class: UnitClassId::HeavySword,
+        stats: sim.balance.get(UnitClassId::HeavySword),
+        look: UnitClassId::HeavySword as u32,
+        team: 1,
+    });
     let mut bh = class_stats(UnitClassId::HeavySword);
     bh.weapons = sim::class::one(Weapon {
         reach: 1.1,

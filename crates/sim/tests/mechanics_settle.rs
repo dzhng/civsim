@@ -399,14 +399,16 @@ fn run_to_contact_stamina() {
 
     let mut cav_sim = Sim::new(no_morale_parade(), SEED);
     cav_sim.terrain = flat_run_ground();
-    let cav = cav_sim.spawn_class_with_files(
-        Vec2::new(0.0, -275.0),
-        FRAC_PI_2,
-        60,
-        20,
-        UnitClassId::ShockCavalry,
-        0,
-    );
+    let cav = cav_sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, -275.0),
+        facing: FRAC_PI_2,
+        count: 60,
+        files: Some(20),
+        class: UnitClassId::ShockCavalry,
+        stats: cav_sim.balance.get(UnitClassId::ShockCavalry),
+        look: UnitClassId::ShockCavalry as u32,
+        team: 0,
+    });
     let cav_arrived = march_550m(&mut cav_sim, cav);
     let cav_stamina = cav_sim.units[cav].stamina;
     let cav_distance = (cav_sim.units[cav].anchor - Vec2::new(0.0, -275.0)).len();

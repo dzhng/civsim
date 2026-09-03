@@ -743,7 +743,7 @@ mod tests {
 pub fn start_campaign_battle(c: &mut Campaign, encounter: u32) -> Option<Game> {
     let setup = c.inner.battle_setup(encounter)?;
     let terrain_source = setup.terrain.clone();
-    let mut battle = sim::Battle::from_setup_with_stats_and_looks(
+    let mut battle = sim::Battle::from_setup(
         &setup,
         &|unit| {
             let option = unit

@@ -65,24 +65,26 @@ fn a_pike_wall_holds_swords_at_sarissas_length_and_punishes_the_assault() {
     // ranks, 60 = 2 floored to the 3-rank minimum).
     let fight = |pike_count: usize| -> (usize, usize, f32, usize) {
         let mut sim = Sim::new(no_morale(), SEED);
-        let ph = sim.spawn_class_stats_with_files(
-            Vec2::new(0.0, 10.0),
-            -FRAC_PI_2,
-            pike_count,
-            30,
-            UnitClassId::HeavyPhalanx,
-            ref_pike(),
-            0,
-        );
-        let atk = sim.spawn_class_stats_with_files(
-            Vec2::new(0.0, -14.0),
-            FRAC_PI_2,
-            240,
-            30,
-            UnitClassId::Peasant,
-            ref_melee(true),
-            1,
-        );
+        let ph = sim.spawn(sim::SpawnSpec {
+            anchor: Vec2::new(0.0, 10.0),
+            facing: -FRAC_PI_2,
+            count: pike_count,
+            files: Some(30),
+            class: UnitClassId::HeavyPhalanx,
+            stats: ref_pike(),
+            look: UnitClassId::HeavyPhalanx as u32,
+            team: 0,
+        });
+        let atk = sim.spawn(sim::SpawnSpec {
+            anchor: Vec2::new(0.0, -14.0),
+            facing: FRAC_PI_2,
+            count: 240,
+            files: Some(30),
+            class: UnitClassId::Peasant,
+            stats: ref_melee(true),
+            look: UnitClassId::Peasant as u32,
+            team: 1,
+        });
         sim.set_attack_move_order(atk, Vec2::new(0.0, 20.0));
         let mut min_gap = f32::INFINITY;
         let mut max_sword_fighting = 0usize;
@@ -348,8 +350,16 @@ fn a_braced_holding_line_absorbs_a_frontal_charge() {
     // DIRECTIONAL brace, a deliberate follow-up; the pike directional stop is
     // already pinned by phalanx_points_stop_horses.)
     let mut sim = Sim::new(no_morale(), SEED);
-    let wall =
-        sim.spawn_class_with_files(Vec2::ZERO, FRAC_PI_2, 200, 20, UnitClassId::HeavySword, 0);
+    let wall = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::ZERO,
+        facing: FRAC_PI_2,
+        count: 200,
+        files: Some(20),
+        class: UnitClassId::HeavySword,
+        stats: sim.balance.get(UnitClassId::HeavySword),
+        look: UnitClassId::HeavySword as u32,
+        team: 0,
+    });
     for _ in 0..(2.0 / DT) as usize {
         sim.tick(); // a beat to set the brace before contact
     }
@@ -397,24 +407,26 @@ fn charge_impact_knocks_infantry_down() {
     // FAKE references: a heavy infantry line that survives the lance to be bowled
     // over, and a shock-cav charge.
     let mut sim = Sim::new(no_morale(), SEED);
-    let inf = sim.spawn_class_stats_with_files(
-        Vec2::new(0.0, 30.0),
-        -FRAC_PI_2,
-        200,
-        40,
-        UnitClassId::Peasant,
-        ref_melee(false),
-        0,
-    );
-    let cav = sim.spawn_class_stats_with_files(
-        Vec2::new(0.0, -60.0),
-        FRAC_PI_2,
-        120,
-        24,
-        UnitClassId::ShockCavalry,
-        ref_shock_cav(),
-        1,
-    );
+    let inf = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, 30.0),
+        facing: -FRAC_PI_2,
+        count: 200,
+        files: Some(40),
+        class: UnitClassId::Peasant,
+        stats: ref_melee(false),
+        look: UnitClassId::Peasant as u32,
+        team: 0,
+    });
+    let cav = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, -60.0),
+        facing: FRAC_PI_2,
+        count: 120,
+        files: Some(24),
+        class: UnitClassId::ShockCavalry,
+        stats: ref_shock_cav(),
+        look: UnitClassId::ShockCavalry as u32,
+        team: 1,
+    });
     sim.set_pace(cav, sim::Pace::Run);
     sim.set_attack_order(cav, inf); // charge home and engage, not ride past
     sim.set_attack_order(inf, cav); // the infantry advance to meet the charge

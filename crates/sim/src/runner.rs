@@ -4,7 +4,7 @@
 //! live here.
 
 use crate::ai::ai_commander;
-use crate::battle::deploy_roster_with_stats_and_looks;
+use crate::battle::deploy_resolved_roster;
 use crate::class::UnitClass;
 use crate::sim::Sim;
 use crate::terrain::Terrain;
@@ -50,22 +50,7 @@ impl Battle {
         self.result_with_victor(v)
     }
 
-    pub fn from_setup(setup: &BattleSetup) -> Battle {
-        Self::from_setup_with_stats(setup, &|r| crate::class::class_stats(r.class))
-    }
-
-    pub fn from_setup_with_stats<F>(setup: &BattleSetup, stats_for: &F) -> Battle
-    where
-        F: Fn(&contract::RosterUnit) -> UnitClass,
-    {
-        Self::from_setup_with_stats_and_looks(setup, stats_for, &|r| r.class as u32)
-    }
-
-    pub fn from_setup_with_stats_and_looks<F, G>(
-        setup: &BattleSetup,
-        stats_for: &F,
-        render_look_for: &G,
-    ) -> Battle
+    pub fn from_setup<F, G>(setup: &BattleSetup, stats_for: &F, render_look_for: &G) -> Battle
     where
         F: Fn(&contract::RosterUnit) -> UnitClass,
         G: Fn(&contract::RosterUnit) -> u32,
@@ -74,9 +59,7 @@ impl Battle {
         sim.terrain = terrain_from_source(&setup.terrain);
         let mut unit_map = Vec::new();
         for dep in &setup.deployments {
-            for (id, idx) in
-                deploy_roster_with_stats_and_looks(&mut sim, dep, stats_for, render_look_for)
-            {
+            for (id, idx) in deploy_resolved_roster(&mut sim, dep, stats_for, render_look_for) {
                 unit_map.push((id, dep.team, idx));
             }
         }
@@ -130,7 +113,7 @@ impl Battle {
                     .iter()
                     .position(|x| x.id == ru.id && x.class == ru.class)
             };
-            for (id, idx) in deploy_roster_with_stats_and_looks(
+            for (id, idx) in deploy_resolved_roster(
                 &mut self.sim,
                 &dep,
                 &|ru| {
@@ -207,22 +190,6 @@ impl Battle {
             .filter(|&&(_, t, _)| t == team)
             .map(|&(_, _, idx)| self.sim.units[idx].alive_count as u32)
             .sum()
-    }
-
-    /// Headless auto-resolve: the real sim, both commanders on, as fast as it
-    /// goes. If the cap lands first, the stronger remainder wins.
-    pub fn auto_resolve(setup: &BattleSetup, max_ticks: u64) -> BattleResult {
-        let mut b = Battle::from_setup(setup);
-        b.set_ai(0, true);
-        b.set_ai(1, true);
-        for _ in 0..max_ticks {
-            b.tick();
-            if let Some(r) = b.result() {
-                return r;
-            }
-        }
-        let v = if b.strength(0) >= b.strength(1) { 0 } else { 1 };
-        b.result_with_victor(v)
     }
 }
 

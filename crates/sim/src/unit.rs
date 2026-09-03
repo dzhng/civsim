@@ -7,6 +7,7 @@
 use crate::class::UnitClassId;
 use crate::math::{dir, Vec2};
 use crate::tunables::Pace;
+use std::ops::RangeInclusive;
 
 /// How a unit treats contact while executing its order.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -233,6 +234,13 @@ pub struct Unit {
     /// Queued follow-up orders (shift-issued): executed in sequence as each
     /// completes. (mode, target, final facing).
     pub order_queue: Vec<(OrderMode, Vec2, Option<f32>)>,
+}
+
+impl Unit {
+    pub fn files_bounds(count: usize) -> RangeInclusive<usize> {
+        let lower = 4.min(count.max(1));
+        lower..=(count / 3).max(lower)
+    }
 }
 
 /// Sector index for a world-frame bearing, 12 sectors over (-PI, PI].

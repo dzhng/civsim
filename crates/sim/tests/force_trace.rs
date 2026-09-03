@@ -10,22 +10,26 @@ use std::f32::consts::PI;
 
 fn traced_heavy_clash(seconds: f32) -> Sim {
     let mut sim = Sim::new(no_morale_parade(), 0x5150);
-    let a = sim.spawn_class_with_files(
-        Vec2::new(0.0, -9.0),
-        PI * 0.5,
-        96,
-        12,
-        UnitClassId::HeavySword,
-        0,
-    );
-    let b = sim.spawn_class_with_files(
-        Vec2::new(0.0, 9.0),
-        -PI * 0.5,
-        96,
-        12,
-        UnitClassId::HeavySword,
-        1,
-    );
+    let a = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, -9.0),
+        facing: PI * 0.5,
+        count: 96,
+        files: Some(12),
+        class: UnitClassId::HeavySword,
+        stats: sim.balance.get(UnitClassId::HeavySword),
+        look: UnitClassId::HeavySword as u32,
+        team: 0,
+    });
+    let b = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(0.0, 9.0),
+        facing: -PI * 0.5,
+        count: 96,
+        files: Some(12),
+        class: UnitClassId::HeavySword,
+        stats: sim.balance.get(UnitClassId::HeavySword),
+        look: UnitClassId::HeavySword as u32,
+        team: 1,
+    });
     sim.set_pace(a, Pace::Run);
     sim.set_pace(b, Pace::Run);
     sim.set_attack_order(a, b);
@@ -73,42 +77,50 @@ fn force_trace_smoke_covers_expected_channels() {
     sim.set_attack_order(d, c);
     sim.tick();
 
-    let _e = sim.spawn_class_with_files(
-        Vec2::new(8.0, -0.9),
-        PI * 0.5,
-        48,
-        12,
-        UnitClassId::HeavySword,
-        0,
-    );
-    let _f = sim.spawn_class_with_files(
-        Vec2::new(8.0, 0.9),
-        -PI * 0.5,
-        48,
-        12,
-        UnitClassId::HeavySword,
-        1,
-    );
+    let _e = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(8.0, -0.9),
+        facing: PI * 0.5,
+        count: 48,
+        files: Some(12),
+        class: UnitClassId::HeavySword,
+        stats: sim.balance.get(UnitClassId::HeavySword),
+        look: UnitClassId::HeavySword as u32,
+        team: 0,
+    });
+    let _f = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(8.0, 0.9),
+        facing: -PI * 0.5,
+        count: 48,
+        files: Some(12),
+        class: UnitClassId::HeavySword,
+        stats: sim.balance.get(UnitClassId::HeavySword),
+        look: UnitClassId::HeavySword as u32,
+        team: 1,
+    });
     for _ in 0..8 {
         sim.tick();
     }
 
-    let _p = sim.spawn_class_with_files(
-        Vec2::new(-9.0, -0.8),
-        PI * 0.5,
-        64,
-        16,
-        UnitClassId::HeavyPhalanx,
-        0,
-    );
-    let _q = sim.spawn_class_with_files(
-        Vec2::new(-8.2, 0.8),
-        -PI * 0.5,
-        64,
-        16,
-        UnitClassId::HeavyPhalanx,
-        1,
-    );
+    let _p = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(-9.0, -0.8),
+        facing: PI * 0.5,
+        count: 64,
+        files: Some(16),
+        class: UnitClassId::HeavyPhalanx,
+        stats: sim.balance.get(UnitClassId::HeavyPhalanx),
+        look: UnitClassId::HeavyPhalanx as u32,
+        team: 0,
+    });
+    let _q = sim.spawn(sim::SpawnSpec {
+        anchor: Vec2::new(-8.2, 0.8),
+        facing: -PI * 0.5,
+        count: 64,
+        files: Some(16),
+        class: UnitClassId::HeavyPhalanx,
+        stats: sim.balance.get(UnitClassId::HeavyPhalanx),
+        look: UnitClassId::HeavyPhalanx as u32,
+        team: 1,
+    });
     for _ in 0..80 {
         sim.tick();
     }

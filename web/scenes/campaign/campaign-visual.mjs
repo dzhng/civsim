@@ -1,3 +1,5 @@
+import { campaign } from "../worlds.mjs";
+
 export const meta = {
   name: "campaign-visual",
   kind: "visual",
@@ -29,18 +31,15 @@ export async function run(ctx) {
     return;
   }
 
-  const page = await ctx.newPage({
+  const page = await campaign(ctx, "test", {
     viewport: { width: 1280, height: 800 },
     deviceScaleFactor: 2,
     errorPrefix: "campaign-visual",
+    timeout: 30000,
   });
-  await page.goto(`${ctx.target}/?campaign=test`);
   await page.waitForFunction(
     () =>
-      window.__campaignReady === true &&
-      window.__campaignGpuStats?.ready === true &&
-      window.__campaignGpuStats?.cityEntities >= 2 &&
-      window.__campaignGpuStats?.armyEntities >= 1,
+      window.__campaignGpuStats?.cityEntities >= 2 && window.__campaignGpuStats?.armyEntities >= 1,
     undefined,
     { timeout: 30000 },
   );

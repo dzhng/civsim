@@ -3,6 +3,7 @@ import {
   hasBattleWorldDepthContract,
   hasCampaignWorldDepthContract,
 } from "../_renderer-contract.mjs";
+import { campaign, ready } from "../worlds.mjs";
 
 export const meta = {
   name: "campaign-handoff",
@@ -14,16 +15,11 @@ export const meta = {
 };
 
 export async function run(ctx) {
-  const page = await ctx.newPage({
+  const page = await campaign(ctx, "handoff", {
     viewport: { width: 1280, height: 800 },
     errorPrefix: "campaign-handoff",
+    timeout: 18000,
   });
-  await page.goto(`${ctx.target}/?campaign=handoff`);
-  await page.waitForFunction(
-    () => window.__campaignReady === true && window.__campaignGpuStats?.ready === true,
-    undefined,
-    { timeout: 18000 },
-  );
   await page.evaluate(() => {
     window.__campaign.freeze(true);
     window.__campaign.cam(0, 450, 5.8);
@@ -127,14 +123,8 @@ export async function run(ctx) {
 
   await page.click("#btn-menu");
   await page.click("#pause-exit");
-  await page.waitForFunction(
-    () =>
-      window.__campaignReady === true &&
-      window.__campaignGpuStats?.ready === true &&
-      window.__ready === false,
-    undefined,
-    { timeout: 22000 },
-  );
+  await ready(page, "__campaignReady", 22000);
+  await page.waitForFunction(() => window.__ready === false, undefined, { timeout: 22000 });
   await page.waitForTimeout(260);
   const returned = await page.evaluate(() => ({
     campaignReady: window.__campaignReady,

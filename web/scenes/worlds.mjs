@@ -3,9 +3,8 @@ export async function battleReal(ctx, opts = {}) {
   const params = new URLSearchParams({ map: "A", ai: opts.ai ?? "off" });
   if (opts.debugBlocks) params.set("debug", "blocks");
   await page.goto(`${ctx.target}?${params}`);
-  await page.waitForFunction(() => window.__ready === true, undefined, {
-    timeout: opts.timeout ?? 20000,
-  });
+  await ready(page, "__ready", opts.timeout);
+  await battleRendererReady(page, opts.timeout);
   await page.waitForTimeout(opts.settle ?? 800);
   return page;
 }
@@ -20,19 +19,72 @@ export async function battleDuel(ctx, opts = {}) {
   });
   if (opts.debugBlocks) params.set("debug", "blocks");
   await page.goto(`${ctx.target}?${params}`);
-  await page.waitForFunction(() => window.__ready === true, undefined, {
-    timeout: opts.timeout ?? 20000,
-  });
+  await ready(page, "__ready", opts.timeout);
+  await battleRendererReady(page, opts.timeout);
   await page.waitForTimeout(opts.settle ?? 300);
   return page;
 }
 
 export async function battle5v5(ctx, opts = {}) {
-  const page = await ctx.newPage({ errorPrefix: opts.errorPrefix });
+  const page = await ctx.newPage({
+    viewport: opts.viewport,
+    deviceScaleFactor: opts.deviceScaleFactor,
+    errorPrefix: opts.errorPrefix,
+  });
   const params = new URLSearchParams({ battle: "5v5", ai: opts.ai ?? "on" });
   await page.goto(`${ctx.target}?${params}`);
-  await page.waitForFunction(() => window.__ready === true, undefined, {
-    timeout: opts.timeout ?? 20000,
-  });
+  await ready(page, "__ready", opts.timeout);
+  await battleRendererReady(page, opts.timeout);
   return page;
+}
+
+export async function campaign(ctx, kind, opts = {}) {
+  const page = await ctx.newPage({
+    viewport: opts.viewport,
+    deviceScaleFactor: opts.deviceScaleFactor,
+    errorPrefix: opts.errorPrefix,
+  });
+  if (kind === "new") {
+    await page.goto(`${ctx.target}/`);
+    await page.waitForSelector("#menu-new-campaign", { timeout: opts.menuTimeout ?? 20000 });
+    await page.click("#menu-new-campaign");
+  } else {
+    await page.goto(`${ctx.target}/?campaign=${kind}`);
+  }
+  await ready(page, "__campaignReady", opts.timeout);
+  return page;
+}
+
+export async function labRoute(ctx, route, query = "") {
+  const page = await ctx.newPage({
+    viewport: { width: 900, height: 620 },
+    errorPrefix: `gpu-${route}`,
+  });
+  await page.goto(`${ctx.target}/renderer/${route}${query}`);
+  await ready(page, "__rendererLabReady", 18000);
+  return page;
+}
+
+export async function ready(page, flag, timeoutMs = 20000) {
+  await page.waitForFunction((name) => window[name] === true, flag, { timeout: timeoutMs });
+}
+
+/** Battle boot contract: the page flag alone means the shell mounted; the
+ *  renderer is ready only once it reports ready and has uploaded every soldier.
+ *  Every battle boot waits on this so no scene freezes or shoots a half-built
+ *  frame. */
+export async function battleRendererReady(page, timeoutMs = 20000) {
+  await page.waitForFunction(
+    () => {
+      const stats = window.__game?.stats?.();
+      return (
+        window.__ready === true &&
+        stats?.renderer === "gpu" &&
+        stats.renderStats?.ready === true &&
+        stats.renderStats.soldiers === stats.soldiers
+      );
+    },
+    undefined,
+    { timeout: timeoutMs },
+  );
 }

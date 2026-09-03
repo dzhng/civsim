@@ -76,10 +76,9 @@ export function graphicsQueryOverrides(search: string): GraphicsQueryOverrides {
   const params = searchParams(search);
   return {
     shadows: params.has("shadows"),
-    grassQuality:
-      params.has("grassQuality") || params.has("grassquality") || params.has("grass-quality"),
-    grass: params.has("grass"),
-    farGrass: params.has("nofar") || params.has("fargrass"),
+    grassQuality: false,
+    grass: false,
+    farGrass: false,
     bloom: params.has("post") || params.has("bloom"),
   };
 }
@@ -92,15 +91,6 @@ export function resolveGraphicsSettings(
   const resolved = sanitizeGraphicsSettings(base, DEFAULT_GRAPHICS_SETTINGS);
   const shadow = parseShadowMode(params.get("shadows"));
   if (shadow) resolved.shadows = shadow;
-  const grassQuality = parseGrassQuality(
-    params.get("grassQuality") ?? params.get("grassquality") ?? params.get("grass-quality"),
-  );
-  if (grassQuality) resolved.grassQuality = grassQuality;
-  const grass = parseBooleanParam(params.get("grass"));
-  if (grass !== null) resolved.grass = grass;
-  if (params.has("nofar")) resolved.farGrass = false;
-  const farGrass = parseBooleanParam(params.get("fargrass"));
-  if (farGrass !== null) resolved.farGrass = farGrass;
   const post = params.get("post");
   if (post !== null) resolved.bloom = post !== "off";
   const bloom = parseBooleanParam(params.get("bloom"));

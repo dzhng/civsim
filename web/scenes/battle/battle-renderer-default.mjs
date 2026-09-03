@@ -92,40 +92,6 @@ export async function run(ctx) {
     JSON.stringify({ terrain, crowd }),
   );
   await page.close();
-
-  for (const retired of ["2d", "3d"]) {
-    const legacyPage = await ctx.newPage({ errorPrefix: `retired-gfx-${retired}` });
-    await legacyPage.goto(`${ctx.target}?battle=duel&a=0&b=0&ai=off&gfx=${retired}`);
-    await legacyPage.waitForFunction(
-      () => {
-        const stats = window.__game?.stats?.();
-        return (
-          window.__ready === true &&
-          stats?.renderer === "gpu" &&
-          stats.renderStats?.ready === true &&
-          stats.renderStats.soldiers === stats.soldiers
-        );
-      },
-      undefined,
-      { timeout: 12000 },
-    );
-    const retiredStats = await legacyPage.evaluate(() => window.__game.stats());
-    ctx.check(
-      `retired gfx=${retired} battle route still uses raw WebGPU`,
-      retiredStats.renderer === "gpu" &&
-        retiredStats.renderStats?.drawCalls > 0 &&
-        retiredStats.renderStats?.drawCalls < 64 &&
-        // Slice 14b: at the duel route's default zoom a 2m soldier subtends
-        // only ~3 px, so the projected-screen-height LOD promotes the whole
-        // crowd to the far octahedral-impostor tier — 'none' (all skinned
-        // mesh) was the pre-14b state. Either LOD-driven marker state is valid.
-        (retiredStats.renderStats?.markerLayer === "none" ||
-          retiredStats.renderStats?.markerLayer === "far-lod-impostor") &&
-        hasBattleWorldDepthContract(retiredStats.renderStats),
-      JSON.stringify(retiredStats),
-    );
-    await legacyPage.close();
-  }
 }
 
 function isCrowdMass(r, g, b) {

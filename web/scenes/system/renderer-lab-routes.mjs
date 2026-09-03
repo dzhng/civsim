@@ -13,6 +13,7 @@ import {
   hasFramePassRole,
   hasFramePhaseOrder,
 } from "../_renderer-contract.mjs";
+import { labRoute, ready } from "../worlds.mjs";
 
 export const meta = {
   name: "renderer-lab-routes",
@@ -1607,20 +1608,7 @@ export async function run(ctx) {
   );
 
   for (const [route, predicate] of routes) {
-    const page = await ctx.newPage({
-      viewport: { width: 900, height: 620 },
-      errorPrefix: `gpu-${route}`,
-    });
-    await page.goto(`${ctx.target}/renderer/${route}`);
-    const expectedRoute = route.split("?")[0];
-    await page.waitForFunction(
-      (expected) =>
-        window.__rendererLabReady === true &&
-        window.__rendererLabStats?.ok === true &&
-        window.__rendererLabStats?.route === expected,
-      expectedRoute,
-      { timeout: 18000 },
-    );
+    const page = await labRoute(ctx, route);
     await page.waitForTimeout(280);
     const stats = await page.evaluate(() => window.__rendererLabStats);
     ctx.check(`${route}: route stats satisfy contract`, predicate(stats), JSON.stringify(stats));
@@ -2052,11 +2040,8 @@ export async function run(ctx) {
       errorPrefix: `renderer-battle-input-dpr${dpr}`,
     });
     await page.goto(`${ctx.target}/renderer/${route}`);
-    await page.waitForFunction(
-      () => window.__rendererLabReady === true && window.__gpuBattleInput,
-      undefined,
-      { timeout: 18000 },
-    );
+    await ready(page, "__rendererLabReady", 18000);
+    await page.waitForFunction(() => window.__gpuBattleInput, undefined, { timeout: 18000 });
     await page.waitForTimeout(280);
     const unit = await frameBattleInputUnit(page);
     const target = await trueRenderedUnitScreen(page, unit);

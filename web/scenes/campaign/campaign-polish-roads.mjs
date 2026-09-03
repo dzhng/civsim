@@ -1,4 +1,5 @@
 import { PNG } from "pngjs";
+import { campaign } from "../worlds.mjs";
 
 // Campaign-polish workbench: the road-continuity fake scene.
 // The `alignment` fixture is Roma with three roads radiating to Tibur, Narnia,
@@ -61,19 +62,11 @@ export async function run(ctx) {
     return;
   }
 
-  const page = await ctx.newPage({
+  const page = await campaign(ctx, "alignment", {
     viewport: { width: 1280, height: 800 },
     errorPrefix: "campaign-polish-roads",
+    timeout: 30000,
   });
-  await page.goto(`${ctx.target}/?campaign=alignment`);
-  await page.waitForFunction(
-    () =>
-      window.__campaignReady === true &&
-      window.__campaignGpuStats?.ready === true &&
-      window.__campaignGpuStats?.renderer === "renderer-campaign",
-    undefined,
-    { timeout: 30000 },
-  );
   await page.evaluate((camera) => {
     window.__campaign.freeze(true);
     // Natural view: roads and terrain are the thing under review, not the

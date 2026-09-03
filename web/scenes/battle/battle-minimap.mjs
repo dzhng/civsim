@@ -1,5 +1,6 @@
 import { PNG } from "pngjs";
 import { hasBattleWorldDepthContract } from "../_renderer-contract.mjs";
+import { battle5v5 } from "../worlds.mjs";
 
 export const meta = {
   name: "battle-minimap",
@@ -20,24 +21,11 @@ export async function run(ctx) {
     return;
   }
 
-  const page = await ctx.newPage({
+  const page = await battle5v5(ctx, {
     deviceScaleFactor: 2,
     errorPrefix: "renderer-battle-minimap-dpr2",
+    ai: "off",
   });
-  await page.goto(`${ctx.target}?battle=5v5&ai=off`);
-  await page.waitForFunction(
-    () => {
-      const stats = window.__game?.stats?.();
-      return (
-        window.__ready === true &&
-        stats?.renderer === "gpu" &&
-        stats.renderStats?.ready === true &&
-        stats.renderStats.soldiers === stats.soldiers
-      );
-    },
-    undefined,
-    { timeout: 20000 },
-  );
 
   // Zoom IN for the click-navigation check: at the whole-map overview zoom the
   // view already covers the field, so clampView pins the camera to centre and a

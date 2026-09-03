@@ -3,7 +3,7 @@
 //! starting army.
 
 use campaign::mapdata::{AiPersona, NodeId, NodeKind, WorldMap};
-use std::collections::{BTreeMap, BTreeSet, VecDeque};
+use std::collections::{BTreeMap, BTreeSet};
 
 mod common;
 
@@ -42,36 +42,12 @@ fn node_by_name(map: &WorldMap, name: &str) -> NodeId {
     matches[0]
 }
 
-fn main_component(map: &WorldMap, seeds: &[NodeId]) -> BTreeSet<NodeId> {
-    let mut seen = BTreeSet::new();
-    let mut q = VecDeque::new();
-    let mut sorted_seeds = seeds.to_vec();
-    sorted_seeds.sort_unstable();
-    sorted_seeds.dedup();
-
-    for seed in sorted_seeds {
-        if seen.insert(seed) {
-            q.push_back(seed);
-        }
-    }
-
-    while let Some(node_id) = q.pop_front() {
-        for &edge_id in &map.nodes[node_id as usize].edges {
-            let edge = &map.edges[edge_id as usize];
-            let next = if edge.a == node_id { edge.b } else { edge.a };
-            if seen.insert(next) {
-                q.push_back(next);
-            }
-        }
-    }
-
-    seen
-}
-
 #[test]
 fn island_holdings_stay_neutral_armyless_and_inert() {
     let map_json = real_map();
     let map = WorldMap::from_json(&map_json);
+    let wire: contract::mapjson::Map =
+        serde_json::from_str(&map_json).expect("real campaign map wire schema");
     let capitals: Vec<NodeId> = playable_capital_names(&map_json)
         .iter()
         .map(|name| node_by_name(&map, name))
@@ -81,7 +57,25 @@ fn island_holdings_stay_neutral_armyless_and_inert() {
         "real map should have playable capitals"
     );
 
-    let main = main_component(&map, &capitals);
+    let capital_ids: BTreeSet<u32> = capitals
+        .iter()
+        .map(|&id| wire.nodes[id as usize].id)
+        .collect();
+    let main_wire: BTreeSet<u32> = mapgen::graph::components(
+        wire.nodes.iter().map(|node| node.id),
+        wire.edges.iter().map(|edge| (edge.a, edge.b)),
+    )
+    .into_iter()
+    .filter(|component| !component.is_disjoint(&capital_ids))
+    .flatten()
+    .collect();
+    let main: BTreeSet<NodeId> = wire
+        .nodes
+        .iter()
+        .enumerate()
+        .filter(|(_, node)| main_wire.contains(&node.id))
+        .map(|(index, _)| index as NodeId)
+        .collect();
     let start_armies_by_city: BTreeMap<NodeId, Vec<&str>> = map
         .start_armies
         .iter()

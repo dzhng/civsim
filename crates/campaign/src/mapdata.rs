@@ -142,66 +142,6 @@ pub struct WorldMap {
     independents: u32,
 }
 
-// ---- raw JSON shapes -------------------------------------------------------
-
-#[derive(Deserialize)]
-struct RawMap {
-    half_w: f64,
-    half_h: f64,
-    nodes: Vec<RawNode>,
-    edges: Vec<RawEdge>,
-    ambush_spots: Vec<RawAmbush>,
-    factions: Vec<RawFaction>,
-    start_armies: Vec<RawStartArmy>,
-}
-
-#[derive(Deserialize)]
-struct RawNode {
-    id: u32,
-    name: String,
-    pos: [f64; 2],
-    kind: String,
-    tier: u8,
-    port: bool,
-    owner: String,
-}
-
-#[derive(Deserialize)]
-struct RawEdge {
-    a: u32,
-    b: u32,
-    kind: String,
-    via: Vec<[f64; 2]>,
-    tiles: Vec<String>,
-}
-
-#[derive(Deserialize)]
-struct RawAmbush {
-    edge: u32,
-    tile: u16,
-}
-
-#[derive(Deserialize)]
-struct RawFaction {
-    id: String,
-    name: String,
-    color: [u8; 3],
-    playable: bool,
-    #[serde(default)]
-    ai_persona: Option<String>,
-    /// Historic nemesis (another faction's id), e.g. Rome ↔ Carthage. Optional;
-    /// rivalries also form in play when a faction is attacked.
-    #[serde(default)]
-    rival: Option<String>,
-}
-
-#[derive(Deserialize)]
-struct RawStartArmy {
-    faction: String,
-    at: String,
-    roster: Vec<(String, u32)>,
-}
-
 fn parse_feature(s: &str) -> TileFeature {
     match s {
         "open" => TileFeature::Open,
@@ -215,13 +155,9 @@ fn parse_feature(s: &str) -> TileFeature {
     }
 }
 
-fn parse_class(s: &str) -> contract::UnitClassId {
-    serde_json::from_value(serde_json::Value::String(s.to_string())).expect("unit class name")
-}
-
 impl WorldMap {
     pub fn from_json(json: &str) -> WorldMap {
-        let raw: RawMap = serde_json::from_str(json).expect("campaign map json");
+        let raw: contract::mapjson::Map = serde_json::from_str(json).expect("campaign map json");
 
         let faction_idx: BTreeMap<&str, u32> = raw
             .factions
@@ -354,7 +290,7 @@ impl WorldMap {
                 .ambush_spots
                 .iter()
                 .map(|a| AmbushSpot {
-                    edge: a.edge,
+                    edge: a.edge as u32,
                     tile: a.tile,
                 })
                 .collect(),
@@ -376,7 +312,7 @@ impl WorldMap {
                 .map(|s| StartArmy {
                     faction: faction_idx[s.faction.as_str()],
                     at: name_to_idx[s.at.as_str()],
-                    roster: s.roster.iter().map(|(c, n)| (parse_class(c), *n)).collect(),
+                    roster: s.roster.clone(),
                 })
                 .collect(),
             tile_base,

@@ -1,6 +1,7 @@
 //! Background raster: stylized parchment-and-sea map painted from Natural Earth
 //! layers, written as PNG. The campaign renderer drapes this under the road graph.
 
+use crate::gazetteer::StraitCarve;
 use crate::geo::BBox;
 use crate::sources::Poly;
 
@@ -62,55 +63,6 @@ pub const RENDER_MASK_CLASSES: [RenderMaskClass; 5] = [
 /// narrowest point after downsampling — the STRAIT-WATER invariant in main.rs
 /// measures the result, not the carve width, because the endpoint ports sit
 /// only ~16 km apart and a uniformly-16 km corridor would drown them.
-pub struct StraitCarve {
-    pub name: &'static str,
-    pub centerline: &'static [[f64; 2]],
-    pub half_w_km: f64,
-}
-
-pub const STRAIT_CARVES: &[StraitCarve] = &[
-    // Messina: separate Sicily (Messana) from the Calabrian toe (Rhegium). The
-    // centerline threads the existing sea channel so neither port is drowned.
-    StraitCarve {
-        name: "Messina",
-        centerline: &[
-            [-205.0, 44.0],
-            [-210.0, 28.0],
-            [-213.0, 14.0],
-            [-217.0, -4.0],
-        ],
-        half_w_km: 5.0,
-    },
-    // Bosphorus: separate Constantinopolis (European bank) from Asia Minor,
-    // connecting the Black Sea (N) to the Marmara (S). Hugs just east of
-    // Constantinopolis [917, 394] so a narrow carve keeps its harbor on land.
-    StraitCarve {
-        name: "Bosphorus",
-        centerline: &[
-            [926.0, 424.0],
-            [925.0, 404.0],
-            [924.0, 390.0],
-            [923.0, 384.0],
-            [921.0, 378.0],
-        ],
-        half_w_km: 4.5,
-    },
-    // Gulf of Izmit: the real E-W gulf Nicomedia sits at the head of, absent from
-    // the 50m coastline, so the Const<->Nicomedia lane crossed solid Bithynian
-    // land. Open it from the Marmara east to Nicomedia's [1000, 373] doorstep so
-    // the lane rides water; ends short of Nicomedia to keep its harbor on land.
-    StraitCarve {
-        name: "Gulf of Izmit",
-        centerline: &[
-            [935.0, 378.0],
-            [945.0, 371.0],
-            [970.0, 372.0],
-            [990.0, 373.0],
-        ],
-        half_w_km: 5.0,
-    },
-];
-
 impl Raster {
     pub fn bbox(&self) -> BBox {
         self.bb
@@ -206,6 +158,24 @@ impl Raster {
         self.classify_cell(x, y)
             .map(RenderMaskClass::is_land)
             .unwrap_or(false)
+    }
+
+    pub fn is_land_at(&self, p: [f64; 2]) -> bool {
+        if p[0] < self.bb.min[0]
+            || p[0] > self.bb.max[0]
+            || p[1] < self.bb.min[1]
+            || p[1] > self.bb.max[1]
+        {
+            return false;
+        }
+        let x = ((p[0] - self.bb.min[0]) * self.w as f64 / (self.bb.max[0] - self.bb.min[0]))
+            .floor() as isize;
+        let y = ((self.bb.max[1] - p[1]) * self.h as f64 / (self.bb.max[1] - self.bb.min[1]))
+            .floor() as isize;
+        self.is_land_cell(
+            x.clamp(0, self.w as isize - 1) as usize,
+            y.clamp(0, self.h as isize - 1) as usize,
+        )
     }
 
     pub fn is_land_neighborhood(&self, x: usize, y: usize, margin_cells: usize) -> bool {
@@ -337,7 +307,7 @@ impl Raster {
 
     /// Repaint each strait corridor to Sea (see `StraitCarve`). Runs after
     /// `paint()` and before `build()` so city-snap, the ownership flood, and
-    /// landroute all reason about the carved water.
+    /// road routing all reason about the carved water.
     pub fn carve_straits(&mut self, carves: &[StraitCarve]) {
         let sea = RenderMaskClass::Sea.rgb();
         for carve in carves {

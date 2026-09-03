@@ -4,6 +4,7 @@
 
 mod rng;
 pub use rng::Pcg32;
+pub mod mapjson;
 
 use serde::{Deserialize, Serialize};
 

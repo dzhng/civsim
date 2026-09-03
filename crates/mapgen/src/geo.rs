@@ -22,6 +22,17 @@ pub fn dist(a: [f64; 2], b: [f64; 2]) -> f64 {
     ((a[0] - b[0]).powi(2) + (a[1] - b[1]).powi(2)).sqrt()
 }
 
+pub fn point_segment_dist(p: [f64; 2], a: [f64; 2], b: [f64; 2]) -> f64 {
+    let d = [b[0] - a[0], b[1] - a[1]];
+    let len2 = d[0] * d[0] + d[1] * d[1];
+    let t = if len2 <= 1e-12 {
+        0.0
+    } else {
+        (((p[0] - a[0]) * d[0] + (p[1] - a[1]) * d[1]) / len2).clamp(0.0, 1.0)
+    };
+    dist(p, [a[0] + t * d[0], a[1] + t * d[1]])
+}
+
 pub fn polyline_len(pts: &[[f64; 2]]) -> f64 {
     pts.windows(2).map(|w| dist(w[0], w[1])).sum()
 }

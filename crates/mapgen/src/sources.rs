@@ -99,7 +99,7 @@ pub fn load_routes(path: &str, sites: &BTreeMap<u32, OrbisSite>) -> Vec<OrbisRou
 /// before the graph is built — for cities absent from ORBIS (e.g. Rhegium, the
 /// Messina-strait mainland port) and the sea lanes / roads that connect them.
 /// Synthetic site ids sit above the ORBIS id range. Runs before `build::build`,
-/// so ownership flood, pruning, and landroute treat them like any other site.
+/// so ownership flood, pruning, and road routing treat them like any other site.
 ///   overrides.extra_sites:  [{ label, lon, lat, rank }]
 ///   overrides.drop_routes:  [{ a, b }]        — ORBIS routes a hand-route replaces
 ///   overrides.extra_routes: [{ a, b, kind }]  — kind "road" | "sea", straight a→b

@@ -1,0 +1,422 @@
+<title>Civsim Debt Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#F2F3F5; --surface:#FAFAFB; --ink:#1B1F26; --muted:#5B6470; --rule:#D5D9DF; --rule-soft:#E4E7EB;
+  --accent:#2A7A6A; --accent-ink:#1F5E52; --accent-soft:#DDEEE9;
+  --merge:#2A7A6A; --merge-soft:#DDEEE9;
+  --split:#9A6A16; --split-soft:#F3E9D2;
+  --delete:#8C3A3A; --delete-soft:#F2DEDE;
+  --move:#3D5A8A; --move-soft:#DFE6F2;
+  --code-bg:#E9EBEF;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15181D; --surface:#1C2027; --ink:#E6E8EB; --muted:#98A1AD; --rule:#333A44; --rule-soft:#272D36;
+    --accent:#4FB39E; --accent-ink:#7CCDBB; --accent-soft:#1E3530;
+    --merge:#4FB39E; --merge-soft:#1E3530;
+    --split:#D2A04C; --split-soft:#3A2F16;
+    --delete:#D0716F; --delete-soft:#3D2222;
+    --move:#7FA0D6; --move-soft:#1F2A3C;
+    --code-bg:#242A33;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15181D; --surface:#1C2027; --ink:#E6E8EB; --muted:#98A1AD; --rule:#333A44; --rule-soft:#272D36;
+  --accent:#4FB39E; --accent-ink:#7CCDBB; --accent-soft:#1E3530;
+  --merge:#4FB39E; --merge-soft:#1E3530;
+  --split:#D2A04C; --split-soft:#3A2F16;
+  --delete:#D0716F; --delete-soft:#3D2222;
+  --move:#7FA0D6; --move-soft:#1F2A3C;
+  --code-bg:#242A33;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:"Source Sans 3",ui-sans-serif,system-ui,sans-serif;font-size:17px;line-height:1.55;margin:0}
+a{color:var(--accent-ink)}
+code,.mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.86em}
+code{background:var(--code-bg);padding:0.05em 0.35em;border-radius:3px;white-space:nowrap}
+.wrap{max-width:1180px;margin:0 auto;padding:40px 28px 80px;display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px}
+@media (max-width:860px){.wrap{grid-template-columns:minmax(0,1fr);gap:24px}.toc{position:static}}
+h1,h2,h3{font-family:"Bricolage Grotesque","Source Sans 3",sans-serif;text-wrap:balance;margin:0}
+h1{font-size:2.6rem;font-weight:700;line-height:1.05;letter-spacing:-0.01em}
+h2{font-size:1.5rem;font-weight:700;margin-top:56px;padding-top:18px;border-top:2px solid var(--ink)}
+h3{font-size:1.1rem;font-weight:700}
+p{max-width:68ch;margin:0.6em 0}
+.eyebrow{font-family:"JetBrains Mono",monospace;font-size:0.74rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted)}
+.lede{font-size:1.15rem;max-width:64ch;color:var(--ink);margin-top:14px}
+.toc{position:sticky;top:24px;align-self:start;font-size:0.9rem}
+.toc ol{list-style:none;padding:0;margin:8px 0 0;display:flex;flex-direction:column;gap:6px}
+.toc a{color:var(--muted);text-decoration:none}
+.toc a:hover,.toc a:focus-visible{color:var(--accent-ink);outline:none;text-decoration:underline}
+.legend{display:flex;flex-wrap:wrap;gap:10px 18px;margin:18px 0 0;font-size:0.9rem;color:var(--muted)}
+.tag{display:inline-block;font-family:"JetBrains Mono",monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;padding:2px 7px;border-radius:2px;font-weight:600;vertical-align:middle}
+.tag.merge{color:var(--merge);background:var(--merge-soft)}
+.tag.split{color:var(--split);background:var(--split-soft)}
+.tag.delete{color:var(--delete);background:var(--delete-soft)}
+.tag.move{color:var(--move);background:var(--move-soft)}
+.tag.gate{color:var(--ink);background:var(--rule)}
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0;margin:28px 0 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.strip div{padding:14px 16px 14px 0;border-right:1px solid var(--rule-soft)}
+.strip div:last-child{border-right:0}
+.strip b{display:block;font-family:"Bricolage Grotesque",sans-serif;font-size:1.7rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.strip span{font-size:0.82rem;color:var(--muted)}
+.item{display:grid;grid-template-columns:118px minmax(0,1fr);gap:6px 18px;padding:20px 0;border-top:1px solid var(--rule-soft)}
+.item:first-of-type{border-top:0}
+.item .k{font-family:"JetBrains Mono",monospace;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);padding-top:4px}
+.item .v{min-width:0}
+.item .v p{margin:0 0 4px;max-width:none}
+.item .head{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:baseline;gap:10px}
+.item .head h3{flex:1 1 auto;min-width:200px}
+.item .size{font-family:"JetBrains Mono",monospace;font-size:0.8rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.item ul{margin:0;padding-left:1.1em}
+.item li{margin:2px 0}
+@media (max-width:600px){.item{grid-template-columns:minmax(0,1fr)}.item .k{padding-top:6px}}
+.note{border-left:3px solid var(--accent);padding:6px 16px;margin:18px 0;background:var(--surface)}
+.note p{margin:4px 0}
+table{border-collapse:collapse;width:100%;font-size:0.92rem;margin:12px 0}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+th{font-family:"JetBrains Mono",monospace;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+th.n{text-align:right}
+.scroll{overflow-x:auto}
+.passes{counter-reset:pass;list-style:none;padding:0;margin:12px 0 0;display:flex;flex-direction:column;gap:14px}
+.passes li{display:grid;grid-template-columns:56px minmax(0,1fr);gap:14px;padding:14px 0;border-top:1px solid var(--rule-soft)}
+.passes li::before{counter-increment:pass;content:counter(pass);font-family:"Bricolage Grotesque",sans-serif;font-size:1.6rem;font-weight:700;color:var(--accent);line-height:1}
+.passes b{display:block;font-family:"Bricolage Grotesque",sans-serif;font-size:1.05rem}
+.passes p{margin:4px 0 0;max-width:none}
+.passes .proof{font-size:0.9rem;color:var(--muted);margin-top:6px}
+.keep{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px 28px;margin-top:12px}
+.keep div{font-size:0.95rem}
+.keep b{display:block;font-weight:600}
+.keep span{color:var(--muted)}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--rule);font-size:0.85rem;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto}}
+html{scroll-behavior:smooth}
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Sections">
+  <div class="eyebrow">Ledger</div>
+  <ol>
+    <li><a href="#verdict">Verdict</a></li>
+    <li><a href="#gate">The one decision</a></li>
+    <li><a href="#renderer">Renderer estate</a></li>
+    <li><a href="#web">Web shell &amp; harness</a></li>
+    <li><a href="#sim">Battle sim</a></li>
+    <li><a href="#campaign">Campaign, mapgen, wasm</a></li>
+    <li><a href="#cross">Cross-cutting</a></li>
+    <li><a href="#passes">Suggested passes</a></li>
+    <li><a href="#keep">Deliberate, not debt</a></li>
+    <li><a href="#metrics">Metrics</a></li>
+  </ol>
+</nav>
+
+<main>
+<div class="eyebrow">civsim · read-only audit · 2026-09-02 · HEAD 08d8c5fe</div>
+<h1 style="margin-top:10px">Civsim Debt Ledger</h1>
+<p class="lede">Every entry below names one concept that lacks a single owner, lists who owns it today, the home it would have if written today, what gets deleted in the same pass, and the consumer surface that proves the move. That is the refactor-clean shape: promote, collapse, verify through consumers.</p>
+
+<div class="legend">
+  <span><span class="tag merge">merge</span> N owners → one</span>
+  <span><span class="tag split">split</span> one module → its owners</span>
+  <span><span class="tag delete">delete</span> no caller, no outcome</span>
+  <span><span class="tag move">move</span> wrong home</span>
+  <span><span class="tag gate">gate</span> needs David's call</span>
+</div>
+
+<div class="strip">
+  <div><b>≈6,900</b><span>bespoke renderer LOC alive only for the lab (34% of the two bespoke packages)</span></div>
+  <div><b>6,294</b><span>lines in one lab router file; 40 of 47 route bodies inline</span></div>
+  <div><b>1,586</b><span>lines in one sim function, <code>steer_soldiers</code></span></div>
+  <div><b>0</b><span>compiler, clippy, or TODO/FIXME hits across the workspace</span></div>
+</div>
+
+<h2 id="verdict">Verdict</h2>
+<p>The codebase is clean at the line level and heavy at the shape level. Zero warnings, zero TODO markers, documented rationale on nearly every seam. The debt is almost entirely <em>ownership</em>: concepts that exist twice (sun direction, BFS, camera controls, spawn, bounding radius), god-modules that fuse five to twelve responsibilities, and a large estate kept alive solely as a lab exhibit.</p>
+<p>Three findings dominate everything else by size. The lab-only bespoke battle passes, the renderer-lab router, and the two over-loaded scene and steering functions together account for roughly 17k lines that a reader must navigate but production never executes or never executes as one unit. Everything else is a day or less each.</p>
+
+<h2 id="gate">The one decision <span class="tag gate">gate</span></h2>
+<div class="note">
+<p><b>Retire the bespoke battle look estate, or keep paying for it.</b> The archived renderer spec explicitly parked this as a human-feedback gate, not a fiat deletion. It is the single biggest lever in the repo and every other renderer item shrinks once it is decided.</p>
+</div>
+<div class="item">
+  <div class="head"><h3>Bespoke battle GPU passes with zero production importers</h3><span class="tag delete">delete</span><span class="size">≈4,400 look · ≈2,500 exhibits · keep ≈600 contract</span></div>
+  <div class="k">Owners today</div><div class="v"><ul>
+    <li><code>game-renderer/src/battle/grassPass.ts</code> 2,862 lines. A 19×6×4×5 R&amp;D matrix of grass primitive families, fiber shells, texture-volume profiles and render models. No caller sets any of them; defaults pin <code>'tuft'</code>. About 1,900 lines are reachable only by default.</li>
+    <li><code>models/shared/grassModels.ts</code> 906 and <code>battle/terrainPass.ts</code> 654. Imported only by the lab router.</li>
+    <li>Exhibit-only: <code>minimapPass</code> 210 (production minimap is DOM), <code>fixtures/nested3d</code> 170, <code>groundCue/particle/pickingDebug/crowd/effectLine</code> 605, <code>renderGraph</code>+<code>perfReport</code> 488, water GPU chain 361, GPU halves of <code>groundPass</code>/<code>horizonPass</code> ≈310, three lab pipelines inside <code>frameShell.ts</code> ≈300.</li>
+  </ul></div>
+  <div class="k">Consumers</div><div class="v"><p><code>apps/renderer-lab/src/router.ts</code>, <code>web/scenes/system/renderer-lab-routes.mjs</code>, scenes <code>shared-grass-models</code>, <code>battle-terrain-3d/-blockers/-elevation/-features</code>, <code>water-coastal/open-sea</code>, and one shot script <code>grass-wind.mjs</code>. Photoreal imports only the CPU builders from these files.</p></div>
+  <div class="k">Natural home</div><div class="v"><p>Keep the contract-coverage passes the campaign renderer actually shares (frame-shell, world-camera, skinned, ground-cue-depth; ≈600 lines). Delete the look estate and its routes, or collapse grass to one ≈400-line tuft pass if a lab exhibit is still wanted.</p></div>
+  <div class="k">Same pass</div><div class="v"><p>Delete the six scenes and their baselines, the three copy-pasted bespoke battle routes, the lab pipelines in <code>frameShell</code>, and <code>web/src/*/uiLayer.ts</code> (458 lines of HUD shim whose sole consumer is the lab).</p></div>
+  <div class="k">Proof</div><div class="v"><p><code>scene:renderer</code> and <code>verify:campaign</code> green with the deleted scenes removed from the script; campaign baselines unchanged because the campaign passes never imported any of it.</p></div>
+</div>
+
+<h2 id="renderer">Renderer estate</h2>
+
+<div class="item">
+  <div class="head"><h3>Renderer-lab router is one file of 47 routes</h3><span class="tag split">split</span><span class="tag delete">delete</span><span class="size">6,294 lines · 930 orphan</span></div>
+  <div class="k">Owners today</div><div class="v"><p><code>apps/renderer-lab/src/router.ts</code> holds 40 route bodies inline plus 2,500 lines of helpers and 230 lines of imports. Seven routes already live one-per-file. Three bespoke battle routes (<code>battle-live</code>, <code>battle-ui</code>, <code>battle-input</code>, lines 4483–5121) are one body copied with the UI layer changed. The wasm terrain-grid reader is rebuilt six times across lab and production.</p></div>
+  <div class="k">Orphans</div><div class="v"><p>Nothing in <code>web/scenes</code>, <code>scene.mjs</code> or <code>probe-renderer.mjs</code> runs <code>camera3d-probe</code>, <code>photoreal-shadow-probe</code>, <code>living-meadow</code>, <code>meadow-audio</code>, or <code>/renderer/campaign</code>. The living-meadow route is also the only setter of the <code>meadowFocusRing</code> option.</p></div>
+  <div class="k">Natural home</div><div class="v"><p>The shape the last seven routes use: one file per route, <code>router.ts</code> reduced to the table and <code>mountRendererLab</code>. One <code>bespokeBattleFixture()</code> for the three copies. One <code>readBattleTerrainGrid(game, memory)</code> in game-renderer consumed by lab and <code>battle/scene.ts</code>.</p></div>
+  <div class="k">Proof</div><div class="v"><p>Route stats keys unchanged, so <code>renderer-lab-routes</code> stays green. Orphan deletions have no pinning scene by definition.</p></div>
+</div>
+
+<div class="item">
+  <div class="head"><h3>WGSL noise, sun and haze have no owner</h3><span class="tag merge">merge</span><span class="size">≈120 lines dup · 4 sun vectors · 3 hazes</span></div>
+  <div class="k">Owners today</div><div class="v"><ul>
+    <li>Byte-identical <code>fn hash(p: vec2f)</code> at 8 sites in 5 files (<code>groundPass</code>, <code>terrainPass</code>, <code>atmospherePass</code> twice, <code>mapPass</code> twice, <code>frameShell</code> twice). <code>vnoise</code> same 8 sites; <code>fbm</code> at 4 with different octave weights.</li>
+    <li><code>cameraWgsl.ts:44</code> already exports <code>sunDirection()</code> from the camera uniform, yet <code>entityPass</code>, <code>sceneryPass</code>, <code>standardPass</code> inline <code>normalize(vec3f(-0.42,-0.34,0.84))</code>, <code>frameShell</code> inlines a second vector, and <code>cameraUniform.ts</code> derives the default azimuth from a third.</li>
+    <li>Haze: <code>environment.ts</code> is the declared owner; <code>horizonPass.ts:30</code> and <code>frameShell.ts:299</code> carry private constants. The campaign renderer has no environment record at all.</li>
+    <li>Photoreal is clean here (one <code>DirectionalLight</code>, one <code>fogNode</code>) except <code>terrainLayer.ts:604-624</code>, eight rock and scree colour literals beside a file that otherwise reads <code>MEADOW.*</code>.</li>
+  </ul></div>
+  <div class="k">Natural home</div><div class="v"><p><code>noiseWgsl.ts</code> beside <code>cameraWgsl.ts</code>, spliced the same way. Campaign passes call <code>sunDirection()</code>. One <code>CampaignEnvironment</code> record owning sun, haze and palette for the chart. <code>MEADOW.rock</code> in <code>meadowPalette.ts</code>.</p></div>
+  <div class="k">Same pass</div><div class="v"><p>Drop <code>environment.ts:165-221</code> alias sediment: <code>WaterEnvironment</code> alias, <code>WATER_ENVIRONMENTS</code>, two wrapper functions around an externally unused <code>environmentWgsl</code>, synonyms no caller passes. Resolve the false <code>@deprecated</code> on <code>meadowPalette.blade.root</code> (consumed 10×) one way or the other.</p></div>
+  <div class="k">Proof</div><div class="v"><p>Noise merge is baseline-neutral if bodies stay identical. Sun unification moves campaign baselines by a few degrees; re-bless <code>campaign-visual</code>, <code>campaign-lod</code> individually.</p></div>
+</div>
+
+<div class="item">
+  <div class="head"><h3>Pass-class boilerplate repeated 14 times</h3><span class="tag merge">merge</span><span class="size">≈350–400 lines</span></div>
+  <div class="k">Owners today</div><div class="v"><p><code>effectLinePass.ts:33-93</code> and <code>groundCuePass.ts:32-93</code> are the same 60 lines modulo vertex stride. The <code>capacity = Math.max(n, capacity*2, 128)</code> growable buffer recurs in particle, minimap, selection, terrain, scenery, entity and standard passes. <code>entityPass</code> and <code>sceneryPass</code> each privately re-implement <code>makeVertexBuffer</code>/<code>makeIndexBuffer</code>.</p></div>
+  <div class="k">Natural home</div><div class="v"><p><code>growableVertexBuffer(device, label, stride)</code> and <code>cameraOnlyPipeline(shell, wgsl, layout, opts)</code> in <code>renderer-core/src/pipelineContracts.ts</code>, which already owns <code>gpuMultisample</code> and <code>gpuWorldDepthStencil</code>.</p></div>
+  <div class="k">Proof</div><div class="v"><p>Pure mechanics; campaign scene suite pins every pass.</p></div>
+</div>
+
+<div class="item">
+  <div class="head"><h3>Four over-loaded renderer modules</h3><span class="tag split">split</span><span class="size">2,629 · 966 · 1,711 · 1,951 lines</span></div>
+  <div class="k">Owners today</div><div class="v"><ul>
+    <li><code>campaign/mapPass.ts</code>: six WGSL programs, five pass classes, road geometry with six pass-local constants, hard-coded sea-name data with eleven fitting constants, and an 825-line label atlas/occupancy/placement engine. Thirteen exported interfaces used only in-file; <code>bestPlacement</code> dead.</li>
+    <li><code>renderer-core/frameShell.ts</code>: device and fatal handling, frame-graph assertions, MSAA and timers, plus three lab-only pipelines (terrain, backdrop, marker) that production never draws. Campaign sends <code>terrainRect: [0,0,0,0]</code>.</li>
+    <li><code>photoreal/battleWorld.ts</code>: layer wiring, terrain build, crowd seating, sun sync, shadow refit, and a ≈700-line grass focus-ring state machine with a 40-field stats blob and 17 private methods.</li>
+    <li><code>photoreal/bladeFieldLayer.ts</code>: 20 four-line transition getters, a per-frame CPU stats mirror striding 200k records, and 34 <code>as unknown as FloatUniformNode</code> casts because <code>uniform()</code> is untyped. Base and ring layers each compile identical materials.</li>
+  </ul></div>
+  <div class="k">Natural home</div><div class="v"><p><code>mapSurfacePass</code>, <code>roadGeometry</code>, <code>seaLabels</code> (data), <code>labelPass</code>+<code>labelLayout</code>. Lab pipelines out of <code>frameShell</code> into <code>fixtures/</code>, shell drops to ≈650. <code>battleGrassField.ts</code> and <code>battleTerrainBuild.ts</code> leave a ≈500-line orchestrator. One <code>typedUniform&lt;T&gt;()</code> in <code>battleTsl.ts</code> removes all 34 casts; one material per tier shared by base and ring.</p></div>
+  <div class="k">Proof</div><div class="v"><p>Pure moves. <code>campaign-visual</code>, <code>campaign-map-alignment</code>, <code>battle-renderer-default</code>, <code>battle-terrain-elevation</code> seating gate, <code>perf:30k</code> for the material sharing.</p></div>
+</div>
+
+<div class="item">
+  <div class="head"><h3>Battle renderer wrapper is a second owner of world state</h3><span class="tag merge">merge</span><span class="size">726 lines · 25-field remap</span></div>
+  <div class="k">Owners today</div><div class="v"><p><code>web/src/battle/renderer.ts</code> mirrors <code>soldierUnit</code>, <code>unitTeam</code>, <code>staticSoldiers</code> and a byte-identical <code>lastCamera</code> initializer that <code>battleWorld.ts</code> also owns, and re-maps 25 stats fields one-for-one with fallbacks. Its header names <code>frozenSelectionGroundCues</code>, which has zero hits anywhere. The wrapper-only features that are real (frozen frames, <code>debug=blocks</code>, CPU perf split) all have live callers.</p></div>
+  <div class="k">Natural home</div><div class="v"><p>Wrapper forwards <code>world.stats()</code> by spread plus its own performance block; the world exposes <code>debugBlockTriangles</code> so the wrapper stops mirroring unit arrays.</p></div>
+  <div class="k">Same pass</div><div class="v"><p>Retire the two <code>PhotorealBattleWorld.create</code> options no production caller varies: <code>meadowFocusRing</code> (only set by the orphan living-meadow route, whose comment contradicts the code) and <code>disabledGroundDetail</code>.</p></div>
+</div>
+
+<div class="item">
+  <div class="head"><h3>Layer disposal is unowned</h3><span class="tag gate">verify first</span><span class="size">15 of 19 layers</span></div>
+  <div class="k">Owners today</div><div class="v"><p><code>battleWorld.dispose()</code> calls <code>shadowRig.dispose()</code> and <code>renderer.dispose()</code>; blade field, crowd, foliage, impostor, sea, terrain, post chain and eight more layers have no dispose. Storage buffers from <code>instancedArray</code> are never freed explicitly.</p></div>
+  <div class="k">Rule</div><div class="v"><p>Refactor-clean says do not build a cleanup path until the failure changes a real outcome. The exposure is battle→campaign handoff. Measure device memory across the <code>campaign-handoff</code> scene before writing fifteen dispose methods. If three's renderer dispose already tears the backend down, this is a non-item.</p></div>
+</div>
+
+<div class="item">
+  <div class="head"><h3>Dead data and wrong homes</h3><span class="tag delete">delete</span><span class="tag move">move</span><span class="size">≈800 lines presets · 260 dead exports</span></div>
+  <div class="k">Items</div><div class="v"><ul>
+    <li><code>models/shared/tree/presets.ts</code>: 10 of 15 vendored ez-tree presets are referenced nowhere. Keep the five used (ash, aspen, bush1, oak, pine).</li>
+    <li><code>game-renderer/src/battle/photorealEarthDistance.ts</code> is consumed only by photoreal. Bespoke package should not depend on photoreal semantics.</li>
+    <li>Exports with no external importer: 132 of 436 in game-renderer plus renderer-core, 69 in photoreal, 59 of 229 in web. Values include <code>RawFrameShellImpl</code>, <code>buildBattleTerrainGrass</code>, <code>packGrassFieldRecords</code>, <code>screenRay</code>, <code>bestPlacement</code>, <code>STATUS_CSS</code>, <code>UNIT_CLASS_CATALOG</code>.</li>
+    <li>Five JS copies of <code>smoothstep</code>/<code>clamp01</code> in photoreal, six in web, while <code>battleTsl.ts</code> already owns the TSL form.</li>
+  </ul></div>
+</div>
+
+<h2 id="web">Web shell &amp; harness</h2>
+
+<div class="item">
+  <div class="head"><h3>Battle scene is one 2,070-line closure</h3><span class="tag split">split</span><span class="size">web/src/battle/scene.ts:259-2332</span></div>
+  <div class="k">Owners today</div><div class="v"><p>The class has four methods; 93 nested closures inside <code>enter()</code> own time control, HUD bridge, minimap, group move, tactical lines, freeze, the frame loop, and the <code>window.__game</code> debug API. Evidence: <code>let paused = false</code> at line 796 lives beside a keydown listener at 855.</p></div>
+  <div class="k">Natural home</div><div class="v"><p>Modules taking a small <code>BattleWorld</code> handle: sim clock, HUD bridge, debug API, frame loop, minimap. The class thins to composition.</p></div>
+  <div class="k">Proof</div><div class="v"><p>43 battle scenes and <code>worlds.mjs</code> wait on <code>__ready</code>, <code>__game</code>, <code>__cam</code>. Keep those names as the consumer contract; everything behind them can move.</p></div>
+</div>
+
+<div class="item">
+  <div class="head"><h3>Battle and campaign scenes implement the same four concepts twice</h3><span class="tag merge">merge</span><span class="size">≈210 lines</span></div>
+  <div class="k">Owners today</div><div class="v"><ul>
+    <li>Camera key, edge-pan and wheel handling: <code>battle/input.ts:222-262</code> and <code>campaign/scene.ts:770-879</code>. The campaign copy admits it in a comment: “same fold as the battle wheel handler”. Same <code>EDGE = 14</code>, same shift-sprint, same WASD/QE/ZX table.</li>
+    <li>Fixed-step clock with pause and speed: two accumulators, two key bindings.</li>
+    <li>Renderer-ready plus fatal-surface: the same <code>ready.then().catch(showFatalErrorSurface(...))</code> in both.</li>
+    <li>Readiness flag: <code>window.__ready</code> vs <code>markCampaignReady</code>.</li>
+  </ul></div>
+  <div class="k">Natural home</div><div class="v"><p><code>shared/cameraKeyController(held, edgeMouse, ops)</code>, <code>shared/SimClock</code>, <code>shared/awaitRendererReady</code>. Scenes keep their flag names.</p></div>
+  <div class="k">Proof</div><div class="v"><p><code>battle-input</code>, <code>battle-camera-zoom</code>, <code>campaign-lod</code>.</p></div>
+</div>
+
+<div class="item">
+  <div class="head"><h3>Campaign renderer is 57% layout builders</h3><span class="tag move">move</span><span class="size">1,139 of 2,015 lines</span></div>
+  <div class="k">Owners today</div><div class="v"><p><code>web/src/campaign/renderer.ts</code> has a 746-line class and 1,139 lines of free functions: entity frames, city, army and faction labels, scenery candidates with procedural mountain, tree and rock placement, road carts, reservations. The passes those feed live in <code>packages/game-renderer/src/campaign/</code>.</p></div>
+  <div class="k">Natural home</div><div class="v"><p><code>game-renderer/src/campaign/{entityFrame,labels,scenery}.ts</code> next to their passes. The renderer becomes a ≈750-line orchestrator. Same move for <code>web/src/main.ts:143-415</code>, where 270 of 507 lines build three campaign test fixtures inside the app entry.</p></div>
+  <div class="k">Same pass</div><div class="v"><p>Collapse the 16 null guards in <code>draw()</code> into one <code>this.passes: Passes | null</code>. The guard is legitimate (init is async) but sixteen copies is the shape defect.</p></div>
+</div>
+
+<div class="item">
+  <div class="head"><h3>Seventy deep relative imports and no workspace</h3><span class="tag merge">merge</span><span class="size">70 sites</span></div>
+  <div class="k">Owners today</div><div class="v"><p><code>../../../packages/...</code> appears 70 times in <code>web/src</code>. <code>tsconfig</code> aliases only three, vite only three, vitest defines <code>@</code> with zero users, root <code>package.json</code> has no <code>workspaces</code>, and the unit test loader carries a custom resolver to make bare <code>three</code> resolve from packages.</p></div>
+  <div class="k">Natural home</div><div class="v"><p>Make <code>packages/*</code> and <code>apps/*</code> real workspace packages, or one <code>@packages/*</code> path alias declared in the four places that resolve modules. Either kills the custom loader.</p></div>
+</div>
+
+<div class="item">
+  <div class="head"><h3>Three test runners for one app</h3><span class="tag merge">merge</span><span class="size">vitest 6 · node --test 4 · strip-types 20</span></div>
+  <div class="k">Owners today</div><div class="v"><p><code>test</code> runs vitest; <code>test:ui</code> runs three .mjs files under <code>node --test</code>; <code>test:unit</code> runs 20 .ts files under <code>node --experimental-strip-types</code> with a hand-written extension loader. <code>web/snapshot.test.mjs</code> is in no script. Most <code>test:unit</code> files test <code>packages/*</code>, not <code>web/src</code>.</p></div>
+  <div class="k">Natural home</div><div class="v"><p>Vitest for everything. It already handles jsdom and node environments. Delete <code>tests/ts-extension-loader.mjs</code> and <code>register-ts-extension-loader.mjs</code>.</p></div>
+</div>
+
+<div class="item">
+  <div class="head"><h3>Scene boot boilerplate and orphan probes</h3><span class="tag merge">merge</span><span class="tag delete">delete</span><span class="size">83 gotos · 138 waits · 6 dead params</span></div>
+  <div class="k">Owners today</div><div class="v"><ul>
+    <li><code>worlds.mjs</code> centralizes boot for 5 scenes; 66 others hand-roll <code>page.goto</code> and <code>waitForFunction</code> against <code>__ready</code>/<code>__campaignReady</code>. No helper exists for lab routes or campaign boots.</li>
+    <li><code>graphicsSettings.ts</code> reads <code>grassQuality</code> under three spellings plus <code>grass</code>, <code>nofar</code>, <code>fargrass</code>; no scene or doc references any of them. <code>?measurecards</code> and <code>?sea</code> appear only in archived specs. Scenes still send <code>gfx=</code> and nothing reads it.</li>
+    <li>Duplicated constants: <code>SAVE_KEY = "campaign-save"</code> in both <code>main.ts:136</code> and <code>campaign/scene.ts:53</code>. The save owner is split across two files. Also <code>ordinal</code>, <code>occupiedCityForArmy</code>, <code>roundMs</code>.</li>
+  </ul></div>
+  <div class="k">Natural home</div><div class="v"><p>Extend <code>worlds.mjs</code> with <code>campaign(kind)</code>, <code>labRoute(route, query)</code>, <code>ready(page, flag)</code>. One <code>SAVE_KEY</code> owner. Delete the eight params.</p></div>
+</div>
+
+<div class="item">
+  <div class="head"><h3>HUD state is dual-sourced through imperative handles</h3><span class="tag merge">merge</span><span class="size">2 hand-rolled subscriptions · 5-boolean props</span></div>
+  <div class="k">Owners today</div><div class="v"><p>Scenes compute diff keys and call <code>setToolbar</code>/<code>setTopBar</code>; <code>CampaignTopBarProps</code> carries five booleans; <code>BattleHud</code> and <code>GraphicsSettingsModal</code> each hand-roll <code>useState + useEffect(subscribe)</code> over the graphics store. <code>useSyncExternalStore</code> appears nowhere.</p></div>
+  <div class="k">Natural home</div><div class="v"><p>Keep the documented ≤5 Hz firewall between sim loop and React. Change the shape: a tiny <code>hudStore</code> with <code>subscribe/get</code> per scene, React reads via <code>useSyncExternalStore</code>, one <code>useGraphicsSettings()</code> hook.</p></div>
+</div>
+
+<h2 id="sim">Battle sim</h2>
+
+<div class="item">
+  <div class="head"><h3>Three functions own a dozen concerns each</h3><span class="tag split">split</span><span class="size">1,586 · 1,024 · 715 lines</span></div>
+  <div class="k">Owners today</div><div class="v"><p><code>sim.rs:1807-3393 steer_soldiers</code> fuses per-unit precompute, pivot springs, momentum, routing, corridor block, weave bonds, speed caps, magnet, cruise, fighting pace, lateral friction, terrain projection and facing. Each is already delimited by a banner comment. Two near-identical closures (<code>weave_bond</code>, <code>pivot_bond</code>) walk the same four neighbour directions. <code>collision.rs apply_separation</code> is 1,024 lines, <code>combat.rs run_combat</code> 715. <code>tick()</code> inlines 225 lines of slot policy that <code>unit.rs</code> should own.</p></div>
+  <div class="k">Natural home</div><div class="v"><p>A <code>steer/</code> module with <code>precompute_unit</code>, <code>weave_forces</code>, <code>speed_caps</code>, <code>soldier_facing</code> over a small <code>SoldierCtx</code>; one neighbour-walk iterator for both bond closures. Split collision and combat along their existing banners. <code>slide_halted_frames</code> and <code>reform_slots</code> beside the slot machinery.</p></div>
+  <div class="k">Proof</div><div class="v"><p><code>mechanics_weave</code>, <code>mechanics_melee</code>, <code>force_trace</code> (channel labels asserted), <code>mechanics_settle</code>, <code>mechanics_formation</code>. The golden hash pins float order, so extract without reordering arithmetic.</p></div>
+</div>
+
+<div class="item">
+  <div class="head"><h3>Formation bounding radius has four formulas</h3><span class="tag merge">merge</span><span class="size">11 sites · 5 files</span></div>
+  <div class="k">Owners today</div><div class="v"><p><code>0.5*(w+d)</code>, <code>0.5*w.hypot(d)</code>, and <code>0.5*w.max(d)</code> across <code>sim.rs</code>, <code>collision.rs</code>, <code>combat.rs</code>, <code>missiles.rs</code>, <code>morale.rs</code>. <code>threat_snapshot</code> claims “one notion of the nearest steel” while <code>deliver_orders</code> and <code>mounted_threat_near</code> re-derive the gap inline instead of calling <code>nearest_enemy</code>.</p></div>
+  <div class="k">Natural home</div><div class="v"><p><code>Unit::bound_radius()</code>; callers consume <code>nearest_enemy</code>. This is the “re-derived value drifts” rule from refactor-clean in its purest form.</p></div>
+  <div class="k">Proof</div><div class="v"><p><code>at_ease_range</code> thresholds in <code>mechanics_morale</code>, <code>scenario_cavalry</code>. Expect some to move; per the test-can-encode-wrong-reality memory, verify the mechanism before re-pinning.</p></div>
+</div>
+
+<div class="item">
+  <div class="head"><h3>Spawn family duplicated and diverged</h3><span class="tag merge">merge</span><span class="size">≈100 lines</span></div>
+  <div class="k">Owners today</div><div class="v"><p><code>spawn_class_with_files</code> and <code>spawn_class_stats_look_with_files</code> share 40 lines and disagree: the files clamp is <code>files.clamp(lower, count.max(lower))</code> in one and <code>(count/3).max(lower)</code> in the other; the grind sidearm is set in only one. The clamp appears a third time in <code>set_files</code>. <code>spawn_unit</code> hardcodes LightSpear stats every caller overwrites. <code>spawn_class_stats_with_files</code> has 0 src callers, 46 test callers.</p></div>
+  <div class="k">Natural home</div><div class="v"><p>One <code>spawn(anchor, facing, count, files, class, stats, look, team)</code> plus <code>Unit::files_bounds(count)</code>; thin <code>spawn_class</code> on top. Also <code>Battle::from_setup</code> → three wrappers where only the full variant has a production caller; <code>deploy_roster</code> has zero callers.</p></div>
+</div>
+
+<div class="item">
+  <div class="head"><h3>Force-trace instrumentation interleaved with the hot loop</h3><span class="tag merge">merge</span><span class="size">70 cfg blocks · ≈300 lines</span></div>
+  <div class="k">Owners today</div><div class="v"><p>53 <code>#[cfg(feature = "force-trace")]</code> blocks in <code>sim.rs</code>, 17 in <code>collision.rs</code>, each a <code>let before</code> / <code>push(ForceRecord)</code> pair around the physics.</p></div>
+  <div class="k">Natural home</div><div class="v"><p>A <code>Tracer</code> value with <code>record(channel, before, after)</code> that compiles to nothing without the feature; each site becomes one line.</p></div>
+</div>
+
+<div class="item">
+  <div class="head"><h3>Dead knobs and test sediment</h3><span class="tag delete">delete</span><span class="size">27 ignored probes · ≈1,600 lines</span></div>
+  <div class="k">Items</div><div class="v"><ul>
+    <li><code>Tunables::disorder_norm_spacings</code> is defined and defaulted and read nowhere. Four probe flags (<code>engaged_deep_reform</code>, <code>corridor_deployed_width</code>, <code>seeking_flank_curl</code>, …) are set only from env-var hooks inside two test files; production always runs the default. Fold into constants; the branches collapse.</li>
+    <li>27 <code>#[ignore]</code> attribution probes (≈1,000 lines of <code>mechanics_melee.rs</code>, ≈600 of <code>force_trace.rs</code>) reference melee-blob slices whose spec is closed. Two helpers (<code>pca_major_axis</code>, <code>cohort_rotation_deg</code>) are duplicated between them.</li>
+    <li><code>bin/weave_shots.rs</code> copies the perturbation helpers of <code>mechanics_weave.rs</code> and says so in its doc. <code>block()</code> and <code>run()</code> shadow <code>tests/common</code> in two files.</li>
+    <li><code>genmap</code> defines <code>hash_cell01</code>, <code>mix64/hash01</code>, <code>smoothstep</code> twice each, and two different functions both named <code>value_noise</code>. <code>Vec2::perp</code> is missing; the inline form appears 15 times.</li>
+  </ul></div>
+</div>
+
+<h2 id="campaign">Campaign, mapgen, wasm</h2>
+
+<div class="item">
+  <div class="head"><h3>Road levels are a dead dimension threaded everywhere</h3><span class="tag delete">delete</span><span class="size">7 signatures · 1 wasm export · ≈70 lines</span></div>
+  <div class="k">Owners today</div><div class="v"><p><code>state.road_levels</code> is only ever <code>vec![1; edges.len()]</code>. Yet <code>roads: &amp;[u8]</code> is a parameter on all seven pathfind functions, <code>ROAD_SPEED_MULT</code>/<code>ROAD_MAX_LEVEL</code> live in tunables, <code>army_base_speed</code> reads it, <code>road_levels_ptr</code> is exported to wasm, and <code>web/src/campaign/views.ts</code> reads the pointer.</p></div>
+  <div class="k">Rule</div><div class="v"><p>“Constrain the model to what production actually writes.” Delete the field, constants, export and parameter; widen when a real writer arrives.</p></div>
+</div>
+
+<div class="item">
+  <div class="head"><h3>Graph traversal has nine owners</h3><span class="tag merge">merge</span><span class="size">≈190 lines campaign · ≈120 mapgen</span></div>
+  <div class="k">Owners today</div><div class="v"><p>Campaign: <code>Visited::within</code> (the fast one, written to replace the per-call BTreeSet), <code>dist_le</code> (still BTreeSet, runs cities×armies per day and per encounter per tick), <code>territory_of</code>, <code>tiles_within</code>, <code>rout_path</code>, and an inline flood in <code>visibility::recompute</code>. <code>dijkstra</code> and <code>nearest_targets</code> share the heap loop verbatim; partial-edge costing is written twice. Mapgen adds three BFS and a fourth in a campaign test.</p></div>
+  <div class="k">Natural home</div><div class="v"><p>One <code>flood(map, from, radius, filter, visit)</code> on <code>Visited</code>; one Dijkstra with an <code>on_settle → Continue|Stop</code> callback; one <code>edge_partial_cost</code>. Keep visit order deterministic; the golden campaign tests depend on it.</p></div>
+</div>
+
+<div class="item">
+  <div class="head"><h3>The wasm boundary is not thin</h3><span class="tag move">move</span><span class="tag delete">delete</span><span class="size">≈120 lines of logic · 1 dead export</span></div>
+  <div class="k">Owners today</div><div class="v"><ul>
+    <li><code>campaign_bind.rs:54-96 resolved_unit_stats</code> multiplies combat stats per unit option. Game logic in the binding, with an unreachable <code>n &gt; 2</code> arm that <code>unit_type_by_id</code> and <code>normalize_state</code> already prevent. Matching dead “Reform” arms in <code>units.rs</code>.</li>
+    <li><code>class_specs</code> carries parallel name arrays positionally coupled to <code>ALL_CLASSES</code>. <code>generated_map_manifest</code> has two owners with a hand-written fallback. <code>refresh()</code> encodes a stance→pie state machine. <code>loc_decode</code> is re-inlined. Seven scalar getters for vista bands.</li>
+    <li><code>order_sack_intent</code> is exported and called by nothing. <code>REPLENISH_HOSTILE</code> is defined, documented as a third tier, and unused.</li>
+  </ul></div>
+  <div class="k">Natural home</div><div class="v"><p>Stat modifiers into <code>campaign::units</code>; manifest and pie state into campaign; one packed header for vista bands. Delete the export, the knob, and the unreachable arms.</p></div>
+</div>
+
+<div class="item">
+  <div class="head"><h3>Struct literals, cost lookups and schemas written N times</h3><span class="tag merge">merge</span><span class="size">≈140 lines</span></div>
+  <div class="k">Items</div><div class="v"><ul>
+    <li><code>Army { … }</code> spelled out with nine default fields at four sites; <code>Encounter { … }</code> at two. → <code>Army::new</code>.</li>
+    <li><code>cost_per_soldier</code>, <code>upkeep_per_soldier</code>, <code>value_per_soldier</code> are one select→lookup→fallback shape; <code>resolve::estimate</code> re-derives the value inline; <code>unit_establishment</code> is a pure alias of <code>contract::unit_size</code>.</li>
+    <li>The map wire schema is declared four times (<code>build.rs NodeJson</code>, <code>mapdata.rs RawNode</code>, a test fixture, <code>probe.rs</code>). Battle-field extents live in <code>battlegen.rs</code>, <code>contract</code>, and <code>sim/maps.rs</code>. <code>TILE_KM</code> is defined twice with a “must match” comment.</li>
+    <li>Test helpers: <code>real_map()</code> copied four times, <code>lopsided_map</code>, <code>run_month</code>, <code>garrison</code> twice each.</li>
+  </ul></div>
+</div>
+
+<div class="item">
+  <div class="head"><h3>Mapgen carries shipped one-shot migrations</h3><span class="tag delete">delete</span><span class="tag split">split</span><span class="size">≈300 lines dead · 2 files of 5 and 3 responsibilities</span></div>
+  <div class="k">Owners today</div><div class="v"><p><code>connect_black_sea_rim_committed</code> fabricates an empty river grid for a migration that already landed; the <code>debraid</code> subcommand duplicates the pipeline call; <code>print_report</code> and two helpers (≈140 lines) are referenced only from a closed spec. <code>seg_dist</code> duplicates <code>point_segment_dist</code>; “load committed map” is copied five times; the land check four; three stub pruners including a <code>.mjs</code> one. <code>("Olisipo", "x")</code> reads as a placeholder. <code>connectivity.rs</code> fuses gazetteer, descope, labelling, reconnect and report; <code>landroute.rs</code> fuses measure, JSON plumbing and debraid. No <code>[lib]</code>, so every <code>pub</code> is decoration.</p></div>
+  <div class="k">Natural home</div><div class="v"><p>Delete the migrations and report. Split the two files along their five and three seams. One <code>load_committed_map</code>, one land check.</p></div>
+</div>
+
+<h2 id="cross">Cross-cutting</h2>
+
+<div class="item">
+  <div class="head"><h3>Narrative from closed specs lives in code comments</h3><span class="tag delete">delete</span><span class="size">165 “slice NN” references</span></div>
+  <div class="k">Owners today</div><div class="v"><p>47 in photoreal alone (<code>battleWorld.ts:1-16</code>: “born slice 08a at parity; physically lit since slice 09…”), plus “stand-in” ×10, “parity” ×8. The spec these narrate is closed and already holds the story. The write-docs and code-review skills both say history belongs in the spec, invariants in the code.</p></div>
+  <div class="k">Natural home</div><div class="v"><p>Replace each with the invariant it protects, or nothing. Rust sim is 21% comment lines; most of those are mechanism rationale and earn their place. The renderer's slice diary does not.</p></div>
+</div>
+
+<div class="item">
+  <div class="head"><h3>Seven open specs untouched for two months</h3><span class="tag gate">gate</span><span class="size">specs/ · last touched 2026-07-01 to 07-10</span></div>
+  <div class="k">Owners today</div><div class="v"><p><code>balance-harness</code>, <code>deeper-ai</code>, <code>directional-bias</code>, <code>renderer-conversion-completion</code>, <code>scenes</code>, <code>sim-tick-30k</code>, <code>standoff-double-push</code>. <code>renderer-conversion-completion</code> was scoped before the 3d-perspective-renderer spec closed and is likely superseded. A plan that no longer matches the code is the same debt as a comment that no longer matches it.</p></div>
+  <div class="k">Natural home</div><div class="v"><p>Close, archive with close-spec, or re-scope each against HEAD. Refactor-clean's last rule: update the spec with the new invariant, not the file list.</p></div>
+</div>
+
+<div class="item">
+  <div class="head"><h3>Repo weight</h3><span class="tag gate">gate</span><span class="size">.git 4.7 GB</span></div>
+  <div class="k">Owners today</div><div class="v"><p><code>specs/done</code> tracks 1,648 PNGs (399 MB). <code>web/shots</code> holds 1,127 files, 1.0 GB, including <code>shots/diff</code> with 168 PNGs and 16 stale baselines for maps and modals no scene names. 36 scenes are named by no script.</p></div>
+  <div class="k">Natural home</div><div class="v"><p>Spec evidence PNGs are archive material, not source: git LFS or an out-of-repo bucket. Have <code>scene.mjs</code> prune PNGs not in <code>meta.snapshots</code> on <code>UPDATE_SHOTS=1</code> so stale baselines cannot accumulate.</p></div>
+</div>
+
+<h2 id="passes">Suggested passes</h2>
+<p>Ordered by payoff over risk. Each pass is one reviewable commit or small series, verified through the consumer surfaces named. Refactor-clean's slicing rule: land the shared contract first, then port consumers.</p>
+<ol class="passes">
+  <li><div><b>Decide the lab look estate</b><p>The gate above. If retired: delete grass, terrain and exhibit passes, their six scenes, the three copied routes, five orphan routes, the lab uiLayer shims, and the lab pipelines in frameShell. Roughly 8,000 lines gone with zero production diff.</p><p class="proof">Proof: <code>scene:renderer</code>, <code>verify:campaign</code>, <code>perf:30k</code> unchanged.</p></div></li>
+  <li><div><b>Zero-risk deletions</b><p>Dead exports (260), orphan URL params, <code>order_sack_intent</code>, <code>disorder_norm_spacings</code>, <code>REPLENISH_HOSTILE</code>, ten tree presets, mapgen migrations and report, unreachable option arms, stale PNGs, slice narrative comments, always-same world options.</p><p class="proof">Proof: <code>cargo test --workspace</code>, <code>bun run check</code>, full scene suite. No baseline should move.</p></div></li>
+  <li><div><b>Single-owner primitives</b><p><code>noiseWgsl</code>; campaign passes on <code>sunDirection()</code>; <code>Unit::bound_radius</code>, <code>Vec2::perp</code>, one spawn; <code>Army::new</code>; one <code>flood</code> and one Dijkstra; <code>growableVertexBuffer</code> and <code>cameraOnlyPipeline</code>; shared camera controller, sim clock, ready helper; one <code>SAVE_KEY</code>; workspace packages or a path alias; vitest only; scene boot helpers.</p><p class="proof">Proof: consumer scenes and suites named per item. Sun unification and bound radius are the two that may move pins; verify mechanism before re-blessing.</p></div></li>
+  <li><div><b>Splits</b><p><code>steer_soldiers</code>, <code>apply_separation</code>, <code>run_combat</code>, <code>tick()</code> slot policy; battle scene <code>enter()</code>; campaign renderer builders into game-renderer; <code>mapPass</code>; <code>frameShell</code>; <code>battleWorld</code> grass field; <code>bladeFieldLayer</code> typed uniforms and shared material; lab router one-file-per-route; mapgen connectivity and landroute.</p><p class="proof">Proof: pure moves, byte-identical arithmetic order for the golden hash, all suites green, route stats keys unchanged.</p></div></li>
+  <li><div><b>Contract changes</b><p>Remove <code>road_levels</code> end to end; thin the wasm boundary; HUD store with <code>useSyncExternalStore</code>; <code>Tracer</code> for force-trace; <code>CampaignEnvironment</code> record; close or re-scope the seven open specs; move spec PNGs out of git history.</p><p class="proof">Proof: campaign golden tests, <code>campaign-handoff</code>, <code>battle-3d-standards</code> HUD reads, <code>force_trace</code> channel assertions.</p></div></li>
+</ol>
+
+<h2 id="keep">Deliberate, not debt</h2>
+<p>Things that look like debt and have a cited rationale. Do not touch these under the banner of cleanup.</p>
+<div class="keep">
+  <div><b>Campaign on the bespoke WGSL renderer</b><span>16a NO-GO in specs/done/3d-perspective-renderer. Two renderers is the design, not sediment.</span></div>
+  <div><b>Battle CPU data-builders in game-renderer</b><span>terrainFeatures, grassField, ground and horizon builders, scenery, windSignal: shared by both worlds, 14 production importers.</span></div>
+  <div><b>Imperative HUD handle at ≤5 Hz</b><span>BattleHud.tsx:6-14 documents the firewall. The store item changes shape, not the firewall.</span></div>
+  <div><b>Test layering and isolation hooks</b><span>morale_enabled, set_charge_enabled, set_missile_spec, tests/common allow(dead_code): the mechanics/scenario/balance layers.</span></div>
+  <div><b>Two campaign time scales</b><span>tunables.rs:7-13: real-time-anchored windows stay in raw ticks by design.</span></div>
+  <div><b>value_per_soldier decoupled from upkeep</b><span>economy.rs:115-120: upkeep cadence must not silently rescale AI army valuation.</span></div>
+  <div><b>Flat-float wasm layouts and SoA Vec fields</b><span>Zero-copy pointer contract; the reason game-wasm exists.</span></div>
+  <div><b>Depth prepass default-off, ACES tonemap name</b><span>Measured on Metal with numbers cited; kept greppable on purpose.</span></div>
+  <div><b>Renderer backend device cast</b><span>three has no public device accessor; three sites, one concept. A helper would be nice, not necessary.</span></div>
+  <div><b>Hand-authored gazetteer lists</b><span>STRAIT_CARVES, BLACK_SEA_COAST_ROUTES, CITY_SNAP_EXEMPTIONS are data; only their scatter across four files is debt.</span></div>
+</div>
+
+<h2 id="metrics">Metrics</h2>
+<div class="scroll">
+<table>
+<thead><tr><th>Area</th><th class="n">LOC</th><th>Largest unit</th><th>Hygiene</th></tr></thead>
+<tbody>
+<tr><td>crates/sim src</td><td class="n">15,851</td><td>sim.rs 3,687; steer_soldiers 1,586-line fn; 13 fns over 150 lines</td><td>0 warnings, 0 TODO, 27 ignored tests, 18.3k test LOC</td></tr>
+<tr><td>crates/campaign src</td><td class="n">6,435</td><td>economy.rs 912</td><td>0 warnings, 0 clippy; 1 unused wasm export of 122</td></tr>
+<tr><td>crates/mapgen</td><td class="n">4,977</td><td>connectivity.rs 1,251 (5 responsibilities)</td><td>main.rs is 70% tests; no [lib]</td></tr>
+<tr><td>crates/game-wasm</td><td class="n">1,775</td><td>campaign_bind.rs 901</td><td>≈120 lines of game logic in the binding</td></tr>
+<tr><td>packages/game-renderer</td><td class="n">17,710</td><td>grassPass.ts 2,862; mapPass.ts 2,629</td><td>≈6,900 lab-only across this and renderer-core; 132/436 dead exports; hash ×8</td></tr>
+<tr><td>packages/renderer-core</td><td class="n">2,491</td><td>frameShell.ts 966 (6 concerns)</td><td>3 lab-only pipelines inside</td></tr>
+<tr><td>packages/photoreal-renderer</td><td class="n">9,431</td><td>bladeFieldLayer.ts 1,951; battleWorld.ts 1,711</td><td>65 <code>as unknown as</code>; 47 slice comments; 15/19 layers no dispose; 69 dead exports</td></tr>
+<tr><td>apps/renderer-lab</td><td class="n">8,649</td><td>router.ts 6,294 (40 of 47 routes inline)</td><td>5 orphan routes ≈930 lines; 3 copy-pasted routes ≈580</td></tr>
+<tr><td>web/src</td><td class="n">15,767</td><td>battle/scene.ts 2,391; campaign/renderer.ts 2,015</td><td>70 deep package imports; 59/229 dead exports; 8 orphan params; 3 test runners</td></tr>
+<tr><td>web/scenes + tests</td><td class="n">≈20,400</td><td>renderer-lab-routes.mjs 2,234</td><td>83 hand-rolled gotos; 36 scenes in no script; 16 stale PNGs; shots/diff 168 PNGs</td></tr>
+<tr><td>specs</td><td class="n">11,329 md</td><td>399 MB PNG in git</td><td>7 open specs idle since July</td></tr>
+</tbody>
+</table>
+</div>
+<p>Churn agrees with size. The six most-edited files in the last 90 days are the lab router (69 commits), <code>battleWorld.ts</code> (57), <code>battle/scene.ts</code> (52), <code>campaign/renderer.ts</code> (47), <code>battle/renderer.ts</code> (42), and <code>mapPass.ts</code> (42). Every one is on the split list.</p>
+
+<footer>Read-only audit of civsim at 08d8c5fe on 2026-09-02, five area sweeps plus repo-level metrics; the highest-impact claims were re-verified by grep before publishing. Line references are to HEAD and will drift as files split.</footer>
+</main>
+</div>

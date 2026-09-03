@@ -2,7 +2,7 @@ import type { RawFrameShell, WorldRenderPass } from '../../../renderer-core/src/
 import { WORLD_CAMERA_WGSL } from '../../../renderer-core/src/cameraWgsl';
 import { gpuWorldDepthStencil } from '../../../renderer-core/src/pipelineContracts';
 import { CAMPAIGN_SEA_PALETTE_WGSL } from '../water/waterPalette';
-import type { CampaignDrawnCoast, CampaignMapSurfaceMesh } from './mapPass';
+import type { CampaignDrawnCoast, CampaignMapSurfaceMesh } from '@packages/game-renderer/src/campaign/mapSurface';
 
 interface CampaignTerritoryTextureData {
   width: number;

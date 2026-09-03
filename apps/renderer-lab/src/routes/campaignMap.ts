@@ -1,5 +1,6 @@
 import { CampaignCloudPass } from "@packages/game-renderer/src/campaign/atmospherePass";
-import { buildCampaignMapDrawData, CampaignLabelPass, CampaignMapPass, CampaignRoadPass, CampaignWorldLinePass } from "@packages/game-renderer/src/campaign/mapPass";
+import { CampaignLabelPass, CampaignMapPass, CampaignRoadPass, CampaignWorldLinePass } from "@packages/game-renderer/src/campaign/mapPass";
+import { buildCampaignMapDrawData } from "@packages/game-renderer/src/campaign/roadGeometry";
 import { campaignBorderVertices, CampaignTerritoryPass } from "@packages/game-renderer/src/campaign/territoryPass";
 import { loadCampaignData } from "../../../../web/src/campaign/data";
 import { campaignSurface } from "../../../../web/src/campaign/surface";

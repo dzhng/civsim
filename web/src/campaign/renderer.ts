@@ -5,7 +5,6 @@ import {
 } from "@packages/game-renderer/src/campaign/atmospherePass";
 import { CampaignEntityPass } from "@packages/game-renderer/src/campaign/entityPass";
 import {
-  buildCampaignMapDrawData,
   CampaignLabelPass,
   type CampaignLabelPassStats,
   CampaignMapPass,
@@ -13,9 +12,12 @@ import {
   CampaignRoadPass,
   CampaignWorldLinePass,
   type CampaignLabel,
-  type CampaignMapStats,
-  type ScreenRect,
 } from "@packages/game-renderer/src/campaign/mapPass";
+import {
+  buildCampaignMapDrawData,
+  type CampaignMapStats,
+} from "@packages/game-renderer/src/campaign/roadGeometry";
+import type { ScreenRect } from "@packages/game-renderer/src/campaign/labelLayout";
 import {
   CampaignSceneryPass,
   type CampaignSceneryInstance,

@@ -9,13 +9,6 @@ import {
   type Vec3Node,
 } from "./battleTsl";
 
-export const GROUND_DETAIL_TERMS = ["mottle", "canopy", "quad-flecks", "scrub"] as const;
-export type GroundDetailTerm = (typeof GROUND_DETAIL_TERMS)[number];
-
-export function groundDetailTermFromParam(value: string | null): GroundDetailTerm | null {
-  return GROUND_DETAIL_TERMS.find((term) => term === value) ?? null;
-}
-
 /**
  * The single contrast owner for battle turf. These are amplitude/value controls,
  * not palette colors: meadow hue remains owned by meadowPalette.ts.
@@ -93,7 +86,6 @@ export const TURF_SHAPE = {
 
 /** Compose the shared neutral ground-scale modulation before feature materials. */
 export interface GroundDetailOptions {
-  disabledTerm?: GroundDetailTerm | null;
   coverage?: FloatNode;
 }
 
@@ -164,8 +156,7 @@ export function groundDetailNode(
   const c = TURF_CONTRAST.ground;
   const shape = TURF_SHAPE.ground;
   const drift = fbmN(world.mul(shape.driftScale)).sub(0.5).mul(c.driftStrength);
-  const mottleStrength = options.disabledTerm === "mottle" ? 0 : c.mottleStrength;
-  const mottle = fbmN(world.mul(shape.mottleScale)).sub(0.5).mul(mottleStrength);
+  const mottle = fbmN(world.mul(shape.mottleScale)).sub(0.5).mul(c.mottleStrength);
   const detail = clamp(drift.add(mottle).add(float(1)), c.minimum, c.maximum);
   return mix(color, color.mul(detail), options.coverage ?? float(1));
 }

@@ -61,7 +61,6 @@ import {
   turfCanopyFromSignalsNode,
   turfCanopyNode,
   TURF_CONTRAST,
-  type GroundDetailTerm,
 } from "./groundDetail";
 import { fieldWaterSurfaceNodes } from "./seaLayer";
 import type {
@@ -133,7 +132,6 @@ export interface TerrainMaterialOptions {
   slopeBands?: BattleSlopeBands | null;
   vistaBand?: BattleVistaBand["name"] | null;
   farGrass?: BladeFieldTransitionUniforms | null;
-  disabledGroundDetail?: GroundDetailTerm | null;
   earthDistance?: PhotorealEarthDistanceField;
 }
 
@@ -212,11 +210,8 @@ function quadGroundHeight(p: Vec2Node): FloatNode {
 
 function terrainQuadMaterial(
   style: TerrainQuadStyle,
-  contrast:
-    | typeof TURF_CONTRAST.quad.default
-    | typeof TURF_CONTRAST.quad.wideDetail,
+  contrast: typeof TURF_CONTRAST.quad.default | typeof TURF_CONTRAST.quad.wideDetail,
   frame: BattleFrameUniforms,
-  disabledTerm: GroundDetailTerm | null,
 ): THREE.MeshStandardNodeMaterial {
   const material = new THREE.MeshStandardNodeMaterial({
     side: THREE.FrontSide,
@@ -271,38 +266,23 @@ function terrainQuadMaterial(
   const stoneFleck = smoothstepN(style.stoneFleckLow, style.stoneFleckHigh, pebble).mul(
     relief.mul(0.46).add(0.36),
   );
-  const flecksEnabled = disabledTerm === "quad-flecks" ? 0 : 1;
-  const scrubStrength = disabledTerm === "scrub" ? 0 : TURF_CONTRAST.quad.scrubStrength;
-  const speckle = lightFleck.mul(contrast.speckleStrength * flecksEnabled);
+  const speckle = lightFleck.mul(contrast.speckleStrength);
   let grass = mix(
     olive,
     rgbNode(style.dry),
     trample.mul(contrast.trampleMix).add(contrast.dryMixBase),
   );
-  grass = mix(grass, rgbNode(MEADOW.quad.scrub), scrubPatch.mul(scrubStrength));
+  grass = mix(grass, rgbNode(MEADOW.quad.scrub), scrubPatch.mul(TURF_CONTRAST.quad.scrubStrength));
   grass = mix(grass, rgbNode(MEADOW.quad.rakedDust), rakedDust);
   grass = grass.add(rgbNode(MEADOW.quad.lightFleck).mul(speckle));
-  grass = mix(
-    grass,
-    rgbNode(style.stubbleColor),
-    stubble.mul(contrast.stubbleStrength),
-  );
+  grass = mix(grass, rgbNode(style.stubbleColor), stubble.mul(contrast.stubbleStrength));
   grass = mix(
     grass,
     grass.mul(rgbNode(style.darkFleckColor)),
-    darkFleck.mul(contrast.darkFleckStrength * flecksEnabled),
+    darkFleck.mul(contrast.darkFleckStrength),
   );
-  grass = mix(
-    grass,
-    rgbNode(MEADOW.quad.stoneFleck),
-    stoneFleck.mul(contrast.stoneFleckStrength * flecksEnabled),
-  );
-  const canopyEnabled = disabledTerm === "canopy" ? 0 : 1;
-  grass = mix(
-    grass,
-    turfCanopyFromSignalsNode(broad, mid, fine),
-    TURF_CONTRAST.canopy.mixStrength * canopyEnabled,
-  );
+  grass = mix(grass, rgbNode(MEADOW.quad.stoneFleck), stoneFleck.mul(contrast.stoneFleckStrength));
+  grass = mix(grass, turfCanopyFromSignalsNode(broad, mid, fine), TURF_CONTRAST.canopy.mixStrength);
   const dust = smoothstepN(18.0, 96.0, dist).mul(contrast.dustStrength);
   const sunBleached = mix(grass, rgbNode(MEADOW.quad.sunBleached), dust);
   material.colorNode = vec4(linearAlbedo(sunBleached), 1.0);
@@ -322,16 +302,8 @@ function backdropMaterial(): THREE.MeshStandardNodeMaterial {
   const broad = vnoiseN(world.mul(0.055).add(vec2(4.7, 8.1)));
   const mid = vnoiseN(world.mul(0.42).add(vec2(11.3, 1.9)));
   const speck = smoothstepN(0.78, 0.98, vnoiseN(world.mul(2.8)));
-  let grass = mix(
-    rgbNode(MEADOW.quad.backdrop.low),
-    rgbNode(MEADOW.quad.backdrop.high),
-    broad,
-  );
-  grass = mix(
-    grass,
-    rgbNode(MEADOW.quad.backdrop.shadow),
-    smoothstepN(0.62, 0.94, mid).mul(0.38),
-  );
+  let grass = mix(rgbNode(MEADOW.quad.backdrop.low), rgbNode(MEADOW.quad.backdrop.high), broad);
+  grass = mix(grass, rgbNode(MEADOW.quad.backdrop.shadow), smoothstepN(0.62, 0.94, mid).mul(0.38));
   grass = grass.add(rgbNode(MEADOW.quad.backdrop.fleck).mul(speck));
   material.colorNode = vec4(linearAlbedo(grass), 1.0);
   return material;
@@ -348,28 +320,19 @@ export class BattleBackgroundQuads {
   readonly terrainDefault: THREE.Mesh;
   readonly terrainWide: THREE.Mesh;
 
-  constructor(
-    scene: THREE.Scene,
-    frame: BattleFrameUniforms,
-    disabledTerm: GroundDetailTerm | null = null,
-  ) {
+  constructor(scene: THREE.Scene, frame: BattleFrameUniforms) {
     this.backdrop = new THREE.Mesh(quadGeometry(), backdropMaterial());
     this.backdrop.name = "battle-backdrop";
     this.backdrop.renderOrder = RENDER_ORDER.backdrop;
     this.terrainDefault = new THREE.Mesh(
       quadGeometry(),
-      terrainQuadMaterial(DEFAULT_TERRAIN_STYLE, TURF_CONTRAST.quad.default, frame, disabledTerm),
+      terrainQuadMaterial(DEFAULT_TERRAIN_STYLE, TURF_CONTRAST.quad.default, frame),
     );
     this.terrainDefault.name = "battle-terrain-quad";
     this.terrainDefault.renderOrder = RENDER_ORDER.terrain;
     this.terrainWide = new THREE.Mesh(
       quadGeometry(),
-      terrainQuadMaterial(
-        WIDE_DETAIL_TERRAIN_STYLE,
-        TURF_CONTRAST.quad.wideDetail,
-        frame,
-        disabledTerm,
-      ),
+      terrainQuadMaterial(WIDE_DETAIL_TERRAIN_STYLE, TURF_CONTRAST.quad.wideDetail, frame),
     );
     this.terrainWide.name = "battle-terrain-quad-wide";
     this.terrainWide.renderOrder = RENDER_ORDER.terrain;
@@ -504,8 +467,12 @@ export function createGroundMesh(
     slowNz = normalZForSlope(options.slopeBands.slowMin);
     rollingNz = normalZForSlope(options.slopeBands.rollingMax);
     cliffNz = normalZForSlope(options.slopeBands.cliffMin);
-    slopeRock = float(1).sub(smoothstepN(cliffNz, slowNz, normalZ)).toVar();
-    slowSlope = float(1).sub(smoothstepN(slowNz, rollingNz, normalZ)).toVar();
+    slopeRock = float(1)
+      .sub(smoothstepN(cliffNz, slowNz, normalZ))
+      .toVar();
+    slowSlope = float(1)
+      .sub(smoothstepN(slowNz, rollingNz, normalZ))
+      .toVar();
     rockTint = float(1)
       .sub(smoothstepN(0.18, 0.95, abs(tint.sub(2).add(tintDither))))
       .toVar();
@@ -527,7 +494,6 @@ export function createGroundMesh(
     .add(rgbNode(MEADOW.earth.mud).mul(mudEdge))
     .add(rgbNode(MEADOW.earth.roadDust).mul(roadEdge));
   let albedo = groundDetailNode(world, baseAlbedo, {
-    disabledTerm: options.disabledGroundDetail,
     coverage: float(1).sub(nonEarthExclusion).mul(turfAtEdge),
   });
   if (options.farGrass) {
@@ -562,14 +528,10 @@ export function createGroundMesh(
     // canopy uses metre-scale clumps. One khaki anchor keeps hue stable while
     // low-amplitude value variation survives minification.
     const grazingLift = turfCanopyNode(world, grazingFine);
-    const canopyEnabled = options.disabledGroundDetail === "canopy" ? 0 : 1;
     albedo = mix(
       albedo,
       grazingLift,
-      farMask
-        .mul(farGrass.terrainDetailStrength)
-        .mul(canopyEnabled)
-        .mul(TURF_CONTRAST.canopy.mixStrength),
+      farMask.mul(farGrass.terrainDetailStrength).mul(TURF_CONTRAST.canopy.mixStrength),
     );
   }
   // Churn uses the unwarped mud interior so the noisy visual feather cannot

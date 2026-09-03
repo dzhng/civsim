@@ -40,7 +40,6 @@ import {
 } from "@packages/photoreal-renderer/src/battle/battleWorld";
 import { postGradeUniformsFromParams } from "@packages/photoreal-renderer/src/post/postChain";
 import { seaDisplacementSourceFromParam } from "@packages/photoreal-renderer/src/battle/seaLayer";
-import { groundDetailTermFromParam } from "@packages/photoreal-renderer/src/battle/groundDetail";
 import { DEFAULT_BATTLE_ENVIRONMENT } from "@packages/game-renderer/src/environment/environment";
 import { BATTLE_RELIEF_EXAGGERATION } from "@packages/game-renderer/src/battle/terrainFeatures";
 import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
@@ -70,8 +69,6 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
   const params = ctx.params;
   const generatedMap = params.get("map") === "gen";
   const environment = params.get("env") ?? (generatedMap ? DEFAULT_BATTLE_ENVIRONMENT : null);
-  // Lab-only cold-boot attribution: ?detail=X disables exactly one term.
-  const disabledGroundDetail = groundDetailTermFromParam(params.get("detail"));
   // ?ref=1: full-viewport canvas (the compare-screenshots framing — the
   // production #battlefield also fills its viewport).
   if (params.get("ref") === "1") ctx.root.classList.add("reference-shot");
@@ -83,7 +80,6 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       sea: seaDisplacementSourceFromParam(params.get("sea")),
       post: params.get("post"),
       postGrade: postGradeUniformsFromParams(params),
-      disabledGroundDetail,
     }),
   ]);
   if (params.get("bloom") === "off") world.setBloomEnabled(false);
@@ -231,8 +227,14 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       game.soldier_count(),
     );
     const info = unitInfo();
-    const teams = Array.from({ length: game.unit_count() }, (_, u) => info[u * STRIDE + UNIT_INFO.team]);
-    const classes = Array.from({ length: game.unit_count() }, (_, u) => info[u * STRIDE + UNIT_INFO.classId]);
+    const teams = Array.from(
+      { length: game.unit_count() },
+      (_, u) => info[u * STRIDE + UNIT_INFO.team],
+    );
+    const classes = Array.from(
+      { length: game.unit_count() },
+      (_, u) => info[u * STRIDE + UNIT_INFO.classId],
+    );
     world.setStatic(soldierUnit, teams, classes);
   };
   applyStatic();
@@ -408,7 +410,8 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
   function firstPlayerUnit(): number {
     const info = unitInfo();
     for (let u = 0; u < game.unit_count(); u++) {
-      if (info[u * STRIDE + UNIT_INFO.team] === 0 && info[u * STRIDE + UNIT_INFO.alive] > 0) return u;
+      if (info[u * STRIDE + UNIT_INFO.team] === 0 && info[u * STRIDE + UNIT_INFO.alive] > 0)
+        return u;
     }
     return -1;
   }
@@ -427,7 +430,9 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       count++;
     }
     const info = unitInfo();
-    return count > 0 ? [cx / count, cy / count] : [info[u * STRIDE], info[u * STRIDE + UNIT_INFO.y]];
+    return count > 0
+      ? [cx / count, cy / count]
+      : [info[u * STRIDE], info[u * STRIDE + UNIT_INFO.y]];
   };
   // ?fx=1: a deterministic overlay fixture at the first player unit — an
   // order-progress pie + projectile streaks (effect lines) and a pair of
@@ -488,7 +493,18 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
     }
     for (let u = 0; u < game.unit_count(); u++) {
       const o = u * STRIDE;
-      if (info[o + UNIT_INFO.orderProgress] > 0) pushPie(groundCues, info[o], info[o + UNIT_INFO.y], info[o + UNIT_INFO.orderProgress], 7, 1, 1, 1, 1);
+      if (info[o + UNIT_INFO.orderProgress] > 0)
+        pushPie(
+          groundCues,
+          info[o],
+          info[o + UNIT_INFO.y],
+          info[o + UNIT_INFO.orderProgress],
+          7,
+          1,
+          1,
+          1,
+          1,
+        );
     }
     if (selected >= 0) {
       const [cx, cy] = unitCenter(selected);
@@ -600,7 +616,6 @@ export async function routePhotorealBattle(ctx: PhotorealBattleContext) {
       <tr><td>scenery</td><td>${rs.terrain?.scenery ?? 0}</td></tr>
       <tr><td>sea planes</td><td>${rs.terrain?.sealedEdges.join(", ") || "none"}</td></tr>
       <tr><td>clay</td><td>${clayMode ? "on" : "off"}</td></tr>
-      <tr><td>ground detail off</td><td>${disabledGroundDetail ?? "none"}</td></tr>
       <tr><td>draw calls</td><td>${s.stats.drawCalls}</td></tr>
       <tr><td>median ms</td><td>${s.stats.medianMs?.toFixed(2) ?? "warmup"}</td></tr>
       <tr><td>gpu ms</td><td>${s.stats.gpuTimeMs?.toFixed(3) ?? "pending"}</td></tr>

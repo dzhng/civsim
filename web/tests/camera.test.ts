@@ -1,3 +1,4 @@
+// @vitest-environment node
 // Screen-relative pan pin for the battle camera: panWorld's (right, up) is a
 // SCREEN-axes request (D/→ = right, W/↑ = into the screen), and must hold at
 // every yaw. Verified through camera3d's real projection — pan right and the
@@ -5,7 +6,7 @@
 // screen↔world axis-convention slip (e.g. assuming yaw-0 looks along +Y when
 // camera3d's yaw-0 view direction is −X) goes red here. Runs in node, no GPU.
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "vitest";
 import { eyePosition, projectPoint } from "../../packages/renderer-core/src/camera3d.ts";
 import { Camera } from "../src/shared/camera.ts";
 

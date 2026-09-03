@@ -1,8 +1,9 @@
+// @vitest-environment node
 import assert from "node:assert/strict";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import test from "node:test";
+import { onTestFinished, test } from "vitest";
 import { PNG } from "pngjs";
 import { snapCheck } from "./snapshot.mjs";
 
@@ -12,19 +13,19 @@ function pngBuffer(pixels, options = {}) {
   return PNG.sync.write(png, options);
 }
 
-function withUpdateShots(t) {
+function withUpdateShots() {
   const previous = process.env.UPDATE_SHOTS;
   process.env.UPDATE_SHOTS = "1";
-  t.after(() => {
+  onTestFinished(() => {
     if (previous === undefined) delete process.env.UPDATE_SHOTS;
     else process.env.UPDATE_SHOTS = previous;
   });
 }
 
-test("UPDATE_SHOTS keeps an existing baseline when decoded pixels are unchanged", async (t) => {
-  withUpdateShots(t);
+test("UPDATE_SHOTS keeps an existing baseline when decoded pixels are unchanged", async () => {
+  withUpdateShots();
   const dir = await mkdtemp(join(tmpdir(), "snapshot-test-"));
-  t.after(() => rm(dir, { recursive: true, force: true }));
+  onTestFinished(() => rm(dir, { recursive: true, force: true }));
 
   const pixels = Buffer.from([255, 0, 0, 255, 0, 0, 255, 255]);
   const baseline = pngBuffer(pixels, { deflateLevel: 0 });
@@ -54,10 +55,10 @@ test("UPDATE_SHOTS keeps an existing baseline when decoded pixels are unchanged"
   ]);
 });
 
-test("UPDATE_SHOTS rewrites an existing baseline when pixels changed", async (t) => {
-  withUpdateShots(t);
+test("UPDATE_SHOTS rewrites an existing baseline when pixels changed", async () => {
+  withUpdateShots();
   const dir = await mkdtemp(join(tmpdir(), "snapshot-test-"));
-  t.after(() => rm(dir, { recursive: true, force: true }));
+  onTestFinished(() => rm(dir, { recursive: true, force: true }));
 
   const baseline = pngBuffer(Buffer.from([255, 0, 0, 255, 0, 0, 255, 255]));
   const changed = pngBuffer(Buffer.from([255, 0, 0, 255, 0, 255, 0, 255]));

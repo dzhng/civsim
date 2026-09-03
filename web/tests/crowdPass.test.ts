@@ -1,5 +1,6 @@
+// @vitest-environment node
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "vitest";
 import { buildLiveBattleCrowdFrame } from "../../packages/game-renderer/src/battle/crowdPass.ts";
 import { UNIT_INFO } from "../../packages/game-renderer/src/battle/unitInfoLayout.ts";
 

@@ -25,3 +25,13 @@ _(append below, newest last)_
 - slice 28 — hash the specified army movement and stance state, ordered city owners, faction treasuries, and every encounter payload plus `next_encounter_id`, with collection lengths and enum tags as delimiters; alternative hash serialized `CampaignState` wholesale; why the explicit projection pins the campaign behaviors the following slices may move without coupling the golden to unrelated save-schema fields.
 - slice 28 — use campaign seed 7; alternative choose a new arbitrary fixed seed; why 7 is already the fixed-seed reference in the campaign determinism tests and also drives the scripted encounter seed.
 - slice 28 — use the sim golden's word-wise FNV-1a convention and initial hash value; alternative introduce canonical byte-wise FNV-1a just for campaign; why matching the repository's existing golden makes float-bit and integer mixing consistent across both simulation crates.
+- slice 15 — select Vitest's node environment with per-file directives for
+  DOM-free suites; alternative environment globs in the shared config; why
+  Vitest 4 no longer exposes `environmentMatchGlobs`, while file-local
+  directives keep each suite's runtime requirement explicit.
+- slice 15 — retain the `src/**/*.test.ui.ts` include alongside the slice's
+  broader globs; alternative follow the listed globs literally and run 27
+  files; why the verification contract requires the HEAD-equivalent 30 files
+  and the listed `src/**/*.test.{ts,tsx,mjs}` glob does not match `.test.ui.ts`.
+- slice 15 — (orchestrator fixup) replaced Codex's hand-written `web/tests/test-types.d.ts` (module shims for node:assert, node:fs, node:path, pngjs, node-web-audio-api) with the published `@types/node` and `@types/pngjs` dev dependencies; alternative keep the shim; why refactor-clean's first gate — the platform already provides these types, a hand-rolled copy drifts.
+- slice 15 — kept `web/scenes/battle/turf-telemetry-lib.d.ts` as the typed face of the `.mjs` telemetry lib the scene runner needs as plain JS; alternative convert the lib to TS; why scene.mjs runs node without a TS loader, so the JS module must stay and a sibling declaration is the standard TS shape for it.

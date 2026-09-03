@@ -1,5 +1,6 @@
+// @vitest-environment node
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "vitest";
 import { turfTelemetry } from "../scenes/battle/turf-telemetry-lib.js";
 
 function image(width: number, height: number, pixel: (x: number, y: number) => number[]) {

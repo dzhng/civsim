@@ -1,3 +1,4 @@
+// @vitest-environment node
 // Slice 11 seam pins — the pure halves of the sun-shadow rig
 // (packages/photoreal-renderer/src/battle/shadowRig.ts): the adapter-probe
 // tier resolution (SwiftShader must land on 'single' BY NAME — the standing
@@ -5,7 +6,7 @@
 // environment: PCF radius derives from the preset's turbidity, no new field
 // on the ONE preset owner).
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "vitest";
 import { CIVSIM_ENVIRONMENTS } from "../../packages/game-renderer/src/environment/environment.ts";
 import {
   CSM_CASCADES,

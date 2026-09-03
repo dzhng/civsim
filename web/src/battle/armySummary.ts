@@ -5,8 +5,8 @@
 // the doubling test: twice the men at the same morale must not change the average.
 // No wasm/sim change; headless-testable (armySummary.test.mjs).
 
-// The .ts extension is load-bearing: node --test runs this module through
-// type-stripping (armySummary.test.mjs), which resolves only explicit paths.
+// The explicit .ts import keeps tests and production on the same source instead
+// of maintaining a test-only JavaScript copy.
 import { UNIT_INFO } from "../../../packages/game-renderer/src/battle/unitInfoLayout.ts";
 
 export interface ArmySummary {

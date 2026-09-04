@@ -140,7 +140,7 @@ pub fn assert_settles(sim: &mut Sim, unit: usize, within_s: f32, watch_s: f32) {
 }
 
 /// The stock probe formation: 120 men, 20 files, 1m spacing.
-pub fn block(sim: &mut Sim) -> usize {
+pub fn stock_block(sim: &mut Sim) -> usize {
     sim.spawn_unit(Vec2::ZERO, FRAC_PI_2, 120, 20, Vec2::new(1.0, 1.0), 0, 1.0)
 }
 

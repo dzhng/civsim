@@ -131,9 +131,8 @@ fn ai_battle_resolves_with_pinned_scale_shape() {
         "army scale majority pattern moved: {summary:?}"
     );
     let medians: Vec<f32> = summary.iter().map(|r| r.1).collect();
-    // x4 band re-derived for melee-blob slice 05's torque-free pivot
-    // projection (same width, centered on the corrected-physics actual; the
-    // grind resolves faster and the large-scale battle bleeds deeper).
+    // The x4 band allows deep bleeding at large scale without pinning an exact
+    // outcome.
     for (median, range) in medians.iter().zip([0.42..0.56, 0.62..0.78, 0.65..0.81]) {
         assert!(
             range.contains(median),

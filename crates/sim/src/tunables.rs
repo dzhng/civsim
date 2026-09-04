@@ -261,8 +261,7 @@ pub struct Tunables {
     pub idle_settle_damp: f32,
     /// In blade-lock range a man cannot CROSS his nearest enemy's front
     /// faster than fighting tempo (multiplier on base_speed, tangential
-    /// component only) — the melee-blob slice 05 orbit fix. f32::INFINITY
-    /// disables (pre-fix behavior).
+    /// component only). f32::INFINITY disables the cap.
     pub fighting_tempo_tangent_mult: f32,
     /// Surface gap to the nearest enemy under which the tangential tempo cap
     /// binds — true blade-lock, tighter than the fighting flag's reach+0.3.

@@ -109,7 +109,7 @@ pub(crate) fn run_combat(sim: &mut Sim) {
         let p = sim.soldier_pos(i);
         let local_f = dir(sim.facings[i]);
         let local_r = local_f.perp();
-        // Targeting strike field (slice 01): a man targets the foe he can bring
+        // Targeting strike field: a man targets the foe he can bring
         // his blade to bear on SOONEST (cost = turn-to-edge + travel), not the
         // nearest body. The field is the GRIND weapon's zones (the widest-arc
         // melee blade, never the one-phase lance): for a mounted sabre that is

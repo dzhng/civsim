@@ -56,19 +56,6 @@ fn golden_state_hash_stable() {
         sim.tick();
     }
     let h = state_hash(&sim);
-    // Re-pinned for battle-identity slice 07: loosing_ttl is now hashed
-    // as per-soldier sim state for the archer shoot animation.
-    // Previous pin: 0x1dc6e35d979b486c.
-    // Re-pinned for melee-blob slice 05: the pivot spring is projected
-    // torque-free per unit, removing its internal solid-rotation mode.
-    // (Prior re-pins: broad/deep contact re-dress; stamina cadence-coupling;
-    // LightSpear reach 1.6→1.5; turn rate no longer throttled by cohesion.)
-    // Re-pinned by formation-settle slice 04 (packed lateral friction for
-    // stalled foot + noise-gated deep-reform beats touch every contact
-    // scenario, golden's foot clash included).
-    // re-pinned for formation-settle 06-stamina (run_drain recalibration reaches every scenario with running)
-    // Re-pinned for formation-settle 06b: the distance-guarded catch-up
-    // surge fires on golden's running approaches.
     const EXPECTED: u64 = 0x46c3732a78dc549c;
     assert_eq!(
         h, EXPECTED,

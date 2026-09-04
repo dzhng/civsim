@@ -229,14 +229,11 @@ fn apply_fighting_pace(args: FightingPaceArgs<'_>, tracer: &mut Tracer<'_>) {
     // PERPENDICULAR to the nearest enemy's bearing is capped at
     // fighting tempo; radial motion stays free — closing is
     // already paced by the directional cap above and backing out
-    // is how the wounded circulate (the survivability mechanism a
-    // total cap measurably broke: HP2/HP1 hit 2.59x). Sliding
-    // along the seam at full stride was the measured motor of the
-    // mortal binary orbit (melee-blob slice 05): two casualty-
-    // offset fronts thrust past each other's flanks and the pair
-    // orbits. A trampler rides through and a routing man flees at
-    // fear pace — both exempt; a man torn far out of place still
-    // surges (same exemption as the directional cap above).
+    // is how the wounded circulate. Without the tangential cap,
+    // two casualty-offset fronts can thrust past each other's
+    // flanks and orbit. A trampler rides through and a routing man
+    // flees at fear pace — both exempt; a man torn far out of place
+    // still surges (same exemption as the directional cap above).
     let ne = nearest_enemy[i];
     if engaged
         && err < tun.surge_err_threshold

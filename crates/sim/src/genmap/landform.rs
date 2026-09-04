@@ -1,7 +1,7 @@
 //! True-meter generated battle landforms.
 //!
 //! The field is authored over the full vista domain (`recipe.vista_extent`)
-//! even though slice 02 samples only the playable center. East/west ridge masses
+//! even though battles sample only the playable center. East/west ridge masses
 //! therefore have their feet inside the map and their bulk just beyond it.
 
 use super::{

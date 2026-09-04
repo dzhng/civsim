@@ -1,14 +1,12 @@
-//! TARGET SELECTION mechanics (combat-arcs slice 01): a soldier targets the foe
+//! TARGET SELECTION mechanics: a soldier targets the foe
 //! it can bring its wielded weapon to bear on SOONEST — turn-to-edge + travel —
-//! not the nearest body. The measured bug this fixes: a mounted sabre reaches
-//! only its FLANK lobes (blind over the horse's head), yet it used to target the
-//! nearest body, which sits dead-ahead in that blind front, so the rider could
-//! not cut the foe it was chasing. Cost-based targeting prefers a foe already in
-//! the flank lobe over a nearer one stuck in the blind front.
+//! not the nearest body. A mounted sabre reaches only its FLANK lobes (blind over
+//! the horse's head), so cost-based targeting prefers a foe already in the flank
+//! lobe over a nearer one stuck in the blind front.
 //!
 //! Foot is unaffected by construction (a man on foot pivots freely → turn cost 0
 //! → cost is pure distance → targeting is exactly nearest); these tests pin the
-//! MOUNTED behavior the spine adds.
+//! MOUNTED behavior.
 
 use sim::{Sim, Tunables, UnitClassId, Vec2};
 use std::f32::consts::FRAC_PI_2;

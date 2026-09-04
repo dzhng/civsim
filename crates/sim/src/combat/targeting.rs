@@ -56,7 +56,7 @@ pub(super) fn find_target(sim: &mut Sim, search: TargetSearch) -> Option<Targeti
     // live distance so we can keep him unless clearly out-classed.
     let prev_target = sim.target[i];
     let mut prev_target_d = f32::MAX;
-    // Cost-based selection (slice 01): nearest_d stays the CHOSEN foe's
+    // Cost-based selection: nearest_d stays the CHOSEN foe's
     // real distance (downstream reach/fight checks need a distance), but
     // the CHOICE is argmin engage-cost.
     let mut nearest_cost = f32::MAX;

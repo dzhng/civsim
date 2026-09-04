@@ -436,10 +436,9 @@ fn two_attacking_lines_hold_and_never_cross() {
     // through the enemy. Keep a floor below healthy settled axial compression so
     // a true pancake still trips here, while the interpenetration/facing checks
     // below remain the sharper blob detectors.
-    // chaos-marginal (formation-settle slice 04): the packed lateral friction
-    // quiets sideways escape, so the axial press breathes a hair deeper —
-    // sustained depth holds ~0.50-0.55 (TRACE=1 to see it) and the old 0.45
-    // floor caught one breathing trough at t~250s. A true pancake reads
+    // Chaos-marginal: packed lateral friction quiets sideways escape, so the
+    // axial press breathes deeply. Sustained depth holds ~0.50-0.55 (TRACE=1
+    // to see it), while a true pancake reads
     // ~0.2-0.3; facing/gap/interpenetration remain the sharp blob detectors.
     assert!(
         min_depth > 0.40,
@@ -513,9 +512,8 @@ fn an_attacker_into_a_holding_line_keeps_formation() {
         min_gap,
         -CENTROID_SWAP,
     );
-    // Re-derived for melee-blob slice 05's torque-free pivot projection: removing
-    // the pivot curl lowers the attacker's settled cohesion scalar from 0.42 to
-    // 0.31 in this asymmetric grind. The hard geometry rails below stay strict:
+    // The torque-free pivot projection permits a low settled cohesion scalar in
+    // this asymmetric grind. The hard geometry rails below stay strict:
     // centroids do not cross and sustained interpenetration remains bounded.
     assert!(
         min_coh_atk > 0.30,
@@ -1474,13 +1472,8 @@ fn a_mortal_wrapping_line_backfills_casualty_tears() {
         sim.units[line].count
     );
     assert!(saw_casualty, "setup must reach the casualty/backfill phase");
-    // The INVARIANT — holes back-fill rather than becoming sustained tears — holds:
-    // the gap always settles tight (final 1.7m seed-11, <=2.9m across the sweep).
-    // The late floor moved 4.0 -> 5.5 for the late back-fill blip, and 5.5 ->
-    // 6.5 with formation-settle slice 04: the packed lateral friction slows
-    // the sideways close a touch, so the same blip peaks at 6.2m before
-    // closing. Still a blip, not a tear — the final gap (2.0m measured) and
-    // the strict post floor are unchanged and remain the invariant.
+    // Holes back-fill rather than becoming sustained tears: packed lateral
+    // friction permits a brief late blip before the final gap settles tight.
     assert!(
         max_gap_after_casualty < 7.0 && max_late_gap < 6.5 && final_gap < 3.0,
         "casualty holes in a wrapping line must back-fill instead of becoming sustained tears: max post-casualty {max_gap_after_casualty:.1}m, late {max_late_gap:.1}m, final {final_gap:.1}m",
@@ -2118,9 +2111,8 @@ fn a_symmetric_grind_does_not_pinwheel() {
         "PINWHEEL-SHAPE t=300s u0_shape={:.2}deg u1_shape={:.2}deg seam={seam:.2}deg silhouette={silhouette:.2}",
         body[0], body[1]
     );
-    // Rails from the melee-blob slice 05 torque-free pivot re-derivation:
-    // post-fix seed sweep at 300s measured body axes within 3.36deg, seam within
-    // 4.45deg, and silhouette >=0.91. Keep this as a rail, not a golden.
+    // The rails allow headroom around the measured body axes, seam, and
+    // silhouette; they guard the shape rather than pinning a golden.
     let max_body = body[0].abs().max(body[1].abs());
     assert!(
         max_body <= 6.0,

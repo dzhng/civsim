@@ -111,10 +111,7 @@ fn arrows_dent_every_advance_but_gate_none() {
     //   • CEILING — no shield (block 0.0): ~10%. The softest legal line.
     //     Arrows dent it but never gate it: <=12% lost means it still arrives
     //     a whole fighting force. Past 20% archery would gate.
-    //   • FLOOR — a light shield (block 0.35): ~3-6%. The protected end. Re-derived
-    //     for melee-blob slice 05's torque-free pivot projection: corrected movement
-    //     lowered the shielded reference from 13/240 to 8/240 while the bare ceiling
-    //     and shield ordering stayed intact.
+    //   • FLOOR — a light shield (block 0.35): ~3-6%. The protected end.
     //
     // A real unit's toll is a function of its (health, block) and crossing
     // speed; it must land between these two. The grid in `sweep_arrow_toll`

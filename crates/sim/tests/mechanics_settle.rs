@@ -1,8 +1,8 @@
 mod common;
 
 use common::settle::{
-    assert_settles, block, decimate, march_class_block_to, march_until_arrived, print_window,
-    seed1_terrain, seed1_west_wall_edge, window_motion,
+    assert_settles, decimate, march_class_block_to, march_until_arrived, print_window,
+    seed1_terrain, seed1_west_wall_edge, stock_block, window_motion,
 };
 use common::{no_morale_parade, run};
 use sim::{Pace, Sim, Terrain, Tunables, UnitClassId, Vec2};
@@ -69,7 +69,7 @@ fn march_550m(sim: &mut Sim, unit: usize) -> f32 {
 #[test]
 fn settle_after_straight_move() {
     let mut sim = Sim::new(no_morale_parade(), SEED);
-    let unit = block(&mut sim);
+    let unit = stock_block(&mut sim);
     run(&mut sim, 5.0);
     sim.set_move_order(unit, Vec2::new(0.0, 80.0));
     let arrived = march_until_arrived(&mut sim, unit);
@@ -85,7 +85,7 @@ fn settle_after_angled_move() {
 
     for (facing, label) in [(None, "plain"), (Some(FRAC_PI_2), "face-north")] {
         let mut sim = Sim::new(Tunables::default(), SEED);
-        let unit = block(&mut sim);
+        let unit = stock_block(&mut sim);
         run(&mut sim, 5.0);
         match facing {
             Some(f) => sim.set_move_order_facing(unit, dest, f),
@@ -103,7 +103,7 @@ fn settle_after_frayed_angled_move() {
     let ang = FRAC_PI_2 - deg.to_radians();
     let dest = Vec2::new(ang.cos(), ang.sin()) * 80.0;
     let mut sim = Sim::new(Tunables::default(), SEED);
-    let unit = block(&mut sim);
+    let unit = stock_block(&mut sim);
     run(&mut sim, 5.0);
     decimate(&mut sim, unit, 3);
     run(&mut sim, 5.0);
@@ -122,7 +122,7 @@ fn settle_on_rough_patch() {
     terrain.paint_rect(Vec2::new(-40.0, 20.0), Vec2::new(40.0, 120.0), 1.0, 0.45);
     let mut sim = Sim::new(Tunables::default(), SEED);
     sim.terrain = terrain;
-    let unit = block(&mut sim);
+    let unit = stock_block(&mut sim);
     run(&mut sim, 5.0);
     sim.set_move_order(unit, Vec2::new(0.0, 60.0));
     let arrived = march_until_arrived(&mut sim, unit);
@@ -136,7 +136,7 @@ fn settle_after_crossing_rough_strip() {
     terrain.paint_rect(Vec2::new(-40.0, 20.0), Vec2::new(40.0, 50.0), 1.0, 0.45);
     let mut sim = Sim::new(no_morale_parade(), SEED);
     sim.terrain = terrain;
-    let unit = block(&mut sim);
+    let unit = stock_block(&mut sim);
     run(&mut sim, 5.0);
     sim.set_move_order(unit, Vec2::new(0.0, 80.0));
     let arrived = march_until_arrived(&mut sim, unit);
@@ -150,7 +150,7 @@ fn settle_adjacent_group_move() {
     let ang = FRAC_PI_2 - deg.to_radians();
     let step = Vec2::new(ang.cos(), ang.sin()) * 80.0;
     let mut sim = Sim::new(Tunables::default(), SEED);
-    let a = block(&mut sim);
+    let a = stock_block(&mut sim);
     let b = sim.spawn_unit(
         Vec2::new(22.0, 0.0),
         FRAC_PI_2,
@@ -172,10 +172,9 @@ fn settle_adjacent_group_move() {
 
 #[test]
 fn settle_near_impassable_pocket() {
-    // Margins where every ideal slot is on standable ground: the churn here
-    // was the wall-split bond/slot tractor (slice 02a). The shallower
-    // margins, where the FRAME itself has slots on impassable cells, are a
-    // different mechanism and live in the 02b gate below.
+    // Every ideal slot is on standable ground, so this isolates bond/slot
+    // settling. Shallower margins put frame slots on impassable cells and
+    // exercise a different mechanism below.
     for margin in [14.0, 18.0] {
         let terrain = seed1_terrain();
         let (wall_x, wall_y) = seed1_west_wall_edge(&terrain);
@@ -264,7 +263,7 @@ fn settle_overlapping_friendly() {
     // separate ignored gate below (a weave-rest-shape problem).
     for overlap in [2.0f32, 5.0] {
         let mut sim = Sim::new(Tunables::default(), SEED);
-        let unit = block(&mut sim);
+        let unit = stock_block(&mut sim);
         let friend = sim.spawn_unit(
             Vec2::new(20.0 - overlap, 80.0),
             FRAC_PI_2,
@@ -290,7 +289,7 @@ fn settle_deeply_overlapping_friendly() {
     // target geometry until the slot pulls terminate on occupiable ground.
     let overlap = 10.0f32;
     let mut sim = Sim::new(Tunables::default(), SEED);
-    let unit = block(&mut sim);
+    let unit = stock_block(&mut sim);
     let friend = sim.spawn_unit(
         Vec2::new(20.0 - overlap, 80.0),
         FRAC_PI_2,
@@ -430,7 +429,7 @@ fn run_to_contact_stamina() {
 #[test]
 fn grind_lateral_slosh_bounded() {
     let mut sim = Sim::new(no_morale_parade(), SEED);
-    let a = block(&mut sim);
+    let a = stock_block(&mut sim);
     let b = sim.spawn_unit(
         Vec2::new(0.0, 30.0),
         -FRAC_PI_2,
@@ -454,10 +453,8 @@ fn grind_lateral_slosh_bounded() {
         windows.push(s);
     }
     let sustained = windows[6..].iter().map(|s| s.mean_lat).sum::<f32>() / 6.0;
-    // Tightened by slice 04 (was the 0.7 not-worse rail): packed lateral
-    // friction + the earn-your-churn reform gate hold the sustained slosh
-    // near 0.36; the ceiling leaves headroom without readmitting the old
-    // 0.63 ring.
+    // Packed lateral friction and the earn-your-churn reform gate hold the
+    // sustained slosh near 0.36; the ceiling leaves measurement headroom.
     assert!(
         sustained <= 0.5,
         "sustained grind lateral slosh must stay <= 0.5 m/s, got {sustained:.3}"

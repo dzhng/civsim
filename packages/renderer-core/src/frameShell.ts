@@ -52,8 +52,6 @@ export interface RawFrameShell {
   /** Advance the animation clock (seconds) written into the camera uniform. Use
    *  a fixed value for deterministic snapshots, free-running wall time for the eye. */
   setTime(seconds: number): void;
-  /** Set the frame sun direction (azimuth, elevation in radians). */
-  setSun(azimuth: number, elevation: number): void;
   drawFrame(commands?: FrameGraphCommands): void;
   destroy(): void;
   stats(): FrameShellStats;
@@ -301,12 +299,6 @@ class RawFrameShellImpl implements RawFrameShell {
     this.writeCamera();
   }
 
-  /** Set the environment-owned frame sun direction (radians). */
-  setSun(azimuth: number, elevation: number) {
-    this.sunAzimuth = azimuth;
-    this.sunElevation = elevation;
-    this.writeCamera();
-  }
 
   drawFrame(commands: FrameGraphCommands = {}) {
     const graphPasses = commands.passes ?? [];

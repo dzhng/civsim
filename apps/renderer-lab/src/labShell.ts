@@ -1,6 +1,7 @@
 import { createFrameShell, type BackgroundRenderPass, type FrameGraphPass, type RawFrameShell } from "@packages/renderer-core/src/frameShell";
 import { PROJECTION_IDENTITY, type CameraSnapshot } from "@packages/renderer-core/src/cameraUniform";
 import { WORLD_CAMERA_WGSL } from "@packages/renderer-core/src/cameraWgsl";
+import { NOISE_WGSL } from "@packages/renderer-core/src/noiseWgsl";
 import { compileShader } from "@packages/renderer-core/src/compileShader";
 import { SkinnedCrowdPipeline } from "@packages/renderer-core/src/skinnedPipeline";
 import { type CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
@@ -79,21 +80,7 @@ fn vs(@location(0) world: vec2f) -> VsOut {
   out.dist = length(world - cam.focus);
   return out;
 }
-fn hash(p: vec2f) -> f32 {
-  let p3 = fract(vec3f(p.xyx) * 0.1031);
-  let q = p3 + dot(p3, p3.yzx + vec3f(33.33));
-  return fract((q.x + q.y) * q.z);
-}
-fn vnoise(p: vec2f) -> f32 {
-  let i = floor(p);
-  let f = fract(p);
-  let u = f * f * (3.0 - 2.0 * f);
-  return mix(
-    mix(hash(i), hash(i + vec2f(1.0, 0.0)), u.x),
-    mix(hash(i + vec2f(0.0, 1.0)), hash(i + vec2f(1.0, 1.0)), u.x),
-    u.y,
-  );
-}
+${NOISE_WGSL}
 fn ridged(p: vec2f) -> f32 {
   let r = 1.0 - abs(vnoise(p) * 2.0 - 1.0);
   return r * r;

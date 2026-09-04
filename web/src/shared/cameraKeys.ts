@@ -8,7 +8,7 @@ export interface CameraKeyTarget {
 
 export function createCameraKeyController(
   target: CameraKeyTarget,
-  opts: { edgePx?: number; sprint?: number; enabled?: () => boolean } = {},
+  opts: { canvas: HTMLCanvasElement; edgePx?: number; sprint?: number; enabled?: () => boolean },
 ): { update(dt: number): void; dispose(): void } {
   const edgePx = opts.edgePx ?? 14;
   const sprintMultiplier = opts.sprint ?? 3;
@@ -25,7 +25,8 @@ export function createCameraKeyController(
     mouseY = event.clientY;
   };
   const onWheel = (event: WheelEvent) => {
-    if (!enabled() || !(event.target instanceof HTMLCanvasElement)) return;
+    // Only the scene canvas zooms the scene camera; the HUD minimap is a canvas too.
+    if (!enabled() || event.target !== opts.canvas) return;
     event.preventDefault();
     const unitPx =
       event.deltaMode === WheelEvent.DOM_DELTA_LINE

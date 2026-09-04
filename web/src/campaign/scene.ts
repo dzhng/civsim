@@ -30,6 +30,7 @@ import { Allegiance } from "@packages/game-renderer/src/campaign/entityFrame";
 import type { MapCardModel, MapCardPosition } from "../ui/campaign/MapCards";
 import { installCampaignDebugApi, markCampaignReady } from "./debugApi";
 import { createCameraKeyController } from "../shared/cameraKeys";
+import { CAMPAIGN_SPEED_LABELS, CAMPAIGN_SPEEDS } from "./speeds";
 import { awaitRendererReady } from "../shared/rendererReady";
 import { getGraphicsSettings } from "../shared/graphicsSettings";
 import { SimClock } from "../shared/simClock";
@@ -53,8 +54,6 @@ import { ordinal } from "@packages/game-renderer/src/campaign/labels";
  * tick-driven (movement, economy, AI), so fast-forward stays in lockstep while
  * the AI cost per real-second tracks the multiplier, not the tick scale. */
 const TICKS_PER_SEC = 60;
-const SPEEDS = [1, 2, 4];
-const SPEED_LABELS = SPEEDS.map((speed) => `${speed}x`);
 /** Ticks between a snapshot and applying the decisions it yields — must match
  *  campaign tunables AI_LATENCY. */
 const AI_LATENCY = 60;
@@ -821,7 +820,7 @@ export class CampaignScene implements Scene {
         },
         panSpeed: () => this.renderer.panSpeed(this.cam.scale),
       },
-      { enabled: () => !this.modalOpen },
+      { canvas: this.canvas, enabled: () => !this.modalOpen },
     );
   }
 
@@ -914,7 +913,7 @@ export class CampaignScene implements Scene {
 
   private setSpeed(i: number) {
     this.speed = i;
-    this.clock.timeScale = SPEEDS[i];
+    this.clock.timeScale = CAMPAIGN_SPEEDS[i];
     this.clock.paused = false;
   }
 
@@ -1071,7 +1070,7 @@ export class CampaignScene implements Scene {
     const mins = t % 1440;
     const hh = String(Math.floor(mins / 60)).padStart(2, "0");
     const mm = String(Math.floor(mins % 60)).padStart(2, "0");
-    const dateText = `Day ${day}, ${hh}:${mm}${this.clock.paused ? "  PAUSED" : `  ${SPEED_LABELS[this.speed]}`}`;
+    const dateText = `Day ${day}, ${hh}:${mm}${this.clock.paused ? "  PAUSED" : `  ${CAMPAIGN_SPEED_LABELS[this.speed]}`}`;
     const eco = JSON.parse(this.cfg.campaign.economy_json()) as {
       treasury: number;
       monthly_income: number;

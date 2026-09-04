@@ -1,3 +1,4 @@
+import { CAMPAIGN_SPEED_LABELS } from "../../campaign/speeds";
 import { uiIcon } from "../../campaign/icons";
 import { Tooltip } from "../hud/Tooltip";
 
@@ -49,7 +50,7 @@ export function CampaignTopBar(p: CampaignTopBarProps) {
           dangerouslySetInnerHTML={html(uiIcon("pause"))}
         />
       </Tooltip>
-      {["1x", "3x", "10x"].map((label, i) => (
+      {CAMPAIGN_SPEED_LABELS.map((label, i) => (
         <button
           key={i}
           data-speed={i}

@@ -205,17 +205,20 @@ export class Input {
       },
       { signal },
     );
-    this.cameraKeys = createCameraKeyController({
-      panWorld: (dx, dy) => camera.panWorld(dx, dy),
-      yaw: (delta) => camera.yawAboutEye(delta),
-      pitchOrZoom: (delta) => camera.pitchAboutEye(delta),
-      zoomAt: (px, py, factor) => {
-        const wheelDelta = Math.log(factor) / -Math.log(1.0015);
-        camera.zoomAt(px, py, factor, onZoomChange);
-        camera.pitchBias *= Math.pow(0.9985, Math.abs(wheelDelta));
+    this.cameraKeys = createCameraKeyController(
+      {
+        panWorld: (dx, dy) => camera.panWorld(dx, dy),
+        yaw: (delta) => camera.yawAboutEye(delta),
+        pitchOrZoom: (delta) => camera.pitchAboutEye(delta),
+        zoomAt: (px, py, factor) => {
+          const wheelDelta = Math.log(factor) / -Math.log(1.0015);
+          camera.zoomAt(px, py, factor, onZoomChange);
+          camera.pitchBias *= Math.pow(0.9985, Math.abs(wheelDelta));
+        },
+        panSpeed: () => camera.panSpeed(),
       },
-      panSpeed: () => camera.panSpeed(),
-    });
+      { canvas },
+    );
     signal.addEventListener("abort", () => this.cameraKeys.dispose());
   }
 

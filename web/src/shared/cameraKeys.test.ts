@@ -7,6 +7,7 @@ function key(type: "keydown" | "keyup", value: string) {
 }
 
 describe("createCameraKeyController", () => {
+  const canvas = document.createElement("canvas");
   let calls: {
     pan: [number, number][];
     yaw: number[];
@@ -42,7 +43,7 @@ describe("createCameraKeyController", () => {
     ["d", 10, 0],
     ["arrowright", 10, 0],
   ])("maps %s to its pan axis", (value, dx, dy) => {
-    const controller = createCameraKeyController(target);
+    const controller = createCameraKeyController(target, { canvas });
     dispose = controller.dispose;
     key("keydown", value);
 
@@ -52,7 +53,7 @@ describe("createCameraKeyController", () => {
   });
 
   it("maps Q/E and Z/X to continuous yaw and pitch", () => {
-    const controller = createCameraKeyController(target);
+    const controller = createCameraKeyController(target, { canvas });
     dispose = controller.dispose;
     key("keydown", "q");
     key("keydown", "z");
@@ -68,7 +69,7 @@ describe("createCameraKeyController", () => {
   });
 
   it("combines edge pan with the configured sprint multiplier", () => {
-    const controller = createCameraKeyController(target);
+    const controller = createCameraKeyController(target, { canvas });
     dispose = controller.dispose;
     key("keydown", "shift");
     window.dispatchEvent(new MouseEvent("mousemove", { clientX: 5, clientY: 795 }));
@@ -79,10 +80,14 @@ describe("createCameraKeyController", () => {
   });
 
   it("normalizes wheel input and zooms at device-pixel coordinates", () => {
-    const controller = createCameraKeyController(target);
+    const controller = createCameraKeyController(target, { canvas });
     dispose = controller.dispose;
-    const canvas = document.createElement("canvas");
     document.body.appendChild(canvas);
+    const minimap = document.createElement("canvas");
+    document.body.appendChild(minimap);
+    minimap.dispatchEvent(new WheelEvent("wheel", { bubbles: true, cancelable: true, deltaY: 3 }));
+    expect(calls.zoom).toHaveLength(0);
+    minimap.remove();
 
     canvas.dispatchEvent(
       new WheelEvent("wheel", {
@@ -102,7 +107,7 @@ describe("createCameraKeyController", () => {
   });
 
   it("stops handling input after disposal", () => {
-    const controller = createCameraKeyController(target);
+    const controller = createCameraKeyController(target, { canvas });
     controller.dispose();
     dispose = undefined;
     key("keydown", "w");

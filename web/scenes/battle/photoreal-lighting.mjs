@@ -4,7 +4,7 @@ import { PNG } from "pngjs";
 // the ONE preset owner (CIVSIM_ENVIRONMENTS). Every battle environment preset
 // renders /renderer/photoreal-battle at the SAME fixed setTime and framing;
 // the ONE visual variable is how surfaces respond to sun + ambient, cropped to
-// `crowd-mid` (center formations at mid zoom). Since 14a, the same scene also
+// `crowd-mid` (center formations at mid zoom). The same scene also
 // pins the soldier material identity under all four presets. Asserts: the stats
 // identity maps each battle alias to its civsim preset, the crowd publishes its
 // material channel mapping, fixed-time frames are byte-deterministic, and
@@ -112,7 +112,7 @@ export async function run(ctx) {
   }
 }
 
-// crowd-mid: the center-formation band at mid zoom — the slice's named crop.
+// crowd-mid: the center-formation band at mid zoom.
 function cropCrowdMid(png) {
   const w = Math.floor(png.width * 0.5);
   const h = Math.floor(png.height * 0.4);

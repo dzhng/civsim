@@ -1,5 +1,5 @@
 // Army-wide readout for the bottom-left info card when nothing is selected — so
-// the card is never empty (specs/done/hud-housings, slice 04). Pure over the same
+// the card is never empty. Pure over the same
 // unit_info Float32Array the HUD already reads, via the shared UNIT_INFO field
 // names. Men-weighted so a big battered unit counts more than a small fresh one —
 // the doubling test: twice the men at the same morale must not change the average.

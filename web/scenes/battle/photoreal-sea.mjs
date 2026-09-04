@@ -100,10 +100,9 @@ export async function run(ctx) {
     );
     await ctx.snap(null, "photoreal-sea/sea-horizon", { shot: horizon });
 
-    // The reworked coast map affords a calm open-water vista at noon, not the
-    // old low-sun sandy-shore shot: these bands now verify the water reads as
-    // deep blue open sea (not the retired foam/sand-gradient/sun-glint
-    // composition — sun-glint is photoreal-post's job).
+    // The coast map affords a calm open-water vista at noon. These bands verify
+    // deep blue open sea without blanket foam; sun-glint belongs to
+    // photoreal-post.
     const mid = cropPng(full, { x: 40, y: 505, width: 560, height: 235 });
     const f = foamBandMetrics(PNG.sync.read(mid));
     ctx.check(

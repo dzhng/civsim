@@ -1,12 +1,9 @@
-// crowdLayer — the VAT crowd on the photoreal substrate (born slice 08a as a
-// literal port of the production SkinnedCrowdPipeline: per-class placeholder
-// meshes, shared VAT bake, corpse roll/desaturation, faction accents). Since
-// slice 09 soldiers are a standard-material response with a NEUTRAL albedo —
-// the baked skinned-lighting grade (lambert/key-fill/exposure/rim) is
-// extracted and the sun + IBL light the skinned normals. Fed by the SAME
-// buildCrowdInstances output. Since slice 11 the crowd casts/receives REAL
-// sun shadows (shadowRig) — the 08a blob-shadow decal replica is deleted; the
-// shadow pass re-skins the same VAT positionNode per cascade.
+// crowdLayer — the VAT crowd on the photoreal substrate: per-class meshes,
+// shared VAT bake, corpse roll/desaturation, and faction accents. Soldiers use
+// a standard-material response with a NEUTRAL albedo; the sun + IBL light the
+// skinned normals. The layer consumes the SAME buildCrowdInstances output and
+// casts/receives REAL sun shadows; the shadow pass re-skins the same VAT
+// positionNode per cascade.
 import * as THREE from 'three/webgpu';
 import {
   abs, attribute, clamp, dot, float, floor, fract, int, ivec2, max, mix, normalize, sin, smoothstep, step, textureLoad, varying, vec3, vec4,
@@ -59,7 +56,7 @@ function emptyLodCounts(): LodCounts {
   return { l0: 0, l1: 0, l2: 0, l3: 0 };
 }
 
-/** Per-class instanced VAT crowd at production parity. */
+/** Per-class instanced VAT crowd used by production. */
 export class PhotorealCrowd {
   private buckets: ClassBucket[][] = [];
   private readonly impostors: OctahedralImpostorLayer;
@@ -106,9 +103,8 @@ export class PhotorealCrowd {
         mesh.frustumCulled = false;
         mesh.renderOrder = RENDER_ORDER.worldOpaque;
         // Soldiers cast from the DETAILED tiers only: LOD2 impostor-distance
-        // men re-rendered per cascade tripled frame cost for shadows nobody
-        // can see at that range (the 11fps "unplayable" regression when
-        // shadows first actually rendered). All tiers still receive.
+        // men re-rendered per cascade cost too much for shadows nobody can see
+        // at that range. All tiers still receive.
         mesh.castShadow = lod < 2;
         mesh.receiveShadow = true;
         mesh.visible = false;
@@ -270,7 +266,7 @@ function crowdGeometry(mesh: SoldierMeshData): THREE.InstancedBufferGeometry {
   geo.setAttribute('cNormal', new THREE.BufferAttribute(mesh.normals, 3));
   // Alias the same buffer as the standard 'normal' attribute: three's shadow
   // receiver offset (shadow.normalBias → normalWorld) reads it by name — with
-  // only the custom attribute present the offset is silently zero (slice 11).
+  // only the custom attribute present the offset is silently zero.
   geo.setAttribute('normal', new THREE.BufferAttribute(mesh.normals, 3));
   geo.setAttribute('cColor', new THREE.BufferAttribute(mesh.colors, 4));
   geo.setAttribute('bone', new THREE.BufferAttribute(mesh.bones, 1));
@@ -279,11 +275,11 @@ function crowdGeometry(mesh: SoldierMeshData): THREE.InstancedBufferGeometry {
   return geo;
 }
 
-// SkinnedCrowdPipeline SKINNED_WGSL's VAT skinning + material-channel contract,
-// with slice-14a PBR promoted onto MeshStandardNodeMaterial: albedo = cColor,
+// SkinnedCrowdPipeline SKINNED_WGSL's VAT skinning + material-channel contract
+// on MeshStandardNodeMaterial: albedo = cColor,
 // normal = skinned cNormal, ORM = occlusion/roughness/metalness in the canonical
-// order, factionMask = high-blue armband locator. Slice 09's baked lighting
-// grade stays gone — the environment lights the skinned, yaw/roll-rotated normal.
+// order, factionMask = high-blue armband locator. The environment lights the
+// skinned, yaw/roll-rotated normal.
 function crowdMaterial(vatTex: THREE.DataTexture): THREE.MeshStandardNodeMaterial {
   const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, roughness: SOLDIER_PBR_VALUES.roughness.default, metalness: 0 });
   // fog stays ON: the shared aerial-perspective hook (scene.fogNode, 10b)
@@ -331,8 +327,7 @@ function crowdMaterial(vatTex: THREE.DataTexture): THREE.MeshStandardNodeMateria
   material.receivedShadowPositionNode = varying(worldPosition);
 
   // The environment lights the FULLY posed normal: skinned, corpse-rolled,
-  // then yaw-rotated into world space (the parity port lit the raw skinned
-  // normal — a bespoke quirk that dies with the baked grade).
+  // then yaw-rotated into world space.
   const rolledN = vec3(n.x, n.y.mul(rc).sub(n.z.mul(rs)), n.y.mul(rs).add(n.z.mul(rc)));
   const worldN = vec3(
     rolledN.x.mul(c).sub(rolledN.y.mul(s)),
@@ -417,11 +412,11 @@ function crowdMaterial(vatTex: THREE.DataTexture): THREE.MeshStandardNodeMateria
     0.0,
     0.95,
   );
-  // Slice 14c grounding/contact AO: an analytic term darkens the ambient light
+  // Grounding/contact AO darkens the ambient light
   // over the bottom `band` world units of the LOCAL (pre-scale) mesh height, so
   // feet/ankles read as sitting in ground-occluded skylight rather than pasted
   // onto the terrain. It rides aoNode (indirect/IBL only) — the sun's direct
-  // cast shadow (slice 11) is a separate owner. Living soldiers only: a prone
+  // cast shadow is a separate owner. Living soldiers only: a prone
   // corpse's whole body is low, so gating by corpse keeps the fallen from
   // blackening wholesale.
   const contactRise = smoothstep(float(0.0), float(SOLDIER_PBR_VALUES.contactAo.band), rolled.z);

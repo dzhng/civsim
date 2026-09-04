@@ -38,7 +38,7 @@ const CENTRAL_ITALY_ROAD_PAIRS = [
 ];
 // Three world-space Apennine regions are projected onto REGIONAL_ITALY_CAMERA
 // through the real camera (screen-rect bounding box
-// of the old crops' world corners).
+// of the named crops' world corners).
 const TERRAIN_FEATURE_CROPS = {
   "northern-apennines": { x: 578, y: 251, w: 279, h: 366 },
   "central-apennines": { x: 475, y: 292, w: 393, h: 429 },
@@ -188,7 +188,7 @@ export async function run(ctx) {
   });
 
   {
-    // Own cities render as DOM map cards now (spec campaign-map-polish 17); the
+    // Own cities render as DOM map cards; the
     // canvas label stats cover neutral cities only. Assert the cards directly.
     const cards = await visibleMapCardNames(page);
     ctx.check(
@@ -397,10 +397,8 @@ async function checkRealItalyAlignment(page, ctx, name, current, cameraBand) {
 
 // The regional natural view must read as a STRUCTURED map: substantial sea and
 // land, visible roads and labels, and natural terrain not bled over by the
-// political wash. Absolute floors, not a cross-render comparison — the scene
-// renders its own evidence, so deleting baselines never breaks it. (This began
-// as a Babylon-vs-WebGPU migration cross-check against campaign-3d.png; the
-// campaign is WebGPU-only now, so the floors stand on their own.)
+// political wash. Absolute floors, not a cross-render comparison: the scene
+// renders its own evidence, so deleting baselines never breaks it.
 function checkRegionalMapStructure(ctx, current) {
   const m = campaign3dMetrics(current);
   ctx.check(

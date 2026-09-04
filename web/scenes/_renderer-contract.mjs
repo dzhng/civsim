@@ -174,10 +174,10 @@ function hasSemanticPassRoles(phases) {
   );
 }
 
-// Since slice 08b the production battle world renders on the photoreal
-// substrate (three.js WebGPU + TSL behind BattleRenderer): depth is a real
+// The production battle world renders on the photoreal substrate (three.js
+// WebGPU + TSL behind BattleRenderer): depth is a real
 // reverse-Z buffer owned by three, posed by camera3d through cameraBridge, and
-// the bespoke frame-graph phase stats no longer exist for battle. The contract
+// battle exposes no bespoke frame-graph phase stats. The contract
 // asserts the ownership identity fields (single owners, README "Photoreal
 // ladder invariants"), the reverse-Z depth convention read off the live
 // renderer, the heightfield seating firewall, and the tactical-line overlay

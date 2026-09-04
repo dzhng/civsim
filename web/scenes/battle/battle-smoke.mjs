@@ -76,8 +76,8 @@ export async function run(ctx) {
   // Pixel regression on deterministic battle states: fixed tick, camera, and
   // frozen shader clock. SwiftShader has a tiny sub-pixel wobble on silhouettes.
   await page.evaluate(() => window.__game.freezeAtTick(240));
-  // Frozen state shows "fps —" in the bare telemetry readout (the old debug HUD
-  // "PAUSED" text is gone). Wait on that to confirm the frozen frame is presented.
+  // Frozen state shows "fps —" in the telemetry readout; wait on it to confirm
+  // the frozen frame is presented.
   await page.waitForFunction(
     () => document.getElementById("fps-readout")?.textContent?.includes("—") === true,
     undefined,

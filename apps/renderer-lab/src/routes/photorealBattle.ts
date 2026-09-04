@@ -171,8 +171,8 @@ export async function route(ctx: LabContext) {
   const applyClayMode = () => {
     if (!clayMode) return;
     world.setGrassVisible(false);
-    // Clay judges LANDFORM only: haze must not launder or hide silhouettes
-    // (the predecessor spec's recorded rule - clay renders fog-off).
+    // Clay judges LANDFORM only: haze must not launder or hide silhouettes,
+    // so clay renders with fog disabled.
     (world.world.scene as unknown as { fogNode: unknown }).fogNode = null;
     world.world.scene.traverse((obj) => {
       const o = obj as {

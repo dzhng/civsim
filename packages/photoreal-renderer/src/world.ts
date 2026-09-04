@@ -1,5 +1,5 @@
 // PhotorealWorld — the ONE owner of the three.js WebGPU substrate for the
-// photoreal ladder (spec: specs/3d-perspective-renderer, slices 07+). One
+// photoreal ladder. One
 // WebGPURenderer + one Scene per route, driven by a manual rAF loop (never
 // setAnimationLoop) and an OWNED time uniform.
 //
@@ -11,18 +11,15 @@ import * as THREE from 'three/webgpu';
 import { uniform } from 'three/tsl';
 import type { CivsimEnvironmentId } from '../../game-renderer/src/environment/environment';
 
-// The ONE tone-map operator, engine-wide (slice-15 identity decision). Applied
+// The ONE tone-map operator, engine-wide. Applied
 // by the renderer's output — or, when a post chain is installed, by three's
 // renderOutput at the tail of the chain (world.post never re-decides it).
 //
-// VERDICT: AgX (slice 15). Judged on matched per-preset shots (sea vista +
-// golden-hour field + overcast) against battle-coastal-vista.jpg — confirmed by
-// a blind second reviewer. AgX carries the reference's warm golden-hour cast
+// AgX carries the reference's warm golden-hour cast
 // with a soft highlight rolloff on the sun disc / sea glint and lower
-// far-distance contrast (true aerial perspective); ACES read cooler, punchier,
-// and over-saturated — the "Instagram" look the slice warns against. AgX's one
+// far-distance contrast (true aerial perspective). Its one
 // cost, slightly muted team pips, stays legible (they remain unambiguous) and
-// is a team-colour-layer concern, not the grade's. ACES is deleted, not flagged.
+// is a team-colour-layer concern, not the grade's.
 const BATTLE_TONE_MAPPING: THREE.ToneMapping = THREE.AgXToneMapping;
 
 interface SortItem {
@@ -32,8 +29,8 @@ interface SortItem {
   id: number | null;
 }
 
-/** A post-processing chain the world routes its final render through (slice
- *  15). When null, render() draws straight to the swapchain. Kept as a minimal
+/** A post-processing chain the world routes its final render through. When
+ *  null, render() draws straight to the swapchain. Kept as a minimal
  *  interface so world.ts owns no post dependency — the battle world installs a
  *  BattlePostChain; lab/other routes stay chain-free. */
 interface WorldPostRenderer {
@@ -57,7 +54,7 @@ export class PhotorealWorld {
   readonly scene: THREE.Scene;
   /** The one time uniform every animated TSL material in this world reads. */
   readonly uTime = uniform(0);
-  /** Optional post-processing chain (slice 15); when set, render() routes the
+  /** Optional post-processing chain; when set, render() routes the
    *  final frame through it (bloom + the ONE tone-map at the tail). */
   post: WorldPostRenderer | null = null;
   /** Set by applyCivsimEnvironment — the stats identity field proving the ONE
@@ -66,8 +63,8 @@ export class PhotorealWorld {
   /** Set by applyCivsimEnvironment — the atmosphere ownership identity
    *  (which sky tier rendered, which aerial owner hazed) for the stats seam. */
   atmosphere: Record<string, unknown> | null = null;
-  /** Set by applyCivsimEnvironment — the ONE sun light, so consumers (the
-   *  slice-11 shadowRig) can configure how it casts without re-deriving it. */
+  /** Set by applyCivsimEnvironment — the ONE sun light, so shadowRig can
+   *  configure how it casts without re-deriving it. */
   sunLight: THREE.DirectionalLight | null = null;
   private timeSeconds = 0;
   private gpuTimeMs: number | null = null;
@@ -87,7 +84,7 @@ export class PhotorealWorld {
   static async create(canvas: HTMLCanvasElement, options: { antialias?: boolean } = {}): Promise<PhotorealWorld> {
     const renderer = new THREE.WebGPURenderer({
       canvas,
-      // Default on; the parity battle world opts out (the production battle
+      // Default on; the single-sample battle world opts out (the production battle
       // shell renders at sampleCount 1, and 4× MSAA visibly washes out the
       // sub-pixel crowd at gameplay zoom).
       antialias: options.antialias ?? true,
@@ -103,15 +100,14 @@ export class PhotorealWorld {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFShadowMap;
     renderer.toneMapping = BATTLE_TONE_MAPPING;
-    // TSL/three@0.185 HAZARD (recorded in the 08a slice file): with
+    // TSL/three@0.185 HAZARD: with
     // `reversedDepthBuffer` three sorts its render lists then REVERSES them
     // wholesale (RenderList.sort → list.reverse()), inverting renderOrder
     // semantics — a low-renderOrder backdrop/sky would draw LAST and cover
     // the world. These comparators pre-invert every axis so the post-reverse
     // order is the classic painter contract (renderOrder asc; opaque
     // front-to-back, transparent back-to-front) every photoreal world layers
-    // by — substrate-wide since 10a (the sky dome draws in the painter band
-    // on lab routes too).
+    // by; the sky dome uses the painter band on lab routes too.
     renderer.setOpaqueSort((a: SortItem, b: SortItem) =>
       ((b.groupOrder ?? 0) - (a.groupOrder ?? 0)) || ((b.renderOrder ?? 0) - (a.renderOrder ?? 0))
       || ((b.z ?? 0) - (a.z ?? 0)) || ((b.id ?? 0) - (a.id ?? 0)));

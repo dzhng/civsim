@@ -30,7 +30,7 @@ export const SOLDIER_PBR_VALUES = {
     bronze: 0.82,
     iron: 0.92,
   },
-  // Slice 14c grounding/contact AO. An analytic ambient-occlusion term darkens
+  // Grounding/contact AO darkens
   // the soldier's lower body where the ground occludes skylight — the cheap
   // "standing on the ground, not pasted" cue. It rides the material aoNode, so
   // it dims only indirect (sky/IBL) light, NEVER the sun's direct term (that is

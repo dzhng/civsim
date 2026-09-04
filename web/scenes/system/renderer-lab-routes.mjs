@@ -683,7 +683,7 @@ async function findAdHocFrameCallbackFootguns() {
     if (callbackPattern.test(source))
       matches.push(`${file.pathname.replace(root, "")}: callback-shaped drawFrame pass`);
     if (legacyFrameCommandPattern.test(source))
-      matches.push(`${file.pathname.replace(root, "")}: legacy FrameCommands callback field`);
+      matches.push(`${file.pathname.replace(root, "")}: forbidden FrameCommands callback field`);
   }
   return matches.sort();
 }
@@ -1039,7 +1039,7 @@ function patchStats(png, sample, radius = 4) {
       // Canopy foliage at any lighting: green-dominant over red AND blue, so
       // shaded tree bodies count without catching ground grass (g ≈ r there).
       // Floors sized for the alpha-cutout canopies, whose shaded leaves sit
-      // darker than the old solid blobs did.
+      // darker than the surrounding terrain.
       if (g > 42 && g > r + 14 && g > b + 14) foliage++;
       // Soldier cloth in shadow: blue-dominant but darker than the `blue` bin
       // (campaign figures read ≈ rgb(54, 72, 112) at the oblique review pitch).
@@ -1189,8 +1189,8 @@ export async function run(ctx) {
     if (route === "skinned-depth") {
       const canvasPng = PNG.sync.read(await page.locator("#renderer-canvas").screenshot());
       const front = patchStats(canvasPng, stats.stats.sample, 7);
-      // Soldier cloth reads warm linen (tan) with small faction accents since
-      // the soldier-materials rework — if the rear mounted bucket won depth,
+      // Soldier cloth reads warm linen (tan) with small faction accents. If
+      // the rear mounted bucket won depth,
       // the patch would show its darker horse hide (and faction-1 red), not
       // the front soldier's linen.
       ctx.check(
@@ -1225,7 +1225,7 @@ export async function run(ctx) {
         JSON.stringify({ upper, sample: samples.visibleUpperCloth }),
       );
       ctx.check(
-        `${route}: production city standard uses centered shared cloth, not the old side panel`,
+        `${route}: production city standard uses centered shared cloth`,
         cloth.flagRed > 12 && offCloth.flagRed <= 8,
         JSON.stringify({
           cloth,
@@ -1304,13 +1304,9 @@ export async function run(ctx) {
       const samples = stats.stats.samples.selectionDepth;
       const core = patchStats(canvasPng, samples.occludedByCityCore, 7);
       const ring = patchStats(canvasPng, samples.visibleOuterRing, 7);
-      // Re-pinned (spec campaign-map-polish 12): the selection ring draws with
-      // depth 'always' so raised terrain/geometry no longer clips it — the old
-      // Reversed 2026-07-05 (David): the ring is a ground decal — the city
-      // volume standing on it occludes the far arc, or the ring reads as
-      // floating above the town. (The older "half-cut ring" complaint that
-      // once forced depth-always no longer applies to today's city meshes:
-      // the grounded ring keeps most of its arc.)
+      // The selection ring draws with depth 'always' so raised terrain cannot
+      // clip it. The city volume standing on it still occludes the far arc, or
+      // the ring would read as floating above the town.
       ctx.check(
         `${route}: city core occludes the grounded selection ring`,
         core.selectionGreen <= 12,
@@ -1329,7 +1325,7 @@ export async function run(ctx) {
       const ring = patchStats(canvasPng, samples.visibleOuterRing, 6);
       // Figure cloth reads navy (shadow side) as often as bright blue at the
       // oblique review pitch — both bins are soldier body.
-      // Reversed 2026-07-05 (David) — see the selected-city note above.
+      // The selected-city note above owns the same ground-decal rule.
       ctx.check(
         `${route}: formation occludes the grounded selection ring`,
         core.selectionGreen <= 12,

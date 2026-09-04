@@ -2,8 +2,8 @@
 // the Gerstner TSL displacement source selected by the 12a verdict, shaded as
 // a standard material so Fresnel reflection and GGX sun glint come from the
 // same SkyModel LUT/IBL and sun that light the rest of the scene. Distance
-// haze comes ONLY from the shared aerial-perspective hook (scene.fogNode,
-// slice 10b) — the sea dissolves into the sky through it, never through an
+// haze comes ONLY from the shared aerial-perspective hook (scene.fogNode) —
+// the sea dissolves into the sky through it, never through an
 // inline haze mix.
 import * as THREE from "three/webgpu";
 import {
@@ -62,8 +62,8 @@ const SEA_GLINT_HOT_LUMA_THRESHOLD = 246;
 const SEA_GLINT_HOT_FRACTION_MAX = 0.07;
 const SEA_GLINT_CENTER_SHARE_MIN = 0.6;
 const SEA_SURFACE_OWNER = "skyModel-ibl-standard-pbr" as const;
-// Sea state — David's register call (2026-07-02): calm Aegean, waves present
-// but not choppy, and battle water sits near shore. One knob scales every
+// Sea state: calm Aegean, waves present but not choppy, with battle water near
+// shore. One knob scales every
 // wave amplitude (photoreal sea only; the shared bespoke baker is untouched).
 // Foam height thresholds scale with it so whitecap coverage stays consistent.
 const SEA_SWELL_SCALE = 0.55;

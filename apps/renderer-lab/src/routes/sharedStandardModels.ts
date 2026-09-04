@@ -5,7 +5,7 @@ import { type LabContext, LabGroundPass, createConfiguredShell, labGroundFramePa
 
 // Shared standard review: one gate per size tier x faction livery. The route
 // deliberately consumes the shared asset/pass, not the campaign army marker or
-// DOM banner approximations, so slices 11/13 can port the same contract.
+// DOM banner approximations, so every consumer exercises the same contract.
 // Review-only config (cameras, gate table) lives here; the asset module carries
 // only the production contract.
 const STANDARD_REVIEW_FACTIONS = ["azure", "crimson"] as const;

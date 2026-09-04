@@ -106,7 +106,7 @@ export async function run(ctx) {
     ctx.check(
       "frame shows the world: olive field, crowd mass, gold selection glow",
       // gold >= 5: PRESENCE of the selection glow. On the generated-map
-      // framing the ring is a thin arc (~8px) - the old 10px floor measured
+      // framing the ring is a thin arc (~8px), so the floor measures
       // the hand-map close framing, not the contract.
       m.field > m.total * 0.3 && m.crowd > 200 && m.gold >= 5,
       JSON.stringify(m),

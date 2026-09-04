@@ -1,6 +1,5 @@
-// foliageLayer — battle scenery on the photoreal substrate. The old
-// render-side tuft grass path died in BMS11-SLICE-E9C4; production grass is
-// the blade-field layer. Scenery remains the TSL port of CampaignSceneryPass
+// foliageLayer — battle scenery on the photoreal substrate. Production grass
+// belongs to the blade-field layer. Scenery uses the CampaignSceneryPass pose
 // over the shared prop meshes (SCENERY_PROP_MODELS).
 import * as THREE from "three/webgpu";
 import { attribute, clamp, float, mix, normalize, step, texture, varying, vec2, vec3, vec4 } from "three/tsl";
@@ -29,7 +28,7 @@ interface SceneryBucket {
 }
 
 /** The battle scenery (trees/rocks from featuresToBattleScenery), instanced on
- *  the shared prop meshes with the sceneryPass shading ported to TSL. */
+ *  the shared prop meshes with sceneryPass shading expressed in TSL. */
 export class PhotorealScenery {
   private buckets = new Map<SceneryPropId, SceneryBucket>();
   private readonly leafMap: THREE.DataTexture;
@@ -45,8 +44,8 @@ export class PhotorealScenery {
       );
       opaque.name = `battle-scenery-${kind}`;
       opaque.renderOrder = RENDER_ORDER.worldOpaque;
-      // Slice 11: props cast REAL sun shadows and receive them (canopy
-      // self-shading, cliff shade) — the baked shadow-decal mesh is deleted.
+      // Props cast REAL sun shadows and receive them for canopy self-shading
+      // and cliff shade.
       opaque.castShadow = true;
       opaque.receiveShadow = true;
       opaque.frustumCulled = false;
@@ -115,7 +114,7 @@ function sceneryGeometry(
   }
   geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
   geo.setAttribute("sNormal", new THREE.BufferAttribute(normals, 3));
-  // 'normal' alias for shadow.normalBias (see crowdLayer note, slice 11).
+  // 'normal' aliases the buffer for shadow.normalBias (see crowdLayer).
   geo.setAttribute("normal", new THREE.BufferAttribute(normals, 3));
   geo.setAttribute("sColor", new THREE.BufferAttribute(colors, 4));
   // Leaf-atlas UVs; u=-1 marks untextured vertices (see meshBuilder contract).
@@ -140,12 +139,10 @@ function leafAtlasTexture(): THREE.DataTexture {
   return map;
 }
 
-// sceneryPass SCENERY_WGSL pose port; since slice 09 the opaque props are a
-// standard-material response — the pass-private fixed sun and warm-key/
-// cool-fill grade are DELETED (no parallel lighting constants), the scene sun
-// + IBL light the rotated normals. Per-instance shade variation stays as
-// albedo character. (The unlit shadow-decal variant died at 11 — props cast
-// real sun shadows through this same positionNode now.)
+// Opaque props use a standard-material response: the scene sun + IBL light the
+// rotated normals, with no parallel lighting constants. Per-instance shade
+// variation stays as albedo character, and props cast real sun shadows through
+// this same positionNode.
 function sceneryMaterial(leafMap: THREE.DataTexture): THREE.MeshStandardNodeMaterial {
   const material = new THREE.MeshStandardNodeMaterial({
     side: THREE.DoubleSide,

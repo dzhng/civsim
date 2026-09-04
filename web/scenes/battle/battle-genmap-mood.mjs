@@ -18,7 +18,7 @@ export const meta = {
     "battle-genmap-mood/mid-field",
   ],
   describe:
-    "BMS16-SLICE-D5A3: generated maps under explicit overcast-highland fog saturate inside the far ring, and the playable field remains readable.",
+    "Generated maps under explicit overcast-highland fog saturate inside the far ring while the playable field remains readable.",
 };
 
 export async function run(ctx) {

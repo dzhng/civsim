@@ -131,8 +131,8 @@ export async function run(ctx) {
   });
   await page.waitForTimeout(180);
 
-  // The pan pair is banner-gallery (start framing) vs pan-end — a separate
-  // pan-start capture was byte-identical to the gallery frame.
+  // The pan pair is banner-gallery (start framing) vs pan-end; the captures
+  // must differ.
   await page.evaluate(() => {
     const cam = window.__cam;
     const [cx, cy] = cam.viewCenter();

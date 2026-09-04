@@ -8,7 +8,7 @@
 // The crowd shader skins with a single bone index per vertex, so this bake
 // collapses the mannequin's 4-weight skinning to the dominant joint. That is
 // the tracer's known quality ceiling (hard creases at elbows/knees), not a
-// pipeline property — 4-weight skinning is the follow-up slice.
+// pipeline property.
 //
 // Space conversion: the glTF rig is y-up, +Z-facing, metres; the engine is
 // z-up, +Y-facing. Both the bind-pose vertices and every baked joint matrix
@@ -34,7 +34,7 @@ const SCALE = 1.1;
 // One flat clay color for every vertex — the "1 color skin" tracer look.
 const FLAT_COLOR = [0.66, 0.55, 0.42, 1];
 
-/** Source clip → contract clip id. shoot is a stand-in (no CC0 bow clip). */
+/** Source clip → contract clip id. shoot uses the CC0 spell clip because the source has no bow clip. */
 const CLIP_NAMES = {
   Idle_Loop: 'idle',
   Walk_Formal_Loop: 'march',

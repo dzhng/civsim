@@ -1,7 +1,7 @@
 // Pure, DOM-free Total-War card-bar grid math.
 //
 // Cards are a FIXED size (never resized to fit the roster — that is the Total
-// War behavior David pinned). The bar instead wraps into more rows as the
+// War behavior). The bar instead wraps into more rows as the
 // roster grows: rows = the fewest that hold `count` cards at the fixed width,
 // capped at `maxRows`; cols is balanced across those rows. Cards shrink below
 // the fixed width ONLY in the extreme overflow case (more cards than maxRows can
@@ -11,8 +11,7 @@
 //
 // Layout decisions that depend on N can't live in CSS (it can't see the count),
 // so the JS picks rows/cols and CSS paints them. The canonical algorithm is
-// mirrored in specs/done/card-bar/visualizations/grid-prototype.html — keep them in
-// lockstep.
+// shared by every card-bar consumer, which must stay in lockstep.
 
 export interface CardGrid {
   rows: number;

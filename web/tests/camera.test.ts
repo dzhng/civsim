@@ -29,8 +29,8 @@ test("panWorld right slides the view right on screen at any yaw", () => {
     const [cx, cy] = camera.viewCenter();
     camera.panWorld(10, 0);
     const { ndc } = projectPoint(camera.params(), [cx, cy, 0]);
-    assert.ok(ndc[0] < -1e-4, `yaw ${yaw}: old centre must move left on screen, ndc.x=${ndc[0]}`);
-    // A pure right-pan is horizontal: the old centre stays on the screen's midline.
+    assert.ok(ndc[0] < -1e-4, `yaw ${yaw}: prior centre must move left on screen, ndc.x=${ndc[0]}`);
+    // A pure right-pan is horizontal: the prior centre stays on the screen's midline.
     assert.ok(
       Math.abs(ndc[1]) < 1e-4,
       `yaw ${yaw}: right-pan must not drift vertically, ndc.y=${ndc[1]}`,
@@ -44,7 +44,7 @@ test("panWorld up drives the view into the screen at any yaw", () => {
     const [cx, cy] = camera.viewCenter();
     camera.panWorld(0, 10);
     const { ndc } = projectPoint(camera.params(), [cx, cy, 0]);
-    assert.ok(ndc[1] < -1e-4, `yaw ${yaw}: old centre must move down-screen, ndc.y=${ndc[1]}`);
+    assert.ok(ndc[1] < -1e-4, `yaw ${yaw}: prior centre must move down-screen, ndc.y=${ndc[1]}`);
     assert.ok(
       Math.abs(ndc[0]) < 1e-4,
       `yaw ${yaw}: up-pan must not drift sideways, ndc.x=${ndc[0]}`,
@@ -95,7 +95,7 @@ test("panSpeed slows monotonically as you zoom in, and caps past ~75% out", () =
   }
 });
 
-// Rotation is a head-turn, not an orbit (David 2026-07-07): yawAboutEye and
+// Rotation is a head-turn, not an orbit: yawAboutEye and
 // pitchAboutEye must hold the camera's world-space EYE fixed while the look
 // target swings around it. Verified through camera3d's real eye derivation.
 test("yawAboutEye holds the eye fixed at any yaw", () => {
@@ -167,11 +167,8 @@ test("pitchAboutEye at the rig's distance ceiling degrades to a dolly along the 
 });
 
 test("wheel-zoom cannot bank dead travel past the rig's saturation point", () => {
-  // The bug: `zoom` clamped to a far hard cap (60) while the rig's framing
-  // stops changing at ~22.9, so scrolling in past the closest view piled up an
-  // invisible reserve you had to unwind before the camera moved back out. The
-  // fix clamps zoom to the ceiling where the frame last changes, so ONE notch
-  // of reverse scroll pulls the framing straight back.
+  // `zoom` clamps where framing stops changing, so ONE reverse-scroll notch
+  // immediately pulls the framing back from the closest view.
   const camera = makeCamera(0);
   const cx = camera["canvas"].width / 2;
   const cy = camera["canvas"].height / 2;

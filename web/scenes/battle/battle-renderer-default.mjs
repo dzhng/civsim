@@ -65,7 +65,7 @@ export async function run(ctx) {
       stats.renderStats.terrain.grass?.layer === "photoreal-blade-field" &&
       stats.renderStats.terrain.grass?.recordCount > 0 &&
       // The GPU compute route is WIRED (drawIndirect), but whether it RUNS a
-      // given frame is now gated by the zoom cutoff — this default view frames
+      // given frame is gated by the zoom cutoff — this default view frames
       // the whole battle at max zoom-out, where grass is intentionally hidden,
       // so runtimeComputeRoute reads "not-run" here. recordCount proves the
       // static field is built; drawIndirect proves the route is wired.

@@ -101,9 +101,8 @@ type Vec2UniformNode = UniformNode<THREE.Vector2>;
 type Vec3UniformNode = UniformNode<THREE.Vector3>;
 
 const BLADE_FIELD_TRANSLUCENCY = {
-  // Baked from the orchestrator's live sweep (2026-07-26): with the display
-  // cap + distance fade in place, the timid post-fix defaults were invisible;
-  // these read as soft warm backlight with no far-field sparkle.
+  // With the display cap + distance fade in place, these values read as soft
+  // warm backlight with no far-field sparkle.
   rimStrength: 2.5,
   subsurfaceStrength: 5.1,
   maxDisplayEmission: 1.25,
@@ -519,8 +518,8 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     // Default OFF: measured on apple/metal-3 (TBDR hardware HSR already kills
     // opaque overdraw) the prepass is net-negative — 27.2 vs 26.8 ms median,
     // p95 67 vs 63 — because it doubles near/mid vertex work while we are
-    // vertex-bound. Keep the toggle for immediate-mode GPUs where the pen's
-    // trick pays (its WebGL painterly fragments were the bottleneck).
+    // vertex-bound. Keep the toggle for immediate-mode GPUs where fragment
+    // rejection can pay for the extra vertex work.
     this.depthPrepassEnabled = options.depthPrepass ?? false;
     this.wind = wind;
     this.ownsMaterials = options.materials === undefined;
@@ -1628,8 +1627,8 @@ function createBladeFieldMaterial(
     // shows.
     // Near-eye dissolve: blades near the camera render as giant paddles
     // filling the frame (close-zoom overdraw = the zoom-28 GPU cliff). The
-    // dissolve band scales with EYE HEIGHT - a fixed 4.5m band did nothing
-    // because at close zoom the offending blades sit 5-15m out; a low eye
+    // dissolve band scales with EYE HEIGHT because at close zoom the offending
+    // blades sit 5-15m out; a low eye
     // widens the band, a vista eye keeps it tiny. Scale to turf, not alpha.
     const eyeHeight = cameraPosition.z.sub(base.z).max(0.0);
     const fadeEnd = clamp(eyeHeight.mul(1.2), 4.5, 16.0);
@@ -1639,11 +1638,10 @@ function createBladeFieldMaterial(
     const baseViewZ = cameraViewMatrix.mul(vec4(base, 1.0)).z;
     const behindCull = smoothstep(0.5, -1.5, baseViewZ);
     // Near-eye paddle DISSOLVE (blades within ~16 m of the lens sink to turf) is
-    // a PRODUCTION anti-overdraw treatment for the max-zoom cliff. The ratified
-    // close-lab envelope (survivorAlbedoBlend === 0) omits it - it is exactly
-    // the close-gate foreground, and dissolving it leaves the ratified frame
-    // bare (the round max-zoom-fix leak). behindCull stays (correctness: keeps
-    // blades behind the lens out of the sky).
+    // a PRODUCTION anti-overdraw treatment for the max-zoom cliff. The close-lab
+    // envelope (survivorAlbedoBlend === 0) omits it because it is exactly the
+    // close-gate foreground. behindCull still keeps blades behind the lens out
+    // of the sky.
     const nearEyeDissolve =
       survivorAlbedoBlend > 0
         ? smoothstep(fadeEnd.mul(0.45), fadeEnd, length(cameraPosition.sub(base)))
@@ -1817,7 +1815,7 @@ function createBladeFieldMaterial(
       const clumpShade = mix(0.42, 1.18, clumpWeight);
       const distFade = smoothstep(float(18.0), float(42.0), eyeDist);
       // Blend into the meadow tone toward the cull ring so the coverage edge
-      // dissolves instead of cutting a hard disc (slice 12 owns real thinning).
+      // dissolves instead of cutting a hard disc; transition bands own thinning.
       const ringFade = smoothstep(transition.farGrassStartM, transition.farGrassEndM, eyeDist);
       const meadow = rgbNode(BLADE_FIELD_PALETTE.ringMeadow);
       const shaded = mix(body, dry, dryTip)

@@ -38,7 +38,7 @@ test("photoreal environment: every preset id maps", () => {
       `sun azimuth for ${id}`,
     );
     // Physical fields come straight from the owner, never a parallel table.
-    // Since 10a the sun colour is the SKY MODEL's transmittance-derived light
+    // The sun colour is the SKY MODEL's transmittance-derived light
     // (physics from sun elevation + turbidity), never the authored keyColor.
     assert.deepEqual(spec.sunColor, skyModelParams(env).sunLightColor, `sun colour for ${id}`);
     // The physical block on the ONE owner is the parameterization.

@@ -11,7 +11,7 @@ export const meta = {
   tier: "full",
   snapshots: ["battle-genmap-clay/vista"],
   describe:
-    "BMS03-SLICE-F1A8 Debt 1: generated highland-corridor landform through the real photoreal battle route with neutral-clay ground at the locked vista camera.",
+    "The generated highland-corridor landform renders through the production photoreal battle route with neutral-clay ground at the fixed vista camera.",
 };
 
 export async function run(ctx) {

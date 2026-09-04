@@ -870,7 +870,7 @@ function campaignModelShotGarrisonSamples(
   if (gate === "garrison-outside") {
     // The outside army body is the drawn soldier crowd: sample the torso of its
     // west-most figure (the crowd is the visible "shield wall", not a fixed
-    // offset on the old army entity mesh).
+    // offset on the army entity mesh).
     const west = crowd.reduce(
       (best: CrowdInstance | null, inst) => (best === null || inst.x < best.x ? inst : best),
       null,

@@ -14,7 +14,7 @@ const CAMERAS = [
   {
     id: "close",
     // From the corridor looking WEST at the wall face (yaw 0 = -X view).
-    // cx inside the wall stares at scree from on top - recorded miss.
+    // cx inside the wall stares at scree from on top, so frame the wall obliquely.
     zoom: 7.55,
     cx: -620,
     cy: 0,
@@ -42,7 +42,7 @@ export const meta = {
     CAMERAS.map((camera) => `battle-genmap-cliff/${preset.label}-${camera.id}-west-wall`),
   ),
   describe:
-    "BMS13-SLICE-C2E5: generated west flank walls render as slope-banded rock under both battle lighting presets.",
+    "Generated west-flank walls render as slope-banded rock under both battle lighting presets.",
 };
 
 export async function run(ctx) {

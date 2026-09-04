@@ -255,7 +255,7 @@ export async function run(ctx) {
             if (sy < minY) minY = sy;
             if (sy > maxY) maxY = sy;
           }
-          // Banners are GPU billboards now - read the owner's uploaded
+          // Banners are GPU billboards, so read the owner's uploaded
           // standard anchors (renderStats.terrain.standards).
           const anchor = g
             .stats()

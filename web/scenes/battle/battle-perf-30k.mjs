@@ -10,10 +10,10 @@ import { PNG } from "pngjs";
 // hardware; SwiftShader is not a perf oracle) — under SwiftShader the scene
 // still runs as a correctness smoke and records that the budget was skipped.
 // BMSGRASS-F4B1 adds a live camera-pan phase: rAF p95 must stay under the same
-// 33 ms floor while the camera crosses multiple old 8m grass snap boundaries.
+// 33 ms floor while the camera crosses multiple 8m grass sampling boundaries.
 // PERFDIG-F2C6 adds the wheel path: dispatch real wheel events during the
 // sample so the input handler must keep applying zoom while grass catches up.
-// Every photoreal ladder slice from 08b on re-runs this gate.
+// Every photoreal change runs this gate.
 export const meta = {
   name: "battle-perf-30k",
   kind: "flow",
@@ -24,7 +24,7 @@ export const meta = {
     "Production battle renderer holds 33 ms static GPU median and pan rAF p95 at 30k+ soldiers plus dense foliage.",
 };
 
-// Locked numbers (interview 2026-07-02): changing either requires David.
+// Locked product numbers: changing either requires David.
 const BUDGET_MS = 33;
 const SOLDIER_FLOOR = 30000;
 const MEADOW_RING_RECORD_CAP = 1_000_000; // meadow-polish P3.3 focus ring
@@ -34,8 +34,7 @@ const MEADOW_RING_RECORD_CAP = 1_000_000; // meadow-polish P3.3 focus ring
 const SPAWN_TARGET = 30500;
 const SCENERY_FLOOR = 500;
 // Static whole-map grass: the field is sampled once at the sampler's 1M ceiling
-// (STATIC_GRASS_MAX_RECORDS in battleWorld.ts) and uniformly, not the retired
-// per-camera area-scaled stratified budget (old cap 160k).
+// (STATIC_GRASS_MAX_RECORDS in battleWorld.ts) and uniformly across the map.
 const STATIC_GRASS_RECORD_CAP = 1_000_000;
 const CLOSE_GRASS_RECORD_FLOOR = 40000;
 const PAN_DISTANCE_M = 200;
@@ -456,7 +455,7 @@ async function waitForGrassReady(page) {
 
 // Continuous zoom sweep: the churn the pan phase can't see. A zoom-coupled
 // grass rebuild key once rebuilt every frame while zooming (David's "still
-// slow" report) - this phase pins that class of bug.
+// slow" failure mode), so this phase pins the interaction.
 async function sampleCameraZoomSweep(page, hardware) {
   await page.evaluate(async () => {
     const cam = window.__cam;

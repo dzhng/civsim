@@ -506,8 +506,8 @@ function pushProjectiles(effects: number[], showTransient: boolean, world: Battl
     const pk = new Uint8Array(wasm.memory.buffer, game.projectile_kind_ptr(), pCount);
     // Effects lines carry per-vertex z (see PhotorealLineLayer
     // perVertexZ): an arrow is a true 3D segment along its velocity —
-    // no screen-space tricks (a ground-plane unproject snapped every
-    // above-horizon endpoint to the view centre: the fan bug).
+    // no screen-space tricks, so above-horizon endpoints retain their true
+    // direction instead of collapsing to the view centre.
     const dpr = window.devicePixelRatio || 1;
     const minArrowWorld = (6 * dpr) / Math.max(4, camera.zoom); // ~6px floor
     for (let i = 0; i < pCount; i++) {

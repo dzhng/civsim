@@ -76,7 +76,7 @@ export async function run(ctx) {
       const t = Number((T0 + i * DT).toFixed(4));
       // Clean full navigation each frame so waitForFunction can never latch the
       // previous frame's stats (the lab is an SPA — a bare query change is a soft
-      // nav that leaves the old context alive mid-teardown).
+      // nav that leaves the previous context alive mid-teardown).
       await page.goto("about:blank");
       await page.goto(`${ctx.target}/renderer/photoreal-battle?${seaQuery(t)}`);
       // The route applies the fixed `t` param through world.setTime every frame,
@@ -153,7 +153,7 @@ export async function run(ctx) {
       `maxDelta=${maxDelta.toFixed(3)} device=${device}`,
     );
 
-    // Committed review GIF (like the old rhythm.gif) — downscaled so the tracked
+    // Committed review GIF — downscaled so the tracked
     // artifact stays small; the filmstrip PNGs are the full-detail baselines.
     const gifFrames = cropped.map((buf) => downscaleRGBA(pngToRGBA(buf), GIF_DOWNSCALE));
     const gif = encodeGif(gifFrames, gifFrames[0].width, gifFrames[0].height, DELAY_CS, {

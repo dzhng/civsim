@@ -74,7 +74,7 @@ test("grass field resumable sampler matches synchronous sampling", () => {
   assert.equal(sampler.cellsProcessed, sampler.totalCells);
 });
 
-test("grass field accepts fine production cell sizes below the old half-metre floor", () => {
+test("grass field accepts fine production cell sizes below half a metre", () => {
   const grid = makeGrid(16, 16, 1);
   const field = terrainHeightField(grid);
   const snapshot = sampleGrassField(grid, field, {

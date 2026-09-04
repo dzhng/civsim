@@ -1,12 +1,10 @@
-// shadowRig — real cascaded sun shadows for the battle world (slice 11; the
-// 08a blob-shadow decal stand-ins are deleted by this seam). One rig per
+// shadowRig — real cascaded sun shadows for the battle world. One rig per
 // world, configured once from the SAME sun DirectionalLight
 // applyCivsimEnvironment builds — direction and colour stay owned by the ONE
 // environment preset owner; this file only decides HOW that sun casts.
 //
 // Tier contract (README standing gate 8 — SwiftShader enforces the fallback):
-//   'csm'    — hardware: three's CSMShadowNode addon (the recorded slice-11
-//              decision, see slices/11-csm-shadows.md), cascades split from
+//   'csm'    — hardware: three's CSMShadowNode addon, cascades split from
 //              the LIVE camera projection. We own the camera math
 //              (cameraBridge/applyCamera3d poses it), so updateFrustums()
 //              every frame keeps the splits tracking the zoom rig exactly.
@@ -31,7 +29,7 @@ import type { CivsimEnvironment } from "../../../game-renderer/src/environment/e
 
 export type SunShadowMode = "csm" | "single" | "off";
 
-// --- The classic shadow knob set (slice-11 tuning constants, documented) ----
+// --- The classic shadow knob set --------------------------------------------
 /** Cascade count on the hardware tier. Three practical-split cascades cover
  *  gameplay mid zoom (dense texels on the crowd) through the vista ridge. */
 // 2 cascades over the tightened 1500m range: the third re-rendered the
@@ -54,8 +52,8 @@ const CSM_LIGHT_MARGIN = 300;
 /** Depth-compare bias in [0,1] depth units — the acne knob. Multiply by
  *  SHADOW_CAM_FAR for world units (-0.00003 ≈ 0.075 world). CSMShadowNode
  *  multiplies it by (cascade + 1), so coarser far cascades get more. Tuned
- *  DOWN from -0.0005: over-biasing silently erased every soldier-sized
- *  shadow (a bias deeper than the caster is a deleted caster). */
+ *  conservatively: a bias deeper than the caster erases soldier-sized
+ *  shadows. */
 const SHADOW_BIAS = -0.00003;
 /** World-unit push along the receiver normal: the peter-panning-vs-acne
  *  trade. 0.3 ≈ a boot height; shrinks a golden-hour soldier shadow by
@@ -65,9 +63,7 @@ const SHADOW_BIAS = -0.00003;
 const SHADOW_NORMAL_BIAS = 0.6;
 /** Ortho shadow-camera depth range. CSMShadowNode sets each cascade's XY
  *  extents but leaves the CLONED DirectionalLightShadow camera's near/far at
- *  three's defaults (0.5/500) — receivers past 500 light-units compare
- *  against cleared depth and read fully shadowed (a giant smooth blackout,
- *  caught on the first hardware shot). Size it to the light-space depth of a
+ *  three's defaults (0.5/500). Size it to the light-space depth of a
  *  whole battle map + the light margin. */
 const SHADOW_CAM_NEAR = 1;
 const SHADOW_CAM_FAR = 2500;
@@ -91,8 +87,7 @@ export function resolveSunShadowMode(
     label.includes(needle),
   );
   // 'single' everywhere by default: even 2-cascade CSM re-renders the crowd
-  // per cascade and cost ~25% of the battle frame (the "unplayable"
-  // regression when shadows first actually rendered). One soft pass keeps
+  // per cascade and costs roughly 25% of the battle frame. One soft pass keeps
   // grounded soldiers/trees at playable fps; ?shadows=csm remains for QA.
   return "single";
 }
@@ -200,10 +195,8 @@ export function configureSunShadows(
     const dir = sun.position.clone().sub(sun.target.position).normalize();
     sun.target.position.set(cx, cy, 0);
     const half = Math.hypot(w, h) / 2 + 40;
-    // The light must sit OUTSIDE the whole ortho volume. The old 400 m
-    // offset parked it INSIDE the map's light-space span (half ~1500 m on a
-    // real battle rect), which killed shadow sampling entirely - the
-    // never-rendered-shadows regression surfaced by battle-map-style 16.
+    // The light must sit OUTSIDE the whole ortho volume; real battle rectangles
+    // can span roughly 1500 m in light space.
     const reach = half + 200;
     sun.position.set(cx + dir.x * reach, cy + dir.y * reach, dir.z * reach);
     const cam = shadow.camera;

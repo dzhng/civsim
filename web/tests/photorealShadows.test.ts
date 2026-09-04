@@ -1,5 +1,5 @@
 // @vitest-environment node
-// Slice 11 seam pins — the pure halves of the sun-shadow rig
+// The pure halves of the sun-shadow rig are pinned independently:
 // (packages/photoreal-renderer/src/battle/shadowRig.ts): the adapter-probe
 // tier resolution (SwiftShader must land on 'single' BY NAME — the standing
 // capability-fallback gate) and the preset→softness coupling (lighting is an

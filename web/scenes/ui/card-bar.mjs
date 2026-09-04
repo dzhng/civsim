@@ -1,4 +1,4 @@
-// Fixed-size Total-War unit-card grid (card-bar spec, slice 02). The live game
+// The fixed-size Total-War unit-card grid needs a dense lab fixture. The live game
 // is ~5v5 — too few to exercise wrapping — so this drives the lab route
 // `/renderer/card-bar` over synthetic 20 / 30 / 40 rosters, asserts the grid
 // never scrolls either axis, that the card stays a FIXED size as the roster

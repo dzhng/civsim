@@ -1,9 +1,9 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { PNG } from "pngjs";
 
-// The standing 30k perf gate (slice 04f): the PRODUCTION battle renderer
-// (BattleRenderer — the surface slice 08b swaps) must hold the spec's locked
-// budget of median <= 33 ms/frame GPU time with >= 30,000 soldiers plus the
+// The standing 30k perf gate requires the PRODUCTION battle renderer
+// (`BattleRenderer`) to hold the locked budget of median <= 33 ms/frame GPU
+// time with >= 30,000 soldiers plus the
 // map's dense foliage fill on screen, at both the mid and vista zoom stops.
 // Soldier/foliage counts are published and floored so the gate cannot silently
 // shrink. Hardware adapter only for the ms assertion (VERIFY_GPU_ADAPTER=
@@ -29,8 +29,8 @@ const BUDGET_MS = 33;
 const SOLDIER_FLOOR = 30000;
 const MEADOW_RING_RECORD_CAP = 1_000_000; // meadow-polish P3.3 focus ring
 // The load the counts may never shrink below (generated seed 7 base army plus
-// dense scenery; production grass is the slice-11 blade-field record
-// window plus slice-12 routed/thinned blade triangles).
+// dense scenery; production grass includes the blade-field record window and
+// routed/thinned blade triangles).
 const SPAWN_TARGET = 30500;
 const SCENERY_FLOOR = 500;
 // Static whole-map grass: the field is sampled once at the sampler's 1M ceiling

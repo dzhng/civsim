@@ -2,7 +2,7 @@ import type { CampaignSceneryInstance } from "../campaign/sceneryPass";
 import { terrainHeightAt, type TerrainHeightField } from "../terrain/heightField";
 import type { BattleTerrainFeature, BattleTerrainGrid } from "./terrainFeatures";
 
-// Battle-specific policy that turns the slice-02 feature stream into shared
+// Battle-specific policy turns the canonical feature stream into shared
 // scenery instances seated on the terrain height. Density, scale, and the
 // edge-weighted scatter (clear forest edges, sparse interiors — gameplay
 // clarity over literal fill) are battle's call; the meshes are the shared

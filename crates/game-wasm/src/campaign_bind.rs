@@ -82,7 +82,7 @@ impl Campaign {
         self.inner.save()
     }
 
-    // ---- off-thread AI bridge ---------------------------------------------
+    // ---- off-thread AI protocol -------------------------------------------
 
     /// Run inside the worker: compute every campaigning faction's decision for
     /// the loaded snapshot and return them as JSON to post back to the host.

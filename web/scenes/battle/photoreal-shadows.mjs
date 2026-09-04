@@ -1,6 +1,6 @@
 import { PNG } from "pngjs";
 
-// Slice 11 — sun shadows. One visual variable: cast-shadow
+// Sun shadows isolate one visual variable: cast-shadow
 // presence/direction/quality, crop `shadow-scenery` (a tree grove whose
 // shadows are legible even on the low-res fallback tier) per preset at the
 // SAME fixed setTime, plus the golden `shadow-contact` formation crop.
@@ -30,7 +30,7 @@ export const meta = {
 
 // A generated wooded-pass grove + a soldier formation in one frame. zoom
 // clamps to the rig; the grove crop stays legible at either adapter's clamp.
-// zoom 6: the production blade field (slices 11/12) fills a zoom-28 frame
+// zoom 6: the production blade field fills a zoom-28 frame
 // with near-macro grass blades - the old framing measured blades, not the
 // grove, and the on/off check read 0 forever.
 const FRAMING = "map=gen&seed=8&t=0&ref=1&zoom=6&cx=-560&cy=-380";
@@ -44,8 +44,8 @@ const PRESETS = [
   { env: "golden-hour", preset: "golden", radius: 1.168 },
   { env: "noon", preset: "noon", radius: 1 },
   { env: "dusk", preset: "dusk", radius: 1.448 },
-  // turbidity 7.2 since the slice-17 compose tune (ranges must read through
-  // haze): radius = 1 + (7.2 - 2) * 0.28.
+  // Turbidity 7.2 keeps ranges readable through haze:
+  // radius = 1 + (7.2 - 2) * 0.28.
   { env: "overcast-foggy", preset: "overcast-highland", radius: 2.456 },
 ];
 
@@ -123,7 +123,7 @@ export async function run(ctx) {
     const shot = PNG.sync.read(await page.screenshot({ clip, timeout: 180000 }));
     const offScenery = cropFrac(shot, SCENERY_CROP);
     const delta = meanAbsDiff(goldenScenery, offScenery);
-    // Presence proxy, not a contrast target: the slice-15 AgX grade lifts
+    // Presence proxy, not a contrast target: the AgX grade lifts
     // shadows (aesthetics rule 2 — bright, legible, no moody near-black), so the
     // grove's on/off darkening is subtler than the ACES-era 1.5 this once pinned.
     // The mechanism still holds — the grove visibly darkens and ?shadows=off

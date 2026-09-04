@@ -1,8 +1,8 @@
 // Battle terrain as a typed feature stream. Given the sim terrain grid (tint +
 // height, read from wasm), this turns ad-hoc per-cell tints into deterministic
 // feature instances — forest clumps, rock outcrops, mud patches, scree lanes,
-// water, plus sparse micro-rough samples — that slice 03 draws with real
-// 3D/model cues. Pure and deterministic: same grid + seed → same features. No
+// water, plus sparse micro-rough samples drawn with real 3D/model cues. Pure and
+// deterministic: same grid + seed → same features. No
 // DOM, GPU, or wasm calls; the caller reads the grid from wasm and hands it in.
 
 import { flatHeightField, type TerrainHeightField } from '../terrain/heightField';

@@ -1,6 +1,6 @@
 import { PNG } from "pngjs";
 
-// Slice 10 — physical sky + atmosphere. Every battle preset renders
+// Every battle preset renders with the physical sky and atmosphere
 // /renderer/photoreal-battle at the SAME fixed setTime and vista framing
 // (the rig stop where sky and far terrain are both in frame). One visual
 // variable per sub-slice, each with its named crop:
@@ -37,7 +37,7 @@ export const meta = {
 };
 
 // The vista rig stop (battle-perf-30k's framing): sky band + far ridge in frame.
-// zoom 5: the production blade field (slices 11/12) fills the lower half
+// zoom 5: the production blade field fills the lower half
 // of a zoom-9.5 frame with near blades - the sky/terrain band crops were
 // measuring grass, which dragged the overcast band warm (grass R>B).
 const FRAMING = "map=gen&seed=7&t=0&ref=1&zoom=5&cx=0&cy=-310";
@@ -47,7 +47,7 @@ const PRESETS = [
   { env: "golden-hour", preset: "golden", turbidity: 2.6 },
   { env: "noon", preset: "noon", turbidity: 2.0 },
   { env: "dusk", preset: "dusk", turbidity: 3.6 },
-  // 7.2 since the slice-17 compose tune (ranges read through haze).
+  // 7.2 keeps ranges readable through haze.
   { env: "overcast-foggy", preset: "overcast-highland", turbidity: 7.2 },
 ];
 

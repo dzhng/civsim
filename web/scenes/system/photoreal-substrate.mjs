@@ -1,6 +1,6 @@
 import { PNG } from "pngjs";
 
-// The photoreal substrate gate (slice 07): both promoted three.js routes render
+// Both three.js routes must render
 // non-blank on the camera3d spine, publish the ownership identity fields
 // { substrate, projection, environment } plus renderer.info-backed stats, hold
 // the 06 bake-off count floors, and — the determinism rule — two snaps at the

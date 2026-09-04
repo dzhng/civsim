@@ -1,7 +1,7 @@
 import { PNG } from "pngjs";
 import { campaign } from "../worlds.mjs";
 
-// Slice 01 (campaign-map-polish): the camera must never see past the map edge.
+// The camera must never see past the map edge.
 // At the max-zoom-out floor the four corners of the map viewport must be map
 // (terrain/sea/cloud), never the off-map clear color (near-black). Stress it at a
 // WIDE aspect (the top edge is widest, where the perspective trapezoid overreached

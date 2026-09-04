@@ -1,6 +1,6 @@
 import { PNG } from "pngjs";
 
-// Water Slice 10 — the campaign strategic sea. Deliberately NOT the deep-ocean look:
+// The campaign strategic sea deliberately avoids a deep-ocean look:
 // the campaign is an antique painted chart, so the sea gets only a subtle, zoom/pitch-
 // gated shimmer — a still chart from altitude, gently alive zoomed in close. The glint
 // waves crawl on cam.time (gated so far/top-down presets don't move); land, roads,
@@ -15,7 +15,7 @@ export const meta = {
   tier: "full",
   snapshots: ["water/campaign-sea-near", "water/campaign-sea-far"],
   describe:
-    "Water Slice 10: the campaign sea is a subtle animated painted-chart shimmer close in, a still chart from altitude.",
+    "The campaign sea is a subtle animated painted-chart shimmer close in and a still chart from altitude.",
 };
 
 const waitReady = (page) =>

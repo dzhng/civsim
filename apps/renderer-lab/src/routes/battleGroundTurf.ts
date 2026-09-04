@@ -82,7 +82,7 @@ function publishReady(
   const stats = {
     route: "battle-ground-turf",
     view,
-    owner: "slice-02-macro-only",
+    owner: "macro-ground-material",
     syntheticFineDetail: false,
     coordinateOwner: "positionWorld.xy",
     textureResources: 0,

@@ -119,7 +119,7 @@ export async function run(ctx) {
     for (const [name, [lo, hi]] of Object.entries(WINDOWS)) {
       const value = result.ratios[name];
       ctx.check(
-        `passability ${name} ratio stays in the slice-03 window`,
+        `passability ${name} ratio stays in its terrain window`,
         value >= lo && value <= hi,
         JSON.stringify({ value, window: [lo, hi], ratios: result.ratios }),
       );

@@ -4,8 +4,8 @@ import { campaign } from "../worlds.mjs";
 
 const CAMPAIGN_MAP_JSON = new URL("../../public/data/campaign-map.json", import.meta.url);
 const WHOLE_MAP_CAMERA = [-100, 250, 0.16];
-// Re-derived for the real perspective camera (slice 05): the legacy 2.5D chart
-// foreshortened the vertical axis by cos(pitch) ≈ 0.68, so the same scale showed
+// The perspective camera foreshortens the vertical axis by cos(pitch) ≈ 0.68,
+// so an unadjusted scale would show
 // ~47% more map north-south. This target/scale frames the same mainland-Italy
 // region (all 13 anchor cities on screen) under the camera3d projection.
 const REGIONAL_ITALY_CAMERA = [-430, 445, 3.0];
@@ -36,8 +36,8 @@ const CENTRAL_ITALY_ROAD_PAIRS = [
   ["Clusium", "Volsinii"],
   ["Capua", "Minturnae"],
 ];
-// The same three world-space Apennine regions as before slice 05, reprojected
-// onto REGIONAL_ITALY_CAMERA through the real camera (screen-rect bounding box
+// Three world-space Apennine regions are projected onto REGIONAL_ITALY_CAMERA
+// through the real camera (screen-rect bounding box
 // of the old crops' world corners).
 const TERRAIN_FEATURE_CROPS = {
   "northern-apennines": { x: 578, y: 251, w: 279, h: 366 },
@@ -420,8 +420,8 @@ function checkRegionalMapStructure(ctx, current) {
         name,
         {
           crop,
-          // Mountain/dark floors recalibrated after slice 3 greened the grass: the
-          // warm-stone classifier used to count tan plains as "mountain", inflating
+          // Mountain/dark floors exclude warm-stone tan plains from the mountain
+          // classifier, preventing inflated
           // these crops. With living-green grass only the actual rock props count
           // (sparser in the southern crop), and they read MORE clearly against the
           // green (verified by critique). Floors guard readability against the new
@@ -674,7 +674,7 @@ async function visibleMapCardNames(page) {
   );
 }
 
-// Slice 07 (campaign-map-bugs B5) contract: every visible own-city card sits
+// Every visible own-city card sits
 // beside a rendered city model (an entity anchor exists at its node, and no
 // card covers that anchor point) with a mostly-land rect (the landward card
 // offset keeps DOM cards off the open sea).

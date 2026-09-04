@@ -142,7 +142,7 @@ function assertRouteStats(ctx, env, stats) {
     stats?.renderer === "gpu" &&
       stats?.projection === "camera3d" &&
       // Route stats report the shared preset name; the alias id lives on
-      // terrain.environment.id (slice-00 recorded trap).
+      // terrain.environment.id.
       stats?.terrain?.environment?.id === env &&
       stats?.terrain?.fixture === "sim-tint" &&
       stats?.terrain?.groundCover === "green-grass" &&

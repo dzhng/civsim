@@ -76,7 +76,7 @@ function buildHorizonEdge(
   const yHi = y1 + 400;
 
   if (role === 'ocean') {
-    // The open sea: the shared animated water plane (Slice 8/9 material), seated at
+    // The open sea uses the shared animated water plane, seated at
     // the shoreline height datum and keyed on distance-from-shore (shoreX = edgeX)
     // so it meets the on-field water in the same shallow→deep grade — the shoreline
     // seam cannot exist because both sides are one material. It laps OCEAN_LAP into

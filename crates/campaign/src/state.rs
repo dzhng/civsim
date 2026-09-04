@@ -110,7 +110,7 @@ pub enum Stance {
 pub struct Army {
     pub id: ArmyId,
     pub faction: FactionId,
-    /// A city garrison fighting as a temporary field army; folds back into
+    /// A city garrison fighting as a field army; folds back into
     /// the city when its battle ends. Never takes movement orders.
     pub garrison_of: Option<NodeId>,
     pub roster: Vec<RosterEntry>,
@@ -127,7 +127,7 @@ pub struct Army {
     pub auto_replenish: bool,
     /// When this army takes a city, sack it (plunder + raze the populace) rather
     /// than hold it. Off by default — most conquests are meant to be kept; a
-    /// commander flips it on to deny a city it can't hold (slice 06).
+    /// commander flips it on to deny a city it can't hold.
     #[serde(default)]
     pub sack_intent: bool,
     /// Counts down while embarking/disembarking at a port.

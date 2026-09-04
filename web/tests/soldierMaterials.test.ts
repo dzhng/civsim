@@ -1,5 +1,5 @@
 // @vitest-environment node
-// Slice 14a seam pin: the photoreal crowd consumes the soldier asset channel
+// The photoreal crowd consumes the soldier asset channel
 // contract instead of inventing a renderer-local material encoding.
 import assert from "node:assert/strict";
 import { test } from "vitest";

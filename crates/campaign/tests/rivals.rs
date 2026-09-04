@@ -1,4 +1,4 @@
-//! Slice 8 — rivalry. A nemesis a faction fixates on: seeded from the map or
+//! Rivalry gives a faction a nemesis: seeded from the map or
 //! formed when attacked, escalating toward the strongest aggressor that hates it
 //! back, dissolving once the gap in power is absurd — and biasing (never
 //! dictating) the commander toward the rival's cities.

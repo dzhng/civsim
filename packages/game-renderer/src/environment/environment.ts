@@ -2,7 +2,7 @@ import type { SkinnedLightingEnvironment } from "../../../renderer-core/src/skin
 
 export type CivsimEnvironmentId = "golden" | "dusk" | "noon" | "overcast-highland";
 
-/** Physical lighting parameterization (photoreal ladder, slice 09+). The flat
+/** Physical lighting parameterization for the photoreal renderer. The flat
  *  display-referred fields on CivsimEnvironment stay the bespoke WGSL knobs
  *  (campaign/water passes) until 16/17; the photoreal renderer lights the
  *  world from THIS block plus the shared sun/sky colours — mood lives in the
@@ -13,7 +13,7 @@ interface CivsimPhysicalLight {
   sunIntensity: number;
   /** toneMappingExposure for the preset (AgX tone map — see photoreal world.ts). */
   exposure: number;
-  /** Atmospheric turbidity — drives the physical sky model (slice 10a). */
+  /** Atmospheric turbidity drives the physical sky model. */
   turbidity: number;
   /** Preset-owned aerial curve knobs for the single scene.fogNode owner. */
   aerial?: CivsimAerialAtmosphere;

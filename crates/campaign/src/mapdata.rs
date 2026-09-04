@@ -70,7 +70,7 @@ pub enum AiPersona {
     Opportunist,
     /// A cold optimizer: attacks only with a clear edge, little randomness.
     Calculating,
-    /// Brave to a fault — throws itself at near-parity fights.
+    /// Brave to a fault — throws itself at evenly matched fights.
     Warmonger,
 }
 

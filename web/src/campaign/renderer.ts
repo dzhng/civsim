@@ -120,7 +120,7 @@ interface DrawOptions {
   factionView: boolean;
   /** ARMY_STACK_UNIT_CAP — a full stack shows the max representative figures. */
   stackUnitCap: number;
-  /** Cards report, never arbitrate labels privately (slice 09): the visible
+  /** Cards report, never arbitrate labels privately: the visible
    * card rects this frame, blocking canvas label ground. */
   cardRects?: CampaignCardRect[];
   /** Cards the scene's card-vs-card pass hid this frame ("card:NAME") —
@@ -416,7 +416,7 @@ export class CampaignRenderer {
       this.currentCamera,
       {
         // City-label anchor choice samples the same full-res land truth the
-        // sea-label fitter fits against (slice 00's render mask owner).
+        // sea-label fitter fits against through the render-mask owner.
         renderSurfaceAt: (x, y) => (this.field.renderLandAt(x, y) ? "land" : "water"),
         // The scene-reported card rects: pre-claimed ground in the one
         // occupancy arbitration (cards outrank canvas labels).
@@ -698,7 +698,7 @@ export class CampaignRenderer {
   /** Pin this frame's camera pose. The scene calls this BEFORE its card loop
    * so toScreen/toWorld project through the pose draw() is about to render —
    * the card rects reported into the label arbitration are same-frame, never
-   * one behind (slice 09's pinned ordering). draw() re-applies it, so calling
+   * one behind. draw() re-applies it, so calling
    * draw() alone stays correct. */
   setFrameCamera(cam: CamView) {
     this.currentCamera = {
@@ -857,8 +857,8 @@ export class CampaignRenderer {
     this.clampCam(zoomFloorProbe);
     const drawData = buildCampaignMapDrawData(this.data, {
       roadScale: 1.0,
-      // Two land samplers, one owner each (spec campaign-map-bugs, slice 00
-      // division of labor): sea-label fitting wants an area statistic, which
+      // Two land samplers have one owner each: sea-label fitting wants an area
+      // statistic, which
       // the 8 km grid + wide inland margin owns; roads want point truth
       // against the pixels the player sees, which the full-res render mask
       // owns. Feeding the labels' coarse sampler to the road cull was B7b —

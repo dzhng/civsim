@@ -9,8 +9,7 @@ import {
 
 // Close-gate oracle calibration target: the archived close-lab hero crop
 // (resolvable blades), NOT the vista reference's near-grass band - that band
-// is meadow-mass texture and calibrating on it rejects real close-up grass
-// (slice-00 trap, recorded in the slice file).
+// is meadow-mass texture; calibrating on it rejects real close-up grass.
 const TARGET = new URL(
   "../../../specs/done/battle-map-style/assets/target-close-grass.png",
   import.meta.url,
@@ -18,7 +17,7 @@ const TARGET = new URL(
 
 export const VIEWPORT = { width: 1280, height: 800 };
 export const RIVER_AND_CRAGS_RECT = { x0: -1200, y0: -800, x1: 1200, y1: 800 };
-// The style-contract target: binds on generated relief (slice 02 onward).
+// The style-contract target binds on generated relief.
 // 0.187: the ACCEPTED composition (compose gate round 3). The north is
 // OPEN by design - armies arrive there and haze closes the horizon (spec
 // invariant; the 0.5 aspiration predates that ruling and would demand
@@ -299,8 +298,7 @@ function assertPhotorealRoute(ctx, stats) {
       terrain?.environment?.id === "overcast-foggy" &&
       terrain?.fixture === "sim-tint" &&
       terrain?.groundCover === "green-grass" &&
-      // Generated maps seal E/W with the vista apron (slice 14), not the
-      // legacy per-edge blocker meshes.
+      // Generated maps seal E/W with the vista apron, not per-edge blocker meshes.
       terrain?.sealedEdges?.includes("generated:vista") &&
       terrain?.groundTriangles > 100000 &&
       terrain?.scenery > 0 &&

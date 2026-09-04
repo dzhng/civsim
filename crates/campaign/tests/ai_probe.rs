@@ -1,4 +1,4 @@
-//! Slice 3 — the readable probe. Dumps, for a fixture, what the commander's
+//! The readable probe dumps, for a fixture, what the commander's
 //! lookahead *sees*: each candidate plan, the position it rolls forward to, and
 //! its score — so a human can critique the AI's taste (is it valuing the right
 //! things?) before it drives the game. Run it with:
@@ -131,8 +131,8 @@ fn probe_scores_candidate_futures() {
 
 #[test]
 fn think_marches_on_the_winnable_city() {
-    // The whole point of slice 4: the live commander, not just the probe, now
-    // chooses by lookahead. Red between a wall (Strong) and a soft city (Weak)
+    // The live commander, not just the probe, chooses by lookahead. Red between
+    // a wall (Strong) and a soft city (Weak)
     // must send its army at Weak — the rule-based AI marched on the *nearest*
     // enemy city, which here is the wall it cannot take.
     let mut c = Campaign::new(fork_map(), 7, 0);

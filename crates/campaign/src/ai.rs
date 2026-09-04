@@ -148,7 +148,7 @@ fn road_dist(
 /// rival it can actually reach, makes peace with the rest to mass its army on
 /// that one front, and allies with anyone who shares its victim. The weakest
 /// powers get ganged up on and eaten, a new weakest emerges, and the six-power
-/// standoff resolves instead of freezing at parity. Independents are left at the
+/// standoff resolves instead of freezing when evenly matched. Independents are left at the
 /// default War — neutral ground everyone is free to conquer.
 pub fn diplomacy(map: &WorldMap, st: &mut CampaignState) {
     use crate::state::Relation;
@@ -364,7 +364,7 @@ fn think(
     //     territory) develops Military to stand a deeper garrison; the safe
     //     interior develops Economy. Cheap to re-issue — set-and-forget dials, so
     //     a city already on the right policy just no-ops. Smart exploit/grow
-    //     timing is left to slice 08's deeper play.
+    //     timing belongs to the deeper strategic policy.
     for &n in &my_cities {
         let frontier = map
             .city_neighbors(n)

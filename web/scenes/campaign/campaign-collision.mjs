@@ -1,6 +1,6 @@
 import { campaign } from "../worlds.mjs";
 
-// Slice 09 (campaign-map-bugs B7): one occupancy authority across canvas
+// One occupancy authority covers canvas
 // labels and DOM cards — nothing readable overlaps. Asserts the arbitration
 // outcomes the renderer stats report (the same rects the arbitration ran on):
 //   - label ink rects pairwise disjoint (city/army/faction; sea labels and
@@ -66,7 +66,7 @@ export async function run(ctx) {
   await ctx.snap(page, "collision-overview-political");
 
   // ---- Regional Roma cluster: card-vs-card + the ordering pin --------------
-  // Pinned ordering (slice 09): the card loop runs against the frame's camera
+  // The card loop runs against the frame's pinned camera
   // BEFORE the renderer draws, so every MEASURED card is arbitrated and
   // reported same-frame. A card entering visibility has no measurable DOM size
   // yet (display:none) and joins one frame later — an accepted <=1-frame

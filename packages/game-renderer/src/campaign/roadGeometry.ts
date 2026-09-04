@@ -58,8 +58,8 @@ export interface CampaignMapDrawStyle {
    * inland margin. Deliberately NOT the road sampler: labels want area
    * statistics, roads want point truth. */
   surfaceAt?: (x: number, y: number) => "land" | "water";
-  /** Full-resolution render-mask classifier (TerrainField.renderLandAt, the
-   * slice-00 land-truth owner). Point-truth queries — sea-label placement —
+  /** Full-resolution render-mask classifier (`TerrainField.renderLandAt`).
+   * Point-truth queries — sea-label placement —
    * use this; the coarse `surfaceAt` stays the owner of area statistics,
    * while road drop decisions read `roadSurfaceAt`. */
   renderSurfaceAt?: (x: number, y: number) => "land" | "water";

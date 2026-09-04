@@ -258,7 +258,7 @@ describe("AmbientAudioEngine", () => {
     }
   });
 
-  it("keeps the slice 41 audio CPU budget bounded through a 60s bird storm", () => {
+  it("keeps the audio CPU budget bounded through a 60s bird storm", () => {
     const bedFloor = WIND_BED_FIXED_NODE_COUNT + WATER_BED_FIXED_NODE_COUNT;
     expect(bedFloor).toBe(41);
     const ctx = new FakeBirdAudioContext();

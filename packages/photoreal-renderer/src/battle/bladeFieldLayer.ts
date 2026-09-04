@@ -62,7 +62,7 @@ import {
   createWindUniforms,
   type BattleWindUniforms,
 } from "../../../game-renderer/src/battle/windSignal";
-import { clamp01 } from "../../../renderer-core/src/scalar";
+import { clamp01 } from "../../../renderer-core/src/math";
 
 type BladeFieldTierId = "near" | "mid" | "far";
 

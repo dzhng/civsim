@@ -1,6 +1,6 @@
 import { clamp, dot, float, mix, vec2, vec3 } from "three/tsl";
 import { MEADOW } from "../../../game-renderer/src/battle/meadowPalette";
-import { smoothstep } from "../../../renderer-core/src/scalar";
+import { smoothstep } from "../../../renderer-core/src/math";
 import {
   fbmN,
   rgbNode,

@@ -9,7 +9,7 @@
 import type { CampaignData } from "./data";
 import type { CityView } from "@packages/game-renderer/src/campaign/entityFrame";
 import { TerrainField } from "./terrain";
-import { hash2 } from "@packages/game-renderer/src/math";
+import { hash2 } from "@packages/renderer-core/src/math";
 import type { CampaignBorderPolyline } from "@packages/game-renderer/src/campaign/territoryPass";
 
 /** Land farther than this from any city is no one's (deep deserts, steppe).

@@ -9,8 +9,7 @@ import { standardSeed, standardWindPhase } from "../models/shared/standardAsset"
 import type { StandardInstance } from "../models/shared/standardPass";
 import type { CampaignFogSource } from "./atmospherePass";
 import { SELECTION_GREEN } from "../overlays";
-import { hash2 } from "../math";
-import { smoothstep } from "../../../renderer-core/src/scalar";
+import { hash2, smoothstep } from "../../../renderer-core/src/math";
 
 interface CampaignMapNode {
   id: number;

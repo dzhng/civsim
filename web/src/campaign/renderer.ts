@@ -69,7 +69,6 @@ import {
   campaignMapMarkers,
   campaignRoadCarts,
 } from "@packages/game-renderer/src/campaign/entityFrame";
-import { smoothstep } from "@packages/renderer-core/src/scalar";
 import {
   campaignArmyLabels,
   campaignCityLabels,
@@ -81,7 +80,7 @@ import {
   campaignScenery,
   tallySceneryCandidates,
 } from "@packages/game-renderer/src/campaign/scenery";
-import { roundMs } from "@packages/game-renderer/src/math";
+import { roundMs, smoothstep } from "@packages/renderer-core/src/math";
 import { CAMPAIGN_ENVIRONMENT } from "@packages/game-renderer/src/campaign/environment";
 
 export const MAX_CAMPAIGN_ZOOM = 8;

@@ -1,4 +1,4 @@
-import { clamp01, smoothstep } from "@packages/renderer-core/src/scalar";
+import { clamp01, smoothstep } from "@packages/renderer-core/src/math";
 
 export interface CameraRigBounds {
   width: number;

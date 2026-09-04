@@ -1,6 +1,6 @@
 // Production policy above the photoreal world: frozen frames, debug mode, and CPU timing.
 import type { Camera } from "../shared/camera";
-import { roundMs } from "@packages/game-renderer/src/math";
+import { roundMs } from "@packages/renderer-core/src/math";
 import {
   PhotorealBattleWorld,
   type BattleCameraSnapshot,

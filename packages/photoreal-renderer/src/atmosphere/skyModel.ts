@@ -39,7 +39,7 @@ import type {
   CivsimEnvironment,
   CivsimEnvironmentId,
 } from "../../../game-renderer/src/environment/environment";
-import { smoothstep as smoothstepScalar } from "../../../renderer-core/src/scalar";
+import { smoothstep as smoothstepScalar } from "../../../renderer-core/src/math";
 
 type Rgb = readonly [number, number, number];
 type Vec3Node = Node<"vec3">;

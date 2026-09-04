@@ -33,7 +33,7 @@ import type { PhotorealBattleGroundMesh } from "../../../game-renderer/src/battl
 import type { PhotorealEarthDistanceField } from "../../../game-renderer/src/battle/photorealEarthDistance";
 import { GROUND_COVER_COLOR, MEADOW } from "../../../game-renderer/src/battle/meadowPalette";
 import type { BattleHorizonLayout } from "../../../game-renderer/src/battle/horizonPass";
-import { smoothstep } from "../../../renderer-core/src/scalar";
+import { smoothstep } from "../../../renderer-core/src/math";
 import {
   fbmN,
   hashN,

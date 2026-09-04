@@ -1,5 +1,5 @@
 import type { CampaignData } from "./data";
-import { hash2 } from "@packages/game-renderer/src/math";
+import { hash2 } from "@packages/renderer-core/src/math";
 
 export async function buildTestCampaign(): Promise<{ data: CampaignData; mapJson: string }> {
   // y ~ 450 puts the stage in a temperate (green-grass) latitude band.

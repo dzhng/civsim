@@ -1,6 +1,6 @@
 import type { CampaignRenderData } from "../campaign/entityFrame";
 import type { CampaignSceneryInstance } from "../campaign/sceneryPass";
-import { hash2 } from "../math";
+import { hash2 } from "../../../renderer-core/src/math";
 
 export function testStageScenery(data: CampaignRenderData): CampaignSceneryInstance[] {
   const [x0, y0] = data.bgRect.min;

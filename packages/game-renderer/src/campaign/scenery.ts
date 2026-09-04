@@ -5,7 +5,7 @@ import type {
   CampaignTerrainField,
 } from "./entityFrame";
 import { testStageScenery } from "../fixtures/campaignScenery";
-import { hash2 } from "../math";
+import { hash2 } from "../../../renderer-core/src/math";
 
 const CAMPAIGN_MOUNTAIN_MIN_SCALE = 0.28;
 const CAMPAIGN_TREE_MIN_SCALE = 0.45;

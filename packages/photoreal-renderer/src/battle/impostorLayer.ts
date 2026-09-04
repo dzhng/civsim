@@ -246,6 +246,13 @@ export class OctahedralImpostorLayer {
       factionMask: "sampled armband locator; no shield/crest/body faction tint",
     };
   }
+
+  dispose(): void {
+    this.mesh.removeFromParent();
+    this.geometry.dispose();
+    (this.mesh.material as THREE.Material).dispose();
+    this.atlas.texture.dispose();
+  }
 }
 
 function sampledFactionAccentNode(

@@ -211,6 +211,7 @@ export function enterBattleScene(
       soldierStartOf: controls.soldierStartOf,
       terrainDebug: battleMinimap.terrainDebug,
       tickCount: () => simTick,
+      disposeRenderer: world.disposeRenderer,
     },
     renderer,
     stride: STRIDE,

@@ -72,6 +72,7 @@ export class PhotorealWorld {
   private timeSeconds = 0;
   private gpuTimeMs: number | null = null;
   private timestampBroken = false;
+  private environmentDisposer: (() => void) | null = null;
   // Snapshotted at render(): three's internal animation loop calls
   // info.reset() every browser frame, so live info.render counts read 0
   // whenever stats() runs outside the render call's own task.
@@ -131,6 +132,11 @@ export class PhotorealWorld {
     return this.timeSeconds;
   }
 
+  ownEnvironment(dispose: () => void): void {
+    this.environmentDisposer?.();
+    this.environmentDisposer = dispose;
+  }
+
   resize(width: number, height: number, pixelRatio = 1): void {
     this.renderer.setPixelRatio(pixelRatio);
     this.renderer.setSize(width, height, false);
@@ -188,6 +194,10 @@ export class PhotorealWorld {
   }
 
   dispose(): void {
+    this.environmentDisposer?.();
+    this.environmentDisposer = null;
+    const context = (this.renderer.backend as unknown as { context?: GPUCanvasContext }).context;
+    context?.unconfigure?.();
     this.renderer.dispose();
   }
 }

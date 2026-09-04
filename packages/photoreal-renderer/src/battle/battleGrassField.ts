@@ -414,8 +414,8 @@ export class BattleGrassField {
 
   dispose(): void {
     this.sampleTask = null;
-    this.base.setVisible(false);
-    this.ring.setVisible(false);
+    this.base.dispose();
+    this.ring.dispose();
   }
 
   private visibleNow(): boolean {

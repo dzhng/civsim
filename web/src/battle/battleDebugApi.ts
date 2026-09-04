@@ -34,6 +34,7 @@ interface DebugOwners {
   soldierStartOf(unit: number): number;
   terrainDebug(): unknown;
   tickCount(): number;
+  disposeRenderer(): void;
 }
 
 export function installBattleDebugApi({
@@ -129,6 +130,11 @@ export function installBattleDebugApi({
       return alive[i] ?? 0;
     },
     debugSoldierAnim: (i: number) => renderer.debugSoldierAnim(i),
+    rendererMemoryInfo: () => ({
+      ...renderer.memoryInfo(),
+      wasmMemoryBytes: wasm.memory.buffer.byteLength,
+    }),
+    disposeRenderer: owners.disposeRenderer,
     audio: () => audio.inspect(),
     heightAt: (x: number, y: number) => renderer.heightAt(x, y),
     vistaHeightAt: (x: number, y: number) =>

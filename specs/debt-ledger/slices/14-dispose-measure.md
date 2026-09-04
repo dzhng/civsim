@@ -42,7 +42,25 @@ backend.
 
 ## Measured
 
-_(fill in)_
+Chrome hardware (`apple / metal-3`), ten battle → campaign → battle cycles.
+The probe forces garbage collection and samples process memory after each
+explicit battle-renderer disposal, so the process series measures retained
+memory rather than the live battle's allocations.
+
+- Before layer disposal, `renderer.info.memory` was flat at 23 geometries and
+  22 textures; WebGPU exposed no `renderer.info.programs` array. Process bytes
+  were `[231627806, 337669247, 440362614, 537611768, 644831898,
+  747178442, 852150490, 951551724, 1058886134, 1157370492]`: monotonic
+  growth of 925,742,686 bytes, so the decision rule activated disposal work.
+- After each layer disposes its own geometry, materials, textures, post targets,
+  and blade-field storage/indirect buffers before the backend, renderer counters
+  stayed flat at 22 geometries and 22 textures. Post-dispose process bytes were
+  `[63539350, 68789865, 74354206, 83645790, 84525910, 89429770,
+  94191386, 99159730, 104731580, 109475170]`. The large renderer leak fell by
+  about 95%; the remaining 45,935,820-byte monotonic rise is Chrome/three
+  backend and campaign re-entry retention, not a live battle-world owner (a
+  forced heap snapshot retained zero `PhotorealBattleWorld` instances). WASM
+  memory stayed flat after its initial allocator growth.
 
 ## Feedback that would change this slice
 

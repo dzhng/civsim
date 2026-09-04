@@ -32,15 +32,16 @@ interface SceneryBucket {
  *  the shared prop meshes with the sceneryPass shading ported to TSL. */
 export class PhotorealScenery {
   private buckets = new Map<SceneryPropId, SceneryBucket>();
+  private readonly leafMap: THREE.DataTexture;
   private total = 0;
 
   constructor(scene: THREE.Scene) {
-    const leafMap = leafAtlasTexture();
+    this.leafMap = leafAtlasTexture();
     for (const kind of SCENERY_KINDS) {
       const model = SCENERY_PROP_MODELS[kind].build();
       const opaque = new THREE.Mesh(
         sceneryGeometry(model.opaque.vertices, model.opaque.indices, model.opaque.uvs),
-        sceneryMaterial(leafMap),
+        sceneryMaterial(this.leafMap),
       );
       opaque.name = `battle-scenery-${kind}`;
       opaque.renderOrder = RENDER_ORDER.worldOpaque;
@@ -84,6 +85,15 @@ export class PhotorealScenery {
 
   stats() {
     return { scenery: this.total };
+  }
+
+  dispose(): void {
+    for (const { opaque } of this.buckets.values()) {
+      opaque.removeFromParent();
+      opaque.geometry.dispose();
+      (opaque.material as THREE.Material).dispose();
+    }
+    this.leafMap.dispose();
   }
 }
 

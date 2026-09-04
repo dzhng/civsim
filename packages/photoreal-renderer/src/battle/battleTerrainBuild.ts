@@ -151,6 +151,10 @@ export class BattleTerrainSurface {
     };
   }
 
+  dispose(): void {
+    this.removeAndDispose();
+  }
+
   private removeAndDispose(): void {
     for (const mesh of this.meshes()) {
       this.scene.remove(mesh);

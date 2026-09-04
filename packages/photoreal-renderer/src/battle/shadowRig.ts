@@ -223,7 +223,7 @@ export function configureSunShadows(
     setWorldRect: fit,
     cullingFrusta: () => shadowFrustaForCascadeLights([sun]),
     identity: () => identityFor(1, SINGLE_MAP_SIZE),
-    dispose: () => {},
+    dispose: () => shadow.dispose(),
   };
 }
 

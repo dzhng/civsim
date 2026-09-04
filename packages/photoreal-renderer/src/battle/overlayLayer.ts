@@ -156,6 +156,12 @@ export class PhotorealLineLayer {
   stats() {
     return { vertices: this.vertexCount, lineSegments: Math.floor(this.vertexCount / 2) };
   }
+
+  dispose(): void {
+    this.lines.removeFromParent();
+    this.lines.geometry.dispose();
+    (this.lines.material as THREE.Material).dispose();
+  }
 }
 
 /** A growable overlay triangle layer fed by (x, y, r, g, b, a)-stride vertex
@@ -218,6 +224,12 @@ export class PhotorealTriangleLayer {
 
   stats() {
     return { vertices: this.vertexCount, triangles: Math.floor(this.vertexCount / 3) };
+  }
+
+  dispose(): void {
+    this.mesh.removeFromParent();
+    this.mesh.geometry.dispose();
+    (this.mesh.material as THREE.Material).dispose();
   }
 }
 
@@ -326,6 +338,12 @@ export class PhotorealRingLayer {
   stats() {
     return { rings: this.count };
   }
+
+  dispose(): void {
+    this.mesh.removeFromParent();
+    this.geometry.dispose();
+    (this.mesh.material as THREE.Material).dispose();
+  }
 }
 
 /** Far-LOD marker impostors as camera-facing billboards (the 04c/04d re-home).
@@ -426,5 +444,11 @@ export class PhotorealMarkerLayer {
 
   stats() {
     return { markers: this.count };
+  }
+
+  dispose(): void {
+    this.mesh.removeFromParent();
+    this.geometry.dispose();
+    (this.mesh.material as THREE.Material).dispose();
   }
 }

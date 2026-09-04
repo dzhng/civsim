@@ -613,8 +613,21 @@ export class PhotorealBattleWorld {
   }
 
   dispose(): void {
+    this.post.dispose();
+    this.background.dispose();
+    this.terrainSurface.dispose();
     this.grass.dispose();
+    this.scenery.dispose();
+    this.crowd.dispose();
     this.shadowRig.dispose();
+    this.groundCues.dispose();
+    this.selectionRings.dispose();
+    this.effectLines.dispose();
+    this.debugTriangles.dispose();
+    this.debugBlocks.dispose();
+    this.markerLayer.dispose();
+    this.standardLayer.dispose();
+    this.readoutLayer.dispose();
     this.world.dispose();
   }
 }

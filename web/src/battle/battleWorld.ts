@@ -245,6 +245,7 @@ export interface BattleWorld {
   camera: Camera;
   cameraRig: BattleCameraRig;
   renderer: BattleRenderer;
+  disposeRenderer(): void;
   audio: BattleAmbientAudio;
   signal: AbortSignal;
   stride: number;
@@ -254,6 +255,12 @@ export interface BattleWorld {
 }
 
 let sharedRenderer: BattleRenderer | null = null;
+
+function disposeSharedRenderer(renderer: BattleRenderer): void {
+  if (sharedRenderer !== renderer) return;
+  renderer.dispose();
+  sharedRenderer = null;
+}
 
 export function createBattleWorld(cfg: BattleConfig, cleanups: (() => void)[]): BattleWorld {
   const ui = document.getElementById("battle-ui")!;
@@ -302,6 +309,7 @@ export function createBattleWorld(cfg: BattleConfig, cleanups: (() => void)[]): 
     camera,
     cameraRig: new BattleCameraRig(camera, canvas),
     renderer,
+    disposeRenderer: () => disposeSharedRenderer(renderer),
     audio,
     signal: abortController.signal,
     stride,

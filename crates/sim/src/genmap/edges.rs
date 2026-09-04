@@ -2,7 +2,7 @@
 //!
 //! The landform still owns the broad E/W ridge mass. This module composes a
 //! seeded seal vocabulary over that truth after hydrology has settled:
-//! `CliffRun` keeps the slice-02 rock ridge, `ForestBelt` blocks the ridge foot
+//! `CliffRun` continues the rock ridge, `ForestBelt` blocks the ridge foot
 //! with forest tint, and `WaterReach` cuts a water-tinted bay in from the map
 //! edge. Every speed-0 cell this module writes carries the visual tint that
 //! explains the block.

@@ -188,12 +188,9 @@ fn pikes_bite_only_to_the_front() {
         "pikes must punish the FRONT more than the rear: attacker died {atk_front} (front) vs {atk_rear} (rear)"
     );
     // And the phalanx is the one that bleeds when its hedge faces the wrong way.
-    // The combat overhaul (3s stun, attack intervals ~3.5x longer, sword damage at
-    // parity 0.5) made every grind slower and less lethal per unit time, so the
-    // ABSOLUTE rear toll dropped from the old >40 to ~25 in this 70s window. The
-    // DIRECTIONAL truth is unchanged and stark: hit from behind the wall has no
-    // pikes there and pays heavily (ph_rear ~25) while a frontal hedge barely
-    // bleeds (ph_front ~0). Pin the gap, not the old magnitude.
+    // The directional truth is stark: hit from behind, the wall has no pikes
+    // there and pays heavily, while a frontal hedge barely bleeds. Pin the gap,
+    // not an absolute toll.
     assert!(
         ph_rear > ph_front + 15,
         "a phalanx hit from behind has no pikes there, so it pays: phalanx died {ph_rear} (rear) vs {ph_front} (front)"

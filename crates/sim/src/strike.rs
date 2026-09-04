@@ -150,7 +150,7 @@ pub fn field(
 /// FLANK lobe — the rider turns broadside so the blade bears, instead of staring
 /// the foe into the blind front where it cannot cut. Holds the current facing
 /// when the foe is already in a lobe (the deadzone keeps it from twitching), else
-/// swings to the nearer flank edge. Reads the sabre's own zones (slice 04).
+/// swings to the nearer flank edge. Reads the sabre's own zones.
 #[inline]
 pub fn face_foe_into_flank(raw: f32, current_facing: f32, zones: Zones) -> f32 {
     let off = wrap_angle(raw - current_facing);

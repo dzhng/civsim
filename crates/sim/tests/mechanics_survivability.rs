@@ -164,9 +164,8 @@ fn attack_lethality_grinds_a_reference_line_in_about_three_to_four_minutes() {
         REF_BLADE.damage
     );
     assert!(
-        // Re-derived for melee-blob slice 05's torque-free pivot projection:
-        // old 180-255s around measured 193s kept the same relative tolerance
-        // around the corrected-physics 167s actual.
+        // The band pins the reference grind duration with enough tolerance for
+        // its downstream combat variance.
         (156.0..=221.0).contains(&t),
         "an equal reference-line grind should last near the corrected reference band (156-221s), not {t:.0}s ({:.1} min) — \
          retune REF_BLADE.damage",
@@ -244,20 +243,16 @@ fn survivability_scales_with_the_reference_stats() {
 
     // HP is ~linear in survivability (pure-body references, no block/evade).
     // Super-linear in practice — a tougher front rank holds formation longer,
-    // so its later defence is better; the band allows that. Re-derived twice:
-    // melee-blob slice 05 (5.85 -> 6.18x), then formation-settle slice 04
-    // (6.18 -> 6.87x): the packed lateral friction + noise-gated reform keep
-    // a tough front seated even longer — the same documented mechanism,
-    // amplified. Band keeps the linearity floor and ~5% headroom over actual.
+    // so its later defence is better; packed lateral friction and noise-gated
+    // reform keep that front seated. The band keeps the linearity floor and
+    // headroom over the measured ratio.
     assert!(
         (3.7..=7.2).contains(&(hp4 / hp1)),
         "4x HP should last near the corrected reference band (3.7-7.2x): got {:.2}x",
         hp4 / hp1
     );
     assert!(
-        // Re-derived for melee-blob slice 05 (2.05 -> 2.15x), then
-        // formation-settle slice 04 (2.15 -> 2.65x): same seated-front
-        // super-linearity as the HP4 band above.
+        // The same seated-front super-linearity applies as in the HP4 band.
         (1.78..=2.8).contains(&(hp2 / hp1)),
         "2x HP should last near the corrected reference band (1.78-2.8x): got {:.2}x",
         hp2 / hp1

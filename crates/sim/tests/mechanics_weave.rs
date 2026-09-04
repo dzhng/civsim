@@ -229,19 +229,12 @@ fn charge_speed_per_class_is_tracked() {
         "charge speeds drifted: light {light:.2} (was {LIGHT_CHARGE}), heavy {heavy:.2} (was {HEAVY_CHARGE}), cav {cav:.2} (was {CAV_CHARGE}) — a movement side effect; confirm it's wanted, then update the golden",
     );
 }
-// Golden charge peaks (m/s), captured from the charge-aware per-man ceiling
-// (soldier_charge_speed). Re-measured after the combat-pacing overhaul
-// (411f712), which nudged the movement equilibrium up a hair: light 3.92->4.06,
-// heavy 3.37->3.44, cav 7.49->7.99. A wanted movement side effect, not drift.
+// Golden charge peaks (m/s) from the charge-aware per-man ceiling
+// (`soldier_charge_speed`).
 const LIGHT_CHARGE: f32 = 4.06;
 const HEAVY_CHARGE: f32 = 3.44;
-// cav re-baselined 2026-06-26 with pace_mult 2.6 -> 3.6: the per-man charge
-// ceiling rose to ~12.1 m/s, but this short rig is acceleration-limited so the
-// MEASURED peak lands at 9.54 (the longer the runway, the closer to the cap).
-// Re-baselined 2026-06-26 to 10.53 after the cost-based targeting spine (slice
-// 01): an arc-aware rider no longer wheels toward a foe sitting in its blind
-// front, so it drives forward more cleanly and the accel-limited runway reaches
-// a higher peak (closer to the ~12.1 cap). A wanted side effect of the spine.
+// The cavalry rig is acceleration-limited, so an arc-aware rider drives forward
+// toward the per-man ceiling without reaching it on this short runway.
 const CAV_CHARGE: f32 = 10.53;
 
 /// A clean rectangular block, facing north, on a parade ground.

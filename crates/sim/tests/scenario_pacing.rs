@@ -109,10 +109,8 @@ fn mirror_duels_light_is_a_near_peer_grind() {
 
 #[test]
 fn mirror_duels_heavy_should_be_a_near_peer_grind() {
-    // High-tier contract: fights to deep casualties, near-peer. Re-derived for
-    // melee-blob slice 05's torque-free pivot projection: clean HEAD measured
-    // 403s inside the old 350-620s band; corrected physics measures 287s, so the
-    // old relative tolerance is kept around that actual. Casualty and no-snowball
-    // rails stay unchanged.
+    // High-tier contract: fights reach deep casualties and remain near-peer;
+    // duration has a relative tolerance while casualty and no-snowball rails
+    // stay strict.
     mirror_near_peer("heavy", UnitClassId::HeavySword, 249.0, 442.0, 0.72, 0.94);
 }

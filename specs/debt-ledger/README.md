@@ -82,7 +82,7 @@ parallel in separate worktrees (see the lane table for file disjointness).
 - [x] Base/ring blade layers share one material per tier [11]
 - [x] `typedUniform<T>`; transition snapshot; stats stride off the frame [12]
 - [x] Battle renderer wrapper forwards `world.stats()`; mirrors deleted [13]
-- [ ] Dispose measured; dispose written only on measured growth [14]
+- [x] Dispose measured; dispose written only on measured growth [14]
 - [x] One test runner (vitest); loaders deleted [15]
 - [x] `@packages/*` alias; 70 relative imports rewritten [16]
 - [x] `SimClock`, `cameraKeyController`, `awaitRendererReady` shared [17]

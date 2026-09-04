@@ -113,8 +113,6 @@ interface WaterSampleNodes {
   foam: FloatNode;
 }
 
-export type SeaDisplacementSourceId = "gerstner-tsl";
-type SeaDisplacementTier = "gerstner-tsl";
 
 interface SeaSurfaceStats {
   owner: typeof SEA_SURFACE_OWNER;
@@ -158,10 +156,8 @@ interface SeaSurfaceStats {
 }
 
 interface SeaDisplacementStats {
-  requested: SeaDisplacementSourceId;
-  source: SeaDisplacementSourceId;
-  tier: SeaDisplacementTier;
-  fallback: boolean;
+  source: "gerstner-tsl";
+  tier: "gerstner-tsl";
   resolution: number;
   cascades: number;
   storageBytes: number;
@@ -169,9 +165,8 @@ interface SeaDisplacementStats {
 }
 
 interface SeaDisplacementSource {
-  readonly requested: SeaDisplacementSourceId;
-  readonly source: SeaDisplacementSourceId;
-  readonly tier: SeaDisplacementTier;
+  readonly source: "gerstner-tsl";
+  readonly tier: "gerstner-tsl";
   sample(p: Vec2Node, t: FloatNode): WaterSampleNodes;
   height(p: Vec2Node, t: FloatNode): FloatNode;
   stats(): SeaDisplacementStats;
@@ -179,16 +174,7 @@ interface SeaDisplacementSource {
 
 class GerstnerSeaSource implements SeaDisplacementSource {
   readonly source = "gerstner-tsl" as const;
-  readonly requested: SeaDisplacementSourceId;
-  readonly tier: SeaDisplacementTier;
-
-  constructor(
-    requested: SeaDisplacementSourceId = "gerstner-tsl",
-    tier: SeaDisplacementTier = "gerstner-tsl",
-  ) {
-    this.requested = requested;
-    this.tier = tier;
-  }
+  readonly tier = "gerstner-tsl" as const;
 
   sample(p: Vec2Node, t: FloatNode): WaterSampleNodes {
     return waterFieldNodes(p, t);
@@ -200,10 +186,8 @@ class GerstnerSeaSource implements SeaDisplacementSource {
 
   stats(): SeaDisplacementStats {
     return {
-      requested: this.requested,
       source: this.source,
       tier: this.tier,
-      fallback: this.requested !== this.source,
       resolution: 1,
       cascades: 1,
       storageBytes: 0,
@@ -212,17 +196,9 @@ class GerstnerSeaSource implements SeaDisplacementSource {
   }
 }
 
-export function seaDisplacementSourceFromParam(
-  value: string | null | undefined,
-): SeaDisplacementSourceId {
-  const normalized = value === "gerstner" || value === "gerstner-tsl" ? value : "gerstner-tsl";
-  return normalized === "gerstner" ? "gerstner-tsl" : normalized;
-}
-
-export function createSeaDisplacementSource(
-  requested: SeaDisplacementSourceId = "gerstner-tsl",
-): SeaDisplacementSource {
-  return new GerstnerSeaSource(requested);
+/** The Gerstner TSL field is the only sea displacement source. */
+export function createSeaDisplacementSource(): SeaDisplacementSource {
+  return new GerstnerSeaSource();
 }
 
 function seaSurfaceStats(): SeaSurfaceStats {

@@ -48,7 +48,6 @@ function seaQuery(t) {
     env: "noon",
     t: String(t),
     ticks: "60",
-    sea: "gerstner",
     zoom: "8.0",
     cx: "-1180",
     cy: "-150",
@@ -110,10 +109,7 @@ export async function run(ctx) {
     // revived bespoke path.
     ctx.check(
       "sea-rhythm: Gerstner-TSL is the only active displacement tier",
-      seaStats?.requested === "gerstner-tsl" &&
-        seaStats?.source === "gerstner-tsl" &&
-        seaStats?.tier === "gerstner-tsl" &&
-        seaStats?.fallback === false,
+      seaStats?.source === "gerstner-tsl" && seaStats?.tier === "gerstner-tsl",
       JSON.stringify(seaStats),
     );
     ctx.check(

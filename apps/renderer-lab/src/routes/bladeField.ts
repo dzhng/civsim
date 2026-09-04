@@ -5,7 +5,6 @@ import { eyePosition } from "@packages/renderer-core/src/camera3d";
 import { PhotorealBattleWorld } from "@packages/photoreal-renderer/src/battle/battleWorld";
 import { PhotorealBladeFieldLayer } from "@packages/photoreal-renderer/src/battle/bladeFieldLayer";
 import { createPhotorealStatsPublisher } from "@packages/photoreal-renderer/src/stats";
-import { seaDisplacementSourceFromParam } from "@packages/photoreal-renderer/src/battle/seaLayer";
 import { Camera } from "../../../../web/src/shared/camera";
 import { type LabContext, reportTable } from "../labShell";
 
@@ -16,7 +15,6 @@ export async function route(ctx: LabContext) {
     PhotorealBattleWorld.create(ctx.canvas, {
       environment: ctx.params.get("env") ?? "overcast-foggy",
       shadows: ctx.params.get("shadows") ?? "off",
-      sea: seaDisplacementSourceFromParam(ctx.params.get("sea")),
       post: ctx.params.get("post") ?? "off",
     }),
   ]);

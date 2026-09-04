@@ -34,7 +34,6 @@ import { BattleBackgroundQuads, RENDER_ORDER, type BattleVistaGrid } from "./ter
 import {
   createSeaDisplacementSource,
   type BattleLakeSurfaceSpec,
-  type SeaDisplacementSourceId,
 } from "./seaLayer";
 import {
   createBladeFieldWindUniforms,
@@ -228,7 +227,6 @@ export class PhotorealBattleWorld {
     options: {
       environment?: string | null;
       shadows?: string | null;
-      sea?: SeaDisplacementSourceId;
       post?: string | null;
       grassQuality?: BattleGrassQuality;
       postGrade?: Partial<BattlePostGradeUniforms> | null;
@@ -240,7 +238,7 @@ export class PhotorealBattleWorld {
       PhotorealWorld.create(canvas, { antialias: false }),
       loadPlaceholderKit(),
     ]);
-    const sea = createSeaDisplacementSource(options.sea ?? "gerstner-tsl");
+    const sea = createSeaDisplacementSource();
     const vats = await loadClassVats(kit);
     const classMeshes = await loadClassMeshes(kit);
     const meshes = createPlaceholderSoldierMeshTiers([0.06, 0.1, 0.98]);

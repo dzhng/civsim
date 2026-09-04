@@ -25,7 +25,6 @@ const SEA_QUERY = new URLSearchParams({
   env: "noon",
   t: String(FIXED_TIME),
   ticks: "60",
-  sea: "gerstner",
   zoom: "8.0",
   cx: "-1180",
   cy: "-150",
@@ -58,11 +57,7 @@ export async function run(ctx) {
     const sea = stats?.sea ?? null;
     ctx.check(
       "sea: Gerstner TSL is the only active displacement tier",
-      sea?.requested === "gerstner-tsl" &&
-        sea?.source === "gerstner-tsl" &&
-        sea?.tier === "gerstner-tsl" &&
-        sea?.fallback === false &&
-        sea?.storageBytes === 0,
+      sea?.source === "gerstner-tsl" && sea?.tier === "gerstner-tsl" && sea?.storageBytes === 0,
       JSON.stringify(sea),
     );
     ctx.check(

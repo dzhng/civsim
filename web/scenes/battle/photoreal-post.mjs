@@ -32,7 +32,6 @@ const BASE = {
   ref: "1",
   t: String(FIXED_TIME),
   ticks: "60",
-  sea: "gerstner",
   zoom: "8.0",
   cx: "-1180",
   cy: "-150",

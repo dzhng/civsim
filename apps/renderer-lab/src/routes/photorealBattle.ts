@@ -39,7 +39,6 @@ import {
   type BattleTacticalLineFrame,
 } from "@packages/photoreal-renderer/src/battle/battleWorld";
 import { postGradeUniformsFromParams } from "@packages/photoreal-renderer/src/post/postChain";
-import { seaDisplacementSourceFromParam } from "@packages/photoreal-renderer/src/battle/seaLayer";
 import { DEFAULT_BATTLE_ENVIRONMENT } from "@packages/game-renderer/src/environment/environment";
 import { BATTLE_RELIEF_EXAGGERATION } from "@packages/game-renderer/src/battle/terrainFeatures";
 import { readBattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainGrid";
@@ -72,7 +71,6 @@ export async function route(ctx: LabContext) {
     PhotorealBattleWorld.create(ctx.canvas, {
       environment,
       shadows: params.get("shadows"),
-      sea: seaDisplacementSourceFromParam(params.get("sea")),
       post: params.get("post"),
       postGrade: postGradeUniformsFromParams(params),
     }),

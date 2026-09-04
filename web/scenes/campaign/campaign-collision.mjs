@@ -6,7 +6,7 @@ import { campaign } from "../worlds.mjs";
 //   - label ink rects pairwise disjoint (city/army/faction; sea labels and
 //     sub-0.3-opacity fades are background text, outside the game);
 //   - cards pairwise disjoint and clear of label ink (major faction
-//     engravings excepted — background-scale text, pinned in the slice);
+//     engravings excepted — background-scale text);
 //   - the named evidence pairs: LONDINIUM clear of ARVERNI at overview, the
 //     Roma cluster (ROMA/TIBUR/OSTIA) card title rows readable at regional;
 //   - the same-frame ordering pin: one cam() call = one drawWorld, and the

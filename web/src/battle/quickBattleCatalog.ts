@@ -6,7 +6,7 @@ import type { BattleFactionId } from "@packages/game-renderer/src/battle/faction
 import type { BattleEnvironmentId } from "@packages/game-renderer/src/environment/environment";
 
 // Quick Battle setup data: a pure, DOM-free catalog the setup panel and its
-// tests both consume. Map options are the frozen Slice-02 BattleMapCatalogEntry
+// tests both consume. Map options are the frozen BattleMapCatalogEntry
 // list — this module never redeclares edge roles, ground cover, or wasm map ids.
 // Class ids match web/src/battle/classData.ts (0..14); unit costs are canonical
 // in the sim (contract::unit_cost, surfaced through Game.class_specs()), so the

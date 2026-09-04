@@ -11,7 +11,7 @@ test("photoreal sea: route params select the displacement source", () => {
   assert.equal(seaDisplacementSourceFromParam(null), "gerstner-tsl");
   assert.equal(seaDisplacementSourceFromParam("gerstner"), "gerstner-tsl");
   assert.equal(seaDisplacementSourceFromParam("gerstner-tsl"), "gerstner-tsl");
-  // Retired or unknown params (e.g. the deleted IFFT source) fall back to the
+  // Unknown params fall back to the
   // one live source rather than erroring.
   assert.equal(seaDisplacementSourceFromParam("no-such-source"), "gerstner-tsl");
 });
@@ -44,7 +44,7 @@ test("photoreal sea: Gerstner is the default active source", () => {
       },
       foam: {
         // Base thresholds x SEA_SWELL_SCALE (0.55) — David's calm-register
-        // call (2026-07-02): foam scales with the swell so coverage holds.
+        // foam scales with the swell so coverage holds.
         heightStart: 0.52 * 0.55,
         heightEnd: 1.55 * 0.55,
         slopeStart: 0.12,
@@ -71,7 +71,7 @@ test("photoreal sea: Gerstner is the default active source", () => {
   });
 });
 
-test("photoreal sea: adapter tier collapses to Gerstner after the 12a verdict", () => {
+test("photoreal sea: every adapter tier resolves to Gerstner", () => {
   const stats = createSeaDisplacementSource("gerstner-tsl").stats();
   assert.equal(stats.requested, "gerstner-tsl");
   assert.equal(stats.source, "gerstner-tsl");

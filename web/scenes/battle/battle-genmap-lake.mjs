@@ -15,7 +15,7 @@ export const meta = {
   tier: "full",
   snapshots: ["battle-genmap-lake/golden-lake", "battle-genmap-lake/overcast-lake"],
   describe:
-    "BMS15-SLICE-B8D2: generated lake pockets render as calm sea-family water clipped to sim tint=water cells.",
+    "Generated lake pockets render as calm sea-family water clipped to sim tint=water cells.",
 };
 
 export async function run(ctx) {

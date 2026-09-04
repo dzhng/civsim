@@ -23,8 +23,8 @@ export const meta = {
     "Fixed-size 3:4 unit-card grid wrapping 20/30/40 cards into rows at dpr 1 and 2, plus the min-window gate.",
 };
 
-// The roster wraps into rows at a fixed card size (58px, 20% smaller than the
-// original 72): 20→1×20, 30→2×15, 40→2×20 at these viewport widths.
+// The roster wraps into rows at a fixed 58px card size:
+// 20→1×20, 30→2×15, 40→2×20 at these viewport widths.
 const CARD_W = 58;
 const CASES = [
   { count: 20, rows: 1, cols: 20 },
@@ -69,7 +69,7 @@ export async function run(ctx) {
       ctx.check(`card-bar-${count} no horizontal scroll`, box.sw <= box.cw, JSON.stringify(box));
       ctx.check(`card-bar-${count} no vertical scroll`, box.sh <= box.ch, JSON.stringify(box));
 
-      // Geometry matches the S1 expectation; cards stay the fixed size.
+      // Cards stay at the fixed size while the grid wraps.
       const grid = await page.evaluate(() => window.__cardGrid);
       ctx.check(`card-bar-${count} rows`, grid.rows === rows, `got ${grid.rows}, want ${rows}`);
       ctx.check(`card-bar-${count} cols`, grid.cols === cols, `got ${grid.cols}, want ${cols}`);

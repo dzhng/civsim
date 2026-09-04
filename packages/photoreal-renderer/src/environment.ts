@@ -1,8 +1,8 @@
 // applyCivsimEnvironment — dresses a PhotorealWorld from the ONE environment
 // preset owner (CIVSIM_ENVIRONMENTS / BATTLE_ENVIRONMENTS in
 // packages/game-renderer/src/environment/environment.ts): the physical sky
-// (SkyModel — background dome + IBL + sun tint, slice 10a), the ONE
-// aerial-perspective owner (scene.fogNode, slice 10b), the sun
+// (SkyModel — background dome + IBL + sun tint), the ONE aerial-perspective
+// owner (scene.fogNode), the sun
 // DirectionalLight, and toneMappingExposure. New physical fields are ADDED to
 // that owner, never forked into a parallel table — everything here is a pure
 // function of the preset (pinned by web/tests/photorealEnvironment.test.ts).
@@ -23,7 +23,7 @@ interface PhotorealEnvironmentSpec {
   /** Unit vector toward the sun, from the preset azimuth/elevation (z-up). */
   sunDirection: Rgb;
   /** Sun DirectionalLight colour — LINEAR rgb, derived from the sky model's
-   *  atmospheric transmittance (slice 10a), never the authored keyColor. */
+   *  atmospheric transmittance, never the authored keyColor. */
   sunColor: Rgb;
   sunIntensity: number;
   exposure: number;
@@ -95,7 +95,7 @@ export function applyCivsimEnvironment(
   sun.target.position.set(0, 0, 0);
   scene.add(sun);
   scene.add(sun.target);
-  // Published for the shadow seam (battle/shadowRig.ts, slice 11): shadows are
+  // Published for the shadow seam: shadows are
   // cast BY this same sun, so the preset's sunIntensity already scales how
   // strongly they read (overcast-highland's 0.32 sun ⇒ faint shadows, by physics).
   world.sunLight = sun;

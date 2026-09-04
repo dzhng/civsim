@@ -3,16 +3,13 @@ import { PNG } from "pngjs";
 // Every battle preset renders with the physical sky and atmosphere
 // /renderer/photoreal-battle at the SAME fixed setTime and vista framing
 // (the rig stop where sky and far terrain are both in frame). One visual
-// variable per sub-slice, each with its named crop:
-//   10a `sky-band`        (top third)      — the physical sky behind SkyModel
-//   10b `far-terrain-band` (distant ridge) — the ONE aerial-perspective owner
-//   10c `full`            (full frame)     — presets through the sky model
-// Asserts: the stats identity names WHICH sky tier rendered (the SwiftShader
-// capability contract — sky-LUT compute was the flagged risk; the shipped
-// tier is a fragment-pass LUT bake, so SwiftShader runs the SAME tier and
-// must render it non-blank), fixed-time frames are byte-deterministic, and
+// variable per case, each with its named crop: `sky-band` checks the physical
+// sky, `far-terrain-band` checks the ONE aerial-perspective owner, and `full`
+// checks the complete preset. The stats identity names WHICH sky tier rendered;
+// the fragment-pass LUT bake is adapter-neutral, so SwiftShader runs the SAME
+// tier and must render it non-blank. Fixed-time frames are byte-deterministic, and
 // the sky band carries the preset mood (golden warm vs overcast flat
-// high-key). Out of scope: sea material (12), terrain detail (13), shadows (11).
+// high-key).
 export const meta = {
   name: "battle-photoreal-sky",
   kind: "flow",
@@ -37,9 +34,8 @@ export const meta = {
 };
 
 // The vista rig stop (battle-perf-30k's framing): sky band + far ridge in frame.
-// zoom 5: the production blade field fills the lower half
-// of a zoom-9.5 frame with near blades - the sky/terrain band crops were
-// measuring grass, which dragged the overcast band warm (grass R>B).
+// zoom 5 keeps near blades out of the sky/terrain crops, where grass would
+// warm the measured overcast band.
 const FRAMING = "map=gen&seed=7&t=0&ref=1&zoom=5&cx=0&cy=-310";
 const SKY_TIER = "skyview-fragment-lut";
 // battle alias → the civsim preset id the stats identity must report.

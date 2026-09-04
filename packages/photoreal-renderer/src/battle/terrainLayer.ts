@@ -1,13 +1,10 @@
-// terrainLayer — the battle ground on the photoreal substrate. Born as literal
-// TSL ports of the production background quads (frameShell terrainWgsl/
-// terrainBackdropWgsl), the height-displaced ground mesh (groundPass
-// GROUND_WGSL, meadow branch unported), and the sealed-edge horizon blockers
-// (horizonPass HORIZON_WGSL); since slice 09 they are standard-material
-// responses with NEUTRAL albedos — the baked lambert/key-fill/exposure terms
-// are extracted, the sun + IBL environment light them. The CPU geometry comes
+// terrainLayer — the battle ground on the photoreal substrate. Background
+// quads, the height-displaced ground mesh, and sealed-edge horizon blockers use
+// standard-material responses with NEUTRAL albedos; the sun + IBL environment
+// light them. The CPU geometry comes
 // from the same builders the bespoke passes upload (buildBattleGroundMesh /
 // buildBattleHorizonLayout). Distance haze comes ONLY from the shared
-// aerial-perspective hook (scene.fogNode, slice 10b) — no material here adds
+// aerial-perspective hook (scene.fogNode) — no material here adds
 // its own haze, ever.
 import * as THREE from "three/webgpu";
 import {
@@ -75,7 +72,6 @@ export const RENDER_ORDER = {
   terrain: -9,
   markers: -8,
   worldOpaque: 0,
-  // (1 and 2 were the 08a blob-shadow decal bands — deleted at 11, real CSM.)
   groundCues: 3,
   effectLines: 10,
   debugBlocks: 11,
@@ -230,7 +226,7 @@ function terrainQuadMaterial(
   const hx = quadGroundHeight(world.add(vec2(1.8, 0.0))).sub(relief);
   const hy = quadGroundHeight(world.add(vec2(0.0, 1.8))).sub(relief);
   // The quad is 4 vertices: the relief normal must be per-fragment (a vertex
-  // varying would interpolate flat) — the sun now shades it, not a baked lambert.
+  // varying would interpolate flat) — the sun shades it directly.
   material.normalNode = transformNormalToView(normalize(vec3(hx.mul(-1.45), hy.mul(-1.45), 1.0)));
   const grazing = smoothstepN(
     0.16,
@@ -312,7 +308,7 @@ function backdropMaterial(): THREE.MeshStandardNodeMaterial {
 
 /** The background band: backdrop quad + terrain quad (two detail styles,
  *  toggled by the battle world's zoom policy). Deliberately
- *  OUTSIDE the slice-11 shadow set (neither casts nor receives): they are
+ *  OUTSIDE the shadow set (neither casts nor receives): they are
  *  depthTest-off underlays beyond the heightfield, always shaded fullscreen
  *  under the real ground — receiving would pay per-pixel cascade sampling
  *  twice for pixels the aerial haze owns anyway. */
@@ -629,7 +625,7 @@ export function createGroundMesh(
   ground.name = "battle-ground";
   ground.frustumCulled = false;
   ground.renderOrder = RENDER_ORDER.worldOpaque;
-  // Slice 11: the ground is the primary shadow RECEIVER (soldier/tree/cliff
+  // The ground is the primary shadow RECEIVER (soldier/tree/cliff
   // shadows land here) but does NOT cast. A gently undulating heightfield at
   // a grazing golden-hour sun needs cot(elevation)·texel ≈ 2–3 world units of
   // depth bias in the far cascades to stop self-shadow ripple — a bias that
@@ -810,7 +806,7 @@ export function createHorizonBlockerMesh(layout: BattleHorizonLayout): THREE.Mes
   mesh.name = "battle-horizon-blockers";
   mesh.frustumCulled = false;
   mesh.renderOrder = RENDER_ORDER.worldOpaque;
-  // Slice 11: headland cliffs/walls throw long shadows onto the field at low
+  // Headland cliffs/walls throw long shadows onto the field at low
   // sun and self-shade; they receive like every world surface.
   mesh.castShadow = true;
   mesh.receiveShadow = true;

@@ -5,7 +5,7 @@ import { PNG } from "pngjs";
 // shadows are legible even on the low-res fallback tier) per preset at the
 // SAME fixed setTime, plus the golden `shadow-contact` formation crop.
 // Asserts the shadow-tier identity (EVERY adapter defaults to mode:'single'
-// — one soft ortho map — since the CSM perf verdict; ?shadows=csm stays the
+// — one soft ortho map; ?shadows=csm stays the
 // QA override, asserted on hardware runs), shadow PRESENCE (?shadows=off
 // must move the grove crop), per-preset softness (radius derives from
 // turbidity — no new preset field), and fixed-time byte-determinism with
@@ -30,13 +30,11 @@ export const meta = {
 
 // A generated wooded-pass grove + a soldier formation in one frame. zoom
 // clamps to the rig; the grove crop stays legible at either adapter's clamp.
-// zoom 6: the production blade field fills a zoom-28 frame
-// with near-macro grass blades - the old framing measured blades, not the
-// grove, and the on/off check read 0 forever.
+// zoom 6 keeps near-macro grass blades out of the crop so it measures the grove
+// shadows.
 const FRAMING = "map=gen&seed=8&t=0&ref=1&zoom=6&cx=-560&cy=-380";
 // Grove crop (fractions of the 1280×800 canvas — the wooded-pass grove).
-// Aimed at seed 8's two dense mid-field forest clumps (the old fractions
-// straddled empty grass after the hand-map retirement retarget).
+// Aimed at seed 8's two dense mid-field forest clumps.
 const SCENERY_CROP = { x0: 0.51, y0: 0.5, w: 0.14, h: 0.13 };
 // Formation crop for the golden contact snap (soldier feet on ground).
 const CONTACT_CROP = { x0: 0.22, y0: 0.2, w: 0.13, h: 0.16 };
@@ -127,7 +125,7 @@ export async function run(ctx) {
     // shadows (aesthetics rule 2 — bright, legible, no moody near-black), so the
     // grove's on/off darkening is subtler than the ACES-era 1.5 this once pinned.
     // The mechanism still holds — the grove visibly darkens and ?shadows=off
-    // removes it — so the floor guards presence, not the old magnitude.
+    // removes it — so the floor guards presence, not magnitude.
     ctx.check(
       "shadows move the grove crop (on vs off mean|Δ| > 1.2)",
       delta > 1.2,

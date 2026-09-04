@@ -90,8 +90,8 @@ export class PhotorealReadoutLayer {
     // upload, so every cell samples the wrong row.
     this.atlasTexture.flipY = false;
     this.atlasTexture.colorSpace = THREE.SRGBColorSpace;
-    // No mipmaps: chips render at ONE screen size now (constant-size
-    // billboards), and mip levels average the dark plates into the
+    // No mipmaps: chips render as constant-size billboards, and mip levels
+    // average the dark plates into the
     // transparent padding — a washed-out grey smear.
     this.atlasTexture.minFilter = THREE.LinearFilter;
     this.atlasTexture.magFilter = THREE.LinearFilter;

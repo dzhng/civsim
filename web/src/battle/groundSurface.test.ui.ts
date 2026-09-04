@@ -11,7 +11,7 @@ import {
 } from "@packages/photoreal-renderer/src/battle/groundDetail";
 
 describe("photoreal battle ground surfaces", () => {
-  it("preserves the legacy stride-10 vertex bytes", () => {
+  it("preserves the stride-10 vertex contract", () => {
     const w = 7;
     const h = 6;
     const cell = 4;

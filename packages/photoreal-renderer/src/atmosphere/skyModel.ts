@@ -1,4 +1,4 @@
-// SkyModel — the ONE physical sky owner (slice 10a). The preset's physical
+// SkyModel — the ONE physical sky owner. The preset's physical
 // parameterization (sun elevation/azimuth + turbidity, from the ONE preset
 // owner CIVSIM_ENVIRONMENTS) drives everything the sky produces: the sky-view
 // LUT (radiance texture), the background dome that displays it, the IBL
@@ -6,8 +6,8 @@
 // sky), and the sun DirectionalLight colour (transmittance toward the sun).
 // Never two sky paths outside this seam.
 //
-// TIER DECISION (recorded in slices/10-sky-atmosphere.md): Hillaire-style
-// SKY-VIEW LUT, baked by a FRAGMENT pass — not compute. Single-scattering
+// The sky uses a Hillaire-style SKY-VIEW LUT baked by a FRAGMENT pass, not
+// compute. Single-scattering
 // raymarch (transmittance integrated inline per sample) with an analytic
 // multiple-scattering floor and a CIE-overcast blend keyed on turbidity. The
 // LUT bakes ONCE per preset (no time input — deterministic, byte-stable), so
@@ -64,11 +64,7 @@ export const BETA_MIE_EXTINCTION = 4.44e-3;
 const MIE_G = 0.8;
 const EYE_ALTITUDE_KM = 0.2;
 
-// Radiance calibration: SUN_RADIANCE is chosen so the presets' zenith
-// radiance lands on the register slice 09's exposure/IBL balance was tuned
-// against (calibration mirror: golden zenith → [0.10, 0.21, 0.42] vs the
-// stand-in's [0.16, 0.28, 0.52]; noon → [0.19, 0.36, 0.72] vs [0.19, 0.34,
-// 0.62]).
+// SUN_RADIANCE keeps preset zenith radiance within the exposure/IBL register.
 const SUN_RADIANCE = 25.0;
 /** Uniform multiple-scattering floor (Hillaire's ψms role, one constant),
  *  sky-blue tinted — clear-sky multiple scattering is sky-coloured, which
@@ -78,9 +74,8 @@ const MS_TINT: Rgb = [0.5, 0.7, 1.0];
 /** Low-sun dust/aerosol aureole. AgX deliberately compresses chroma in the
  *  display frame, so the sky model must carry enough warm sunward radiance
  *  before tone mapping for golden-hour pixels to remain warm. */
-// 0.42 left the displayed golden band a hair blue after AgX + the 17a
-// horizon blend (R-B = -0.6 of 177); 0.55 restores warm-neutral without
-// overcooking noon/overcast (both gated to ~0 by the strength curve).
+// The aureole preserves a warm-neutral golden band without affecting
+// noon/overcast, which the strength curve gates to approximately zero.
 const LOW_SUN_AUREOLE_RADIANCE = 0.55;
 const LOW_SUN_AUREOLE_COS_OUTER = -0.12;
 const LOW_SUN_AUREOLE_COS_INNER = 0.76;
@@ -90,7 +85,7 @@ const GROUND_BOUNCE_TINT: Rgb = [0.34, 0.3, 0.25];
 /** Overcast dome: high-key near-white grey (David's locked overcast mood:
  *  cool, flat, HIGH-KEY — the sky IS the light source). The gradient runs
  *  BRIGHTER toward the horizon (mist register, matching the reference and
- *  the 09 stand-in), not the darker CIE-standard horizon. */
+ *  the visual reference), not the darker CIE-standard horizon. */
 const OVERCAST_ZENITH_RADIANCE: Rgb = [1.02, 1.05, 1.1];
 /** Sun disc: ~1.2° visual radius (readable at game framing). The radiance is
  *  kept BELOW the ACES saturation knee so the transmittance tint survives —
@@ -109,9 +104,8 @@ export function mieScale(turbidity: number): number {
 /** Overcastness derived from turbidity — the single physical axis David's
  *  overcast mood hangs on (highland T 9.8 → 1.0; the three clear presets → 0). */
 export function overcastFromTurbidity(turbidity: number): number {
-  // Saturates by the overcast preset's turbidity (7.2 since the 17-era
-  // compose tune). The old 8.5 endpoint let 21% of the warm physical sky
-  // bleed past the grey dome - the overcast band read warm, not cool.
+  // Saturates by the overcast preset's turbidity so warm physical sky cannot
+  // bleed through the cool grey dome.
   // Extinction (the fog runway the compose gate accepted) is driven by
   // turbidity directly and does not move with this ramp.
   return smoothstepScalar(4.0, 7.0, turbidity);
@@ -119,7 +113,7 @@ export function overcastFromTurbidity(turbidity: number): number {
 
 export function lowSunAureoleStrength(sunDirectionZ: number, overcast: number): number {
   return (
-    // Squared: a mostly-overcast sky (0.79 since the 17-era turbidity tune)
+    // Squared: a mostly-overcast sky
     // must keep only a trace of aureole, or the overcast band reads warm.
     (1 - overcast) ** 2 *
     (1 - smoothstepScalar(0.25, 0.85, sunDirectionZ)) *
@@ -227,9 +221,9 @@ export class SkyModel {
     this.bakeMaterial.name = "photoreal-sky-bake";
     this.bakeMaterial.fog = false;
     this.bakeMaterial.lights = false;
-    // The LUT texel direction vector IS the world direction (z-up) — the same
-    // convention the 07/09 stand-in used: equirectDirection/equirectUV invert
-    // each other, so IBL lookups and dome/aerial samples land correctly.
+    // The LUT texel direction vector IS the world direction (z-up):
+    // equirectDirection/equirectUV invert each other, so IBL lookups and
+    // dome/aerial samples land correctly.
     this.bakeMaterial.colorNode = vec4(this.radianceNode(equirectDirection(uv())), 1.0);
 
     this.mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 24), this.domeMaterial());
@@ -308,7 +302,7 @@ export class SkyModel {
    *  context — at raw graph level they orphan and the accumulator stays 0. */
   private radianceNode(dirRaw: Vec3Node): Vec3Node {
     // The cast re-types the untyped Fn return (@types/three drops the node
-    // type — the 09-recorded hazard).
+    // type, which keeps the dome in the intended painter band).
     return Fn(() => this.radianceBody(dirRaw))() as unknown as Vec3Node;
   }
 

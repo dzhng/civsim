@@ -5,8 +5,8 @@ import type { LabContext } from './labShell';
 
 export type PhotorealRouteContext = Pick<LabContext, 'canvas' | 'status' | 'params'>;
 
-// Camera presets carried over from the 06 bake-off contract (same framing the
-// verdict shots and frame-time tables were judged at). Aspect is filled from
+// Camera presets use the same framing as the review shots and frame-time
+// tables. Aspect is filled from
 // the live canvas; only applyCamera3d may turn these into a three camera pose.
 export const YAW = -Math.PI / 2;
 

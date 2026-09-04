@@ -5,7 +5,7 @@
 // camera-facing TSL billboards. Upload contracts are unchanged: the SAME
 // Float32Array layouts drawTacticalLines/drawTris feed the bespoke passes.
 // The upload contracts carry display-referred colours (authored for the
-// bespoke swapchain); since slice 09 the frame is tonemapped sRGB (AgX), so
+// bespoke swapchain); the frame is tonemapped sRGB (AgX), so
 // each overlay linearizes through the one linearAlbedo seam, so authored overlay
 // colors keep their hue through the transform.
 import * as THREE from "three/webgpu";
@@ -235,7 +235,7 @@ export class PhotorealTriangleLayer {
 
 /** Instanced soft ground-ring decals — the campaign selection-ring profile
  *  (selectionPass.ts army ring: thin smoothstepped rim + a whisper of fill)
- *  ported to the battle world for per-soldier selection. Each instance seats
+ *  shared with the battle world for per-soldier selection. Each instance seats
  *  on the canonical terrain surface at upload and is depth-tested read-only,
  *  so soldiers and rises occlude it like any world decal. Upload contract:
  *  (x, y, radius, r, g, b, a) per ring — the alpha scales the profile's ring

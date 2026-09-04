@@ -106,8 +106,7 @@ export function campaignCameraRig(
 /** The zoom above which the battle rig's framing stops changing: distance has
  *  bottomed out at its overzoom floor and pitch/fovY are saturated. Callers
  *  clamp the stored `zoom` here (not at some far hard cap) so wheel input past
- *  the closest usable view isn't banked as invisible travel you'd have to
- *  "unwind" before the camera moved again. */
+ *  the closest usable view cannot bank an invisible distance reserve. */
 export function battleZoomCeiling(zoomRange: CameraRigRange, bounds: CameraRigBounds): number {
   return zoomCeiling(BATTLE_CURVE, zoomRange, bounds);
 }

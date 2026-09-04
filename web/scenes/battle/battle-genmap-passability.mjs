@@ -15,7 +15,7 @@ export const meta = {
   tier: "quick",
   snapshots: ["battle-genmap-passability"],
   describe:
-    "BMS04-SLICE-B6D9: generated map passability mask colored directly from sim speed/tint pointers, including lake and marsh drainage classes.",
+    "The generated-map passability mask is colored directly from sim speed/tint pointers, including lake and marsh drainage classes.",
 };
 
 export async function run(ctx) {

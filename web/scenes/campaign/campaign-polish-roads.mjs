@@ -1,14 +1,10 @@
 import { PNG } from "pngjs";
 import { campaign } from "../worlds.mjs";
 
-// Campaign-polish workbench: the road-continuity fake scene.
+// Campaign-polish road-continuity fixture.
 // The `alignment` fixture is Roma with three roads radiating to Tibur, Narnia,
-// and the coastal port Ostia/Portus. That layout isolates the two road defects
-// the user reported on the real map before we touch it:
-//   - assets/user-feedback/04-rome-south-road-cutoff.png : a road leaving Rome
-//     vanishes before it reaches the next city.
-//   - assets/user-feedback/01-rome-ostia-label-road.png  : the coastal
-//     Ostia/Portus must keep BOTH its label and its road.
+// and the coastal port Ostia/Portus. That layout requires every road to reach
+// its next city and the coastal port to keep both its label and road.
 // Every road here must paint continuously from Roma to within the destination
 // city's footprint, and Ostia/Portus must stay a visible label.
 export const meta = {
@@ -101,7 +97,7 @@ export async function run(ctx) {
 
   // Densely resample each spoke, project to screen, and confirm a road pixel
   // lands near every sample from Roma all the way to the city footprint. A
-  // gap-before-the-city (the reported cutoff) shows up as a low tail hit ratio.
+  // A gap before the city shows up as a low tail hit ratio.
   const projected = await page.evaluate(
     ({ spokes, roma }) => {
       const resample = (via, stepKm) => {
@@ -136,7 +132,7 @@ export async function run(ctx) {
 
   const image = PNG.sync.read(await page.screenshot());
   const continuity = projected.map((spoke) => roadContinuity(image, spoke));
-  // The reported defect (img 04) is a road that drops out for a long run before
+  // A road must not drop out for a long run before
   // reaching its city. That reads as a big consecutive gap, so gate on the worst
   // gap (in ~2 km samples) rather than a brittle tail ratio: a few stray misses
   // where the ribbon passes under a model are fine, a multi-sample hole is not.

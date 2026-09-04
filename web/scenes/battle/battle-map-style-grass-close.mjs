@@ -33,7 +33,7 @@ export const meta = {
     "battle-map-style/grass-close-shifted",
   ],
   describe:
-    "BMS10-SLICE-C4D1: False Earth blade-field layer close-gate oracle, grass-off control, and camera-snap stability.",
+    "The False Earth blade-field close gate checks its oracle, grass-off control, and camera-snap stability.",
 };
 
 export async function run(ctx) {

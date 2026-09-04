@@ -1,5 +1,5 @@
 // BattlePostChain — the ONE post-processing owner for the photoreal battle
-// world (spec: specs/3d-perspective-renderer, slice 15). Built on three's
+// world. Built on three's
 // node-based post pipeline (RenderPipeline, the r183 rename of PostProcessing):
 // one scene pass, one bloom stage, one preset-gated look grade, then three's
 // renderOutput applies the tone map + output colour transform ONCE at the end
@@ -12,11 +12,11 @@
 //     renderOutput reads renderer.toneMapping at the tail (outputColorTransform
 //     = true), so the scene passes render linear/NoToneMapping and AgX is
 //     applied exactly once. No double-tonemap of the already-linearized
-//     overlays (the slice-09 lesson).
+//     overlays.
 //   - The look grade shapes LINEAR HDR before AgX: it is a photographic print
 //     bias over the whole battle frame, while AgX remains the one display
 //     tonemap. That keeps the grade material-agnostic and preserves the
-//     slice-15 AgX verdict.
+//     display tonemap.
 //   - Bloom is threshold-disciplined in LINEAR HDR luminance: the highpass
 //     (BloomNode) keys off luminance(sceneColor) before the tone map, so a
 //     threshold of ~1 catches only genuine emitters — the sky sun disc and the
@@ -36,7 +36,7 @@ import type { CivsimEnvironmentId } from '../../../game-renderer/src/environment
 type Vec4Node = Node<'vec4'>;
 
 /** Physically-restrained bloom. Threshold is LINEAR-HDR luminance (pre-tone-map,
- *  since the scene passes render with NoToneMapping): 1.02 sits just above a
+ *  because the scene passes render with NoToneMapping): 1.02 sits just above a
  *  fully sunlit diffuse surface, so only super-white specular/emissive — the
  *  sky sun disc and the disciplined GGX sea glint — spills. Strength/radius and
  *  highpass softness lean toward the pen's five-level glow without turning
@@ -47,11 +47,11 @@ const BLOOM_THRESHOLD = 1.02;
 const BLOOM_SMOOTH_WIDTH = 0.75;
 const BLOOM_LEVELS = 5;
 
-/** Pen print-grade constants, ported as post-chain policy rather than material
+/** Pen print-grade constants applied as post-chain policy rather than material
  *  albedo. Shadow tint follows the #5C6E9E violet family; highlight tint follows
  *  the pen's warm cream push. */
-// 1.15 lands close-crop grass at the hero band low end with the green undertone kept
-// (1.3 read mustard/uniform per unprimed critique) — orchestrator sweep 2026-07-27.
+// This saturation keeps close-crop grass at the hero band low end without
+// losing its green undertone.
 const GRADE_SATURATION_BOOST = 1.15;
 const GRADE_CONTRAST = 0.16;
 const GRADE_SPLIT_TONE = 0.85;
@@ -94,13 +94,12 @@ interface BattlePostChainStats {
     presetStrength: number;
     uniforms: BattlePostGradeUniforms;
   };
-  /** The tone-map identity applied at the chain tail (slice-15 decision). */
+  /** The tone-map identity applied at the chain tail. */
   tonemap: string;
 }
 
-/** Names the active tone-map operator for the stats identity — the slice-15
- *  ACES-vs-AgX decision reads out here (agx is the verdict; aces is named so a
- *  temporary flip back to the loser stays legible in a lab A/B). */
+/** Names the active tone-map operator for the stats identity; every supported
+ *  operator remains legible in a lab A/B. */
 function toneMappingName(toneMapping: THREE.ToneMapping): string {
   if (toneMapping === THREE.AgXToneMapping) return 'agx';
   if (toneMapping === THREE.ACESFilmicToneMapping) return 'aces-filmic';

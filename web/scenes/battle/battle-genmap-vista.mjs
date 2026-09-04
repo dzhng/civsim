@@ -23,7 +23,7 @@ export const meta = {
     "battle-genmap-vista/overcast-seam-west",
   ],
   describe:
-    "BMS14-SLICE-E4F6: generated maps render two vista height bands instead of legacy horizon blockers, with low-pitch 360 and seam checks.",
+    "Generated maps render two vista height bands with low-pitch 360-degree and seam checks.",
 };
 
 export async function run(ctx) {
@@ -42,7 +42,7 @@ export async function run(ctx) {
       const stats = await page.evaluate(() => window.__game.stats().renderStats);
       const terrain = stats?.terrain;
       ctx.check(
-        `${env}: generated battle uses vista bands and no legacy blocker/ocean planes`,
+        `${env}: generated battle uses vista bands and no blocker/ocean planes`,
         terrain?.vista?.bands?.length === 2 &&
           terrain?.vistaTriangles > 60000 &&
           terrain?.sealedEdges?.includes("generated:vista") &&
@@ -97,7 +97,7 @@ export async function run(ctx) {
         // camera (rock/scree/sky transitions dominate any boundary signal).
         // Seam truth = the cargo boundary-height continuity test + the
         // blessed wide shots showing no crack.
-        `${env}: west seam crop telemetry recorded (cargo test owns continuity)`,
+        `${env}: west seam crop telemetry captured (cargo test owns continuity)`,
         Number.isFinite(seamMetric.maxJump),
         JSON.stringify(seamMetric),
       );

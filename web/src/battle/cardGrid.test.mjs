@@ -1,9 +1,9 @@
 // @vitest-environment node
-// Headless test for the Total-War card-bar grid math (slice 01).
+// Headless test for the Total-War card-bar grid math.
 // No DOM, no browser, no wasm — Vitest runs this suite in its node environment.
 //
 // The pinned behavior: cards are a FIXED size and the bar wraps into more rows
-// as the roster grows — cards never resize to chase the count (David, 2026-06-30).
+// as the roster grows — cards never resize to chase the count.
 
 import assert from "node:assert/strict";
 import { test } from "vitest";

@@ -13,7 +13,7 @@ export const meta = {
 const STOPS = [
   { name: "top", zoom: 0.4, center: [0, 0] },
   // zoom 5: David's rig tune (dc6b7e2e) clamps the whole 0-3 band to one
-  // camera (dist 1200 / pitch 1.35), so zoom 3 no longer samples a MID rig.
+  // camera (dist 1200 / pitch 1.35), so zoom 3 samples the intended FAR rig.
   { name: "mid", zoom: 5.0, center: [0, 10] },
   // The vista must read a FORMATION at eye level, not the empty grass between
   // the armies — centre it on a red unit's anchor.
@@ -94,7 +94,7 @@ export async function run(ctx) {
   // camera3d convention: pitch π/2 = straight down, small = oblique;
   // pitch DECREASES and fovY/closeness INCREASE from tactical zoom-out to vista.
   // The rig is read from renderStats.camera.camera3d — the one projection owner
-  // (the snapshot carries no separate pitch scalar since the 05b collapse).
+  // (the snapshot carries no separate pitch scalar).
   ctx.check(
     "zoom rig frames the widest view near top-down",
     rigs[0].zoomT < 0.2 && rigs[0].camera3d.pitch > 1.2,
@@ -103,7 +103,7 @@ export async function run(ctx) {
   ctx.check(
     "zoom rig keeps playable mid zoom tilting off top-down",
     // Pitch ceiling re-anchored to David's rig tune (dc6b7e2e) - the mid
-    // stop now sits at 1.35 by design.
+    // stop sits at 1.35 by design.
     rigs[1].zoomT > 0.15 &&
       rigs[1].zoomT < 0.65 &&
       rigs[1].camera3d.pitch > 0.9 &&

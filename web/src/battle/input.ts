@@ -83,7 +83,7 @@ export class Input {
         if (mDown) {
           // Middle-drag reorients ABOUT THE EYE: the camera stays put and the
           // view ray re-aims. Drag right → look right, drag down → look down
-          // (directions flipped from the old orbit per David, 2026-07-07).
+          // so dragging behaves like turning the viewer's head.
           camera.yawAboutEye(-(e.clientX - mDown[0]) * 0.006);
           camera.pitchAboutEye((e.clientY - mDown[1]) * 0.004);
           mDown = [e.clientX, e.clientY];
@@ -201,7 +201,7 @@ export class Input {
         if (e.key === "g") sink.reform(sel);
         if (e.key === "h") sink.togglePursue(sel);
         if (e.key === "v") sink.toggleFire(sel);
-        if (e.key === "k") sink.toggleKite(sel); // (moved off E, now a camera-rotate key)
+        if (e.key === "k") sink.toggleKite(sel); // E belongs to camera rotation
       },
       { signal },
     );

@@ -109,7 +109,7 @@ export const meta = {
   tier: "full",
   snapshots: SNAPSHOTS,
   describe:
-    "BMS00-SLICE-A7F3: locks the battle-map-style photoreal vista camera, named band crops, blade projection split, and grass legibility oracle.",
+    "The battle-map-style gate fixes the photoreal vista camera, named band crops, blade projection split, and grass legibility oracle.",
 };
 
 export async function run(ctx) {
@@ -324,10 +324,10 @@ function assertProductionMidGrassStructure(ctx, crop, stats) {
   const verdict = {
     retention: metric.retention4 >= ORACLE.retention4Min * 0.58,
     contrast: metric.down4.contrast >= ORACLE.down4ContrastMin * 0.62,
-    // Static whole-map grass is a UNIFORM loose field (~0.44 blades/m², David
-    // 2026-07-08), not the old camera-concentrated dense carpet, so the mid
-    // camera reads sparser here by design. This floor now guards against a
-    // TOTALLY bald mid-ground (occupancy → 0), not the retired carpet target.
+    // Static whole-map grass is a UNIFORM loose field (~0.44 blades/m²)
+    // distributed over the field, so the mid
+    // camera reads sparser here by design. This floor guards against a
+    // TOTALLY bald mid-ground (occupancy → 0), not dense carpet coverage.
     occupancy: metric.tile4.occupancy3 >= 0.18,
     verticalRuns: metric.verticalRun.tallColumnRatio >= ORACLE.verticalRunTallColumnMin * 0.62,
   };

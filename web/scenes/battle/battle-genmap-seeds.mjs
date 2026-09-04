@@ -13,7 +13,7 @@ export const meta = {
   tier: "quick",
   snapshots: ["battle-genmap-seeds"],
   describe:
-    "BMS05-SLICE-A9E1: generated-map seed montage showing cliff, forest-belt, and water-reach flank seal compositions from sim passability/tint pointers.",
+    "Generated-map seed montage shows cliff, forest-belt, and water-reach flank seals from sim passability/tint pointers.",
 };
 
 export async function run(ctx) {

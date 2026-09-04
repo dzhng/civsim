@@ -17,7 +17,7 @@ export const meta = {
     "battle-genmap-curated/wooded-pass",
   ],
   describe:
-    "BMS18-SLICE-F7C3: curated generated maps boot as pinned generated seeds, use catalog names, and snap golden-hour vista beauty baselines.",
+    "Curated generated maps boot as pinned seeds, use catalog names, and snap golden-hour vista beauty baselines.",
 };
 
 export async function run(ctx) {

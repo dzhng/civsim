@@ -1,7 +1,7 @@
 // Shared TSL vocabulary for the photoreal battle world: the noise helpers the
 // bespoke WGSL passes shared (cameraWgsl.ts viewForwardDist, the groundPass
-// hash/vnoise/fbm/ridge family), ported once at 08a, plus the slice-09
-// standard-material seams every battle layer uses (linearAlbedo — the one
+// hash/vnoise/fbm/ridge family), plus the standard-material seams every battle
+// layer uses (linearAlbedo — the one
 // display→linear conversion; viewNormalNode — the one normalNode hook).
 //
 // Determinism: nothing here reads the TSL `time` node (banned); every animated
@@ -36,11 +36,11 @@ export function rgbNode(c: Rgb): Vec3Node {
   return vec3(c[0], c[1], c[2]);
 }
 
-/** The per-frame camera/clock uniforms the ported battle shaders read — the
+/** The per-frame camera/clock uniforms the battle shaders read — the
  *  TSL mirror of the bespoke `cam` uniform scalars that survive projection
  *  (focus, time, dt). One owner: PhotorealBattleWorld writes them; the aerial
  *  hook reads `focus` as its observer.
- *  `time` mirrors cam.time — the production battle never sets it, so parity
+ *  `time` mirrors cam.time — the production battle never sets it, so static
  *  captures freeze it at 0; live viewing may drive it. `dt` is the single
  *  rAF delta threaded from scene.ts for future stateful render/audio updates. */
 export function createBattleFrameUniforms() {
@@ -112,7 +112,7 @@ export function linearAlbedo(display: Vec3Node): Vec3Node {
 
 /** The standard-material normal hook for battle geometry: attributes are
  *  authored in world (z-up) space on identity-transform meshes, and
- *  `normalNode` expects a VIEW-space normal (07's recorded hazard) — transform
+ *  `normalNode` expects a VIEW-space normal — transform
  *  in the vertex stage, interpolate, renormalize.
  *
  *  Setting `normalNode` also OPTS OUT of three's DoubleSide back-face normal

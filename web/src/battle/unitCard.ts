@@ -1,7 +1,6 @@
 // Shared model + math for the Total-War unit-card strip: the card grid pass, the
-// per-frame key-skip + bar writes, and the flat side-view portrait. Consumed by
-// the React card bar (web/src/ui/hud/UnitCardsReact.tsx); the vanilla DOM
-// UnitCards class was removed once the spike shipped React as the default.
+// per-frame key-skip + bar writes, and the flat side-view portrait. The React
+// card bar (web/src/ui/hud/UnitCardsReact.tsx) is the production consumer.
 
 import {
   lookForModel,
@@ -22,13 +21,13 @@ export const FACTION_CSS = [
 
 // Total-War card-bar constants (the production source of truth — cardGrid.ts
 // only holds matching fallbacks). Cards are a FIXED size; the bar wraps into
-// more rows as the roster grows (David, 2026-06-30). Tunable at the S2 checkpoint.
-const CARD_W = 58; // fixed card width in px (cardH derives from the 3:4 aspect); 20% smaller (David, 2026-07-01)
+// more rows as the roster grows.
+const CARD_W = 58; // fixed card width in px; cardH derives from the 3:4 aspect
 // The centered bar must clear the bottom-right minimap (a GPU overlay the DOM
 // can't measure): the minimap compositor sizes it ≤188px wide with a 16px margin, so a
 // centered bar collides once it is wider than viewport − 2×~204. Reserve that
 // zone (symmetric, to stay centered). The lab harness has no minimap and passes
-// a bare margin instead. Tunable at the S2 checkpoint.
+// a bare margin instead.
 export const MINIMAP_RESERVE = 210;
 // Production HUD left reserve: the card bar must clear the bottom-left info card
 // (#hud), whose right edge is 12(inset) + 282(max content) + 26(padding) +
@@ -38,7 +37,7 @@ export const MINIMAP_RESERVE = 210;
 // cover mid-field units and break click-selection. Keeping the right wide keeps
 // the bar short. The renderer-lab passes MINIMAP_RESERVE on both sides.
 export const BOTTOM_CARD_LEFT_RESERVE = 336;
-// Production HUD right reserve: clears the bottom-right minimap card, now flush in
+// Production HUD right reserve: clears the bottom-right minimap card, flush in
 // the corner (12px inset + 240px canvas + 8px frame + gap ≈ 268), so the centered
 // card bar doesn't slide under it. Asymmetric with the left. The renderer-lab has
 // no minimap and passes MINIMAP_RESERVE on both sides.
@@ -83,7 +82,7 @@ export function applyCardVisual(card: HTMLElement, b: CardBarRefs, s: UnitCardSt
  * bottom-left info card is wider than the right-hand minimap). The bar centers in
  * that window via `--card-center-x` (px), which #unitcards reads for its `left`.
  * The lab passes equal reserves, so the center collapses to the viewport midpoint
- * — pixel-identical to the old `left: 50%`. */
+ * while preserving centered placement. */
 export function applyCardGrid(
   root: HTMLElement,
   count: number,

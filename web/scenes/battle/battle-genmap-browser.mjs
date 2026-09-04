@@ -16,7 +16,7 @@ export const meta = {
   world: "battle-generated-seed-browser",
   tier: "quick",
   describe:
-    "BMS06-SLICE-C1F4: wasm-only generated seed browser writes a 24-seed passability-mask sheet and asserts certificate/variety floors.",
+    "The wasm-only generated-seed browser writes a 24-seed passability-mask sheet and asserts certificate and variety floors.",
 };
 
 export async function run(ctx) {
@@ -317,7 +317,7 @@ export async function run(ctx) {
 </style>
 <main>
   <h1>Generated battle map seed browser</h1>
-  <p>BMS06-SLICE-C1F4. ${SEEDS.length} wasm-generated passability-mask thumbnails; certificates pass, classes: ${[...classes].join(", ")}; edge compositions: ${[...compositions].join(", ")}.</p>
+  <p>${SEEDS.length} wasm-generated passability-mask thumbnails; certificates pass, classes: ${[...classes].join(", ")}; edge compositions: ${[...compositions].join(", ")}.</p>
   <img src="./seed-browser.png" alt="Generated battle map seed browser">
   <table><thead><tr><th>seed</th><th>class</th><th>edge composition</th><th>lake cells</th><th>corridor relief</th><th>terrain hash</th><th>field hash</th></tr></thead><tbody>
 ${result.stats.map((r) => `<tr><td>${r.seed}</td><td>${r.recipeClass}</td><td>${r.compositionKey}</td><td>${r.manifest.featureSummary?.lakeCells ?? 0}</td><td>${r.corridor.span.toFixed(2)}m</td><td>${r.terrainHash}</td><td>${r.fieldHash}</td></tr>`).join("\n")}

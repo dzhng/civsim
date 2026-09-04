@@ -1,5 +1,4 @@
-// VAT (vertex/bone animation texture) bake core, kept from the closed WebGPU
-// renderer foundation documented in specs/done/renderer-skinned-crowd-foundation.
+// VAT (vertex/bone animation texture) bake core for the skinned-crowd renderer.
 // Pure math, zero deps, no browser, no WebGPU:
 // given a skeleton (bones with parent + inverse-bind) and animation clips
 // (per-bone TRS keyframe samplers), it samples every clip at a fixed fps and

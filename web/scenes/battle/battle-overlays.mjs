@@ -1,5 +1,5 @@
-// Tactical ground overlays on REAL rolling terrain — the regression this pins:
-// ground cues and selection rings used to render at flat z = 0 and sink under
+// Tactical ground overlays on REAL rolling terrain: ground cues and selection
+// rings follow terrain height so they cannot sink under
 // any rise (invisible order previews, no rings). The world is the generated
 // Highland Vale anchor, one unit selected with a queued order, so
 // the frame proves: per-soldier campaign-style green rings seated on the

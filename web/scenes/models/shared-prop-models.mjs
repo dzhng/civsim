@@ -25,7 +25,7 @@ export const meta = {
 // Each prop family alone on neutral ground. Thresholds gate that the silhouette
 // actually renders (foliage/stone/wood), not merely that the frame is non-blank.
 // Tree floors sit at ~60% of what the ez-tree generated meshes measure: their
-// tapered cylindrical trunks show far fewer wood-hue pixels than the old box
+// tapered cylindrical trunks keep wood-hue pixels below the box-like profile
 // trunks did, and the cypress conifer hides its trunk inside the foliage column.
 const CONTENT_REQUIREMENTS = {
   // Foliage floors sit at ~60% of what the alpha-cutout canopies measure:

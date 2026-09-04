@@ -5,7 +5,7 @@ import { PNG } from "pngjs";
 // 12e pairing: the disciplined GGX sun glint survives bloom. The sun-glint crop
 // is captured with bloom ON and OFF at the SAME fixed golden-hour vista; the
 // pairing check asserts bloom enriches the track (hot coverage
-// grows) yet stays under the recorded 12e tripwire and stays concentrated in
+// grows) yet stays under the bloom tripwire and stays concentrated in
 // the reflected-sun band (bloom did not turn it into blanket sparkle).
 export const meta = {
   name: "photoreal-post",
@@ -25,9 +25,9 @@ const FIXED_TIME = 18.25;
 // The 12e sun-glint vista, verbatim (sea/sun/glint framing).
 const BASE = {
   // Map C = CoastalScrub: stand in the shallows facing the coast so the golden
-  // sea fills the frame. The reworked map's ocean is a bounded strip with no
+  // sea fills the frame. The map's ocean is a bounded strip with no
   // open-horizon sun path, so this proves the post chain (bloom + AgX) over the
-  // sea rather than the old 12e compact sun-glint (which needs open ocean).
+  // sea; the compact sun-glint requires open ocean.
   map: "C",
   ref: "1",
   t: String(FIXED_TIME),
@@ -89,9 +89,9 @@ export async function run(ctx) {
     });
 
     // --- the pairing verdict: bloom enriches WITHOUT blowing out ---
-    // (The reworked coast map has no open-ocean sun path, so this proves bloom
+    // (The coast map has no open-ocean sun path, so this proves bloom
     // lifts the sea highlights over the bloom-off pass without crossing the 12e
-    // tripwire, rather than the old compact-sun-glint enrichment.)
+    // tripwire rather than compact-sun-glint enrichment.)
     ctx.check(
       "12e pairing: bloom lifts the sea highlights but does not blow past the tripwire",
       bloomGlint.maxLuma >= plainGlint.maxLuma && bloomGlint.maxLuma < 246,

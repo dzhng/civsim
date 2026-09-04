@@ -98,7 +98,7 @@ const PRODUCTION_BLADE_FIELD_PROFILES: Record<BattleGrassQuality, BladeFieldProf
     ...STANDARD_BLADE_FIELD_PROFILE,
     quality: "low",
     source:
-      "GRASSFINE-L2D8 low profile: legacy 160k budget, fine near blades, low-segment mid tier",
+      "GRASSFINE-L2D8 low profile: 160k budget, fine near blades, low-segment mid tier",
     vistaTransitionDefaults: {
       ...STANDARD_BLADE_FIELD_PROFILE.vistaTransitionDefaults,
       farSoftWidthScale: 2.3,

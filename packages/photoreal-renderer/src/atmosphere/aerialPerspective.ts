@@ -1,9 +1,8 @@
-// aerialPerspective — THE one aerial-perspective owner (slice 10b). One TSL
+// aerialPerspective — THE one aerial-perspective owner. One TSL
 // scatter/extinction function, applied through the shared material hook
 // (scene.fogNode → NodeMaterial.setupFog) to every world surface whose
 // material keeps fog enabled (terrain, sea, foliage, crowd, scenery). No
-// material adds its own haze, ever — the per-material "Aerial stand-in"
-// albedo mixes and the THREE.Fog parity stand-in died here.
+// material adds its own haze, ever.
 //
 // The model shares the SkyModel parameterization (sun elevation + turbidity)
 // and reads optional preset-owned aerial curve knobs: per-channel
@@ -181,7 +180,7 @@ export function aerialIdentity(env: CivsimEnvironment) {
  *  sky renders in): L = L_surface·T + L_sky(horizon, azimuth)·(1 − T).
  *
  *  `observer` is the point optical depth is measured FROM. The battle world
- *  passes the camera GROUND FOCUS (the player's stand-in on the field), not
+ *  passes the camera GROUND FOCUS (the player's field anchor), not
  *  the rig eye: the tactical camera parks 1–3 km out at gameplay zooms, and
  *  eye-keyed depth would double-count the miniature-world amplification and
  *  white the armies out (the bespoke haze keyed on focus distance for the

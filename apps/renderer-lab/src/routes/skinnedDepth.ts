@@ -7,9 +7,9 @@ import { type LabContext, LabGroundPass, chartCameraSnapshot, createConfiguredSh
 
 export async function route(ctx: LabContext) {
   const vat = await loadPlaceholderVat();
-  // Oblique review pitch: camera3d vertical scale is sin(pitch), so the old
-  // near-top-down 0.18 collapsed soldiers to a few pixels. sin(1.1) ≈ 0.89
-  // keeps the silhouette close to the pre-collapse full-z look.
+  // Oblique review pitch: camera3d vertical scale is sin(pitch), so a
+  // near-top-down 0.18 collapses soldiers to a few pixels. sin(1.1) ≈ 0.89
+  // keeps the full silhouette legible.
   const camera = { x: 0, y: 0, zoom: 92, pitch: 1.1, yaw: 0 };
   const shell = await createConfiguredShell(ctx.canvas, camera);
   const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88], vat);

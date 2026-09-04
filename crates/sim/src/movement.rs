@@ -201,7 +201,7 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                 && (!u.is_mounted() || u.engaged > 0)
             {
                 u.pivoting = false;
-                let geom = tun.wheel_speed_factor * top / u.pivot_radius().max(1.0);
+                let geom = tun.wheel_speed_factor * top / u.bound_radius().max(1.0);
                 let rate = tun.base_turn_rate.min(geom);
                 u.facing = rotate_toward(u.facing, desired, rate * dt);
                 let target_speed = (pace_speed(tun, u) * ground * drift_factor(desired, u.facing))
@@ -275,7 +275,7 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                 u.frame_speed = move_toward(u.frame_speed, 0.0, accel * 2.0 * dt);
                 u.cruise = move_toward(u.cruise, 0.0, accel * 2.0 * dt);
                 if u.frame_speed < 0.05 {
-                    let geom = tun.wheel_speed_factor * top / u.pivot_radius().max(1.0);
+                    let geom = tun.wheel_speed_factor * top / u.bound_radius().max(1.0);
                     let rate = tun.base_turn_rate.min(geom);
                     let center = u.center();
                     u.facing = rotate_toward(u.facing, desired, rate * dt);
@@ -362,7 +362,7 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                         u.pivoting = false;
                     } else {
                         u.pivoting = true;
-                        let geom = tun.wheel_speed_factor * top / u.pivot_radius().max(1.0);
+                        let geom = tun.wheel_speed_factor * top / u.bound_radius().max(1.0);
                         let rate = tun.base_turn_rate.min(geom);
                         let center = u.center();
                         u.facing = rotate_toward(u.facing, ff, rate * dt);

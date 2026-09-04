@@ -58,11 +58,11 @@ pub(crate) fn run_combat(sim: &mut Sim) {
         .units
         .iter()
         .map(|u| {
-            let eu = 0.5 * u.width().max(u.depth());
+            let eu = u.bound_radius();
             sim.units.iter().any(|v| {
                 v.team != u.team
                     && v.alive_count > 0
-                    && (v.center() - u.center()).len() < eu + 0.5 * v.width().max(v.depth()) + 40.0
+                    && (v.center() - u.center()).len() < eu + v.bound_radius() + 40.0
             })
         })
         .collect();

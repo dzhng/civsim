@@ -42,9 +42,7 @@ pub(crate) fn precompute_unit(sim: &Sim, ui: usize) -> UnitPre {
             if v.team == u.team || v.alive_count == 0 || v.routing || !v.is_mounted() {
                 return false;
             }
-            let gap = (v.center() - u.center()).len()
-                - 0.5 * v.width().hypot(v.depth())
-                - 0.5 * u.width().hypot(u.depth());
+            let gap = (v.center() - u.center()).len() - v.bound_radius() - u.bound_radius();
             gap < tun.at_ease_range
         });
     let my_files = u.files_eff.max(1);

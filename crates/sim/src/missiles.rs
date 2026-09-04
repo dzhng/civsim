@@ -197,7 +197,7 @@ impl Sim {
                 // peltast hop band starts ~16m; 10m of gap clears it.
                 let gap = d - 0.5 * v.depth() - 0.5 * u.depth();
                 if gap > 10.0
-                    && d < spec.range + 0.5 * v.width().max(v.depth())
+                    && d < spec.range + v.bound_radius()
                     && best.map_or(true, |(_, bd)| d < bd)
                 {
                     // Hold fire into melees that involve OTHER friendly

@@ -283,10 +283,15 @@ impl Unit {
         self.alive_count.max(1).div_ceil(self.files_eff.max(1)) as f32 * self.spacing.y
     }
 
-    /// Distance from the rotation center to the farthest slot, for the
-    /// geometric wheel cap while pivoting about the formation center.
-    pub fn pivot_radius(&self) -> f32 {
-        0.5 * (self.width().powi(2) + self.depth().powi(2)).sqrt()
+    /// Half-diagonal of the frame: the one circumscribing radius.
+    pub fn bound_radius(&self) -> f32 {
+        0.5 * self.width().hypot(self.depth())
+    }
+
+    /// Conservative frame extent for placement searches, so coarse scans do not
+    /// miss blockers.
+    pub fn frame_extent(&self) -> f32 {
+        0.5 * (self.width() + self.depth())
     }
 
     /// Farthest slot from the anchor (the rotation point while marching).
@@ -373,7 +378,7 @@ pub(crate) fn slide_halted_frames(sim: &mut Sim) {
             } else {
                 let my_center = u.center();
                 let my_centroid = u.centroid;
-                let my_frame_r = 0.5 * (u.width() + u.depth());
+                let my_frame_r = u.frame_extent();
                 let my_soldier_r = sim.radius[u.start];
                 let body_blockers: Vec<(usize, Vec2)> = sim
                     .units
@@ -383,7 +388,7 @@ pub(crate) fn slide_halted_frames(sim: &mut Sim) {
                         if vi == ui || v.alive_count == 0 {
                             return None;
                         }
-                        let r = 0.5 * (v.width() + v.depth());
+                        let r = v.frame_extent();
                         if (v.center() - my_center).len() < my_frame_r + r + 2.0 {
                             Some((vi, v.centroid))
                         } else {

@@ -1,10 +1,10 @@
 import { PNG } from "pngjs";
 
-// Slice 15 — the post chain. Proves (1) the ONE post owner's identity (bloom
+// The post-chain gate proves (1) the ONE post owner's identity (bloom
 // stage + the AgX tone-map, ?post/?bloom toggles), and (2) the load-bearing
 // 12e pairing: the disciplined GGX sun glint survives bloom. The sun-glint crop
-// is captured with bloom ON and OFF at the SAME fixed golden-hour vista as
-// slice 12e; the pairing check asserts bloom enriches the track (hot coverage
+// is captured with bloom ON and OFF at the SAME fixed golden-hour vista; the
+// pairing check asserts bloom enriches the track (hot coverage
 // grows) yet stays under the recorded 12e tripwire and stays concentrated in
 // the reflected-sun band (bloom did not turn it into blanket sparkle).
 export const meta = {
@@ -18,7 +18,7 @@ export const meta = {
     "photoreal-post/sun-glint-nobloom",
   ],
   describe:
-    "Slice 15 post chain: restrained bloom + AgX tone-map; the 12e sun-glint bloom on/off pairing.",
+    "The post chain keeps restrained bloom and AgX tone mapping while the sun-glint pairing isolates bloom.",
 };
 
 const FIXED_TIME = 18.25;

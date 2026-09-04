@@ -402,7 +402,7 @@ async function tsFiles(dir) {
   return files;
 }
 
-// Slice 01 device/error resilience: a raw createShaderModule on a non-campaign
+// A raw createShaderModule on a non-campaign
 // renderer surface skips the structured WGSL diagnostic and can blank the
 // screen on a shader typo. compileShader.ts owns the one allowed raw call.
 async function findRawShaderModuleFootguns() {
@@ -526,8 +526,8 @@ async function findPhaseBrandFootguns() {
       ],
     },
     {
-      // Since slice 08b the production battle renders through the photoreal
-      // seam: BattleRenderer owns no bespoke passes and no frame shell.
+      // The production battle renders through the photoreal seam:
+      // BattleRenderer owns no bespoke passes and no frame shell.
       file: new URL("../../src/battle/renderer.ts", import.meta.url),
       checks: [
         [

@@ -1,8 +1,6 @@
-// The whole battle HUD as ONE React tree under a single root (see
-// specs/done/hud-housings, slice 01). This collapses the three separate createRoot
-// calls (#hud, #toolbar, #unitcards) and the imperative minimap canvas that the
-// ui-react-migration left as scaffolding into one <BattleHud>. battleLoop.ts drives it
-// through its scene-owned store at the same cadences as before:
+// The whole battle HUD is ONE React tree under a single root. React declares the
+// HUD, toolbar, unit-card grid, and minimap canvas; battleLoop.ts drives them
+// through its scene-owned store at their required cadences:
 //   - cards.update(): every rAF frame, straight to ref'd DOM nodes (60Hz firewall,
 //     never React state — see UnitCardsView).
 //   - HUD state: ≤5Hz through useSyncExternalStore.
@@ -165,7 +163,7 @@ interface CenterHandle {
   updateCards(states: (UnitCardState | null)[]): void;
 }
 // The bottom-center housing: card wells on top, order/time control strip below,
-// in ONE bronze tray (specs/done/hud-housings, slice 05). A structural wrapper holding
+// in ONE bronze tray. A structural wrapper holding
 // NO data state, so it never re-renders — cards and toolbar stay separate stateful
 // islands (CardsHost / ToolbarHost), and a ≤5Hz toolbar refresh never reconciles
 // the 60Hz card grid. applyCardGrid writes onto this #battle-center element.

@@ -1,4 +1,4 @@
-//! Slice 6 — personas. One brain, different dials. These pin that the dials are
+//! Personas use one brain with different dials. These tests pin that the dials are
 //! wired and actually change behaviour: the attack `gate` changes which city a
 //! commander deems worth taking, and over a campaign a Warmonger throws itself
 //! at fights a Defensive turtle declines.

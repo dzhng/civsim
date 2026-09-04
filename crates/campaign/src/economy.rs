@@ -59,7 +59,7 @@ pub(crate) fn territory_of(
 }
 
 /// One city's monthly gold: population × economic development × throttle, dragged
-/// by low loyalty. The whole income model in one place (slice 02/03/05).
+/// by low loyalty. The whole income model lives in one place.
 pub fn city_monthly_income(c: &CityState) -> u32 {
     tun::city_monthly_income(c.population, c.econ_dev, c.throttle, c.loyalty)
 }
@@ -355,7 +355,7 @@ pub fn month_tick(map: &WorldMap, st: &mut CampaignState) {
     }
 
     // 3. Loyalty drifts by the balance of friendly vs enemy connected territory,
-    //    then over-low cities revolt. The overextension brake (slice 05).
+    //    then over-low cities revolt. This is the overextension brake.
     loyalty_month(map, st);
 }
 
@@ -650,7 +650,7 @@ pub fn set_city_policy(
 /// - **Sack**: convert the populace to instant plunder (gold to the taker),
 ///   raze most of the population, and hold the gutted town at low loyalty.
 /// - **Hold**: keep the population, flip at a little starting loyalty, pacify
-///   over months (slice 05). The conquest is a real asset, slow to settle.
+///   over months. The conquest is a real asset, slow to settle.
 pub fn resolve_capture(st: &mut CampaignState, node: NodeId, new_owner: FactionId, sack: bool) {
     let Some(c) = st.cities.get_mut(&node) else {
         return;
@@ -783,7 +783,7 @@ pub fn split(map: &WorldMap, st: &mut CampaignState, army: ArmyId, entries: &[us
 }
 
 /// A garrisoned city challenged by a nearby hostile fields its garrison as a
-/// temporary army on the city node (blocking it), so the ordinary encounter
+/// field army on the city node (blocking it), so the ordinary encounter
 /// machinery fights the assault. It folds back into the city afterward. If a
 /// friendly field army already stands on the node, that field army blocks the
 /// sortie.

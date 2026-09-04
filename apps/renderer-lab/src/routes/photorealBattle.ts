@@ -1,4 +1,4 @@
-// /renderer/photoreal-battle (slice 08a): the FULL production battle world on
+// /renderer/photoreal-battle boots the FULL production battle world on
 // the photoreal substrate, booted from the SAME wasm worlds the production
 // battle page runs (Game + start_battle fixed maps, same seed, same spawn
 // path) and framed by the SAME shared Camera — so compare-screenshots can hold
@@ -23,11 +23,11 @@
 //   ?clay=1       generated-map landform review: hide grass/scenery/sea and
 //                 swap the live ground mesh to neutral grey clay
 //   ?shadows=off|single|csm
-//                 sun-shadow tier override (slice 11 QA; default: 'single'
+//                 sun-shadow tier override (default: 'single'
 //                 on every adapter — CSM is the QA override)
 //   ?sea=gerstner
 //                 photoreal sea displacement source (12a verdict: Gerstner TSL)
-//   ?post=off     bypass the whole post chain (slice-15 lab A/B)
+//   ?post=off     bypass the whole post chain for a controlled A/B
 //   ?bloom=off    keep the chain but drop the bloom stage (glint on/off pair)
 //   ?grade=N      override the preset post-grade strength uniform for capture sweeps
 //   ?gradeSat=N|gradeContrast=N|gradeSplit=N|gradeLift=N

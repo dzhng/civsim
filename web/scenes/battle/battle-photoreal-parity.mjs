@@ -1,6 +1,6 @@
 import { PNG } from "pngjs";
 
-// The slice-08a parity gate: /renderer/photoreal-battle boots the SAME wasm
+// /renderer/photoreal-battle boots the SAME wasm
 // battle world as the production battle page and renders the FULL world on
 // the photoreal substrate. Asserts the stats identity fields (single owners),
 // the soldier-count floor (buildCrowdInstances output = sim count), the
@@ -16,7 +16,7 @@ export const meta = {
   world: "battle-photoreal",
   tier: "full",
   snapshots: ["photoreal-parity"],
-  describe: "Photoreal battle world at parity: identity, counts, seating, overlays, determinism.",
+  describe: "Photoreal world identity, counts, seating, overlays, and determinism agree.",
 };
 
 const SUBSTRATE = "threejs-webgpu-tsl";
@@ -28,12 +28,12 @@ const PERF_SOLDIER_FLOOR = 30000;
 
 export async function run(ctx) {
   if (process.env.VERIFY_GPU !== "1") {
-    ctx.check("photoreal battle parity requires browser GPU flags", true, "set VERIFY_GPU=1");
+    ctx.check("the full-world gate requires GPU flags", true, "set VERIFY_GPU=1");
     return;
   }
   const hardware = process.env.VERIFY_GPU_ADAPTER === "hardware";
 
-  // --- The full generated seed-7 world at parity framing (crowd on screen) ---
+  // --- The full generated seed-7 world framed with its crowd on screen ---
   {
     const page = await openRoute(
       ctx,
@@ -41,7 +41,7 @@ export async function run(ctx) {
       // whole frame - under the 10px visibility floor on the wider
       // generated-map framing.
       `?map=gen&seed=7&t=${FIXED_TIME}&ref=1&select=1&fx=1&zoom=6.5&cx=0&cy=-650&env=golden-hour`,
-      "parity",
+      "full-world",
     );
     const stats = await page.evaluate(() => window.__rendererLabStats);
     ctx.check(
@@ -73,8 +73,7 @@ export async function run(ctx) {
     ctx.check(
       "the full world is assembled (ground + sealed edges + scenery + grass)",
       rs?.terrain?.groundTriangles > 100000 &&
-        // Generated maps seal E/W with the vista apron (slice 14), not the
-        // legacy per-edge blocker meshes the hand maps used.
+        // Generated maps seal E/W with the vista apron, not per-edge blocker meshes.
         rs.terrain.sealedEdges.includes("generated:vista") &&
         rs.terrain.scenery >= 500 &&
         rs.terrain.grass.layer === "photoreal-blade-field" &&
@@ -128,7 +127,7 @@ export async function run(ctx) {
     const page = await openRoute(
       ctx,
       "?map=gen&seed=7&count=30500&zoom=4.5&cx=0&cy=-650&ref=1&env=golden-hour",
-      "parity-perf",
+      "full-world-perf",
     );
     await page.waitForFunction(
       () =>

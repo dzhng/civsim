@@ -87,7 +87,7 @@ pub fn profile(p: AiPersona) -> Profile {
             select_scale: 3_000.0,
             bravado_aggro: 10_000.0,
         },
-        // Brave to a fault: attacks at parity, shrugs off exposure, and its
+        // Brave to a fault: attacks when evenly matched, shrugs off exposure, and its
         // swingy mood + hot temperature make it unpredictable.
         Warmonger => Profile {
             weights: Weights {

@@ -211,7 +211,7 @@ pub fn recruit_cost_milligold(class: UnitClassId) -> u32 {
     base_rate(class) * 50
 }
 /// Monthly upkeep per soldier = half the recruitment cost. The 50%-of-raise rule
-/// the whole economy is pegged to (slice 02); unit-type option multipliers keep
+/// anchors the whole economy; unit-type option multipliers keep
 /// the ratio because both derive from the same cost.
 pub fn upkeep_per_soldier_milligold(class: UnitClassId) -> u32 {
     recruit_cost_milligold(class) / 2
@@ -401,7 +401,7 @@ pub const AI_RIVAL_DISSOLVE_RATIO: u64 = 3;
 
 // ---- diplomacy -------------------------------------------------------------
 // Diplomacy is what breaks the six-power peer standoff: instead of every power
-// fighting every neighbour at parity, each focuses war on its weakest reachable
+// fighting every evenly matched neighbour, each focuses war on its weakest reachable
 // peer, makes peace elsewhere to mass its army on one front, and allies with
 // anyone who shares its victim. The weakest get ganged and eaten, a new weakest
 // emerges, and the map resolves instead of freezing.

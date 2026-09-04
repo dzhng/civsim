@@ -12,7 +12,7 @@ pub const ROAD_WATER_RUN_MAX_KM: f64 = 3.0;
 /// The renderer draws roads through its smoothed, 0.9 km-resampled centerline
 /// and bridges water dips up to this length; only dips beyond it split the
 /// drawn ribbon. TWIN: ROAD_WATER_BRIDGE_KM in
-/// packages/game-renderer/src/campaign/mapPass.ts — change both together.
+/// packages/game-renderer/src/campaign/roadGeometry.ts — change both together.
 pub const ROAD_SMOOTHED_BRIDGE_KM: f64 = 4.5;
 const SAMPLE_KM: f64 = 1.0;
 const MAX_EXPANDED_CELLS: usize = 300_000;

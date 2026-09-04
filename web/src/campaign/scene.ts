@@ -384,7 +384,7 @@ export class CampaignScene implements Scene {
   private drawWorld() {
     this.renderer.resize();
     this.clampCam(); // zoom floor = aspect-fill, pan inside the map
-    // Same-frame collision ordering (slice 09, pinned): pin this frame's
+    // Same-frame collision ordering pins this frame's
     // camera, lay the DOM cards out against it (card-vs-card resolution
     // included), and only then draw — so the canvas label arbitration blocks
     // on the exact card rects the player sees this frame, never last frame's.

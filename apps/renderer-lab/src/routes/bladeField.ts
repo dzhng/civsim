@@ -75,7 +75,7 @@ export async function route(ctx: LabContext) {
     fieldCellSize: Number(ctx.params.get("fieldCell")) || 0.42,
     snapCellSize: Number(ctx.params.get("snapCell")) || 8,
     clumpCellSize: Number(ctx.params.get("clumpCell")) || 1.55,
-    // Defaults = the oracle-accepted close-gate profile (slice 10 sweep).
+    // Defaults are the oracle-accepted close-gate profile.
     maxRecords: Math.max(0, Math.floor(Number(ctx.params.get("maxRecords")) || 40000)),
     // 0.42: David's width contract - finer strands, lower density read as grass
     // at close range instead of an over-packed stipple carpet. 0.8 packed the

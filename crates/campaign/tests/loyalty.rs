@@ -1,4 +1,4 @@
-//! Loyalty / overextension (slice 05) and sack-vs-hold (slice 06). AI off — the
+//! Loyalty / overextension and sack-vs-hold. AI off — the
 //! outcomes are owned by the mechanic, not by commander timing.
 
 mod common;

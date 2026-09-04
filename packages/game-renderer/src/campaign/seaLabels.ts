@@ -1,7 +1,7 @@
 import type { CampaignLabel } from "@packages/game-renderer/src/campaign/mapPass";
 
 // Anchors sit at each sea's open-water center (measured against the render
-// mask; slice 03 moved Adriatic/Aegean/Black Sea in from shore) and angles
+// mask, keeping anchors off shore) and angles
 // follow the basin's long axis in screen space (positive = falling to the
 // right); the fitter only polishes from here.
 export function seaLabels(): CampaignLabel[] {

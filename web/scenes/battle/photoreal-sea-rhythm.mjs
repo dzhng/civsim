@@ -2,10 +2,9 @@ import { writeFile, mkdir } from "node:fs/promises";
 import { PNG } from "pngjs";
 import { encodeGif, pngToRGBA, downscaleRGBA } from "../../shots/_gif.mjs";
 
-// Slice 17: the retired `water-rhythm` lab gate's INTENT, re-pointed at the
-// photoreal sea. The old gate filmed the bespoke WaterPlanePass over a fixed
-// shader phase and dumped a review GIF; the production sea owner is now
-// `seaLayer` (Gerstner-TSL), animated off the world's owned `setTime` uniform
+// The photoreal sea exposes a fixed-time rhythm filmstrip and review GIF.
+// `seaLayer` owns the Gerstner-TSL surface and animates it from the world's
+// `setTime` uniform
 // (the TSL `time` node is banned). This scene proves the sea *travels* rather
 // than teleports: a fixed-t filmstrip, a committed looping GIF for eyeballing
 // the swell rhythm, and a cadence check that every adjacent frame differs
@@ -23,7 +22,7 @@ export const meta = {
     "photoreal-sea-rhythm/film-03",
   ],
   describe:
-    "Slice 17 photoreal sea rhythm: fixed-t filmstrip + looping GIF + travel-not-teleport cadence over the owned setTime uniform.",
+    "The photoreal sea keeps a travel-not-teleport cadence across a fixed-time filmstrip and looping GIF.",
 };
 
 // ~16 frames over ~3.2 s → 0.2 s per frame (delay 20 cs). Base t matches the

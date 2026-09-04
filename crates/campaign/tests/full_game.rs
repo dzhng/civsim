@@ -80,7 +80,7 @@ fn sample_stats(st: &CampaignState, playable: &[u32]) -> Vec<FactionStat> {
     playable.iter().map(|&f| faction_stat(st, f)).collect()
 }
 
-// The cheap stand-in for a full battle is now `campaign::resolve::estimate`
+// `campaign::resolve::estimate` is the cheap full-battle estimator
 // (promoted to production for the AI's lookahead). The harness uses it for fast
 // multi-year sweeps; the real sim is exercised by `lopsided_war_concludes`.
 
@@ -267,7 +267,7 @@ fn print_report(r: &Report) {
 
     // Runaway gap: strongest-vs-weakest playable power by cities, over time. The
     // headline macro-health metric — a healthy loop keeps this from blowing out
-    // early and never recovering (slice 05 is judged against the baseline here).
+    // early and never recovering; the baseline judges that macro-health contract.
     println!("\nrunaway gap (max−min cities held over time):");
     for (day, s) in &r.samples {
         let (max, min) = (

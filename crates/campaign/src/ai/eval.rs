@@ -1,7 +1,7 @@
 //! How a faction reads a position: one scalar, higher is better for it. The
 //! commander's lookahead rolls each candidate plan forward, then ranks the
 //! resulting positions with `score`. The **weights are the faction's
-//! personality** (slice 6 supplies per-persona presets) — what it values when
+//! personality** — its per-persona presets define what it values when
 //! it imagines the future.
 //!
 //! The default weights also carry the *scaling*: cities, army, and income live

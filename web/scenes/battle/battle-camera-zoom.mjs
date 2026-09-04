@@ -91,7 +91,7 @@ export async function run(ctx) {
     frames.push(PNG.sync.read(await page.locator("#battlefield").screenshot()));
   }
 
-  // camera3d convention (slice 04): pitch π/2 = straight down, small = oblique;
+  // camera3d convention: pitch π/2 = straight down, small = oblique;
   // pitch DECREASES and fovY/closeness INCREASE from tactical zoom-out to vista.
   // The rig is read from renderStats.camera.camera3d — the one projection owner
   // (the snapshot carries no separate pitch scalar since the 05b collapse).

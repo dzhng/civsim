@@ -1,6 +1,6 @@
 import { PNG } from "pngjs";
 
-// Slice 09 — lighting core: physical sun + IBL + ACES tonemap, all mapped from
+// The lighting core maps physical sun + IBL + ACES tonemap from
 // the ONE preset owner (CIVSIM_ENVIRONMENTS). Every battle environment preset
 // renders /renderer/photoreal-battle at the SAME fixed setTime and framing;
 // the ONE visual variable is how surfaces respond to sun + ambient, cropped to

@@ -46,7 +46,7 @@ export async function run(ctx) {
       return JSON.parse(game.generated_map_descriptor());
     });
     ctx.check(
-      "generated descriptor is the slice-03 pinned terrain",
+      "generated descriptor retains its terrain contract",
       descriptor?.seed === SEED &&
         descriptor?.reliefScale === 1.0 &&
         descriptor?.terrainHash === SEED7_HASH,

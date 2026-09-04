@@ -12,7 +12,7 @@ export const meta = {
     "photoreal-sea/sun-glint",
   ],
   describe:
-    "Slice 12 photoreal sea: SkyModel-reflecting PBR Gerstner surface at a fixed sea-facing battle vista.",
+    "The photoreal sea is a SkyModel-reflecting PBR Gerstner surface at a fixed sea-facing battle vista.",
 };
 
 const FIXED_TIME = 18.25;

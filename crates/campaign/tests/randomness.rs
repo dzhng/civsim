@@ -1,4 +1,4 @@
-//! Slice 5 — the commander's nerve. Bravado (a drifting mood) and a softmax
+//! The commander's nerve: bravado (a drifting mood) and a softmax
 //! over plan scores make the AI play like a person, not a solver. The contract
 //! is twofold and in tension: the play must *vary* (different seeds → different
 //! wars) yet stay perfectly *deterministic* (a fixed seed replays identically),

@@ -17,7 +17,7 @@ const PHOTOREAL_STATS_SOURCE = readFileSync(
   "utf8",
 );
 
-// The ONE engine-wide depth format (reverse-Z depth32float since slice 05b).
+// The ONE engine-wide depth format is reverse-Z depth32float.
 export const GPU_DEPTH_FORMAT = readDepthConst("GPU_DEPTH_FORMAT");
 export const GPU_WORLD_DEPTH_ATTACHMENT = readDepthConst("GPU_WORLD_DEPTH_ATTACHMENT");
 // The single projection/depth identity every renderer surface must report.
@@ -26,7 +26,7 @@ export const PROJECTION_IDENTITY = readSourceStringConst(
   "PROJECTION_IDENTITY",
   "shared camera uniform contract",
 );
-// The photoreal ownership identity (battle production since slice 08b).
+// The photoreal ownership identity is also the production battle identity.
 export const PHOTOREAL_SUBSTRATE = readSourceStringConst(
   PHOTOREAL_STATS_SOURCE,
   "PHOTOREAL_SUBSTRATE",
@@ -181,8 +181,8 @@ function hasSemanticPassRoles(phases) {
 // asserts the ownership identity fields (single owners, README "Photoreal
 // ladder invariants"), the reverse-Z depth convention read off the live
 // renderer, the heightfield seating firewall, and the tactical-line overlay
-// seams. The bespoke phase-graph contract lives on for campaign
-// (hasCampaignWorldDepthContract) until slice 16a.
+// seams. The bespoke phase-graph contract belongs only to campaign
+// (`hasCampaignWorldDepthContract`).
 export function hasBattleWorldDepthContract(renderStats) {
   return (
     renderStats?.ready === true &&

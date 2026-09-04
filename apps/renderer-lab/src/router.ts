@@ -57,7 +57,7 @@ const routes: Record<string, LabRoute> = {
   "/renderer/shared-standard-models": routeSharedStandardModelShots,
   "/renderer/world-camera": routeWorldCamera,
   "/renderer/card-bar": routeCardBar,
-  // Photoreal ladder (slices 07+): three.js WebGPU + TSL on the camera3d spine.
+  // The photoreal ladder uses three.js WebGPU + TSL on the camera3d spine.
   "/renderer/photoreal-pbr": routePhotorealPbr,
   "/renderer/photoreal-crowd": routePhotorealCrowd,
   "/renderer/photoreal-battle": routePhotorealBattle,

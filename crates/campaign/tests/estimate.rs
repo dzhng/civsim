@@ -1,4 +1,4 @@
-//! Slice 1 — the cheap battle estimator (`resolve::estimate`). Pins the
+//! The cheap battle estimator (`resolve::estimate`) pins the
 //! strength-ratio model the AI's lookahead imagines fights with: heavier side
 //! wins, both bleed in proportion to the gap, deterministic. The full physics
 //! sim is the real arbiter (see `full_game::lopsided_war_concludes`); this is

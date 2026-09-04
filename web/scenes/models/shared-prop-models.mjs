@@ -177,7 +177,7 @@ function shotContentCheck(gateId, shot) {
   return { ok, metrics };
 }
 
-// The shared-ownership invariant for slice 01: surfaces place props by id from
+// Shared ownership requires surfaces to place props by id from
 // the registry, never from their own copy of the builder list.
 function sharedRegistryOwnsProps() {
   const sceneryPass = readSource("../../../packages/game-renderer/src/campaign/sceneryPass.ts");

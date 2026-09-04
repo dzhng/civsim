@@ -1,5 +1,5 @@
 // The battle map catalog: one frozen source of map presentation metadata that
-// the menu picker (slice 04), battle launch, and verification scenes all read,
+// the menu picker, battle launch, and verification scenes all read,
 // so no surface redeclares a map's label, sealed sides, or ground cover. The
 // terrain GEOMETRY (tint, height, passability) stays canonical in the sim and
 // arrives per-battle as a BattleTerrainGrid; this catalog adds only the
@@ -175,7 +175,7 @@ export function generatedBattleMapEntry(
 /**
  * Assemble the full presentation for a booted map: catalog roles + the
  * height-field view and extracted features over the live terrain grid. This is
- * the single seam slice 03's renderer draws from.
+ * the single seam the renderer draws from.
  */
 export function buildBattleTerrainPresentation(
   entry: BattleTerrainPresentationSource,

@@ -633,7 +633,7 @@ interface OccupancyClaim {
   card: boolean;
 }
 
-/** The one occupancy authority (slice 09): nothing readable overlaps.
+/** The one occupancy authority ensures nothing readable overlaps.
  *
  * Claim order is the who-yields priority, deterministic:
  *   1. DOM cards (reported by the scene loop) — pre-claimed; cards outrank
@@ -733,7 +733,7 @@ function arbitrateLabelOccupancy(
   };
 }
 
-/** City-label placement (slice 09 occupancy only): a city label has one marker
+/** A city label has one marker
  * hug position. If that ink rect is already claimed, the label hides rather
  * than dodging to another side. */
 function placeCityLabel(

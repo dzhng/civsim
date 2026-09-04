@@ -1,5 +1,5 @@
 //! The host-driven worker protocol (`advance_external` + `ack_dispatch` +
-//! `submit_decisions`), exercised inline with a synchronous stand-in worker.
+//! `submit_decisions`), exercised inline with a synchronous fake worker.
 //! The decisive property: because decisions apply on fixed ticks, the outcome
 //! is independent of how the host batches ticks per frame — so a varying frame
 //! rate can't change the game. Same seed, any batch size → the same war.

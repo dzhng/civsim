@@ -213,8 +213,6 @@ fn undefended_city_is_occupied_and_flips() {
 
 #[test]
 fn population_grows_toward_cap_monthly() {
-    // Population climbs on month boundaries (fast when small, asymptotes to the
-    // tier cap) and is flat in between. Slice 01.
     let mut c = Campaign::new(test_map(), 7, 0);
     inert(&mut c);
     // Own the neighbouring city too, so loyalty stays high and growth isn't
@@ -275,8 +273,6 @@ fn military_focus_deepens_garrison_over_months() {
 
 #[test]
 fn economy_focus_raises_output_and_exploit_trades_growth_for_yield() {
-    // Slice 03: an Economy-focused city out-earns a Military one of equal size;
-    // and Exploit buys immediate yield at the cost of population.
     let mut c = Campaign::new(test_map(), 7, 0);
     inert(&mut c);
     // Develop the city economically for a while.
@@ -339,7 +335,6 @@ fn development_decays_when_focus_switches() {
 
 #[test]
 fn recruit_draws_from_and_is_capped_by_population() {
-    // Slice 04: recruiting spends population and can't exceed the pool.
     let mut c = Campaign::new(test_map(), 7, 0);
     inert(&mut c);
     c.state.factions[0].treasury = 100_000;
@@ -357,7 +352,6 @@ fn recruit_draws_from_and_is_capped_by_population() {
 
 #[test]
 fn military_city_unlocks_elite_class() {
-    // Slice 04: a deeper class option needs a militarised city.
     let mut c = Campaign::new(test_map(), 7, 0);
     inert(&mut c);
     c.state.factions[0].treasury = 100_000;

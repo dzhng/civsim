@@ -130,7 +130,7 @@ impl Sim {
             // body bears down, not just the near rank), and it is finely
             // calibrated against the morale_scenarios — edge distance double-
             // counts the wall's depth and breaks a line before contact.
-            let their_half = 0.5 * self.units[vi].width().max(self.units[vi].depth());
+            let their_half = self.units[vi].bound_radius();
             let d_center = (c - my_center).len();
             let d = (d_center - my_half - their_half).max(0.0);
             if team != my_team {
@@ -310,8 +310,8 @@ impl Sim {
             // Morale geometry is EDGE-to-EDGE: a 300-man block's near face, not its
             // distant centre, is what a neighbour feels (a friend pressed against
             // your flank steadies you even if its centroid is 30 m off). Half the
-            // larger span is a cheap circular bound on each unit's reach.
-            let my_half = 0.5 * u.width().max(u.depth());
+            // frame's circumscribing radius is the shared circular bound on reach.
+            let my_half = u.bound_radius();
             let alive_n = u.alive_count.max(1) as f32;
 
             // --- physical inputs ------------------------------------------

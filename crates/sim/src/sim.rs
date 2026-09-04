@@ -961,7 +961,7 @@ impl Sim {
         self.units
             .iter()
             .map(|u| {
-                let r = 0.5 * u.width().hypot(u.depth());
+                let r = u.bound_radius();
                 (u.centroid, u.team, u.routing || u.alive_count == 0, r)
             })
             .collect()
@@ -1287,9 +1287,7 @@ impl Sim {
                 let gap = {
                     let ev = &self.units[e];
                     let me = &self.units[ui];
-                    (ev.centroid - me.centroid).len()
-                        - 0.5 * ev.width().max(ev.depth())
-                        - 0.5 * me.width().max(me.depth())
+                    (ev.centroid - me.centroid).len() - ev.bound_radius() - me.bound_radius()
                 };
                 let u = &mut self.units[ui];
                 if u.latch_best.is_finite() {
@@ -1514,7 +1512,7 @@ impl Sim {
                     // Geometric corner-speed cap only — cohesion does NOT throttle
                     // the turn (a disordered unit must still be able to wheel; the
                     // trample carry-through law holds without it).
-                    let geom = tun.wheel_speed_factor * top / u.pivot_radius().max(1.0);
+                    let geom = tun.wheel_speed_factor * top / u.bound_radius().max(1.0);
                     let center = u.center();
                     let facing_before = u.facing;
                     let anchor_before = u.anchor;

@@ -1,4 +1,5 @@
 import type { AudioMixer } from "./AudioMixer";
+import { clamp, clamp01 } from "./scalar";
 
 export const BIRD_INTERVAL_FLOOR_SECONDS = 1.4;
 export const BIRD_INTERVAL_RANGE_SECONDS = 6.5;
@@ -299,11 +300,4 @@ function finite(value: number): number {
   return Number.isFinite(value) ? value : 0;
 }
 
-function clamp01(value: number): number {
-  return clamp(value, 0, 1);
-}
 
-function clamp(value: number, min: number, max: number): number {
-  if (!Number.isFinite(value)) return min;
-  return Math.min(max, Math.max(min, value));
-}

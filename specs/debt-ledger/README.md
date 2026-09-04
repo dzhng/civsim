@@ -44,7 +44,7 @@ Also pre-existing under SwiftShader: `full-game-rendering-performance`'s
 `perfStatsOk` clause), `battle-minimap` (`battle-minimap-world-dpr2` ≈89.9k px), `battle-overlays`
 (`overlays/rings-close` 49302 px), `battle-input`'s freezeAtTick pixel-stability
 check (22 bytes, intermittent, also on main),
-and load-dependent screenshot timeouts in `battle-lod` / `banner-gallery`.
+and load-dependent screenshot timeouts in `battle-lod` / `banner-gallery`. `battle-map-style` (not only grass-close) is also drifted at HEAD: vista 161406, near-grass 83790, mid-field 40728, flank-cliff-west 17478, flank-cliff-east 17121 px (identical run to run on the committed tree).
 
 **Pick up here:** slice [01-lab-estate-routes](slices/01-lab-estate-routes.md).
 It is the largest lever and it settles what survives, so every other renderer

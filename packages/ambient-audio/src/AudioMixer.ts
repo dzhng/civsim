@@ -1,3 +1,4 @@
+import { clamp01 } from './scalar';
 export type AmbientAudioBed = "wind" | "grass" | "water" | "birds" | "test";
 
 export type AmbientBedVolumes = Partial<Record<AmbientAudioBed, number>>;
@@ -117,7 +118,3 @@ export class AudioMixer {
   }
 }
 
-function clamp01(value: number): number {
-  if (!Number.isFinite(value)) return 0;
-  return Math.min(1, Math.max(0, value));
-}

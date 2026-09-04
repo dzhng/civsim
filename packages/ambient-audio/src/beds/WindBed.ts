@@ -1,4 +1,5 @@
 import type { AudioMixer } from "../AudioMixer";
+import { clamp, clamp01 } from "../scalar";
 
 export interface WindBedControl {
   speed: number;
@@ -226,11 +227,4 @@ function finite(value: number): number {
   return Number.isFinite(value) ? value : 0;
 }
 
-function clamp01(value: number): number {
-  return clamp(value, 0, 1);
-}
 
-function clamp(value: number, min: number, max: number): number {
-  if (!Number.isFinite(value)) return min;
-  return Math.min(max, Math.max(min, value));
-}

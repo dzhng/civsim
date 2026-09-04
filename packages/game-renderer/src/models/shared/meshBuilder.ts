@@ -1,3 +1,4 @@
+import { hash2 } from '../../../../renderer-core/src/math';
 export type Rgb = [number, number, number];
 
 interface IndexedMeshData {
@@ -233,12 +234,6 @@ function faceNormal(a: [number, number, number], b: [number, number, number], c:
   const nz = ux * vy - uy * vx;
   const len = Math.hypot(nx, ny, nz) || 1;
   return [nx / len, ny / len, nz / len];
-}
-
-function hash2(x: number, y: number): number {
-  let n = ((x * 374761393) | 0) + ((y * 668265263) | 0);
-  n = Math.imul(n ^ (n >>> 13), 1274126177);
-  return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
 }
 
 function jitter(seed: number, salt: number, amount: number) {

@@ -1,3 +1,4 @@
+import { smoothstep } from '../../../renderer-core/src/math';
 interface BattleWindSample {
   speed: number;
   gust: number;
@@ -253,11 +254,6 @@ function hash12(x: number, y: number): number {
 
 function smoother(x: number): number {
   return x * x * x * (x * (x * 6 - 15) + 10);
-}
-
-function smoothstep(edge0: number, edge1: number, x: number): number {
-  const t = clamp((x - edge0) / (edge1 - edge0), 0, 1);
-  return t * t * (3 - 2 * t);
 }
 
 function writeVec2(target: WindVector2Like, x: number, y: number): void {

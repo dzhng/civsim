@@ -234,7 +234,7 @@ function packInstances(instances: CampaignSceneryInstance[]) {
     data[o + 1] = inst.y;
     data[o + 2] = inst.size;
     data[o + 3] = inst.z ?? 0;
-    data[o + 4] = inst.shade ?? hash2(inst.x, inst.y);
+    data[o + 4] = inst.shade ?? shadeHash(inst.x, inst.y);
     data[o + 5] = inst.height ?? inst.size;
     data[o + 6] = inst.yaw ?? 0;
   }
@@ -278,7 +278,9 @@ function makeLeafAtlasBindGroup(device: GPUDevice, layout: GPUBindGroupLayout) {
   });
 }
 
-function hash2(x: number, y: number): number {
+/** Position-keyed shade hash. It truncates each axis before mixing, which the
+ * blessed scenery baselines depend on; the shared renderer-core hash mixes first. */
+function shadeHash(x: number, y: number): number {
   let n = ((x * 374761393) | 0) + ((y * 668265263) | 0);
   n = Math.imul(n ^ (n >>> 13), 1274126177);
   return ((n ^ (n >>> 16)) >>> 0) / 4294967296;

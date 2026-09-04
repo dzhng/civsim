@@ -1,3 +1,4 @@
+import { hash2 } from '../../../../renderer-core/src/math';
 // Procedural alpha-cutout atlas for tree foliage. Upstream ez-tree gets its
 // "many small leaves" look from alpha-tested cluster textures on each leaf
 // quad — an opaque quad can never read finer than its own silhouette. This
@@ -136,8 +137,3 @@ function putTexel(rgba: Uint8Array, x: number, y: number, lum: number): void {
   rgba[i + 3] = 255;
 }
 
-function hash2(x: number, y: number): number {
-  let n = ((x * 374761393) | 0) + ((y * 668265263) | 0);
-  n = Math.imul(n ^ (n >>> 13), 1274126177);
-  return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
-}

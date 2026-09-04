@@ -3,6 +3,7 @@ import {
   type BattleFaction,
   type BattleFactionId,
 } from '../../battle/factionColors';
+import { smoothstep } from '../../../../renderer-core/src/math';
 
 export type StandardSizeTier = 'battle-unit' | 'campaign-army' | 'settlement-banner';
 
@@ -529,11 +530,6 @@ function meshBounds(vertices: number[]): StandardBounds {
     }
   }
   return { min, max };
-}
-
-function smoothstep(edge0: number, edge1: number, x: number) {
-  const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
-  return t * t * (3 - 2 * t);
 }
 
 function hash01(seed: number, salt: number): number {

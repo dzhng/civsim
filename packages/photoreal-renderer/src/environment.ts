@@ -99,6 +99,13 @@ export function applyCivsimEnvironment(
   // cast BY this same sun, so the preset's sunIntensity already scales how
   // strongly they read (overcast-highland's 0.32 sun ⇒ faint shadows, by physics).
   world.sunLight = sun;
+  world.ownEnvironment(() => {
+    scene.remove(sky.mesh, sun, sun.target);
+    scene.environment = null;
+    scene.fogNode = null;
+    world.sunLight = null;
+    sky.dispose();
+  });
 
   world.renderer.toneMappingExposure = spec.exposure;
   world.environmentId = spec.id;

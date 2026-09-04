@@ -109,6 +109,7 @@ function toneMappingName(toneMapping: THREE.ToneMapping): string {
 
 export class BattlePostChain {
   private readonly pipeline: THREE.RenderPipeline;
+  private readonly scenePass: ReturnType<typeof pass>;
   private readonly bloomNode: ReturnType<typeof bloom>;
   private readonly sceneColor;
   private preset: CivsimEnvironmentId;
@@ -132,8 +133,8 @@ export class BattlePostChain {
     this.preset = environmentId;
     this.presetStrength = gradeStrengthForPreset(environmentId);
     this.gradeStrength.value = this.presetStrength;
-    const scenePass = pass(scene, camera);
-    this.sceneColor = scenePass.getTextureNode('output');
+    this.scenePass = pass(scene, camera);
+    this.sceneColor = this.scenePass.getTextureNode('output');
     this.bloomNode = bloom(this.sceneColor, BLOOM_STRENGTH, BLOOM_RADIUS, BLOOM_THRESHOLD);
     this.bloomNode.smoothWidth.value = BLOOM_SMOOTH_WIDTH;
     this.pipeline = new THREE.RenderPipeline(renderer);
@@ -214,6 +215,12 @@ export class BattlePostChain {
       return;
     }
     this.pipeline.render();
+  }
+
+  dispose(): void {
+    this.pipeline.dispose();
+    this.bloomNode.dispose();
+    this.scenePass.dispose();
   }
 
   stats(): BattlePostChainStats {

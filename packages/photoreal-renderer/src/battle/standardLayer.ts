@@ -108,6 +108,12 @@ export class PhotorealStandardLayer {
       legibility: "measured cloth-width floor from battle scene standardScale" as const,
     };
   }
+
+  dispose(): void {
+    this.mesh.removeFromParent();
+    this.geometry.dispose();
+    (this.mesh.material as THREE.Material).dispose();
+  }
 }
 
 function standardGeometry(): THREE.InstancedBufferGeometry {

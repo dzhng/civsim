@@ -357,6 +357,14 @@ export class BattleBackgroundQuads {
     this.terrainDefault.visible = style === "default";
     this.terrainWide.visible = style === "wide-detail";
   }
+
+  dispose(): void {
+    for (const mesh of [this.backdrop, this.terrainDefault, this.terrainWide]) {
+      mesh.removeFromParent();
+      mesh.geometry.dispose();
+      (mesh.material as THREE.Material).dispose();
+    }
+  }
 }
 
 /** The rolling battle ground mesh shared by playable and vista terrain. */

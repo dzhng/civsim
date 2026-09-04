@@ -63,6 +63,7 @@ function emptyLodCounts(): LodCounts {
 export class PhotorealCrowd {
   private buckets: ClassBucket[][] = [];
   private readonly impostors: OctahedralImpostorLayer;
+  private readonly textures = new Set<THREE.DataTexture>();
   private instanceCount = 0;
   private readonly materialIdentity: ReturnType<typeof soldierMaterialIdentity>;
   private previousLevels: number[] = [];
@@ -91,6 +92,7 @@ export class PhotorealCrowd {
         tex.generateMipmaps = false;
         tex.needsUpdate = true;
         textures.set(vat, tex);
+        this.textures.add(tex);
       }
       return tex;
     };
@@ -249,6 +251,16 @@ export class PhotorealCrowd {
       impostors,
       material: this.materialIdentity,
     };
+  }
+
+  dispose(): void {
+    for (const bucket of this.buckets.flat()) {
+      bucket.mesh.removeFromParent();
+      bucket.geometry.dispose();
+      (bucket.mesh.material as THREE.Material).dispose();
+    }
+    this.impostors.dispose();
+    for (const texture of this.textures) texture.dispose();
   }
 }
 

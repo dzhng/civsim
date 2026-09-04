@@ -359,8 +359,9 @@ interface BladeFieldMaterialTier {
   beauty: THREE.MeshStandardNodeMaterial;
   depthPrepass: THREE.MeshBasicNodeMaterial | null;
   grassData: StorageNodeWithValue<unknown>;
-  visibleIndices: StorageNodeWithValue<unknown>;
+  visibleIndices: StorageNodeWithValue<StorageUploadAttribute>;
   anchor: Vec2UniformNode;
+  ownedStorage: StorageUploadAttribute[];
 }
 
 export interface BladeFieldMaterialSet {
@@ -389,6 +390,7 @@ interface BladeFieldGpuRuntime {
   routed: boolean;
   grassData: StorageNodeWithValue;
   recordData: StorageUploadAttribute;
+  storage: StorageUploadAttribute[];
 }
 
 interface RuntimeConfig {
@@ -416,6 +418,7 @@ interface StorageUploadAttribute {
   clearUpdateRanges(): void;
   setUsage?(usage: number): StorageUploadAttribute;
   needsUpdate: boolean;
+  dispose(): void;
 }
 
 interface StorageNodeWithValue<Value = StorageUploadAttribute> {
@@ -467,6 +470,8 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
   private readonly buckets: TierBucket[];
   private readonly materials: BladeFieldMaterialSet;
   private readonly wind: BladeFieldWindUniforms;
+  private readonly ownsMaterials: boolean;
+  private readonly placeholderMaterials = new Set<THREE.Material>();
   private recordCount = 0;
   private recordHash = "00000000";
   private enabled = true;
@@ -518,6 +523,7 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     // trick pays (its WebGL painterly fragments were the bottleneck).
     this.depthPrepassEnabled = options.depthPrepass ?? false;
     this.wind = wind;
+    this.ownsMaterials = options.materials === undefined;
     this.tiers = tiers;
     this.transitionUniforms =
       transition instanceof BladeFieldTransitionUniforms
@@ -535,6 +541,7 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
       roughness: 0.84,
       metalness: 0,
     });
+    this.placeholderMaterials.add(placeholder);
     this.buckets = tiers.map((spec) => {
       const bladesPerRecord = bladesPerRecordFor(this.farDensityProfile, spec.id);
       const geometry = bladeGeometry(spec.segments, bladesPerRecord);
@@ -552,9 +559,11 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
       mesh.receiveShadow = true;
       mesh.visible = false;
       scene.add(mesh);
-      const prepassMesh = BLADE_FIELD_PREPASS_TIERS.has(spec.id)
-        ? new THREE.Mesh(geometry, emptyBladeFieldDepthPrepassMaterial())
+      const prepassMaterial = BLADE_FIELD_PREPASS_TIERS.has(spec.id)
+        ? emptyBladeFieldDepthPrepassMaterial()
         : null;
+      if (prepassMaterial) this.placeholderMaterials.add(prepassMaterial);
+      const prepassMesh = prepassMaterial ? new THREE.Mesh(geometry, prepassMaterial) : null;
       if (prepassMesh) {
         prepassMesh.name = grassMeshName(
           options.nameSuffix,
@@ -607,9 +616,11 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
       );
     }
     if (options.incremental && packedRecords.length > 0) {
+      if (this.pendingPackedUpload) disposeGpuRuntime(this.pendingPackedUpload.runtime);
       this.startIncrementalPackedRecordUpload(packedRecords, visible);
       return;
     }
+    if (this.pendingPackedUpload) disposeGpuRuntime(this.pendingPackedUpload.runtime);
     this.pendingPackedUpload = null;
     const copiedRecords = new Float32Array(packedRecords);
     this.activatePackedRecords(
@@ -630,12 +641,15 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     runtime: BladeFieldGpuRuntime,
     recordHash: string,
   ): void {
+    const previousRuntime = this.runtime;
     this.enabled = visible;
     this.recordCount = packedRecords.length / GRASS_FIELD_PACKED_STRIDE_FLOATS;
     this.recordHash = recordHash;
     this.packedRecords = packedRecords;
     if (this.recordCount === 0) {
       this.runtime = null;
+      disposeGpuRuntime(runtime);
+      if (previousRuntime && previousRuntime !== runtime) disposeGpuRuntime(previousRuntime);
       this.culledRecords = 0;
       this.thinnedRecords = 0;
       this.statsDirty = false;
@@ -689,6 +703,7 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
       bucket.mesh.visible = this.tierVisible(bucket.spec, visible);
       this.updatePrepassVisibility(bucket, visible);
     }
+    if (previousRuntime && previousRuntime !== runtime) disposeGpuRuntime(previousRuntime);
   }
 
   routeGpu(
@@ -1005,6 +1020,33 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
     };
   }
 
+  dispose(): void {
+    const runtimes = new Set(
+      [this.runtime, this.pendingPackedUpload?.runtime ?? null].filter(
+        (runtime): runtime is BladeFieldGpuRuntime => runtime !== null,
+      ),
+    );
+    for (const runtime of runtimes) {
+      disposeGpuRuntime(runtime);
+    }
+    for (const bucket of this.buckets) {
+      bucket.mesh.removeFromParent();
+      bucket.prepassMesh?.removeFromParent();
+      bucket.mesh.geometry.dispose();
+      bucket.drawBuffer.dispose();
+    }
+    if (this.ownsMaterials && this.materials.tiers) {
+      for (const tier of Object.values(this.materials.tiers)) {
+        tier.beauty.dispose();
+        tier.depthPrepass?.dispose();
+        for (const attribute of tier.ownedStorage) attribute.dispose();
+      }
+    }
+    for (const material of this.placeholderMaterials) material.dispose();
+    this.runtime = null;
+    this.pendingPackedUpload = null;
+  }
+
   private tierVisible(spec: BladeFieldTierSpec, visible: boolean): boolean {
     return visible && (this.farTierVisible || spec.id !== "far");
   }
@@ -1097,6 +1139,10 @@ export class PhotorealBladeFieldLayer implements MeadowGrassLayer {
   }
 }
 
+function disposeGpuRuntime(runtime: BladeFieldGpuRuntime): void {
+  for (const attribute of runtime.storage) attribute.dispose();
+}
+
 function bladeGeometry(segments: number, bladesPerRecord: number): THREE.InstancedBufferGeometry {
   const bladeCopies = Math.max(
     1,
@@ -1170,7 +1216,8 @@ function createGpuRuntime(
   const cullWedgeEnabled = typedUniform(0);
   const uploadScratch = instancedArray(new Float32Array([0]), "float").setName(
     "PhotorealBladeFieldUploadTouch",
-  ) as { element(index: unknown): { assign(value: unknown): void } };
+  ) as StorageNodeWithValue & { element(index: unknown): { assign(value: unknown): void } };
+  const storageAttributes: StorageUploadAttribute[] = [recordData, uploadScratch.value];
   const configs: RuntimeConfig[] = buckets.map((bucket) => {
     const visibleIndices = instancedArray(
       new Uint32Array(packedRecords.length / 16),
@@ -1181,6 +1228,7 @@ function createGpuRuntime(
     ) as RuntimeConfig["drawStorage"];
     bucket.visibleIndices = visibleIndices;
     bucket.drawStorage = drawStorage;
+    storageAttributes.push((visibleIndices as StorageNodeWithValue).value);
     return {
       spec: bucket.spec,
       visibleIndices,
@@ -1275,6 +1323,7 @@ function createGpuRuntime(
     routed: false,
     grassData,
     recordData,
+    storage: storageAttributes,
   };
 }
 
@@ -1339,7 +1388,7 @@ function createBladeFieldMaterialTiers(
   return Object.fromEntries(
     buckets.map((bucket) => {
       const grassData = runtime.grassData;
-      const visibleIndices = bucket.visibleIndices as StorageNodeWithValue<unknown>;
+      const visibleIndices = bucket.visibleIndices as StorageNodeWithValue;
       const anchor = runtime.anchor;
       return [
         bucket.spec.id,
@@ -1368,10 +1417,11 @@ function createBladeFieldMaterialTiers(
           grassData,
           visibleIndices,
           anchor,
+          ownedStorage: [],
         } satisfies BladeFieldMaterialTier,
       ];
     }),
-  ) as Record<BladeFieldTierId, BladeFieldMaterialTier>;
+  ) as unknown as Record<BladeFieldTierId, BladeFieldMaterialTier>;
 }
 
 function createUnboundBladeFieldMaterialTiers(
@@ -1388,7 +1438,7 @@ function createUnboundBladeFieldMaterialTiers(
       );
       const visibleIndices = instancedArray(new Uint32Array(1), "uint").setName(
         `PhotorealBladeFieldMaterialVisible${tier.id}`,
-      ) as StorageNodeWithValue<unknown>;
+      ) as StorageNodeWithValue;
       const anchor = typedUniform(new THREE.Vector2(0, 0));
       return [
         tier.id,
@@ -1417,6 +1467,7 @@ function createUnboundBladeFieldMaterialTiers(
           grassData,
           visibleIndices,
           anchor,
+          ownedStorage: [grassData.value, visibleIndices.value],
         } satisfies BladeFieldMaterialTier,
       ];
     }),
@@ -1431,7 +1482,7 @@ function bindBladeFieldMaterialTier(
   if (!runtime || !bucket.visibleIndices) return;
   materials.grassData.value = runtime.grassData.value;
   materials.visibleIndices.value = (
-    bucket.visibleIndices as StorageNodeWithValue<unknown>
+    bucket.visibleIndices as StorageNodeWithValue
   ).value;
   materials.anchor.value.copy(runtime.anchor.value);
 }

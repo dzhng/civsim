@@ -173,6 +173,13 @@ export class PhotorealReadoutLayer {
     };
   }
 
+  dispose(): void {
+    this.chipMesh.removeFromParent();
+    this.chipGeometry.dispose();
+    (this.chipMesh.material as THREE.Material).dispose();
+    this.atlasTexture.dispose();
+  }
+
   private uploadChips(chips: readonly ChipInstance[]): void {
     this.chipCount = chips.length;
     this.chipMesh.visible = chips.length > 0;

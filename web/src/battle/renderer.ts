@@ -78,6 +78,12 @@ export interface BattleRendererDisposeHook {
   dispose(): void;
 }
 
+export interface BattleRendererMemoryInfo {
+  geometries: number;
+  textures: number;
+  programs: number | null;
+}
+
 export class BattleRenderer {
   readonly ready: Promise<void>;
   fixedTime: number | null = null;
@@ -111,6 +117,7 @@ export class BattleRenderer {
   private audioTerrain: BattleRendererAudioTerrain | null = null;
   private audioWaterSurfaces: BattleRendererAudioSurface[] = [];
   private readonly onResize = () => this.resize();
+  private readonly lifecycle = { disposed: false };
   private disposed = false;
   private lastCamera: BattleCameraSnapshot = {
     x: 0,
@@ -154,8 +161,21 @@ export class BattleRenderer {
     return next.shadows === this.shadowRequest && next.grassQuality === this.grassQualityRequest;
   }
 
+  memoryInfo(): BattleRendererMemoryInfo | null {
+    const info = this.world?.world.renderer.info;
+    if (!info) return null;
+    const programs = (info as unknown as { programs?: unknown }).programs;
+    return {
+      geometries: info.memory.geometries,
+      textures: info.memory.textures,
+      programs: Array.isArray(programs) ? programs.length : null,
+    };
+  }
+
   dispose(): void {
+    if (this.disposed) return;
     this.disposed = true;
+    this.lifecycle.disposed = true;
     window.removeEventListener("resize", this.onResize);
     this.graphicsUnsubscribe?.();
     this.graphicsUnsubscribe = null;
@@ -509,9 +529,13 @@ export class BattleRenderer {
     });
     // The bespoke shell's fatal surface, re-homed onto three's device.
     const device = (world.world.renderer.backend as unknown as { device?: GPUDevice }).device;
-    void device?.lost?.then((info) =>
-      showFatalErrorSurface(this.canvas, fatalSurfaceFor("device-lost", info.message)),
-    );
+    const lifecycle = this.lifecycle;
+    const canvas = this.canvas;
+    void device?.lost?.then((info) => {
+      if (!lifecycle.disposed) {
+        showFatalErrorSurface(canvas, fatalSurfaceFor("device-lost", info.message));
+      }
+    });
     if (this.pendingStatic) {
       world.setStatic(
         this.pendingStatic.soldierUnit,

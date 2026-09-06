@@ -99,6 +99,12 @@ modest improvement. Its 20,504-triangle inspection export is provisional, not an
 admitted budget. Fingers still need direct anatomical form work; more retained
 triangles do not make the remaining U-prong shape correct.
 
+The [whole-body mass study](../assets/evidence/08/wholebody-study.md) retains a
+modest calf/thigh/forearm refinement after rejecting an enlarged-shoulder trial.
+Fresh review still finds unresolved shoulder seams and simplified bent joints.
+This is a working-source checkpoint, not anatomy acceptance; equipment must be
+refitted to the changed surface before contact and dressed motion are judged.
+
 The [pronation study](../assets/evidence/08/pronation/review.md) retains forearm
 roll as marginally less wrong than isolated wrist roll, without adding bones or
 changing weights. Original bend and static sheet coverage remain intact; two

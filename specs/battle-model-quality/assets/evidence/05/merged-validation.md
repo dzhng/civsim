@@ -21,7 +21,16 @@ Independent review found no issue in the diagnostic/rollback patch; its sandbox
 could not bind the HTTP test server, so the main unrestricted run supplies that
 test result. No baseline or tolerance changed.
 
+The [unchanged hardware gate](hardware-30k.json) also passes on Apple Metal3 at
+1280×800 with30,560 soldiers and150 GPU samples per stop. Mid/vista medians are
+12.09/11.16ms, with p95s16.92/13.17ms. Pan, zoom sweep and wheel rAF p95s are
+19.70/21.45/19.06ms; close-grass p95s18.73/19.96ms. All remain below33ms.
+The evidence frames were inspected: formations read as distant masses and
+vista foreground grass obscures individual bodies. This inherited paused-sim
+gate is neither close-model readability nor live-animation acceptance;07 owns
+those additional measurements.
+
 The gait scene exposed a separate scheduling weakness and then a zero-motion
 pixel crop; that gate remains open pending a deterministic real-render fix.
-Workbench action replay, applicable performance checks and the focused visual
-checkpoint also remain open. Slice05 is not complete.
+Workbench action replay and the focused visual checkpoint also remain open.
+Slice05 is not complete.

@@ -15,11 +15,30 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
     // Only the hardware boundary is inert; construction, mesh packing, VAT
     // allocation/layout and the public appearance lookup all run unchanged.
     const writes = new Map<string, Float32Array>();
+    const tables = new Map<string, Float32Array>();
+    const allocations: { label: string; destroyed: number }[] = [];
+    let failBindGroup: string | undefined;
+    const allocate = (label: string) => {
+      const resource = {
+        label,
+        destroyed: 0,
+        destroy() {
+          this.destroyed++;
+        },
+      };
+      allocations.push(resource);
+      return resource;
+    };
     const device = {
       createBindGroupLayout: () => ({}),
-      createBindGroup: () => ({}),
-      createBuffer: (descriptor: { label: string }) => ({ label: descriptor.label, destroy() {} }),
-      createTexture: () => ({ createView: () => ({}) }),
+      createBindGroup: (descriptor: { label: string }) => {
+        if (descriptor.label === failBindGroup)
+          throw new Error("injected material allocation failure");
+        return { label: descriptor.label };
+      },
+      createBuffer: (descriptor: { label: string }) => allocate(descriptor.label),
+      createTexture: (descriptor: { label: string }) =>
+        Object.assign(allocate(descriptor.label), { createView: () => ({}) }),
       createSampler: () => ({}),
       createShaderModule: () => ({}),
       createPipelineLayout: () => ({}),
@@ -28,7 +47,9 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
         writeBuffer(buffer: { label: string }, offset: number, data: Float32Array) {
           writes.set(buffer.label, data.slice());
         },
-        writeTexture() {},
+        writeTexture(destination: { texture: { label: string } }, data: Float32Array) {
+          tables.set(destination.texture.label, data.slice());
+        },
       },
     };
     const shell = {
@@ -45,8 +66,8 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
       weights: new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]),
       uvs: new Float32Array(6),
       tangents: new Float32Array([1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1]),
-      materialIds: new Float32Array(3),
-      factionMasks: new Float32Array(3),
+      materialIds: new Float32Array([1, 1, 1]),
+      factionMasks: new Float32Array([0, 0.5, 1]),
       indices: new Uint16Array([0, 1, 2]),
     };
     const bake = (start: number): VatBake => ({
@@ -56,44 +77,128 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
       width: 8,
       height: 4,
       bones: 1,
-      clips: [{ name: "idle", start, frames: 2, loop: true, duration: 1 }, { name: 'attack', start: 2, frames: 3, loop: false, duration: 2 }],
+      clips: [
+        { name: "idle", start, frames: 2, loop: true, duration: 1 },
+        { name: "attack", start: 2, frames: 3, loop: false, duration: 2 },
+      ],
       layout: "test",
       sha256: "test",
       data: Array.from({ length: 128 }, (_, i) => Number(Math.floor(i / 32) === i % 4)),
     });
     const appearance = (start: number): AppearanceBundle => ({
       manifest: {
-        name: `fixture-${start}`, mounted: false, skeleton: 'rig.json', animation: 'animation.json',
-        materials: 'materials.json', tiers: ['near.json', 'mid.json', 'far.json'],
-        far: { mesh: 'far.json', clip: 'idle', phase: 0 }, bounds: { center: [0, 0, 0], radius: 1 },
+        name: `fixture-${start}`,
+        mounted: false,
+        skeleton: "rig.json",
+        animation: "animation.json",
+        materials: "materials.json",
+        tiers: ["near.json", "mid.json", "far.json"],
+        far: { mesh: "far.json", clip: "idle", phase: 0 },
+        bounds: { center: [0, 0, 0], radius: 1 },
       },
-      rig: { bones: [{ name: 'root', parent: -1, bind: { T: [0, 0, 0], R: [0, 0, 0, 1], S: [1, 1, 1] }, inverseBind: new Float32Array(16) }], clips: [] },
-      animation: bake(start), materials: [{ name: 'neutral', baseColor: [1, 1, 1, 1], roughness: 1, metallic: 0 }],
-      tiers: [mesh, mesh, { ...mesh, indices: new Uint32Array([0, 1, 2, 2, 1, 0]) }], farMesh: mesh,
+      rig: {
+        bones: [
+          {
+            name: "root",
+            parent: -1,
+            bind: { T: [0, 0, 0], R: [0, 0, 0, 1], S: [1, 1, 1] },
+            inverseBind: new Float32Array(16),
+          },
+        ],
+        clips: [],
+      },
+      animation: bake(start),
+      materials: [
+        { name: "neutral", baseColor: [1, 1, 1, 1], roughness: 1, metallic: 0 },
+        {
+          name: "ordinary-blue",
+          baseColor: [0.1, 0.2, 0.7, 1],
+          roughness: start === 0 ? 0.25 : 0.75,
+          metallic: 0.5,
+        },
+      ],
+      tiers: [mesh, mesh, { ...mesh, indices: new Uint32Array([0, 1, 2, 2, 1, 0]) }],
+      farMesh: mesh,
     });
     const crowd = new SkinnedCrowdPipeline(shell, { 0: appearance(0), 5: appearance(5) });
-    assert.deepEqual(crowd.classClip(0, "idle"), { name: "idle", start: 0, frames: 2, loop: true, duration: 1 });
-    assert.deepEqual(crowd.classClip(5, "idle"), { name: "idle", start: 5, frames: 2, loop: true, duration: 1 });
-    assert.throws(() => crowd.classClip(1, 'idle'), /appearance 1 is not loaded/);
-    assert.throws(() => crowd.classClip(0.5, 'idle'), /appearance 0.5 is not loaded/);
+    assert.equal(tables.size, 2, "each appearance uploads its own table, shared by all LODs");
+    assert.deepEqual(
+      Array.from(tables.get("skinned-material-table-1")!),
+      Array.from(new Float32Array([1, 1, 1, 1, 0.1, 0.2, 0.7, 1, 1, 0, 1, 0, 0.75, 0.5, 1, 0])),
+    );
+    assert.equal(crowd.stats().materialTableBytes, 128);
+    assert.equal(writes.get("skinned-soldier-0-vertices")![24], 1);
+    assert.equal(writes.get("skinned-soldier-0-vertices")![51], 0.5);
+    assert.deepEqual(crowd.classClip(0, "idle"), {
+      name: "idle",
+      start: 0,
+      frames: 2,
+      loop: true,
+      duration: 1,
+    });
+    assert.deepEqual(crowd.classClip(5, "idle"), {
+      name: "idle",
+      start: 5,
+      frames: 2,
+      loop: true,
+      duration: 1,
+    });
+    assert.throws(() => crowd.classClip(1, "idle"), /appearance 1 is not loaded/);
+    assert.throws(() => crowd.classClip(0.5, "idle"), /appearance 0.5 is not loaded/);
     const [instance] = generatedFormation(1, { frame: 0 });
-    crowd.upload([{ ...instance, x: 19, classId: 5, lod: 2, clip: 'idle' }]);
+    crowd.upload([{ ...instance, x: 19, classId: 5, lod: 2, clip: "idle" }]);
     const draws: number[][] = [];
     const indexFormats: GPUIndexFormat[] = [];
     let instanceValues: Float32Array | undefined;
+    const materialGroups: string[] = [];
     const pass = {
-      setPipeline() {}, setBindGroup() {},
-      setIndexBuffer(buffer: GPUBuffer, format: GPUIndexFormat) { indexFormats.push(format); },
-      setVertexBuffer(slot: number, buffer: { label: string }) { if (slot === 1) instanceValues = writes.get(buffer.label); },
-      drawIndexed(indices: number, instances: number) { draws.push([indices, instances, instanceValues![0], instanceValues![5]]); },
-    } as unknown as Parameters<SkinnedCrowdPipeline['draw']>[0];
+      setPipeline() {},
+      setBindGroup(slot: number, group: { label: string }) {
+        if (slot === 2) materialGroups.push(group.label);
+      },
+      setIndexBuffer(buffer: GPUBuffer, format: GPUIndexFormat) {
+        indexFormats.push(format);
+      },
+      setVertexBuffer(slot: number, buffer: { label: string }) {
+        if (slot === 1) instanceValues = writes.get(buffer.label);
+      },
+      drawIndexed(indices: number, instances: number) {
+        draws.push([indices, instances, instanceValues![0], instanceValues![5]]);
+      },
+    } as unknown as Parameters<SkinnedCrowdPipeline["draw"]>[0];
     crowd.draw(pass);
-    assert.deepEqual(draws, [[6, 1, 19, 5]], 'sparse class 5 / L2 uses its own geometry, clip and submitted world position');
-    assert.deepEqual(indexFormats, ['uint32']);
-    crowd.upload([{ ...instance, classId: 5, lod: 2, clip: 'attack', phase: 1 }]);
+    assert.deepEqual(
+      draws,
+      [[6, 1, 19, 5]],
+      "sparse class 5 / L2 uses its own geometry, clip and submitted world position",
+    );
+    assert.deepEqual(indexFormats, ["uint32"]);
+    assert.deepEqual(
+      materialGroups,
+      ["skinned-material-bg-1"],
+      "sparse appearance selects its own material table",
+    );
+    crowd.upload([{ ...instance, classId: 5, lod: 2, clip: "attack", phase: 1 }]);
     crowd.draw(pass);
-    assert.equal(instanceValues![7], 1, 'the final nonloop pose must reach the shader unchanged');
+    assert.equal(instanceValues![7], 1, "the final nonloop pose must reach the shader unchanged");
     assert.throws(() => crowd.upload([{ ...instance, classId: 1 }]), /appearance 1 is not loaded/);
+    crowd.dispose();
+    crowd.dispose();
+    assert.ok(
+      allocations.every((resource) => resource.destroyed === 1),
+      "every owned GPU resource is destroyed exactly once",
+    );
+    assert.throws(() => crowd.upload([]), /disposed/);
+    const beforeFailure = allocations.length;
+    failBindGroup = "skinned-material-bg-1";
+    assert.throws(
+      () => new SkinnedCrowdPipeline(shell, { 0: appearance(0), 5: appearance(5) }),
+      /injected material/,
+    );
+    assert.ok(
+      allocations.slice(beforeFailure).every((resource) => resource.destroyed === 1),
+      "partial construction releases material tables and earlier appearance resources",
+    );
   } finally {
     vi.unstubAllGlobals();
   }

@@ -608,6 +608,7 @@ export class CampaignRenderer {
     window.removeEventListener("resize", this.onResize);
     this.graphicsUnsubscribe?.();
     this.graphicsUnsubscribe = null;
+    this.passes?.soldierCrowd.dispose();
     this.passes?.shell.destroy();
     this.passes = null;
     publishStats(this.stats());

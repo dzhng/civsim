@@ -10,6 +10,7 @@ import {
 
 interface RecordedBuffer {
   descriptor: GPUBufferDescriptor;
+  destroyed: number;
 }
 
 function recordingDevice() {
@@ -17,7 +18,13 @@ function recordingDevice() {
   const writes: Array<{ buffer: RecordedBuffer; data: Uint8Array }> = [];
   const device = {
     createBuffer(descriptor: GPUBufferDescriptor) {
-      const buffer = { descriptor };
+      const buffer = {
+        descriptor,
+        destroyed: 0,
+        destroy() {
+          this.destroyed++;
+        },
+      };
       buffers.push(buffer);
       return buffer;
     },
@@ -50,6 +57,17 @@ test("GrowableBuffer applies its floor, doubles, and reports reallocations", () 
   assert.equal(growable.write(new Uint8Array(300)), true);
   assert.equal(growable.capacityBytes, 512);
   assert.equal(recording.writes.length, 3);
+  assert.deepEqual(
+    recording.buffers.map((buffer) => buffer.destroyed),
+    [1, 1, 0],
+  );
+  growable.dispose();
+  growable.dispose();
+  assert.deepEqual(
+    recording.buffers.map((buffer) => buffer.destroyed),
+    [1, 1, 1],
+  );
+  assert.throws(() => growable.write(new Uint8Array(1)), /disposed/);
 });
 
 test("static vertex and index buffers upload data and pad uint16 indices to four bytes", () => {

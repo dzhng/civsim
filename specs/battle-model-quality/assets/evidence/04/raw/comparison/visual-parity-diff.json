@@ -1,0 +1,50 @@
+{
+  "kind": "screenshot-parity-diff",
+  "generatedAt": "2026-09-06T03:51:18.847Z",
+  "note": "Lower parityDistance means the candidate is closer to the reference for this fixed pair. This is a distance metric, not an acceptance gate.",
+  "pairCount": 1,
+  "worstPair": "army",
+  "results": [
+    {
+      "id": "army",
+      "current": "specs/battle-model-quality/assets/evidence/04/raw/reference/army.png",
+      "candidate": "specs/battle-model-quality/assets/evidence/04/raw/candidate/army.png",
+      "dimensions": {
+        "width": 970,
+        "height": 758
+      },
+      "parityDistance": 0.00713,
+      "grayscale": {
+        "mae": 0.44179,
+        "rmse": 5.25934,
+        "diffRatio16": 0.00666,
+        "diffRatio32": 0.00587,
+        "diffRatio64": 0.00192,
+        "pixelmatchRatio": 0.00608
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.26388,
+        "terrainLikeRatioCandidate": 0.26259,
+        "avgLuminanceCurrent": 58.80824,
+        "avgLuminanceCandidate": 58.4533,
+        "avgLuminanceDelta": -0.35494,
+        "edgeEnergyCurrent": 0.04948,
+        "edgeEnergyCandidate": 0.04895,
+        "edgeEnergyRatio": 0.98931,
+        "edgeDiffRatio32": 0.00492
+      },
+      "artifacts": {
+        "sideBySide": "comparison/army-side-by-side.png",
+        "currentGray": "comparison/army-current-gray.png",
+        "candidateGray": "comparison/army-candidate-gray.png",
+        "absDiff": "comparison/army-absdiff.png",
+        "pixelmatch": "comparison/army-pixelmatch.png",
+        "currentEdges": "comparison/army-current-edges.png",
+        "candidateEdges": "comparison/army-candidate-edges.png",
+        "edgeDiff": "comparison/army-edge-diff.png"
+      }
+    }
+  ]
+}

@@ -2,6 +2,7 @@ export class GrowableBuffer {
   private currentBuffer: GPUBuffer;
   private currentCapacityBytes: number;
   private readonly usage: GPUBufferUsageFlags;
+  private disposed = false;
 
   constructor(
     private readonly device: GPUDevice,
@@ -24,14 +25,26 @@ export class GrowableBuffer {
 
   /** true when reallocated — rebuild any bind group that holds it */
   write(data: ArrayBufferView): boolean {
+    if (this.disposed) throw new Error(`${this.label} is disposed`);
     const requiredBytes = alignedBytes(data.byteLength);
     const reallocated = requiredBytes > this.currentCapacityBytes;
     if (reallocated) {
-      this.currentCapacityBytes = Math.max(requiredBytes, this.currentCapacityBytes * 2, 128);
-      this.currentBuffer = this.allocate(this.currentCapacityBytes);
+      const capacity = Math.max(requiredBytes, this.currentCapacityBytes * 2, 128);
+      const replacement = this.allocate(capacity);
+      // Previously submitted GPU work retains its resources; callers must rebuild
+      // bind groups before submitting new work, as the return contract requires.
+      this.currentBuffer.destroy();
+      this.currentBuffer = replacement;
+      this.currentCapacityBytes = capacity;
     }
     if (data.byteLength > 0) this.device.queue.writeBuffer(this.currentBuffer, 0, data);
     return reallocated;
+  }
+
+  dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true;
+    this.currentBuffer.destroy();
   }
 
   private allocate(size: number): GPUBuffer {
@@ -43,7 +56,11 @@ export function makeVertexBuffer(device: GPUDevice, label: string, data: Float32
   return makeStaticBuffer(device, label, data, GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST);
 }
 
-export function makeIndexBuffer(device: GPUDevice, label: string, data: Uint16Array | Uint32Array): GPUBuffer {
+export function makeIndexBuffer(
+  device: GPUDevice,
+  label: string,
+  data: Uint16Array | Uint32Array,
+): GPUBuffer {
   // writeBuffer requires a multiple of four bytes, even for uint16 triangles.
   const upload = data.byteLength % 4 === 0 ? data : new Uint16Array(data.length + 1);
   if (upload !== data) upload.set(data);
@@ -57,7 +74,12 @@ function makeStaticBuffer(
   usage: GPUBufferUsageFlags,
 ): GPUBuffer {
   const buffer = device.createBuffer({ label, size: alignedBytes(data.byteLength), usage });
-  if (data.byteLength > 0) device.queue.writeBuffer(buffer, 0, data);
+  try {
+    if (data.byteLength > 0) device.queue.writeBuffer(buffer, 0, data);
+  } catch (error) {
+    buffer.destroy();
+    throw error;
+  }
   return buffer;
 }
 

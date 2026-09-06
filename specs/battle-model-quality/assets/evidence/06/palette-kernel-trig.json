@@ -1,0 +1,500 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-06T08:37:54.579Z",
+  "target": "http://127.0.0.1:5195",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 1,
+  "status": "fail",
+  "scenarios": [
+    {
+      "name": "pose-palette",
+      "file": "system/pose-palette.mjs",
+      "kind": "flow",
+      "tier": "quick"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "pose-palette",
+      "name": "trig operation residual diagnostic",
+      "ok": true,
+      "detail": {
+        "actual": [
+          0.6794812679290771,
+          0.8999856114387512,
+          0.9000000357627869,
+          0.15238483250141144
+        ],
+        "expected": [
+          0.6794406139429131,
+          0.899999977585686,
+          0.8999999950856703,
+          0.15240376595924635
+        ],
+        "residual": [
+          0.00004065398616404092,
+          -0.00001436614693473004,
+          4.067711656396966e-8,
+          -0.00001893345783490763
+        ]
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step: fixture has an upper mask and nonadjacent ancestor",
+      "ok": true,
+      "detail": {
+        "mask": [
+          3
+        ],
+        "names": [
+          "joint-0",
+          "joint-1",
+          "joint-2",
+          "joint-3"
+        ]
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "raw WGSL compiles",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "three shader diagnostic",
+      "ok": true,
+      "detail": "// Three.js r185 - Node System\n\n// directives\nenable subgroups;\n\n// system\nvar<private> instanceIndex : u32;\n\n// locals\n\n\n// structs\n\n\n// uniforms\n\nstruct NodeBuffer_984Struct {\n\tvalue : array< vec4<f32> >\n};\n@binding( 0 ) @group( 0 )\nvar<storage, read> NodeBuffer_984 : NodeBuffer_984Struct;\n\nstruct NodeBuffer_985Struct {\n\tvalue : array< u32 >\n};\n@binding( 1 ) @group( 0 )\nvar<storage, read> NodeBuffer_985 : NodeBuffer_985Struct;\n\nstruct NodeBuffer_986Struct {\n\tvalue : array< mat4x4<f32> >\n};\n@binding( 2 ) @group( 0 )\nvar<storage, read> NodeBuffer_986 : NodeBuffer_986Struct;\n\nstruct NodeBuffer_987Struct {\n\tvalue : array< vec4<u32> >\n};\n@binding( 3 ) @group( 0 )\nvar<storage, read> NodeBuffer_987 : NodeBuffer_987Struct;\n\nstruct NodeBuffer_988Struct {\n\tvalue : array< vec4<f32> >\n};\n@binding( 4 ) @group( 0 )\nvar<storage, read> NodeBuffer_988 : NodeBuffer_988Struct;\n\nstruct NodeBuffer_989Struct {\n\tvalue : array< mat4x4<f32> >\n};\n@binding( 5 ) @group( 0 )\nvar<storage, read_write> NodeBuffer_989 : NodeBuffer_989Struct;\n\nstruct objectStruct {\n\tnodeUniform6 : u32\n};\n@binding( 6 ) @group( 0 )\nvar<uniform> object : objectStruct;\n\n// vars\n\n\n// codes\n\nstruct PaletteLocal { t: vec3f, q: vec4f, s: vec3f };\n\nfn paletteSlerp(a: vec4f, inputB: vec4f, weight: f32) -> vec4f {\n  if (weight == 0.0) { return a; }\n  if (weight == 1.0) { return inputB; }\n  var b = inputB;\n  var cosine = dot(a, b);\n  if (cosine < 0.0) { b = -b; cosine = -cosine; }\n  var result: vec4f;\n  if (cosine > 0.9995) {\n    result = a * (1.0 - weight) + b * weight;\n  } else {\n    let theta = atan2(length(b - a * cosine), cosine);\n    result = (a * sin((1.0 - weight) * theta) + b * sin(weight * theta)) / sin(theta);\n  }\n  let magnitude = length(result);\n  return result / select(1.0, magnitude, magnitude > 0.0);\n}\n\nfn paletteBlend(a: PaletteLocal, b: PaletteLocal, weight: f32) -> PaletteLocal {\n  if (weight == 0.0) { return a; }\n  if (weight == 1.0) { return b; }\n  return PaletteLocal(a.t + (b.t - a.t) * weight, paletteSlerp(a.q, b.q, weight), a.s + (b.s - a.s) * weight);\n}\n\nfn paletteRead(data: ptr<storage, array<vec4f>, read>, offset: u32) -> PaletteLocal {\n  return PaletteLocal((*data)[offset].xyz, (*data)[offset + 1u], (*data)[offset + 2u].xyz);\n}\n\nfn paletteSample(data: ptr<storage, array<vec4f>, read>, metadata: ptr<storage, array<u32>, read>, descriptor: vec4u, joint: u32, bones: u32, stepBase: u32) -> PaletteLocal {\n  let a = paletteRead(data, (descriptor.x * bones + joint) * 3u);\n  let b = paletteRead(data, (descriptor.y * bones + joint) * 3u);\n  var result = paletteBlend(a, b, bitcast<f32>(descriptor.z));\n  let steps = (*metadata)[stepBase + descriptor.w + joint];\n  if ((steps & 1u) != 0u) { result.t = a.t; }\n  if ((steps & 2u) != 0u) { result.q = a.q; }\n  if ((steps & 4u) != 0u) { result.s = a.s; }\n  return result;\n}\n\nfn paletteTrs(pose: PaletteLocal) -> mat4x4f {\n  let q = pose.q;\n  let x2 = q.x + q.x; let y2 = q.y + q.y; let z2 = q.z + q.z;\n  let xx = q.x * x2; let xy = q.x * y2; let xz = q.x * z2;\n  let yy = q.y * y2; let yz = q.y * z2; let zz = q.z * z2;\n  let wx = q.w * x2; let wy = q.w * y2; let wz = q.w * z2;\n  return mat4x4f(\n    vec4f(vec3f(1.0 - (yy + zz), xy + wz, xz - wy) * pose.s.x, 0.0),\n    vec4f(vec3f(xy - wz, 1.0 - (xx + zz), yz + wx) * pose.s.y, 0.0),\n    vec4f(vec3f(xz + wy, yz - wx, 1.0 - (xx + yy)) * pose.s.z, 0.0),\n    vec4f(pose.t, 1.0)\n  );\n}\n\nfn preparePosePalette ( samples: ptr<storage, array<vec4f>, read>,\n  metadata: ptr<storage, array<u32>, read>,\n  inverseBinds: ptr<storage, array<mat4x4f>, read>,\n  controls: ptr<storage, array<vec4u>, read>,\n  snapshots: ptr<storage, array<vec4f>, read>,\n  palettes: ptr<storage, array<mat4x4f>, read_write>,\n  instance: u32, count: u32, stepBase: u32 ) -> u32 {\n  if (instance >= count) { return 0u; }\n  let record = instance * 5u;\n  let header = (*controls)[record];\n  let baseSource = (*controls)[record + 1u];\n  let baseDestination = (*controls)[record + 2u];\n  let upperSource = (*controls)[record + 3u];\n  let upperDestination = (*controls)[record + 4u];\n  var world: array<mat4x4f, 4>;\n  for (var joint = 0u; joint < 4u; joint++) {\n    var source: PaletteLocal;\n    if ((header.x & 1u) != 0u) {\n      source = paletteRead(snapshots, (baseSource.x * 4u + joint) * 3u);\n    } else {\n      source = paletteSample(samples, metadata, baseSource, joint, 4u, stepBase);\n    }\n    let base = paletteBlend(source, paletteSample(samples, metadata, baseDestination, joint, 4u, stepBase), bitcast<f32>(header.y));\n    var composed = base;\n    if ((header.x & 2u) != 0u && (*metadata)[header.w + joint] != 0u) {\n      var upper: PaletteLocal;\n      if ((header.x & 4u) != 0u) {\n        upper = paletteRead(snapshots, (upperSource.x * 4u + joint) * 3u);\n      } else {\n        upper = paletteSample(samples, metadata, upperSource, joint, 4u, stepBase);\n      }\n      var destination = base;\n      if ((header.x & 8u) == 0u) {\n        destination = paletteSample(samples, metadata, upperDestination, joint, 4u, stepBase);\n      }\n      composed = paletteBlend(upper, destination, bitcast<f32>(header.z));\n    }\n    let local = paletteTrs(composed);\n    let parent = (*metadata)[joint];\n    world[joint] = local;\n    if (parent != 0xffffffffu) { world[joint] = world[parent] * local; }\n    (*palettes)[instance * 4u + joint] = world[joint] * (*inverseBinds)[joint];\n  }\n  return 1u;\n}\n\n\n\n@compute @workgroup_size( 64, 1, 1 )\nfn main( @builtin( global_invocation_id ) globalId : vec3<u32>,\n\t@builtin( workgroup_id ) workgroupId : vec3<u32>,\n\t@builtin( local_invocation_id ) localId : vec3<u32>,\n\t@builtin( num_workgroups ) numWorkgroups : vec3<u32>,\n\t@builtin( subgroup_size ) subgroupSize : u32 ) {\n\n\t// local vars\n\t\n\n\t// system\n\tinstanceIndex = globalId.x\n\t\t+ globalId.y * ( 64 * numWorkgroups.x )\n\t\t+ globalId.z * ( 64 * numWorkgroups.x ) * ( 1 * numWorkgroups.y );\n\n\t// flow\n\t// code\n\n\tif ( instanceIndex >= object.nodeUniform6 ) { return; }\n\n\tpreparePosePalette( &NodeBuffer_984.value, &NodeBuffer_985.value, &NodeBuffer_986.value, &NodeBuffer_987.value, &NodeBuffer_988.value, &NodeBuffer_989.value, instanceIndex, 20u, 4u );\n\n\t\n\n}\n"
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step: substrates share exact palette bytes",
+      "ok": true,
+      "detail": {
+        "max": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.28999999989999997: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.29: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.3709999999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.371: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.3710000001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.618: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0.0000029206275939941406,
+        "geometryError": 0.0000019371509552001953
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/frozen-base-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/full-body-death-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 8.940696716308594e-8,
+        "geometryError": 2.9802322387695312e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-entry-0: GPU palette agrees with CPU composition",
+      "ok": false,
+      "detail": {
+        "matrixError": 0.00004932284355163574,
+        "geometryError": 0.000020712614059448242
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-exit-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.4901161193847656e-7,
+        "geometryError": 1.043081283569336e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/frozen-base-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0.000007152557373046875,
+        "geometryError": 0.0000033080577850341797
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/full-body-death-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.2351741790771484e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-entry-0.37: GPU palette agrees with CPU composition",
+      "ok": false,
+      "detail": {
+        "matrixError": 0.000027954578399658203,
+        "geometryError": 0.000013768672943115234
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-exit-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/frozen-base-1: GPU palette agrees with CPU composition",
+      "ok": false,
+      "detail": {
+        "matrixError": 0.00004857778549194336,
+        "geometryError": 0.000014185905456542969
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/full-body-death-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 4.470348358154297e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-entry-1: GPU palette agrees with CPU composition",
+      "ok": false,
+      "detail": {
+        "matrixError": 0.00003273412585258484,
+        "geometryError": 0.000008940696716308594
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-exit-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 4.76837158203125e-7,
+        "geometryError": 2.086162567138672e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted: fixture has an upper mask and nonadjacent ancestor",
+      "ok": true,
+      "detail": {
+        "mask": [
+          8,
+          9,
+          10
+        ],
+        "names": [
+          "transformed-ancestor",
+          "deform-rig",
+          "root",
+          "horse-body",
+          "horse-back-leg",
+          "horse-front-leg",
+          "rider-pelvis",
+          "rider-legs",
+          "rider-spine",
+          "rider-arm",
+          "rider-head"
+        ]
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "raw WGSL compiles",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "three shader diagnostic",
+      "ok": true,
+      "detail": "// Three.js r185 - Node System\n\n// directives\nenable subgroups;\n\n// system\nvar<private> instanceIndex : u32;\n\n// locals\n\n\n// structs\n\n\n// uniforms\n\nstruct NodeBuffer_1006Struct {\n\tvalue : array< vec4<f32> >\n};\n@binding( 0 ) @group( 0 )\nvar<storage, read> NodeBuffer_1006 : NodeBuffer_1006Struct;\n\nstruct NodeBuffer_1007Struct {\n\tvalue : array< u32 >\n};\n@binding( 1 ) @group( 0 )\nvar<storage, read> NodeBuffer_1007 : NodeBuffer_1007Struct;\n\nstruct NodeBuffer_1008Struct {\n\tvalue : array< mat4x4<f32> >\n};\n@binding( 2 ) @group( 0 )\nvar<storage, read> NodeBuffer_1008 : NodeBuffer_1008Struct;\n\nstruct NodeBuffer_1009Struct {\n\tvalue : array< vec4<u32> >\n};\n@binding( 3 ) @group( 0 )\nvar<storage, read> NodeBuffer_1009 : NodeBuffer_1009Struct;\n\nstruct NodeBuffer_1010Struct {\n\tvalue : array< vec4<f32> >\n};\n@binding( 4 ) @group( 0 )\nvar<storage, read> NodeBuffer_1010 : NodeBuffer_1010Struct;\n\nstruct NodeBuffer_1011Struct {\n\tvalue : array< mat4x4<f32> >\n};\n@binding( 5 ) @group( 0 )\nvar<storage, read_write> NodeBuffer_1011 : NodeBuffer_1011Struct;\n\nstruct objectStruct {\n\tnodeUniform6 : u32\n};\n@binding( 6 ) @group( 0 )\nvar<uniform> object : objectStruct;\n\n// vars\n\n\n// codes\n\nstruct PaletteLocal { t: vec3f, q: vec4f, s: vec3f };\n\nfn paletteSlerp(a: vec4f, inputB: vec4f, weight: f32) -> vec4f {\n  if (weight == 0.0) { return a; }\n  if (weight == 1.0) { return inputB; }\n  var b = inputB;\n  var cosine = dot(a, b);\n  if (cosine < 0.0) { b = -b; cosine = -cosine; }\n  var result: vec4f;\n  if (cosine > 0.9995) {\n    result = a * (1.0 - weight) + b * weight;\n  } else {\n    let theta = atan2(length(b - a * cosine), cosine);\n    result = (a * sin((1.0 - weight) * theta) + b * sin(weight * theta)) / sin(theta);\n  }\n  let magnitude = length(result);\n  return result / select(1.0, magnitude, magnitude > 0.0);\n}\n\nfn paletteBlend(a: PaletteLocal, b: PaletteLocal, weight: f32) -> PaletteLocal {\n  if (weight == 0.0) { return a; }\n  if (weight == 1.0) { return b; }\n  return PaletteLocal(a.t + (b.t - a.t) * weight, paletteSlerp(a.q, b.q, weight), a.s + (b.s - a.s) * weight);\n}\n\nfn paletteRead(data: ptr<storage, array<vec4f>, read>, offset: u32) -> PaletteLocal {\n  return PaletteLocal((*data)[offset].xyz, (*data)[offset + 1u], (*data)[offset + 2u].xyz);\n}\n\nfn paletteSample(data: ptr<storage, array<vec4f>, read>, metadata: ptr<storage, array<u32>, read>, descriptor: vec4u, joint: u32, bones: u32, stepBase: u32) -> PaletteLocal {\n  let a = paletteRead(data, (descriptor.x * bones + joint) * 3u);\n  let b = paletteRead(data, (descriptor.y * bones + joint) * 3u);\n  var result = paletteBlend(a, b, bitcast<f32>(descriptor.z));\n  let steps = (*metadata)[stepBase + descriptor.w + joint];\n  if ((steps & 1u) != 0u) { result.t = a.t; }\n  if ((steps & 2u) != 0u) { result.q = a.q; }\n  if ((steps & 4u) != 0u) { result.s = a.s; }\n  return result;\n}\n\nfn paletteTrs(pose: PaletteLocal) -> mat4x4f {\n  let q = pose.q;\n  let x2 = q.x + q.x; let y2 = q.y + q.y; let z2 = q.z + q.z;\n  let xx = q.x * x2; let xy = q.x * y2; let xz = q.x * z2;\n  let yy = q.y * y2; let yz = q.y * z2; let zz = q.z * z2;\n  let wx = q.w * x2; let wy = q.w * y2; let wz = q.w * z2;\n  return mat4x4f(\n    vec4f(vec3f(1.0 - (yy + zz), xy + wz, xz - wy) * pose.s.x, 0.0),\n    vec4f(vec3f(xy - wz, 1.0 - (xx + zz), yz + wx) * pose.s.y, 0.0),\n    vec4f(vec3f(xz + wy, yz - wx, 1.0 - (xx + yy)) * pose.s.z, 0.0),\n    vec4f(pose.t, 1.0)\n  );\n}\n\nfn preparePosePalette ( samples: ptr<storage, array<vec4f>, read>,\n  metadata: ptr<storage, array<u32>, read>,\n  inverseBinds: ptr<storage, array<mat4x4f>, read>,\n  controls: ptr<storage, array<vec4u>, read>,\n  snapshots: ptr<storage, array<vec4f>, read>,\n  palettes: ptr<storage, array<mat4x4f>, read_write>,\n  instance: u32, count: u32, stepBase: u32 ) -> u32 {\n  if (instance >= count) { return 0u; }\n  let record = instance * 5u;\n  let header = (*controls)[record];\n  let baseSource = (*controls)[record + 1u];\n  let baseDestination = (*controls)[record + 2u];\n  let upperSource = (*controls)[record + 3u];\n  let upperDestination = (*controls)[record + 4u];\n  var world: array<mat4x4f, 11>;\n  for (var joint = 0u; joint < 11u; joint++) {\n    var source: PaletteLocal;\n    if ((header.x & 1u) != 0u) {\n      source = paletteRead(snapshots, (baseSource.x * 11u + joint) * 3u);\n    } else {\n      source = paletteSample(samples, metadata, baseSource, joint, 11u, stepBase);\n    }\n    let base = paletteBlend(source, paletteSample(samples, metadata, baseDestination, joint, 11u, stepBase), bitcast<f32>(header.y));\n    var composed = base;\n    if ((header.x & 2u) != 0u && (*metadata)[header.w + joint] != 0u) {\n      var upper: PaletteLocal;\n      if ((header.x & 4u) != 0u) {\n        upper = paletteRead(snapshots, (upperSource.x * 11u + joint) * 3u);\n      } else {\n        upper = paletteSample(samples, metadata, upperSource, joint, 11u, stepBase);\n      }\n      var destination = base;\n      if ((header.x & 8u) == 0u) {\n        destination = paletteSample(samples, metadata, upperDestination, joint, 11u, stepBase);\n      }\n      composed = paletteBlend(upper, destination, bitcast<f32>(header.z));\n    }\n    let local = paletteTrs(composed);\n    let parent = (*metadata)[joint];\n    world[joint] = local;\n    if (parent != 0xffffffffu) { world[joint] = world[parent] * local; }\n    (*palettes)[instance * 11u + joint] = world[joint] * (*inverseBinds)[joint];\n  }\n  return 1u;\n}\n\n\n\n@compute @workgroup_size( 64, 1, 1 )\nfn main( @builtin( global_invocation_id ) globalId : vec3<u32>,\n\t@builtin( workgroup_id ) workgroupId : vec3<u32>,\n\t@builtin( local_invocation_id ) localId : vec3<u32>,\n\t@builtin( num_workgroups ) numWorkgroups : vec3<u32>,\n\t@builtin( subgroup_size ) subgroupSize : u32 ) {\n\n\t// local vars\n\t\n\n\t// system\n\tinstanceIndex = globalId.x\n\t\t+ globalId.y * ( 64 * numWorkgroups.x )\n\t\t+ globalId.z * ( 64 * numWorkgroups.x ) * ( 1 * numWorkgroups.y );\n\n\t// flow\n\t// code\n\n\tif ( instanceIndex >= object.nodeUniform6 ) { return; }\n\n\tpreparePosePalette( &NodeBuffer_1006.value, &NodeBuffer_1007.value, &NodeBuffer_1008.value, &NodeBuffer_1009.value, &NodeBuffer_1010.value, &NodeBuffer_1011.value, instanceIndex, 20u, 11u );\n\n\t\n\n}\n"
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted: substrates share exact palette bytes",
+      "ok": true,
+      "detail": {
+        "max": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.1920928955078125e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.28999999989999997: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.29: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.3709999999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.371: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.3710000001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.618: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.4901161193847656e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.1920928955078125e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/frozen-base-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/full-body-death-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-entry-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 4.76837158203125e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-exit-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 4.76837158203125e-7,
+        "geometryError": 2.980232238769531e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/frozen-base-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 4.76837158203125e-7,
+        "geometryError": 3.5762786865234375e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/full-body-death-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 4.842877388000488e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-entry-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0.0000010132789611816406,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-exit-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0.0000015497207641601562,
+        "geometryError": 0.0000014007091522216797
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/frozen-base-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.682209014892578e-7,
+        "geometryError": 1.341104507446289e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/full-body-death-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.1920928955078125e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-entry-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539062e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-exit-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0.000004947185516357422,
+        "geometryError": 0.0000032186508178710938
+      }
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [
+    "pose-palette: hostile-step/upper-entry-0: GPU palette agrees with CPU composition",
+    "pose-palette: hostile-step/upper-entry-0.37: GPU palette agrees with CPU composition",
+    "pose-palette: hostile-step/frozen-base-1: GPU palette agrees with CPU composition",
+    "pose-palette: hostile-step/upper-entry-1: GPU palette agrees with CPU composition"
+  ],
+  "pageErrors": []
+}

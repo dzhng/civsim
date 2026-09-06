@@ -35,6 +35,57 @@ function editGlb(bytes, edit) {
 const sourceRoot = new URL('../assets/test/blender-reference/', import.meta.url);
 const human = await readFile(new URL('human.glb', sourceRoot));
 const defaults = { name: 'diagnostic', tiers: [human, human, human], fps: 24, loopClips: [] };
+const marked = bakeAppearance(defaults);
+assert.deepEqual([...new Set(marked['tier-0.mesh.json'].factionMasks)].sort(), [0, .25, .75, 1], 'Blender-authored scalar faction mask survives the complete bundle bake');
+const { json: sourceJson, bin: sourceBin } = parseGlb(human);
+const sourceMaskIndex = sourceJson.meshes.flatMap((mesh) => mesh.primitives)
+  .find((primitive) => primitive.attributes._FACTION_MASK != null).attributes._FACTION_MASK;
+const sourceMask = sourceJson.accessors[sourceMaskIndex];
+const sourceView = sourceJson.bufferViews[sourceMask.bufferView];
+assert.equal(sourceMask.type, 'SCALAR');
+assert.equal(sourceMask.componentType, 5126);
+const sourceData = new DataView(sourceBin.buffer, sourceBin.byteOffset, sourceBin.byteLength);
+const authoredMask = Array.from({ length: sourceMask.count }, (_, vertex) => sourceData.getFloat32(
+  (sourceView.byteOffset ?? 0) + (sourceMask.byteOffset ?? 0) + vertex * (sourceView.byteStride ?? 4), true));
+const importedMasks = bakeGltf(human).primitives.flatMap((primitive) => {
+  if (primitive.nodeName !== 'forward-tip') assert.ok(primitive.factionMasks.every((value) => value === 0), 'unmarked source geometry stays unmarked');
+  else assert.deepEqual(Array.from(primitive.factionMasks), authoredMask, 'mask values retain exact exported vertex order');
+  return Array.from(primitive.factionMasks);
+});
+for (let tier = 0; tier < 3; tier++) assert.deepEqual(marked[`tier-${tier}.mesh.json`].factionMasks, importedMasks, 'merged vertex order retains the authored scalar mask');
+const unmarked = editGlb(human, (json) => {
+  for (const mesh of json.meshes) for (const primitive of mesh.primitives) delete primitive.attributes._FACTION_MASK;
+});
+const unmarkedBundle = bakeAppearance({ ...defaults, tiers: [unmarked, unmarked, unmarked] });
+assert.ok(unmarkedBundle['tier-0.mesh.json'].factionMasks.every((value) => value === 0), 'absence means no faction concept, not color inference');
+for (const field of Object.keys(marked['tier-0.mesh.json'])) {
+  if (field !== 'factionMasks') assert.deepEqual(marked['tier-0.mesh.json'][field], unmarkedBundle['tier-0.mesh.json'][field], `mask authoring does not change ${field}`);
+}
+const maskAccessor = (json) => json.accessors[json.meshes.flatMap((mesh) => mesh.primitives)
+  .find((primitive) => primitive.attributes._FACTION_MASK != null).attributes._FACTION_MASK];
+const nullMask = editGlb(human, (json) => {
+  json.meshes.flatMap((mesh) => mesh.primitives)
+    .find((primitive) => primitive.attributes._FACTION_MASK != null).attributes._FACTION_MASK = null;
+});
+assert.throws(() => bakeAppearance({ ...defaults, tiers: [nullMask, human, human] }), /missing _FACTION_MASK/);
+for (const [edit, error] of [
+  [(accessor) => { accessor.type = 'VEC2'; }, /_FACTION_MASK must be SCALAR/],
+  [(accessor) => { accessor.componentType = 5123; }, /_FACTION_MASK encoding unsupported/],
+  [(accessor) => { accessor.normalized = true; }, /_FACTION_MASK encoding unsupported/],
+  [(accessor) => { accessor.count--; }, /_FACTION_MASK count must match POSITION/],
+]) {
+  const invalid = editGlb(human, (json) => edit(maskAccessor(json)));
+  assert.throws(() => bakeAppearance({ ...defaults, tiers: [invalid, human, human] }), error);
+}
+for (const value of [-0.1, 1.1, NaN, Infinity]) {
+  const invalid = editGlb(human, (json, bin) => {
+    const accessor = maskAccessor(json);
+    const view = json.bufferViews[accessor.bufferView];
+    bin.writeFloatLE(value, (view.byteOffset ?? 0) + (accessor.byteOffset ?? 0));
+  });
+  assert.throws(() => bakeAppearance({ ...defaults, tiers: [invalid, human, human] }),
+    Number.isFinite(value) ? /_FACTION_MASK values must be between zero and one/ : /nonfinite data/);
+}
 assert.throws(() => bakeAppearance({ ...defaults, tiers: [human] }), /three explicit GLB/);
 assert.throws(() => bakeAppearance({ ...defaults, tiers: [new Uint8Array(8), human, human] }), /bad magic/);
 assert.throws(() => bakeAppearance({ ...defaults, loopClips: ['unknown'] }), /loop clip unknown/);

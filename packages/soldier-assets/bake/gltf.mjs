@@ -334,6 +334,12 @@ function importedPrimitives(gltf, glbBin, rig) {
         ? new Float32Array(vertices * 4).fill(1)
         : Float32Array.from(read('COLOR_0', gltf.accessors[attributes.COLOR_0].type === 'VEC3' ? 'VEC3' : 'VEC4')
           .flatMap((color) => [...color.slice(0, 3), color[3] ?? 1]));
+      const factionMasks = attributes._FACTION_MASK === undefined
+        ? new Float32Array(vertices)
+        : Float32Array.from(read('_FACTION_MASK', 'SCALAR'));
+      if (factionMasks.some((value) => value < 0 || value > 1)) {
+        throw new Error(`${label}: _FACTION_MASK values must be between zero and one`);
+      }
       if (primitive.indices != null) {
         const accessor = gltf.accessors[primitive.indices];
         if (accessor.type !== 'SCALAR' || ![5121, 5123, 5125].includes(accessor.componentType) || accessor.normalized) {
@@ -350,7 +356,7 @@ function importedPrimitives(gltf, glbBin, rig) {
       const indices = vertices > 65536 ? Uint32Array.from(sourceIndices) : Uint16Array.from(sourceIndices);
       result.push({ nodeIndex, nodeName: node.name || `node_${nodeIndex}`, meshIndex: node.mesh,
         primitiveIndex, materialIndex: primitive.material ?? null,
-        positions, normals, tangents, uvs, colors, joints, weights, indices });
+        positions, normals, tangents, uvs, colors, factionMasks, joints, weights, indices });
     });
   });
   if (result.length === 0) throw new Error('glTF has no skinned mesh; include the weighted source mesh in the export');

@@ -245,6 +245,9 @@ def human():
         box("forward-marker", (0, -.45, .06), (.08, .65, .07), "root", arm, material),
         box("forward-tip", (.055, -.80, .06), (.19, .10, .10), "root", arm, material),
     ]
+    marker_mask = objects[-1].data.attributes.new(name="_FACTION_MASK", type="FLOAT", domain="POINT")
+    for datum, value in zip(marker_mask.data, (0, .25, .75, 1, 0, .25, .75, 1)):
+        datum.value = value
     bend = action(arm, "bend", [("control-elbow", 0, -1.45), ("thigh", 0, -.4),
                                  ("shin", 0, 1.3), ("spine", 1, .12)])
     return arm, objects, [bend], []
@@ -332,6 +335,7 @@ def export_fixture(name, build):
         export_anim_single_armature=True, export_bake_animation=True,
         export_hierarchy_flatten_bones=False, export_hierarchy_flatten_objs=False,
         export_apply=False, export_texcoords=True, export_normals=True, export_tangents=True,
+        export_attributes=True,
     )
     document, accessor = glb_accessors(glb)
     assert len(document["skins"]) == 1, "Export one composite deform skeleton per fixture"

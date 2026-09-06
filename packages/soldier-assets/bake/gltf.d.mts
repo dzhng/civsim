@@ -8,7 +8,7 @@ export interface GltfRig extends ImportedRig {
 }
 
 export interface GltfPrimitive extends Pick<SoldierMeshData,
-  'positions' | 'normals' | 'tangents' | 'uvs' | 'colors' | 'joints' | 'weights' | 'indices'> {
+  'positions' | 'normals' | 'tangents' | 'uvs' | 'colors' | 'factionMasks' | 'joints' | 'weights' | 'indices'> {
   nodeIndex: number;
   nodeName: string;
   meshIndex: number;

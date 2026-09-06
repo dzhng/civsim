@@ -41,7 +41,7 @@ function mergedMesh(primitives, remap, materialSlot) {
   let vertexOffset = 0, indexOffset = 0;
   for (const primitive of primitives) {
     const vertices = primitive.positions.length / 3;
-    for (const [field, width] of Object.entries({ positions: 3, normals: 3, colors: 4, weights: 4, uvs: 2, tangents: 4 })) {
+    for (const [field, width] of Object.entries({ positions: 3, normals: 3, colors: 4, weights: 4, uvs: 2, tangents: 4, factionMasks: 1 })) {
       mesh[field].set(primitive[field], vertexOffset * width);
     }
     for (let i = 0; i < primitive.joints.length; i++) mesh.joints[vertexOffset * 4 + i] = remap[primitive.joints[i]];

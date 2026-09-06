@@ -2,7 +2,7 @@
   "fixture": "human",
   "blender": "5.2.1 LTS",
   "fps": 24,
-  "glbSha256": "bcbcf04cda7a74fde87884a00f0839f248bdcd9c1077725b92fe97f195734490",
+  "glbSha256": "3c58cb89b03d1b13c6c770a32d0dd044e4f8c847c5437549843e76e6f6ea003d",
   "space": "glTF Y-up world metres; Blender (x,y,z) -> (x,z,-y)",
   "facing": "Blender -Y / glTF +Z before transformed-ancestor rotation",
   "toleranceMetres": 3e-05,

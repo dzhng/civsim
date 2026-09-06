@@ -2,8 +2,12 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test, vi } from "vitest";
-import { BattleModelReplay } from "../../apps/renderer-lab/src/battleModelReplay";
+import {
+  BattleModelReplay,
+  denseBattleModelReplayRecipe,
+} from "../../apps/renderer-lab/src/battleModelReplay";
 import { loadAppearanceCatalog } from "@packages/soldier-assets/src/appearanceBundle";
+import { evaluatePlaybackPose } from "@packages/crowd-runtime/src/actionTimeline";
 
 vi.stubGlobal("fetch", async (url: string) => {
   const path = new URL(String(url)).pathname;
@@ -13,6 +17,95 @@ vi.stubGlobal("fetch", async (url: string) => {
 });
 const assets = await loadAppearanceCatalog("http://fixture/catalog.json");
 vi.unstubAllGlobals();
+
+test("same-time death boundary preserves the previous alive observation and displayed pose", () => {
+  const replay = new BattleModelReplay(assets, 7);
+  replay.seek(240);
+  const { before, after } = replay.seekBoundary(195);
+  assert.equal(before.tick, 195);
+  assert.equal(after.tick, 195);
+  assert.equal(before.observation.alive, true);
+  assert.equal(after.observation.alive, false);
+  assert.equal(before.instances[0].alive, true);
+  assert.equal(after.instances[0].alive, false);
+  assert.deepEqual(
+    evaluatePlaybackPose(assets[7], before.playback),
+    evaluatePlaybackPose(assets[7], after.playback),
+  );
+  assert.deepEqual(replay.state(), after);
+  assert.deepEqual(replay.seekBoundary(195), { before, after });
+});
+
+test("dense release interruptions preserve exact displayed locals on both sides of blend midpoint", () => {
+  for (const appearanceId of [4, 7]) {
+    const recipe = denseBattleModelReplayRecipe(assets[appearanceId], appearanceId);
+    const replay = new BattleModelReplay(assets, appearanceId, recipe);
+    for (const tick of [11, 14, 15, 18]) {
+      const { before, after } = replay.seekBoundary(tick);
+      const lane = before.playback.riderUpperBody ?? before.playback.base;
+      assert.ok(Math.abs(lane.weight - (tick === 11 || tick === 15 ? 1 : 3) / 4.5) < 1e-12);
+      assert.deepEqual(
+        evaluatePlaybackPose(assets[appearanceId], after.playback),
+        evaluatePlaybackPose(assets[appearanceId], before.playback),
+      );
+      const nextLane = after.playback.riderUpperBody ?? after.playback.base;
+      assert.equal(nextLane.weight, 0);
+      assert.equal(nextLane.source.kind, "frozen");
+      assert.ok(after.snapshotBytes <= 2 * assets[appearanceId].rig.bones.length * 10 * 8);
+    }
+  }
+});
+
+test("mounted release exit follows a changing base, then composed death holds and releases snapshots", () => {
+  const recipe = denseBattleModelReplayRecipe(assets[7], 7);
+  const replay = new BattleModelReplay(assets, 7, recipe);
+  const exitTick = recipe.events.find((event) => event.label === "Release exit")!.tick;
+  const deathTick = recipe.events.find((event) => event.label === "Composed death")!.tick;
+  const exit = replay.seekBoundary(exitTick);
+  assert.deepEqual(exit.after.playback.riderUpperBody?.destination, { kind: "base" });
+  assert.ok(exit.after.playback.base.weight > 0 && exit.after.playback.base.weight < 1);
+  assert.deepEqual(
+    evaluatePlaybackPose(assets[7], exit.before.playback),
+    evaluatePlaybackPose(assets[7], exit.after.playback),
+  );
+  const change = replay.seekBoundary(exitTick + 1);
+  assert.equal(change.after.playback.base.weight, 0);
+  assert.deepEqual(
+    evaluatePlaybackPose(assets[7], change.before.playback),
+    evaluatePlaybackPose(assets[7], change.after.playback),
+  );
+  const converged = replay.seek(exitTick + 4.75);
+  assert.equal(converged.playback.riderUpperBody?.weight, 1);
+  assert.ok(converged.playback.base.weight < 1);
+  assert.deepEqual(
+    evaluatePlaybackPose(assets[7], converged.playback),
+    evaluatePlaybackPose(assets[7], { appearanceId: 7, base: converged.playback.base }),
+  );
+  const death = replay.seekBoundary(deathTick);
+  assert.ok(death.before.playback.riderUpperBody);
+  assert.equal(death.after.playback.riderUpperBody, undefined);
+  assert.equal(death.after.playback.base.weight, 0);
+  assert.deepEqual(
+    evaluatePlaybackPose(assets[7], death.before.playback),
+    evaluatePlaybackPose(assets[7], death.after.playback),
+  );
+  const terminal = replay.seek(recipe.endTick);
+  assert.equal(terminal.playback.base.destination.phase, 1);
+  assert.equal(terminal.snapshotBytes, 0);
+  assert.deepEqual(
+    evaluatePlaybackPose(assets[7], terminal.playback),
+    evaluatePlaybackPose(assets[7], replay.seek(recipe.endTick - 1).playback),
+  );
+  replay.reset();
+  assert.deepEqual(replay.seekBoundary(deathTick), death);
+  for (let tick = 0; tick <= recipe.endTick; tick += 0.25) {
+    const state = replay.seek(tick);
+    assert.ok(
+      state.snapshotBytes <= 2 * evaluatePlaybackPose(assets[7], state.playback).byteLength,
+      `snapshot storage at ${tick}`,
+    );
+  }
+});
 
 test("direct seek preserves all release/injury/death observations and replays identically after reset", () => {
   const direct = new BattleModelReplay(assets, 4);

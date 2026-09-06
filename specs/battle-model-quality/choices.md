@@ -20,6 +20,21 @@ timings are mixed. Integrated in0129ee2e.
 
 ## Sound — medium confidence
 
+### Keep Blender candidate exports isolated from unrelated open-file animations (08 source checkpoint)
+
+When an artist has another animated rig open, Blender can export its actions
+along with a selected soldier even though that rig is in a different scene.
+The candidate exports only assigned actions. If another action already owns the
+required `bend` name, building stops before creating anything and requests a fresh
+Blender session; it does not rename or delete the artist's action. The alternative
+silently suffixes the name or includes unrelated clips, changing the harness input.
+
+The plan required local editable source but did not specify Blender's global
+action-name behavior. This constrains how the candidate script is rerun in an
+occupied Blender file, not the production asset format. **Sound, medium
+confidence:** unrelated work stays untouched and canonical clip names stay exact;
+clean-background authoring remains the reproducible path.
+
 ### Author editable anatomy while its runtime budget is still measured (07/08 maintenance)
 
 When the budget fixture exposes a mounted animation stall, it does not prevent

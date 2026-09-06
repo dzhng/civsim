@@ -22,18 +22,20 @@ Front/side/rear/three-quarter neutral and deep-bend contact sheet at close and g
 
 Original source authoring has begun in
 `packages/soldier-assets/bake/blender-human-anatomy.py`, producing an isolated
-editable Blender scene under `assets/source/human-anatomy` in that package.
+editable Blender scene described by the [source ownership note](../../../packages/soldier-assets/assets/source/human-anatomy/README.md).
 Cross-section anatomy is joined into a watertight sculpt, with a separate
-provisional quad mesh and22-bone deform rig. The first bend study has normalized
+provisional reduced mesh and deform rig. The first bend study requires normalized
 weights, at most four influences, and no unweighted vertices. The existing baker
 accepts its selected-scene GLB; `bake/human-anatomy.mjs --check` verifies generated
 candidate bundles. These are structural checks, not anatomy acceptance.
 
 The manual-only candidate catalog uses shared anatomy for0/14 and identical
-inspection tiers. Production catalog is unchanged. Next: capture the production
-workbench sheet, inspect silhouette and deep bends, refine facial/hand form and
-joint topology from actual pixels, then perform the inherited comparison and
-fresh critique. Provisional counts are not measured performance limits.
+inspection tiers. Production catalog is unchanged. The addressable scene runs as
+`VERIFY_GPU=1 VERIFY_URL=http://127.0.0.1:5174 node web/scene.mjs human-anatomy`.
+Its neutral/deep-bend sheets capture four bearings at close and gameplay pitch.
+[Current review](../assets/evidence/08/anatomy-review.md) records the rejected
+shape findings and focused iteration. Provisional counts are not measured
+performance limits.
 
 Expose the fixture through the production model workbench and a named scene/probe. Record the exact runnable command in this file when it exists; do not mark completion with screenshots alone.
 
@@ -72,4 +74,4 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 - [ ] Comparison and final unprimed critique recorded.
 - [ ] Review/cleanup completed; README pickup and decisions updated.
 
-Record actual commands, evidence links, measured results, decisions and unresolved defects here during implementation. No implementation or visual acceptance has occurred yet.
+Implementation is in progress; no anatomy acceptance has occurred yet.

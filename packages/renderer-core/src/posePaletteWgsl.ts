@@ -40,7 +40,9 @@ fn paletteSlerp(a: vec4f, inputB: vec4f, weight: f32) -> vec4f {
     // Below the smallest normal cosine, the shortest-arc angle rounds to pi/2.
     var theta = 1.5707963267948966;
     if (cosine >= 1.1754943508222875e-38) {
-      theta = atan2(length(b - a * cosine), cosine);
+      // This is acos(cosine) even for admitted near-unit endpoints; a residual
+      // vector length would silently assume exact unit quaternions.
+      theta = atan2(sqrt(max(0.0, 1.0 - cosine * cosine)), cosine);
     }
     result = a * paletteSin((1.0 - weight) * theta) + b * paletteSin(weight * theta);
   }

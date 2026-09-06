@@ -1,0 +1,286 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-06T09:37:39.618Z",
+  "target": "http://127.0.0.1:5195",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 1,
+  "status": "fail",
+  "scenarios": [
+    {
+      "name": "battle-model-palette",
+      "file": "models/battle-model-palette.mjs",
+      "kind": "flow",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-model-palette",
+      "name": "same-pose growth preserves production beauty pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "growth prepares every visible instance",
+      "ok": true,
+      "detail": [
+        {
+          "bones": 11,
+          "visible": 257,
+          "capacity": 512,
+          "snapshotCapacity": 1,
+          "residentSnapshots": 0,
+          "snapshotSlotHighWater": 0,
+          "allocatedBytes": 429216,
+          "uploadedBytes": 20560,
+          "snapshotUploadedBytes": 0
+        }
+      ]
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "partial initial allocation rejects without orphan buffers or scene nodes",
+      "ok": false,
+      "detail": {
+        "before": {
+          "live": 6,
+          "liveBytes": 429216,
+          "created": 9,
+          "destroyed": 3,
+          "duplicateDestroy": false
+        },
+        "rejected": {
+          "live": 6,
+          "liveBytes": 429216,
+          "created": 14,
+          "destroyed": 8,
+          "duplicateDestroy": false
+        },
+        "error": "Cannot read properties of undefined (reading 'destroy')",
+        "retainedScene": true
+      }
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "failed live growth suppresses the whole crowd and preserves the original error",
+      "ok": true,
+      "detail": {
+        "error": "deliberate palette allocation failure",
+        "stats": {
+          "instances": 1025,
+          "visible": 0,
+          "culled": 0,
+          "drawCalls": 0,
+          "meshDrawCalls": 0,
+          "impostorDrawCalls": 0,
+          "meshVariants": 3,
+          "tierHistogram": {
+            "l0": 1025,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "visibleTierHistogram": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "culling": {
+            "input": 1025,
+            "visible": 0,
+            "culled": 0,
+            "viewFrusta": 1,
+            "shadowFrusta": 1
+          },
+          "impostors": {
+            "impostorInstances": 0,
+            "impostorDrawCalls": 0,
+            "appearances": 1,
+            "atlasAllocatedBytes": 11796456,
+            "atlasBakeMs": 3.6949999928474426,
+            "atlasBakeDrawCalls": 2
+          },
+          "material": {
+            "identity": "soldier-assets-explicit-materials",
+            "channels": [
+              "albedo",
+              "normal",
+              "orm",
+              "factionMask"
+            ],
+            "mapping": {
+              "albedo": "linear vertex color times base-color factor and optional sRGB image",
+              "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+              "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+              "factionMask": "explicit vertex factionMask, independent of color"
+            }
+          },
+          "surfaceImages": [],
+          "palettes": [
+            {
+              "bones": 11,
+              "visible": 1025,
+              "capacity": 1025,
+              "snapshotCapacity": 1,
+              "residentSnapshots": 0,
+              "snapshotSlotHighWater": 0,
+              "allocatedBytes": 831408,
+              "uploadedBytes": 0,
+              "snapshotUploadedBytes": 0
+            }
+          ],
+          "uploadFailed": true
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "next complete upload recovers the production crowd",
+      "ok": true,
+      "detail": {
+        "stats": {
+          "instances": 1,
+          "visible": 1,
+          "culled": 0,
+          "drawCalls": 1,
+          "meshDrawCalls": 1,
+          "impostorDrawCalls": 0,
+          "meshVariants": 3,
+          "tierHistogram": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "visibleTierHistogram": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "culling": {
+            "input": 1,
+            "visible": 1,
+            "culled": 0,
+            "viewFrusta": 1,
+            "shadowFrusta": 1
+          },
+          "impostors": {
+            "impostorInstances": 0,
+            "impostorDrawCalls": 0,
+            "appearances": 1,
+            "atlasAllocatedBytes": 11796456,
+            "atlasBakeMs": 3.6949999928474426,
+            "atlasBakeDrawCalls": 2
+          },
+          "material": {
+            "identity": "soldier-assets-explicit-materials",
+            "channels": [
+              "albedo",
+              "normal",
+              "orm",
+              "factionMask"
+            ],
+            "mapping": {
+              "albedo": "linear vertex color times base-color factor and optional sRGB image",
+              "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+              "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+              "factionMask": "explicit vertex factionMask, independent of color"
+            }
+          },
+          "surfaceImages": [],
+          "palettes": [
+            {
+              "bones": 11,
+              "visible": 1,
+              "capacity": 1025,
+              "snapshotCapacity": 1,
+              "residentSnapshots": 0,
+              "snapshotSlotHighWater": 0,
+              "allocatedBytes": 831408,
+              "uploadedBytes": 80,
+              "snapshotUploadedBytes": 0
+            }
+          ],
+          "uploadFailed": false
+        },
+        "resources": {
+          "live": 6,
+          "liveBytes": 831408,
+          "created": 17,
+          "destroyed": 11,
+          "duplicateDestroy": false
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "failed live upload leaves no stale production shadow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "recovered palette restores original shadow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "replacing the admitted crowd retires old palette storage exactly once",
+      "ok": true,
+      "detail": {
+        "live": 6,
+        "liveBytes": 37084,
+        "created": 23,
+        "destroyed": 17,
+        "duplicateDestroy": false
+      }
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "growth preserves the actual production shadow map",
+      "ok": true,
+      "detail": {
+        "foreground": 26,
+        "mismatch": 0,
+        "max": 0
+      }
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "actual shadow agrees with independently CPU-posed mesh",
+      "ok": true,
+      "detail": {
+        "foreground": 26,
+        "mismatch": 0,
+        "max": 0
+      }
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "production beauty agrees with CPU-posed mesh",
+      "ok": true,
+      "detail": {
+        "changed": 1,
+        "severe": 0,
+        "maxChannel": 1
+      }
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [
+    "battle-model-palette: partial initial allocation rejects without orphan buffers or scene nodes"
+  ],
+  "pageErrors": []
+}

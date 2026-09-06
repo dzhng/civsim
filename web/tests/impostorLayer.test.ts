@@ -7,8 +7,7 @@ import {
 } from "@packages/photoreal-renderer/src/battle/impostorLayer";
 import { generatedFormation } from "@packages/crowd-runtime/src/instanceData";
 import { createPlaceholderSoldierMesh } from "@packages/soldier-assets/src/soldierMesh";
-import type { VatBake } from "@packages/soldier-assets/src/schema";
-import vat from "@packages/soldier-assets/assets/baked/human-placeholder.vat.json";
+import { mat4Identity } from "@packages/soldier-assets/src/localPose";
 
 test("far views use the same facing basis as the skinned mesh and its offset anchor", () => {
   const scene = new THREE.Scene();
@@ -103,12 +102,15 @@ test.each(["render", "falsy render", "GPU validation", "scope rejection"])(
     };
     const disposed = vi.spyOn(THREE.RenderTarget.prototype, "dispose");
     try {
+      const mesh = createPlaceholderSoldierMesh();
+      const palette = new Float32Array((Math.max(...mesh.joints) + 1) * 16);
+      for (let offset = 0; offset < palette.length; offset += 16)
+        palette.set(mat4Identity(), offset);
       const preparation = createSoldierImpostorAtlas(
         renderer as unknown as THREE.WebGPURenderer,
-        createPlaceholderSoldierMesh(),
-        vat as VatBake,
+        mesh,
+        palette,
         { table: new THREE.DataTexture(), images: {}, stats: [], dispose() {} },
-        { clip: "idle", phase: 0 },
       );
       if (failure === "falsy render") await expect(preparation).rejects.toBe(0);
       else await expect(preparation).rejects.toThrow(`deliberate ${failure}`);

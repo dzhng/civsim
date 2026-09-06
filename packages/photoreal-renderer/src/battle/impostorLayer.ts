@@ -17,7 +17,6 @@ import {
   vec4,
 } from "three/tsl";
 import type { CrowdInstance } from "../../../crowd-runtime/src/instanceData";
-import type { VatBake } from "../../../soldier-assets/src/schema";
 import type { SoldierMeshData } from "../../../soldier-assets/src/mesh";
 import { poseSoldierMesh } from "../../../soldier-assets/src/skin";
 import {
@@ -52,16 +51,16 @@ interface Bounds2 {
 export async function createSoldierImpostorAtlas(
   renderer: THREE.WebGPURenderer,
   mesh: SoldierMeshData,
-  vat: VatBake,
+  palette: ArrayLike<number>,
   preparedSurface: PreparedSoldierSurface,
-  opts: { columns?: number; rows?: number; tileSize?: number; clip: string; phase: number },
+  opts: { columns?: number; rows?: number; tileSize?: number } = {},
 ): Promise<ImpostorAtlas> {
   await renderer.init();
   const started = performance.now();
   const columns = opts.columns ?? 8;
   const rows = opts.rows ?? 8;
   const tileSize = opts.tileSize ?? 96;
-  const posedMesh = poseMeshWithVat(mesh, vat, opts.clip, opts.phase);
+  const posedMesh = poseSoldierMesh(mesh, palette);
   const directions = hemiOctDirections(columns, rows);
   const projectedBounds = directions.map((dir) => projectedMeshBounds(posedMesh, viewBasis(dir)));
   const box = new THREE.Box3().setFromArray(posedMesh.positions);
@@ -343,20 +342,6 @@ export class OctahedralImpostorLayer {
     (this.mesh.material as THREE.Material).dispose();
     this.atlas.dispose();
   }
-}
-
-function poseMeshWithVat(
-  mesh: SoldierMeshData,
-  vat: VatBake,
-  clipName: string,
-  phase: number,
-): PosedMeshData {
-  const clip = vat.clips.find((c) => c.name === clipName)!;
-  const frame = Math.min(
-    clip.start + clip.frames - 1,
-    clip.start + Math.floor(phase * Math.max(clip.frames - 1, 1)),
-  );
-  return poseSoldierMesh(mesh, vat, frame);
 }
 
 /** One unlit MRT draw: view instances occupy disjoint fixed tiles. The ordinary

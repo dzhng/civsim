@@ -23,7 +23,14 @@ export async function run(ctx) {
     await page.goto(`${ctx.target}/__pose-palette`);
     const report = await page.evaluate(async (root) => {
       const module = (path) => import(`/@fs${root}${path}`);
-      const THREE = await import("/node_modules/three/build/three.webgpu.js");
+      const { SoldierPosePalette } = await module(
+        "packages/photoreal-renderer/src/battle/posePalette.ts",
+      );
+      const threeUrl = performance
+        .getEntriesByType("resource")
+        .find((entry) => /\/(?:three_webgpu|three\.webgpu)\.js(?:\?|$)/.test(entry.name))?.name;
+      if (!threeUrl) throw new Error("production Three dependency URL missing");
+      const THREE = await import(threeUrl);
       const T = THREE.TSL;
       const { bakeLocalAnimation, decodeLocalSample, resolveLocalSample } = await module(
         "packages/soldier-assets/src/localAnimation.ts",
@@ -171,6 +178,33 @@ export async function run(ctx) {
       const mountedMesh = await (
         await fetch("/assets/soldiers/candidates/blender-reference/mounted/tier-0.mesh.json")
       ).json();
+      // Valid admitted near-unit endpoints exercise the CPU slerp contract,
+      // including hierarchy amplification rather than only a quaternion component.
+      hostile.clips.push({
+        name: "near-unit",
+        duration: 1,
+        loop: false,
+        tracks: Object.fromEntries(
+          [0, 1, 3].map((joint) => [
+            joint,
+            {
+              R: {
+                times: [0, 1],
+                values: [
+                  0,
+                  0,
+                  0,
+                  1.000099,
+                  0,
+                  Math.sin(0.7) * 1.000099,
+                  0,
+                  Math.cos(0.7) * 1.000099,
+                ],
+              },
+            },
+          ]),
+        ),
+      });
       const syntheticMesh = {
         positions: new Float32Array([0.4, -0.2, 0.7]),
         normals: new Float32Array([0, 0, 1]),
@@ -236,47 +270,23 @@ export async function run(ctx) {
           for (const buffer of gpu) buffer.destroy();
         }
       }
-      async function threePalette(buffers, functionCode, bones, count, stepBase) {
-        const types = ["vec4", "uint", "mat4", "uvec4", "vec4", "mat4"];
-        const sizes = [4, 1, 16, 4, 4, 16];
-        const attributes = buffers.map(
-          (data, i) => new THREE.StorageBufferAttribute(data, sizes[i]),
-        );
-        const nodes = attributes.map((attribute, i) =>
-          T.storage(attribute, types[i], attribute.count),
-        );
-        for (let i = 0; i < 5; i++) nodes[i].toReadOnly();
-        const kernel = T.wgslFn(functionCode, [T.wgsl(POSE_PALETTE_HELPERS_WGSL)]);
-        class NativeStatement extends THREE.Node {
-          constructor(call) {
-            super("void");
-            this.call = call;
-          }
-          generate(builder) {
-            builder.addLineFlowCode(this.call.build(builder), this);
-            return "";
-          }
-        }
-        const compute = T.Fn(() => {
-          T.nodeObject(
-            new NativeStatement(
-              kernel({
-                samples: nodes[0],
-                metadata: nodes[1],
-                inverseBinds: nodes[2],
-                controls: nodes[3],
-                snapshots: nodes[4],
-                palettes: nodes[5],
-                instance: T.instanceIndex,
-                count: T.uint(count),
-                stepBase: T.uint(stepBase),
-              }),
-            ),
-          ).append();
-        })().compute(count);
+      async function threePalette(rig, animation, inputs, mask) {
+        const owner = new SoldierPosePalette(renderer, rig, animation, {
+          41: {
+            manifest: {
+              presentation: { riderUpperBodyJoints: mask.map((joint) => rig.bones[joint].name) },
+            },
+          },
+        });
         try {
+          await owner.initialize({ clip: animation.clips[0].name, phase: 0 });
           const callsBefore = renderer.info.compute.calls;
-          renderer.compute(compute);
+          owner.upload(
+            inputs.length,
+            (index) => inputs[index].playback,
+            () => owner.metadata.upperMaskOffsets.get(41),
+            () => {},
+          );
           const main = threeShaders.at(-1).split("@compute")[1];
           check(
             "Three dispatch owns an explicit kernel statement",
@@ -287,11 +297,10 @@ export async function run(ctx) {
               storageArguments: (main.match(/&NodeBuffer/g) ?? []).length,
             },
           );
-          return new Float32Array(await renderer.getArrayBufferAsync(attributes[5]));
+          const result = new Float32Array(await renderer.getArrayBufferAsync(owner.columns.value));
+          return result.slice(0, inputs.length * animation.bones * 16);
         } finally {
-          compute.dispose();
-          // Disposable probe only: pinned Three requires central cache deletion for compute-only storage.
-          for (const attribute of attributes) renderer._attributes.delete(attribute);
+          owner.dispose();
         }
       }
       const error = (a, b) => a.reduce((max, value, i) => Math.max(max, Math.abs(value - b[i])), 0);
@@ -368,14 +377,16 @@ export async function run(ctx) {
               }),
             ),
             ...clips.slice(2).flatMap((clip) =>
-              [0, 0.001, 0.5, 0.999, 1].map((phase) => ({
-                name: `${clip}-${phase}`,
-                base: {
-                  source: source(clip, phase),
-                  destination: sample(clip, phase),
-                  weight: 1,
-                },
-              })),
+              (clip === "near-unit" ? [0, 0.25, 0.75, 1] : [0, 0.001, 0.5, 0.999, 1]).map(
+                (phase) => ({
+                  name: `${clip}-${phase}`,
+                  base: {
+                    source: source(clip, phase),
+                    destination: sample(clip, phase),
+                    weight: 1,
+                  },
+                }),
+              ),
             ),
             ...[0, 0.37, 1].flatMap((weight) => [
               {
@@ -466,15 +477,15 @@ export async function run(ctx) {
           });
           const functionCode = posePaletteFunctionWgsl(bones);
           const raw = await rawPalette(buffers, functionCode, bones, cases.length, stepBase);
-          const three = await threePalette(buffers, functionCode, bones, cases.length, stepBase);
+          const three = await threePalette(rig, animation, inputs, mask);
           check(`${name}: substrates share exact palette bytes`, error(raw, three) === 0, {
             max: error(raw, three),
           });
           for (let i = 0; i < cases.length; i++) {
             const actual = three.subarray(i * bones * 16, (i + 1) * bones * 16);
             const matrixError = error(actual, expected[i]);
-            const referenceMesh = poseSoldierMesh(mesh, { width: 1, data: expected[i] }, 0);
-            const actualMesh = poseSoldierMesh(mesh, { width: 1, data: actual }, 0);
+            const referenceMesh = poseSoldierMesh(mesh, expected[i]);
+            const actualMesh = poseSoldierMesh(mesh, actual);
             const geometryError = Math.max(
               ...["positions", "normals", "tangents"].map((key) =>
                 error(actualMesh[key], referenceMesh[key]),

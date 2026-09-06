@@ -1,5 +1,10 @@
 # Shared palette kernel feasibility
 
+The production owner and final near-unit angle correction are now verified in
+[Three production cutover evidence](three-palette-cutover.md). The measurements
+below retain the original feasibility gate and its red controls; current runtime
+ownership and remaining acceptance boundaries live in that follow-up.
+
 This is a bounded numerical 06b prerequisite, not the production playback cutover. The named `pose-palette` scene loads the authored mounted rig plus a hostile synthetic rig, uses the source-owned local bake/resolver and 80-byte playback packer, and runs one shared WGSL function through Three storage nodes and the real raw frame shell's precompute hook. Neither a screenshot nor a finished-animation verdict is claimed.
 
 Run from `web`: `VERIFY_GPU=1 VERIFY_URL=http://127.0.0.1:5195 node scene.mjs pose-palette`. This pass used the software adapter. [Final report](palette-kernel-final.json) retains each numerical check; [missing-statement red](palette-kernel-first.json) and [built-in arithmetic red](palette-kernel-trig.json) retain the failures that changed the implementation.
@@ -18,12 +23,12 @@ The first real invocation then exposed built-in trigonometric error on the softw
 
 The bounded alternative preserves shortest-arc selection, the `.9995` near-parallel branch and exact endpoints. Its angle uses `atan2(length(b - a*dot), dot)`; sine is a degree-11 odd polynomial only on the shortest-arc interval `[0, pi/2]`. The common sine denominator cancels under final quaternion normalization. The analytic Taylor remainder alone is not the measured result: 1,025 runtime-fed Float32 samples measured maximum sine error `1.5051e-7`. All pose checks then passed without loosening tolerances. This is not a general-purpose trig library. Extra polynomial arithmetic, private hierarchy-array pressure and hardware behavior belong in 07 measurement; the source/bounds owner has been notified that the final normalized GPU arithmetic needs its own bound check.
 
-## Remaining cutover work
+## Integration boundaries
 
-The kernel is currently unconnected to production draws. The scene's small adapters allocate and read back bounded resources only. Production still needs per-rig GPU upload ownership, live worklist/palette indices, actual weighted vertex and visible/shadow parity, frozen-slot reuse under real frame submission, partial-allocation failure and atomic reload rollback, and complete old matrix-animation-reader removal. Initial/reload admission and ordinary live growth retain the decisions in the [consumer proposal](palette-consumer-proposal.md); this proof does not introduce asynchronous stale-frame growth or an instance cap.
+The original feasibility proof did not exercise production draws. The [production follow-up](three-palette-cutover.md) owns the actual weighted vertex, visible/shadow, frozen-residency and allocation-failure evidence; complete format cutover requires both consumers and the producer to land together. Initial/reload admission and ordinary live growth retain the decisions in the [consumer proposal](palette-consumer-proposal.md); neither proof introduces asynchronous stale-frame growth or an instance cap.
 
 Static CPU metadata now has one owner, `renderer-core/rigPaletteData.ts`: it preserves parent order and inverse-bind columns, appends the canonical STEP masks, resolves appearance joint names and deduplicates equivalent upper-body masks. Both adapters receive absolute mask offsets; neither needs its own name-to-joint lookup. Focused tests pin manual-only empty masks, equivalent masks in different source order, nonadjacent parents, and rejection of invalid hierarchy, unknown mask joints and inverse-bind values that overflow Float32. GPU allocation remains adapter-owned.
 
-The disposable Three adapter deletes compute-only attributes through the pinned renderer's central attribute cache after disposing its compute node, following the separate lifetime probe. It has no live render-material consumers. Releasing buffers underneath retained material bindings is **not** proved safe here; production replacement must retire/rebuild every consumer. No visual acceptance, GPU budget acceptance, or user approval is inferred from this numerical result.
+The original disposable Three adapter deleted compute-only attributes through the pinned renderer's central attribute cache after disposing its compute node, following the separate lifetime probe. It had no live render-material consumers. Releasing buffers underneath retained material bindings is **not** safe; production replacement retires/rebuilds every consumer. No visual acceptance, GPU budget acceptance, or user approval is inferred from this numerical result.
 
 Independent review found no functional kernel issue; its two packaging warnings concerned machine-local dependency and scratch copies, all excluded from the focused commit. Typecheck and the final numerical rerun passed after the header indices were wired to shared packing constants. The test owns a bounded compute oracle, not a second production material or render route.

@@ -107,13 +107,19 @@ export async function run(ctx) {
             mesh.factionMasks = new Float32Array(4);
             mesh.joints = new Uint16Array(16);
             mesh.weights = new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]);
-            for (let bone = 0; bone < bundle.animation.bones; bone++)
-              for (let frame = 0; frame < bundle.animation.width; frame++)
-                for (let column = 0; column < 4; column++)
-                  for (let row = 0; row < 4; row++)
-                    bundle.animation.data[
-                      ((bone * 4 + column) * bundle.animation.width + frame) * 4 + row
-                    ] = Number(column === row);
+            // Identity rig keeps the analytic cancellation fixture stationary;
+            // regenerate canonical local samples instead of patching GPU matrices.
+            for (const bone of bundle.rig.bones) {
+              bone.bind = { T: [0, 0, 0], R: [0, 0, 0, 1], S: [1, 1, 1] };
+              bone.inverseBind = new THREE.Matrix4().toArray();
+            }
+            for (const clip of bundle.rig.clips) clip.tracks = {};
+            const animationModule = performance
+              .getEntriesByType("resource")
+              .find((entry) => /\/localAnimation\.ts(?:\?|$)/.test(entry.name))?.name;
+            if (!animationModule) throw new Error("canonical local animation module missing");
+            const { bakeLocalAnimation } = await import(animationModule);
+            bundle.animation = bakeLocalAnimation(bundle.rig);
           }
           mesh.colors.fill(1);
           mesh.materialIds.fill(0);
@@ -156,9 +162,42 @@ export async function run(ctx) {
           w.crowd = replacement;
           w.soldierAssets = { 40: bundle };
 
-          // Independent matrix arithmetic, not poseSoldierMesh or the shader helper.
-          const clip = bundle.animation.clips[0],
-            frame = clip.start + Math.floor(0.5 * (clip.frames - 1));
+          // Independent authored-track interpolation and Three matrix arithmetic,
+          // not the canonical decoder, poseSoldierMesh or shader helper.
+          const clip = bundle.animation.clips[0];
+          const authored = bundle.rig.clips.find((value) => value.name === clip.name);
+          const time = authored.duration * 0.5;
+          const channel = (track, fallback, rotation = false) => {
+            if (!track) return fallback;
+            const size = rotation ? 4 : 3;
+            let a = 0;
+            while (a + 1 < track.times.length && track.times[a + 1] <= time) a++;
+            const b = Math.min(a + 1, track.times.length - 1);
+            const start = track.values.slice(a * size, a * size + size);
+            if (a === b || track.interpolation === "STEP") return start;
+            const end = track.values.slice(b * size, b * size + size);
+            const alpha = Math.max(
+              0,
+              Math.min(1, (time - track.times[a]) / (track.times[b] - track.times[a])),
+            );
+            return rotation
+              ? new THREE.Quaternion()
+                  .fromArray(start)
+                  .slerp(new THREE.Quaternion().fromArray(end), alpha)
+                  .toArray()
+              : start.map((value, index) => value + (end[index] - value) * alpha);
+          };
+          const worlds = [];
+          const palette = bundle.rig.bones.map((bone, joint) => {
+            const tracks = authored.tracks[joint] ?? {};
+            const local = new THREE.Matrix4().compose(
+              new THREE.Vector3().fromArray(channel(tracks.T, bone.bind.T)),
+              new THREE.Quaternion().fromArray(channel(tracks.R, bone.bind.R, true)),
+              new THREE.Vector3().fromArray(channel(tracks.S, bone.bind.S)),
+            );
+            worlds[joint] = bone.parent < 0 ? local : worlds[bone.parent].clone().multiply(local);
+            return worlds[joint].clone().multiply(new THREE.Matrix4().fromArray(bone.inverseBind));
+          });
           const posed = [],
             normals = [],
             tangents = [];
@@ -176,10 +215,7 @@ export async function run(ctx) {
               for (let column = 0; column < 4; column++)
                 for (let row = 0; row < 4; row++)
                   matrix.elements[column * 4 + row] +=
-                    weight *
-                    bundle.animation.data[
-                      ((bone * 4 + column) * bundle.animation.width + frame) * 4 + row
-                    ];
+                    weight * palette[bone].elements[column * 4 + row];
             }
             const linear = new THREE.Matrix3().setFromMatrix4(matrix);
             posed.push(
@@ -228,7 +264,6 @@ export async function run(ctx) {
                 faction: 0,
                 alive: !control.corpse,
                 deathVariant: 2,
-                frame: 0,
                 clip: "bend",
                 phase: 0.5,
                 seed: 0,
@@ -267,7 +302,7 @@ export async function run(ctx) {
           try {
             try {
               // Change only the output representation of the actual production node.
-              // The production position, VAT, tangent and normal-map nodes still run.
+              // The production position, palette, tangent and normal-map nodes still run.
               material.fragmentNode = T.vec4(material.normalNode.normalize().mul(0.5).add(0.5), 1);
               material.toneMapped = false;
               material.fog = false;

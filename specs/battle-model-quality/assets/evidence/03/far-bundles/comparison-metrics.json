@@ -1,0 +1,195 @@
+{
+  "kind": "screenshot-parity-diff",
+  "generatedAt": "2026-09-06T02:44:21.136Z",
+  "note": "Lower parityDistance means the candidate is closer to the reference for this fixed pair. This is a distance metric, not an acceptance gate.",
+  "pairCount": 3,
+  "worstPair": "front-far-diagnostic",
+  "results": [
+    {
+      "id": "front-far-diagnostic",
+      "current": "specs/battle-model-quality/assets/evidence/03/far-bundles/before-row-fix/front-far-diagnostic.png",
+      "candidate": "web/shots/models/battle/far-bundles/front-far-diagnostic.png",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.0116,
+      "grayscale": {
+        "mae": 0.78075,
+        "rmse": 7.10068,
+        "diffRatio16": 0.01334,
+        "diffRatio32": 0.00959,
+        "diffRatio64": 0.00583,
+        "pixelmatchRatio": 0.01202
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0.00003,
+        "blackRatioCandidate": 0.00001,
+        "terrainLikeRatioCurrent": 0.9891,
+        "terrainLikeRatioCandidate": 0.99046,
+        "avgLuminanceCurrent": 132.46191,
+        "avgLuminanceCandidate": 132.57924,
+        "avgLuminanceDelta": 0.11733,
+        "edgeEnergyCurrent": 0.01378,
+        "edgeEnergyCandidate": 0.01392,
+        "edgeEnergyRatio": 1.00987,
+        "edgeDiffRatio32": 0.01245
+      },
+      "worldCrop": {
+        "label": "three unit silhouettes",
+        "bounds": {
+          "x": 310,
+          "y": 240,
+          "width": 690,
+          "height": 235
+        },
+        "parityDistance": 0.06471,
+        "grayscale": {
+          "mae": 4.93052,
+          "rmse": 17.84398,
+          "diffRatio16": 0.08427,
+          "diffRatio32": 0.06057,
+          "diffRatio64": 0.03683,
+          "pixelmatchRatio": 0.07593
+        },
+        "contentProxies": {
+          "blackRatioCurrent": 0.00019,
+          "blackRatioCandidate": 0.00007,
+          "terrainLikeRatioCurrent": 0.93117,
+          "terrainLikeRatioCandidate": 0.93977,
+          "avgLuminanceCurrent": 128.18812,
+          "avgLuminanceCandidate": 128.92906,
+          "avgLuminanceDelta": 0.74095,
+          "edgeEnergyCurrent": 0.03766,
+          "edgeEnergyCandidate": 0.03852,
+          "edgeEnergyRatio": 1.0228,
+          "edgeDiffRatio32": 0.07861
+        }
+      }
+    },
+    {
+      "id": "side-far-diagnostic",
+      "current": "specs/battle-model-quality/assets/evidence/03/far-bundles/before-row-fix/side-far-diagnostic.png",
+      "candidate": "web/shots/models/battle/far-bundles/side-far-diagnostic.png",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.00863,
+      "grayscale": {
+        "mae": 0.51922,
+        "rmse": 6.34226,
+        "diffRatio16": 0.00741,
+        "diffRatio32": 0.00556,
+        "diffRatio64": 0.0038,
+        "pixelmatchRatio": 0.00666
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0.00003,
+        "blackRatioCandidate": 0.00004,
+        "terrainLikeRatioCurrent": 0.9899,
+        "terrainLikeRatioCandidate": 0.98971,
+        "avgLuminanceCurrent": 139.06957,
+        "avgLuminanceCandidate": 139.0417,
+        "avgLuminanceDelta": -0.02787,
+        "edgeEnergyCurrent": 0.01191,
+        "edgeEnergyCandidate": 0.01207,
+        "edgeEnergyRatio": 1.01301,
+        "edgeDiffRatio32": 0.00888
+      },
+      "worldCrop": {
+        "label": "three unit silhouettes",
+        "bounds": {
+          "x": 310,
+          "y": 260,
+          "width": 690,
+          "height": 225
+        },
+        "parityDistance": 0.0446,
+        "grayscale": {
+          "mae": 3.4247,
+          "rmse": 16.2884,
+          "diffRatio16": 0.04888,
+          "diffRatio32": 0.03668,
+          "diffRatio64": 0.02506,
+          "pixelmatchRatio": 0.0439
+        },
+        "contentProxies": {
+          "blackRatioCurrent": 0.00022,
+          "blackRatioCandidate": 0.0003,
+          "terrainLikeRatioCurrent": 0.9334,
+          "terrainLikeRatioCandidate": 0.93214,
+          "avgLuminanceCurrent": 133.80724,
+          "avgLuminanceCandidate": 133.62342,
+          "avgLuminanceDelta": -0.18382,
+          "edgeEnergyCurrent": 0.03553,
+          "edgeEnergyCandidate": 0.03655,
+          "edgeEnergyRatio": 1.02877,
+          "edgeDiffRatio32": 0.0586
+        }
+      }
+    },
+    {
+      "id": "roster-production-far",
+      "current": "specs/battle-model-quality/assets/evidence/03/far-bundles/before-row-fix/roster-production-far.png",
+      "candidate": "web/shots/models/battle/far-bundles/roster-production-far.png",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.0004,
+      "grayscale": {
+        "mae": 0.01915,
+        "rmse": 1.02917,
+        "diffRatio16": 0.0003,
+        "diffRatio32": 0.00012,
+        "diffRatio64": 0.0001,
+        "pixelmatchRatio": 0.00019
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.99764,
+        "terrainLikeRatioCandidate": 0.99772,
+        "avgLuminanceCurrent": 154.15361,
+        "avgLuminanceCandidate": 154.15935,
+        "avgLuminanceDelta": 0.00574,
+        "edgeEnergyCurrent": 0.00865,
+        "edgeEnergyCandidate": 0.00865,
+        "edgeEnergyRatio": 1.00084,
+        "edgeDiffRatio32": 0.00053
+      },
+      "worldCrop": {
+        "label": "entire far roster",
+        "bounds": {
+          "x": 575,
+          "y": 370,
+          "width": 140,
+          "height": 65
+        },
+        "parityDistance": 0.02567,
+        "grayscale": {
+          "mae": 2.15545,
+          "rmse": 10.91737,
+          "diffRatio16": 0.0333,
+          "diffRatio32": 0.01341,
+          "diffRatio64": 0.01077,
+          "pixelmatchRatio": 0.0211
+        },
+        "contentProxies": {
+          "blackRatioCurrent": 0.00022,
+          "blackRatioCandidate": 0,
+          "terrainLikeRatioCurrent": 0.87154,
+          "terrainLikeRatioCandidate": 0.87978,
+          "avgLuminanceCurrent": 109.29306,
+          "avgLuminanceCandidate": 109.93872,
+          "avgLuminanceDelta": 0.64566,
+          "edgeEnergyCurrent": 0.23317,
+          "edgeEnergyCandidate": 0.23399,
+          "edgeEnergyRatio": 1.00351,
+          "edgeDiffRatio32": 0.05978
+        }
+      }
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 import { PNG } from "pngjs";
-import { requireSwiftShaderBaseline } from "./_swiftshader-baseline.mjs";
+import { requireSwiftShaderBaseline } from "./_swiftshader-baseline.ts";
 import { PHOTOREAL_SUBSTRATE } from "../../../packages/photoreal-renderer/src/stats.ts";
 
 export const meta = {

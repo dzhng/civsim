@@ -31,7 +31,7 @@ Scene baselines do not all share one capture adapter. Select scenes by name
 (`node scene.mjs --list`) and preserve each set's browser and adapter provenance;
 there is no safe universal `UPDATE_SHOTS=1 node scene.mjs --full` invocation.
 The strict model scenes declare their SwiftShader requirement through
-[`_swiftshader-baseline.mjs`](../scenes/models/_swiftshader-baseline.mjs).
+[`_swiftshader-baseline.ts`](../scenes/models/_swiftshader-baseline.ts).
 An environment error is a failed verification, not permission to change the
 adapter or re-bless its pixels.
 

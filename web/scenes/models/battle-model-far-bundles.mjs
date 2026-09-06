@@ -1,5 +1,5 @@
 import { PNG } from "pngjs";
-import { requireSwiftShaderBaseline } from "./_swiftshader-baseline.mjs";
+import { requireSwiftShaderBaseline } from "./_swiftshader-baseline.ts";
 import { PLACEHOLDER_RENDER_CLASS_COUNT } from "../../../packages/soldier-assets/src/soldierMesh.ts";
 
 export const meta = {

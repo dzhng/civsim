@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
-import { requireSwiftShaderBaseline } from '../scenes/models/_swiftshader-baseline.mjs';
+import { requireSwiftShaderBaseline } from '../scenes/models/_swiftshader-baseline.ts';
 
 test('model baselines reject missing GPU flags and hardware before capture', () => {
   for (const env of [

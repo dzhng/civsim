@@ -70,6 +70,34 @@ timings are mixed. Integrated in0129ee2e.
 
 ## Sound — medium confidence
 
+### Use body weights for provisional garment fitting (09 source checkpoint)
+
+When clothing is added around the existing human, each cloth vertex initially
+copies the skeleton weights of the nearest body vertex. A weight says how much
+that point follows a particular bone. This lets the new garment enter the same
+bend test without inventing another rig. The alternative is hand-weighting every
+garment before seeing whether its shape even fits.
+
+The plan did not prescribe the first weighting method. This is a reversible
+starting point only: a skirt spanning two legs can fold badly when copying one
+nearby leg, so the bend and later motion reviews must drive correction. **Sound
+as candidate scaffolding; confidence medium:** it enables real fitting evidence,
+but copying body weights is not evidence that garment deformation is correct.
+
+### Share candidate export and capture settings (09 source checkpoint)
+
+When the heavy kit is exported, it calls the same Blender export routine as the
+bare human, supplying only its output folder and name. Both named browser scenes
+use one private sheet helper for cameras, frozen poses and production-renderer
+checks. Otherwise each new unit would copy these settings and could quietly
+receive a more flattering camera or different export behavior.
+
+The plan required one rendering path but left these authoring helpers unspecified.
+This keeps future fitting subjects on the same review setup without adding a new
+schema or runtime. **Sound; confidence high.** Equipment remains separately
+editable in Blender; only copied meshes are joined for the existing single-skin
+export contract, preserving modular source work without another renderer.
+
 ### Keep Blender candidate exports isolated from unrelated open-file animations (08 source checkpoint)
 
 When an artist has another animated rig open, Blender can export its actions

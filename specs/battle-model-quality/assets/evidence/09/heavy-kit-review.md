@@ -85,3 +85,18 @@ weighted-submission, exact-repeat and alias-selection checks, now in one private
 helper. The new heavy scene exercises the same checks for appearance0 without
 inventing a second identical class alias. These are candidate inspection gates,
 not acceptance of cloth deformation or grip contact.
+
+## Merged verification
+
+Root integration f5a57d1b runs both bake `--check` commands, typecheck and the
+combined named scenes on port5174. [Merged report](merged-capture.json):89/92
+checks pass. Here the three failures are the older unaccepted *anatomy* baseline
+comparisons; the new heavy baselines were initially created, not accepted.
+Direct byte comparison confirms all three actual anatomy sheets equal the
+committed rounded-lip evidence and all three heavy sheets equal the reviewed
+fitted evidence. The different local baseline history explains the different
+failure names; no image or tolerance was blessed. Root inspected all heavy views.
+
+The curated heavy close/upper/reference set was opened in one Preview window for
+non-blocking feedback. The working decision remains incomplete geometry, with
+continuous garments and weapon contact next; no silence can waive those defects.

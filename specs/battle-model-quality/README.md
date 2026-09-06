@@ -10,7 +10,9 @@ Worktree: `/Users/david/dev/game-battle-model-quality`, branch
 
 Current pickup has two independent lanes:
 - **09 Blender equipment authoring:** fit a recognizable heavy swordsman to the
-  provisional08 body/rig, capture and judge it before starting the phalangite.
+  provisional08 body/rig. The first equipped candidate is integrated through
+  f5a57d1b; next fix continuous garment construction and weapon contact before
+  starting the phalangite. Its existing bend is a fitting probe, not combat motion.
   Rounded lips remain the body source; eye relief/sphere trials were rejected.
   Keep unclothed08 anatomy review open for facial form, shoulders, pelvis and
   grips. Equipment cannot conceal those defects or satisfy anatomy acceptance.
@@ -34,8 +36,9 @@ Evidence ledger:
   [07](slices/07-budget-envelope.md) owns the remaining budget requirements.
 - [Anatomy review](assets/evidence/08/anatomy-review.md) owns Blender iterations,
   exact source/capture provenance, rejected studies and unresolved visible form.
-  The production catalog remains unchanged; no finished armor or motion clips
-  have been accepted.
+  [Heavy kit review](assets/evidence/09/heavy-kit-review.md) owns the first equipped
+  Blender candidate and its unresolved garment/grip defects. The production
+  catalog remains unchanged; no finished armor or motion clips are accepted.
 
 Preserve sim/save/balance, exact interruption poses, atomic catalog replacement,
 the one production skin/material/environment path, and the existing temporal

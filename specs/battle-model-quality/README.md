@@ -19,7 +19,7 @@ fragment-side VAT work. `hit_ttl` is facing/contact memory, not an injury event:
 generation stays excluded.
 
 06's [analytic bounds](assets/evidence/06/analytic-bounds.md) are integrated and
-pass the full source bake checks; merged GPU/culling validation is next. The
+pass full source bake checks, merged GPU/culling checks and the standing hardware gate. The
 material-swatch review camera is independently anchored, preserving its frame.
 Do not accept future GPU quaternion arithmetic before that implementation
 revalidates the rounding envelope. Preserve normal synchronous capacity growth

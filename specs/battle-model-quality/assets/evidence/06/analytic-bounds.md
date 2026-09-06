@@ -22,7 +22,7 @@ This is a model-local guarantee for the current mat4 skin path. Renderer world t
 - Existing mapped-frame rejection is retained; the new test pins a zero mapped tangent rejection and a scale outside finite Float32 bounds rejection. No pre-existing test assertions or snapshot baselines were weakened.
 - Self-review added an affine admission regression: an inverse bind with bottom-row X9e-6 and root translation1e6 was previously admitted (red: missing expected exception). The bounds owner now requires exact `[0,0,0,1]` inverse-bind bottom rows; the importer's approximate TRS reconstruction check is insufficient for this proof. All retained source matrices satisfy this condition. This rejects projective inputs rather than quietly treating them as affine.
 
-Commands: `node packages/soldier-assets/bake/animated-bounds.test.mjs`; all three existing producers and their `--check` modes; `cd web && bun run bake:test`; `cd web && ./node_modules/.bin/tsc --noEmit --pretty false`. Parent registers the new test in the shared bake command at integration. No GPU capture performed in this source-only pass.
+Commands: `node packages/soldier-assets/bake/animated-bounds.test.mjs`; all three existing producers and their `--check` modes; `cd web && bun run bake:test`; `cd web && ./node_modules/.bin/tsc --noEmit --pretty false`. The new test is registered in the shared bake command. Source and merged runs pass; the original source-only pass performed no GPU capture.
 
 ## Radius impact
 
@@ -60,8 +60,21 @@ The largest production squared-radius area proxy is1.9931; diagnostic40's is4.22
 
 All20 production centers become `[0,0.09000000357627869,0.6150000095367432]`; diagnostics become `[0.3700000047683716,-0.23000000417232513,0.10999999940395355]`. Root translation is deliberately retained: placeholder death lowers/advances hips, mounted diagnostic horse-body translation is vertical bob, and imported ancestor translation is part of the retained source hierarchy. Generic node-zero/root stripping would change authored motion.
 
-The sole direct scene dependency found is `battle-model-material-swatches.mjs`: it uses candidate42's bounds center as its camera target. Preserve its exact prior review target `[0.4382672905921936,-0.5502896159887314,1.6100001335144043]` as a fixture-owned landmark before integrating bounds; otherwise `web/shots/models/battle/material-swatches/paired.png` changes framing. Parent owns that decoupling. No baseline was edited. Other scenes may change frustum-edge admissions; no unrun pixel claim is made. Far atlas projection derives from actual mesh positions and does not consume this sphere.
+The sole direct scene dependency was `battle-model-material-swatches.mjs`, which used candidate42's culling center as its camera target. Integration43c7bd72 anchors the exact prior target `[0.4382672905921936,-0.5502896159887314,1.6100001335144043]` in the fixture. Its strict snapshot is unchanged before and after the bounds cutover. Far atlas projection derives from actual mesh positions and does not consume this sphere.
 
 Decision audit recommendations: retain this single bounds producer; do not reintroduce sampled-extrema fallback, per-clip lookup or an arbitrary radius multiplier. Treat root-centered diagnostic inflation as an explicit07 measurement cost, not reason to silently relax conservativeness. Keep numerical arithmetic and future GPU implementation acceptance separate.
 
 Independent review01a075b3-30dd-74f0-9b38-85338f341e0a found no actionable counterexample in the current hierarchy/Float32 allowance and independently ran the new test. It explicitly excluded GPU/browser execution and future GPU-local sampling. A focused follow-up review of the subsequent affine guard also returned clean: current glTF, placeholder and basis-conversion producers emit or preserve exact affine bottom rows, and the new regression rejects projective inverse binds. Full bake tests, typecheck, the dedicated bounds test and all three deterministic producer checks passed again after the guard.
+
+## Merged prerequisite verification
+
+The [merged browser report](bounds-scenes.json) passes the workbench, swatch
+oracle, far bundles/admission, reload disposal and default battle checks. Existing
+snapshots remain unchanged; no baseline was refreshed for bounds. This validates
+current consumers, not the future palette implementation.
+
+The [standing hardware gate](bounds-hardware.json) passes on Apple Metal3 at
+1280×800 with30,560 soldiers and150 GPU samples per stop. Mid/vista medians are
+11.67/12.79ms; pan, zoom sweep and wheel rAF p95s are19.17/21.41/20.01ms, within
+the unchanged33ms budget. This remains a paused-simulation renderer gate;07 owns
+live animated loads, new palette costs and diagnostic-sphere inflation.

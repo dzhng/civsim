@@ -31,10 +31,7 @@ import { applyCamera3d } from "../cameraBridge";
 import { PHOTOREAL_PROJECTION, PHOTOREAL_SUBSTRATE } from "../stats";
 import { createBattleFrameUniforms, type BattleFrameUniforms } from "./battleTsl";
 import { BattleBackgroundQuads, RENDER_ORDER, type BattleVistaGrid } from "./terrainLayer";
-import {
-  createSeaDisplacementSource,
-  type BattleLakeSurfaceSpec,
-} from "./seaLayer";
+import { createSeaDisplacementSource, type BattleLakeSurfaceSpec } from "./seaLayer";
 import {
   createBladeFieldWindUniforms,
   createBladeFieldTransitionUniforms,
@@ -109,7 +106,7 @@ export class PhotorealBattleWorld {
   private readonly grass: BattleGrassField;
   private readonly terrainSurface: BattleTerrainSurface;
   private readonly scenery: PhotorealScenery;
-  private readonly crowd: PhotorealCrowd;
+  private crowd: PhotorealCrowd;
   private readonly shadowRig: SunShadowRig;
   private readonly groundCues: PhotorealLineLayer;
   private readonly selectionRings: PhotorealRingLayer;
@@ -119,7 +116,7 @@ export class PhotorealBattleWorld {
   private readonly markerLayer: PhotorealMarkerLayer;
   private readonly standardLayer: PhotorealStandardLayer;
   private readonly readoutLayer: PhotorealReadoutLayer;
-  private readonly mountedClasses: number[];
+  private mountedClasses: number[];
   private readonly sea: ReturnType<typeof createSeaDisplacementSource>;
   private readonly post: BattlePostChain;
 
@@ -163,7 +160,7 @@ export class PhotorealBattleWorld {
     sea: ReturnType<typeof createSeaDisplacementSource>,
     meshes: ReturnType<typeof createPlaceholderSoldierMeshTiers>,
     vats: Awaited<ReturnType<typeof loadClassVats>>,
-    kit: Awaited<ReturnType<typeof loadPlaceholderKit>>,
+    public soldierKit: Awaited<ReturnType<typeof loadPlaceholderKit>>,
     shadowMode: SunShadowMode,
     postEnabled: boolean,
     postGrade: Partial<BattlePostGradeUniforms> | null,
@@ -195,8 +192,8 @@ export class PhotorealBattleWorld {
     this.terrainSurface = new BattleTerrainSurface(scene);
     this.grass = new BattleGrassField(scene, grassProfile, this.grassTransition, this.wind);
     this.scenery = new PhotorealScenery(scene);
-    this.crowd = new PhotorealCrowd(scene, meshes, vats, kit);
-    this.mountedClasses = mountedClassesFromKit(kit);
+    this.crowd = new PhotorealCrowd(scene, meshes, vats, soldierKit);
+    this.mountedClasses = mountedClassesFromKit(soldierKit);
     this.groundCues = new PhotorealLineLayer(scene, 0.25, {
       alpha: 0.98, // the selection-ring weight — cues and rings are one style
       depthTest: true,
@@ -234,26 +231,20 @@ export class PhotorealBattleWorld {
   ): Promise<PhotorealBattleWorld> {
     const environment = resolveBattleEnvironment(options.environment);
     const grassProfile = productionBladeFieldProfile(options.grassQuality);
-    const [world, kit] = await Promise.all([
+    const [world, assets] = await Promise.all([
       PhotorealWorld.create(canvas, { antialias: false }),
-      loadPlaceholderKit(),
+      loadBattleSoldierAssets(),
     ]);
     const sea = createSeaDisplacementSource();
-    const vats = await loadClassVats(kit);
-    const classMeshes = await loadClassMeshes(kit);
-    const meshes = createPlaceholderSoldierMeshTiers([0.06, 0.1, 0.98]);
-    classMeshes.forEach((mesh, classId) => {
-      if (mesh && meshes[classId]) meshes[classId] = meshes[classId].map(() => mesh);
-    });
     const shadowMode = resolveSunShadowMode(world.stats().device, options.shadows);
     const postEnabled = options.post !== "off";
     return new PhotorealBattleWorld(
       world,
       environment,
       sea,
-      meshes,
-      vats,
-      kit,
+      assets.meshes,
+      assets.vats,
+      assets.kit,
       shadowMode,
       postEnabled,
       options.postGrade ?? null,
@@ -263,6 +254,21 @@ export class PhotorealBattleWorld {
 
   setTime(seconds: number): void {
     this.world.setTime(seconds);
+  }
+
+  /** Reload the production bundle after a local bake, retaining the last good crowd on load failure. */
+  async reloadSoldierAssets(activePose?: Pick<CrowdInstance, "classId" | "clip">): Promise<void> {
+    const { meshes, vats, kit } = await loadBattleSoldierAssets();
+    if (activePose && (!kit.archetypes[activePose.classId] || !kit.clips[activePose.clip])) {
+      throw new Error(
+        `Reload does not contain active appearance ${activePose.classId} / clip ${activePose.clip}`,
+      );
+    }
+    const replacement = new PhotorealCrowd(this.world.scene, meshes, vats, kit);
+    this.crowd.dispose();
+    this.crowd = replacement;
+    this.soldierKit = kit;
+    this.mountedClasses = mountedClassesFromKit(kit);
   }
 
   setBloomEnabled(on: boolean): void {
@@ -372,8 +378,6 @@ export class PhotorealBattleWorld {
     simTick?: number,
     frameDt = 0,
   ): void {
-    this.frame.dt.value = Number.isFinite(frameDt) ? Math.max(0, frameDt) : 0;
-    this.setCamera(camera);
     const built = buildCrowdInstances({
       positions,
       facings,
@@ -388,9 +392,16 @@ export class PhotorealBattleWorld {
       simTick: simTick ?? 0,
       count,
     });
-    this.instances = built.instances;
+    this.drawInstances(built.instances, camera, frameDt);
+  }
+
+  /** Explicit poses and battle observations share the exact same production submission path. */
+  drawInstances(instances: CrowdInstance[], camera: BattleCameraSnapshot, frameDt = 0): void {
+    this.frame.dt.value = Number.isFinite(frameDt) ? Math.max(0, frameDt) : 0;
+    this.setCamera(camera);
+    this.instances = instances;
     this.markers = [];
-    this.updateSeating(built.instances);
+    this.updateSeating(instances);
     this.updateGrass();
     applyCamera3d(this.camera, this.lastCamera.camera3d);
     this.shadowRig.update(this.camera);
@@ -628,6 +639,16 @@ export class PhotorealBattleWorld {
     this.readoutLayer.dispose();
     this.world.dispose();
   }
+}
+
+async function loadBattleSoldierAssets() {
+  const kit = await loadPlaceholderKit();
+  const [vats, classMeshes] = await Promise.all([loadClassVats(kit), loadClassMeshes(kit)]);
+  const meshes = createPlaceholderSoldierMeshTiers([0.06, 0.1, 0.98]);
+  classMeshes.forEach((mesh, classId) => {
+    if (mesh && meshes[classId]) meshes[classId] = meshes[classId].map(() => mesh);
+  });
+  return { kit, vats, meshes };
 }
 
 function pushTriangle(

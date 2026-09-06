@@ -93,37 +93,53 @@ export class PhotorealCrowd {
       }
       return tex;
     };
-    for (let classId = 0; classId < meshes.length; classId++) {
-      const vat = vats[classId] ?? vats[vats.length - 1] ?? vats[0];
-      const tiers = meshes[classId];
-      this.buckets[classId] = tiers.map((tierMesh, lod) => {
-        const geometry = crowdGeometry(tierMesh);
-        const mesh = new THREE.Mesh(geometry, crowdMaterial(textureFor(vat)));
-        mesh.name = `battle-crowd-${classId}-lod${lod}`;
-        mesh.frustumCulled = false;
-        mesh.renderOrder = RENDER_ORDER.worldOpaque;
-        // Soldiers cast from the DETAILED tiers only: LOD2 impostor-distance
-        // men re-rendered per cascade cost too much for shadows nobody can see
-        // at that range. All tiers still receive.
-        mesh.castShadow = lod < 2;
-        mesh.receiveShadow = true;
-        mesh.visible = false;
-        scene.add(mesh);
-        return {
-          mesh,
-          geometry,
-          layout: createVatLayout(vat, kit),
-          capacity: 0,
-          inst0: new Float32Array(0),
-          inst1: new Float32Array(0),
-          inst2: new Float32Array(0),
-          count: 0,
-          pending: [],
-        };
-      });
+    // Local bake reloads may fail after some tiers have allocated resources.
+    // Track allocations independently of buckets: a throwing map has no result.
+    const created: THREE.Mesh[] = [];
+    let atlas: ReturnType<typeof createSoldierImpostorAtlas> | null = null;
+    try {
+      for (let classId = 0; classId < meshes.length; classId++) {
+        const vat = vats[classId] ?? vats[vats.length - 1] ?? vats[0];
+        const tiers = meshes[classId];
+        this.buckets[classId] = tiers.map((tierMesh, lod) => {
+          const geometry = crowdGeometry(tierMesh);
+          const mesh = new THREE.Mesh(geometry, crowdMaterial(textureFor(vat)));
+          created.push(mesh);
+          mesh.name = `battle-crowd-${classId}-lod${lod}`;
+          mesh.frustumCulled = false;
+          mesh.renderOrder = RENDER_ORDER.worldOpaque;
+          // Soldiers cast from the DETAILED tiers only: LOD2 impostor-distance
+          // men re-rendered per cascade cost too much for shadows nobody can see
+          // at that range. All tiers still receive.
+          mesh.castShadow = lod < 2;
+          mesh.receiveShadow = true;
+          mesh.visible = false;
+          scene.add(mesh);
+          return {
+            mesh,
+            geometry,
+            layout: createVatLayout(vat, kit),
+            capacity: 0,
+            inst0: new Float32Array(0),
+            inst1: new Float32Array(0),
+            inst2: new Float32Array(0),
+            count: 0,
+            pending: [],
+          };
+        });
+      }
+      atlas = createSoldierImpostorAtlas(meshes[0][0], vats[0]);
+      this.impostors = new OctahedralImpostorLayer(scene, atlas);
+    } catch (error) {
+      for (const mesh of created) {
+        mesh.removeFromParent();
+        mesh.geometry.dispose();
+        (mesh.material as THREE.Material).dispose();
+      }
+      for (const texture of this.textures) texture.dispose();
+      atlas?.texture.dispose();
+      throw error;
     }
-    const sharedAtlas = createSoldierImpostorAtlas(meshes[0][0], vats[0]);
-    this.impostors = new OctahedralImpostorLayer(scene, sharedAtlas);
   }
 
   upload(instances: CrowdInstance[], scope?: CrowdVisibilityScope): void {

@@ -2,6 +2,7 @@ import { gpuFailureMessage } from "@packages/renderer-core/src/device";
 import { route as routePhotorealCrowd } from "./routes/photorealCrowd";
 import { route as routePhotorealPbr } from "./routes/photorealPbr";
 import { route as routePhotorealBattle } from "./routes/photorealBattle";
+import { route as routeBattleModels } from "./routes/battleModels";
 import { route as routeBattleGroundTurf } from "./routes/battleGroundTurf";
 import { type LabRoute, el } from "./labShell";
 import { route as routeDevice } from "./routes/device";
@@ -61,6 +62,7 @@ const routes: Record<string, LabRoute> = {
   "/renderer/photoreal-pbr": routePhotorealPbr,
   "/renderer/photoreal-crowd": routePhotorealCrowd,
   "/renderer/photoreal-battle": routePhotorealBattle,
+  "/renderer/battle-models": routeBattleModels,
   "/renderer/battle-ground-turf": routeBattleGroundTurf,
   "/renderer/blade-field": routeBladeField,
 };

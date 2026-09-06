@@ -1,0 +1,58 @@
+import { generatedFormation, type CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
+import { chartCamera3d } from "@packages/renderer-core/src/camera3d";
+import type { BattleCameraSnapshot } from "@packages/photoreal-renderer/src/battle/battleWorld";
+import type { SoldierKitManifest } from "@packages/soldier-assets/src/schema";
+
+export interface BattleModelPose {
+  classId: number;
+  clip: string;
+  phase: number;
+  formation: boolean;
+  yaw: number;
+  pitch: number;
+  zoom: number;
+}
+
+export const DEFAULT_MODEL_POSE: BattleModelPose = {
+  classId: 0,
+  clip: "idle",
+  phase: 0,
+  formation: false,
+  yaw: 0.45,
+  pitch: 1.15,
+  zoom: 190,
+};
+
+export function modelInstances(pose: BattleModelPose, kit: SoldierKitManifest): CrowdInstance[] {
+  const archetype = kit.archetypes[String(pose.classId)];
+  if (!archetype) throw new Error(`Unknown appearance: ${pose.classId}`);
+  if (!kit.clips[pose.clip]) throw new Error(`Unknown clip: ${pose.clip}`);
+  return generatedFormation(pose.formation ? 16 : 1, {
+    columns: pose.formation ? 4 : 1,
+    spacing: archetype.mount ? 3 : 1.6,
+    classId: pose.classId,
+    mounted: Boolean(archetype.mount),
+    frame: pose.clip === "death_a" ? 4 : 0,
+  }).map((instance) => ({
+    ...instance,
+    clip: pose.clip,
+    phase: pose.phase,
+    alive: pose.clip !== "death_a",
+    elevation: 0,
+  }));
+}
+
+export function modelCamera(
+  pose: BattleModelPose,
+  width: number,
+  height: number,
+): BattleCameraSnapshot {
+  const camera3d = chartCamera3d(
+    { x: 0, y: 0, zoom: pose.zoom, yaw: pose.yaw, pitch: pose.pitch },
+    height,
+  );
+  camera3d.aspect = width / height;
+  camera3d.target = [0, 0, 1.05];
+  camera3d.far = 4000;
+  return { x: 0, y: 0, zoom: pose.zoom, zoomT: 1, camera3d };
+}

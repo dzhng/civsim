@@ -1,0 +1,229 @@
+import { PNG } from "pngjs";
+import { PHOTOREAL_SUBSTRATE } from "../../../packages/photoreal-renderer/src/stats.ts";
+
+export const meta = {
+  name: "battle-model-workbench",
+  kind: "visual",
+  world: "battle-models",
+  tier: "full",
+  snapshots: [
+    "shared/soldiers/workbench/heavy-front",
+    "shared/soldiers/workbench/phalanx-side",
+    "shared/soldiers/workbench/formation",
+    "shared/soldiers/workbench/submission-parity",
+    "shared/soldiers/workbench/controls",
+  ],
+  describe:
+    "Production soldier workbench: explicit frozen poses, readable close views, formation, local bake reload and visible load failures.",
+};
+
+export async function run(ctx) {
+  const page = await ctx.newPage({ viewport: { width: 1280, height: 800 } });
+  try {
+    await page.goto(`${ctx.target}/renderer/battle-models?ref=1`);
+    await page.waitForFunction(() => window.__battleModels?.stats().frame >= 3, undefined, {
+      timeout: 60000,
+    });
+    await page.evaluate(() => window.__battleModels.freeze());
+    for (const [name, pose] of [
+      [
+        "heavy-front",
+        { classId: 0, clip: "idle", phase: 0, yaw: 0.45, pitch: 1.15, zoom: 190, formation: false },
+      ],
+      [
+        "phalanx-side",
+        { classId: 14, clip: "idle", phase: 0, yaw: 1.2, pitch: 1.15, zoom: 150, formation: false },
+      ],
+      [
+        "formation",
+        {
+          classId: 0,
+          clip: "march",
+          phase: 0.25,
+          yaw: 0.45,
+          pitch: 0.9,
+          zoom: 65,
+          formation: true,
+        },
+      ],
+    ]) {
+      const previous = await page.evaluate((pose) => {
+        const before = window.__battleModels.stats().frame;
+        window.__battleModels.set(pose);
+        return before;
+      }, pose);
+      await page.waitForFunction(
+        (previous) => window.__battleModels.stats().frame > previous,
+        previous,
+      );
+      await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
+      const stats = await page.evaluate(() => window.__battleModels.stats());
+      ctx.check(
+        `${name}: production path and submitted count`,
+        stats.render.substrate === PHOTOREAL_SUBSTRATE &&
+          stats.render.soldiers === (pose.formation ? 16 : 1),
+        JSON.stringify({ substrate: stats.render.substrate, soldiers: stats.render.soldiers }),
+      );
+      const shot = await page.screenshot();
+      const png = PNG.sync.read(shot);
+      let dark = 0;
+      for (let y = 150; y < 700; y++)
+        for (let x = 300; x < 980; x++) {
+          const p = (y * png.width + x) * 4;
+          if (png.data[p] + png.data[p + 1] + png.data[p + 2] < 230) dark++;
+        }
+      ctx.check(`${name}: readable foreground model coverage`, dark > 500, String(dark));
+      await ctx.snap(page, `shared/soldiers/workbench/${name}`, { shot });
+      const repeat = await page.screenshot();
+      ctx.check(`${name}: frozen frame is byte-stable`, shot.equals(repeat));
+    }
+    const before = await page.screenshot();
+    const loaded = await page.evaluate(() => window.__battleModels.reload());
+    await page.waitForFunction(() => window.__battleModels.stats().reloads === 1);
+    await page.waitForTimeout(300);
+    await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
+    const after = await page.screenshot();
+    ctx.check(
+      "local bake reload keeps identical production pixels",
+      loaded.ok && before.equals(after),
+    );
+    await page.route("**/assets/soldiers/kit.json", (route) =>
+      route.fulfill({ contentType: "application/json", body: "malformed fixture" }),
+    );
+    const failed = await page.evaluate(() => window.__battleModels.reload());
+    ctx.check(
+      "failed reload is explicit and preserves last good crowd",
+      !failed.ok &&
+        failed.error.length > 0 &&
+        (await page.evaluate(() => window.__battleModels.stats().render.soldiers === 16)),
+      JSON.stringify(failed),
+    );
+    await page.unroute("**/assets/soldiers/kit.json");
+    await page.route("**/assets/soldiers/kit.json", async (route) => {
+      const response = await route.fetch();
+      const kit = await response.json();
+      delete kit.archetypes["0"];
+      await route.fulfill({ json: kit });
+    });
+    const incompatible = await page.evaluate(() => window.__battleModels.reload());
+    ctx.check(
+      "incompatible reload retains the active appearance",
+      !incompatible.ok && incompatible.error.includes("active appearance"),
+    );
+    await page.unroute("**/assets/soldiers/kit.json");
+    const nodesBefore = await page.evaluate(
+      () => window.__battleModels.world.world.scene.children.length,
+    );
+    await page.route("**/assets/soldiers/baked/human-placeholder.vat.json", async (route) => {
+      const response = await route.fetch();
+      const vat = await response.json();
+      delete vat.clips;
+      await route.fulfill({ json: vat });
+    });
+    for (let retry = 0; retry < 2; retry++) {
+      const malformed = await page.evaluate(() => window.__battleModels.reload());
+      const nodesAfter = await page.evaluate(
+        () => window.__battleModels.world.world.scene.children.length,
+      );
+      ctx.check(
+        `invalid VAT retry ${retry}: no orphaned scene meshes`,
+        !malformed.ok && nodesBefore === nodesAfter,
+        JSON.stringify({ nodesBefore, nodesAfter }),
+      );
+    }
+    await page.unroute("**/assets/soldiers/baked/human-placeholder.vat.json");
+    // The failed reload schedules a redraw of the retained pose. Finish it
+    // before manually driving the two production entry points.
+    await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
+    await page.evaluate(async () => {
+      // three's post scene PassNode updates once per browser frame. A second
+      // submission in the retained pose's frame would sample its cached image.
+      await new Promise(requestAnimationFrame);
+      const world = window.__battleModels.world;
+      world.setStatic(new Uint32Array(1), [0], [0]);
+      world.draw(
+        new Float32Array([0, 0]),
+        new Float32Array([Math.PI / 2]),
+        new Float32Array([1]),
+        new Float32Array([1]),
+        1,
+        world.stats().camera,
+        [0],
+        120,
+      );
+      world.render();
+      await world.settlePresentedFrame();
+    });
+    ctx.check(
+      "battle submission replaces the retained formation",
+      await page.evaluate(() => window.__battleModels.world.stats().soldiers === 1),
+    );
+    const fromBattle = await page.screenshot();
+    await ctx.snap(page, "shared/soldiers/workbench/submission-parity", { shot: fromBattle });
+    const instanceModule = new URL(
+      "../../../packages/crowd-runtime/src/instanceData.ts",
+      import.meta.url,
+    ).pathname;
+    await page.evaluate(async (source) => {
+      const { buildCrowdInstances } = await import("/@fs" + source);
+      await new Promise(requestAnimationFrame);
+      const world = window.__battleModels.world;
+      const built = buildCrowdInstances({
+        positions: new Float32Array([0, 0]),
+        facings: new Float32Array([Math.PI / 2]),
+        frames: new Float32Array([1]),
+        alive: new Float32Array([1]),
+        soldierUnit: new Uint32Array(1),
+        unitTeam: [0],
+        unitClass: [0],
+        simTick: 120,
+        terrainHeight: () => 0,
+      });
+      world.drawInstances(built.instances, world.stats().camera);
+      world.render();
+      await world.settlePresentedFrame();
+    }, instanceModule);
+    const fromExplicitPose = await page.screenshot();
+    ctx.check(
+      "battle adapter and explicit pose submission have identical pixels",
+      fromBattle.equals(fromExplicitPose),
+    );
+    await ctx.snap(page, "shared/soldiers/workbench/submission-parity", { shot: fromExplicitPose });
+    await page.evaluate(() =>
+      document.querySelector(".renderer-lab").classList.remove("reference-shot"),
+    );
+    await page.selectOption("#model-class", "14");
+    await page.selectOption("#model-clip", "march");
+    const phaseBefore = await page.evaluate(() => window.__battleModels.stats().pose.phase);
+    await page.click("#model-play");
+    await page.waitForFunction(
+      (phase) => window.__battleModels.stats().pose.phase !== phase,
+      phaseBefore,
+    );
+    await page.click("#model-play");
+    const yawBefore = await page.evaluate(() => window.__battleModels.stats().pose.yaw);
+    await page.click("#model-turn");
+    await page.waitForFunction((yaw) => window.__battleModels.stats().pose.yaw !== yaw, yawBefore);
+    await page.click("#model-turn");
+    ctx.check("interactive clip playback and turntable change the rendered pose", true);
+    await page.evaluate(() => {
+      window.__battleModels.freeze();
+      window.__battleModels.set({
+        classId: 0,
+        clip: "idle",
+        phase: 0,
+        formation: false,
+        zoom: 190,
+        yaw: 0.45,
+        pitch: 1.15,
+      });
+    });
+    await page.click("#model-reload");
+    await page.waitForFunction(() => window.__battleModels.stats().reloads === 2);
+    await page.waitForTimeout(300);
+    await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
+    await ctx.snap(page, "shared/soldiers/workbench/controls");
+  } finally {
+    await page.close();
+  }
+}

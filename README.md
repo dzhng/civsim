@@ -47,6 +47,9 @@ realizes it over time, rate-limited by **cohesion**. Cohesion is *measured*
 from physical soldier state (slot error vs. the intended formation), never
 stored as a freestanding scalar — so it can't drift from what's on screen.
 
+The active [battle model quality plan](specs/battle-model-quality/README.md)
+owns the local Blender authoring and production-rendered asset review contracts.
+
 ## Formatting
 
 Two formatters, one per language. Rust uses the standard workspace formatter;

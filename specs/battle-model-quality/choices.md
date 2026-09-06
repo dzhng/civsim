@@ -852,3 +852,28 @@ no vanished body's detail choice survives regrowth. **Sound:** ownership remains
 simple while repeated arithmetic and temporary history/threshold arrays are
 removed. Remaining per-body allocations are explicit; this does not establish
 that garbage collection or the interruption cadence gate is fixed.
+
+### Split exact frozen poses across two GPU buffers (07 allocation correction)
+
+**Confidence: medium.** When mounted soldiers interrupt both their movement and
+upper-body actions, each can retain two exact starting poses. The measured
+30,000-body case needs more storage than one GPU buffer binding permits, even
+though the final joint-matrix output fits. The current renderer temporarily hides
+the crowd when it cannot submit that frame.
+
+The correction being implemented keeps pose values and their existing logical
+slot numbers unchanged, but stores even slots in one buffer and odd slots in
+another. A buffer binding is the portion of GPU memory a shader can access through
+one input. Each input then needs no more pose slots than the retained capacity
+of the output. The same shader reads both; this is not a second renderer or an
+approximation of nearby animation poses. Growth, retirement and replacement must
+account for both buffers together.
+
+The plan required bounded exact storage but did not choose its physical layout.
+Requesting a larger device limit would exclude devices that only support the
+measured limit; shrinking rigs or dropping poses would change the requested art
+or animation. **Sound, pending implementation verification:** splitting physical
+storage addresses the demonstrated per-binding limit without either compromise.
+Future palette consumers inherit one additional storage binding and two-buffer
+lifecycle accounting. This does not guarantee enough total memory, and passing
+the corrected workload will not by itself settle the whole art budget.

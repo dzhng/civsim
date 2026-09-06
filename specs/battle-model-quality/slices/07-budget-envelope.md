@@ -136,6 +136,40 @@ an observed allocation failure. Measure actual supported history/cardinality
 through the existing owner before accepting a limit; do not silently cap,
 approximate or discard exact frozen poses to fit the synchronized result.
 
+The focused mounted-fixture test now drives three staggered walking cohorts
+through overlapping interruptions using the real action controller. Root's
+merged19-test run passes:3/9 bodies produce6 distinct weighted posed meshes and
+6/18 allocated source slots, with no uploads on exact repeat and no retained
+sources after the blends complete. This demonstrates the uncovered allocation
+mechanism without fabricating frozen inputs or requiring population-sized setup
+time. It is CPU coverage, not30k GPU acceptance. Existing tests are unchanged;
+the new test adds distinct-history, reuse and retirement coverage. The next
+measurement wires this history into the existing allocation harness.
+
+### Required correction: exact frozen storage across binding limits
+
+The staggered hardware diagnostic reproduces the calculated failure at67 joints:
+60,000 sources require192,960,000 snapshot bytes and exceed the device's
+134,217,728-byte binding limit. The existing failure path suppresses the crowd
+until source retirement permits admission again. The output palette itself fits:
+its matrices use64 bytes per joint, while frozen local samples use48.
+
+Implement two lazily grown frozen-source banks under the existing palette owner.
+Stripe existing logical slots by parity, so mapping is stable through growth,
+holes and shrinking crowds. With retained admitted output capacity C, each bank
+needs at most C poses because each submitted body has at most two frozen sources.
+Preserve exact values, cross-layer identity sharing and existing controller/packer
+semantics; do not cap sources or rely on synchronized histories. Update the shared
+kernel and both production/raw consumers together, retaining one compute/output
+and skin path. Count both banks and replacement overlap in telemetry.
+
+This correction earns acceptance through parity-branch weighted-pose tests,
+retained-high-slot/shrink/reuse tests, atomic failure/recovery and disposal tests,
+then the actual staggered hardware workload and unchanged temporal/standing
+gates. Device binding-count and total allocation failures remain real errors;
+two smaller bindings are not proof of unlimited total memory. Broader measured
+art/display limits still follow; this sub-pass does not close07 by itself.
+
 ## Focused verdict
 
 Variable: **Cost versus visible detail**.

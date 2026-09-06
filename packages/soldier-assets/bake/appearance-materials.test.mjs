@@ -89,6 +89,7 @@ reject((json) => { json.images[0].mimeType = 'image/jpeg'; }, /bytes do not matc
 reject((json) => { json.bufferViews[json.images[0].bufferView].byteLength = 1e9; }, /outside the embedded/);
 reject((json) => { json.materials[1].occlusionTexture.strength = 1.1; }, /occlusion strength/, independent);
 reject((json) => { json.materials[1].normalTexture.scale = 'invalid'; }, /normal scale/, independent);
+reject((json) => { json.materials[1].normalTexture.scale = 1e300; }, /normal scale/, independent);
 reject((json) => {
   json.textures.push({ source: 0, sampler: 1 });
   json.samplers.push({ magFilter: 9729 });

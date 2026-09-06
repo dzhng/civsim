@@ -96,7 +96,7 @@ export function bakeAppearance({ name, mounted = false, tiers, fps = 24, loopCli
   });
   files['appearance.json'] = {
     name, mounted, skeleton: 'skeleton.json', animation: 'animation.json', materials: 'materials.json', tiers: paths,
-    far: { mesh: paths[0], clip: animation.clips[0].name, phase: 0 }, bounds: deriveAnimatedBounds(meshes, animation),
+    far: { mesh: paths[0], clip: animation.clips[0].name, phase: 0 }, bounds: deriveAnimatedBounds(meshes, animation, materialSet.surface.materials),
   };
   return files;
 }

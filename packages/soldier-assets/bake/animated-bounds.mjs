@@ -1,11 +1,14 @@
-import { poseSoldierMesh } from '../src/skin.ts';
+import { poseSoldierMesh, assertMappedTangentFrames } from '../src/skin.ts';
 
 /** The box encloses every baked pose; its circumsphere also survives instance yaw. */
-export function deriveAnimatedBounds(tiers, animation) {
+export function deriveAnimatedBounds(tiers, animation, materials) {
   const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
   for (const mesh of tiers) {
+    assertMappedTangentFrames(mesh, materials);
     for (let frame = 0; frame < animation.width; frame++) {
-      const { positions } = poseSoldierMesh(mesh, animation, frame);
+      const posed = poseSoldierMesh(mesh, animation, frame);
+      assertMappedTangentFrames({ ...posed, materialIds: mesh.materialIds }, materials);
+      const { positions } = posed;
       for (let i = 0; i < positions.length; i++) {
         const axis = i % 3;
         min[axis] = Math.min(min[axis], positions[i]);

@@ -11,6 +11,7 @@ for (const name of ["human", "mounted"]) {
   const expected = JSON.parse(await readFile(new URL(root.href + ".landmarks.json"), "utf8"));
   const converted = gltfToEngineBasis(source);
   const baked = bakeRig(converted.rig, 24);
+  const sourceBake = bakeRig(source.rig, 24);
   let maximum = 0,
     checked = 0;
   for (const sample of expected.samples) {
@@ -24,6 +25,26 @@ for (const name of ["human", "mounted"]) {
         (mesh) => mesh.node === primitive.nodeName && mesh.primitive === primitive.primitiveIndex,
       );
       const posed = poseSoldierMesh(primitive, baked, frame);
+      const sourcePrimitive = source.primitives.find(
+        (candidate) =>
+          candidate.nodeIndex === primitive.nodeIndex &&
+          candidate.primitiveIndex === primitive.primitiveIndex,
+      );
+      const sourcePose = poseSoldierMesh(sourcePrimitive, sourceBake, frame);
+      for (let vertex = 0; vertex < posed.tangents.length / 4; vertex++) {
+        const t = vertex * 4;
+        const expectedTangent = [
+          sourcePose.tangents[t],
+          -sourcePose.tangents[t + 2],
+          sourcePose.tangents[t + 1],
+        ];
+        assert.ok(
+          Math.hypot(...expectedTangent.map((value, axis) => value - posed.tangents[t + axis])) <
+            1e-5,
+          `${name}/${sample.name}: tangent survives rotated ancestry and engine basis`,
+        );
+        assert.equal(posed.tangents[t + 3], sourcePrimitive.tangents[t + 3]);
+      }
       for (let i = 0; i < mapping.sourceVertexByGltfVertex.length; i++) {
         const [x, y, z] = sample.positions[primitive.nodeName][mapping.sourceVertexByGltfVertex[i]];
         const distance = Math.hypot(

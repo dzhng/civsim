@@ -139,7 +139,7 @@ function completeBundleFiles(rig, animation) {
       tiers: tierPaths,
       // Far atlases retain the complete equipment silhouette, not the coarse tier's omissions.
       far: { mesh: tierPaths[0], clip: 'idle', phase: 0 },
-      bounds: deriveAnimatedBounds(tiers, animation),
+      bounds: deriveAnimatedBounds(tiers, animation, PLACEHOLDER_MATERIALS),
     };
   }
   files['catalog.json'] = { appearances };

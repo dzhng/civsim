@@ -1,4 +1,5 @@
 import type { SoldierMeshData } from "./mesh";
+import { assertMappedTangentFrames } from "./skin.ts";
 import type { ImportedRig } from "./rig";
 import type { VatBake } from "./schema";
 import {
@@ -286,6 +287,7 @@ async function readAppearanceBundle(
     ) {
       throw new Error("appearance mesh references a missing joint or material");
     }
+    assertMappedTangentFrames(mesh, surface.materials);
   }
   return { manifest, rig, animation, surface, tiers, farMesh };
 }

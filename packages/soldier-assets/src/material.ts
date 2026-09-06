@@ -69,8 +69,12 @@ export function readSoldierSurfaceAsset(value: unknown): SoldierSurface<string> 
       throw new Error(
         "appearance materials require finite base RGBA, roughness and metallic in [0, 1]",
       );
-    if (material.normalScale !== undefined && !Number.isFinite(material.normalScale))
-      throw new Error("appearance material normal scale must be finite");
+    if (
+      material.normalScale !== undefined &&
+      (!Number.isFinite(material.normalScale) ||
+        !Number.isFinite(Math.fround(material.normalScale)))
+    )
+      throw new Error("appearance material normal scale must be finite in Float32");
     if (
       material.occlusionStrength !== undefined &&
       (!Number.isFinite(material.occlusionStrength) ||
@@ -158,7 +162,7 @@ export function soldierMaterialIdentity() {
     channels: ["albedo", "normal", "orm", "factionMask"],
     mapping: {
       albedo: "linear vertex color times base-color factor and optional sRGB image",
-      normal: "four-weight posed normal; normal images transported, posed-map shading pending",
+      normal: "four-weight posed tangent-frame normal maps with authored scale and handedness",
       orm: "roughness/metallic factors times independently enabled data maps; authored AO strength",
       factionMask: "explicit vertex factionMask, independent of color",
     },

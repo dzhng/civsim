@@ -228,7 +228,7 @@ test("each sampler field is required and restricted to supported sampling behavi
 
 test("nonfinite normal scale and out-of-range occlusion strength cannot enter GPU rows", () => {
   const input = surface();
-  for (const normalScale of [NaN, Infinity, -Infinity, null, "1"]) {
+  for (const normalScale of [NaN, Infinity, -Infinity, 1e300, -1e300, null, "1"]) {
     assert.throws(
       () =>
         readSoldierSurfaceAsset({ ...input, materials: [{ ...input.materials[0], normalScale }] }),

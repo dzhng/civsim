@@ -108,7 +108,7 @@ export function appearanceMaterials(files) {
       if (Object.keys(flags).length) material.textures = flags;
       if (flags.normal) {
         const scale = definition.normalTexture.scale ?? 1;
-        if (!Number.isFinite(scale)) throw new Error('normal scale must be finite');
+        if (!Number.isFinite(scale) || !Number.isFinite(Math.fround(scale))) throw new Error('normal scale must be finite in Float32');
         material.normalScale = scale;
       }
       if (flags.occlusion) {

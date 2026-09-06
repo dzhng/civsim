@@ -11,6 +11,92 @@ import {
   PLACEHOLDER_MATERIALS,
 } from "@packages/soldier-assets/src/soldierMesh";
 
+test("normal-mapped bind frames are admitted per slot on all tiers and far content", async () => {
+  const mesh = {
+    positions: [0, 0, 0, 1, 0, 0],
+    normals: [0, 0, 0, 0, 0, 1],
+    colors: Array(8).fill(1),
+    joints: Array(8).fill(0),
+    weights: [1, 0, 0, 0, 1, 0, 0, 0],
+    uvs: [0, 0, 1, 0],
+    tangents: [0, 0, 0, 0, 1, 0, 0, -1],
+    materialIds: [0, 1],
+    factionMasks: [0, 0],
+    indices: [0, 1, 0],
+    indexFormat: "uint16",
+  };
+  const plain = { name: "plain", baseColor: [1, 1, 1, 1], roughness: 1, metallic: 0 };
+  const files: Record<string, unknown> = {
+    "bundle.json": {
+      name: "mapped",
+      mounted: false,
+      skeleton: "rig.json",
+      animation: "clips.json",
+      materials: "materials.json",
+      tiers: ["near.json", "mid.json", "far.json"],
+      far: { mesh: "atlas.json", clip: "idle", phase: 0 },
+      bounds: { center: [0, 0, 0], radius: 1 },
+    },
+    "rig.json": { bones: [{}], clips: [] },
+    // Runtime does not rescan animation frames: source baking owns sampled-frame admission.
+    "clips.json": {
+      bones: 1,
+      width: 1,
+      height: 4,
+      fps: 24,
+      data: Array(16).fill(0),
+      clips: [{ name: "idle", start: 0, frames: 1, loop: true, duration: 0 }],
+    },
+    "materials.json": {
+      materials: [plain, { ...plain, textures: { normal: true } }],
+      textures: {
+        normal: {
+          image: "normal.png",
+          mimeType: "image/png",
+          sampler: {
+            magFilter: "linear",
+            minFilter: "linear",
+            mipmapFilter: "none",
+            wrapS: "repeat",
+            wrapT: "repeat",
+          },
+        },
+      },
+    },
+    "normal.png": new Uint8Array([137, 80, 78, 71]),
+    "near.json": mesh,
+    "mid.json": mesh,
+    "far.json": mesh,
+    "atlas.json": mesh,
+  };
+  vi.stubGlobal("fetch", async (url: string) => {
+    const value = files[new URL(url).pathname.split("/").pop()!];
+    return new Response(
+      value instanceof Uint8Array ? new Uint8Array(value) : JSON.stringify(value),
+    );
+  });
+  try {
+    const bundle = await loadAppearanceBundle("https://assets.test/bundle.json");
+    expect(bundle.tiers[0].tangents[7]).toBe(-1);
+    expect(bundle.tiers[0].tangents[3]).toBe(0);
+    for (const path of ["near.json", "mid.json", "far.json", "atlas.json"]) {
+      for (const tangent of [
+        [0, 0, 0, 1],
+        [0, 0, 1, 1],
+        [1, 0, 0, 0],
+      ]) {
+        files[path] = { ...mesh, tangents: [...mesh.tangents.slice(0, 4), ...tangent] };
+        await expect(loadAppearanceBundle("https://assets.test/bundle.json")).rejects.toThrow(
+          /normal-mapped vertex 1/,
+        );
+      }
+      files[path] = mesh;
+    }
+  } finally {
+    vi.unstubAllGlobals();
+  }
+});
+
 test("an incomplete appearance fails instead of silently using placeholder distance content", async () => {
   vi.stubGlobal(
     "fetch",

@@ -1,0 +1,846 @@
+{
+  "baseline": "be522c50",
+  "workload": "30000 independent controller histories, 3 paired repeats, alternate measurement order; Node CPU diagnostics, not hardware renderer acceptance",
+  "rows": [
+    {
+      "repeat": 0,
+      "id": 4,
+      "mode": "synchronized",
+      "tick": 0,
+      "aMs": 10.126790999999997,
+      "bMs": 10.314875,
+      "uniqueFrozen": 0,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 4,
+      "mode": "synchronized",
+      "tick": 1,
+      "aMs": 8.799582999999984,
+      "bMs": 8.593291000000022,
+      "uniqueFrozen": 0,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 4,
+      "mode": "synchronized",
+      "tick": 4,
+      "aMs": 107.07779100000005,
+      "bMs": 7.603375000000028,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 4,
+      "mode": "synchronized",
+      "tick": 8,
+      "aMs": 7.2967499999999745,
+      "bMs": 9.917166000000066,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 4,
+      "mode": "synchronized",
+      "tick": 10,
+      "aMs": 139.68562499999996,
+      "bMs": 24.036375000000135,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 4,
+      "mode": "synchronized",
+      "tick": 11,
+      "aMs": 159.622791,
+      "bMs": 11.332750000000033,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 4,
+      "mode": "synchronized",
+      "tick": 14,
+      "aMs": 157.10070799999994,
+      "bMs": 6.020250000000033,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 4,
+      "mode": "interleaved",
+      "tick": 0,
+      "aMs": 5.874041000000034,
+      "bMs": 4.742041999999856,
+      "uniqueFrozen": 0,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 4,
+      "mode": "interleaved",
+      "tick": 1,
+      "aMs": 7.595583999999917,
+      "bMs": 5.422624999999925,
+      "uniqueFrozen": 0,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 4,
+      "mode": "interleaved",
+      "tick": 4,
+      "aMs": 75.63550000000009,
+      "bMs": 7.678875000000062,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 4,
+      "mode": "interleaved",
+      "tick": 8,
+      "aMs": 95.48279199999979,
+      "bMs": 15.629874999999629,
+      "uniqueFrozen": 3,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 4,
+      "mode": "interleaved",
+      "tick": 10,
+      "aMs": 150.89966699999968,
+      "bMs": 150.52837499999987,
+      "uniqueFrozen": 30000,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 4,
+      "mode": "interleaved",
+      "tick": 11,
+      "aMs": 149.78295899999966,
+      "bMs": 153.63820799999985,
+      "uniqueFrozen": 30000,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 4,
+      "mode": "interleaved",
+      "tick": 14,
+      "aMs": 152.55341700000008,
+      "bMs": 158.28825000000006,
+      "uniqueFrozen": 30000,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 41,
+      "mode": "synchronized",
+      "tick": 0,
+      "aMs": 7.556333999999879,
+      "bMs": 14.00183300000026,
+      "uniqueFrozen": 0,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 41,
+      "mode": "synchronized",
+      "tick": 1,
+      "aMs": 7.5,
+      "bMs": 15.50408299999981,
+      "uniqueFrozen": 0,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 41,
+      "mode": "synchronized",
+      "tick": 4,
+      "aMs": 223.79233400000066,
+      "bMs": 8.844041000000288,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 41,
+      "mode": "synchronized",
+      "tick": 8,
+      "aMs": 8.652875000000677,
+      "bMs": 10.938458000000537,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 41,
+      "mode": "synchronized",
+      "tick": 10,
+      "aMs": 232.58937500000047,
+      "bMs": 16.500708000000486,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 41,
+      "mode": "synchronized",
+      "tick": 11,
+      "aMs": 460.4870000000001,
+      "bMs": 17.896582999999737,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 41,
+      "mode": "synchronized",
+      "tick": 14,
+      "aMs": 516.6420829999997,
+      "bMs": 22.316915999999765,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 41,
+      "mode": "interleaved",
+      "tick": 0,
+      "aMs": 8.413625000001048,
+      "bMs": 6.3257919999996375,
+      "uniqueFrozen": 0,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 41,
+      "mode": "interleaved",
+      "tick": 1,
+      "aMs": 12.77325000000019,
+      "bMs": 10.423791999999594,
+      "uniqueFrozen": 0,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 41,
+      "mode": "interleaved",
+      "tick": 4,
+      "aMs": 154.81883299999936,
+      "bMs": 8.090124999998807,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 41,
+      "mode": "interleaved",
+      "tick": 8,
+      "aMs": 180.4728329999998,
+      "bMs": 8.061750000000757,
+      "uniqueFrozen": 3,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 41,
+      "mode": "interleaved",
+      "tick": 10,
+      "aMs": 500.63879199999974,
+      "bMs": 275.05075000000033,
+      "uniqueFrozen": 30000,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 41,
+      "mode": "interleaved",
+      "tick": 11,
+      "aMs": 674.9538750000011,
+      "bMs": 741.1984579999989,
+      "uniqueFrozen": 50000,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 0,
+      "id": 41,
+      "mode": "interleaved",
+      "tick": 14,
+      "aMs": 488.0615409999991,
+      "bMs": 498.7922089999993,
+      "uniqueFrozen": 50000,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 4,
+      "mode": "synchronized",
+      "tick": 0,
+      "aMs": 3.191665999998804,
+      "bMs": 3.4182500000006257,
+      "uniqueFrozen": 0,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 4,
+      "mode": "synchronized",
+      "tick": 1,
+      "aMs": 4.278915999999299,
+      "bMs": 6.376083000001017,
+      "uniqueFrozen": 0,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 4,
+      "mode": "synchronized",
+      "tick": 4,
+      "aMs": 106.50224999999955,
+      "bMs": 6.546124999998938,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 4,
+      "mode": "synchronized",
+      "tick": 8,
+      "aMs": 4.047875000000204,
+      "bMs": 4.132208000000901,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 4,
+      "mode": "synchronized",
+      "tick": 10,
+      "aMs": 116.52141600000141,
+      "bMs": 5.742500000000291,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 4,
+      "mode": "synchronized",
+      "tick": 11,
+      "aMs": 162.32266700000037,
+      "bMs": 7.0772909999996045,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 4,
+      "mode": "synchronized",
+      "tick": 14,
+      "aMs": 166.55908400000044,
+      "bMs": 8.48108300000058,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 4,
+      "mode": "interleaved",
+      "tick": 0,
+      "aMs": 6.770250000001397,
+      "bMs": 5.2488329999978305,
+      "uniqueFrozen": 0,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 4,
+      "mode": "interleaved",
+      "tick": 1,
+      "aMs": 9.621500000001106,
+      "bMs": 5.945542000001296,
+      "uniqueFrozen": 0,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 4,
+      "mode": "interleaved",
+      "tick": 4,
+      "aMs": 79.8537499999984,
+      "bMs": 10.118875000000116,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 4,
+      "mode": "interleaved",
+      "tick": 8,
+      "aMs": 97.23062500000015,
+      "bMs": 11.592541000001802,
+      "uniqueFrozen": 3,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 4,
+      "mode": "interleaved",
+      "tick": 10,
+      "aMs": 155.77733300000182,
+      "bMs": 153.22654200000034,
+      "uniqueFrozen": 30000,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 4,
+      "mode": "interleaved",
+      "tick": 11,
+      "aMs": 183.9752499999995,
+      "bMs": 159.40870899999936,
+      "uniqueFrozen": 30000,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 4,
+      "mode": "interleaved",
+      "tick": 14,
+      "aMs": 161.90199999999822,
+      "bMs": 159.361834000003,
+      "uniqueFrozen": 30000,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 41,
+      "mode": "synchronized",
+      "tick": 0,
+      "aMs": 8.35504199999923,
+      "bMs": 3.757207999999082,
+      "uniqueFrozen": 0,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 41,
+      "mode": "synchronized",
+      "tick": 1,
+      "aMs": 5.008042000001296,
+      "bMs": 6.815542000000278,
+      "uniqueFrozen": 0,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 41,
+      "mode": "synchronized",
+      "tick": 4,
+      "aMs": 223.93395800000144,
+      "bMs": 5.709584000000177,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 41,
+      "mode": "synchronized",
+      "tick": 8,
+      "aMs": 8.721583999998984,
+      "bMs": 5.349459000000934,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 41,
+      "mode": "synchronized",
+      "tick": 10,
+      "aMs": 240.48349999999846,
+      "bMs": 9.814291999999114,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 41,
+      "mode": "synchronized",
+      "tick": 11,
+      "aMs": 495.32845899999666,
+      "bMs": 11.011750000001484,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 41,
+      "mode": "synchronized",
+      "tick": 14,
+      "aMs": 463.0437500000007,
+      "bMs": 19.188208999999915,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 41,
+      "mode": "interleaved",
+      "tick": 0,
+      "aMs": 8.990709000001516,
+      "bMs": 5.3851250000006985,
+      "uniqueFrozen": 0,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 41,
+      "mode": "interleaved",
+      "tick": 1,
+      "aMs": 11.628874999998516,
+      "bMs": 7.316540999996505,
+      "uniqueFrozen": 0,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 41,
+      "mode": "interleaved",
+      "tick": 4,
+      "aMs": 150.65158399999927,
+      "bMs": 10.226875000000291,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 41,
+      "mode": "interleaved",
+      "tick": 8,
+      "aMs": 172.44945899999948,
+      "bMs": 6.930415999999241,
+      "uniqueFrozen": 3,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 41,
+      "mode": "interleaved",
+      "tick": 10,
+      "aMs": 435.10820799999783,
+      "bMs": 261.3971669999992,
+      "uniqueFrozen": 30000,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 41,
+      "mode": "interleaved",
+      "tick": 11,
+      "aMs": 661.5597500000003,
+      "bMs": 720.5550410000033,
+      "uniqueFrozen": 50000,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 1,
+      "id": 41,
+      "mode": "interleaved",
+      "tick": 14,
+      "aMs": 489.7569169999988,
+      "bMs": 492.3089170000021,
+      "uniqueFrozen": 50000,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 4,
+      "mode": "synchronized",
+      "tick": 0,
+      "aMs": 3.2864580000023125,
+      "bMs": 3.41608400000041,
+      "uniqueFrozen": 0,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 4,
+      "mode": "synchronized",
+      "tick": 1,
+      "aMs": 4.287333000000217,
+      "bMs": 7.108625000000757,
+      "uniqueFrozen": 0,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 4,
+      "mode": "synchronized",
+      "tick": 4,
+      "aMs": 105.19449999999779,
+      "bMs": 6.2696670000004815,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 4,
+      "mode": "synchronized",
+      "tick": 8,
+      "aMs": 4.495500000000902,
+      "bMs": 4.003207999998267,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 4,
+      "mode": "synchronized",
+      "tick": 10,
+      "aMs": 116.79970899999898,
+      "bMs": 6.8944160000028205,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 4,
+      "mode": "synchronized",
+      "tick": 11,
+      "aMs": 152.1312910000015,
+      "bMs": 4.878040999999939,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 4,
+      "mode": "synchronized",
+      "tick": 14,
+      "aMs": 150.2847920000022,
+      "bMs": 6.768875000001572,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 4,
+      "mode": "interleaved",
+      "tick": 0,
+      "aMs": 3.2113329999992857,
+      "bMs": 3.399083000000246,
+      "uniqueFrozen": 0,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 4,
+      "mode": "interleaved",
+      "tick": 1,
+      "aMs": 4.253916000001482,
+      "bMs": 7.190040999998018,
+      "uniqueFrozen": 0,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 4,
+      "mode": "interleaved",
+      "tick": 4,
+      "aMs": 92.26833299999998,
+      "bMs": 8.594334000001254,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 4,
+      "mode": "interleaved",
+      "tick": 8,
+      "aMs": 89.66079199999876,
+      "bMs": 6.734709000000294,
+      "uniqueFrozen": 3,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 4,
+      "mode": "interleaved",
+      "tick": 10,
+      "aMs": 150.03404100000262,
+      "bMs": 150.02487499999916,
+      "uniqueFrozen": 30000,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 4,
+      "mode": "interleaved",
+      "tick": 11,
+      "aMs": 157.83837499999936,
+      "bMs": 155.25495800000135,
+      "uniqueFrozen": 30000,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 4,
+      "mode": "interleaved",
+      "tick": 14,
+      "aMs": 153.30870900000082,
+      "bMs": 149.26883400000224,
+      "uniqueFrozen": 30000,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 41,
+      "mode": "synchronized",
+      "tick": 0,
+      "aMs": 3.2790830000012647,
+      "bMs": 7.112417000003916,
+      "uniqueFrozen": 0,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 41,
+      "mode": "synchronized",
+      "tick": 1,
+      "aMs": 4.529875000000175,
+      "bMs": 9.172500000000582,
+      "uniqueFrozen": 0,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 41,
+      "mode": "synchronized",
+      "tick": 4,
+      "aMs": 218.669415999997,
+      "bMs": 14.947500000002037,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 41,
+      "mode": "synchronized",
+      "tick": 8,
+      "aMs": 9.98479199999565,
+      "bMs": 10.918333999994502,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 41,
+      "mode": "synchronized",
+      "tick": 10,
+      "aMs": 221.0711669999946,
+      "bMs": 12.660250000000815,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 41,
+      "mode": "synchronized",
+      "tick": 11,
+      "aMs": 444.9339590000018,
+      "bMs": 14.9004999999961,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 41,
+      "mode": "synchronized",
+      "tick": 14,
+      "aMs": 453.35870799999975,
+      "bMs": 20.446415999998862,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 41,
+      "mode": "interleaved",
+      "tick": 0,
+      "aMs": 6.410707999995793,
+      "bMs": 11.207792000001064,
+      "uniqueFrozen": 0,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 41,
+      "mode": "interleaved",
+      "tick": 1,
+      "aMs": 7.88116699999955,
+      "bMs": 5.7679169999973965,
+      "uniqueFrozen": 0,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 41,
+      "mode": "interleaved",
+      "tick": 4,
+      "aMs": 148.5414579999997,
+      "bMs": 8.345166999999492,
+      "uniqueFrozen": 1,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 41,
+      "mode": "interleaved",
+      "tick": 8,
+      "aMs": 169.32412499999919,
+      "bMs": 7.815833000000566,
+      "uniqueFrozen": 3,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 41,
+      "mode": "interleaved",
+      "tick": 10,
+      "aMs": 434.7520000000004,
+      "bMs": 262.7639580000032,
+      "uniqueFrozen": 30000,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 41,
+      "mode": "interleaved",
+      "tick": 11,
+      "aMs": 724.7126659999994,
+      "bMs": 667.7094580000048,
+      "uniqueFrozen": 50000,
+      "verifiedPoses": 30000
+    },
+    {
+      "repeat": 2,
+      "id": 41,
+      "mode": "interleaved",
+      "tick": 14,
+      "aMs": 499.1351250000007,
+      "bMs": 489.89954099999886,
+      "uniqueFrozen": 50000,
+      "verifiedPoses": 30000
+    }
+  ]
+}

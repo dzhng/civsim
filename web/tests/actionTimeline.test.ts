@@ -427,6 +427,156 @@ test("consumers cannot mutate controller-owned interruption snapshots", () => {
   assert.deepEqual(evaluatePlaybackPose(appearances[0], timeline.sample(4)[0]), before);
 });
 
+test("identical interrupted poses share one immutable numeric snapshot without synchronizing later actions", () => {
+  const timeline = new ActionTimeline(appearances);
+  const observations = Array.from({ length: 32 }, () => soldier());
+  timeline.update(0, observations);
+  observations.forEach((o) => {
+    o.speedMps = 1;
+  });
+  timeline.update(3, observations);
+  observations.forEach((o) => {
+    o.health = 90;
+  });
+  const interrupted = timeline.update(4, observations);
+  const sources = new Set(interrupted.map((p) => p.base.source));
+  assert.equal(sources.size, 1);
+  assert.equal(timeline.snapshotBytes, rig.bones.length * 10 * 8);
+  const source = interrupted[0].base.source;
+  assert.equal(source.kind, "frozen");
+  if (source.kind !== "frozen") throw new Error("expected frozen source");
+  assert.ok(Object.isFrozen(source) && Object.isFrozen(source.locals));
+  assert.equal(Reflect.set(source.locals, "0", 999), false);
+  observations[0].alive = false;
+  const independent = timeline.update(5, observations);
+  assert.equal(independent[0].base.destination.clip, "fall");
+  assert.equal(independent[1].base.destination.clip, "recoil");
+  assert.deepEqual(independent[1].base.source, source);
+});
+
+test("batched mixed mounted histories exactly match isolated soldiers through masked exits and interruptions", () => {
+  const mountedRig: ImportedRig = {
+    bones: [...rig.bones, { ...structuredClone(rig.bones[0]), name: "legs", parent: 0 }],
+    clips: rig.clips.map((clip) => ({
+      ...structuredClone(clip),
+      tracks: {
+        ...structuredClone(clip.tracks),
+        1: { T: { times: [0, clip.duration], values: [0, 0, 0, 0, 2, 0] } },
+      },
+    })),
+  };
+  const mounted = (mask: string[]) => ({
+    rig: mountedRig,
+    manifest: {
+      presentation: {
+        actions: { ...actions, melee: { clip: "swing", layer: "riderUpperBody" as const } },
+        riderUpperBodyJoints: mask,
+      },
+    },
+    animation: { clips },
+  });
+  const catalog = { 0: mounted(["spine"]), 1: mounted(["legs"]) };
+  const batch = new ActionTimeline(catalog);
+  const individuals = Array.from({ length: 24 }, () => new ActionTimeline(catalog));
+  let sawBaseDestination = false,
+    sawTwoFrozenSources = false;
+  const weights = new Set<number>();
+  for (let tick = 0; tick <= 82; tick++) {
+    const observations = individuals.map((_, index) => {
+      const offset = index % 4;
+      return soldier({
+        appearanceId: index % 2,
+        speedMps: tick >= offset ? 2 : 0,
+        running: tick >= 3 + offset && tick < 70 + offset,
+        fighting: tick === 1 + offset,
+        health: tick >= 78 + offset ? 90 : 100,
+        alive: tick < 81 + offset,
+      });
+    });
+    batch.update(tick, observations);
+    individuals.forEach((timeline, index) => timeline.update(tick, [observations[index]]));
+    for (const phase of [tick, tick + 0.5]) {
+      const actual = batch.sample(phase);
+      for (let i = 0; i < individuals.length; i++) {
+        const expected = individuals[i].sample(phase)[0];
+        assert.deepEqual(actual[i], expected);
+        assert.deepEqual(
+          evaluatePlaybackPose(catalog[actual[i].appearanceId as 0 | 1], actual[i]),
+          evaluatePlaybackPose(catalog[expected.appearanceId as 0 | 1], expected),
+        );
+        const upper = actual[i].riderUpperBody;
+        sawBaseDestination ||= !!upper && "kind" in upper.destination;
+        sawTwoFrozenSources ||=
+          actual[i].base.source.kind === "frozen" && upper?.source.kind === "frozen";
+        weights.add(actual[i].base.weight);
+        if (upper) weights.add(upper.weight);
+      }
+    }
+  }
+  assert.ok(sawBaseDestination, "exercise an overlay fading toward the current base, not a clip");
+  assert.ok(
+    sawTwoFrozenSources,
+    "exercise simultaneous independently captured base and overlay sources",
+  );
+  assert.ok(weights.has(0) && weights.has(1) && [...weights].some((w) => w > 0 && w < 1));
+});
+
+test("snapshot reuse ends at reset, rewind, and replacement catalog boundaries", () => {
+  const timeline = new ActionTimeline(appearances);
+  const enter = (controller: ActionTimeline) => {
+    controller.update(0, [soldier(), soldier()]);
+    return controller.update(3, [soldier({ speedMps: 1 }), soldier({ speedMps: 1 })]);
+  };
+  const first = enter(timeline)[0].base.source;
+  const rewound = enter(timeline);
+  assert.notEqual(rewound[0].base.source, first);
+  assert.deepEqual(rewound[0].base.source, first);
+  assert.equal(rewound[0].base.source, rewound[1].base.source);
+  timeline.reset();
+  assert.equal(timeline.snapshotBytes, 0);
+  assert.notEqual(enter(timeline)[0].base.source, rewound[0].base.source);
+  const replacement = structuredClone(appearances);
+  replacement[0].rig.clips[0].tracks[0].T!.values[0] += 10;
+  const reloaded = enter(new ActionTimeline(replacement));
+  assert.notDeepEqual(reloaded[0].base.source, first);
+  assert.equal(reloaded[0].base.source, reloaded[1].base.source);
+});
+
+test("nearly equal release phases stay distinct while an exact repeated pose can reuse its snapshot", () => {
+  const bow = {
+    rig,
+    manifest: {
+      presentation: {
+        actions: { ...actions, release: { clip: "swing", layer: "fullBody" as const } },
+        riderUpperBodyJoints: null,
+      },
+    },
+    animation: {
+      clips: clips.map((clip) =>
+        clip.name === "swing" ? { ...clip, markers: { release: 0.2 } } : clip,
+      ),
+    },
+  };
+  const timeline = new ActionTimeline({ 0: bow });
+  timeline.update(
+    0,
+    [0, 1e-10, 0].map((age) => soldier({ releaseTtl: 0.5, releaseAgeSeconds: age })),
+  );
+  const before = timeline.sample(3).map((p) => evaluatePlaybackPose(bow, p));
+  const interrupted = timeline.update(3, [
+    soldier({ health: 90 }),
+    soldier({ health: 90 }),
+    soldier({ health: 90 }),
+  ]);
+  assert.notDeepEqual(before[0], before[1]);
+  assert.deepEqual(
+    interrupted.map((p) => evaluatePlaybackPose(bow, p)),
+    before,
+  );
+  assert.equal(interrupted[0].base.source, interrupted[2].base.source);
+  assert.notEqual(interrupted[0].base.source, interrupted[1].base.source);
+});
+
 test("a rejected batch cannot commit a partial terminal death or reset existing histories", () => {
   const timeline = new ActionTimeline(appearances);
   timeline.update(0, [soldier(), soldier()]);

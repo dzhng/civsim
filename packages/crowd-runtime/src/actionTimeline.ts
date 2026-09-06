@@ -79,6 +79,62 @@ export function evaluatePlaybackPose(
     mask,
   );
 }
+
+function sameSample(a: ClipSample, b: ClipSample): boolean {
+  return a.clip === b.clip && a.phase === b.phase;
+}
+function sameSource(a: PoseSource, b: PoseSource): boolean {
+  return a.kind === "frozen" ? a === b : b.kind === "clip" && sameSample(a.sample, b.sample);
+}
+function samePlayback(a: SoldierPlayback, b: SoldierPlayback): boolean {
+  if (
+    a.appearanceId !== b.appearanceId ||
+    a.base.weight !== b.base.weight ||
+    !sameSource(a.base.source, b.base.source) ||
+    !sameSample(a.base.destination, b.base.destination)
+  )
+    return false;
+  const x = a.riderUpperBody,
+    y = b.riderUpperBody;
+  if (!x || !y) return x === y;
+  return (
+    x.weight === y.weight &&
+    sameSource(x.source, y.source) &&
+    ("kind" in x.destination
+      ? "kind" in y.destination && x.destination.kind === y.destination.kind
+      : !("kind" in y.destination) && sameSample(x.destination, y.destination))
+  );
+}
+
+/** Two captures cover adjacent base/upper-body transitions. Exact reuse is only
+ * an optimization: unrelated histories evaluate normally, with no growing map
+ * or phase rounding. Memo entries do not survive the update. */
+function frozenPoseCapture() {
+  type Entry = { appearance: PlaybackAppearance; playback: SoldierPlayback; source: PoseSource };
+  let first: Entry | undefined, second: Entry | undefined;
+  return (appearance: PlaybackAppearance, playback: SoldierPlayback): PoseSource => {
+    if (first?.appearance === appearance && samePlayback(first.playback, playback))
+      return first.source;
+    if (second?.appearance === appearance && samePlayback(second.playback, playback)) {
+      const hit = second;
+      second = first;
+      first = hit;
+      return hit.source;
+    }
+    const source: PoseSource = Object.freeze({
+      kind: "frozen",
+      locals: Object.freeze(Array.from(evaluatePlaybackPose(appearance, playback))),
+    });
+    const entry = second ?? { appearance, playback, source };
+    entry.appearance = appearance;
+    entry.playback = playback;
+    entry.source = source;
+    second = first;
+    first = entry;
+    return source;
+  };
+}
+
 interface Track {
   role: ActionRole;
   clip: ActionClip;
@@ -137,7 +193,7 @@ function transition(
   lane: Lane | undefined,
   current: Track,
   seconds: number,
-  freeze: () => LocalPose,
+  freeze: () => PoseSource,
   restart = false,
 ): Lane {
   if (!lane)
@@ -149,7 +205,7 @@ function transition(
   if (lane.current.role === current.role && !restart) return lane;
   return {
     current,
-    source: Object.freeze({ kind: "frozen", locals: Object.freeze(Array.from(freeze())) }),
+    source: freeze(),
     changed: seconds,
   };
 }
@@ -165,12 +221,16 @@ export class ActionTimeline {
     this.tick = -Infinity;
   }
 
-  /** Numeric payload bytes, excluding array/object overhead and consumer-held samples. */
+  /** Unique owned numeric payload bytes, excluding overhead and consumer-held samples. */
   get snapshotBytes(): number {
     let bytes = 0;
+    const counted = new Set<PoseSource>();
     for (const history of this.histories) {
       for (const lane of [history.base, history.overlay])
-        if (lane?.source.kind === "frozen") bytes += lane.source.locals.length * 8;
+        if (lane?.source.kind === "frozen" && !counted.has(lane.source)) {
+          counted.add(lane.source);
+          bytes += lane.source.locals.length * 8;
+        }
     }
     return bytes;
   }
@@ -189,6 +249,7 @@ export class ActionTimeline {
     const previousTick = resetting ? -Infinity : this.tick;
     const nextHistories: History[] = [];
     const seconds = tick * ACTION_TICK_SECONDS;
+    const freezePlayback = frozenPoseCapture();
     const output = observations.map((observation, index) => {
       const prior = previousHistories[index];
       let history = prior && {
@@ -270,13 +331,13 @@ export class ActionTimeline {
       const previous = sameAppearance ? playback(history, seconds) : undefined;
       const appearance = this.appearances[observation.appearanceId];
       const freezeBase = () =>
-        evaluatePlaybackPose(
+        freezePlayback(
           appearance,
           role === "hit" || role === "death"
             ? previous!
             : { appearanceId: observation.appearanceId, base: previous!.base },
         );
-      const freezeComposed = () => evaluatePlaybackPose(appearance, previous!);
+      const freezeComposed = () => freezePlayback(appearance, previous!);
       const base = transition(
         sameAppearance ? history.base : undefined,
         baseTrack,
@@ -306,7 +367,7 @@ export class ActionTimeline {
         const freeze = previous
           ? freezeComposed
           : () =>
-              evaluatePlaybackPose(appearance, {
+              freezePlayback(appearance, {
                 appearanceId: observation.appearanceId,
                 base: blend(base, seconds),
               });

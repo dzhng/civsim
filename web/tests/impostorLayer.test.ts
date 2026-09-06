@@ -107,7 +107,7 @@ test.each(["render", "falsy render", "GPU validation", "scope rejection"])(
         renderer as unknown as THREE.WebGPURenderer,
         createPlaceholderSoldierMesh(),
         vat as VatBake,
-        new THREE.DataTexture(),
+        { table: new THREE.DataTexture(), images: {}, stats: [], dispose() {} },
         { clip: "idle", phase: 0 },
       );
       if (failure === "falsy render") await expect(preparation).rejects.toBe(0);

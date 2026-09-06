@@ -116,14 +116,17 @@ export async function run(ctx) {
             ...source,
             tiers: [mesh, mesh, mesh],
             farMesh: mesh,
-            materials: [
-              {
-                name: "diagnostic-blue",
-                baseColor: [0.035, 0.065, 0.24, 1],
-                roughness: type === "smooth" ? 0.08 : 0.7,
-                metallic: type === "metal" ? 1 : 0,
-              },
-            ],
+            surface: {
+              textures: {},
+              materials: [
+                {
+                  name: "diagnostic-blue",
+                  baseColor: [0.035, 0.065, 0.24, 1],
+                  roughness: type === "smooth" ? 0.08 : 0.7,
+                  metallic: type === "metal" ? 1 : 0,
+                },
+              ],
+            },
           };
           const begin = performance.now();
           const replacement = await world.crowd.constructor.create(

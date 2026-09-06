@@ -1,7 +1,11 @@
 import type { SoldierMeshData } from "./mesh";
 import type { ImportedRig } from "./rig";
 import type { VatBake } from "./schema";
-import type { SoldierMaterial } from "./material";
+import {
+  readSoldierSurfaceAsset,
+  type SoldierSurface,
+  type SoldierTextureChannel,
+} from "./material.ts";
 
 export type SoldierMeshAsset = { [K in keyof SoldierMeshData]: number[] } & {
   indexFormat: "uint16" | "uint32";
@@ -22,7 +26,7 @@ export interface AppearanceBundle {
   manifest: AppearanceManifest;
   rig: ImportedRig;
   animation: VatBake;
-  materials: SoldierMaterial[];
+  surface: SoldierSurface;
   tiers: [SoldierMeshData, SoldierMeshData, SoldierMeshData];
   farMesh: SoldierMeshData;
 }
@@ -34,7 +38,9 @@ export interface AppearanceCatalog {
 /** One request cache per load transaction; reload starts a fresh transaction. */
 function assetReader() {
   const cache = new Map<string, Promise<unknown>>();
-  return <T>(url: string): Promise<T> => {
+  const binaries = new Map<string, Promise<Uint8Array<ArrayBuffer>>>();
+  const surfaces = new Map<string, Promise<SoldierSurface>>();
+  const json = <T>(url: string): Promise<T> => {
     if (!cache.has(url))
       cache.set(
         url,
@@ -45,13 +51,47 @@ function assetReader() {
       );
     return cache.get(url)! as Promise<T>;
   };
+  const bytes = (url: string) => {
+    if (!binaries.has(url))
+      binaries.set(
+        url,
+        fetch(url).then(async (response) => {
+          if (!response.ok) throw new Error(`appearance image ${url}: HTTP ${response.status}`);
+          return new Uint8Array(await response.arrayBuffer());
+        }),
+      );
+    return binaries.get(url)!;
+  };
+  return {
+    json,
+    surface(url: string): Promise<SoldierSurface> {
+      if (!surfaces.has(url))
+        surfaces.set(
+          url,
+          json<unknown>(url).then(async (value) => {
+            const source = readSoldierSurfaceAsset(value);
+            const textures: SoldierSurface["textures"] = {};
+            await Promise.all(
+              Object.entries(source.textures).map(async ([channel, texture]) => {
+                textures[channel as SoldierTextureChannel] = {
+                  ...texture,
+                  image: await bytes(new URL(texture.image, url).href),
+                };
+              }),
+            );
+            return { materials: source.materials, textures };
+          }),
+        );
+      return surfaces.get(url)!;
+    },
+  };
 }
 
 export async function loadAppearanceCatalog(
   url: string,
 ): Promise<Record<number, AppearanceBundle>> {
   const read = assetReader();
-  const catalog = await read<AppearanceCatalog>(url);
+  const catalog = await read.json<AppearanceCatalog>(url);
   if (!catalog.appearances || Object.keys(catalog.appearances).length === 0)
     throw new Error("appearance catalog is empty");
   const entries = await Promise.all(
@@ -158,7 +198,7 @@ async function readAppearanceBundle(
 ): Promise<AppearanceBundle> {
   const read = <T>(path: string): Promise<T> => {
     const resolved = new URL(path, url).href;
-    return fetchAsset<T>(resolved);
+    return fetchAsset.json<T>(resolved);
   };
   const manifest = await read<AppearanceManifest>(url);
   if (
@@ -186,30 +226,13 @@ async function readAppearanceBundle(
   ) {
     throw new Error("appearance requires finite animated bounds");
   }
-  const [rig, animation, materials, meshes, farAsset] = await Promise.all([
+  const [rig, animation, surface, meshes, farAsset] = await Promise.all([
     read<ImportedRig>(manifest.skeleton),
     read<VatBake>(manifest.animation),
-    read<SoldierMaterial[]>(manifest.materials),
+    fetchAsset.surface(new URL(manifest.materials, url).href),
     Promise.all(manifest.tiers.map((path) => read<SoldierMeshAsset>(path))),
     read<SoldierMeshAsset>(manifest.far.mesh),
   ]);
-  if (
-    !Array.isArray(materials) ||
-    materials.length === 0 ||
-    materials.some(
-      (material) =>
-        !material ||
-        !Array.isArray(material.baseColor) ||
-        material.baseColor.length !== 4 ||
-        [...material.baseColor, material.roughness, material.metallic].some(
-          (value) => !Number.isFinite(value) || value < 0 || value > 1,
-        ),
-    )
-  ) {
-    throw new Error(
-      "appearance materials require finite base RGBA, roughness and metallic in [0, 1]",
-    );
-  }
   if (
     ![animation.width, animation.height, animation.bones].every(
       (value) => Number.isInteger(value) && value > 0,
@@ -258,11 +281,11 @@ async function readAppearanceBundle(
     if (
       mesh.joints.some((joint) => joint >= rig.bones.length) ||
       mesh.materialIds.some(
-        (slot) => !Number.isInteger(slot) || slot < 0 || slot >= materials.length,
+        (slot) => !Number.isInteger(slot) || slot < 0 || slot >= surface.materials.length,
       )
     ) {
       throw new Error("appearance mesh references a missing joint or material");
     }
   }
-  return { manifest, rig, animation, materials, tiers, farMesh };
+  return { manifest, rig, animation, surface, tiers, farMesh };
 }

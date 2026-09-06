@@ -38,7 +38,8 @@ import { RENDER_ORDER } from "./terrainLayer";
 import { weightedVatColumns } from "./skinNodes";
 import { soldierGeometry } from "./meshGeometry";
 import {
-  createSoldierMaterialTexture,
+  prepareSoldierSurface,
+  type PreparedSoldierSurface,
   soldierFactionAccent,
   soldierSurfaceNodes,
   soldierContactOcclusion,
@@ -81,6 +82,7 @@ export class PhotorealCrowd {
   private buckets: Record<number, ClassBucket[]> = {};
   private readonly impostors: Record<number, OctahedralImpostorLayer> = {};
   private readonly textures = new Set<THREE.DataTexture>();
+  private readonly surfaces = new Set<PreparedSoldierSurface>();
   private instanceCount = 0;
   private readonly materialIdentity = soldierMaterialIdentity();
   private previousLevels: number[] = [];
@@ -112,15 +114,18 @@ export class PhotorealCrowd {
   private async initialize(renderer: THREE.WebGPURenderer, scene: THREE.Scene): Promise<void> {
     // One VAT texture per distinct bake (the all-placeholder case → one).
     const textures = new Map<VatBake, THREE.DataTexture>();
-    const materialTextures = new Map<AppearanceBundle["materials"], THREE.DataTexture>();
-    const materialTextureFor = (materials: AppearanceBundle["materials"]): THREE.DataTexture => {
-      let texture = materialTextures.get(materials);
-      if (!texture) {
-        texture = createSoldierMaterialTexture(materials);
-        materialTextures.set(materials, texture);
-        this.textures.add(texture);
+    await renderer.init();
+    const surfaces = new Map<AppearanceBundle["surface"], PreparedSoldierSurface>();
+    const surfaceFor = async (
+      source: AppearanceBundle["surface"],
+    ): Promise<PreparedSoldierSurface> => {
+      let surface = surfaces.get(source);
+      if (!surface) {
+        surface = await prepareSoldierSurface(renderer, source);
+        surfaces.set(source, surface);
+        this.surfaces.add(surface);
       }
-      return texture;
+      return surface;
     };
     const textureFor = (vat: VatBake): THREE.DataTexture => {
       let tex = textures.get(vat);
@@ -150,12 +155,10 @@ export class PhotorealCrowd {
         const classId = Number(id);
         const vat = bundle.animation;
         const tiers = bundle.tiers;
+        const surface = await surfaceFor(bundle.surface);
         this.buckets[classId] = tiers.map((tierMesh, lod) => {
           const geometry = soldierGeometry(tierMesh);
-          const mesh = new THREE.Mesh(
-            geometry,
-            crowdMaterial(textureFor(vat), materialTextureFor(bundle.materials)),
-          );
+          const mesh = new THREE.Mesh(geometry, crowdMaterial(textureFor(vat), surface));
           created.push(mesh);
           mesh.name = `battle-crowd-${classId}-lod${lod}`;
           mesh.frustumCulled = false;
@@ -179,16 +182,10 @@ export class PhotorealCrowd {
             pending: [],
           };
         });
-        atlas = await createSoldierImpostorAtlas(
-          renderer,
-          bundle.farMesh,
-          vat,
-          materialTextureFor(bundle.materials),
-          {
-            clip: bundle.manifest.far.clip,
-            phase: bundle.manifest.far.phase,
-          },
-        );
+        atlas = await createSoldierImpostorAtlas(renderer, bundle.farMesh, vat, surface, {
+          clip: bundle.manifest.far.clip,
+          phase: bundle.manifest.far.phase,
+        });
         this.impostors[classId] = new OctahedralImpostorLayer(scene, atlas);
         atlas = null;
       }
@@ -199,6 +196,7 @@ export class PhotorealCrowd {
         (mesh.material as THREE.Material).dispose();
       }
       for (const texture of this.textures) texture.dispose();
+      for (const surface of this.surfaces) surface.dispose();
       for (const layer of Object.values(this.impostors)) layer.dispose();
       atlas?.dispose();
       throw error;
@@ -354,6 +352,7 @@ export class PhotorealCrowd {
       culling: { ...this.culling },
       impostors,
       material: this.materialIdentity,
+      surfaceImages: [...this.surfaces].flatMap((surface) => surface.stats),
     };
   }
 
@@ -365,12 +364,13 @@ export class PhotorealCrowd {
     }
     for (const layer of Object.values(this.impostors)) layer.dispose();
     for (const texture of this.textures) texture.dispose();
+    for (const surface of this.surfaces) surface.dispose();
   }
 }
 
 function crowdMaterial(
   vatTex: THREE.DataTexture,
-  materialTexture: THREE.DataTexture,
+  preparedSurface: PreparedSoldierSurface,
 ): THREE.MeshStandardNodeMaterial {
   const material = new THREE.MeshStandardNodeMaterial({
     side: THREE.DoubleSide,
@@ -436,7 +436,7 @@ function crowdMaterial(
 
   const faction = varying(inst0.w).toVar();
   const vCorpse = varying(corpse).toVar();
-  const surface = soldierSurfaceNodes(materialTexture);
+  const surface = soldierSurfaceNodes(preparedSurface);
   let albedo = mix(surface.albedo, soldierFactionAccent(faction), surface.factionMask).toVar();
   material.roughnessNode = surface.roughness;
   material.metalnessNode = surface.metallic;

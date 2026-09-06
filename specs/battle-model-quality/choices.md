@@ -2,6 +2,32 @@
 
 ## Sound — medium confidence
 
+### One authored image set per appearance (slice04b)
+
+When one soldier has leather, cloth and metal parts, those parts can use different
+regions of the same color image and independently enable its roughness/metalness
+or occlusion map. They cannot each supply competing images for the same channel.
+The baker rejects that export instead of silently resizing or combining images.
+The alternative would require arbitrary per-part textures and more binding or
+atlas machinery before the first finished model exists.
+
+The original plan required material maps but did not choose their grouping.
+**Sound, medium confidence:** this keeps one appearance drawable as a batch and
+preserves the exact authored images. Future Blender authoring must lay out a shared
+image set; if a real roster asset cannot fit, revisit this constraint explicitly.
+
+### Prepare distinct image owners sequentially (slice04b)
+
+During reload, each image finishes decoding and GPU admission before the next
+starts. If a later image fails, all earlier allocations are already owned and can
+be released. A parallel implementation would need to handle images that finish
+after the overall reload has already failed.
+
+The plan specified atomic replacement but not scheduling. **Sound, medium
+confidence:** predictable cleanup comes before speculative startup concurrency.
+The measured asset-budget pass can justify bounded parallel preparation if loading
+time warrants its extra ownership machinery.
+
 ### Keep correct material transfer before repairing placeholder readability (slice04a)
 
 When the campaign draws the old warm-colored soldiers using correctly decoded light and explicit material properties, some skin and limbs become darker and harder to distinguish. This pass keeps that truthful transfer instead of brightening the renderer to preserve the old accidental result. The future authored surface passes must restore readability through the actual assets; this is not approval of the darker placeholder art.
@@ -69,6 +95,79 @@ When reviewing a hand grip or a foot, randomly placed grass and rocks can cover 
 The plan required production parity but did not specify review scenery. This choice constrains the workbench to asset inspection, not environment acceptance. **Sound:** it removes an occluder without changing how soldiers are shaded. Revisit if a future gate depends on soldier–foliage contact.
 
 ## Sound — high confidence
+
+### Closing a world makes pending reloads terminal (slice04b)
+
+If an author closes a world while a replacement is loading, that replacement
+cannot become the new visible crowd after teardown. Completed preparation is
+released, and another reload on the closed owner fails before fetching. Calling
+dispose twice is harmless. The alternative would silently claim a successful
+reload into an owner that no longer has a usable renderer.
+
+The plan required atomic reload but did not define teardown races. **Sound, high
+confidence:** the original owner remains closed, without a generic cancellation
+manager or a hidden world-recreation path.
+
+### A complete surface owns its GPU resources (slice04b)
+
+Two appearances may have identical scalar colors but different image maps. Sharing
+only by their color table would give one appearance the other's texture. Loaded
+surface identity therefore groups the material table, images and sampling settings.
+Near meshes and their far-image bake share that prepared owner; an independent
+crowd gets independent disposable resources, extending the existing reload lifetime
+decision without global reference counting.
+
+The original plan did not define image-cache ownership. **Sound, high confidence:**
+closing or rejecting a replacement cannot destroy the visible crowd's images.
+Three's external texture wrapper borrows the GPU image; the preparation owner
+explicitly destroys it rather than relying on wrapper disposal.
+
+### Omitted source samplers follow the standard loader (slice04b)
+
+If a Blender export omits optional filtering settings, the baker uses the installed
+standard glTF loader's linear filtering and mipmap policy. Explicit settings remain
+unchanged, including the diagnostic checker's nearest filtering. Choosing unrelated
+defaults would make an otherwise identical source look different between its
+reference loader and production.
+
+The plan required declared sampling fidelity but left absent settings open.
+**Sound, high confidence:** reference and production interpret the same omission
+consistently; future loader upgrades must preserve or deliberately review that rule.
+
+### Embedded image packaging does not change image identity (slice04b)
+
+A local export can put a PNG in its binary chunk or encode the same bytes as
+base64 text inside its JSON. The baker accepts both and emits the exact image bytes;
+external file and network image references still reject. Rejecting the second
+container would add a packaging restriction without protecting visual fidelity.
+
+The plan named embedded images without choosing their container. **Sound, high
+confidence:** the accepted packaging does not introduce external asset I/O or a
+second image source.
+
+### Browser decoding is the image-codec authority (slice04b)
+
+The baker checks image declarations, signatures and byte ranges, then retains the
+encoded bytes. The browser decodes them when preparing the GPU surface. A corrupt
+image body rejects that preparation and keeps the previous scene usable. Adding a
+second full decoder to the baker would duplicate a dependency and still would not
+prove that the target browser can decode the image.
+
+The plan required malformed images to fail but did not choose the decoding owner.
+**Sound, high confidence:** load-time decoding remains part of atomic admission,
+not an assumption that every correctly labeled byte array is renderable.
+
+### Neutral raw bindings mean absent maps, never failed maps (slice04b)
+
+An untextured soldier still uses the raw renderer's fixed binding layout. Small
+neutral images fill absent channels, while explicit per-slot flags decide whether
+a map contributes. A declared image that fails never receives this substitute.
+The alternative would compile separate pipeline layouts or split draws for each
+combination of maps.
+
+The plan prohibited extra material draws but left absent-resource binding open.
+**Sound, high confidence:** neutral bindings simplify batching without hiding
+broken authoring or inferring material meaning from colors.
 
 ### Missing source faction attributes mean unmarked geometry (slice04b source transport)
 

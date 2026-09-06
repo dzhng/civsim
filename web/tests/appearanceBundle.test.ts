@@ -4,6 +4,7 @@ import {
   decodeSoldierMesh,
   encodeSoldierMesh,
   loadAppearanceBundle,
+  loadAppearanceCatalog,
 } from "@packages/soldier-assets/src/appearanceBundle";
 import {
   createPlaceholderSoldierMeshes,
@@ -80,7 +81,7 @@ test("a complete appearance loads distinct tiers and its own far mesh without na
       data: Array(112).fill(0),
       clips: [{ name: "idle", start: 0, frames: 1, loop: true, duration: 0 }],
     },
-    "materials.json": PLACEHOLDER_MATERIALS,
+    "materials.json": { materials: PLACEHOLDER_MATERIALS, textures: {} },
     "near.json": tier(0),
     "mid.json": tier(1),
     "far.json": tier(2),
@@ -89,7 +90,12 @@ test("a complete appearance loads distinct tiers and its own far mesh without na
   vi.stubGlobal("fetch", async (url: string) => {
     requests.push(url);
     const value = files[new URL(url).pathname.split("/").pop()!];
-    return new Response(JSON.stringify(value), { status: value ? 200 : 404 });
+    return new Response(
+      value instanceof Uint8Array ? new Uint8Array(value) : JSON.stringify(value),
+      {
+        status: value ? 200 : 404,
+      },
+    );
   });
   try {
     const bundle = await loadAppearanceBundle("https://assets.test/fixture/bundle.json");
@@ -100,6 +106,45 @@ test("a complete appearance loads distinct tiers and its own far mesh without na
     expect(bundle.tiers[0].indices).toBeInstanceOf(Uint32Array);
     expect(requests.filter((url) => url.endsWith("/far.json"))).toHaveLength(1);
     expect(bundle.manifest.bounds.radius).toBe(5);
+    const image = new Uint8Array([137, 80, 78, 71, 0, 255, 37]);
+    const sampler = {
+      magFilter: "nearest",
+      minFilter: "linear",
+      mipmapFilter: "nearest",
+      wrapS: "mirror-repeat",
+      wrapT: "clamp-to-edge",
+    };
+    files["checker.png"] = image;
+    files["surface.json"] = {
+      materials: PLACEHOLDER_MATERIALS.map((material) => ({
+        ...material,
+        textures: { baseColor: true, metallicRoughness: true },
+      })),
+      textures: {
+        baseColor: { image: "images/checker.png", mimeType: "image/png", sampler },
+        orm: { image: "images/checker.png", mimeType: "image/png", sampler },
+      },
+    };
+    (files["bundle.json"] as { materials: string }).materials = "surfaces/surface.json";
+    files["catalog.json"] = { appearances: { 0: "bundle.json", 14: "bundle.json" } };
+    const catalog = await loadAppearanceCatalog("https://assets.test/fixture/catalog.json");
+    expect(catalog[0].surface).toBe(catalog[14].surface);
+    expect(catalog[0].surface.textures.baseColor?.image).toEqual(image);
+    expect(catalog[0].surface.textures.baseColor?.image).toBe(
+      catalog[0].surface.textures.orm?.image,
+    );
+    expect(catalog[0].surface.textures.baseColor?.sampler).toEqual(sampler);
+    expect(
+      requests.filter((url) => url === "https://assets.test/fixture/surfaces/images/checker.png"),
+    ).toHaveLength(1);
+    expect(
+      (await loadAppearanceCatalog("https://assets.test/fixture/catalog.json"))[0].surface,
+    ).not.toBe(catalog[0].surface);
+    delete files["checker.png"];
+    await expect(loadAppearanceBundle("https://assets.test/fixture/bundle.json")).rejects.toThrow(
+      /image .*HTTP 404/,
+    );
+    (files["bundle.json"] as { materials: string }).materials = "materials.json";
     for (const invalid of [
       null,
       [],
@@ -110,14 +155,15 @@ test("a complete appearance loads distinct tiers and its own far mesh without na
       [{ ...PLACEHOLDER_MATERIALS[0], metallic: "0.5" }],
       [{ ...PLACEHOLDER_MATERIALS[0], metallic: 2 }],
     ]) {
-      files["materials.json"] = invalid?.length
-        ? [...invalid, ...PLACEHOLDER_MATERIALS.slice(1)]
-        : invalid;
+      files["materials.json"] = {
+        materials: invalid?.length ? [...invalid, ...PLACEHOLDER_MATERIALS.slice(1)] : invalid,
+        textures: {},
+      };
       await expect(
         loadAppearanceBundle("https://assets.test/fixture/bundle.json").then(() => "accepted"),
       ).rejects.toThrow(/material/i);
     }
-    files["materials.json"] = PLACEHOLDER_MATERIALS;
+    files["materials.json"] = { materials: PLACEHOLDER_MATERIALS, textures: {} };
     (files["clips.json"] as { data: number[] }).data.pop();
     await expect(
       loadAppearanceBundle("https://assets.test/fixture/bundle.json").then(() => "accepted"),

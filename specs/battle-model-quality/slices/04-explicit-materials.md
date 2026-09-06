@@ -128,11 +128,20 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 - [ ] Comparison and final unprimed critique recorded.
 - [ ] Review/cleanup completed; README pickup and decisions updated.
 
-04a is complete. Implementation and scoped visual evidence are recorded in
+04a and04b are complete. Scalar implementation and scoped visual evidence are recorded in
 [integration review](../assets/evidence/04/integration-review.md), with source,
 raw and far lane reports beside it. The combined workbench proves independent
 scalar response, seed uniformity, explicit faction masks and material-table
-reindex invariance. The standing30k hardware gate passes.04b–04d remain open.
+reindex invariance. The standing30k hardware gate passes.04c–04d remain open.
+
+04b's [integrated texture report](../assets/evidence/04/texture-transport/review.md)
+records exact source image/sampler transport, shared near/far and retained raw
+consumption, independent channel oracles, malformed-image rollback, teardown
+regressions, reviewed checker captures and the passing standing hardware gate.
+The material container replaces the scalar array atomically; no legacy reader or
+unused per-material source-reference path remains. Original GLBs remain source
+provenance, not a second runtime material owner. Normal maps are transported only;
+04c must replace the temporary no-shading assertion with directional-response proof.
 
 GPU admission now rejects actual invalid commands and disposes the replacement
 while preserving the prior scene. Renderer state and scopes are restored before

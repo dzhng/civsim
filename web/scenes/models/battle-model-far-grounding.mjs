@@ -88,7 +88,7 @@ export async function run(ctx) {
         mesh.factionMasks.fill(0);
         bundle.tiers = [mesh, mesh, mesh];
         bundle.farMesh = mesh;
-        bundle.materials = [
+        bundle.surface.materials = [
           {
             name: "smooth-blue-control",
             baseColor: [0.035, 0.065, 0.24, 1],

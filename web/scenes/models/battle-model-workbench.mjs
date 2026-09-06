@@ -358,7 +358,7 @@ export async function run(ctx) {
     const beforeReindex = await page.screenshot();
     await page.route(materialUrl, async (route) => {
       const materials = await (await route.fetch()).json();
-      delete materials[0].roughness;
+      delete materials.materials[0].roughness;
       await route.fulfill({ json: materials });
     });
     const malformedMaterial = await page.evaluate(() => window.__battleModels.reload());
@@ -372,10 +372,11 @@ export async function run(ctx) {
       JSON.stringify(malformedMaterial),
     );
     await page.unroute(materialUrl);
-    const materialCount = (await (await page.request.get(materialUrl)).json()).length;
+    const materialCount = (await (await page.request.get(materialUrl)).json()).materials.length;
     await page.route(materialUrl, async (route) => {
       const materials = await (await route.fetch()).json();
-      await route.fulfill({ json: materials.reverse() });
+      materials.materials.reverse();
+      await route.fulfill({ json: materials });
     });
     for (const url of meshUrls) {
       await page.route(url, async (route) => {
@@ -403,12 +404,15 @@ export async function run(ctx) {
       await page.route(materialUrl, async (route) => {
         const materials = await (await route.fetch()).json();
         await route.fulfill({
-          json: materials.map((material) => ({
-            ...material,
-            baseColor: [0.6, 0.6, 0.6, 1],
-            roughness,
-            metallic,
-          })),
+          json: {
+            ...materials,
+            materials: materials.materials.map((material) => ({
+              ...material,
+              baseColor: [0.6, 0.6, 0.6, 1],
+              roughness,
+              metallic,
+            })),
+          },
         });
       });
       const result = await page.evaluate(() => window.__battleModels.reload());

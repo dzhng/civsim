@@ -24,6 +24,7 @@ import {
   soldierContactOcclusion,
   soldierFactionAccent,
   soldierSurfaceNodes,
+  type PreparedSoldierSurface,
 } from "./soldierSurface";
 import { RENDER_ORDER } from "./terrainLayer";
 
@@ -57,7 +58,7 @@ export async function createSoldierImpostorAtlas(
   renderer: THREE.WebGPURenderer,
   mesh: SoldierMeshData,
   vat: VatBake,
-  materialTexture: THREE.DataTexture,
+  preparedSurface: PreparedSoldierSurface,
   opts: { columns?: number; rows?: number; tileSize?: number; clip: string; phase: number },
 ): Promise<ImpostorAtlas> {
   await renderer.init();
@@ -99,7 +100,7 @@ export async function createSoldierImpostorAtlas(
       renderer,
       mesh,
       posedMesh,
-      materialTexture,
+      preparedSurface,
       directions,
       center,
       worldSpan,
@@ -370,7 +371,7 @@ function bakePropertyAtlas(
   renderer: THREE.WebGPURenderer,
   source: SoldierMeshData,
   posed: PosedMeshData,
-  materialTexture: THREE.DataTexture,
+  preparedSurface: PreparedSoldierSurface,
   directions: THREE.Vector3[],
   center: THREE.Vector3,
   span: number,
@@ -429,7 +430,7 @@ function bakePropertyAtlas(
     dot(position, attribute<"vec3">("bakeUp", "vec3")).add(tileOffset.y),
     dot(position, attribute<"vec3">("bakeForward", "vec3")),
   );
-  const surface = soldierSurfaceNodes(materialTexture);
+  const surface = soldierSurfaceNodes(preparedSurface);
   material.fragmentNode = mrt({
     albedo: vec4(surface.albedo, 1),
     normal: vec4(

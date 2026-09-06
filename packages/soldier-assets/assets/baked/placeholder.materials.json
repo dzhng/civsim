@@ -1,79 +1,82 @@
-[
-  {
-    "name": "cloth",
-    "baseColor": [
-      1,
-      1,
-      1,
-      1
-    ],
-    "roughness": 0.9,
-    "metallic": 0
-  },
-  {
-    "name": "leather",
-    "baseColor": [
-      1,
-      1,
-      1,
-      1
-    ],
-    "roughness": 0.74,
-    "metallic": 0
-  },
-  {
-    "name": "skin",
-    "baseColor": [
-      1,
-      1,
-      1,
-      1
-    ],
-    "roughness": 0.66,
-    "metallic": 0
-  },
-  {
-    "name": "wood",
-    "baseColor": [
-      1,
-      1,
-      1,
-      1
-    ],
-    "roughness": 0.84,
-    "metallic": 0
-  },
-  {
-    "name": "bronze",
-    "baseColor": [
-      1,
-      1,
-      1,
-      1
-    ],
-    "roughness": 0.46,
-    "metallic": 0.82
-  },
-  {
-    "name": "iron",
-    "baseColor": [
-      1,
-      1,
-      1,
-      1
-    ],
-    "roughness": 0.38,
-    "metallic": 0.92
-  },
-  {
-    "name": "hair",
-    "baseColor": [
-      1,
-      1,
-      1,
-      1
-    ],
-    "roughness": 0.9,
-    "metallic": 0
-  }
-]
+{
+  "materials": [
+    {
+      "name": "cloth",
+      "baseColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.9,
+      "metallic": 0
+    },
+    {
+      "name": "leather",
+      "baseColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.74,
+      "metallic": 0
+    },
+    {
+      "name": "skin",
+      "baseColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.66,
+      "metallic": 0
+    },
+    {
+      "name": "wood",
+      "baseColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.84,
+      "metallic": 0
+    },
+    {
+      "name": "bronze",
+      "baseColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.46,
+      "metallic": 0.82
+    },
+    {
+      "name": "iron",
+      "baseColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.38,
+      "metallic": 0.92
+    },
+    {
+      "name": "hair",
+      "baseColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.9,
+      "metallic": 0
+    }
+  ],
+  "textures": {}
+}

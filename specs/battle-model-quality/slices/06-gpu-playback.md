@@ -52,6 +52,12 @@ Freeze all previously accepted variables. Capture the candidate and prior/refere
 
 CPU reference versus GPU fixture samples at start, fractional frames, final frame and transition endpoints, including mounted gait with concurrent rider action; no modulo wrap for nonloops; shadow and visible pose agree. Existing gait tests stay meaningful.
 
+The inherited battle gait crop proves on-screen scene motion, not isolated
+articulation.06c must hold camera, placement and background fixed and compare the
+target's rendered foreground across authored phases. A negative control that
+freezes GPU articulation while submitted phases still advance must fail. Extend
+the shared production pose fixture rather than building another battle sampler.
+
 1. Run the applicable deterministic contract tests and `snapCheck` captures; preserve unrelated tests and simulation outcomes.
 2. Use **compare-screenshots** for candidate versus prior/reference on the named mask; retain telemetry and a written less-wrong verdict. A Rome II photograph is a visual target, not a pixel-equality baseline.
 3. As the **last visual check before acceptance**, use **screenshot-critique** with an unprimed agent. Resolve verified defects in scope; record excluded defects against their owning slice. Do not describe a shot as verified before this check.

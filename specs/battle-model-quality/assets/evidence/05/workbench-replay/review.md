@@ -10,7 +10,7 @@ The deterministic observation fixture owns only the exercise sequence. It does n
 
 The named browser scene is `battle-model-action-replay`; its committed snapshot is under `web/shots/models/shared/soldiers/action-replay`. Reproduce from `web` with `VERIFY_GPU=1 VERIFY_URL=http://127.0.0.1:5191 node scene.mjs battle-model-action-replay`. Captures use the software baseline, 1280 × 800, fixed production camera/environment. No art, lighting, terrain, loader, controller or shader implementation is part of this pass.
 
-Focused unit tests pass. A mutation that skipped intermediate observations failed at the first melee checkpoint: fresh phase 0 instead of the elapsed phase, with different frozen source and blend weight. Browser checks cover repeated release, injury, terminal death, rewind/pause/reset, equipment, mounted overlay readback and actual play/event controls. A valid manual-only reload is successful and exits replay; restoring the unconditional replay constructor made that assertion fail. Failed reload retains replay history; successful reload resets it.
+Focused unit tests pass. A mutation that skipped intermediate observations failed at the first melee checkpoint: fresh phase 0 instead of the elapsed phase, with different frozen source and blend weight. Browser checks cover repeated release, injury, terminal death, rewind/pause/reset, equipment, submitted mounted overlay state and actual play/event controls. The diagnostic reports submitted clip/phase, not GPU palette readback; the current VAT still quantizes poses. A valid manual-only reload is successful and exits replay; restoring the unconditional replay constructor made that assertion fail. Failed reload retains replay history; successful reload resets it.
 
 All five existing workbench snapshots, including its default controls, remained at 0 changed pixels. The combined verification run had three expected stale missing-clip message failures in verification-only loader copies; those are not replay failures or accepted assertion changes. Main separately verified its corrected admission messages. No existing baseline was updated.
 
@@ -22,6 +22,31 @@ The reviewed UI iteration changed only the right panel: 0 changed pixels in the 
 
 ## Choices for integration
 
-Query-gating preserves the ordinary inspector but makes replay less discoverable. The bounded synthetic sequence exercises fresh/repeated release, health loss, equipment and death, not every capability. Mount-health loss has a controller test; the current timeline tests do not exercise a non-null ready/brace binding, so that coverage gap is explicitly handed to the parent before 05 closure. Successful reload resets from the original replay appearance; a valid manual-only replacement exits replay rather than rejecting an otherwise valid asset. Camera edits preserve replay, while manual appearance/clip/phase/formation edits return to manual inspection. These are workbench interaction choices, not gameplay semantics. The parent integration pass owns the broader choices ledger and spec link.
+Query-gating preserves the ordinary inspector but makes replay less discoverable. The bounded synthetic sequence exercises fresh/repeated release, health loss, equipment and death, not every capability. Mount-health loss has a controller test; integration added non-null held-pike readiness coverage in12fa3d81, closing the reported role gap without claiming physical brace detection. Successful reload resets from the original replay appearance; a valid manual-only replacement exits replay rather than rejecting an otherwise valid asset. Camera edits preserve replay, while manual appearance/clip/phase/formation edits return to manual inspection. These are workbench interaction choices, not gameplay semantics. The parent integration pass owns the broader choices ledger and spec link.
 
-The final [fresh critique](critique.txt) still prefers a wider, more table-like panel and less dense text. Direct inspection confirms that the submitted footer and all replay fields are visible without overlap; the remaining width, bronze colors and control styling are inherited workbench conventions. This pass does not claim that critique is universally clean or use it to approve model art. The parent may choose broader inspector layout work separately.
+Integration corrected the diagnostic heading to **Submitted to renderer** and
+split the limitation copy into explicit lines. Exact RGBA comparison reports no
+changed world pixels left of x970; the copy-only second iteration changed4231
+panel pixels. The new scene initially inherited the shared screenshot helper's
+tolerant defaults: a label change incorrectly passed that gate. Integration now
+passes explicit zero threshold/zero area tolerance, observed the intended label
+and copy changes fail, and refreshed only this new scene's baseline. Earlier
+zero-pixel repeat results remain observations, not evidence that its gate was
+configured strictly.
+
+The final [fresh critique](critique.txt) recommends a wider, less dense diagnostic
+panel. Its clipping claim was investigated rather than accepted from confidence
+alone: the actual submitted footer rectangle is y770–788 inside the800px viewport,
+with12px remaining below, and every replay control/status rectangle is inside
+the capture. A new browser assertion pins that visibility. Direct inspection
+shows complete letters and no overlap. The footer belongs to the existing lab
+shell, outside the model-control border, rather than escaping it.
+
+Raw clip names, source/target phases and distinct submitted state are intentional
+author diagnostics; replacing them with friendly summaries would hide precisely
+the mismatch this checkpoint must expose. The current/next event and thin layer
+separators provide adequate grouping for this bounded tool. Width, typography and
+bronze control styling remain the existing inspector convention; a broader layout
+redesign is not part of the action-selection proof. This is a bounded acceptance
+with recorded readability preferences, not a claim of a universally clean visual
+critique or approval of placeholder art.

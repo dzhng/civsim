@@ -112,7 +112,7 @@ export async function run(ctx) {
     await page.evaluate(() => window.__battleModels.set({ classId: 7, clip: "idle", zoom: 150 }));
     const mounted = await seek(90);
     ctx.check(
-      "mounted controller retains overlay while production reports the drawn base",
+      "mounted controller retains overlay while production reports the submitted base",
       mounted.replay.playback.riderUpperBody.destination.clip === "bow_release" &&
         mounted.sampled.clip === mounted.replay.playback.base.destination.clip,
     );
@@ -121,6 +121,31 @@ export async function run(ctx) {
       element.scrollIntoView({ block: "center" });
     });
     await page.locator("#model-submitted-status").scrollIntoViewIfNeeded();
+    const visiblePanel = await page.evaluate(() => {
+      const elements = [
+        ...document.querySelectorAll(
+          "#model-replay-panel summary, #model-replay-panel p, #model-replay-panel label, #model-replay-panel button, #model-review-matrix",
+        ),
+        document.querySelector("#model-submitted-status"),
+      ];
+      return elements.map((element) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          text: element.textContent,
+          top: rect.top,
+          bottom: rect.bottom,
+          left: rect.left,
+          right: rect.right,
+        };
+      });
+    });
+    ctx.check(
+      "replay controls and submitted status fit inside the captured viewport",
+      visiblePanel.every(
+        ({ top, bottom, left, right }) => top >= 40 && bottom <= 800 && left >= 0 && right <= 1280,
+      ),
+      JSON.stringify(visiblePanel),
+    );
     ctx.check(
       "footer reports submitted replay pose",
       (await page.locator("#model-submitted-status").textContent()).includes(
@@ -129,7 +154,10 @@ export async function run(ctx) {
     );
     await page.waitForTimeout(250);
     await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
-    await ctx.snap(page, "shared/soldiers/action-replay/controller");
+    await ctx.snap(page, "shared/soldiers/action-replay/controller", {
+      threshold: 0,
+      maxDiffRatio: 0,
+    });
 
     await page.route("**/assets/soldiers/catalog.json", (route) =>
       route.fulfill({ json: { appearances: null } }),

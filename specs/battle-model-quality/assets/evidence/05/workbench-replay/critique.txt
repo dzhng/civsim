@@ -1,15 +1,22 @@
-- High confidence: Body text is too small and tightly packed, especially the replay description and transition details.
-- High confidence: The crop reveals visibly rough/pixelated text rendering, which makes smaller labels and values harder to read.
-- High confidence: Text contrast is only moderate—the warm beige type against the dark brown panel looks muddy rather than crisp.
-- High confidence: The panel lacks a strong typographic hierarchy. Section headings, status lines, labels, and values use similar sizing, weight, and color.
-- High confidence: Metadata is formatted as prose (`From: run · phase 0.077`), making values difficult to scan. Aligned label/value columns would read faster.
-- High confidence: Repeated dot separators and heavy bolding add visual noise instead of clarifying structure.
-- High confidence: Vertical spacing is inconsistent: controls are cramped near their labels, while section dividers introduce comparatively large gaps.
-- High confidence: The select field and buttons use thin, low-contrast borders that do not separate cleanly from the panel background.
-- High confidence: The slider thumb is oversized relative to its track, while the tick value is detached at the far right; the control’s current state is not quickly scannable.
-- High confidence: “Now” and “Next” are presented as two dense bold lines without enough differentiation between labels and event names.
-- High confidence: “Generated applicability matrix” looks like a dominant underlined text link but sits awkwardly inside the diagnostic readout, disrupting the section hierarchy.
-- High confidence: The panel is too narrow for its content. Long strings such as `bow_release · phase 0.733` nearly consume the full width, leaving little breathing room.
-- High confidence: The right edge feels visually clipped: the panel ends abruptly against a narrow outer strip, and the content below it appears partially cut off.
-- Medium confidence: The top of the panel is crowded against the global navigation, weakening separation between application chrome and replay controls.
-- Medium confidence: The scene occupies most of the screen while the information-dense panel receives limited width, creating an imbalanced layout for a debugging/inspection interface.
+### Visible defects
+
+| Defect | What is visible | Seen in | Confidence |
+|---|---|---|---|
+| Footer/status clipping | The bottom line, “1 soldier · run 0.077 · golden,” is pressed against and vertically clipped by the viewport edge. It reads like content escaping the bordered panel. | Full image and crop; much clearer in crop | High |
+| Weak panel/footer relationship | The footer sits outside the panel border without spacing or a distinct container, making it unclear whether it belongs to the replay panel, the scene, or a global status bar. | Both | High |
+| Dense scan layout | Labels, values, event state, animation layers, renderer state, and a link are stacked with limited grouping. The thin separators help only slightly. | Both | High |
+| Weak hierarchy at the top | “Ready” is visually detached and understated. “Action replay,” the descriptive copy, and “Replay the selected appearance” have similar visual weight, so the entry point is not immediately obvious. | Crop primarily; still visible full-size | High |
+| Important limitation is buried | “GPU blending: not yet enabled” looks like ordinary explanatory copy, despite materially changing how the replay should be interpreted. | Both | High |
+| Low-contrast control outlines | Button, select, panel, and divider borders use subdued brown tones against a dark-brown background. Their boundaries become faint at normal/full-image scale. | Full image most strongly | High |
+| Small text at working scale | Status details and control labels are readable in the enlarged crop but noticeably cramped and harder to parse in the full screenshot. | Full image | High |
+| Slider lacks precision cues | The control gives only the current value and total range. There are no tick marks, elapsed/remaining context, or keyboard-step hint, making precise event navigation difficult. | Both | Medium |
+| Event navigation is split awkwardly | The slider represents tick 90 while a separate dropdown repeats “90: Repeated release.” The relationship between scrubbing and jumping is understandable, but visually redundant and space-heavy. | Both | Medium |
+| Button priority is unclear | “Play replay” and “Reset replay” have identical styling and nearly equal prominence. The primary action does not stand out, and reset appears more important than it is. | Both | High |
+| Status labels compete equally | “Now,” “Next,” “Base,” “Rider upper body,” and “Submitted to renderer” are all bold at similar weight. Current event state, layer diagnostics, and renderer output therefore compete rather than form a clear hierarchy. | Crop clearest | High |
+| Raw implementation terminology leaks into UI | Labels such as `bow_release`, “phase 0.733,” “frozen local pose,” and “Submitted to renderer” are developer-facing. `bow_release` also breaks the otherwise human-readable labeling style. | Both | High |
+| Repeated numeric data reduces scanability | “run · phase 0.077” appears repeatedly under From, To, and renderer output. With values aligned only through prose, differences are difficult to spot quickly. | Crop clearest | High |
+| From/To comparison is poorly structured | The most comparison-heavy section is presented as separate sentences. Aligned columns or a compact table would make clip, phase, and weight changes much easier to compare. | Both | High |
+| Link is visually over-prominent | “Generated applicability matrix” is large, underlined, and nearly as prominent as the main replay controls, despite appearing to be a secondary diagnostic action. | Crop especially | Medium-high |
+| Narrow panel creates a long vertical read | The panel uses a very narrow column while containing substantial diagnostic detail, producing excessive vertical length and contributing directly to the clipped footer. | Both | High |
+
+The full-size screenshot best exposes overall density, weak contrast, and the bottom-edge failure. The enlarged crop confirms that the content is technically legible, but makes the hierarchy, raw labels, repetitive status formatting, and panel/footer separation defects much more apparent.

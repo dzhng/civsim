@@ -440,3 +440,33 @@ The plan required release-compatible playback but did not define delayed-observa
 **Confidence: high.** A loaded model can contain a baked GPU clip and a local-joint clip with the same name but different duration. Rendering the former while freezing a blend source from the latter would produce inconsistent poses. Gameplay admission now rejects missing or mismatched required clip names, durations, looping and release markers before installing GPU resources. Manual-only inspection remains available.
 
 The earlier loader validated catalog bindings against GPU clips but did not need local clips for interrupted blends. Future exporters must keep these two representations aligned; the runtime does not guess or silently fall back. **Sound:** the newly active local-pose consumer makes this a concrete admission requirement, not speculative validation.
+
+### Replay is an explicit authoring mode in the existing inspector (05c)
+
+**Confidence: medium.** Opening the ordinary model inspector still shows the same
+manual controls. Opening its linked replay URL reveals a repeatable sequence of
+synthetic movement, release, injury, equipment and death observations. Those
+inputs drive the real action controller and instance submission path, but are
+not presented as a recorded fight. The unbuilt alternatives add controls to every
+manual visit or build a second viewer whose success could disagree with battle.
+
+The plan required a replay surface but did not choose entry or fixture capture.
+The URL is linked from the owning evidence; reduced discoverability is the cost
+of preserving the ordinary inspector. Future cases extend the input fixture,
+not action policy. **Sound:** one renderer and clearly labeled synthetic inputs
+make timing repeatable without claiming exact combat events or GPU blend proof.
+
+### Explicit manual edits end replay, while camera edits preserve it (05c)
+
+**Confidence: medium.** An author can orbit the model during replay without
+losing the current action. Choosing a different manual appearance, clip, phase
+or formation instead returns control to manual inspection. A successful asset
+reload resets replay if the selected appearance still supports it; a valid
+manual-only asset exits replay rather than turning that successful reload into
+an error. A failed reload retains the last good model and replay history.
+
+The plan did not define the interaction between manual controls and synthetic
+history. Keeping both active would leave two competing explanations for the
+displayed pose. Future inspection controls inherit one active pose owner.
+**Sound:** explicit mode changes prevent stale or misleading state while camera
+adjustments remain non-destructive to an author's timing inspection.

@@ -51,7 +51,7 @@ export async function route(ctx: LabContext): Promise<void> {
     <p>Import GLBs with the local appearance baker. Source errors are reported by that command.</p>
     <p id="model-load" role="status">Ready</p>
     <details id="model-replay-panel"><summary>Action replay</summary>
-      <p>Synthetic observations · real controller.<br>Only the base clip is drawn. Blends: slice 06.</p>
+      <p>Synthetic inputs · real controller.<br>Rendering: base clip only.<br>GPU blending: not yet enabled.</p>
       <p id="model-replay-availability"></p>
       <button id="model-replay-play">Play replay</button><button id="model-replay-reset">Reset replay</button>
       <label>Tick (0–240) <output id="model-replay-tick">0</output><input id="model-replay-seek" type="range" min="0" max="240" step="1" value="0"></label>
@@ -155,7 +155,7 @@ export async function route(ctx: LabContext): Promise<void> {
             : "None",
         ],
         [
-          "Actually drawn",
+          "Submitted to renderer",
           submitted ? `${submitted.clip} · phase ${submitted.phase.toFixed(3)}` : "Pending",
         ],
       ].map(([label, value]) => {

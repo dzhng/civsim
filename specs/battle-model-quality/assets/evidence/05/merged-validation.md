@@ -1,8 +1,9 @@
 # Merged production validation
 
-The observation adapter and controller are integrated. The rebuilt WASM passes
-four native composition tests; the simulation golden remains
-`0x46c3732a78dc549c`. Typechecking and all248 web tests across50 files pass.
+The observation adapter, controller and workbench replay are integrated. The
+rebuilt WASM passes four native composition tests; the simulation golden remains
+`0x46c3732a78dc549c`. The final integration run passes typechecking and all252 web
+tests across51 files.
 
 The production workbench rerun (`VERIFY_GPU=1 VERIFY_URL=http://localhost:5174
 node web/scene.mjs battle-model-workbench`) passes all checks, including all five
@@ -21,9 +22,8 @@ New held-pike readiness coverage uses a distinct authored clip: entry at phase0,
 duration-based progress, movement and at-ease taking precedence, and no invented
 binding for an inapplicable appearance. Previously no dedicated non-null binding
 exercised that selection. Replay coverage audit exposed this gap; production
-policy is unchanged. Its focused timeline file now has17 passing tests, with
-typechecking and independent review also passing. Broad-suite counts above
-describe the earlier integration run.
+policy is unchanged. Its focused timeline file has17 passing tests, with
+typechecking and independent review also passing.
 
 Independent review found no issue in the diagnostic/rollback patch; its sandbox
 could not bind the HTTP test server, so the main unrestricted run supplies that
@@ -38,7 +38,14 @@ vista foreground grass obscures individual bodies. This inherited paused-sim
 gate is neither close-model readability nor live-animation acceptance;07 owns
 those additional measurements.
 
-The gait scene exposed a separate scheduling weakness and then a zero-motion
-pixel crop; that gate remains open pending a deterministic real-render fix.
-Workbench action replay and the focused visual checkpoint also remain open.
-Slice05 is not complete.
+The [final merged scene report](merged-scenes.json) passes replay, the ordinary
+workbench, deterministic battle gait and the material-swatch oracle. The new
+replay gate explicitly requires zero tolerance and reports0 changed pixels;
+all existing workbench and swatch snapshots likewise remain unchanged. The
+[gait repair](gait-harness.md) now samples91 consecutive observations over90 ticks
+and reports a1.96 pixel-motion metric over three ticks, above the unchanged0.02
+floor. This is on-screen movement, not isolated articulation acceptance.
+
+The replay Preview checkpoint opened at08:32:19UTC on2026-09-06. It concerns
+action inspection only; the existing placeholder model is not art acceptance.
+Human feedback and the final integration closeout remain pending.

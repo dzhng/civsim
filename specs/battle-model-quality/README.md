@@ -7,7 +7,7 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 Last updated **2026-09-06**. Status: **slices01–06 complete;07 in progress**.
 
 Current worktree: `/Users/david/dev/game-battle-model-quality`, branch
-`codex/battle-model-quality`, with integrated foundations through fac9e2a8.
+`codex/battle-model-quality`, with integrated foundations through45160453.
 06a/b source, assets and both GPU consumers are installed together; no old reader
 remains. [Merged validation](assets/evidence/06/merged-validation.md) owns the
 source, numerical, actual-consumer, strict image-repeat and standing hardware
@@ -15,10 +15,14 @@ evidence, including the successful [post-install browser repeat](assets/evidence
 The standing gate retains its30k/33ms contract; it does not establish the live
 animated budget required in07.
 
-Next: remove [07's measured CPU transition bottleneck](assets/evidence/07/measurement-foundation.md),
-then finish its asset envelope. The production-cadence30k baseline has GPU medians
-within33ms but synchronized transitions stall CPU pose preparation. Profile before
-optimizing; preserve exact timeline semantics and the33ms cadence limit.
+Next: correct07's demonstrated projected-size LOD mismatch, repeat the detail
+brackets and display-resolution envelope, then start08 Blender anatomy.
+[Exact immutable pose sharing](assets/evidence/07/frozen-capture.md)
+removed the synchronized foot transition bottleneck; the
+[strict temporal repeat](assets/evidence/07/temporal-reuse-repeat.json) passes.
+[Gameplay close foot](assets/evidence/07/gameplay-close.json) passes30k/33ms;
+[mounted close](assets/evidence/07/mounted-gameplay-close.json) still has a33.33ms
+cadence failure. Keep the33ms limit and retain failed measurements.
 Frame-correlated timing, allocation tracking and controlled detail fixtures are
 integrated. The rejected uncapped catch-up fixture was not a faithful CPU baseline.
 No07 budget or detailed art has been accepted.

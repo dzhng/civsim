@@ -15,6 +15,60 @@ export interface SyntheticBudgetOptions {
   keySubdivisions?: number;
 }
 
+/** Fixed UV-space checker across resolutions: changes texture cost, not pattern density.
+ * Generated locally in the browser; these diagnostic maps are never soldier art. */
+export async function budgetTextureSurface(
+  surface: AppearanceBundle["surface"],
+  size: number,
+): Promise<AppearanceBundle["surface"]> {
+  if (!Number.isSafeInteger(size) || size < 16)
+    throw new Error("Texture size must be an integer >=16");
+  const result = structuredClone(surface);
+  const canvas = new OffscreenCanvas(size, size);
+  const context = canvas.getContext("2d")!;
+  for (const channel of ["baseColor", "normal", "orm"] as const) {
+    const colors =
+      channel === "baseColor"
+        ? [
+            [190, 180, 160, 255],
+            [210, 200, 180, 255],
+          ]
+        : channel === "normal"
+          ? [
+              [124, 128, 255, 255],
+              [132, 128, 255, 255],
+            ]
+          : [
+              [235, 150, 16, 255],
+              [255, 170, 32, 255],
+            ];
+    const pixels = context.createImageData(size, size);
+    for (let y = 0; y < size; y++)
+      for (let x = 0; x < size; x++) {
+        const checker = (Math.floor((x * 16) / size) + Math.floor((y * 16) / size)) % 2;
+        pixels.data.set(colors[checker], (y * size + x) * 4);
+      }
+    context.putImageData(pixels, 0, 0);
+    const png = await canvas.convertToBlob({ type: "image/png" });
+    result.textures[channel] = {
+      image: new Uint8Array(await png.arrayBuffer()),
+      mimeType: "image/png",
+      sampler: {
+        magFilter: "linear",
+        minFilter: "linear",
+        mipmapFilter: "linear",
+        wrapS: "repeat",
+        wrapT: "repeat",
+      },
+    };
+  }
+  result.materials = result.materials.map((material) => ({
+    ...material,
+    textures: { baseColor: true, normal: true, metallicRoughness: true, occlusion: true },
+  }));
+  return result;
+}
+
 /** Numerical cost subject only. Equivalent surfaces are not new model art. */
 export function syntheticBudgetFixture(
   source: AppearanceBundle,

@@ -37,11 +37,10 @@ unchanged and separate.
 ### Current execution checkpoints
 
 The [measurement foundation](../assets/evidence/07/measurement-foundation.md)
-owns current commands and review evidence. Its actual production-cadence30k
-baseline is red on synchronized-transition CPU stalls, not GPU median time.
-Insert a focused CPU pose-preparation optimization before detail sweeps; profile
-the source, preserve all timeline/temporal contracts, rerun the same workload
-and retain33ms. No budget limit may be assigned from the median alone.
+owns current commands and review evidence. Exact immutable pose sharing now
+passes the foot transition workload and strict temporal regression. Mounted
+baseline, detail brackets and display-resolution acceptance remain open.
+No budget limit may be assigned from the median alone.
 
 1. Frame probe and allocation observer: unit-tested lifecycle, then actual
    hardware coverage. The [first smoke](../assets/evidence/07/timestamp-smoke-red.json)
@@ -60,6 +59,28 @@ and retain33ms. No budget limit may be assigned from the median alone.
    transform-equivalent weighted joint clones isolate bone/storage cost from
    visual shape. The [synthetic fixture proof](../assets/evidence/07/synthetic-fixture.md)
    covers these controlled mutations. Such fixtures establish cost, not anatomy.
+
+### Measured blocker: projected-size correction before final limits
+
+The [geometry bracket](../assets/evidence/07/mounted-geometry-red.json) fails
+cadence with2,304/576/144 triangles per tier, whereas the
+[35-bone bracket](../assets/evidence/07/mounted-bones.json) passes. The current
+shared LOD estimate uses zoom and radial distance, not perspective projection.
+At the recorded close camera, a mounted body150m ahead is estimated21.31px
+(L0), but the canonical camera projects its upright span to15.84px (L1, beyond
+hysteresis). The estimate also understates near bodies. Budgeting from it would
+confuse misallocated detail with the cost of a well-framed model.
+
+Insert a focused correction here: use actual projected reference-body size for
+production LOD, preserving thresholds, hysteresis, camera settings and simulation.
+Use a camera-facing span so overhead views do not collapse its height. Cover
+elevation, framebuffer scaling, near-plane intersections and shadow-only bodies;
+shadow contributions use their actual cameras and retain a mesh caster.
+Keep one shared policy owner, not a budget-only override. Prove the old estimate
+wrong with projection tests, then run affected visual/LOD and standing30k gates
+before repeating budget brackets. This moves the policy prerequisite forward;
+15 still owns authored mesh reductions, far appearance and visual continuity.
+Do not reduce final art quality to fit an uncorrected ruler.
 
 ## Focused verdict
 

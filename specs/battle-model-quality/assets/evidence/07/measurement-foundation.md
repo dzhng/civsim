@@ -1,11 +1,11 @@
 # Animated budget measurement
 
 The frame and allocation instruments work on the actual hardware. The asset
-budget is **not accepted**: synchronized transitions exceed the live cadence
-limit before detailed art. Optimize the measured CPU pose work before assigning
-Blender mesh/rig limits. Do not raise the33ms threshold.
+budget is **not accepted**. Exact immutable interruption-pose reuse now passes
+the foot baseline; mounted/detail and display-resolution limits remain open.
+Do not raise the33ms threshold.
 
-## Current result
+## Historical pre-optimization result
 
 [Production-cadence run](production-cadence-red.json), Apple M5 Pro hardware
 (browser identifies `apple / metal-3`),1280×800 drawing buffer,30,000 submitted
@@ -35,6 +35,31 @@ Run from the feature worktree:
 BUDGET_SOLDIERS=30000 BUDGET_FRAMES=120 VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware VERIFY_BROWSER_CHANNEL=chrome VERIFY_URL=http://127.0.0.1:5174 SCENARIO_REPORT_JSON=../throwaway/07-budget-production-cadence.json node web/scene.mjs battle-model-budget
 ```
 
+## Post-optimization and camera admission
+
+[Exact pose reuse](frozen-capture.md) shares a pose only when every animation
+input and appearance identity matches. It does not quantize motion. The
+[strict temporal repeat](temporal-reuse-repeat.json) passes after integration.
+The same [close chart stress](capture-reuse.json) now has16.67ms cadence p95
+in all rows; this isolates the controller change from camera changes.
+
+The chart camera is not gameplay framing. The [gameplay close run](gameplay-close.json)
+uses the actual battle camera/rig and terrain-clearance owners, a fixed1024m
+flat field large enough for30k mounted bodies, and production grass/scenery.
+Its default synthetic rig range is explicit in the report, not a claim to
+reproduce a particular battle map's army-derived framing. At1280×800 the foot
+run passes all33ms checks. The [mounted baseline](mounted-gameplay-close.json)
+has a33.33ms uninstrumented interruption cadence p95 failure; its timed row
+passes. Neither result establishes the final detail envelope.
+
+The isolated [35-bone sweep](mounted-bones.json) passes every frame gate at30k.
+The [geometry sweep](mounted-geometry-red.json) does not: cadence p95 reaches
+66.67ms with2,304/576/144 triangles. Both [512px](mounted-texture512.json) and
+[2048px](mounted-texture2048.json) map sweeps each have one33.33ms cadence failure;
+neither establishes an accepted texture maximum. These are one-variable
+brackets, not proof that their combined costs pass. The owning slice now places
+the demonstrated perspective-LOD correction before final art limits.
+
 ## Instruments and limits
 
 Scene-owned markers bracket animation compute and all rendering submissions.
@@ -57,9 +82,12 @@ overlap. It does not include allocations that predate installation. Queue writes
 include whole-device traffic, including existing world buffers. Requested/API-live
 bytes are not physical VRAM; opaque texture formats remain explicitly unknown.
 Mapped-at-creation capacity is not a claim that every byte was written. The
-frozen-repeat phase intentionally resubmits retained poses and does not yet
-establish advancing controls/new-snapshot upload cost. Mounted and detailed
-fixture sweeps must cover that remaining case.
+frozen-repeat phase intentionally resubmits retained poses. A separate60-tick
+interruption sequence now records changed palette and snapshot uploads at the
+last measured camera. The [admission smoke](allocation-advance-smoke.json) uses
+35 bones, four influences, denser keys and three locally generated64px maps;
+actual uploaded dimensions and nonzero new-snapshot uploads pass. This is
+instrument admission at256 bodies, not30k budget acceptance.
 
 ## Rejected workload and review
 
@@ -80,6 +108,17 @@ changed. The known installed CLI/model mismatch prevents that review channel;
 independent agent and integrating code reviews cover this checkpoint instead.
 
 No images are presented for aesthetic acceptance in this numerical checkpoint.
-The [synthetic fixture](synthetic-fixture.md) is ready for controlled sweeps once
-the CPU transition baseline is addressed. Both display-resolution measurement
+The [synthetic fixture](synthetic-fixture.md) is ready for controlled sweeps.
+Both display-resolution measurement
 and the complete measured envelope remain open.
+
+The gameplay-camera/texture/advancing-allocation harness pass passes typecheck
+and20 focused fixture/probe tests. Independent read-only review found the fixed
+camera and texture inputs valid, and identified the former vista-only frozen
+allocation gap; the current smoke covers its correction. This pass introduces
+no production visual change and accepts no model appearance. Actual perspective
+LOD changes require their own production image and independent critique gates.
+The unchanged [standing30k/foliage benchmark](standing-post-reuse.json) also
+passes after the controller optimization; this does not waive the live-animation
+cadence failures above. Review also corrected replacement measurement to retain
+the current pose after the advancing sequence, rather than resubmit its old pose.

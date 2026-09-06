@@ -20,6 +20,44 @@ export async function run(ctx) {
   const count = Number(process.env.BUDGET_SOLDIERS ?? 30000);
   const frames = Number(process.env.BUDGET_FRAMES ?? 180);
   const warmup = 60;
+  const cameraMode = process.env.BUDGET_CAMERA ?? "gameplay";
+  if (!["gameplay", "chart-stress"].includes(cameraMode)) throw new Error("Unknown budget camera");
+  const fixture = process.env.BUDGET_FIXTURE ?? "foot";
+  if (!["foot", "mounted"].includes(fixture)) throw new Error("Unknown budget fixture");
+  const detail = JSON.parse(process.env.BUDGET_DETAIL ?? "{}");
+  const textureSize = Number(process.env.BUDGET_TEXTURE_SIZE ?? 0);
+  if (
+    !Number.isSafeInteger(textureSize) ||
+    textureSize < 0 ||
+    (textureSize > 0 && textureSize < 16)
+  )
+    throw new Error("Texture size must be zero or an integer >=16");
+  if (
+    !detail ||
+    typeof detail !== "object" ||
+    Array.isArray(detail) ||
+    Object.keys(detail).some(
+      (key) => !["subdivisions", "jointCopies", "influences", "keySubdivisions"].includes(key),
+    )
+  )
+    throw new Error("Unknown synthetic detail option");
+  if (fixture === "foot" && (Object.keys(detail).length || textureSize))
+    throw new Error("Detail sweeps require the mounted synthetic fixture");
+  for (const key of ["jointCopies", "keySubdivisions"])
+    if (Object.hasOwn(detail, key) && (!Number.isSafeInteger(detail[key]) || detail[key] < 1))
+      throw new Error(`${key} must be a positive integer`);
+  if (Object.hasOwn(detail, "influences") && ![1, 4].includes(detail.influences))
+    throw new Error("Influences must be one or four");
+  if (
+    Object.hasOwn(detail, "subdivisions") &&
+    (!Array.isArray(detail.subdivisions) ||
+      detail.subdivisions.length !== 3 ||
+      detail.subdivisions.some((n) => !Number.isSafeInteger(n) || n < 0))
+  )
+    throw new Error("Subdivisions must have three nonnegative integers");
+  const stops = (process.env.BUDGET_STOPS ?? "close,mid,vista").split(",");
+  if (!stops.length || stops.some((s) => !["close", "mid", "vista"].includes(s)))
+    throw new Error("Unknown budget view");
   if (![width, height, count, frames].every((n) => Number.isSafeInteger(n) && n > 0))
     throw new Error("Budget dimensions/count/frames must be positive integers");
   const page = await ctx.newPage({ viewport: { width, height } });
@@ -43,9 +81,11 @@ export async function run(ctx) {
         );
         const { ActionTimeline } = await module("packages/crowd-runtime/src/actionTimeline.ts");
         const { SimClock } = await module("web/src/shared/simClock.ts");
-        const { BATTLE_TICK_DT, BATTLE_MAX_TICKS_PER_FRAME } = await module(
+        const { BATTLE_TICK_DT, BATTLE_MAX_TICKS_PER_FRAME, BattleCameraRig } = await module(
           "web/src/battle/battleWorld.ts",
         );
+        const { Camera } = await module("web/src/shared/camera.ts");
+        const { battleZoomCeiling } = await module("web/src/battle/cameraRig.ts");
         const { generatedFormation, buildCrowdInstances } = await module(
           "packages/crowd-runtime/src/instanceData.ts",
         );
@@ -57,29 +97,106 @@ export async function run(ctx) {
         if (!device.features.has("timestamp-query"))
           throw new Error("Hardware timestamps unavailable");
         const raf = () => new Promise(requestAnimationFrame);
-        const formations = generatedFormation(config.count, { classId: 4, spacing: 1.6 });
+        const appearanceId = config.fixture === "mounted" ? 41 : 4;
+        let source = w.soldierAssets[appearanceId];
+        if (config.fixture === "mounted") {
+          const { loadAppearanceBundle } = await module(
+            "packages/soldier-assets/src/appearanceBundle.ts",
+          );
+          const { syntheticBudgetFixture, budgetTextureSurface } = await module(
+            "web/scenes/models/_synthetic-budget-fixture.ts",
+          );
+          source = syntheticBudgetFixture(
+            await loadAppearanceBundle(
+              new URL(
+                "/assets/soldiers/candidates/blender-reference/mounted/appearance.json",
+                location.href,
+              ).href,
+            ),
+            config.detail,
+          );
+          if (config.textureSize)
+            source.surface = await budgetTextureSurface(source.surface, config.textureSize);
+          const replacement = await w.crowd.constructor.create(w.world.renderer, w.world.scene, {
+            [appearanceId]: source,
+          });
+          w.crowd.dispose();
+          w.crowd = replacement;
+          w.soldierAssets = { [appearanceId]: source };
+        }
+        const formations = generatedFormation(config.count, {
+          classId: appearanceId,
+          spacing: source.manifest.mounted ? 3 : 1.6,
+        });
         const positions = Float32Array.from(formations.flatMap((i) => [i.x, i.y]));
         const soldierUnit = new Uint32Array(config.count);
         const facings = Float32Array.from(formations, (i) => i.facing);
-        const source = w.soldierAssets[4];
         w.resize(config.width, config.height, 1);
-        w.setStatic(soldierUnit, [0], [4]);
+        const cam = new Camera(w.world.renderer.domElement);
+        const rig = new BattleCameraRig(cam, w.world.renderer.domElement);
+        if (config.cameraMode === "gameplay") {
+          // Fixed synthetic world for every load/resolution, large enough for
+          // both foot and mounted 30k formations; not the inspector's small pad.
+          if (formations.some((i) => Math.abs(i.x) > 512 || Math.abs(i.y) > 512))
+            throw new Error("Crowd exceeds fixed budget terrain");
+          w.setTerrain({
+            w: 256,
+            h: 256,
+            cell: 4,
+            ox: -512,
+            oy: -512,
+            tint: new Uint8Array(256 * 256),
+            height: new Float32Array(256 * 256),
+          });
+          w.setGrassVisible(true);
+          w.world.scene.traverse((object) => {
+            if (object.name.startsWith("battle-scenery-")) object.visible = true;
+          });
+          rig.bounds = { width: 1024, height: 1024 };
+          rig.apply();
+          cam.bounds = [-512, -512, 512, 512];
+          cam.groundHeight = (x, y) => w.heightAt(x, y);
+          cam.yaw = -Math.PI / 2;
+          cam.pitchBias = 0;
+        }
+        const cameraFor = (stop, chartZoom) => {
+          if (config.cameraMode === "chart-stress")
+            return modelCamera(
+              { ...DEFAULT_MODEL_POSE, zoom: chartZoom },
+              config.width,
+              config.height,
+            );
+          cam.zoom =
+            stop === "close"
+              ? battleZoomCeiling(rig.range, rig.bounds)
+              : stop === "mid"
+                ? (rig.range.min + rig.range.max) / 2
+                : rig.range.max;
+          cam.setViewCenter(0, 0);
+          cam.clampView();
+          const [x, y] = cam.viewCenter();
+          return { x, y, zoom: cam.zoom, zoomT: cam.zoomT, camera3d: cam.params() };
+        };
+        w.setStatic(soldierUnit, [0], [appearanceId]);
         w.setTime(0);
         const rows = [];
         let frameId = 0;
+        let advanceAllocationFrame;
+        let allocationCamera;
         for (const [stop, zoom] of [
           ["close", 190],
           ["mid", 12],
           ["vista", 3],
         ]) {
-          const camera = modelCamera({ ...DEFAULT_MODEL_POSE, zoom }, config.width, config.height);
+          if (!config.stops.includes(stop)) continue;
+          const camera = cameraFor(stop, zoom);
           for (const mode of ["steady", "interruptions"]) {
             // Match BattleCrowd: the capped simulation clock advances, then the
             // controller observes only the latest state, never every missed tick.
             for (const instrumented of [false, true]) {
               const timeline = new ActionTimeline(w.soldierAssets);
               const observations = Array.from({ length: config.count }, () => ({
-                appearanceId: 4,
+                appearanceId,
                 alive: true,
                 health: 100,
                 mountHealth: 100,
@@ -130,6 +247,7 @@ export async function run(ctx) {
                   unitTeam: [0],
                   terrainHeight: (x, y) => w.heightAt(x, y),
                   count: config.count,
+                  mountedClasses: source.manifest.mounted ? [appearanceId] : [],
                 });
                 const t3 = performance.now();
                 w.drawInstances(instances, camera);
@@ -146,6 +264,8 @@ export async function run(ctx) {
                   renderSubmitMs: t5 - t4,
                 };
               };
+              advanceAllocationFrame = () => draw(tick + 1);
+              allocationCamera = camera;
               try {
                 draw(0);
                 await w.settlePresentedFrame();
@@ -165,6 +285,12 @@ export async function run(ctx) {
                   if (frame > config.warmup) {
                     const telemetryStart = performance.now();
                     snapshotHighWater = Math.max(snapshotHighWater, timeline.snapshotBytes);
+                    const activeRiderOverlays = source.manifest.mounted
+                      ? w.instances.reduce(
+                          (total, instance) => total + Number(!!instance.playback?.riderUpperBody),
+                          0,
+                        )
+                      : 0;
                     const telemetryMs = performance.now() - telemetryStart;
                     samples.push({
                       frameId: id,
@@ -172,6 +298,7 @@ export async function run(ctx) {
                       cpuFrameMs,
                       telemetryMs,
                       advancedTicks,
+                      activeRiderOverlays,
                       ...phases,
                     });
                   }
@@ -181,9 +308,17 @@ export async function run(ctx) {
                 const timings = probe?.takeResults() ?? [];
                 rows.push({
                   stop,
-                  zoom,
+                  zoom: camera.zoom,
                   mode,
                   instrumented,
+                  fixture: config.fixture,
+                  cameraMode: config.cameraMode,
+                  rig:
+                    config.cameraMode === "gameplay"
+                      ? { bounds: rig.bounds, range: rig.range }
+                      : null,
+                  detail: config.detail,
+                  textureSize: config.textureSize,
                   samples,
                   timings,
                   snapshotHighWater,
@@ -192,6 +327,17 @@ export async function run(ctx) {
                     bones: source.rig.bones.length,
                     vertices: source.tiers.map((m) => m.positions.length / 3),
                     triangles: source.tiers.map((m) => m.indices.length / 3),
+                    nonzeroInfluences: source.tiers.map((mesh) => {
+                      const counts = [0, 0, 0, 0, 0];
+                      for (let i = 0; i < mesh.weights.length; i += 4)
+                        counts[
+                          Number(mesh.weights[i] > 0) +
+                            Number(mesh.weights[i + 1] > 0) +
+                            Number(mesh.weights[i + 2] > 0) +
+                            Number(mesh.weights[i + 3] > 0)
+                        ]++;
+                      return counts;
+                    }),
                     authoredSamples: source.animation.clips.map((c) => ({
                       name: c.name,
                       samples: c.times.length,
@@ -212,13 +358,9 @@ export async function run(ctx) {
         const allocationStates = {};
         let replacement;
         try {
-          const assets = { 4: source };
+          const assets = { [appearanceId]: source };
           const instances = w.instances;
-          const camera = modelCamera(
-            { ...DEFAULT_MODEL_POSE, zoom: 3 },
-            config.width,
-            config.height,
-          );
+          const camera = allocationCamera;
           allocation.phase("initialization");
           replacement = await w.crowd.constructor.create(w.world.renderer, w.world.scene, assets);
           w.crowd.dispose();
@@ -239,12 +381,21 @@ export async function run(ctx) {
             await w.settlePresentedFrame();
           }
           allocationStates["frozen-repeat"] = w.stats().crowd;
+          allocation.phase("advancing-interruptions");
+          const advancing = [];
+          for (let frame = 0; frame < 60; frame++) {
+            advanceAllocationFrame();
+            await w.settlePresentedFrame();
+            advancing.push(w.stats().crowd.palettes);
+          }
+          allocationStates["advancing-interruptions"] = advancing;
           allocation.phase("replacement-overlap");
+          const replacementInstances = w.instances;
           replacement = await w.crowd.constructor.create(w.world.renderer, w.world.scene, assets);
           w.crowd.dispose();
           w.crowd = replacement;
           replacement = undefined;
-          w.drawInstances(instances, camera);
+          w.drawInstances(replacementInstances, camera);
           w.render();
           await w.settlePresentedFrame();
           allocationStates["replacement-overlap"] = w.stats().crowd;
@@ -253,7 +404,7 @@ export async function run(ctx) {
             allocationStates,
             camera,
             scope:
-              "Tracked fresh crowd generations only; uploads include whole-device traffic. Frozen-repeat is not advancing playback. Requested bytes exclude opaque texture storage and driver overhead.",
+              "Tracked fresh crowd generations at the last measured camera; uploads include whole-device traffic. Advancing-interruptions observes 60 successive ticks separately from timing. Requested bytes exclude opaque texture storage and driver overhead.",
           });
         } finally {
           replacement?.dispose();
@@ -268,10 +419,22 @@ export async function run(ctx) {
         count,
         frames,
         warmup,
+        fixture,
+        detail,
+        textureSize,
+        stops,
+        cameraMode,
       },
     );
     for (const row of rows) {
       if (row.allocation) {
+        ctx.check(
+          "allocation captures advancing snapshot uploads",
+          row.allocationStates["advancing-interruptions"].some((palettes) =>
+            palettes.some((palette) => palette.snapshotUploadedBytes > 0),
+          ),
+          row.allocationStates["advancing-interruptions"],
+        );
         ctx.check(
           "allocation captures initialization and replacement",
           row.allocation.phases.initialization.createdResources > 0 &&
@@ -285,6 +448,21 @@ export async function run(ctx) {
       }
       const name = `${row.stop}/${row.mode}/${row.instrumented ? "timed" : "control"}`;
       ctx.check(`${name}: complete submitted crowd`, row.stats.soldiers === count, row.stats.crowd);
+      if (fixture === "mounted" && row.mode === "interruptions")
+        ctx.check(
+          `${name}: measured mounted composition`,
+          row.samples.some((s) => s.activeRiderOverlays > 0),
+          { framesWithOverlay: row.samples.filter((s) => s.activeRiderOverlays > 0).length },
+        );
+      if (textureSize)
+        ctx.check(
+          `${name}: requested diagnostic maps uploaded`,
+          row.stats.crowd.surfaceImages.length === 3 &&
+            row.stats.crowd.surfaceImages.every(
+              (image) => image.width === textureSize && image.height === textureSize,
+            ),
+          row.stats.crowd.surfaceImages,
+        );
       const percentile = (values, fraction) =>
         [...values].sort((a, b) => a - b)[
           Math.min(values.length - 1, Math.floor(values.length * fraction))

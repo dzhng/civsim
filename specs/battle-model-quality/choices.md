@@ -2,6 +2,37 @@
 
 ## Sound — medium confidence
 
+### Use a fixed field with the real battle camera for asset measurements (07)
+
+**Confidence: medium.** Increasing the crowd must not also change its camera or
+terrain cost. The budget fixture therefore uses one1024m flat field and the real
+battle camera, with its default synthetic zoom range recorded in every result.
+The old model-inspector framing remains a separately named stress test, not a
+claim about gameplay. The unbuilt alternative would frame each crowd anew and
+confound asset cost with the amount of world visible.
+
+The plan required gameplay framing but did not select a synthetic field or
+range. Future budget comparisons must retain this world; real-map simulation
+and the standing foliage benchmark remain separate gates. **Sound:** shared
+camera math prevents an inspector zoom value from masquerading as a gameplay
+view, while fixed inputs make comparisons interpretable.
+
+### Share exactly identical interruption poses, not soldiers' action state (07)
+
+**Confidence: high.** When a whole formation interrupts the same pose, evaluating
+and copying that pose once for every man wastes time. Each observation update
+now remembers just the last two exact pose inputs and shares their read-only
+results. Each soldier still owns his own action history. A different phase,
+appearance, blend, or frozen source takes the original calculation path.
+
+The plan required bounded storage and exact motion but did not choose this
+optimization. Unlike phase rounding or grouping soldiers' actions, this cannot
+make two different poses equal. The cache ends with the update and cannot grow
+with the roster. Reported snapshot payload bytes count unique shared storage,
+not repeated references; object overhead is not included. **Sound:** exact
+identity preserves animation semantics. Irregular histories can miss the cache
+and pay comparison overhead, so synchronized speedups are not universal claims.
+
 ### Time a frame with scene-owned GPU markers (07 measurement)
 
 A frame submits animation compute, shadows and its final image through separate

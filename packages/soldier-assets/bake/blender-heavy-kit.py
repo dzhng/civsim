@@ -4,6 +4,7 @@ Run in a fresh Blender session. Source equipment stays separate and editable;
 only export copies are joined. No anatomy, rig, or motion is reauthored here.
 """
 import importlib.util
+import math
 import sys
 from pathlib import Path
 
@@ -64,30 +65,85 @@ def build():
     def loft(name, rows, bone=None, segments=40, across=(1, 0, 0), depth=(0, 1, 0)):
         return finish(anatomy.loft(name, rows, segments, across, depth), bone)
 
+    def garment(name, rows, sleeve_end):
+        # Sew open sleeve loops into the torso, leaving real neck, cuff and hem openings.
+        segments = 16
+        vertices = [(w*math.cos(math.tau*j/segments), .005+d*math.sin(math.tau*j/segments), z)
+                    for z, w, d in rows for j in range(segments)]
+        faces = []
+        armhole_start = len(rows)-4
+        for i in range(len(rows)-1):
+            for j in range(segments):
+                if armhole_start <= i < armhole_start+2 and j in (14, 15, 0, 1, 6, 7, 8, 9):
+                    continue
+                faces.append((i*segments+j, i*segments+(j+1)%segments,
+                              (i+1)*segments+(j+1)%segments, (i+1)*segments+j))
+        for sign, middle in ((1, 0), (-1, 8)):
+            # Boundary order follows the four sides of the removed shoulder patch.
+            boundary = [armhole_start*segments+(middle+j)%segments for j in range(-2, 3)]
+            boundary += [(armhole_start+i)*segments+(middle+2)%segments for i in (1, 2)]
+            boundary += [(armhole_start+2)*segments+(middle+j)%segments for j in (1, 0, -1, -2)]
+            boundary += [(armhole_start+1)*segments+(middle-2)%segments]
+            axis = Vector((sign*.60, 0, -.80))
+            across = Vector((0, 1, 0))
+            depth = axis.cross(across)
+            center = sum((Vector(vertices[v]) for v in boundary), Vector())/len(boundary)
+            start = Vector(vertices[boundary[0]])-center
+            phase = math.atan2(start.dot(depth), start.dot(across))
+            # Preserve loop order: projected shoulder points can double back in angle.
+            angles = [phase + math.tau*j/len(boundary) for j in range(len(boundary))]
+            for x, z, radius in sleeve_end:
+                ring = []
+                for angle in angles:
+                    ring.append(len(vertices))
+                    vertices.append(Vector((sign*x, -.005, z)) +
+                                    across*(radius*math.cos(angle)) + depth*(radius*math.sin(angle)))
+                for j in range(len(ring)):
+                    k = (j+1)%len(ring)
+                    faces.append((boundary[j], boundary[k], ring[k], ring[j]))
+                boundary = ring
+        mesh = bpy.data.meshes.new(name)
+        mesh.from_pydata(vertices, [], faces)
+        mesh.update()
+        obj = bpy.data.objects.new(name, mesh)
+        scene.collection.objects.link(obj)
+        bpy.ops.object.select_all(action="DESELECT")
+        obj.select_set(True)
+        bpy.context.view_layer.objects.active = obj
+        surface = bmesh.new()
+        surface.from_mesh(mesh)
+        bmesh.ops.delete(surface, geom=[v for v in surface.verts if not v.link_edges], context="VERTS")
+        bmesh.ops.recalc_face_normals(surface, faces=list(surface.faces))
+        surface.to_mesh(mesh)
+        surface.free()
+        subdivision = obj.modifiers.new("Tailored garment surface", "SUBSURF")
+        subdivision.levels = 2
+        bpy.ops.object.modifier_apply(modifier=subdivision.name)
+        thickness = obj.modifiers.new("Garment edge thickness", "SOLIDIFY")
+        thickness.thickness = .003
+        thickness.offset = -1
+        bpy.ops.object.modifier_apply(modifier=thickness.name)
+        return finish(obj)
+
     # Separate cloth hem and overlying mail form; mail rings/finish belong to slice10.
-    loft("Tunic", [((0, .01, z), w, d) for z, w, d in
-         [(.73, .235, .15), (.79, .228, .15), (.93, .196, .143), (1.07, .164, .113),
-          (1.23, .190, .139), (1.38, .218, .144), (1.47, .153, .086)]])
-    loft("Mail shirt", [((0, .005, z), w, d) for z, w, d in
-         [(.86, .214, .159), (.91, .213, .160), (1.05, .182, .131),
-          (1.18, .187, .139), (1.34, .224, .149), (1.43, .222, .121),
-          (1.49, .121, .077), (1.505, .075, .064)]])
-    loft("Waist belt", [((0, .005, z), .190, .142) for z in [1.028, 1.065]], "spine")
+    garment("Tunic", [(.73, .231, .157), (.75, .230, .156), (.88, .213, .151),
+            (1.05, .180, .128), (1.23, .203, .148), (1.34, .233, .160),
+            (1.44, .247, .146), (1.505, .216, .097), (1.525, .071, .065)],
+            [(.285, 1.315, .087), (.327, 1.250, .077), (.332, 1.243, .077)])
+    garment("Mail shirt", [(.855, .219, .158), (.87, .220, .160), (.95, .208, .157),
+            (1.06, .189, .139), (1.23, .212, .159), (1.35, .244, .170),
+            (1.45, .256, .156), (1.513, .226, .109), (1.535, .074, .069)],
+            [(.273, 1.345, .096), (.298, 1.305, .092), (.302, 1.299, .092)])
+    loft("Waist belt", [((0, .005, z), w, d) for z, w, d in
+         [(1.026, .198, .148), (1.031, .201, .151),
+          (1.061, .201, .151), (1.066, .198, .148)]], "spine")
     for side, sign in [("L", 1), ("R", -1)]:
-        axis = Vector((sign * .168, -.012, -.236)).normalized()
-        across = (0, 1, 0)
-        depth = axis.cross(Vector(across))
-        loft("Tunic sleeve." + side,
-             [((sign*x, y, z), width, width) for x, y, z, width in
-              [(.105, 0, 1.435, .073), (.18, -.001, 1.405, .090), (.24, -.003, 1.36, .090),
-               (.29, -.006, 1.30, .083), (.325, -.009, 1.25, .074)]],
-             across=across, depth=depth)
         loft("Sandal sole." + side,
              [((sign*.124, -.067, z), w, d) for z, w, d in
               [(.012, .064, .13), (.020, .068, .135), (.036, .066, .129)]], "foot." + side)
         loft("Sandal upper." + side,
              [((sign*.124, -.056, z), w, d) for z, w, d in
-              [(.035, .065, .121), (.060, .061, .105), (.083, .046, .069), (.11, .035, .038)]], "foot." + side)
+             [(.035, .065, .121), (.060, .061, .105), (.083, .046, .069), (.11, .035, .038)]], "foot." + side)
 
     loft("Helmet bowl", [((0, .013, z), w, d) for z, w, d in
          [(1.685, .095, .097), (1.72, .097, .10), (1.77, .083, .085),

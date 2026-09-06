@@ -11,8 +11,9 @@ Worktree: `/Users/david/dev/game-battle-model-quality`, branch
 Current pickup has two independent lanes:
 - **09 Blender equipment authoring:** fit a recognizable heavy swordsman to the
   provisional08 body/rig. The first equipped candidate is integrated through
-  f5a57d1b; next fix continuous garment construction and weapon contact before
-  starting the phalangite. Its existing bend is a fitting probe, not combat motion.
+  f5a57d1b plus the connected-garment working pass; next integrate the hand study
+  and fit actual weapon contacts. Garment slope/drape remains open before starting
+  the phalangite. Its existing bend is a fitting probe, not combat motion.
   Rounded lips remain the body source; eye relief/sphere trials were rejected.
   Keep unclothed08 anatomy review open for facial form, shoulders, pelvis and
   grips. Equipment cannot conceal those defects or satisfy anatomy acceptance.

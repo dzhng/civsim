@@ -5,6 +5,10 @@ rounded helmet/shield and layered garments, with physically connected equipment.
 Neutral clay deliberately excludes mail texture/material judgment. The anatomy,
 skeleton and bend clip remain the provisional08 source; none is accepted here.
 
+The current pickup is the [connected garment study](garment-construction.md).
+It supersedes the filled-volume garment source below, not the unresolved whole-kit
+verdict. The original fitting evidence remains useful for equipment contacts.
+
 ## Evidence and verdict
 
 The first locally authored kit is in [close](heavy-first-close.png),
@@ -100,3 +104,5 @@ failure names; no image or tolerance was blessed. Root inspected all heavy views
 The curated heavy close/upper/reference set was opened in one Preview window for
 non-blocking feedback. The working decision remains incomplete geometry, with
 continuous garments and weapon contact next; no silence can waive those defects.
+After about five minutes without feedback, Preview was closed and that incomplete
+working verdict retained. Garment and grip source work continues; no gate closed.

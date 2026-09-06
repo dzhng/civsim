@@ -1,0 +1,86 @@
+[
+  {
+    "view": "close",
+    "a": "heavy-fitted",
+    "b": "garment-union",
+    "changed": 104946,
+    "total": 3276800
+  },
+  {
+    "view": "close",
+    "a": "heavy-fitted",
+    "b": "garment-rounded",
+    "changed": 193617,
+    "total": 3276800
+  },
+  {
+    "view": "close",
+    "a": "heavy-fitted",
+    "b": "garment-sewn-fit",
+    "changed": 135347,
+    "total": 3276800
+  },
+  {
+    "view": "close",
+    "a": "heavy-fitted",
+    "b": "garment-ordered",
+    "changed": 135756,
+    "total": 3276800
+  },
+  {
+    "view": "gameplay",
+    "a": "heavy-fitted",
+    "b": "garment-union",
+    "changed": 52746,
+    "total": 3276800
+  },
+  {
+    "view": "gameplay",
+    "a": "heavy-fitted",
+    "b": "garment-rounded",
+    "changed": 167490,
+    "total": 3276800
+  },
+  {
+    "view": "gameplay",
+    "a": "heavy-fitted",
+    "b": "garment-sewn-fit",
+    "changed": 115752,
+    "total": 3276800
+  },
+  {
+    "view": "gameplay",
+    "a": "heavy-fitted",
+    "b": "garment-ordered",
+    "changed": 116039,
+    "total": 3276800
+  },
+  {
+    "view": "head",
+    "a": "heavy-fitted",
+    "b": "garment-union",
+    "changed": 318255,
+    "total": 1638400
+  },
+  {
+    "view": "head",
+    "a": "heavy-fitted",
+    "b": "garment-rounded",
+    "changed": 344578,
+    "total": 1638400
+  },
+  {
+    "view": "head",
+    "a": "heavy-fitted",
+    "b": "garment-sewn-fit",
+    "changed": 365521,
+    "total": 1638400
+  },
+  {
+    "view": "head",
+    "a": "heavy-fitted",
+    "b": "garment-ordered",
+    "changed": 367423,
+    "total": 1638400
+  }
+]

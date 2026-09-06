@@ -1,6 +1,6 @@
 # 04 — Explicit material round trip
 
-Status: TODO. Depends on [03](./03-weighted-asset-contract.md).
+Status: IN PROGRESS. Depends on [03](./03-weighted-asset-contract.md).
 
 ## Contract and ownership
 
@@ -13,6 +13,41 @@ Names of new functions/routes in this plan are proposed, not existing commands. 
 ## Runnable artifact
 
 Six neutral swatches on a bent fixture: skin, cloth, leather, mail, wood and metal. Compare standard loader and production under matched lighting.
+
+### Execution rows
+
+| Row | Seam and focused proof |
+| --- | --- |
+| 04a — Explicit surfaces | Bind scalar material slots and independent faction masks in retained consumers. Same-color swatches with different roughness/metallic values must differ; an ordinary blue surface must not become a faction accent; changing instance seed must not change its color. Placeholder construction declares surface identity, never reconstructs it from RGB. |
+| 04b — Texture transport | Preserve embedded image bytes, color spaces and declared UV/sampler behavior. An asymmetric checker, multiple slots and atlas-edge checks expose flips, cross-slot sampling and bleed. Missing or unsupported source texture features fail explicitly. |
+| 04c — Posed normal frame | Skin tangents with the same weights as geometry/normals and retain tangent handedness. Bent and rotated samples must preserve the intended normal-map response; a stock unskinned tangent basis is not sufficient for the custom VAT path. |
+| 04d — Consumer and review closure | Six swatches through the production workbench and standard-loader oracle, plus raw/far material-consumption checks, reload/disposal and the standing hardware gate. Raw lighting need not equal Three PBR pixels, but no retained consumer may ignore the authored channels or infer identity from RGB. |
+
+The source material set remains the sole owner, shared across tiers. The far
+representation must consume authored surfaces in this slice; atlas density and
+final distance readability remain15/28. Decide and measure its bake mechanism
+before implementation rather than preserving the color-only CPU painter as an
+undocumented exception. No detailed anatomy or armor styling is accepted here.
+
+### Far-material mechanism and resource gate
+
+Replace the private CPU painter with a GPU material-property atlas using the
+production surface-node owner. Store albedo/coverage, posed model-space normal,
+and occlusion/roughness/metallic/faction mask; light the sampled billboard with
+the existing standard material and production environment. Do not bake lighting
+into color: an independently turning soldier would otherwise retain highlights
+from the wrong direction. Keep existing view selection, bounds and tile density
+while measuring this mechanism.
+
+Initialization and reload become explicitly asynchronous, preparing a complete
+replacement before exposing it. Atlas baking restores renderer state before
+yielding; no readback belongs in live playback. The current catalog's three
+RGBA8 property targets would cost about135MiB before depth/mips, versus one color
+target today. Record actual allocation, peak reload memory, cold compile/bake time
+and single-appearance reload time. This mechanism is provisional until that
+measurement and the unchanged standing hardware gate pass;07 still owns the
+final authored-asset envelope. Do not accept a route-readiness timeout increase
+as a substitute for controlling startup work.
 
 Expose the fixture through the production model workbench and a named scene/probe. Record the exact runnable command in this file when it exists; do not mark completion with screenshots alone.
 

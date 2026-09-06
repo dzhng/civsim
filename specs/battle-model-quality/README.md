@@ -4,9 +4,9 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 
 ## Next Agent Prompt
 
-Last updated **2026-09-06**. Status: **slices01–03 complete; slice04 next**.
+Last updated **2026-09-06**. Status: **slices01–03 complete; slice04 in progress**.
 
-You are working in `/Users/david/dev/game-battle-model-quality`, branch `codex/battle-model-quality`, based on `90bbdcaa`. Start [04 — Explicit material round trip](slices/04-explicit-materials.md) through its execution rows. Replace RGB material/faction guessing and seed color variation with authored inputs, then preserve textures and posed normal maps. Resolve the material-aware far bake before implementation; near, raw and far consumers must all consume the same source contract. Continue04→07 infrastructure before detailed anatomy08.
+You are working in `/Users/david/dev/game-battle-model-quality`, branch `codex/battle-model-quality`, based on `90bbdcaa`. Implement [04 — Explicit material round trip](slices/04-explicit-materials.md) through its execution rows. Replace RGB material/faction guessing and seed color variation with authored inputs, then preserve textures and posed normal maps. The far bake will store material properties and reuse production lighting, not pre-lit color; its startup/memory measurement is an explicit acceptance gate. Near, raw and far consumers must all consume the same source contract. Continue04→07 infrastructure before detailed anatomy08.
 
 No known blockers. [Weighted-bundle integration](assets/evidence/03/integration-review.md) records the complete cutover, strict model/campaign/default-battle checks,197 web tests and unchanged hardware gates. No detailed soldier art is accepted yet; live animated budgets remain07. Local Blender 5.2.1 is available and external AI generation stays excluded. Raw campaign remains a production consumer. [Choices](choices.md) owns implementation decisions.
 

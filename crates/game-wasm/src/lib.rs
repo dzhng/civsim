@@ -474,6 +474,17 @@ impl Game {
         self.battle.sim.alive.as_ptr()
     }
 
+    /// Current infantry/rider health, one value per soldier; not a hit event.
+    pub fn health_ptr(&self) -> *const f32 {
+        self.battle.sim.health.as_ptr()
+    }
+
+    /// Current mount health (zero for unmounted soldiers). Alive is authoritative
+    /// for death: a lethal mount injury need not reduce the rider's health.
+    pub fn mount_health_ptr(&self) -> *const f32 {
+        self.battle.sim.mount_health.as_ptr()
+    }
+
     /// 1 = actively trading blows (within weapon reach). Drives attack anims.
     pub fn fighting_ptr(&self) -> *const u8 {
         self.battle.sim.fighting.as_ptr()
@@ -838,5 +849,35 @@ fn generated_feature_summary_json(recipe: MapRecipe, terrain: &sim::Terrain) -> 
 impl Default for Game {
     fn default() -> Self {
         Self::new(0)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn injury_pointers_read_the_simulation_pools_without_copying() {
+        let mut game = Game::new(7);
+        game.spawn_unit(0.0, 0.0, 0.0, 2, 2, 1.0, 1.0, 0, 0.5);
+        game.battle.sim.health.copy_from_slice(&[2.5, 1.25]);
+        game.battle.sim.mount_health.copy_from_slice(&[0.0, 4.5]);
+        assert_eq!(game.health_ptr(), game.battle.sim.health.as_ptr());
+        assert_eq!(
+            game.mount_health_ptr(),
+            game.battle.sim.mount_health.as_ptr()
+        );
+        // The owner remains alive, and no allocation occurs between acquiring
+        // these pointers and reading their initialized soldier-length slices.
+        unsafe {
+            assert_eq!(
+                std::slice::from_raw_parts(game.health_ptr(), 2),
+                &[2.5, 1.25]
+            );
+            assert_eq!(
+                std::slice::from_raw_parts(game.mount_health_ptr(), 2),
+                &[0.0, 4.5]
+            );
+        }
     }
 }

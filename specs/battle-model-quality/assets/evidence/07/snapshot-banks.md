@@ -45,8 +45,28 @@ bytes; CPU matrix/weighted-geometry tolerances remain unchanged. The raw render
 probe's numeric geometry/depth, source retirement and disposal gates pass. This
 is transport/numerical evidence, not an aesthetic verdict or hardware timing.
 
-The actual staggered30k/67-joint workload, production temporal regression and
-standing hardware gates remain required at integration.07 is still open.
+The [merged hardware run](snapshot-banks-merged-67-30k.json) preserves all30,000
+submitted bodies throughout the staggered history, including60,000 frozen
+sources at67 joints. Each bank holds96,480,000 bytes, below the134,217,728-byte
+binding limit; combined snapshot upload is192,960,000 bytes. Sources retire
+normally. There are no renderer warnings or page errors. Root also repeats
+the28 focused CPU tests and typecheck successfully on the merged tree.
+
+This is storage-admission evidence, **not performance acceptance**: both
+interruption cadence checks fail at33.335ms p95 against the unchanged33ms gate.
+The run uses180 frames,30k mounted bodies, detail subdivisions[3,1,0], eight
+joint copies, four influences, two key subdivisions,1024px maps and the close
+camera at1280×800 on hardware Chrome. Production temporal regression, standing
+hardware gates and the broader budget envelope remain open. Retain this failed
+timing result when investigating the next change; do not replace it with the
+earlier synchronized pass.
+
+Review of the timing rows confirms that they still use synchronized histories
+(two snapshot slots); the60k-source allocation phase runs afterward. Most CPU
+stages are slower than the prior report, including steady frames with no frozen
+sources. Upload/preparation shows the largest median increase, but this does
+not isolate a code cause. An exclusive-GPU old/new/old comparison is the next
+diagnostic before optimizing. No threshold or acceptance requirement changes.
 
 Shape/diff/docs review keeps bank addressing, growth and binding schema in one
 shared owner. No compatibility path, extra dispatch or dependency was added.

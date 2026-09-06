@@ -127,24 +127,12 @@ camera and display-resolution brackets and executable asset limits remain
 required. The merged temporal/palette repeat now passes, as recorded in the
 projected-detail evidence. Do not infer a universal budget from one configuration.
 
-Distinct interruption histories are an additional required storage bracket.
-The passing67-joint/1024px report reaches a snapshot high-water of only one:
-synchronized soldiers share an exact source. Two unique sources for each of
-30,000 bodies would require192,960,000 bytes at67 joints and48 bytes per joint,
-above a128MiB storage-binding limit. This is a calculated uncovered case, not
-an observed allocation failure. Measure actual supported history/cardinality
-through the existing owner before accepting a limit; do not silently cap,
-approximate or discard exact frozen poses to fit the synchronized result.
-
-The focused mounted-fixture test now drives three staggered walking cohorts
-through overlapping interruptions using the real action controller. Root's
-merged19-test run passes:3/9 bodies produce6 distinct weighted posed meshes and
-6/18 allocated source slots, with no uploads on exact repeat and no retained
-sources after the blends complete. This demonstrates the uncovered allocation
-mechanism without fabricating frozen inputs or requiring population-sized setup
-time. It is CPU coverage, not30k GPU acceptance. Existing tests are unchanged;
-the new test adds distinct-history, reuse and retirement coverage. The next
-measurement wires this history into the existing allocation harness.
+Distinct interruption histories require a separate storage bracket: synchronized
+soldiers share exact sources and cannot establish worst-case memory capacity.
+The [staggered allocation evidence](../assets/evidence/07/staggered-allocation.md)
+uses real controller observations, reproduces the hardware failure and owns the
+CPU fixture proof. Do not cap, approximate or discard exact frozen poses to fit
+the synchronized result.
 
 ### Required correction: exact frozen storage across binding limits
 
@@ -154,7 +142,7 @@ The staggered hardware diagnostic reproduces the calculated failure at67 joints:
 until source retirement permits admission again. The output palette itself fits:
 its matrices use64 bytes per joint, while frozen local samples use48.
 
-Implement two lazily grown frozen-source banks under the existing palette owner.
+Two lazily grown frozen-source banks are integrated under the existing palette owner.
 Stripe existing logical slots by parity, so mapping is stable through growth,
 holes and shrinking crowds. With retained admitted output capacity C, each bank
 needs at most C poses because each submitted body has at most two frozen sources.
@@ -163,12 +151,18 @@ semantics; do not cap sources or rely on synchronized histories. Update the shar
 kernel and both production/raw consumers together, retaining one compute/output
 and skin path. Count both banks and replacement overlap in telemetry.
 
-This correction earns acceptance through parity-branch weighted-pose tests,
+This correction requires parity-branch weighted-pose tests,
 retained-high-slot/shrink/reuse tests, atomic failure/recovery and disposal tests,
 then the actual staggered hardware workload and unchanged temporal/standing
 gates. Device binding-count and total allocation failures remain real errors;
 two smaller bindings are not proof of unlimited total memory. Broader measured
 art/display limits still follow; this sub-pass does not close07 by itself.
+
+[Merged bank verification](../assets/evidence/07/snapshot-banks.md) records
+passing focused CPU/type checks and actual30k/67-joint storage admission. Both
+synchronized interruption cadence rows remain red; the staggered allocation
+phase is not a timing measurement. Preserve that distinction when diagnosing
+the next pass. Temporal/standing repeats and broader envelope gates remain open.
 
 ## Focused verdict
 

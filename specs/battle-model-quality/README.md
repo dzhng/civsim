@@ -6,7 +6,7 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 
 Last updated **2026-09-07**. **01–06 complete;07 envelope open;08 candidate authoring in progress.**
 Worktree: `/Users/david/dev/game-battle-model-quality`, branch
-`codex/battle-model-quality`; distinct-history CPU coverage integrated throughd104b942.
+`codex/battle-model-quality`; exact frozen-source banks integrated throughf8a6b49c.
 
 Two independent lanes now proceed:
 - Author08's editable Blender human anatomy and deform rig as a **workbench
@@ -33,9 +33,11 @@ Current evidence:
   now passes all30 checks. The merged
   [palette/strict temporal repeat](assets/evidence/07/control-lod-accepted-repeat.json)
   passes after explicit review of the separate caster's controller shadow.
-  Broader geometry/camera/display and distinct-interruption storage brackets
-  remain required; the synchronized67-joint/1024px pass exercises only one
-  shared frozen source and cannot establish worst-case memory capacity.
+  [Merged exact-storage evidence](assets/evidence/07/snapshot-banks.md) now
+  admits60,000 frozen sources for30k bodies at67 joints without suppression.
+  Both interruption cadence checks still fail at33.335ms p95. Next preserve
+  temporal/standing gates and investigate the timing failure before completing
+  broader geometry/camera/display brackets; storage success is not a budget.
 - [Measurement foundation](assets/evidence/07/measurement-foundation.md) and
   [07](slices/07-budget-envelope.md) own raw brackets and remaining requirements.
   No art envelope or detailed model has been accepted.08's original Blender
@@ -43,7 +45,9 @@ Current evidence:
   baker. [Anatomy review](assets/evidence/08/anatomy-review.md) owns current
   rejected chest/cap experiments and the retained shoulder-continuity iteration.
   Its local Blender source and frozen production captures agree; whole-body
-  anatomy remains unaccepted, with pectoral/deltoid, pelvis and hand work open.
+  anatomy remains unaccepted, with facial form, pectoral/deltoid, pelvis and hand
+  work open. A native head-detail fixture now exposes the weak mouth clearly;
+  distinct lip forms are readable but too sharply projected, not accepted.
 
 Preserve sim/save/balance, exact interruption poses, atomic catalog replacement,
 the one production skin/material/environment path, and the existing temporal

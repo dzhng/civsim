@@ -6,9 +6,19 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 
 Last updated **2026-09-06**. Status: **slices01–03 complete; slice04 in progress**.
 
-You are working in `/Users/david/dev/game-battle-model-quality`, branch `codex/battle-model-quality`, based on `90bbdcaa`. **04a scalar materials and04b texture transport are complete.** Continue04c in [04 — Explicit material round trip](slices/04-explicit-materials.md): pose tangent XYZ with the same weighted matrices as normals, preserve handedness, and apply normal maps in the fragment's posed frame across near/raw/far. The mesh already carries tangents and the VAT already carries matrices; no new animation format is needed. Define normal-mapped frame admission and degenerate-frame behavior before implementation. Then04d standard-loader oracle closure. Continue04→07 infrastructure before detailed anatomy08.
+You are working in `/Users/david/dev/game-battle-model-quality`, branch `codex/battle-model-quality`, based on `90bbdcaa`. **04a–04c are complete.** Close04d in [04 — Explicit material round trip](slices/04-explicit-materials.md): integrate the six-swatch candidate42 scene against the standard loader in the same production environment, run the material-transfer human checkpoint, and finish the slice review.05a's minimal read-only injury observation seam is proceeding independently; no action-controller change is accepted yet. Continue04→07 infrastructure before detailed anatomy08.
 
 No user-only blocker. [Scalar evidence](assets/evidence/04/integration-review.md) and [texture evidence](assets/evidence/04/texture-transport/review.md) record shared source/near/raw/far transfer, malformed-image rollback, disposal races,216 tests and the passing30k hardware gate. The checker now reaches production and its reviewed baseline is strict; untextured mounted and existing scalar shots stay exact. Filtered-normal boundary bands, far shadows and raw placeholder readability remain unaccepted final-quality debt. Local Blender5.2.1 is available; external AI generation stays excluded. [Choices](choices.md) owns implementation decisions.
+
+[Posed integration](assets/evidence/04/posed-material-integration/review.md) records
+219 tests, exact inherited screenshots, independent near/far/raw direction controls
+and the unchanged30k hardware gate. Existing positions/normals remain unchanged.
+[Six-swatch source evidence](assets/evidence/04/six-swatch-source.md) is source
+admission only, not completed browser acceptance. Posed shading uses fragment-stage map reads,
+per-vertex unit directions and finite geometric fallbacks for interpolation
+cancellation; do not restore lazy conditional texture reads or fragment-side VAT
+work.05 reconnaissance confirmed `hit_ttl` is facing/contact memory, not an injury
+event; inspect actual health changes before wiring observed hit reactions.
 
 The user clarified that their model-progress question was not a request to reprioritize. Keep the infrastructure-first trunk and start detailed anatomy at08 after the measured budget envelope; diagnostic Blender fixtures are not detailed soldier models.
 

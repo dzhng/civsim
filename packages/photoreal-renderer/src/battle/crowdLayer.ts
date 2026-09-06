@@ -16,6 +16,7 @@ import {
   mix,
   normalize,
   sin,
+  transformNormalToView,
   varying,
   vec3,
   vec4,
@@ -43,6 +44,7 @@ import {
   soldierFactionAccent,
   soldierSurfaceNodes,
   soldierContactOcclusion,
+  soldierUnitDirection,
 } from "./soldierSurface";
 
 interface ClassBucket {
@@ -422,7 +424,8 @@ function crowdMaterial(
     p.z.add(inst2.x),
   );
   material.positionNode = worldPosition;
-  material.receivedShadowPositionNode = varying(worldPosition);
+  const vWorldPosition = varying(worldPosition);
+  material.receivedShadowPositionNode = vWorldPosition;
 
   // The environment lights the FULLY posed normal: skinned, corpse-rolled,
   // then yaw-rotated into world space.
@@ -434,9 +437,36 @@ function crowdMaterial(
   );
   material.normalNode = viewNormalNode(worldN);
 
-  const faction = varying(inst0.w).toVar();
-  const vCorpse = varying(corpse).toVar();
+  // Pack scalar instance/contact properties into one varying location so mapped
+  // surfaces fit baseline WebGPU's inter-stage limit alongside production shadows.
+  const contactAo = soldierContactOcclusion(rolled.z);
+  const instanceSurface = varying(
+    vec3(inst0.w, corpse, mix(float(1), contactAo, float(1).sub(corpse))),
+  );
+  const faction = instanceSurface.x;
+  const vCorpse = instanceSurface.y;
   const surface = soldierSurfaceNodes(preparedSurface);
+  if (surface.normal) {
+    const tangent = attribute<"vec4">("tangent", "vec4");
+    const t = soldierUnitDirection(
+      c0.mul(tangent.x).add(c1.mul(tangent.y)).add(c2.mul(tangent.z)).xyz,
+      vec3(0),
+    ).toVar();
+    const rolledT = vec3(t.x, t.y.mul(rc).sub(t.z.mul(rs)), t.y.mul(rs).add(t.z.mul(rc)));
+    const worldT = vec3(
+      rolledT.x.mul(c).sub(rolledT.y.mul(s)),
+      rolledT.x.mul(s).add(rolledT.y.mul(c)),
+      rolledT.z,
+    );
+    material.normalNode = transformNormalToView(
+      surface.normal(
+        varying(worldN),
+        varying(worldT),
+        varying(tangent.w).setInterpolation("flat"),
+        vWorldPosition,
+      ),
+    );
+  }
   let albedo = mix(surface.albedo, soldierFactionAccent(faction), surface.factionMask).toVar();
   material.roughnessNode = surface.roughness;
   material.metalnessNode = surface.metallic;
@@ -447,10 +477,7 @@ function crowdMaterial(
   // cast shadow is a separate owner. Living soldiers only: a prone
   // corpse's whole body is low, so gating by corpse keeps the fallen from
   // blackening wholesale.
-  const contactAo = soldierContactOcclusion(rolled.z);
-  material.aoNode = surface.occlusion.mul(
-    varying(mix(float(1.0), contactAo, float(1.0).sub(corpse))),
-  );
+  material.aoNode = surface.occlusion.mul(instanceSurface.z);
 
   // Corpses desaturate and darken so the fallen read as dead, not living.
   const lum = dot(albedo, vec3(0.3, 0.59, 0.11));

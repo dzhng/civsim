@@ -96,6 +96,57 @@ The plan required production parity but did not specify review scenery. This cho
 
 ## Sound — high confidence
 
+### Admit mapped frames while computing existing animated bounds (slice04c)
+
+When an appearance is baked, its material slots now accompany the existing
+animated-bounds calculation. Each pose that calculation already visits also checks
+that normal-mapped vertices have usable surface directions. Callers cannot omit
+the material list and silently skip that check. Loading checks the starting mesh;
+it does not repeat a full animation scan in the browser.
+
+The plan required valid posed directions but left the validation API open.
+**Sound, high confidence:** one traversal and a required input enforce the rule
+without a second scan or an optional bypass. Future bounds callers must supply
+the appearance's actual material slots.
+
+### Preserve the existing deformation rule and define its collapsed limit (slice04c)
+
+When several bones bend a surface, its normal and tangent use the same weighted
+direction transform already used by the renderer. This does not introduce a new
+inverse-transpose normal convention that would relight all existing assets. If
+interpolation nearly cancels otherwise valid directions, shading uses the
+geometric surface direction instead of amplifying numerical noise. Invalid
+normal-mapped source frames still reject; this fallback does not admit bad assets.
+
+The original material requirement did not choose a deformation convention or its
+degenerate limit. **Sound, high confidence:** this isolates the requested map
+support and keeps ordinary untextured rendering stable. Future rig changes inherit
+that convention and must explicitly revisit it if they need different scaling.
+
+### Reject normal scales that cannot survive GPU packing (slice04c)
+
+An authored scale can be a finite JavaScript number yet become infinity in the
+GPU's smaller number format. The baker and loader now reject that value rather
+than letting it turn a surface's lighting invalid. Large values that do fit remain
+supported through bounded normalization; zero still scales only the map's X/Y
+components, not its Z direction.
+
+The plan required authored scale but left its numeric storage limit implicit.
+**Sound, high confidence:** explicit rejection preserves the actual rendering
+contract without silently clamping author data. Future material editors inherit
+the same Float32 boundary.
+
+### Exercise collapsed poses by modifying a real export in memory (slice04c)
+
+The source regression opens an existing Blender export and changes only its test
+weights and bone rotation to cancel a mapped direction. Its starting mesh is valid,
+so a rejection proves the animation check ran. The alternative was another
+checked-in art fixture or a fake importer result.
+
+The plan left this failure fixture unspecified. **Sound, high confidence:** the
+test exercises the actual byte importer and baker without adding another source
+asset to maintain. The ordinary exported fixtures remain unchanged.
+
 ### Closing a world makes pending reloads terminal (slice04b)
 
 If an author closes a world while a replacement is loading, that replacement

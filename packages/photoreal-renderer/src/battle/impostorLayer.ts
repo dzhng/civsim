@@ -40,12 +40,7 @@ export interface ImpostorAtlas {
   dispose(): void;
 }
 
-interface PosedMeshData {
-  positions: Float32Array;
-  normals: Float32Array;
-  colors: Float32Array;
-  indices: Uint16Array | Uint32Array;
-}
+type PosedMeshData = ReturnType<typeof poseSoldierMesh>;
 
 interface Bounds2 {
   minX: number;
@@ -337,7 +332,7 @@ export class OctahedralImpostorLayer {
       impostorDrawCalls: this.source.length > 0 ? 1 : 0,
       atlas: `${this.atlas.columns}x${this.atlas.rows}x${this.atlas.tileSize}`,
       tileSelection: "nearest",
-      factionMask: "explicit authored mask; lit scalar property atlas",
+      factionMask: "explicit authored mask; lit material property atlas",
       atlasMetrics: this.atlas.metrics,
     };
   }
@@ -361,8 +356,7 @@ function poseMeshWithVat(
     clip.start + clip.frames - 1,
     clip.start + Math.floor(phase * Math.max(clip.frames - 1, 1)),
   );
-  const { positions, normals } = poseSoldierMesh(mesh, vat, frame);
-  return { positions, normals, colors: mesh.colors, indices: mesh.indices };
+  return poseSoldierMesh(mesh, vat, frame);
 }
 
 /** One unlit MRT draw: view instances occupy disjoint fixed tiles. The ordinary
@@ -399,6 +393,7 @@ function bakePropertyAtlas(
   const geometry = new THREE.InstancedBufferGeometry();
   geometry.setAttribute("position", new THREE.BufferAttribute(posed.positions, 3));
   geometry.setAttribute("normal", new THREE.BufferAttribute(posed.normals, 3));
+  geometry.setAttribute("tangent", new THREE.BufferAttribute(posed.tangents, 4));
   geometry.setAttribute("color", new THREE.BufferAttribute(source.colors, 4));
   geometry.setAttribute("materialId", new THREE.BufferAttribute(source.materialIds, 1));
   geometry.setAttribute("factionMask", new THREE.BufferAttribute(source.factionMasks, 1));
@@ -431,10 +426,20 @@ function bakePropertyAtlas(
     dot(position, attribute<"vec3">("bakeForward", "vec3")),
   );
   const surface = soldierSurfaceNodes(preparedSurface);
+  const geometricNormal = attribute<"vec3">("normal", "vec3");
+  const tangent = attribute<"vec4">("tangent", "vec4");
+  const posedNormal = surface.normal
+    ? surface.normal(
+        varying(geometricNormal),
+        varying(tangent.xyz),
+        varying(tangent.w).setInterpolation("flat"),
+        varying(position),
+      )
+    : geometricNormal.normalize();
   material.fragmentNode = mrt({
     albedo: vec4(surface.albedo, 1),
     normal: vec4(
-      attribute<"vec3">("normal", "vec3").normalize().mul(0.5).add(0.5),
+      posedNormal.mul(0.5).add(0.5),
       // Match the mesh path: evaluate height response at posed vertices before
       // interpolation. Alpha was unused; no additional atlas allocation.
       varying(soldierContactOcclusion(attribute<"vec3">("position", "vec3").z)),

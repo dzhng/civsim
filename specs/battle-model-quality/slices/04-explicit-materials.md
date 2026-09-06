@@ -76,7 +76,8 @@ is accepted only after04c proves the weighted tangent frame and handedness.
 The existing tangent XYZ/W vertex field and joint-matrix VAT are sufficient.
 Transform tangent XYZ with the same four-weight linear matrix used for normals;
 preserve the existing blended-normal convention rather than introducing an
-inverse-transpose lighting change. Preserve authored handedness W across mirrored
+inverse-transpose lighting change. Normalize both directions at each posed vertex
+before interpolation. Preserve authored handedness W across mirrored
 UV seams. Instance yaw and corpse roll transform both directions. At fragments,
 orthogonalize the interpolated tangent against the normal and reconstruct the
 bitangent from their cross product and W. Decode the linear normal image, apply
@@ -91,6 +92,14 @@ frame. Fragment interpolation can still collapse a direction, so define a finite
 geometric-normal result for that degenerate limit instead of propagating NaNs.
 This is not a substitute for admitting invalid mapped source frames. Preserve the
 existing authored-backface policy and the exact untextured shading path.
+
+Use the shared squared direction floor `1e-12` for relative source-frame
+parallelism and cancellation of interpolated unit directions. Collapsed normals
+fall back to the authored face direction reconstructed from position derivatives;
+collapsed tangents fall back to the geometric normal. Small nonzero decoded map
+vectors remain directional: bound components before normalization rather than
+applying an absolute magnitude floor to authored normal-map scale. Scale must
+remain finite when packed into Float32, and scales only XY, including at zero.
 
 Normal-image sampling must remain in the fragment stage, not pass through the
 existing helper that hoists geometric normals into a vertex varying. Verify bent,
@@ -155,11 +164,11 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 - [ ] Comparison and final unprimed critique recorded.
 - [ ] Review/cleanup completed; README pickup and decisions updated.
 
-04a and04b are complete. Scalar implementation and scoped visual evidence are recorded in
+04a–04c are complete. Scalar implementation and scoped visual evidence are recorded in
 [integration review](../assets/evidence/04/integration-review.md), with source,
 raw and far lane reports beside it. The combined workbench proves independent
 scalar response, seed uniformity, explicit faction masks and material-table
-reindex invariance. The standing30k hardware gate passes.04c–04d remain open.
+reindex invariance. The standing30k hardware gate passes.04d remains open.
 
 04b's [integrated texture report](../assets/evidence/04/texture-transport/review.md)
 records exact source image/sampler transport, shared near/far and retained raw
@@ -167,8 +176,15 @@ consumption, independent channel oracles, malformed-image rollback, teardown
 regressions, reviewed checker captures and the passing standing hardware gate.
 The material container replaces the scalar array atomically; no legacy reader or
 unused per-material source-reference path remains. Original GLBs remain source
-provenance, not a second runtime material owner. Normal maps are transported only;
-04c must replace the temporary no-shading assertion with directional-response proof.
+provenance, not a second runtime material owner.04b's temporary no-shading assertion
+has now been replaced by04c's directional-response proof.
+
+04c's [posed integration report](../assets/evidence/04/posed-material-integration/review.md)
+records source admission, CPU tangent posing, shared near/far shading, retained raw
+lighting, independent direction and collapse controls, exact inherited snapshots,
+review and the passing standing hardware gate. The canonical renderer runner now
+includes `battle-model-normal-frame`.04d's six-material source fixture is authored
+and baked; its matched production/standard-loader scene is the remaining closure.
 
 GPU admission now rejects actual invalid commands and disposes the replacement
 while preserving the prior scene. Renderer state and scopes are restored before

@@ -1,9 +1,13 @@
 import * as THREE from "three/webgpu";
 import {
+  abs,
   attribute,
   clamp,
+  faceDirection,
+  float,
   int,
   ivec2,
+  max,
   mix,
   smoothstep,
   step,
@@ -12,6 +16,7 @@ import {
   varying,
   vec3,
 } from "three/tsl";
+import { TANGENT_FRAME_EPSILON_SQUARED } from "../../../soldier-assets/src/skin";
 import {
   packSoldierMaterials,
   SOLDIER_MATERIAL_ROWS,
@@ -22,6 +27,19 @@ import {
 import { uploadImageTexture } from "../../../renderer-core/src/imageTexture";
 import { factionForTeam } from "../../../game-renderer/src/battle/factionColors";
 import { linearAlbedo } from "./battleTsl";
+
+/** Scale before squaring: even a finite authored normal scale can overflow dot(v,v). */
+export function soldierUnitDirection(direction: THREE.Node<"vec3">, fallback: THREE.Node<"vec3">) {
+  const largest = max(max(abs(direction.x), abs(direction.y)), abs(direction.z)).toVar();
+  const bounded = direction.div(max(largest, float(largest.equal(0)))).toVar();
+  // Both candidates are finite. Arithmetic selection keeps derivatives and image
+  // sampling outside TSL ConditionalNode's lazy, nonuniform control flow.
+  return mix(
+    fallback,
+    bounded.div(max(bounded.dot(bounded), TANGENT_FRAME_EPSILON_SQUARED).sqrt()),
+    float(largest.greaterThan(0)),
+  );
+}
 
 /** Evaluate at posed vertices, then interpolate. Grounding affects ambient
  * light only; callers gate it off for corpses, independently of authored AO. */
@@ -157,6 +175,48 @@ export function soldierSurfaceNodes(surface: PreparedSoldierSurface) {
   const albedoMap = surface.images.baseColor ? texture(surface.images.baseColor, uv).rgb : vec3(1);
   const orm = surface.images.orm ? texture(surface.images.orm, uv).rgb : vec3(1);
   return {
+    // Call with fragment-stage directions in a single coordinate space. In
+    // particular, never feed this texture read to a vertex-normal varying.
+    normal: surface.images.normal
+      ? (
+          normal: THREE.Node<"vec3">,
+          tangent: THREE.Node<"vec3">,
+          handedness: THREE.Node<"float">,
+          position: THREE.Node<"vec3">,
+        ) => {
+          const face = soldierUnitDirection(
+            position.dFdx().cross(position.dFdy()).mul(faceDirection),
+            vec3(0, 0, 1),
+          );
+          // Vertex directions are unit length. A tiny interpolated remainder is
+          // cancellation noise, unlike a small but directional decoded map.
+          const normalUsable = normal.dot(normal).greaterThan(TANGENT_FRAME_EPSILON_SQUARED);
+          const n = mix(face, soldierUnitDirection(normal, face), float(normalUsable)).toVar();
+          const sourceT = soldierUnitDirection(tangent, vec3(0)).toVar();
+          const projectedT = sourceT.sub(n.mul(n.dot(sourceT))).toVar();
+          const t = soldierUnitDirection(projectedT, vec3(0)).toVar();
+          const decoded = texture(surface.images.normal!, uv).rgb.mul(2).sub(1);
+          const mapped = soldierUnitDirection(
+            vec3(decoded.xy.mul(properties.a), decoded.z),
+            vec3(0, 0, 1),
+          ).toVar();
+          const result = soldierUnitDirection(
+            t.mul(mapped.x).add(n.cross(t).mul(handedness).mul(mapped.y)).add(n.mul(mapped.z)),
+            n,
+          );
+          return mix(
+            n,
+            result,
+            float(
+              flags.g
+                .greaterThan(0)
+                .and(normalUsable)
+                .and(tangent.dot(tangent).greaterThan(TANGENT_FRAME_EPSILON_SQUARED))
+                .and(projectedT.dot(projectedT).greaterThan(TANGENT_FRAME_EPSILON_SQUARED)),
+            ),
+          );
+        }
+      : undefined,
     albedo: attribute<"vec4">("color", "vec4")
       .rgb.mul(base.rgb)
       .mul(mix(vec3(1), albedoMap, flags.r)),

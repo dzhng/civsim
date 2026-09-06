@@ -240,11 +240,9 @@ def build():
             brow = .011 * math.exp(-((z - 1.696) / .008) ** 2)
             sockets = .014 * math.exp(-((abs(x) - .032) / .017) ** 2
                                      - ((z - 1.678) / .011) ** 2)
-            lips = .009 * math.exp(-(x / .028) ** 2 - ((z - 1.612) / .009) ** 2)
-            mouth = .007 * math.exp(-(x / .025) ** 2 - ((z - 1.612) / .002) ** 2)
             cheek = .009 * math.exp(-((abs(x) - .043) / .020) ** 2
                                     - ((z - 1.652) / .016) ** 2)
-            vertex.co.y -= front * (nose + alar + brow + lips + cheek - sockets - mouth)
+            vertex.co.y -= front * (nose + alar + brow + cheek - sockets)
     parts.append(head)
     for side, sign in (("L", 1), ("R", -1)):
         def point(x, y, z):
@@ -366,6 +364,16 @@ def build():
     blend.vertex_group, blend.factor, blend.iterations = junctions.name, .8, 100
     bpy.ops.object.modifier_apply(modifier=blend.name)
     body.vertex_groups.remove(body.vertex_groups["anatomical-junctions"])
+    # Sculpt lip separation after the union/relaxation that establishes the body.
+    for vertex in body.data.vertices:
+        x, y, z = vertex.co
+        if y < -.025 and 1.58 < z < 1.64:
+            front = min(1, (-y - .025) / .045)
+            mouth_line = 1.612 + .001 * math.exp(-(x / .008) ** 2)
+            upper_lip = .006 * math.exp(-(x / .030) ** 2 - ((z - mouth_line - .004) / .006) ** 2)
+            lower_lip = .0065 * math.exp(-(x / .028) ** 2 - ((z - mouth_line + .006) / .007) ** 2)
+            crease = .0045 * math.exp(-(x / .031) ** 4 - ((z - mouth_line) / .003) ** 2)
+            vertex.co.y -= front * (upper_lip + lower_lip - crease)
     for polygon in body.data.polygons:
         polygon.use_smooth = True
     material = bpy.data.materials.new("anatomy-neutral-clay")

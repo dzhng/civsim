@@ -35,9 +35,10 @@ Current evidence:
   passes after explicit review of the separate caster's controller shadow.
   [Merged exact-storage evidence](assets/evidence/07/snapshot-banks.md) now
   admits60,000 frozen sources for30k bodies at67 joints without suppression.
-  Both interruption cadence checks still fail at33.335ms p95. Next preserve
-  temporal/standing gates and investigate the timing failure before completing
-  broader geometry/camera/display brackets; storage success is not a budget.
+  Both interruption cadence checks remain red; an old/new/old comparison also
+  fails on pre-bank code. Merged temporal/palette and standing gates pass.
+  Next profile interruption preparation before completing broader
+  geometry/camera/display brackets; storage success is not a budget.
 - [Measurement foundation](assets/evidence/07/measurement-foundation.md) and
   [07](slices/07-budget-envelope.md) own raw brackets and remaining requirements.
   No art envelope or detailed model has been accepted.08's original Blender
@@ -47,7 +48,8 @@ Current evidence:
   Its local Blender source and frozen production captures agree; whole-body
   anatomy remains unaccepted, with facial form, pectoral/deltoid, pelvis and hand
   work open. A native head-detail fixture now exposes the weak mouth clearly;
-  distinct lip forms are readable but too sharply projected, not accepted.
+  rounded lip forms are retained as a less-wrong working source, not accepted.
+  Eye/nose/ear form and mouth readability still need work.
 
 Preserve sim/save/balance, exact interruption poses, atomic catalog replacement,
 the one production skin/material/environment path, and the existing temporal

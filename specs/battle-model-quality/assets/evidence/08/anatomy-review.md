@@ -181,9 +181,30 @@ weak ears remain schematic too. The candidate's
 [capture report](lip-forms-capture.json) preserve pose/repeat checks, but fail
 the unaccepted image baselines. The exact candidate bake check passes.
 
-Next source trial reduces lip projection and broadens its transitions. It has
-not been rebuilt or judged yet; generated assets currently retain lip-forms.
-No face/body acceptance or production promotion follows from these studies.
+The [softer trial](lip-soft-head-detail.png) reduces projection and broadens
+transitions. Its [crop](lip-soft-face-crops.png) has a more restrained profile,
+but a second fresh reviewer identifies the loss of mouth separation and corners.
+Root agrees: both trials need work. The full head sheet differs by16,512 pixels
+from lip-forms (which differs by127,437 from mouth-form); these are real rendered
+changes, not quality scores. The [capture](lip-soft-capture.json) and exact bake
+check pass their structural/repeat contracts while image baselines remain red.
+
+A [deeper seam](lip-seam-head-detail.png) alone remains too faint. The
+[rounded lip trial](lip-rounded-head-detail.png) restores some volume with broad
+transitions; its [crop](lip-rounded-face-crops.png) differs from lip-forms by16,297
+pixels across the full head sheet, and from mouth-form by124,935. Root and a
+fresh unprimed reviewer prefer it over the projecting shelves, with moderate
+confidence. Its relaxed profile is less wrong, but mouth separation is still
+weak; this is the next working source, not accepted natural facial form.
+
+The [close](lip-rounded-close.png) and
+[gameplay](lip-rounded-gameplay-pitch.png) sheets retain the whole-body/deep-bend
+views. The [capture report](lip-rounded-capture.json) passes pose, alias and
+repeat checks; only the three unaccepted image baselines fail. The exact bake
+check passes. Source and generated Blender/GLB/candidate artifacts now agree.
+Eye form, nostrils, ear structure and lower-face readability remain unresolved,
+alongside the previously recorded body/grip issues. No face/body acceptance or
+production promotion follows from these studies.
 
 Source/harness review finds one lip-shape owner after relaxation, before reduction
 and export; the discarded protection mask leaves no compatibility mechanism.
@@ -191,7 +212,8 @@ The additive head camera preserves both original cameras, poses and exact-repeat
 checks. The CLI second-opinion attempt fails before review because the installed
 CLI cannot use its configured model. An independent read-only agent reviews the
 settled source/harness diff with no actionable defect, while explicitly requiring
-the pending source rebuild before claiming matching artifacts.
+the source rebuild before claiming matching artifacts. That rebuild and bake
+check now complete for the retained rounded trial.
 
 ## Source/export correctness
 

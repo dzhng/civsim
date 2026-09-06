@@ -4,11 +4,11 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 
 ## Next Agent Prompt
 
-Last updated **2026-09-06**. Status: **slice01 complete; slice02 source/export fixture in progress**.
+Last updated **2026-09-06**. Status: **slices01–02 complete; slice03 weighted production cutover next**.
 
-You are working in `/Users/david/dev/game-battle-model-quality`, branch `codex/battle-model-quality`, based on `90bbdcaa`. Continue [02 — Blender export reference fixtures](slices/02-blender-reference-fixtures.md): integrate the locally authored fixtures and prove them through the standard-loader oracle before the production cutover in03. Read the architecture and evidence links below, inspect current repository instructions, then implement one focused slice at a time. Do not restart the interview or author the full roster before the first-pair checkpoint.
+You are working in `/Users/david/dev/game-battle-model-quality`, branch `codex/battle-model-quality`, based on `90bbdcaa`. Continue [03 — Weighted production cutover](slices/03-weighted-asset-contract.md), starting at its source-import seam. Match the proven Blender fixture surfaces before replacing runtime consumers. Read the architecture and evidence links below, inspect current repository instructions, then implement one focused slice at a time. Do not restart the interview or author the full roster before the first-pair checkpoint.
 
-No known blockers. [Slice01 evidence](assets/evidence/01/review.md) proves the production workbench and existing paused 30k gate; no authored model or animation is accepted yet. Blender round-trip and live animated budgets remain unverified. Local Blender 5.2.1 is available; external AI generation stays excluded. Source-fixture implementation runs independently in `/Users/david/dev/game-battle-blender-fixture`; inspect that agent's state before integration or restarting its work. [Choices](choices.md) owns decisions made during implementation.
+No known blockers. [Workbench evidence](assets/evidence/01/review.md) and [Blender round-trip evidence](assets/evidence/02/review.md) pass; no detailed soldier art is accepted yet. Source fixture commits are integrated. Live animated budgets remain unverified. Local Blender 5.2.1 is available; external AI generation stays excluded. The raw crowd renderer still serves production campaign, so03 must migrate it rather than treating it as disposable lab code. [Choices](choices.md) owns implementation decisions.
 
 The global TODO checklist is the slice list below. Update this prompt, the checklist, and the owning slice's evidence/decision record before ending every implementation pass. Record any dirty work or new blocker exactly; never call an unfinished slice complete because its screenshots look promising.
 
@@ -27,7 +27,7 @@ The global TODO checklist is the slice list below. Update this prompt, the check
 [Open the visual roadmap](visualizations/roadmap.html). Each link below owns its execution and acceptance record; later family slices iterate one explicitly named row at a time.
 
 - [x] [01 — Production model workbench](slices/01-production-workbench.md)
-- [ ] [02 — Blender export reference fixtures](slices/02-blender-reference-fixtures.md)
+- [x] [02 — Blender export reference fixtures](slices/02-blender-reference-fixtures.md)
 - [ ] [03 — Weighted mesh and skeleton cutover](slices/03-weighted-asset-contract.md)
 - [ ] [04 — Explicit material round trip](slices/04-explicit-materials.md)
 - [ ] [05 — Action observations and timeline](slices/05-action-timeline.md)

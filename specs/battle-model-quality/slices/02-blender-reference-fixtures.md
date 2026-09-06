@@ -1,6 +1,6 @@
 # 02 — Blender export reference fixtures
 
-Status: TODO. Depends on [01](./01-production-workbench.md).
+Status: COMPLETE. Depends on [01](./01-production-workbench.md). Export oracle only; production parity remains03.
 
 ## Contract and ownership
 
@@ -45,10 +45,10 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 
 ## Completion record
 
-- [ ] Contract and runnable artifact implemented.
-- [ ] Execution rows, if any, each have evidence and verdict.
-- [ ] Tests and inherited gates pass; changed-test behavior ledger recorded.
-- [ ] Comparison and final unprimed critique recorded.
-- [ ] Review/cleanup completed; README pickup and decisions updated.
+- [x] Contract and runnable artifact implemented.
+- [x] Human and mounted execution rows have evidence and verdict.
+- [x] Tests and inherited gates pass; no existing test behavior changed.
+- [x] Comparison and final unprimed critique recorded.
+- [x] Review/cleanup completed; README pickup and decisions updated.
 
-Record actual commands, evidence links, measured results, decisions and unresolved defects here during implementation. No implementation or visual acceptance has occurred yet.
+Use `/renderer/blender-reference`; run `cd web && VERIFY_GPU=1 VERIFY_URL=http://localhost:5174 node scene.mjs blender-reference`. [Source command, evidence and review](../assets/evidence/02/review.md) records the full surface comparison, hash repeatability, contact sheets and remaining diagnostic limitations. The source owns glTF Y-up landmark coordinates; the review holder converts to the shared Z-up camera basis once. No product asset replacement occurred here.

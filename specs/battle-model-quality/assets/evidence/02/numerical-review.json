@@ -1,5 +1,5 @@
 {
-  "scope": "Source/export geometry only; browser visual acceptance remains pending",
+  "scope": "Independent source/export geometry probe; browser acceptance is recorded separately",
   "blender": "5.2.1 LTS 9e2066aef7ef",
   "three": "0.185.1",
   "method": "Unmodified GLTFLoader.parseAsync, AnimationMixer with LoopOnce and clampWhenFinished, scene.updateMatrixWorld(true), SkinnedMesh.getVertexPosition(i).applyMatrix4(mesh.matrixWorld), compare every exported vertex through sourceVertexByGltfVertex to Blender evaluated surface positions. Node image decode was stubbed; this does not verify textures or rendered appearance.",
@@ -22,10 +22,10 @@
   },
   "rebuild": {
     "method": "Two separate factory-startup script runs produced byte-identical GLBs and landmark JSON; .blend files preserve authored source but are not byte-hash repeatability gates",
-    "humanGlbSha256": "f239c0f8c7a55f65788b3f85721a5a647491e796a6306bdb9ee7ca8ba62bef19",
-    "mountedGlbSha256": "d31624f7e582f92b500aeba58cb5121aa0415ce781d18ba6913856d45660b96a",
-    "humanLandmarksSha256": "1634fbc8aa2a898e49b10be29d05ef646c840d7cd3606e076e4ad2ba2147263c",
-    "mountedLandmarksSha256": "c7e81a3814f1450afe09d8d3f92127a7b7fcd650d88db2306d04e6dff86bd1d9"
+    "humanGlbSha256": "bcbcf04cda7a74fde87884a00f0839f248bdcd9c1077725b92fe97f195734490",
+    "mountedGlbSha256": "e4d86e39248cc9c857c9223f84a8c680415aaa862666ea63bfe6a43128872143",
+    "humanLandmarksSha256": "77a3894891cf78f146acc6beaad0dd0da8174a2963d6543c6880bb88cee90523",
+    "mountedLandmarksSha256": "3d6a0873ae85e69339dc447b96f420e61c4a92511f3033409660700ce70b5e2e"
   },
   "independentCodeReview": {
     "command": "codex review --uncommitted",

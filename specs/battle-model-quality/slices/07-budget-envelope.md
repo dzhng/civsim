@@ -18,7 +18,8 @@ Names of new functions/routes in this plan are proposed, not existing commands. 
 
 The [projected-detail correction](../assets/evidence/07/projected-lod.md) records
 the integrated policy, visual review, strict temporal repeat and standing
-hardware checks. Live combined budgets remain red; this does not freeze an art
+hardware checks. The matched close workload passes; broader budgets remain open,
+so this does not freeze an art
 envelope.
 
 Synthetic crowd sweeps with increasing vertices, bones, textures, crossfades and mounted masked composition; close, mid and vista camera fixtures.
@@ -106,7 +107,7 @@ visual changes are not final-art approval. This moves the policy prerequisite fo
 15 still owns authored mesh reductions, far appearance and visual continuity.
 Do not reduce final art quality to fit an uncorrected ruler.
 
-### Current red contract: interruption-frame CPU preparation
+### Current checkpoint: broader combined budgets after preparation cleanup
 
 The matched combined high-detail workload still fails both interruption cadence
 checks after the lazy prior-playback change; see
@@ -116,11 +117,24 @@ cost improved, but tails did not. A bounded CPU sampling
 substantial preparation work to projected LOD and palette packing, with GC
 overlap. The profiler's startup delay makes it diagnostic, not acceptance timing.
 
-Two independent owner-local passes now inspect LOD planning and palette packing.
-Preserve exact selected levels, histories, packed values and replacement/resource
-lifetimes. Measure the combined result on the same uninstrumented workload;
-neither reduced allocation nor green unit tests prove a frame-time win. Camera
-and display-resolution brackets and executable asset limits remain required.
+The two owner-local passes are integrated through1d6014d2: retained control
+scratch and less repeated LOD work. The [matched repeat](../assets/evidence/07/combined-control-lod.json)
+passes all30 checks with unchanged assets, camera, tier histograms and GPU upload
+volume. Interruption control/timed RAFp95 both fall to16.67ms from roughly33.33ms;
+CPU p95 is23.28/23.30ms. This is evidence for the combined changes, not separate
+attribution or proof of GC causation. Merged strict temporal/palette checks,
+camera and display-resolution brackets and executable asset limits remain
+required. The merged temporal/palette repeat now passes, as recorded in the
+projected-detail evidence. Do not infer a universal budget from one configuration.
+
+Distinct interruption histories are an additional required storage bracket.
+The passing67-joint/1024px report reaches a snapshot high-water of only one:
+synchronized soldiers share an exact source. Two unique sources for each of
+30,000 bodies would require192,960,000 bytes at67 joints and48 bytes per joint,
+above a128MiB storage-binding limit. This is a calculated uncovered case, not
+an observed allocation failure. Measure actual supported history/cardinality
+through the existing owner before accepting a limit; do not silently cap,
+approximate or discard exact frozen poses to fit the synchronized result.
 
 ## Focused verdict
 

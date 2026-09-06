@@ -128,6 +128,36 @@ one-channel maximum palette-render tolerance. This resolves the unequal-fixture
 comparison, not a production animation defect. Live animated budget sweeps are
 still required; the standing and temporal results do not substitute for them.
 
+### Controller shadow acceptance after audience separation
+
+The unfiltered merged replay run exposed a controller-image difference that the
+earlier temporal-only capture did not cover. The new preparation optimizations
+are not its cause: pre-optimization5657d660 and current captures are byte-identical
+(SHA256 `07faa1ea5343284ffd502eee5f3d281c98ebe04e1597cbcb43bbdab6b87b81ae`).
+The [pre-audience capture](controller-pre-audience.png) atd4ec5b81 is byte-identical
+to the old baseline, isolating the change to audience separation. Its
+[recorded state](controller-pre-audience.json) uses shared main/casterL0;
+[current state](controller-current.json) uses mainL0 plus casterL1. Pose, replay
+playback, one visible palette source, frozen snapshot and416 uploaded bytes match.
+The mounted body occupies10.239 shadow texels, so freshL1 follows the unchanged
+policy. Assets, shadow-map fit/bias and shaders were not altered for this capture.
+
+Root and a fresh unprimed reviewer inspected both full images and the
+[old](controller-pre-audience-shadow.png)/[current](control-lod-controller-shadow.png)
+2× crops. Direction, footprint, subject attachment, main silhouette and depth
+remain readable without a new visible defect. Both already have diffuse, weakly
+defined contact shadows; this is not a claim to improve those or accept the
+placeholder models. Fine stippling changes come from the reduced caster, not
+an admitted random-raster tolerance. The current frame was byte-identical across
+independent captures.
+
+Accept this intended shadow-detail change. Only the controller baseline is
+updated through `snapCheck` using the retained production-capture bytes. The
+39 temporal images and all numerical tolerances remain unchanged. The full
+palette/replay [rerun without update mode](control-lod-accepted-repeat.json)
+passes, including the controller's zero-pixel repeat. This closes that snapshot
+acceptance item, not the broader07 envelope or08 model quality.
+
 | Test | Previous behavior | New behavior | Why |
 | --- | --- | --- | --- |
 | `photorealCrowdLod`: coarsening | Focus distances0/30/150/420 with zoom12 produced tiers0/1/2/3. | Actual perspective at10/150/300/1000m produces tiers0/1/2/3; the visible150m mounted body exits L0 with previous L0. | The old test certified radial falloff rather than projection. **moved** |

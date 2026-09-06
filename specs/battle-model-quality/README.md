@@ -4,9 +4,9 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 
 ## Next Agent Prompt
 
-Last updated **2026-09-06**. **01–06 complete;07 open/red;08 candidate authoring in progress.**
+Last updated **2026-09-06**. **01–06 complete;07 envelope open;08 candidate authoring in progress.**
 Worktree: `/Users/david/dev/game-battle-model-quality`, branch
-`codex/battle-model-quality`; controller cleanup integrated through5a35fba9.
+`codex/battle-model-quality`; preparation cleanup integrated through1d6014d2.
 
 Two independent lanes now proceed:
 - Author08's editable Blender human anatomy and deform rig as a **workbench
@@ -28,6 +28,14 @@ Current evidence:
   Root61 focused tests and typecheck pass aftere82904c4. Standing30k passes;
   [strict temporal repeat](assets/evidence/07/equal-history-temporal.json) passes
   aftere28080af equalizes isolated reference LOD history. Live budgets remain open.
+  The merged control-storage/LOD cleanup passes67 focused tests and typecheck;
+  [matched high-detail close workload](assets/evidence/07/combined-control-lod.json)
+  now passes all30 checks. The merged
+  [palette/strict temporal repeat](assets/evidence/07/control-lod-accepted-repeat.json)
+  passes after explicit review of the separate caster's controller shadow.
+  Broader geometry/camera/display and distinct-interruption storage brackets
+  remain required; the synchronized67-joint/1024px pass exercises only one
+  shared frozen source and cannot establish worst-case memory capacity.
 - [Measurement foundation](assets/evidence/07/measurement-foundation.md) and
   [07](slices/07-budget-envelope.md) own raw brackets and remaining requirements.
   No art envelope or detailed model has been accepted.08's original Blender

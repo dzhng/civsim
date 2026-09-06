@@ -1,11 +1,12 @@
 import { requireSwiftShaderBaseline } from "./_swiftshader-baseline.ts";
+import { temporalSnapshots, verifyTemporalReplay } from "./_temporal-replay.mjs";
 
 export const meta = {
   name: "battle-model-action-replay",
   kind: "visual",
   world: "battle-models-action-replay",
   tier: "full",
-  snapshots: ["shared/soldiers/action-replay/controller"],
+  snapshots: ["shared/soldiers/action-replay/controller", ...temporalSnapshots],
   describe:
     "Synthetic observation replay through the real timeline, catalog and GPU-blended production submission; numerical and temporal pose gates remain separate.",
 };
@@ -200,6 +201,17 @@ export async function run(ctx) {
       "source-generated applicability matrix is available",
       matrix.ok() && Object.keys((await matrix.json()).appearances).length > 0,
     );
+    await page.evaluate(() => window.__battleModels.reload());
+    await verifyTemporalReplay(ctx, page);
+    await page.goto(
+      `${ctx.target}/renderer/battle-models?ref=1&catalog=/assets/soldiers/candidates/blender-reference/catalog.json`,
+    );
+    await page.waitForFunction(() => window.__battleModels?.stats().frame >= 3, undefined, {
+      timeout: 60000,
+    });
+    await page.evaluate(() => window.__battleModels.freeze());
+    await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
+    await verifyTemporalReplay(ctx, page, [41]);
   } finally {
     await page.close();
   }

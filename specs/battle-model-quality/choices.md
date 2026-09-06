@@ -2,6 +2,35 @@
 
 ## Sound — medium confidence
 
+### Check pose arithmetic and rendered consumption separately (06c)
+
+When two mathematically equivalent poses differ by a tiny rounding amount, one
+pixel at a shoulder or shadow boundary can still pick a different surface. The
+test first independently computes the CPU joint transforms and compares them
+with the actual GPU transforms under the existing1e-5 bound. It then uses those
+validated GPU transforms to pose geometry on the CPU and compares that render
+with production within one8-bit color level. The original all-CPU image is still
+reported, but is not falsely described as pixel-identical. The alternative was
+an exception for one troublesome pixel, which would hide rather than isolate
+the cause. The plan required CPU/GPU agreement without defining how numerical
+pose tolerance interacts with discontinuous raster/shadow boundaries.
+**Sound:** the independent numerical check prevents a circular reference, and
+the second check verifies actual rendering. Future fixture changes inherit both
+checks, exact temporal continuity, and exact screenshot baselines.
+
+### Give the authored diagnostic test-only action bindings (06c)
+
+The Blender export diagnostic has a gait and a rider motion but no gameplay
+action vocabulary. The test clones it, gives the original tracks named roles
+for the real controller, and uses the rider track's endpoint as a synthetic
+full-body terminal target. Nothing is downloaded, no new animation is claimed,
+and the actual catalog remains manual-only. The unbuilt alternative would let
+blocky gameplay horses stand in for an articulated horse/rider rig, leaving
+mounted composition under-tested. The plan required this diagnostic but did not
+specify its test bindings. **Sound:** the isolated aliases exercise the real
+controller and renderer without admitting fake death art into gameplay. Future
+authored soldiers still need genuine action clips and their own motion review.
+
 ### Explicitly retire compute-only storage in the pinned Three version (06b)
 
 The production renderer's joint buffers have no geometry owner to release them.

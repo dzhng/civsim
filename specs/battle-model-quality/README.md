@@ -4,10 +4,10 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 
 ## Next Agent Prompt
 
-Last updated **2026-09-06**. Status: **slices01–05 complete;06 in progress**.
+Last updated **2026-09-06**. Status: **slices01–06 complete;07 next**.
 
 Current worktree: `/Users/david/dev/game-battle-model-quality`, branch
-`codex/battle-model-quality`, with integrated foundations through b5149d1a.
+`codex/battle-model-quality`, with integrated foundations through fac9e2a8.
 06a/b source, assets and both GPU consumers are installed together; no old reader
 remains. [Merged validation](assets/evidence/06/merged-validation.md) owns the
 source, numerical, actual-consumer, strict image-repeat and standing hardware
@@ -15,19 +15,19 @@ evidence, including the successful [post-install browser repeat](assets/evidence
 The standing gate retains its30k/33ms contract; it does not establish the live
 animated budget required in07.
 
-Next: finish [06c temporal acceptance](slices/06-gpu-playback.md). The shared
-[corpse-strength consumers](assets/evidence/06/corpse-strength-consumers.md)
-are integrated in9a8c08ce and47fcfaba; b5149d1a integrates the dense replay recipe
-and same-time event boundary. Do not re-prepare or duplicate these foundations.
-The root owns the uncommitted production temporal scene and captures. Its first
-mounted frozen-GPU control was red; a green repeat alone does not resolve that
-failure or accept the fixture. Diagnose the control, then prove fixed-world
-foreground articulation against the CPU reference, interrupted actions, mounted
-exit, continuous observed death, actual culling agreement and bounded storage.
-Complete deterministic repeats and visual review before closing06c. Existing
-battle gait pixels measure scene motion, not isolated articulation.
+Next: implement [07's measured asset envelope](slices/07-budget-envelope.md)
+with frame-correlated, compute-inclusive hardware timing and allocation evidence.
+The [temporal validation](assets/evidence/06/temporal-validation.md) records the
+passing531-check combined run,284 web tests, independent reviews, and remaining
+placeholder-art limitations. The source, corpse consumers, replay recipe and
+test-only articulated diagnostic are integrated; do not re-prepare them. The
+render oracle is deliberately two-part: independently validate actual GPU joint
+matrices, then verify rendering with those validated matrices. Original all-CPU
+image differences remain telemetry, not a claimed equality pass. Exact frozen
+frames and event continuity remain required. The filtered strict repeat passed;
+the temporal checkpoint accepts transport only, and Preview has no open windows.
 
-Keep06→07→08 unchanged: finish transport's temporal proof, measure budgets, then
+Keep07→08 unchanged: measure budgets, then
 author detailed human anatomy in Blender. Current blocky content is only a test
 subject for the new production path, not the final model or an art acceptance.
 No detailed soldier art or user-only blocker exists.
@@ -64,7 +64,7 @@ in auxiliary worktrees are verification-only and must never be committed.
 - [x] [03 — Weighted mesh and skeleton cutover](slices/03-weighted-asset-contract.md)
 - [x] [04 — Explicit material round trip](slices/04-explicit-materials.md)
 - [x] [05 — Action observations and timeline](slices/05-action-timeline.md)
-- [ ] [06 — GPU interpolation and clip blending](slices/06-gpu-playback.md)
+- [x] [06 — GPU interpolation and clip blending](slices/06-gpu-playback.md)
 - [ ] [07 — Measure asset and animated-view budgets](slices/07-budget-envelope.md)
 - [ ] [08 — Shared human anatomy](slices/08-anatomy.md)
 - [ ] [09 — First-pair equipment geometry](slices/09-pair-gear.md)

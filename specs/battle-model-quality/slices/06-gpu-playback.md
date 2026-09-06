@@ -1,6 +1,6 @@
 # 06 — GPU interpolation and clip blending
 
-Status: IN PROGRESS —06a/b are installed together and verified;06c consumer and replay foundations are integrated, but production temporal acceptance remains open. Depends on [05](./05-action-timeline.md), [04](./04-explicit-materials.md).
+Status: COMPLETE — source, GPU transport and production temporal acceptance verified. Depends on [05](./05-action-timeline.md), [04](./04-explicit-materials.md).
 
 ## Contract and ownership
 
@@ -26,7 +26,7 @@ Keep at most one frozen source per active lane, recycle it after use, and never 
 
 ### Execution rows
 
-Complete these rows in order;06a/b evidence is recorded below, while06c remains unaccepted.
+All three rows are accepted; their evidence is linked in the completion record.
 
 | Row | Contract and artifact | Required verdict |
 | --- | --- | --- |
@@ -53,6 +53,10 @@ Use the owning source and recorded evidence for runnable entry points, and the [
 
 ## Runnable artifact
 
+The existing `battle-model-action-replay` scene now owns temporal acceptance;
+the [validation record](../assets/evidence/06/temporal-validation.md) contains
+commands, numerical/raster evidence, visual critique and changed-test behavior.
+
 The [implementation-specific bounds revalidation](../assets/evidence/06/gpu-rounding-bounds.md) covers the shared local-palette interpolation/normalization arithmetic and depth-independent CPU retained component ranges. It does not replace06b GPU consumer or07 cost gates.
 
 Production fixture displays slow walk and run blends, interrupted attack and held death at quarter-frame offsets.
@@ -70,6 +74,19 @@ Freeze all previously accepted variables. Capture the candidate and prior/refere
 ## Verification
 
 CPU reference versus GPU fixture samples at start, fractional frames, final frame and transition endpoints, including mounted gait with concurrent rider action; no modulo wrap for nonloops; shadow and visible pose agree. Existing gait tests stay meaningful.
+
+The temporal reference separates two precision domains. Independently evaluated
+CPU joint matrices must agree with the actual GPU palette within the inherited
+`1e-5` bound. CPU-preposing the geometry with that validated read-back palette
+must then agree with the production rendered frame within one 8-bit channel
+quantization level (measured maximum across27 samples; five frames differed,
+with at most9 pixels affected). No high-contrast pixel exception is allowed.
+Keep independently composed
+CPU-image differences as telemetry, not a claim of pixel equality: diagnostic41
+showed a single high-contrast boundary sample from a `5.3644e-7` matrix difference,
+and using the read-back palette removed it exactly with shadows enabled. This
+two-part proof retains an independent pose oracle without inventing a per-pixel
+exception. Exact repeated frames and same-time event continuity remain required.
 
 The inherited battle gait crop proves on-screen scene motion, not isolated
 articulation.06c must hold camera, placement and background fixed and compare the
@@ -94,7 +111,7 @@ Execute06c in three small checks after transport admission:
 - Wire the shared corpse strength through the actual consumers and culling;
   prove living, newly dying, fully dead and reset/manual states before screenshots.
   The [consumer foundation](../assets/evidence/06/corpse-strength-consumers.md)
-  records CPU payload checks; temporal GPU acceptance remains outstanding.
+  records CPU payload checks; the temporal validation below covers GPU acceptance.
 - Extend the existing lab replay with one dense synthetic observation recipe and
   a same-time event boundary. Sample the real timeline before observing the event,
   then observe and sample again at exactly that time. The before frame retains
@@ -128,25 +145,28 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 
 ## Completion record
 
-- [ ] Contract and runnable artifact implemented.
-- [ ] Execution rows, if any, each have evidence and verdict.
-- [ ] Tests and inherited gates pass; changed-test behavior ledger recorded.
-- [ ] Comparison and final unprimed critique recorded.
-- [ ] Review/cleanup completed; README pickup and decisions updated.
+- [x] Contract and runnable artifact implemented.
+- [x] Execution rows each have evidence and verdict.
+- [x] Tests and inherited gates pass; changed-test behavior ledger recorded.
+- [x] Comparison and final unprimed critique recorded.
+- [x] Review/cleanup completed; README pickup and decisions updated.
 
 06a source evidence lives in [local source](../assets/evidence/06/local-animation-source.md)
 and [format cutover](../assets/evidence/06/local-format-cutover.md). Installed06b
 consumer evidence lives in [Three](../assets/evidence/06/three-palette-cutover.md),
 [raw](../assets/evidence/06/raw-palette-cutover.md) and the
 [merged visual comparison](../assets/evidence/06/merged-comparison/review.md).
-These transport proofs do not close06c or accept detailed soldier art.
+06c's [temporal validation](../assets/evidence/06/temporal-validation.md) records
+the production sequence, strict repeat, composed reference proof and final
+independent critique. None of these proofs accepts detailed soldier art.
 
 [Merged validation](../assets/evidence/06/merged-validation.md) records the
 atomic installation, compute-query lifetime correction, standing hardware gate
 and post-install repeat. The corpse helper and all consumer wiring are integrated
 in9a8c08ce/47fcfaba; b5149d1a adds the dense recipe and same-time boundaries in
 `apps/renderer-lab/src/battleModelReplay.ts`, with CPU contract tests in
-`web/tests/battleModelReplay.test.ts`. These are06c foundations, not rendered
-continuity proof. Root-owned temporal scene work and captures remain uncommitted;
-the mounted frozen-GPU control's initial failure is unresolved despite a green
-repeat. No06c visual verdict or new baseline acceptance is recorded here.
+`web/tests/battleModelReplay.test.ts`. The temporal scene now supplies the rendered
+continuity proof. Its initial nonreproducing control failure, subsequent exact
+stationary control, final repeat and bounded reference precision are recorded
+honestly in the validation record. The human checkpoint accepts transport only;
+07 owns the measured budget before08 begins Blender anatomy.

@@ -38,10 +38,7 @@ export async function run(ctx) {
         const { evaluatePlaybackPose } = await module(
           "packages/crowd-runtime/src/actionTimeline.ts",
         );
-        const { localPoseToJointMatrices, mat4Identity } = await module(
-          "packages/soldier-assets/src/localPose.ts",
-        );
-        const { poseSoldierMesh } = await module("packages/soldier-assets/src/skin.ts");
+        const { posedBundle } = await module("web/scenes/models/_posed-bundle.ts");
         const { bakeLocalAnimation } = await module(
           "packages/soldier-assets/src/localAnimation.ts",
         );
@@ -67,36 +64,7 @@ export async function run(ctx) {
             weight: 0.38,
           },
         };
-        const cpuPalette = localPoseToJointMatrices(
-          source.rig,
-          evaluatePlaybackPose(source, playback),
-        );
-        const cpu = structuredClone(source);
-        const pose = (mesh) => {
-          const posed = poseSoldierMesh(mesh, cpuPalette);
-          return {
-            ...mesh,
-            ...posed,
-            joints: new Uint16Array(mesh.joints.length),
-            weights: Float32Array.from(mesh.weights, (_, index) => Number(index % 4 === 0)),
-          };
-        };
-        cpu.tiers = cpu.tiers.map(pose);
-        cpu.farMesh = pose(cpu.farMesh);
-        cpu.rig = {
-          bones: [
-            {
-              name: "oracle",
-              parent: -1,
-              bind: { T: [0, 0, 0], R: [0, 0, 0, 1], S: [1, 1, 1] },
-              inverseBind: mat4Identity(),
-            },
-          ],
-          clips: [{ name: "oracle", duration: 1, loop: true, tracks: {} }],
-        };
-        cpu.animation = bakeLocalAnimation(cpu.rig);
-        cpu.manifest.presentation = null;
-        cpu.manifest.far = { ...cpu.manifest.far, clip: "oracle", phase: 0 };
+        const cpu = posedBundle(source, playback);
         h.set({
           classId: 41,
           clip: "gait",

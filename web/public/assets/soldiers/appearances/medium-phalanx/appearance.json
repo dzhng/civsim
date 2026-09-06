@@ -1,0 +1,25 @@
+{
+  "name": "medium-phalanx",
+  "mounted": false,
+  "skeleton": "../../baked/human-placeholder.skeleton.json",
+  "animation": "../../baked/human-placeholder.vat.json",
+  "materials": "../../baked/placeholder.materials.json",
+  "tiers": [
+    "tier-0.mesh.json",
+    "tier-1.mesh.json",
+    "tier-2.mesh.json"
+  ],
+  "far": {
+    "mesh": "tier-0.mesh.json",
+    "clip": "idle",
+    "phase": 0
+  },
+  "bounds": {
+    "center": [
+      0.03908604383468628,
+      -0.2330121397972107,
+      1.6226444244384766
+    ],
+    "radius": 2.5181444952403953
+  }
+}

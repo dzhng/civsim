@@ -1,0 +1,13 @@
+[
+  {
+    "name": "placeholder-vertex-color",
+    "baseColor": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "roughness": 0.84,
+    "metallic": 0
+  }
+]

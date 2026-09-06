@@ -1,0 +1,25 @@
+{
+  "name": "horse-archers",
+  "mounted": true,
+  "skeleton": "../../baked/human-placeholder.skeleton.json",
+  "animation": "../../baked/human-placeholder.vat.json",
+  "materials": "../../baked/placeholder.materials.json",
+  "tiers": [
+    "tier-0.mesh.json",
+    "tier-1.mesh.json",
+    "tier-2.mesh.json"
+  ],
+  "far": {
+    "mesh": "tier-0.mesh.json",
+    "clip": "idle",
+    "phase": 0
+  },
+  "bounds": {
+    "center": [
+      -0.03162236511707306,
+      -0.08152246475219727,
+      0.9584013521671295
+    ],
+    "radius": 2.0127789994783387
+  }
+}

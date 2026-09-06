@@ -1,0 +1,25 @@
+{
+  "name": "archers",
+  "mounted": false,
+  "skeleton": "../../baked/human-placeholder.skeleton.json",
+  "animation": "../../baked/human-placeholder.vat.json",
+  "materials": "../../baked/placeholder.materials.json",
+  "tiers": [
+    "tier-0.mesh.json",
+    "tier-1.mesh.json",
+    "tier-2.mesh.json"
+  ],
+  "far": {
+    "mesh": "tier-0.mesh.json",
+    "clip": "idle",
+    "phase": 0
+  },
+  "bounds": {
+    "center": [
+      -0.006596088409423828,
+      0.03707060217857361,
+      0.9824908971786499
+    ],
+    "radius": 1.44157983262226
+  }
+}

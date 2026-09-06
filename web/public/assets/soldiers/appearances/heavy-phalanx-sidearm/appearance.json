@@ -1,0 +1,25 @@
+{
+  "name": "heavy-phalanx-sidearm",
+  "mounted": false,
+  "skeleton": "../../baked/human-placeholder.skeleton.json",
+  "animation": "../../baked/human-placeholder.vat.json",
+  "materials": "../../baked/placeholder.materials.json",
+  "tiers": [
+    "tier-0.mesh.json",
+    "tier-1.mesh.json",
+    "tier-2.mesh.json"
+  ],
+  "far": {
+    "mesh": "tier-0.mesh.json",
+    "clip": "idle",
+    "phase": 0
+  },
+  "bounds": {
+    "center": [
+      0.053539127111434937,
+      -0.4851572513580322,
+      1.5754183530807495
+    ],
+    "radius": 2.310566408820332
+  }
+}

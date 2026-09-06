@@ -1,0 +1,25 @@
+{
+  "name": "heavy-sword",
+  "mounted": false,
+  "skeleton": "../../baked/human-placeholder.skeleton.json",
+  "animation": "../../baked/human-placeholder.vat.json",
+  "materials": "../../baked/placeholder.materials.json",
+  "tiers": [
+    "tier-0.mesh.json",
+    "tier-1.mesh.json",
+    "tier-2.mesh.json"
+  ],
+  "far": {
+    "mesh": "tier-0.mesh.json",
+    "clip": "idle",
+    "phase": 0
+  },
+  "bounds": {
+    "center": [
+      0.04855230450630188,
+      -0.07479327917098999,
+      1.0801441669464111
+    ],
+    "radius": 1.6020789439200416
+  }
+}

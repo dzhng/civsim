@@ -1,0 +1,25 @@
+{
+  "name": "shock-cav",
+  "mounted": true,
+  "skeleton": "../../baked/human-placeholder.skeleton.json",
+  "animation": "../../baked/human-placeholder.vat.json",
+  "materials": "../../baked/placeholder.materials.json",
+  "tiers": [
+    "tier-0.mesh.json",
+    "tier-1.mesh.json",
+    "tier-2.mesh.json"
+  ],
+  "far": {
+    "mesh": "tier-0.mesh.json",
+    "clip": "idle",
+    "phase": 0
+  },
+  "bounds": {
+    "center": [
+      0.14930817484855652,
+      -0.22763311862945557,
+      1.622764378786087
+    ],
+    "radius": 3.2187419512756237
+  }
+}

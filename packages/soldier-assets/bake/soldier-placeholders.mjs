@@ -1,13 +1,13 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bakeRig, mat4FromTRS } from './vat.mjs';
+import { createPlaceholderSoldierMeshTiers } from '../src/soldierMesh.ts';
+import { encodeSoldierMesh } from '../src/appearanceBundle.ts';
+import { poseSoldierMesh } from '../src/skin.ts';
 
-const OUT = new URL('../assets/baked/human-placeholder.vat.json', import.meta.url);
-const KIT = new URL('../assets/kit.json', import.meta.url);
-const WEB_OUT = new URL('../../../web/public/assets/soldiers/baked/human-placeholder.vat.json', import.meta.url);
-const WEB_KIT = new URL('../../../web/public/assets/soldiers/kit.json', import.meta.url);
+const ASSET_ROOTS = [new URL('../assets/', import.meta.url), new URL('../../../web/public/assets/soldiers/', import.meta.url)];
 const FPS = 12;
 
 const qx = (a) => [Math.sin(a / 2), 0, 0, Math.cos(a / 2)];
@@ -150,11 +150,64 @@ function hashFloats(data) {
 }
 
 function stableJson(value) {
-  return `${JSON.stringify(value, null, 2)}\n`;
+  return `${JSON.stringify(value, null, value.indexFormat ? undefined : 2)}\n`;
+}
+
+/** The box encloses every baked pose; its circumsphere also survives instance yaw. */
+function animatedBounds(tiers, animation) {
+  const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
+  for (const mesh of tiers) {
+    for (let frame = 0; frame < animation.width; frame++) {
+      const { positions } = poseSoldierMesh(mesh, animation, frame);
+      for (let i = 0; i < positions.length; i++) {
+        const axis = i % 3;
+        min[axis] = Math.min(min[axis], positions[i]);
+        max[axis] = Math.max(max[axis], positions[i]);
+      }
+    }
+  }
+  const center = min.map((v, axis) => (v + max[axis]) / 2);
+  return { center, radius: Math.hypot(...max.map((v, axis) => v - center[axis])) };
+}
+
+function completeBundleFiles(rig, animation, kit) {
+  const files = {
+    'baked/human-placeholder.skeleton.json': {
+      ...rig, bones: rig.bones.map((bone) => ({ ...bone, inverseBind: Array.from(bone.inverseBind) })),
+    },
+    'baked/placeholder.materials.json': [{
+      name: 'placeholder-vertex-color', baseColor: [1, 1, 1, 1], roughness: 0.84, metallic: 0,
+    }],
+  };
+  const appearances = {};
+  const meshes = createPlaceholderSoldierMeshTiers();
+  for (const [id, archetype] of Object.entries(kit.archetypes)) {
+    const path = `appearances/${archetype.name}`;
+    const tiers = meshes[Number(id)];
+    const tierPaths = tiers.map((mesh, lod) => {
+      const name = `tier-${lod}.mesh.json`;
+      files[`${path}/${name}`] = encodeSoldierMesh(mesh);
+      return name;
+    });
+    appearances[id] = `${path}/appearance.json`;
+    files[appearances[id]] = {
+      name: archetype.name, mounted: Boolean(archetype.mount),
+      skeleton: '../../baked/human-placeholder.skeleton.json',
+      animation: '../../baked/human-placeholder.vat.json',
+      materials: '../../baked/placeholder.materials.json',
+      tiers: tierPaths,
+      // Far atlases retain the complete equipment silhouette, not the coarse tier's omissions.
+      far: { mesh: tierPaths[0], clip: 'idle', phase: 0 },
+      bounds: animatedBounds(tiers, animation),
+    };
+  }
+  files['catalog.json'] = { appearances };
+  return files;
 }
 
 export async function bakePlaceholder({ write = true } = {}) {
-  const baked = bakeRig(placeholderRig(), FPS);
+  const rig = placeholderRig();
+  const baked = bakeRig(rig, FPS);
   const out = {
     schema: 1,
     skeleton: 'human-placeholder',
@@ -168,29 +221,54 @@ export async function bakePlaceholder({ write = true } = {}) {
     data: Array.from(baked.data, (v) => Number(v.toFixed(8))),
   };
   const kit = kitJson(baked);
+  const files = completeBundleFiles(rig, out, kit);
+  // Remove kit.json with the old runtime loader at the atomic consumer cutover.
+  files['kit.json'] = kit;
+  files['baked/human-placeholder.vat.json'] = out;
   if (write) {
-    await mkdir(dirname(fileURLToPath(OUT)), { recursive: true });
-    await mkdir(dirname(fileURLToPath(WEB_OUT)), { recursive: true });
-    await writeFile(OUT, stableJson(out));
-    await writeFile(KIT, stableJson(kit));
-    await writeFile(WEB_OUT, stableJson(out));
-    await writeFile(WEB_KIT, stableJson(kit));
+    for (const root of ASSET_ROOTS) {
+      for (const [path, content] of Object.entries(files)) {
+        const url = new URL(path, root);
+        await mkdir(dirname(fileURLToPath(url)), { recursive: true });
+        await writeFile(url, stableJson(content));
+      }
+    }
   }
-  return { out, kit };
+  return { out, kit, files };
 }
 
 if (process.argv[1] && import.meta.url === new URL(process.argv[1], 'file:').href) {
   const check = process.argv.includes('--check');
   const next = await bakePlaceholder({ write: !check });
   if (check) {
-    const currentOut = JSON.parse(await readFile(OUT, 'utf8'));
-    const currentKit = JSON.parse(await readFile(KIT, 'utf8'));
-    const currentWebOut = JSON.parse(await readFile(WEB_OUT, 'utf8'));
-    const currentWebKit = JSON.parse(await readFile(WEB_KIT, 'utf8'));
-    const ok = stableJson(currentOut) === stableJson(next.out)
-      && stableJson(currentKit) === stableJson(next.kit)
-      && stableJson(currentWebOut) === stableJson(next.out)
-      && stableJson(currentWebKit) === stableJson(next.kit);
+    let ok = true;
+    for (const root of ASSET_ROOTS) {
+      const appearanceRoot = new URL('appearances/', root);
+      const entries = await readdir(appearanceRoot, { recursive: true, withFileTypes: true }).catch((error) => {
+        if (error.code !== 'ENOENT') throw error;
+        return [];
+      });
+      for (const entry of entries) {
+        if (!entry.isFile()) continue;
+        const path = `${entry.parentPath}/${entry.name}`;
+        const relative = path.slice(fileURLToPath(root).length);
+        if (!(relative in next.files)) {
+          console.error(`obsolete generated asset: ${path}`);
+          ok = false;
+        }
+      }
+      for (const [path, content] of Object.entries(next.files)) {
+        const url = new URL(path, root);
+        const current = await readFile(url, 'utf8').catch((error) => {
+          if (error.code !== 'ENOENT') throw error;
+          return null;
+        });
+        if (current !== stableJson(content)) {
+          console.error(`stale or missing generated asset: ${fileURLToPath(url)}`);
+          ok = false;
+        }
+      }
+    }
     if (!ok) {
       console.error('placeholder soldier bake is not up to date or not deterministic');
       process.exitCode = 1;
@@ -198,6 +276,6 @@ if (process.argv[1] && import.meta.url === new URL(process.argv[1], 'file:').hre
       console.log('placeholder soldier bake is deterministic');
     }
   } else {
-    console.log(`wrote ${fileURLToPath(KIT)} and ${fileURLToPath(OUT)}`);
+    console.log(`wrote ${Object.keys(next.files).length} placeholder assets to package and web roots`);
   }
 }

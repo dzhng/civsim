@@ -1,0 +1,25 @@
+{
+  "name": "artillery-crew",
+  "mounted": false,
+  "skeleton": "../../baked/human-placeholder.skeleton.json",
+  "animation": "../../baked/human-placeholder.vat.json",
+  "materials": "../../baked/placeholder.materials.json",
+  "tiers": [
+    "tier-0.mesh.json",
+    "tier-1.mesh.json",
+    "tier-2.mesh.json"
+  ],
+  "far": {
+    "mesh": "tier-0.mesh.json",
+    "clip": "idle",
+    "phase": 0
+  },
+  "bounds": {
+    "center": [
+      0.3710256516933441,
+      0.31108978390693665,
+      1.0023184400051832
+    ],
+    "radius": 1.8108682324587098
+  }
+}

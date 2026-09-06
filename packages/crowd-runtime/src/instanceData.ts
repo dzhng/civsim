@@ -39,6 +39,13 @@ export interface CrowdInstance {
   deathVariant?: number;
 }
 
+/** Coherent dead submissions enter corpse effects with the death blend, not clip phase. */
+export function corpsePresentationStrength(
+  instance: Pick<CrowdInstance, "alive" | "playback">,
+): number {
+  return instance.alive ? 0 : (instance.playback?.base.weight ?? 1);
+}
+
 export interface CrowdBuildStats {
   input: number;
   written: number;

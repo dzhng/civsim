@@ -9,6 +9,11 @@ import {
 import type { ImportedRig } from "@packages/soldier-assets/src/rig";
 import type { AppearancePresentation } from "@packages/soldier-assets/src/presentation";
 import type { LocalAnimationClip } from "@packages/soldier-assets/src/localAnimation";
+import {
+  buildCrowdInstances,
+  corpsePresentationStrength,
+  generatedFormation,
+} from "@packages/crowd-runtime/src/instanceData";
 
 const actions: AppearancePresentation["actions"] = {
   ready: { clip: "rest", layer: "fullBody" },
@@ -69,6 +74,65 @@ const soldier = (changes: Partial<ActionObservation> = {}): ActionObservation =>
   releaseTtl: 0,
   releaseAgeSeconds: 0,
   ...changes,
+});
+
+test("corpse presentation leaves live instances unchanged and keeps manual corpses terminal", () => {
+  const [manual] = generatedFormation(1);
+  assert.equal(corpsePresentationStrength(manual), 0);
+  assert.equal(corpsePresentationStrength({ ...manual, alive: false }), 1);
+  const timeline = new ActionTimeline(appearances);
+  const playback = timeline.update(0, [soldier()]);
+  const [live] = buildCrowdInstances({ positions: new Float32Array(2), playback }).instances;
+  assert.equal(corpsePresentationStrength(live), 0);
+});
+
+test("corpse presentation follows submitted death blend independently of fall clip progress", () => {
+  const timeline = new ActionTimeline(appearances);
+  timeline.update(0, [soldier({ speedMps: 1 })]);
+  timeline.update(30, [soldier({ alive: false })]);
+  for (const [tick, strength] of [
+    [30, 0],
+    [32.25, 0.5],
+    [34.5, 1],
+  ]) {
+    const playback = timeline.sample(tick);
+    const [dead] = buildCrowdInstances({
+      positions: new Float32Array(2),
+      alive: new Uint8Array([0]),
+      playback,
+    }).instances;
+    assert.ok(Math.abs(corpsePresentationStrength(dead) - strength) < 1e-12);
+    assert.ok(dead.phase < 0.2, "corpse effects settle before the one-second fall clip ends");
+    assert.equal(corpsePresentationStrength({ ...dead, alive: true }), 0);
+  }
+});
+
+test("corpse presentation is terminal for initially dead and reset histories", () => {
+  const timeline = new ActionTimeline(appearances);
+  const submittedStrength = (tick: number) => {
+    const playback = timeline.update(tick, [soldier({ alive: false })]);
+    const [dead] = buildCrowdInstances({
+      positions: new Float32Array(2),
+      alive: new Uint8Array([0]),
+      playback,
+    }).instances;
+    return corpsePresentationStrength(dead);
+  };
+  assert.equal(submittedStrength(0), 1);
+  timeline.reset();
+  timeline.update(0, [soldier()]);
+  assert.equal(submittedStrength(30), 0);
+  timeline.reset();
+  assert.equal(submittedStrength(30), 1);
+  // A rebuilt catalog/controller intentionally starts without prior visual history.
+  const replacement = new ActionTimeline(appearances);
+  const playback = replacement.update(30, [soldier({ alive: false })]);
+  const [dead] = buildCrowdInstances({
+    positions: new Float32Array(2),
+    alive: new Uint8Array([0]),
+    playback,
+  }).instances;
+  assert.equal(corpsePresentationStrength(dead), 1);
 });
 
 test("action entry starts locally and locomotion follows authored duration", () => {

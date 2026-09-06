@@ -1,9 +1,9 @@
 # 04a integration — explicit scalar surfaces
 
 This checkpoint verifies authored scalar material transfer, not final soldier art.
-GPU-error admission and late-pose reload revalidation pass. Controlled far
-comparison has isolated missing contact darkening; its correction remains the
-open04a integration gate. The README owns the current pickup point.
+04a is complete: GPU-error admission, material validation and late-pose reload
+revalidation pass. Controlled far comparison isolated missing contact darkening;
+the merged correction also passes. The README owns the next pickup point.
 Geometry and clips remain the diagnostic/placeholder content from03. The same
 linear material table and explicit faction mask feed near, raw and far consumers;
 instance seed no longer changes appearance. Texture transport and posed normal
@@ -108,10 +108,24 @@ production workbench also reloads a material with missing roughness and proves
 explicit rejection plus byte-identical previous pixels. The review finding is
 resolved; typecheck and the focused loader/browser checks pass.
 
-The shared integration is a commit checkpoint, not final04a acceptance: the
-controlled far-contact correction remains separate so its intended pixel changes
-receive their own evidence and critique. No texture or anatomy completion is
-claimed by this checkpoint.
+The subsequent contact correction has its own controlled evidence and independent
+critiques in `far-grounding/`. Main inspected the merged diff: all near snapshots
+are unchanged; three far-bundle and six far-property snapshots change only in
+lower-body grounding (149–2233 pixels each). Those intended changes were refreshed,
+then strict grounding/bundle/property/admission/default-battle scenes passed.
+Typecheck and202 tests pass. The final Apple Metal3 standing benchmark retains
+30,560 soldiers at1280×800 and150 GPU samples per stationary view: medians10.25ms
+mid and11.11ms vista, with all unchanged33ms camera gates passing. Simulation is
+paused, so this still does not substitute for07 live animation acceptance.
+
+An extra full-game liveness run exposed a pre-existing campaign workload assertion:
+it expects over1000 line segments, but both base90bbdcaa and current code generate
+28 sea-lane strips; roads are reported separately as288,852 triangles. The test,
+data and geometry owner are byte-identical across that comparison. A separate
+verification-maintenance pass corrects the asserted workload, not the renderer.
+This failed extra run is not reported as a passing full-game suite.
+
+No texture, anatomy or final distance-art completion is claimed by04a.
 
 | Test | Previous behavior | New behavior | Why |
 | --- | --- | --- | --- |

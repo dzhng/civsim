@@ -29,6 +29,48 @@ final distance readability remain15/28. Decide and measure its bake mechanism
 before implementation rather than preserving the color-only CPU painter as an
 undocumented exception. No detailed anatomy or armor styling is accepted here.
 
+### 04b authoring and resource envelope
+
+Use one source-owned texture set per appearance, shared across its material slots
+and tiers: base color, normal and packed occlusion/roughness/metallic. Each channel
+may have its own image dimensions and sampler; do not resize base images or combine
+competing source images. Independently exported tiers may reference identical bytes
+under different local indices. Identity follows image content and normalized
+sampler settings, not a whole-export hash.
+
+Each slot independently declares base-color, normal, metallic/roughness and
+occlusion use. Normal scale and occlusion strength remain authored values. A slot
+using metallic/roughness alone must not acquire occlusion from the image's red
+channel. Where both reference textures, their image bytes and sampler must match.
+UV0 is the supported coordinate set; reject conflicting images, other UV sets,
+texture transforms and unsupported material extensions explicitly. Opaque materials
+are the envelope; do not silently reinterpret transparency.
+
+The material file becomes one complete surface-set description rather than an
+array accompanied by a second texture manifest. Change all owned producers,
+consumers and fixtures together; no legacy array reader. Preserve embedded PNG/JPEG
+bytes and resolve their emitted relative paths against that material file. Missing
+channel declarations mean no map; declared resources that fail to fetch, decode or
+prepare reject the replacement. `_FACTION_MASK` is an independent Blender vertex
+attribute: absence means unmarked, never RGB inference; malformed present data
+rejects. The source lane owns its real-export proof.
+
+Loaded assets retain immutable encoded bytes, not shared live image bitmaps. Each
+prepared GPU surface owner decodes its own images, performs checked uploads and
+mipmap generation, closes decoded images and owns the resulting GPU textures.
+Near rendering and far baking share one prepared surface; independent crowds and
+the raw renderer do not share disposable GPU ownership. No canvas readback or
+per-material draw splitting is introduced.
+
+Use the installed public Three `ExternalTexture` API over the checked upload owner.
+A disposable real-browser tracer has proven dimensions, orientation, sRGB/data
+sampling, explicit and implicit mip selection, wrapping, bitmap closure and wrapper
+versus GPU ownership. This does not prove the new mip generator: implement and test
+that separately, including linear-light averaging for base-color mips. Preserve
+the source's magnification, minification and mip filters; the existing checker
+already requires mipmaps. Normal maps may be transported in04b but posed shading
+is accepted only after04c proves the weighted tangent frame and handedness.
+
 ### Far-material mechanism and resource gate
 
 Replace the private CPU painter with a GPU material-property atlas using the
@@ -86,12 +128,11 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 - [ ] Comparison and final unprimed critique recorded.
 - [ ] Review/cleanup completed; README pickup and decisions updated.
 
-04a implementation and scoped visual evidence are recorded in
+04a is complete. Implementation and scoped visual evidence are recorded in
 [integration review](../assets/evidence/04/integration-review.md), with source,
 raw and far lane reports beside it. The combined workbench proves independent
 scalar response, seed uniformity, explicit faction masks and material-table
-reindex invariance. The standing30k hardware gate passes. No04a final integration
-commit or04b–04d acceptance is claimed yet.
+reindex invariance. The standing30k hardware gate passes.04b–04d remain open.
 
 GPU admission now rejects actual invalid commands and disposes the replacement
 while preserving the prior scene. Renderer state and scopes are restored before
@@ -99,12 +140,13 @@ yielding, and main revalidates the author's active pose before installation.
 Malformed material factors also reject before GPU preparation rather than silently
 installing invalid floating-point texture values. Mutation tests prove both guards.
 
-The remaining04a critical path is the confirmed contact-darkening mismatch:
+The confirmed contact-darkening mismatch is corrected:
 matched stable near/far interiors agree within one RGB code after disabling
-near-only contact darkening. The far lane is sharing that factor through unused
+near-only contact darkening. Far now shares that factor through unused
 normal-atlas alpha, independently of authored occlusion, with a live corpse gate.
-Its correction needs merged checks and its focused visual evidence before04a
-closes. Controlled nearest-filter and half-float probes classify residual bright
+Merged strict scenes, independent focused critique and the standing hardware gate
+pass. All near snapshots remain exact; only far lower-body pixels intentionally
+change. Controlled nearest-filter and half-float probes classify residual bright
 boundary bands as filtered normals crossing coarse rasterized edges, not increased
 material illumination; retain those controls with the distance-quality debt.
 

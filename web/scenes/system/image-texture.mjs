@@ -22,14 +22,17 @@ export async function run(ctx) {
   await page.route(`${ctx.target}/__image-texture-probe`, (route) =>
     route.fulfill({
       contentType: "text/html",
-      body: '<!doctype html><title>Image texture GPU probe</title><script type="importmap">{"imports":{"three/webgpu":"/node_modules/three/build/three.webgpu.js"}}</script>',
+      body: "<!doctype html><title>Image texture GPU probe</title>",
     }),
   );
   await page.goto(`${ctx.target}/__image-texture-probe`);
   const report = await page.evaluate(async (modulePath) => {
     const { uploadImageTexture } = await import(`/@fs${modulePath}`);
     const THREE = await import("/node_modules/three/build/three.webgpu.js");
-    const T = await import("/node_modules/three/build/three.tsl.js");
+    // Vite can rewrite three.tsl.js to its optimized Three module even when
+    // this isolated page loaded the raw build. Keep renderer and node caches
+    // in one module instance; an import map cannot override a rewritten URL.
+    const T = THREE.TSL;
     const renderer = new THREE.WebGPURenderer();
     await renderer.init();
     const device = renderer.backend.device;

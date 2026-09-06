@@ -894,3 +894,18 @@ storage addresses the demonstrated per-binding limit without either compromise.
 Future palette consumers inherit one additional storage binding and two-buffer
 lifecycle accounting. This does not guarantee enough total memory, and passing
 the corrected workload will not by itself settle the whole art budget.
+
+### Supplement whole-body review with a native head-detail camera (08)
+
+**Sound; confidence: high.** A whole-body image can show sound proportions while
+the mouth occupies too few pixels to judge. The anatomy fixture now also moves
+its existing production camera closer to the head and captures the same four
+bearings in the neutral pose. It keeps the original whole-body and gameplay
+images, lighting, materials and skinning. Enlarging an old crop would only enlarge
+its existing pixels; this additional capture exposes actual facial geometry.
+
+The plan requires facial form but does not specify a dedicated head camera.
+Future anatomy reviews inherit one extra deterministic sheet, not a separate
+renderer or a new gameplay zoom promise. Passing this detail view cannot replace
+the full-body, deformation or gameplay-scale requirements. No baseline is
+accepted merely because the new camera creates its first image.

@@ -150,6 +150,49 @@ quality remain unproven. Retain the direction, not hand acceptance. The
 [production capture](thumb-relax-capture.json) and exact candidate bake check
 pass their pose/repeat/export contracts; initial unaccepted baselines differ.
 
+## Native head detail and lip structure
+
+Target: a relaxed adult mouth should have distinct but integrated upper/lower
+lips and a readable closure, without a protruding beak. The new four-bearing
+head-detail camera supplements, rather than replaces, both whole-body cameras.
+It uses the same frozen production route, neutral pose and daylight; no lighting
+or material retune. [Before](head-detail-before.png) captures the thumb-relax
+source, with its [report](head-detail-before-capture.json).
+
+Widening the pre-union mouth trough from2 to5mm leaves the
+[lower face nearly blank](mouth-form-head-detail.png). Its positive lip bulge
+and negative trough share a center, so simply widening the trough also removes
+lip volume. A [protected-smoothing trial](mouth-protected-head-detail.png) keeps
+that mouth region out of global relaxation, but still does not produce a useful
+mouth. The mask was discarded. Moving the same relief
+[after body relaxation](mouth-post-head-detail.png) makes a small separation
+visible, but does not resolve the form. These are rejected studies, not accepted
+baselines; their capture reports and exact source GLBs are retained alongside
+the shots under matching experiment names.
+
+[Distinct lip forms](lip-forms-head-detail.png), with separate upper/lower
+volumes and a closure line, are genuinely more readable than the blank mouth;
+see matched [earlier crop](mouth-form-face-crops.png) and
+[lip-form crop](lip-forms-face-crops.png). A fresh unprimed reviewer independently
+prefers this structure but rejects its sharp projecting steps and small pursed
+center. Root agrees: the profile is too puckered. The eyes, broad wedge nose and
+weak ears remain schematic too. The candidate's
+[close](lip-forms-close.png), [gameplay](lip-forms-gameplay-pitch.png) and
+[capture report](lip-forms-capture.json) preserve pose/repeat checks, but fail
+the unaccepted image baselines. The exact candidate bake check passes.
+
+Next source trial reduces lip projection and broadens its transitions. It has
+not been rebuilt or judged yet; generated assets currently retain lip-forms.
+No face/body acceptance or production promotion follows from these studies.
+
+Source/harness review finds one lip-shape owner after relaxation, before reduction
+and export; the discarded protection mask leaves no compatibility mechanism.
+The additive head camera preserves both original cameras, poses and exact-repeat
+checks. The CLI second-opinion attempt fails before review because the installed
+CLI cannot use its configured model. An independent read-only agent reviews the
+settled source/harness diff with no actionable defect, while explicitly requiring
+the pending source rebuild before claiming matching artifacts.
+
 ## Source/export correctness
 
 Applying Blender's smoothing modifier invalidated a retained vertex-group

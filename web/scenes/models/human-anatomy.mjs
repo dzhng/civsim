@@ -10,9 +10,14 @@ const views = [
 ];
 // Workbench chart pitch is tilt FROM top-down, not elevation above ground.
 // Close inspection exposes anatomy; gameplay tilt exposes foreshortening, not a perf envelope.
+const poses = [
+  ["neutral", 0],
+  ["deep bend", 0.5],
+];
 const cameras = [
-  { name: "close", pitch: 1.4, zoom: 230 },
-  { name: "gameplay-pitch", pitch: 0.42, zoom: 190 },
+  { name: "close", pitch: 1.4, zoom: 230, target: [0, 0, 0.95], poses },
+  { name: "gameplay-pitch", pitch: 0.42, zoom: 190, target: [0, 0, 0.95], poses },
+  { name: "head-detail", pitch: 1.4, zoom: 1000, target: [0, 0, 1.67], poses: [poses[0]] },
 ];
 const crop = { x: 320, y: 96, width: 640, height: 640 };
 
@@ -93,19 +98,19 @@ export async function run(ctx) {
     };
 
     for (const camera of cameras) {
-      const sheet = new PNG({ width: crop.width * views.length, height: crop.height * 2 });
+      const sheet = new PNG({
+        width: crop.width * views.length,
+        height: crop.height * camera.poses.length,
+      });
       let tile = 0;
-      for (const [stance, phase] of [
-        ["neutral", 0],
-        ["deep bend", 0.5],
-      ]) {
+      for (const [stance, phase] of camera.poses) {
         for (const [view, yaw] of views) {
           const pose = {
             classId: 0,
             clip: "bend",
             phase,
             formation: false,
-            target: [0, 0, 0.95],
+            target: camera.target,
             yaw,
             pitch: camera.pitch,
             zoom: camera.zoom,

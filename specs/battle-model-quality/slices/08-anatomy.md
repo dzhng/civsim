@@ -33,6 +33,9 @@ The manual-only candidate catalog uses shared anatomy for0/14 and identical
 inspection tiers. Production catalog is unchanged. The addressable scene runs as
 `VERIFY_GPU=1 VERIFY_URL=http://127.0.0.1:5174 node web/scene.mjs human-anatomy`.
 Its neutral/deep-bend sheets capture four bearings at close and gameplay pitch.
+A supplemental native head-detail sheet uses the same production environment
+to judge facial form that the whole-body framing cannot resolve. It does not
+replace the gameplay-scale gate or authorize a separate beauty-render path.
 [Current review](../assets/evidence/08/anatomy-review.md) records the rejected
 shape findings and focused iteration. Provisional counts are not measured
 performance limits.

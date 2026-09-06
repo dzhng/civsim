@@ -75,7 +75,11 @@ Insert a focused correction here: use actual projected reference-body size for
 production LOD, preserving thresholds, hysteresis, camera settings and simulation.
 Use a camera-facing span so overhead views do not collapse its height. Cover
 elevation, framebuffer scaling, near-plane intersections and shadow-only bodies;
-shadow contributions use their actual cameras and retain a mesh caster.
+shadow contributions use their actual cameras and retain a mesh caster. Make
+the existing coarsest mesh tier a caster as well: retaining that tier must not
+quietly retain geometry that cannot cast. The planner and mesh construction
+share this policy. No separate shadow mesh pipeline or light tuning is added;
+record and visually inspect this intentional shadow change.
 Keep one shared policy owner, not a budget-only override. Prove the old estimate
 wrong with projection tests, then run affected visual/LOD and standing30k gates
 before repeating budget brackets. This moves the policy prerequisite forward;

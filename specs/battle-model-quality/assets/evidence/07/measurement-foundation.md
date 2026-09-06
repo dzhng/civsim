@@ -122,3 +122,14 @@ The unchanged [standing30k/foliage benchmark](standing-post-reuse.json) also
 passes after the controller optimization; this does not waive the live-animation
 cadence failures above. Review also corrected replacement measurement to retain
 the current pose after the advancing sequence, rather than resubmit its old pose.
+
+## Projection correction: before image
+
+The [current production camera sheet](camera-before-projected-lod.png) is the
+before-image for the upcoming LOD correction. The [first capture](camera-before-projected-lod.json)
+and [repeat](camera-before-projected-lod-repeat.json) both differ from the older
+committed camera baseline by305,592 pixels, but their actual PNGs are byte-identical
+(`cmp` exit0). This difference therefore predates the LOD correction. Both actual
+and old sheets were inspected: all three views contain the same formations, with
+pre-existing terrain/foliage/material differences. Keep the current capture for
+comparison and do not silently bless the old gate. It accepts no soldier art.

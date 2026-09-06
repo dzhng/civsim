@@ -296,6 +296,7 @@ def build():
             (point(.210, .000, 1.420), .043, .073),
         ], across=(sign * .30, 0, .954)))
         parts.append(loft("arm." + side, [
+            (point(.065, .000, 1.422), .028, .045),
             (point(.145, .002, 1.422), .077, .079),
             (point(.202, .001, 1.405), .073, .075),
             (point(.266, .000, 1.341), .069, .074),
@@ -356,7 +357,7 @@ def build():
     junctions = body.vertex_groups.new(name="anatomical-junctions")
     for vertex in body.data.vertices:
         x, y, z = vertex.co
-        shoulder = ((abs(x) - .16) / .14) ** 2 + ((z - 1.43) / .12) ** 2 + (y / .15) ** 2
+        shoulder = ((abs(x) - .18) / .17) ** 2 + ((z - 1.43) / .14) ** 2 + (y / .30) ** 2
         hip = ((abs(x) - .11) / .14) ** 2 + ((z - .96) / .16) ** 2 + (y / .17) ** 2
         weight = max(0, 1 - min(shoulder, hip)) ** 2
         if weight:

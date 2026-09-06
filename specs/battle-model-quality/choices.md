@@ -1,6 +1,40 @@
 # Implementation choices
 
+## Sound — high confidence
+
+### Observe state once and construct playback only when sampled (07)
+
+When a simulation tick arrives, the action controller records what each soldier
+is doing. The render loop then asks for the pose at the displayed time. Previously
+the observation step also built a complete output array which every production
+caller discarded. `update()` now returns nothing; `sample()` remains the single
+owner of output construction. Tests use those same two steps rather than a
+compatibility wrapper.
+
+The plan required separate observation and render clocks but did not specify
+whether observing should also produce output. Future consumers must explicitly
+sample after observing; rejected batches still leave the prior history intact.
+**Sound, high confidence:** deleting unused work simplifies the contract without
+changing motion. This is not a promise of faster frames: measured short-run CPU
+timings are mixed. Integrated in0129ee2e.
+
 ## Sound — medium confidence
+
+### Author editable anatomy while its runtime budget is still measured (07/08 maintenance)
+
+When the budget fixture exposes a mounted animation stall, it does not prevent
+shaping an untextured human shoulder or testing an elbow in Blender. The original
+strict sequence made that independent source work wait for the whole envelope.
+Editable anatomy now proceeds in the workbench candidate path while07 remains
+open. The alternative keeps all modeling idle until every measurement is green.
+
+The user asked for useful infrastructure and original Blender art, but did not
+require every measurement before any editable source exists. This maintenance
+change separates authoring from acceptance: counts are provisional,08 cannot
+close before07, and no production appearance is promoted early. **Sound, medium
+confidence:** it advances the requested art without weakening a gate, at the
+cost of possible topology revisions once joint runtime costs are established.
+All07 requirements remain owned by07; none were removed or deferred away.
 
 ### Use a fixed field with the real battle camera for asset measurements (07)
 

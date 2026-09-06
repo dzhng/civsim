@@ -27,7 +27,7 @@ A role/state matrix is an implementation artifact generated from the catalog dur
 
 ### Mounted composition and candidate promotion
 
-Mounted playback has one authored rider-upper-body override mask over the locomotion base: spine/arms/head may act while horse, rider pelvis and seated legs retain gait. Compose local joint transforms before hierarchy evaluation; masking world-space bone matrices is not equivalent. Death overrides the whole composite; hit reactions may interrupt the full body. No general animation graph or additive stack is required. Prove this in02/06 and include its cost in07 before art.
+Mounted playback has one authored rider-upper-body override mask over the locomotion base: spine/arms/head may act while horse, rider pelvis and seated legs retain gait. Compose local joint transforms before hierarchy evaluation; masking world-space bone matrices is not equivalent. Death overrides the whole composite; hit reactions may interrupt the full body. No general animation graph or additive stack is required. Prove this in02/06 and include its cost in07 before accepting detailed exported art; it need not delay editable human anatomy candidates.
 
 `soldier-assets` owns local-pose evaluation from imported tracks and the sampled GPU encoding's semantics; `crowd-runtime` owns action history and frozen interruption sources, not a second pose sampler.05 establishes exact CPU interruptions before06 changes GPU data. An overlay exits toward the evaluated advancing base, not merely its destination clip. The bounded source lifetime, cutover sequence and continuity proofs live in [06](./slices/06-gpu-playback.md#bounded-interruption-contract); repeated interruptions must not grow an expression tree or substitute a nearby endpoint.
 
@@ -47,7 +47,7 @@ In03, update all old format consumers or remove obsolete dev-only ones; no v1 lo
 
 The standard-loader fixture from02 remains an isolated export test oracle, not a second product renderer or downloadable-asset path. The obsolete raw soldier review route and scripts migrate to the production workbench at their earliest replaced consumer; any remaining cleanup is tracked in30. Preserve unrelated raw renderer experiments.
 
-Budget selection is a measured experiment in07, not an arbitrary promise of a particular polygon count, bone count or texture resolution. Once measured, write the chosen limits into that slice and executable bake checks. New detailed classes must stay inside that envelope or trigger a focused optimization/reslice. Bounds include long weapons, mounted bodies and animation extrema.
+Budget selection is a measured experiment in07, not an arbitrary promise of a particular polygon count, bone count or texture resolution. Once measured, write the chosen limits into that slice and executable bake checks. New detailed classes must stay inside that envelope or trigger a focused optimization/reslice. Editable08 sources may be authored alongside07 with provisional counts, but anatomy acceptance and production promotion remain gated. Bounds include long weapons, mounted bodies and animation extrema.
 
 ## Risk retirement and executable anchors
 

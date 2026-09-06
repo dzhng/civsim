@@ -41,6 +41,33 @@ unprimed critique, standing30k gate and matched animated-budget sweeps remain
 unrun for this source checkpoint. No visual fix or measured art budget is claimed.
 Pre-existing screenshot differences must not be attributed to this correction.
 
+## Integration verdict: not accepted yet
+
+Root typecheck and20 focused tests pass. The [production consumer run](projected-lod-consumers.json)
+passes LOD and mounted-readability assertions; the camera snapshot differs as
+expected, including its separately recorded pre-existing baseline difference.
+The [current candidate](camera-projected-lod.png) and matched
+[before image](camera-before-projected-lod.png) differ materially, not a no-op.
+[Image telemetry](projected-lod-image-metrics.json) records full-frame grayscale
+MAE1.56, edge-energy ratio0.979, and near-crop MAE8.55. Scores are not acceptance.
+
+Root inspected both full sheets and enlarged near/overview crops. A fresh
+history-free visual reviewer independently found the same tradeoff: the candidate
+reveals close weapon tips, with coherent overlap, but makes distant formations
+sparse and low-contrast enough that smaller formations nearly disappear. The
+before image preserves distant formation readability better. This is a rejected
+visual change, not a defect waived because the projection math is correct.
+Investigate the coupling that substitutes a mesh for the main-view far
+representation when a shadow view asks for geometry; preserve both consumers'
+needs without lowering readability assertions.
+
+The [matched geometry repeat](mounted-geometry-projected.json) reduces L0 count
+from16,586 to1,432 and measures14–15ms GPU medians. It still fails interruption
+cadence at33.33ms. Delayed frames have24–27ms preceding CPU work, so this is not
+just rounding: an unused playback result built during observation is the next
+focused CPU candidate. No art envelope is accepted. Root owns subsequent image
+critique, strict repeat and hardware gates after these corrections.
+
 ## Changed-test ledger
 
 | Test | Previous behavior | New behavior | Why |

@@ -4,7 +4,11 @@ Status: IN PROGRESS. Depends on [06](./06-gpu-playback.md), now complete.
 
 ## Contract and ownership
 
-Detailed art receives a measured cost envelope without weakening existing performance gates.
+Detailed exported art receives a measured cost envelope before acceptance,
+without weakening existing performance gates. Editable08 anatomy may be authored
+in parallel as candidate-only content;07 remains open until every requirement
+below is satisfied. This is not permission to infer limits from passing isolated
+bone or geometry brackets.
 
 API seam: Production workbench synthetic weighted fixtures and actual battle benchmark; record hardware, viewport, crowd, LOD counts, CPU/GPU frame time, memory and upload/draw costs.
 
@@ -82,8 +86,13 @@ elevation, framebuffer scaling, near-plane intersections and shadow-only bodies;
 shadow contributions use their actual cameras and retain a mesh caster. Make
 the existing coarsest mesh tier a caster as well: retaining that tier must not
 quietly retain geometry that cannot cast. The planner and mesh construction
-share this policy. No separate shadow mesh pipeline or light tuning is added;
-record and visually inspect this intentional shadow change.
+share this policy. Keep main-view and shadow representation demands separate:
+the first combined-tier implementation replaced intentionally readable far
+impostors with tiny meshes and failed independent visual review. Use Three's
+existing shadow-only object layers and the existing bucket/skin upload machinery
+to retain both the main impostor and its reduced caster, sharing each source
+instance's palette slot. No new shadow renderer, shader or light tuning is added.
+Record and visually inspect this intentional shadow change.
 Keep one shared policy owner, not a budget-only override. Prove the old estimate
 wrong with projection tests, then run affected visual/LOD and standing30k gates
 before repeating budget brackets. This moves the policy prerequisite forward;

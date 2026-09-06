@@ -1,0 +1,205 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-06T14:41:49.167Z",
+  "target": "http://127.0.0.1:5174",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 1,
+  "status": "fail",
+  "scenarios": [
+    {
+      "name": "battle-camera-zoom",
+      "file": "battle/battle-camera-zoom.mjs",
+      "kind": "visual",
+      "tier": "quick"
+    },
+    {
+      "name": "battle-lod",
+      "file": "battle/battle-lod.mjs",
+      "kind": "flow",
+      "tier": "quick"
+    },
+    {
+      "name": "lod-tiers",
+      "file": "system/lod-tiers.mjs",
+      "kind": "flow",
+      "tier": "full"
+    },
+    {
+      "name": "mounted-units",
+      "file": "system/mounted-units.mjs",
+      "kind": "flow",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-camera-zoom",
+      "name": "zoom rig frames the widest view near top-down",
+      "ok": true,
+      "detail": "{\"name\":\"top\",\"zoom\":1.4035087719298247,\"center\":[0,0],\"x\":7.464860284598733e-46,\"y\":0,\"zoomT\":0,\"camera3d\":{\"target\":[7.464860284598733e-46,0,0],\"distance\":1200,\"pitch\":1.35,\"yaw\":0,\"fovY\":0.5,\"aspect\":1.6,\"near\":1}}"
+    },
+    {
+      "scenario": "battle-camera-zoom",
+      "name": "zoom rig keeps playable mid zoom tilting off top-down",
+      "ok": true,
+      "detail": "{\"name\":\"mid\",\"zoom\":5,\"center\":[0,10],\"x\":0,\"y\":0,\"zoomT\":0.5125,\"camera3d\":{\"target\":[0,0,0],\"distance\":1199.9976305707262,\"pitch\":1.3499977898600892,\"yaw\":0,\"fovY\":0.5000006968909628,\"aspect\":1.6,\"near\":1}}"
+    },
+    {
+      "scenario": "battle-camera-zoom",
+      "name": "zoom rig reaches the close low-oblique vista band",
+      "ok": true,
+      "detail": "{\"name\":\"vista\",\"zoom\":9.5,\"centerOnTeam\":1,\"x\":-12.49997511103704,\"y\":0,\"zoomT\":1,\"camera3d\":{\"target\":[-12.49997511103704,0,1.0929407075711062],\"distance\":8.86426592797784,\"pitch\":0.24,\"yaw\":0,\"fovY\":0.85,\"aspect\":1.6,\"near\":1}}"
+    },
+    {
+      "scenario": "battle-camera-zoom",
+      "name": "zoom rig progression is monotonic (pitch falls, fov widens, distance closes)",
+      "ok": true,
+      "detail": "[{\"name\":\"top\",\"zoom\":1.4035087719298247,\"center\":[0,0],\"x\":7.464860284598733e-46,\"y\":0,\"zoomT\":0,\"camera3d\":{\"target\":[7.464860284598733e-46,0,0],\"distance\":1200,\"pitch\":1.35,\"yaw\":0,\"fovY\":0.5,\"aspect\":1.6,\"near\":1}},{\"name\":\"mid\",\"zoom\":5,\"center\":[0,10],\"x\":0,\"y\":0,\"zoomT\":0.5125,\"camera3d\":{\"target\":[0,0,0],\"distance\":1199.9976305707262,\"pitch\":1.3499977898600892,\"yaw\":0,\"fovY\":0.5000006968909628,\"aspect\":1.6,\"near\":1}},{\"name\":\"vista\",\"zoom\":9.5,\"centerOnTeam\":1,\"x\":-12.49997511103704,\"y\":0,\"zoomT\":1,\"camera3d\":{\"target\":[-12.49997511103704,0,1.0929407075711062],\"distance\":8.86426592797784,\"pitch\":0.24,\"yaw\":0,\"fovY\":0.85,\"aspect\":1.6,\"near\":1}}]"
+    },
+    {
+      "scenario": "battle-camera-zoom",
+      "name": "zoom rig contact sheet keeps formations readable at each stop",
+      "ok": true,
+      "detail": "[{\"formationMass\":610172},{\"formationMass\":611278},{\"formationMass\":364084}]"
+    },
+    {
+      "scenario": "battle-camera-zoom",
+      "name": "snapshot battle-camera-zoom",
+      "ok": false,
+      "detail": "318364 px differ (10.3419%) — see shots/diff/battle-camera-zoom.png"
+    },
+    {
+      "scenario": "battle-lod",
+      "name": "LOD z1: unit is not a black slab",
+      "ok": true,
+      "detail": "darkFrac 0% unitShare 80%"
+    },
+    {
+      "scenario": "battle-lod",
+      "name": "LOD z1: unit remains visible over grass",
+      "ok": true,
+      "detail": "darkFrac 0% unitShare 80%"
+    },
+    {
+      "scenario": "battle-lod",
+      "name": "LOD z2: unit is not a black slab",
+      "ok": true,
+      "detail": "darkFrac 0% unitShare 80%"
+    },
+    {
+      "scenario": "battle-lod",
+      "name": "LOD z2: unit remains visible over grass",
+      "ok": true,
+      "detail": "darkFrac 0% unitShare 80%"
+    },
+    {
+      "scenario": "battle-lod",
+      "name": "LOD z4: unit is not a black slab",
+      "ok": true,
+      "detail": "darkFrac 0% unitShare 80%"
+    },
+    {
+      "scenario": "battle-lod",
+      "name": "LOD z4: unit remains visible over grass",
+      "ok": true,
+      "detail": "darkFrac 0% unitShare 80%"
+    },
+    {
+      "scenario": "battle-lod",
+      "name": "LOD z6: unit is not a black slab",
+      "ok": true,
+      "detail": "darkFrac 0% unitShare 81%"
+    },
+    {
+      "scenario": "battle-lod",
+      "name": "LOD z6: unit remains visible over grass",
+      "ok": true,
+      "detail": "darkFrac 0% unitShare 81%"
+    },
+    {
+      "scenario": "battle-lod",
+      "name": "LOD z9: unit is not a black slab",
+      "ok": true,
+      "detail": "darkFrac 2% unitShare 90%"
+    },
+    {
+      "scenario": "battle-lod",
+      "name": "LOD z9: unit remains visible over grass",
+      "ok": true,
+      "detail": "darkFrac 2% unitShare 90%"
+    },
+    {
+      "scenario": "lod-tiers",
+      "name": "lod-tiers: each coarser mesh tier draws fewer triangles",
+      "ok": true,
+      "detail": "{\"triCounts\":[192,120,60]}"
+    },
+    {
+      "scenario": "lod-tiers",
+      "name": "lod-tiers: per-instance distance binning coarsens monotonically and reaches L0/L1/L2",
+      "ok": true,
+      "detail": "{\"probeLevels\":[0,0,0,1,1,1,2,2,2,2,2,2,2,2,3,3],\"tiersReached\":4}"
+    },
+    {
+      "scenario": "lod-tiers",
+      "name": "lod-tiers: hysteresis holds the tier inside the boundary deadband (no per-frame flip)",
+      "ok": true,
+      "detail": "{\"heldL0\":0,\"heldL1\":1}"
+    },
+    {
+      "scenario": "lod-tiers",
+      "name": "lod-tiers: the pipeline builds a resource per (class, lod) tier",
+      "ok": true,
+      "detail": "{\"meshVariants\":60}"
+    },
+    {
+      "scenario": "lod-tiers",
+      "name": "lod-tiers: L0/L1/L2 soldiers render a nonblank frame",
+      "ok": true,
+      "detail": "{\"pixels\":327446}"
+    },
+    {
+      "scenario": "mounted-units",
+      "name": "mounted-units: every mounted class (6, 7, 15) scales above foot units",
+      "ok": true,
+      "detail": "{\"footSize\":10.856503705632102,\"mountedSizes\":{\"6\":15.779079738605148,\"7\":15.779079738605148,\"15\":15.779079738605148}}"
+    },
+    {
+      "scenario": "mounted-units",
+      "name": "mounted-units: real medium phalanx class 14 remains a foot unit",
+      "ok": true,
+      "detail": "{\"footSize\":10.856503705632102,\"mediumPhalanx\":10.856503705632102}"
+    },
+    {
+      "scenario": "mounted-units",
+      "name": "mounted-units: render-only cavalry sidearm class 15 is LOD-scaled",
+      "ok": true,
+      "detail": "{\"footSize\":10.856503705632102,\"sidearm\":15.779079738605148}"
+    },
+    {
+      "scenario": "mounted-units",
+      "name": "mounted-units: the mount flag tracks the mounted archetypes",
+      "ok": true,
+      "detail": "[{\"classId\":0,\"mounted\":false},{\"classId\":14,\"mounted\":false},{\"classId\":6,\"mounted\":true},{\"classId\":7,\"mounted\":true},{\"classId\":15,\"mounted\":true}]"
+    },
+    {
+      "scenario": "mounted-units",
+      "name": "mounted-units: cavalry + foot render as horse + rider (nonblank)",
+      "ok": true,
+      "detail": "{\"pixels\":388360}"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [
+    "battle-camera-zoom: snapshot battle-camera-zoom"
+  ],
+  "pageErrors": []
+}

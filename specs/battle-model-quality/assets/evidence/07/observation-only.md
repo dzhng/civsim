@@ -15,6 +15,13 @@ cd web
 
 The 47 focused tests and typecheck passed. Every production timeline consumer already separates observation from output sampling. Test value consumers were migrated directly, without a compatibility wrapper.
 
+Root integration0129ee2e repeated all47 focused tests and typecheck successfully.
+Integration review found no pose assertion or tolerance changes, no new runtime
+owner, and no compatibility path. The production diff removes redundant output
+construction (four added logic lines, five removed, plus one contract comment).
+The larger test diff is the direct API migration; raw profile rows dominate the
+evidence size. Browser cadence and temporal capture remain separate open gates.
+
 The opt-in profile compares real loaded class 4 and mounted 41 fixture bundles, 30,000 independent histories, synchronized and deliberately interleaved release ages, seven observation ticks, and three paired repeats with alternating execution order. Timing brackets contain only update; both versions sample and compare complete evaluated poses afterward. All **2,520,000 exact posed-output comparisons passed**. Raw timings are in [observation-only-profile.json](observation-only-profile.json); `aMs` is the pinned baseline and `bMs` the candidate.
 
 Timing is mixed across these short, allocation-sensitive runs. Example median-of-three results in milliseconds:

@@ -4,55 +4,38 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 
 ## Next Agent Prompt
 
-Last updated **2026-09-06**. Status: **slices01–06 complete;07 in progress**.
+Last updated **2026-09-06**. **01–06 complete;07 open/red;08 candidate authoring next.**
+Worktree: `/Users/david/dev/game-battle-model-quality`, branch
+`codex/battle-model-quality`; controller cleanup integrated through0129ee2e.
 
-Current worktree: `/Users/david/dev/game-battle-model-quality`, branch
-`codex/battle-model-quality`, with integrated foundations through45160453.
-06a/b source, assets and both GPU consumers are installed together; no old reader
-remains. [Merged validation](assets/evidence/06/merged-validation.md) owns the
-source, numerical, actual-consumer, strict image-repeat and standing hardware
-evidence, including the successful [post-install browser repeat](assets/evidence/06/installed-browser.json).
-The standing gate retains its30k/33ms contract; it does not establish the live
-animated budget required in07.
+Two independent lanes now proceed:
+- Author08's editable Blender human anatomy and deform rig as a **workbench
+  candidate only**. Untextured silhouette and deep-bend work do not depend on
+  mounted/texture budget maxima. Counts remain provisional until07's measured
+  envelope constrains accepted exported topology. No production promotion.
+- Finish07's separate main/shadow detail correction, then merged temporal,
+  visual and standing performance checks; repeat combined asset/display budgets
+  and executable limits. No existing33ms gate changes and no failed result is
+  waived.07 remains required before08 acceptance, not before source authoring.
 
-Next: correct07's demonstrated projected-size LOD mismatch, repeat the detail
-brackets and display-resolution envelope, then start08 Blender anatomy.
-[Exact immutable pose sharing](assets/evidence/07/frozen-capture.md)
-removed the synchronized foot transition bottleneck; the
-[strict temporal repeat](assets/evidence/07/temporal-reuse-repeat.json) passes.
-[Gameplay close foot](assets/evidence/07/gameplay-close.json) passes30k/33ms;
-[mounted close](assets/evidence/07/mounted-gameplay-close.json) still has a33.33ms
-cadence failure. Keep the33ms limit and retain failed measurements.
-Frame-correlated timing, allocation tracking and controlled detail fixtures are
-integrated. The rejected uncapped catch-up fixture was not a faithful CPU baseline.
-No07 budget or detailed art has been accepted.
-The [temporal validation](assets/evidence/06/temporal-validation.md) records the
-passing531-check combined run,284 web tests, independent reviews, and remaining
-placeholder-art limitations. The source, corpse consumers, replay recipe and
-test-only articulated diagnostic are integrated; do not re-prepare them. The
-render oracle is deliberately two-part: independently validate actual GPU joint
-matrices, then verify rendering with those validated matrices. Original all-CPU
-image differences remain telemetry, not a claimed equality pass. Exact frozen
-frames and event continuity remain required. The filtered strict repeat passed;
-the temporal checkpoint accepts transport only, and Preview has no open windows.
+Current evidence:
+- [06 merged validation](assets/evidence/06/merged-validation.md) owns the
+  installed GPU playback and consumer proofs.
+- [07 projected detail](assets/evidence/07/projected-lod.md) records the rejected
+  far-view change in362cf738; separate main/shadow demands are in progress.
+- [Exact pose sharing](assets/evidence/07/frozen-capture.md) and
+  [observation-only updates](assets/evidence/07/observation-only.md) are installed.
+  Root47 focused tests and typecheck pass; merged browser verification remains.
+- [Measurement foundation](assets/evidence/07/measurement-foundation.md) and
+  [07](slices/07-budget-envelope.md) own raw brackets and remaining requirements.
+  No art envelope or detailed model has been accepted.
 
-Keep07→08 unchanged: measure budgets, then
-author detailed human anatomy in Blender. Current blocky content is only a test
-subject for the new production path, not the final model or an art acceptance.
-No detailed soldier art or user-only blocker exists.
-
-Preserve [05's merged controller/WASM gates](assets/evidence/05/merged-validation.md)
-and [04's material contracts](assets/evidence/04/consumer-closure/review.md).
-Keep fragment-stage map reads, per-vertex unit directions and finite geometric
-fallbacks. `hit_ttl` is contact/facing memory, not injury; use actual health.
-Catalog reload retains the last good scene on failure, while a partial live
-upload fails closed until a whole upload succeeds. Growth stays synchronous and
-device-checked. Local Blender authoring remains the chosen path; no external AI.
-
-The global TODO is the slice list below; [choices](choices.md) owns decisions.
-Update this pickup and the owning slice evidence after each pass. The previous
-05 Preview checkpoint is closed; do not reopen its old shots. Dependency symlinks
-in auxiliary worktrees are verification-only and must never be committed.
+Preserve sim/save/balance, exact interruption poses, atomic catalog replacement,
+the one production skin/material/environment path, and the existing temporal
+image gates. Local Blender authoring only; no external AI or downloaded soldiers.
+Block fixtures validate transport and cost, never final art. Complete appearances
+promote atomically only after distance-ready acceptance; see
+[architecture](architecture.md). The full TODO remains below; continue all slices.
 
 ## Scope and firewalls
 
@@ -99,7 +82,7 @@ in auxiliary worktrees are verification-only and must never be committed.
 - [ ] [29 — Live battle and performance acceptance](slices/29-battle-integration.md)
 - [ ] [30 — Remove placeholders and finish handoff](slices/30-cutover-closeout.md)
 
-The trunk is 01→…→16. After the first-pair review, foot, mounted and crew lanes are independent within their listed dependencies. They join at 28 for complete distance coverage, then real battle acceptance and cleanup. Do not use lane independence to bypass the first-pair presentation.
+The acceptance trunk is 01→…→16. Editable08 anatomy candidates may be authored alongside07; their acceptance still depends on its measured envelope. After the first-pair review, foot, mounted and crew lanes are independent within their listed dependencies. They join at 28 for complete distance coverage, then real battle acceptance and cleanup. Do not use lane independence to bypass the first-pair presentation.
 
 ## Acceptance contract
 
@@ -113,7 +96,7 @@ Review human-body silhouette, equipment shape, materials and motion independentl
 
 At human checkpoints use **preview-shots**, allow about five minutes for feedback while doing safe ancillary work, and if silent decide on evidence, document why, close Preview and proceed. This is non-blocking review, not assumed approval. A failed gate requires another iteration, not a timeout override.
 
-Preserve the existing 30k/33ms renderer gate. The live animated close-view envelope is measured and locked in [07](slices/07-budget-envelope.md), before detailed art. Report hardware, viewport, load, LOD distribution and timing methodology. The existing paused-simulation benchmark alone does not prove live performance.
+Preserve the existing 30k/33ms renderer gate. The live animated close-view envelope is measured and locked in [07](slices/07-budget-envelope.md), before accepting detailed exported art. Editable candidate anatomy may proceed while measurement remains open; no provisional count is an accepted budget. Report hardware, viewport, load, LOD distribution and timing methodology. The existing paused-simulation benchmark alone does not prove live performance.
 
 At each substantive implementation checkpoint run **review**; use **change-report** when tests change behavior and the independent review required by **codex** before presenting substantive code as finished. Archive source references, candidates, comparisons, critiques and measurements under this spec; harness folders still own active regression baselines. Close/archive this spec only after all slices ship.
 

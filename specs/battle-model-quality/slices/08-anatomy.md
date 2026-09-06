@@ -1,6 +1,12 @@
 # 08 — Shared human anatomy
 
-Status: TODO. Depends on [07](./07-budget-envelope.md).
+Status: TODO. Candidate authoring depends on completed06; acceptance depends on [07](./07-budget-envelope.md).
+
+Editable Blender anatomy may proceed alongside the open budget measurements.
+Keep it in the workbench candidate path, with provisional mesh/rig counts; do not
+promote it to the production catalog or mark this slice complete before its
+exported topology fits the measured envelope. This separates reversible source
+authoring from runtime acceptance without dropping any07 requirement.
 
 ## Contract and ownership
 

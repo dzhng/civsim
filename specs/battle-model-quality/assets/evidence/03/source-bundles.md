@@ -29,3 +29,17 @@ The integrating agent owns `engine-basis.mjs` and `appearanceBundle.ts`; verific
 - **Sound, medium confidence:** the far atlas source is the near mesh at the first authored clip's initial pose. It is deterministic and works for diagnostics without inventing an `idle` clip; final-art distance slices must select and verify the intended far pose.
 
 The new test adds bundle-level proof; it replaces no existing assertions or simulation behavior.
+
+## Canonical clip metadata and reproducible candidates
+
+Every current `VatClip` now requires source duration and a looping boolean. `bakeRig` owns those fields; undeclared source clips are non-looping, while the placeholder rig and source-bake CLI explicitly declare their intended loops. All 9,408 placeholder matrix values and all eight previous kit loop choices are unchanged. No name heuristic belongs in the runtime. The integrating pass updates consumers to this required contract rather than supporting older assets.
+
+`node packages/soldier-assets/bake/blender-candidates.mjs` regenerates the separate diagnostic catalog and bundles in both asset roots; `--check` proves byte identity and rejects obsolete files. The producer deliberately passes each original fixture as all three tier inputs. These fixtures prove import/deformation, not detailed-art distance quality. The production catalog is not modified. The workbench integration uses `/assets/soldiers/candidates/blender-reference/catalog.json`.
+
+The shared source writer also supports `appearance.mjs ... --check`. Tests cover both an obsolete output and a missing tier, with actionable file-specific errors. The second independent review confirmed the metadata was internally consistent; it requested the missing-output diagnostic (fixed and tested) and wiring candidate verification into the standard bake gate (owned by the integrating package-script pass). Final loader tests were rerun against the integrating agent's latest strict dimension, clip, phase and finite-data validation.
+
+### Changed-test behavior
+
+- `vat.test.mjs` additionally verifies that baked duration is retained, undeclared clips are non-looping, and explicitly looping clips remain looping. Existing matrix assertions are unchanged.
+- `appearance.test.mjs` additionally rejects malformed GLB input and verifies CLI check mode catches missing and obsolete outputs without repairing them silently.
+- `blender-candidates.mjs --check` is a new committed-fixture drift gate. The integrating `bake:test` must invoke it, and animation regeneration must rebuild these owned fixtures.

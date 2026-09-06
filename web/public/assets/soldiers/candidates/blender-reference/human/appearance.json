@@ -1,0 +1,25 @@
+{
+  "name": "human-diagnostic",
+  "mounted": false,
+  "skeleton": "skeleton.json",
+  "animation": "animation.json",
+  "materials": "materials.json",
+  "tiers": [
+    "tier-0.mesh.json",
+    "tier-1.mesh.json",
+    "tier-2.mesh.json"
+  ],
+  "far": {
+    "mesh": "tier-0.mesh.json",
+    "clip": "bend",
+    "phase": 0
+  },
+  "bounds": {
+    "center": [
+      0.8596288040280342,
+      -0.5051037725061178,
+      1.0199999809265137
+    ],
+    "radius": 1.2933846080102838
+  }
+}

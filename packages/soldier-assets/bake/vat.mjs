@@ -113,7 +113,7 @@ export function sampleChannel(ch, t, kind) {
  *   missing component holds that bone's bind-local default (NOT identity).
  * @param {number} fps
  * @returns {{width:number,height:number,data:Float32Array,bones:number,fps:number,
- *            clips:{name:string,start:number,frames:number}[]}}
+ *            clips:{name:string,start:number,frames:number,duration:number,loop:boolean}[]}}
  */
 export function bakeRig(rig, fps) {
   const { bones, clips } = rig;
@@ -125,7 +125,7 @@ export function bakeRig(rig, fps) {
   let totalFrames = 0;
   for (const c of clips) {
     const frames = Math.max(1, Math.round(c.duration * fps) + 1);
-    clipMeta.push({ name: c.name, start: totalFrames, frames });
+    clipMeta.push({ name: c.name, start: totalFrames, frames, duration: c.duration, loop: c.loop ?? false });
     totalFrames += frames;
   }
   const width = totalFrames;

@@ -9,42 +9,58 @@
     {
       "name": "idle",
       "start": 0,
-      "frames": 13
+      "frames": 13,
+      "duration": 1,
+      "loop": true
     },
     {
       "name": "march",
       "start": 13,
-      "frames": 13
+      "frames": 13,
+      "duration": 1,
+      "loop": true
     },
     {
       "name": "run",
       "start": 26,
-      "frames": 9
+      "frames": 9,
+      "duration": 0.65,
+      "loop": true
     },
     {
       "name": "attack_a",
       "start": 35,
-      "frames": 9
+      "frames": 9,
+      "duration": 0.7,
+      "loop": false
     },
     {
       "name": "shoot",
       "start": 44,
-      "frames": 10
+      "frames": 10,
+      "duration": 0.75,
+      "loop": false
     },
     {
       "name": "hit_a",
       "start": 54,
-      "frames": 5
+      "frames": 5,
+      "duration": 0.35,
+      "loop": false
     },
     {
       "name": "death_a",
       "start": 59,
-      "frames": 12
+      "frames": 12,
+      "duration": 0.9,
+      "loop": false
     },
     {
       "name": "at_ease",
       "start": 71,
-      "frames": 13
+      "frames": 13,
+      "duration": 1,
+      "loop": true
     }
   ],
   "layout": "RGBA32F, mat4 columns in rows bone*4..bone*4+3",

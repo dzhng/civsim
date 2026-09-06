@@ -31,6 +31,9 @@ const rig = {
 const baked = bakeRig(rig, 2); // fps 2, duration 1 → 3 frames at t = 0, 0.5, 1
 assert.equal(baked.bones, 2);
 assert.equal(baked.clips[0].frames, 3);
+assert.equal(baked.clips[0].duration, 1);
+assert.equal(baked.clips[0].loop, false);
+assert.equal(bakeRig({ ...rig, clips: [{ ...rig.clips[0], loop: true }] }, 2).clips[0].loop, true);
 assert.equal(baked.width, 3);
 assert.equal(baked.height, 8); // 2 bones * 4 columns
 assert.equal(baked.data.length, baked.width * baked.height * 4);

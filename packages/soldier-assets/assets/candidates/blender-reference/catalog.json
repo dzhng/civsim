@@ -1,0 +1,6 @@
+{
+  "appearances": {
+    "40": "human/appearance.json",
+    "41": "mounted/appearance.json"
+  }
+}

@@ -79,6 +79,8 @@ export interface VatClip {
   name: string;
   start: number;
   frames: number;
+  duration: number;
+  loop: boolean;
 }
 
 export interface VatBake {

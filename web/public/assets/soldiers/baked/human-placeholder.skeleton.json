@@ -319,7 +319,8 @@
             ]
           }
         }
-      }
+      },
+      "loop": true
     },
     {
       "name": "march",
@@ -457,7 +458,8 @@
             ]
           }
         }
-      }
+      },
+      "loop": true
     },
     {
       "name": "run",
@@ -618,7 +620,8 @@
             ]
           }
         }
-      }
+      },
+      "loop": true
     },
     {
       "name": "attack_a",
@@ -670,7 +673,8 @@
             ]
           }
         }
-      }
+      },
+      "loop": false
     },
     {
       "name": "shoot",
@@ -750,7 +754,8 @@
             ]
           }
         }
-      }
+      },
+      "loop": false
     },
     {
       "name": "hit_a",
@@ -779,7 +784,8 @@
             ]
           }
         }
-      }
+      },
+      "loop": false
     },
     {
       "name": "death_a",
@@ -835,7 +841,8 @@
             ]
           }
         }
-      }
+      },
+      "loop": false
     },
     {
       "name": "at_ease",
@@ -877,7 +884,8 @@
             ]
           }
         }
-      }
+      },
+      "loop": true
     }
   ]
 }

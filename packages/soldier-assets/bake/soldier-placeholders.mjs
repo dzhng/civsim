@@ -79,7 +79,7 @@ export function placeholderRig() {
     },
     { name: 'at_ease', duration: 1, tracks: { 3: { R: channel([0, 1], [qx(-0.1), qx(-0.1)]) }, 4: { R: channel([0, 1], [qx(-0.1), qx(-0.1)]) } } },
   ];
-  return { bones, clips };
+  return { bones, clips: clips.map((clip) => ({ ...clip, loop: ['idle', 'march', 'run', 'at_ease'].includes(clip.name) })) };
 }
 
 function kitJson(baked) {
@@ -108,7 +108,7 @@ function kitJson(baked) {
       6: 'at_ease', 7: 'at_ease', 8: 'run', 9: 'run', 10: 'hit_a', 11: 'attack_a',
       12: 'shoot',
     },
-    clips: Object.fromEntries(baked.clips.map((c) => [c.name, { ...c, loop: ['idle', 'march', 'run', 'at_ease'].includes(c.name) }])),
+    clips: Object.fromEntries(baked.clips.map((c) => [c.name, c])),
     archetypes: {
       0: archetype('heavy-sword', 'heavy', 'crest', 'tall', 'sword'),
       1: archetype('light-spear', 'light', 'cap', 'round', 'spear'),

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { once } from 'node:events';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -36,6 +36,7 @@ const sourceRoot = new URL('../assets/test/blender-reference/', import.meta.url)
 const human = await readFile(new URL('human.glb', sourceRoot));
 const defaults = { name: 'diagnostic', tiers: [human, human, human], fps: 24, loopClips: [] };
 assert.throws(() => bakeAppearance({ ...defaults, tiers: [human] }), /three explicit GLB/);
+assert.throws(() => bakeAppearance({ ...defaults, tiers: [new Uint8Array(8), human, human] }), /bad magic/);
 assert.throws(() => bakeAppearance({ ...defaults, loopClips: ['unknown'] }), /loop clip unknown/);
 assert.throws(() => bakeAppearance({ ...defaults, loopClips: undefined }), /declare loopClips/);
 assert.throws(() => bakeAppearance({ ...defaults, tiers: [human, editGlb(human, (json) => {
@@ -177,6 +178,16 @@ try {
   assert.deepEqual(await readFile(join(directory, 'animation.json')), first);
   assert.deepEqual(await readFile(join(directory, 'source/tier-0.glb')), human);
   assert.equal(JSON.parse(await readFile(join(directory, 'appearance.json'), 'utf8')).name, 'cli-diagnostic');
+  execFileSync(process.execPath, [...args, '--check'], { stdio: 'pipe' });
+  await writeFile(join(directory, 'obsolete.json'), '{}');
+  const stale = spawnSync(process.execPath, [...args, '--check'], { encoding: 'utf8' });
+  assert.notEqual(stale.status, 0);
+  assert.ok(stale.stderr.includes('obsolete candidate asset'));
+  await rm(join(directory, 'obsolete.json'));
+  await rm(join(directory, 'tier-2.mesh.json'));
+  const missing = spawnSync(process.execPath, [...args, '--check'], { encoding: 'utf8' });
+  assert.notEqual(missing.status, 0);
+  assert.ok(missing.stderr.includes(`stale or missing candidate asset: ${join(directory, 'tier-2.mesh.json')}`));
   const invalid = spawnSync(process.execPath, [cli, '--near', input, '--out', directory, '--name', 'bad', '--loop', ''], { encoding: 'utf8' });
   assert.notEqual(invalid.status, 0);
   assert.ok(invalid.stderr.includes('missing --mid'));

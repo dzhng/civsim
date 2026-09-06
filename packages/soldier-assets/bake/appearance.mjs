@@ -1,7 +1,6 @@
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { dirname, relative, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { bakeGltf, parseGlb } from './gltf.mjs';
 import { gltfToEngineBasis } from './engine-basis.mjs';
@@ -69,6 +68,7 @@ export function bakeAppearance({ name, mounted = false, tiers, fps = 24, loopCli
   const clipNames = new Set(rig.clips.map((clip) => clip.name));
   if (clipNames.size !== rig.clips.length || clipNames.size === 0) throw new Error('near tier requires uniquely named animation clips');
   for (const clip of loopClips) if (!clipNames.has(clip)) throw new Error(`loop clip ${clip} is absent from the near tier`);
+  for (const clip of rig.clips) clip.loop = loopClips.includes(clip.name);
   const files = {}, materials = [], materialSlots = new Map();
   const meshes = imported.map((source, tier) => {
     const { json } = parseGlb(tiers[tier]);
@@ -98,7 +98,7 @@ export function bakeAppearance({ name, mounted = false, tiers, fps = 24, loopCli
   const data = Array.from(baked.data);
   const animation = {
     schema: 1, skeleton: name, fps, width: baked.width, height: baked.height, bones: baked.bones,
-    clips: baked.clips.map((clip, index) => ({ ...clip, duration: rig.clips[index].duration, loop: loopClips.includes(clip.name) })),
+    clips: baked.clips,
     layout: 'RGBA32F, mat4 columns in rows bone*4..bone*4+3',
     sha256: createHash('sha256').update(Buffer.from(baked.data.buffer, baked.data.byteOffset, baked.data.byteLength)).digest('hex'), data,
   };
@@ -117,22 +117,44 @@ export function bakeAppearance({ name, mounted = false, tiers, fps = 24, loopCli
   return files;
 }
 
+export async function writeAppearance(files, directory, { check = false } = {}) {
+  for (const [path, content] of Object.entries(files)) {
+    const output = resolve(directory, path);
+    const bytes = content instanceof Uint8Array ? content : Buffer.from(`${JSON.stringify(content, null, content.indexFormat ? undefined : 2)}\n`);
+    if (check) {
+      const current = await readFile(output).catch((error) => {
+        if (error.code !== 'ENOENT') throw error;
+        return null;
+      });
+      if (!current?.equals(bytes)) throw new Error(`stale or missing candidate asset: ${output}`);
+    } else {
+      await mkdir(dirname(output), { recursive: true });
+      await writeFile(output, bytes);
+    }
+  }
+  if (check) {
+    for (const entry of await readdir(directory, { recursive: true, withFileTypes: true })) {
+      if (!entry.isFile()) continue;
+      const path = resolve(entry.parentPath, entry.name);
+      if (!Object.hasOwn(files, relative(resolve(directory), path))) throw new Error(`obsolete candidate asset: ${path}`);
+    }
+  }
+}
+
 if (process.argv[1] && import.meta.url === new URL(process.argv[1], 'file:').href) {
   const { values } = parseArgs({ options: {
     near: { type: 'string' }, mid: { type: 'string' }, far: { type: 'string' }, out: { type: 'string' },
     name: { type: 'string' }, mounted: { type: 'boolean', default: false }, loop: { type: 'string' }, fps: { type: 'string', default: '24' },
+    check: { type: 'boolean', default: false },
   } });
   for (const argument of ['near', 'mid', 'far', 'out', 'name', 'loop']) {
     if (values[argument] == null) throw new Error(`missing --${argument}; provide three tiers, an output directory and explicit --loop names (empty for no loops)`);
   }
+  if (!values.out.trim()) throw new Error('--out must name the candidate output directory');
   const files = bakeAppearance({ name: values.name, mounted: values.mounted, fps: Number(values.fps),
     tiers: await Promise.all([values.near, values.mid, values.far].map((path) => readFile(path))),
     loopClips: values.loop ? values.loop.split(',') : [],
   });
-  for (const [path, content] of Object.entries(files)) {
-    const output = resolve(values.out, path);
-    await mkdir(dirname(output), { recursive: true });
-    await writeFile(output, content instanceof Uint8Array ? content : `${JSON.stringify(content, null, content.indexFormat ? undefined : 2)}\n`);
-  }
-  console.log(`wrote candidate ${resolve(values.out, 'appearance.json')}; no roster catalog changed`);
+  await writeAppearance(files, values.out, { check: values.check });
+  console.log(`${values.check ? 'verified' : 'wrote'} candidate ${resolve(values.out, 'appearance.json')}; no roster catalog changed`);
 }

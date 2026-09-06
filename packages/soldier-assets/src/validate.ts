@@ -10,6 +10,7 @@ export interface RigBone {
 export interface RigClip {
   name: string;
   duration: number;
+  loop?: boolean;
   tracks: Record<number, { T?: unknown; R?: unknown; S?: unknown }>;
 }
 
@@ -174,4 +175,3 @@ export function badArtistPackFixture(): SoldierKitManifest {
     vat: { format: '', path: '', layout: '', sha256: '' },
   };
 }
-

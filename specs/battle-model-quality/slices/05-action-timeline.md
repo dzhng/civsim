@@ -1,12 +1,12 @@
 # 05 — Action observations and timeline
 
-Status: IN PROGRESS — 05a/05b complete; 05c observation cutover integrated, replay and gait acceptance open. Depends on [03](./03-weighted-asset-contract.md).
+Status: COMPLETE. Depends on [03](./03-weighted-asset-contract.md).
 
 ## Contract and ownership
 
 One render-owned controller turns observed battle state into deterministic clip progress without changing combat.
 
-API seam: crowd-runtime action state per soldier: update(observation, dt/tick) → base clip IDs/phases/blend, optional mounted rider-upper-body action samples/mask, and attachment state. battleCrowd adapts actual movement/alive/weapon/firing/hit observations. This is the bounded composition contract in architecture.md, not arbitrary animation layering.
+API seam: crowd-runtime action state per soldier: update(observation, tick) → base clip IDs/phases/blend and optional mounted rider-upper-body action samples/mask. battleCrowd adapts actual movement/alive/weapon/firing/injury observations. Current embedded equipment switches through canonical appearance IDs;14 owns real attachment transitions when separate authored gear exists. No unused attachment-state container is introduced here. This is bounded composition, not arbitrary animation layering.
 
 Names of new functions/routes in this plan are proposed, not existing commands. Use the [shared acceptance contract](../README.md#acceptance-contract) and [architecture](../architecture.md) for inherited requirements.
 
@@ -16,12 +16,13 @@ Names of new functions/routes in this plan are proposed, not existing commands. 
 | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 05a — Injury observations — COMPLETE | Existing soldier/mount health is exposed through read-only WASM pointers and the production battle-view owner. [Merged verification](../assets/evidence/05/injury-merged-verification.md) pins values and view refresh without changing combat.                                     |
 | 05b — Applicability and timeline — COMPLETE | Canonical role/state matrix, shared local-transform sampler and independently reviewed deterministic histories with exact bounded interruption poses, resets, count growth and terminal death. |
-| 05c — Production replay              | Adapt actual battle observations and replay action sequences through the production workbench. Remove fabricated hit poses and global-time action wrapping; prove reset/pause/event behavior and inspect the timeline.                                                              |
+| 05c — Production replay — COMPLETE | Actual battle observations feed the controller; synthetic workbench sequences exercise the same controller and submission owner. Reset/pause/events, reloads, real battle cadence and the unchanged standing hardware gate pass. |
 
 The bounded [battle adapter implementation evidence](../assets/evidence/05/battle-adapter.md)
 records the caller cutover and numerical checks. [Merged validation](../assets/evidence/05/merged-validation.md)
-records workbench/cache and hardware results; the replay and deterministic gait
-gates remain open, so this does not complete the production replay row.
+records workbench/cache, replay, deterministic gait and hardware results. The
+[replay review](../assets/evidence/05/workbench-replay/review.md) scopes UI acceptance
+separately from the unaccepted placeholder art and future GPU blending.
 
 `hit_ttl` is contact/facing memory, not an injury event: melee sets it before
 evade/block, missiles can set it before dodge, and its decay depends on facing
@@ -61,7 +62,9 @@ upload cost alongside ordinary playback. No general animation graph is introduce
 
 Workbench timeline replay with fresh action entry, repeated action, interruption, terminal death, paused tick and reset. Show an event availability table and a catalog-derived role/state-to-clip matrix before accepting clips. Account for every current appearance, identify shared versus role-specific clips, and explicitly mark non-applicable actions; do not satisfy coverage with no-op clips.
 
-Expose the fixture through the production model workbench and a named scene/probe. Record the exact runnable command in this file when it exists; do not mark completion with screenshots alone.
+Run `VERIFY_GPU=1 VERIFY_URL=http://localhost:5174 node web/scene.mjs battle-model-action-replay`
+against the development server. The linked replay review provides the interactive
+route. The ordinary workbench remains unchanged without its replay query.
 
 ## Focused verdict
 
@@ -92,13 +95,13 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 
 ## Completion record
 
-- [ ] Contract and runnable artifact implemented.
-- [ ] Execution rows, if any, each have evidence and verdict.
-- [ ] Tests and inherited gates pass; changed-test behavior ledger recorded.
-- [ ] Comparison and final unprimed critique recorded.
-- [ ] Review/cleanup completed; README pickup and decisions updated.
+- [x] Contract and runnable artifact implemented.
+- [x] Execution rows, if any, each have evidence and verdict.
+- [x] Tests and inherited gates pass; changed-test behavior ledger recorded.
+- [x] Comparison and final unprimed critique recorded.
+- [x] Review/cleanup completed; README pickup and decisions updated.
 
-05a landed in `f36211df`; its [observation limits and changed-test ledger](../assets/evidence/05/injury-observations.md) remain the controller's input contract. The merged WASM was rebuilt and independently verified. Continue05c and the infrastructure trunk through07 before detailed anatomy08.
+05a landed in `f36211df`; its [observation limits and changed-test ledger](../assets/evidence/05/injury-observations.md) remain the controller's input contract. The merged WASM was rebuilt and independently verified. Continue the infrastructure trunk through07 before detailed anatomy08.
 
 05b's [source applicability report](../assets/evidence/05/catalog-presentation.md)
 records canonical descriptors, clip-owned release markers, explicit manual-only
@@ -112,4 +115,7 @@ The [shared local-pose sampler](../assets/evidence/05/local-pose.md) is now inte
 with all generated assets byte-identical. The [controller evidence](../assets/evidence/05/action-timeline.md)
 records deterministic timing and exact bounded interruptions. Controller source
 passed independent review and22 focused tests. The production adapter is now
-integrated; replay and gait acceptance remain open as recorded above.
+integrated; merged replay, gait, strict screenshots and hardware checks pass as
+recorded above. The non-blocking Preview checkpoint ran08:32:19–08:37:31UTC on
+2026-09-06 without user feedback. Proceed on the recorded evidence, not assumed
+user approval; Preview was closed. No finished-art or GPU continuity claim follows.

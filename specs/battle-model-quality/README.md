@@ -4,9 +4,11 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 
 ## Next Agent Prompt
 
-Last updated **2026-09-06**. Status: **slices01–04 complete; slice05 in progress**.
+Last updated **2026-09-06**. Status: **slices01–05 complete; slice06 in progress**.
 
-You are working in `/Users/david/dev/game-battle-model-quality`, branch `codex/battle-model-quality`. Continue [05 — Action observations and timeline](slices/05-action-timeline.md): finish deterministic gait verification, integrate and review the production workbench action replay, then run applicable performance and visual checkpoints. The actual observation/submission cutover and WASM rebuild are integrated; [merged validation](assets/evidence/05/merged-validation.md) records passing workbench/cache and numerical checks plus the remaining gait failure.05a, [canonical applicability](assets/evidence/05/catalog-presentation.md), the [shared CPU sampler](assets/evidence/05/local-pose.md) and [reviewed controller numerics](assets/evidence/05/action-timeline.md) are ready. No production replay or GPU blending acceptance yet. Finish05→07 infrastructure before detailed anatomy08. No user-only blocker.
+You are working in `/Users/david/dev/game-battle-model-quality`, branch `codex/battle-model-quality`. Continue [06 — GPU playback](slices/06-gpu-playback.md): finish the shared palette kernel/packing/lifetime proofs, then atomically cut over all consumers and internal bundles before temporal acceptance. The [local encoding proposal](assets/evidence/06/local-encoding-proposal.md) is approved and its source implementation is prepared in an independent worktree, not yet installed in runtime. The [palette proposal](assets/evidence/06/palette-consumer-proposal.md) and [measured storage lifetime](assets/evidence/06/compute-buffer-lifetime.md) identify the actual integration gates. Current production still draws the selected base VAT clip; no GPU blend acceptance yet. Finish06→07 before detailed anatomy08. No user-only blocker.
+
+[05 merged validation](assets/evidence/05/merged-validation.md) records252 web tests, rebuilt WASM/golden checks, strict replay/workbench/swatch snapshots, deterministic battle cadence and the standing hardware gate. Its five-minute Preview checkpoint closed on evidence without assuming user approval. The workbench distinguishes submitted clip/phase from future GPU pose readback.06c still owes an isolated frozen-articulation negative control.
 
 [Material closure](assets/evidence/04/consumer-closure/review.md) links the scalar, texture and posed-normal evidence, the matched six-swatch source/production comparison, strict merged consumer/reload checks and applicable standing hardware gate. Material transfer is accepted; anatomy, surface styling, animation quality and final-distance readability are not. Filtered-normal boundary bands, far shadows and raw placeholder readability remain later-slice obligations. [Choices](choices.md) owns implementation decisions.
 
@@ -16,10 +18,13 @@ fragment-side VAT work. `hit_ttl` is facing/contact memory, not an injury event:
 05 uses actual health observations. Local Blender remains available; external AI
 generation stays excluded.
 
-06's analytic animated-bounds prerequisite is proceeding independently. It must
-cover continuous local motion and mounted combinations; integer-pose sampling
-alone is not conservative. Do not accept its future GPU arithmetic before that
-implementation revalidates the rounding envelope.
+06's [analytic bounds](assets/evidence/06/analytic-bounds.md) are integrated and
+pass the full source bake checks; merged GPU/culling validation is next. The
+material-swatch review camera is independently anchored, preserving its frame.
+Do not accept future GPU quaternion arithmetic before that implementation
+revalidates the rounding envelope. Preserve normal synchronous capacity growth
+and explicit failure reporting; no speculative async stale-frame policy is
+approved.
 
 The user clarified that their model-progress question was not a request to reprioritize. Keep the infrastructure-first trunk and start detailed anatomy at08 after the measured budget envelope; diagnostic Blender fixtures are not detailed soldier models.
 
@@ -43,7 +48,7 @@ The global TODO checklist is the slice list below. Update this prompt, the check
 - [x] [02 — Blender export reference fixtures](slices/02-blender-reference-fixtures.md)
 - [x] [03 — Weighted mesh and skeleton cutover](slices/03-weighted-asset-contract.md)
 - [x] [04 — Explicit material round trip](slices/04-explicit-materials.md)
-- [ ] [05 — Action observations and timeline](slices/05-action-timeline.md)
+- [x] [05 — Action observations and timeline](slices/05-action-timeline.md)
 - [ ] [06 — GPU interpolation and clip blending](slices/06-gpu-playback.md)
 - [ ] [07 — Measure asset and animated-view budgets](slices/07-budget-envelope.md)
 - [ ] [08 — Shared human anatomy](slices/08-anatomy.md)

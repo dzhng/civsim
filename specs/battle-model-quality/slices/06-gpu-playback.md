@@ -1,6 +1,6 @@
 # 06 — GPU interpolation and clip blending
 
-Status: TODO. Depends on [05](./05-action-timeline.md), [04](./04-explicit-materials.md).
+Status: IN PROGRESS — analytic bounds integrated; local encoding prepared and GPU palette feasibility under verification. Depends on [05](./05-action-timeline.md), [04](./04-explicit-materials.md).
 
 ## Contract and ownership
 
@@ -31,6 +31,17 @@ Complete these rows in order; record their actual commands and evidence here as 
 | 06c — temporal acceptance | Production workbench fixture and named scene for fractional locomotion, interrupted actions, mounted overlay entry/exit and terminal death. | Repeated interruptions on both sides of blend midpoint preserve the displayed pose; overlay exit converges to the moving base even during its crossfade; full-body death begins continuously and holds its final sample. Deterministic pause/replay and bounded storage remain required. |
 
 06a may prepare producer/CPU changes independently, but do not expose a changed runtime asset format until all06b consumers are ready. Keep04's weighted normal/tangent and fragment normal-map contracts unchanged. Use the authored mounted diagnostic to prove composition; runnable placeholder horses do not establish accepted articulated gait.
+
+The [approved encoding proposal](../assets/evidence/06/local-encoding-proposal.md)
+uses authored-time union samples,48-byte local poses and exact CPU interval/STEP
+selection. Its prepared implementation is not yet a live asset-format change.
+The [palette preparation proposal](../assets/evidence/06/palette-consumer-proposal.md)
+owns the coherent consumer cutover plan; [storage lifetime measurements](../assets/evidence/06/compute-buffer-lifetime.md)
+show why compute-only attributes need explicit renderer-owned disposal during
+replacement. Preserve existing synchronous growth with size/device-limit checks
+and coherent bindings, rather than inventing an asynchronous stale-frame policy.
+Kernel arithmetic, partial uploads/failures and actual beauty/shadow consumers
+remain acceptance gates, not facts established by the proposal.
 
 For the [07 budget experiment](./07-budget-envelope.md), include synchronized interruption bursts, not just steady locomotion: controller snapshot evaluation time, CPU/GPU resident snapshot and palette bytes, upload bytes/time, slot reuse and disposal. Record measured bone/instance counts and packing. Snapshot uploads should follow changed snapshots rather than repeat every live frame; do not treat an illustrative allocation estimate as the accepted budget.
 

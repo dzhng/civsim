@@ -470,3 +470,33 @@ history. Keeping both active would leave two competing explanations for the
 displayed pose. Future inspection controls inherit one active pose owner.
 **Sound:** explicit mode changes prevent stale or misleading state while camera
 adjustments remain non-destructive to an author's timing inspection.
+
+### Bound every possible local pose rather than only sampled frames (06 prerequisite)
+
+**Confidence: medium.** A long weapon can swing outside the box containing its
+start and end poses. The source baker now follows the skeleton hierarchy and
+bounds all allowed translations, scales and rotations, including crossfades and
+mounted masks. It uses a sphere centered on the root-translation envelope, not
+an optimally tight sphere fitted to a few poses. The unbuilt sampled alternative
+can make the renderer wrongly remove a visible weapon near the screen edge.
+
+The plan required conservative continuous bounds but did not choose the method.
+Larger diagnostic spheres can retain more off-screen work;07 must measure that
+cost. The review camera keeps its own fixed framing rather than moving when a
+culling sphere changes. **Sound:** the hierarchy proof covers unseen intermediate
+poses without a guessed safety multiplier. Its current Float32 margin does not
+pre-approve a different GPU quaternion implementation.
+
+### Reject projective inverse binds instead of silently treating them as affine (06 prerequisite)
+
+**Confidence: medium.** The bounds proof assumes a skeleton transform preserves
+the usual homogeneous coordinate. An imported inverse-bind matrix with a small
+projective term can pass the importer's approximate shape check yet violate that
+assumption, especially far from the origin. The bounds owner rejects that matrix
+instead of dropping the term or returning a misleading sphere.
+
+The plan did not define this admission edge. Current Blender exports satisfy the
+exact affine row; a future exporter with numerical noise must correct its source
+or justify an explicit normalization policy. **Sound:** rejecting unsupported
+transforms preserves geometry rather than silently changing authored data to make
+the bound appear valid.

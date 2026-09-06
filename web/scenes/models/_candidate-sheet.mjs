@@ -29,10 +29,13 @@ const cameras = [
 ];
 const crop = { x: 320, y: 96, width: 640, height: 640 };
 
-export const candidateSnapshots = (folder) =>
-  cameras.map(({ name }) => `shared/soldiers/${folder}/${name}`);
+export const candidateSnapshots = (folder, details = []) =>
+  [...cameras, ...details].map(({ name }) => `shared/soldiers/${folder}/${name}`);
 
-export async function runCandidateSheet(ctx, { name, asset, label, folder, classes }) {
+export async function runCandidateSheet(
+  ctx,
+  { name, asset, label, folder, classes, details = [] },
+) {
   requireSwiftShaderBaseline(name);
   const page = await ctx.newPage({ viewport: { width: 1280, height: 800 } });
   const catalog = `/assets/soldiers/candidates/${asset}/catalog.json`;
@@ -98,17 +101,18 @@ export async function runCandidateSheet(ctx, { name, asset, label, folder, class
       return page.screenshot({ clip: crop });
     };
 
-    for (const camera of cameras) {
+    for (const camera of [...cameras, ...details]) {
+      const bearings = camera.views ?? views;
       const sheet = new PNG({
-        width: crop.width * views.length,
+        width: crop.width * bearings.length,
         height: crop.height * camera.poses.length,
       });
       let tile = 0;
-      for (const [stance, phase] of camera.poses) {
-        for (const [view, yaw] of views) {
+      for (const [stance, phase, clip = "bend"] of camera.poses) {
+        for (const [view, yaw] of bearings) {
           const pose = {
             classId: classes[0],
-            clip: "bend",
+            clip,
             phase,
             formation: false,
             target: camera.target,
@@ -126,7 +130,7 @@ export async function runCandidateSheet(ctx, { name, asset, label, folder, class
               stats.render.height === 800 &&
               stats.render.soldiers === 1 &&
               stats.render.lod.skinned === 1 &&
-              stats.sampled.clip === "bend" &&
+              stats.sampled.clip === clip &&
               stats.sampled.phase === phase &&
               stats.render.crowd.palettes.some(
                 (palette) => palette.bones === admission.assets[0].bones,
@@ -156,8 +160,8 @@ export async function runCandidateSheet(ctx, { name, asset, label, folder, class
             0,
             crop.width,
             crop.height,
-            (tile % views.length) * crop.width,
-            Math.floor(tile / views.length) * crop.height,
+            (tile % bearings.length) * crop.width,
+            Math.floor(tile / bearings.length) * crop.height,
           );
           tile++;
         }

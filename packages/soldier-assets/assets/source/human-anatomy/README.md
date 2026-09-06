@@ -16,6 +16,12 @@ performance budget.
 
 The [candidate baker](../../../bake/human-anatomy.mjs) shares one untextured body
 between the first pair's inspection entries. Its repeated tiers and manual-only
-clip are inspection inputs, not production-ready distance or gameplay assets.
+clips are inspection inputs, not production-ready distance or gameplay assets.
+Pronation is carried by the forearm, with half roll on the existing elbow-volume
+support; it is composed after elbow flex. The hand itself does not roll locally,
+so its hand/forearm-weighted grip surface follows rigid hand-attached equipment.
+The source checks that tracking numerically, but cannot establish handle clearance
+or credible anatomy. Owned muted NLA tracks associate inspection clips with this
+rig without exporting unrelated Blender actions.
 The [anatomy slice](../../../../../specs/battle-model-quality/slices/08-anatomy.md)
 owns current acceptance evidence and unresolved art work.

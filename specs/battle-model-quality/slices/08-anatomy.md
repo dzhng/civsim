@@ -98,3 +98,10 @@ isolates sculpt versus reduction loss and retains local hand preservation as a
 modest improvement. Its 20,504-triangle inspection export is provisional, not an
 admitted budget. Fingers still need direct anatomical form work; more retained
 triangles do not make the remaining U-prong shape correct.
+
+The [pronation study](../assets/evidence/08/pronation/review.md) retains forearm
+roll as marginally less wrong than isolated wrist roll, without adding bones or
+changing weights. Original bend and static sheet coverage remain intact; two
+supplemental named-clip timelines expose straight and bent pronation. Rigid grip
+tracking passes, but wrist pinch, angular elbow deformation and hooklike fingers
+remain unaccepted. Nominal handle clearance is still a separate failed contract.

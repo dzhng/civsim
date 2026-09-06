@@ -10,11 +10,13 @@ from pathlib import Path
 
 import bpy
 import bmesh
-from mathutils import Vector
+from mathutils import Matrix, Vector
 
 
 OUTPUT = Path(__file__).resolve().parents[1] / "assets/source/human-anatomy"
 SCENE = "HumanAnatomyCandidate"
+INSPECTION_CLIPS = (("bend", True, False), ("pronation", False, True),
+                    ("bend-pronation", True, True))
 
 
 def loft(name, sections, segments=24, across=(1, 0, 0), depth=(0, 1, 0)):
@@ -141,37 +143,98 @@ def deform_candidate(sculpt):
     for modifier in body.modifiers:
         if modifier.type == "ARMATURE":
             modifier.use_deform_preserve_volume = False
-    scene = bpy.context.scene
-    scene.frame_start, scene.frame_end = 0, 60
-    for frame in (0, 15, 30, 45, 60):
-        amount = math.sin(math.pi * frame / 60)
-        for bone in arm.pose.bones:
-            bone.rotation_mode = "XYZ"
-            bone.rotation_euler = (0, 0, 0)
-            bone.location = (0, 0, 0)
-        arm.pose.bones["pelvis"].location.y = -.175 * amount
-        arm.pose.bones["spine"].rotation_euler.x = .20 * amount
-        for side in ("L", "R"):
-            arm.pose.bones["thigh." + side].rotation_euler.x = -.60 * amount
-            arm.pose.bones["shin." + side].rotation_euler.x = 1.30 * amount
-            arm.pose.bones["foot." + side].rotation_euler.x = -.70 * amount
-            arm.pose.bones["forearm." + side].rotation_euler.x = -1.45 * amount
-            # Bisector bones retain joint cross-section volume under linear skinning.
-            arm.pose.bones["elbow-volume." + side].rotation_euler.x = -.725 * amount
-            arm.pose.bones["knee-volume." + side].rotation_euler.x = .65 * amount
-        for bone in arm.pose.bones:
-            bone.keyframe_insert("rotation_euler", frame=frame)
-            bone.keyframe_insert("location", frame=frame)
-    arm.animation_data.action.name = "bend"
-    for layer in arm.animation_data.action.layers:
-        for strip in layer.strips:
-            for bag in strip.channelbags:
-                for curve in bag.fcurves:
-                    for key in curve.keyframe_points:
-                        key.interpolation = "LINEAR"
-    scene.frame_set(0)
+    inspection_clips(arm)
+    check_grip_tracking(body, arm)
     body["authoring_status"] = "Provisional reduced mesh and heat weights; deep-bend review required"
     return body, arm
+
+
+def inspection_clips(arm):
+    """Keep the original bend and add isolated local-forearm-roll studies."""
+    scene = bpy.context.scene
+    scene.frame_start, scene.frame_end = 0, 60
+    for clip_name, bending, rolling in INSPECTION_CLIPS:
+        arm.animation_data_create()
+        arm.animation_data.action = None
+        for frame in (range(61) if rolling else (0, 15, 30, 45, 60)):
+            phase = frame / 15
+            lower = min(3, int(phase))
+            amount = ((1-(phase-lower))*math.sin(math.pi*lower/4)
+                      + (phase-lower)*math.sin(math.pi*(lower+1)/4))
+            bend = amount if bending else 0
+            for bone in arm.pose.bones:
+                bone.rotation_mode = "XYZ"
+                bone.rotation_euler = (0, 0, 0)
+                bone.location = (0, 0, 0)
+            arm.pose.bones["pelvis"].location.y = -.175 * bend
+            arm.pose.bones["spine"].rotation_euler.x = .20 * bend
+            for side in ("L", "R"):
+                arm.pose.bones["thigh." + side].rotation_euler.x = -.60 * bend
+                arm.pose.bones["shin." + side].rotation_euler.x = 1.30 * bend
+                arm.pose.bones["foot." + side].rotation_euler.x = -.70 * bend
+                arm.pose.bones["forearm." + side].rotation_euler.x = -1.45 * bend
+                # Bisector bones retain joint cross-section volume under linear skinning.
+                arm.pose.bones["elbow-volume." + side].rotation_euler.x = -.725 * bend
+                arm.pose.bones["knee-volume." + side].rotation_euler.x = .65 * bend
+            if rolling:
+                # Roll about the already-flexed forearm axis, not the upper-arm axis.
+                for name, fraction in (("forearm.R", 1), ("elbow-volume.R", .5)):
+                    rotation = (Matrix.Rotation(-1.45*bend*fraction, 3, "X")
+                                @ Matrix.Rotation(math.pi/2*amount*fraction, 3, "Y"))
+                    arm.pose.bones[name].rotation_euler = rotation.to_euler("XYZ")
+            for bone in arm.pose.bones:
+                bone.keyframe_insert("rotation_euler", frame=frame)
+                bone.keyframe_insert("location", frame=frame)
+        action = arm.animation_data.action
+        action.name = clip_name
+        track = arm.animation_data.nla_tracks.new()
+        track.name = action.name
+        track.mute = True
+        strip = track.strips.new(action.name, 0, action)
+        strip.action_slot = action.slots[0]
+        for layer in action.layers:
+            for strip in layer.strips:
+                for bag in strip.channelbags:
+                    for curve in bag.fcurves:
+                        for key in curve.keyframe_points:
+                            key.interpolation = "LINEAR"
+    arm.animation_data.action = bpy.data.actions["bend"]
+    arm.animation_data.action_slot = arm.animation_data.action.slots[0]
+    scene.frame_set(0)
+
+
+def check_grip_tracking(body, arm):
+    """The roll study must not slide grip-region skin relative to rigid hand gear."""
+    center, axis = Vector((-.5732, -.051, .9024)), Vector((-.8, 0, .6))
+    points = [vertex.co.copy() for vertex in body.data.vertices]
+    ids = [i for i, point in enumerate(points)
+           if abs((point-center).dot(axis)) < .045
+           and ((point-center)-axis*(point-center).dot(axis)).length < .047]
+    if not ids:
+        raise RuntimeError("Pronation study has no grip-region surface")
+    scene = bpy.context.scene
+    original = arm.animation_data.action
+    maxima = {}
+    for track in arm.animation_data.nla_tracks:
+        action = track.strips[0].action
+        arm.animation_data.action = action
+        arm.animation_data.action_slot = action.slots[0]
+        maximum = 0
+        for frame in range(61):
+            scene.frame_set(frame)
+            bpy.context.view_layer.update()
+            evaluated = body.evaluated_get(bpy.context.evaluated_depsgraph_get())
+            mesh = evaluated.to_mesh()
+            rigid = arm.pose.bones["hand.R"].matrix @ arm.data.bones["hand.R"].matrix_local.inverted()
+            maximum = max(maximum, max((mesh.vertices[i].co-rigid@points[i]).length for i in ids))
+            evaluated.to_mesh_clear()
+        if maximum > 1e-6:
+            raise RuntimeError(f"{action.name}: grip surface drifts {maximum} metres from rigid hand gear")
+        maxima[action.name] = maximum
+    arm.animation_data.action = original
+    arm.animation_data.action_slot = original.slots[0]
+    scene.frame_set(0)
+    print({"grip_surface_vertices": len(ids), "rigid_tracking_max_metres": maxima})
 
 
 def export_candidate(body, arm, output=OUTPUT, name="human-anatomy"):
@@ -181,16 +244,28 @@ def export_candidate(body, arm, output=OUTPUT, name="human-anatomy"):
     arm.select_set(True)
     bpy.context.view_layer.objects.active = arm
     output.mkdir(parents=True, exist_ok=True)
-    bpy.ops.export_scene.gltf(
-        filepath=str(output / f"{name}.glb"), export_format="GLB",
-        use_selection=True, use_active_scene=True, export_yup=True, export_skins=True,
-        export_animations=True, export_animation_mode="ACTIONS", export_force_sampling=True,
-        export_frame_step=1, export_def_bones=True, export_all_influences=False,
-        export_anim_slide_to_zero=True, export_reset_pose_bones=True,
-        export_anim_single_armature=False, export_bake_animation=True,
-        export_hierarchy_flatten_bones=False, export_hierarchy_flatten_objs=False,
-        export_apply=False, export_texcoords=True, export_normals=True, export_tangents=True,
-    )
+    # Muted owned NLA tracks associate every inspection action with this rig.
+    # Suppress the duplicate active action during export, without broadcasting
+    # unrelated actions from other Blender scenes onto the selected skeleton.
+    action = arm.animation_data.action
+    if arm.animation_data.nla_tracks:
+        arm.animation_data.action = None
+    try:
+        bpy.ops.export_scene.gltf(
+            filepath=str(output / f"{name}.glb"), export_format="GLB",
+            use_selection=True, use_active_scene=True, export_yup=True, export_skins=True,
+            export_animations=True, export_animation_mode="ACTIONS", export_force_sampling=True,
+            export_frame_step=1, export_def_bones=True, export_all_influences=False,
+            export_anim_slide_to_zero=True, export_reset_pose_bones=True,
+            export_anim_single_armature=False, export_bake_animation=True,
+            export_hierarchy_flatten_bones=False, export_hierarchy_flatten_objs=False,
+            export_apply=False, export_texcoords=True, export_normals=True, export_tangents=True,
+        )
+    finally:
+        arm.animation_data.action = action
+        if action:
+            arm.animation_data.action_slot = action.slots[0]
+        bpy.context.scene.frame_set(0)
     bpy.data.libraries.write(str(output / f"{name}.blend"), {bpy.context.scene},
                              path_remap="RELATIVE", fake_user=True, compress=True)
 
@@ -198,8 +273,8 @@ def export_candidate(body, arm, output=OUTPUT, name="human-anatomy"):
 def build():
     if SCENE in bpy.data.scenes:
         raise RuntimeError("Candidate scene already exists; inspect it before rebuilding")
-    if "bend" in bpy.data.actions:
-        raise RuntimeError("Unrelated bend action already exists; build in a fresh Blender session")
+    if any(name in bpy.data.actions for name, _, _ in INSPECTION_CLIPS):
+        raise RuntimeError("An inspection action name is already in use; build in a fresh Blender session")
     scene = bpy.data.scenes.new(SCENE)
     bpy.context.window.scene = scene
     scene.unit_settings.system = "METRIC"

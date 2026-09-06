@@ -46,6 +46,26 @@ const rig: ImportedRig = {
 };
 const frozen = (x: number) => Object.freeze([x, 0, 0, 0, 0, 0, 1, 1, 1, 1]);
 
+test("indexed manual samples retain endpoint semantics without timeline or snapshot allocation", () => {
+  const animation = bakeLocalAnimation(rig);
+  const packer = new PlaybackPacker(rig, animation);
+  const samples = [
+    { clip: "move", phase: 0.25 },
+    { clip: "move", phase: 1 },
+  ];
+  const frame = packer.prepare(
+    samples.length,
+    (index) => samples[index],
+    () => {
+      throw new Error("manual samples have no upper-body mask");
+    },
+  );
+  assert.deepEqual(frame.uploads, []);
+  assert.equal(frame.requiredSnapshotSlots, 0);
+  assert.equal(decodeRecord(animation, frame.controls, new Map(), [], 0)[0], 0.5);
+  assert.equal(decodeRecord(animation, frame.controls, new Map(), [], 1)[0], 2);
+});
+
 test("direct immutable and Float64 locals produce identical packed bytes with unchanged admission", () => {
   const immutable = Object.freeze([-0, 1 / 3, -2, 0.1, 0.2, 0.3, 0.9, 2, 3, 4]);
   const typed: LocalPose = Float64Array.from(immutable);
@@ -71,16 +91,52 @@ const playback = (locals: readonly number[]): SoldierPlayback => ({
 test("unsubmitted preparation does not suppress required snapshot uploads on retry", () => {
   const packer = new PlaybackPacker(rig, bakeLocalAnimation(rig)),
     locals = frozen(3),
-    input = [{ playback: playback(locals), upperMaskOffset: 0 }];
-  const first = packer.prepare(input);
+    input = [playback(locals)];
+  const first = packer.prepare(
+    input.length,
+    (index) => input[index],
+    () => 0,
+  );
   assert.equal(first.uploads[0].data[0], 3);
   packer.discardPrepared(first);
-  const retry = packer.prepare(input);
+  const retry = packer.prepare(
+    input.length,
+    (index) => input[index],
+    () => 0,
+  );
   assert.equal(retry.uploads[0].data[0], 3);
   packer.commitPrepared(retry);
-  const retained = packer.prepare(input);
+  const retained = packer.prepare(
+    input.length,
+    (index) => input[index],
+    () => 0,
+  );
   assert.deepEqual(retained.uploads, []);
   assert.equal(retained.residentSnapshotCount, 1);
+});
+
+test("fresh snapshot-buffer generation reuploads active sources without old-buffer copies", () => {
+  const animation = bakeLocalAnimation(rig);
+  const packer = new PlaybackPacker(rig, animation);
+  const values = [playback(frozen(10)), playback(frozen(20))];
+  const prepare = () =>
+    packer.prepare(
+      values.length,
+      (index) => values[index],
+      () => 0,
+    );
+  const initial = prepare();
+  packer.commitPrepared(initial);
+  assert.deepEqual(prepare().uploads, []);
+  packer.reset(); // Adapter has allocated a fresh empty GPU buffer.
+  assert.equal(packer.peakCommittedSnapshotSlots, 0);
+  const grown = prepare();
+  const freshBank = new Map(grown.uploads.map((upload) => [upload.slot, upload.data]));
+  assert.equal(decodeRecord(animation, grown.controls, freshBank, [], 0)[0], 7.75);
+  assert.equal(decodeRecord(animation, grown.controls, freshBank, [], 1)[0], 15.25);
+  packer.commitPrepared(grown);
+  assert.deepEqual(prepare().uploads, []);
+  assert.equal(packer.peakCommittedSnapshotSlots, 2);
 });
 
 test("snapshot identity is shared only while visible, with reusable holes and bounded slot high water", () => {
@@ -89,8 +145,11 @@ test("snapshot identity is shared only while visible, with reusable holes and bo
     b = frozen(2),
     c = frozen(3);
   const submit = (sources: readonly (readonly number[])[]) => {
+    const values = sources.map(playback);
     const frame = packer.prepare(
-      sources.map((locals) => ({ playback: playback(locals), upperMaskOffset: 0 })),
+      values.length,
+      (index) => values[index],
+      () => 0,
     );
     assert.ok(frame.residentSnapshotCount <= sources.length * 2);
     packer.commitPrepared(frame);
@@ -135,36 +194,92 @@ test("snapshot identity is shared only while visible, with reusable holes and bo
 test("superseded/reset plans cannot commit and rig generations never share residency", () => {
   const animation = bakeLocalAnimation(rig),
     packer = new PlaybackPacker(rig, animation);
-  const input = [{ playback: playback(frozen(5)), upperMaskOffset: 0 }];
-  const stale = packer.prepare(input),
-    current = packer.prepare(input);
+  const input = [playback(frozen(5))];
+  const stale = packer.prepare(
+      input.length,
+      (index) => input[index],
+      () => 0,
+    ),
+    current = packer.prepare(
+      input.length,
+      (index) => input[index],
+      () => 0,
+    );
   assert.throws(() => packer.commitPrepared(stale), /no longer pending/);
   packer.commitPrepared(current);
-  const resetPlan = packer.prepare(input);
+  const resetPlan = packer.prepare(
+    input.length,
+    (index) => input[index],
+    () => 0,
+  );
   packer.reset();
   assert.throws(() => packer.commitPrepared(resetPlan), /no longer pending/);
-  assert.equal(packer.prepare(input).uploads[0].data[0], 5);
+  assert.equal(
+    packer.prepare(
+      input.length,
+      (index) => input[index],
+      () => 0,
+    ).uploads[0].data[0],
+    5,
+  );
   const replacement = new PlaybackPacker(structuredClone(rig), animation);
-  assert.equal(replacement.prepare(input).uploads[0].data[0], 5);
-  assert.throws(() => replacement.commitPrepared(packer.prepare(input)), /no longer pending/);
+  assert.equal(
+    replacement.prepare(
+      input.length,
+      (index) => input[index],
+      () => 0,
+    ).uploads[0].data[0],
+    5,
+  );
+  assert.throws(
+    () =>
+      replacement.commitPrepared(
+        packer.prepare(
+          input.length,
+          (index) => input[index],
+          () => 0,
+        ),
+      ),
+    /no longer pending/,
+  );
 });
 
 test("invalid replacement preparation preserves committed snapshots without admitting partial uploads", () => {
   const packer = new PlaybackPacker(rig, bakeLocalAnimation(rig)),
     a = frozen(1),
     b = frozen(2);
-  const first = packer.prepare([{ playback: playback(a), upperMaskOffset: 0 }]);
+  const first = packer.prepare(
+    1,
+    () => playback(a),
+    () => 0,
+  );
   packer.commitPrepared(first);
   const bad = playback(b);
   bad.base.destination.clip = "missing";
   assert.throws(
-    () => packer.prepare([{ playback: bad, upperMaskOffset: 0 }]),
+    () =>
+      packer.prepare(
+        1,
+        () => bad,
+        () => 0,
+      ),
     /missing local clip/,
   );
   assert.equal(packer.residentSnapshotCount, 1);
-  assert.deepEqual(packer.prepare([{ playback: playback(a), upperMaskOffset: 0 }]).uploads, []);
+  assert.deepEqual(
+    packer.prepare(
+      1,
+      () => playback(a),
+      () => 0,
+    ).uploads,
+    [],
+  );
   assert.equal(
-    packer.prepare([{ playback: playback(b), upperMaskOffset: 0 }]).uploads[0].data[0],
+    packer.prepare(
+      1,
+      () => playback(b),
+      () => 0,
+    ).uploads[0].data[0],
     2,
   );
 });
@@ -177,15 +292,27 @@ test("abandoned partial uploads invalidate overwritten committed slots before re
     const a = frozen(10),
       b = frozen(20),
       c = frozen(30);
-    const inputs = (values: readonly (readonly number[])[]) =>
-      values.map((locals) => ({ playback: playback(locals), upperMaskOffset: 0 }));
-    const initial = packer.prepare(inputs([a, b]));
+    const original = [playback(a), playback(b)];
+    const replacement = [original[1], playback(c)];
+    const initial = packer.prepare(
+      2,
+      (index) => original[index],
+      () => 0,
+    );
     for (const upload of initial.uploads) bank.set(upload.slot, upload.data);
     packer.commitPrepared(initial);
-    const abandoned = packer.prepare(inputs([b, c]));
+    const abandoned = packer.prepare(
+      2,
+      (index) => replacement[index],
+      () => 0,
+    );
     for (const upload of abandoned.uploads) bank.set(upload.slot, upload.data); // Queue writes landed, later submission failed.
     if (abort === "discard") packer.discardPrepared(abandoned);
-    const retry = packer.prepare(inputs([a, b]));
+    const retry = packer.prepare(
+      2,
+      (index) => original[index],
+      () => 0,
+    );
     for (const upload of retry.uploads) bank.set(upload.slot, upload.data);
     assert.equal(
       decodeRecord(animation, retry.controls, bank, [], 0)[0],
@@ -257,7 +384,11 @@ test("upper exit targets the evaluated crossfading base, with two independent fr
     destination: { kind: "base" },
     weight: 0.5,
   };
-  const frame = packer.prepare([{ playback: value, upperMaskOffset: 7 }]);
+  const frame = packer.prepare(
+    1,
+    () => value,
+    () => 7,
+  );
   const bank = new Map(frame.uploads.map((upload) => [upload.slot, upload.data]));
   assert.equal(
     decodeRecord(animation, frame.controls, bank, [0])[0],
@@ -274,11 +405,19 @@ test("upper exit targets the evaluated crossfading base, with two independent fr
   );
   packer.commitPrepared(frame);
   value.riderUpperBody.source = value.base.source;
-  const shared = packer.prepare([{ playback: value, upperMaskOffset: 7 }]);
+  const shared = packer.prepare(
+    1,
+    () => value,
+    () => 7,
+  );
   assert.equal(shared.residentSnapshotCount, 1);
   assert.deepEqual(shared.uploads, []);
   value.riderUpperBody.source = { kind: "frozen", locals: frozen(10) };
-  const distinct = packer.prepare([{ playback: value, upperMaskOffset: 7 }]);
+  const distinct = packer.prepare(
+    1,
+    () => value,
+    () => 7,
+  );
   assert.equal(
     distinct.residentSnapshotCount,
     2,
@@ -298,8 +437,11 @@ test("compact record order preserves per-instance clips, weights and integer des
       weight: 0.5,
     },
   };
+  const values = [first, second];
   const frame = packer.prepare(
-    [first, second].map((playback) => ({ playback, upperMaskOffset: 0 })),
+    values.length,
+    (index) => values[index],
+    () => 0,
   );
   const bank = new Map(frame.uploads.map((upload) => [upload.slot, upload.data]));
   assert.equal(decodeRecord(animation, frame.controls, bank, [], 0)[0], 7.75);
@@ -362,7 +504,11 @@ test("real action timeline interruptions and upper exit pack the same composed m
   };
   let maximumError = 0;
   const check = (playback: SoldierPlayback) => {
-    const frame = packer.prepare([{ playback, upperMaskOffset: 0xf1234567 }]);
+    const frame = packer.prepare(
+      1,
+      () => playback,
+      () => 0xf1234567,
+    );
     for (const upload of frame.uploads) bank.set(upload.slot, upload.data);
     const decoded = decodeRecord(animation, frame.controls, bank, mask),
       expected = evaluatePlaybackPose(appearance, playback);

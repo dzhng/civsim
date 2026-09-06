@@ -12,11 +12,6 @@ export const PLAYBACK_UPPER_PRESENT = 2;
 export const PLAYBACK_UPPER_FROZEN = 4;
 export const PLAYBACK_UPPER_DEST_BASE = 8;
 
-export interface PlaybackInput {
-  playback: SoldierPlayback;
-  /** Absolute word offset into the kernel's static appearance mask table. */
-  upperMaskOffset: number;
-}
 export interface PreparedPlayback {
   /** Uint32 words with Float32 weights/fractions bitcast through the same buffer. */
   controls: Uint32Array;
@@ -41,8 +36,16 @@ export class PlaybackPacker {
       throw new Error("playback rig and animation joint counts differ");
   }
 
-  /** A new plan supersedes any unsubmitted plan, invalidating its possible overwrites. */
-  prepare(inputs: readonly PlaybackInput[]): PreparedPlayback {
+  /** Accessors read stable submitted values, never advance playback. A new plan supersedes
+   * any unsubmitted plan, invalidating its possible overwrites. Mask offsets are absolute
+   * words in the kernel's static appearance mask table, read only for an active overlay. */
+  prepare(
+    count: number,
+    playbackAt: (index: number) => SoldierPlayback | ClipSample,
+    upperMaskOffsetAt: (index: number) => number,
+  ): PreparedPlayback {
+    if (!Number.isSafeInteger(count) || count < 0)
+      throw new Error("playback count must be a nonnegative safe integer");
     this.abandonPending();
     const needed = new Set<readonly number[]>();
     const collect = (source: PoseSource) => {
@@ -52,7 +55,9 @@ export class PlaybackPacker {
         needed.add(source.locals);
       }
     };
-    for (const { playback } of inputs) {
+    for (let index = 0; index < count; index++) {
+      const playback = playbackAt(index);
+      if (!("base" in playback)) continue;
       collect(playback.base.source);
       if (playback.riderUpperBody) collect(playback.riderUpperBody.source);
     }
@@ -69,7 +74,7 @@ export class PlaybackPacker {
         occupied.add(slot);
         uploads.push({ slot, data: packLocalPose(source) });
       }
-    const controls = new Uint32Array(inputs.length * PLAYBACK_WORDS);
+    const controls = new Uint32Array(count * PLAYBACK_WORDS);
     const floats = new Float32Array(controls.buffer);
     const clip = (sample: ClipSample, offset: number) => {
       const resolved = resolveLocalSample(this.animation, sample.clip, sample.phase);
@@ -87,15 +92,24 @@ export class PlaybackPacker {
         throw new Error("playback blend weight must be from zero to one");
       floats[offset] = value;
     };
-    for (let index = 0; index < inputs.length; index++) {
-      const { playback, upperMaskOffset } = inputs[index],
+    for (let index = 0; index < count; index++) {
+      const playback = playbackAt(index),
         offset = index * PLAYBACK_WORDS;
+      if (!("base" in playback)) {
+        floats[offset + PLAYBACK_HEADER_BASE_WEIGHT] = 1;
+        clip(playback, offset + PLAYBACK_BASE_SOURCE);
+        for (let word = 0; word < 4; word++)
+          controls[offset + PLAYBACK_BASE_DESTINATION + word] =
+            controls[offset + PLAYBACK_BASE_SOURCE + word];
+        continue;
+      }
       let flags = playback.base.source.kind === "frozen" ? PLAYBACK_BASE_FROZEN : 0;
       weight(playback.base.weight, offset + PLAYBACK_HEADER_BASE_WEIGHT);
       source(playback.base.source, offset + PLAYBACK_BASE_SOURCE);
       clip(playback.base.destination, offset + PLAYBACK_BASE_DESTINATION);
       const upper = playback.riderUpperBody;
       if (upper) {
+        const upperMaskOffset = upperMaskOffsetAt(index);
         if (
           !Number.isInteger(upperMaskOffset) ||
           upperMaskOffset < 0 ||
@@ -120,7 +134,7 @@ export class PlaybackPacker {
       uploads,
       residentSnapshotCount: next.size,
       requiredSnapshotSlots,
-      visibleInstances: inputs.length,
+      visibleInstances: count,
     };
     this.pending = { frame, resident: next };
     return frame;

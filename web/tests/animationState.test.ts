@@ -91,7 +91,7 @@ test("all shipped gameplay action clips match their local rig, and mismatches fa
   const original = appearances[0].rig.clips;
   const name = appearances[0].manifest.presentation!.actions.ready!.clip;
   appearances[0].rig.clips = original.filter((clip) => clip.name !== name);
-  expect(() => assertGameplayAppearances(appearances)).toThrow("missing or mismatched rig/VAT");
+  expect(() => assertGameplayAppearances(appearances)).toThrow("missing or mismatched source/sampled");
   for (const field of ["duration", "loop", "markers"] as const) {
     appearances[0].rig.clips = original.map((clip) =>
       clip.name !== name
@@ -106,6 +106,6 @@ test("all shipped gameplay action clips match their local rig, and mismatches fa
                   : { release: 0.2 },
           },
     );
-    expect(() => assertGameplayAppearances(appearances)).toThrow("missing or mismatched rig/VAT");
+    expect(() => assertGameplayAppearances(appearances)).toThrow("missing or mismatched source/sampled");
   }
 });

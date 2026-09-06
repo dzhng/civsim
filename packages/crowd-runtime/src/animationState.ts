@@ -8,16 +8,16 @@ export function assertGameplayAppearances(appearances: Record<number, Appearance
     for (const binding of Object.values(appearance.manifest.presentation.actions)) {
       if (!binding) continue;
       const local = appearance.rig.clips.find((clip) => clip.name === binding.clip);
-      const vat = appearance.animation.clips.find((clip) => clip.name === binding.clip);
+      const sampled = appearance.animation.clips.find((clip) => clip.name === binding.clip);
       if (
         !local ||
-        !vat ||
-        local.duration !== vat.duration ||
-        local.loop !== vat.loop ||
-        local.markers?.release !== vat.markers?.release
+        !sampled ||
+        local.duration !== sampled.duration ||
+        local.loop !== sampled.loop ||
+        local.markers?.release !== sampled.markers?.release
       )
         throw new Error(
-          `Appearance ${id} action ${binding.clip} has missing or mismatched rig/VAT clip metadata`,
+          `Appearance ${id} action ${binding.clip} has missing or mismatched source/sampled clip metadata`,
         );
     }
   }

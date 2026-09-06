@@ -81,7 +81,7 @@ export async function run(ctx) {
         window.__groundingSource ??= structuredClone(w.soldierAssets[0]);
         const bundle = structuredClone(window.__groundingSource),
           mesh = bundle.tiers[0];
-        // Preserve geometry, actual normals, weights and VAT. Identical detailed
+        // Preserve geometry, actual normals, weights and animation. Identical detailed
         // mesh across tiers removes authored LOD geometry as a confounder.
         mesh.colors.fill(1);
         mesh.materialIds.fill(0);

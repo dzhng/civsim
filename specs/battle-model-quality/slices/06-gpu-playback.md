@@ -1,12 +1,12 @@
 # 06 — GPU interpolation and clip blending
 
-Status: IN PROGRESS — analytic bounds integrated; local encoding prepared and GPU palette feasibility under verification. Depends on [05](./05-action-timeline.md), [04](./04-explicit-materials.md).
+Status: IN PROGRESS — local source and both GPU consumers are assembled in staging; merged transport checks pass, with long-run compute-timing cleanup pending before atomic installation. Temporal acceptance remains next. Depends on [05](./05-action-timeline.md), [04](./04-explicit-materials.md).
 
 ## Contract and ownership
 
 CPU timeline outputs mean the same pose on GPU, including clip ends and transitions.
 
-API seam: photoreal crowd instance payload and VAT sampler share crowd-runtime playback data; interpolate adjacent samples, crossfade clips and compose one rider-upper-body override over mounted locomotion. Blend local joint transforms before hierarchy evaluation; horse, rider pelvis and legs retain gait. Death overrides the whole composite. This bounded pose-composition seam is not a general animation graph.
+API seam: crowd instance payload and GPU palette preparation share crowd-runtime playback data; interpolate adjacent samples, crossfade clips and compose one rider-upper-body override over mounted locomotion. Blend local joint transforms before hierarchy evaluation; horse, rider pelvis and legs retain gait. Death overrides the whole composite. This bounded pose-composition seam is not a general animation graph.
 
 Prerequisite in05: promote the existing bake pose math into a shared CPU local-pose evaluator in `soldier-assets`, sampling the already loaded `ImportedRig` tracks with their STEP/LINEAR and shortest-arc quaternion semantics. This does not change the GPU animation encoding. The controller uses that evaluator to capture exact interrupted poses before05 acceptance;06 must transport those results, not repair approximate endpoint substitution.
 
@@ -77,6 +77,38 @@ target's rendered foreground across authored phases. A negative control that
 freezes GPU articulation while submitted phases still advance must fail. Extend
 the shared production pose fixture rather than building another battle sampler.
 
+Death continuity includes the renderer's existing corpse presentation, not just
+joint matrices. The inherited alive-edge roll, recoloring and contact-AO switch
+otherwise change the displayed soldier at blend weight0.06c must drive those
+effects from one shared strength: living0; dead with playback uses its full-body
+transition weight; manually posed dead instances without playback use1. Apply
+the same strength to visible shading, CPU culling-center rotation and far contact
+AO. This preserves the final corpse appearance while tying its onset to the
+controller's existing150ms transition, not clip phase or a new clock. Initial-dead
+and successful reset/reload boundaries intentionally have no compatible old pose.
+The artistic choice to retain renderer-added roll remains reviewable in13;
+it is not permission to waive06c's observed-death continuity gate.
+
+Execute06c in three small checks after transport admission:
+
+- Wire the shared corpse strength through the actual consumers and culling;
+  prove living, newly dying, fully dead and reset/manual states before screenshots.
+- Extend the existing lab replay with one dense synthetic observation recipe and
+  a same-time event boundary. Sample the real timeline before observing the event,
+  then observe and sample again at exactly that time. The before frame retains
+  the previous observation's alive flag. The ordinary UI recipe stays unchanged;
+  its widely spaced events alone cannot exercise interrupted blends.
+- Render the deterministic temporal strips through the production workbench.
+  Reuse the CPU-composed identity-rig reference from the palette scene, preserving
+  the original death weight for corpse effects. A scene-only interception of the
+  actual palette compute dispatch must freeze articulation while real submitted
+  phases advance, fail the positive motion check and recover when restored.
+  No extra product toggle, alternate sampler or shader is required.
+
+These are bounded fixture operations, not a new animation graph or simulation
+event API. The mounted diagnostic needs explicit valid test presentation metadata
+before timeline use; its manual-only manifest is not gameplay admission.
+
 1. Run the applicable deterministic contract tests and `snapCheck` captures; preserve unrelated tests and simulation outcomes.
 2. Use **compare-screenshots** for candidate versus prior/reference on the named mask; retain telemetry and a written less-wrong verdict. A Rome II photograph is a visual target, not a pixel-equality baseline.
 3. As the **last visual check before acceptance**, use **screenshot-critique** with an unprimed agent. Resolve verified defects in scope; record excluded defects against their owning slice. Do not describe a shot as verified before this check.
@@ -100,4 +132,9 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 - [ ] Comparison and final unprimed critique recorded.
 - [ ] Review/cleanup completed; README pickup and decisions updated.
 
-Record actual commands, evidence links, measured results, decisions and unresolved defects here during implementation. No implementation or visual acceptance has occurred yet.
+06a source evidence lives in [local source](../assets/evidence/06/local-animation-source.md)
+and [format cutover](../assets/evidence/06/local-format-cutover.md). Prepared06b
+consumer evidence lives in [Three](../assets/evidence/06/three-palette-cutover.md),
+[raw](../assets/evidence/06/raw-palette-cutover.md) and the
+[merged visual comparison](../assets/evidence/06/merged-comparison/review.md).
+These transport proofs do not close06c or accept detailed soldier art.

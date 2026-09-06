@@ -26,7 +26,15 @@ Freeze all previously accepted variables. Capture the candidate and prior/refere
 
 ## Verification
 
-Preserve battle-perf-30k 30k+soldiers/foliage and 33ms criteria. Establish live animated baseline at 1280×800 on hardware Chrome plus user's available display resolution; lock close-view threshold before art (target 33ms; if baseline already exceeds it, report and reslice optimization, do not silently raise). Record bounded mesh/texture/VAT budgets and selected sample rate.
+Preserve battle-perf-30k 30k+soldiers/foliage and 33ms criteria. Establish live animated baseline at 1280×800 on hardware Chrome plus user's available display resolution; lock close-view threshold before art (target 33ms; if baseline already exceeds it, report and reslice optimization, do not silently raise). Record bounded mesh, texture, authored-key sample, palette and frozen-pose storage budgets.06 chose authored-time samples rather than a fixed-rate bake; measure that representation rather than introducing an unrelated sample-rate knob.
+
+The standing renderer benchmark's render-only GPU time is not a compute-inclusive
+animated-frame measurement. Correlate render and palette-compute work to actual
+frame identifiers, reject repeated/delayed readbacks as fresh samples, and report
+full CPU frame time separately. Allocation-time initialization and replacement
+peaks count alongside steady-state changed-control/snapshot uploads. Draining
+Three's compute timing pool prevents exhaustion; it does not itself establish
+this measurement contract.
 
 1. Run the applicable deterministic contract tests and `snapCheck` captures; preserve unrelated tests and simulation outcomes.
 2. Use **compare-screenshots** for candidate versus prior/reference on the named mask; retain telemetry and a written less-wrong verdict. A Rome II photograph is a visual target, not a pixel-equality baseline.

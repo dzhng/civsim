@@ -257,7 +257,7 @@ export async function run(ctx) {
             max = Math.max(max, d);
           }
           console.log(JSON.stringify({ mode, phase, view, changed, max }));
-          // Stock vs VAT arithmetic and image upload quantization differ by ≤2 RGB
+          // Stock vs crowd arithmetic and image upload quantization differ by ≤2 RGB
           // codes here. Regression snapshots remain strictly zero-tolerance.
           ctx.check(
             `${mode}/${phase}/${view}: matched material pixels`,

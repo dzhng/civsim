@@ -7,7 +7,7 @@ export const meta = {
   tier: "full",
   snapshots: ["shared/soldiers/action-replay/controller"],
   describe:
-    "Synthetic observation replay through the real timeline, catalog and production instance submission; action selection, not GPU blend acceptance.",
+    "Synthetic observation replay through the real timeline, catalog and GPU-blended production submission; numerical and temporal pose gates remain separate.",
 };
 
 export async function run(ctx) {
@@ -112,7 +112,7 @@ export async function run(ctx) {
     await page.evaluate(() => window.__battleModels.set({ classId: 7, clip: "idle", zoom: 150 }));
     const mounted = await seek(90);
     ctx.check(
-      "mounted controller retains overlay while production reports the submitted base",
+      "mounted controller submits an overlay and reports the base destination separately",
       mounted.replay.playback.riderUpperBody.destination.clip === "bow_release" &&
         mounted.sampled.clip === mounted.replay.playback.base.destination.clip,
     );

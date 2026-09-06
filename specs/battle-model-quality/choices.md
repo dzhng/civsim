@@ -2,6 +2,52 @@
 
 ## Sound — medium confidence
 
+### Explicitly retire compute-only storage in the pinned Three version (06b)
+
+The production renderer's joint buffers have no geometry owner to release them.
+After retiring every reading material and compute node, the adapter therefore
+uses the pinned renderer's attribute cache to dispose storage and balance memory
+accounting. A narrow incomplete-allocation branch handles records without a
+registered buffer. The alternative leaks buffers or attaches fake geometry solely
+to obtain cleanup. The spec did not define this framework boundary. **Sound:**
+the dependency is explicit and covered at replacement/failure boundaries, but a
+Three upgrade must revalidate it. An opaque GPU handle that fails before the
+framework records it is not claimed recoverable through this cache.
+
+### Use a bounded quaternion calculation shared by both GPU renderers (06b)
+
+The GPU blends local rotations along the shortest arc before building the joint
+hierarchy. Its angle calculation and small sine polynomial cover only that
+bounded rotation problem; they are not a new general math library. Both renderers
+use the same implementation. The alternative uses GPU built-ins whose permitted
+error can exceed the existing pose gate. The spec delegated encoding and
+interpolation details. **Sound:** retain the intended rotation semantics and
+unchanged accuracy requirement, with the additional arithmetic cost owned by07.
+
+### Keep capacity growth synchronous and retire complete binding generations (06b)
+
+When the visible crowd or frozen-pose storage outgrows its allocation, the renderer
+allocates a checked replacement, installs coherent consumers and retires old
+buffers. Three replaces its coupled dynamic buffers together; raw can retain
+unchanged allocations. Fresh snapshot storage receives every still-active frozen
+source once. The alternative reserves maximum capacity or introduces asynchronous
+stale-frame policy. The spec did not prescribe a growth strategy. **Sound:** retain
+the existing synchronous API, with slack and temporary replacement memory costs
+explicitly left for07 measurement rather than claimed free.
+
+### Ease existing corpse effects with the actual death transition (06c)
+
+Roll, recoloring and contact shading must not jump when the skeleton begins a
+continuous death blend. Their shared strength follows that full-body transition
+weight, reaching the existing final corpse treatment when the blend finishes.
+Manual dead poses without playback retain full strength; initialization and
+successful model reload do not promise continuity from an incompatible old pose.
+The alternatives remove the effects now or add a separate presentation clock.
+The spec required continuous displayed death but left these inherited effects
+unaddressed. **Sound:** one controller transition now governs their onset as well
+as pose blending. This is a06c implementation obligation, not completed visual
+acceptance;13 still judges whether the final corpse styling belongs with the art.
+
 ### Keep frozen poses in stable GPU slots until they stop being used (06b)
 
 **Confidence: medium.** An interrupted soldier's saved pose stays in its existing
@@ -35,7 +81,9 @@ serves both inspection and gameplay;07 still owns the measured CPU cost.
 **Confidence: medium.** Source keys, bind rotations and loaded local samples
 must have quaternion length within0.0001 of one. This tolerates normal exported
 rounding but rejects tiny or materially non-unit rotations. Silently normalizing
-such inputs would alter authored endpoints. The plan left numerical admission
+such inputs would alter authored endpoints. Admission also checks the actual
+Float32 representation, so accepted source/JSON cannot cross the limit during
+packing. The plan left numerical admission
 open. **Sound:** the GPU normalization/bounds proof has an explicit input
 domain; future exporters must satisfy it or justify a different contract.
 
@@ -156,6 +204,47 @@ The plan required production parity but did not specify review scenery. This cho
 
 ## Sound — high confidence
 
+### Stop allocating timing queries when timing collection fails (06b)
+
+The renderer normally collects both GPU timing pools after a frame, while the
+standing metric still reports render work alone. If the timing API propagates a
+failure, it disables further timing-query allocation and publishes no timing value. A late
+successful readback cannot restore a stale number after that terminal failure.
+Rendering itself continues. The alternative stops reading but keeps allocating
+queries until the pool fills, while displaying an old measurement indefinitely.
+
+The plan required reliable performance evidence but did not specify this failure
+policy. **Sound, high confidence:** this completes the existing terminal timing
+failure behavior without retries or a new renderer state machine. A fresh world
+can initialize timing again; frame-correlated compute-inclusive budgeting remains
+the separate measurement work in07.
+
+This policy cannot detect errors that Three catches internally and replaces with
+its previous timing value. Those errors are logged by Three and fail the browser
+runner; they are not claimed to clear live stats through the public promise.
+Future measurement must distinguish fresh samples from retained values rather
+than interpreting every successful API resolution as a new measurement.
+
+### Suppress a partially uploaded crowd until a complete upload succeeds (06b)
+
+An upload can fail after an earlier skeleton group has already queued new data.
+The caller receives the original error, and subsequent rendering submits no
+partial crowd until a whole upload succeeds. This differs from catalog reload,
+whose separately prepared candidate can still be rejected while retaining the
+last working scene. The unbuilt alternative preserves every old live generation
+to roll back individual frames. The spec required explicit failure handling but
+did not select that policy. **Sound:** avoid silently drawing inconsistent poses
+without adding an unrequested rollback system.
+
+### The preview clock wraps loops; explicit phase1 remains the endpoint (06b)
+
+A manual or frozen request for phase1 displays the last authored sample, even for
+a looping clip. An advancing preview wraps its clock before submitting a phase.
+The alternative makes the renderer guess whether the same phase means an endpoint
+inspection or continuing playback. The spec left that manual-loop boundary open.
+**Sound:** one source resolver interprets samples; the caller owns time. Removing
+raw override options eliminates a second, conflicting clock policy.
+
 ### Rider action admission checks the joints the action actually controls (05b)
 
 A moving horse leg cannot make a motionless rider action qualify as animated.
@@ -263,6 +352,12 @@ reload into an owner that no longer has a usable renderer.
 The plan required atomic reload but did not define teardown races. **Sound, high
 confidence:** the original owner remains closed, without a generic cancellation
 manager or a hidden world-recreation path.
+
+The06b consumer retains this rule inside preparation as well: after an asynchronous
+wait, it checks the same world's existing closed state before starting more GPU
+work. Already acquired resources are registered before that check so cleanup owns
+them. This is one borrowed-lifetime assertion, not a second cancellation state;
+an error in a still-open world keeps its original cause.
 
 ### A complete surface owns its GPU resources (slice04b)
 

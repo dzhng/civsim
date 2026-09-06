@@ -213,7 +213,7 @@ export class SoldierPosePalette {
             stepBase: uint(this.metadata.stepBase),
           }),
         ),
-      ).append();
+      ).toStack();
     })().compute(1, [64]);
     return {
       capacity,

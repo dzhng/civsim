@@ -4,6 +4,12 @@ This is the raw portion of 06b, not temporal/art acceptance or a performance ver
 
 ## Evidence
 
+The [corrected-angle repeat](raw-palette-corrected-kernel.json) uses shared kernel
+SHA256 `f1fd1a383afb5c4b59b4a8301f31c9cdf737fa9c731ee4549ccd20dfc79e274d`.
+All45 checks across the ten poses pass: RGB error0, depth error at most1.863e−9,
+and331 buffers destroyed once, with no page/GPU errors. This repeat follows the
+near-unit quaternion correction; it is not evidence from the earlier angle.
+
 The final strict repeat at `2026-09-06T09:47:16.540Z` passed all 89 checks across the three scenes, with no failures or page errors. All five material snapshots differed by **0 pixels**. Full TypeScript checking and the 16 focused CPU tests passed with coherent verification copies of the other lanes. [Measured results](raw-palette-results.json) retain the numerical proof, negative control and strict-repeat summary.
 
 The addressable `raw-pose-palette` scene drives the actual `SkinnedCrowdPipeline`, not an alternate skin shader. Ten authored human/mounted cases cover manual fractional/end samples, base crossfade, frozen base, mounted overlay, frozen overlay exiting toward the evaluated base, snapshot growth/shrink, and concurrent distinct animation data with a sparse shared appearance. The CPU comparison poses the source geometry using the canonical local evaluator and submits it through identity joints in the same raw renderer.

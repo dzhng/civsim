@@ -133,7 +133,7 @@ export function createPlaceholderSoldierMeshes(armBandSrgb: [number, number, num
 }
 
 /** L0 full / L1 reduced silhouette equipment / L2 coarse body+head+legs.
- *  Tiers skin to the same bones, so one VAT drives every tier. */
+ *  Tiers skin to the same bones, so one joint palette drives every tier. */
 export function createPlaceholderSoldierMeshTiers(armBandSrgb: [number, number, number] = [0.06, 0.1, 0.98]): SoldierMeshData[][] {
   return APPEARANCE_DESCRIPTORS.map((_, classId) => [0, 1, 2].map((lod) => createPlaceholderSoldierMesh(armBandSrgb, classId, lod)));
 }

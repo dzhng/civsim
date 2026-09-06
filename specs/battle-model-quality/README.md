@@ -4,38 +4,57 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 
 ## Next Agent Prompt
 
-Last updated **2026-09-06**. Status: **slices01–05 complete; slice06 in progress**.
+Last updated **2026-09-06**. Status: **slices01–05 complete;06 in progress**.
 
-You are working in `/Users/david/dev/game-battle-model-quality`, branch `codex/battle-model-quality`. Continue [06 — GPU playback](slices/06-gpu-playback.md): finish the shared palette kernel/packing/lifetime proofs, then atomically cut over all consumers and internal bundles before temporal acceptance. The [local encoding proposal](assets/evidence/06/local-encoding-proposal.md) is approved and its source implementation is prepared in an independent worktree, not yet installed in runtime. The [palette proposal](assets/evidence/06/palette-consumer-proposal.md) and [measured storage lifetime](assets/evidence/06/compute-buffer-lifetime.md) identify the actual integration gates. Current production still draws the selected base VAT clip; no GPU blend acceptance yet. Finish06→07 before detailed anatomy08. No user-only blocker.
+Current integration tree: `/Users/david/dev/game-local-animation-cutover`, branch
+`codex/local-animation-cutover`. Source, packing, shared kernel, raw and Three
+consumers and reviewed reload-disposal fix are assembled at2f8b0fe7. Source bake
+checks, typecheck and274 web tests pass. Root's terminology, fixture,
+suite registration, evidence and choices edits are still uncommitted. Four
+[reviewed baseline changes](assets/evidence/06/merged-comparison/review.md) are
+re-blessed and strict repeats pass on `http://127.0.0.1:5197`; see
+[merged validation](assets/evidence/06/merged-validation.md) for setup failures
+and their successful reruns.
+The verified main worktree `/Users/david/dev/game-battle-model-quality` remains
+clean at51a394d6 on the old animation format; do not apply the producer alone.
 
-The [producer/loader cutover](assets/evidence/06/local-format-cutover.md) is
-prepared in `/Users/david/dev/game-local-animation-cutover`. Its full source gate
-and41 focused web tests pass, and focused independent review is clean. That
-isolated staging tree deliberately awaits the raw/Three consumer commits and
-updated GPU bounds proof; apply those together before exposing its new assets
-on main. The main workbench remains on the verified prior format meanwhile.
+Next: commit the reviewed integration cleanup and complete atomic cutover to main.
+The compute-query pool cleanup passes the warning-enforcing standing performance
+gate (30,560 soldiers, unchanged33ms limits). Merged workbench, replay,
+material, far, default battle and reload-disposal checks pass (the staged WASM
+path and one hot-reload-interrupted capture were corrected and rerun). Then
+apply the complete cutover atomically to main and repeat its required gates.
+The [Three cutover](assets/evidence/06/three-palette-cutover.md),
+[raw cutover](assets/evidence/06/raw-palette-cutover.md) and
+[source transport](assets/evidence/06/local-format-cutover.md) separate actual
+consumer proofs from source accuracy. The corrected kernel passes64 numerical
+poses, including near-unit rotations; both GPU substrates agree byte-for-byte.
+[Bounds](assets/evidence/06/gpu-rounding-bounds.md) cover that final arithmetic.
+No performance or temporal acceptance follows from those numerical checks.
 
-[05 merged validation](assets/evidence/05/merged-validation.md) records252 web tests, rebuilt WASM/golden checks, strict replay/workbench/swatch snapshots, deterministic battle cadence and the standing hardware gate. Its five-minute Preview checkpoint closed on evidence without assuming user approval. The workbench distinguishes submitted clip/phase from future GPU pose readback.06c still owes an isolated frozen-articulation negative control.
+Then finish [06c](slices/06-gpu-playback.md): fixed-world foreground articulation,
+frozen-GPU negative control, interrupted actions, mounted exit and continuous
+observed death. The shared corpse-strength helper is prepared separately in
+8272dde1, **not integrated**; wire its one rule through Three/raw shading, culling
+and far contact AO before claiming death continuity. Existing battle gait pixels
+measure scene motion, not isolated articulation. Keep06→07 before detailed
+anatomy08, as the user explicitly reaffirmed. No detailed soldier art or user-only
+blocker exists.
 
-[Material closure](assets/evidence/04/consumer-closure/review.md) links the scalar, texture and posed-normal evidence, the matched six-swatch source/production comparison, strict merged consumer/reload checks and applicable standing hardware gate. Material transfer is accepted; anatomy, surface styling, animation quality and final-distance readability are not. Filtered-normal boundary bands, far shadows and raw placeholder readability remain later-slice obligations. [Choices](choices.md) owns implementation decisions.
+Preserve [05's merged controller/WASM gates](assets/evidence/05/merged-validation.md)
+and [04's material contracts](assets/evidence/04/consumer-closure/review.md).
+Keep fragment-stage map reads, per-vertex unit directions and finite geometric
+fallbacks. `hit_ttl` is contact/facing memory, not injury; use actual health.
+Catalog reload retains the last good scene on failure, while a partial live
+upload fails closed until a whole upload succeeds. Growth stays synchronous and
+device-checked. Local Blender authoring remains the chosen path; no external AI.
 
-Keep posed shading's fragment-stage map reads, per-vertex unit directions and
-finite geometric fallbacks; do not restore conditional texture reads or
-fragment-side VAT work. `hit_ttl` is facing/contact memory, not an injury event:
-05 uses actual health observations. Local Blender remains available; external AI
-generation stays excluded.
-
-06's [analytic bounds](assets/evidence/06/analytic-bounds.md) are integrated and
-pass full source bake checks, merged GPU/culling checks and the standing hardware gate. The
-material-swatch review camera is independently anchored, preserving its frame.
-Do not accept future GPU quaternion arithmetic before that implementation
-revalidates the rounding envelope. Preserve normal synchronous capacity growth
-and explicit failure reporting; no speculative async stale-frame policy is
-approved.
-
-The user clarified that their model-progress question was not a request to reprioritize. Keep the infrastructure-first trunk and start detailed anatomy at08 after the measured budget envelope; diagnostic Blender fixtures are not detailed soldier models.
-
-The global TODO checklist is the slice list below. Update this prompt, the checklist, and the owning slice's evidence/decision record before ending every implementation pass. Record any dirty work or new blocker exactly; never call an unfinished slice complete because its screenshots look promising.
+The global TODO is the slice list below; [choices](choices.md) owns decisions.
+Update this pickup and the owning slice evidence after each pass. The previous
+05 Preview checkpoint is closed; do not reopen its old shots. The staging
+dependency symlink is verification-only and must never be committed. Its ignored
+WASM directory is a local copy of main's verified build, not an external symlink
+(Vite correctly blocks assets outside its allowed workspace).
 
 ## Scope and firewalls
 

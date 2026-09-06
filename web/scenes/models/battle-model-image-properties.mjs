@@ -102,7 +102,7 @@ export async function run(ctx) {
             bundle.farMesh = mesh;
             if (mode === "checker") {
               // Placeholder UVs are constant. Give this diagnostic an explicit
-              // planar X/Z layout, without changing geometry, normals or VAT.
+              // planar X/Z layout, without changing geometry, normals or animation.
               const xs = [],
                 zs = [];
               for (let i = 0; i < mesh.positions.length; i += 3) {

@@ -3,6 +3,10 @@ const PARITY_PHASE = 0.9991202346041055;
 import { PNG } from "pngjs";
 import { requireSwiftShaderBaseline } from "./_swiftshader-baseline.ts";
 import { PHOTOREAL_SUBSTRATE } from "../../../packages/photoreal-renderer/src/stats.ts";
+import {
+  bakeLocalAnimation,
+  encodeLocalAnimation,
+} from "../../../packages/soldier-assets/src/localAnimation.ts";
 
 export const meta = {
   name: "battle-model-workbench",
@@ -102,6 +106,16 @@ export async function run(ctx) {
       const bundle = await fetch(bundleUrl).then((response) => response.json());
       return new URL(bundle.animation, bundleUrl).href;
     });
+    const sourceRig = await page.evaluate(() => window.__battleModels.world.soldierAssets[0].rig);
+    // Remove a semantic clip through the real producer: merely deleting its index
+    // leaves invalid sample ranges and would test structural admission instead.
+    const withoutClip = (name) =>
+      encodeLocalAnimation(
+        bakeLocalAnimation({
+          ...sourceRig,
+          clips: sourceRig.clips.filter((clip) => clip.name !== name),
+        }),
+      );
     await page.route("**/assets/soldiers/catalog.json", (route) =>
       route.fulfill({ contentType: "application/json", body: "malformed fixture" }),
     );
@@ -126,12 +140,7 @@ export async function run(ctx) {
       !incompatible.ok && incompatible.error.includes("active appearance"),
     );
     await page.unroute("**/assets/soldiers/catalog.json");
-    await page.route(animationUrl, async (route) => {
-      const response = await route.fetch();
-      const animation = await response.json();
-      animation.clips = animation.clips.filter((clip) => clip.name !== "march");
-      await route.fulfill({ json: animation });
-    });
+    await page.route(animationUrl, (route) => route.fulfill({ json: withoutClip("march") }));
     const missingClip = await page.evaluate(() => window.__battleModels.reload());
     const retainedClip = await page.evaluate(() => ({
       pose: window.__battleModels.stats().pose,
@@ -159,17 +168,12 @@ export async function run(ctx) {
     });
     const truncated = await page.evaluate(() => window.__battleModels.reload());
     ctx.check(
-      "truncated animation matrix data is rejected explicitly",
-      !truncated.ok && truncated.error.includes("matrix data"),
+      "truncated local animation samples are rejected explicitly",
+      !truncated.ok && truncated.error.includes("invalid samples or metadata"),
       JSON.stringify(truncated),
     );
     await page.unroute(animationUrl);
-    await page.route(animationUrl, async (route) => {
-      const response = await route.fetch();
-      const animation = await response.json();
-      animation.clips = animation.clips.filter((clip) => clip.name !== "attack_a");
-      await route.fulfill({ json: animation });
-    });
+    await page.route(animationUrl, (route) => route.fulfill({ json: withoutClip("attack_a") }));
     const missingFutureAction = await page.evaluate(() => window.__battleModels.reload());
     ctx.check(
       "production reload rejects a missing non-active action before replacing the crowd",
@@ -204,9 +208,9 @@ export async function run(ctx) {
     );
     await page.route(animationUrl, async (route) => {
       const response = await route.fetch();
-      const vat = await response.json();
-      delete vat.clips;
-      await route.fulfill({ json: vat });
+      const animation = await response.json();
+      delete animation.clips;
+      await route.fulfill({ json: animation });
     });
     for (let retry = 0; retry < 2; retry++) {
       const malformed = await page.evaluate(() => window.__battleModels.reload());
@@ -214,7 +218,7 @@ export async function run(ctx) {
         () => window.__battleModels.world.world.scene.children.length,
       );
       ctx.check(
-        `invalid VAT retry ${retry}: no orphaned scene meshes`,
+        `invalid local animation retry ${retry}: no orphaned scene meshes`,
         !malformed.ok && nodesBefore === nodesAfter,
         JSON.stringify({ nodesBefore, nodesAfter }),
       );

@@ -8,7 +8,7 @@ export const meta = {
   world: "battle-real",
   tier: "quick",
   snapshots: [],
-  describe: "Normal battle launch uses the raw renderer by default.",
+  describe: "Normal battle launch uses the production photoreal WebGPU renderer.",
 };
 
 export async function run(ctx) {

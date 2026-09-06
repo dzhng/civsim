@@ -39,6 +39,14 @@ part of the commit. A subsequent focused producer/loader review found no
 actionable defects. Shape review retains one local encoding owner and one
 matrix-independent weighted skinning owner; no compatibility adapter remains.
 
+Integration found an admission boundary: a source quaternion component1.0001
+passes the source norm check but rounds to1.000100016593933 in Float32, outside
+the same envelope. Packing now validates the actual stored rotation; decoding
+converts once and checks that buffer too. Both producer and direct-JSON red
+controls pass after correction; nearby1.0000999 remains unnormalized and
+round-trips. The full source gate and eleven packing tests pass, with no changed
+assets or radius allowance. Independent follow-up review is clean.
+
 ## Changed-test ledger
 
 | Test family | Previous behavior | New behavior | Why |
@@ -50,6 +58,8 @@ matrix-independent weighted skinning owner; no compatibility adapter remains.
 | Bounds and placeholder surface sweeps | Uniform baked matrix frames | Same12/24Hz admission times retained, plus authored keys; bounds still analytic | Source validity coverage must not shrink with a smaller animation payload |
 | Presentation motion | Uniform-frame local pose checks | Authored-time local pose checks in the declared layer | Every authored motion key is inspected, including short actions |
 | Timeline fixtures | Animation texture start/frame fields in test metadata | Only semantic name/duration/loop/marker fields | Controller does not own GPU addressing; action behavior unchanged |
+| Quaternion packing border | Producer could emit unloadable data; decoder could return a rounded out-of-envelope rotation | Both reject actual Float32 norm outside existing admission | Observed red→green; no normalization or tolerance widening |
+| Packing byte fixture | Arbitrary non-unit rotations populated a layout test | Valid unit rotations retain exact byte-layout assertions; invalid packed border rejected separately | Test layout without promising invalid-pose support |
 
 The final GPU rounding envelope, mesh/shadow parity, resource failure cleanup,
 temporal negative control and hardware gates remain06/07 obligations.

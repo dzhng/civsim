@@ -20,7 +20,7 @@ export interface StackCrowdOpts {
   seed: number;
   /** Facing for the whole stack (radians). Default faces +y like a player unit. */
   facing?: number;
-  /** VAT clip all figures play (e.g. 'idle' | 'march'). Default 'march'. */
+  /** Animation clip all figures play (e.g. 'idle' | 'march'). Default 'march'. */
   clip?: string;
   /** Base animation phase (0..1) from the campaign clock; per-figure offset added. */
   phase?: number;

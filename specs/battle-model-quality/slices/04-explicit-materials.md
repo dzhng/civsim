@@ -1,6 +1,6 @@
 # 04 — Explicit material round trip
 
-Status: IN PROGRESS. Depends on [03](./03-weighted-asset-contract.md).
+Status: COMPLETE — material-transfer acceptance only. Depends on [03](./03-weighted-asset-contract.md).
 
 ## Contract and ownership
 
@@ -127,7 +127,11 @@ measurement and the unchanged standing hardware gate pass;07 still owns the
 final authored-asset envelope. Do not accept a route-readiness timeout increase
 as a substitute for controlling startup work.
 
-Expose the fixture through the production model workbench and a named scene/probe. Record the exact runnable command in this file when it exists; do not mark completion with screenshots alone.
+The production fixture is runnable against the configured verification server:
+
+```sh
+VERIFY_GPU=1 node web/scene.mjs battle-model-material-swatches
+```
 
 ## Focused verdict
 
@@ -158,17 +162,18 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 
 ## Completion record
 
-- [ ] Contract and runnable artifact implemented.
-- [ ] Execution rows, if any, each have evidence and verdict.
-- [ ] Tests and inherited gates pass; changed-test behavior ledger recorded.
-- [ ] Comparison and final unprimed critique recorded.
-- [ ] Review/cleanup completed; README pickup and decisions updated.
+- [x] Contract and runnable artifact implemented.
+- [x] Execution rows, if any, each have evidence and verdict.
+- [x] Tests and inherited gates pass; changed-test behavior ledger recorded.
+- [x] Comparison and final unprimed critique recorded.
+- [x] Review/cleanup completed; README pickup and decisions updated.
 
-04a–04c are complete. Scalar implementation and scoped visual evidence are recorded in
+04a–04d are complete. [Consumer closure](../assets/evidence/04/consumer-closure/review.md)
+records the integrated gates and material-transfer checkpoint. Scalar implementation and scoped visual evidence are recorded in
 [integration review](../assets/evidence/04/integration-review.md), with source,
 raw and far lane reports beside it. The combined workbench proves independent
 scalar response, seed uniformity, explicit faction masks and material-table
-reindex invariance. The standing30k hardware gate passes.04d remains open.
+reindex invariance. The standing30k hardware gate passes.
 
 04b's [integrated texture report](../assets/evidence/04/texture-transport/review.md)
 records exact source image/sampler transport, shared near/far and retained raw
@@ -183,8 +188,8 @@ has now been replaced by04c's directional-response proof.
 records source admission, CPU tangent posing, shared near/far shading, retained raw
 lighting, independent direction and collapse controls, exact inherited snapshots,
 review and the passing standing hardware gate. The canonical renderer runner now
-includes `battle-model-normal-frame`.04d's six-material source fixture is authored
-and baked; its matched production/standard-loader scene is the remaining closure.
+includes `battle-model-normal-frame`.04d's matched production/standard-loader
+scene and source fixture are accepted for faithful transfer, not finished material art.
 
 GPU admission now rejects actual invalid commands and disposes the replacement
 while preserving the prior scene. Renderer state and scopes are restored before

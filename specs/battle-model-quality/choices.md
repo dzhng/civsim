@@ -96,6 +96,34 @@ The plan required production parity but did not specify review scenery. This cho
 
 ## Sound — high confidence
 
+### Isolate source transfer from unrelated presentation policies (slice04d)
+
+When the six material strips switch between the stock loader and production,
+they remain above ground-contact darkening, have no faction marking, and show
+front-facing surfaces in the same world. Otherwise the pair could differ because
+one renderer applies those presentation policies differently, even though the
+authored material arrived correctly. Independent controls still test those
+policies and posed/backface behavior; this fixture does not replace them.
+
+The plan required matched swatches but did not specify this isolation. **Sound,
+high confidence:** it gives the material comparison one interpretable variable.
+Future reviews must not treat these strips as proof of grounded silhouettes,
+faction behavior or stock/custom backface equivalence.
+
+### Bound cross-renderer arithmetic without weakening regression snapshots (slice04d)
+
+When the stock loader and weighted production path draw the same strip, small
+arithmetic and image-path quantization differences can change a channel by one
+or two RGB codes. The paired check bounds the whole-world difference and also
+checks each material's interior; map-disabled controls prevent unchanged
+backgrounds from hiding missing material response. A later run of the same
+production snapshot must still match exactly.
+
+The plan required comparison but left its numerical criterion unspecified.
+**Sound, high confidence:** a measured cross-renderer allowance is distinct from
+permitting regression drift. Future fixture changes must preserve that distinction,
+not raise the bound to hide a new transfer defect.
+
 ### Admit mapped frames while computing existing animated bounds (slice04c)
 
 When an appearance is baked, its material slots now accompany the existing

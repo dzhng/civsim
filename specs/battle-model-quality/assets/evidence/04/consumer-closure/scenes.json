@@ -1,0 +1,875 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-06T06:44:20.723Z",
+  "target": "http://localhost:5174",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "battle-model-material-swatches",
+      "file": "models/battle-model-material-swatches.mjs",
+      "kind": "visual",
+      "tier": "full"
+    },
+    {
+      "name": "battle-model-reload-disposal",
+      "file": "models/battle-model-reload-disposal.mjs",
+      "kind": "flow",
+      "tier": "full"
+    },
+    {
+      "name": "image-texture",
+      "file": "system/image-texture.mjs",
+      "kind": "flow",
+      "tier": "quick"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "source GLB provenance matches Blender evidence",
+      "ok": true,
+      "detail": "a486e845b6f4a2fc64f38d6ee2cd76951fea0c0d9c3e6b2997c4c64858b60383"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "stock loader and world share production Three constructors",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/front: stock-loader geometry matches Blender",
+      "ok": true,
+      "detail": "{\"checked\":60,\"maximumError\":1.5143246557010267e-7}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/front: matched material pixels",
+      "ok": true,
+      "detail": "{\"changed\":0,\"max\":2}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/front/cloth: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/front/leather: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/front/mail: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/front/metal: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/front/skin: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=0"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/front/wood: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/oblique: stock-loader geometry matches Blender",
+      "ok": true,
+      "detail": "{\"checked\":60,\"maximumError\":1.5143246557010267e-7}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/oblique: matched material pixels",
+      "ok": true,
+      "detail": "{\"changed\":0,\"max\":2}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/oblique/cloth: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/oblique/leather: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/oblique/mail: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/oblique/metal: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/oblique/skin: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/oblique/wood: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/front: stock-loader geometry matches Blender",
+      "ok": true,
+      "detail": "{\"checked\":60,\"maximumError\":3.384654378544993e-7}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/front: matched material pixels",
+      "ok": true,
+      "detail": "{\"changed\":0,\"max\":1}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/front/cloth: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/front/leather: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/front/mail: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/front/metal: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/front/skin: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/front/wood: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/oblique: stock-loader geometry matches Blender",
+      "ok": true,
+      "detail": "{\"checked\":60,\"maximumError\":3.384654378544993e-7}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/oblique: matched material pixels",
+      "ok": true,
+      "detail": "{\"changed\":0,\"max\":1}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/oblique/cloth: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/oblique/leather: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/oblique/mail: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/oblique/metal: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/oblique/skin: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/oblique/wood: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/front: stock-loader geometry matches Blender",
+      "ok": true,
+      "detail": "{\"checked\":60,\"maximumError\":1.5143246556323027e-7}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/front: matched material pixels",
+      "ok": true,
+      "detail": "{\"changed\":0,\"max\":2}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/front/cloth: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/front/leather: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/front/mail: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/front/metal: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/front/skin: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=0"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/front/wood: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/oblique: stock-loader geometry matches Blender",
+      "ok": true,
+      "detail": "{\"checked\":60,\"maximumError\":1.5143246556323027e-7}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/oblique: matched material pixels",
+      "ok": true,
+      "detail": "{\"changed\":0,\"max\":2}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/oblique/cloth: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/oblique/leather: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/oblique/mail: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/oblique/metal: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/oblique/skin: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/oblique/wood: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "scalar/0.5/front: stock-loader geometry matches Blender",
+      "ok": true,
+      "detail": "{\"checked\":60,\"maximumError\":3.384654378544993e-7}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "scalar/0.5/front: matched material pixels",
+      "ok": true,
+      "detail": "{\"changed\":0,\"max\":1}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "scalar/0.5/front/cloth: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "cloth: authored images change production interiors",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "scalar/0.5/front/leather: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "leather: authored images change production interiors",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "scalar/0.5/front/mail: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "mail: authored images change production interiors",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "scalar/0.5/front/metal: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "metal: authored images change production interiors",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "scalar/0.5/front/skin: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=0"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "skin: authored images change production interiors",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "scalar/0.5/front/wood: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "wood: authored images change production interiors",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "original production image restored after oracle and scalar controls",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "snapshot battle/material-swatches/paired",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "oracle reuses production Three without console warnings",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "gpu: disposed reload rejects without installation",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":5,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":3,\"disposedGeometry\":3,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "gpu: no crowd survives world disposal",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":5,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":3,\"disposedGeometry\":3,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "gpu: closed world rejects a later reload without fetching",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":5,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":3,\"disposedGeometry\":3,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "pending replacement geometry is released",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":5,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":3,\"disposedGeometry\":3,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "network: disposed reload rejects without installation",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":0,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "network: no crowd survives world disposal",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":0,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "network: closed world rejects a later reload without fetching",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":0,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "catalog completion never prepares GPU resources after disposal",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":0,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "8x4 linear caller retains image",
+      "ok": true,
+      "detail": "8"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "8x4 linear dimensions and levels",
+      "ok": true,
+      "detail": "[8,4,4]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "8x4 linear mip 0",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,255,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,255,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,255,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,255,255],\"expected\":[0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,255,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,255,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,255,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "8x4 linear mip 1",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[128,128,32,255,128,128,32,255,128,128,32,255,128,128,144,255,128,128,32,255,128,128,32,255,128,128,32,255,128,128,144,255],\"expected\":[128,128,32,255,128,128,32,255,128,128,32,255,128,128,144,255,128,128,32,255,128,128,32,255,128,128,32,255,128,128,144,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "8x4 linear mip 2",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[128,128,32,255,128,128,88,255],\"expected\":[128,128,32,255,128,128,88,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "8x4 linear mip 3",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[128,128,60,255],\"expected\":[128,128,60,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "8x4 srgb caller retains image",
+      "ok": true,
+      "detail": "8"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "8x4 srgb dimensions and levels",
+      "ok": true,
+      "detail": "[8,4,4]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "8x4 srgb mip 0",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,255,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,255,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,255,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,255,255],\"expected\":[0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,255,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,255,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,255,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "8x4 srgb mip 1",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[188,146,32,255,188,146,32,255,188,146,32,255,188,146,189,255,188,146,32,255,188,146,32,255,188,146,32,255,188,146,189,255],\"expected\":[188,146,32,255,188,146,32,255,188,146,32,255,188,146,189,255,188,146,32,255,188,146,32,255,188,146,32,255,188,146,189,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "8x4 srgb mip 2",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[188,146,32,255,188,146,140,255],\"expected\":[188,146,32,255,188,146,140,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "8x4 srgb mip 3",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[188,146,104,255],\"expected\":[188,146,104,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "5x3 linear caller retains image",
+      "ok": true,
+      "detail": "5"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "5x3 linear dimensions and levels",
+      "ok": true,
+      "detail": "[5,3,3]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "5x3 linear mip 0",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,255,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,255,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,255,255],\"expected\":[0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,255,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,255,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "5x3 linear mip 1",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[102,107,32,255,102,107,121,255],\"expected\":[102,107,32,255,102,107,121,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "5x3 linear mip 2",
+      "ok": true,
+      "detail": "{\"maxError\":1,\"actual\":[102,107,76,255],\"expected\":[102,107,77,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "5x3 srgb caller retains image",
+      "ok": true,
+      "detail": "5"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "5x3 srgb dimensions and levels",
+      "ok": true,
+      "detail": "[5,3,3]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "5x3 srgb mip 0",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,255,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,255,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,255,255],\"expected\":[0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,255,255,0,192,32,255,255,192,32,255,0,192,32,255,255,192,32,255,0,192,255,255,0,64,32,255,255,64,32,255,0,64,32,255,255,64,32,255,0,64,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "5x3 srgb mip 1",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[170,126,32,255,170,126,171,255],\"expected\":[170,126,32,255,170,126,171,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "5x3 srgb mip 2",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[170,126,127,255],\"expected\":[170,126,127,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x5 linear caller retains image",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x5 linear dimensions and levels",
+      "ok": true,
+      "detail": "[1,5,3]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x5 linear mip 0",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,64,255,255,0,192,255,255,0,64,255,255,0,192,255,255,0,64,255,255],\"expected\":[0,64,255,255,0,192,255,255,0,64,255,255,0,192,255,255,0,64,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x5 linear mip 1",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,115,255,255,0,115,255,255],\"expected\":[0,115,255,255,0,115,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x5 linear mip 2",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,115,255,255],\"expected\":[0,115,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x5 srgb caller retains image",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x5 srgb dimensions and levels",
+      "ok": true,
+      "detail": "[1,5,3]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x5 srgb mip 0",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,64,255,255,0,192,255,255,0,64,255,255,0,192,255,255,0,64,255,255],\"expected\":[0,64,255,255,0,192,255,255,0,64,255,255,0,192,255,255,0,64,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x5 srgb mip 1",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,135,255,255,0,135,255,255],\"expected\":[0,135,255,255,0,135,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x5 srgb mip 2",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,135,255,255],\"expected\":[0,135,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "3x1 linear caller retains image",
+      "ok": true,
+      "detail": "3"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "3x1 linear dimensions and levels",
+      "ok": true,
+      "detail": "[3,1,2]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "3x1 linear mip 0",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,64,32,255,255,64,32,255,0,64,255,255],\"expected\":[0,64,32,255,255,64,32,255,0,64,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "3x1 linear mip 1",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[85,64,106,255],\"expected\":[85,64,106,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "3x1 srgb caller retains image",
+      "ok": true,
+      "detail": "3"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "3x1 srgb dimensions and levels",
+      "ok": true,
+      "detail": "[3,1,2]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "3x1 srgb mip 0",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,64,32,255,255,64,32,255,0,64,255,255],\"expected\":[0,64,32,255,255,64,32,255,0,64,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "3x1 srgb mip 1",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[156,64,158,255],\"expected\":[156,64,158,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x1 linear caller retains image",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x1 linear dimensions and levels",
+      "ok": true,
+      "detail": "[1,1,1]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x1 linear mip 0",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,64,255,255],\"expected\":[0,64,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x1 srgb caller retains image",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x1 srgb dimensions and levels",
+      "ok": true,
+      "detail": "[1,1,1]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "1x1 srgb mip 0",
+      "ok": true,
+      "detail": "{\"maxError\":0,\"actual\":[0,64,255,255],\"expected\":[0,64,255,255]}"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "linear ORM channels unchanged",
+      "ok": true,
+      "detail": "[32,64,192,255]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "Three linear closed-image sampling",
+      "ok": true,
+      "detail": "[0,64,32]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "Three sRGB decodes once",
+      "ok": true,
+      "detail": "[0,13,4]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "Three linear interpolation",
+      "ok": true,
+      "detail": "[128,64,32]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "Three repeat",
+      "ok": true,
+      "detail": "[0,64,32]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "Three clamp",
+      "ok": true,
+      "detail": "[255,64,255]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "Three nearest mip choice",
+      "ok": true,
+      "detail": "[128,128,32]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "Three mip interpolation",
+      "ok": true,
+      "detail": "[128,128,32]"
+    },
+    {
+      "scenario": "image-texture",
+      "name": "Three implicit mip selection",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "image-texture",
+      "name": "Three reports GPU dimensions",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "image-texture",
+      "name": "Three wrapper disposal leaves GPU allocation alive",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "image-texture",
+      "name": "synchronous upload rejects and caller retains bitmap",
+      "ok": true,
+      "detail": "\"Error: Image texture preparation failed: Error: injected copy failure\""
+    },
+    {
+      "scenario": "image-texture",
+      "name": "synchronous partial GPU allocation destroyed",
+      "ok": true,
+      "detail": "\"Destroyed texture [Texture \\\"image-texture\\\"] used in a submit.\\n - While [Failed to format error: \\\"calling %s.WriteTexture(%s, (%u bytes), %s, %s)\\\"]\\n\""
+    },
+    {
+      "scenario": "image-texture",
+      "name": "validation upload rejects and caller retains bitmap",
+      "ok": true,
+      "detail": "\"Error: Image texture preparation failed: Texture copy range (origin: [Origin3D x:2, y:0, z:0], copySize: [Extent3D width:2, height:2, depthOrArrayLayers:1]) touches outside of [Texture \\\"image-texture\\\"] mip level 0 size ([Extent3D width:2, height:2, depthOrArrayLayers:1]).\\n - While validating that the copy fits in the destination\\n - While validating CopyTextureForBrowser from [Texture (unlabeled 2x2 px, TextureFormat::BGRA8Unorm)] to [Texture \\\"image-texture\\\"]\\n\""
+    },
+    {
+      "scenario": "image-texture",
+      "name": "validation partial GPU allocation destroyed",
+      "ok": true,
+      "detail": "\"Destroyed texture [Texture \\\"image-texture\\\"] used in a submit.\\n - While [Failed to format error: \\\"calling %s.WriteTexture(%s, (%u bytes), %s, %s)\\\"]\\n\""
+    },
+    {
+      "scenario": "image-texture",
+      "name": "mip-validation upload rejects and caller retains bitmap",
+      "ok": true,
+      "detail": "\"Error: Image texture preparation failed: Attachment state of [RenderPipeline \\\"image-mip-area-mean\\\"] is not compatible with [RenderPassEncoder (unlabeled)].\\n[RenderPassEncoder (unlabeled)] expects an attachment state of { colorTargets: [0={format:TextureFormat::RGBA8UnormSrgb}], sampleCount: 1 }.\\n[RenderPipeline \\\"image-mip-area-mean\\\"] has an attachment state of { colorTargets: [0={format:TextureFormat::RGBA8Unorm}], sampleCount: 1 }.\\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([RenderPipeline \\\"image-mip-area-mean\\\"]).\\n - While finishing [CommandEncoder \\\"image-mip-chain\\\"].\\n\""
+    },
+    {
+      "scenario": "image-texture",
+      "name": "mip-validation partial GPU allocation destroyed",
+      "ok": true,
+      "detail": "\"Destroyed texture [Texture \\\"image-texture\\\"] used in a submit.\\n - While [Failed to format error: \\\"calling %s.WriteTexture(%s, (%u bytes), %s, %s)\\\"]\\n\""
+    },
+    {
+      "scenario": "image-texture",
+      "name": "no GPU or Three warnings",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

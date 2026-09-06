@@ -4,21 +4,17 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 
 ## Next Agent Prompt
 
-Last updated **2026-09-06**. Status: **slices01–03 complete; slice04 in progress**.
+Last updated **2026-09-06**. Status: **slices01–04 complete; slice05 in progress**.
 
-You are working in `/Users/david/dev/game-battle-model-quality`, branch `codex/battle-model-quality`, based on `90bbdcaa`. **04a–04c are complete.** Close04d in [04 — Explicit material round trip](slices/04-explicit-materials.md): integrate the six-swatch candidate42 scene against the standard loader in the same production environment, run the material-transfer human checkpoint, and finish the slice review.05a's minimal read-only injury observation seam is proceeding independently; no action-controller change is accepted yet. Continue04→07 infrastructure before detailed anatomy08.
+You are working in `/Users/david/dev/game-battle-model-quality`, branch `codex/battle-model-quality`. Continue [05 — Action observations and timeline](slices/05-action-timeline.md):05a's read-only injury observation seam is integrated at `f36211df`;05b applicability and deterministic per-soldier history are underway, not accepted. Finish05→07 infrastructure before detailed anatomy08. No user-only blocker.
 
-No user-only blocker. [Scalar evidence](assets/evidence/04/integration-review.md) and [texture evidence](assets/evidence/04/texture-transport/review.md) record shared source/near/raw/far transfer, malformed-image rollback, disposal races,216 tests and the passing30k hardware gate. The checker now reaches production and its reviewed baseline is strict; untextured mounted and existing scalar shots stay exact. Filtered-normal boundary bands, far shadows and raw placeholder readability remain unaccepted final-quality debt. Local Blender5.2.1 is available; external AI generation stays excluded. [Choices](choices.md) owns implementation decisions.
+[Material closure](assets/evidence/04/consumer-closure/review.md) links the scalar, texture and posed-normal evidence, the matched six-swatch source/production comparison, strict merged consumer/reload checks and applicable standing hardware gate. Material transfer is accepted; anatomy, surface styling, animation quality and final-distance readability are not. Filtered-normal boundary bands, far shadows and raw placeholder readability remain later-slice obligations. [Choices](choices.md) owns implementation decisions.
 
-[Posed integration](assets/evidence/04/posed-material-integration/review.md) records
-219 tests, exact inherited screenshots, independent near/far/raw direction controls
-and the unchanged30k hardware gate. Existing positions/normals remain unchanged.
-[Six-swatch source evidence](assets/evidence/04/six-swatch-source.md) is source
-admission only, not completed browser acceptance. Posed shading uses fragment-stage map reads,
-per-vertex unit directions and finite geometric fallbacks for interpolation
-cancellation; do not restore lazy conditional texture reads or fragment-side VAT
-work.05 reconnaissance confirmed `hit_ttl` is facing/contact memory, not an injury
-event; inspect actual health changes before wiring observed hit reactions.
+Keep posed shading's fragment-stage map reads, per-vertex unit directions and
+finite geometric fallbacks; do not restore conditional texture reads or
+fragment-side VAT work. `hit_ttl` is facing/contact memory, not an injury event:
+05 uses actual health observations. Local Blender remains available; external AI
+generation stays excluded.
 
 The user clarified that their model-progress question was not a request to reprioritize. Keep the infrastructure-first trunk and start detailed anatomy at08 after the measured budget envelope; diagnostic Blender fixtures are not detailed soldier models.
 
@@ -41,7 +37,7 @@ The global TODO checklist is the slice list below. Update this prompt, the check
 - [x] [01 — Production model workbench](slices/01-production-workbench.md)
 - [x] [02 — Blender export reference fixtures](slices/02-blender-reference-fixtures.md)
 - [x] [03 — Weighted mesh and skeleton cutover](slices/03-weighted-asset-contract.md)
-- [ ] [04 — Explicit material round trip](slices/04-explicit-materials.md)
+- [x] [04 — Explicit material round trip](slices/04-explicit-materials.md)
 - [ ] [05 — Action observations and timeline](slices/05-action-timeline.md)
 - [ ] [06 — GPU interpolation and clip blending](slices/06-gpu-playback.md)
 - [ ] [07 — Measure asset and animated-view budgets](slices/07-budget-envelope.md)

@@ -87,6 +87,34 @@ test("action entry starts locally and locomotion follows authored duration", () 
   assert.deepEqual(timeline.update(945, [soldier({ speedMps: 1 })])[0], later);
 });
 
+test("held pike readiness selects its authored rest action only while stationary and not at ease", () => {
+  const pike = {
+    manifest: {
+      presentation: {
+        actions: { ...actions, pikeReady: { clip: "held-pike", layer: "fullBody" as const } },
+        riderUpperBodyJoints: null,
+      },
+    },
+    animation: { clips: [...clips, { ...clips[0], name: "held-pike" }] },
+    rig: { ...rig, clips: [...rig.clips, { ...rig.clips[0], name: "held-pike" }] },
+  };
+  const timeline = new ActionTimeline({ 0: pike });
+  assert.equal(timeline.update(0, [soldier()])[0].base.destination.clip, "rest");
+  const held = timeline.update(30, [soldier({ pikeReady: true })])[0];
+  assert.deepEqual(held.base.destination, { clip: "held-pike", phase: 0 });
+  assert.equal(timeline.update(60, [soldier({ pikeReady: true })])[0].base.destination.phase, 0.25);
+  assert.equal(
+    timeline.update(90, [soldier({ pikeReady: true, speedMps: 1 })])[0].base.destination.clip,
+    "walk",
+  );
+  assert.equal(
+    timeline.update(120, [soldier({ pikeReady: true, atEase: true })])[0].base.destination.clip,
+    "rest",
+  );
+  const ordinary = new ActionTimeline(appearances);
+  assert.equal(ordinary.update(0, [soldier({ pikeReady: true })])[0].base.destination.clip, "rest");
+});
+
 test("death starts at observation, holds its last pose and freezes equipment until reset", () => {
   const timeline = new ActionTimeline(appearances);
   timeline.update(0, [soldier()]);

@@ -17,6 +17,14 @@ checks. These are integration proofs, not new model or motion-quality acceptance
 | Missing presentation clip, real HTTP loader | Rejected a missing name without checking diagnostic detail. | Requires both the action role and missing source clip in the error; observed red before the message fix, green after. | Authors need to identify the broken binding.                                                              |
 | Workbench incompatible active-clip reload   | Expected the later active-selection admission error.        | Accepts earlier presentation admission and verifies the last good class0 / march / phase0.25 plus retained clip.      | Canonical role validation now correctly rejects the malformed catalog earlier; rollback remains required. |
 
+New held-pike readiness coverage uses a distinct authored clip: entry at phase0,
+duration-based progress, movement and at-ease taking precedence, and no invented
+binding for an inapplicable appearance. Previously no dedicated non-null binding
+exercised that selection. Replay coverage audit exposed this gap; production
+policy is unchanged. Its focused timeline file now has17 passing tests, with
+typechecking and independent review also passing. Broad-suite counts above
+describe the earlier integration run.
+
 Independent review found no issue in the diagnostic/rollback patch; its sandbox
 could not bind the HTTP test server, so the main unrestricted run supplies that
 test result. No baseline or tolerance changed.

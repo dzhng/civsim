@@ -4,11 +4,13 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 
 ## Next Agent Prompt
 
-Last updated **2026-09-06**. Status: **slices01–02 complete; slice03 in progress**.
+Last updated **2026-09-06**. Status: **slices01–03 complete; slice04 next**.
 
-You are working in `/Users/david/dev/game-battle-model-quality`, branch `codex/battle-model-quality`, based on `90bbdcaa`. Continue [03 — Weighted production cutover](slices/03-weighted-asset-contract.md): integrate the source-import pass from `/Users/david/dev/game-battle-blender-fixture`, then replace optional asset overrides with complete bundles and prove the imported fixture in production. Weighted runtime plumbing is implemented with [partial evidence](assets/evidence/03/weighted-runtime.md); that is not03 completion. Read the architecture and evidence links below, inspect current repository instructions, then implement one focused slice at a time. Do not restart the interview or author the full roster before the first-pair checkpoint.
+You are working in `/Users/david/dev/game-battle-model-quality`, branch `codex/battle-model-quality`, based on `90bbdcaa`. Start [04 — Explicit material round trip](slices/04-explicit-materials.md) through its execution rows. Replace RGB material/faction guessing and seed color variation with authored inputs, then preserve textures and posed normal maps. Resolve the material-aware far bake before implementation; near, raw and far consumers must all consume the same source contract. Continue04→07 infrastructure before detailed anatomy08.
 
-No known blockers. [Workbench evidence](assets/evidence/01/review.md) and [Blender round-trip evidence](assets/evidence/02/review.md) pass; no detailed soldier art is accepted yet. Source fixture commits are integrated. Live animated budgets remain unverified. Local Blender 5.2.1 is available; external AI generation stays excluded. The raw crowd renderer still serves production campaign, so03 must migrate it rather than treating it as disposable lab code. [Choices](choices.md) owns implementation decisions.
+No known blockers. [Weighted-bundle integration](assets/evidence/03/integration-review.md) records the complete cutover, strict model/campaign/default-battle checks,197 web tests and unchanged hardware gates. No detailed soldier art is accepted yet; live animated budgets remain07. Local Blender 5.2.1 is available and external AI generation stays excluded. Raw campaign remains a production consumer. [Choices](choices.md) owns implementation decisions.
+
+The user clarified that their model-progress question was not a request to reprioritize. Keep the infrastructure-first trunk and start detailed anatomy at08 after the measured budget envelope; diagnostic Blender fixtures are not detailed soldier models.
 
 The global TODO checklist is the slice list below. Update this prompt, the checklist, and the owning slice's evidence/decision record before ending every implementation pass. Record any dirty work or new blocker exactly; never call an unfinished slice complete because its screenshots look promising.
 
@@ -28,7 +30,7 @@ The global TODO checklist is the slice list below. Update this prompt, the check
 
 - [x] [01 — Production model workbench](slices/01-production-workbench.md)
 - [x] [02 — Blender export reference fixtures](slices/02-blender-reference-fixtures.md)
-- [ ] [03 — Weighted mesh and skeleton cutover](slices/03-weighted-asset-contract.md)
+- [x] [03 — Weighted mesh and skeleton cutover](slices/03-weighted-asset-contract.md)
 - [ ] [04 — Explicit material round trip](slices/04-explicit-materials.md)
 - [ ] [05 — Action observations and timeline](slices/05-action-timeline.md)
 - [ ] [06 — GPU interpolation and clip blending](slices/06-gpu-playback.md)

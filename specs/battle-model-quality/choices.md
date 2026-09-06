@@ -2,6 +2,30 @@
 
 ## Sound — medium confidence
 
+### Benchmark motion uses authored clip duration (slice03)
+
+When the crowd benchmark advances its marching soldiers, it samples the duration declared by their asset using the production phase rule. Keeping the former private shader's rounded clock would measure a different animation path even after sharing the mesh.
+
+The plan required a production-path benchmark but left this timing conversion open. **Sound:** the benchmark now exercises the same sampling behavior as the renderer. The fixed workload and frame-time limit are preserved; this remains a rendering benchmark, not proof of live simulation performance.
+
+### Reject uniformly colored benchmark captures (slice03)
+
+A software-rendered vista once reported healthy soldier counts while its screenshot was effectively one color. The image check now requires a small amount of brightness variation as well as the existing bright-pixel floor. A bright empty canvas no longer counts as visible content.
+
+The plan required readable evidence but did not prescribe this detection. **Sound:** this strengthens the check without replacing visual inspection, the screenshot comparison, or actual workload assertions. The variance threshold is only an empty-frame detector, not an art-quality score.
+
+### Preserve original GLBs beside candidate material metadata (slice03)
+
+When a local Blender export contains a checker texture, the geometry baker records its material slot and keeps the original export beside the candidate. The current scalar material description does not yet reproduce that texture; retaining the source preserves its images, sampling settings and material definitions for04. Discarding them would make a successful geometry import look like a complete surface import when it is not.
+
+The plan separated geometry and material acceptance without specifying this intermediate source provenance. **Sound:** the omission is explicit and recoverable, with no outside service involved. This costs duplicate source bytes in diagnostic bundles;04 should replace this intermediate material reference with the actual rendered texture contract, not leave an unused second material owner.
+
+### Use each appearance's complete near mesh to bake its initial far image (slice03)
+
+When a pikeman becomes a small distant figure, his image is baked from his own complete mesh, so his pike does not become another class's sword. The initial placeholder bundle references its near mesh for that bake rather than storing an identical extra file or using one generic soldier image. Each appearance therefore allocates its own small image atlas, a grid of views used at distance.
+
+The plan required appearance-specific far content but did not choose its first producer. **Sound:** this preserves equipment identity while the later distance-representation slices own authored reductions and final readability. It increases atlas memory and draw groups; performance must be measured with those real groups, not the former shared image.
+
 ### Isolate soldiers by removing foliage occlusion (slice01)
 
 When reviewing a hand grip or a foot, randomly placed grass and rocks can cover the part being judged. The workbench hides those objects but retains production ground, lighting, shadows and post-processing. A fully dressed battlefield would provide more context but less reliable close inspection; later production formation/battle gates still require that context.
@@ -9,6 +33,48 @@ When reviewing a hand grip or a foot, randomly placed grass and rocks can cover 
 The plan required production parity but did not specify review scenery. This choice constrains the workbench to asset inspection, not environment acceptance. **Sound:** it removes an occluder without changing how soldiers are shaded. Revisit if a future gate depends on soldier–foliage contact.
 
 ## Sound — high confidence
+
+### Validate gameplay clips at controller admission, not generic import (slice03)
+
+When the battle reloads an asset that can stand idle but has no attack clip, it rejects the replacement before a later attack can crash rendering. The required names live beside the controller that requests them. A diagnostic with only an elbow-bend clip is still valid: its workbench explicitly requests no gameplay vocabulary and selects the asset's own clips.
+
+The plan required meaningful clips and candidate inspection without defining this admission boundary. **Sound:** one generic loader can serve both uses without fake clips or fallback animation. Assets are checked before GPU allocation on startup and before replacing the current crowd on reload. Slice05 owns the later role-specific vocabulary; this check represents the current controller only.
+
+### Keep the retained crowd benchmark at full detail (slice03)
+
+When the old prototype switches to the production crowd implementation, it still submits every benchmark soldier at full detail. Applying normal battle distance reduction there would shrink the workload and make an apparent speed improvement incomparable to the old 33 ms gate.
+
+The plan required preserving the existing performance gate but left the shared-renderer submission seam open. **Sound:** the benchmark keeps its original cost, while actual battles retain their ordinary visibility and distance policy.
+
+### Keep candidate selection owned by the production world (slice03)
+
+When the workbench opens a locally baked diagnostic catalog, the production world remembers that catalog's address. Reload reads the same address instead of accidentally replacing the diagnostic with the gameplay roster. The workbench supplies a selection, not a separate loader or rendering path.
+
+The plan required candidate reload without specifying who retains its source. **Sound:** the same owner creates and replaces GPU content, so future reload behavior cannot diverge between inspection and battle. The default gameplay catalog remains unchanged.
+
+### Match fixture framing with an explicit camera target (slice03)
+
+When comparing a mounted fixture to its export reference, the camera aims at the fixture's recorded center rather than a hard-coded human chest height. That target travels with the inspection pose. Ordinary soldier review keeps its existing default target; the renderer's lighting and projection are not redesigned to flatter the candidate.
+
+The plan required matched framing but did not specify this input. **Sound:** the reference and production view can show the same geometry at the same framing, including non-human diagnostic dimensions.
+
+### Hold zero-duration diagnostic clips still (slice03)
+
+When a source fixture contains a single static pose, pressing play leaves it at phase zero rather than dividing elapsed time by a zero duration. Animated clips advance by their authored duration and use their declared loop behavior.
+
+The plan required source timing but did not define static-clip playback. **Sound:** static poses remain valid inspection assets without invented motion or a special replacement clip.
+
+### Match exported tiers by bone names and actual bind transforms (slice03)
+
+A Blender export can number the same arm bones differently in its near and reduced meshes. The baker matches uniquely named bones, checks their parent relationships and resting transforms, and rewrites each vertex's joint references into the near tier's order. It accepts reordered exports but rejects a genuinely different rig, rather than bending the reduced soldier with unrelated joints.
+
+The plan required a shared skeleton without prescribing tier matching. **Sound:** authoring can change export order without changing deformation, while one animation set remains authoritative for all three tiers. Reduced tiers must retain the compatible skeleton; they cannot silently substitute a different rig.
+
+### Changing the selected appearance chooses an applicable clip (slice03)
+
+If the reviewer switches from one appearance to another and the current clip exists on both, the workbench keeps the clip and phase. If it does not, the picker selects the new appearance's first declared clip at its start. Programmatic requests for a missing clip and incompatible reloads still fail explicitly.
+
+The plan required role-appropriate clips but did not define picker behavior. **Sound:** a deliberate selection change remains usable without inventing a missing animation or weakening asset-load failures. This is only a UI default, not a runtime fallback.
 
 ### Keep four-weight geometry in one shared upload layout (slice03)
 

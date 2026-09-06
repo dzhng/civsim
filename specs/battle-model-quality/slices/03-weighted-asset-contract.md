@@ -1,6 +1,6 @@
 # 03 — Weighted mesh and skeleton cutover
 
-Status: TODO. Depends on [02](./02-blender-reference-fixtures.md).
+Status: COMPLETE. Depends on [02](./02-blender-reference-fixtures.md).
 
 ## Contract and ownership
 
@@ -60,13 +60,27 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 
 ## Completion record
 
-- [ ] Contract and runnable artifact implemented.
-- [ ] 03a source-import evidence and verdict.
-- [ ] 03b complete-bundle evidence and verdict.
-- [ ] 03c runtime consumer closure and verdict.
-- [ ] 03d end-to-end candidate evidence and verdict.
-- [ ] Tests and inherited gates pass; changed-test behavior ledger recorded.
-- [ ] Comparison and final unprimed critique recorded.
-- [ ] Review/cleanup completed; README pickup and decisions updated.
+- [x] Contract and runnable artifact implemented.
+- [x] 03a source-import evidence and verdict.
+- [x] 03b complete-bundle evidence and verdict.
+- [x] 03c runtime consumer closure and verdict.
+- [x] 03d end-to-end candidate evidence and verdict.
+- [x] Tests and inherited gates pass; changed-test behavior ledger recorded.
+- [x] Comparison and final unprimed critique recorded.
+- [x] Review/cleanup completed; README pickup and decisions updated.
 
-Record actual commands, evidence links, measured results, decisions and unresolved defects here during implementation. No implementation or visual acceptance has occurred yet.
+The source importer and bundle producer pass `bun run --cwd web bake:test`.
+[Source-bundle evidence](../assets/evidence/03/source-bundles.md) records all14
+mapped Blender poses, tier joint reordering, wide indices and deterministic CLI
+output. [Generated-bundle evidence](../assets/evidence/03/generated-bundles.md)
+records all20 placeholder appearances and animated bounds over more than two
+million posed vertices. These are geometry/data verdicts, not material or art
+acceptance.
+
+[Integration review](../assets/evidence/03/integration-review.md) owns merged
+verification, review dispositions and the shared-runtime change ledger. The
+production workbench, retained raw/campaign consumers and prototype use complete
+bundles; the old reader, validator and preview-only import path are removed.
+Candidate source deformation and far orientation pass, with material/readability
+debt explicitly retained by04/15/28. Clip metadata and terminal holds are correct;
+this does not implement06 interpolation or05's action timeline.

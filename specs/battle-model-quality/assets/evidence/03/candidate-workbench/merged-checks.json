@@ -1,0 +1,779 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-06T03:11:14.159Z",
+  "target": "http://localhost:5174",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "battle-renderer-default",
+      "file": "battle/battle-renderer-default.mjs",
+      "kind": "flow",
+      "tier": "quick"
+    },
+    {
+      "name": "campaign-visual",
+      "file": "campaign/campaign-visual.mjs",
+      "kind": "visual",
+      "tier": "quick"
+    },
+    {
+      "name": "battle-model-far-bundles",
+      "file": "models/battle-model-far-bundles.mjs",
+      "kind": "visual",
+      "tier": "full"
+    },
+    {
+      "name": "battle-model-workbench",
+      "file": "models/battle-model-workbench.mjs",
+      "kind": "visual",
+      "tier": "full"
+    },
+    {
+      "name": "blender-production-candidates",
+      "file": "models/blender-production-candidates.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-renderer-default",
+      "name": "battle default renderer is the photoreal WebGPU world",
+      "ok": true,
+      "detail": "{\"soldiers\":15560,\"units\":40,\"tickMs\":14.66642035308628,\"audioUpdateMs\":0.09883716233755807,\"fps\":308.09413139399095,\"victor\":-1,\"renderer\":\"gpu\",\"renderStats\":{\"renderer\":\"gpu\",\"ready\":true,\"substrate\":\"threejs-webgpu-tsl\",\"projection\":\"camera3d\",\"environment\":\"golden\",\"width\":1280,\"height\":800,\"soldiers\":15560,\"expectedSoldiers\":15560,\"drawCalls\":42,\"triangles\":4093793,\"crowd\":{\"instances\":15560,\"visible\":15560,\"culled\":0,\"drawCalls\":9,\"meshDrawCalls\":0,\"impostorDrawCalls\":9,\"meshVariants\":60,\"tierHistogram\":{\"l0\":0,\"l1\":0,\"l2\":0,\"l3\":15560},\"visibleTierHistogram\":{\"l0\":0,\"l1\":0,\"l2\":0,\"l3\":15560},\"culling\":{\"input\":15560,\"visible\":15560,\"culled\":0,\"viewFrusta\":1,\"shadowFrusta\":1},\"impostors\":{\"impostorInstances\":15560,\"impostorDrawCalls\":9,\"appearances\":20},\"material\":{\"identity\":\"soldier-assets-placeholder-pbr-v1\",\"channels\":[\"albedo\",\"normal\",\"orm\",\"factionMask\"],\"mapping\":{\"albedo\":\"cColor.rgb\",\"normal\":\"cNormal, VAT-skinned into world space\",\"orm\":\"occlusion/roughness/metalness, canonical order from skinnedPipeline\",\"factionMask\":\"high-blue cColor armband accent channel\"},\"masks\":{\"bronze\":{\"r\":[0.58,0.78],\"g\":[0.34,0.52],\"maxB\":[0.28,0.46]},\"iron\":{\"greySpreadScale\":6.5,\"brightness\":[0.44,0.66]},\"linen\":{\"r\":[0.58,0.76],\"g\":[0.48,0.66],\"b\":[0.32,0.48]},\"leather\":{\"r\":[0.24,0.42],\"g\":[0.16,0.32],\"maxB\":[0.24,0.42]},\"skin\":{\"r\":[0.62,0.78],\"g\":[0.42,0.58],\"b\":[0.24,0.42]},\"factionMask\":{\"blueDelta\":[0.18,0.55]}},\"pbr\":{\"roughness\":{\"bronze\":0.46,\"iron\":0.38,\"linen\":0.9,\"leather\":0.74,\"skin\":0.66,\"default\":0.84},\"metalness\":{\"bronze\":0.82,\"iron\":0.92},\"contactAo\":{\"band\":0.42,\"strength\":0.55}}}},\"lod\":{\"skinned\":0,\"impostors\":15560},\"markerLayer\":\"far-lod-impostor\",\"device\":\"google / swiftshader\",\"groundDetail\":{\"earthEdges\":{\"owner\":\"playable-ground\",\"format\":\"rg8-unorm\",\"width\":1200,\"height\":800,\"rangeMeters\":32,\"channels\":[\"earth-union\",\"road\"],\"filters\":[\"linear\",\"linear\"],\"textureResources\":1,\"vistaSamples\":0}},\"depth\":{\"owner\":\"three-webgpu\",\"reversed\":true},\"atmosphere\":{\"sky\":{\"owner\":\"skyModel\",\"tier\":\"skyview-fragment-lut\",\"lut\":\"384x192\",\"turbidity\":2.9,\"overcast\":0},\"aerial\":{\"owner\":\"aerialPerspective\",\"extinctionKm\":[0.0655,0.1012,0.1911],\"visibilityKm\":32.81,\"distanceScale\":4.6,\"clearRadiusM\":70,\"rangeFog\":{\"nearM\":70,\"farM\":1700,\"power\":1.28,\"strength\":0.34},\"sunMie\":{\"tint\":[1,0.8,0.52],\"strength\":0.34,\"power\":3.4},\"valleyMist\":{\"color\":[0.84,0.82,0.72],\"heightBottomM\":8,\"heightTopM\":46,\"distanceStartM\":520,\"distanceFullM\":1600,\"colorStrength\":0.18,\"opacityBoost\":0.08}}},\"shadows\":{\"owner\":\"shadowRig\",\"mode\":\"single\",\"cascades\":1,\"mapSize\":1024,\"maxFar\":1500,\"radius\":1.252},\"post\":{\"owner\":\"battlePostChain\",\"enabled\":true,\"bloom\":{\"enabled\":true,\"strength\":0.085,\"radius\":0.56,\"threshold\":1.02,\"smoothWidth\":0.75,\"levels\":5},\"grade\":{\"placement\":\"pre-agx\",\"preset\":\"golden\",\"presetStrength\":1,\"uniforms\":{\"strength\":1,\"saturationBoost\":1.15,\"contrast\":0.16,\"splitTone\":0.85,\"shadowLift\":1}},\"tonemap\":\"agx\"},\"sea\":{\"source\":\"gerstner-tsl\",\"tier\":\"gerstner-tsl\",\"resolution\":1,\"cascades\":1,\"storageBytes\":0,\"surface\":{\"owner\":\"skyModel-ibl-standard-pbr\",\"skyReflection\":\"scene.environment:skyModel-lut\",\"sunGlint\":\"mesh-standard-ggx\",\"shallowAlbedo\":[0.22,0.58,0.6],\"deepAlbedo\":[0.025,0.095,0.22],\"foamAlbedo\":[0.92,0.93,0.94],\"sandTurbidityAlbedo\":[0.66,0.58,0.4],\"roughness\":0.105,\"foamRoughness\":0.78,\"normalDetail\":{\"near\":0.84,\"far\":0.18,\"fadeStart\":720,\"fadeEnd\":2300},\"foam\":{\"heightStart\":0.28600000000000003,\"heightEnd\":0.8525000000000001,\"slopeStart\":0.12,\"slopeEnd\":0.58,\"speckleStart\":0.56,\"speckleEnd\":0.78,\"scale\":0.74},\"shore\":{\"ramp\":{\"depthNear\":12,\"depthFar\":300,\"hazeNear\":520,\"hazeFar\":1900},\"sandTurbidityDepthStart\":0.04,\"sandTurbidityDepthEnd\":0.26,\"heightfieldDatum\":true,\"farExtent\":7200},\"glint\":{\"roughnessFloor\":0.105,\"normalDetailCeiling\":0.84,\"hotLumaThreshold\":246,\"hotFractionMax\":0.07,\"centerShareMin\":0.6}}},\"camera\":{\"x\":0,\"y\":2.3598524460935396e-47,\"zoom\":0.8064516129032258,\"zoomT\":0.03748296228986822,\"camera3d\":{\"target\":[0,2.3598524460935396e-47,7.85711669921875],\"distance\":3200,\"pitch\":1.35,\"yaw\":-1.5707963267948966,\"fovY\":0.5,\"aspect\":1.6,\"near\":1}},\"seating\":{\"checked\":15560,\"matches\":true,\"span\":3.796},\"terrain\":{\"fixture\":\"sim-tint\",\"layer\":\"photoreal-battle-ground\",\"groundTriangles\":120000,\"vistaTriangles\":0,\"vista\":null,\"sealedEdges\":[\"west:cliff\",\"east:ocean\"],\"standards\":[{\"unitId\":0,\"x\":-77.78890991210938,\"y\":-557.3880615234375,\"z\":0},{\"unitId\":1,\"x\":77.00706481933594,\"y\":-557.3875122070312,\"z\":0},{\"unitId\":2,\"x\":-124.91350555419922,\"y\":-603.8179931640625,\"z\":0},{\"unitId\":3,\"x\":-62.349769592285156,\"y\":-604.500244140625,\"z\":0},{\"unitId\":4,\"x\":-0.2126331478357315,\"y\":-603.8199462890625,\"z\":0},{\"unitId\":5,\"x\":62.35173034667969,\"y\":-604.49951171875,\"z\":0},{\"unitId\":6,\"x\":124.4880599975586,\"y\":-603.82080078125,\"z\":0},{\"unitId\":7,\"x\":-193.01963806152344,\"y\":-657.975341796875,\"z\":0},{\"unitId\":8,\"x\":-108.56218719482422,\"y\":-658.8197631835938,\"z\":0},{\"unitId\":9,\"x\":-0.36761701107025146,\"y\":-657.0880126953125,\"z\":0},{\"unitId\":10,\"x\":108.13842010498047,\"y\":-658.818115234375,\"z\":0},{\"unitId\":11,\"x\":192.37945556640625,\"y\":-657.9776611328125,\"z\":0},{\"unitId\":12,\"x\":-168.8954315185547,\"y\":-711.9373168945312,\"z\":0},{\"unitId\":13,\"x\":-60.11993408203125,\"y\":-712.9764404296875,\"z\":0},{\"unitId\":14,\"x\":48.70671844482422,\"y\":-711.939208984375,\"z\":0},{\"unitId\":15,\"x\":168.30374145507812,\"y\":-711.9370727539062,\"z\":0},{\"unitId\":16,\"x\":0.0009620905038900673,\"y\":-753.0059814453125,\"z\":0},{\"unitId\":17,\"x\":-299.9996032714844,\"y\":-624.79931640625,\"z\":2.4668183020267245},{\"unitId\":18,\"x\":300.0038757324219,\"y\":-624.799072265625,\"z\":0},{\"unitId\":19,\"x\":340.00018310546875,\"y\":-665.1992797851562,\"z\":0},{\"unitId\":20,\"x\":77.79280853271484,\"y\":557.3857421875,\"z\":0},{\"unitId\":21,\"x\":-77.00576782226562,\"y\":557.3866577148438,\"z\":0.1533416886367227},{\"unitId\":22,\"x\":124.91290283203125,\"y\":603.8214721679688,\"z\":0},{\"unitId\":23,\"x\":62.350826263427734,\"y\":604.4998779296875,\"z\":0},{\"unitId\":24,\"x\":0.2134900987148285,\"y\":603.8192749023438,\"z\":0},{\"unitId\":25,\"x\":-62.349449157714844,\"y\":604.500732421875,\"z\":0},{\"unitId\":26,\"x\":-124.48882293701172,\"y\":603.8189086914062,\"z\":0.05619985292081984},{\"unitId\":27,\"x\":193.02149963378906,\"y\":657.9758911132812,\"z\":0},{\"unitId\":28,\"x\":108.56352996826172,\"y\":658.8175048828125,\"z\":0},{\"unitId\":29,\"x\":0.36941179633140564,\"y\":657.088623046875,\"z\":0},{\"unitId\":30,\"x\":-108.13799285888672,\"y\":658.8186645507812,\"z\":0},{\"unitId\":31,\"x\":-192.37954711914062,\"y\":657.9752197265625,\"z\":0},{\"unitId\":32,\"x\":168.8928985595703,\"y\":711.9368286132812,\"z\":0},{\"unitId\":33,\"x\":60.12031173706055,\"y\":712.9749755859375,\"z\":0},{\"unitId\":34,\"x\":-48.70492935180664,\"y\":711.9384155273438,\"z\":0},{\"unitId\":35,\"x\":-168.30552673339844,\"y\":711.9411010742188,\"z\":0},{\"unitId\":36,\"x\":0.0028297186363488436,\"y\":753.001708984375,\"z\":0},{\"unitId\":37,\"x\":300.0013427734375,\"y\":624.798583984375,\"z\":0},{\"unitId\":38,\"x\":-299.998779296875,\"y\":624.8020629882812,\"z\":0.0008220152133012339},{\"unitId\":39,\"x\":-339.9998474121094,\"y\":665.2005615234375,\"z\":0}],\"sea\":{\"source\":\"gerstner-tsl\",\"tier\":\"gerstner-tsl\",\"resolution\":1,\"cascades\":1,\"storageBytes\":0,\"surface\":{\"owner\":\"skyModel-ibl-standard-pbr\",\"skyReflection\":\"scene.environment:skyModel-lut\",\"sunGlint\":\"mesh-standard-ggx\",\"shallowAlbedo\":[0.22,0.58,0.6],\"deepAlbedo\":[0.025,0.095,0.22],\"foamAlbedo\":[0.92,0.93,0.94],\"sandTurbidityAlbedo\":[0.66,0.58,0.4],\"roughness\":0.105,\"foamRoughness\":0.78,\"normalDetail\":{\"near\":0.84,\"far\":0.18,\"fadeStart\":720,\"fadeEnd\":2300},\"foam\":{\"heightStart\":0.28600000000000003,\"heightEnd\":0.8525000000000001,\"slopeStart\":0.12,\"slopeEnd\":0.58,\"speckleStart\":0.56,\"speckleEnd\":0.78,\"scale\":0.74},\"shore\":{\"ramp\":{\"depthNear\":12,\"depthFar\":300,\"hazeNear\":520,\"hazeFar\":1900},\"sandTurbidityDepthStart\":0.04,\"sandTurbidityDepthEnd\":0.26,\"heightfieldDatum\":true,\"farExtent\":7200},\"glint\":{\"roughnessFloor\":0.105,\"normalDetailCeiling\":0.84,\"hotLumaThreshold\":246,\"hotFractionMax\":0.07,\"centerShareMin\":0.6}},\"planes\":1,\"oceanPlanes\":1,\"lakePlanes\":0,\"lakeSurfaces\":[]},\"groundCover\":\"green-grass\",\"slopeBands\":null,\"environment\":{\"id\":\"golden-hour\",\"source\":\"CIVSIM_ENVIRONMENTS.golden\",\"sharedPreset\":\"golden\",\"waterAlias\":\"CIVSIM_ENVIRONMENTS.golden\",\"sunAzimuth\":3.1416,\"sunElevation\":0.35,\"keyColor\":[1,0.88,0.66],\"fillColor\":[0.42,0.53,0.72],\"hazeColor\":[0.86,0.82,0.68],\"exposure\":1.16},\"scenery\":548,\"grass\":{\"layer\":\"photoreal-blade-field\",\"enabled\":false,\"farTierVisible\":true,\"routeCullMask\":{\"enabled\":false,\"center\":[0,0],\"radiusSq\":0},\"routeCullWedge\":{\"enabled\":false,\"forward\":[0,1],\"side\":[1,0],\"halfWidthSlope\":1,\"backMarginM\":0,\"farMarginM\":0},\"packedUpload\":{\"mode\":\"idle\",\"targetFrames\":6,\"uploadedRecords\":1000000,\"totalRecords\":1000000},\"depthPrepass\":{\"enabled\":false,\"tiers\":[\"near\",\"mid\"],\"drawCalls\":0,\"renderOrder\":-0.01,\"beautyDepth\":\"less-equal-read-write\"},\"packedStrideFloats\":16,\"packedBytesPerRecord\":64,\"recordCount\":1000000,\"drawCalls\":3,\"submittedTriangles\":0,\"submittedVertices\":0,\"tiers\":{\"near\":{\"lodTier\":0,\"segments\":15,\"minDistanceM\":0,\"maxDistanceM\":5,\"bladesPerRecord\":6,\"candidateRecords\":0,\"records\":0,\"droppedByThinning\":0,\"triangles\":0,\"vertices\":0},\"mid\":{\"lodTier\":1,\"segments\":6,\"minDistanceM\":5,\"maxDistanceM\":64,\"bladesPerRecord\":6,\"candidateRecords\":0,\"records\":0,\"droppedByThinning\":0,\"triangles\":0,\"vertices\":0},\"far\":{\"lodTier\":2,\"segments\":2,\"minDistanceM\":64,\"maxDistanceM\":1250,\"bladesPerRecord\":2,\"candidateRecords\":0,\"records\":0,\"droppedByThinning\":0,\"triangles\":0,\"vertices\":0}},\"tierCountSource\":\"cpu-mirror-live-distance-hash-thinning\",\"culledRecords\":0,\"thinnedRecords\":0,\"thinning\":{\"enabled\":true,\"densityLaw\":\"pen-1.5-power\",\"densityReferenceM\":300,\"falloffPower\":1.5,\"hashSource\":\"record.bladeSeed fract(seed01 * 7.13)\",\"survivorAlbedoBlend\":0.85},\"farDensityProfile\":{\"farGrassEndM\":1250,\"densityReferenceM\":300,\"falloffPower\":1.5,\"farSoftWidthScale\":3.1,\"edgeSinkStartM\":1120,\"bladesPerRecord\":{\"near\":6,\"mid\":28,\"far\":2},\"nearCoverageWidthScale\":1,\"midTierEndM\":64,\"lowerFarWidthScale\":1.35,\"lowerFarWidthEndM\":112},\"transition\":{\"denseBladeEndM\":143,\"farGrassStartM\":260,\"farGrassEndM\":1250,\"nearTierEndM\":5,\"midTierEndM\":64,\"farSoftWidthScale\":3,\"nearCoverageWidthScale\":1,\"lowerFarWidthScale\":1.35,\"lowerFarWidthEndM\":112,\"terrainDetailStrength\":1,\"edgeSinkStartM\":1120},\"sourceStorageCore\":{\"packedVec4PerBlade\":4,\"packedBytesPerBlade\":64,\"cpuRecordsOnly\":true,\"cameraSnappedPlacement\":true,\"voronoiClumpBlend\":true,\"bezierBladeSpine\":true,\"viewDependentThickness\":true,\"distanceDesaturation\":true,\"drawIndirect\":true,\"visibleIndexBuffers\":3,\"runtimeComputeRoute\":\"not-run\"},\"wind\":{\"source\":\"packages/game-renderer/src/battle/windSignal.ts\",\"timeUniform\":\"PhotorealWorld.uTime -> updateWindUniforms\",\"bandFunction\":\"sin-front cheap mirror of windBandAnalytic\",\"bandWavelengthM\":64,\"modulationDepth\":{\"trough\":0.3,\"crest\":1.8},\"tipAmplitudeScaleM\":0.018},\"palette\":{\"source\":\"packages/game-renderer/src/battle/meadowPalette.ts MEADOW.blade\",\"base\":[0.45237499999999997,0.5588571428571429,0.2326153846153846],\"low\":[0.5581249999999999,0.6320000000000002,0.21753846153846157],\"root\":[0.5405,0.5942857142857144,0.2692307692307692],\"mid\":[0.7085249999999998,0.7337142857142858,0.2853846153846154],\"upper\":[0.795475,0.8034285714285715,0.3230769230769231],\"tip\":[0.8683249999999999,0.8445714285714288,0.38984615384615384],\"trans\":[0.9411749999999999,0.9348571428571429,0.46415384615384614],\"sheen\":[0.8894749999999999,0.8845714285714287,0.616],\"dry\":[0.91415,0.8,0.38984615384615384],\"dryTipMix\":0.05,\"ringMeadow\":[0.564,0.6285714285714287,0.33384615384615385]},\"recordHash\":\"dc514a92\",\"productionSamplingProfile\":{\"quality\":\"standard\",\"source\":\"GRASSFINE-L2D8 False Earth production profile: narrow curved mid blades plus zoom-aware near tier\",\"seed\":1588011046,\"vistaVisibleRadiusM\":260,\"vistaTransitionDefaults\":{\"edgeSinkStartM\":380,\"denseBladeEndM\":143,\"farGrassStartM\":260,\"farGrassEndM\":480,\"farSoftWidthScale\":1.6},\"closeVisibleRadiusM\":40,\"rebuildMarginM\":48,\"fieldCellSize\":0.42,\"snapCellSize\":48,\"clumpCellSize\":1.55,\"maxRecords\":160000,\"minActiveRecords\":18000,\"closeDensityReferenceRecords\":42000,\"closeDensityReferenceRadiusM\":64,\"lodStratifiedBudget\":true,\"density\":1,\"jitter\":0.72,\"minNormalZ\":0.45,\"lodNearRadiusM\":5,\"lodMidRadiusM\":20,\"baseHeight\":1.25,\"heightJitter\":0.62,\"baseWidth\":0.08,\"widthJitter\":0.2,\"baseBend\":0.62,\"bendJitter\":0.45,\"tiers\":[{\"id\":\"near\",\"lodTier\":0,\"segments\":15,\"minDistanceM\":0,\"maxDistanceM\":5},{\"id\":\"mid\",\"lodTier\":1,\"segments\":6,\"minDistanceM\":5,\"maxDistanceM\":20},{\"id\":\"far\",\"lodTier\":2,\"segments\":2,\"minDistanceM\":20,\"maxDistanceM\":480}]},\"transitionOwner\":\"battleGrassField.update\",\"activeTransition\":{\"denseBladeEndM\":143,\"farGrassStartM\":260,\"farGrassEndM\":1250,\"nearTierEndM\":5,\"midTierEndM\":64,\"farSoftWidthScale\":3,\"nearCoverageWidthScale\":1,\"lowerFarWidthScale\":1.35,\"lowerFarWidthEndM\":112,\"terrainDetailStrength\":1,\"edgeSinkStartM\":1120},\"sample\":{\"seed\":1588011046,\"snapX\":0,\"snapY\":0,\"snapCellSize\":48,\"fieldCellSize\":1.5,\"clumpCellSize\":1.55,\"minNormalZ\":0.45,\"lodNearRadius\":0.003466876226407682,\"lodMidRadius\":0.013867504905630728,\"lodStratifiedBudget\":false,\"candidateCells\":2904244,\"acceptedRecords\":1000000,\"recordCapacity\":1000000,\"cappedRecords\":481632,\"outOfBoundsCells\":1197777,\"rejectedTintCells\":158808,\"rejectedSlopeCells\":0,\"rejectedDensityCells\":66027,\"openGrassCells\":981542,\"forestCells\":13592,\"roughCells\":4866,\"lodCandidateCounts\":[4,81,1393167],\"lodBudgetQuotas\":[480000,370000,150000],\"lodDroppedByBudget\":[0,0,0],\"lodCounts\":[2,52,999946],\"packedStrideFloats\":16,\"packedStrideBytes\":64,\"packedBytes\":64000000},\"rebuild\":{\"strategy\":\"static-whole-map+camera-focus-ring\",\"shaderCompileCount\":5,\"activeRecordBudget\":1000000,\"vistaRecordBudget\":160000,\"areaBudgetScale\":1,\"pending\":false,\"rebuilds\":0,\"lastSampleMs\":473.275,\"lastSlices\":1,\"lastMaxSliceMs\":473.275}}},\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":0},\"effects\":{\"vertices\":0,\"lineSegments\":0}},\"markers\":{\"markers\":0},\"standards\":{\"standards\":40,\"selected\":0,\"tier\":\"battle-unit\",\"layer\":\"photoreal-battle-3d-standards\",\"waveContract\":\"PhotorealWorld.uTime + deterministic per-unit phase + strength\",\"legibility\":\"measured cloth-width floor from battle scene standardScale\",\"timeSeconds\":10.154634999990463},\"readouts\":{\"readouts\":0,\"chips\":0,\"anchors\":[],\"atlasWidth\":1,\"atlasHeight\":1,\"layer\":\"photoreal-battle-readout-glyph-atlas\",\"depthPolicy\":\"depth-tested in-scene billboard; toneMapped=false (UI, ungraded); renderOrder after soldiers\",\"orientation\":\"camera-facing basis from the active three camera\"},\"performance\":{\"buildMs\":8.34,\"uploadMs\":0.005,\"drawMs\":6.59,\"frameCpuMs\":15,\"gpuTimeMs\":null}}}"
+    },
+    {
+      "scenario": "battle-renderer-default",
+      "name": "renderer drew the full battle crowd",
+      "ok": true,
+      "detail": "{\"renderer\":\"gpu\",\"ready\":true,\"substrate\":\"threejs-webgpu-tsl\",\"projection\":\"camera3d\",\"environment\":\"golden\",\"width\":1280,\"height\":800,\"soldiers\":15560,\"expectedSoldiers\":15560,\"drawCalls\":42,\"triangles\":4093793,\"crowd\":{\"instances\":15560,\"visible\":15560,\"culled\":0,\"drawCalls\":9,\"meshDrawCalls\":0,\"impostorDrawCalls\":9,\"meshVariants\":60,\"tierHistogram\":{\"l0\":0,\"l1\":0,\"l2\":0,\"l3\":15560},\"visibleTierHistogram\":{\"l0\":0,\"l1\":0,\"l2\":0,\"l3\":15560},\"culling\":{\"input\":15560,\"visible\":15560,\"culled\":0,\"viewFrusta\":1,\"shadowFrusta\":1},\"impostors\":{\"impostorInstances\":15560,\"impostorDrawCalls\":9,\"appearances\":20},\"material\":{\"identity\":\"soldier-assets-placeholder-pbr-v1\",\"channels\":[\"albedo\",\"normal\",\"orm\",\"factionMask\"],\"mapping\":{\"albedo\":\"cColor.rgb\",\"normal\":\"cNormal, VAT-skinned into world space\",\"orm\":\"occlusion/roughness/metalness, canonical order from skinnedPipeline\",\"factionMask\":\"high-blue cColor armband accent channel\"},\"masks\":{\"bronze\":{\"r\":[0.58,0.78],\"g\":[0.34,0.52],\"maxB\":[0.28,0.46]},\"iron\":{\"greySpreadScale\":6.5,\"brightness\":[0.44,0.66]},\"linen\":{\"r\":[0.58,0.76],\"g\":[0.48,0.66],\"b\":[0.32,0.48]},\"leather\":{\"r\":[0.24,0.42],\"g\":[0.16,0.32],\"maxB\":[0.24,0.42]},\"skin\":{\"r\":[0.62,0.78],\"g\":[0.42,0.58],\"b\":[0.24,0.42]},\"factionMask\":{\"blueDelta\":[0.18,0.55]}},\"pbr\":{\"roughness\":{\"bronze\":0.46,\"iron\":0.38,\"linen\":0.9,\"leather\":0.74,\"skin\":0.66,\"default\":0.84},\"metalness\":{\"bronze\":0.82,\"iron\":0.92},\"contactAo\":{\"band\":0.42,\"strength\":0.55}}}},\"lod\":{\"skinned\":0,\"impostors\":15560},\"markerLayer\":\"far-lod-impostor\",\"device\":\"google / swiftshader\",\"groundDetail\":{\"earthEdges\":{\"owner\":\"playable-ground\",\"format\":\"rg8-unorm\",\"width\":1200,\"height\":800,\"rangeMeters\":32,\"channels\":[\"earth-union\",\"road\"],\"filters\":[\"linear\",\"linear\"],\"textureResources\":1,\"vistaSamples\":0}},\"depth\":{\"owner\":\"three-webgpu\",\"reversed\":true},\"atmosphere\":{\"sky\":{\"owner\":\"skyModel\",\"tier\":\"skyview-fragment-lut\",\"lut\":\"384x192\",\"turbidity\":2.9,\"overcast\":0},\"aerial\":{\"owner\":\"aerialPerspective\",\"extinctionKm\":[0.0655,0.1012,0.1911],\"visibilityKm\":32.81,\"distanceScale\":4.6,\"clearRadiusM\":70,\"rangeFog\":{\"nearM\":70,\"farM\":1700,\"power\":1.28,\"strength\":0.34},\"sunMie\":{\"tint\":[1,0.8,0.52],\"strength\":0.34,\"power\":3.4},\"valleyMist\":{\"color\":[0.84,0.82,0.72],\"heightBottomM\":8,\"heightTopM\":46,\"distanceStartM\":520,\"distanceFullM\":1600,\"colorStrength\":0.18,\"opacityBoost\":0.08}}},\"shadows\":{\"owner\":\"shadowRig\",\"mode\":\"single\",\"cascades\":1,\"mapSize\":1024,\"maxFar\":1500,\"radius\":1.252},\"post\":{\"owner\":\"battlePostChain\",\"enabled\":true,\"bloom\":{\"enabled\":true,\"strength\":0.085,\"radius\":0.56,\"threshold\":1.02,\"smoothWidth\":0.75,\"levels\":5},\"grade\":{\"placement\":\"pre-agx\",\"preset\":\"golden\",\"presetStrength\":1,\"uniforms\":{\"strength\":1,\"saturationBoost\":1.15,\"contrast\":0.16,\"splitTone\":0.85,\"shadowLift\":1}},\"tonemap\":\"agx\"},\"sea\":{\"source\":\"gerstner-tsl\",\"tier\":\"gerstner-tsl\",\"resolution\":1,\"cascades\":1,\"storageBytes\":0,\"surface\":{\"owner\":\"skyModel-ibl-standard-pbr\",\"skyReflection\":\"scene.environment:skyModel-lut\",\"sunGlint\":\"mesh-standard-ggx\",\"shallowAlbedo\":[0.22,0.58,0.6],\"deepAlbedo\":[0.025,0.095,0.22],\"foamAlbedo\":[0.92,0.93,0.94],\"sandTurbidityAlbedo\":[0.66,0.58,0.4],\"roughness\":0.105,\"foamRoughness\":0.78,\"normalDetail\":{\"near\":0.84,\"far\":0.18,\"fadeStart\":720,\"fadeEnd\":2300},\"foam\":{\"heightStart\":0.28600000000000003,\"heightEnd\":0.8525000000000001,\"slopeStart\":0.12,\"slopeEnd\":0.58,\"speckleStart\":0.56,\"speckleEnd\":0.78,\"scale\":0.74},\"shore\":{\"ramp\":{\"depthNear\":12,\"depthFar\":300,\"hazeNear\":520,\"hazeFar\":1900},\"sandTurbidityDepthStart\":0.04,\"sandTurbidityDepthEnd\":0.26,\"heightfieldDatum\":true,\"farExtent\":7200},\"glint\":{\"roughnessFloor\":0.105,\"normalDetailCeiling\":0.84,\"hotLumaThreshold\":246,\"hotFractionMax\":0.07,\"centerShareMin\":0.6}}},\"camera\":{\"x\":0,\"y\":2.3598524460935396e-47,\"zoom\":0.8064516129032258,\"zoomT\":0.03748296228986822,\"camera3d\":{\"target\":[0,2.3598524460935396e-47,7.85711669921875],\"distance\":3200,\"pitch\":1.35,\"yaw\":-1.5707963267948966,\"fovY\":0.5,\"aspect\":1.6,\"near\":1}},\"seating\":{\"checked\":15560,\"matches\":true,\"span\":3.796},\"terrain\":{\"fixture\":\"sim-tint\",\"layer\":\"photoreal-battle-ground\",\"groundTriangles\":120000,\"vistaTriangles\":0,\"vista\":null,\"sealedEdges\":[\"west:cliff\",\"east:ocean\"],\"standards\":[{\"unitId\":0,\"x\":-77.78890991210938,\"y\":-557.3880615234375,\"z\":0},{\"unitId\":1,\"x\":77.00706481933594,\"y\":-557.3875122070312,\"z\":0},{\"unitId\":2,\"x\":-124.91350555419922,\"y\":-603.8179931640625,\"z\":0},{\"unitId\":3,\"x\":-62.349769592285156,\"y\":-604.500244140625,\"z\":0},{\"unitId\":4,\"x\":-0.2126331478357315,\"y\":-603.8199462890625,\"z\":0},{\"unitId\":5,\"x\":62.35173034667969,\"y\":-604.49951171875,\"z\":0},{\"unitId\":6,\"x\":124.4880599975586,\"y\":-603.82080078125,\"z\":0},{\"unitId\":7,\"x\":-193.01963806152344,\"y\":-657.975341796875,\"z\":0},{\"unitId\":8,\"x\":-108.56218719482422,\"y\":-658.8197631835938,\"z\":0},{\"unitId\":9,\"x\":-0.36761701107025146,\"y\":-657.0880126953125,\"z\":0},{\"unitId\":10,\"x\":108.13842010498047,\"y\":-658.818115234375,\"z\":0},{\"unitId\":11,\"x\":192.37945556640625,\"y\":-657.9776611328125,\"z\":0},{\"unitId\":12,\"x\":-168.8954315185547,\"y\":-711.9373168945312,\"z\":0},{\"unitId\":13,\"x\":-60.11993408203125,\"y\":-712.9764404296875,\"z\":0},{\"unitId\":14,\"x\":48.70671844482422,\"y\":-711.939208984375,\"z\":0},{\"unitId\":15,\"x\":168.30374145507812,\"y\":-711.9370727539062,\"z\":0},{\"unitId\":16,\"x\":0.0009620905038900673,\"y\":-753.0059814453125,\"z\":0},{\"unitId\":17,\"x\":-299.9996032714844,\"y\":-624.79931640625,\"z\":2.4668183020267245},{\"unitId\":18,\"x\":300.0038757324219,\"y\":-624.799072265625,\"z\":0},{\"unitId\":19,\"x\":340.00018310546875,\"y\":-665.1992797851562,\"z\":0},{\"unitId\":20,\"x\":77.79280853271484,\"y\":557.3857421875,\"z\":0},{\"unitId\":21,\"x\":-77.00576782226562,\"y\":557.3866577148438,\"z\":0.1533416886367227},{\"unitId\":22,\"x\":124.91290283203125,\"y\":603.8214721679688,\"z\":0},{\"unitId\":23,\"x\":62.350826263427734,\"y\":604.4998779296875,\"z\":0},{\"unitId\":24,\"x\":0.2134900987148285,\"y\":603.8192749023438,\"z\":0},{\"unitId\":25,\"x\":-62.349449157714844,\"y\":604.500732421875,\"z\":0},{\"unitId\":26,\"x\":-124.48882293701172,\"y\":603.8189086914062,\"z\":0.05619985292081984},{\"unitId\":27,\"x\":193.02149963378906,\"y\":657.9758911132812,\"z\":0},{\"unitId\":28,\"x\":108.56352996826172,\"y\":658.8175048828125,\"z\":0},{\"unitId\":29,\"x\":0.36941179633140564,\"y\":657.088623046875,\"z\":0},{\"unitId\":30,\"x\":-108.13799285888672,\"y\":658.8186645507812,\"z\":0},{\"unitId\":31,\"x\":-192.37954711914062,\"y\":657.9752197265625,\"z\":0},{\"unitId\":32,\"x\":168.8928985595703,\"y\":711.9368286132812,\"z\":0},{\"unitId\":33,\"x\":60.12031173706055,\"y\":712.9749755859375,\"z\":0},{\"unitId\":34,\"x\":-48.70492935180664,\"y\":711.9384155273438,\"z\":0},{\"unitId\":35,\"x\":-168.30552673339844,\"y\":711.9411010742188,\"z\":0},{\"unitId\":36,\"x\":0.0028297186363488436,\"y\":753.001708984375,\"z\":0},{\"unitId\":37,\"x\":300.0013427734375,\"y\":624.798583984375,\"z\":0},{\"unitId\":38,\"x\":-299.998779296875,\"y\":624.8020629882812,\"z\":0.0008220152133012339},{\"unitId\":39,\"x\":-339.9998474121094,\"y\":665.2005615234375,\"z\":0}],\"sea\":{\"source\":\"gerstner-tsl\",\"tier\":\"gerstner-tsl\",\"resolution\":1,\"cascades\":1,\"storageBytes\":0,\"surface\":{\"owner\":\"skyModel-ibl-standard-pbr\",\"skyReflection\":\"scene.environment:skyModel-lut\",\"sunGlint\":\"mesh-standard-ggx\",\"shallowAlbedo\":[0.22,0.58,0.6],\"deepAlbedo\":[0.025,0.095,0.22],\"foamAlbedo\":[0.92,0.93,0.94],\"sandTurbidityAlbedo\":[0.66,0.58,0.4],\"roughness\":0.105,\"foamRoughness\":0.78,\"normalDetail\":{\"near\":0.84,\"far\":0.18,\"fadeStart\":720,\"fadeEnd\":2300},\"foam\":{\"heightStart\":0.28600000000000003,\"heightEnd\":0.8525000000000001,\"slopeStart\":0.12,\"slopeEnd\":0.58,\"speckleStart\":0.56,\"speckleEnd\":0.78,\"scale\":0.74},\"shore\":{\"ramp\":{\"depthNear\":12,\"depthFar\":300,\"hazeNear\":520,\"hazeFar\":1900},\"sandTurbidityDepthStart\":0.04,\"sandTurbidityDepthEnd\":0.26,\"heightfieldDatum\":true,\"farExtent\":7200},\"glint\":{\"roughnessFloor\":0.105,\"normalDetailCeiling\":0.84,\"hotLumaThreshold\":246,\"hotFractionMax\":0.07,\"centerShareMin\":0.6}},\"planes\":1,\"oceanPlanes\":1,\"lakePlanes\":0,\"lakeSurfaces\":[]},\"groundCover\":\"green-grass\",\"slopeBands\":null,\"environment\":{\"id\":\"golden-hour\",\"source\":\"CIVSIM_ENVIRONMENTS.golden\",\"sharedPreset\":\"golden\",\"waterAlias\":\"CIVSIM_ENVIRONMENTS.golden\",\"sunAzimuth\":3.1416,\"sunElevation\":0.35,\"keyColor\":[1,0.88,0.66],\"fillColor\":[0.42,0.53,0.72],\"hazeColor\":[0.86,0.82,0.68],\"exposure\":1.16},\"scenery\":548,\"grass\":{\"layer\":\"photoreal-blade-field\",\"enabled\":false,\"farTierVisible\":true,\"routeCullMask\":{\"enabled\":false,\"center\":[0,0],\"radiusSq\":0},\"routeCullWedge\":{\"enabled\":false,\"forward\":[0,1],\"side\":[1,0],\"halfWidthSlope\":1,\"backMarginM\":0,\"farMarginM\":0},\"packedUpload\":{\"mode\":\"idle\",\"targetFrames\":6,\"uploadedRecords\":1000000,\"totalRecords\":1000000},\"depthPrepass\":{\"enabled\":false,\"tiers\":[\"near\",\"mid\"],\"drawCalls\":0,\"renderOrder\":-0.01,\"beautyDepth\":\"less-equal-read-write\"},\"packedStrideFloats\":16,\"packedBytesPerRecord\":64,\"recordCount\":1000000,\"drawCalls\":3,\"submittedTriangles\":0,\"submittedVertices\":0,\"tiers\":{\"near\":{\"lodTier\":0,\"segments\":15,\"minDistanceM\":0,\"maxDistanceM\":5,\"bladesPerRecord\":6,\"candidateRecords\":0,\"records\":0,\"droppedByThinning\":0,\"triangles\":0,\"vertices\":0},\"mid\":{\"lodTier\":1,\"segments\":6,\"minDistanceM\":5,\"maxDistanceM\":64,\"bladesPerRecord\":6,\"candidateRecords\":0,\"records\":0,\"droppedByThinning\":0,\"triangles\":0,\"vertices\":0},\"far\":{\"lodTier\":2,\"segments\":2,\"minDistanceM\":64,\"maxDistanceM\":1250,\"bladesPerRecord\":2,\"candidateRecords\":0,\"records\":0,\"droppedByThinning\":0,\"triangles\":0,\"vertices\":0}},\"tierCountSource\":\"cpu-mirror-live-distance-hash-thinning\",\"culledRecords\":0,\"thinnedRecords\":0,\"thinning\":{\"enabled\":true,\"densityLaw\":\"pen-1.5-power\",\"densityReferenceM\":300,\"falloffPower\":1.5,\"hashSource\":\"record.bladeSeed fract(seed01 * 7.13)\",\"survivorAlbedoBlend\":0.85},\"farDensityProfile\":{\"farGrassEndM\":1250,\"densityReferenceM\":300,\"falloffPower\":1.5,\"farSoftWidthScale\":3.1,\"edgeSinkStartM\":1120,\"bladesPerRecord\":{\"near\":6,\"mid\":28,\"far\":2},\"nearCoverageWidthScale\":1,\"midTierEndM\":64,\"lowerFarWidthScale\":1.35,\"lowerFarWidthEndM\":112},\"transition\":{\"denseBladeEndM\":143,\"farGrassStartM\":260,\"farGrassEndM\":1250,\"nearTierEndM\":5,\"midTierEndM\":64,\"farSoftWidthScale\":3,\"nearCoverageWidthScale\":1,\"lowerFarWidthScale\":1.35,\"lowerFarWidthEndM\":112,\"terrainDetailStrength\":1,\"edgeSinkStartM\":1120},\"sourceStorageCore\":{\"packedVec4PerBlade\":4,\"packedBytesPerBlade\":64,\"cpuRecordsOnly\":true,\"cameraSnappedPlacement\":true,\"voronoiClumpBlend\":true,\"bezierBladeSpine\":true,\"viewDependentThickness\":true,\"distanceDesaturation\":true,\"drawIndirect\":true,\"visibleIndexBuffers\":3,\"runtimeComputeRoute\":\"not-run\"},\"wind\":{\"source\":\"packages/game-renderer/src/battle/windSignal.ts\",\"timeUniform\":\"PhotorealWorld.uTime -> updateWindUniforms\",\"bandFunction\":\"sin-front cheap mirror of windBandAnalytic\",\"bandWavelengthM\":64,\"modulationDepth\":{\"trough\":0.3,\"crest\":1.8},\"tipAmplitudeScaleM\":0.018},\"palette\":{\"source\":\"packages/game-renderer/src/battle/meadowPalette.ts MEADOW.blade\",\"base\":[0.45237499999999997,0.5588571428571429,0.2326153846153846],\"low\":[0.5581249999999999,0.6320000000000002,0.21753846153846157],\"root\":[0.5405,0.5942857142857144,0.2692307692307692],\"mid\":[0.7085249999999998,0.7337142857142858,0.2853846153846154],\"upper\":[0.795475,0.8034285714285715,0.3230769230769231],\"tip\":[0.8683249999999999,0.8445714285714288,0.38984615384615384],\"trans\":[0.9411749999999999,0.9348571428571429,0.46415384615384614],\"sheen\":[0.8894749999999999,0.8845714285714287,0.616],\"dry\":[0.91415,0.8,0.38984615384615384],\"dryTipMix\":0.05,\"ringMeadow\":[0.564,0.6285714285714287,0.33384615384615385]},\"recordHash\":\"dc514a92\",\"productionSamplingProfile\":{\"quality\":\"standard\",\"source\":\"GRASSFINE-L2D8 False Earth production profile: narrow curved mid blades plus zoom-aware near tier\",\"seed\":1588011046,\"vistaVisibleRadiusM\":260,\"vistaTransitionDefaults\":{\"edgeSinkStartM\":380,\"denseBladeEndM\":143,\"farGrassStartM\":260,\"farGrassEndM\":480,\"farSoftWidthScale\":1.6},\"closeVisibleRadiusM\":40,\"rebuildMarginM\":48,\"fieldCellSize\":0.42,\"snapCellSize\":48,\"clumpCellSize\":1.55,\"maxRecords\":160000,\"minActiveRecords\":18000,\"closeDensityReferenceRecords\":42000,\"closeDensityReferenceRadiusM\":64,\"lodStratifiedBudget\":true,\"density\":1,\"jitter\":0.72,\"minNormalZ\":0.45,\"lodNearRadiusM\":5,\"lodMidRadiusM\":20,\"baseHeight\":1.25,\"heightJitter\":0.62,\"baseWidth\":0.08,\"widthJitter\":0.2,\"baseBend\":0.62,\"bendJitter\":0.45,\"tiers\":[{\"id\":\"near\",\"lodTier\":0,\"segments\":15,\"minDistanceM\":0,\"maxDistanceM\":5},{\"id\":\"mid\",\"lodTier\":1,\"segments\":6,\"minDistanceM\":5,\"maxDistanceM\":20},{\"id\":\"far\",\"lodTier\":2,\"segments\":2,\"minDistanceM\":20,\"maxDistanceM\":480}]},\"transitionOwner\":\"battleGrassField.update\",\"activeTransition\":{\"denseBladeEndM\":143,\"farGrassStartM\":260,\"farGrassEndM\":1250,\"nearTierEndM\":5,\"midTierEndM\":64,\"farSoftWidthScale\":3,\"nearCoverageWidthScale\":1,\"lowerFarWidthScale\":1.35,\"lowerFarWidthEndM\":112,\"terrainDetailStrength\":1,\"edgeSinkStartM\":1120},\"sample\":{\"seed\":1588011046,\"snapX\":0,\"snapY\":0,\"snapCellSize\":48,\"fieldCellSize\":1.5,\"clumpCellSize\":1.55,\"minNormalZ\":0.45,\"lodNearRadius\":0.003466876226407682,\"lodMidRadius\":0.013867504905630728,\"lodStratifiedBudget\":false,\"candidateCells\":2904244,\"acceptedRecords\":1000000,\"recordCapacity\":1000000,\"cappedRecords\":481632,\"outOfBoundsCells\":1197777,\"rejectedTintCells\":158808,\"rejectedSlopeCells\":0,\"rejectedDensityCells\":66027,\"openGrassCells\":981542,\"forestCells\":13592,\"roughCells\":4866,\"lodCandidateCounts\":[4,81,1393167],\"lodBudgetQuotas\":[480000,370000,150000],\"lodDroppedByBudget\":[0,0,0],\"lodCounts\":[2,52,999946],\"packedStrideFloats\":16,\"packedStrideBytes\":64,\"packedBytes\":64000000},\"rebuild\":{\"strategy\":\"static-whole-map+camera-focus-ring\",\"shaderCompileCount\":5,\"activeRecordBudget\":1000000,\"vistaRecordBudget\":160000,\"areaBudgetScale\":1,\"pending\":false,\"rebuilds\":0,\"lastSampleMs\":473.275,\"lastSlices\":1,\"lastMaxSliceMs\":473.275}}},\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":0},\"effects\":{\"vertices\":0,\"lineSegments\":0}},\"markers\":{\"markers\":0},\"standards\":{\"standards\":40,\"selected\":0,\"tier\":\"battle-unit\",\"layer\":\"photoreal-battle-3d-standards\",\"waveContract\":\"PhotorealWorld.uTime + deterministic per-unit phase + strength\",\"legibility\":\"measured cloth-width floor from battle scene standardScale\",\"timeSeconds\":10.154634999990463},\"readouts\":{\"readouts\":0,\"chips\":0,\"anchors\":[],\"atlasWidth\":1,\"atlasHeight\":1,\"layer\":\"photoreal-battle-readout-glyph-atlas\",\"depthPolicy\":\"depth-tested in-scene billboard; toneMapped=false (UI, ungraded); renderOrder after soldiers\",\"orientation\":\"camera-facing basis from the active three camera\"},\"performance\":{\"buildMs\":8.34,\"uploadMs\":0.005,\"drawMs\":6.59,\"frameCpuMs\":15,\"gpuTimeMs\":null}}"
+    },
+    {
+      "scenario": "battle-renderer-default",
+      "name": "WebGPU battle terrain includes sim-sourced feature detail",
+      "ok": true,
+      "detail": "{\"fixture\":\"sim-tint\",\"layer\":\"photoreal-battle-ground\",\"groundTriangles\":120000,\"vistaTriangles\":0,\"vista\":null,\"sealedEdges\":[\"west:cliff\",\"east:ocean\"],\"standards\":[{\"unitId\":0,\"x\":-77.78890991210938,\"y\":-557.3880615234375,\"z\":0},{\"unitId\":1,\"x\":77.00706481933594,\"y\":-557.3875122070312,\"z\":0},{\"unitId\":2,\"x\":-124.91350555419922,\"y\":-603.8179931640625,\"z\":0},{\"unitId\":3,\"x\":-62.349769592285156,\"y\":-604.500244140625,\"z\":0},{\"unitId\":4,\"x\":-0.2126331478357315,\"y\":-603.8199462890625,\"z\":0},{\"unitId\":5,\"x\":62.35173034667969,\"y\":-604.49951171875,\"z\":0},{\"unitId\":6,\"x\":124.4880599975586,\"y\":-603.82080078125,\"z\":0},{\"unitId\":7,\"x\":-193.01963806152344,\"y\":-657.975341796875,\"z\":0},{\"unitId\":8,\"x\":-108.56218719482422,\"y\":-658.8197631835938,\"z\":0},{\"unitId\":9,\"x\":-0.36761701107025146,\"y\":-657.0880126953125,\"z\":0},{\"unitId\":10,\"x\":108.13842010498047,\"y\":-658.818115234375,\"z\":0},{\"unitId\":11,\"x\":192.37945556640625,\"y\":-657.9776611328125,\"z\":0},{\"unitId\":12,\"x\":-168.8954315185547,\"y\":-711.9373168945312,\"z\":0},{\"unitId\":13,\"x\":-60.11993408203125,\"y\":-712.9764404296875,\"z\":0},{\"unitId\":14,\"x\":48.70671844482422,\"y\":-711.939208984375,\"z\":0},{\"unitId\":15,\"x\":168.30374145507812,\"y\":-711.9370727539062,\"z\":0},{\"unitId\":16,\"x\":0.0009620905038900673,\"y\":-753.0059814453125,\"z\":0},{\"unitId\":17,\"x\":-299.9996032714844,\"y\":-624.79931640625,\"z\":2.4668183020267245},{\"unitId\":18,\"x\":300.0038757324219,\"y\":-624.799072265625,\"z\":0},{\"unitId\":19,\"x\":340.00018310546875,\"y\":-665.1992797851562,\"z\":0},{\"unitId\":20,\"x\":77.79280853271484,\"y\":557.3857421875,\"z\":0},{\"unitId\":21,\"x\":-77.00576782226562,\"y\":557.3866577148438,\"z\":0.1533416886367227},{\"unitId\":22,\"x\":124.91290283203125,\"y\":603.8214721679688,\"z\":0},{\"unitId\":23,\"x\":62.350826263427734,\"y\":604.4998779296875,\"z\":0},{\"unitId\":24,\"x\":0.2134900987148285,\"y\":603.8192749023438,\"z\":0},{\"unitId\":25,\"x\":-62.349449157714844,\"y\":604.500732421875,\"z\":0},{\"unitId\":26,\"x\":-124.48882293701172,\"y\":603.8189086914062,\"z\":0.05619985292081984},{\"unitId\":27,\"x\":193.02149963378906,\"y\":657.9758911132812,\"z\":0},{\"unitId\":28,\"x\":108.56352996826172,\"y\":658.8175048828125,\"z\":0},{\"unitId\":29,\"x\":0.36941179633140564,\"y\":657.088623046875,\"z\":0},{\"unitId\":30,\"x\":-108.13799285888672,\"y\":658.8186645507812,\"z\":0},{\"unitId\":31,\"x\":-192.37954711914062,\"y\":657.9752197265625,\"z\":0},{\"unitId\":32,\"x\":168.8928985595703,\"y\":711.9368286132812,\"z\":0},{\"unitId\":33,\"x\":60.12031173706055,\"y\":712.9749755859375,\"z\":0},{\"unitId\":34,\"x\":-48.70492935180664,\"y\":711.9384155273438,\"z\":0},{\"unitId\":35,\"x\":-168.30552673339844,\"y\":711.9411010742188,\"z\":0},{\"unitId\":36,\"x\":0.0028297186363488436,\"y\":753.001708984375,\"z\":0},{\"unitId\":37,\"x\":300.0013427734375,\"y\":624.798583984375,\"z\":0},{\"unitId\":38,\"x\":-299.998779296875,\"y\":624.8020629882812,\"z\":0.0008220152133012339},{\"unitId\":39,\"x\":-339.9998474121094,\"y\":665.2005615234375,\"z\":0}],\"sea\":{\"source\":\"gerstner-tsl\",\"tier\":\"gerstner-tsl\",\"resolution\":1,\"cascades\":1,\"storageBytes\":0,\"surface\":{\"owner\":\"skyModel-ibl-standard-pbr\",\"skyReflection\":\"scene.environment:skyModel-lut\",\"sunGlint\":\"mesh-standard-ggx\",\"shallowAlbedo\":[0.22,0.58,0.6],\"deepAlbedo\":[0.025,0.095,0.22],\"foamAlbedo\":[0.92,0.93,0.94],\"sandTurbidityAlbedo\":[0.66,0.58,0.4],\"roughness\":0.105,\"foamRoughness\":0.78,\"normalDetail\":{\"near\":0.84,\"far\":0.18,\"fadeStart\":720,\"fadeEnd\":2300},\"foam\":{\"heightStart\":0.28600000000000003,\"heightEnd\":0.8525000000000001,\"slopeStart\":0.12,\"slopeEnd\":0.58,\"speckleStart\":0.56,\"speckleEnd\":0.78,\"scale\":0.74},\"shore\":{\"ramp\":{\"depthNear\":12,\"depthFar\":300,\"hazeNear\":520,\"hazeFar\":1900},\"sandTurbidityDepthStart\":0.04,\"sandTurbidityDepthEnd\":0.26,\"heightfieldDatum\":true,\"farExtent\":7200},\"glint\":{\"roughnessFloor\":0.105,\"normalDetailCeiling\":0.84,\"hotLumaThreshold\":246,\"hotFractionMax\":0.07,\"centerShareMin\":0.6}},\"planes\":1,\"oceanPlanes\":1,\"lakePlanes\":0,\"lakeSurfaces\":[]},\"groundCover\":\"green-grass\",\"slopeBands\":null,\"environment\":{\"id\":\"golden-hour\",\"source\":\"CIVSIM_ENVIRONMENTS.golden\",\"sharedPreset\":\"golden\",\"waterAlias\":\"CIVSIM_ENVIRONMENTS.golden\",\"sunAzimuth\":3.1416,\"sunElevation\":0.35,\"keyColor\":[1,0.88,0.66],\"fillColor\":[0.42,0.53,0.72],\"hazeColor\":[0.86,0.82,0.68],\"exposure\":1.16},\"scenery\":548,\"grass\":{\"layer\":\"photoreal-blade-field\",\"enabled\":false,\"farTierVisible\":true,\"routeCullMask\":{\"enabled\":false,\"center\":[0,0],\"radiusSq\":0},\"routeCullWedge\":{\"enabled\":false,\"forward\":[0,1],\"side\":[1,0],\"halfWidthSlope\":1,\"backMarginM\":0,\"farMarginM\":0},\"packedUpload\":{\"mode\":\"idle\",\"targetFrames\":6,\"uploadedRecords\":1000000,\"totalRecords\":1000000},\"depthPrepass\":{\"enabled\":false,\"tiers\":[\"near\",\"mid\"],\"drawCalls\":0,\"renderOrder\":-0.01,\"beautyDepth\":\"less-equal-read-write\"},\"packedStrideFloats\":16,\"packedBytesPerRecord\":64,\"recordCount\":1000000,\"drawCalls\":3,\"submittedTriangles\":0,\"submittedVertices\":0,\"tiers\":{\"near\":{\"lodTier\":0,\"segments\":15,\"minDistanceM\":0,\"maxDistanceM\":5,\"bladesPerRecord\":6,\"candidateRecords\":0,\"records\":0,\"droppedByThinning\":0,\"triangles\":0,\"vertices\":0},\"mid\":{\"lodTier\":1,\"segments\":6,\"minDistanceM\":5,\"maxDistanceM\":64,\"bladesPerRecord\":6,\"candidateRecords\":0,\"records\":0,\"droppedByThinning\":0,\"triangles\":0,\"vertices\":0},\"far\":{\"lodTier\":2,\"segments\":2,\"minDistanceM\":64,\"maxDistanceM\":1250,\"bladesPerRecord\":2,\"candidateRecords\":0,\"records\":0,\"droppedByThinning\":0,\"triangles\":0,\"vertices\":0}},\"tierCountSource\":\"cpu-mirror-live-distance-hash-thinning\",\"culledRecords\":0,\"thinnedRecords\":0,\"thinning\":{\"enabled\":true,\"densityLaw\":\"pen-1.5-power\",\"densityReferenceM\":300,\"falloffPower\":1.5,\"hashSource\":\"record.bladeSeed fract(seed01 * 7.13)\",\"survivorAlbedoBlend\":0.85},\"farDensityProfile\":{\"farGrassEndM\":1250,\"densityReferenceM\":300,\"falloffPower\":1.5,\"farSoftWidthScale\":3.1,\"edgeSinkStartM\":1120,\"bladesPerRecord\":{\"near\":6,\"mid\":28,\"far\":2},\"nearCoverageWidthScale\":1,\"midTierEndM\":64,\"lowerFarWidthScale\":1.35,\"lowerFarWidthEndM\":112},\"transition\":{\"denseBladeEndM\":143,\"farGrassStartM\":260,\"farGrassEndM\":1250,\"nearTierEndM\":5,\"midTierEndM\":64,\"farSoftWidthScale\":3,\"nearCoverageWidthScale\":1,\"lowerFarWidthScale\":1.35,\"lowerFarWidthEndM\":112,\"terrainDetailStrength\":1,\"edgeSinkStartM\":1120},\"sourceStorageCore\":{\"packedVec4PerBlade\":4,\"packedBytesPerBlade\":64,\"cpuRecordsOnly\":true,\"cameraSnappedPlacement\":true,\"voronoiClumpBlend\":true,\"bezierBladeSpine\":true,\"viewDependentThickness\":true,\"distanceDesaturation\":true,\"drawIndirect\":true,\"visibleIndexBuffers\":3,\"runtimeComputeRoute\":\"not-run\"},\"wind\":{\"source\":\"packages/game-renderer/src/battle/windSignal.ts\",\"timeUniform\":\"PhotorealWorld.uTime -> updateWindUniforms\",\"bandFunction\":\"sin-front cheap mirror of windBandAnalytic\",\"bandWavelengthM\":64,\"modulationDepth\":{\"trough\":0.3,\"crest\":1.8},\"tipAmplitudeScaleM\":0.018},\"palette\":{\"source\":\"packages/game-renderer/src/battle/meadowPalette.ts MEADOW.blade\",\"base\":[0.45237499999999997,0.5588571428571429,0.2326153846153846],\"low\":[0.5581249999999999,0.6320000000000002,0.21753846153846157],\"root\":[0.5405,0.5942857142857144,0.2692307692307692],\"mid\":[0.7085249999999998,0.7337142857142858,0.2853846153846154],\"upper\":[0.795475,0.8034285714285715,0.3230769230769231],\"tip\":[0.8683249999999999,0.8445714285714288,0.38984615384615384],\"trans\":[0.9411749999999999,0.9348571428571429,0.46415384615384614],\"sheen\":[0.8894749999999999,0.8845714285714287,0.616],\"dry\":[0.91415,0.8,0.38984615384615384],\"dryTipMix\":0.05,\"ringMeadow\":[0.564,0.6285714285714287,0.33384615384615385]},\"recordHash\":\"dc514a92\",\"productionSamplingProfile\":{\"quality\":\"standard\",\"source\":\"GRASSFINE-L2D8 False Earth production profile: narrow curved mid blades plus zoom-aware near tier\",\"seed\":1588011046,\"vistaVisibleRadiusM\":260,\"vistaTransitionDefaults\":{\"edgeSinkStartM\":380,\"denseBladeEndM\":143,\"farGrassStartM\":260,\"farGrassEndM\":480,\"farSoftWidthScale\":1.6},\"closeVisibleRadiusM\":40,\"rebuildMarginM\":48,\"fieldCellSize\":0.42,\"snapCellSize\":48,\"clumpCellSize\":1.55,\"maxRecords\":160000,\"minActiveRecords\":18000,\"closeDensityReferenceRecords\":42000,\"closeDensityReferenceRadiusM\":64,\"lodStratifiedBudget\":true,\"density\":1,\"jitter\":0.72,\"minNormalZ\":0.45,\"lodNearRadiusM\":5,\"lodMidRadiusM\":20,\"baseHeight\":1.25,\"heightJitter\":0.62,\"baseWidth\":0.08,\"widthJitter\":0.2,\"baseBend\":0.62,\"bendJitter\":0.45,\"tiers\":[{\"id\":\"near\",\"lodTier\":0,\"segments\":15,\"minDistanceM\":0,\"maxDistanceM\":5},{\"id\":\"mid\",\"lodTier\":1,\"segments\":6,\"minDistanceM\":5,\"maxDistanceM\":20},{\"id\":\"far\",\"lodTier\":2,\"segments\":2,\"minDistanceM\":20,\"maxDistanceM\":480}]},\"transitionOwner\":\"battleGrassField.update\",\"activeTransition\":{\"denseBladeEndM\":143,\"farGrassStartM\":260,\"farGrassEndM\":1250,\"nearTierEndM\":5,\"midTierEndM\":64,\"farSoftWidthScale\":3,\"nearCoverageWidthScale\":1,\"lowerFarWidthScale\":1.35,\"lowerFarWidthEndM\":112,\"terrainDetailStrength\":1,\"edgeSinkStartM\":1120},\"sample\":{\"seed\":1588011046,\"snapX\":0,\"snapY\":0,\"snapCellSize\":48,\"fieldCellSize\":1.5,\"clumpCellSize\":1.55,\"minNormalZ\":0.45,\"lodNearRadius\":0.003466876226407682,\"lodMidRadius\":0.013867504905630728,\"lodStratifiedBudget\":false,\"candidateCells\":2904244,\"acceptedRecords\":1000000,\"recordCapacity\":1000000,\"cappedRecords\":481632,\"outOfBoundsCells\":1197777,\"rejectedTintCells\":158808,\"rejectedSlopeCells\":0,\"rejectedDensityCells\":66027,\"openGrassCells\":981542,\"forestCells\":13592,\"roughCells\":4866,\"lodCandidateCounts\":[4,81,1393167],\"lodBudgetQuotas\":[480000,370000,150000],\"lodDroppedByBudget\":[0,0,0],\"lodCounts\":[2,52,999946],\"packedStrideFloats\":16,\"packedStrideBytes\":64,\"packedBytes\":64000000},\"rebuild\":{\"strategy\":\"static-whole-map+camera-focus-ring\",\"shaderCompileCount\":5,\"activeRecordBudget\":1000000,\"vistaRecordBudget\":160000,\"areaBudgetScale\":1,\"pending\":false,\"rebuilds\":0,\"lastSampleMs\":473.275,\"lastSlices\":1,\"lastMaxSliceMs\":473.275}}}"
+    },
+    {
+      "scenario": "battle-renderer-default",
+      "name": "WebGPU battle frame has visible terrain and crowd mass",
+      "ok": true,
+      "detail": "{\"terrain\":855329,\"crowd\":492026}"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "test campaign boots with a player army",
+      "ok": true,
+      "detail": "985000 soldiers"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "controlled campaign visual route uses raw WebGPU",
+      "ok": true,
+      "detail": "{\"renderer\":\"renderer-campaign\",\"ready\":true,\"width\":2560,\"height\":1600,\"device\":\"google / swiftshader\",\"cameraContract\":\"shared-world-camera-wgsl\",\"cityEntities\":2,\"armyEntities\":1,\"cityEntityAnchors\":[[-25,450],[25,450]],\"labels\":3,\"visibleLabels\":1,\"visibleLabelNames\":[\"city:NEAPOLIS\"],\"visibleSeaLabelRects\":[],\"visibleCityLabelRects\":[{\"text\":\"NEAPOLIS\",\"kind\":\"city\",\"importance\":6,\"opacity\":1,\"box\":{\"x\":867.99,\"y\":234.444,\"w\":94.5,\"h\":36.5},\"corners\":[[867.99,234.444],[962.49,234.444],[962.49,270.944],[867.99,270.944]],\"padPx\":6.5,\"inkRect\":{\"x\":874.49,\"y\":240.944,\"w\":81.5,\"h\":23.5}}],\"visibleArmyLabelRects\":[],\"visibleFactionLabelRects\":[],\"visibleCardRects\":[{\"id\":\"city:0\",\"name\":\"ROMA\",\"box\":{\"x\":294.99787120224727,\"y\":253.8077121577995,\"w\":112,\"h\":54}}],\"labelCollisionCulls\":0,\"labelCollisionCulledLabels\":[],\"composedArmyCityLabels\":0,\"labelLayer\":\"raw-gpu-glyph-atlas\",\"labelAtlas\":\"1024x128\",\"labelVertices\":6,\"waterFeatures\":0,\"waterLayer\":\"map-sea-mask\",\"mapSurface\":{\"surfaceTriangles\":120,\"terrainMix\":0,\"terrainTextureSize\":null,\"layer\":\"background-raster-terrain\"},\"cloudQuads\":1,\"fogEnabled\":false,\"fogSources\":2,\"factionView\":true,\"graphics\":{\"shadows\":\"single\",\"grassQuality\":\"standard\",\"grass\":true,\"farGrass\":true,\"bloom\":true,\"audio\":{\"masterVolume\":0.55,\"muted\":true,\"birds\":true,\"water\":true}},\"territoryPixels\":77,\"borderSegments\":0,\"mapMarkers\":0,\"cityMarkerRadiiPxByTier\":{\"1\":6.1000000000000005,\"2\":7,\"3\":7.9},\"selections\":0,\"garrisonedArmySelections\":0,\"maxSelectionRadius\":0,\"standardStats\":{\"standards\":2,\"tiers\":[\"campaign-army\",\"settlement-banner\"],\"meshVerticesByTier\":{\"battle-unit\":919,\"campaign-army\":919,\"settlement-banner\":915},\"meshIndexCountByTier\":{\"battle-unit\":2460,\"campaign-army\":2460,\"settlement-banner\":2454},\"weightChannel\":\"uvWeightMaterial.z: 0 rigid hardware, >0 cloth/trim/emblem\",\"materialChannel\":\"uvWeightMaterial.w: pole/gold/cloth/trim/emblem/shadow\",\"liveryContract\":\"instance livery overrides field/trim/emblem; battle faction table remains default\",\"waveContract\":\"cam.time + deterministic per-instance phase + strength\",\"layer\":\"shared-3d-standard-asset\"},\"scenery\":8,\"sceneryQuads\":8,\"sceneryStats\":{\"scenery\":8,\"mountains\":1,\"trees\":4,\"rocks\":2,\"carts\":1,\"kinds\":{\"conifer\":1,\"broadleaf\":3,\"ash\":0,\"aspen\":0,\"bush\":0,\"rock\":2,\"mountain\":1,\"cart\":1},\"materialClasses\":[\"opaque-depth-write\",\"shadow-depth-read\"],\"layer\":\"raw-gpu-scenery-library-meshes\"},\"sceneryCandidateStats\":{\"total\":15,\"mountains\":4,\"trees\":6,\"rocks\":5},\"lineSegments\":0,\"roadTriangles\":224,\"roadJunctionCaps\":0,\"seaLabelFits\":[],\"seaLabelFitZoom\":0.26,\"roadEdgesCulled\":0,\"roadWaterGaps\":0,\"seaLanes\":0,\"phases\":[{\"kind\":\"background\",\"label\":\"consumer-owned background surfaces\",\"passIds\":[\"builtin-background\"],\"passRoles\":[{\"id\":\"builtin-background\",\"role\":\"background-underpaint\"}],\"depthPasses\":[],\"depth\":\"none\",\"loadOp\":\"clear\"},{\"kind\":\"world-depth\",\"label\":\"depth-tested world geometry and ground decals\",\"passIds\":[\"campaign-map-surface\",\"campaign-scenery-opaque\",\"campaign-entities-opaque\",\"campaign-standards-opaque\",\"campaign-soldier-crowd\",\"campaign-territory-wash\",\"campaign-scenery-shadows\",\"campaign-entity-shadows\",\"campaign-standard-shadows\",\"campaign-soldier-shadows\",\"campaign-roads\",\"campaign-sea-lanes-depth\",\"campaign-ground-selection\"],\"passRoles\":[{\"id\":\"campaign-map-surface\",\"role\":\"world-depth-fill\"},{\"id\":\"campaign-scenery-opaque\",\"role\":\"world-opaque\"},{\"id\":\"campaign-entities-opaque\",\"role\":\"world-opaque\"},{\"id\":\"campaign-standards-opaque\",\"role\":\"world-opaque\"},{\"id\":\"campaign-soldier-crowd\",\"role\":\"world-opaque\"},{\"id\":\"campaign-territory-wash\",\"role\":\"world-decal\"},{\"id\":\"campaign-scenery-shadows\",\"role\":\"world-decal\"},{\"id\":\"campaign-entity-shadows\",\"role\":\"world-decal\"},{\"id\":\"campaign-standard-shadows\",\"role\":\"world-decal\"},{\"id\":\"campaign-soldier-shadows\",\"role\":\"world-decal\"},{\"id\":\"campaign-roads\",\"role\":\"world-decal\"},{\"id\":\"campaign-sea-lanes-depth\",\"role\":\"world-decal\"},{\"id\":\"campaign-ground-selection\",\"role\":\"world-decal\"}],\"depthPasses\":[{\"id\":\"campaign-map-surface\",\"mode\":\"write\"},{\"id\":\"campaign-scenery-opaque\",\"mode\":\"read-write\"},{\"id\":\"campaign-entities-opaque\",\"mode\":\"read-write\"},{\"id\":\"campaign-standards-opaque\",\"mode\":\"read-write\"},{\"id\":\"campaign-soldier-crowd\",\"mode\":\"read-write\"},{\"id\":\"campaign-territory-wash\",\"mode\":\"read\"},{\"id\":\"campaign-scenery-shadows\",\"mode\":\"read\"},{\"id\":\"campaign-entity-shadows\",\"mode\":\"read\"},{\"id\":\"campaign-standard-shadows\",\"mode\":\"read\"},{\"id\":\"campaign-soldier-shadows\",\"mode\":\"read\"},{\"id\":\"campaign-roads\",\"mode\":\"read\"},{\"id\":\"campaign-sea-lanes-depth\",\"mode\":\"read\"},{\"id\":\"campaign-ground-selection\",\"mode\":\"read\"}],\"depth\":\"depth32float-reverse-z-clear\",\"loadOp\":\"load\"},{\"kind\":\"overlay\",\"label\":\"labels, HUD, minimap, atmosphere, and debug overlays\",\"passIds\":[\"campaign-clouds\",\"campaign-fog-of-war\",\"campaign-markers\",\"campaign-labels\"],\"passRoles\":[{\"id\":\"campaign-clouds\",\"role\":\"overlay-effect\"},{\"id\":\"campaign-fog-of-war\",\"role\":\"overlay-effect\"},{\"id\":\"campaign-markers\",\"role\":\"overlay-ui\"},{\"id\":\"campaign-labels\",\"role\":\"overlay-ui\"}],\"depthPasses\":[],\"depth\":\"none\",\"loadOp\":\"load\"}],\"depth\":{\"format\":\"depth32float\",\"width\":2560,\"height\":1600,\"allocated\":true},\"postCutoverScreenshots\":\"renderer-only\",\"performance\":{\"buildMs\":0.045,\"uploadMs\":0.145,\"drawMs\":0.115,\"frameCpuMs\":0.32}}"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "snapshot tiny-overview",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "snapshot ui-class-builder",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "snapshot ui-diplomacy",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "snapshot ui-city-panel",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "snapshot ui-army-replenish-toggle",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "snapshot tiny-army-our-city",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "snapshot tiny-army-road",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "snapshot tiny-army-neutral-city",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-near: full appearance submission",
+      "ok": true,
+      "detail": "{\"ids\":[0,14,6],\"count\":3}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-near: expected representation",
+      "ok": true,
+      "detail": "{\"skinned\":3,\"impostors\":0}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-near: pike remains on the mesh's right-hand side",
+      "ok": true,
+      "detail": "{\"polePixels\":177,\"centroidX\":669.3220338983051}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "snapshot battle/far-bundles/front-near",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-near: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-far-diagnostic: full appearance submission",
+      "ok": true,
+      "detail": "{\"ids\":[0,14,6],\"count\":3}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-far-diagnostic: expected representation",
+      "ok": true,
+      "detail": "{\"skinned\":0,\"impostors\":3}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-far-diagnostic: pike remains on the mesh's right-hand side",
+      "ok": true,
+      "detail": "{\"polePixels\":246,\"centroidX\":669.2073170731708}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "snapshot battle/far-bundles/front-far-diagnostic",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-far-diagnostic: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-near: full appearance submission",
+      "ok": true,
+      "detail": "{\"ids\":[0,14,6],\"count\":3}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-near: expected representation",
+      "ok": true,
+      "detail": "{\"skinned\":3,\"impostors\":0}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "snapshot battle/far-bundles/side-near",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-near: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-far-diagnostic: full appearance submission",
+      "ok": true,
+      "detail": "{\"ids\":[0,14,6],\"count\":3}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-far-diagnostic: expected representation",
+      "ok": true,
+      "detail": "{\"skinned\":0,\"impostors\":3}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "snapshot battle/far-bundles/side-far-diagnostic",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-far-diagnostic: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "roster-production-far: full appearance submission",
+      "ok": true,
+      "detail": "{\"ids\":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19],\"count\":320}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "roster-production-far: catalog covers every current appearance",
+      "ok": true,
+      "detail": "[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "roster-production-far: expected representation",
+      "ok": true,
+      "detail": "{\"skinned\":0,\"impostors\":320}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "snapshot battle/far-bundles/roster-production-far",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "roster-production-far: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "heavy-front: production path and submitted count",
+      "ok": true,
+      "detail": "{\"substrate\":\"threejs-webgpu-tsl\",\"soldiers\":1}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "heavy-front: readable foreground model coverage",
+      "ok": true,
+      "detail": "22732"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/heavy-front",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "heavy-front: frozen frame is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "phalanx-side: production path and submitted count",
+      "ok": true,
+      "detail": "{\"substrate\":\"threejs-webgpu-tsl\",\"soldiers\":1}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "phalanx-side: readable foreground model coverage",
+      "ok": true,
+      "detail": "10232"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/phalanx-side",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "phalanx-side: frozen frame is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "formation: production path and submitted count",
+      "ok": true,
+      "detail": "{\"substrate\":\"threejs-webgpu-tsl\",\"soldiers\":16}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "formation: readable foreground model coverage",
+      "ok": true,
+      "detail": "35416"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/formation",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "formation: frozen frame is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "local bake reload keeps identical production pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "failed reload is explicit and preserves last good crowd",
+      "ok": true,
+      "detail": "{\"ok\":false,\"error\":\"SyntaxError: Unexpected token 'm', \\\"malformed fixture\\\" is not valid JSON\"}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "incompatible reload retains the active appearance",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "incompatible reload retains the active appearance-specific clip",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "truncated animation matrix data is rejected explicitly",
+      "ok": true,
+      "detail": "{\"ok\":false,\"error\":\"Error: appearance animation matrix data does not match its dimensions\"}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "production reload rejects a missing non-active action before replacing the crowd",
+      "ok": true,
+      "detail": "{\"ok\":false,\"error\":\"Error: Appearance 0 is missing required crowd clips: attack_a\"}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "production startup rejects a missing controller action",
+      "ok": true,
+      "detail": "Error: Appearance 0 is missing required crowd clips: attack_a"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "invalid VAT retry 0: no orphaned scene meshes",
+      "ok": true,
+      "detail": "{\"nodesBefore\":111,\"nodesAfter\":111}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "invalid VAT retry 1: no orphaned scene meshes",
+      "ok": true,
+      "detail": "{\"nodesBefore\":111,\"nodesAfter\":111}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "partially allocated replacement is rolled back without orphaned meshes",
+      "ok": true,
+      "detail": "{\"ok\":false,\"error\":\"Error: Injected replacement allocation failure\",\"before\":111,\"after\":111,\"peak\":113,\"attempts\":3}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "rejected bundles preserve the last good production pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "battle submission replaces the retained formation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/submission-parity",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "battle adapter and explicit pose submission have identical pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/submission-parity",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "interactive clip playback and turntable change the rendered pose",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/controls",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "candidate catalog initializes its own appearance and clip",
+      "ok": true,
+      "detail": "{\"classId\":40,\"clip\":\"bend\",\"phase\":0,\"formation\":false,\"yaw\":0.45,\"pitch\":1.15,\"zoom\":190,\"target\":[0,0,1.05]}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human: direct source clips are present",
+      "ok": true,
+      "detail": "[{\"name\":\"bend\",\"start\":0,\"frames\":25,\"duration\":1,\"loop\":false}]"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-0/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"bend\",\"phase\":0,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-0/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-0/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"bend\",\"phase\":0,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-0/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-6/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"bend\",\"phase\":0.25,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-6/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-6/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"bend\",\"phase\":0.25,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-6/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-12/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"bend\",\"phase\":0.5,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-12/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-12/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"bend\",\"phase\":0.5,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-12/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-24/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"bend\",\"phase\":1,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-24/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-24/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"bend\",\"phase\":1,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-24/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "snapshot shared/soldiers/candidates/human",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted: direct source clips are present",
+      "ok": true,
+      "detail": "[{\"name\":\"gait\",\"start\":0,\"frames\":25,\"duration\":1,\"loop\":true},{\"name\":\"rider-action\",\"start\":25,\"frames\":25,\"duration\":1,\"loop\":false}]"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-0/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"gait\",\"phase\":0,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-0/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-0/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"gait\",\"phase\":0,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-0/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-6/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"gait\",\"phase\":0.25,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-6/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-6/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"gait\",\"phase\":0.25,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-6/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-12/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"gait\",\"phase\":0.5,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-12/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-12/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"gait\",\"phase\":0.5,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-12/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-24/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"gait\",\"phase\":1,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-24/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-24/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"gait\",\"phase\":1,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-24/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-0/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"rider-action\",\"phase\":0,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-0/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-0/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"rider-action\",\"phase\":0,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-0/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-6/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"rider-action\",\"phase\":0.25,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-6/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-6/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"rider-action\",\"phase\":0.25,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-6/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-12/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"rider-action\",\"phase\":0.5,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-12/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-12/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"rider-action\",\"phase\":0.5,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-12/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-24/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"rider-action\",\"phase\":1,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-24/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-24/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"rider-action\",\"phase\":1,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-24/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "snapshot shared/soldiers/candidates/mounted",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "candidate reload retains the chosen catalog and production pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "bad candidate rebuild keeps its last good production render",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

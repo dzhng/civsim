@@ -28,6 +28,8 @@ Freeze all previously accepted variables. Capture the candidate and prior/refere
 
 All20 existing appearance mappings accounted for, mounted and pike bounds correct, no shared class0 far silhouette; true reduced tiers and budget report per family.
 
+The [03 far-bundle critique](../assets/evidence/03/far-bundles/review.md#final-independent-visual-critique) is inherited acceptance debt: mounted front silhouettes merge rider and horse, and atlas blur/view quantization obscures narrow geometry. Judge these again with the authored roster at genuine production distances; enlarged diagnostic coverage is not a readability verdict.
+
 1. Run the applicable deterministic contract tests and `snapCheck` captures; preserve unrelated tests and simulation outcomes.
 2. Use **compare-screenshots** for candidate versus prior/reference on the named mask; retain telemetry and a written less-wrong verdict. A Rome II photograph is a visual target, not a pixel-equality baseline.
 3. As the **last visual check before acceptance**, use **screenshot-critique** with an unprimed agent. Resolve verified defects in scope; record excluded defects against their owning slice. Do not describe a shot as verified before this check.

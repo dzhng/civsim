@@ -24,11 +24,13 @@ import { linearAlbedo } from "./battleTsl";
 import { RENDER_ORDER } from "./terrainLayer";
 
 interface ImpostorAtlas {
-  texture: THREE.CanvasTexture;
+  texture: THREE.Texture;
   tileSize: number;
   columns: number;
   rows: number;
   directions: THREE.Vector3[];
+  center: THREE.Vector3;
+  worldSpan: number;
 }
 
 interface PosedMeshData {
@@ -50,12 +52,12 @@ const LIGHT_DIR = new THREE.Vector3(-0.34, -0.42, 0.84).normalize();
 export function createSoldierImpostorAtlas(
   mesh: SoldierMeshData,
   vat: VatBake,
-  opts: { columns?: number; rows?: number; tileSize?: number } = {},
+  opts: { columns?: number; rows?: number; tileSize?: number; clip: string; phase: number },
 ): ImpostorAtlas {
   const columns = opts.columns ?? 8;
   const rows = opts.rows ?? 8;
   const tileSize = opts.tileSize ?? 96;
-  const posedMesh = poseMeshWithVat(mesh, vat, "march", 0.18);
+  const posedMesh = poseMeshWithVat(mesh, vat, opts.clip, opts.phase);
   const directions = hemiOctDirections(columns, rows);
   const canvas = document.createElement("canvas");
   canvas.width = columns * tileSize;
@@ -65,6 +67,19 @@ export function createSoldierImpostorAtlas(
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const projectedBounds = directions.map((dir) => projectedMeshBounds(posedMesh, viewBasis(dir)));
+  const box = new THREE.Box3().setFromArray(posedMesh.positions);
+  const center = box.getCenter(new THREE.Vector3());
+  // Every view shares a model-space anchor. Per-tile recentering would make
+  // long weapons shift the body when the selected view changes.
+  for (let i = 0; i < directions.length; i++) {
+    const basis = viewBasis(directions[i]);
+    const cx = center.dot(basis.right),
+      cy = center.dot(basis.up);
+    const bounds = projectedBounds[i];
+    const halfX = Math.max(cx - bounds.minX, bounds.maxX - cx);
+    const halfY = Math.max(cy - bounds.minY, bounds.maxY - cy);
+    projectedBounds[i] = { minX: cx - halfX, maxX: cx + halfX, minY: cy - halfY, maxY: cy + halfY };
+  }
   const maxSpan = Math.max(
     ...projectedBounds.map((b) => Math.max(b.maxX - b.minX, b.maxY - b.minY)),
     1e-3,
@@ -87,13 +102,17 @@ export function createSoldierImpostorAtlas(
   textureAtlas.magFilter = THREE.LinearFilter;
   textureAtlas.generateMipmaps = true;
   textureAtlas.needsUpdate = true;
-  return { texture: textureAtlas, tileSize, columns, rows, directions };
+  return {
+    texture: textureAtlas,
+    tileSize,
+    columns,
+    rows,
+    directions,
+    center,
+    worldSpan: maxSpan / 0.78,
+  };
 }
 
-// The impostor billboard's world-space size. A standing soldier is ~2.18 m tall
-// and ~0.92 m wide at the shoulders.
-const IMPOSTOR_BASE_HEIGHT_M = 2.18;
-const IMPOSTOR_BASE_WIDTH_M = 0.92;
 // Minimum on-screen billboard height as a fraction of viewport height. The
 // battle rig's eye parks hundreds of metres up at max zoom-out, so a fixed
 // world-space sprite projects to ~2 px — small enough that the mipmapped,
@@ -134,9 +153,7 @@ export class OctahedralImpostorLayer {
     const meta = attribute<"vec4">("impostorMeta", "vec4"); // tile, width, height, shade
     const right = vec3(this.camRight).mul(quad.x.mul(meta.y).mul(0.5));
     const up = vec3(this.camUp).mul(quad.y.mul(meta.z).mul(0.5));
-    material.positionNode = vec3(inst.x, inst.y, inst.z.add(meta.z.mul(0.5)))
-      .add(right)
-      .add(up);
+    material.positionNode = vec3(inst.x, inst.y, inst.z).add(right).add(up);
 
     const tile = varying(meta.x).toVar();
     const localUv = varying(quad.xy.mul(0.5).add(vec2(0.5))).toVar();
@@ -144,7 +161,11 @@ export class OctahedralImpostorLayer {
     const col = tile.sub(row.mul(float(this.atlas.columns))).toVar();
     const atlasUv = vec2(
       col.add(localUv.x).div(float(this.atlas.columns)),
-      row.add(localUv.y).div(float(this.atlas.rows)),
+      // Canvas rows count from the top; texture V counts from the bottom.
+      float(this.atlas.rows - 1)
+        .sub(row)
+        .add(localUv.y)
+        .div(float(this.atlas.rows)),
     );
     const sample = texture(this.atlas.texture, atlasUv).toVar();
     const faction = varying(inst.w).toVar();
@@ -183,13 +204,15 @@ export class OctahedralImpostorLayer {
     for (let i = 0; i < instances.length; i++) {
       const src = instances[i];
       const o = i * 4;
-      this.inst[o] = src.x;
-      this.inst[o + 1] = src.y;
-      this.inst[o + 2] = src.elevation ?? 0;
+      const angle = src.facing - Math.PI / 2;
+      const center = this.atlas.center;
+      this.inst[o] = src.x + center.x * Math.cos(angle) - center.y * Math.sin(angle);
+      this.inst[o + 1] = src.y + center.x * Math.sin(angle) + center.y * Math.cos(angle);
+      this.inst[o + 2] = (src.elevation ?? 0) + center.z;
       this.inst[o + 3] = src.faction;
       this.meta[o] = 0;
-      this.meta[o + 1] = IMPOSTOR_BASE_WIDTH_M;
-      this.meta[o + 2] = IMPOSTOR_BASE_HEIGHT_M;
+      this.meta[o + 1] = this.atlas.worldSpan;
+      this.meta[o + 2] = this.atlas.worldSpan;
       this.meta[o + 3] = 1;
     }
     (this.geometry.getAttribute("impostorInst") as THREE.InstancedBufferAttribute).needsUpdate =
@@ -224,12 +247,12 @@ export class OctahedralImpostorLayer {
       // viewport (perspective: worldHeight / (2 · depth · tan(fovY/2))).
       let scale = 1;
       if (tanHalfFov > 0 && dist > 0) {
-        const screenFraction = IMPOSTOR_BASE_HEIGHT_M / (2 * dist * tanHalfFov);
+        const screenFraction = this.atlas.worldSpan / (2 * dist * tanHalfFov);
         if (screenFraction < IMPOSTOR_MIN_SCREEN_FRACTION)
           scale = IMPOSTOR_MIN_SCREEN_FRACTION / screenFraction;
       }
-      this.meta[o + 1] = IMPOSTOR_BASE_WIDTH_M * scale;
-      this.meta[o + 2] = IMPOSTOR_BASE_HEIGHT_M * scale;
+      this.meta[o + 1] = this.atlas.worldSpan * scale;
+      this.meta[o + 2] = this.atlas.worldSpan * scale;
       this.meta[o + 3] = clampShade(0.72 + 0.28 * Math.max(0, localDir.dot(LIGHT_DIR)));
     }
     const attr = this.geometry.getAttribute("impostorMeta") as
@@ -279,7 +302,7 @@ function poseMeshWithVat(
   clipName: string,
   phase: number,
 ): PosedMeshData {
-  const clip = vat.clips.find((c) => c.name === clipName) ?? vat.clips[0];
+  const clip = vat.clips.find((c) => c.name === clipName)!;
   const frame = Math.min(
     clip.start + clip.frames - 1,
     clip.start + Math.floor(phase * Math.max(clip.frames - 1, 1)),
@@ -398,7 +421,7 @@ function projectedVertex(
   );
   const x = (p.dot(basis.right) - cx) * scale;
   const y = (p.dot(basis.up) - cy) * scale;
-  return [tile.x + tile.tileSize * 0.5 + x, tile.y + tile.tileSize * 0.52 - y];
+  return [tile.x + tile.tileSize * 0.5 + x, tile.y + tile.tileSize * 0.5 - y];
 }
 
 function shadedTriangleColor(
@@ -430,8 +453,9 @@ function shadedTriangleColor(
 }
 
 function rotateViewDirectionIntoSoldierLocal(dir: THREE.Vector3, facing: number): void {
-  const c = Math.cos(-facing);
-  const s = Math.sin(-facing);
+  const angle = Math.PI / 2 - facing;
+  const c = Math.cos(angle);
+  const s = Math.sin(angle);
   const x = dir.x * c - dir.y * s;
   const y = dir.x * s + dir.y * c;
   dir.x = x;

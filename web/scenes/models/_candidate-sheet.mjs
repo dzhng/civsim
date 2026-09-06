@@ -18,6 +18,14 @@ const cameras = [
   { name: "close", pitch: 1.4, zoom: 230, target: [0, 0, 0.95], poses },
   { name: "gameplay-pitch", pitch: 0.42, zoom: 190, target: [0, 0, 0.95], poses },
   { name: "head-detail", pitch: 1.4, zoom: 1000, target: [0, 0, 1.67], poses: [poses[0]] },
+  // Native right-palm inspection supplements, never replaces, the gameplay framing.
+  {
+    name: "hand-detail",
+    pitch: 1.4,
+    zoom: 1500,
+    target: [-0.5732, -0.051, 0.9024],
+    poses: [poses[0]],
+  },
 ];
 const crop = { x: 320, y: 96, width: 640, height: 640 };
 

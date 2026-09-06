@@ -83,3 +83,12 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 - [ ] Review/cleanup completed; README pickup and decisions updated.
 
 Implementation is in progress; no anatomy acceptance has occurred yet.
+
+The [cylindrical hand-curl candidate](../assets/evidence/08/grip-curl-review.md)
+replaces the splayed-digit direction with fingers curled toward a nominal handle
+axis and opposing thumb. Fresh review retains the direction, not hand acceptance:
+tip shape and palm/finger separation still fail. Native hand inspection now
+supplements the original sheets. Inspect sculpt-to-reduced-mesh detail loss next;
+do not treat the provisional9k target as permission to erase fingers. Equipment
+must be refitted and re-baked with any retained anatomy change before contact is
+judged.

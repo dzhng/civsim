@@ -313,23 +313,44 @@ def build():
             (wrist + arm_axis * .082, .038, .021),
             (wrist + arm_axis * .096, .032, .017),
         ], segments=16, across=across))
-        for finger, (offset, length) in enumerate(((-.028, .068), (-.009, .081),
-                                                  (.011, .076), (.030, .058))):
+        def digit(name, sections):
+            obj = loft(name, sections, segments=12, across=across)
+            # Ring depth follows the curl; the shared across axis preserves finger spacing.
+            for i, (center, width, thickness) in enumerate(sections):
+                before = sections[max(0, i-1)][0]
+                after = sections[min(len(sections)-1, i+1)][0]
+                normal = (after-before).cross(across).normalized()
+                for j in range(12):
+                    angle = math.tau*j/12
+                    obj.data.vertices[i*12+j].co = (center + across*(width*math.cos(angle))
+                                                   + normal*(thickness*math.sin(angle)))
+            surface = bmesh.new()
+            surface.from_mesh(obj.data)
+            bmesh.ops.recalc_face_normals(surface, faces=list(surface.faces))
+            surface.to_mesh(obj.data)
+            surface.free()
+            parts.append(obj)
+
+        # A 34mm cylindrical grip runs along 'across', centered beyond the palm.
+        grip = wrist + arm_axis*.097 + Vector((0, -.033, 0))
+        for finger, (offset, end_angle) in enumerate(((-.028, -1.55), (-.009, -2.0),
+                                                     (.011, -1.85), (.030, -1.30))):
             base = wrist + arm_axis * .084 + across * offset
-            parts.append(loft(f"finger-{finger}.{side}", [
-                (base, .0085, .010),
-                (base + arm_axis * (length * .43) + Vector((0, -length * .06, 0)), .008, .009),
-                (base + arm_axis * (length * .76) + Vector((0, -length * .24, 0)), .0065, .007),
-                (base + arm_axis * (length * .88) + Vector((0, -length * .43, 0)), .004, .005),
-            ], segments=12, across=across))
+            sections = [(base, .0085, .010)]
+            for t in (0, .25, .5, .75, 1):
+                angle = 1.20 + (end_angle-1.20)*t
+                center = grip + across*offset + arm_axis*(.026*math.cos(angle))
+                center += Vector((0, .026*math.sin(angle), 0))
+                radius = .008*(1-t) + .005*t
+                sections.append((center, radius, radius))
+            digit(f"finger-{finger}.{side}", sections)
         thumb_base = wrist + arm_axis * .023 - across * .026
-        thumb_axis = (arm_axis * .85 - across * .53).normalized()
-        parts.append(loft("thumb." + side, [
+        digit("thumb." + side, [
             (thumb_base, .017, .017),
-            (thumb_base + thumb_axis * .025, .013, .013),
-            (thumb_base + thumb_axis * .051 + arm_axis * .01 + Vector((0, -.009, 0)), .009, .010),
-            (thumb_base + thumb_axis * .060 + arm_axis * .018 + Vector((0, -.020, 0)), .004, .005),
-        ], segments=12, across=arm_axis))
+            (wrist + arm_axis*.047 - across*.040 + Vector((0, -.016, 0)), .014, .013),
+            (wrist + arm_axis*.075 - across*.045 + Vector((0, -.038, 0)), .011, .011),
+            (wrist + arm_axis*.095 - across*.034 + Vector((0, -.054, 0)), .006, .007),
+        ])
         parts.append(loft("ear." + side, [
             (point(.073, .011, 1.627), .007, .012),
             (point(.080, .009, 1.656), .012, .018),

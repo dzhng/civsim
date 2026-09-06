@@ -33,6 +33,24 @@ not repeated references; object overhead is not included. **Sound:** exact
 identity preserves animation semantics. Irregular histories can miss the cache
 and pay comparison overhead, so synchronized speedups are not universal claims.
 
+### Let the coarsest mesh cast when a shadow view requires it (07 projected LOD)
+
+When a soldier is outside the main camera but inside the sun's shadow camera,
+removing its geometry can remove a shadow that is still visible. The shared
+detail planner now considers both cameras and keeps a mesh whenever either
+shadow camera needs a caster. The coarsest existing mesh tier also casts;
+previously only the two finer tiers did. Sprites still do not cast. This avoids
+forcing every far shadow contributor into an unnecessarily expensive fine mesh,
+without introducing a separate shadow-only mesh submission path.
+
+The resliced plan required preserving shadow contributors but did not initially
+specify which existing mesh tiers could cast. The implementing coordinator chose
+this boundary explicitly after review exposed the old producer's finer-only
+policy. Future distance work inherits one shared caster-tier decision used by
+both planner and actual mesh construction. **Sound, medium confidence:** it keeps
+shadow geometry present with the existing draw path; visual shadow changes and
+performance remain subject to the production gates, not inferred from unit tests.
+
 ### Time a frame with scene-owned GPU markers (07 measurement)
 
 A frame submits animation compute, shadows and its final image through separate

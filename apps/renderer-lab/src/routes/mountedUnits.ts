@@ -1,4 +1,10 @@
 import { assignCrowdLods } from "@packages/crowd-runtime/src/lod";
+import {
+  chartCamera3d,
+  projectionFootprint,
+  viewMatrix,
+  projMatrix,
+} from "@packages/renderer-core/src/camera3d";
 import { APPEARANCE_DESCRIPTORS } from "@packages/soldier-assets/src/appearance";
 import {
   UNIT_CLASS_BY_KEY,
@@ -44,7 +50,12 @@ export async function route(ctx: LabContext) {
     crowdInstance(3.0, horseArchers, 1, "march", true),
     crowdInstance(6.0, sidearmAppearance, 1, "march", true),
   ];
-  const lods = assignCrowdLods(lineup, zoom);
+  const height = shell.stats().height;
+  const camera = chartCamera3d({ x: 0, y: 0, zoom, pitch: 0.16, yaw: 0 }, height);
+  const lods = assignCrowdLods(
+    lineup,
+    projectionFootprint(viewMatrix(camera), projMatrix(camera), height, camera.near),
+  );
   const byClass = (id: number) => lods[lineup.findIndex((s) => s.classId === id)].screenSize;
   const footSize = byClass(heavySword);
   const phalanxSize = byClass(mediumPhalanx);

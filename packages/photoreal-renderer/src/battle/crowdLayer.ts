@@ -23,14 +23,14 @@ import {
   corpsePresentationStrength,
   type CrowdInstance,
 } from "../../../crowd-runtime/src/instanceData";
-import type { LodCamera, LodCounts } from "../../../crowd-runtime/src/lod";
+import { COARSEST_SHADOW_LOD, type LodCounts } from "../../../crowd-runtime/src/lod";
 import { soldierMaterialIdentity } from "../../../soldier-assets/src/material";
 import type { AppearanceBundle } from "../../../soldier-assets/src/appearanceBundle";
 import { decodeLocalSample, resolveLocalSample } from "../../../soldier-assets/src/localAnimation";
 import { localPoseToJointMatrices } from "../../../soldier-assets/src/localPose";
 import { viewNormalNode } from "./battleTsl";
 import { createSoldierImpostorAtlas, OctahedralImpostorLayer } from "./impostorLayer";
-import { planPhotorealCrowdLods } from "./crowdLod";
+import { planPhotorealCrowdLods, type CrowdProjectionView } from "./crowdLod";
 import { RENDER_ORDER } from "./terrainLayer";
 import { weightedPaletteColumns } from "./skinNodes";
 import { SoldierPosePalette, type PaletteColumns } from "./posePalette";
@@ -66,10 +66,7 @@ interface PaletteGroup {
 
 export interface CrowdVisibilityScope {
   camera: THREE.Camera;
-  lodCamera: LodCamera;
-  frusta: THREE.Frustum[];
-  viewFrusta: number;
-  shadowFrusta: number;
+  views: CrowdProjectionView[];
 }
 
 interface CrowdCullingStats {
@@ -78,10 +75,29 @@ interface CrowdCullingStats {
   culled: number;
   viewFrusta: number;
   shadowFrusta: number;
+  viewVisible: number;
+  shadowOnly: number;
 }
 
 function emptyLodCounts(): LodCounts {
   return { l0: 0, l1: 0, l2: 0, l3: 0 };
+}
+
+/** Actual draw producer: shadow eligibility is shared with projected LOD planning. */
+export function createCrowdDrawMesh(
+  classId: number,
+  lod: number,
+  geometry: THREE.InstancedBufferGeometry,
+  material: THREE.MeshStandardNodeMaterial,
+) {
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.name = `battle-crowd-${classId}-lod${lod}`;
+  mesh.frustumCulled = false;
+  mesh.renderOrder = RENDER_ORDER.worldOpaque;
+  mesh.castShadow = lod <= COARSEST_SHADOW_LOD;
+  mesh.receiveShadow = true;
+  mesh.visible = false;
+  return mesh;
 }
 
 /** Per-class geometry with one derived palette per visible mesh instance. */
@@ -101,11 +117,11 @@ export class PhotorealCrowd {
     culled: 0,
     viewFrusta: 0,
     shadowFrusta: 0,
+    viewVisible: 0,
+    shadowOnly: 0,
   };
   private sourceInstances: CrowdInstance[] = [];
   private uploadFailed = false;
-  private readonly cullCenter = new THREE.Vector3();
-  private readonly cullSphere = new THREE.Sphere();
 
   private constructor(private readonly assets: Record<number, AppearanceBundle>) {}
 
@@ -175,20 +191,13 @@ export class PhotorealCrowd {
         assertUsable?.();
         this.buckets[classId] = tiers.map((tierMesh, lod) => {
           const geometry = soldierGeometry(tierMesh);
-          const mesh = new THREE.Mesh(
+          const mesh = createCrowdDrawMesh(
+            classId,
+            lod,
             geometry,
             crowdMaterial(paletteGroup.palette.columns, bundle.animation.bones, surface),
           );
           created.push(mesh);
-          mesh.name = `battle-crowd-${classId}-lod${lod}`;
-          mesh.frustumCulled = false;
-          mesh.renderOrder = RENDER_ORDER.worldOpaque;
-          // Soldiers cast from the DETAILED tiers only: LOD2 impostor-distance
-          // men re-rendered per cascade cost too much for shadows nobody can see
-          // at that range. All tiers still receive.
-          mesh.castShadow = lod < 2;
-          mesh.receiveShadow = true;
-          mesh.visible = false;
           scene.add(mesh);
           const bucket: ClassBucket = {
             mesh,
@@ -247,6 +256,8 @@ export class PhotorealCrowd {
       this.sourceInstances = [];
       this.visibleCounts = emptyLodCounts();
       this.culling.visible = 0;
+      this.culling.viewVisible = 0;
+      this.culling.shadowOnly = 0;
       for (const buckets of Object.values(this.buckets))
         for (const bucket of buckets) {
           bucket.mesh.visible = false;
@@ -269,11 +280,13 @@ export class PhotorealCrowd {
     }
     for (const group of this.groups) group.pending.length = 0;
     const plan = scope
-      ? planPhotorealCrowdLods(instances, scope.lodCamera, this.previousLevels)
+      ? planPhotorealCrowdLods(instances, scope.views, this.assets, this.previousLevels)
       : {
           assignments: instances.map(() => ({ level: 0 as const, screenSize: 999 })),
           counts: { l0: instances.length, l1: 0, l2: 0, l3: 0 },
-          policy: undefined,
+          visibility: new Uint8Array(instances.length).fill(1),
+          viewVisible: instances.length,
+          shadowOnly: 0,
         };
     this.previousLevels = plan.assignments.map((assignment) => assignment.level);
     this.assignedCounts = plan.counts;
@@ -282,8 +295,10 @@ export class PhotorealCrowd {
       input: instances.length,
       visible: 0,
       culled: 0,
-      viewFrusta: scope?.viewFrusta ?? 0,
-      shadowFrusta: scope?.shadowFrusta ?? 0,
+      viewFrusta: scope?.views.filter((view) => !view.shadow).length ?? 0,
+      shadowFrusta: scope?.views.filter((view) => view.shadow).length ?? 0,
+      viewVisible: plan.viewVisible,
+      shadowOnly: plan.shadowOnly,
     };
     const impostors = Object.fromEntries(
       Object.keys(this.assets).map((id) => [id, [] as CrowdInstance[]]),
@@ -293,7 +308,7 @@ export class PhotorealCrowd {
       if (!this.assets[inst.classId]) throw new Error(`Missing appearance ${inst.classId}`);
       const level = plan.assignments[i]?.level ?? 0;
       inst.lod = level;
-      if (scope && !this.instanceIntersectsAnyFrustum(inst, scope.frusta)) {
+      if (!plan.visibility[i]) {
         this.culling.culled++;
         continue;
       }
@@ -355,24 +370,6 @@ export class PhotorealCrowd {
 
   refreshCamera(camera: THREE.Camera): void {
     for (const layer of Object.values(this.impostors)) layer.setCamera(camera);
-  }
-
-  private instanceIntersectsAnyFrustum(inst: CrowdInstance, frusta: THREE.Frustum[]): boolean {
-    if (frusta.length === 0) return true;
-    const { center, radius } = this.assets[inst.classId].manifest.bounds;
-    const angle = inst.facing - Math.PI / 2;
-    const variant = inst.deathVariant ?? 0;
-    const roll =
-      corpsePresentationStrength(inst) * ((variant - 1) * 0.42 + Math.sin(variant * 2.3) * 0.18);
-    const y = center[1] * Math.cos(roll) - center[2] * Math.sin(roll);
-    const z = center[1] * Math.sin(roll) + center[2] * Math.cos(roll);
-    this.cullCenter.set(
-      inst.x + center[0] * Math.cos(angle) - y * Math.sin(angle),
-      inst.y + center[0] * Math.sin(angle) + y * Math.cos(angle),
-      (inst.elevation ?? 0) + z,
-    );
-    this.cullSphere.set(this.cullCenter, radius);
-    return frusta.some((frustum) => frustum.intersectsSphere(this.cullSphere));
   }
 
   private uploadBucket(bucket: ClassBucket): void {

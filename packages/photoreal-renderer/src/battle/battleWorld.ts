@@ -14,7 +14,7 @@ import type {
   BattleTerrainGrid,
 } from "../../../game-renderer/src/battle/terrainFeatures";
 import { battleMapByWasmId } from "../../../game-renderer/src/battle/mapCatalog";
-import { eyePosition } from "../../../renderer-core/src/camera3d";
+import { eyePosition, projectionFootprint } from "../../../renderer-core/src/camera3d";
 import {
   terrainHeightAt,
   type TerrainHeightField,
@@ -564,13 +564,21 @@ export class PhotorealBattleWorld {
       this.camera.matrixWorldInverse,
     );
     view.setFromProjectionMatrix(mat, this.camera.coordinateSystem, this.camera.reversedDepth);
-    const shadowFrusta = this.shadowRig.cullingFrusta();
     return {
       camera: this.camera,
-      lodCamera: { x: this.lastCamera.x, y: this.lastCamera.y, zoom: this.lastCamera.zoom },
-      frusta: [view, ...shadowFrusta],
-      viewFrusta: 1,
-      shadowFrusta: shadowFrusta.length,
+      views: [
+        {
+          frustum: view,
+          projection: projectionFootprint(
+            this.camera.matrixWorldInverse.elements,
+            this.camera.projectionMatrix.elements,
+            this.world.renderer.domElement.height,
+            this.camera.near,
+          ),
+          shadow: false,
+        },
+        ...this.shadowRig.cullingViews(),
+      ],
     };
   }
 

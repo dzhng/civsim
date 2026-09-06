@@ -26,6 +26,8 @@
 import * as THREE from "three/webgpu";
 import { CSMShadowNode } from "three/examples/jsm/csm/CSMShadowNode.js";
 import type { CivsimEnvironment } from "../../../game-renderer/src/environment/environment";
+import { projectionFootprint } from "../../../renderer-core/src/camera3d";
+import type { CrowdProjectionView } from "./crowdLod";
 
 export type SunShadowMode = "csm" | "single" | "off";
 
@@ -99,9 +101,9 @@ export interface SunShadowRig {
   update(camera: THREE.PerspectiveCamera): void;
   /** Terrain rect (setTerrain) — the single-tier ortho fit. No-op for csm. */
   setWorldRect(rect: [number, number, number, number]): void;
-  /** Active shadow-camera frusta used by the crowd culler in addition to the
-   *  view frustum, so off-screen casters stay alive for sun shadows. */
-  cullingFrusta(): THREE.Frustum[];
+  /** Matching shadow frusta and texel projections keep off-screen casters alive
+   * at the detail demanded by the map that actually draws their shadows. */
+  cullingViews(): CrowdProjectionView[];
   /** The stats identity block — scenes assert WHICH tier cast the shadows. */
   identity(): {
     owner: "shadowRig";
@@ -143,7 +145,7 @@ export function configureSunShadows(
       mode,
       update: () => {},
       setWorldRect: () => {},
-      cullingFrusta: () => [],
+      cullingViews: () => [],
       identity: () => identityFor(0, 0),
       dispose: () => {},
     };
@@ -178,7 +180,7 @@ export function configureSunShadows(
         if (csm.camera !== null) csm.updateFrustums();
       },
       setWorldRect: () => {},
-      cullingFrusta: () => shadowFrustaForCascadeLights(csm.lights),
+      cullingViews: () => shadowViewsForCascadeLights(csm.lights),
       identity: () => identityFor(CSM_CASCADES, CSM_MAP_SIZE),
       dispose: () => csm.dispose(),
     };
@@ -214,18 +216,18 @@ export function configureSunShadows(
     mode,
     update: () => {},
     setWorldRect: fit,
-    cullingFrusta: () => shadowFrustaForCascadeLights([sun]),
+    cullingViews: () => shadowViewsForCascadeLights([sun]),
     identity: () => identityFor(1, SINGLE_MAP_SIZE),
     dispose: () => shadow.dispose(),
   };
 }
 
-function shadowFrustaForCascadeLights(
+function shadowViewsForCascadeLights(
   lights: Array<
     THREE.Object3D & { target?: THREE.Object3D; shadow?: THREE.DirectionalLightShadow }
   >,
-): THREE.Frustum[] {
-  const out: THREE.Frustum[] = [];
+): CrowdProjectionView[] {
+  const out: CrowdProjectionView[] = [];
   const mat = new THREE.Matrix4();
   const target = new THREE.Vector3();
   for (const light of lights) {
@@ -240,9 +242,20 @@ function shadowFrustaForCascadeLights(
     cam.lookAt(target);
     cam.updateMatrixWorld(true);
     mat.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse);
-    out.push(
-      new THREE.Frustum().setFromProjectionMatrix(mat, cam.coordinateSystem, cam.reversedDepth),
-    );
+    out.push({
+      frustum: new THREE.Frustum().setFromProjectionMatrix(
+        mat,
+        cam.coordinateSystem,
+        cam.reversedDepth,
+      ),
+      projection: projectionFootprint(
+        cam.matrixWorldInverse.elements,
+        cam.projectionMatrix.elements,
+        shadow.mapSize.y,
+        cam.near,
+      ),
+      shadow: true,
+    });
   }
   return out;
 }

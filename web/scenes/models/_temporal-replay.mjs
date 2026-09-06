@@ -79,12 +79,8 @@ export async function verifyTemporalReplay(ctx, page, ids = [4, 7]) {
             -bounds.radius - (sign * (uprightY + rolledY)) / 2,
           );
           const frustum = new THREE.Frustum(...Array.from({ length: 6 }, () => plane.clone()));
-          const scope = {
-            ...w.crowdVisibilityScope(),
-            frusta: [frustum],
-            viewFrusta: 1,
-            shadowFrusta: 0,
-          };
+          const scope = w.crowdVisibilityScope();
+          scope.views = [{ ...scope.views.find((view) => !view.shadow), frustum }];
           return [0, 0.5, 1].map((weight) => {
             const sample = {
               ...instance,

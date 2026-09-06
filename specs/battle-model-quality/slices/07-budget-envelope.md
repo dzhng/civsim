@@ -12,6 +12,10 @@ Names of new functions/routes in this plan are proposed, not existing commands. 
 
 ## Runnable artifact
 
+The [projected-detail correction](../assets/evidence/07/projected-lod.md) records
+the source checkpoint and numerical contracts; production visual and hardware
+acceptance remain required before freezing an art envelope.
+
 Synthetic crowd sweeps with increasing vertices, bones, textures, crossfades and mounted masked composition; close, mid and vista camera fixtures.
 
 Expose the fixture through the production model workbench and a named scene/probe. Record the exact runnable command in this file when it exists; do not mark completion with screenshots alone.

@@ -1,6 +1,9 @@
-import type { CrowdInstance } from './instanceData';
+import type { CrowdInstance } from "./instanceData";
+import { projectedSpanPixels, type ProjectionFootprint } from "../../renderer-core/src/camera3d";
 
 export type LodLevel = 0 | 1 | 2 | 3;
+/** All mesh tiers cast; impostors do not. Planner and draw producer share this boundary. */
+export const COARSEST_SHADOW_LOD: LodLevel = 2;
 
 export interface LodPolicy {
   l0Pixels: number;
@@ -36,33 +39,28 @@ export function assignLodForScreenSize(screenSize: number, policy = DEFAULT_LOD_
   return 3;
 }
 
-export function assignCrowdLods(instances: CrowdInstance[], zoom: number, policy = DEFAULT_LOD_POLICY): LodAssignment[] {
-  return instances.map((inst) => {
-    // Every mounted class is taller on screen; drive the scale off the mount
-    // flag, not a hardcoded class list.
-    const mountedScale = inst.mounted ? 1.45 : 1;
-    const screenSize = Math.max(policy.minScreenPixels, zoom * mountedScale * 1.8);
-    return { level: assignLodForScreenSize(screenSize, policy), screenSize };
-  });
-}
-
-export interface LodCamera {
-  x: number;
-  y: number;
-  zoom: number;
-}
-
-/** Projected on-screen height of an instance: scales with zoom, falls with
- *  distance from the camera focus, so near soldiers are L0 and far ones coarsen. */
-export function instanceScreenSize(x: number, y: number, camera: LodCamera, mounted: boolean, policy = DEFAULT_LOD_POLICY): number {
-  const dist = Math.hypot(x - camera.x, y - camera.y);
-  const mountedScale = mounted ? 1.45 : 1;
-  return Math.max(policy.minScreenPixels, (camera.zoom * 1.8 * mountedScale) / (1 + dist * 0.012));
+export function instanceScreenSize(
+  instance: CrowdInstance,
+  projection: ProjectionFootprint,
+): number {
+  const span = 1.8 * (instance.mounted ? 1.45 : 1);
+  return projectedSpanPixels(
+    projection,
+    instance.x,
+    instance.y,
+    (instance.elevation ?? 0) + span / 2,
+    span,
+  );
 }
 
 // A level change only sticks once the size is past the boundary by `margin`, so
 // instances hovering on a threshold don't flip tier every frame.
-export function lodWithHysteresis(prevLevel: LodLevel, screenSize: number, policy = DEFAULT_LOD_POLICY, margin = 1.5): LodLevel {
+export function lodWithHysteresis(
+  prevLevel: LodLevel,
+  screenSize: number,
+  policy = DEFAULT_LOD_POLICY,
+  margin = 1.5,
+): LodLevel {
   const raw = assignLodForScreenSize(screenSize, policy);
   if (raw === prevLevel) return prevLevel;
   const thresholds = [policy.l0Pixels, policy.l1Pixels, policy.l2Pixels];
@@ -74,20 +72,36 @@ export function lodWithHysteresis(prevLevel: LodLevel, screenSize: number, polic
   return screenSize <= boundary - margin ? raw : prevLevel;
 }
 
-/** Per-instance LOD by camera distance, with optional previous levels for
- *  hysteresis. The production battle path uses this instead of a binary switch. */
-export function assignCrowdLodsByDistance(
+/** View and shadow projections use one threshold policy. Impostors do not cast
+ * shadows, so a contributing shadow view requires at least the coarsest mesh. */
+export function assignLodForContributions(
+  viewPixels: number,
+  shadowPixels: number,
+  prevLevel?: LodLevel,
+  policy = DEFAULT_LOD_POLICY,
+): LodAssignment {
+  const screenSize = Math.max(policy.minScreenPixels, viewPixels, shadowPixels);
+  let level =
+    prevLevel === undefined
+      ? assignLodForScreenSize(screenSize, policy)
+      : lodWithHysteresis(prevLevel, screenSize, policy);
+  if (shadowPixels > 0) level = Math.min(COARSEST_SHADOW_LOD, level) as LodLevel;
+  return { level, screenSize };
+}
+
+export function assignCrowdLods(
   instances: CrowdInstance[],
-  camera: LodCamera,
+  projection: ProjectionFootprint,
   policy = DEFAULT_LOD_POLICY,
   prevLevels?: ArrayLike<number>,
 ): LodAssignment[] {
   return instances.map((inst, i) => {
-    const screenSize = instanceScreenSize(inst.x, inst.y, camera, inst.mounted, policy);
-    const level = prevLevels
-      ? lodWithHysteresis((prevLevels[i] ?? 0) as LodLevel, screenSize, policy)
-      : assignLodForScreenSize(screenSize, policy);
-    return { level, screenSize };
+    return assignLodForContributions(
+      instanceScreenSize(inst, projection),
+      0,
+      prevLevels?.[i] as LodLevel | undefined,
+      policy,
+    );
   });
 }
 

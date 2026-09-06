@@ -85,3 +85,6 @@ The next diagnostic should be a bounded CPU profile of interruption upload
 preparation and submission on this unchanged workload, distinguishing controller
 work, packing, queue writes and compute submission before proposing an
 optimization. Preserve the existing gate and report profiling overhead separately.
+
+The subsequent [bounded CPU profile](banks-interruption.md) attributes this work
+without changing production source or treating profiler timing as acceptance.

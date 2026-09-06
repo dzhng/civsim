@@ -75,6 +75,11 @@ raw/Three palette comparisons, weighted geometry and resource lifecycle checks
 also pass. This establishes preserved playback transport, not final model
 quality or hardware timing. The standing hardware repeat remains required.
 
+The subsequent [hardware A/B/A repeat](snapshot-banks-aba.md) admits the exact
+60,000-source workload with banking, while both pre-change and post-change runs
+fail the unchanged interruption cadence gate. It does not establish a causal
+timing regression or close performance acceptance.
+
 Shape/diff/docs review keeps bank addressing, growth and binding schema in one
 shared owner. No compatibility path, extra dispatch or dependency was added.
 The CLI second-opinion attempt failed before review because its configured

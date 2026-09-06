@@ -17,27 +17,27 @@ VERIFY_GPU=1 VERIFY_URL=http://127.0.0.1:5195 node scene.mjs battle-model-palett
 node_modules/.bin/vitest run tests/posePalette.test.ts tests/impostorLayer.test.ts
 ```
 
-The [production numerical report](palette-production-numeric.json) covers64 poses
+The [production numerical report](palette-production-numeric.json) covers 64 poses
 through the real Three palette owner and the independent raw adapter: exact
 cross-substrate bytes, maximum matrix error `6.556510925e-7`, and CPU-weighted
 position/normal/tangent error `4.768371582e-7`. The gate remains `1e-5`.
-The [production integration report](three-palette-cutover-results.json) passes65
-checks, retaining the existing18 mapped-normal controls and their independent
+The [production integration report](three-palette-cutover-results.json) passes 65
+checks, retaining the existing 18 mapped-normal controls and their independent
 authored-track oracle. Eight focused unit checks pass.
 
 The actual mounted composite and independently CPU-posed geometry produce exactly
-equal sun-shadow depth, with26 non-background texels. Beauty differs at one pixel
+equal sun-shadow depth, with 26 non-background texels. Beauty differs at one pixel
 by one color level; the numerical oracle allows at most two levels, not a relaxed
-regression baseline. Same-pose growth from1 to257 instances is byte-identical in
+regression baseline. Same-pose growth from 1 to 257 instances is byte-identical in
 beauty and depth. Frozen-pose buffer growth preserves the same shadow; three
-new poses upload1584 changed bytes, repeat/shrink upload no snapshot bytes, and
-reentry after retirement uploads528 bytes once.
+new poses upload 1584 changed bytes, repeat/shrink upload no snapshot bytes, and
+reentry after retirement uploads 528 bytes once.
 
 Two appearances with the same rig but different animation data stay separate,
 while a third shares the original. A known local-root displacement agrees with
 an independently translated production instance in beauty and depth. Deliberately
-aliasing the distinct animation produces49,341 pixels beyond the two-level bound
-and8 differing depth texels. Thus identity coverage is not merely a buffer count.
+aliasing the distinct animation produces 49,341 pixels beyond the two-level bound
+and 8 differing depth texels. Thus identity coverage is not merely a buffer count.
 
 No screenshot baseline changed and no new art verdict is claimed. The scene's
 images are in-memory numerical comparisons through the existing production
@@ -47,7 +47,7 @@ only copies the actual sun depth texture into a readable buffer.
 ## Boundaries that changed the implementation
 
 **Quaternion angle.** The original residual-vector angle implicitly assumed
-exactly unit inputs. Valid endpoints with norm1.000099 failed on a nonadjacent
+exactly unit inputs. Valid endpoints with norm 1.000099 failed on a nonadjacent
 three-joint chain at quarter and three-quarter phases: maximum matrix error
 `1.819431782e-5`, weighted geometry `1.347064972e-5` in the
 [retained red](palette-near-unit-red.json). The angle now computes CPU's
@@ -78,8 +78,8 @@ GPU errors, not a promise to recover by global device interception.
 
 **Capacity.** Required control/output bytes reject before CPU packing. Optional
 doubling is bounded by legal storage and dispatch capacity; snapshot reserve is
-bounded separately. The red unit request needed16000 bytes on a20000-byte limit,
-but a20480-byte optional reserve rejected it. It now fits at250 records;251
+bounded separately. The red unit request needed 16000 bytes on a 20000-byte limit,
+but a 20480-byte optional reserve rejected it. It now fits at 250 records; 251
 records correctly reject. No requested count is clamped or silently omitted.
 
 ## Ownership and review
@@ -116,3 +116,34 @@ continuity. Runnable placeholder horses do not establish accepted gait art.
 | `battle-model-palette` new flow | No production composed-pose/shadow/growth oracle; initial cleanup masked injected error | CPU beauty/depth agreement, sharing negative control, changed snapshot uploads, original errors and recovery all pass | Actual consumers expose lifetime and indexing failures that compute-only probes cannot. **your-regression** |
 
 No unit stats, simulation mechanics, model geometry, materials or lighting changed.
+
+## Reload interrupted by world disposal
+
+The merged disposal scene exposed an additional lifetime race, not merely a stale
+assertion. Its first GPU wait now occurs during palette admission, before pending
+geometry exists. Resuming after world disposal continued into atlas rendering on
+the destroyed renderer and failed at `timestampWrites.querySet` before the final
+world check. The [retained red](reload-lifetime-red.json) records 7 scope pops;
+the [repaired repeat](reload-lifetime-final.json) stops at 4, exactly the count at
+disposal, and reports the disposed-world error. Both runs retire 6 pending palette
+buffers; the fix prevents subsequent work rather than just replacing an error.
+
+The world supplies its existing lifetime assertion through async crowd, surface
+and atlas preparation. Returned resources enter their cleanup owner before the
+next check. No second disposed flag, cancellation framework or deferred renderer
+destruction was introduced. Alive-world failures retain their original errors.
+The atlas-stage case still requires real pending geometry: 3 meshes are disposed,
+along with 6 pending palette buffers. Network disposal starts no GPU preparation.
+Separate decode/upload-await unit tracers retain acquired-resource ownership and
+prevent a second image from starting. The focused unit group now passes 13 tests.
+Independent six-file review found no issues and separately reran the five surface
+tests successfully; integration-owner review also found no issues.
+
+Run from `web`:
+`VERIFY_GPU=1 VERIFY_URL=http://127.0.0.1:5195 node scene.mjs battle-model-reload-disposal`.
+No screenshot or shader output changes in this correction.
+
+| Test | Previous behavior | New behavior | Why |
+| --- | --- | --- | --- |
+| `battle-model-reload-disposal` | First-GPU-wait assumed pending atlas geometry; new palette wait resumed into destroyed renderer with7 scope pops and a query-set error | Separate palette/atlas/network waits; disposed-world error, no new GPU scopes after disposal, pending buffers retired exactly once, atlas geometry cleanup remains positive | New async palette admission exposed a real missing lifetime boundary; changing the pause hook alone would hide it. **your-regression** |
+| `soldierSurface.test.ts` decode/upload disposal cases | Preparation resolved and continued to later images after the world died during an await | Rejects after the wait, closes the decoded bitmap, destroys an acquired GPU image exactly once and stops later preparation | The same borrowed-renderer lifetime reaches image decoding/upload, without moving image work into a new owner. **carried-in** |

@@ -9,10 +9,10 @@ export const meta = {
 };
 
 export async function run(ctx) {
-  for (const stage of ["gpu", "network"]) {
+  for (const stage of ["palette", "atlas", "network"]) {
     const page = await ctx.newPage({ viewport: { width: 1280, height: 800 } });
     try {
-      // One textureless appearance isolates atlas admission from image preparation.
+      // One textureless appearance separates palette and atlas admission from images.
       await page.route("**/assets/soldiers/catalog.json", (route) =>
         route.fulfill({
           contentType: "application/json",
@@ -33,6 +33,7 @@ export async function run(ctx) {
         const scene = world.world.scene;
         const device = world.world.renderer.backend.device;
         const originalPop = device.popErrorScope.bind(device);
+        const originalBuffer = device.createBuffer.bind(device);
         const originalFetch = window.fetch;
         let release, entered;
         const gate = new Promise((resolve) => {
@@ -43,10 +44,37 @@ export async function run(ctx) {
         });
         let scopePops = 0,
           fetches = 0;
+        const pendingGeometry = () =>
+          scene.children.filter(
+            (object) =>
+              object.name.startsWith("battle-crowd") &&
+              !Object.values(previous.buckets)
+                .flat()
+                .some((bucket) => bucket.mesh === object) &&
+              !Object.values(previous.impostors).some((layer) => layer.mesh === object),
+          );
+        const paletteBuffers = [];
+        device.createBuffer = (descriptor) => {
+          const buffer = originalBuffer(descriptor);
+          if (descriptor.label?.startsWith("soldier-palette-")) {
+            const record = { destroyed: 0 };
+            paletteBuffers.push(record);
+            const destroy = buffer.destroy.bind(buffer);
+            buffer.destroy = () => {
+              record.destroyed++;
+              destroy();
+            };
+          }
+          return buffer;
+        };
         device.popErrorScope = async () => {
           scopePops++;
+          const atStage =
+            stage === "palette"
+              ? pendingGeometry().length === 0
+              : stage === "atlas" && pendingGeometry().length > 0;
           const result = await originalPop();
-          if (stage === "gpu") {
+          if (atStage) {
             entered();
             await gate;
           }
@@ -68,17 +96,11 @@ export async function run(ctx) {
           error = String(reason);
         });
         await reached;
-        const pendingMeshes = scene.children.filter(
-          (object) =>
-            object.name.startsWith("battle-crowd") &&
-            !Object.values(previous.buckets)
-              .flat()
-              .some((bucket) => bucket.mesh === object) &&
-            !Object.values(previous.impostors).some((layer) => layer.mesh === object),
-        );
+        const pendingMeshes = pendingGeometry();
         let disposedGeometry = 0;
         for (const mesh of pendingMeshes)
           mesh.geometry.addEventListener("dispose", () => disposedGeometry++);
+        const scopePopsAtDispose = scopePops;
         world.dispose();
         release();
         await reload;
@@ -90,17 +112,21 @@ export async function run(ctx) {
           closedReloadRejected = /disposed/i.test(String(reason));
         }
         device.popErrorScope = originalPop;
+        device.createBuffer = originalBuffer;
         window.fetch = originalFetch;
         return {
           rejected,
           error,
           scopePops,
+          scopePopsAtDispose,
           installedReplacement: world.crowd !== previous,
           remainingCrowdMeshes: scene.children.filter((object) =>
             object.name.startsWith("battle-crowd"),
           ).length,
           pendingMeshes: pendingMeshes.length,
           disposedGeometry,
+          paletteBuffers: paletteBuffers.length,
+          retiredPaletteBuffers: paletteBuffers.filter((buffer) => buffer.destroyed === 1).length,
           closedReloadRejected,
           closedReloadFetches: fetches - fetchesBeforeClosedReload,
         };
@@ -120,18 +146,29 @@ export async function run(ctx) {
         result.closedReloadRejected && result.closedReloadFetches === 0,
         JSON.stringify(result),
       );
-      if (stage === "gpu")
+      if (stage === "atlas")
         ctx.check(
           "pending replacement geometry is released",
           result.pendingMeshes > 0 && result.disposedGeometry === result.pendingMeshes,
           JSON.stringify(result),
         );
-      else
+      else if (stage === "network")
         ctx.check(
           "catalog completion never prepares GPU resources after disposal",
           result.scopePops === 0,
           JSON.stringify(result),
         );
+      if (stage !== "network")
+        ctx.check(
+          `${stage}: pending palette storage is released once`,
+          result.paletteBuffers > 0 && result.retiredPaletteBuffers === result.paletteBuffers,
+          JSON.stringify(result),
+        );
+      ctx.check(
+        `${stage}: no later GPU preparation starts after disposal`,
+        result.scopePops === result.scopePopsAtDispose,
+        JSON.stringify(result),
+      );
     } finally {
       await page.close();
     }

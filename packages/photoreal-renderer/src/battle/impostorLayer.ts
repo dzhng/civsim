@@ -53,9 +53,10 @@ export async function createSoldierImpostorAtlas(
   mesh: SoldierMeshData,
   palette: ArrayLike<number>,
   preparedSurface: PreparedSoldierSurface,
-  opts: { columns?: number; rows?: number; tileSize?: number } = {},
+  opts: { columns?: number; rows?: number; tileSize?: number; assertUsable?: () => void } = {},
 ): Promise<ImpostorAtlas> {
   await renderer.init();
+  opts.assertUsable?.();
   const started = performance.now();
   const columns = opts.columns ?? 8;
   const rows = opts.rows ?? 8;

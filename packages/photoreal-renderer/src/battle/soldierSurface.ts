@@ -72,6 +72,7 @@ export interface PreparedSoldierSurface {
 export async function prepareSoldierSurface(
   renderer: THREE.WebGPURenderer,
   source: SoldierSurface,
+  assertUsable?: () => void,
 ): Promise<PreparedSoldierSurface> {
   const table = new THREE.DataTexture(
     packSoldierMaterials(source.materials),
@@ -97,6 +98,7 @@ export async function prepareSoldierSurface(
     for (const image of owned) image.destroy();
   };
   try {
+    assertUsable?.();
     const device = (renderer.backend as unknown as { device?: GPUDevice }).device;
     if (!device) throw new Error("Soldier surfaces require an initialized WebGPU device");
     for (const [key, definition] of Object.entries(source.textures)) {
@@ -110,11 +112,13 @@ export async function prepareSoldierSurface(
         },
       );
       try {
+        assertUsable?.();
         const gpu = await uploadImageTexture(device, bitmap, {
           colorSpace: SOLDIER_TEXTURE_COLOR_SPACES[channel],
           generateMipmaps: definition.sampler.mipmapFilter !== "none",
         });
         owned.add(gpu);
+        assertUsable?.();
         const image = new THREE.ExternalTexture(gpu);
         images[channel] = image;
         image.colorSpace = channel === "baseColor" ? THREE.SRGBColorSpace : THREE.NoColorSpace;

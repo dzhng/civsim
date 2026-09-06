@@ -291,7 +291,12 @@ export class PhotorealBattleWorld {
     };
     assertActivePose();
     if (this.gameplay) assertGameplayAppearances(assets);
-    const replacement = await PhotorealCrowd.create(this.world.renderer, this.world.scene, assets);
+    const replacement = await PhotorealCrowd.create(
+      this.world.renderer,
+      this.world.scene,
+      assets,
+      () => this.assertReloadable(),
+    );
     try {
       this.assertReloadable();
       // The author may select another valid old pose while GPU admission waits.

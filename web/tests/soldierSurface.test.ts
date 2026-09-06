@@ -36,6 +36,35 @@ function source(): SoldierSurface {
 }
 const renderer = { backend: { device: {} } } as unknown as THREE.WebGPURenderer;
 
+test.each(["decode", "upload"])(
+  "world disposal during image %s stops further preparation and releases acquired resources",
+  async (stage) => {
+    let disposed = false;
+    const bitmap = { close: vi.fn() };
+    const decode = vi.fn().mockImplementation(async () => {
+      if (stage === "decode") disposed = true;
+      return bitmap;
+    });
+    vi.stubGlobal("createImageBitmap", decode);
+    const gpu = { width: 8, height: 4, mipLevelCount: 4, destroy: vi.fn() };
+    vi.mocked(uploadImageTexture).mockImplementation(async () => {
+      if (stage === "upload") disposed = true;
+      return gpu as unknown as GPUTexture;
+    });
+    const tableDispose = vi.spyOn(THREE.DataTexture.prototype, "dispose");
+    await expect(
+      prepareSoldierSurface(renderer, source(), () => {
+        if (disposed) throw new Error("battle world disposed");
+      }),
+    ).rejects.toThrow("battle world disposed");
+    expect(decode).toHaveBeenCalledTimes(1);
+    expect(bitmap.close).toHaveBeenCalledTimes(1);
+    expect(uploadImageTexture).toHaveBeenCalledTimes(stage === "decode" ? 0 : 1);
+    expect(gpu.destroy).toHaveBeenCalledTimes(stage === "upload" ? 1 : 0);
+    expect(tableDispose).toHaveBeenCalledTimes(1);
+  },
+);
+
 test("prepared surfaces preserve declared sampling and own GPU images independently of wrappers", async () => {
   const bitmaps = [{ close: vi.fn() }, { close: vi.fn() }];
   const decode = vi.fn().mockResolvedValueOnce(bitmaps[0]).mockResolvedValueOnce(bitmaps[1]);

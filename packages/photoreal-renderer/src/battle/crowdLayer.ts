@@ -106,25 +106,32 @@ export class PhotorealCrowd {
 
   private constructor(private readonly assets: Record<number, AppearanceBundle>) {}
 
+  /** A borrowed world/renderer must remain usable across preparation's async boundaries. */
   static async create(
     renderer: THREE.WebGPURenderer,
     scene: THREE.Scene,
     assets: Record<number, AppearanceBundle>,
+    assertUsable?: () => void,
   ): Promise<PhotorealCrowd> {
     const crowd = new PhotorealCrowd(assets);
-    await crowd.initialize(renderer, scene);
+    await crowd.initialize(renderer, scene, assertUsable);
     return crowd;
   }
 
-  private async initialize(renderer: THREE.WebGPURenderer, scene: THREE.Scene): Promise<void> {
+  private async initialize(
+    renderer: THREE.WebGPURenderer,
+    scene: THREE.Scene,
+    assertUsable?: () => void,
+  ): Promise<void> {
     await renderer.init();
+    assertUsable?.();
     const surfaces = new Map<AppearanceBundle["surface"], PreparedSoldierSurface>();
     const surfaceFor = async (
       source: AppearanceBundle["surface"],
     ): Promise<PreparedSoldierSurface> => {
       let surface = surfaces.get(source);
       if (!surface) {
-        surface = await prepareSoldierSurface(renderer, source);
+        surface = await prepareSoldierSurface(renderer, source, assertUsable);
         surfaces.set(source, surface);
         this.surfaces.add(surface);
       }
@@ -157,10 +164,12 @@ export class PhotorealCrowd {
           group = { palette, pending: [], buckets: [] };
           this.groups.push(group);
           await palette.initialize(bundle.manifest.far);
+          assertUsable?.();
         }
         const paletteGroup = group;
         const tiers = bundle.tiers;
         const surface = await surfaceFor(bundle.surface);
+        assertUsable?.();
         this.buckets[classId] = tiers.map((tierMesh, lod) => {
           const geometry = soldierGeometry(tierMesh);
           const mesh = new THREE.Mesh(
@@ -202,7 +211,10 @@ export class PhotorealCrowd {
             resolveLocalSample(bundle.animation, far.clip, far.phase),
           ),
         );
-        atlas = await createSoldierImpostorAtlas(renderer, bundle.farMesh, farPalette, surface);
+        atlas = await createSoldierImpostorAtlas(renderer, bundle.farMesh, farPalette, surface, {
+          assertUsable,
+        });
+        assertUsable?.();
         this.impostors[classId] = new OctahedralImpostorLayer(scene, atlas);
         atlas = null;
       }
@@ -216,6 +228,7 @@ export class PhotorealCrowd {
       for (const surface of this.surfaces) surface.dispose();
       for (const layer of Object.values(this.impostors)) layer.dispose();
       atlas?.dispose();
+      assertUsable?.();
       throw error;
     }
   }

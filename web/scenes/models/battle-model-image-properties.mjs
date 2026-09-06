@@ -263,7 +263,8 @@ export async function run(ctx) {
           JSON.stringify(d),
         );
       }
-      for (const mode of ["checker", "base", "mr", "ao"]) {
+      // Normal direction is independently pinned by battle-model-normal-frame.
+      for (const mode of ["checker", "base", "mr", "ao", "normal"]) {
         const d = difference(captures[`${tier}/scalar`], captures[`${tier}/${mode}`]);
         ctx.check(
           `${tier}: ${mode} has a non-vacuous response`,
@@ -285,10 +286,6 @@ export async function run(ctx) {
         `${tier}: checker samples more than one UV texel`,
         uvResponse.every((d) => d.changed > 100),
         JSON.stringify(uvResponse),
-      );
-      ctx.check(
-        `${tier}: normal image does not enable deferred normal-map shading`,
-        captures[`${tier}/normal`].equals(captures[`${tier}/scalar`]),
       );
     }
 

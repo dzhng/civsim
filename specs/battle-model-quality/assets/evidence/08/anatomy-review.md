@@ -122,6 +122,34 @@ local blend remain from this pass.
 The [artifact hashes](artifact-hashes.json) identify retained source GLBs and
 capture bytes; they certify provenance, not visual quality.
 
+## Relaxed hand study
+
+[Hand-curl](hand-curl-close.png) replaces straight fingertips with a curved
+resting shape. Its [front](hand-curl-hand-front.png) and
+[bent](hand-curl-hand-bent.png) crops are compared with the matching
+[prior front](shoulder-blend-hand-front.png) and
+[prior bent](shoulder-blend-hand-bent.png). Full sheets have different hashes;
+production pose and byte-stable repeat checks pass in its
+[capture](hand-curl-capture.json), and the exact candidate bake check passes.
+
+Root and a fresh neutral reviewer favor the curl direction slightly (moderate
+confidence): the prior splayed rake-like fingertips become more compact. The
+bent hand, however, loses readable finger separation and resembles a flattened
+mitten. Both versions have an overly spread straight thumb projecting toward the
+torso. The next isolated trial reduces thumb spread. These small raster crops
+do not prove finger intersections, joint anatomy or a weapon grip; no hand or
+whole-body acceptance is claimed.
+
+[Thumb-relax](thumb-relax-close.png) reduces only the thumb's spread relative to
+the curled fingers. Root and a fresh unprimed reviewer prefer its more compact
+resting silhouette (moderate confidence), especially in the
+[bent crop](thumb-relax-hand-bent.png). The prior sideways spur becomes less
+conspicuous. The [front crop](thumb-relax-hand-front.png) still shows a thin
+pointed thumb and jagged fingertips; palm/webbing and three-dimensional grip
+quality remain unproven. Retain the direction, not hand acceptance. The
+[production capture](thumb-relax-capture.json) and exact candidate bake check
+pass their pose/repeat/export contracts; initial unaccepted baselines differ.
+
 ## Source/export correctness
 
 Applying Blender's smoothing modifier invalidated a retained vertex-group

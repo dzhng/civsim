@@ -320,17 +320,17 @@ def build():
             base = wrist + arm_axis * .084 + across * offset
             parts.append(loft(f"finger-{finger}.{side}", [
                 (base, .0085, .010),
-                (base + arm_axis * (length * .45) + Vector((0, -.002, 0)), .008, .009),
-                (base + arm_axis * (length * .82) + Vector((0, -.008, 0)), .0065, .007),
-                (base + arm_axis * length + Vector((0, -.013, 0)), .004, .005),
+                (base + arm_axis * (length * .43) + Vector((0, -length * .06, 0)), .008, .009),
+                (base + arm_axis * (length * .76) + Vector((0, -length * .24, 0)), .0065, .007),
+                (base + arm_axis * (length * .88) + Vector((0, -length * .43, 0)), .004, .005),
             ], segments=12, across=across))
         thumb_base = wrist + arm_axis * .023 - across * .026
-        thumb_axis = (arm_axis * .5 - across * .86).normalized()
+        thumb_axis = (arm_axis * .85 - across * .53).normalized()
         parts.append(loft("thumb." + side, [
             (thumb_base, .017, .017),
             (thumb_base + thumb_axis * .025, .013, .013),
-            (thumb_base + thumb_axis * .051 + arm_axis * .01, .009, .010),
-            (thumb_base + thumb_axis * .064 + arm_axis * .018, .004, .005),
+            (thumb_base + thumb_axis * .051 + arm_axis * .01 + Vector((0, -.009, 0)), .009, .010),
+            (thumb_base + thumb_axis * .060 + arm_axis * .018 + Vector((0, -.020, 0)), .004, .005),
         ], segments=12, across=arm_axis))
         parts.append(loft("ear." + side, [
             (point(.073, .011, 1.627), .007, .012),

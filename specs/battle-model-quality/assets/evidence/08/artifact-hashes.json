@@ -63,6 +63,14 @@
     "torso-soft-close.png": "6f1e0ec75d6485616b4da41231a557e24d1d6cdbd4879d306e4af169c235fe14",
     "torso-soft-gameplay-pitch.png": "2f948e62bc237e29e065aa7969fd658ec38ea49a9f162d9b8c86b1f4219bac7d",
     "torso-soft-source.glb": "8bb69d64bb2a8e6b284502d0647c7b07cd9ddfb5c1719bddb5bcb879d0d4b3ba",
-    "torso-source.glb": "a743a0113bb721f20e484c2f3f4eb3f60a75b4495924f83a1e1f15f0687fbd36"
+    "torso-source.glb": "a743a0113bb721f20e484c2f3f4eb3f60a75b4495924f83a1e1f15f0687fbd36",
+    "hand-curl-capture.json": "fb91b4e8563eb9e0a83133190644f20380058204a405a3fae04dc6c14aad6c94",
+    "hand-curl-close.png": "e7819c3bcc53b1edc9f4208ec4fb4c761db36a13f09e01d62af0b8c255b32c7c",
+    "hand-curl-gameplay-pitch.png": "c0c846eedef6d762d5444e8fb6c7a29b907daed24a71cc7cb348b05ecd01beea",
+    "hand-curl-source.glb": "7189c6039e8165663002cd5f2202e252e04cbbc159c83a3f3083dda2343ed0c1",
+    "thumb-relax-capture.json": "84c025f023a2a3a5ee50ecbb547cc803f6b1070fc7df10eb27e91e22cb134d71",
+    "thumb-relax-close.png": "aa58312564097a37386fbbe1a8688326e873d0037e8015beb8b6d0127ba4e1f3",
+    "thumb-relax-gameplay-pitch.png": "51f38069fb8ba541f79034dbbac929d3babbfb58646786ce44b2e3fde81df552",
+    "thumb-relax-source.glb": "af9be3016c60f2164248ba7bad230775de03714ae43b271f302bebbb47cf194f"
   }
 }

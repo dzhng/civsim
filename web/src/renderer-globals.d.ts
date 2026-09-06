@@ -55,6 +55,7 @@ declare const GPUShaderStage: {
 };
 
 declare const GPUTextureUsage: {
+  readonly COPY_SRC: number;
   readonly COPY_DST: number;
   readonly RENDER_ATTACHMENT: number;
   readonly STORAGE_BINDING: number;

@@ -40,7 +40,7 @@ export async function route(ctx: LabContext) {
     yaw: 0,
   });
   // A sparse catalog proves IDs are identities, not offsets in a packed list.
-  const pipeline = new SkinnedCrowdPipeline(shell, {
+  const pipeline = await SkinnedCrowdPipeline.create(shell, {
     0: appearances[0],
     1: { ...appearances[1], animation: stretched },
     5: appearances[5],

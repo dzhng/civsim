@@ -147,6 +147,7 @@ export class CampaignRenderer {
   fixedTime: number | null = null;
 
   private passes: CampaignPasses | null = null;
+  private destroyed = false;
   private mountedClasses: number[] = [];
   private surface: CampaignSurface;
   private staticLabels: CampaignLabel[] = [];
@@ -605,6 +606,7 @@ export class CampaignRenderer {
   }
 
   destroy() {
+    this.destroyed = true;
     window.removeEventListener("resize", this.onResize);
     this.graphicsUnsubscribe?.();
     this.graphicsUnsubscribe = null;
@@ -763,10 +765,29 @@ export class CampaignRenderer {
     const appearances = await loadAppearanceCatalog(
       new URL("/assets/soldiers/catalog.json", location.href).href,
     );
+    if (this.destroyed) return;
     assertCrowdClipCoverage(appearances);
     // One projector engine-wide: every pass projects through camera3d's viewProj
     // and depth-tests reverse-Z against the shell's depth32float world buffer.
     const shell = await createFrameShell(this.canvas, { sun: CAMPAIGN_ENVIRONMENT });
+    if (this.destroyed) {
+      shell.destroy();
+      return;
+    }
+    // Finish asynchronous preparation before allocating any synchronous passes.
+    // A teardown during decoding must not publish a resurrected campaign world.
+    let soldierCrowd: SkinnedCrowdPipeline;
+    try {
+      soldierCrowd = await SkinnedCrowdPipeline.create(shell, appearances);
+    } catch (error) {
+      shell.destroy();
+      throw error;
+    }
+    if (this.destroyed) {
+      soldierCrowd.dispose();
+      shell.destroy();
+      return;
+    }
     const controlledStage = isControlledStage(this.data);
     const map = new CampaignMapPass(
       shell,
@@ -821,7 +842,6 @@ export class CampaignRenderer {
     this.mountedClasses = Object.entries(appearances)
       .filter(([, bundle]) => bundle.manifest.mounted)
       .map(([id]) => Number(id));
-    const soldierCrowd = new SkinnedCrowdPipeline(shell, appearances);
     const soldierShadows = new SoldierShadowDecalPass(shell);
     const selection = new CampaignSelectionPass(shell);
     const labels = new CampaignLabelPass(shell);

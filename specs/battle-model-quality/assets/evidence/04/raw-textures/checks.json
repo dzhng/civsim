@@ -1,0 +1,167 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-06T05:24:03.733Z",
+  "target": "http://127.0.0.1:5185",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "soldier-materials",
+      "file": "system/soldier-materials.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "soldier-materials",
+      "name": "snapshot soldier-materials-authored",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "material table permutation and matching ID remap preserve exact pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "snapshot soldier-materials-blue",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "soldier-materials: body and shield do not carry faction tint",
+      "ok": true,
+      "detail": "{\"bodyBlue\":[61.52141858839972,85.81656184486373,144.75230607966458],\"bodyRed\":[62.81470999301188,85.49238294898672,143.6546820405311],\"bodyFactionDiff\":1.7269838288355308,\"shieldBlue\":[135.71136691591238,144.13974157155977,91.45838252656435],\"shieldRed\":[135.71136691591238,144.13974157155977,91.45838252656435],\"shieldFactionDiff\":0}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "soldier-materials: only a tiny armband-sized region changes by faction",
+      "ok": true,
+      "detail": "{\"changedPixels\":898,\"changedShare\":0.00378,\"totalPixels\":237350}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "explicit mask disabled: ordinary blue is identical for both factions",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "seed cannot change uniform surface color",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "unlit front plane receives fill but no directional specular",
+      "ok": true,
+      "detail": "{\"unlitFace\":[55.71458333333333,68.125,90.99166666666666],\"unlitFaceWithoutKey\":[55.71458333333333,68.125,90.99166666666666]}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "snapshot soldier-materials-metal",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "same-color roughness changes rendered response with faction tint disabled",
+      "ok": true,
+      "detail": "{\"changed\":51669,\"total\":237350,\"share\":0.21769117337265642}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "same-color metallic changes rendered response with faction tint disabled",
+      "ok": true,
+      "detail": "{\"changed\":51669,\"total\":237350,\"share\":0.21769117337265642}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "raw base texture matches linear scalar oracle (one sRGB decode)",
+      "ok": true,
+      "detail": "1 maximum byte error"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "MR-only map ignores unrelated red occlusion channel",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "raw MR G/B match independent scalar factors",
+      "ok": true,
+      "detail": "1 maximum byte error"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "occlusion-only map ignores unrelated G/B channels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "zero occlusion strength preserves unoccluded scalar image",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "authored occlusion strength changes visible surfaces",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "normal map transported without claiming posed normal shading before04c",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "normal image has complete authored-size mip chain before04c",
+      "ok": true,
+      "detail": "[{\"channel\":\"normal\",\"width\":4,\"height\":2,\"mipLevels\":3}]"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "non-mip source sampler allocates only level zero",
+      "ok": true,
+      "detail": "[{\"channel\":\"baseColor\",\"width\":4,\"height\":2,\"mipLevels\":1}]"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "textured material slots retain one draw for this appearance",
+      "ok": true,
+      "detail": "{\"plain\":1,\"textured\":1}"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "asymmetric filtered texture follows UV0 without flip/rotation",
+      "ok": true,
+      "detail": "1 maximum byte error against vertex gradient"
+    },
+    {
+      "scenario": "soldier-materials",
+      "name": "snapshot soldier-materials-blender-checker",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

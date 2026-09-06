@@ -6,7 +6,14 @@ import {
 } from "../../soldier-assets/src/mesh";
 import type { VatBake } from "../../soldier-assets/src/schema";
 import type { AppearanceBundle } from "../../soldier-assets/src/appearanceBundle";
-import { packSoldierMaterials, type SoldierMaterial } from "../../soldier-assets/src/material";
+import {
+  packSoldierMaterials,
+  SOLDIER_MATERIAL_ROWS,
+  SOLDIER_TEXTURE_COLOR_SPACES,
+  type SoldierSurface,
+  type SoldierTextureChannel,
+} from "../../soldier-assets/src/material";
+import { uploadImageTexture } from "./imageTexture";
 import { assertStorageBufferFits } from "./capabilities";
 import { compileShader } from "./compileShader";
 import { GrowableBuffer, makeIndexBuffer, makeVertexBuffer } from "./gpuBuffers";
@@ -24,6 +31,13 @@ interface SkinnedCrowdStats {
   vatVariants: number;
   materialVariants: number;
   materialTableBytes: number;
+  imageTextures: {
+    channel: SoldierTextureChannel;
+    width: number;
+    height: number;
+    mipLevels: number;
+  }[];
+  normalMaps: "transport-only";
   lighting: SkinnedLightingStats;
   cameraContract: "shared-world-camera-wgsl";
 }
@@ -111,6 +125,12 @@ struct Vat { width:f32, height:f32, bones:f32, pad:f32, data: array<f32> };
 struct Material { factionMaskStrength: f32, pad0: f32, pad1: f32, pad2: f32 };
 @group(2) @binding(0) var materialTable: texture_2d<f32>;
 @group(2) @binding(1) var<uniform> mat: Material;
+@group(2) @binding(2) var baseMap: texture_2d<f32>;
+@group(2) @binding(3) var baseSampler: sampler;
+@group(2) @binding(4) var normalMap: texture_2d<f32>;
+@group(2) @binding(5) var normalSampler: sampler;
+@group(2) @binding(6) var ormMap: texture_2d<f32>;
+@group(2) @binding(7) var ormSampler: sampler;
 
 struct VsOut {
   @builtin(position) pos: vec4f,
@@ -124,6 +144,7 @@ struct VsOut {
   @location(7) factionMask: f32,
   @location(8) worldNormal: vec3f,
   @location(9) worldPosition: vec3f,
+  @location(10) uv: vec2f,
 };
 
 fn vatTexel(frame: f32, row: f32) -> vec4f {
@@ -148,6 +169,7 @@ fn vs(
   @location(7) inst2: vec4f,
   @location(8) materialId: f32,
   @location(9) factionMask: f32,
+  @location(10) uv: vec2f,
 ) -> VsOut {
   let clipStart = inst1.y;
   let clipFrames = max(inst1.z, 1.0);
@@ -180,6 +202,7 @@ fn vs(
   var out: VsOut;
   out.pos = projectWorld(world);
   out.color = color;
+  out.uv = uv;
   out.materialId = u32(materialId);
   out.factionMask = factionMask;
   out.worldNormal = worldNormal;
@@ -207,13 +230,19 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   accent = select(accent, neutral, in.faction > 1.5);
   let surface = textureLoad(materialTable, vec2i(i32(in.materialId), 0), 0);
   let factors = textureLoad(materialTable, vec2i(i32(in.materialId), 1), 0);
+  let uses = textureLoad(materialTable, vec2i(i32(in.materialId), 2), 0);
+  // Sample outside slot-dependent control flow so implicit derivatives stay valid.
+  let baseTexel = textureSample(baseMap, baseSampler, in.uv);
+  let ormTexel = textureSample(ormMap, ormSampler, in.uv);
+  let mappedBase = surface * mix(vec4f(1), baseTexel, uses.x);
   let teamMask = clamp(in.factionMask, 0.0, 1.0) * mat.factionMaskStrength;
   let armBand = srgbToLinear(mix(accent, vec3f(0.42, 0.34, 0.26), 0.35));
-  let base = mix(in.color.rgb * surface.rgb, armBand, teamMask);
+  let base = mix(in.color.rgb * mappedBase.rgb, armBand, teamMask);
   let light01 = clamp((in.light - 0.34) / 0.78, 0.0, 1.0);
   let grade = mix(fill, key, light01);
-  let rough = factors.r;
-  let metal = factors.g;
+  let rough = factors.r * mix(1.0, ormTexel.g, uses.z);
+  let metal = factors.g * mix(1.0, ormTexel.b, uses.z);
+  let occlusion = mix(1.0, mix(1.0, ormTexel.r, factors.b), uses.w);
   var shaded = base * (1.0 - metal) * (0.62 + light01 * 0.58) * grade;
   let n = normalize(in.worldNormal);
   let view = normalize(cam.eye - in.worldPosition);
@@ -230,11 +259,11 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   shaded += fresnel * environmentSpec + f0 * spec * key * max(dot(n, sunDirection()), 0.0);
   shaded += vec3f(0.055, 0.045, 0.026) * in.rim * (0.06 + teamMask * 0.08);
   shaded = mix(shaded, vec3f(0.92, 0.84, 0.60), (1.0 - in.height) * 0.035);
-  shaded *= factors.b * SKINNED_EXPOSURE;
+  shaded *= occlusion * SKINNED_EXPOSURE;
   // Corpses desaturate and darken so the fallen read as dead, not living.
   let lum = dot(shaded, vec3f(0.30, 0.59, 0.11));
   shaded = mix(shaded, vec3f(lum) * 0.62 + vec3f(0.06, 0.04, 0.03), in.corpse * 0.7);
-  return vec4f(linearToSrgb(clamp(shaded, vec3f(0.0), vec3f(1.0))), in.color.a * surface.a);
+  return vec4f(linearToSrgb(clamp(shaded, vec3f(0.0), vec3f(1.0))), in.color.a * mappedBase.a);
 }
 fn srgbToLinear(value: vec3f) -> vec3f {
   return select(pow((value + 0.055) / 1.055, vec3f(2.4)), value / 12.92, value <= vec3f(0.04045));
@@ -244,24 +273,114 @@ fn linearToSrgb(value: vec3f) -> vec3f {
 }`;
 
 export class SkinnedCrowdPipeline {
-  private pipeline: GPURenderPipeline;
+  private pipeline!: GPURenderPipeline;
   private resources: MeshResource[] = [];
   private resourceLookup = new Map<number, MeshResource[]>();
-  private vatVariants: number;
-  private materialUniform: GPUBuffer;
+  private vatVariants = 0;
+  private materialUniform!: GPUBuffer;
   private materialVariants = 0;
   private materialTableBytes = 0;
   private owned = new Set<GPUBuffer | GPUTexture>();
   private disposed = false;
   private readonly lighting: SkinnedLightingEnvironment;
+  private images = new Map<SoldierSurface, Partial<Record<SoldierTextureChannel, GPUTexture>>>();
+  private imageStats: SkinnedCrowdStats["imageTextures"] = [];
+  private neutrals = new Map<SoldierTextureChannel, GPUTexture>();
 
-  constructor(
+  private constructor(
     private shell: RawFrameShell,
-    appearances: Record<number, AppearanceBundle>,
     opts: { lighting?: SkinnedLightingEnvironment } = {},
   ) {
     this.lighting = opts.lighting ?? DEFAULT_SKINNED_LIGHTING;
-    const device = shell.device;
+  }
+
+  static async create(
+    shell: RawFrameShell,
+    appearances: Record<number, AppearanceBundle>,
+    opts: { lighting?: SkinnedLightingEnvironment } = {},
+  ): Promise<SkinnedCrowdPipeline> {
+    const crowd = new SkinnedCrowdPipeline(shell, opts);
+    try {
+      for (const [classId, { surface }] of Object.entries(appearances)) {
+        if (crowd.images.has(surface)) continue;
+        const images: Partial<Record<SoldierTextureChannel, GPUTexture>> = {};
+        crowd.images.set(surface, images);
+        for (const channel of Object.keys(
+          SOLDIER_TEXTURE_COLOR_SPACES,
+        ) as SoldierTextureChannel[]) {
+          const source = surface.textures[channel];
+          if (!source) continue;
+          let bitmap: ImageBitmap | undefined;
+          try {
+            bitmap = await createImageBitmap(new Blob([source.image], { type: source.mimeType }), {
+              colorSpaceConversion: "none",
+              premultiplyAlpha: "none",
+              imageOrientation: "none",
+            });
+            const texture = crowd.own(
+              await uploadImageTexture(shell.device, bitmap, {
+                colorSpace: SOLDIER_TEXTURE_COLOR_SPACES[channel],
+                generateMipmaps: source.sampler.mipmapFilter !== "none",
+              }),
+            );
+            images[channel] = texture;
+            crowd.imageStats.push({
+              channel,
+              width: texture.width,
+              height: texture.height,
+              mipLevels: texture.mipLevelCount,
+            });
+          } catch (error) {
+            throw new Error(
+              `Raw soldier appearance ${classId} ${channel} image preparation failed: ${String(error)}`,
+              { cause: error },
+            );
+          } finally {
+            bitmap?.close();
+          }
+        }
+      }
+      const device = shell.device;
+      device.pushErrorScope("out-of-memory");
+      device.pushErrorScope("internal");
+      device.pushErrorScope("validation");
+      let submissionError: unknown;
+      let failed = false;
+      try {
+        crowd.initialize(appearances);
+      } catch (error) {
+        submissionError = error;
+        failed = true;
+      }
+      const admission = await Promise.allSettled([
+        device.popErrorScope(),
+        device.popErrorScope(),
+        device.popErrorScope(),
+      ]);
+      const failures = admission.flatMap((result) =>
+        result.status === "rejected"
+          ? [String(result.reason)]
+          : result.value
+            ? [result.value.message]
+            : [],
+      );
+      if (failed || failures.length)
+        throw new Error(
+          `Raw soldier surface preparation failed: ${[
+            ...(failed ? [String(submissionError)] : []),
+            ...failures,
+          ].join("; ")}`,
+          { cause: submissionError },
+        );
+      return crowd;
+    } catch (error) {
+      crowd.dispose();
+      throw error;
+    }
+  }
+
+  private initialize(appearances: Record<number, AppearanceBundle>) {
+    const device = this.shell.device;
     const entries = Object.entries(appearances);
     if (entries.length === 0)
       throw new Error("SkinnedCrowdPipeline requires at least one appearance");
@@ -281,6 +400,18 @@ export class SkinnedCrowdPipeline {
             texture: { sampleType: "unfilterable-float" },
           },
           { binding: 1, visibility: GPUShaderStage.FRAGMENT, buffer: { type: "uniform" } },
+          ...[2, 4, 6].flatMap((binding) => [
+            {
+              binding,
+              visibility: GPUShaderStage.FRAGMENT,
+              texture: { sampleType: "float" as const },
+            },
+            {
+              binding: binding + 1,
+              visibility: GPUShaderStage.FRAGMENT,
+              sampler: { type: "filtering" as const },
+            },
+          ]),
         ],
       });
       this.materialUniform = this.own(
@@ -295,7 +426,7 @@ export class SkinnedCrowdPipeline {
       // Build one VatResource per distinct VatBake and reuse it for every class
       // that points at it (the all-placeholder case → a single resource).
       const cache = new Map<VatBake, VatResource>();
-      const materialCache = new Map<SoldierMaterial[], GPUBindGroup>();
+      const materialCache = new Map<SoldierSurface, GPUBindGroup>();
       const resourceFor = (vat: VatBake): VatResource => {
         const existing = cache.get(vat);
         if (existing) return existing;
@@ -309,10 +440,10 @@ export class SkinnedCrowdPipeline {
       for (const [id, bundle] of entries) {
         const classId = Number(id);
         const vat = resourceFor(bundle.animation);
-        let material = materialCache.get(bundle.materials);
+        let material = materialCache.get(bundle.surface);
         if (!material) {
-          material = this.createMaterial(bundle.materials, materialLayoutGroup, materialCache.size);
-          materialCache.set(bundle.materials, material);
+          material = this.createMaterial(bundle.surface, materialLayoutGroup, materialCache.size);
+          materialCache.set(bundle.surface, material);
         }
         this.resourceLookup.set(
           classId,
@@ -342,16 +473,17 @@ export class SkinnedCrowdPipeline {
   }
 
   private createMaterial(
-    materials: SoldierMaterial[],
+    surface: SoldierSurface,
     layout: GPUBindGroupLayout,
     index: number,
   ): GPUBindGroup {
     const device = this.shell.device;
+    const { materials } = surface;
     const data = packSoldierMaterials(materials);
     const texture = this.own(
       device.createTexture({
         label: `skinned-material-table-${index}`,
-        size: { width: materials.length, height: 2 },
+        size: { width: materials.length, height: SOLDIER_MATERIAL_ROWS },
         format: "rgba32float",
         usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
       }),
@@ -360,7 +492,7 @@ export class SkinnedCrowdPipeline {
       { texture },
       data,
       { bytesPerRow: materials.length * 16 },
-      { width: materials.length, height: 2 },
+      { width: materials.length, height: SOLDIER_MATERIAL_ROWS },
     );
     this.materialTableBytes += data.byteLength;
     return device.createBindGroup({
@@ -369,8 +501,48 @@ export class SkinnedCrowdPipeline {
       entries: [
         { binding: 0, resource: texture.createView() },
         { binding: 1, resource: { buffer: this.materialUniform } },
+        ...(["baseColor", "normal", "orm"] as const).flatMap((channel, index) => {
+          const image = this.images.get(surface)?.[channel] ?? this.neutralImage(channel);
+          const sampler = surface.textures[channel]?.sampler;
+          return [
+            { binding: 2 + index * 2, resource: image.createView() },
+            {
+              binding: 3 + index * 2,
+              resource: device.createSampler({
+                addressModeU: sampler?.wrapS ?? "clamp-to-edge",
+                addressModeV: sampler?.wrapT ?? "clamp-to-edge",
+                magFilter: sampler?.magFilter ?? "nearest",
+                minFilter: sampler?.minFilter ?? "nearest",
+                mipmapFilter: sampler?.mipmapFilter === "linear" ? "linear" : "nearest",
+                lodMaxClamp:
+                  !sampler || sampler.mipmapFilter === "none" ? 0 : image.mipLevelCount - 1,
+              }),
+            },
+          ];
+        }),
       ],
     });
+  }
+
+  private neutralImage(channel: SoldierTextureChannel): GPUTexture {
+    const existing = this.neutrals.get(channel);
+    if (existing) return existing;
+    const texture = this.own(
+      this.shell.device.createTexture({
+        label: `skinned-neutral-${channel}`,
+        size: [1, 1],
+        format: channel === "baseColor" ? "rgba8unorm-srgb" : "rgba8unorm",
+        usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+      }),
+    );
+    this.shell.device.queue.writeTexture(
+      { texture },
+      new Uint8Array(channel === "normal" ? [128, 128, 255, 255] : [255, 255, 255, 255]),
+      { bytesPerRow: 4 },
+      [1, 1],
+    );
+    this.neutrals.set(channel, texture);
+    return texture;
   }
 
   private createVatResource(
@@ -450,6 +622,8 @@ export class SkinnedCrowdPipeline {
       vatVariants: this.vatVariants,
       materialVariants: this.materialVariants,
       materialTableBytes: this.materialTableBytes,
+      imageTextures: this.imageStats,
+      normalMaps: "transport-only",
       lighting: skinnedLightingStats(this.lighting),
       cameraContract: "shared-world-camera-wgsl",
     };
@@ -599,6 +773,11 @@ export class SkinnedCrowdPipeline {
               shaderLocation: 9,
               offset: SOLDIER_VERTEX_LAYOUT.offsets.faction * 4,
               format: "float32",
+            },
+            {
+              shaderLocation: 10,
+              offset: SOLDIER_VERTEX_LAYOUT.offsets.uv * 4,
+              format: "float32x2",
             },
           ],
         },

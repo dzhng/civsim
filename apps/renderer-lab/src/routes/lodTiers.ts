@@ -13,7 +13,7 @@ export async function route(ctx: LabContext) {
     pitch: 0.18,
     yaw: 0,
   });
-  const pipeline = new SkinnedCrowdPipeline(shell, appearances);
+  const pipeline = await SkinnedCrowdPipeline.create(shell, appearances);
 
   // Three soldiers side by side, explicitly L0/L1/L2, so detail reduction is
   // directly reviewable.

@@ -1,0 +1,50 @@
+{
+  "kind": "screenshot-parity-diff",
+  "generatedAt": "2026-09-06T05:20:54.976Z",
+  "note": "Lower parityDistance means the candidate is closer to the reference for this fixed pair. This is a distance metric, not an acceptance gate.",
+  "pairCount": 1,
+  "worstPair": "checker",
+  "results": [
+    {
+      "id": "checker",
+      "current": "throwaway/raw-texture-reference/checker.png",
+      "candidate": "throwaway/raw-texture-candidate/checker.png",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.01941,
+      "grayscale": {
+        "mae": 1.14897,
+        "rmse": 11.48776,
+        "diffRatio16": 0.01183,
+        "diffRatio32": 0.01183,
+        "diffRatio64": 0.00637,
+        "pixelmatchRatio": 0.01183
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.71962,
+        "terrainLikeRatioCandidate": 0.7137,
+        "avgLuminanceCurrent": 116.83669,
+        "avgLuminanceCandidate": 115.68771,
+        "avgLuminanceDelta": -1.14897,
+        "edgeEnergyCurrent": 0.05664,
+        "edgeEnergyCandidate": 0.05968,
+        "edgeEnergyRatio": 1.05373,
+        "edgeDiffRatio32": 0.00396
+      },
+      "artifacts": {
+        "sideBySide": "raw-texture-comparison/checker-side-by-side.png",
+        "currentGray": "raw-texture-comparison/checker-current-gray.png",
+        "candidateGray": "raw-texture-comparison/checker-candidate-gray.png",
+        "absDiff": "raw-texture-comparison/checker-absdiff.png",
+        "pixelmatch": "raw-texture-comparison/checker-pixelmatch.png",
+        "currentEdges": "raw-texture-comparison/checker-current-edges.png",
+        "candidateEdges": "raw-texture-comparison/checker-candidate-edges.png",
+        "edgeDiff": "raw-texture-comparison/checker-edge-diff.png"
+      }
+    }
+  ]
+}

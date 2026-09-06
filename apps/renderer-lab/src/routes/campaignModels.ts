@@ -129,7 +129,7 @@ export async function route(ctx: LabContext) {
       new URL("/assets/soldiers/catalog.json", location.href).href,
     );
     const mountedClasses = Object.entries(appearances).filter(([, bundle]) => bundle.manifest.mounted).map(([id]) => Number(id));
-    soldierCrowd = new SkinnedCrowdPipeline(
+    soldierCrowd = await SkinnedCrowdPipeline.create(
       shell,
       appearances,
     );

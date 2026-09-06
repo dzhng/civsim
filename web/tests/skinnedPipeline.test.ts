@@ -7,9 +7,14 @@ import type { VatBake } from "@packages/soldier-assets/src/schema";
 import type { AppearanceBundle } from "@packages/soldier-assets/src/appearanceBundle";
 import { generatedFormation } from "@packages/crowd-runtime/src/instanceData";
 
-test("class clip lookup follows appearances, not their flattened LOD resources", () => {
+test("class clip lookup follows appearances, not their flattened LOD resources", async () => {
   vi.stubGlobal("GPUBufferUsage", { COPY_DST: 1, VERTEX: 2, INDEX: 4, UNIFORM: 8, STORAGE: 16 });
-  vi.stubGlobal("GPUTextureUsage", { TEXTURE_BINDING: 1, COPY_DST: 2 });
+  vi.stubGlobal("GPUTextureUsage", {
+    TEXTURE_BINDING: 1,
+    COPY_DST: 2,
+    COPY_SRC: 4,
+    RENDER_ATTACHMENT: 8,
+  });
   vi.stubGlobal("GPUShaderStage", { VERTEX: 1, FRAGMENT: 2 });
   try {
     // Only the hardware boundary is inert; construction, mesh packing, VAT
@@ -17,6 +22,13 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
     const writes = new Map<string, Float32Array>();
     const tables = new Map<string, Float32Array>();
     const allocations: { label: string; destroyed: number }[] = [];
+    const copiedImages: number[] = [];
+    const closedImages: number[] = [];
+    vi.stubGlobal("createImageBitmap", async (blob: Blob) => {
+      const marker = new Uint8Array(await blob.arrayBuffer())[0];
+      if (marker === 255) throw new Error("injected decode failure");
+      return { width: 2, height: 2, marker, close: () => closedImages.push(marker) };
+    });
     let failBindGroup: string | undefined;
     const allocate = (label: string) => {
       const resource = {
@@ -30,6 +42,9 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
       return resource;
     };
     const device = {
+      limits: { maxTextureDimension2D: 8192 },
+      pushErrorScope() {},
+      popErrorScope: () => Promise.resolve(null),
       createBindGroupLayout: () => ({}),
       createBindGroup: (descriptor: { label: string }) => {
         if (descriptor.label === failBindGroup)
@@ -37,13 +52,21 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
         return { label: descriptor.label };
       },
       createBuffer: (descriptor: { label: string }) => allocate(descriptor.label),
-      createTexture: (descriptor: { label: string }) =>
-        Object.assign(allocate(descriptor.label), { createView: () => ({}) }),
+      createTexture: (descriptor: { label: string; mipLevelCount?: number }) =>
+        Object.assign(allocate(descriptor.label), {
+          width: 2,
+          height: 2,
+          mipLevelCount: descriptor.mipLevelCount ?? 1,
+          createView: () => ({}),
+        }),
       createSampler: () => ({}),
       createShaderModule: () => ({}),
       createPipelineLayout: () => ({}),
       createRenderPipeline: () => ({}),
       queue: {
+        copyExternalImageToTexture(source: { source: { marker: number } }) {
+          copiedImages.push(source.source.marker);
+        },
         writeBuffer(buffer: { label: string }, offset: number, data: Float32Array) {
           writes.set(buffer.label, data.slice());
         },
@@ -57,7 +80,7 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
       info: { format: "rgba8unorm", caps: { maxStorageBufferBindingSize: 65536 } },
       sampleCount: 1,
       cameraBindGroupLayout: {},
-    } as unknown as ConstructorParameters<typeof SkinnedCrowdPipeline>[0];
+    } as unknown as Parameters<typeof SkinnedCrowdPipeline.create>[0];
     const mesh: SoldierMeshData = {
       positions: new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]),
       normals: new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1]),
@@ -108,25 +131,36 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
         clips: [],
       },
       animation: bake(start),
-      materials: [
-        { name: "neutral", baseColor: [1, 1, 1, 1], roughness: 1, metallic: 0 },
-        {
-          name: "ordinary-blue",
-          baseColor: [0.1, 0.2, 0.7, 1],
-          roughness: start === 0 ? 0.25 : 0.75,
-          metallic: 0.5,
-        },
-      ],
+      surface: {
+        textures: {},
+        materials: [
+          { name: "neutral", baseColor: [1, 1, 1, 1], roughness: 1, metallic: 0 },
+          {
+            name: "ordinary-blue",
+            baseColor: [0.1, 0.2, 0.7, 1],
+            roughness: start === 0 ? 0.25 : 0.75,
+            metallic: 0.5,
+          },
+        ],
+      },
       tiers: [mesh, mesh, { ...mesh, indices: new Uint32Array([0, 1, 2, 2, 1, 0]) }],
       farMesh: mesh,
     });
-    const crowd = new SkinnedCrowdPipeline(shell, { 0: appearance(0), 5: appearance(5) });
-    assert.equal(tables.size, 2, "each appearance uploads its own table, shared by all LODs");
+    const crowd = await SkinnedCrowdPipeline.create(shell, { 0: appearance(0), 5: appearance(5) });
+    assert.equal(
+      [...tables.keys()].filter((key) => key.startsWith("skinned-material-table")).length,
+      2,
+      "each appearance uploads its own table, shared by all LODs",
+    );
     assert.deepEqual(
       Array.from(tables.get("skinned-material-table-1")!),
-      Array.from(new Float32Array([1, 1, 1, 1, 0.1, 0.2, 0.7, 1, 1, 0, 1, 0, 0.75, 0.5, 1, 0])),
+      Array.from(
+        new Float32Array([
+          1, 1, 1, 1, 0.1, 0.2, 0.7, 1, 1, 0, 1, 1, 0.75, 0.5, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+        ]),
+      ),
     );
-    assert.equal(crowd.stats().materialTableBytes, 128);
+    assert.equal(crowd.stats().materialTableBytes, 192);
     assert.equal(writes.get("skinned-soldier-0-vertices")![24], 1);
     assert.equal(writes.get("skinned-soldier-0-vertices")![51], 0.5);
     assert.deepEqual(crowd.classClip(0, "idle"), {
@@ -191,13 +225,60 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
     assert.throws(() => crowd.upload([]), /disposed/);
     const beforeFailure = allocations.length;
     failBindGroup = "skinned-material-bg-1";
-    assert.throws(
-      () => new SkinnedCrowdPipeline(shell, { 0: appearance(0), 5: appearance(5) }),
+    await assert.rejects(
+      SkinnedCrowdPipeline.create(shell, { 0: appearance(0), 5: appearance(5) }),
       /injected material/,
     );
     assert.ok(
       allocations.slice(beforeFailure).every((resource) => resource.destroyed === 1),
       "partial construction releases material tables and earlier appearance resources",
+    );
+    failBindGroup = undefined;
+    const textured = (marker: number) => {
+      const bundle = appearance(0);
+      bundle.surface.textures.baseColor = {
+        image: new Uint8Array([marker]),
+        mimeType: "image/png",
+        sampler: {
+          magFilter: "nearest",
+          minFilter: "nearest",
+          mipmapFilter: "none",
+          wrapS: "repeat",
+          wrapT: "clamp-to-edge",
+        },
+      };
+      bundle.surface.materials[1].textures = { baseColor: true };
+      return bundle;
+    };
+    const first = textured(1),
+      second = textured(2);
+    second.surface.materials = first.surface.materials;
+    const texturedCrowd = await SkinnedCrowdPipeline.create(shell, { 0: first, 1: second });
+    assert.equal(
+      texturedCrowd.stats().materialVariants,
+      2,
+      "different images cannot share a binding just because scalar slots share an array",
+    );
+    assert.deepEqual(copiedImages, [1, 2]);
+    assert.deepEqual(
+      closedImages,
+      [1, 2],
+      "every successfully uploaded bitmap closes after preparation",
+    );
+    assert.deepEqual(texturedCrowd.stats().imageTextures, [
+      { channel: "baseColor", width: 2, height: 2, mipLevels: 1 },
+      { channel: "baseColor", width: 2, height: 2, mipLevels: 1 },
+    ]);
+    texturedCrowd.dispose();
+    const beforeDecodeFailure = allocations.length;
+    await assert.rejects(
+      SkinnedCrowdPipeline.create(shell, { 0: textured(3), 1: textured(255) }),
+      /decode failure/,
+    );
+    assert.equal(closedImages.at(-1), 3);
+    assert.ok(
+      allocations.slice(beforeDecodeFailure).every((resource) => resource.destroyed === 1),
+      "a later decode failure releases already-uploaded image textures",
     );
   } finally {
     vi.unstubAllGlobals();

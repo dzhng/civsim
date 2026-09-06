@@ -232,7 +232,7 @@ export async function createSkinnedPipeline(
   shell: RawFrameShell,
   environment = resolveBattleEnvironment("golden-hour"),
 ) {
-  return new SkinnedCrowdPipeline(
+  return SkinnedCrowdPipeline.create(
     shell,
     await loadAppearanceCatalog(new URL("/assets/soldiers/catalog.json", location.href).href),
     {

@@ -13,6 +13,10 @@ export const meta = {
     "Locally authored bent material swatches through production and stock glTF in the same world.",
 };
 
+// Accepted review framing belongs to this fixture, not the animation's culling
+// envelope, which can grow without any change to the surfaces being compared.
+const REVIEW_TARGET = [0.4382672905921936, -0.5502896159887314, 1.6100001335144043];
+
 export async function run(ctx) {
   requireSwiftShaderBaseline(meta.name);
   const page = await ctx.newPage({ viewport: { width: 1280, height: 800 } });
@@ -105,7 +109,7 @@ export async function run(ctx) {
         action.setLoop(THREE.LoopOnce, 1);
         action.clampWhenFinished = true;
         window.__swatchOracle = { holder, gltf, mixer, action, THREE };
-        return { hash, coreIdentity, bounds: h.world.soldierAssets[42].manifest.bounds };
+        return { hash, coreIdentity };
       },
       {
         loader:
@@ -151,7 +155,7 @@ export async function run(ctx) {
             clip: "bend",
             phase,
             formation: false,
-            target: identity.bounds.center,
+            target: REVIEW_TARGET,
             zoom: 125,
             yaw,
             pitch: 1.5,
@@ -313,7 +317,7 @@ export async function run(ctx) {
         yaw: 0.21,
         pitch: 1.5,
       });
-    }, identity.bounds.center);
+    }, REVIEW_TARGET);
     await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
     await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
     ctx.check(

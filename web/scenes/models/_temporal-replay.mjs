@@ -333,6 +333,20 @@ export async function verifyTemporalReplay(ctx, page, ids = [4, 7]) {
       `${id}: terminal rendered pose holds and snapshots retire`,
       changed(terminal.png, previous.png) === 0 && terminal.state.snapshotBytes === 0,
     );
+    // Isolated references are fresh crowds. Clear the production owner's draw/LOD
+    // history too: continuous replay may retain a different shadow tier inside
+    // hysteresis. Subsequent oracle creation already performs this same clear.
+    const comparisonBoundary = await page.evaluate(() => {
+      const crowd = window.__battleModels.world.crowd;
+      const before = crowd.stats().shadowTierHistogram;
+      crowd.upload([]);
+      return { before, after: crowd.stats().shadowTierHistogram };
+    });
+    ctx.check(
+      `${id}: isolated comparison clears prior shadow demand`,
+      Object.values(comparisonBoundary.after).every((count) => count === 0),
+      comparisonBoundary,
+    );
     for (const tick of [
       0,
       6.25,
@@ -353,6 +367,21 @@ export async function verifyTemporalReplay(ctx, page, ids = [4, 7]) {
         gpu.state.matrixError,
       );
       const readback = await draw(tick, { oracle: "readback" });
+      const tiers = Object.fromEntries(
+        Object.entries({ gpu, cpu, readback }).map(([name, sample]) => [
+          name,
+          {
+            main: sample.state.stats.visibleTierHistogram,
+            shadow: sample.state.stats.shadowTierHistogram,
+          },
+        ]),
+      );
+      ctx.check(
+        `${id}/${tick}: numerical references select identical main and shadow tiers`,
+        JSON.stringify(tiers.gpu) === JSON.stringify(tiers.cpu) &&
+          JSON.stringify(tiers.gpu) === JSON.stringify(tiers.readback),
+        tiers,
+      );
       const renderError = pixelError(gpu.png, readback.png);
       ctx.check(
         `${id}/${tick}: validated palette renders as CPU-preposed geometry`,

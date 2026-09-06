@@ -144,3 +144,22 @@ the new view entry; its original roll-sensitive culling assertions are unchanged
 New tests pin retained main impostors, shadow-off independence, actual single/CSM
 layer routing, and shared palette indices/capacity/upload bytes. No far-readability
 browser assertion, unit stat, camera or material threshold was weakened.
+
+## Isolated numerical comparisons need equal draw history
+
+The continuous replay gate deliberately preserves LOD hysteresis. Its numerical
+reference stage constructs fresh crowds, so that stage must clear the production
+crowd through its existing empty-upload boundary before the first comparison.
+Otherwise equal camera/pose inputs can select different shadow geometry: on the
+workbench, the mounted shadow span is10.239241 pixels, where a fresh crowd selects
+L1 but an existing L2 remains below its10.5px promotion boundary. The first
+class7/tick0 comparison consequently reported67,215 changed pixels/max17 despite
+exactly matching joint matrices. Later oracle creation already cleared production,
+which explains why only the initial comparison failed.
+
+The focused CPU fixture confirms those actual planner selections. The browser
+oracle now reports and asserts matching main/shadow histograms for production,
+CPU-composed and readback-composed crowds; the unchanged≤1-channel image check
+still judges their output. The continuous snapshots, culling assertions and
+snapshot inventory precede the reset and remain untouched. GPU re-verification
+is pending integration; no recovered pixel result is claimed from the CPU test.

@@ -96,6 +96,18 @@ test("a shadow caster does not replace the main view's distant impostor", () => 
   assert.deepEqual(plan.shadowCounts, { l0: 0, l1: 0, l2: 1, l3: 0 });
 });
 
+test("isolated mounted oracle needs the same initial shadow history as production", () => {
+  const instance = { ...body(0, 0), mounted: true };
+  // Production workbench terrain is 128m square, with the existing 40m shadow margin.
+  const views = [mainView(), shadowView(Math.hypot(128, 128) / 2 + 40)];
+  const retained = planPhotorealCrowdLods([instance], views, assets, [], undefined, [2]);
+  const fresh = planPhotorealCrowdLods([instance], views, assets, [], undefined, []);
+  assert.ok(Math.abs(fresh.shadowAssignments[0].screenSize - 10.239241433693344) < 1e-10);
+  assert.equal(retained.shadowAssignments[0].level, 2);
+  assert.equal(fresh.shadowAssignments[0].level, 1);
+  assert.deepEqual(retained.assignments, fresh.assignments);
+});
+
 test("removing shadow views leaves the main representation and its hysteresis unchanged", () => {
   const instance = body(0, 1000);
   const withShadow = planPhotorealCrowdLods([instance], [mainView(), shadowView()], assets);

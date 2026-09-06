@@ -41,6 +41,10 @@ export async function checkRawNormalLimits(ctx) {
       const { assertMappedTangentFrames } = await import(
         `/@fs${root}packages/soldier-assets/src/skin.ts`
       );
+      const { bakeLocalAnimation } = await import(
+        `/@fs${root}packages/soldier-assets/src/localAnimation.ts`
+      );
+      const { mat4Identity } = await import(`/@fs${root}packages/soldier-assets/src/localPose.ts`);
       const shell = await createFrameShell(document.querySelector("canvas"), {
         sun: { sunAzimuth: 0, sunElevation: 1 },
       });
@@ -132,14 +136,18 @@ export async function checkRawNormalLimits(ctx) {
           },
         };
         assertMappedTangentFrames(mesh, surface.materials);
-        const animation = structuredClone(source.animation);
-        animation.data.fill(0);
-        for (let bone = 0; bone < animation.height / 4; bone++)
-          for (let frame = 0; frame < animation.width; frame++)
-            for (let axis = 0; axis < 4; axis++)
-              animation.data[((bone * 4 + axis) * animation.width + frame) * 4 + axis] = 1;
+        const rig = {
+          bones: source.rig.bones.map((bone) => ({
+            ...bone,
+            parent: -1,
+            bind: { T: [0, 0, 0], R: [0, 0, 0, 1], S: [1, 1, 1] },
+            inverseBind: mat4Identity(),
+          })),
+          clips: [{ name: "bend", duration: 0, loop: false, tracks: {} }],
+        };
+        const animation = bakeLocalAnimation(rig);
         pipeline = await SkinnedCrowdPipeline.create(shell, {
-          0: { ...source, surface, animation, tiers: [mesh, mesh, mesh] },
+          0: { ...source, surface, rig, animation, tiers: [mesh, mesh, mesh] },
         });
         pipeline.upload(
           [
@@ -158,6 +166,7 @@ export async function checkRawNormalLimits(ctx) {
           { size: 1 },
         );
         shell.drawFrame({
+          precompute: (encoder) => pipeline.precompute(encoder),
           passes: [
             {
               id: "normal-limit",

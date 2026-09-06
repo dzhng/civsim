@@ -13,6 +13,7 @@ export async function route(ctx: LabContext) {
   const ground = new LabGroundPass(shell, [-42, -28, 84, 56]);
   shell.setCamera(chartSnapshot({ x: 0, y: 0, zoom: 10, pitch: 0.25, yaw: 0 }, shell));
   shell.drawFrame({
+    precompute: (encoder) => pipeline.precompute(encoder),
     passes: [
       labGroundFramePass(ground, "device-ground"),
       skinnedCrowdPass(pipeline, "device-crowd"),

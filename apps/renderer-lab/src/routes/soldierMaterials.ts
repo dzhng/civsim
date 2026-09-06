@@ -57,7 +57,7 @@ export async function route(ctx: LabContext) {
   const surface = ctx.params.get("surface") ?? "authored";
   const roughness = numberParam(ctx.params, "roughness", 0.55);
   const metallic = numberParam(ctx.params, "metallic", 0);
-  // Diagnostic overrides preserve the complete loader and production mesh/VAT
+  // Diagnostic overrides preserve the complete loader and production mesh/pose
   // path. Blue is ordinary albedo; only the independently authored mask may tint.
   if (surface === "blue" || surface === "gray") {
     bundle.surface = {

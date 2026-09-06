@@ -279,6 +279,7 @@ export async function route(ctx: LabContext) {
     },
   ];
   shell.drawFrame({
+    precompute: (encoder) => soldierCrowd?.precompute(encoder),
     clear: { r: 0.09, g: 0.1, b: 0.1, a: 1 },
     passes,
   });

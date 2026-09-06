@@ -36,7 +36,7 @@ interface RequestGpuDeviceOptions {
 
 // Bindings the renderer relies on above the spec's conservative device
 // defaults. We request them up to the adapter's ceiling so the granted device
-// has the headroom (e.g. large VAT storage buffers); caps reports what landed.
+// has the headroom (e.g. animation and pose storage buffers); caps reports what landed.
 const REQUESTED_LIMIT_KEYS = ['maxStorageBufferBindingSize', 'maxBufferSize'] as const;
 
 export async function requestGpuDevice(options: RequestGpuDeviceOptions = {}): Promise<GpuDeviceInfo> {

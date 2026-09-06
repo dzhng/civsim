@@ -8,7 +8,7 @@ export const meta = {
   tier: "full",
   snapshots: [],
   describe:
-    "Capability probe: granted limits/format, the fixed reverse-Z depth contract, VAT-buffer guard, and live GPU-time readout.",
+    "Capability probe: granted limits/format, the fixed reverse-Z depth contract, storage-buffer guard, and live GPU-time readout.",
 };
 
 function countNonBlank(png) {
@@ -111,9 +111,9 @@ async function runProbe(ctx, page) {
     JSON.stringify(stats.grantedLimits),
   );
   ctx.check(
-    "capabilities: VAT storage-buffer guard rejects oversize, accepts real size",
-    stats.vatGuard?.oversizeRejected === true && stats.vatGuard?.realSizeFits === true,
-    JSON.stringify(stats.vatGuard),
+    "capabilities: Storage-buffer guard rejects oversize, accepts real size",
+    stats.storageGuard?.oversizeRejected === true && stats.storageGuard?.realSizeFits === true,
+    JSON.stringify(stats.storageGuard),
   );
 
   // GPU-time readback lands a frame or two after submission; poll briefly.

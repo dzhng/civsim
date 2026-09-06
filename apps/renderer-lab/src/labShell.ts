@@ -286,8 +286,25 @@ export function animateSkinned(
   const tick = () => {
     const phaseOffset =
       (opts.phaseOffset ?? 0) + ((performance.now() - start) / 1000) * (opts.phaseSpeed ?? 0);
-    pipeline.upload(getInstances(), { forcedClip: opts.forcedClip, phaseOffset, size: opts.size });
+    const source = getInstances();
+    const instances =
+      opts.forcedClip || opts.phaseOffset !== undefined || opts.phaseSpeed
+        ? source.map((instance) => {
+            const clip = pipeline.classClip(instance.classId, opts.forcedClip ?? instance.clip);
+            const phase = instance.phase + phaseOffset;
+            return {
+              ...instance,
+              playback: undefined,
+              clip: clip.name,
+              // Only a running preview clock wraps. Explicit frozen phase one
+              // means the authored endpoint, including for looping clips.
+              phase: clip.loop && opts.phaseSpeed ? ((phase % 1) + 1) % 1 : phase,
+            };
+          })
+        : source;
+    pipeline.upload(instances, { size: opts.size });
     shell.drawFrame({
+      precompute: (encoder) => pipeline.precompute(encoder),
       passes: [
         labGroundFramePass(ground, "animated-skinned-ground"),
         {

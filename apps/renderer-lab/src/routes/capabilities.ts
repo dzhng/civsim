@@ -14,7 +14,7 @@ export async function route(ctx: LabContext) {
   });
   const caps = shell.info.caps;
 
-  // VAT storage-buffer guard: oversize is rejected before allocation; a real
+  // Storage-buffer guard: oversize is rejected before allocation; a real
   // size fits.
   let oversizeRejected = false;
   let oversizeMessage = "";
@@ -38,6 +38,7 @@ export async function route(ctx: LabContext) {
   const ground = new LabGroundPass(shell, [-42, -28, 84, 56]);
   const fixture = new Nested3dFixturePass(shell);
   const draw = (): FrameGraphCommands => ({
+    precompute: (encoder) => pipeline.precompute(encoder),
     passes: [
       labGroundFramePass(ground, "capabilities-ground"),
       {
@@ -65,8 +66,8 @@ export async function route(ctx: LabContext) {
       "sample count": stats.sampleCount,
       "timestamp-query": caps.timestampQuery,
       "GPU time (ms)": stats.gpuTimeMs === null ? "pending" : stats.gpuTimeMs.toFixed(3),
-      "VAT oversize rejected": oversizeRejected,
-      "VAT real size fits": realSizeFits,
+      "Storage oversize rejected": oversizeRejected,
+      "Storage real size fits": realSizeFits,
     });
     publish("capabilities", true, {
       route: "capabilities",
@@ -78,7 +79,7 @@ export async function route(ctx: LabContext) {
       },
       sampleCount: stats.sampleCount,
       gpuTimeMs: stats.gpuTimeMs,
-      vatGuard: { oversizeRejected, oversizeMessage, realSizeFits },
+      storageGuard: { oversizeRejected, oversizeMessage, realSizeFits },
       features: shell.info.features,
     });
     requestAnimationFrame(tick);

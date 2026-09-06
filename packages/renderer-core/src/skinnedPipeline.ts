@@ -4,7 +4,6 @@ import {
   SOLDIER_VERTEX_LAYOUT,
   type SoldierMeshData,
 } from "../../soldier-assets/src/mesh";
-import type { VatBake } from "../../soldier-assets/src/schema";
 import type { AppearanceBundle } from "../../soldier-assets/src/appearanceBundle";
 import { TANGENT_FRAME_EPSILON_SQUARED } from "../../soldier-assets/src/skin";
 import {
@@ -15,21 +14,22 @@ import {
   type SoldierTextureChannel,
 } from "../../soldier-assets/src/material";
 import { uploadImageTexture } from "./imageTexture";
-import { assertStorageBufferFits } from "./capabilities";
 import { compileShader } from "./compileShader";
 import { GrowableBuffer, makeIndexBuffer, makeVertexBuffer } from "./gpuBuffers";
-import { createVatLayout, resolveVatClip, sampleVatPhase, type VatLayout } from "./vatLayout";
+import { RawPosePalette } from "./rawPosePalette";
 import type { RawFrameShell, WorldRenderPass } from "./frameShell";
 import { WORLD_CAMERA_WGSL } from "./cameraWgsl";
 import { cameraOnlyPipeline } from "./pipelineContracts";
 
 interface SkinnedCrowdStats {
+  submissionReady: boolean;
   instances: number;
   drawCalls: number;
   vertices: number;
   clips: string[];
   meshVariants: number;
-  vatVariants: number;
+  rigVariants: number;
+  posePalettes: ReturnType<RawPosePalette["stats"]>[];
   materialVariants: number;
   materialTableBytes: number;
   imageTextures: {
@@ -61,17 +61,9 @@ interface SkinnedLightingStats {
   exposure: number;
 }
 
-// One GPU VAT resource (storage buffer + bind group + clip layout). Classes that
-// share the same VatBake share one of these, so the common all-placeholder case
-// allocates exactly one — no per-class memory or draw regression.
-interface VatResource {
-  bindGroup: GPUBindGroup;
-  layout: VatLayout;
-}
-
 interface MeshResource {
   mesh: SoldierMeshData;
-  vat: VatResource;
+  palette: RawPosePalette;
   material: GPUBindGroup;
   index: number;
   vertexBuffer: GPUBuffer;
@@ -119,8 +111,7 @@ function roundLighting(value: number): number {
 const SKINNED_WGSL = (lighting: SkinnedLightingEnvironment) => `
 ${WORLD_CAMERA_WGSL}
 ${skinnedLightingWgsl(lighting)}
-struct Vat { width:f32, height:f32, bones:f32, pad:f32, data: array<f32> };
-@group(1) @binding(0) var<storage, read> vat: Vat;
+@group(1) @binding(0) var<storage, read> palette: array<mat4x4f>;
 
 // Explicit slots: linear base RGBA, then roughness/metallic/occlusion.
 struct Material { factionMaskStrength: f32, pad0: f32, pad1: f32, pad2: f32 };
@@ -150,16 +141,6 @@ struct VsOut {
   @location(12) @interpolate(flat) tangentSign: f32,
 };
 
-fn vatTexel(frame: f32, row: f32) -> vec4f {
-  let base = (u32(row) * u32(vat.width) + u32(frame)) * 4u;
-  return vec4f(vat.data[base], vat.data[base + 1u], vat.data[base + 2u], vat.data[base + 3u]);
-}
-
-fn jointMatrix(bone: f32, frame: f32) -> mat4x4f {
-  let row = bone * 4.0;
-  return mat4x4f(vatTexel(frame, row), vatTexel(frame, row + 1.0), vatTexel(frame, row + 2.0), vatTexel(frame, row + 3.0));
-}
-
 @vertex
 fn vs(
   @location(0) position: vec3f,
@@ -175,14 +156,11 @@ fn vs(
   @location(10) uv: vec2f,
   @location(11) tangent: vec4f,
 ) -> VsOut {
-  let clipStart = inst1.y;
-  let clipFrames = max(inst1.z, 1.0);
-  let phase = clamp(inst1.w, 0.0, 1.0);
-  let frame = clipStart + floor(phase * max(clipFrames - 1.0, 0.0));
-  let joint = jointMatrix(joints.x, frame) * weights.x
-    + jointMatrix(joints.y, frame) * weights.y
-    + jointMatrix(joints.z, frame) * weights.z
-    + jointMatrix(joints.w, frame) * weights.w;
+  let paletteBase = u32(inst1.y) * u32(inst1.z);
+  let joint = palette[paletteBase + u32(joints.x)] * weights.x
+    + palette[paletteBase + u32(joints.y)] * weights.y
+    + palette[paletteBase + u32(joints.z)] * weights.z
+    + palette[paletteBase + u32(joints.w)] * weights.w;
   let local = joint * vec4f(position, 1.0);
   let n = normalize((joint * vec4f(normal, 0.0)).xyz);
   let t = finiteNormal((joint * vec4f(tangent.xyz, 0.0)).xyz, vec3f(0));
@@ -315,12 +293,14 @@ export class SkinnedCrowdPipeline {
   private pipeline!: GPURenderPipeline;
   private resources: MeshResource[] = [];
   private resourceLookup = new Map<number, MeshResource[]>();
-  private vatVariants = 0;
+  private palettes: RawPosePalette[] = [];
+  private appearances: Record<number, AppearanceBundle> = {};
   private materialUniform!: GPUBuffer;
   private materialVariants = 0;
   private materialTableBytes = 0;
   private owned = new Set<GPUBuffer | GPUTexture>();
   private disposed = false;
+  private submissionReady = true;
   private readonly lighting: SkinnedLightingEnvironment;
   private images = new Map<SoldierSurface, Partial<Record<SoldierTextureChannel, GPUTexture>>>();
   private imageStats: SkinnedCrowdStats["imageTextures"] = [];
@@ -420,12 +400,13 @@ export class SkinnedCrowdPipeline {
 
   private initialize(appearances: Record<number, AppearanceBundle>) {
     const device = this.shell.device;
+    this.appearances = appearances;
     const entries = Object.entries(appearances);
     if (entries.length === 0)
       throw new Error("SkinnedCrowdPipeline requires at least one appearance");
     try {
-      const vatLayoutGroup = device.createBindGroupLayout({
-        label: "skinned-vat-bgl",
+      const paletteLayout = device.createBindGroupLayout({
+        label: "skinned-palette-bgl",
         entries: [
           { binding: 0, visibility: GPUShaderStage.VERTEX, buffer: { type: "read-only-storage" } },
         ],
@@ -461,24 +442,41 @@ export class SkinnedCrowdPipeline {
         }),
       );
       this.setFactionMaskStrength(1);
-      this.pipeline = this.makePipeline(vatLayoutGroup, materialLayoutGroup);
-      // Build one VatResource per distinct VatBake and reuse it for every class
-      // that points at it (the all-placeholder case → a single resource).
-      const cache = new Map<VatBake, VatResource>();
+      this.pipeline = this.makePipeline(paletteLayout, materialLayoutGroup);
+      const rigGroups: Record<number, AppearanceBundle>[] = [];
+      for (const [id, bundle] of entries) {
+        let group = rigGroups.find((group) => {
+          const first = Object.values(group)[0];
+          return first.rig === bundle.rig && first.animation === bundle.animation;
+        });
+        if (!group) {
+          group = {};
+          rigGroups.push(group);
+        }
+        group[Number(id)] = bundle;
+      }
+      const paletteFor = new Map<number, RawPosePalette>();
+      for (const group of rigGroups) {
+        const first = Object.values(group)[0];
+        const palette = new RawPosePalette(
+          device,
+          this.shell.info.caps,
+          first.rig,
+          first.animation,
+          group,
+          `skinned-pose-${this.palettes.length}`,
+          paletteLayout,
+        );
+        this.palettes.push(palette);
+        for (const id of Object.keys(group)) paletteFor.set(Number(id), palette);
+      }
       const materialCache = new Map<SoldierSurface, GPUBindGroup>();
-      const resourceFor = (vat: VatBake): VatResource => {
-        const existing = cache.get(vat);
-        if (existing) return existing;
-        const resource = this.createVatResource(vat, vatLayoutGroup, cache.size);
-        cache.set(vat, resource);
-        return resource;
-      };
-      // One MeshResource per (classId, lod). Lower-detail tiers share the class's
-      // VAT (skeleton is unchanged) and the lookup routes instances to their tier.
+      // Mesh/material buckets share one prepared pose per submitted instance,
+      // independent of which LOD receives it.
       this.resources = [];
       for (const [id, bundle] of entries) {
         const classId = Number(id);
-        const vat = resourceFor(bundle.animation);
+        const palette = paletteFor.get(classId)!;
         let material = materialCache.get(bundle.surface);
         if (!material) {
           material = this.createMaterial(bundle.surface, materialLayoutGroup, materialCache.size);
@@ -487,13 +485,17 @@ export class SkinnedCrowdPipeline {
         this.resourceLookup.set(
           classId,
           bundle.tiers.map((mesh) => {
-            const resource = this.createMeshResource(mesh, this.resources.length, vat, material);
+            const resource = this.createMeshResource(
+              mesh,
+              this.resources.length,
+              palette,
+              material,
+            );
             this.resources.push(resource);
             return resource;
           }),
         );
       }
-      this.vatVariants = cache.size;
       this.materialVariants = materialCache.size;
     } catch (error) {
       this.dispose();
@@ -584,55 +586,44 @@ export class SkinnedCrowdPipeline {
     return texture;
   }
 
-  private createVatResource(
-    vat: VatBake,
-    vatLayoutGroup: GPUBindGroupLayout,
-    index: number,
-  ): VatResource {
-    const device = this.shell.device;
-    const vatData = new Float32Array(4 + vat.data.length);
-    vatData[0] = vat.width;
-    vatData[1] = vat.height;
-    vatData[2] = vat.bones;
-    vatData.set(vat.data, 4);
-    assertStorageBufferFits(vatData.byteLength, this.shell.info.caps, `skinned-vat-${index}`);
-    const vatBuffer = this.own(
-      device.createBuffer({
-        label: `skinned-vat-buffer-${index}`,
-        size: vatData.byteLength,
-        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-      }),
-    );
-    device.queue.writeBuffer(vatBuffer, 0, vatData);
-    const bindGroup = device.createBindGroup({
-      label: `skinned-vat-bg-${index}`,
-      layout: vatLayoutGroup,
-      entries: [{ binding: 0, resource: { buffer: vatBuffer } }],
-    });
-    return { bindGroup, layout: createVatLayout(vat) };
-  }
-
-  upload(
-    instances: CrowdInstance[],
-    opts: { forcedClip?: string | null; phaseOffset?: number; size?: number } = {},
-  ) {
+  upload(instances: CrowdInstance[], opts: { size?: number } = {}) {
     this.assertLive();
-    const groups = this.groupInstances(instances);
+    // A later rig/mesh upload can fail after an earlier one has queued writes.
+    // The original error propagates; no partial crowd may be submitted afterward.
+    this.submissionReady = false;
+    const { groups, rigGroups, paletteIndices } = this.groupInstances(instances);
+    for (const palette of this.palettes) {
+      const group = rigGroups.get(palette) ?? [];
+      palette.upload(
+        group.length,
+        (index) => instances[group[index]].playback ?? instances[group[index]],
+        (index) => instances[group[index]].classId,
+      );
+    }
     for (let i = 0; i < this.resources.length; i++) {
       const resource = this.resources[i];
       const group = groups[i] ?? [];
       resource.instanceCount = group.length;
-      this.uploadGroup(resource, group, opts);
+      this.uploadGroup(resource, group, instances, paletteIndices, opts);
     }
+    this.submissionReady = true;
+  }
+
+  /** Record once before this frame's visible/depth draws through the owned shell. */
+  precompute(encoder: GPUCommandEncoder): void {
+    this.assertLive();
+    if (!this.submissionReady) return;
+    for (const palette of this.palettes) palette.precompute(encoder);
   }
 
   draw(pass: WorldRenderPass) {
     this.assertLive();
+    if (!this.submissionReady) return;
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.shell.cameraBindGroup);
     for (const resource of this.resources) {
       if (resource.instanceCount === 0) continue;
-      pass.setBindGroup(1, resource.vat.bindGroup);
+      pass.setBindGroup(1, resource.palette.bindGroup);
       pass.setBindGroup(2, resource.material);
       pass.setVertexBuffer(0, resource.vertexBuffer);
       pass.setVertexBuffer(1, resource.instanceBuffer.buffer);
@@ -647,18 +638,22 @@ export class SkinnedCrowdPipeline {
   stats(): SkinnedCrowdStats {
     const instances = this.resources.reduce((sum, resource) => sum + resource.instanceCount, 0);
     const clips = new Set<string>();
-    for (const resource of this.resources)
-      for (const name of resource.vat.layout.clips.keys()) clips.add(name);
+    for (const palette of this.palettes)
+      for (const clip of palette.animation.clips) clips.add(clip.name);
     return {
-      instances,
-      drawCalls: this.resources.filter((resource) => resource.instanceCount > 0).length,
+      submissionReady: this.submissionReady,
+      instances: this.submissionReady ? instances : 0,
+      drawCalls: this.submissionReady
+        ? this.resources.filter((resource) => resource.instanceCount > 0).length
+        : 0,
       vertices: this.resources.reduce(
         (sum, resource) => sum + resource.mesh.positions.length / 3,
         0,
       ),
       clips: Array.from(clips),
       meshVariants: this.resources.length,
-      vatVariants: this.vatVariants,
+      rigVariants: this.palettes.length,
+      posePalettes: this.palettes.map((palette) => palette.stats()),
       materialVariants: this.materialVariants,
       materialTableBytes: this.materialTableBytes,
       imageTextures: this.imageStats,
@@ -668,16 +663,18 @@ export class SkinnedCrowdPipeline {
     };
   }
 
-  /** The clip layout VAT resolution uses for a given class (per-class clip table). */
+  /** Authored local-animation metadata for manual inspection of this appearance. */
   classClip(classId: number, name: string) {
-    const resource = this.appearanceResources(classId)[0];
-    return resolveVatClip(resource.vat.layout, name);
+    this.appearanceResources(classId);
+    const clip = this.appearances[classId].animation.clips.find((clip) => clip.name === name);
+    if (!clip) throw new Error(`missing local clip ${name} for appearance ${classId}`);
+    return clip;
   }
 
   private createMeshResource(
     mesh: SoldierMeshData,
     index: number,
-    vat: VatResource,
+    palette: RawPosePalette,
     material: GPUBindGroup,
   ): MeshResource {
     const device = this.shell.device;
@@ -695,7 +692,7 @@ export class SkinnedCrowdPipeline {
     );
     return {
       mesh,
-      vat,
+      palette,
       material,
       index,
       vertexBuffer,
@@ -713,6 +710,7 @@ export class SkinnedCrowdPipeline {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    for (const palette of this.palettes) palette.dispose();
     for (const resource of this.resources) resource.instanceBuffer.dispose();
     for (const resource of this.owned) resource.destroy();
     this.owned.clear();
@@ -731,36 +729,46 @@ export class SkinnedCrowdPipeline {
   // Route each instance to its (classId, lod) resource. A requested lod beyond
   // the class's available tiers clamps to the coarsest tier it has.
   private groupInstances(instances: CrowdInstance[]) {
-    const groups = this.resources.map(() => [] as CrowdInstance[]);
-    for (const inst of instances) {
+    const groups = this.resources.map(() => [] as number[]);
+    const rigGroups = new Map<RawPosePalette, number[]>();
+    const paletteIndices = new Uint32Array(instances.length);
+    for (let index = 0; index < instances.length; index++) {
+      const inst = instances[index];
       const tiers = this.appearanceResources(inst.classId);
       const lod = Math.max(0, Math.min(tiers.length - 1, Math.floor(inst.lod || 0)));
-      groups[tiers[lod].index].push(inst);
+      const resource = tiers[lod];
+      groups[resource.index].push(index);
+      let group = rigGroups.get(resource.palette);
+      if (!group) {
+        group = [];
+        rigGroups.set(resource.palette, group);
+      }
+      paletteIndices[index] = group.length;
+      group.push(index);
     }
-    return groups;
+    return { groups, rigGroups, paletteIndices };
   }
 
   private uploadGroup(
     resource: MeshResource,
+    group: number[],
     instances: CrowdInstance[],
-    opts: { forcedClip?: string | null; phaseOffset?: number; size?: number },
+    paletteIndices: Uint32Array,
+    opts: { size?: number },
   ) {
     const stride = 12;
-    if (instances.length === 0) return;
-    const data = new Float32Array(instances.length * stride);
-    for (let i = 0; i < instances.length; i++) {
-      const inst = instances[i];
-      const clip = resolveVatClip(resource.vat.layout, opts.forcedClip ?? inst.clip);
+    if (group.length === 0) return;
+    const data = new Float32Array(group.length * stride);
+    for (let i = 0; i < group.length; i++) {
+      const inst = instances[group[i]];
       const o = i * stride;
       data[o] = inst.x;
       data[o + 1] = inst.y;
       data[o + 2] = inst.facing;
       data[o + 3] = inst.faction;
       data[o + 4] = opts.size ?? 1;
-      data[o + 5] = clip.start;
-      data[o + 6] = clip.frames;
-      const phase = inst.phase + (opts.phaseOffset ?? 0);
-      data[o + 7] = sampleVatPhase(phase, clip.loop);
+      data[o + 5] = paletteIndices[group[i]];
+      data[o + 6] = resource.palette.bones;
       data[o + 8] = inst.elevation ?? 0; // inst2.x: terrain elevation
       data[o + 9] = inst.deathVariant ?? 0; // inst2.y: corpse variant 0..2
       data[o + 10] = inst.alive ? 0 : 1; // inst2.z: corpse flag
@@ -768,7 +776,7 @@ export class SkinnedCrowdPipeline {
     resource.instanceBuffer.write(data);
   }
 
-  private makePipeline(vatLayout: GPUBindGroupLayout, materialLayout: GPUBindGroupLayout) {
+  private makePipeline(paletteLayout: GPUBindGroupLayout, materialLayout: GPUBindGroupLayout) {
     const device = this.shell.device;
     const module = compileShader(device, SKINNED_WGSL(this.lighting), "skinned-crowd");
     return cameraOnlyPipeline(this.shell, {
@@ -837,7 +845,7 @@ export class SkinnedCrowdPipeline {
       ],
       target: "opaque",
       depth: "read-write",
-      extraBindGroupLayouts: [vatLayout, materialLayout],
+      extraBindGroupLayouts: [paletteLayout, materialLayout],
     });
   }
 }

@@ -59,9 +59,13 @@ export async function route(ctx: LabContext) {
       lod: 0,
     },
   ];
-  pipeline.upload(instances, { forcedClip: "idle", phaseOffset: 0, size: 1.35 });
+  pipeline.upload(
+    instances.map((instance) => ({ ...instance, clip: "idle" })),
+    { size: 1.35 },
+  );
   const ground = new LabGroundPass(shell, [-4, -3, 8, 6]);
   shell.drawFrame({
+    precompute: (encoder) => pipeline.precompute(encoder),
     clear: { r: 0.7, g: 0.78, b: 0.62, a: 1 },
     passes: [
       labGroundFramePass(ground, "skinned-depth-ground"),

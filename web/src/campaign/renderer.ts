@@ -357,7 +357,7 @@ export class CampaignRenderer {
     };
     const uploadStart = performance.now();
     // One clock drives every animated surface: crawling scenery, the subtle sea
-    // shimmer in mapPass (cam.time), and the soldier-crowd VAT phase. Frozen
+    // shimmer in mapPass (cam.time), and the soldier-crowd clip phase. Frozen
     // snapshots pin fixedTime = 0, so the sea's cam.time term is 0 and the map
     // stays byte-identical; runtime advances it live.
     const sceneryTime = animTime;
@@ -558,6 +558,7 @@ export class CampaignRenderer {
       },
     ];
     passes.shell.drawFrame({
+      precompute: (encoder) => passes.soldierCrowd.precompute(encoder),
       clear: { r: 0.06, g: 0.07, b: 0.075, a: 1 },
       passes: framePasses,
     });

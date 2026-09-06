@@ -58,9 +58,17 @@ export async function route(ctx: LabContext) {
   const start = performance.now();
   const tick = () => {
     const phaseOffset = ((performance.now() - start) / 1000) * 0.6;
-    pipeline.upload(instances, { forcedClip: "march", phaseOffset, size: 1 });
+    pipeline.upload(
+      instances.map((instance) => ({
+        ...instance,
+        clip: "march",
+        phase: (instance.phase + phaseOffset) % 1,
+      })),
+      { size: 1 },
+    );
     shadows.upload(instances);
     shell.drawFrame({
+      precompute: (encoder) => pipeline.precompute(encoder),
       passes: [
         {
           id: "elevation-crowd",

@@ -1,5 +1,13 @@
 import { PNG } from "pngjs";
-import { Matrix4, Vector3 } from "three";
+import { Matrix4, Quaternion, Vector3 } from "three";
+import {
+  sampleRigLocalPose,
+  localPoseToJointMatrices,
+} from "../../../packages/soldier-assets/src/localPose.ts";
+import {
+  bakeLocalAnimation,
+  encodeLocalAnimation,
+} from "../../../packages/soldier-assets/src/localAnimation.ts";
 import { checkRawNormalLimits } from "./_raw-normal-limits.mjs";
 import { requireSwiftShaderBaseline } from "../models/_swiftshader-baseline.ts";
 
@@ -78,6 +86,26 @@ async function capture(ctx, params, snapshot, decorate) {
       { timeout: 18000 },
     );
     await page.waitForTimeout(250);
+    if (snapshot === "soldier-materials-authored") {
+      const navigation = await page.evaluate(() => {
+        const nav = document.querySelector(".renderer-lab-nav");
+        nav.scrollLeft = nav.scrollWidth;
+        const last = nav.querySelector("a:last-child").getBoundingClientRect();
+        const bounds = nav.getBoundingClientRect();
+        const result = {
+          overflow: getComputedStyle(nav).overflowX,
+          reachedLast: last.left >= bounds.left && last.right <= bounds.right,
+          scrollLeft: nav.scrollLeft,
+        };
+        nav.scrollLeft = 0;
+        return result;
+      });
+      ctx.check(
+        "renamed navigation remains scroll-accessible through its final route",
+        navigation.overflow === "auto" && navigation.reachedLast && navigation.scrollLeft > 0,
+        navigation,
+      );
+    }
     if (snapshot) await ctx.snap(page, snapshot, { threshold: 0, maxDiffRatio: 0 });
     const pixels = PNG.sync.read(await page.locator("#renderer-canvas").screenshot());
     pixels.rawStats = await page.evaluate(() => window.__rendererLabStats.stats);
@@ -177,7 +205,7 @@ function candidateNormalCase(
   {
     scale = 1,
     mirroredV = false,
-    preposeFrame = null,
+    preposePhase = null,
     bakedRotation = null,
     normalOracle = false,
   } = {},
@@ -215,44 +243,76 @@ function candidateNormalCase(
           : {};
       await route.fulfill({ response, json: surface });
     });
-    let animation;
-    if (preposeFrame !== null || bakedRotation) {
-      await page.route("**/blender-reference/human/animation.json", async (route) => {
-        const response = await route.fetch();
-        animation = await response.json();
-        const replacement = structuredClone(animation);
-        for (let bone = 0; bone < animation.height / 4; bone++)
-          for (let frame = 0; frame < animation.width; frame++) {
-            const matrix =
-              preposeFrame === null
-                ? bakedRotation.clone().multiply(vatMatrix(animation, bone, frame))
-                : new Matrix4();
-            for (let column = 0; column < 4; column++)
-              for (let row = 0; row < 4; row++)
-                replacement.data[((bone * 4 + column) * animation.width + frame) * 4 + row] =
-                  matrix.elements[column * 4 + row];
+    let originalRig;
+    const sourceRig = (url) =>
+      (originalRig ??= page.request
+        .get(new URL("skeleton.json", url).href)
+        .then((response) => response.json()));
+    const replacementRig = async (url) => {
+      const rig = structuredClone(await sourceRig(url));
+      if (preposePhase !== null) {
+        rig.bones = rig.bones.map((bone) => ({
+          ...bone,
+          parent: -1,
+          bind: { T: [0, 0, 0], R: [0, 0, 0, 1], S: [1, 1, 1] },
+          inverseBind: new Matrix4().elements,
+        }));
+        rig.clips = rig.clips.map((clip) => ({ ...clip, tracks: {} }));
+      } else {
+        const q = new Quaternion().setFromRotationMatrix(bakedRotation);
+        const rotate = (values, stride) => {
+          for (let i = 0; i < values.length; i += stride) {
+            if (stride === 3)
+              new Vector3().fromArray(values, i).applyMatrix4(bakedRotation).toArray(values, i);
+            else new Quaternion().fromArray(values, i).premultiply(q).toArray(values, i);
           }
-        await route.fulfill({ response, json: replacement });
+        };
+        rig.bones.forEach((bone, joint) => {
+          if (bone.parent !== -1) return;
+          rotate(bone.bind.T, 3);
+          rotate(bone.bind.R, 4);
+          for (const clip of rig.clips) {
+            const track = clip.tracks[joint];
+            if (track?.T) rotate(track.T.values, 3);
+            if (track?.R) rotate(track.R.values, 4);
+          }
+        });
+      }
+      return rig;
+    };
+    if (preposePhase !== null || bakedRotation) {
+      await page.route("**/blender-reference/human/skeleton.json", async (route) => {
+        await route.fulfill({ json: await replacementRig(route.request().url()) });
+      });
+      await page.route("**/blender-reference/human/animation.json", async (route) => {
+        await route.fulfill({
+          json: encodeLocalAnimation(
+            bakeLocalAnimation(await replacementRig(route.request().url())),
+          ),
+        });
       });
     }
-    if (mirroredV || preposeFrame !== null)
+    if (mirroredV || preposePhase !== null)
       await page.route("**/blender-reference/human/tier-*.mesh.json", async (route) => {
         const response = await route.fetch(),
           mesh = await response.json();
-        if (preposeFrame !== null) {
+        if (preposePhase !== null) {
           // Independent CPU Matrix4 oracle: pose the same Blender bind attributes,
           // then submit identity joints through the unchanged production factory.
           // Fetch directly because catalog resources load concurrently.
-          const source =
-            animation ??
-            (await (
-              await page.request.get(new URL("animation.json", route.request().url()).href)
-            ).json());
+          const rig = await sourceRig(route.request().url());
+          const palette = localPoseToJointMatrices(
+            rig,
+            sampleRigLocalPose(rig, "bend", preposePhase),
+          );
           for (let vertex = 0; vertex < mesh.positions.length / 3; vertex++) {
             const matrix = new Matrix4();
             matrix.elements.fill(0);
             for (let influence = 0; influence < 4; influence++) {
-              const joint = vatMatrix(source, mesh.joints[vertex * 4 + influence], preposeFrame);
+              const joint = new Matrix4().fromArray(
+                palette,
+                mesh.joints[vertex * 4 + influence] * 16,
+              );
               const weight = mesh.weights[vertex * 4 + influence];
               for (let i = 0; i < 16; i++) matrix.elements[i] += weight * joint.elements[i];
             }
@@ -295,15 +355,6 @@ function candidateNormalCase(
         await route.fulfill({ response, json: mesh });
       });
   };
-}
-
-function vatMatrix(animation, bone, frame) {
-  const matrix = new Matrix4();
-  for (let column = 0; column < 4; column++)
-    for (let row = 0; row < 4; row++)
-      matrix.elements[column * 4 + row] =
-        animation.data[((bone * 4 + column) * animation.width + frame) * 4 + row];
-  return matrix;
 }
 
 function uvGradientCase(vertexOracle) {
@@ -624,7 +675,7 @@ export async function run(ctx) {
     ctx,
     normalParams,
     null,
-    candidateNormalCase([224, 192, 240], { scale: 0.7, preposeFrame: 12 }),
+    candidateNormalCase([224, 192, 240], { scale: 0.7, preposePhase: 0.5 }),
   );
   ctx.check(
     "weighted bent tangent frame matches independently preposed CPU attributes",
@@ -682,7 +733,7 @@ export async function run(ctx) {
     ctx,
     normalParams,
     null,
-    candidateNormalCase([224, 192, 240], { scale: 0.7, preposeFrame: 12, normalOracle: true }),
+    candidateNormalCase([224, 192, 240], { scale: 0.7, preposePhase: 0.5, normalOracle: true }),
   );
   let panelError = 0;
   // Stable interior of the rigid Blender shield: its constant frame makes the

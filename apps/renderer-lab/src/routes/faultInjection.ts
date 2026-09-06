@@ -63,6 +63,7 @@ export async function route(ctx: LabContext) {
   pipeline.upload(markers);
   const ground = new LabGroundPass(shell, [-42, -28, 84, 56]);
   const draw = (): FrameGraphCommands => ({
+    precompute: (encoder) => pipeline.precompute(encoder),
     passes: [
       labGroundFramePass(ground, "fault-injection-ground"),
       skinnedCrowdPass(pipeline, "fault-injection-crowd"),

@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { test, vi } from "vitest";
 import { SkinnedCrowdPipeline } from "@packages/renderer-core/src/skinnedPipeline";
 import type { SoldierMeshData } from "@packages/soldier-assets/src/mesh";
-import type { VatBake } from "@packages/soldier-assets/src/schema";
+import { bakeLocalAnimation } from "@packages/soldier-assets/src/localAnimation";
+import type { ImportedRig } from "@packages/soldier-assets/src/rig";
 import type { AppearanceBundle } from "@packages/soldier-assets/src/appearanceBundle";
 import { generatedFormation } from "@packages/crowd-runtime/src/instanceData";
 
@@ -15,10 +16,10 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
     COPY_SRC: 4,
     RENDER_ATTACHMENT: 8,
   });
-  vi.stubGlobal("GPUShaderStage", { VERTEX: 1, FRAGMENT: 2 });
+  vi.stubGlobal("GPUShaderStage", { VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 });
   try {
-    // Only the hardware boundary is inert; construction, mesh packing, VAT
-    // allocation/layout and the public appearance lookup all run unchanged.
+    // Only the hardware boundary is inert; local encoding, playback packing,
+    // resource ownership and the public appearance lookup run unchanged.
     const writes = new Map<string, Float32Array>();
     const tables = new Map<string, Float32Array>();
     const allocations: { label: string; destroyed: number }[] = [];
@@ -42,7 +43,7 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
       return resource;
     };
     const device = {
-      limits: { maxTextureDimension2D: 8192 },
+      limits: { maxTextureDimension2D: 8192, maxComputeWorkgroupsPerDimension: 65535 },
       pushErrorScope() {},
       popErrorScope: () => Promise.resolve(null),
       createBindGroupLayout: () => ({}),
@@ -51,7 +52,8 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
           throw new Error("injected material allocation failure");
         return { label: descriptor.label };
       },
-      createBuffer: (descriptor: { label: string }) => allocate(descriptor.label),
+      createBuffer: (descriptor: { label: string; size: number }) =>
+        Object.assign(allocate(descriptor.label), { size: descriptor.size }),
       createTexture: (descriptor: { label: string; mipLevelCount?: number }) =>
         Object.assign(allocate(descriptor.label), {
           width: 2,
@@ -63,6 +65,7 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
       createShaderModule: () => ({}),
       createPipelineLayout: () => ({}),
       createRenderPipeline: () => ({}),
+      createComputePipeline: () => ({}),
       queue: {
         copyExternalImageToTexture(source: { source: { marker: number } }) {
           copiedImages.push(source.source.marker);
@@ -77,7 +80,10 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
     };
     const shell = {
       device,
-      info: { format: "rgba8unorm", caps: { maxStorageBufferBindingSize: 65536 } },
+      info: {
+        format: "rgba8unorm",
+        caps: { maxStorageBufferBindingSize: 65536, maxBufferSize: 65536 },
+      },
       sampleCount: 1,
       cameraBindGroupLayout: {},
     } as unknown as Parameters<typeof SkinnedCrowdPipeline.create>[0];
@@ -93,20 +99,29 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
       factionMasks: new Float32Array([0, 0.5, 1]),
       indices: new Uint16Array([0, 1, 2]),
     };
-    const bake = (start: number): VatBake => ({
-      schema: 1,
-      skeleton: "test",
-      fps: 1,
-      width: 8,
-      height: 4,
-      bones: 1,
-      clips: [
-        { name: "idle", start, frames: 2, loop: true, duration: 1 },
-        { name: "attack", start: 2, frames: 3, loop: false, duration: 2 },
+    const rigFor = (start: number): ImportedRig => ({
+      bones: [
+        {
+          name: "root",
+          parent: -1,
+          bind: { T: [0, 0, 0], R: [0, 0, 0, 1], S: [1, 1, 1] },
+          inverseBind: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+        },
       ],
-      layout: "test",
-      sha256: "test",
-      data: Array.from({ length: 128 }, (_, i) => Number(Math.floor(i / 32) === i % 4)),
+      clips: [
+        ...(start
+          ? [
+              {
+                name: "padding",
+                duration: 4,
+                loop: false,
+                tracks: { 0: { T: { times: [0, 1, 2, 3, 4], values: Array(15).fill(0) } } },
+              },
+            ]
+          : []),
+        { name: "idle", duration: 1, loop: true, tracks: {} },
+        { name: "attack", duration: 2, loop: false, tracks: {} },
+      ],
     });
     const appearance = (start: number): AppearanceBundle => ({
       manifest: {
@@ -120,18 +135,8 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
         far: { mesh: "far.json", clip: "idle", phase: 0 },
         bounds: { center: [0, 0, 0], radius: 1 },
       },
-      rig: {
-        bones: [
-          {
-            name: "root",
-            parent: -1,
-            bind: { T: [0, 0, 0], R: [0, 0, 0, 1], S: [1, 1, 1] },
-            inverseBind: new Float32Array(16),
-          },
-        ],
-        clips: [],
-      },
-      animation: bake(start),
+      rig: rigFor(start),
+      animation: bakeLocalAnimation(rigFor(start)),
       surface: {
         textures: {},
         materials: [
@@ -167,14 +172,16 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
     assert.deepEqual(crowd.classClip(0, "idle"), {
       name: "idle",
       start: 0,
-      frames: 2,
+      times: [0, 1],
+      stepMaskOffset: 0,
       loop: true,
       duration: 1,
     });
     assert.deepEqual(crowd.classClip(5, "idle"), {
       name: "idle",
       start: 5,
-      frames: 2,
+      times: [0, 1],
+      stepMaskOffset: 1,
       loop: true,
       duration: 1,
     });
@@ -204,8 +211,8 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
     crowd.draw(pass);
     assert.deepEqual(
       draws,
-      [[6, 1, 19, 5]],
-      "sparse class 5 / L2 uses its own geometry, clip and submitted world position",
+      [[6, 1, 19, 0]],
+      "sparse class 5 / L2 uses its own geometry, rig palette slot and submitted world position",
     );
     assert.deepEqual(indexFormats, ["uint32"]);
     assert.deepEqual(
@@ -213,10 +220,47 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
       ["skinned-material-bg-1"],
       "sparse appearance selects its own material table",
     );
+    crowd.upload([{ ...instance, classId: 5, lod: 2, clip: "idle", phase: 1 }]);
+    assert.deepEqual(
+      Array.from(writes.get("skinned-pose-1-controls")!.slice(8, 12)),
+      [6, 6, 0, 1],
+      "explicit phase one in a looping manual clip keeps its authored endpoint",
+    );
     crowd.upload([{ ...instance, classId: 5, lod: 2, clip: "attack", phase: 1 }]);
     crowd.draw(pass);
-    assert.equal(instanceValues![7], 1, "the final nonloop pose must reach the shader unchanged");
+    assert.deepEqual(
+      Array.from(writes.get("skinned-pose-1-controls")!.slice(8, 12)),
+      [8, 8, 0, 2],
+      "the final nonloop sample resolves to the authored endpoint in GPU controls",
+    );
     assert.throws(() => crowd.upload([{ ...instance, classId: 1 }]), /appearance 1 is not loaded/);
+    assert.throws(
+      () =>
+        crowd.upload([
+          { ...instance, classId: 0, clip: "idle" },
+          { ...instance, classId: 5, clip: "missing-after-first-rig-upload" },
+        ]),
+      /missing/,
+    );
+    const beforeSuppressedDraw = draws.length;
+    crowd.precompute({
+      beginComputePass() {
+        throw new Error("partial compute submitted");
+      },
+    } as unknown as GPUCommandEncoder);
+    crowd.draw(pass);
+    assert.equal(
+      draws.length,
+      beforeSuppressedDraw,
+      "caught upload failure must not submit a mixed-rig crowd",
+    );
+    crowd.upload([{ ...instance, classId: 5, lod: 2, clip: "idle" }]);
+    crowd.draw(pass);
+    assert.equal(
+      draws.length,
+      beforeSuppressedDraw + 1,
+      "a complete successful upload restores submission",
+    );
     crowd.dispose();
     crowd.dispose();
     assert.ok(

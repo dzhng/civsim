@@ -12,7 +12,7 @@ import { route as routeBattleElevation } from "./routes/battleElevation";
 import { route as routeLodTiers } from "./routes/lodTiers";
 import { route as routeMountedUnits } from "./routes/mountedUnits";
 import { route as routeSoldierMaterials } from "./routes/soldierMaterials";
-import { route as routePerClassVat } from "./routes/perClassVat";
+import { route as routePerClassAnimation } from "./routes/perClassAnimation";
 import { route as routeCapabilities } from "./routes/capabilities";
 import { route as routeFaultInjection } from "./routes/faultInjection";
 import { route as routeFrameShell } from "./routes/frameShell";
@@ -34,7 +34,7 @@ import { route as routeCardBar } from "./routes/cardBar";
 const routes: Record<string, LabRoute> = {
   "/renderer/device": routeDevice,
   "/renderer/capabilities": routeCapabilities,
-  "/renderer/per-class-vat": routePerClassVat,
+  "/renderer/per-class-animation": routePerClassAnimation,
   "/renderer/soldier-materials": routeSoldierMaterials,
   "/renderer/mounted-units": routeMountedUnits,
   "/renderer/lod-tiers": routeLodTiers,

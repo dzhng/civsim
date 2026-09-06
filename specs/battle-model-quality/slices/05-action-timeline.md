@@ -1,6 +1,6 @@
 # 05 — Action observations and timeline
 
-Status: IN PROGRESS — 05a complete; applicability, controller and production replay remain open. Depends on [03](./03-weighted-asset-contract.md).
+Status: IN PROGRESS — 05a/05b complete; 05c observation cutover integrated, replay and gait acceptance open. Depends on [03](./03-weighted-asset-contract.md).
 
 ## Contract and ownership
 
@@ -15,12 +15,13 @@ Names of new functions/routes in this plan are proposed, not existing commands. 
 | Row                                  | Seam and focused proof                                                                                                                                                                                                                                                              |
 | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 05a — Injury observations — COMPLETE | Existing soldier/mount health is exposed through read-only WASM pointers and the production battle-view owner. [Merged verification](../assets/evidence/05/injury-merged-verification.md) pins values and view refresh without changing combat.                                     |
-| 05b — Applicability and timeline     | Generate the appearance role/state matrix from the canonical catalog. Promote the existing local-transform CPU sampler to a shared owner, then implement deterministic per-soldier history and exact interrupted-pose snapshots, including resets, count growth and terminal death. |
+| 05b — Applicability and timeline — COMPLETE | Canonical role/state matrix, shared local-transform sampler and independently reviewed deterministic histories with exact bounded interruption poses, resets, count growth and terminal death. |
 | 05c — Production replay              | Adapt actual battle observations and replay action sequences through the production workbench. Remove fabricated hit poses and global-time action wrapping; prove reset/pause/event behavior and inspect the timeline.                                                              |
 
 The bounded [battle adapter implementation evidence](../assets/evidence/05/battle-adapter.md)
-records the caller cutover and numerical checks. Its merged browser/cache and
-visual gates remain open; this does not complete the production replay row.
+records the caller cutover and numerical checks. [Merged validation](../assets/evidence/05/merged-validation.md)
+records workbench/cache and hardware results; the replay and deterministic gait
+gates remain open, so this does not complete the production replay row.
 
 `hit_ttl` is contact/facing memory, not an injury event: melee sets it before
 evade/block, missiles can set it before dodge, and its decay depends on facing
@@ -97,7 +98,7 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 - [ ] Comparison and final unprimed critique recorded.
 - [ ] Review/cleanup completed; README pickup and decisions updated.
 
-05a landed in `f36211df`; its [observation limits and changed-test ledger](../assets/evidence/05/injury-observations.md) remain the controller's input contract. The merged WASM was rebuilt and independently verified. Only the numerical observation row is complete: no controller or visual acceptance has occurred. Continue 05b/05c and the infrastructure trunk through07 before detailed anatomy08.
+05a landed in `f36211df`; its [observation limits and changed-test ledger](../assets/evidence/05/injury-observations.md) remain the controller's input contract. The merged WASM was rebuilt and independently verified. Continue05c and the infrastructure trunk through07 before detailed anatomy08.
 
 05b's [source applicability report](../assets/evidence/05/catalog-presentation.md)
 records canonical descriptors, clip-owned release markers, explicit manual-only
@@ -110,5 +111,5 @@ blend endpoint.
 The [shared local-pose sampler](../assets/evidence/05/local-pose.md) is now integrated,
 with all generated assets byte-identical. The [controller evidence](../assets/evidence/05/action-timeline.md)
 records deterministic timing and exact bounded interruptions. Controller source
-passed independent review and22 focused tests; production adapter and replay
-acceptance are still open.
+passed independent review and22 focused tests. The production adapter is now
+integrated; replay and gait acceptance remain open as recorded above.

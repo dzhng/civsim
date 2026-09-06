@@ -1,0 +1,15 @@
+- High confidence: Body text is too small and tightly packed, especially the replay description and transition details.
+- High confidence: The crop reveals visibly rough/pixelated text rendering, which makes smaller labels and values harder to read.
+- High confidence: Text contrast is only moderate—the warm beige type against the dark brown panel looks muddy rather than crisp.
+- High confidence: The panel lacks a strong typographic hierarchy. Section headings, status lines, labels, and values use similar sizing, weight, and color.
+- High confidence: Metadata is formatted as prose (`From: run · phase 0.077`), making values difficult to scan. Aligned label/value columns would read faster.
+- High confidence: Repeated dot separators and heavy bolding add visual noise instead of clarifying structure.
+- High confidence: Vertical spacing is inconsistent: controls are cramped near their labels, while section dividers introduce comparatively large gaps.
+- High confidence: The select field and buttons use thin, low-contrast borders that do not separate cleanly from the panel background.
+- High confidence: The slider thumb is oversized relative to its track, while the tick value is detached at the far right; the control’s current state is not quickly scannable.
+- High confidence: “Now” and “Next” are presented as two dense bold lines without enough differentiation between labels and event names.
+- High confidence: “Generated applicability matrix” looks like a dominant underlined text link but sits awkwardly inside the diagnostic readout, disrupting the section hierarchy.
+- High confidence: The panel is too narrow for its content. Long strings such as `bow_release · phase 0.733` nearly consume the full width, leaving little breathing room.
+- High confidence: The right edge feels visually clipped: the panel ends abruptly against a narrow outer strip, and the content below it appears partially cut off.
+- Medium confidence: The top of the panel is crowded against the global navigation, weakening separation between application chrome and replay controls.
+- Medium confidence: The scene occupies most of the screen while the information-dense panel receives limited width, creating an imbalanced layout for a debugging/inspection interface.

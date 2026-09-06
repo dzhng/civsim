@@ -242,7 +242,8 @@ export class ActionTimeline {
     return this.histories.map((history) => playback(history, tick * ACTION_TICK_SECONDS));
   }
 
-  update(tick: number, observations: readonly ActionObservation[]): SoldierPlayback[] {
+  /** Observe atomically; sample() is the sole playback-output owner. */
+  update(tick: number, observations: readonly ActionObservation[]): void {
     if (!Number.isFinite(tick)) throw new Error("action timeline requires finite simulation time");
     const resetting = tick < this.tick || observations.length < this.histories.length;
     const previousHistories = resetting ? [] : this.histories;
@@ -250,7 +251,7 @@ export class ActionTimeline {
     const nextHistories: History[] = [];
     const seconds = tick * ACTION_TICK_SECONDS;
     const freezePlayback = frozenPoseCapture();
-    const output = observations.map((observation, index) => {
+    observations.forEach((observation, index) => {
       const prior = previousHistories[index];
       let history = prior && {
         ...prior,
@@ -261,7 +262,7 @@ export class ActionTimeline {
         if (blend(history.base, seconds).weight === 1)
           history.base.source = blend(history.base, seconds).source;
         nextHistories[index] = history;
-        return playback(history, seconds);
+        return;
       }
       const presentation = this.appearances[observation.appearanceId]?.manifest.presentation;
       if (!presentation)
@@ -400,10 +401,8 @@ export class ActionTimeline {
       if (history.overlay && blend(history.overlay, seconds).weight === 1)
         history.overlay.source = blend(history.overlay, seconds).source;
       nextHistories[index] = history;
-      return playback(history, seconds);
     });
     this.histories = nextHistories;
     this.tick = tick;
-    return output;
   }
 }

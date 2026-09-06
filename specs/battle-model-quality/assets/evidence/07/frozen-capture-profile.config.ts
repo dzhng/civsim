@@ -12,10 +12,10 @@ export default {
       },
       load(id: string) {
         if (id !== baseline) return;
-        // Pin the pre-optimization controller without keeping a second implementation.
+        // Compare a pinned controller without keeping a second implementation.
         return execFileSync(
           "git",
-          ["show", "be522c50:packages/crowd-runtime/src/actionTimeline.ts"],
+          ["show", `${process.env.TIMELINE_PROFILE_BASE ?? "be522c50"}:packages/crowd-runtime/src/actionTimeline.ts`],
           { cwd: root, encoding: "utf8" },
         )
           .replaceAll('"../../soldier-assets/', `"${root}packages/soldier-assets/`)

@@ -549,10 +549,13 @@ test("real action timeline interruptions and upper exit pack the same composed m
     packer.commitPrepared(frame);
     return frame;
   };
-  check(timeline.update(0, [base])[0]);
-  check(timeline.update(1, [{ ...base, fighting: true }])[0]);
+  timeline.update(0, [base]);
+  check(timeline.sample()[0]);
+  timeline.update(1, [{ ...base, fighting: true }]);
+  check(timeline.sample()[0]);
   check(timeline.sample(2)[0]);
-  const exit = check(timeline.update(32, [{ ...base, running: true }])[0]);
+  timeline.update(32, [{ ...base, running: true }]);
+  const exit = check(timeline.sample()[0]);
   assert.ok(exit.controls[packing.PLAYBACK_HEADER_FLAGS] & packing.PLAYBACK_UPPER_DEST_BASE);
   assert.ok(exit.controls[packing.PLAYBACK_HEADER_FLAGS] & packing.PLAYBACK_BASE_FROZEN);
   assert.deepEqual(
@@ -560,8 +563,10 @@ test("real action timeline interruptions and upper exit pack the same composed m
     [0, 0, 0, 0],
   );
   check(timeline.sample(33)[0]); // Upper exit follows a moving base which is itself crossfading.
-  check(timeline.update(34, [{ ...base, running: true, health: 99 }])[0]);
-  check(timeline.update(35, [{ ...base, alive: false, health: 0 }])[0]);
+  timeline.update(34, [{ ...base, running: true, health: 99 }]);
+  check(timeline.sample()[0]);
+  timeline.update(35, [{ ...base, alive: false, health: 0 }]);
+  check(timeline.sample()[0]);
   check(timeline.sample(70)[0]);
   assert.equal(
     packer.residentSnapshotCount,

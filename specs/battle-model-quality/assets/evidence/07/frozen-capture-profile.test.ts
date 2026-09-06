@@ -22,7 +22,7 @@ const diagnostics = await loadAppearanceCatalog(
   "http://fixture/candidates/blender-reference/catalog.json",
 );
 assets[41] = mountedTemporalFixture(diagnostics[41]);
-test("two-entry exact freeze cache versus original independent histories", () => {
+test("timeline update preserves exact poses versus a pinned controller", () => {
   for (let repeat = 0; repeat < 3; repeat++)
     for (const id of [4, 41])
       for (const mode of ["synchronized", "interleaved"]) {
@@ -48,15 +48,15 @@ test("two-entry exact freeze cache versus original independent histories", () =>
             o.releaseTtl = tick >= 10 ? 0.5 : 0;
             o.releaseAgeSeconds = mode === "synchronized" ? 0 : (i % 17) / 100;
           }
-          let a, b, aMs, bMs;
+          let aMs, bMs;
           const runA = () => {
             const t = performance.now();
-            a = original.update(tick, obs);
+            original.update(tick, obs);
             aMs = performance.now() - t;
           };
           const runB = () => {
             const t = performance.now();
-            b = memo.update(tick, obs);
+            memo.update(tick, obs);
             bMs = performance.now() - t;
           };
           if (repeat % 2) {
@@ -66,6 +66,7 @@ test("two-entry exact freeze cache versus original independent histories", () =>
             runA();
             runB();
           }
+          const a = original.sample(tick), b = memo.sample(tick);
           const unique = new Set();
           for (let i = 0; i < obs.length; i++) {
             assert.deepEqual(

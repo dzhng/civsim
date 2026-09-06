@@ -143,7 +143,8 @@ test("mounted overlay enters from the displayed pose during a base crossfade", (
   const live = timeline.sample(4)[0];
   assert.ok(live.base.weight > 0 && live.base.weight < 1, "base must be crossfading");
   const before = pose(live);
-  const after = pose(timeline.update(4, [observation({ running: true, releaseTtl: 0.5 })])[0]);
+  timeline.update(4, [observation({ running: true, releaseTtl: 0.5 })]);
+  const after = pose(timeline.sample()[0]);
   continuous(after, before);
   const later = timeline.sample(6)[0];
   close(
@@ -158,7 +159,8 @@ test("mounted release restarts continuously before and after blend midpoint", ()
   timeline.update(4, [observation({ running: true, releaseTtl: 0.5 })]);
   for (const tick of [5, 8]) {
     const before = pose(timeline.sample(tick)[0]);
-    const after = pose(timeline.update(tick, [observation({ running: true, releaseTtl: 0.5 })])[0]);
+    timeline.update(tick, [observation({ running: true, releaseTtl: 0.5 })]);
+    const after = pose(timeline.sample()[0]);
     continuous(after, before);
   }
 });
@@ -168,8 +170,10 @@ test("overlay exit converges toward evaluated advancing base, not its destinatio
   timeline.update(4, [observation({ running: true, releaseTtl: 0.5 })]);
   timeline.update(27, [observation()]);
   const before = pose(timeline.sample(29)[0]);
-  continuous(pose(timeline.update(29, [observation()])[0]), before);
-  const exiting = timeline.update(30, [observation()])[0];
+  timeline.update(29, [observation()]);
+  continuous(pose(timeline.sample()[0]), before);
+  timeline.update(30, [observation()]);
+  const exiting = timeline.sample()[0];
   const base = pose({ ...exiting, riderUpperBody: undefined });
   const destination = sampleRigLocalPose(
     rig,
@@ -185,7 +189,8 @@ test("overlay exit converges toward evaluated advancing base, not its destinatio
   const expected = base.slice();
   expected.set(expectedUpper.subarray(20, 30), 20);
   continuous(pose(exiting), expected);
-  const finished = timeline.update(36, [observation()])[0];
+  timeline.update(36, [observation()]);
+  const finished = timeline.sample()[0];
   continuous(pose(finished), pose({ ...finished, riderUpperBody: undefined }));
   assert.equal(finished.riderUpperBody, undefined, "completed overlay must be released");
 });
@@ -197,7 +202,8 @@ test("mounted death captures the full composed pose during simultaneous base and
   assert.ok(live.base.weight > 0 && live.base.weight < 1, "base must be crossfading");
   const before = pose(live);
   assert.ok(Math.abs(before[20] - pose({ ...live, riderUpperBody: undefined })[20]) > 0.1);
-  continuous(pose(timeline.update(6, [observation({ alive: false })])[0]), before);
+  timeline.update(6, [observation({ alive: false })]);
+  continuous(pose(timeline.sample()[0]), before);
   const terminal = pose(timeline.sample(60)[0]);
   continuous(terminal, sampleRigLocalPose(rig, "death", 1));
   continuous(pose(timeline.sample(90)[0]), terminal);
@@ -211,7 +217,8 @@ test("paused mounted playback sampling is deterministic and does not mutate reta
   const paused = pose(timeline.sample(4)[0]);
   for (let repeat = 0; repeat < 5; repeat++) {
     continuous(pose(timeline.sample(5)[0]), expected);
-    continuous(pose(timeline.update(4, [observation({ alive: false })])[0]), paused);
+    timeline.update(4, [observation({ alive: false })]);
+    continuous(pose(timeline.sample()[0]), paused);
   }
   timeline.update(6, [observation({ running: true, releaseTtl: 0.5 })]);
   continuous(pose(retained), expected);
@@ -223,11 +230,14 @@ test("mounted injury interrupts the composed pose and returns continuously to ga
   const live = timeline.sample(6)[0];
   assert.ok(live.base.weight > 0 && live.base.weight < 1);
   const injured = observation({ running: true, health: 90 });
-  const hit = timeline.update(6, [injured])[0];
+  timeline.update(6, [injured]);
+  const hit = timeline.sample()[0];
   continuous(pose(hit), pose(live));
   assert.equal(hit.riderUpperBody, undefined);
   const beforeRecovery = pose(timeline.sample(37)[0]);
-  continuous(pose(timeline.update(37, [injured])[0]), beforeRecovery);
-  const recovered = timeline.update(45, [injured])[0];
+  timeline.update(37, [injured]);
+  continuous(pose(timeline.sample()[0]), beforeRecovery);
+  timeline.update(45, [injured]);
+  const recovered = timeline.sample()[0];
   continuous(pose(recovered), sampleRigLocalPose(rig, "run", recovered.base.destination.phase));
 });

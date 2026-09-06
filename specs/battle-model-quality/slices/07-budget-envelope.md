@@ -166,6 +166,10 @@ the next pass. Temporal/standing repeats and broader envelope gates remain open.
 
 ## Focused verdict
 
+The [caller-owned LOD storage experiment](../assets/evidence/07/lod-storage.md)
+preserved exact output but was rejected after worse matched hardware timing.
+Its patch and all reports are retained; production keeps the prior planner.
+
 Variable: **Cost versus visible detail**.
 
 Crop/mask: Fixed camera framing and synthetic geometry; no aesthetic acceptance here.

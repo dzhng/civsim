@@ -5,7 +5,7 @@ Status: IN PROGRESS. Depends on [06](./06-gpu-playback.md), now complete.
 ## Contract and ownership
 
 Detailed exported art receives a measured cost envelope before acceptance,
-without weakening existing performance gates. Editable08 anatomy may be authored
+without weakening existing performance gates. Editable08 anatomy and09 gear may be authored
 in parallel as candidate-only content;07 remains open until every requirement
 below is satisfied. This is not permission to infer limits from passing isolated
 bone or geometry brackets.
@@ -162,7 +162,8 @@ art/display limits still follow; this sub-pass does not close07 by itself.
 passing focused CPU/type checks and actual30k/67-joint storage admission. Both
 synchronized interruption cadence rows remain red; the staggered allocation
 phase is not a timing measurement. Preserve that distinction when diagnosing
-the next pass. Temporal/standing repeats and broader envelope gates remain open.
+the next pass. Merged temporal/standing repeats pass as recorded in that evidence;
+broader envelope gates remain open.
 
 ## Focused verdict
 

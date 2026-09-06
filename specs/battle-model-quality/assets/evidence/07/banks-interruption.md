@@ -72,7 +72,11 @@ dominate the upload bracket. GC is material too (12% of measured CPU time), yet
 cannot be blamed specifically on planner allocation from this profile alone.
 The 1 ms sampler is not precise enough to assign savings to individual lines.
 
-## One bounded next change, not implemented
+## Tested hypothesis: reusable results
+
+The subsequent [storage experiment](lod-storage.md) was implemented and tested,
+then rejected for worse matched timing. The rationale below is retained as the
+hypothesis that experiment tested, not a current instruction to implement it.
 
 Give the existing LOD planner caller-owned reusable result storage for main and
 shadow assignments and visibility, updated in place over the active count.
@@ -93,3 +97,6 @@ cameras, multiple views, threshold crossings, transformed corpses, mounted/foot
 bounds, shrink and regrowth. A focused CPU comparison must then establish whether
 the allocation removal helps. Only an unchanged full hardware gate can establish
 acceptance; this diagnostic neither closes 07 nor proves a speedup.
+
+A later [live-roll CPU probe](live-roll-cpu-probe.md) did not establish a browser
+speedup either; its arithmetic shortcut has not been integrated.

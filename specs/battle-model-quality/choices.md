@@ -2,6 +2,42 @@
 
 ## Sound — medium confidence
 
+### Keep correct material transfer before repairing placeholder readability (slice04a)
+
+When the campaign draws the old warm-colored soldiers using correctly decoded light and explicit material properties, some skin and limbs become darker and harder to distinguish. This pass keeps that truthful transfer instead of brightening the renderer to preserve the old accidental result. The future authored surface passes must restore readability through the actual assets; this is not approval of the darker placeholder art.
+
+The plan separates infrastructure from final art but leaves this intermediate visual tradeoff open. **Sound:** making authoring dependable comes first, consistent with the user's infrastructure-first clarification. The reach is the later foot, mounted and crew surface review: those passes inherit a visible readability obligation, not permission to lower the quality target.
+
+### Retain a simpler lighting model in the raw renderer (slice04a)
+
+When the same metal material appears in the campaign's raw renderer and the battle's Three renderer, both now read its authored color, roughness and metallic value. The raw renderer uses its existing smaller lighting model, extended to respond to those values; it does not acquire a second copy of Three's full physically based lighting system. The pictures can therefore differ even when the material data agrees.
+
+The plan permits different raw pixels but did not choose how much lighting machinery to share. **Sound:** this avoids a second full lighting engine while preserving authored channel response. Future raw-renderer work must maintain that response; exact battle/campaign lighting parity would be a separate architectural change.
+
+### Keep far-atlas edge quality provisional while measuring its cost (slice04a)
+
+When a soldier becomes a distant image, the new GPU bake records surface properties rather than a pre-lit picture. Its pixels currently use a single coverage sample, whereas the replaced canvas painter smoothed edges. Thin diagonal equipment may consequently have harder stair steps. The provisional call is to keep this infrastructure representation while the first-pair and roster distance passes compare actual authored silhouettes and decide the coverage budget; it is not a final edge-quality verdict.
+
+The plan delegated atlas packing but left this lost edge smoothing unspecified. **Sound, provisionally:** the representation is measured and reversible, and no unexplained material error may be excused as edge debt. Future distance acceptance must explicitly compare smoothing quality and memory cost, rather than inherit this setting as approved art.
+
+### Retain bake depth storage with its property targets (slice04a)
+
+When an atlas finishes baking, its depth buffer is no longer sampled, but remains owned by the same render target until the atlas is replaced or disposed. Releasing only that attachment early could save about45MiB across the current catalog, but would introduce a separate backend resource-lifetime path. The current choice retains the simpler target ownership and includes its full cost in reported allocation and reload peak.
+
+The plan required measured memory without specifying attachment lifetime. **Sound, provisionally:** ownership is explicit and cleanup is tested. The measured asset-budget pass can revisit the retained storage if it constrains the final roster; the quoted allocation must never omit it merely because shaders do not sample it.
+
+### Material tables are immutable GPU copies for one prepared crowd (slice04a)
+
+When an author changes a material file, reload constructs a new GPU material table and replaces the prepared crowd. Mutating an already-loaded JavaScript array does not update the visible material in place. Tiers that share the same loaded table share its GPU copy; a separately prepared crowd owns separate copies, even for identical bytes, so rejecting a reload cannot free the current crowd's resources.
+
+The plan required reload and shared source ownership but left GPU caching lifetime open. **Sound:** resource sharing stays inside one disposable preparation rather than adding global reference counting. A future live material editor must explicitly upload its edits or use reload; ordinary JavaScript mutation is not an editing API.
+
+### Give temporary geometry explicit surface categories (slice04a)
+
+When building the old diagnostic soldiers, a wooden shaft and a leather body can have the same brown color but receive different material slots. The builder now names those surfaces directly. Its temporary heavy body remains categorized as bronze, while the medium body is leather; these categories describe existing placeholder content, not a reinterpretation of the requested chainmail heavy infantry.
+
+The plan required explicit placeholder identity but did not assign every old primitive a surface. **Sound:** the categories make the transport testable without pretending the old geometry is finished equipment. The first-pair gear and surface passes replace this temporary content with the user's leather-versus-chainmail distinction.
+
 ### Benchmark motion uses authored clip duration (slice03)
 
 When the crowd benchmark advances its marching soldiers, it samples the duration declared by their asset using the production phase rule. Keeping the former private shader's rounded clock would measure a different animation path even after sharing the mesh.

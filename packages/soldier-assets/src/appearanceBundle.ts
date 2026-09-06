@@ -1,17 +1,11 @@
 import type { SoldierMeshData } from "./mesh";
 import type { ImportedRig } from "./rig";
 import type { VatBake } from "./schema";
+import type { SoldierMaterial } from "./material";
 
 export type SoldierMeshAsset = { [K in keyof SoldierMeshData]: number[] } & {
   indexFormat: "uint16" | "uint32";
 };
-
-export interface SoldierMaterial {
-  name: string;
-  baseColor: [number, number, number, number];
-  roughness: number;
-  metallic: number;
-}
 
 export interface AppearanceManifest {
   name: string;
@@ -199,6 +193,23 @@ async function readAppearanceBundle(
     Promise.all(manifest.tiers.map((path) => read<SoldierMeshAsset>(path))),
     read<SoldierMeshAsset>(manifest.far.mesh),
   ]);
+  if (
+    !Array.isArray(materials) ||
+    materials.length === 0 ||
+    materials.some(
+      (material) =>
+        !material ||
+        !Array.isArray(material.baseColor) ||
+        material.baseColor.length !== 4 ||
+        [...material.baseColor, material.roughness, material.metallic].some(
+          (value) => !Number.isFinite(value) || value < 0 || value > 1,
+        ),
+    )
+  ) {
+    throw new Error(
+      "appearance materials require finite base RGBA, roughness and metallic in [0, 1]",
+    );
+  }
   if (
     ![animation.width, animation.height, animation.bones].every(
       (value) => Number.isInteger(value) && value > 0,

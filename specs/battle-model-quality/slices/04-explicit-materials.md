@@ -93,17 +93,20 @@ scalar response, seed uniformity, explicit faction masks and material-table
 reindex invariance. The standing30k hardware gate passes. No04a final integration
 commit or04b–04d acceptance is claimed yet.
 
-Two audit findings remain on the04a critical path:
+GPU admission now rejects actual invalid commands and disposes the replacement
+while preserving the prior scene. Renderer state and scopes are restored before
+yielding, and main revalidates the author's active pose before installation.
+Malformed material factors also reject before GPU preparation rather than silently
+installing invalid floating-point texture values. Mutation tests prove both guards.
 
-- A resolved bake promise must mean GPU resource admission succeeded, not merely
-  that commands were submitted. Scope-based validation must reject actual invalid
-  GPU commands and dispose the replacement while preserving the prior scene.
-  Restore renderer state and pop scopes before yielding. Revalidate the author's
-  active pose before installation because that new wait admits UI changes.
-- Stronger far highlights cannot be labeled distance debt without a controlled
-  comparison separating authored-property transfer, normal transformation,
-  quantization and view approximation. Previously refreshed multi-slot images
-  also contained an interpolation defect; main fixed it with flat integer IDs.
+The remaining04a critical path is the confirmed contact-darkening mismatch:
+matched stable near/far interiors agree within one RGB code after disabling
+near-only contact darkening. The far lane is sharing that factor through unused
+normal-atlas alpha, independently of authored occlusion, with a live corpse gate.
+Its correction needs merged checks and its focused visual evidence before04a
+closes. Controlled nearest-filter and half-float probes classify residual bright
+boundary bands as filtered normals crossing coarse rasterized edges, not increased
+material illumination; retain those controls with the distance-quality debt.
 
 The single-sample far bake and retained depth targets are provisional resource
 choices, not final edge-quality approval. Final distance-quality decisions still

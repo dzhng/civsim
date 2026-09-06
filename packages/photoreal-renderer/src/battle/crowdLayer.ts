@@ -6,33 +6,25 @@
 // positionNode per cascade.
 import * as THREE from "three/webgpu";
 import {
-  abs,
   attribute,
   clamp,
   dot,
   float,
   floor,
-  fract,
   int,
   max,
   mix,
   normalize,
   sin,
   smoothstep,
-  step,
   varying,
   vec3,
   vec4,
 } from "three/tsl";
 import type { CrowdInstance } from "../../../crowd-runtime/src/instanceData";
 import type { LodCamera, LodCounts } from "../../../crowd-runtime/src/lod";
-import {
-  SOLDIER_MATERIAL_MASKS,
-  SOLDIER_PBR_VALUES,
-  soldierMaterialIdentity,
-} from "../../../soldier-assets/src/soldierMesh";
+import { soldierMaterialIdentity } from "../../../soldier-assets/src/material";
 import type { AppearanceBundle } from "../../../soldier-assets/src/appearanceBundle";
-import { factionForTeam } from "../../../game-renderer/src/battle/factionColors";
 import type { VatBake } from "../../../soldier-assets/src/schema";
 import {
   createVatLayout,
@@ -40,12 +32,17 @@ import {
   sampleVatPhase,
   type VatLayout,
 } from "../../../renderer-core/src/vatLayout";
-import { linearAlbedo, viewNormalNode } from "./battleTsl";
+import { viewNormalNode } from "./battleTsl";
 import { createSoldierImpostorAtlas, OctahedralImpostorLayer } from "./impostorLayer";
 import { planPhotorealCrowdLods } from "./crowdLod";
 import { RENDER_ORDER } from "./terrainLayer";
 import { weightedVatColumns } from "./skinNodes";
 import { soldierGeometry } from "./meshGeometry";
+import {
+  createSoldierMaterialTexture,
+  soldierFactionAccent,
+  soldierSurfaceNodes,
+} from "./soldierSurface";
 
 interface ClassBucket {
   mesh: THREE.Mesh;
@@ -85,7 +82,7 @@ export class PhotorealCrowd {
   private readonly impostors: Record<number, OctahedralImpostorLayer> = {};
   private readonly textures = new Set<THREE.DataTexture>();
   private instanceCount = 0;
-  private readonly materialIdentity: ReturnType<typeof soldierMaterialIdentity>;
+  private readonly materialIdentity = soldierMaterialIdentity();
   private previousLevels: number[] = [];
   private assignedCounts = emptyLodCounts();
   private visibleCounts = emptyLodCounts();
@@ -100,13 +97,31 @@ export class PhotorealCrowd {
   private readonly cullCenter = new THREE.Vector3();
   private readonly cullSphere = new THREE.Sphere();
 
-  constructor(
+  private constructor(private readonly assets: Record<number, AppearanceBundle>) {}
+
+  static async create(
+    renderer: THREE.WebGPURenderer,
     scene: THREE.Scene,
-    private readonly assets: Record<number, AppearanceBundle>,
-  ) {
-    this.materialIdentity = soldierMaterialIdentity();
+    assets: Record<number, AppearanceBundle>,
+  ): Promise<PhotorealCrowd> {
+    const crowd = new PhotorealCrowd(assets);
+    await crowd.initialize(renderer, scene);
+    return crowd;
+  }
+
+  private async initialize(renderer: THREE.WebGPURenderer, scene: THREE.Scene): Promise<void> {
     // One VAT texture per distinct bake (the all-placeholder case → one).
     const textures = new Map<VatBake, THREE.DataTexture>();
+    const materialTextures = new Map<AppearanceBundle["materials"], THREE.DataTexture>();
+    const materialTextureFor = (materials: AppearanceBundle["materials"]): THREE.DataTexture => {
+      let texture = materialTextures.get(materials);
+      if (!texture) {
+        texture = createSoldierMaterialTexture(materials);
+        materialTextures.set(materials, texture);
+        this.textures.add(texture);
+      }
+      return texture;
+    };
     const textureFor = (vat: VatBake): THREE.DataTexture => {
       let tex = textures.get(vat);
       if (!tex) {
@@ -129,15 +144,18 @@ export class PhotorealCrowd {
     // Local bake reloads may fail after some tiers have allocated resources.
     // Track allocations independently of buckets: a throwing map has no result.
     const created: THREE.Mesh[] = [];
-    let atlas: ReturnType<typeof createSoldierImpostorAtlas> | null = null;
+    let atlas: Awaited<ReturnType<typeof createSoldierImpostorAtlas>> | null = null;
     try {
-      for (const [id, bundle] of Object.entries(assets)) {
+      for (const [id, bundle] of Object.entries(this.assets)) {
         const classId = Number(id);
         const vat = bundle.animation;
         const tiers = bundle.tiers;
         this.buckets[classId] = tiers.map((tierMesh, lod) => {
           const geometry = soldierGeometry(tierMesh);
-          const mesh = new THREE.Mesh(geometry, crowdMaterial(textureFor(vat)));
+          const mesh = new THREE.Mesh(
+            geometry,
+            crowdMaterial(textureFor(vat), materialTextureFor(bundle.materials)),
+          );
           created.push(mesh);
           mesh.name = `battle-crowd-${classId}-lod${lod}`;
           mesh.frustumCulled = false;
@@ -161,10 +179,16 @@ export class PhotorealCrowd {
             pending: [],
           };
         });
-        atlas = createSoldierImpostorAtlas(bundle.farMesh, vat, {
-          clip: bundle.manifest.far.clip,
-          phase: bundle.manifest.far.phase,
-        });
+        atlas = await createSoldierImpostorAtlas(
+          renderer,
+          bundle.farMesh,
+          vat,
+          materialTextureFor(bundle.materials),
+          {
+            clip: bundle.manifest.far.clip,
+            phase: bundle.manifest.far.phase,
+          },
+        );
         this.impostors[classId] = new OctahedralImpostorLayer(scene, atlas);
         atlas = null;
       }
@@ -176,7 +200,7 @@ export class PhotorealCrowd {
       }
       for (const texture of this.textures) texture.dispose();
       for (const layer of Object.values(this.impostors)) layer.dispose();
-      atlas?.texture.dispose();
+      atlas?.dispose();
       throw error;
     }
   }
@@ -292,7 +316,7 @@ export class PhotorealCrowd {
       bucket.inst2[o] = inst.elevation ?? 0;
       bucket.inst2[o + 1] = inst.deathVariant ?? 0;
       bucket.inst2[o + 2] = inst.alive ? 0 : 1;
-      bucket.inst2[o + 3] = (inst.seed % 104729) / 104729;
+      bucket.inst2[o + 3] = 0;
     }
     for (const name of ["inst0", "inst1", "inst2"] as const) {
       const attr = bucket.geometry.getAttribute(name) as THREE.InstancedBufferAttribute;
@@ -310,6 +334,9 @@ export class PhotorealCrowd {
       impostorInstances: far.reduce((sum, stats) => sum + stats.impostorInstances, 0),
       impostorDrawCalls: far.reduce((sum, stats) => sum + stats.impostorDrawCalls, 0),
       appearances: far.length,
+      atlasAllocatedBytes: far.reduce((sum, stats) => sum + stats.atlasMetrics.allocatedBytes, 0),
+      atlasBakeMs: far.reduce((sum, stats) => sum + stats.atlasMetrics.bakeMs, 0),
+      atlasBakeDrawCalls: far.reduce((sum, stats) => sum + stats.atlasMetrics.drawCalls, 0),
     };
     return {
       instances: this.instanceCount,
@@ -341,22 +368,19 @@ export class PhotorealCrowd {
   }
 }
 
-// SkinnedCrowdPipeline SKINNED_WGSL's VAT skinning + material-channel contract
-// on MeshStandardNodeMaterial: albedo = cColor,
-// normal = skinned cNormal, ORM = occlusion/roughness/metalness in the canonical
-// order, factionMask = high-blue armband locator. The environment lights the
-// skinned, yaw/roll-rotated normal.
-function crowdMaterial(vatTex: THREE.DataTexture): THREE.MeshStandardNodeMaterial {
+function crowdMaterial(
+  vatTex: THREE.DataTexture,
+  materialTexture: THREE.DataTexture,
+): THREE.MeshStandardNodeMaterial {
   const material = new THREE.MeshStandardNodeMaterial({
     side: THREE.DoubleSide,
-    roughness: SOLDIER_PBR_VALUES.roughness.default,
+    roughness: 1,
     metalness: 0,
   });
   // fog stays ON: the shared aerial-perspective hook (scene.fogNode, 10b)
   // hazes the crowd like every other world surface.
   const position = attribute<"vec3">("position", "vec3");
   const normal = attribute<"vec3">("normal", "vec3");
-  const color = attribute<"vec4">("color", "vec4");
   const inst0 = attribute<"vec4">("inst0", "vec4");
   const inst1 = attribute<"vec4">("inst1", "vec4");
   const inst2 = attribute<"vec4">("inst2", "vec4");
@@ -412,96 +436,10 @@ function crowdMaterial(vatTex: THREE.DataTexture): THREE.MeshStandardNodeMateria
 
   const faction = varying(inst0.w).toVar();
   const vCorpse = varying(corpse).toVar();
-  const vColor = varying(color).toVar();
-
-  // Material-led albedo composition: class-authored linen/leather/bronze/iron
-  // vertex colors plus per-soldier seed variation make the body. Faction color
-  // is a tiny authored upper sword-arm band only; shields, crests, tunics, and
-  // armor remain real materials.
-  const blue = vec3(...factionForTeam(0).primary);
-  const red = vec3(...factionForTeam(1).primary);
-  const neutral = vec3(...factionForTeam(2).primary);
-  let accent = mix(blue, red, step(0.5, faction)).toVar();
-  accent = mix(accent, neutral, step(1.5, faction)).toVar();
-  const masks = SOLDIER_MATERIAL_MASKS;
-  const teamMask = smoothstep(
-    masks.factionMask.blueDelta[0],
-    masks.factionMask.blueDelta[1],
-    max(vColor.b.sub(max(vColor.r, vColor.g)), 0.0),
-  ).toVar();
-  const bronzeMask = smoothstep(masks.bronze.r[0], masks.bronze.r[1], vColor.r)
-    .mul(smoothstep(masks.bronze.g[0], masks.bronze.g[1], vColor.g))
-    .mul(float(1.0).sub(smoothstep(masks.bronze.maxB[0], masks.bronze.maxB[1], vColor.b)));
-  const greySpread = max(
-    max(abs(vColor.r.sub(vColor.g)), abs(vColor.g.sub(vColor.b))),
-    abs(vColor.r.sub(vColor.b)),
-  ).toVar();
-  const ironMask = clamp(float(1.0).sub(greySpread.mul(masks.iron.greySpreadScale)), 0.0, 1.0).mul(
-    smoothstep(
-      masks.iron.brightness[0],
-      masks.iron.brightness[1],
-      vColor.r.add(vColor.g).add(vColor.b).div(3.0),
-    ),
-  );
-  const linenMask = smoothstep(masks.linen.r[0], masks.linen.r[1], vColor.r)
-    .mul(smoothstep(masks.linen.g[0], masks.linen.g[1], vColor.g))
-    .mul(smoothstep(masks.linen.b[0], masks.linen.b[1], vColor.b))
-    .mul(float(1.0).sub(bronzeMask));
-  const leatherMask = smoothstep(masks.leather.r[0], masks.leather.r[1], vColor.r)
-    .mul(smoothstep(masks.leather.g[0], masks.leather.g[1], vColor.g))
-    .mul(float(1.0).sub(smoothstep(masks.leather.maxB[0], masks.leather.maxB[1], vColor.b)));
-  const skinMask = smoothstep(masks.skin.r[0], masks.skin.r[1], vColor.r)
-    .mul(smoothstep(masks.skin.g[0], masks.skin.g[1], vColor.g))
-    .mul(smoothstep(masks.skin.b[0], masks.skin.b[1], vColor.b))
-    .mul(float(1.0).sub(bronzeMask));
-  const seed = varying(inst2.w).toVar();
-  const seedA = fract(seed.mul(7.13)).toVar();
-  const seedB = fract(seed.mul(11.71).add(0.23)).toVar();
-  const seedC = fract(seed.mul(17.19).add(0.41)).toVar();
-  const value = float(0.86).add(seedA.mul(0.14));
-  const warmth = seedB.sub(0.5);
-  const armBand = mix(accent, vec3(0.42, 0.34, 0.26), 0.35);
-  let albedo = vColor.rgb.toVar();
-  albedo = albedo
-    .mul(value)
-    .add(vec3(warmth.mul(0.035), warmth.mul(0.018), warmth.mul(-0.025)))
-    .toVar();
-  albedo = mix(albedo, vec3(0.64, 0.43, 0.18), bronzeMask.mul(0.35)).toVar();
-  albedo = mix(albedo, vec3(0.47, 0.47, 0.44), ironMask.mul(0.28)).toVar();
-  albedo = mix(albedo, vec3(0.66, 0.6, 0.48), linenMask.mul(seedC.mul(0.2))).toVar();
-  albedo = mix(albedo, armBand, teamMask).toVar();
-  albedo = albedo.add(vec3(0.05, 0.028, 0.006).mul(bronzeMask)).toVar();
-  albedo = albedo.add(vec3(0.035, 0.03, 0.014).mul(linenMask).mul(0.55)).toVar();
-  albedo = albedo.add(vec3(0.025, 0.026, 0.024).mul(ironMask).mul(0.45)).toVar();
-  const roughness = mix(
-    mix(
-      mix(
-        mix(
-          float(SOLDIER_PBR_VALUES.roughness.default),
-          float(SOLDIER_PBR_VALUES.roughness.linen),
-          linenMask,
-        ),
-        float(SOLDIER_PBR_VALUES.roughness.leather),
-        leatherMask,
-      ),
-      float(SOLDIER_PBR_VALUES.roughness.skin),
-      skinMask,
-    ),
-    float(SOLDIER_PBR_VALUES.roughness.bronze),
-    bronzeMask,
-  );
-  material.roughnessNode = clamp(
-    mix(roughness, float(SOLDIER_PBR_VALUES.roughness.iron), ironMask),
-    0.32,
-    0.94,
-  );
-  material.metalnessNode = clamp(
-    bronzeMask
-      .mul(SOLDIER_PBR_VALUES.metalness.bronze)
-      .add(ironMask.mul(SOLDIER_PBR_VALUES.metalness.iron)),
-    0.0,
-    0.95,
-  );
+  const surface = soldierSurfaceNodes(materialTexture);
+  let albedo = mix(surface.albedo, soldierFactionAccent(faction), surface.factionMask).toVar();
+  material.roughnessNode = surface.roughness;
+  material.metalnessNode = surface.metallic;
   // Grounding/contact AO darkens the ambient light
   // over the bottom `band` world units of the LOCAL (pre-scale) mesh height, so
   // feet/ankles read as sitting in ground-occluded skylight rather than pasted
@@ -509,13 +447,11 @@ function crowdMaterial(vatTex: THREE.DataTexture): THREE.MeshStandardNodeMateria
   // cast shadow is a separate owner. Living soldiers only: a prone
   // corpse's whole body is low, so gating by corpse keeps the fallen from
   // blackening wholesale.
-  const contactRise = smoothstep(float(0.0), float(SOLDIER_PBR_VALUES.contactAo.band), rolled.z);
-  const contactAo = mix(
-    float(1.0 - SOLDIER_PBR_VALUES.contactAo.strength),
-    float(1.0),
-    contactRise,
+  const contactRise = smoothstep(float(0.0), float(0.42), rolled.z);
+  const contactAo = mix(float(1.0 - 0.55), float(1.0), contactRise);
+  material.aoNode = surface.occlusion.mul(
+    varying(mix(float(1.0), contactAo, float(1.0).sub(corpse))),
   );
-  material.aoNode = varying(mix(float(1.0), contactAo, float(1.0).sub(corpse)));
 
   // Corpses desaturate and darken so the fallen read as dead, not living.
   const lum = dot(albedo, vec3(0.3, 0.59, 0.11));
@@ -526,6 +462,6 @@ function crowdMaterial(vatTex: THREE.DataTexture): THREE.MeshStandardNodeMateria
       .add(vec3(0.06, 0.04, 0.03)),
     vCorpse.mul(0.7),
   ).toVar();
-  material.colorNode = vec4(linearAlbedo(clamp(albedo, vec3(0.0), vec3(1.0))), vColor.a);
+  material.colorNode = vec4(clamp(albedo, vec3(0.0), vec3(1.0)), 1);
   return material;
 }

@@ -5,7 +5,10 @@ import {
   encodeSoldierMesh,
   loadAppearanceBundle,
 } from "@packages/soldier-assets/src/appearanceBundle";
-import { createPlaceholderSoldierMeshes } from "@packages/soldier-assets/src/soldierMesh";
+import {
+  createPlaceholderSoldierMeshes,
+  PLACEHOLDER_MATERIALS,
+} from "@packages/soldier-assets/src/soldierMesh";
 
 test("an incomplete appearance fails instead of silently using placeholder distance content", async () => {
   vi.stubGlobal(
@@ -77,7 +80,7 @@ test("a complete appearance loads distinct tiers and its own far mesh without na
       data: Array(112).fill(0),
       clips: [{ name: "idle", start: 0, frames: 1, loop: true, duration: 0 }],
     },
-    "materials.json": [{ name: "neutral", baseColor: [1, 1, 1, 1], roughness: 1, metallic: 0 }],
+    "materials.json": PLACEHOLDER_MATERIALS,
     "near.json": tier(0),
     "mid.json": tier(1),
     "far.json": tier(2),
@@ -97,6 +100,24 @@ test("a complete appearance loads distinct tiers and its own far mesh without na
     expect(bundle.tiers[0].indices).toBeInstanceOf(Uint32Array);
     expect(requests.filter((url) => url.endsWith("/far.json"))).toHaveLength(1);
     expect(bundle.manifest.bounds.radius).toBe(5);
+    for (const invalid of [
+      null,
+      [],
+      [null],
+      [{ ...PLACEHOLDER_MATERIALS[0], baseColor: [1, 1, 1] }],
+      [{ ...PLACEHOLDER_MATERIALS[0], baseColor: [1, 1, 1, null] }],
+      [{ ...PLACEHOLDER_MATERIALS[0], roughness: undefined }],
+      [{ ...PLACEHOLDER_MATERIALS[0], metallic: "0.5" }],
+      [{ ...PLACEHOLDER_MATERIALS[0], metallic: 2 }],
+    ]) {
+      files["materials.json"] = invalid?.length
+        ? [...invalid, ...PLACEHOLDER_MATERIALS.slice(1)]
+        : invalid;
+      await expect(
+        loadAppearanceBundle("https://assets.test/fixture/bundle.json").then(() => "accepted"),
+      ).rejects.toThrow(/material/i);
+    }
+    files["materials.json"] = PLACEHOLDER_MATERIALS;
     (files["clips.json"] as { data: number[] }).data.pop();
     await expect(
       loadAppearanceBundle("https://assets.test/fixture/bundle.json").then(() => "accepted"),

@@ -1,8 +1,9 @@
 # 04a integration — explicit scalar surfaces
 
 This checkpoint verifies authored scalar material transfer, not final soldier art.
-GPU-error admission and controlled far-highlight classification remain open04a
-integration gates; the README owns the current pickup point.
+GPU-error admission and late-pose reload revalidation pass. Controlled far
+comparison has isolated missing contact darkening; its correction remains the
+open04a integration gate. The README owns the current pickup point.
 Geometry and clips remain the diagnostic/placeholder content from03. The same
 linear material table and explicit faction mask feed near, raw and far consumers;
 instance seed no longer changes appearance. Texture transport and posed normal
@@ -53,6 +54,15 @@ thin overlap seams match the unchanged placeholder geometry.
 
 - Source bake suite passes, including unchanged geometry/weight/bounds and
   deterministic package/web outputs; see `explicit-placeholder-surfaces.md`.
+- After GPU-admission integration, main typecheck and202 Vitest tests pass.
+  Strict workbench, far-admission, far-property, far-bundle and Blender candidate
+  scenes pass with their existing snapshots at zero changed pixels.
+- The late-pose reload test holds GPU admission while selecting appearance14,
+  absent from the pending catalog. Removing final revalidation makes the test
+  fail: the old crowd is discarded, appearance14 disappears and scene nodes
+  fall111→107. Restoring the guard rejects the candidate explicitly, preserves
+  appearance14 and leaves111 nodes. This is a real consumer failure, not a
+  defensive check with no reachable outcome.
 - Before raw integration, direct main typecheck and199 Vitest tests pass.
   Independent code review found no actionable defect and independently passed
   the same gates; its sandbox could not launch Chromium, so direct browser runs
@@ -88,13 +98,30 @@ human/mounted scalar comparisons are retained beside this report.
 
 ## Changed main tests
 
+Final independent code review found that malformed fetched material factors could
+be packed as invalid GPU values without a WebGPU validation error. The shared
+loader now validates the full material table before returning a bundle. The
+existing complete-bundle test demonstrably accepted a null slot before the fix;
+it now rejects null/empty tables, malformed RGBA and missing, nonnumeric or
+out-of-range factors without confusing the test with a missing-slot error. The
+production workbench also reloads a material with missing roughness and proves
+explicit rejection plus byte-identical previous pixels. The review finding is
+resolved; typecheck and the focused loader/browser checks pass.
+
+The shared integration is a commit checkpoint, not final04a acceptance: the
+controlled far-contact correction remains separate so its intended pixel changes
+receive their own evidence and critique. No texture or anatomy completion is
+claimed by this checkpoint.
+
 | Test | Previous behavior | New behavior | Why |
 | --- | --- | --- | --- |
 | Complete appearance loader fixture | Real mesh with singleton neutral table | Real multi-slot mesh with its actual material table | Retains strict missing-slot validation after source migration |
+| Malformed material records | Could load invalid scalar values into GPU data | Invalid table/factors reject before preparation; previous workbench pixels remain exact | Invalid floating-point texture values need not trigger WebGPU errors |
 | Workbench material transfer | No scalar property response assertion | Roughness and metallic are changed separately through real file reloads | Neither channel may be ignored |
 | Workbench uniform/faction appearance | Only existing default snapshots | Seed equality; blue mask0 equality; mask1 faction difference | Explicit identity replaces seed variation and RGB inference |
 | Workbench material numbering | No equivalent-asset permutation test | Reversed table/remapped IDs must preserve exact pixels | Pins categorical GPU transport; observed red→green |
-| Renderer scene script | Existing weighted bundle scenes | Also runs far-property scene | Keeps the new per-pixel normal/material regression in the standing renderer suite |
+| Workbench late pose reload | Validated selection only before preparation | Selection changed during GPU admission is revalidated before replacing the crowd | Retains the active soldier and disposes the incompatible replacement; mutation red→green |
+| Renderer scene script | Existing weighted bundle scenes | Also runs far-property and real GPU-admission scenes | Keeps the new material and asynchronous failure regressions in the standing renderer suite |
 
 Source, far and raw lanes retain their detailed changed-test ledgers in their
 own evidence. No simulation/balance/campaign-save behavior is changed.

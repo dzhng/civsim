@@ -276,7 +276,7 @@ export async function route(ctx: PhotorealRouteContext) {
 
   const instances = buildSoldiers(soldierCount);
   const soldiers = instances.length;
-  const crowd = new PhotorealCrowd(world.scene, assets);
+  const crowd = await PhotorealCrowd.create(world.renderer, world.scene, assets);
   const march = assets[0].animation.clips.find((clip) => clip.name === "march");
   if (!march || march.duration <= 0) throw new Error("Crowd fixture requires a timed march clip");
 

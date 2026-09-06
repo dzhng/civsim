@@ -339,7 +339,229 @@ export async function run(ctx) {
     await page.waitForTimeout(300);
     await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
     await ctx.snap(page, "shared/soldiers/workbench/controls", { threshold: 0, maxDiffRatio: 0 });
+
+    // Change authored factors without changing the mesh or its vertex colors.
+    // Each comparison changes one factor: consuming only one cannot pass both.
+    await page.evaluate(() =>
+      document.querySelector(".renderer-lab").classList.add("reference-shot"),
+    );
+    const { materialUrl, meshUrls } = await page.evaluate(async () => {
+      const catalogUrl = new URL("/assets/soldiers/catalog.json", location.href);
+      const catalog = await fetch(catalogUrl).then((response) => response.json());
+      const bundleUrl = new URL(catalog.appearances[0], catalogUrl);
+      const bundle = await fetch(bundleUrl).then((response) => response.json());
+      return {
+        materialUrl: new URL(bundle.materials, bundleUrl).href,
+        meshUrls: bundle.tiers.map((path) => new URL(path, bundleUrl).href),
+      };
+    });
+    const beforeReindex = await page.screenshot();
+    await page.route(materialUrl, async (route) => {
+      const materials = await (await route.fetch()).json();
+      delete materials[0].roughness;
+      await route.fulfill({ json: materials });
+    });
+    const malformedMaterial = await page.evaluate(() => window.__battleModels.reload());
+    await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
+    await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
+    ctx.check(
+      "malformed material rejects reload and preserves the last good pixels",
+      !malformedMaterial.ok &&
+        /materials require finite/.test(malformedMaterial.error) &&
+        beforeReindex.equals(await page.screenshot()),
+      JSON.stringify(malformedMaterial),
+    );
+    await page.unroute(materialUrl);
+    const materialCount = (await (await page.request.get(materialUrl)).json()).length;
+    await page.route(materialUrl, async (route) => {
+      const materials = await (await route.fetch()).json();
+      await route.fulfill({ json: materials.reverse() });
+    });
+    for (const url of meshUrls) {
+      await page.route(url, async (route) => {
+        const mesh = await (await route.fetch()).json();
+        mesh.materialIds = mesh.materialIds.map((id) => materialCount - 1 - id);
+        await route.fulfill({ json: mesh });
+      });
+    }
+    const reindexed = await page.evaluate(() => window.__battleModels.reload());
+    ctx.check("equivalent material-table reindex loads", reindexed.ok, reindexed.error);
+    await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
+    await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
+    ctx.check(
+      "material slot numbering cannot change surface pixels",
+      beforeReindex.equals(await page.screenshot()),
+    );
+    await page.unroute(materialUrl);
+    for (const url of meshUrls) await page.unroute(url);
+    const materialShots = [];
+    for (const [roughness, metallic] of [
+      [0.9, 0],
+      [0.15, 0],
+      [0.15, 1],
+    ]) {
+      await page.route(materialUrl, async (route) => {
+        const materials = await (await route.fetch()).json();
+        await route.fulfill({
+          json: materials.map((material) => ({
+            ...material,
+            baseColor: [0.6, 0.6, 0.6, 1],
+            roughness,
+            metallic,
+          })),
+        });
+      });
+      const result = await page.evaluate(() => window.__battleModels.reload());
+      ctx.check(
+        `authored roughness ${roughness}, metallic ${metallic}: replacement loads`,
+        result.ok,
+        result.error,
+      );
+      await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
+      await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
+      materialShots.push(await page.screenshot());
+      await page.unroute(materialUrl);
+    }
+    ctx.check(
+      "authored roughness changes pixels with fixed color and metallic",
+      !materialShots[0].equals(materialShots[1]),
+    );
+    ctx.check(
+      "authored metallic changes pixels with fixed color and roughness",
+      !materialShots[1].equals(materialShots[2]),
+    );
+    const captureInstance = async (seed, faction = 0) => {
+      await page.evaluate(
+        async ({ source, seed, faction }) => {
+          const { buildCrowdInstances } = await import("/@fs" + source);
+          await new Promise(requestAnimationFrame);
+          const world = window.__battleModels.world;
+          const built = buildCrowdInstances({
+            positions: new Float32Array([0, 0]),
+            facings: new Float32Array([Math.PI / 2]),
+            frames: new Float32Array([1]),
+            alive: new Float32Array([1]),
+            soldierUnit: new Uint32Array(1),
+            unitTeam: [faction],
+            unitClass: [0],
+            simTick: 120,
+            terrainHeight: () => 0,
+          });
+          built.instances[0].seed = seed;
+          world.drawInstances(built.instances, world.stats().camera);
+          world.render();
+          await world.settlePresentedFrame();
+        },
+        { source: instanceModule, seed, faction },
+      );
+      return page.screenshot();
+    };
+    const seedShots = [await captureInstance(1), await captureInstance(91273)];
+    ctx.check("instance seed does not vary authored appearance", seedShots[0].equals(seedShots[1]));
+    for (const mask of [0, 1]) {
+      for (const url of meshUrls) {
+        await page.route(url, async (route) => {
+          const mesh = await (await route.fetch()).json();
+          for (let i = 0; i < mesh.colors.length; i += 4) {
+            mesh.colors.splice(i, 4, 0.01, 0.02, 0.95, 1);
+          }
+          mesh.factionMasks.fill(mask);
+          await route.fulfill({ json: mesh });
+        });
+      }
+      const result = await page.evaluate(() => window.__battleModels.reload());
+      ctx.check(`blue mesh with explicit mask ${mask}: replacement loads`, result.ok, result.error);
+      await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
+      const factions = [await captureInstance(1, 0), await captureInstance(1, 1)];
+      ctx.check(
+        mask ? "explicit mask permits faction tint" : "ordinary blue does not imply faction tint",
+        factions[0].equals(factions[1]) === (mask === 0),
+      );
+      for (const url of meshUrls) await page.unroute(url);
+    }
+    await checkLatePoseReload(ctx, page);
   } finally {
     await page.close();
+  }
+}
+
+async function checkLatePoseReload(ctx, page) {
+  const restored = await page.evaluate(() => window.__battleModels.reload());
+  ctx.check(
+    "admission probe starts from the complete authored catalog",
+    restored.ok,
+    restored.error,
+  );
+  const catalogUrl = new URL("/assets/soldiers/catalog.json", ctx.target).href;
+  await page.route(catalogUrl, async (route) => {
+    const catalog = await (await route.fetch()).json();
+    delete catalog.appearances[14];
+    await route.fulfill({ json: catalog });
+  });
+  try {
+    const result = await page.evaluate(async () => {
+      const harness = window.__battleModels;
+      const renderer = harness.world.world.renderer;
+      const scene = harness.world.world.scene;
+      const device = renderer.backend.device;
+      const target = renderer.getRenderTarget();
+      const originalPop = device.popErrorScope;
+      const beforeNodes = scene.children.length;
+      let release;
+      let signal;
+      let held = false;
+      const entered = new Promise((resolve) => {
+        signal = resolve;
+      });
+      device.popErrorScope = function () {
+        const popped = originalPop.call(this);
+        // Three's inner pipeline scopes run with the atlas target installed.
+        // Admission is after target restoration and before replacement commit.
+        if (!held && renderer.getRenderTarget() === target) {
+          held = true;
+          return popped.then(
+            (error) =>
+              new Promise((resolve) => {
+                release = () => resolve(error);
+                signal();
+              }),
+          );
+        }
+        return popped;
+      };
+      try {
+        const pending = harness.reload();
+        await Promise.race([
+          entered,
+          pending.then(() => {
+            throw new Error("Reload did not await GPU admission");
+          }),
+        ]);
+        harness.set({ classId: 14, clip: "idle", phase: 0 });
+        release();
+        const loaded = await pending;
+        return {
+          ...loaded,
+          beforeNodes,
+          afterNodes: scene.children.length,
+          activeClass: harness.stats().pose.classId,
+          retainedAppearance: Boolean(harness.world.soldierAssets[14]),
+        };
+      } finally {
+        release?.();
+        device.popErrorScope = originalPop;
+      }
+    });
+    ctx.check(
+      "pose changed during GPU admission retains the last valid crowd",
+      !result.ok &&
+        result.error.includes("appearance 14") &&
+        result.retainedAppearance &&
+        result.activeClass === 14 &&
+        result.beforeNodes === result.afterNodes,
+      JSON.stringify(result),
+    );
+  } finally {
+    await page.unroute(catalogUrl);
   }
 }

@@ -1,0 +1,6 @@
+The rendering and reload integration otherwise passes type checking and tests, but malformed material JSON can now be accepted and committed as a corrupt GPU texture instead of preserving the previous valid crowd.
+
+Review comment:
+
+- [P2] Validate materials before packing the GPU texture — /Users/david/dev/game-battle-model-quality/packages/soldier-assets/src/material.ts:13-15
+  When a fetched material record has a missing or non-finite `baseColor`, `roughness`, or `metallic` value, `readAppearanceBundle` merely casts the JSON to `SoldierMaterial[]`, and these assignments silently place `NaN` into the texture. A local reload can therefore succeed and discard the last good crowd while installing shaders with undefined surface values, contrary to the reload failure guarantee; validate every material field and its expected range before returning the bundle or packing it.

@@ -167,6 +167,7 @@ export class PhotorealBattleWorld {
     postGrade: Partial<BattlePostGradeUniforms> | null,
     grassProfile: BladeFieldProfile,
     private readonly requiredSoldierClips: readonly CrowdClip[],
+    crowd: PhotorealCrowd,
   ) {
     this.world = world;
     this.environment = environment;
@@ -194,7 +195,7 @@ export class PhotorealBattleWorld {
     this.terrainSurface = new BattleTerrainSurface(scene);
     this.grass = new BattleGrassField(scene, grassProfile, this.grassTransition, this.wind);
     this.scenery = new PhotorealScenery(scene);
-    this.crowd = new PhotorealCrowd(scene, soldierAssets);
+    this.crowd = crowd;
     this.mountedClasses = Object.entries(soldierAssets)
       .filter(([, bundle]) => bundle.manifest.mounted)
       .map(([id]) => Number(id));
@@ -246,6 +247,13 @@ export class PhotorealBattleWorld {
     const assets = await loadAppearanceCatalog(soldierCatalogUrl);
     assertCrowdClipCoverage(assets, requiredSoldierClips);
     const world = await PhotorealWorld.create(canvas, { antialias: false });
+    let crowd: PhotorealCrowd;
+    try {
+      crowd = await PhotorealCrowd.create(world.renderer, world.scene, assets);
+    } catch (error) {
+      world.dispose();
+      throw error;
+    }
     const sea = createSeaDisplacementSource();
     const shadowMode = resolveSunShadowMode(world.stats().device, options.shadows);
     const postEnabled = options.post !== "off";
@@ -260,6 +268,7 @@ export class PhotorealBattleWorld {
       options.postGrade ?? null,
       grassProfile,
       requiredSoldierClips,
+      crowd,
     );
   }
 
@@ -270,16 +279,26 @@ export class PhotorealBattleWorld {
   /** Reload the production bundle after a local bake, retaining the last good crowd on load failure. */
   async reloadSoldierAssets(activePose?: Pick<CrowdInstance, "classId" | "clip">): Promise<void> {
     const assets = await loadAppearanceCatalog(this.soldierCatalogUrl);
-    if (
-      activePose &&
-      !assets[activePose.classId]?.animation.clips.some((clip) => clip.name === activePose.clip)
-    ) {
-      throw new Error(
-        `Reload does not contain active appearance ${activePose.classId} / clip ${activePose.clip}`,
-      );
-    }
+    const assertActivePose = () => {
+      if (
+        activePose &&
+        !assets[activePose.classId]?.animation.clips.some((clip) => clip.name === activePose.clip)
+      ) {
+        throw new Error(
+          `Reload does not contain active appearance ${activePose.classId} / clip ${activePose.clip}`,
+        );
+      }
+    };
+    assertActivePose();
     assertCrowdClipCoverage(assets, this.requiredSoldierClips);
-    const replacement = new PhotorealCrowd(this.world.scene, assets);
+    const replacement = await PhotorealCrowd.create(this.world.renderer, this.world.scene, assets);
+    try {
+      // The author may select another valid old pose while GPU admission waits.
+      assertActivePose();
+    } catch (error) {
+      replacement.dispose();
+      throw error;
+    }
     this.crowd.dispose();
     this.crowd = replacement;
     this.soldierAssets = assets;

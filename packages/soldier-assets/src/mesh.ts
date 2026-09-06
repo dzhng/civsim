@@ -1,6 +1,7 @@
 export interface SoldierMeshData {
   positions: Float32Array;
   normals: Float32Array;
+  /** Linear RGBA, including glTF COLOR_0; display-space palettes convert at authoring. */
   colors: Float32Array;
   joints: Uint16Array;
   weights: Float32Array;

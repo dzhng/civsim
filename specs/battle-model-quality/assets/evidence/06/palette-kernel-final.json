@@ -1,6 +1,6 @@
 {
   "kind": "scenario-run-report",
-  "generatedAt": "2026-09-06T08:47:58.870Z",
+  "generatedAt": "2026-09-06T09:00:46.696Z",
   "target": "http://127.0.0.1:5195",
   "gpu": true,
   "headful": false,

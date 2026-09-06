@@ -36,6 +36,7 @@ export async function run(ctx) {
         mat4Identity,
       } = await module("packages/soldier-assets/src/localPose.ts");
       const { PlaybackPacker } = await module("packages/renderer-core/src/playbackPacking.ts");
+      const { packRigPaletteData } = await module("packages/renderer-core/src/rigPaletteData.ts");
       const { POSE_PALETTE_HELPERS_WGSL, posePaletteFunctionWgsl } = await module(
         "packages/renderer-core/src/posePaletteWgsl.ts",
       );
@@ -315,14 +316,20 @@ export async function run(ctx) {
             mask.length > 0 && rig.bones.some((bone, i) => bone.parent >= 0 && bone.parent < i - 1),
             { mask, names: rig.bones.map((b) => b.name) },
           );
-          const stepBase = bones,
-            maskOffset = bones + animation.stepMasks.length;
-          const metadata = new Uint32Array(maskOffset + bones);
-          rig.bones.forEach(
-            (bone, i) => (metadata[i] = bone.parent < 0 ? 0xffffffff : bone.parent),
+          const { metadata, inverseBinds, stepBase, upperMaskOffsets } = packRigPaletteData(
+            rig,
+            animation,
+            {
+              41: {
+                manifest: {
+                  presentation: {
+                    riderUpperBodyJoints: mask.map((joint) => rig.bones[joint].name),
+                  },
+                },
+              },
+            },
           );
-          metadata.set(animation.stepMasks, stepBase);
-          mask.forEach((joint) => (metadata[maskOffset + joint] = 1));
+          const maskOffset = upperMaskOffsets.get(41);
           const sample = (clip, phase) => ({ clip, phase });
           const source = (clip, phase) => ({ kind: "clip", sample: sample(clip, phase) });
           const frozen = {
@@ -360,18 +367,16 @@ export async function run(ctx) {
                 },
               }),
             ),
-            ...clips
-              .slice(2)
-              .flatMap((clip) =>
-                [0, 0.001, 0.5, 0.999, 1].map((phase) => ({
-                  name: `${clip}-${phase}`,
-                  base: {
-                    source: source(clip, phase),
-                    destination: sample(clip, phase),
-                    weight: 1,
-                  },
-                })),
-              ),
+            ...clips.slice(2).flatMap((clip) =>
+              [0, 0.001, 0.5, 0.999, 1].map((phase) => ({
+                name: `${clip}-${phase}`,
+                base: {
+                  source: source(clip, phase),
+                  destination: sample(clip, phase),
+                  weight: 1,
+                },
+              })),
+            ),
             ...[0, 0.37, 1].flatMap((weight) => [
               {
                 name: `frozen-base-${weight}`,
@@ -410,13 +415,16 @@ export async function run(ctx) {
             upperMaskOffset: maskOffset,
           }));
           const packer = new PlaybackPacker(rig, animation);
-          const prepared = packer.prepare(inputs);
+          const prepared = packer.prepare(
+            inputs.length,
+            (index) => inputs[index].playback,
+            (index) => inputs[index].upperMaskOffset,
+          );
           const snapshots = new Float32Array(
             Math.max(1, prepared.requiredSnapshotSlots) * bones * 12,
           );
           for (const upload of prepared.uploads)
             snapshots.set(upload.data, upload.slot * bones * 12);
-          const inverseBinds = new Float32Array(rig.bones.flatMap((bone) => bone.inverseBind));
           const buffers = [
             animation.data,
             metadata,

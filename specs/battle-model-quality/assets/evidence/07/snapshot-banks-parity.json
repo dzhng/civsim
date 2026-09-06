@@ -1,0 +1,1496 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-06T17:19:49.693Z",
+  "target": "http://127.0.0.1:5176",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "pose-palette",
+      "file": "system/pose-palette.mjs",
+      "kind": "flow",
+      "tier": "quick"
+    },
+    {
+      "name": "raw-pose-palette",
+      "file": "system/raw-pose-palette.mjs",
+      "kind": "flow",
+      "tier": "quick"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "pose-palette",
+      "name": "trig operation residual diagnostic",
+      "ok": true,
+      "detail": {
+        "actual": [
+          0.6794812679290771,
+          0.8999856114387512,
+          0.9000000357627869,
+          0.15238483250141144
+        ],
+        "expected": [
+          0.6794406139429131,
+          0.899999977585686,
+          0.8999999950856703,
+          0.15240376595924635
+        ],
+        "residual": [
+          0.00004065398616404092,
+          -0.00001436614693473004,
+          4.067711656396966e-8,
+          -0.00001893345783490763
+        ]
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "bounded Float32 sine approximation",
+      "ok": true,
+      "detail": {
+        "points": 1025,
+        "maxError": 1.505032258819483e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step: fixture has an upper mask and nonadjacent ancestor",
+      "ok": true,
+      "detail": {
+        "mask": [
+          3
+        ],
+        "names": [
+          "joint-0",
+          "joint-1",
+          "joint-2",
+          "joint-3"
+        ]
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "raw WGSL compiles",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "Three dispatch owns an explicit kernel statement",
+      "ok": true,
+      "detail": {
+        "dispatchCalls": 1,
+        "storageArguments": 7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step: substrates share exact palette bytes",
+      "ok": true,
+      "detail": {
+        "max": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.28999999989999997: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.29: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.3709999999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.371: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.3710000001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.618: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-parallel-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-parallel-0.001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-parallel-0.5: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-parallel-0.999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-parallel-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/outside-near-parallel-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/outside-near-parallel-0.001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/outside-near-parallel-0.5: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/outside-near-parallel-0.999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/outside-near-parallel-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/half-turn-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/half-turn-0.001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 4.656612873077393e-10,
+        "geometryError": 1.1641532182693481e-10
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/half-turn-0.5: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.1920928977282585e-7,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/half-turn-0.999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.7881393432617188e-7,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/half-turn-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/antipodal-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/antipodal-0.001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/antipodal-0.5: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/antipodal-0.999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/antipodal-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-unit-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-unit-0.25: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.7881393432617188e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-unit-0.75: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.6763806343078613e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-unit-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/both-frozen-bank-0-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.1920928955078125e-7,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/both-frozen-bank-1-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/frozen-base-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/full-body-death-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 8.940696716308594e-8,
+        "geometryError": 2.9802322387695312e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-entry-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 4.470348358154297e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-exit-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 2.9802322387695312e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/both-frozen-bank-0-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.1920928955078125e-7,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/both-frozen-bank-1-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.1920928955078125e-7,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/frozen-base-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 2.9802322387695312e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/full-body-death-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.086162567138672e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-entry-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-exit-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/both-frozen-bank-0-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 8.102506399154663e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/both-frozen-bank-1-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 4.0978193283081055e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/frozen-base-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 4.470348358154297e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/full-body-death-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 4.470348358154297e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-entry-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-exit-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted: fixture has an upper mask and nonadjacent ancestor",
+      "ok": true,
+      "detail": {
+        "mask": [
+          8,
+          9,
+          10
+        ],
+        "names": [
+          "transformed-ancestor",
+          "deform-rig",
+          "root",
+          "horse-body",
+          "horse-back-leg",
+          "horse-front-leg",
+          "rider-pelvis",
+          "rider-legs",
+          "rider-spine",
+          "rider-arm",
+          "rider-head"
+        ]
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "raw WGSL compiles",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "Three dispatch owns an explicit kernel statement",
+      "ok": true,
+      "detail": {
+        "dispatchCalls": 1,
+        "storageArguments": 7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted: substrates share exact palette bytes",
+      "ok": true,
+      "detail": {
+        "max": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.1920928955078125e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.28999999989999997: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.29: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.3709999999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.371: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.3710000001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.618: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.4901161193847656e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.1920928955078125e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/both-frozen-bank-0-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.682209014892578e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/both-frozen-bank-1-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 3.129243850708008e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/frozen-base-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/full-body-death-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-entry-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539062e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-exit-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 4.76837158203125e-7,
+        "geometryError": 2.980232238769531e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/both-frozen-bank-0-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 3.8743019104003906e-7,
+        "geometryError": 2.60770320892334e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/both-frozen-bank-1-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/frozen-base-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.980232238769531e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/full-body-death-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 3.5762786865234375e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-entry-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 6.556510925292969e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-exit-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.364418029785156e-7,
+        "geometryError": 3.5762786865234375e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/both-frozen-bank-0-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/both-frozen-bank-1-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.7881393432617188e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/frozen-base-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/full-body-death-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.1920928955078125e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-entry-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 6.556510925292969e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-exit-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.364418029785156e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 0: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 1,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 640,
+          "snapshotBytes": 960,
+          "controlBytes": 128,
+          "peakPaletteBytes": 640,
+          "peakSnapshotBytes": 960
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 32,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 32
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 32,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 32
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 0: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 3606
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 0: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 0: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 1: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 1,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 640,
+          "snapshotBytes": 960,
+          "controlBytes": 128,
+          "peakPaletteBytes": 640,
+          "peakSnapshotBytes": 960
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 32,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 32
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 32,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 32
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 1: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 3728
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 1: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 1: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 9.313225746154785e-10
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 2: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 1,
+          "residentSnapshots": 1,
+          "snapshotUploadBytes": 480,
+          "paletteBytes": 640,
+          "snapshotBytes": 960,
+          "controlBytes": 128,
+          "peakPaletteBytes": 640,
+          "peakSnapshotBytes": 960
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 32,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 32
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 32,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 32
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 2: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 3703
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 2: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 2: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 3: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 1,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 640,
+          "snapshotBytes": 960,
+          "controlBytes": 128,
+          "peakPaletteBytes": 640,
+          "peakSnapshotBytes": 960
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 32,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 32
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 32,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 32
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 3: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 3829
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 3: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 3: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 9.313225746154785e-10
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 4: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 640,
+          "snapshotBytes": 960,
+          "controlBytes": 128,
+          "peakPaletteBytes": 640,
+          "peakSnapshotBytes": 960
+        },
+        {
+          "instances": 1,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 704,
+          "snapshotBytes": 1056,
+          "controlBytes": 128,
+          "peakPaletteBytes": 704,
+          "peakSnapshotBytes": 1056
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 32,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 32
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 4: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 4013
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 4: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 4: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 5: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 640,
+          "snapshotBytes": 960,
+          "controlBytes": 128,
+          "peakPaletteBytes": 640,
+          "peakSnapshotBytes": 960
+        },
+        {
+          "instances": 1,
+          "residentSnapshots": 1,
+          "snapshotUploadBytes": 528,
+          "paletteBytes": 704,
+          "snapshotBytes": 1056,
+          "controlBytes": 128,
+          "peakPaletteBytes": 704,
+          "peakSnapshotBytes": 1056
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 32,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 32
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 5: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 4024
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 5: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 5: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 6: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 3,
+          "residentSnapshots": 3,
+          "snapshotUploadBytes": 1440,
+          "paletteBytes": 1920,
+          "snapshotBytes": 1920,
+          "controlBytes": 256,
+          "peakPaletteBytes": 1920,
+          "peakSnapshotBytes": 1920
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 704,
+          "snapshotBytes": 1056,
+          "controlBytes": 128,
+          "peakPaletteBytes": 704,
+          "peakSnapshotBytes": 1056
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 32,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 32
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw growth keeps three immutable snapshot sources resident",
+      "ok": true,
+      "detail": {
+        "instances": 3,
+        "residentSnapshots": 3,
+        "snapshotUploadBytes": 1440,
+        "paletteBytes": 1920,
+        "snapshotBytes": 1920,
+        "controlBytes": 256,
+        "peakPaletteBytes": 1920,
+        "peakSnapshotBytes": 1920
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 6: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 11614
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 6: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 6: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 9.313225746154785e-10
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 7: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 1,
+          "residentSnapshots": 1,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 1920,
+          "snapshotBytes": 1920,
+          "controlBytes": 256,
+          "peakPaletteBytes": 1920,
+          "peakSnapshotBytes": 1920
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 704,
+          "snapshotBytes": 1056,
+          "controlBytes": 128,
+          "peakPaletteBytes": 704,
+          "peakSnapshotBytes": 1056
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 32,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 32
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw shrink reuses the retained immutable source without upload",
+      "ok": true,
+      "detail": {
+        "instances": 1,
+        "residentSnapshots": 1,
+        "snapshotUploadBytes": 0,
+        "paletteBytes": 1920,
+        "snapshotBytes": 1920,
+        "controlBytes": 256,
+        "peakPaletteBytes": 1920,
+        "peakSnapshotBytes": 1920
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 7: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 3767
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 7: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 7: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 8: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 2,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 1920,
+          "snapshotBytes": 1920,
+          "controlBytes": 256,
+          "peakPaletteBytes": 1920,
+          "peakSnapshotBytes": 1920
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 704,
+          "snapshotBytes": 1056,
+          "controlBytes": 128,
+          "peakPaletteBytes": 704,
+          "peakSnapshotBytes": 1056
+        },
+        {
+          "instances": 1,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 640,
+          "snapshotBytes": 960,
+          "controlBytes": 128,
+          "peakPaletteBytes": 640,
+          "peakSnapshotBytes": 960
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 8: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 11275
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 8: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 8: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 9: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 1920,
+          "snapshotBytes": 1920,
+          "controlBytes": 256,
+          "peakPaletteBytes": 1920,
+          "peakSnapshotBytes": 1920
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 704,
+          "snapshotBytes": 1056,
+          "controlBytes": 128,
+          "peakPaletteBytes": 704,
+          "peakSnapshotBytes": 1056
+        },
+        {
+          "instances": 1,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 640,
+          "snapshotBytes": 960,
+          "controlBytes": 128,
+          "peakPaletteBytes": 640,
+          "peakSnapshotBytes": 960
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 9: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 3791
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 9: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 9: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose resource generations are released exactly once",
+      "ok": true,
+      "detail": {
+        "allocations": 381,
+        "allDestroyedOnce": true,
+        "errors": []
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose commands pass actual GPU validation",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

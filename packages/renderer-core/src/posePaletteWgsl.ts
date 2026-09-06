@@ -14,6 +14,7 @@ import {
   PLAYBACK_HEADER_UPPER_MASK,
 } from "./playbackPacking";
 import { LOCAL_STEP_T, LOCAL_STEP_R, LOCAL_STEP_S } from "../../soldier-assets/src/localAnimation";
+import { SNAPSHOT_BANK_COUNT } from "./posePaletteStorage";
 
 /** Shared compute math, not an alternate persisted animation encoding. */
 export const POSE_PALETTE_HELPERS_WGSL = `
@@ -60,6 +61,12 @@ fn paletteRead(data: ptr<storage, array<vec4f>, read>, offset: u32) -> PaletteLo
   return PaletteLocal((*data)[offset].xyz, (*data)[offset + 1u], (*data)[offset + 2u].xyz);
 }
 
+fn paletteSnapshot(bank0: ptr<storage, array<vec4f>, read>, bank1: ptr<storage, array<vec4f>, read>, slot: u32, joint: u32, bones: u32) -> PaletteLocal {
+  let offset = (slot / ${SNAPSHOT_BANK_COUNT}u * bones + joint) * 3u;
+  if (slot % ${SNAPSHOT_BANK_COUNT}u == 0u) { return paletteRead(bank0, offset); }
+  return paletteRead(bank1, offset);
+}
+
 fn paletteSample(data: ptr<storage, array<vec4f>, read>, metadata: ptr<storage, array<u32>, read>, descriptor: vec4u, joint: u32, bones: u32, stepBase: u32) -> PaletteLocal {
   let a = paletteRead(data, (descriptor.x * bones + joint) * 3u);
   let b = paletteRead(data, (descriptor.y * bones + joint) * 3u);
@@ -96,7 +103,8 @@ fn preparePosePalette(
   metadata: ptr<storage, array<u32>, read>,
   inverseBinds: ptr<storage, array<mat4x4f>, read>,
   controls: ptr<storage, array<vec4u>, read>,
-  snapshots: ptr<storage, array<vec4f>, read>,
+  snapshots0: ptr<storage, array<vec4f>, read>,
+  snapshots1: ptr<storage, array<vec4f>, read>,
   palettes: ptr<storage, array<mat4x4f>, read_write>,
   instance: u32, count: u32, stepBase: u32
 ) -> u32 {
@@ -111,7 +119,7 @@ fn preparePosePalette(
   for (var joint = 0u; joint < ${bones}u; joint++) {
     var source: PaletteLocal;
     if ((header[${PLAYBACK_HEADER_FLAGS}] & ${PLAYBACK_BASE_FROZEN}u) != 0u) {
-      source = paletteRead(snapshots, (baseSource.x * ${bones}u + joint) * 3u);
+      source = paletteSnapshot(snapshots0, snapshots1, baseSource.x, joint, ${bones}u);
     } else {
       source = paletteSample(samples, metadata, baseSource, joint, ${bones}u, stepBase);
     }
@@ -120,7 +128,7 @@ fn preparePosePalette(
     if ((header[${PLAYBACK_HEADER_FLAGS}] & ${PLAYBACK_UPPER_PRESENT}u) != 0u && (*metadata)[header[${PLAYBACK_HEADER_UPPER_MASK}] + joint] != 0u) {
       var upper: PaletteLocal;
       if ((header[${PLAYBACK_HEADER_FLAGS}] & ${PLAYBACK_UPPER_FROZEN}u) != 0u) {
-        upper = paletteRead(snapshots, (upperSource.x * ${bones}u + joint) * 3u);
+        upper = paletteSnapshot(snapshots0, snapshots1, upperSource.x, joint, ${bones}u);
       } else {
         upper = paletteSample(samples, metadata, upperSource, joint, ${bones}u, stepBase);
       }

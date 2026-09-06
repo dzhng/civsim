@@ -43,6 +43,12 @@ export async function run(ctx) {
         mat4Identity,
       } = await module("packages/soldier-assets/src/localPose.ts");
       const { PlaybackPacker } = await module("packages/renderer-core/src/playbackPacking.ts");
+      const {
+        SNAPSHOT_BANK_COUNT,
+        POSE_PALETTE_STORAGE_TYPES,
+        snapshotBank,
+        snapshotBankFloatOffset,
+      } = await module("packages/renderer-core/src/posePaletteStorage.ts");
       const { packRigPaletteData } = await module("packages/renderer-core/src/rigPaletteData.ts");
       const { POSE_PALETTE_HELPERS_WGSL, posePaletteFunctionWgsl } = await module(
         "packages/renderer-core/src/posePaletteWgsl.ts",
@@ -228,15 +234,15 @@ export async function run(ctx) {
           usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
         });
         try {
-          const types = ["vec4f", "u32", "mat4x4f", "vec4u", "vec4f", "mat4x4f"];
+          const types = POSE_PALETTE_STORAGE_TYPES;
           const declarations = types
             .map(
               (type, i) =>
-                `@group(0) @binding(${i}) var<storage, ${i === 5 ? "read_write" : "read"}> data${i}: array<${type}>;`,
+                `@group(0) @binding(${i}) var<storage, ${i === types.length - 1 ? "read_write" : "read"}> data${i}: array<${type}>;`,
             )
             .join("\n");
           const shader = device.createShaderModule({
-            code: `${declarations}\n${POSE_PALETTE_HELPERS_WGSL}\n${functionCode}\n@compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id:vec3u) { preparePosePalette(&data0,&data1,&data2,&data3,&data4,&data5,id.x,${count}u,${stepBase}u); }`,
+            code: `${declarations}\n${POSE_PALETTE_HELPERS_WGSL}\n${functionCode}\n@compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id:vec3u) { preparePosePalette(&data0,&data1,&data2,&data3,&data4,&data5,&data6,id.x,${count}u,${stepBase}u); }`,
           });
           const info = await shader.getCompilationInfo();
           check(
@@ -259,7 +265,7 @@ export async function run(ctx) {
               pass.setBindGroup(0, group);
               pass.dispatchWorkgroups(Math.ceil(count / 64));
               pass.end();
-              encoder.copyBufferToBuffer(gpu[5], 0, readback, 0, count * bones * 64);
+              encoder.copyBufferToBuffer(gpu.at(-1), 0, readback, 0, count * bones * 64);
             },
             passes: [],
           });
@@ -389,6 +395,18 @@ export async function run(ctx) {
               ),
             ),
             ...[0, 0.37, 1].flatMap((weight) => [
+              ...[
+                [frozen, deathSource],
+                [deathSource, frozen],
+              ].map(([baseSource, upperSource], bank) => ({
+                name: `both-frozen-bank-${bank}-${weight}`,
+                base: { source: baseSource, destination: sample(actionClip, 0.83), weight },
+                riderUpperBody: {
+                  source: upperSource,
+                  destination: { kind: "base" },
+                  weight: 0.61,
+                },
+              })),
               {
                 name: `frozen-base-${weight}`,
                 base: { source: frozen, destination: sample(actionClip, 0.83), weight },
@@ -431,17 +449,26 @@ export async function run(ctx) {
             (index) => inputs[index].playback,
             (index) => inputs[index].upperMaskOffset,
           );
-          const snapshots = new Float32Array(
-            Math.max(1, prepared.requiredSnapshotSlots) * bones * 12,
+          const snapshots = Array.from(
+            { length: SNAPSHOT_BANK_COUNT },
+            () =>
+              new Float32Array(
+                Math.max(1, Math.ceil(prepared.requiredSnapshotSlots / SNAPSHOT_BANK_COUNT)) *
+                  bones *
+                  12,
+              ),
           );
           for (const upload of prepared.uploads)
-            snapshots.set(upload.data, upload.slot * bones * 12);
+            snapshots[snapshotBank(upload.slot)].set(
+              upload.data,
+              snapshotBankFloatOffset(upload.slot, bones),
+            );
           const buffers = [
             animation.data,
             metadata,
             inverseBinds,
             prepared.controls,
-            snapshots,
+            ...snapshots,
             new Float32Array(cases.length * bones * 16),
           ];
           const readSource = (value) =>

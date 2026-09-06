@@ -2,6 +2,23 @@
 
 ## Sound — high confidence
 
+### Queue replacement poses before exposing their materials (07 storage correction)
+
+When a larger interruption frame needs new GPU buffers, compute its poses before
+switching the crowd's materials to that new output. If upload fails, release the
+candidate buffers and retain the previous output and materials for recovery.
+If material construction fails, the existing crowd callback disposes its candidate
+materials before swapping any of them. The next attempt uploads all needed poses
+again. The alternative exposes new materials and destroys the old output before
+knowing whether the replacement can be submitted.
+
+The plan required atomic failure/recovery but did not prescribe ordering. This
+retains the synchronous API and whole-generation replacement rule; callers still
+receive failures, and previously displayed pixels are not promised after an
+aborted frame. Future memory measurements include both generations during the
+candidate submission. **Sound; confidence high:** publication follows successful
+submission, with no rollback protocol or second rendering path.
+
 ### Keep packing scratch separate from resident controls (07)
 
 When the production renderer submits another crowd frame, it reuses one CPU

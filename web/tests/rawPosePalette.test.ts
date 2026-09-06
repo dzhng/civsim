@@ -15,7 +15,7 @@ test("raw palette snapshot growth reuploads retained sources and retires resourc
     let failSnapshotWrite = false;
     let failBinding = false;
     const device = {
-      limits: { maxComputeWorkgroupsPerDimension: 65535 },
+      limits: { maxComputeWorkgroupsPerDimension: 65535, maxStorageBuffersPerShaderStage: 8 },
       createBuffer({ label, size }: { label: string; size: number }) {
         const buffer = {
           label,
@@ -43,7 +43,7 @@ test("raw palette snapshot growth reuploads retained sources and retires resourc
             offset,
             data: new Uint8Array(data.buffer, data.byteOffset, data.byteLength).slice(),
           });
-          if (failSnapshotWrite && buffer.label.includes("snapshots"))
+          if (failSnapshotWrite && buffer.label.endsWith("snapshots-1"))
             throw new Error("injected queued-write failure");
         },
       },
@@ -59,21 +59,23 @@ test("raw palette snapshot growth reuploads retained sources and retires resourc
       ],
       clips: [{ name: "idle", duration: 1, loop: true, tracks: {} }],
     };
-    const palette = new RawPosePalette(
-      device as unknown as GPUDevice,
-      {
-        maxStorageBufferBindingSize: 65536,
-        maxBufferSize: 65536,
-        msaaSampleCount: 1,
-        msaaSupported: true,
-        timestampQuery: false,
-        powerPreference: "default",
-      },
-      rig,
-      bakeLocalAnimation(rig),
-      { 0: { manifest: { presentation: null } } },
-      "test",
-    );
+    const makePalette = (limit = 65536) =>
+      new RawPosePalette(
+        device as unknown as GPUDevice,
+        {
+          maxStorageBufferBindingSize: limit,
+          maxBufferSize: limit,
+          msaaSampleCount: 1,
+          msaaSupported: true,
+          timestampQuery: false,
+          powerPreference: "default",
+        },
+        rig,
+        bakeLocalAnimation(rig),
+        { 0: { manifest: { presentation: null } } },
+        "test",
+      );
+    const palette = makePalette();
     const playback = (x: number): SoldierPlayback => ({
       appearanceId: 0,
       base: {
@@ -108,11 +110,11 @@ test("raw palette snapshot growth reuploads retained sources and retires resourc
     );
     const grown = writes.filter((write) => write.label.includes("snapshots")).slice(1);
     assert.deepEqual(
-      grown.map((write) => [write.offset, new Float32Array(write.data.buffer)[0]]),
+      grown.map((write) => [write.label, write.offset, new Float32Array(write.data.buffer)[0]]),
       [
-        [0, 3],
-        [48, 5],
-        [96, 7],
+        ["test-snapshots-0", 0, 3],
+        ["test-snapshots-1", 0, 5],
+        ["test-snapshots-0", 48, 7],
       ],
       "fresh allocation receives all active sources, including retained slot zero",
     );
@@ -130,27 +132,30 @@ test("raw palette snapshot growth reuploads retained sources and retires resourc
     } as unknown as GPUCommandEncoder);
     assert.deepEqual(dispatches, [1]);
     failSnapshotWrite = true;
-    const replacement = playback(9);
+    const replacements = [playback(9), playback(11)];
     assert.throws(
       () =>
         palette.upload(
-          1,
-          () => replacement,
+          2,
+          (index) => replacements[index],
           () => 0,
         ),
       /queued-write failure/,
     );
     failSnapshotWrite = false;
     palette.upload(
-      1,
-      () => samples[0],
+      2,
+      (index) => samples[index],
       () => 0,
     );
-    const recovered = writes.filter((write) => write.label.includes("snapshots")).at(-1)!;
+    const recovered = writes.filter((write) => write.label.includes("snapshots")).slice(-2);
     assert.deepEqual(
-      [recovered.offset, new Float32Array(recovered.data.buffer)[0]],
-      [0, 3],
-      "failed partial writes cannot leave the overwritten original snapshot marked resident",
+      recovered.map((write) => [write.label, write.offset, new Float32Array(write.data.buffer)[0]]),
+      [
+        ["test-snapshots-0", 0, 3],
+        ["test-snapshots-1", 0, 5],
+      ],
+      "a failure after writing both banks must invalidate both overwritten originals",
     );
     const beforeFailure = allocations.length;
     failBinding = true;
@@ -186,6 +191,25 @@ test("raw palette snapshot growth reuploads retained sources and retires resourc
     );
     palette.dispose();
     palette.dispose();
+    const bounded = makePalette(320);
+    const mounted = [1, 2, 3, 4].map((x) => ({
+      ...playback(x),
+      riderUpperBody: {
+        source: playback(x + 10).base.source,
+        destination: { kind: "base" as const },
+        weight: 0.5,
+      },
+    }));
+    bounded.upload(
+      mounted.length,
+      (i) => mounted[i],
+      () => 0,
+    );
+    assert.equal(bounded.stats().residentSnapshots, 8);
+    assert.equal(bounded.stats().snapshotBytes, 384, "total may exceed the 320-byte binding limit");
+    bounded.dispose();
+    device.limits.maxStorageBuffersPerShaderStage = 6;
+    assert.throws(() => makePalette(), /requires 7 storage buffers/);
     assert.ok(allocations.every((buffer) => buffer.destroyed === 1));
   } finally {
     vi.unstubAllGlobals();

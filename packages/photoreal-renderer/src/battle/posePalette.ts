@@ -9,6 +9,13 @@ import {
 } from "../../../renderer-core/src/posePaletteWgsl";
 import type { ImportedRig } from "../../../soldier-assets/src/rig";
 import type { LocalAnimation } from "../../../soldier-assets/src/localAnimation";
+import {
+  growSnapshotBankCapacity,
+  POSE_PALETTE_STORAGE_TYPES,
+  SNAPSHOT_BANK_COUNT,
+  snapshotBank,
+  snapshotBankFloatOffset,
+} from "../../../renderer-core/src/posePaletteStorage";
 
 /** Pinned Three drops an appended native function expression when built as void.
  * Keep this side-effect call as a statement; the child field retains node traversal. */
@@ -69,9 +76,9 @@ function releaseStorage(
 
 interface DynamicPalette {
   capacity: number;
-  snapshotCapacity: number;
+  snapshotBankCapacity: number;
   controls: THREE.StorageBufferAttribute;
-  snapshots: THREE.StorageBufferAttribute;
+  snapshots: THREE.StorageBufferAttribute[];
   output: THREE.StorageBufferAttribute;
   columns: PaletteColumns;
   compute: THREE.ComputeNode;
@@ -97,6 +104,11 @@ export class SoldierPosePalette {
     readonly animation: LocalAnimation,
     appearances: Parameters<typeof packRigPaletteData>[2],
   ) {
+    const device = (renderer.backend as unknown as { device: GPUDevice }).device;
+    if (device.limits.maxStorageBuffersPerShaderStage < POSE_PALETTE_STORAGE_TYPES.length)
+      throw new Error(
+        `Soldier palette requires ${POSE_PALETTE_STORAGE_TYPES.length} storage buffers per compute stage`,
+      );
     this.metadata = packRigPaletteData(rig, animation, appearances);
     this.packer = new PlaybackPacker(rig, animation);
     this.staticAttributes = [
@@ -160,11 +172,11 @@ export class SoldierPosePalette {
     }
   }
 
-  private allocate(capacity: number, snapshotCapacity: number): DynamicPalette {
+  private allocate(capacity: number, snapshotBankCapacity: number): DynamicPalette {
     const bones = this.animation.bones;
     for (const bytes of [
       capacity * PLAYBACK_WORDS * 4,
-      snapshotCapacity * bones * 48,
+      snapshotBankCapacity * bones * 48,
       capacity * bones * 64,
     ])
       this.checkSize(bytes);
@@ -172,13 +184,16 @@ export class SoldierPosePalette {
       new Uint32Array(capacity * PLAYBACK_WORDS),
       4,
     );
-    const snapshots = new THREE.StorageBufferAttribute(
-      new Float32Array(snapshotCapacity * bones * 12),
-      4,
-    );
+    const snapshots = Array.from({ length: SNAPSHOT_BANK_COUNT }, (_, bank) => {
+      const attribute = new THREE.StorageBufferAttribute(
+        new Float32Array(snapshotBankCapacity * bones * 12),
+        4,
+      );
+      attribute.name = `soldier-palette-snapshots-${bank}`;
+      return attribute;
+    });
     const output = new THREE.StorageBufferAttribute(new Float32Array(capacity * bones * 16), 16);
     controls.name = "soldier-palette-controls";
-    snapshots.name = "soldier-palette-snapshots";
     output.name = "soldier-palette-output";
     const samplesNode = storage(
       this.staticAttributes[0],
@@ -196,7 +211,9 @@ export class SoldierPosePalette {
       this.staticAttributes[2].count,
     ).toReadOnly();
     const controlsNode = storage(controls, "uvec4", controls.count).toReadOnly();
-    const snapshotsNode = storage(snapshots, "vec4", snapshots.count).toReadOnly();
+    const snapshotsNodes = snapshots.map((attribute) =>
+      storage(attribute, "vec4", attribute.count).toReadOnly(),
+    );
     const outputNode = storage(output, "mat4", output.count);
     const kernel = wgslFn(posePaletteFunctionWgsl(bones), [wgsl(POSE_PALETTE_HELPERS_WGSL)]);
     const compute = Fn(() => {
@@ -207,7 +224,8 @@ export class SoldierPosePalette {
             metadata: metadataNode,
             inverseBinds: inverseNode,
             controls: controlsNode,
-            snapshots: snapshotsNode,
+            snapshots0: snapshotsNodes[0],
+            snapshots1: snapshotsNodes[1],
             palettes: outputNode,
             instance: instanceIndex,
             count: this.count,
@@ -218,7 +236,7 @@ export class SoldierPosePalette {
     })().compute(1, [64]);
     return {
       capacity,
-      snapshotCapacity,
+      snapshotBankCapacity,
       controls,
       snapshots,
       output,
@@ -256,14 +274,17 @@ export class SoldierPosePalette {
       return;
     }
     const old = this.dynamic;
-    if (!old || count > old.capacity || prepared.requiredSnapshotSlots > old.snapshotCapacity) {
-      let next: DynamicPalette;
-      try {
+    let active = old;
+    try {
+      if (
+        !active ||
+        count > active.capacity ||
+        prepared.requiredSnapshotSlots > active.snapshotBankCapacity * SNAPSHOT_BANK_COUNT
+      ) {
         const limit = Math.min(
           device.limits.maxBufferSize,
           device.limits.maxStorageBufferBindingSize,
         );
-        this.checkSize(Math.max(1, prepared.requiredSnapshotSlots) * this.animation.bones * 48);
         const capacity =
           count > (old?.capacity ?? 0)
             ? Math.min(
@@ -272,63 +293,54 @@ export class SoldierPosePalette {
                 device.limits.maxComputeWorkgroupsPerDimension * 64,
               )
             : old!.capacity;
-        const snapshotCapacity =
-          prepared.requiredSnapshotSlots > (old?.snapshotCapacity ?? 0)
-            ? Math.min(
-                Math.max(prepared.requiredSnapshotSlots, (old?.snapshotCapacity ?? 0) * 2, 1),
-                Math.floor(limit / (this.animation.bones * 48)),
-              )
-            : Math.max(old?.snapshotCapacity ?? 0, 1);
-        next = this.allocate(capacity, snapshotCapacity);
-      } catch (error) {
-        this.packer.discardPrepared(prepared);
-        throw error;
+        const snapshotBankCapacity = growSnapshotBankCapacity(
+          prepared.requiredSnapshotSlots,
+          old?.snapshotBankCapacity ?? 0,
+          capacity,
+        );
+        active = this.allocate(capacity, snapshotBankCapacity);
+        // Empty banks need every live source, even if only output capacity grew.
+        this.packer.reset();
+        prepared = this.packer.prepare(count, playbackAt, maskAt, this.controlStorage);
       }
-      // A new snapshot allocation has no resident immutable sources, even when
-      // only the instance output capacity caused this coherent generation change.
-      this.packer.reset();
-      prepared = this.packer.prepare(count, playbackAt, maskAt, this.controlStorage);
-      try {
-        rebind(next.columns);
-      } catch (error) {
-        next.compute.dispose();
-        releaseStorage(this.renderer, [next.controls, next.snapshots, next.output]);
-        this.packer.discardPrepared(prepared);
-        throw error;
-      }
-      this.dynamic = next;
-      if (old) {
-        old.compute.dispose();
-        releaseStorage(this.renderer, [old.controls, old.snapshots, old.output]);
-      }
-    }
-    const active = this.dynamic!;
-    try {
       (active.controls.array as Uint32Array).set(prepared.controls);
       active.controls.clearUpdateRanges();
       active.controls.addUpdateRange(0, prepared.controls.length);
       active.controls.needsUpdate = true;
-      active.snapshots.clearUpdateRanges();
+      for (const bank of active.snapshots) bank.clearUpdateRanges();
       for (const upload of prepared.uploads) {
-        const offset = upload.slot * this.animation.bones * 12;
-        (active.snapshots.array as Float32Array).set(upload.data, offset);
-        active.snapshots.addUpdateRange(offset, upload.data.length);
+        const bank = active.snapshots[snapshotBank(upload.slot)];
+        const offset = snapshotBankFloatOffset(upload.slot, this.animation.bones);
+        (bank.array as Float32Array).set(upload.data, offset);
+        bank.addUpdateRange(offset, upload.data.length);
         this.snapshotUploadedBytes += upload.data.byteLength;
       }
-      if (prepared.uploads.length) active.snapshots.needsUpdate = true;
+      for (const bank of active.snapshots) if (bank.updateRanges.length) bank.needsUpdate = true;
       this.count.value = count;
       active.compute.count = count;
       this.renderer.compute(active.compute);
+      // Queue the new generation before publishing it to materials. A failed
+      // upload leaves the previous output and its consumers alive for recovery.
+      if (active !== old) rebind(active.columns);
       this.packer.commitPrepared(prepared);
-      this.snapshotSlotHighWater = Math.max(
-        this.snapshotSlotHighWater,
-        prepared.requiredSnapshotSlots,
-      );
-      this.uploadedBytes = prepared.controls.byteLength + this.snapshotUploadedBytes;
     } catch (error) {
       this.packer.discardPrepared(prepared);
+      if (active && active !== old) {
+        active.compute.dispose();
+        releaseStorage(this.renderer, [active.controls, ...active.snapshots, active.output]);
+      }
       throw error;
     }
+    this.dynamic = active;
+    if (old && active !== old) {
+      old.compute.dispose();
+      releaseStorage(this.renderer, [old.controls, ...old.snapshots, old.output]);
+    }
+    this.snapshotSlotHighWater = Math.max(
+      this.snapshotSlotHighWater,
+      prepared.requiredSnapshotSlots,
+    );
+    this.uploadedBytes = prepared.controls.byteLength + this.snapshotUploadedBytes;
   }
 
   stats() {
@@ -337,12 +349,13 @@ export class SoldierPosePalette {
       bones: this.animation.bones,
       visible: this.visible,
       capacity: dynamic?.capacity ?? 0,
-      snapshotCapacity: dynamic?.snapshotCapacity ?? 0,
+      snapshotCapacity: (dynamic?.snapshotBankCapacity ?? 0) * SNAPSHOT_BANK_COUNT,
+      snapshotBankCapacity: dynamic?.snapshotBankCapacity ?? 0,
       residentSnapshots: this.packer.residentSnapshotCount,
       snapshotSlotHighWater: this.snapshotSlotHighWater,
       allocatedBytes: [
         ...this.staticAttributes,
-        ...(dynamic ? [dynamic.controls, dynamic.snapshots, dynamic.output] : []),
+        ...(dynamic ? [dynamic.controls, ...dynamic.snapshots, dynamic.output] : []),
       ].reduce((total, attribute) => total + attribute.array.byteLength, 0),
       uploadedBytes: this.uploadedBytes,
       snapshotUploadedBytes: this.snapshotUploadedBytes,
@@ -357,7 +370,7 @@ export class SoldierPosePalette {
     dynamic?.compute.dispose();
     releaseStorage(this.renderer, [
       ...this.staticAttributes,
-      ...(dynamic ? [dynamic.controls, dynamic.snapshots, dynamic.output] : []),
+      ...(dynamic ? [dynamic.controls, ...dynamic.snapshots, dynamic.output] : []),
     ]);
     this.packer.reset();
     this.controlStorage = new Uint32Array(0);

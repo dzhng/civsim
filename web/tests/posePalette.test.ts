@@ -1,11 +1,12 @@
 import { expect, test } from "vitest";
 import * as THREE from "three/webgpu";
 import { SoldierPosePalette } from "@packages/photoreal-renderer/src/battle/posePalette";
-import { bakeLocalAnimation } from "@packages/soldier-assets/src/localAnimation";
+import { bakeLocalAnimation, packLocalPose } from "@packages/soldier-assets/src/localAnimation";
 import { mat4Identity } from "@packages/soldier-assets/src/localPose";
 import type { ImportedRig } from "@packages/soldier-assets/src/rig";
 import { queueCrowdInstance } from "@packages/photoreal-renderer/src/battle/crowdLayer";
 import { generatedFormation, type CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
+import type { SoldierPlayback } from "@packages/crowd-runtime/src/actionTimeline";
 
 const rig: ImportedRig = {
   bones: [
@@ -19,6 +20,89 @@ const rig: ImportedRig = {
   clips: [{ name: "hold", duration: 1, loop: true, tracks: {} }],
 };
 
+test("actual storage binding count rejects before allocating palette resources", () => {
+  const renderer = {
+    backend: { device: { limits: { maxStorageBuffersPerShaderStage: 6 } } },
+  } as unknown as THREE.WebGPURenderer;
+  expect(
+    () =>
+      new SoldierPosePalette(renderer, rig, bakeLocalAnimation(rig), {
+        40: { manifest: { presentation: null } },
+      }),
+  ).toThrow("requires 7 storage buffers");
+});
+
+test("two frozen sources per body fit whenever their output palette fits", () => {
+  const pairedRig = { ...rig, bones: [rig.bones[0], { ...rig.bones[0], name: "upper" }] };
+  const released: THREE.StorageBufferAttribute[] = [];
+  const renderer = {
+    backend: {
+      device: {
+        limits: {
+          maxBufferSize: 384,
+          maxStorageBufferBindingSize: 384,
+          maxStorageBuffersPerShaderStage: 8,
+          maxComputeWorkgroupsPerDimension: 65535,
+        },
+      },
+    },
+    _attributes: {
+      data: { get: () => ({ version: 0 }) },
+      delete(attribute: THREE.StorageBufferAttribute) {
+        released.push(attribute);
+      },
+    },
+    compute() {},
+  } as unknown as THREE.WebGPURenderer;
+  const palette = new SoldierPosePalette(renderer, pairedRig, bakeLocalAnimation(pairedRig), {
+    40: { manifest: { presentation: null } },
+  });
+  const source = (x: number) => ({
+    kind: "frozen" as const,
+    locals: Object.freeze([x, 0, 0, 0, 0, 0, 1, 1, 1, 1, x + 1, 0, 0, 0, 0, 0, 1, 1, 1, 1]),
+  });
+  const frames: SoldierPlayback[] = [0, 1, 2].map((i) => ({
+    appearanceId: 40,
+    base: { source: source(i * 2), destination: { clip: "hold", phase: 0 }, weight: 0.25 },
+    riderUpperBody: { source: source(i * 2 + 1), destination: { kind: "base" }, weight: 0.75 },
+  }));
+  const upload = () =>
+    palette.upload(
+      frames.length,
+      (i) => frames[i],
+      () => 0,
+      () => {},
+    );
+  upload(); // Output: 384 bytes; six exact snapshots: 576 bytes.
+  expect(palette.stats().residentSnapshots).toBe(6);
+  expect(palette.stats().snapshotUploadedBytes).toBe(576);
+  upload();
+  expect(palette.stats().snapshotUploadedBytes).toBe(0);
+  frames.splice(0, 2); // Retain slots 4 and 5, not a compacted low-slot copy.
+  upload();
+  expect(palette.stats().snapshotUploadedBytes).toBe(0);
+  expect(palette.stats().snapshotBankCapacity).toBe(3);
+  const replacement = {
+    ...frames[0],
+    base: { ...frames[0].base, source: source(8) },
+    riderUpperBody: { ...frames[0].riderUpperBody!, source: source(9) },
+  };
+  frames.push(replacement);
+  upload();
+  expect(palette.stats().snapshotUploadedBytes).toBe(192);
+  replacement.riderUpperBody.source = frames[0].base.source as ReturnType<typeof source>;
+  upload();
+  expect(palette.stats().snapshotUploadedBytes).toBe(0);
+  expect(palette.stats().residentSnapshots).toBe(3); // Shared across base and upper layers.
+  palette.dispose();
+  const banks = released.filter((attribute) => attribute.name.includes("snapshots"));
+  expect(banks.map((bank) => bank.array.byteLength)).toEqual([288, 288]);
+  for (let bank = 0; bank < 2; bank++) {
+    expect(banks[bank].array.slice(0, 24)).toEqual(packLocalPose(source(8 + bank).locals));
+    expect(banks[bank].array.slice(48, 72)).toEqual(packLocalPose(source(4 + bank).locals));
+  }
+});
+
 test("impossible work rejects before packing and falsy submission failure drains every admission scope", async () => {
   let scopes = 0,
     submitted = false;
@@ -28,6 +112,7 @@ test("impossible work rejects before packing and falsy submission failure drains
         limits: {
           maxBufferSize: 1024,
           maxStorageBufferBindingSize: 1024,
+          maxStorageBuffersPerShaderStage: 8,
           maxComputeWorkgroupsPerDimension: 65535,
         },
         pushErrorScope() {
@@ -81,6 +166,7 @@ test("optional reserve is bounded without rejecting a fitting request", () => {
         limits: {
           maxBufferSize: 20000,
           maxStorageBufferBindingSize: 20000,
+          maxStorageBuffersPerShaderStage: 8,
           maxComputeWorkgroupsPerDimension: 65535,
         },
       },
@@ -120,6 +206,73 @@ test("optional reserve is bounded without rejecting a fitting request", () => {
   palette.dispose();
 });
 
+test("failed bank replacement keeps the previous output and retries exact sources", () => {
+  const released = new Set<THREE.BufferAttribute>();
+  let failSubmission = false;
+  const renderer = {
+    backend: {
+      device: {
+        limits: {
+          maxBufferSize: 20000,
+          maxStorageBufferBindingSize: 20000,
+          maxStorageBuffersPerShaderStage: 8,
+          maxComputeWorkgroupsPerDimension: 65535,
+        },
+      },
+    },
+    _attributes: {
+      data: { get: () => ({ version: 0 }) },
+      delete(attribute: THREE.BufferAttribute) {
+        expect(released.has(attribute)).toBe(false);
+        released.add(attribute);
+      },
+    },
+    compute() {
+      if (failSubmission) throw new Error("queued bank upload failed");
+    },
+  } as unknown as THREE.WebGPURenderer;
+  const palette = new SoldierPosePalette(renderer, rig, bakeLocalAnimation(rig), {
+    40: { manifest: { presentation: null } },
+  });
+  const frames: SoldierPlayback[] = [3, 5, 7].map((x) => ({
+    appearanceId: 40,
+    base: {
+      source: { kind: "frozen", locals: Object.freeze([x, 0, 0, 0, 0, 0, 1, 1, 1, 1]) },
+      destination: { clip: "hold", phase: 0 },
+      weight: 0,
+    },
+  }));
+  const upload = (count: number, rebind = () => {}) =>
+    palette.upload(
+      count,
+      (i) => frames[i],
+      () => 0,
+      rebind,
+    );
+  upload(1);
+  const original = palette.columns;
+  failSubmission = true;
+  expect(() => upload(3)).toThrow("queued bank upload failed");
+  expect(palette.columns).toBe(original);
+  expect(released.has(original.value)).toBe(false);
+  failSubmission = false;
+  expect(() =>
+    upload(3, () => {
+      throw new Error("material rebind failed");
+    }),
+  ).toThrow("material rebind failed");
+  expect(palette.columns).toBe(original);
+  expect(released.has(original.value)).toBe(false);
+  upload(3);
+  expect(palette.stats().snapshotUploadedBytes).toBe(3 * 48);
+  expect(released.has(original.value)).toBe(true);
+  upload(3);
+  expect(palette.stats().snapshotUploadedBytes).toBe(0);
+  palette.dispose();
+  palette.dispose();
+  expect([...released].filter((attribute) => attribute.name.includes("snapshots")).length).toBe(8);
+});
+
 test("two draw audiences share pose slots and do not double palette capacity or uploads", () => {
   const renderer = {
     backend: {
@@ -127,6 +280,7 @@ test("two draw audiences share pose slots and do not double palette capacity or 
         limits: {
           maxBufferSize: 20000,
           maxStorageBufferBindingSize: 20000,
+          maxStorageBuffersPerShaderStage: 8,
           maxComputeWorkgroupsPerDimension: 65535,
         },
       },
@@ -189,6 +343,7 @@ test("admission failure retires all owned storage once, including after partial 
         limits: {
           maxBufferSize: 2 ** 28,
           maxStorageBufferBindingSize: 2 ** 27,
+          maxStorageBuffersPerShaderStage: 8,
           maxComputeWorkgroupsPerDimension: 65535,
         },
         pushErrorScope() {
@@ -222,5 +377,5 @@ test("admission failure retires all owned storage once, including after partial 
   expect(released.has(palette.columns.value)).toBe(true);
   expect([...released].some((attribute) => attribute.array === palette.animation.data)).toBe(true);
   palette.dispose();
-  expect(released.size).toBe(6);
+  expect(released.size).toBe(7);
 });

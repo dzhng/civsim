@@ -9,6 +9,13 @@ import { packRigPaletteData } from "./rigPaletteData";
 import { POSE_PALETTE_HELPERS_WGSL, posePaletteFunctionWgsl } from "./posePaletteWgsl";
 import { assertStorageBufferFits, type GpuDeviceCaps } from "./capabilities";
 import { compileShader } from "./compileShader";
+import {
+  growSnapshotBankCapacity,
+  POSE_PALETTE_STORAGE_TYPES,
+  SNAPSHOT_BANK_COUNT,
+  snapshotBank,
+  snapshotBankFloatOffset,
+} from "./posePaletteStorage";
 
 /** GPU resources for one loaded rig+animation identity, shared by its mesh tiers. */
 export class RawPosePalette {
@@ -23,7 +30,7 @@ export class RawPosePalette {
   private readonly dispatchUniform: GPUBuffer;
   private readonly stepBase: number;
   private controls: GPUBuffer;
-  private snapshots: GPUBuffer;
+  private snapshots: GPUBuffer[];
   private palette: GPUBuffer;
   private computeBinding!: GPUBindGroup;
   private renderBinding!: GPUBindGroup;
@@ -42,6 +49,10 @@ export class RawPosePalette {
     private readonly label: string,
     renderLayout?: GPUBindGroupLayout,
   ) {
+    if (device.limits.maxStorageBuffersPerShaderStage < POSE_PALETTE_STORAGE_TYPES.length)
+      throw new Error(
+        `${label} requires ${POSE_PALETTE_STORAGE_TYPES.length} storage buffers per compute stage`,
+      );
     this.bones = rig.bones.length;
     this.packer = new PlaybackPacker(rig, animation);
     const data = packRigPaletteData(rig, animation, appearances);
@@ -51,12 +62,21 @@ export class RawPosePalette {
       this.computeLayout = device.createBindGroupLayout({
         label: `${label}-compute-layout`,
         entries: [
-          ...Array.from({ length: 6 }, (_, binding) => ({
+          ...POSE_PALETTE_STORAGE_TYPES.map((_, binding) => ({
             binding,
             visibility: GPUShaderStage.COMPUTE,
-            buffer: { type: binding === 5 ? ("storage" as const) : ("read-only-storage" as const) },
+            buffer: {
+              type:
+                binding === POSE_PALETTE_STORAGE_TYPES.length - 1
+                  ? ("storage" as const)
+                  : ("read-only-storage" as const),
+            },
           })),
-          { binding: 6, visibility: GPUShaderStage.COMPUTE, buffer: { type: "uniform" } },
+          {
+            binding: POSE_PALETTE_STORAGE_TYPES.length,
+            visibility: GPUShaderStage.COMPUTE,
+            buffer: { type: "uniform" },
+          },
         ],
       });
       this.renderLayout =
@@ -81,7 +101,9 @@ export class RawPosePalette {
         device.queue.writeBuffer(buffer, 0, values);
       }
       this.controls = this.allocate("controls", 16);
-      this.snapshots = this.allocate("snapshots", 16);
+      this.snapshots = Array.from({ length: SNAPSHOT_BANK_COUNT }, (_, bank) =>
+        this.allocate(`snapshots-${bank}`, 16),
+      );
       this.palette = this.allocate("palette", 64);
       this.dispatchUniform = this.own(
         device.createBuffer({
@@ -90,20 +112,18 @@ export class RawPosePalette {
           usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         }),
       );
-      const declarations = ["vec4f", "u32", "mat4x4f", "vec4u", "vec4f", "mat4x4f"]
-        .map(
-          (type, binding) =>
-            `@group(0) @binding(${binding}) var<storage, ${binding === 5 ? "read_write" : "read"}> data${binding}: array<${type}>;`,
-        )
-        .join("\n");
+      const declarations = POSE_PALETTE_STORAGE_TYPES.map(
+        (type, binding) =>
+          `@group(0) @binding(${binding}) var<storage, ${binding === POSE_PALETTE_STORAGE_TYPES.length - 1 ? "read_write" : "read"}> data${binding}: array<${type}>;`,
+      ).join("\n");
       const module = compileShader(
         device,
         `${declarations}
-@group(0) @binding(6) var<uniform> dispatch: vec4u;
+@group(0) @binding(${POSE_PALETTE_STORAGE_TYPES.length}) var<uniform> dispatch: vec4u;
 ${POSE_PALETTE_HELPERS_WGSL}
 ${posePaletteFunctionWgsl(this.bones)}
 @compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id: vec3u) {
-  preparePosePalette(&data0, &data1, &data2, &data3, &data4, &data5, id.x, dispatch.x, dispatch.y);
+  preparePosePalette(&data0, &data1, &data2, &data3, &data4, &data5, &data6, id.x, dispatch.x, dispatch.y);
 }`,
         `${label}-compute`,
       );
@@ -165,12 +185,19 @@ ${posePaletteFunctionWgsl(this.bones)}
     try {
       const controls = grow(this.controls, "controls", count * PLAYBACK_WORDS * 4);
       const palette = grow(this.palette, "palette", count * this.bones * 64);
-      const snapshots = grow(
-        this.snapshots,
-        "snapshots",
-        frame.requiredSnapshotSlots * this.bones * LOCAL_ANIMATION_FLOATS_PER_JOINT * 4,
+      const snapshotBytes = this.bones * LOCAL_ANIMATION_FLOATS_PER_JOINT * 4;
+      const bankCapacity = growSnapshotBankCapacity(
+        frame.requiredSnapshotSlots,
+        Math.floor(this.snapshots[0].size / snapshotBytes),
+        Math.floor(palette.size / (this.bones * 64)),
       );
-      if (snapshots !== this.snapshots) {
+      const snapshots = this.snapshots.map((buffer, bank) => {
+        if (buffer.size >= bankCapacity * snapshotBytes) return buffer;
+        const next = this.allocate(`snapshots-${bank}`, bankCapacity * snapshotBytes);
+        replacements.push(next);
+        return next;
+      });
+      if (snapshots.some((buffer, bank) => buffer !== this.snapshots[bank])) {
         // A new allocation contains no old identities. Repack the active sources
         // once on growth; stable frames still upload only newly resident sources.
         this.packer.reset();
@@ -182,8 +209,8 @@ ${posePaletteFunctionWgsl(this.bones)}
       if (frame.controls.byteLength) this.device.queue.writeBuffer(controls, 0, frame.controls);
       for (const upload of frame.uploads)
         this.device.queue.writeBuffer(
-          snapshots,
-          upload.slot * this.bones * LOCAL_ANIMATION_FLOATS_PER_JOINT * 4,
+          snapshots[snapshotBank(upload.slot)],
+          snapshotBankFloatOffset(upload.slot, this.bones) * 4,
           upload.data,
         );
       this.device.queue.writeBuffer(
@@ -194,7 +221,7 @@ ${posePaletteFunctionWgsl(this.bones)}
       this.packer.commitPrepared(frame);
       for (const [old, next] of [
         [this.controls, controls],
-        [this.snapshots, snapshots],
+        ...this.snapshots.map((buffer, bank) => [buffer, snapshots[bank]]),
         [this.palette, palette],
       ])
         if (old !== next) {
@@ -212,7 +239,10 @@ ${posePaletteFunctionWgsl(this.bones)}
         0,
       );
       this.peakPaletteBytes = Math.max(this.peakPaletteBytes, palette.size);
-      this.peakSnapshotBytes = Math.max(this.peakSnapshotBytes, snapshots.size);
+      this.peakSnapshotBytes = Math.max(
+        this.peakSnapshotBytes,
+        snapshots.reduce((sum, bank) => sum + bank.size, 0),
+      );
     } catch (error) {
       this.packer.discardPrepared(frame);
       for (const buffer of replacements) {
@@ -239,7 +269,7 @@ ${posePaletteFunctionWgsl(this.bones)}
       residentSnapshots: this.packer.residentSnapshotCount,
       snapshotUploadBytes: this.snapshotUploadBytes,
       paletteBytes: this.palette.size,
-      snapshotBytes: this.snapshots.size,
+      snapshotBytes: this.snapshots.reduce((sum, bank) => sum + bank.size, 0),
       controlBytes: this.controls.size,
       peakPaletteBytes: this.peakPaletteBytes,
       peakSnapshotBytes: this.peakSnapshotBytes,
@@ -254,12 +284,12 @@ ${posePaletteFunctionWgsl(this.bones)}
     this.owned.clear();
   }
 
-  private makeBindings(controls: GPUBuffer, snapshots: GPUBuffer, palette: GPUBuffer) {
+  private makeBindings(controls: GPUBuffer, snapshots: GPUBuffer[], palette: GPUBuffer) {
     return {
       compute: this.device.createBindGroup({
         label: `${this.label}-compute-binding`,
         layout: this.computeLayout,
-        entries: [...this.staticBuffers, controls, snapshots, palette, this.dispatchUniform].map(
+        entries: [...this.staticBuffers, controls, ...snapshots, palette, this.dispatchUniform].map(
           (buffer, binding) => ({ binding, resource: { buffer } }),
         ),
       }),

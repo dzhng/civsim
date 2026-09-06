@@ -31,6 +31,13 @@ Mounted playback has one authored rider-upper-body override mask over the locomo
 
 `soldier-assets` owns local-pose evaluation from imported tracks and the sampled GPU encoding's semantics; `crowd-runtime` owns action history and frozen interruption sources, not a second pose sampler.05 establishes exact CPU interruptions before06 changes GPU data. An overlay exits toward the evaluated advancing base, not merely its destination clip. The bounded source lifetime, cutover sequence and continuity proofs live in [06](./slices/06-gpu-playback.md#bounded-interruption-contract); repeated interruptions must not grow an expression tree or substitute a nearby endpoint.
 
+Exact frozen storage must fit each GPU binding even when every body has distinct
+base and upper sources. Two banks share the packer's logical slot space; their
+stable parity mapping preserves identity sharing and holes without moving poses
+as visibility changes. Each bank is bounded by retained admitted output capacity,
+not current live count. The [storage correction evidence](assets/evidence/07/snapshot-banks.md)
+records the proof and remaining workload gates; it is not a total-memory promise.
+
 Slice03 establishes the complete tier/bounds/far schema and loader using converted placeholder bundles. Until authored reductions/far/bounds pass15 or28, detailed art is a **workbench candidate**, not a production replacement. Promote the complete appearance atomically and remove its placeholder content then. The removal rule below refers to complete bundle acceptance, not an earlier geometry/material verdict. Never hide authored-near/placeholder-far mixtures.
 
 Artillery equipment currently lives inside soldier mesh construction, not a separate production prop. Slice25 reauthors the existing equipment locally as a rigid component of the class8 bundle, with explicit root attachment and current placement semantics. It uses the same asset owner, not a new artillery renderer; geometry, surfaces and crew contact are judged in25–27 without new artillery mechanics.

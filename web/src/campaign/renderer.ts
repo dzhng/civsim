@@ -44,6 +44,7 @@ import { chartCamera3d, type Camera3DParams } from "@packages/renderer-core/src/
 import { SkinnedCrowdPipeline } from "@packages/renderer-core/src/skinnedPipeline";
 import { SoldierShadowDecalPass } from "@packages/renderer-core/src/soldierShadowPass";
 import { loadAppearanceCatalog } from "@packages/soldier-assets/src/appearanceBundle";
+import { assertCrowdClipCoverage } from "@packages/crowd-runtime/src/animationState";
 import type { CampaignData } from "./data";
 import { isControlledStage } from "./data";
 import type { CamView } from "./camera";
@@ -758,6 +759,10 @@ export class CampaignRenderer {
   }
 
   private async init(territory: Territory) {
+    const appearances = await loadAppearanceCatalog(
+      new URL("/assets/soldiers/catalog.json", location.href).href,
+    );
+    assertCrowdClipCoverage(appearances);
     // One projector engine-wide: every pass projects through camera3d's viewProj
     // and depth-tests reverse-Z against the shell's depth32float world buffer.
     const shell = await createFrameShell(this.canvas, { sun: CAMPAIGN_ENVIRONMENT });
@@ -812,14 +817,10 @@ export class CampaignRenderer {
     const standards = new SharedStandardPass(shell);
     // Representative army figures consume the same appearance assets as battle,
     // while campaign retains its raw-GPU world and grounding-shadow passes.
-    const appearances = await loadAppearanceCatalog(
-      new URL("/assets/soldiers/catalog.json", location.href).href,
-    );
-    this.mountedClasses = Object.entries(appearances).filter(([, bundle]) => bundle.manifest.mounted).map(([id]) => Number(id));
-    const soldierCrowd = new SkinnedCrowdPipeline(
-      shell,
-      appearances,
-    );
+    this.mountedClasses = Object.entries(appearances)
+      .filter(([, bundle]) => bundle.manifest.mounted)
+      .map(([id]) => Number(id));
+    const soldierCrowd = new SkinnedCrowdPipeline(shell, appearances);
     const soldierShadows = new SoldierShadowDecalPass(shell);
     const selection = new CampaignSelectionPass(shell);
     const labels = new CampaignLabelPass(shell);

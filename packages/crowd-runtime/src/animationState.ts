@@ -1,12 +1,29 @@
-export type CrowdClip =
-  | "idle"
-  | "march"
-  | "run"
-  | "attack_a"
-  | "hit_a"
-  | "shoot"
-  | "death_a"
-  | "at_ease";
+import type { AppearanceBundle } from "../../soldier-assets/src/appearanceBundle";
+
+export const CROWD_CLIPS = [
+  "idle",
+  "march",
+  "run",
+  "attack_a",
+  "hit_a",
+  "shoot",
+  "death_a",
+  "at_ease",
+] as const;
+export type CrowdClip = (typeof CROWD_CLIPS)[number];
+
+/** Admit assets before a controller can ask for an action absent from their bake. */
+export function assertCrowdClipCoverage(
+  appearances: Record<number, Pick<AppearanceBundle, "animation">>,
+  requiredClips: readonly CrowdClip[] = CROWD_CLIPS,
+): void {
+  for (const [id, appearance] of Object.entries(appearances)) {
+    const names = new Set(appearance.animation.clips.map((clip) => clip.name));
+    const missing = requiredClips.filter((clip) => !names.has(clip));
+    if (missing.length)
+      throw new Error(`Appearance ${id} is missing required crowd clips: ${missing.join(", ")}`);
+  }
+}
 
 export interface AnimationState {
   clip: CrowdClip;

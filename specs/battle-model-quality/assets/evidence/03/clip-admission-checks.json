@@ -1,0 +1,605 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-06T03:02:15.373Z",
+  "target": "http://localhost:5179",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "campaign-visual",
+      "file": "campaign/campaign-visual.mjs",
+      "kind": "visual",
+      "tier": "quick"
+    },
+    {
+      "name": "battle-model-workbench",
+      "file": "models/battle-model-workbench.mjs",
+      "kind": "visual",
+      "tier": "full"
+    },
+    {
+      "name": "blender-production-candidates",
+      "file": "models/blender-production-candidates.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "campaign-visual",
+      "name": "test campaign boots with a player army",
+      "ok": true,
+      "detail": "985000 soldiers"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "controlled campaign visual route uses raw WebGPU",
+      "ok": true,
+      "detail": "{\"renderer\":\"renderer-campaign\",\"ready\":true,\"width\":2560,\"height\":1600,\"device\":\"google / swiftshader\",\"cameraContract\":\"shared-world-camera-wgsl\",\"cityEntities\":2,\"armyEntities\":1,\"cityEntityAnchors\":[[-25,450],[25,450]],\"labels\":3,\"visibleLabels\":1,\"visibleLabelNames\":[\"city:NEAPOLIS\"],\"visibleSeaLabelRects\":[],\"visibleCityLabelRects\":[{\"text\":\"NEAPOLIS\",\"kind\":\"city\",\"importance\":6,\"opacity\":1,\"box\":{\"x\":867.99,\"y\":234.444,\"w\":94.5,\"h\":36.5},\"corners\":[[867.99,234.444],[962.49,234.444],[962.49,270.944],[867.99,270.944]],\"padPx\":6.5,\"inkRect\":{\"x\":874.49,\"y\":240.944,\"w\":81.5,\"h\":23.5}}],\"visibleArmyLabelRects\":[],\"visibleFactionLabelRects\":[],\"visibleCardRects\":[{\"id\":\"city:0\",\"name\":\"ROMA\",\"box\":{\"x\":294.99787120224727,\"y\":253.8077121577995,\"w\":112,\"h\":54}}],\"labelCollisionCulls\":0,\"labelCollisionCulledLabels\":[],\"composedArmyCityLabels\":0,\"labelLayer\":\"raw-gpu-glyph-atlas\",\"labelAtlas\":\"1024x128\",\"labelVertices\":6,\"waterFeatures\":0,\"waterLayer\":\"map-sea-mask\",\"mapSurface\":{\"surfaceTriangles\":120,\"terrainMix\":0,\"terrainTextureSize\":null,\"layer\":\"background-raster-terrain\"},\"cloudQuads\":1,\"fogEnabled\":false,\"fogSources\":2,\"factionView\":true,\"graphics\":{\"shadows\":\"single\",\"grassQuality\":\"standard\",\"grass\":true,\"farGrass\":true,\"bloom\":true,\"audio\":{\"masterVolume\":0.55,\"muted\":true,\"birds\":true,\"water\":true}},\"territoryPixels\":77,\"borderSegments\":0,\"mapMarkers\":0,\"cityMarkerRadiiPxByTier\":{\"1\":6.1000000000000005,\"2\":7,\"3\":7.9},\"selections\":0,\"garrisonedArmySelections\":0,\"maxSelectionRadius\":0,\"standardStats\":{\"standards\":2,\"tiers\":[\"campaign-army\",\"settlement-banner\"],\"meshVerticesByTier\":{\"battle-unit\":919,\"campaign-army\":919,\"settlement-banner\":915},\"meshIndexCountByTier\":{\"battle-unit\":2460,\"campaign-army\":2460,\"settlement-banner\":2454},\"weightChannel\":\"uvWeightMaterial.z: 0 rigid hardware, >0 cloth/trim/emblem\",\"materialChannel\":\"uvWeightMaterial.w: pole/gold/cloth/trim/emblem/shadow\",\"liveryContract\":\"instance livery overrides field/trim/emblem; battle faction table remains default\",\"waveContract\":\"cam.time + deterministic per-instance phase + strength\",\"layer\":\"shared-3d-standard-asset\"},\"scenery\":8,\"sceneryQuads\":8,\"sceneryStats\":{\"scenery\":8,\"mountains\":1,\"trees\":4,\"rocks\":2,\"carts\":1,\"kinds\":{\"conifer\":1,\"broadleaf\":3,\"ash\":0,\"aspen\":0,\"bush\":0,\"rock\":2,\"mountain\":1,\"cart\":1},\"materialClasses\":[\"opaque-depth-write\",\"shadow-depth-read\"],\"layer\":\"raw-gpu-scenery-library-meshes\"},\"sceneryCandidateStats\":{\"total\":15,\"mountains\":4,\"trees\":6,\"rocks\":5},\"lineSegments\":0,\"roadTriangles\":224,\"roadJunctionCaps\":0,\"seaLabelFits\":[],\"seaLabelFitZoom\":0.26,\"roadEdgesCulled\":0,\"roadWaterGaps\":0,\"seaLanes\":0,\"phases\":[{\"kind\":\"background\",\"label\":\"consumer-owned background surfaces\",\"passIds\":[\"builtin-background\"],\"passRoles\":[{\"id\":\"builtin-background\",\"role\":\"background-underpaint\"}],\"depthPasses\":[],\"depth\":\"none\",\"loadOp\":\"clear\"},{\"kind\":\"world-depth\",\"label\":\"depth-tested world geometry and ground decals\",\"passIds\":[\"campaign-map-surface\",\"campaign-scenery-opaque\",\"campaign-entities-opaque\",\"campaign-standards-opaque\",\"campaign-soldier-crowd\",\"campaign-territory-wash\",\"campaign-scenery-shadows\",\"campaign-entity-shadows\",\"campaign-standard-shadows\",\"campaign-soldier-shadows\",\"campaign-roads\",\"campaign-sea-lanes-depth\",\"campaign-ground-selection\"],\"passRoles\":[{\"id\":\"campaign-map-surface\",\"role\":\"world-depth-fill\"},{\"id\":\"campaign-scenery-opaque\",\"role\":\"world-opaque\"},{\"id\":\"campaign-entities-opaque\",\"role\":\"world-opaque\"},{\"id\":\"campaign-standards-opaque\",\"role\":\"world-opaque\"},{\"id\":\"campaign-soldier-crowd\",\"role\":\"world-opaque\"},{\"id\":\"campaign-territory-wash\",\"role\":\"world-decal\"},{\"id\":\"campaign-scenery-shadows\",\"role\":\"world-decal\"},{\"id\":\"campaign-entity-shadows\",\"role\":\"world-decal\"},{\"id\":\"campaign-standard-shadows\",\"role\":\"world-decal\"},{\"id\":\"campaign-soldier-shadows\",\"role\":\"world-decal\"},{\"id\":\"campaign-roads\",\"role\":\"world-decal\"},{\"id\":\"campaign-sea-lanes-depth\",\"role\":\"world-decal\"},{\"id\":\"campaign-ground-selection\",\"role\":\"world-decal\"}],\"depthPasses\":[{\"id\":\"campaign-map-surface\",\"mode\":\"write\"},{\"id\":\"campaign-scenery-opaque\",\"mode\":\"read-write\"},{\"id\":\"campaign-entities-opaque\",\"mode\":\"read-write\"},{\"id\":\"campaign-standards-opaque\",\"mode\":\"read-write\"},{\"id\":\"campaign-soldier-crowd\",\"mode\":\"read-write\"},{\"id\":\"campaign-territory-wash\",\"mode\":\"read\"},{\"id\":\"campaign-scenery-shadows\",\"mode\":\"read\"},{\"id\":\"campaign-entity-shadows\",\"mode\":\"read\"},{\"id\":\"campaign-standard-shadows\",\"mode\":\"read\"},{\"id\":\"campaign-soldier-shadows\",\"mode\":\"read\"},{\"id\":\"campaign-roads\",\"mode\":\"read\"},{\"id\":\"campaign-sea-lanes-depth\",\"mode\":\"read\"},{\"id\":\"campaign-ground-selection\",\"mode\":\"read\"}],\"depth\":\"depth32float-reverse-z-clear\",\"loadOp\":\"load\"},{\"kind\":\"overlay\",\"label\":\"labels, HUD, minimap, atmosphere, and debug overlays\",\"passIds\":[\"campaign-clouds\",\"campaign-fog-of-war\",\"campaign-markers\",\"campaign-labels\"],\"passRoles\":[{\"id\":\"campaign-clouds\",\"role\":\"overlay-effect\"},{\"id\":\"campaign-fog-of-war\",\"role\":\"overlay-effect\"},{\"id\":\"campaign-markers\",\"role\":\"overlay-ui\"},{\"id\":\"campaign-labels\",\"role\":\"overlay-ui\"}],\"depthPasses\":[],\"depth\":\"none\",\"loadOp\":\"load\"}],\"depth\":{\"format\":\"depth32float\",\"width\":2560,\"height\":1600,\"allocated\":true},\"postCutoverScreenshots\":\"renderer-only\",\"performance\":{\"buildMs\":0.065,\"uploadMs\":0.19,\"drawMs\":0.14,\"frameCpuMs\":0.415}}"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "snapshot tiny-overview",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "snapshot ui-class-builder",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "snapshot ui-diplomacy",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "snapshot ui-city-panel",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "snapshot ui-army-replenish-toggle",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "snapshot tiny-army-our-city",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "snapshot tiny-army-road",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-visual",
+      "name": "snapshot tiny-army-neutral-city",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "heavy-front: production path and submitted count",
+      "ok": true,
+      "detail": "{\"substrate\":\"threejs-webgpu-tsl\",\"soldiers\":1}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "heavy-front: readable foreground model coverage",
+      "ok": true,
+      "detail": "22732"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/heavy-front",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "heavy-front: frozen frame is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "phalanx-side: production path and submitted count",
+      "ok": true,
+      "detail": "{\"substrate\":\"threejs-webgpu-tsl\",\"soldiers\":1}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "phalanx-side: readable foreground model coverage",
+      "ok": true,
+      "detail": "10232"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/phalanx-side",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "phalanx-side: frozen frame is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "formation: production path and submitted count",
+      "ok": true,
+      "detail": "{\"substrate\":\"threejs-webgpu-tsl\",\"soldiers\":16}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "formation: readable foreground model coverage",
+      "ok": true,
+      "detail": "35416"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/formation",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "formation: frozen frame is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "local bake reload keeps identical production pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "failed reload is explicit and preserves last good crowd",
+      "ok": true,
+      "detail": "{\"ok\":false,\"error\":\"SyntaxError: Unexpected token 'm', \\\"malformed fixture\\\" is not valid JSON\"}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "incompatible reload retains the active appearance",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "incompatible reload retains the active appearance-specific clip",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "truncated animation matrix data is rejected explicitly",
+      "ok": true,
+      "detail": "{\"ok\":false,\"error\":\"Error: appearance animation matrix data does not match its dimensions\"}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "production reload rejects a missing non-active action before replacing the crowd",
+      "ok": true,
+      "detail": "{\"ok\":false,\"error\":\"Error: Appearance 0 is missing required crowd clips: attack_a\"}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "production startup rejects a missing controller action",
+      "ok": true,
+      "detail": "Error: Appearance 0 is missing required crowd clips: attack_a"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "invalid VAT retry 0: no orphaned scene meshes",
+      "ok": true,
+      "detail": "{\"nodesBefore\":111,\"nodesAfter\":111}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "invalid VAT retry 1: no orphaned scene meshes",
+      "ok": true,
+      "detail": "{\"nodesBefore\":111,\"nodesAfter\":111}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "partially allocated replacement is rolled back without orphaned meshes",
+      "ok": true,
+      "detail": "{\"ok\":false,\"error\":\"Error: Injected replacement allocation failure\",\"before\":111,\"after\":111,\"peak\":113,\"attempts\":3}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "rejected bundles preserve the last good production pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "battle submission replaces the retained formation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/submission-parity",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "battle adapter and explicit pose submission have identical pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/submission-parity",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "interactive clip playback and turntable change the rendered pose",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/controls",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "candidate catalog initializes its own appearance and clip",
+      "ok": true,
+      "detail": "{\"classId\":40,\"clip\":\"bend\",\"phase\":0,\"formation\":false,\"yaw\":0.45,\"pitch\":1.15,\"zoom\":190,\"target\":[0,0,1.05]}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human: direct source clips are present",
+      "ok": true,
+      "detail": "[{\"name\":\"bend\",\"start\":0,\"frames\":25,\"duration\":1,\"loop\":false}]"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-0/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"bend\",\"phase\":0,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-0/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-0/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"bend\",\"phase\":0,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-0/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-6/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"bend\",\"phase\":0.25,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-6/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-6/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"bend\",\"phase\":0.25,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-6/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-12/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"bend\",\"phase\":0.5,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-12/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-12/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"bend\",\"phase\":0.5,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-12/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-24/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"bend\",\"phase\":1,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-24/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-24/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"bend\",\"phase\":1,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-24/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "snapshot shared/soldiers/candidates/human",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted: direct source clips are present",
+      "ok": true,
+      "detail": "[{\"name\":\"gait\",\"start\":0,\"frames\":25,\"duration\":1,\"loop\":true},{\"name\":\"rider-action\",\"start\":25,\"frames\":25,\"duration\":1,\"loop\":false}]"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-0/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"gait\",\"phase\":0,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-0/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-0/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"gait\",\"phase\":0,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-0/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-6/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"gait\",\"phase\":0.25,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-6/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-6/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"gait\",\"phase\":0.25,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-6/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-12/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"gait\",\"phase\":0.5,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-12/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-12/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"gait\",\"phase\":0.5,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-12/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-24/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"gait\",\"phase\":1,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-24/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-24/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"gait\",\"phase\":1,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-24/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-0/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"rider-action\",\"phase\":0,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-0/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-0/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"rider-action\",\"phase\":0,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-0/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-6/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"rider-action\",\"phase\":0.25,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-6/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-6/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"rider-action\",\"phase\":0.25,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-6/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-12/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"rider-action\",\"phase\":0.5,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-12/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-12/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"rider-action\",\"phase\":0.5,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-12/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-24/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"rider-action\",\"phase\":1,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-24/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-24/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"rider-action\",\"phase\":1,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-24/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "snapshot shared/soldiers/candidates/mounted",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "candidate reload retains the chosen catalog and production pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "bad candidate rebuild keeps its last good production render",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

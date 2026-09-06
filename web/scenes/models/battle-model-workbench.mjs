@@ -149,6 +149,41 @@ export async function run(ctx) {
       JSON.stringify(truncated),
     );
     await page.unroute(animationUrl);
+    await page.route(animationUrl, async (route) => {
+      const response = await route.fetch();
+      const animation = await response.json();
+      animation.clips = animation.clips.filter((clip) => clip.name !== "attack_a");
+      await route.fulfill({ json: animation });
+    });
+    const missingFutureAction = await page.evaluate(() => window.__battleModels.reload());
+    ctx.check(
+      "production reload rejects a missing non-active action before replacing the crowd",
+      !missingFutureAction.ok &&
+        missingFutureAction.error.includes("attack_a") &&
+        (await page.evaluate(() =>
+          window.__battleModels.world.soldierAssets[0].animation.clips.some(
+            (clip) => clip.name === "attack_a",
+          ),
+        )),
+      JSON.stringify(missingFutureAction),
+    );
+    const incompleteStartup = await page.evaluate(async () => {
+      try {
+        const world = await window.__battleModels.world.constructor.create(
+          document.createElement("canvas"),
+        );
+        world.dispose();
+        return null;
+      } catch (error) {
+        return String(error);
+      }
+    });
+    ctx.check(
+      "production startup rejects a missing controller action",
+      incompleteStartup?.includes("attack_a"),
+      String(incompleteStartup),
+    );
+    await page.unroute(animationUrl);
     const nodesBefore = await page.evaluate(
       () => window.__battleModels.world.world.scene.children.length,
     );

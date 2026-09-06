@@ -2,6 +2,11 @@ import * as THREE from "three/webgpu";
 import { vec3 } from "three/tsl";
 import { buildCrowdInstances, type CrowdInstance } from "../../../crowd-runtime/src/instanceData";
 import {
+  assertCrowdClipCoverage,
+  CROWD_CLIPS,
+  type CrowdClip,
+} from "../../../crowd-runtime/src/animationState";
+import {
   battleEnvironmentStats,
   resolveBattleEnvironment,
   type BattleEnvironment,
@@ -161,6 +166,7 @@ export class PhotorealBattleWorld {
     postEnabled: boolean,
     postGrade: Partial<BattlePostGradeUniforms> | null,
     grassProfile: BladeFieldProfile,
+    private readonly requiredSoldierClips: readonly CrowdClip[],
   ) {
     this.world = world;
     this.environment = environment;
@@ -225,6 +231,8 @@ export class PhotorealBattleWorld {
       post?: string | null;
       grassQuality?: BattleGrassQuality;
       soldierCatalogUrl?: string;
+      /** Asset inspection may supply [] because its poses do not use the battle controller. */
+      requiredSoldierClips?: readonly CrowdClip[];
       postGrade?: Partial<BattlePostGradeUniforms> | null;
     } = {},
   ): Promise<PhotorealBattleWorld> {
@@ -234,10 +242,10 @@ export class PhotorealBattleWorld {
       options.soldierCatalogUrl ?? "/assets/soldiers/catalog.json",
       window.location.href,
     ).href;
-    const [world, assets] = await Promise.all([
-      PhotorealWorld.create(canvas, { antialias: false }),
-      loadAppearanceCatalog(soldierCatalogUrl),
-    ]);
+    const requiredSoldierClips = options.requiredSoldierClips ?? CROWD_CLIPS;
+    const assets = await loadAppearanceCatalog(soldierCatalogUrl);
+    assertCrowdClipCoverage(assets, requiredSoldierClips);
+    const world = await PhotorealWorld.create(canvas, { antialias: false });
     const sea = createSeaDisplacementSource();
     const shadowMode = resolveSunShadowMode(world.stats().device, options.shadows);
     const postEnabled = options.post !== "off";
@@ -251,6 +259,7 @@ export class PhotorealBattleWorld {
       postEnabled,
       options.postGrade ?? null,
       grassProfile,
+      requiredSoldierClips,
     );
   }
 
@@ -269,6 +278,7 @@ export class PhotorealBattleWorld {
         `Reload does not contain active appearance ${activePose.classId} / clip ${activePose.clip}`,
       );
     }
+    assertCrowdClipCoverage(assets, this.requiredSoldierClips);
     const replacement = new PhotorealCrowd(this.world.scene, assets);
     this.crowd.dispose();
     this.crowd = replacement;

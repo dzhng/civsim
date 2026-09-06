@@ -137,7 +137,7 @@ function completeBundleFiles(rig, animation) {
       tiers: tierPaths,
       // Far atlases retain the complete equipment silhouette, not the coarse tier's omissions.
       far: { mesh: tierPaths[0], clip: 'idle', phase: 0 },
-      bounds: deriveAnimatedBounds(tiers, animation, PLACEHOLDER_MATERIALS),
+      bounds: deriveAnimatedBounds(tiers, animation, PLACEHOLDER_MATERIALS, rig),
     };
     assertAppearancePresentation(archetype.presentation, rig, animation, archetype.look.mounted);
     assertPresentationMotion(archetype.presentation, animation, rig);

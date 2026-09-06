@@ -68,6 +68,13 @@ sources. Upload/preparation shows the largest median increase, but this does
 not isolate a code cause. An exclusive-GPU old/new/old comparison is the next
 diagnostic before optimizing. No threshold or acceptance requirement changes.
 
+The [merged temporal/palette repeat](snapshot-banks-temporal.json) passes675
+checks on the canonical SwiftShader route. All39 temporal images and the
+controller image have zero pixel differences; no image was re-blessed. Exact
+raw/Three palette comparisons, weighted geometry and resource lifecycle checks
+also pass. This establishes preserved playback transport, not final model
+quality or hardware timing. The standing hardware repeat remains required.
+
 Shape/diff/docs review keeps bank addressing, growth and binding schema in one
 shared owner. No compatibility path, extra dispatch or dependency was added.
 The CLI second-opinion attempt failed before review because its configured

@@ -1,4 +1,6 @@
 import { PNG } from "pngjs";
+import { Matrix4, Vector3 } from "three";
+import { checkRawNormalLimits } from "./_raw-normal-limits.mjs";
 import { requireSwiftShaderBaseline } from "../models/_swiftshader-baseline.ts";
 
 export const meta = {
@@ -11,6 +13,7 @@ export const meta = {
     "soldier-materials-blue",
     "soldier-materials-metal",
     "soldier-materials-blender-checker",
+    "soldier-materials-posed-normal",
   ],
   describe:
     "Raw production soldier material IDs, scalar factors and independent faction masks; ordinary blue is not faction identity.",
@@ -123,6 +126,186 @@ function maxPixelError(a, b) {
   return max;
 }
 
+function pixelDifference(a, b) {
+  let total = 0,
+    changed = 0,
+    interiorMaximum = 0,
+    interiorWorst = null;
+  for (let i = 0; i < a.data.length; i += 4) {
+    let difference = 0;
+    for (let c = 0; c < 3; c++)
+      difference = Math.max(difference, Math.abs(a.data[i + c] - b.data[i + c]));
+    total += difference;
+    if (difference > 2) changed++;
+  }
+  // CPU-baked matrix multiplication and GPU instance multiplication round
+  // positions differently at a few silhouette samples. Keep exact interior
+  // response separate from those named raster-edge differences.
+  for (let y = 1; y < a.height - 1; y++)
+    for (let x = 1; x < a.width - 1; x++) {
+      const o = (y * a.width + x) * 4;
+      let smooth = true;
+      for (const image of [a, b])
+        for (let dy = -1; dy <= 1; dy++)
+          for (let dx = -1; dx <= 1; dx++)
+            for (let c = 0; c < 3; c++)
+              if (Math.abs(image.data[o + c] - image.data[o + (dy * a.width + dx) * 4 + c]) > 3)
+                smooth = false;
+      if (smooth)
+        for (let c = 0; c < 3; c++)
+          if (Math.abs(a.data[o + c] - b.data[o + c]) > interiorMaximum) {
+            interiorMaximum = Math.abs(a.data[o + c] - b.data[o + c]);
+            interiorWorst = {
+              x,
+              y,
+              a: Array.from(a.data.subarray(o, o + 3)),
+              b: Array.from(b.data.subarray(o, o + 3)),
+            };
+          }
+    }
+  return {
+    maximum: maxPixelError(a, b),
+    interiorMaximum,
+    interiorWorst,
+    changed,
+    mean: total / (a.width * a.height),
+  };
+}
+
+function candidateNormalCase(
+  pixel,
+  {
+    scale = 1,
+    mirroredV = false,
+    preposeFrame = null,
+    bakedRotation = null,
+    normalOracle = false,
+  } = {},
+) {
+  return async (page) => {
+    const image = new PNG({ width: 4, height: 2 });
+    for (let i = 0; i < image.data.length; i += 4)
+      image.data.set([...(pixel ?? [128, 128, 255]), 255], i);
+    await page.route("**/raw-normal-probe.png", (route) =>
+      route.fulfill({ contentType: "image/png", body: PNG.sync.write(image) }),
+    );
+    await page.route("**/blender-reference/human/materials.json", async (route) => {
+      const response = await route.fetch(),
+        surface = await response.json();
+      surface.materials = surface.materials.map((material) => ({
+        ...material,
+        textures: pixel && !normalOracle ? { normal: true } : undefined,
+        normalScale: scale,
+      }));
+      surface.textures =
+        pixel && !normalOracle
+          ? {
+              normal: {
+                image: "/raw-normal-probe.png",
+                mimeType: "image/png",
+                sampler: {
+                  magFilter: "nearest",
+                  minFilter: "nearest",
+                  mipmapFilter: "nearest",
+                  wrapS: "repeat",
+                  wrapT: "clamp-to-edge",
+                },
+              },
+            }
+          : {};
+      await route.fulfill({ response, json: surface });
+    });
+    let animation;
+    if (preposeFrame !== null || bakedRotation) {
+      await page.route("**/blender-reference/human/animation.json", async (route) => {
+        const response = await route.fetch();
+        animation = await response.json();
+        const replacement = structuredClone(animation);
+        for (let bone = 0; bone < animation.height / 4; bone++)
+          for (let frame = 0; frame < animation.width; frame++) {
+            const matrix =
+              preposeFrame === null
+                ? bakedRotation.clone().multiply(vatMatrix(animation, bone, frame))
+                : new Matrix4();
+            for (let column = 0; column < 4; column++)
+              for (let row = 0; row < 4; row++)
+                replacement.data[((bone * 4 + column) * animation.width + frame) * 4 + row] =
+                  matrix.elements[column * 4 + row];
+          }
+        await route.fulfill({ response, json: replacement });
+      });
+    }
+    if (mirroredV || preposeFrame !== null)
+      await page.route("**/blender-reference/human/tier-*.mesh.json", async (route) => {
+        const response = await route.fetch(),
+          mesh = await response.json();
+        if (preposeFrame !== null) {
+          // Independent CPU Matrix4 oracle: pose the same Blender bind attributes,
+          // then submit identity joints through the unchanged production factory.
+          // Fetch directly because catalog resources load concurrently.
+          const source =
+            animation ??
+            (await (
+              await page.request.get(new URL("animation.json", route.request().url()).href)
+            ).json());
+          for (let vertex = 0; vertex < mesh.positions.length / 3; vertex++) {
+            const matrix = new Matrix4();
+            matrix.elements.fill(0);
+            for (let influence = 0; influence < 4; influence++) {
+              const joint = vatMatrix(source, mesh.joints[vertex * 4 + influence], preposeFrame);
+              const weight = mesh.weights[vertex * 4 + influence];
+              for (let i = 0; i < 16; i++) matrix.elements[i] += weight * joint.elements[i];
+            }
+            new Vector3()
+              .fromArray(mesh.positions, vertex * 3)
+              .applyMatrix4(matrix)
+              .toArray(mesh.positions, vertex * 3);
+            new Vector3()
+              .fromArray(mesh.normals, vertex * 3)
+              .transformDirection(matrix)
+              .toArray(mesh.normals, vertex * 3);
+            const t = new Vector3().fromArray(mesh.tangents, vertex * 4);
+            const e = matrix.elements;
+            new Vector3(
+              e[0] * t.x + e[4] * t.y + e[8] * t.z,
+              e[1] * t.x + e[5] * t.y + e[9] * t.z,
+              e[2] * t.x + e[6] * t.y + e[10] * t.z,
+            )
+              .normalize()
+              .toArray(mesh.tangents, vertex * 4);
+            if (normalOracle) {
+              const n = new Vector3().fromArray(mesh.normals, vertex * 3);
+              const tangent = new Vector3().fromArray(mesh.tangents, vertex * 4);
+              tangent.addScaledVector(n, -n.dot(tangent)).normalize();
+              const bitangent = new Vector3()
+                .crossVectors(n, tangent)
+                .multiplyScalar(mesh.tangents[vertex * 4 + 3]);
+              n.multiplyScalar(pixel[2] / 127.5 - 1)
+                .addScaledVector(tangent, (pixel[0] / 127.5 - 1) * scale)
+                .addScaledVector(bitangent, (pixel[1] / 127.5 - 1) * scale)
+                .normalize()
+                .toArray(mesh.normals, vertex * 3);
+            }
+          }
+        }
+        if (mirroredV) {
+          mesh.uvs = mesh.uvs.map((v, i) => (i % 2 ? 1 - v : v));
+          mesh.tangents = mesh.tangents.map((v, i) => (i % 4 === 3 ? -v : v));
+        }
+        await route.fulfill({ response, json: mesh });
+      });
+  };
+}
+
+function vatMatrix(animation, bone, frame) {
+  const matrix = new Matrix4();
+  for (let column = 0; column < 4; column++)
+    for (let row = 0; row < 4; row++)
+      matrix.elements[column * 4 + row] =
+        animation.data[((bone * 4 + column) * animation.width + frame) * 4 + row];
+  return matrix;
+}
+
 function uvGradientCase(vertexOracle) {
   return async (page) => {
     const decode = (value) => {
@@ -181,6 +364,7 @@ function uvGradientCase(vertexOracle) {
 
 export async function run(ctx) {
   requireSwiftShaderBaseline(meta.name);
+  await checkRawNormalLimits(ctx);
   const authored = await capture(ctx, "strength=1&team=0", "soldier-materials-authored");
   const remapped = await capture(ctx, "strength=1&team=0&reverseMaterials");
   ctx.check(
@@ -354,30 +538,165 @@ export async function run(ctx) {
     "authored occlusion strength changes visible surfaces",
     changedArea(plain, ao, 10).changed > 100,
   );
+  const normalParams =
+    "strength=0&catalog=/assets/soldiers/candidates/blender-reference/catalog.json&class=40&clip=bend&phase=0.5";
   const normal = await capture(
     ctx,
-    "strength=0",
+    normalParams,
+    "soldier-materials-posed-normal",
+    candidateNormalCase([224, 192, 240], { scale: 0.7 }),
+  );
+  const opposed = await capture(
+    ctx,
+    normalParams,
     null,
-    textureCase(
-      (material) => ({
-        ...material,
-        normalScale: 0.7,
-        textures: { normal: true },
-      }),
-      "normal",
-      [255, 0, 128],
-      "nearest",
-    ),
+    candidateNormalCase([31, 63, 240], { scale: 0.7 }),
   );
   ctx.check(
-    "normal map transported without claiming posed normal shading before04c",
-    normal.data.equals(plain.data),
+    "posed normal directions change the real raw lighting",
+    changedArea(normal, opposed, 10).changed > 100,
+    JSON.stringify(changedArea(normal, opposed, 10)),
   );
   ctx.check(
-    "normal image has complete authored-size mip chain before04c",
+    "normal image retains complete authored-size mip chain",
     JSON.stringify(normal.rawStats.imageTextures) ===
       JSON.stringify([{ channel: "normal", width: 4, height: 2, mipLevels: 3 }]),
     JSON.stringify(normal.rawStats.imageTextures),
+  );
+  const noNormal = await capture(ctx, normalParams, null, candidateNormalCase(null));
+  const zeroNormal = await capture(
+    ctx,
+    normalParams,
+    null,
+    candidateNormalCase([224, 192, 240], { scale: 0 }),
+  );
+  const zeroOtherXY = await capture(
+    ctx,
+    normalParams,
+    null,
+    candidateNormalCase([31, 63, 240], { scale: 0 }),
+  );
+  ctx.check(
+    "zero authored normal scale removes XY response",
+    zeroNormal.data.equals(zeroOtherXY.data),
+  );
+  const negativeScale = await capture(
+    ctx,
+    normalParams,
+    null,
+    candidateNormalCase([224, 192, 240], { scale: -0.7 }),
+  );
+  ctx.check(
+    "negative normal scale reverses XY without reversing Z",
+    maxPixelError(negativeScale, opposed) <= 1,
+    `${maxPixelError(negativeScale, opposed)} maximum byte error`,
+  );
+  const largeScale = await capture(
+    ctx,
+    normalParams,
+    null,
+    candidateNormalCase([224, 192, 240], { scale: 1e6 }),
+  );
+  const largestScale = await capture(
+    ctx,
+    normalParams,
+    null,
+    candidateNormalCase([224, 192, 240], { scale: 3e38 }),
+  );
+  ctx.check(
+    "finite extreme normal scale approaches the same tangent-plane direction without overflow",
+    maxPixelError(largeScale, largestScale) <= 1 &&
+      changedArea(largestScale, noNormal, 10).changed > 100,
+    `${maxPixelError(largeScale, largestScale)} maximum byte error`,
+  );
+  const mirroredNormal = await capture(
+    ctx,
+    normalParams,
+    null,
+    candidateNormalCase([224, 63, 240], { scale: 0.7, mirroredV: true }),
+  );
+  ctx.check(
+    "mirrored UV handedness reverses mapped Y exactly once",
+    maxPixelError(normal, mirroredNormal) <= 1,
+    `${maxPixelError(normal, mirroredNormal)} maximum byte error`,
+  );
+  const preposedNormal = await capture(
+    ctx,
+    normalParams,
+    null,
+    candidateNormalCase([224, 192, 240], { scale: 0.7, preposeFrame: 12 }),
+  );
+  ctx.check(
+    "weighted bent tangent frame matches independently preposed CPU attributes",
+    maxPixelError(normal, preposedNormal) <= 2,
+    `${maxPixelError(normal, preposedNormal)} maximum byte error`,
+  );
+  const yaw = 0.85;
+  const turned = await capture(
+    ctx,
+    `${normalParams}&facing=${Math.PI / 2 + yaw}`,
+    null,
+    candidateNormalCase([224, 192, 240], { scale: 0.7 }),
+  );
+  const bakedTurn = await capture(
+    ctx,
+    normalParams,
+    null,
+    candidateNormalCase([224, 192, 240], {
+      scale: 0.7,
+      bakedRotation: new Matrix4().makeRotationZ(yaw),
+    }),
+  );
+  const turnError = pixelDifference(turned, bakedTurn);
+  ctx.check(
+    "instance yaw rotates mapped tangent frame with the posed normal",
+    turnError.interiorMaximum <= 2 && turnError.mean < 0.01,
+    JSON.stringify(turnError),
+  );
+  const roll = (variant) => (variant - 1) * 0.42 + Math.sin(variant * 2.3) * 0.18;
+  const corpse = await capture(
+    ctx,
+    `${normalParams}&alive=0&deathVariant=2`,
+    null,
+    candidateNormalCase([224, 192, 240], { scale: 0.7 }),
+  );
+  const bakedCorpse = await capture(
+    ctx,
+    `${normalParams}&alive=0&deathVariant=0`,
+    null,
+    candidateNormalCase([224, 192, 240], {
+      scale: 0.7,
+      bakedRotation: new Matrix4().makeRotationX(roll(2) - roll(0)),
+    }),
+  );
+  const corpseError = pixelDifference(corpse, bakedCorpse);
+  // SwiftShader's runtime sin(4.6) differs from JS Math.sin by 0.000173:
+  // the shader roll differs by 0.000031 rad from this independent CPU oracle.
+  // Allow that measured trig precision, separately from rasterized edges.
+  ctx.check(
+    "corpse roll rotates the mapped tangent frame",
+    corpseError.interiorMaximum <= 4 && corpseError.mean < 0.01,
+    JSON.stringify(corpseError),
+  );
+  const normalOracle = await capture(
+    ctx,
+    normalParams,
+    null,
+    candidateNormalCase([224, 192, 240], { scale: 0.7, preposeFrame: 12, normalOracle: true }),
+  );
+  let panelError = 0;
+  // Stable interior of the rigid Blender shield: its constant frame makes the
+  // CPU normal override an oracle for diffuse, specular AND rim illumination.
+  for (let y = 415; y < 450; y++)
+    for (let x = 625; x < 680; x++)
+      for (let c = 0; c < 3; c++) {
+        const o = (y * normal.width + x) * 4 + c;
+        panelError = Math.max(panelError, Math.abs(normal.data[o] - normalOracle.data[o]));
+      }
+  ctx.check(
+    "mapped shield normal drives diffuse/specular/rim together",
+    panelError <= 1,
+    `${panelError} maximum interior byte error against CPU normal override`,
   );
   ctx.check(
     "non-mip source sampler allocates only level zero",

@@ -6,6 +6,7 @@ import {
 } from "../../soldier-assets/src/mesh";
 import type { VatBake } from "../../soldier-assets/src/schema";
 import type { AppearanceBundle } from "../../soldier-assets/src/appearanceBundle";
+import { TANGENT_FRAME_EPSILON_SQUARED } from "../../soldier-assets/src/skin";
 import {
   packSoldierMaterials,
   SOLDIER_MATERIAL_ROWS,
@@ -37,7 +38,7 @@ interface SkinnedCrowdStats {
     height: number;
     mipLevels: number;
   }[];
-  normalMaps: "transport-only";
+  normalMaps: "posed-tangent-frame";
   lighting: SkinnedLightingStats;
   cameraContract: "shared-world-camera-wgsl";
 }
@@ -145,6 +146,8 @@ struct VsOut {
   @location(8) worldNormal: vec3f,
   @location(9) worldPosition: vec3f,
   @location(10) uv: vec2f,
+  @location(11) worldTangent: vec3f,
+  @location(12) @interpolate(flat) tangentSign: f32,
 };
 
 fn vatTexel(frame: f32, row: f32) -> vec4f {
@@ -170,6 +173,7 @@ fn vs(
   @location(8) materialId: f32,
   @location(9) factionMask: f32,
   @location(10) uv: vec2f,
+  @location(11) tangent: vec4f,
 ) -> VsOut {
   let clipStart = inst1.y;
   let clipFrames = max(inst1.z, 1.0);
@@ -181,6 +185,7 @@ fn vs(
     + jointMatrix(joints.w, frame) * weights.w;
   let local = joint * vec4f(position, 1.0);
   let n = normalize((joint * vec4f(normal, 0.0)).xyz);
+  let t = finiteNormal((joint * vec4f(tangent.xyz, 0.0)).xyz, vec3f(0));
 
   // Corpses (inst2.z) roll by a per-variant angle (inst2.y) so the fallen field
   // reads as varied poses, not one frozen death animation.
@@ -195,6 +200,8 @@ fn vs(
   let s = sin(a);
   let rolledNormal = vec3f(n.x, n.y * rc - n.z * rs, n.y * rs + n.z * rc);
   let worldNormal = vec3f(rolledNormal.x * c - rolledNormal.y * s, rolledNormal.x * s + rolledNormal.y * c, rolledNormal.z);
+  let rolledTangent = vec3f(t.x, t.y * rc - t.z * rs, t.y * rs + t.z * rc);
+  let worldTangent = vec3f(rolledTangent.x * c - rolledTangent.y * s, rolledTangent.x * s + rolledTangent.y * c, rolledTangent.z);
   let p = rolled * inst1.x;
   // inst2.x = terrain elevation: soldiers sit on the surface and sort by it.
   let world = vec3f(inst0.x + p.x * c - p.y * s, inst0.y + p.x * s + p.y * c, p.z + inst2.x);
@@ -206,6 +213,8 @@ fn vs(
   out.materialId = u32(materialId);
   out.factionMask = factionMask;
   out.worldNormal = worldNormal;
+  out.worldTangent = worldTangent;
+  out.tangentSign = tangent.w;
   out.worldPosition = world;
   let sun = sunDirection();
   out.light = clamp(dot(worldNormal, sun) * 0.42 + 0.74, 0.34, 1.12);
@@ -217,7 +226,7 @@ fn vs(
 }
 
 @fragment
-fn fs(in: VsOut) -> @location(0) vec4f {
+fn fs(in: VsOut, @builtin(front_facing) frontFacing: bool) -> @location(0) vec4f {
   // The shared bespoke-light presets are display-referred; surfaces are linear.
   let key = srgbToLinear(SKINNED_KEY);
   let fill = srgbToLinear(SKINNED_FILL);
@@ -234,17 +243,39 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   // Sample outside slot-dependent control flow so implicit derivatives stay valid.
   let baseTexel = textureSample(baseMap, baseSampler, in.uv);
   let ormTexel = textureSample(ormMap, ormSampler, in.uv);
+  let normalTexel = textureSample(normalMap, normalSampler, in.uv).rgb;
+  let faceNormal = cross(dpdy(in.worldPosition), dpdx(in.worldPosition)) * select(-1.0, 1.0, frontFacing);
+  var n = normalize(in.worldNormal);
+  var light = in.light;
+  var rim = in.rim;
+  // Preserve the accepted unmapped path, including its vertex light interpolation.
+  if (uses.y > 0.5) {
+    let normalIsUsable = dot(in.worldNormal, in.worldNormal) > ${TANGENT_FRAME_EPSILON_SQUARED};
+    let geometric = select(finiteNormal(faceNormal, vec3f(0, 0, 1)), finiteNormal(in.worldNormal, vec3f(0, 0, 1)), normalIsUsable);
+    let tangentIsUsable = dot(in.worldTangent, in.worldTangent) > ${TANGENT_FRAME_EPSILON_SQUARED};
+    let tangentDirection = finiteNormal(in.worldTangent, vec3f(0));
+    let orthogonal = tangentDirection - geometric * dot(geometric, tangentDirection);
+    let decoded = normalTexel * 2.0 - 1.0;
+    let direction = finiteNormal(vec3f(decoded.xy * factors.a, decoded.z), vec3f(0));
+    n = geometric;
+    if (normalIsUsable && tangentIsUsable && dot(orthogonal, orthogonal) > ${TANGENT_FRAME_EPSILON_SQUARED} && dot(direction, direction) > 0.0) {
+      let tangent = normalize(orthogonal);
+      let bitangent = cross(geometric, tangent) * in.tangentSign;
+      n = finiteNormal(tangent * direction.x + bitangent * direction.y + geometric * direction.z, geometric);
+    }
+    light = clamp(dot(n, sunDirection()) * 0.42 + 0.74, 0.34, 1.12);
+    rim = smoothstep(0.20, 0.92, 1.0 - abs(n.z));
+  }
   let mappedBase = surface * mix(vec4f(1), baseTexel, uses.x);
   let teamMask = clamp(in.factionMask, 0.0, 1.0) * mat.factionMaskStrength;
   let armBand = srgbToLinear(mix(accent, vec3f(0.42, 0.34, 0.26), 0.35));
   let base = mix(in.color.rgb * mappedBase.rgb, armBand, teamMask);
-  let light01 = clamp((in.light - 0.34) / 0.78, 0.0, 1.0);
+  let light01 = clamp((light - 0.34) / 0.78, 0.0, 1.0);
   let grade = mix(fill, key, light01);
   let rough = factors.r * mix(1.0, ormTexel.g, uses.z);
   let metal = factors.g * mix(1.0, ormTexel.b, uses.z);
   let occlusion = mix(1.0, mix(1.0, ormTexel.r, factors.b), uses.w);
   var shaded = base * (1.0 - metal) * (0.62 + light01 * 0.58) * grade;
-  let n = normalize(in.worldNormal);
   let view = normalize(cam.eye - in.worldPosition);
   let halfDirection = normalize(view + sunDirection());
   let spec = pow(max(dot(n, halfDirection), 0.0), mix(128.0, 2.0, rough));
@@ -257,13 +288,21 @@ fn fs(in: VsOut) -> @location(0) vec4f {
   let reflectedFill = fill * mix(0.2, 1.0, reflection.z * 0.5 + 0.5);
   let environmentSpec = mix(reflectedFill, fill * 0.6, rough);
   shaded += fresnel * environmentSpec + f0 * spec * key * max(dot(n, sunDirection()), 0.0);
-  shaded += vec3f(0.055, 0.045, 0.026) * in.rim * (0.06 + teamMask * 0.08);
+  shaded += vec3f(0.055, 0.045, 0.026) * rim * (0.06 + teamMask * 0.08);
   shaded = mix(shaded, vec3f(0.92, 0.84, 0.60), (1.0 - in.height) * 0.035);
   shaded *= occlusion * SKINNED_EXPOSURE;
   // Corpses desaturate and darken so the fallen read as dead, not living.
   let lum = dot(shaded, vec3f(0.30, 0.59, 0.11));
   shaded = mix(shaded, vec3f(lum) * 0.62 + vec3f(0.06, 0.04, 0.03), in.corpse * 0.7);
   return vec4f(linearToSrgb(clamp(shaded, vec3f(0.0), vec3f(1.0))), in.color.a * mappedBase.a);
+}
+fn finiteNormal(direction: vec3f, fallback: vec3f) -> vec3f {
+  // Authored normalScale may be large: normalize after bounding components so
+  // a finite direction cannot overflow its squared length or TBN combination.
+  let largest = max(abs(direction.x), max(abs(direction.y), abs(direction.z)));
+  let scaled = direction / select(1.0, largest, largest > 0.0);
+  if (largest > 0.0) { return scaled * inverseSqrt(dot(scaled, scaled)); }
+  return fallback;
 }
 fn srgbToLinear(value: vec3f) -> vec3f {
   return select(pow((value + 0.055) / 1.055, vec3f(2.4)), value / 12.92, value <= vec3f(0.04045));
@@ -623,7 +662,7 @@ export class SkinnedCrowdPipeline {
       materialVariants: this.materialVariants,
       materialTableBytes: this.materialTableBytes,
       imageTextures: this.imageStats,
-      normalMaps: "transport-only",
+      normalMaps: "posed-tangent-frame",
       lighting: skinnedLightingStats(this.lighting),
       cameraContract: "shared-world-camera-wgsl",
     };
@@ -778,6 +817,11 @@ export class SkinnedCrowdPipeline {
               shaderLocation: 10,
               offset: SOLDIER_VERTEX_LAYOUT.offsets.uv * 4,
               format: "float32x2",
+            },
+            {
+              shaderLocation: 11,
+              offset: SOLDIER_VERTEX_LAYOUT.offsets.tangent * 4,
+              format: "float32x4",
             },
           ],
         },

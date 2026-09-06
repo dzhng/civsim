@@ -85,7 +85,10 @@ export async function route(ctx: LabContext) {
     ...inst,
     x: 0,
     y: 0,
-    facing: Math.PI / 2,
+    facing: numberParam(ctx.params, "facing", Math.PI / 2),
+    phase: numberParam(ctx.params, "phase", inst.phase),
+    alive: ctx.params.get("alive") !== "0",
+    deathVariant: numberParam(ctx.params, "deathVariant", inst.deathVariant ?? 0),
     seed: numberParam(ctx.params, "seed", 0),
   }));
   animateSkinned(shell, pipeline, () => soldier, {

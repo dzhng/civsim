@@ -1,6 +1,6 @@
 # 05 — Action observations and timeline
 
-Status: TODO. Depends on [03](./03-weighted-asset-contract.md).
+Status: IN PROGRESS — observation seam only. Depends on [03](./03-weighted-asset-contract.md).
 
 ## Contract and ownership
 
@@ -9,6 +9,29 @@ One render-owned controller turns observed battle state into deterministic clip 
 API seam: crowd-runtime action state per soldier: update(observation, dt/tick) → base clip IDs/phases/blend, optional mounted rider-upper-body action samples/mask, and attachment state. battleCrowd adapts actual movement/alive/weapon/firing/hit observations. This is the bounded composition contract in architecture.md, not arbitrary animation layering.
 
 Names of new functions/routes in this plan are proposed, not existing commands. Use the [shared acceptance contract](../README.md#acceptance-contract) and [architecture](../architecture.md) for inherited requirements.
+
+### Execution rows
+
+| Row | Seam and focused proof |
+| --- | --- |
+| 05a — Injury observations | Expose existing soldier/mount health through minimal read-only WASM pointers and the existing battle-view owner. Test values and view refresh without changing combat. |
+| 05b — Applicability and timeline | Generate the appearance role/state matrix from the canonical catalog and implement deterministic per-soldier action history, including resets, count growth and terminal death. |
+| 05c — Production replay | Adapt actual battle observations and replay action sequences through the production workbench. Remove fabricated hit poses and global-time action wrapping; prove reset/pause/event behavior and inspect the timeline. |
+
+`hit_ttl` is contact/facing memory, not an injury event: melee sets it before
+evade/block, missiles can set it before dodge, and its decay depends on facing
+logic. Do not expose it as a successful-hit signal. A decrease in existing health
+or mount health is a genuine observed injury, although batched observations can
+combine several injuries and supply no exact strike/contact timestamp.05a adds no
+new simulation counter, copy of health, or gameplay authority. The controller must
+not invent events that were not observed.
+
+Firing TTL starts after projectile emission; fighting means engagement effort,
+not a successful strike. Existing soldier indices stay stable through death and
+append during reinforcement. Count growth must preserve earlier histories; a
+new battle or explicit same-count identity reset clears them. The complete
+availability table and per-appearance applicability matrix belong to05b before
+controller acceptance.
 
 ## Runnable artifact
 
@@ -51,4 +74,6 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 - [ ] Comparison and final unprimed critique recorded.
 - [ ] Review/cleanup completed; README pickup and decisions updated.
 
-Record actual commands, evidence links, measured results, decisions and unresolved defects here during implementation. No implementation or visual acceptance has occurred yet.
+05a is active in parallel with04's final material review because it depends only
+on03. No controller or visual acceptance has occurred. Continue the infrastructure
+trunk through07 before detailed anatomy08.

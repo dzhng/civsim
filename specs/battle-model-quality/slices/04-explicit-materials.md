@@ -86,4 +86,25 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 - [ ] Comparison and final unprimed critique recorded.
 - [ ] Review/cleanup completed; README pickup and decisions updated.
 
-Record actual commands, evidence links, measured results, decisions and unresolved defects here during implementation. No implementation or visual acceptance has occurred yet.
+04a implementation and scoped visual evidence are recorded in
+[integration review](../assets/evidence/04/integration-review.md), with source,
+raw and far lane reports beside it. The combined workbench proves independent
+scalar response, seed uniformity, explicit faction masks and material-table
+reindex invariance. The standing30k hardware gate passes. No04a final integration
+commit or04b–04d acceptance is claimed yet.
+
+Two audit findings remain on the04a critical path:
+
+- A resolved bake promise must mean GPU resource admission succeeded, not merely
+  that commands were submitted. Scope-based validation must reject actual invalid
+  GPU commands and dispose the replacement while preserving the prior scene.
+  Restore renderer state and pop scopes before yielding. Revalidate the author's
+  active pose before installation because that new wait admits UI changes.
+- Stronger far highlights cannot be labeled distance debt without a controlled
+  comparison separating authored-property transfer, normal transformation,
+  quantization and view approximation. Previously refreshed multi-slot images
+  also contained an interpolation defect; main fixed it with flat integer IDs.
+
+The single-sample far bake and retained depth targets are provisional resource
+choices, not final edge-quality approval. Final distance-quality decisions still
+belong to15/28, but unexplained material defects cannot be deferred there.

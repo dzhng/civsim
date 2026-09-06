@@ -1,0 +1,665 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-06T03:56:43.052Z",
+  "target": "http://localhost:5174",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 1,
+  "status": "fail",
+  "scenarios": [
+    {
+      "name": "battle-model-far-bundles",
+      "file": "models/battle-model-far-bundles.mjs",
+      "kind": "visual",
+      "tier": "full"
+    },
+    {
+      "name": "battle-model-far-properties",
+      "file": "models/battle-model-far-properties.mjs",
+      "kind": "visual",
+      "tier": "full"
+    },
+    {
+      "name": "battle-model-workbench",
+      "file": "models/battle-model-workbench.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-near: full appearance submission",
+      "ok": true,
+      "detail": "{\"ids\":[0,14,6],\"count\":3}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-near: expected representation",
+      "ok": true,
+      "detail": "{\"skinned\":3,\"impostors\":0}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-near: pike remains on the mesh's right-hand side",
+      "ok": true,
+      "detail": "{\"polePixels\":177,\"centroidX\":669.3220338983051}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "snapshot battle/far-bundles/front-near",
+      "ok": false,
+      "detail": "1493 px differ (0.1458%) — see shots/diff/battle/far-bundles/front-near.png"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-near: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-far-diagnostic: full appearance submission",
+      "ok": true,
+      "detail": "{\"ids\":[0,14,6],\"count\":3}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-far-diagnostic: expected representation",
+      "ok": true,
+      "detail": "{\"skinned\":0,\"impostors\":3}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-far-diagnostic: pike remains on the mesh's right-hand side",
+      "ok": true,
+      "detail": "{\"polePixels\":266,\"centroidX\":669.9812030075188}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "snapshot battle/far-bundles/front-far-diagnostic",
+      "ok": false,
+      "detail": "412 px differ (0.0402%) — see shots/diff/battle/far-bundles/front-far-diagnostic.png"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-far-diagnostic: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-near: full appearance submission",
+      "ok": true,
+      "detail": "{\"ids\":[0,14,6],\"count\":3}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-near: expected representation",
+      "ok": true,
+      "detail": "{\"skinned\":3,\"impostors\":0}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "snapshot battle/far-bundles/side-near",
+      "ok": false,
+      "detail": "2187 px differ (0.2136%) — see shots/diff/battle/far-bundles/side-near.png"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-near: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-far-diagnostic: full appearance submission",
+      "ok": true,
+      "detail": "{\"ids\":[0,14,6],\"count\":3}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-far-diagnostic: expected representation",
+      "ok": true,
+      "detail": "{\"skinned\":0,\"impostors\":3}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "snapshot battle/far-bundles/side-far-diagnostic",
+      "ok": false,
+      "detail": "843 px differ (0.0823%) — see shots/diff/battle/far-bundles/side-far-diagnostic.png"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-far-diagnostic: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "roster-production-far: full appearance submission",
+      "ok": true,
+      "detail": "{\"ids\":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19],\"count\":320}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "roster-production-far: catalog covers every current appearance",
+      "ok": true,
+      "detail": "[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "roster-production-far: expected representation",
+      "ok": true,
+      "detail": "{\"skinned\":0,\"impostors\":320}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "snapshot battle/far-bundles/roster-production-far",
+      "ok": false,
+      "detail": "184 px differ (0.0180%) — see shots/diff/battle/far-bundles/roster-production-far.png"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "roster-production-far: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "current catalog has twenty complete property atlases",
+      "ok": true,
+      "detail": "{\"startupMs\":580,\"resources\":[{\"allocatedBytes\":11796456,\"bakeMs\":12.489999949932098,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":3.8450000286102295,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":2.3550000190734863,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.8550000190734863,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.9199999570846558,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.4549999833106995,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.8149999976158142,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":2.060000002384186,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.9399999976158142,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.3449999690055847,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.2449999451637268,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.1949999928474426,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.074999988079071,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.7549999952316284,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.4150000214576721,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.2899999618530273,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.14000004529953,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.1100000143051147,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.1450000405311584,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.0099999904632568,\"drawCalls\":2}]}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "allocation includes three mip chains and depth",
+      "ok": true,
+      "detail": "{\"residentBytes\":235929120,\"replacementPeakBytes\":471858240}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "full catalog replacement releases previous GPU textures",
+      "ok": true,
+      "detail": "{\"result\":{\"ok\":true,\"error\":null},\"reloadMs\":3415.5349999666214,\"beforeTextures\":102,\"replacementPeakTextures\":183,\"afterTextures\":102}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "matte-near: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":2.7799999713897705,\"lod\":{\"skinned\":1,\"impostors\":0}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/matte-near",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "matte-near: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "matte-near: ordinary blue and seed do not become faction tint",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "matte-far: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":2.689999997615814,\"lod\":{\"skinned\":0,\"impostors\":1}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/matte-far",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "matte-far: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "matte-far: ordinary blue and seed do not become faction tint",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "smooth-near: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":2.4950000047683716,\"lod\":{\"skinned\":1,\"impostors\":0}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/smooth-near",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "smooth-near: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "smooth-far: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":2.350000023841858,\"lod\":{\"skinned\":0,\"impostors\":1}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/smooth-far",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "smooth-far: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "metal-near: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":2.525000035762787,\"lod\":{\"skinned\":1,\"impostors\":0}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/metal-near",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "metal-near: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "metal-far: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":2.574999988079071,\"lod\":{\"skinned\":0,\"impostors\":1}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/metal-far",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "metal-far: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "mask-blue-far: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":2.074999988079071,\"lod\":{\"skinned\":0,\"impostors\":1}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/mask-blue-far",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "mask-blue-far: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "mask-red-far: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":2.125,\"lod\":{\"skinned\":0,\"impostors\":1}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/mask-red-far",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "mask-red-far: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "flat-normal-far: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":2.149999976158142,\"lod\":{\"skinned\":0,\"impostors\":1}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/flat-normal-far",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "flat-normal-far: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "near: same blue color responds to smooth",
+      "ok": true,
+      "detail": "6246"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "near: same blue color responds to metal",
+      "ok": true,
+      "detail": "7440"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "far: same blue color responds to smooth",
+      "ok": true,
+      "detail": "8047"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "far: same blue color responds to metal",
+      "ok": true,
+      "detail": "8243"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "far: explicit mask changes faction",
+      "ok": true,
+      "detail": "8243"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "far: authored per-pixel normals affect lighting",
+      "ok": true,
+      "detail": "7716"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "heavy-front: production path and submitted count",
+      "ok": true,
+      "detail": "{\"substrate\":\"threejs-webgpu-tsl\",\"soldiers\":1}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "heavy-front: readable foreground model coverage",
+      "ok": true,
+      "detail": "22769"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/heavy-front",
+      "ok": false,
+      "detail": "42886 px differ (4.1881%) — see shots/diff/shared/soldiers/workbench/heavy-front.png"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "heavy-front: frozen frame is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "phalanx-side: production path and submitted count",
+      "ok": true,
+      "detail": "{\"substrate\":\"threejs-webgpu-tsl\",\"soldiers\":1}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "phalanx-side: readable foreground model coverage",
+      "ok": true,
+      "detail": "10024"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/phalanx-side",
+      "ok": false,
+      "detail": "19278 px differ (1.8826%) — see shots/diff/shared/soldiers/workbench/phalanx-side.png"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "phalanx-side: frozen frame is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "formation: production path and submitted count",
+      "ok": true,
+      "detail": "{\"substrate\":\"threejs-webgpu-tsl\",\"soldiers\":16}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "formation: readable foreground model coverage",
+      "ok": true,
+      "detail": "33408"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/formation",
+      "ok": false,
+      "detail": "59970 px differ (5.8564%) — see shots/diff/shared/soldiers/workbench/formation.png"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "formation: frozen frame is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "local bake reload keeps identical production pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "failed reload is explicit and preserves last good crowd",
+      "ok": true,
+      "detail": "{\"ok\":false,\"error\":\"SyntaxError: Unexpected token 'm', \\\"malformed fixture\\\" is not valid JSON\"}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "incompatible reload retains the active appearance",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "incompatible reload retains the active appearance-specific clip",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "truncated animation matrix data is rejected explicitly",
+      "ok": true,
+      "detail": "{\"ok\":false,\"error\":\"Error: appearance animation matrix data does not match its dimensions\"}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "production reload rejects a missing non-active action before replacing the crowd",
+      "ok": true,
+      "detail": "{\"ok\":false,\"error\":\"Error: Appearance 0 is missing required crowd clips: attack_a\"}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "production startup rejects a missing controller action",
+      "ok": true,
+      "detail": "Error: Appearance 0 is missing required crowd clips: attack_a"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "invalid VAT retry 0: no orphaned scene meshes",
+      "ok": true,
+      "detail": "{\"nodesBefore\":111,\"nodesAfter\":111}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "invalid VAT retry 1: no orphaned scene meshes",
+      "ok": true,
+      "detail": "{\"nodesBefore\":111,\"nodesAfter\":111}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "partially allocated replacement is rolled back without orphaned meshes",
+      "ok": true,
+      "detail": "{\"ok\":false,\"error\":\"Error: Injected replacement allocation failure\",\"before\":111,\"after\":111,\"peak\":113,\"attempts\":3}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "rejected bundles preserve the last good production pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "battle submission replaces the retained formation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/submission-parity",
+      "ok": false,
+      "detail": "4200 px differ (0.4102%) — see shots/diff/shared/soldiers/workbench/submission-parity.png"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "battle adapter and explicit pose submission have identical pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/submission-parity",
+      "ok": false,
+      "detail": "4200 px differ (0.4102%) — see shots/diff/shared/soldiers/workbench/submission-parity.png"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "interactive clip playback and turntable change the rendered pose",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/controls",
+      "ok": false,
+      "detail": "42904 px differ (4.1898%) — see shots/diff/shared/soldiers/workbench/controls.png"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "equivalent material-table reindex loads",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "material slot numbering cannot change surface pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "authored roughness 0.9, metallic 0: replacement loads",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "authored roughness 0.15, metallic 0: replacement loads",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "authored roughness 0.15, metallic 1: replacement loads",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "authored roughness changes pixels with fixed color and metallic",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "authored metallic changes pixels with fixed color and roughness",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "instance seed does not vary authored appearance",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "blue mesh with explicit mask 0: replacement loads",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "ordinary blue does not imply faction tint",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "blue mesh with explicit mask 1: replacement loads",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "explicit mask permits faction tint",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [
+    "battle-model-far-bundles: snapshot battle/far-bundles/front-near",
+    "battle-model-far-bundles: snapshot battle/far-bundles/front-far-diagnostic",
+    "battle-model-far-bundles: snapshot battle/far-bundles/side-near",
+    "battle-model-far-bundles: snapshot battle/far-bundles/side-far-diagnostic",
+    "battle-model-far-bundles: snapshot battle/far-bundles/roster-production-far",
+    "battle-model-workbench: snapshot shared/soldiers/workbench/heavy-front",
+    "battle-model-workbench: snapshot shared/soldiers/workbench/phalanx-side",
+    "battle-model-workbench: snapshot shared/soldiers/workbench/formation",
+    "battle-model-workbench: snapshot shared/soldiers/workbench/submission-parity",
+    "battle-model-workbench: snapshot shared/soldiers/workbench/submission-parity",
+    "battle-model-workbench: snapshot shared/soldiers/workbench/controls"
+  ],
+  "pageErrors": []
+}

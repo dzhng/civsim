@@ -1,0 +1,91 @@
+{
+  "kind": "screenshot-parity-diff",
+  "generatedAt": "2026-09-06T03:58:35.084Z",
+  "note": "Lower parityDistance means the candidate is closer to the reference for this fixed pair. This is a distance metric, not an acceptance gate.",
+  "pairCount": 1,
+  "worstPair": "material",
+  "results": [
+    {
+      "id": "material",
+      "current": "../../../../tmp/civsim-material-review.Mkuzsg/a/material.png",
+      "candidate": "../../../../tmp/civsim-material-review.Mkuzsg/b/material.png",
+      "dimensions": {
+        "width": 1280,
+        "height": 800
+      },
+      "parityDistance": 0.01324,
+      "grayscale": {
+        "mae": 0.02014,
+        "rmse": 0.49678,
+        "diffRatio16": 0.00019,
+        "diffRatio32": 0,
+        "diffRatio64": 0,
+        "pixelmatchRatio": 0.00018
+      },
+      "contentProxies": {
+        "blackRatioCurrent": 0,
+        "blackRatioCandidate": 0,
+        "terrainLikeRatioCurrent": 0.97139,
+        "terrainLikeRatioCandidate": 0.97139,
+        "avgLuminanceCurrent": 132.13596,
+        "avgLuminanceCandidate": 132.12843,
+        "avgLuminanceDelta": -0.00754,
+        "edgeEnergyCurrent": 0.00976,
+        "edgeEnergyCandidate": 0.00919,
+        "edgeEnergyRatio": 0.94167,
+        "edgeDiffRatio32": 0.00077
+      },
+      "artifacts": {
+        "sideBySide": "comparison/material-side-by-side.png",
+        "currentGray": "comparison/material-current-gray.png",
+        "candidateGray": "comparison/material-candidate-gray.png",
+        "absDiff": "comparison/material-absdiff.png",
+        "pixelmatch": "comparison/material-pixelmatch.png",
+        "currentEdges": "comparison/material-current-edges.png",
+        "candidateEdges": "comparison/material-candidate-edges.png",
+        "edgeDiff": "comparison/material-edge-diff.png"
+      },
+      "worldCrop": {
+        "label": "soldier surface",
+        "bounds": {
+          "x": 535,
+          "y": 165,
+          "width": 255,
+          "height": 410
+        },
+        "parityDistance": 0.02828,
+        "grayscale": {
+          "mae": 0.19724,
+          "rmse": 1.55471,
+          "diffRatio16": 0.00186,
+          "diffRatio32": 0,
+          "diffRatio64": 0,
+          "pixelmatchRatio": 0.00177
+        },
+        "contentProxies": {
+          "blackRatioCurrent": 0,
+          "blackRatioCandidate": 0,
+          "terrainLikeRatioCurrent": 0.71976,
+          "terrainLikeRatioCandidate": 0.71974,
+          "avgLuminanceCurrent": 112.45031,
+          "avgLuminanceCandidate": 112.3765,
+          "avgLuminanceDelta": -0.07381,
+          "edgeEnergyCurrent": 0.0493,
+          "edgeEnergyCandidate": 0.04373,
+          "edgeEnergyRatio": 0.88698,
+          "edgeDiffRatio32": 0.00752
+        },
+        "artifacts": {
+          "sideBySide": "comparison/material-world-crop-side-by-side.png",
+          "currentGray": "comparison/material-world-crop-current-gray.png",
+          "candidateGray": "comparison/material-world-crop-candidate-gray.png",
+          "absDiff": "comparison/material-world-crop-absdiff.png",
+          "pixelmatch": "comparison/material-world-crop-pixelmatch.png",
+          "currentEdges": "comparison/material-world-crop-current-edges.png",
+          "candidateEdges": "comparison/material-world-crop-candidate-edges.png",
+          "edgeDiff": "comparison/material-world-crop-edge-diff.png"
+        }
+      }
+    }
+  ]
+}

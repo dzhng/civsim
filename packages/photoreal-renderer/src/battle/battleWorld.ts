@@ -19,12 +19,9 @@ import {
 } from "../../../game-renderer/src/terrain/heightField";
 import type { Camera3DParams } from "../../../renderer-core/src/camera3d";
 import {
-  loadClassMeshes,
-  loadClassVats,
-  loadPlaceholderKit,
-  mountedClassesFromKit,
-} from "../../../soldier-assets/src/placeholders";
-import { createPlaceholderSoldierMeshTiers } from "../../../soldier-assets/src/soldierMesh";
+  loadAppearanceCatalog,
+  type AppearanceBundle,
+} from "../../../soldier-assets/src/appearanceBundle";
 import { PhotorealWorld } from "../world";
 import { applyCivsimEnvironment } from "../environment";
 import { applyCamera3d } from "../cameraBridge";
@@ -158,9 +155,7 @@ export class PhotorealBattleWorld {
     world: PhotorealWorld,
     environment: BattleEnvironment,
     sea: ReturnType<typeof createSeaDisplacementSource>,
-    meshes: ReturnType<typeof createPlaceholderSoldierMeshTiers>,
-    vats: Awaited<ReturnType<typeof loadClassVats>>,
-    public soldierKit: Awaited<ReturnType<typeof loadPlaceholderKit>>,
+    public soldierAssets: Record<number, AppearanceBundle>,
     shadowMode: SunShadowMode,
     postEnabled: boolean,
     postGrade: Partial<BattlePostGradeUniforms> | null,
@@ -192,8 +187,10 @@ export class PhotorealBattleWorld {
     this.terrainSurface = new BattleTerrainSurface(scene);
     this.grass = new BattleGrassField(scene, grassProfile, this.grassTransition, this.wind);
     this.scenery = new PhotorealScenery(scene);
-    this.crowd = new PhotorealCrowd(scene, meshes, vats, soldierKit);
-    this.mountedClasses = mountedClassesFromKit(soldierKit);
+    this.crowd = new PhotorealCrowd(scene, soldierAssets);
+    this.mountedClasses = Object.entries(soldierAssets)
+      .filter(([, bundle]) => bundle.manifest.mounted)
+      .map(([id]) => Number(id));
     this.groundCues = new PhotorealLineLayer(scene, 0.25, {
       alpha: 0.98, // the selection-ring weight — cues and rings are one style
       depthTest: true,
@@ -242,9 +239,7 @@ export class PhotorealBattleWorld {
       world,
       environment,
       sea,
-      assets.meshes,
-      assets.vats,
-      assets.kit,
+      assets,
       shadowMode,
       postEnabled,
       options.postGrade ?? null,
@@ -258,17 +253,22 @@ export class PhotorealBattleWorld {
 
   /** Reload the production bundle after a local bake, retaining the last good crowd on load failure. */
   async reloadSoldierAssets(activePose?: Pick<CrowdInstance, "classId" | "clip">): Promise<void> {
-    const { meshes, vats, kit } = await loadBattleSoldierAssets();
-    if (activePose && (!kit.archetypes[activePose.classId] || !kit.clips[activePose.clip])) {
+    const assets = await loadBattleSoldierAssets();
+    if (
+      activePose &&
+      !assets[activePose.classId]?.animation.clips.some((clip) => clip.name === activePose.clip)
+    ) {
       throw new Error(
         `Reload does not contain active appearance ${activePose.classId} / clip ${activePose.clip}`,
       );
     }
-    const replacement = new PhotorealCrowd(this.world.scene, meshes, vats, kit);
+    const replacement = new PhotorealCrowd(this.world.scene, assets);
     this.crowd.dispose();
     this.crowd = replacement;
-    this.soldierKit = kit;
-    this.mountedClasses = mountedClassesFromKit(kit);
+    this.soldierAssets = assets;
+    this.mountedClasses = Object.entries(assets)
+      .filter(([, bundle]) => bundle.manifest.mounted)
+      .map(([id]) => Number(id));
   }
 
   setBloomEnabled(on: boolean): void {
@@ -642,13 +642,7 @@ export class PhotorealBattleWorld {
 }
 
 async function loadBattleSoldierAssets() {
-  const kit = await loadPlaceholderKit();
-  const [vats, classMeshes] = await Promise.all([loadClassVats(kit), loadClassMeshes(kit)]);
-  const meshes = createPlaceholderSoldierMeshTiers([0.06, 0.1, 0.98]);
-  classMeshes.forEach((mesh, classId) => {
-    if (mesh && meshes[classId]) meshes[classId] = meshes[classId].map(() => mesh);
-  });
-  return { kit, vats, meshes };
+  return loadAppearanceCatalog(new URL("/assets/soldiers/catalog.json", window.location.href).href);
 }
 
 function pushTriangle(

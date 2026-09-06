@@ -1,4 +1,5 @@
 import { PhotorealBattleWorld } from "@packages/photoreal-renderer/src/battle/battleWorld";
+import { createVatLayout } from "@packages/renderer-core/src/vatLayout";
 import {
   DEFAULT_MODEL_POSE,
   modelCamera,
@@ -58,12 +59,14 @@ export async function route(ctx: LabContext): Promise<void> {
   const control = <T extends HTMLElement>(id: string) => controls.querySelector<T>(`#model-${id}`)!;
   const populate = () => {
     control<HTMLSelectElement>("class").replaceChildren(
-      ...Object.entries(world.soldierKit.archetypes).map(
-        ([id, item]) => new Option(`${id} · ${item.name}`, id),
+      ...Object.entries(world.soldierAssets).map(
+        ([id, bundle]) => new Option(`${id} · ${bundle.manifest.name}`, id),
       ),
     );
     control<HTMLSelectElement>("clip").replaceChildren(
-      ...Object.keys(world.soldierKit.clips).map((id) => new Option(id, id)),
+      ...world.soldierAssets[pose.classId].animation.clips.map(
+        ({ name }) => new Option(name, name),
+      ),
     );
   };
   populate();
@@ -93,8 +96,9 @@ export async function route(ctx: LabContext): Promise<void> {
       next.phase > 1
     )
       throw new Error("Invalid model pose");
-    modelInstances(next, world.soldierKit);
+    modelInstances(next, world.soldierAssets);
     Object.assign(pose, next);
+    populate();
     sync();
     dirty = true;
   };
@@ -117,8 +121,12 @@ export async function route(ctx: LabContext): Promise<void> {
     }
     return { ok: error === null, error };
   };
-  control<HTMLSelectElement>("class").onchange = (event) =>
-    set({ classId: Number((event.target as HTMLSelectElement).value) });
+  control<HTMLSelectElement>("class").onchange = (event) => {
+    const classId = Number((event.target as HTMLSelectElement).value);
+    const clips = world.soldierAssets[classId].animation.clips;
+    const clip = clips.some((clip) => clip.name === pose.clip) ? pose.clip : clips[0].name;
+    set({ classId, clip, phase: clip === pose.clip ? pose.phase : 0 });
+  };
   control<HTMLSelectElement>("clip").onchange = (event) =>
     set({ clip: (event.target as HTMLSelectElement).value, phase: 0 });
   for (const key of ["phase", "yaw", "pitch", "zoom"] as const) {
@@ -187,8 +195,9 @@ export async function route(ctx: LabContext): Promise<void> {
     last = now;
     const advancing = playing || turning;
     if (playing) {
-      const clip = world.soldierKit.clips[pose.clip];
-      pose.phase += (dt * (clip.fps ?? world.soldierKit.fps)) / clip.frames;
+      const animation = world.soldierAssets[pose.classId].animation;
+      const clip = createVatLayout(animation).clips.get(pose.clip)!;
+      pose.phase += (dt * animation.fps) / clip.frames;
       if (clip.loop) pose.phase %= 1;
       else if (pose.phase >= 1) {
         pose.phase = 1;
@@ -198,7 +207,7 @@ export async function route(ctx: LabContext): Promise<void> {
     }
     if (turning) pose.yaw = ((pose.yaw + dt * 0.3 + Math.PI) % (Math.PI * 2)) - Math.PI;
     if (dirty || advancing || frame < 3) {
-      const instances = modelInstances(pose, world.soldierKit);
+      const instances = modelInstances(pose, world.soldierAssets);
       const appearance = `${pose.classId}:${instances.length}`;
       if (staticAppearance !== appearance) {
         world.setStatic(new Uint32Array(instances.length), [0], [pose.classId]);

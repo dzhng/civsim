@@ -1,7 +1,7 @@
 import { generatedFormation, type CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
 import { chartCamera3d } from "@packages/renderer-core/src/camera3d";
 import type { BattleCameraSnapshot } from "@packages/photoreal-renderer/src/battle/battleWorld";
-import type { SoldierKitManifest } from "@packages/soldier-assets/src/schema";
+import type { AppearanceBundle } from "@packages/soldier-assets/src/appearanceBundle";
 
 export interface BattleModelPose {
   classId: number;
@@ -23,15 +23,19 @@ export const DEFAULT_MODEL_POSE: BattleModelPose = {
   zoom: 190,
 };
 
-export function modelInstances(pose: BattleModelPose, kit: SoldierKitManifest): CrowdInstance[] {
-  const archetype = kit.archetypes[String(pose.classId)];
-  if (!archetype) throw new Error(`Unknown appearance: ${pose.classId}`);
-  if (!kit.clips[pose.clip]) throw new Error(`Unknown clip: ${pose.clip}`);
+export function modelInstances(
+  pose: BattleModelPose,
+  assets: Record<number, AppearanceBundle>,
+): CrowdInstance[] {
+  const bundle = assets[pose.classId];
+  if (!bundle) throw new Error(`Unknown appearance: ${pose.classId}`);
+  if (!bundle.animation.clips.some((clip) => clip.name === pose.clip))
+    throw new Error(`Unknown clip for appearance ${pose.classId}: ${pose.clip}`);
   return generatedFormation(pose.formation ? 16 : 1, {
     columns: pose.formation ? 4 : 1,
-    spacing: archetype.mount ? 3 : 1.6,
+    spacing: bundle.manifest.mounted ? 3 : 1.6,
     classId: pose.classId,
-    mounted: Boolean(archetype.mount),
+    mounted: bundle.manifest.mounted,
     frame: pose.clip === "death_a" ? 4 : 0,
   }).map((instance) => ({
     ...instance,

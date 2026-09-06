@@ -87,7 +87,14 @@ export async function run(ctx) {
       "local bake reload keeps identical production pixels",
       loaded.ok && before.equals(after),
     );
-    await page.route("**/assets/soldiers/kit.json", (route) =>
+    const animationUrl = await page.evaluate(async () => {
+      const catalogUrl = new URL("/assets/soldiers/catalog.json", location.href);
+      const catalog = await fetch(catalogUrl).then((response) => response.json());
+      const bundleUrl = new URL(catalog.appearances[0], catalogUrl);
+      const bundle = await fetch(bundleUrl).then((response) => response.json());
+      return new URL(bundle.animation, bundleUrl).href;
+    });
+    await page.route("**/assets/soldiers/catalog.json", (route) =>
       route.fulfill({ contentType: "application/json", body: "malformed fixture" }),
     );
     const failed = await page.evaluate(() => window.__battleModels.reload());
@@ -98,23 +105,35 @@ export async function run(ctx) {
         (await page.evaluate(() => window.__battleModels.stats().render.soldiers === 16)),
       JSON.stringify(failed),
     );
-    await page.unroute("**/assets/soldiers/kit.json");
-    await page.route("**/assets/soldiers/kit.json", async (route) => {
+    await page.unroute("**/assets/soldiers/catalog.json");
+    await page.route("**/assets/soldiers/catalog.json", async (route) => {
       const response = await route.fetch();
-      const kit = await response.json();
-      delete kit.archetypes["0"];
-      await route.fulfill({ json: kit });
+      const catalog = await response.json();
+      delete catalog.appearances["0"];
+      await route.fulfill({ json: catalog });
     });
     const incompatible = await page.evaluate(() => window.__battleModels.reload());
     ctx.check(
       "incompatible reload retains the active appearance",
       !incompatible.ok && incompatible.error.includes("active appearance"),
     );
-    await page.unroute("**/assets/soldiers/kit.json");
+    await page.unroute("**/assets/soldiers/catalog.json");
+    await page.route(animationUrl, async (route) => {
+      const response = await route.fetch();
+      const animation = await response.json();
+      animation.clips = animation.clips.filter((clip) => clip.name !== "march");
+      await route.fulfill({ json: animation });
+    });
+    const missingClip = await page.evaluate(() => window.__battleModels.reload());
+    ctx.check(
+      "incompatible reload retains the active appearance-specific clip",
+      !missingClip.ok && missingClip.error.includes("active appearance"),
+    );
+    await page.unroute(animationUrl);
     const nodesBefore = await page.evaluate(
       () => window.__battleModels.world.world.scene.children.length,
     );
-    await page.route("**/assets/soldiers/baked/human-placeholder.vat.json", async (route) => {
+    await page.route(animationUrl, async (route) => {
       const response = await route.fetch();
       const vat = await response.json();
       delete vat.clips;
@@ -131,7 +150,41 @@ export async function run(ctx) {
         JSON.stringify({ nodesBefore, nodesAfter }),
       );
     }
-    await page.unroute("**/assets/soldiers/baked/human-placeholder.vat.json");
+    await page.unroute(animationUrl);
+    const allocationFailure = await page.evaluate(async () => {
+      const harness = window.__battleModels;
+      const scene = harness.world.world.scene;
+      const add = scene.add;
+      const before = scene.children.length;
+      let attempts = 0;
+      let peak = before;
+      scene.add = function (...objects) {
+        if (++attempts === 3) throw new Error("Injected replacement allocation failure");
+        const result = add.apply(this, objects);
+        peak = Math.max(peak, this.children.length);
+        return result;
+      };
+      try {
+        const result = await harness.reload();
+        return { ...result, before, after: scene.children.length, peak, attempts };
+      } finally {
+        scene.add = add;
+      }
+    });
+    ctx.check(
+      "partially allocated replacement is rolled back without orphaned meshes",
+      !allocationFailure.ok &&
+        allocationFailure.error.includes("Injected replacement allocation failure") &&
+        allocationFailure.peak > allocationFailure.before &&
+        allocationFailure.before === allocationFailure.after,
+      JSON.stringify(allocationFailure),
+    );
+    await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
+    await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
+    ctx.check(
+      "rejected bundles preserve the last good production pixels",
+      after.equals(await page.screenshot()),
+    );
     // The failed reload schedules a redraw of the retained pose. Finish it
     // before manually driving the two production entry points.
     await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
@@ -193,7 +246,8 @@ export async function run(ctx) {
       document.querySelector(".renderer-lab").classList.remove("reference-shot"),
     );
     await page.selectOption("#model-class", "14");
-    await page.selectOption("#model-clip", "march");
+    const availableClip = await page.locator("#model-clip option").first().getAttribute("value");
+    await page.selectOption("#model-clip", availableClip);
     const phaseBefore = await page.evaluate(() => window.__battleModels.stats().pose.phase);
     await page.click("#model-play");
     await page.waitForFunction(

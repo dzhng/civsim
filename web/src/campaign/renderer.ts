@@ -43,12 +43,7 @@ import { campaignCameraRig, type CameraRigRange } from "../battle/cameraRig";
 import { chartCamera3d, type Camera3DParams } from "@packages/renderer-core/src/camera3d";
 import { SkinnedCrowdPipeline } from "@packages/renderer-core/src/skinnedPipeline";
 import { SoldierShadowDecalPass } from "@packages/renderer-core/src/soldierShadowPass";
-import {
-  loadPlaceholderKit,
-  loadPlaceholderVat,
-  mountedClassesFromKit,
-} from "@packages/soldier-assets/src/placeholders";
-import { createPlaceholderSoldierMeshes } from "@packages/soldier-assets/src/soldierMesh";
+import { loadAppearanceCatalog } from "@packages/soldier-assets/src/appearanceBundle";
 import type { CampaignData } from "./data";
 import { isControlledStage } from "./data";
 import type { CamView } from "./camera";
@@ -815,17 +810,20 @@ export class CampaignRenderer {
     );
     const entities = new CampaignEntityPass(shell);
     const standards = new SharedStandardPass(shell);
-    // The shared skinned soldier renderer. Army stacks draw a small
-    // representative crowd through the SAME pipeline/meshes/VATs/shadow as
-    // battle (buildStackCrowd feeds it per stack); the entity pass now only draws
-    // city architecture, while standards are the shared 3D standard pass.
-    const soldierKit = await loadPlaceholderKit();
-    this.mountedClasses = mountedClassesFromKit(soldierKit);
+    // Representative army figures consume the same appearance assets as battle,
+    // while campaign retains its raw-GPU world and grounding-shadow passes.
+    const appearances = Object.entries(await loadAppearanceCatalog(
+      new URL("/assets/soldiers/catalog.json", location.href).href,
+    ));
+    const bundles = appearances.map(([id, bundle], index) => {
+      if (Number(id) !== index) throw new Error(`campaign appearance catalog is missing class ${index}`);
+      return bundle;
+    });
+    this.mountedClasses = appearances.filter(([, bundle]) => bundle.manifest.mounted).map(([id]) => Number(id));
     const soldierCrowd = new SkinnedCrowdPipeline(
       shell,
-      createPlaceholderSoldierMeshes([0.3, 0.36, 0.74]),
-      await loadPlaceholderVat(),
-      soldierKit,
+      bundles.map((bundle) => bundle.tiers),
+      bundles.map((bundle) => bundle.animation),
     );
     const soldierShadows = new SoldierShadowDecalPass(shell);
     const selection = new CampaignSelectionPass(shell);

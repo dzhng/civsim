@@ -16,8 +16,7 @@ import { standardSeed, standardWindPhase } from "@packages/game-renderer/src/mod
 import { SharedStandardPass, type StandardInstance } from "@packages/game-renderer/src/models/shared/standardPass";
 import { type ChartCameraSpec } from "@packages/renderer-core/src/camera3d";
 import { CampaignSelectionPass, type CampaignSelectionInstance } from "@packages/game-renderer/src/campaign/selectionPass";
-import { loadPlaceholderKit, loadPlaceholderVat, mountedClassesFromKit } from "@packages/soldier-assets/src/placeholders";
-import { createPlaceholderSoldierMeshes } from "@packages/soldier-assets/src/soldierMesh";
+import { loadAppearanceCatalog } from "@packages/soldier-assets/src/appearanceBundle";
 import { projectNestedPoint } from "../labCampaign";
 import { type LabContext, LabGroundPass, chartSnapshot, createCampaignShell, labGroundFramePass, publish, reportTable } from "../labShell";
 
@@ -126,12 +125,18 @@ export async function route(ctx: LabContext) {
   let soldierShadows: SoldierShadowDecalPass | null = null;
   let modelCrowd: CrowdInstance[] = [];
   if (gate !== "standard-liveries") {
-    const soldierKit = await loadPlaceholderKit();
+    const appearances = Object.entries(await loadAppearanceCatalog(
+      new URL("/assets/soldiers/catalog.json", location.href).href,
+    ));
+    const bundles = appearances.map(([id, bundle], index) => {
+      if (Number(id) !== index) throw new Error(`campaign appearance catalog is missing class ${index}`);
+      return bundle;
+    });
+    const mountedClasses = appearances.filter(([, bundle]) => bundle.manifest.mounted).map(([id]) => Number(id));
     soldierCrowd = new SkinnedCrowdPipeline(
       shell,
-      createPlaceholderSoldierMeshes([0.3, 0.36, 0.74]),
-      await loadPlaceholderVat(),
-      soldierKit,
+      bundles.map((bundle) => bundle.tiers),
+      bundles.map((bundle) => bundle.animation),
     );
     soldierShadows = new SoldierShadowDecalPass(shell);
     const modelStackRoster = [4, 0, 3, 0, 2, 1];
@@ -145,7 +150,7 @@ export async function route(ctx: LabContext) {
         seed: 100 + i,
         clip: "idle",
         phase: 0,
-        mountedClasses: mountedClassesFromKit(soldierKit),
+        mountedClasses,
         spacing: CAMPAIGN_FIGURE_SIZE * 1.1,
         terrainHeight: () => entity.z ?? 0,
       }),

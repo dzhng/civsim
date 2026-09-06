@@ -399,12 +399,59 @@ export async function run(ctx) {
           w.render();
           await w.settlePresentedFrame();
           allocationStates["replacement-overlap"] = w.stats().crowd;
+          if (config.fixture === "mounted") {
+            const { staggeredBudgetObservations } = await module(
+              "web/scenes/models/_synthetic-budget-fixture.ts",
+            );
+            const timeline = new ActionTimeline(assets);
+            const staggered = [];
+            for (let tick = 0; tick <= 24; tick++) {
+              allocation.phase(`staggered-${tick}`);
+              timeline.update(tick, staggeredBudgetObservations(config.count, tick, appearanceId));
+              const playback = timeline.sample();
+              const sources = new Set();
+              for (const value of playback)
+                for (const lane of [value.base, value.riderUpperBody])
+                  if (lane?.source.kind === "frozen") sources.add(lane.source.locals);
+              const { instances } = buildCrowdInstances({
+                positions,
+                facings,
+                playback,
+                soldierUnit,
+                unitTeam: [0],
+                terrainHeight: (x, y) => w.heightAt(x, y),
+                count: config.count,
+                mountedClasses: [appearanceId],
+              });
+              let error = null;
+              try {
+                w.drawInstances(instances, camera);
+              } catch (caught) {
+                error = { stage: "drawInstances", message: String(caught) };
+              }
+              w.render();
+              await w.settlePresentedFrame();
+              staggered.push({
+                tick,
+                error,
+                observedBodies: playback.length,
+                distinctFrozenSources: sources.size,
+                controllerSnapshotBytes: timeline.snapshotBytes,
+                crowd: w.stats().crowd,
+              });
+            }
+            allocationStates["staggered-histories"] = staggered;
+          }
           rows.push({
             allocation: allocation.snapshot(),
             allocationStates,
             camera,
+            storageLimits: {
+              maxBufferSize: device.limits.maxBufferSize,
+              maxStorageBufferBindingSize: device.limits.maxStorageBufferBindingSize,
+            },
             scope:
-              "Tracked fresh crowd generations at the last measured camera; uploads include whole-device traffic. Advancing-interruptions observes 60 successive ticks separately from timing. Requested bytes exclude opaque texture storage and driver overhead.",
+              "Tracked fresh crowd generations at the last measured camera; uploads include whole-device traffic. Advancing-interruptions observes 60 successive ticks separately from timing. Mounted staggered histories observe one tick per settled frame, record failures and continue through source retirement. Requested bytes exclude opaque texture storage and driver overhead.",
           });
         } finally {
           replacement?.dispose();
@@ -428,6 +475,43 @@ export async function run(ctx) {
     );
     for (const row of rows) {
       if (row.allocation) {
+        const staggered = row.allocationStates["staggered-histories"];
+        if (staggered) {
+          const interrupted = staggered.find((frame) => frame.tick === 13);
+          const submitted = (crowd) =>
+            crowd.palettes.reduce((total, palette) => total + palette.visible, 0);
+          const referenceSubmitted = submitted(row.allocationStates["replacement-overlap"]);
+          ctx.check(
+            "allocation exercises independent mounted frozen histories",
+            interrupted.observedBodies === count &&
+              interrupted.distinctFrozenSources >= Math.min(count, 3) * 2 &&
+              interrupted.distinctFrozenSources <= count * 2,
+            interrupted,
+          );
+          ctx.check(
+            "staggered mounted histories remain admitted through allocation growth",
+            referenceSubmitted > 0 &&
+              staggered.every(
+                (frame) =>
+                  !frame.error &&
+                  !frame.crowd.uploadFailed &&
+                  frame.crowd.visible > 0 &&
+                  submitted(frame.crowd) === referenceSubmitted &&
+                  (![12, 13].includes(frame.tick) ||
+                    frame.crowd.palettes.some((palette) => palette.residentSnapshots > 0)),
+              ),
+            { referenceSubmitted, frames: staggered },
+          );
+          const retired = staggered.at(-1);
+          ctx.check(
+            "staggered mounted histories retire frozen sources and recover admission",
+            !retired.error &&
+              !retired.crowd.uploadFailed &&
+              retired.controllerSnapshotBytes === 0 &&
+              retired.crowd.palettes.every((palette) => palette.residentSnapshots === 0),
+            retired,
+          );
+        }
         ctx.check(
           "allocation captures advancing snapshot uploads",
           row.allocationStates["advancing-interruptions"].some((palettes) =>

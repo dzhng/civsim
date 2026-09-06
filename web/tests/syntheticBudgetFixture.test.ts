@@ -3,7 +3,10 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test, vi } from "vitest";
 import { loadAppearanceBundle } from "@packages/soldier-assets/src/appearanceBundle";
-import { syntheticBudgetFixture } from "../scenes/models/_synthetic-budget-fixture";
+import {
+  syntheticBudgetFixture,
+  staggeredBudgetObservations,
+} from "../scenes/models/_synthetic-budget-fixture";
 import {
   localPoseToJointMatrices,
   sampleRigLocalPose,
@@ -39,20 +42,7 @@ test("staggered mounted observations expose distinct weighted frozen poses witho
   const fixture = syntheticBudgetFixture(source);
   for (const count of [3, 9]) {
     const timeline = new ActionTimeline({ 41: fixture });
-    const observations = (tick: number) =>
-      Array.from({ length: count }, (_, index) => ({
-        appearanceId: 41,
-        alive: true,
-        health: 100,
-        mountHealth: 100,
-        speedMps: tick >= [1, 3, 6][index % 3] ? 1 : 0,
-        running: tick >= 13,
-        atEase: false,
-        pikeReady: false,
-        fighting: false,
-        releaseTtl: tick >= 12 && tick < 18 ? 0.5 - (tick - 12) / 30 : 0,
-        releaseAgeSeconds: tick >= 12 && tick < 18 ? (tick - 12) / 30 : 0,
-      }));
+    const observations = (tick: number) => staggeredBudgetObservations(count, tick, 41);
     for (let tick = 0; tick <= 13; tick++) timeline.update(tick, observations(tick));
     const values = timeline.sample();
     const sources = values.flatMap((value) => [value.base.source, value.riderUpperBody!.source]);

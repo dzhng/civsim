@@ -1,8 +1,30 @@
 import type { AppearanceBundle } from "../../../packages/soldier-assets/src/appearanceBundle";
+import type { ActionObservation } from "../../../packages/crowd-runtime/src/actionTimeline";
 import type { SoldierMeshData } from "../../../packages/soldier-assets/src/mesh";
 import { mountedTemporalFixture } from "./_mounted-temporal-fixture";
 import { bakeLocalAnimation } from "../../../packages/soldier-assets/src/localAnimation";
 import { sampleRigLocalPoseSeconds } from "../../../packages/soldier-assets/src/localPose";
+
+/** Interleaved observed histories, with a setup length independent of crowd size. */
+export function staggeredBudgetObservations(
+  count: number,
+  tick: number,
+  appearanceId: number,
+): ActionObservation[] {
+  return Array.from({ length: count }, (_, index) => ({
+    appearanceId,
+    alive: true,
+    health: 100,
+    mountHealth: 100,
+    speedMps: tick >= [1, 3, 6][index % 3] ? 1 : 0,
+    running: tick >= 13,
+    atEase: false,
+    pikeReady: false,
+    fighting: false,
+    releaseTtl: tick >= 12 && tick < 18 ? 0.5 - (tick - 12) / 30 : 0,
+    releaseAgeSeconds: tick >= 12 && tick < 18 ? (tick - 12) / 30 : 0,
+  }));
+}
 
 export interface SyntheticBudgetOptions {
   /** Midpoint passes per mesh tier; far geometry stays fixed. */

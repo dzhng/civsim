@@ -1,6 +1,6 @@
 # 07 — Measure asset and animated-view budgets
 
-Status: TODO. Depends on [06](./06-gpu-playback.md).
+Status: IN PROGRESS. Depends on [06](./06-gpu-playback.md), now complete.
 
 ## Contract and ownership
 
@@ -15,6 +15,51 @@ Names of new functions/routes in this plan are proposed, not existing commands. 
 Synthetic crowd sweeps with increasing vertices, bones, textures, crossfades and mounted masked composition; close, mid and vista camera fixtures.
 
 Expose the fixture through the production model workbench and a named scene/probe. Record the exact runnable command in this file when it exists; do not mark completion with screenshots alone.
+
+The first measurement is `battle-model-budget`, a numerical scene using the
+production workbench crowd, controller, culling, shadows and post-processing.
+It compares matched uninstrumented frames with independently frame-tagged GPU
+timestamp brackets. The bracket measures **GPU-queue elapsed**, including CPU
+submission gaps, not a sum of active GPU passes. CPU observation, sampling,
+instance construction, upload and render submission are reported separately;
+overlapping CPU/GPU durations must not be added. Pending readbacks never block
+the sampled frame loop or become a newer frame's result.
+
+Run from the feature worktree with `VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware
+VERIFY_BROWSER_CHANNEL=chrome VERIFY_URL=http://127.0.0.1:5174
+node web/scene.mjs battle-model-budget`. The initial baseline uses existing
+foot assets and synchronized interruption bursts; it is not yet the synthetic
+detail sweep or a budget acceptance. Next integrate actual allocation tracking,
+measure mounted composition and one-variable detail sweeps, then freeze the
+measured envelope and bake checks before08. The standing benchmark remains
+unchanged and separate.
+
+### Current execution checkpoints
+
+The [measurement foundation](../assets/evidence/07/measurement-foundation.md)
+owns current commands and review evidence. Its actual production-cadence30k
+baseline is red on synchronized-transition CPU stalls, not GPU median time.
+Insert a focused CPU pose-preparation optimization before detail sweeps; profile
+the source, preserve all timeline/temporal contracts, rerun the same workload
+and retain33ms. No budget limit may be assigned from the median alone.
+
+1. Frame probe and allocation observer: unit-tested lifecycle, then actual
+   hardware coverage. The [first smoke](../assets/evidence/07/timestamp-smoke-red.json)
+   rejected every empty-pass timestamp. A one-invocation no-op dispatch prevents
+   Metal from skipping the marker; the [corrected smoke](../assets/evidence/07/timestamp-smoke-fixed.json)
+   has valid frame-correlated times. Keep the rejected result as evidence.
+2. Live foot and mounted baseline, synchronized interruptions, uninstrumented
+   comparison and both render resolutions. Use production's `SimClock` and shared
+   cap, then observe the latest state once when its tick changes, matching
+   `BattleCrowd`. The [uncapped catch-up experiment](../assets/evidence/07/uncapped-observations-red.json)
+   instead replayed every missed observation and amplified stalls; it is not
+   evidence of production CPU cost. Report advanced ticks and wall-time cadence,
+   since capped catch-up deliberately drops excess simulation backlog.
+3. Controlled detail sweeps, then measured limits and executable asset checks.
+   Subdivision changes real coplanar triangles, not overlapping duplicate faces;
+   transform-equivalent weighted joint clones isolate bone/storage cost from
+   visual shape. The [synthetic fixture proof](../assets/evidence/07/synthetic-fixture.md)
+   covers these controlled mutations. Such fixtures establish cost, not anatomy.
 
 ## Focused verdict
 

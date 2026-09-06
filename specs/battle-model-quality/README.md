@@ -4,7 +4,7 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 
 ## Next Agent Prompt
 
-Last updated **2026-09-06**. Status: **slices01–06 complete;07 next**.
+Last updated **2026-09-06**. Status: **slices01–06 complete;07 in progress**.
 
 Current worktree: `/Users/david/dev/game-battle-model-quality`, branch
 `codex/battle-model-quality`, with integrated foundations through fac9e2a8.
@@ -15,8 +15,13 @@ evidence, including the successful [post-install browser repeat](assets/evidence
 The standing gate retains its30k/33ms contract; it does not establish the live
 animated budget required in07.
 
-Next: implement [07's measured asset envelope](slices/07-budget-envelope.md)
-with frame-correlated, compute-inclusive hardware timing and allocation evidence.
+Next: remove [07's measured CPU transition bottleneck](assets/evidence/07/measurement-foundation.md),
+then finish its asset envelope. The production-cadence30k baseline has GPU medians
+within33ms but synchronized transitions stall CPU pose preparation. Profile before
+optimizing; preserve exact timeline semantics and the33ms cadence limit.
+Frame-correlated timing, allocation tracking and controlled detail fixtures are
+integrated. The rejected uncapped catch-up fixture was not a faithful CPU baseline.
+No07 budget or detailed art has been accepted.
 The [temporal validation](assets/evidence/06/temporal-validation.md) records the
 passing531-check combined run,284 web tests, independent reviews, and remaining
 placeholder-art limitations. The source, corpse consumers, replay recipe and

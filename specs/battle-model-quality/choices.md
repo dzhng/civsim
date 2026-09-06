@@ -2,6 +2,47 @@
 
 ## Sound — medium confidence
 
+### Time a frame with scene-owned GPU markers (07 measurement)
+
+A frame submits animation compute, shadows and its final image through separate
+commands. The measurement places GPU clock markers before and after that work,
+and keeps the original frame number with each delayed result. Eight reusable
+readback slots bound pending work; if all are busy, rendering continues and the
+missing measurement is explicitly reported. The alternative reads Three's latest
+cached timing, which can mistake an old frame for a new one. The plan required
+correlation but left the instrument unspecified. **Sound:** this measures queue
+elapsed time, including submission gaps, not pure GPU activity; matched runs
+without markers reveal instrumentation overhead. Each marker dispatches one
+no-op invocation because Metal skips empty passes. Future budget claims must
+retain these qualifications and reject inadequate timing coverage.
+
+### Count requested resources in a separate allocation run (07 measurement)
+
+When a replacement model is prepared while its predecessor still exists, a
+scene-only observer counts the resources actually created and destroyed. It
+aggregates counters by phase instead of storing an ever-growing operation log.
+The alternative adds the old and new size formulas, which can invent overlap
+that never occurred. The plan required peak and initialization costs but not
+their instrumentation. **Sound:** bounded phase counters capture API-live
+requested bytes, not physical VRAM; unknown texture formats remain unknown.
+Mapped-at-creation capacity is distinguished from bytes proven written, and
+texture payload from padded source span. Queue traffic includes pre-existing
+world resources even though their allocations are outside the tracked set.
+The observer runs separately so its accounting does not inflate CPU timings.
+
+### Preserve motion while adding synthetic detail cost (07 measurement)
+
+To ask what a denser soldier costs, a test fixture splits existing triangles
+into coplanar pieces and adds transform-equivalent, actually referenced joints.
+Extra authored times sample the original tracks rather than inventing faster
+motion. One- versus four-weight variants keep the skeleton fixed; the shader
+already reads four slots, so this changes address locality, not instruction
+count. The unbuilt alternative duplicates overlapping faces or adds unused
+bones, giving misleading cost. The plan delegated detail allocation but left
+the synthetic subject unspecified. **Sound:** unchanged posed surfaces isolate
+cost, while genuine anatomy, hierarchy depth and material quality still require
+their later authored model gates. These fixtures never enter the gameplay catalog.
+
 ### Check pose arithmetic and rendered consumption separately (06c)
 
 When two mathematically equivalent poses differ by a tiny rounding amount, one

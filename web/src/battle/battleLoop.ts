@@ -5,13 +5,16 @@ import { installBattleDebugApi } from "./battleDebugApi";
 import { createBattleMinimap } from "./battleMinimap";
 import { BattleFreeze } from "./battleFreeze";
 import { createBattleHudBridge, mountBattleModals, type BattleHudBridge } from "./battleHudBridge";
-import { BATTLE_TICK_DT, createBattleWorld, type BattleConfig } from "./battleWorld";
+import {
+  BATTLE_TICK_DT,
+  BATTLE_MAX_TICKS_PER_FRAME,
+  createBattleWorld,
+  type BattleConfig,
+} from "./battleWorld";
 import { buildBattleTerrain } from "./battleTerrain";
 import { BattleUnitPresentation } from "./battleUnitPresentation";
 import { BattleCrowd } from "./battleCrowd";
 import { createBattleControls } from "./battleControls";
-
-const MAX_TICKS_PER_FRAME = 4;
 
 export function enterBattleScene(
   cfg: BattleConfig,
@@ -68,7 +71,7 @@ export function enterBattleScene(
 
   const clock = new SimClock({
     tickHz: 1 / BATTLE_TICK_DT,
-    maxTicksPerFrame: MAX_TICKS_PER_FRAME,
+    maxTicksPerFrame: BATTLE_MAX_TICKS_PER_FRAME,
   });
 
   // --- Time control ------------------------------------------------------------

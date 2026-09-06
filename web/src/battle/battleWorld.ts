@@ -17,6 +17,7 @@ import { ACTION_TICK_SECONDS } from "@packages/crowd-runtime/src/actionTimeline"
 
 export type BattleKind = "duel" | "5v5" | "surround" | "flank" | "mapA" | "mapB" | "gen";
 export const BATTLE_TICK_DT = ACTION_TICK_SECONDS;
+export const BATTLE_MAX_TICKS_PER_FRAME = 4;
 
 export interface GeneratedBattleMapDescriptor {
   seed: number | string;

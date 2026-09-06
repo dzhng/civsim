@@ -56,6 +56,15 @@ def checker_material():
     return material
 
 
+def diagnostic_material():
+    material = bpy.data.materials.new("neutral-diagnostic")
+    material.use_nodes = True
+    shader = material.node_tree.nodes.get("Principled BSDF")
+    shader.inputs["Base Color"].default_value = (0.45, 0.45, 0.45, 1)
+    shader.inputs["Roughness"].default_value = 0.8
+    return material
+
+
 def rig_from_bones(definitions):
     ancestor = bpy.data.objects.new("transformed-ancestor", None)
     bpy.context.collection.objects.link(ancestor)
@@ -83,6 +92,21 @@ def mesh_object(name, vertices, faces, weights, arm, material):
     # with the armature, independently of the shared transformed ancestor.
     offset = Vector((0.13, -0.07, 0.04))
     data.from_pydata([Vector(v) - offset for v in vertices], [], faces)
+    data.update()
+    uv = data.uv_layers.new(name="UVMap")
+    # Project each original face before triangulation: both triangles inherit
+    # the same planar coordinates, and one scale keeps checker cells square.
+    for polygon in data.polygons:
+        dominant = max(range(3), key=lambda axis: abs(polygon.normal[axis]))
+        axes = [axis for axis in range(3) if axis != dominant]
+        points = [data.vertices[index].co for index in polygon.vertices]
+        minimum = [min(point[axis] for point in points) for axis in axes]
+        span = max(max(point[axis] for point in points) - minimum[i]
+                   for i, axis in enumerate(axes))
+        for loop in polygon.loop_indices:
+            point = data.vertices[data.loops[loop].vertex_index].co
+            uv.data[loop].uv = tuple((point[axis] - minimum[i]) / span
+                                    for i, axis in enumerate(axes))
     triangles = bmesh.new()
     triangles.from_mesh(data)
     bmesh.ops.triangulate(triangles, faces=list(triangles.faces))
@@ -94,10 +118,6 @@ def mesh_object(name, vertices, faces, weights, arm, material):
     obj.parent = arm
     obj.location = offset
     obj.data.materials.append(material)
-    uv = data.uv_layers.new(name="UVMap")
-    for polygon in data.polygons:
-        for corner, loop in enumerate(polygon.loop_indices):
-            uv.data[loop].uv = ((corner == 1 or corner == 2), (corner >= 2))
     for index, influences in enumerate(weights):
         if not 1 <= len(influences) <= 4 or abs(sum(influences.values()) - 1) > 1e-6:
             raise ValueError(f"{name} vertex {index}: use one to four normalized deform weights")
@@ -208,7 +228,7 @@ def human():
     constraint.target = arm
     constraint.subtarget = "control-elbow"
     constraint.owner_space = constraint.target_space = "LOCAL"
-    material = checker_material()
+    material = diagnostic_material()
     objects = [
         box("torso", (0, 0, 1.27), (0.36, 0.22, 0.48), "spine", arm, material),
         box("head", (0, 0, 1.67), (0.22, 0.24, 0.28), "spine", arm, material),
@@ -220,7 +240,7 @@ def human():
         limb("knee-surface", [(-.13, 0, z) for z in (.88, .56, .48, .40, .08)], .09,
              [{"thigh": 1}, {"thigh": .9, "shin": .1}, {"thigh": .5, "shin": .5},
               {"thigh": .1, "shin": .9}, {"shin": 1}], arm, material),
-        box("shield", (0.98, -.13, 1.38), (.44, .07, .50), "hand", arm, material),
+        box("shield", (0.98, -.13, 1.38), (.44, .07, .50), "hand", arm, checker_material()),
         box("shield-grip", (.9, -.06, 1.45), (.055, .12, .055), "hand", arm, material),
         box("forward-marker", (0, -.45, .06), (.08, .65, .07), "root", arm, material),
         box("forward-tip", (.055, -.80, .06), (.19, .10, .10), "root", arm, material),
@@ -243,7 +263,7 @@ def mounted():
         ("rider-arm", (.16, 0, 1.8), (.55, 0, 1.8), "rider-spine"),
         ("rider-head", (0, 0, 1.9), (0, 0, 2.15), "rider-spine"),
     ])
-    material = checker_material()
+    material = diagnostic_material()
     objects = [
         box("horse-body-surface", (0, 0, .95), (.45, 1.2, .42), "horse-body", arm, material),
         box("horse-neck-head", (0, -.72, 1.19), (.27, .42, .55), "horse-body", arm, material),

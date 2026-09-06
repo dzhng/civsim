@@ -71,6 +71,33 @@ the source's magnification, minification and mip filters; the existing checker
 already requires mipmaps. Normal maps may be transported in04b but posed shading
 is accepted only after04c proves the weighted tangent frame and handedness.
 
+### 04c posed-frame envelope
+
+The existing tangent XYZ/W vertex field and joint-matrix VAT are sufficient.
+Transform tangent XYZ with the same four-weight linear matrix used for normals;
+preserve the existing blended-normal convention rather than introducing an
+inverse-transpose lighting change. Preserve authored handedness W across mirrored
+UV seams. Instance yaw and corpse roll transform both directions. At fragments,
+orthogonalize the interpolated tangent against the normal and reconstruct the
+bitangent from their cross product and W. Decode the linear normal image, apply
+authored scale to XY, then transform and normalize that direction. Near and raw
+shade this posed result; far bakes it once into its model-space normal property.
+
+Normal-mapped vertices require usable nonzero, nonparallel normal/tangent vectors
+and W of minus or plus one. Unmapped placeholder vertices do not acquire that
+requirement merely because another slot has a map. The source baker rejects
+unusable mapped frames at its sampled poses; loading validates the mapped bind
+frame. Fragment interpolation can still collapse a direction, so define a finite
+geometric-normal result for that degenerate limit instead of propagating NaNs.
+This is not a substitute for admitting invalid mapped source frames. Preserve the
+existing authored-backface policy and the exact untextured shading path.
+
+Normal-image sampling must remain in the fragment stage, not pass through the
+existing helper that hoists geometric normals into a vertex varying. Verify bent,
+rotated and mirrored-UV cases with independent directional controls before judging
+lit screenshots. Replace04b's temporary dormant-normal assertions with those
+response checks; do not simply delete their coverage.
+
 ### Far-material mechanism and resource gate
 
 Replace the private CPU painter with a GPU material-property atlas using the

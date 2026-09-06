@@ -43,7 +43,8 @@ export function makeVertexBuffer(device: GPUDevice, label: string, data: Float32
   return makeStaticBuffer(device, label, data, GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST);
 }
 
-export function makeIndexBuffer(device: GPUDevice, label: string, data: Uint16Array): GPUBuffer {
+export function makeIndexBuffer(device: GPUDevice, label: string, data: Uint16Array | Uint32Array): GPUBuffer {
+  // writeBuffer requires a multiple of four bytes, even for uint16 triangles.
   const upload = data.byteLength % 4 === 0 ? data : new Uint16Array(data.length + 1);
   if (upload !== data) upload.set(data);
   return makeStaticBuffer(device, label, upload, GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST);

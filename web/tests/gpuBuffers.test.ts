@@ -64,3 +64,14 @@ test("static vertex and index buffers upload data and pad uint16 indices to four
   assert.equal((indices as unknown as RecordedBuffer).descriptor.size, 8);
   assert.deepEqual(Array.from(recording.writes[1].data), [7, 0, 8, 0, 9, 0, 0, 0]);
 });
+
+test("uint32 indices preserve vertices beyond 65535 and upload only the supplied view", () => {
+  Object.assign(globalThis, { GPUBufferUsage: { COPY_DST: 1, INDEX: 2 } });
+  const recording = recordingDevice();
+  const source = new Uint32Array([99, 65536, 70000, 3, 88]);
+  const indices = makeIndexBuffer(recording.device, "large-mesh", source.subarray(1, 4));
+
+  assert.equal((indices as unknown as RecordedBuffer).descriptor.size, 12);
+  assert.deepEqual(Array.from(new Uint32Array(recording.writes[0].data.buffer)), [65536, 70000, 3]);
+  assert.deepEqual(Array.from(source), [99, 65536, 70000, 3, 88]);
+});

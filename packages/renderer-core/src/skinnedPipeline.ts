@@ -1,5 +1,5 @@
 import type { CrowdInstance } from '../../crowd-runtime/src/instanceData';
-import type { SoldierMeshData } from '../../soldier-assets/src/soldierMesh';
+import { packSoldierVertices, SOLDIER_VERTEX_LAYOUT, type SoldierMeshData } from '../../soldier-assets/src/mesh';
 import type { SoldierKitManifest, VatBake } from '../../soldier-assets/src/schema';
 import { assertStorageBufferFits } from './capabilities';
 import { compileShader } from './compileShader';
@@ -142,16 +142,20 @@ fn vs(
   @location(0) position: vec3f,
   @location(1) normal: vec3f,
   @location(2) color: vec4f,
-  @location(3) bone: f32,
-  @location(4) inst0: vec4f,
-  @location(5) inst1: vec4f,
-  @location(6) inst2: vec4f,
+  @location(3) joints: vec4f,
+  @location(4) weights: vec4f,
+  @location(5) inst0: vec4f,
+  @location(6) inst1: vec4f,
+  @location(7) inst2: vec4f,
 ) -> VsOut {
   let clipStart = inst1.y;
   let clipFrames = max(inst1.z, 1.0);
   let phase = clamp(inst1.w, 0.0, 0.9999);
   let frame = clipStart + floor(phase * max(clipFrames - 1.0, 1.0));
-  let joint = jointMatrix(round(bone), frame);
+  let joint = jointMatrix(joints.x, frame) * weights.x
+    + jointMatrix(joints.y, frame) * weights.y
+    + jointMatrix(joints.z, frame) * weights.z
+    + jointMatrix(joints.w, frame) * weights.w;
   let local = joint * vec4f(position, 1.0);
   let n = normalize((joint * vec4f(normal, 0.0)).xyz);
 
@@ -166,6 +170,8 @@ fn vs(
   let a = inst0.z - 1.5707964;
   let c = cos(a);
   let s = sin(a);
+  let rolledNormal = vec3f(n.x, n.y * rc - n.z * rs, n.y * rs + n.z * rc);
+  let worldNormal = vec3f(rolledNormal.x * c - rolledNormal.y * s, rolledNormal.x * s + rolledNormal.y * c, rolledNormal.z);
   let p = rolled * inst1.x;
   // inst2.x = terrain elevation: soldiers sit on the surface and sort by it.
   let world = vec3f(inst0.x + p.x * c - p.y * s, inst0.y + p.x * s + p.y * c, p.z + inst2.x);
@@ -174,9 +180,9 @@ fn vs(
   out.pos = projectWorld(world);
   out.color = color;
   let sun = sunDirection();
-  out.light = clamp(dot(n, sun) * 0.42 + 0.74, 0.34, 1.12);
+  out.light = clamp(dot(worldNormal, sun) * 0.42 + 0.74, 0.34, 1.12);
   out.faction = inst0.w;
-  out.rim = smoothstep(0.20, 0.92, 1.0 - abs(n.z));
+  out.rim = smoothstep(0.20, 0.92, 1.0 - abs(worldNormal.z));
   out.height = clamp(world.z / 2.1, 0.0, 1.0);
   out.corpse = corpse;
   return out;
@@ -365,7 +371,7 @@ export class SkinnedCrowdPipeline {
       pass.setBindGroup(1, resource.vat.bindGroup);
       pass.setVertexBuffer(0, resource.vertexBuffer);
       pass.setVertexBuffer(1, resource.instanceBuffer.buffer);
-      pass.setIndexBuffer(resource.indexBuffer, 'uint16');
+      pass.setIndexBuffer(resource.indexBuffer, resource.mesh.indices instanceof Uint32Array ? 'uint32' : 'uint16');
       pass.drawIndexed(resource.mesh.indices.length, resource.instanceCount);
     }
   }
@@ -388,13 +394,13 @@ export class SkinnedCrowdPipeline {
 
   /** The clip layout VAT resolution uses for a given class (per-class clip table). */
   classClip(classId: number, name: string) {
-    const resource = this.resources[Math.max(0, Math.min(this.resources.length - 1, Math.floor(classId)))];
+    const resource = this.resourceLookup[Math.max(0, Math.min(this.resourceLookup.length - 1, Math.floor(classId)))][0];
     return resolveVatClip(resource.vat.layout, name);
   }
 
   private createMeshResource(mesh: SoldierMeshData, index: number, vat: VatResource, classId: number, lod: number): MeshResource {
     const device = this.shell.device;
-    const vertexBuffer = makeVertexBuffer(device, `skinned-soldier-${index}-vertices`, mesh.vertices);
+    const vertexBuffer = makeVertexBuffer(device, `skinned-soldier-${index}-vertices`, packSoldierVertices(mesh));
     const indexBuffer = makeIndexBuffer(device, `skinned-soldier-${index}-indices`, mesh.indices);
     const instanceBuffer = new GrowableBuffer(device, `skinned-crowd-${index}-instances`, GPUBufferUsage.VERTEX, 256 * 12 * 4);
     return { mesh, vat, index, classId, lod, vertexBuffer, indexBuffer, instanceBuffer, instanceCount: 0 };
@@ -444,21 +450,22 @@ export class SkinnedCrowdPipeline {
       module,
       buffers: [
           {
-            arrayStride: 44,
+            arrayStride: SOLDIER_VERTEX_LAYOUT.strideFloats * Float32Array.BYTES_PER_ELEMENT,
             attributes: [
-              { shaderLocation: 0, offset: 0, format: 'float32x3' },
-              { shaderLocation: 1, offset: 12, format: 'float32x3' },
-              { shaderLocation: 2, offset: 24, format: 'float32x4' },
-              { shaderLocation: 3, offset: 40, format: 'float32' },
+              { shaderLocation: 0, offset: SOLDIER_VERTEX_LAYOUT.offsets.position * 4, format: 'float32x3' },
+              { shaderLocation: 1, offset: SOLDIER_VERTEX_LAYOUT.offsets.normal * 4, format: 'float32x3' },
+              { shaderLocation: 2, offset: SOLDIER_VERTEX_LAYOUT.offsets.color * 4, format: 'float32x4' },
+              { shaderLocation: 3, offset: SOLDIER_VERTEX_LAYOUT.offsets.joints * 4, format: 'float32x4' },
+              { shaderLocation: 4, offset: SOLDIER_VERTEX_LAYOUT.offsets.weights * 4, format: 'float32x4' },
             ],
           },
           {
             arrayStride: 48,
             stepMode: 'instance',
             attributes: [
-              { shaderLocation: 4, offset: 0, format: 'float32x4' },
-              { shaderLocation: 5, offset: 16, format: 'float32x4' },
-              { shaderLocation: 6, offset: 32, format: 'float32x4' },
+              { shaderLocation: 5, offset: 0, format: 'float32x4' },
+              { shaderLocation: 6, offset: 16, format: 'float32x4' },
+              { shaderLocation: 7, offset: 32, format: 'float32x4' },
             ],
           },
       ],

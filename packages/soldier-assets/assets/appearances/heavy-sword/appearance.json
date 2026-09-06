@@ -1,6 +1,41 @@
 {
   "name": "heavy-sword",
   "mounted": false,
+  "presentation": {
+    "riderUpperBodyJoints": null,
+    "actions": {
+      "ready": {
+        "clip": "idle",
+        "layer": "fullBody"
+      },
+      "atEase": {
+        "clip": "at_ease",
+        "layer": "fullBody"
+      },
+      "walk": {
+        "clip": "march",
+        "layer": "fullBody"
+      },
+      "run": {
+        "clip": "run",
+        "layer": "fullBody"
+      },
+      "melee": {
+        "clip": "attack_a",
+        "layer": "fullBody"
+      },
+      "release": null,
+      "hit": {
+        "clip": "hit_a",
+        "layer": "fullBody"
+      },
+      "death": {
+        "clip": "death_a",
+        "layer": "fullBody"
+      },
+      "pikeReady": null
+    }
+  },
   "skeleton": "../../baked/human-placeholder.skeleton.json",
   "animation": "../../baked/human-placeholder.vat.json",
   "materials": "../../baked/placeholder.materials.json",
@@ -16,10 +51,10 @@
   },
   "bounds": {
     "center": [
-      0.04855230450630188,
+      0.06569278240203857,
       -0.07479327917098999,
-      1.0801441669464111
+      1.083011507987976
     ],
-    "radius": 1.6020789439200416
+    "radius": 1.610480302680415
   }
 }

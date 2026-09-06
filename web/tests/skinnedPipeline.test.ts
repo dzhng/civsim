@@ -112,6 +112,7 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
       manifest: {
         name: `fixture-${start}`,
         mounted: false,
+        presentation: null,
         skeleton: "rig.json",
         animation: "animation.json",
         materials: "materials.json",

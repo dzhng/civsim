@@ -1,6 +1,44 @@
 {
   "name": "phalanx",
   "mounted": false,
+  "presentation": {
+    "riderUpperBodyJoints": null,
+    "actions": {
+      "ready": {
+        "clip": "idle",
+        "layer": "fullBody"
+      },
+      "atEase": {
+        "clip": "at_ease",
+        "layer": "fullBody"
+      },
+      "walk": {
+        "clip": "march",
+        "layer": "fullBody"
+      },
+      "run": {
+        "clip": "run",
+        "layer": "fullBody"
+      },
+      "melee": {
+        "clip": "attack_a",
+        "layer": "fullBody"
+      },
+      "release": null,
+      "hit": {
+        "clip": "hit_a",
+        "layer": "fullBody"
+      },
+      "death": {
+        "clip": "death_a",
+        "layer": "fullBody"
+      },
+      "pikeReady": {
+        "clip": "idle",
+        "layer": "fullBody"
+      }
+    }
+  },
   "skeleton": "../../baked/human-placeholder.skeleton.json",
   "animation": "../../baked/human-placeholder.vat.json",
   "materials": "../../baked/placeholder.materials.json",
@@ -16,10 +54,10 @@
   },
   "bounds": {
     "center": [
-      0.03908604383468628,
-      -0.2330121397972107,
-      1.6226444244384766
+      0.1543107032775879,
+      -0.140092134475708,
+      1.6228644847869873
     ],
-    "radius": 2.5181444952403953
+    "radius": 2.613494923369624
   }
 }

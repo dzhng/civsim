@@ -7,7 +7,7 @@ import { editGlb } from './test-harness/glb.mjs';
 
 const human = await readFile(new URL('../assets/test/blender-reference/human.glb', import.meta.url));
 const { PNG } = createRequire(new URL('../../../web/package.json', import.meta.url))('pngjs');
-const bake = (tiers = [human, human, human]) => bakeAppearance({ name: 'texture-diagnostic', tiers, fps: 1, loopClips: [] });
+const bake = (tiers = [human, human, human]) => bakeAppearance({ presentation: null, name: 'texture-diagnostic', tiers, fps: 1, loopClips: [] });
 const files = bake();
 const surface = files['materials.json'];
 assert.equal(surface.materials.find((material) => material.name === 'neutral-checker').textures.baseColor, true);

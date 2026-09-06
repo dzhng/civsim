@@ -10,7 +10,7 @@ const root = new URL('../assets/test/material-swatches/', import.meta.url);
 const bytes = await readFile(new URL('swatches.glb', root));
 const oracle = JSON.parse(await readFile(new URL('swatches.landmarks.json', root), 'utf8'));
 assert.equal(createHash('sha256').update(bytes).digest('hex'), oracle.glbSha256);
-const options = { name: 'six-material-swatches', mounted: false, tiers: [bytes, bytes, bytes], fps: 24, loopClips: [] };
+const options = { presentation: null, name: 'six-material-swatches', mounted: false, tiers: [bytes, bytes, bytes], fps: 24, loopClips: [] };
 const files = bakeAppearance(options);
 assert.deepEqual(bakeAppearance(options), files);
 const { materials, textures } = files['materials.json'];

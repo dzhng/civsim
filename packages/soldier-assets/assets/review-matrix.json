@@ -1,0 +1,1166 @@
+{
+  "acceptanceLedger": "specs/battle-model-quality/README.md",
+  "source": {
+    "geometry": "packages/soldier-assets/src/soldierMesh.ts",
+    "rigAndClips": "packages/soldier-assets/bake/soldier-placeholders.mjs"
+  },
+  "appearances": {
+    "0": {
+      "name": "heavy-sword",
+      "bundle": "appearances/heavy-sword/appearance.json",
+      "selection": {
+        "unitClass": 0,
+        "state": "primary"
+      },
+      "riderUpperBodyJoints": null,
+      "actions": {
+        "ready": {
+          "clip": "idle",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "atEase": {
+          "clip": "at_ease",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "walk": {
+          "clip": "march",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "run": {
+          "clip": "run",
+          "layer": "fullBody",
+          "duration": 0.65,
+          "loop": true
+        },
+        "melee": {
+          "clip": "attack_a",
+          "layer": "fullBody",
+          "duration": 0.7,
+          "loop": false
+        },
+        "release": null,
+        "hit": {
+          "clip": "hit_a",
+          "layer": "fullBody",
+          "duration": 0.35,
+          "loop": false
+        },
+        "death": {
+          "clip": "death_a",
+          "layer": "fullBody",
+          "duration": 0.9,
+          "loop": false
+        },
+        "pikeReady": null
+      }
+    },
+    "1": {
+      "name": "light-spear",
+      "bundle": "appearances/light-spear/appearance.json",
+      "selection": {
+        "unitClass": 1,
+        "state": "primary"
+      },
+      "riderUpperBodyJoints": null,
+      "actions": {
+        "ready": {
+          "clip": "idle",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "atEase": {
+          "clip": "at_ease",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "walk": {
+          "clip": "march",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "run": {
+          "clip": "run",
+          "layer": "fullBody",
+          "duration": 0.65,
+          "loop": true
+        },
+        "melee": {
+          "clip": "attack_a",
+          "layer": "fullBody",
+          "duration": 0.7,
+          "loop": false
+        },
+        "release": null,
+        "hit": {
+          "clip": "hit_a",
+          "layer": "fullBody",
+          "duration": 0.35,
+          "loop": false
+        },
+        "death": {
+          "clip": "death_a",
+          "layer": "fullBody",
+          "duration": 0.9,
+          "loop": false
+        },
+        "pikeReady": null
+      }
+    },
+    "2": {
+      "name": "longsword",
+      "bundle": "appearances/longsword/appearance.json",
+      "selection": {
+        "unitClass": 2,
+        "state": "primary"
+      },
+      "riderUpperBodyJoints": null,
+      "actions": {
+        "ready": {
+          "clip": "idle",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "atEase": {
+          "clip": "at_ease",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "walk": {
+          "clip": "march",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "run": {
+          "clip": "run",
+          "layer": "fullBody",
+          "duration": 0.65,
+          "loop": true
+        },
+        "melee": {
+          "clip": "attack_a",
+          "layer": "fullBody",
+          "duration": 0.7,
+          "loop": false
+        },
+        "release": null,
+        "hit": {
+          "clip": "hit_a",
+          "layer": "fullBody",
+          "duration": 0.35,
+          "loop": false
+        },
+        "death": {
+          "clip": "death_a",
+          "layer": "fullBody",
+          "duration": 0.9,
+          "loop": false
+        },
+        "pikeReady": null
+      }
+    },
+    "3": {
+      "name": "phalanx",
+      "bundle": "appearances/phalanx/appearance.json",
+      "selection": {
+        "unitClass": 3,
+        "state": "primary"
+      },
+      "riderUpperBodyJoints": null,
+      "actions": {
+        "ready": {
+          "clip": "idle",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "atEase": {
+          "clip": "at_ease",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "walk": {
+          "clip": "march",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "run": {
+          "clip": "run",
+          "layer": "fullBody",
+          "duration": 0.65,
+          "loop": true
+        },
+        "melee": {
+          "clip": "attack_a",
+          "layer": "fullBody",
+          "duration": 0.7,
+          "loop": false
+        },
+        "release": null,
+        "hit": {
+          "clip": "hit_a",
+          "layer": "fullBody",
+          "duration": 0.35,
+          "loop": false
+        },
+        "death": {
+          "clip": "death_a",
+          "layer": "fullBody",
+          "duration": 0.9,
+          "loop": false
+        },
+        "pikeReady": {
+          "clip": "idle",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        }
+      }
+    },
+    "4": {
+      "name": "archers",
+      "bundle": "appearances/archers/appearance.json",
+      "selection": {
+        "unitClass": 4,
+        "state": "primary"
+      },
+      "riderUpperBodyJoints": null,
+      "actions": {
+        "ready": {
+          "clip": "idle",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "atEase": {
+          "clip": "at_ease",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "walk": {
+          "clip": "march",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "run": {
+          "clip": "run",
+          "layer": "fullBody",
+          "duration": 0.65,
+          "loop": true
+        },
+        "melee": {
+          "clip": "attack_a",
+          "layer": "fullBody",
+          "duration": 0.7,
+          "loop": false
+        },
+        "release": {
+          "clip": "bow_release",
+          "layer": "fullBody",
+          "duration": 0.75,
+          "loop": false,
+          "markers": {
+            "release": 0.7333333333333334
+          }
+        },
+        "hit": {
+          "clip": "hit_a",
+          "layer": "fullBody",
+          "duration": 0.35,
+          "loop": false
+        },
+        "death": {
+          "clip": "death_a",
+          "layer": "fullBody",
+          "duration": 0.9,
+          "loop": false
+        },
+        "pikeReady": null
+      }
+    },
+    "5": {
+      "name": "skirmishers",
+      "bundle": "appearances/skirmishers/appearance.json",
+      "selection": {
+        "unitClass": 5,
+        "state": "primary"
+      },
+      "riderUpperBodyJoints": null,
+      "actions": {
+        "ready": {
+          "clip": "idle",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "atEase": {
+          "clip": "at_ease",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "walk": {
+          "clip": "march",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "run": {
+          "clip": "run",
+          "layer": "fullBody",
+          "duration": 0.65,
+          "loop": true
+        },
+        "melee": {
+          "clip": "attack_a",
+          "layer": "fullBody",
+          "duration": 0.7,
+          "loop": false
+        },
+        "release": {
+          "clip": "throw_release",
+          "layer": "fullBody",
+          "duration": 0.7,
+          "loop": false,
+          "markers": {
+            "release": 0.5714285714285715
+          }
+        },
+        "hit": {
+          "clip": "hit_a",
+          "layer": "fullBody",
+          "duration": 0.35,
+          "loop": false
+        },
+        "death": {
+          "clip": "death_a",
+          "layer": "fullBody",
+          "duration": 0.9,
+          "loop": false
+        },
+        "pikeReady": null
+      }
+    },
+    "6": {
+      "name": "shock-cav",
+      "bundle": "appearances/shock-cav/appearance.json",
+      "selection": {
+        "unitClass": 6,
+        "state": "primary"
+      },
+      "riderUpperBodyJoints": [
+        "spine",
+        "head",
+        "arm_l",
+        "arm_r"
+      ],
+      "actions": {
+        "ready": {
+          "clip": "idle",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "atEase": {
+          "clip": "at_ease",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "walk": {
+          "clip": "march",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "run": {
+          "clip": "run",
+          "layer": "fullBody",
+          "duration": 0.65,
+          "loop": true
+        },
+        "melee": {
+          "clip": "attack_a",
+          "layer": "riderUpperBody",
+          "duration": 0.7,
+          "loop": false
+        },
+        "release": null,
+        "hit": {
+          "clip": "hit_a",
+          "layer": "fullBody",
+          "duration": 0.35,
+          "loop": false
+        },
+        "death": {
+          "clip": "death_a",
+          "layer": "fullBody",
+          "duration": 0.9,
+          "loop": false
+        },
+        "pikeReady": null
+      }
+    },
+    "7": {
+      "name": "horse-archers",
+      "bundle": "appearances/horse-archers/appearance.json",
+      "selection": {
+        "unitClass": 7,
+        "state": "primary"
+      },
+      "riderUpperBodyJoints": [
+        "spine",
+        "head",
+        "arm_l",
+        "arm_r"
+      ],
+      "actions": {
+        "ready": {
+          "clip": "idle",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "atEase": {
+          "clip": "at_ease",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "walk": {
+          "clip": "march",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "run": {
+          "clip": "run",
+          "layer": "fullBody",
+          "duration": 0.65,
+          "loop": true
+        },
+        "melee": {
+          "clip": "attack_a",
+          "layer": "riderUpperBody",
+          "duration": 0.7,
+          "loop": false
+        },
+        "release": {
+          "clip": "bow_release",
+          "layer": "riderUpperBody",
+          "duration": 0.75,
+          "loop": false,
+          "markers": {
+            "release": 0.7333333333333334
+          }
+        },
+        "hit": {
+          "clip": "hit_a",
+          "layer": "fullBody",
+          "duration": 0.35,
+          "loop": false
+        },
+        "death": {
+          "clip": "death_a",
+          "layer": "fullBody",
+          "duration": 0.9,
+          "loop": false
+        },
+        "pikeReady": null
+      }
+    },
+    "8": {
+      "name": "artillery-crew",
+      "bundle": "appearances/artillery-crew/appearance.json",
+      "selection": {
+        "unitClass": 8,
+        "state": "primary"
+      },
+      "riderUpperBodyJoints": null,
+      "actions": {
+        "ready": {
+          "clip": "idle",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "atEase": {
+          "clip": "at_ease",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "walk": {
+          "clip": "march",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "run": {
+          "clip": "run",
+          "layer": "fullBody",
+          "duration": 0.65,
+          "loop": true
+        },
+        "melee": {
+          "clip": "attack_a",
+          "layer": "fullBody",
+          "duration": 0.7,
+          "loop": false
+        },
+        "release": {
+          "clip": "crew_release",
+          "layer": "fullBody",
+          "duration": 0.8,
+          "loop": false,
+          "markers": {
+            "release": 0.5
+          }
+        },
+        "hit": {
+          "clip": "hit_a",
+          "layer": "fullBody",
+          "duration": 0.35,
+          "loop": false
+        },
+        "death": {
+          "clip": "death_a",
+          "layer": "fullBody",
+          "duration": 0.9,
+          "loop": false
+        },
+        "pikeReady": null
+      }
+    },
+    "9": {
+      "name": "peasant",
+      "bundle": "appearances/peasant/appearance.json",
+      "selection": {
+        "unitClass": 9,
+        "state": "primary"
+      },
+      "riderUpperBodyJoints": null,
+      "actions": {
+        "ready": {
+          "clip": "idle",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "atEase": {
+          "clip": "at_ease",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "walk": {
+          "clip": "march",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "run": {
+          "clip": "run",
+          "layer": "fullBody",
+          "duration": 0.65,
+          "loop": true
+        },
+        "melee": {
+          "clip": "attack_a",
+          "layer": "fullBody",
+          "duration": 0.7,
+          "loop": false
+        },
+        "release": null,
+        "hit": {
+          "clip": "hit_a",
+          "layer": "fullBody",
+          "duration": 0.35,
+          "loop": false
+        },
+        "death": {
+          "clip": "death_a",
+          "layer": "fullBody",
+          "duration": 0.9,
+          "loop": false
+        },
+        "pikeReady": null
+      }
+    },
+    "10": {
+      "name": "light-sword",
+      "bundle": "appearances/light-sword/appearance.json",
+      "selection": {
+        "unitClass": 10,
+        "state": "primary"
+      },
+      "riderUpperBodyJoints": null,
+      "actions": {
+        "ready": {
+          "clip": "idle",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "atEase": {
+          "clip": "at_ease",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "walk": {
+          "clip": "march",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "run": {
+          "clip": "run",
+          "layer": "fullBody",
+          "duration": 0.65,
+          "loop": true
+        },
+        "melee": {
+          "clip": "attack_a",
+          "layer": "fullBody",
+          "duration": 0.7,
+          "loop": false
+        },
+        "release": null,
+        "hit": {
+          "clip": "hit_a",
+          "layer": "fullBody",
+          "duration": 0.35,
+          "loop": false
+        },
+        "death": {
+          "clip": "death_a",
+          "layer": "fullBody",
+          "duration": 0.9,
+          "loop": false
+        },
+        "pikeReady": null
+      }
+    },
+    "11": {
+      "name": "heavy-spear",
+      "bundle": "appearances/heavy-spear/appearance.json",
+      "selection": {
+        "unitClass": 11,
+        "state": "primary"
+      },
+      "riderUpperBodyJoints": null,
+      "actions": {
+        "ready": {
+          "clip": "idle",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "atEase": {
+          "clip": "at_ease",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "walk": {
+          "clip": "march",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "run": {
+          "clip": "run",
+          "layer": "fullBody",
+          "duration": 0.65,
+          "loop": true
+        },
+        "melee": {
+          "clip": "attack_a",
+          "layer": "fullBody",
+          "duration": 0.7,
+          "loop": false
+        },
+        "release": null,
+        "hit": {
+          "clip": "hit_a",
+          "layer": "fullBody",
+          "duration": 0.35,
+          "loop": false
+        },
+        "death": {
+          "clip": "death_a",
+          "layer": "fullBody",
+          "duration": 0.9,
+          "loop": false
+        },
+        "pikeReady": null
+      }
+    },
+    "12": {
+      "name": "medium-infantry",
+      "bundle": "appearances/medium-infantry/appearance.json",
+      "selection": {
+        "unitClass": 12,
+        "state": "primary"
+      },
+      "riderUpperBodyJoints": null,
+      "actions": {
+        "ready": {
+          "clip": "idle",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "atEase": {
+          "clip": "at_ease",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "walk": {
+          "clip": "march",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "run": {
+          "clip": "run",
+          "layer": "fullBody",
+          "duration": 0.65,
+          "loop": true
+        },
+        "melee": {
+          "clip": "attack_a",
+          "layer": "fullBody",
+          "duration": 0.7,
+          "loop": false
+        },
+        "release": null,
+        "hit": {
+          "clip": "hit_a",
+          "layer": "fullBody",
+          "duration": 0.35,
+          "loop": false
+        },
+        "death": {
+          "clip": "death_a",
+          "layer": "fullBody",
+          "duration": 0.9,
+          "loop": false
+        },
+        "pikeReady": null
+      }
+    },
+    "13": {
+      "name": "medium-spear",
+      "bundle": "appearances/medium-spear/appearance.json",
+      "selection": {
+        "unitClass": 13,
+        "state": "primary"
+      },
+      "riderUpperBodyJoints": null,
+      "actions": {
+        "ready": {
+          "clip": "idle",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "atEase": {
+          "clip": "at_ease",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "walk": {
+          "clip": "march",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "run": {
+          "clip": "run",
+          "layer": "fullBody",
+          "duration": 0.65,
+          "loop": true
+        },
+        "melee": {
+          "clip": "attack_a",
+          "layer": "fullBody",
+          "duration": 0.7,
+          "loop": false
+        },
+        "release": null,
+        "hit": {
+          "clip": "hit_a",
+          "layer": "fullBody",
+          "duration": 0.35,
+          "loop": false
+        },
+        "death": {
+          "clip": "death_a",
+          "layer": "fullBody",
+          "duration": 0.9,
+          "loop": false
+        },
+        "pikeReady": null
+      }
+    },
+    "14": {
+      "name": "medium-phalanx",
+      "bundle": "appearances/medium-phalanx/appearance.json",
+      "selection": {
+        "unitClass": 14,
+        "state": "primary"
+      },
+      "riderUpperBodyJoints": null,
+      "actions": {
+        "ready": {
+          "clip": "idle",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "atEase": {
+          "clip": "at_ease",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "walk": {
+          "clip": "march",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "run": {
+          "clip": "run",
+          "layer": "fullBody",
+          "duration": 0.65,
+          "loop": true
+        },
+        "melee": {
+          "clip": "attack_a",
+          "layer": "fullBody",
+          "duration": 0.7,
+          "loop": false
+        },
+        "release": null,
+        "hit": {
+          "clip": "hit_a",
+          "layer": "fullBody",
+          "duration": 0.35,
+          "loop": false
+        },
+        "death": {
+          "clip": "death_a",
+          "layer": "fullBody",
+          "duration": 0.9,
+          "loop": false
+        },
+        "pikeReady": {
+          "clip": "idle",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        }
+      }
+    },
+    "15": {
+      "name": "shock-cav-sidearm",
+      "bundle": "appearances/shock-cav-sidearm/appearance.json",
+      "selection": {
+        "unitClass": 6,
+        "state": "sidearm"
+      },
+      "riderUpperBodyJoints": [
+        "spine",
+        "head",
+        "arm_l",
+        "arm_r"
+      ],
+      "actions": {
+        "ready": {
+          "clip": "idle",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "atEase": {
+          "clip": "at_ease",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "walk": {
+          "clip": "march",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "run": {
+          "clip": "run",
+          "layer": "fullBody",
+          "duration": 0.65,
+          "loop": true
+        },
+        "melee": {
+          "clip": "attack_a",
+          "layer": "riderUpperBody",
+          "duration": 0.7,
+          "loop": false
+        },
+        "release": null,
+        "hit": {
+          "clip": "hit_a",
+          "layer": "fullBody",
+          "duration": 0.35,
+          "loop": false
+        },
+        "death": {
+          "clip": "death_a",
+          "layer": "fullBody",
+          "duration": 0.9,
+          "loop": false
+        },
+        "pikeReady": null
+      }
+    },
+    "16": {
+      "name": "heavy-phalanx-rest",
+      "bundle": "appearances/heavy-phalanx-rest/appearance.json",
+      "selection": {
+        "unitClass": 3,
+        "state": "atEase"
+      },
+      "riderUpperBodyJoints": null,
+      "actions": {
+        "ready": {
+          "clip": "idle",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "atEase": {
+          "clip": "at_ease",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "walk": {
+          "clip": "march",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "run": {
+          "clip": "run",
+          "layer": "fullBody",
+          "duration": 0.65,
+          "loop": true
+        },
+        "melee": {
+          "clip": "attack_a",
+          "layer": "fullBody",
+          "duration": 0.7,
+          "loop": false
+        },
+        "release": null,
+        "hit": {
+          "clip": "hit_a",
+          "layer": "fullBody",
+          "duration": 0.35,
+          "loop": false
+        },
+        "death": {
+          "clip": "death_a",
+          "layer": "fullBody",
+          "duration": 0.9,
+          "loop": false
+        },
+        "pikeReady": null
+      }
+    },
+    "17": {
+      "name": "medium-phalanx-rest",
+      "bundle": "appearances/medium-phalanx-rest/appearance.json",
+      "selection": {
+        "unitClass": 14,
+        "state": "atEase"
+      },
+      "riderUpperBodyJoints": null,
+      "actions": {
+        "ready": {
+          "clip": "idle",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "atEase": {
+          "clip": "at_ease",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "walk": {
+          "clip": "march",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "run": {
+          "clip": "run",
+          "layer": "fullBody",
+          "duration": 0.65,
+          "loop": true
+        },
+        "melee": {
+          "clip": "attack_a",
+          "layer": "fullBody",
+          "duration": 0.7,
+          "loop": false
+        },
+        "release": null,
+        "hit": {
+          "clip": "hit_a",
+          "layer": "fullBody",
+          "duration": 0.35,
+          "loop": false
+        },
+        "death": {
+          "clip": "death_a",
+          "layer": "fullBody",
+          "duration": 0.9,
+          "loop": false
+        },
+        "pikeReady": null
+      }
+    },
+    "18": {
+      "name": "heavy-phalanx-sidearm",
+      "bundle": "appearances/heavy-phalanx-sidearm/appearance.json",
+      "selection": {
+        "unitClass": 3,
+        "state": "sidearm"
+      },
+      "riderUpperBodyJoints": null,
+      "actions": {
+        "ready": {
+          "clip": "idle",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "atEase": {
+          "clip": "at_ease",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "walk": {
+          "clip": "march",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "run": {
+          "clip": "run",
+          "layer": "fullBody",
+          "duration": 0.65,
+          "loop": true
+        },
+        "melee": {
+          "clip": "attack_a",
+          "layer": "fullBody",
+          "duration": 0.7,
+          "loop": false
+        },
+        "release": null,
+        "hit": {
+          "clip": "hit_a",
+          "layer": "fullBody",
+          "duration": 0.35,
+          "loop": false
+        },
+        "death": {
+          "clip": "death_a",
+          "layer": "fullBody",
+          "duration": 0.9,
+          "loop": false
+        },
+        "pikeReady": null
+      }
+    },
+    "19": {
+      "name": "medium-phalanx-sidearm",
+      "bundle": "appearances/medium-phalanx-sidearm/appearance.json",
+      "selection": {
+        "unitClass": 14,
+        "state": "sidearm"
+      },
+      "riderUpperBodyJoints": null,
+      "actions": {
+        "ready": {
+          "clip": "idle",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "atEase": {
+          "clip": "at_ease",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "walk": {
+          "clip": "march",
+          "layer": "fullBody",
+          "duration": 1,
+          "loop": true
+        },
+        "run": {
+          "clip": "run",
+          "layer": "fullBody",
+          "duration": 0.65,
+          "loop": true
+        },
+        "melee": {
+          "clip": "attack_a",
+          "layer": "fullBody",
+          "duration": 0.7,
+          "loop": false
+        },
+        "release": null,
+        "hit": {
+          "clip": "hit_a",
+          "layer": "fullBody",
+          "duration": 0.35,
+          "loop": false
+        },
+        "death": {
+          "clip": "death_a",
+          "layer": "fullBody",
+          "duration": 0.9,
+          "loop": false
+        },
+        "pikeReady": null
+      }
+    }
+  }
+}

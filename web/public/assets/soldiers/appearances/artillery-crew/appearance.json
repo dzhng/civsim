@@ -1,6 +1,44 @@
 {
   "name": "artillery-crew",
   "mounted": false,
+  "presentation": {
+    "riderUpperBodyJoints": null,
+    "actions": {
+      "ready": {
+        "clip": "idle",
+        "layer": "fullBody"
+      },
+      "atEase": {
+        "clip": "at_ease",
+        "layer": "fullBody"
+      },
+      "walk": {
+        "clip": "march",
+        "layer": "fullBody"
+      },
+      "run": {
+        "clip": "run",
+        "layer": "fullBody"
+      },
+      "melee": {
+        "clip": "attack_a",
+        "layer": "fullBody"
+      },
+      "release": {
+        "clip": "crew_release",
+        "layer": "fullBody"
+      },
+      "hit": {
+        "clip": "hit_a",
+        "layer": "fullBody"
+      },
+      "death": {
+        "clip": "death_a",
+        "layer": "fullBody"
+      },
+      "pikeReady": null
+    }
+  },
   "skeleton": "../../baked/human-placeholder.skeleton.json",
   "animation": "../../baked/human-placeholder.vat.json",
   "materials": "../../baked/placeholder.materials.json",
@@ -18,8 +56,8 @@
     "center": [
       0.3710256516933441,
       0.31108978390693665,
-      1.0023184400051832
+      1.0024602990597486
     ],
-    "radius": 1.8108682324587098
+    "radius": 1.810950516587668
   }
 }

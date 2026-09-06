@@ -30,6 +30,7 @@ test("normal-mapped bind frames are admitted per slot on all tiers and far conte
     "bundle.json": {
       name: "mapped",
       mounted: false,
+      presentation: null,
       skeleton: "rig.json",
       animation: "clips.json",
       materials: "materials.json",
@@ -151,6 +152,7 @@ test("a complete appearance loads distinct tiers and its own far mesh without na
     "bundle.json": {
       name: "fixture",
       mounted: false,
+      presentation: null,
       skeleton: "rig.json",
       animation: "clips.json",
       materials: "materials.json",

@@ -1,6 +1,49 @@
 {
   "name": "horse-archers",
   "mounted": true,
+  "presentation": {
+    "riderUpperBodyJoints": [
+      "spine",
+      "head",
+      "arm_l",
+      "arm_r"
+    ],
+    "actions": {
+      "ready": {
+        "clip": "idle",
+        "layer": "fullBody"
+      },
+      "atEase": {
+        "clip": "at_ease",
+        "layer": "fullBody"
+      },
+      "walk": {
+        "clip": "march",
+        "layer": "fullBody"
+      },
+      "run": {
+        "clip": "run",
+        "layer": "fullBody"
+      },
+      "melee": {
+        "clip": "attack_a",
+        "layer": "riderUpperBody"
+      },
+      "release": {
+        "clip": "bow_release",
+        "layer": "riderUpperBody"
+      },
+      "hit": {
+        "clip": "hit_a",
+        "layer": "fullBody"
+      },
+      "death": {
+        "clip": "death_a",
+        "layer": "fullBody"
+      },
+      "pikeReady": null
+    }
+  },
   "skeleton": "../../baked/human-placeholder.skeleton.json",
   "animation": "../../baked/human-placeholder.vat.json",
   "materials": "../../baked/placeholder.materials.json",
@@ -16,10 +59,10 @@
   },
   "bounds": {
     "center": [
-      -0.03162236511707306,
+      -0.005057185888290405,
       -0.08152246475219727,
-      0.9584013521671295
+      0.9587198793888092
     ],
-    "radius": 2.0127789994783387
+    "radius": 2.019644922422308
   }
 }

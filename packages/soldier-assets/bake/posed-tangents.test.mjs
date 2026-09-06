@@ -6,7 +6,7 @@ import { editGlb } from './test-harness/glb.mjs';
 import { assertMappedTangentFrames, poseSoldierMesh } from '../src/skin.ts';
 
 const human = await readFile(new URL('../assets/test/blender-reference/human.glb', import.meta.url));
-const bake = (source) => bakeAppearance({ name: 'tangent-diagnostic', tiers: [source, source, source], fps: 24, loopClips: [] });
+const bake = (source) => bakeAppearance({ presentation: null, name: 'tangent-diagnostic', tiers: [source, source, source], fps: 24, loopClips: [] });
 const collapse = editGlb(human, (json, bin) => {
   const write = (index, values) => {
     const accessor = json.accessors[index], view = json.bufferViews[accessor.bufferView];

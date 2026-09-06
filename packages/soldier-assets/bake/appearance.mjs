@@ -8,6 +8,8 @@ import { bakeRig } from './vat.mjs';
 import { deriveAnimatedBounds } from './animated-bounds.mjs';
 import { appearanceMaterials } from './materials.mjs';
 import { encodeSoldierMesh } from '../src/appearanceBundle.ts';
+import { assertAppearancePresentation } from '../src/presentation.ts';
+import { assertPresentationMotion } from './presentation.mjs';
 
 function jointMap(source, target, tier) {
   const names = new Map(target.bones.map((bone, index) => [bone.name, index]));
@@ -54,7 +56,7 @@ function mergedMesh(primitives, remap, materialSlot) {
 }
 
 /** Complete candidate content only: the caller chooses whether a catalog references it. */
-export function bakeAppearance({ name, mounted = false, tiers, fps = 24, loopClips }) {
+export function bakeAppearance({ name, mounted = false, tiers, fps = 24, loopClips, presentation, clipMarkers = {} }) {
   if (typeof name !== 'string' || !name.trim()) throw new Error('appearance requires a nonempty name');
   if (typeof mounted !== 'boolean') throw new Error('mounted must be boolean');
   if (!Array.isArray(tiers) || tiers.length !== 3 || tiers.some((tier) => !(tier instanceof Uint8Array))) {
@@ -70,6 +72,11 @@ export function bakeAppearance({ name, mounted = false, tiers, fps = 24, loopCli
   if (clipNames.size !== rig.clips.length || clipNames.size === 0) throw new Error('near tier requires uniquely named animation clips');
   for (const clip of loopClips) if (!clipNames.has(clip)) throw new Error(`loop clip ${clip} is absent from the near tier`);
   for (const clip of rig.clips) clip.loop = loopClips.includes(clip.name);
+  for (const [name, markers] of Object.entries(clipMarkers)) {
+    const clip = rig.clips.find(clip => clip.name === name);
+    if (!clip) throw new Error(`marker clip ${name} is absent from the near tier`);
+    clip.markers = markers;
+  }
   const files = {};
   const materialSet = appearanceMaterials(files);
   const meshes = imported.map((source, tier) => {
@@ -86,6 +93,8 @@ export function bakeAppearance({ name, mounted = false, tiers, fps = 24, loopCli
     layout: 'RGBA32F, mat4 columns in rows bone*4..bone*4+3',
     sha256: createHash('sha256').update(Buffer.from(baked.data.buffer, baked.data.byteOffset, baked.data.byteLength)).digest('hex'), data,
   };
+  assertAppearancePresentation(presentation, rig, animation, mounted);
+  assertPresentationMotion(presentation, animation, rig);
   files['skeleton.json'] = { ...rig, bones: rig.bones.map((bone) => ({ ...bone, inverseBind: Array.from(bone.inverseBind) })) };
   files['animation.json'] = animation;
   files['materials.json'] = materialSet.surface;
@@ -95,7 +104,7 @@ export function bakeAppearance({ name, mounted = false, tiers, fps = 24, loopCli
     return path;
   });
   files['appearance.json'] = {
-    name, mounted, skeleton: 'skeleton.json', animation: 'animation.json', materials: 'materials.json', tiers: paths,
+    name, mounted, presentation, skeleton: 'skeleton.json', animation: 'animation.json', materials: 'materials.json', tiers: paths,
     far: { mesh: paths[0], clip: animation.clips[0].name, phase: 0 }, bounds: deriveAnimatedBounds(meshes, animation, materialSet.surface.materials),
   };
   return files;
@@ -135,7 +144,7 @@ if (process.argv[1] && import.meta.url === new URL(process.argv[1], 'file:').hre
     if (values[argument] == null) throw new Error(`missing --${argument}; provide three tiers, an output directory and explicit --loop names (empty for no loops)`);
   }
   if (!values.out.trim()) throw new Error('--out must name the candidate output directory');
-  const files = bakeAppearance({ name: values.name, mounted: values.mounted, fps: Number(values.fps),
+  const files = bakeAppearance({ presentation: null, name: values.name, mounted: values.mounted, fps: Number(values.fps),
     tiers: await Promise.all([values.near, values.mid, values.far].map((path) => readFile(path))),
     loopClips: values.loop ? values.loop.split(',') : [],
   });

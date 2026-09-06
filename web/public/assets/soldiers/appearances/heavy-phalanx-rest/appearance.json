@@ -1,6 +1,41 @@
 {
   "name": "heavy-phalanx-rest",
   "mounted": false,
+  "presentation": {
+    "riderUpperBodyJoints": null,
+    "actions": {
+      "ready": {
+        "clip": "idle",
+        "layer": "fullBody"
+      },
+      "atEase": {
+        "clip": "at_ease",
+        "layer": "fullBody"
+      },
+      "walk": {
+        "clip": "march",
+        "layer": "fullBody"
+      },
+      "run": {
+        "clip": "run",
+        "layer": "fullBody"
+      },
+      "melee": {
+        "clip": "attack_a",
+        "layer": "fullBody"
+      },
+      "release": null,
+      "hit": {
+        "clip": "hit_a",
+        "layer": "fullBody"
+      },
+      "death": {
+        "clip": "death_a",
+        "layer": "fullBody"
+      },
+      "pikeReady": null
+    }
+  },
   "skeleton": "../../baked/human-placeholder.skeleton.json",
   "animation": "../../baked/human-placeholder.vat.json",
   "materials": "../../baked/placeholder.materials.json",
@@ -16,10 +51,10 @@
   },
   "bounds": {
     "center": [
-      0.014111071825027466,
-      -0.4851572513580322,
+      0.09466531872749329,
+      -0.18028444051742554,
       1.5754183530807495
     ],
-    "radius": 2.3008820522182396
+    "radius": 2.5343691875328607
   }
 }

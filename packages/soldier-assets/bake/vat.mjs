@@ -1,3 +1,5 @@
+import { assertClipMarkers } from '../src/schema.ts';
+
 // VAT (vertex/bone animation texture) bake core for the skinned-crowd renderer.
 // Pure math, zero deps, no browser, no WebGPU:
 // given a skeleton (bones with parent + inverse-bind) and animation clips
@@ -124,8 +126,9 @@ export function bakeRig(rig, fps) {
   const clipMeta = [];
   let totalFrames = 0;
   for (const c of clips) {
+    assertClipMarkers(c.markers);
     const frames = Math.max(1, Math.round(c.duration * fps) + 1);
-    clipMeta.push({ name: c.name, start: totalFrames, frames, duration: c.duration, loop: c.loop ?? false });
+    clipMeta.push({ name: c.name, start: totalFrames, frames, duration: c.duration, loop: c.loop ?? false, ...(c.markers === undefined ? {} : { markers: c.markers }) });
     totalFrames += frames;
   }
   const width = totalFrames;

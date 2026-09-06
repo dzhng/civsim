@@ -6,7 +6,7 @@ import { bakeAppearance, writeAppearance } from './appearance.mjs';
 const { values: { check } } = parseArgs({ options: { check: { type: 'boolean', default: false } } });
 const bytes = await readFile(new URL('../assets/test/material-swatches/swatches.glb', import.meta.url));
 // Same explicit diagnostic source at every tier; this is not authored LOD art.
-const bundle = bakeAppearance({ name: 'six-material-swatches', mounted: false, tiers: [bytes, bytes, bytes], fps: 24, loopClips: [] });
+const bundle = bakeAppearance({ presentation: null, name: 'six-material-swatches', mounted: false, tiers: [bytes, bytes, bytes], fps: 24, loopClips: [] });
 const files = { 'catalog.json': { appearances: { 42: 'swatches/appearance.json' } } };
 for (const [path, content] of Object.entries(bundle)) files[`swatches/${path}`] = content;
 for (const root of [

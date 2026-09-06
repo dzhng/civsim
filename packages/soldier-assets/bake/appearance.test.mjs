@@ -15,7 +15,7 @@ import { editGlb } from './test-harness/glb.mjs';
 
 const sourceRoot = new URL('../assets/test/blender-reference/', import.meta.url);
 const human = await readFile(new URL('human.glb', sourceRoot));
-const defaults = { name: 'diagnostic', tiers: [human, human, human], fps: 24, loopClips: [] };
+const defaults = { presentation: null, name: 'diagnostic', tiers: [human, human, human], fps: 24, loopClips: [] };
 const marked = bakeAppearance(defaults);
 assert.deepEqual([...new Set(marked['tier-0.mesh.json'].factionMasks)].sort(), [0, .25, .75, 1], 'Blender-authored scalar faction mask survives the complete bundle bake');
 const { json: sourceJson, bin: sourceBin } = parseGlb(human);
@@ -127,7 +127,7 @@ try {
     const bytes = await readFile(new URL(`${name}.glb`, sourceRoot));
     const oracle = JSON.parse(await readFile(new URL(`${name}.landmarks.json`, sourceRoot), 'utf8'));
     const source = bakeGltf(bytes, { fps: oracle.fps });
-    const options = { name: `${name}-diagnostic`, mounted: name === 'mounted', tiers: [bytes, bytes, bytes], fps: oracle.fps,
+    const options = { presentation: null, name: `${name}-diagnostic`, mounted: name === 'mounted', tiers: [bytes, bytes, bytes], fps: oracle.fps,
       loopClips: name === 'mounted' ? ['gait'] : [] };
     currentFiles = bakeAppearance(options);
     assert.deepEqual(bakeAppearance(options), currentFiles, 'candidate bake must be deterministic');

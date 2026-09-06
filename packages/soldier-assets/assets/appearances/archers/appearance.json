@@ -1,6 +1,44 @@
 {
   "name": "archers",
   "mounted": false,
+  "presentation": {
+    "riderUpperBodyJoints": null,
+    "actions": {
+      "ready": {
+        "clip": "idle",
+        "layer": "fullBody"
+      },
+      "atEase": {
+        "clip": "at_ease",
+        "layer": "fullBody"
+      },
+      "walk": {
+        "clip": "march",
+        "layer": "fullBody"
+      },
+      "run": {
+        "clip": "run",
+        "layer": "fullBody"
+      },
+      "melee": {
+        "clip": "attack_a",
+        "layer": "fullBody"
+      },
+      "release": {
+        "clip": "bow_release",
+        "layer": "fullBody"
+      },
+      "hit": {
+        "clip": "hit_a",
+        "layer": "fullBody"
+      },
+      "death": {
+        "clip": "death_a",
+        "layer": "fullBody"
+      },
+      "pikeReady": null
+    }
+  },
   "skeleton": "../../baked/human-placeholder.skeleton.json",
   "animation": "../../baked/human-placeholder.vat.json",
   "materials": "../../baked/placeholder.materials.json",
@@ -18,8 +56,8 @@
     "center": [
       -0.006596088409423828,
       0.03707060217857361,
-      0.9824908971786499
+      0.9841967821121216
     ],
-    "radius": 1.44157983262226
+    "radius": 1.4427908960533091
   }
 }

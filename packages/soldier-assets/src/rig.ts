@@ -1,3 +1,5 @@
+import type { ClipMarkers } from "./schema";
+
 export interface RigBone {
   name: string;
   parent: number;
@@ -9,6 +11,7 @@ export interface RigClip {
   name: string;
   duration: number;
   loop?: boolean;
+  markers?: ClipMarkers;
   tracks: Record<number, { T?: unknown; R?: unknown; S?: unknown }>;
 }
 

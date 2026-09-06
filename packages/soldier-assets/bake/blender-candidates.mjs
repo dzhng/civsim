@@ -8,7 +8,7 @@ const files = {}, appearances = {};
 for (const [id, name, mounted, loopClips] of [[40, 'human', false, []], [41, 'mounted', true, ['gait']]]) {
   const bytes = await readFile(new URL(`../assets/test/blender-reference/${name}.glb`, import.meta.url));
   // Deliberately identical diagnostic inputs: these prove the pipeline, not final-art LOD quality.
-  const bundle = bakeAppearance({ name: `${name}-diagnostic`, mounted, tiers: [bytes, bytes, bytes], fps: 24, loopClips });
+  const bundle = bakeAppearance({ presentation: null, name: `${name}-diagnostic`, mounted, tiers: [bytes, bytes, bytes], fps: 24, loopClips });
   for (const [path, content] of Object.entries(bundle)) files[`${name}/${path}`] = content;
   appearances[id] = `${name}/appearance.json`;
 }

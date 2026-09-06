@@ -1,6 +1,7 @@
 {
   "name": "mounted-diagnostic",
   "mounted": true,
+  "presentation": null,
   "skeleton": "skeleton.json",
   "animation": "animation.json",
   "materials": "materials.json",

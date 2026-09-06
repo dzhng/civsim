@@ -2,6 +2,7 @@ import type { SoldierMeshData } from "./mesh";
 import { assertMappedTangentFrames } from "./skin.ts";
 import type { ImportedRig } from "./rig";
 import type { VatBake } from "./schema";
+import { assertAppearancePresentation, type AppearancePresentation } from './presentation.ts';
 import {
   readSoldierSurfaceAsset,
   type SoldierSurface,
@@ -15,6 +16,7 @@ export type SoldierMeshAsset = { [K in keyof SoldierMeshData]: number[] } & {
 export interface AppearanceManifest {
   name: string;
   mounted: boolean;
+  presentation: AppearancePresentation | null;
   skeleton: string;
   animation: string;
   materials: string;
@@ -277,6 +279,7 @@ async function readAppearanceBundle(
     throw new Error("appearance skeleton or far clip does not match animation");
   }
   const tiers = meshes.map(decodeSoldierMesh) as AppearanceBundle["tiers"];
+  assertAppearancePresentation(manifest.presentation, rig, animation, manifest.mounted);
   const farMesh = decodeSoldierMesh(farAsset);
   for (const mesh of [...tiers, farMesh]) {
     if (

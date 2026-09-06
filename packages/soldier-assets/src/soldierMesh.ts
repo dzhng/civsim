@@ -27,53 +27,7 @@ function surface(color: Rgba, name: keyof typeof SURFACES, factionMask = 0): Sur
   return { color, materialId: Object.keys(SURFACES).indexOf(name), factionMask };
 }
 
-type Armor = 'heavy' | 'medium' | 'light' | 'cloth' | 'rag';
-type Helmet = 'crested' | 'bronze' | 'cap' | 'hood' | 'bare';
-type Shield = 'tall' | 'round' | 'small' | 'none';
-type Weapon =
-  | 'sword'
-  | 'spear'
-  | 'greatsword'
-  | 'pike'
-  | 'pike_upright'
-  | 'pike_sidearm'
-  | 'bow'
-  | 'javelin'
-  | 'lance'
-  | 'lance_sidearm'
-  | 'artillery'
-  | 'none';
-
-interface PlaceholderLook {
-  armor: Armor;
-  helmet: Helmet;
-  shield: Shield;
-  weapon: Weapon;
-  mounted: boolean;
-}
-
-const PLACEHOLDER_LOOKS: PlaceholderLook[] = [
-  { weapon: 'sword', shield: 'tall', armor: 'heavy', helmet: 'crested', mounted: false },
-  { weapon: 'spear', shield: 'round', armor: 'light', helmet: 'cap', mounted: false },
-  { weapon: 'greatsword', shield: 'none', armor: 'medium', helmet: 'bronze', mounted: false },
-  { weapon: 'pike', shield: 'small', armor: 'heavy', helmet: 'crested', mounted: false },
-  { weapon: 'bow', shield: 'none', armor: 'cloth', helmet: 'hood', mounted: false },
-  { weapon: 'javelin', shield: 'small', armor: 'light', helmet: 'bare', mounted: false },
-  { weapon: 'lance', shield: 'round', armor: 'heavy', helmet: 'crested', mounted: true },
-  { weapon: 'bow', shield: 'none', armor: 'light', helmet: 'cap', mounted: true },
-  { weapon: 'artillery', shield: 'none', armor: 'cloth', helmet: 'cap', mounted: false },
-  { weapon: 'sword', shield: 'none', armor: 'rag', helmet: 'bare', mounted: false },
-  { weapon: 'sword', shield: 'round', armor: 'light', helmet: 'cap', mounted: false },
-  { weapon: 'spear', shield: 'tall', armor: 'heavy', helmet: 'crested', mounted: false },
-  { weapon: 'sword', shield: 'round', armor: 'medium', helmet: 'bronze', mounted: false },
-  { weapon: 'spear', shield: 'round', armor: 'medium', helmet: 'bronze', mounted: false },
-  { weapon: 'pike', shield: 'small', armor: 'medium', helmet: 'bronze', mounted: false },
-  { weapon: 'lance_sidearm', shield: 'round', armor: 'heavy', helmet: 'crested', mounted: true },
-  { weapon: 'pike_upright', shield: 'small', armor: 'heavy', helmet: 'crested', mounted: false },
-  { weapon: 'pike_upright', shield: 'small', armor: 'medium', helmet: 'bronze', mounted: false },
-  { weapon: 'pike_sidearm', shield: 'small', armor: 'heavy', helmet: 'crested', mounted: false },
-  { weapon: 'pike_sidearm', shield: 'small', armor: 'medium', helmet: 'bronze', mounted: false },
-];
+import { APPEARANCE_DESCRIPTORS, type Armor, type Helmet, type Shield, type PlaceholderLook } from './appearance.ts';
 
 export const REAL_UNIT_CLASS_COUNT = 15;
 export const SHOCK_CAV_SIDEARM_CLASS = REAL_UNIT_CLASS_COUNT;
@@ -81,7 +35,7 @@ export const HEAVY_PHALANX_REST_CLASS = REAL_UNIT_CLASS_COUNT + 1;
 export const MEDIUM_PHALANX_REST_CLASS = REAL_UNIT_CLASS_COUNT + 2;
 export const HEAVY_PHALANX_SIDEARM_CLASS = REAL_UNIT_CLASS_COUNT + 3;
 export const MEDIUM_PHALANX_SIDEARM_CLASS = REAL_UNIT_CLASS_COUNT + 4;
-export const PLACEHOLDER_RENDER_CLASS_COUNT = PLACEHOLDER_LOOKS.length;
+export const PLACEHOLDER_RENDER_CLASS_COUNT = APPEARANCE_DESCRIPTORS.length;
 
 function addBox(
   out: number[],
@@ -181,13 +135,13 @@ function distance(a: [number, number, number], b: [number, number, number]): num
 }
 
 export function createPlaceholderSoldierMeshes(armBandSrgb: [number, number, number] = [0.06, 0.1, 0.98]): SoldierMeshData[] {
-  return PLACEHOLDER_LOOKS.map((_, classId) => createPlaceholderSoldierMesh(armBandSrgb, classId));
+  return APPEARANCE_DESCRIPTORS.map((_, classId) => createPlaceholderSoldierMesh(armBandSrgb, classId));
 }
 
 /** L0 full / L1 reduced silhouette equipment / L2 coarse body+head+legs.
  *  Tiers skin to the same bones, so one VAT drives every tier. */
 export function createPlaceholderSoldierMeshTiers(armBandSrgb: [number, number, number] = [0.06, 0.1, 0.98]): SoldierMeshData[][] {
-  return PLACEHOLDER_LOOKS.map((_, classId) => [0, 1, 2].map((lod) => createPlaceholderSoldierMesh(armBandSrgb, classId, lod)));
+  return APPEARANCE_DESCRIPTORS.map((_, classId) => [0, 1, 2].map((lod) => createPlaceholderSoldierMesh(armBandSrgb, classId, lod)));
 }
 
 export function createPlaceholderSoldierMesh(
@@ -197,7 +151,7 @@ export function createPlaceholderSoldierMesh(
 ): SoldierMeshData {
   const v: number[] = [];
   const indices: number[] = [];
-  const look = PLACEHOLDER_LOOKS[Math.max(0, Math.min(PLACEHOLDER_LOOKS.length - 1, Math.floor(classId)))] ?? PLACEHOLDER_LOOKS[0];
+  const look = (APPEARANCE_DESCRIPTORS[Math.max(0, Math.min(APPEARANCE_DESCRIPTORS.length - 1, Math.floor(classId)))] ?? APPEARANCE_DESCRIPTORS[0]).look;
   const body = surface(armorColor(look.armor), look.armor === 'heavy' ? 'bronze' : look.armor === 'medium' ? 'leather' : 'cloth');
   const bronze = surface([0.76, 0.48, 0.18, 1], 'bronze');
   const iron = surface([0.62, 0.63, 0.62, 1], 'iron');

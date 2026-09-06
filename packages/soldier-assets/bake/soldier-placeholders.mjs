@@ -6,6 +6,9 @@ import { bakeRig, mat4FromTRS } from './vat.mjs';
 import { createPlaceholderSoldierMeshTiers, PLACEHOLDER_MATERIALS } from '../src/soldierMesh.ts';
 import { encodeSoldierMesh } from '../src/appearanceBundle.ts';
 import { deriveAnimatedBounds } from './animated-bounds.mjs';
+import { APPEARANCE_DESCRIPTORS } from '../src/appearance.ts';
+import { assertAppearancePresentation, ACTION_ROLES } from '../src/presentation.ts';
+import { assertPresentationMotion } from './presentation.mjs';
 
 const ASSET_ROOTS = [new URL('../assets/', import.meta.url), new URL('../../../web/public/assets/soldiers/', import.meta.url)];
 const FPS = 12;
@@ -79,31 +82,25 @@ export function placeholderRig() {
     },
     { name: 'at_ease', duration: 1, tracks: { 3: { R: channel([0, 1], [qx(-0.1), qx(-0.1)]) }, 4: { R: channel([0, 1], [qx(-0.1), qx(-0.1)]) } } },
   ];
+  // Distinct diagnostic actions, not accepted character motion.
+  clips.push(
+    { name: 'bow_release', duration: 0.75, markers: { release: 0.55 / 0.75 }, tracks: {
+      3: { R: channel([0, 0.55, 0.75], [qx(-0.85), qx(-0.85), qx(-0.6)]) },
+      4: { R: channel([0, 0.55, 0.65, 0.75], [qx(-0.4), qx(1.05), qx(0.3), qx(-0.4)]) },
+    } },
+    { name: 'throw_release', duration: 0.7, markers: { release: 0.4 / 0.7 }, tracks: {
+      1: { R: channel([0, 0.4, 0.7], [qz(-0.2), qz(0.25), qz(0)]) },
+      4: { R: channel([0, 0.3, 0.4, 0.7], [qx(-1.2), qx(-1.4), qx(0.8), qx(0)]) },
+    } },
+    { name: 'crew_release', duration: 0.8, markers: { release: 0.5 }, tracks: {
+      1: { R: channel([0, 0.4, 0.8], [qx(0.15), qx(-0.18), qx(0.05)]) },
+      3: { R: channel([0, 0.4, 0.8], [qx(-0.6), qx(0.2), qx(-0.3)]) },
+      4: { R: channel([0, 0.4, 0.8], [qx(-0.6), qx(0.2), qx(-0.3)]) },
+    } },
+  );
   return { bones, clips: clips.map((clip) => ({ ...clip, loop: ['idle', 'march', 'run', 'at_ease'].includes(clip.name) })) };
 }
 
-const ARCHETYPES = {
-  0: { name: 'heavy-sword', mounted: false },
-  1: { name: 'light-spear', mounted: false },
-  2: { name: 'longsword', mounted: false },
-  3: { name: 'phalanx', mounted: false },
-  4: { name: 'archers', mounted: false },
-  5: { name: 'skirmishers', mounted: false },
-  6: { name: 'shock-cav', mounted: true },
-  7: { name: 'horse-archers', mounted: true },
-  8: { name: 'artillery-crew', mounted: false },
-  9: { name: 'peasant', mounted: false },
-  10: { name: 'light-sword', mounted: false },
-  11: { name: 'heavy-spear', mounted: false },
-  12: { name: 'medium-infantry', mounted: false },
-  13: { name: 'medium-spear', mounted: false },
-  14: { name: 'medium-phalanx', mounted: false },
-  15: { name: 'shock-cav-sidearm', mounted: true },
-  16: { name: 'heavy-phalanx-rest', mounted: false },
-  17: { name: 'medium-phalanx-rest', mounted: false },
-  18: { name: 'heavy-phalanx-sidearm', mounted: false },
-  19: { name: 'medium-phalanx-sidearm', mounted: false },
-};
 
 function hashFloats(data) {
   return createHash('sha256').update(Buffer.from(data.buffer, data.byteOffset, data.byteLength)).digest('hex');
@@ -122,7 +119,7 @@ function completeBundleFiles(rig, animation) {
   };
   const appearances = {};
   const meshes = createPlaceholderSoldierMeshTiers();
-  for (const [id, archetype] of Object.entries(ARCHETYPES)) {
+  for (const [id, archetype] of Object.entries(APPEARANCE_DESCRIPTORS)) {
     const path = `appearances/${archetype.name}`;
     const tiers = meshes[Number(id)];
     const tierPaths = tiers.map((mesh, lod) => {
@@ -132,7 +129,7 @@ function completeBundleFiles(rig, animation) {
     });
     appearances[id] = `${path}/appearance.json`;
     files[appearances[id]] = {
-      name: archetype.name, mounted: archetype.mounted,
+      name: archetype.name, mounted: archetype.look.mounted, presentation: archetype.presentation,
       skeleton: '../../baked/human-placeholder.skeleton.json',
       animation: '../../baked/human-placeholder.vat.json',
       materials: '../../baked/placeholder.materials.json',
@@ -141,8 +138,29 @@ function completeBundleFiles(rig, animation) {
       far: { mesh: tierPaths[0], clip: 'idle', phase: 0 },
       bounds: deriveAnimatedBounds(tiers, animation, PLACEHOLDER_MATERIALS),
     };
+    assertAppearancePresentation(archetype.presentation, rig, animation, archetype.look.mounted);
+    assertPresentationMotion(archetype.presentation, animation, rig);
   }
   files['catalog.json'] = { appearances };
+  files['review-matrix.json'] = {
+    acceptanceLedger: 'specs/battle-model-quality/README.md',
+    source: {
+      geometry: 'packages/soldier-assets/src/soldierMesh.ts',
+      rigAndClips: 'packages/soldier-assets/bake/soldier-placeholders.mjs',
+    },
+    appearances: Object.fromEntries(Object.entries(appearances).map(([id, path]) => {
+      const manifest = files[path];
+      return [id, {
+        name: manifest.name, bundle: path, selection: APPEARANCE_DESCRIPTORS[id].selection,
+        riderUpperBodyJoints: manifest.presentation.riderUpperBodyJoints,
+        actions: Object.fromEntries(ACTION_ROLES.map(role => {
+          const binding = manifest.presentation.actions[role];
+          const clip = binding && animation.clips.find(clip => clip.name === binding.clip);
+          return [role, binding ? { ...binding, duration: clip.duration, loop: clip.loop, ...(clip.markers ? { markers: clip.markers } : {}) } : null];
+        })),
+      }];
+    })),
+  };
   return files;
 }
 
@@ -172,7 +190,7 @@ export async function bakePlaceholder({ write = true } = {}) {
       }
     }
   }
-  return { out, archetypes: ARCHETYPES, files };
+  return { out, descriptors: APPEARANCE_DESCRIPTORS, files };
 }
 
 if (process.argv[1] && import.meta.url === new URL(process.argv[1], 'file:').href) {

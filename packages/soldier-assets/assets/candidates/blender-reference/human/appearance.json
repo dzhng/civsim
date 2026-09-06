@@ -1,6 +1,7 @@
 {
   "name": "human-diagnostic",
   "mounted": false,
+  "presentation": null,
   "skeleton": "skeleton.json",
   "animation": "animation.json",
   "materials": "materials.json",

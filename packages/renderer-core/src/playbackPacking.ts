@@ -38,11 +38,14 @@ export class PlaybackPacker {
 
   /** Accessors read stable submitted values, never advance playback. A new plan supersedes
    * any unsubmitted plan, invalidating its possible overwrites. Mask offsets are absolute
-   * words in the kernel's static appearance mask table, read only for an active overlay. */
+   * words in the kernel's static appearance mask table, read only for an active overlay.
+   * Optional control storage belongs to the caller; its active prefix is overwritten,
+   * and must stay unchanged until the prepared frame has been submitted or discarded. */
   prepare(
     count: number,
     playbackAt: (index: number) => SoldierPlayback | ClipSample,
     upperMaskOffsetAt: (index: number) => number,
+    controlStorage?: Uint32Array,
   ): PreparedPlayback {
     if (!Number.isSafeInteger(count) || count < 0)
       throw new Error("playback count must be a nonnegative safe integer");
@@ -74,8 +77,12 @@ export class PlaybackPacker {
         occupied.add(slot);
         uploads.push({ slot, data: packLocalPose(source) });
       }
-    const controls = new Uint32Array(count * PLAYBACK_WORDS);
-    const floats = new Float32Array(controls.buffer);
+    const words = count * PLAYBACK_WORDS;
+    if (controlStorage && controlStorage.length < words)
+      throw new Error("playback control storage is too small");
+    const controls = controlStorage ? controlStorage.subarray(0, words) : new Uint32Array(words);
+    if (controlStorage) controls.fill(0);
+    const floats = new Float32Array(controls.buffer, controls.byteOffset, controls.length);
     const clip = (sample: ClipSample, offset: number) => {
       const resolved = resolveLocalSample(this.animation, sample.clip, sample.phase);
       controls[offset] = resolved.sampleA;

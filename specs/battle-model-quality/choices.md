@@ -2,6 +2,25 @@
 
 ## Sound — high confidence
 
+### Keep packing scratch separate from resident controls (07)
+
+When the production renderer submits another crowd frame, it reuses one CPU
+array for the packed animation instructions. The array grows to the largest
+worklist seen by that palette and is released on disposal. A 30,000-instance
+worklist retains 2.4 MB instead of allocating that amount again each upload.
+Every active word is cleared before packing so a soldier losing an upper-body
+action cannot inherit stale instructions from the previous frame.
+
+The plan required bounded costs but did not choose CPU storage ownership.
+Writing straight into the resident attribute would save a copy while exposing
+partial packing failures to resident CPU data. This choice keeps a separate
+preparation array and the existing copy. The shared packer accepts explicit
+caller storage; callers that retain independent prepared frames still allocate
+their own. Future reuse callers must finish submitting or discarding a frame
+before overwriting its storage. **Sound, high confidence:** bounded retained
+memory removes repeated backing allocations without changing pose math or
+snapshot transactions. A frame-time gain still requires measurement.
+
 ### Observe state once and construct playback only when sampled (07)
 
 When a simulation tick arrives, the action controller records what each soldier

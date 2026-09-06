@@ -52,6 +52,10 @@ passes the foot transition workload and strict temporal regression. Mounted
 baseline, detail brackets and display-resolution acceptance remain open.
 No budget limit may be assigned from the median alone.
 
+The [reusable control packing candidate](../assets/evidence/07/control-storage.md)
+removes repeated CPU backing-array allocation with exact transport tests;
+hardware and browser acceptance remain required before crediting a speedup.
+
 1. Frame probe and allocation observer: unit-tested lifecycle, then actual
    hardware coverage. The [first smoke](../assets/evidence/07/timestamp-smoke-red.json)
    rejected every empty-pass timestamp. A one-invocation no-op dispatch prevents

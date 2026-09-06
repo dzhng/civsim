@@ -84,6 +84,7 @@ export class SoldierPosePalette {
   private readonly staticAttributes: THREE.StorageBufferAttribute[];
   private readonly count = uniform(0, "uint");
   private dynamic?: DynamicPalette;
+  private controlStorage = new Uint32Array(0);
   private uploadedBytes = 0;
   private snapshotUploadedBytes = 0;
   private snapshotSlotHighWater = 0;
@@ -245,7 +246,11 @@ export class SoldierPosePalette {
     this.visible = count;
     this.uploadedBytes = 0;
     this.snapshotUploadedBytes = 0;
-    let prepared = this.packer.prepare(count, playbackAt, maskAt);
+    // Keep preparation separate from resident attributes until it succeeds.
+    // Storage grows with the largest submitted worklist, never animation history.
+    if (this.controlStorage.length < count * PLAYBACK_WORDS)
+      this.controlStorage = new Uint32Array(count * PLAYBACK_WORDS);
+    let prepared = this.packer.prepare(count, playbackAt, maskAt, this.controlStorage);
     if (count === 0) {
       this.packer.commitPrepared(prepared);
       return;
@@ -282,7 +287,7 @@ export class SoldierPosePalette {
       // A new snapshot allocation has no resident immutable sources, even when
       // only the instance output capacity caused this coherent generation change.
       this.packer.reset();
-      prepared = this.packer.prepare(count, playbackAt, maskAt);
+      prepared = this.packer.prepare(count, playbackAt, maskAt, this.controlStorage);
       try {
         rebind(next.columns);
       } catch (error) {
@@ -355,5 +360,6 @@ export class SoldierPosePalette {
       ...(dynamic ? [dynamic.controls, dynamic.snapshots, dynamic.output] : []),
     ]);
     this.packer.reset();
+    this.controlStorage = new Uint32Array(0);
   }
 }

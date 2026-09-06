@@ -92,6 +92,43 @@ const playback = (locals: readonly number[]): SoldierPlayback => ({
   },
 });
 
+test("caller-owned control storage preserves exact words across mounted exit, shrink and retry", () => {
+  const animation = bakeLocalAnimation(rig);
+  const packer = new PlaybackPacker(rig, animation);
+  const backing = new Uint32Array(4 * packing.PLAYBACK_WORDS);
+  backing.fill(0xdeadbeef);
+  const target = backing.subarray(packing.PLAYBACK_WORDS, 3 * packing.PLAYBACK_WORDS);
+  const mounted = playback(frozen(10));
+  mounted.riderUpperBody = {
+    source: { kind: "frozen", locals: frozen(20) },
+    destination: { kind: "base" },
+    weight: 1 / 3,
+  };
+  for (const values of [
+    [mounted, playback(frozen(30))],
+    [{ clip: "move", phase: 0.125 }],
+    [mounted],
+  ]) {
+    const expected = new PlaybackPacker(rig, animation).prepare(
+      values.length,
+      (i) => values[i],
+      () => 0xf1234567,
+    );
+    const actual = packer.prepare(
+      values.length,
+      (i) => values[i],
+      () => 0xf1234567,
+      target,
+    );
+    assert.equal(actual.controls.buffer, backing.buffer);
+    assert.equal(actual.controls.byteOffset, target.byteOffset);
+    assert.deepEqual(actual.controls, expected.controls);
+    assert.equal(backing[0], 0xdeadbeef);
+    assert.equal(backing[3 * packing.PLAYBACK_WORDS], 0xdeadbeef);
+    packer.discardPrepared(actual);
+  }
+});
+
 test("unsubmitted preparation does not suppress required snapshot uploads on retry", () => {
   const packer = new PlaybackPacker(rig, bakeLocalAnimation(rig)),
     locals = frozen(3),

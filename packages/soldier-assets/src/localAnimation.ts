@@ -102,18 +102,19 @@ export function decodeLocalAnimation(value: unknown): LocalAnimation {
     asset.stepMasks.length !== masks
   )
     fail();
-  for (let offset = 0; offset < asset.data.length; offset += LOCAL_ANIMATION_FLOATS_PER_JOINT) {
+  const data = Float32Array.from(asset.data);
+  for (let offset = 0; offset < data.length; offset += LOCAL_ANIMATION_FLOATS_PER_JOINT) {
     if (
       asset.data[offset + 3] !== 0 ||
       asset.data[offset + 11] !== 0 ||
-      !isAdmittedLocalQuaternion(asset.data, offset + 4)
+      !isAdmittedLocalQuaternion(data, offset + 4)
     )
       fail();
   }
   return {
     bones: asset.bones,
     clips: asset.clips,
-    data: Float32Array.from(asset.data),
+    data,
     stepMasks: Uint32Array.from(asset.stepMasks),
   };
 }
@@ -139,6 +140,9 @@ export function packLocalPose(locals: LocalPose | readonly number[]): Float32Arr
     }
     for (let component = 0; component < 4; component++)
       data[output + 4 + component] = locals[input + 3 + component];
+    // Float32 rounding can move an admitted source quaternion outside the GPU envelope.
+    if (!isAdmittedLocalQuaternion(data, output + 4))
+      throw new Error(`local joint ${joint} requires a near-unit quaternion in Float32`);
   }
   if (data.some((value) => !Number.isFinite(value)))
     throw new Error("local animation values must be finite in Float32");

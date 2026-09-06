@@ -66,8 +66,8 @@ test("indexed manual samples retain endpoint semantics without timeline or snaps
   assert.equal(decodeRecord(animation, frame.controls, new Map(), [], 1)[0], 2);
 });
 
-test("direct immutable and Float64 locals produce identical packed bytes with unchanged admission", () => {
-  const immutable = Object.freeze([-0, 1 / 3, -2, 0.1, 0.2, 0.3, 0.9, 2, 3, 4]);
+test("direct immutable and Float64 locals produce identical packed bytes with valid rotations", () => {
+  const immutable = Object.freeze([-0, 1 / 3, -2, 0.1, 0.2, 0.3, Math.sqrt(0.86), 2, 3, 4]);
   const typed: LocalPose = Float64Array.from(immutable);
   assert.deepEqual(
     Buffer.from(packLocalPose(immutable).buffer),
@@ -77,6 +77,10 @@ test("direct immutable and Float64 locals produce identical packed bytes with un
   assert.throws(
     () => packLocalPose(Object.freeze([1e300, ...immutable.slice(1)])),
     /finite in Float32/,
+  );
+  assert.throws(
+    () => packLocalPose(Object.freeze([-0, 1 / 3, -2, 0, 0, 0, 1.0001, 2, 3, 4])),
+    /near-unit quaternion.*Float32/,
   );
 });
 const playback = (locals: readonly number[]): SoldierPlayback => ({

@@ -69,6 +69,33 @@ assert.throws(
 const badQuaternion = structuredClone(rig);
 badQuaternion.bones[0].bind.R = [0, 0, 0, 1e-30];
 assert.throws(() => bakeLocalAnimation(badQuaternion), /near-unit quaternion/);
+const packingBorder = {
+  bones: [{ ...bone, bind: { ...bone.bind, R: [0, 0, 0, 1.0001] } }],
+  clips: [{ name: "idle", duration: 1, tracks: {} }],
+};
+assert.throws(
+  () => bakeLocalAnimation(packingBorder),
+  /near-unit quaternion.*Float32/,
+  "source-admitted quaternion must not bake to decoder-rejected Float32 data",
+);
+packingBorder.bones[0].bind.R[3] = 1.0000999;
+const admittedBorder = bakeLocalAnimation(packingBorder);
+assert.equal(admittedBorder.data[7], Math.fround(1.0000999), "packing does not normalize");
+assert.deepEqual(decodeLocalAnimation(encodeLocalAnimation(admittedBorder)), admittedBorder);
+const jsonBorder = encodeLocalAnimation(admittedBorder);
+jsonBorder.data[7] = 1.0001;
+assert.throws(() => decodeLocalAnimation(jsonBorder), /invalid samples or metadata/);
+jsonBorder.data[7] = 1.0000999;
+assert.deepEqual(decodeLocalAnimation(jsonBorder), admittedBorder);
+const borderLocals = sampleRigLocalPoseSeconds(packingBorder, "idle", 0);
+assert.deepEqual(packLocalPose(borderLocals), packLocalPose(Object.freeze(Array.from(borderLocals))));
+borderLocals[6] = 1.0001;
+for (const locals of [borderLocals, Object.freeze(Array.from(borderLocals))])
+  assert.throws(
+    () => packLocalPose(locals),
+    /near-unit quaternion.*Float32/,
+    "authored and immutable snapshot packing share the same admission",
+  );
 for (const [phase, y] of [
   [0.371 - 1e-10, 0],
   [0.371, 2],

@@ -93,6 +93,7 @@ export function sampleChannel(ch, t, kind) {
   if (t >= times[n - 1]) return at(n - 1);
   let i = 0;
   while (i < n - 1 && times[i + 1] < t) i++;
+  if (ch.interpolation === 'STEP') return at(times[i + 1] === t ? i + 1 : i);
   const u = (t - times[i]) / (times[i + 1] - times[i] || 1);
   return kind === 'quat' ? quatSlerp(at(i), at(i + 1), u) : vec3Lerp(at(i), at(i + 1), u);
 }

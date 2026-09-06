@@ -1,0 +1,227 @@
+// @vitest-environment node
+import assert from "node:assert/strict";
+import { test } from "vitest";
+import {
+  ActionTimeline,
+  evaluatePlaybackPose,
+  type ActionObservation,
+  type SoldierPlayback,
+} from "@packages/crowd-runtime/src/actionTimeline";
+import {
+  blendLocalPoses,
+  localPoseToJointMatrices,
+  mat4Identity,
+  sampleRigLocalPose,
+  transformPoint,
+  type LocalPose,
+} from "@packages/soldier-assets/src/localPose";
+import type { ImportedRig } from "@packages/soldier-assets/src/rig";
+import type { AppearancePresentation } from "@packages/soldier-assets/src/presentation";
+import type { VatClip } from "@packages/soldier-assets/src/schema";
+
+const clips: VatClip[] = ["ready", "walk", "run", "release", "hit", "death"].map((name, index) => ({
+  name,
+  start: index * 25,
+  frames: 25,
+  duration: 1,
+  loop: index < 3,
+  ...(name === "release" ? { markers: { release: 0.2 } } : {}),
+}));
+const rig: ImportedRig = {
+  bones: ["horse", "pelvis", "upper"].map((name, joint) => ({
+    name,
+    parent: joint - 1,
+    inverseBind: mat4Identity(),
+    bind: { T: [0, 0, joint], R: [0, 0, 0, 1], S: [1, 1, 1] },
+  })),
+  clips: clips.map((clip, index) => ({
+    ...clip,
+    tracks: Object.fromEntries(
+      [0, 1, 2].map((joint) => {
+        const angle = 0.13 * (index + 1) * (joint + 1);
+        return [
+          joint,
+          {
+            T: {
+              times: [0, 1],
+              values: [index + joint, joint * 0.3, 1, index + joint + 0.7, joint * 0.3 + 0.4, 1.2],
+            },
+            R: {
+              times: [0, 1],
+              values: [
+                0,
+                0,
+                Math.sin(angle / 2),
+                Math.cos(angle / 2),
+                0,
+                0,
+                Math.sin((angle + 0.5) / 2),
+                Math.cos((angle + 0.5) / 2),
+              ],
+            },
+          },
+        ];
+      }),
+    ),
+  })),
+};
+const presentation: AppearancePresentation = {
+  riderUpperBodyJoints: ["upper"],
+  actions: {
+    ready: { clip: "ready", layer: "fullBody" },
+    atEase: { clip: "ready", layer: "fullBody" },
+    walk: { clip: "walk", layer: "fullBody" },
+    run: { clip: "run", layer: "fullBody" },
+    release: { clip: "release", layer: "riderUpperBody" },
+    melee: null,
+    hit: { clip: "hit", layer: "fullBody" },
+    death: { clip: "death", layer: "fullBody" },
+    pikeReady: null,
+  },
+};
+const appearance = { manifest: { presentation }, animation: { clips }, rig };
+const observation = (changes: Partial<ActionObservation> = {}): ActionObservation => ({
+  appearanceId: 0,
+  alive: true,
+  health: 100,
+  mountHealth: 100,
+  speedMps: 1,
+  running: false,
+  atEase: false,
+  pikeReady: false,
+  fighting: false,
+  releaseTtl: 0,
+  ...changes,
+});
+const pose = (sample: SoldierPlayback) => evaluatePlaybackPose(appearance, sample);
+function close(
+  actual: ArrayLike<number>,
+  expected: ArrayLike<number>,
+  label: string,
+  tolerance = 1e-10,
+) {
+  assert.equal(actual.length, expected.length);
+  for (let i = 0; i < actual.length; i++)
+    assert.ok(
+      Math.abs(actual[i] - expected[i]) <= tolerance,
+      `${label}[${i}]: ${actual[i]} != ${expected[i]}`,
+    );
+}
+function continuous(actual: LocalPose, expected: LocalPose) {
+  close(actual, expected, "local TRS");
+  const a = localPoseToJointMatrices(rig, actual),
+    b = localPoseToJointMatrices(rig, expected);
+  // An asymmetric triangle per joint exposes rotation as well as joint-origin translation.
+  for (let joint = 0; joint < 3; joint++)
+    for (const vertex of [
+      [0, 0, 0],
+      [0.3, 0.1, 0],
+      [0, 0.2, 0.4],
+    ])
+      close(
+        transformPoint(a.subarray(joint * 16, joint * 16 + 16), vertex),
+        transformPoint(b.subarray(joint * 16, joint * 16 + 16), vertex),
+        `joint ${joint} vertex`,
+        1e-6,
+      );
+}
+function moving() {
+  const timeline = new ActionTimeline({ 0: appearance });
+  timeline.update(0, [observation()]);
+  timeline.update(3, [observation({ running: true })]);
+  return timeline;
+}
+
+test("mounted overlay enters from the displayed pose during a base crossfade", () => {
+  const timeline = moving();
+  const live = timeline.sample(4)[0];
+  assert.ok(live.base.weight > 0 && live.base.weight < 1, "base must be crossfading");
+  const before = pose(live);
+  const after = pose(timeline.update(4, [observation({ running: true, releaseTtl: 0.5 })])[0]);
+  continuous(after, before);
+  const later = timeline.sample(6)[0];
+  close(
+    pose(later).subarray(0, 20),
+    pose({ ...later, riderUpperBody: undefined }).subarray(0, 20),
+    "horse/pelvis retain gait",
+  );
+});
+
+test("mounted release restarts continuously before and after blend midpoint", () => {
+  const timeline = moving();
+  timeline.update(4, [observation({ running: true, releaseTtl: 0.5 })]);
+  for (const tick of [5, 8]) {
+    const before = pose(timeline.sample(tick)[0]);
+    const after = pose(timeline.update(tick, [observation({ running: true, releaseTtl: 0.5 })])[0]);
+    continuous(after, before);
+  }
+});
+
+test("overlay exit converges toward evaluated advancing base, not its destination clip", () => {
+  const timeline = moving();
+  timeline.update(4, [observation({ running: true, releaseTtl: 0.5 })]);
+  timeline.update(27, [observation()]);
+  const before = pose(timeline.sample(29)[0]);
+  continuous(pose(timeline.update(29, [observation()])[0]), before);
+  const exiting = timeline.update(30, [observation()])[0];
+  const base = pose({ ...exiting, riderUpperBody: undefined });
+  const destination = sampleRigLocalPose(
+    rig,
+    exiting.base.destination.clip,
+    exiting.base.destination.phase,
+  );
+  assert.ok(
+    Math.abs(base[20] - destination[20]) > 0.05,
+    "fixture must still be crossfading the base",
+  );
+  assert.ok(exiting.riderUpperBody, "overlay must be fading out");
+  const expectedUpper = blendLocalPoses(before, base, exiting.riderUpperBody.weight);
+  const expected = base.slice();
+  expected.set(expectedUpper.subarray(20, 30), 20);
+  continuous(pose(exiting), expected);
+  const finished = timeline.update(36, [observation()])[0];
+  continuous(pose(finished), pose({ ...finished, riderUpperBody: undefined }));
+  assert.equal(finished.riderUpperBody, undefined, "completed overlay must be released");
+});
+
+test("mounted death captures the full composed pose during simultaneous base and rider blends", () => {
+  const timeline = moving();
+  timeline.update(4, [observation({ running: true, releaseTtl: 0.5 })]);
+  const live = timeline.sample(6)[0];
+  assert.ok(live.base.weight > 0 && live.base.weight < 1, "base must be crossfading");
+  const before = pose(live);
+  assert.ok(Math.abs(before[20] - pose({ ...live, riderUpperBody: undefined })[20]) > 0.1);
+  continuous(pose(timeline.update(6, [observation({ alive: false })])[0]), before);
+  const terminal = pose(timeline.sample(60)[0]);
+  continuous(terminal, sampleRigLocalPose(rig, "death", 1));
+  continuous(pose(timeline.sample(90)[0]), terminal);
+});
+
+test("paused mounted playback sampling is deterministic and does not mutate retained poses", () => {
+  const timeline = moving();
+  timeline.update(4, [observation({ running: true, releaseTtl: 0.5 })]);
+  const retained = timeline.sample(5)[0];
+  const expected = pose(retained);
+  const paused = pose(timeline.sample(4)[0]);
+  for (let repeat = 0; repeat < 5; repeat++) {
+    continuous(pose(timeline.sample(5)[0]), expected);
+    continuous(pose(timeline.update(4, [observation({ alive: false })])[0]), paused);
+  }
+  timeline.update(6, [observation({ running: true, releaseTtl: 0.5 })]);
+  continuous(pose(retained), expected);
+});
+
+test("mounted injury interrupts the composed pose and returns continuously to gait", () => {
+  const timeline = moving();
+  timeline.update(4, [observation({ running: true, releaseTtl: 0.5 })]);
+  const live = timeline.sample(6)[0];
+  assert.ok(live.base.weight > 0 && live.base.weight < 1);
+  const injured = observation({ running: true, health: 90 });
+  const hit = timeline.update(6, [injured])[0];
+  continuous(pose(hit), pose(live));
+  assert.equal(hit.riderUpperBody, undefined);
+  const beforeRecovery = pose(timeline.sample(37)[0]);
+  continuous(pose(timeline.update(37, [injured])[0]), beforeRecovery);
+  const recovered = timeline.update(45, [injured])[0];
+  continuous(pose(recovered), sampleRigLocalPose(rig, "run", recovered.base.destination.phase));
+});

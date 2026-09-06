@@ -121,6 +121,7 @@ export class PhotorealBattleWorld {
   private mountedClasses: number[];
   private readonly sea: ReturnType<typeof createSeaDisplacementSource>;
   private readonly post: BattlePostChain;
+  private disposed = false;
 
   private lakeSurfaces: BattleLakeSurfaceSpec[] = [];
 
@@ -278,7 +279,9 @@ export class PhotorealBattleWorld {
 
   /** Reload the production bundle after a local bake, retaining the last good crowd on load failure. */
   async reloadSoldierAssets(activePose?: Pick<CrowdInstance, "classId" | "clip">): Promise<void> {
+    this.assertReloadable();
     const assets = await loadAppearanceCatalog(this.soldierCatalogUrl);
+    this.assertReloadable();
     const assertActivePose = () => {
       if (
         activePose &&
@@ -293,6 +296,7 @@ export class PhotorealBattleWorld {
     assertCrowdClipCoverage(assets, this.requiredSoldierClips);
     const replacement = await PhotorealCrowd.create(this.world.renderer, this.world.scene, assets);
     try {
+      this.assertReloadable();
       // The author may select another valid old pose while GPU admission waits.
       assertActivePose();
     } catch (error) {
@@ -305,6 +309,10 @@ export class PhotorealBattleWorld {
     this.mountedClasses = Object.entries(assets)
       .filter(([, bundle]) => bundle.manifest.mounted)
       .map(([id]) => Number(id));
+  }
+
+  private assertReloadable(): void {
+    if (this.disposed) throw new Error("Cannot reload soldiers into a disposed battle world");
   }
 
   setBloomEnabled(on: boolean): void {
@@ -658,6 +666,8 @@ export class PhotorealBattleWorld {
   }
 
   dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true;
     this.post.dispose();
     this.background.dispose();
     this.terrainSurface.dispose();

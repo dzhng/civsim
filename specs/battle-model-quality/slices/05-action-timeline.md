@@ -12,11 +12,11 @@ Names of new functions/routes in this plan are proposed, not existing commands. 
 
 ### Execution rows
 
-| Row | Seam and focused proof |
-| --- | --- |
-| 05a — Injury observations — COMPLETE | Existing soldier/mount health is exposed through read-only WASM pointers and the production battle-view owner. [Merged verification](../assets/evidence/05/injury-merged-verification.md) pins values and view refresh without changing combat. |
-| 05b — Applicability and timeline | Generate the appearance role/state matrix from the canonical catalog and implement deterministic per-soldier action history, including resets, count growth and terminal death. |
-| 05c — Production replay | Adapt actual battle observations and replay action sequences through the production workbench. Remove fabricated hit poses and global-time action wrapping; prove reset/pause/event behavior and inspect the timeline. |
+| Row                                  | Seam and focused proof                                                                                                                                                                                                                                                              |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 05a — Injury observations — COMPLETE | Existing soldier/mount health is exposed through read-only WASM pointers and the production battle-view owner. [Merged verification](../assets/evidence/05/injury-merged-verification.md) pins values and view refresh without changing combat.                                     |
+| 05b — Applicability and timeline     | Generate the appearance role/state matrix from the canonical catalog. Promote the existing local-transform CPU sampler to a shared owner, then implement deterministic per-soldier history and exact interrupted-pose snapshots, including resets, count growth and terminal death. |
+| 05c — Production replay              | Adapt actual battle observations and replay action sequences through the production workbench. Remove fabricated hit poses and global-time action wrapping; prove reset/pause/event behavior and inspect the timeline.                                                              |
 
 `hit_ttl` is contact/facing memory, not an injury event: melee sets it before
 evade/block, missiles can set it before dodge, and its decay depends on facing
@@ -32,6 +32,25 @@ append during reinforcement. Count growth must preserve earlier histories; a
 new battle or explicit same-count identity reset clears them. The complete
 availability table and per-appearance applicability matrix belong to05b before
 controller acceptance.
+
+### Interrupted-pose prerequisite
+
+A source/destination clip pair cannot describe the exact pose produced by an
+interrupted crossfade. Choosing one endpoint causes a snap; keeping nested blend
+expressions grows without bound. Before accepting the timeline, freeze the actual
+evaluated local transforms at interruption into one source snapshot per active
+lane. The shared soldier-assets CPU sampler owns pose math; the controller owns
+snapshot lifetime. A full-body interruption freezes the composed mounted pose and
+clears the rider override. An upper-body exit converges to the currently evaluated
+base blend, not just its destination clip. Position/orientation continuity is the
+contract; matching angular velocity is not a new requirement.
+
+This promotes the already-used source sampler before06's GPU/data cutover, rather
+than accepting an approximation for the renderer to repair later. Preserve source
+STEP semantics and existing matrix-bake bytes during this promotion. Snapshot
+storage stays bounded and releases after transition completion.06 proves GPU
+equivalence;07 measures synchronized interruption bursts, snapshot allocation and
+upload cost alongside ordinary playback. No general animation graph is introduced.
 
 ## Runnable artifact
 
@@ -75,3 +94,10 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 - [ ] Review/cleanup completed; README pickup and decisions updated.
 
 05a landed in `f36211df`; its [observation limits and changed-test ledger](../assets/evidence/05/injury-observations.md) remain the controller's input contract. The merged WASM was rebuilt and independently verified. Only the numerical observation row is complete: no controller or visual acceptance has occurred. Continue 05b/05c and the infrastructure trunk through07 before detailed anatomy08.
+
+05b's [source applicability report](../assets/evidence/05/catalog-presentation.md)
+records canonical descriptors, clip-owned release markers, explicit manual-only
+candidates and the generated review matrix. Geometry, material bytes and all eight
+old clips remain unchanged; three distinct diagnostic release motions exercise
+selection without claiming final motion quality. The controller's interruption
+source still requires the local-pose prerequisite above before this row can close.

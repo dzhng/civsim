@@ -2,6 +2,15 @@
 
 ## Sound — medium confidence
 
+### Distinct diagnostic release motions exercise actual role selection (05b)
+
+A bow release, a throw and a crew release now select different small authored
+motions. These are timing fixtures, not accepted final animations. Reusing one
+shooting motion for every weapon would hide wrong selection. The plan required
+meaningful applicability but left these temporary keyframes open. **Sound, medium
+confidence:** the source contract is testable now; later motion slices still owe
+the full visual-quality verdict.
+
 ### One authored image set per appearance (slice04b)
 
 When one soldier has leather, cloth and metal parts, those parts can use different
@@ -95,6 +104,23 @@ When reviewing a hand grip or a foot, randomly placed grass and rocks can cover 
 The plan required production parity but did not specify review scenery. This choice constrains the workbench to asset inspection, not environment acceptance. **Sound:** it removes an occluder without changing how soldiers are shaded. Revisit if a future gate depends on soldier–foliage contact.
 
 ## Sound — high confidence
+
+### Rider action admission checks the joints the action actually controls (05b)
+
+A moving horse leg cannot make a motionless rider action qualify as animated.
+The source check samples local transforms within the declared rider mask, so
+inherited movement from a parent also cannot qualify. Checking all world matrices
+would accept movement discarded by playback. The plan required no-op rejection
+without specifying this check. **Sound:** admission follows the same local-motion
+ownership as the bounded rider override, without adding another animation graph.
+
+### Generate the applicability review matrix from the asset owner (05b)
+
+Changing a source binding regenerates its review row beside the catalog. The
+determinism check detects stale review data; the matrix links to the existing spec
+acceptance checklist and stores no separate progress state. The plan requested a
+matrix but did not specify its owner. **Sound:** review and runtime cannot acquire
+independent hand-maintained rosters.
 
 ### Isolate source transfer from unrelated presentation policies (slice04d)
 

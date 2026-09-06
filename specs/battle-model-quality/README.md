@@ -6,7 +6,7 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 
 Last updated **2026-09-06**. Status: **slices01–04 complete; slice05 in progress**.
 
-You are working in `/Users/david/dev/game-battle-model-quality`, branch `codex/battle-model-quality`. Continue [05 — Action observations and timeline](slices/05-action-timeline.md):05a's read-only injury observation seam is integrated at `f36211df`;05b applicability and deterministic per-soldier history are underway, not accepted. Finish05→07 infrastructure before detailed anatomy08. No user-only blocker.
+You are working in `/Users/david/dev/game-battle-model-quality`, branch `codex/battle-model-quality`. Continue [05 — Action observations and timeline](slices/05-action-timeline.md):05a is complete and05b's [canonical applicability data](assets/evidence/05/catalog-presentation.md) is integrated. The next prerequisite is the shared CPU local-pose evaluator, followed by exact interrupted-pose snapshots in the controller; endpoint substitution is rejected. The production observation/submission cutover proceeds independently. No controller or action-replay acceptance yet. Finish05→07 infrastructure before detailed anatomy08. No user-only blocker.
 
 [Material closure](assets/evidence/04/consumer-closure/review.md) links the scalar, texture and posed-normal evidence, the matched six-swatch source/production comparison, strict merged consumer/reload checks and applicable standing hardware gate. Material transfer is accepted; anatomy, surface styling, animation quality and final-distance readability are not. Filtered-normal boundary bands, far shadows and raw placeholder readability remain later-slice obligations. [Choices](choices.md) owns implementation decisions.
 

@@ -1,0 +1,79 @@
+(node:16642) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-six-swatch-source/packages/soldier-assets/src/soldierMesh.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-six-swatch-source/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS  battle-model-material-swatches: source GLB provenance matches Blender evidence  (a486e845b6f4a2fc64f38d6ee2cd76951fea0c0d9c3e6b2997c4c64858b60383)
+PASS  battle-model-material-swatches: textured/0/front: stock-loader geometry matches Blender  ({"checked":60,"maximumError":1.5143246557010267e-7})
+{"mode":"textured","phase":0,"view":"front","changed":0,"max":2}
+PASS  battle-model-material-swatches: textured/0/front: matched material pixels  ({"changed":0,"max":2})
+PASS  battle-model-material-swatches: textured/0/front/cloth: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/0/front/leather: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/0/front/mail: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/0/front/metal: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/0/front/skin: matched triangle interiors  (maximum=0)
+PASS  battle-model-material-swatches: textured/0/front/wood: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/0/oblique: stock-loader geometry matches Blender  ({"checked":60,"maximumError":1.5143246557010267e-7})
+{"mode":"textured","phase":0,"view":"oblique","changed":0,"max":2}
+PASS  battle-model-material-swatches: textured/0/oblique: matched material pixels  ({"changed":0,"max":2})
+PASS  battle-model-material-swatches: textured/0/oblique/cloth: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/0/oblique/leather: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/0/oblique/mail: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/0/oblique/metal: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/0/oblique/skin: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/0/oblique/wood: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/0.5/front: stock-loader geometry matches Blender  ({"checked":60,"maximumError":3.384654378544993e-7})
+{"mode":"textured","phase":0.5,"view":"front","changed":0,"max":1}
+PASS  battle-model-material-swatches: textured/0.5/front: matched material pixels  ({"changed":0,"max":1})
+PASS  battle-model-material-swatches: textured/0.5/front/cloth: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/0.5/front/leather: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/0.5/front/mail: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/0.5/front/metal: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/0.5/front/skin: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/0.5/front/wood: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/0.5/oblique: stock-loader geometry matches Blender  ({"checked":60,"maximumError":3.384654378544993e-7})
+{"mode":"textured","phase":0.5,"view":"oblique","changed":0,"max":1}
+PASS  battle-model-material-swatches: textured/0.5/oblique: matched material pixels  ({"changed":0,"max":1})
+PASS  battle-model-material-swatches: textured/0.5/oblique/cloth: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/0.5/oblique/leather: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/0.5/oblique/mail: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/0.5/oblique/metal: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/0.5/oblique/skin: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/0.5/oblique/wood: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/1/front: stock-loader geometry matches Blender  ({"checked":60,"maximumError":1.5143246556323027e-7})
+{"mode":"textured","phase":1,"view":"front","changed":0,"max":2}
+PASS  battle-model-material-swatches: textured/1/front: matched material pixels  ({"changed":0,"max":2})
+PASS  battle-model-material-swatches: textured/1/front/cloth: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/1/front/leather: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/1/front/mail: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/1/front/metal: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/1/front/skin: matched triangle interiors  (maximum=0)
+PASS  battle-model-material-swatches: textured/1/front/wood: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/1/oblique: stock-loader geometry matches Blender  ({"checked":60,"maximumError":1.5143246556323027e-7})
+{"mode":"textured","phase":1,"view":"oblique","changed":0,"max":2}
+PASS  battle-model-material-swatches: textured/1/oblique: matched material pixels  ({"changed":0,"max":2})
+PASS  battle-model-material-swatches: textured/1/oblique/cloth: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/1/oblique/leather: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/1/oblique/mail: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/1/oblique/metal: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/1/oblique/skin: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: textured/1/oblique/wood: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: scalar/0.5/front: stock-loader geometry matches Blender  ({"checked":60,"maximumError":3.384654378544993e-7})
+{"mode":"scalar","phase":0.5,"view":"front","changed":0,"max":1}
+PASS  battle-model-material-swatches: scalar/0.5/front: matched material pixels  ({"changed":0,"max":1})
+PASS  battle-model-material-swatches: scalar/0.5/front/cloth: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: cloth: authored images change production interiors
+PASS  battle-model-material-swatches: scalar/0.5/front/leather: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: leather: authored images change production interiors
+PASS  battle-model-material-swatches: scalar/0.5/front/mail: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: mail: authored images change production interiors
+PASS  battle-model-material-swatches: scalar/0.5/front/metal: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: metal: authored images change production interiors
+PASS  battle-model-material-swatches: scalar/0.5/front/skin: matched triangle interiors  (maximum=0)
+PASS  battle-model-material-swatches: skin: authored images change production interiors
+PASS  battle-model-material-swatches: scalar/0.5/front/wood: matched triangle interiors  (maximum=1)
+PASS  battle-model-material-swatches: wood: authored images change production interiors
+PASS  battle-model-material-swatches: original production image restored after oracle and scalar controls
+PASS  battle-model-material-swatches: snapshot battle/material-swatches/paired  (0 px differ (0.0000%))
+PASS  runner: no page errors
+
+ALL CHECKS PASSED

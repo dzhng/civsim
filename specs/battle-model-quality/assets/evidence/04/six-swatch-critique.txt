@@ -1,0 +1,10 @@
+Fresh Codex CLI image critique, read-only from /tmp, session 01a07569-b795-77a3-8d6a-0e02bb5871cc. Full paired sheet and enlarged bent crop supplied; no numerical result or desired winner supplied. Verbatim response follows:
+
+- **Paired match is close overall:** both columns preserve the same six-strip order, poses, silhouettes, and major highlight placement. Differences are mostly subtle color/value shifts rather than obvious transfer failure. **High confidence; all rows.**
+- **Warm strips vary most:** the first strip is slightly redder/brighter on the right, while the sixth shifts in amber/brown intensity, especially near its top. **Medium confidence; textured rows.**
+- **Strong horizontal shading band on strip 6:** a dark mid/lower band persists in both columns and remains visible in the scalar control, suggesting a geometry/lighting artifact rather than texture detail. **High confidence; phase 0.5 front and oblique, scalar phase 0.5.**
+- **Bent pose has an abrupt kink:** the phase 0.5 strips transition sharply between upper and lower segments instead of reading as smoothly curved surfaces. The enlarged crop also exposes stair-stepped side and bottom edges. **High confidence; phase 0.5 rows, clearest in enlarged oblique crop.**
+- **Surfaces read as thin, one-sided sheets:** bends reveal no convincing thickness, sidewalls, or underside/back faces; gaps show background directly. **High confidence; phase 0.5 oblique.**
+- **Dark materials lose separation:** strips 2–5 cluster into similar charcoal/navy values, although the blue strip’s vertical specular streak remains distinguishable. **High confidence; front views.**
+- **Scalar control has weak material readability:** most strips collapse toward pale gray-beige with limited contrast; only mild tint and the sixth-strip band separate them. **High confidence; bottom row.**
+- **No consequential clipping:** all diagnostic strips remain inside their panels, though bent tops sit close to and visually merge with the horizon line. Framing is otherwise consistent across the pair. **High confidence.**

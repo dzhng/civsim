@@ -25,9 +25,18 @@ averaged about9ms observation and11ms upload. This identifies useful CPU work to
 investigate, not the cost of this particular allocation. The lazy change adds a
 closure and removes eager blend/sample object construction on unchanged lanes;
 it does not skip35-bone pose evaluation that was never happening on that path.
-No profile or GPU run was performed for this change. The matched production
-budget rerun must establish any gain; the measurements below concern the earlier
-observation-only API change, not lazy capture.
+Root integration5a35fba9 passes47 focused tests, typecheck and the396 exact
+comparisons. The matched [before](combined-high-detail.json) and
+[after](combined-lazy-prior.json) hardware runs both fail the two interruption
+cadence gates; no reliable frame-time win is established. Observation-tick median
+improved from5.35→4.74ms(control) and5.31→4.31ms(timed), but observation p95 rose
+from10.66→11.20ms and10.53→11.23ms. Preparation/upload p95 also rose. These runs
+sample different numbers of simulation ticks, so they do not isolate this small
+allocation's cost. The next diagnostic is a bounded CPU sampling profile of the
+existing interruption window, including GC, to attribute `drawInstances` work.
+That phase includes world preparation, LOD/grouping and packing—not just GPU
+uploads. All33ms gates remain unchanged. The measurements below concern the
+earlier observation-only API change, not lazy capture.
 
 ## Verification
 

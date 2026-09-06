@@ -121,6 +121,13 @@ has one failure: class7/tick0's validated-palette versus CPU-preposed image diff
 by up to17 channel values over67,215 pixels. Other assertions pass. Diagnosis is
 open; no tolerance was relaxed and no live animated budget is accepted.
 
+After the isolated-reference history correctione28080af, the
+[root strict repeat](equal-history-temporal.json) passes, including matching
+main/shadow histograms, continuous snapshot inventory and the unchanged
+one-channel maximum palette-render tolerance. This resolves the unequal-fixture
+comparison, not a production animation defect. Live animated budget sweeps are
+still required; the standing and temporal results do not substitute for them.
+
 | Test | Previous behavior | New behavior | Why |
 | --- | --- | --- | --- |
 | `photorealCrowdLod`: coarsening | Focus distances0/30/150/420 with zoom12 produced tiers0/1/2/3. | Actual perspective at10/150/300/1000m produces tiers0/1/2/3; the visible150m mounted body exits L0 with previous L0. | The old test certified radial falloff rather than projection. **moved** |

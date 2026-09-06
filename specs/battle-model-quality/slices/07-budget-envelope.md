@@ -17,8 +17,9 @@ Names of new functions/routes in this plan are proposed, not existing commands. 
 ## Runnable artifact
 
 The [projected-detail correction](../assets/evidence/07/projected-lod.md) records
-the source checkpoint and numerical contracts; production visual and hardware
-acceptance remain required before freezing an art envelope.
+the integrated policy, visual review, strict temporal repeat and standing
+hardware checks. Live combined budgets remain red; this does not freeze an art
+envelope.
 
 Synthetic crowd sweeps with increasing vertices, bones, textures, crossfades and mounted masked composition; close, mid and vista camera fixtures.
 
@@ -36,10 +37,11 @@ the sampled frame loop or become a newer frame's result.
 Run from the feature worktree with `VERIFY_GPU=1 VERIFY_GPU_ADAPTER=hardware
 VERIFY_BROWSER_CHANNEL=chrome VERIFY_URL=http://127.0.0.1:5174
 node web/scene.mjs battle-model-budget`. The initial baseline uses existing
-foot assets and synchronized interruption bursts; it is not yet the synthetic
-detail sweep or a budget acceptance. Next integrate actual allocation tracking,
-measure mounted composition and one-variable detail sweeps, then freeze the
-measured envelope and bake checks before08. The standing benchmark remains
+foot assets and synchronized interruption bursts; it is not a budget acceptance.
+Actual allocation tracking and controlled mounted detail sweeps are implemented.
+Next resolve measured interruption-frame preparation cost, complete combined
+camera/display brackets, then freeze the measured envelope and bake checks
+before08 acceptance. The standing benchmark remains
 unchanged and separate.
 
 ### Current execution checkpoints
@@ -68,18 +70,18 @@ No budget limit may be assigned from the median alone.
    visual shape. The [synthetic fixture proof](../assets/evidence/07/synthetic-fixture.md)
    covers these controlled mutations. Such fixtures establish cost, not anatomy.
 
-### Measured blocker: projected-size correction before final limits
+### Integrated prerequisite: projected-size correction
 
 The [geometry bracket](../assets/evidence/07/mounted-geometry-red.json) fails
 cadence with2,304/576/144 triangles per tier, whereas the
 [35-bone bracket](../assets/evidence/07/mounted-bones.json) passes. The current
-shared LOD estimate uses zoom and radial distance, not perspective projection.
+former shared LOD estimate used zoom and radial distance, not perspective projection.
 At the recorded close camera, a mounted body150m ahead is estimated21.31px
 (L0), but the canonical camera projects its upright span to15.84px (L1, beyond
 hysteresis). The estimate also understates near bodies. Budgeting from it would
 confuse misallocated detail with the cost of a well-framed model.
 
-Insert a focused correction here: use actual projected reference-body size for
+The integrated correction uses actual projected reference-body size for
 production LOD, preserving thresholds, hysteresis, camera settings and simulation.
 Use a camera-facing span so overhead views do not collapse its height. Cover
 elevation, framebuffer scaling, near-plane intersections and shadow-only bodies;
@@ -95,9 +97,26 @@ instance's palette slot. No new shadow renderer, shader or light tuning is added
 Record and visually inspect this intentional shadow change.
 Keep one shared policy owner, not a budget-only override. Prove the old estimate
 wrong with projection tests, then run affected visual/LOD and standing30k gates
-before repeating budget brackets. This moves the policy prerequisite forward;
+before repeating budget brackets. These prerequisite checks now pass; recorded
+visual changes are not final-art approval. This moves the policy prerequisite forward;
 15 still owns authored mesh reductions, far appearance and visual continuity.
 Do not reduce final art quality to fit an uncorrected ruler.
+
+### Current red contract: interruption-frame CPU preparation
+
+The matched combined high-detail workload still fails both interruption cadence
+checks after the lazy prior-playback change; see
+[comparison](../assets/evidence/07/observation-only.md). Its median observation
+cost improved, but tails did not. A bounded CPU sampling
+[diagnostic](../assets/evidence/07/interruption-window-summary.json) attributes
+substantial preparation work to projected LOD and palette packing, with GC
+overlap. The profiler's startup delay makes it diagnostic, not acceptance timing.
+
+Two independent owner-local passes now inspect LOD planning and palette packing.
+Preserve exact selected levels, histories, packed values and replacement/resource
+lifetimes. Measure the combined result on the same uninstrumented workload;
+neither reduced allocation nor green unit tests prove a frame-time win. Camera
+and display-resolution brackets and executable asset limits remain required.
 
 ## Focused verdict
 
@@ -142,4 +161,5 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 - [ ] Comparison and final unprimed critique recorded.
 - [ ] Review/cleanup completed; README pickup and decisions updated.
 
-Record actual commands, evidence links, measured results, decisions and unresolved defects here during implementation. No implementation or visual acceptance has occurred yet.
+Implementation and diagnostic checks are in progress; no budget envelope has
+been accepted.

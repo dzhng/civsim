@@ -18,6 +18,7 @@ export class FrameBudgetProbe {
   private results: FrameBudgetResult[] = [];
   private lastFrame = -1;
   private disposed = false;
+  private readonly bracketPipeline: GPUComputePipeline;
 
   constructor(
     private readonly device: GPUDevice,
@@ -27,6 +28,17 @@ export class FrameBudgetProbe {
       throw new Error("Frame budget requires timestamp-query");
     if (!Number.isSafeInteger(capacity) || capacity < 1 || capacity > 64)
       throw new Error("Frame budget readback capacity must be 1–64");
+    this.bracketPipeline = device.createComputePipeline({
+      label: "budget-probe:bracket-pipeline",
+      layout: "auto",
+      compute: {
+        module: device.createShaderModule({
+          label: "budget-probe:bracket-shader",
+          code: "@compute @workgroup_size(1) fn main() {}",
+        }),
+        entryPoint: "main",
+      },
+    });
     // Track partial allocation too: failure must not orphan earlier resources.
     const allocated: { destroy(): void }[] = [];
     try {
@@ -94,14 +106,17 @@ export class FrameBudgetProbe {
 
   private bracket(slot: Slot, end: boolean): void {
     const encoder = this.device.createCommandEncoder({ label: "budget-probe:bracket" });
-    encoder
-      .beginComputePass({
-        timestampWrites: {
-          querySet: slot.queries,
-          ...(end ? { endOfPassWriteIndex: 1 } : { beginningOfPassWriteIndex: 0 }),
-        },
-      })
-      .end();
+    const pass = encoder.beginComputePass({
+      timestampWrites: {
+        querySet: slot.queries,
+        ...(end ? { endOfPassWriteIndex: 1 } : { beginningOfPassWriteIndex: 0 }),
+      },
+    });
+    // Metal elides empty passes, including their timestamp writes. One no-op
+    // invocation retains each bracket without touching any production resources.
+    pass.setPipeline(this.bracketPipeline);
+    pass.dispatchWorkgroups(1);
+    pass.end();
     if (end) {
       encoder.resolveQuerySet(slot.queries, 0, 2, slot.resolve, 0);
       encoder.copyBufferToBuffer(slot.resolve, 0, slot.readback, 0, 16);

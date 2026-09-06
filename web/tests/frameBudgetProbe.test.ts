@@ -13,6 +13,8 @@ function fakeDevice() {
   const submissions: unknown[] = [];
   const device = {
     features: new Set(["timestamp-query"]),
+    createShaderModule: vi.fn(),
+    createComputePipeline: vi.fn(),
     createQuerySet: () => {
       const query = { destroy: vi.fn() };
       resources.push(query);
@@ -42,7 +44,11 @@ function fakeDevice() {
       return buffer;
     },
     createCommandEncoder: () => ({
-      beginComputePass: (descriptor: unknown) => ({ end: () => submissions.push(descriptor) }),
+      beginComputePass: (descriptor: unknown) => ({
+        end: () => submissions.push(descriptor),
+        setPipeline: vi.fn(),
+        dispatchWorkgroups: vi.fn(),
+      }),
       resolveQuerySet: vi.fn(),
       copyBufferToBuffer: vi.fn(),
       finish: () => ({}),
@@ -188,5 +194,30 @@ test("both timestamp brackets surround the synchronous frame submission", async 
   ]);
   gpu.pending[0].resolve();
   await probe.drain();
+  probe.dispose();
+});
+
+test("a backend that elides empty passes still writes both frame timestamps", async () => {
+  const gpu = fakeDevice();
+  let dispatches = 0;
+  const encode = gpu.device.createCommandEncoder.bind(gpu.device);
+  gpu.device.createCommandEncoder = (descriptor) => {
+    const encoder = encode(descriptor);
+    const begin = encoder.beginComputePass.bind(encoder);
+    encoder.beginComputePass = (passDescriptor) => ({
+      ...begin(passDescriptor),
+      setPipeline: () => {},
+      dispatchWorkgroups: () => {
+        dispatches++;
+      },
+    });
+    return encoder;
+  };
+  const probe = new FrameBudgetProbe(gpu.device, 1);
+  probe.measure(0, () => {});
+  if (dispatches !== 2) gpu.pending[0].data.fill(0n);
+  gpu.pending[0].resolve();
+  await probe.drain();
+  expect(probe.takeResults()).toEqual([{ frameId: 0, status: "measured", gpuQueueMs: 2 }]);
   probe.dispose();
 });

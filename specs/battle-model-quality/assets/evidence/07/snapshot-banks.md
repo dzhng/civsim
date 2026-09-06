@@ -73,7 +73,10 @@ checks on the canonical SwiftShader route. All39 temporal images and the
 controller image have zero pixel differences; no image was re-blessed. Exact
 raw/Three palette comparisons, weighted geometry and resource lifecycle checks
 also pass. This establishes preserved playback transport, not final model
-quality or hardware timing. The standing hardware repeat remains required.
+quality or hardware timing. The unchanged
+[standing hardware repeat](snapshot-banks-standing.json) also passes, including
+continuous pan, zoom, wheel bursts and close grass-on fill. Neither standing
+success nor exact images waive the animated interruption cadence failure.
 
 The subsequent [hardware A/B/A repeat](snapshot-banks-aba.md) admits the exact
 60,000-source workload with banking, while both pre-change and post-change runs

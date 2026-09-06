@@ -46,6 +46,9 @@ Node from the repository root, followed by the summarizer. The scripts own the
 exact diagnostic configuration and output adjacent files. Reserve exclusive GPU
 access first. No further browser/GPU work was performed after this capture; the
 browser and owned server were closed and GPU ownership released.
+Integration review corrected the reproducer's fixed revision label: future
+captures record the actual checkout and modified source paths. The retained
+original report still describes its measured source; it was not rerun or edited.
 
 ## Measured owners
 

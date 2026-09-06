@@ -6,50 +6,36 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 
 Last updated **2026-09-07**. **01–06 complete;07 envelope open;08 candidate authoring in progress.**
 Worktree: `/Users/david/dev/game-battle-model-quality`, branch
-`codex/battle-model-quality`; exact frozen-source banks integrated throughf8a6b49c.
+`codex/battle-model-quality`. No art envelope or detailed model is accepted.
 
-Two independent lanes now proceed:
-- Author08's editable Blender human anatomy and deform rig as a **workbench
-  candidate only**. Untextured silhouette and deep-bend work do not depend on
-  mounted/texture budget maxima. Counts remain provisional until07's measured
-  envelope constrains accepted exported topology. No production promotion.
-- Finish07's combined asset/display budgets after the merged temporal,
-  visual and standing performance checks; repeat measured asset costs
-  and executable limits. No existing33ms gate changes and no failed result is
-  waived.07 remains required before08 acceptance, not before source authoring.
+Current pickup has two independent lanes:
+- **08 Blender authoring:** rounded lips are the retained source through6d0a69e0;
+  an eye-volume/lid trial is in progress. Inspect its production head-detail and
+  whole-body captures before retaining it. Facial form, shoulder/pectorals,
+  pelvis and grips remain open. Candidate counts are provisional; do not bless
+  the unaccepted anatomy baselines or promote the production catalog.
+- **07 animated budget:** a bounded profile identifies LOD preparation as a hot
+  owner. A reusable-result candidate is being developed independently; integrate
+  only after exact output/lifetime tests and unchanged hardware/image gates.
+  Then finish combined geometry, camera, physical-display, storage and executable
+  asset limits.07 is required before08 acceptance, not before source authoring.
 
-Current evidence:
-- [06 merged validation](assets/evidence/06/merged-validation.md) owns the
-  installed GPU playback and consumer proofs.
-- [07 projected detail](assets/evidence/07/projected-lod.md) records the rejected
-  far-view change in362cf738; separate main/shadow demands are integrated.
-- [Exact pose sharing](assets/evidence/07/frozen-capture.md) and
-  [observation-only updates](assets/evidence/07/observation-only.md) are installed.
-  Root61 focused tests and typecheck pass aftere82904c4. Standing30k passes;
-  [strict temporal repeat](assets/evidence/07/equal-history-temporal.json) passes
-  aftere28080af equalizes isolated reference LOD history. Live budgets remain open.
-  The merged control-storage/LOD cleanup passes67 focused tests and typecheck;
-  [matched high-detail close workload](assets/evidence/07/combined-control-lod.json)
-  now passes all30 checks. The merged
-  [palette/strict temporal repeat](assets/evidence/07/control-lod-accepted-repeat.json)
-  passes after explicit review of the separate caster's controller shadow.
-  [Merged exact-storage evidence](assets/evidence/07/snapshot-banks.md) now
-  admits60,000 frozen sources for30k bodies at67 joints without suppression.
-  Both interruption cadence checks remain red; an old/new/old comparison also
-  fails on pre-bank code. Merged temporal/palette and standing gates pass.
-  Next profile interruption preparation before completing broader
-  geometry/camera/display brackets; storage success is not a budget.
-- [Measurement foundation](assets/evidence/07/measurement-foundation.md) and
-  [07](slices/07-budget-envelope.md) own raw brackets and remaining requirements.
-  No art envelope or detailed model has been accepted.08's original Blender
-  sculpt, reduced mesh, rig and bend clip export through the existing candidate
-  baker. [Anatomy review](assets/evidence/08/anatomy-review.md) owns current
-  rejected chest/cap experiments and the retained shoulder-continuity iteration.
-  Its local Blender source and frozen production captures agree; whole-body
-  anatomy remains unaccepted, with facial form, pectoral/deltoid, pelvis and hand
-  work open. A native head-detail fixture now exposes the weak mouth clearly;
-  rounded lip forms are retained as a less-wrong working source, not accepted.
-  Eye/nose/ear form and mouth readability still need work.
+Evidence ledger:
+- [06](assets/evidence/06/merged-validation.md) owns GPU playback contracts;
+  [projected detail](assets/evidence/07/projected-lod.md) owns separate main/shadow
+  representations and the explicitly reviewed controller shadow.
+- [Exact storage](assets/evidence/07/snapshot-banks.md) admits60,000 frozen sources
+  for30k bodies at67 joints. Merged28 CPU tests/typecheck,675 palette/temporal
+  checks, zero differences in all40 images, and the standing30k gate pass.
+  [Old/new/old hardware](assets/evidence/07/snapshot-banks-aba.md) fails animated
+  interruption cadence on both versions; banking is not established as its cause.
+- [CPU attribution](assets/evidence/07/banks-interruption.md) motivates the next
+  bounded preparation change. It is diagnostic, not performance acceptance;
+  [07](slices/07-budget-envelope.md) owns the remaining budget requirements.
+- [Anatomy review](assets/evidence/08/anatomy-review.md) owns Blender iterations,
+  exact source/capture provenance, rejected studies and unresolved visible form.
+  The production catalog remains unchanged; no finished armor or motion clips
+  have been accepted.
 
 Preserve sim/save/balance, exact interruption poses, atomic catalog replacement,
 the one production skin/material/environment path, and the existing temporal

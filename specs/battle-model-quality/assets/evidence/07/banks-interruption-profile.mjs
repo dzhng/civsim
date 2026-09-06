@@ -1,4 +1,5 @@
 import { createRequire } from 'node:module';
+import { execFileSync } from 'node:child_process';
 import { writeFile } from 'node:fs/promises';
 import { run } from '../../../../../web/scenes/models/battle-model-budget.mjs';
 import { GPU_HARDWARE_FLAGS } from '../../../../../web/renderer-probe-lib.mjs';
@@ -61,7 +62,8 @@ try {
   await browser.close();
   if (profile) await writeFile(new URL('banks-interruption.cpuprofile', import.meta.url), JSON.stringify(profile));
   await writeFile(new URL('banks-interruption.json', import.meta.url), JSON.stringify({
-    revision: 'f8a6b49c',
+    revision: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
+    sourceChanges: execFileSync('git', ['status', '--porcelain', '--', 'packages', 'web'], { encoding: 'utf8' }).trim(),
     scope: 'Existing interruption/control row, 60 warmup + 180 measured frames; other rows and allocation omitted in evaluated harness only. CPU profiler starts before warmup at 1ms. Diagnostic, not acceptance timing.',
     clockMetrics, checks, errors,
   }, null, 2));

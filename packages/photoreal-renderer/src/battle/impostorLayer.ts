@@ -20,7 +20,11 @@ import type { CrowdInstance } from "../../../crowd-runtime/src/instanceData";
 import type { VatBake } from "../../../soldier-assets/src/schema";
 import type { SoldierMeshData } from "../../../soldier-assets/src/mesh";
 import { poseSoldierMesh } from "../../../soldier-assets/src/skin";
-import { soldierFactionAccent, soldierSurfaceNodes } from "./soldierSurface";
+import {
+  soldierContactOcclusion,
+  soldierFactionAccent,
+  soldierSurfaceNodes,
+} from "./soldierSurface";
 import { RENDER_ORDER } from "./terrainLayer";
 
 export interface ImpostorAtlas {
@@ -170,6 +174,7 @@ export class OctahedralImpostorLayer {
   private capacity = 0;
   private inst = new Float32Array(0);
   private meta = new Float32Array(0);
+  private living = new Float32Array(0);
   private source: CrowdInstance[] = [];
 
   constructor(
@@ -210,12 +215,8 @@ export class OctahedralImpostorLayer {
     // associates them with coverage; unassociate before using material values.
     const coverage = max(sample.a, 0.0001);
     const orm = texture(this.atlas.textures.orm, atlasUv).div(coverage).toVar();
-    const normal = texture(this.atlas.textures.normal, atlasUv)
-      .rgb.div(coverage)
-      .mul(2)
-      .sub(1)
-      .normalize()
-      .toVar();
+    const normalAndContact = texture(this.atlas.textures.normal, atlasUv).div(coverage).toVar();
+    const normal = normalAndContact.rgb.mul(2).sub(1).normalize().toVar();
     const faction = varying(inst.w).toVar();
     const yaw = varying(meta.w);
     const c = cos(yaw),
@@ -230,7 +231,10 @@ export class OctahedralImpostorLayer {
     material.normalNode = transformNormalToView(worldNormal.normalize());
     material.roughnessNode = orm.g;
     material.metalnessNode = orm.b;
-    material.aoNode = orm.r;
+    // Contact grounding is a separate posed property, not authored occlusion.
+    // Corpse roll cannot affect it: dead instances disable the factor entirely.
+    const living = varying(attribute<"float">("impostorLiving", "float"));
+    material.aoNode = orm.r.mul(mix(1, normalAndContact.a, living));
     material.colorNode = vec4(
       mix(sample.rgb.div(coverage), soldierFactionAccent(faction), orm.a),
       sample.a,
@@ -256,8 +260,13 @@ export class OctahedralImpostorLayer {
       this.capacity = Math.max(instances.length, this.capacity * 2, 512);
       this.inst = new Float32Array(this.capacity * 4);
       this.meta = new Float32Array(this.capacity * 4);
+      this.living = new Float32Array(this.capacity);
       this.geometry.setAttribute("impostorInst", new THREE.InstancedBufferAttribute(this.inst, 4));
       this.geometry.setAttribute("impostorMeta", new THREE.InstancedBufferAttribute(this.meta, 4));
+      this.geometry.setAttribute(
+        "impostorLiving",
+        new THREE.InstancedBufferAttribute(this.living, 1),
+      );
     }
     for (let i = 0; i < instances.length; i++) {
       const src = instances[i];
@@ -272,10 +281,13 @@ export class OctahedralImpostorLayer {
       this.meta[o + 1] = this.atlas.worldSpan;
       this.meta[o + 2] = this.atlas.worldSpan;
       this.meta[o + 3] = angle;
+      this.living[i] = src.alive ? 1 : 0;
     }
     (this.geometry.getAttribute("impostorInst") as THREE.InstancedBufferAttribute).needsUpdate =
       true;
     (this.geometry.getAttribute("impostorMeta") as THREE.InstancedBufferAttribute).needsUpdate =
+      true;
+    (this.geometry.getAttribute("impostorLiving") as THREE.InstancedBufferAttribute).needsUpdate =
       true;
     this.geometry.instanceCount = instances.length;
   }
@@ -420,7 +432,12 @@ function bakePropertyAtlas(
   const surface = soldierSurfaceNodes(materialTexture);
   material.fragmentNode = mrt({
     albedo: vec4(surface.albedo, 1),
-    normal: vec4(attribute<"vec3">("normal", "vec3").normalize().mul(0.5).add(0.5), 1),
+    normal: vec4(
+      attribute<"vec3">("normal", "vec3").normalize().mul(0.5).add(0.5),
+      // Match the mesh path: evaluate height response at posed vertices before
+      // interpolation. Alpha was unused; no additional atlas allocation.
+      varying(soldierContactOcclusion(attribute<"vec3">("position", "vec3").z)),
+    ),
     orm: vec4(surface.occlusion, surface.roughness, surface.metallic, surface.factionMask),
   });
   material.toneMapped = false;

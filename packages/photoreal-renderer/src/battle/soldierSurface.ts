@@ -1,8 +1,25 @@
 import * as THREE from "three/webgpu";
-import { attribute, clamp, int, ivec2, mix, step, textureLoad, varying, vec3 } from "three/tsl";
+import {
+  attribute,
+  clamp,
+  int,
+  ivec2,
+  mix,
+  smoothstep,
+  step,
+  textureLoad,
+  varying,
+  vec3,
+} from "three/tsl";
 import { packSoldierMaterials, type SoldierMaterial } from "../../../soldier-assets/src/material";
 import { factionForTeam } from "../../../game-renderer/src/battle/factionColors";
 import { linearAlbedo } from "./battleTsl";
+
+/** Evaluate at posed vertices, then interpolate. Grounding affects ambient
+ * light only; callers gate it off for corpses, independently of authored AO. */
+export function soldierContactOcclusion(posedHeight: THREE.Node<"float">) {
+  return mix(0.45, 1, smoothstep(0, 0.42, posedHeight));
+}
 
 export function soldierFactionAccent(faction: THREE.Node<"float">) {
   const blue = linearAlbedo(vec3(...factionForTeam(0).primary));

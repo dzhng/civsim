@@ -16,7 +16,6 @@ import {
   mix,
   normalize,
   sin,
-  smoothstep,
   varying,
   vec3,
   vec4,
@@ -42,6 +41,7 @@ import {
   createSoldierMaterialTexture,
   soldierFactionAccent,
   soldierSurfaceNodes,
+  soldierContactOcclusion,
 } from "./soldierSurface";
 
 interface ClassBucket {
@@ -447,8 +447,7 @@ function crowdMaterial(
   // cast shadow is a separate owner. Living soldiers only: a prone
   // corpse's whole body is low, so gating by corpse keeps the fallen from
   // blackening wholesale.
-  const contactRise = smoothstep(float(0.0), float(0.42), rolled.z);
-  const contactAo = mix(float(1.0 - 0.55), float(1.0), contactRise);
+  const contactAo = soldierContactOcclusion(rolled.z);
   material.aoNode = surface.occlusion.mul(
     varying(mix(float(1.0), contactAo, float(1.0).sub(corpse))),
   );

@@ -835,3 +835,20 @@ exact affine row; a future exporter with numerical noise must correct its source
 or justify an explicit normalization policy. **Sound:** rejecting unsupported
 transforms preserves geometry rather than silently changing authored data to make
 the bound appear valid.
+
+### Remove repeated LOD work without lending mutable results (07 source-cost pass)
+
+**Confidence: high.** On each frame the renderer asks which mesh each body needs.
+This pass reuses the two private arrays remembering yesterday's choices, but the
+answer returned by the planner still belongs to that call. A caller can keep an
+old answer without tomorrow's frame rewriting it. The unbuilt alternative would
+pool every answer and require callers to understand that borrowed lifetime.
+
+The task allowed allocation reduction but did not require a new storage API.
+Keeping returned answers independent avoids introducing that contract before a
+matched measurement establishes its value. History arrays are overwritten only
+after all old history has been read, and shortened on empty or smaller uploads;
+no vanished body's detail choice survives regrowth. **Sound:** ownership remains
+simple while repeated arithmetic and temporary history/threshold arrays are
+removed. Remaining per-body allocations are explicit; this does not establish
+that garbage collection or the interruption cadence gate is fixed.

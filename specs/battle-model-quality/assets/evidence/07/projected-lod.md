@@ -170,3 +170,28 @@ CPU-composed and readback-composed crowds; the unchanged≤1-channel image check
 still judges their output. The continuous snapshots, culling assertions and
 snapshot inventory precede the reset and remain untouched. GPU re-verification
 is pending integration; no recovered pixel result is claimed from the CPU test.
+
+## Bounded planner source-cost pass
+
+The interruption profile attributed about474ms inclusive over180 frames to the
+projected-LOD callback. That locates work; sampled garbage collection does not
+identify which allocation produced it. The bounded pass therefore keeps result
+ownership and projection policy intact rather than introducing a pooled planner.
+
+It removes four repeated trigonometric calls per body, a three-element temporary
+array on each hysteresis tier-transition attempt, the separate main-count scan,
+and replacement of two per-body history arrays on each upload. Arithmetic order
+and every threshold remain unchanged. History is written only after planning;
+its length is set to the new audience count, so shrinking and empty uploads still
+discard old slots. Assignment objects, visibility storage and result arrays are
+still allocated. Source reductions are not measured frame-time or GC wins.
+
+The exact-output test captured the unchanged5657d660 planner before editing,
+then retained its SHA-256 digest across six frames/108 body submissions. It hashes
+both audiences' levels and exact pixel sizes, visibility and histograms, including
+non-finite pixel sizes explicitly. Fixed asymmetric bounds, corpse rolls,
+mounted/foot bodies, elevation, multiple shadow views, shadow-only/view-only
+frames and shrink/empty/regrow transitions exercise the same public planner.
+This is a behavior-preservation pin, not a visual or performance acceptance gate.
+Existing caster, camera-layer and shared-palette-slot tests remain unchanged.
+Browser visual and matched hardware verification remain with integration.

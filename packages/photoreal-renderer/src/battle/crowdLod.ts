@@ -5,7 +5,6 @@ import {
 } from "../../../crowd-runtime/src/instanceData";
 import {
   assignLodForProjection,
-  countLods,
   DEFAULT_LOD_POLICY,
   instanceScreenSize,
   type LodLevel,
@@ -34,6 +33,7 @@ export function planPhotorealCrowdLods(
   const visibility = new Uint8Array(instances.length);
   const shadowAssignments: LodAssignment[] = [];
   const shadowCounts: LodCounts = { l0: 0, l1: 0, l2: 0, l3: 0 };
+  const counts: LodCounts = { l0: 0, l1: 0, l2: 0, l3: 0 };
   let viewVisible = 0,
     shadowOnly = 0;
   const assignments = instances.map((inst, index) => {
@@ -42,11 +42,15 @@ export function planPhotorealCrowdLods(
     const variant = inst.deathVariant ?? 0;
     const roll =
       corpsePresentationStrength(inst) * ((variant - 1) * 0.42 + Math.sin(variant * 2.3) * 0.18);
-    const y = center[1] * Math.cos(roll) - center[2] * Math.sin(roll);
-    const z = center[1] * Math.sin(roll) + center[2] * Math.cos(roll);
+    const cosRoll = Math.cos(roll),
+      sinRoll = Math.sin(roll);
+    const cosAngle = Math.cos(angle),
+      sinAngle = Math.sin(angle);
+    const y = center[1] * cosRoll - center[2] * sinRoll;
+    const z = center[1] * sinRoll + center[2] * cosRoll;
     sphere.center.set(
-      inst.x + center[0] * Math.cos(angle) - y * Math.sin(angle),
-      inst.y + center[0] * Math.sin(angle) + y * Math.cos(angle),
+      inst.x + center[0] * cosAngle - y * sinAngle,
+      inst.y + center[0] * sinAngle + y * cosAngle,
       (inst.elevation ?? 0) + z,
     );
     sphere.radius = radius;
@@ -78,16 +82,18 @@ export function planPhotorealCrowdLods(
     );
     shadowAssignments.push(shadowAssignment);
     if (visibility[index] & 2) shadowCounts[`l${shadowAssignment.level}` as keyof LodCounts]++;
-    return assignLodForProjection(
+    const assignment = assignLodForProjection(
       viewPixels,
       false,
       prevLevels?.[index] as LodLevel | undefined,
       policy,
     );
+    counts[`l${assignment.level}` as keyof LodCounts]++;
+    return assignment;
   });
   return {
     assignments,
-    counts: countLods(assignments),
+    counts,
     shadowAssignments,
     shadowCounts,
     visibility,

@@ -63,12 +63,12 @@ export function lodWithHysteresis(
 ): LodLevel {
   const raw = assignLodForScreenSize(screenSize, policy);
   if (raw === prevLevel) return prevLevel;
-  const thresholds = [policy.l0Pixels, policy.l1Pixels, policy.l2Pixels];
+  const boundaryIndex = raw < prevLevel ? raw : raw - 1;
+  const boundary =
+    boundaryIndex === 0 ? policy.l0Pixels : boundaryIndex === 1 ? policy.l1Pixels : policy.l2Pixels;
   if (raw < prevLevel) {
-    const boundary = thresholds[raw] ?? thresholds[thresholds.length - 1];
     return screenSize >= boundary + margin ? raw : prevLevel;
   }
-  const boundary = thresholds[raw - 1] ?? thresholds[thresholds.length - 1];
   return screenSize <= boundary - margin ? raw : prevLevel;
 }
 

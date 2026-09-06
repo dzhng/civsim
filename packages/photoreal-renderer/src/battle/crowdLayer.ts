@@ -136,8 +136,8 @@ export class PhotorealCrowd {
   private readonly surfaces = new Set<PreparedSoldierSurface>();
   private instanceCount = 0;
   private readonly materialIdentity = soldierMaterialIdentity();
-  private previousLevels: number[] = [];
-  private previousShadowLevels: number[] = [];
+  private readonly previousLevels: number[] = [];
+  private readonly previousShadowLevels: number[] = [];
   private assignedCounts = emptyLodCounts();
   private visibleCounts = emptyLodCounts();
   private shadowCounts = emptyLodCounts();
@@ -333,8 +333,14 @@ export class PhotorealCrowd {
           viewVisible: instances.length,
           shadowOnly: 0,
         };
-    this.previousLevels = plan.assignments.map((assignment) => assignment.level);
-    this.previousShadowLevels = plan.shadowAssignments.map((assignment) => assignment.level);
+    this.previousLevels.length = plan.assignments.length;
+    this.previousShadowLevels.length = plan.shadowAssignments.length;
+    for (let i = 0; i < plan.assignments.length; i++) {
+      this.previousLevels[i] = plan.assignments[i].level;
+    }
+    for (let i = 0; i < plan.shadowAssignments.length; i++) {
+      this.previousShadowLevels[i] = plan.shadowAssignments[i].level;
+    }
     this.assignedCounts = plan.counts;
     this.visibleCounts = emptyLodCounts();
     this.shadowCounts = plan.shadowCounts;

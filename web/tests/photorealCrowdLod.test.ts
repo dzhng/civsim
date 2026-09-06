@@ -1,5 +1,6 @@
 // @vitest-environment node
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { test } from "vitest";
 import * as THREE from "three/webgpu";
 import { generatedFormation, type CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
@@ -63,6 +64,55 @@ function shadowView(extent = 1000, y = 0) {
   camera.lookAt(0, y, 0);
   return projectionView(camera, 1024, true);
 }
+
+test("projected LOD keeps the exact pre-optimization audience sequence", () => {
+  // Captured on 5657d660 before changing arithmetic/storage. This is an exactness
+  // pin, not an art-quality or performance gate. Fixed inputs include culled,
+  // near-plane, elevated, mounted and rolled asymmetric corpse bounds.
+  const fixtureAssets = {
+    0: {
+      manifest: { bounds: { center: [0.13, -0.21, 0.9] as [number, number, number], radius: 1.3 } },
+    },
+  };
+  const policy = { l0Pixels: 18, l1Pixels: 9, l2Pixels: 4, minScreenPixels: 2.25 };
+  const rows: unknown[] = [];
+  let mainHistory: number[] = [];
+  let shadowHistory: number[] = [];
+  for (const [frame, count] of [24, 24, 12, 0, 24, 24].entries()) {
+    const instances = Array.from({ length: count }, (_, i) => ({
+      ...body(i % 3 === 0 ? 0 : (i - 12) * 30, [-100, 0, 10, 150, 300, 1000][i % 6]),
+      mounted: i % 2 === 0,
+      facing: i * 0.73,
+      alive: i % 4 === 0,
+      deathVariant: i % 3,
+      elevation: i % 3 === 0 ? 0 : i * 0.7,
+    }));
+    const views =
+      frame === 1
+        ? [shadowView(100)]
+        : frame === 2
+          ? [mainView()]
+          : [mainView(), shadowView(1000), shadowView(130.50966799187808, frame * 10)];
+    const plan = planPhotorealCrowdLods(
+      instances,
+      views,
+      fixtureAssets,
+      mainHistory,
+      policy,
+      shadowHistory,
+    );
+    rows.push(plan);
+    mainHistory = plan.assignments.map((a) => a.level);
+    shadowHistory = plan.shadowAssignments.map((a) => a.level);
+  }
+  const serialized = JSON.stringify(rows, (_key, value) =>
+    typeof value === "number" && !Number.isFinite(value) ? String(value) : value,
+  );
+  assert.equal(
+    createHash("sha256").update(serialized).digest("hex"),
+    "b909f671d1ae98a8c6ecf58cf91898f9a1808750370c4cb9f6be6e655de7a78a",
+  );
+});
 
 test("production LOD follows projected depth and exits L0 for the visible 150m mounted body", () => {
   const instances = [10, 150, 300, 1000].map((y) => ({ ...body(0, y), mounted: true }));

@@ -1,0 +1,253 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-06T03:41:16.914Z",
+  "target": "http://localhost:5180",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 1,
+  "status": "fail",
+  "scenarios": [
+    {
+      "name": "battle-model-far-properties",
+      "file": "models/battle-model-far-properties.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "current catalog has twenty complete property atlases",
+      "ok": true,
+      "detail": "{\"startupMs\":648,\"resources\":[{\"allocatedBytes\":11796456,\"bakeMs\":20.569999992847443,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":4.244999945163727,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":2.259999990463257,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.6350000500679016,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.8050000071525574,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.399999976158142,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.5099999904632568,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.375,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.2249999642372131,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.0700000524520874,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.5699999928474426,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.3199999928474426,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.0849999785423279,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.0350000262260437,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":0.9750000238418579,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.5550000071525574,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.0950000286102295,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.0300000309944153,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":1.0400000214576721,\"drawCalls\":2},{\"allocatedBytes\":11796456,\"bakeMs\":2.1399999856948853,\"drawCalls\":2}]}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "allocation includes three mip chains and depth",
+      "ok": true,
+      "detail": "{\"residentBytes\":235929120,\"replacementPeakBytes\":471858240}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "matte-near: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":4.689999997615814,\"lod\":{\"skinned\":1,\"impostors\":0}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/matte-near",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "matte-near: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "matte-near: ordinary blue and seed do not become faction tint",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "matte-far: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":3.0149999856948853,\"lod\":{\"skinned\":0,\"impostors\":1}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/matte-far",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "matte-far: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "matte-far: ordinary blue and seed do not become faction tint",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "smooth-near: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":2.659999966621399,\"lod\":{\"skinned\":1,\"impostors\":0}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/smooth-near",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "smooth-near: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "smooth-far: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":2.689999997615814,\"lod\":{\"skinned\":0,\"impostors\":1}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/smooth-far",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "smooth-far: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "metal-near: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":2.540000021457672,\"lod\":{\"skinned\":1,\"impostors\":0}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/metal-near",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "metal-near: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "metal-far: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":2.5450000166893005,\"lod\":{\"skinned\":0,\"impostors\":1}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/metal-far",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "metal-far: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "mask-blue-far: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":2.1449999809265137,\"lod\":{\"skinned\":0,\"impostors\":1}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/mask-blue-far",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "mask-blue-far: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "mask-red-far: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":2.48499995470047,\"lod\":{\"skinned\":0,\"impostors\":1}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/mask-red-far",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "mask-red-far: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "flat-normal-far: requested representation",
+      "ok": true,
+      "detail": "{\"replacementMs\":2.1550000309944153,\"lod\":{\"skinned\":0,\"impostors\":1}}"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "snapshot battle/far-properties/flat-normal-far",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "flat-normal-far: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "near: same blue color responds to smooth",
+      "ok": true,
+      "detail": "6246"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "near: same blue color responds to metal",
+      "ok": true,
+      "detail": "7440"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "far: same blue color responds to smooth",
+      "ok": true,
+      "detail": "8243"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "far: same blue color responds to metal",
+      "ok": true,
+      "detail": "8243"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "far: explicit mask changes faction",
+      "ok": true,
+      "detail": "8243"
+    },
+    {
+      "scenario": "battle-model-far-properties",
+      "name": "far: authored per-pixel normals affect lighting",
+      "ok": false,
+      "detail": "0"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [
+    "battle-model-far-properties: far: authored per-pixel normals affect lighting"
+  ],
+  "pageErrors": []
+}

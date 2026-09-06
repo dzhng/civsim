@@ -1,36 +1,38 @@
 import * as THREE from "three/webgpu";
 import {
   attribute,
-  clamp,
+  cos,
+  dot,
   float,
   max,
   mix,
-  smoothstep,
-  step,
+  mrt,
+  sin,
   texture,
+  transformNormalToView,
   uniform,
   varying,
   vec2,
   vec3,
   vec4,
 } from "three/tsl";
-import type { Node } from "three/webgpu";
 import type { CrowdInstance } from "../../../crowd-runtime/src/instanceData";
-import { factionForTeam } from "../../../game-renderer/src/battle/factionColors";
 import type { VatBake } from "../../../soldier-assets/src/schema";
 import type { SoldierMeshData } from "../../../soldier-assets/src/mesh";
 import { poseSoldierMesh } from "../../../soldier-assets/src/skin";
-import { linearAlbedo } from "./battleTsl";
+import { soldierFactionAccent, soldierSurfaceNodes } from "./soldierSurface";
 import { RENDER_ORDER } from "./terrainLayer";
 
-interface ImpostorAtlas {
-  texture: THREE.Texture;
+export interface ImpostorAtlas {
+  textures: { albedo: THREE.Texture; normal: THREE.Texture; orm: THREE.Texture };
   tileSize: number;
   columns: number;
   rows: number;
   directions: THREE.Vector3[];
   center: THREE.Vector3;
   worldSpan: number;
+  metrics: { allocatedBytes: number; bakeMs: number; drawCalls: number };
+  dispose(): void;
 }
 
 interface PosedMeshData {
@@ -47,25 +49,20 @@ interface Bounds2 {
   maxY: number;
 }
 
-const LIGHT_DIR = new THREE.Vector3(-0.34, -0.42, 0.84).normalize();
-
-export function createSoldierImpostorAtlas(
+export async function createSoldierImpostorAtlas(
+  renderer: THREE.WebGPURenderer,
   mesh: SoldierMeshData,
   vat: VatBake,
+  materialTexture: THREE.DataTexture,
   opts: { columns?: number; rows?: number; tileSize?: number; clip: string; phase: number },
-): ImpostorAtlas {
+): Promise<ImpostorAtlas> {
+  await renderer.init();
+  const started = performance.now();
   const columns = opts.columns ?? 8;
   const rows = opts.rows ?? 8;
   const tileSize = opts.tileSize ?? 96;
   const posedMesh = poseMeshWithVat(mesh, vat, opts.clip, opts.phase);
   const directions = hemiOctDirections(columns, rows);
-  const canvas = document.createElement("canvas");
-  canvas.width = columns * tileSize;
-  canvas.height = rows * tileSize;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("2D canvas unavailable for impostor atlas bake");
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
   const projectedBounds = directions.map((dir) => projectedMeshBounds(posedMesh, viewBasis(dir)));
   const box = new THREE.Box3().setFromArray(posedMesh.positions);
   const center = box.getCenter(new THREE.Vector3());
@@ -84,32 +81,42 @@ export function createSoldierImpostorAtlas(
     ...projectedBounds.map((b) => Math.max(b.maxX - b.minX, b.maxY - b.minY)),
     1e-3,
   );
-  for (let tile = 0; tile < directions.length; tile++) {
-    const col = tile % columns;
-    const row = Math.floor(tile / columns);
-    bakeTile(ctx, posedMesh, directions[tile], projectedBounds[tile], {
-      x: col * tileSize,
-      y: row * tileSize,
-      tileSize,
-      maxSpan,
-    });
+  const worldSpan = maxSpan / 0.78;
+  const target = bakePropertyAtlas(
+    renderer,
+    mesh,
+    posedMesh,
+    materialTexture,
+    directions,
+    center,
+    worldSpan,
+    columns,
+    rows,
+    tileSize,
+  );
+  let mipPixels = 0;
+  for (
+    let w = columns * tileSize, h = rows * tileSize;
+    ;
+    w = Math.max(1, w >> 1), h = Math.max(1, h >> 1)
+  ) {
+    mipPixels += w * h;
+    if (w === 1 && h === 1) break;
   }
-
-  const textureAtlas = new THREE.CanvasTexture(canvas);
-  textureAtlas.name = "battle-crowd-shared-soldier-impostor-atlas";
-  textureAtlas.colorSpace = THREE.SRGBColorSpace;
-  textureAtlas.minFilter = THREE.LinearMipmapLinearFilter;
-  textureAtlas.magFilter = THREE.LinearFilter;
-  textureAtlas.generateMipmaps = true;
-  textureAtlas.needsUpdate = true;
   return {
-    texture: textureAtlas,
+    textures: { albedo: target.textures[0], normal: target.textures[1], orm: target.textures[2] },
     tileSize,
     columns,
     rows,
     directions,
     center,
-    worldSpan: maxSpan / 0.78,
+    worldSpan,
+    metrics: {
+      allocatedBytes: mipPixels * 4 * 3 + columns * rows * tileSize ** 2 * 4,
+      bakeMs: performance.now() - started,
+      drawCalls: 2,
+    },
+    dispose: () => target.dispose(),
   };
 }
 
@@ -144,13 +151,13 @@ export class OctahedralImpostorLayer {
     this.geometry.setIndex([0, 1, 2, 2, 1, 3]);
     this.geometry.instanceCount = 0;
 
-    const material = new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide });
+    const material = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide });
     material.alphaTest = 0.08;
     material.depthWrite = true;
     material.fog = true;
     const quad = attribute<"vec3">("position", "vec3");
     const inst = attribute<"vec4">("impostorInst", "vec4"); // x, y, elevation, faction
-    const meta = attribute<"vec4">("impostorMeta", "vec4"); // tile, width, height, shade
+    const meta = attribute<"vec4">("impostorMeta", "vec4"); // tile, width, height, model yaw
     const right = vec3(this.camRight).mul(quad.x.mul(meta.y).mul(0.5));
     const up = vec3(this.camUp).mul(quad.y.mul(meta.z).mul(0.5));
     material.positionNode = vec3(inst.x, inst.y, inst.z).add(right).add(up);
@@ -161,22 +168,40 @@ export class OctahedralImpostorLayer {
     const col = tile.sub(row.mul(float(this.atlas.columns))).toVar();
     const atlasUv = vec2(
       col.add(localUv.x).div(float(this.atlas.columns)),
-      // Canvas rows count from the top; texture V counts from the bottom.
-      float(this.atlas.rows - 1)
-        .sub(row)
-        .add(localUv.y)
-        .div(float(this.atlas.rows)),
+      // GPU render targets have top-origin V in WebGPU (unlike CanvasTexture).
+      // Preserve both the selected row and upright local tile orientation.
+      row.add(1).sub(localUv.y).div(float(this.atlas.rows)),
     );
-    const sample = texture(this.atlas.texture, atlasUv).toVar();
+    const sample = texture(this.atlas.textures.albedo, atlasUv).toVar();
+    // All property channels have zero transparent texels. Filtering therefore
+    // associates them with coverage; unassociate before using material values.
+    const coverage = max(sample.a, 0.0001);
+    const orm = texture(this.atlas.textures.orm, atlasUv).div(coverage).toVar();
+    const normal = texture(this.atlas.textures.normal, atlasUv)
+      .rgb.div(coverage)
+      .mul(2)
+      .sub(1)
+      .normalize()
+      .toVar();
     const faction = varying(inst.w).toVar();
-    const shade = varying(meta.w).toVar();
-    // Far impostors obey the same policy as mesh tiers: no broad team wash,
-    // only the authored upper sword-arm band receives faction color.
-    const mask = smoothstep(0.05, 0.28, sample.b.sub(max(sample.r, sample.g))).toVar();
-    const color = sampledFactionAccentNode(vec4(sample.rgb, sample.a), faction, mask).mul(
-      vec4(vec3(shade), 1.0),
+    const yaw = varying(meta.w);
+    const c = cos(yaw),
+      s = sin(yaw);
+    const worldNormal = vec3(
+      normal.x.mul(c).sub(normal.y.mul(s)),
+      normal.x.mul(s).add(normal.y.mul(c)),
+      normal.z,
     );
-    material.colorNode = vec4(color.rgb, sample.a);
+    // This normal is sampled per fragment. The mesh-tier viewNormalNode helper
+    // intentionally interpolates a vertex normal and must not hoist atlas reads.
+    material.normalNode = transformNormalToView(worldNormal.normalize());
+    material.roughnessNode = orm.g;
+    material.metalnessNode = orm.b;
+    material.aoNode = orm.r;
+    material.colorNode = vec4(
+      mix(sample.rgb.div(coverage), soldierFactionAccent(faction), orm.a),
+      sample.a,
+    );
 
     this.mesh = new THREE.Mesh(this.geometry, material);
     this.mesh.name = "battle-crowd-far-impostors";
@@ -213,7 +238,7 @@ export class OctahedralImpostorLayer {
       this.meta[o] = 0;
       this.meta[o + 1] = this.atlas.worldSpan;
       this.meta[o + 2] = this.atlas.worldSpan;
-      this.meta[o + 3] = 1;
+      this.meta[o + 3] = angle;
     }
     (this.geometry.getAttribute("impostorInst") as THREE.InstancedBufferAttribute).needsUpdate =
       true;
@@ -253,7 +278,6 @@ export class OctahedralImpostorLayer {
       }
       this.meta[o + 1] = this.atlas.worldSpan * scale;
       this.meta[o + 2] = this.atlas.worldSpan * scale;
-      this.meta[o + 3] = clampShade(0.72 + 0.28 * Math.max(0, localDir.dot(LIGHT_DIR)));
     }
     const attr = this.geometry.getAttribute("impostorMeta") as
       | THREE.InstancedBufferAttribute
@@ -267,7 +291,8 @@ export class OctahedralImpostorLayer {
       impostorDrawCalls: this.source.length > 0 ? 1 : 0,
       atlas: `${this.atlas.columns}x${this.atlas.rows}x${this.atlas.tileSize}`,
       tileSelection: "nearest",
-      factionMask: "sampled armband locator; no shield/crest/body faction tint",
+      factionMask: "explicit authored mask; lit scalar property atlas",
+      atlasMetrics: this.atlas.metrics,
     };
   }
 
@@ -275,25 +300,8 @@ export class OctahedralImpostorLayer {
     this.mesh.removeFromParent();
     this.geometry.dispose();
     (this.mesh.material as THREE.Material).dispose();
-    this.atlas.texture.dispose();
+    this.atlas.dispose();
   }
-}
-
-function sampledFactionAccentNode(
-  color: Node<"vec4">,
-  faction: Node<"float">,
-  mask: Node<"float">,
-) {
-  const blue = linearAlbedo(vec3(...factionForTeam(0).primary));
-  const red = linearAlbedo(vec3(...factionForTeam(1).primary));
-  const neutral = linearAlbedo(vec3(...factionForTeam(2).primary));
-  let accent = mix(blue, red, step(0.5, faction));
-  accent = mix(accent, neutral, step(1.5, faction));
-  const armBand = mix(accent, linearAlbedo(vec3(0.42, 0.34, 0.26)), 0.35);
-  // texture() has already put the sRGB-tagged atlas sample into material color
-  // space. Re-running linearAlbedo on that sample double-linearizes it to black.
-  const rgb = mix(color.rgb, armBand, mask);
-  return vec4(clamp(rgb, vec3(0.0), vec3(1.0)), color.a);
 }
 
 function poseMeshWithVat(
@@ -309,6 +317,132 @@ function poseMeshWithVat(
   );
   const { positions, normals } = poseSoldierMesh(mesh, vat, frame);
   return { positions, normals, colors: mesh.colors, indices: mesh.indices };
+}
+
+/** One unlit MRT draw: view instances occupy disjoint fixed tiles. The ordinary
+ * orthographic camera owns clip/depth conversion, including reversed depth. */
+function bakePropertyAtlas(
+  renderer: THREE.WebGPURenderer,
+  source: SoldierMeshData,
+  posed: PosedMeshData,
+  materialTexture: THREE.DataTexture,
+  directions: THREE.Vector3[],
+  center: THREE.Vector3,
+  span: number,
+  columns: number,
+  rows: number,
+  tileSize: number,
+): THREE.RenderTarget {
+  const target = new THREE.RenderTarget(columns * tileSize, rows * tileSize, {
+    count: 3,
+    type: THREE.UnsignedByteType,
+    format: THREE.RGBAFormat,
+    minFilter: THREE.LinearMipmapLinearFilter,
+    magFilter: THREE.LinearFilter,
+    generateMipmaps: true,
+    depthBuffer: true,
+    stencilBuffer: false,
+    samples: 0,
+  });
+  target.textures.forEach((texture, i) => {
+    texture.name = ["albedo", "normal", "orm"][i];
+  });
+  // The render attachment encodes linear shader output into sRGB8; sampling and
+  // mip filtering decode in hardware. Data channels stay linear UNORM8.
+  target.textures[0].colorSpace = THREE.SRGBColorSpace;
+  const geometry = new THREE.InstancedBufferGeometry();
+  geometry.setAttribute("position", new THREE.BufferAttribute(posed.positions, 3));
+  geometry.setAttribute("normal", new THREE.BufferAttribute(posed.normals, 3));
+  geometry.setAttribute("color", new THREE.BufferAttribute(source.colors, 4));
+  geometry.setAttribute("materialId", new THREE.BufferAttribute(source.materialIds, 1));
+  geometry.setAttribute("factionMask", new THREE.BufferAttribute(source.factionMasks, 1));
+  geometry.setAttribute("uv", new THREE.BufferAttribute(source.uvs, 2));
+  geometry.setIndex(new THREE.BufferAttribute(source.indices, 1));
+  const views = new Float32Array(directions.length * 11);
+  directions.forEach((direction, i) => {
+    const basis = viewBasis(direction);
+    basis.right.toArray(views, i * 11);
+    basis.up.toArray(views, i * 11 + 3);
+    basis.forward.toArray(views, i * 11 + 6);
+    views[i * 11 + 9] = ((i % columns) + 0.5) * span;
+    views[i * 11 + 10] = (rows - Math.floor(i / columns) - 0.5) * span;
+  });
+  const viewBuffer = new THREE.InstancedInterleavedBuffer(views, 11);
+  geometry.setAttribute("bakeRight", new THREE.InterleavedBufferAttribute(viewBuffer, 3, 0));
+  geometry.setAttribute("bakeUp", new THREE.InterleavedBufferAttribute(viewBuffer, 3, 3));
+  geometry.setAttribute("bakeForward", new THREE.InterleavedBufferAttribute(viewBuffer, 3, 6));
+  geometry.setAttribute("bakeOffset", new THREE.InterleavedBufferAttribute(viewBuffer, 2, 9));
+  geometry.instanceCount = directions.length;
+  const material = new THREE.MeshBasicNodeMaterial({
+    side: THREE.DoubleSide,
+    blending: THREE.NoBlending,
+  });
+  const position = attribute<"vec3">("position", "vec3").sub(vec3(center.x, center.y, center.z));
+  const tileOffset = attribute<"vec2">("bakeOffset", "vec2");
+  material.positionNode = vec3(
+    dot(position, attribute<"vec3">("bakeRight", "vec3")).add(tileOffset.x),
+    dot(position, attribute<"vec3">("bakeUp", "vec3")).add(tileOffset.y),
+    dot(position, attribute<"vec3">("bakeForward", "vec3")),
+  );
+  const surface = soldierSurfaceNodes(materialTexture);
+  material.fragmentNode = mrt({
+    albedo: vec4(surface.albedo, 1),
+    normal: vec4(attribute<"vec3">("normal", "vec3").normalize().mul(0.5).add(0.5), 1),
+    orm: vec4(surface.occlusion, surface.roughness, surface.metallic, surface.factionMask),
+  });
+  material.toneMapped = false;
+  material.fog = false;
+  const scene = new THREE.Scene();
+  const clearScene = new THREE.Scene();
+  // Three clears auxiliary MRT alpha to one. Explicit zero coverage in every
+  // attachment is required before filtering the independently authored mask.
+  const clearGeometry = new THREE.PlaneGeometry(columns * span, rows * span);
+  const clearMaterial = new THREE.MeshBasicNodeMaterial({
+    depthTest: false,
+    depthWrite: false,
+    blending: THREE.NoBlending,
+  });
+  clearMaterial.fragmentNode = mrt({ albedo: vec4(0), normal: vec4(0), orm: vec4(0) });
+  clearMaterial.toneMapped = false;
+  clearMaterial.fog = false;
+  const clearMesh = new THREE.Mesh(clearGeometry, clearMaterial);
+  clearMesh.position.set((columns * span) / 2, (rows * span) / 2, 0);
+  clearScene.add(clearMesh);
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  scene.add(mesh);
+  const camera = new THREE.OrthographicCamera(0, columns * span, rows * span, 0, 0.01, span * 4);
+  camera.position.z = span * 2;
+  camera.updateMatrixWorld();
+  const previousTarget = renderer.getRenderTarget();
+  const previousFace = renderer.getActiveCubeFace(),
+    previousMip = renderer.getActiveMipmapLevel();
+  const previousMrt = renderer.getMRT();
+  const previousClear = renderer.getClearColor(new THREE.Color()),
+    previousAlpha = renderer.getClearAlpha();
+  const previousAutoClear = renderer.autoClear;
+  try {
+    renderer.setRenderTarget(target);
+    renderer.setMRT(null);
+    renderer.setClearColor(0, 0);
+    renderer.autoClear = false;
+    renderer.clear(true, true, false);
+    renderer.render(clearScene, camera);
+    renderer.render(scene, camera);
+    return target;
+  } catch (error) {
+    target.dispose();
+    throw error;
+  } finally {
+    renderer.setRenderTarget(previousTarget, previousFace, previousMip);
+    renderer.setMRT(previousMrt);
+    renderer.setClearColor(previousClear, previousAlpha);
+    renderer.autoClear = previousAutoClear;
+    geometry.dispose();
+    material.dispose();
+    clearGeometry.dispose();
+    clearMaterial.dispose();
+  }
 }
 
 function hemiOctDirections(columns: number, rows: number): THREE.Vector3[] {
@@ -355,103 +489,6 @@ function projectedMeshBounds(mesh: PosedMeshData, basis: ReturnType<typeof viewB
   return b;
 }
 
-function bakeTile(
-  ctx: CanvasRenderingContext2D,
-  mesh: PosedMeshData,
-  dir: THREE.Vector3,
-  bounds: Bounds2,
-  tile: { x: number; y: number; tileSize: number; maxSpan: number },
-): void {
-  const basis = viewBasis(dir);
-  const scale = (tile.tileSize * 0.78) / tile.maxSpan;
-  const cx = (bounds.minX + bounds.maxX) * 0.5;
-  const cy = (bounds.minY + bounds.maxY) * 0.5;
-  const tris: { i0: number; i1: number; i2: number; depth: number }[] = [];
-  for (let i = 0; i < mesh.indices.length; i += 3) {
-    const i0 = mesh.indices[i];
-    const i1 = mesh.indices[i + 1];
-    const i2 = mesh.indices[i + 2];
-    tris.push({
-      i0,
-      i1,
-      i2,
-      depth:
-        vertexDepth(mesh, i0, basis.forward) +
-        vertexDepth(mesh, i1, basis.forward) +
-        vertexDepth(mesh, i2, basis.forward),
-    });
-  }
-  tris.sort((a, b) => a.depth - b.depth);
-  for (const tri of tris) {
-    const p0 = projectedVertex(mesh, tri.i0, basis, cx, cy, tile, scale);
-    const p1 = projectedVertex(mesh, tri.i1, basis, cx, cy, tile, scale);
-    const p2 = projectedVertex(mesh, tri.i2, basis, cx, cy, tile, scale);
-    const rgb = shadedTriangleColor(mesh, tri.i0, tri.i1, tri.i2, dir);
-    ctx.fillStyle = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 1)`;
-    ctx.beginPath();
-    ctx.moveTo(p0[0], p0[1]);
-    ctx.lineTo(p1[0], p1[1]);
-    ctx.lineTo(p2[0], p2[1]);
-    ctx.closePath();
-    ctx.fill();
-  }
-}
-
-function vertexDepth(mesh: PosedMeshData, i: number, forward: THREE.Vector3): number {
-  return (
-    mesh.positions[i * 3] * forward.x +
-    mesh.positions[i * 3 + 1] * forward.y +
-    mesh.positions[i * 3 + 2] * forward.z
-  );
-}
-
-function projectedVertex(
-  mesh: PosedMeshData,
-  i: number,
-  basis: ReturnType<typeof viewBasis>,
-  cx: number,
-  cy: number,
-  tile: { x: number; y: number; tileSize: number },
-  scale: number,
-): [number, number] {
-  const p = new THREE.Vector3(
-    mesh.positions[i * 3],
-    mesh.positions[i * 3 + 1],
-    mesh.positions[i * 3 + 2],
-  );
-  const x = (p.dot(basis.right) - cx) * scale;
-  const y = (p.dot(basis.up) - cy) * scale;
-  return [tile.x + tile.tileSize * 0.5 + x, tile.y + tile.tileSize * 0.5 - y];
-}
-
-function shadedTriangleColor(
-  mesh: PosedMeshData,
-  i0: number,
-  i1: number,
-  i2: number,
-  viewDir: THREE.Vector3,
-): [number, number, number] {
-  const rgb = [0, 0, 0];
-  const n = new THREE.Vector3();
-  for (const i of [i0, i1, i2]) {
-    rgb[0] += mesh.colors[i * 4];
-    rgb[1] += mesh.colors[i * 4 + 1];
-    rgb[2] += mesh.colors[i * 4 + 2];
-    n.x += mesh.normals[i * 3];
-    n.y += mesh.normals[i * 3 + 1];
-    n.z += mesh.normals[i * 3 + 2];
-  }
-  n.normalize();
-  const lambert = Math.max(0, n.dot(LIGHT_DIR));
-  const rim = Math.max(0, 1 - Math.max(0, n.dot(viewDir))) * 0.16;
-  const shade = Math.min(1.15, 0.58 + lambert * 0.42 + rim);
-  return [
-    Math.round(Math.min(255, (rgb[0] / 3) * shade * 255)),
-    Math.round(Math.min(255, (rgb[1] / 3) * shade * 255)),
-    Math.round(Math.min(255, (rgb[2] / 3) * shade * 255)),
-  ];
-}
-
 function rotateViewDirectionIntoSoldierLocal(dir: THREE.Vector3, facing: number): void {
   const angle = Math.PI / 2 - facing;
   const c = Math.cos(angle);
@@ -474,8 +511,4 @@ function nearestTile(dir: THREE.Vector3, directions: THREE.Vector3[]): number {
     }
   }
   return best;
-}
-
-function clampShade(x: number): number {
-  return Math.max(0.65, Math.min(1.05, x));
 }

@@ -70,6 +70,33 @@ The plan required production parity but did not specify review scenery. This cho
 
 ## Sound — high confidence
 
+### Missing source faction attributes mean unmarked geometry (slice04b source transport)
+
+When an ordinary Blender export contains no `_FACTION_MASK` custom vertex attribute,
+its geometry receives no faction tint. If the attribute exists, its scalar values
+must be finite and between zero and one; broken references and other encodings
+reject rather than becoming zeros. An author who wants markings must enable
+Blender's Attributes export option and name the attribute exactly.
+
+The plan required independent faction masks but did not define their source
+convention or absence. **Sound:** ordinary unmarked geometry remains valid, while
+present markings have a strict tested contract and are never inferred from color.
+Future authoring must check the exported mask when markings are intended; omission
+is not evidence that the exporter preserved the intended markings.
+
+### Measure roads and sea-lane strips separately in full-game verification (04 maintenance)
+
+When the full-game check opens the campaign, roads are triangle meshes while its
+line counter covers sea-lane strips. The check now requires a substantial road
+triangle workload and nonzero sea-lane lines. It no longer asks sea lanes to exceed
+the old road-line count. The starting revision fails that same old assertion with
+identical map data and geometry, so lowering a timing limit would not address it.
+
+The plan required standing checks without identifying this carried-in mismatch.
+**Sound:** the assertion follows the actual workload owners and retains the
+existing city, depth and timing validity checks. Future verification must not use
+one drawing primitive's counter as evidence for a different primitive.
+
 ### Validate gameplay clips at controller admission, not generic import (slice03)
 
 When the battle reloads an asset that can stand idle but has no attack clip, it rejects the replacement before a later attack can crash rendering. The required names live beside the controller that requests them. A diagnostic with only an elbow-bend clip is still valid: its workbench explicitly requests no gameplay vocabulary and selects the asset's own clips.

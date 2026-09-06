@@ -19,6 +19,16 @@ The Attributes option is off by default; unprefixed names are not exported. That
 
 This is numerical source-transport acceptance, not a visual-quality verdict. The tiny marker is now intentionally faction-tintable; no screenshot baselines were rewritten.
 
+Main integration also passed all four focused source suites and deterministic
+candidate checking. The Blender reference sheets and mounted production sheet
+remain pixel-exact. The human production sheet changes2582 pixels confined to the
+existing forward-tip marker across its eight views. Main inspected the difference
+image; a fresh image-only reviewer found unchanged geometry, poses and framing,
+with only blue-violet coloring at those endpoints and no new silhouette/clipping
+artifacts. That one intended candidate baseline was refreshed after review.
+The review is retained in `source-mask-visual-review.txt`; it describes the marker
+visually as foot/ground-contact endpoints, not a change to the underlying rig.
+
 ## Change ledger
 
 Rows are added cases in `packages/soldier-assets/bake/appearance.test.mjs`; existing skeletal/pose tolerances and assertions are unchanged.

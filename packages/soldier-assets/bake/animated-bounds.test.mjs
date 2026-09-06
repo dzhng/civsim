@@ -62,6 +62,76 @@ assert.deepEqual(
   "bound does not depend on sampling more arc positions",
 );
 
+// The retained-pose invariant is a component interval, not exact membership in
+// the vector convex hull after arbitrarily many independently rounded axes.
+const boxRig = {
+  bones: [bone("root"), { ...bone("child"), parent: 0 }],
+  clips: [
+    {
+      name: "box",
+      duration: 1,
+      tracks: { 1: { T: { times: [0, 1], values: [1, 0, 0, 0, 1, 0] } } },
+    },
+  ],
+};
+const boxMesh = {
+  ...mesh,
+  positions: new Float32Array(6),
+  joints: new Uint16Array([1, 0, 0, 0, 1, 0, 0, 0]),
+};
+const boxBounds = deriveAnimatedBounds([boxMesh], bakeLocalAnimation(boxRig), materials, boxRig);
+assert.ok(
+  boxBounds.radius >= Math.sqrt(2),
+  "indefinite retained component range includes the box corner",
+);
+assert.ok(boxBounds.radius < 1.415, "numerical allowance does not replace the analytic envelope");
+const malformedRotation = structuredClone(rig);
+malformedRotation.bones[0].bind.R = [0, 0, 0, 1e-30];
+assert.throws(
+  () => deriveAnimatedBounds([mesh], bakeLocalAnimation(rig), materials, malformedRotation),
+  /near-unit quaternion/,
+);
+const deltaOverflow = {
+  bones: [bone("root")],
+  clips: [
+    {
+      name: "overflow",
+      duration: 1,
+      tracks: { 0: { T: { times: [0, 1], values: [-3e38, 0, 0, 3e38, 0, 0] } } },
+    },
+  ],
+};
+assert.throws(
+  () =>
+    deriveAnimatedBounds(
+      [{ ...boxMesh, joints: new Uint16Array(8) }],
+      bakeLocalAnimation(deltaOverflow),
+      materials,
+      deltaOverflow,
+    ),
+  /finite Float32 range/,
+);
+
+// Exercise the actual CPU snapshot owner repeatedly, including almost-complete
+// blends and opposite-sign/large dynamic-range coordinates. This strengthens
+// the invariant; it is not a claimed reproduction of an old source overshoot.
+const endpoints = [
+  new Float64Array([-0.1, 1e20, -1e-20, 0, 0, 0, 1, 0.1, -1e20, 1e-20]),
+  new Float64Array([0.3, -1e20, 1e-20, 0, 0, 0, 1, 0.3, 1e20, -1e-20]),
+];
+let retained = endpoints[0];
+for (let i = 0; i < 10000; i++) {
+  const destination = endpoints[i % 2];
+  const previous = retained;
+  retained = blendLocalPoses(previous, destination, i % 3 ? 1 - 2 ** -53 : 1 / 3);
+  for (const axis of [0, 1, 2, 7, 8, 9]) {
+    assert.ok(retained[axis] >= Math.min(previous[axis], destination[axis]));
+    assert.ok(retained[axis] <= Math.max(previous[axis], destination[axis]));
+  }
+}
+assert.deepEqual(blendLocalPoses(endpoints[0], endpoints[1], 0), endpoints[0]);
+assert.deepEqual(blendLocalPoses(endpoints[0], endpoints[1], 1), endpoints[1]);
+
 // Supplement the analytic argument with adversarial Float32 controls in both
 // current evaluation orders. These samples do not establish conservativeness.
 const stressRig = {

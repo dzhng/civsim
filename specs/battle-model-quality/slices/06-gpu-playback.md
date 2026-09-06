@@ -53,6 +53,8 @@ Names of new functions/routes in this plan are proposed, not existing commands. 
 
 ## Runnable artifact
 
+The [implementation-specific bounds revalidation](../assets/evidence/06/gpu-rounding-bounds.md) covers the shared local-palette interpolation/normalization arithmetic and depth-independent CPU retained component ranges. It does not replace06b GPU consumer or07 cost gates.
+
 Production fixture displays slow walk and run blends, interrupted attack and held death at quarter-frame offsets.
 
 Expose the fixture through the production model workbench and a named scene/probe. Record the exact runnable command in this file when it exists; do not mark completion with screenshots alone.

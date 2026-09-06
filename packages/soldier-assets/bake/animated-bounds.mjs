@@ -1,5 +1,9 @@
 import { poseSoldierMesh, assertMappedTangentFrames } from "../src/skin.ts";
-import { decodeLocalSample, resolveLocalSample } from "../src/localAnimation.ts";
+import {
+  decodeLocalSample,
+  resolveLocalSample,
+  isAdmittedLocalQuaternion,
+} from "../src/localAnimation.ts";
 import { localPoseToJointMatrices } from "../src/localPose.ts";
 
 // Positive bound arithmetic rounds outward to the next Float32 value. This also
@@ -27,15 +31,37 @@ const norm = (values) => {
   }, 0);
   return mul(up(scale), up(Math.sqrt(sum)));
 };
-const u = 2 ** -24;
+// WGSL permits either adjacent Float32, not just nearest-even. CPU Float32
+// storage is nearest-even and therefore has half this relative error.
+const u = 2 ** -23,
+  packingU = 2 ** -24;
 const gamma = (n) => up((n * u) / (1 - n * u));
 const g6 = gamma(6),
   g7 = gamma(7),
   sqrt3 = up(Math.sqrt(3));
+// Packing plus three T/S a+(b-a)*w stages (sample, base, upper). One
+// stage's absolute error is <= (5u+6u²+2u³) times the input norm.
+const g16 = gamma(16);
 // WebGPU may flush subnormals: bound each lost scalar result by the smallest
 // normal, not half a subnormal ULP. Seven products/additions compose a mat4 dot.
 const tiny = 2 ** -126,
   eta7 = up((7 * tiny) / (1 - 7 * u));
+const eta16 = up((16 * tiny) / (1 - 16 * u));
+// Near-unit shortest-arc inputs, the .9995 branch and bounded sine polynomial
+// give |slerp result| > .001. The zero/subnormal-cosine shader branch uses pi/2.
+// Explicitly include dot underflow relative to that lower squared magnitude.
+const normalizedDotError = add(g7, up(eta7 / 1e-6));
+// WGSL length inherits sqrt(dot); sqrt inherits 1/inverseSqrt. Division
+// permits 2.5 ULP, inverseSqrt 2 ULP. Normalization resets this error per blend.
+const divisionError = 2.5 * u,
+  inverseSqrtError = 2 * u;
+const normalizedQuaternionNorm = add(
+  up(
+    ((1 + divisionError) * (1 + inverseSqrtError)) /
+      ((1 - divisionError) * Math.sqrt(1 - normalizedDotError)),
+  ),
+  2 * tiny,
+);
 const matrixTiny = mul(3, eta7),
   vectorTiny = mul(sqrt3, eta7);
 const vectors = (values, width) =>
@@ -71,24 +97,53 @@ export function deriveAnimatedBounds(tiers, animation, materials, rig) {
           : [],
       ),
     ];
+    for (const field of ["T", "S"]) {
+      const keys = values(field);
+      for (let axis = 0; axis < 3; axis++) {
+        const low = Math.min(...keys.map((v) => v[axis])),
+          high = Math.max(...keys.map((v) => v[axis]));
+        // A finite final convex value is insufficient: b-a executes first.
+        // Include earlier GPU stages' outward drift before admitting its span.
+        const drift = add(mul(g16, Math.max(Math.abs(low), Math.abs(high))), eta16);
+        add(up(high - low), mul(2, drift));
+      }
+    }
     const rotations = values("R");
-    const q2 = Math.max(1, ...rotations.map((q) => mul(norm(q), norm(q))));
+    for (const q of rotations)
+      if (!isAdmittedLocalQuaternion(q))
+        throw new Error(`animated bounds require an admitted near-unit quaternion: ${bone.name}`);
+    // Endpoints may bypass normalization; packed endpoints and normalized
+    // intermediates have separate envelopes. Normalization resets its error.
+    const q2 = Math.max(
+      mul(normalizedQuaternionNorm, normalizedQuaternionNorm),
+      ...rotations.map((q) => {
+        const packed = mul(1 + packingU, norm(q));
+        return mul(packed, packed);
+      }),
+    );
     // R(q) has norm max(1,sqrt(1+4|q.xyz|²(|q|²-1))). Interior
     // slerps normalize; endpoints/binds may retain tiny authored norm errors.
     const rotationNorm = up(Math.sqrt(add(1, mul(4 * q2, Math.max(0, q2 - 1)))));
-    const scale = up(Math.max(...values("S").flat().map(Math.abs)));
+    const scale = add(mul(1 + g16, Math.max(...values("S").flat().map(Math.abs))), eta16);
     // A TRS coefficient has at most six arithmetic/store roundings. Its
     // absolute polynomial is bounded by (1+4|q|²)S; Frobenius error ≤3δ.
     const localLinear = add(
       mul(rotationNorm, scale),
       add(mul(mul(3 * g6, add(1, mul(4, q2))), scale), mul(3, tiny)),
     );
-    const translations = values("T");
+    const sourceTranslations = values("T");
+    const low = [0, 1, 2].map((axis) => Math.min(...sourceTranslations.map((t) => t[axis])));
+    const high = [0, 1, 2].map((axis) => Math.max(...sourceTranslations.map((t) => t[axis])));
+    // CPU range-preserving scalar interpolation stays in this component box
+    // at arbitrary interruption depth; it need not stay in the vector hull.
+    const translations = Array.from({ length: 8 }, (_, corner) =>
+      low.map((value, axis) => (corner & (1 << axis) ? high[axis] : value)),
+    );
     const t = Math.max(...translations.map(norm));
     return {
       translations,
-      t: add(mul(1 + g6, t), vectorTiny),
-      tError: add(mul(g6, t), vectorTiny),
+      t: add(mul(1 + g16, t), mul(sqrt3, eta16)),
+      tError: add(mul(g16, t), mul(sqrt3, eta16)),
       localLinear,
     };
   });

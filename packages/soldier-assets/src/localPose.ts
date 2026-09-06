@@ -161,8 +161,14 @@ export function mat4FromTRS(t: NumericArray, q: NumericArray, s: NumericArray) {
   return m;
 }
 
+function scalarLerp(a: number, b: number, u: number) {
+  // Frozen interruptions may be blended indefinitely. Preserve the exact scalar
+  // endpoint range rather than accumulating a depth-dependent rounding allowance.
+  return Math.max(Math.min(a, b), Math.min(Math.max(a, b), a + (b - a) * u));
+}
+
 function vec3Lerp(a: NumericArray, b: NumericArray, u: number) {
-  return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, a[2] + (b[2] - a[2]) * u];
+  return [scalarLerp(a[0], b[0], u), scalarLerp(a[1], b[1], u), scalarLerp(a[2], b[2], u)];
 }
 
 /** Shortest-arc quaternion slerp (x,y,z,w), normalized. */

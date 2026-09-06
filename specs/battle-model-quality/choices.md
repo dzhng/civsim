@@ -67,6 +67,20 @@ not repeated references; object overhead is not included. **Sound:** exact
 identity preserves animation semantics. Irregular histories can miss the cache
 and pay comparison overhead, so synchronized speedups are not universal claims.
 
+### Construct prior playback only when an observation actually interrupts a lane (07)
+
+An unchanged lane does not need a frozen copy of its current playback. The
+controller defers that object construction until its existing transition callback
+needs it, and reuses it for a simultaneous base/upper-body interruption. The
+captured history is the old history, not the variable rebound during transition.
+This keeps immutable snapshots and atomic observation semantics intact without
+another cache lifetime or a change to sampling precision.
+
+The coordinator selected this bounded seam after interruption-frame telemetry
+showed observation work among the delayed-frame contributors. **Sound, medium
+confidence:** exact playback/posed output matches pinned source; the timing
+benefit remains unmeasured and must survive the matched production budget run.
+
 ### Give main visibility and shadow casting independent representations (07 projected LOD)
 
 When a soldier is outside the main camera but inside the sun's shadow camera,

@@ -329,16 +329,22 @@ export class ActionTimeline {
       const restart = injured || (role === "release" && released) || (role === "melee" && !playing);
       // Equipment can change skeleton/clip indices; never carry a blend across bundles.
       const sameAppearance = history?.appearanceId === observation.appearanceId;
-      const previous = sameAppearance ? playback(history, seconds) : undefined;
+      const previousHistory = history;
+      let previous: SoldierPlayback | undefined;
+      // Transition callbacks run only when a lane changes. Capture the old history
+      // before rebinding it so base and overlay interruptions freeze the same pose.
+      const priorPlayback = () => (previous ??= playback(previousHistory!, seconds));
       const appearance = this.appearances[observation.appearanceId];
-      const freezeBase = () =>
-        freezePlayback(
+      const freezeBase = () => {
+        const pose = priorPlayback();
+        return freezePlayback(
           appearance,
           role === "hit" || role === "death"
-            ? previous!
-            : { appearanceId: observation.appearanceId, base: previous!.base },
+            ? pose
+            : { appearanceId: observation.appearanceId, base: pose.base },
         );
-      const freezeComposed = () => freezePlayback(appearance, previous!);
+      };
+      const freezeComposed = () => freezePlayback(appearance, priorPlayback());
       const base = transition(
         sameAppearance ? history.base : undefined,
         baseTrack,
@@ -365,7 +371,7 @@ export class ActionTimeline {
           source: { kind: "clip" as const, sample: sample(base.current, seconds) },
           changed: seconds - BLEND_SECONDS,
         };
-        const freeze = previous
+        const freeze = sameAppearance
           ? freezeComposed
           : () =>
               freezePlayback(appearance, {

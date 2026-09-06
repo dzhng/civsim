@@ -1,6 +1,33 @@
 # Observation-only timeline update
 
-The controller now observes atomically through `update(): void`; `sample()` is the sole playback-output owner. The battle and replay consumers already ignored the old returned array. Removing it avoids a second per-soldier playback construction on observation frames without changing the history transition arithmetic, immutable snapshot cache, or commit boundary. The existing unconditional construction of `previous` for same-appearance histories remains untouched; this result does not establish that further change is warranted.
+The controller observes atomically through `update(): void`; `sample()` is the sole playback-output owner. Removing the ignored output avoids a second per-soldier playback construction on observation frames without changing the history transition arithmetic, immutable snapshot cache, or commit boundary.
+
+## Lazy prior-pose capture: exactness only
+
+The prior displayed playback is needed only when a lane actually transitions.
+Its construction is now deferred to the existing freeze callbacks and memoized
+within that observation. A stable reference to the old history is captured before
+the next base/overlay history is installed, so simultaneous interruptions still
+freeze one exact pre-transition pose. Equipment changes use the existing
+same-appearance gate; there is no cross-observation cache or phase quantization.
+
+The existing pinned-source harness includes a small exactness-only case against
+`e28080af`: **396 playback and posed-output comparisons match exactly** across
+foot/mounted interruptions, fractional samples, repeated observations, overlay
+exit, injury, equipment changes, death, count shrink and rewind. Run it with
+`TIMELINE_PROFILE_BASE=e28080af` and the `lazy prior capture` test-name filter in
+the adjacent harness config. The other41 focused timeline/mounted/packing tests
+and typecheck pass; no assertion or expected pose was re-pinned.
+
+The high-detail combined run motivating this seam had interruption delays after
+observation ticks:12/13 control and10/11 timed delayed intervals. Preceding frames
+averaged about9ms observation and11ms upload. This identifies useful CPU work to
+investigate, not the cost of this particular allocation. The lazy change adds a
+closure and removes eager blend/sample object construction on unchanged lanes;
+it does not skip35-bone pose evaluation that was never happening on that path.
+No profile or GPU run was performed for this change. The matched production
+budget rerun must establish any gain; the measurements below concern the earlier
+observation-only API change, not lazy capture.
 
 ## Verification
 

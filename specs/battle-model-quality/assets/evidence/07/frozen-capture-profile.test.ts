@@ -22,6 +22,51 @@ const diagnostics = await loadAppearanceCatalog(
   "http://fixture/candidates/blender-reference/catalog.json",
 );
 assets[41] = mountedTemporalFixture(diagnostics[41]);
+test("lazy prior capture preserves exact playback and posed output against pinned source", () => {
+  const original = new ActionTimeline(assets),
+    current = new MemoTimeline(assets);
+  let verified = 0;
+  for (const tick of [0, 1, 4, 8, 10, 11, 14, 15, 18, 24, 30, 40, 50, 60, 100, 2, 3]) {
+    const observations = Array.from({ length: tick === 100 ? 2 : 4 }, (_, i) => ({
+      appearanceId: tick >= 40 ? (i % 2 ? 4 : 41) : i % 2 ? 41 : 4,
+      alive: tick < 60,
+      health: tick >= 30 ? 80 : 100,
+      mountHealth: 100,
+      speedMps: tick === 0 ? 0 : 1,
+      running: tick >= 4 && (tick + i) % 3 !== 0,
+      atEase: false,
+      pikeReady: false,
+      fighting: false,
+      releaseTtl: [10, 11, 14, 15, 18].includes(tick) ? 0.5 : 0,
+      releaseAgeSeconds: i / 100,
+    }));
+    // Re-observing the same tick must remain inert as well as preserving transitions.
+    for (let repeat = 0; repeat < 2; repeat++) {
+      original.update(tick, observations);
+      current.update(tick, observations);
+      for (const fraction of [0, 0.25, 0.75]) {
+        const expected = original.sample(tick + fraction),
+          actual = current.sample(tick + fraction);
+        assert.deepEqual(actual, expected);
+        for (let i = 0; i < actual.length; i++) {
+          const appearance = assets[actual[i].appearanceId];
+          assert.deepEqual(
+            evaluatePlaybackPose(appearance, actual[i]),
+            evaluatePlaybackPose(appearance, expected[i]),
+          );
+          verified++;
+        }
+      }
+    }
+  }
+  process.stdout.write(
+    JSON.stringify({
+      baseline: process.env.TIMELINE_PROFILE_BASE,
+      exactPlaybackAndPoses: verified,
+      timingClaim: false,
+    }) + "\n",
+  );
+});
 test("timeline update preserves exact poses versus a pinned controller", () => {
   for (let repeat = 0; repeat < 3; repeat++)
     for (const id of [4, 41])
@@ -66,7 +111,8 @@ test("timeline update preserves exact poses versus a pinned controller", () => {
             runA();
             runB();
           }
-          const a = original.sample(tick), b = memo.sample(tick);
+          const a = original.sample(tick),
+            b = memo.sample(tick);
           const unique = new Set();
           for (let i = 0; i < obs.length; i++) {
             assert.deepEqual(

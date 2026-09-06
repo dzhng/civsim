@@ -25,13 +25,14 @@ try {
   const catalog = await fetch(`${base}catalog.json`).then((response) => response.json());
   const source = createPlaceholderSoldierMeshTiers();
   const generated = await bakePlaceholder({ write: false });
-  assert.deepEqual(Object.keys(catalog.appearances), Object.keys(generated.kit.archetypes));
+  assert.equal(Object.hasOwn(generated.files, 'kit.json'), false, 'complete catalog is the sole generated roster');
+  assert.deepEqual(Object.keys(catalog.appearances), Object.keys(generated.archetypes));
   let checkedVertices = 0;
   let maximumRadiusFraction = 0;
   for (const [id, path] of Object.entries(catalog.appearances)) {
     const bundle = await loadAppearanceBundle(new URL(path, base).href);
-    assert.equal(bundle.manifest.name, generated.kit.archetypes[id].name);
-    assert.equal(bundle.manifest.mounted, Boolean(generated.kit.archetypes[id].mount));
+    assert.equal(bundle.manifest.name, generated.archetypes[id].name);
+    assert.equal(bundle.manifest.mounted, generated.archetypes[id].mounted);
     assert.deepEqual(bundle.rig, JSON.parse(JSON.stringify(placeholderRig(), (_key, value) =>
       ArrayBuffer.isView(value) ? Array.from(value) : value)));
     assert.equal(JSON.stringify(bundle.animation), JSON.stringify(generated.out));

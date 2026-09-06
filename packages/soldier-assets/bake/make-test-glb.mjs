@@ -6,7 +6,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { REQUIRED_HUMAN_CLIP_NAMES } from './clip-contract.mjs';
+import { TEST_CLIP_NAMES } from './clip-contract.mjs';
 
 const OUT = new URL('../assets/test/two-bone.glb', import.meta.url);
 const WEB_OUT = new URL('../../../web/public/assets/soldiers/test/two-bone.glb', import.meta.url);
@@ -43,7 +43,7 @@ export function buildTestGltf() {
   const times = [0, 0.5, 1];
   const timeAccessor = addAccessor(times, 5126, 'SCALAR', 3, { min: [0], max: [1] });
 
-  const animations = REQUIRED_HUMAN_CLIP_NAMES.map((name, index) => {
+  const animations = TEST_CLIP_NAMES.map((name, index) => {
     const rotAccessor = addAccessor(clipSwing(index).flat(), 5126, 'VEC4', 3);
     return {
       name,

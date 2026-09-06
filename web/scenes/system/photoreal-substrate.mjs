@@ -9,7 +9,7 @@ import { PNG } from "pngjs";
 // opens the ladder's perf ledger (budget 33 ms; 06 baseline ~6 ms).
 export const meta = {
   name: "photoreal-substrate",
-  kind: "flow",
+  kind: "visual",
   world: "none",
   tier: "full",
   snapshots: ["photoreal-pbr", "photoreal-crowd-mid"],
@@ -23,10 +23,16 @@ const PERF_BUDGET_MS = 33;
 
 function countNonBlank(png) {
   let nonBlank = 0;
+  let sum = 0;
+  let squares = 0;
   for (let i = 0; i < png.data.length; i += 4) {
     if (png.data[i] + png.data[i + 1] + png.data[i + 2] > 60) nonBlank += 1;
+    const value = (png.data[i] + png.data[i + 1] + png.data[i + 2]) / 3;
+    sum += value;
+    squares += value * value;
   }
-  return { nonBlank, total: png.width * png.height };
+  const total = png.width * png.height;
+  return { nonBlank, total, variance: squares / total - (sum / total) ** 2 };
 }
 
 async function openRoute(ctx, route, query, errorPrefix) {
@@ -94,7 +100,7 @@ async function fixedTimeChecks(ctx, page, label, extraStatsOk) {
   const pixels = countNonBlank(PNG.sync.read(shotA));
   ctx.check(
     `${label}: canvas is non-blank`,
-    pixels.nonBlank > pixels.total * 0.4,
+    pixels.nonBlank > pixels.total * 0.4 && pixels.variance > 4,
     JSON.stringify(pixels),
   );
   const shotB = await page.screenshot({ clip, timeout: 120000 });
@@ -128,6 +134,10 @@ export async function run(ctx) {
       (s) =>
         s.cameraPreset === "mid" &&
         s.soldiers >= 30400 &&
+        s.soldierRenderer === "production-crowd" &&
+        s.soldierAssets === "complete-catalog" &&
+        s.appearanceIds.join(",") === "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19" &&
+        s.crowd.visibleTierHistogram.l0 >= 30400 &&
         s.grassBlades >= 200000 &&
         s.trees >= 3000,
     );

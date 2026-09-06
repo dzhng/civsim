@@ -13,11 +13,7 @@ import {
 } from "@packages/soldier-assets/src/soldierMesh.ts";
 
 test("soldier material identity publishes the canonical channel order", () => {
-  const kit = {
-    materials: { channels: ["albedo", "normal", "orm", "factionMask"] },
-    archetypes: { 0: { name: "heavy-sword", material: "heavy" } },
-  } satisfies Parameters<typeof soldierMaterialIdentity>[0];
-  const identity = soldierMaterialIdentity(kit);
+  const identity = soldierMaterialIdentity();
   assert.equal(identity.identity, SOLDIER_MATERIAL_IDENTITY);
   assert.deepEqual(identity.channels, ["albedo", "normal", "orm", "factionMask"]);
   assert.equal(
@@ -25,7 +21,6 @@ test("soldier material identity publishes the canonical channel order", () => {
     "occlusion/roughness/metalness, canonical order from skinnedPipeline",
   );
   assert.equal(identity.mapping.factionMask, SOLDIER_MATERIAL_CHANNELS.factionMask);
-  assert.equal(identity.classes["0"].name, "heavy-sword");
 });
 
 test("soldier material masks decode placeholder albedo colors into PBR regions", () => {

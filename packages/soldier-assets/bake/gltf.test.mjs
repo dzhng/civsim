@@ -8,7 +8,7 @@ import { readFile } from 'node:fs/promises';
 import { bakeRig, mat4FromTRS, readJoint, transformPoint } from './vat.mjs';
 import { bakeGltf, bakeGltfJson, gltfToRig, parseGlb } from './gltf.mjs';
 import { makeTestGlb, buildTestGltf, encodeGlb } from './make-test-glb.mjs';
-import { REQUIRED_HUMAN_CLIP_NAMES } from './clip-contract.mjs';
+import { TEST_CLIP_NAMES } from './clip-contract.mjs';
 
 const GLB = new URL('../assets/test/two-bone.glb', import.meta.url);
 const FPS = 12;
@@ -22,7 +22,7 @@ function handRig() {
     { name: 'root', parent: -1, bind: { T: [0, 0, 0], R: [0, 0, 0, 1], S: [1, 1, 1] }, inverseBind: identity },
     { name: 'tip', parent: 0, bind: { T: [1, 0, 0], R: [0, 0, 0, 1], S: [1, 1, 1] }, inverseBind: negX },
   ];
-  const clips = REQUIRED_HUMAN_CLIP_NAMES.map((name, index) => {
+  const clips = TEST_CLIP_NAMES.map((name, index) => {
     const amp = 0.18 + index * 0.06;
     return {
       name,
@@ -52,7 +52,7 @@ function handRig() {
   assert.equal(rig.bones.length, 2);
   assert.deepEqual(rig.bones.map((b) => b.name), ['root', 'tip']);
   assert.deepEqual(rig.bones.map((b) => b.parent), [-1, 0]);
-  assert.deepEqual(rig.clips.map((c) => c.name), REQUIRED_HUMAN_CLIP_NAMES);
+  assert.deepEqual(rig.clips.map((c) => c.name), TEST_CLIP_NAMES);
   for (let b = 0; b < 2; b++) {
     rig.bones[b].inverseBind.forEach((v, i) => assert.ok(Math.abs(v - expected.bones[b].inverseBind[i]) < 1e-6));
   }
@@ -66,7 +66,7 @@ function handRig() {
   assert.equal(bake.width, golden.width, 'VAT width mismatch');
   assert.equal(bake.height, golden.height, 'VAT height mismatch');
   assert.equal(bake.bones, 2);
-  assert.deepEqual(bake.clips.map((c) => c.name), REQUIRED_HUMAN_CLIP_NAMES);
+  assert.deepEqual(bake.clips.map((c) => c.name), TEST_CLIP_NAMES);
   assert.equal(bake.data.length, golden.data.length);
   for (let i = 0; i < golden.data.length; i++) {
     assert.ok(Math.abs(bake.data[i] - golden.data[i]) < 1e-6, `VAT float ${i} differs: ${bake.data[i]} vs ${golden.data[i]}`);

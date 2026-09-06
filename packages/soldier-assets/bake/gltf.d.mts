@@ -1,4 +1,4 @@
-import type { ImportedRig } from '../src/validate';
+import type { ImportedRig } from '../src/rig';
 import type { VatBake } from '../src/schema';
 import type { SoldierMeshData } from '../src/mesh';
 

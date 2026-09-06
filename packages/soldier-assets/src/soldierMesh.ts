@@ -459,26 +459,18 @@ function addWeapon(out: number[], indices: number[], look: PlaceholderLook, lod:
   }
 }
 
-export function soldierMaterialIdentity(kit?: { materials?: { channels?: string[] }; archetypes?: Record<string, { name: string; material: string }> }) {
-  const archetypes = kit?.archetypes ?? {};
+export function soldierMaterialIdentity() {
   return {
     identity: SOLDIER_MATERIAL_IDENTITY,
-    channels: kit?.materials?.channels ?? Object.keys(SOLDIER_MATERIAL_CHANNELS),
+    channels: Object.keys(SOLDIER_MATERIAL_CHANNELS),
     mapping: SOLDIER_MATERIAL_CHANNELS,
     masks: SOLDIER_MATERIAL_MASKS,
     pbr: SOLDIER_PBR_VALUES,
-    classes: Object.fromEntries(
-      Object.entries(archetypes).map(([id, archetype]) => [
-        id,
-        { name: archetype.name, material: archetype.material },
-      ]),
-    ),
   };
 }
 
 /** Split stride-11 interleaved soldier vertices (position, normal, RGBA,
- *  bone) into the attribute arrays the crowd geometry binds. Also the entry
- *  point for baked `classMeshes` assets, which ship this exact layout. */
+ *  bone) from the procedural placeholder builder into canonical attributes. */
 export function splitInterleaved(vertices: Float32Array, indices: Uint16Array | Uint32Array): SoldierMeshData {
   const count = vertices.length / 11;
   const positions = new Float32Array(count * 3);

@@ -36,7 +36,12 @@ fn paletteSlerp(a: vec4f, inputB: vec4f, weight: f32) -> vec4f {
   if (cosine > 0.9995) {
     result = a * (1.0 - weight) + b * weight;
   } else {
-    let theta = atan2(length(b - a * cosine), cosine);
+    // WGSL only bounds atan2 accuracy for a normal, nonzero second argument.
+    // Below the smallest normal cosine, the shortest-arc angle rounds to pi/2.
+    var theta = 1.5707963267948966;
+    if (cosine >= 1.1754943508222875e-38) {
+      theta = atan2(length(b - a * cosine), cosine);
+    }
     result = a * paletteSin((1.0 - weight) * theta) + b * paletteSin(weight * theta);
   }
   let magnitude = length(result);

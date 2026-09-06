@@ -28,6 +28,7 @@ import { CSMShadowNode } from "three/examples/jsm/csm/CSMShadowNode.js";
 import type { CivsimEnvironment } from "../../../game-renderer/src/environment/environment";
 import { projectionFootprint } from "../../../renderer-core/src/camera3d";
 import type { CrowdProjectionView } from "./crowdLod";
+import { CROWD_SHADOW_LAYER } from "./crowdAudience";
 
 export type SunShadowMode = "csm" | "single" | "off";
 
@@ -155,6 +156,9 @@ export function configureSunShadows(
   renderer.shadowMap.type = THREE.PCFShadowMap;
   sun.castShadow = true;
   const shadow = sun.shadow;
+  // A non-default bit keeps Three from inheriting the main camera's mask.
+  // Configure before CSM clones this camera; ordinary world casters stay on layer 0.
+  shadow.camera.layers.enable(CROWD_SHADOW_LAYER);
   shadow.bias = SHADOW_BIAS;
   shadow.normalBias = SHADOW_NORMAL_BIAS;
   shadow.radius = radius;

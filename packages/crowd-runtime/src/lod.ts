@@ -72,20 +72,19 @@ export function lodWithHysteresis(
   return screenSize <= boundary - margin ? raw : prevLevel;
 }
 
-/** View and shadow projections use one threshold policy. Impostors do not cast
- * shadows, so a contributing shadow view requires at least the coarsest mesh. */
-export function assignLodForContributions(
-  viewPixels: number,
-  shadowPixels: number,
+/** Each audience uses the same thresholds, but only shadow demand has a mesh floor. */
+export function assignLodForProjection(
+  pixels: number,
+  shadow: boolean,
   prevLevel?: LodLevel,
   policy = DEFAULT_LOD_POLICY,
 ): LodAssignment {
-  const screenSize = Math.max(policy.minScreenPixels, viewPixels, shadowPixels);
+  const screenSize = Math.max(policy.minScreenPixels, pixels);
   let level =
     prevLevel === undefined
       ? assignLodForScreenSize(screenSize, policy)
       : lodWithHysteresis(prevLevel, screenSize, policy);
-  if (shadowPixels > 0) level = Math.min(COARSEST_SHADOW_LOD, level) as LodLevel;
+  if (shadow && pixels > 0) level = Math.min(COARSEST_SHADOW_LOD, level) as LodLevel;
   return { level, screenSize };
 }
 
@@ -96,9 +95,9 @@ export function assignCrowdLods(
   prevLevels?: ArrayLike<number>,
 ): LodAssignment[] {
   return instances.map((inst, i) => {
-    return assignLodForContributions(
+    return assignLodForProjection(
       instanceScreenSize(inst, projection),
-      0,
+      false,
       prevLevels?.[i] as LodLevel | undefined,
       policy,
     );

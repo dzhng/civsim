@@ -4,6 +4,8 @@ import { SoldierPosePalette } from "@packages/photoreal-renderer/src/battle/pose
 import { bakeLocalAnimation } from "@packages/soldier-assets/src/localAnimation";
 import { mat4Identity } from "@packages/soldier-assets/src/localPose";
 import type { ImportedRig } from "@packages/soldier-assets/src/rig";
+import { queueCrowdInstance } from "@packages/photoreal-renderer/src/battle/crowdLayer";
+import { generatedFormation, type CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
 
 const rig: ImportedRig = {
   bones: [
@@ -116,6 +118,66 @@ test("optional reserve is bounded without rejecting a fitting request", () => {
     ),
   ).toThrow("device limit is 20000");
   palette.dispose();
+});
+
+test("two draw audiences share pose slots and do not double palette capacity or uploads", () => {
+  const renderer = {
+    backend: {
+      device: {
+        limits: {
+          maxBufferSize: 20000,
+          maxStorageBufferBindingSize: 20000,
+          maxComputeWorkgroupsPerDimension: 65535,
+        },
+      },
+    },
+    _attributes: { data: { get: () => ({ version: 0 }) }, delete() {} },
+    compute() {},
+  } as unknown as THREE.WebGPURenderer;
+  const palette = new SoldierPosePalette(renderer, rig, bakeLocalAnimation(rig), {
+    40: { manifest: { presentation: null } },
+  });
+  const group = { pending: [] as CrowdInstance[] };
+  const main = { group, pending: [] as CrowdInstance[], paletteIndices: [] as number[] };
+  const shadow = { group, pending: [] as CrowdInstance[], paletteIndices: [] as number[] };
+  const instances = generatedFormation(250).map((body, i) => ({
+    ...body,
+    clip: "hold",
+    phase: i / 250,
+  }));
+  const upload = () =>
+    palette.upload(
+      group.pending.length,
+      (i) => group.pending[i],
+      () => 0,
+      () => {},
+    );
+  for (const instance of instances) queueCrowdInstance(instance, main);
+  upload();
+  const single = palette.stats();
+  group.pending.length = main.pending.length = main.paletteIndices.length = 0;
+  for (const instance of instances) queueCrowdInstance(instance, main, shadow);
+  assertQueues();
+  upload(); // 500 pose slots would exceed this device's 20,000-byte limit.
+  expect(palette.stats()).toEqual(single);
+
+  // Same owned queue covers impostor+caster (shadow only) and no mesh demand.
+  group.pending.length = main.pending.length = main.paletteIndices.length = 0;
+  shadow.pending.length = shadow.paletteIndices.length = 0;
+  queueCrowdInstance(instances[13], undefined, shadow);
+  queueCrowdInstance(instances[14]);
+  expect(group.pending).toEqual([instances[13]]);
+  expect(shadow.pending[shadow.paletteIndices[0]].phase).toBe(instances[13].phase);
+  palette.dispose();
+
+  function assertQueues() {
+    expect(group.pending).toEqual(instances);
+    expect(main.paletteIndices).toEqual(shadow.paletteIndices);
+    for (let i = 0; i < instances.length; i++) {
+      expect(group.pending[main.paletteIndices[i]]).toBe(main.pending[i]);
+      expect(group.pending[shadow.paletteIndices[i]]).toBe(shadow.pending[i]);
+    }
+  }
 });
 
 test("admission failure retires all owned storage once, including after partial submission", async () => {

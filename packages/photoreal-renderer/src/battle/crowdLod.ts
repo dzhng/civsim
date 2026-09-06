@@ -4,11 +4,13 @@ import {
   type CrowdInstance,
 } from "../../../crowd-runtime/src/instanceData";
 import {
-  assignLodForContributions,
+  assignLodForProjection,
   countLods,
   DEFAULT_LOD_POLICY,
   instanceScreenSize,
   type LodLevel,
+  type LodAssignment,
+  type LodCounts,
 } from "../../../crowd-runtime/src/lod";
 import { projectionDepth, type ProjectionFootprint } from "../../../renderer-core/src/camera3d";
 import type { AppearanceBundle } from "../../../soldier-assets/src/appearanceBundle";
@@ -26,9 +28,12 @@ export function planPhotorealCrowdLods(
   assets: Record<number, { manifest: Pick<AppearanceBundle["manifest"], "bounds"> }>,
   prevLevels?: ArrayLike<number>,
   policy = DEFAULT_LOD_POLICY,
+  prevShadowLevels?: ArrayLike<number>,
 ) {
   const sphere = new THREE.Sphere();
   const visibility = new Uint8Array(instances.length);
+  const shadowAssignments: LodAssignment[] = [];
+  const shadowCounts: LodCounts = { l0: 0, l1: 0, l2: 0, l3: 0 };
   let viewVisible = 0,
     shadowOnly = 0;
   const assignments = instances.map((inst, index) => {
@@ -65,12 +70,28 @@ export function planPhotorealCrowdLods(
     }
     if (visibility[index] & 1) viewVisible++;
     else if (visibility[index] & 2) shadowOnly++;
-    return assignLodForContributions(
-      viewPixels,
+    const shadowAssignment = assignLodForProjection(
       shadowPixels,
+      true,
+      prevShadowLevels?.[index] as LodLevel | undefined,
+      policy,
+    );
+    shadowAssignments.push(shadowAssignment);
+    if (visibility[index] & 2) shadowCounts[`l${shadowAssignment.level}` as keyof LodCounts]++;
+    return assignLodForProjection(
+      viewPixels,
+      false,
       prevLevels?.[index] as LodLevel | undefined,
       policy,
     );
   });
-  return { assignments, counts: countLods(assignments), visibility, viewVisible, shadowOnly };
+  return {
+    assignments,
+    counts: countLods(assignments),
+    shadowAssignments,
+    shadowCounts,
+    visibility,
+    viewVisible,
+    shadowOnly,
+  };
 }

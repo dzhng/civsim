@@ -10,10 +10,10 @@ The [production planner](../../../../../packages/photoreal-renderer/src/battle/c
 uses the unchanged animated/corpse-transformed bounds to select contributing
 main and shadow views. Near-plane intersections retain full detail. Bodies
 behind the main camera make no main-view contribution but remain casters when a
-shadow camera contains them. The finest contributing footprint wins under the
-unchanged pixel thresholds and hysteresis. Shadow footprints use the actual
+shadow camera contains them. Each audience independently selects detail under
+the unchanged pixel thresholds and hysteresis. Shadow footprints use the actual
 orthographic camera and map resolution. Their minimum representation is the
-coarsest mesh; all three mesh tiers now cast, while sprites remain non-casters.
+coarsest mesh; all three shadow mesh tiers cast, while sprites remain non-casters.
 The [choice ledger](../../../choices.md) owns that explicit caster-policy decision.
 
 No camera rig, light, simulation, asset, framebuffer setting or numeric threshold
@@ -21,6 +21,29 @@ changed. The existing skip-tier hysteresis behavior is preserved, including its
 conservative retention when a jump lands inside a coarser boundary's deadband.
 Production telemetry separates view-visible and shadow-only bodies from their
 union, so a submitted caster is not mistaken for an on-screen soldier.
+
+## Representation belongs to its audience
+
+The main view must retain its far impostor even when a shadow map needs geometry.
+Impostors have an intentional minimum screen coverage to remain readable through
+alpha-tested mipmaps. Applying a shadow mesh floor to the main view removes that
+treatment: the production overview comparison showed sparse faint dots replacing
+readable formations. Correct physical projection is not permission to discard an
+existing readability treatment.
+
+Main and shadow buckets use the same draw/material/upload path. Three's built-in
+object layers exclude shadow-only meshes from the main color and depth passes.
+Shadow cameras explicitly include the caster layer before cascade cloning;
+otherwise Three inherits the main camera mask and loses those casters. Ordinary
+world objects remain on the default layer. No custom shadow pass or shader mask
+is necessary.
+
+Both audiences reference one computed pose slot per source soldier. Geometry and
+materials have independent owners per audience, avoiding aliases in Three's
+disposal caches. The additional static buffer payload is reported separately as
+`shadowGeometryBytes`; it is not a per-frame upload count or proof of resident GPU
+memory. Image surfaces and pose storage remain shared. Allocation and frame-cost
+gates must measure the extra draws/resources in production.
 
 ## Evidence and remaining gates
 
@@ -30,11 +53,13 @@ reported21.306 pixels. Independent projection of an upright2.61m segment reports
 15.842 pixels: this demonstrates the old mismatch, not the new method's formula.
 Both correct projections cross the existing L0 exit boundary without retuning.
 
-The focused projection, LOD, camera bridge, synthetic-asset and mounted-timeline
-tests pass together:24 tests. Typecheck passes. Tests construct the actual
-production THREE mesh to verify that the tier selected for a shadow-only body
-really casts. Source review caught and corrected a proposed tier2 floor that
-initially disagreed with the old finer-only casting flags.
+Focused audience/projection/camera/palette tests pass together:21 tests; typecheck
+passes. Reintroducing the combined decision makes the distant-impostor regression
+fail with L2 instead of L3; separation restores L3 plus its L2 caster. Actual
+single and CSM shadow-camera setup admits caster-only objects without admitting
+them to the main camera. A dual-audience queue of250 bodies retains the same
+palette capacity and upload stats as250 main-only bodies on a device limit that
+rejects500 pose slots.
 
 GPU work is reserved for integration: production before/after captures, final
 unprimed critique, standing30k gate and matched animated-budget sweeps remain
@@ -81,3 +106,15 @@ radial distance, elevation, framebuffer scaling, FOV/yaw, overhead framing,
 near/behind cases, a finer shadow map winning, corpse-roll admission, and actual
 mesh caster flags. The temporal scene's synthetic frustum override now targets
 the new view entry; its original roll-sensitive culling assertions are unchanged.
+
+### Audience correction ledger
+
+| Test | Previous behavior | New behavior | Why |
+| --- | --- | --- | --- |
+| `photorealCrowdLod`: hysteresis/caster | A shadow-only body had one combined L2 assignment. | Main assignment is L3 with no main visibility; separate shadow assignment remains L2. The same four hysteresis boundary assertions hold. | Main representation must not inherit a shadow floor. **moved** |
+| `photorealCrowdLod`: actual caster producer | All three mesh objects cast and received shadows. | All three shadow-audience objects cast but do not receive; main objects receive but do not cast. | Object layers route independently owned draw audiences. **moved** |
+| `photorealCrowdLod`: finer shadow map | Tightening the map changed combined L1 to L0. | Main stays L1; shadow changes L2 to L0. | Map texel demand must not alter visible detail. **moved** |
+
+New tests pin retained main impostors, shadow-off independence, actual single/CSM
+layer routing, and shared palette indices/capacity/upload bytes. No far-readability
+browser assertion, unit stat, camera or material threshold was weakened.

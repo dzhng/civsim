@@ -67,23 +67,25 @@ not repeated references; object overhead is not included. **Sound:** exact
 identity preserves animation semantics. Irregular histories can miss the cache
 and pay comparison overhead, so synchronized speedups are not universal claims.
 
-### Let the coarsest mesh cast when a shadow view requires it (07 projected LOD)
+### Give main visibility and shadow casting independent representations (07 projected LOD)
 
 When a soldier is outside the main camera but inside the sun's shadow camera,
 removing its geometry can remove a shadow that is still visible. The shared
-detail planner now considers both cameras and keeps a mesh whenever either
-shadow camera needs a caster. The coarsest existing mesh tier also casts;
-previously only the two finer tiers did. Sprites still do not cast. This avoids
-forcing every far shadow contributor into an unnecessarily expensive fine mesh,
-without introducing a separate shadow-only mesh submission path.
+detail planner considers both cameras without combining their representation
+choices. The main view can retain a readable far impostor while a shadow-only
+mesh supplies its caster. The coarsest existing mesh tier also casts; sprites
+still do not. Three's built-in layers route existing mesh buckets to the shadow
+camera without another render system or per-fragment visibility shader.
 
 The resliced plan required preserving shadow contributors but did not initially
-specify which existing mesh tiers could cast. The implementing coordinator chose
-this boundary explicitly after review exposed the old producer's finer-only
-policy. Future distance work inherits one shared caster-tier decision used by
-both planner and actual mesh construction. **Sound, medium confidence:** it keeps
-shadow geometry present with the existing draw path; visual shadow changes and
-performance remain subject to the production gates, not inferred from unit tests.
+specify which existing mesh tiers could cast. The coordinator chose that boundary
+after review exposed the finer-only casting policy, then explicitly resliced the
+audience split after unprimed overview review rejected the combined result.
+Independent geometry/material ownership adds measurable buffer payload instead
+of a fragile shared-GPU-resource lifetime scheme. Both audiences use one pose
+slot per soldier. **Sound, medium confidence:** CPU tests cover actual single/CSM
+camera layers and unchanged pose capacity; visual readability, shadows and frame
+cost still require production acceptance.
 
 ### Time a frame with scene-owned GPU markers (07 measurement)
 

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "vitest";
 import * as THREE from "three/webgpu";
 import { generatedFormation, type CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
-import { assignLodForContributions, DEFAULT_LOD_POLICY } from "@packages/crowd-runtime/src/lod";
+import { assignLodForProjection, DEFAULT_LOD_POLICY } from "@packages/crowd-runtime/src/lod";
 import {
   planPhotorealCrowdLods,
   type CrowdProjectionView,
@@ -11,6 +11,9 @@ import {
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
 import { projectionFootprint } from "@packages/renderer-core/src/camera3d";
 import { createCrowdDrawMesh } from "@packages/photoreal-renderer/src/battle/crowdLayer";
+import { configureSunShadows } from "@packages/photoreal-renderer/src/battle/shadowRig";
+import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment";
+import type { CSMShadowNode } from "three/examples/jsm/csm/CSMShadowNode.js";
 
 const assets = {
   0: { manifest: { bounds: { center: [0, 0, 0.9] as [number, number, number], radius: 0.9 } } },
@@ -85,6 +88,30 @@ test("unseen bodies make no view contribution while retaining the policy floor",
   assert.equal(plan.assignments[0].level, 3);
 });
 
+test("a shadow caster does not replace the main view's distant impostor", () => {
+  const plan = planPhotorealCrowdLods([body(0, 1000)], [mainView(), shadowView()], assets);
+  assert.equal(plan.visibility[0], 3);
+  assert.equal(plan.assignments[0].level, 3);
+  assert.equal(plan.shadowAssignments[0].level, 2);
+  assert.deepEqual(plan.shadowCounts, { l0: 0, l1: 0, l2: 1, l3: 0 });
+});
+
+test("removing shadow views leaves the main representation and its hysteresis unchanged", () => {
+  const instance = body(0, 1000);
+  const withShadow = planPhotorealCrowdLods([instance], [mainView(), shadowView()], assets);
+  const withoutShadow = planPhotorealCrowdLods(
+    [instance],
+    [mainView()],
+    assets,
+    [withShadow.assignments[0].level],
+    undefined,
+    [withShadow.shadowAssignments[0].level],
+  );
+  assert.deepEqual(withoutShadow.assignments, withShadow.assignments);
+  assert.equal(withoutShadow.visibility[0], 1);
+  assert.deepEqual(withoutShadow.shadowCounts, { l0: 0, l1: 0, l2: 0, l3: 0 });
+});
+
 test("production size uses each body's actual terrain elevation", () => {
   const plan = planPhotorealCrowdLods(
     [body(0, 150), { ...body(0, 150), elevation: 20 }],
@@ -96,15 +123,16 @@ test("production size uses each body's actual terrain elevation", () => {
 });
 
 test("unchanged hysteresis applies to measured pixels and shadow casters remain meshes", () => {
-  assert.equal(assignLodForContributions(17.5, 0, 0).level, 0);
-  assert.equal(assignLodForContributions(18.5, 0, 1).level, 1);
-  assert.equal(assignLodForContributions(16.49, 0, 0).level, 1);
-  assert.equal(assignLodForContributions(19.51, 0, 1).level, 0);
+  assert.equal(assignLodForProjection(17.5, false, 0).level, 0);
+  assert.equal(assignLodForProjection(18.5, false, 1).level, 1);
+  assert.equal(assignLodForProjection(16.49, false, 0).level, 1);
+  assert.equal(assignLodForProjection(19.51, false, 1).level, 0);
   const plan = planPhotorealCrowdLods([body(0, -100)], [mainView(), shadowView()], assets);
   assert.equal(plan.visibility[0], 2);
   assert.equal(plan.viewVisible, 0);
   assert.equal(plan.shadowOnly, 1);
-  assert.equal(plan.assignments[0].level, 2);
+  assert.equal(plan.assignments[0].level, 3);
+  assert.equal(plan.shadowAssignments[0].level, 2);
 });
 
 test("the production mesh selected for a shadow-only body really casts shadows", () => {
@@ -112,25 +140,78 @@ test("the production mesh selected for a shadow-only body really casts shadows",
   const geometries = Array.from({ length: 3 }, () => new THREE.InstancedBufferGeometry());
   const materials = Array.from({ length: 3 }, () => new THREE.MeshStandardNodeMaterial());
   const meshes = geometries.map((geometry, lod) =>
-    createCrowdDrawMesh(0, lod, geometry, materials[lod]),
+    createCrowdDrawMesh(0, lod, geometry, materials[lod], "shadow"),
   );
-  assert.equal(meshes[plan.assignments[0].level].castShadow, true);
+  assert.equal(meshes[plan.shadowAssignments[0].level].castShadow, true);
   assert.deepEqual(
     meshes.map((mesh) => mesh.castShadow),
     [true, true, true],
   );
-  assert.ok(meshes.every((mesh) => mesh.receiveShadow));
+  assert.ok(meshes.every((mesh) => !mesh.receiveShadow));
   geometries.forEach((geometry) => geometry.dispose());
   materials.forEach((material) => material.dispose());
 });
 
-test("a finer contributing shadow map wins without changing the view camera", () => {
+test("a finer shadow map changes only the shadow audience", () => {
   const instance = body(0, 150);
   const coarse = planPhotorealCrowdLods([instance], [mainView(), shadowView()], assets);
   const fine = planPhotorealCrowdLods([instance], [mainView(), shadowView(20, 150)], assets);
   assert.equal(coarse.assignments[0].level, 1);
-  assert.equal(fine.assignments[0].level, 0);
+  assert.equal(fine.assignments[0].level, 1);
+  assert.equal(coarse.shadowAssignments[0].level, 2);
+  assert.equal(fine.shadowAssignments[0].level, 0);
   assert.equal(fine.visibility[0], 3);
+});
+
+test("actual single and cascade cameras see shadow meshes but the main camera cannot", () => {
+  const camera = new THREE.PerspectiveCamera(50, 1.6, 1, 2000);
+  const geometry = new THREE.InstancedBufferGeometry();
+  const material = new THREE.MeshStandardNodeMaterial();
+  const main = createCrowdDrawMesh(0, 0, geometry, material, "main");
+  const caster = createCrowdDrawMesh(0, 2, geometry, material, "shadow");
+  assert.equal(main.castShadow, false);
+  assert.equal(main.layers.test(camera.layers), true);
+  assert.equal(caster.layers.test(camera.layers), false);
+  for (const mode of ["single", "csm"] as const) {
+    // Renderer/device is the boundary; real shadow configuration and CSM setup run here.
+    const renderer = {
+      shadowMap: {},
+      coordinateSystem: THREE.WebGPUCoordinateSystem,
+      reversedDepthBuffer: false,
+    } as unknown as THREE.WebGPURenderer;
+    const sun = new THREE.DirectionalLight();
+    sun.position.set(0, -100, 200);
+    const scene = new THREE.Scene();
+    scene.add(sun, sun.target);
+    const rig = configureSunShadows(renderer, sun, CIVSIM_ENVIRONMENTS.golden, mode);
+    let cameras: THREE.Camera[] = [sun.shadow.camera];
+    if (mode === "csm") {
+      const csm = sun.shadow.shadowNode as CSMShadowNode;
+      // Public setup creates the actual cloned cascade cameras without a GPU render.
+      csm.setup({ camera, renderer } as unknown as Parameters<CSMShadowNode["setup"]>[0]);
+      cameras = csm.lights.map((light) => {
+        assert.ok(light.shadow);
+        return light.shadow.camera;
+      });
+      assert.equal(cameras.length, rig.identity().cascades);
+    }
+    for (const shadowCamera of cameras) {
+      assert.equal(caster.layers.test(shadowCamera.layers), true);
+      assert.equal(
+        main.layers.test(shadowCamera.layers),
+        true,
+        "ordinary world layers remain admitted",
+      );
+      assert.notEqual(
+        shadowCamera.layers.mask & 0xfffffffe,
+        0,
+        "Three must not replace this mask with the main-camera mask",
+      );
+    }
+    rig.dispose();
+  }
+  geometry.dispose();
+  material.dispose();
 });
 
 test("near-plane bounds keep full detail and corpse roll still controls view admission", () => {

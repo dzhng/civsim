@@ -31,6 +31,7 @@ import { localPoseToJointMatrices } from "../../../soldier-assets/src/localPose"
 import { viewNormalNode } from "./battleTsl";
 import { createSoldierImpostorAtlas, OctahedralImpostorLayer } from "./impostorLayer";
 import { planPhotorealCrowdLods, type CrowdProjectionView } from "./crowdLod";
+import { CROWD_SHADOW_LAYER, type CrowdAudience } from "./crowdAudience";
 import { RENDER_ORDER } from "./terrainLayer";
 import { weightedPaletteColumns } from "./skinNodes";
 import { SoldierPosePalette, type PaletteColumns } from "./posePalette";
@@ -45,6 +46,7 @@ import {
 } from "./soldierSurface";
 
 interface ClassBucket {
+  audience: CrowdAudience;
   mesh: THREE.Mesh;
   geometry: THREE.InstancedBufferGeometry;
   group: PaletteGroup;
@@ -56,6 +58,30 @@ interface ClassBucket {
   inst2: Float32Array;
   count: number;
   pending: CrowdInstance[];
+}
+
+type CrowdDrawQueue = Pick<ClassBucket, "pending" | "paletteIndices"> & {
+  group: Pick<PaletteGroup, "pending">;
+};
+
+/** Both draw audiences reference one computed pose, even when their tiers differ. */
+export function queueCrowdInstance(
+  instance: CrowdInstance,
+  main?: CrowdDrawQueue,
+  shadow?: CrowdDrawQueue,
+): void {
+  const group = (main ?? shadow)?.group;
+  if (!group) return;
+  const index = group.pending.length;
+  group.pending.push(instance);
+  if (main) {
+    main.paletteIndices.push(index);
+    main.pending.push(instance);
+  }
+  if (shadow) {
+    shadow.paletteIndices.push(index);
+    shadow.pending.push(instance);
+  }
 }
 
 interface PaletteGroup {
@@ -89,28 +115,32 @@ export function createCrowdDrawMesh(
   lod: number,
   geometry: THREE.InstancedBufferGeometry,
   material: THREE.MeshStandardNodeMaterial,
+  audience: CrowdAudience,
 ) {
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.name = `battle-crowd-${classId}-lod${lod}`;
+  mesh.name = `battle-crowd-${classId}-${audience}-lod${lod}`;
   mesh.frustumCulled = false;
   mesh.renderOrder = RENDER_ORDER.worldOpaque;
-  mesh.castShadow = lod <= COARSEST_SHADOW_LOD;
-  mesh.receiveShadow = true;
+  mesh.castShadow = audience === "shadow" && lod <= COARSEST_SHADOW_LOD;
+  mesh.receiveShadow = audience === "main";
+  if (audience === "shadow") mesh.layers.set(CROWD_SHADOW_LAYER);
   mesh.visible = false;
   return mesh;
 }
 
 /** Per-class geometry with one derived palette per visible mesh instance. */
 export class PhotorealCrowd {
-  private buckets: Record<number, ClassBucket[]> = {};
+  private buckets: Record<number, Record<CrowdAudience, ClassBucket[]>> = {};
   private readonly impostors: Record<number, OctahedralImpostorLayer> = {};
   private readonly groups: PaletteGroup[] = [];
   private readonly surfaces = new Set<PreparedSoldierSurface>();
   private instanceCount = 0;
   private readonly materialIdentity = soldierMaterialIdentity();
   private previousLevels: number[] = [];
+  private previousShadowLevels: number[] = [];
   private assignedCounts = emptyLodCounts();
   private visibleCounts = emptyLodCounts();
+  private shadowCounts = emptyLodCounts();
   private culling: CrowdCullingStats = {
     input: 0,
     visible: 0,
@@ -189,32 +219,37 @@ export class PhotorealCrowd {
         const tiers = bundle.tiers;
         const surface = await surfaceFor(bundle.surface);
         assertUsable?.();
-        this.buckets[classId] = tiers.map((tierMesh, lod) => {
-          const geometry = soldierGeometry(tierMesh);
-          const mesh = createCrowdDrawMesh(
-            classId,
-            lod,
-            geometry,
-            crowdMaterial(paletteGroup.palette.columns, bundle.animation.bones, surface),
-          );
-          created.push(mesh);
-          scene.add(mesh);
-          const bucket: ClassBucket = {
-            mesh,
-            geometry,
-            group: paletteGroup,
-            surface,
-            paletteIndices: [],
-            capacity: 0,
-            inst0: new Float32Array(0),
-            inst1: new Float32Array(0),
-            inst2: new Float32Array(0),
-            count: 0,
-            pending: [],
-          };
-          paletteGroup.buckets.push(bucket);
-          return bucket;
-        });
+        const createBuckets = (audience: CrowdAudience) =>
+          tiers.map((tierMesh, lod) => {
+            const geometry = soldierGeometry(tierMesh);
+            const mesh = createCrowdDrawMesh(
+              classId,
+              lod,
+              geometry,
+              crowdMaterial(paletteGroup.palette.columns, bundle.animation.bones, surface),
+              audience,
+            );
+            created.push(mesh);
+            scene.add(mesh);
+            const bucket: ClassBucket = {
+              audience,
+              mesh,
+              geometry,
+              group: paletteGroup,
+              surface,
+              paletteIndices: [],
+              capacity: 0,
+              inst0: new Float32Array(0),
+              inst1: new Float32Array(0),
+              inst2: new Float32Array(0),
+              count: 0,
+              pending: [],
+            };
+            paletteGroup.buckets.push(bucket);
+            return bucket;
+          });
+        // Independent geometry ownership avoids aliasing Three's disposal/upload caches.
+        this.buckets[classId] = { main: createBuckets("main"), shadow: createBuckets("shadow") };
         const far = bundle.manifest.far;
         const farPalette = localPoseToJointMatrices(
           bundle.rig,
@@ -255,11 +290,12 @@ export class PhotorealCrowd {
       this.uploadFailed = true;
       this.sourceInstances = [];
       this.visibleCounts = emptyLodCounts();
+      this.shadowCounts = emptyLodCounts();
       this.culling.visible = 0;
       this.culling.viewVisible = 0;
       this.culling.shadowOnly = 0;
-      for (const buckets of Object.values(this.buckets))
-        for (const bucket of buckets) {
+      for (const group of this.groups)
+        for (const bucket of group.buckets) {
           bucket.mesh.visible = false;
           bucket.geometry.instanceCount = 0;
           bucket.count = 0;
@@ -272,25 +308,36 @@ export class PhotorealCrowd {
   private uploadFrame(instances: CrowdInstance[], scope?: CrowdVisibilityScope): void {
     this.instanceCount = instances.length;
     this.sourceInstances = instances;
-    for (const bucketSet of Object.values(this.buckets)) {
-      for (const bucket of bucketSet) {
+    for (const group of this.groups) {
+      for (const bucket of group.buckets) {
         bucket.pending.length = 0;
         bucket.paletteIndices.length = 0;
       }
     }
     for (const group of this.groups) group.pending.length = 0;
     const plan = scope
-      ? planPhotorealCrowdLods(instances, scope.views, this.assets, this.previousLevels)
+      ? planPhotorealCrowdLods(
+          instances,
+          scope.views,
+          this.assets,
+          this.previousLevels,
+          undefined,
+          this.previousShadowLevels,
+        )
       : {
           assignments: instances.map(() => ({ level: 0 as const, screenSize: 999 })),
+          shadowAssignments: [],
+          shadowCounts: emptyLodCounts(),
           counts: { l0: instances.length, l1: 0, l2: 0, l3: 0 },
           visibility: new Uint8Array(instances.length).fill(1),
           viewVisible: instances.length,
           shadowOnly: 0,
         };
     this.previousLevels = plan.assignments.map((assignment) => assignment.level);
+    this.previousShadowLevels = plan.shadowAssignments.map((assignment) => assignment.level);
     this.assignedCounts = plan.counts;
     this.visibleCounts = emptyLodCounts();
+    this.shadowCounts = plan.shadowCounts;
     this.culling = {
       input: instances.length,
       visible: 0,
@@ -313,15 +360,18 @@ export class PhotorealCrowd {
         continue;
       }
       this.culling.visible++;
-      this.visibleCounts[`l${level}` as keyof LodCounts]++;
-      if (level === 3) {
-        impostors[inst.classId].push(inst);
-        continue;
+      const mainVisible = (plan.visibility[i] & 1) !== 0;
+      if (mainVisible) {
+        this.visibleCounts[`l${level}` as keyof LodCounts]++;
+        if (level === 3) impostors[inst.classId].push(inst);
       }
-      const bucket = this.buckets[inst.classId][level];
-      bucket.paletteIndices.push(bucket.group.pending.length);
-      bucket.group.pending.push(inst);
-      bucket.pending.push(inst);
+      queueCrowdInstance(
+        inst,
+        mainVisible && level !== 3 ? this.buckets[inst.classId].main[level] : undefined,
+        plan.visibility[i] & 2
+          ? this.buckets[inst.classId].shadow[plan.shadowAssignments[i].level]
+          : undefined,
+      );
     }
     for (const group of this.groups) {
       group.palette.upload(
@@ -347,8 +397,8 @@ export class PhotorealCrowd {
         },
       );
     }
-    for (const bucketSet of Object.values(this.buckets)) {
-      for (const bucket of bucketSet) this.uploadBucket(bucket);
+    for (const group of this.groups) {
+      for (const bucket of group.buckets) this.uploadBucket(bucket);
     }
     for (const [id, layer] of Object.entries(this.impostors)) {
       layer.upload(impostors[id]);
@@ -413,9 +463,18 @@ export class PhotorealCrowd {
   }
 
   stats() {
-    const meshDrawCalls = Object.values(this.buckets)
-      .flat()
-      .filter((bucket) => bucket.count > 0).length;
+    const buckets = this.groups.flatMap((group) => group.buckets);
+    const meshDrawCalls = buckets.filter(
+      (bucket) => bucket.count > 0 && bucket.audience === "main",
+    ).length;
+    const shadowMeshDrawCalls = buckets.filter(
+      (bucket) => bucket.count > 0 && bucket.audience === "shadow",
+    ).length;
+    const shadowGeometryBytes = buckets.reduce((sum, bucket) => {
+      if (bucket.audience !== "shadow") return sum;
+      const position = bucket.geometry.getAttribute("position") as THREE.InterleavedBufferAttribute;
+      return sum + position.data.array.byteLength + (bucket.geometry.index?.array.byteLength ?? 0);
+    }, 0);
     const far = Object.values(this.impostors).map((layer) => layer.stats());
     const impostors = {
       impostorInstances: far.reduce((sum, stats) => sum + stats.impostorInstances, 0),
@@ -431,11 +490,13 @@ export class PhotorealCrowd {
       culled: this.culling.culled,
       drawCalls: meshDrawCalls + impostors.impostorDrawCalls,
       meshDrawCalls,
+      shadowMeshDrawCalls,
+      // Additional static buffer payload, allocated on first use by Three (not per-frame traffic).
+      shadowGeometryBytes,
       impostorDrawCalls: impostors.impostorDrawCalls,
-      meshVariants: Object.values(this.buckets).reduce(
-        (sum, bucketSet) => sum + bucketSet.length,
-        0,
-      ),
+      meshVariants: buckets.filter((bucket) => bucket.audience === "main").length,
+      shadowMeshVariants: buckets.filter((bucket) => bucket.audience === "shadow").length,
+      shadowTierHistogram: { ...this.shadowCounts },
       tierHistogram: { ...this.assignedCounts },
       visibleTierHistogram: { ...this.visibleCounts },
       culling: { ...this.culling },
@@ -448,7 +509,7 @@ export class PhotorealCrowd {
   }
 
   dispose(): void {
-    for (const bucket of Object.values(this.buckets).flat()) {
+    for (const bucket of this.groups.flatMap((group) => group.buckets)) {
       bucket.mesh.removeFromParent();
       bucket.geometry.dispose();
       (bucket.mesh.material as THREE.Material).dispose();

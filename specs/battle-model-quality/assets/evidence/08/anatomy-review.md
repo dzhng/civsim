@@ -49,6 +49,18 @@ direction for further sculpting, but this is not final anatomy acceptance. The
 source weight checks and isolated-action export pass its clean build. Shoulder, pelvis,
 elbow and knee work remains open afterward.07 still gates accepted topology.
 
+The [first patella study](patella-close.png) and [bend crop](patella-bend-side.png)
+add recognizable knee structure. A fresh neutral comparison favors it slightly
+over the tube-like knee, but flags a sharp anterior corner/notch and a conspicuous
+neutral-pose knob. The [softened study](patella-soft-close.png) and
+[bend crop](patella-soft-bend-side.png) reduce that projection. Root inspected
+the full sheet and crop. A fresh unprimed comparison favors the softened version
+with moderate-high confidence: it removes the tacked-on ledge and neutral-pose
+knob, but the bent knee remains broadly rounded with weak kneecap/upper-shin
+distinction. Retain this better iteration without accepting the whole anatomy.
+Both captured versions retain exact source/evidence here. The candidate baker's
+exact-output check passes; no accepted snapshot was re-blessed.
+
 ## Source/export correctness
 
 Applying Blender's smoothing modifier invalidated a retained vertex-group

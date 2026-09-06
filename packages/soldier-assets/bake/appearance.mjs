@@ -6,6 +6,7 @@ import { bakeGltf, parseGlb } from './gltf.mjs';
 import { gltfToEngineBasis } from './engine-basis.mjs';
 import { bakeRig } from './vat.mjs';
 import { deriveAnimatedBounds } from './animated-bounds.mjs';
+import { appearanceMaterials } from './materials.mjs';
 import { encodeSoldierMesh } from '../src/appearanceBundle.ts';
 
 function jointMap(source, target, tier) {
@@ -69,30 +70,13 @@ export function bakeAppearance({ name, mounted = false, tiers, fps = 24, loopCli
   if (clipNames.size !== rig.clips.length || clipNames.size === 0) throw new Error('near tier requires uniquely named animation clips');
   for (const clip of loopClips) if (!clipNames.has(clip)) throw new Error(`loop clip ${clip} is absent from the near tier`);
   for (const clip of rig.clips) clip.loop = loopClips.includes(clip.name);
-  const files = {}, materials = [], materialSlots = new Map();
+  const files = {};
+  const materialSet = appearanceMaterials(files);
   const meshes = imported.map((source, tier) => {
-    const { json } = parseGlb(tiers[tier]);
+    const { json, bin } = parseGlb(tiers[tier]);
     const sourcePath = `source/tier-${tier}.glb`;
-    const textureSource = json.textures?.length ? createHash('sha256').update(tiers[tier]).digest('hex') : null;
     files[sourcePath] = tiers[tier];
-    return mergedMesh(source.primitives, jointMap(source.rig, rig, tier), (index) => {
-      const definition = index == null ? {} : json.materials?.[index];
-      if (!definition) throw new Error(`tier ${tier}: material ${index} is missing`);
-      const pbr = definition.pbrMetallicRoughness ?? {};
-      const baseColor = pbr.baseColorFactor ?? [1, 1, 1, 1];
-      const roughness = pbr.roughnessFactor ?? 1, metallic = pbr.metallicFactor ?? 1;
-      if (baseColor.length !== 4 || [...baseColor, roughness, metallic].some((value) => !Number.isFinite(value) || value < 0 || value > 1)) {
-        throw new Error(`tier ${tier}: material ${index} has invalid PBR factors`);
-      }
-      // Original GLBs retain texture bytes, samplers and all material extensions for04.
-      const key = JSON.stringify({ definition, textureSource });
-      if (!materialSlots.has(key)) {
-        materialSlots.set(key, materials.length);
-        materials.push({ name: definition.name || `material-${materials.length}`, baseColor, roughness, metallic,
-          source: { file: sourcePath, materialIndex: index } });
-      }
-      return materialSlots.get(key);
-    });
+    return mergedMesh(source.primitives, jointMap(source.rig, rig, tier), (index) => materialSet.slot(json, bin, index));
   });
   const baked = bakeRig(rig, fps);
   const data = Array.from(baked.data);
@@ -104,7 +88,7 @@ export function bakeAppearance({ name, mounted = false, tiers, fps = 24, loopCli
   };
   files['skeleton.json'] = { ...rig, bones: rig.bones.map((bone) => ({ ...bone, inverseBind: Array.from(bone.inverseBind) })) };
   files['animation.json'] = animation;
-  files['materials.json'] = materials;
+  files['materials.json'] = materialSet.surface;
   const paths = meshes.map((mesh, index) => {
     const path = `tier-${index}.mesh.json`;
     files[path] = encodeSoldierMesh(mesh);

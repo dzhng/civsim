@@ -11,26 +11,7 @@ import { bakeGltf, parseGlb } from './gltf.mjs';
 import { bakeRig } from './vat.mjs';
 import { loadAppearanceBundle, decodeSoldierMesh } from '../src/appearanceBundle.ts';
 import { poseSoldierMesh } from '../src/skin.ts';
-
-function editGlb(bytes, edit) {
-  const { json, bin } = parseGlb(bytes);
-  const binary = Buffer.from(bin);
-  edit(json, binary);
-  const text = Buffer.from(JSON.stringify(json));
-  const jsonLength = Math.ceil(text.length / 4) * 4;
-  const result = Buffer.alloc(28 + jsonLength + binary.length);
-  result.writeUInt32LE(0x46546c67, 0);
-  result.writeUInt32LE(2, 4);
-  result.writeUInt32LE(result.length, 8);
-  result.writeUInt32LE(jsonLength, 12);
-  result.writeUInt32LE(0x4e4f534a, 16);
-  result.fill(0x20, 20, 20 + jsonLength);
-  text.copy(result, 20);
-  result.writeUInt32LE(binary.length, 20 + jsonLength);
-  result.writeUInt32LE(0x004e4942, 24 + jsonLength);
-  binary.copy(result, 28 + jsonLength);
-  return result;
-}
+import { editGlb } from './test-harness/glb.mjs';
 
 const sourceRoot = new URL('../assets/test/blender-reference/', import.meta.url);
 const human = await readFile(new URL('human.glb', sourceRoot));
@@ -126,8 +107,8 @@ for (const field of Object.keys(remapped['tier-0.mesh.json'])) {
   if (field !== 'materialIds') assert.deepEqual(remapped['tier-1.mesh.json'][field], remapped['tier-0.mesh.json'][field], `remapped tier ${field}`);
 }
 for (let vertex = 0; vertex < remapped['tier-0.mesh.json'].materialIds.length; vertex++) {
-  const near = remapped['materials.json'][remapped['tier-0.mesh.json'].materialIds[vertex]];
-  const mid = remapped['materials.json'][remapped['tier-1.mesh.json'].materialIds[vertex]];
+  const near = remapped['materials.json'].materials[remapped['tier-0.mesh.json'].materialIds[vertex]];
+  const mid = remapped['materials.json'].materials[remapped['tier-1.mesh.json'].materialIds[vertex]];
   assert.deepEqual([near.baseColor, near.roughness, near.metallic], [mid.baseColor, mid.roughness, mid.metallic]);
 }
 
@@ -152,12 +133,17 @@ try {
     assert.deepEqual(bakeAppearance(options), currentFiles, 'candidate bake must be deterministic');
     const bundle = await loadAppearanceBundle(`http://127.0.0.1:${server.address().port}/appearance.json`);
     assert.equal(bundle.manifest.mounted, name === 'mounted');
+    for (const [channel, texture] of Object.entries(bundle.surface.textures)) {
+      const emitted = currentFiles['materials.json'].textures[channel];
+      assert.deepEqual(Buffer.from(texture.image), currentFiles[emitted.image], 'production loader retains exact encoded image bytes');
+      assert.deepEqual(texture.sampler, emitted.sampler);
+    }
     for (const clip of bundle.animation.clips) {
       assert.equal(clip.loop, options.loopClips.includes(clip.name));
       assert.equal(clip.duration, source.rig.clips.find((candidate) => candidate.name === clip.name).duration);
     }
-    for (const material of bundle.materials) {
-      const original = parseGlb(currentFiles[material.source.file]).json.materials[material.source.materialIndex];
+    for (const material of bundle.surface.materials) {
+      const original = parseGlb(bytes).json.materials.find((source) => source.name === material.name);
       assert.deepEqual(material.baseColor, original.pbrMetallicRoughness?.baseColorFactor ?? [1, 1, 1, 1]);
       assert.equal(material.roughness, original.pbrMetallicRoughness?.roughnessFactor ?? 1);
       assert.equal(material.metallic, original.pbrMetallicRoughness?.metallicFactor ?? 1);

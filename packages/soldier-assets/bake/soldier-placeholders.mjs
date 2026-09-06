@@ -118,7 +118,7 @@ function completeBundleFiles(rig, animation) {
     'baked/human-placeholder.skeleton.json': {
       ...rig, bones: rig.bones.map((bone) => ({ ...bone, inverseBind: Array.from(bone.inverseBind) })),
     },
-    'baked/placeholder.materials.json': PLACEHOLDER_MATERIALS,
+    'baked/placeholder.materials.json': { materials: PLACEHOLDER_MATERIALS, textures: {} },
   };
   const appearances = {};
   const meshes = createPlaceholderSoldierMeshTiers();

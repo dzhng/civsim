@@ -217,6 +217,10 @@ check now complete for the retained rounded trial.
 
 ## Source/export correctness
 
+[Eye studies](eye-studies.md) were rejected: relief remained weak, while separate
+spheres produced a doll-like face. The rounded-lip source remains the working
+body; its clean rebuild reproduces the committed GLB and candidate bundles.
+
 Applying Blender's smoothing modifier invalidated a retained vertex-group
 reference; reacquiring the owned group by name allows the contours build to
 finish. The completed capture above proves that correction reaches the browser.

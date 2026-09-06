@@ -160,15 +160,15 @@ def deform_candidate(sculpt):
     return body, arm
 
 
-def export_candidate(body, arm):
+def export_candidate(body, arm, output=OUTPUT, name="human-anatomy"):
     bpy.context.scene.frame_set(0)
     bpy.ops.object.select_all(action="DESELECT")
     body.select_set(True)
     arm.select_set(True)
     bpy.context.view_layer.objects.active = arm
-    OUTPUT.mkdir(parents=True, exist_ok=True)
+    output.mkdir(parents=True, exist_ok=True)
     bpy.ops.export_scene.gltf(
-        filepath=str(OUTPUT / "human-anatomy.glb"), export_format="GLB",
+        filepath=str(output / f"{name}.glb"), export_format="GLB",
         use_selection=True, use_active_scene=True, export_yup=True, export_skins=True,
         export_animations=True, export_animation_mode="ACTIONS", export_force_sampling=True,
         export_frame_step=1, export_def_bones=True, export_all_influences=False,
@@ -177,7 +177,7 @@ def export_candidate(body, arm):
         export_hierarchy_flatten_bones=False, export_hierarchy_flatten_objs=False,
         export_apply=False, export_texcoords=True, export_normals=True, export_tangents=True,
     )
-    bpy.data.libraries.write(str(OUTPUT / "human-anatomy.blend"), {bpy.context.scene},
+    bpy.data.libraries.write(str(output / f"{name}.blend"), {bpy.context.scene},
                              path_remap="RELATIVE", fake_user=True, compress=True)
 
 

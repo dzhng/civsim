@@ -1,0 +1,16 @@
+{
+  "materials": [
+    {
+      "name": "anatomy-neutral-clay",
+      "baseColor": [
+        0.46000000834465027,
+        0.4300000071525574,
+        0.38999998569488525,
+        1
+      ],
+      "roughness": 0.8199999928474426,
+      "metallic": 0
+    }
+  ],
+  "textures": {}
+}

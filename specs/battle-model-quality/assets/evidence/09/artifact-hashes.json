@@ -1,0 +1,23 @@
+{
+  "specs/battle-model-quality/assets/evidence/09/anatomy-regression.json": "983654dfd483ab89a7bb80d93f3cfbebbbec98f115e9be9b9169354b000ab7f9",
+  "specs/battle-model-quality/assets/evidence/09/heavy-first-bend.png": "fd4994cd66c9da71609ed60c382bdc052ef32ad2b7d7446d111d9fd362547914",
+  "specs/battle-model-quality/assets/evidence/09/heavy-first-capture.json": "1008db3786b212dfdf0c4b967995a60e3afc503bff7ec43fc41e4f3968e94ff4",
+  "specs/battle-model-quality/assets/evidence/09/heavy-first-close.png": "9977df67b491147ddaff5ac3328d9c2761328bc1b6fcd0923a85f00a73dfd36c",
+  "specs/battle-model-quality/assets/evidence/09/heavy-first-comparison.json": "f7e90c71196e9d8fad16825f4ccc11b009a84346161bb01bb91176136095a05d",
+  "specs/battle-model-quality/assets/evidence/09/heavy-first-gameplay.png": "8ddf210aae0e67e187a29fcf989e3ce4b285e6a6bf18006391ae703a7b62f4ab",
+  "specs/battle-model-quality/assets/evidence/09/heavy-first-grips.png": "eef7e38bd305e41f85f9974df69eeacb0d81be73a6fba278983ea0c9e5f15342",
+  "specs/battle-model-quality/assets/evidence/09/heavy-first-head.png": "056270088c71a67d01b5b4050e173d830b359629cf18bc33627da1a0e09243df",
+  "specs/battle-model-quality/assets/evidence/09/heavy-first-upper.png": "98168e0c2e9974e5efb6bb8b568d9fa51c1dd454ad415970fd2ef1ee50f87c45",
+  "specs/battle-model-quality/assets/evidence/09/heavy-first.glb": "02a2ee24bb5cb76b79f5051105ff8be74e9e99a77330658a49c7f8222a640a73",
+  "specs/battle-model-quality/assets/evidence/09/heavy-fitted-capture.json": "830decc517b67487cf92eb58184f1ac02eb0270ab1b71dd5d6ed37743f61ea4a",
+  "specs/battle-model-quality/assets/evidence/09/heavy-fitted-close.png": "c25303e56d6f7684d7b0e27b356b49c517a52bebf20c9fe4fb0c04cd1d9a04eb",
+  "specs/battle-model-quality/assets/evidence/09/heavy-fitted-gameplay.png": "cac237ebed45abb0e9857517638d4df229b95458bec5ee44179a3be789139cac",
+  "specs/battle-model-quality/assets/evidence/09/heavy-fitted-head.png": "c0d7f200fb30caf27161d753103e4e4aa08b5207eda356cd8b31c225bfd0fcd2",
+  "specs/battle-model-quality/assets/evidence/09/heavy-fitted-upper.png": "517ffcc19acf72cb3362d14a546e3f6327fffa66ab3c4f963879454253aa735a",
+  "specs/battle-model-quality/assets/evidence/09/heavy-fitted.glb": "40fb5c5eb710bbb21948e7504b5e65e82a805d8948b02746471bf07ad185cce7",
+  "specs/battle-model-quality/assets/evidence/09/heavy-kit-review.md": "4c77a1229b4708addcbd8a928bb894aee708077844d4eb94b28de796cc174b49",
+  "specs/battle-model-quality/assets/evidence/09/shared-helper-regression.json": "63db7c022fd2dcad4a3aabc41edfa42ea7a35790e278696e0066f6c64b2fb606",
+  "packages/soldier-assets/assets/source/heavy-kit/heavy-kit.blend": "b42601a62f1b05b684bf3073a0e01b11b20f400e80cecef020f59953a16d20c5",
+  "packages/soldier-assets/assets/source/heavy-kit/heavy-kit.glb": "40fb5c5eb710bbb21948e7504b5e65e82a805d8948b02746471bf07ad185cce7",
+  "packages/soldier-assets/assets/source/human-anatomy/human-anatomy.blend": "59e86a1a0533f2b514e57242dc8f9520bdb0371901472a440bd60d4542c0398b"
+}

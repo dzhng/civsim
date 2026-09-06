@@ -59,4 +59,24 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 - [ ] Comparison and final unprimed critique recorded.
 - [ ] Review/cleanup completed; README pickup and decisions updated.
 
-Record actual commands, evidence links, measured results, decisions and unresolved defects here during implementation. No implementation or visual acceptance has occurred yet.
+## Current authoring checkpoint
+
+Heavy infantry has an editable Blender kit and production-rendered candidate
+sheets. It remains **unaccepted**: continuous garment construction, actual hand
+and shield attachment, helmet rim fit and scabbard suspension need another pass.
+The [candidate review](../assets/evidence/09/heavy-kit-review.md) owns both source
+iterations, exact captures and the independent failure verdict. Do not proceed to
+phalanx from this failed heavy row or treat the cloth-covered body as08 acceptance.
+
+From the repository root, build/export with installed Blender:
+
+```sh
+/Applications/Blender.app/Contents/MacOS/Blender --background --factory-startup --python-exit-code 1 --python packages/soldier-assets/bake/blender-heavy-kit.py
+node packages/soldier-assets/bake/heavy-kit.mjs
+VERIFY_GPU=1 VERIFY_URL=http://127.0.0.1:5177 node web/scene.mjs heavy-kit
+```
+
+The Vite server must serve this worktree. Use the normal production workbench with
+`catalog=/assets/soldiers/candidates/heavy-kit/catalog.json` for manual inspection.
+The build consumes the committed08 `.blend`; fitting must be revisited when that
+source changes. Root owns human Preview presentation after integration.

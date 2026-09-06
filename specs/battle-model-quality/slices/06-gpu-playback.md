@@ -14,6 +14,8 @@ Bounds prerequisite: the shared producer now derives a hierarchy-envelope sphere
 
 ### Bounded interruption contract
 
+The approved authored-key-time encoding has a [prepared source producer and CPU decoder](../assets/evidence/06/local-animation-source.md), with current-fixture geometric checks. This does not expose a new bundle format or accept06b; the coherent runtime cutover remains required.
+
 The timeline owns a source that is either a clip sample or one frozen local-TRS pose, with a destination clip sample and blend weight. It may also own one rider-upper-body lane with the same source choices; that lane's destination is either a clip sample or the **evaluated current base pose**. Reuse the shared local-pose type rather than declaring renderer-specific snapshots. These are proposed semantics, not a second declaration of the eventual05 types.
 
 Capture the old evaluated state at the event time before changing tracks. A base interruption freezes the base locals; an overlay interruption freezes the displayed masked locals while the unmasked base keeps advancing. Overlay exit blends toward the advancing, fully evaluated base, including any base crossfade. Full-body hit/death freezes the complete composed pose, clears the overlay and transitions the whole skeleton. At the new weight0 the displayed pose must agree with the old pose within measured floating-point error. Matching angular velocity is not promised.

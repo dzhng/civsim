@@ -1,5 +1,7 @@
 # 06a local encoding probe — proposal, not a format cutover
 
+The parent approved the proposed representation and current-fixture gate. [Source implementation evidence](./local-animation-source.md) records its prepared producer/decoder; runtime cutover remains06b.
+
 Source:4216f2dc. No runtime/schema, shader, source-art or generated-asset changes. The renderer skill makes resource ownership and actual operation counts part of this proposal; write-tests keeps the comparison on original-track deformation, not storage-shape assertions. No GPU timing or future shader arithmetic is certified.
 
 ## Recommendation for approval

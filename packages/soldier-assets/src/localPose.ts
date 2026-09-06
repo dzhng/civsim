@@ -1,4 +1,4 @@
-import type { ImportedRig, RigChannel } from "./rig";
+import type { ImportedRig, RigChannel, RigClip } from "./rig";
 type NumericArray = number[] | Float32Array | Float64Array;
 
 /** Packed T3/R4/S3 per joint. Doubles preserve source TRS precision until matrix composition. */
@@ -14,6 +14,22 @@ export function sampleRigLocalPose(
   if (!Number.isFinite(normalizedPhase)) throw new Error("pose phase must be finite");
   // Wrapping belongs to the timeline: explicit phase one always means the last sample.
   const time = Math.max(0, Math.min(1, normalizedPhase)) * clip.duration;
+  return sampleClipLocals(rig, clip, time);
+}
+
+/** Exact authored key times must not round-trip through seconds/duration * duration. */
+export function sampleRigLocalPoseSeconds(
+  rig: ImportedRig,
+  clipName: string,
+  seconds: number,
+): LocalPose {
+  const clip = rig.clips.find((clip) => clip.name === clipName);
+  if (!clip) throw new Error(`missing rig clip ${clipName}`);
+  if (!Number.isFinite(seconds)) throw new Error("pose time must be finite");
+  return sampleClipLocals(rig, clip, Math.max(0, Math.min(clip.duration, seconds)));
+}
+
+function sampleClipLocals(rig: ImportedRig, clip: RigClip, time: number): LocalPose {
   const pose = new Float64Array(rig.bones.length * 10);
   for (let joint = 0; joint < rig.bones.length; joint++) {
     const track = clip.tracks[joint] || {};

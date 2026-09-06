@@ -38,6 +38,10 @@ it is not a second reload manager.
 
 ## Verification
 
+Follow-up: the [deterministic gait harness repair](gait-harness.md) records the
+merged sampling failure, its stronger per-tick gate, browser pass and retained
+pixel-articulation limitation.
+
 | Gate | Result |
 | --- | --- |
 | Own WASM rebuild | Pass; includes `Game.loosing_duration()` |

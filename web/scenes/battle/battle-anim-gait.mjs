@@ -1,18 +1,17 @@
-import { PNG } from "pngjs";
+import { PNG } from 'pngjs';
 
-const SAMPLE_MS = 2500;
 const SOLDIER_SAMPLES = 8;
 const UNIT_TEAM = 6;
 const UNIT_TOTAL = 7;
 const UNIT_ALIVE = 15;
 
 export const meta = {
-  name: "battle-anim-gait",
-  kind: "flow",
-  world: "battle-gen-seed-7",
-  tier: "quick",
+  name: 'battle-anim-gait',
+  kind: 'flow',
+  world: 'battle-gen-seed-7',
+  tier: 'quick',
   snapshots: [],
-  describe: "BMSANIM-E2C7: marching soldiers keep class, phase, cadence, and visible gait motion.",
+  describe: 'BMSANIM-E2C7: marching soldiers keep class, phase, cadence, and visible gait motion.',
 };
 
 export async function run(ctx) {
@@ -22,10 +21,13 @@ export async function run(ctx) {
   await page.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
 
   const capture = await page.evaluate(
-    async ({ sampleMs, soldierSamples, UNIT_TEAM, UNIT_ALIVE, UNIT_TOTAL }) => {
+    async ({ soldierSamples, UNIT_TEAM, UNIT_ALIVE, UNIT_TOTAL }) => {
       const g = window.__game;
-      const waitFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
-      g.freeze(false);
+      g.freeze(true);
+      const step = async () => {
+        g.advance(1);
+        await new Promise(resolve => requestAnimationFrame(resolve));
+      };
 
       const stats = g.stats();
       const candidates = [];
@@ -34,7 +36,7 @@ export async function run(ctx) {
         if (info[UNIT_TEAM] === 0 && info[UNIT_ALIVE] > soldierSamples) candidates.push(u);
       }
       const unit = candidates.includes(4) ? 4 : candidates[0];
-      if (!Number.isFinite(unit)) return { ready: false, reason: "no player unit", samples: [] };
+      if (!Number.isFinite(unit)) return { ready: false, reason: 'no player unit', samples: [] };
 
       const info = g.unitInfo(unit);
       const start = g.soldierStartOf(unit);
@@ -46,15 +48,17 @@ export async function run(ctx) {
       g.select(unit);
       g.setPace(unit, 0);
       g.setOrder(unit, info[0], info[1] + 80);
-      g.setCamera(info[0], info[1] + 20, 10, -Math.PI / 2, 0.92);
+      const [x, y] = g.soldierPos(soldiers[0]);
+      g.reviewFrame(x - 8, y - 8, x + 8, y + 8, { margin: 4, pitch: 1.1, fill: 0.6 });
 
       let ready = false;
       let readyFrames = 0;
       const startedAtTick = g.tickCount();
-      for (let frame = 0; frame < 180; frame++) {
-        await waitFrame();
-        const states = soldiers.map((i) => g.debugSoldierAnim(i));
-        const marching = states.length > 0 && states.every((s) => s?.clip === "march");
+      // At most 180 simulation ticks of pre-roll, independent of GPU throughput.
+      for (let tick = 0; tick < 180; tick++) {
+        await step();
+        const states = soldiers.map(i => g.debugSoldierAnim(i));
+        const marching = states.length > 0 && states.every(s => s?.clip === 'march');
         readyFrames = marching ? readyFrames + 1 : 0;
         if (readyFrames >= 3 && g.tickCount() > startedAtTick + 4) {
           ready = true;
@@ -64,41 +68,34 @@ export async function run(ctx) {
       if (!ready) {
         return {
           ready,
-          reason: "soldiers did not enter a stable march pre-roll",
+          reason: 'soldiers did not enter a stable march pre-roll',
           unit,
           soldiers,
           samples: [],
         };
       }
 
-      // Sample until 90 SIM TICKS elapse (3s of sim time) - wall-clock
-      // windows starve on the software adapter (~1fps => 2 samples/2.5s).
-      const t0 = performance.now();
+      // Sample every submitted simulation tick, including transient clip changes.
+      // GPU readback settling is needed only for the pixel check below.
       const samples = [];
-      // Span measured from the FIRST SAMPLE - the first rAF after boot can
-      // swallow dozens of ticks in one compile hitch on the software adapter.
-      const sampledSpan = () => (samples.length ? samples.at(-1).tick - samples[0].tick : 0);
-      while (sampledSpan() < 90 && performance.now() - t0 < Math.max(sampleMs, 20000)) {
-        await waitFrame();
+      for (let offset = 0; offset <= 90; offset++) {
+        if (offset > 0) await step();
         samples.push({
-          t: performance.now() - t0,
           tick: g.tickCount(),
-          soldiers: soldiers.map((index) => ({ index, anim: g.debugSoldierAnim(index) })),
+          soldiers: soldiers.map(index => ({ index, anim: g.debugSoldierAnim(index) })),
         });
       }
       return { ready, unit, soldiers, samples };
     },
-    { sampleMs: SAMPLE_MS, soldierSamples: SOLDIER_SAMPLES, UNIT_TEAM, UNIT_ALIVE, UNIT_TOTAL },
+    { soldierSamples: SOLDIER_SAMPLES, UNIT_TEAM, UNIT_ALIVE, UNIT_TOTAL },
   );
 
   check(
-    "marching unit entered sample window",
+    'marching unit entered sample window',
     capture.ready === true &&
       capture.samples.length >= 6 &&
-      // 30 ticks = two full march cycles - enough span for the period math
-      // even at software-adapter frame rates.
-      capture.samples.at(-1).tick - capture.samples[0].tick >= 30,
-    `${capture.reason ?? ""} samples=${capture.samples?.length ?? 0} tickSpan=${
+      capture.samples.at(-1).tick - capture.samples[0].tick >= 90,
+    `${capture.reason ?? ''} samples=${capture.samples?.length ?? 0} tickSpan=${
       capture.samples?.length ? capture.samples.at(-1).tick - capture.samples[0].tick : 0
     }`,
   );
@@ -107,41 +104,57 @@ export async function run(ctx) {
     return;
   }
 
+  check(
+    'sampling includes every consecutive simulation tick',
+    capture.samples.every(
+      (sample, index) => index === 0 || sample.tick === capture.samples[index - 1].tick + 1,
+    ),
+    JSON.stringify({ samples: capture.samples.length }),
+  );
+  const validSamples = capture.samples.every(sample =>
+    sample.soldiers.every(
+      ({ anim }) =>
+        Number.isFinite(anim?.phase) &&
+        anim.phase >= 0 &&
+        anim.phase < 1 &&
+        Number.isFinite(anim.duration) &&
+        anim.duration > 0,
+    ),
+  );
+  check('gait samples have finite loop phases and positive authored duration', validSamples);
+  if (!validSamples) {
+    await page.close();
+    return;
+  }
+
   const clipMetrics = clipStability(capture.samples, capture.soldiers);
   check(
-    "NO CLASS FLICKER: sampled soldiers stay in march",
+    'NO CLASS FLICKER: sampled soldiers stay in march',
     clipMetrics.transitions === 0 && clipMetrics.nonMarch === 0,
     JSON.stringify(clipMetrics),
   );
 
   const phaseMetrics = phaseCadence(capture.samples, capture.soldiers);
   check(
-    "PHASE ADVANCES: marching phases advance steadily",
-    phaseMetrics.every((m) => m.negativeSteps === 0 && m.flatSteps === 0),
+    'PHASE ADVANCES: marching phases advance steadily',
+    phaseMetrics.every(m => m.negativeSteps === 0 && m.flatSteps === 0),
     JSON.stringify(phaseMetrics),
   );
   // The authored clip owns duration; observation time owns advancement.
   check(
-    "PERIOD: march follows its authored duration (within 4.5 sim ticks)",
-    phaseMetrics.every((m) => Math.abs(m.periodTicks - m.authoredTicks) <= 4.5),
-    JSON.stringify(phaseMetrics.map((m) => ({ index: m.index, periodTicks: m.periodTicks }))),
+    'PERIOD: march follows its authored duration (within 4.5 sim ticks)',
+    phaseMetrics.every(m => Math.abs(m.periodTicks - m.authoredTicks) <= 4.5),
+    JSON.stringify(phaseMetrics.map(m => ({ index: m.index, periodTicks: m.periodTicks }))),
   );
 
-  // One pixel sanity: the marching crop visibly changes across 3 render
-  // frames (legs move). The half-vs-full-period pose similarity idea needs
-  // a single isolated soldier to mean anything - the phase asserts above
-  // are the timing contract.
-  const fps = capture.samples.length / Math.max(0.001, capture.samples.at(-1).t / 1000);
-  if (fps >= 20) {
-    const pixel = await gaitPixelMetrics(page, capture.soldiers[0]);
-    check(
-      "pixel gait moves over three render frames",
-      pixel.shortDiff > 0.02,
-      JSON.stringify(pixel),
-    );
-  } else {
-    ctx.log?.(`pixel gait check skipped (software adapter, fps=${fps.toFixed(1)})`);
-  }
+  // Scene-motion sanity, not isolated articulation: translation and neighbors
+  // also contribute pixels. Evaluated-pose fidelity belongs to the pose fixture.
+  const pixel = await gaitPixelMetrics(page, capture.soldiers[0]);
+  check(
+    'on-screen marching scene moves over three simulation ticks',
+    pixel.shortDiff > 0.02,
+    JSON.stringify(pixel),
+  );
 
   await page.close();
 }
@@ -152,8 +165,8 @@ function clipStability(samples, soldiers) {
   for (const index of soldiers) {
     let prev = null;
     for (const sample of samples) {
-      const clip = sample.soldiers.find((s) => s.index === index)?.anim?.clip ?? "missing";
-      if (clip !== "march") nonMarch++;
+      const clip = sample.soldiers.find(s => s.index === index)?.anim?.clip ?? 'missing';
+      if (clip !== 'march') nonMarch++;
       if (prev !== null && clip !== prev) transitions++;
       prev = clip;
     }
@@ -162,15 +175,14 @@ function clipStability(samples, soldiers) {
 }
 
 function phaseCadence(samples, soldiers) {
-  return soldiers.map((index) => {
+  return soldiers.map(index => {
     const series = samples
-      .map((sample) => ({
-        t: sample.t,
+      .map(sample => ({
         tick: sample.tick,
-        phase: sample.soldiers.find((s) => s.index === index)?.anim?.phase,
-        duration: sample.soldiers.find((s) => s.index === index)?.anim?.duration,
+        phase: sample.soldiers.find(s => s.index === index)?.anim?.phase,
+        duration: sample.soldiers.find(s => s.index === index)?.anim?.duration,
       }))
-      .filter((sample) => Number.isFinite(sample.phase));
+      .filter(sample => Number.isFinite(sample.phase));
     let unwrapped = 0;
     let previous = series[0]?.phase ?? 0;
     let negativeSteps = 0;
@@ -186,8 +198,6 @@ function phaseCadence(samples, soldiers) {
       unwrapped += delta;
       previous = series[i].phase;
     }
-    const seconds = Math.max(0.001, (series.at(-1).t - series[0].t) / 1000);
-    const cyclesPerSecond = unwrapped / seconds;
     const tickSpan = Math.max(1, series.at(-1).tick - series[0].tick);
     const periodTicks = unwrapped > 0 ? tickSpan / unwrapped : Infinity;
     return {
@@ -197,80 +207,71 @@ function phaseCadence(samples, soldiers) {
       negativeSteps,
       flatSteps,
       maxStep: Number(maxStep.toFixed(4)),
-      periodMs: Number((1000 / cyclesPerSecond).toFixed(1)),
     };
   });
 }
 
 async function gaitPixelMetrics(page, soldierIndex) {
-  const basePhase = await page.evaluate(
-    (index) => window.__game.debugSoldierAnim(index)?.phase,
-    soldierIndex,
-  );
+  await page.evaluate(async index => {
+    const game = window.__game;
+    const [x, y] = game.soldierPos(index);
+    game.reviewFrame(x - 8, y - 8, x + 8, y + 8, { margin: 4, pitch: 1.1, fill: 0.6 });
+    await game.freezeAtTick(game.tickCount());
+  }, soldierIndex);
   const shot0 = PNG.sync.read(
     await page.screenshot({ clip: await soldierClip(page, soldierIndex) }),
   );
-  await waitFrames(page, 3);
+  await page.evaluate(async () => {
+    const game = window.__game;
+    await game.freezeAtTick(game.tickCount() + 3);
+  });
   const shot3 = PNG.sync.read(
     await page.screenshot({ clip: await soldierClip(page, soldierIndex) }),
   );
-  await waitForPhaseAdvance(page, soldierIndex, basePhase, 0.5);
-  const shotHalf = PNG.sync.read(
-    await page.screenshot({ clip: await soldierClip(page, soldierIndex) }),
-  );
-  await waitForPhaseAdvance(page, soldierIndex, basePhase, 0.95);
-  const shotPeriod = PNG.sync.read(
-    await page.screenshot({ clip: await soldierClip(page, soldierIndex) }),
-  );
-  return {
-    shortDiff: Number(meanAbsDiff(shot0, shot3).toFixed(3)),
-    halfDiff: Number(meanAbsDiff(shot0, shotHalf).toFixed(3)),
-    periodDiff: Number(meanAbsDiff(shot0, shotPeriod).toFixed(3)),
-  };
-}
-
-async function waitForPhaseAdvance(page, soldierIndex, basePhase, targetCycles) {
-  const start = Date.now();
-  let sawLateCycle = false;
-  while (Date.now() - start < 1200) {
-    const delta = await page.evaluate(
-      ({ index, base }) => {
-        const phase = window.__game.debugSoldierAnim(index)?.phase;
-        return (((phase - base) % 1) + 1) % 1;
-      },
-      { index: soldierIndex, base: basePhase },
-    );
-    if (targetCycles > 0.9) {
-      sawLateCycle = sawLateCycle || delta > 0.7;
-      if (delta >= 0.97 || (sawLateCycle && delta < 0.08)) return;
-    } else if (delta >= targetCycles) return;
-    await waitFrames(page, 1);
-  }
-}
-
-async function waitFrames(page, count) {
-  for (let i = 0; i < count; i++) {
-    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)));
-  }
+  return { shortDiff: Number(meanAbsDiff(shot0, shot3).toFixed(3)) };
 }
 
 async function soldierClip(page, soldierIndex) {
-  const box = await page.locator("#battlefield").boundingBox();
-  const projected = await page.evaluate((index) => {
+  const box = await page.locator('#battlefield').boundingBox();
+  const projected = await page.evaluate(index => {
     const [x, y] = window.__game.soldierPos(index);
     const z = window.__game.heightAt(x, y);
-    const [sx, sy] = window.__cam.worldToScreen(x, y, z);
-    return { sx, sy, dpr: window.devicePixelRatio || 1 };
+    // A generous three-meter vertical envelope includes this foot soldier's
+    // body and weapon. Reject invalid projection instead of cropping empty sky.
+    const foot = window.__cam.worldToScreen(x, y, z);
+    const head = window.__cam.worldToScreen(x, y, z + 3);
+    return { foot, head, dpr: window.devicePixelRatio || 1 };
   }, soldierIndex);
   const size = 150;
-  const x = Math.max(
-    box.x,
-    Math.min(box.x + box.width - size, box.x + projected.sx / projected.dpr - size / 2),
-  );
-  const y = Math.max(
-    box.y,
-    Math.min(box.y + box.height - size, box.y + projected.sy / projected.dpr - size / 2),
-  );
+  const points = [projected.foot, projected.head].map(([x, y]) => [
+    x / projected.dpr,
+    y / projected.dpr,
+  ]);
+  if (
+    points.some(
+      ([x, y]) =>
+        !Number.isFinite(x) ||
+        !Number.isFinite(y) ||
+        x < 0 ||
+        y < 0 ||
+        x > box.width ||
+        y > box.height,
+    )
+  )
+    throw new Error('Gait pixel target is outside the viewport: ' + JSON.stringify(projected));
+  const x = box.x + (points[0][0] + points[1][0]) / 2 - size / 2;
+  const y = box.y + (points[0][1] + points[1][1]) / 2 - size / 2;
+  if (
+    x < box.x ||
+    y < box.y ||
+    x + size > box.x + box.width ||
+    y + size > box.y + box.height ||
+    points.some(
+      ([px, py]) =>
+        px + box.x < x || px + box.x > x + size || py + box.y < y || py + box.y > y + size,
+    )
+  )
+    throw new Error('Gait pixel target is not fully framed by its crop');
   return { x, y, width: size, height: size };
 }
 

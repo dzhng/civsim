@@ -74,3 +74,11 @@ recorded in the corresponding evidence leaves.
 Before committing: retain only source, actual regression baselines and curated
 evidence; omit dependency links, scratch scripts, logs and intermediate image
 derivatives. Then install the complete coherent cutover, not just its producer.
+
+## Installed checkpoint
+
+The complete tree fast-forwarded the main feature worktree to4d75b7cd. Its
+[post-install repeat](installed-browser.json) passes all selected numerical,
+raw/Three consumer, workbench, replay, reload/disposal and swatch checks with no
+page errors. Typecheck and274 tests pass there too.06a/b transport is installed;
+06c temporal acceptance remains open, followed by07 budgets and detailed art.

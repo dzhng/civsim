@@ -1,0 +1,2984 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-06T12:29:56.900Z",
+  "target": "http://127.0.0.1:5174",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "battle-model-action-replay",
+      "file": "models/battle-model-action-replay.mjs",
+      "kind": "visual",
+      "tier": "full"
+    },
+    {
+      "name": "battle-model-material-swatches",
+      "file": "models/battle-model-material-swatches.mjs",
+      "kind": "visual",
+      "tier": "full"
+    },
+    {
+      "name": "battle-model-palette",
+      "file": "models/battle-model-palette.mjs",
+      "kind": "flow",
+      "tier": "full"
+    },
+    {
+      "name": "battle-model-reload-disposal",
+      "file": "models/battle-model-reload-disposal.mjs",
+      "kind": "flow",
+      "tier": "full"
+    },
+    {
+      "name": "battle-model-workbench",
+      "file": "models/battle-model-workbench.mjs",
+      "kind": "visual",
+      "tier": "full"
+    },
+    {
+      "name": "pose-palette",
+      "file": "system/pose-palette.mjs",
+      "kind": "flow",
+      "tier": "quick"
+    },
+    {
+      "name": "raw-pose-palette",
+      "file": "system/raw-pose-palette.mjs",
+      "kind": "flow",
+      "tier": "quick"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "each observed release enters its authored release phase",
+      "ok": true,
+      "detail": {
+        "first": {
+          "clip": "bow_release",
+          "phase": 0.7333333333333334,
+          "playback": {
+            "appearanceId": 4,
+            "base": {
+              "source": {
+                "kind": "frozen",
+                "locals": [
+                  0,
+                  0,
+                  0.95,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  0,
+                  0.02,
+                  0.45,
+                  0,
+                  0,
+                  -0.09757178765657121,
+                  0.9952284894703834,
+                  1,
+                  1,
+                  1,
+                  0,
+                  0,
+                  0.42,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  -0.33,
+                  0,
+                  0.14,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  0.33,
+                  0,
+                  0.14,
+                  0.2852676923049643,
+                  0,
+                  0,
+                  0.9584478826347316,
+                  1,
+                  1,
+                  1,
+                  -0.16,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  0.16,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1
+                ]
+              },
+              "destination": {
+                "clip": "bow_release",
+                "phase": 0.7333333333333334
+              },
+              "weight": 0
+            }
+          },
+          "duration": 0.75
+        },
+        "repeat": {
+          "clip": "bow_release",
+          "phase": 0.7333333333333334,
+          "playback": {
+            "appearanceId": 4,
+            "base": {
+              "source": {
+                "kind": "frozen",
+                "locals": [
+                  0,
+                  0,
+                  0.95,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  0,
+                  0.02,
+                  0.45,
+                  0,
+                  0,
+                  -0.03425629690781017,
+                  0.9994130808240222,
+                  1,
+                  1,
+                  1,
+                  0,
+                  0,
+                  0.42,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  -0.33,
+                  0,
+                  0.14,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  0.33,
+                  0,
+                  0.14,
+                  -0.13516694208615626,
+                  0,
+                  0,
+                  0.9908228387391348,
+                  1,
+                  1,
+                  1,
+                  -0.16,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  0.16,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1
+                ]
+              },
+              "destination": {
+                "clip": "bow_release",
+                "phase": 0.7333333333333334
+              },
+              "weight": 0
+            }
+          },
+          "duration": 0.75
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "health decrease selects a fresh hit",
+      "ok": true,
+      "detail": {
+        "clip": "hit_a",
+        "phase": 0,
+        "playback": {
+          "appearanceId": 4,
+          "base": {
+            "source": {
+              "kind": "frozen",
+              "locals": [
+                0,
+                0,
+                0.95,
+                0,
+                0,
+                0,
+                1,
+                1,
+                1,
+                1,
+                0,
+                0.02,
+                0.45,
+                0,
+                0,
+                -0.07326762260964388,
+                0.9973123159156968,
+                1,
+                1,
+                1,
+                0,
+                0,
+                0.42,
+                0,
+                0,
+                0,
+                1,
+                1,
+                1,
+                1,
+                -0.33,
+                0,
+                0.14,
+                0,
+                0,
+                0,
+                1,
+                1,
+                1,
+                1,
+                0.33,
+                0,
+                0.14,
+                0.45097474357694023,
+                0,
+                0,
+                0.8925367110969235,
+                1,
+                1,
+                1,
+                -0.16,
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                1,
+                1,
+                1,
+                0.16,
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "destination": {
+              "clip": "hit_a",
+              "phase": 0
+            },
+            "weight": 0
+          }
+        },
+        "duration": 0.35
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "terminal death holds its final phase",
+      "ok": true,
+      "detail": {
+        "clip": "death_a",
+        "phase": 1,
+        "playback": {
+          "appearanceId": 4,
+          "base": {
+            "source": {
+              "kind": "clip",
+              "sample": {
+                "clip": "death_a",
+                "phase": 1
+              }
+            },
+            "destination": {
+              "clip": "death_a",
+              "phase": 1
+            },
+            "weight": 1
+          }
+        },
+        "duration": 0.9
+      }
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "backward seek replays intermediate observations",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "frozen replay has deterministic pose state",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "explicit reset clears terminal history",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "switching back to manual inspection clears replay tick",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "equipment replay uses the canonical sidearm appearance",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "event picker seeks the real replay",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "play and pause operate the replay clock",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "mounted controller submits an overlay and reports the base destination separately",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "replay controls and submitted status fit inside the captured viewport",
+      "ok": true,
+      "detail": "[{\"text\":\"Action replay\",\"top\":86,\"bottom\":104,\"left\":997,\"right\":1254},{\"text\":\"Synthetic inputs · real controller.Local poses blended on GPU.Base and masked rider action.\",\"top\":118,\"bottom\":181,\"left\":997,\"right\":1254},{\"text\":\"Replay the selected appearance\",\"top\":195,\"bottom\":216,\"left\":997,\"right\":1254},{\"text\":\"Play replay\",\"top\":234,\"bottom\":267,\"left\":997,\"right\":1088.953125},{\"text\":\"Reset replay\",\"top\":234,\"bottom\":267,\"left\":1093.953125,\"right\":1194.796875},{\"text\":\"Tick (0–240) 90\",\"top\":284,\"bottom\":321,\"left\":997,\"right\":1254},{\"text\":\"Jump to event 0: Ready15: Walk30: Run45: Melee effort60: Release observed90: Repeated release105: Health decreased150: Recover / walk165: Equipment unchanged195: Death240: Terminal hold\",\"top\":334,\"bottom\":386,\"left\":997,\"right\":1254},{\"text\":\"Now: Repeated release\\nNext: Health decreased\",\"top\":400,\"bottom\":442,\"left\":997,\"right\":1254},{\"text\":\"Base · appearance 7From: run · phase 0.077\\nTo: run · phase 0.077\\nBlend weight: 1.00\",\"top\":456,\"bottom\":548,\"left\":997,\"right\":1254},{\"text\":\"Rider upper bodyFrom: frozen local pose\\nTo: bow_release · phase 0.733\\nBlend weight: 0.00\",\"top\":556,\"bottom\":648,\"left\":997,\"right\":1254},{\"text\":\"Submitted base destinationrun · phase 0.077\",\"top\":656,\"bottom\":706,\"left\":997,\"right\":1254},{\"text\":\"Generated applicability matrix\",\"top\":714,\"bottom\":732,\"left\":997,\"right\":1213.203125},{\"text\":\"1 soldier · run 0.077 · golden\",\"top\":770,\"bottom\":788,\"left\":983,\"right\":1268}]"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "footer reports submitted replay pose",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "snapshot shared/soldiers/action-replay/controller",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "failed reload retains replay history",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "successful reload resets replay against new bundles",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "valid manual-only reload exits replay successfully",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "manual-only appearance disables replay but keeps clip inspection",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-action-replay",
+      "name": "source-generated applicability matrix is available",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "source GLB provenance matches Blender evidence",
+      "ok": true,
+      "detail": "a486e845b6f4a2fc64f38d6ee2cd76951fea0c0d9c3e6b2997c4c64858b60383"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "stock loader and world share production Three constructors",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/front: stock-loader geometry matches Blender",
+      "ok": true,
+      "detail": "{\"checked\":60,\"maximumError\":1.5143246557010267e-7}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/front: matched material pixels",
+      "ok": true,
+      "detail": "{\"changed\":0,\"max\":2}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/front/cloth: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/front/leather: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/front/mail: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/front/metal: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/front/skin: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=0"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/front/wood: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/oblique: stock-loader geometry matches Blender",
+      "ok": true,
+      "detail": "{\"checked\":60,\"maximumError\":1.5143246557010267e-7}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/oblique: matched material pixels",
+      "ok": true,
+      "detail": "{\"changed\":0,\"max\":2}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/oblique/cloth: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/oblique/leather: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/oblique/mail: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/oblique/metal: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/oblique/skin: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0/oblique/wood: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/front: stock-loader geometry matches Blender",
+      "ok": true,
+      "detail": "{\"checked\":60,\"maximumError\":3.384654378544993e-7}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/front: matched material pixels",
+      "ok": true,
+      "detail": "{\"changed\":0,\"max\":1}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/front/cloth: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/front/leather: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/front/mail: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/front/metal: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/front/skin: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/front/wood: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/oblique: stock-loader geometry matches Blender",
+      "ok": true,
+      "detail": "{\"checked\":60,\"maximumError\":3.384654378544993e-7}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/oblique: matched material pixels",
+      "ok": true,
+      "detail": "{\"changed\":0,\"max\":1}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/oblique/cloth: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/oblique/leather: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/oblique/mail: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/oblique/metal: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/oblique/skin: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/0.5/oblique/wood: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/front: stock-loader geometry matches Blender",
+      "ok": true,
+      "detail": "{\"checked\":60,\"maximumError\":1.5143246556323027e-7}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/front: matched material pixels",
+      "ok": true,
+      "detail": "{\"changed\":0,\"max\":2}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/front/cloth: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/front/leather: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/front/mail: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/front/metal: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/front/skin: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=0"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/front/wood: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/oblique: stock-loader geometry matches Blender",
+      "ok": true,
+      "detail": "{\"checked\":60,\"maximumError\":1.5143246556323027e-7}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/oblique: matched material pixels",
+      "ok": true,
+      "detail": "{\"changed\":0,\"max\":2}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/oblique/cloth: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/oblique/leather: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/oblique/mail: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/oblique/metal: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/oblique/skin: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "textured/1/oblique/wood: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "scalar/0.5/front: stock-loader geometry matches Blender",
+      "ok": true,
+      "detail": "{\"checked\":60,\"maximumError\":3.384654378544993e-7}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "scalar/0.5/front: matched material pixels",
+      "ok": true,
+      "detail": "{\"changed\":0,\"max\":1}"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "scalar/0.5/front/cloth: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "cloth: authored images change production interiors",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "scalar/0.5/front/leather: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "leather: authored images change production interiors",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "scalar/0.5/front/mail: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "mail: authored images change production interiors",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "scalar/0.5/front/metal: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "metal: authored images change production interiors",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "scalar/0.5/front/skin: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=0"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "skin: authored images change production interiors",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "scalar/0.5/front/wood: matched triangle interiors",
+      "ok": true,
+      "detail": "maximum=1"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "wood: authored images change production interiors",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "original production image restored after oracle and scalar controls",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "snapshot battle/material-swatches/paired",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-material-swatches",
+      "name": "oracle reuses production Three without console warnings",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "same-pose growth preserves production beauty pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "growth prepares every visible instance",
+      "ok": true,
+      "detail": [
+        {
+          "bones": 11,
+          "visible": 257,
+          "capacity": 512,
+          "snapshotCapacity": 1,
+          "residentSnapshots": 0,
+          "snapshotSlotHighWater": 0,
+          "allocatedBytes": 429216,
+          "uploadedBytes": 20560,
+          "snapshotUploadedBytes": 0
+        }
+      ]
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "partial initial allocation rejects without orphan buffers or scene nodes",
+      "ok": true,
+      "detail": {
+        "before": {
+          "live": 6,
+          "liveBytes": 429216,
+          "created": 9,
+          "destroyed": 3,
+          "duplicateDestroy": false
+        },
+        "rejected": {
+          "live": 6,
+          "liveBytes": 429216,
+          "created": 14,
+          "destroyed": 8,
+          "duplicateDestroy": false
+        },
+        "error": "deliberate palette allocation failure",
+        "retainedScene": true
+      }
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "failed live growth suppresses the whole crowd and preserves the original error",
+      "ok": true,
+      "detail": {
+        "error": "deliberate palette allocation failure",
+        "stats": {
+          "instances": 1025,
+          "visible": 0,
+          "culled": 0,
+          "drawCalls": 0,
+          "meshDrawCalls": 0,
+          "impostorDrawCalls": 0,
+          "meshVariants": 3,
+          "tierHistogram": {
+            "l0": 1025,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "visibleTierHistogram": {
+            "l0": 0,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "culling": {
+            "input": 1025,
+            "visible": 0,
+            "culled": 0,
+            "viewFrusta": 1,
+            "shadowFrusta": 1
+          },
+          "impostors": {
+            "impostorInstances": 0,
+            "impostorDrawCalls": 0,
+            "appearances": 1,
+            "atlasAllocatedBytes": 11796456,
+            "atlasBakeMs": 3.8799999952316284,
+            "atlasBakeDrawCalls": 2
+          },
+          "material": {
+            "identity": "soldier-assets-explicit-materials",
+            "channels": [
+              "albedo",
+              "normal",
+              "orm",
+              "factionMask"
+            ],
+            "mapping": {
+              "albedo": "linear vertex color times base-color factor and optional sRGB image",
+              "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+              "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+              "factionMask": "explicit vertex factionMask, independent of color"
+            }
+          },
+          "surfaceImages": [],
+          "palettes": [
+            {
+              "bones": 11,
+              "visible": 1025,
+              "capacity": 1025,
+              "snapshotCapacity": 1,
+              "residentSnapshots": 0,
+              "snapshotSlotHighWater": 0,
+              "allocatedBytes": 831408,
+              "uploadedBytes": 0,
+              "snapshotUploadedBytes": 0
+            }
+          ],
+          "uploadFailed": true
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "allocated but unaccounted palette buffer is retired without masking its error",
+      "ok": true,
+      "detail": {
+        "error": "deliberate failure before palette accounting",
+        "resources": {
+          "live": 6,
+          "liveBytes": 429216,
+          "created": 15,
+          "destroyed": 9,
+          "duplicateDestroy": false
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "next complete upload recovers the production crowd",
+      "ok": true,
+      "detail": {
+        "stats": {
+          "instances": 1,
+          "visible": 1,
+          "culled": 0,
+          "drawCalls": 1,
+          "meshDrawCalls": 1,
+          "impostorDrawCalls": 0,
+          "meshVariants": 3,
+          "tierHistogram": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "visibleTierHistogram": {
+            "l0": 1,
+            "l1": 0,
+            "l2": 0,
+            "l3": 0
+          },
+          "culling": {
+            "input": 1,
+            "visible": 1,
+            "culled": 0,
+            "viewFrusta": 1,
+            "shadowFrusta": 1
+          },
+          "impostors": {
+            "impostorInstances": 0,
+            "impostorDrawCalls": 0,
+            "appearances": 1,
+            "atlasAllocatedBytes": 11796456,
+            "atlasBakeMs": 3.8799999952316284,
+            "atlasBakeDrawCalls": 2
+          },
+          "material": {
+            "identity": "soldier-assets-explicit-materials",
+            "channels": [
+              "albedo",
+              "normal",
+              "orm",
+              "factionMask"
+            ],
+            "mapping": {
+              "albedo": "linear vertex color times base-color factor and optional sRGB image",
+              "normal": "four-weight posed tangent-frame normal maps with authored scale and handedness",
+              "orm": "roughness/metallic factors times independently enabled data maps; authored AO strength",
+              "factionMask": "explicit vertex factionMask, independent of color"
+            }
+          },
+          "surfaceImages": [],
+          "palettes": [
+            {
+              "bones": 11,
+              "visible": 1,
+              "capacity": 1025,
+              "snapshotCapacity": 1,
+              "residentSnapshots": 0,
+              "snapshotSlotHighWater": 0,
+              "allocatedBytes": 831408,
+              "uploadedBytes": 80,
+              "snapshotUploadedBytes": 0
+            }
+          ],
+          "uploadFailed": false
+        },
+        "resources": {
+          "live": 6,
+          "liveBytes": 831408,
+          "created": 18,
+          "destroyed": 12,
+          "duplicateDestroy": false
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "snapshot growth uploads only new immutable poses and reentry after retirement",
+      "ok": true,
+      "detail": {
+        "first": {
+          "bones": 11,
+          "visible": 3,
+          "capacity": 1025,
+          "snapshotCapacity": 3,
+          "residentSnapshots": 3,
+          "snapshotSlotHighWater": 3,
+          "allocatedBytes": 832464,
+          "uploadedBytes": 1824,
+          "snapshotUploadedBytes": 1584
+        },
+        "repeated": {
+          "bones": 11,
+          "visible": 3,
+          "capacity": 1025,
+          "snapshotCapacity": 3,
+          "residentSnapshots": 3,
+          "snapshotSlotHighWater": 3,
+          "allocatedBytes": 832464,
+          "uploadedBytes": 240,
+          "snapshotUploadedBytes": 0
+        },
+        "shrunk": {
+          "bones": 11,
+          "visible": 1,
+          "capacity": 1025,
+          "snapshotCapacity": 3,
+          "residentSnapshots": 1,
+          "snapshotSlotHighWater": 3,
+          "allocatedBytes": 832464,
+          "uploadedBytes": 80,
+          "snapshotUploadedBytes": 0
+        },
+        "departed": {
+          "bones": 11,
+          "visible": 1,
+          "capacity": 1025,
+          "snapshotCapacity": 3,
+          "residentSnapshots": 0,
+          "snapshotSlotHighWater": 3,
+          "allocatedBytes": 832464,
+          "uploadedBytes": 80,
+          "snapshotUploadedBytes": 0
+        },
+        "reentered": {
+          "bones": 11,
+          "visible": 1,
+          "capacity": 1025,
+          "snapshotCapacity": 3,
+          "residentSnapshots": 1,
+          "snapshotSlotHighWater": 3,
+          "allocatedBytes": 832464,
+          "uploadedBytes": 608,
+          "snapshotUploadedBytes": 528
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "failed live upload leaves no stale production shadow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "recovered palette restores original shadow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "replacing the admitted crowd retires old palette storage exactly once",
+      "ok": true,
+      "detail": {
+        "live": 6,
+        "liveBytes": 37084,
+        "created": 27,
+        "destroyed": 21,
+        "duplicateDestroy": false
+      }
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "growth preserves the actual production shadow map",
+      "ok": true,
+      "detail": {
+        "foreground": 26,
+        "mismatch": 0,
+        "max": 0
+      }
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "frozen composed locals preserve the actual shadow after snapshot-buffer growth",
+      "ok": true,
+      "detail": {
+        "foreground": 26,
+        "mismatch": 0,
+        "max": 0
+      }
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "actual shadow agrees with independently CPU-posed mesh",
+      "ok": true,
+      "detail": {
+        "foreground": 26,
+        "mismatch": 0,
+        "max": 0
+      }
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "production beauty agrees with CPU-posed mesh",
+      "ok": true,
+      "detail": {
+        "changed": 1,
+        "severe": 0,
+        "maxChannel": 1
+      }
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "distinct animation data stays independent while a third appearance shares its original",
+      "ok": true,
+      "detail": {
+        "groups": [
+          {
+            "bones": 10,
+            "visible": 2,
+            "capacity": 256,
+            "snapshotCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 197560,
+            "uploadedBytes": 160,
+            "snapshotUploadedBytes": 0
+          },
+          {
+            "bones": 10,
+            "visible": 1,
+            "capacity": 256,
+            "snapshotCapacity": 1,
+            "residentSnapshots": 0,
+            "snapshotSlotHighWater": 0,
+            "allocatedBytes": 197560,
+            "uploadedBytes": 80,
+            "snapshotUploadedBytes": 0
+          }
+        ],
+        "resources": {
+          "live": 12,
+          "liveBytes": 395120,
+          "created": 39,
+          "destroyed": 27,
+          "duplicateDestroy": false
+        },
+        "severePixels": 0,
+        "depth": {
+          "foreground": 18,
+          "mismatch": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-palette",
+      "name": "aliased-animation negative control visibly fails the independent displacement oracle",
+      "ok": true,
+      "detail": {
+        "severePixels": 49341,
+        "depth": {
+          "foreground": 19,
+          "mismatch": 8,
+          "max": 0.5008121728897095
+        }
+      }
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "palette: disposed reload rejects without installation",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":4,\"scopePopsAtDispose\":4,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"paletteBuffers\":6,\"retiredPaletteBuffers\":6,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "palette: no crowd survives world disposal",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":4,\"scopePopsAtDispose\":4,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"paletteBuffers\":6,\"retiredPaletteBuffers\":6,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "palette: closed world rejects a later reload without fetching",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":4,\"scopePopsAtDispose\":4,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"paletteBuffers\":6,\"retiredPaletteBuffers\":6,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "palette: pending palette storage is released once",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":4,\"scopePopsAtDispose\":4,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"paletteBuffers\":6,\"retiredPaletteBuffers\":6,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "palette: no later GPU preparation starts after disposal",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":4,\"scopePopsAtDispose\":4,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"paletteBuffers\":6,\"retiredPaletteBuffers\":6,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "atlas: disposed reload rejects without installation",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":9,\"scopePopsAtDispose\":9,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":3,\"disposedGeometry\":3,\"paletteBuffers\":6,\"retiredPaletteBuffers\":6,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "atlas: no crowd survives world disposal",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":9,\"scopePopsAtDispose\":9,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":3,\"disposedGeometry\":3,\"paletteBuffers\":6,\"retiredPaletteBuffers\":6,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "atlas: closed world rejects a later reload without fetching",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":9,\"scopePopsAtDispose\":9,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":3,\"disposedGeometry\":3,\"paletteBuffers\":6,\"retiredPaletteBuffers\":6,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "pending replacement geometry is released",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":9,\"scopePopsAtDispose\":9,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":3,\"disposedGeometry\":3,\"paletteBuffers\":6,\"retiredPaletteBuffers\":6,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "atlas: pending palette storage is released once",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":9,\"scopePopsAtDispose\":9,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":3,\"disposedGeometry\":3,\"paletteBuffers\":6,\"retiredPaletteBuffers\":6,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "atlas: no later GPU preparation starts after disposal",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":9,\"scopePopsAtDispose\":9,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":3,\"disposedGeometry\":3,\"paletteBuffers\":6,\"retiredPaletteBuffers\":6,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "network: disposed reload rejects without installation",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":0,\"scopePopsAtDispose\":0,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"paletteBuffers\":0,\"retiredPaletteBuffers\":0,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "network: no crowd survives world disposal",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":0,\"scopePopsAtDispose\":0,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"paletteBuffers\":0,\"retiredPaletteBuffers\":0,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "network: closed world rejects a later reload without fetching",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":0,\"scopePopsAtDispose\":0,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"paletteBuffers\":0,\"retiredPaletteBuffers\":0,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "catalog completion never prepares GPU resources after disposal",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":0,\"scopePopsAtDispose\":0,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"paletteBuffers\":0,\"retiredPaletteBuffers\":0,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-reload-disposal",
+      "name": "network: no later GPU preparation starts after disposal",
+      "ok": true,
+      "detail": "{\"rejected\":true,\"error\":\"Error: Cannot reload soldiers into a disposed battle world\",\"scopePops\":0,\"scopePopsAtDispose\":0,\"installedReplacement\":false,\"remainingCrowdMeshes\":0,\"pendingMeshes\":0,\"disposedGeometry\":0,\"paletteBuffers\":0,\"retiredPaletteBuffers\":0,\"closedReloadRejected\":true,\"closedReloadFetches\":0}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "heavy-front: production path and submitted count",
+      "ok": true,
+      "detail": "{\"substrate\":\"threejs-webgpu-tsl\",\"soldiers\":1}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "heavy-front: readable foreground model coverage",
+      "ok": true,
+      "detail": "22769"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/heavy-front",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "heavy-front: frozen frame is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "phalanx-side: production path and submitted count",
+      "ok": true,
+      "detail": "{\"substrate\":\"threejs-webgpu-tsl\",\"soldiers\":1}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "phalanx-side: readable foreground model coverage",
+      "ok": true,
+      "detail": "10024"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/phalanx-side",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "phalanx-side: frozen frame is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "formation: production path and submitted count",
+      "ok": true,
+      "detail": "{\"substrate\":\"threejs-webgpu-tsl\",\"soldiers\":16}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "formation: readable foreground model coverage",
+      "ok": true,
+      "detail": "33408"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/formation",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "formation: frozen frame is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "local bake reload keeps identical production pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "failed reload is explicit and preserves last good crowd",
+      "ok": true,
+      "detail": "{\"ok\":false,\"error\":\"SyntaxError: Unexpected token 'm', \\\"malformed fixture\\\" is not valid JSON\"}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "incompatible reload retains the active appearance",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "incompatible reload retains the active appearance-specific clip",
+      "ok": true,
+      "detail": "{\"missingClip\":{\"ok\":false,\"error\":\"Error: presentation walk references a missing clip: march\"},\"retainedClip\":{\"pose\":{\"classId\":0,\"clip\":\"march\",\"phase\":0.25,\"formation\":true,\"yaw\":0.45,\"pitch\":0.9,\"zoom\":65,\"target\":[0,0,1.05]},\"present\":true}}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "truncated local animation samples are rejected explicitly",
+      "ok": true,
+      "detail": "{\"ok\":false,\"error\":\"Error: appearance local animation has invalid samples or metadata\"}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "production reload rejects a missing non-active action before replacing the crowd",
+      "ok": true,
+      "detail": "{\"ok\":false,\"error\":\"Error: presentation melee references a missing clip: attack_a\"}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "production startup rejects a missing controller action",
+      "ok": true,
+      "detail": "Error: presentation melee references a missing clip: attack_a"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "invalid local animation retry 0: no orphaned scene meshes",
+      "ok": true,
+      "detail": "{\"nodesBefore\":111,\"nodesAfter\":111}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "invalid local animation retry 1: no orphaned scene meshes",
+      "ok": true,
+      "detail": "{\"nodesBefore\":111,\"nodesAfter\":111}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "partially allocated replacement is rolled back without orphaned meshes",
+      "ok": true,
+      "detail": "{\"ok\":false,\"error\":\"Error: Injected replacement allocation failure\",\"before\":111,\"after\":111,\"peak\":113,\"attempts\":3}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "rejected bundles preserve the last good production pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "battle submission replaces the retained formation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/submission-parity",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "battle adapter and explicit pose submission have identical pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/submission-parity",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "interactive clip playback and turntable change the rendered pose",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/controls",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "malformed material rejects reload and preserves the last good pixels",
+      "ok": true,
+      "detail": "{\"ok\":false,\"error\":\"Error: appearance materials require finite base RGBA, roughness and metallic in [0, 1]\"}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "equivalent material-table reindex loads",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "material slot numbering cannot change surface pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "authored roughness 0.9, metallic 0: replacement loads",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "authored roughness 0.15, metallic 0: replacement loads",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "authored roughness 0.15, metallic 1: replacement loads",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "authored roughness changes pixels with fixed color and metallic",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "authored metallic changes pixels with fixed color and roughness",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "instance seed does not vary authored appearance",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "blue mesh with explicit mask 0: replacement loads",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "ordinary blue does not imply faction tint",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "blue mesh with explicit mask 1: replacement loads",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "explicit mask permits faction tint",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "admission probe starts from the complete authored catalog",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "pose changed during GPU admission retains the last valid crowd",
+      "ok": true,
+      "detail": "{\"ok\":false,\"error\":\"Error: Reload does not contain active appearance 14 / clip idle\",\"beforeNodes\":111,\"afterNodes\":111,\"activeClass\":14,\"retainedAppearance\":true}"
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "trig operation residual diagnostic",
+      "ok": true,
+      "detail": {
+        "actual": [
+          0.6794812679290771,
+          0.8999856114387512,
+          0.9000000357627869,
+          0.15238483250141144
+        ],
+        "expected": [
+          0.6794406139429131,
+          0.899999977585686,
+          0.8999999950856703,
+          0.15240376595924635
+        ],
+        "residual": [
+          0.00004065398616404092,
+          -0.00001436614693473004,
+          4.067711656396966e-8,
+          -0.00001893345783490763
+        ]
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "bounded Float32 sine approximation",
+      "ok": true,
+      "detail": {
+        "points": 1025,
+        "maxError": 1.505032258819483e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step: fixture has an upper mask and nonadjacent ancestor",
+      "ok": true,
+      "detail": {
+        "mask": [
+          3
+        ],
+        "names": [
+          "joint-0",
+          "joint-1",
+          "joint-2",
+          "joint-3"
+        ]
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "raw WGSL compiles",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "Three dispatch owns an explicit kernel statement",
+      "ok": true,
+      "detail": {
+        "dispatchCalls": 1,
+        "storageArguments": 6
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step: substrates share exact palette bytes",
+      "ok": true,
+      "detail": {
+        "max": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.28999999989999997: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.29: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.3709999999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.371: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.3710000001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-0.618: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/sample-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-parallel-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-parallel-0.001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-parallel-0.5: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-parallel-0.999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-parallel-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/outside-near-parallel-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/outside-near-parallel-0.001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/outside-near-parallel-0.5: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/outside-near-parallel-0.999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/outside-near-parallel-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/half-turn-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/half-turn-0.001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 4.656612873077393e-10,
+        "geometryError": 1.1641532182693481e-10
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/half-turn-0.5: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.1920928977282585e-7,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/half-turn-0.999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.7881393432617188e-7,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/half-turn-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/antipodal-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/antipodal-0.001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/antipodal-0.5: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/antipodal-0.999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/antipodal-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-unit-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 0,
+        "geometryError": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-unit-0.25: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.7881393432617188e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-unit-0.75: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.6763806343078613e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/near-unit-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/frozen-base-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/full-body-death-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 8.940696716308594e-8,
+        "geometryError": 2.9802322387695312e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-entry-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 4.470348358154297e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-exit-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 2.9802322387695312e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/frozen-base-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 2.9802322387695312e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/full-body-death-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.086162567138672e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-entry-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-exit-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/frozen-base-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 4.470348358154297e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/full-body-death-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 4.470348358154297e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-entry-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "hostile-step/upper-exit-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539063e-8,
+        "geometryError": 5.960464477539063e-8
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted: fixture has an upper mask and nonadjacent ancestor",
+      "ok": true,
+      "detail": {
+        "mask": [
+          8,
+          9,
+          10
+        ],
+        "names": [
+          "transformed-ancestor",
+          "deform-rig",
+          "root",
+          "horse-body",
+          "horse-back-leg",
+          "horse-front-leg",
+          "rider-pelvis",
+          "rider-legs",
+          "rider-spine",
+          "rider-arm",
+          "rider-head"
+        ]
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "raw WGSL compiles",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "Three dispatch owns an explicit kernel statement",
+      "ok": true,
+      "detail": {
+        "dispatchCalls": 1,
+        "storageArguments": 6
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted: substrates share exact palette bytes",
+      "ok": true,
+      "detail": {
+        "max": 0
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.1920928955078125e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.28999999989999997: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.29: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.3709999999: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.371: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.3710000001: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-0.618: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.4901161193847656e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/sample-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.1920928955078125e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/frozen-base-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/full-body-death-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-entry-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.960464477539062e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-exit-0: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 4.76837158203125e-7,
+        "geometryError": 2.980232238769531e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/frozen-base-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.980232238769531e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/full-body-death-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 3.5762786865234375e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-entry-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 6.556510925292969e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-exit-0.37: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.364418029785156e-7,
+        "geometryError": 3.5762786865234375e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/frozen-base-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 2.384185791015625e-7,
+        "geometryError": 2.384185791015625e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/full-body-death-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 1.1920928955078125e-7,
+        "geometryError": 1.1920928955078125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-entry-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 6.556510925292969e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "pose-palette",
+      "name": "authored-mounted/upper-exit-1: GPU palette agrees with CPU composition",
+      "ok": true,
+      "detail": {
+        "matrixError": 5.364418029785156e-7,
+        "geometryError": 4.76837158203125e-7
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 0: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 1,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 640,
+          "snapshotBytes": 16,
+          "controlBytes": 128,
+          "peakPaletteBytes": 640,
+          "peakSnapshotBytes": 16
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 16,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 16
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 16,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 16
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 0: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 3606
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 0: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 0: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 1: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 1,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 640,
+          "snapshotBytes": 16,
+          "controlBytes": 128,
+          "peakPaletteBytes": 640,
+          "peakSnapshotBytes": 16
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 16,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 16
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 16,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 16
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 1: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 3728
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 1: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 1: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 9.313225746154785e-10
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 2: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 1,
+          "residentSnapshots": 1,
+          "snapshotUploadBytes": 480,
+          "paletteBytes": 640,
+          "snapshotBytes": 480,
+          "controlBytes": 128,
+          "peakPaletteBytes": 640,
+          "peakSnapshotBytes": 480
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 16,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 16
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 16,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 16
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 2: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 3703
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 2: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 2: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 3: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 1,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 640,
+          "snapshotBytes": 480,
+          "controlBytes": 128,
+          "peakPaletteBytes": 640,
+          "peakSnapshotBytes": 480
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 16,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 16
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 16,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 16
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 3: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 3829
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 3: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 3: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 9.313225746154785e-10
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 4: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 640,
+          "snapshotBytes": 480,
+          "controlBytes": 128,
+          "peakPaletteBytes": 640,
+          "peakSnapshotBytes": 480
+        },
+        {
+          "instances": 1,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 704,
+          "snapshotBytes": 16,
+          "controlBytes": 128,
+          "peakPaletteBytes": 704,
+          "peakSnapshotBytes": 16
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 16,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 16
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 4: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 4013
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 4: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 4: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 5: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 640,
+          "snapshotBytes": 480,
+          "controlBytes": 128,
+          "peakPaletteBytes": 640,
+          "peakSnapshotBytes": 480
+        },
+        {
+          "instances": 1,
+          "residentSnapshots": 1,
+          "snapshotUploadBytes": 528,
+          "paletteBytes": 704,
+          "snapshotBytes": 528,
+          "controlBytes": 128,
+          "peakPaletteBytes": 704,
+          "peakSnapshotBytes": 528
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 16,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 16
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 5: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 4024
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 5: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 5: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 6: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 3,
+          "residentSnapshots": 3,
+          "snapshotUploadBytes": 1440,
+          "paletteBytes": 1920,
+          "snapshotBytes": 1440,
+          "controlBytes": 256,
+          "peakPaletteBytes": 1920,
+          "peakSnapshotBytes": 1440
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 704,
+          "snapshotBytes": 528,
+          "controlBytes": 128,
+          "peakPaletteBytes": 704,
+          "peakSnapshotBytes": 528
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 16,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 16
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw growth keeps three immutable snapshot sources resident",
+      "ok": true,
+      "detail": {
+        "instances": 3,
+        "residentSnapshots": 3,
+        "snapshotUploadBytes": 1440,
+        "paletteBytes": 1920,
+        "snapshotBytes": 1440,
+        "controlBytes": 256,
+        "peakPaletteBytes": 1920,
+        "peakSnapshotBytes": 1440
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 6: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 11614
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 6: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 6: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 9.313225746154785e-10
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 7: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 1,
+          "residentSnapshots": 1,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 1920,
+          "snapshotBytes": 1440,
+          "controlBytes": 256,
+          "peakPaletteBytes": 1920,
+          "peakSnapshotBytes": 1440
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 704,
+          "snapshotBytes": 528,
+          "controlBytes": 128,
+          "peakPaletteBytes": 704,
+          "peakSnapshotBytes": 528
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 64,
+          "snapshotBytes": 16,
+          "controlBytes": 16,
+          "peakPaletteBytes": 64,
+          "peakSnapshotBytes": 16
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw shrink reuses the retained immutable source without upload",
+      "ok": true,
+      "detail": {
+        "instances": 1,
+        "residentSnapshots": 1,
+        "snapshotUploadBytes": 0,
+        "paletteBytes": 1920,
+        "snapshotBytes": 1440,
+        "controlBytes": 256,
+        "peakPaletteBytes": 1920,
+        "peakSnapshotBytes": 1440
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 7: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 3767
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 7: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 7: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 8: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 2,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 1920,
+          "snapshotBytes": 1440,
+          "controlBytes": 256,
+          "peakPaletteBytes": 1920,
+          "peakSnapshotBytes": 1440
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 704,
+          "snapshotBytes": 528,
+          "controlBytes": 128,
+          "peakPaletteBytes": 704,
+          "peakSnapshotBytes": 528
+        },
+        {
+          "instances": 1,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 640,
+          "snapshotBytes": 16,
+          "controlBytes": 128,
+          "peakPaletteBytes": 640,
+          "peakSnapshotBytes": 16
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 8: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 11275
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 8: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 8: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 9: one palette per submitted mesh occurrence",
+      "ok": true,
+      "detail": [
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 1920,
+          "snapshotBytes": 1440,
+          "controlBytes": 256,
+          "peakPaletteBytes": 1920,
+          "peakSnapshotBytes": 1440
+        },
+        {
+          "instances": 0,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 704,
+          "snapshotBytes": 528,
+          "controlBytes": 128,
+          "peakPaletteBytes": 704,
+          "peakSnapshotBytes": 528
+        },
+        {
+          "instances": 1,
+          "residentSnapshots": 0,
+          "snapshotUploadBytes": 0,
+          "paletteBytes": 640,
+          "snapshotBytes": 16,
+          "controlBytes": 128,
+          "peakPaletteBytes": 640,
+          "peakSnapshotBytes": 16
+        }
+      ]
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 9: authored body reaches real depth",
+      "ok": true,
+      "detail": {
+        "foreground": 3791
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 9: visible weighted result matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "pixelError": 0
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose 9: depth matches CPU oracle",
+      "ok": true,
+      "detail": {
+        "depthError": 1.862645149230957e-9
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose resource generations are released exactly once",
+      "ok": true,
+      "detail": {
+        "allocations": 331,
+        "allDestroyedOnce": true,
+        "errors": []
+      }
+    },
+    {
+      "scenario": "raw-pose-palette",
+      "name": "raw pose commands pass actual GPU validation",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

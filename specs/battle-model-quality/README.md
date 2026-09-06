@@ -6,24 +6,22 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 
 Last updated **2026-09-06**. Status: **slices01–05 complete;06 in progress**.
 
-Current integration tree: `/Users/david/dev/game-local-animation-cutover`, branch
-`codex/local-animation-cutover`. Source, packing, shared kernel, raw and Three
-consumers and reviewed reload-disposal fix are assembled at2f8b0fe7. Source bake
-checks, typecheck and274 web tests pass. Root's terminology, fixture,
-suite registration, evidence and choices edits are still uncommitted. Four
-[reviewed baseline changes](assets/evidence/06/merged-comparison/review.md) are
-re-blessed and strict repeats pass on `http://127.0.0.1:5197`; see
-[merged validation](assets/evidence/06/merged-validation.md) for setup failures
-and their successful reruns.
-The verified main worktree `/Users/david/dev/game-battle-model-quality` remains
-clean at51a394d6 on the old animation format; do not apply the producer alone.
+Current worktree: `/Users/david/dev/game-battle-model-quality`, branch
+`codex/battle-model-quality`, at4d75b7cd. The complete source/assets/consumer cutover
+was installed together by fast-forward after staging validation; no old reader
+remains. Source bake checks, typecheck and274 web tests pass. Four
+[reviewed baseline changes](assets/evidence/06/merged-comparison/review.md) have
+strict repeats. The warning-enforcing standing hardware gate passes at30,560
+soldiers with unchanged33ms limits. See [merged validation](assets/evidence/06/merged-validation.md)
+for actual reports, setup failures and successful reruns.
 
-Next: commit the reviewed integration cleanup and complete atomic cutover to main.
-The compute-query pool cleanup passes the warning-enforcing standing performance
-gate (30,560 soldiers, unchanged33ms limits). Merged workbench, replay,
-material, far, default battle and reload-disposal checks pass (the staged WASM
-path and one hot-reload-interrupted capture were corrected and rerun). Then
-apply the complete cutover atomically to main and repeat its required gates.
+Next:06c. The [post-install browser repeat](assets/evidence/06/installed-browser.json)
+passes on `http://127.0.0.1:5174`, along with typecheck and274 web tests.
+The independent corpse-strength consumer pass is being prepared in
+`/Users/david/dev/game-corpse-strength-consumers`; keep temporal fixture work
+separate until its shared consumer rule is verified. A bounded replay foundation
+is prepared independently in `/Users/david/dev/game-temporal-replay-fixture`;
+the root owns production temporal screenshot integration after both seams land.
 The [Three cutover](assets/evidence/06/three-palette-cutover.md),
 [raw cutover](assets/evidence/06/raw-palette-cutover.md) and
 [source transport](assets/evidence/06/local-format-cutover.md) separate actual
@@ -51,10 +49,8 @@ device-checked. Local Blender authoring remains the chosen path; no external AI.
 
 The global TODO is the slice list below; [choices](choices.md) owns decisions.
 Update this pickup and the owning slice evidence after each pass. The previous
-05 Preview checkpoint is closed; do not reopen its old shots. The staging
-dependency symlink is verification-only and must never be committed. Its ignored
-WASM directory is a local copy of main's verified build, not an external symlink
-(Vite correctly blocks assets outside its allowed workspace).
+05 Preview checkpoint is closed; do not reopen its old shots. Dependency symlinks
+in auxiliary worktrees are verification-only and must never be committed.
 
 ## Scope and firewalls
 

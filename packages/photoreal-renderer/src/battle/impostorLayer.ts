@@ -82,18 +82,51 @@ export async function createSoldierImpostorAtlas(
     1e-3,
   );
   const worldSpan = maxSpan / 0.78;
-  const target = bakePropertyAtlas(
-    renderer,
-    mesh,
-    posedMesh,
-    materialTexture,
-    directions,
-    center,
-    worldSpan,
-    columns,
-    rows,
-    tileSize,
+  const device = (renderer.backend as unknown as { device?: GPUDevice }).device;
+  if (!device) throw new Error("Soldier atlas admission requires an initialized WebGPU device");
+  device.pushErrorScope("out-of-memory");
+  device.pushErrorScope("internal");
+  device.pushErrorScope("validation");
+  let target: THREE.RenderTarget | undefined;
+  let submissionError: unknown;
+  let submissionFailed = false;
+  try {
+    target = bakePropertyAtlas(
+      renderer,
+      mesh,
+      posedMesh,
+      materialTexture,
+      directions,
+      center,
+      worldSpan,
+      columns,
+      rows,
+      tileSize,
+    );
+  } catch (error) {
+    submissionFailed = true;
+    submissionError = error;
+  }
+  // The synchronous bake restores renderer state before any scope is awaited.
+  // Pop every scope now so unrelated frames cannot be admitted into this bake.
+  const admission = await Promise.allSettled([
+    device.popErrorScope(),
+    device.popErrorScope(),
+    device.popErrorScope(),
+  ]);
+  const failures = admission.flatMap((result) =>
+    result.status === "rejected"
+      ? [String(result.reason)]
+      : result.value
+        ? [result.value.message]
+        : [],
   );
+  if (submissionFailed || failures.length) {
+    target?.dispose();
+    if (submissionFailed) throw submissionError;
+    throw new Error(`Soldier atlas GPU admission failed: ${failures.join("; ")}`);
+  }
+  if (!target) throw new Error("Soldier atlas preparation produced no render target");
   let mipPixels = 0;
   for (
     let w = columns * tileSize, h = rows * tileSize;

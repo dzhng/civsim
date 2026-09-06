@@ -1,10 +1,8 @@
 import { buildCrowdInstances } from "@packages/crowd-runtime/src/instanceData";
 import { SoldierShadowDecalPass } from "@packages/renderer-core/src/soldierShadowPass";
-import { loadPlaceholderVat } from "@packages/soldier-assets/src/placeholders";
 import { type LabContext, createConfiguredShell, createSkinnedPipeline, publish, reportTable } from "../labShell";
 
 export async function route(ctx: LabContext) {
-  const vat = await loadPlaceholderVat();
   // A smooth ridge centered at x=0 — soldiers climb up and over it.
   const ridge = (x: number, _y: number) => 2.2 * Math.exp(-(x * x) / 36);
   const cols = 14;
@@ -44,7 +42,7 @@ export async function route(ctx: LabContext) {
     pitch: 0.3,
     yaw: 0,
   });
-  const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88], vat);
+  const pipeline = await createSkinnedPipeline(shell);
   const shadows = new SoldierShadowDecalPass(shell);
 
   const start = performance.now();

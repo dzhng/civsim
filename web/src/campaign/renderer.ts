@@ -812,18 +812,13 @@ export class CampaignRenderer {
     const standards = new SharedStandardPass(shell);
     // Representative army figures consume the same appearance assets as battle,
     // while campaign retains its raw-GPU world and grounding-shadow passes.
-    const appearances = Object.entries(await loadAppearanceCatalog(
+    const appearances = await loadAppearanceCatalog(
       new URL("/assets/soldiers/catalog.json", location.href).href,
-    ));
-    const bundles = appearances.map(([id, bundle], index) => {
-      if (Number(id) !== index) throw new Error(`campaign appearance catalog is missing class ${index}`);
-      return bundle;
-    });
-    this.mountedClasses = appearances.filter(([, bundle]) => bundle.manifest.mounted).map(([id]) => Number(id));
+    );
+    this.mountedClasses = Object.entries(appearances).filter(([, bundle]) => bundle.manifest.mounted).map(([id]) => Number(id));
     const soldierCrowd = new SkinnedCrowdPipeline(
       shell,
-      bundles.map((bundle) => bundle.tiers),
-      bundles.map((bundle) => bundle.animation),
+      appearances,
     );
     const soldierShadows = new SoldierShadowDecalPass(shell);
     const selection = new CampaignSelectionPass(shell);

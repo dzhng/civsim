@@ -17,7 +17,7 @@ export async function route(ctx: LabContext) {
     facing: Math.PI / 2,
     faction: (i % 2) as 0 | 1,
   }));
-  const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88]);
+  const pipeline = await createSkinnedPipeline(shell);
   animateSkinned(shell, pipeline, () => markers, { size: 1.3 });
   const rows = Array.from({ length: 12 }, (_, frame) => {
     const state = animationForFrame(frame, 240, frame * 19, frame !== 4);

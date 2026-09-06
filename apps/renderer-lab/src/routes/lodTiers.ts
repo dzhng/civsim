@@ -1,13 +1,11 @@
 import { SkinnedCrowdPipeline } from "@packages/renderer-core/src/skinnedPipeline";
 import { assignCrowdLodsByDistance, lodWithHysteresis } from "@packages/crowd-runtime/src/lod";
-import { loadPlaceholderVat } from "@packages/soldier-assets/src/placeholders";
-import { createPlaceholderSoldierMeshTiers } from "@packages/soldier-assets/src/soldierMesh";
+import { loadAppearanceCatalog } from "@packages/soldier-assets/src/appearanceBundle";
 import { crowdInstance } from "../labFixtures";
 import { type LabContext, animateSkinned, createConfiguredShell, publish, reportTable } from "../labShell";
 
 export async function route(ctx: LabContext) {
-  const vat = await loadPlaceholderVat();
-  const tiers = createPlaceholderSoldierMeshTiers([0.2, 0.42, 0.88]);
+  const appearances = await loadAppearanceCatalog(new URL("/assets/soldiers/catalog.json", location.href).href);
   const shell = await createConfiguredShell(ctx.canvas, {
     x: 0,
     y: 0,
@@ -15,7 +13,7 @@ export async function route(ctx: LabContext) {
     pitch: 0.18,
     yaw: 0,
   });
-  const pipeline = new SkinnedCrowdPipeline(shell, tiers, vat);
+  const pipeline = new SkinnedCrowdPipeline(shell, appearances);
 
   // Three soldiers side by side, explicitly L0/L1/L2, so detail reduction is
   // directly reviewable.
@@ -23,7 +21,7 @@ export async function route(ctx: LabContext) {
     ...crowdInstance((lod - 1) * 2.6, 0, 0, "at_ease"),
     lod,
   }));
-  const triCounts = [0, 1, 2].map((lod) => tiers[0][lod].indices.length / 3);
+  const triCounts = appearances[0].tiers.map((mesh) => mesh.indices.length / 3);
 
   // The distance algorithm: a line of instances receding from the camera focus
   // must coarsen monotonically (near = L0, far = coarser).

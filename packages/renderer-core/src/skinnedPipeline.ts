@@ -1,10 +1,11 @@
 import type { CrowdInstance } from '../../crowd-runtime/src/instanceData';
 import { packSoldierVertices, SOLDIER_VERTEX_LAYOUT, type SoldierMeshData } from '../../soldier-assets/src/mesh';
-import type { SoldierKitManifest, VatBake } from '../../soldier-assets/src/schema';
+import type { VatBake } from '../../soldier-assets/src/schema';
+import type { AppearanceBundle } from '../../soldier-assets/src/appearanceBundle';
 import { assertStorageBufferFits } from './capabilities';
 import { compileShader } from './compileShader';
 import { GrowableBuffer, makeIndexBuffer, makeVertexBuffer } from './gpuBuffers';
-import { createVatLayout, resolveVatClip, type VatLayout } from './vatLayout';
+import { createVatLayout, resolveVatClip, sampleVatPhase, type VatLayout } from './vatLayout';
 import type { RawFrameShell, WorldRenderPass } from './frameShell';
 import { WORLD_CAMERA_WGSL } from './cameraWgsl';
 import { cameraOnlyPipeline } from './pipelineContracts';
@@ -50,19 +51,11 @@ interface MeshResource {
   mesh: SoldierMeshData;
   vat: VatResource;
   index: number;
-  classId: number;
-  lod: number;
   vertexBuffer: GPUBuffer;
   indexBuffer: GPUBuffer;
   instanceBuffer: GrowableBuffer;
   instanceCount: number;
 }
-
-/** A per-class VAT registry: index by classId. A single VatBake applies to all. */
-type SkinnedVatInput = VatBake | VatBake[];
-
-/** Meshes: one (L0), per-class (`[classId]`), or per-class-per-lod (`[classId][lod]`). */
-type SkinnedMeshInput = SoldierMeshData | SoldierMeshData[] | SoldierMeshData[][];
 
 const DEFAULT_SKINNED_LIGHTING: SkinnedLightingEnvironment = {
   source: 'skinned-default',
@@ -150,8 +143,8 @@ fn vs(
 ) -> VsOut {
   let clipStart = inst1.y;
   let clipFrames = max(inst1.z, 1.0);
-  let phase = clamp(inst1.w, 0.0, 0.9999);
-  let frame = clipStart + floor(phase * max(clipFrames - 1.0, 1.0));
+  let phase = clamp(inst1.w, 0.0, 1.0);
+  let frame = clipStart + floor(phase * max(clipFrames - 1.0, 0.0));
   let joint = jointMatrix(joints.x, frame) * weights.x
     + jointMatrix(joints.y, frame) * weights.y
     + jointMatrix(joints.z, frame) * weights.z
@@ -234,20 +227,17 @@ fn fs(in: VsOut) -> @location(0) vec4f {
 export class SkinnedCrowdPipeline {
   private pipeline: GPURenderPipeline;
   private resources: MeshResource[];
-  private resourceLookup: MeshResource[][];
+  private resourceLookup = new Map<number, MeshResource[]>();
   private vatVariants: number;
   private materialBindGroup: GPUBindGroup;
   private materialUniform: GPUBuffer;
   private readonly lighting: SkinnedLightingEnvironment;
 
-  constructor(private shell: RawFrameShell, meshes: SkinnedMeshInput, vats: SkinnedVatInput, kit?: SoldierKitManifest, opts: { lighting?: SkinnedLightingEnvironment } = {}) {
+  constructor(private shell: RawFrameShell, appearances: Record<number, AppearanceBundle>, opts: { lighting?: SkinnedLightingEnvironment } = {}) {
     this.lighting = opts.lighting ?? DEFAULT_SKINNED_LIGHTING;
     const device = shell.device;
-    // Normalize to per-class tiers: classId → lod → mesh. A flat list is L0-only.
-    const meshTiers: SoldierMeshData[][] = Array.isArray(meshes)
-      ? (Array.isArray(meshes[0]) ? meshes as SoldierMeshData[][] : (meshes as SoldierMeshData[]).map((m) => [m]))
-      : [[meshes]];
-    if (meshTiers.length === 0 || meshTiers[0].length === 0) throw new Error('SkinnedCrowdPipeline requires at least one soldier mesh');
+    const entries = Object.entries(appearances);
+    if (entries.length === 0) throw new Error('SkinnedCrowdPipeline requires at least one appearance');
     const vatLayoutGroup = device.createBindGroupLayout({
       label: 'skinned-vat-bgl',
       entries: [{ binding: 0, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } }],
@@ -269,26 +259,26 @@ export class SkinnedCrowdPipeline {
     this.pipeline = this.makePipeline(vatLayoutGroup, materialLayoutGroup);
     // Build one VatResource per distinct VatBake and reuse it for every class
     // that points at it (the all-placeholder case → a single resource).
-    const vatList = Array.isArray(vats) ? vats : [vats];
     const cache = new Map<VatBake, VatResource>();
     const resourceFor = (vat: VatBake): VatResource => {
       const existing = cache.get(vat);
       if (existing) return existing;
-      const resource = this.createVatResource(vat, vatLayoutGroup, kit, cache.size);
+      const resource = this.createVatResource(vat, vatLayoutGroup, cache.size);
       cache.set(vat, resource);
       return resource;
     };
     // One MeshResource per (classId, lod). Lower-detail tiers share the class's
     // VAT (skeleton is unchanged) and the lookup routes instances to their tier.
     this.resources = [];
-    this.resourceLookup = meshTiers.map((tiers, classId) => {
-      const vat = resourceFor(vatList[classId] ?? vatList[vatList.length - 1] ?? vatList[0]);
-      return tiers.map((mesh, lod) => {
-        const resource = this.createMeshResource(mesh, this.resources.length, vat, classId, lod);
+    for (const [id, bundle] of entries) {
+      const classId = Number(id);
+      const vat = resourceFor(bundle.animation);
+      this.resourceLookup.set(classId, bundle.tiers.map((mesh) => {
+        const resource = this.createMeshResource(mesh, this.resources.length, vat);
         this.resources.push(resource);
         return resource;
-      });
-    });
+      }));
+    }
     this.vatVariants = cache.size;
   }
 
@@ -330,7 +320,7 @@ export class SkinnedCrowdPipeline {
     return { bindGroup, uniform };
   }
 
-  private createVatResource(vat: VatBake, vatLayoutGroup: GPUBindGroupLayout, kit: SoldierKitManifest | undefined, index: number): VatResource {
+  private createVatResource(vat: VatBake, vatLayoutGroup: GPUBindGroupLayout, index: number): VatResource {
     const device = this.shell.device;
     const vatData = new Float32Array(4 + vat.data.length);
     vatData[0] = vat.width;
@@ -349,7 +339,7 @@ export class SkinnedCrowdPipeline {
       layout: vatLayoutGroup,
       entries: [{ binding: 0, resource: { buffer: vatBuffer } }],
     });
-    return { bindGroup, layout: createVatLayout(vat, kit) };
+    return { bindGroup, layout: createVatLayout(vat) };
   }
 
   upload(instances: CrowdInstance[], opts: { forcedClip?: string | null; phaseOffset?: number; size?: number } = {}) {
@@ -394,16 +384,22 @@ export class SkinnedCrowdPipeline {
 
   /** The clip layout VAT resolution uses for a given class (per-class clip table). */
   classClip(classId: number, name: string) {
-    const resource = this.resourceLookup[Math.max(0, Math.min(this.resourceLookup.length - 1, Math.floor(classId)))][0];
+    const resource = this.appearanceResources(classId)[0];
     return resolveVatClip(resource.vat.layout, name);
   }
 
-  private createMeshResource(mesh: SoldierMeshData, index: number, vat: VatResource, classId: number, lod: number): MeshResource {
+  private createMeshResource(mesh: SoldierMeshData, index: number, vat: VatResource): MeshResource {
     const device = this.shell.device;
     const vertexBuffer = makeVertexBuffer(device, `skinned-soldier-${index}-vertices`, packSoldierVertices(mesh));
     const indexBuffer = makeIndexBuffer(device, `skinned-soldier-${index}-indices`, mesh.indices);
     const instanceBuffer = new GrowableBuffer(device, `skinned-crowd-${index}-instances`, GPUBufferUsage.VERTEX, 256 * 12 * 4);
-    return { mesh, vat, index, classId, lod, vertexBuffer, indexBuffer, instanceBuffer, instanceCount: 0 };
+    return { mesh, vat, index, vertexBuffer, indexBuffer, instanceBuffer, instanceCount: 0 };
+  }
+
+  private appearanceResources(classId: number) {
+    const resources = this.resourceLookup.get(classId);
+    if (!resources) throw new Error(`soldier appearance ${classId} is not loaded`);
+    return resources;
   }
 
   // Route each instance to its (classId, lod) resource. A requested lod beyond
@@ -411,8 +407,7 @@ export class SkinnedCrowdPipeline {
   private groupInstances(instances: CrowdInstance[]) {
     const groups = this.resources.map(() => [] as CrowdInstance[]);
     for (const inst of instances) {
-      const classId = Math.max(0, Math.min(this.resourceLookup.length - 1, Math.floor(inst.classId || 0)));
-      const tiers = this.resourceLookup[classId];
+      const tiers = this.appearanceResources(inst.classId);
       const lod = Math.max(0, Math.min(tiers.length - 1, Math.floor(inst.lod || 0)));
       groups[tiers[lod].index].push(inst);
     }
@@ -434,7 +429,8 @@ export class SkinnedCrowdPipeline {
       data[o + 4] = opts.size ?? 1;
       data[o + 5] = clip.start;
       data[o + 6] = clip.frames;
-      data[o + 7] = ((inst.phase + (opts.phaseOffset ?? 0)) % 1 + 1) % 1;
+      const phase = inst.phase + (opts.phaseOffset ?? 0);
+      data[o + 7] = sampleVatPhase(phase, clip.loop);
       data[o + 8] = inst.elevation ?? 0;          // inst2.x: terrain elevation
       data[o + 9] = inst.deathVariant ?? 0;       // inst2.y: corpse variant 0..2
       data[o + 10] = inst.alive ? 0 : 1;          // inst2.z: corpse flag

@@ -1,6 +1,5 @@
 import { SkinnedCrowdPipeline } from "@packages/renderer-core/src/skinnedPipeline";
-import { loadPlaceholderKit, loadPlaceholderVat } from "@packages/soldier-assets/src/placeholders";
-import { createPlaceholderSoldierMeshes } from "@packages/soldier-assets/src/soldierMesh";
+import { loadAppearanceCatalog } from "@packages/soldier-assets/src/appearanceBundle";
 import { type VatBake, type VatClip } from "@packages/soldier-assets/src/schema";
 import { crowdInstance } from "../labFixtures";
 import { type LabContext, createConfiguredShell, publish, reportTable } from "../labShell";
@@ -14,7 +13,7 @@ function stretchVat(vat: VatBake, factor: number): VatBake {
   let start = 0;
   for (const clip of vat.clips) {
     const frames = clip.frames * factor;
-    clips.push({ name: clip.name, start, frames });
+    clips.push({ ...clip, start, frames, duration: clip.duration * factor });
     for (let f = 0; f < frames; f++) colMap.push(clip.start + Math.floor(f / factor));
     start += frames;
   }
@@ -31,13 +30,8 @@ function stretchVat(vat: VatBake, factor: number): VatBake {
 }
 
 export async function route(ctx: LabContext) {
-  const placeholder = await loadPlaceholderVat();
-  const kit = await loadPlaceholderKit();
-  const stretched = stretchVat(placeholder, 2);
-  const meshes = createPlaceholderSoldierMeshes([0.2, 0.42, 0.88]);
-  // class 1 → its own 2x VAT; class 0 and everything else (e.g. class 5) → the
-  // shared placeholder fallback.
-  const vats = meshes.map((_, id) => (id === 1 ? stretched : placeholder));
+  const appearances = await loadAppearanceCatalog(new URL("/assets/soldiers/catalog.json", location.href).href);
+  const stretched = stretchVat(appearances[1].animation, 2);
   const shell = await createConfiguredShell(ctx.canvas, {
     x: 0,
     y: 0,
@@ -45,7 +39,12 @@ export async function route(ctx: LabContext) {
     pitch: 0.14,
     yaw: 0,
   });
-  const pipeline = new SkinnedCrowdPipeline(shell, meshes, vats, kit);
+  // A sparse catalog proves IDs are identities, not offsets in a packed list.
+  const pipeline = new SkinnedCrowdPipeline(shell, {
+    0: appearances[0],
+    1: { ...appearances[1], animation: stretched },
+    5: appearances[5],
+  });
   const soldiers = [
     crowdInstance(-3.4, 0, 0, "march"),
     crowdInstance(0, 1, 1, "march"),
@@ -62,16 +61,16 @@ export async function route(ctx: LabContext) {
     class1Frames: c1.frames,
     class5Frames: c5.frames,
     divergence: c1.frames === c0.frames * 2,
-    fallbackMatches: c5.frames === c0.frames,
+    sharedMatches: c5.frames === c0.frames,
   };
   ctx.status.innerHTML = reportTable({
     route: "per-class-vat",
     "VAT variants": stats.vatVariants,
     "class 0 march frames": stats.class0Frames,
     "class 1 march frames (2x VAT)": stats.class1Frames,
-    "class 5 march frames (fallback)": stats.class5Frames,
+    "class 5 march frames (shared asset)": stats.class5Frames,
     "per-class divergence": stats.divergence,
-    "fallback to shared": stats.fallbackMatches,
+    "explicit shared asset": stats.sharedMatches,
   });
 
   const start = performance.now();

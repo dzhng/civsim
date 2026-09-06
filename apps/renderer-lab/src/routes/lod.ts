@@ -14,7 +14,7 @@ export async function route(ctx: LabContext) {
   const lods = assignCrowdLods(instances, zoom);
   const counts = countLods(lods);
   const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: -1, zoom, pitch: 0.24, yaw: 0 });
-  const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88]);
+  const pipeline = await createSkinnedPipeline(shell);
   const renderInstances = instances.map((instance, i) => ({ ...instance, lod: lods[i].level }));
   animateSkinned(shell, pipeline, () => renderInstances);
   ctx.status.innerHTML = reportTable({

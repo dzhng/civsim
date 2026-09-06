@@ -1,18 +1,16 @@
 import { world3dToScreen } from "@packages/renderer-core/src/cameraUniform";
 import { type CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
-import { loadPlaceholderVat } from "@packages/soldier-assets/src/placeholders";
 import { SHOCK_CAV_SIDEARM_CLASS } from "@packages/soldier-assets/src/soldierMesh";
 import { UNIT_CLASS_BY_KEY, UnitClass } from "../../../../web/src/battle/classData";
 import { type LabContext, LabGroundPass, chartCameraSnapshot, createConfiguredShell, createSkinnedPipeline, labGroundFramePass, publish, reportTable } from "../labShell";
 
 export async function route(ctx: LabContext) {
-  const vat = await loadPlaceholderVat();
   // Oblique review pitch: camera3d vertical scale is sin(pitch), so a
   // near-top-down 0.18 collapses soldiers to a few pixels. sin(1.1) ≈ 0.89
   // keeps the full silhouette legible.
   const camera = { x: 0, y: 0, zoom: 92, pitch: 1.1, yaw: 0 };
   const shell = await createConfiguredShell(ctx.canvas, camera);
-  const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88], vat);
+  const pipeline = await createSkinnedPipeline(shell);
   const frontClass = UNIT_CLASS_BY_KEY[UnitClass.HeavySword];
   const rearClass = SHOCK_CAV_SIDEARM_CLASS;
   const frontY = -0.03;

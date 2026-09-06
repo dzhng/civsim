@@ -1,9 +1,7 @@
 import { generatedFormation } from "@packages/crowd-runtime/src/instanceData";
-import { loadPlaceholderVat } from "@packages/soldier-assets/src/placeholders";
 import { type LabContext, animateSkinned, createConfiguredShell, createSkinnedPipeline, publish, reportTable } from "../labShell";
 
 export async function route(ctx: LabContext) {
-  const vat = await loadPlaceholderVat();
   const shell = await createConfiguredShell(ctx.canvas, {
     x: 0,
     y: -3,
@@ -11,7 +9,7 @@ export async function route(ctx: LabContext) {
     pitch: 0.34,
     yaw: 0,
   });
-  const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88], vat);
+  const pipeline = await createSkinnedPipeline(shell);
   const instances = generatedFormation(1200, {
     x: -21,
     y: -13,

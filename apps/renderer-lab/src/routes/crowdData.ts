@@ -26,7 +26,7 @@ export async function route(ctx: LabContext) {
     pitch: 0.24,
     yaw: 0,
   });
-  const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88]);
+  const pipeline = await createSkinnedPipeline(shell);
   animateSkinned(shell, pipeline, () => instances);
   const packed = buildCrowdInstances(toCrowdBuildInputs(instances));
   publish("crowd-data", true, {

@@ -1,10 +1,8 @@
 import { generatedFormation } from "@packages/crowd-runtime/src/instanceData";
-import { loadPlaceholderVat } from "@packages/soldier-assets/src/placeholders";
 import { PLACEHOLDER_RENDER_CLASS_COUNT } from "@packages/soldier-assets/src/soldierMesh";
 import { type LabContext, animateSkinned, createConfiguredShell, createSkinnedPipeline, integerParam, numberParam, publish, reportTable } from "../labShell";
 
 export async function route(ctx: LabContext) {
-  const vat = await loadPlaceholderVat();
   const phase = numberParam(ctx.params, "phase", 0);
   const classId = integerParam(ctx.params, "class", 0, 0, PLACEHOLDER_RENDER_CLASS_COUNT - 1);
   const frame = integerParam(ctx.params, "frame", 1, 0, 11);
@@ -18,7 +16,7 @@ export async function route(ctx: LabContext) {
     pitch: numberParam(ctx.params, "pitch", 1.1),
     yaw: numberParam(ctx.params, "yaw", 0),
   });
-  const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88], vat);
+  const pipeline = await createSkinnedPipeline(shell);
   const soldier = generatedFormation(1, { frame, spacing: 1, faction, classId }).map((inst) => ({
     ...inst,
     facing,
@@ -38,7 +36,6 @@ export async function route(ctx: LabContext) {
     facing: facing.toFixed(2),
     vertices: pipeline.stats().vertices,
     variants: pipeline.stats().meshVariants,
-    vat: `${vat.width}x${vat.height}`,
   });
   publish("skinned-soldier", true, { ...pipeline.stats(), classId, frame, clip, phase, facing });
 }

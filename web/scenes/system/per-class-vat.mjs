@@ -46,8 +46,8 @@ export async function run(ctx) {
       JSON.stringify({ class0Frames: stats.class0Frames, class1Frames: stats.class1Frames }),
     );
     ctx.check(
-      "per-class-vat: a class with no dedicated bake falls back to the shared placeholder",
-      stats.fallbackMatches === true && stats.class5Frames === stats.class0Frames,
+      "per-class-vat: sparse class 5 uses its explicitly shared animation asset",
+      stats.sharedMatches === true && stats.class5Frames === stats.class0Frames,
       JSON.stringify({ class0Frames: stats.class0Frames, class5Frames: stats.class5Frames }),
     );
 

@@ -7,8 +7,7 @@ import { SkinnedCrowdPipeline } from "@packages/renderer-core/src/skinnedPipelin
 import { type CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
 import { chartCamera3d, type ChartCameraSpec } from "@packages/renderer-core/src/camera3d";
 import { resolveBattleEnvironment, skinnedLightingForBattleEnvironment, type BattleEnvironment } from "@packages/game-renderer/src/environment/environment";
-import { loadPlaceholderVat } from "@packages/soldier-assets/src/placeholders";
-import { createPlaceholderSoldierMeshes } from "@packages/soldier-assets/src/soldierMesh";
+import { loadAppearanceCatalog } from "@packages/soldier-assets/src/appearanceBundle";
 import {
   CAMPAIGN_ENVIRONMENT,
 } from "@packages/game-renderer/src/campaign/environment";
@@ -231,15 +230,11 @@ export async function createCampaignShell(canvas: HTMLCanvasElement, camera: Cha
 
 export async function createSkinnedPipeline(
   shell: RawFrameShell,
-  accent: [number, number, number],
-  vat?: Awaited<ReturnType<typeof loadPlaceholderVat>>,
   environment = resolveBattleEnvironment("golden-hour"),
 ) {
   return new SkinnedCrowdPipeline(
     shell,
-    createPlaceholderSoldierMeshes(accent),
-    vat ?? (await loadPlaceholderVat()),
-    undefined,
+    await loadAppearanceCatalog(new URL("/assets/soldiers/catalog.json", location.href).href),
     {
       lighting: skinnedLightingForBattleEnvironment(environment),
     },

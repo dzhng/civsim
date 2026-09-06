@@ -1,10 +1,8 @@
 import { generatedFormation } from "@packages/crowd-runtime/src/instanceData";
-import { loadPlaceholderVat } from "@packages/soldier-assets/src/placeholders";
 import { PLACEHOLDER_RENDER_CLASS_COUNT } from "@packages/soldier-assets/src/soldierMesh";
 import { type LabContext, animateSkinned, createConfiguredShell, createSkinnedPipeline, integerParam, numberParam, publish, reportTable } from "../labShell";
 
 export async function route(ctx: LabContext) {
-  const vat = await loadPlaceholderVat();
   const strength = numberParam(ctx.params, "strength", 1);
   const faction = integerParam(ctx.params, "team", 0, 0, 1) as 0 | 1;
   const classId = integerParam(ctx.params, "class", 0, 0, PLACEHOLDER_RENDER_CLASS_COUNT - 1);
@@ -15,7 +13,7 @@ export async function route(ctx: LabContext) {
     pitch: 0.1,
     yaw: 0,
   });
-  const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88], vat);
+  const pipeline = await createSkinnedPipeline(shell);
   pipeline.setFactionMaskStrength(strength);
   const soldier = generatedFormation(1, { frame: 6, spacing: 1, faction, classId }).map((inst) => ({
     ...inst,

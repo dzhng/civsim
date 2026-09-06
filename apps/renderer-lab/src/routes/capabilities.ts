@@ -33,7 +33,7 @@ export async function route(ctx: LabContext) {
 
   shell.setCamera(chartSnapshot({ x: 0, y: 0, zoom: 9, pitch: 0.34, yaw: -0.12 }, shell));
   const markers = generatedCrowd(80, -10, -9, 0).concat(generatedCrowd(80, 10, 3, 1));
-  const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88]);
+  const pipeline = await createSkinnedPipeline(shell);
   pipeline.upload(markers);
   const ground = new LabGroundPass(shell, [-42, -28, 84, 56]);
   const fixture = new Nested3dFixturePass(shell);

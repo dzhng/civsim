@@ -11,7 +11,7 @@ export async function route(ctx: LabContext) {
     yaw: -0.18,
   });
   const markers = generatedCrowd(80, -10, -9, 0).concat(generatedCrowd(80, 10, 3, 1));
-  const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88]);
+  const pipeline = await createSkinnedPipeline(shell);
   const frameGraphContractFixtures = liveFrameGraphContractFixtures(shell);
   animateSkinned(shell, pipeline, () => markers);
   publish("frame-shell", true, {

@@ -125,18 +125,13 @@ export async function route(ctx: LabContext) {
   let soldierShadows: SoldierShadowDecalPass | null = null;
   let modelCrowd: CrowdInstance[] = [];
   if (gate !== "standard-liveries") {
-    const appearances = Object.entries(await loadAppearanceCatalog(
+    const appearances = await loadAppearanceCatalog(
       new URL("/assets/soldiers/catalog.json", location.href).href,
-    ));
-    const bundles = appearances.map(([id, bundle], index) => {
-      if (Number(id) !== index) throw new Error(`campaign appearance catalog is missing class ${index}`);
-      return bundle;
-    });
-    const mountedClasses = appearances.filter(([, bundle]) => bundle.manifest.mounted).map(([id]) => Number(id));
+    );
+    const mountedClasses = Object.entries(appearances).filter(([, bundle]) => bundle.manifest.mounted).map(([id]) => Number(id));
     soldierCrowd = new SkinnedCrowdPipeline(
       shell,
-      bundles.map((bundle) => bundle.tiers),
-      bundles.map((bundle) => bundle.animation),
+      appearances,
     );
     soldierShadows = new SoldierShadowDecalPass(shell);
     const modelStackRoster = [4, 0, 3, 0, 2, 1];

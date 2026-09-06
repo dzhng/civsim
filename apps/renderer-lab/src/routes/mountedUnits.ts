@@ -1,12 +1,10 @@
 import { assignCrowdLods } from "@packages/crowd-runtime/src/lod";
-import { loadPlaceholderVat } from "@packages/soldier-assets/src/placeholders";
 import { REAL_UNIT_CLASS_COUNT, SHOCK_CAV_SIDEARM_CLASS } from "@packages/soldier-assets/src/soldierMesh";
 import { UNIT_CLASS_BY_KEY, UnitClass } from "../../../../web/src/battle/classData";
 import { crowdInstance } from "../labFixtures";
 import { type LabContext, animateSkinned, createConfiguredShell, createSkinnedPipeline, numberParam, publish, reportTable } from "../labShell";
 
 export async function route(ctx: LabContext) {
-  const vat = await loadPlaceholderVat();
   const zoom = numberParam(ctx.params, "zoom", 6);
   const shell = await createConfiguredShell(ctx.canvas, {
     x: 0,
@@ -15,7 +13,7 @@ export async function route(ctx: LabContext) {
     pitch: 0.16,
     yaw: 0,
   });
-  const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88], vat);
+  const pipeline = await createSkinnedPipeline(shell);
   const heavySword = UNIT_CLASS_BY_KEY[UnitClass.HeavySword];
   const mediumPhalanx = UNIT_CLASS_BY_KEY[UnitClass.MediumPhalanx];
   const shockCavalry = UNIT_CLASS_BY_KEY[UnitClass.ShockCavalry];

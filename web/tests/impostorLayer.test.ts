@@ -47,6 +47,24 @@ test("far views use the same facing basis as the skinned mesh and its offset anc
     expect(mesh.geometry.getAttribute("impostorMeta").getW(0)).toBeCloseTo(Math.PI / 2);
     expect(mesh.geometry.getAttribute("impostorInst").getY(0)).toBeCloseTo(0.4);
     expect(mesh.geometry.getAttribute("impostorLiving").getX(0)).toBe(0);
+    for (const weight of [0, 0.5, 1]) {
+      layer.upload([
+        {
+          ...instance,
+          alive: false,
+          playback: {
+            appearanceId: 0,
+            base: {
+              source: { kind: "clip", sample: { clip: "idle", phase: 0 } },
+              destination: { clip: "death", phase: 0.8 },
+              weight,
+            },
+          },
+        },
+      ]);
+      layer.setCamera(camera);
+      expect(mesh.geometry.getAttribute("impostorLiving").getX(0)).toBe(1 - weight);
+    }
   } finally {
     layer.dispose();
   }

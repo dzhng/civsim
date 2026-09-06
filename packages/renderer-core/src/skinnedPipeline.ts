@@ -1,4 +1,7 @@
-import type { CrowdInstance } from "../../crowd-runtime/src/instanceData";
+import {
+  corpsePresentationStrength,
+  type CrowdInstance,
+} from "../../crowd-runtime/src/instanceData";
 import {
   packSoldierVertices,
   SOLDIER_VERTEX_LAYOUT,
@@ -771,7 +774,7 @@ export class SkinnedCrowdPipeline {
       data[o + 6] = resource.palette.bones;
       data[o + 8] = inst.elevation ?? 0; // inst2.x: terrain elevation
       data[o + 9] = inst.deathVariant ?? 0; // inst2.y: corpse variant 0..2
-      data[o + 10] = inst.alive ? 0 : 1; // inst2.z: corpse flag
+      data[o + 10] = corpsePresentationStrength(inst); // inst2.z: corpse strength
     }
     resource.instanceBuffer.write(data);
   }

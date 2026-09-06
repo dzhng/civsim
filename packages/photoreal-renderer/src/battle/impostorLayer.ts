@@ -16,7 +16,10 @@ import {
   vec3,
   vec4,
 } from "three/tsl";
-import type { CrowdInstance } from "../../../crowd-runtime/src/instanceData";
+import {
+  corpsePresentationStrength,
+  type CrowdInstance,
+} from "../../../crowd-runtime/src/instanceData";
 import type { SoldierMeshData } from "../../../soldier-assets/src/mesh";
 import { poseSoldierMesh } from "../../../soldier-assets/src/skin";
 import {
@@ -228,7 +231,7 @@ export class OctahedralImpostorLayer {
     material.roughnessNode = orm.g;
     material.metalnessNode = orm.b;
     // Contact grounding is a separate posed property, not authored occlusion.
-    // Corpse roll cannot affect it: dead instances disable the factor entirely.
+    // Fade fixed-pose grounding out with the same blend that introduces corpse roll.
     const living = varying(attribute<"float">("impostorLiving", "float"));
     material.aoNode = orm.r.mul(mix(1, normalAndContact.a, living));
     material.colorNode = vec4(
@@ -277,7 +280,7 @@ export class OctahedralImpostorLayer {
       this.meta[o + 1] = this.atlas.worldSpan;
       this.meta[o + 2] = this.atlas.worldSpan;
       this.meta[o + 3] = angle;
-      this.living[i] = src.alive ? 1 : 0;
+      this.living[i] = 1 - corpsePresentationStrength(src);
     }
     (this.geometry.getAttribute("impostorInst") as THREE.InstancedBufferAttribute).needsUpdate =
       true;

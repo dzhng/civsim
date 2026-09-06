@@ -93,6 +93,8 @@ Execute06c in three small checks after transport admission:
 
 - Wire the shared corpse strength through the actual consumers and culling;
   prove living, newly dying, fully dead and reset/manual states before screenshots.
+  The [consumer foundation](../assets/evidence/06/corpse-strength-consumers.md)
+  records CPU payload checks; temporal GPU acceptance remains outstanding.
 - Extend the existing lab replay with one dense synthetic observation recipe and
   a same-time event boundary. Sample the real timeline before observing the event,
   then observe and sample again at exactly that time. The before frame retains

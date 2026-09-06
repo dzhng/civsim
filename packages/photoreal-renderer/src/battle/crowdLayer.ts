@@ -19,7 +19,10 @@ import {
   vec3,
   vec4,
 } from "three/tsl";
-import type { CrowdInstance } from "../../../crowd-runtime/src/instanceData";
+import {
+  corpsePresentationStrength,
+  type CrowdInstance,
+} from "../../../crowd-runtime/src/instanceData";
 import type { LodCamera, LodCounts } from "../../../crowd-runtime/src/lod";
 import { soldierMaterialIdentity } from "../../../soldier-assets/src/material";
 import type { AppearanceBundle } from "../../../soldier-assets/src/appearanceBundle";
@@ -359,7 +362,8 @@ export class PhotorealCrowd {
     const { center, radius } = this.assets[inst.classId].manifest.bounds;
     const angle = inst.facing - Math.PI / 2;
     const variant = inst.deathVariant ?? 0;
-    const roll = inst.alive ? 0 : (variant - 1) * 0.42 + Math.sin(variant * 2.3) * 0.18;
+    const roll =
+      corpsePresentationStrength(inst) * ((variant - 1) * 0.42 + Math.sin(variant * 2.3) * 0.18);
     const y = center[1] * Math.cos(roll) - center[2] * Math.sin(roll);
     const z = center[1] * Math.sin(roll) + center[2] * Math.cos(roll);
     this.cullCenter.set(
@@ -401,7 +405,7 @@ export class PhotorealCrowd {
       bucket.inst1[o + 3] = 0;
       bucket.inst2[o] = inst.elevation ?? 0;
       bucket.inst2[o + 1] = inst.deathVariant ?? 0;
-      bucket.inst2[o + 2] = inst.alive ? 0 : 1;
+      bucket.inst2[o + 2] = corpsePresentationStrength(inst);
       bucket.inst2[o + 3] = 0;
     }
     for (const name of ["inst0", "inst1", "inst2"] as const) {

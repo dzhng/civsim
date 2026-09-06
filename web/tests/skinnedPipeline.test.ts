@@ -220,6 +220,35 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
       ["skinned-material-bg-1"],
       "sparse appearance selects its own material table",
     );
+    for (const alive of [false, true]) {
+      for (const weight of [0, 0.5, 1]) {
+        crowd.upload([
+          {
+            ...instance,
+            classId: 5,
+            lod: 2,
+            alive,
+            playback: {
+              appearanceId: 5,
+              base: {
+                source: { kind: "clip", sample: { clip: "idle", phase: 0 } },
+                destination: { clip: "attack", phase: 0.8 },
+                weight,
+              },
+            },
+          },
+        ]);
+        crowd.draw(pass);
+        assert.equal(
+          instanceValues![10],
+          alive ? 0 : weight,
+          "corpse presentation follows death blend weight, never destination phase",
+        );
+      }
+    }
+    crowd.upload([{ ...instance, classId: 5, lod: 2, alive: false }]);
+    crowd.draw(pass);
+    assert.equal(instanceValues![10], 1, "manual corpses retain full styling");
     crowd.upload([{ ...instance, classId: 5, lod: 2, clip: "idle", phase: 1 }]);
     assert.deepEqual(
       Array.from(writes.get("skinned-pose-1-controls")!.slice(8, 12)),

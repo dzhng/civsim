@@ -1,6 +1,6 @@
 # 05 — Action observations and timeline
 
-Status: IN PROGRESS — observation seam only. Depends on [03](./03-weighted-asset-contract.md).
+Status: IN PROGRESS — 05a complete; applicability, controller and production replay remain open. Depends on [03](./03-weighted-asset-contract.md).
 
 ## Contract and ownership
 
@@ -14,7 +14,7 @@ Names of new functions/routes in this plan are proposed, not existing commands. 
 
 | Row | Seam and focused proof |
 | --- | --- |
-| 05a — Injury observations | Expose existing soldier/mount health through minimal read-only WASM pointers and the existing battle-view owner. Test values and view refresh without changing combat. |
+| 05a — Injury observations — COMPLETE | Existing soldier/mount health is exposed through read-only WASM pointers and the production battle-view owner. [Merged verification](../assets/evidence/05/injury-merged-verification.md) pins values and view refresh without changing combat. |
 | 05b — Applicability and timeline | Generate the appearance role/state matrix from the canonical catalog and implement deterministic per-soldier action history, including resets, count growth and terminal death. |
 | 05c — Production replay | Adapt actual battle observations and replay action sequences through the production workbench. Remove fabricated hit poses and global-time action wrapping; prove reset/pause/event behavior and inspect the timeline. |
 
@@ -22,7 +22,7 @@ Names of new functions/routes in this plan are proposed, not existing commands. 
 evade/block, missiles can set it before dodge, and its decay depends on facing
 logic. Do not expose it as a successful-hit signal. A decrease in existing health
 or mount health is a genuine observed injury, although batched observations can
-combine several injuries and supply no exact strike/contact timestamp.05a adds no
+combine several injuries and supply no exact strike/contact timestamp. 05a adds no
 new simulation counter, copy of health, or gameplay authority. The controller must
 not invent events that were not observed.
 
@@ -74,6 +74,4 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 - [ ] Comparison and final unprimed critique recorded.
 - [ ] Review/cleanup completed; README pickup and decisions updated.
 
-05a is active in parallel with04's final material review because it depends only
-on03. No controller or visual acceptance has occurred. Continue the infrastructure
-trunk through07 before detailed anatomy08.
+05a landed in `f36211df`; its [observation limits and changed-test ledger](../assets/evidence/05/injury-observations.md) remain the controller's input contract. The merged WASM was rebuilt and independently verified. Only the numerical observation row is complete: no controller or visual acceptance has occurred. Continue 05b/05c and the infrastructure trunk through07 before detailed anatomy08.

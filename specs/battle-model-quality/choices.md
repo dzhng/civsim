@@ -330,3 +330,9 @@ The plan did not address an inconsistent starting manifest. Future builds can us
 When a test submits a second pose in the same browser frame, three.js's post-processing scene can still contain the first pose: that scene is updated once per frame. The parity test waits until the workbench has no pending draw, then submits each compared pose in a new browser frame. It still requires identical pixels; it does not retry until a lucky image matches.
 
 The plan required deterministic parity but left its scheduling unspecified. Other manual render probes must respect the same frame boundary. **Sound:** synchronization follows the renderer's actual update contract rather than increasing a screenshot tolerance or arbitrary delay.
+
+### One production owner for zero-copy battle views (05a, `f36211df`)
+
+**Confidence: medium.** When reinforcements append soldiers or WASM memory grows, the next health read must use the current memory buffer, pointer and soldier count. The existing position, facing and unit-info reads followed this rule inside world creation. The pass extracts those closures into `createBattleViews` and adds injury views there; world creation composes that same factory. An alternative would leave the closures embedded and require renderer/UI setup to test memory behavior, or create a separate test-only copy that could drift.
+
+The plan required minimal zero-copy observations but did not choose the view module boundary. Future observation channels inherit this one owner and its real-WASM lifecycle tests, not a cache or a second memory adapter. **Sound:** extraction isolates the existing memory-view responsibility while preserving its public methods and behavior. It introduces no injury history, action policy or permission to write simulation memory from presentation code.

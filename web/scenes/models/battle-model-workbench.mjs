@@ -133,9 +133,22 @@ export async function run(ctx) {
       await route.fulfill({ json: animation });
     });
     const missingClip = await page.evaluate(() => window.__battleModels.reload());
+    const retainedClip = await page.evaluate(() => ({
+      pose: window.__battleModels.stats().pose,
+      present: window.__battleModels.world.soldierAssets[0].animation.clips.some(
+        (clip) => clip.name === "march",
+      ),
+    }));
     ctx.check(
       "incompatible reload retains the active appearance-specific clip",
-      !missingClip.ok && missingClip.error.includes("active appearance"),
+      !missingClip.ok &&
+        missingClip.error.includes("presentation walk") &&
+        missingClip.error.includes("march") &&
+        retainedClip.present &&
+        retainedClip.pose.classId === 0 &&
+        retainedClip.pose.clip === "march" &&
+        retainedClip.pose.phase === 0.25,
+      JSON.stringify({ missingClip, retainedClip }),
     );
     await page.unroute(animationUrl);
     await page.route(animationUrl, async (route) => {

@@ -53,7 +53,10 @@ export function assertAppearancePresentation(
       continue;
     }
     const clip = animation.clips.find((clip) => clip.name === binding?.clip);
-    if (!binding || !clip) throw new Error(`presentation ${role} references a missing clip`);
+    if (!binding || !clip)
+      throw new Error(
+        `presentation ${role} references a missing clip: ${binding?.clip ?? "undeclared"}`,
+      );
     if (
       !["fullBody", "riderUpperBody"].includes(binding.layer) ||
       (binding.layer === "riderUpperBody" && (!mask || !["melee", "release"].includes(role)))

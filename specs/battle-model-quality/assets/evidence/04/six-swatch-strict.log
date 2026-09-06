@@ -1,8 +1,9 @@
-(node:16642) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-six-swatch-source/packages/soldier-assets/src/soldierMesh.ts is not specified and it doesn't parse as CommonJS.
+(node:21683) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-six-swatch-source/packages/soldier-assets/src/soldierMesh.ts is not specified and it doesn't parse as CommonJS.
 Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
 To eliminate this warning, add "type": "module" to /Users/david/dev/game-six-swatch-source/package.json.
 (Use `node --trace-warnings ...` to show where the warning was created)
 PASS  battle-model-material-swatches: source GLB provenance matches Blender evidence  (a486e845b6f4a2fc64f38d6ee2cd76951fea0c0d9c3e6b2997c4c64858b60383)
+PASS  battle-model-material-swatches: stock loader and world share production Three constructors
 PASS  battle-model-material-swatches: textured/0/front: stock-loader geometry matches Blender  ({"checked":60,"maximumError":1.5143246557010267e-7})
 {"mode":"textured","phase":0,"view":"front","changed":0,"max":2}
 PASS  battle-model-material-swatches: textured/0/front: matched material pixels  ({"changed":0,"max":2})
@@ -74,6 +75,7 @@ PASS  battle-model-material-swatches: scalar/0.5/front/wood: matched triangle in
 PASS  battle-model-material-swatches: wood: authored images change production interiors
 PASS  battle-model-material-swatches: original production image restored after oracle and scalar controls
 PASS  battle-model-material-swatches: snapshot battle/material-swatches/paired  (0 px differ (0.0000%))
+PASS  battle-model-material-swatches: oracle reuses production Three without console warnings  ([])
 PASS  runner: no page errors
 
 ALL CHECKS PASSED

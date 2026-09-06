@@ -4,6 +4,8 @@ Scope: material transfer, not finished surface art, thickness, anatomy or final 
 
 The scene loads candidate42 through the real workbench. The stock GLTFLoader asset enters the **same** world under the existing glTF-to-engine rotation. Crowd instances are temporarily suppressed; source geometry is installed into the same scene, camera, lights, shadows and post-processing. There is no oracle-only environment or material correction. The fixture remains above contact-darkening height and contains no faction mask. Only front-facing surfaces are compared: stock versus custom backface policy is deliberately not covered here.
 
+The oracle imports the exact optimized Three module already observed in the production page's resource entries. A raw-build import initially produced a duplicate-Three warning; replacing that import leaves the strict pixels unchanged. Constructor checks cover the production scene/camera and stock group/skinned meshes/materials, and the scene now fails on console warnings. This narrow correction followed the independent review below and was rerun through the full scene.
+
 ## Measurements
 
 Seven matched cases: textured phases0/0.5/1 at front/oblique views, then scalar-only phase0.5/front. The source SHA256 matches the independent Blender evidence. Stock SkinnedMesh positions agree with that evidence within `3.384654378544993e-7m`, checking60vertices for each case.
@@ -27,6 +29,7 @@ Fresh image critique `01a07569-b795-77a3-8d6a-0e02bb5871cc` inspected the full s
 | Test | Previous behavior | New behavior | Why |
 | --- | --- | --- | --- |
 | `battle-model-material-swatches` (new) | No same-world six-material stock-loader comparison. | Source hash and source pose evidence, seven paired world/interior comparisons, six image-response controls, exact restoration, strict annotated contact sheet. | Close the missing material-transfer integration proof. **moved** |
+| Oracle module identity | Separate raw-build import could duplicate Three without failing the test. | Exact production module reused; shared constructors and absence of console warnings asserted. | Keep the oracle on the actual installed production core rather than a parallel library instance. **moved** |
 
 No existing test was removed or relaxed; no runtime, asset or simulation behavior changed.
 

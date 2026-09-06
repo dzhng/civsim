@@ -16,6 +16,10 @@ export const meta = {
 export async function run(ctx) {
   requireSwiftShaderBaseline(meta.name);
   const page = await ctx.newPage({ viewport: { width: 1280, height: 800 } });
+  const warnings = [];
+  page.on("console", (message) => {
+    if (message.type() === "warning") warnings.push(message.text());
+  });
   const catalog = "/assets/soldiers/candidates/material-swatches/catalog.json";
   const metadata = JSON.parse(
     await readFile(
@@ -65,7 +69,13 @@ export async function run(ctx) {
         caption.style.cssText =
           "position:fixed;left:290px;top:205px;color:#eee2c8;background:#211a12;padding:6px 10px;font:16px/20px Georgia;white-space:pre;pointer-events:none";
         document.body.append(caption);
-        const THREE = await import(modules.three);
+        // Reuse Vite's already-loaded production Three module: importing the
+        // raw build here creates a second Three instance beside the renderer.
+        const threeUrl = performance
+          .getEntriesByType("resource")
+          .find((entry) => new URL(entry.name).pathname.endsWith("/three_webgpu.js"))?.name;
+        if (!threeUrl) throw new Error("production Three module was not loaded");
+        const THREE = await import(threeUrl);
         const { GLTFLoader } = await import(modules.loader);
         const url = "/assets/soldiers/candidates/material-swatches/swatches/source/tier-0.glb";
         const bytes = await (await fetch(url)).arrayBuffer();
@@ -78,8 +88,14 @@ export async function run(ctx) {
         holder.add(gltf.scene);
         holder.visible = false;
         h.world.world.scene.add(holder);
+        let coreIdentity =
+          h.world.world.scene instanceof THREE.Scene &&
+          h.world.camera instanceof THREE.Camera &&
+          gltf.scene instanceof THREE.Group;
         gltf.scene.traverse((o) => {
           if (o.isMesh) {
+            coreIdentity &&=
+              o instanceof THREE.SkinnedMesh && o.material instanceof THREE.MeshStandardMaterial;
             o.castShadow = true;
             o.receiveShadow = true;
           }
@@ -89,12 +105,9 @@ export async function run(ctx) {
         action.setLoop(THREE.LoopOnce, 1);
         action.clampWhenFinished = true;
         window.__swatchOracle = { holder, gltf, mixer, action, THREE };
-        return { hash, bounds: h.world.soldierAssets[42].manifest.bounds };
+        return { hash, coreIdentity, bounds: h.world.soldierAssets[42].manifest.bounds };
       },
       {
-        three:
-          "/@fs" +
-          fileURLToPath(new URL("../../node_modules/three/build/three.webgpu.js", import.meta.url)),
         loader:
           "/@fs" +
           fileURLToPath(
@@ -107,6 +120,7 @@ export async function run(ctx) {
       identity.hash === metadata.glbSha256,
       identity.hash,
     );
+    ctx.check("stock loader and world share production Three constructors", identity.coreIdentity);
     const tiles = [];
     let firstProduction;
     const controls = {};
@@ -320,6 +334,11 @@ export async function run(ctx) {
       threshold: 0,
       maxDiffRatio: 0,
     });
+    ctx.check(
+      "oracle reuses production Three without console warnings",
+      warnings.length === 0,
+      JSON.stringify(warnings),
+    );
   } finally {
     await page.close();
   }

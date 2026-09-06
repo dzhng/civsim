@@ -18,7 +18,8 @@ import type { Node } from "three/webgpu";
 import type { CrowdInstance } from "../../../crowd-runtime/src/instanceData";
 import { factionForTeam } from "../../../game-renderer/src/battle/factionColors";
 import type { VatBake } from "../../../soldier-assets/src/schema";
-import type { SoldierMeshData } from "../../../soldier-assets/src/soldierMesh";
+import type { SoldierMeshData } from "../../../soldier-assets/src/mesh";
+import { poseSoldierMesh } from "../../../soldier-assets/src/skin";
 import { linearAlbedo } from "./battleTsl";
 import { RENDER_ORDER } from "./terrainLayer";
 
@@ -34,7 +35,7 @@ interface PosedMeshData {
   positions: Float32Array;
   normals: Float32Array;
   colors: Float32Array;
-  indices: Uint16Array;
+  indices: Uint16Array | Uint32Array;
 }
 
 interface Bounds2 {
@@ -283,42 +284,8 @@ function poseMeshWithVat(
     clip.start + clip.frames - 1,
     clip.start + Math.floor(phase * Math.max(clip.frames - 1, 1)),
   );
-  const positions = new Float32Array(mesh.positions.length);
-  const normals = new Float32Array(mesh.normals.length);
-  for (let i = 0; i < mesh.positions.length / 3; i++) {
-    const bone = Math.max(0, Math.min(vat.bones - 1, Math.round(mesh.bones[i])));
-    const c0 = vatColumn(vat, frame, bone, 0);
-    const c1 = vatColumn(vat, frame, bone, 1);
-    const c2 = vatColumn(vat, frame, bone, 2);
-    const c3 = vatColumn(vat, frame, bone, 3);
-    const x = mesh.positions[i * 3];
-    const y = mesh.positions[i * 3 + 1];
-    const z = mesh.positions[i * 3 + 2];
-    positions[i * 3] = c0[0] * x + c1[0] * y + c2[0] * z + c3[0];
-    positions[i * 3 + 1] = c0[1] * x + c1[1] * y + c2[1] * z + c3[1];
-    positions[i * 3 + 2] = c0[2] * x + c1[2] * y + c2[2] * z + c3[2];
-    const nx = mesh.normals[i * 3];
-    const ny = mesh.normals[i * 3 + 1];
-    const nz = mesh.normals[i * 3 + 2];
-    const tx = c0[0] * nx + c1[0] * ny + c2[0] * nz;
-    const ty = c0[1] * nx + c1[1] * ny + c2[1] * nz;
-    const tz = c0[2] * nx + c1[2] * ny + c2[2] * nz;
-    const len = Math.hypot(tx, ty, tz) || 1;
-    normals[i * 3] = tx / len;
-    normals[i * 3 + 1] = ty / len;
-    normals[i * 3 + 2] = tz / len;
-  }
+  const { positions, normals } = poseSoldierMesh(mesh, vat, frame);
   return { positions, normals, colors: mesh.colors, indices: mesh.indices };
-}
-
-function vatColumn(
-  vat: VatBake,
-  frame: number,
-  bone: number,
-  col: number,
-): [number, number, number, number] {
-  const o = ((bone * 4 + col) * vat.width + frame) * 4;
-  return [vat.data[o], vat.data[o + 1], vat.data[o + 2], vat.data[o + 3]];
 }
 
 function hemiOctDirections(columns: number, rows: number): THREE.Vector3[] {

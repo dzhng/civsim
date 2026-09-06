@@ -4,9 +4,9 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 
 ## Next Agent Prompt
 
-Last updated **2026-09-06**. Status: **slices01–02 complete; slice03 weighted production cutover next**.
+Last updated **2026-09-06**. Status: **slices01–02 complete; slice03 in progress**.
 
-You are working in `/Users/david/dev/game-battle-model-quality`, branch `codex/battle-model-quality`, based on `90bbdcaa`. Continue [03 — Weighted production cutover](slices/03-weighted-asset-contract.md), starting at its source-import seam. Match the proven Blender fixture surfaces before replacing runtime consumers. Read the architecture and evidence links below, inspect current repository instructions, then implement one focused slice at a time. Do not restart the interview or author the full roster before the first-pair checkpoint.
+You are working in `/Users/david/dev/game-battle-model-quality`, branch `codex/battle-model-quality`, based on `90bbdcaa`. Continue [03 — Weighted production cutover](slices/03-weighted-asset-contract.md): integrate the source-import pass from `/Users/david/dev/game-battle-blender-fixture`, then replace optional asset overrides with complete bundles and prove the imported fixture in production. Weighted runtime plumbing is implemented with [partial evidence](assets/evidence/03/weighted-runtime.md); that is not03 completion. Read the architecture and evidence links below, inspect current repository instructions, then implement one focused slice at a time. Do not restart the interview or author the full roster before the first-pair checkpoint.
 
 No known blockers. [Workbench evidence](assets/evidence/01/review.md) and [Blender round-trip evidence](assets/evidence/02/review.md) pass; no detailed soldier art is accepted yet. Source fixture commits are integrated. Live animated budgets remain unverified. Local Blender 5.2.1 is available; external AI generation stays excluded. The raw crowd renderer still serves production campaign, so03 must migrate it rather than treating it as disposable lab code. [Choices](choices.md) owns implementation decisions.
 

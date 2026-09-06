@@ -1,12 +1,4 @@
-export interface SoldierMeshData {
-  vertexStrideFloats: number;
-  positions: Float32Array;
-  normals: Float32Array;
-  colors: Float32Array;
-  bones: Float32Array;
-  vertices: Float32Array;
-  indices: Uint16Array;
-}
+import type { SoldierMeshData } from './mesh';
 
 export const SOLDIER_MATERIAL_IDENTITY = 'soldier-assets-placeholder-pbr-v1';
 
@@ -487,20 +479,32 @@ export function soldierMaterialIdentity(kit?: { materials?: { channels?: string[
 /** Split stride-11 interleaved soldier vertices (position, normal, RGBA,
  *  bone) into the attribute arrays the crowd geometry binds. Also the entry
  *  point for baked `classMeshes` assets, which ship this exact layout. */
-export function splitInterleaved(vertices: Float32Array, indices: Uint16Array): SoldierMeshData {
+export function splitInterleaved(vertices: Float32Array, indices: Uint16Array | Uint32Array): SoldierMeshData {
   const count = vertices.length / 11;
   const positions = new Float32Array(count * 3);
   const normals = new Float32Array(count * 3);
   const colors = new Float32Array(count * 4);
-  const bones = new Float32Array(count);
+  const joints = new Uint16Array(count * 4);
+  const weights = new Float32Array(count * 4);
+  const uvs = new Float32Array(count * 2);
+  const tangents = new Float32Array(count * 4);
+  const materialIds = new Float32Array(count);
+  const factionMasks = new Float32Array(count);
   for (let i = 0; i < count; i++) {
     const o = i * 11;
     positions.set(vertices.subarray(o, o + 3), i * 3);
     normals.set(vertices.subarray(o + 3, o + 6), i * 3);
     colors.set(vertices.subarray(o + 6, o + 10), i * 4);
-    bones[i] = vertices[o + 10];
+    joints[i * 4] = vertices[o + 10];
+    weights[i * 4] = 1;
+    // Placeholder content has no normal maps; give its flat faces an
+    // orthogonal tangent until authored UV/material content replaces it.
+    const nx = normals[i * 3];
+    const ny = normals[i * 3 + 1];
+    const length = Math.hypot(nx, ny);
+    tangents.set(length > 0 ? [-ny / length, nx / length, 0, 1] : [1, 0, 0, 1], i * 4);
   }
-  return { vertexStrideFloats: 11, positions, normals, colors, bones, vertices, indices };
+  return { positions, normals, colors, joints, weights, uvs, tangents, materialIds, factionMasks, indices };
 }
 
 function smoothstep01(edge0: number, edge1: number, x: number): number {

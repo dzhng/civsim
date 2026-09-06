@@ -10,6 +10,12 @@ The plan required production parity but did not specify review scenery. This cho
 
 ## Sound — high confidence
 
+### Keep four-weight geometry in one shared upload layout (slice03)
+
+When a vertex bends between an upper arm and forearm, its mesh retains each contributing joint and weight. Both renderers pack those attributes through the same layout immediately before GPU upload; the canonical asset keeps separate typed arrays for baking and CPU inspection. Giving every attribute its own GPU buffer exceeded the baseline device limit when shadows and instance data were added. Dropping weights would fit but would break the intended smooth bends.
+
+The plan delegated buffer packing; the load-bearing ownership choice is that both substrates share its single definition. **Sound:** it preserves the full deformation data and existing device requirements. Future material channels must extend this owner rather than create a renderer-local encoding. Exact packing sizes remain implementation discretion and are measured by the performance gates.
+
 ### Fixed export fixtures are loaded once per review session (slice02)
 
 When the reviewer switches quickly between the human and mounted diagnostic, the selected object changes immediately. Both original assets are loaded once at startup and remain owned by this small oracle until the page closes. The alternative refetched each selection, allowing overlapping responses to leave two fixtures visible and repeatedly allocate textures.

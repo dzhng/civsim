@@ -4,13 +4,28 @@ Status: TODO. Depends on [02](./02-blender-reference-fixtures.md).
 
 ## Contract and ownership
 
-One versioned baked appearance format preserves weighted deformation end to end.
+One current baked appearance format preserves weighted deformation end to end. Producer and consumers cut over together, with no version negotiation or legacy reader.
 
 API seam: soldier-assets schema/baker/loader → renderer-core VAT layout → photoreal crowd skinning; positions, normals, UVs, tangents, JOINTS_0/WEIGHTS_0, explicit indices and shared skeleton identifiers.
 
 Names of new functions/routes in this plan are proposed, not existing commands. Use the [shared acceptance contract](../README.md#acceptance-contract) and [architecture](../architecture.md) for inherited requirements.
 
 ## Runnable artifact
+
+### Execution rows
+
+Complete and record each row before expanding to the next. These are focused verification boundaries within the atomic cutover, not permission to ship parallel runtime formats.
+
+| Row | Question and seam | Runnable evidence and verdict |
+| --- | --- | --- |
+| 03a — Source import | Does the soldier-assets importer preserve the exported mesh, joint ancestry, inverse binds and weighted deformation? | Extend the existing glTF/VAT probes with the accepted02 human and mounted fixtures. Compare mapped surface vertices against the Blender oracle at every recorded pose. Include blended normals, normalized integer weights, non-joint ancestors and indices beyond Uint16 range. Unsupported source constructs must fail explicitly rather than silently alter the model. |
+| 03b — Complete bundles | Can one catalog resolve every existing appearance to complete content without implicit fallback? | Convert generated placeholders into ordinary complete bundles. A loader probe resolves skeleton, clips, materials, distinct distance tiers, per-appearance far content and animated bounds. Missing required content produces an actionable failure; transactional workbench reload retains the last good bundle. |
+| 03c — Runtime cutover | Do all retained consumers deform the same weighted asset? | Migrate production photoreal and raw campaign paths, including normals, shadows and CPU impostor posing. Run retained renderer/campaign scenes and the production workbench. Remove the old reader and optional overrides when their consumers move; raw campaign rendering is production, not disposable lab scaffolding. |
+| 03d — End-to-end candidate | Does a local GLB reach the production workbench through the same bake and bundle loader? | Rebuild and reload the02 fixture as a candidate; archive matched-pose surface/shadow evidence and exercise roster distance coverage. No preview-only importer and no detailed-art promotion before15/28. |
+
+Before03a implementation, pin the importer output and canonical mesh representation in the shared asset owner. Preserve local joint transforms and required ancestors for the mounted composition contract; a final world-matrix bake alone cannot support06. Buffer packing remains delegated, but may not create independently defined vertex layouts in multiple consumers. If a source feature cannot be preserved, name the supported export subset and corrective authoring error in the probe rather than guessing a conversion.
+
+Material appearance remains04 and playback interpolation remains06; these rows prove data/deformation and consumer closure, not polished soldier art.
 
 Production workbench bends the same fixture beside the reference evidence. Establish the complete tier/bounds/far schema and loader using converted placeholder bundles while detailed content is authored. Detailed art remains a workbench candidate until its full distance-ready bundle passes15 or28, then replaces production atomically. Add local GLB replacement through this same bake contract and reload the resulting bundle; surface unsupported-export errors in the workbench. No parallel preview-only importer.
 
@@ -46,7 +61,10 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 ## Completion record
 
 - [ ] Contract and runnable artifact implemented.
-- [ ] Execution rows, if any, each have evidence and verdict.
+- [ ] 03a source-import evidence and verdict.
+- [ ] 03b complete-bundle evidence and verdict.
+- [ ] 03c runtime consumer closure and verdict.
+- [ ] 03d end-to-end candidate evidence and verdict.
 - [ ] Tests and inherited gates pass; changed-test behavior ledger recorded.
 - [ ] Comparison and final unprimed critique recorded.
 - [ ] Review/cleanup completed; README pickup and decisions updated.

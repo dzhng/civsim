@@ -6,7 +6,7 @@
 // positionNode per cascade.
 import * as THREE from 'three/webgpu';
 import {
-  abs, attribute, clamp, dot, float, floor, fract, int, ivec2, max, mix, normalize, sin, smoothstep, step, textureLoad, varying, vec3, vec4,
+  abs, attribute, clamp, dot, float, floor, fract, int, max, mix, normalize, sin, smoothstep, step, varying, vec3, vec4,
 } from 'three/tsl';
 import type { CrowdInstance } from '../../../crowd-runtime/src/instanceData';
 import type { LodCamera, LodCounts } from '../../../crowd-runtime/src/lod';
@@ -14,8 +14,8 @@ import {
   SOLDIER_MATERIAL_MASKS,
   SOLDIER_PBR_VALUES,
   soldierMaterialIdentity,
-  type SoldierMeshData,
 } from '../../../soldier-assets/src/soldierMesh';
+import type { SoldierMeshData } from '../../../soldier-assets/src/mesh';
 import { factionForTeam } from '../../../game-renderer/src/battle/factionColors';
 import type { SoldierKitManifest, VatBake } from '../../../soldier-assets/src/schema';
 import { createVatLayout, resolveVatClip, type VatLayout } from '../../../renderer-core/src/vatLayout';
@@ -23,6 +23,8 @@ import { linearAlbedo, viewNormalNode } from './battleTsl';
 import { createSoldierImpostorAtlas, OctahedralImpostorLayer } from './impostorLayer';
 import { planPhotorealCrowdLods } from './crowdLod';
 import { RENDER_ORDER } from './terrainLayer';
+import { weightedVatColumns } from './skinNodes';
+import { soldierGeometry } from './meshGeometry';
 
 interface ClassBucket {
   mesh: THREE.Mesh;
@@ -102,7 +104,7 @@ export class PhotorealCrowd {
         const vat = vats[classId] ?? vats[vats.length - 1] ?? vats[0];
         const tiers = meshes[classId];
         this.buckets[classId] = tiers.map((tierMesh, lod) => {
-          const geometry = crowdGeometry(tierMesh);
+          const geometry = soldierGeometry(tierMesh);
           const mesh = new THREE.Mesh(geometry, crowdMaterial(textureFor(vat)));
           created.push(mesh);
           mesh.name = `battle-crowd-${classId}-lod${lod}`;
@@ -276,21 +278,6 @@ export class PhotorealCrowd {
   }
 }
 
-function crowdGeometry(mesh: SoldierMeshData): THREE.InstancedBufferGeometry {
-  const geo = new THREE.InstancedBufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(mesh.positions, 3));
-  geo.setAttribute('cNormal', new THREE.BufferAttribute(mesh.normals, 3));
-  // Alias the same buffer as the standard 'normal' attribute: three's shadow
-  // receiver offset (shadow.normalBias → normalWorld) reads it by name — with
-  // only the custom attribute present the offset is silently zero.
-  geo.setAttribute('normal', new THREE.BufferAttribute(mesh.normals, 3));
-  geo.setAttribute('cColor', new THREE.BufferAttribute(mesh.colors, 4));
-  geo.setAttribute('bone', new THREE.BufferAttribute(mesh.bones, 1));
-  geo.setIndex(new THREE.BufferAttribute(mesh.indices, 1));
-  geo.instanceCount = 0;
-  return geo;
-}
-
 // SkinnedCrowdPipeline SKINNED_WGSL's VAT skinning + material-channel contract
 // on MeshStandardNodeMaterial: albedo = cColor,
 // normal = skinned cNormal, ORM = occlusion/roughness/metalness in the canonical
@@ -301,9 +288,8 @@ function crowdMaterial(vatTex: THREE.DataTexture): THREE.MeshStandardNodeMateria
   // fog stays ON: the shared aerial-perspective hook (scene.fogNode, 10b)
   // hazes the crowd like every other world surface.
   const position = attribute<'vec3'>('position', 'vec3');
-  const normal = attribute<'vec3'>('cNormal', 'vec3');
-  const color = attribute<'vec4'>('cColor', 'vec4');
-  const bone = attribute<'float'>('bone', 'float');
+  const normal = attribute<'vec3'>('normal', 'vec3');
+  const color = attribute<'vec4'>('color', 'vec4');
   const inst0 = attribute<'vec4'>('inst0', 'vec4');
   const inst1 = attribute<'vec4'>('inst1', 'vec4');
   const inst2 = attribute<'vec4'>('inst2', 'vec4');
@@ -312,13 +298,7 @@ function crowdMaterial(vatTex: THREE.DataTexture): THREE.MeshStandardNodeMateria
   const clipFrames = max(inst1.z, 1.0);
   const phase = clamp(inst1.w, 0.0, 0.9999);
   const frame = clipStart.add(floor(phase.mul(max(clipFrames.sub(1.0), 1.0)))).toVar();
-  const col = int(frame);
-  const row0 = int(bone.round()).mul(4);
-  // 4 consecutive texel rows = the 4 columns of the bone's mat4 at this frame.
-  const c0 = textureLoad(vatTex, ivec2(col, row0)).toVar();
-  const c1 = textureLoad(vatTex, ivec2(col, row0.add(1))).toVar();
-  const c2 = textureLoad(vatTex, ivec2(col, row0.add(2))).toVar();
-  const c3 = textureLoad(vatTex, ivec2(col, row0.add(3))).toVar();
+  const [c0, c1, c2, c3] = weightedVatColumns(vatTex, int(frame));
   const local = c0.mul(position.x).add(c1.mul(position.y)).add(c2.mul(position.z)).add(c3).toVar();
   const n = normalize(c0.mul(normal.x).add(c1.mul(normal.y)).add(c2.mul(normal.z)).xyz).toVar();
 

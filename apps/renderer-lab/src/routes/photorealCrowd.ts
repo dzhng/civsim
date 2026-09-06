@@ -1,6 +1,8 @@
 import * as THREE from 'three/webgpu';
 
-import { attribute, cos, floor, fract, int, ivec2, mix, positionLocal, sin, textureLoad, transformNormalToView, varying, vec3, vec4 } from 'three/tsl';
+import { attribute, cos, floor, fract, int, mix, positionLocal, sin, transformNormalToView, varying, vec3, vec4 } from 'three/tsl';
+import { weightedVatColumns } from '@packages/photoreal-renderer/src/battle/skinNodes';
+import { soldierGeometry } from '@packages/photoreal-renderer/src/battle/meshGeometry';
 
 import { PhotorealWorld } from '@packages/photoreal-renderer/src/world';
 
@@ -46,12 +48,7 @@ function inFormation(x: number, y: number): boolean {
 
 function buildSoldierGeometry(count: number): { geo: THREE.InstancedBufferGeometry; placed: number } {
   const mesh = createPlaceholderSoldierMeshes(FACTION_BLUE)[0];
-  const geo = new THREE.InstancedBufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(mesh.positions, 3));
-  geo.setAttribute('normal', new THREE.BufferAttribute(mesh.normals, 3));
-  geo.setAttribute('color', new THREE.BufferAttribute(mesh.colors, 4));
-  geo.setAttribute('bone', new THREE.BufferAttribute(mesh.bones, 1));
-  geo.setIndex(new THREE.BufferAttribute(mesh.indices, 1));
+  const geo = soldierGeometry(mesh);
 
   // Mark the authored upper sword-arm band so the faction tint replaces only it.
   const vcount = mesh.positions.length / 3;
@@ -118,20 +115,13 @@ function buildSoldierMaterial(world: PhotorealWorld, vat: VatBake, geo: THREE.In
   // otherwise, losing the swizzle/operator surface.
   const iPose = attribute<'vec4'>('iPose', 'vec4');
   const iClip = attribute<'vec3'>('iClip', 'vec3');
-  const bone = attribute<'float'>('bone', 'float');
   const rawPos = attribute<'vec3'>('position', 'vec3');
   const rawNrm = attribute<'vec3'>('normal', 'vec3');
   const vcol = attribute<'vec4'>('color', 'vec4');
   const accent = attribute<'float'>('accent', 'float');
 
   const frame = iClip.x.add(floor(fract(iPose.w.add(world.uTime.mul(cycleHz))).mul(iClip.y.sub(1.0))));
-  const col = int(frame);
-  const row0 = int(bone).mul(4);
-  // 4 consecutive texel rows = the 4 columns of the bone's mat4 at this frame.
-  const c0 = textureLoad(vatTex, ivec2(col, row0));
-  const c1 = textureLoad(vatTex, ivec2(col, row0.add(1)));
-  const c2 = textureLoad(vatTex, ivec2(col, row0.add(2)));
-  const c3 = textureLoad(vatTex, ivec2(col, row0.add(3)));
+  const [c0, c1, c2, c3] = weightedVatColumns(vatTex, int(frame));
   const sp = c0.mul(rawPos.x).add(c1.mul(rawPos.y)).add(c2.mul(rawPos.z)).add(c3).xyz.toVar();
   const sn = c0.mul(rawNrm.x).add(c1.mul(rawNrm.y)).add(c2.mul(rawNrm.z)).xyz.toVar();
 

@@ -1,5 +1,6 @@
 import type { SoldierKitManifest, SoldierMeshJson, VatBake } from './schema';
-import { splitInterleaved, type SoldierMeshData } from './soldierMesh';
+import { splitInterleaved } from './soldierMesh';
+import type { SoldierMeshData } from './mesh';
 
 export const PLACEHOLDER_KIT_URL = '/assets/soldiers/kit.json';
 export const PLACEHOLDER_VAT_URL = '/assets/soldiers/baked/human-placeholder.vat.json';
@@ -45,7 +46,7 @@ async function fetchVat(url: string): Promise<VatBake> {
  * real mesh instead of the generated placeholder (`kit.classMeshes`). Sparse:
  * classes without an entry stay `undefined` and keep their placeholder tiers.
  */
-export async function loadClassMeshes(kit?: SoldierKitManifest): Promise<(SoldierMeshData | undefined)[]> {
+export async function loadClassMeshes(kit?: Pick<SoldierKitManifest, 'classMeshes'>): Promise<(SoldierMeshData | undefined)[]> {
   const entries = Object.entries(kit?.classMeshes ?? {});
   const meshes: (SoldierMeshData | undefined)[] = [];
   for (const [id, url] of entries) {
@@ -54,7 +55,8 @@ export async function loadClassMeshes(kit?: SoldierKitManifest): Promise<(Soldie
     const res = await fetch(url);
     if (!res.ok) throw new Error(`failed to load class mesh ${url}: ${res.status}`);
     const json = await res.json() as SoldierMeshJson;
-    meshes[classId] = splitInterleaved(new Float32Array(json.vertices), new Uint16Array(json.indices));
+    const wide = json.indices.some((index) => index > 65535);
+    meshes[classId] = splitInterleaved(new Float32Array(json.vertices), wide ? new Uint32Array(json.indices) : new Uint16Array(json.indices));
   }
   return meshes;
 }
@@ -74,4 +76,3 @@ export async function loadClassVats(kit?: SoldierKitManifest): Promise<VatBake[]
   }
   return vats;
 }
-

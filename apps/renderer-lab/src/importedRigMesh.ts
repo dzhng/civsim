@@ -1,4 +1,5 @@
-import type { SoldierMeshData } from '@packages/soldier-assets/src/soldierMesh';
+import type { SoldierMeshData } from '@packages/soldier-assets/src/mesh';
+import { splitInterleaved } from '@packages/soldier-assets/src/soldierMesh';
 import type { ImportedRig } from '@packages/soldier-assets/src/validate';
 
 // A generic skeleton-preview mesh for an imported rig: a joint cube at each
@@ -91,20 +92,4 @@ export function importedRigMesh(rig: ImportedRig): SoldierMeshData {
     }
   });
   return splitInterleaved(new Float32Array(v), new Uint16Array(indices));
-}
-
-function splitInterleaved(vertices: Float32Array, indices: Uint16Array): SoldierMeshData {
-  const count = vertices.length / 11;
-  const positions = new Float32Array(count * 3);
-  const normals = new Float32Array(count * 3);
-  const colors = new Float32Array(count * 4);
-  const bones = new Float32Array(count);
-  for (let i = 0; i < count; i++) {
-    const o = i * 11;
-    positions.set(vertices.subarray(o, o + 3), i * 3);
-    normals.set(vertices.subarray(o + 3, o + 6), i * 3);
-    colors.set(vertices.subarray(o + 6, o + 10), i * 4);
-    bones[i] = vertices[o + 10];
-  }
-  return { vertexStrideFloats: 11, positions, normals, colors, bones, vertices, indices };
 }

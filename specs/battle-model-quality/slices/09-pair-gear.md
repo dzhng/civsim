@@ -4,8 +4,10 @@ Status: IN PROGRESS, candidate authoring only. Source fitting uses the provision
 [08](./08-anatomy.md) body/rig; acceptance still depends on completed08 and its07
 envelope. Body or rig changes require refitting and recapturing affected gear.
 
-Author heavy sword0 first, review its complete neutral-clay kit, then proceed to
-medium phalanx14 and related equipment states. Curved helmet/shield, layered
+Author heavy sword0 first and review its complete neutral-clay kit before using
+it as the working convention for medium phalanx14 and related equipment states.
+Candidate surfaces and locomotion may proceed on a fixed geometry/rig revision;
+they do not accept that revision or excuse its defects. Curved helmet/shield, layered
 garment, belt, sword/scabbard and footwear form the first recognizable candidate.
 Mail surface finish belongs to10. No production promotion or accepted baseline
 is implied by this source-authoring checkpoint.
@@ -64,9 +66,10 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 Heavy infantry has an editable Blender kit and production-rendered candidate
 sheets. It remains **unaccepted**: continuous garment construction, actual hand
 and shield attachment, helmet rim fit and scabbard suspension need another pass.
-The [candidate review](../assets/evidence/09/heavy-kit-review.md) owns both source
-iterations, exact captures and the independent failure verdict. Do not proceed to
-phalanx from this failed heavy row or treat the cloth-covered body as08 acceptance.
+The [candidate review](../assets/evidence/09/heavy-kit-review.md) owns source
+iterations, exact captures and the independent failure verdict. Do not propagate
+unresolved heavy defects into the phalanx or treat the cloth-covered body as08
+acceptance. Independent candidate work retains explicit refit/rebake obligations.
 
 From the repository root, build/export with installed Blender:
 

@@ -8,12 +8,16 @@ Last updated **2026-09-07**. **01–06 complete;07 envelope open;08 candidate au
 Worktree: `/Users/david/dev/game-battle-model-quality`, branch
 `codex/battle-model-quality`. No art envelope or detailed model is accepted.
 
-Current pickup has two independent lanes:
+Current pickup has independent authoring and measurement lanes:
 - **09 Blender equipment authoring:** fit a recognizable heavy swordsman to the
   provisional08 body/rig. The first equipped candidate is integrated through
-  f5a57d1b plus the connected-garment working pass; next integrate the hand study
-  and fit actual weapon contacts. Garment slope/drape remains open before starting
-  the phalangite. Its existing bend is a fitting probe, not combat motion.
+  f5a57d1b plus the connected-garment working pass. The hand study is integrated
+  through54860ea2; actual weapon contacts and thin helmet plates are being fitted.
+  Prioritize the whole heavy silhouette: shoulder slope, hanging garment hems,
+  exposed limbs and broken contacts. The forearm-pronation proof is integrated
+  through18f1f182; re-bake the heavy kit and verify its original sheets stay intact.
+  Candidate surface and equipped ready/walk authoring now run in separate lanes;
+  the existing bend and pronation are fitting probes, not combat motion.
   Rounded lips remain the body source; eye relief/sphere trials were rejected.
   Keep unclothed08 anatomy review open for facial form, shoulders, pelvis and
   grips. Equipment cannot conceal those defects or satisfy anatomy acceptance.
@@ -37,7 +41,8 @@ Evidence ledger:
   [07](slices/07-budget-envelope.md) owns the remaining budget requirements.
 - [Anatomy review](assets/evidence/08/anatomy-review.md) owns Blender iterations,
   exact source/capture provenance, rejected studies and unresolved visible form.
-  [Heavy kit review](assets/evidence/09/heavy-kit-review.md) owns the first equipped
+  [Pronation review](assets/evidence/08/pronation/review.md) owns the unchanged-rig
+  roll recipe and its unresolved wrist/elbow form. [Heavy kit review](assets/evidence/09/heavy-kit-review.md) owns the first equipped
   Blender candidate and its unresolved garment/grip defects. The production
   catalog remains unchanged; no finished armor or motion clips are accepted.
 
@@ -94,6 +99,11 @@ promote atomically only after distance-ready acceptance; see
 - [ ] [30 — Remove placeholders and finish handoff](slices/30-cutover-closeout.md)
 
 The acceptance trunk is 01→…→16. Editable08 anatomy and09 equipment candidates may be authored alongside07; acceptance still follows the trunk. Equipment fitting consumes the provisional body/rig and must be revisited when those change. After the first-pair review, foot, mounted and crew lanes are independent within their listed dependencies. They join at28 for complete distance coverage, then real battle acceptance and cleanup. Do not use lane independence to bypass the first-pair presentation.
+
+Candidate10 surfaces and11 locomotion may proceed on fixed provisional geometry
+and rig revisions while08/09 remain open. Keep matched clay evidence and refit
+affected surfaces/clips after geometry changes. This authoring wavefront changes
+no acceptance dependency, performance gate or production-promotion requirement.
 
 ## Acceptance contract
 

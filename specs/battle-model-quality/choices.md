@@ -937,6 +937,66 @@ Future palette consumers inherit one additional storage binding and two-buffer
 lifecycle accounting. This does not guarantee enough total memory, and passing
 the corrected workload will not by itself settle the whole art budget.
 
+### Keep pronation on the existing forearm and scope exported actions to its rig (08)
+
+**Sound; confidence: medium; provisional.** When the soldier rolls a sword in his
+hand, rotating only the hand twists the wrist while some nearby skin follows the
+forearm instead. The fitting study rotates the forearm along its own length and
+leaves the hand's local rotation alone. An existing elbow-support bone receives
+half the roll. This avoids adding another bone solely to cure that measured
+attachment drift; it does not establish that the present wrist shape is good.
+
+The plan left the exact skeleton and authoring recipe open. This recipe constrains
+the first ready/walk authoring, but more demanding motion may justify later joint
+changes. The original bend remains separate. Blender's muted animation tracks
+associate the inspection clips with this rig so exporting them does not pull in
+unrelated actions from other scenes or duplicate the active clip. Future clips
+must keep that ownership rather than broadcast all actions to every armature.
+
+### Develop candidate materials and motion before final geometry acceptance (09–11)
+
+**Sound; confidence: high.** At this maintenance checkpoint, an unfinished helmet
+could prevent even trying mail materials or a walking soldier. That ordered work
+by final approval rather than by what an artist actually needs to proceed. The
+plan now allows a material or walk candidate on a named, fixed geometry and rig
+revision. A later shoulder or hand correction requires the affected material
+mapping and animation to be fitted and checked again.
+
+The original plan specified final dependencies but over-constrained editable
+candidate work. The revised order preserves every final acceptance dependency,
+matched neutral-clay evidence, performance limit and complete-bundle promotion
+rule. It enables parallel local art work without calling rough geometry accepted
+or using texture and movement to conceal defects. No runtime schema changes.
+
+### Preserve local hand detail rather than enforce the provisional whole-body count (08)
+
+**Sound; confidence: medium; provisional.** In the hand authoring pass integrated
+through54860ea2, a fingertip and a broad torso originally underwent the same
+smoothing and mesh reduction. The process could erase fingertip pads while still
+producing a technically valid body. The authoring script now excludes distal
+hands from that relaxation and protects their vertices against collapse, adding
+their geometry to the provisional body allowance. Keeping the same total count
+instead would force that detail to consume geometry elsewhere on the body.
+
+The plan delegated topology but did not prescribe allocation. This is reversible
+source-authoring policy, not an accepted20,504-triangle budget. It preserves a
+visible feature for subsequent retopology and distance work; the current heavy
+equipment must be refitted to that surface and cannot be promoted until the
+measured budget and quality gates pass.
+
+### Supplement whole-body review with a native hand-detail camera (08)
+
+**Sound; confidence: high.** When the fingers occupy only a few pixels in the
+whole-body sheet, an apparently held sword can actually run through the palm.
+The existing fixture now also captures the right hand closer up, using the same
+production renderer, while retaining every original body/head camera. Its
+body-occluded side view is not counted as evidence of grip quality.
+
+The plan required credible grips but did not specify this detail framing.
+Future candidates inherit an extra deterministic sheet, not a separate renderer
+or promise of that gameplay zoom. A posed hand needs its moved position checked;
+the fixed neutral target cannot silently stand in for every future animation.
+
 ### Supplement whole-body review with a native head-detail camera (08)
 
 **Sound; confidence: high.** A whole-body image can show sound proportions while

@@ -1,6 +1,9 @@
 # 11 — First-pair locomotion
 
-Status: TODO. Depends on [10](./10-pair-surfaces.md).
+Status: TODO. Acceptance depends on [10](./10-pair-surfaces.md). Candidate ready
+and walk clips may be authored once the provisional rig and equipment contacts
+are usable; final surface acceptance is not an authoring dependency. Freeze the
+rig/kit revision for each motion comparison and repeat affected checks after refits.
 
 ## Contract and ownership
 

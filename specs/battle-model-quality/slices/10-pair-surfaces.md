@@ -1,6 +1,9 @@
 # 10 — First-pair surface finish
 
-Status: TODO. Depends on [09](./09-pair-gear.md).
+Status: TODO. Acceptance depends on [09](./09-pair-gear.md). Candidate authoring
+may use a fixed provisional geometry revision with usable material regions/UVs.
+Retain an identical-geometry clay capture and refit/rebake after geometry changes;
+surface polish cannot satisfy an unresolved anatomy or equipment verdict.
 
 ## Contract and ownership
 

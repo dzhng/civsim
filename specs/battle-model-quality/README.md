@@ -7,37 +7,30 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 Last updated **2026-09-06**. Status: **slices01–05 complete;06 in progress**.
 
 Current worktree: `/Users/david/dev/game-battle-model-quality`, branch
-`codex/battle-model-quality`, at4d75b7cd. The complete source/assets/consumer cutover
-was installed together by fast-forward after staging validation; no old reader
-remains. Source bake checks, typecheck and274 web tests pass. Four
-[reviewed baseline changes](assets/evidence/06/merged-comparison/review.md) have
-strict repeats. The warning-enforcing standing hardware gate passes at30,560
-soldiers with unchanged33ms limits. See [merged validation](assets/evidence/06/merged-validation.md)
-for actual reports, setup failures and successful reruns.
+`codex/battle-model-quality`, with integrated foundations through b5149d1a.
+06a/b source, assets and both GPU consumers are installed together; no old reader
+remains. [Merged validation](assets/evidence/06/merged-validation.md) owns the
+source, numerical, actual-consumer, strict image-repeat and standing hardware
+evidence, including the successful [post-install browser repeat](assets/evidence/06/installed-browser.json).
+The standing gate retains its30k/33ms contract; it does not establish the live
+animated budget required in07.
 
-Next:06c. The [post-install browser repeat](assets/evidence/06/installed-browser.json)
-passes on `http://127.0.0.1:5174`, along with typecheck and274 web tests.
-The independent corpse-strength consumer pass is being prepared in
-`/Users/david/dev/game-corpse-strength-consumers`; keep temporal fixture work
-separate until its shared consumer rule is verified. A bounded replay foundation
-is prepared independently in `/Users/david/dev/game-temporal-replay-fixture`;
-the root owns production temporal screenshot integration after both seams land.
-The [Three cutover](assets/evidence/06/three-palette-cutover.md),
-[raw cutover](assets/evidence/06/raw-palette-cutover.md) and
-[source transport](assets/evidence/06/local-format-cutover.md) separate actual
-consumer proofs from source accuracy. The corrected kernel passes64 numerical
-poses, including near-unit rotations; both GPU substrates agree byte-for-byte.
-[Bounds](assets/evidence/06/gpu-rounding-bounds.md) cover that final arithmetic.
-No performance or temporal acceptance follows from those numerical checks.
+Next: finish [06c temporal acceptance](slices/06-gpu-playback.md). The shared
+[corpse-strength consumers](assets/evidence/06/corpse-strength-consumers.md)
+are integrated in9a8c08ce and47fcfaba; b5149d1a integrates the dense replay recipe
+and same-time event boundary. Do not re-prepare or duplicate these foundations.
+The root owns the uncommitted production temporal scene and captures. Its first
+mounted frozen-GPU control was red; a green repeat alone does not resolve that
+failure or accept the fixture. Diagnose the control, then prove fixed-world
+foreground articulation against the CPU reference, interrupted actions, mounted
+exit, continuous observed death, actual culling agreement and bounded storage.
+Complete deterministic repeats and visual review before closing06c. Existing
+battle gait pixels measure scene motion, not isolated articulation.
 
-Then finish [06c](slices/06-gpu-playback.md): fixed-world foreground articulation,
-frozen-GPU negative control, interrupted actions, mounted exit and continuous
-observed death. The shared corpse-strength helper is prepared separately in
-8272dde1, **not integrated**; wire its one rule through Three/raw shading, culling
-and far contact AO before claiming death continuity. Existing battle gait pixels
-measure scene motion, not isolated articulation. Keep06→07 before detailed
-anatomy08, as the user explicitly reaffirmed. No detailed soldier art or user-only
-blocker exists.
+Keep06→07→08 unchanged: finish transport's temporal proof, measure budgets, then
+author detailed human anatomy in Blender. Current blocky content is only a test
+subject for the new production path, not the final model or an art acceptance.
+No detailed soldier art or user-only blocker exists.
 
 Preserve [05's merged controller/WASM gates](assets/evidence/05/merged-validation.md)
 and [04's material contracts](assets/evidence/04/consumer-closure/review.md).

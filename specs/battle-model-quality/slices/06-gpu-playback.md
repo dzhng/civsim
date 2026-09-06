@@ -1,6 +1,6 @@
 # 06 — GPU interpolation and clip blending
 
-Status: IN PROGRESS — local source and both GPU consumers are assembled in staging; merged transport checks pass, with long-run compute-timing cleanup pending before atomic installation. Temporal acceptance remains next. Depends on [05](./05-action-timeline.md), [04](./04-explicit-materials.md).
+Status: IN PROGRESS —06a/b are installed together and verified;06c consumer and replay foundations are integrated, but production temporal acceptance remains open. Depends on [05](./05-action-timeline.md), [04](./04-explicit-materials.md).
 
 ## Contract and ownership
 
@@ -10,15 +10,15 @@ API seam: crowd instance payload and GPU palette preparation share crowd-runtime
 
 Prerequisite in05: promote the existing bake pose math into a shared CPU local-pose evaluator in `soldier-assets`, sampling the already loaded `ImportedRig` tracks with their STEP/LINEAR and shortest-arc quaternion semantics. This does not change the GPU animation encoding. The controller uses that evaluator to capture exact interrupted poses before05 acceptance;06 must transport those results, not repair approximate endpoint substitution.
 
-Bounds prerequisite: the shared producer now derives a hierarchy-envelope sphere over continuous local translations/scales, quaternion rotations and arbitrary joint-mask combinations, rather than treating integer samples as extrema. [Numerical proof and all23 radius measurements](../assets/evidence/06/analytic-bounds.md) distinguish the real-motion envelope from the outward Float32 allowance for today's CPU mat4 and GPU weighted-column skin arithmetic. **06b must revalidate or update that allowance for its actual local-TRS/palette arithmetic before acceptance**; it is not certification of an unimplemented GPU sampler. Preserve authored root translations (including fall and mount bob); world translation/yaw remain the renderer's culling transform. The larger spheres do not accept07 performance or15/28 readability. Review cameras must use source landmarks, not a conservative culling sphere's center.
+Bounds prerequisite: the shared producer derives a hierarchy-envelope sphere over continuous local translations/scales, quaternion rotations and arbitrary joint-mask combinations, rather than treating integer samples as extrema. [Original numerical proof and radius measurements](../assets/evidence/06/analytic-bounds.md) are supplemented by [revalidation for the installed local-palette arithmetic](../assets/evidence/06/gpu-rounding-bounds.md). Preserve authored root translations (including fall and mount bob); world translation/yaw remain the renderer's culling transform. The larger spheres do not accept07 performance or15/28 readability. Review cameras must use source landmarks, not a conservative culling sphere's center.
 
 ### Bounded interruption contract
 
-The approved authored-key-time encoding has a [prepared source producer and CPU decoder](../assets/evidence/06/local-animation-source.md), with current-fixture geometric checks. This does not expose a new bundle format or accept06b; the coherent runtime cutover remains required.
+The approved authored-key-time encoding's [source producer and CPU decoder](../assets/evidence/06/local-animation-source.md) are installed through the [coherent format cutover](../assets/evidence/06/local-format-cutover.md). Source geometric checks remain distinct from consumer and temporal acceptance.
 
-The [prepared CPU playback worklist](../assets/evidence/06/playback-packing.md) packs resolved controls and stages visible snapshot residency. It does not select GPU capacity or admission policy, and requires adapter submission before committing its pending residency.
+The [CPU playback worklist](../assets/evidence/06/playback-packing.md) packs resolved controls and stages visible snapshot residency. It does not select GPU capacity or admission policy, and requires adapter submission before committing its pending residency.
 
-The timeline owns a source that is either a clip sample or one frozen local-TRS pose, with a destination clip sample and blend weight. It may also own one rider-upper-body lane with the same source choices; that lane's destination is either a clip sample or the **evaluated current base pose**. Reuse the shared local-pose type rather than declaring renderer-specific snapshots. These are proposed semantics, not a second declaration of the eventual05 types.
+The timeline owns a source that is either a clip sample or one frozen local-TRS pose, with a destination clip sample and blend weight. It may also own one rider-upper-body lane with the same source choices; that lane's destination is either a clip sample or the **evaluated current base pose**. Reuse05's shared local-pose and playback types rather than declaring renderer-specific snapshots.
 
 Capture the old evaluated state at the event time before changing tracks. A base interruption freezes the base locals; an overlay interruption freezes the displayed masked locals while the unmasked base keeps advancing. Overlay exit blends toward the advancing, fully evaluated base, including any base crossfade. Full-body hit/death freezes the complete composed pose, clears the overlay and transitions the whole skeleton. At the new weight0 the displayed pose must agree with the old pose within measured floating-point error. Matching angular velocity is not promised.
 
@@ -26,7 +26,7 @@ Keep at most one frozen source per active lane, recycle it after use, and never 
 
 ### Execution rows
 
-Complete these rows in order; record their actual commands and evidence here as they land. No row is accepted by this planning pass.
+Complete these rows in order;06a/b evidence is recorded below, while06c remains unaccepted.
 
 | Row | Contract and artifact | Required verdict |
 | --- | --- | --- |
@@ -38,18 +38,18 @@ Complete these rows in order; record their actual commands and evidence here as 
 
 The [approved encoding proposal](../assets/evidence/06/local-encoding-proposal.md)
 uses authored-time union samples,48-byte local poses and exact CPU interval/STEP
-selection. Its prepared implementation is not yet a live asset-format change.
+selection. The format and all runtime consumers are now installed together.
 The [palette preparation proposal](../assets/evidence/06/palette-consumer-proposal.md)
 owns the coherent consumer cutover plan; [storage lifetime measurements](../assets/evidence/06/compute-buffer-lifetime.md)
 show why compute-only attributes need explicit renderer-owned disposal during
 replacement. Preserve existing synchronous growth with size/device-limit checks
 and coherent bindings, rather than inventing an asynchronous stale-frame policy.
 Kernel arithmetic, partial uploads/failures and actual beauty/shadow consumers
-remain acceptance gates, not facts established by the proposal.
+are supported by the installed transport evidence below, not by the proposal alone.
 
 For the [07 budget experiment](./07-budget-envelope.md), include synchronized interruption bursts, not just steady locomotion: controller snapshot evaluation time, CPU/GPU resident snapshot and palette bytes, upload bytes/time, slot reuse and disposal. Record measured bone/instance counts and packing. Snapshot uploads should follow changed snapshots rather than repeat every live frame; do not treat an illustrative allocation estimate as the accepted budget.
 
-Names of new functions/routes in this plan are proposed, not existing commands. Use the [shared acceptance contract](../README.md#acceptance-contract) and [architecture](../architecture.md) for inherited requirements.
+Use the owning source and recorded evidence for runnable entry points, and the [shared acceptance contract](../README.md#acceptance-contract) and [architecture](../architecture.md) for inherited requirements.
 
 ## Runnable artifact
 
@@ -135,8 +135,18 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 - [ ] Review/cleanup completed; README pickup and decisions updated.
 
 06a source evidence lives in [local source](../assets/evidence/06/local-animation-source.md)
-and [format cutover](../assets/evidence/06/local-format-cutover.md). Prepared06b
+and [format cutover](../assets/evidence/06/local-format-cutover.md). Installed06b
 consumer evidence lives in [Three](../assets/evidence/06/three-palette-cutover.md),
 [raw](../assets/evidence/06/raw-palette-cutover.md) and the
 [merged visual comparison](../assets/evidence/06/merged-comparison/review.md).
 These transport proofs do not close06c or accept detailed soldier art.
+
+[Merged validation](../assets/evidence/06/merged-validation.md) records the
+atomic installation, compute-query lifetime correction, standing hardware gate
+and post-install repeat. The corpse helper and all consumer wiring are integrated
+in9a8c08ce/47fcfaba; b5149d1a adds the dense recipe and same-time boundaries in
+`apps/renderer-lab/src/battleModelReplay.ts`, with CPU contract tests in
+`web/tests/battleModelReplay.test.ts`. These are06c foundations, not rendered
+continuity proof. Root-owned temporal scene work and captures remain uncommitted;
+the mounted frozen-GPU control's initial failure is unresolved despite a green
+repeat. No06c visual verdict or new baseline acceptance is recorded here.

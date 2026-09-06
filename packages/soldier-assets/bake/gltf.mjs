@@ -1,7 +1,8 @@
 // Authored glTF/GLB → weighted primitives and local-TRS rig. Source Y-up space
 // is preserved; the renderer's basis conversion belongs at asset packaging.
 
-import { bakeRig, mat4FromTRS, mat4Identity } from './vat.mjs';
+import { bakeRig } from './vat.mjs';
+import { mat4FromTRS, mat4Identity } from '../src/localPose.ts';
 
 const GLB_MAGIC = 0x46546c67; // 'glTF'
 const CHUNK_JSON = 0x4e4f534a; // 'JSON'

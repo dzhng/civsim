@@ -4,7 +4,8 @@
 // reproducible). Run: `node packages/soldier-assets/bake/vat.test.mjs`.
 
 import assert from 'node:assert/strict';
-import { bakeRig, readJoint, transformPoint, mat4FromTRS } from './vat.mjs';
+import { bakeRig, readJoint } from './vat.mjs';
+import { transformPoint, mat4FromTRS } from '../src/localPose.ts';
 
 const ID = mat4FromTRS([0, 0, 0], [0, 0, 0, 1], [1, 1, 1]);
 const transN1 = mat4FromTRS([-1, 0, 0], [0, 0, 0, 1], [1, 1, 1]); // translate(-1,0,0)

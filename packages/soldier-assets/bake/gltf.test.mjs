@@ -5,7 +5,8 @@
 
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { bakeRig, mat4FromTRS, readJoint, transformPoint } from './vat.mjs';
+import { bakeRig, readJoint } from './vat.mjs';
+import { mat4FromTRS, transformPoint } from '../src/localPose.ts';
 import { bakeGltf, bakeGltfJson, gltfToRig, parseGlb } from './gltf.mjs';
 import { makeTestGlb, buildTestGltf, encodeGlb } from './make-test-glb.mjs';
 import { TEST_CLIP_NAMES } from './clip-contract.mjs';

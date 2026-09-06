@@ -7,12 +7,18 @@ export interface RigBone {
   inverseBind: ArrayLike<number>;
 }
 
+export interface RigChannel {
+  times: number[];
+  values: number[];
+  interpolation?: "LINEAR" | "STEP";
+}
+
 export interface RigClip {
   name: string;
   duration: number;
   loop?: boolean;
   markers?: ClipMarkers;
-  tracks: Record<number, { T?: unknown; R?: unknown; S?: unknown }>;
+  tracks: Record<number, { T?: RigChannel; R?: RigChannel; S?: RigChannel }>;
 }
 
 export interface ImportedRig {

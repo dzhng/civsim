@@ -1,4 +1,4 @@
-import { mat4Mul } from "./vat.mjs";
+import { mat4Mul } from '../src/localPose.ts';
 
 const BASIS = new Float32Array([1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1]);
 const INVERSE = new Float32Array([1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1]);

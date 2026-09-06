@@ -4,7 +4,7 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 
 ## Next Agent Prompt
 
-Last updated **2026-09-06**. **01–06 complete;07 open/red;08 candidate authoring next.**
+Last updated **2026-09-06**. **01–06 complete;07 open/red;08 candidate authoring in progress.**
 Worktree: `/Users/david/dev/game-battle-model-quality`, branch
 `codex/battle-model-quality`; controller cleanup integrated through0129ee2e.
 
@@ -25,10 +25,13 @@ Current evidence:
   far-view change in362cf738; separate main/shadow demands are in progress.
 - [Exact pose sharing](assets/evidence/07/frozen-capture.md) and
   [observation-only updates](assets/evidence/07/observation-only.md) are installed.
-  Root47 focused tests and typecheck pass; merged browser verification remains.
+  Root61 focused tests and typecheck pass aftere82904c4. Standing30k passes;
+  strict temporal repeat and live budget acceptance remain open.
 - [Measurement foundation](assets/evidence/07/measurement-foundation.md) and
   [07](slices/07-budget-envelope.md) own raw brackets and remaining requirements.
-  No art envelope or detailed model has been accepted.
+  No art envelope or detailed model has been accepted.08's original Blender
+  anatomy sculpt, provisional quad mesh,22-bone rig and bend clip now export
+  through the existing candidate baker; production contact-sheet review is next.
 
 Preserve sim/save/balance, exact interruption poses, atomic catalog replacement,
 the one production skin/material/environment path, and the existing temporal

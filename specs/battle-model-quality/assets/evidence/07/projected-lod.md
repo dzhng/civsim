@@ -66,7 +66,7 @@ unprimed critique, standing30k gate and matched animated-budget sweeps remain
 unrun for this source checkpoint. No visual fix or measured art budget is claimed.
 Pre-existing screenshot differences must not be attributed to this correction.
 
-## Integration verdict: not accepted yet
+## Combined-tier integration: rejected, superseded by separate audiences
 
 Root typecheck and20 focused tests pass. The [production consumer run](projected-lod-consumers.json)
 passes LOD and mounted-readability assertions; the camera snapshot differs as
@@ -94,6 +94,32 @@ focused CPU candidate. No art envelope is accepted. Root owns subsequent image
 critique, strict repeat and hardware gates after these corrections.
 
 ## Changed-test ledger
+
+### Separate-audience integration checkpoint
+
+Root integratione82904c4 passes61 focused tests and typecheck. The
+[production consumer run](separated-consumers.json) passes all behavior checks
+and reports one camera-image baseline difference. The old baseline already had
+unrelated terrain/material differences; it has not been re-blessed.
+[Current full sheet](camera-separated-audiences.png), [near crop](separated-near.png)
+and [overview crop](separated-overview.png) are compared with the archived
+pre-projection actual image, not that stale baseline. A byte comparison proves
+the full candidate changes.
+
+Root and a fresh unprimed reviewer inspected both full sheets and all four
+crops. The reviewer finds unchanged distant ranks, gaps and footprint (high
+confidence), no obvious missing bodies or new depth-order defect, and preserved
+scale. Close views expose pale chunky weapon-tip geometry; this is existing
+placeholder shape becoming visible at the correct near detail, not accepted
+soldier art. Feet remain occluded, so these images do not establish ground-contact
+quality or an improvement in shadows. The far-readability regression is no longer
+visible in the reviewed frame; this does not accept the model quality itself.
+
+The unchanged [standing30k hardware gate](separated-standing.json) passes,
+including close grass-on cadence. The [strict temporal repeat](separated-temporal-red.json)
+has one failure: class7/tick0's validated-palette versus CPU-preposed image differs
+by up to17 channel values over67,215 pixels. Other assertions pass. Diagnosis is
+open; no tolerance was relaxed and no live animated budget is accepted.
 
 | Test | Previous behavior | New behavior | Why |
 | --- | --- | --- | --- |

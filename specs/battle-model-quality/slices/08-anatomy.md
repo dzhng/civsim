@@ -1,6 +1,6 @@
 # 08 — Shared human anatomy
 
-Status: TODO. Candidate authoring depends on completed06; acceptance depends on [07](./07-budget-envelope.md).
+Status: IN PROGRESS, candidate only. Candidate authoring depends on completed06; acceptance depends on [07](./07-budget-envelope.md).
 
 Editable Blender anatomy may proceed alongside the open budget measurements.
 Keep it in the workbench candidate path, with provisional mesh/rig counts; do not
@@ -19,6 +19,21 @@ Names of new functions/routes in this plan are proposed, not existing commands. 
 ## Runnable artifact
 
 Front/side/rear/three-quarter neutral and deep-bend contact sheet at close and game pitch.
+
+Original source authoring has begun in
+`packages/soldier-assets/bake/blender-human-anatomy.py`, producing an isolated
+editable Blender scene under `assets/source/human-anatomy` in that package.
+Cross-section anatomy is joined into a watertight sculpt, with a separate
+provisional quad mesh and22-bone deform rig. The first bend study has normalized
+weights, at most four influences, and no unweighted vertices. The existing baker
+accepts its selected-scene GLB; `bake/human-anatomy.mjs --check` verifies generated
+candidate bundles. These are structural checks, not anatomy acceptance.
+
+The manual-only candidate catalog uses shared anatomy for0/14 and identical
+inspection tiers. Production catalog is unchanged. Next: capture the production
+workbench sheet, inspect silhouette and deep bends, refine facial/hand form and
+joint topology from actual pixels, then perform the inherited comparison and
+fresh critique. Provisional counts are not measured performance limits.
 
 Expose the fixture through the production model workbench and a named scene/probe. Record the exact runnable command in this file when it exists; do not mark completion with screenshots alone.
 

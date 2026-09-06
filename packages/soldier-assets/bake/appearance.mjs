@@ -1,0 +1,138 @@
+import { createHash } from 'node:crypto';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { parseArgs } from 'node:util';
+import { bakeGltf, parseGlb } from './gltf.mjs';
+import { gltfToEngineBasis } from './engine-basis.mjs';
+import { bakeRig } from './vat.mjs';
+import { deriveAnimatedBounds } from './animated-bounds.mjs';
+import { encodeSoldierMesh } from '../src/appearanceBundle.ts';
+
+function jointMap(source, target, tier) {
+  const names = new Map(target.bones.map((bone, index) => [bone.name, index]));
+  if (names.size !== target.bones.length || new Set(source.bones.map((bone) => bone.name)).size !== source.bones.length) {
+    throw new Error('tier skeletons require unique bone names; name every deform bone and ancestor in Blender');
+  }
+  if (source.bones.length !== target.bones.length) throw new Error(`tier ${tier}: skeleton bone count differs from near tier`);
+  return source.bones.map((bone) => {
+    const index = names.get(bone.name);
+    if (index == null) throw new Error(`tier ${tier}: skeleton bone ${bone.name} is absent from near tier`);
+    const expected = target.bones[index];
+    const parent = bone.parent < 0 ? null : source.bones[bone.parent].name;
+    const expectedParent = expected.parent < 0 ? null : target.bones[expected.parent].name;
+    const actualValues = [...bone.bind.T, ...bone.bind.S, ...bone.inverseBind];
+    const expectedValues = [...expected.bind.T, ...expected.bind.S, ...expected.inverseBind];
+    const rotationError = Math.min(...[1, -1].map((sign) => Math.hypot(...bone.bind.R.map((value, i) => value - sign * expected.bind.R[i]))));
+    if (parent !== expectedParent || rotationError > 1e-6 || actualValues.some((value, i) => Math.abs(value - expectedValues[i]) > 1e-6)) {
+      throw new Error(`tier ${tier}: bone ${bone.name} bind or parent differs from near tier; export all tiers with the same rig`);
+    }
+    return index;
+  });
+}
+
+function mergedMesh(primitives, remap, materialSlot) {
+  const count = primitives.reduce((sum, primitive) => sum + primitive.positions.length / 3, 0);
+  const mesh = {
+    positions: new Float32Array(count * 3), normals: new Float32Array(count * 3), colors: new Float32Array(count * 4),
+    joints: new Uint16Array(count * 4), weights: new Float32Array(count * 4), uvs: new Float32Array(count * 2),
+    tangents: new Float32Array(count * 4), materialIds: new Float32Array(count), factionMasks: new Float32Array(count),
+    indices: new (count > 65536 ? Uint32Array : Uint16Array)(primitives.reduce((sum, primitive) => sum + primitive.indices.length, 0)),
+  };
+  let vertexOffset = 0, indexOffset = 0;
+  for (const primitive of primitives) {
+    const vertices = primitive.positions.length / 3;
+    for (const [field, width] of Object.entries({ positions: 3, normals: 3, colors: 4, weights: 4, uvs: 2, tangents: 4 })) {
+      mesh[field].set(primitive[field], vertexOffset * width);
+    }
+    for (let i = 0; i < primitive.joints.length; i++) mesh.joints[vertexOffset * 4 + i] = remap[primitive.joints[i]];
+    mesh.materialIds.fill(materialSlot(primitive.materialIndex), vertexOffset, vertexOffset + vertices);
+    for (const index of primitive.indices) mesh.indices[indexOffset++] = vertexOffset + index;
+    vertexOffset += vertices;
+  }
+  return mesh;
+}
+
+/** Complete candidate content only: the caller chooses whether a catalog references it. */
+export function bakeAppearance({ name, mounted = false, tiers, fps = 24, loopClips }) {
+  if (typeof name !== 'string' || !name.trim()) throw new Error('appearance requires a nonempty name');
+  if (typeof mounted !== 'boolean') throw new Error('mounted must be boolean');
+  if (!Array.isArray(tiers) || tiers.length !== 3 || tiers.some((tier) => !(tier instanceof Uint8Array))) {
+    throw new Error('appearance requires three explicit GLB byte arrays: near, mid and far');
+  }
+  if (!Number.isInteger(fps) || fps <= 0) throw new Error('fps must be a positive integer');
+  if (!Array.isArray(loopClips) || loopClips.some((clip) => typeof clip !== 'string') || new Set(loopClips).size !== loopClips.length) {
+    throw new Error('declare loopClips explicitly, using an empty array for no looping clips');
+  }
+  const imported = tiers.map((bytes) => gltfToEngineBasis(bakeGltf(bytes, { fps, skeleton: name })));
+  const rig = imported[0].rig;
+  const clipNames = new Set(rig.clips.map((clip) => clip.name));
+  if (clipNames.size !== rig.clips.length || clipNames.size === 0) throw new Error('near tier requires uniquely named animation clips');
+  for (const clip of loopClips) if (!clipNames.has(clip)) throw new Error(`loop clip ${clip} is absent from the near tier`);
+  const files = {}, materials = [], materialSlots = new Map();
+  const meshes = imported.map((source, tier) => {
+    const { json } = parseGlb(tiers[tier]);
+    const sourcePath = `source/tier-${tier}.glb`;
+    const textureSource = json.textures?.length ? createHash('sha256').update(tiers[tier]).digest('hex') : null;
+    files[sourcePath] = tiers[tier];
+    return mergedMesh(source.primitives, jointMap(source.rig, rig, tier), (index) => {
+      const definition = index == null ? {} : json.materials?.[index];
+      if (!definition) throw new Error(`tier ${tier}: material ${index} is missing`);
+      const pbr = definition.pbrMetallicRoughness ?? {};
+      const baseColor = pbr.baseColorFactor ?? [1, 1, 1, 1];
+      const roughness = pbr.roughnessFactor ?? 1, metallic = pbr.metallicFactor ?? 1;
+      if (baseColor.length !== 4 || [...baseColor, roughness, metallic].some((value) => !Number.isFinite(value) || value < 0 || value > 1)) {
+        throw new Error(`tier ${tier}: material ${index} has invalid PBR factors`);
+      }
+      // Original GLBs retain texture bytes, samplers and all material extensions for04.
+      const key = JSON.stringify({ definition, textureSource });
+      if (!materialSlots.has(key)) {
+        materialSlots.set(key, materials.length);
+        materials.push({ name: definition.name || `material-${materials.length}`, baseColor, roughness, metallic,
+          source: { file: sourcePath, materialIndex: index } });
+      }
+      return materialSlots.get(key);
+    });
+  });
+  const baked = bakeRig(rig, fps);
+  const data = Array.from(baked.data);
+  const animation = {
+    schema: 1, skeleton: name, fps, width: baked.width, height: baked.height, bones: baked.bones,
+    clips: baked.clips.map((clip, index) => ({ ...clip, duration: rig.clips[index].duration, loop: loopClips.includes(clip.name) })),
+    layout: 'RGBA32F, mat4 columns in rows bone*4..bone*4+3',
+    sha256: createHash('sha256').update(Buffer.from(baked.data.buffer, baked.data.byteOffset, baked.data.byteLength)).digest('hex'), data,
+  };
+  files['skeleton.json'] = { ...rig, bones: rig.bones.map((bone) => ({ ...bone, inverseBind: Array.from(bone.inverseBind) })) };
+  files['animation.json'] = animation;
+  files['materials.json'] = materials;
+  const paths = meshes.map((mesh, index) => {
+    const path = `tier-${index}.mesh.json`;
+    files[path] = encodeSoldierMesh(mesh);
+    return path;
+  });
+  files['appearance.json'] = {
+    name, mounted, skeleton: 'skeleton.json', animation: 'animation.json', materials: 'materials.json', tiers: paths,
+    far: { mesh: paths[0], clip: animation.clips[0].name, phase: 0 }, bounds: deriveAnimatedBounds(meshes, animation),
+  };
+  return files;
+}
+
+if (process.argv[1] && import.meta.url === new URL(process.argv[1], 'file:').href) {
+  const { values } = parseArgs({ options: {
+    near: { type: 'string' }, mid: { type: 'string' }, far: { type: 'string' }, out: { type: 'string' },
+    name: { type: 'string' }, mounted: { type: 'boolean', default: false }, loop: { type: 'string' }, fps: { type: 'string', default: '24' },
+  } });
+  for (const argument of ['near', 'mid', 'far', 'out', 'name', 'loop']) {
+    if (values[argument] == null) throw new Error(`missing --${argument}; provide three tiers, an output directory and explicit --loop names (empty for no loops)`);
+  }
+  const files = bakeAppearance({ name: values.name, mounted: values.mounted, fps: Number(values.fps),
+    tiers: await Promise.all([values.near, values.mid, values.far].map((path) => readFile(path))),
+    loopClips: values.loop ? values.loop.split(',') : [],
+  });
+  for (const [path, content] of Object.entries(files)) {
+    const output = resolve(values.out, path);
+    await mkdir(dirname(output), { recursive: true });
+    await writeFile(output, content instanceof Uint8Array ? content : `${JSON.stringify(content, null, content.indexFormat ? undefined : 2)}\n`);
+  }
+  console.log(`wrote candidate ${resolve(values.out, 'appearance.json')}; no roster catalog changed`);
+}

@@ -8,6 +8,11 @@ promote it to the production catalog or mark this slice complete before its
 exported topology fits the measured envelope. This separates reversible source
 authoring from runtime acceptance without dropping any07 requirement.
 
+Unclothed anatomy remains independently reviewed while09 fits provisional gear.
+Armor cannot conceal or satisfy unresolved anatomy defects. Adult silhouette,
+joint deformation and credible grip surfaces remain priorities; supplemental
+facial refinement does not block independent equipment source work.
+
 ## Contract and ownership
 
 A reusable articulated human base has natural adult proportions and believable joints.

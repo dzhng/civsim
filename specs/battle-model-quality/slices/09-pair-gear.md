@@ -1,6 +1,14 @@
 # 09 — First-pair equipment geometry
 
-Status: TODO. Depends on [08](./08-anatomy.md).
+Status: IN PROGRESS, candidate authoring only. Source fitting uses the provisional
+[08](./08-anatomy.md) body/rig; acceptance still depends on completed08 and its07
+envelope. Body or rig changes require refitting and recapturing affected gear.
+
+Author heavy sword0 first, review its complete neutral-clay kit, then proceed to
+medium phalanx14 and related equipment states. Curved helmet/shield, layered
+garment, belt, sword/scabbard and footwear form the first recognizable candidate.
+Mail surface finish belongs to10. No production promotion or accepted baseline
+is implied by this source-authoring checkpoint.
 
 ## Contract and ownership
 

@@ -2,6 +2,20 @@
 
 ## Sound — high confidence
 
+### Fit provisional equipment before anatomy acceptance (08/09 authoring)
+
+When a usable human body and skeleton exist but the face still needs work, begin
+fitting the heavy infantry helmet, clothing and weapons to that editable body.
+Previously the plan made all equipment wait for anatomy acceptance. This changes
+the authoring order only: if shoulders or hands change, refit affected armor and
+grips; keep reviewing the unclothed body separately. Neither the equipment nor
+the body enters battle before the original quality and budget checks pass.
+
+The plan did not distinguish equipment source fitting from final acceptance.
+This allows a recognizable soldier to inform proportion and grip work without
+using armor to hide defects. **Sound; confidence high:** reversible source work
+advances the requested Blender units without weakening any acceptance gate.
+
 ### Queue replacement poses before exposing their materials (07 storage correction)
 
 When a larger interruption frame needs new GPU buffers, compute its poses before

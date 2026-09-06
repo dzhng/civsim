@@ -9,16 +9,15 @@ Worktree: `/Users/david/dev/game-battle-model-quality`, branch
 `codex/battle-model-quality`. No art envelope or detailed model is accepted.
 
 Current pickup has two independent lanes:
-- **08 Blender authoring:** rounded lips are the retained source through6d0a69e0;
-  an eye-volume/lid trial is in progress. Inspect its production head-detail and
-  whole-body captures before retaining it. Facial form, shoulder/pectorals,
-  pelvis and grips remain open. Candidate counts are provisional; do not bless
-  the unaccepted anatomy baselines or promote the production catalog.
-- **07 animated budget:** a bounded profile identifies LOD preparation as a hot
-  owner. A reusable-result candidate is being developed independently; integrate
-  only after exact output/lifetime tests and unchanged hardware/image gates.
-  Then finish combined geometry, camera, physical-display, storage and executable
-  asset limits.07 is required before08 acceptance, not before source authoring.
+- **09 Blender equipment authoring:** fit a recognizable heavy swordsman to the
+  provisional08 body/rig, capture and judge it before starting the phalangite.
+  Rounded lips remain the body source; eye relief/sphere trials were rejected.
+  Keep unclothed08 anatomy review open for facial form, shoulders, pelvis and
+  grips. Equipment cannot conceal those defects or satisfy anatomy acceptance.
+- **07 animated budget:** the reusable LOD result experiment was rejected after
+  worse matched timing; its code is not integrated. Finish combined geometry,
+  camera, physical-display, storage and executable asset limits using separately
+  measured changes.07 still gates08/09 acceptance, not editable source authoring.
 
 Evidence ledger:
 - [06](assets/evidence/06/merged-validation.md) owns GPU playback contracts;
@@ -29,8 +28,9 @@ Evidence ledger:
   checks, zero differences in all40 images, and the standing30k gate pass.
   [Old/new/old hardware](assets/evidence/07/snapshot-banks-aba.md) fails animated
   interruption cadence on both versions; banking is not established as its cause.
-- [CPU attribution](assets/evidence/07/banks-interruption.md) motivates the next
-  bounded preparation change. It is diagnostic, not performance acceptance;
+- [CPU attribution](assets/evidence/07/banks-interruption.md) and the
+  [rejected storage experiment](assets/evidence/07/lod-storage.md) guide further
+  measurement. Neither is performance acceptance;
   [07](slices/07-budget-envelope.md) owns the remaining budget requirements.
 - [Anatomy review](assets/evidence/08/anatomy-review.md) owns Blender iterations,
   exact source/capture provenance, rejected studies and unresolved visible form.
@@ -89,7 +89,7 @@ promote atomically only after distance-ready acceptance; see
 - [ ] [29 — Live battle and performance acceptance](slices/29-battle-integration.md)
 - [ ] [30 — Remove placeholders and finish handoff](slices/30-cutover-closeout.md)
 
-The acceptance trunk is 01→…→16. Editable08 anatomy candidates may be authored alongside07; their acceptance still depends on its measured envelope. After the first-pair review, foot, mounted and crew lanes are independent within their listed dependencies. They join at 28 for complete distance coverage, then real battle acceptance and cleanup. Do not use lane independence to bypass the first-pair presentation.
+The acceptance trunk is 01→…→16. Editable08 anatomy and09 equipment candidates may be authored alongside07; acceptance still follows the trunk. Equipment fitting consumes the provisional body/rig and must be revisited when those change. After the first-pair review, foot, mounted and crew lanes are independent within their listed dependencies. They join at28 for complete distance coverage, then real battle acceptance and cleanup. Do not use lane independence to bypass the first-pair presentation.
 
 ## Acceptance contract
 

@@ -54,7 +54,7 @@ In03, update all old format consumers or remove obsolete dev-only ones; no v1 lo
 
 The standard-loader fixture from02 remains an isolated export test oracle, not a second product renderer or downloadable-asset path. The obsolete raw soldier review route and scripts migrate to the production workbench at their earliest replaced consumer; any remaining cleanup is tracked in30. Preserve unrelated raw renderer experiments.
 
-Budget selection is a measured experiment in07, not an arbitrary promise of a particular polygon count, bone count or texture resolution. Once measured, write the chosen limits into that slice and executable bake checks. New detailed classes must stay inside that envelope or trigger a focused optimization/reslice. Editable08 sources may be authored alongside07 with provisional counts, but anatomy acceptance and production promotion remain gated. Bounds include long weapons, mounted bodies and animation extrema.
+Budget selection is a measured experiment in07, not an arbitrary promise of a particular polygon count, bone count or texture resolution. Once measured, write the chosen limits into that slice and executable bake checks. New detailed classes must stay inside that envelope or trigger a focused optimization/reslice. Editable08 anatomy and09 first-pair equipment sources may be authored alongside07 with provisional counts. Equipment uses the provisional rig and must be refitted after relevant anatomy changes; unclothed anatomy acceptance stays independent. Acceptance and production promotion remain gated. Bounds include long weapons, mounted bodies and animation extrema.
 
 ## Risk retirement and executable anchors
 

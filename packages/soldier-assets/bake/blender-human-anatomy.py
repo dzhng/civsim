@@ -56,11 +56,25 @@ def deform_candidate(sculpt):
     bpy.ops.object.select_all(action="DESELECT")
     body.select_set(True)
     bpy.context.view_layer.objects.active = body
+    collapsible = body.vertex_groups.new(name="collapsible-body")
+    protected = set()
+    for vertex in body.data.vertices:
+        x, y, z = vertex.co
+        along_hand = (abs(x)-.515)*.60 - (z-.98)*.80
+        if abs(x) > .49 and z < 1.02 and along_hand > .035:
+            protected.add(vertex.index)
+        else:
+            collapsible.add([vertex.index], 1, "REPLACE")
+    hand_triangles = sum(len(face.vertices)-2 for face in body.data.polygons
+                         if any(index in protected for index in face.vertices))
     reduction = body.modifiers.new("Curvature-preserving candidate reduction", "DECIMATE")
-    # Provisional inspection density, not a measured runtime limit.
-    reduction.ratio = min(1, 9000 / sum(len(face.vertices) - 2 for face in body.data.polygons))
+    # Zero-weight hand vertices cannot collapse; their pads must survive the body reduction.
+    reduction.vertex_group, reduction.vertex_group_factor = collapsible.name, 1
+    # Provisional body allowance plus preserved hands, not a measured runtime limit.
+    reduction.ratio = min(1, (9000+hand_triangles) / sum(len(face.vertices)-2 for face in body.data.polygons))
     reduction.use_collapse_triangulate = True
     bpy.ops.object.modifier_apply(modifier=reduction.name)
+    body.vertex_groups.remove(body.vertex_groups["collapsible-body"])
     topology = bmesh.new()
     topology.from_mesh(body.data)
     bmesh.ops.recalc_face_normals(topology, faces=list(topology.faces))
@@ -369,9 +383,18 @@ def build():
     body.name = "HumanAnatomy-Sculpt"
     body.data.remesh_voxel_size = .004
     bpy.ops.object.voxel_remesh()
+    relaxation = body.vertex_groups.new(name="surface-relaxation")
+    for vertex in body.data.vertices:
+        x, y, z = vertex.co
+        along_hand = (abs(x)-.515)*.60 - (z-.98)*.80
+        preserve = min(1, max(0, (along_hand-.015)/.025)) if abs(x) > .49 and z < 1.02 else 0
+        relaxation.add([vertex.index], 1-preserve, "REPLACE")
     smooth = body.modifiers.new("Surface relaxation", "SMOOTH")
+    # Whole-body relaxation otherwise shrinks fingertip pads into sharp hooks.
+    smooth.vertex_group = relaxation.name
     smooth.factor, smooth.iterations = .65, 12
     bpy.ops.object.modifier_apply(modifier=smooth.name)
+    body.vertex_groups.remove(body.vertex_groups["surface-relaxation"])
     # Blend muscle roots locally; global smoothing would erase face and fingers.
     junctions = body.vertex_groups.new(name="anatomical-junctions")
     for vertex in body.data.vertices:

@@ -92,3 +92,9 @@ supplements the original sheets. Inspect sculpt-to-reduced-mesh detail loss next
 do not treat the provisional9k target as permission to erase fingers. Equipment
 must be refitted and re-baked with any retained anatomy change before contact is
 judged.
+
+The [detail-preservation follow-up](../assets/evidence/08/hand-detail-preservation.md)
+isolates sculpt versus reduction loss and retains local hand preservation as a
+modest improvement. Its 20,504-triangle inspection export is provisional, not an
+admitted budget. Fingers still need direct anatomical form work; more retained
+triangles do not make the remaining U-prong shape correct.

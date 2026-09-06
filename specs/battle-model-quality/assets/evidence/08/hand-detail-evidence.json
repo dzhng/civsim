@@ -1,0 +1,68 @@
+{
+  "comparisons": [
+    {
+      "a": "grip-curl",
+      "b": "grip-highres",
+      "changedNativePixels": 21900,
+      "nativePixels": 50225,
+      "crop": [
+        225,
+        145,
+        205,
+        245
+      ],
+      "scale": 2
+    },
+    {
+      "a": "grip-curl",
+      "b": "grip-unrelaxed",
+      "changedNativePixels": 20415,
+      "nativePixels": 50225,
+      "crop": [
+        225,
+        145,
+        205,
+        245
+      ],
+      "scale": 2
+    },
+    {
+      "a": "grip-unrelaxed",
+      "b": "grip-preserved",
+      "changedNativePixels": 21205,
+      "nativePixels": 50225,
+      "crop": [
+        225,
+        145,
+        205,
+        245
+      ],
+      "scale": 2
+    }
+  ],
+  "hashes": {
+    "grip-highres-capture.json": "101937e5d359553e2a80588bc54c23073f0555aa7d0010c2cd71c681ff57d992",
+    "grip-highres-front-crop.png": "c4adea768ef395e0791ae0b6ac47d89ceccc23e5e934b95e6f3146f482fceffa",
+    "grip-highres-hand-detail.png": "15b51e7a524f49d19cff27ebb8848fbf3bddb58c6fb83a7d778f8a1cfec7295f",
+    "grip-preserved-capture.json": "10578564f7a7397b14b5fd5274f4577db853d69b2a462b822be51ad16ce690cb",
+    "grip-preserved-close.png": "9d3166e4845eb6eeb5f8a5e81a124794c795df78da8b10477fa46ee81efc2688",
+    "grip-preserved-front-crop.png": "fc4ea73672cc4b3d1a3e976f12582e7c7a9be4eba4b22de67018d47566fdbe94",
+    "grip-preserved-gameplay.png": "8f4bbfa3bc76efa94d25fb927471c8e2c1d94bd63954e65c3f59534b501a07fc",
+    "grip-preserved-hand-detail.png": "f8ee95a4a1105990491aae8555cc6ffab6bce0837d38f86af04dda90e0d9fdd5",
+    "grip-preserved-head.png": "0491af7da6bb31541d7b3671a2bed3d2c0c43bd856ccbe41419d08cd2a2131f8",
+    "grip-preserved-source.glb": "88dc6080fb2542dc1ce623b0e5e06e358d00ecddc9e062bdf57f83df12ee5e85",
+    "grip-unrelaxed-capture.json": "38242d662d5bc78d1cbdd0a307426a16cd8431b6d347a86e19e1e5dfbaadb7c9",
+    "grip-unrelaxed-close.png": "07e2d388f4ee239817c0a30ce6b2e2fda3de268468ace2360151fd0c4f839ae6",
+    "grip-unrelaxed-front-crop.png": "2f8b2d5ce2cc7ea6a293da97aa36796a84fff75a8e2efa3eaac3580d7a15b6b4",
+    "grip-unrelaxed-gameplay.png": "cc7dee64249203b96a4c35195c49fc84ebf95dcfa36f024c164814a1921be2cd",
+    "grip-unrelaxed-hand-detail.png": "08f899e392467d192fbd78a703a63891e7de57f57aace6d3849070c523f0a29d",
+    "grip-unrelaxed-head.png": "589fd368d43ffd7e9fec21dfcc4d6adde227a71ebdc64365c0833de0bbb03cf7",
+    "grip-unrelaxed-source.glb": "7997152eef1a30ad92febadb0ffad376a7b2f8e0ca7c8fe2e7595e68507dd4b4",
+    "hand-detail-preservation.md": "cab55dbd3fad7c588eeb4a7cd01bb12f26f62d50ed679b1179e4b60a383b3edc",
+    "packages/soldier-assets/assets/source/human-anatomy/human-anatomy.blend": "c74933fb8ad3e9691f0fd8e783dc5d803152ddf768f8f8f8713b447dfc714b3b",
+    "packages/soldier-assets/assets/source/human-anatomy/human-anatomy.glb": "88dc6080fb2542dc1ce623b0e5e06e358d00ecddc9e062bdf57f83df12ee5e85"
+  },
+  "highresInputBlendSha256": "2e9c08ce1099ef257eb71616c43f47dfc4b0fd05f77191c76813c5df74e4d0e8",
+  "highresExportSha256": "21d307acf9a21e6cfa170be713d328990207ef7e67a0ba80147bae16d2e56333",
+  "highresMethod": "Saved b2102c54 sculpt, triangulated and UV-unwrapped, nearest existingDeform weights, same exporter/baker/productionroute; onlyneutralshape diagnosis."
+}

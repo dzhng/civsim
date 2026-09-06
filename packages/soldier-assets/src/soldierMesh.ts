@@ -1,47 +1,32 @@
 import type { SoldierMeshData } from './mesh';
-
-export const SOLDIER_MATERIAL_IDENTITY = 'soldier-assets-placeholder-pbr-v1';
-
-export const SOLDIER_MATERIAL_CHANNELS = {
-  albedo: 'cColor.rgb',
-  normal: 'cNormal, VAT-skinned into world space',
-  orm: 'occlusion/roughness/metalness, canonical order from skinnedPipeline',
-  factionMask: 'high-blue cColor armband accent channel',
-} as const;
-
-export const SOLDIER_PBR_VALUES = {
-  roughness: {
-    bronze: 0.46,
-    iron: 0.38,
-    linen: 0.90,
-    leather: 0.74,
-    skin: 0.66,
-    default: 0.84,
-  },
-  metalness: {
-    bronze: 0.82,
-    iron: 0.92,
-  },
-  // Grounding/contact AO darkens
-  // the soldier's lower body where the ground occludes skylight — the cheap
-  // "standing on the ground, not pasted" cue. It rides the material aoNode, so
-  // it dims only indirect (sky/IBL) light, NEVER the sun's direct term (that is
-  // 11's cast shadow — distinct owner). `band` is the local mesh height (world
-  // units above the feet) over which the darkening fades to none; `strength` is
-  // the darkest occlusion at the contact line (ao = 1 - strength at z=0).
-  contactAo: { band: 0.42, strength: 0.55 },
-} as const;
-
-export const SOLDIER_MATERIAL_MASKS = {
-  bronze: { r: [0.58, 0.78], g: [0.34, 0.52], maxB: [0.28, 0.46] },
-  iron: { greySpreadScale: 6.5, brightness: [0.44, 0.66] },
-  linen: { r: [0.58, 0.76], g: [0.48, 0.66], b: [0.32, 0.48] },
-  leather: { r: [0.24, 0.42], g: [0.16, 0.32], maxB: [0.24, 0.42] },
-  skin: { r: [0.62, 0.78], g: [0.42, 0.58], b: [0.24, 0.42] },
-  factionMask: { blueDelta: [0.18, 0.55] },
-} as const;
+import type { SoldierMaterial } from './material';
 
 type Rgba = [number, number, number, number];
+// Surface roles are authored at construction, independently of the palette.
+const SURFACES = {
+  cloth: { roughness: 0.90, metallic: 0 },
+  leather: { roughness: 0.74, metallic: 0 },
+  skin: { roughness: 0.66, metallic: 0 },
+  wood: { roughness: 0.84, metallic: 0 },
+  bronze: { roughness: 0.46, metallic: 0.82 },
+  iron: { roughness: 0.38, metallic: 0.92 },
+  hair: { roughness: 0.90, metallic: 0 },
+} as const;
+
+export const PLACEHOLDER_MATERIALS: SoldierMaterial[] = Object.entries(SURFACES).map(
+  ([name, factors]) => ({ name, baseColor: [1, 1, 1, 1], ...factors }),
+);
+
+interface Surface {
+  color: Rgba;
+  materialId: number;
+  factionMask: number;
+}
+
+function surface(color: Rgba, name: keyof typeof SURFACES, factionMask = 0): Surface {
+  return { color, materialId: Object.keys(SURFACES).indexOf(name), factionMask };
+}
+
 type Armor = 'heavy' | 'medium' | 'light' | 'cloth' | 'rag';
 type Helmet = 'crested' | 'bronze' | 'cap' | 'hood' | 'bare';
 type Shield = 'tall' | 'round' | 'small' | 'none';
@@ -98,44 +83,13 @@ export const HEAVY_PHALANX_SIDEARM_CLASS = REAL_UNIT_CLASS_COUNT + 3;
 export const MEDIUM_PHALANX_SIDEARM_CLASS = REAL_UNIT_CLASS_COUNT + 4;
 export const PLACEHOLDER_RENDER_CLASS_COUNT = PLACEHOLDER_LOOKS.length;
 
-export interface SoldierMaterialMasks {
-  bronze: number;
-  iron: number;
-  linen: number;
-  leather: number;
-  skin: number;
-  factionMask: number;
-}
-
-export function soldierMaterialMasksFromColor(r: number, g: number, b: number): SoldierMaterialMasks {
-  const m = SOLDIER_MATERIAL_MASKS;
-  const bronze = smoothstep01(m.bronze.r[0], m.bronze.r[1], r) *
-    smoothstep01(m.bronze.g[0], m.bronze.g[1], g) *
-    (1.0 - smoothstep01(m.bronze.maxB[0], m.bronze.maxB[1], b));
-  const ironGrey = 1.0 - clamp01(Math.max(Math.abs(r - g), Math.abs(g - b), Math.abs(r - b)) * m.iron.greySpreadScale);
-  const iron = ironGrey * smoothstep01(m.iron.brightness[0], m.iron.brightness[1], (r + g + b) / 3);
-  const linen = smoothstep01(m.linen.r[0], m.linen.r[1], r) *
-    smoothstep01(m.linen.g[0], m.linen.g[1], g) *
-    smoothstep01(m.linen.b[0], m.linen.b[1], b) *
-    (1.0 - bronze);
-  const leather = smoothstep01(m.leather.r[0], m.leather.r[1], r) *
-    smoothstep01(m.leather.g[0], m.leather.g[1], g) *
-    (1.0 - smoothstep01(m.leather.maxB[0], m.leather.maxB[1], b));
-  const skin = smoothstep01(m.skin.r[0], m.skin.r[1], r) *
-    smoothstep01(m.skin.g[0], m.skin.g[1], g) *
-    smoothstep01(m.skin.b[0], m.skin.b[1], b) *
-    (1.0 - bronze);
-  const factionMask = smoothstep01(m.factionMask.blueDelta[0], m.factionMask.blueDelta[1], Math.max(b - Math.max(r, g), 0.0));
-  return { bronze, iron, linen, leather, skin, factionMask };
-}
-
 function addBox(
   out: number[],
   indices: number[],
   center: [number, number, number],
   size: [number, number, number],
   bone: number,
-  color: Rgba,
+  paint: Surface,
 ) {
   const [cx, cy, cz] = center;
   const sx = size[0] * 0.5;
@@ -154,9 +108,9 @@ function addBox(
     [[3, 7, 4, 0], [-1, 0, 0]],
   ];
   for (const [face, normal] of faces) {
-    const base = out.length / 11;
+    const base = out.length / 13;
     for (const idx of face) {
-      out.push(...corners[idx], ...normal, ...color, bone);
+      out.push(...corners[idx], ...normal, ...paint.color, bone, paint.materialId, paint.factionMask);
     }
     indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
   }
@@ -169,7 +123,7 @@ function addSegmentBox(
   b: [number, number, number],
   thickness: number,
   bone: number,
-  color: Rgba,
+  paint: Surface,
 ) {
   const axis = normalize([b[0] - a[0], b[1] - a[1], b[2] - a[2]]);
   const sideSeed: [number, number, number] = Math.abs(axis[2]) > 0.8 ? [1, 0, 0] : [0, 0, 1];
@@ -201,9 +155,9 @@ function addSegmentBox(
     [[1, 3, 7, 5], up],
   ];
   for (const [face, normal] of faces) {
-    const base = out.length / 11;
+    const base = out.length / 13;
     for (const idx of face) {
-      out.push(...corners[idx], ...normal, ...color, bone);
+      out.push(...corners[idx], ...normal, ...paint.color, bone, paint.materialId, paint.factionMask);
     }
     indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
   }
@@ -226,33 +180,33 @@ function distance(a: [number, number, number], b: [number, number, number]): num
   return Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
 }
 
-export function createPlaceholderSoldierMeshes(armBandMaskRgb: [number, number, number] = [0.06, 0.1, 0.98]): SoldierMeshData[] {
-  return PLACEHOLDER_LOOKS.map((_, classId) => createPlaceholderSoldierMesh(armBandMaskRgb, classId));
+export function createPlaceholderSoldierMeshes(armBandSrgb: [number, number, number] = [0.06, 0.1, 0.98]): SoldierMeshData[] {
+  return PLACEHOLDER_LOOKS.map((_, classId) => createPlaceholderSoldierMesh(armBandSrgb, classId));
 }
 
 /** L0 full / L1 reduced silhouette equipment / L2 coarse body+head+legs.
  *  Tiers skin to the same bones, so one VAT drives every tier. */
-export function createPlaceholderSoldierMeshTiers(armBandMaskRgb: [number, number, number] = [0.06, 0.1, 0.98]): SoldierMeshData[][] {
-  return PLACEHOLDER_LOOKS.map((_, classId) => [0, 1, 2].map((lod) => createPlaceholderSoldierMesh(armBandMaskRgb, classId, lod)));
+export function createPlaceholderSoldierMeshTiers(armBandSrgb: [number, number, number] = [0.06, 0.1, 0.98]): SoldierMeshData[][] {
+  return PLACEHOLDER_LOOKS.map((_, classId) => [0, 1, 2].map((lod) => createPlaceholderSoldierMesh(armBandSrgb, classId, lod)));
 }
 
 export function createPlaceholderSoldierMesh(
-  armBandMaskRgb: [number, number, number] = [0.06, 0.1, 0.98],
+  armBandSrgb: [number, number, number] = [0.06, 0.1, 0.98],
   classId = 0,
   lod = 0,
 ): SoldierMeshData {
   const v: number[] = [];
   const indices: number[] = [];
   const look = PLACEHOLDER_LOOKS[Math.max(0, Math.min(PLACEHOLDER_LOOKS.length - 1, Math.floor(classId)))] ?? PLACEHOLDER_LOOKS[0];
-  const linen: Rgba = armorColor(look.armor);
-  const bronze: Rgba = [0.76, 0.48, 0.18, 1];
-  const iron: Rgba = [0.62, 0.63, 0.62, 1];
-  const leather: Rgba = look.armor === 'rag' ? [0.32, 0.22, 0.13, 1] : [0.35, 0.23, 0.13, 1];
-  const horse: Rgba = [0.38, 0.27, 0.17, 1];
-  const horseBlanket: Rgba = [0.43, 0.34, 0.22, 1];
-  const shieldHide: Rgba = [0.50, 0.39, 0.26, 1];
-  const horsehair: Rgba = [0.19, 0.13, 0.08, 1];
-  const armBandMask: Rgba = [armBandMaskRgb[0], armBandMaskRgb[1], armBandMaskRgb[2], 1];
+  const body = surface(armorColor(look.armor), look.armor === 'heavy' ? 'bronze' : look.armor === 'medium' ? 'leather' : 'cloth');
+  const bronze = surface([0.76, 0.48, 0.18, 1], 'bronze');
+  const iron = surface([0.62, 0.63, 0.62, 1], 'iron');
+  const leather = surface(look.armor === 'rag' ? [0.32, 0.22, 0.13, 1] : [0.35, 0.23, 0.13, 1], 'leather');
+  const horse = surface([0.38, 0.27, 0.17, 1], 'hair');
+  const horseBlanket = surface([0.43, 0.34, 0.22, 1], 'cloth');
+  const shieldHide = surface([0.50, 0.39, 0.26, 1], 'leather');
+  const horsehair = surface([0.19, 0.13, 0.08, 1], 'hair');
+  const armBand = surface([...armBandSrgb, 1], 'cloth', 1);
   const riderLift = look.mounted ? 0.42 : 0;
   if (look.mounted) {
     addBox(v, indices, [0, -0.04, 0.86], [0.54, 1.18, 0.38], 0, horse);
@@ -267,21 +221,21 @@ export function createPlaceholderSoldierMesh(
     addBox(v, indices, [0.24, 0.34, 0.48], [0.12, 0.14, 0.72], 0, horse);
     if (lod < 1) addBox(v, indices, [0, -0.02, 1.17], [0.46, 0.34, 0.12], 0, horseBlanket);
   }
-  addBox(v, indices, [0, 0.02, 1.33 + riderLift], [0.48, 0.28, 0.52], 1, linen);
+  addBox(v, indices, [0, 0.02, 1.33 + riderLift], [0.48, 0.28, 0.52], 1, body);
   addBox(v, indices, [0, 0.02, 0.98 + riderLift], [0.48, 0.28, 0.18], 1, leather);
-  addBox(v, indices, [0, 0.02, 1.82 + riderLift], [0.30, 0.24, 0.30], 2, helmetColor(look.helmet, bronze, linen));
+  addBox(v, indices, [0, 0.02, 1.82 + riderLift], [0.30, 0.24, 0.30], 2, helmetSurface(look.helmet, bronze, body));
   // L2 keeps only body, head, legs (the readable silhouette); L0/L1 add arms.
   if (lod < 2) {
     addBox(v, indices, [-0.34, 0.02, 1.28 + riderLift], [0.18, 0.18, 0.58], 3, leather);
     addBox(v, indices, [0.34, 0.02, 1.28 + riderLift], [0.18, 0.18, 0.58], 4, leather);
-    addArmBand(v, indices, armBandMask, riderLift);
+    addArmBand(v, indices, armBand, riderLift);
   }
   if (look.mounted) {
     // Rider legs straddle the horse's flanks. They ride the hips bone (0), not
     // the leg bones, so the march/run leg swing never kicks while mounted. Linen,
     // not leather — leather thighs vanish against the near-identical horse coat.
-    addBox(v, indices, [-0.31, 0.10, 1.04], [0.14, 0.18, 0.52], 0, linen);
-    addBox(v, indices, [0.31, 0.10, 1.04], [0.14, 0.18, 0.52], 0, linen);
+    addBox(v, indices, [-0.31, 0.10, 1.04], [0.14, 0.18, 0.52], 0, surface(body.color, 'cloth'));
+    addBox(v, indices, [0.31, 0.10, 1.04], [0.14, 0.18, 0.52], 0, surface(body.color, 'cloth'));
   } else {
     addBox(v, indices, [-0.17, 0, 0.58], [0.18, 0.18, 0.78], 5, leather);
     addBox(v, indices, [0.17, 0, 0.58], [0.18, 0.18, 0.78], 6, leather);
@@ -291,7 +245,7 @@ export function createPlaceholderSoldierMesh(
     addHelmet(v, indices, look, horsehair, bronze, riderLift);
   }
   if (lod < 2) {
-    addWeapon(v, indices, look, lod, leather, bronze, iron, riderLift);
+    addWeapon(v, indices, look, lod, surface(leather.color, 'wood'), bronze, iron, riderLift);
   }
   return splitInterleaved(new Float32Array(v), new Uint16Array(indices));
 }
@@ -306,14 +260,14 @@ function armorColor(armor: Armor): Rgba {
   }
 }
 
-function helmetColor(helmet: Helmet, bronze: Rgba, linen: Rgba): Rgba {
-  if (helmet === 'bare') return [0.72, 0.50, 0.34, 1];
-  if (helmet === 'hood') return [0.34, 0.31, 0.24, 1];
-  if (helmet === 'cap') return linen;
+function helmetSurface(helmet: Helmet, bronze: Surface, body: Surface): Surface {
+  if (helmet === 'bare') return surface([0.72, 0.50, 0.34, 1], 'skin');
+  if (helmet === 'hood') return surface([0.34, 0.31, 0.24, 1], 'cloth');
+  if (helmet === 'cap') return surface(body.color, 'cloth');
   return bronze;
 }
 
-function addHelmet(out: number[], indices: number[], look: PlaceholderLook, horsehair: Rgba, bronze: Rgba, lift: number) {
+function addHelmet(out: number[], indices: number[], look: PlaceholderLook, horsehair: Surface, bronze: Surface, lift: number) {
   if (look.helmet === 'bare' || look.helmet === 'hood') return;
   if (look.helmet === 'crested') {
     addBox(out, indices, [0, 0.04, 2.02 + lift], [0.38, 0.08, 0.12], 2, horsehair);
@@ -325,11 +279,11 @@ function addHelmet(out: number[], indices: number[], look: PlaceholderLook, hors
   }
 }
 
-function addArmBand(out: number[], indices: number[], accent: Rgba, lift: number) {
+function addArmBand(out: number[], indices: number[], accent: Surface, lift: number) {
   addBox(out, indices, [0.34, 0.02, 1.42 + lift], [0.205, 0.205, 0.070], 4, accent);
 }
 
-function addShield(out: number[], indices: number[], shield: Shield, shieldHide: Rgba, bronze: Rgba, lift: number) {
+function addShield(out: number[], indices: number[], shield: Shield, shieldHide: Surface, bronze: Surface, lift: number) {
   if (shield === 'none') return;
   const size: Record<Exclude<Shield, 'none'>, [number, number, number]> = {
     tall: [0.17, 0.13, 0.78],
@@ -341,12 +295,12 @@ function addShield(out: number[], indices: number[], shield: Shield, shieldHide:
   addBox(out, indices, [-0.41 - size[shield][0] * 0.5, 0.00, 1.29 + lift], [0.05, 0.14, 0.14], 3, bronze);
 }
 
-function addWeapon(out: number[], indices: number[], look: PlaceholderLook, lod: number, wood: Rgba, bronze: Rgba, iron: Rgba, lift: number) {
+function addWeapon(out: number[], indices: number[], look: PlaceholderLook, lod: number, wood: Surface, bronze: Surface, iron: Surface, lift: number) {
   const weapon = look.weapon;
   const rightHand: [number, number, number] = [0.38, 0.02, 1.02 + lift];
   const leftHand: [number, number, number] = [-0.38, 0.02, 1.04 + lift];
   const poleTipColor = iron;
-  const skin: Rgba = [0.72, 0.50, 0.34, 1];
+  const skin = surface([0.72, 0.50, 0.34, 1], 'skin');
   // A fist where the shaft crosses hand height, so the weapon reads as held.
   const addHand = (at: [number, number, number], bone = 4) => {
     addBox(out, indices, at, [0.11, 0.13, 0.11], bone, skin);
@@ -379,7 +333,7 @@ function addWeapon(out: number[], indices: number[], look: PlaceholderLook, lod:
     addSegmentBox(out, indices, [-0.40, 0.06, 1.50 + lift], upper, 0.060, 3, wood);
     if (!detail) return;
     addSegmentBox(out, indices, [grip[0], grip[1] - 0.02, grip[2] - 0.12], [grip[0], grip[1] + 0.02, grip[2] + 0.12], 0.070, 3, wood);
-    addSegmentBox(out, indices, lower, upper, 0.030, 3, iron);
+    addSegmentBox(out, indices, lower, upper, 0.030, 3, surface(iron.color, 'cloth'));
     addHand([-0.39, 0.02, 1.04 + lift], 3);
     if (look.mounted) addBox(out, indices, [0.30, -0.08, 1.46 + lift], [0.10, 0.42, 0.10], 1, wood);
   };
@@ -459,20 +413,9 @@ function addWeapon(out: number[], indices: number[], look: PlaceholderLook, lod:
   }
 }
 
-export function soldierMaterialIdentity() {
-  return {
-    identity: SOLDIER_MATERIAL_IDENTITY,
-    channels: Object.keys(SOLDIER_MATERIAL_CHANNELS),
-    mapping: SOLDIER_MATERIAL_CHANNELS,
-    masks: SOLDIER_MATERIAL_MASKS,
-    pbr: SOLDIER_PBR_VALUES,
-  };
-}
-
-/** Split stride-11 interleaved soldier vertices (position, normal, RGBA,
- *  bone) from the procedural placeholder builder into canonical attributes. */
-export function splitInterleaved(vertices: Float32Array, indices: Uint16Array | Uint32Array): SoldierMeshData {
-  const count = vertices.length / 11;
+/** Historical palette entries are sRGB; canonical mesh colors are linear. */
+function splitInterleaved(vertices: Float32Array, indices: Uint16Array | Uint32Array): SoldierMeshData {
+  const count = vertices.length / 13;
   const positions = new Float32Array(count * 3);
   const normals = new Float32Array(count * 3);
   const colors = new Float32Array(count * 4);
@@ -483,10 +426,16 @@ export function splitInterleaved(vertices: Float32Array, indices: Uint16Array | 
   const materialIds = new Float32Array(count);
   const factionMasks = new Float32Array(count);
   for (let i = 0; i < count; i++) {
-    const o = i * 11;
+    const o = i * 13;
     positions.set(vertices.subarray(o, o + 3), i * 3);
     normals.set(vertices.subarray(o + 3, o + 6), i * 3);
-    colors.set(vertices.subarray(o + 6, o + 10), i * 4);
+    for (let channel = 0; channel < 3; channel++) {
+      const srgb = vertices[o + 6 + channel];
+      colors[i * 4 + channel] = srgb <= 0.04045 ? srgb / 12.92 : ((srgb + 0.055) / 1.055) ** 2.4;
+    }
+    colors[i * 4 + 3] = vertices[o + 9];
+    materialIds[i] = vertices[o + 11];
+    factionMasks[i] = vertices[o + 12];
     joints[i * 4] = vertices[o + 10];
     weights[i * 4] = 1;
     // Placeholder content has no normal maps; give its flat faces an
@@ -497,13 +446,4 @@ export function splitInterleaved(vertices: Float32Array, indices: Uint16Array | 
     tangents.set(length > 0 ? [-ny / length, nx / length, 0, 1] : [1, 0, 0, 1], i * 4);
   }
   return { positions, normals, colors, joints, weights, uvs, tangents, materialIds, factionMasks, indices };
-}
-
-function smoothstep01(edge0: number, edge1: number, x: number): number {
-  const t = clamp01((x - edge0) / (edge1 - edge0));
-  return t * t * (3 - 2 * t);
-}
-
-function clamp01(x: number): number {
-  return Math.max(0, Math.min(1, x));
 }

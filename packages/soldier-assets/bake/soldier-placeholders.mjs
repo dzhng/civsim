@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bakeRig, mat4FromTRS } from './vat.mjs';
-import { createPlaceholderSoldierMeshTiers } from '../src/soldierMesh.ts';
+import { createPlaceholderSoldierMeshTiers, PLACEHOLDER_MATERIALS } from '../src/soldierMesh.ts';
 import { encodeSoldierMesh } from '../src/appearanceBundle.ts';
 import { deriveAnimatedBounds } from './animated-bounds.mjs';
 
@@ -118,9 +118,7 @@ function completeBundleFiles(rig, animation) {
     'baked/human-placeholder.skeleton.json': {
       ...rig, bones: rig.bones.map((bone) => ({ ...bone, inverseBind: Array.from(bone.inverseBind) })),
     },
-    'baked/placeholder.materials.json': [{
-      name: 'placeholder-vertex-color', baseColor: [1, 1, 1, 1], roughness: 0.84, metallic: 0,
-    }],
+    'baked/placeholder.materials.json': PLACEHOLDER_MATERIALS,
   };
   const appearances = {};
   const meshes = createPlaceholderSoldierMeshTiers();

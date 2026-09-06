@@ -6,6 +6,7 @@ import { PlaybackPacker } from "@packages/renderer-core/src/playbackPacking";
 import {
   bakeLocalAnimation,
   decodeLocalSample,
+  packLocalPose,
   type LocalAnimation,
 } from "@packages/soldier-assets/src/localAnimation";
 import type { ImportedRig } from "@packages/soldier-assets/src/rig";
@@ -44,6 +45,20 @@ const rig: ImportedRig = {
   ],
 };
 const frozen = (x: number) => Object.freeze([x, 0, 0, 0, 0, 0, 1, 1, 1, 1]);
+
+test("direct immutable and Float64 locals produce identical packed bytes with unchanged admission", () => {
+  const immutable = Object.freeze([-0, 1 / 3, -2, 0.1, 0.2, 0.3, 0.9, 2, 3, 4]);
+  const typed: LocalPose = Float64Array.from(immutable);
+  assert.deepEqual(
+    Buffer.from(packLocalPose(immutable).buffer),
+    Buffer.from(packLocalPose(typed).buffer),
+  );
+  assert.throws(() => packLocalPose(Object.freeze([1, 2, 3])), /T3\/R4\/S3/);
+  assert.throws(
+    () => packLocalPose(Object.freeze([1e300, ...immutable.slice(1)])),
+    /finite in Float32/,
+  );
+});
 const playback = (locals: readonly number[]): SoldierPlayback => ({
   appearanceId: 0,
   base: {

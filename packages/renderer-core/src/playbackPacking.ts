@@ -67,7 +67,7 @@ export class PlaybackPacker {
         const slot = free++;
         next.set(source, slot);
         occupied.add(slot);
-        uploads.push({ slot, data: packLocalPose(Float64Array.from(source)) });
+        uploads.push({ slot, data: packLocalPose(source) });
       }
     const controls = new Uint32Array(inputs.length * PLAYBACK_WORDS);
     const floats = new Float32Array(controls.buffer);

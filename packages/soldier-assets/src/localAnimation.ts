@@ -37,15 +37,18 @@ export interface ResolvedLocalSample {
 }
 
 /** Same packing for authored samples and controller-owned frozen local poses. */
-export function packLocalPose(locals: LocalPose): Float32Array {
+export function packLocalPose(locals: LocalPose | readonly number[]): Float32Array {
   if (locals.length % 10 !== 0) throw new Error("local poses require a T3/R4/S3 joint layout");
   const data = new Float32Array((locals.length / 10) * LOCAL_ANIMATION_FLOATS_PER_JOINT);
   for (let joint = 0; joint < locals.length / 10; joint++) {
     const input = joint * 10,
       output = joint * LOCAL_ANIMATION_FLOATS_PER_JOINT;
-    data.set(locals.subarray(input, input + 3), output);
-    data.set(locals.subarray(input + 3, input + 7), output + 4);
-    data.set(locals.subarray(input + 7, input + 10), output + 8);
+    for (let axis = 0; axis < 3; axis++) {
+      data[output + axis] = locals[input + axis];
+      data[output + 8 + axis] = locals[input + 7 + axis];
+    }
+    for (let component = 0; component < 4; component++)
+      data[output + 4 + component] = locals[input + 3 + component];
   }
   if (data.some((value) => !Number.isFinite(value)))
     throw new Error("local animation values must be finite in Float32");

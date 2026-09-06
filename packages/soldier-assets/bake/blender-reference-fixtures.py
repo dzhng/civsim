@@ -380,12 +380,13 @@ def export_fixture(name, build):
           f"{len(samples)} samples, maximum {maximum_weights} influences")
 
 
-OUTPUT.mkdir(parents=True, exist_ok=True)
-failures = []
-for fixture_name, builder in (("human", human), ("mounted", mounted)):
-    try:
-        export_fixture(fixture_name, builder)
-    except Exception as error:
-        failures.append(f"{fixture_name}: {error}")
-if failures:
-    raise RuntimeError("; ".join(failures))
+if __name__ == "__main__":
+    OUTPUT.mkdir(parents=True, exist_ok=True)
+    failures = []
+    for fixture_name, builder in (("human", human), ("mounted", mounted)):
+        try:
+            export_fixture(fixture_name, builder)
+        except Exception as error:
+            failures.append(f"{fixture_name}: {error}")
+    if failures:
+        raise RuntimeError("; ".join(failures))

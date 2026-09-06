@@ -1,0 +1,25 @@
+{
+  "name": "six-material-swatches",
+  "mounted": false,
+  "skeleton": "skeleton.json",
+  "animation": "animation.json",
+  "materials": "materials.json",
+  "tiers": [
+    "tier-0.mesh.json",
+    "tier-1.mesh.json",
+    "tier-2.mesh.json"
+  ],
+  "far": {
+    "mesh": "tier-0.mesh.json",
+    "clip": "bend",
+    "phase": 0
+  },
+  "bounds": {
+    "center": [
+      0.4382672905921936,
+      -0.5502896159887314,
+      1.6100001335144043
+    ],
+    "radius": 2.5126996731468823
+  }
+}

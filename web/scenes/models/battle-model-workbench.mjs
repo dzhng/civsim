@@ -1,4 +1,5 @@
 import { PNG } from "pngjs";
+import { requireSwiftShaderBaseline } from "./_swiftshader-baseline.mjs";
 import { PHOTOREAL_SUBSTRATE } from "../../../packages/photoreal-renderer/src/stats.ts";
 
 export const meta = {
@@ -18,6 +19,7 @@ export const meta = {
 };
 
 export async function run(ctx) {
+  requireSwiftShaderBaseline(meta.name);
   const page = await ctx.newPage({ viewport: { width: 1280, height: 800 } });
   try {
     await page.goto(`${ctx.target}/renderer/battle-models?ref=1`);

@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { PNG } from "pngjs";
+import { requireSwiftShaderBaseline } from "./_swiftshader-baseline.mjs";
 import { PHOTOREAL_SUBSTRATE } from "../../../packages/photoreal-renderer/src/stats.ts";
 
 export const meta = {
@@ -13,6 +14,7 @@ export const meta = {
 };
 
 export async function run(ctx) {
+  requireSwiftShaderBaseline(meta.name);
   const page = await ctx.newPage({ viewport: { width: 1280, height: 800 } });
   const catalog = "/assets/soldiers/candidates/blender-reference/catalog.json";
   try {

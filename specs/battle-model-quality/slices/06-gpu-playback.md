@@ -8,6 +8,30 @@ CPU timeline outputs mean the same pose on GPU, including clip ends and transiti
 
 API seam: photoreal crowd instance payload and VAT sampler share crowd-runtime playback data; interpolate adjacent samples, crossfade clips and compose one rider-upper-body override over mounted locomotion. Blend local joint transforms before hierarchy evaluation; horse, rider pelvis and legs retain gait. Death overrides the whole composite. This bounded pose-composition seam is not a general animation graph.
 
+Prerequisite in05: promote the existing bake pose math into a shared CPU local-pose evaluator in `soldier-assets`, sampling the already loaded `ImportedRig` tracks with their STEP/LINEAR and shortest-arc quaternion semantics. This does not change the GPU animation encoding. The controller uses that evaluator to capture exact interrupted poses before05 acceptance;06 must transport those results, not repair approximate endpoint substitution.
+
+### Bounded interruption contract
+
+The timeline owns a source that is either a clip sample or one frozen local-TRS pose, with a destination clip sample and blend weight. It may also own one rider-upper-body lane with the same source choices; that lane's destination is either a clip sample or the **evaluated current base pose**. Reuse the shared local-pose type rather than declaring renderer-specific snapshots. These are proposed semantics, not a second declaration of the eventual05 types.
+
+Capture the old evaluated state at the event time before changing tracks. A base interruption freezes the base locals; an overlay interruption freezes the displayed masked locals while the unmasked base keeps advancing. Overlay exit blends toward the advancing, fully evaluated base, including any base crossfade. Full-body hit/death freezes the complete composed pose, clears the overlay and transitions the whole skeleton. At the new weight0 the displayed pose must agree with the old pose within measured floating-point error. Matching angular velocity is not promised.
+
+Keep at most one frozen source per active lane, recycle it after use, and never accumulate nested blend histories. Reset/reload and incompatible appearance changes follow05's explicit identity policy; snapshots cannot silently cross skeletons. GPU packing and slot lifetime belong to the renderer, but cannot mutate controller-owned snapshots still referenced by playback.
+
+### Execution rows
+
+Complete these rows in order; record their actual commands and evidence here as they land. No row is accepted by this planning pass.
+
+| Row | Contract and artifact | Required verdict |
+| --- | --- | --- |
+| 06a — sampled local data | Canonical GPU local-TRS bake/schema and CPU decoding oracle, using05's shared pose evaluator. Settle representation, sample error, STEP discontinuities and conservative interpolated/composed bounds before GPU transport. | Original-track versus decoded samples at endpoints and fractional times; shortest-arc rotations, bind defaults, STEP boundaries, mounted combinations and long-weapon extrema. A box around integer samples alone is insufficient. |
+| 06b — playback transport | Cut over Three and retained raw consumers to resolved local samples, base blend and optional masked override; transport frozen sources and derive joint palettes before weighted skinning. Far's fixed manifest pose uses the shared CPU evaluator; this row does not introduce animated impostors. | CPU/GPU position and normal/tangent agreement, visible/shadow agreement, snapshot slot reuse, allocation failure and atomic reload rollback. Rebuild every internal bundle and remove the old matrix-animation reader in the same coherent cutover; derived skin matrices are not a second animation format. |
+| 06c — temporal acceptance | Production workbench fixture and named scene for fractional locomotion, interrupted actions, mounted overlay entry/exit and terminal death. | Repeated interruptions on both sides of blend midpoint preserve the displayed pose; overlay exit converges to the moving base even during its crossfade; full-body death begins continuously and holds its final sample. Deterministic pause/replay and bounded storage remain required. |
+
+06a may prepare producer/CPU changes independently, but do not expose a changed runtime asset format until all06b consumers are ready. Keep04's weighted normal/tangent and fragment normal-map contracts unchanged. Use the authored mounted diagnostic to prove composition; runnable placeholder horses do not establish accepted articulated gait.
+
+For the [07 budget experiment](./07-budget-envelope.md), include synchronized interruption bursts, not just steady locomotion: controller snapshot evaluation time, CPU/GPU resident snapshot and palette bytes, upload bytes/time, slot reuse and disposal. Record measured bone/instance counts and packing. Snapshot uploads should follow changed snapshots rather than repeat every live frame; do not treat an illustrative allocation estimate as the accepted budget.
+
 Names of new functions/routes in this plan are proposed, not existing commands. Use the [shared acceptance contract](../README.md#acceptance-contract) and [architecture](../architecture.md) for inherited requirements.
 
 ## Runnable artifact

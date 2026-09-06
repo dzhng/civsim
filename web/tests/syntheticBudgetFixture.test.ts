@@ -13,7 +13,8 @@ import {
   BattleModelReplay,
   denseBattleModelReplayRecipe,
 } from "../../apps/renderer-lab/src/battleModelReplay";
-import { evaluatePlaybackPose } from "@packages/crowd-runtime/src/actionTimeline";
+import { ActionTimeline, evaluatePlaybackPose } from "@packages/crowd-runtime/src/actionTimeline";
+import { PlaybackPacker } from "@packages/renderer-core/src/playbackPacking";
 import type { AppearanceBundle } from "@packages/soldier-assets/src/appearanceBundle";
 import { decodeLocalSample, resolveLocalSample } from "@packages/soldier-assets/src/localAnimation";
 
@@ -33,6 +34,77 @@ const source = await loadAppearanceBundle(
   "http://fixture/candidates/blender-reference/mounted/appearance.json",
 );
 vi.unstubAllGlobals();
+
+test("staggered mounted observations expose distinct weighted frozen poses without long setup", () => {
+  const fixture = syntheticBudgetFixture(source);
+  for (const count of [3, 9]) {
+    const timeline = new ActionTimeline({ 41: fixture });
+    const observations = (tick: number) =>
+      Array.from({ length: count }, (_, index) => ({
+        appearanceId: 41,
+        alive: true,
+        health: 100,
+        mountHealth: 100,
+        speedMps: tick >= [1, 3, 6][index % 3] ? 1 : 0,
+        running: tick >= 13,
+        atEase: false,
+        pikeReady: false,
+        fighting: false,
+        releaseTtl: tick >= 12 && tick < 18 ? 0.5 - (tick - 12) / 30 : 0,
+        releaseAgeSeconds: tick >= 12 && tick < 18 ? (tick - 12) / 30 : 0,
+      }));
+    for (let tick = 0; tick <= 13; tick++) timeline.update(tick, observations(tick));
+    const values = timeline.sample();
+    const sources = values.flatMap((value) => [value.base.source, value.riderUpperBody!.source]);
+    const posed = sources.map((value) => {
+      assert.ok(value.kind === "frozen", "expected interrupted source");
+      return Array.from(
+        poseSoldierMesh(
+          fixture.tiers[0],
+          localPoseToJointMatrices(fixture.rig, Float64Array.from(value.locals)),
+        ).positions,
+      );
+    });
+    assert.equal(new Set(posed.map((positions) => JSON.stringify(positions))).size, 6);
+    const packer = new PlaybackPacker(fixture.rig, fixture.animation);
+    const frame = packer.prepare(
+      count,
+      (index) => values[index],
+      () => 0,
+    );
+    assert.ok(frame.requiredSnapshotSlots >= 6 && frame.requiredSnapshotSlots <= count * 2);
+    assert.equal(frame.residentSnapshotCount, new Set(sources).size);
+    assert.equal(
+      frame.uploads.reduce((bytes, upload) => bytes + upload.data.byteLength, 0),
+      frame.residentSnapshotCount * fixture.animation.bones * 48,
+    );
+    process.stdout.write(
+      JSON.stringify({
+        bodies: count,
+        distinctPosedMeshes: 6,
+        snapshotSlots: frame.requiredSnapshotSlots,
+        controllerSnapshotBytes: timeline.snapshotBytes,
+      }) + "\n",
+    );
+    packer.commitPrepared(frame);
+    const repeated = packer.prepare(
+      count,
+      (index) => values[index],
+      () => 0,
+    );
+    assert.deepEqual(repeated.uploads, []);
+    packer.commitPrepared(repeated);
+    for (let tick = 14; tick <= 24; tick++) timeline.update(tick, observations(tick));
+    const completed = timeline.sample();
+    const retired = packer.prepare(
+      count,
+      (index) => completed[index],
+      () => 0,
+    );
+    assert.equal(retired.requiredSnapshotSlots, 0);
+    assert.equal(timeline.snapshotBytes, 0);
+  }
+});
 
 function assertSameMotion(a: AppearanceBundle, b: AppearanceBundle) {
   const replays = [a, b].map(

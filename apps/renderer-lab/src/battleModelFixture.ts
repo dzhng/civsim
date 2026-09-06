@@ -11,6 +11,7 @@ export interface BattleModelPose {
   yaw: number;
   pitch: number;
   zoom: number;
+  target: [number, number, number];
 }
 
 export const DEFAULT_MODEL_POSE: BattleModelPose = {
@@ -21,6 +22,7 @@ export const DEFAULT_MODEL_POSE: BattleModelPose = {
   yaw: 0.45,
   pitch: 1.15,
   zoom: 190,
+  target: [0, 0, 1.05],
 };
 
 export function modelInstances(
@@ -52,11 +54,11 @@ export function modelCamera(
   height: number,
 ): BattleCameraSnapshot {
   const camera3d = chartCamera3d(
-    { x: 0, y: 0, zoom: pose.zoom, yaw: pose.yaw, pitch: pose.pitch },
+    { x: pose.target[0], y: pose.target[1], zoom: pose.zoom, yaw: pose.yaw, pitch: pose.pitch },
     height,
   );
   camera3d.aspect = width / height;
-  camera3d.target = [0, 0, 1.05];
+  camera3d.target = [...pose.target];
   camera3d.far = 4000;
-  return { x: 0, y: 0, zoom: pose.zoom, zoomT: 1, camera3d };
+  return { x: pose.target[0], y: pose.target[1], zoom: pose.zoom, zoomT: 1, camera3d };
 }

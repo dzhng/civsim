@@ -1,0 +1,527 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-06T02:41:29.777Z",
+  "target": "http://localhost:5177",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "battle-model-workbench",
+      "file": "models/battle-model-workbench.mjs",
+      "kind": "visual",
+      "tier": "full"
+    },
+    {
+      "name": "blender-production-candidates",
+      "file": "models/blender-production-candidates.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-model-workbench",
+      "name": "heavy-front: production path and submitted count",
+      "ok": true,
+      "detail": "{\"substrate\":\"threejs-webgpu-tsl\",\"soldiers\":1}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "heavy-front: readable foreground model coverage",
+      "ok": true,
+      "detail": "22732"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/heavy-front",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "heavy-front: frozen frame is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "phalanx-side: production path and submitted count",
+      "ok": true,
+      "detail": "{\"substrate\":\"threejs-webgpu-tsl\",\"soldiers\":1}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "phalanx-side: readable foreground model coverage",
+      "ok": true,
+      "detail": "10232"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/phalanx-side",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "phalanx-side: frozen frame is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "formation: production path and submitted count",
+      "ok": true,
+      "detail": "{\"substrate\":\"threejs-webgpu-tsl\",\"soldiers\":16}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "formation: readable foreground model coverage",
+      "ok": true,
+      "detail": "35416"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/formation",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "formation: frozen frame is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "local bake reload keeps identical production pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "failed reload is explicit and preserves last good crowd",
+      "ok": true,
+      "detail": "{\"ok\":false,\"error\":\"SyntaxError: Unexpected token 'm', \\\"malformed fixture\\\" is not valid JSON\"}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "incompatible reload retains the active appearance",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "incompatible reload retains the active appearance-specific clip",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "truncated animation matrix data is rejected explicitly",
+      "ok": true,
+      "detail": "{\"ok\":false,\"error\":\"Error: appearance animation matrix data does not match its dimensions\"}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "invalid VAT retry 0: no orphaned scene meshes",
+      "ok": true,
+      "detail": "{\"nodesBefore\":111,\"nodesAfter\":111}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "invalid VAT retry 1: no orphaned scene meshes",
+      "ok": true,
+      "detail": "{\"nodesBefore\":111,\"nodesAfter\":111}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "partially allocated replacement is rolled back without orphaned meshes",
+      "ok": true,
+      "detail": "{\"ok\":false,\"error\":\"Error: Injected replacement allocation failure\",\"before\":111,\"after\":111,\"peak\":113,\"attempts\":3}"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "rejected bundles preserve the last good production pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "battle submission replaces the retained formation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/submission-parity",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "battle adapter and explicit pose submission have identical pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/submission-parity",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "interactive clip playback and turntable change the rendered pose",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-workbench",
+      "name": "snapshot shared/soldiers/workbench/controls",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "candidate catalog initializes its own appearance and clip",
+      "ok": true,
+      "detail": "{\"classId\":40,\"clip\":\"bend\",\"phase\":0,\"formation\":false,\"yaw\":0.45,\"pitch\":1.15,\"zoom\":190,\"target\":[0,0,1.05]}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human: direct source clips are present",
+      "ok": true,
+      "detail": "[{\"name\":\"bend\",\"start\":0,\"frames\":25,\"duration\":1,\"loop\":false}]"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-0/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"bend\",\"phase\":0,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-0/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-0/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"bend\",\"phase\":0,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-0/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-6/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"bend\",\"phase\":0.25,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-6/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-6/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"bend\",\"phase\":0.25,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-6/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-12/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"bend\",\"phase\":0.5,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-12/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-12/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"bend\",\"phase\":0.5,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-12/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-24/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"bend\",\"phase\":1,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-24/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-24/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"bend\",\"phase\":1,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "human/bend-24/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "snapshot shared/soldiers/candidates/human",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted: direct source clips are present",
+      "ok": true,
+      "detail": "[{\"name\":\"gait\",\"start\":0,\"frames\":25,\"duration\":1,\"loop\":true},{\"name\":\"rider-action\",\"start\":25,\"frames\":25,\"duration\":1,\"loop\":false}]"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-0/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"gait\",\"phase\":0,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-0/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-0/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"gait\",\"phase\":0,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-0/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-6/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"gait\",\"phase\":0.25,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-6/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-6/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"gait\",\"phase\":0.25,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-6/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-12/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"gait\",\"phase\":0.5,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-12/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-12/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"gait\",\"phase\":0.5,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-12/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-24/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"gait\",\"phase\":1,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-24/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-24/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"gait\",\"phase\":1,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/gait-24/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-0/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"rider-action\",\"phase\":0,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-0/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-0/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"rider-action\",\"phase\":0,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-0/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-6/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"rider-action\",\"phase\":0.25,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-6/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-6/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"rider-action\",\"phase\":0.25,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-6/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-12/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"rider-action\",\"phase\":0.5,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-12/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-12/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"rider-action\",\"phase\":0.5,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-12/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-24/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"rider-action\",\"phase\":1,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-24/front: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-24/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"clip\":\"rider-action\",\"phase\":1,\"frame\":0}"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "mounted/rider-action-24/side: fresh render is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "snapshot shared/soldiers/candidates/mounted",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "candidate reload retains the chosen catalog and production pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-production-candidates",
+      "name": "bad candidate rebuild keeps its last good production render",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

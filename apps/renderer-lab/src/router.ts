@@ -13,11 +13,9 @@ import { route as routeLodTiers } from "./routes/lodTiers";
 import { route as routeMountedUnits } from "./routes/mountedUnits";
 import { route as routeSoldierMaterials } from "./routes/soldierMaterials";
 import { route as routePerClassVat } from "./routes/perClassVat";
-import { route as routeAssetWorkbench } from "./routes/assetWorkbench";
 import { route as routeCapabilities } from "./routes/capabilities";
 import { route as routeFaultInjection } from "./routes/faultInjection";
 import { route as routeFrameShell } from "./routes/frameShell";
-import { route as routeAssets } from "./routes/assets";
 import { route as routeCrowdData } from "./routes/crowdData";
 import { route as routeAnimationState } from "./routes/animationState";
 import { route as routeSkinnedSoldier } from "./routes/skinnedSoldier";
@@ -41,10 +39,8 @@ const routes: Record<string, LabRoute> = {
   "/renderer/mounted-units": routeMountedUnits,
   "/renderer/lod-tiers": routeLodTiers,
   "/renderer/battle-elevation": routeBattleElevation,
-  "/renderer/asset-workbench": routeAssetWorkbench,
   "/renderer/fault-injection": routeFaultInjection,
   "/renderer/frame-shell": routeFrameShell,
-  "/renderer/assets": routeAssets,
   "/renderer/crowd-data": routeCrowdData,
   "/renderer/animation-state": routeAnimationState,
   "/renderer/skinned-soldier": routeSkinnedSoldier,
@@ -146,17 +142,6 @@ function installStyles() {
     .fault-controls { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 12px; }
     .fault-button { border: 1px solid #7c5d3a; border-radius: 5px; background: #2c2418; color: #f2e3bd; padding: 7px 10px; font-size: 12px; cursor: pointer; }
     .fault-button:hover { background: #41331f; }
-    .asset-workbench { margin-top: 12px; padding: 9px; border: 1px solid #4d4432; border-radius: 6px; background: rgba(255,255,255,0.035); }
-    .asset-workbench.drag { border-color: #d6bb7a; background: rgba(214,187,122,0.10); }
-    .asset-workbench label { display: block; margin-bottom: 6px; color: #e8d7a8; font-size: 12px; font-weight: 700; }
-    .asset-workbench textarea { box-sizing: border-box; width: 100%; min-height: 128px; resize: vertical; border: 1px solid #40382b; border-radius: 5px; padding: 7px; background: #11110f; color: #e8dfcd; font: 11px ui-monospace, SFMono-Regular, Menlo, monospace; }
-    .asset-actions { display: flex; gap: 7px; align-items: center; margin-top: 8px; }
-    .asset-actions button, .asset-file { border: 1px solid #5d513d; border-radius: 5px; background: #27241d; color: #f2e3bd; padding: 6px 8px; font-size: 12px; cursor: pointer; }
-    .asset-actions button:hover, .asset-file:hover { background: #3a3224; }
-    .asset-file input { display: none; }
-    .asset-workbench p { margin: 8px 0 0; color: #bdb29b; font-size: 11px; line-height: 1.35; }
-    #asset-import-result { margin-top: 10px; }
-    #asset-import-result.bad table { border-color: #704235; }
     /* Same fixed-size, shrink-wrapping, no-scroll grid as the live #unitcards
        (unitCard.ts writes --cols/--card-w/--card-h). */
     .renderer-unitcards { position: absolute; bottom: 58px; left: 50%; transform: translateX(-50%); display: grid; width: max-content; max-width: calc(100% - 36px); grid-template-columns: repeat(var(--cols, 1), var(--card-w, 72px)); grid-auto-rows: var(--card-h, 96px); gap: 3px; justify-content: center; align-content: end; overflow: hidden; padding: 11px 12px; pointer-events: auto; background: radial-gradient(circle at 9px 9px, rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box, radial-gradient(circle at calc(100% - 9px) 9px, rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box, radial-gradient(circle at 9px calc(100% - 9px), rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box, radial-gradient(circle at calc(100% - 9px) calc(100% - 9px), rgba(234,204,142,0.95) 0 1.1px, rgba(58,42,22,0.95) 1.5px 2.7px, transparent 3.1px) padding-box, repeating-linear-gradient(96deg, rgba(255,228,168,0.035) 0 2px, rgba(0,0,0,0.04) 2px 4px) padding-box, linear-gradient(#5e4527, #2a1f11) padding-box, linear-gradient(#c79a54 0%, #6e5128 48%, #241a0e 100%) border-box; border: 4px solid transparent; border-radius: 5px; box-shadow: inset 0 1px 0 rgba(236,200,132,0.65), inset 0 0 0 2px rgba(16,10,5,0.78), inset 0 0 0 3px rgba(158,120,66,0.55), inset 0 -3px 8px rgba(0,0,0,0.6), 0 0 0 1px rgba(182,142,80,0.65), 0 9px 24px rgba(0,0,0,0.68); }

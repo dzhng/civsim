@@ -1,5 +1,4 @@
 import { PhotorealBattleWorld } from "@packages/photoreal-renderer/src/battle/battleWorld";
-import { createVatLayout } from "@packages/renderer-core/src/vatLayout";
 import {
   DEFAULT_MODEL_POSE,
   modelCamera,
@@ -11,8 +10,14 @@ import { type LabContext, el } from "../labShell";
 /** A review fixture, not a second renderer: terrain, shadows, pose sampling and post are production-owned. */
 export async function route(ctx: LabContext): Promise<void> {
   if (ctx.params.get("ref") === "1") ctx.root.classList.add("reference-shot");
-  const world = await PhotorealBattleWorld.create(ctx.canvas);
+  const world = await PhotorealBattleWorld.create(ctx.canvas, {
+    soldierCatalogUrl: ctx.params.get("catalog") ?? undefined,
+  });
   const pose = { ...DEFAULT_MODEL_POSE };
+  if (!world.soldierAssets[pose.classId])
+    pose.classId = Number(Object.keys(world.soldierAssets)[0]);
+  const initialClips = world.soldierAssets[pose.classId].animation.clips;
+  if (!initialClips.some((clip) => clip.name === pose.clip)) pose.clip = initialClips[0].name;
   const size = 32;
   world.setTerrain({
     w: size,
@@ -41,6 +46,7 @@ export async function route(ctx: LabContext): Promise<void> {
     <label><input id="model-formation" type="checkbox"> 4 × 4 formation</label>
     <div><button id="model-play">Play clip</button><button id="model-turn">Turntable</button></div>
     <button id="model-reload">Reload local bake</button>
+    <p>Import GLBs with the local appearance baker. Source errors are reported by that command.</p>
     <p id="model-load" role="status">Ready</p>`;
   ctx.panel.prepend(controls);
   const style = document.createElement("style");
@@ -90,7 +96,8 @@ export async function route(ctx: LabContext): Promise<void> {
   const set = (change: Partial<BattleModelPose>) => {
     const next = { ...pose, ...change };
     if (
-      ![next.phase, next.yaw, next.pitch, next.zoom].every(Number.isFinite) ||
+      ![next.phase, next.yaw, next.pitch, next.zoom, ...next.target].every(Number.isFinite) ||
+      next.target.length !== 3 ||
       next.zoom <= 0 ||
       next.phase < 0 ||
       next.phase > 1
@@ -156,6 +163,7 @@ export async function route(ctx: LabContext): Promise<void> {
   resize();
   const stats = () => ({
     pose: { ...pose },
+    catalog: world.soldierCatalogUrl,
     frame,
     reloads,
     error,
@@ -196,14 +204,13 @@ export async function route(ctx: LabContext): Promise<void> {
     const advancing = playing || turning;
     if (playing) {
       const animation = world.soldierAssets[pose.classId].animation;
-      const clip = createVatLayout(animation).clips.get(pose.clip)!;
-      pose.phase += (dt * animation.fps) / clip.frames;
-      if (clip.loop) pose.phase %= 1;
-      else if (pose.phase >= 1) {
-        pose.phase = 1;
+      const clip = animation.clips.find((clip) => clip.name === pose.clip)!;
+      pose.phase = clip.duration > 0 ? pose.phase + dt / clip.duration : 0;
+      if (clip.duration <= 0 || (!clip.loop && pose.phase >= 1)) {
+        if (clip.duration > 0) pose.phase = 1;
         playing = false;
         control("play").textContent = "Play clip";
-      }
+      } else if (clip.loop) pose.phase %= 1;
     }
     if (turning) pose.yaw = ((pose.yaw + dt * 0.3 + Math.PI) % (Math.PI * 2)) - Math.PI;
     if (dirty || advancing || frame < 3) {

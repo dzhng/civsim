@@ -73,7 +73,11 @@ export async function run(ctx) {
           if (png.data[p] + png.data[p + 1] + png.data[p + 2] < 230) dark++;
         }
       ctx.check(`${name}: readable foreground model coverage`, dark > 500, String(dark));
-      await ctx.snap(page, `shared/soldiers/workbench/${name}`, { shot });
+      await ctx.snap(page, `shared/soldiers/workbench/${name}`, {
+        shot,
+        threshold: 0,
+        maxDiffRatio: 0,
+      });
       const repeat = await page.screenshot();
       ctx.check(`${name}: frozen frame is byte-stable`, shot.equals(repeat));
     }
@@ -128,6 +132,19 @@ export async function run(ctx) {
     ctx.check(
       "incompatible reload retains the active appearance-specific clip",
       !missingClip.ok && missingClip.error.includes("active appearance"),
+    );
+    await page.unroute(animationUrl);
+    await page.route(animationUrl, async (route) => {
+      const response = await route.fetch();
+      const animation = await response.json();
+      animation.data.pop();
+      await route.fulfill({ json: animation });
+    });
+    const truncated = await page.evaluate(() => window.__battleModels.reload());
+    ctx.check(
+      "truncated animation matrix data is rejected explicitly",
+      !truncated.ok && truncated.error.includes("matrix data"),
+      JSON.stringify(truncated),
     );
     await page.unroute(animationUrl);
     const nodesBefore = await page.evaluate(
@@ -212,7 +229,11 @@ export async function run(ctx) {
       await page.evaluate(() => window.__battleModels.world.stats().soldiers === 1),
     );
     const fromBattle = await page.screenshot();
-    await ctx.snap(page, "shared/soldiers/workbench/submission-parity", { shot: fromBattle });
+    await ctx.snap(page, "shared/soldiers/workbench/submission-parity", {
+      shot: fromBattle,
+      threshold: 0,
+      maxDiffRatio: 0,
+    });
     const instanceModule = new URL(
       "../../../packages/crowd-runtime/src/instanceData.ts",
       import.meta.url,
@@ -241,7 +262,11 @@ export async function run(ctx) {
       "battle adapter and explicit pose submission have identical pixels",
       fromBattle.equals(fromExplicitPose),
     );
-    await ctx.snap(page, "shared/soldiers/workbench/submission-parity", { shot: fromExplicitPose });
+    await ctx.snap(page, "shared/soldiers/workbench/submission-parity", {
+      shot: fromExplicitPose,
+      threshold: 0,
+      maxDiffRatio: 0,
+    });
     await page.evaluate(() =>
       document.querySelector(".renderer-lab").classList.remove("reference-shot"),
     );
@@ -276,7 +301,7 @@ export async function run(ctx) {
     await page.waitForFunction(() => window.__battleModels.stats().reloads === 2);
     await page.waitForTimeout(300);
     await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
-    await ctx.snap(page, "shared/soldiers/workbench/controls");
+    await ctx.snap(page, "shared/soldiers/workbench/controls", { threshold: 0, maxDiffRatio: 0 });
   } finally {
     await page.close();
   }

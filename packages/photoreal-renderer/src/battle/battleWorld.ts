@@ -156,6 +156,7 @@ export class PhotorealBattleWorld {
     environment: BattleEnvironment,
     sea: ReturnType<typeof createSeaDisplacementSource>,
     public soldierAssets: Record<number, AppearanceBundle>,
+    readonly soldierCatalogUrl: string,
     shadowMode: SunShadowMode,
     postEnabled: boolean,
     postGrade: Partial<BattlePostGradeUniforms> | null,
@@ -223,14 +224,19 @@ export class PhotorealBattleWorld {
       shadows?: string | null;
       post?: string | null;
       grassQuality?: BattleGrassQuality;
+      soldierCatalogUrl?: string;
       postGrade?: Partial<BattlePostGradeUniforms> | null;
     } = {},
   ): Promise<PhotorealBattleWorld> {
     const environment = resolveBattleEnvironment(options.environment);
     const grassProfile = productionBladeFieldProfile(options.grassQuality);
+    const soldierCatalogUrl = new URL(
+      options.soldierCatalogUrl ?? "/assets/soldiers/catalog.json",
+      window.location.href,
+    ).href;
     const [world, assets] = await Promise.all([
       PhotorealWorld.create(canvas, { antialias: false }),
-      loadBattleSoldierAssets(),
+      loadAppearanceCatalog(soldierCatalogUrl),
     ]);
     const sea = createSeaDisplacementSource();
     const shadowMode = resolveSunShadowMode(world.stats().device, options.shadows);
@@ -240,6 +246,7 @@ export class PhotorealBattleWorld {
       environment,
       sea,
       assets,
+      soldierCatalogUrl,
       shadowMode,
       postEnabled,
       options.postGrade ?? null,
@@ -253,7 +260,7 @@ export class PhotorealBattleWorld {
 
   /** Reload the production bundle after a local bake, retaining the last good crowd on load failure. */
   async reloadSoldierAssets(activePose?: Pick<CrowdInstance, "classId" | "clip">): Promise<void> {
-    const assets = await loadBattleSoldierAssets();
+    const assets = await loadAppearanceCatalog(this.soldierCatalogUrl);
     if (
       activePose &&
       !assets[activePose.classId]?.animation.clips.some((clip) => clip.name === activePose.clip)
@@ -639,10 +646,6 @@ export class PhotorealBattleWorld {
     this.readoutLayer.dispose();
     this.world.dispose();
   }
-}
-
-async function loadBattleSoldierAssets() {
-  return loadAppearanceCatalog(new URL("/assets/soldiers/catalog.json", window.location.href).href);
 }
 
 function pushTriangle(

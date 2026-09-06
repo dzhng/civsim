@@ -171,6 +171,14 @@ The [caller-owned LOD storage experiment](../assets/evidence/07/lod-storage.md)
 preserved exact output but was rejected after worse matched hardware timing.
 Its patch and all reports are retained; production keeps the prior planner.
 
+Future hardware comparisons must check machine-wide background activity, not
+only serialize this task's agents. On2026-09-07 a read-only process check found an
+unrelated Chrome152 GPU/renderer process active after this task's capture jobs
+ended, while its hardware harness uses Chrome151. This does not establish what
+ran during earlier measurements or explain their failures; it does mean that
+task-local GPU ownership alone cannot prove an idle device. Preserve prior red
+reports and do not stop unrelated user applications to manufacture a quiet run.
+
 Variable: **Cost versus visible detail**.
 
 Crop/mask: Fixed camera framing and synthetic geometry; no aesthetic acceptance here.

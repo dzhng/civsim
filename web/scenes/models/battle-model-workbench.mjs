@@ -1,3 +1,5 @@
+// Explicit retained parity pose; independent of gameplay clocks and entry histories.
+const PARITY_PHASE = 0.9991202346041055;
 import { PNG } from "pngjs";
 import { requireSwiftShaderBaseline } from "./_swiftshader-baseline.ts";
 import { PHOTOREAL_SUBSTRATE } from "../../../packages/photoreal-renderer/src/stats.ts";
@@ -242,7 +244,7 @@ export async function run(ctx) {
     // The failed reload schedules a redraw of the retained pose. Finish it
     // before manually driving the two production entry points.
     await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
-    await page.evaluate(async () => {
+    await page.evaluate(async (phase) => {
       // three's post scene PassNode updates once per browser frame. A second
       // submission in the retained pose's frame would sample its cached image.
       await new Promise(requestAnimationFrame);
@@ -251,16 +253,23 @@ export async function run(ctx) {
       world.draw(
         new Float32Array([0, 0]),
         new Float32Array([Math.PI / 2]),
-        new Float32Array([1]),
+        [
+          {
+            appearanceId: 0,
+            base: {
+              source: { kind: "clip", sample: { clip: "march", phase } },
+              destination: { clip: "march", phase },
+              weight: 1,
+            },
+          },
+        ],
         new Float32Array([1]),
         1,
         world.stats().camera,
-        [0],
-        120,
       );
       world.render();
       await world.settlePresentedFrame();
-    });
+    }, PARITY_PHASE);
     ctx.check(
       "battle submission replaces the retained formation",
       await page.evaluate(() => window.__battleModels.world.stats().soldiers === 1),
@@ -275,25 +284,35 @@ export async function run(ctx) {
       "../../../packages/crowd-runtime/src/instanceData.ts",
       import.meta.url,
     ).pathname;
-    await page.evaluate(async (source) => {
-      const { buildCrowdInstances } = await import("/@fs" + source);
-      await new Promise(requestAnimationFrame);
-      const world = window.__battleModels.world;
-      const built = buildCrowdInstances({
-        positions: new Float32Array([0, 0]),
-        facings: new Float32Array([Math.PI / 2]),
-        frames: new Float32Array([1]),
-        alive: new Float32Array([1]),
-        soldierUnit: new Uint32Array(1),
-        unitTeam: [0],
-        unitClass: [0],
-        simTick: 120,
-        terrainHeight: () => 0,
-      });
-      world.drawInstances(built.instances, world.stats().camera);
-      world.render();
-      await world.settlePresentedFrame();
-    }, instanceModule);
+    await page.evaluate(
+      async ({ source, phase }) => {
+        const { buildCrowdInstances } = await import("/@fs" + source);
+        await new Promise(requestAnimationFrame);
+        const world = window.__battleModels.world;
+        const built = buildCrowdInstances({
+          positions: new Float32Array([0, 0]),
+          facings: new Float32Array([Math.PI / 2]),
+          playback: [
+            {
+              appearanceId: 0,
+              base: {
+                source: { kind: "clip", sample: { clip: "march", phase } },
+                destination: { clip: "march", phase },
+                weight: 1,
+              },
+            },
+          ],
+          alive: new Float32Array([1]),
+          soldierUnit: new Uint32Array(1),
+          unitTeam: [0],
+          terrainHeight: () => 0,
+        });
+        world.drawInstances(built.instances, world.stats().camera);
+        world.render();
+        await world.settlePresentedFrame();
+      },
+      { source: instanceModule, phase: PARITY_PHASE },
+    );
     const fromExplicitPose = await page.screenshot();
     ctx.check(
       "battle adapter and explicit pose submission have identical pixels",
@@ -436,19 +455,26 @@ export async function run(ctx) {
     );
     const captureInstance = async (seed, faction = 0) => {
       await page.evaluate(
-        async ({ source, seed, faction }) => {
+        async ({ source, seed, faction, phase }) => {
           const { buildCrowdInstances } = await import("/@fs" + source);
           await new Promise(requestAnimationFrame);
           const world = window.__battleModels.world;
           const built = buildCrowdInstances({
             positions: new Float32Array([0, 0]),
             facings: new Float32Array([Math.PI / 2]),
-            frames: new Float32Array([1]),
+            playback: [
+              {
+                appearanceId: 0,
+                base: {
+                  source: { kind: "clip", sample: { clip: "march", phase } },
+                  destination: { clip: "march", phase },
+                  weight: 1,
+                },
+              },
+            ],
             alive: new Float32Array([1]),
             soldierUnit: new Uint32Array(1),
             unitTeam: [faction],
-            unitClass: [0],
-            simTick: 120,
             terrainHeight: () => 0,
           });
           built.instances[0].seed = seed;
@@ -456,7 +482,7 @@ export async function run(ctx) {
           world.render();
           await world.settlePresentedFrame();
         },
-        { source: instanceModule, seed, faction },
+        { source: instanceModule, seed, faction, phase: PARITY_PHASE },
       );
       return page.screenshot();
     };

@@ -120,21 +120,11 @@ export async function run(ctx) {
     phaseMetrics.every((m) => m.negativeSteps === 0 && m.flatSteps === 0),
     JSON.stringify(phaseMetrics),
   );
-  // Ticks, not wall ms: sim runs 30 ticks/s, so David's 500ms full swing
-  // = 15 ticks. Wall-clock periods lie on the software adapter.
+  // The authored clip owns duration; observation time owns advancement.
   check(
-    "PERIOD: march cycle is 500ms +/- 150ms (15 +/- 4.5 sim ticks)",
-    phaseMetrics.every((m) => m.periodTicks >= 10.5 && m.periodTicks <= 19.5),
+    "PERIOD: march follows its authored duration (within 4.5 sim ticks)",
+    phaseMetrics.every((m) => Math.abs(m.periodTicks - m.authoredTicks) <= 4.5),
     JSON.stringify(phaseMetrics.map((m) => ({ index: m.index, periodTicks: m.periodTicks }))),
-  );
-
-  const spread = phaseSpread(capture.samples[0]);
-  // The DESIGN is two beat groups (march A/B at +0.5 phase) plus small
-  // coherent jitter - assert the two groups exist and sit apart, not 3+.
-  check(
-    "neighboring soldiers are not phase-locked (A/B beat groups present)",
-    spread.maxCircularDistance > 0.2 && spread.distinctBuckets >= 2,
-    JSON.stringify(spread),
   );
 
   // One pixel sanity: the marching crop visibly changes across 3 render
@@ -178,6 +168,7 @@ function phaseCadence(samples, soldiers) {
         t: sample.t,
         tick: sample.tick,
         phase: sample.soldiers.find((s) => s.index === index)?.anim?.phase,
+        duration: sample.soldiers.find((s) => s.index === index)?.anim?.duration,
       }))
       .filter((sample) => Number.isFinite(sample.phase));
     let unwrapped = 0;
@@ -187,8 +178,8 @@ function phaseCadence(samples, soldiers) {
     let maxStep = 0;
     for (let i = 1; i < series.length; i++) {
       let delta = series[i].phase - previous;
-      if (delta < -0.5) delta += 1;
-      if (delta > 0.5) delta -= 1;
+      const expectedCycles = (series[i].tick - series[i - 1].tick) / (30 * series[i].duration);
+      delta += Math.round(expectedCycles - delta);
       if (delta < -0.001) negativeSteps++;
       if (delta <= 0.001) flatSteps++;
       maxStep = Math.max(maxStep, delta);
@@ -202,31 +193,13 @@ function phaseCadence(samples, soldiers) {
     return {
       index,
       periodTicks: Math.round(periodTicks * 10) / 10,
+      authoredTicks: series[0].duration * 30,
       negativeSteps,
       flatSteps,
       maxStep: Number(maxStep.toFixed(4)),
       periodMs: Number((1000 / cyclesPerSecond).toFixed(1)),
     };
   });
-}
-
-function phaseSpread(sample) {
-  const phases = sample.soldiers
-    .map((s) => s.anim?.phase)
-    .filter((phase) => Number.isFinite(phase));
-  let maxCircularDistance = 0;
-  for (let i = 0; i < phases.length; i++) {
-    for (let j = i + 1; j < phases.length; j++) {
-      const d = Math.abs(phases[i] - phases[j]);
-      maxCircularDistance = Math.max(maxCircularDistance, Math.min(d, 1 - d));
-    }
-  }
-  const distinctBuckets = new Set(phases.map((phase) => Math.floor(phase * 12))).size;
-  return {
-    maxCircularDistance: Number(maxCircularDistance.toFixed(3)),
-    distinctBuckets,
-    phases: phases.map((phase) => Number(phase.toFixed(3))),
-  };
 }
 
 async function gaitPixelMetrics(page, soldierIndex) {

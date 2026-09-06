@@ -1,4 +1,7 @@
-import { BATTLE_RELIEF_EXAGGERATION, terrainHeightField } from "@packages/game-renderer/src/battle/terrainFeatures";
+import {
+  BATTLE_RELIEF_EXAGGERATION,
+  terrainHeightField,
+} from "@packages/game-renderer/src/battle/terrainFeatures";
 import { readBattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainGrid";
 import { sampleGrassField } from "@packages/game-renderer/src/battle/grassField";
 import { eyePosition } from "@packages/renderer-core/src/camera3d";
@@ -105,7 +108,7 @@ export async function route(ctx: LabContext) {
     world.setTime(seconds);
     camera.clampView();
     const frameCamera = cameraSnapshot();
-    world.draw(empty, empty, empty, empty, 0, frameCamera, new Uint8Array(), ticks);
+    world.draw(empty, empty, [], empty, 0, frameCamera);
     world.setGrassVisible(false);
     bladeField.setVisible(!grassOff);
     const labEye = eyePosition(frameCamera.camera3d);

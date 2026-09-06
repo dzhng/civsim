@@ -1,102 +1,31 @@
 import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
 import {
-  fightingFrameForTick,
-  marchingStateForSpeed,
-} from "@packages/crowd-runtime/src/animationState";
-import {
-  HEAVY_PHALANX_REST_CLASS,
-  HEAVY_PHALANX_SIDEARM_CLASS,
-  MEDIUM_PHALANX_REST_CLASS,
-  MEDIUM_PHALANX_SIDEARM_CLASS,
-  SHOCK_CAV_SIDEARM_CLASS,
-} from "@packages/soldier-assets/src/soldierMesh";
-import type { Game } from "../wasm/game_wasm.js";
-import {
-  UNIT_CLASS_KEY_BY_ID,
-  UnitClass,
-  validateClassSpecCatalog,
-  type UnitClassKey,
-} from "./classData";
+  ActionTimeline,
+  type ActionObservation,
+  type SoldierPlayback,
+} from "@packages/crowd-runtime/src/actionTimeline";
+import type { AppearanceBundle } from "@packages/soldier-assets/src/appearanceBundle";
+import { BattleActionAdapter } from "./battleActionAdapter";
 import type { BattleUnitPresentation } from "./battleUnitPresentation";
-import { BATTLE_TICK_DT, type BattleWorld } from "./battleWorld";
-
-const FRAME_SHOOT = 12;
-const PHALANX_REST_RENDER_CLASS: Partial<Record<UnitClassKey, number>> = {
-  [UnitClass.HeavyPhalanx]: HEAVY_PHALANX_REST_CLASS,
-  [UnitClass.MediumPhalanx]: MEDIUM_PHALANX_REST_CLASS,
-};
-const PHALANX_SIDEARM_RENDER_CLASS: Partial<Record<UnitClassKey, number>> = {
-  [UnitClass.HeavyPhalanx]: HEAVY_PHALANX_SIDEARM_CLASS,
-  [UnitClass.MediumPhalanx]: MEDIUM_PHALANX_SIDEARM_CLASS,
-};
-
-type MissileExportGame = Game & { loosing_ptr(): number };
-
-export interface WeaponSpec {
-  name: string;
-  reach: number;
-  minRange: number;
-  arc: number;
-  interval: number;
-  damage: number;
-  braced: boolean;
-  charge: boolean;
-}
-
-export interface ClassSpec {
-  id: number;
-  key: UnitClassKey;
-  name: string;
-  cost: number;
-  mass: number;
-  radius: number;
-  brace: number;
-  block: number;
-  evade: number;
-  training: number;
-  paceMult: number;
-  drainMult: number;
-  health: number;
-  mountHealth: number;
-  mounted: boolean;
-  charges: boolean;
-  weapons: WeaponSpec[];
-  missile: {
-    name: string;
-    range: number;
-    interval: number;
-    ammo: number;
-    damage: number;
-    mobileFire: boolean;
-  } | null;
-}
+import type { BattleWorld } from "./battleWorld";
 
 export class BattleCrowd {
-  readonly classSpecs: ClassSpec[];
-  private readonly classBracedIndex: number[];
-  private readonly classChargeIndex: number[];
+  private readonly adapter: BattleActionAdapter;
+  private timeline: ActionTimeline | null = null;
+  private catalog: Record<number, AppearanceBundle> | null = null;
   private alive = new Float32Array(0);
-  private frames = new Float32Array(0);
-  private renderClass = new Uint8Array(0);
-  private renderFacings = new Float32Array(0);
   private renderPositions = new Float32Array(0);
-  private previousRenderPositions = new Float32Array(0);
-  private previousSimPositions = new Float32Array(0);
-  private gaitMoving = new Uint8Array(0);
   private renderPositionTick = -1;
+  private observations: readonly ActionObservation[] = [];
+  get classSpecs() {
+    return this.adapter.classSpecs;
+  }
 
   constructor(
     private world: BattleWorld,
     private presentation: BattleUnitPresentation,
   ) {
-    this.classSpecs = JSON.parse(world.game.class_specs());
-    validateClassSpecCatalog(this.classSpecs);
-    this.classBracedIndex = this.classSpecs.map((spec) =>
-      spec.weapons.findIndex((weapon) => weapon.braced),
-    );
-    this.classChargeIndex = this.classSpecs.map((spec) =>
-      spec.weapons.findIndex((weapon) => weapon.charge),
-    );
+    this.adapter = new BattleActionAdapter(world.game, world.memory);
   }
 
   draw(
@@ -106,109 +35,78 @@ export class BattleCrowd {
     frameDt: number,
     selectedUnits: number[],
   ): void {
-    this.buildFrame(simTick, frozen);
+    const assets = this.world.renderer.soldierAssets;
+    if (!assets) return;
+    const replaced = assets !== this.catalog;
+    if (replaced) {
+      // An accepted catalog replacement cannot blend samples across different rigs.
+      this.catalog = assets;
+      this.timeline = new ActionTimeline(assets);
+    }
+    const { observations, facings } = this.adapter.read(simTick);
+    if (replaced || observations !== this.observations)
+      this.timeline!.update(simTick, observations);
+    this.observations = observations;
+    const playback: SoldierPlayback[] = this.timeline!.sample(frozen ? simTick : simTick + alpha);
+    this.buildPositions(simTick, frozen);
     this.presentation.update(selectedUnits);
     this.world.renderer.draw(
       this.renderPositions,
-      this.renderFacings,
-      this.frames,
+      facings,
+      playback,
       this.alive,
-      this.world.game.soldier_count(),
+      observations.length,
       this.world.camera,
-      this.renderClass,
-      frozen ? simTick : simTick + alpha,
+      simTick,
       frameDt,
     );
     this.drawAttackArcs(frozen);
   }
 
-  private buildFrame(simTick: number, frozen: boolean): void {
-    const { game, memory, stride } = this.world;
-    const count = game.soldier_count();
-    const alive = new Uint8Array(memory.buffer, game.alive_ptr(), count);
-    const fighting = new Uint8Array(memory.buffer, game.fighting_ptr(), count);
-    const loosing = new Float32Array(
-      memory.buffer,
-      (game as MissileExportGame).loosing_ptr(),
+  private buildPositions(simTick: number, frozen: boolean): void {
+    const positions = this.world.positions();
+    const count = this.observations.length;
+    const oldCount = this.alive.length;
+    if (simTick < this.renderPositionTick || count < oldCount) {
+      this.alive = new Float32Array(count);
+      this.renderPositions = new Float32Array(positions);
+      this.renderPositionTick = simTick;
+    } else if (count > oldCount) {
+      this.alive = new Float32Array(count);
+      const grown = new Float32Array(positions);
+      grown.set(this.renderPositions);
+      this.renderPositions = grown;
+      if (oldCount === 0) this.renderPositionTick = simTick;
+    }
+    const tickDelta = Math.max(0, simTick - this.renderPositionTick);
+    const update = tickDelta > 0;
+    const soldierUnit = new Uint32Array(
+      this.world.memory.buffer,
+      this.world.game.soldier_unit_ptr(),
       count,
     );
-    const switchCooldown = new Float32Array(memory.buffer, game.switch_cd_ptr(), count);
-    const soldierUnit = new Uint32Array(memory.buffer, game.soldier_unit_ptr(), count);
-    const currentWeapon = new Uint8Array(memory.buffer, game.cur_weapon_ptr(), count);
-    const positions = this.world.positions();
-    if (this.alive.length !== count || simTick < this.renderPositionTick) {
-      this.alive = new Float32Array(count);
-      this.frames = new Float32Array(count);
-      this.renderClass = new Uint8Array(count);
-      this.renderFacings = new Float32Array(count);
-      this.renderPositions = new Float32Array(positions);
-      this.previousRenderPositions = new Float32Array(positions);
-      this.previousSimPositions = new Float32Array(positions);
-      this.gaitMoving = new Uint8Array(count);
-      this.renderPositionTick = simTick;
-    }
-    const renderTickDelta = Math.max(0, simTick - this.renderPositionTick);
-    const updateRenderPositions = renderTickDelta > 0;
-    if (updateRenderPositions) this.previousRenderPositions.set(this.renderPositions);
-    const facings = this.world.facings();
-    const info = this.world.unitInfo();
-    const unitCount = game.unit_count();
-    const atEase = new Uint8Array(unitCount);
-    const running = new Uint8Array(unitCount);
-    for (let unit = 0; unit < unitCount; unit++) {
-      const offset = unit * stride;
-      atEase[unit] = info[offset + UNIT_INFO.atEase] > 0.5 ? 1 : 0;
-      running[unit] = info[offset + UNIT_INFO.running] > 0.5 ? 1 : 0;
-    }
+    const unitCount = this.world.game.unit_count();
     this.presentation.beginFrame(unitCount);
     for (let soldier = 0; soldier < count; soldier++) {
-      this.alive[soldier] = alive[soldier];
-      const position = 2 * soldier;
-      this.updatePosition(
-        soldier,
-        position,
-        positions,
-        alive,
-        frozen,
-        updateRenderPositions,
-        renderTickDelta,
-      );
-      if (alive[soldier])
+      this.alive[soldier] = this.observations[soldier].alive ? 1 : 0;
+      this.updatePosition(soldier, soldier * 2, positions, this.alive, frozen, update, tickDelta);
+      if (this.alive[soldier])
         this.presentation.addSoldier(
           soldierUnit[soldier],
-          this.renderPositions[position],
-          this.renderPositions[position + 1],
+          this.renderPositions[soldier * 2],
+          this.renderPositions[soldier * 2 + 1],
           unitCount,
         );
-      this.frames[soldier] = this.animationFrame(
-        soldier,
-        position,
-        simTick,
-        renderTickDelta,
-        updateRenderPositions,
-        alive,
-        fighting,
-        loosing,
-        switchCooldown,
-        running,
-        atEase,
-        soldierUnit,
-        positions,
-      );
-      this.applyWeaponPose(soldier, alive, currentWeapon, soldierUnit, facings, info);
     }
     this.presentation.finishFrame(unitCount);
-    if (updateRenderPositions) {
-      this.previousSimPositions.set(positions);
-      this.renderPositionTick = simTick;
-    }
+    if (update) this.renderPositionTick = simTick;
   }
 
   private updatePosition(
     soldier: number,
     position: number,
     positions: Float32Array,
-    alive: Uint8Array,
+    alive: Float32Array,
     frozen: boolean,
     update: boolean,
     tickDelta: number,
@@ -228,69 +126,6 @@ export class BattleCrowd {
       this.renderPositions[position] = positions[position];
       this.renderPositions[position + 1] = positions[position + 1];
     }
-  }
-
-  private animationFrame(
-    soldier: number,
-    position: number,
-    simTick: number,
-    tickDelta: number,
-    update: boolean,
-    alive: Uint8Array,
-    fighting: Uint8Array,
-    loosing: Float32Array,
-    switchCooldown: Float32Array,
-    running: Uint8Array,
-    atEase: Uint8Array,
-    soldierUnit: Uint32Array,
-    positions: Float32Array,
-  ): number {
-    if (!alive[soldier]) return 4;
-    if (switchCooldown[soldier] > 0) return 5;
-    if (loosing[soldier] > 0) return FRAME_SHOOT;
-    if (fighting[soldier]) return fightingFrameForTick(simTick, soldier);
-    const wasMoving = this.gaitMoving[soldier] > 0;
-    const speed = update
-      ? Math.hypot(
-          positions[position] - this.previousSimPositions[position],
-          positions[position + 1] - this.previousSimPositions[position + 1],
-        ) / Math.max(tickDelta * BATTLE_TICK_DT, BATTLE_TICK_DT)
-      : wasMoving
-        ? 1
-        : 0;
-    const moving = marchingStateForSpeed(speed, wasMoving);
-    this.gaitMoving[soldier] = moving ? 1 : 0;
-    if (moving) return running[soldierUnit[soldier]] ? 8 + (soldier & 1) : 1 + (soldier & 1);
-    return atEase[soldierUnit[soldier]] ? 6 : 0;
-  }
-
-  private applyWeaponPose(
-    soldier: number,
-    alive: Uint8Array,
-    currentWeapon: Uint8Array,
-    soldierUnit: Uint32Array,
-    facings: Float32Array,
-    info: Float32Array,
-  ): void {
-    const unit = soldierUnit[soldier];
-    const classId = info[unit * this.world.stride + 13];
-    this.renderFacings[soldier] = facings[soldier];
-    this.renderClass[soldier] = classId;
-    if (!alive[soldier]) return;
-    const bracedIndex = this.classBracedIndex[classId];
-    if (bracedIndex >= 0) {
-      if (currentWeapon[soldier] === bracedIndex) {
-        this.renderFacings[soldier] = info[unit * this.world.stride + 2];
-        if (this.frames[soldier] === 6)
-          this.renderClass[soldier] = renderClassFor(PHALANX_REST_RENDER_CLASS, classId);
-      } else {
-        this.frames[soldier] = 7;
-        this.renderClass[soldier] = renderClassFor(PHALANX_SIDEARM_RENDER_CLASS, classId);
-      }
-    }
-    const chargeIndex = this.classChargeIndex[classId];
-    if (chargeIndex >= 0 && currentWeapon[soldier] !== chargeIndex)
-      this.renderClass[soldier] = SHOCK_CAV_SIDEARM_CLASS;
   }
 
   private drawAttackArcs(frozen: boolean): void {
@@ -314,7 +149,7 @@ export class BattleCrowd {
     const [worldX1, worldY0] = camera.screenToWorld(canvas.width, canvas.height);
     let budget = 900;
     for (let soldier = 0; soldier < game.soldier_count() && budget > 0; soldier++) {
-      if (this.frames[soldier] !== 3) continue;
+      if (!this.observations[soldier]?.alive || !this.observations[soldier].fighting) continue;
       const x = positions[2 * soldier];
       const y = positions[2 * soldier + 1];
       if (x < worldX0 || x > worldX1 || y < worldY0 || y > worldY1) continue;
@@ -356,9 +191,4 @@ export class BattleCrowd {
     }
     if (triangles.length) renderer.drawTris(new Float32Array(triangles), camera);
   }
-}
-
-function renderClassFor(map: Partial<Record<UnitClassKey, number>>, classId: number): number {
-  const key = UNIT_CLASS_KEY_BY_ID[classId | 0];
-  return key === undefined ? classId : (map[key] ?? classId);
 }

@@ -1,10 +1,24 @@
 import { world3dToScreen } from "@packages/renderer-core/src/cameraUniform";
 import { type CrowdInstance } from "@packages/crowd-runtime/src/instanceData";
-import { SHOCK_CAV_SIDEARM_CLASS } from "@packages/soldier-assets/src/soldierMesh";
+import { APPEARANCE_DESCRIPTORS } from "@packages/soldier-assets/src/appearance";
 import { UNIT_CLASS_BY_KEY, UnitClass } from "../../../../web/src/battle/classData";
-import { type LabContext, LabGroundPass, chartCameraSnapshot, createConfiguredShell, createSkinnedPipeline, labGroundFramePass, publish, reportTable } from "../labShell";
+import {
+  type LabContext,
+  LabGroundPass,
+  chartCameraSnapshot,
+  createConfiguredShell,
+  createSkinnedPipeline,
+  labGroundFramePass,
+  publish,
+  reportTable,
+} from "../labShell";
 
 export async function route(ctx: LabContext) {
+  const sidearmAppearance = APPEARANCE_DESCRIPTORS.findIndex(
+    (descriptor) =>
+      descriptor.selection.unitClass === UNIT_CLASS_BY_KEY[UnitClass.ShockCavalry] &&
+      descriptor.selection.state === "sidearm",
+  );
   // Oblique review pitch: camera3d vertical scale is sin(pitch), so a
   // near-top-down 0.18 collapses soldiers to a few pixels. sin(1.1) ≈ 0.89
   // keeps the full silhouette legible.
@@ -12,7 +26,7 @@ export async function route(ctx: LabContext) {
   const shell = await createConfiguredShell(ctx.canvas, camera);
   const pipeline = await createSkinnedPipeline(shell);
   const frontClass = UNIT_CLASS_BY_KEY[UnitClass.HeavySword];
-  const rearClass = SHOCK_CAV_SIDEARM_CLASS;
+  const rearClass = sidearmAppearance;
   const frontY = -0.03;
   const rearY = 0.03;
   const instances: CrowdInstance[] = [
@@ -23,7 +37,7 @@ export async function route(ctx: LabContext) {
       classId: frontClass,
       faction: 0,
       alive: true,
-      frame: 1,
+
       clip: "idle",
       phase: 0.15,
       seed: 11,
@@ -37,7 +51,7 @@ export async function route(ctx: LabContext) {
       classId: rearClass,
       faction: 1,
       alive: true,
-      frame: 1,
+
       clip: "idle",
       phase: 0.15,
       seed: 22,

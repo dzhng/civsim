@@ -1,6 +1,12 @@
 import { buildCrowdInstances } from "@packages/crowd-runtime/src/instanceData";
 import { SoldierShadowDecalPass } from "@packages/renderer-core/src/soldierShadowPass";
-import { type LabContext, createConfiguredShell, createSkinnedPipeline, publish, reportTable } from "../labShell";
+import {
+  type LabContext,
+  createConfiguredShell,
+  createSkinnedPipeline,
+  publish,
+  reportTable,
+} from "../labShell";
 
 export async function route(ctx: LabContext) {
   // A smooth ridge centered at x=0 — soldiers climb up and over it.
@@ -8,7 +14,6 @@ export async function route(ctx: LabContext) {
   const cols = 14;
   const rows = 3;
   const positions = new Float32Array(cols * rows * 2);
-  const unitClass: number[] = [];
   const soldierUnit = new Uint32Array(cols * rows);
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
@@ -17,13 +22,18 @@ export async function route(ctx: LabContext) {
       positions[i * 2 + 1] = (r - (rows - 1) / 2) * 2.0;
     }
   }
-  unitClass.push(0);
   const built = buildCrowdInstances({
     positions,
     soldierUnit,
-    unitClass,
+    playback: Array.from({ length: cols * rows }, () => ({
+      appearanceId: 0,
+      base: {
+        source: { kind: "clip", sample: { clip: "march", phase: 0 } },
+        destination: { clip: "march", phase: 0 },
+        weight: 1,
+      },
+    })),
     terrainHeight: ridge,
-    simTick: 90,
   });
   const instances = built.instances.map((inst) => ({ ...inst, facing: Math.PI / 2 }));
 

@@ -73,7 +73,7 @@ function buildSoldiers(count: number): CrowdInstance[] {
         classId: 0,
         faction: block === 0 ? 0 : 1,
         alive: true,
-        frame: 1,
+
         clip: "march",
         phase,
         seed: phase,

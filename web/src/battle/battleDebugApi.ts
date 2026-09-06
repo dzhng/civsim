@@ -130,6 +130,7 @@ export function installBattleDebugApi({
       return alive[i] ?? 0;
     },
     debugSoldierAnim: (i: number) => renderer.debugSoldierAnim(i),
+    reloadSoldierAssets: () => renderer.reloadSoldierAssets(),
     rendererMemoryInfo: () => ({
       ...renderer.memoryInfo(),
       wasmMemoryBytes: wasm.memory.buffer.byteLength,

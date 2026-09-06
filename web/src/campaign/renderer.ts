@@ -44,7 +44,7 @@ import { chartCamera3d, type Camera3DParams } from "@packages/renderer-core/src/
 import { SkinnedCrowdPipeline } from "@packages/renderer-core/src/skinnedPipeline";
 import { SoldierShadowDecalPass } from "@packages/renderer-core/src/soldierShadowPass";
 import { loadAppearanceCatalog } from "@packages/soldier-assets/src/appearanceBundle";
-import { assertCrowdClipCoverage } from "@packages/crowd-runtime/src/animationState";
+import { assertGameplayAppearances } from "@packages/crowd-runtime/src/animationState";
 import type { CampaignData } from "./data";
 import { isControlledStage } from "./data";
 import type { CamView } from "./camera";
@@ -766,7 +766,7 @@ export class CampaignRenderer {
       new URL("/assets/soldiers/catalog.json", location.href).href,
     );
     if (this.destroyed) return;
-    assertCrowdClipCoverage(appearances);
+    assertGameplayAppearances(appearances);
     // One projector engine-wide: every pass projects through camera3d's viewProj
     // and depth-tests reverse-Z against the shell's depth32float world buffer.
     const shell = await createFrameShell(this.canvas, { sun: CAMPAIGN_ENVIRONMENT });

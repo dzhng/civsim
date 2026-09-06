@@ -1,16 +1,12 @@
-import { animationForSoldierFrame } from './animationState';
+import type { SoldierPlayback } from "./actionTimeline";
 
 export interface CrowdBuildInputs {
   positions: Float32Array;
   facings?: Float32Array;
-  frames?: Float32Array;
+  playback: readonly SoldierPlayback[];
   alive?: Float32Array | Uint8Array;
   soldierUnit?: Uint32Array;
   unitTeam?: Uint8Array | number[];
-  unitClass?: Uint8Array | number[];
-  /** Optional per-soldier render-only class override for weapon-state variants. */
-  renderClass?: Uint8Array | number[];
-  simTick?: number;
   count?: number;
   /** Class ids that ride a mount (from archetype.mount). Drives `mounted`. */
   mountedClasses?: Iterable<number>;
@@ -26,9 +22,10 @@ export interface CrowdInstance {
   classId: number;
   faction: 0 | 1 | 2;
   alive: boolean;
-  frame: number;
   clip: string;
   phase: number;
+  /** Timeline payload retained for slice06 skin blending/composition. */
+  playback?: SoldierPlayback;
   seed: number;
   /** This class rides a mount (horse). Drives LOD scale and mount composition. */
   mounted: boolean;
@@ -50,29 +47,21 @@ export interface CrowdBuildStats {
   enemy: number;
 }
 
-export interface CrowdInstanceBuffers {
-  packed: Float32Array;
+export function buildCrowdInstances(inputs: CrowdBuildInputs): {
   instances: CrowdInstance[];
-}
-
-export function buildCrowdInstances(inputs: CrowdBuildInputs): CrowdInstanceBuffers & { stats: CrowdBuildStats } {
+  stats: CrowdBuildStats;
+} {
   const count = inputs.count ?? Math.floor(inputs.positions.length / 2);
+  if (inputs.playback.length !== count) throw new Error("Playback count must match soldier count");
   const mountedClasses = new Set(inputs.mountedClasses ?? []);
-  const packed = new Float32Array(count * 12);
   const instances: CrowdInstance[] = [];
   const stats: CrowdBuildStats = { input: count, written: 0, alive: 0, player: 0, enemy: 0 };
   for (let i = 0; i < count; i++) {
     const unit = inputs.soldierUnit?.[i] ?? 0;
     const faction = ((inputs.unitTeam?.[unit] ?? 0) === 1 ? 1 : 0) as 0 | 1;
-    const classId = inputs.renderClass?.[i] ?? inputs.unitClass?.[unit] ?? 0;
+    const playback = inputs.playback[i];
+    const classId = playback.appearanceId;
     const alive = (inputs.alive?.[i] ?? 1) > 0.5;
-    const frame = inputs.frames?.[i] ?? 0;
-    const anim = animationForSoldierFrame(frame, {
-      soldierIndex: i,
-      unitIndex: unit,
-      simTick: inputs.simTick ?? 0,
-      alive,
-    });
     const seed = deterministicInstanceSeed(i, unit);
     const inst: CrowdInstance = {
       x: inputs.positions[i * 2],
@@ -81,35 +70,24 @@ export function buildCrowdInstances(inputs: CrowdBuildInputs): CrowdInstanceBuff
       classId,
       faction,
       alive,
-      frame,
-      clip: anim.clip,
-      phase: anim.phase,
+      clip: playback.base.destination.clip,
+      phase: playback.base.destination.phase,
+      playback,
       seed,
       mounted: mountedClasses.has(classId),
       lod: 0,
-      elevation: inputs.terrainHeight ? inputs.terrainHeight(inputs.positions[i * 2], inputs.positions[i * 2 + 1]) : 0,
-      deathVariant: anim.deathVariant,
+      elevation: inputs.terrainHeight
+        ? inputs.terrainHeight(inputs.positions[i * 2], inputs.positions[i * 2 + 1])
+        : 0,
+      deathVariant: alive ? 0 : deathVariantForSoldier(i, unit),
     };
     instances.push(inst);
-    const o = stats.written * 12;
-    packed[o] = inst.x;
-    packed[o + 1] = inst.y;
-    packed[o + 2] = inst.facing;
-    packed[o + 3] = inst.classId;
-    packed[o + 4] = inst.faction;
-    packed[o + 5] = inst.alive ? 1 : 0;
-    packed[o + 6] = frame;
-    packed[o + 7] = anim.phase;
-    packed[o + 8] = seed;
-    packed[o + 9] = unit;
-    packed[o + 10] = inst.mounted ? 1 : 0;
-    packed[o + 11] = inst.elevation ?? 0;
     stats.written++;
     if (alive) stats.alive++;
     if (faction === 0) stats.player++;
     if (faction === 1) stats.enemy++;
   }
-  return { packed: packed.subarray(0, stats.written * 12), instances, stats };
+  return { instances, stats };
 }
 
 export function deterministicInstanceSeed(index: number, unit: number): number {
@@ -120,16 +98,28 @@ export function deterministicInstanceSeed(index: number, unit: number): number {
   return x >>> 0;
 }
 
-export function generatedFormation(count: number, opts: {
-  columns?: number;
-  spacing?: number;
-  x?: number;
-  y?: number;
-  faction?: 0 | 1;
-  classId?: number;
-  frame?: number;
-  mounted?: boolean;
-} = {}): CrowdInstance[] {
+function deathVariantForSoldier(index: number, unit: number): number {
+  let h = (Math.imul(index + 1, 2246822507) ^ Math.imul(unit + 17, 3266489917)) >>> 0;
+  h ^= h >>> 13;
+  h = Math.imul(h, 668265263) >>> 0;
+  h ^= h >>> 16;
+  return (h >>> 0) % 3;
+}
+
+export function generatedFormation(
+  count: number,
+  opts: {
+    columns?: number;
+    spacing?: number;
+    x?: number;
+    y?: number;
+    faction?: 0 | 1;
+    classId?: number;
+    clip?: string;
+    phase?: number;
+    mounted?: boolean;
+  } = {},
+): CrowdInstance[] {
   const columns = opts.columns ?? Math.max(8, Math.ceil(Math.sqrt(count)));
   const spacing = opts.spacing ?? 1.15;
   const faction = opts.faction ?? 0;
@@ -139,7 +129,6 @@ export function generatedFormation(count: number, opts: {
     const col = i % columns;
     const row = Math.floor(i / columns);
     const seed = deterministicInstanceSeed(i, faction);
-    const anim = animationForSoldierFrame(opts.frame ?? 1, { soldierIndex: i, unitIndex: faction, simTick: 120 });
     out.push({
       x: (opts.x ?? 0) + (col - (columns - 1) * 0.5) * spacing,
       y: (opts.y ?? 0) + (row - (rows - 1) * 0.5) * spacing,
@@ -147,9 +136,8 @@ export function generatedFormation(count: number, opts: {
       classId: opts.classId ?? 0,
       faction,
       alive: true,
-      frame: opts.frame ?? 1,
-      clip: anim.clip,
-      phase: anim.phase,
+      clip: opts.clip ?? "march",
+      phase: opts.phase ?? 0,
       seed,
       mounted: opts.mounted ?? false,
       lod: 0,

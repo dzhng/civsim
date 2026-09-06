@@ -490,9 +490,14 @@ impl Game {
         self.battle.sim.fighting.as_ptr()
     }
 
-    /// Per-soldier missile loosing countdown (>0 = draw/loose pose).
+    /// Seconds remaining after an emitted projectile, not a windup command.
     pub fn loosing_ptr(&self) -> *const f32 {
         self.battle.sim.loosing_ttl.as_ptr()
+    }
+
+    /// Duration backing the countdown, so readers can recover observed release age.
+    pub fn loosing_duration(&self) -> f32 {
+        sim::missiles::LOOSING_TTL
     }
 
     pub fn projectile_count(&self) -> u32 {
@@ -855,6 +860,15 @@ impl Default for Game {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn loosing_duration_reads_the_emission_constant_without_mutating_countdowns() {
+        let mut game = Game::new(7);
+        game.spawn_unit(0.0, 0.0, 0.0, 1, 1, 1.0, 1.0, 0, 0.5);
+        game.battle.sim.loosing_ttl[0] = 0.25;
+        assert_eq!(game.loosing_duration(), sim::missiles::LOOSING_TTL);
+        assert_eq!(game.battle.sim.loosing_ttl[0], 0.25);
+    }
 
     #[test]
     fn injury_pointers_read_the_simulation_pools_without_copying() {

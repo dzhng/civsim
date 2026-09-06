@@ -91,6 +91,48 @@ export async function run(ctx) {
     terrain > 20000 && crowd > 300,
     JSON.stringify({ terrain, crowd }),
   );
+  const cache = await page.evaluate(async () => {
+    const game = window.__game;
+    const frames = async () => {
+      for (let i = 0; i < 3; i++) await new Promise((resolve) => requestAnimationFrame(resolve));
+    };
+    game.freeze(true);
+    await frames();
+    const first = game.debugSoldierAnim(0);
+    await frames();
+    const repeated = game.debugSoldierAnim(0);
+    await game.freezeAtTick(game.tickCount() + 3);
+    await frames();
+    const advanced = game.debugSoldierAnim(0);
+    const tickBeforeReload = game.tickCount();
+    await game.reloadSoldierAssets();
+    await frames();
+    const reloaded = game.debugSoldierAnim(0);
+    return {
+      repeatedSamePayload: first?.playback === repeated?.playback,
+      advancedNewPayload: advanced?.playback !== repeated?.playback,
+      advancedPhase: advanced?.phase,
+      priorPhase: repeated?.phase,
+      reloadSameTick: game.tickCount() === tickBeforeReload,
+      reloadNewPayload: !!reloaded?.playback && reloaded.playback !== advanced?.playback,
+      reloadPhase: reloaded?.phase,
+    };
+  });
+  ctx.check(
+    "frozen frame reuse retains the same submitted pose",
+    cache.repeatedSamePayload,
+    JSON.stringify(cache),
+  );
+  ctx.check(
+    "frozen tick advance refreshes the submitted phase at the same camera",
+    cache.advancedNewPayload && cache.advancedPhase !== cache.priorPhase,
+    JSON.stringify(cache),
+  );
+  ctx.check(
+    "successful same-tick catalog reload replaces the submitted pose history",
+    cache.reloadSameTick && cache.reloadNewPayload && cache.reloadPhase === 0,
+    JSON.stringify(cache),
+  );
   await page.close();
 }
 

@@ -13,9 +13,10 @@ import type { CameraRigRange } from "./cameraRig";
 import { BattleRenderer } from "./renderer";
 import { installViewportGate } from "./viewportGate";
 import { createBattleViews } from "./battleViews";
+import { ACTION_TICK_SECONDS } from "@packages/crowd-runtime/src/actionTimeline";
 
 export type BattleKind = "duel" | "5v5" | "surround" | "flank" | "mapA" | "mapB" | "gen";
-export const BATTLE_TICK_DT = 1 / 30;
+export const BATTLE_TICK_DT = ACTION_TICK_SECONDS;
 
 export interface GeneratedBattleMapDescriptor {
   seed: number | string;

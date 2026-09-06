@@ -81,16 +81,18 @@ export async function route(ctx: LabContext) {
   if (ctx.params.has("keyOff")) lighting.keyColor = [0, 0, 0];
   const pipeline = await SkinnedCrowdPipeline.create(shell, { [classId]: bundle }, { lighting });
   pipeline.setFactionMaskStrength(strength);
-  const soldier = generatedFormation(1, { frame: 6, spacing: 1, faction, classId }).map((inst) => ({
-    ...inst,
-    x: 0,
-    y: 0,
-    facing: numberParam(ctx.params, "facing", Math.PI / 2),
-    phase: numberParam(ctx.params, "phase", inst.phase),
-    alive: ctx.params.get("alive") !== "0",
-    deathVariant: numberParam(ctx.params, "deathVariant", inst.deathVariant ?? 0),
-    seed: numberParam(ctx.params, "seed", 0),
-  }));
+  const soldier = generatedFormation(1, { clip: "at_ease", spacing: 1, faction, classId }).map(
+    (inst) => ({
+      ...inst,
+      x: 0,
+      y: 0,
+      facing: numberParam(ctx.params, "facing", Math.PI / 2),
+      phase: numberParam(ctx.params, "phase", inst.phase),
+      alive: ctx.params.get("alive") !== "0",
+      deathVariant: numberParam(ctx.params, "deathVariant", inst.deathVariant ?? 0),
+      seed: numberParam(ctx.params, "seed", 0),
+    }),
+  );
   animateSkinned(shell, pipeline, () => soldier, {
     forcedClip: clip,
     phaseSpeed: 0,

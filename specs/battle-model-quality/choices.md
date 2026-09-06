@@ -404,3 +404,39 @@ The plan required deterministic parity but left its scheduling unspecified. Othe
 **Confidence: medium.** When reinforcements append soldiers or WASM memory grows, the next health read must use the current memory buffer, pointer and soldier count. The existing position, facing and unit-info reads followed this rule inside world creation. The pass extracts those closures into `createBattleViews` and adds injury views there; world creation composes that same factory. An alternative would leave the closures embedded and require renderer/UI setup to test memory behavior, or create a separate test-only copy that could drift.
 
 The plan required minimal zero-copy observations but did not choose the view module boundary. Future observation channels inherit this one owner and its real-WASM lifecycle tests, not a cache or a second memory adapter. **Sound:** extraction isolates the existing memory-view responsibility while preserving its public methods and behavior. It introduces no injury history, action policy or permission to write simulation memory from presentation code.
+
+### One battle observation adapter, separate from action policy (05c)
+
+**Confidence: medium.** When a soldier switches from pike to sword, production and the battle lab now read the same equipped-weapon state and choose the same catalog appearance. A shared adapter reads WASM and measures motion; the action controller decides which action runs. The unbuilt alternative leaves the lab with its own frame/weapon policy, so a successful lab test can disagree with battle.
+
+The plan named the production adapter but did not settle how to eliminate the lab duplicate. Future observation fields belong to that shared boundary, while timing remains outside it. The existing class/weapon schema moves beside class data rather than remaining owned by the renderer. **Sound:** this gives each decision one owner without adding a second health cache or changing combat.
+
+### Reloading models starts fresh visual history (05c)
+
+**Confidence: medium.** If an author reloads a model while a soldier is midway through an action, the accepted catalog replacement starts a new visual action entry from current observations, including already-dead soldiers. It does not carry an old skeleton's partially blended pose into a new skeleton. A failed reload keeps the previous catalog and history. The unbuilt alternative attempts to preserve progress across potentially incompatible joint layouts.
+
+The plan required safe reload but did not choose cross-rig history behavior. Future hot-reload work inherits this deliberate loss of visual progress, not a promise of seamless action continuity while authoring. **Sound:** preventing incompatible pose reuse is more important than retaining authoring-session phase; gameplay state is untouched.
+
+### Reach overlays report engagement, not fabricated strike beats (05c)
+
+**Confidence: medium.** While a living soldier is engaged, the tactical reach overlay now shows that weapon's reach envelope within its existing visibility budget. Previously a numeric-frame rhythm made it blink as if particular strike moments were known. The unbuilt alternatives keep that invented rhythm or remove the overlay entirely.
+
+The plan removed fabricated action events but did not specify this diagnostic overlay. Future animation/contact work must not interpret the overlay as evidence of an actual hit. **Sound:** it retains useful spatial information while disclosing the less-specific observation. Likewise, switch cooldown no longer forces an idle pose: current equipment and genuine actions remain visible until authored switching/attachment continuity is implemented in slice14.
+
+### Frozen rendering caches observations, not just the camera (05c)
+
+**Confidence: high.** Advancing a frozen battle by three ticks can change a soldier's pose without moving the camera. The renderer therefore includes the observation tick and accepted catalog identity in its reuse decision. Repeating the same request can still reuse the submitted frame; a same-tick reload cannot. A thin debug reload call reaches the existing owner so the production path can be tested.
+
+The plan did not account for the inherited cache's missing inputs. Future pose changes made outside normal tick/catalog updates must provide an explicit invalidation signal; they cannot rely on a new array allocation to defeat caching. **Sound:** the cache follows actual state ownership without removing frozen reuse or weakening performance gates.
+
+### Recover release age from the existing simulation countdown (05c)
+
+**Confidence: high.** If a projectile's countdown is first observed partway through, the adapter subtracts its remaining time from the simulation's own duration and reports elapsed release age. The controller can advance beyond its authored release marker rather than pretending emission happened just now. The unbuilt alternative duplicates the duration in JavaScript or requires a new event log.
+
+The plan required release-compatible playback but did not define delayed-observation age transport. The read-only duration accessor is backed by the very constant used when missiles emit, and remaining TTL is still supplied for refresh detection. **Sound:** this supplies the information the current consumer needs without a second clock constant, event counter, or combat change.
+
+### Admit gameplay only when local and baked clip timing agree (05c)
+
+**Confidence: high.** A loaded model can contain a baked GPU clip and a local-joint clip with the same name but different duration. Rendering the former while freezing a blend source from the latter would produce inconsistent poses. Gameplay admission now rejects missing or mismatched required clip names, durations, looping and release markers before installing GPU resources. Manual-only inspection remains available.
+
+The earlier loader validated catalog bindings against GPU clips but did not need local clips for interrupted blends. Future exporters must keep these two representations aligned; the runtime does not guess or silently fall back. **Sound:** the newly active local-pose consumer makes this a concrete admission requirement, not speculative validation.

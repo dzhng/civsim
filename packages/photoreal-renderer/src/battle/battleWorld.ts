@@ -1,11 +1,8 @@
 import * as THREE from "three/webgpu";
 import { vec3 } from "three/tsl";
 import { buildCrowdInstances, type CrowdInstance } from "../../../crowd-runtime/src/instanceData";
-import {
-  assertCrowdClipCoverage,
-  CROWD_CLIPS,
-  type CrowdClip,
-} from "../../../crowd-runtime/src/animationState";
+import { assertGameplayAppearances } from "../../../crowd-runtime/src/animationState";
+import type { SoldierPlayback } from "../../../crowd-runtime/src/actionTimeline";
 import {
   battleEnvironmentStats,
   resolveBattleEnvironment,
@@ -167,7 +164,7 @@ export class PhotorealBattleWorld {
     postEnabled: boolean,
     postGrade: Partial<BattlePostGradeUniforms> | null,
     grassProfile: BladeFieldProfile,
-    private readonly requiredSoldierClips: readonly CrowdClip[],
+    private readonly gameplay: boolean,
     crowd: PhotorealCrowd,
   ) {
     this.world = world;
@@ -233,8 +230,8 @@ export class PhotorealBattleWorld {
       post?: string | null;
       grassQuality?: BattleGrassQuality;
       soldierCatalogUrl?: string;
-      /** Asset inspection may supply [] because its poses do not use the battle controller. */
-      requiredSoldierClips?: readonly CrowdClip[];
+      /** Manual asset inspection does not require gameplay action bindings. */
+      gameplay?: boolean;
       postGrade?: Partial<BattlePostGradeUniforms> | null;
     } = {},
   ): Promise<PhotorealBattleWorld> {
@@ -244,9 +241,9 @@ export class PhotorealBattleWorld {
       options.soldierCatalogUrl ?? "/assets/soldiers/catalog.json",
       window.location.href,
     ).href;
-    const requiredSoldierClips = options.requiredSoldierClips ?? CROWD_CLIPS;
+    const gameplay = options.gameplay ?? true;
     const assets = await loadAppearanceCatalog(soldierCatalogUrl);
-    assertCrowdClipCoverage(assets, requiredSoldierClips);
+    if (gameplay) assertGameplayAppearances(assets);
     const world = await PhotorealWorld.create(canvas, { antialias: false });
     let crowd: PhotorealCrowd;
     try {
@@ -268,7 +265,7 @@ export class PhotorealBattleWorld {
       postEnabled,
       options.postGrade ?? null,
       grassProfile,
-      requiredSoldierClips,
+      gameplay,
       crowd,
     );
   }
@@ -293,7 +290,7 @@ export class PhotorealBattleWorld {
       }
     };
     assertActivePose();
-    assertCrowdClipCoverage(assets, this.requiredSoldierClips);
+    if (this.gameplay) assertGameplayAppearances(assets);
     const replacement = await PhotorealCrowd.create(this.world.renderer, this.world.scene, assets);
     try {
       this.assertReloadable();
@@ -414,26 +411,21 @@ export class PhotorealBattleWorld {
   draw(
     positions: Float32Array,
     facings: Float32Array,
-    frames: Float32Array,
+    playback: readonly SoldierPlayback[],
     alive: Float32Array,
     count: number,
     camera: BattleCameraSnapshot,
-    renderClass?: Uint8Array | number[] | null,
-    simTick?: number,
     frameDt = 0,
   ): void {
     const built = buildCrowdInstances({
       positions,
       facings,
-      frames,
+      playback,
       alive,
       soldierUnit: this.soldierUnit,
       unitTeam: this.unitTeam,
-      unitClass: this.unitClass,
-      renderClass: renderClass ?? undefined,
       mountedClasses: this.mountedClasses,
       terrainHeight: this.terrainSurface.heightSampler(),
-      simTick: simTick ?? 0,
       count,
     });
     this.drawInstances(built.instances, camera, frameDt);
@@ -453,7 +445,7 @@ export class PhotorealBattleWorld {
     this.markerLayer.upload(this.markers);
   }
 
-  debugSoldierAnim(index: number): { clip: string; phase: number; frame: number } | null {
+  debugSoldierAnim(index: number) {
     return this.crowd.debugSoldierAnim(index);
   }
 

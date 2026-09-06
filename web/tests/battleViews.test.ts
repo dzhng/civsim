@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { beforeAll, expect, test } from "vitest";
 import initWasm, { Game } from "../src/wasm/game_wasm.js";
 import { createBattleViews } from "../src/battle/battleViews";
-import type { ClassSpec } from "../src/battle/battleCrowd";
+import type { ClassSpec } from "../src/battle/classData";
 
 let wasm: Awaited<ReturnType<typeof initWasm>>;
 beforeAll(async () => {

@@ -180,7 +180,7 @@ test("class clip lookup follows appearances, not their flattened LOD resources",
     });
     assert.throws(() => crowd.classClip(1, "idle"), /appearance 1 is not loaded/);
     assert.throws(() => crowd.classClip(0.5, "idle"), /appearance 0.5 is not loaded/);
-    const [instance] = generatedFormation(1, { frame: 0 });
+    const [instance] = generatedFormation(1, { clip: "idle" });
     crowd.upload([{ ...instance, x: 19, classId: 5, lod: 2, clip: "idle" }]);
     const draws: number[][] = [];
     const indexFormats: GPUIndexFormat[] = [];

@@ -12,7 +12,7 @@ export async function route(ctx: LabContext): Promise<void> {
   if (ctx.params.get("ref") === "1") ctx.root.classList.add("reference-shot");
   const world = await PhotorealBattleWorld.create(ctx.canvas, {
     soldierCatalogUrl: ctx.params.get("catalog") ?? undefined,
-    requiredSoldierClips: ctx.params.has("catalog") ? [] : undefined,
+    gameplay: false,
   });
   const pose = { ...DEFAULT_MODEL_POSE };
   if (!world.soldierAssets[pose.classId])

@@ -2,7 +2,7 @@ import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
 import { modelLookForClass } from "@packages/game-renderer/src/models/shared/soldierModel";
 import { armySummary } from "./armySummary";
 import { CLASS_NAMES, UNIT_CLASS_BY_KEY, UnitClass, cardThumbUrl } from "./classData";
-import type { ClassSpec } from "./battleCrowd";
+import type { ClassSpec } from "./classData";
 import type { BattleControls } from "./battleControls";
 import type { Input } from "./input";
 import type { BattleWorld } from "./battleWorld";

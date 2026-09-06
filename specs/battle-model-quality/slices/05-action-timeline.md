@@ -18,6 +18,10 @@ Names of new functions/routes in this plan are proposed, not existing commands. 
 | 05b — Applicability and timeline     | Generate the appearance role/state matrix from the canonical catalog. Promote the existing local-transform CPU sampler to a shared owner, then implement deterministic per-soldier history and exact interrupted-pose snapshots, including resets, count growth and terminal death. |
 | 05c — Production replay              | Adapt actual battle observations and replay action sequences through the production workbench. Remove fabricated hit poses and global-time action wrapping; prove reset/pause/event behavior and inspect the timeline.                                                              |
 
+The bounded [battle adapter implementation evidence](../assets/evidence/05/battle-adapter.md)
+records the caller cutover and numerical checks. Its merged browser/cache and
+visual gates remain open; this does not complete the production replay row.
+
 `hit_ttl` is contact/facing memory, not an injury event: melee sets it before
 evade/block, missiles can set it before dodge, and its decay depends on facing
 logic. Do not expose it as a successful-hit signal. A decrease in existing health

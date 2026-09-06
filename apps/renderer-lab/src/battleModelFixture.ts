@@ -38,7 +38,6 @@ export function modelInstances(
     spacing: bundle.manifest.mounted ? 3 : 1.6,
     classId: pose.classId,
     mounted: bundle.manifest.mounted,
-    frame: pose.clip === "death_a" ? 4 : 0,
   }).map((instance) => ({
     ...instance,
     clip: pose.clip,

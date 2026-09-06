@@ -29,12 +29,6 @@ function surface(color: Rgba, name: keyof typeof SURFACES, factionMask = 0): Sur
 
 import { APPEARANCE_DESCRIPTORS, type Armor, type Helmet, type Shield, type PlaceholderLook } from './appearance.ts';
 
-export const REAL_UNIT_CLASS_COUNT = 15;
-export const SHOCK_CAV_SIDEARM_CLASS = REAL_UNIT_CLASS_COUNT;
-export const HEAVY_PHALANX_REST_CLASS = REAL_UNIT_CLASS_COUNT + 1;
-export const MEDIUM_PHALANX_REST_CLASS = REAL_UNIT_CLASS_COUNT + 2;
-export const HEAVY_PHALANX_SIDEARM_CLASS = REAL_UNIT_CLASS_COUNT + 3;
-export const MEDIUM_PHALANX_SIDEARM_CLASS = REAL_UNIT_CLASS_COUNT + 4;
 export const PLACEHOLDER_RENDER_CLASS_COUNT = APPEARANCE_DESCRIPTORS.length;
 
 function addBox(

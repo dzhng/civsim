@@ -1,5 +1,12 @@
 import { generatedFormation } from "@packages/crowd-runtime/src/instanceData";
-import { type LabContext, animateSkinned, createConfiguredShell, createSkinnedPipeline, publish, reportTable } from "../labShell";
+import {
+  type LabContext,
+  animateSkinned,
+  createConfiguredShell,
+  createSkinnedPipeline,
+  publish,
+  reportTable,
+} from "../labShell";
 
 export async function route(ctx: LabContext) {
   const count = Number(ctx.params.get("count") ?? 2000);
@@ -16,9 +23,9 @@ export async function route(ctx: LabContext) {
     y: -12,
     faction: 0,
     columns: 40,
-    frame: 1,
+    clip: "march",
   }).concat(
-    generatedFormation(Math.ceil(count / 2), { x: 20, y: 4, faction: 1, columns: 40, frame: 8 }),
+    generatedFormation(Math.ceil(count / 2), { x: 20, y: 4, faction: 1, columns: 40, clip: "run" }),
   );
   animateSkinned(shell, pipeline, () => instances, { phaseSpeed: 0.45 });
   ctx.status.innerHTML = reportTable({

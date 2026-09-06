@@ -257,10 +257,16 @@ export class PhotorealCrowd {
     }
   }
 
-  debugSoldierAnim(index: number): { clip: string; phase: number; frame: number } | null {
+  debugSoldierAnim(index: number) {
     const inst = this.sourceInstances[index];
     if (!inst) return null;
-    return { clip: inst.clip, phase: inst.phase, frame: inst.frame };
+    return {
+      clip: inst.clip,
+      phase: inst.phase,
+      playback: inst.playback,
+      duration: this.assets[inst.classId].animation.clips.find((clip) => clip.name === inst.clip)!
+        .duration,
+    };
   }
 
   refreshCamera(camera: THREE.Camera): void {

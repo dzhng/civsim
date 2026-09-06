@@ -1,4 +1,6 @@
 // Production policy above the photoreal world: frozen frames, debug mode, and CPU timing.
+import type { AppearanceBundle } from "@packages/soldier-assets/src/appearanceBundle";
+import type { SoldierPlayback } from "@packages/crowd-runtime/src/actionTimeline";
 import type { Camera } from "../shared/camera";
 import { roundMs } from "@packages/renderer-core/src/math";
 import {
@@ -43,6 +45,9 @@ export interface BattleRendererMemoryInfo {
 
 export class BattleRenderer {
   readonly ready: Promise<void>;
+  get soldierAssets(): Record<number, AppearanceBundle> | null {
+    return this.world?.soldierAssets ?? null;
+  }
   fixedTime: number | null = null;
   preserveFrozenEffects = false;
 
@@ -52,6 +57,8 @@ export class BattleRenderer {
   private pendingTerrain: { grid: BattleTerrainGrid; options: BattleTerrainOptions } | null = null;
   private triangleVerts = new Float32Array();
   private frozenFrameKey: string | null = null;
+  private pendingFrozenFrameKey: string | null = null;
+  private frozenCatalog: Record<number, AppearanceBundle> | null = null;
   private skipFrozenFrame = false;
   private blockMode = new URLSearchParams(location.search).get("debug") === "blocks";
   private framePerf = {
@@ -168,20 +175,24 @@ export class BattleRenderer {
   draw(
     positions: Float32Array,
     facings: Float32Array,
-    frames: Float32Array,
+    playback: readonly SoldierPlayback[],
     alive: Float32Array,
     count: number,
     camera: Camera,
-    renderClass?: Uint8Array | number[] | null,
-    simTick?: number,
+    observationTick: number,
     frameDt = 0,
   ) {
     if (!this.world) return;
     const frameKey =
       this.fixedTime !== null
-        ? `${frozenFrameKey(camera, count)}|effects=${this.preserveFrozenEffects ? 1 : 0}`
+        ? `${frozenFrameKey(camera, count)}|tick=${observationTick}|effects=${this.preserveFrozenEffects ? 1 : 0}`
         : null;
-    if (frameKey && frameKey === this.frozenFrameKey) {
+    this.pendingFrozenFrameKey = frameKey;
+    if (
+      frameKey &&
+      frameKey === this.frozenFrameKey &&
+      this.frozenCatalog === this.world.soldierAssets
+    ) {
       this.skipFrozenFrame = true;
       this.framePerf = { buildMs: 0, uploadMs: 0, drawMs: 0, frameCpuMs: 0 };
       return;
@@ -192,17 +203,7 @@ export class BattleRenderer {
     this.world.setTime(seconds);
     const cameraState = cameraSnapshot(camera);
     const buildStart = performance.now();
-    this.world.draw(
-      positions,
-      facings,
-      frames,
-      alive,
-      count,
-      cameraState,
-      renderClass,
-      simTick ?? Math.floor(seconds * 30),
-      frameDt,
-    );
+    this.world.draw(positions, facings, playback, alive, count, cameraState, frameDt);
     const buildEnd = performance.now();
     if (this.blockMode) {
       this.world.uploadDebugBlocks(this.world.debugBlockTriangles(positions, alive, count));
@@ -255,8 +256,8 @@ export class BattleRenderer {
     this.framePerf.frameCpuMs = done - this.frameStart;
     this.triangleVerts = new Float32Array();
     if (this.fixedTime !== null) {
-      const staticSoldiers = this.world.stats().expectedSoldiers;
-      this.frozenFrameKey = `${frozenFrameKey(camera, staticSoldiers)}|effects=${this.preserveFrozenEffects ? 1 : 0}`;
+      this.frozenFrameKey = this.pendingFrozenFrameKey;
+      this.frozenCatalog = this.world.soldierAssets;
     } else {
       this.frozenFrameKey = null;
     }
@@ -309,8 +310,14 @@ export class BattleRenderer {
     return this.world?.surfaceHeightAt(x, y) ?? 0;
   }
 
-  debugSoldierAnim(index: number): { clip: string; phase: number; frame: number } | null {
+  debugSoldierAnim(index: number) {
     return this.world?.debugSoldierAnim(index) ?? null;
+  }
+
+  async reloadSoldierAssets(): Promise<void> {
+    await this.ready;
+    if (!this.world) throw new Error("Battle renderer is not available");
+    await this.world.reloadSoldierAssets();
   }
 
   async settlePresentedFrame() {

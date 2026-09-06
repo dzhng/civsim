@@ -1,4 +1,4 @@
-import { type CrowdInstance, deterministicInstanceSeed } from './instanceData';
+import { type CrowdInstance, deterministicInstanceSeed } from "./instanceData";
 
 // Representative figures for one campaign army stack. A stack can hold hundreds
 // of soldiers across up to ARMY_STACK_UNIT_CAP units, but we only ever draw a
@@ -65,12 +65,15 @@ export function sampleFigureClasses(unitsByClass: readonly number[], figures: nu
   return out;
 }
 
-export function buildStackCrowd(unitsByClass: readonly number[], opts: StackCrowdOpts): CrowdInstance[] {
+export function buildStackCrowd(
+  unitsByClass: readonly number[],
+  opts: StackCrowdOpts,
+): CrowdInstance[] {
   const figures = stackFigureCount(opts.unitCount, opts.stackUnitCap, opts.maxFigures ?? 6);
   const classIds = sampleFigureClasses(unitsByClass, figures);
   const mounted = new Set(opts.mountedClasses ?? []);
   const facing = opts.facing ?? Math.PI / 2;
-  const clip = opts.clip ?? 'march';
+  const clip = opts.clip ?? "march";
   const basePhase = opts.phase ?? 0;
   const spacing = opts.spacing ?? 1.3;
   const cols = Math.min(3, figures);
@@ -83,8 +86,8 @@ export function buildStackCrowd(unitsByClass: readonly number[], opts: StackCrow
     const rowCount = row === rows - 1 ? figures - row * cols : cols;
     const seed = deterministicInstanceSeed(i, opts.seed);
     // Small deterministic jitter so the block reads as men, not a lattice.
-    const jx = (((seed & 0xff) / 255) - 0.5) * spacing * 0.35;
-    const jy = ((((seed >>> 8) & 0xff) / 255) - 0.5) * spacing * 0.35;
+    const jx = ((seed & 0xff) / 255 - 0.5) * spacing * 0.35;
+    const jy = (((seed >>> 8) & 0xff) / 255 - 0.5) * spacing * 0.35;
     const fx = opts.x + (col - (rowCount - 1) / 2) * spacing + jx;
     const fy = opts.y + (row - (rows - 1) / 2) * spacing + jy;
     const classId = Math.max(0, classIds[i] ?? 0);
@@ -95,7 +98,7 @@ export function buildStackCrowd(unitsByClass: readonly number[], opts: StackCrow
       classId,
       faction: opts.faction,
       alive: true,
-      frame: 1,
+
       clip,
       // Offset each figure so the stack doesn't animate in lockstep.
       phase: (basePhase + (seed % 997) / 997) % 1,

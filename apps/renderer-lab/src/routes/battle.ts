@@ -1,5 +1,12 @@
 import { generatedFormation } from "@packages/crowd-runtime/src/instanceData";
-import { type LabContext, animateSkinned, createConfiguredShell, createSkinnedPipeline, publish, reportTable } from "../labShell";
+import {
+  type LabContext,
+  animateSkinned,
+  createConfiguredShell,
+  createSkinnedPipeline,
+  publish,
+  reportTable,
+} from "../labShell";
 
 export async function route(ctx: LabContext) {
   const shell = await createConfiguredShell(ctx.canvas, {
@@ -15,8 +22,8 @@ export async function route(ctx: LabContext) {
     y: -13,
     faction: 0,
     columns: 42,
-    frame: 1,
-  }).concat(generatedFormation(1200, { x: 21, y: 5, faction: 1, columns: 42, frame: 8 }));
+    clip: "march",
+  }).concat(generatedFormation(1200, { x: 21, y: 5, faction: 1, columns: 42, clip: "run" }));
   animateSkinned(shell, pipeline, () => instances, { phaseSpeed: 0.5 });
   ctx.status.innerHTML = reportTable({
     route: "battle",

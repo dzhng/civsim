@@ -1,8 +1,8 @@
 import type { SoldierMeshData } from "./mesh";
 import { assertMappedTangentFrames } from "./skin.ts";
 import type { ImportedRig } from "./rig";
-import type { VatBake } from "./schema";
-import { assertAppearancePresentation, type AppearancePresentation } from './presentation.ts';
+import { decodeLocalAnimation, type LocalAnimation } from "./localAnimation.ts";
+import { assertAppearancePresentation, type AppearancePresentation } from "./presentation.ts";
 import {
   readSoldierSurfaceAsset,
   type SoldierSurface,
@@ -28,7 +28,7 @@ export interface AppearanceManifest {
 export interface AppearanceBundle {
   manifest: AppearanceManifest;
   rig: ImportedRig;
-  animation: VatBake;
+  animation: LocalAnimation;
   surface: SoldierSurface;
   tiers: [SoldierMeshData, SoldierMeshData, SoldierMeshData];
   farMesh: SoldierMeshData;
@@ -43,6 +43,7 @@ function assetReader() {
   const cache = new Map<string, Promise<unknown>>();
   const binaries = new Map<string, Promise<Uint8Array<ArrayBuffer>>>();
   const surfaces = new Map<string, Promise<SoldierSurface>>();
+  const animations = new Map<string, Promise<LocalAnimation>>();
   const json = <T>(url: string): Promise<T> => {
     if (!cache.has(url))
       cache.set(
@@ -67,6 +68,10 @@ function assetReader() {
   };
   return {
     json,
+    animation(url: string): Promise<LocalAnimation> {
+      if (!animations.has(url)) animations.set(url, json<unknown>(url).then(decodeLocalAnimation));
+      return animations.get(url)!;
+    },
     surface(url: string): Promise<SoldierSurface> {
       if (!surfaces.has(url))
         surfaces.set(
@@ -231,44 +236,11 @@ async function readAppearanceBundle(
   }
   const [rig, animation, surface, meshes, farAsset] = await Promise.all([
     read<ImportedRig>(manifest.skeleton),
-    read<VatBake>(manifest.animation),
+    fetchAsset.animation(new URL(manifest.animation, url).href),
     fetchAsset.surface(new URL(manifest.materials, url).href),
     Promise.all(manifest.tiers.map((path) => read<SoldierMeshAsset>(path))),
     read<SoldierMeshAsset>(manifest.far.mesh),
   ]);
-  if (
-    ![animation.width, animation.height, animation.bones].every(
-      (value) => Number.isInteger(value) && value > 0,
-    ) ||
-    animation.height !== animation.bones * 4 ||
-    !Number.isFinite(animation.fps) ||
-    animation.fps <= 0 ||
-    !Array.isArray(animation.data) ||
-    animation.data.length !== animation.width * animation.height * 4 ||
-    animation.data.some((value) => !Number.isFinite(value))
-  ) {
-    throw new Error("appearance animation matrix data does not match its dimensions");
-  }
-  if (
-    !Array.isArray(animation.clips) ||
-    animation.clips.length === 0 ||
-    new Set(animation.clips.map((clip) => clip.name)).size !== animation.clips.length ||
-    animation.clips.some(
-      (clip) =>
-        typeof clip.name !== "string" ||
-        !clip.name ||
-        typeof clip.loop !== "boolean" ||
-        !Number.isFinite(clip.duration) ||
-        clip.duration < 0 ||
-        !Number.isInteger(clip.start) ||
-        clip.start < 0 ||
-        !Number.isInteger(clip.frames) ||
-        clip.frames < 1 ||
-        clip.start + clip.frames > animation.width,
-    )
-  ) {
-    throw new Error("appearance animation clips have invalid metadata or sample ranges");
-  }
   if (!Number.isFinite(manifest.far.phase) || manifest.far.phase < 0 || manifest.far.phase > 1) {
     throw new Error("appearance far phase must be between zero and one");
   }

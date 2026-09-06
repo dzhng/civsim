@@ -1,36 +1,39 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { bakeGltf } from "./gltf.mjs";
-import { bakeRig } from "./vat.mjs";
+import { localPoseToJointMatrices, sampleRigLocalPoseSeconds } from "../src/localPose.ts";
 import { gltfToEngineBasis } from "./engine-basis.mjs";
 import { poseSoldierMesh } from "../src/skin.ts";
 
 for (const name of ["human", "mounted"]) {
   const root = new URL(`../assets/test/blender-reference/${name}`, import.meta.url);
-  const source = bakeGltf(await readFile(new URL(root.href + ".glb")), { fps: 24 });
+  const source = bakeGltf(await readFile(new URL(root.href + ".glb")));
   const expected = JSON.parse(await readFile(new URL(root.href + ".landmarks.json"), "utf8"));
   const converted = gltfToEngineBasis(source);
-  const baked = bakeRig(converted.rig, 24);
-  const sourceBake = bakeRig(source.rig, 24);
   let maximum = 0,
     checked = 0;
   for (const sample of expected.samples) {
-    const clip = baked.clips.find((candidate) => candidate.name === sample.clip);
+    const clip = converted.rig.clips.find((candidate) => candidate.name === sample.clip);
     if (!clip) continue; // Composed poses are checked independently in the source oracle.
-    const sourceClip = converted.rig.clips.find((candidate) => candidate.name === sample.clip);
-    const frame =
-      clip.start + Math.round((sample.seconds / sourceClip.duration) * (clip.frames - 1));
+    const palette = localPoseToJointMatrices(
+      converted.rig,
+      sampleRigLocalPoseSeconds(converted.rig, clip.name, sample.seconds),
+    );
+    const sourcePalette = localPoseToJointMatrices(
+      source.rig,
+      sampleRigLocalPoseSeconds(source.rig, clip.name, sample.seconds),
+    );
     for (const primitive of converted.primitives) {
       const mapping = expected.meshes.find(
         (mesh) => mesh.node === primitive.nodeName && mesh.primitive === primitive.primitiveIndex,
       );
-      const posed = poseSoldierMesh(primitive, baked, frame);
+      const posed = poseSoldierMesh(primitive, palette);
       const sourcePrimitive = source.primitives.find(
         (candidate) =>
           candidate.nodeIndex === primitive.nodeIndex &&
           candidate.primitiveIndex === primitive.primitiveIndex,
       );
-      const sourcePose = poseSoldierMesh(sourcePrimitive, sourceBake, frame);
+      const sourcePose = poseSoldierMesh(sourcePrimitive, sourcePalette);
       for (let vertex = 0; vertex < posed.tangents.length / 4; vertex++) {
         const t = vertex * 4;
         const expectedTangent = [

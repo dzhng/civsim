@@ -37,7 +37,7 @@
     }
   },
   "skeleton": "../../baked/human-placeholder.skeleton.json",
-  "animation": "../../baked/human-placeholder.vat.json",
+  "animation": "../../baked/human-placeholder.animation.json",
   "materials": "../../baked/placeholder.materials.json",
   "tiers": [
     "tier-0.mesh.json",

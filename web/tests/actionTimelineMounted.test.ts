@@ -17,12 +17,17 @@ import {
 } from "@packages/soldier-assets/src/localPose";
 import type { ImportedRig } from "@packages/soldier-assets/src/rig";
 import type { AppearancePresentation } from "@packages/soldier-assets/src/presentation";
-import type { VatClip } from "@packages/soldier-assets/src/schema";
+import type { LocalAnimationClip } from "@packages/soldier-assets/src/localAnimation";
 
-const clips: VatClip[] = ["ready", "walk", "run", "release", "hit", "death"].map((name, index) => ({
+const clips: Pick<LocalAnimationClip, "name" | "duration" | "loop" | "markers">[] = [
+  "ready",
+  "walk",
+  "run",
+  "release",
+  "hit",
+  "death",
+].map((name, index) => ({
   name,
-  start: index * 25,
-  frames: 25,
   duration: 1,
   loop: index < 3,
   ...(name === "release" ? { markers: { release: 0.2 } } : {}),

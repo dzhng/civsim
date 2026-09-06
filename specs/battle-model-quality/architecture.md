@@ -7,7 +7,7 @@
 | Authored soldier source | `packages/soldier-assets`: Blender source, export/bake scripts and provenance | Keep .blend and reproducible local scripts; generated GLB/bakes are rebuildable. Do not create an independent art package with another schema. |
 | Gameplay roster | Existing simulation/class-data owner | Appearance catalog references classes; never copy combat stats into art metadata. |
 | Appearance and applicable clips | `soldier-assets` canonical catalog | Battle state selection, loaders, workbench, cards and sheets consume it. Consolidate duplicated render descriptions and blanket clip lists. |
-| Asset encoding | `soldier-assets` schema/baker, shared VAT layout in `renderer-core` | Production and retained raw consumers cut over together in03. Reject unsupported source constructs at authoring boundary rather than silently degrading. |
+| Asset encoding | `soldier-assets` local animation producer/decoder, shared resolved playback packing in `renderer-core` | Weighted meshes landed in03;06 replaces matrix animation with authored-time local transforms in all consumers together. Reject unsupported source constructs at authoring boundary rather than silently degrading. |
 | Action progress | `crowd-runtime` per-soldier timeline | Battle adapter supplies observations; renderer samples outputs. Eliminate global-time action restart/wrap and duplicate switch clocks. |
 | Skin/material/LOD | Existing `photoreal-renderer` crowd and shared crowd LOD owner | Workbench reuses production composition; no lab-only soldier shader. Reduced meshes and per-appearance impostors consume the same authored asset. |
 | Environment | Existing production world | Harness controls camera/time, not a competing light rig tuned to flatter art. Neutral standard-loader oracle only tests export. |
@@ -51,6 +51,6 @@ Budget selection is a measured experiment in07, not an arbitrary promise of a pa
 
 ## Risk retirement and executable anchors
 
-Use the existing [glTF tests](../../packages/soldier-assets/bake/gltf.test.mjs), [VAT tests](../../packages/soldier-assets/bake/vat.test.mjs), [animation-state tests](../../web/tests/animationState.test.ts), [material tests](../../web/tests/soldierMaterials.test.ts) and [battle scenes](../../web/scenes/battle) as starting seams, not immutable implementation assertions. Replace tests that encode box geometry, RGB material guessing or global action phase with behavior-oriented cases, and report the behavior change.
+Use the existing [glTF tests](../../packages/soldier-assets/bake/gltf.test.mjs), [local hierarchy tests](../../packages/soldier-assets/bake/local-hierarchy.test.mjs), [animation-state tests](../../web/tests/animationState.test.ts), [material tests](../../web/tests/soldierMaterials.test.ts) and [battle scenes](../../web/scenes/battle) as starting seams, not immutable implementation assertions. Replace tests that encode box geometry, RGB material guessing or global action phase with behavior-oriented cases, and report the behavior change.
 
 Before implementation choose exact new scene/CLI names within the existing runner. The route and probes in slice files are proposed deliverables; this spec does not claim they already run. A clean-checkout source export, full asset load and real battle are mandatory final proofs, not merely passing offline bake tests.

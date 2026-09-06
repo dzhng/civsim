@@ -1,5 +1,6 @@
 import type { ImportedRig } from "./rig";
-import { assertClipMarkers, type VatBake } from "./schema.ts";
+import { assertClipMarkers } from "./schema.ts";
+import type { LocalAnimation } from "./localAnimation";
 
 export const ACTION_ROLES = [
   "ready",
@@ -23,7 +24,7 @@ export interface AppearancePresentation {
 export function assertAppearancePresentation(
   presentation: AppearancePresentation | null,
   rig: ImportedRig,
-  animation: VatBake,
+  animation: Pick<LocalAnimation, "clips">,
   mounted: boolean,
 ): void {
   for (const clip of animation.clips) assertClipMarkers(clip.markers);
@@ -66,7 +67,7 @@ export function assertAppearancePresentation(
     const repeating = ["ready", "atEase", "walk", "run", "pikeReady"].includes(role);
     if (clip.loop !== repeating)
       throw new Error(`presentation ${role} has incompatible clip looping`);
-    if (!repeating && (clip.duration <= 0 || clip.frames < 2))
+    if (!repeating && (clip.duration <= 0 || clip.times.length < 2))
       throw new Error(`presentation ${role} requires sampled motion`);
     if (role === "release" && clip.markers?.release === undefined)
       throw new Error("release action requires an authored clip release marker");

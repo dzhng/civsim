@@ -42,11 +42,9 @@ test("normal-mapped bind frames are admitted per slot on all tiers and far conte
     // Runtime does not rescan animation frames: source baking owns sampled-frame admission.
     "clips.json": {
       bones: 1,
-      width: 1,
-      height: 4,
-      fps: 24,
-      data: Array(16).fill(0),
-      clips: [{ name: "idle", start: 0, frames: 1, loop: true, duration: 0 }],
+      data: [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0],
+      stepMasks: [0],
+      clips: [{ name: "idle", start: 0, times: [0], stepMaskOffset: 0, loop: true, duration: 0 }],
     },
     "materials.json": {
       materials: [plain, { ...plain, textures: { normal: true } }],
@@ -163,11 +161,9 @@ test("a complete appearance loads distinct tiers and its own far mesh without na
     "rig.json": { bones: Array.from({ length: 7 }, () => ({})), clips: [] },
     "clips.json": {
       bones: 7,
-      width: 1,
-      height: 28,
-      fps: 24,
-      data: Array(112).fill(0),
-      clips: [{ name: "idle", start: 0, frames: 1, loop: true, duration: 0 }],
+      data: Array.from({ length: 7 }, () => [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0]).flat(),
+      stepMasks: Array(7).fill(0),
+      clips: [{ name: "idle", start: 0, times: [0], stepMaskOffset: 0, loop: true, duration: 0 }],
     },
     "materials.json": { materials: PLACEHOLDER_MATERIALS, textures: {} },
     "near.json": tier(0),
@@ -255,7 +251,7 @@ test("a complete appearance loads distinct tiers and its own far mesh without na
     (files["clips.json"] as { data: number[] }).data.pop();
     await expect(
       loadAppearanceBundle("https://assets.test/fixture/bundle.json").then(() => "accepted"),
-    ).rejects.toThrow(/animation matrix data/);
+    ).rejects.toThrow(/local animation.*invalid samples/);
   } finally {
     vi.unstubAllGlobals();
   }

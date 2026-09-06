@@ -7,7 +7,7 @@ import { assertPresentationMotion } from "./presentation.mjs";
 import { createServer } from "node:http";
 import { once } from "node:events";
 import { readFile } from "node:fs/promises";
-import { bakeRig } from "./vat.mjs";
+import { bakeLocalAnimation } from "../src/localAnimation.ts";
 
 const { files } = await bakePlaceholder({ write: false });
 const sword = files["appearances/heavy-sword/appearance.json"];
@@ -74,7 +74,7 @@ try {
 
   const path = "appearances/horse-archers/appearance.json";
   const original = structuredClone(files[path]);
-  const animation = files["baked/human-placeholder.vat.json"];
+  const animation = files["baked/human-placeholder.animation.json"];
   const release = animation.clips.find((clip) => clip.name === "bow_release");
   const load = () => loadAppearanceBundle(`${base}${path}`);
   files[path] = structuredClone(original);
@@ -124,12 +124,12 @@ try {
   const action = maskedRig.clips.find((c) => c.name === "bow_release");
   action.tracks = {};
   assert.throws(
-    () => assertPresentationMotion(original.presentation, bakeRig(maskedRig, 12), maskedRig),
+    () => assertPresentationMotion(original.presentation, bakeLocalAnimation(maskedRig), maskedRig),
     /release.*no sampled motion/,
   );
   for (const joint of [5, 0]) {
     action.tracks = { [joint]: { T: { times: [0, 0.75], values: [0, 0, 0, 0.1, 0, 0] } } };
-    const maskedAnimation = bakeRig(maskedRig, 12);
+    const maskedAnimation = bakeLocalAnimation(maskedRig);
     assert.throws(
       () => assertPresentationMotion(original.presentation, maskedAnimation, maskedRig),
       /release.*no sampled motion/,
@@ -147,7 +147,6 @@ const source = await readFile(
 const options = {
   name: "source-markers",
   tiers: [source, source, source],
-  fps: 24,
   loopClips: [],
   presentation: null,
 };

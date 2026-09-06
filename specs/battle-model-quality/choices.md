@@ -2,6 +2,43 @@
 
 ## Sound — medium confidence
 
+### Keep frozen poses in stable GPU slots until they stop being used (06b)
+
+**Confidence: medium.** An interrupted soldier's saved pose stays in its existing
+slot even if a lower-numbered slot becomes free. New poses reuse holes. This
+avoids uploading the same pose again just to make the storage look compact.
+The slot span can therefore exceed the current live count;07 must measure both
+and the high-water capacity. The plan required bounded reuse but did not choose
+compaction. **Sound:** visible frozen sources remain bounded without per-frame
+movement of retained data.
+
+### Invalidate potentially overwritten slots after an aborted upload (06b)
+
+**Confidence: medium.** A failed frame may already have written a new pose over
+an old slot. The next attempt uploads that old pose again if needed, even when
+the failure happened before the write actually reached the GPU. Unaffected
+slots remain reusable. The plan required failure safety but left partial writes
+open. **Sound:** conservative reupload prevents an old identity from referring
+to new bytes, without rebuilding every retained snapshot.
+
+### Read a stable indexed worklist instead of copying playback wrappers (06b)
+
+**Confidence: medium.** The packer asks the renderer for each already-decided
+pose by index. It does not advance animation history or create a wrapper object
+for every soldier. Manual clip inspection uses the same resolved-sample path
+without inventing combat history. Callers must keep that worklist stable during
+packing. The plan did not prescribe this interface. **Sound:** one sampler
+serves both inspection and gameplay;07 still owns the measured CPU cost.
+
+### Admit near-unit rotations instead of repairing malformed ones (06a/b)
+
+**Confidence: medium.** Source keys, bind rotations and loaded local samples
+must have quaternion length within0.0001 of one. This tolerates normal exported
+rounding but rejects tiny or materially non-unit rotations. Silently normalizing
+such inputs would alter authored endpoints. The plan left numerical admission
+open. **Sound:** the GPU normalization/bounds proof has an explicit input
+domain; future exporters must satisfy it or justify a different contract.
+
 ### Preserve source precision and expose immutable transition snapshots (05b)
 
 An interrupted pose retains double-precision local transforms until the shared

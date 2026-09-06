@@ -20,7 +20,7 @@ test("four-joint skinning blends positions and normals before normalization", ()
     -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 4, 0, 0,
     1,
   ];
-  const result = poseSoldierMesh(mesh, { width: 1, data }, 0);
+  const result = poseSoldierMesh(mesh, data);
   expect(Array.from(result.positions)).toEqual([1.25, 0.25, 0]);
   expect(result.normals[0]).toBeCloseTo(Math.SQRT1_2, 6);
   expect(result.normals[1]).toBeCloseTo(Math.SQRT1_2, 6);
@@ -32,7 +32,7 @@ test("four-joint skinning blends positions and normals before normalization", ()
     -1,
   ]);
   mesh.tangents[3] = 1;
-  const mirrored = poseSoldierMesh(mesh, { width: 1, data }, 0);
+  const mirrored = poseSoldierMesh(mesh, data);
   expect(mirrored.positions).toEqual(result.positions);
   expect(mirrored.normals).toEqual(result.normals);
   expect(Array.from(mirrored.tangents)).toEqual([...result.tangents.slice(0, 3), 1]);

@@ -514,13 +514,11 @@ test("real action timeline interruptions and upper exit pack the same composed m
       expected = evaluatePlaybackPose(appearance, playback);
     const actualPositions = poseSoldierMesh(
       mesh,
-      { width: 1, data: localPoseToJointMatrices(mountedRig, decoded) },
-      0,
+      localPoseToJointMatrices(mountedRig, decoded),
     ).positions;
     const expectedPositions = poseSoldierMesh(
       mesh,
-      { width: 1, data: localPoseToJointMatrices(mountedRig, expected) },
-      0,
+      localPoseToJointMatrices(mountedRig, expected),
     ).positions;
     for (let vertex = 0; vertex < actualPositions.length; vertex += 3) {
       const error = Math.hypot(

@@ -7,8 +7,7 @@ export const TANGENT_FRAME_EPSILON_SQUARED = 1e-12;
 /** CPU counterpart of crowd skinning for baked far views and parity probes. */
 export function poseSoldierMesh(
   mesh: Pick<SoldierMeshData, "positions" | "normals" | "tangents" | "joints" | "weights">,
-  vat: { width: number; data: ArrayLike<number> },
-  frame: number,
+  palette: ArrayLike<number>,
 ) {
   const positions = new Float32Array(mesh.positions.length);
   const normals = new Float32Array(mesh.normals.length);
@@ -28,11 +27,11 @@ export function poseSoldierMesh(
       const weight = mesh.weights[vertex * 4 + influence];
       if (weight === 0) continue;
       const bone = mesh.joints[vertex * 4 + influence];
-      const c0 = (bone * 4 * vat.width + frame) * 4;
-      const c1 = c0 + vat.width * 4;
-      const c2 = c1 + vat.width * 4;
-      const c3 = c2 + vat.width * 4;
-      const d = vat.data;
+      const c0 = bone * 16;
+      const c1 = c0 + 4;
+      const c2 = c0 + 8;
+      const c3 = c0 + 12;
+      const d = palette;
       const x = mesh.positions[p],
         y = mesh.positions[p + 1],
         z = mesh.positions[p + 2];

@@ -8,6 +8,13 @@ Last updated **2026-09-06**. Status: **slices01–05 complete; slice06 in progre
 
 You are working in `/Users/david/dev/game-battle-model-quality`, branch `codex/battle-model-quality`. Continue [06 — GPU playback](slices/06-gpu-playback.md): finish the shared palette kernel/packing/lifetime proofs, then atomically cut over all consumers and internal bundles before temporal acceptance. The [local encoding proposal](assets/evidence/06/local-encoding-proposal.md) is approved and its source implementation is prepared in an independent worktree, not yet installed in runtime. The [palette proposal](assets/evidence/06/palette-consumer-proposal.md) and [measured storage lifetime](assets/evidence/06/compute-buffer-lifetime.md) identify the actual integration gates. Current production still draws the selected base VAT clip; no GPU blend acceptance yet. Finish06→07 before detailed anatomy08. No user-only blocker.
 
+The [producer/loader cutover](assets/evidence/06/local-format-cutover.md) is
+prepared in `/Users/david/dev/game-local-animation-cutover`. Its full source gate
+and41 focused web tests pass, and focused independent review is clean. That
+isolated staging tree deliberately awaits the raw/Three consumer commits and
+updated GPU bounds proof; apply those together before exposing its new assets
+on main. The main workbench remains on the verified prior format meanwhile.
+
 [05 merged validation](assets/evidence/05/merged-validation.md) records252 web tests, rebuilt WASM/golden checks, strict replay/workbench/swatch snapshots, deterministic battle cadence and the standing hardware gate. Its five-minute Preview checkpoint closed on evidence without assuming user approval. The workbench distinguishes submitted clip/phase from future GPU pose readback.06c still owes an isolated frozen-articulation negative control.
 
 [Material closure](assets/evidence/04/consumer-closure/review.md) links the scalar, texture and posed-normal evidence, the matched six-swatch source/production comparison, strict merged consumer/reload checks and applicable standing hardware gate. Material transfer is accepted; anatomy, surface styling, animation quality and final-distance readability are not. Filtered-normal boundary bands, far shadows and raw placeholder readability remain later-slice obligations. [Choices](choices.md) owns implementation decisions.

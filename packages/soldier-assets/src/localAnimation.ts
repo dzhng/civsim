@@ -8,6 +8,16 @@ export const LOCAL_ANIMATION_FLOATS_PER_JOINT = 12;
 export const LOCAL_STEP_T = 1,
   LOCAL_STEP_R = 2,
   LOCAL_STEP_S = 4;
+export const LOCAL_QUATERNION_NORM_TOLERANCE = 1e-4;
+export function isAdmittedLocalQuaternion(values: ArrayLike<number>, offset = 0): boolean {
+  const norm = Math.hypot(
+    values[offset],
+    values[offset + 1],
+    values[offset + 2],
+    values[offset + 3],
+  );
+  return Number.isFinite(norm) && Math.abs(norm - 1) <= LOCAL_QUATERNION_NORM_TOLERANCE;
+}
 
 export interface LocalAnimationClip {
   name: string;
@@ -26,6 +36,86 @@ export interface LocalAnimation {
   /** Sample-major, then source joint order, then three vec4s. */
   data: Float32Array;
   stepMasks: Uint32Array;
+}
+
+/** JSON transport only; decoded arrays have one identity per load transaction. */
+export type LocalAnimationAsset = Omit<LocalAnimation, "data" | "stepMasks"> & {
+  data: number[];
+  stepMasks: number[];
+};
+
+export function encodeLocalAnimation(animation: LocalAnimation): LocalAnimationAsset {
+  return {
+    ...animation,
+    data: Array.from(animation.data),
+    stepMasks: Array.from(animation.stepMasks),
+  };
+}
+
+export function decodeLocalAnimation(value: unknown): LocalAnimation {
+  const asset = value as LocalAnimationAsset;
+  const fail = (): never => {
+    throw new Error("appearance local animation has invalid samples or metadata");
+  };
+  if (
+    !asset ||
+    !Number.isInteger(asset.bones) ||
+    asset.bones < 1 ||
+    !Array.isArray(asset.clips) ||
+    !asset.clips.length ||
+    !Array.isArray(asset.data) ||
+    !Array.isArray(asset.stepMasks) ||
+    asset.data.some((value) => !Number.isFinite(value) || !Number.isFinite(Math.fround(value))) ||
+    asset.stepMasks.some((value) => !Number.isInteger(value) || value < 0 || value > 7)
+  )
+    fail();
+  let samples = 0,
+    masks = 0;
+  const names = new Set<string>();
+  for (const clip of asset.clips) {
+    if (
+      !clip ||
+      typeof clip.name !== "string" ||
+      !clip.name ||
+      names.has(clip.name) ||
+      typeof clip.loop !== "boolean" ||
+      !Number.isFinite(clip.duration) ||
+      clip.duration < 0 ||
+      clip.start !== samples ||
+      clip.stepMaskOffset !== masks ||
+      !Array.isArray(clip.times) ||
+      !clip.times.length ||
+      clip.times[0] !== 0 ||
+      clip.times.at(-1) !== clip.duration ||
+      clip.times.some(
+        (time, i) => !Number.isFinite(time) || time < 0 || (i > 0 && time <= clip.times[i - 1]),
+      )
+    )
+      fail();
+    assertClipMarkers(clip.markers);
+    names.add(clip.name);
+    samples += clip.times.length;
+    masks += asset.bones;
+  }
+  if (
+    asset.data.length !== samples * asset.bones * LOCAL_ANIMATION_FLOATS_PER_JOINT ||
+    asset.stepMasks.length !== masks
+  )
+    fail();
+  for (let offset = 0; offset < asset.data.length; offset += LOCAL_ANIMATION_FLOATS_PER_JOINT) {
+    if (
+      asset.data[offset + 3] !== 0 ||
+      asset.data[offset + 11] !== 0 ||
+      !isAdmittedLocalQuaternion(asset.data, offset + 4)
+    )
+      fail();
+  }
+  return {
+    bones: asset.bones,
+    clips: asset.clips,
+    data: Float32Array.from(asset.data),
+    stepMasks: Uint32Array.from(asset.stepMasks),
+  };
 }
 
 /** Four scalar words for GPU transport; sample indices address whole local poses. */
@@ -56,6 +146,13 @@ export function packLocalPose(locals: LocalPose | readonly number[]): Float32Arr
 }
 
 export function bakeLocalAnimation(rig: ImportedRig): LocalAnimation {
+  for (let joint = 0; joint < rig.bones.length; joint++) {
+    const bone = rig.bones[joint];
+    if (!Number.isInteger(bone.parent) || bone.parent < -1 || bone.parent >= joint)
+      throw new Error(`bone ${joint} must come after its parent`);
+    if (!isAdmittedLocalQuaternion(bone.bind.R))
+      throw new Error(`local bind ${bone.name} requires a near-unit quaternion`);
+  }
   const clips: LocalAnimationClip[] = [];
   const masks: number[] = [];
   let totalSamples = 0;
@@ -92,6 +189,12 @@ export function bakeLocalAnimation(rig: ImportedRig): LocalAnimation {
           channel.values.some((value) => !Number.isFinite(value))
         )
           throw new Error(`invalid local channel ${clip.name}/${joint}/${field}`);
+        if (field === "R")
+          for (let offset = 0; offset < channel.values.length; offset += 4)
+            if (!isAdmittedLocalQuaternion(channel.values, offset))
+              throw new Error(
+                `local channel ${clip.name}/${joint}/R requires near-unit quaternions`,
+              );
         for (const time of channel.times) if (time <= clip.duration) times.add(time);
         if (channel.interpolation === "STEP") bits |= bit;
       }

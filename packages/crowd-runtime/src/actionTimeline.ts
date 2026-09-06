@@ -1,5 +1,5 @@
 import type { AppearancePresentation, ActionRole } from "../../soldier-assets/src/presentation";
-import type { VatClip } from "../../soldier-assets/src/schema";
+import type { LocalAnimationClip } from "../../soldier-assets/src/localAnimation";
 import { marchingStateForSpeed } from "./animationState";
 import type { ImportedRig } from "../../soldier-assets/src/rig";
 import {
@@ -48,9 +48,10 @@ export interface SoldierPlayback {
   base: ClipBlend;
   riderUpperBody?: RiderBlend;
 }
+type ActionClip = Pick<LocalAnimationClip, "name" | "duration" | "loop" | "markers">;
 type PlaybackAppearance = {
   manifest: { presentation: AppearancePresentation | null };
-  animation: { clips: readonly VatClip[] };
+  animation: { clips: readonly ActionClip[] };
   rig: ImportedRig;
 };
 export function evaluatePlaybackPose(
@@ -80,7 +81,7 @@ export function evaluatePlaybackPose(
 }
 interface Track {
   role: ActionRole;
-  clip: VatClip;
+  clip: ActionClip;
   started: number;
   startPhase: number;
 }

@@ -8,7 +8,7 @@ import {
 } from "@packages/crowd-runtime/src/actionTimeline";
 import type { ImportedRig } from "@packages/soldier-assets/src/rig";
 import type { AppearancePresentation } from "@packages/soldier-assets/src/presentation";
-import type { VatClip } from "@packages/soldier-assets/src/schema";
+import type { LocalAnimationClip } from "@packages/soldier-assets/src/localAnimation";
 
 const actions: AppearancePresentation["actions"] = {
   ready: { clip: "rest", layer: "fullBody" },
@@ -21,19 +21,17 @@ const actions: AppearancePresentation["actions"] = {
   death: { clip: "fall", layer: "fullBody" },
   pikeReady: null,
 };
-const clips: VatClip[] = [
+const clips: Pick<LocalAnimationClip, "name" | "duration" | "loop">[] = [
   ["rest", 4, true],
   ["walk", 2, true],
   ["run", 1, true],
   ["swing", 2, false],
   ["recoil", 0.5, false],
   ["fall", 1, false],
-].map(([name, duration, loop], index) => ({
+].map(([name, duration, loop]) => ({
   name: name as string,
   duration: duration as number,
   loop: loop as boolean,
-  start: index * 10,
-  frames: 10,
 }));
 const rig: ImportedRig = {
   bones: [
@@ -381,10 +379,8 @@ test("a rejected batch cannot commit a partial terminal death or reset existing 
 });
 
 test("an already-decayed firing observation starts after its marker and clamps spent recovery", () => {
-  const releaseClip: VatClip = {
+  const releaseClip: Pick<LocalAnimationClip, "name" | "duration" | "loop" | "markers"> = {
     name: "loose",
-    start: 60,
-    frames: 10,
     duration: 1,
     loop: false,
     markers: { release: 0.6 },

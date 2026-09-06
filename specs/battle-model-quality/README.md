@@ -6,7 +6,7 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 
 Last updated **2026-09-06**. Status: **slices01–04 complete; slice05 in progress**.
 
-You are working in `/Users/david/dev/game-battle-model-quality`, branch `codex/battle-model-quality`. Continue [05 — Action observations and timeline](slices/05-action-timeline.md):05a is complete and05b's [canonical applicability data](assets/evidence/05/catalog-presentation.md) is integrated. The next prerequisite is the shared CPU local-pose evaluator, followed by exact interrupted-pose snapshots in the controller; endpoint substitution is rejected. The production observation/submission cutover proceeds independently. No controller or action-replay acceptance yet. Finish05→07 infrastructure before detailed anatomy08. No user-only blocker.
+You are working in `/Users/david/dev/game-battle-model-quality`, branch `codex/battle-model-quality`. Continue [05 — Action observations and timeline](slices/05-action-timeline.md): integrate05c's actual observation/submission cutover, rebuild WASM for the read-only firing-duration export, then verify the production workbench replay.05a, [canonical applicability](assets/evidence/05/catalog-presentation.md), the [shared CPU sampler](assets/evidence/05/local-pose.md) and [reviewed controller numerics](assets/evidence/05/action-timeline.md) are ready. No production replay or GPU blending acceptance yet. Finish05→07 infrastructure before detailed anatomy08. No user-only blocker.
 
 [Material closure](assets/evidence/04/consumer-closure/review.md) links the scalar, texture and posed-normal evidence, the matched six-swatch source/production comparison, strict merged consumer/reload checks and applicable standing hardware gate. Material transfer is accepted; anatomy, surface styling, animation quality and final-distance readability are not. Filtered-normal boundary bands, far shadows and raw placeholder readability remain later-slice obligations. [Choices](choices.md) owns implementation decisions.
 
@@ -15,6 +15,11 @@ finite geometric fallbacks; do not restore conditional texture reads or
 fragment-side VAT work. `hit_ttl` is facing/contact memory, not an injury event:
 05 uses actual health observations. Local Blender remains available; external AI
 generation stays excluded.
+
+06's analytic animated-bounds prerequisite is proceeding independently. It must
+cover continuous local motion and mounted combinations; integer-pose sampling
+alone is not conservative. Do not accept its future GPU arithmetic before that
+implementation revalidates the rounding envelope.
 
 The user clarified that their model-progress question was not a request to reprioritize. Keep the infrastructure-first trunk and start detailed anatomy at08 after the measured budget envelope; diagnostic Blender fixtures are not detailed soldier models.
 

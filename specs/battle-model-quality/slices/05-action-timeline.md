@@ -100,4 +100,11 @@ records canonical descriptors, clip-owned release markers, explicit manual-only
 candidates and the generated review matrix. Geometry, material bytes and all eight
 old clips remain unchanged; three distinct diagnostic release motions exercise
 selection without claiming final motion quality. The controller's interruption
-source still requires the local-pose prerequisite above before this row can close.
+source uses the local-pose prerequisite above rather than selecting a previous
+blend endpoint.
+
+The [shared local-pose sampler](../assets/evidence/05/local-pose.md) is now integrated,
+with all generated assets byte-identical. The [controller evidence](../assets/evidence/05/action-timeline.md)
+records deterministic timing and exact bounded interruptions. Controller source
+passed independent review and22 focused tests; production adapter and replay
+acceptance are still open.

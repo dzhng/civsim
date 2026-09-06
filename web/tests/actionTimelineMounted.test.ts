@@ -91,6 +91,7 @@ const observation = (changes: Partial<ActionObservation> = {}): ActionObservatio
   pikeReady: false,
   fighting: false,
   releaseTtl: 0,
+  releaseAgeSeconds: 0,
   ...changes,
 });
 const pose = (sample: SoldierPlayback) => evaluatePlaybackPose(appearance, sample);

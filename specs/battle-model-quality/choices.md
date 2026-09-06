@@ -2,6 +2,20 @@
 
 ## Sound — medium confidence
 
+### Preserve source precision and expose immutable transition snapshots (05b)
+
+An interrupted pose retains double-precision local transforms until the shared
+sampler composes its Float32 joint matrices. Rounding the locals earlier would
+change previously accepted bake bytes. The public saved source uses frozen
+ordinary arrays, so a consumer cannot alter or transfer the controller's backing
+pose. Copying a mutable typed array on every rendered frame would preserve safety
+but repeat that cost throughout a transition.
+
+The plan required bounded saved poses without prescribing storage. **Sound,
+medium confidence:** numeric payload is80bytes per joint per active source,
+plus array/object overhead and conversion temporaries.07 must measure that real
+cost and the eventual GPU packing; this is not an approved final memory budget.
+
 ### Distinct diagnostic release motions exercise actual role selection (05b)
 
 A bow release, a throw and a crew release now select different small authored

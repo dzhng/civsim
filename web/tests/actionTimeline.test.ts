@@ -1,0 +1,381 @@
+// @vitest-environment node
+import assert from "node:assert/strict";
+import { test } from "vitest";
+import {
+  ActionTimeline,
+  evaluatePlaybackPose,
+  type ActionObservation,
+} from "@packages/crowd-runtime/src/actionTimeline";
+import type { ImportedRig } from "@packages/soldier-assets/src/rig";
+import type { AppearancePresentation } from "@packages/soldier-assets/src/presentation";
+import type { VatClip } from "@packages/soldier-assets/src/schema";
+
+const actions: AppearancePresentation["actions"] = {
+  ready: { clip: "rest", layer: "fullBody" },
+  atEase: { clip: "rest", layer: "fullBody" },
+  walk: { clip: "walk", layer: "fullBody" },
+  run: { clip: "run", layer: "fullBody" },
+  melee: { clip: "swing", layer: "fullBody" },
+  release: null,
+  hit: { clip: "recoil", layer: "fullBody" },
+  death: { clip: "fall", layer: "fullBody" },
+  pikeReady: null,
+};
+const clips: VatClip[] = [
+  ["rest", 4, true],
+  ["walk", 2, true],
+  ["run", 1, true],
+  ["swing", 2, false],
+  ["recoil", 0.5, false],
+  ["fall", 1, false],
+].map(([name, duration, loop], index) => ({
+  name: name as string,
+  duration: duration as number,
+  loop: loop as boolean,
+  start: index * 10,
+  frames: 10,
+}));
+const rig: ImportedRig = {
+  bones: [
+    {
+      name: "spine",
+      parent: -1,
+      bind: { T: [0, 0, 0], R: [0, 0, 0, 1], S: [1, 1, 1] },
+      inverseBind: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+    },
+  ],
+  clips: clips.map((clip, index) => ({
+    name: clip.name,
+    duration: clip.duration,
+    loop: clip.loop,
+    tracks: { 0: { T: { times: [0, clip.duration], values: [index, 0, 0, index + 1, 0, 0] } } },
+  })),
+};
+const appearances = {
+  0: {
+    manifest: { presentation: { actions, riderUpperBodyJoints: null } },
+    animation: { clips },
+    rig,
+  },
+};
+const soldier = (changes: Partial<ActionObservation> = {}): ActionObservation => ({
+  appearanceId: 0,
+  alive: true,
+  health: 100,
+  mountHealth: 0,
+  speedMps: 0,
+  running: false,
+  atEase: false,
+  pikeReady: false,
+  fighting: false,
+  releaseTtl: 0,
+  releaseAgeSeconds: 0,
+  ...changes,
+});
+
+test("action entry starts locally and locomotion follows authored duration", () => {
+  const timeline = new ActionTimeline(appearances);
+  timeline.update(900, [soldier()]);
+  const entered = timeline.update(930, [soldier({ speedMps: 1 })])[0];
+  assert.equal(entered.base.destination.clip, "walk");
+  assert.equal(entered.base.destination.phase, 0);
+  assert.equal(evaluatePlaybackPose(appearances[0], entered)[0], 0.25);
+  assert.equal(entered.base.weight, 0);
+  const later = timeline.update(945, [soldier({ speedMps: 1 })])[0];
+  assert.equal(later.base.destination.phase, 0.25);
+  assert.equal(later.base.weight, 1);
+  assert.deepEqual(timeline.update(945, [soldier({ speedMps: 1 })])[0], later);
+});
+
+test("death starts at observation, holds its last pose and freezes equipment until reset", () => {
+  const timeline = new ActionTimeline(appearances);
+  timeline.update(0, [soldier()]);
+  const death = timeline.update(90, [soldier({ alive: false })])[0];
+  assert.equal(death.base.destination.clip, "fall");
+  assert.equal(death.base.destination.phase, 0);
+  const terminal = timeline.update(180, [soldier({ appearanceId: 99, fighting: true })])[0];
+  assert.equal(terminal.appearanceId, 0);
+  assert.equal(terminal.base.destination.clip, "fall");
+  assert.equal(terminal.base.destination.phase, 1);
+  timeline.reset();
+  assert.equal(timeline.update(180, [soldier()])[0].base.destination.clip, "rest");
+});
+
+test("only observed injury starts recoil, which completes before returning to movement", () => {
+  const timeline = new ActionTimeline(appearances);
+  timeline.update(0, [soldier({ health: 40, speedMps: 1 })]);
+  assert.equal(
+    timeline.update(30, [soldier({ health: 40, speedMps: 1 })])[0].base.destination.clip,
+    "walk",
+  );
+  const hit = timeline.update(31, [soldier({ health: 39, speedMps: 1 })])[0];
+  assert.equal(hit.base.destination.clip, "recoil");
+  assert.equal(hit.base.destination.phase, 0);
+  const held = timeline.update(37, [soldier({ health: 39, speedMps: 1 })])[0];
+  assert.ok(Math.abs(held.base.destination.phase - 0.4) < 1e-10);
+  assert.equal(
+    timeline.update(46, [soldier({ health: 39, speedMps: 1 })])[0].base.destination.clip,
+    "walk",
+  );
+  assert.equal(
+    timeline.update(47, [soldier({ health: 39, mountHealth: 30 })])[0].base.destination.clip,
+    "rest",
+  );
+  assert.equal(
+    timeline.update(48, [soldier({ health: 39, mountHealth: 29 })])[0].base.destination.clip,
+    "recoil",
+  );
+});
+
+test("paused observations cannot replay events; growth retains histories and backwards time resets", () => {
+  const timeline = new ActionTimeline(appearances);
+  timeline.update(0, [soldier()]);
+  const before = timeline.update(30, [soldier({ health: 90 })])[0];
+  const grown = timeline.update(30, [soldier({ health: 80 }), soldier({ health: 2 })]);
+  assert.deepEqual(grown[0], before);
+  assert.equal(grown[1].base.destination.clip, "rest");
+  const next = timeline.update(33, [soldier({ health: 90 }), soldier({ health: 2 })]);
+  assert.ok(Math.abs(next[0].base.destination.phase - 0.2) < 1e-10);
+  assert.equal(next[1].base.destination.clip, "rest");
+  const reset = timeline.update(0, [soldier({ health: 1 })])[0];
+  assert.equal(reset.base.destination.clip, "rest");
+  assert.equal(reset.base.destination.phase, 0);
+});
+
+test("engagement repeats complete authored melee efforts without fabricating hits", () => {
+  const timeline = new ActionTimeline(appearances);
+  timeline.update(0, [soldier()]);
+  assert.equal(
+    timeline.update(15, [soldier({ fighting: true })])[0].base.destination.clip,
+    "swing",
+  );
+  assert.equal(timeline.update(45, [soldier({ fighting: true })])[0].base.destination.phase, 0.5);
+  // Ending engagement lets the already-started effort finish, without starting another.
+  assert.equal(timeline.update(60, [soldier()])[0].base.destination.clip, "swing");
+  assert.equal(timeline.update(75, [soldier()])[0].base.destination.clip, "rest");
+  timeline.update(90, [soldier({ fighting: true })]);
+  assert.equal(timeline.update(150, [soldier({ fighting: true })])[0].base.destination.phase, 0);
+  assert.equal(timeline.update(165, [soldier({ fighting: true })])[0].base.destination.phase, 0.25);
+});
+
+test("firing enters the authored release marker once per observed onset or refresh", () => {
+  const bow = {
+    rig: { ...rig, clips: [...rig.clips, { name: "loose", duration: 1, tracks: {} }] },
+    manifest: {
+      presentation: {
+        actions: { ...actions, release: { clip: "loose", layer: "fullBody" as const } },
+        riderUpperBodyJoints: null,
+      },
+    },
+    animation: {
+      clips: [
+        ...clips,
+        {
+          name: "loose",
+          start: 60,
+          frames: 10,
+          duration: 1,
+          loop: false,
+          markers: { release: 0.6 },
+        },
+      ],
+    },
+  };
+  const timeline = new ActionTimeline({ 0: bow });
+  timeline.update(0, [soldier()]);
+  const released = timeline.update(3, [soldier({ releaseTtl: 0.75 })])[0];
+  assert.equal(released.base.destination.clip, "loose");
+  assert.equal(released.base.destination.phase, 0.6);
+  assert.ok(
+    Math.abs(timeline.update(6, [soldier({ releaseTtl: 0.65 })])[0].base.destination.phase - 0.7) <
+      1e-10,
+  );
+  assert.equal(timeline.update(9, [soldier({ releaseTtl: 0.75 })])[0].base.destination.phase, 0.6);
+  assert.equal(
+    timeline.update(24, [soldier({ releaseTtl: 0.25 })])[0].base.destination.clip,
+    "rest",
+  );
+  assert.equal(
+    timeline.update(25, [soldier({ releaseTtl: 0.75, health: 90 })])[0].base.destination.clip,
+    "recoil",
+  );
+});
+
+test("render sampling advances clip time without advancing observation or consuming injury", () => {
+  const timeline = new ActionTimeline(appearances);
+  timeline.update(0, [soldier()]);
+  timeline.update(3, [soldier({ health: 90 })]);
+  assert.ok(Math.abs(timeline.sample(3.5)[0].base.destination.phase - 1 / 30) < 1e-10);
+  assert.equal(timeline.sample(3)[0].base.destination.phase, 0);
+  assert.ok(
+    Math.abs(timeline.update(6, [soldier({ health: 90 })])[0].base.destination.phase - 0.2) < 1e-10,
+  );
+  assert.throws(() => timeline.sample(5), /before.*observation/);
+});
+
+test("mounted effort overlays ongoing gait and full-body injury clears that overlay", () => {
+  const mounted = {
+    rig,
+    manifest: {
+      presentation: {
+        actions: { ...actions, melee: { clip: "swing", layer: "riderUpperBody" as const } },
+        riderUpperBodyJoints: ["spine"],
+      },
+    },
+    animation: { clips },
+  };
+  const timeline = new ActionTimeline({ 0: mounted });
+  timeline.update(0, [soldier({ speedMps: 2, running: true })]);
+  const acting = timeline.update(9, [soldier({ speedMps: 2, running: true, fighting: true })])[0];
+  assert.equal(acting.base.destination.clip, "run");
+  assert.equal(acting.base.destination.phase, 0.3);
+  assert.deepEqual(acting.riderUpperBody?.destination, { clip: "swing", phase: 0 });
+  const hit = timeline.update(12, [soldier({ speedMps: 2, running: true, health: 90 })])[0];
+  assert.equal(hit.base.destination.clip, "recoil");
+  assert.equal(hit.riderUpperBody, undefined);
+});
+
+test("completed mounted action fades back to the current gait without resetting its phase", () => {
+  const mounted = {
+    rig,
+    manifest: {
+      presentation: {
+        actions: { ...actions, melee: { clip: "swing", layer: "riderUpperBody" as const } },
+        riderUpperBodyJoints: ["spine"],
+      },
+    },
+    animation: { clips },
+  };
+  const timeline = new ActionTimeline({ 0: mounted });
+  timeline.update(0, [soldier({ speedMps: 2, running: true, fighting: true })]);
+  const leaving = timeline.update(63, [soldier({ speedMps: 2, running: true })])[0];
+  assert.equal(evaluatePlaybackPose(mounted, leaving)[0], 4);
+  assert.deepEqual(leaving.riderUpperBody?.destination, { kind: "base" });
+  assert.ok(Math.abs(leaving.base.destination.phase - 0.1) < 1e-10);
+  const finished = timeline.update(69, [soldier({ speedMps: 2, running: true })])[0];
+  assert.equal(finished.riderUpperBody, undefined);
+  assert.ok(Math.abs(finished.base.destination.phase - 0.3) < 1e-10);
+});
+
+test("equipment changes retain injury history but never mix old and new clip indices", () => {
+  const renamed = clips.map((clip) => ({ ...clip, name: `other_${clip.name}` }));
+  const otherActions = Object.fromEntries(
+    Object.entries(actions).map(([role, binding]) => [
+      role,
+      binding ? { ...binding, clip: `other_${binding.clip}` } : null,
+    ]),
+  ) as AppearancePresentation["actions"];
+  const timeline = new ActionTimeline({
+    ...appearances,
+    1: {
+      rig: { ...rig, clips: rig.clips.map((clip) => ({ ...clip, name: `other_${clip.name}` })) },
+      manifest: { presentation: { actions: otherActions, riderUpperBodyJoints: null } },
+      animation: { clips: renamed },
+    },
+  });
+  timeline.update(0, [soldier()]);
+  const changed = timeline.update(3, [soldier({ appearanceId: 1, health: 90 })])[0];
+  assert.equal(changed.appearanceId, 1);
+  assert.deepEqual(changed.base.source, {
+    kind: "clip",
+    sample: { clip: "other_recoil", phase: 0 },
+  });
+  assert.equal(changed.base.destination.clip, "other_recoil");
+  assert.equal(changed.base.destination.phase, 0);
+});
+
+test("death beats simultaneous release, injury and engagement; inapplicable release stays absent", () => {
+  const timeline = new ActionTimeline(appearances);
+  timeline.update(0, [soldier()]);
+  assert.equal(
+    timeline.update(1, [soldier({ releaseTtl: 0.75 })])[0].base.destination.clip,
+    "rest",
+  );
+  const dead = timeline.update(2, [
+    soldier({ alive: false, health: 0, releaseTtl: 0.75, fighting: true }),
+  ])[0];
+  assert.equal(dead.base.destination.clip, "fall");
+  assert.equal(dead.base.destination.phase, 0);
+  assert.equal(dead.riderUpperBody, undefined);
+});
+
+test("interruptions preserve the exact blended pose, including repeated early and late interruption", () => {
+  const timeline = new ActionTimeline(appearances);
+  timeline.update(0, [soldier()]);
+  timeline.update(3, [soldier({ speedMps: 1 })]);
+  for (const tick of [4, 7, 8, 12]) {
+    const before = evaluatePlaybackPose(appearances[0], timeline.sample(tick)[0]);
+    const interrupted = timeline.update(tick, [soldier({ health: 100 - tick })])[0];
+    const after = evaluatePlaybackPose(appearances[0], interrupted);
+    assert.deepEqual(after, before);
+    assert.equal(interrupted.base.weight, 0);
+  }
+});
+
+test("snapshot storage stays bounded through repeated interruptions and releases after death blend", () => {
+  const timeline = new ActionTimeline(appearances);
+  timeline.update(0, [soldier()]);
+  for (let tick = 1; tick < 20; tick++) {
+    timeline.update(tick, [soldier({ health: 100 - tick })]);
+    assert.equal(timeline.snapshotBytes, rig.bones.length * 10 * Float64Array.BYTES_PER_ELEMENT);
+  }
+  timeline.update(20, [soldier({ alive: false })]);
+  timeline.update(60, [soldier({ alive: false })]);
+  assert.equal(timeline.snapshotBytes, 0);
+  assert.equal(timeline.sample(60)[0].base.destination.phase, 1);
+});
+
+test("consumers cannot mutate controller-owned interruption snapshots", () => {
+  const timeline = new ActionTimeline(appearances);
+  timeline.update(0, [soldier()]);
+  const value = timeline.update(3, [soldier({ health: 90 })])[0];
+  const before = evaluatePlaybackPose(appearances[0], timeline.sample(4)[0]);
+  assert.equal(value.base.source.kind, "frozen");
+  if (value.base.source.kind !== "frozen") throw new Error("expected an interruption source");
+  Reflect.set(value.base.source.locals, "0", 999);
+  Reflect.set(value.base.source, "locals", [999]);
+  assert.deepEqual(evaluatePlaybackPose(appearances[0], timeline.sample(4)[0]), before);
+});
+
+test("a rejected batch cannot commit a partial terminal death or reset existing histories", () => {
+  const timeline = new ActionTimeline(appearances);
+  timeline.update(0, [soldier(), soldier()]);
+  assert.throws(
+    () => timeline.update(3, [soldier({ alive: false }), soldier({ appearanceId: 99 })]),
+    /missing/,
+  );
+  const retry = timeline.update(3, [soldier(), soldier()]);
+  assert.equal(retry[0].base.destination.clip, "rest");
+  timeline.update(6, [soldier({ health: 90 }), soldier()]);
+  const previous = timeline.sample(6);
+  assert.throws(() => timeline.update(0, [soldier({ appearanceId: 99 })]), /missing/);
+  assert.deepEqual(timeline.sample(6), previous);
+});
+
+test("an already-decayed firing observation starts after its marker and clamps spent recovery", () => {
+  const releaseClip: VatClip = {
+    name: "loose",
+    start: 60,
+    frames: 10,
+    duration: 1,
+    loop: false,
+    markers: { release: 0.6 },
+  };
+  const bow = {
+    rig: { ...rig, clips: [...rig.clips, { name: "loose", duration: 1, tracks: {} }] },
+    manifest: {
+      presentation: {
+        actions: { ...actions, release: { clip: "loose", layer: "fullBody" as const } },
+        riderUpperBodyJoints: null,
+      },
+    },
+    animation: { clips: [...clips, releaseClip] },
+  };
+  const timeline = new ActionTimeline({ 0: bow });
+  const late = timeline.update(30, [soldier({ releaseTtl: 0.45, releaseAgeSeconds: 0.3 })])[0];
+  assert.ok(Math.abs(late.base.destination.phase - 0.9) < 1e-10);
+  assert.equal(late.base.destination.clip, "loose");
+  timeline.reset();
+  const spent = timeline.update(30, [soldier({ releaseTtl: 0.15, releaseAgeSeconds: 0.6 })])[0];
+  assert.equal(spent.base.destination.phase, 1);
+});

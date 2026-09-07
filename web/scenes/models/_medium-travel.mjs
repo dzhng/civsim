@@ -15,9 +15,21 @@ const views = [
   { name: "rear-grip", yaw: -0.25, zoom: 320, z: 1.3, frames: 1 },
 ];
 const prefix = "shared/soldiers/medium-phalanx/walk";
-const name = (view, frame) => `${prefix}-${view.name}-${String(frame).padStart(2, "0")}`;
+const motions = [
+  { clip: "walk", speed: 1.7, duration: 0.9, distance: 1.53, frames: 36 },
+  // Prescribed engine target, not an assertion that the source is ground-locked.
+  { clip: "run", speed: 3.23, duration: 0.8, distance: 2.584, frames: 32 },
+];
+const name = (motion, view, frame) =>
+  `shared/soldiers/medium-phalanx/${motion.clip}-${view.name}-${String(frame).padStart(2, "0")}`;
 export const mediumTravelSnapshots = [
-  ...views.flatMap((view) => Array.from({ length: view.frames ?? 36 }, (_, i) => name(view, i))),
+  ...motions.flatMap((motion) =>
+    views
+      .filter((view) => motion.clip === "walk" || !view.frames)
+      .flatMap((view) =>
+        Array.from({ length: view.frames ?? motion.frames }, (_, i) => name(motion, view, i)),
+      ),
+  ),
   ...[0.9, 0.42].map((pitch) => `${prefix}-formation-${pitch}`),
 ];
 
@@ -31,94 +43,112 @@ export async function captureMediumTravel(ctx, page) {
     document.querySelector("#candidate-caption").style.display = "none";
   });
   const reports = [];
-  for (const view of views) {
-    const count = view.frames ?? 36;
-    if (
-      !Array.from({ length: count }, (_, i) => name(view, i)).some((snapshot) =>
-        snapshotSelected(snapshot),
+  for (const motion of motions) {
+    for (const view of views.filter((view) => motion.clip === "walk" || !view.frames)) {
+      const count = view.frames ?? motion.frames;
+      if (
+        !Array.from({ length: count }, (_, i) => name(motion, view, i)).some((snapshot) =>
+          snapshotSelected(snapshot),
+        )
       )
-    )
-      continue;
-    await page.evaluate((view) => {
-      window.__battleModels.set({
-        classId: 14,
-        clip: "walk",
-        phase: 0,
-        formation: false,
-        yaw: view.yaw,
-        pitch: 1.4,
-        zoom: view.zoom,
-        target: [0, 1.53, view.z],
-      });
-    }, view);
-    await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
-    await page.evaluate(async (root) => {
-      const { modelInstances } = await import(
-        `/@fs${root}apps/renderer-lab/src/battleModelFixture.ts`
+        continue;
+      await page.evaluate(
+        ({ view, motion }) => {
+          window.__battleModels.set({
+            classId: 14,
+            clip: motion.clip,
+            phase: 0,
+            formation: false,
+            yaw: view.yaw,
+            pitch: 1.4,
+            zoom: view.zoom,
+            target: [0, motion.distance, view.z],
+          });
+        },
+        { view, motion },
       );
-      const { travelInstances } = await import(`/@fs${root}web/scenes/models/_travel-sample.mjs`);
-      const h = window.__battleModels,
-        w = h.world;
-      const camera = structuredClone(w.stats().camera);
-      const source = modelInstances(h.stats().pose, w.soldierAssets);
-      const clip = w.soldierAssets[14].animation.clips.find((clip) => clip.name === "walk");
-      if (Math.abs(clip.duration - 0.9) > 1e-6) throw new Error("Medium walk timing needs review");
-      window.__mediumTravel = async (seconds) => {
-        const instances = travelInstances(source, seconds, 1.7, 0.9);
-        w.setTime(0);
-        w.drawInstances(instances, camera);
-        await w.settlePresentedFrame();
-        w.render();
-        await w.world.settlePresentedFrame();
+      await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
+      await page.evaluate(
+        async ({ root, motion }) => {
+          const { modelInstances } = await import(
+            `/@fs${root}apps/renderer-lab/src/battleModelFixture.ts`
+          );
+          const { travelInstances } = await import(
+            `/@fs${root}web/scenes/models/_travel-sample.mjs`
+          );
+          const h = window.__battleModels,
+            w = h.world;
+          const camera = structuredClone(w.stats().camera);
+          const source = modelInstances(h.stats().pose, w.soldierAssets);
+          const clip = w.soldierAssets[14].animation.clips.find(
+            (clip) => clip.name === motion.clip,
+          );
+          if (Math.abs(clip.duration - motion.duration) > 1e-6)
+            throw new Error(`Medium ${motion.clip} timing needs review`);
+          window.__mediumTravel = async (seconds) => {
+            const instances = travelInstances(source, seconds, motion.speed, motion.duration);
+            w.setTime(0);
+            w.drawInstances(instances, camera);
+            await w.settlePresentedFrame();
+            w.render();
+            await w.world.settlePresentedFrame();
+            return {
+              instance: instances[0],
+              sampled: w.debugSoldierAnim(0),
+              count: w.stats().soldiers,
+            };
+          };
+        },
+        { root, motion },
+      );
+      const draw = async (seconds) => {
+        const state = await page.evaluate((seconds) => window.__mediumTravel(seconds), seconds);
         return {
-          instance: instances[0],
-          sampled: w.debugSoldierAnim(0),
-          count: w.stats().soldiers,
+          state,
+          shot: await page.screenshot({ clip: { x: 128, y: 96, width: 1024, height: 640 } }),
         };
       };
-    }, root);
-    const draw = async (seconds) => {
-      const state = await page.evaluate((seconds) => window.__mediumTravel(seconds), seconds);
-      return {
-        state,
-        shot: await page.screenshot({ clip: { x: 128, y: 96, width: 1024, height: 640 } }),
-      };
-    };
-    const first = await draw(0),
-      distant = await draw(1.125),
-      reset = await draw(0);
-    ctx.check(
-      `${view.name}: absolute time reset is exact`,
-      first.shot.equals(reset.shot) && JSON.stringify(first.state) === JSON.stringify(reset.state),
-    );
-    const dx = distant.state.instance.x - first.state.instance.x;
-    const dy = distant.state.instance.y - first.state.instance.y;
-    ctx.check(
-      `${view.name}: prescribed forward travel reaches submission`,
-      Math.abs(Math.hypot(dx, dy) - 1.7 * 1.125) < 1e-9 &&
-        dx * Math.cos(first.state.instance.facing) + dy * Math.sin(first.state.instance.facing) > 0,
-    );
-    const images = [],
-      states = [];
-    for (let frame = 0; frame < count; frame++) {
-      const snapshot = name(view, frame);
-      if (!snapshotSelected(snapshot)) continue;
-      const sample = await draw(frame / 20),
-        repeat = await draw(frame / 20);
-      ctx.check(`${snapshot}: frozen frame repeats`, sample.shot.equals(repeat.shot));
+      const first = await draw(0),
+        distant = await draw(1.125),
+        reset = await draw(0);
       ctx.check(
-        `${snapshot}: manual walk reaches production`,
-        sample.state.count === 1 &&
-          sample.state.sampled.clip === "walk" &&
-          Math.abs(sample.state.sampled.phase - sample.state.instance.phase) < 1e-6,
+        `${motion.clip}/${view.name}: absolute time reset is exact`,
+        first.shot.equals(reset.shot) &&
+          JSON.stringify(first.state) === JSON.stringify(reset.state),
       );
-      await ctx.snap(null, snapshot, { shot: sample.shot, threshold: 0, maxDiffRatio: 0 });
-      images.push(pngToRGBA(sample.shot));
-      states.push(sample.state);
+      const dx = distant.state.instance.x - first.state.instance.x;
+      const dy = distant.state.instance.y - first.state.instance.y;
+      ctx.check(
+        `${motion.clip}/${view.name}: prescribed forward travel reaches submission`,
+        Math.abs(Math.hypot(dx, dy) - motion.speed * 1.125) < 1e-9 &&
+          dx * Math.cos(first.state.instance.facing) + dy * Math.sin(first.state.instance.facing) >
+            0,
+      );
+      const images = [],
+        states = [];
+      for (let frame = 0; frame < count; frame++) {
+        const snapshot = name(motion, view, frame);
+        if (!snapshotSelected(snapshot)) continue;
+        const sample = await draw(frame / 20),
+          repeat = await draw(frame / 20);
+        ctx.check(`${snapshot}: frozen frame repeats`, sample.shot.equals(repeat.shot));
+        ctx.check(
+          `${snapshot}: manual ${motion.clip} reaches production`,
+          sample.state.count === 1 &&
+            sample.state.sampled.clip === motion.clip &&
+            Math.abs(sample.state.sampled.phase - sample.state.instance.phase) < 1e-6,
+        );
+        await ctx.snap(null, snapshot, { shot: sample.shot, threshold: 0, maxDiffRatio: 0 });
+        images.push(pngToRGBA(sample.shot));
+        states.push(sample.state);
+      }
+      if (images.length === motion.frames)
+        await writeFile(
+          new URL(`${motion.clip === "walk" ? "" : "run-"}${view.name}.gif`, directory),
+          encodeGif(images, 1024, 640, 5),
+        );
+      reports.push({ motion, view, states });
     }
-    if (images.length === 36)
-      await writeFile(new URL(`${view.name}.gif`, directory), encodeGif(images, 1024, 640, 5));
-    reports.push({ view, states });
   }
   // Preserve the matched lab formation; its 1.6 m spacing is not dense engine admission.
   for (const pitch of [0.9, 0.42]) {

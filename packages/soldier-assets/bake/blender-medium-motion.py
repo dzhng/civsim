@@ -1,7 +1,7 @@
-"""Upright-pike at-ease march on the frozen fitted medium assembly.
+"""Ordinary upright-pike locomotion on the saved fitted medium assembly.
 
-Run in Blender on SOURCE.blend, then -- --output DIRECTORY. Only walk changes;
-the forward pike-carry, inherited ready/run and inspection actions stay intact.
+Run in Blender on SOURCE.blend, then -- --clip walk|run --output DIRECTORY.
+Only the selected action changes; geometry and every other action stay intact.
 """
 import argparse
 import importlib.util
@@ -19,16 +19,16 @@ motion = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(motion)
 
 
-def upright_carry(arm, original_forearm, phase):
+def upright_carry(arm, original_forearm, phase, running=False):
     old_axis = original_forearm.to_3x3().col[1].normalized()
     old_normal = Vector((0, -1, 0))
     old_normal = (old_normal - old_axis * old_normal.dot(old_axis)).normalized()
     step = math.tau * phase
-    lean = .045 + .012 * math.sin(2 * step)
-    turn = math.radians(10) + .04 * math.sin(step)
+    lean = .18 + .025 * math.sin(2 * step) if running else .045 + .012 * math.sin(2 * step)
+    turn = math.radians(10) + (.055 if running else .04) * math.sin(step)
     torso_turn = Matrix.Rotation(turn, 3, "Z") @ Matrix.Rotation(lean, 3, "X")
     for name, yaw, pitch in (("spine", 0, lean), ("chest", turn, lean),
-                             ("neck", 0, .015), ("head", 0, .015)):
+                             ("neck", 0, .055 if running else .015), ("head", 0, .015)):
         rotation = Matrix.Rotation(yaw, 3, "Z") @ Matrix.Rotation(pitch, 3, "X")
         motion.orient(arm, name, rotation.to_quaternion() @ arm.data.bones[name].matrix_local.to_quaternion())
     # The held load lags the chest; connected elbow flex absorbs their relative
@@ -37,9 +37,9 @@ def upright_carry(arm, original_forearm, phase):
     # the left wrist aligned while the shield-bearing elbow hangs at the flank.
     shaft = Vector((.008 * math.sin(step - .5), .28 + .015 * math.sin(2 * step - .7), 1)).normalized()
     rise = arm.pose.bones["pelvis"].head.z - arm.data.bones["pelvis"].head_local.z
-    right_grip = Vector((.30 + .008 * math.sin(step - .5),
-                         -.23 + .006 * math.sin(2 * step - .7),
-                         1.38 + .6 * rise + .012 * math.sin(2 * step - .7)))
+    right_grip = Vector((.30 + (.015 if running else .008) * math.sin(step - .5),
+                         (-.27 if running else -.23) + (.015 if running else .006) * math.sin(2 * step - .7),
+                         1.38 + .6 * rise + (.022 if running else .012) * math.sin(2 * step - .7)))
     # Closely spaced lower purchases let the elbows hang beneath the load,
     # carrying the shield at flank without folding a forearm beside the face.
     grips = {"R": right_grip, "L": right_grip - shaft * .16}
@@ -84,26 +84,29 @@ def upright_carry(arm, original_forearm, phase):
         motion.orient(arm, helper.name, base.to_quaternion().slerp(arm.pose.bones["forearm." + side].matrix.to_quaternion(), .5))
 
 
-def author(arm):
+def author(arm, clip):
     arm.animation_data.action = bpy.data.actions["pike-carry"]
     arm.animation_data.action_slot = arm.animation_data.action.slots[0]
     bpy.context.scene.frame_set(0)
     original_forearm = arm.pose.bones["forearm.L"].matrix.copy()
     carry = {b.name: b.rotation_euler.copy() for b in arm.pose.bones}
-    action = bpy.data.actions["walk"]
+    action = bpy.data.actions[clip]
     arm.animation_data.action = action
     arm.animation_data.action_slot = action.slots[0]
     upper = [n for n in carry if n in ("spine", "chest", "neck", "head")
              or n.startswith(("clavicle.", "upper-arm.", "forearm.", "hand.", "elbow-volume."))]
     # The donor's .9 s / 1.53 m walk follows the class-independent 1.7 m/s
     # floor. Keep its planted travel keys while the arms absorb the held load.
+    # Run keeps its existing .8 s lower-body action for the first carry study;
+    # its actual support travel is measured before assigning stride calibration.
+    frames = 24 if clip == "run" else 27
     previous = {}
-    for frame in range(28):
+    for frame in range(frames + 1):
         bpy.context.scene.frame_set(frame)
-        phase = frame / 27
+        phase = frame / frames
         for name in upper:
             arm.pose.bones[name].rotation_euler = carry[name]
-        upright_carry(arm, original_forearm, phase)
+        upright_carry(arm, original_forearm, phase, running=clip == "run")
         for name in upper:
             bone = arm.pose.bones[name]
             if name in previous:
@@ -117,14 +120,15 @@ def author(arm):
                 for curve in bag.fcurves:
                     for key in curve.keyframe_points:
                         key.interpolation = "LINEAR"
-    action["author"] = "medium-upright-walk"
+    action["author"] = "medium-upright-" + clip
     bpy.context.scene.frame_set(0)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("--clip", choices=("walk", "run"), required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:])
     arm = next(o for o in bpy.context.scene.objects if o.type == "ARMATURE")
-    author(arm)
+    author(arm, args.clip)
     motion.anatomy.export_candidate(bpy.data.objects["MediumPhalanx-Deform"], arm, args.output, "medium-phalanx")

@@ -1,0 +1,67 @@
+{
+  "rows": [
+    {
+      "source_frame": 10.5,
+      "film_seconds": 0.35,
+      "pairs": {
+        "scabbard": {
+          "triangle_intersections": 0,
+          "nearest_vertex_to_opposing_triangle_m": 0.08992866426706314,
+          "kit_triangles": 6336,
+          "lower_leg_sandal_triangles": 19053,
+          "kit_surface_sha256": "9cc0bb309e122db5322d370b1fca3c8f33803700132fddc20ef9bf5dad2106d9",
+          "lower_surface_sha256": "9a419d814905d4408cbab76492851617aefca459f8b13e06106e881db7439fb6"
+        },
+        "pike": {
+          "triangle_intersections": 0,
+          "nearest_vertex_to_opposing_triangle_m": 0.13163530826568604,
+          "kit_triangles": 280,
+          "lower_leg_sandal_triangles": 19053,
+          "kit_surface_sha256": "521ad99d471490b5dcbf6d525b7bcf0a038ac6e1eede56b78e01577b93b6c3a1",
+          "lower_surface_sha256": "9a419d814905d4408cbab76492851617aefca459f8b13e06106e881db7439fb6"
+        }
+      },
+      "scabbard_parts": {
+        "Scabbard": "2b452b382b57e7eaa9ddfd67068c9738ac087582dfafe2ffe12674f72efabf93",
+        "Scabbard fitting mouth": "1e081c0df15bf762dd08e5a0baf3d85a2fd5d48e5bba6ac10f29dd3f3f9bfc02",
+        "Scabbard fitting upper band": "a199432249172c7e9b588dec2461e383241378a63b9dc1cd3a4ea88aba955e32",
+        "Scabbard fitting lower band": "c8d9cf9203e9ec917d9f9978caf29a458698dc6b02e21dc3136ef7b6e8842df9",
+        "Scabbard fitting chape": "0e49554d856e8da63180bf6e4f6c22ddfc5d76df151c1a6bff92f98159c90583",
+        "Scabbard suspension 0": "843b2d5fa40d8ab021cc7fe6479088905289cae1e488d207a86bddfd2fac952c",
+        "Scabbard suspension 1": "182aea9ea94751d5174522d36ea1eff213061df1ff89fa39473926de6b8385a4"
+      }
+    },
+    {
+      "source_frame": 12,
+      "film_seconds": 0.4,
+      "pairs": {
+        "scabbard": {
+          "triangle_intersections": 0,
+          "nearest_vertex_to_opposing_triangle_m": 0.10702729225158691,
+          "kit_triangles": 6336,
+          "lower_leg_sandal_triangles": 19053,
+          "kit_surface_sha256": "00e278d1c833fdd9e05035959b683f33d111be4f8e6f43de35456edc9785550d",
+          "lower_surface_sha256": "a214c685434c674341ee345ef7cd5b86ccbacfdc4dd8844c5fb0a0c67977e511"
+        },
+        "pike": {
+          "triangle_intersections": 0,
+          "nearest_vertex_to_opposing_triangle_m": 0.13103234767913818,
+          "kit_triangles": 280,
+          "lower_leg_sandal_triangles": 19053,
+          "kit_surface_sha256": "41b209920a4911ac5a895b6b396e7eaa30dc11de5bb5bb23e1ac62dd46ac1c94",
+          "lower_surface_sha256": "a214c685434c674341ee345ef7cd5b86ccbacfdc4dd8844c5fb0a0c67977e511"
+        }
+      },
+      "scabbard_parts": {
+        "Scabbard": "d3458fe1fae5601b6809170fbfb94253b50389e214ac0fba9d58632750649e7d",
+        "Scabbard fitting mouth": "1ba08da3426685e41c42aa0b0acb60276cb735502818d0b3cb0cfd978ecc42f7",
+        "Scabbard fitting upper band": "f573915a9976b632d5ebc377b982a62a57c6e97bb9544896f26a21f01a0f65e8",
+        "Scabbard fitting lower band": "152d356922ecc8d650df11150d91e9a2e72774a07ec426a5d27f5bf5318b3e36",
+        "Scabbard fitting chape": "0882569db1b9a9ffd10c0486ab1cc54e2f06694dd88d7d8cc36352a4aaa5b4e3",
+        "Scabbard suspension 0": "20ec159748e158e1dbe22b694bcc3a203d968dee9dcb1b0da0b37ca8e7aba3c3",
+        "Scabbard suspension 1": "e9fa6755a80ce5e209547bcaff65a9c34f321d5349a0417ce0d3ad8a39b4866c"
+      }
+    }
+  ],
+  "limit": "Evaluated Blender triangles at two exact sampled times, not continuous collision proof; nearest vertex-to-face distance is not exact edge-edge minimum."
+}

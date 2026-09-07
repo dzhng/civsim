@@ -1,0 +1,17 @@
+Independent Codex review, terminal 0.
+Session: 01a07db4-660c-7433-b7e0-47b97413bd0b
+Scope: uncommitted medium upright-run source, bake outputs and scene harness.
+
+Exact final verdict:
+
+The untracked dependency symlinks are not portable. No additional actionable defects were found; focused animation and pose tests passed, while the broader bake check stopped on an unrelated missing reference asset.
+
+Review comment:
+
+- [P2] Exclude machine-specific dependency symlinks — /Users/david/dev/game-medium-upright-run/web/node_modules:1-1
+  Both untracked `node_modules` entries point to `/Users/david/dev/game-battle-model-quality/web/node_modules`, outside this repository. Including them makes dependency resolution depend on another checkout on this machine; elsewhere they become dangling links. Remove both symlinks from the proposed changes and ignore symlink entries as well as dependency directories.
+
+Disposition: temporary symlinks were never staged, and were removed after the
+owned Vite stopped. No new ignore rule is needed for artifacts absent from the
+deliverable. The broader unrelated reference output is omitted by the sparse
+checkout; medium-phalanx.mjs --check passes for the changed candidate.

@@ -45,6 +45,48 @@ const cameras = [
     views,
     formation: true,
   },
+  {
+    name: "run-whole",
+    pitch: 1.4,
+    zoom: 230,
+    target: [0, 0, 0.95],
+    poses: [
+      ["run 0", 0, "run"],
+      ["run 1/2", 0.5, "run"],
+    ],
+    views: [
+      ["rear-left", Math.PI - 0.65],
+      ["rear-right", Math.PI + 0.65],
+    ],
+  },
+  {
+    name: "run-front",
+    pitch: 1.4,
+    zoom: 230,
+    target: [0, 0, 0.95],
+    poses: [
+      ["run 0", 0, "run"],
+      ["run 1/2", 0.5, "run"],
+    ],
+    views: [
+      ["front-left", -0.65],
+      ["front-right", 0.65],
+    ],
+  },
+  {
+    name: "run-pike",
+    pitch: 1.4,
+    zoom: 85,
+    target: [0, 0, 2.1],
+    poses: [
+      ["run 0", 0, "run"],
+      ["run 1/2", 0.5, "run"],
+    ],
+    views: [
+      ["left", -Math.PI / 2],
+      ["right", Math.PI / 2],
+    ],
+  },
 ];
 
 export const meta = {
@@ -54,7 +96,7 @@ export const meta = {
   tier: "full",
   snapshots: [...candidateSnapshots("medium-phalanx", [], cameras), ...mediumTravelSnapshots],
   describe:
-    "Fitted medium armor, forward pike carry and ordinary upright-pike walk; manual row14 candidate only.",
+    "Fitted medium armor, forward pike carry and ordinary upright-pike walk/run; manual row14 candidate only.",
 };
 
 export async function run(ctx) {

@@ -110,6 +110,14 @@ local facial refinement as a readable but incomplete improvement. Original body
 and hand positions, weights and normals are controlled. Eyes, muzzle, jaw and
 ears still need integrated anatomical form; final anatomy and07 remain open.
 
+The [head-volume checkpoint](../assets/evidence/08/head-volumes/review.md) retains
+a shorter cranial vault and more connected facial volume after rejecting raised
+eye rims and isolated cheek/muzzle relief. Whole-body geometry below the head,
+all original weights, rig and inspection motion remain controlled. The final
+fresh critique prefers the candidate moderately, but lids, nose, jaw, ears and
+the rear neck junction remain unaccepted. Refit the helmet to this source before
+judging dressed clearance; its provisional topology does not settle 07.
+
 The [pronation study](../assets/evidence/08/pronation/review.md) retains forearm
 roll as marginally less wrong than isolated wrist roll, without adding bones or
 changing weights. Original bend and static sheet coverage remain intact; two

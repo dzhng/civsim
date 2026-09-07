@@ -8,11 +8,14 @@ only the selected deform mesh and rig enter the GLB. Unrelated open Blender scen
 are excluded from both outputs.
 
 The hidden sculpt is the joined construction surface, not a second final model.
-Fine facial landmarks live on the editable deform mesh after local face
-refinement. Projection back to the construction surface restores smooth contours
-that reduction cannot retain; the subsequent eye and nasal shaping leaves the
-existing body and hand weight solution intact. Edit this final mesh when judging
-exported facial form, rather than the hidden construction input.
+The final head lives on the editable deform mesh after local head refinement.
+Projection back to the construction surface restores contours that reduction
+cannot retain. The head envelope then shapes the vault, jaw, cheek, socket,
+muzzle and exposed eye surface together, leaving the existing body and hand
+weight solution intact. Edit this final mesh when judging exported head form,
+rather than the hidden construction input. The eye surface is continuous clay
+geometry for static anatomy inspection; it adds no facial animation or separate
+eye material.
 
 Curvature-preserving reduction retains small silhouettes such as fingers; it
 does not establish joint-quality. The reduced surface must remain manifold,

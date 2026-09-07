@@ -49,48 +49,78 @@ def loft(name, sections, segments=24, across=(1, 0, 0), depth=(0, 1, 0)):
 
 
 def facial_form(body, sculpt):
-    """Keep facial sampling local: whole-body reduction cannot resolve eyelid margins."""
+    """Author the final head after weighting, preserving the body and its heat field."""
     surface = bmesh.new()
     surface.from_mesh(body.data)
     edges = [edge for edge in surface.edges
-             if all(v.co.z > 1.57 and v.co.y < -.020 for v in edge.verts)]
+             if all(v.co.z > 1.57 for v in edge.verts)]
     bmesh.ops.subdivide_edges(surface, edges=edges, cuts=3, use_grid_fill=True)
     bmesh.ops.triangulate(surface, faces=list(surface.faces))
     source = bmesh.new()
     source.from_mesh(sculpt.data)
     reference = BVHTree.FromBMesh(source)
     for vertex in surface.verts:
-        if vertex.co.z > 1.57 and vertex.co.y < -.020:
-            vertex.co = reference.find_nearest(vertex.co)[0]
+        if vertex.co.z > 1.57:
+            blend = min(1, (vertex.co.z-1.57)/.020)
+            vertex.co = vertex.co.lerp(reference.find_nearest(vertex.co)[0],
+                                       blend*blend*(3-2*blend))
     source.free()
     surface.to_mesh(body.data)
     surface.free()
     for vertex in body.data.vertices:
         x, y, z = vertex.co
-        if not (1.575 < z < 1.715 and y < -.025):
+        if z <= 1.57:
             continue
-        front = min(1, max(0, (-y-.025)/.035))
-        eye_u = (abs(x)-.032)/.016
-        eye_span = max(0, 1-eye_u*eye_u)
-        eye_middle = 1.677 + .0015*eye_u
-        upper = eye_middle + .0055*eye_span
-        lower = eye_middle - .0035*eye_span
-        lid = 0
-        if abs(eye_u) < 1:
-            # Two tapered lid margins surround a shallow almond-shaped opening.
-            # The central surface stays inside the orbital rim, not a pasted sphere.
-            lid = eye_span*(
-                .003*math.exp(-((z-upper)/.003)**2)
-                + .0018*math.exp(-((z-lower)/.0035)**2)
-                - .0025*math.exp(-((z-eye_middle)/.0028)**2)
-                - .0015*math.exp(-((z-upper-.004)/.0035)**2))
-        nasal_tip = .004*math.exp(-(x/.011)**2-((z-1.646)/.009)**2)
-        nostril = .0045*math.exp(-((abs(x)-.011)/.004)**2-((z-1.638)/.0035)**2)
-        alar_crease = .003*math.exp(-((abs(x)-.018)/.0035)**2-((z-1.644)/.009)**2)
-        philtrum = .0008*math.exp(-(x/.004)**2-((z-1.624)/.007)**2)
-        under_lip = .0025*math.exp(-(x/.021)**2-((z-1.599)/.004)**2)
-        chin = .003*math.exp(-(x/.029)**2-((z-1.586)/.009)**2)
-        vertex.co.y -= front*(lid+nasal_tip-nostril-alar_crease-philtrum-under_lip+chin)
+        neck_blend = min(1, (z-1.57)/.025)
+        neck_blend = neck_blend*neck_blend*(3-2*neck_blend)
+        # Rounded vault and a wider mandibular angle distinguish skull from face.
+        vault = math.exp(-((z-1.753)/.035)**2)
+        upper_head = min(1, max(0, (z-1.705)/.085))
+        vertex.co.z -= .012*upper_head*upper_head*(3-2*upper_head)
+        vertex.co.x *= (1 - .05*vault
+                       + neck_blend*.10*math.exp(-((z-1.600)/.024)**2)*(1-math.exp(-(x/.035)**2)))
+        vertex.co.y = .010+(y-.010)*(1-.03*vault)
+        if y >= -.020 or z >= 1.735:
+            continue
+        front = min(1, max(0, (-y-.020)/.030))
+        boundary = min(1, (z-1.57)/.018, (1.735-z)/.030)
+        blend = front*boundary*boundary*(3-2*boundary)
+        # The facial envelope owns nose, sockets, muzzle and lips together. It
+        # replaces construction relief rather than stacking another face on it.
+        face = -.071 + .025*(x/.075)**2
+        face += .004*math.exp(-((z-1.626)/.024)**2)
+        face -= .010*math.exp(-(x/.030)**2-((z-1.586)/.018)**2)
+        face -= .004*math.exp(-((abs(x)-.043)/.028)**2-((z-1.651)/.026)**2)
+        face += .003*math.exp(-((abs(x)-.049)/.025)**2-((z-1.619)/.023)**2)
+        face -= .003*math.exp(-(x/.033)**4-((z-1.617)/.023)**2)
+        face -= .007*math.exp(-((abs(x)-.030)/.025)**4-((z-1.698)/.010)**2)
+        face += .004*math.exp(-((abs(x)-.032)/.021)**4-((z-1.679)/.015)**2)
+        bridge = .017*math.exp(-(x/.010)**2-((z-1.668)/.029)**2)
+        tip = .022*math.exp(-(x/.012)**2-((z-1.646)/.012)**2)
+        wing = .012*math.exp(-((abs(x)-.013)/.006)**2-((z-1.641)/.007)**2)
+        nostril = .005*math.exp(-((abs(x)-.011)/.0035)**2-((z-1.637)/.003)**2)
+        face -= bridge+tip+wing-nostril
+        mouth = 1.611 + .001*math.exp(-(x/.008)**2)
+        lip_span = math.exp(-(x/.024)**4)
+        face -= lip_span*(.003*math.exp(-((z-mouth-.003)/.004)**2)
+                          + .004*math.exp(-((z-mouth+.005)/.005)**2)
+                          - .003*math.exp(-((z-mouth)/.0018)**2))
+        face += .003*math.exp(-(x/.022)**2-((z-1.597)/.005)**2)
+        eye_u = (abs(x)-.032)/.015
+        if abs(eye_u) < 1.35:
+            span = max(0, 1-eye_u*eye_u)
+            middle = 1.678 + .001*eye_u
+            upper, lower = middle+.0055*span, middle-.003*span
+            distance = max(z-upper, lower-z)
+            # A convex exposed eye surface meets thin lids; the upper orbital
+            # fold is outside the opening, not a slit cut through its center.
+            opening = max(0, min(1, (.0015-distance)/.0025))*span**.25
+            globe = -.055-.010*math.sqrt(max(0, 1-(eye_u*.85)**2-((z-middle)/.016)**2))
+            face = face*(1-opening)+globe*opening
+            face -= span*(.0008*math.exp(-((z-upper)/.002)**2)
+                          + .0005*math.exp(-((z-lower)/.002)**2))
+            face += span*.0015*math.exp(-((z-upper-.005)/.0025)**2)
+        vertex.co.y = vertex.co.y*(1-blend)+face*blend
 
 
 def deform_candidate(sculpt):

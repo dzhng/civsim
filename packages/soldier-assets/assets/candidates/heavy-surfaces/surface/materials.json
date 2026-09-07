@@ -155,7 +155,7 @@
   ],
   "textures": {
     "baseColor": {
-      "image": "images/bb2ded7d167488a6a46fe7792ed35c7e3c134955bf31da02c1970c75cf3347f8.png",
+      "image": "images/882ebf7258a5b94d07f67f0d75d45f37fd3755c192ed7299369dbfcfcb06e9ff.png",
       "mimeType": "image/png",
       "sampler": {
         "magFilter": "linear",
@@ -166,7 +166,7 @@
       }
     },
     "normal": {
-      "image": "images/a0e6ebd8ad477e0d3b7725ed7c1f33c161e4f24a22e393d4be12fcc71f9e3ab6.png",
+      "image": "images/61bbe6ab951bc42b306453d3ae6c9741a5a858f8914d63b0b0b256fb4687b326.png",
       "mimeType": "image/png",
       "sampler": {
         "magFilter": "linear",

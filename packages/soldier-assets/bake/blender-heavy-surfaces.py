@@ -39,8 +39,7 @@ def surface_tile(name):
     roughness = np.ones_like(u)
     ao = np.ones_like(u)
     if name == "mail":
-        # Continue the periodic weave through the gutter so the rear UV seam can
-        # unwrap across1 without collapsing a strip of garment onto the tile edge.
+        # The periodic weave continues through the tile gutter.
         u = (x-GUTTER)/(TILE[0]-2*GUTTER)
         # Alternating rows overlap elliptical wire loops. Smooth profiles suppress
         # isolated binary highlights; linked relief belongs in normal/AO channels.
@@ -74,8 +73,8 @@ def surface_tile(name):
             edge = np.clip((np.abs(u-.5)-.38)*8, 0, 1)
             scratches = np.maximum(0, np.sin(u*211+v*17)-.92)*np.maximum(0, np.sin(v*41))
             mottling = np.sin(u*73+np.sin(v*41)*3)*np.sin(v*79+np.sin(u*59))
-            tint += .12*edge + scratches*.8 + .10*mottling
-            height += .30*mottling
+            tint += .12*edge + scratches*.8 + .015*mottling
+            height += .01*mottling
             roughness = np.ones_like(u)
     elif name == "wood":
         warp = u + .006*np.sin(v*21+u*37) + .004*np.sin(v*57+u*19)
@@ -196,6 +195,35 @@ def author_surfaces(objects):
         uv = obj.data.uv_layers.active
         if uv is None:
             raise ValueError(obj.name+": author UV0 before surface assignment")
+        if name == "mail":
+            # Cut at the garment's front/back silhouette, not across arbitrary
+            # horizontal rows. Angle-based flattening keeps shoulder and sleeve
+            # faces in the same continuous panel as the chest or back.
+            edge_sides = {edge.key: set() for edge in obj.data.edges}
+            edge_normals = {edge.key: [] for edge in obj.data.edges}
+            for polygon in obj.data.polygons:
+                for edge in polygon.edge_keys:
+                    edge_sides[edge].add(polygon.center.y > 0)
+                    edge_normals[edge].append(polygon.normal)
+            for edge in obj.data.edges:
+                normals = edge_normals[edge.key]
+                # Solidified opening rims connect inner and outer cloth. Cut
+                # their sharp folds so the unwrap does not flatten both as one.
+                rim = len(normals) == 2 and normals[0].dot(normals[1]) < .5
+                edge.use_seam = len(edge_sides[edge.key]) > 1 or rim
+            bpy.ops.object.select_all(action="DESELECT")
+            hidden = obj.hide_get()
+            obj.hide_set(False)
+            obj.select_set(True)
+            bpy.context.view_layer.objects.active = obj
+            bpy.ops.object.mode_set(mode="EDIT")
+            bpy.ops.mesh.select_all(action="SELECT")
+            bpy.ops.uv.unwrap(method="ANGLE_BASED", margin=.025)
+            bpy.ops.uv.average_islands_scale()
+            bpy.ops.uv.pack_islands(rotate=False, margin=.025)
+            bpy.ops.object.mode_set(mode="OBJECT")
+            obj.hide_set(hidden)
+            uv = obj.data.uv_layers.active
         for polygon in obj.data.polygons:
             # Front hide, exposed wooden back: material identity follows authored
             # faces, not RGB. Existing shield construction retains its actual rim.
@@ -204,33 +232,8 @@ def author_surfaces(objects):
                 face_name = "wood" if polygon.center.y > -.132 else ("bronze" if polygon.center.y > -.155 else name)
             polygon.material_index = [name, "wood", "bronze"].index(face_name)
             tile = names.index(face_name)
-            loops = list(polygon.loop_indices)
-            garment_uv = []
-            if name == "mail":
-                # Partition by the authored garment region: a torso wrap cannot
-                # describe a sleeve axis or horizontal collar without stretching.
-                center = polygon.center
-                sleeve = abs(center.x) > .20 and center.z < 1.45
-                collar = center.z > 1.45
-                for loop in loops:
-                    p = obj.data.vertices[obj.data.loops[loop].vertex_index].co
-                    if collar:
-                        garment_uv.append((.5+p.x/1.2, .5+p.y/.72))
-                    elif sleeve:
-                        side = 1 if center.x > 0 else -1
-                        along = side*(p.x-side*.22)*.60-(p.z-1.44)*.80
-                        radial = side*(p.x-side*.22)*.80+(p.z-1.44)*.60
-                        angle = math.atan2(radial, p.y+.005)
-                        garment_uv.append((.5+angle*.095/1.2, .45+along/.72))
-                    else:
-                        garment_uv.append((math.atan2(p.x/.23, -p.y/.16)/math.tau+.5,
-                                           (p.z-.84)/.72))
-                if not sleeve and not collar and max(u for u, v in garment_uv)-min(u for u, v in garment_uv) > .5:
-                    garment_uv = [(u+1 if u < .5 else u, v) for u, v in garment_uv]
             for loop_index in polygon.loop_indices:
-                u, v = garment_uv[loops.index(loop_index)] if garment_uv else uv.data[loop_index].uv
-                if garment_uv:
-                    v = min(1, max(0, v))
+                u, v = uv.data[loop_index].uv
                 uv.data[loop_index].uv = (
                     (tile%4*TILE[0]+GUTTER+u*(TILE[0]-2*GUTTER))/(4*TILE[0]),
                     (tile//4*TILE[1]+GUTTER+v*(TILE[1]-2*GUTTER))/(2*TILE[1]))

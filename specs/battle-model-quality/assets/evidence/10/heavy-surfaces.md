@@ -13,10 +13,11 @@ The [surface module](../../../../../packages/soldier-assets/bake/blender-heavy-s
 owns the original analytic texture motifs, explicit material slots, UV placement
 and faction mask. The shared atlas carries sRGB albedo, linear tangent normals,
 and packed AO/roughness/metallic; it uses the existing slice04 contract. Mail uses
-a torso wrap, planar collar and arm-axis sleeve mapping so smart-project island
-packing does not determine link size. Other parts retain source UV islands inside
-their material tile, with padded edges. Region transitions and physical texel
-density across limbs and shoulders remain unresolved visual defects.
+angle-based front/back panel unwrapping, cut at silhouette and solidified opening
+rims. Separating inner from outer surfaces is essential: leaving the rim joined
+folds both surfaces into one distorted UV island. Other parts retain source UV
+islands inside their material tile, with padded edges. Physical texel density
+and linked-metal rather than embossed-knit appearance remain review concerns.
 
 The minimal integration is to import the module and call
 `author_surfaces([body] + gear)` immediately before the geometry owner's existing
@@ -68,19 +69,29 @@ seam triangles.
 An independent visual critique rejected the intervening candidate for radial
 neck stretching, flat sleeve waves, embossed honeycomb instead of linked mail,
 and a glossy gradient shield with regular wooden corrugation. The retained latest
-candidate separates collar/sleeve mapping, uses overlapping tilted wire motifs,
-and authors irregular wood grain and rough hide. Author inspection still finds
-visible mail mapping boundaries, inconsistent link directions and full-body
-moire; the shield hide is too broadly wavy and the faction border is soft.
+candidate uses continuous front/back UV panels and overlapping tilted wire
+motifs, with irregular wood grain and rough hide. The focused panel revision
+removes the hard torso/collar/sleeve classifiers and reduces broad shield
+mottling in normal and albedo. Author inspection finds less abrupt mail
+transitions and fewer shield swirls, but link scale/direction varies and full-body
+moire remains; the shield is plain and its faction border soft.
 Cloth/leather remain uniform and metal wear insufficient. These changes are a
 provisional study, not a claim that the critique is resolved.
+
+Fresh review of the focused panel revision judged it less wrong with high
+confidence: continuous mail and removed shield waves improve the image, but the
+enlarged soft zigzag/knit motif and smooth plastic-looking hide remain defects.
+Main-agent inspection agreed. The controlled change leaves the clay half of all
+seven shots byte-identical to commit `4a9cc563`; the material half changes in six
+views, while the hand close-up is unchanged. No geometry/runtime change or final
+surface acceptance follows from this improvement.
 
 The [capture check](capture-check.txt) records seven exact repeat baselines with
 production submission and no page errors. The [transport check](transport-check.txt)
 passes the existing appearance/material fixtures; the source comparison records
 unchanged geometry, weights, transforms and rig. The [image comparison](comparison.json)
 measures change from the rejected first pass, not closeness to acceptance:
-grayscale MAE is 1.19509 for the paired front and 13.44731 for the paired mail
+grayscale MAE is 1.17236 for the paired front and 13.43353 for the paired mail
 close-up. Its diagnostic images are regenerable scratch output, not retained
 acceptance artifacts.
 

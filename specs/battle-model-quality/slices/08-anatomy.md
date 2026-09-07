@@ -136,3 +136,7 @@ The [power-grip closure study](../assets/evidence/08/power-grip-closure/review.m
 adds a substantially more enclosing grasp while retaining the untouched body
 and rig. It remains intermediate: tubular digits, swollen dorsum and crowded
 thumb/palm transitions still fail natural-hand completion.
+
+The [rejected hand-mass study](../assets/evidence/08/rejected-hand-masses/review.md)
+records why further loft-mass tweaks were not retained; the settled closure
+source remains unchanged.

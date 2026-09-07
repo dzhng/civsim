@@ -85,6 +85,44 @@ cancel within a batch; the scalar path does not reconstruct its sequence.
 Keep live root smoothing as the next separate presentation contract—do not add
 a trajectory-reconstruction system or quietly claim this observation solves it.
 
+### Following bounded pass: one presentation clock for root and gait
+
+The current crowd advances gait at fractional simulation time while moving its
+root only at integer observations through residual-error easing. Thus feet can
+cycle over a stationary displayed root, and the root can keep catching up after
+the engine stops. Replace that easing in the existing crowd owner after the
+motor-capable observation pass lands.
+
+Use the latest authoritative endpoint plus the existing clock fraction times
+the last observed endpoint displacement per tick. Cache endpoint and rate,
+separately from rendered output; each observation reanchors prediction rather
+than integrating the previous prediction. Body translation uses raw engine
+positions, including disabled transport; only gait uses qualified travel.
+No new clock, delayed state history, simulation write or trajectory solver.
+
+This explicitly chooses sub-tick extrapolation over delayed interpolation.
+An unobserved stop or collision can overshoot until the next observation;
+batched rates average the interval and cannot reconstruct reversals. There is
+no canonical teleport discriminator: large corrections reanchor normally,
+without repurposing the old distance threshold as an invented game state.
+New bodies, rewind/reset and dead bodies use authoritative endpoints without
+prediction. Explicit freeze samples both root and pose at integer time;
+ordinary pause retains the clock fraction, and unfreeze restores that fraction.
+
+Standards and readouts already consume displayed centroids. Route displayed
+roots explicitly to soldier selection rings and attack-arc origins as well.
+Keep destination grids, order paths, queued waypoints and engine diagnostics
+authoritative; never replace the shared world-position accessor globally.
+
+Begin with a production crowd/clock test proving that two fractional draws
+during steady straight motion move the submitted root by the unwrapped gait
+phase advance times stride. A subsequent stationary observation must stop both.
+Replace the old residual-easing assertions deliberately, then cover pause,
+freeze/unfreeze, batched observations, append, rewind, death and corrections.
+The root/stride equality is a constant enabled-motion contract, not a claim
+about disabled transport or mixed-direction intervals. Review actual moving
+production frames and attached overlays before accepting the presentation change.
+
 Names of new functions/routes in this plan are proposed, not existing commands. Use the [shared acceptance contract](../README.md#acceptance-contract) and [architecture](../architecture.md) for inherited requirements.
 
 ## Runnable artifact

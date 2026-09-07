@@ -1120,3 +1120,20 @@ system: raising an arm can still make the layers intersect, particularly where
 the nearest underlying surface switches between torso and arm. Future body
 changes therefore require a refit and full pose review. This stays an offline
 Blender operation and does not add a runtime fitting or cloth mechanism.
+
+### Keep the sheath rigid while its straps follow the waist (09)
+
+**Sound, provisional; confidence: medium.** When the soldier bends or runs, the
+leather casing moves with the pelvis instead of bending like a trouser leg. The
+top of each suspension strap follows the existing waist deformation; farther
+down, its bone influences gradually become those of the pelvis, keeping its end
+with the sheath. Giving the whole assembly waist weights would bend the casing;
+giving everything pelvis weights could pull its loops away from the belt.
+
+The equipment requirement specifies believable attachment but leaves this
+deformation ownership open. This uses ordinary authored skin weights, not a new
+bone, cloth simulation or runtime constraint. It deliberately does not add
+independent sheath sway. Future attacks and deeper bends must check both belt and
+sheath contacts, and can revise these weights or authored motion if this rigid
+carry looks implausible. The current fitting samples are not a universal collision
+guarantee or a decision to omit ordinary secondary motion from later work.

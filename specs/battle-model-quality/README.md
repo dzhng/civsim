@@ -34,8 +34,11 @@ Current pickup has independent authoring and measurement lanes:
   owns the current capture and independent less-wrong verdict. Do not copy its
   frozen generated mesh over the root candidate. Independent head-form and mail
   surface work continues from the preceding checkpoint in separate worktrees.
-  Scabbard suspension is the next equipment authoring target; rigid cuffs and
-  hidden underarm intersections remain open.
+  [Scabbard suspension](assets/evidence/09/scabbard-suspension/review.md) now has
+  a reviewed intermediate candidate with visible loops and fittings; rear straps,
+  rigid cuffs and hidden underarm intersections remain open. Integrate the
+  independently reviewed head checkpoint `9307029a`, rebuild the combined kit and
+  inspect helmet fit next; then compose the pending mail surface work.
   Do not propagate unresolved heavy defects to medium phalanx.
 - **07 animated budget:** the reusable LOD result experiment was rejected after
   worse matched timing; its code is not integrated. Finish combined geometry,

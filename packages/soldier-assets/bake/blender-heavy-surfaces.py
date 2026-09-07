@@ -167,7 +167,7 @@ def region(obj):
         return "cloth"
     if name == "Mail shirt":
         return "mail"
-    if name.startswith("Helmet") or name in ("Shield boss", "Sword pommel", "Sword guard"):
+    if name.startswith(("Helmet", "Scabbard fitting")) or name in ("Shield boss", "Sword pommel", "Sword guard"):
         return "bronze"
     if name == "Sword blade" or name.startswith("Shield grip support"):
         return "iron"
@@ -175,7 +175,7 @@ def region(obj):
         return "wood"
     if name == "Convex oval shield":
         return "shield-hide"
-    if name.startswith("Sandal") or name in ("Waist belt", "Sword grip", "Scabbard"):
+    if name.startswith(("Sandal", "Scabbard suspension")) or name in ("Waist belt", "Sword grip", "Scabbard"):
         return "leather"
     raise ValueError("Unassigned heavy source part: "+name)
 

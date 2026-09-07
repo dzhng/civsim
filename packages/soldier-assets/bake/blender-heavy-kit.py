@@ -78,7 +78,7 @@ def build():
     def loft(name, rows, bone=None, segments=40, across=(1, 0, 0), depth=(0, 1, 0)):
         return finish(anatomy.loft(name, rows, segments, across, depth), bone)
 
-    def thin_surface(name, vertices, faces, bone=None, offset=-1, fit=None):
+    def thin_surface(name, vertices, faces, bone=None, offset=-1, fit=None, subdivision_levels=2):
         mesh = bpy.data.meshes.new(name)
         mesh.from_pydata(vertices, [], faces)
         mesh.update()
@@ -94,7 +94,7 @@ def build():
         surface.to_mesh(mesh)
         surface.free()
         subdivision = obj.modifiers.new("Curved surface", "SUBSURF")
-        subdivision.levels = 2
+        subdivision.levels = subdivision_levels
         bpy.ops.object.modifier_apply(modifier=subdivision.name)
         if fit:
             fit(obj.data)
@@ -303,8 +303,51 @@ def build():
     sword_part("Sword guard", [(.052, .054, .024), (.067, .054, .024)])
     sword_part("Sword blade", [(.066, .033, .006), (.28, .029, .005),
                                (.55, .036, .005), (.67, .001, .001)], 4)
-    loft("Scabbard", [((-.21 - (1-z)*.10, .045, z), w, .022) for z, w in
-         [(1.02, .045), (.99, .046), (.51, .039), (.42, .007)]], "pelvis", 24)
+    def scabbard_surface(name, rows, closed_end=False):
+        # The open mouth and broad side follow the blade's section; the sheath
+        # hangs outside the thigh rather than embedding a capped solid in it.
+        segments = 16
+        vertices = [(-.225-(1.015-z)*.10+depth*math.sin(math.tau*j/segments),
+                     .115+(1.015-z)*.06+width*math.cos(math.tau*j/segments), z)
+                    for z, width, depth in rows for j in range(segments)]
+        faces = [(i*segments+j, i*segments+(j+1)%segments,
+                  (i+1)*segments+(j+1)%segments, (i+1)*segments+j)
+                 for i in range(len(rows)-1) for j in range(segments)]
+        if closed_end:
+            faces.append(tuple(range((len(rows)-1)*segments, len(rows)*segments)))
+        return thin_surface(name, vertices, faces, "pelvis", offset=-1, subdivision_levels=1)
+
+    scabbard_surface("Scabbard", [(1.015, .043, .014), (1.010, .043, .014),
+        (.96, .043, .014), (.55, .039, .013), (.43, .022, .010),
+        (.405, .006, .006), (.403, .004, .004)], closed_end=True)
+    for name, rows in [
+        ("mouth", [(1.018, .045, .016), (1.015, .045, .016),
+                   (1.001, .045, .016), (.998, .044, .015)]),
+        ("upper band", [(.955, .045, .016), (.952, .045, .016),
+                        (.938, .045, .016), (.935, .045, .016)]),
+        ("lower band", [(.899, .045, .016), (.896, .045, .016),
+                        (.882, .045, .016), (.879, .045, .016)]),
+        ("chape", [(.455, .028, .013), (.452, .028, .013),
+                   (.428, .023, .012), (.402, .008, .008), (.399, .006, .006)]),
+    ]:
+        scabbard_surface("Scabbard fitting " + name, rows, closed_end=name == "chape")
+    for index, (belt_y, end_y, end_z) in enumerate([(.015, .071, .945), (.115, .161, .889)]):
+        belt_x = -.201*math.sqrt(1-((belt_y-.005)/.151)**2)
+        path = [(belt_x+.008, belt_y, 1.029), (belt_x+.008, belt_y, 1.069),
+                (belt_x-.008, belt_y, 1.071), (belt_x-.016, belt_y, 1.048),
+                (-.241, end_y, end_z+.012), (-.244, end_y, end_z-.004)]
+        vertices = [(x, y+edge, z) for edge in (-.010, .010) for x, y, z in path]
+        faces = [(i, i+1, len(path)+i+1, len(path)+i) for i in range(len(path)-1)]
+        strap = thin_surface("Scabbard suspension " + str(index), vertices, faces, offset=0)
+        # The top follows the fitted waist; the lower end follows the rigid sheath.
+        pelvis = strap.vertex_groups["pelvis"]
+        for vertex in strap.data.vertices:
+            blend = max(0, min(1, (vertex.co.z-.985)/.055))
+            blend = blend*blend*(3-2*blend)
+            weights = {entry.group: entry.weight*blend for entry in vertex.groups}
+            weights[pelvis.index] = weights.get(pelvis.index, 0)+(1-blend)
+            for group, weight in weights.items():
+                strap.vertex_groups[group].add([vertex.index], weight, "REPLACE")
 
     for module_name, filename, entry, args in (
         ("heavy_surfaces", "blender-heavy-surfaces.py", "author_surfaces", ([body] + gear,)),

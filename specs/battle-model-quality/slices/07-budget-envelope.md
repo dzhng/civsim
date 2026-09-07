@@ -9,6 +9,10 @@ but the lower density still fails cadence. No art limit is accepted.
 The [frozen-source retirement cleanup](../assets/evidence/07/frozen-retirement/review.md)
 preserves exact playback and lowers steady CPU work in the matched comparison;
 interruption timing is mixed and all cadence rows remain red.
+The [upper-wrapper cleanup](../assets/evidence/07/upper-wrapper/review.md)
+removes one redundant private allocation with exact-output coverage. CPU medians
+are mixed; this is not a cadence improvement and does not justify another hardware
+run by itself.
 The [available-display bracket](../assets/evidence/07/combined-display-bracket/review.md)
 records1280×800,3024×1964 and5120×2880 with the unchanged combined workload;
 all fail cadence and5K also fails GPU-queue medians. Background activity limits

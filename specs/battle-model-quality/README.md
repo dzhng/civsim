@@ -4,7 +4,7 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 
 ## Next Agent Prompt
 
-Last updated **2026-09-07**. **01–06 complete;07 envelope open;08–11 provisional
+Last updated **2026-09-08**. **01–06 complete;07 envelope open;08–11 provisional
 authoring;12–30 pending.** Worktree: `/Users/david/dev/game-battle-model-quality`,
 branch `codex/battle-model-quality`. No detailed model or art envelope is accepted.
 
@@ -80,6 +80,8 @@ Priority order:
   [retirement cleanup](assets/evidence/07/frozen-retirement/review.md) and
   [near-density comparison](assets/evidence/07/near-density/review.md) do not pass
   the33ms animated envelope.07 gates art acceptance, not editable authoring.
+  The [upper-wrapper cleanup](assets/evidence/07/upper-wrapper/review.md) preserves
+  exact output; mixed CPU medians do not establish a performance-budget win.
 
 Retained composition and evidence:
 - [Combined garment](assets/evidence/09/combined-worn-garment/review.md),

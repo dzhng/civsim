@@ -73,6 +73,10 @@ All64 tests in the existing timeline, mounted timeline, packing, raw palette,
 replay and synthetic fixture files pass, and the full web typecheck passes.
 No existing expected value or baseline was changed.
 
+Merged root commit `aad044de` independently passes all342 web tests across60
+files and the full typecheck (terminal84727, exit0). The shared model-travel
+helper's two tests also pass. No additional browser or hardware claim is made.
+
 Shape review: one existing sampling owner,3 replacement lines for4, no new
 surface. Diff review: fresh upper wrapper only, exact exit branch, no shared
 source mutation. Docs are limited to this numerical evidence leaf; root owns

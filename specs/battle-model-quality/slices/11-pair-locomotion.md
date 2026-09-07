@@ -76,3 +76,11 @@ motion; neither does the corrected sequence alone. Review the full-speed loop,
 torso stiffness, recovery and ground contact before accepting locomotion.
 Do not reverse fixture travel or add a candidate-only renderer correction to
 make the evidence look right.
+
+The [support/recovery revision](../assets/evidence/11/heavy-contact-recovery/review.md)
+now accounts for the actual angled rest chain and lifts the recovering run leg.
+The complete integrated heavy-kit scene repeats exactly, and its travel frames
+match the independently reviewed candidate byte-for-byte. This is a retained
+intermediate improvement, not completed locomotion: upper-body rhythm, small
+between-key floor penetration, speed ramps, animated idle and phalanx motion
+remain open. The linked record owns the runnable command and raw evidence.

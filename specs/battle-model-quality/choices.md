@@ -1283,3 +1283,20 @@ simulation or runtime fitting mechanism. They trade physically simulated drape
 for inspectable fixed construction; shoulder corners and running skirt stiffness
 remain refinements. New anatomy or new extreme actions require renewed fitting
 and visual review, not an assumption that indexed correspondence proves clearance.
+
+### Derive authored leg reach from the actual rest joints (11 support revision)
+
+**Sound; confidence: high.** When the knee bends, the ankle does not follow the
+path of two perfectly vertical leg segments: the saved skeleton already has
+slightly angled thighs and shins. The offline Blender author now rotates that
+actual ankle offset to find the thigh angle for the chosen backward foot travel.
+The game still receives ordinary animation keys; it gains no foot solver or
+extra animation state. The unbuilt alternative adjusts stride constants to hide
+the error on this particular skeleton, leaving future rig changes to rediscover
+the same mismatch.
+
+The plan delegates stride style but does not prescribe the offline geometric
+calculation. This choice makes the saved rest joints its source of truth. Ready
+is deliberately preserved in this focused gait revision; its separate static
+calculation is not represented as a general contact solution. A changed skeleton
+still requires reauthoring and visual review, not blind reuse of the old keys.

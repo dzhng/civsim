@@ -57,6 +57,16 @@ def loaded_body(arm, phase, running):
         orient(arm, name, rotation @ arm.data.bones[name].matrix_local.to_quaternion())
 
 
+def thigh_angle(arm, side, knee, stride):
+    thigh, shin, foot = (arm.data.bones[name+"."+side] for name in ("thigh", "shin", "foot"))
+    # The rest chain is angled, not a pair of vertical segments. Rotate its
+    # actual ankle offset so the authored support travel survives knee flexion.
+    ankle = shin.matrix_local @ Matrix.Rotation(knee, 4, "X") @ shin.matrix_local.inverted() @ foot.head_local
+    reach = ankle-thigh.head_local
+    target = stride+foot.head_local.y-thigh.head_local.y
+    return math.asin(target/math.hypot(reach.y, reach.z))-math.atan2(reach.y, -reach.z)
+
+
 def author_motion(arm, scene):
     """Key loaded locomotion on the fixed rig; retain all inspection actions."""
     active = arm.animation_data.action
@@ -106,12 +116,13 @@ def author_motion(arm, scene):
                 stride -= arm.pose.bones["thigh."+side].head.y-arm.data.bones["thigh."+side].head_local.y
                 # Offline joint authoring: chosen knee lift plus a linear support
                 # interval. No target solver or planted-foot state enters runtime.
-                upper, lower = arm.data.bones["thigh."+side].length, arm.data.bones["shin."+side].length
-                reach = math.hypot(upper+lower*math.cos(knee), lower*math.sin(knee))
-                thigh = math.asin(stride/reach)-math.atan2(lower*math.sin(knee), upper+lower*math.cos(knee))
                 if walking:
+                    thigh = thigh_angle(arm, side, knee, stride)
                     orient(arm, "thigh."+side, Matrix.Rotation(thigh, 3, "X").to_quaternion() @ arm.data.bones["thigh."+side].matrix_local.to_quaternion())
                 else:
+                    upper, lower = arm.data.bones["thigh."+side].length, arm.data.bones["shin."+side].length
+                    reach = math.hypot(upper+lower*math.cos(knee), lower*math.sin(knee))
+                    thigh = math.asin(stride/reach)-math.atan2(lower*math.sin(knee), upper+lower*math.cos(knee))
                     arm.pose.bones["thigh."+side].rotation_euler.x = thigh
                 arm.pose.bones["shin."+side].rotation_euler.x = knee
                 arm.pose.bones["knee-volume."+side].rotation_euler.x = knee/2
@@ -192,7 +203,7 @@ def author_run(arm, scene):
         for side, sign in (("R",-1),("L",1)):
             step = (phase+(0 if side == "R" else .5))%1
             knee = cycle_value(((0,.30),(.12,.68),(.28,.34),(.35,.30),
-                                (.50,1.35),(.70,1.15),(.90,.45),(1,.30)),step)
+                                (.50,1.75),(.70,1.15),(.90,.45),(1,.30)),step)
             roll = cycle_value(((0,-.10),(.08,0),(.22,0),(.35,.60),
                                 (.50,.55),(.72,-.22),(1,-.10)),step)
             # .8s cycle / 150 steps per minute. Each .28s support interval
@@ -203,9 +214,7 @@ def author_run(arm, scene):
             pivot = toe.lerp(heel,.5+.5*math.cos(math.pi*min(step/.35,1)))-arm.data.bones["foot."+side].head_local
             stride -= (Matrix.Rotation(roll,3,"X")@pivot-pivot).y
             stride -= arm.pose.bones["thigh."+side].head.y-arm.data.bones["thigh."+side].head_local.y
-            upper,lower=arm.data.bones["thigh."+side].length,arm.data.bones["shin."+side].length
-            reach=math.hypot(upper+lower*math.cos(knee),lower*math.sin(knee))
-            thigh=math.asin(stride/reach)-math.atan2(lower*math.sin(knee),upper+lower*math.cos(knee))
+            thigh=thigh_angle(arm,side,knee,stride)
             orient(arm,"thigh."+side,Matrix.Rotation(thigh,3,"X").to_quaternion()@arm.data.bones["thigh."+side].matrix_local.to_quaternion())
             arm.pose.bones["shin."+side].rotation_euler.x=knee
             arm.pose.bones["knee-volume."+side].rotation_euler.x=knee/2

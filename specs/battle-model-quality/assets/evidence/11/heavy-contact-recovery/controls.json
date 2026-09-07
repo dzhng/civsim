@@ -1,0 +1,104 @@
+{
+  "sources": [
+    {
+      "path": "packages/soldier-assets/assets/source/heavy-kit/heavy-kit.glb",
+      "sha256": "cd332a02074e31944f46c0b3c2adadbc6e4eace004c339f4b2f230458e9ab35a"
+    },
+    {
+      "path": "throwaway/heavy-foot-contact/candidate/heavy-motion.glb",
+      "sha256": "fd6a8d11ce79152c4de5fda80f6d691566af5c8f2e17bba6a7e9b5bdb3c63890"
+    }
+  ],
+  "exactRig": true,
+  "primitiveDifferences": [
+    {
+      "index": 0,
+      "differences": {
+        "tangents": {
+          "count": 6,
+          "max": 0.00010001659393310547
+        }
+      }
+    },
+    {
+      "index": 1,
+      "differences": {
+        "tangents": {
+          "count": 6,
+          "max": 0.00010001659393310547
+        }
+      }
+    },
+    {
+      "index": 2,
+      "differences": {
+        "tangents": {
+          "count": 5,
+          "max": 0.00010001659393310547
+        }
+      }
+    },
+    {
+      "index": 3,
+      "differences": {
+        "tangents": {
+          "count": 8,
+          "max": 0.00010001659393310547
+        }
+      }
+    },
+    {
+      "index": 4,
+      "differences": {
+        "tangents": {
+          "count": 1,
+          "max": 0.00009999796748161316
+        }
+      }
+    },
+    {
+      "index": 5,
+      "differences": {}
+    },
+    {
+      "index": 6,
+      "differences": {}
+    },
+    {
+      "index": 7,
+      "differences": {}
+    }
+  ],
+  "clips": [
+    {
+      "name": "bend",
+      "duration": 2,
+      "exact": true
+    },
+    {
+      "name": "bend-pronation",
+      "duration": 2,
+      "exact": true
+    },
+    {
+      "name": "pronation",
+      "duration": 2,
+      "exact": true
+    },
+    {
+      "name": "ready",
+      "duration": 1.2000000476837158,
+      "exact": true
+    },
+    {
+      "name": "run",
+      "duration": 0.800000011920929,
+      "exact": false
+    },
+    {
+      "name": "walk",
+      "duration": 0.8999999761581421,
+      "exact": false
+    }
+  ]
+}

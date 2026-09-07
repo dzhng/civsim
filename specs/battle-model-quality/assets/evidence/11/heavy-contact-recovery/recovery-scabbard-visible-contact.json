@@ -1,0 +1,471 @@
+{
+  "source": "/Users/david/dev/game-battle-model-quality/throwaway/heavy-foot-contact/recovery/heavy-motion.blend",
+  "samples": 193,
+  "parts": [
+    "Scabbard",
+    "Scabbard fitting mouth",
+    "Scabbard fitting upper band",
+    "Scabbard fitting lower band",
+    "Scabbard fitting chape",
+    "Scabbard suspension 0",
+    "Scabbard suspension 1"
+  ],
+  "body_intersections": [],
+  "phase_zero_vertex_clearance": [
+    {
+      "target": "HumanAnatomy-Deform",
+      "part": "Scabbard",
+      "minimum_vertex_surface_distance": 0.15518663823604584
+    },
+    {
+      "target": "HumanAnatomy-Deform",
+      "part": "Scabbard fitting mouth",
+      "minimum_vertex_surface_distance": 0.22483029961585999
+    },
+    {
+      "target": "HumanAnatomy-Deform",
+      "part": "Scabbard fitting upper band",
+      "minimum_vertex_surface_distance": 0.1870264858007431
+    },
+    {
+      "target": "HumanAnatomy-Deform",
+      "part": "Scabbard fitting lower band",
+      "minimum_vertex_surface_distance": 0.16605763137340546
+    },
+    {
+      "target": "HumanAnatomy-Deform",
+      "part": "Scabbard fitting chape",
+      "minimum_vertex_surface_distance": 0.3560021221637726
+    },
+    {
+      "target": "HumanAnatomy-Deform",
+      "part": "Scabbard suspension 0",
+      "minimum_vertex_surface_distance": 0.18451550602912903
+    },
+    {
+      "target": "HumanAnatomy-Deform",
+      "part": "Scabbard suspension 1",
+      "minimum_vertex_surface_distance": 0.23287652432918549
+    },
+    {
+      "target": "Sandal sole.L",
+      "part": "Scabbard",
+      "minimum_vertex_surface_distance": 0.3532504737377167
+    },
+    {
+      "target": "Sandal sole.L",
+      "part": "Scabbard fitting mouth",
+      "minimum_vertex_surface_distance": 0.6644956469535828
+    },
+    {
+      "target": "Sandal sole.L",
+      "part": "Scabbard fitting upper band",
+      "minimum_vertex_surface_distance": 0.613906741142273
+    },
+    {
+      "target": "Sandal sole.L",
+      "part": "Scabbard fitting lower band",
+      "minimum_vertex_surface_distance": 0.5715810060501099
+    },
+    {
+      "target": "Sandal sole.L",
+      "part": "Scabbard fitting chape",
+      "minimum_vertex_surface_distance": 0.35049399733543396
+    },
+    {
+      "target": "Sandal sole.L",
+      "part": "Scabbard suspension 0",
+      "minimum_vertex_surface_distance": 0.6499160528182983
+    },
+    {
+      "target": "Sandal sole.L",
+      "part": "Scabbard suspension 1",
+      "minimum_vertex_surface_distance": 0.5835597515106201
+    },
+    {
+      "target": "Sandal strap 0.L",
+      "part": "Scabbard",
+      "minimum_vertex_surface_distance": 0.3569797873497009
+    },
+    {
+      "target": "Sandal strap 0.L",
+      "part": "Scabbard fitting mouth",
+      "minimum_vertex_surface_distance": 0.6464961171150208
+    },
+    {
+      "target": "Sandal strap 0.L",
+      "part": "Scabbard fitting upper band",
+      "minimum_vertex_surface_distance": 0.5945020318031311
+    },
+    {
+      "target": "Sandal strap 0.L",
+      "part": "Scabbard fitting lower band",
+      "minimum_vertex_surface_distance": 0.5506932735443115
+    },
+    {
+      "target": "Sandal strap 0.L",
+      "part": "Scabbard fitting chape",
+      "minimum_vertex_surface_distance": 0.35415685176849365
+    },
+    {
+      "target": "Sandal strap 0.L",
+      "part": "Scabbard suspension 0",
+      "minimum_vertex_surface_distance": 0.6174612045288086
+    },
+    {
+      "target": "Sandal strap 0.L",
+      "part": "Scabbard suspension 1",
+      "minimum_vertex_surface_distance": 0.5668812990188599
+    },
+    {
+      "target": "Sandal strap 1.L",
+      "part": "Scabbard",
+      "minimum_vertex_surface_distance": 0.3568069636821747
+    },
+    {
+      "target": "Sandal strap 1.L",
+      "part": "Scabbard fitting mouth",
+      "minimum_vertex_surface_distance": 0.6647835373878479
+    },
+    {
+      "target": "Sandal strap 1.L",
+      "part": "Scabbard fitting upper band",
+      "minimum_vertex_surface_distance": 0.6143018007278442
+    },
+    {
+      "target": "Sandal strap 1.L",
+      "part": "Scabbard fitting lower band",
+      "minimum_vertex_surface_distance": 0.5716184973716736
+    },
+    {
+      "target": "Sandal strap 1.L",
+      "part": "Scabbard fitting chape",
+      "minimum_vertex_surface_distance": 0.3539646565914154
+    },
+    {
+      "target": "Sandal strap 1.L",
+      "part": "Scabbard suspension 0",
+      "minimum_vertex_surface_distance": 0.6357689499855042
+    },
+    {
+      "target": "Sandal strap 1.L",
+      "part": "Scabbard suspension 1",
+      "minimum_vertex_surface_distance": 0.5892359614372253
+    },
+    {
+      "target": "Sandal heel sling.L",
+      "part": "Scabbard",
+      "minimum_vertex_surface_distance": 0.3682155907154083
+    },
+    {
+      "target": "Sandal heel sling.L",
+      "part": "Scabbard fitting mouth",
+      "minimum_vertex_surface_distance": 0.6143757700920105
+    },
+    {
+      "target": "Sandal heel sling.L",
+      "part": "Scabbard fitting upper band",
+      "minimum_vertex_surface_distance": 0.5651646256446838
+    },
+    {
+      "target": "Sandal heel sling.L",
+      "part": "Scabbard fitting lower band",
+      "minimum_vertex_surface_distance": 0.5240797400474548
+    },
+    {
+      "target": "Sandal heel sling.L",
+      "part": "Scabbard fitting chape",
+      "minimum_vertex_surface_distance": 0.3682522177696228
+    },
+    {
+      "target": "Sandal heel sling.L",
+      "part": "Scabbard suspension 0",
+      "minimum_vertex_surface_distance": 0.5959115624427795
+    },
+    {
+      "target": "Sandal heel sling.L",
+      "part": "Scabbard suspension 1",
+      "minimum_vertex_surface_distance": 0.5379917621612549
+    },
+    {
+      "target": "Sandal heel riser -1.L",
+      "part": "Scabbard",
+      "minimum_vertex_surface_distance": 0.3579757511615753
+    },
+    {
+      "target": "Sandal heel riser -1.L",
+      "part": "Scabbard fitting mouth",
+      "minimum_vertex_surface_distance": 0.6239719986915588
+    },
+    {
+      "target": "Sandal heel riser -1.L",
+      "part": "Scabbard fitting upper band",
+      "minimum_vertex_surface_distance": 0.5734772682189941
+    },
+    {
+      "target": "Sandal heel riser -1.L",
+      "part": "Scabbard fitting lower band",
+      "minimum_vertex_surface_distance": 0.5313662886619568
+    },
+    {
+      "target": "Sandal heel riser -1.L",
+      "part": "Scabbard fitting chape",
+      "minimum_vertex_surface_distance": 0.355155348777771
+    },
+    {
+      "target": "Sandal heel riser -1.L",
+      "part": "Scabbard suspension 0",
+      "minimum_vertex_surface_distance": 0.6027955412864685
+    },
+    {
+      "target": "Sandal heel riser -1.L",
+      "part": "Scabbard suspension 1",
+      "minimum_vertex_surface_distance": 0.5454837083816528
+    },
+    {
+      "target": "Sandal heel riser 1.L",
+      "part": "Scabbard",
+      "minimum_vertex_surface_distance": 0.44076311588287354
+    },
+    {
+      "target": "Sandal heel riser 1.L",
+      "part": "Scabbard fitting mouth",
+      "minimum_vertex_surface_distance": 0.6627384424209595
+    },
+    {
+      "target": "Sandal heel riser 1.L",
+      "part": "Scabbard fitting upper band",
+      "minimum_vertex_surface_distance": 0.6159712672233582
+    },
+    {
+      "target": "Sandal heel riser 1.L",
+      "part": "Scabbard fitting lower band",
+      "minimum_vertex_surface_distance": 0.5776495933532715
+    },
+    {
+      "target": "Sandal heel riser 1.L",
+      "part": "Scabbard fitting chape",
+      "minimum_vertex_surface_distance": 0.441342294216156
+    },
+    {
+      "target": "Sandal heel riser 1.L",
+      "part": "Scabbard suspension 0",
+      "minimum_vertex_surface_distance": 0.6454808712005615
+    },
+    {
+      "target": "Sandal heel riser 1.L",
+      "part": "Scabbard suspension 1",
+      "minimum_vertex_surface_distance": 0.5891491174697876
+    },
+    {
+      "target": "Sandal sole.R",
+      "part": "Scabbard",
+      "minimum_vertex_surface_distance": 0.6421087384223938
+    },
+    {
+      "target": "Sandal sole.R",
+      "part": "Scabbard fitting mouth",
+      "minimum_vertex_surface_distance": 0.9468410015106201
+    },
+    {
+      "target": "Sandal sole.R",
+      "part": "Scabbard fitting upper band",
+      "minimum_vertex_surface_distance": 0.8979002237319946
+    },
+    {
+      "target": "Sandal sole.R",
+      "part": "Scabbard fitting lower band",
+      "minimum_vertex_surface_distance": 0.8565328121185303
+    },
+    {
+      "target": "Sandal sole.R",
+      "part": "Scabbard fitting chape",
+      "minimum_vertex_surface_distance": 0.6376732587814331
+    },
+    {
+      "target": "Sandal sole.R",
+      "part": "Scabbard suspension 0",
+      "minimum_vertex_surface_distance": 0.8986004590988159
+    },
+    {
+      "target": "Sandal sole.R",
+      "part": "Scabbard suspension 1",
+      "minimum_vertex_surface_distance": 0.911885142326355
+    },
+    {
+      "target": "Sandal strap 0.R",
+      "part": "Scabbard",
+      "minimum_vertex_surface_distance": 0.7538235783576965
+    },
+    {
+      "target": "Sandal strap 0.R",
+      "part": "Scabbard fitting mouth",
+      "minimum_vertex_surface_distance": 0.9682301878929138
+    },
+    {
+      "target": "Sandal strap 0.R",
+      "part": "Scabbard fitting upper band",
+      "minimum_vertex_surface_distance": 0.9270891547203064
+    },
+    {
+      "target": "Sandal strap 0.R",
+      "part": "Scabbard fitting lower band",
+      "minimum_vertex_surface_distance": 0.8933660984039307
+    },
+    {
+      "target": "Sandal strap 0.R",
+      "part": "Scabbard fitting chape",
+      "minimum_vertex_surface_distance": 0.7497321963310242
+    },
+    {
+      "target": "Sandal strap 0.R",
+      "part": "Scabbard suspension 0",
+      "minimum_vertex_surface_distance": 0.9253231883049011
+    },
+    {
+      "target": "Sandal strap 0.R",
+      "part": "Scabbard suspension 1",
+      "minimum_vertex_surface_distance": 0.9569651484489441
+    },
+    {
+      "target": "Sandal strap 1.R",
+      "part": "Scabbard",
+      "minimum_vertex_surface_distance": 0.7371653914451599
+    },
+    {
+      "target": "Sandal strap 1.R",
+      "part": "Scabbard fitting mouth",
+      "minimum_vertex_surface_distance": 0.9623238444328308
+    },
+    {
+      "target": "Sandal strap 1.R",
+      "part": "Scabbard fitting upper band",
+      "minimum_vertex_surface_distance": 0.9203935265541077
+    },
+    {
+      "target": "Sandal strap 1.R",
+      "part": "Scabbard fitting lower band",
+      "minimum_vertex_surface_distance": 0.8859004974365234
+    },
+    {
+      "target": "Sandal strap 1.R",
+      "part": "Scabbard fitting chape",
+      "minimum_vertex_surface_distance": 0.7328134775161743
+    },
+    {
+      "target": "Sandal strap 1.R",
+      "part": "Scabbard suspension 0",
+      "minimum_vertex_surface_distance": 0.9182363748550415
+    },
+    {
+      "target": "Sandal strap 1.R",
+      "part": "Scabbard suspension 1",
+      "minimum_vertex_surface_distance": 0.9492947459220886
+    },
+    {
+      "target": "Sandal heel sling.R",
+      "part": "Scabbard",
+      "minimum_vertex_surface_distance": 0.6238557696342468
+    },
+    {
+      "target": "Sandal heel sling.R",
+      "part": "Scabbard fitting mouth",
+      "minimum_vertex_surface_distance": 0.8941253423690796
+    },
+    {
+      "target": "Sandal heel sling.R",
+      "part": "Scabbard fitting upper band",
+      "minimum_vertex_surface_distance": 0.8475221395492554
+    },
+    {
+      "target": "Sandal heel sling.R",
+      "part": "Scabbard fitting lower band",
+      "minimum_vertex_surface_distance": 0.8086036443710327
+    },
+    {
+      "target": "Sandal heel sling.R",
+      "part": "Scabbard fitting chape",
+      "minimum_vertex_surface_distance": 0.6197726726531982
+    },
+    {
+      "target": "Sandal heel sling.R",
+      "part": "Scabbard suspension 0",
+      "minimum_vertex_surface_distance": 0.8473420143127441
+    },
+    {
+      "target": "Sandal heel sling.R",
+      "part": "Scabbard suspension 1",
+      "minimum_vertex_surface_distance": 0.8672351837158203
+    },
+    {
+      "target": "Sandal heel riser -1.R",
+      "part": "Scabbard",
+      "minimum_vertex_surface_distance": 0.6728560924530029
+    },
+    {
+      "target": "Sandal heel riser -1.R",
+      "part": "Scabbard fitting mouth",
+      "minimum_vertex_surface_distance": 0.9336631298065186
+    },
+    {
+      "target": "Sandal heel riser -1.R",
+      "part": "Scabbard fitting upper band",
+      "minimum_vertex_surface_distance": 0.8893464207649231
+    },
+    {
+      "target": "Sandal heel riser -1.R",
+      "part": "Scabbard fitting lower band",
+      "minimum_vertex_surface_distance": 0.8525567054748535
+    },
+    {
+      "target": "Sandal heel riser -1.R",
+      "part": "Scabbard fitting chape",
+      "minimum_vertex_surface_distance": 0.6686313152313232
+    },
+    {
+      "target": "Sandal heel riser -1.R",
+      "part": "Scabbard suspension 0",
+      "minimum_vertex_surface_distance": 0.8889341950416565
+    },
+    {
+      "target": "Sandal heel riser -1.R",
+      "part": "Scabbard suspension 1",
+      "minimum_vertex_surface_distance": 0.9128135442733765
+    },
+    {
+      "target": "Sandal heel riser 1.R",
+      "part": "Scabbard",
+      "minimum_vertex_surface_distance": 0.6567309498786926
+    },
+    {
+      "target": "Sandal heel riser 1.R",
+      "part": "Scabbard fitting mouth",
+      "minimum_vertex_surface_distance": 0.9255439639091492
+    },
+    {
+      "target": "Sandal heel riser 1.R",
+      "part": "Scabbard fitting upper band",
+      "minimum_vertex_surface_distance": 0.8801748156547546
+    },
+    {
+      "target": "Sandal heel riser 1.R",
+      "part": "Scabbard fitting lower band",
+      "minimum_vertex_surface_distance": 0.8424009084701538
+    },
+    {
+      "target": "Sandal heel riser 1.R",
+      "part": "Scabbard fitting chape",
+      "minimum_vertex_surface_distance": 0.652377724647522
+    },
+    {
+      "target": "Sandal heel riser 1.R",
+      "part": "Scabbard suspension 0",
+      "minimum_vertex_surface_distance": 0.8790711760520935
+    },
+    {
+      "target": "Sandal heel riser 1.R",
+      "part": "Scabbard suspension 1",
+      "minimum_vertex_surface_distance": 0.9026647806167603
+    }
+  ]
+}

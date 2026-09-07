@@ -4,125 +4,74 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 
 ## Next Agent Prompt
 
-Last updated **2026-09-07**. **01–06 complete;07 envelope open;08 candidate authoring in progress.**
-Worktree: `/Users/david/dev/game-battle-model-quality`, branch
-`codex/battle-model-quality`. No art envelope or detailed model is accepted.
+Last updated **2026-09-07**. **01–06 complete;07 envelope open;08–11 provisional
+authoring;12–30 pending.** Worktree: `/Users/david/dev/game-battle-model-quality`,
+branch `codex/battle-model-quality`. No detailed model or art envelope is accepted.
 
-Current pickup: **complete the medium-phalanx sleeve/pike fit and capture the
-first-pair comparison; rebuild the shared hand from open anatomy in parallel**.
-The medium lane must distinguish buried sleeve attachments from exposed cloth,
-check triangle intersections as well as vertices, and preserve the sewn root
-instead of stretching it across the armpit. Recheck both contacts when pike carry
-changes. The
-[closed-hand study rejection](assets/evidence/08/rejected-metacarpal-grip/review.md)
-keeps all those candidate meshes out of the combined model; establish natural
-open-hand proportions before offline closure and equipment fitting.
-Defer further isolated face detail. The
-[combined worn garment](assets/evidence/09/combined-worn-garment/review.md) now
-contains the supported lining/mail and pelvis-bound belt on the retained root
-body, hands and helmet. It is an intermediate improvement, not accepted armor.
-The
-[grip closure integration](assets/evidence/08/power-grip-closure/integration.md)
-retains a more enclosing grasp, not finished hand anatomy. Preserve modular
-equipment when composing it: a full procedural refit moved unrelated surfaces.
-The [garment composition probe](assets/evidence/09/garment-composition.md)
-establishes selective integration. The waist belt is now an intentional fitting
-exception: its geometry stays fixed, but it must follow the pelvis rather than
-the thigh, with the cinched garment sharing that support. Validate suspension
-joins and all other retained parts after composition.
-The [connected-hand rejection](assets/evidence/08/rejected-connected-hand/review.md)
-requires fitting the cupped palm and held-equipment placement together; merely
-connecting or resizing fingers around the old handle position is insufficient.
-The
-[combined helmet](assets/evidence/09/combined-helmet/review.md) retains a smaller
-open bowl and curved guards on the integrated head and locally baked mail.
-Its fitting improvement does not accept the whole model or close08/09.
+Current pickup: **correct the medium-phalanx shield mounting, then compare the
+whole first pair again**. Trial4's whole/model/formation captures establish the
+leather-versus-mail and pike-versus-sword distinction, but fresh review rejects
+the tray-like shield, apron-like cuirass, harsh waist band and weak front grip.
+The next trial mounts the shield upright on the proximal forearm and fits the
+shaft past its rim; do not flatten the board to eliminate a contact failure.
+The medium lane owns source and evidence in `/Users/david/dev/game-medium-phalanx`.
+Do not accept detail fixes without reviewing the whole model and formation.
 
-Next integration checkpoint: medium leather armor and pike carry beside the
-heavy, with unobstructed two-hand contact views and refitting after shared-hand
-changes. The heavy's combined static and sampled garment-deformation review is
-retained; locomotion rhythm and ground sliding remain unaccepted. Static
-phase sheets establish pose compatibility, not rhythm or ground sliding. The
-[forward export correction](assets/evidence/11/heavy-travel/forward-export-probe.md)
-now has rebuilt assets, checked detail framing and a full deterministic travel
-sequence. It establishes forward orientation, not accepted locomotion. The saved
-motion study's original actions are preserved, not regenerated from newer keys.
-Do not propagate rejected hand studies or assume the pike can use the sword's
-grip. Retained garment construction and static arm form permit provisional
-medium authoring, with shoulder/skirt refinements still open. Do not require
-every isolated heavy detail to be finished before that first-pair comparison.
-All acceptance dependencies remain.
+Priority order:
+- **Shared hand:** rebuild a coherent whole hand from open anatomy in
+  `/Users/david/dev/game-heavy-hand-form`; the old experimental finger controls
+  are not a user requirement. Thenar-only Boolean/implicit patches were rejected
+  as swollen and glove-like. The new connected quad study needs natural open
+  palm/finger form before closure, equipment fitting or grafting. Retain the
+  canonical body/hands until a replacement passes. The
+  [closed-hand rejection](assets/evidence/08/rejected-metacarpal-grip/review.md)
+  and [connected-hand rejection](assets/evidence/08/rejected-connected-hand/review.md)
+  explain why connectivity and collision counts alone cannot accept a grasp.
+- **Heavy locomotion:** [support/recovery comparison](assets/evidence/11/heavy-contact-recovery/review.md)
+  retains a better rear-leg recovery and reduced measured support drift.
+  Full integrated static/travel regression repeats all150 snapshots exactly;
+  this pins an intermediate candidate, not finished motion. Slight floor
+  penetration, cautious torso/arm motion, speed
+  ramps, animated idle and phalanx locomotion remain open. Preserve the combined
+  kit when updating clips; never overwrite it with a frozen older motion study.
+- **Medium equipment/surfaces:** retain the fitted sleeveless under-tunic as
+  provisional, not an anatomy fix. Review exposed axilla, actual cloth edges,
+  both grips, shield and sidearm after carry changes. Fit armor/waist to the
+  body once the carrying silhouette works; defer isolated face detail.
+- **07 budget:** [base packing](assets/evidence/07/settled-base-packing.md)
+  preserves51 focused CPU tests,675 browser checks and all40 temporal images.
+  Hardware timing remains pending. The
+  [retirement cleanup](assets/evidence/07/frozen-retirement/review.md) and
+  [near-density comparison](assets/evidence/07/near-density/review.md) do not pass
+  the33ms animated envelope.07 gates art acceptance, not editable authoring.
 
-Independent authoring and measurement lanes:
-- **08–11 whole heavy:** preserve loaded walk/run, footwear,
-  corrected shield carry, suspended scabbard and refitted helmet while revising
-  the garment and hands.
-  [Scabbard review](assets/evidence/09/scabbard-suspension/review.md),
-  [garment review](assets/evidence/09/combined-garments/review.md) and
-  [footwear/carry review](assets/evidence/11/combined-footwear-shield/review.md)
-  own the retained pre-head composition. Compare their exact source hashes;
-  frozen lane meshes must not overwrite the combined candidate.
-- **08 anatomy:** [head-volume evidence](assets/evidence/08/head-volumes/review.md)
-  supports a modest intermediate improvement, not finished anatomy. Body
-  proportions, hands, joints, eye/lid form and the rear neck junction remain open.
-  Clothing cannot establish anatomy acceptance.
-- **09/10 equipment and surfaces:** [combined mail](assets/evidence/10/combined-mail/review.md)
-  is retained through `7f755129`. Medium-phalanx equipment and shared-hand revision
-  proceed in separate worktrees. Rear suspension straps, raised shoulder joins,
-  stiff hanging garment, arm deformation and grips remain open. Review the whole-heavy
-  silhouette before propagating conventions to medium phalanx. The
-  [formation fixture](assets/evidence/09/formation-harness/review.md) supplements
-  close-ups without changing the production candidate or accepting its quality.
-- **11 motion:** the [locomotion review](assets/evidence/11/heavy-run/review.md)
-  owns actual pace and remaining contact/carry work. Old 1.53m/s walk captures
-  are fitting evidence only, not gameplay-speed acceptance.
-  The [travel evidence](assets/evidence/11/heavy-travel/forward-export-probe.md)
-  records the export correction and current consecutive-frame sequence. Torso
-  stiffness, low run recovery and fine ground sliding remain motion-review
-  targets; deterministic rendering does not accept them. No fixture direction
-  override.
-- **07 animated budget:** the reusable LOD result experiment was rejected after
-  worse matched timing; its code is not integrated. The
-  [fixed-5K density comparison](assets/evidence/07/near-density/review.md) identifies
-  near geometry as a cost lever, but cadence remains red. Investigate remaining
-  submission tails before locking combined asset/display limits. The
-  [retirement cleanup](assets/evidence/07/frozen-retirement/review.md) preserves
-  all temporal images and reduces repeated allocations; its mixed timing does
-  not pass the envelope.07 still gates
-  08/09 acceptance, not editable source authoring.
-  The [base packing checkpoint](assets/evidence/07/settled-base-packing.md)
-  preserves exact CPU controls and all40 temporal images; hardware timing remains pending.
+Retained composition and evidence:
+- [Combined garment](assets/evidence/09/combined-worn-garment/review.md),
+  [mail](assets/evidence/10/combined-mail/review.md),
+  [helmet](assets/evidence/09/combined-helmet/review.md),
+  [footwear/carry](assets/evidence/11/combined-footwear-shield/review.md) and
+  [scabbard](assets/evidence/09/scabbard-suspension/review.md) own modular source
+  revisions. Preserve their exact geometry/rig controls during selective
+  integration; a full procedural gear rebuild moved unrelated surfaces.
+- [Anatomy](assets/evidence/08/anatomy-review.md),
+  [head volumes](assets/evidence/08/head-volumes/review.md) and
+  [grip integration](assets/evidence/08/power-grip-closure/integration.md)
+  are intermediate work, not accepted natural anatomy.
+- [06 playback](assets/evidence/06/merged-validation.md),
+  [snapshot storage](assets/evidence/07/snapshot-banks.md) and
+  [projected detail](assets/evidence/07/projected-lod.md) own transport contracts.
+  [Forward export](assets/evidence/11/heavy-travel/forward-export-probe.md)
+  owns the native-facing correction; never reverse only fixture travel.
+- [Focused capture selection](assets/evidence/01/candidate-filter/review.md)
+  preserves unfiltered coverage while allowing bounded detail review.
 
-Evidence ledger:
-- [Focused capture selection](assets/evidence/01/candidate-filter/review.md) keeps
-  requested detail checks bounded while preserving unfiltered scene coverage.
-- [06](assets/evidence/06/merged-validation.md) owns GPU playback contracts;
-  [projected detail](assets/evidence/07/projected-lod.md) owns separate main/shadow
-  representations and the explicitly reviewed controller shadow.
-- [Exact storage](assets/evidence/07/snapshot-banks.md) admits60,000 frozen sources
-  for30k bodies at67 joints. Merged28 CPU tests/typecheck,675 palette/temporal
-  checks, zero differences in all40 images, and the standing30k gate pass.
-  [Old/new/old hardware](assets/evidence/07/snapshot-banks-aba.md) fails animated
-  interruption cadence on both versions; banking is not established as its cause.
-- [CPU attribution](assets/evidence/07/banks-interruption.md) and the
-  [rejected storage experiment](assets/evidence/07/lod-storage.md) guide further
-  measurement. Neither is performance acceptance;
-  [07](slices/07-budget-envelope.md) owns the remaining budget requirements.
-- [Anatomy review](assets/evidence/08/anatomy-review.md) owns Blender iterations,
-  exact source/capture provenance, rejected studies and unresolved visible form.
-  [Pronation review](assets/evidence/08/pronation/review.md) owns the unchanged-rig
-  roll recipe and its unresolved wrist/elbow form. [Heavy kit review](assets/evidence/09/heavy-kit-review.md) owns the first equipped
-  Blender candidate and its unresolved garment/grip defects. The production
-  catalog remains unchanged; no finished armor or motion clips are accepted.
-  [Current fitting evidence](assets/evidence/09/helmet-and-grip.md) owns thin
-  plates, garment slope, grip failures and the current body refit.
-
-Preserve sim/save/balance, exact interruption poses, atomic catalog replacement,
-the one production skin/material/environment path, and the existing temporal
-image gates. Local Blender authoring only; no external AI or downloaded soldiers.
-Block fixtures validate transport and cost, never final art. Complete appearances
-promote atomically only after distance-ready acceptance; see
-[architecture](architecture.md). The full TODO remains below; continue all slices.
+Preserve simulation/save/balance, exact interruption poses, atomic catalog
+replacement, one production skin/material/environment path and existing image
+gates. Local Blender processes and separate worktree files isolate authoring
+from other sessions' interactive Blender/MCP scene; coordinate GPU captures.
+No external AI or downloaded soldiers. Block fixtures prove transport/cost,
+never final art. Complete appearances promote atomically only after
+distance-ready acceptance. The full TODO below remains the objective.
 
 ## Scope and firewalls
 

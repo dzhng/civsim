@@ -1582,3 +1582,24 @@ the engine's stored positions are converted before subtraction and never changed
 The plan left this layout and interval policy open. A batch still cannot reveal
 its sequence of directions, so this is not a reconstructed trajectory or proof
 of planted feet.
+
+### Separate fixture travel direction from the soldier's facing
+
+**Sound; confidence: high. Guarded left integration cd6d2359.** A soldier can
+step sideways while still looking toward a threat. The existing review sampler
+therefore accepts a travel-angle offset without rotating the body or changing
+its absolute-time phase. Its default forward path stays unchanged. The plan
+required directional review but left this fixture mapping unspecified. The
+prescribed pure-left speed isolates the clip; it does not recreate the recorded
+engine trace's simultaneous backward component or prove self-propulsion.
+
+### Retain a reviewed fresh export instead of pinning one shading value
+
+**Sound; confidence: high. Guarded left integration cd6d2359.** Adding the new
+clip and exporting the unchanged kit changed one surface-shading direction by
+roughly0.0001. It changed one blue-channel value by1 in an older walk sheet.
+After an isolated control identified that value as the cause and repeated fresh
+exports were visually reviewed, the fresh asset and that exact new baseline
+were retained. The plan left exporter rounding at source promotion open. This
+does not permit differing pixels: subsequent runs must match the new baseline
+exactly, and no tangent pinning or image-difference allowance ships.

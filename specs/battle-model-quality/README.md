@@ -14,8 +14,11 @@ is integrated and independently verified on the merged tree. Its one source reci
 preserves fitted geometry and composes idle, ready, and run without accumulating
 offsets on repeated authoring. No live appearance is promoted. The
 [guarded backward action](assets/evidence/11/backward-integration/review.md)
-is integrated for manual review, preserving the other clips and fitted geometry;
-its runtime selection is still unbuilt. [Measured-distance playback](assets/evidence/11/measured-distance/review.md)
+and [guarded left action](assets/evidence/11/left-integration/review.md)
+are integrated for manual review, preserving the other clips and fitted geometry;
+runtime selection and rightward authoring remain open. The left integration's
+404-image implementing-worktree gate passes; merged repeat is underway.
+[Measured-distance playback](assets/evidence/11/measured-distance/review.md)
 is integrated and independently verified on the merged tree. Clip calibration
 selects walk/run from measured pace and advances gait by observed travel;
 combat remains time-driven. Numerical comparison and reference shadow-history

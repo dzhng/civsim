@@ -47,7 +47,7 @@ walk-contact-sheet pixel differs. The other 354 old snapshots passed; all 48
 new travel PNGs are byte-identical to the reviewed C film. The new pose sheet
 contained both opposing views but its captions were reversed because the
 shared detail-camera owner adds pi. Its unaccepted output was moved to scratch;
-only new view inputs were corrected, with final recapture pending.
+only new view inputs needed correction before the final recapture below.
 
 `walk-pixel.json` records old sheet coordinate (2247,14843), frame 23 / three-quarter
 helmet: RGBA (172,136,68,255) becomes (172,136,67,255). Paired context crops show
@@ -88,6 +88,14 @@ correctness or ownership defects; syntax and all three focused travel tests
 passed. It excluded GPU/art assessment. Deterministic candidate bake `--check`
 also completed terminal 0. This is provisional manual-candidate integration,
 not final art, a gameplay state change, or live animation selection.
+
+Root integration `cd6d2359` preserves all eight old imported clips and the rig
+exactly. An initial direct packed-record comparison correctly found relocated
+sample/mask offsets after inserting the ninth clip; resolving those offsets
+proves all old sample data, mask data and clip metadata exact as well. The merged
+candidate bake check and all three shared travel tests pass (29398, exit0).
+The independent merged404 browser repeat is underway; the implementing-worktree
+result above is not relabelled as a merged result.
 
 ## Change ledger
 

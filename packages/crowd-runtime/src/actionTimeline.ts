@@ -207,10 +207,9 @@ function playback(history: History, seconds: number): SoldierPlayback {
   };
   if (history.overlay) {
     const upper = blend(history.overlay, seconds);
-    result.riderUpperBody = {
-      ...upper,
-      destination: history.overlayExiting ? { kind: "base" } : upper.destination,
-    };
+    result.riderUpperBody = history.overlayExiting
+      ? { ...upper, destination: { kind: "base" } }
+      : upper;
   }
   return result;
 }

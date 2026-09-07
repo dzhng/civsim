@@ -229,6 +229,7 @@ test("paused mounted playback sampling is deterministic and does not mutate reta
   const timeline = moving();
   timeline.update(4, [observation({ speedMps: 2, releaseTtl: 0.5 })]);
   const retained = timeline.sample(5)[0];
+  const retainedValue = structuredClone(retained);
   const expected = pose(retained);
   const paused = pose(timeline.sample(4)[0]);
   for (let repeat = 0; repeat < 5; repeat++) {
@@ -238,6 +239,12 @@ test("paused mounted playback sampling is deterministic and does not mutate reta
   }
   timeline.update(6, [observation({ speedMps: 2, releaseTtl: 0.5 })]);
   continuous(pose(retained), expected);
+  for (const tick of [40, 45, 46]) {
+    timeline.update(tick, [observation({ alive: tick < 46 })]);
+    timeline.sample(tick + 0.5);
+    assert.deepEqual(retained, retainedValue);
+    continuous(pose(retained), expected);
+  }
 });
 
 test("mounted injury interrupts the composed pose and returns continuously to gait", () => {

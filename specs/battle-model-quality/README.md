@@ -15,6 +15,13 @@ rigid cuffs and hoop-like fingers remain the dominant limitations. The
 open bowl and curved guards on the integrated head and locally baked mail.
 Its fitting improvement does not accept the whole model or close08/09.
 
+Next integration checkpoint: judge the combined heavy's whole-body form,
+gameplay formation and genuinely timed moving-world locomotion together. Static
+phase sheets establish pose compatibility, not rhythm or ground sliding. Resolve
+concrete garment/grip/deformation failures before reusing its construction, then
+start medium-phalanx authoring; do not require every isolated heavy detail to be
+finished before that first-pair comparison. All acceptance dependencies remain.
+
 Independent authoring and measurement lanes:
 - **08–11 whole heavy:** preserve the current garments, loaded walk/run, footwear,
   corrected shield carry, suspended scabbard and refitted helmet while revising

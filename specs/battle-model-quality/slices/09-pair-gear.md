@@ -79,6 +79,12 @@ iterations, exact captures and the independent failure verdict. Do not propagate
 unresolved heavy defects into the phalanx or treat the cloth-covered body as08
 acceptance. Independent candidate work retains explicit refit/rebake obligations.
 
+Once the combined whole-heavy verdict establishes usable garment, grip and
+deformation conventions, the next authoring row is medium phalanx14: leather
+armor, long pike and two-hand carry, followed by the related17/19 equipment
+states. Keep remaining heavy refinements recorded against their owners; isolated
+face or material polish is not an additional prerequisite for this comparison.
+
 From the repository root, build/export with installed Blender:
 
 ```sh

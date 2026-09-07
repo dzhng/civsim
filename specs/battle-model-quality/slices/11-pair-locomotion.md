@@ -54,10 +54,14 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 - [ ] Comparison and final unprimed critique recorded.
 - [ ] Review/cleanup completed; README pickup and decisions updated.
 
-The [first equipped-heavy ready/walk candidate](../assets/evidence/11/heavy-walk/review.md)
-uses frozen provisional geometry and the existing rig. It targets the actual heavy
-march pace, retains inspection clips, and has all-frame production captures plus
-offline grounding telemetry. Fresh review permits continued authoring, not slice
-acceptance: upper-body stiffness, joint shape and fully observed playback cadence
-remain open. Refit and recapture after concurrent body/equipment changes. Ready is
-a static planted stance; run, speed ramps, phalanx motion and transitions remain.
+The [equipped-heavy locomotion candidate](../assets/evidence/11/heavy-run/review.md)
+contains ready, walk and run on the provisional rig. Its production frame sheets
+and offline grounding telemetry permit continued authoring, not slice acceptance.
+The earlier walk study used an incorrect class-speed assumption; the linked
+review owns the corrected pace and evidence boundaries. Refit and recapture
+after concurrent body/equipment changes.
+
+Next verify timed playback and ground-relative movement on the combined heavy,
+not only frozen poses or in-place loops. Upper-body stiffness, joint shape,
+support contact, speed ramps, phalanx motion and transitions remain open. Ready
+is a static planted stance, not an accepted animated idle.

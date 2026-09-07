@@ -1,6 +1,6 @@
 # 10 — First-pair surface finish
 
-Status: TODO. Acceptance depends on [09](./09-pair-gear.md). Candidate authoring
+Status: IN PROGRESS, candidate authoring only. Acceptance depends on [09](./09-pair-gear.md). Candidate authoring
 may use a fixed provisional geometry revision with usable material regions/UVs.
 Retain an identical-geometry clay capture and refit/rebake after geometry changes;
 surface polish cannot satisfy an unresolved anatomy or equipment verdict.
@@ -61,3 +61,8 @@ later mail-only treatment on a fixed combined candidate, using an editable
 Blender link tile and the same production atlas. It records before/after,
 same-geometry clay, source invariants and unresolved close-detail limitations;
 it does not accept the surface slice or its appearance budget.
+
+The [combined-mail evidence](../assets/evidence/10/combined-mail/review.md) owns
+the integrated treatment. Further garment or anatomy revisions require matched
+clay and surface recaptures; inherited maps alone do not prove the refitted
+material still reads correctly.

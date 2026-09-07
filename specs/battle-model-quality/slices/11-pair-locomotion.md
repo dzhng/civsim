@@ -132,7 +132,11 @@ The root/stride equality is a constant enabled-motion contract, not a claim
 about disabled transport or mixed-direction intervals. Review actual moving
 production frames and attached overlays before accepting the presentation change.
 
-### Parallel bounded pass: stop future gait while disabled
+### Integrated: stop future gait while disabled
+
+[Evidence](../assets/evidence/11/final-disabled-gait/review.md) includes a matched
+old/candidate production proof and independent merged350 CPU tests plus629
+checks/42 exact images. This verifies phase transport, not a realistic stunned pose.
 
 Qualified interval travel can precede a final disabled state. In the existing
 timeline track owner, count that completed interval before setting prospective

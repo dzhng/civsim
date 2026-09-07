@@ -103,6 +103,12 @@ Command from `web` (own strict Vite on 5367):
 `VERIFY_URL=http://127.0.0.1:5367 VERIFY_GPU=1 node scene.mjs battle-model-action-replay`.
 No UPDATE flag was used. Both new baseline images were also opened and inspected.
 
+Root merge `99e40376` independently passes all350 web tests and typecheck
+(2615, exit0). The merged production repeat14025 exits0 with
+[629 checks and42 exact snapshots](merged-root.json), zero failures and no page
+errors on bundled Chromium/SwiftShader. Root inspected the four full matched
+frames and source/test/helper diffs; no additional baseline change was needed.
+
 ## Changed-test ledger
 
 All seven CPU tests are new; no existing assertion or image baseline is repinned.

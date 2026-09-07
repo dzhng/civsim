@@ -9,9 +9,9 @@ authoring;12–30 pending.** Worktree: `/Users/david/dev/game-battle-model-quali
 branch `codex/battle-model-quality`. No detailed model or art envelope is accepted.
 
 Current pickup: **engine-faithful protected travel and live root/phase agreement**.
-Parallel active passes: fractional root/attached-overlay alignment, prospective
-gait stopping at final incapacity, and manual guarded-right authoring. None is
-accepted yet. The [locomotion slice](slices/11-pair-locomotion.md) bounds their
+Parallel active passes: fractional root/attached-overlay alignment and manual
+guarded-right authoring. Neither is accepted yet. The
+[locomotion slice](slices/11-pair-locomotion.md) bounds their
 contracts; directional bindings follow them. No live appearance is promoted.
 
 Integrated locomotion evidence:
@@ -21,6 +21,10 @@ Integrated locomotion evidence:
   independent merged CPU, simulation/save and exact-image gates. Measured pace
   owns gait; combat remains time-driven. Enabled recovery/routing count as travel,
   disabled transport does not. This is not proof of voluntary steps or foot plants.
+- [Final-disabled gait](assets/evidence/11/final-disabled-gait/review.md) counts
+  completed travel and then stops prospective gait phase. Canonical standing,
+  time-driven combat and existing blend settling remain unchanged. Independent
+  merged350 CPU tests and629 checks/42 exact images pass; this is not stunned-art acceptance.
 - [Combined heavy motion](assets/evidence/11/composed-motion/review.md),
   [backward](assets/evidence/11/backward-integration/review.md) and
   [left](assets/evidence/11/left-integration/review.md) are manual candidates on
@@ -53,7 +57,7 @@ preserve the engine's direction/posture distinctions; authored selection remains
 
 Priority order:
 - **Engine-faithful locomotion:** align fractional root placement with gait,
-  stop prospective gait while disabled, then bind protected travel without
+  then bind protected travel without
   changing engine movement or combat timing. Upper-body weight response, ground
   contact and transitions remain open. Do not overwrite fitted sources from older studies.
   After the current directional study, provisional12/13 combat/reaction authoring

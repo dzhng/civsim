@@ -1614,3 +1614,16 @@ acceptance dependencies therefore do not postpone provisional combat/reaction
 authoring on the usable saved rig. Unrelated clips and fitted surfaces stay
 frozen per pass; final quality gates and atomic promotion remain unchanged.
 This changes work order, not the animation contract or the user's scope.
+
+### Hold the gait clock, not the whole interrupted presentation
+
+**Sound; confidence: high. Final-disabled gait99e40376.** When a soldier becomes
+disabled, his completed movement still counts, but the current gait stops
+advancing into the future. If a transition was already settling, its blend keeps
+settling; combat animations also retain their timing and priority. Without a
+compatible gait history, the engine's existing standing posture remains in charge.
+The plan left this boundary open. Freezing the whole composed pose or forcing
+battle-ready despite at-ease would introduce different animation policies.
+Recovery uses ordinary measured-motion hysteresis rather than a new threshold.
+This is a phase-hold policy, not a claim that a held walking pose depicts every
+kind of stun or physical collapse realistically.

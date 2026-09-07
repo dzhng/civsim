@@ -35,6 +35,20 @@ should freeze just because the soldier stops translating. Verify speed ramps,
 pause/reset, reversals and external displacement explicitly before accepting
 runtime locomotion.
 
+Implementation checkpoints, in order:
+
+1. Bind authored stride distance to measured travel and preserve interruption
+   ownership. The isolated implementation has CPU evidence; GPU numerical-reference
+   revalidation remains open before merge. Exact repeated images and the independent
+   source-pose check must survive that revalidation.
+2. Bind the manually reviewed protected backward action through the canonical
+   observations. Resolve displayed-root smoothing and externally driven displacement
+   explicitly; a frozen centroid film proves neither. Preserve combat event priority
+   and leave unsupported lateral motion visibly open, not relabelled backward.
+3. Review live starts, stops, reversals and equipment/load response for both first-pair
+   units before accepting locomotion. The relaxed medium march remains an isolated
+   posture study, not a completed runtime binding.
+
 API seam: Authored clips on shared human rig → clip registry and timeline; stride phase follows measured motion, visual root displacement removed to preserve sim positions.
 
 Names of new functions/routes in this plan are proposed, not existing commands. Use the [shared acceptance contract](../README.md#acceptance-contract) and [architecture](../architecture.md) for inherited requirements.
@@ -95,6 +109,13 @@ support contact, speed ramps, phalanx motion and transitions remain open. The
 [combined motion source](../assets/evidence/11/composed-motion/review.md) now
 includes reviewed animated idle and ready loops; they remain provisional,
 not accepted final locomotion.
+
+The [guarded backward integration](../assets/evidence/11/backward-integration/review.md)
+adds the reviewed two-cycle retreat film to the existing heavy scene. Its frozen
+engine trace preserves a reproducible authoring comparison, while the source recipe
+keeps one fitted geometry owner and all unrelated motion. The action is manual-only;
+upper-body stiffness and crowded passing steps remain provisional. Its donor full
+gate and independent merged-tree repeat both pass; runtime selection remains open.
 
 The [prescribed world-travel smoke](../assets/evidence/11/heavy-travel/review.md)
 exposed the combined candidate facing opposite production travel. The

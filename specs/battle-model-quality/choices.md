@@ -1476,3 +1476,15 @@ transport layout open. Existing unit-info offsets and save fields do not change,
 and no simulation decision reads these new outputs. Clearing before every
 steering pass prevents a dead, routed or disabled soldier retaining an earlier
 guard observation.
+
+### Keep the reviewed engine trace with its active motion fixture
+
+**Sound; confidence: high. Backward integration bebe5991.** When a future motion
+edit changes a backward step, replay the same recorded engine displacement so the
+review compares the animation rather than a different fight. The model fixture
+therefore owns that frozen trace; the alternative would rerun today's simulation
+and potentially move the subject differently before comparing it. The plan required
+engine-faithful review but did not choose where this input lives. This makes the
+authoring comparison reproducible, not a substitute for live battle acceptance:
+the recorded unit-centroid movement cannot prove an individual soldier took a
+voluntary step or planted his feet correctly.

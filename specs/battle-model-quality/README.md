@@ -13,6 +13,12 @@ march**. The [combined heavy motion](assets/evidence/11/composed-motion/review.m
 is integrated and independently verified on the merged tree. Its one source recipe
 preserves fitted geometry and composes idle, ready, and run without accumulating
 offsets on repeated authoring. No live appearance is promoted. The
+[guarded backward action](assets/evidence/11/backward-integration/review.md)
+is integrated for manual review, preserving the other clips and fitted geometry;
+its runtime selection is still unbuilt. Measured-distance playback is in an
+isolated worktree: CPU tests pass, but temporal GPU verification exposed two
+floating-point comparison seams. Diagnose and validate those without weakening
+same-input image repeatability before integrating playback. The
 [carry-fit study](assets/evidence/11/carry-fit/review.md) records the rejected
 support attachments and current provisional fit. Prioritize whole-soldier
 proportions, equipment silhouette and full-body motion. David

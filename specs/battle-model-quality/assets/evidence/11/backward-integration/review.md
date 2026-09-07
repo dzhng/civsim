@@ -74,6 +74,12 @@ zero differing pixels and no page errors (`repeat.json`, terminal 0). There is
 no tolerance relaxation, tangent pinning or quality-upgrade claim. The 274 other
 old baselines remain untouched; the backward film still exactly matches B.
 
+Root integrated the source and evidence at `bebe5991`. The unfiltered merged-tree
+run on port5174 independently passed all 355 snapshots / 1,597 checks, with no
+failures or page errors (`merged-root.json`). Root also reran bake freshness,
+all13 bake test files, both model-travel tests and TypeScript successfully.
+This verifies integration of the provisional action, not final motion quality.
+
 ## Review and changed-test ledger
 
 Independent bundled Codex review found a real integration defect in the new

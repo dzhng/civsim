@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { travelInstances } from "../scenes/models/_travel-sample.mjs";
 import { captureHeavyTravel } from "../scenes/models/_heavy-travel.mjs";
+import { captureHeavyBackward } from "../scenes/models/_heavy-backward.mjs";
 
 test("absolute-time travel continues across clip wrap and survives out-of-order seeking", () => {
   const source = [{ x: 2, y: -1, facing: Math.PI / 2, clip: "walk", phase: 0 }];
@@ -22,6 +23,7 @@ test("selecting an existing static sheet does not access the travel page", async
   process.env.SNAP = "garment-poses";
   try {
     await captureHeavyTravel({}, null);
+    await captureHeavyBackward({}, null);
   } finally {
     if (previous === undefined) delete process.env.SNAP;
     else process.env.SNAP = previous;

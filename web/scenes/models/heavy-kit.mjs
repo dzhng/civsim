@@ -1,6 +1,7 @@
 import { runCandidateSheet, candidateSnapshots } from "./_candidate-sheet.mjs";
 import { captureHeavyTravel, heavyTravelSnapshots } from "./_heavy-travel.mjs";
 import { captureHeavyRest, heavyRestSnapshots } from "./_heavy-rest.mjs";
+import { captureHeavyBackward, heavyBackwardSnapshots } from "./_heavy-backward.mjs";
 
 const bearings = [
   ["front", 0],
@@ -108,6 +109,7 @@ export const meta = {
     ...candidateSnapshots("heavy-kit", details),
     ...heavyTravelSnapshots,
     ...heavyRestSnapshots,
+    ...heavyBackwardSnapshots,
   ],
   describe:
     "Composed Blender heavy equipment, surfaces and locomotion on the shared provisional rig; candidate-only.",
@@ -124,6 +126,7 @@ export async function run(ctx) {
     afterSheets: async (ctx, page) => {
       await captureHeavyRest(ctx, page);
       await captureHeavyTravel(ctx, page);
+      await captureHeavyBackward(ctx, page);
     },
   });
 }

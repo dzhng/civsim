@@ -137,7 +137,9 @@ production frames and attached overlays before accepting the presentation change
 Qualified interval travel can precede a final disabled state. In the existing
 timeline track owner, count that completed interval before setting prospective
 gait rate to zero. Preserve a compatible existing gait pose while incapacitated;
-without a gait history, retain the existing ready/pike-ready fallback. Do not add
+without a gait history, retain the existing canonical standing selection
+(at-ease, held pike or ready). Incapacity alone does not turn at-ease into
+battle-ready. Do not add
 a stun clip, alter observations or change death/hit/release/melee priority.
 Standing and combat remain time-driven. Re-entry after recovery uses ordinary
 observations; never bank disabled transport or replay it later.

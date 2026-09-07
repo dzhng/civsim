@@ -6,6 +6,9 @@ Current pickup: investigate remaining cadence and submission tails at the
 controlled lower near density. The [fixed-5K A/B/A](../assets/evidence/07/near-density/review.md)
 shows sensitivity to near geometry with matched camera, tiers and palette demand,
 but the lower density still fails cadence. No art limit is accepted.
+The [frozen-source retirement cleanup](../assets/evidence/07/frozen-retirement/review.md)
+preserves exact playback and lowers steady CPU work in the matched comparison;
+interruption timing is mixed and all cadence rows remain red.
 The [available-display bracket](../assets/evidence/07/combined-display-bracket/review.md)
 records1280×800,3024×1964 and5120×2880 with the unchanged combined workload;
 all fail cadence and5K also fails GPU-queue medians. Background activity limits

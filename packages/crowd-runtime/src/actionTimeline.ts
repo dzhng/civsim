@@ -166,14 +166,23 @@ function sample(track: Track, seconds: number): ClipSample {
       : 0;
   return { clip: track.clip.name, phase: track.clip.loop ? progress % 1 : Math.min(1, progress) };
 }
+function blendWeight(lane: Lane, seconds: number): number {
+  return Math.min(1, Math.max(0, seconds - lane.changed) / BLEND_SECONDS);
+}
 function blend(lane: Lane, seconds: number): ClipBlend {
   const destination = sample(lane.current, seconds);
-  const weight = Math.min(1, Math.max(0, seconds - lane.changed) / BLEND_SECONDS);
+  const weight = blendWeight(lane, seconds);
   return {
     source: weight === 1 ? { kind: "clip", sample: destination } : lane.source,
     destination,
     weight,
   };
+}
+function releaseFrozenSource(lane: Lane, seconds: number): void {
+  // Settled playback samples the current track directly; only an owned snapshot
+  // needs retirement here. Do not rebuild ignored clip sources every observation.
+  if (lane.source.kind === "frozen" && blendWeight(lane, seconds) === 1)
+    lane.source = { kind: "clip", sample: sample(lane.current, seconds) };
 }
 function playback(history: History, seconds: number): SoldierPlayback {
   const result: SoldierPlayback = {
@@ -259,8 +268,7 @@ export class ActionTimeline {
         overlay: prior.overlay && { ...prior.overlay },
       };
       if (history && (tick === previousTick || history.base.current.role === "death")) {
-        if (blend(history.base, seconds).weight === 1)
-          history.base.source = blend(history.base, seconds).source;
+        releaseFrozenSource(history.base, seconds);
         nextHistories[index] = history;
         return;
       }
@@ -400,12 +408,10 @@ export class ActionTimeline {
           );
         else history.overlay.current = base.current;
         history.overlayExiting = true;
-        if (blend(history.overlay, seconds).weight === 1) history.overlay = undefined;
+        if (blendWeight(history.overlay, seconds) === 1) history.overlay = undefined;
       }
-      if (blend(history.base, seconds).weight === 1)
-        history.base.source = blend(history.base, seconds).source;
-      if (history.overlay && blend(history.overlay, seconds).weight === 1)
-        history.overlay.source = blend(history.overlay, seconds).source;
+      releaseFrozenSource(history.base, seconds);
+      if (history.overlay) releaseFrozenSource(history.overlay, seconds);
       nextHistories[index] = history;
     });
     this.histories = nextHistories;

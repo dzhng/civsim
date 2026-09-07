@@ -188,8 +188,10 @@ The [same-lane packing diagnostic](../assets/evidence/07/same-lane-packing.md)
 finds duplicate clip resolution primarily in settled lanes, not transitions.
 Its exact-output CPU probe is positive at the median but mixed at the tail;
 the [base-only implementation checkpoint](../assets/evidence/07/settled-base-packing.md)
-has focused CPU proofs and exact canonical browser regression; hardware comparison remains pending.
-No browser speedup or budget acceptance is inferred.
+has focused CPU proofs and exact canonical browser regression. Its matched
+hardware A/B/A shows modest steady upload savings but mixed interruption costs;
+all cadence rows still fail. No browser frame-rate improvement or budget
+acceptance is inferred.
 
 The [synchronized capture dismissal](../assets/evidence/07/synchronized-capture-dismissal.md)
 rules out per-body full pose evaluation as the synchronized interruption cause:

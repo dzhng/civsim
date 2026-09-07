@@ -40,7 +40,7 @@ Priority order:
   body once the carrying silhouette works; defer isolated face detail.
 - **07 budget:** [base packing](assets/evidence/07/settled-base-packing.md)
   preserves51 focused CPU tests,675 browser checks and all40 temporal images.
-  Hardware timing remains pending. The
+  Matched hardware A/B/A shows mixed cost changes and no cadence pass. The
   [retirement cleanup](assets/evidence/07/frozen-retirement/review.md) and
   [near-density comparison](assets/evidence/07/near-density/review.md) do not pass
   the33ms animated envelope.07 gates art acceptance, not editable authoring.

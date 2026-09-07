@@ -46,7 +46,7 @@
         1,
         1
       ],
-      "roughness": 0.7799999713897705,
+      "roughness": 1,
       "metallic": 1,
       "textures": {
         "baseColor": true,
@@ -54,7 +54,7 @@
         "metallicRoughness": true,
         "occlusion": true
       },
-      "normalScale": 0.5,
+      "normalScale": 0.8500000238418579,
       "occlusionStrength": 1
     },
     {
@@ -155,7 +155,7 @@
   ],
   "textures": {
     "baseColor": {
-      "image": "images/882ebf7258a5b94d07f67f0d75d45f37fd3755c192ed7299369dbfcfcb06e9ff.png",
+      "image": "images/8610819c0c161b40d017810158a6113c20903f921fb91beec29c0c59591f4765.png",
       "mimeType": "image/png",
       "sampler": {
         "magFilter": "linear",
@@ -166,7 +166,7 @@
       }
     },
     "normal": {
-      "image": "images/61bbe6ab951bc42b306453d3ae6c9741a5a858f8914d63b0b0b256fb4687b326.png",
+      "image": "images/624f0ae76564c1f8d4fa0f7b575d7660308d30d703c2206b206028df997656eb.png",
       "mimeType": "image/png",
       "sampler": {
         "magFilter": "linear",
@@ -177,7 +177,7 @@
       }
     },
     "orm": {
-      "image": "images/305e93624f0c93fccf899c63d457b5c19fe1791cacc129f8af0003cbafb73aa7.png",
+      "image": "images/3aff0ee401f10b38f464964569311dff62bf67c74a29befd5ecc525dd20889d1.png",
       "mimeType": "image/png",
       "sampler": {
         "magFilter": "linear",

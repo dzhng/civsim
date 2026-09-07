@@ -1,0 +1,51 @@
+[
+  {
+    "name": "close",
+    "width": 2560,
+    "height": 1280,
+    "changedPixels": 93714,
+    "changedRatio": 0.0285992431640625
+  },
+  {
+    "name": "gameplay-pitch",
+    "width": 2560,
+    "height": 1280,
+    "changedPixels": 53372,
+    "changedRatio": 0.016287841796875
+  },
+  {
+    "name": "head-detail",
+    "width": 2560,
+    "height": 640,
+    "changedPixels": 508383,
+    "changedRatio": 0.3102923583984375
+  },
+  {
+    "name": "hand-detail",
+    "width": 2560,
+    "height": 640,
+    "changedPixels": 220182,
+    "changedRatio": 0.134388427734375
+  },
+  {
+    "name": "ready",
+    "width": 2560,
+    "height": 640,
+    "changedPixels": 47532,
+    "changedRatio": 0.02901123046875
+  },
+  {
+    "name": "mail-detail",
+    "width": 2560,
+    "height": 640,
+    "changedPixels": 778012,
+    "changedRatio": 0.47486083984375
+  },
+  {
+    "name": "shoulder-detail",
+    "width": 2560,
+    "height": 640,
+    "changedPixels": 782537,
+    "changedRatio": 0.4776226806640625
+  }
+]

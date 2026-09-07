@@ -1042,6 +1042,25 @@ review can require a different packing or resolution before promotion. Changing
 this source policy rebuilds the images and UV coordinates together without a
 runtime schema change.
 
+### Bake mail relief into the existing atlas, not runtime ring meshes (10)
+
+**Sound, provisional; confidence: medium.** When the camera approaches a mail
+shirt, the surface should show rounded metal wire and dark openings. Blender now
+bakes a repeating arrangement of actual tilted rings into the existing texture
+atlas: its maps describe surface direction, metal coverage and local occlusion.
+The runtime still draws the weighted shirt surface, not thousands of individual
+ring meshes. The alternative would increase garment geometry and deformation
+cost instead of storing the small-scale detail in material maps.
+
+The material task delegates motif styling but leaves the relief-generation method
+open. This keeps one production material path and a fixed-geometry comparison.
+Area filtering averages subpixel wire coverage before storage, so distant detail
+does not depend on whether one tiny wire happened to land on a sample. The saved
+Blender tile remains editable. Resolution and close-detail quality are provisional;
+this does not establish a measured texture budget or fully resolved interwoven
+links. Future body/garment changes rebuild the maps through this author rather
+than importing the material lane's frozen soldier geometry.
+
 ### Inspect ready footwear through an additional native close camera (09–11)
 
 **Sound; confidence: high.** A strap may look attached in a whole-body image

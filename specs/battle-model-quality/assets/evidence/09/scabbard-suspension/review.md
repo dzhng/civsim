@@ -62,4 +62,7 @@ scabbard is edge-on and rodlike from front/rear, the mail resembles knitwear,
 linen hems remain rigid, and a small right-armpit irregularity persists. Still
 frames establish pose continuity, not convincing movement rhythm. This checkpoint
 does not complete 09 or accept the whole model. Human Preview review was opened
-for the candidate ready/poses and prior ready; feedback may reopen this retention.
+for the candidate ready/poses and prior ready while head integration continued.
+After approximately five minutes without a response, root retained this working
+candidate on its own and the independent review evidence, not presumed user
+approval, and closed Preview. Feedback may reopen this retention.

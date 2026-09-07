@@ -8,8 +8,11 @@ Last updated **2026-09-07**. **01–06 complete;07 envelope open;08 candidate au
 Worktree: `/Users/david/dev/game-battle-model-quality`, branch
 `codex/battle-model-quality`. No art envelope or detailed model is accepted.
 
-Current pickup: **refit and review the helmet on the new head**, then compose
-the independently authored mail surfaces. Root has integrated head checkpoint
+Current pickup: **refit and review the helmet on the new head**, composing
+the independently authored mail surfaces. Next address the whole worn upper-body
+garment, then actual grips and arm deformation; defer further isolated face detail.
+A fresh maintenance review identified the T-shirt-like torso and rigid cuffs as
+the dominant whole-model limitation. Root has integrated head checkpoint
 `53d5c746` and rebuilt the heavy candidate; the combined head/helmet is not yet
 visually accepted. A sampled source probe finds bowl and cheek-plate/head
 intersections. Separate helmet authoring must distinguish the bowl's capped

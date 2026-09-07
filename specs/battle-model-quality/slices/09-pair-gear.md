@@ -64,8 +64,15 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 ## Current authoring checkpoint
 
 Heavy infantry has an editable Blender kit and production-rendered candidate
-sheets. It remains **unaccepted**: continuous garment construction, actual hand
-and shield attachment, helmet rim fit and scabbard suspension need another pass.
+sheets. It remains **unaccepted**. The retained suspended scabbard is documented
+in its [focused review](../assets/evidence/09/scabbard-suspension/review.md);
+thin rear straps remain open but are not the next dominant silhouette problem.
+First refit the helmet to the new head. Then author the upper-body garment as
+one coherent worn assembly: shoulder coverage, neckline, underarms, sleeve ends
+and hanging hem. The whole soldier must improve visibly, not only a detail crop.
+Follow with actual sword/shield grips and bent/pronated arm deformation before
+propagating equipment conventions to the phalanx. Further isolated facial detail
+is lower priority; that does not accept unfinished anatomy.
 The [candidate review](../assets/evidence/09/heavy-kit-review.md) owns source
 iterations, exact captures and the independent failure verdict. Do not propagate
 unresolved heavy defects into the phalanx or treat the cloth-covered body as08

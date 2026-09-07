@@ -55,3 +55,9 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 - [ ] Review/cleanup completed; README pickup and decisions updated.
 
 The [provisional heavy surface study](../assets/evidence/10/heavy-surfaces.md) records local authoring, a frozen clay control, reproduction commands and open material concerns. No surface acceptance has occurred.
+
+The [linked-mail study](../assets/evidence/10/linked-mail/review.md) isolates a
+later mail-only treatment on a fixed combined candidate, using an editable
+Blender link tile and the same production atlas. It records before/after,
+same-geometry clay, source invariants and unresolved close-detail limitations;
+it does not accept the surface slice or its appearance budget.

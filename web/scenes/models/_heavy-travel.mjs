@@ -4,13 +4,27 @@ import { snapshotSelected } from "../../snapshot.mjs";
 import { encodeGif, pngToRGBA } from "../../shots/_gif.mjs";
 
 // Prescribed fixture speeds, not observed simulation travel. Two cycles expose wrap continuity.
-const cases = [
+const forwardCases = [
   { clip: "walk", speed: 1.7, duration: 0.9 },
   { clip: "run", speed: 3.23, duration: 0.8 },
 ].flatMap((motion) => [
   { ...motion, view: "side", yaw: -Math.PI / 2 },
   { ...motion, view: "oblique", yaw: -Math.PI / 3 },
 ]);
+const cases = [
+  ...forwardCases,
+  ...[
+    ["front", Math.PI],
+    ["oblique", (2 * Math.PI) / 3],
+  ].map(([view, yaw]) => ({
+    clip: "guarded-left-walk",
+    speed: 0.760776176053138,
+    duration: 0.6,
+    view,
+    yaw,
+    travelAngleOffset: Math.PI / 2,
+  })),
+];
 const name = (row, frame) =>
   `shared/soldiers/heavy-kit/travel-${row.clip}-${row.view}-${String(frame).padStart(2, "0")}`;
 export const heavyTravelSnapshots = cases.flatMap((row) =>
@@ -39,11 +53,14 @@ export async function captureHeavyTravel(ctx, page) {
         formation: false,
         yaw: row.yaw,
         pitch: 1.4,
-        zoom: 125,
-        target: [0, row.speed * row.duration, 0.9],
+        zoom: row.travelAngleOffset ? 150 : 125,
+        target: row.travelAngleOffset
+          ? [-row.speed * row.duration, 0, 0.9]
+          : [0, row.speed * row.duration, 0.9],
       });
-      document.querySelector("#candidate-caption").textContent =
-        `Heavy candidate · ${row.clip} · ${row.view}\nPrescribed ${row.speed} m/s · fixed camera · review only`;
+      document.querySelector("#candidate-caption").textContent = row.travelAngleOffset
+        ? `Guarded lateral travel · ${row.view}\nPrescribed pure left ${row.speed.toFixed(6)} m/s · review only`
+        : `Heavy candidate · ${row.clip} · ${row.view}\nPrescribed ${row.speed} m/s · fixed camera · review only`;
     }, row);
     await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw, undefined, {
       timeout: 30000,
@@ -62,7 +79,13 @@ export async function captureHeavyTravel(ctx, page) {
         if (Math.abs(clip.duration - row.duration) > 1e-6)
           throw new Error(`Travel capture timing needs review: ${clip.duration}`);
         window.__heavyTravel = async (seconds) => {
-          const instances = travelInstances(source, seconds, row.speed, clip.duration);
+          const instances = travelInstances(
+            source,
+            seconds,
+            row.speed,
+            row.travelAngleOffset ? row.duration : clip.duration,
+            row.travelAngleOffset,
+          );
           w.setTime(0);
           w.drawInstances(instances, camera);
           await w.settlePresentedFrame();
@@ -98,9 +121,12 @@ export async function captureHeavyTravel(ctx, page) {
     const dx = distant.state.instance.x - first.state.instance.x;
     const dy = distant.state.instance.y - first.state.instance.y;
     ctx.check(
-      `${row.clip}/${row.view}: prescribed forward distance reaches submission`,
+      `${row.clip}/${row.view}: prescribed directional distance reaches submission`,
       Math.abs(Math.hypot(dx, dy) - row.speed * row.duration * 1.25) < 1e-9 &&
-        dx * Math.cos(first.state.instance.facing) + dy * Math.sin(first.state.instance.facing) > 0,
+        dx * Math.cos(first.state.instance.facing + (row.travelAngleOffset ?? 0)) +
+          dy * Math.sin(first.state.instance.facing + (row.travelAngleOffset ?? 0)) >
+          0 &&
+        distant.state.instance.facing === first.state.instance.facing,
     );
     const images = [],
       states = [];

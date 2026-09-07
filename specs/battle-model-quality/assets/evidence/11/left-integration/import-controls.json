@@ -1,0 +1,36 @@
+{
+  "oldClipsExact": [
+    "bend",
+    "bend-pronation",
+    "guarded-backward-walk",
+    "idle",
+    "pronation",
+    "ready",
+    "run",
+    "walk"
+  ],
+  "repeatRigAndNineClipsExact": true,
+  "studiedLeftClipExact": true,
+  "primitiveDifferences": [
+    {
+      "primitive": 0,
+      "field": "tangents"
+    },
+    {
+      "primitive": 1,
+      "field": "tangents"
+    },
+    {
+      "primitive": 2,
+      "field": "tangents"
+    },
+    {
+      "primitive": 6,
+      "field": "tangents"
+    },
+    {
+      "primitive": 7,
+      "field": "tangents"
+    }
+  ]
+}

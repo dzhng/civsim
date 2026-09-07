@@ -7,6 +7,10 @@ const fittingPoses = [["ready", 0, "ready"], ["walk first contact", 0, "walk"],
   ["run opposite contact", .5, "run"], ["deep bend", .5, "bend"]];
 
 const details = [
+  ...[["formation", .9], ["formation-gameplay", .42]].map(([name, pitch]) => ({
+    name, pitch, zoom: 65, target: [0, 0, .95], formation: true,
+    poses: [["ready", 0, "ready"], ["walk", .25, "walk"], ["run", .25, "run"]],
+    views: bearings })),
   { name: "garment-poses", pitch: 1.4, zoom: 460, target: [0, 0, 1.32],
     poses: fittingPoses, views: bearings },
   { name: "scabbard-poses", pitch: 1.4, zoom: 560, target: [-.24, .045, .76],

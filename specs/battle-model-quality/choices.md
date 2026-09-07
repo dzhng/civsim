@@ -1156,3 +1156,18 @@ independent sheath sway. Future attacks and deeper bends must check both belt an
 sheath contacts, and can revise these weights or authored motion if this rigid
 carry looks implausible. The current fitting samples are not a universal collision
 guarantee or a decision to omit ordinary secondary motion from later work.
+
+### Supplement close model review with two formation pitches (09)
+
+**Sound, provisional; confidence: high.** When reviewing a new garment, a close
+portrait can show better details while the repeated soldiers still look like
+smooth mannequins. The existing model scene now also shows its sixteen-soldier
+formation at the gameplay tilt and a more side-on tilt, using the same assets,
+light and animation. Keeping only close-ups would miss this group impression;
+replacing close-ups would hide hand and attachment defects. Both therefore remain.
+
+The plan requires a small formation but leaves its review framing open. These
+are fixed authoring views, not a decision about the nearest playable camera or
+the accepted performance budget. Later camera-envelope work may refine them;
+the formation evidence cannot substitute for that measurement or live battle
+acceptance. No alternate rendering path is introduced.

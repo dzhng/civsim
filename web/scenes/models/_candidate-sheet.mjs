@@ -110,11 +110,12 @@ export async function runCandidateSheet(
       let tile = 0;
       for (const [stance, phase, clip = "bend"] of camera.poses) {
         for (const [view, yaw] of bearings) {
+          const soldierCount = camera.formation ? 16 : 1;
           const pose = {
             classId: classes[0],
             clip,
             phase,
-            formation: false,
+            formation: camera.formation ?? false,
             target: camera.target,
             yaw,
             pitch: camera.pitch,
@@ -128,8 +129,8 @@ export async function runCandidateSheet(
             stats.render.substrate === PHOTOREAL_SUBSTRATE &&
               stats.render.width === 1280 &&
               stats.render.height === 800 &&
-              stats.render.soldiers === 1 &&
-              stats.render.lod.skinned === 1 &&
+              stats.render.soldiers === soldierCount &&
+              stats.render.lod.skinned === soldierCount &&
               stats.sampled.clip === clip &&
               stats.sampled.phase === phase &&
               stats.render.crowd.palettes.some(

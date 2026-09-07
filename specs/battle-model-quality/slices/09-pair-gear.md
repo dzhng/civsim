@@ -90,7 +90,7 @@ From the repository root, build/export with installed Blender:
 ```sh
 /Applications/Blender.app/Contents/MacOS/Blender --background --factory-startup --python-exit-code 1 --python packages/soldier-assets/bake/blender-heavy-kit.py
 node packages/soldier-assets/bake/heavy-kit.mjs
-VERIFY_GPU=1 VERIFY_URL=http://127.0.0.1:5177 node web/scene.mjs heavy-kit
+VERIFY_GPU=1 VERIFY_URL=http://localhost:5174 node web/scene.mjs heavy-kit
 ```
 
 The Vite server must serve this worktree. Use the normal production workbench with

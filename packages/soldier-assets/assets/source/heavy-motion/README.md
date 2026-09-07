@@ -11,6 +11,12 @@ geometry. Foot support is authored into joint keys and pelvis height offline;
 no foot solver, horizontal root displacement or combat authority enters runtime.
 The same production exporter, loader and skinning path consume the result.
 
+Reauthoring and re-exporting are different operations. The authoring script uses
+its current recipe and replaces the saved motion actions; it is not a neutral
+format conversion. To change only export coordinates, load the saved scene and
+use the shared anatomy exporter directly, preserving those actions. Otherwise a
+frozen comparison silently takes newer gait keys while retaining old geometry.
+
 The first ready pose is deliberately planted and static. Walk encodes the current
 heavy march speed through stride length and cadence, but has not been accepted
 for production. Ground checks do not establish natural joint shape, weapon contact

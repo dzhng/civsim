@@ -92,6 +92,8 @@ test("observation histories survive append and memory growth, but reset on rewin
     positions()[0] += 0.1;
     const moved = adapter.read(11).observations[0];
     expect(moved.speedMps).toBeCloseTo(0.1 / ACTION_TICK_SECONDS, 5);
+    expect(moved.forwardMps).toBeCloseTo(moved.speedMps, 5);
+    expect(moved.lateralMps).toBe(0);
     expect(moved.health).toBe(initial.health);
     expect(adapter.read(11).observations[0]).toBe(moved);
     game.spawn_class(4, 0, 0, 1, 1, 0, 0);
@@ -99,17 +101,77 @@ test("observation histories survive append and memory growth, but reset on rewin
     expect(appended).toHaveLength(2);
     expect(appended[0]).toBe(moved);
     expect(appended[1].speedMps).toBe(0);
+    expect(appended[1].forwardMps).toBe(0);
+    expect(appended[1].lateralMps).toBe(0);
     wasm.memory.grow(1);
     positions()[0] += 0.2;
     const grown = adapter.read(13).observations;
     expect(grown[0].speedMps).toBeCloseTo(0.2 / (2 * ACTION_TICK_SECONDS), 5);
+    expect(grown[0].forwardMps).toBeCloseTo(grown[0].speedMps, 5);
     expect(grown[1].speedMps).toBe(0);
-    expect(adapter.read(0).observations.every((observation) => observation.speedMps === 0)).toBe(
-      true,
-    );
+    for (const observation of adapter.read(0).observations) {
+      expect([observation.speedMps, observation.forwardMps, observation.lateralMps]).toEqual([
+        0, 0, 0,
+      ]);
+    }
     positions()[0] += 20;
     adapter.reset();
-    expect(adapter.read(0).observations[0].speedMps).toBe(0);
+    const reset = adapter.read(0).observations[0];
+    expect([reset.speedMps, reset.forwardMps, reset.lateralMps]).toEqual([0, 0, 0]);
+  } finally {
+    game.free();
+  }
+});
+
+test("motion retains forward and lateral signs in the presented facing basis", () => {
+  const game = new Game(53);
+  try {
+    game.spawn_class(0, 0, 0, 1, 1, 0, 0);
+    const views = createBattleViews(game, wasm.memory);
+    const adapter = new BattleActionAdapter(game, wasm.memory);
+    adapter.read(0);
+    // Face +y: travel toward -y is backwards, while +x is to the right.
+    views.facings()[0] = Math.PI / 2;
+    views.positions()[0] += 3;
+    views.positions()[1] -= 4;
+    const motion = adapter.read(30).observations[0];
+    expect(motion.forwardMps).toBeCloseTo(-4, 5);
+    expect(motion.lateralMps).toBeCloseTo(3, 5);
+    expect(motion.speedMps).toBe(5);
+    views.facings()[0] = 0;
+    views.positions()[1] += 2;
+    const sideways = adapter.read(60).observations[0];
+    expect(sideways.forwardMps).toBe(0);
+    expect(sideways.lateralMps).toBe(-2);
+    expect(sideways.speedMps).toBe(2);
+  } finally {
+    game.free();
+  }
+});
+
+test("held pike motion uses the presented unit facing, returning to soldier facing for a sidearm", () => {
+  const game = new Game(59);
+  try {
+    game.spawn_class(0, 0, 0, 1, 1, 3, 0);
+    const adapter = new BattleActionAdapter(game, wasm.memory);
+    const views = createBattleViews(game, wasm.memory);
+    const weapons = new Uint8Array(wasm.memory.buffer, game.cur_weapon_ptr(), 1);
+    weapons[0] = adapter.classSpecs[3].weapons.findIndex((weapon) => weapon.braced);
+    views.facings()[0] = 0;
+    views.unitInfo()[UNIT_INFO.facing] = Math.PI / 2;
+    adapter.read(0);
+    views.positions()[0] += 1;
+    const held = adapter.read(30);
+    expect(held.facings[0]).toBeCloseTo(Math.PI / 2);
+    expect(held.observations[0].forwardMps).toBeCloseTo(0, 5);
+    expect(held.observations[0].lateralMps).toBeCloseTo(1, 5);
+    weapons[0] = adapter.classSpecs[3].weapons.findIndex((weapon) => !weapon.braced);
+    views.positions()[0] += 1;
+    const sidearm = adapter.read(60);
+    expect(sidearm.facings[0]).toBe(0);
+    expect(sidearm.observations[0].forwardMps).toBe(1);
+    expect(sidearm.observations[0].lateralMps).toBe(0);
+    expect(views.facings()[0]).toBe(0);
   } finally {
     game.free();
   }

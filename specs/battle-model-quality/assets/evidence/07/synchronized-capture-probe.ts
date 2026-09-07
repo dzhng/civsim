@@ -87,6 +87,8 @@ function synchronized(count, tick) {
     health: 100,
     mountHealth: 100,
     speedMps: 1,
+    forwardMps: 1,
+    lateralMps: 0,
     running: (cycle >= 4 && cycle < 23) || cycle >= 25,
     atEase: false,
     pikeReady: false,

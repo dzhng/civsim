@@ -67,6 +67,8 @@ const soldier = (changes: Partial<ActionObservation> = {}): ActionObservation =>
   health: 100,
   mountHealth: 0,
   speedMps: 0,
+  forwardMps: changes.speedMps ?? 0,
+  lateralMps: 0,
   running: false,
   atEase: false,
   pikeReady: false,

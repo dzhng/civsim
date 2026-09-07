@@ -84,18 +84,19 @@ export class BattleActionAdapter {
       if (!appearance) throw new Error(`No appearance for gameplay class ${classId}`);
       // Weapon pose affects facing/appearance, never overwrites the chosen action.
       if (alive[soldier] && heldHedge) renderFacings[soldier] = info[offset + UNIT_INFO.facing];
+      const measured = soldier < previousCount && elapsed > 0;
+      const dx = measured ? positions[soldier * 2] - this.positions[soldier * 2] : 0;
+      const dy = measured ? positions[soldier * 2 + 1] - this.positions[soldier * 2 + 1] : 0;
+      const cos = Math.cos(renderFacings[soldier]);
+      const sin = Math.sin(renderFacings[soldier]);
       observations.push({
         appearanceId: appearance.appearanceId,
         alive: alive[soldier] !== 0,
         health: health[soldier],
         mountHealth: mountHealth[soldier],
-        speedMps:
-          soldier < previousCount && elapsed > 0
-            ? Math.hypot(
-                positions[soldier * 2] - this.positions[soldier * 2],
-                positions[soldier * 2 + 1] - this.positions[soldier * 2 + 1],
-              ) / elapsed
-            : 0,
+        speedMps: measured ? Math.hypot(dx, dy) / elapsed : 0,
+        forwardMps: measured ? (dx * cos + dy * sin) / elapsed : 0,
+        lateralMps: measured ? (dx * sin - dy * cos) / elapsed : 0,
         running: info[offset + UNIT_INFO.running] > 0.5,
         atEase,
         pikeReady: heldHedge,

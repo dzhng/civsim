@@ -624,6 +624,8 @@ test("real action timeline interruptions and upper exit pack the same composed m
     health: 100,
     mountHealth: 100,
     speedMps: 1,
+    forwardMps: 1,
+    lateralMps: 0,
     running: false,
     atEase: false,
     pikeReady: false,

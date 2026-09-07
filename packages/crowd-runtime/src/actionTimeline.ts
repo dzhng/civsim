@@ -15,6 +15,10 @@ export interface ActionObservation {
   health: number;
   mountHealth: number;
   speedMps: number;
+  /** Measured travel in the presented facing basis: forward positive, backward negative. */
+  forwardMps: number;
+  /** Measured travel to the presented soldier's right (negative to the left). */
+  lateralMps: number;
   running: boolean;
   atEase: boolean;
   /** The current weapon supports a held pike pose, not proof of physical bracing. */

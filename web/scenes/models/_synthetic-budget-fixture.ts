@@ -17,6 +17,8 @@ export function staggeredBudgetObservations(
     health: 100,
     mountHealth: 100,
     speedMps: tick >= [1, 3, 6][index % 3] ? 1 : 0,
+    forwardMps: tick >= [1, 3, 6][index % 3] ? 1 : 0,
+    lateralMps: 0,
     running: tick >= 13,
     atEase: false,
     pikeReady: false,

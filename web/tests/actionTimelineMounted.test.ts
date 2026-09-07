@@ -91,6 +91,8 @@ const observation = (changes: Partial<ActionObservation> = {}): ActionObservatio
   health: 100,
   mountHealth: 100,
   speedMps: 1,
+  forwardMps: changes.speedMps ?? 1,
+  lateralMps: 0,
   running: false,
   atEase: false,
   pikeReady: false,

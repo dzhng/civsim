@@ -1,7 +1,6 @@
-# Requested stopping checkpoint
+# Implementation checkpoint and handoff
 
-David requested that the current work finish, be committed and pushed, and then stop.
-The overall spec is not complete; detailed candidates remain manual-only with
+The overall spec remains in progress; detailed candidates remain manual-only with
 `presentation: null`. Engine observations remain canonical. No gameplay states,
 combat timing or simulation mechanics were changed by this checkpoint.
 
@@ -15,7 +14,7 @@ combat timing or simulation mechanics were changed by this checkpoint.
   ramp. Its seated/upright support and rigid upper body remain open.
 - [Death G](assets/evidence/13/rejected-death-g/review.md) is archived as a rejected
   study, not installed into the candidate catalog. No further fall revision or
-  full motion film was started at this stopping checkpoint.
+  full motion film is included in this checkpoint.
 
 ## Final verification
 
@@ -38,4 +37,6 @@ shows that this can drive a grounded native fall through the floor. Correct that
 shared renderer/bounds convention with regression coverage before evaluating live
 death grounding. Do not compensate by lifting a particular authored asset.
 
-The original slice status and visual caveats still apply. Resume only on request.
+Resume from the remaining work above, preserving the original slice status and
+visual caveats. The previous session's stop instruction does not pause this spec
+or restrict a fresh session continuing its implementation.

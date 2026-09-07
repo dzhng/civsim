@@ -1,0 +1,4 @@
+{"tick":0,"soldier":0,"unit":0,"channel":"UnitFrame","source":"sim.rs/tick+integrate_units/unit_frame","x":0.0013333336,"y":0,"pre":null,"post":null,"meta":"unit_anchor_motion"}
+{"tick":0,"soldier":0,"unit":0,"channel":"WeaveNet","source":"steer/weave.rs/compose_weave_and_corridor/weave_net","x":0.00013333336,"y":0,"pre":null,"post":null,"meta":"net_or_slot_fallback"}
+{"tick":0,"soldier":0,"unit":0,"channel":"SlotPull","source":"steer/weave.rs/compose_weave_and_corridor/slot_pull","x":0.000026666676,"y":0,"pre":null,"post":null,"meta":"slot_pull"}
+{"tick":0,"soldier":0,"unit":0,"channel":"Cruise","source":"steer/speed_caps.rs/apply_cruise/frame_cruise","x":0.0011733334,"y":0,"pre":null,"post":null,"meta":"frame_feed_forward"}

@@ -45,6 +45,8 @@ Implementation checkpoints, in order:
    observations. Resolve displayed-root smoothing and externally driven displacement
    explicitly; a frozen centroid film proves neither. Preserve combat event priority
    and leave unsupported lateral motion visibly open, not relabelled backward.
+   The [controlled movement observations](../assets/evidence/11/drive-observation/review.md)
+   rule out interpreting raw displacement or momentum subtraction as leg drive.
 3. Review live starts, stops, reversals and equipment/load response for both first-pair
    units before accepting locomotion. The relaxed medium march remains an isolated
    posture study, not a completed runtime binding.

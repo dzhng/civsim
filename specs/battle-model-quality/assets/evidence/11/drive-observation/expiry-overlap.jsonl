@@ -1,0 +1,5 @@
+{"tick":0,"soldier":1,"unit":1,"channel":"Fidget","source":"steer/speed_caps.rs/drive_velocity/idle_fidget","x":0.005332739,"y":-0.0050386507,"pre":null,"post":null,"meta":"idle_fidget"}
+{"tick":0,"soldier":0,"unit":0,"channel":"BodySeparationNormal","source":"separation/bodies.rs/separate_pairs;separation/walls.rs/apply","x":-0.2372313,"y":0.0058214082,"pre":null,"post":null,"meta":"friendly_body_normal"}
+{"tick":0,"soldier":0,"unit":0,"channel":"BodySeparationFriendlySlide","source":"separation/bodies.rs/separate_pairs/friendly_slide","x":-0.0017464225,"y":-0.0711694,"pre":null,"post":null,"meta":"friendly_slide_component"}
+{"tick":0,"soldier":1,"unit":1,"channel":"BodySeparationNormal","source":"separation/bodies.rs/separate_pairs;separation/walls.rs/apply","x":0.2372313,"y":-0.0058214082,"pre":null,"post":null,"meta":"friendly_body_normal"}
+{"tick":0,"soldier":1,"unit":1,"channel":"BodySeparationFriendlySlide","source":"separation/bodies.rs/separate_pairs/friendly_slide","x":0.0017464225,"y":0.0711694,"pre":null,"post":null,"meta":"friendly_slide_component"}

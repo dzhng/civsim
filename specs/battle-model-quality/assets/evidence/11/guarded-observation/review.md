@@ -41,8 +41,11 @@ Ordinary forward travel still uses existing locomotion.
 
 The first proposal incorrectly considered excluding Disengage and carried
 momentum. Source review and orchestration rejected both: withdrawal can be
-legitimate guarded travel, and carried momentum is continuously additive, not
-a locomotion veto. Even the existing `kin_v` includes momentum, while steering
+legitimate guarded travel, and carried momentum alone is not
+a locomotion veto. The subsequent [controlled drive investigation](../drive-observation/review.md)
+shows that the earlier assumption of continuously additive momentum is false on
+the normal steering path; it must not be subtracted to infer voluntary movement.
+Even the existing `kin_v` can include momentum, while steering
 velocity can include pressure. A conscious displaced soldier can appropriately
 hold protection, but this evidence does **not** establish self-propelled
 backpedalling or the correct gait rhythm during a shove. That is the next

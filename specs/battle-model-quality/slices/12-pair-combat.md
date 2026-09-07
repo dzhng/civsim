@@ -1,6 +1,7 @@
 # 12 — First-pair attack and brace
 
-Status: TODO. Depends on [11](./11-pair-locomotion.md).
+Status: IN PROGRESS, provisional heavy sword study only. Acceptance depends on
+[11](./11-pair-locomotion.md).
 
 This is an acceptance dependency, not a requirement to postpone provisional
 authoring until11 can admit a complete live appearance. After the current

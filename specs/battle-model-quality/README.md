@@ -10,7 +10,8 @@ branch `codex/battle-model-quality`. No detailed model or art envelope is accept
 
 Current pickup: **engine-faithful protected travel and live root/phase agreement**.
 Active passes: protected directional selection and manual guarded-right integration.
-The root/attached-overlay candidate needs a new sampling policy: its numerical
+The [root/attached-overlay candidate](assets/evidence/11/live-root-phase/review.md)
+needs a new sampling policy: its numerical
 checks passed, but the matched live comparison rejected exaggerated contact
 excursions from unconditional extrapolation. Neither locomotion nor art is accepted. The
 [locomotion slice](slices/11-pair-locomotion.md) bounds their

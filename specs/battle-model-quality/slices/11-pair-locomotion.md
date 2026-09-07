@@ -96,7 +96,8 @@ a trajectory-reconstruction system or quietly claim this observation solves it.
 
 ### Rejected candidate: endpoint extrapolation for root and gait
 
-The bounded implementation below passed its numerical contract but failed the
+The [bounded implementation](../assets/evidence/11/live-root-phase/review.md)
+below passed its numerical contract but failed the
 matched live comparison. All256 chronological start/contact panels were reviewed
 by root and an independent unprimed critic. Unconditional prediction exaggerated
 close-contact corrections, notably frames11–13 and38–40, producing larger

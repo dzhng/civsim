@@ -111,3 +111,22 @@ The [garment-only composition probe](../assets/evidence/09/garment-composition.m
 establishes the same preservation route for the two garment objects; it does not
 accept the donor's still-open collar, shoulder or moving waist construction.
 Root owns human Preview presentation after integration.
+
+## Medium candidate checkpoint
+
+The [first medium candidate](../assets/evidence/09/medium-phalanx/review.md)
+introduces editable leather equipment and static two-hand pike carry. Its final
+waist correction has focused fresh evidence; hand closure, shield supports,
+overall quality and inherited motion remain provisional. It does not complete
+this slice or accept anatomy. New hand/rig revisions require explicit refitting.
+
+From the repository root, with this worktree served on port 5316:
+
+```sh
+/Applications/Blender.app/Contents/MacOS/Blender --background --factory-startup --threads 2 --python-exit-code 1 --python packages/soldier-assets/bake/blender-medium-phalanx.py
+node packages/soldier-assets/bake/medium-phalanx.mjs
+VERIFY_GPU=1 VERIFY_URL=http://127.0.0.1:5316 node web/scene.mjs medium-phalanx
+```
+
+This is candidate content only. The ordinary production catalog is unchanged;
+the workbench uses `catalog=/assets/soldiers/candidates/medium-phalanx/catalog.json`.

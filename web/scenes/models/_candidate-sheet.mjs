@@ -30,12 +30,12 @@ const cameras = [
 ];
 const crop = { x: 320, y: 96, width: 640, height: 640 };
 
-export const candidateSnapshots = (folder, details = []) =>
-  [...cameras, ...details].map(({ name }) => `shared/soldiers/${folder}/${name}`);
+export const candidateSnapshots = (folder, details = [], baseCameras = cameras) =>
+  [...baseCameras, ...details].map(({ name }) => `shared/soldiers/${folder}/${name}`);
 
 export async function runCandidateSheet(
   ctx,
-  { name, asset, label, folder, classes, details = [], afterSheets },
+  { name, asset, label, folder, classes, details = [], baseCameras = cameras, afterSheets },
 ) {
   requireSwiftShaderBaseline(name);
   const page = await ctx.newPage({ viewport: { width: 1280, height: 800 } });
@@ -102,7 +102,7 @@ export async function runCandidateSheet(
       return page.screenshot({ clip: crop });
     };
 
-    for (const camera of [...cameras, ...details]) {
+    for (const camera of [...baseCameras, ...details]) {
       const snapshot = `shared/soldiers/${folder}/${camera.name}`;
       if (!snapshotSelected(snapshot)) continue;
       const bearings = camera.views ?? views;

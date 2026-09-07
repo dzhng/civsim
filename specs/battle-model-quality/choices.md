@@ -1320,3 +1320,62 @@ calculation. This choice makes the saved rest joints its source of truth. Ready
 is deliberately preserved in this focused gait revision; its separate static
 calculation is not represented as a general contact solution. A changed skeleton
 still requires reauthoring and visual review, not blind reuse of the old keys.
+
+## Medium phalanx candidate construction (09)
+
+### A static carrying study is not a combat stance
+
+**Sound, provisional; confidence: medium.** When the new soldier is shown, both
+hands and the long pike use one authored carrying pose on the existing bones.
+The inherited walking/running actions are preserved but are not presented as
+correct medium equipment motion. The alternative—silently treating an inherited
+sword gait as pike motion—would imply untested contacts and neighboring ranks.
+The plan specifies the equipment role but not a finished carry/brace transition.
+This checkpoint enables first-pair shape review while leaving motion and grip
+refitting explicit. It must be revisited after shared hand changes.
+
+### Use genuine sleeveless construction instead of hiding broken sleeves
+
+**Sound, provisional; confidence: medium.** Short-sleeve fitting crossed the
+fixed shoulder surface when the arms carried the pike. The visible redesign
+removes the sleeves entirely and authors complete, finished armholes below the
+leather fastenings, exposing the upper arms. The parent explicitly approved this
+reference-compatible construction because the medium requirement does not demand
+short sleeves. It does not certify the shared shoulder deformation. A later
+sleeved design would need its own cloth construction, not restored hidden failing
+triangles. The lower tunic is also newly authored; only its donor motion field is
+reused, so future work must not mistake it for exact retained lower geometry.
+
+### Make layered leather share the real lining surface
+
+**Sound; confidence: high.** If a leather chest piece is projected independently
+onto a thickened tunic, a nearest-point lookup can choose the tunic's inward face
+or bridge its armhole. The final author cuts armor from the actual outer cloth
+topology and copies its movement weights before giving it thickness. The plan
+leaves construction topology open; this choice makes the physical supporting
+layer the owner instead of adding successive clearance offsets. It constrains
+later armor edits to preserve meaningful supported boundaries. This correspondence
+does not itself prove all posed collision freedom; actual triangle and visual
+checks remain necessary.
+
+### Direct attachment refits may intentionally change inherited equipment
+
+**Sound; confidence: high.** A belt fitted to the heavy's old tunic cut through
+the new medium lining. Preserving that exact belt would preserve the error, so
+the parent authorized a real leather wall on the new support and refitting both
+upper suspension returns. Their lower sheath ends, thickness vectors and weights
+stay exact, as do all unrelated parts. The scope gap was whether preservation
+outweighed necessary direct fitting; it does not. Future refits should name the
+affected attachments and prove unrelated controls rather than claim everything
+was retained or silently refit the whole assembly.
+
+### Keep diagnostic occlusion removal separate from the equipped verdict
+
+**Sound; confidence: high.** A complete shield hides the very front waist wedge
+being judged. A transient export removes only its board, revealing the same
+posed garment and hands; complete-kit companions retain the shield and its real
+occlusion. The first fresh reviewer correctly withheld the front verdict until
+this matched view existed. The plan asks for unobstructed grip evidence but
+leaves its implementation open. This diagnostic export never replaces the
+equipped candidate or its production catalog, and its source version must match
+the image under review.

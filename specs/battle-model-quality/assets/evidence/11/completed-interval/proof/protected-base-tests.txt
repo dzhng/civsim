@@ -1,0 +1,401 @@
+$ vitest run tests/actionTimeline.test.ts tests/actionTimelineMounted.test.ts
+
+ RUN  v4.1.9 /Users/david/dev/game-completed-interval-probe/web
+
+ ❯ tests/actionTimelineMounted.test.ts (9 tests | 3 failed) 8ms
+   × speed correction keeps the old composed interruption source while the unmasked gait follows measured distance 2ms
+   × final incapacity holds corrected lower gait without freezing a masked release 1ms
+   × mounted death captures the full composed pose during simultaneous base and rider blends 0ms
+ ❯ tests/actionTimeline.test.ts (42 tests | 8 failed) 38ms
+   × direction changes transport normalized phase and disabled endpoints retain their compatible gait 3ms
+   × protected direction changes and time-driven combat preserve exact interruption sources 0ms
+   × UNRESOLVED idle-to-move interval has root travel without a gait 0ms
+   × disabling and interrupting gait keeps exact full-body source and event timing 0ms
+   × render sampling advances clip time without advancing observation or consuming injury 0ms
+   × interruptions preserve the exact blended pose, including repeated early and late interruption 0ms
+   × snapshot storage stays bounded through repeated interruptions and releases after death blend 0ms
+   × identical interrupted poses share one immutable numeric snapshot without synchronizing later actions 0ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 11 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/actionTimeline.test.ts > direction changes transport normalized phase and disabled endpoints retain their compatible gait
+AssertionError: Expected values to be strictly deep-equal:
++ actual - expected
+
+  {
+    clip: 'left',
++   phase: 0.5
+-   phase: 0.25
+  }
+
+
+- Expected
++ Received
+
+  {
+    "clip": "left",
+-   "phase": 0.25,
++   "phase": 0.5,
+  }
+
+ ❯ tests/actionTimeline.test.ts:156:10
+    154|   timeline.update(0, [motion]);
+    155|   timeline.update(15, [{ ...motion, forwardMps: 0, lateralMps: -1 }]);
+    156|   assert.deepEqual(timeline.sample()[0].base.destination, { clip: "lef…
+       |          ^
+    157|   timeline.update(30, [{ ...motion, incapacitated: true }]);
+    158|   assert.deepEqual(timeline.sample(30.9)[0].base.destination, { clip: …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/11]⎯
+
+ FAIL  tests/actionTimeline.test.ts > protected direction changes and time-driven combat preserve exact interruption sources
+AssertionError: Expected values to be strictly deep-equal:
++ actual - expected
+
+  Float64Array(10) [
++   10.166666666666666,
+-   10.333333333333334,
+    0,
+    0,
+    0,
+    0,
+    0,
+
+
+- Expected
++ Received
+
+@@ -1,7 +1,7 @@
+  Float64Array [
+-   10.333333333333334,
++   10.166666666666666,
+    0,
+    0,
+    0,
+    0,
+    0,
+
+ ❯ tests/actionTimeline.test.ts:187:12
+    185|     const before = evaluatePlaybackPose(guardedAppearance, timeline.sa…
+    186|     timeline.update(10, [{ ...motion, speedMps: 0.5, ...change }]);
+    187|     assert.deepEqual(evaluatePlaybackPose(guardedAppearance, timeline.…
+       |            ^
+    188|     const clip =
+    189|       "health" in change
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/11]⎯
+
+ FAIL  tests/actionTimeline.test.ts > UNRESOLVED idle-to-move interval has root travel without a gait
+AssertionError: Expected values to be strictly equal:
+
+'rest' !== 'walk'
+
+
+Expected: "walk"
+Received: "rest"
+
+ ❯ tests/actionTimeline.test.ts:290:10
+    288|   timeline.update(7, [soldier({ speedMps: 0.5 })]);
+    289|   // This requirement is intentionally red: no retroactive entry polic…
+    290|   assert.equal(timeline.sample(6.5)[0].base.destination.clip, "walk");
+       |          ^
+    291| });
+    292|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/11]⎯
+
+ FAIL  tests/actionTimeline.test.ts > disabling and interrupting gait keeps exact full-body source and event timing
+AssertionError: Expected values to be strictly deep-equal:
++ actual - expected
+
+  Float64Array(10) [
++   1.125,
+-   1.25,
+    0,
+    0,
+    0,
+    0,
+    0,
+
+
+- Expected
++ Received
+
+@@ -1,7 +1,7 @@
+  Float64Array [
+-   1.25,
++   1.125,
+    0,
+    0,
+    0,
+    0,
+    0,
+
+ ❯ tests/actionTimeline.test.ts:443:12
+    441|     const before = evaluatePlaybackPose(appearances[0], timeline.sampl…
+    442|     timeline.update(15, [soldier({ speedMps: 0.5, incapacitated: true,…
+    443|     assert.deepEqual(evaluatePlaybackPose(appearances[0], timeline.sam…
+       |            ^
+    444|     assert.equal(
+    445|       timeline.sample()[0].base.destination.clip,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/11]⎯
+
+ FAIL  tests/actionTimeline.test.ts > render sampling advances clip time without advancing observation or consuming injury
+AssertionError: Missing expected exception.
+
+simple
+
+ ❯ tests/actionTimeline.test.ts:697:10
+    695|   timeline.update(6, [soldier({ health: 90 })]);
+    696|   assert.ok(Math.abs(timeline.sample()[0].base.destination.phase - 0.2…
+    697|   assert.throws(() => timeline.sample(5), /before.*observation/);
+       |          ^
+    698| });
+    699|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/11]⎯
+
+ FAIL  tests/actionTimeline.test.ts > interruptions preserve the exact blended pose, including repeated early and late interruption
+AssertionError: Expected values to be strictly deep-equal:
++ actual - expected
+
+  Float64Array(10) [
++   0.25277777777777777,
+-   0.2564814814814815,
+    0,
+    0,
+    0,
+    0,
+    0,
+
+
+- Expected
++ Received
+
+@@ -1,7 +1,7 @@
+  Float64Array [
+-   0.2564814814814815,
++   0.25277777777777777,
+    0,
+    0,
+    0,
+    0,
+    0,
+
+ ❯ tests/actionTimeline.test.ts:797:12
+    795|     const interrupted = timeline.sample()[0];
+    796|     const after = evaluatePlaybackPose(appearances[0], interrupted);
+    797|     assert.deepEqual(after, before);
+       |            ^
+    798|     assert.equal(interrupted.base.weight, 0);
+    799|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/11]⎯
+
+ FAIL  tests/actionTimeline.test.ts > snapshot storage stays bounded through repeated interruptions and releases after death blend
+AssertionError: Expected values to be strictly equal:
+
+160 !== 80
+
+
+- Expected
++ Received
+
+- 80
++ 160
+
+ ❯ tests/actionTimeline.test.ts:807:12
+    805|   for (let tick = 1; tick < 20; tick++) {
+    806|     timeline.update(tick, [soldier({ health: 100 - tick })]);
+    807|     assert.equal(timeline.snapshotBytes, rig.bones.length * 10 * Float…
+       |            ^
+    808|   }
+    809|   timeline.update(20, [soldier({ alive: false })]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/11]⎯
+
+ FAIL  tests/actionTimeline.test.ts > identical interrupted poses share one immutable numeric snapshot without synchronizing later actions
+AssertionError: Expected values to be strictly equal:
+
+160 !== 80
+
+
+- Expected
++ Received
+
+- 80
++ 160
+
+ ❯ tests/actionTimeline.test.ts:843:10
+    841|   const sources = new Set(interrupted.map((p) => p.base.source));
+    842|   assert.equal(sources.size, 1);
+    843|   assert.equal(timeline.snapshotBytes, rig.bones.length * 10 * 8);
+       |          ^
+    844|   const source = interrupted[0].base.source;
+    845|   assert.equal(source.kind, "frozen");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/11]⎯
+
+ FAIL  tests/actionTimelineMounted.test.ts > speed correction keeps the old composed interruption source while the unmasked gait follows measured distance
+AssertionError: complete frozen composed source[0]: 1.0466666666666666 != 1.0373333333333334
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ close tests/actionTimelineMounted.test.ts:113:12
+    111|   assert.equal(actual.length, expected.length);
+    112|   for (let i = 0; i < actual.length; i++)
+    113|     assert.ok(
+       |            ^
+    114|       Math.abs(actual[i] - expected[i]) <= tolerance,
+    115|       `${label}[${i}]: ${actual[i]} != ${expected[i]}`,
+ ❯ tests/actionTimelineMounted.test.ts:184:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/11]⎯
+
+ FAIL  tests/actionTimelineMounted.test.ts > final incapacity holds corrected lower gait without freezing a masked release
+AssertionError: Expected values to be strictly deep-equal:
++ actual - expected
+
+  [
++   1.0466666666666666,
++   0.02666666666666667,
++   1.0133333333333334,
+-   1.0373333333333334,
+-   0.021333333333333336,
+-   1.0106666666666666,
+    0,
+    0,
++   0.14614140477292253,
++   0.9892637109542617,
+-   0.14284305328036292,
+-   0.9897453521636479,
+    1,
+    1,
+    1,
++   2.046666666666667,
++   0.32666666666666666,
++   1.0133333333333334,
+-   2.037333333333333,
+-   0.3213333333333333,
+-   1.0106666666666666,
+    0,
+    0,
++   0.2731506010611117,
++   0.9619712829081506,
+-   0.26994251855424156,
+-   0.9628764389456173,
+    1,
+    1,
+    1,
++   3.046666666666667,
++   0.6266666666666666,
++   1.0133333333333334,
+-   3.037333333333333,
+-   0.6213333333333333,
+-   1.0106666666666666,
+    0,
+    0,
++   0.39555004974205454,
++   0.9184444230050384,
+-   0.392486376503203,
+-   0.9197578182648876,
+    1,
+    1,
+    1
+  ]
+
+
+- Expected
++ Received
+
+  [
+-   1.0373333333333334,
+-   0.021333333333333336,
+-   1.0106666666666666,
++   1.0466666666666666,
++   0.02666666666666667,
++   1.0133333333333334,
+    0,
+    0,
+-   0.14284305328036292,
+-   0.9897453521636479,
++   0.14614140477292253,
++   0.9892637109542617,
+    1,
+    1,
+    1,
+-   2.037333333333333,
+-   0.3213333333333333,
+-   1.0106666666666666,
++   2.046666666666667,
++   0.32666666666666666,
++   1.0133333333333334,
+    0,
+    0,
+-   0.26994251855424156,
+-   0.9628764389456173,
++   0.2731506010611117,
++   0.9619712829081506,
+    1,
+    1,
+    1,
+-   3.037333333333333,
+-   0.6213333333333333,
+-   1.0106666666666666,
++   3.046666666666667,
++   0.6266666666666666,
++   1.0133333333333334,
+    0,
+    0,
+-   0.392486376503203,
+-   0.9197578182648876,
++   0.39555004974205454,
++   0.9184444230050384,
+    1,
+    1,
+    1,
+  ]
+
+ ❯ tests/actionTimelineMounted.test.ts:208:12
+    206|     assert.equal(playback.riderUpperBody!.source.kind, "frozen");
+    207|     if (playback.riderUpperBody!.source.kind !== "frozen") throw new E…
+    208|     assert.deepEqual(playback.riderUpperBody!.source.locals, Array.fro…
+       |            ^
+    209|     const after = pose(playback);
+    210|     assert.deepEqual(after.slice(20), before.slice(20));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/11]⎯
+
+ FAIL  tests/actionTimelineMounted.test.ts > mounted death captures the full composed pose during simultaneous base and rider blends
+AssertionError: local TRS[0]: 1.8377777777777777 != 1.8533333333333335
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ close tests/actionTimelineMounted.test.ts:113:12
+    111|   assert.equal(actual.length, expected.length);
+    112|   for (let i = 0; i < actual.length; i++)
+    113|     assert.ok(
+       |            ^
+    114|       Math.abs(actual[i] - expected[i]) <= tolerance,
+    115|       `${label}[${i}]: ${actual[i]} != ${expected[i]}`,
+ ❯ continuous tests/actionTimelineMounted.test.ts:119:3
+ ❯ tests/actionTimelineMounted.test.ts:285:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/11]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  11 failed | 40 passed (51)
+   Start at  03:25:08
+   Duration  180ms (transform 77ms, setup 92ms, import 74ms, tests 45ms, environment 0ms)
+
+error: script "test" exited with code 1

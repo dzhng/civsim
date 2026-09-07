@@ -24,6 +24,17 @@ animation: the clip/binding, actual-speed rhythm, interruption blends and live
 battle presentation still need their own evidence. Do not reverse simulation
 movement or facing to make an authored cycle fit.
 
+The current timeline advances looping tracks by elapsed time and selects walk
+versus run from the observed ordered-pace flag. That is not yet the actual-speed
+locomotion contract. After the authored travel clips exist, bind their stride
+distance to measured travel, preserving phase through speed changes and existing
+exact interruption poses. A slowed, threatened backward step must not run a
+full-speed cycle merely because the order requested running. Keep standing
+breathing and combat event timing independent of distance-driven gait; neither
+should freeze just because the soldier stops translating. Verify speed ramps,
+pause/reset, reversals and external displacement explicitly before accepting
+runtime locomotion.
+
 API seam: Authored clips on shared human rig → clip registry and timeline; stride phase follows measured motion, visual root displacement removed to preserve sim positions.
 
 Names of new functions/routes in this plan are proposed, not existing commands. Use the [shared acceptance contract](../README.md#acceptance-contract) and [architecture](../architecture.md) for inherited requirements.

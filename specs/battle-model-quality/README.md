@@ -11,11 +11,11 @@ branch `codex/battle-model-quality`. No detailed model or art envelope is accept
 Current pickup: **engine-faithful protected travel and live root/phase agreement**.
 Active passes: protected directional selection and manual guarded-right integration.
 The [root/attached-overlay candidate](assets/evidence/11/live-root-phase/review.md)
-needs a new sampling policy: its numerical
-checks passed, but the matched live comparison rejected exaggerated contact
-excursions from unconditional extrapolation. Neither locomotion nor art is accepted. The
-[locomotion slice](slices/11-pair-locomotion.md) bounds their
-contracts; directional bindings follow them. No live appearance is promoted.
+passed numerical checks but failed the live comparison: unconditional prediction
+exaggerated contact excursions. A CPU-only completed-interval experiment is next;
+movement entry and interruption boundaries must be resolved before live wiring.
+The [locomotion slice](slices/11-pair-locomotion.md) bounds these passes.
+No live appearance, final locomotion or art is accepted.
 
 Integrated locomotion evidence:
 

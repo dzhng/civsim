@@ -82,6 +82,10 @@ and adapter. Physics, outcomes, timers and saves must remain unchanged. Enabled
 travel includes constrained pressure displacement that may require recovery steps;
 it is not proof of voluntary propulsion or planted feet. Net direction can still
 cancel within a batch; the scalar path does not reconstruct its sequence.
+Likewise, qualified past travel does not choose the pose or prospective gait rate
+after a soldier becomes disabled at the interval's end. Verify that distinction
+in the subsequent protected/disabled pose-selection pass, not by erasing valid
+past travel or broadening the root-placement change.
 Keep live root smoothing as the next separate presentation contract—do not add
 a trajectory-reconstruction system or quietly claim this observation solves it.
 

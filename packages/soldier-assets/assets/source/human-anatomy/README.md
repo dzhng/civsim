@@ -34,6 +34,13 @@ deform mesh. Its inspection UV islands are not a texture-ready skin atlas.
 Actual handle contact and natural anatomy are separate gates: a manifold,
 nonpenetrating grip can still look like parallel tubes and a slab palm.
 
+Rebuild comparisons use Blender's original default-thread invocation, without
+an explicit `-t` override. The upstream body remesh/reduction and local hand
+union/reduction can produce different topology with a different thread count;
+an otherwise identical authoring script is not proof of identical baked data.
+Keep the editable weighted donor as the preservation control and compare its
+untouched positions, weights and rig against the rebuilt candidate.
+
 The [candidate baker](../../../bake/human-anatomy.mjs) shares one untextured body
 between the first pair's inspection entries. Its repeated tiers and manual-only
 clips are inspection inputs, not production-ready distance or gameplay assets.

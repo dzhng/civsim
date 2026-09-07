@@ -1234,3 +1234,18 @@ number of steps open. Two cycles expose both foot alternation and the wrap
 without making one authoring check a long replay. The original all-authored-frame
 in-place sheets remain available. Later contact acceptance must retain finer
 grounding evidence where this display sampling cannot resolve it.
+
+### Preserve the editable equipment assembly across a local anatomy revision (08–09)
+
+**Sound; confidence: high.** A hand change should not quietly reshape a helmet.
+Re-running all automatic equipment fitting did exactly that, so this integration
+keeps the already fitted equipment objects and replaces only the body's edited
+source. The saved Blender assembly remains editable and is exported normally.
+Re-running the fitting recipe later is a deliberate new fitting pass whose
+results must be compared, not assumed unchanged because its script is unchanged.
+
+The plan leaves the assembly method open. This choice constrains future local
+edits to preserve unrelated authored parts unless a refit is actually needed;
+it introduces no runtime correction or second asset loader. The alternative—
+silently accepting everything a full regeneration changes—would make focused
+visual review unreliable.

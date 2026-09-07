@@ -95,5 +95,8 @@ VERIFY_GPU=1 VERIFY_URL=http://localhost:5174 node web/scene.mjs heavy-kit
 
 The Vite server must serve this worktree. Use the normal production workbench with
 `catalog=/assets/soldiers/candidates/heavy-kit/catalog.json` for manual inspection.
-The build consumes the committed08 `.blend`; fitting must be revisited when that
-source changes. Root owns human Preview presentation after integration.
+The build consumes the committed08 `.blend`; fitting must be revisited where that
+source changes. A full procedural refit can also move unchanged equipment;
+the [hand integration](../assets/evidence/08/power-grip-closure/integration.md)
+records why local edits compose from the retained modular source instead.
+Root owns human Preview presentation after integration.

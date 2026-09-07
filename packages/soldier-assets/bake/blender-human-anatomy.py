@@ -145,13 +145,30 @@ def power_grip(body):
         def local(vertex):
             delta = vertex.co-wrist
             return delta.dot(along), delta.dot(across), delta.y
-        pieces = [loft("grip-palm."+side, [
-            (point(.033, 0, 0), .036, .021),
-            (point(.051, 0, -.002), .039, .018),
-            (point(.073, 0, -.003), .040, .015),
-            (point(.091, 0, -.003), .035, .012),
-            (point(.096, 0, -.001), .029, .010),
-        ], segments=24, across=across)]
+        palm_sections = [
+            (point(.033, -.005, -.001), .041, .023),
+            (point(.049, -.004, -.001), .042, .021),
+            (point(.065, -.001, .001), .040, .021),
+            (point(.079, 0, .003), .039, .019),
+            (point(.092, -.002, .004), .034, .015),
+            (point(.104, -.006, .003), .022, .012),
+            (point(.109, -.010, .002), .010, .007),
+        ]
+        palm = loft("grip-palm."+side, palm_sections, segments=24, across=across)
+        # Thenar and little-finger pads flank a shallow volar cup. The existing
+        # wrist seam stays unchanged; this is grasp volume, not skin detail.
+        for i, (center, width, thickness) in enumerate(palm_sections):
+            u = (center-wrist).dot(along)
+            support = math.exp(-((u-.068)/.024)**4)
+            for j in range(24):
+                angle = math.tau*j/24
+                a, d = width*math.cos(angle), thickness*math.sin(angle)
+                if d < 0:
+                    pads = .009*math.exp(-((a+.025)/.014)**2)+.006*math.exp(-((a-.027)/.013)**2)
+                    cup = .004*math.exp(-(a/.012)**2)
+                    d += support*(cup-pads)*(-math.sin(angle))
+                palm.data.vertices[i*24+j].co = center+across*a+Vector((0, d, 0))
+        pieces = [palm]
         def digit(name, sections, opposing=False):
             obj = loft(name, sections, segments=12, across=across)
             for i, (center, width, thickness) in enumerate(sections):
@@ -160,29 +177,39 @@ def power_grip(body):
                 depth = tangent.cross(width_axis).normalized()
                 for j in range(12):
                     angle = math.tau*j/12
+                    # Fingers use rounded-rectangular cross-sections;
+                    # the thumb retains a softer oval cross-section.
+                    exponent = 1 if opposing else .78
+                    c, s = math.cos(angle), math.sin(angle)
                     obj.data.vertices[i*12+j].co = (
-                        center+width_axis*(width*math.cos(angle))+depth*(thickness*math.sin(angle)))
+                        center+width_axis*(width*math.copysign(abs(c)**exponent, c))
+                        +depth*(thickness*math.copysign(abs(s)**exponent, s)))
             pieces.append(obj)
-        # Section profiles control finger pads and joint transitions separately.
-        for index, (a, stagger) in enumerate(((-.030, 0), (-.010, .004),
-                                              (.010, .001), (.030, -.003))):
+        # The knuckle arch, shaft taper and different little-finger length
+        # establish the hand's mass before any surface details are considered.
+        for index, (a, knuckle, scale, tip_u, tip_d) in enumerate((
+                (-.030, .108, 1, .086, -.053), (-.010, .111, 1.04, .080, -.048),
+                (.010, .109, .96, .083, -.051), (.030, .114, .82, .098, -.060))):
             digit(f"grip-finger-{index}.{side}", [
-                (point(.085, a, -.003), .0080, .0090),
-                (point(.106+stagger, a, -.004), .0082, .0090),
-                (point(.128+stagger, a, -.020), .0080, .0095),
-                (point(.130+stagger, a, -.033), .0072, .0080),
-                (point(.122+stagger, a, -.047), .0070, .0075),
-                (point(.113, a, -.054), .0078, .0093),
-                (point(.098+stagger, a, -.061), .0068, .0070),
-                (point(.092+stagger, a, -.059), .0035, .0040),
+                (point(.086, a*.94, .003), .0110*scale, .0120),
+                (point(knuckle, a, -.006 if index != 3 else -.010), .0100*scale, .0100),
+                (point(.118, a, -.010), .0082*scale, .0080),
+                (point(.125, a, -.021), .0092*scale, .0090),
+                (point(.126, a, -.033), .0080*scale, .0080),
+                (point(.120, a, -.047), .0070*scale, .0068),
+                (point(.110, a, -.056), .0080*scale, .0088),
+                (point(.099 if index != 3 else .107, a*.98, -.061), .0071*scale, .0070),
+                (point(tip_u+.004, a*.96, tip_d-.004), .0060*scale, .0060),
+                (point(tip_u, a*.94, tip_d), .0025*scale, .0030),
             ])
         digit("grip-thumb."+side, [
-            (point(.039, -.027, -.004), .015, .014),
-            (point(.060, -.036, -.020), .011, .011),
-            (point(.074, -.034, -.048), .010, .010),
-            (point(.075, -.026, -.061), .009, .009),
-            (point(.079, -.012, -.064), .008, .007),
-            (point(.078, -.006, -.064), .004, .004),
+            (point(.043, -.026, -.011), .016, .016),
+            (point(.061, -.033, -.027), .013, .011),
+            (point(.071, -.030, -.049), .010, .009),
+            (point(.085, -.021, -.074), .010, .009),
+            (point(.100, -.005, -.075), .009, .0075),
+            (point(.111, .007, -.070), .0065, .0060),
+            (point(.114, .011, -.066), .0035, .0035),
         ], opposing=True)
         bpy.ops.object.select_all(action="DESELECT")
         for obj in pieces:

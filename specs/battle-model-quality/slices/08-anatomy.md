@@ -131,3 +131,8 @@ the original wrist/body field while testing actual equipment contact. Fresh
 review still rejects its slab palm, repeated rounded finger bands, bulbous thumb
 and pinched wrist. Continue a coherent hand-form revision; do not close this
 slice because contact and topology checks pass.
+
+The [power-grip closure study](../assets/evidence/08/power-grip-closure/review.md)
+adds a substantially more enclosing grasp while retaining the untouched body
+and rig. It remains intermediate: tubular digits, swollen dorsum and crowded
+thumb/palm transitions still fail natural-hand completion.

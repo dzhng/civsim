@@ -8,9 +8,13 @@ Last updated **2026-09-07**. **01–06 complete;07 envelope open;08 candidate au
 Worktree: `/Users/david/dev/game-battle-model-quality`, branch
 `codex/battle-model-quality`. No art envelope or detailed model is accepted.
 
-Current pickup: **finish the whole worn upper-body garment**, then actual grips
-and arm deformation; defer further isolated face detail. The T-shirt-like torso,
-rigid cuffs and hoop-like fingers remain the dominant limitations. The
+Current pickup: **finish the whole worn upper-body garment**, then arm deformation
+and remaining hand masses; defer further isolated face detail. The T-shirt-like
+torso and rigid cuffs remain dominant limitations. The
+[grip closure integration](assets/evidence/08/power-grip-closure/integration.md)
+retains a more enclosing grasp, not finished hand anatomy. Preserve modular
+equipment when composing it: a full procedural refit moved unrelated surfaces.
+The
 [combined helmet](assets/evidence/09/combined-helmet/review.md) retains a smaller
 open bowl and curved guards on the integrated head and locally baked mail.
 Its fitting improvement does not accept the whole model or close08/09.

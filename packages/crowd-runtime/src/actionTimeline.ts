@@ -330,15 +330,23 @@ export class ActionTimeline {
         moving && validSpeed
           ? speed > (nominalSpeed("walk") + nominalSpeed("run")) / 2
           : history?.base.current.role === "run";
-      const background: ActionRole = moving
-        ? run
-          ? "run"
-          : "walk"
-        : observation.atEase
-          ? "atEase"
-          : observation.pikeReady && presentation.actions.pikeReady
-            ? "pikeReady"
-            : "ready";
+      const oldGait =
+        history?.appearanceId === observation.appearanceId &&
+        (history.base.current.role === "walk" || history.base.current.role === "run")
+          ? history.base.current.role
+          : undefined;
+      const standing: ActionRole = observation.atEase
+        ? "atEase"
+        : observation.pikeReady && presentation.actions.pikeReady
+          ? "pikeReady"
+          : "ready";
+      const background: ActionRole = observation.incapacitated
+        ? (oldGait ?? standing)
+        : moving
+          ? run
+            ? "run"
+            : "walk"
+          : standing;
       const role: ActionRole = !observation.alive
         ? "death"
         : injured || hitPlaying
@@ -351,15 +359,18 @@ export class ActionTimeline {
       const track = (role: ActionRole): Track => {
         const clip = actionClip(role);
         const locomotion = role === "walk" || role === "run";
+        const phaseRate = locomotion && !observation.incapacitated ? speed / clip.strideMeters! : 0;
         const old =
           history?.appearanceId === observation.appearanceId ? history.base.current : undefined;
         // Keep the same arithmetic anchor while the measured rate is unchanged.
         // Re-anchoring an identical trajectory can round an interruption pose differently.
+        // A disabled endpoint stops future sampling, not qualified past travel.
         if (
           locomotion &&
           old?.role === role &&
           old.clip === clip &&
-          old.phaseRate === speed / clip.strideMeters!
+          old.phaseRate === phaseRate &&
+          (!observation.incapacitated || speed === 0)
         )
           return old;
         return {
@@ -379,7 +390,7 @@ export class ActionTimeline {
                     : 0) +
                   (speed * (tick - previousTick) * ACTION_TICK_SECONDS) / clip.strideMeters!
                 : 0,
-          ...(locomotion ? { phaseRate: speed / clip.strideMeters! } : {}),
+          ...(locomotion ? { phaseRate } : {}),
         };
       };
       const upperBody = presentation.actions[role]?.layer === "riderUpperBody";

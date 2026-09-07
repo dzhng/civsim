@@ -143,6 +143,19 @@ test("corpse presentation is terminal for initially dead and reset histories", (
   assert.equal(corpsePresentationStrength(dead), 1);
 });
 
+test("final incapacity preserves completed travel but stops prospective gait", () => {
+  const timeline = new ActionTimeline(appearances);
+  timeline.update(0, [soldier({ speedMps: 1 })]);
+  timeline.update(15, [soldier({ speedMps: 1, incapacitated: true })]);
+  const held = timeline.sample(15)[0];
+  assert.equal(held.base.destination.phase, 0.25);
+  assert.equal(timeline.sample(15.75)[0].base.destination.phase, 0.25);
+  assert.deepEqual(
+    evaluatePlaybackPose(appearances[0], timeline.sample(15.75)[0]),
+    evaluatePlaybackPose(appearances[0], held),
+  );
+});
+
 test("locomotion cadence follows measured interval distance through speed changes", () => {
   const timeline = new ActionTimeline(appearances);
   timeline.update(0, [soldier({ speedMps: 1 })]);
@@ -150,6 +163,99 @@ test("locomotion cadence follows measured interval distance through speed change
   assert.equal(timeline.sample()[0].base.destination.phase, 0.125);
   timeline.update(30, [soldier({ speedMps: 1 })]);
   assert.equal(timeline.sample()[0].base.destination.phase, 0.375);
+});
+
+test("a second final-disabled interval still counts its qualified past travel", () => {
+  const timeline = new ActionTimeline(appearances);
+  timeline.update(0, [soldier({ speedMps: 1 })]);
+  timeline.update(15, [soldier({ speedMps: 1, incapacitated: true })]);
+  timeline.update(30, [soldier({ speedMps: 0.5, incapacitated: true })]);
+  assert.equal(timeline.sample()[0].base.destination.phase, 0.375);
+  assert.equal(timeline.sample(30.75)[0].base.destination.phase, 0.375);
+});
+
+test("incapacity holds the compatible gait through zero travel and recovers without replay", () => {
+  const timeline = new ActionTimeline(appearances);
+  timeline.update(0, [soldier({ speedMps: 2 })]);
+  timeline.update(15, [soldier({ speedMps: 0.5, incapacitated: true })]);
+  assert.deepEqual(timeline.sample()[0].base.destination, { clip: "run", phase: 0.125 });
+  timeline.update(45, [soldier({ incapacitated: true, atEase: true })]);
+  assert.deepEqual(timeline.sample(45.5)[0].base.destination, { clip: "run", phase: 0.125 });
+  const paused = timeline.sample(45.5);
+  timeline.update(45, [soldier({ speedMps: 9 })]);
+  assert.deepEqual(timeline.sample(45.5), paused);
+  timeline.update(60, [soldier({ speedMps: 1 })]);
+  assert.deepEqual(timeline.sample()[0].base.destination, { clip: "walk", phase: 0.375 });
+  assert.ok(Math.abs(timeline.sample(60.75)[0].base.destination.phase - 0.3875) < 1e-12);
+});
+
+test("disabled fresh, reset and replaced appearances preserve canonical time-driven standing", () => {
+  const pike = {
+    ...appearances[0],
+    manifest: {
+      presentation: {
+        actions: {
+          ...actions,
+          atEase: { clip: "held", layer: "fullBody" as const },
+          pikeReady: { clip: "held", layer: "fullBody" as const },
+        },
+        riderUpperBodyJoints: null,
+      },
+    },
+    animation: { clips: [...clips, { name: "held", duration: 4, loop: true }] },
+    rig: { ...rig, clips: [...rig.clips, { ...rig.clips[0], name: "held" }] },
+  };
+  const timeline = new ActionTimeline({ 0: pike, 1: pike });
+  const disabled = soldier({ incapacitated: true, speedMps: 2, atEase: true });
+  timeline.update(0, [disabled]);
+  assert.equal(timeline.sample()[0].base.destination.clip, "held");
+  assert.equal(timeline.sample(15)[0].base.destination.phase, 0.125);
+  timeline.reset();
+  timeline.update(0, [soldier({ speedMps: 1 })]);
+  timeline.update(15, [{ ...disabled, atEase: false, appearanceId: 1, pikeReady: true }]);
+  assert.equal(timeline.sample()[0].base.destination.clip, "held");
+  assert.equal(timeline.sample()[0].base.destination.phase, 0);
+  assert.equal(timeline.sample(30)[0].base.destination.phase, 0.125);
+  timeline.update(0, [disabled]);
+  assert.equal(timeline.sample()[0].base.destination.clip, "held");
+  assert.equal(timeline.sample()[0].base.destination.phase, 0);
+  timeline.update(15, [soldier({ speedMps: 1 })]);
+  timeline.reset();
+  timeline.update(30, [{ ...disabled, atEase: false }]);
+  assert.deepEqual(timeline.sample()[0].base.destination, { clip: "rest", phase: 0 });
+});
+
+test("disabling and interrupting gait keeps exact full-body source and event timing", () => {
+  for (const event of [{ health: 90 }, { alive: false }, { fighting: true }]) {
+    const timeline = new ActionTimeline(appearances);
+    timeline.update(0, [soldier({ speedMps: 1 })]);
+    const before = evaluatePlaybackPose(appearances[0], timeline.sample(15)[0]);
+    timeline.update(15, [soldier({ speedMps: 0.5, incapacitated: true, ...event })]);
+    assert.deepEqual(evaluatePlaybackPose(appearances[0], timeline.sample()[0]), before);
+    assert.equal(
+      timeline.sample()[0].base.destination.clip,
+      "alive" in event ? "fall" : "health" in event ? "recoil" : "swing",
+    );
+    assert.equal(timeline.sample()[0].base.destination.phase, 0);
+    assert.ok(timeline.sample(15.75)[0].base.destination.phase > 0);
+  }
+});
+
+test("disabled gait phase holds while an existing transition still settles by time", () => {
+  const timeline = new ActionTimeline(appearances);
+  timeline.update(0, [soldier()]);
+  timeline.update(3, [soldier({ speedMps: 1 })]);
+  timeline.update(4, [soldier({ speedMps: 1, incapacitated: true })]);
+  const first = timeline.sample(4)[0],
+    later = timeline.sample(4.75)[0];
+  assert.deepEqual(later.base.destination, first.base.destination);
+  assert.ok(first.base.weight > 0 && first.base.weight < later.base.weight);
+  assert.ok(later.base.weight < 1);
+  assert.notDeepEqual(
+    evaluatePlaybackPose(appearances[0], later),
+    evaluatePlaybackPose(appearances[0], first),
+  );
+  assert.deepEqual(timeline.sample(4.75)[0], later);
 });
 
 test("measured speed chooses gait and preserves phase through rapid crossovers", () => {

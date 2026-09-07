@@ -1,12 +1,124 @@
 import { requireSwiftShaderBaseline } from "./_swiftshader-baseline.ts";
 import { temporalSnapshots, verifyTemporalReplay } from "./_temporal-replay.mjs";
+import { fileURLToPath } from "node:url";
+import { PNG } from "pngjs";
+
+const disabledSnapshots = [15.1, 15.9].map(
+  (tick) => `shared/soldiers/action-replay/disabled-${tick}`,
+);
+
+// This is the same workbench/timeline submission as the longer temporal replay.
+export async function verifyDisabledGait(ctx, page) {
+  await page.evaluate(() => {
+    const h = window.__battleModels;
+    h.freeze();
+    h.set({
+      classId: 4,
+      clip: "idle",
+      phase: 0,
+      formation: false,
+      yaw: 0.45,
+      pitch: 1.15,
+      zoom: 190,
+      target: [0, 0, 1],
+    });
+  });
+  await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw, undefined, {
+    timeout: 30000,
+  });
+  const draw = await page.evaluateHandle(
+    async (root) => {
+      const { BattleModelReplay } = await import(
+        `${root}apps/renderer-lab/src/battleModelReplay.ts`
+      );
+      const { evaluatePlaybackPose, ACTION_TICK_SECONDS } = await import(
+        `${root}packages/crowd-runtime/src/actionTimeline.ts`
+      );
+      const w = window.__battleModels.world;
+      const camera = structuredClone(w.stats().camera);
+      const asset = w.soldierAssets[4];
+      const walk = asset.animation.clips.find(
+        (clip) => clip.name === asset.manifest.presentation.actions.walk.clip,
+      );
+      const speed = walk.strideMeters / walk.duration;
+      const initial = new BattleModelReplay(w.soldierAssets, 4).seek(0).observation;
+      const replay = new BattleModelReplay(w.soldierAssets, 4, {
+        endTick: 16,
+        events: [],
+        observation: (tick) => ({
+          ...initial,
+          speedMps: speed,
+          forwardMps: speed,
+          incapacitated: tick >= 15,
+        }),
+      });
+      w.crowd.upload([]);
+      w.setTime(0);
+      return async (tick) => {
+        const state = replay.seek(tick);
+        w.drawInstances(state.instances, camera);
+        await w.settlePresentedFrame();
+        w.render();
+        await w.world.settlePresentedFrame();
+        return {
+          playback: state.playback,
+          observation: state.observation,
+          locals: Array.from(evaluatePlaybackPose(asset, state.playback)),
+          expectedPhase: (15 * ACTION_TICK_SECONDS) / walk.duration,
+        };
+      };
+    },
+    `/@fs${fileURLToPath(new URL("../../../", import.meta.url))}`,
+  );
+  try {
+    const frames = [];
+    for (const [i, tick] of [15.1, 15.9].entries()) {
+      const state = await draw.evaluate((draw, tick) => draw(tick), tick);
+      const shot = await page.locator("canvas").first().screenshot();
+      const repeated = await draw.evaluate((draw, tick) => draw(tick), tick);
+      const repeatShot = await page.locator("canvas").first().screenshot();
+      ctx.check(
+        `disabled/${tick}: exact repeated submitted pose`,
+        JSON.stringify(state) === JSON.stringify(repeated),
+      );
+      ctx.check(
+        `disabled/${tick}: exact repeated pixels`,
+        PNG.sync.read(shot).data.equals(PNG.sync.read(repeatShot).data),
+      );
+      ctx.check(
+        `disabled/${tick}: completed travel retained with no prospective advance`,
+        state.observation.incapacitated &&
+          state.observation.speedMps > 0 &&
+          Math.abs(state.playback.base.destination.phase - state.expectedPhase) < 1e-12,
+        JSON.stringify(state.playback),
+      );
+      await ctx.snap(null, disabledSnapshots[i], { shot, threshold: 0, maxDiffRatio: 0 });
+      frames.push({ state, pixels: PNG.sync.read(shot).data });
+    }
+    ctx.check(
+      "disabled: fractional submitted pose holds exactly",
+      JSON.stringify(frames[0].state.playback) === JSON.stringify(frames[1].state.playback) &&
+        JSON.stringify(frames[0].state.locals) === JSON.stringify(frames[1].state.locals),
+    );
+    ctx.check(
+      "disabled: fractional production pixels hold exactly",
+      frames[0].pixels.equals(frames[1].pixels),
+    );
+  } finally {
+    await draw.dispose();
+  }
+}
 
 export const meta = {
   name: "battle-model-action-replay",
   kind: "visual",
   world: "battle-models-action-replay",
   tier: "full",
-  snapshots: ["shared/soldiers/action-replay/controller", ...temporalSnapshots],
+  snapshots: [
+    "shared/soldiers/action-replay/controller",
+    ...temporalSnapshots,
+    ...disabledSnapshots,
+  ],
   describe:
     "Synthetic observation replay through the real timeline, catalog and GPU-blended production submission; numerical and temporal pose gates remain separate.",
 };
@@ -203,6 +315,7 @@ export async function run(ctx) {
     );
     await page.evaluate(() => window.__battleModels.reload());
     await verifyTemporalReplay(ctx, page);
+    await verifyDisabledGait(ctx, page);
     await page.goto(
       `${ctx.target}/renderer/battle-models?ref=1&catalog=/assets/soldiers/candidates/blender-reference/catalog.json`,
     );

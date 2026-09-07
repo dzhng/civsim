@@ -412,17 +412,15 @@ def place_supported_leg(arm, side, ankle, forward=Vector((0, -1, 0))):
     arm.pose.bones["knee-volume." + side].rotation_euler = tuple(v * .5 for v in shin.rotation_euler)
 
 
-def author_guarded_backward(arm, scene):
-    """Provisional threat-facing retreat, calibrated to the recorded centroid trace."""
-    clip = "guarded-backward-walk"
-    speed = .9161101579666129
+def begin_guarded_action(arm, scene, clip, author):
+    """Rebuild owned clips from ready, leaving unrelated source controls intact."""
     if scene.render.fps / scene.render.fps_base != 30:
-        raise ValueError("This one-second authoring recipe requires the frozen 30 fps donor")
+        raise ValueError("Guarded authoring requires the frozen 30 fps donor")
     controls = {action.name: action_signature(action) for action in bpy.data.actions if action.name != clip}
     previous = bpy.data.actions.get(clip)
     if previous:
-        if previous.get("author") != "heavy-guarded-backward":
-            raise RuntimeError("Unrelated guarded backward action exists")
+        if previous.get("author") != author:
+            raise RuntimeError(f"Unrelated {clip} action exists")
         for track in list(arm.animation_data.nla_tracks):
             if any(strip.action == previous for strip in track.strips):
                 arm.animation_data.nla_tracks.remove(track)
@@ -439,6 +437,28 @@ def author_guarded_backward(arm, scene):
     feet = {side: arm.pose.bones["foot." + side].matrix.to_quaternion().copy() for side in ("L", "R")}
     soles = {side: scene.objects["Sandal sole." + side] for side in ("L", "R")}
     arm.animation_data.action = None
+    return controls, base, feet, soles
+
+
+def finish_guarded_action(arm, clip, author, distance, controls):
+    action = arm.animation_data.action
+    action.name, action["author"] = clip, author
+    action["stride_distance_m"] = distance
+    for curve in action_fcurves(action):
+        for key in curve.keyframe_points:
+            key.interpolation = "LINEAR"
+    track = arm.animation_data.nla_tracks.new()
+    track.name, track.mute = clip, True
+    strip = track.strips.new(clip, 0, action)
+    strip.action_slot = action.slots[0]
+    assert controls == {name: action_signature(bpy.data.actions[name]) for name in controls}
+
+
+def author_guarded_backward(arm, scene):
+    """Provisional threat-facing retreat, calibrated to the recorded centroid trace."""
+    clip, author = "guarded-backward-walk", "heavy-guarded-backward"
+    speed = .9161101579666129
+    controls, base, feet, soles = begin_guarded_action(arm, scene, clip, author)
     # Each foot stays supported for 62% of this one-second cycle. Rebuild
     # from ready, never from the previous candidate's accumulated offsets.
     for frame in range(31):
@@ -484,17 +504,56 @@ def author_guarded_backward(arm, scene):
         for bone in arm.pose.bones:
             bone.keyframe_insert("rotation_euler", frame=frame)
             bone.keyframe_insert("location", frame=frame)
-    action = arm.animation_data.action
-    action.name, action["author"] = clip, "heavy-guarded-backward"
-    action["stride_distance_m"] = speed
-    for curve in action_fcurves(action):
-        for key in curve.keyframe_points:
-            key.interpolation = "LINEAR"
-    track = arm.animation_data.nla_tracks.new()
-    track.name, track.mute = clip, True
-    strip = track.strips.new(clip, 0, action)
-    strip.action_slot = action.slots[0]
-    assert controls == {name: action_signature(bpy.data.actions[name]) for name in controls}
+    finish_guarded_action(arm, clip, author, speed, controls)
+
+
+def author_guarded_left(arm, scene):
+    """Left-leading step-close: shield side stays left, never a mirrored rig."""
+    clip, author = "guarded-left-walk", "heavy-guarded-left"
+    duration, speed = .6, .760776176053138
+    controls, base, feet, soles = begin_guarded_action(arm, scene, clip, author)
+    distance = speed * duration
+    for frame in range(19):
+        phase = (frame % 18) / 18
+        for bone in arm.pose.bones:
+            bone.rotation_euler, bone.location = base[bone.name]
+        sway = math.sin(math.tau * phase)
+        load = math.cos(2 * math.tau * (phase - .08))
+        pelvis = arm.pose.bones["pelvis"]
+        # A smooth local transfer must not reverse the prescribed world travel.
+        # Keep a usable closing base instead of chasing the sole with the pelvis.
+        transfer = .065 * sway
+        target = Vector((transfer, -.040, .800 - .016 * load))
+        pelvis.location = pelvis.bone.matrix_local.to_3x3().inverted() @ (target - pelvis.bone.head_local)
+        arm.pose.bones["spine"].rotation_euler.x += .035 * load
+        arm.pose.bones["chest"].rotation_euler.x -= .012 * math.cos(2 * math.tau * (phase - .12))
+        bpy.context.view_layer.update()
+        for name, lean in (("pelvis", .028), ("spine", .140), ("chest", -.025), ("neck", -.050)):
+            bone = arm.pose.bones[name]
+            orient(arm, name, Matrix.Rotation(lean * sway, 3, "Y").to_quaternion() @ bone.matrix.to_quaternion())
+        for side, sign in (("L", 1), ("R", -1)):
+            step = (phase + (0 if side == "L" else .5)) % 1
+            half = .75 * distance / 2
+            if step <= .75:
+                travel, clearance = half - distance * step, 0
+            else:
+                u = (step - .75) / .25
+                travel = (-half * (2*u**3 - 3*u**2 + 1) + half * (-2*u**3 + 3*u**2)
+                          - distance * .25 * (2*u**3 - 3*u**2 + u))
+                clearance = .035 * math.sin(math.pi * u)**2
+            roll = cycle_value(((0, .08), (.10, 0), (.62, 0), (.75, -.09), (.87, 0), (1, .08)), step)
+            rotation = Matrix.Rotation(roll, 3, "Y").to_quaternion() @ feet[side]
+            foot = arm.data.bones["foot." + side]
+            transform = rotation.to_matrix() @ foot.matrix_local.to_3x3().inverted()
+            offsets = [transform @ (v.co - foot.head_local) for v in soles[side].data.vertices]
+            ankle = Vector((sign * .220 + travel, -.075 if side == "L" else .065,
+                            clearance - min(p.z for p in offsets)))
+            place_supported_leg(arm, side, ankle, Vector((.30 * sign, -1, 0)))
+            orient(arm, "foot." + side, rotation)
+        for bone in arm.pose.bones:
+            bone.keyframe_insert("rotation_euler", frame=frame)
+            bone.keyframe_insert("location", frame=frame)
+    finish_guarded_action(arm, clip, author, distance, controls)
 
 
 def supported_ready_stance(arm):
@@ -586,6 +645,7 @@ def build(source, output=OUTPUT):
     author_loaded_run(arm, scene)
     author_idle_ready(arm, scene)
     author_guarded_backward(arm, scene)
+    author_guarded_left(arm, scene)
     anatomy.export_candidate(body, arm, output, "heavy-kit")
 
 

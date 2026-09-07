@@ -1,0 +1,86 @@
+{
+  "samples": 9,
+  "pairs": [
+    [
+      "Sword blade",
+      "HumanAnatomy-Deform"
+    ],
+    [
+      "Sword blade",
+      "Tunic"
+    ],
+    [
+      "Sword blade",
+      "Mail shirt"
+    ],
+    [
+      "Sword blade",
+      "Convex oval shield"
+    ],
+    [
+      "Sword blade",
+      "Helmet bowl and rolled edge"
+    ],
+    [
+      "Sword guard",
+      "HumanAnatomy-Deform"
+    ],
+    [
+      "Sword guard",
+      "Tunic"
+    ],
+    [
+      "Sword guard",
+      "Mail shirt"
+    ],
+    [
+      "Sword guard",
+      "Convex oval shield"
+    ],
+    [
+      "Sword guard",
+      "Helmet bowl and rolled edge"
+    ],
+    [
+      "Sword pommel",
+      "HumanAnatomy-Deform"
+    ],
+    [
+      "Sword pommel",
+      "Tunic"
+    ],
+    [
+      "Sword pommel",
+      "Mail shirt"
+    ],
+    [
+      "Sword pommel",
+      "Convex oval shield"
+    ],
+    [
+      "Sword pommel",
+      "Helmet bowl and rolled edge"
+    ],
+    [
+      "Convex oval shield",
+      "HumanAnatomy-Deform"
+    ],
+    [
+      "Convex oval shield",
+      "Tunic"
+    ],
+    [
+      "Convex oval shield",
+      "Mail shirt"
+    ],
+    [
+      "Convex oval shield",
+      "Sandal sole.L"
+    ],
+    [
+      "Convex oval shield",
+      "Sandal sole.R"
+    ]
+  ],
+  "failures": []
+}

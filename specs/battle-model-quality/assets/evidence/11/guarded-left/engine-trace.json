@@ -1,0 +1,1202 @@
+[
+  {
+    "facing": 0.0,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.03333333507180214,
+    "tick": 1,
+    "x": -0.8450552225112915,
+    "y": 0.18381212651729584
+  },
+  {
+    "facing": -0.018216602504253387,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.06666667014360428,
+    "tick": 2,
+    "x": -0.8329383134841919,
+    "y": 0.18176229298114777
+  },
+  {
+    "facing": -0.01844206638634205,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.10000000894069672,
+    "tick": 3,
+    "x": -0.8187733888626099,
+    "y": 0.18027906119823456
+  },
+  {
+    "facing": -0.018376149237155914,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.13333334028720856,
+    "tick": 4,
+    "x": -0.7876337766647339,
+    "y": 0.1758626103401184
+  },
+  {
+    "facing": -0.01832694746553898,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.1666666716337204,
+    "tick": 5,
+    "x": -0.7509104013442993,
+    "y": 0.17439818382263184
+  },
+  {
+    "facing": -0.01787586137652397,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.20000001788139343,
+    "tick": 6,
+    "x": -0.7286221385002136,
+    "y": 0.16737325489521027
+  },
+  {
+    "facing": -0.017418531700968742,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.23333334922790527,
+    "tick": 7,
+    "x": -0.693265438079834,
+    "y": 0.1710454672574997
+  },
+  {
+    "facing": -0.0164936613291502,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.2666666805744171,
+    "tick": 8,
+    "x": -0.6653329133987427,
+    "y": 0.16876459121704102
+  },
+  {
+    "facing": -0.015995221212506294,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.30000001192092896,
+    "tick": 9,
+    "x": -0.6355867385864258,
+    "y": 0.16426949203014374
+  },
+  {
+    "facing": -0.015342561528086662,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.3333333432674408,
+    "tick": 10,
+    "x": -0.6132361888885498,
+    "y": 0.1621996909379959
+  },
+  {
+    "facing": -0.014622002840042114,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.36666667461395264,
+    "tick": 11,
+    "x": -0.5874468684196472,
+    "y": 0.1602768748998642
+  },
+  {
+    "facing": -0.014193486422300339,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.40000003576278687,
+    "tick": 12,
+    "x": -0.5625527501106262,
+    "y": 0.160658597946167
+  },
+  {
+    "facing": -0.014302101917564869,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.4333333671092987,
+    "tick": 13,
+    "x": -0.5421781539916992,
+    "y": 0.15874125063419342
+  },
+  {
+    "facing": -0.01456333976238966,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.46666669845581055,
+    "tick": 14,
+    "x": -0.5199953317642212,
+    "y": 0.15700693428516388
+  },
+  {
+    "facing": -0.014683347195386887,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.5,
+    "tick": 15,
+    "x": -0.5017852187156677,
+    "y": 0.1432085484266281
+  },
+  {
+    "facing": -0.01479492150247097,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.5333333611488342,
+    "tick": 16,
+    "x": -0.4681411683559418,
+    "y": 0.14642207324504852
+  },
+  {
+    "facing": -0.014011207967996597,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.5666667222976685,
+    "tick": 17,
+    "x": -0.45783424377441406,
+    "y": 0.13954880833625793
+  },
+  {
+    "facing": -0.014093867503106594,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.6000000238418579,
+    "tick": 18,
+    "x": -0.4371796250343323,
+    "y": 0.14333608746528625
+  },
+  {
+    "facing": -0.013637022115290165,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.6333333849906921,
+    "tick": 19,
+    "x": -0.4344688951969147,
+    "y": 0.13252931833267212
+  },
+  {
+    "facing": -0.013661272823810577,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.6666666865348816,
+    "tick": 20,
+    "x": -0.41477227210998535,
+    "y": 0.1372191458940506
+  },
+  {
+    "facing": -0.012889980338513851,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.7000000476837158,
+    "tick": 21,
+    "x": -0.41315242648124695,
+    "y": 0.12764142453670502
+  },
+  {
+    "facing": -0.012699635699391365,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.7333333492279053,
+    "tick": 22,
+    "x": -0.395503431558609,
+    "y": 0.13178576529026031
+  },
+  {
+    "facing": -0.01180821843445301,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.7666667103767395,
+    "tick": 23,
+    "x": -0.39506202936172485,
+    "y": 0.12314023077487946
+  },
+  {
+    "facing": -0.011618243530392647,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.8000000715255737,
+    "tick": 24,
+    "x": -0.3808613717556,
+    "y": 0.12390124052762985
+  },
+  {
+    "facing": -0.010794375091791153,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.8333333730697632,
+    "tick": 25,
+    "x": -0.381744384765625,
+    "y": 0.11674854904413223
+  },
+  {
+    "facing": -0.01047864742577076,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.8666667342185974,
+    "tick": 26,
+    "x": -0.3675929307937622,
+    "y": 0.11927136033773422
+  },
+  {
+    "facing": -0.009788576513528824,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.9000000357627869,
+    "tick": 27,
+    "x": -0.37048158049583435,
+    "y": 0.11430565267801285
+  },
+  {
+    "facing": -0.00960526242852211,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.9333333969116211,
+    "tick": 28,
+    "x": -0.35764211416244507,
+    "y": 0.118111751973629
+  },
+  {
+    "facing": -0.00908776093274355,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 0.9666666984558105,
+    "tick": 29,
+    "x": -0.35283342003822327,
+    "y": 0.11764635890722275
+  },
+  {
+    "facing": -0.008963427506387234,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.0,
+    "tick": 30,
+    "x": -0.34649762511253357,
+    "y": 0.12022460997104645
+  },
+  {
+    "facing": -0.008704339154064655,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.033333420753479,
+    "tick": 31,
+    "x": -0.34729963541030884,
+    "y": 0.11997874081134796
+  },
+  {
+    "facing": -0.008627595379948616,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.0666667222976685,
+    "tick": 32,
+    "x": -0.33676156401634216,
+    "y": 0.12497901916503906
+  },
+  {
+    "facing": -0.008450011722743511,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.100000023841858,
+    "tick": 33,
+    "x": -0.3275168538093567,
+    "y": 0.1299985945224762
+  },
+  {
+    "facing": -0.008482826873660088,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.133333444595337,
+    "tick": 34,
+    "x": -0.3229929506778717,
+    "y": 0.13587799668312073
+  },
+  {
+    "facing": -0.008589443750679493,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.1666667461395264,
+    "tick": 35,
+    "x": -0.32529085874557495,
+    "y": 0.13999661803245544
+  },
+  {
+    "facing": -0.008754855021834373,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.2000000476837158,
+    "tick": 36,
+    "x": -0.3131643831729889,
+    "y": 0.1484127640724182
+  },
+  {
+    "facing": -0.008872449398040771,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.2333333492279053,
+    "tick": 37,
+    "x": -0.3111432194709778,
+    "y": 0.15603236854076385
+  },
+  {
+    "facing": -0.009165041148662567,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.2666667699813843,
+    "tick": 38,
+    "x": -0.30926063656806946,
+    "y": 0.16461902856826782
+  },
+  {
+    "facing": -0.0094496700912714,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.3000000715255737,
+    "tick": 39,
+    "x": -0.30544766783714294,
+    "y": 0.1720815896987915
+  },
+  {
+    "facing": -0.009763997048139572,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.3333333730697632,
+    "tick": 40,
+    "x": -0.30664753913879395,
+    "y": 0.18094827234745026
+  },
+  {
+    "facing": -0.01004139892756939,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.3666667938232422,
+    "tick": 41,
+    "x": -0.303938090801239,
+    "y": 0.1886584311723709
+  },
+  {
+    "facing": -0.010394258424639702,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.4000000953674316,
+    "tick": 42,
+    "x": -0.30529841780662537,
+    "y": 0.19824756681919098
+  },
+  {
+    "facing": -0.010717520490288734,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.433333396911621,
+    "tick": 43,
+    "x": -0.30252018570899963,
+    "y": 0.2069673389196396
+  },
+  {
+    "facing": -0.011127988807857037,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.4666666984558105,
+    "tick": 44,
+    "x": -0.30473074316978455,
+    "y": 0.21747420728206635
+  },
+  {
+    "facing": -0.011497598141431808,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.5000001192092896,
+    "tick": 45,
+    "x": -0.3020598590373993,
+    "y": 0.22709207236766815
+  },
+  {
+    "facing": -0.011954053305089474,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.533333420753479,
+    "tick": 46,
+    "x": -0.30387046933174133,
+    "y": 0.2386852353811264
+  },
+  {
+    "facing": -0.01238003559410572,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.5666667222976685,
+    "tick": 47,
+    "x": -0.3011566698551178,
+    "y": 0.24929814040660858
+  },
+  {
+    "facing": -0.01290315855294466,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.6000001430511475,
+    "tick": 48,
+    "x": -0.30360496044158936,
+    "y": 0.2623697519302368
+  },
+  {
+    "facing": -0.013391496613621712,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.633333444595337,
+    "tick": 49,
+    "x": -0.30151471495628357,
+    "y": 0.2736315429210663
+  },
+  {
+    "facing": -0.014000283554196358,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.6666667461395264,
+    "tick": 50,
+    "x": -0.30361565947532654,
+    "y": 0.2874215543270111
+  },
+  {
+    "facing": -0.01453883945941925,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.7000000476837158,
+    "tick": 51,
+    "x": -0.3006881773471832,
+    "y": 0.2994163930416107
+  },
+  {
+    "facing": -0.015194689854979515,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.7333334684371948,
+    "tick": 52,
+    "x": -0.30328333377838135,
+    "y": 0.31404775381088257
+  },
+  {
+    "facing": -0.01576763391494751,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.7666667699813843,
+    "tick": 53,
+    "x": -0.3012409210205078,
+    "y": 0.3266948163509369
+  },
+  {
+    "facing": -0.016468239948153496,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.8000000715255737,
+    "tick": 54,
+    "x": -0.3035408556461334,
+    "y": 0.3422144949436188
+  },
+  {
+    "facing": -0.017082003876566887,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.8333333730697632,
+    "tick": 55,
+    "x": -0.3014710247516632,
+    "y": 0.35550186038017273
+  },
+  {
+    "facing": -0.01783553697168827,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.8666667938232422,
+    "tick": 56,
+    "x": -0.30435553193092346,
+    "y": 0.3715583384037018
+  },
+  {
+    "facing": -0.01849439926445484,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.9000000953674316,
+    "tick": 57,
+    "x": -0.3020384907722473,
+    "y": 0.3852267265319824
+  },
+  {
+    "facing": -0.019272377714514732,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.933333396911621,
+    "tick": 58,
+    "x": -0.3041551113128662,
+    "y": 0.4019836485385895
+  },
+  {
+    "facing": -0.019947966560721397,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 1.9666668176651,
+    "tick": 59,
+    "x": -0.3019736707210541,
+    "y": 0.4162898063659668
+  },
+  {
+    "facing": -0.020778456702828407,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.0,
+    "tick": 60,
+    "x": -0.30496686697006226,
+    "y": 0.43354764580726624
+  },
+  {
+    "facing": -0.021491359919309616,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.0333335399627686,
+    "tick": 61,
+    "x": -0.30286821722984314,
+    "y": 0.448392391204834
+  },
+  {
+    "facing": -0.022339124232530594,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.066666841506958,
+    "tick": 62,
+    "x": -0.3050142824649811,
+    "y": 0.4661923944950104
+  },
+  {
+    "facing": -0.02308506891131401,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.1000001430511475,
+    "tick": 63,
+    "x": -0.30244606733322144,
+    "y": 0.48163291811943054
+  },
+  {
+    "facing": -0.02397218905389309,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.133333444595337,
+    "tick": 64,
+    "x": -0.31427666544914246,
+    "y": 0.5000835657119751
+  },
+  {
+    "facing": -0.024751760065555573,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.1666667461395264,
+    "tick": 65,
+    "x": -0.31224605441093445,
+    "y": 0.516751766204834
+  },
+  {
+    "facing": -0.025651399046182632,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.200000047683716,
+    "tick": 66,
+    "x": -0.3215284049510956,
+    "y": 0.5370699763298035
+  },
+  {
+    "facing": -0.026485471054911613,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.2333333492279053,
+    "tick": 67,
+    "x": -0.3201735019683838,
+    "y": 0.5564951300621033
+  },
+  {
+    "facing": -0.02748601883649826,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.266666889190674,
+    "tick": 68,
+    "x": -0.32311519980430603,
+    "y": 0.5773373246192932
+  },
+  {
+    "facing": -0.028464792296290398,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.3000001907348633,
+    "tick": 69,
+    "x": -0.33513012528419495,
+    "y": 0.5937580466270447
+  },
+  {
+    "facing": -0.02950885146856308,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.3333334922790527,
+    "tick": 70,
+    "x": -0.33798226714134216,
+    "y": 0.616043746471405
+  },
+  {
+    "facing": -0.03031657449901104,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.366666793823242,
+    "tick": 71,
+    "x": -0.34323522448539734,
+    "y": 0.632481038570404
+  },
+  {
+    "facing": -0.031434785574674606,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.4000000953674316,
+    "tick": 72,
+    "x": -0.34780365228652954,
+    "y": 0.6565195918083191
+  },
+  {
+    "facing": -0.032254163175821304,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.433333396911621,
+    "tick": 73,
+    "x": -0.36127346754074097,
+    "y": 0.6733158826828003
+  },
+  {
+    "facing": -0.03346117585897446,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.4666666984558105,
+    "tick": 74,
+    "x": -0.35676103830337524,
+    "y": 0.6981777548789978
+  },
+  {
+    "facing": -0.03428664803504944,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.500000238418579,
+    "tick": 75,
+    "x": -0.37000298500061035,
+    "y": 0.7147894501686096
+  },
+  {
+    "facing": -0.03554929420351982,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.5333335399627686,
+    "tick": 76,
+    "x": -0.36477240920066833,
+    "y": 0.7400480508804321
+  },
+  {
+    "facing": -0.03636297211050987,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.566666841506958,
+    "tick": 77,
+    "x": -0.3779551088809967,
+    "y": 0.7563481330871582
+  },
+  {
+    "facing": -0.03764723613858223,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.6000001430511475,
+    "tick": 78,
+    "x": -0.37900835275650024,
+    "y": 0.7796806693077087
+  },
+  {
+    "facing": -0.038444291800260544,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.633333444595337,
+    "tick": 79,
+    "x": -0.3865276277065277,
+    "y": 0.8017091155052185
+  },
+  {
+    "facing": -0.03961963206529617,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.6666667461395264,
+    "tick": 80,
+    "x": -0.38837361335754395,
+    "y": 0.8257660865783691
+  },
+  {
+    "facing": -0.040718287229537964,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.700000047683716,
+    "tick": 81,
+    "x": -0.39556223154067993,
+    "y": 0.8472923636436462
+  },
+  {
+    "facing": -0.041928041726350784,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.7333335876464844,
+    "tick": 82,
+    "x": -0.39737468957901,
+    "y": 0.871547520160675
+  },
+  {
+    "facing": -0.042999301105737686,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.766666889190674,
+    "tick": 83,
+    "x": -0.4023844301700592,
+    "y": 0.894356369972229
+  },
+  {
+    "facing": -0.04421819746494293,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.8000001907348633,
+    "tick": 84,
+    "x": -0.40394124388694763,
+    "y": 0.9194781184196472
+  },
+  {
+    "facing": -0.04535781592130661,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.8333334922790527,
+    "tick": 85,
+    "x": -0.40876302123069763,
+    "y": 0.9432246088981628
+  },
+  {
+    "facing": -0.04662122204899788,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.866666793823242,
+    "tick": 86,
+    "x": -0.4097438454627991,
+    "y": 0.9680320024490356
+  },
+  {
+    "facing": -0.047808073461055756,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.9000000953674316,
+    "tick": 87,
+    "x": -0.4141564965248108,
+    "y": 0.9913105964660645
+  },
+  {
+    "facing": -0.04905719682574272,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.933333396911621,
+    "tick": 88,
+    "x": -0.4149194359779358,
+    "y": 1.017491340637207
+  },
+  {
+    "facing": -0.050220709294080734,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 2.9666669368743896,
+    "tick": 89,
+    "x": -0.4192170202732086,
+    "y": 1.0425238609313965
+  },
+  {
+    "facing": -0.05153943970799446,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.000000238418579,
+    "tick": 90,
+    "x": -0.41920024156570435,
+    "y": 1.0677800178527832
+  },
+  {
+    "facing": -0.05279117450118065,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.0333335399627686,
+    "tick": 91,
+    "x": -0.4218710958957672,
+    "y": 1.091809868812561
+  },
+  {
+    "facing": -0.054065581411123276,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.066666841506958,
+    "tick": 92,
+    "x": -0.4265771806240082,
+    "y": 1.1217278242111206
+  },
+  {
+    "facing": -0.0552712045609951,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.1000001430511475,
+    "tick": 93,
+    "x": -0.43441954255104065,
+    "y": 1.1478232145309448
+  },
+  {
+    "facing": -0.05676547437906265,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.133333444595337,
+    "tick": 94,
+    "x": -0.4393181800842285,
+    "y": 1.1807143688201904
+  },
+  {
+    "facing": -0.05805839225649834,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.1666667461395264,
+    "tick": 95,
+    "x": -0.45523855090141296,
+    "y": 1.2062526941299438
+  },
+  {
+    "facing": -0.05970089137554169,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.200000286102295,
+    "tick": 96,
+    "x": -0.4618500769138336,
+    "y": 1.2418674230575562
+  },
+  {
+    "facing": -0.060938719660043716,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.2333335876464844,
+    "tick": 97,
+    "x": -0.47303542494773865,
+    "y": 1.2673271894454956
+  },
+  {
+    "facing": -0.06270983070135117,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.266666889190674,
+    "tick": 98,
+    "x": -0.4827265739440918,
+    "y": 1.3044607639312744
+  },
+  {
+    "facing": -0.0639544129371643,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.3000001907348633,
+    "tick": 99,
+    "x": -0.49719753861427307,
+    "y": 1.3334295749664307
+  },
+  {
+    "facing": -0.06578973680734634,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.3333334922790527,
+    "tick": 100,
+    "x": -0.50972980260849,
+    "y": 1.3648898601531982
+  },
+  {
+    "facing": -0.06719645857810974,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.366666793823242,
+    "tick": 101,
+    "x": -0.519126832485199,
+    "y": 1.4034883975982666
+  },
+  {
+    "facing": -0.0687323585152626,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.4000000953674316,
+    "tick": 102,
+    "x": -0.535370409488678,
+    "y": 1.439397931098938
+  },
+  {
+    "facing": -0.07063540071249008,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.433333396911621,
+    "tick": 103,
+    "x": -0.5476487278938293,
+    "y": 1.4746366739273071
+  },
+  {
+    "facing": -0.0723763033747673,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.4666669368743896,
+    "tick": 104,
+    "x": -0.5588178038597107,
+    "y": 1.512056827545166
+  },
+  {
+    "facing": -0.07409535348415375,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.500000238418579,
+    "tick": 105,
+    "x": -0.5697020888328552,
+    "y": 1.5467573404312134
+  },
+  {
+    "facing": -0.07592523843050003,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.5333335399627686,
+    "tick": 106,
+    "x": -0.5815510153770447,
+    "y": 1.5842957496643066
+  },
+  {
+    "facing": -0.07761780917644501,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.566666841506958,
+    "tick": 107,
+    "x": -0.5928800106048584,
+    "y": 1.620788812637329
+  },
+  {
+    "facing": -0.07944570481777191,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.6000001430511475,
+    "tick": 108,
+    "x": -0.6024020314216614,
+    "y": 1.657233476638794
+  },
+  {
+    "facing": -0.08122137933969498,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.633333444595337,
+    "tick": 109,
+    "x": -0.6133267879486084,
+    "y": 1.6941384077072144
+  },
+  {
+    "facing": -0.08299919217824936,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.6666667461395264,
+    "tick": 110,
+    "x": -0.6228320002555847,
+    "y": 1.7309449911117554
+  },
+  {
+    "facing": -0.08479216694831848,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.700000286102295,
+    "tick": 111,
+    "x": -0.6331428289413452,
+    "y": 1.7682695388793945
+  },
+  {
+    "facing": -0.08658351004123688,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.7333335876464844,
+    "tick": 112,
+    "x": -0.6405803561210632,
+    "y": 1.8113399744033813
+  },
+  {
+    "facing": -0.08839505165815353,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.766666889190674,
+    "tick": 113,
+    "x": -0.656190037727356,
+    "y": 1.8495606184005737
+  },
+  {
+    "facing": -0.09050216525793076,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.8000001907348633,
+    "tick": 114,
+    "x": -0.6613756418228149,
+    "y": 1.8911163806915283
+  },
+  {
+    "facing": -0.09232888370752335,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.8333334922790527,
+    "tick": 115,
+    "x": -0.6779460310935974,
+    "y": 1.92983078956604
+  },
+  {
+    "facing": -0.09436631947755814,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.866666793823242,
+    "tick": 116,
+    "x": -0.6831395030021667,
+    "y": 1.971453309059143
+  },
+  {
+    "facing": -0.09620673209428787,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.9000000953674316,
+    "tick": 117,
+    "x": -0.6981907486915588,
+    "y": 2.010756254196167
+  },
+  {
+    "facing": -0.09824273735284805,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.9333336353302,
+    "tick": 118,
+    "x": -0.7022346258163452,
+    "y": 2.0524230003356934
+  },
+  {
+    "facing": -0.10011328011751175,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 3.9666669368743896,
+    "tick": 119,
+    "x": -0.7167191505432129,
+    "y": 2.091998815536499
+  },
+  {
+    "facing": -0.10215279459953308,
+    "guarded": true,
+    "incapacitated": false,
+    "routing": false,
+    "seconds": 4.0,
+    "tick": 120,
+    "x": -0.7205473184585571,
+    "y": 2.1338040828704834
+  }
+]

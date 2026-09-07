@@ -1,0 +1,32 @@
+[
+  {
+    "name": "ready.png",
+    "width": 2560,
+    "height": 640,
+    "changedPixels": 63182,
+    "changedRatio": 0.038563232421875,
+    "rgbMae": 0.7647021484375,
+    "priorSha256": "7fd33d2887fb33c548e82219ed4cf84250a661a1d36dc9b10a9c28188ae88068",
+    "candidateSha256": "b050f5dd7887b62ca81cd5a7c810bc4c4b02eea6731ff64c30c2382a60cac6e6"
+  },
+  {
+    "name": "close.png",
+    "width": 2560,
+    "height": 1280,
+    "changedPixels": 149589,
+    "changedRatio": 0.04565093994140625,
+    "rgbMae": 0.7971872965494792,
+    "priorSha256": "2e8b647f01de9d46ab0779672de4fb517ae7a5e05e78802c51ec49639080d0cf",
+    "candidateSha256": "6b269cf867ba54b415fefdf08eb488ddabcd291462606308e4808c3811a4c27d"
+  },
+  {
+    "name": "gameplay-pitch.png",
+    "width": 2560,
+    "height": 1280,
+    "changedPixels": 131945,
+    "changedRatio": 0.04026641845703125,
+    "rgbMae": 0.33983479817708334,
+    "priorSha256": "36a5d64c961f5a53c169bb67b8efbc71c048c128cce5d3e0a02ec023a21291d8",
+    "candidateSha256": "5dc8df0c05b361fc075d08cfcf5a100b049433851514bbe671fc73ac08c6a714"
+  }
+]

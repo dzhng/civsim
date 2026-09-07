@@ -1264,5 +1264,22 @@ contact by spreading the wrong motion.
 The plan requires credible worn equipment but leaves its attachment weighting
 open. This deliberately expands the garment-only edit to belt weights; it does
 not authorize changing unrelated equipment. Suspension joins and loaded poses
-must be rechecked before integration. The candidate remains unaccepted, and the
-root assembly has not yet adopted this weighting.
+must be rechecked after composition and on future actions. The combined root
+candidate now adopts this weighting; it is not final equipment acceptance.
+
+### Make lining the mail's construction and motion support (09)
+
+**Sound, provisional; confidence: medium.** The lining and main mail share
+corresponding subdivided surface locations and bone weights. Mail thickness is
+offset from the actual lining, not fitted independently to whichever nearby body
+part wins a nearest-point search. The torso samples trunk-supported body faces
+with interpolated support normals; separate overlapping sleeves and the shoulder
+reinforcement follow the garment they rest on. This prevents adjacent resting
+arms or discontinuous triangle normals from folding the shirt into itself.
+
+The spec asks for layered, moving coverage but leaves construction topology and
+deformation ownership open. These offline authored pieces add no rig, cloth
+simulation or runtime fitting mechanism. They trade physically simulated drape
+for inspectable fixed construction; shoulder corners and running skirt stiffness
+remain refinements. New anatomy or new extreme actions require renewed fitting
+and visual review, not an assumption that indexed correspondence proves clearance.

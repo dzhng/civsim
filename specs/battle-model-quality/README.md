@@ -8,10 +8,12 @@ Last updated **2026-09-07**. **01–06 complete;07 envelope open;08 candidate au
 Worktree: `/Users/david/dev/game-battle-model-quality`, branch
 `codex/battle-model-quality`. No art envelope or detailed model is accepted.
 
-Current pickup: **finish the whole worn garment and its waist support**, with
-joint hand/handle authoring in parallel, then review arm deformation. Defer
-further isolated face detail. The retained root garment is not the newer,
-still-unaccepted isolated construction. The
+Current pickup: **author the medium-phalanx comparison while refining the shared
+hand/handle form in parallel**. Defer further isolated face detail. The
+[combined worn garment](assets/evidence/09/combined-worn-garment/review.md) now
+contains the supported lining/mail and pelvis-bound belt on the retained root
+body, hands and helmet. It is an intermediate improvement, not accepted armor.
+The
 [grip closure integration](assets/evidence/08/power-grip-closure/integration.md)
 retains a more enclosing grasp, not finished hand anatomy. Preserve modular
 equipment when composing it: a full procedural refit moved unrelated surfaces.
@@ -28,17 +30,20 @@ The
 open bowl and curved guards on the integrated head and locally baked mail.
 Its fitting improvement does not accept the whole model or close08/09.
 
-Next integration checkpoint: judge the combined heavy's whole-body form,
-gameplay formation and genuinely timed moving-world locomotion together. Static
+Next integration checkpoint: medium leather armor and pike carry beside the
+heavy, with unobstructed two-hand contact views and refitting after shared-hand
+changes. The heavy's combined static and sampled garment-deformation review is
+retained; locomotion rhythm and ground sliding remain unaccepted. Static
 phase sheets establish pose compatibility, not rhythm or ground sliding. The
 [forward export correction](assets/evidence/11/heavy-travel/forward-export-probe.md)
 now has rebuilt assets, checked detail framing and a full deterministic travel
 sequence. It establishes forward orientation, not accepted locomotion. The saved
 motion study's original actions are preserved, not regenerated from newer keys.
-Resolve
-concrete garment/grip/deformation failures before reusing its construction, then
-start medium-phalanx authoring; do not require every isolated heavy detail to be
-finished before that first-pair comparison. All acceptance dependencies remain.
+Do not propagate rejected hand studies or assume the pike can use the sword's
+grip. Retained garment construction and static arm form permit provisional
+medium authoring, with shoulder/skirt refinements still open. Do not require
+every isolated heavy detail to be finished before that first-pair comparison.
+All acceptance dependencies remain.
 
 Independent authoring and measurement lanes:
 - **08–11 whole heavy:** preserve loaded walk/run, footwear,
@@ -55,8 +60,8 @@ Independent authoring and measurement lanes:
   Clothing cannot establish anatomy acceptance.
 - **09/10 equipment and surfaces:** [combined mail](assets/evidence/10/combined-mail/review.md)
   is retained through `7f755129`. Whole-garment form and local hand reconstruction
-  proceed in separate worktrees. Rear suspension straps, rigid linen cuffs,
-  hanging garment, underarms and grips remain open. Review the whole-heavy
+  proceed in separate worktrees. Rear suspension straps, raised shoulder joins,
+  stiff hanging garment, arm deformation and grips remain open. Review the whole-heavy
   silhouette before propagating conventions to medium phalanx. The
   [formation fixture](assets/evidence/09/formation-harness/review.md) supplements
   close-ups without changing the production candidate or accepting its quality.

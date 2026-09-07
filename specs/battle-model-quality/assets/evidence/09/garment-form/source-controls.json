@@ -1,0 +1,321 @@
+{
+  "beforeBlendSha256": "63b884ab9b2b0c7965162ed41087f6c0605735f4ff120d6f5a8cb688208e3fca",
+  "capturedBlendSha256": "1cdf2ab5515059e6d8e5e0c6393378184213de8a6800ceff5bb16b804046eb7e",
+  "capturedGlbSha256": "39cde9a147374cdd2dda1f4f7d3964361767481136ef699943c56847704ffa9c",
+  "beforeMeshHashes": {
+    "HumanAnatomy-Sculpt": "b4bdfe4f8a1d947cfddecb52947bba99fa873c764379387c220e21913769cee8",
+    "HumanAnatomy-Deform": "58c059ff62026aa6b145f1b6ab72b9084d2b58e7a1c51d7abcc4870f9d382a4b",
+    "Waist belt": "e3525d53ab519ed978bcf895d3e68f9b053175209e27be5259f543d80f396f77",
+    "Sandal sole.L": "384dfa27c099eb312f249d7cb8f3f31ed983ae99d6eb8541f1a5d35984931b49",
+    "Sandal strap 0.L": "c1a220fd18bdf3c3dbb0026a3ae15ee61fd657cbbbc50545832a8a7b75479745",
+    "Sandal strap 1.L": "df44ee96932fab9a3b90a0e8795256a7e64f4bd611f9969f0f3b07db4c00e6fb",
+    "Sandal heel sling.L": "42d2780c22664c355d69ca1a374e72782fb9ee2aced944c05d4cebd4a568a918",
+    "Sandal heel riser -1.L": "46835d5ea1f8da8bd7a250ae3490f658d6e782fa4259531f1fe8e61f66028ea0",
+    "Sandal heel riser 1.L": "1c2e5760b3d7571a93c35c409655353822d8520766aa55640ae30c66c0563ce2",
+    "Sandal sole.R": "5d3324fddde18a4f09b7abc00dc5d279eba88cb918cbba49407d818e9fed470a",
+    "Sandal strap 0.R": "fcd0f98ff666a76d367db4c87796157aebb9b73bbf9f6588db706b9dce6de351",
+    "Sandal strap 1.R": "c1762a5dba791fadca8e2163659d972cf9017295705d6f90f50ad5f4a537b308",
+    "Sandal heel sling.R": "27f7af280a280218f923da00fb5707506dfb02707127bfc9d89fa505800b00f9",
+    "Sandal heel riser -1.R": "d6ac51ad91b22f6e15a78b43be84c7dc79f2b95ccf446aaebb4b08d19d08628a",
+    "Sandal heel riser 1.R": "c12def8601d0619633426440738a14a907a2a6f6869a086bbb39bb6cb8382453",
+    "Helmet bowl and rolled edge": "5e1e1897da51ec2bc4969bb01bedbe97cf4e359fbf03d524aa04e9c9d6553927",
+    "Helmet cheek plate.L": "b77de14149cccf02cb58b3498551ad28f2ef54033e6a00fe57c03e95d78f1ab3",
+    "Helmet cheek plate.R": "759b72ced9847f8bccb6cd6423dd4fab23d9f94e303e9ec4fda6364aec804f5e",
+    "Convex oval shield": "62a6afa2c17f9fc2e7a534dc222f5e746fa52bdecd8d77e1cdde78aa6ec301f9",
+    "Shield boss": "58937b02721fc481abbd5f5d61ae3b4358df1378e5d989c26557cb4cbf35afb4",
+    "Shield handgrip": "2df2581ace64aeafa3fb0e297edce47b67d3b3294cc51a849dd5fd213721c045",
+    "Shield grip support": "cedf2aff1030442e7719bb34a2193f24bfea94ac6c58e9d9eec3f55b9970fa81",
+    "Sword grip": "209fdf507aea025a918cfbbd43fc85c74357b0dedd1edc4a72fff6d592563f13",
+    "Sword pommel": "f432503c4c56417f22e51844acbddd70a093cf3ffeb0883460f7f66a3bea3061",
+    "Sword guard": "ada898f91a1e39d51d977950386d9b79d96ac7cf87e4677af8909eeb5c7d41d9",
+    "Sword blade": "8b75409c70a8d00df1a7fae7d28d565239b14198402d2addaf3971b9dc1fd7fb",
+    "Scabbard": "7bae4c1a813c5c02094bdec526d7d298aaa7abb93e66fbe69acd3d41622c8904",
+    "Scabbard fitting mouth": "b060b5936cf61482b16a761b0a0efb519ac3bbe7214d0164d4ebb79418b58d6e",
+    "Scabbard fitting upper band": "f7942fae59877e508b3eaf30e6c4b2e5a5645ad3d880078796a6028c76d5937b",
+    "Scabbard fitting lower band": "cddc3e6d1081e599ac52ad73457430601c143143c32572e8989356a25b88f7a5",
+    "Scabbard fitting chape": "b46c2372f84aebfbfb5e91fe1b4ce84ac1fd92996fb8085a0f0dfed93d63bfde",
+    "Scabbard suspension 0": "0f42fb4bf50b0ac88fa1e2e2f83267850cbf690961b2ed98754c1434fc5ce1a3",
+    "Scabbard suspension 1": "94a178067018c1b40a887a41e160fa18b8dd8cbeb51b7942233e7f85ff474ac3"
+  },
+  "afterMeshHashes": {
+    "HumanAnatomy-Sculpt": "b4bdfe4f8a1d947cfddecb52947bba99fa873c764379387c220e21913769cee8",
+    "HumanAnatomy-Deform": "58c059ff62026aa6b145f1b6ab72b9084d2b58e7a1c51d7abcc4870f9d382a4b",
+    "Waist belt": "a3442546ff0f2604627a3e5f06aa8e3c7d5491ee2f9de831f3e271b7a1819c24",
+    "Sandal sole.L": "384dfa27c099eb312f249d7cb8f3f31ed983ae99d6eb8541f1a5d35984931b49",
+    "Sandal strap 0.L": "c1a220fd18bdf3c3dbb0026a3ae15ee61fd657cbbbc50545832a8a7b75479745",
+    "Sandal strap 1.L": "df44ee96932fab9a3b90a0e8795256a7e64f4bd611f9969f0f3b07db4c00e6fb",
+    "Sandal heel sling.L": "42d2780c22664c355d69ca1a374e72782fb9ee2aced944c05d4cebd4a568a918",
+    "Sandal heel riser -1.L": "46835d5ea1f8da8bd7a250ae3490f658d6e782fa4259531f1fe8e61f66028ea0",
+    "Sandal heel riser 1.L": "1c2e5760b3d7571a93c35c409655353822d8520766aa55640ae30c66c0563ce2",
+    "Sandal sole.R": "5d3324fddde18a4f09b7abc00dc5d279eba88cb918cbba49407d818e9fed470a",
+    "Sandal strap 0.R": "fcd0f98ff666a76d367db4c87796157aebb9b73bbf9f6588db706b9dce6de351",
+    "Sandal strap 1.R": "c1762a5dba791fadca8e2163659d972cf9017295705d6f90f50ad5f4a537b308",
+    "Sandal heel sling.R": "27f7af280a280218f923da00fb5707506dfb02707127bfc9d89fa505800b00f9",
+    "Sandal heel riser -1.R": "d6ac51ad91b22f6e15a78b43be84c7dc79f2b95ccf446aaebb4b08d19d08628a",
+    "Sandal heel riser 1.R": "c12def8601d0619633426440738a14a907a2a6f6869a086bbb39bb6cb8382453",
+    "Helmet bowl and rolled edge": "5e1e1897da51ec2bc4969bb01bedbe97cf4e359fbf03d524aa04e9c9d6553927",
+    "Helmet cheek plate.L": "b77de14149cccf02cb58b3498551ad28f2ef54033e6a00fe57c03e95d78f1ab3",
+    "Helmet cheek plate.R": "759b72ced9847f8bccb6cd6423dd4fab23d9f94e303e9ec4fda6364aec804f5e",
+    "Convex oval shield": "62a6afa2c17f9fc2e7a534dc222f5e746fa52bdecd8d77e1cdde78aa6ec301f9",
+    "Shield boss": "58937b02721fc481abbd5f5d61ae3b4358df1378e5d989c26557cb4cbf35afb4",
+    "Shield handgrip": "2df2581ace64aeafa3fb0e297edce47b67d3b3294cc51a849dd5fd213721c045",
+    "Shield grip support": "cedf2aff1030442e7719bb34a2193f24bfea94ac6c58e9d9eec3f55b9970fa81",
+    "Sword grip": "209fdf507aea025a918cfbbd43fc85c74357b0dedd1edc4a72fff6d592563f13",
+    "Sword pommel": "f432503c4c56417f22e51844acbddd70a093cf3ffeb0883460f7f66a3bea3061",
+    "Sword guard": "ada898f91a1e39d51d977950386d9b79d96ac7cf87e4677af8909eeb5c7d41d9",
+    "Sword blade": "8b75409c70a8d00df1a7fae7d28d565239b14198402d2addaf3971b9dc1fd7fb",
+    "Scabbard": "7bae4c1a813c5c02094bdec526d7d298aaa7abb93e66fbe69acd3d41622c8904",
+    "Scabbard fitting mouth": "b060b5936cf61482b16a761b0a0efb519ac3bbe7214d0164d4ebb79418b58d6e",
+    "Scabbard fitting upper band": "f7942fae59877e508b3eaf30e6c4b2e5a5645ad3d880078796a6028c76d5937b",
+    "Scabbard fitting lower band": "cddc3e6d1081e599ac52ad73457430601c143143c32572e8989356a25b88f7a5",
+    "Scabbard fitting chape": "b46c2372f84aebfbfb5e91fe1b4ce84ac1fd92996fb8085a0f0dfed93d63bfde",
+    "Scabbard suspension 0": "0f42fb4bf50b0ac88fa1e2e2f83267850cbf690961b2ed98754c1434fc5ce1a3",
+    "Scabbard suspension 1": "94a178067018c1b40a887a41e160fa18b8dd8cbeb51b7942233e7f85ff474ac3"
+  },
+  "belt": {
+    "before": {
+      "geometryHash": "2a5195f5145f216282ef6c1811c00596edd00eb64cdf386d3cd6a351ee5a3a49",
+      "vertices": 160,
+      "allPelvis": false
+    },
+    "after": {
+      "geometryHash": "2a5195f5145f216282ef6c1811c00596edd00eb64cdf386d3cd6a351ee5a3a49",
+      "vertices": 160,
+      "allPelvis": true
+    }
+  },
+  "cleanupRegeneration": [
+    {
+      "tier": 0,
+      "changes": [
+        {
+          "field": "/tangents/18740",
+          "before": -0.5074999928474426,
+          "after": -0.5073999762535095,
+          "delta": 0.00010001659393310547
+        },
+        {
+          "field": "/tangents/96960",
+          "before": -0.430400013923645,
+          "after": -0.43050000071525574,
+          "delta": 0.00009998679161071777
+        },
+        {
+          "field": "/tangents/96961",
+          "before": 0.8518999814987183,
+          "after": 0.8518000245094299,
+          "delta": 0.00009995698928833008
+        },
+        {
+          "field": "/tangents/100325",
+          "before": 0.6761000156402588,
+          "after": 0.6759999990463257,
+          "delta": 0.00010001659393310547
+        },
+        {
+          "field": "/tangents/146240",
+          "before": 0.41679999232292175,
+          "after": 0.41670000553131104,
+          "delta": 0.00009998679161071777
+        },
+        {
+          "field": "/tangents/153973",
+          "before": -0.7595000267028809,
+          "after": -0.7595999836921692,
+          "delta": 0.00009995698928833008
+        },
+        {
+          "field": "/tangents/192385",
+          "before": -0.6018000245094299,
+          "after": -0.6017000079154968,
+          "delta": 0.00010001659393310547
+        },
+        {
+          "field": "/tangents/204656",
+          "before": 0.19979999959468842,
+          "after": 0.1996999979019165,
+          "delta": 0.00010000169277191162
+        },
+        {
+          "field": "/tangents/206880",
+          "before": 0.474700003862381,
+          "after": 0.4745999872684479,
+          "delta": 0.00010001659393310547
+        },
+        {
+          "field": "/tangents/209790",
+          "before": -0.8565999865531921,
+          "after": -0.8565000295639038,
+          "delta": 0.00009995698928833008
+        },
+        {
+          "field": "/tangents/228052",
+          "before": 0.3440000116825104,
+          "after": 0.3440999984741211,
+          "delta": 0.00009998679161071777
+        },
+        {
+          "field": "/tangents/229706",
+          "before": 0.28679999709129333,
+          "after": 0.28690001368522644,
+          "delta": 0.00010001659393310547
+        }
+      ]
+    },
+    {
+      "tier": 1,
+      "changes": [
+        {
+          "field": "/tangents/18740",
+          "before": -0.5074999928474426,
+          "after": -0.5073999762535095,
+          "delta": 0.00010001659393310547
+        },
+        {
+          "field": "/tangents/96960",
+          "before": -0.430400013923645,
+          "after": -0.43050000071525574,
+          "delta": 0.00009998679161071777
+        },
+        {
+          "field": "/tangents/96961",
+          "before": 0.8518999814987183,
+          "after": 0.8518000245094299,
+          "delta": 0.00009995698928833008
+        },
+        {
+          "field": "/tangents/100325",
+          "before": 0.6761000156402588,
+          "after": 0.6759999990463257,
+          "delta": 0.00010001659393310547
+        },
+        {
+          "field": "/tangents/146240",
+          "before": 0.41679999232292175,
+          "after": 0.41670000553131104,
+          "delta": 0.00009998679161071777
+        },
+        {
+          "field": "/tangents/153973",
+          "before": -0.7595000267028809,
+          "after": -0.7595999836921692,
+          "delta": 0.00009995698928833008
+        },
+        {
+          "field": "/tangents/192385",
+          "before": -0.6018000245094299,
+          "after": -0.6017000079154968,
+          "delta": 0.00010001659393310547
+        },
+        {
+          "field": "/tangents/204656",
+          "before": 0.19979999959468842,
+          "after": 0.1996999979019165,
+          "delta": 0.00010000169277191162
+        },
+        {
+          "field": "/tangents/206880",
+          "before": 0.474700003862381,
+          "after": 0.4745999872684479,
+          "delta": 0.00010001659393310547
+        },
+        {
+          "field": "/tangents/209790",
+          "before": -0.8565999865531921,
+          "after": -0.8565000295639038,
+          "delta": 0.00009995698928833008
+        },
+        {
+          "field": "/tangents/228052",
+          "before": 0.3440000116825104,
+          "after": 0.3440999984741211,
+          "delta": 0.00009998679161071777
+        },
+        {
+          "field": "/tangents/229706",
+          "before": 0.28679999709129333,
+          "after": 0.28690001368522644,
+          "delta": 0.00010001659393310547
+        }
+      ]
+    },
+    {
+      "tier": 2,
+      "changes": [
+        {
+          "field": "/tangents/18740",
+          "before": -0.5074999928474426,
+          "after": -0.5073999762535095,
+          "delta": 0.00010001659393310547
+        },
+        {
+          "field": "/tangents/96960",
+          "before": -0.430400013923645,
+          "after": -0.43050000071525574,
+          "delta": 0.00009998679161071777
+        },
+        {
+          "field": "/tangents/96961",
+          "before": 0.8518999814987183,
+          "after": 0.8518000245094299,
+          "delta": 0.00009995698928833008
+        },
+        {
+          "field": "/tangents/100325",
+          "before": 0.6761000156402588,
+          "after": 0.6759999990463257,
+          "delta": 0.00010001659393310547
+        },
+        {
+          "field": "/tangents/146240",
+          "before": 0.41679999232292175,
+          "after": 0.41670000553131104,
+          "delta": 0.00009998679161071777
+        },
+        {
+          "field": "/tangents/153973",
+          "before": -0.7595000267028809,
+          "after": -0.7595999836921692,
+          "delta": 0.00009995698928833008
+        },
+        {
+          "field": "/tangents/192385",
+          "before": -0.6018000245094299,
+          "after": -0.6017000079154968,
+          "delta": 0.00010001659393310547
+        },
+        {
+          "field": "/tangents/204656",
+          "before": 0.19979999959468842,
+          "after": 0.1996999979019165,
+          "delta": 0.00010000169277191162
+        },
+        {
+          "field": "/tangents/206880",
+          "before": 0.474700003862381,
+          "after": 0.4745999872684479,
+          "delta": 0.00010001659393310547
+        },
+        {
+          "field": "/tangents/209790",
+          "before": -0.8565999865531921,
+          "after": -0.8565000295639038,
+          "delta": 0.00009995698928833008
+        },
+        {
+          "field": "/tangents/228052",
+          "before": 0.3440000116825104,
+          "after": 0.3440999984741211,
+          "delta": 0.00009998679161071777
+        },
+        {
+          "field": "/tangents/229706",
+          "before": 0.28679999709129333,
+          "after": 0.28690001368522644,
+          "delta": 0.00010001659393310547
+        }
+      ]
+    }
+  ],
+  "note": "Captured18 assets retained. Cleanup regeneration changes only listed tangent rounding scalars; no claim of byte-neutral GLB regeneration."
+}

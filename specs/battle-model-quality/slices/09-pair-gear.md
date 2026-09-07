@@ -12,6 +12,13 @@ garment, belt, sword/scabbard and footwear form the first recognizable candidate
 Mail surface finish belongs to10. No production promotion or accepted baseline
 is implied by this source-authoring checkpoint.
 
+The [worn-garment checkpoint](../assets/evidence/09/garment-form/review.md)
+records shared lining/mail construction, physically supported waist skinning and
+matched whole-soldier deformation evidence. It is a candidate direction, not
+equipment, budget or baseline acceptance. The
+[combined root review](../assets/evidence/09/combined-worn-garment/review.md)
+owns selective integration, current production captures and remaining defects.
+
 ## Contract and ownership
 
 Heavy sword and medium phalanx read as distinct roles through shape and attachments.

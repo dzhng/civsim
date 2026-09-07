@@ -12,10 +12,11 @@ Current pickup has independent authoring and measurement lanes:
 - **09 Blender equipment authoring:** fit a recognizable heavy swordsman to the
   provisional08 body/rig. The first equipped candidate is integrated through
   f5a57d1b plus the connected-garment working pass. The hand study is integrated
-  through54860ea2; actual weapon contacts and thin helmet plates are being fitted.
+  through54860ea2 and fuller limbs throughf3dbdd18; actual weapon contacts and
+  thin helmet plates are being fitted.
   Prioritize the whole heavy silhouette: shoulder slope, hanging garment hems,
   exposed limbs and broken contacts. The forearm-pronation proof is integrated
-  through18f1f182; re-bake the heavy kit and verify its original sheets stay intact.
+  through18f1f182; heavy refit captures now include the current body and garment weights.
   Candidate surface and equipped ready/walk authoring now run in separate lanes;
   the existing bend and pronation are fitting probes, not combat motion.
   Rounded lips remain the body source; eye relief/sphere trials were rejected.
@@ -45,6 +46,8 @@ Evidence ledger:
   roll recipe and its unresolved wrist/elbow form. [Heavy kit review](assets/evidence/09/heavy-kit-review.md) owns the first equipped
   Blender candidate and its unresolved garment/grip defects. The production
   catalog remains unchanged; no finished armor or motion clips are accepted.
+  [Current fitting evidence](assets/evidence/09/helmet-and-grip.md) owns thin
+  plates, garment slope, grip failures and the current body refit.
 
 Preserve sim/save/balance, exact interruption poses, atomic catalog replacement,
 the one production skin/material/environment path, and the existing temporal

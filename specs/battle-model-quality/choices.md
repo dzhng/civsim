@@ -937,6 +937,21 @@ Future palette consumers inherit one additional storage binding and two-buffer
 lifecycle accounting. This does not guarantee enough total memory, and passing
 the corrected workload will not by itself settle the whole art budget.
 
+### Transfer garment weights from a body surface, not a single vertex (09)
+
+**Sound; confidence: medium; provisional.** When a shirt vertex moves slightly
+during fitting, copying the closest body vertex can suddenly select a different
+bone mixture. The shirt now finds the nearest body triangle and blends its three
+corners' bone weights according to the contact point, then keeps four normalized
+influences. This makes nearby points on that triangle share a continuous field.
+
+The plan delegated garment attachment but did not prescribe transfer. This is
+an offline Blender authoring choice; the renderer still consumes the same skin
+format. It does not solve loose cloth between thighs, where the nearest body
+surface itself can change. Future walking and bending reviews must inspect that
+case; a dedicated authored garment weight field remains available if evidence
+requires it. No runtime cloth system or new simulation authority is introduced.
+
 ### Keep pronation on the existing forearm and scope exported actions to its rig (08)
 
 **Sound; confidence: medium; provisional.** When the soldier rolls a sword in his

@@ -10,7 +10,8 @@ from pathlib import Path
 
 import bpy
 import bmesh
-from mathutils import Vector, kdtree
+from mathutils import Vector, geometry
+from mathutils.bvhtree import BVHTree
 
 HERE = Path(__file__).resolve().parent
 spec = importlib.util.spec_from_file_location("anatomy", HERE / "blender-human-anatomy.py")
@@ -33,10 +34,10 @@ def build():
     arm = next(obj for obj in scene.objects if obj.type == "ARMATURE")
     material = body.data.materials[0]
     gear = []
-    nearest = kdtree.KDTree(len(body.data.vertices))
-    for vertex in body.data.vertices:
-        nearest.insert(vertex.co, vertex.index)
-    nearest.balance()
+    body.data.calc_loop_triangles()
+    triangles = [tuple(face.vertices) for face in body.data.loop_triangles]
+    nearest = BVHTree.FromPolygons([vertex.co for vertex in body.data.vertices],
+                                   triangles, all_triangles=True)
 
     def finish(obj, bone=None):
         bpy.ops.object.select_all(action="DESELECT")
@@ -54,9 +55,20 @@ def build():
         else:
             groups = {group.index: obj.vertex_groups.new(name=group.name) for group in body.vertex_groups}
             for vertex in obj.data.vertices:
-                _, index, _ = nearest.find(vertex.co)
-                for entry in body.data.vertices[index].groups:
-                    groups[entry.group].add([vertex.index], entry.weight, "REPLACE")
+                point, _, index, _ = nearest.find_nearest(vertex.co)
+                corners = [body.data.vertices[i] for i in triangles[index]]
+                # Interpolate the underlying skin instead of jumping to one nearest
+                # vertex as an authored garment moves across a joint's weight field.
+                blend = geometry.barycentric_transform(point, *(v.co for v in corners),
+                            Vector((1, 0, 0)), Vector((0, 1, 0)), Vector((0, 0, 1)))
+                weights = {}
+                for corner, fraction in zip(corners, blend):
+                    for entry in corner.groups:
+                        weights[entry.group] = weights.get(entry.group, 0) + entry.weight*max(0, fraction)
+                influences = sorted(weights.items(), key=lambda item: -item[1])[:4]
+                total = sum(weight for _, weight in influences)
+                for group, weight in influences:
+                    groups[group].add([vertex.index], weight/total, "REPLACE")
         obj.parent = arm
         obj.modifiers.new("Shared anatomy skeleton", "ARMATURE").object = arm
         gear.append(obj)
@@ -65,11 +77,51 @@ def build():
     def loft(name, rows, bone=None, segments=40, across=(1, 0, 0), depth=(0, 1, 0)):
         return finish(anatomy.loft(name, rows, segments, across, depth), bone)
 
+    def thin_surface(name, vertices, faces, bone=None, offset=-1):
+        mesh = bpy.data.meshes.new(name)
+        mesh.from_pydata(vertices, [], faces)
+        mesh.update()
+        obj = bpy.data.objects.new(name, mesh)
+        scene.collection.objects.link(obj)
+        bpy.ops.object.select_all(action="DESELECT")
+        obj.select_set(True)
+        bpy.context.view_layer.objects.active = obj
+        surface = bmesh.new()
+        surface.from_mesh(mesh)
+        bmesh.ops.delete(surface, geom=[v for v in surface.verts if not v.link_edges], context="VERTS")
+        bmesh.ops.recalc_face_normals(surface, faces=list(surface.faces))
+        surface.to_mesh(mesh)
+        surface.free()
+        subdivision = obj.modifiers.new("Curved surface", "SUBSURF")
+        subdivision.levels = 2
+        bpy.ops.object.modifier_apply(modifier=subdivision.name)
+        thickness = obj.modifiers.new("Physical edge thickness", "SOLIDIFY")
+        thickness.thickness = .003
+        thickness.offset = offset
+        bpy.ops.object.modifier_apply(modifier=thickness.name)
+        return finish(obj, bone)
+
     def garment(name, rows, sleeve_end):
         # Sew open sleeve loops into the torso, leaving real neck, cuff and hem openings.
         segments = 16
         vertices = [(w*math.cos(math.tau*j/segments), .005+d*math.sin(math.tau*j/segments), z)
                     for z, w, d in rows for j in range(segments)]
+        for i, (z, w, d) in enumerate(rows):
+            for j in range(segments):
+                angle = math.tau*j/segments
+                x, y, height = vertices[i*segments+j]
+                # Cloth follows the sloping shoulder rather than a level oval yoke.
+                if i == len(rows)-2:
+                    height -= .030*abs(math.cos(angle))**1.3
+                elif i == len(rows)-3:
+                    height -= .010*abs(math.cos(angle))**1.3
+                # Shallow hanging folds open below the belt; the hem remains an open edge.
+                hang = max(0, min(1, (1.04-z)/.22))
+                fold = .008*hang*math.cos(6*angle)
+                x += fold*math.cos(angle)
+                y += fold*math.sin(angle)
+                height += .004*hang*math.sin(4*angle)
+                vertices[i*segments+j] = (x, y, height)
         faces = []
         armhole_start = len(rows)-4
         for i in range(len(rows)-1):
@@ -102,35 +154,14 @@ def build():
                     k = (j+1)%len(ring)
                     faces.append((boundary[j], boundary[k], ring[k], ring[j]))
                 boundary = ring
-        mesh = bpy.data.meshes.new(name)
-        mesh.from_pydata(vertices, [], faces)
-        mesh.update()
-        obj = bpy.data.objects.new(name, mesh)
-        scene.collection.objects.link(obj)
-        bpy.ops.object.select_all(action="DESELECT")
-        obj.select_set(True)
-        bpy.context.view_layer.objects.active = obj
-        surface = bmesh.new()
-        surface.from_mesh(mesh)
-        bmesh.ops.delete(surface, geom=[v for v in surface.verts if not v.link_edges], context="VERTS")
-        bmesh.ops.recalc_face_normals(surface, faces=list(surface.faces))
-        surface.to_mesh(mesh)
-        surface.free()
-        subdivision = obj.modifiers.new("Tailored garment surface", "SUBSURF")
-        subdivision.levels = 2
-        bpy.ops.object.modifier_apply(modifier=subdivision.name)
-        thickness = obj.modifiers.new("Garment edge thickness", "SOLIDIFY")
-        thickness.thickness = .003
-        thickness.offset = -1
-        bpy.ops.object.modifier_apply(modifier=thickness.name)
-        return finish(obj)
+        return thin_surface(name, vertices, faces)
 
     # Separate cloth hem and overlying mail form; mail rings/finish belong to slice10.
-    garment("Tunic", [(.73, .231, .157), (.75, .230, .156), (.88, .213, .151),
+    garment("Tunic", [(.73, .212, .153), (.75, .212, .153), (.88, .207, .148),
             (1.05, .180, .128), (1.23, .203, .148), (1.34, .233, .160),
             (1.44, .247, .146), (1.505, .216, .097), (1.525, .071, .065)],
             [(.285, 1.315, .087), (.327, 1.250, .077), (.332, 1.243, .077)])
-    garment("Mail shirt", [(.855, .219, .158), (.87, .220, .160), (.95, .208, .157),
+    garment("Mail shirt", [(.855, .213, .158), (.87, .214, .160), (.95, .208, .157),
             (1.06, .189, .139), (1.23, .212, .159), (1.35, .244, .170),
             (1.45, .256, .156), (1.513, .226, .109), (1.535, .074, .069)],
             [(.273, 1.345, .096), (.298, 1.305, .092), (.302, 1.299, .092)])
@@ -145,16 +176,18 @@ def build():
              [((sign*.124, -.056, z), w, d) for z, w, d in
              [(.035, .065, .121), (.060, .061, .105), (.083, .046, .069), (.11, .035, .038)]], "foot." + side)
 
-    loft("Helmet bowl", [((0, .013, z), w, d) for z, w, d in
-         [(1.685, .095, .097), (1.72, .097, .10), (1.77, .083, .085),
+    loft("Helmet bowl and rolled edge", [((0, .013, z), w, d) for z, w, d in
+         [(1.680, .099, .104), (1.686, .103, .108), (1.694, .100, .105),
+          (1.701, .096, .100), (1.72, .097, .10), (1.77, .083, .085),
           (1.806, .054, .058), (1.822, .022, .025), (1.826, .004, .006)]], "head", 64)
-    loft("Helmet rolled rim", [((0, .013, z), w, d) for z, w, d in
-         [(1.68, .099, .104), (1.687, .103, .108), (1.697, .099, .104)]], "head", 64)
     for side, sign in [("L", 1), ("R", -1)]:
-        loft("Helmet cheek guard." + side,
-             [((sign*x, y, z), w, d) for x, y, z, w, d in
-              [(.078, -.041, 1.685, .016, .037), (.079, -.043, 1.654, .017, .040),
-               (.073, -.045, 1.62, .012, .032), (.064, -.042, 1.598, .004, .015)]], "head")
+        rows = [(1.690, .085, -.012, .040), (1.662, .077, -.029, .044),
+                (1.625, .060, -.033, .030), (1.607, .048, -.030, .012)]
+        vertices = [(sign*(x+.004*(1-v*v)), y+depth*v, z)
+                    for z, x, y, depth in rows for v in (-1, -.5, 0, .5, 1)]
+        faces = [(i*5+j, i*5+j+1, (i+1)*5+j+1, (i+1)*5+j)
+                 for i in range(len(rows)-1) for j in range(4)]
+        thin_surface("Helmet cheek plate." + side, vertices, faces, "head", offset=0)
 
     # An oval convex shield: section radius gives real curvature, not a flat disk.
     shield = anatomy.loft("Convex oval shield", [((.565, y, .93), w, h) for y, w, h in
@@ -165,15 +198,26 @@ def build():
     loft("Shield boss", [((.565, y, .93), r, r) for y, r in
          [(-.26, .075), (-.28, .075), (-.315, .053), (-.327, .009)]],
          "hand.L", across=(1, 0, 0), depth=(0, 0, 1))
-    loft("Shield handgrip", [((x, -.034, .925), .018, .018) for x in [.520, .605]],
-         "hand.L", 16, (0, 1, 0), (0, 0, 1))
-    # Sword axis crosses the provisional palm. Grip closure is separately judged.
-    loft("Sword grip", [((-.564, -.044, z), .017, .022) for z in [.858, .970]], "hand.R", 16)
-    loft("Sword pommel", [((-.564, -.044, z), w, w) for z, w in
-         [(.969, .020), (.984, .029), (1.002, .019)]], "hand.R", 24)
-    loft("Sword guard", [((-.564, -.044, z), .064, .025) for z in [.844, .860]], "hand.R", 24)
-    loft("Sword blade", [((-.564, -.044, z), w, d) for z, w, d in
-         [(.845, .033, .006), (.63, .029, .005), (.36, .036, .005), (.24, .001, .001)]], "hand.R", 4)
+    shield_grip = Vector((.5732, -.051, .9024))
+    shield_axis = Vector((.8, 0, .6))
+    loft("Shield handgrip", [(shield_grip + shield_axis*t, .017, .017) for t in [-.060, .060]],
+         "hand.L", 24, (0, 1, 0), shield_axis.cross(Vector((0, 1, 0))))
+    for t in (-.060, .060):
+        end = shield_grip + shield_axis*t
+        loft("Shield grip support", [((end.x, y, end.z), .012, .012) for y in [-.125, -.051]],
+             "hand.L", 16, (1, 0, 0), (0, 0, 1))
+    # Fit the cylinder across the finger curl; the inherited bend is not a combat pose.
+    sword_grip = Vector((-.5732, -.051, .9024))
+    sword_axis = Vector((.8, 0, -.6))
+    sword_width = sword_axis.cross(Vector((0, 1, 0)))
+    def sword_part(name, rows, segments=24):
+        return loft(name, [(sword_grip+sword_axis*t, width, depth) for t, width, depth in rows],
+                    "hand.R", segments, sword_width, (0, 1, 0))
+    sword_part("Sword grip", [(-.060, .017, .017), (.052, .017, .017)])
+    sword_part("Sword pommel", [(-.085, .018, .018), (-.073, .025, .022), (-.059, .020, .020)])
+    sword_part("Sword guard", [(.052, .054, .024), (.067, .054, .024)])
+    sword_part("Sword blade", [(.066, .033, .006), (.28, .029, .005),
+                               (.55, .036, .005), (.67, .001, .001)], 4)
     loft("Scabbard", [((-.21 - (1-z)*.10, .045, z), w, .022) for z, w in
          [(1.02, .045), (.99, .046), (.51, .039), (.42, .007)]], "pelvis", 24)
 

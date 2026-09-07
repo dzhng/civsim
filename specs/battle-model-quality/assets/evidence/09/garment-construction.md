@@ -72,3 +72,7 @@ a connected thin surface instead of joined solids, with no new persistent
 contract or runtime owner. Existing provisional garment-weight and candidate-only
 decisions remain unchanged. The source-only geometry diff is73 added/17 deleted
 lines; generated assets and review evidence account for the remaining paths.
+
+The current/earlier/reference set was opened in one Preview window for about
+five minutes, then closed without user feedback. The decision remains a retained
+working direction with the failures above, not assumed approval or acceptance.

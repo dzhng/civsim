@@ -1,0 +1,41 @@
+[
+  {
+    "frame": 0,
+    "inside": "HumanAnatomy-Deform",
+    "count": 0,
+    "worst": []
+  },
+  {
+    "frame": 0,
+    "inside": "Tunic",
+    "count": 0,
+    "worst": []
+  },
+  {
+    "frame": 30,
+    "inside": "HumanAnatomy-Deform",
+    "count": 0,
+    "worst": []
+  },
+  {
+    "frame": 30,
+    "inside": "Tunic",
+    "count": 1,
+    "worst": [
+      {
+        "vertex": 4698,
+        "point": [
+          -0.05765543505549431,
+          -0.12789049744606018,
+          0.786449670791626
+        ],
+        "bind": [
+          -0.05982719361782074,
+          -0.13988660275936127,
+          0.910378098487854
+        ],
+        "depth": 0.0013179425804992206
+      }
+    ]
+  }
+]

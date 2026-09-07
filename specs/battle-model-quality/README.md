@@ -9,8 +9,10 @@ authoring;12–30 pending.** Worktree: `/Users/david/dev/game-battle-model-quali
 branch `codex/battle-model-quality`. No detailed model or art envelope is accepted.
 
 Current pickup: **engine-faithful protected travel and live root/phase agreement**.
-Parallel active passes: fractional root/attached-overlay alignment and manual
-guarded-right authoring. Neither is accepted yet. The
+Active passes: protected directional selection and manual guarded-right integration.
+The root/attached-overlay candidate needs a new sampling policy: its numerical
+checks passed, but the matched live comparison rejected exaggerated contact
+excursions from unconditional extrapolation. Neither locomotion nor art is accepted. The
 [locomotion slice](slices/11-pair-locomotion.md) bounds their
 contracts; directional bindings follow them. No live appearance is promoted.
 

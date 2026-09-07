@@ -94,7 +94,19 @@ past travel or broadening the root-placement change.
 Keep live root smoothing as the next separate presentation contract—do not add
 a trajectory-reconstruction system or quietly claim this observation solves it.
 
-### Following bounded pass: one presentation clock for root and gait
+### Rejected candidate: endpoint extrapolation for root and gait
+
+The bounded implementation below passed its numerical contract but failed the
+matched live comparison. All256 chronological start/contact panels were reviewed
+by root and an independent unprimed critic. Unconditional prediction exaggerated
+close-contact corrections, notably frames11–13 and38–40, producing larger
+excursions and returns than the existing easing. The critic also preferred the
+old start sequence. No production change or baseline is accepted from this pass.
+Retain the underlying root/gait and attached-overlay requirements; reslice the
+sampling policy before another implementation. Delayed sampling must account for
+event history explicitly, not simply ask the latest timeline for an earlier time.
+
+Rejected policy, retained to explain the comparison:
 
 The current crowd advances gait at fractional simulation time while moving its
 root only at integer observations through residual-error easing. Thus feet can

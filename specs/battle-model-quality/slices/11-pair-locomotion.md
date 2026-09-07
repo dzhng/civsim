@@ -91,8 +91,10 @@ The combined heavy now has deterministic two-cycle world-travel frames and
 full-speed GIF derivatives, including its latest garment revision. Next judge
 full-loop rhythm and ground-relative contact; the completed sampled garment
 review does not establish those. Upper-body stiffness, joint shape,
-support contact, speed ramps, phalanx motion and transitions remain open. Ready
-is a static planted stance, not an accepted animated idle.
+support contact, speed ramps, phalanx motion and transitions remain open. The
+[combined motion source](../assets/evidence/11/composed-motion/review.md) now
+includes reviewed animated idle and ready loops; they remain provisional,
+not accepted final locomotion.
 
 The [prescribed world-travel smoke](../assets/evidence/11/heavy-travel/review.md)
 exposed the combined candidate facing opposite production travel. The

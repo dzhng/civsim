@@ -8,10 +8,11 @@ Last updated **2026-09-07**. **01–06 complete;07 envelope open;08–11 provisi
 authoring;12–30 pending.** Worktree: `/Users/david/dev/game-battle-model-quality`,
 branch `codex/battle-model-quality`. No detailed model or art envelope is accepted.
 
-Current pickup: **combine reviewed heavy motion sources, then author engine-faithful
-protected travel and medium march**. The [carry integration](assets/evidence/11/carry-integration/review.md)
-is committed with its reviewed editable source and exact travel images; the
-merged-tree heavy-kit bake check passes. No live appearance is promoted. The
+Current pickup: **distance-driven playback, protected travel, and relaxed medium
+march**. The [combined heavy motion](assets/evidence/11/composed-motion/review.md)
+is integrated and independently verified on the merged tree. Its one source recipe
+preserves fitted geometry and composes idle, ready, and run without accumulating
+offsets on repeated authoring. No live appearance is promoted. The
 [carry-fit study](assets/evidence/11/carry-fit/review.md) records the rejected
 support attachments and current provisional fit. Prioritize whole-soldier
 proportions, equipment silhouette and full-body motion. David
@@ -45,37 +46,22 @@ branch. They permit posture selection, not a claim that displacement is a
 voluntary step; shove-aware gait still needs evidence.
 
 Priority order:
-- **Shared hand (detail work paused):** preserve the coherent open-hand studies in
-  `/Users/david/dev/game-heavy-hand-form`; the old experimental finger controls
-  are not a user requirement. The reference-led `hand-thumb-study` improves the
-  open palm/segment hierarchy but remains provisional. An offline closure copy
-  tests that form around actual shaft dimensions; its failures inform future anatomy
-  without accepting it or replacing the frozen open control. Both open and closed
-  form must pass before grafting. Do not continue isolated anatomical refinement
-  ahead of whole-model silhouette and motion. Correct the canonical wrist/grip
-  orientation independently, checking the sword, elbow and full arm together. Retain the
-  canonical body/hands until a replacement passes. The
-  [closed-hand rejection](assets/evidence/08/rejected-metacarpal-grip/review.md)
-  and [connected-hand rejection](assets/evidence/08/rejected-connected-hand/review.md)
-  explain why connectivity and collision counts alone cannot accept a grasp.
-- **Heavy locomotion:** [support/recovery comparison](assets/evidence/11/heavy-contact-recovery/review.md)
-  retains a better rear-leg recovery and reduced measured support drift.
-  The newer [sword-carriage revision](assets/evidence/11/run-sword-carriage/review.md)
-  has exact prototype/integrated travel images and a favorable focused critique;
-  its full integrated regression repeats all150 snapshots exactly. Both are intermediate
-  candidates, not finished motion. Slight floor
-  penetration, cautious torso/arm motion, speed
-  ramps, animated idle and phalanx locomotion remain open. Preserve the combined
-  kit when updating clips; never overwrite it with a frozen older motion study.
-  The [whole-body run](assets/evidence/11/wholebody-run/review.md) supersedes the
-  marginal trunk-only studies: direct and fresh review prefer its recovery and
-  body participation, with restrained upper motion and exaggerated rear shin
-  still open. Combine that reviewed run with the
-  [idle breathing](assets/evidence/11/heavy-idle/review.md) and
-  [supported ready stance](assets/evidence/11/heavy-ready-stance/review.md),
-  preserving exact fitted geometry and unrelated clips. Their recipes/evidence
-  are integrated; combined-source capture is next. Repeated authoring must not
-  add run-arm offsets again. Medium ordinary march is being authored separately.
+- **Engine-faithful locomotion:** implement measured-distance gait and protected
+  travel without changing engine movement or combat timing. Preserve the
+  [combined motion source](assets/evidence/11/composed-motion/review.md) and its
+  unrelated clips; do not repeat composition or overwrite fitted geometry from
+  an older study. Upper-body weight response, ground contact and transitions
+  remain open. The [locomotion slice](slices/11-pair-locomotion.md) owns acceptance.
+- **Medium ordinary march:** the isolated load-response revision improves
+  clearance, but fresh comparison judged its naturalness equal, not better.
+  Lower the rigid cross-chest carrying posture before claiming that issue resolved;
+  retain two-hand purchase, flank shield, and unchanged pike length.
+- **Shared hand detail stays paused:** preserve studies in
+  `/Users/david/dev/game-heavy-hand-form` without grafting them into the current
+  soldier. Basic handedness is required; finger refinement must not displace
+  whole-body work. The [closure](assets/evidence/08/rejected-metacarpal-grip/review.md)
+  and [connected-hand](assets/evidence/08/rejected-connected-hand/review.md) rejections
+  explain why connected geometry and collision counts do not prove a grasp.
 - **Medium equipment/surfaces:** retain the fitted sleeveless under-tunic as
   provisional, not an anatomy fix. Review exposed axilla, actual cloth edges,
   both grips, shield and sidearm after carry changes. Fit armor/waist to the

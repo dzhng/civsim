@@ -101,6 +101,19 @@ after hash: 80 unchanged, 71 intentionally updated (seven sheets and 64 run
 travel frames), and 124 new stationary frames. Review-only GIFs include
 [idle](idle-side.gif) and [ready](ready-side.gif).
 
+Independent merged-tree verification at commit `401744a8`, completed
+2026-09-07 16:36 UTC, also passed all 1,357 checks and 275 snapshots with no
+update flag or differing pixels. The production route was
+`http://localhost:5174`, using bundled Chromium/SwiftShader; the raw report is
+[merged-root-full.json](merged-root-full.json). The bake check, all 13 bake test
+files, and web typecheck separately passed on that merged tree.
+
+The non-blocking Preview checkpoint showed ready, formation, and the medium
+march grip alongside ongoing work. After more than five minutes without a
+visual verdict, Preview was closed and work proceeded on the recorded evidence:
+retain the heavy composition as a provisional integration, not final art or
+user approval. The medium comparison did not earn naturalness acceptance.
+
 ## Review and choices
 
 The root agent independently reviewed the composition and harness. Naming and

@@ -90,6 +90,8 @@ Independent authoring and measurement lanes:
   all temporal images and reduces repeated allocations; its mixed timing does
   not pass the envelope.07 still gates
   08/09 acceptance, not editable source authoring.
+  The [base packing checkpoint](assets/evidence/07/settled-base-packing.md)
+  preserves exact CPU controls; browser and hardware integration checks remain pending.
 
 Evidence ledger:
 - [Focused capture selection](assets/evidence/01/candidate-filter/review.md) keeps

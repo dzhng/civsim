@@ -92,6 +92,94 @@ const playback = (locals: readonly number[]): SoldierPlayback => ({
   },
 });
 
+test("shared base endpoints encode the same complete frame as independent samples", () => {
+  const keyedRig = structuredClone(rig);
+  keyedRig.clips[0].tracks[0].T = {
+    times: [0, 0.25, 1],
+    values: [0, 0, 0, 0.5, 0, 0, 2, 0, 0],
+    interpolation: "STEP",
+  };
+  const animation = bakeLocalAnimation(keyedRig);
+  const shared = new PlaybackPacker(keyedRig, animation);
+  const separate = new PlaybackPacker(keyedRig, animation);
+  for (const phase of [-1, -0, 0.25 - Number.EPSILON, 0.25, 0.25 + Number.EPSILON, 1, 2]) {
+    const sample = { clip: "move", phase };
+    for (const weight of [0, 0.5, 1]) {
+      const values: SoldierPlayback[] = [
+        {
+          appearanceId: 0,
+          base: { source: { kind: "clip", sample }, destination: sample, weight },
+        },
+        playback(frozen(3)),
+      ];
+      values[0].riderUpperBody = {
+        source: { kind: "frozen", locals: frozen(7) },
+        destination: weight === 1 ? { kind: "base" } : { clip: "move", phase: 0.75 },
+        weight,
+      };
+      const distinct = values.map((value) => ({
+        ...value,
+        base: { ...value.base, destination: { ...value.base.destination } },
+      }));
+      const actual = shared.prepare(
+        values.length,
+        (i) => values[i],
+        () => 17,
+      );
+      const expected = separate.prepare(
+        distinct.length,
+        (i) => distinct[i],
+        () => 17,
+      );
+      assert.deepEqual(actual, expected);
+      shared.commitPrepared(actual);
+      separate.commitPrepared(expected);
+    }
+  }
+});
+
+test("invalid shared endpoints reject preparation without losing committed frozen sources", () => {
+  const animation = bakeLocalAnimation(rig);
+  const packer = new PlaybackPacker(rig, animation);
+  const retained = playback(frozen(3));
+  const initial = packer.prepare(
+    1,
+    () => retained,
+    () => 0,
+  );
+  const bank = new Map(initial.uploads.map(({ slot, data }) => [slot, data]));
+  packer.commitPrepared(initial);
+  for (const [clip, phase, weight, error] of [
+    ["missing", 0, 1, /missing local clip/],
+    ["move", NaN, 1, /phase must be finite/],
+    ["move", Infinity, 1, /phase must be finite/],
+    ["move", 0, NaN, /blend weight/],
+  ] as const) {
+    const sample = { clip, phase };
+    const invalid: SoldierPlayback = {
+      appearanceId: 0,
+      base: { source: { kind: "clip", sample }, destination: sample, weight },
+    };
+    assert.throws(
+      () =>
+        packer.prepare(
+          2,
+          (i) => (i === 0 ? retained : invalid),
+          () => 0,
+        ),
+      error,
+    );
+    const retry = packer.prepare(
+      1,
+      () => retained,
+      () => 0,
+    );
+    assert.deepEqual(retry.uploads, []);
+    assert.equal(decodeRecord(animation, retry.controls, bank, [], 0)[0], 2.5);
+    packer.commitPrepared(retry);
+  }
+});
+
 test("caller-owned control storage preserves exact words across mounted exit, shrink and retry", () => {
   const animation = bakeLocalAnimation(rig);
   const packer = new PlaybackPacker(rig, animation);

@@ -113,7 +113,15 @@ export class PlaybackPacker {
       let flags = playback.base.source.kind === "frozen" ? PLAYBACK_BASE_FROZEN : 0;
       weight(playback.base.weight, offset + PLAYBACK_HEADER_BASE_WEIGHT);
       source(playback.base.source, offset + PLAYBACK_BASE_SOURCE);
-      clip(playback.base.destination, offset + PLAYBACK_BASE_DESTINATION);
+      // Settled timeline lanes share the endpoint object; preserve its encoded bits.
+      if (
+        playback.base.source.kind === "clip" &&
+        playback.base.source.sample === playback.base.destination
+      )
+        for (let word = 0; word < 4; word++)
+          controls[offset + PLAYBACK_BASE_DESTINATION + word] =
+            controls[offset + PLAYBACK_BASE_SOURCE + word];
+      else clip(playback.base.destination, offset + PLAYBACK_BASE_DESTINATION);
       const upper = playback.riderUpperBody;
       if (upper) {
         const upperMaskOffset = upperMaskOffsetAt(index);

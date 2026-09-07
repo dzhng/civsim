@@ -57,7 +57,8 @@ API seam: Authored clips on shared human rig → clip registry and timeline; str
 
 [Implementation evidence](../assets/evidence/11/motor-capable-travel/review.md)
 records actual native/bulk/production consumer tests and unchanged playback images.
-Root merged gates are underway; this is not locomotion-art acceptance.
+Independent merged CPU, simulation/save and exact-image gates pass; this is not
+locomotion-art acceptance.
 
 The engine can skip movement because a body is stunned or bowled, then decrement
 that timer to zero before the browser reads it. Final posture cannot classify the

@@ -76,8 +76,9 @@ is proved by the native/bulk and production CPU consumer tests above.
 Merged root `e879fb47` rebuilt its own WASM (terminal2562, exit0) and independently
 passed all343 web tests and typecheck (21633),13 simulation library tests plus5
 travel tests,6 Game tests, the unchanged golden hash and campaign save round-trip
-(31380). Both test terminals exited0. Merged browser repeat is queued separately;
-the implementing-worktree image result above is not relabelled as that repeat.
+(31380). Both test terminals exited0. The independent merged browser repeat
+(75161, exit0) passes [619 checks and40 exact snapshots](merged-root.json), with
+zero failures or page errors on bundled Chromium/SwiftShader. No baseline changed.
 
 ## Change ledger
 

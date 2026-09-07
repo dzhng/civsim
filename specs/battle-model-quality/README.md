@@ -22,8 +22,8 @@ combat remains time-driven. Numerical comparison and reference shadow-history
 corrections preserve exact same-input image repeatability.
 [Motor-capable travel](assets/evidence/11/motor-capable-travel/review.md) is now
 integrated: disabled transport does not advance measured gait distance, while
-enabled recovery and routing do. Its implementing-worktree gates pass; merged
-gates are underway. Live root/phase agreement and prospective disabled/protected
+enabled recovery and routing do. Independent merged CPU, simulation/save and
+exact-image gates pass. Live root/phase agreement and prospective disabled/protected
 pose selection remain explicit acceptance gaps.
 The
 [carry-fit study](assets/evidence/11/carry-fit/review.md) records the rejected
@@ -58,8 +58,8 @@ branch. They permit posture selection, not a claim that displacement is a
 voluntary step; shove-aware gait still needs evidence.
 
 Priority order:
-- **Engine-faithful locomotion:** finish merged travel-observation checks, then
-  align fractional root placement with gait and bind protected travel without
+- **Engine-faithful locomotion:** align fractional root placement with gait,
+  stop prospective gait while disabled, then bind protected travel without
   changing engine movement or combat timing. Preserve the
   [combined motion source](assets/evidence/11/composed-motion/review.md) and its
   unrelated clips; do not repeat composition or overwrite fitted geometry from

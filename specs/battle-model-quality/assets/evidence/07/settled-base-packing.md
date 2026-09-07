@@ -30,3 +30,12 @@ The configured CLI review failed because Codex0.144.4 cannot run the configured
 model; the parent supplied the read-only fallback. The implementation makes no
 architectural choice beyond the explicitly
 delegated exact endpoint reuse; test-case selection is local verification discretion.
+
+Integration at `bd0560ff` independently repeated all51 focused tests and the full
+TypeScript check successfully on the main feature worktree. The focused command is
+`bun run --cwd web test tests/playbackPacking.test.ts tests/actionTimeline.test.ts tests/actionTimelineMounted.test.ts tests/rawPosePalette.test.ts tests/battleModelReplay.test.ts`.
+An initial direct Node invocation did not load the project's Vitest aliases and
+failed before executing tests; it is not a behavioral failure or passing evidence.
+The repository's configured runner required no source or environment changes.
+Browser and hardware results remain pending; the first-pair art capture has GPU
+priority. The separate in-progress Blender motion diff was not part of this commit.

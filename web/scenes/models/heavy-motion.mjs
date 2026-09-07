@@ -4,7 +4,11 @@ const details = [
   { name: "ready", poses: [["ready", 0, "ready"]] },
   {
     name: "walk-frames",
-    poses: Array.from({ length: 31 }, (_, i) => [`walk frame ${i}`, i / 30, "walk"]),
+    poses: Array.from({ length: 28 }, (_, i) => [`walk frame ${i}`, i / 27, "walk"]),
+  },
+  {
+    name: "run-frames",
+    poses: Array.from({ length: 25 }, (_, i) => [`run frame ${i}`, i / 24, "run"]),
   },
 ].map((camera) => ({
   ...camera,
@@ -26,7 +30,7 @@ export const meta = {
   tier: "full",
   snapshots: candidateSnapshots("heavy-motion", details),
   describe:
-    "Frozen equipped heavy ready/walk studies; inspection clips and static geometry remain unchanged.",
+    "Frozen equipped heavy ready/walk/run studies; inspection clips and static geometry remain unchanged.",
 };
 
 export async function run(ctx) {

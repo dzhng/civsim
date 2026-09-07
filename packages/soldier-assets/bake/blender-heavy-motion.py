@@ -1,4 +1,4 @@
-"""Original equipped-heavy ready/walk keyframes; no runtime IK or sim changes."""
+"""Original equipped-heavy locomotion keys; no runtime IK or sim changes."""
 import argparse
 import hashlib
 import importlib.util
@@ -42,7 +42,7 @@ def cycle_value(keys, phase):
 
 
 def author_motion(arm, scene):
-    """Key a slow loaded stride on the fixed rig; retain all inspection actions."""
+    """Key loaded locomotion on the fixed rig; retain all inspection actions."""
     active = arm.animation_data.action
     if active and not any(track.strips[0].action == active for track in arm.animation_data.nla_tracks):
         track = arm.animation_data.nla_tracks.new()
@@ -62,7 +62,7 @@ def author_motion(arm, scene):
              for side in ("L", "R")}
     for clip, walking in (("ready", False), ("walk", True)):
         arm.animation_data.action = None
-        cycle_frames = 30 if walking else 36
+        cycle_frames = 27 if walking else 36
         for frame in range(cycle_frames+1):
             phase = frame / cycle_frames
             for bone in arm.pose.bones:
@@ -71,17 +71,19 @@ def author_motion(arm, scene):
                 bone.location = (0, 0, 0)
             sway = math.sin(math.tau*phase) if walking else 0
             arm.pose.bones["spine"].rotation_euler.x = .035
+            arm.pose.bones["spine"].rotation_euler.z = .035*sway
             arm.pose.bones["chest"].rotation_euler.y = .025*sway
+            arm.pose.bones["chest"].rotation_euler.z = -.07*sway
             bpy.context.view_layer.update()
             for side, sign in (("R", -1), ("L", 1)):
                 step = (phase + (0 if side == "R" else .5)) % 1
                 swing = max(0, (step-.5)*2)
                 knee = cycle_value(((0,.10),(.08,.27),(.25,.10),(.35,.10),
-                                    (.50,.67),(.65,.95),(.80,.65),(1,.10)), step) if walking else .10
-                roll = cycle_value(((0,-.25),(.10,0),(.35,0),(.50,.30),
-                                    (.65,-.15),(.85,-.15),(1,-.25)), step) if walking else 0
-                # 0.765m steps at 120 steps/min match the current heavy march
-                # target: 1.7m/s base pace × 0.9 class multiplier = 1.53m/s.
+                                    (.50,.80),(.65,1.0),(.80,.65),(1,.10)), step) if walking else .10
+                roll = cycle_value(((0,-.25),(.10,0),(.35,0),(.50,.45),
+                                    (.65,.20),(.85,-.15),(1,-.25)), step) if walking else 0
+                # 0.765m steps in a .9s cycle target the class-independent
+                # 1.7m/s walk floor. Class pace scales only the ABOVE-walk range.
                 stride = (-.3825+1.53*step if step < .5 else .3825*math.cos(math.pi*swing)) if walking else 0
                 heel = max(soles[side].data.vertices, key=lambda v:v.co.y).co
                 toe = min(soles[side].data.vertices, key=lambda v:v.co.y).co
@@ -99,9 +101,9 @@ def author_motion(arm, scene):
                 foot = arm.data.bones["foot."+side].matrix_local.to_quaternion()
                 foot = Matrix.Rotation(roll, 3, "X").to_quaternion() @ foot
                 orient(arm, "foot."+side, foot)
-                aim(arm, "upper-arm."+side, (sign*(.12 if side == "R" else .42), -.10, -1))
+                aim(arm, "upper-arm."+side, (sign*(.12 if side == "R" else .42), -.10+.07*sway*sign, -1))
                 aim(arm, "forearm."+side,
-                    (sign*.15, -.72+.04*sway if side == "R" else -.30, -.65 if side == "R" else -.95),
+                    (sign*.15, (-.72 if side == "R" else -.30)+.08*sway*sign, -.65 if side == "R" else -.95),
                     math.pi/2 if side == "R" else 0)
                 helper = arm.pose.bones["elbow-volume."+side]
                 base = helper.parent.matrix @ helper.parent.bone.matrix_local.inverted() @ helper.bone.matrix_local
@@ -138,6 +140,92 @@ def author_motion(arm, scene):
                             key.interpolation = "LINEAR"
     arm.animation_data.action = bpy.data.actions["ready"]
     arm.animation_data.action_slot = arm.animation_data.action.slots[0]
+    scene.frame_set(0)
+    author_run(arm, scene)
+
+
+def author_run(arm, scene):
+    """A fresh unimpeded heavy runs at 1.7+(3.4-1.7)*.9 = 3.23m/s."""
+    for track in list(arm.animation_data.nla_tracks):
+        action = track.strips[0].action
+        if action.get("author") == "heavy-run":
+            arm.animation_data.nla_tracks.remove(track)
+            if arm.animation_data.action == action:
+                arm.animation_data.action = None
+            bpy.data.actions.remove(action)
+    if "run" in bpy.data.actions:
+        raise RuntimeError("Unrelated run action exists; use an isolated source scene")
+    soles = {side: next(o for o in scene.objects if o.name == "Sandal sole."+side)
+             for side in ("L", "R")}
+    arm.animation_data.action = None
+    for frame in range(25):
+        phase = frame/24
+        for bone in arm.pose.bones:
+            bone.rotation_mode = "XYZ"
+            bone.rotation_euler = (0,0,0)
+            bone.location = (0,0,0)
+        arm.pose.bones["spine"].rotation_euler.x = .20
+        arm.pose.bones["spine"].rotation_euler.z = .055*math.sin(math.tau*phase)
+        arm.pose.bones["chest"].rotation_euler.y = .055*math.sin(math.tau*phase)
+        arm.pose.bones["chest"].rotation_euler.z = -.11*math.sin(math.tau*phase)
+        bpy.context.view_layer.update()
+        minimum = {}
+        for side, sign in (("R",-1),("L",1)):
+            step = (phase+(0 if side == "R" else .5))%1
+            knee = cycle_value(((0,.30),(.12,.68),(.28,.34),(.35,.30),
+                                (.50,1.35),(.70,1.15),(.90,.45),(1,.30)),step)
+            roll = cycle_value(((0,-.10),(.08,0),(.22,0),(.35,.60),
+                                (.50,.55),(.72,-.22),(1,-.10)),step)
+            # .8s cycle / 150 steps per minute. Each .28s support interval
+            # travels .9044m backward relative to the unchanged runtime root.
+            stride = -.4522+3.23*.8*step if step<.35 else .4522*math.cos(math.pi*(step-.35)/.65)
+            heel = max(soles[side].data.vertices,key=lambda v:v.co.y).co
+            toe = min(soles[side].data.vertices,key=lambda v:v.co.y).co
+            pivot = toe.lerp(heel,.5+.5*math.cos(math.pi*min(step/.35,1)))-arm.data.bones["foot."+side].head_local
+            stride -= (Matrix.Rotation(roll,3,"X")@pivot-pivot).y
+            upper,lower=arm.data.bones["thigh."+side].length,arm.data.bones["shin."+side].length
+            reach=math.hypot(upper+lower*math.cos(knee),lower*math.sin(knee))
+            thigh=math.asin(stride/reach)-math.atan2(lower*math.sin(knee),upper+lower*math.cos(knee))
+            arm.pose.bones["thigh."+side].rotation_euler.x=thigh
+            arm.pose.bones["shin."+side].rotation_euler.x=knee
+            arm.pose.bones["knee-volume."+side].rotation_euler.x=knee/2
+            bpy.context.view_layer.update()
+            orient(arm,"foot."+side,Matrix.Rotation(roll,3,"X").to_quaternion()@arm.data.bones["foot."+side].matrix_local.to_quaternion())
+            sway=math.sin(math.tau*phase)*sign
+            aim(arm,"upper-arm."+side,(sign*.20,-.16+.14*sway,-1))
+            aim(arm,"forearm."+side,(sign*.15,-.85+.13*sway,-.5 if side=="R" else -.80),math.pi/2 if side=="R" else 0)
+            helper=arm.pose.bones["elbow-volume."+side]
+            base=helper.parent.matrix@helper.parent.bone.matrix_local.inverted()@helper.bone.matrix_local
+            orient(arm,helper.name,base.to_quaternion().slerp(arm.pose.bones["forearm."+side].matrix.to_quaternion(),.5))
+            foot=arm.pose.bones["foot."+side]
+            transform=foot.matrix@foot.bone.matrix_local.inverted()
+            minimum[side] = min((transform@v.co).z for v in soles[side].data.vertices)
+        half=phase%.5
+        clearance=.035*math.sin(math.pi*(half-.35)/.15) if half>.35 else 0
+        pelvis=arm.pose.bones["pelvis"]
+        offset = -min(minimum.values())+clearance
+        support = "R" if phase % 1 < .5 else "L"
+        if half <= .35 and abs(minimum[support]+offset) > .0001:
+            raise RuntimeError(f"Run frame {frame}: intended support foot is not grounded")
+        if any(height+offset < -.0001 for height in minimum.values()):
+            raise RuntimeError(f"Run frame {frame}: sole penetrates ground")
+        pelvis.location=pelvis.bone.matrix_local.to_3x3().inverted()@Vector((0,0,offset))
+        for bone in arm.pose.bones:
+            bone.keyframe_insert("rotation_euler",frame=frame)
+            bone.keyframe_insert("location",frame=frame)
+    action=arm.animation_data.action
+    action.name,action["author"]="run","heavy-run"
+    track=arm.animation_data.nla_tracks.new()
+    track.name,track.mute="run",True
+    strip=track.strips.new("run",0,action)
+    strip.action_slot=action.slots[0]
+    for layer in action.layers:
+        for strip in layer.strips:
+            for bag in strip.channelbags:
+                for curve in bag.fcurves:
+                    for key in curve.keyframe_points:key.interpolation="LINEAR"
+    arm.animation_data.action=bpy.data.actions["ready"]
+    arm.animation_data.action_slot=arm.animation_data.action.slots[0]
     scene.frame_set(0)
 
 

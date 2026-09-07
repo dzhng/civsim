@@ -13,7 +13,7 @@ const bundle = bakeAppearance({
   name: "heavy-motion",
   mounted: false,
   tiers: [source, source, source],
-  loopClips: ["ready", "walk"],
+  loopClips: ["ready", "walk", "run"],
   presentation: null,
 });
 const files = { "catalog.json": { appearances: { 0: "heavy/appearance.json" } } };

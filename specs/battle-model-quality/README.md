@@ -8,19 +8,17 @@ Last updated **2026-09-07**. **01–06 complete;07 envelope open;08 candidate au
 Worktree: `/Users/david/dev/game-battle-model-quality`, branch
 `codex/battle-model-quality`. No art envelope or detailed model is accepted.
 
-Current pickup: **refit and review the helmet on the new head**, composing
-the independently authored mail surfaces. Next address the whole worn upper-body
-garment, then actual grips and arm deformation; defer further isolated face detail.
-A fresh maintenance review identified the T-shirt-like torso and rigid cuffs as
-the dominant whole-model limitation. Root has integrated head checkpoint
-`53d5c746` and rebuilt the heavy candidate; the combined head/helmet is not yet
-visually accepted. A sampled source probe finds bowl and cheek-plate/head
-intersections. Separate helmet authoring must distinguish the bowl's capped
-construction from visible rim/plate penetration and replace the faulty surfaces.
+Current pickup: **finish the whole worn upper-body garment**, then actual grips
+and arm deformation; defer further isolated face detail. The T-shirt-like torso,
+rigid cuffs and hoop-like fingers remain the dominant limitations. The
+[combined helmet](assets/evidence/09/combined-helmet/review.md) retains a smaller
+open bowl and curved guards on the integrated head and locally baked mail.
+Its fitting improvement does not accept the whole model or close08/09.
 
 Independent authoring and measurement lanes:
 - **08–11 whole heavy:** preserve the current garments, loaded walk/run, footwear,
-  corrected shield carry and suspended scabbard while fitting the new head.
+  corrected shield carry, suspended scabbard and refitted helmet while revising
+  the garment and hands.
   [Scabbard review](assets/evidence/09/scabbard-suspension/review.md),
   [garment review](assets/evidence/09/combined-garments/review.md) and
   [footwear/carry review](assets/evidence/11/combined-footwear-shield/review.md)
@@ -31,7 +29,7 @@ Independent authoring and measurement lanes:
   proportions, hands, joints, eye/lid form and the rear neck junction remain open.
   Clothing cannot establish anatomy acceptance.
 - **09/10 equipment and surfaces:** [combined mail](assets/evidence/10/combined-mail/review.md)
-  is retained through `7f755129`. Helmet fitting and whole-garment form now
+  is retained through `7f755129`. Whole-garment form and local hand reconstruction
   proceed in separate worktrees. Rear suspension straps, rigid linen cuffs,
   hanging garment, underarms and grips remain open. Review the whole-heavy
   silhouette before propagating conventions to medium phalanx. The

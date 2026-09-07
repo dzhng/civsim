@@ -67,7 +67,8 @@ Heavy infantry has an editable Blender kit and production-rendered candidate
 sheets. It remains **unaccepted**. The retained suspended scabbard is documented
 in its [focused review](../assets/evidence/09/scabbard-suspension/review.md);
 thin rear straps remain open but are not the next dominant silhouette problem.
-First refit the helmet to the new head. Then author the upper-body garment as
+The [combined helmet refit](../assets/evidence/09/combined-helmet/review.md)
+replaces the closed bowl and buried plates on the integrated head. Author the upper-body garment as
 one coherent worn assembly: shoulder coverage, neckline, underarms, sleeve ends
 and hanging hem. The whole soldier must improve visibly, not only a detail crop.
 Follow with actual sword/shield grips and bent/pronated arm deformation before

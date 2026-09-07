@@ -261,18 +261,44 @@ def build():
             thin_surface(f"Sandal heel riser {edge_sign}.{side}", vertices, faces,
                          "foot."+side, offset=0)
 
-    loft("Helmet bowl and rolled edge", [((0, .013, z), w, d) for z, w, d in
-         [(1.680, .099, .104), (1.686, .103, .108), (1.694, .100, .105),
-          (1.701, .096, .100), (1.72, .097, .10), (1.77, .083, .085),
-          (1.806, .054, .058), (1.822, .022, .025), (1.826, .004, .006)]], "head", 64)
+    def fit_helmet(mesh, clearance=.006):
+        # Allow padding between the fixed head and the inside of the metal shell.
+        for vertex in mesh.vertices:
+            point, normal, _, _ = nearest.find_nearest(vertex.co)
+            if (vertex.co-point).dot(normal) < clearance:
+                vertex.co = point+normal*clearance
+
+    rows = [(1.695, .089, .101), (1.698, .091, .103), (1.702, .088, .100),
+            (1.707, .086, .098), (1.727, .085, .097), (1.756, .075, .086),
+            (1.780, .052, .063), (1.797, .017, .023)]
+    segments = 32
+    vertices = [(w*math.cos(math.tau*j/segments), .013+d*math.sin(math.tau*j/segments), z)
+                for z, w, d in rows for j in range(segments)]
+    faces = [(i*segments+j, i*segments+(j+1)%segments,
+              (i+1)*segments+(j+1)%segments, (i+1)*segments+j)
+             for i in range(len(rows)-1) for j in range(segments)]
+    # Close the crown only. Solidify makes an annular rim, never a disk through the head.
+    faces.append(tuple(range((len(rows)-1)*segments, len(rows)*segments)))
+    thin_surface("Helmet bowl and rolled edge", vertices, faces, "head", fit=fit_helmet,
+                 subdivision_levels=1)
     for side, sign in [("L", 1), ("R", -1)]:
-        rows = [(1.690, .085, -.012, .040), (1.662, .077, -.029, .044),
-                (1.625, .060, -.033, .030), (1.607, .048, -.030, .012)]
-        vertices = [(sign*(x+.004*(1-v*v)), y+depth*v, z)
-                    for z, x, y, depth in rows for v in (-1, -.5, 0, .5, 1)]
+        rows = [(1.696, .082, -.030, .032), (1.686, .082, -.030, .033),
+                (1.662, .076, -.034, .032), (1.625, .062, -.036, .025),
+                (1.610, .055, -.030, .010)]
+        vertices = []
+        for z, x, y, depth in rows:
+            for v in (-1, -.5, 0, .5, 1):
+                forward = y+depth*v
+                width = x+.004*(1-v*v)
+                # Wrap the attachment under the oval rim instead of projecting
+                # a flat plate's upper corners outside the bowl.
+                wrap = max(0, min(1, (z-1.680)/.016))
+                width *= 1-wrap+wrap*math.sqrt(1-((forward-.013)/.101)**2)
+                vertices.append((sign*width, forward, z))
         faces = [(i*5+j, i*5+j+1, (i+1)*5+j+1, (i+1)*5+j)
                  for i in range(len(rows)-1) for j in range(4)]
-        thin_surface("Helmet cheek plate." + side, vertices, faces, "head", offset=0)
+        thin_surface("Helmet cheek plate." + side, vertices, faces, "head", offset=0,
+                     fit=lambda mesh: fit_helmet(mesh, .003))
 
     # An oval convex shield: section radius gives real curvature, not a flat disk.
     shield = anatomy.loft("Convex oval shield", [((.565, y, .93), w, h) for y, w, h in

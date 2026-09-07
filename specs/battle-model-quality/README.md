@@ -8,8 +8,10 @@ Last updated **2026-09-07**. **01–06 complete;07 envelope open;08–11 provisi
 authoring;12–30 pending.** Worktree: `/Users/david/dev/game-battle-model-quality`,
 branch `codex/battle-model-quality`. No detailed model or art envelope is accepted.
 
-Current pickup: **integrate the provisional carry source cleanly, then improve
-loaded whole-body motion and author protected travel**. The
+Current pickup: **improve loaded whole-body motion and author engine-faithful
+protected travel**. The [carry integration](assets/evidence/11/carry-integration/review.md)
+is committed with its reviewed editable source and exact travel images; the
+merged-tree heavy-kit bake check passes. No live appearance is promoted. The
 [carry-fit study](assets/evidence/11/carry-fit/review.md) records the rejected
 support attachments and current provisional fit. Prioritize whole-soldier
 proportions, equipment silhouette and full-body motion. David
@@ -61,8 +63,12 @@ Priority order:
   penetration, cautious torso/arm motion, speed
   ramps, animated idle and phalanx locomotion remain open. Preserve the combined
   kit when updating clips; never overwrite it with a frozen older motion study.
-  An isolated `throwaway/heavy-run-trunk` study is testing upper-trunk response;
-  it has not replaced the committed sword-carriage candidate.
+  The isolated `throwaway/carry-forward-run` study improves forward posture only
+  marginally; direct and fresh full-sequence review still find rigid upper-body
+  carriage and weak landing/push-off. Do not repeat tiny trunk-only adjustments:
+  the next pass must improve whole-body load transfer. The separate idle/ready
+  breathing study is reviewed but not promoted; ready support stance is being
+  revised in `/Users/david/dev/game-heavy-idle-motion`.
 - **Medium equipment/surfaces:** retain the fitted sleeveless under-tunic as
   provisional, not an anatomy fix. Review exposed axilla, actual cloth edges,
   both grips, shield and sidearm after carry changes. Fit armor/waist to the

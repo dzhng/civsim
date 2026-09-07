@@ -71,11 +71,10 @@ pixel totals measure image difference rather than motion amplitude or quality.
 
 ## Authoring and handoff
 
-The small recipe lives at
-`packages/soldier-assets/bake/blender-heavy-idle.py`. Run Blender on a copy of the
-frozen equipped source with `--background SOURCE.blend --python` that recipe,
-then `-- --output OUTPUT_DIRECTORY`. It keys existing idle/ready actions and
-reuses the existing whole-assembly exporter. It does not rebuild equipment.
+The motion definition is now composed by
+[the canonical heavy motion recipe](../../../../../../packages/soldier-assets/bake/blender-heavy-motion.py).
+Its [integration record](../composed-motion/review.md) owns current reproduction;
+the isolated donor below remains the evidence for this study.
 
 Editable/exported candidates remain in the isolated authoring worktree
 `/Users/david/dev/game-heavy-idle-motion/throwaway/heavy-idle/source/candidate/`.

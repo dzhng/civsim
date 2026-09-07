@@ -8,7 +8,7 @@ The [source controls](source-controls.json) identify the frozen input and output
 the reviewed GLB SHA-256 is
 `5ff989fc1d868e9292a0bb7465b7edef94fae84486572a19f8f3db8868b06e20`.
 
-The [authoring recipe](../../../../../../packages/soldier-assets/bake/blender-heavy-loaded-run.py) makes the support stride asymmetric around the
+The [canonical motion recipe](../../../../../../packages/soldier-assets/bake/blender-heavy-motion.py) makes the support stride asymmetric around the
 hip: landing comes closer beneath the body and push-off reaches farther behind.
 Support still moves backward at the authoritative prescribed speed, and the
 cycle duration is unchanged. This permits the knee to compress the body after
@@ -81,18 +81,11 @@ source controls, numerical measurements and the limited visual verdict distinct.
 
 ## Reproduction
 
-Run from the worktree root with a dedicated Vite server on a free port. The
-recipe consumes the canonical combined source by default; explicit `--source`
-and `--output` permit isolated regeneration. Source authoring is intentionally
-separate from re-exporting an already edited scene.
-
-```sh
-/Applications/Blender.app/Contents/MacOS/Blender --background --factory-startup --python packages/soldier-assets/bake/blender-heavy-loaded-run.py
-node throwaway/bake-wholebody.mjs
-SNAP=travel-run VERIFY_GPU=1 VERIFY_URL=http://localhost:5268 node throwaway/capture-wholebody.mjs
-node throwaway/heavy-foot-contact.mjs throwaway/wholebody-run/source/heavy-run.glb rerun
-/Applications/Blender.app/Contents/MacOS/Blender --background --factory-startup --python throwaway/contact-wholebody.py
-```
+The [composition record](../composed-motion/review.md) owns current reproduction.
+The one canonical recipe reconstructs fitted carry before adding the loaded
+response, so reauthoring cannot accumulate arm offsets from an earlier run.
+The isolated study's capture/contact drivers and frozen exports remain in its
+local worktree for historical comparison.
 
 No Rust changed; the existing built WASM was reused. No active baseline, catalog
 binding, fitted source or production motion recipe is changed by this commit.

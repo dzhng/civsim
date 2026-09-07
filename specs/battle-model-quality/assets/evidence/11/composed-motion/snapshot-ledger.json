@@ -1,0 +1,1927 @@
+[
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/close",
+    "before": "5efbe1cc59a75282dbb354f1179ad63aeed3bf7a78d4735b5cfcdfb389be17bf",
+    "after": "5efbe1cc59a75282dbb354f1179ad63aeed3bf7a78d4735b5cfcdfb389be17bf",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/formation-gameplay",
+    "before": "82af55c6be88e9a72fcff264a1e9ebd7b77590723d86e7779b674498d82fc20e",
+    "after": "5fbea1b6ec3ee0f86fff99e3ba90111832102664d82dd786299f46b4577e03bf",
+    "change": "updated",
+    "why": "Compose reviewed stationary stance into existing equipment/formation views."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/formation",
+    "before": "2bd8bcde210d9b61dab26f6b9605035505dc2f1338951257f47cd08b8bd528a9",
+    "after": "5b459e6f19f801e7d907c6b8664515789ff88bd4b1d903e72e0103a0202cfa7c",
+    "change": "updated",
+    "why": "Compose reviewed stationary stance into existing equipment/formation views."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/gameplay-pitch",
+    "before": "39e771e5b40a30f6a6a2716249ffb6f1827866307af1c8ea0df00e0ffbcf1a81",
+    "after": "39e771e5b40a30f6a6a2716249ffb6f1827866307af1c8ea0df00e0ffbcf1a81",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/garment-poses",
+    "before": "82a6f2e9c18abf82f25b93987344417e5f04d5c0bc7cf9eea2c9dbf7278262e0",
+    "after": "009b814568b35bb9e76cec40c053218a5e8b469a6e2d510193150aea4f940bbc",
+    "change": "updated",
+    "why": "Compose reviewed stationary stance into existing equipment/formation views."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/hand-detail",
+    "before": "b1d3a91f425e2333df9897dd64fb681ab30abe9b0a58e11d4ccaee3c20bc5758",
+    "after": "b1d3a91f425e2333df9897dd64fb681ab30abe9b0a58e11d4ccaee3c20bc5758",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/head-detail",
+    "before": "6ad71d55d2ecb1be3716fa0b6c9a0d687611dfa58a3faf07b1f7fcd640796be9",
+    "after": "6ad71d55d2ecb1be3716fa0b6c9a0d687611dfa58a3faf07b1f7fcd640796be9",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/idle",
+    "before": "edc9f3207a949987e8230c0a95717aa025d19d071574907fe52a953305c2827f",
+    "after": "edc9f3207a949987e8230c0a95717aa025d19d071574907fe52a953305c2827f",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/ready-feet",
+    "before": "f1e33708230bec4ae0a8d16c8bd7d2b63e3bb3af9dad464834d34f7d71cb8b94",
+    "after": "1342ca758780e3f591b082c1db52321ac78d7f6207567c182db7fc6e1d7f3b84",
+    "change": "updated",
+    "why": "Compose reviewed stationary stance into existing equipment/formation views."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/ready",
+    "before": "567cbf601c80343f4ead6eb594bbc0ebc1f051259109956091cd46979ab808c3",
+    "after": "419f9a0c0a937a994ba67d5d84ed3674a67a5dae6dd9aa2332d31800f1af60b9",
+    "change": "updated",
+    "why": "Compose reviewed stationary stance into existing equipment/formation views."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-00",
+    "before": null,
+    "after": "105d10f6252f52d5980b70a55a74b77bf0ca338ed54ecccb7b4c05c016c4d8b0",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-01",
+    "before": null,
+    "after": "dfcc2f09d800c5021e41843631df8fa7e7b89df9dc4612627104e4e2ad49e62e",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-02",
+    "before": null,
+    "after": "01501b7686afdc9fba6f655c509d30ccd4fd5b042fa3b4e52ce162c141c401e7",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-03",
+    "before": null,
+    "after": "faf1576e55c48d5fd8f4455673babb249c9e981e7d98c5f10be695b55d1ccae0",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-04",
+    "before": null,
+    "after": "5f536e2df1ef9d4fca577e21cda45c9f4ad83e36476524612be50a944daf7098",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-05",
+    "before": null,
+    "after": "f00974abef8f26cb28d4a5c0a807af32bd3d06dbec1e7091a5318161815d12fd",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-06",
+    "before": null,
+    "after": "7c4b4b0164a71531e99b6550a0fc96cee68eee4db2cd1d24bc6094508e7fa22c",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-07",
+    "before": null,
+    "after": "8f1ff9b8800c5535ade6af6bb60d67c3fbd28d095b2c2d11e1064895c60609de",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-08",
+    "before": null,
+    "after": "ac4abdde0e3677728220031ebe743126030ba3ce1c71376d2c89ceb308b4b6f8",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-09",
+    "before": null,
+    "after": "fdd581b143c8c66bdb8a0bef1e0e048850d7f81ad78fd8ed57c8bb7c9a085ad2",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-10",
+    "before": null,
+    "after": "b270d024d7a9cb3e050c8ffba715f5b8549c523db47c5820c63cb8b66d055fd6",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-11",
+    "before": null,
+    "after": "1bb2320617d7d026f6eb6c2124080ecde79e56a505b39b4f5ce4787ac2ef59d4",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-12",
+    "before": null,
+    "after": "566f9654bad47759b391d880d860bb3cb2e5c69183b13ad2bfb82798edeed4f3",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-13",
+    "before": null,
+    "after": "8a6c35ec38f601778e65e10e0ea775b7559195dce2b3baa2c76cc77ae3185838",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-14",
+    "before": null,
+    "after": "9abad1774702672f1adbd0a8d1deb8d484cbc0ec056d6bfde5c45ddce3000b54",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-15",
+    "before": null,
+    "after": "dd19ea7dbed79a75c5c74bfaaa0049289573075b8b1bf4a20818dd240723352e",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-16",
+    "before": null,
+    "after": "91ba7c1c482dca96ad9b3f26763a1edc5b6e54f08bd19f890ef17224f7319e95",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-17",
+    "before": null,
+    "after": "892983471a3bb704ca9b77c8e1fb591616773ef72e642383725d418d99c6d536",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-18",
+    "before": null,
+    "after": "1db9e1e676bc9e02fa481399afe4dae7862bbf4e489e4989ce45fe27762d4f88",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-19",
+    "before": null,
+    "after": "2f007c6a7c6d2a8595b6771a24ae996d20ffc64176cdb588a4e570158f56b125",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-20",
+    "before": null,
+    "after": "ecbf0a424d8bbd32e576a360e12a3bb5f5221a05636aa541fcc459f3c895af69",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-21",
+    "before": null,
+    "after": "e0e74a977ebd0336ab274006b52c9bea61a274849316db1b7a6e48c16a574c6f",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-22",
+    "before": null,
+    "after": "081a7264c6d1060e9e0d6acd3ec136b0693a3ac284e5779ac01c5f70c86af38b",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-23",
+    "before": null,
+    "after": "6bbb05bd99056371bd9fd3078227f881972bc3b62032bb1c2d992601279949b7",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-24",
+    "before": null,
+    "after": "746b842e2273baa0ae844e850626c2b52c798b291b917f7c9235257553e3a35b",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-25",
+    "before": null,
+    "after": "92a125327be2fc8120f5026adf2d8a4bb82e397b0cb04133194152116f949bd1",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-26",
+    "before": null,
+    "after": "cdd8d3c5b1bf9e3fffff4f482d0a57e56ea69caa6916c39d50a95dc85880beb6",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-27",
+    "before": null,
+    "after": "2f18bd689c044374dbbb0da6011da1a87385ec5ef30821516ea47246becf056d",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-28",
+    "before": null,
+    "after": "9688e505c0f3b1864f2703efda890f0245336203bc38d245bf516c573443b5c0",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-29",
+    "before": null,
+    "after": "bada960957ec8799dcaaab0131b63561b262516c81b77640822340c84ba673e9",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-oblique-30",
+    "before": null,
+    "after": "105d10f6252f52d5980b70a55a74b77bf0ca338ed54ecccb7b4c05c016c4d8b0",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-00",
+    "before": null,
+    "after": "fc9168c34d871e5a10f0944fa0b7b0cd8d7e1c5497c2b76e6a26b33609840d9c",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-01",
+    "before": null,
+    "after": "1befbf883bc640b9378a29691a0eb30f9837283ade3438cccb641aba51845b7d",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-02",
+    "before": null,
+    "after": "7dddf52e4f4ca308acb1370278ab2ecbde129aa648d8362faf17df07b64d0d00",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-03",
+    "before": null,
+    "after": "56fb2e2c4861255302d9ce9db68b7da9de9a7a7881e755938fe7ca907ba56896",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-04",
+    "before": null,
+    "after": "a84ceac4e983b2993fcb444487ce2502acd818b733ac4a7b4209249881eb9b8e",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-05",
+    "before": null,
+    "after": "8a9c228423eb6d8f63ff1356ecb0a66377c83dba98502d171f40ec1989cf260f",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-06",
+    "before": null,
+    "after": "b12789120f5808543fabeca72409f01eede26b58a6d06648bebf7cb6bc341509",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-07",
+    "before": null,
+    "after": "65db4c9302574d1d79d4ff19dcfe517e1400fc999bbed8121e92a6aaa5bfa938",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-08",
+    "before": null,
+    "after": "02e128e0907c3a03689467bb6089506992fede0a9d4668b3355ec26e2cb0fa26",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-09",
+    "before": null,
+    "after": "357f776e94c91fc6fe470e3182ad8f637e4fe0abffa83a27dc07ed65d0881a99",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-10",
+    "before": null,
+    "after": "2f61c339e83550e1368fdfcd3653535d45d94adccb848a39e99ef81ccc96d795",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-11",
+    "before": null,
+    "after": "3848da8c88c41a0c2c446e6390a1d4c006e804afec9e02e5c3566b1adcae82f4",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-12",
+    "before": null,
+    "after": "a0860d69628b78132c570bde1c6258d7ab21bc1d4fb390487ea5341b4bb8e533",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-13",
+    "before": null,
+    "after": "72df1e4e1b25efc26d8fdd4c78b8eb359628fb1e6171f7e97fff73ad383fb14a",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-14",
+    "before": null,
+    "after": "2353e0b1579b738a53b0dafc856739dee8b25ec4c3028c19286808bf6c8979d0",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-15",
+    "before": null,
+    "after": "fc9168c34d871e5a10f0944fa0b7b0cd8d7e1c5497c2b76e6a26b33609840d9c",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-16",
+    "before": null,
+    "after": "b6269afcc82e2ce4040eabf7a8dccaac6d51695c25c972b066867a11ab6e05d4",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-17",
+    "before": null,
+    "after": "86390d21ae9113f3bb134e58fb914b64a198a3a1c828e8708034b94f5b265d1b",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-18",
+    "before": null,
+    "after": "9aa5a0ec4ece0304bd36d08147ff93fe6165b8bc7704225933e2367234f2882f",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-19",
+    "before": null,
+    "after": "efa16a666e1c416f77c994c8ac6b15c7d6aa0599acdf0745b1222aaa0e1a40d6",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-20",
+    "before": null,
+    "after": "3314c99d6ad36e2cb107ae6e8287bea32e9b006d27ed6339622f1a62bf45255e",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-21",
+    "before": null,
+    "after": "daf2e07805d20a65f6349665a1e3403925595c366335de3f8e744d6a140590a9",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-22",
+    "before": null,
+    "after": "dbf7c8575dedd3fa6bdec0a2a6e65d506a647b958f39ac644e5255411c0f7b8f",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-23",
+    "before": null,
+    "after": "3255b66c2893c1d2d05e96caa23ab4778e74a20c8195211c0ae9c2755c99b0c3",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-24",
+    "before": null,
+    "after": "16d32d1005989dfc18dd123680bf3590717ca473ed94068e049ce4b34995afef",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-25",
+    "before": null,
+    "after": "e19dedc69c6aa332d15202233257c066715079ba2c4ec50e76501338fb7759e0",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-26",
+    "before": null,
+    "after": "4d3877023787fcf8e3409c88e4ebfe89290b14d917d33c89048f316e702bba90",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-27",
+    "before": null,
+    "after": "d16b90f28ff9ff096755a930dcd85f2c47948e0923ddd4c1ba304273901f3d64",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-28",
+    "before": null,
+    "after": "558482a173baef437b4f572d54e1e41de72e3132972a241e7c1e02ce79a42d71",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-29",
+    "before": null,
+    "after": "2b6d21388868c255af1dddb2953420f5c4048f3d419339b546e037078988b92e",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-idle-side-30",
+    "before": null,
+    "after": "fc9168c34d871e5a10f0944fa0b7b0cd8d7e1c5497c2b76e6a26b33609840d9c",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-00",
+    "before": null,
+    "after": "1fd9cef6b57e5a4b4cbc1655762110d786b4f164c31560ff4c75af861391da3d",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-01",
+    "before": null,
+    "after": "466b9e547cb4047d3e7b4d5bc936976e9e4e8f44aa5a1d196bc7253eaea4e319",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-02",
+    "before": null,
+    "after": "7f77b2901ef96ecf3abce987cc81f2deba40529a27de33ebf2086dd24a00cfe8",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-03",
+    "before": null,
+    "after": "cd1efe8ed55942b888f19b958fd42c234e78830f7611829d730b0a002f2b4ace",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-04",
+    "before": null,
+    "after": "b3357bc9bc77906fc51764a3a6c6d52f489ae1ea75417ac15af76e2010fbc833",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-05",
+    "before": null,
+    "after": "1c5c9adf10298d8cde70056008c0d9978297eebef31d260a86803ceef6a5e6fd",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-06",
+    "before": null,
+    "after": "228932186b213c2d2179f45f6733f1c6de730b071be3e6a8e383541bccb92c82",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-07",
+    "before": null,
+    "after": "e6d6dc254f4169dc157da97969858c967b3c5f19e4ec8783dc71dcb2693ef9db",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-08",
+    "before": null,
+    "after": "756990e4c8b5f4210baaf049d25c33504bf98c39722f8764496a6041a330f23c",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-09",
+    "before": null,
+    "after": "ff7a6b650cf0e4cb16b11e992c8b7819372da68d63cead6f316b35947d75f04a",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-10",
+    "before": null,
+    "after": "b79cee829e5912ee56a09e83d73beb456f0a2663e6f8c6a3ca3c5de96777922c",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-11",
+    "before": null,
+    "after": "1ff53b523b9a4c6c93dba4299d0690354885bde400d965351fac2be2b277fb71",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-12",
+    "before": null,
+    "after": "af20b9120abae4a6580c194300d63f3689d62fa9358767ecca04b9b005e32745",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-13",
+    "before": null,
+    "after": "e2e84df0a12f6547c19fc48464c8ffa1e1bed779f134606d0e95b610ef529455",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-14",
+    "before": null,
+    "after": "4d2b422dbc088d0ed091f3dcf8e5d45b18cb64368373552414fa7285a5371da3",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-15",
+    "before": null,
+    "after": "f0ba5cae6f061a0c85983b69cd7ce076432d8be2b907ae52c62c8686874aca57",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-16",
+    "before": null,
+    "after": "c838a355560d244b0be6e139695d5224f617a8efc747a1951019af96c490871c",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-17",
+    "before": null,
+    "after": "00e8a3083e2dc39d0318d91881fc7384f12c0db1008062a94bbd4b08d5ad850b",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-18",
+    "before": null,
+    "after": "5bc84120358c1bb13ced0d307c83c1e6d4a20d83b039adcd5b1fdf10f0361286",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-19",
+    "before": null,
+    "after": "4c4533c9cf22bbe9ea5df5e32c60d2b11731504129628c6a60ef22d8879bd05f",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-20",
+    "before": null,
+    "after": "7321315a76f2e9e1df07a9e0a17fee079c845232234f7fd84bb4cdcd89dc01b0",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-21",
+    "before": null,
+    "after": "b968dd61df5484092e1bed2d531c8f4538fac803b6a6e0d9c6d803dcbc7c529a",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-22",
+    "before": null,
+    "after": "f84d7f185e4be9436ab6a447b6fb3b17ec0934863c6390f260fdd8e982fb486b",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-23",
+    "before": null,
+    "after": "b736f65bc973957b6b774912466bc578625ba38e9a50579586c258ab74a4d186",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-24",
+    "before": null,
+    "after": "74ef4bc178e008145e4a1364fed1450d941fe703032a7cf0eada847ca3ce2d05",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-25",
+    "before": null,
+    "after": "a172e58c4ff04397e26e7bf254beec915c027a57f88b566f64cc987803bd5432",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-26",
+    "before": null,
+    "after": "065cbb332edc97e9726b49b7b6bab3126afef3d6ba54ea0558404ce46c384125",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-27",
+    "before": null,
+    "after": "d5f43ac550bdd42f56b8cf6b5d794a474a9166b86a434bf704a6514e7616f1d2",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-28",
+    "before": null,
+    "after": "0debb4f4ccaa47d87a3cd1c8aa29dc7a38dcb39c16b0c769a555c194612ee3f9",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-29",
+    "before": null,
+    "after": "f3873b1bc213497eeb77a85a0850910fb4064e0cc56aa8c0a79831dd14f9ee71",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-oblique-30",
+    "before": null,
+    "after": "1fd9cef6b57e5a4b4cbc1655762110d786b4f164c31560ff4c75af861391da3d",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-00",
+    "before": null,
+    "after": "d1896077a347607765918e9e0fa06b5516d982df68b5caf7f6ff3026578aafd3",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-01",
+    "before": null,
+    "after": "7f0b06970a4e094143898d5d4e05db2104f1283ef378fdfdfa9c4b54a09e258e",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-02",
+    "before": null,
+    "after": "b7608fbd09807165037615c3091e54231f2a02b315f8c01ea5fefc36d6ab1f4f",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-03",
+    "before": null,
+    "after": "835c1fefa5be1d86ccc6e4a37ad8e83af8c390b8345a6a97e009a55bcd554c29",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-04",
+    "before": null,
+    "after": "0669009c40fba08e4c8f2eba0fa090b88e51fd8a09d0b5c3fa3bd78ede0ca886",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-05",
+    "before": null,
+    "after": "520f478c62303f132de63cdefdcf526db1b4382a910429dcd9c42e8e15a03a5d",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-06",
+    "before": null,
+    "after": "c7a841858d2404d9f7107643c4b0001f78f6c691abe3e07b167ed76a02057e63",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-07",
+    "before": null,
+    "after": "be3e52a65e2e7b514570191c70d2415a71dce428c9b7ec5688f6b42ad0c7ffe1",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-08",
+    "before": null,
+    "after": "726568a197da0ba0111b04884c192f174a3b52a448e9857335e818be86bb5402",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-09",
+    "before": null,
+    "after": "cc1b934d54f14c05b1028835fe2d594f89dd99f906db7ce3982dc7f53784a395",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-10",
+    "before": null,
+    "after": "2a3fb34bef51152ed85738acc66f07e215ca75d3c32970bf2bd665e79f70e3fa",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-11",
+    "before": null,
+    "after": "d600e77ebe23cfb20e39de9af392c8b90bfbaeb89191b83d6bfcb90ec35ce4ce",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-12",
+    "before": null,
+    "after": "26f92a521900dd183f7579dd8e6b3938b4dff1546956b5a0cf2f996dbf75199d",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-13",
+    "before": null,
+    "after": "683e32178a5f11f91c27b36bcaafa1c26e22e689808ae7808b21470bf3b7bcad",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-14",
+    "before": null,
+    "after": "9556189835878de3ccf387b855825ad37bd83b9936018174ff4c0e11c30677e1",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-15",
+    "before": null,
+    "after": "3f68b09aa36ba3c49b1c98db6ef813f619d0f9cb1dde466dcef7f3d328aebad7",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-16",
+    "before": null,
+    "after": "ded027347b69e2b12b9670f99edf952a097aa9d17b50e44a830bd18c4e261b64",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-17",
+    "before": null,
+    "after": "8cb3a7b86185e1b823402c38e15c4686dc13281b2432893ba40949c75d180b9f",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-18",
+    "before": null,
+    "after": "179946abbdb9fb9b04de43df7ec6ed5d325f4cc46114d4638d411435a2818b6d",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-19",
+    "before": null,
+    "after": "2e9865fc7fa5b270788de3a78708d4fd5a57f589ece0caf925b253c214fbd002",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-20",
+    "before": null,
+    "after": "3a87ec7981f7d3d684f239beb385fd5c1d2557585e945891cfa900f7ab56bae4",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-21",
+    "before": null,
+    "after": "2e3945b73b55715a25d6db30d2f43ec2eee91ef09bb2595391e2be1cc36cfc5d",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-22",
+    "before": null,
+    "after": "9280e857b77cfbf39d77dd9db28f92fa99b57fc95a7e8a994107dcc12a3d2b81",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-23",
+    "before": null,
+    "after": "a32d899be5e71b3c83793077c1845fd3ae306a8123c935125280d7d0d085d507",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-24",
+    "before": null,
+    "after": "899cd5f963f7cb2ec8e6ca5b13fe8890e30a3abff2960459b110d7a8ccfa3c6d",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-25",
+    "before": null,
+    "after": "a8f5d75e590f4aa9664c24b7d4c85d191811d3ea0776c70e179674ff072215b2",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-26",
+    "before": null,
+    "after": "8238011da7fb3c0c3a62e78142fbe327fe5fb00f692772bba557f68cee7662e9",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-27",
+    "before": null,
+    "after": "80618d73bf3f95ecfd3854b92c650f1b0159a867612c4faee56708a1270209a2",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-28",
+    "before": null,
+    "after": "560df7ba67b9a29dde106c2ad601aa2cdf434c3d4db8a9931bf6ede6ef4b00f0",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-29",
+    "before": null,
+    "after": "298e40e7b2b4b78c789ccfb9757bf3923f3c3ca64a39dbf09448bc1b90a57d15",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/rest-ready-side-30",
+    "before": null,
+    "after": "d1896077a347607765918e9e0fa06b5516d982df68b5caf7f6ff3026578aafd3",
+    "change": "added",
+    "why": "Add full stationary loop coverage for reviewed idle/ready."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/run-frames",
+    "before": "1e68b3dc2da7159c31b0c52a2b83b4eccf944811bcbcc3546e9675515f8ecf46",
+    "after": "3437a7ba0147866f8202bdc37ec59db42b04f0510b7e01dcc064db14f25ff029",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/scabbard-poses",
+    "before": "6546fa1e2e2b8628024cd50e6b121e03958abdb7e72a03e7c39fa64c975dd2f2",
+    "after": "b6ebd40cd6e837fd374b3a6dde0376773a21f10515405bf0e85f571be0009d55",
+    "change": "updated",
+    "why": "Compose reviewed stationary stance into existing equipment/formation views."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/shield-grip",
+    "before": "d74fa5238e974b71be2470abe370580fa0f2fd66ecada240b67dd2f10c796465",
+    "after": "d74fa5238e974b71be2470abe370580fa0f2fd66ecada240b67dd2f10c796465",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/sword-grip",
+    "before": "dc523b17bc24d79133559c8100153656d9bb1625f208d6d8c37936afa1980c6c",
+    "after": "dc523b17bc24d79133559c8100153656d9bb1625f208d6d8c37936afa1980c6c",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-00",
+    "before": "13d4ff5e44cc29625ad6e919f02d6531995bd9fe445ac1be017b81fa303d3f05",
+    "after": "45e86bee7c973de2d7131719a0b1691ecb91d57ed28326cbb5cc81c3ca7abaf3",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-01",
+    "before": "e3e24046cfdc83c9d820c31eb0a60436500981ef90c1a0c120026ab5bd0c7a88",
+    "after": "73b3357d57ec9476a3b66b8b52e0f99221355e3b2a23243116cc289d70334325",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-02",
+    "before": "be25a4f3a081d9e925a22cc9c8b27cc80016fdf21e683c7e82657e186a83de39",
+    "after": "201302e00cad3dd7db7e1df22c85af1b777c78108c56df6bd398f3c750a51623",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-03",
+    "before": "9818ef3ca487523e54af68c71fdd3227b195df41d8d4d8dc6242b6fe23c238de",
+    "after": "4352210c40ce15fbaa28eb3aaadce3a2339d95aad83bebfefd42d2c21c9fd940",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-04",
+    "before": "8f7d3e62e81e1c32f7cb4f32a56a63685b78540164f55d0eef5a7e88677a7393",
+    "after": "d399cc060846632a2029ba9b307d7b89bb5f990df6db7d593787b4cb7e46a56f",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-05",
+    "before": "7539b7665213dda9ddbf68453fcb32fff4aa65e805fcfc0d3117e87466612b90",
+    "after": "c0c40764179992c507080fe95721a6561075f8e5d85825e96219ce10a94a39cf",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-06",
+    "before": "81ed2b5f2431c1b42b28e80d2ced7dbd04e0ca327b5e7ee96a9b8017559613c7",
+    "after": "b18964983a6c31e7e5a70e0d55a9171f38f1e657c4c0f9afd42a89b065033b24",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-07",
+    "before": "ca00b1e404eab577ae11fe44f96d81a1eca613c51ca72d26880023a58ef64513",
+    "after": "f1b7a32712fcf4b49f65e7b5c0db3e3b3e64172177aba784320b33fdda052b0e",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-08",
+    "before": "ea9e5af43ad822a4420418be0f4e8f617a5a76755f9b3fc416d882a1ce483314",
+    "after": "7d7012ada9222b2e6dc96cce98940aedaee71406196580bbf664c26706dfbeb5",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-09",
+    "before": "a1935d7972692301b971002e2b959e61ed5d699d336e4aa9aa78b8dc7769f5e7",
+    "after": "02350dd8e8f691c143be99ed94652c82f71784a54971c815dd42439aa71ee06b",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-10",
+    "before": "f85a0ea090ca904d4fd99951608d5e76dcdcd42986bed25f1a46781b7fa7ed74",
+    "after": "bdda52d82920ad281b2263827d21a86e46e0040d7ddb84d73429a3710597fce3",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-11",
+    "before": "e9585015d9c29e6dad8fc86944cb0e6062efdb0603812141c50a0fc65eb52412",
+    "after": "afdeddb66c49517d4c3f0dfc6b56c6d5e47922c0dbdd0f5230954b653b0f69b3",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-12",
+    "before": "ed9514054cefde9b665652e7f65aeee9d31c8908caeb28d523ce02ce3d037d75",
+    "after": "e9013c0293400698b85bd2257246d7cfaf803702795604e787d10e1086afbb50",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-13",
+    "before": "b7b5cd264af9675941895b0977cb8c5abe46ad06856bb4ed4ab253c60c93333a",
+    "after": "0e6f3192847233dbfa6771cdd9063ea52bb938ed4ea60cc4d8d8a65e8e9a5d94",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-14",
+    "before": "c6ac0664e36745c52acc99d9a7d416a4d8f7c59d8cf9a7e6038518f73a15cfa9",
+    "after": "cb62f3c423b4d59a6037e9062a0db866f28aced916d200d138a869a9f2026686",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-15",
+    "before": "1a8057eafa1466674a86a77152e6885af7f22959ae3245cc7413d46762838379",
+    "after": "c65056b3e87dfa3fc7e37f9f6db0379268ed4571f0f87beabcc50c7543fa7dcc",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-16",
+    "before": "93bd3fa38e54857e5aef1b50a639d21c190f679c98c800f172487424941c792c",
+    "after": "13212a78407de26180d69c76cd0a891ac1b213912aa2d5d85c95662de854a19a",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-17",
+    "before": "57a67bdf0948b6571a8a1fd9ee8779f34e08eae7ed0cef8713db0a26edd36c60",
+    "after": "ea1ada4214f0fb1b3ad9bb2ee6e05c3a794ca4d49e73c093840cbb61dd2b0321",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-18",
+    "before": "5055a1f159921000907e7ea27aa08af7fdd7d233aeec0427dea923fd7ad8f0e1",
+    "after": "09ae66fb83291d4a005dad2dc16f82475f2bc3ab6461e6eac2beba5f2b4c16e1",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-19",
+    "before": "7a2ad9534bbf7bc1cb05304ff3cac6fff4720630412ae96baf88732126e29fd5",
+    "after": "aa90088aa2ff82d59c1ffce152cc351f415df468974ddeaa166bbc53b5d7726e",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-20",
+    "before": "c89beb1b1cdc85c554abb8bd75cb4cda1bf585c3d951282e70f7bee5fed5f9f3",
+    "after": "83496e8cc7cbb9d66da154b856491a19c11faa6ca2c3ca83f38c257083e51075",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-21",
+    "before": "c3b981eba77c3da7ae68cb19a821eff2e13560d67b32e8ae5a9f03b29bc24053",
+    "after": "7043aed7aafe2cce2456b8587c53c69f6c534eb3b8521376330ed9a04143ddb2",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-22",
+    "before": "bd47e82ca564f59fb22a84c61060056240152a6501638a09eec2b222cd726196",
+    "after": "ed28422405bfa4ddef60fdd1e76324f96be9ae3a19a39af2e3d4a0197ae4bf50",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-23",
+    "before": "e7576a6dcae820c6940a440b56860147d4c66d6b094707d0f3141fdde3d34529",
+    "after": "a0f6bca442a7a9ef1bc5584fc97471a3cddb3badc3460ff69024877e604ca000",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-24",
+    "before": "55a293c3d32b7afc3f53ff182cb57680cbb6badd5ef094325790ff1ecc3c092e",
+    "after": "32ca63fae2b317e7ee654024454845483955981bd9f2017dd78c8e314eb48811",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-25",
+    "before": "61c0d78c885c3c8062c5c96070cfce16681d14737331669561d717d424873d4c",
+    "after": "36aaffa7b56a0543434363f1a160b14c8b1a7bce8dcb447c25ac5d7a6a085592",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-26",
+    "before": "b670b1e1bf1b91514836cbcf177e0f7c7884ffa18033116d079df70f36efa70c",
+    "after": "20736fa4ea506a2c7007b6ce651beb679d956ee2d1bc7fae402746fe505e8047",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-27",
+    "before": "9dc49299176854ea8b225ec630da2a3ab7552a1f96e12df5eb1cb2f6e43e7f96",
+    "after": "0a00169600dd32ee6e513e885362d3cdaebb87b1ce4d2deba9b85ed3c095a1b6",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-28",
+    "before": "230c0772aed3f912b5802127ead9fd5b5a855c386456c19ec99671b0e3d8ceed",
+    "after": "9db4a0747ded238e386b63f93809d1206b03ad52639801e993b7a9f359de699c",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-29",
+    "before": "dc9a6d6ac6a4d2123c7590c7d3a59e62483fe3295c095888b80159c490feab4d",
+    "after": "444b6e2d2ca4e3df7899c79440928e646c1a608a89e4b0359cfe6a0e2440ee70",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-30",
+    "before": "3650800fbbfbd80ccb58ce883fe0129b7960627bcfe507b4e7419487a4843153",
+    "after": "e52f420317b282bc16ff233bb66d18226f19f21bdb9c2ec674a94d4e3494a8fe",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-31",
+    "before": "c0aeceb8d8143c0698446cedf15ef1e34a9e93442c4afed4b55cce11aac31bd2",
+    "after": "9b161c4beffd8e61cfbc58ff27cc2bb1479a15c640a18db07da3640d1fbe85f0",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-00",
+    "before": "127eee0cd08a60c3c10e2e3d373d701b9452de56b5daed42859783714dbf31c9",
+    "after": "6f8492437caa4bb2415818bba528463e9b20e07dea9dd9fa1a559f7fc71ab983",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-01",
+    "before": "38f2e7d82edaa630529493956e4ae41902a3ee2b6d71d6685fe889b751f50069",
+    "after": "907761baf9886c30231925261f0f1aaced898eead7ef10c9b04be41afe634a59",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-02",
+    "before": "cbf6e6a167d6181e14acc24dd1e060ca76e920097c3ff924f64fdd1ed2a52a11",
+    "after": "a3f9f0e90b311861724998246b97e16c70f91a1e3630052411b526a0c3a39b40",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-03",
+    "before": "4991417b19347a3e35fc9a2fb2b07d759d6bf480d4f83a3cb021a9e00bf188ca",
+    "after": "eb83482eb075f7d43230f4689ef06b81e946437a9c4ac1c9e7c317838c3dcd49",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-04",
+    "before": "c90d8e29e5c26e3f327808824d36ab3f7c45f4b0fc9dba8be9c0812160903035",
+    "after": "612a8ae7cac62c6267daf25eba29f6d72dc12d1dea07e933fb6c9e9491594290",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-05",
+    "before": "954539989fa152537e02ef7c91dc9de406c084a52dd50f4c1c9ef8357f2fac16",
+    "after": "86aacf4e0afb779de2fdeab545f41ce2c84f1f118c8da30fb034d9bdbe9f062a",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-06",
+    "before": "1658fbf446b01753607fc88723cb1898b136c7f23c45c596f9605206f3ae51e6",
+    "after": "cef53b10b63825f7202cad3f739e604e40925009c6f849e7e10887c39546ef02",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-07",
+    "before": "4f691d3ca37b13b3b03d60367189abb82e1abcd2eeb7a6bb36116d54e0dee7cd",
+    "after": "cf0be73a3fc52b867910403480344c29b5234dcb3a6e6f52416cb1162c57b7d0",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-08",
+    "before": "2922c50bbc9e4bf519e2f0862f10f4254385da58e63ef36134eb719b7978933d",
+    "after": "da696b5620a65a7a36990e661a4a7481858934b6955a3eb502956ab9030d486c",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-09",
+    "before": "20213b0d33dfbdff60d997eccfecc8bab596352b417945bb591f3d36e34220db",
+    "after": "e9841f843e691ebe50c9af24b1058c3edd77a84335b00b6ac417183eeb9c2dd5",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-10",
+    "before": "7b33d1df8c3dfc3eeec5d9693698e69dfe12379e8bbcb219b02aed7343e65713",
+    "after": "61dc6a9ad31fa32e88fa4c266aad17751d1ac1a4458ba9d75470ba91a6662a1c",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-11",
+    "before": "83265a52bbf746eb143b4d380502a457ba7c42f0719245fbdbb6c60bf34d456e",
+    "after": "cff2053935f0f791fc7af0f73ba4026c98b258b876659b30ffc2e590dc32f150",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-12",
+    "before": "533e265c21504326cde539a603fc2548ba91dd8de8b4e4a05e33c6ff66d4fbac",
+    "after": "187f36c49759dae87944d852c8532f75e23d21bae735f7d13aeaa9765451a551",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-13",
+    "before": "32839643f5225cc553594e2188ba2c0d271d44552220617a5674a7345e627eb7",
+    "after": "eb3934f629c20836bb757550b719f215ff469ce35f8b6c9b03e9cc7b8d822928",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-14",
+    "before": "c3e5979b923db56a15a75086626bc3559d7a75901ccc8b9ebf8244821a5e11bf",
+    "after": "268a988e22a6287dbfaaf868fa5b60e71b9cc636baaa9ced1d9d07791f1e388d",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-15",
+    "before": "f112d10ec193f47e50caba3632f541b7ca71d251bb60b12f4d2daeb26b37f3c2",
+    "after": "9540c04b3a16655bbc64c6332a0e49237a38a6ecc7e68d68045748b577fae5eb",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-16",
+    "before": "5bd85f45c204b11b62f816ab3014e8eaa01811ac08f77f683c958d0ac5d75e76",
+    "after": "a1fde1382aefed287568ba2bc7ba3bc97c855d5d6c88c9cf0bb9053f7b71401f",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-17",
+    "before": "da1ccda6b421203926939258948d64bc1b2557df597ca2150e013810e7a269a6",
+    "after": "21242b63626b09df612e44bb3ed8191f5aae671320156cb2a58d8707e002d45a",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-18",
+    "before": "74d5b4e76104ded7e5070a1e1581eb461efb46ce4e56a07a60c80d640fa0821f",
+    "after": "fe292fe609896d66195d1856b8663a9edf3400cca8cea88e8548e3589ef652b5",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-19",
+    "before": "6a655614bcca6d6fe3abb01cdf9f83b3a88b4518c2801fe15e0516753d6e0de4",
+    "after": "dfffac215ae3677c7a911808ded4f9427888daa75c28dd22182eae09b490c7af",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-20",
+    "before": "d0d44a8428c3a0f1908a854fe097d157b122eacefae96df8540edabfb3a56f3f",
+    "after": "ec50a29239c161018620ad702d54fd138c95d6c54f02e175b53b097c09df52b1",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-21",
+    "before": "da042162c5009af3c55632b218a3a8f1a4658d1d29a4b837fe836fa4636b0fc4",
+    "after": "d99b85ffe2b3dca530f9d915e7fdb35bfb8597fc1c06dcf8e113a445971d4714",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-22",
+    "before": "be5cde5eba70102cb1a42b154b9ee8a5471d90ba6bf7533a9972f9bc12893263",
+    "after": "1ed93607e307917c975ba823aacdf9c4f8391542ee1cc77e5ea776b1486f72cf",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-23",
+    "before": "72b0193ef35f00b234f65a98124f17d098b6ed547c9ce9db1c170933297cfe2a",
+    "after": "ecbd1344f255dda7eb50fdede04a3c3632253c9fa66fe570011b1b28e79a0436",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-24",
+    "before": "d3935aaa898f15d92137c4c8ca503d6d34ba512464bc50be6b88a8342049ceaf",
+    "after": "c958262d19a604dd88379f216c0477af77e980a2498515c4ed1aa6907c39f4e4",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-25",
+    "before": "41a5847938ffb64e95b36b26977ebd6e106712d11e3d99e8cd11d537dae46b24",
+    "after": "81ae8c56ce405c452a4d88627af4774c85394e077561e8d58bbe8933453c77a6",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-26",
+    "before": "368d6a4ef9f5b56d263e37b8923b59ce9d0bfe61d1e9fa0705069f7f87f398c2",
+    "after": "bdf3aefbae697e764d81700d7abcbc704162495d2e23b473aa0632709a85c5b0",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-27",
+    "before": "5de565f375054f4fe2d9c2bf395230bd142a5a194e22aba1a01257acf9092ee6",
+    "after": "ac5213a4111bf8b9693aff5c9fe4d74a559e22b9d5c879c33c8a00c02c363618",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-28",
+    "before": "3d127eab667f7d1dba2dda3d63388fc04546447558f4f741d38dbed04a2178ba",
+    "after": "084f3e684aea9fb36d06a61575a72c36237481609ec1b4801285fbcdc87790c0",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-29",
+    "before": "999fa52d2cf7e7c68854659f61bc2a565e689c2a234bb8f0dbc63d12ce40f4f4",
+    "after": "f1beef57ae47a9f853a2cef5175f2d67e9c132a6b9309076eb26743de2e3290c",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-30",
+    "before": "5bfe9d55ef95fe1fa5aa95755419d153344659bb82c4daaa378d305979da65c0",
+    "after": "62a0199b078762018544f6ca7312c64ea87cb7ccbaa273404f3b9fd5e9735b16",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-run-side-31",
+    "before": "8abb3dd6c1aab31b790a04f1ae08e3e9b0aa252f30a8e4e1bdee3c770d4217e7",
+    "after": "4af10bd0395240c14060fac79754b56dd0cbc3c6ad7e197123b03cf1fca1b8f6",
+    "change": "updated",
+    "why": "Use reviewed loaded-run motion."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-00",
+    "before": "4cf9a3433d7add231dc244e214239de2937448a0a8e3c778de067cf383938b2c",
+    "after": "4cf9a3433d7add231dc244e214239de2937448a0a8e3c778de067cf383938b2c",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-01",
+    "before": "2ec20e7e0fb750ca3139b7339ee40b8f5d7615cd1cb6d028ed30d81878f102eb",
+    "after": "2ec20e7e0fb750ca3139b7339ee40b8f5d7615cd1cb6d028ed30d81878f102eb",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-02",
+    "before": "547ee05c6b3122830912883621e104271088b982f275e39f86b808bf468019e0",
+    "after": "547ee05c6b3122830912883621e104271088b982f275e39f86b808bf468019e0",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-03",
+    "before": "d6b4f848906fd15dff4c0375d10b8251d1df089475861d4e631b82806014552b",
+    "after": "d6b4f848906fd15dff4c0375d10b8251d1df089475861d4e631b82806014552b",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-04",
+    "before": "4744f9eb9c178a8192a38bc8b007dd11f83a7ceca56afdcc52a4b3adc95c0bbb",
+    "after": "4744f9eb9c178a8192a38bc8b007dd11f83a7ceca56afdcc52a4b3adc95c0bbb",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-05",
+    "before": "21d0fdf326b9f47543426bb41078d5766b53d7073711ef4feac9a8554759011c",
+    "after": "21d0fdf326b9f47543426bb41078d5766b53d7073711ef4feac9a8554759011c",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-06",
+    "before": "090f950a9d579fdfd814792cbc4bea0c71219e3c5b6cc19fc8d9d022f19dcbe4",
+    "after": "090f950a9d579fdfd814792cbc4bea0c71219e3c5b6cc19fc8d9d022f19dcbe4",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-07",
+    "before": "1d960b39e312b240507c5f0e58a6453c84f5ea1e96afd6e14ce7566b69ffa0eb",
+    "after": "1d960b39e312b240507c5f0e58a6453c84f5ea1e96afd6e14ce7566b69ffa0eb",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-08",
+    "before": "e74a7933a29fc6f730e5329e982a604b4c5b2c6195097d3538783aca3d9e2620",
+    "after": "e74a7933a29fc6f730e5329e982a604b4c5b2c6195097d3538783aca3d9e2620",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-09",
+    "before": "8fa335b2922c4cef99979e3253053cd98561b0cb7b25e227a198ead3b47a62d1",
+    "after": "8fa335b2922c4cef99979e3253053cd98561b0cb7b25e227a198ead3b47a62d1",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-10",
+    "before": "e97a9fc319b9489f89430504363f4c16ec179ec72e10f9522535703627dc0117",
+    "after": "e97a9fc319b9489f89430504363f4c16ec179ec72e10f9522535703627dc0117",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-11",
+    "before": "991ba7f26d06048c6fc7118a239d884b43c9b8f3b2cefbbe3d5fa0740228ea48",
+    "after": "991ba7f26d06048c6fc7118a239d884b43c9b8f3b2cefbbe3d5fa0740228ea48",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-12",
+    "before": "c3071e174e165e2c543c2fee4e5b3e284530b4de6bdc48f2a479262ea3e4eea9",
+    "after": "c3071e174e165e2c543c2fee4e5b3e284530b4de6bdc48f2a479262ea3e4eea9",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-13",
+    "before": "ff1f4518d5a75ed168c059bbd12cff1df8bf8af8d83eb347e28e82e42e3a25da",
+    "after": "ff1f4518d5a75ed168c059bbd12cff1df8bf8af8d83eb347e28e82e42e3a25da",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-14",
+    "before": "3a161edaa4d951ecb4a0596e2835367a1ff28601594e48ba9a6ed441da9e3aa3",
+    "after": "3a161edaa4d951ecb4a0596e2835367a1ff28601594e48ba9a6ed441da9e3aa3",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-15",
+    "before": "68b355d1b7a589a82458ab53fa508dd0964e49bc2d87561bc57205e1f70bb255",
+    "after": "68b355d1b7a589a82458ab53fa508dd0964e49bc2d87561bc57205e1f70bb255",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-16",
+    "before": "9bd5dd72c6f18e4de91104a83afd39cd9b67243e61a4c47db8c18720f43f34d5",
+    "after": "9bd5dd72c6f18e4de91104a83afd39cd9b67243e61a4c47db8c18720f43f34d5",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-17",
+    "before": "5dc6a38473b98b2b0f6837783c0a30ee28d2756f259333f8e4bfbdfa092820e6",
+    "after": "5dc6a38473b98b2b0f6837783c0a30ee28d2756f259333f8e4bfbdfa092820e6",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-18",
+    "before": "391d8c4111e4296f97f9a11c4e9b6b32c8c8b6f8f1642766e1694f43fa4aa35c",
+    "after": "391d8c4111e4296f97f9a11c4e9b6b32c8c8b6f8f1642766e1694f43fa4aa35c",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-19",
+    "before": "f3dc369821f84a3be68454f2b99a2cbc216b3e2763defbf4cb89c73f27144fe7",
+    "after": "f3dc369821f84a3be68454f2b99a2cbc216b3e2763defbf4cb89c73f27144fe7",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-20",
+    "before": "05441c31f2d1df809783344ebfbd9a82e824137b6fe44ba0048cc99e389368ba",
+    "after": "05441c31f2d1df809783344ebfbd9a82e824137b6fe44ba0048cc99e389368ba",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-21",
+    "before": "8dd6cee271c23999bfda3a5ccc097b000a3e2827d197df3bdb369b3c0119ae7c",
+    "after": "8dd6cee271c23999bfda3a5ccc097b000a3e2827d197df3bdb369b3c0119ae7c",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-22",
+    "before": "c25b174a903cd8a189883931286993e4b3f2ab97401c425f2ee42f771ace5726",
+    "after": "c25b174a903cd8a189883931286993e4b3f2ab97401c425f2ee42f771ace5726",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-23",
+    "before": "29cc02dc1d5b08265ab22c94573afa6ad925175a28adeee6e7d7b5dd991a89f5",
+    "after": "29cc02dc1d5b08265ab22c94573afa6ad925175a28adeee6e7d7b5dd991a89f5",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-24",
+    "before": "9ccf149c0cd9aab1aad3c9223e70c44e3f3797d0d3daf0f5fb87f8cc4c857afb",
+    "after": "9ccf149c0cd9aab1aad3c9223e70c44e3f3797d0d3daf0f5fb87f8cc4c857afb",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-25",
+    "before": "2ca4c704f34582c56d7728f82f7c7c61a3609941e6cea0aa6a7c35bf3fca2039",
+    "after": "2ca4c704f34582c56d7728f82f7c7c61a3609941e6cea0aa6a7c35bf3fca2039",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-26",
+    "before": "bb9911c592ea254efab765d64ee4e9cd681d9d45856562cf586b3f9e6848de80",
+    "after": "bb9911c592ea254efab765d64ee4e9cd681d9d45856562cf586b3f9e6848de80",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-27",
+    "before": "7712fbb1b86203127958ef857f033210a73743c5d73bcb3eb838424abf2eb04b",
+    "after": "7712fbb1b86203127958ef857f033210a73743c5d73bcb3eb838424abf2eb04b",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-28",
+    "before": "2527afd354843aa494c787de4c1200a19a90caab250736112ba635b34a781302",
+    "after": "2527afd354843aa494c787de4c1200a19a90caab250736112ba635b34a781302",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-29",
+    "before": "4e9b39f6bda35abfff66cd9ac787d669d0d6bbe3f876dcbb0340b5588be02252",
+    "after": "4e9b39f6bda35abfff66cd9ac787d669d0d6bbe3f876dcbb0340b5588be02252",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-30",
+    "before": "1e53a30815730dde1231aaad3718f90e5cb6a343455779e31185bc03466677e0",
+    "after": "1e53a30815730dde1231aaad3718f90e5cb6a343455779e31185bc03466677e0",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-31",
+    "before": "d9f1bb8a218ecabf43de3d70d4c07381e22472d213a1d93ab9a48d1297200de8",
+    "after": "d9f1bb8a218ecabf43de3d70d4c07381e22472d213a1d93ab9a48d1297200de8",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-32",
+    "before": "ee34cc5b04199bce145e762bd6a9a35a141b249341edac0e053eb38ff8884d51",
+    "after": "ee34cc5b04199bce145e762bd6a9a35a141b249341edac0e053eb38ff8884d51",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-33",
+    "before": "8433bde009fa01fca166c5623647567996db2025c9c9d0447d8b04d804f5ce27",
+    "after": "8433bde009fa01fca166c5623647567996db2025c9c9d0447d8b04d804f5ce27",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-34",
+    "before": "af5921d82f6020d0320b78147cb8a657a4826944a893ddd25eb0e21c80cf42ba",
+    "after": "af5921d82f6020d0320b78147cb8a657a4826944a893ddd25eb0e21c80cf42ba",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-oblique-35",
+    "before": "808d43903058bd8b38fe509a9ace1882e6c9f87c0106161db63108b0d46d79ac",
+    "after": "808d43903058bd8b38fe509a9ace1882e6c9f87c0106161db63108b0d46d79ac",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-00",
+    "before": "9882b4a1ee476d391f275677c2cbda7596e82709b18408a099399f6046bec64e",
+    "after": "9882b4a1ee476d391f275677c2cbda7596e82709b18408a099399f6046bec64e",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-01",
+    "before": "70e6aa6fca6a388f1100b51602efd93f1a9c3a53832d8e3c663a6d0f6c9a2bde",
+    "after": "70e6aa6fca6a388f1100b51602efd93f1a9c3a53832d8e3c663a6d0f6c9a2bde",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-02",
+    "before": "1e3b38583d81c6b36c4e9321940597c7ccfe4680d86b85b27c25f3442ead6448",
+    "after": "1e3b38583d81c6b36c4e9321940597c7ccfe4680d86b85b27c25f3442ead6448",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-03",
+    "before": "ffb413df3310ac35f913d0b5ead876bc386079cd7d19e70439b04ea5dc77356d",
+    "after": "ffb413df3310ac35f913d0b5ead876bc386079cd7d19e70439b04ea5dc77356d",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-04",
+    "before": "3f4de26d86ed1f29bfdbad28b4b7a98b21fcf4ee2841ada82d38561ae8f99f21",
+    "after": "3f4de26d86ed1f29bfdbad28b4b7a98b21fcf4ee2841ada82d38561ae8f99f21",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-05",
+    "before": "4f7321b9f83e5eb2de1feb9210bff5776e4b23904017893e5fe0d44e4c0e7499",
+    "after": "4f7321b9f83e5eb2de1feb9210bff5776e4b23904017893e5fe0d44e4c0e7499",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-06",
+    "before": "f3c3f756f3c222ab27bd83b07d0423a417fc76906b21c9e8a2ac5ae6130cb204",
+    "after": "f3c3f756f3c222ab27bd83b07d0423a417fc76906b21c9e8a2ac5ae6130cb204",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-07",
+    "before": "49277b15d02d7d2646dc47f0096d6e6ce5077e06d698eed3abac2e46e48bf759",
+    "after": "49277b15d02d7d2646dc47f0096d6e6ce5077e06d698eed3abac2e46e48bf759",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-08",
+    "before": "e1d400d57787ae04560663dc6155882f1ba79e3b8966e22d671f02b8f71d0fd5",
+    "after": "e1d400d57787ae04560663dc6155882f1ba79e3b8966e22d671f02b8f71d0fd5",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-09",
+    "before": "ec0c2a8b5673b4532e6a83223e2d62831b9aa3b2b2a6b47e296b3a5771238a70",
+    "after": "ec0c2a8b5673b4532e6a83223e2d62831b9aa3b2b2a6b47e296b3a5771238a70",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-10",
+    "before": "a1b7467ffd99c9618628213afcd1b15efb5b67a20175826cc038c2e76983e524",
+    "after": "a1b7467ffd99c9618628213afcd1b15efb5b67a20175826cc038c2e76983e524",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-11",
+    "before": "0d5d9f5b5566ff553669562a1f600eb41083bcb6a0d746326828afbd2b12aba9",
+    "after": "0d5d9f5b5566ff553669562a1f600eb41083bcb6a0d746326828afbd2b12aba9",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-12",
+    "before": "c1ed00854c2ba0d8023142d78bee0a4a0641ae6be981af1190f10247774bf4c7",
+    "after": "c1ed00854c2ba0d8023142d78bee0a4a0641ae6be981af1190f10247774bf4c7",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-13",
+    "before": "d9162aa85bb8a9dc43d5557a3d6d42b3887f08c24ceef633b7780716f4902845",
+    "after": "d9162aa85bb8a9dc43d5557a3d6d42b3887f08c24ceef633b7780716f4902845",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-14",
+    "before": "363fbd5bccf5a75b468061fae9566e883858fab9762d1b6bed4d4a8a9198be64",
+    "after": "363fbd5bccf5a75b468061fae9566e883858fab9762d1b6bed4d4a8a9198be64",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-15",
+    "before": "71f622ea713e6947b3d13b3de66a061d02f0b7b6de0585f3a61a2d9e138746d4",
+    "after": "71f622ea713e6947b3d13b3de66a061d02f0b7b6de0585f3a61a2d9e138746d4",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-16",
+    "before": "edf9f6c96e406df7ce4df0c8501837e1019ae9ab35458a5d174416facf08e5cd",
+    "after": "edf9f6c96e406df7ce4df0c8501837e1019ae9ab35458a5d174416facf08e5cd",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-17",
+    "before": "ee9fc384b1aed92c9af99a7d4b550fc19b1a78b9d3f4040b8711735868f3466d",
+    "after": "ee9fc384b1aed92c9af99a7d4b550fc19b1a78b9d3f4040b8711735868f3466d",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-18",
+    "before": "e1951f9a0255637398db7c0da2923688b283e49b6cd4dd58a1e9bb5261afc15f",
+    "after": "e1951f9a0255637398db7c0da2923688b283e49b6cd4dd58a1e9bb5261afc15f",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-19",
+    "before": "963ff85a45b4b2d4ba252d611a88be8954a2a87b40e33930f81d677224561867",
+    "after": "963ff85a45b4b2d4ba252d611a88be8954a2a87b40e33930f81d677224561867",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-20",
+    "before": "bbe0ad03237a09790f7e37a6ec39aa7c31f3438e98609dbb16ac0dfcd21a72db",
+    "after": "bbe0ad03237a09790f7e37a6ec39aa7c31f3438e98609dbb16ac0dfcd21a72db",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-21",
+    "before": "1fe8d285a4e649fe9454950c9aeca394dff0689cafab1e0143c4a6e1e4e6b3f3",
+    "after": "1fe8d285a4e649fe9454950c9aeca394dff0689cafab1e0143c4a6e1e4e6b3f3",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-22",
+    "before": "d8a9b883d555d99fa674029ec6d962ff3aef17f5f8ee3344c371cf7f065dfb0a",
+    "after": "d8a9b883d555d99fa674029ec6d962ff3aef17f5f8ee3344c371cf7f065dfb0a",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-23",
+    "before": "c6eea652379db4182e9d9d0fa66224eb39d01ea797a92ce259bbd9cbd506f07c",
+    "after": "c6eea652379db4182e9d9d0fa66224eb39d01ea797a92ce259bbd9cbd506f07c",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-24",
+    "before": "b4ac7e00b5312f2eb615c30b24fa2f336720599f30686ddba73b087081595937",
+    "after": "b4ac7e00b5312f2eb615c30b24fa2f336720599f30686ddba73b087081595937",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-25",
+    "before": "04976ef8694febf6d8846e78ded836bdcc49fb02db49df172e3656d24d2fc51c",
+    "after": "04976ef8694febf6d8846e78ded836bdcc49fb02db49df172e3656d24d2fc51c",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-26",
+    "before": "fdbf7c241e8a093627e46dc0df44c241085b8c49a12aef100a02795ae7603a99",
+    "after": "fdbf7c241e8a093627e46dc0df44c241085b8c49a12aef100a02795ae7603a99",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-27",
+    "before": "545ad2dc6ed45e6a420d1fbb76d1d8ec0c8ecc79c4e3714c82fef3a451008fce",
+    "after": "545ad2dc6ed45e6a420d1fbb76d1d8ec0c8ecc79c4e3714c82fef3a451008fce",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-28",
+    "before": "149e0e1cbafbc8dfe968d98ab15130cd120af6d971fbce48144f707a5a737102",
+    "after": "149e0e1cbafbc8dfe968d98ab15130cd120af6d971fbce48144f707a5a737102",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-29",
+    "before": "ce99abb8fa367907ccc256b28150eee66182bea247f1595111b99d81bf661d0a",
+    "after": "ce99abb8fa367907ccc256b28150eee66182bea247f1595111b99d81bf661d0a",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-30",
+    "before": "ed23e0b0c64a0a912798d016cbc2a0219b4d2eee9e7f210051b7d2f46a81a472",
+    "after": "ed23e0b0c64a0a912798d016cbc2a0219b4d2eee9e7f210051b7d2f46a81a472",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-31",
+    "before": "31a1ec4066d39e83a62840b1c8fc830522ee348c1a835dc309bba5e74bff8281",
+    "after": "31a1ec4066d39e83a62840b1c8fc830522ee348c1a835dc309bba5e74bff8281",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-32",
+    "before": "18b8c22f16d5bcf12eedd47917a15b840b4aea78a8bc9a9496afda974aa353ff",
+    "after": "18b8c22f16d5bcf12eedd47917a15b840b4aea78a8bc9a9496afda974aa353ff",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-33",
+    "before": "73db5e609ba311e13ec6708b06048f6206c3a0b014b42ce451eeabde0dde934d",
+    "after": "73db5e609ba311e13ec6708b06048f6206c3a0b014b42ce451eeabde0dde934d",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-34",
+    "before": "6ea6fce83ae7e1cbbff185d65acfe83c7431a3506ae921281acce75466fbcda5",
+    "after": "6ea6fce83ae7e1cbbff185d65acfe83c7431a3506ae921281acce75466fbcda5",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/travel-walk-side-35",
+    "before": "9198afb789ef87d114ccfc03032d6abe2aeee464d9c5dc85271e9f4d4d7e61ee",
+    "after": "9198afb789ef87d114ccfc03032d6abe2aeee464d9c5dc85271e9f4d4d7e61ee",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  },
+  {
+    "test": "snapshot shared/soldiers/heavy-kit/walk-frames",
+    "before": "4b92e0f534481fd2df798f7420fd23a9fcf6c284dee0bdb24f3d792a827cd65d",
+    "after": "4b92e0f534481fd2df798f7420fd23a9fcf6c284dee0bdb24f3d792a827cd65d",
+    "change": "unchanged",
+    "why": "Preserved geometry, walk, and inspection coverage."
+  }
+]

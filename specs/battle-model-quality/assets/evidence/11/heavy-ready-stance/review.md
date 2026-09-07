@@ -69,8 +69,9 @@ After position/index/normal/UV/skin arrays were proved exact, only those frozen
 donor tangent bytes were pinned in the candidate GLB for a controlled comparison.
 This must not become a fallback that conceals geometry changes.
 
-The recipe change is confined to
-`packages/soldier-assets/bake/blender-heavy-idle.py`. Editable/exported candidate:
+The stance definition now lives in
+[the canonical heavy motion composition](../../../../../../packages/soldier-assets/bake/blender-heavy-motion.py);
+see its [integration record](../composed-motion/review.md). Editable/exported study candidate:
 `/Users/david/dev/game-heavy-idle-motion/throwaway/heavy-ready/source/candidate/heavy-motion.blend`
 and sibling `heavy-motion.glb`. SHA-256 values:
 

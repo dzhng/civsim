@@ -1,4 +1,4 @@
-"""Original equipped-heavy locomotion keys; no runtime IK or sim changes."""
+"""Canonical equipped-heavy motion composition; no runtime IK or sim changes."""
 import argparse
 import hashlib
 import importlib.util
@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 import bpy
-from mathutils import Matrix, Vector
+from mathutils import Euler, Matrix, Vector
 
 HERE = Path(__file__).resolve().parent
 OUTPUT = HERE.parent / "assets/source/heavy-kit"
@@ -298,6 +298,183 @@ def author_run(arm, scene):
     scene.frame_set(0)
 
 
+def action_signature(action):
+    return [(curve.data_path, curve.array_index,
+             [(tuple(key.co), key.interpolation, tuple(key.handle_left), tuple(key.handle_right))
+              for key in curve.keyframe_points])
+            for curve in action_fcurves(action)]
+
+
+def author_loaded_run(arm, scene):
+    controls = {action.name: action_signature(action) for action in bpy.data.actions if action.name != "run"}
+    for track in arm.animation_data.nla_tracks:
+        track.mute = True
+    action = bpy.data.actions["run"]
+    arm.animation_data.action = action
+    arm.animation_data.action_slot = action.slots[0]
+    soles = {side: scene.objects["Sandal sole." + side] for side in ("L", "R")}
+    # Freeze the fitted arm carriage before editing the trunk. Wrist/grip keys survive.
+    carriage = []
+    for frame in range(25):
+        scene.frame_set(frame)
+        carriage.append({name: arm.pose.bones[name].matrix.to_quaternion().copy()
+                         for name in ("upper-arm.L", "forearm.L", "upper-arm.R", "forearm.R")})
+    changed = {"pelvis", "spine", "chest", "neck", "head"}
+    changed.update(name + "." + side for side in ("L", "R")
+                   for name in ("thigh", "shin", "knee-volume", "foot", "upper-arm", "forearm", "elbow-volume"))
+    untouched = [(path, index, keys) for path, index, keys in action_signature(action)
+                 if not any(path.startswith(f'pose.bones["{name}"]') for name in changed)]
+    for frame in range(25):
+        scene.frame_set(frame)
+        phase = frame / 24
+        half = phase % .5
+        stride = math.cos(math.tau * phase)
+        # Loading occurs after touchdown. Chest response lags the pelvis; the
+        # neck stabilizes the gaze instead of adding the same bob to every joint.
+        load = math.cos(2 * math.tau * (phase - .11))
+        delayed = math.cos(2 * math.tau * (phase - .15))
+        for name, pitch, turn, roll in (
+            ("pelvis", .10 + .035 * load, .085 * stride, -.025 * stride),
+            ("spine", .28 + .065 * load, -.08 * stride, .035 * stride),
+            ("chest", .32 + .070 * delayed, -.145 * stride, .060 * stride),
+            ("neck", .11 + .025 * delayed, -.035 * stride, .020 * stride),
+            ("head", .015, -.020 * stride, .006 * stride),
+        ):
+            rotation = Matrix.Rotation(turn, 3, "Z") @ Matrix.Rotation(pitch, 3, "X") @ Matrix.Rotation(roll, 3, "Y")
+            orient(arm, name, rotation.to_quaternion() @ arm.data.bones[name].matrix_local.to_quaternion())
+        arm.pose.bones["pelvis"].location = (0, 0, 0)
+        bpy.context.view_layer.update()
+        minimum = {}
+        for side in ("R", "L"):
+            step = (phase + (0 if side == "R" else .5)) % 1
+            # Flex under impact, extend against the floor, then fold the recovering
+            # leg. The review fixture prescribes linear ground travel at 3.23m/s.
+            knee = cycle_value(((0, .38), (.11, .88), (.23, .54), (.35, .24),
+                                       (.51, 1.85), (.69, 1.35), (.88, .54), (1, .38)), step)
+            roll = cycle_value(((0, -.12), (.07, 0), (.18, 0), (.35, .80),
+                                       (.50, .60), (.73, -.24), (1, -.12)), step)
+            # The foot lands nearer the hip and leaves farther behind it; a
+            # symmetric reach ahead made landing the lowest point of the bounce.
+            travel = -.32 + 3.23 * .8 * step if step < .35 else .1322 + .4522 * math.cos(math.pi * (step - .35) / .65)
+            heel = max(soles[side].data.vertices, key=lambda vertex: vertex.co.y).co
+            toe = min(soles[side].data.vertices, key=lambda vertex: vertex.co.y).co
+            pivot = toe.lerp(heel, .5 + .5 * math.cos(math.pi * min(step / .35, 1))) - arm.data.bones["foot." + side].head_local
+            travel -= (Matrix.Rotation(roll, 3, "X") @ pivot - pivot).y
+            travel -= arm.pose.bones["thigh." + side].head.y - arm.data.bones["thigh." + side].head_local.y
+            thigh = thigh_angle(arm, side, knee, travel)
+            orient(arm, "thigh." + side, Matrix.Rotation(thigh, 3, "X").to_quaternion() @ arm.data.bones["thigh." + side].matrix_local.to_quaternion())
+            arm.pose.bones["shin." + side].rotation_euler.x = knee
+            arm.pose.bones["knee-volume." + side].rotation_euler.x = knee / 2
+            bpy.context.view_layer.update()
+            orient(arm, "foot." + side, Matrix.Rotation(roll, 3, "X").to_quaternion() @ arm.data.bones["foot." + side].matrix_local.to_quaternion())
+            for name, gain in (("upper-arm." + side, 1), ("forearm." + side, .55)):
+                swing = (.15 if side == "R" else .07) * math.sin(math.tau * phase - .25)
+                delta = Matrix.Rotation(.055 * delayed + gain * swing, 3, "X") @ Matrix.Rotation(.035 * stride, 3, "Y")
+                orient(arm, name, delta.to_quaternion() @ carriage[frame][name])
+            helper = arm.pose.bones["elbow-volume." + side]
+            base = helper.parent.matrix @ helper.parent.bone.matrix_local.inverted() @ helper.bone.matrix_local
+            orient(arm, helper.name, base.to_quaternion().slerp(arm.pose.bones["forearm." + side].matrix.to_quaternion(), .5))
+            foot = arm.pose.bones["foot." + side]
+            transform = foot.matrix @ foot.bone.matrix_local.inverted()
+            minimum[side] = min((transform @ vertex.co).z for vertex in soles[side].data.vertices)
+        clearance = .025 * math.sin(math.pi * (half - .35) / .15) if half > .35 else 0
+        offset = -min(minimum.values()) + clearance
+        support = "R" if phase % 1 < .5 else "L"
+        if half <= .35:
+            assert abs(minimum[support] + offset) < .0001, (frame, "support foot lost floor")
+        pelvis = arm.pose.bones["pelvis"]
+        pelvis.location = pelvis.bone.matrix_local.to_3x3().inverted() @ Vector((0, 0, offset))
+        for name in changed:
+            arm.pose.bones[name].keyframe_insert("rotation_euler", frame=frame)
+        pelvis.keyframe_insert("location", frame=frame)
+    assert controls == {action.name: action_signature(action) for action in bpy.data.actions if action.name != "run"}
+    assert untouched == [(path, index, keys) for path, index, keys in action_signature(action)
+                         if not any(path.startswith(f'pose.bones["{name}"]') for name in changed)]
+
+
+def action_fcurves(action):
+    return [curve for layer in action.layers for strip in layer.strips
+            for bag in strip.channelbags for curve in bag.fcurves]
+
+
+def supported_ready_stance(arm):
+    """Offline two-segment construction; runtime receives ordinary pose keys."""
+    pelvis = arm.pose.bones["pelvis"]
+    pelvis.location = pelvis.bone.matrix_local.to_3x3().inverted() @ (Vector((0, -.005, .880)) - pelvis.bone.head_local)
+    bpy.context.view_layer.update()
+    for side, sign in (("L", 1), ("R", -1)):
+        thigh, shin, foot = (arm.pose.bones[n + "." + side] for n in ("thigh", "shin", "foot"))
+        foot_rotation = foot.bone.matrix_local.to_quaternion()
+        ankle = Vector((sign * .165, -.075 if side == "L" else .070, .093))
+        hip = thigh.head.copy()
+        axis = (ankle - hip).normalized()
+        reach = (ankle - hip).length
+        upper, lower = thigh.bone.length, shin.bone.length
+        along = (upper * upper - lower * lower + reach * reach) / (2 * reach)
+        forward = Vector((0, -1, 0))
+        pole = (forward - axis * forward.dot(axis)).normalized()
+        knee = hip + axis * along + pole * math.sqrt(upper * upper - along * along)
+        orient(arm, thigh.name, (thigh.bone.tail_local - thigh.bone.head_local).rotation_difference(knee - hip) @ thigh.bone.matrix_local.to_quaternion())
+        orient(arm, shin.name, (shin.bone.tail_local - shin.bone.head_local).rotation_difference(ankle - knee) @ shin.bone.matrix_local.to_quaternion())
+        orient(arm, foot.name, foot_rotation)
+        arm.pose.bones["knee-volume." + side].rotation_euler = tuple(v * .5 for v in shin.rotation_euler)
+    # The shield-bearing trunk inclines slightly over the staggered support.
+    arm.pose.bones["spine"].rotation_euler.x = .080
+    arm.pose.bones["neck"].rotation_euler.x = -.025
+    bpy.context.view_layer.update()
+    changed = ["pelvis", "spine", "neck"] + [name + "." + side for side in ("L", "R")
+        for name in ("thigh", "shin", "foot", "knee-volume")]
+    for name in changed:
+        bone = arm.pose.bones[name]
+        for frame in range(181):
+            bone.keyframe_insert("rotation_euler", frame=frame)
+            bone.keyframe_insert("location", frame=frame)
+
+
+def author_idle_ready(arm, scene):
+    for name, strength in (("idle", 1.0), ("ready", .65)):
+        action = bpy.data.actions[name]
+        arm.animation_data.action = action
+        arm.animation_data.action_slot = action.slots[0]
+        scene.frame_set(0)
+        if name == "ready":
+            supported_ready_stance(arm)
+        base = {bone.name: bone.rotation_euler.copy() for bone in arm.pose.bones}
+        # Two breaths over a six-second settling cycle. Rotation stays above
+        # the pelvis: the support stance and world root stay fixed through it.
+        channels = {"spine", "chest", "neck", "head"}
+        for frame in range(181):
+            phase = frame / 180
+            breath = math.sin(2 * math.tau * phase)
+            settle = math.sin(math.tau * phase)
+            turn = math.sin(math.tau * phase) * math.sin(math.pi * phase)**2
+            offsets = {
+                "spine": (.008 * breath, .014 * settle, .004 * turn),
+                "chest": (.010 * breath, -.004 * settle, -.002 * turn),
+                "neck": (-.009 * breath, -.006 * settle, -.001 * turn),
+                "head": (-.003 * breath, -.002 * settle, .005 * turn),
+            }
+            for bone_name in channels:
+                bone = arm.pose.bones[bone_name]
+                offset = Euler(tuple(v * strength for v in offsets[bone_name]), "XYZ")
+                bone.rotation_euler = (base[bone_name] if frame in (0, 180) else
+                    (base[bone_name].to_quaternion() @ offset.to_quaternion()).to_euler("XYZ", base[bone_name]))
+                bone.keyframe_insert("rotation_euler", frame=frame)
+        # Dense samples preserve the authored curve through the GLB exporter.
+        for curve in action_fcurves(action):
+            for key in curve.keyframe_points:
+                key.interpolation = "LINEAR"
+        action["idle_recipe"] = "supported upper-trunk breathing and settling"
+        for track in arm.animation_data.nla_tracks:
+            for strip in track.strips:
+                if strip.action == action:
+                    strip.action_frame_end = 180
+                    strip.frame_end = 180
+    arm.animation_data.action = bpy.data.actions["idle"]
+    arm.animation_data.action_slot = arm.animation_data.action.slots[0]
+    scene.frame_set(0)
+
+
 def build(source, output=OUTPUT):
     with bpy.data.libraries.load(str(source)) as (data, target):
         target.scenes = [next(n for n in data.scenes if n in ("HeavyKitCandidate", "HeavyMotionCandidate"))]
@@ -313,7 +490,11 @@ def build(source, output=OUTPUT):
         owned.add(arm.animation_data.action.name)
     if not {name for name, _, _ in anatomy.INSPECTION_CLIPS} <= owned:
         raise RuntimeError("Freeze a fitted source with the shared rig's inspection clips before authoring motion")
+    # Reconstruct the fitted carry before adding response: never accumulate
+    # trunk/arm deltas from a previously authored loaded run.
     author_motion(arm, scene)
+    author_loaded_run(arm, scene)
+    author_idle_ready(arm, scene)
     anatomy.export_candidate(body, arm, output, "heavy-kit")
 
 

@@ -53,6 +53,38 @@ Implementation checkpoints, in order:
 
 API seam: Authored clips on shared human rig → clip registry and timeline; stride phase follows measured motion, visual root displacement removed to preserve sim positions.
 
+### Next bounded pass: movement while motor-capable
+
+The engine can skip movement because a body is stunned or bowled, then decrement
+that timer to zero before the browser reads it. Final posture cannot classify the
+whole interval. Conversely, an enabled body can take a pressure-recovery step;
+there is no canonical voluntary-versus-pushed gait state to invent.
+
+Implement read-only cumulative travel qualified by the movement branch that
+actually ran. Ordinary and routing movement qualify; dead or disabled branches
+do not. Count resulting tick-start-to-final displacement, not commanded velocity
+or pre-separation drive that a constraint may undo. Preserve cumulative world X/Y
+displacement for directional selection and accumulated tick-path length for cadence.
+These three values share one per-soldier observation record and the existing bulk
+WASM boundary; no force-channel bundle or persistent event log is needed. Use
+double-precision accumulation so long battles retain small steps.
+
+The adapter differences readings across its existing observation interval,
+projects qualified net displacement against the displayed facing, and uses path
+length for speed. This replaces endpoint-position history for gait observations,
+not simulation positions. First/new soldier/reset readings establish a zero
+baseline; repeated ticks remain exact. Appearance changes retain body measurements
+while the timeline independently resets incompatible pose history.
+
+Pin mixed stun-expiry/recovery batches, routing, disabled cavalry momentum,
+conscious pressure response, reversals and reset/growth through the actual engine
+and adapter. Physics, outcomes, timers and saves must remain unchanged. Enabled
+travel includes constrained pressure displacement that may require recovery steps;
+it is not proof of voluntary propulsion or planted feet. Net direction can still
+cancel within a batch; the scalar path does not reconstruct its sequence.
+Keep live root smoothing as the next separate presentation contract—do not add
+a trajectory-reconstruction system or quietly claim this observation solves it.
+
 Names of new functions/routes in this plan are proposed, not existing commands. Use the [shared acceptance contract](../README.md#acceptance-contract) and [architecture](../architecture.md) for inherited requirements.
 
 ## Runnable artifact

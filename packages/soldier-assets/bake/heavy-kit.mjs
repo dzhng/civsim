@@ -12,7 +12,7 @@ const bundle = bakeAppearance({
   name: "heavy-kit",
   mounted: false,
   tiers: [source, source, source],
-  loopClips: [],
+  loopClips: ["ready", "walk"],
   presentation: null,
 });
 const files = { "catalog.json": { appearances: { 0: "heavy/appearance.json" } } };

@@ -1,7 +1,8 @@
 """Editable heavy-infantry equipment fitted to the shared provisional anatomy.
 
 Run in a fresh Blender session. Source equipment stays separate and editable;
-only export copies are joined. No anatomy, rig, or motion is reauthored here.
+only export copies are joined. Shared surface and motion authors compose here;
+the anatomy and bind rig remain owned by the human source.
 """
 import importlib.util
 import math
@@ -167,14 +168,23 @@ def build():
             [(.273, 1.345, .096), (.298, 1.305, .092), (.302, 1.299, .092)])
     loft("Waist belt", [((0, .005, z), w, d) for z, w, d in
          [(1.026, .198, .148), (1.031, .201, .151),
-          (1.061, .201, .151), (1.066, .198, .148)]], "spine")
+          (1.061, .201, .151), (1.066, .198, .148)]])
     for side, sign in [("L", 1), ("R", -1)]:
         loft("Sandal sole." + side,
              [((sign*.124, -.067, z), w, d) for z, w, d in
               [(.012, .064, .13), (.020, .068, .135), (.036, .066, .129)]], "foot." + side)
-        loft("Sandal upper." + side,
-             [((sign*.124, -.056, z), w, d) for z, w, d in
-             [(.035, .065, .121), (.060, .061, .105), (.083, .046, .069), (.11, .035, .038)]], "foot." + side)
+        for band, (y, width, crown) in enumerate([(-.137, .054, .059),
+                                                 (-.083, .050, .080),
+                                                 (-.028, .043, .111)]):
+            vertices = []
+            for edge in (-.010, .010):
+                for step in range(13):
+                    angle = math.pi*step/12
+                    vertices.append((sign*.124 + width*math.cos(angle), y+edge,
+                                     .031+(crown-.031)*math.sin(angle)))
+            faces = [(j, j+1, 14+j, 13+j) for j in range(12)]
+            thin_surface(f"Sandal strap {band}.{side}", vertices, faces,
+                         "foot." + side, offset=0)
 
     loft("Helmet bowl and rolled edge", [((0, .013, z), w, d) for z, w, d in
          [(1.680, .099, .104), (1.686, .103, .108), (1.694, .100, .105),
@@ -220,6 +230,15 @@ def build():
                                (.55, .036, .005), (.67, .001, .001)], 4)
     loft("Scabbard", [((-.21 - (1-z)*.10, .045, z), w, .022) for z, w in
          [(1.02, .045), (.99, .046), (.51, .039), (.42, .007)]], "pelvis", 24)
+
+    for module_name, filename, entry, args in (
+        ("heavy_surfaces", "blender-heavy-surfaces.py", "author_surfaces", ([body] + gear,)),
+        ("heavy_motion", "blender-heavy-motion.py", "author_motion", (arm, scene)),
+    ):
+        module_spec = importlib.util.spec_from_file_location(module_name, HERE / filename)
+        module = importlib.util.module_from_spec(module_spec)
+        module_spec.loader.exec_module(module)
+        getattr(module, entry)(*args)
 
     # Export copies share a single mesh/skin without sacrificing modular source editing.
     bpy.ops.object.select_all(action="DESELECT")

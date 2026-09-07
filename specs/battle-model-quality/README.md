@@ -19,6 +19,19 @@ Current pickup has independent authoring and measurement lanes:
   through18f1f182; heavy refit captures now include the current body and garment weights.
   Candidate surface and equipped ready/walk authoring now run in separate lanes;
   the existing bend and pronation are fitting probes, not combat motion.
+  Frozen surface and walk studies are integrated throughe6975444 and24677a9a.
+  The current dirty heavy assembly composes both on the refitted body/kit;
+  [combined review](assets/evidence/11/combined-heavy.md) records successful
+  export/capture checks and unresolved visual defects. The continuous-mail
+  correction is rebuilt on the current source; combined walk fitting capture is
+  complete. Rear belt/body weighting now keeps the belt outside the mail in all
+  reviewed frames; the [combined review](assets/evidence/11/combined-heavy.md)
+  records exact source provenance and remaining contact defects.
+  Its old1.53m/s target was wrong:
+  `pace_speed` preserves the1.7m/s walk floor. Locomotion authoring is correcting
+  walk and adding run; keep the existing frames as fitting evidence only.
+  Next inspect the corrected cycle and improve the whole-body
+  ready/load silhouette and footwear. No combined visual acceptance yet.
   Rounded lips remain the body source; eye relief/sphere trials were rejected.
   Keep unclothed08 anatomy review open for facial form, shoulders, pelvis and
   grips. Equipment cannot conceal those defects or satisfy anatomy acceptance.

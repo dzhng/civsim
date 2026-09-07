@@ -1026,3 +1026,31 @@ Future anatomy reviews inherit one extra deterministic sheet, not a separate
 renderer or a new gameplay zoom promise. Passing this detail view cannot replace
 the full-body, deformation or gameplay-scale requirements. No baseline is
 accepted merely because the new camera creates its first image.
+
+### Share one provisional texture sheet across heavy material regions (10)
+
+**Sound, provisional; confidence: medium.** When the heavy soldier loads, skin,
+cloth, mail and equipment read different areas of the same texture sheet rather
+than each loading a full-size image. Three 2048-square images carry color, surface
+direction and roughness/metal response. The existing material contract still
+distinguishes each region; the sheet does not make leather behave like bronze.
+
+The plan required locally authored surfaces but did not choose their packing or
+resolution. This keeps the study self-contained and avoids separate image sets
+per small piece. It is not a measured memory allowance: slice07 and distance
+review can require a different packing or resolution before promotion. Changing
+this source policy rebuilds the images and UV coordinates together without a
+runtime schema change.
+
+### Inspect ready footwear through an additional native close camera (09–11)
+
+**Sound; confidence: high.** A strap may look attached in a whole-body image
+while ending inside the heel. The combined candidate retains its original
+cameras and adds a close view of both planted feet from four directions. This
+exposes sole thickness and strap contact directly, rather than treating the
+numerical sole-floor check as proof that the entire sandal fits.
+
+The plan required credible footwear and planted motion but did not prescribe
+this framing. It is an extra review view, not a new gameplay zoom or renderer.
+Its standing pose cannot establish clearance throughout a walk; moving frames
+remain separately required.

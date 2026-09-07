@@ -1,6 +1,9 @@
 # 11 — First-pair locomotion
 
 Status: IN PROGRESS, working candidate only. Acceptance depends on [10](./10-pair-surfaces.md).
+Candidate clips may be authored on usable provisional rig and equipment contacts;
+surface acceptance is not an authoring dependency. Freeze the rig/kit revision
+for each comparison and repeat affected checks after refits.
 
 ## Contract and ownership
 

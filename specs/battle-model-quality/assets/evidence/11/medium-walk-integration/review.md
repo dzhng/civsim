@@ -96,3 +96,16 @@ Shape review keeps one medium motion recipe and extends the existing scene page;
 travel placement consumes the existing shared absolute-time helper. No new runtime
 owner, dependency, selector or gameplay state. Parent owns the global plan/choices
 updates; this leaf records the bounded integration and its evidence only.
+
+## Independent merged-tree check
+
+Parent integration `aa957bb3` was rechecked through the same production scene on
+port 5174 with bundled Chromium/SwiftShader. The [raw report](merged-root.json)
+records 643 passing checks, all 193 snapshots at zero differing pixels, and no
+page errors. Parent also passed bake freshness and the two modelTravel tests.
+TypeScript checking passes on the merged web project. The integration choice audit
+found no additional unbanked architecture: fitted-source ownership and fresh-export
+admission retain the recorded rules; motion/framing discretion was delegated by
+the slice. Artistic uncertainty remains explicit rather than becoming a new gate.
+This reproduces the reviewed source in the combined worktree; it does not widen
+the provisional visual verdict or promote the candidate into live battles.

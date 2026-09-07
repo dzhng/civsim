@@ -38,9 +38,9 @@ runtime locomotion.
 Implementation checkpoints, in order:
 
 1. Bind authored stride distance to measured travel and preserve interruption
-   ownership. The isolated implementation has CPU evidence; GPU numerical-reference
-   revalidation remains open before merge. Exact repeated images and the independent
-   source-pose check must survive that revalidation.
+   ownership. The isolated implementation passes CPU and nonbaseline GPU checks;
+   its reviewed baseline update and exact repeat remain pending before merge.
+   Numerical equivalence is proved separately from exact same-input repeatability.
 2. Bind the manually reviewed protected backward action through the canonical
    observations. Resolve displayed-root smoothing and externally driven displacement
    explicitly; a frozen centroid film proves neither. Preserve combat event priority
@@ -48,8 +48,8 @@ Implementation checkpoints, in order:
    The [controlled movement observations](../assets/evidence/11/drive-observation/review.md)
    rule out interpreting raw displacement or momentum subtraction as leg drive.
 3. Review live starts, stops, reversals and equipment/load response for both first-pair
-   units before accepting locomotion. The relaxed medium march remains an isolated
-   posture study, not a completed runtime binding.
+   units before accepting locomotion. The relaxed medium march is integrated for
+   manual review, not a completed runtime binding.
 
 API seam: Authored clips on shared human rig → clip registry and timeline; stride phase follows measured motion, visual root displacement removed to preserve sim positions.
 
@@ -118,6 +118,13 @@ engine trace preserves a reproducible authoring comparison, while the source rec
 keeps one fitted geometry owner and all unrelated motion. The action is manual-only;
 upper-body stiffness and crowded passing steps remain provisional. Its donor full
 gate and independent merged-tree repeat both pass; runtime selection remains open.
+
+The [medium walk integration](../assets/evidence/11/medium-walk-integration/review.md)
+retains the reviewed lower upright-pike carry on the saved fitted medium source.
+The original static sheets and all added motion/context frames pass independently
+on the merged tree. The lower left arm is provisionally less rigid; right-arm
+bracing, flat footfall, close pike butt and dense-formation clearance remain open.
+No runtime selection or final art acceptance follows from this manual film.
 
 The [prescribed world-travel smoke](../assets/evidence/11/heavy-travel/review.md)
 exposed the combined candidate facing opposite production travel. The

@@ -8,33 +8,34 @@ Last updated **2026-09-07**. **01–06 complete;07 envelope open;08–11 provisi
 authoring;12–30 pending.** Worktree: `/Users/david/dev/game-battle-model-quality`,
 branch `codex/battle-model-quality`. No detailed model or art envelope is accepted.
 
-Current pickup: **distance-driven playback, protected travel, and relaxed medium
-march**. The [combined heavy motion](assets/evidence/11/composed-motion/review.md)
+Current pickup: **distance-driven playback and engine-faithful protected travel**.
+The [combined heavy motion](assets/evidence/11/composed-motion/review.md)
 is integrated and independently verified on the merged tree. Its one source recipe
 preserves fitted geometry and composes idle, ready, and run without accumulating
 offsets on repeated authoring. No live appearance is promoted. The
 [guarded backward action](assets/evidence/11/backward-integration/review.md)
 is integrated for manual review, preserving the other clips and fitted geometry;
 its runtime selection is still unbuilt. Measured-distance playback is in an
-isolated worktree: CPU tests pass, but temporal GPU verification exposed two
-floating-point comparison seams. Diagnose and validate those without weakening
-same-input image repeatability before integrating playback. The
+isolated worktree: CPU and nonbaseline GPU checks pass, including the diagnosed
+floating-point comparisons and explicit reference shadow-history boundary.
+The complete changed image set has been reviewed; baseline update and exact
+repeat are running before integration. Same-input repeatability remains exact.
+The
 [carry-fit study](assets/evidence/11/carry-fit/review.md) records the rejected
 support attachments and current provisional fit. Prioritize whole-soldier
 proportions, equipment silhouette and full-body motion. David
 explicitly deferred small-detail polishing on 2026-09-07: hands must be
 serviceable, but isolated finger anatomy must not hold up the big visual forms.
 The reported outward-facing palm is a basic grip/pose defect, not permission to
-resume fine hand sculpting. The integrated
-[medium candidate](assets/evidence/09/medium-phalanx/review.md) retains the upright shield
-and fitted cuirass, with a refitted belt and suspension upper loops. Matched
-shield-hidden front review confirms the irregular white waist wedge is now a
-continuous layer edge; whole/formation readability is preserved. Its grip and
-regular skirt remain provisional. All eight integrated sheets match the reviewed
-donor captures byte-for-byte and repeat exactly. The editable source is now in
-this worktree; do not regenerate it against a changed heavy donor without an
-explicit refit. Do not flatten the shield to eliminate a contact failure.
-Do not accept detail fixes without reviewing the whole model and formation.
+resume fine hand sculpting. The fitted
+[medium candidate](assets/evidence/09/medium-phalanx/review.md) now includes the
+[reviewed lower upright-pike march](assets/evidence/11/medium-walk-integration/review.md).
+The merged production gate preserves the original static sheets and matches the
+reviewed moving frames exactly. Right-arm bracing, flat footfall and pike-butt
+proximity remain provisional; runtime selection and dense engine-formation
+clearance are not accepted. Preserve its saved fitted source rather than rebuilding
+against a changed heavy donor. Do not flatten the shield to eliminate a contact
+failure or accept detail fixes without reviewing the whole model and formation.
 
 David's shield-carry direction: in at-ease standing and ordinary walk/run, carry
 the shield beside the left flank, outward face pointing sideways and roughly
@@ -58,10 +59,10 @@ Priority order:
   unrelated clips; do not repeat composition or overwrite fitted geometry from
   an older study. Upper-body weight response, ground contact and transitions
   remain open. The [locomotion slice](slices/11-pair-locomotion.md) owns acceptance.
-- **Medium ordinary march:** the isolated load-response revision improves
-  clearance, but fresh comparison judged its naturalness equal, not better.
-  Lower the rigid cross-chest carrying posture before claiming that issue resolved;
-  retain two-hand purchase, flank shield, and unchanged pike length.
+- **Medium ordinary march:** retain the integrated lower carry provisionally;
+  continue full-body motion and live binding, not another isolated hand study.
+  Two-hand purchase, flank shield and pike length remain constraints. The
+  lower left arm improves the silhouette but does not resolve right-arm rigidity.
 - **Shared hand detail stays paused:** preserve studies in
   `/Users/david/dev/game-heavy-hand-form` without grafting them into the current
   soldier. Basic handedness is required; finger refinement must not displace

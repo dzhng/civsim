@@ -201,7 +201,6 @@ export async function run(ctx) {
                 health: 100,
                 mountHealth: 100,
                 speedMps: 1,
-                running: false,
                 atEase: false,
                 pikeReady: false,
                 fighting: false,

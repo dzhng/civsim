@@ -152,20 +152,49 @@ const options = {
 };
 const sourceBundle = bakeAppearance(options);
 const clipName = sourceBundle["animation.json"].clips[0].name;
-const marked = bakeAppearance({ ...options, clipMarkers: { [clipName]: { release: 0.37 } } });
+const marked = bakeAppearance({
+  ...options,
+  clipMetadata: { [clipName]: { markers: { release: 0.37 } } },
+});
 assert.equal(marked["animation.json"].clips[0].markers.release, 0.37);
 assert.equal(marked["skeleton.json"].clips[0].markers.release, 0.37);
 assert.deepEqual(marked["animation.json"].data, sourceBundle["animation.json"].data);
+const calibrated = bakeAppearance({
+  ...options,
+  loopClips: [clipName],
+  clipMetadata: { [clipName]: { strideMeters: 1.25 } },
+});
+assert.equal(calibrated["animation.json"].clips[0].strideMeters, 1.25);
+assert.equal(calibrated["skeleton.json"].clips[0].strideMeters, 1.25);
+assert.deepEqual(calibrated["animation.json"].data, sourceBundle["animation.json"].data);
+for (const strideMeters of [0, -1, NaN, Infinity])
+  assert.throws(
+    () =>
+      bakeAppearance({
+        ...options,
+        loopClips: [clipName],
+        clipMetadata: { [clipName]: { strideMeters } },
+      }),
+    /strideMeters/,
+  );
+assert.throws(
+  () =>
+    bakeAppearance({
+      ...options,
+      clipMetadata: { [clipName]: { strideMeters: 1.25 } },
+    }),
+  /looping clip/,
+);
 assert.throws(
   () => bakeAppearance({ ...options, presentation: undefined }),
   /explicit presentation/,
 );
 assert.throws(
-  () => bakeAppearance({ ...options, clipMarkers: { absent: { release: 0.5 } } }),
-  /marker clip absent/,
+  () => bakeAppearance({ ...options, clipMetadata: { absent: { markers: { release: 0.5 } } } }),
+  /metadata clip absent/,
 );
 assert.throws(
-  () => bakeAppearance({ ...options, clipMarkers: { [clipName]: { release: 2 } } }),
+  () => bakeAppearance({ ...options, clipMetadata: { [clipName]: { markers: { release: 2 } } } }),
   /release marker/,
 );
 console.log(

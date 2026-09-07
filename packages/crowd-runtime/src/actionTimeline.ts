@@ -19,7 +19,6 @@ export interface ActionObservation {
   forwardMps: number;
   /** Measured travel to the presented soldier's right (negative to the left). */
   lateralMps: number;
-  running: boolean;
   routing: boolean;
   /** Current engine steering-disable condition (stunned or bowled). */
   incapacitated: boolean;
@@ -59,7 +58,10 @@ export interface SoldierPlayback {
   base: ClipBlend;
   riderUpperBody?: RiderBlend;
 }
-type ActionClip = Pick<LocalAnimationClip, "name" | "duration" | "loop" | "markers">;
+type ActionClip = Pick<
+  LocalAnimationClip,
+  "name" | "duration" | "loop" | "markers" | "strideMeters"
+>;
 type PlaybackAppearance = {
   manifest: { presentation: AppearancePresentation | null };
   animation: { clips: readonly ActionClip[] };
@@ -151,6 +153,8 @@ interface Track {
   clip: ActionClip;
   started: number;
   startPhase: number;
+  /** Cycles per second from the latest measured motion; absent for time-driven actions. */
+  phaseRate?: number;
 }
 interface Lane {
   current: Track;
@@ -173,7 +177,8 @@ export const ACTION_TICK_SECONDS = 1 / 30;
 function sample(track: Track, seconds: number): ClipSample {
   const progress =
     track.clip.duration > 0
-      ? track.startPhase + Math.max(0, seconds - track.started) / track.clip.duration
+      ? track.startPhase +
+        Math.max(0, seconds - track.started) * (track.phaseRate ?? 1 / track.clip.duration)
       : 0;
   return { clip: track.clip.name, phase: track.clip.loop ? progress % 1 : Math.min(1, progress) };
 }
@@ -287,6 +292,15 @@ export class ActionTimeline {
       if (!presentation)
         throw new Error(`appearance ${observation.appearanceId} is manual-only or missing`);
       const moving = marchingStateForSpeed(observation.speedMps, history?.moving ?? false);
+      const validSpeed = Number.isFinite(observation.speedMps) && observation.speedMps >= 0;
+      const speed = validSpeed ? observation.speedMps : 0;
+      const actionClip = (role: ActionRole) => {
+        const clip = this.appearances[observation.appearanceId].animation.clips.find(
+          (clip) => clip.name === presentation.actions[role]?.clip,
+        );
+        if (!clip) throw new Error(`appearance ${observation.appearanceId} has no ${role} action`);
+        return clip;
+      };
       const injured =
         !!history &&
         (observation.health < history.health || observation.mountHealth < history.mountHealth);
@@ -305,8 +319,17 @@ export class ActionTimeline {
       const melee =
         presentation.actions.melee &&
         (observation.fighting || (playing && active.role === "melee"));
+      // Choose the nearest authored nominal pace, not the order's requested exertion.
+      const nominalSpeed = (role: "walk" | "run") => {
+        const clip = actionClip(role);
+        return clip.strideMeters! / clip.duration;
+      };
+      const run =
+        moving && validSpeed
+          ? speed > (nominalSpeed("walk") + nominalSpeed("run")) / 2
+          : history?.base.current.role === "run";
       const background: ActionRole = moving
-        ? observation.running
+        ? run
           ? "run"
           : "walk"
         : observation.atEase
@@ -324,11 +347,19 @@ export class ActionTimeline {
               ? "melee"
               : background;
       const track = (role: ActionRole): Track => {
-        const binding = presentation.actions[role];
-        const clip = this.appearances[observation.appearanceId].animation.clips.find(
-          (c) => c.name === binding?.clip,
-        );
-        if (!clip) throw new Error(`appearance ${observation.appearanceId} has no ${role} action`);
+        const clip = actionClip(role);
+        const locomotion = role === "walk" || role === "run";
+        const old =
+          history?.appearanceId === observation.appearanceId ? history.base.current : undefined;
+        // Keep the same arithmetic anchor while the measured rate is unchanged.
+        // Re-anchoring an identical trajectory can round an interruption pose differently.
+        if (
+          locomotion &&
+          old?.role === role &&
+          old.clip === clip &&
+          old.phaseRate === speed / clip.strideMeters!
+        )
+          return old;
         return {
           role,
           clip,
@@ -340,7 +371,13 @@ export class ActionTimeline {
                   clip.markers!.release! +
                     Math.max(0, observation.releaseAgeSeconds) / clip.duration,
                 )
-              : 0,
+              : locomotion && old
+                ? (old.phaseRate !== undefined
+                    ? sample(old, previousTick * ACTION_TICK_SECONDS).phase
+                    : 0) +
+                  (speed * (tick - previousTick) * ACTION_TICK_SECONDS) / clip.strideMeters!
+                : 0,
+          ...(locomotion ? { phaseRate: speed / clip.strideMeters! } : {}),
         };
       };
       const upperBody = presentation.actions[role]?.layer === "riderUpperBody";
@@ -348,7 +385,7 @@ export class ActionTimeline {
       const restart = injured || (role === "release" && released) || (role === "melee" && !playing);
       // Equipment can change skeleton/clip indices; never carry a blend across bundles.
       const sameAppearance = history?.appearanceId === observation.appearanceId;
-      const previousHistory = history;
+      const previousHistory = prior;
       let previous: SoldierPlayback | undefined;
       // Transition callbacks run only when a lane changes. Capture the old history
       // before rebinding it so base and overlay interruptions freeze the same pose.
@@ -371,6 +408,7 @@ export class ActionTimeline {
         freezeBase,
         !upperBody && restart,
       );
+      if (baseTrack.phaseRate !== undefined) base.current = baseTrack;
       history = {
         ...history,
         appearanceId: observation.appearanceId,

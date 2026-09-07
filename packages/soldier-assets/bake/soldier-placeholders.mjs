@@ -59,6 +59,8 @@ export function placeholderRig() {
     {
       name: "march",
       duration: 1,
+      // Synthetic transport fixture rates, not physically grounded foot calibration.
+      strideMeters: 1.7,
       tracks: {
         3: { R: channel(loop, swing(0.38, 0)) },
         4: { R: channel(loop, swing(0.38, Math.PI)) },
@@ -69,6 +71,7 @@ export function placeholderRig() {
     {
       name: "run",
       duration: 0.65,
+      strideMeters: 3.4 * 0.65,
       tracks: {
         0: { R: channel([0, 0.5, 1], [qx(-0.1), qx(0.08), qx(-0.1)]) },
         3: { R: channel(loop, swing(0.46, 0)) },
@@ -232,6 +235,9 @@ function completeBundleFiles(rig, animation) {
                         duration: clip.duration,
                         loop: clip.loop,
                         ...(clip.markers ? { markers: clip.markers } : {}),
+                        ...(clip.strideMeters !== undefined
+                          ? { strideMeters: clip.strideMeters }
+                          : {}),
                       }
                     : null,
                 ];

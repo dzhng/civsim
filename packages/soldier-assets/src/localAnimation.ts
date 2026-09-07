@@ -1,5 +1,5 @@
 import type { ImportedRig } from "./rig";
-import { assertClipMarkers, type ClipMarkers } from "./schema.ts";
+import { assertClipMetadata, type ClipMetadata } from "./schema.ts";
 import { blendLocalPoses, sampleRigLocalPoseSeconds, type LocalPose } from "./localPose.ts";
 
 /** Three vec4s: Txyz/0, Rxyzw, Sxyz/0. Shared by animation and frozen GPU poses. */
@@ -19,14 +19,13 @@ export function isAdmittedLocalQuaternion(values: ArrayLike<number>, offset = 0)
   return Number.isFinite(norm) && Math.abs(norm - 1) <= LOCAL_QUATERNION_NORM_TOLERANCE;
 }
 
-export interface LocalAnimationClip {
+export interface LocalAnimationClip extends ClipMetadata {
   name: string;
   start: number;
   /** Exact CPU seconds, strictly increasing; a static clip may have one sample. */
   times: number[];
   duration: number;
   loop: boolean;
-  markers?: ClipMarkers;
   stepMaskOffset: number;
 }
 
@@ -92,7 +91,7 @@ export function decodeLocalAnimation(value: unknown): LocalAnimation {
       )
     )
       fail();
-    assertClipMarkers(clip.markers);
+    assertClipMetadata(clip);
     names.add(clip.name);
     samples += clip.times.length;
     masks += asset.bones;
@@ -165,7 +164,7 @@ export function bakeLocalAnimation(rig: ImportedRig): LocalAnimation {
       throw new Error("local clip duration must be finite and nonnegative");
     if (clips.some((other) => other.name === clip.name))
       throw new Error(`duplicate local clip ${clip.name}`);
-    assertClipMarkers(clip.markers);
+    assertClipMetadata(clip);
     const times = new Set([0, clip.duration]);
     const stepMaskOffset = masks.length;
     for (let joint = 0; joint < rig.bones.length; joint++) {
@@ -220,6 +219,7 @@ export function bakeLocalAnimation(rig: ImportedRig): LocalAnimation {
       duration: clip.duration,
       loop: clip.loop ?? false,
       ...(clip.markers ? { markers: { ...clip.markers } } : {}),
+      ...(clip.strideMeters !== undefined ? { strideMeters: clip.strideMeters } : {}),
       stepMaskOffset,
     });
     totalSamples += times.size;

@@ -10,7 +10,12 @@ import {
   denseBattleModelReplayRecipe,
 } from "../../apps/renderer-lab/src/battleModelReplay";
 import { evaluatePlaybackPose } from "@packages/crowd-runtime/src/actionTimeline";
-import { sampleRigLocalPose } from "@packages/soldier-assets/src/localPose";
+import {
+  localPoseToJointMatrices,
+  sampleRigLocalPose,
+} from "@packages/soldier-assets/src/localPose";
+import { poseSoldierMesh } from "@packages/soldier-assets/src/skin";
+import { bundleAtPose, posedBundle } from "../scenes/models/_posed-bundle";
 import { decodeLocalSample, resolveLocalSample } from "@packages/soldier-assets/src/localAnimation";
 
 vi.stubGlobal(
@@ -66,6 +71,26 @@ test("rebaked aliases retain original authored poses at endpoints and fractional
       assert.ok(error < 1e-6, `${alias}/${phase}: ${error}`);
     }
   }
+});
+
+test("readback raster arithmetic is explicit and leaves the independent source oracle unchanged", () => {
+  const fixture = mountedTemporalFixture(source);
+  const recipe = denseBattleModelReplayRecipe(fixture, 41);
+  const playback = new BattleModelReplay({ 41: fixture }, 41, recipe).seek(10).playback;
+  const palette = localPoseToJointMatrices(fixture.rig, evaluatePlaybackPose(fixture, playback));
+  const saved = structuredClone(fixture);
+  const independent = posedBundle(fixture, playback);
+  const defaultArithmetic = bundleAtPose(fixture, palette);
+  const readback = bundleAtPose(fixture, palette, "readback");
+  for (let tier = 0; tier < fixture.tiers.length; tier++) {
+    const expected = poseSoldierMesh(fixture.tiers[tier], palette);
+    assert.deepEqual(independent.tiers[tier].positions, expected.positions);
+    assert.deepEqual(defaultArithmetic.tiers[tier].positions, expected.positions);
+    assert.notDeepEqual(readback.tiers[tier].positions, expected.positions);
+    assert.deepEqual(readback.tiers[tier].normals, expected.normals);
+    assert.deepEqual(readback.tiers[tier].tangents, expected.tangents);
+  }
+  assert.deepEqual(fixture, saved);
 });
 
 test("authored mounted overlay exits to the advancing base and full-body terminal transition is continuous", () => {

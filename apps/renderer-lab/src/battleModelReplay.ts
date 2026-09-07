@@ -7,6 +7,13 @@ import { buildCrowdInstances } from "@packages/crowd-runtime/src/instanceData";
 import { APPEARANCE_DESCRIPTORS } from "@packages/soldier-assets/src/appearance";
 import type { AppearanceBundle } from "@packages/soldier-assets/src/appearanceBundle";
 
+/** Prescribe the asset's nominal fixture pace; runtime selection still reads measured speed. */
+function fixtureSpeed(bundle: AppearanceBundle, running: boolean): number {
+  const binding = bundle.manifest.presentation!.actions[running ? "run" : "walk"]!;
+  const clip = bundle.animation.clips.find((clip) => clip.name === binding.clip)!;
+  return clip.strideMeters! / clip.duration;
+}
+
 /** Lab observations only; action selection and pose composition remain timeline-owned. */
 export interface BattleModelReplayRecipe {
   endTick: number;
@@ -57,18 +64,19 @@ export function denseBattleModelReplayRecipe(
       const releaseTick = [...releases].reverse().find((event) => event <= tick);
       const releaseAgeSeconds =
         releaseTick === undefined ? 0 : (tick - releaseTick) * ACTION_TICK_SECONDS;
+      const running = tick >= 4 && (tick < exitTick - 1 || tick >= exitTick + 1);
+      const speed = tick < 1 ? 0 : fixtureSpeed(bundle, running);
       return {
         appearanceId,
         alive: tick < deathTick,
         health: 100,
         mountHealth: 100,
-        speedMps: tick < 1 ? 0 : 1,
-        forwardMps: tick < 1 ? 0 : 1,
+        speedMps: speed,
+        forwardMps: speed,
         routing: false,
         incapacitated: false,
         guardedFacing: false,
         lateralMps: 0,
-        running: tick >= 4 && (tick < exitTick - 1 || tick >= exitTick + 1),
         atEase: false,
         pikeReady: false,
         fighting: false,
@@ -204,18 +212,19 @@ export class BattleModelReplay {
     const appearanceId = tick >= 165 ? this.equipmentId : this.appearanceId;
     const releaseTick = tick >= 90 ? 90 : tick >= 60 ? 60 : null;
     const releaseAgeSeconds = releaseTick === null ? 0 : (tick - releaseTick) / 30;
+    const running = tick >= 30 && tick < 150;
+    const speed = tick < 15 ? 0 : fixtureSpeed(this.assets[appearanceId], running);
     return {
       appearanceId,
       alive: tick < 195,
       health: tick < 105 ? 100 : 80,
       mountHealth: 100,
-      speedMps: tick < 15 ? 0 : 1,
-      forwardMps: tick < 15 ? 0 : 1,
+      speedMps: speed,
+      forwardMps: speed,
       routing: false,
       incapacitated: false,
       guardedFacing: false,
       lateralMps: 0,
-      running: tick >= 30 && tick < 150,
       atEase: false,
       pikeReady: false,
       fighting: tick >= 45 && tick < 105,

@@ -30295,7 +30295,8 @@
           }
         }
       },
-      "loop": true
+      "loop": true,
+      "strideMeters": 2.584
     },
     {
       "name": "walk",
@@ -34101,7 +34102,8 @@
           }
         }
       },
-      "loop": true
+      "loop": true,
+      "strideMeters": 1.53
     }
   ],
   "skinJoints": [

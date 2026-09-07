@@ -8,6 +8,37 @@ const foregrounds = {
   diagnostic: { x: 600, y: 160, width: 240, height: 270 },
 };
 const background = { x: 0, y: 0, width: 180, height: 180 };
+// Existing independent pose-palette bound (slice 06); not a raster pixel allowance.
+const MATRIX_ERROR_LIMIT = 1e-5;
+function numericPoseContinuity(before, after) {
+  const localsExact =
+    before.locals.length === after.locals.length &&
+    before.locals.every((value, i) => value === after.locals[i]);
+  const paletteError =
+    before.matrices.length === after.matrices.length
+      ? Math.max(...before.matrices.map((value, i) => Math.abs(value - after.matrices[i])))
+      : Infinity;
+  return {
+    ok:
+      localsExact &&
+      paletteError <= MATRIX_ERROR_LIMIT &&
+      before.matrixError <= MATRIX_ERROR_LIMIT &&
+      after.matrixError <= MATRIX_ERROR_LIMIT,
+    localsExact,
+    paletteError,
+    independentErrors: [before.matrixError, after.matrixError],
+  };
+}
+function sameRenderState(before, after) {
+  return JSON.stringify(renderState(before)) === JSON.stringify(renderState(after));
+}
+function renderState(state) {
+  return {
+    beauty: state.stats.visibleTierHistogram,
+    shadow: state.stats.shadowTierHistogram,
+    corpse: state.corpseStrength,
+  };
+}
 export const temporalSnapshots = [4, 7, 41].flatMap((id) =>
   [
     6,
@@ -39,6 +70,9 @@ export async function verifyTemporalReplay(ctx, page, ids = [4, 7]) {
       const { evaluatePlaybackPose } = await import(
         `/@fs${root}packages/crowd-runtime/src/actionTimeline.ts`
       );
+      const { corpsePresentationStrength } = await import(
+        `/@fs${root}packages/crowd-runtime/src/instanceData.ts`
+      );
       const { localPoseToJointMatrices } = await import(
         `/@fs${root}packages/soldier-assets/src/localPose.ts`
       );
@@ -64,6 +98,11 @@ export async function verifyTemporalReplay(ctx, page, ids = [4, 7]) {
       const productionCrowd = w.crowd;
       let replay, camera, oracleCrowd, measuredPalette;
       window.__temporalReplay = {
+        beginComparison() {
+          const before = productionCrowd.stats().shadowTierHistogram;
+          productionCrowd.upload([]);
+          return { before, after: productionCrowd.stats().shadowTierHistogram };
+        },
         culling() {
           const state = replay.seek(6);
           const instance = state.instances[0];
@@ -128,7 +167,10 @@ export async function verifyTemporalReplay(ctx, page, ids = [4, 7]) {
             },
           };
         },
-        async draw(tick, { side, freezeCompute = false, oracle, measure = false } = {}) {
+        async draw(
+          tick,
+          { side, freezeCompute = false, oracle, measure = false, facingOffset = 0 } = {},
+        ) {
           if (measure && oracle) throw new Error("Measure only the production palette");
           if (oracleCrowd) {
             oracleCrowd.dispose();
@@ -137,11 +179,16 @@ export async function verifyTemporalReplay(ctx, page, ids = [4, 7]) {
           }
           const state = side ? replay.seekBoundary(tick)[side] : replay.seek(tick);
           let instances = state.instances;
+          if (facingOffset)
+            instances = instances.map((instance) => ({
+              ...instance,
+              facing: instance.facing + facingOffset,
+            }));
           if (oracle) {
             const id = state.playback.appearanceId;
             const cpu =
               oracle === "readback"
-                ? bundleAtPose(w.soldierAssets[id], measuredPalette)
+                ? bundleAtPose(w.soldierAssets[id], measuredPalette, "readback")
                 : posedBundle(w.soldierAssets[id], state.playback);
             productionCrowd.upload([]);
             oracleCrowd = await productionCrowd.constructor.create(
@@ -185,13 +232,12 @@ export async function verifyTemporalReplay(ctx, page, ids = [4, 7]) {
           await w.settlePresentedFrame();
           w.render();
           await w.world.settlePresentedFrame();
-          let matrixError;
+          let matrixError, locals, matrices;
           if (measure) {
             const source = w.soldierAssets[state.playback.appearanceId];
-            const expected = localPoseToJointMatrices(
-              source.rig,
-              evaluatePlaybackPose(source, state.playback),
-            );
+            const evaluated = evaluatePlaybackPose(source, state.playback);
+            locals = Array.from(evaluated);
+            const expected = localPoseToJointMatrices(source.rig, evaluated);
             const palette = productionCrowd.groups.find((group) => group.pending.length).palette;
             const actual = new Float32Array(
               await renderer.getArrayBufferAsync(
@@ -202,12 +248,16 @@ export async function verifyTemporalReplay(ctx, page, ids = [4, 7]) {
               ),
             );
             measuredPalette = actual;
+            matrices = Array.from(actual);
             matrixError = Math.max(
               ...expected.map((value, index) => Math.abs(value - actual[index])),
             );
           }
           return {
             matrixError,
+            locals,
+            matrices,
+            corpseStrength: instances.map(corpsePresentationStrength),
             playback: state.playback,
             snapshotBytes: state.snapshotBytes,
             suppressed,
@@ -313,14 +363,100 @@ export async function verifyTemporalReplay(ctx, page, ids = [4, 7]) {
     const deathTick = recipe.events.find((event) => event.label === "Composed death").tick;
     const exitTick = recipe.events.find((event) => event.label === "Release exit").tick;
     for (const tick of [11, 14, 15, 18, exitTick, exitTick + 1, deathTick]) {
+      // Actual and preposed reference start with identical visibility demand.
+      // The reference's upload([]) must not silently change shadow hysteresis mid-comparison.
+      const boundary = await page.evaluate(() => window.__temporalReplay.beginComparison());
+      ctx.check(
+        `${id}/${tick}: isolated event comparison clears prior shadow demand`,
+        Object.values(boundary.after).every((count) => count === 0),
+        boundary,
+      );
       const before = await draw(tick, { side: "before" });
       const after = await draw(tick, { side: "after" });
       const error = changed(before.png, after.png);
-      ctx.check(
-        `${id}/${tick}: same-time displayed event continuity`,
-        error === 0,
-        pixelError(before.png, after.png),
-      );
+      // The fixed mounted probe also exercises rejection controls when pixels happen to match.
+      if (error === 0 && !(id === 7 && tick === 11)) {
+        ctx.check(
+          `${id}/${tick}: same-time displayed event continuity`,
+          true,
+          pixelError(before.png, after.png),
+        );
+      } else {
+        // Different evaluation representations need a numeric equivalence proof,
+        // not an arbitrary allowance for changed pixels. Identical input still repeats exactly.
+        const measuredBefore = await draw(tick, { side: "before", measure: true });
+        const measuredAfter = await draw(tick, { side: "after", measure: true });
+        const numeric = numericPoseContinuity(measuredBefore.state, measuredAfter.state);
+        ctx.check(
+          `${id}/${tick}: event CPU locals and actual GPU palettes agree`,
+          numeric.ok,
+          numeric,
+        );
+        ctx.check(
+          `${id}/${tick}: each event side repeats exactly`,
+          changed(before.png, measuredBefore.png) === 0 &&
+            changed(after.png, measuredAfter.png) === 0 &&
+            sameRenderState(before.state, measuredBefore.state) &&
+            sameRenderState(after.state, measuredAfter.state),
+        );
+        // measuredAfter owns the retained palette; neither oracle draw replaces it.
+        const oracleBefore = await draw(tick, { side: "before", oracle: "readback" });
+        const oracleAfter = await draw(tick, { side: "after", oracle: "readback" });
+        ctx.check(
+          `${id}/${tick}: event reference preserves tiers and corpse strength`,
+          [measuredBefore, measuredAfter, oracleBefore].every((sample) =>
+            sameRenderState(sample.state, oracleAfter.state),
+          ),
+          Object.fromEntries(
+            Object.entries({ measuredBefore, measuredAfter, oracleBefore, oracleAfter }).map(
+              ([name, sample]) => [name, renderState(sample.state)],
+            ),
+          ),
+        );
+        ctx.check(
+          `${id}/${tick}: one measured palette renders identically across event states`,
+          changed(oracleBefore.png, oracleAfter.png) === 0,
+          pixelError(oracleBefore.png, oracleAfter.png),
+        );
+        if (id === 7 && tick === 11) {
+          const movedLocal = structuredClone(measuredAfter.state);
+          movedLocal.locals[0] += 0.001;
+          ctx.check(
+            "event numeric proof rejects changed CPU locals",
+            !numericPoseContinuity(measuredBefore.state, movedLocal).ok,
+          );
+          const movedMatrix = structuredClone(measuredAfter.state);
+          movedMatrix.matrices[0] += 0.001;
+          ctx.check(
+            "event numeric proof rejects a changed GPU matrix",
+            !numericPoseContinuity(measuredBefore.state, movedMatrix).ok,
+          );
+          const wrongIndependent = { ...measuredAfter.state, matrixError: 0.001 };
+          ctx.check(
+            "event numeric proof rejects disagreement with the independent matrix oracle",
+            !numericPoseContinuity(measuredBefore.state, wrongIndependent).ok,
+          );
+          const movedFacing = await draw(tick, {
+            side: "after",
+            oracle: "readback",
+            facingOffset: 0.05,
+          });
+          ctx.check(
+            "same-palette event proof rejects changed render facing",
+            changed(oracleBefore.png, movedFacing.png) > 0,
+          );
+          const restored = await draw(tick, { side: "after" });
+          ctx.check(
+            "event negative control restores exact production pixels and render state",
+            changed(after.png, restored.png) === 0 && sameRenderState(after.state, restored.state),
+            {
+              pixels: pixelError(after.png, restored.png),
+              before: renderState(after.state),
+              restored: renderState(restored.state),
+            },
+          );
+        }
+      }
       await snap(`shared/soldiers/action-replay/temporal-${id}-event-${tick}`, after.bytes);
     }
     for (const tick of [deathTick + 2.25, deathTick + 4.5, recipe.endTick]) {
@@ -336,12 +472,7 @@ export async function verifyTemporalReplay(ctx, page, ids = [4, 7]) {
     // Isolated references are fresh crowds. Clear the production owner's draw/LOD
     // history too: continuous replay may retain a different shadow tier inside
     // hysteresis. Subsequent oracle creation already performs this same clear.
-    const comparisonBoundary = await page.evaluate(() => {
-      const crowd = window.__battleModels.world.crowd;
-      const before = crowd.stats().shadowTierHistogram;
-      crowd.upload([]);
-      return { before, after: crowd.stats().shadowTierHistogram };
-    });
+    const comparisonBoundary = await page.evaluate(() => window.__temporalReplay.beginComparison());
     ctx.check(
       `${id}: isolated comparison clears prior shadow demand`,
       Object.values(comparisonBoundary.after).every((count) => count === 0),
@@ -363,7 +494,7 @@ export async function verifyTemporalReplay(ctx, page, ids = [4, 7]) {
       const error = pixelError(gpu.png, cpu.png);
       ctx.check(
         `${id}/${tick}: actual GPU joint matrices match CPU`,
-        gpu.state.matrixError <= 1e-5,
+        gpu.state.matrixError <= MATRIX_ERROR_LIMIT,
         gpu.state.matrixError,
       );
       const readback = await draw(tick, { oracle: "readback" });

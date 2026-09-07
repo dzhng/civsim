@@ -100,7 +100,7 @@ export function bakeAppearance({
   tiers,
   loopClips,
   presentation,
-  clipMarkers = {},
+  clipMetadata = {},
 }) {
   if (typeof name !== "string" || !name.trim())
     throw new Error("appearance requires a nonempty name");
@@ -127,10 +127,11 @@ export function bakeAppearance({
   for (const clip of loopClips)
     if (!clipNames.has(clip)) throw new Error(`loop clip ${clip} is absent from the near tier`);
   for (const clip of rig.clips) clip.loop = loopClips.includes(clip.name);
-  for (const [name, markers] of Object.entries(clipMarkers)) {
+  for (const [name, metadata] of Object.entries(clipMetadata)) {
     const clip = rig.clips.find((clip) => clip.name === name);
-    if (!clip) throw new Error(`marker clip ${name} is absent from the near tier`);
-    clip.markers = markers;
+    if (!clip) throw new Error(`metadata clip ${name} is absent from the near tier`);
+    clip.markers = metadata.markers;
+    clip.strideMeters = metadata.strideMeters;
   }
   const files = {};
   const materialSet = appearanceMaterials(files);

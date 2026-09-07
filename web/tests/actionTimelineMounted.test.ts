@@ -19,19 +19,14 @@ import type { ImportedRig } from "@packages/soldier-assets/src/rig";
 import type { AppearancePresentation } from "@packages/soldier-assets/src/presentation";
 import type { LocalAnimationClip } from "@packages/soldier-assets/src/localAnimation";
 
-const clips: Pick<LocalAnimationClip, "name" | "duration" | "loop" | "markers">[] = [
-  "ready",
-  "walk",
-  "run",
-  "release",
-  "hit",
-  "death",
-].map((name, index) => ({
-  name,
-  duration: 1,
-  loop: index < 3,
-  ...(name === "release" ? { markers: { release: 0.2 } } : {}),
-}));
+const clips: Pick<LocalAnimationClip, "name" | "duration" | "loop" | "markers" | "strideMeters">[] =
+  ["ready", "walk", "run", "release", "hit", "death"].map((name, index) => ({
+    name,
+    duration: 1,
+    loop: index < 3,
+    ...(name === "walk" ? { strideMeters: 1 } : name === "run" ? { strideMeters: 2 } : {}),
+    ...(name === "release" ? { markers: { release: 0.2 } } : {}),
+  }));
 const rig: ImportedRig = {
   bones: ["horse", "pelvis", "upper"].map((name, joint) => ({
     name,
@@ -96,7 +91,6 @@ const observation = (changes: Partial<ActionObservation> = {}): ActionObservatio
   incapacitated: false,
   guardedFacing: false,
   lateralMps: 0,
-  running: false,
   atEase: false,
   pikeReady: false,
   fighting: false,
@@ -139,16 +133,33 @@ function continuous(actual: LocalPose, expected: LocalPose) {
 function moving() {
   const timeline = new ActionTimeline({ 0: appearance });
   timeline.update(0, [observation()]);
-  timeline.update(3, [observation({ running: true })]);
+  timeline.update(3, [observation({ speedMps: 2 })]);
   return timeline;
 }
+
+test("speed correction keeps the old composed interruption source while the unmasked gait follows measured distance", () => {
+  const timeline = new ActionTimeline({ 0: appearance });
+  timeline.update(0, [observation({ speedMps: 0.8 })]);
+  timeline.update(1, [observation({ speedMps: 0.8 })]);
+  const before = pose(timeline.sample(2)[0]);
+  timeline.update(2, [observation({ speedMps: 1.2, releaseTtl: 0.5 })]);
+  const playback = timeline.sample()[0];
+  assert.equal(playback.riderUpperBody!.source.kind, "frozen");
+  if (playback.riderUpperBody!.source.kind !== "frozen") throw new Error("expected owned pose");
+  close(playback.riderUpperBody!.source.locals, before, "complete frozen composed source");
+  const after = pose(playback);
+  close(after.slice(20), before.slice(20), "interrupted upper mask");
+  const correctedBase = pose({ ...playback, riderUpperBody: undefined });
+  close(after.slice(0, 20), correctedBase.slice(0, 20), "measured unmasked gait");
+  assert.notDeepEqual(Array.from(after.slice(0, 20)), Array.from(before.slice(0, 20)));
+});
 
 test("mounted overlay enters from the displayed pose during a base crossfade", () => {
   const timeline = moving();
   const live = timeline.sample(4)[0];
   assert.ok(live.base.weight > 0 && live.base.weight < 1, "base must be crossfading");
   const before = pose(live);
-  timeline.update(4, [observation({ running: true, releaseTtl: 0.5 })]);
+  timeline.update(4, [observation({ speedMps: 2, releaseTtl: 0.5 })]);
   const after = pose(timeline.sample()[0]);
   continuous(after, before);
   const later = timeline.sample(6)[0];
@@ -161,10 +172,10 @@ test("mounted overlay enters from the displayed pose during a base crossfade", (
 
 test("mounted release restarts continuously before and after blend midpoint", () => {
   const timeline = moving();
-  timeline.update(4, [observation({ running: true, releaseTtl: 0.5 })]);
+  timeline.update(4, [observation({ speedMps: 2, releaseTtl: 0.5 })]);
   for (const tick of [5, 8]) {
     const before = pose(timeline.sample(tick)[0]);
-    timeline.update(tick, [observation({ running: true, releaseTtl: 0.5 })]);
+    timeline.update(tick, [observation({ speedMps: 2, releaseTtl: 0.5 })]);
     const after = pose(timeline.sample()[0]);
     continuous(after, before);
   }
@@ -172,7 +183,7 @@ test("mounted release restarts continuously before and after blend midpoint", ()
 
 test("overlay exit converges toward evaluated advancing base, not its destination clip", () => {
   const timeline = moving();
-  timeline.update(4, [observation({ running: true, releaseTtl: 0.5 })]);
+  timeline.update(4, [observation({ speedMps: 2, releaseTtl: 0.5 })]);
   timeline.update(27, [observation()]);
   const before = pose(timeline.sample(29)[0]);
   timeline.update(29, [observation()]);
@@ -202,7 +213,7 @@ test("overlay exit converges toward evaluated advancing base, not its destinatio
 
 test("mounted death captures the full composed pose during simultaneous base and rider blends", () => {
   const timeline = moving();
-  timeline.update(4, [observation({ running: true, releaseTtl: 0.5 })]);
+  timeline.update(4, [observation({ speedMps: 2, releaseTtl: 0.5 })]);
   const live = timeline.sample(6)[0];
   assert.ok(live.base.weight > 0 && live.base.weight < 1, "base must be crossfading");
   const before = pose(live);
@@ -216,7 +227,7 @@ test("mounted death captures the full composed pose during simultaneous base and
 
 test("paused mounted playback sampling is deterministic and does not mutate retained poses", () => {
   const timeline = moving();
-  timeline.update(4, [observation({ running: true, releaseTtl: 0.5 })]);
+  timeline.update(4, [observation({ speedMps: 2, releaseTtl: 0.5 })]);
   const retained = timeline.sample(5)[0];
   const expected = pose(retained);
   const paused = pose(timeline.sample(4)[0]);
@@ -225,16 +236,16 @@ test("paused mounted playback sampling is deterministic and does not mutate reta
     timeline.update(4, [observation({ alive: false })]);
     continuous(pose(timeline.sample()[0]), paused);
   }
-  timeline.update(6, [observation({ running: true, releaseTtl: 0.5 })]);
+  timeline.update(6, [observation({ speedMps: 2, releaseTtl: 0.5 })]);
   continuous(pose(retained), expected);
 });
 
 test("mounted injury interrupts the composed pose and returns continuously to gait", () => {
   const timeline = moving();
-  timeline.update(4, [observation({ running: true, releaseTtl: 0.5 })]);
+  timeline.update(4, [observation({ speedMps: 2, releaseTtl: 0.5 })]);
   const live = timeline.sample(6)[0];
   assert.ok(live.base.weight > 0 && live.base.weight < 1);
-  const injured = observation({ running: true, health: 90 });
+  const injured = observation({ speedMps: 2, health: 90 });
   timeline.update(6, [injured]);
   const hit = timeline.sample()[0];
   continuous(pose(hit), pose(live));

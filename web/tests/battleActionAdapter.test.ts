@@ -5,7 +5,11 @@ import initWasm, { Game } from "../src/wasm/game_wasm.js";
 import { BattleActionAdapter } from "../src/battle/battleActionAdapter";
 import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
 import { APPEARANCE_DESCRIPTORS } from "@packages/soldier-assets/src/appearance";
-import { ACTION_TICK_SECONDS } from "@packages/crowd-runtime/src/actionTimeline";
+import {
+  ACTION_TICK_SECONDS,
+  evaluatePlaybackPose,
+} from "@packages/crowd-runtime/src/actionTimeline";
+import { sampleRigLocalPose } from "@packages/soldier-assets/src/localPose";
 import { BattleCrowd } from "../src/battle/battleCrowd";
 import { createBattleViews } from "../src/battle/battleViews";
 import type { BattleWorld } from "../src/battle/battleWorld";
@@ -17,6 +21,66 @@ beforeAll(async () => {
   wasm = await initWasm({
     module_or_path: await readFile(new URL("../src/wasm/game_wasm_bg.wasm", import.meta.url)),
   });
+});
+
+test("production crowd submits distance-driven poses despite contrary ordered pace", async () => {
+  const url = new URL(
+    "../public/assets/soldiers/appearances/heavy-sword/appearance.json",
+    import.meta.url,
+  );
+  const read = async (path: URL) => JSON.parse(await readFile(path, "utf8"));
+  const manifest = await read(url);
+  const bundle = {
+    manifest,
+    rig: await read(new URL(manifest.skeleton, url)),
+    animation: await read(new URL(manifest.animation, url)),
+  } as AppearanceBundle;
+  const game = new Game(52);
+  try {
+    game.spawn_class(0, 0, 0, 1, 1, 0, 0);
+    const views = createBattleViews(game, wasm.memory);
+    const submitted: Parameters<BattleWorld["renderer"]["draw"]>[2][] = [];
+    const world = {
+      game,
+      memory: wasm.memory,
+      ...views,
+      camera: { zoom: 0 },
+      renderer: {
+        soldierAssets: { 0: bundle },
+        draw: (...args: Parameters<BattleWorld["renderer"]["draw"]>) => submitted.push(args[2]),
+      },
+    } as unknown as BattleWorld;
+    const presentation = {
+      beginFrame() {},
+      addSoldier() {},
+      finishFrame() {},
+      update() {},
+    } as unknown as BattleUnitPresentation;
+    const crowd = new BattleCrowd(world, presentation);
+    crowd.draw(0, true, 0, 0, []);
+    views.unitInfo()[UNIT_INFO.running] = 1;
+    let measuredDistance = 0;
+    for (let tick = 1; tick <= 10; tick++) {
+      const before = views.positions()[0];
+      views.positions()[0] += tick <= 5 ? 0.03 : -0.02;
+      measuredDistance += Math.abs(views.positions()[0] - before);
+      crowd.draw(tick, true, 0, 0, []);
+    }
+    const playback = submitted.at(-1)![0];
+    const walk = bundle.animation.clips.find(
+      (clip) => clip.name === manifest.presentation.actions.walk.clip,
+    )!;
+    expect(playback.base.destination.clip).toBe(walk.name);
+    expect(playback.base.destination.phase).toBeCloseTo(measuredDistance / walk.strideMeters!, 12);
+    expect(Array.from(evaluatePlaybackPose(bundle, playback))).toEqual(
+      Array.from(sampleRigLocalPose(bundle.rig, walk.name, playback.base.destination.phase)),
+    );
+    const paused = structuredClone(playback);
+    crowd.draw(10, true, 0, 0, []);
+    expect(submitted.at(-1)![0]).toEqual(paused);
+  } finally {
+    game.free();
+  }
 });
 
 test("production crowd preserves smoothed positions across append and resets playback on catalog replacement", async () => {

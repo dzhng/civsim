@@ -99,7 +99,6 @@ export class BattleActionAdapter {
         speedMps: measured ? Math.hypot(dx, dy) / elapsed : 0,
         forwardMps: measured ? (dx * cos + dy * sin) / elapsed : 0,
         lateralMps: measured ? (dx * sin - dy * cos) / elapsed : 0,
-        running: info[offset + UNIT_INFO.running] > 0.5,
         routing: info[offset + UNIT_INFO.routing] > 0.5,
         incapacitated: (posture[soldier] & 1) !== 0,
         guardedFacing: (posture[soldier] & (heldHedge ? 4 : 2)) !== 0,

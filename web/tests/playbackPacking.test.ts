@@ -590,15 +590,21 @@ test("real action timeline interruptions and upper exit pack the same composed m
         "utf8",
       ),
     );
-  const mountedRig: ImportedRig = json("skeleton.json"),
-    animation = bakeLocalAnimation(mountedRig);
+  const mountedRig: ImportedRig = json("skeleton.json");
+  // Distinct nominal fixture paces test transitions, not physically grounded travel.
+  const gait = mountedRig.clips.find((clip) => clip.name === "gait")!;
+  mountedRig.clips.push(
+    { ...gait, name: "fixture-walk", strideMeters: gait.duration },
+    { ...gait, name: "fixture-run", strideMeters: 2 * gait.duration },
+  );
+  const animation = bakeLocalAnimation(mountedRig);
   const mesh = decodeSoldierMesh(json("tier-0.mesh.json"));
   const presentation: AppearancePresentation = {
     actions: {
       ready: { clip: "gait", layer: "fullBody" },
       atEase: { clip: "gait", layer: "fullBody" },
-      walk: { clip: "gait", layer: "fullBody" },
-      run: { clip: "gait", layer: "fullBody" },
+      walk: { clip: "fixture-walk", layer: "fullBody" },
+      run: { clip: "fixture-run", layer: "fullBody" },
       melee: { clip: "rider-action", layer: "riderUpperBody" },
       release: null,
       hit: { clip: "rider-action", layer: "fullBody" },
@@ -609,7 +615,7 @@ test("real action timeline interruptions and upper exit pack the same composed m
   };
   const appearance = {
     rig: mountedRig,
-    animation: json("animation.json"),
+    animation,
     manifest: { presentation },
   };
   const timeline = new ActionTimeline({ 41: appearance }),
@@ -629,7 +635,6 @@ test("real action timeline interruptions and upper exit pack the same composed m
     incapacitated: false,
     guardedFacing: false,
     lateralMps: 0,
-    running: false,
     atEase: false,
     pikeReady: false,
     fighting: false,
@@ -684,7 +689,7 @@ test("real action timeline interruptions and upper exit pack the same composed m
   timeline.update(1, [{ ...base, fighting: true }]);
   check(timeline.sample()[0]);
   check(timeline.sample(2)[0]);
-  timeline.update(32, [{ ...base, running: true }]);
+  timeline.update(32, [{ ...base, speedMps: 2 }]);
   const exit = check(timeline.sample()[0]);
   assert.ok(exit.controls[packing.PLAYBACK_HEADER_FLAGS] & packing.PLAYBACK_UPPER_DEST_BASE);
   assert.ok(exit.controls[packing.PLAYBACK_HEADER_FLAGS] & packing.PLAYBACK_BASE_FROZEN);
@@ -693,7 +698,7 @@ test("real action timeline interruptions and upper exit pack the same composed m
     [0, 0, 0, 0],
   );
   check(timeline.sample(33)[0]); // Upper exit follows a moving base which is itself crossfading.
-  timeline.update(34, [{ ...base, running: true, health: 99 }]);
+  timeline.update(34, [{ ...base, speedMps: 2, health: 99 }]);
   check(timeline.sample()[0]);
   timeline.update(35, [{ ...base, alive: false, health: 0 }]);
   check(timeline.sample()[0]);

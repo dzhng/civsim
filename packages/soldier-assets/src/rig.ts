@@ -1,4 +1,4 @@
-import type { ClipMarkers } from "./schema";
+import type { ClipMetadata } from "./schema";
 
 export interface RigBone {
   name: string;
@@ -13,11 +13,10 @@ export interface RigChannel {
   interpolation?: "LINEAR" | "STEP";
 }
 
-export interface RigClip {
+export interface RigClip extends ClipMetadata {
   name: string;
   duration: number;
   loop?: boolean;
-  markers?: ClipMarkers;
   tracks: Record<number, { T?: RigChannel; R?: RigChannel; S?: RigChannel }>;
 }
 

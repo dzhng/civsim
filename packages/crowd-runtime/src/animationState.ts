@@ -14,6 +14,7 @@ export function assertGameplayAppearances(appearances: Record<number, Appearance
         !sampled ||
         local.duration !== sampled.duration ||
         local.loop !== sampled.loop ||
+        local.strideMeters !== sampled.strideMeters ||
         local.markers?.release !== sampled.markers?.release
       )
         throw new Error(

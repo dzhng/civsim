@@ -15,8 +15,9 @@ export function mountedTemporalFixture(source: AppearanceBundle): AppearanceBund
   const action = fixture.rig.clips.find((clip) => clip.name === "rider-action");
   if (!gait || !action) throw new Error("Mounted diagnostic lacks authored gait/action tracks");
   fixture.rig.clips.push(
-    { ...structuredClone(gait), name: "fixture-walk", loop: true },
-    { ...structuredClone(gait), name: "fixture-run", loop: true },
+    // Nominal fixture speeds of 1/2 m/s exercise cadence, not authored foot grounding.
+    { ...structuredClone(gait), name: "fixture-walk", loop: true, strideMeters: gait.duration },
+    { ...structuredClone(gait), name: "fixture-run", loop: true, strideMeters: 2 * gait.duration },
     // Synthetic marker leaves 200ms of the original one-second action to exit.
     { ...structuredClone(action), name: "fixture-release", loop: false, markers: { release: 0.8 } },
     { ...structuredClone(action), name: "fixture-fullbody-terminal", loop: false },

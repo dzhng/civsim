@@ -1,5 +1,5 @@
 import type { ImportedRig } from "./rig";
-import { assertClipMarkers } from "./schema.ts";
+import { assertClipMetadata } from "./schema.ts";
 import type { LocalAnimation } from "./localAnimation";
 
 export const ACTION_ROLES = [
@@ -27,7 +27,11 @@ export function assertAppearancePresentation(
   animation: Pick<LocalAnimation, "clips">,
   mounted: boolean,
 ): void {
-  for (const clip of animation.clips) assertClipMarkers(clip.markers);
+  for (const clip of animation.clips) {
+    assertClipMetadata(clip);
+    if (clip.strideMeters !== undefined && (!clip.loop || clip.duration <= 0))
+      throw new Error("stride calibration requires a positive-duration looping clip");
+  }
   if (presentation === null) return;
   if (!presentation || !presentation.actions)
     throw new Error("appearance requires explicit presentation or null");
@@ -67,9 +71,19 @@ export function assertAppearancePresentation(
     const repeating = ["ready", "atEase", "walk", "run", "pikeReady"].includes(role);
     if (clip.loop !== repeating)
       throw new Error(`presentation ${role} has incompatible clip looping`);
+    if ((role === "walk" || role === "run") !== (clip.strideMeters !== undefined))
+      throw new Error(`presentation ${role} has incompatible stride calibration`);
     if (!repeating && (clip.duration <= 0 || clip.times.length < 2))
       throw new Error(`presentation ${role} requires sampled motion`);
     if (role === "release" && clip.markers?.release === undefined)
       throw new Error("release action requires an authored clip release marker");
   }
+  const nominal = (role: "walk" | "run") => {
+    const clip = animation.clips.find((clip) => clip.name === presentation.actions[role]!.clip)!;
+    return clip.strideMeters! / clip.duration;
+  };
+  const walk = nominal("walk"),
+    run = nominal("run");
+  if (!Number.isFinite(walk) || !Number.isFinite(run) || run <= walk)
+    throw new Error("run nominal speed must be finite and greater than walk nominal speed");
 }

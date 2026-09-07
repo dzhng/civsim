@@ -30,13 +30,15 @@
           "clip": "march",
           "layer": "fullBody",
           "duration": 1,
-          "loop": true
+          "loop": true,
+          "strideMeters": 1.7
         },
         "run": {
           "clip": "run",
           "layer": "fullBody",
           "duration": 0.65,
-          "loop": true
+          "loop": true,
+          "strideMeters": 2.21
         },
         "melee": {
           "clip": "attack_a",
@@ -85,13 +87,15 @@
           "clip": "march",
           "layer": "fullBody",
           "duration": 1,
-          "loop": true
+          "loop": true,
+          "strideMeters": 1.7
         },
         "run": {
           "clip": "run",
           "layer": "fullBody",
           "duration": 0.65,
-          "loop": true
+          "loop": true,
+          "strideMeters": 2.21
         },
         "melee": {
           "clip": "attack_a",
@@ -140,13 +144,15 @@
           "clip": "march",
           "layer": "fullBody",
           "duration": 1,
-          "loop": true
+          "loop": true,
+          "strideMeters": 1.7
         },
         "run": {
           "clip": "run",
           "layer": "fullBody",
           "duration": 0.65,
-          "loop": true
+          "loop": true,
+          "strideMeters": 2.21
         },
         "melee": {
           "clip": "attack_a",
@@ -195,13 +201,15 @@
           "clip": "march",
           "layer": "fullBody",
           "duration": 1,
-          "loop": true
+          "loop": true,
+          "strideMeters": 1.7
         },
         "run": {
           "clip": "run",
           "layer": "fullBody",
           "duration": 0.65,
-          "loop": true
+          "loop": true,
+          "strideMeters": 2.21
         },
         "melee": {
           "clip": "attack_a",
@@ -255,13 +263,15 @@
           "clip": "march",
           "layer": "fullBody",
           "duration": 1,
-          "loop": true
+          "loop": true,
+          "strideMeters": 1.7
         },
         "run": {
           "clip": "run",
           "layer": "fullBody",
           "duration": 0.65,
-          "loop": true
+          "loop": true,
+          "strideMeters": 2.21
         },
         "melee": {
           "clip": "attack_a",
@@ -318,13 +328,15 @@
           "clip": "march",
           "layer": "fullBody",
           "duration": 1,
-          "loop": true
+          "loop": true,
+          "strideMeters": 1.7
         },
         "run": {
           "clip": "run",
           "layer": "fullBody",
           "duration": 0.65,
-          "loop": true
+          "loop": true,
+          "strideMeters": 2.21
         },
         "melee": {
           "clip": "attack_a",
@@ -386,13 +398,15 @@
           "clip": "march",
           "layer": "fullBody",
           "duration": 1,
-          "loop": true
+          "loop": true,
+          "strideMeters": 1.7
         },
         "run": {
           "clip": "run",
           "layer": "fullBody",
           "duration": 0.65,
-          "loop": true
+          "loop": true,
+          "strideMeters": 2.21
         },
         "melee": {
           "clip": "attack_a",
@@ -446,13 +460,15 @@
           "clip": "march",
           "layer": "fullBody",
           "duration": 1,
-          "loop": true
+          "loop": true,
+          "strideMeters": 1.7
         },
         "run": {
           "clip": "run",
           "layer": "fullBody",
           "duration": 0.65,
-          "loop": true
+          "loop": true,
+          "strideMeters": 2.21
         },
         "melee": {
           "clip": "attack_a",
@@ -509,13 +525,15 @@
           "clip": "march",
           "layer": "fullBody",
           "duration": 1,
-          "loop": true
+          "loop": true,
+          "strideMeters": 1.7
         },
         "run": {
           "clip": "run",
           "layer": "fullBody",
           "duration": 0.65,
-          "loop": true
+          "loop": true,
+          "strideMeters": 2.21
         },
         "melee": {
           "clip": "attack_a",
@@ -572,13 +590,15 @@
           "clip": "march",
           "layer": "fullBody",
           "duration": 1,
-          "loop": true
+          "loop": true,
+          "strideMeters": 1.7
         },
         "run": {
           "clip": "run",
           "layer": "fullBody",
           "duration": 0.65,
-          "loop": true
+          "loop": true,
+          "strideMeters": 2.21
         },
         "melee": {
           "clip": "attack_a",
@@ -627,13 +647,15 @@
           "clip": "march",
           "layer": "fullBody",
           "duration": 1,
-          "loop": true
+          "loop": true,
+          "strideMeters": 1.7
         },
         "run": {
           "clip": "run",
           "layer": "fullBody",
           "duration": 0.65,
-          "loop": true
+          "loop": true,
+          "strideMeters": 2.21
         },
         "melee": {
           "clip": "attack_a",
@@ -682,13 +704,15 @@
           "clip": "march",
           "layer": "fullBody",
           "duration": 1,
-          "loop": true
+          "loop": true,
+          "strideMeters": 1.7
         },
         "run": {
           "clip": "run",
           "layer": "fullBody",
           "duration": 0.65,
-          "loop": true
+          "loop": true,
+          "strideMeters": 2.21
         },
         "melee": {
           "clip": "attack_a",
@@ -737,13 +761,15 @@
           "clip": "march",
           "layer": "fullBody",
           "duration": 1,
-          "loop": true
+          "loop": true,
+          "strideMeters": 1.7
         },
         "run": {
           "clip": "run",
           "layer": "fullBody",
           "duration": 0.65,
-          "loop": true
+          "loop": true,
+          "strideMeters": 2.21
         },
         "melee": {
           "clip": "attack_a",
@@ -792,13 +818,15 @@
           "clip": "march",
           "layer": "fullBody",
           "duration": 1,
-          "loop": true
+          "loop": true,
+          "strideMeters": 1.7
         },
         "run": {
           "clip": "run",
           "layer": "fullBody",
           "duration": 0.65,
-          "loop": true
+          "loop": true,
+          "strideMeters": 2.21
         },
         "melee": {
           "clip": "attack_a",
@@ -847,13 +875,15 @@
           "clip": "march",
           "layer": "fullBody",
           "duration": 1,
-          "loop": true
+          "loop": true,
+          "strideMeters": 1.7
         },
         "run": {
           "clip": "run",
           "layer": "fullBody",
           "duration": 0.65,
-          "loop": true
+          "loop": true,
+          "strideMeters": 2.21
         },
         "melee": {
           "clip": "attack_a",
@@ -912,13 +942,15 @@
           "clip": "march",
           "layer": "fullBody",
           "duration": 1,
-          "loop": true
+          "loop": true,
+          "strideMeters": 1.7
         },
         "run": {
           "clip": "run",
           "layer": "fullBody",
           "duration": 0.65,
-          "loop": true
+          "loop": true,
+          "strideMeters": 2.21
         },
         "melee": {
           "clip": "attack_a",
@@ -967,13 +999,15 @@
           "clip": "march",
           "layer": "fullBody",
           "duration": 1,
-          "loop": true
+          "loop": true,
+          "strideMeters": 1.7
         },
         "run": {
           "clip": "run",
           "layer": "fullBody",
           "duration": 0.65,
-          "loop": true
+          "loop": true,
+          "strideMeters": 2.21
         },
         "melee": {
           "clip": "attack_a",
@@ -1022,13 +1056,15 @@
           "clip": "march",
           "layer": "fullBody",
           "duration": 1,
-          "loop": true
+          "loop": true,
+          "strideMeters": 1.7
         },
         "run": {
           "clip": "run",
           "layer": "fullBody",
           "duration": 0.65,
-          "loop": true
+          "loop": true,
+          "strideMeters": 2.21
         },
         "melee": {
           "clip": "attack_a",
@@ -1077,13 +1113,15 @@
           "clip": "march",
           "layer": "fullBody",
           "duration": 1,
-          "loop": true
+          "loop": true,
+          "strideMeters": 1.7
         },
         "run": {
           "clip": "run",
           "layer": "fullBody",
           "duration": 0.65,
-          "loop": true
+          "loop": true,
+          "strideMeters": 2.21
         },
         "melee": {
           "clip": "attack_a",
@@ -1132,13 +1170,15 @@
           "clip": "march",
           "layer": "fullBody",
           "duration": 1,
-          "loop": true
+          "loop": true,
+          "strideMeters": 1.7
         },
         "run": {
           "clip": "run",
           "layer": "fullBody",
           "duration": 0.65,
-          "loop": true
+          "loop": true,
+          "strideMeters": 2.21
         },
         "melee": {
           "clip": "attack_a",

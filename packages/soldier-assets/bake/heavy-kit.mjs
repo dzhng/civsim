@@ -13,6 +13,8 @@ const bundle = bakeAppearance({
   mounted: false,
   tiers: [source, source, source],
   loopClips: ["idle", "ready", "walk", "run", "guarded-backward-walk"],
+  // Reviewed motion recipe: metres traveled during one authored support/recovery cycle.
+  clipMetadata: { walk: { strideMeters: 1.53 }, run: { strideMeters: 2.584 } },
   presentation: null,
 });
 const files = { "catalog.json": { appearances: { 0: "heavy/appearance.json" } } };

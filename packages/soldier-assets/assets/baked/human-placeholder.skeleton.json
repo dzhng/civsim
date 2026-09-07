@@ -325,6 +325,7 @@
     {
       "name": "march",
       "duration": 1,
+      "strideMeters": 1.7,
       "tracks": {
         "3": {
           "R": {
@@ -464,6 +465,7 @@
     {
       "name": "run",
       "duration": 0.65,
+      "strideMeters": 2.21,
       "tracks": {
         "0": {
           "R": {

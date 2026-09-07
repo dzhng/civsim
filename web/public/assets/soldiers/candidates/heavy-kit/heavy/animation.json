@@ -663,6 +663,7 @@
       ],
       "duration": 0.800000011920929,
       "loop": true,
+      "strideMeters": 2.584,
       "stepMaskOffset": 156
     },
     {
@@ -700,6 +701,7 @@
       ],
       "duration": 0.8999999761581421,
       "loop": true,
+      "strideMeters": 1.53,
       "stepMaskOffset": 182
     }
   ],

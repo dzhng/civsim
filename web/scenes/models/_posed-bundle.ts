@@ -18,15 +18,20 @@ export function posedBundle(source: AppearanceBundle, playback: SoldierPlayback)
 }
 
 /** Also accepts a validated GPU readback to isolate palette consumption from sampling. */
-export function bundleAtPose(source: AppearanceBundle, palette: Float32Array): AppearanceBundle {
+export function bundleAtPose(
+  source: AppearanceBundle,
+  palette: Float32Array,
+  positionArithmetic: "independent" | "readback" = "independent",
+): AppearanceBundle {
   const cpu = structuredClone(source);
   const pose = (mesh: AppearanceBundle["farMesh"]) => ({
     ...mesh,
     ...poseSoldierMesh(mesh, palette),
+    ...(positionArithmetic === "readback" ? { positions: readbackPositions(mesh, palette) } : {}),
     joints: new Uint16Array(mesh.joints.length),
     weights: Float32Array.from(mesh.weights, (_, index) => Number(index % 4 === 0)),
   });
-  cpu.tiers = cpu.tiers.map(pose);
+  cpu.tiers = [pose(cpu.tiers[0]), pose(cpu.tiers[1]), pose(cpu.tiers[2])];
   cpu.farMesh = pose(cpu.farMesh);
   cpu.rig = {
     bones: [
@@ -43,4 +48,32 @@ export function bundleAtPose(source: AppearanceBundle, palette: Float32Array): A
   cpu.manifest.presentation = null;
   cpu.manifest.far = { ...cpu.manifest.far, clip: "oracle", phase: 0 };
   return cpu;
+}
+
+/** Raster-reference arithmetic only: match skinNodes' column-first f32 positions.
+ * The source oracle and production skin/bakes retain their independent owners. */
+function readbackPositions(mesh: AppearanceBundle["farMesh"], palette: Float32Array) {
+  const result = new Float32Array(mesh.positions.length),
+    f = Math.fround;
+  for (let vertex = 0; vertex < result.length / 3; vertex++) {
+    const columns = Array.from({ length: 16 }, (_, element) => {
+      const term = (influence: number) =>
+        f(
+          palette[mesh.joints[vertex * 4 + influence] * 16 + element] *
+            mesh.weights[vertex * 4 + influence],
+        );
+      return f(f(f(term(0) + term(1)) + term(2)) + term(3));
+    });
+    for (let axis = 0; axis < 3; axis++) {
+      result[vertex * 3 + axis] = f(
+        f(
+          f(
+            f(columns[axis] * mesh.positions[vertex * 3]) +
+              f(columns[4 + axis] * mesh.positions[vertex * 3 + 1]),
+          ) + f(columns[8 + axis] * mesh.positions[vertex * 3 + 2]),
+        ) + columns[12 + axis],
+      );
+    }
+  }
+  return result;
 }

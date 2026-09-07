@@ -26,7 +26,7 @@ const actions: AppearancePresentation["actions"] = {
   death: { clip: "fall", layer: "fullBody" },
   pikeReady: null,
 };
-const clips: Pick<LocalAnimationClip, "name" | "duration" | "loop">[] = [
+const clips: Pick<LocalAnimationClip, "name" | "duration" | "loop" | "strideMeters">[] = [
   ["rest", 4, true],
   ["walk", 2, true],
   ["run", 1, true],
@@ -37,6 +37,7 @@ const clips: Pick<LocalAnimationClip, "name" | "duration" | "loop">[] = [
   name: name as string,
   duration: duration as number,
   loop: loop as boolean,
+  ...(["walk", "run"].includes(name as string) ? { strideMeters: 2 } : {}),
 }));
 const rig: ImportedRig = {
   bones: [
@@ -72,7 +73,6 @@ const soldier = (changes: Partial<ActionObservation> = {}): ActionObservation =>
   incapacitated: false,
   guardedFacing: false,
   lateralMps: 0,
-  running: false,
   atEase: false,
   pikeReady: false,
   fighting: false,
@@ -143,18 +143,87 @@ test("corpse presentation is terminal for initially dead and reset histories", (
   assert.equal(corpsePresentationStrength(dead), 1);
 });
 
-test("action entry starts locally and locomotion follows authored duration", () => {
+test("locomotion cadence follows measured interval distance through speed changes", () => {
+  const timeline = new ActionTimeline(appearances);
+  timeline.update(0, [soldier({ speedMps: 1 })]);
+  timeline.update(15, [soldier({ speedMps: 0.5 })]);
+  assert.equal(timeline.sample()[0].base.destination.phase, 0.125);
+  timeline.update(30, [soldier({ speedMps: 1 })]);
+  assert.equal(timeline.sample()[0].base.destination.phase, 0.375);
+});
+
+test("measured speed chooses gait and preserves phase through rapid crossovers", () => {
+  const timeline = new ActionTimeline(appearances);
+  timeline.update(0, [soldier({ speedMps: 1 })]);
+  assert.equal(timeline.sample()[0].base.destination.clip, "walk");
+  timeline.update(1, [soldier({ speedMps: 2 })]);
+  assert.equal(timeline.sample()[0].base.destination.clip, "run");
+  assert.equal(timeline.sample()[0].base.destination.phase, 1 / 30);
+  timeline.update(2, [soldier({ speedMps: 1 })]);
+  assert.equal(timeline.sample()[0].base.destination.clip, "walk");
+  assert.equal(timeline.sample()[0].base.destination.phase, 0.05);
+});
+
+test("invalid measured speeds hold the current gait and cannot poison playback phases", () => {
+  const timeline = new ActionTimeline(appearances);
+  timeline.update(0, [soldier({ speedMps: 2 })]);
+  timeline.update(1, [soldier({ speedMps: 2 })]);
+  const phase = timeline.sample()[0].base.destination.phase;
+  for (const [i, speedMps] of [NaN, Infinity, -1].entries()) {
+    timeline.update(i + 2, [soldier({ speedMps })]);
+    assert.equal(timeline.sample()[0].base.destination.clip, "run");
+    assert.equal(timeline.sample()[0].base.destination.phase, phase);
+    assert.ok(
+      Array.from(evaluatePlaybackPose(appearances[0], timeline.sample()[0])).every(Number.isFinite),
+    );
+  }
+});
+
+test("equal observed travel yields equal gait phase despite elapsed time, reversal, or external displacement", () => {
+  const fast = new ActionTimeline(appearances),
+    slow = new ActionTimeline(appearances);
+  fast.update(0, [soldier({ speedMps: 1 })]);
+  slow.update(0, [soldier({ speedMps: 0.5 })]);
+  fast.update(30, [soldier({ speedMps: 1, forwardMps: -1, guardedFacing: true })]);
+  slow.update(60, [
+    soldier({ speedMps: 0.5, forwardMps: 0, lateralMps: 0.5, incapacitated: true }),
+  ]);
+  assert.equal(fast.sample()[0].base.destination.phase, 0.5);
+  assert.equal(slow.sample()[0].base.destination.phase, 0.5);
+  // Displacement drives this seam; neither test claims the shove is a voluntary step.
+});
+
+test("render extrapolation never double-counts measured travel and pause or reset is exact", () => {
+  const timeline = new ActionTimeline(appearances);
+  timeline.update(0, [soldier({ speedMps: 1 })]);
+  const extrapolated = timeline.sample(15);
+  assert.equal(extrapolated[0].base.destination.phase, 0.25);
+  assert.deepEqual(timeline.sample(15), extrapolated);
+  timeline.update(15, [soldier({ speedMps: 0.5 })]);
+  assert.equal(timeline.sample()[0].base.destination.phase, 0.125);
+  const paused = timeline.sample();
+  timeline.update(15, [soldier({ speedMps: 99, health: 1 })]);
+  assert.deepEqual(timeline.sample(), paused);
+  timeline.update(1, [soldier({ speedMps: 1 })]);
+  assert.equal(timeline.sample()[0].base.destination.phase, 0);
+  timeline.reset();
+  assert.deepEqual(timeline.sample(), []);
+  timeline.update(500, [soldier({ speedMps: 1 })]);
+  assert.equal(timeline.sample()[0].base.destination.phase, 0);
+});
+
+test("gait entry counts its observed interval while blending from the exact prior rest pose", () => {
   const timeline = new ActionTimeline(appearances);
   timeline.update(900, [soldier()]);
   timeline.update(930, [soldier({ speedMps: 1 })]);
   const entered = timeline.sample()[0];
   assert.equal(entered.base.destination.clip, "walk");
-  assert.equal(entered.base.destination.phase, 0);
+  assert.equal(entered.base.destination.phase, 0.5);
   assert.equal(evaluatePlaybackPose(appearances[0], entered)[0], 0.25);
   assert.equal(entered.base.weight, 0);
   timeline.update(945, [soldier({ speedMps: 1 })]);
   const later = timeline.sample()[0];
-  assert.equal(later.base.destination.phase, 0.25);
+  assert.equal(later.base.destination.phase, 0.75);
   assert.equal(later.base.weight, 1);
   timeline.update(945, [soldier({ speedMps: 1 })]);
   assert.deepEqual(timeline.sample()[0], later);
@@ -325,13 +394,13 @@ test("mounted effort overlays ongoing gait and full-body injury clears that over
     animation: { clips },
   };
   const timeline = new ActionTimeline({ 0: mounted });
-  timeline.update(0, [soldier({ speedMps: 2, running: true })]);
-  timeline.update(9, [soldier({ speedMps: 2, running: true, fighting: true })]);
+  timeline.update(0, [soldier({ speedMps: 2 })]);
+  timeline.update(9, [soldier({ speedMps: 2, fighting: true })]);
   const acting = timeline.sample()[0];
   assert.equal(acting.base.destination.clip, "run");
   assert.equal(acting.base.destination.phase, 0.3);
   assert.deepEqual(acting.riderUpperBody?.destination, { clip: "swing", phase: 0 });
-  timeline.update(12, [soldier({ speedMps: 2, running: true, health: 90 })]);
+  timeline.update(12, [soldier({ speedMps: 2, health: 90 })]);
   const hit = timeline.sample()[0];
   assert.equal(hit.base.destination.clip, "recoil");
   assert.equal(hit.riderUpperBody, undefined);
@@ -349,13 +418,13 @@ test("completed mounted action fades back to the current gait without resetting 
     animation: { clips },
   };
   const timeline = new ActionTimeline({ 0: mounted });
-  timeline.update(0, [soldier({ speedMps: 2, running: true, fighting: true })]);
-  timeline.update(63, [soldier({ speedMps: 2, running: true })]);
+  timeline.update(0, [soldier({ speedMps: 2, fighting: true })]);
+  timeline.update(63, [soldier({ speedMps: 2 })]);
   const leaving = timeline.sample()[0];
   assert.equal(evaluatePlaybackPose(mounted, leaving)[0], 4);
   assert.deepEqual(leaving.riderUpperBody?.destination, { kind: "base" });
   assert.ok(Math.abs(leaving.base.destination.phase - 0.1) < 1e-10);
-  timeline.update(69, [soldier({ speedMps: 2, running: true })]);
+  timeline.update(69, [soldier({ speedMps: 2 })]);
   const finished = timeline.sample()[0];
   assert.equal(finished.riderUpperBody, undefined);
   assert.ok(Math.abs(finished.base.destination.phase - 0.3) < 1e-10);
@@ -503,7 +572,6 @@ test("batched mixed mounted histories exactly match isolated soldiers through ma
       return soldier({
         appearanceId: index % 2,
         speedMps: tick >= offset ? 2 : 0,
-        running: tick >= 3 + offset && tick < 70 + offset,
         fighting: tick === 1 + offset,
         health: tick >= 78 + offset ? 90 : 100,
         alive: tick < 81 + offset,

@@ -3,6 +3,21 @@ export interface ClipMarkers {
   release?: number;
 }
 
+export interface ClipMetadata {
+  markers?: ClipMarkers;
+  /** Authored metres of travel per complete gait cycle; absent on time-driven clips. */
+  strideMeters?: number;
+}
+
+export function assertClipMetadata(clip: ClipMetadata): void {
+  assertClipMarkers(clip.markers);
+  if (
+    clip.strideMeters !== undefined &&
+    (!Number.isFinite(clip.strideMeters) || clip.strideMeters <= 0)
+  )
+    throw new Error("clip strideMeters must be finite and positive");
+}
+
 export function assertClipMarkers(markers: ClipMarkers | undefined): void {
   if (markers === undefined) return;
   if (

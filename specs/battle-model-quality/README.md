@@ -54,6 +54,8 @@ silently inherit relaxed forward-travel carry. Existing
 [signed motion](assets/evidence/05/signed-motion/review.md) and
 [guarded-facing observations](assets/evidence/11/guarded-observation/review.md)
 preserve the engine's direction/posture distinctions; authored selection remains open.
+Retained facing also occurs during safe withdrawals: protected selection must
+respect `atEase`, not treat `guardedFacing` alone as a threat decision.
 
 Priority order:
 - **Engine-faithful locomotion:** align fractional root placement with gait,

@@ -157,6 +157,37 @@ This can proceed beside root placement because it owns timeline sampling, not
 body positioning. Directional bindings and their missing-clip policy follow as
 a separate pass; no detailed appearance is promoted here.
 
+### Following bounded pass: protected directional selection
+
+Retained facing is not itself a threat decision. The engine's safe Disengage
+and automatic-evade branches can produce `atEase && guardedFacing` while moving
+backward or sideways. Require the existing not-at-ease decision as well as
+guarded facing, alive/enabled movement and not routing before selecting a
+protected travel role. Safe movement and canonical standing retain their existing
+selection. Do not infer threat from the order or change engine states.
+
+Use nullable backward/left/right gait bindings in the existing presentation
+contract, not a second action controller. Dominant signed lateral motion selects
+left/right; otherwise negative forward selects backward and positive forward
+retains ordinary locomotion. Longitudinal wins exact45-degree ties. This is a
+nearest-cardinal asset approximation, not a new engine state. Positive path with
+zero net direction is unknown. Missing/unknown protected bindings preserve the
+existing selection and remain unsupported; never mirror asymmetric equipment or
+force a ready pose to conceal missing coverage.
+
+Begin with an actual targetless Disengage through the adapter and timeline:
+a safe case must not choose its distinguishable protected binding, while a
+matched threatened case must. Cover held-pike displayed-facing ownership,
+automatic evade, routing/incapacity, missing bindings, net cancellation and ties.
+Preserve final-disabled hold, combat priorities and exact interruption sources.
+Authored stride metadata owns distance playback for each new gait.
+
+Normalized gait-phase transport is provisional across these actions: backward
+and left currently lead with different feet. Blend continuity alone does not
+prove support-foot continuity. Actual multi-phase direction changes and sector
+reversals require live root/foot review before promotion. This pass adds no phase
+matcher, IK, new gameplay state or incomplete live appearance.
+
 ### Candidate authoring versus live admission
 
 The existing presentation contract requires hit/death as well as standing and

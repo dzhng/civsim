@@ -1627,3 +1627,23 @@ battle-ready despite at-ease would introduce different animation policies.
 Recovery uses ordinary measured-motion hysteresis rather than a new threshold.
 This is a phase-hold policy, not a claim that a held walking pose depicts every
 kind of stun or physical collapse realistically.
+
+### Preserve safe posture when facing is retained
+
+**Sound; confidence: high. Protected-selection plan.** Safe withdrawals and
+automatic evade can retain facing without a nearby threat. A protected travel
+override therefore also requires the engine's not-at-ease decision. Facing and
+posture are independent observations, not competing animation states. This keeps
+the user's canonical engine contract intact rather than raising a shield merely
+because travel is sideways.
+
+### Approximate supported travel directions without inventing missing poses
+
+**Provisional; confidence: medium. Protected-selection plan.** Three nullable
+backward/left/right bindings extend the existing gait owner. The largest signed
+component chooses the nearest direction, with longitudinal winning exact ties.
+Missing clips or a cancelled net direction retain existing behavior and remain
+explicitly unsupported; neither mirrored equipment nor an invented ready fallback
+pretends to cover them. The plan left this approximation open. Keeping normalized
+phase across different lead feet is not proof of matching support: live transition
+and reversal review must precede appearance promotion.

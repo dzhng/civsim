@@ -14,10 +14,13 @@ export interface ActionObservation {
   alive: boolean;
   health: number;
   mountHealth: number;
+  /** Motor-capable tick-path length over the observation interval, divided by time.
+   * Includes enabled pressure recovery, not disabled transport or proof of propulsion. */
   speedMps: number;
-  /** Measured travel in the presented facing basis: forward positive, backward negative. */
+  /** Qualified net travel over that interval in the final presented facing basis:
+   * forward positive, backward negative. Reversals can cancel net travel, not path. */
   forwardMps: number;
-  /** Measured travel to the presented soldier's right (negative to the left). */
+  /** Qualified net travel rate to the presented soldier's right (negative to the left). */
   lateralMps: number;
   routing: boolean;
   /** Current engine steering-disable condition (stunned or bowled). */

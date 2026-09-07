@@ -484,6 +484,13 @@ impl Game {
         self.posture_info.as_ptr()
     }
 
+    /// Three cumulative f64 metres per soldier: qualified world X, world Y,
+    /// and tick-path length. Ordinary/routing movement qualifies; disabled
+    /// transport does not. Reacquire after mutations that may grow the pool.
+    pub fn motor_travel_ptr(&self) -> *const f64 {
+        self.battle.sim.motor_travel.as_ptr().cast()
+    }
+
     /// Current infantry/rider health, one value per soldier; not a hit event.
     pub fn health_ptr(&self) -> *const f32 {
         self.battle.sim.health.as_ptr()
@@ -932,5 +939,46 @@ mod tests {
         game.battle.sim.alive[0] = 0;
         game.refresh_unit_info();
         assert_eq!(game.posture_info, [0, 0]);
+    }
+
+    #[test]
+    fn bulk_travel_preserves_mixed_disabled_and_recovery_ticks_across_batches() {
+        fn game() -> Game {
+            let mut game = Game::new(0x5150);
+            game.battle.sim.tun.morale_enabled = false;
+            game.spawn_class(0.0, 0.0, 0.0, 1, 1, 0, 0);
+            game.spawn_class(0.2, 0.0, 0.0, 1, 1, 0, 0);
+            game.battle.sim.stun[0] = sim::DT * 0.5;
+            game
+        }
+        let mut stepped = game();
+        stepped.tick();
+        assert_eq!(
+            stepped.posture_info[0] & 1,
+            0,
+            "stun expired after movement skipped"
+        );
+        assert_eq!(stepped.battle.sim.motor_travel[0], [0.0; 3]);
+        let start = stepped.battle.sim.positions.clone();
+        stepped.tick();
+        let dx = stepped.battle.sim.positions[0] as f64 - start[0] as f64;
+        let dy = stepped.battle.sim.positions[1] as f64 - start[1] as f64;
+        let mut batched = game();
+        batched.advance_ticks(2);
+        assert_eq!(batched.battle.sim.positions, stepped.battle.sim.positions);
+        // Reacquired view into the actual Sim-owned record; no allocation during read.
+        unsafe {
+            assert_eq!(
+                std::slice::from_raw_parts(batched.motor_travel_ptr(), 3),
+                &[dx, dy, dx.hypot(dy)]
+            );
+        }
+        let prior = batched.battle.sim.motor_travel[0];
+        batched.spawn_class(40.0, 0.0, 0.0, 1, 1, 0, 0);
+        unsafe {
+            let records = std::slice::from_raw_parts(batched.motor_travel_ptr(), 9);
+            assert_eq!(&records[..3], &prior);
+            assert_eq!(&records[6..], &[0.0; 3]);
+        }
     }
 }

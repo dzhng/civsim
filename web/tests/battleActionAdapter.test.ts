@@ -37,7 +37,9 @@ test("production crowd submits distance-driven poses despite contrary ordered pa
   } as AppearanceBundle;
   const game = new Game(52);
   try {
-    game.spawn_class(0, 0, 0, 1, 1, 0, 0);
+    game.spawn_class(0, 0, 0, 10, 5, 0, 0);
+    game.set_move_order(0, 100, 0);
+    game.advance_ticks(60);
     const views = createBattleViews(game, wasm.memory);
     const submitted: Parameters<BattleWorld["renderer"]["draw"]>[2][] = [];
     const world = {
@@ -57,13 +59,16 @@ test("production crowd submits distance-driven poses despite contrary ordered pa
       update() {},
     } as unknown as BattleUnitPresentation;
     const crowd = new BattleCrowd(world, presentation);
-    crowd.draw(0, true, 0, 0, []);
-    views.unitInfo()[UNIT_INFO.running] = 1;
+    crowd.draw(60, true, 0, 0, []);
     let measuredDistance = 0;
-    for (let tick = 1; tick <= 10; tick++) {
-      const before = views.positions()[0];
-      views.positions()[0] += tick <= 5 ? 0.03 : -0.02;
-      measuredDistance += Math.abs(views.positions()[0] - before);
+    for (let tick = 61; tick <= 70; tick++) {
+      const before = Array.from(views.positions().slice(0, 2));
+      game.tick();
+      measuredDistance += Math.hypot(
+        views.positions()[0] - before[0],
+        views.positions()[1] - before[1],
+      );
+      views.unitInfo()[UNIT_INFO.running] = 1; // Contrary exported order, not a gait authority.
       crowd.draw(tick, true, 0, 0, []);
     }
     const playback = submitted.at(-1)![0];
@@ -76,8 +81,15 @@ test("production crowd submits distance-driven poses despite contrary ordered pa
       Array.from(sampleRigLocalPose(bundle.rig, walk.name, playback.base.destination.phase)),
     );
     const paused = structuredClone(playback);
-    crowd.draw(10, true, 0, 0, []);
+    crowd.draw(70, true, 0, 0, []);
     expect(submitted.at(-1)![0]).toEqual(paused);
+    // Unqualified endpoint transport cannot keep a gait moving. Root placement
+    // still follows positions; this pass does not alter that separate owner.
+    views.positions()[0] += 3;
+    crowd.draw(71, true, 0, 0, []);
+    expect(submitted.at(-1)![0].base.destination.clip).toBe(
+      manifest.presentation.actions.atEase.clip,
+    );
   } finally {
     game.free();
   }
@@ -151,9 +163,8 @@ test("observation histories survive append and memory growth, but reset on rewin
     game.spawn_class(0, 0, 0, 1, 1, 0, 0);
     const adapter = new BattleActionAdapter(game, wasm.memory);
     const initial = adapter.read(10).observations[0];
-    const positions = () =>
-      new Float32Array(wasm.memory.buffer, game.positions_ptr(), game.soldier_count() * 2);
-    positions()[0] += 0.1;
+    const travel = createBattleViews(game, wasm.memory).motorTravel;
+    travel().set([0.1, 0, 0.1]);
     const moved = adapter.read(11).observations[0];
     expect(moved.speedMps).toBeCloseTo(0.1 / ACTION_TICK_SECONDS, 5);
     expect(moved.forwardMps).toBeCloseTo(moved.speedMps, 5);
@@ -168,7 +179,7 @@ test("observation histories survive append and memory growth, but reset on rewin
     expect(appended[1].forwardMps).toBe(0);
     expect(appended[1].lateralMps).toBe(0);
     wasm.memory.grow(1);
-    positions()[0] += 0.2;
+    travel().set([0.3, 0, 0.3]);
     const grown = adapter.read(13).observations;
     expect(grown[0].speedMps).toBeCloseTo(0.2 / (2 * ACTION_TICK_SECONDS), 5);
     expect(grown[0].forwardMps).toBeCloseTo(grown[0].speedMps, 5);
@@ -178,7 +189,7 @@ test("observation histories survive append and memory growth, but reset on rewin
         0, 0, 0,
       ]);
     }
-    positions()[0] += 20;
+    travel().set([20.3, 0, 20.3]);
     adapter.reset();
     const reset = adapter.read(0).observations[0];
     expect([reset.speedMps, reset.forwardMps, reset.lateralMps]).toEqual([0, 0, 0]);
@@ -196,18 +207,22 @@ test("motion retains forward and lateral signs in the presented facing basis", (
     adapter.read(0);
     // Face +y: travel toward -y is backwards, while +x is to the right.
     views.facings()[0] = Math.PI / 2;
-    views.positions()[0] += 3;
-    views.positions()[1] -= 4;
+    views.motorTravel().set([3, -4, 5]);
     const motion = adapter.read(30).observations[0];
     expect(motion.forwardMps).toBeCloseTo(-4, 5);
     expect(motion.lateralMps).toBeCloseTo(3, 5);
     expect(motion.speedMps).toBe(5);
     views.facings()[0] = 0;
-    views.positions()[1] += 2;
+    views.motorTravel().set([3, -2, 7]);
     const sideways = adapter.read(60).observations[0];
     expect(sideways.forwardMps).toBe(0);
     expect(sideways.lateralMps).toBe(-2);
     expect(sideways.speedMps).toBe(2);
+    // Opposing qualified steps can cancel direction without cancelling cadence.
+    views.motorTravel()[2] += 4;
+    const reversed = adapter.read(90).observations[0];
+    expect(reversed.speedMps).toBe(4);
+    expect([reversed.forwardMps, reversed.lateralMps]).toEqual([0, 0]);
   } finally {
     game.free();
   }
@@ -226,14 +241,14 @@ test("held pike motion uses the presented unit facing, returning to soldier faci
     const posture = new Uint8Array(wasm.memory.buffer, game.posture_ptr(), 1);
     posture[0] = 4; // Unit retained-facing branch, but not soldier-facing branch.
     adapter.read(0);
-    views.positions()[0] += 1;
+    views.motorTravel().set([1, 0, 1]);
     const held = adapter.read(30);
     expect(held.facings[0]).toBeCloseTo(Math.PI / 2);
     expect(held.observations[0].forwardMps).toBeCloseTo(0, 5);
     expect(held.observations[0].lateralMps).toBeCloseTo(1, 5);
     expect(held.observations[0].guardedFacing).toBe(true);
     weapons[0] = adapter.classSpecs[3].weapons.findIndex((weapon) => !weapon.braced);
-    views.positions()[0] += 1;
+    views.motorTravel().set([2, 0, 2]);
     const sidearm = adapter.read(60);
     expect(sidearm.facings[0]).toBe(0);
     expect(sidearm.observations[0].forwardMps).toBe(1);
@@ -259,7 +274,7 @@ test("routing and incapacitation stay distinct from guarded facing and signed di
     });
     posture[0] = 3;
     views.unitInfo()[UNIT_INFO.routing] = 1;
-    views.positions()[0] -= 1;
+    views.motorTravel().set([-1, 0, 1]);
     const displaced = adapter.read(30).observations[0];
     expect(displaced).toMatchObject({
       forwardMps: -1,
@@ -313,6 +328,42 @@ test("engine targetless withdrawal reaches the real held-pike adapter without sy
       guardedFacing: true,
     });
     expect(withdrawal!.forwardMps).toBeLessThan(0);
+  } finally {
+    game.free();
+  }
+});
+
+test("actual routing ticks reach batched motor-travel observations in the displayed facing", () => {
+  const game = new Game(71);
+  try {
+    game.spawn_class(0, 0, 0, 1, 1, 0, 0);
+    game.spawn_class(80, 0, Math.PI, 10, 5, 0, 1);
+    const views = createBattleViews(game, wasm.memory);
+    const adapter = new BattleActionAdapter(game, wasm.memory);
+    game.advance_ticks(10);
+    expect(adapter.read(10).observations[0].routing).toBe(true);
+    let path = 0;
+    const first = Array.from(views.positions().slice(0, 2));
+    for (let tick = 11; tick <= 20; tick++) {
+      const before = Array.from(views.positions().slice(0, 2));
+      game.tick();
+      path += Math.hypot(views.positions()[0] - before[0], views.positions()[1] - before[1]);
+    }
+    const { observations, facings } = adapter.read(20);
+    const observation = observations[0];
+    const dx = views.positions()[0] - first[0],
+      dy = views.positions()[1] - first[1];
+    const seconds = 10 * ACTION_TICK_SECONDS;
+    expect(observation.routing).toBe(true);
+    expect(observation.speedMps).toBeCloseTo(path / seconds, 12);
+    expect(observation.forwardMps).toBeCloseTo(
+      (dx * Math.cos(facings[0]) + dy * Math.sin(facings[0])) / seconds,
+      12,
+    );
+    expect(observation.lateralMps).toBeCloseTo(
+      (dx * Math.sin(facings[0]) - dy * Math.cos(facings[0])) / seconds,
+      12,
+    );
   } finally {
     game.free();
   }

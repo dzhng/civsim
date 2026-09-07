@@ -43,6 +43,10 @@ pub struct Sim {
     /// Presentation-only output of the selected soldier-facing branch (0/1).
     /// Cleared before steering; never consumed by gameplay decisions.
     pub guarded_facings: Vec<u8>,
+    /// Presentation-only cumulative world X/Y travel and tick-path length (metres)
+    /// while ordinary or routing movement ran. Not voluntary propulsion or save state.
+    pub motor_travel: Vec<[f64; 3]>,
+    pub(crate) motor_capable: Vec<bool>,
     pub health: Vec<f32>,
     /// Collision/push mass per soldier (from class; bracing multiplies it).
     pub mass: Vec<f32>,
@@ -217,6 +221,8 @@ impl Sim {
             positions: Vec::new(),
             facings: Vec::new(),
             guarded_facings: Vec::new(),
+            motor_travel: Vec::new(),
+            motor_capable: Vec::new(),
             health: Vec::new(),
             mass: Vec::new(),
             radius: Vec::new(),
@@ -451,6 +457,8 @@ impl Sim {
             self.positions.push(p.y);
             self.facings.push(facing);
             self.guarded_facings.push(0);
+            self.motor_travel.push([0.0; 3]);
+            self.motor_capable.push(false);
             self.health.push(stats.health);
             self.mass.push(stats.mass);
             self.radius.push(stats.soldier_radius);
@@ -908,6 +916,17 @@ impl Sim {
         self.mark_at_ease(); // fresh centroids; before morale reads it
         self.run_morale(dt);
 
+        // Final constrained travel counts only when this tick's movement branch
+        // ran; an expired end-of-tick stun timer cannot classify that interval.
+        for i in 0..n {
+            if self.motor_capable[i] {
+                let dx = self.positions[2 * i] as f64 - self.prev_positions[2 * i] as f64;
+                let dy = self.positions[2 * i + 1] as f64 - self.prev_positions[2 * i + 1] as f64;
+                self.motor_travel[i][0] += dx;
+                self.motor_travel[i][1] += dy;
+                self.motor_travel[i][2] += dx.hypot(dy);
+            }
+        }
         self.tick_count += 1;
     }
 

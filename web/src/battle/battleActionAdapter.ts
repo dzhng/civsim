@@ -5,7 +5,7 @@ import {
 import { APPEARANCE_DESCRIPTORS } from "@packages/soldier-assets/src/appearance";
 import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
 import type { Game } from "../wasm/game_wasm.js";
-import { createBattleViews } from "./battleViews";
+import { createBattleViews, MOTOR_TRAVEL } from "./battleViews";
 import { validateClassSpecCatalog } from "./classData";
 import type { ClassSpec } from "./classData";
 
@@ -14,7 +14,7 @@ export class BattleActionAdapter {
   readonly classSpecs: ClassSpec[];
   private readonly releaseDuration: number;
   private readonly views: ReturnType<typeof createBattleViews>;
-  private positions = new Float32Array(0);
+  private motorTravel = new Float64Array(0);
   private tick = -1;
   private observations: ActionObservation[] = [];
   private facings = new Float32Array(0);
@@ -35,7 +35,7 @@ export class BattleActionAdapter {
 
   reset(): void {
     this.tick = -1;
-    this.positions = new Float32Array(0);
+    this.motorTravel = new Float64Array(0);
     this.observations = [];
   }
 
@@ -44,7 +44,7 @@ export class BattleActionAdapter {
     if (tick < this.tick || count < this.observations.length) this.reset();
     if (tick === this.tick && count === this.observations.length)
       return { observations: this.observations, facings: this.facings };
-    const positions = this.views.positions();
+    const motorTravel = this.views.motorTravel();
     const facings = this.views.facings();
     const health = this.views.health(),
       mountHealth = this.views.mountHealth();
@@ -58,7 +58,7 @@ export class BattleActionAdapter {
     const weapons = new Uint8Array(this.memory.buffer, this.game.cur_weapon_ptr(), count);
     const units = new Uint32Array(this.memory.buffer, this.game.soldier_unit_ptr(), count);
     const elapsed = (tick - this.tick) * ACTION_TICK_SECONDS;
-    const previousCount = this.positions.length / 2;
+    const previousCount = this.motorTravel.length / MOTOR_TRAVEL.stride;
     const observations: ActionObservation[] = [];
     const renderFacings = new Float32Array(facings);
     for (let soldier = 0; soldier < count; soldier++) {
@@ -87,8 +87,16 @@ export class BattleActionAdapter {
       // Weapon pose affects facing/appearance, never overwrites the chosen action.
       if (alive[soldier] && heldHedge) renderFacings[soldier] = info[offset + UNIT_INFO.facing];
       const measured = soldier < previousCount && elapsed > 0;
-      const dx = measured ? positions[soldier * 2] - this.positions[soldier * 2] : 0;
-      const dy = measured ? positions[soldier * 2 + 1] - this.positions[soldier * 2 + 1] : 0;
+      const travel = soldier * MOTOR_TRAVEL.stride;
+      const dx = measured
+        ? motorTravel[travel + MOTOR_TRAVEL.x] - this.motorTravel[travel + MOTOR_TRAVEL.x]
+        : 0;
+      const dy = measured
+        ? motorTravel[travel + MOTOR_TRAVEL.y] - this.motorTravel[travel + MOTOR_TRAVEL.y]
+        : 0;
+      const path = measured
+        ? motorTravel[travel + MOTOR_TRAVEL.path] - this.motorTravel[travel + MOTOR_TRAVEL.path]
+        : 0;
       const cos = Math.cos(renderFacings[soldier]);
       const sin = Math.sin(renderFacings[soldier]);
       observations.push({
@@ -96,7 +104,7 @@ export class BattleActionAdapter {
         alive: alive[soldier] !== 0,
         health: health[soldier],
         mountHealth: mountHealth[soldier],
-        speedMps: measured ? Math.hypot(dx, dy) / elapsed : 0,
+        speedMps: measured ? path / elapsed : 0,
         forwardMps: measured ? (dx * cos + dy * sin) / elapsed : 0,
         lateralMps: measured ? (dx * sin - dy * cos) / elapsed : 0,
         routing: info[offset + UNIT_INFO.routing] > 0.5,
@@ -110,7 +118,7 @@ export class BattleActionAdapter {
           releases[soldier] > 0 ? Math.max(0, this.releaseDuration - releases[soldier]) : 0,
       });
     }
-    this.positions = new Float32Array(positions);
+    this.motorTravel = new Float64Array(motorTravel);
     this.tick = tick;
     this.observations = observations;
     this.facings = renderFacings;

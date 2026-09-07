@@ -1,6 +1,6 @@
 # 13 — First-pair hit and death
 
-Status: TODO. Depends on [12](./12-pair-combat.md).
+Status: provisional heavy hit authoring; no acceptance. Depends on [12](./12-pair-combat.md).
 
 Final acceptance follows12. Provisional reaction authoring can use its current
 usable saved rig/kit without waiting for locomotion's complete live binding,
@@ -57,4 +57,9 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 - [ ] Comparison and final unprimed critique recorded.
 - [ ] Review/cleanup completed; README pickup and decisions updated.
 
-Record actual commands, evidence links, measured results, decisions and unresolved defects here during implementation. No implementation or visual acceptance has occurred yet.
+The isolated heavy hit study uses the fitted kit without altering its existing
+actions. The revised candidate adds connected knee, pelvis and torso compression;
+full-motion review must distinguish an involuntary reaction from a voluntary
+crouch. It is not a new stun state or an impact-direction claim. The engine's
+observed health loss remains authoritative, and detailed live binding is still
+unbuilt. Death authoring and this slice's acceptance remain open.

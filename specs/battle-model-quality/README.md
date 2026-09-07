@@ -5,10 +5,11 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 ## Next Agent Prompt
 
 Last updated **2026-09-08**. **01–06 complete;07 envelope open;08–11 provisional
-authoring;12 provisional authoring;13–30 pending.** Worktree: `/Users/david/dev/game-battle-model-quality`,
+authoring;12–13 provisional authoring;14–30 pending.** Worktree: `/Users/david/dev/game-battle-model-quality`,
 branch `codex/battle-model-quality`. No detailed model or art envelope is accepted.
 
-Current pickup: **whole-body Blender attack and medium upright-pike run**.
+Current pickup: **integrate the reviewed medium upright-pike run; finish the
+heavy attack and hit motion studies**.
 Protected directional selection and manual guarded-right integration are merged.
 The [root/attached-overlay candidate](assets/evidence/11/live-root-phase/review.md)
 passed numerical checks but failed the live comparison: unconditional prediction
@@ -70,10 +71,11 @@ Retained facing also occurs during safe withdrawals: protected selection must
 respect `atEase`, not treat `guardedFacing` alone as a threat decision.
 
 Priority order:
-- **Whole-body authoring:** heavy shield-protected sword effort and medium
-  two-hand upright-pike run proceed independently on frozen fitted sources.
-  The inherited medium run loses the second grip and drives its shaft below
-  ground; correct connected carry before finer details. Genuine12/13 actions
+- **Whole-body authoring:** heavy shield-protected sword effort, compact hit
+  reaction and medium two-hand upright-pike run proceed independently on frozen
+  fitted sources. The reviewed medium candidate corrects the inherited lost
+  second grip and underground shaft; integrate it without changing the old
+  march. Attack braking and reaction weight remain provisional. Genuine12/13 actions
   supply the complete pose set required for later live admission.
 - **Engine-faithful locomotion:** resolve fractional root placement with gait,
   then bind detailed protected travel without

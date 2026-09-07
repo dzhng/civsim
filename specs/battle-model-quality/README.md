@@ -56,6 +56,9 @@ Priority order:
   stop prospective gait while disabled, then bind protected travel without
   changing engine movement or combat timing. Upper-body weight response, ground
   contact and transitions remain open. Do not overwrite fitted sources from older studies.
+  After the current directional study, provisional12/13 combat/reaction authoring
+  supplies genuine clips required for complete live admission; do not block it on
+  that same admission or weaken the loader with stand-ins.
 - **Medium ordinary march:** retain the integrated lower carry provisionally;
   continue full-body motion and live binding, not another isolated hand study.
   Two-hand purchase, flank shield and pike length remain constraints. The

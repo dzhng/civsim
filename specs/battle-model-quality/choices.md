@@ -1603,3 +1603,14 @@ captures and visual review supported retaining the fresh asset and its new basel
 The plan left exporter rounding at source promotion open. This
 does not permit differing pixels: subsequent runs must match the new baseline
 exactly, and no tangent pinning or image-difference allowance ships.
+
+### Author the required pose set before demanding complete live admission
+
+**Sound; confidence: high. Candidate-order clarification5446978e.** The live
+loader requires genuine hit/death clips alongside standing and travel. Waiting
+for fully accepted live locomotion before authoring those clips would prevent
+the same appearance from ever entering that review. The plan's sequential
+acceptance dependencies therefore do not postpone provisional combat/reaction
+authoring on the usable saved rig. Unrelated clips and fitted surfaces stay
+frozen per pass; final quality gates and atomic promotion remain unchanged.
+This changes work order, not the animation contract or the user's scope.

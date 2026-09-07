@@ -1598,8 +1598,8 @@ engine trace's simultaneous backward component or prove self-propulsion.
 **Sound; confidence: high. Guarded left integration cd6d2359.** Adding the new
 clip and exporting the unchanged kit changed one surface-shading direction by
 roughly0.0001. It changed one blue-channel value by1 in an older walk sheet.
-After an isolated control identified that value as the cause and repeated fresh
-exports were visually reviewed, the fresh asset and that exact new baseline
-were retained. The plan left exporter rounding at source promotion open. This
+After an isolated control identified that value as the cause, exact repeat
+captures and visual review supported retaining the fresh asset and its new baseline.
+The plan left exporter rounding at source promotion open. This
 does not permit differing pixels: subsequent runs must match the new baseline
 exactly, and no tangent pinning or image-difference allowance ships.

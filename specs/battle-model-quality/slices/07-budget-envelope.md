@@ -171,6 +171,11 @@ The [caller-owned LOD storage experiment](../assets/evidence/07/lod-storage.md)
 preserved exact output but was rejected after worse matched hardware timing.
 Its patch and all reports are retained; production keeps the prior planner.
 
+The [same-lane packing diagnostic](../assets/evidence/07/same-lane-packing.md)
+finds duplicate clip resolution primarily in settled lanes, not transitions.
+Its exact-output CPU probe is positive at the median but mixed at the tail;
+no code is integrated and no browser speedup or budget acceptance is inferred.
+
 Future hardware comparisons must check machine-wide background activity, not
 only serialize this task's agents. On2026-09-07 a read-only process check found an
 unrelated Chrome152 GPU/renderer process active after this task's capture jobs

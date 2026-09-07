@@ -29,11 +29,13 @@ Current pickup has independent authoring and measurement lanes:
   pelvis review open; clothing cannot establish anatomy acceptance.
 - **09 next geometry priority:** whole-heavy silhouette and believable contacts:
   shoulder/sleeve fit, hanging garment, footwear, grips and scabbard suspension.
-  Footwear is now composed and reviewed. The active garment lane in
-  `/Users/david/dev/game-heavy-garment-candidate` addresses sleeve volume and
-  armpit exposure on fixed inputs; review its complete source/evidence, then
-  recompose it with the current footwear and corrected carry. Do not copy its
-  frozen generated mesh over the root candidate.
+  Footwear is composed and reviewed. The frozen garment lane is complete and
+  recomposed with current footwear/carry; [combined garment evidence](assets/evidence/09/combined-garments/review.md)
+  owns the current capture and independent less-wrong verdict. Do not copy its
+  frozen generated mesh over the root candidate. Independent head-form and mail
+  surface work continues from the preceding checkpoint in separate worktrees.
+  Scabbard suspension is the next equipment authoring target; rigid cuffs and
+  hidden underarm intersections remain open.
   Do not propagate unresolved heavy defects to medium phalanx.
 - **07 animated budget:** the reusable LOD result experiment was rejected after
   worse matched timing; its code is not integrated. Finish combined geometry,

@@ -78,7 +78,7 @@ def build():
     def loft(name, rows, bone=None, segments=40, across=(1, 0, 0), depth=(0, 1, 0)):
         return finish(anatomy.loft(name, rows, segments, across, depth), bone)
 
-    def thin_surface(name, vertices, faces, bone=None, offset=-1):
+    def thin_surface(name, vertices, faces, bone=None, offset=-1, fit=None):
         mesh = bpy.data.meshes.new(name)
         mesh.from_pydata(vertices, [], faces)
         mesh.update()
@@ -96,13 +96,15 @@ def build():
         subdivision = obj.modifiers.new("Curved surface", "SUBSURF")
         subdivision.levels = 2
         bpy.ops.object.modifier_apply(modifier=subdivision.name)
+        if fit:
+            fit(obj.data)
         thickness = obj.modifiers.new("Physical edge thickness", "SOLIDIFY")
         thickness.thickness = .003
         thickness.offset = offset
         bpy.ops.object.modifier_apply(modifier=thickness.name)
         return finish(obj, bone)
 
-    def garment(name, rows, sleeve_end):
+    def garment(name, rows, sleeve_end, clearance):
         # Sew open sleeve loops into the torso, leaving real neck, cuff and hem openings.
         segments = 16
         vertices = [(w*math.cos(math.tau*j/segments), .005+d*math.sin(math.tau*j/segments), z)
@@ -155,17 +157,27 @@ def build():
                     k = (j+1)%len(ring)
                     faces.append((boundary[j], boundary[k], ring[k], ring[j]))
                 boundary = ring
-        return thin_surface(name, vertices, faces)
+        def fit_shoulders(mesh):
+            # Fit the subdivided shoulder, not just its sparse control cage.
+            # Lower hanging cloth and the open neckline keep their authored form.
+            for vertex in mesh.vertices:
+                if 1.19 < vertex.co.z < 1.515 and abs(vertex.co.x) > .13:
+                    point, normal, _, _ = nearest.find_nearest(vertex.co)
+                    blend = min(1, (abs(vertex.co.x)-.13)/.06)
+                    blend = blend*blend*(3-2*blend)
+                    vertex.co = vertex.co.lerp(point+normal*clearance, blend)
+            mesh.update()
+        return thin_surface(name, vertices, faces, fit=fit_shoulders)
 
     # Separate cloth hem and overlying mail form; mail rings/finish belong to slice10.
     garment("Tunic", [(.73, .212, .153), (.75, .212, .153), (.88, .207, .148),
             (1.05, .180, .128), (1.23, .203, .148), (1.34, .233, .160),
             (1.44, .247, .146), (1.505, .216, .097), (1.525, .071, .065)],
-            [(.285, 1.315, .087), (.327, 1.250, .077), (.332, 1.243, .077)])
+            [(.285, 1.315, .077), (.327, 1.250, .071), (.332, 1.243, .071)], .009)
     garment("Mail shirt", [(.855, .213, .158), (.87, .214, .160), (.95, .208, .157),
             (1.06, .189, .139), (1.23, .212, .159), (1.35, .244, .170),
             (1.45, .256, .156), (1.513, .226, .109), (1.535, .074, .069)],
-            [(.273, 1.345, .096), (.298, 1.305, .092), (.302, 1.299, .092)])
+            [(.262, 1.360, .082), (.282, 1.329, .078), (.286, 1.323, .078)], .018)
     loft("Waist belt", [((0, .005, z), w, d) for z, w, d in
          [(1.026, .198, .148), (1.031, .201, .151),
           (1.061, .201, .151), (1.066, .198, .148)]])

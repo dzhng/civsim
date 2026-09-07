@@ -1103,3 +1103,20 @@ The spec requires editable anatomy but leaves topology allocation and operation
 order open. This adds provisional face geometry rather than taking detail away
 elsewhere merely to hold an unaccepted count. Future body and distance work must
 still fit the measured budget; this does not accept the face's quality or count.
+
+### Fit the final shoulder surface before adding garment thickness (09)
+
+**Sound, provisional; confidence: medium.** When Blender rounds the shirt's
+sparse construction mesh, the resulting surface can shrink through the shoulder.
+The equipment author now fits that rounded shoulder surface just outside the
+fixed underlying body, then adds the garment's thickness and transfers the
+body's bone influences. Fitting only the original sparse mesh would leave the
+later shrinkage unaddressed. The neckline and lower hanging cloth retain their
+authored shape instead of being pulled tight to the body everywhere.
+
+The plan requires fitted layers but does not specify this operation order or
+the fitting method. The chosen offsets are modeling aids, not a collision
+system: raising an arm can still make the layers intersect, particularly where
+the nearest underlying surface switches between torso and arm. Future body
+changes therefore require a refit and full pose review. This stays an offline
+Blender operation and does not add a runtime fitting or cloth mechanism.

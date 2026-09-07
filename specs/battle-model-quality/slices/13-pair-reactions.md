@@ -2,6 +2,12 @@
 
 Status: TODO. Depends on [12](./12-pair-combat.md).
 
+Final acceptance follows12. Provisional reaction authoring can use its current
+usable saved rig/kit without waiting for locomotion's complete live binding,
+which itself requires real hit/death clips. Preserve all existing combat and
+travel actions in each isolated pass; no incomplete appearance is promoted or
+filled with mislabelled stand-in clips to evade admission.
+
 ## Contract and ownership
 
 Observed reactions play once and death settles then holds.

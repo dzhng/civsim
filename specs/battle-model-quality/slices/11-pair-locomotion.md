@@ -153,6 +153,17 @@ This can proceed beside root placement because it owns timeline sampling, not
 body positioning. Directional bindings and their missing-clip policy follow as
 a separate pass; no detailed appearance is promoted here.
 
+### Candidate authoring versus live admission
+
+The existing presentation contract requires hit/death as well as standing and
+travel. The heavy kit currently remains manual-only; assigning incomplete or
+mislabelled clips merely to enter a live battle would weaken that contract.
+After the current directional study, provisional12/13 authoring may proceed on
+the same saved usable rig while11's live checks remain open. Freeze and preserve
+unrelated geometry/actions for each pass. This removes an acceptance-order cycle,
+not the final quality gate: complete live bindings wait for genuine applicable
+clips, and production promotion still waits for the first-pair checkpoint.
+
 Names of new functions/routes in this plan are proposed, not existing commands. Use the [shared acceptance contract](../README.md#acceptance-contract) and [architecture](../architecture.md) for inherited requirements.
 
 ## Runnable artifact

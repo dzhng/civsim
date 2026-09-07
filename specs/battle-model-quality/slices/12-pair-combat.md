@@ -2,6 +2,15 @@
 
 Status: TODO. Depends on [11](./11-pair-locomotion.md).
 
+This is an acceptance dependency, not a requirement to postpone provisional
+authoring until11 can admit a complete live appearance. After the current
+directional study, a bounded heavy attack study may use the saved fitted rig and
+ready pose, preserving every unrelated action and surface. Start with one
+unpaired full-body sword effort; anticipation, transfer and recovery matter
+before fine hand detail. It remains manual-only until applicable bindings and
+first-pair acceptance are complete. No dummy reaction clips or weaker loader
+admission may substitute for13.
+
 ## Contract and ownership
 
 Heavy sword attacks and phalanx brace/thrust read through individual body mechanics.

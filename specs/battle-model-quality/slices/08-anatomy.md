@@ -151,3 +151,8 @@ The [joint-grasp rejection](../assets/evidence/08/rejected-joint-grasp/review.md
 shows that closer equipment enclosure still leaves mechanical fingers and a
 machined palm seam. Its expanded contact test also adds clinical blade/leg
 intersections. It is negative evidence, not a replacement for the retained hand.
+
+The [rounded-grasp rejection](../assets/evidence/08/rejected-rounded-grasp/review.md)
+shows that smoothing the repeated finger loops does not establish anatomical
+form. Independently placed knuckles, finger segments and an opposing thumb pad
+are the next construction study; contact and topology remain separate gates.

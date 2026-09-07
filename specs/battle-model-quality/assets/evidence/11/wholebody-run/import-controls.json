@@ -1,0 +1,99 @@
+{
+  "sources": [
+    {
+      "path": "packages/soldier-assets/assets/source/heavy-kit/heavy-kit.glb",
+      "sha256": "0a7beffb16f962e9cbb2993a5a30a83dd0b0c76a2a58a6eabf78f0af6c5f31a8"
+    },
+    {
+      "path": "throwaway/wholebody-run/source/heavy-run.glb",
+      "sha256": "5ff989fc1d868e9292a0bb7465b7edef94fae84486572a19f8f3db8868b06e20"
+    }
+  ],
+  "exactRig": true,
+  "primitiveDifferences": [
+    {
+      "index": 0,
+      "differences": {
+        "tangents": {
+          "count": 11,
+          "max": 0.00010001659393310547
+        }
+      }
+    },
+    {
+      "index": 1,
+      "differences": {
+        "tangents": {
+          "count": 5,
+          "max": 0.00010001659393310547
+        }
+      }
+    },
+    {
+      "index": 2,
+      "differences": {}
+    },
+    {
+      "index": 3,
+      "differences": {}
+    },
+    {
+      "index": 4,
+      "differences": {}
+    },
+    {
+      "index": 5,
+      "differences": {}
+    },
+    {
+      "index": 6,
+      "differences": {}
+    },
+    {
+      "index": 7,
+      "differences": {
+        "tangents": {
+          "count": 3,
+          "max": 0.00009998679161071777
+        }
+      }
+    }
+  ],
+  "clips": [
+    {
+      "name": "bend",
+      "duration": 2,
+      "exact": true
+    },
+    {
+      "name": "bend-pronation",
+      "duration": 2,
+      "exact": true
+    },
+    {
+      "name": "idle",
+      "duration": 1.2000000476837158,
+      "exact": true
+    },
+    {
+      "name": "pronation",
+      "duration": 2,
+      "exact": true
+    },
+    {
+      "name": "ready",
+      "duration": 1.2000000476837158,
+      "exact": true
+    },
+    {
+      "name": "run",
+      "duration": 0.800000011920929,
+      "exact": false
+    },
+    {
+      "name": "walk",
+      "duration": 0.8999999761581421,
+      "exact": true
+    }
+  ]
+}

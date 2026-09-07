@@ -1,0 +1,70 @@
+[
+  {
+    "label": "original",
+    "sourceSha256": "0a7beffb16f962e9cbb2993a5a30a83dd0b0c76a2a58a6eabf78f0af6c5f31a8",
+    "feet": {
+      "L": {
+        "flatInterval": [
+          0.08,
+          0.18
+        ],
+        "samples": 19,
+        "worldCenterRanges": [
+          0.00033196614536096236,
+          0.0005949279767996085,
+          0.00205643284001283
+        ],
+        "minimumSoleZ": -0.0026333972346037626,
+        "maximumSoleClearance": 0.17418015003204346
+      },
+      "R": {
+        "flatInterval": [
+          0.08,
+          0.18
+        ],
+        "samples": 19,
+        "worldCenterRanges": [
+          0.0003319416533816705,
+          0.0005948853654629827,
+          0.0020565332173958007
+        ],
+        "minimumSoleZ": -0.0026335876900702715,
+        "maximumSoleClearance": 0.17418010532855988
+      }
+    }
+  },
+  {
+    "label": "wholebody-v2",
+    "sourceSha256": "5ff989fc1d868e9292a0bb7465b7edef94fae84486572a19f8f3db8868b06e20",
+    "feet": {
+      "L": {
+        "flatInterval": [
+          0.08,
+          0.18
+        ],
+        "samples": 19,
+        "worldCenterRanges": [
+          0.0004663167246541644,
+          0.001039891002568627,
+          0.003165915262947178
+        ],
+        "minimumSoleZ": -0.0034329467453062534,
+        "maximumSoleClearance": 0.3801904320716858
+      },
+      "R": {
+        "flatInterval": [
+          0.08,
+          0.18
+        ],
+        "samples": 19,
+        "worldCenterRanges": [
+          0.0004664259878071203,
+          0.0010398274662674623,
+          0.0031823562703495608
+        ],
+        "minimumSoleZ": -0.003433092962950468,
+        "maximumSoleClearance": 0.38019034266471863
+      }
+    }
+  }
+]

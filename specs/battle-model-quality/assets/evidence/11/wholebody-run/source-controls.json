@@ -1,0 +1,36 @@
+{
+  "inputSha256": "834d23707b403061351cf5d50d090ed38d13027bc1ac6f340d134f9451595275",
+  "glbSha256": "5ff989fc1d868e9292a0bb7465b7edef94fae84486572a19f8f3db8868b06e20",
+  "exactNonRunActions": [
+    "bend",
+    "bend-pronation",
+    "idle",
+    "pronation",
+    "ready",
+    "walk"
+  ],
+  "exactUntouchedRunChannels": 42,
+  "changedJoints": [
+    "chest",
+    "elbow-volume.L",
+    "elbow-volume.R",
+    "foot.L",
+    "foot.R",
+    "forearm.L",
+    "forearm.R",
+    "head",
+    "knee-volume.L",
+    "knee-volume.R",
+    "neck",
+    "pelvis",
+    "shin.L",
+    "shin.R",
+    "spine",
+    "thigh.L",
+    "thigh.R",
+    "upper-arm.L",
+    "upper-arm.R"
+  ],
+  "duration": 0.8,
+  "prescribedSpeed": 3.23
+}

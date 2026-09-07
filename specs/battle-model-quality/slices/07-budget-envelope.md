@@ -2,11 +2,12 @@
 
 Status: IN PROGRESS. Depends on [06](./06-gpu-playback.md), now complete.
 
-Current pickup: record a controlled available-display bracket against1280×800
-using the unchanged combined synthetic workload. Latest bank-era synchronized
-cadence remains red; the older passing preparation-cleanup result below is
-historical, not current acceptance. Record machine-wide activity and preserve
-uninterpretable or red results without a repeat-until-green loop.
+Current pickup: separate native-resolution detail demand from rendering cost.
+The [available-display bracket](../assets/evidence/07/combined-display-bracket/review.md)
+records1280×800,3024×1964 and5120×2880 with the unchanged combined workload;
+all fail cadence and5K also fails GPU-queue medians. Background activity limits
+attribution. The older passing preparation-cleanup result below is historical,
+not current acceptance. Preserve red results; no repeat-until-green loop.
 
 ## Contract and ownership
 

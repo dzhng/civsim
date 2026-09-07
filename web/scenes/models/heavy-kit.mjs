@@ -92,6 +92,18 @@ const details = [
     ],
   },
   {
+    name: "guarded-right-hip-poses",
+    pitch: 1.4,
+    zoom: 220,
+    target: [0, 0, 0.9],
+    poses: [0, 0.25, 0.5, 0.75].map((phase) => [
+      `right phase ${phase}`,
+      phase,
+      "guarded-right-walk",
+    ]),
+    views: [["scabbard side", -Math.PI / 3]],
+  },
+  {
     name: "ready-feet",
     pitch: 1.2,
     zoom: 1000,

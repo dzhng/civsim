@@ -24,6 +24,18 @@ const cases = [
     yaw,
     travelAngleOffset: Math.PI / 2,
   })),
+  ...[
+    ["front", Math.PI],
+    ["rear", 0],
+    ["oblique", (4 * Math.PI) / 3],
+  ].map(([view, yaw]) => ({
+    clip: "guarded-right-walk",
+    speed: 0.9253140324024038,
+    duration: 0.6,
+    view,
+    yaw,
+    travelAngleOffset: -Math.PI / 2,
+  })),
 ];
 const name = (row, frame) =>
   `shared/soldiers/heavy-kit/travel-${row.clip}-${row.view}-${String(frame).padStart(2, "0")}`;
@@ -55,11 +67,15 @@ export async function captureHeavyTravel(ctx, page) {
         pitch: 1.4,
         zoom: row.travelAngleOffset ? 150 : 125,
         target: row.travelAngleOffset
-          ? [-row.speed * row.duration, 0, 0.9]
+          ? [
+              row.travelAngleOffset > 0 ? -row.speed * row.duration : row.speed * row.duration,
+              0,
+              0.9,
+            ]
           : [0, row.speed * row.duration, 0.9],
       });
       document.querySelector("#candidate-caption").textContent = row.travelAngleOffset
-        ? `Guarded lateral travel · ${row.view}\nPrescribed pure left ${row.speed.toFixed(6)} m/s · review only`
+        ? `Guarded lateral travel · ${row.view}\nPrescribed pure ${row.travelAngleOffset > 0 ? "left" : "right"} ${row.speed.toFixed(6)} m/s · review only`
         : `Heavy candidate · ${row.clip} · ${row.view}\nPrescribed ${row.speed} m/s · fixed camera · review only`;
     }, row);
     await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw, undefined, {

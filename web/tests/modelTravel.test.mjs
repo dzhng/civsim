@@ -32,19 +32,24 @@ test("selecting an existing static sheet does not access the travel page", async
   }
 });
 
-test("leftward travel preserves threat facing across wrap and out-of-order seeking", () => {
-  const source = [{ x: 2, y: -1, facing: 0.7, clip: "guarded-left-walk", phase: 0 }];
-  const sample = (seconds) => travelInstances(source, seconds, 2, 0.6, Math.PI / 2)[0];
-  const first = sample(0.7);
-  const dx = first.x - source[0].x,
-    dy = first.y - source[0].y;
-  const rightward = dx * Math.sin(0.7) - dy * Math.cos(0.7);
-  const forward = dx * Math.cos(0.7) + dy * Math.sin(0.7);
-  assert.ok(Math.abs(rightward + 1.4) < 1e-12);
-  assert.ok(Math.abs(forward) < 1e-12);
-  assert.equal(first.facing, source[0].facing);
-  assert.ok(first.phase < sample(0.5).phase);
-  sample(4);
-  assert.deepEqual(sample(0.7), first);
-  assert.deepEqual(source, [{ x: 2, y: -1, facing: 0.7, clip: "guarded-left-walk", phase: 0 }]);
-});
+for (const [direction, offset, expectedRightward] of [
+  ["left", Math.PI / 2, -1.4],
+  ["right", -Math.PI / 2, 1.4],
+])
+  test(`${direction}ward travel preserves threat facing across wrap and out-of-order seeking`, () => {
+    const clip = `guarded-${direction}-walk`;
+    const source = [{ x: 2, y: -1, facing: 0.7, clip, phase: 0 }];
+    const sample = (seconds) => travelInstances(source, seconds, 2, 0.6, offset)[0];
+    const first = sample(0.7);
+    const dx = first.x - source[0].x,
+      dy = first.y - source[0].y;
+    const rightward = dx * Math.sin(0.7) - dy * Math.cos(0.7);
+    const forward = dx * Math.cos(0.7) + dy * Math.sin(0.7);
+    assert.ok(Math.abs(rightward - expectedRightward) < 1e-12);
+    assert.ok(Math.abs(forward) < 1e-12);
+    assert.equal(first.facing, source[0].facing);
+    assert.ok(first.phase < sample(0.5).phase);
+    sample(4);
+    assert.deepEqual(sample(0.7), first);
+    assert.deepEqual(source, [{ x: 2, y: -1, facing: 0.7, clip, phase: 0 }]);
+  });

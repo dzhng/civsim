@@ -8,38 +8,32 @@ Last updated **2026-09-07**. **01–06 complete;07 envelope open;08 candidate au
 Worktree: `/Users/david/dev/game-battle-model-quality`, branch
 `codex/battle-model-quality`. No art envelope or detailed model is accepted.
 
-Current pickup has independent authoring and measurement lanes:
-- **09–11 combined heavy:** 43cab350 composes the local Blender geometry,
-  materials and motion, including reviewed rear-belt fitting. 4926aa16 adds the
-  corrected walk and initial run authoring. The current rebuild combines
-  facial-form 7ea34c11, loaded-body motion b8577b62 and footwear a9b55b0e,
-  retaining the latest belt and correcting a newly discovered shield/knee clash.
-  [Current combined review](assets/evidence/11/combined-footwear-shield/review.md)
-  supports this working composition, not art acceptance; technical checks pass.
-  [Prior combined control](assets/evidence/11/combined-locomotion/review.md)
-  retains the pre-face/pre-loaded-gait evidence; do not confuse its source hash
-  with the current build.
-  [Combined review](assets/evidence/11/combined-heavy.md) owns fitting evidence;
-  [locomotion review](assets/evidence/11/heavy-run/review.md) owns the frozen motion
-  study, actual pace rationale and unresolved contact/carry defects. Old 1.53m/s
-  walk captures are fitting evidence only, not gameplay-speed acceptance.
-- **08 face and 11 motion authoring:** facial landmarks are integrated as a
-  provisional improvement, not finished anatomy. Loaded movement now uses
-  explicit world-axis torso orientation. Keep body proportions, hands, shoulders and
-  pelvis review open; clothing cannot establish anatomy acceptance.
-- **09 next geometry priority:** whole-heavy silhouette and believable contacts:
-  shoulder/sleeve fit, hanging garment, footwear, grips and scabbard suspension.
-  Footwear is composed and reviewed. The frozen garment lane is complete and
-  recomposed with current footwear/carry; [combined garment evidence](assets/evidence/09/combined-garments/review.md)
-  owns the current capture and independent less-wrong verdict. Do not copy its
-  frozen generated mesh over the root candidate. Independent head-form and mail
-  surface work continues from the preceding checkpoint in separate worktrees.
-  [Scabbard suspension](assets/evidence/09/scabbard-suspension/review.md) now has
-  a reviewed intermediate candidate with visible loops and fittings; rear straps,
-  rigid cuffs and hidden underarm intersections remain open. Integrate the
-  independently reviewed head checkpoint `9307029a`, rebuild the combined kit and
-  inspect helmet fit next; then compose the pending mail surface work.
-  Do not propagate unresolved heavy defects to medium phalanx.
+Current pickup: **refit and review the helmet on the new head**, then compose
+the independently authored mail surfaces. Root has integrated head checkpoint
+`53d5c746` and rebuilt the heavy candidate; the combined head/helmet is not yet
+visually accepted. A sampled source probe finds bowl and cheek-plate/head
+intersections. Separate helmet authoring must distinguish the bowl's capped
+construction from visible rim/plate penetration and replace the faulty surfaces.
+
+Independent authoring and measurement lanes:
+- **08–11 whole heavy:** preserve the current garments, loaded walk/run, footwear,
+  corrected shield carry and suspended scabbard while fitting the new head.
+  [Scabbard review](assets/evidence/09/scabbard-suspension/review.md),
+  [garment review](assets/evidence/09/combined-garments/review.md) and
+  [footwear/carry review](assets/evidence/11/combined-footwear-shield/review.md)
+  own the retained pre-head composition. Compare their exact source hashes;
+  frozen lane meshes must not overwrite the combined candidate.
+- **08 anatomy:** [head-volume evidence](assets/evidence/08/head-volumes/review.md)
+  supports a modest intermediate improvement, not finished anatomy. Body
+  proportions, hands, joints, eye/lid form and the rear neck junction remain open.
+  Clothing cannot establish anatomy acceptance.
+- **09/10 equipment and surfaces:** helmet fitting and locally modeled/baked mail
+  rings proceed in separate worktrees. Rear suspension straps, rigid linen cuffs,
+  hanging garment, underarms and grips remain open. Review the whole-heavy
+  silhouette before propagating conventions to medium phalanx.
+- **11 motion:** the [locomotion review](assets/evidence/11/heavy-run/review.md)
+  owns actual pace and remaining contact/carry work. Old 1.53m/s walk captures
+  are fitting evidence only, not gameplay-speed acceptance.
 - **07 animated budget:** the reusable LOD result experiment was rejected after
   worse matched timing; its code is not integrated. Finish combined geometry,
   camera, physical-display, storage and executable asset limits using separately

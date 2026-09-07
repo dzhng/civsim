@@ -37,7 +37,7 @@ def place_leg(arm, side, ankle):
     reach = (ankle - hip).length
     upper, lower = thigh.bone.length, shin.bone.length
     along = (upper * upper - lower * lower + reach * reach) / (2 * reach)
-    forward = Vector((0, -1, 0))
+    forward = Vector((.16 if side == "L" else -.16, -1, 0))
     pole = (forward - axis * forward.dot(axis)).normalized()
     knee = hip + axis * along + pole * math.sqrt(upper * upper - along * along)
     for bone, direction in ((thigh, knee - hip), (shin, ankle - knee)):
@@ -50,6 +50,8 @@ def author(source, output, speed):
         raise ValueError("Backward speed must be a finite positive magnitude")
     bpy.ops.wm.open_mainfile(filepath=str(source))
     scene = bpy.context.scene
+    if scene.render.fps / scene.render.fps_base != 30:
+        raise ValueError("This one-second authoring recipe requires the frozen 30 fps donor")
     arm = next(obj for obj in scene.objects if obj.type == "ARMATURE")
     controls = {action.name: curves(action) for action in bpy.data.actions}
     if CLIP in controls:
@@ -71,12 +73,21 @@ def author(source, output, speed):
         for bone in arm.pose.bones:
             bone.rotation_euler, bone.location = base[bone.name]
         sway = math.cos(math.tau * phase)
+        settle = math.cos(2 * math.tau * (phase - .1))
         pelvis = arm.pose.bones["pelvis"]
-        target = Vector((-.025 * sway, -.005, .864 - .007 * math.cos(2 * math.tau * (phase - .1))))
+        target = Vector((-.032 * sway, -.005, .864 - .013 * settle))
         pelvis.location = pelvis.bone.matrix_local.to_3x3().inverted() @ (target - pelvis.bone.head_local)
-        arm.pose.bones["spine"].rotation_euler.y += .018 * sway
-        arm.pose.bones["chest"].rotation_euler.x += .012 * math.sin(2 * math.tau * phase)
-        arm.pose.bones["neck"].rotation_euler.y -= .013 * sway
+        pelvis.rotation_euler.y += .018 * sway
+        arm.pose.bones["spine"].rotation_euler.y += .040 * sway
+        arm.pose.bones["spine"].rotation_euler.x += .035 * settle
+        arm.pose.bones["chest"].rotation_euler.x -= .014 * math.cos(2 * math.tau * (phase - .14))
+        arm.pose.bones["chest"].rotation_euler.y -= .025 * math.cos(math.tau * (phase - .04))
+        arm.pose.bones["neck"].rotation_euler.y -= .022 * math.cos(math.tau * (phase - .08))
+        # Small proximal arm responses keep the guard supported without making
+        # shield, head and chest one rigid oscillating assembly.
+        for side, sign in (("L", 1), ("R", -1)):
+            arm.pose.bones["upper-arm." + side].rotation_euler.x += .025 * math.sin(math.tau * (phase - .08)) * sign
+            arm.pose.bones["forearm." + side].rotation_euler.x -= .016 * math.sin(math.tau * (phase - .12)) * sign
         bpy.context.view_layer.update()
         for side, sign in (("L", 1), ("R", -1)):
             step = (phase + (0 if side == "R" else .5)) % 1
@@ -92,13 +103,13 @@ def author(source, output, speed):
                           + half * (-2 * u**3 + 3 * u**2)
                           - speed * .38 * (2 * u**3 - 3 * u**2 + u))
                 clearance = .045 * math.sin(math.pi * u)**2
-            roll = motion.cycle_value(((0, .22), (.10, 0), (.45, 0), (.62, -.22),
-                                       (.78, -.08), (.92, .13), (1, .22)), step)
+            roll = motion.cycle_value(((0, .30), (.10, 0), (.45, 0), (.62, -.28),
+                                       (.78, -.08), (.92, .18), (1, .30)), step)
             rotation = Matrix.Rotation(roll, 3, "X").to_quaternion() @ feet[side]
             foot = arm.data.bones["foot." + side]
             transform = rotation.to_matrix() @ foot.matrix_local.to_3x3().inverted()
             offsets = [transform @ (vertex.co - foot.head_local) for vertex in soles[side].data.vertices]
-            ankle = Vector((sign * .165, travel, clearance - min(point.z for point in offsets)))
+            ankle = Vector((sign * .185, travel, clearance - min(point.z for point in offsets)))
             place_leg(arm, side, ankle)
             motion.orient(arm, "foot." + side, rotation)
         # The fitted ready grip remains local to the connected guarded arms.

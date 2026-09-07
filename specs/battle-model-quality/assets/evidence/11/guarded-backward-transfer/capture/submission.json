@@ -1,0 +1,2168 @@
+[
+  {
+    "view": "side",
+    "framing": {
+      "camera": {
+        "x": 0,
+        "y": -0.9161101579666129,
+        "zoom": 150,
+        "zoomT": 1,
+        "camera3d": {
+          "target": [
+            0,
+            -0.9161101579666129,
+            0.9
+          ],
+          "distance": 9.451283901206702,
+          "pitch": 0.17079632679489665,
+          "yaw": -3.141592653589793,
+          "fovY": 0.55,
+          "aspect": 1.6,
+          "near": 0.09451283901206703,
+          "far": 4000
+        }
+      },
+      "routeFrame": 4,
+      "pose": {
+        "classId": 0,
+        "clip": "guarded-backward-walk",
+        "phase": 0,
+        "formation": false,
+        "yaw": -1.5707963267948966,
+        "pitch": 1.4,
+        "zoom": 150,
+        "target": [
+          0,
+          -0.9161101579666129,
+          0.9
+        ]
+      },
+      "catalog": "http://localhost:5269/assets/soldiers/candidates/guarded-backward/catalog.json"
+    },
+    "states": [
+      {
+        "seconds": 0,
+        "forward": 0,
+        "lateral": 0,
+        "phase": 0,
+        "instance": {
+          "x": 0,
+          "y": 0,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 0.05,
+        "forward": -0.04808204174041657,
+        "lateral": 0.000005955126107423686,
+        "phase": 0.05248500010865385,
+        "instance": {
+          "x": -0.00000595512610742663,
+          "y": -0.04808204174041657,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.05248500010865385,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.05248500010865385,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 0.1,
+        "forward": -0.09616789817809876,
+        "lateral": 0.000011780209024420155,
+        "phase": 0.10497416423320954,
+        "instance": {
+          "x": -0.000011780209024426044,
+          "y": -0.09616789817809876,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.10497416423320954,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.10497416423320954,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 0.15,
+        "forward": -0.14134235382080063,
+        "lateral": 0.000017566186579631767,
+        "phase": 0.154285325396372,
+        "instance": {
+          "x": -0.00001756618657964042,
+          "y": -0.14134235382080063,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.154285325396372,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.154285325396372,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 0.2,
+        "forward": -0.18652000427246204,
+        "lateral": 0.00002321797655894803,
+        "phase": 0.2035999739228518,
+        "instance": {
+          "x": -0.000023217976558959452,
+          "y": -0.18652000427246204,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.2035999739228518,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.2035999739228518,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 0.25,
+        "forward": -0.23461713790893413,
+        "lateral": 0.000028537677280821014,
+        "phase": 0.25610144791941564,
+        "instance": {
+          "x": -0.00002853767728083538,
+          "y": -0.23461713790893413,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.25610144791941564,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.25610144791941564,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 0.3,
+        "forward": -0.28271713256835723,
+        "lateral": 0.000033736373006831785,
+        "phase": 0.3086060449279078,
+        "instance": {
+          "x": -0.0000337363730068491,
+          "y": -0.28271713256835723,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.3086060449279078,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.3086060449279078,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 0.35,
+        "forward": -0.32590317726135026,
+        "lateral": 0.00008721500635146373,
+        "phase": 0.3557467128022257,
+        "instance": {
+          "x": -0.00008721500635148368,
+          "y": -0.32590317726135026,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.3557467128022257,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.3557467128022257,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 0.4,
+        "forward": -0.37105536460876437,
+        "lateral": 0.00013732987717958166,
+        "phase": 0.40503356652256145,
+        "instance": {
+          "x": -0.00013732987717960437,
+          "y": -0.37105536460876437,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.40503356652256145,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.40503356652256145,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 0.45,
+        "forward": -0.41557087898254236,
+        "lateral": 0.00013324465980984234,
+        "phase": 0.4536254459888738,
+        "instance": {
+          "x": -0.0001332446598098678,
+          "y": -0.41557087898254236,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.4536254459888738,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.4536254459888738,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 0.5,
+        "forward": -0.45896892547607315,
+        "lateral": 0.00006172775902083815,
+        "phase": 0.5009975290469381,
+        "instance": {
+          "x": -0.00006172775902086626,
+          "y": -0.45896892547607315,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.5009975290469381,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.5009975290469381,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 0.55,
+        "forward": -0.5031121969223016,
+        "lateral": -0.000170660762523774,
+        "phase": 0.5491830786365293,
+        "instance": {
+          "x": 0.00017066076252374317,
+          "y": -0.5031121969223016,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.5491830786365293,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.5491830786365293,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 0.6,
+        "forward": -0.5475813388824452,
+        "lateral": -0.0005007740677683649,
+        "phase": 0.5977243392845356,
+        "instance": {
+          "x": 0.0005007740677683314,
+          "y": -0.5475813388824452,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.5977243392845356,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.5977243392845356,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 0.65,
+        "forward": -0.5918107748031615,
+        "lateral": -0.0007475794394849916,
+        "phase": 0.6460039435833105,
+        "instance": {
+          "x": 0.0007475794394849554,
+          "y": -0.5918107748031615,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.6460039435833105,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.6460039435833105,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 0.7,
+        "forward": -0.6365521430969234,
+        "lateral": -0.0009824398541240982,
+        "phase": 0.6948423588161132,
+        "instance": {
+          "x": 0.0009824398541240591,
+          "y": -0.6365521430969234,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.6948423588161132,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.6948423588161132,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 0.75,
+        "forward": -0.6822906970977778,
+        "lateral": -0.0014202550155460016,
+        "phase": 0.7447692738307607,
+        "instance": {
+          "x": 0.0014202550155459597,
+          "y": -0.6822906970977778,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.7447692738307607,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.7447692738307607,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 0.8,
+        "forward": -0.7280496597290036,
+        "lateral": -0.0018819226519554031,
+        "phase": 0.7947184663304835,
+        "instance": {
+          "x": 0.0018819226519553585,
+          "y": -0.7280496597290036,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.7947184663304835,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.7947184663304835,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 0.85,
+        "forward": -0.7728755950927718,
+        "lateral": -0.002165566814073824,
+        "phase": 0.8436491925908094,
+        "instance": {
+          "x": 0.0021655668140737766,
+          "y": -0.7728755950927718,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.8436491925908094,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.8436491925908094,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 0.9,
+        "forward": -0.8174930095672593,
+        "lateral": -0.0024570705005317293,
+        "phase": 0.8923523033319017,
+        "instance": {
+          "x": 0.0024570705005316795,
+          "y": -0.8174930095672593,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.8923523033319017,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.8923523033319017,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 0.95,
+        "forward": -0.8628175735473629,
+        "lateral": -0.002949664612242504,
+        "phase": 0.9418273185208015,
+        "instance": {
+          "x": 0.002949664612242451,
+          "y": -0.8628175735473629,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.9418273185208015,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.9418273185208015,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 1,
+        "forward": -0.9081223011016846,
+        "lateral": -0.0034505612784414804,
+        "phase": 0.9912806808270109,
+        "instance": {
+          "x": 0.003450561278441425,
+          "y": -0.9081223011016846,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.9912806808270109,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.9912806808270109,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 1.05,
+        "forward": -0.952613401412963,
+        "lateral": -0.0037462270920514116,
+        "phase": 0.03984591059155185,
+        "instance": {
+          "x": 0.003746227092051353,
+          "y": -0.952613401412963,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.03984591059155185,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.03984591059155185,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 1.1,
+        "forward": -0.9972481250762955,
+        "lateral": -0.004029356279352226,
+        "phase": 0.08856791555480115,
+        "instance": {
+          "x": 0.004029356279352165,
+          "y": -0.9972481250762955,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.08856791555480115,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.08856791555480115,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 1.15,
+        "forward": -1.042935514450074,
+        "lateral": -0.004530896349751876,
+        "phase": 0.13843898070616434,
+        "instance": {
+          "x": 0.004530896349751812,
+          "y": -1.042935514450074,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.13843898070616434,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.13843898070616434,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 1.2,
+        "forward": -1.0887576580047618,
+        "lateral": -0.005042957385012418,
+        "phase": 0.1884571397192618,
+        "instance": {
+          "x": 0.005042957385012351,
+          "y": -1.0887576580047618,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.1884571397192618,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.1884571397192618,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 1.25,
+        "forward": -1.1339041709899886,
+        "lateral": -0.005338294953980962,
+        "phase": 0.23773779946593843,
+        "instance": {
+          "x": 0.005338294953980893,
+          "y": -1.1339041709899886,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.23773779946593843,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.23773779946593843,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 1.3,
+        "forward": -1.1791159152984616,
+        "lateral": -0.005636152868100915,
+        "phase": 0.28708966388454105,
+        "instance": {
+          "x": 0.005636152868100843,
+          "y": -1.1791159152984616,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.28708966388454105,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.28708966388454105,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 1.35,
+        "forward": -1.2251690864562979,
+        "lateral": -0.006172189499193351,
+        "phase": 0.3373600061106936,
+        "instance": {
+          "x": 0.006172189499193277,
+          "y": -1.2251690864562979,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.3373600061106936,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.3373600061106936,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 1.4,
+        "forward": -1.2712225437164295,
+        "lateral": -0.006715288069972287,
+        "phase": 0.3876306606380393,
+        "instance": {
+          "x": 0.006715288069972209,
+          "y": -1.2712225437164295,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.3876306606380393,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.3876306606380393,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 1.45,
+        "forward": -1.3164132118225085,
+        "lateral": -0.007027492100314704,
+        "phase": 0.4369595188687827,
+        "instance": {
+          "x": 0.0070274921003146236,
+          "y": -1.3164132118225085,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.4369595188687827,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.4369595188687827,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 1.5,
+        "forward": -1.366538858413696,
+        "lateral": -0.00701831147162012,
+        "phase": 0.491675260371361,
+        "instance": {
+          "x": 0.007018311471620037,
+          "y": -1.366538858413696,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.491675260371361,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.491675260371361,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 1.55,
+        "forward": -1.4138609409332272,
+        "lateral": -0.0075525538632064204,
+        "phase": 0.5433307104370679,
+        "instance": {
+          "x": 0.007552553863206334,
+          "y": -1.4138609409332272,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.5433307104370679,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.5433307104370679,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 1.6,
+        "forward": -1.4581474781036374,
+        "lateral": -0.008080957234778925,
+        "phase": 0.5916726448488729,
+        "instance": {
+          "x": 0.008080957234778837,
+          "y": -1.4581474781036374,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.5916726448488729,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.5916726448488729,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 1.65,
+        "forward": -1.5055568218231197,
+        "lateral": -0.008072092580550845,
+        "phase": 0.6434233467783346,
+        "instance": {
+          "x": 0.008072092580550753,
+          "y": -1.5055568218231197,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.6434233467783346,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.6434233467783346,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 1.7,
+        "forward": -1.5558357715606683,
+        "lateral": -0.007948713201039957,
+        "phase": 0.6983064296699675,
+        "instance": {
+          "x": 0.007948713201039861,
+          "y": -1.5558357715606683,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.6983064296699675,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.6983064296699675,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 1.75,
+        "forward": -1.5998828411102286,
+        "lateral": -0.00817817729985109,
+        "phase": 0.7463869679835331,
+        "instance": {
+          "x": 0.008178177299850993,
+          "y": -1.5998828411102286,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.7463869679835331,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.7463869679835331,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 1.8,
+        "forward": -1.644542264938353,
+        "lateral": -0.008389981124491887,
+        "phase": 0.7951359349497438,
+        "instance": {
+          "x": 0.008389981124491786,
+          "y": -1.644542264938353,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.7951359349497438,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.7951359349497438,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 1.85,
+        "forward": -1.6940415859222395,
+        "lateral": -0.008292414816969552,
+        "phase": 0.8491679970914348,
+        "instance": {
+          "x": 0.008292414816969448,
+          "y": -1.6940415859222395,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.8491679970914348,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.8491679970914348,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 1.9,
+        "forward": -1.7427305698394746,
+        "lateral": -0.008229662069061328,
+        "phase": 0.902315518155173,
+        "instance": {
+          "x": 0.00822966206906122,
+          "y": -1.7427305698394746,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.902315518155173,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.902315518155173,
+          "duration": 1
+        },
+        "routeFrame": 4
+      },
+      {
+        "seconds": 1.95,
+        "forward": -1.787620258331298,
+        "lateral": -0.008478860590548731,
+        "phase": 0.9513158355312623,
+        "instance": {
+          "x": 0.008478860590548622,
+          "y": -1.787620258331298,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.9513158355312623,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.9513158355312623,
+          "duration": 1
+        },
+        "routeFrame": 4
+      }
+    ]
+  },
+  {
+    "view": "oblique",
+    "framing": {
+      "camera": {
+        "x": 0,
+        "y": -0.9161101579666129,
+        "zoom": 150,
+        "zoomT": 1,
+        "camera3d": {
+          "target": [
+            0,
+            -0.9161101579666129,
+            0.9
+          ],
+          "distance": 9.451283901206702,
+          "pitch": 0.17079632679489665,
+          "yaw": -2.617993877991494,
+          "fovY": 0.55,
+          "aspect": 1.6,
+          "near": 0.09451283901206703,
+          "far": 4000
+        }
+      },
+      "routeFrame": 5,
+      "pose": {
+        "classId": 0,
+        "clip": "guarded-backward-walk",
+        "phase": 0,
+        "formation": false,
+        "yaw": -1.0471975511965976,
+        "pitch": 1.4,
+        "zoom": 150,
+        "target": [
+          0,
+          -0.9161101579666129,
+          0.9
+        ]
+      },
+      "catalog": "http://localhost:5269/assets/soldiers/candidates/guarded-backward/catalog.json"
+    },
+    "states": [
+      {
+        "seconds": 0,
+        "forward": 0,
+        "lateral": 0,
+        "phase": 0,
+        "instance": {
+          "x": 0,
+          "y": 0,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 0.05,
+        "forward": -0.04808204174041657,
+        "lateral": 0.000005955126107423686,
+        "phase": 0.05248500010865385,
+        "instance": {
+          "x": -0.00000595512610742663,
+          "y": -0.04808204174041657,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.05248500010865385,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.05248500010865385,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 0.1,
+        "forward": -0.09616789817809876,
+        "lateral": 0.000011780209024420155,
+        "phase": 0.10497416423320954,
+        "instance": {
+          "x": -0.000011780209024426044,
+          "y": -0.09616789817809876,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.10497416423320954,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.10497416423320954,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 0.15,
+        "forward": -0.14134235382080063,
+        "lateral": 0.000017566186579631767,
+        "phase": 0.154285325396372,
+        "instance": {
+          "x": -0.00001756618657964042,
+          "y": -0.14134235382080063,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.154285325396372,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.154285325396372,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 0.2,
+        "forward": -0.18652000427246204,
+        "lateral": 0.00002321797655894803,
+        "phase": 0.2035999739228518,
+        "instance": {
+          "x": -0.000023217976558959452,
+          "y": -0.18652000427246204,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.2035999739228518,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.2035999739228518,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 0.25,
+        "forward": -0.23461713790893413,
+        "lateral": 0.000028537677280821014,
+        "phase": 0.25610144791941564,
+        "instance": {
+          "x": -0.00002853767728083538,
+          "y": -0.23461713790893413,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.25610144791941564,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.25610144791941564,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 0.3,
+        "forward": -0.28271713256835723,
+        "lateral": 0.000033736373006831785,
+        "phase": 0.3086060449279078,
+        "instance": {
+          "x": -0.0000337363730068491,
+          "y": -0.28271713256835723,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.3086060449279078,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.3086060449279078,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 0.35,
+        "forward": -0.32590317726135026,
+        "lateral": 0.00008721500635146373,
+        "phase": 0.3557467128022257,
+        "instance": {
+          "x": -0.00008721500635148368,
+          "y": -0.32590317726135026,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.3557467128022257,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.3557467128022257,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 0.4,
+        "forward": -0.37105536460876437,
+        "lateral": 0.00013732987717958166,
+        "phase": 0.40503356652256145,
+        "instance": {
+          "x": -0.00013732987717960437,
+          "y": -0.37105536460876437,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.40503356652256145,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.40503356652256145,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 0.45,
+        "forward": -0.41557087898254236,
+        "lateral": 0.00013324465980984234,
+        "phase": 0.4536254459888738,
+        "instance": {
+          "x": -0.0001332446598098678,
+          "y": -0.41557087898254236,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.4536254459888738,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.4536254459888738,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 0.5,
+        "forward": -0.45896892547607315,
+        "lateral": 0.00006172775902083815,
+        "phase": 0.5009975290469381,
+        "instance": {
+          "x": -0.00006172775902086626,
+          "y": -0.45896892547607315,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.5009975290469381,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.5009975290469381,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 0.55,
+        "forward": -0.5031121969223016,
+        "lateral": -0.000170660762523774,
+        "phase": 0.5491830786365293,
+        "instance": {
+          "x": 0.00017066076252374317,
+          "y": -0.5031121969223016,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.5491830786365293,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.5491830786365293,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 0.6,
+        "forward": -0.5475813388824452,
+        "lateral": -0.0005007740677683649,
+        "phase": 0.5977243392845356,
+        "instance": {
+          "x": 0.0005007740677683314,
+          "y": -0.5475813388824452,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.5977243392845356,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.5977243392845356,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 0.65,
+        "forward": -0.5918107748031615,
+        "lateral": -0.0007475794394849916,
+        "phase": 0.6460039435833105,
+        "instance": {
+          "x": 0.0007475794394849554,
+          "y": -0.5918107748031615,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.6460039435833105,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.6460039435833105,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 0.7,
+        "forward": -0.6365521430969234,
+        "lateral": -0.0009824398541240982,
+        "phase": 0.6948423588161132,
+        "instance": {
+          "x": 0.0009824398541240591,
+          "y": -0.6365521430969234,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.6948423588161132,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.6948423588161132,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 0.75,
+        "forward": -0.6822906970977778,
+        "lateral": -0.0014202550155460016,
+        "phase": 0.7447692738307607,
+        "instance": {
+          "x": 0.0014202550155459597,
+          "y": -0.6822906970977778,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.7447692738307607,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.7447692738307607,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 0.8,
+        "forward": -0.7280496597290036,
+        "lateral": -0.0018819226519554031,
+        "phase": 0.7947184663304835,
+        "instance": {
+          "x": 0.0018819226519553585,
+          "y": -0.7280496597290036,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.7947184663304835,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.7947184663304835,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 0.85,
+        "forward": -0.7728755950927718,
+        "lateral": -0.002165566814073824,
+        "phase": 0.8436491925908094,
+        "instance": {
+          "x": 0.0021655668140737766,
+          "y": -0.7728755950927718,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.8436491925908094,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.8436491925908094,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 0.9,
+        "forward": -0.8174930095672593,
+        "lateral": -0.0024570705005317293,
+        "phase": 0.8923523033319017,
+        "instance": {
+          "x": 0.0024570705005316795,
+          "y": -0.8174930095672593,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.8923523033319017,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.8923523033319017,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 0.95,
+        "forward": -0.8628175735473629,
+        "lateral": -0.002949664612242504,
+        "phase": 0.9418273185208015,
+        "instance": {
+          "x": 0.002949664612242451,
+          "y": -0.8628175735473629,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.9418273185208015,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.9418273185208015,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 1,
+        "forward": -0.9081223011016846,
+        "lateral": -0.0034505612784414804,
+        "phase": 0.9912806808270109,
+        "instance": {
+          "x": 0.003450561278441425,
+          "y": -0.9081223011016846,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.9912806808270109,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.9912806808270109,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 1.05,
+        "forward": -0.952613401412963,
+        "lateral": -0.0037462270920514116,
+        "phase": 0.03984591059155185,
+        "instance": {
+          "x": 0.003746227092051353,
+          "y": -0.952613401412963,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.03984591059155185,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.03984591059155185,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 1.1,
+        "forward": -0.9972481250762955,
+        "lateral": -0.004029356279352226,
+        "phase": 0.08856791555480115,
+        "instance": {
+          "x": 0.004029356279352165,
+          "y": -0.9972481250762955,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.08856791555480115,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.08856791555480115,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 1.15,
+        "forward": -1.042935514450074,
+        "lateral": -0.004530896349751876,
+        "phase": 0.13843898070616434,
+        "instance": {
+          "x": 0.004530896349751812,
+          "y": -1.042935514450074,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.13843898070616434,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.13843898070616434,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 1.2,
+        "forward": -1.0887576580047618,
+        "lateral": -0.005042957385012418,
+        "phase": 0.1884571397192618,
+        "instance": {
+          "x": 0.005042957385012351,
+          "y": -1.0887576580047618,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.1884571397192618,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.1884571397192618,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 1.25,
+        "forward": -1.1339041709899886,
+        "lateral": -0.005338294953980962,
+        "phase": 0.23773779946593843,
+        "instance": {
+          "x": 0.005338294953980893,
+          "y": -1.1339041709899886,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.23773779946593843,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.23773779946593843,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 1.3,
+        "forward": -1.1791159152984616,
+        "lateral": -0.005636152868100915,
+        "phase": 0.28708966388454105,
+        "instance": {
+          "x": 0.005636152868100843,
+          "y": -1.1791159152984616,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.28708966388454105,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.28708966388454105,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 1.35,
+        "forward": -1.2251690864562979,
+        "lateral": -0.006172189499193351,
+        "phase": 0.3373600061106936,
+        "instance": {
+          "x": 0.006172189499193277,
+          "y": -1.2251690864562979,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.3373600061106936,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.3373600061106936,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 1.4,
+        "forward": -1.2712225437164295,
+        "lateral": -0.006715288069972287,
+        "phase": 0.3876306606380393,
+        "instance": {
+          "x": 0.006715288069972209,
+          "y": -1.2712225437164295,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.3876306606380393,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.3876306606380393,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 1.45,
+        "forward": -1.3164132118225085,
+        "lateral": -0.007027492100314704,
+        "phase": 0.4369595188687827,
+        "instance": {
+          "x": 0.0070274921003146236,
+          "y": -1.3164132118225085,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.4369595188687827,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.4369595188687827,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 1.5,
+        "forward": -1.366538858413696,
+        "lateral": -0.00701831147162012,
+        "phase": 0.491675260371361,
+        "instance": {
+          "x": 0.007018311471620037,
+          "y": -1.366538858413696,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.491675260371361,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.491675260371361,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 1.55,
+        "forward": -1.4138609409332272,
+        "lateral": -0.0075525538632064204,
+        "phase": 0.5433307104370679,
+        "instance": {
+          "x": 0.007552553863206334,
+          "y": -1.4138609409332272,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.5433307104370679,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.5433307104370679,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 1.6,
+        "forward": -1.4581474781036374,
+        "lateral": -0.008080957234778925,
+        "phase": 0.5916726448488729,
+        "instance": {
+          "x": 0.008080957234778837,
+          "y": -1.4581474781036374,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.5916726448488729,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.5916726448488729,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 1.65,
+        "forward": -1.5055568218231197,
+        "lateral": -0.008072092580550845,
+        "phase": 0.6434233467783346,
+        "instance": {
+          "x": 0.008072092580550753,
+          "y": -1.5055568218231197,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.6434233467783346,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.6434233467783346,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 1.7,
+        "forward": -1.5558357715606683,
+        "lateral": -0.007948713201039957,
+        "phase": 0.6983064296699675,
+        "instance": {
+          "x": 0.007948713201039861,
+          "y": -1.5558357715606683,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.6983064296699675,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.6983064296699675,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 1.75,
+        "forward": -1.5998828411102286,
+        "lateral": -0.00817817729985109,
+        "phase": 0.7463869679835331,
+        "instance": {
+          "x": 0.008178177299850993,
+          "y": -1.5998828411102286,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.7463869679835331,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.7463869679835331,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 1.8,
+        "forward": -1.644542264938353,
+        "lateral": -0.008389981124491887,
+        "phase": 0.7951359349497438,
+        "instance": {
+          "x": 0.008389981124491786,
+          "y": -1.644542264938353,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.7951359349497438,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.7951359349497438,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 1.85,
+        "forward": -1.6940415859222395,
+        "lateral": -0.008292414816969552,
+        "phase": 0.8491679970914348,
+        "instance": {
+          "x": 0.008292414816969448,
+          "y": -1.6940415859222395,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.8491679970914348,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.8491679970914348,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 1.9,
+        "forward": -1.7427305698394746,
+        "lateral": -0.008229662069061328,
+        "phase": 0.902315518155173,
+        "instance": {
+          "x": 0.00822966206906122,
+          "y": -1.7427305698394746,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.902315518155173,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.902315518155173,
+          "duration": 1
+        },
+        "routeFrame": 5
+      },
+      {
+        "seconds": 1.95,
+        "forward": -1.787620258331298,
+        "lateral": -0.008478860590548731,
+        "phase": 0.9513158355312623,
+        "instance": {
+          "x": 0.008478860590548622,
+          "y": -1.787620258331298,
+          "facing": 1.5707963267948966,
+          "classId": 0,
+          "faction": 0,
+          "alive": true,
+          "clip": "guarded-backward-walk",
+          "phase": 0.9513158355312623,
+          "seed": 2667323194,
+          "mounted": false,
+          "lod": 0,
+          "elevation": 0
+        },
+        "sampled": {
+          "clip": "guarded-backward-walk",
+          "phase": 0.9513158355312623,
+          "duration": 1
+        },
+        "routeFrame": 5
+      }
+    ]
+  }
+]

@@ -29,6 +29,10 @@ not the unit frame-speed field. `measured-travel.json` preserves all 61 vectors.
 Production instance displacement interpolates these vectors; clip phase follows
 longitudinal distance divided by the authored 0.916110 m cycle distance. The new
 action lasts 1 s; the existing run and walk durations remain untouched.
+The recipe assumes the frozen donor is 30 fps: frames 0–30 are one second.
+It now rejects another frame rate explicitly. This initial capture has no pixel
+control of the prior standing guard or forward walk, so it establishes candidate
+behavior only—not an A/B improvement over either prior behavior.
 
 ## Evidence and limits
 
@@ -72,6 +76,9 @@ Durable authoring is in `packages/soldier-assets/bake/blender-heavy-guarded-back
 One-off measurement, capture and contact probes remain in the isolated worktree's
 ignored `throwaway`; their outputs are archived here, not promoted as parallel
 verification infrastructure. Run from `/Users/david/dev/game-heavy-guarded-backward`:
+These are the historical commands with recipe revision `c3979a03`; the subsequent
+weight-transfer recipe produces a different candidate. Reproducing this control
+requires that recipe revision in its original authoring directory structure.
 
 ```sh
 node throwaway/measure-backward.mjs
@@ -95,3 +102,26 @@ Self-review: source/action ownership is bounded, recipe is under the existing
 authoring owner, one-off probes stay scratch, and speed inputs reject nonfinite or
 nonpositive magnitudes. No tests or gameplay behavior changed. Independent code
 and fresh visual review are explicitly deferred to parent after this lane ends.
+
+## Fresh initial-candidate critique
+
+Parent's independent read-only CLI critic inspected all 80 frames and found
+recognizable retreat, provisionally, not final acceptance. High-confidence issues:
+rigid head/chest/arms/shield assembly during support transfer (side-0 panels 5–8
+through side-1 panels 1–4; oblique-3 panels 3–8), and crowded passing-foot silhouette
+(side-0 panels 7–8, side-3 panels 3–4 and matching oblique views). Actual foot
+intersection was not confirmed. Medium-high: weak toe contact and heel settle,
+reading as a low hovering shuffle (side-1 panels 3–7; side-4 panels 1–5), without
+confirmed sliding. Medium: stiff armor hem. No definite detached equipment.
+Main's complete-frame review agreed on the upright, rigid trunk limitation and
+found no concrete code blocker for the frozen 30 fps donor.
+Root's independent bundled `codex review --commit c3979a03` completed terminal 0
+with no actionable defects, explicitly without a visual/reproduction claim.
+Root separately reauthored this original candidate and compared the imported
+donor/repeat: the full rig and every clip were exact, with only tangent rounding
+in primitives 0 and 7. This was not a pixel comparison of the reproduced source;
+the archived film still depicts the original donor export.
+
+The next isolated revision is judged against this preserved candidate—not against
+an uncaptured stand or forward walk. Original source/captures are frozen in
+`throwaway/guarded-backward-control`; the committed images here remain its control.

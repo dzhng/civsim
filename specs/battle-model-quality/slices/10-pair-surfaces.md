@@ -54,4 +54,4 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 - [ ] Comparison and final unprimed critique recorded.
 - [ ] Review/cleanup completed; README pickup and decisions updated.
 
-Record actual commands, evidence links, measured results, decisions and unresolved defects here during implementation. No implementation or visual acceptance has occurred yet.
+The [provisional heavy surface study](../assets/evidence/10/heavy-surfaces.md) records local authoring, a frozen clay control, reproduction commands and open material concerns. No surface acceptance has occurred.

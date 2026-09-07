@@ -1,0 +1,20 @@
+(node:343) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-heavy-surfaces/packages/soldier-assets/src/localAnimation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-heavy-surfaces/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+appearance texture material transport passed
+✔ packages/soldier-assets/bake/appearance-materials.test.mjs (1814.413541ms)
+(node:345) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-heavy-surfaces/packages/soldier-assets/src/localAnimation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-heavy-surfaces/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"samples":4,"checkedVertices":720,"maximumError":3.8015516667271555e-7,"minimumHeight":0.7100000381469727,"materialSlots":6,"imageChannels":3}
+✔ packages/soldier-assets/bake/material-swatches.test.mjs (224.2915ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1830.407792

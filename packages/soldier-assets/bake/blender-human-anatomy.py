@@ -260,6 +260,7 @@ def export_candidate(body, arm, output=OUTPUT, name="human-anatomy"):
             export_anim_single_armature=False, export_bake_animation=True,
             export_hierarchy_flatten_bones=False, export_hierarchy_flatten_objs=False,
             export_apply=False, export_texcoords=True, export_normals=True, export_tangents=True,
+            export_attributes=True,
         )
     finally:
         arm.animation_data.action = action

@@ -1,0 +1,49 @@
+(node:98832) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-heavy-surfaces/packages/soldier-assets/src/soldierMesh.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-heavy-surfaces/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS  heavy-surfaces: front/1: production frozen presentation  ({"clip":"bend","phase":0,"duration":2})
+PASS  heavy-surfaces: front/1: newly rendered crop is byte-stable
+PASS  heavy-surfaces: front/0: production frozen presentation  ({"clip":"bend","phase":0,"duration":2})
+PASS  heavy-surfaces: front/0: newly rendered crop is byte-stable
+PASS  heavy-surfaces: front: surface change reaches rendered pixels
+PASS  heavy-surfaces: snapshot shared/soldiers/heavy-surfaces/front  (0 px differ (0.0000%))
+PASS  heavy-surfaces: rear/1: production frozen presentation  ({"clip":"bend","phase":0,"duration":2})
+PASS  heavy-surfaces: rear/1: newly rendered crop is byte-stable
+PASS  heavy-surfaces: rear/0: production frozen presentation  ({"clip":"bend","phase":0,"duration":2})
+PASS  heavy-surfaces: rear/0: newly rendered crop is byte-stable
+PASS  heavy-surfaces: rear: surface change reaches rendered pixels
+PASS  heavy-surfaces: snapshot shared/soldiers/heavy-surfaces/rear  (0 px differ (0.0000%))
+PASS  heavy-surfaces: gameplay/1: production frozen presentation  ({"clip":"bend","phase":0,"duration":2})
+PASS  heavy-surfaces: gameplay/1: newly rendered crop is byte-stable
+PASS  heavy-surfaces: gameplay/0: production frozen presentation  ({"clip":"bend","phase":0,"duration":2})
+PASS  heavy-surfaces: gameplay/0: newly rendered crop is byte-stable
+PASS  heavy-surfaces: gameplay: surface change reaches rendered pixels
+PASS  heavy-surfaces: snapshot shared/soldiers/heavy-surfaces/gameplay  (0 px differ (0.0000%))
+PASS  heavy-surfaces: mail/1: production frozen presentation  ({"clip":"bend","phase":0,"duration":2})
+PASS  heavy-surfaces: mail/1: newly rendered crop is byte-stable
+PASS  heavy-surfaces: mail/0: production frozen presentation  ({"clip":"bend","phase":0,"duration":2})
+PASS  heavy-surfaces: mail/0: newly rendered crop is byte-stable
+PASS  heavy-surfaces: mail: surface change reaches rendered pixels
+PASS  heavy-surfaces: snapshot shared/soldiers/heavy-surfaces/mail  (0 px differ (0.0000%))
+PASS  heavy-surfaces: helmet/1: production frozen presentation  ({"clip":"bend","phase":0,"duration":2})
+PASS  heavy-surfaces: helmet/1: newly rendered crop is byte-stable
+PASS  heavy-surfaces: helmet/0: production frozen presentation  ({"clip":"bend","phase":0,"duration":2})
+PASS  heavy-surfaces: helmet/0: newly rendered crop is byte-stable
+PASS  heavy-surfaces: helmet: surface change reaches rendered pixels
+PASS  heavy-surfaces: snapshot shared/soldiers/heavy-surfaces/helmet  (0 px differ (0.0000%))
+PASS  heavy-surfaces: hand/1: production frozen presentation  ({"clip":"bend","phase":0,"duration":2})
+PASS  heavy-surfaces: hand/1: newly rendered crop is byte-stable
+PASS  heavy-surfaces: hand/0: production frozen presentation  ({"clip":"bend","phase":0,"duration":2})
+PASS  heavy-surfaces: hand/0: newly rendered crop is byte-stable
+PASS  heavy-surfaces: hand: surface change reaches rendered pixels
+PASS  heavy-surfaces: snapshot shared/soldiers/heavy-surfaces/hand  (0 px differ (0.0000%))
+PASS  heavy-surfaces: formation/1: production frozen presentation  ({"clip":"bend","phase":0,"duration":2})
+PASS  heavy-surfaces: formation/1: newly rendered crop is byte-stable
+PASS  heavy-surfaces: formation/0: production frozen presentation  ({"clip":"bend","phase":0,"duration":2})
+PASS  heavy-surfaces: formation/0: newly rendered crop is byte-stable
+PASS  heavy-surfaces: formation: surface change reaches rendered pixels
+PASS  heavy-surfaces: snapshot shared/soldiers/heavy-surfaces/formation  (0 px differ (0.0000%))
+PASS  runner: no page errors
+
+ALL CHECKS PASSED

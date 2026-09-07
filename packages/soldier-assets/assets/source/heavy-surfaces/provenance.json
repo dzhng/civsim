@@ -1,0 +1,32 @@
+{
+  "source": "clay-input.blend",
+  "sourceSha256": "d04f1a2d2226044d4a2358e7ce7dfff1fc55af4445dbdc6fb23ef3502b4dc553",
+  "parts": [
+    "HumanAnatomy-Deform",
+    "Tunic",
+    "Mail shirt",
+    "Waist belt",
+    "Sandal sole.L",
+    "Sandal upper.L",
+    "Sandal sole.R",
+    "Sandal upper.R",
+    "Helmet bowl and rolled edge",
+    "Helmet cheek plate.L",
+    "Helmet cheek plate.R",
+    "Convex oval shield",
+    "Shield boss",
+    "Shield handgrip",
+    "Shield grip support",
+    "Shield grip support.001",
+    "Sword grip",
+    "Sword pommel",
+    "Sword guard",
+    "Sword blade",
+    "Scabbard"
+  ],
+  "atlasSize": [
+    2048,
+    2048
+  ],
+  "status": "Provisional surface candidate; not accepted geometry, LOD or resource envelope"
+}

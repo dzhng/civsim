@@ -11,6 +11,7 @@ from pathlib import Path
 import bpy
 import bmesh
 from mathutils import Matrix, Vector
+from mathutils.bvhtree import BVHTree
 
 
 OUTPUT = Path(__file__).resolve().parents[1] / "assets/source/human-anatomy"
@@ -45,6 +46,51 @@ def loft(name, sections, segments=24, across=(1, 0, 0), depth=(0, 1, 0)):
     obj = bpy.data.objects.new(name, mesh)
     bpy.context.scene.collection.objects.link(obj)
     return obj
+
+
+def facial_form(body, sculpt):
+    """Keep facial sampling local: whole-body reduction cannot resolve eyelid margins."""
+    surface = bmesh.new()
+    surface.from_mesh(body.data)
+    edges = [edge for edge in surface.edges
+             if all(v.co.z > 1.57 and v.co.y < -.020 for v in edge.verts)]
+    bmesh.ops.subdivide_edges(surface, edges=edges, cuts=3, use_grid_fill=True)
+    bmesh.ops.triangulate(surface, faces=list(surface.faces))
+    source = bmesh.new()
+    source.from_mesh(sculpt.data)
+    reference = BVHTree.FromBMesh(source)
+    for vertex in surface.verts:
+        if vertex.co.z > 1.57 and vertex.co.y < -.020:
+            vertex.co = reference.find_nearest(vertex.co)[0]
+    source.free()
+    surface.to_mesh(body.data)
+    surface.free()
+    for vertex in body.data.vertices:
+        x, y, z = vertex.co
+        if not (1.575 < z < 1.715 and y < -.025):
+            continue
+        front = min(1, max(0, (-y-.025)/.035))
+        eye_u = (abs(x)-.032)/.016
+        eye_span = max(0, 1-eye_u*eye_u)
+        eye_middle = 1.677 + .0015*eye_u
+        upper = eye_middle + .0055*eye_span
+        lower = eye_middle - .0035*eye_span
+        lid = 0
+        if abs(eye_u) < 1:
+            # Two tapered lid margins surround a shallow almond-shaped opening.
+            # The central surface stays inside the orbital rim, not a pasted sphere.
+            lid = eye_span*(
+                .003*math.exp(-((z-upper)/.003)**2)
+                + .0018*math.exp(-((z-lower)/.0035)**2)
+                - .0025*math.exp(-((z-eye_middle)/.0028)**2)
+                - .0015*math.exp(-((z-upper-.004)/.0035)**2))
+        nasal_tip = .004*math.exp(-(x/.011)**2-((z-1.646)/.009)**2)
+        nostril = .0045*math.exp(-((abs(x)-.011)/.004)**2-((z-1.638)/.0035)**2)
+        alar_crease = .003*math.exp(-((abs(x)-.018)/.0035)**2-((z-1.644)/.009)**2)
+        philtrum = .0008*math.exp(-(x/.004)**2-((z-1.624)/.007)**2)
+        under_lip = .0025*math.exp(-(x/.021)**2-((z-1.599)/.004)**2)
+        chin = .003*math.exp(-(x/.029)**2-((z-1.586)/.009)**2)
+        vertex.co.y -= front*(lid+nasal_tip-nostril-alar_crease-philtrum-under_lip+chin)
 
 
 def deform_candidate(sculpt):
@@ -131,6 +177,9 @@ def deform_candidate(sculpt):
     bpy.context.view_layer.objects.active = body
     bpy.ops.object.vertex_group_limit_total(limit=4)
     bpy.ops.object.vertex_group_normalize_all(lock_active=False)
+    # Interpolate the already authored weights instead of re-solving the whole
+    # body's heat field after a local facial topology edit.
+    facial_form(body, sculpt)
     deform_groups = {group.index for group in body.vertex_groups
                      if group.name in arm.data.bones and arm.data.bones[group.name].use_deform}
     for vertex in body.data.vertices:

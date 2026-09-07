@@ -1,0 +1,42 @@
+[
+  {
+    "name": "head-detail",
+    "pixels": 60011,
+    "columns": [
+      27157,
+      11824,
+      17,
+      21013
+    ]
+  },
+  {
+    "name": "close",
+    "pixels": 6450,
+    "columns": [
+      2976,
+      1270,
+      9,
+      2195
+    ]
+  },
+  {
+    "name": "gameplay-pitch",
+    "pixels": 3053,
+    "columns": [
+      1171,
+      677,
+      196,
+      1009
+    ]
+  },
+  {
+    "name": "hand-detail",
+    "pixels": 0,
+    "columns": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+]

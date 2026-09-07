@@ -18,6 +18,13 @@ const details = [
     ...[0, 0.25, 0.5, 0.75, 1].map((phase) => [`${clip} ${phase}`, phase, clip]),
   ],
 }));
+details.push({
+  name: "bent-head-detail",
+  pitch: 1.4,
+  zoom: 1000,
+  target: [0, -0.10, 1.57],
+  poses: [["deep bend", 0.5]],
+});
 
 export const meta = {
   name: "human-anatomy",

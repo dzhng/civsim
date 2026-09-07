@@ -7,6 +7,13 @@ reduced topology and deform rig. The editable sculpt remains in the source scene
 only the selected deform mesh and rig enter the GLB. Unrelated open Blender scenes
 are excluded from both outputs.
 
+The hidden sculpt is the joined construction surface, not a second final model.
+Fine facial landmarks live on the editable deform mesh after local face
+refinement. Projection back to the construction surface restores smooth contours
+that reduction cannot retain; the subsequent eye and nasal shaping leaves the
+existing body and hand weight solution intact. Edit this final mesh when judging
+exported facial form, rather than the hidden construction input.
+
 Curvature-preserving reduction retains small silhouettes such as fingers; it
 does not establish joint-quality. The reduced surface must remain manifold,
 and bends must be inspected. Automatic heat weights are

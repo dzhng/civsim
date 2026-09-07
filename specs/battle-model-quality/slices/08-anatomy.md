@@ -105,6 +105,11 @@ Fresh review still finds unresolved shoulder seams and simplified bent joints.
 This is a working-source checkpoint, not anatomy acceptance; equipment must be
 refitted to the changed surface before contact and dressed motion are judged.
 
+The [facial-form checkpoint](../assets/evidence/08/facial-form/review.md) retains
+local facial refinement as a readable but incomplete improvement. Original body
+and hand positions, weights and normals are controlled. Eyes, muzzle, jaw and
+ears still need integrated anatomical form; final anatomy and07 remain open.
+
 The [pronation study](../assets/evidence/08/pronation/review.md) retains forearm
 roll as marginally less wrong than isolated wrist roll, without adding bones or
 changing weights. Original bend and static sheet coverage remain intact; two

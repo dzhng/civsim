@@ -27,7 +27,8 @@ movement or facing to make an authored cycle fit.
 The timeline now advances walk/run from measured travel and chooses the nearest
 authored nominal pace, preserving phase through speed changes and existing
 interruption ownership. Its integrated observation now distinguishes motor-capable
-travel from disabled transport; protected directional selection remains open. A slowed, threatened
+travel from disabled transport; protected directional selection is integrated,
+but detailed appearances remain unbound. A slowed, threatened
 backward step must not run a full-speed cycle merely because the order requested
 running. Keep standing
 breathing and combat event timing independent of distance-driven gait; neither
@@ -145,7 +146,23 @@ The root/stride equality is a constant enabled-motion contract, not a claim
 about disabled transport or mixed-direction intervals. Review actual moving
 production frames and attached overlays before accepting the presentation change.
 
-### Next sampling experiment: retain one completed interval
+### Unresolved sampling experiment: retain one completed interval
+
+The [CPU experiment](../assets/evidence/11/completed-interval/review.md)
+corrects already-active gait distance and interruption sources, but is not a
+complete policy. Idle entry leaves observed root travel without gait, and a
+direction change exposes conflicting old/new stride ownership. Eleven focused
+assertions remain red; none was relaxed. Only evidence is integrated, not the
+prototype. Resolve these observation boundaries before any live implementation.
+
+The adapter combines completed travel with final posture/equipment/facing after
+the battle loop advances a batch. It does not receive an engine-owned gait for
+each instant. Current selection uses the incoming clip's stride; retaining the
+previous clip for the interval is therefore a changed approximation, not greater
+fidelity to canonical state. Equal path/net displacement and final posture can
+hide different starts or reversals. A delayed consumer must explicitly choose
+an approximation or request finer observations; it cannot reconstruct missing
+history by interpolation. This decision remains isolated from Blender authoring.
 
 Before another browser implementation, prove the delayed interval contract on
 CPU in isolation. Retain only the preceding observation interval and its history
@@ -198,7 +215,12 @@ This can proceed beside root placement because it owns timeline sampling, not
 body positioning. Directional bindings and their missing-clip policy follow as
 a separate pass; no detailed appearance is promoted here.
 
-### Following bounded pass: protected directional selection
+### Integrated transport: protected directional selection
+
+The [selection evidence](../assets/evidence/11/protected-selection/review.md)
+includes actual engine/adapter cases and a production-rendered diagnostic.
+Its independent merged replay passes636 checks with44 exact images. This proves
+selection and pose transport, not detailed protected-travel art or live admission.
 
 Retained facing is not itself a threat decision. The engine's safe Disengage
 and automatic-evade branches can produce `atEase && guardedFacing` while moving

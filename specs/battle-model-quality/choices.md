@@ -1665,3 +1665,14 @@ scabbard-side views did not show a gross cut-through or detached part at whole-b
 scale, so the manual study is retained without distorting the step or moving the
 fixed kit to hide it. Hidden clearance remains unresolved. Narrow recovery and
 stiff upper-body loading also prevent treating this as final locomotion.
+
+### Share gait semantics without pretending diagnostic poses are finished art
+
+**Sound; confidence: high. Protected selection7e4414b3.** When a new protected
+step is added, both the asset validator and playback controller need to know it
+advances by travelled distance. One gait-role predicate beside the action type
+owns that distinction; a separate stride-role list could drift. The plan required
+shared semantics but left their location open. Distinct existing fixture clips
+prove that safe and threatened observations select different rendered poses;
+they do not become replacement soldier art or bypass complete live admission.
+This keeps one controller and leaves missing detailed bindings explicitly null.

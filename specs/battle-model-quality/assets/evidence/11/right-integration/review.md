@@ -110,6 +110,13 @@ selection changes belong to this integration.
 
 ## Reproduction
 
+Root merged this source as f405a79c and independently reran the normal full
+heavy scene alongside protected selection7e4414b3:1993 checks,477 exact snapshots,
+no failures or page errors. See the [raw report](merged-root.json). Independent
+heavy bake validation, four model-travel tests, the354-test web suite and
+typecheck also pass. No baseline refresh was used by this merged verification.
+This retains a manual candidate, not final locomotion or live admission.
+
 From the integration worktree root with the saved fitted control under ignored
 `throwaway/right-integration/control`:
 

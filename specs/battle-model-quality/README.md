@@ -5,15 +5,17 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 ## Next Agent Prompt
 
 Last updated **2026-09-08**. **01–06 complete;07 envelope open;08–11 provisional
-authoring;12–30 pending.** Worktree: `/Users/david/dev/game-battle-model-quality`,
+authoring;12 provisional authoring;13–30 pending.** Worktree: `/Users/david/dev/game-battle-model-quality`,
 branch `codex/battle-model-quality`. No detailed model or art envelope is accepted.
 
-Current pickup: **engine-faithful protected travel and live root/phase agreement**.
-Active passes: protected directional selection and manual guarded-right integration.
+Current pickup: **whole-body Blender attack and medium upright-pike run**.
+Protected directional selection and manual guarded-right integration are merged.
 The [root/attached-overlay candidate](assets/evidence/11/live-root-phase/review.md)
 passed numerical checks but failed the live comparison: unconditional prediction
-exaggerated contact excursions. A CPU-only completed-interval experiment is next;
-movement entry and interruption boundaries must be resolved before live wiring.
+exaggerated contact excursions. The [completed-interval experiment](assets/evidence/11/completed-interval/review.md)
+also remains unshipped: summarized observations cannot reconstruct movement entry
+or direction changes exactly. Choose an explicit sampling approximation or finer
+observations before live wiring; do not delay independent model authoring for it.
 The [locomotion slice](slices/11-pair-locomotion.md) bounds these passes.
 No live appearance, final locomotion or art is accepted.
 
@@ -34,9 +36,13 @@ Integrated locomotion evidence:
   the fitted source. Preserve all unrelated clips and geometry. Left's404-image
   gate passes independently on the merged tree. Narrow gathering,
   low recovery clearance and restrained upper-body loading remain provisional.
-  The [right study](assets/evidence/11/guarded-right/review.md) is retained manually;
-  canonical integration remains open. Its extra hip probes expose scabbard/mail
+  The [right integration](assets/evidence/11/right-integration/review.md) passes
+  the independent merged477-image gate. Its extra hip probes expose scabbard/mail
   overlap in both lateral clips, without a whole-body visual blocker to study.
+- [Protected selection](assets/evidence/11/protected-selection/review.md) respects
+  the engine's at-ease distinction, including safe facing-retained withdrawals.
+  Merged354 CPU tests and636 checks/44 exact images pass. Missing detailed
+  bindings remain null; diagnostic fixture poses are not art acceptance.
 - The fitted [medium](assets/evidence/09/medium-phalanx/review.md) includes the
   [lower upright-pike march](assets/evidence/11/medium-walk-integration/review.md),
   with exact merged static/moving gates. Right-arm rigidity, flat footfall,
@@ -59,18 +65,22 @@ leg clearance through the cycle. Backing away while facing a threat must not
 silently inherit relaxed forward-travel carry. Existing
 [signed motion](assets/evidence/05/signed-motion/review.md) and
 [guarded-facing observations](assets/evidence/11/guarded-observation/review.md)
-preserve the engine's direction/posture distinctions; authored selection remains open.
+preserve the engine's direction/posture distinctions; detailed live bindings remain open.
 Retained facing also occurs during safe withdrawals: protected selection must
 respect `atEase`, not treat `guardedFacing` alone as a threat decision.
 
 Priority order:
-- **Engine-faithful locomotion:** align fractional root placement with gait,
-  then bind protected travel without
+- **Whole-body authoring:** heavy shield-protected sword effort and medium
+  two-hand upright-pike run proceed independently on frozen fitted sources.
+  The inherited medium run loses the second grip and drives its shaft below
+  ground; correct connected carry before finer details. Genuine12/13 actions
+  supply the complete pose set required for later live admission.
+- **Engine-faithful locomotion:** resolve fractional root placement with gait,
+  then bind detailed protected travel without
   changing engine movement or combat timing. Upper-body weight response, ground
   contact and transitions remain open. Do not overwrite fitted sources from older studies.
-  After the current directional study, provisional12/13 combat/reaction authoring
-  supplies genuine clips required for complete live admission; do not block it on
-  that same admission or weaken the loader with stand-ins.
+  Do not block provisional combat/reaction authoring on that same admission or
+  weaken the loader with stand-ins.
 - **Medium ordinary march:** retain the integrated lower carry provisionally;
   continue full-body motion and live binding, not another isolated hand study.
   Two-hand purchase, flank shield and pike length remain constraints. The

@@ -148,3 +148,12 @@ phase choices are prescribed by the slice, not newly inferred here.
 
 Other touched tests/fixture constructors add explicit null schema fields only.
 No stat, golden hash, timer or save assertions changed.
+
+## Independent merged-tree verification
+
+Root integrated this pass as7e4414b3 alongside the guarded-right source integration.
+The independent full web suite passes354 tests across60 files, and typecheck
+passes. The normal full replay on localhost5174 passes636 checks and44 snapshots,
+each at zero differing pixels, with no failures or page errors. Its raw
+[structured report](merged-root.json) records the actual run. No baseline was
+refreshed in this merged verification. Detailed appearances remain unbound.

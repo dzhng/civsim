@@ -1410,3 +1410,28 @@ through the center of a thick support is insufficient: its edges can pierce the
 shield face. The plan required credible equipment but left attachment fitting
 open. This geometric rule applies to future shield refits; the current long
 stand-off and open grip remain provisional, not accepted construction.
+
+### Preserve the reviewed export while regeneration remains unproven
+
+**Sound; confidence: medium. Carry integration e8d939fd.** Saving and exporting
+the same Blender scene again slightly changes some tangent numbers, which tell
+the renderer how to orient surface shading. The model positions and animation
+samples remain identical, but that does not prove identical pictures. The
+combined candidate therefore retains the already-reviewed GLB file instead of
+silently replacing it with the fresh export. The plan did not specify how to
+handle this exporter rounding. This is reversible and keeps the visible source
+stable; future clean-export acceptance still must establish the fresh export's
+pixel equivalence or fix the source of drift. It is not permission to loosen
+the image gate or conceal geometry changes.
+
+### Motion authoring consumes the fitted editable kit
+
+**Sound; confidence: high. Carry integration e8d939fd.** When changing an arm
+pose, rebuilding the soldier from an older procedural recipe would also replace
+the individually fitted shield supports and garment. The motion recipe instead
+opens the saved combined Blender scene and edits its animation. The plan left
+the ownership of later hand-edited fitting unspecified. The saved scene is the
+editable geometry owner; the recipe owns motion, not a second copy of equipment
+construction. Its normal target is the combined heavy kit, while explicitly
+chosen input/output paths permit isolated studies. Future motion edits must
+preserve unrelated fitted surfaces rather than regenerate them incidentally.

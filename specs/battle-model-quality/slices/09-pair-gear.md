@@ -99,4 +99,7 @@ The build consumes the committed08 `.blend`; fitting must be revisited where tha
 source changes. A full procedural refit can also move unchanged equipment;
 the [hand integration](../assets/evidence/08/power-grip-closure/integration.md)
 records why local edits compose from the retained modular source instead.
+The [garment-only composition probe](../assets/evidence/09/garment-composition.md)
+establishes the same preservation route for the two garment objects; it does not
+accept the donor's still-open collar, shoulder or moving waist construction.
 Root owns human Preview presentation after integration.

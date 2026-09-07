@@ -1,0 +1,39 @@
+{
+  "measuredAt": "2026-09-07T09:56:32.838Z",
+  "exactEqual": [
+    "manifest",
+    "rig",
+    "animation",
+    "surface",
+    "farMesh",
+    "tiers[1]",
+    "tiers[2]",
+    "all retained near vertex attributes"
+  ],
+  "a": {
+    "vertices": [
+      5832,
+      648,
+      288
+    ],
+    "triangles": [
+      9216,
+      576,
+      144
+    ]
+  },
+  "b": {
+    "vertices": [
+      1800,
+      648,
+      288
+    ],
+    "triangles": [
+      2304,
+      576,
+      144
+    ]
+  },
+  "bones": 67,
+  "animationBytes": 947112
+}

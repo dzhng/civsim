@@ -2,7 +2,10 @@
 
 Status: IN PROGRESS. Depends on [06](./06-gpu-playback.md), now complete.
 
-Current pickup: separate native-resolution detail demand from rendering cost.
+Current pickup: investigate remaining cadence and submission tails at the
+controlled lower near density. The [fixed-5K A/B/A](../assets/evidence/07/near-density/review.md)
+shows sensitivity to near geometry with matched camera, tiers and palette demand,
+but the lower density still fails cadence. No art limit is accepted.
 The [available-display bracket](../assets/evidence/07/combined-display-bracket/review.md)
 records1280×800,3024×1964 and5120×2880 with the unchanged combined workload;
 all fail cadence and5K also fails GPU-queue medians. Background activity limits
@@ -191,7 +194,8 @@ remain separate; this does not establish their timing or the remaining envelope.
 Future hardware comparisons must check machine-wide background activity, not
 only serialize this task's agents. On2026-09-07 a read-only process check found an
 unrelated Chrome152 GPU/renderer process active after this task's capture jobs
-ended, while its hardware harness uses Chrome151. This does not establish what
+ended; earlier reports used Chrome151, while the later display brackets use152.
+This does not establish what
 ran during earlier measurements or explain their failures; it does mean that
 task-local GPU ownership alone cannot prove an idle device. Preserve prior red
 reports and do not stop unrelated user applications to manufacture a quiet run.

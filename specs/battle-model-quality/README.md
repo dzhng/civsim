@@ -74,9 +74,11 @@ Independent authoring and measurement lanes:
   targets; deterministic rendering does not accept them. No fixture direction
   override.
 - **07 animated budget:** the reusable LOD result experiment was rejected after
-  worse matched timing; its code is not integrated. Finish combined geometry,
-  camera, physical-display, storage and executable asset limits using separately
-  measured changes.07 still gates08/09 acceptance, not editable source authoring.
+  worse matched timing; its code is not integrated. The
+  [fixed-5K density comparison](assets/evidence/07/near-density/review.md) identifies
+  near geometry as a cost lever, but cadence remains red. Investigate remaining
+  submission tails before locking combined asset/display limits.07 still gates
+  08/09 acceptance, not editable source authoring.
 
 Evidence ledger:
 - [Focused capture selection](assets/evidence/01/candidate-filter/review.md) keeps

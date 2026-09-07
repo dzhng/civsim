@@ -140,3 +140,8 @@ thumb/palm transitions still fail natural-hand completion.
 The [rejected hand-mass study](../assets/evidence/08/rejected-hand-masses/review.md)
 records why further loft-mass tweaks were not retained; the settled closure
 source remains unchanged.
+
+The [connected-cage rejection](../assets/evidence/08/rejected-connected-hand/review.md)
+shows why shared topology alone is insufficient. The next hand pass must fit
+the cupped palm and held-equipment grasp frame together; the inherited handle
+placement is not an anatomical constraint.

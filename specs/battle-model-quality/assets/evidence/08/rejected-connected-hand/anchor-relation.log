@@ -1,0 +1,9 @@
+BlenderMCP: cannot start server in background mode (blender -b) - commands would never execute
+BlenderMCP: run Blender with a GUI, or use a virtual display: xvfb-run -a blender
+BlenderMCP addon registered
+{"handle_axis_center_local_mm": [97, 0, -33], "handle_radius_mm": 17, "palm_distal_control_u_mm": [98.91386248197279, 103.65981844996126, 101.96663129892369, 97.51356775449875], "mcp_ring_center_u_mm": 112, "pip_ring_center_u_mm": 126, "surface_regions": {"central_volar_palm": {"samples": 217, "nearest_gap_mm": 0.6898484425619245, "nearest_local_mm": [91.74205176532269, -16.692187637090683, -16.18798077106476], "median_gap_mm": 14.493925496935844}, "distal_volar_palm": {"samples": 444, "nearest_gap_mm": 0.5824567633680999, "nearest_local_mm": [91.33864566683769, -19.747162237763405, -16.471300274133682], "median_gap_mm": 5.064139142632484}, "proximal_thenar": {"samples": 426, "nearest_gap_mm": 4.209080711007118, "nearest_local_mm": [79.95928451418877, -22.13355526328087, -20.607102662324905], "median_gap_mm": 22.31144718825817}, "thumb_distal": {"samples": 380, "nearest_gap_mm": 15.321962535381317, "nearest_local_mm": [95.80930694937706, 7.068287581205368, -65.2756318449974], "median_gap_mm": 26.759492233395576}}}
+BlenderMCP server stopped
+BlenderMCP addon unregistered
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

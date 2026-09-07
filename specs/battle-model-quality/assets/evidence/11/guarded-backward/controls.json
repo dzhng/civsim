@@ -1,0 +1,17 @@
+{
+  "sourceSha256": "6817cee255d46cf982c18e6625f194b332f28d69cd6cc17c876583449d04c3de",
+  "glbSha256": "4d88ce87629273a83970d4264fffad3f4d70d7ba16a50860a40c73ac2d973f4c",
+  "exactExistingActions": [
+    "bend",
+    "bend-pronation",
+    "idle",
+    "pronation",
+    "ready",
+    "run",
+    "walk"
+  ],
+  "addedClip": "guarded-backward-walk",
+  "duration": 1,
+  "strideDistanceMeters": 0.9161101579666129,
+  "supportFraction": 0.62
+}

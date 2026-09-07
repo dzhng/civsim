@@ -33,6 +33,9 @@ Integrated locomotion evidence:
   the fitted source. Preserve all unrelated clips and geometry. Left's404-image
   gate passes independently on the merged tree. Narrow gathering,
   low recovery clearance and restrained upper-body loading remain provisional.
+  The [right study](assets/evidence/11/guarded-right/review.md) is retained manually;
+  canonical integration remains open. Its extra hip probes expose scabbard/mail
+  overlap in both lateral clips, without a whole-body visual blocker to study.
 - The fitted [medium](assets/evidence/09/medium-phalanx/review.md) includes the
   [lower upright-pike march](assets/evidence/11/medium-walk-integration/review.md),
   with exact merged static/moving gates. Right-arm rigidity, flat footfall,

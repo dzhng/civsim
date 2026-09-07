@@ -1647,3 +1647,21 @@ explicitly unsupported; neither mirrored equipment nor an invented ready fallbac
 pretends to cover them. The plan left this approximation open. Keeping normalized
 phase across different lead feet is not proof of matching support: live transition
 and reversal review must precede appearance promotion.
+
+### Preserve the asymmetric guard while authoring the other direction
+
+**Sound; confidence: high. Guarded-right study0e132cdf.** Rightward travel leads
+with the right foot but keeps the actual left shield and its forward stagger.
+It is independently posed on the saved kit, not a mirrored left-step body.
+The plan left the curves and cadence to authoring. The study isolates the measured
+rightward component at fixed facing; it does not reproduce the engine trace's
+simultaneous backward component or prove natural support.
+
+### Retain a provisional step without concealing a kit-fit limitation
+
+**Provisional; confidence: medium. Guarded-right study0e132cdf.** Extra probes
+found a small scabbard/mail surface overlap in both left and right steps. Actual
+scabbard-side views did not show a gross cut-through or detached part at whole-body
+scale, so the manual study is retained without distorting the step or moving the
+fixed kit to hide it. Hidden clearance remains unresolved. Narrow recovery and
+stiff upper-body loading also prevent treating this as final locomotion.

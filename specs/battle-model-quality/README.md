@@ -18,6 +18,9 @@ Its fitting improvement does not accept the whole model or close08/09.
 Next integration checkpoint: judge the combined heavy's whole-body form,
 gameplay formation and genuinely timed moving-world locomotion together. Static
 phase sheets establish pose compatibility, not rhythm or ground sliding. Resolve
+the travel smoke's forward-axis mismatch first: the authored candidate faces
+opposite production travel. Correct the complete candidate export, not the
+renderer or the fixture's direction, before accepting locomotion. Resolve
 concrete garment/grip/deformation failures before reusing its construction, then
 start medium-phalanx authoring; do not require every isolated heavy detail to be
 finished before that first-pair comparison. All acceptance dependencies remain.

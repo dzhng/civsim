@@ -1,0 +1,647 @@
+{
+  "topRow": "specs/battle-model-quality/assets/evidence/11/heavy-contact-recovery/capture-c",
+  "bottomRow": "throwaway/heavy-run-sword-carriage/capture",
+  "order": "left to right; eight consecutive frames per sheet",
+  "telemetry": [
+    {
+      "name": "travel-run-side-00.png",
+      "changedPixelsInBodyBand": 766,
+      "crop": {
+        "x": 666,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-01.png",
+      "changedPixelsInBodyBand": 799,
+      "crop": {
+        "x": 641,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-02.png",
+      "changedPixelsInBodyBand": 5203,
+      "crop": {
+        "x": 615,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-03.png",
+      "changedPixelsInBodyBand": 5626,
+      "crop": {
+        "x": 595,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-04.png",
+      "changedPixelsInBodyBand": 4852,
+      "crop": {
+        "x": 581,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-05.png",
+      "changedPixelsInBodyBand": 6707,
+      "crop": {
+        "x": 568,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-06.png",
+      "changedPixelsInBodyBand": 1563,
+      "crop": {
+        "x": 551,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-07.png",
+      "changedPixelsInBodyBand": 5652,
+      "crop": {
+        "x": 528,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-08.png",
+      "changedPixelsInBodyBand": 5789,
+      "crop": {
+        "x": 504,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-09.png",
+      "changedPixelsInBodyBand": 6200,
+      "crop": {
+        "x": 478,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-10.png",
+      "changedPixelsInBodyBand": 5758,
+      "crop": {
+        "x": 456,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-11.png",
+      "changedPixelsInBodyBand": 5694,
+      "crop": {
+        "x": 437,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-12.png",
+      "changedPixelsInBodyBand": 883,
+      "crop": {
+        "x": 422,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-13.png",
+      "changedPixelsInBodyBand": 762,
+      "crop": {
+        "x": 407,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-14.png",
+      "changedPixelsInBodyBand": 3780,
+      "crop": {
+        "x": 390,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-15.png",
+      "changedPixelsInBodyBand": 581,
+      "crop": {
+        "x": 367,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-16.png",
+      "changedPixelsInBodyBand": 3387,
+      "crop": {
+        "x": 341,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-17.png",
+      "changedPixelsInBodyBand": 587,
+      "crop": {
+        "x": 316,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-18.png",
+      "changedPixelsInBodyBand": 3438,
+      "crop": {
+        "x": 292,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-19.png",
+      "changedPixelsInBodyBand": 3863,
+      "crop": {
+        "x": 275,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-20.png",
+      "changedPixelsInBodyBand": 4160,
+      "crop": {
+        "x": 259,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-21.png",
+      "changedPixelsInBodyBand": 6150,
+      "crop": {
+        "x": 248,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-22.png",
+      "changedPixelsInBodyBand": 4630,
+      "crop": {
+        "x": 231,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-23.png",
+      "changedPixelsInBodyBand": 1102,
+      "crop": {
+        "x": 208,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-24.png",
+      "changedPixelsInBodyBand": 4639,
+      "crop": {
+        "x": 183,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-25.png",
+      "changedPixelsInBodyBand": 4174,
+      "crop": {
+        "x": 158,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-26.png",
+      "changedPixelsInBodyBand": 4006,
+      "crop": {
+        "x": 137,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-27.png",
+      "changedPixelsInBodyBand": 5588,
+      "crop": {
+        "x": 119,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-28.png",
+      "changedPixelsInBodyBand": 3586,
+      "crop": {
+        "x": 96,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-29.png",
+      "changedPixelsInBodyBand": 3818,
+      "crop": {
+        "x": 81,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-30.png",
+      "changedPixelsInBodyBand": 3184,
+      "crop": {
+        "x": 63,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-side-31.png",
+      "changedPixelsInBodyBand": 502,
+      "crop": {
+        "x": 40,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-00.png",
+      "changedPixelsInBodyBand": 513,
+      "crop": {
+        "x": 644,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-01.png",
+      "changedPixelsInBodyBand": 508,
+      "crop": {
+        "x": 621,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-02.png",
+      "changedPixelsInBodyBand": 5506,
+      "crop": {
+        "x": 602,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-03.png",
+      "changedPixelsInBodyBand": 4913,
+      "crop": {
+        "x": 583,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-04.png",
+      "changedPixelsInBodyBand": 4477,
+      "crop": {
+        "x": 565,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-05.png",
+      "changedPixelsInBodyBand": 6513,
+      "crop": {
+        "x": 553,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-06.png",
+      "changedPixelsInBodyBand": 647,
+      "crop": {
+        "x": 540,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-07.png",
+      "changedPixelsInBodyBand": 4807,
+      "crop": {
+        "x": 520,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-08.png",
+      "changedPixelsInBodyBand": 4173,
+      "crop": {
+        "x": 496,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-09.png",
+      "changedPixelsInBodyBand": 4099,
+      "crop": {
+        "x": 473,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-10.png",
+      "changedPixelsInBodyBand": 4405,
+      "crop": {
+        "x": 452,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-11.png",
+      "changedPixelsInBodyBand": 4396,
+      "crop": {
+        "x": 432,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-12.png",
+      "changedPixelsInBodyBand": 469,
+      "crop": {
+        "x": 412,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-13.png",
+      "changedPixelsInBodyBand": 405,
+      "crop": {
+        "x": 392,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-14.png",
+      "changedPixelsInBodyBand": 4356,
+      "crop": {
+        "x": 375,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-15.png",
+      "changedPixelsInBodyBand": 388,
+      "crop": {
+        "x": 355,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-16.png",
+      "changedPixelsInBodyBand": 4548,
+      "crop": {
+        "x": 337,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-17.png",
+      "changedPixelsInBodyBand": 385,
+      "crop": {
+        "x": 320,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-18.png",
+      "changedPixelsInBodyBand": 4059,
+      "crop": {
+        "x": 304,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-19.png",
+      "changedPixelsInBodyBand": 4379,
+      "crop": {
+        "x": 289,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-20.png",
+      "changedPixelsInBodyBand": 4196,
+      "crop": {
+        "x": 274,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-21.png",
+      "changedPixelsInBodyBand": 6445,
+      "crop": {
+        "x": 263,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-22.png",
+      "changedPixelsInBodyBand": 4286,
+      "crop": {
+        "x": 253,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-23.png",
+      "changedPixelsInBodyBand": 409,
+      "crop": {
+        "x": 236,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-24.png",
+      "changedPixelsInBodyBand": 4475,
+      "crop": {
+        "x": 217,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-25.png",
+      "changedPixelsInBodyBand": 3661,
+      "crop": {
+        "x": 200,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-26.png",
+      "changedPixelsInBodyBand": 3786,
+      "crop": {
+        "x": 183,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-27.png",
+      "changedPixelsInBodyBand": 4836,
+      "crop": {
+        "x": 167,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-28.png",
+      "changedPixelsInBodyBand": 3821,
+      "crop": {
+        "x": 151,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-29.png",
+      "changedPixelsInBodyBand": 3712,
+      "crop": {
+        "x": 135,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-30.png",
+      "changedPixelsInBodyBand": 3636,
+      "crop": {
+        "x": 120,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    },
+    {
+      "name": "travel-run-oblique-31.png",
+      "changedPixelsInBodyBand": 401,
+      "crop": {
+        "x": 105,
+        "y": 150,
+        "width": 280,
+        "height": 320
+      }
+    }
+  ]
+}

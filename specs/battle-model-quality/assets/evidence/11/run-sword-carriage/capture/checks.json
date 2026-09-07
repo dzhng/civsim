@@ -1,0 +1,858 @@
+{
+  "checks": [
+    {
+      "name": "heavy-run-sword-carriage candidate is manually inspectable for its declared classes",
+      "ok": true,
+      "detail": "{\"catalog\":\"http://localhost:5174/assets/soldiers/candidates/heavy-run-sword-carriage/catalog.json\",\"assets\":[{\"id\":0,\"name\":\"heavy-run-sword-carriage\",\"presentation\":null,\"bones\":26,\"triangles\":[127286,127286,127286],\"clips\":[{\"name\":\"bend\",\"duration\":2,\"loop\":false},{\"name\":\"bend-pronation\",\"duration\":2,\"loop\":false},{\"name\":\"pronation\",\"duration\":2,\"loop\":false},{\"name\":\"ready\",\"duration\":1.2000000476837158,\"loop\":true},{\"name\":\"run\",\"duration\":0.800000011920929,\"loop\":true},{\"name\":\"walk\",\"duration\":0.8999999761581421,\"loop\":true}]}]}"
+    },
+    {
+      "name": "run/side: absolute time repeat after travel is exact",
+      "ok": true
+    },
+    {
+      "name": "run/side: prescribed forward distance reaches submission",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-00: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-00: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-00",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-01: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-01: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-01",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-02: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-02: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-02",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-03: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-03: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-03",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-04: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-04: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-04",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-05: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-05: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-05",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-06: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-06: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-06",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-07: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-07: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-07",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-08: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-08: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-08",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-09: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-09: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-09",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-10: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-10: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-10",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-11: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-11: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-11",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-12: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-12: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-12",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-13: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-13: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-13",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-14: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-14: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-14",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-15: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-15: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-15",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-16: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-16: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-16",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-17: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-17: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-17",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-18: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-18: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-18",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-19: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-19: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-19",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-20: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-20: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-20",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-21: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-21: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-21",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-22: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-22: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-22",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-23: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-23: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-23",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-24: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-24: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-24",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-25: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-25: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-25",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-26: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-26: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-26",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-27: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-27: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-27",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-28: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-28: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-28",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-29: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-29: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-29",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-30: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-30: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-30",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-31: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-side-31: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-side-31",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "run/oblique: absolute time repeat after travel is exact",
+      "ok": true
+    },
+    {
+      "name": "run/oblique: prescribed forward distance reaches submission",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-00: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-00: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-00",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-01: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-01: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-01",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-02: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-02: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-02",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-03: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-03: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-03",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-04: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-04: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-04",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-05: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-05: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-05",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-06: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-06: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-06",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-07: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-07: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-07",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-08: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-08: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-08",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-09: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-09: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-09",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-10: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-10: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-10",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-11: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-11: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-11",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-12: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-12: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-12",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-13: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-13: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-13",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-14: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-14: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-14",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-15: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-15: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-15",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-16: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-16: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-16",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-17: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-17: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-17",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-18: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-18: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-18",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-19: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-19: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-19",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-20: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-20: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-20",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-21: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-21: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-21",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-22: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-22: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-22",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-23: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-23: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-23",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-24: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-24: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-24",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-25: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-25: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-25",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-26: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-26: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-26",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-27: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-27: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-27",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-28: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-28: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-28",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-29: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-29: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-29",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-30: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-30: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-30",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-31: frozen frame repeats",
+      "ok": true
+    },
+    {
+      "name": "shared/soldiers/heavy-kit/travel-run-oblique-31: intended manual clip reaches production",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/heavy-kit/travel-run-oblique-31",
+      "ok": true,
+      "detail": "baseline created"
+    }
+  ],
+  "errors": []
+}

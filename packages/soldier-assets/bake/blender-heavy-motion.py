@@ -221,8 +221,11 @@ def author_run(arm, scene):
             bpy.context.view_layer.update()
             orient(arm,"foot."+side,Matrix.Rotation(roll,3,"X").to_quaternion()@arm.data.bones["foot."+side].matrix_local.to_quaternion())
             carriage=math.cos(math.tau*phase)*(-sign)
-            aim(arm,"upper-arm."+side,(sign*.20,-.16+(.38 if side=="R" else .17)*carriage,-1))
-            aim(arm,"forearm."+side,(sign*.15,-.85+(.30 if side=="R" else .12)*carriage,-.45 if side=="R" else -.80),math.pi/2 if side=="R" else 0)
+            aim(arm,"upper-arm."+side,
+                (sign*.20,(-.08 if side=="R" else -.16)+(.38 if side=="R" else .17)*carriage,-1))
+            aim(arm,"forearm."+side,
+                (sign*.15,-.72+.15*carriage if side=="R" else -.85+.12*carriage,
+                 .10 if side=="R" else -.80),math.pi/2 if side=="R" else 0)
             helper=arm.pose.bones["elbow-volume."+side]
             base=helper.parent.matrix@helper.parent.bone.matrix_local.inverted()@helper.bone.matrix_local
             orient(arm,helper.name,base.to_quaternion().slerp(arm.pose.bones["forearm."+side].matrix.to_quaternion(),.5))

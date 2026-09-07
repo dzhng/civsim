@@ -1,0 +1,104 @@
+{
+  "sources": [
+    {
+      "path": "packages/soldier-assets/assets/source/heavy-kit/heavy-kit.glb",
+      "sha256": "777d268702d017bc8c99d3c1967f3ac8462ed23becc937382f53165abd71679e"
+    },
+    {
+      "path": "throwaway/heavy-run-sword-carriage/source/heavy-motion.glb",
+      "sha256": "803eb122ac8b12c06e7b5e0d317a99872f476a7f6639fe36aa86c77d98bba831"
+    }
+  ],
+  "exactRig": true,
+  "primitiveDifferences": [
+    {
+      "index": 0,
+      "differences": {
+        "tangents": {
+          "count": 5,
+          "max": 0.00010001659393310547
+        }
+      }
+    },
+    {
+      "index": 1,
+      "differences": {
+        "tangents": {
+          "count": 3,
+          "max": 0.00010001659393310547
+        }
+      }
+    },
+    {
+      "index": 2,
+      "differences": {
+        "tangents": {
+          "count": 3,
+          "max": 0.00009998679161071777
+        }
+      }
+    },
+    {
+      "index": 3,
+      "differences": {
+        "tangents": {
+          "count": 8,
+          "max": 0.00010001659393310547
+        }
+      }
+    },
+    {
+      "index": 4,
+      "differences": {
+        "tangents": {
+          "count": 1,
+          "max": 0.00009999796748161316
+        }
+      }
+    },
+    {
+      "index": 5,
+      "differences": {}
+    },
+    {
+      "index": 6,
+      "differences": {}
+    },
+    {
+      "index": 7,
+      "differences": {}
+    }
+  ],
+  "clips": [
+    {
+      "name": "bend",
+      "duration": 2,
+      "exact": true
+    },
+    {
+      "name": "bend-pronation",
+      "duration": 2,
+      "exact": true
+    },
+    {
+      "name": "pronation",
+      "duration": 2,
+      "exact": true
+    },
+    {
+      "name": "ready",
+      "duration": 1.2000000476837158,
+      "exact": true
+    },
+    {
+      "name": "run",
+      "duration": 0.800000011920929,
+      "exact": false
+    },
+    {
+      "name": "walk",
+      "duration": 0.8999999761581421,
+      "exact": true
+    }
+  ]
+}

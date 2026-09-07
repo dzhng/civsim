@@ -84,3 +84,9 @@ match the independently reviewed candidate byte-for-byte. This is a retained
 intermediate improvement, not completed locomotion: upper-body rhythm, small
 between-key floor penetration, speed ramps, animated idle and phalanx motion
 remain open. The linked record owns the runnable command and raw evidence.
+
+The [sword-carriage revision](../assets/evidence/11/run-sword-carriage/review.md)
+retains a more compact, readable weapon pose during the existing run. The shield
+arm and lower-body motion are unchanged; the full integrated scene again repeats
+all150 images exactly. Its focused verdict does not resolve equipment weight,
+torso rhythm, angular joints or the other open locomotion requirements.

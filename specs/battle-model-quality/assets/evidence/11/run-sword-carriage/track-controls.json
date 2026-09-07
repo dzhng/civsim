@@ -1,0 +1,77 @@
+{
+  "paths": [
+    "packages/soldier-assets/assets/source/heavy-kit/heavy-kit.glb",
+    "throwaway/heavy-run-sword-carriage/source/heavy-motion.glb"
+  ],
+  "changed": [
+    {
+      "bone": "upper-arm.R",
+      "channels": {
+        "T": {
+          "count": 0,
+          "max": 0
+        },
+        "R": {
+          "count": 100,
+          "max": 0.03395448625087738
+        },
+        "S": {
+          "count": 4,
+          "max": 5.960464477539063e-8
+        }
+      }
+    },
+    {
+      "bone": "elbow-volume.R",
+      "channels": {
+        "T": {
+          "count": 6,
+          "max": 3.34219460995655e-8
+        },
+        "R": {
+          "count": 100,
+          "max": 0.18866774439811707
+        },
+        "S": {
+          "count": 2,
+          "max": 5.960464477539063e-8
+        }
+      }
+    },
+    {
+      "bone": "forearm.R",
+      "channels": {
+        "T": {
+          "count": 6,
+          "max": 1.0465804400894285e-7
+        },
+        "R": {
+          "count": 100,
+          "max": 0.28800052404403687
+        },
+        "S": {
+          "count": 2,
+          "max": 5.960464477539063e-8
+        }
+      }
+    },
+    {
+      "bone": "hand.R",
+      "channels": {
+        "T": {
+          "count": 6,
+          "max": 7.450580596923828e-8
+        },
+        "R": {
+          "count": 6,
+          "max": 7.450580596923828e-9
+        },
+        "S": {
+          "count": 4,
+          "max": 1.1920928955078125e-7
+        }
+      }
+    }
+  ],
+  "note": "Hand STEP transforms also differ at export floating-point scale; not bit-exact hand track. All other run tracks are exact."
+}

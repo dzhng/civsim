@@ -8,12 +8,21 @@ Last updated **2026-09-07**. **01–06 complete;07 envelope open;08 candidate au
 Worktree: `/Users/david/dev/game-battle-model-quality`, branch
 `codex/battle-model-quality`. No art envelope or detailed model is accepted.
 
-Current pickup: **finish the whole worn upper-body garment**, then arm deformation
-and remaining hand masses; defer further isolated face detail. The T-shirt-like
-torso and rigid cuffs remain dominant limitations. The
+Current pickup: **finish the whole worn garment and its waist support**, with
+joint hand/handle authoring in parallel, then review arm deformation. Defer
+further isolated face detail. The retained root garment is not the newer,
+still-unaccepted isolated construction. The
 [grip closure integration](assets/evidence/08/power-grip-closure/integration.md)
 retains a more enclosing grasp, not finished hand anatomy. Preserve modular
 equipment when composing it: a full procedural refit moved unrelated surfaces.
+The [garment composition probe](assets/evidence/09/garment-composition.md)
+establishes selective integration. The waist belt is now an intentional fitting
+exception: its geometry stays fixed, but it must follow the pelvis rather than
+the thigh, with the cinched garment sharing that support. Validate suspension
+joins and all other retained parts after composition.
+The [connected-hand rejection](assets/evidence/08/rejected-connected-hand/review.md)
+requires fitting the cupped palm and held-equipment placement together; merely
+connecting or resizing fingers around the old handle position is insufficient.
 The
 [combined helmet](assets/evidence/09/combined-helmet/review.md) retains a smaller
 open bowl and curved guards on the integrated head and locally baked mail.
@@ -32,7 +41,7 @@ start medium-phalanx authoring; do not require every isolated heavy detail to be
 finished before that first-pair comparison. All acceptance dependencies remain.
 
 Independent authoring and measurement lanes:
-- **08–11 whole heavy:** preserve the current garments, loaded walk/run, footwear,
+- **08–11 whole heavy:** preserve loaded walk/run, footwear,
   corrected shield carry, suspended scabbard and refitted helmet while revising
   the garment and hands.
   [Scabbard review](assets/evidence/09/scabbard-suspension/review.md),

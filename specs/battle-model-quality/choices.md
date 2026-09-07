@@ -1249,3 +1249,20 @@ edits to preserve unrelated authored parts unless a refit is actually needed;
 it introduces no runtime correction or second asset loader. The alternative—
 silently accepting everything a full regeneration changes—would make focused
 visual review unreliable.
+
+### Cinch the belt to the pelvis, not the moving thigh (09 authoring)
+
+**Sound; confidence: medium.** When a leg swung forward, the belt followed it
+strongly enough to disappear into the shirt. Its inherited automatic skin
+weights made the thigh control much of the waist, even though the belt sits
+above the hip joint. The isolated garment candidate instead gives the unchanged
+belt shape pelvis support and makes the narrow cinched band of cloth share that
+movement. Cloth above and below transitions into its other authored movement.
+The alternative—making the whole shirt follow the faulty belt—would preserve
+contact by spreading the wrong motion.
+
+The plan requires credible worn equipment but leaves its attachment weighting
+open. This deliberately expands the garment-only edit to belt weights; it does
+not authorize changing unrelated equipment. Suspension joins and loaded poses
+must be rechecked before integration. The candidate remains unaccepted, and the
+root assembly has not yet adopted this weighting.

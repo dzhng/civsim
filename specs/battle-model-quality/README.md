@@ -8,18 +8,19 @@ Last updated **2026-09-07**. **01–06 complete;07 envelope open;08–11 provisi
 authoring;12–30 pending.** Worktree: `/Users/david/dev/game-battle-model-quality`,
 branch `codex/battle-model-quality`. No detailed model or art envelope is accepted.
 
-Current pickup: **distance-driven playback and engine-faithful protected travel**.
+Current pickup: **engine-faithful protected travel and live root/phase agreement**.
 The [combined heavy motion](assets/evidence/11/composed-motion/review.md)
 is integrated and independently verified on the merged tree. Its one source recipe
 preserves fitted geometry and composes idle, ready, and run without accumulating
 offsets on repeated authoring. No live appearance is promoted. The
 [guarded backward action](assets/evidence/11/backward-integration/review.md)
 is integrated for manual review, preserving the other clips and fitted geometry;
-its runtime selection is still unbuilt. Measured-distance playback is in an
-isolated worktree: CPU and nonbaseline GPU checks pass, including the diagnosed
-floating-point comparisons and explicit reference shadow-history boundary.
-The complete changed image set has been reviewed; baseline update and exact
-repeat are running before integration. Same-input repeatability remains exact.
+its runtime selection is still unbuilt. [Measured-distance playback](assets/evidence/11/measured-distance/review.md)
+is integrated and independently verified on the merged tree. Clip calibration
+selects walk/run from measured pace and advances gait by observed travel;
+combat remains time-driven. Numerical comparison and reference shadow-history
+corrections preserve exact same-input image repeatability. Movement during
+incapacity and live root smoothing remain explicit acceptance gaps.
 The
 [carry-fit study](assets/evidence/11/carry-fit/review.md) records the rejected
 support attachments and current provisional fit. Prioritize whole-soldier

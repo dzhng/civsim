@@ -24,12 +24,12 @@ animation: the clip/binding, actual-speed rhythm, interruption blends and live
 battle presentation still need their own evidence. Do not reverse simulation
 movement or facing to make an authored cycle fit.
 
-The current timeline advances looping tracks by elapsed time and selects walk
-versus run from the observed ordered-pace flag. That is not yet the actual-speed
-locomotion contract. After the authored travel clips exist, bind their stride
-distance to measured travel, preserving phase through speed changes and existing
-exact interruption poses. A slowed, threatened backward step must not run a
-full-speed cycle merely because the order requested running. Keep standing
+The timeline now advances walk/run from measured travel and chooses the nearest
+authored nominal pace, preserving phase through speed changes and existing
+interruption ownership. It does not yet distinguish motor-capable travel from
+disabled transport or select protected directional clips. A slowed, threatened
+backward step must not run a full-speed cycle merely because the order requested
+running. Keep standing
 breathing and combat event timing independent of distance-driven gait; neither
 should freeze just because the soldier stops translating. Verify speed ramps,
 pause/reset, reversals and external displacement explicitly before accepting
@@ -37,9 +37,9 @@ runtime locomotion.
 
 Implementation checkpoints, in order:
 
-1. Bind authored stride distance to measured travel and preserve interruption
-   ownership. The isolated implementation passes CPU and nonbaseline GPU checks;
-   its reviewed baseline update and exact repeat remain pending before merge.
+1. **Integrated:** bind authored stride distance to measured travel and preserve
+   interruption ownership. The [distance transport](../assets/evidence/11/measured-distance/review.md)
+   passes CPU and full production GPU checks independently on the merged tree.
    Numerical equivalence is proved separately from exact same-input repeatability.
 2. Bind the manually reviewed protected backward action through the canonical
    observations. Resolve displayed-root smoothing and externally driven displacement

@@ -25,6 +25,13 @@ Clip metadata carries duration/sample timing, looping versus terminal hold, appl
 
 A role/state matrix is an implementation artifact generated from the catalog during05 and expanded as art lands. Common presentation needs are ready/at-ease, locomotion, attack where applicable, observed hit, and terminal death; ranged, brace, carry and sidearm states apply only to corresponding roles. Existing render variants are not new simulation classes. Consult [class data](../../web/src/battle/classData.ts) and [current appearance construction](../../packages/soldier-assets/src/soldierMesh.ts); older model-sheet guidance has stale class-number examples and must not override code.
 
+Looping gait clips additionally own their calibrated travel per cycle. The
+timeline advances these from observed travel and chooses between bound gaits
+by nominal pace; an ordered run is not observed running. Standing and combat
+retain authored time. The [distance contract](assets/evidence/11/measured-distance/review.md)
+owns entry/reset and interruption details. This does not itself identify
+voluntary movement, suppress disabled transport, or reconcile live root smoothing.
+
 ### Mounted composition and candidate promotion
 
 Mounted playback has one authored rider-upper-body override mask over the locomotion base: spine/arms/head may act while horse, rider pelvis and seated legs retain gait. Compose local joint transforms before hierarchy evaluation; masking world-space bone matrices is not equivalent. Death overrides the whole composite; hit reactions may interrupt the full body. No general animation graph or additive stack is required. Prove this in02/06 and include its cost in07 before accepting detailed exported art; it need not delay editable human anatomy candidates.

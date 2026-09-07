@@ -86,7 +86,16 @@ CPU-image differences as telemetry, not a claim of pixel equality: diagnostic41
 showed a single high-contrast boundary sample from a `5.3644e-7` matrix difference,
 and using the read-back palette removed it exactly with shadows enabled. This
 two-part proof retains an independent pose oracle without inventing a per-pixel
-exception. Exact repeated frames and same-time event continuity remain required.
+exception. The [distance-playback revalidation](../assets/evidence/11/measured-distance/review.md)
+extends the readback oracle to reproduce the consumer's Float32 position arithmetic;
+the independent source-pose oracle remains unchanged. A differing same-time event
+must additionally prove exact CPU locals, both actual GPU palettes within the
+existing independent bound, exact repeats on each side, and identical render-state
+pixels using one retained measured palette. Matched tiers/corpse strength and
+negative controls are required; there is no changed-pixel allowance. Isolated
+comparisons explicitly start from the same empty shadow-demand history because
+creating a reference crowd otherwise clears only one side. Continuous-history
+movement/pause checks remain intact. All committed snapshots still repeat exactly.
 
 The inherited battle gait crop proves on-screen scene motion, not isolated
 articulation.06c must hold camera, placement and background fixed and compare the

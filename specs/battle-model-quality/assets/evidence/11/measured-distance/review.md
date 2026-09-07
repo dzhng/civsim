@@ -102,4 +102,25 @@ VERIFY_URL=http://127.0.0.1:5317 VERIFY_GPU=1 node scene.mjs battle-model-action
 
 Live BattleCrowd root positions are smoothed while this adapter measures engine positions. The existing smoothing test demonstrates the gap: an engine jump of 1 m renders at .75 m, then .82 m at the next tick with no new engine movement. Root drift and idle/phase can therefore disagree on stopping. This pass does not change that position contract. Runtime acceptance must coordinate rendered root and phase while preserving simulation outputs, not blindly remove smoothing to satisfy a test.
 
-Neither `guardedFacing` nor absence of incapacitation proves self-propelled stepping. Engine `kin_vx/y` includes carried momentum before separation; the steering owner handles momentum, incapacitation and routing, and final motion includes terrain/pressure effects. Do not rename that measurement voluntary leg velocity. A future effort/drive observation must come from its actual owner if required. This pass deliberately proves phase transport even for external displacement, not that the chosen gait is appropriate during a shove. Protected retreat/lateral clip selection remains a subsequent pass.
+Neither `guardedFacing` nor absence of incapacitation proves self-propelled stepping.
+The [controlled observations](../drive-observation/review.md) show why neither
+pre-separation `kin_vx/y` nor subtracting carried momentum establishes leg drive:
+ordinary steering can overwrite the earlier momentum translation, while a disabled
+branch retains it. Final motion also includes pressure and terrain constraints.
+An observation must come from its actual owner when this distinction is needed.
+This pass proves phase transport even for external displacement, not that the
+chosen gait is appropriate during a shove. Protected selection remains subsequent.
+
+## Independent merged-tree validation
+
+Parent integration `0f8d77d8` preserves the current eight-clip heavy source and the
+integrated medium march. Heavy generated conflicts were resolved by rebuilding
+from that current source; source-rig and sampled-animation JSON remain exactly
+equal to the prior root after removing only the new stride metadata. No earlier
+seven-clip bundle replaced the reviewed backward action.
+
+The [merged raw report](merged-root.json) independently passes all 619 checks and
+40 snapshots, each at zero differing pixels, with no page errors. Parent also
+passes all 342 web tests, 13 bake tests, both deterministic bake checks and
+TypeScript checking. Parent reviewed all paired images and the final production
+diff; no extra tolerance or runtime fallback was introduced during integration.

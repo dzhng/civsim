@@ -1488,3 +1488,72 @@ engine-faithful review but did not choose where this input lives. This makes the
 authoring comparison reproducible, not a substitute for live battle acceptance:
 the recorded unit-centroid movement cannot prove an individual soldier took a
 voluntary step or planted his feet correctly.
+
+### Choose gait at the midpoint of its authored nominal paces
+
+**Sound; confidence: medium. Distance playback 0f8d77d8.** A soldier ordered to
+run may only move at walking speed. The picture now chooses whichever bound gait
+has the nearer nominal pace: travel per cycle divided by cycle duration. Exactly
+at the midpoint it chooses walk; changing gait retains cycle progress. The plan
+required actual-speed animation but did not choose the crossover. This avoids a
+universal class-independent threshold without inventing an engine gait enum.
+A richer gait blend remains possible if live review exposes unstable crossings.
+The placeholder's nominal rates are explicitly synthetic test inputs, not a
+claim that its block legs have physically calibrated foot contact.
+
+### Keep stride calibration beside the existing clip metadata
+
+**Sound; confidence: high. Distance playback 0f8d77d8.** To play one metre of
+walking, the consumer needs to know how far one authored cycle travels. The asset's
+existing bake metadata now carries that distance beside release markers, through
+both imported-rig and sampled-clip records. Loading verifies their agreement.
+The plan did not choose between this owner, exported glTF extras, or a separate
+runtime stride table. Extending the existing owner avoids competing calibration
+maps and does not require re-exporting unchanged geometry. Only locomotion roles
+use distance; standing and combat cannot accidentally freeze when travel stops.
+
+### Count known observation intervals, not render calls
+
+**Sound; confidence: high. Distance playback 0f8d77d8.** After seeing a soldier
+stand, the next observation reports half a metre of movement. That first moving
+interval counts immediately instead of being discarded while the gait starts.
+Between observations, rendered samples extrapolate the latest rate but do not
+bank more distance; observing again therefore cannot double-count it. A reset or
+new appearance starts at zero because no compatible earlier gait exists. Leaving
+locomotion discards its track; re-entry counts the new interval. The plan required
+distance and pause correctness but left these boundaries open. Keeping an unchanged
+track when its rate stays constant also preserves the exact arithmetic anchor
+needed by interruption tests, without allocating a second motion history.
+
+### Freeze the prior upper-body source while correcting lower-body distance
+
+**Sound; confidence: high. Distance playback 0f8d77d8.** A mounted archer can begin
+shooting at the same observation that corrects the horse's speed. The shooting
+transition starts from the complete previously presented source pose; its upper
+body remains exact at entry. The unmasked lower body uses the corrected gait
+distance, rather than an additional transition invented to hide the correction.
+A full-body hit or death still starts from the entire old composed pose. The
+plan specified layering and continuity but not simultaneous distance correction.
+One immutable prior history owns capture, so refreshing the working gait cannot
+silently replace the pose being interrupted.
+
+### Prove numerical event equivalence without allowing pixel drift
+
+**Sound; confidence: medium. Distance playback 0f8d77d8.** Freezing an animated
+pose can change its GPU rounding even when the CPU pose is exactly unchanged.
+A silhouette pixel can then choose a different surface. The event check now
+requires exact CPU poses, independently bounded actual GPU transforms, exact
+repeats of each side, and identical pictures when both event states use the same
+measured transforms. Deliberately changing pose or facing must fail the proof.
+The readback reference matches the shader's position arithmetic, while the source
+oracle remains independently evaluated. This extends the earlier two-part proof
+to event representations; it does not introduce a number of allowed bad pixels.
+The plan required continuity but did not define this rounding boundary.
+
+For that comparison, both sides start with the same empty visibility-demand
+history. Otherwise creating the reference clears its shadow-detail history while
+the live side retains an older tier, comparing two different render contexts.
+Only isolated comparisons reset that history; continuous playback checks remain.
+This deliberately changes reference-context shadows, including later inherited
+frames, not production shadow policy. Future changes must preserve the independent
+pose proof, state-matching controls and exact committed-snapshot repeatability.

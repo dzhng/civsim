@@ -8,16 +8,15 @@ Last updated **2026-09-07**. **01–06 complete;07 envelope open;08–11 provisi
 authoring;12–30 pending.** Worktree: `/Users/david/dev/game-battle-model-quality`,
 branch `codex/battle-model-quality`. No detailed model or art envelope is accepted.
 
-Current pickup: **checkpoint the first-pair refits, then improve whole-body
-motion and functional hand form**. Trial8 retains the medium's upright shield
+Current pickup: **improve whole-body motion and functional hand form**. The
+integrated [medium candidate](assets/evidence/09/medium-phalanx/review.md) retains the upright shield
 and fitted cuirass, with a refitted belt and suspension upper loops. Matched
 shield-hidden front review confirms the irregular white waist wedge is now a
 continuous layer edge; whole/formation readability is preserved. Its grip and
-regular skirt remain provisional. Frozen source and matched evidence live in
-the medium lane's `throwaway/trial8` and `throwaway/trial8-front`; candidate
-checkpoint and root integration remain pending. Do not flatten the shield to
-eliminate a contact failure.
-The medium lane owns source and evidence in `/Users/david/dev/game-medium-phalanx`.
+regular skirt remain provisional. All eight integrated sheets match the reviewed
+donor captures byte-for-byte and repeat exactly. The editable source is now in
+this worktree; do not regenerate it against a changed heavy donor without an
+explicit refit. Do not flatten the shield to eliminate a contact failure.
 Do not accept detail fixes without reviewing the whole model and formation.
 
 Priority order:
@@ -41,6 +40,8 @@ Priority order:
   penetration, cautious torso/arm motion, speed
   ramps, animated idle and phalanx locomotion remain open. Preserve the combined
   kit when updating clips; never overwrite it with a frozen older motion study.
+  An isolated `throwaway/heavy-run-trunk` study is testing upper-trunk response;
+  it has not replaced the committed sword-carriage candidate.
 - **Medium equipment/surfaces:** retain the fitted sleeveless under-tunic as
   provisional, not an anatomy fix. Review exposed axilla, actual cloth edges,
   both grips, shield and sidearm after carry changes. Fit armor/waist to the

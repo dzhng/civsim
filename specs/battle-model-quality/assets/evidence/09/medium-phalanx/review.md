@@ -120,5 +120,15 @@ defect for provisional static authoring. Local Codex review failed before inspec
 installed 0.144.4 does not support the configured model; no override or purchase
 occurred. Root owns further independent closeout and human Preview.
 
+Root integrated the frozen source without rebuilding it against the newer heavy
+donor. The [integrated capture](controls/integrated.json) and
+[repeat](controls/integrated-repeat.json) pass all74 checks, including32 weighted
+poses,32 exact redraws and eight snapshots, with no page errors. All eight
+integrated PNGs are byte-identical to `after/`; root inspected each sheet.
+These baselines pin this editable candidate, not final art acceptance. The
+whole soldier, exposed waistband, heavy run loop and supplied reference were
+opened together for non-blocking review. The existing default camera contract
+for other candidates is unchanged.
+
 Decisions beyond delegated styling are in the
 [choices ledger](../../../../choices.md#medium-phalanx-candidate-construction-09).

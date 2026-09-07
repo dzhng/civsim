@@ -131,6 +131,25 @@ The root/stride equality is a constant enabled-motion contract, not a claim
 about disabled transport or mixed-direction intervals. Review actual moving
 production frames and attached overlays before accepting the presentation change.
 
+### Parallel bounded pass: stop future gait while disabled
+
+Qualified interval travel can precede a final disabled state. In the existing
+timeline track owner, count that completed interval before setting prospective
+gait rate to zero. Preserve a compatible existing gait pose while incapacitated;
+without a gait history, retain the existing ready/pike-ready fallback. Do not add
+a stun clip, alter observations or change death/hit/release/melee priority.
+Standing and combat remain time-driven. Re-entry after recovery uses ordinary
+observations; never bank disabled transport or replay it later.
+
+Start with a calibrated gait receiving positive past travel and final incapacity:
+its integer-time phase must include the travel, and later fractional samples must
+hold. A second disabled observation containing more qualified past travel must
+still advance that interval even when its future rate remains zero. Preserve
+exact interruption-source ownership, pause/reset and appearance replacement.
+This can proceed beside root placement because it owns timeline sampling, not
+body positioning. Directional bindings and their missing-clip policy follow as
+a separate pass; no detailed appearance is promoted here.
+
 Names of new functions/routes in this plan are proposed, not existing commands. Use the [shared acceptance contract](../README.md#acceptance-contract) and [architecture](../architecture.md) for inherited requirements.
 
 ## Runnable artifact

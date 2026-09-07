@@ -91,7 +91,7 @@ Independent authoring and measurement lanes:
   not pass the envelope.07 still gates
   08/09 acceptance, not editable source authoring.
   The [base packing checkpoint](assets/evidence/07/settled-base-packing.md)
-  preserves exact CPU controls; browser and hardware integration checks remain pending.
+  preserves exact CPU controls and all40 temporal images; hardware timing remains pending.
 
 Evidence ledger:
 - [Focused capture selection](assets/evidence/01/candidate-filter/review.md) keeps

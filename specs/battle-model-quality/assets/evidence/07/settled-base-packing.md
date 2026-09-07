@@ -1,7 +1,7 @@
 # Shared base endpoint packing
 
-CPU-only implementation checkpoint from `406f38fd`; browser regression and matched
-hardware comparison remain with the integrating lane. No speedup, visual change or
+Implementation checkpoint from `406f38fd`; matched hardware comparison remains
+open. No speedup, visual change or
 budget acceptance is claimed.07 stays open.
 
 When the base source and destination are the same clip-sample object, the packer
@@ -37,5 +37,11 @@ TypeScript check successfully on the main feature worktree. The focused command 
 An initial direct Node invocation did not load the project's Vitest aliases and
 failed before executing tests; it is not a behavioral failure or passing evidence.
 The repository's configured runner required no source or environment changes.
-Browser and hardware results remain pending; the first-pair art capture has GPU
-priority. The separate in-progress Blender motion diff was not part of this commit.
+[Canonical browser regression](settled-base-temporal.json) subsequently passed
+all675 checks with no page errors and exactly zero changed pixels in all40
+existing images. It used bundled Chromium/SwiftShader,1280×800 and the existing
+action-replay, pose-palette and raw-pose-palette scenes, without re-blessing.
+Those unchanged images retain the prior
+[temporal visual review](frozen-retirement/review.md); they prove transport,
+not detailed model quality. Hardware timing remains pending; the first-pair art
+capture has priority. The separate Blender motion diff was not part of this pass.

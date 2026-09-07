@@ -1,0 +1,26 @@
+Inspected **all 180 tiles**: tiles 1–36, left-to-right then top-to-bottom, in each of `whole-side-all-frames.png`, `whole-oblique-all-frames.png`, `whole-right-all-frames.png`, `pike-side-all-frames.png`, and `pike-oblique-all-frames.png`. Also inspected all five named front/grip/formation images. Tile references below are **1-based**. No GIF playback; temporal judgments are ordered-still inference. No other evidence inspected or delegation used.
+
+**Ranked visible findings**
+
+1. **Carrying posture looks somewhat braced and rigid — medium confidence as a quality issue.**  
+   In `front-whole-00.png` and `front-grip-00.png`, the upper arm crosses the chest with a pronounced outward elbow, while both hands cluster on the shield side. Across the whole-body sheets, this upper-body arrangement changes little relative to the stepping legs. It communicates a controlled two-handed carry, but less clearly a relaxed ordinary march. This is a posture concern, not evidence that the weapon is unsupported.
+
+2. **Pike-butt clearance looks small — high confidence in the visible proximity; low confidence in actual collision.**  
+   In `front-whole-00.png`, the lower metal point ends close to the supporting sandal’s ground level. In `front-grip-00.png`, it also projects close beside the raised foot. `whole-side-all-frames.png`, especially tiles 1–4, 9–12, 19–22 and 27–30, repeatedly places the butt near the forward foot/ground region. I cannot establish ground penetration, dragging, or foot contact from these projections.
+
+3. **Footfall reads as a low-clearance, somewhat flat step — medium confidence.**  
+   In the side and oblique whole-body sheets, tiles 4–7 and 13–16, repeated at 22–25 and 31–34, show the feet passing close together with limited visible lift. There is leg alternation and knee flexion; this does not look like a completely rigid sliding pose. However, decisive heel-to-toe weight transfer is weak at this sheet scale. Actual skating remains unproven.
+
+**Definite defects versus possible overlaps**
+
+No unequivocal major defect is established: I do not see a detached weapon, broken limb, collapsed support pose, or unmistakable equipment penetration.
+
+The front grip view shows both hands meeting the shaft. The rear grip view supports upper-hand purchase and shows shield attachment structure, although the shield obscures the lower connection. The crowded hand/shaft/shield region is therefore an **occlusion concern**, not a confirmed floating grip. Whole-body balance remains broadly plausible, with the torso upright over the stepping base.
+
+Both formation images retain distinguishable soldiers, shields, and orderly pikes. Uniform appearance does not impair identification. The shafts appear substantially flatter in `formation-0.42.png`, but the body and shield projections also differ; these two images cannot isolate weapon movement from viewpoint effects. Projected shaft/body overlaps do not prove collisions.
+
+**Temporal uncertainty**
+
+The ordered sequences show gradual pose progression, including tiles 18→19, without an obvious sampled discontinuity. They do not establish smooth playback, planted-foot stability, absence of between-frame clipping, or the final loop wrap.
+
+**Provisional usability:** suitable for formation-scale use, with a recognizable supported pike carry and marching gait. **Final acceptance:** still open, principally for foot planting, butt clearance, and whether the braced upper body feels natural in actual playback.

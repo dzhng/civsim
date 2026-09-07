@@ -1,5 +1,25 @@
 # Implementation choices
 
+## Sound — medium confidence
+
+### Use diagnostic closure to inform unfinished open-hand anatomy (08)
+
+When a reference-led open hand has recognizable palm and finger segments but
+still looks imperfect, bend a separate copy around the sword or pike's actual
+shaft size. Keep the open source unchanged so both shapes can be compared.
+The closed copy may expose a thumb pad that cannot oppose the fingers, or a
+segment that collapses during bending; those findings feed back into the hand
+construction. The alternative is to finish every detached open-hand defect
+before learning whether its shape can form the required grasp.
+
+The plan required open anatomy before equipment fitting but did not distinguish
+a diagnostic bend from accepting that hand for the soldier. This decision only
+changes the authoring feedback order. It introduces no runtime finger bones,
+does not replace the current body, and does not relax either open/closed anatomy
+or final equipment and budget gates. **Sound, provisional; confidence medium:**
+a reversible copy tests the requested functional form earlier without treating
+a convincing closed silhouette as proof of natural open anatomy.
+
 ## Sound — high confidence
 
 ### Fit provisional equipment before anatomy acceptance (08/09 authoring)

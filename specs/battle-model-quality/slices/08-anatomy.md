@@ -163,3 +163,12 @@ and bends. Both closed-hand studies remain rejected despite sampled clearance.
 The next study establishes a reference-led open hand before bending it offline
 and fitting equipment. It must establish palm depth and natural segment hierarchy,
 not merely smooth the same closed loops. No new runtime finger rig is implied.
+
+Reference-led open palm, joint and thumb studies now supply an editable control,
+but do not pass natural anatomy. An offline closure diagnostic may bend a copy
+around the real equipment's nominal shaft dimensions while the open control
+remains frozen. This lets the grasp expose segment/volume problems before more
+detached-hand detail work. It is not permission to graft an unaccepted hand or
+skip open-form review: production integration still requires credible open and
+closed form, body attachment, equipment fit and the inherited gates. The isolated
+wrist cut is an attachment boundary, not a proposed final wrist/body junction.

@@ -8,34 +8,36 @@ Last updated **2026-09-07**. **01–06 complete;07 envelope open;08–11 provisi
 authoring;12–30 pending.** Worktree: `/Users/david/dev/game-battle-model-quality`,
 branch `codex/battle-model-quality`. No detailed model or art envelope is accepted.
 
-Current pickup: **finish the medium-phalanx waist/armor fit, then review the
-whole first pair again**. Trial7 mounts the shield upright and fits cuirass
-geometry to the tunic's actual outer surface, respecting its armholes. Its
-captured whole silhouette is less apron-like, but close views still expose an
-irregular white waist edge and an elongated front grip. Zero sampled mesh
-intersections do not resolve those visible defects. Frozen source and32-tile
-captures are in the medium lane's `throwaway/trial7`; final independent review
-and root integration remain pending. Do not flatten the shield to eliminate
-a contact failure.
+Current pickup: **checkpoint the first-pair refits, then improve whole-body
+motion and functional hand form**. Trial8 retains the medium's upright shield
+and fitted cuirass, with a refitted belt and suspension upper loops. Matched
+shield-hidden front review confirms the irregular white waist wedge is now a
+continuous layer edge; whole/formation readability is preserved. Its grip and
+regular skirt remain provisional. Frozen source and matched evidence live in
+the medium lane's `throwaway/trial8` and `throwaway/trial8-front`; candidate
+checkpoint and root integration remain pending. Do not flatten the shield to
+eliminate a contact failure.
 The medium lane owns source and evidence in `/Users/david/dev/game-medium-phalanx`.
 Do not accept detail fixes without reviewing the whole model and formation.
 
 Priority order:
 - **Shared hand:** rebuild a coherent whole hand from open anatomy in
   `/Users/david/dev/game-heavy-hand-form`; the old experimental finger controls
-  are not a user requirement. Thenar-only Boolean/implicit patches were rejected
-  as swollen and glove-like. The new connected quad study needs natural open
-  palm/finger form before closure, equipment fitting or grafting. The isolated
-  `hand-plane-study` improves thumb flexion but still has a shelf-like palm;
-  the next correction targets that continuous surface, not nail detail. Retain the
+  are not a user requirement. The reference-led `hand-thumb-study` improves the
+  open palm/segment hierarchy but remains provisional. An offline closure copy
+  now tests that form around actual shaft dimensions; its failures inform anatomy
+  without accepting it or replacing the frozen open control. Both open and closed
+  form must pass before grafting. Retain the
   canonical body/hands until a replacement passes. The
   [closed-hand rejection](assets/evidence/08/rejected-metacarpal-grip/review.md)
   and [connected-hand rejection](assets/evidence/08/rejected-connected-hand/review.md)
   explain why connectivity and collision counts alone cannot accept a grasp.
 - **Heavy locomotion:** [support/recovery comparison](assets/evidence/11/heavy-contact-recovery/review.md)
   retains a better rear-leg recovery and reduced measured support drift.
-  Full integrated static/travel regression repeats all150 snapshots exactly;
-  this pins an intermediate candidate, not finished motion. Slight floor
+  The newer [sword-carriage revision](assets/evidence/11/run-sword-carriage/review.md)
+  has exact prototype/integrated travel images and a favorable focused critique;
+  its full integrated regression repeats all150 snapshots exactly. Both are intermediate
+  candidates, not finished motion. Slight floor
   penetration, cautious torso/arm motion, speed
   ramps, animated idle and phalanx locomotion remain open. Preserve the combined
   kit when updating clips; never overwrite it with a frozen older motion study.

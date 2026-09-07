@@ -94,8 +94,10 @@ exactly. An initial direct packed-record comparison correctly found relocated
 sample/mask offsets after inserting the ninth clip; resolving those offsets
 proves all old sample data, mask data and clip metadata exact as well. The merged
 candidate bake check and all three shared travel tests pass (29398, exit0).
-The independent merged404 browser repeat is underway; the implementing-worktree
-result above is not relabelled as a merged result.
+The root typecheck also passes (48304, exit0). The independent merged browser
+repeat27709 exits0 with [1,762 checks and404 exact snapshots](merged-root.json),
+zero failures and no page errors on bundled Chromium/SwiftShader. This separately
+verifies the integrated source and harness without another baseline change.
 
 ## Change ledger
 

@@ -25,7 +25,7 @@ Integrated locomotion evidence:
   [backward](assets/evidence/11/backward-integration/review.md) and
   [left](assets/evidence/11/left-integration/review.md) are manual candidates on
   the fitted source. Preserve all unrelated clips and geometry. Left's404-image
-  implementing-worktree gate passes; merged repeat is underway. Narrow gathering,
+  gate passes independently on the merged tree. Narrow gathering,
   low recovery clearance and restrained upper-body loading remain provisional.
 - The fitted [medium](assets/evidence/09/medium-phalanx/review.md) includes the
   [lower upright-pike march](assets/evidence/11/medium-walk-integration/review.md),

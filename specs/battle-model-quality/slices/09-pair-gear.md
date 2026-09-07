@@ -75,22 +75,23 @@ sheets. It remains **unaccepted**. The retained suspended scabbard is documented
 in its [focused review](../assets/evidence/09/scabbard-suspension/review.md);
 thin rear straps remain open but are not the next dominant silhouette problem.
 The [combined helmet refit](../assets/evidence/09/combined-helmet/review.md)
-replaces the closed bowl and buried plates on the integrated head. Author the upper-body garment as
-one coherent worn assembly: shoulder coverage, neckline, underarms, sleeve ends
-and hanging hem. The whole soldier must improve visibly, not only a detail crop.
-Follow with actual sword/shield grips and bent/pronated arm deformation before
-propagating equipment conventions to the phalanx. Further isolated facial detail
-is lower priority; that does not accept unfinished anatomy.
+replaces the closed bowl and buried plates on the integrated head. The
+combined-garment checkpoint now retains improved worn coverage and sampled
+deformation while leaving raised shoulders and stiff panels open. Medium14
+authoring proceeds alongside shared-hand correction; further isolated facial
+detail is lower priority. This does not accept unfinished anatomy.
 The [candidate review](../assets/evidence/09/heavy-kit-review.md) owns source
 iterations, exact captures and the independent failure verdict. Do not propagate
 unresolved heavy defects into the phalanx or treat the cloth-covered body as08
 acceptance. Independent candidate work retains explicit refit/rebake obligations.
 
-Once the combined whole-heavy verdict establishes usable garment, grip and
-deformation conventions, the next authoring row is medium phalanx14: leather
-armor, long pike and two-hand carry, followed by the related17/19 equipment
-states. Keep remaining heavy refinements recorded against their owners; isolated
-face or material polish is not an additional prerequisite for this comparison.
+The active authoring row is medium phalanx14: leather armor, long pike and
+two-hand carry, followed by the related17/19 equipment states. Retained garment
+construction and static arm continuity permit that provisional comparison;
+rejected hand studies do not propagate. Both pike contacts need unobstructed
+views, and shared-hand changes require refitting and recapture. Keep remaining
+heavy refinements recorded against their owners; isolated face or material
+polish is not an additional prerequisite for this comparison.
 
 From the repository root, build/export with installed Blender:
 

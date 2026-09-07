@@ -59,7 +59,7 @@ Independent authoring and measurement lanes:
   proportions, hands, joints, eye/lid form and the rear neck junction remain open.
   Clothing cannot establish anatomy acceptance.
 - **09/10 equipment and surfaces:** [combined mail](assets/evidence/10/combined-mail/review.md)
-  is retained through `7f755129`. Whole-garment form and local hand reconstruction
+  is retained through `7f755129`. Medium-phalanx equipment and shared-hand revision
   proceed in separate worktrees. Rear suspension straps, raised shoulder joins,
   stiff hanging garment, arm deformation and grips remain open. Review the whole-heavy
   silhouette before propagating conventions to medium phalanx. The

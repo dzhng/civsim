@@ -2,6 +2,12 @@
 
 Status: IN PROGRESS. Depends on [06](./06-gpu-playback.md), now complete.
 
+Current pickup: record a controlled available-display bracket against1280×800
+using the unchanged combined synthetic workload. Latest bank-era synchronized
+cadence remains red; the older passing preparation-cleanup result below is
+historical, not current acceptance. Record machine-wide activity and preserve
+uninterpretable or red results without a repeat-until-green loop.
+
 ## Contract and ownership
 
 Detailed exported art receives a measured cost envelope before acceptance,

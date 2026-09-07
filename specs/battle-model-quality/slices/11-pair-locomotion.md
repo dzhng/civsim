@@ -61,8 +61,10 @@ The earlier walk study used an incorrect class-speed assumption; the linked
 review owns the corrected pace and evidence boundaries. Refit and recapture
 after concurrent body/equipment changes.
 
-Next verify timed playback and ground-relative movement on the combined heavy,
-not only frozen poses or in-place loops. Upper-body stiffness, joint shape,
+The combined heavy now has deterministic two-cycle world-travel frames and
+full-speed GIF derivatives, including its latest garment revision. Next judge
+full-loop rhythm and ground-relative contact; the completed sampled garment
+review does not establish those. Upper-body stiffness, joint shape,
 support contact, speed ramps, phalanx motion and transitions remain open. Ready
 is a static planted stance, not an accepted animated idle.
 

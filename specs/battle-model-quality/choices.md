@@ -1448,3 +1448,31 @@ controlled comparison but did not prescribe this exporter workaround. It is
 limited to the diagnostic export, not a general bake fallback; if any geometry
 attribute changes, those original tangents cannot be assumed valid. A normal
 fresh export still needs its own visual check before source promotion.
+
+### Observe guarded posture without claiming voluntary stepping
+
+**Sound; confidence: medium. Guarded observations 7323ccbf.** A conscious
+soldier facing an enemy can be pushed backward while still protecting himself.
+Backward displacement therefore supports neither a relaxed run nor a claim that
+he deliberately took a backward step. The engine now reports its selected
+defensive-facing branch, current incapacity and routing separately; these are
+inputs to later pose selection, not a new gameplay state. The plan required
+engine authority but left this distinction unspecified. Withdrawal and automatic
+escape are not excluded merely because they lack a target: their existing
+controller can retain the old facing while turning. Future gait work must still
+separate stepping rhythm from externally driven displacement; these observations
+do not solve it by assertion.
+
+### Pack posture observations beside, not into, unit information
+
+**Sound; confidence: high. Guarded observations 7323ccbf.** One man in a unit
+can be stunned while his neighbour is still guarding. A unit-wide flag cannot
+describe both. A presentation-only byte per soldier carries current incapacity
+and the soldier/unit facing-owner outputs through the existing WASM refresh.
+WASM is the compiled simulation boundary; its pointer lets the browser read the
+buffer directly. The adapter chooses the unit-facing output for held pikes and
+the soldier-facing output otherwise, matching what is displayed. The plan left
+transport layout open. Existing unit-info offsets and save fields do not change,
+and no simulation decision reads these new outputs. Clearing before every
+steering pass prevents a dead, routed or disabled soldier retaining an earlier
+guard observation.

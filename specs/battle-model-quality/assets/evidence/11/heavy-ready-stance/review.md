@@ -1,7 +1,7 @@
 # Supported ready stance candidate
 
-Provisional authoring pass, awaiting the integration owner's fresh visual
-critique. Do not treat the deterministic checks as final visual acceptance.
+Retained provisional stance improvement after direct and fresh visual review.
+This does not establish final model or animation acceptance.
 
 The prior ready pose's narrow, nearly straight-legged base did not visibly
 support the large forward shield. This candidate widens and staggers the feet,
@@ -90,3 +90,22 @@ Independent visual and code review are delegated back to the integration owner
 to free the shared reviewer slot. The local Codex CLI still cannot start with
 the configured model version. Canonical promotion and parent-spec decisions are
 not part of this provisional pass.
+
+## Independent integration verdict
+
+The parent inspected both candidate loops in full chronological sheets,
+whole-body crops and both matched formation pitches. An unprimed reviewer
+independently prefers the candidate with moderate confidence: bent knees and
+staggered feet read as prepared rather than relaxed, without an obvious new
+joint inversion, equipment separation or pose jump. The reviewer retains a mild
+squat impression from the upright torso, limited visible stance width in the
+oblique view, and incomplete foot-contact visibility in the cropped details.
+Whole-frame and source-floor checks supplement that last limitation. Identical
+formation poses are a controlled fixture, not an accepted live phase pattern.
+
+The reviewer cautioned against judging apparent height from the contact-sheet
+layout. Matched original frames use the same camera settings; the lowered hips
+are intentional. The stance verdict rests on posture and equipped silhouette,
+not an inferred scale improvement. Independent parent code review found no
+concrete error in the frozen-rig two-segment construction; repeated-authoring
+and planted-foot controls are part of its evidence, not a general IK contract.

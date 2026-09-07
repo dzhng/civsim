@@ -83,6 +83,13 @@ correctness finding, with requested fresh-spawn and expiry evidence added.
 Refactor/code/docs review retains one packed observation seam, no speculative
 clip API or duplicate mechanics predicate in TypeScript.
 
+Parent merged verification after rebuilding its own WASM: all 12 sim library
+tests, unchanged golden-state test, five native WASM tests, deterministic
+campaign save/load test, all 52 focused web tests and typecheck pass. The parent
+also independently reviewed the final adapter test diff, including real
+targetless withdrawal and facing-owner switching. No protected clip or action
+selection has been promoted by this verification.
+
 ## Change ledger
 
 - New withdrawal branch test: previously unobserved; now records targetless

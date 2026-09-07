@@ -8,8 +8,8 @@ Last updated **2026-09-07**. **01–06 complete;07 envelope open;08–11 provisi
 authoring;12–30 pending.** Worktree: `/Users/david/dev/game-battle-model-quality`,
 branch `codex/battle-model-quality`. No detailed model or art envelope is accepted.
 
-Current pickup: **improve loaded whole-body motion and author engine-faithful
-protected travel**. The [carry integration](assets/evidence/11/carry-integration/review.md)
+Current pickup: **combine reviewed heavy motion sources, then author engine-faithful
+protected travel and medium march**. The [carry integration](assets/evidence/11/carry-integration/review.md)
 is committed with its reviewed editable source and exact travel images; the
 merged-tree heavy-kit bake check passes. No live appearance is promoted. The
 [carry-fit study](assets/evidence/11/carry-fit/review.md) records the rejected
@@ -39,6 +39,10 @@ leg clearance through the cycle. Backing away while facing a threat must not
 silently inherit relaxed forward-travel carry. The
 [signed-motion observation](assets/evidence/05/signed-motion/review.md) now
 preserves that direction; authored selection and protected travel remain open.
+The [guarded-facing observations](assets/evidence/11/guarded-observation/review.md)
+also preserve routing, current incapacitation and the engine's selected facing
+branch. They permit posture selection, not a claim that displacement is a
+voluntary step; shove-aware gait still needs evidence.
 
 Priority order:
 - **Shared hand (detail work paused):** preserve the coherent open-hand studies in
@@ -63,13 +67,15 @@ Priority order:
   penetration, cautious torso/arm motion, speed
   ramps, animated idle and phalanx locomotion remain open. Preserve the combined
   kit when updating clips; never overwrite it with a frozen older motion study.
-  The isolated `throwaway/carry-forward-run` study improves forward posture only
-  marginally; direct and fresh full-sequence review still find rigid upper-body
-  carriage and weak landing/push-off. Do not repeat tiny trunk-only adjustments:
-  the next pass must improve whole-body load transfer. The separate
-  [idle/ready breathing study](assets/evidence/11/heavy-idle/review.md) has its
-  recipe and evidence integrated but no source promotion; ready support stance is being
-  revised in `/Users/david/dev/game-heavy-idle-motion`.
+  The [whole-body run](assets/evidence/11/wholebody-run/review.md) supersedes the
+  marginal trunk-only studies: direct and fresh review prefer its recovery and
+  body participation, with restrained upper motion and exaggerated rear shin
+  still open. Combine that reviewed run with the
+  [idle breathing](assets/evidence/11/heavy-idle/review.md) and
+  [supported ready stance](assets/evidence/11/heavy-ready-stance/review.md),
+  preserving exact fitted geometry and unrelated clips. Their recipes/evidence
+  are integrated; combined-source capture is next. Repeated authoring must not
+  add run-arm offsets again. Medium ordinary march is being authored separately.
 - **Medium equipment/surfaces:** retain the fitted sleeveless under-tunic as
   provisional, not an anatomy fix. Review exposed axilla, actual cloth edges,
   both grips, shield and sidearm after carry changes. Fit armor/waist to the

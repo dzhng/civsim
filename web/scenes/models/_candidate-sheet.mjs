@@ -1,4 +1,5 @@
 import { PNG } from "pngjs";
+import { snapshotSelected } from "../../snapshot.mjs";
 import { PHOTOREAL_SUBSTRATE } from "../../../packages/photoreal-renderer/src/stats.ts";
 import { requireSwiftShaderBaseline } from "./_swiftshader-baseline.ts";
 
@@ -102,6 +103,8 @@ export async function runCandidateSheet(
     };
 
     for (const camera of [...cameras, ...details]) {
+      const snapshot = `shared/soldiers/${folder}/${camera.name}`;
+      if (!snapshotSelected(snapshot)) continue;
       const bearings = camera.views ?? views;
       const sheet = new PNG({
         width: crop.width * bearings.length,
@@ -168,7 +171,7 @@ export async function runCandidateSheet(
         }
       }
       // Exact deterministic captures: there is no admitted raster-noise allowance.
-      await ctx.snap(page, `shared/soldiers/${folder}/${camera.name}`, {
+      await ctx.snap(page, snapshot, {
         shot: PNG.sync.write(sheet),
         threshold: 0,
         maxDiffRatio: 0,

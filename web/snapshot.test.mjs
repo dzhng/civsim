@@ -1,9 +1,9 @@
 // @vitest-environment node
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { onTestFinished, test } from "vitest";
+import { basename, join } from "node:path";
+import { onTestFinished, test, vi } from "vitest";
 import { PNG } from "pngjs";
 import { snapCheck } from "./snapshot.mjs";
 
@@ -21,6 +21,45 @@ function withUpdateShots() {
     else process.env.UPDATE_SHOTS = previous;
   });
 }
+
+test("SNAP comma filters capture only matching names and ignore empty fields", async () => {
+  vi.stubEnv("SNAP", " head , , hand ");
+  onTestFinished(() => vi.unstubAllEnvs());
+  const dir = await mkdtemp(join(tmpdir(), "snapshot-filter-test-"));
+  onTestFinished(() => rm(dir, { recursive: true, force: true }));
+  const shot = pngBuffer(Buffer.from([255, 0, 0, 255, 0, 0, 255, 255]));
+  const results = [];
+  for (const name of ["head-detail", "walk-frames", "hand-detail"]) {
+    results.push(await snapCheck(null, name, () => {}, { shot, baseDir: `${dir}/` }));
+  }
+  assert.equal(results[1], undefined);
+  assert.deepEqual((await readdir(dir)).sort(), ["hand-detail.png", "head-detail.png"]);
+});
+
+test("a selected snapshot still rejects a one-pixel change at exact tolerance", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "snapshot-mutation-"));
+  const name = basename(dir);
+  vi.stubEnv("SNAP", name);
+  vi.stubEnv("UPDATE_SHOTS", "");
+  onTestFinished(async () => {
+    vi.unstubAllEnvs();
+    await rm(dir, { recursive: true, force: true });
+    for (const suffix of [".png", "-actual.png"])
+      await rm(new URL(`./shots/diff/${name}${suffix}`, import.meta.url), { force: true });
+  });
+  const baseline = pngBuffer(Buffer.from([255, 0, 0, 255, 0, 0, 255, 255]));
+  const changed = pngBuffer(Buffer.from([255, 0, 0, 255, 0, 255, 0, 255]));
+  await writeFile(join(dir, `${name}.png`), baseline);
+  const events = [];
+  await snapCheck(null, name, (label, ok) => events.push({ label, ok }), {
+    shot: changed,
+    baseDir: `${dir}/`,
+    threshold: 0,
+    maxDiffRatio: 0,
+  });
+  assert.deepEqual(events, [{ label: `snapshot ${name}`, ok: false }]);
+  assert.deepEqual(await readFile(join(dir, `${name}.png`)), baseline);
+});
 
 test("UPDATE_SHOTS keeps an existing baseline when decoded pixels are unchanged", async () => {
   withUpdateShots();

@@ -46,6 +46,8 @@ Independent authoring and measurement lanes:
   measured changes.07 still gates08/09 acceptance, not editable source authoring.
 
 Evidence ledger:
+- [Focused capture selection](assets/evidence/01/candidate-filter/review.md) keeps
+  requested detail checks bounded while preserving unfiltered scene coverage.
 - [06](assets/evidence/06/merged-validation.md) owns GPU playback contracts;
   [projected detail](assets/evidence/07/projected-lod.md) owns separate main/shadow
   representations and the explicitly reviewed controller shadow.

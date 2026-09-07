@@ -1171,3 +1171,18 @@ are fixed authoring views, not a decision about the nearest playable camera or
 the accepted performance budget. Later camera-envelope work may refine them;
 the formation evidence cannot substitute for that measurement or live battle
 acceptance. No alternate rendering path is introduced.
+
+### Apply explicit snapshot selection before candidate rendering (01)
+
+**Sound; confidence: high.** When an author requests only a hand-detail sheet,
+the candidate harness now renders and checks that sheet without first rendering
+every walk/run frame. The same existing comma-separated name selection controls
+scene admission and pixel comparison. Running without a filter still renders
+and checks the complete scene. An explicitly filtered run is therefore focused
+evidence, never evidence that the full model gate passed.
+
+The workbench plan requires repeatable iteration but leaves capture scheduling
+open. Keeping all rendering before the filter wastes minutes on unrelated poses;
+introducing a second quick harness would duplicate the rendering setup. Moving
+the shared selection earlier keeps one path and makes focused iteration practical.
+Future full acceptance must continue to use an unfiltered run.

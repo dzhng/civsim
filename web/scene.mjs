@@ -1,7 +1,7 @@
 import { mkdir, readdir, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { chromium } from "playwright";
-import { snapCheck } from "./snapshot.mjs";
+import { snapCheck, snapshotFilters, snapshotSelected } from "./snapshot.mjs";
 import { GPU_HARDWARE_FLAGS, GPU_SWIFTSHADER_FLAGS } from "./renderer-probe-lib.mjs";
 
 const TARGET = process.env.VERIFY_URL ?? "http://localhost:5173";
@@ -71,16 +71,11 @@ function matchesName(scene, names) {
 
 function matchesSnap(scene, filters) {
   if (filters.length === 0) return true;
-  return (scene.meta.snapshots ?? []).some((snap) =>
-    filters.some((filter) => snap.includes(filter)),
-  );
+  return (scene.meta.snapshots ?? []).some((snap) => snapshotSelected(snap, filters));
 }
 
 function selectScenes(all, { full, names, includeNames }) {
-  const snapFilters = (process.env.SNAP ?? "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const snapFilters = snapshotFilters();
   let selected = all;
 
   if (includeNames) {

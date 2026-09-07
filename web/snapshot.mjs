@@ -28,6 +28,17 @@ const SHOTS = new URL("./shots/", import.meta.url).pathname;
 const DIFF = new URL("./shots/diff/", import.meta.url).pathname;
 const activeRefreshes = new Map();
 
+export function snapshotFilters() {
+  return (process.env.SNAP ?? "")
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+export function snapshotSelected(name, filters = snapshotFilters()) {
+  return filters.length === 0 || filters.some((filter) => name.includes(filter));
+}
+
 function safeSnapshotPath(name) {
   if (name.startsWith("/") || name.split("/").some((part) => part === "..")) {
     throw new Error(`unsafe snapshot path: ${name}`);
@@ -114,11 +125,7 @@ export async function snapCheck(
   check,
   { threshold = 0.12, maxDiffRatio = 0.02, shot, baseDir = SHOTS } = {},
 ) {
-  // SNAP=<substr> runs only the snaps whose name contains <substr> (comma-OR).
-  // The harness still drives all setup, but unmatched snaps are skipped — no
-  // compare, no diff/actual written. Use it to iterate on one view fast.
-  const only = process.env.SNAP;
-  if (only && !only.split(",").some((s) => name.includes(s.trim()))) return;
+  if (!snapshotSelected(name)) return;
   safeSnapshotPath(name);
   // `shot` lets callers that already hold a PNG buffer (a composited contact
   // sheet, a reused frame) skip the page.screenshot(); otherwise grab one now.

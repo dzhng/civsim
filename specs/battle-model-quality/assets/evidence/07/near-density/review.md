@@ -89,6 +89,10 @@ submission tails at the lower-density controlled workload. Do not repeat the
 unchanged resolution sweep, round33.335 down to a pass, or infer that another
 triangle reduction alone will solve the remaining gate.
 
+The subsequent [CPU attribution](cpu-review.md) narrows the inspection to LOD
+planning and animation observation/sampling, with sampled GC overlap. It is a
+separate profiled diagnostic, not another acceptance timing run.
+
 Review: controls and raw measurement rows agree; no production code, test
 behavior, dependency or new runtime owner was added. The existing delegated
 measurement scope covers this parameter probe, so there is no new architectural

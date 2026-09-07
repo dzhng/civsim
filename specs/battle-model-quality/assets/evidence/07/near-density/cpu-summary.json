@@ -1,0 +1,541 @@
+{
+  "scope": "One 1ms CPU sampling diagnostic on lower-density5K interruption/control. Profiler starts before60 warmup frames. Not acceptance timing. Attributions approximate sample intervals and overlap, not exact function timers.",
+  "frames": 180,
+  "firstFrame": {
+    "frameId": 61,
+    "frameStartMs": 2712.475000023842,
+    "rafMs": 33.32999999999993,
+    "cpuFrameMs": 15.554999947547913,
+    "telemetryMs": 1.3050000667572021,
+    "advancedTicks": 1,
+    "activeRiderOverlays": 0,
+    "sampleTick": 40.9983,
+    "observedTicks": 1,
+    "observeMs": 3.084999918937683,
+    "sampleMs": 2.15500009059906,
+    "buildMs": 0.7749999761581421,
+    "uploadMs": 8.215000033378601,
+    "renderSubmitMs": 1.3249999284744263,
+    "start": 604690542346,
+    "gcMs": 1.502,
+    "sampledMs": 15.555
+  },
+  "cpuMs": 2777.519999027252,
+  "sampledMs": 2777.5199986572256,
+  "gcMs": 287.82399951171845,
+  "outsideMs": 3093.748001342772,
+  "self": [
+    {
+      "name": "<anonymous> http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/photoreal-renderer/src/battle/crowdLod.ts:23",
+      "ms": 323.58
+    },
+    {
+      "name": "(garbage collector) :0",
+      "ms": 287.82
+    },
+    {
+      "name": "<anonymous> http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/crowd-runtime/src/actionTimeline.ts:144",
+      "ms": 241.02
+    },
+    {
+      "name": "writeBuffer :0",
+      "ms": 204.46
+    },
+    {
+      "name": "playback http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/crowd-runtime/src/actionTimeline.ts:76",
+      "ms": 105.06
+    },
+    {
+      "name": "uploadFrame http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/photoreal-renderer/src/battle/crowdLayer.ts:200",
+      "ms": 101.08
+    },
+    {
+      "name": "resolveLocalSample http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/soldier-assets/src/localAnimation.ts:133",
+      "ms": 99.51
+    },
+    {
+      "name": "planPhotorealCrowdLods http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/photoreal-renderer/src/battle/crowdLod.ts:6",
+      "ms": 97.04
+    },
+    {
+      "name": "sample http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/crowd-runtime/src/actionTimeline.ts:57",
+      "ms": 96.6
+    },
+    {
+      "name": "buildCrowdInstances http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/crowd-runtime/src/instanceData.ts:5",
+      "ms": 82.15
+    },
+    {
+      "name": "sample http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/crowd-runtime/src/actionTimeline.ts:130",
+      "ms": 64.06
+    },
+    {
+      "name": "update http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/crowd-runtime/src/actionTimeline.ts:136",
+      "ms": 56.68
+    },
+    {
+      "name": "dot http://localhost:5174/node_modules/.vite/deps/three.core-Dlfi1hcQ.js:4562",
+      "ms": 55.86
+    },
+    {
+      "name": "prepare http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/renderer-core/src/playbackPacking.ts:31",
+      "ms": 51.72
+    },
+    {
+      "name": "intersectsSphere http://localhost:5174/node_modules/.vite/deps/three.core-Dlfi1hcQ.js:18518",
+      "ms": 48.05
+    },
+    {
+      "name": "<anonymous> http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/crowd-runtime/src/actionTimeline.ts:133",
+      "ms": 43.4
+    },
+    {
+      "name": "get snapshotBytes http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/crowd-runtime/src/actionTimeline.ts:119",
+      "ms": 43.4
+    },
+    {
+      "name": "clip http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/renderer-core/src/playbackPacking.ts:67",
+      "ms": 43.1
+    },
+    {
+      "name": "track http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/crowd-runtime/src/actionTimeline.ts:168",
+      "ms": 40.64
+    },
+    {
+      "name": "(program) :0",
+      "ms": 40.48
+    },
+    {
+      "name": "uploadBucket http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/photoreal-renderer/src/battle/crowdLayer.ts:302",
+      "ms": 38.57
+    },
+    {
+      "name": "<anonymous> http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/soldier-assets/src/localAnimation.ts:134",
+      "ms": 34.09
+    },
+    {
+      "name": "queueCrowdInstance http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/photoreal-renderer/src/battle/crowdLayer.ts:24",
+      "ms": 33.09
+    },
+    {
+      "name": "blend http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/crowd-runtime/src/actionTimeline.ts:64",
+      "ms": 29.31
+    },
+    {
+      "name": "heightAt http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/photoreal-renderer/src/battle/battleTerrainBuild.ts:46",
+      "ms": 26.93
+    },
+    {
+      "name": "distanceToPoint http://localhost:5174/node_modules/.vite/deps/three.core-Dlfi1hcQ.js:18253",
+      "ms": 26.25
+    },
+    {
+      "name": "assignLodForProjection http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/crowd-runtime/src/lod.ts:34",
+      "ms": 22.56
+    },
+    {
+      "name": "terrainHeightAt http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/game-renderer/src/terrain/heightField.ts:21",
+      "ms": 21.04
+    },
+    {
+      "name": "<anonymous> http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/crowd-runtime/src/actionTimeline.ts:170",
+      "ms": 20.85
+    },
+    {
+      "name": "upload http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/photoreal-renderer/src/battle/posePalette.ts:166",
+      "ms": 20.68
+    },
+    {
+      "name": "<anonymous> http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/photoreal-renderer/src/battle/crowdLayer.ts:266",
+      "ms": 18.9
+    },
+    {
+      "name": "<anonymous> :216",
+      "ms": 18.16
+    },
+    {
+      "name": "draw :145",
+      "ms": 17.91
+    },
+    {
+      "name": "updateSeating http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/photoreal-renderer/src/battle/battleWorld.ts:428",
+      "ms": 17.5
+    },
+    {
+      "name": "<anonymous> :1",
+      "ms": 17.44
+    }
+  ],
+  "inclusive": [
+    {
+      "name": "(root) :0",
+      "ms": 2777.52
+    },
+    {
+      "name": "<anonymous> :1",
+      "ms": 2429.1
+    },
+    {
+      "name": "draw :145",
+      "ms": 2350.1
+    },
+    {
+      "name": "drawInstances http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/photoreal-renderer/src/battle/battleWorld.ts:300",
+      "ms": 1276.09
+    },
+    {
+      "name": "upload http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/photoreal-renderer/src/battle/crowdLayer.ts:177",
+      "ms": 1222.63
+    },
+    {
+      "name": "uploadFrame http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/photoreal-renderer/src/battle/crowdLayer.ts:200",
+      "ms": 1215.12
+    },
+    {
+      "name": "planPhotorealCrowdLods http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/photoreal-renderer/src/battle/crowdLod.ts:6",
+      "ms": 619.72
+    },
+    {
+      "name": "<anonymous> http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/photoreal-renderer/src/battle/crowdLod.ts:23",
+      "ms": 521.18
+    },
+    {
+      "name": "update http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/crowd-runtime/src/actionTimeline.ts:136",
+      "ms": 439.22
+    },
+    {
+      "name": "upload http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/photoreal-renderer/src/battle/posePalette.ts:166",
+      "ms": 419.66
+    },
+    {
+      "name": "<anonymous> http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/crowd-runtime/src/actionTimeline.ts:144",
+      "ms": 381.03
+    },
+    {
+      "name": "(garbage collector) :0",
+      "ms": 287.82
+    },
+    {
+      "name": "sample http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/crowd-runtime/src/actionTimeline.ts:130",
+      "ms": 280.41
+    },
+    {
+      "name": "prepare http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/renderer-core/src/playbackPacking.ts:31",
+      "ms": 272
+    },
+    {
+      "name": "<anonymous> http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/crowd-runtime/src/actionTimeline.ts:133",
+      "ms": 217.84
+    },
+    {
+      "name": "render http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/photoreal-renderer/src/battle/battleWorld.ts:386",
+      "ms": 216.33
+    },
+    {
+      "name": "render http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/photoreal-renderer/src/world.ts:99",
+      "ms": 204.55
+    },
+    {
+      "name": "writeBuffer :0",
+      "ms": 204.46
+    },
+    {
+      "name": "updateAttribute http://localhost:5174/node_modules/.vite/deps/three_webgpu.js:54874",
+      "ms": 204.46
+    },
+    {
+      "name": "updateAttribute http://localhost:5174/node_modules/.vite/deps/three_webgpu.js:57954",
+      "ms": 204.46
+    },
+    {
+      "name": "update http://localhost:5174/node_modules/.vite/deps/three_webgpu.js:20886",
+      "ms": 204.46
+    },
+    {
+      "name": "_renderScene http://localhost:5174/node_modules/.vite/deps/three_webgpu.js:41949",
+      "ms": 201.79
+    },
+    {
+      "name": "render http://localhost:5174/node_modules/.vite/deps/three_webgpu.js:41852",
+      "ms": 201.79
+    },
+    {
+      "name": "render http://localhost:5174/node_modules/.vite/deps/three_webgpu.js:25722",
+      "ms": 201.79
+    },
+    {
+      "name": "render http://localhost:5174/node_modules/.vite/deps/three_webgpu.js:58459",
+      "ms": 201.79
+    },
+    {
+      "name": "render http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/photoreal-renderer/src/post/postChain.ts:151",
+      "ms": 201.79
+    },
+    {
+      "name": "_renderObjectDirect http://localhost:5174/node_modules/.vite/deps/three_webgpu.js:43217",
+      "ms": 193.01
+    },
+    {
+      "name": "renderObject http://localhost:5174/node_modules/.vite/deps/three_webgpu.js:43135",
+      "ms": 193.01
+    },
+    {
+      "name": "_renderObjects http://localhost:5174/node_modules/.vite/deps/three_webgpu.js:43027",
+      "ms": 193.01
+    },
+    {
+      "name": "playback http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/crowd-runtime/src/actionTimeline.ts:76",
+      "ms": 191.04
+    },
+    {
+      "name": "updateBeforeNode http://localhost:5174/node_modules/.vite/deps/three_webgpu.js:37527",
+      "ms": 185.51
+    },
+    {
+      "name": "updateBefore http://localhost:5174/node_modules/.vite/deps/three_webgpu.js:38760",
+      "ms": 185.51
+    },
+    {
+      "name": "clip http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/renderer-core/src/playbackPacking.ts:67",
+      "ms": 175.21
+    },
+    {
+      "name": "updateBefore http://localhost:5174/node_modules/.vite/deps/three_webgpu.js:27828",
+      "ms": 157.61
+    },
+    {
+      "name": "resolveLocalSample http://localhost:5174/@fs/Users/david/dev/game-battle-model-quality/packages/soldier-assets/src/localAnimation.ts:133",
+      "ms": 133.61
+    }
+  ],
+  "slowest": [
+    {
+      "frameId": 190,
+      "frameStartMs": 5735.884999990463,
+      "rafMs": 33.32999999999993,
+      "cpuFrameMs": 47.93500006198883,
+      "telemetryMs": 1.9849998950958252,
+      "advancedTicks": 1,
+      "activeRiderOverlays": 30000,
+      "sampleTick": 131.99460000000002,
+      "observedTicks": 1,
+      "observeMs": 22.09500002861023,
+      "sampleMs": 11.72000002861023,
+      "buildMs": 1.0899999141693115,
+      "uploadMs": 11.850000023841858,
+      "renderSubmitMs": 1.1800000667572021,
+      "start": 604693565756,
+      "gcMs": 15.372,
+      "sampledMs": 47.93500012207031
+    },
+    {
+      "frameId": 206,
+      "frameStartMs": 6119.379999995232,
+      "rafMs": 49.99499999999989,
+      "cpuFrameMs": 35.88499999046326,
+      "telemetryMs": 1.2050000429153442,
+      "advancedTicks": 2,
+      "activeRiderOverlays": 30000,
+      "sampleTick": 143.4942,
+      "observedTicks": 1,
+      "observeMs": 13.365000009536743,
+      "sampleMs": 8.259999990463257,
+      "buildMs": 0.8400000333786011,
+      "uploadMs": 12.15499997138977,
+      "renderSubmitMs": 1.2599999904632568,
+      "start": 604693949251,
+      "gcMs": 4.5920000000000005,
+      "sampledMs": 35.885000000000005
+    },
+    {
+      "frameId": 112,
+      "frameStartMs": 3894.695000052452,
+      "rafMs": 16.66500000000042,
+      "cpuFrameMs": 35.50499999523163,
+      "telemetryMs": 1.059999942779541,
+      "advancedTicks": 1,
+      "activeRiderOverlays": 30000,
+      "sampleTick": 76.49685000000001,
+      "observedTicks": 1,
+      "observeMs": 13.084999918937683,
+      "sampleMs": 7.555000066757202,
+      "buildMs": 1.1299999952316284,
+      "uploadMs": 12.399999976158142,
+      "renderSubmitMs": 1.3350000381469727,
+      "start": 604691724566,
+      "gcMs": 7.853,
+      "sampledMs": 35.504999999999995
+    },
+    {
+      "frameId": 124,
+      "frameStartMs": 4192.340000033379,
+      "rafMs": 16.670000000000073,
+      "cpuFrameMs": 31.55999994277954,
+      "telemetryMs": 0.7799999713897705,
+      "advancedTicks": 1,
+      "activeRiderOverlays": 30000,
+      "sampleTick": 85.49655000000003,
+      "observedTicks": 1,
+      "observeMs": 10.245000004768372,
+      "sampleMs": 2.799999952316284,
+      "buildMs": 2.340000033378601,
+      "uploadMs": 14.929999947547913,
+      "renderSubmitMs": 1.2400000095367432,
+      "start": 604692022211,
+      "gcMs": 7.689,
+      "sampledMs": 31.559999999999995
+    },
+    {
+      "frameId": 218,
+      "frameStartMs": 6386.504999995232,
+      "rafMs": 33.335000000000036,
+      "cpuFrameMs": 30.639999985694885,
+      "telemetryMs": 0.7799999713897705,
+      "advancedTicks": 1,
+      "activeRiderOverlays": 0,
+      "sampleTick": 151.49400000000003,
+      "observedTicks": 1,
+      "observeMs": 10.355000019073486,
+      "sampleMs": 3.1549999713897705,
+      "buildMs": 1.0199999809265137,
+      "uploadMs": 10.009999990463257,
+      "renderSubmitMs": 6.100000023841858,
+      "start": 604694216376,
+      "gcMs": 7.358999999999999,
+      "sampledMs": 30.64
+    },
+    {
+      "frameId": 89,
+      "frameStartMs": 3360.8849999904633,
+      "rafMs": 16.669999999999618,
+      "cpuFrameMs": 28.014999985694885,
+      "telemetryMs": 1.7400000095367432,
+      "advancedTicks": 1,
+      "activeRiderOverlays": 0,
+      "sampleTick": 60.497550000000004,
+      "observedTicks": 1,
+      "observeMs": 14.460000038146973,
+      "sampleMs": 0.8700000047683716,
+      "buildMs": 0.8999999761581421,
+      "uploadMs": 10.225000023841858,
+      "renderSubmitMs": 1.559999942779541,
+      "start": 604691190756,
+      "gcMs": 8.732999999999999,
+      "sampledMs": 28.015000000000004
+    },
+    {
+      "frameId": 207,
+      "frameStartMs": 6156.664999961853,
+      "rafMs": 33.335000000000036,
+      "cpuFrameMs": 27.585000038146973,
+      "telemetryMs": 0.6699999570846558,
+      "advancedTicks": 1,
+      "activeRiderOverlays": 30000,
+      "sampleTick": 144.49425,
+      "observedTicks": 1,
+      "observeMs": 9.47000002861023,
+      "sampleMs": 6.875,
+      "buildMs": 0.7699999809265137,
+      "uploadMs": 9.34500002861023,
+      "renderSubmitMs": 1.1200000047683716,
+      "start": 604693986536,
+      "gcMs": 2.56,
+      "sampledMs": 27.585
+    },
+    {
+      "frameId": 153,
+      "frameStartMs": 4866.100000023842,
+      "rafMs": 16.664999999999964,
+      "cpuFrameMs": 26.05999994277954,
+      "telemetryMs": 0.7850000858306885,
+      "advancedTicks": 1,
+      "activeRiderOverlays": 0,
+      "sampleTick": 105.49575,
+      "observedTicks": 1,
+      "observeMs": 7.105000019073486,
+      "sampleMs": 2.944999933242798,
+      "buildMs": 0.8450000286102295,
+      "uploadMs": 13.424999952316284,
+      "renderSubmitMs": 1.7350000143051147,
+      "start": 604692695971,
+      "gcMs": 3.081,
+      "sampledMs": 26.060000000000002
+    },
+    {
+      "frameId": 166,
+      "frameStartMs": 5162.235000014305,
+      "rafMs": 16.670000000000073,
+      "cpuFrameMs": 25.985000014305115,
+      "telemetryMs": 0.9149999618530273,
+      "advancedTicks": 1,
+      "activeRiderOverlays": 0,
+      "sampleTick": 114.49545,
+      "observedTicks": 1,
+      "observeMs": 6.894999980926514,
+      "sampleMs": 3.2549999952316284,
+      "buildMs": 0.8899999856948853,
+      "uploadMs": 13.350000023841858,
+      "renderSubmitMs": 1.590000033378601,
+      "start": 604692992106,
+      "gcMs": 4.553999999999999,
+      "sampledMs": 25.985
+    },
+    {
+      "frameId": 142,
+      "frameStartMs": 4597.409999966621,
+      "rafMs": 16.670000000000073,
+      "cpuFrameMs": 25.91000008583069,
+      "telemetryMs": 0.9199999570846558,
+      "advancedTicks": 1,
+      "activeRiderOverlays": 0,
+      "sampleTick": 97.49610000000001,
+      "observedTicks": 1,
+      "observeMs": 7.235000014305115,
+      "sampleMs": 3.1399999856948853,
+      "buildMs": 0.9550000429153442,
+      "uploadMs": 12.93999993801117,
+      "renderSubmitMs": 1.6400001049041748,
+      "start": 604692427281,
+      "gcMs": 3.035,
+      "sampledMs": 25.910000122070315
+    },
+    {
+      "frameId": 125,
+      "frameStartMs": 4224.879999995232,
+      "rafMs": 33.32999999999993,
+      "cpuFrameMs": 25.789999961853027,
+      "telemetryMs": 0.7750000953674316,
+      "advancedTicks": 1,
+      "activeRiderOverlays": 30000,
+      "sampleTick": 86.49645000000002,
+      "observedTicks": 1,
+      "observeMs": 7.840000033378601,
+      "sampleMs": 5.324999928474426,
+      "buildMs": 0.9300000667572021,
+      "uploadMs": 10.554999947547913,
+      "renderSubmitMs": 1.1399999856948853,
+      "start": 604692054751,
+      "gcMs": 3.021,
+      "sampledMs": 25.790000000000003
+    },
+    {
+      "frameId": 114,
+      "frameStartMs": 3957.8400000333786,
+      "rafMs": 33.33000000000038,
+      "cpuFrameMs": 25.539999961853027,
+      "telemetryMs": 1.1050000190734863,
+      "advancedTicks": 1,
+      "activeRiderOverlays": 30000,
+      "sampleTick": 78.49680000000001,
+      "observedTicks": 1,
+      "observeMs": 7.824999928474426,
+      "sampleMs": 7.810000061988831,
+      "buildMs": 0.8349999189376831,
+      "uploadMs": 7.875,
+      "renderSubmitMs": 1.190000057220459,
+      "start": 604691787711,
+      "gcMs": 6.040000000000001,
+      "sampledMs": 25.54
+    }
+  ]
+}

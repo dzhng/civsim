@@ -72,3 +72,9 @@ review found no concrete defect; unavailable CLI review is explicitly recorded
 in the isolated study. Fitting offsets and crown/rim proportions are reversible
 authoring discretion within the delegated helmet task, not a new universal
 collision policy. No simulation, clip, test behavior or acceptance gate changes.
+
+The non-blocking Preview checkpoint showed the combined head, prior head and
+combined ready pose. No feedback arrived within the review window; retain the
+bounded fitting improvement on the independent evidence above, not presumed
+user approval. Preview had no open documents when checked afterward. Whole-model
+acceptance remains open.

@@ -52,3 +52,8 @@ claimed CLI pass.
 
 No simulation tests, statistics, balance values, production assets or acceptance
 thresholds changed. No slice closes at this checkpoint.
+
+Root opened both sheets together in Preview while source work continued. After
+more than five minutes without feedback, the fixture was retained on the above
+evidence, not assumed user approval. A subsequent application check found Preview
+already closed; no unrelated application windows were closed.

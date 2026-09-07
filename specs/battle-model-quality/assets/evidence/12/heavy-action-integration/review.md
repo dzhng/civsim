@@ -69,6 +69,10 @@ the merged tree; this lane does not claim that pending independent repeat has
 already passed. Root explicitly chose that merged run instead of a redundant
 second complete local run after donor equality and immediate repeats passed.
 
+That independent merged run subsequently passed at the requested stopping
+checkpoint: all 577 heavy snapshots matched exactly, alongside all 358 medium
+snapshots, with no failures or page errors. See the [combined raw report](../final-actions-merged.json).
+
 ## Review and CPU checks
 
 Shape review keeps action composition in the existing source owner and film

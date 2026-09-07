@@ -8,8 +8,10 @@ Last updated **2026-09-08**. **01–06 complete;07 envelope open;08–11 provisi
 authoring;12–13 provisional authoring;14–30 pending.** Worktree: `/Users/david/dev/game-battle-model-quality`,
 branch `codex/battle-model-quality`. No detailed model or art envelope is accepted.
 
-Current pickup: **integrate the reviewed heavy attack and hit studies; author
-the medium's engine-faithful pike-ready pose**.
+**Stopped at David's requested commit-and-push checkpoint (2026-09-08).**
+The reviewed heavy attack/hit and medium held-pike ready studies are integrated
+as manual-only, provisional candidates. See the [checkpoint handoff](checkpoint.md)
+for verification and remaining work. Do not infer permission to resume from this plan.
 Protected directional selection and manual guarded-right integration are merged.
 The [root/attached-overlay candidate](assets/evidence/11/live-root-phase/review.md)
 passed numerical checks but failed the live comparison: unconditional prediction

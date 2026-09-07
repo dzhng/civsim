@@ -1,5 +1,10 @@
 # Medium held-pike ready — bounded pose study
 
+The independent merged-tree stopping gate subsequently passed all 358 medium
+snapshots unchanged (and 577 heavy snapshots), with no failures or page errors.
+See the [combined raw report](../final-actions-merged.json). This verifies the
+retained provisional checkpoint, not final support or combat-motion quality.
+
 This is an authored held-hedge ready pose, **not** an observed brace-strength
 state. The simulation remains canonical. No thrust, live binding, new state,
 timing change or final combat-motion acceptance is included at this checkpoint.

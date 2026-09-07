@@ -1699,3 +1699,19 @@ maintaining competing recipes that could disagree about the hand or shield.
 The plan required preserved unrelated actions but left recipe ownership open.
 Existing walk geometry and images remain controls; shared authoring does not
 mean that the two motions share accepted timing or stride calibration.
+
+### Compose reviewed actions without rebuilding the fitted soldier
+
+**Sound; confidence: high. Heavy integration9eedab4c.** Named donor actions are
+appended through the existing Blender motion owner, with compatible bind rigs
+and unchanged prior action keys checked before export. This preserves the fitted
+source and reviewed locomotion instead of rebuilding them with each new motion.
+The candidates remain manual-only; composition does not grant live admission.
+
+### Treat held-pike readiness as posture, not hidden brace strength
+
+**Sound; confidence: high. Medium readyb237d061.** The new static study depicts
+the engine's held hedge. The physical brace ramp is not exposed in the animation
+observation, so no renderer-only brace state or invented strength clock is added.
+Its provisional support pose still needs art work; animation must follow the
+canonical engine distinction rather than redefine it.

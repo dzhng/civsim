@@ -1,0 +1,55 @@
+{
+  "allSourceMeshCoordinatesAndFrozenActionKeysExact": true,
+  "holds": {
+    "idle": {
+      "durationSeconds": 6,
+      "sampledFrames": 181,
+      "rootPelvisFeetMatrixMaxDelta": 0,
+      "handToForearmMatrixMaxDelta": 2.384185791015625e-07,
+      "loopEndpointMatrixMaxDelta": 0.0,
+      "feet": {
+        "L": {
+          "ankle": [
+            0.12191560864448547,
+            0.004137527197599411,
+            0.09299999475479126
+          ],
+          "soleFloor": 2.525754538851288e-08
+        },
+        "R": {
+          "ankle": [
+            -0.12191560864448547,
+            0.004137527197599411,
+            0.09299999475479126
+          ],
+          "soleFloor": 2.525754538851288e-08
+        }
+      }
+    },
+    "ready": {
+      "durationSeconds": 6,
+      "sampledFrames": 181,
+      "rootPelvisFeetMatrixMaxDelta": 0,
+      "handToForearmMatrixMaxDelta": 2.384185791015625e-07,
+      "loopEndpointMatrixMaxDelta": 0.0,
+      "feet": {
+        "L": {
+          "ankle": [
+            0.1650013029575348,
+            -0.07500000298023224,
+            0.0930001437664032
+          ],
+          "soleFloor": 1.422148869778539e-07
+        },
+        "R": {
+          "ankle": [
+            -0.16500115394592285,
+            0.0699995756149292,
+            0.09300011396408081
+          ],
+          "soleFloor": 1.0365961600200535e-07
+        }
+      }
+    }
+  }
+}

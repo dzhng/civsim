@@ -1187,6 +1187,38 @@ introducing a second quick harness would duplicate the rendering setup. Moving
 the shared selection earlier keeps one path and makes focused iteration practical.
 Future full acceptance must continue to use an unfiltered run.
 
+### Replace hands locally without re-solving the whole body's weights (08)
+
+**Sound, provisional; confidence: medium.** When rebuilding a grip, only the new
+hand surface is combined and simplified. It is joined to the existing wrist edge
+and inherits nearby bone influences—the numbers that determine how skin follows
+the skeleton. Re-solving those influences for the entire body after a hand edit
+could change an already reviewed elbow or torso even though its shape did not
+change. The untouched body's existing positions and influences therefore remain.
+
+The plan asks for credible hands but leaves this offline construction method
+open. This gives subsequent hand revisions one local owner and keeps their
+effects reviewable. It does not freeze the current coarse palm or tubular fingers
+as the final design; wrist joins, gripping shape and future poses still require
+visual approval. No runtime fitting or extra animation system is introduced.
+
+### Convert authored forward at export while preserving editable source space (08–11)
+
+**Sound; confidence: high.** An authored soldier faced backward when moved through
+the production fixture. The exporter now turns the whole bound assembly into the
+engine's forward direction and then restores the editable Blender scene. Existing
+hand and equipment construction coordinates remain usable, while exported bones,
+skin and equipment agree with ordinary production movement. Detail-view cameras
+turn their source-space landmarks together; the travel fixture does not reverse
+its movement to hide the mismatch.
+
+The plan requires the production coordinate contract but did not prescribe
+whether to rewrite all authoring coordinates or convert at the file boundary.
+One shared exporter is the narrower owner. Future models using it must share its
+authoring convention; a model authored in another convention must deliberately
+resolve that boundary instead of adding a renderer exception. Re-exporting a
+frozen study preserves its saved actions rather than regenerating newer motion.
+
 ### Two-cycle prescribed travel review (11)
 
 **Sound; confidence: medium.** When reviewing walking or running, the candidate

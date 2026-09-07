@@ -78,3 +78,7 @@ The added static-selection test proves unrelated requests never access the
 travel page. Existing test behavior and thresholds are unchanged. Shape/diff/docs
 review retains one final same-page scene hook and no production runtime change.
 Fresh independent visual review remains root-owned before any acceptance.
+
+The [whole-export probe](forward-export-probe.md) establishes a sampled
+shape-preserving coordinate correction. Canonical asset rebuild and production
+recapture remain outstanding; the probe does not resolve this rejected smoke.

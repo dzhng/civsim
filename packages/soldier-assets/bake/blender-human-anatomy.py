@@ -123,6 +123,197 @@ def facial_form(body, sculpt):
         vertex.co.y = vertex.co.y*(1-blend)+face*blend
 
 
+def power_grip(body):
+    """Graft locally authored hands onto the weighted body's untouched wrist loops."""
+    from mathutils.geometry import barycentric_transform
+
+    surface = bmesh.new()
+    surface.from_mesh(body.data)
+    weights = surface.verts.layers.deform.active
+    uv = surface.loops.layers.uv.active
+    source = surface.copy()
+    source_weights = source.verts.layers.deform.active
+    reference = BVHTree.FromBMesh(source)
+    original_faces = list(source.faces)
+    if weights and any(len(face.verts) != 3 for face in original_faces):
+        raise RuntimeError("Weighted hand donor must be triangulated before interpolation")
+    for side, sign in (("L", 1), ("R", -1)):
+        wrist = Vector((sign*.515, -.018, .98))
+        along, across = Vector((sign*.60, 0, -.80)), Vector((sign*.80, 0, .60))
+        def point(u, a=0, d=0):
+            return wrist+along*u+across*a+Vector((0, d, 0))
+        def local(vertex):
+            delta = vertex.co-wrist
+            return delta.dot(along), delta.dot(across), delta.y
+        pieces = [loft("grip-palm."+side, [
+            (point(.033, 0, 0), .036, .021),
+            (point(.051, 0, -.002), .039, .018),
+            (point(.073, 0, -.003), .040, .015),
+            (point(.091, 0, -.003), .035, .012),
+            (point(.096, 0, -.001), .029, .010),
+        ], segments=24, across=across)]
+        def digit(name, sections, opposing=False):
+            obj = loft(name, sections, segments=12, across=across)
+            for i, (center, width, thickness) in enumerate(sections):
+                tangent = sections[min(i+1, len(sections)-1)][0]-sections[max(i-1, 0)][0]
+                width_axis = tangent.cross(Vector((0, 1, 0))).normalized() if opposing else across
+                depth = tangent.cross(width_axis).normalized()
+                for j in range(12):
+                    angle = math.tau*j/12
+                    obj.data.vertices[i*12+j].co = (
+                        center+width_axis*(width*math.cos(angle))+depth*(thickness*math.sin(angle)))
+            pieces.append(obj)
+        # Section profiles control finger pads and joint transitions separately.
+        for index, (a, stagger) in enumerate(((-.030, 0), (-.010, .004),
+                                              (.010, .001), (.030, -.003))):
+            digit(f"grip-finger-{index}.{side}", [
+                (point(.085, a, -.003), .0080, .0090),
+                (point(.106+stagger, a, -.004), .0082, .0090),
+                (point(.128+stagger, a, -.020), .0080, .0095),
+                (point(.130+stagger, a, -.033), .0072, .0080),
+                (point(.122+stagger, a, -.047), .0070, .0075),
+                (point(.113, a, -.054), .0078, .0093),
+                (point(.098+stagger, a, -.061), .0068, .0070),
+                (point(.092+stagger, a, -.059), .0035, .0040),
+            ])
+        digit("grip-thumb."+side, [
+            (point(.039, -.027, -.004), .015, .014),
+            (point(.060, -.036, -.020), .011, .011),
+            (point(.074, -.034, -.048), .010, .010),
+            (point(.075, -.026, -.061), .009, .009),
+            (point(.079, -.012, -.064), .008, .007),
+            (point(.078, -.006, -.064), .004, .004),
+        ], opposing=True)
+        bpy.ops.object.select_all(action="DESELECT")
+        for obj in pieces:
+            obj.select_set(True)
+        bpy.context.view_layer.objects.active = pieces[0]
+        bpy.ops.object.join()
+        hand = pieces[0]
+        normals = bmesh.new()
+        normals.from_mesh(hand.data)
+        bmesh.ops.recalc_face_normals(normals, faces=list(normals.faces))
+        normals.to_mesh(hand.data)
+        normals.free()
+        union = hand.modifiers.new("Local hand union", "REMESH")
+        union.mode, union.voxel_size = "VOXEL", .0014
+        union.use_smooth_shade = True
+        bpy.ops.object.modifier_apply(modifier=union.name)
+        smooth = hand.modifiers.new("Hand surface relaxation", "SMOOTH")
+        smooth.factor, smooth.iterations = .35, 3
+        bpy.ops.object.modifier_apply(modifier=smooth.name)
+        reduction = hand.modifiers.new("Hand curvature reduction", "DECIMATE")
+        reduction.ratio = .23
+        reduction.use_collapse_triangulate = True
+        bpy.ops.object.modifier_apply(modifier=reduction.name)
+        relax = hand.modifiers.new("Relax reduced hand facets", "SMOOTH")
+        relax.factor, relax.iterations = .25, 2
+        bpy.ops.object.modifier_apply(modifier=relax.name)
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.select_all(action="SELECT")
+        bpy.ops.uv.smart_project(island_margin=.02)
+        bpy.ops.object.mode_set(mode="OBJECT")
+        patch = bmesh.new()
+        patch.from_mesh(hand.data)
+        bpy.data.objects.remove(hand, do_unlink=True)
+        # Only the new hand is remeshed. The original wrist edge and every
+        # retained body vertex keep their coordinates, weights and UVs.
+        bmesh.ops.bisect_plane(patch, geom=list(patch.verts)+list(patch.edges)+list(patch.faces),
+                              dist=1e-7, plane_co=point(.045), plane_no=along,
+                              clear_inner=True, clear_outer=False)
+        removed = [v for v in surface.verts
+                   if v.co.x*sign > .49 and v.co.z < 1.02 and local(v)[0] > .035]
+        bmesh.ops.delete(surface, geom=removed, context="VERTS")
+        bmesh.ops.delete(surface, geom=[e for e in surface.edges if not e.link_faces], context="EDGES")
+        old_loop = {v for edge in surface.edges if edge.is_boundary
+                    for v in edge.verts if v.co.x*sign > .49 and v.co.z < 1.02}
+        new_loop = {v for edge in patch.edges if edge.is_boundary for v in edge.verts}
+        def ordered(vertices):
+            start = min(vertices, key=lambda v: math.atan2(local(v)[2], local(v)[1]))
+            result, previous, current = [], None, start
+            while current not in result:
+                result.append(current)
+                neighbors = [edge.other_vert(current) for edge in current.link_edges
+                             if edge.is_boundary and edge.other_vert(current) in vertices
+                             and edge.other_vert(current) != previous]
+                if not neighbors:
+                    raise RuntimeError("Hand wrist is not a closed boundary loop")
+                previous, current = current, neighbors[0]
+            if len(result) != len(vertices):
+                raise RuntimeError("Hand wrist has multiple boundary loops")
+            area = sum(local(a)[1]*local(b)[2]-local(b)[1]*local(a)[2]
+                       for a, b in zip(result, result[1:]+result[:1]))
+            if area < 0:
+                result = [result[0]]+list(reversed(result[1:]))
+            return result
+        if not old_loop or not new_loop:
+            raise RuntimeError("Hand graft lost its wrist boundary")
+        old_loop, new_loop = ordered(old_loop), ordered(new_loop)
+        def arc_lengths(loop):
+            lengths = [0]
+            for a, b in zip(loop, loop[1:]+loop[:1]):
+                lengths.append(lengths[-1]+(b.co-a.co).length)
+            return [value/lengths[-1] for value in lengths]
+        old_progress, new_progress = arc_lengths(old_loop), arc_lengths(new_loop)
+        mapping = {}
+        for vertex in patch.verts:
+            added = surface.verts.new(vertex.co)
+            mapping[vertex] = added
+            if weights:
+                p, _, face_index, _ = reference.find_nearest(vertex.co)
+                face = original_faces[face_index]
+                # The source is triangulated before weighting. Interpolate
+                # its existing field; never solve the body's heat weights again.
+                corners = list(face.verts)[:3]
+                bary = barycentric_transform(p, *(v.co for v in corners),
+                                             Vector((1, 0, 0)), Vector((0, 1, 0)), Vector((0, 0, 1)))
+                for corner, amount in zip(corners, bary):
+                    for group, weight in corner[source_weights].items():
+                        added[weights][group] = added[weights].get(group, 0)+weight*max(0, amount)
+                total = sum(added[weights].values())
+                for group in added[weights].keys():
+                    added[weights][group] /= total
+        patch_uv = patch.loops.layers.uv.active
+        new_faces = []
+        for face in patch.faces:
+            added = surface.faces.new([mapping[v] for v in face.verts])
+            new_faces.append(added)
+            added.smooth = True
+            if uv and patch_uv:
+                for dst, src in zip(added.loops, face.loops):
+                    dst[uv].uv = src[patch_uv].uv
+        new_loop = [mapping[v] for v in new_loop]
+        i = j = 0
+        while i < len(old_loop) or j < len(new_loop):
+            a, b = old_loop[i % len(old_loop)], new_loop[j % len(new_loop)]
+            old_next = old_progress[i+1] if i < len(old_loop) else math.inf
+            new_next = new_progress[j+1] if j < len(new_loop) else math.inf
+            if old_next < new_next:
+                corners = [a, old_loop[(i+1) % len(old_loop)], b]
+                i += 1
+            else:
+                corners = [a, new_loop[(j+1) % len(new_loop)], b]
+                j += 1
+            face = surface.faces.new(corners)
+            new_faces.append(face)
+            face.smooth = True
+            if uv:
+                coords = [(math.atan2(local(loop.vert)[2], local(loop.vert)[1])/math.tau+.5,
+                           local(loop.vert)[0]) for loop in face.loops]
+                wraps = max(p[0] for p in coords)-min(p[0] for p in coords) > .5
+                for loop, (angle, u) in zip(face.loops, coords):
+                    loop[uv].uv = ((angle+.5) % 1 if wraps else angle, u)
+        patch.free()
+        bmesh.ops.triangulate(surface, faces=new_faces)
+    bmesh.ops.recalc_face_normals(surface, faces=list(surface.faces))
+    if any(not edge.is_manifold for edge in surface.edges):
+        raise RuntimeError("Hand graft has an open or nonmanifold seam")
+    surface.to_mesh(body.data)
+    surface.free()
+    source.free()
+    body.data.update()
+
+
 def deform_candidate(sculpt):
     """Keep the sculpt editable while testing a provisional deformation mesh."""
     body = sculpt.copy()
@@ -210,6 +401,8 @@ def deform_candidate(sculpt):
     # Interpolate the already authored weights instead of re-solving the whole
     # body's heat field after a local facial topology edit.
     facial_form(body, sculpt)
+    power_grip(body)
+    power_grip(sculpt)
     deform_groups = {group.index for group in body.vertex_groups
                      if group.name in arm.data.bones and arm.data.bones[group.name].use_deform}
     for vertex in body.data.vertices:
@@ -329,7 +522,12 @@ def export_candidate(body, arm, output=OUTPUT, name="human-anatomy"):
     action = arm.animation_data.action
     if arm.animation_data.nla_tracks:
         arm.animation_data.action = None
+    # Editable anatomy faces -Y; exported native forward is +Y. Rotate the
+    # complete bound assembly, then restore authoring space before saving it.
+    authoring_matrix = arm.matrix_world.copy()
     try:
+        arm.matrix_world = Matrix.Rotation(math.pi, 4, "Z") @ authoring_matrix
+        bpy.context.view_layer.update()
         bpy.ops.export_scene.gltf(
             filepath=str(output / f"{name}.glb"), export_format="GLB",
             use_selection=True, use_active_scene=True, export_yup=True, export_skins=True,
@@ -342,6 +540,7 @@ def export_candidate(body, arm, output=OUTPUT, name="human-anatomy"):
             export_attributes=True,
         )
     finally:
+        arm.matrix_world = authoring_matrix
         arm.animation_data.action = action
         if action:
             arm.animation_data.action_slot = action.slots[0]

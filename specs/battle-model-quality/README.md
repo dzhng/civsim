@@ -17,10 +17,12 @@ Its fitting improvement does not accept the whole model or close08/09.
 
 Next integration checkpoint: judge the combined heavy's whole-body form,
 gameplay formation and genuinely timed moving-world locomotion together. Static
-phase sheets establish pose compatibility, not rhythm or ground sliding. Resolve
-the travel smoke's forward-axis mismatch first: the authored candidate faces
-opposite production travel. Correct the complete candidate export, not the
-renderer or the fixture's direction, before accepting locomotion. Resolve
+phase sheets establish pose compatibility, not rhythm or ground sliding. The
+[forward export correction](assets/evidence/11/heavy-travel/forward-export-probe.md)
+now has rebuilt assets, checked detail framing and a full deterministic travel
+sequence. It establishes forward orientation, not accepted locomotion. The saved
+motion study's original actions are preserved, not regenerated from newer keys.
+Resolve
 concrete garment/grip/deformation failures before reusing its construction, then
 start medium-phalanx authoring; do not require every isolated heavy detail to be
 finished before that first-pair comparison. All acceptance dependencies remain.
@@ -48,9 +50,11 @@ Independent authoring and measurement lanes:
 - **11 motion:** the [locomotion review](assets/evidence/11/heavy-run/review.md)
   owns actual pace and remaining contact/carry work. Old 1.53m/s walk captures
   are fitting evidence only, not gameplay-speed acceptance.
-  The [travel smoke](assets/evidence/11/heavy-travel/review.md) exposes the
-  candidate facing opposite production travel; align the whole export before
-  completing timed moving-world evidence. No fixture direction override.
+  The [travel evidence](assets/evidence/11/heavy-travel/forward-export-probe.md)
+  records the export correction and current consecutive-frame sequence. Torso
+  stiffness, low run recovery and fine ground sliding remain motion-review
+  targets; deterministic rendering does not accept them. No fixture direction
+  override.
 - **07 animated budget:** the reusable LOD result experiment was rejected after
   worse matched timing; its code is not integrated. Finish combined geometry,
   camera, physical-display, storage and executable asset limits using separately

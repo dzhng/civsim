@@ -24,6 +24,16 @@ limited and normalized to the runtime's four-influence contract; their bends
 must still be judged in the production workbench. Source density is not a
 performance budget.
 
+The final hand is a local post-weight reconstruction, not the preliminary curl
+used by the body's weight donor. Keeping that donor stable prevents a hand edit
+from changing the whole-body heat field. The hand alone is joined, relaxed and
+reduced, then grafted to the retained wrist loop by boundary arclength. Original
+retained vertices and weights do not move; new vertices interpolate and normalize
+the existing field. The final hand is present in both the editable sculpt and
+deform mesh. Its inspection UV islands are not a texture-ready skin atlas.
+Actual handle contact and natural anatomy are separate gates: a manifold,
+nonpenetrating grip can still look like parallel tubes and a slab palm.
+
 The [candidate baker](../../../bake/human-anatomy.mjs) shares one untextured body
 between the first pair's inspection entries. Its repeated tiers and manual-only
 clips are inspection inputs, not production-ready distance or gameplay assets.

@@ -119,8 +119,9 @@ export async function runCandidateSheet(
             clip,
             phase,
             formation: camera.formation ?? false,
-            target: camera.target,
-            yaw,
+            // Detail landmarks are authored in Blender's -Y-facing source space.
+            target: [-camera.target[0], -camera.target[1], camera.target[2]],
+            yaw: yaw + Math.PI,
             pitch: camera.pitch,
             zoom: camera.zoom,
           };

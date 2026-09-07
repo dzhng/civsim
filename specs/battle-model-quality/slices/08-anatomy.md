@@ -124,3 +124,10 @@ changing weights. Original bend and static sheet coverage remain intact; two
 supplemental named-clip timelines expose straight and bent pronation. Rigid grip
 tracking passes, but wrist pinch, angular elbow deformation and hooklike fingers
 remain unaccepted. Nominal handle clearance is still a separate failed contract.
+
+The [local hand reconstruction](../assets/evidence/08/power-grip/review.md) is an
+intermediate authoring checkpoint, not natural-hand acceptance. It preserves
+the original wrist/body field while testing actual equipment contact. Fresh
+review still rejects its slab palm, repeated rounded finger bands, bulbous thumb
+and pinched wrist. Continue a coherent hand-form revision; do not close this
+slice because contact and topology checks pass.

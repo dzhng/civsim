@@ -9,41 +9,35 @@ authoring;12–30 pending.** Worktree: `/Users/david/dev/game-battle-model-quali
 branch `codex/battle-model-quality`. No detailed model or art envelope is accepted.
 
 Current pickup: **engine-faithful protected travel and live root/phase agreement**.
-The [combined heavy motion](assets/evidence/11/composed-motion/review.md)
-is integrated and independently verified on the merged tree. Its one source recipe
-preserves fitted geometry and composes idle, ready, and run without accumulating
-offsets on repeated authoring. No live appearance is promoted. The
-[guarded backward action](assets/evidence/11/backward-integration/review.md)
-and [guarded left action](assets/evidence/11/left-integration/review.md)
-are integrated for manual review, preserving the other clips and fitted geometry;
-runtime selection and rightward authoring remain open. The left integration's
-404-image implementing-worktree gate passes; merged repeat is underway.
-[Measured-distance playback](assets/evidence/11/measured-distance/review.md)
-is integrated and independently verified on the merged tree. Clip calibration
-selects walk/run from measured pace and advances gait by observed travel;
-combat remains time-driven. Numerical comparison and reference shadow-history
-corrections preserve exact same-input image repeatability.
-[Motor-capable travel](assets/evidence/11/motor-capable-travel/review.md) is now
-integrated: disabled transport does not advance measured gait distance, while
-enabled recovery and routing do. Independent merged CPU, simulation/save and
-exact-image gates pass. Live root/phase agreement and prospective disabled/protected
-pose selection remain explicit acceptance gaps.
-The
-[carry-fit study](assets/evidence/11/carry-fit/review.md) records the rejected
-support attachments and current provisional fit. Prioritize whole-soldier
-proportions, equipment silhouette and full-body motion. David
-explicitly deferred small-detail polishing on 2026-09-07: hands must be
-serviceable, but isolated finger anatomy must not hold up the big visual forms.
-The reported outward-facing palm is a basic grip/pose defect, not permission to
-resume fine hand sculpting. The fitted
-[medium candidate](assets/evidence/09/medium-phalanx/review.md) now includes the
-[reviewed lower upright-pike march](assets/evidence/11/medium-walk-integration/review.md).
-The merged production gate preserves the original static sheets and matches the
-reviewed moving frames exactly. Right-arm bracing, flat footfall and pike-butt
-proximity remain provisional; runtime selection and dense engine-formation
-clearance are not accepted. Preserve its saved fitted source rather than rebuilding
-against a changed heavy donor. Do not flatten the shield to eliminate a contact
-failure or accept detail fixes without reviewing the whole model and formation.
+Parallel active passes: fractional root/attached-overlay alignment, prospective
+gait stopping at final incapacity, and manual guarded-right authoring. None is
+accepted yet. The [locomotion slice](slices/11-pair-locomotion.md) bounds their
+contracts; directional bindings follow them. No live appearance is promoted.
+
+Integrated locomotion evidence:
+
+- [Distance playback](assets/evidence/11/measured-distance/review.md) and
+  [motor-capable travel](assets/evidence/11/motor-capable-travel/review.md) pass
+  independent merged CPU, simulation/save and exact-image gates. Measured pace
+  owns gait; combat remains time-driven. Enabled recovery/routing count as travel,
+  disabled transport does not. This is not proof of voluntary steps or foot plants.
+- [Combined heavy motion](assets/evidence/11/composed-motion/review.md),
+  [backward](assets/evidence/11/backward-integration/review.md) and
+  [left](assets/evidence/11/left-integration/review.md) are manual candidates on
+  the fitted source. Preserve all unrelated clips and geometry. Left's404-image
+  implementing-worktree gate passes; merged repeat is underway. Narrow gathering,
+  low recovery clearance and restrained upper-body loading remain provisional.
+- The fitted [medium](assets/evidence/09/medium-phalanx/review.md) includes the
+  [lower upright-pike march](assets/evidence/11/medium-walk-integration/review.md),
+  with exact merged static/moving gates. Right-arm rigidity, flat footfall,
+  pike-butt proximity and dense engine-formation clearance remain open. Its saved
+  fitted source—not a rebuilt heavy donor—owns geometry.
+
+Prioritize whole-soldier proportions, equipment silhouette and full-body motion.
+David deferred small-detail polishing on2026-09-07. Correct basic handedness and
+palm orientation, but do not restart finger sculpting. The
+[carry-fit study](assets/evidence/11/carry-fit/review.md) owns provisional fit and
+rejected attachments; do not flatten the shield to conceal contact failures.
 
 David's shield-carry direction: in at-ease standing and ordinary walk/run, carry
 the shield beside the left flank, outward face pointing sideways and roughly
@@ -52,22 +46,16 @@ existing `atEase`/`ready` presentation roles; stationary does not itself imply
 at-ease. Both hands need correct handedness and palm orientation. Correct the
 connected arm/hand pose, not equipment alone; review the whole silhouette and
 leg clearance through the cycle. Backing away while facing a threat must not
-silently inherit relaxed forward-travel carry. The
-[signed-motion observation](assets/evidence/05/signed-motion/review.md) now
-preserves that direction; authored selection and protected travel remain open.
-The [guarded-facing observations](assets/evidence/11/guarded-observation/review.md)
-also preserve routing, current incapacitation and the engine's selected facing
-branch. They permit posture selection, not a claim that displacement is a
-voluntary step; shove-aware gait still needs evidence.
+silently inherit relaxed forward-travel carry. Existing
+[signed motion](assets/evidence/05/signed-motion/review.md) and
+[guarded-facing observations](assets/evidence/11/guarded-observation/review.md)
+preserve the engine's direction/posture distinctions; authored selection remains open.
 
 Priority order:
 - **Engine-faithful locomotion:** align fractional root placement with gait,
   stop prospective gait while disabled, then bind protected travel without
-  changing engine movement or combat timing. Preserve the
-  [combined motion source](assets/evidence/11/composed-motion/review.md) and its
-  unrelated clips; do not repeat composition or overwrite fitted geometry from
-  an older study. Upper-body weight response, ground contact and transitions
-  remain open. The [locomotion slice](slices/11-pair-locomotion.md) owns acceptance.
+  changing engine movement or combat timing. Upper-body weight response, ground
+  contact and transitions remain open. Do not overwrite fitted sources from older studies.
 - **Medium ordinary march:** retain the integrated lower carry provisionally;
   continue full-body motion and live binding, not another isolated hand study.
   Two-hand purchase, flank shield and pike length remain constraints. The
@@ -82,9 +70,8 @@ Priority order:
   provisional, not an anatomy fix. Review exposed axilla, actual cloth edges,
   both grips, shield and sidearm after carry changes. Fit armor/waist to the
   body once the carrying silhouette works; defer isolated face detail.
-- **07 budget:** [base packing](assets/evidence/07/settled-base-packing.md)
-  preserves51 focused CPU tests,675 browser checks and all40 temporal images.
-  Matched hardware A/B/A shows mixed cost changes and no cadence pass. The
+- **07 budget:** [base packing](assets/evidence/07/settled-base-packing.md) has
+  mixed hardware costs and no cadence pass. The
   [retirement cleanup](assets/evidence/07/frozen-retirement/review.md) and
   [near-density comparison](assets/evidence/07/near-density/review.md) do not pass
   the33ms animated envelope.07 gates art acceptance, not editable authoring.

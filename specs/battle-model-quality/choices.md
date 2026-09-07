@@ -1435,3 +1435,16 @@ editable geometry owner; the recipe owns motion, not a second copy of equipment
 construction. Its normal target is the combined heavy kit, while explicitly
 chosen input/output paths permit isolated studies. Future motion edits must
 preserve unrelated fitted surfaces rather than regenerate them incidentally.
+
+### Hold unchanged tangent bytes fixed for a motion-only comparison
+
+**Sound; confidence: medium. Idle study 3322d03f.** When comparing breathing
+against a static soldier, re-exported surface-shading directions can change
+slightly even though the mesh does not. The isolated study first proves that
+positions, topology, normals, texture coordinates and skin weights are identical,
+then copies the original tangent bytes into its comparison export. This removes
+an unrelated shading variable from a motion judgment. The spec required a
+controlled comparison but did not prescribe this exporter workaround. It is
+limited to the diagnostic export, not a general bake fallback; if any geometry
+attribute changes, those original tangents cannot be assumed valid. A normal
+fresh export still needs its own visual check before source promotion.

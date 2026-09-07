@@ -90,3 +90,15 @@ rejects the current model version. A separate in-app reviewer found no concrete
 preservation bug under the frozen source's XYZ rotations, expected action slots
 and muted NLA tracks. Its wording finding was corrected: idle/ready action
 metadata, interpolation and NLA duration change along with their rotation keys.
+
+## Merged-tree check
+
+The parent inspected all four ordered frame sheets and retained the same
+provisional verdict. Running the integrated recipe on the committed combined
+heavy-kit scene in isolated background Blender succeeds. Its exported rig,
+all 525 animation channels (times, values and interpolation), indices and
+non-tangent mesh attributes exactly match the reviewed study. Seven tangent
+scalar components differ from the pinned study export in this run. Thus recipe
+integration is proved, but this fresh GLB is not claimed pixel-identical and
+has not replaced the combined candidate. The full merged heavy-kit scene also
+passes with no page errors; that scene still uses the existing static holds.

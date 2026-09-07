@@ -66,8 +66,9 @@ Priority order:
   The isolated `throwaway/carry-forward-run` study improves forward posture only
   marginally; direct and fresh full-sequence review still find rigid upper-body
   carriage and weak landing/push-off. Do not repeat tiny trunk-only adjustments:
-  the next pass must improve whole-body load transfer. The separate idle/ready
-  breathing study is reviewed but not promoted; ready support stance is being
+  the next pass must improve whole-body load transfer. The separate
+  [idle/ready breathing study](assets/evidence/11/heavy-idle/review.md) has its
+  recipe and evidence integrated but no source promotion; ready support stance is being
   revised in `/Users/david/dev/game-heavy-idle-motion`.
 - **Medium equipment/surfaces:** retain the fitted sleeveless under-tunic as
   provisional, not an anatomy fix. Review exposed axilla, actual cloth edges,

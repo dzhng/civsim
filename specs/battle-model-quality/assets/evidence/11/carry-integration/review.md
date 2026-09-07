@@ -69,6 +69,12 @@ kept motion ownership in the existing recipe; documentation review distinguishes
 the combined source from the frozen older study. The integrating agent owns the
 parent spec's evidence link and ongoing human review.
 
+Parent integration check: on the combined branch, the heavy-kit bake check
+passes and `VERIFY_GPU=1 VERIFY_URL=http://localhost:5174 node scene.mjs heavy-kit`
+finishes with all checks passed and no page errors. No baseline was re-blessed
+for that verification. The separate idle-breathing recipe does not change the
+candidate catalog or those captured assets.
+
 ## Choices audit
 
 - **Sound, high confidence — preserve edited geometry as editable data.** Opening

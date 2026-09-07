@@ -145,3 +145,8 @@ The [connected-cage rejection](../assets/evidence/08/rejected-connected-hand/rev
 shows why shared topology alone is insufficient. The next hand pass must fit
 the cupped palm and held-equipment grasp frame together; the inherited handle
 placement is not an anatomical constraint.
+
+The [joint-grasp rejection](../assets/evidence/08/rejected-joint-grasp/review.md)
+shows that closer equipment enclosure still leaves mechanical fingers and a
+machined palm seam. Its expanded contact test also adds clinical blade/leg
+intersections. It is negative evidence, not a replacement for the retained hand.

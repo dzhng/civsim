@@ -2,6 +2,18 @@
   "beforeBlendSha256": "63b884ab9b2b0c7965162ed41087f6c0605735f4ff120d6f5a8cb688208e3fca",
   "capturedBlendSha256": "1cdf2ab5515059e6d8e5e0c6393378184213de8a6800ceff5bb16b804046eb7e",
   "capturedGlbSha256": "39cde9a147374cdd2dda1f4f7d3964361767481136ef699943c56847704ffa9c",
+  "preservedRigAndActions": {
+    "scope": "Exact before/captured Blender source hashes above; each listed hash is identical in both sources.",
+    "bindHash": "9b572a6a72a65d57ebc20ef7406fdcc3b2d3553152a4d246d72e64e5a3549564",
+    "actionHashes": {
+      "bend": "6401bb755a1b3d081a05bcb25175ce266f09cd896d3b95672fa5bc61ea9eaca0",
+      "pronation": "84fb7264e8d5b804021be736c2c10c36419637226dcc270972c3bc27648134d7",
+      "bend-pronation": "e7e62600a98c27071dd17506b3c6aae4e80bc30c0255cfe84431448b0a277d2e",
+      "ready": "b2920afed7ded1842d6694549fd418ece15aad02add2376ee75dab7f87fdc040",
+      "walk": "5a5673023fbe4b5adfdfcbea6b16b9ffd48ead7de6d877391cceb0d36b8d439d",
+      "run": "d8b3045b9cdbe037a379aea4c559bd0716118f412fac304cc7418539d1bb5acb"
+    }
+  },
   "beforeMeshHashes": {
     "HumanAnatomy-Sculpt": "b4bdfe4f8a1d947cfddecb52947bba99fa873c764379387c220e21913769cee8",
     "HumanAnatomy-Deform": "58c059ff62026aa6b145f1b6ab72b9084d2b58e7a1c51d7abcc4870f9d382a4b",

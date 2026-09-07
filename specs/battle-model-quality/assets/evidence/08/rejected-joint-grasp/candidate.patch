@@ -1,0 +1,207 @@
+diff --git a/packages/soldier-assets/bake/blender-heavy-kit.py b/packages/soldier-assets/bake/blender-heavy-kit.py
+index 540bd179..52af6066 100644
+--- a/packages/soldier-assets/bake/blender-heavy-kit.py
++++ b/packages/soldier-assets/bake/blender-heavy-kit.py
+@@ -283,17 +283,22 @@ def build():
+     loft("Shield boss", [((.565, y, .93), r, r) for y, r in
+          [(-.26, .075), (-.28, .075), (-.315, .053), (-.327, .009)]],
+          "hand.L", across=(1, 0, 0), depth=(0, 0, 1))
+-    shield_grip = Vector((.5732, -.051, .9024))
+-    shield_axis = Vector((.8, 0, .6))
++    shield_grip, shield_axis = anatomy.grasp_frame("L")
+     loft("Shield handgrip", [(shield_grip + shield_axis*t, .017, .017) for t in [-.060, .060]],
+          "hand.L", 24, (0, 1, 0), shield_axis.cross(Vector((0, 1, 0))))
++    shield.data.calc_loop_triangles()
++    shield_surface = BVHTree.FromPolygons([v.co for v in shield.data.vertices],
++        [tuple(t.vertices) for t in shield.data.loop_triangles], all_triangles=True)
+     for t in (-.060, .060):
+         end = shield_grip + shield_axis*t
+-        loft("Shield grip support", [((end.x, y, end.z), .012, .012) for y in [-.125, -.051]],
+-             "hand.L", 16, (1, 0, 0), (0, 0, 1))
++        contact = shield_surface.ray_cast(end, Vector((0,-1,0)))[0]
++        if contact is None:
++            raise RuntimeError("Authored shield grip support misses shield surface")
++        loft("Shield grip support", [(p, .007, .012) for p in (contact+Vector((0,-.001,0)), end)],
++             "hand.L", 16, shield_axis, shield_axis.cross(Vector((0,1,0))))
+     # Fit the cylinder across the finger curl; the inherited bend is not a combat pose.
+-    sword_grip = Vector((-.5732, -.051, .9024))
+-    sword_axis = Vector((.8, 0, -.6))
++    sword_grip, hand_axis = anatomy.grasp_frame("R")
++    sword_axis = -hand_axis
+     sword_width = sword_axis.cross(Vector((0, 1, 0)))
+     def sword_part(name, rows, segments=24):
+         return loft(name, [(sword_grip+sword_axis*t, width, depth) for t, width, depth in rows],
+diff --git a/packages/soldier-assets/bake/blender-human-anatomy.py b/packages/soldier-assets/bake/blender-human-anatomy.py
+index 40fb3cf8..a74dd17f 100644
+--- a/packages/soldier-assets/bake/blender-human-anatomy.py
++++ b/packages/soldier-assets/bake/blender-human-anatomy.py
+@@ -123,6 +123,15 @@ def facial_form(body, sculpt):
+         vertex.co.y = vertex.co.y*(1-blend)+face*blend
+ 
+ 
++def grasp_frame(side):
++    """The authored palm seat shared by skin and held equipment builders."""
++    sign = 1 if side == "L" else -1
++    wrist = Vector((sign*.515, -.018, .98))
++    along = Vector((sign*.60, 0, -.80))
++    across = Vector((sign*.80, 0, .60))
++    return wrist+along*.074+Vector((0,-.027,0)), (across-along*.18).normalized()
++
++
+ def power_grip(body):
+     """Graft locally authored hands onto the weighted body's untouched wrist loops."""
+     from mathutils.geometry import barycentric_transform
+@@ -145,72 +154,81 @@ def power_grip(body):
+         def local(vertex):
+             delta = vertex.co-wrist
+             return delta.dot(along), delta.dot(across), delta.y
++        seat, handle_axis = grasp_frame(side)
++        curl_axis = Vector((0,sign,0)).cross(handle_axis).normalized()
+         palm_sections = [
+-            (point(.033, -.005, -.001), .041, .023),
+-            (point(.049, -.004, -.001), .042, .021),
+-            (point(.065, -.001, .001), .040, .021),
+-            (point(.079, 0, .003), .039, .019),
+-            (point(.092, -.002, .004), .034, .015),
+-            (point(.104, -.006, .003), .022, .012),
+-            (point(.109, -.010, .002), .010, .007),
++            (point(.033,-.005,-.001), .041,.023),
++            (point(.046,-.004,-.001), .040,.023),
++            (point(.059,-.003,.000), .037,.025),
++            (point(.070,-.002,.001), .034,.023),
++            (point(.080,-.003,.002), .028,.019),
++            (point(.084,-.006,.003), .018,.013),
+         ]
+         palm = loft("grip-palm."+side, palm_sections, segments=24, across=across)
+-        # Thenar and little-finger pads flank a shallow volar cup. The existing
+-        # wrist seam stays unchanged; this is grasp volume, not skin detail.
+-        for i, (center, width, thickness) in enumerate(palm_sections):
++        for i, (center,width,thickness) in enumerate(palm_sections):
+             u = (center-wrist).dot(along)
+-            support = math.exp(-((u-.068)/.024)**4)
+             for j in range(24):
+                 angle = math.tau*j/24
+-                a, d = width*math.cos(angle), thickness*math.sin(angle)
++                a = width*math.cos(angle)
++                d = thickness*math.sin(angle)
+                 if d < 0:
+-                    pads = .009*math.exp(-((a+.025)/.014)**2)+.006*math.exp(-((a-.027)/.013)**2)
+-                    cup = .004*math.exp(-(a/.012)**2)
+-                    d += support*(cup-pads)*(-math.sin(angle))
+-                palm.data.vertices[i*24+j].co = center+across*a+Vector((0, d, 0))
++                    cup = .011*math.exp(-((u-.067)/.020)**2-(a/.024)**2)
++                    pads = .005*math.exp(-((a+.025)/.014)**2)+.004*math.exp(-((a-.024)/.013)**2)
++                    d += (-math.sin(angle))*(cup-pads)
++                else:
++                    # Metacarpal arch is part of the dorsal envelope.
++                    d += .003*math.exp(-((u-.063)/.022)**2)*math.sin(angle)
++                palm.data.vertices[i*24+j].co = center+across*a+Vector((0,d,0))
+         pieces = [palm]
+-        def digit(name, sections, opposing=False):
+-            obj = loft(name, sections, segments=12, across=across)
+-            for i, (center, width, thickness) in enumerate(sections):
+-                tangent = sections[min(i+1, len(sections)-1)][0]-sections[max(i-1, 0)][0]
+-                width_axis = tangent.cross(Vector((0, 1, 0))).normalized() if opposing else across
+-                depth = tangent.cross(width_axis).normalized()
++        def digit(name, sections, width_axis):
++            obj = loft(name, sections, segments=12, across=width_axis)
++            axis = width_axis.copy()
++            for i,(center,width,thickness) in enumerate(sections):
++                tangent = (sections[min(i+1,len(sections)-1)][0]-sections[max(i-1,0)][0]).normalized()
++                axis = (axis-tangent*axis.dot(tangent)).normalized()
++                depth = tangent.cross(axis).normalized()
+                 for j in range(12):
+                     angle = math.tau*j/12
+-                    # Fingers use rounded-rectangular cross-sections;
+-                    # the thumb retains a softer oval cross-section.
+-                    exponent = 1 if opposing else .78
+-                    c, s = math.cos(angle), math.sin(angle)
+-                    obj.data.vertices[i*12+j].co = (
+-                        center+width_axis*(width*math.copysign(abs(c)**exponent, c))
+-                        +depth*(thickness*math.copysign(abs(s)**exponent, s)))
++                    c,s = math.cos(angle),math.sin(angle)
++                    obj.data.vertices[i*12+j].co = (center
++                        +axis*(width*math.copysign(abs(c)**.90,c))
++                        +depth*(thickness*math.copysign(abs(s)**.90,s)))
+             pieces.append(obj)
+-        # The knuckle arch, shaft taper and different little-finger length
+-        # establish the hand's mass before any surface details are considered.
+-        for index, (a, knuckle, scale, tip_u, tip_d) in enumerate((
+-                (-.030, .108, 1, .086, -.053), (-.010, .111, 1.04, .080, -.048),
+-                (.010, .109, .96, .083, -.051), (.030, .114, .82, .098, -.060))):
+-            digit(f"grip-finger-{index}.{side}", [
+-                (point(.086, a*.94, .003), .0110*scale, .0120),
+-                (point(knuckle, a, -.006 if index != 3 else -.010), .0100*scale, .0100),
+-                (point(.118, a, -.010), .0082*scale, .0080),
+-                (point(.125, a, -.021), .0092*scale, .0090),
+-                (point(.126, a, -.033), .0080*scale, .0080),
+-                (point(.120, a, -.047), .0070*scale, .0068),
+-                (point(.110, a, -.056), .0080*scale, .0088),
+-                (point(.099 if index != 3 else .107, a*.98, -.061), .0071*scale, .0070),
+-                (point(tip_u+.004, a*.96, tip_d-.004), .0060*scale, .0060),
+-                (point(tip_u, a*.94, tip_d), .0025*scale, .0030),
+-            ])
++        for index,(a,scale,reach,curl) in enumerate((
++                (-.029,1.0,.001,.000),(-.009,1.04,.004,-.002),
++                (.011,.96,.002,-.001),(.029,.80,-.003,.004))):
++            base = seat+handle_axis*a
++            def finger(u,d):
++                return base+curl_axis*u+Vector((0,d,0))
++            mcp = finger(-.004+reach,.032)
++            pip = finger(.033+reach,-.002)
++            dip = finger(.013+reach,-.032+curl)
++            tip = finger(-.012+reach,-.023+curl)
++            if index == 3:
++                dip = finger(.023,-.023)
++                tip = finger(.014,-.027)
++            # These are articulated joint centers, with narrower shaft sections
++            # between them; the little finger has its own shortened closure.
++            digit(f"grip-finger-{index}."+side, [
++                (finger(-.022+reach,.026),.010*scale,.013),
++                (mcp,.010*scale,.012),
++                (mcp.lerp(pip,.35)+Vector((0,.004,0)),.009*scale,.009),
++                (mcp.lerp(pip,.70)+curl_axis*.004,.009*scale,.009),
++                (pip,.010*scale,.011),
++                (pip.lerp(dip,.48)+curl_axis*.004,.0085*scale,.0085),
++                (dip,.009*scale,.010),
++                (dip.lerp(tip,.60)+Vector((0,-.003,0)),.008*scale,.008),
++                (tip,.005*scale,.005),
++                (tip+(tip-dip).normalized()*.003,.001,.001),
++            ],handle_axis)
+         digit("grip-thumb."+side, [
+-            (point(.043, -.026, -.011), .016, .016),
+-            (point(.061, -.033, -.027), .013, .011),
+-            (point(.071, -.030, -.049), .010, .009),
+-            (point(.085, -.021, -.074), .010, .009),
+-            (point(.100, -.005, -.075), .009, .0075),
+-            (point(.111, .007, -.070), .0065, .0060),
+-            (point(.114, .011, -.066), .0035, .0035),
+-        ], opposing=True)
++            (point(.037,-.022,-.009),.016,.016),
++            (point(.049,-.032,-.020),.014,.014),
++            (seat-handle_axis*.039+Vector((0,-.023,0)),.012,.012),
++            (seat-handle_axis*.029+curl_axis*.012+Vector((0,-.046,0)),.011,.010),
++            (seat-handle_axis*.010+curl_axis*.012+Vector((0,-.049,0)),.009,.009),
++            (seat+handle_axis*.001+curl_axis*.008+Vector((0,-.046,0)),.004,.004),
++        ],along)
+         bpy.ops.object.select_all(action="DESELECT")
+         for obj in pieces:
+             obj.select_set(True)
+@@ -229,6 +247,17 @@ def power_grip(body):
+         smooth = hand.modifiers.new("Hand surface relaxation", "SMOOTH")
+         smooth.factor, smooth.iterations = .35, 3
+         bpy.ops.object.modifier_apply(modifier=smooth.name)
++        # The palm seat and inner pads are authored against the same physical
++        # cylinder as the held gear; the clearance is evaluated after reduction.
++        seat_tool = loft("grasp-seat."+side,
++                         [(seat+handle_axis*t,.0182,.0182) for t in (-.075,.075)],
++                         segments=48, across=curl_axis, depth=(0,1,0))
++        seat_cut = hand.modifiers.new("Palm and pad contact seat", "BOOLEAN")
++        seat_cut.operation = "DIFFERENCE"
++        seat_cut.object = seat_tool
++        bpy.context.view_layer.objects.active = hand
++        bpy.ops.object.modifier_apply(modifier=seat_cut.name)
++        bpy.data.objects.remove(seat_tool, do_unlink=True)
+         reduction = hand.modifiers.new("Hand curvature reduction", "DECIMATE")
+         reduction.ratio = .23
+         reduction.use_collapse_triangulate = True

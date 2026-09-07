@@ -64,3 +64,8 @@ geometry path is introduced. The independent source review and unavailable CLI
 attempt are documented in the frozen study; they are not misreported as a CLI
 pass. The offline ring-map choice is recorded in the choices ledger. Existing
 test behavior and thresholds are unchanged.
+
+Root opened the combined ready/head and matched prior-head views in Preview
+while independent helmet and garment work continued. After approximately five
+minutes without feedback, root retained the provisional material on the recorded
+evidence, not assumed user approval, and closed Preview. No art gate was waived.

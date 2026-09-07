@@ -30,8 +30,9 @@ Independent authoring and measurement lanes:
   supports a modest intermediate improvement, not finished anatomy. Body
   proportions, hands, joints, eye/lid form and the rear neck junction remain open.
   Clothing cannot establish anatomy acceptance.
-- **09/10 equipment and surfaces:** helmet fitting and locally modeled/baked mail
-  rings proceed in separate worktrees. Rear suspension straps, rigid linen cuffs,
+- **09/10 equipment and surfaces:** [combined mail](assets/evidence/10/combined-mail/review.md)
+  is retained through `7f755129`. Helmet fitting and whole-garment form now
+  proceed in separate worktrees. Rear suspension straps, rigid linen cuffs,
   hanging garment, underarms and grips remain open. Review the whole-heavy
   silhouette before propagating conventions to medium phalanx.
 - **11 motion:** the [locomotion review](assets/evidence/11/heavy-run/review.md)

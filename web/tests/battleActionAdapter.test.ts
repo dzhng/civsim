@@ -7,6 +7,7 @@ import { UNIT_INFO } from "@packages/game-renderer/src/battle/unitInfoLayout";
 import { APPEARANCE_DESCRIPTORS } from "@packages/soldier-assets/src/appearance";
 import {
   ACTION_TICK_SECONDS,
+  ActionTimeline,
   evaluatePlaybackPose,
 } from "@packages/crowd-runtime/src/actionTimeline";
 import { sampleRigLocalPose } from "@packages/soldier-assets/src/localPose";
@@ -21,6 +22,98 @@ beforeAll(async () => {
   wasm = await initWasm({
     module_or_path: await readFile(new URL("../src/wasm/game_wasm_bg.wasm", import.meta.url)),
   });
+});
+
+async function diagnosticGuardedBundle(appearanceId: number) {
+  const url = new URL(
+    `../public/assets/soldiers/appearances/${APPEARANCE_DESCRIPTORS[appearanceId].name}/appearance.json`,
+    import.meta.url,
+  );
+  const read = async (path: URL) => JSON.parse(await readFile(path, "utf8"));
+  const manifest = await read(url);
+  const bundle = {
+    manifest,
+    rig: await read(new URL(manifest.skeleton, url)),
+    animation: await read(new URL(manifest.animation, url)),
+  } as AppearanceBundle;
+  // Distinguishable block-fixture motion, not a detailed appearance admission.
+  const run = bundle.animation.clips.find(
+    (clip) => clip.name === manifest.presentation.actions.run.clip,
+  )!;
+  const guarded = { ...structuredClone(run), name: "diagnostic-backward", strideMeters: 1 };
+  bundle.animation.clips.push(guarded);
+  bundle.rig.clips.push({
+    ...structuredClone(bundle.rig.clips.find((clip) => clip.name === run.name)!),
+    name: guarded.name,
+  });
+  Object.assign(bundle.manifest.presentation!.actions, {
+    guardedBackwardWalk: { clip: guarded.name, layer: "fullBody" },
+    guardedLeftWalk: null,
+    guardedRightWalk: null,
+  });
+  return bundle;
+}
+
+test("targetless Disengage selects protected travel only when the actual engine is not at ease", async () => {
+  for (const [unitClass, evade] of [
+    [0, false],
+    [3, false],
+    [5, true],
+  ] as const)
+    for (const enemyX of [80, 30]) {
+      const game = new Game(59);
+      try {
+        game.spawn_class(0, 0, 0, 10, 5, unitClass, 0);
+        game.spawn_class(enemyX, 0, Math.PI, 10, 5, 0, 1);
+        if (evade) game.set_move_order(0, -30, 0);
+        else game.set_disengage_order(0, -30, 0);
+        const adapter = new BattleActionAdapter(game, wasm.memory);
+        const first = adapter.read(0).observations[0];
+        game.tick();
+        const observation = adapter.read(1).observations[0];
+        expect(observation).toMatchObject({
+          atEase: enemyX === 80,
+          guardedFacing: true,
+          routing: false,
+          incapacitated: false,
+          fighting: false,
+        });
+        expect(observation.forwardMps).toBeLessThan(-Math.abs(observation.lateralMps));
+        if (unitClass === 3) {
+          expect(observation.pikeReady).toBe(true);
+          expect(APPEARANCE_DESCRIPTORS[observation.appearanceId].selection.state).toBe(
+            enemyX === 80 ? "atEase" : "primary",
+          );
+          const views = createBattleViews(game, wasm.memory);
+          const facing = views.unitInfo()[UNIT_INFO.facing];
+          const travel = views.motorTravel();
+          expect(observation.forwardMps).toBeCloseTo(
+            (travel[0] * Math.cos(facing) + travel[1] * Math.sin(facing)) / ACTION_TICK_SECONDS,
+            10,
+          );
+        }
+        const bundle = await diagnosticGuardedBundle(observation.appearanceId);
+        const timeline = new ActionTimeline({
+          [first.appearanceId]: await diagnosticGuardedBundle(first.appearanceId),
+          [observation.appearanceId]: bundle,
+        });
+        timeline.update(0, [first]);
+        timeline.update(1, [observation]);
+        const playback = timeline.sample(10)[0];
+        const ordinaryBundle = structuredClone(bundle);
+        ordinaryBundle.manifest.presentation!.actions.guardedBackwardWalk = null;
+        const ordinary = new ActionTimeline({ [observation.appearanceId]: ordinaryBundle });
+        ordinary.update(1, [observation]);
+        const expected =
+          enemyX === 30 ? "diagnostic-backward" : ordinary.sample()[0].base.destination.clip;
+        expect(playback.base.destination.clip).toBe(expected);
+        expect(Array.from(evaluatePlaybackPose(bundle, playback))).toEqual(
+          Array.from(sampleRigLocalPose(bundle.rig, expected, playback.base.destination.phase)),
+        );
+      } finally {
+        game.free();
+      }
+    }
 });
 
 test("production crowd submits distance-driven poses despite contrary ordered pace", async () => {
@@ -333,7 +426,7 @@ test("engine targetless withdrawal reaches the real held-pike adapter without sy
   }
 });
 
-test("actual routing ticks reach batched motor-travel observations in the displayed facing", () => {
+test("actual routing ticks reach batched motor-travel observations in the displayed facing", async () => {
   const game = new Game(71);
   try {
     game.spawn_class(0, 0, 0, 1, 1, 0, 0);
@@ -364,6 +457,10 @@ test("actual routing ticks reach batched motor-travel observations in the displa
       (dx * Math.sin(facings[0]) - dy * Math.cos(facings[0])) / seconds,
       12,
     );
+    const bundle = await diagnosticGuardedBundle(observation.appearanceId);
+    const timeline = new ActionTimeline({ [observation.appearanceId]: bundle });
+    timeline.update(20, [observation]);
+    expect(timeline.sample()[0].base.destination.clip).not.toBe("diagnostic-backward");
   } finally {
     game.free();
   }

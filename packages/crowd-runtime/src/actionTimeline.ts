@@ -1,4 +1,5 @@
 import type { AppearancePresentation, ActionRole } from "../../soldier-assets/src/presentation";
+import { isGaitRole } from "../../soldier-assets/src/presentation";
 import type { LocalAnimationClip } from "../../soldier-assets/src/localAnimation";
 import { marchingStateForSpeed } from "./animationState";
 import type { ImportedRig } from "../../soldier-assets/src/rig";
@@ -26,8 +27,8 @@ export interface ActionObservation {
   /** Current engine steering-disable condition (stunned or bowled). */
   incapacitated: boolean;
   /** Selected defensive/retained facing branch of the displayed-facing owner.
-   * Alive, nonrouting, nonincapacitated nonforward motion permits a guarded
-   * posture, not a claim of deliberate stepping: displacement can include a shove. */
+   * Protection also requires !atEase: safe withdrawal can retain facing.
+   * Not stepping authority: enabled displacement can include a shove. */
   guardedFacing: boolean;
   atEase: boolean;
   /** The current weapon supports a held pike pose, not proof of physical bracing. */
@@ -331,8 +332,7 @@ export class ActionTimeline {
           ? speed > (nominalSpeed("walk") + nominalSpeed("run")) / 2
           : history?.base.current.role === "run";
       const oldGait =
-        history?.appearanceId === observation.appearanceId &&
-        (history.base.current.role === "walk" || history.base.current.role === "run")
+        history?.appearanceId === observation.appearanceId && isGaitRole(history.base.current.role)
           ? history.base.current.role
           : undefined;
       const standing: ActionRole = observation.atEase
@@ -340,12 +340,28 @@ export class ActionTimeline {
         : observation.pikeReady && presentation.actions.pikeReady
           ? "pikeReady"
           : "ready";
+      const { forwardMps, lateralMps } = observation;
+      const direction: ActionRole | undefined =
+        Math.abs(lateralMps) > Math.abs(forwardMps)
+          ? lateralMps < 0
+            ? "guardedLeftWalk"
+            : "guardedRightWalk"
+          : forwardMps < 0
+            ? "guardedBackwardWalk"
+            : undefined;
+      const protectedRole =
+        moving &&
+        !observation.atEase &&
+        observation.guardedFacing &&
+        !observation.routing &&
+        direction &&
+        presentation.actions[direction]
+          ? direction
+          : undefined;
       const background: ActionRole = observation.incapacitated
         ? (oldGait ?? standing)
         : moving
-          ? run
-            ? "run"
-            : "walk"
+          ? (protectedRole ?? (run ? "run" : "walk"))
           : standing;
       const role: ActionRole = !observation.alive
         ? "death"
@@ -358,7 +374,7 @@ export class ActionTimeline {
               : background;
       const track = (role: ActionRole): Track => {
         const clip = actionClip(role);
-        const locomotion = role === "walk" || role === "run";
+        const locomotion = isGaitRole(role);
         const phaseRate = locomotion && !observation.incapacitated ? speed / clip.strideMeters! : 0;
         const old =
           history?.appearanceId === observation.appearanceId ? history.base.current : undefined;

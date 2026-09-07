@@ -7,6 +7,9 @@ export const ACTION_ROLES = [
   "atEase",
   "walk",
   "run",
+  "guardedBackwardWalk",
+  "guardedLeftWalk",
+  "guardedRightWalk",
   "melee",
   "release",
   "hit",
@@ -14,6 +17,15 @@ export const ACTION_ROLES = [
   "pikeReady",
 ] as const;
 export type ActionRole = (typeof ACTION_ROLES)[number];
+export function isGaitRole(role: ActionRole): boolean {
+  return (
+    role === "walk" ||
+    role === "run" ||
+    role === "guardedBackwardWalk" ||
+    role === "guardedLeftWalk" ||
+    role === "guardedRightWalk"
+  );
+}
 export type ActionBinding = { clip: string; layer: "fullBody" | "riderUpperBody" } | null;
 export interface AppearancePresentation {
   actions: Record<ActionRole, ActionBinding>;
@@ -68,10 +80,10 @@ export function assertAppearancePresentation(
     ) {
       throw new Error(`presentation ${role} has an invalid action layer`);
     }
-    const repeating = ["ready", "atEase", "walk", "run", "pikeReady"].includes(role);
+    const repeating = isGaitRole(role) || ["ready", "atEase", "pikeReady"].includes(role);
     if (clip.loop !== repeating)
       throw new Error(`presentation ${role} has incompatible clip looping`);
-    if ((role === "walk" || role === "run") !== (clip.strideMeters !== undefined))
+    if (isGaitRole(role) !== (clip.strideMeters !== undefined))
       throw new Error(`presentation ${role} has incompatible stride calibration`);
     if (!repeating && (clip.duration <= 0 || clip.times.length < 2))
       throw new Error(`presentation ${role} requires sampled motion`);

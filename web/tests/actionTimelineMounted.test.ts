@@ -77,6 +77,9 @@ const presentation: AppearancePresentation = {
     hit: { clip: "hit", layer: "fullBody" },
     death: { clip: "death", layer: "fullBody" },
     pikeReady: null,
+    guardedBackwardWalk: null,
+    guardedLeftWalk: null,
+    guardedRightWalk: null,
   },
 };
 const appearance = { manifest: { presentation }, animation: { clips }, rig };
@@ -155,23 +158,31 @@ test("speed correction keeps the old composed interruption source while the unma
 });
 
 test("final incapacity holds corrected lower gait without freezing a masked release", () => {
-  const timeline = new ActionTimeline({ 0: appearance });
-  timeline.update(0, [observation({ speedMps: 0.8 })]);
-  timeline.update(1, [observation({ speedMps: 0.8 })]);
-  const before = pose(timeline.sample(2)[0]);
-  timeline.update(2, [observation({ speedMps: 1.2, releaseTtl: 0.5, incapacitated: true })]);
-  const playback = timeline.sample()[0];
-  assert.equal(playback.riderUpperBody!.source.kind, "frozen");
-  if (playback.riderUpperBody!.source.kind !== "frozen") throw new Error("expected owned pose");
-  assert.deepEqual(playback.riderUpperBody!.source.locals, Array.from(before));
-  const after = pose(playback);
-  assert.deepEqual(after.slice(20), before.slice(20));
-  assert.notDeepEqual(after.slice(0, 20), before.slice(0, 20));
-  const later = timeline.sample(2.75)[0];
-  assert.deepEqual(later.base.destination, playback.base.destination);
-  assert.deepEqual(pose(later).slice(0, 20), after.slice(0, 20));
-  assert.notDeepEqual(later.riderUpperBody!.destination, playback.riderUpperBody!.destination);
-  assert.notDeepEqual(pose(later).slice(20), after.slice(20));
+  for (const guardedFacing of [false, true]) {
+    const guardedAppearance = structuredClone(appearance);
+    guardedAppearance.manifest.presentation.actions.guardedBackwardWalk = {
+      clip: "walk",
+      layer: "fullBody",
+    };
+    const timeline = new ActionTimeline({ 0: guardedAppearance });
+    const motion = { speedMps: 0.8, forwardMps: -1, guardedFacing };
+    timeline.update(0, [observation(motion)]);
+    timeline.update(1, [observation(motion)]);
+    const before = pose(timeline.sample(2)[0]);
+    timeline.update(2, [observation({ speedMps: 1.2, releaseTtl: 0.5, incapacitated: true })]);
+    const playback = timeline.sample()[0];
+    assert.equal(playback.riderUpperBody!.source.kind, "frozen");
+    if (playback.riderUpperBody!.source.kind !== "frozen") throw new Error("expected owned pose");
+    assert.deepEqual(playback.riderUpperBody!.source.locals, Array.from(before));
+    const after = pose(playback);
+    assert.deepEqual(after.slice(20), before.slice(20));
+    assert.notDeepEqual(after.slice(0, 20), before.slice(0, 20));
+    const later = timeline.sample(2.75)[0];
+    assert.deepEqual(later.base.destination, playback.base.destination);
+    assert.deepEqual(pose(later).slice(0, 20), after.slice(0, 20));
+    assert.notDeepEqual(later.riderUpperBody!.destination, playback.riderUpperBody!.destination);
+    assert.notDeepEqual(pose(later).slice(20), after.slice(20));
+  }
 });
 
 test("mounted overlay enters from the displayed pose during a base crossfade", () => {

@@ -40,6 +40,9 @@
           "loop": true,
           "strideMeters": 2.21
         },
+        "guardedBackwardWalk": null,
+        "guardedLeftWalk": null,
+        "guardedRightWalk": null,
         "melee": {
           "clip": "attack_a",
           "layer": "fullBody",
@@ -97,6 +100,9 @@
           "loop": true,
           "strideMeters": 2.21
         },
+        "guardedBackwardWalk": null,
+        "guardedLeftWalk": null,
+        "guardedRightWalk": null,
         "melee": {
           "clip": "attack_a",
           "layer": "fullBody",
@@ -154,6 +160,9 @@
           "loop": true,
           "strideMeters": 2.21
         },
+        "guardedBackwardWalk": null,
+        "guardedLeftWalk": null,
+        "guardedRightWalk": null,
         "melee": {
           "clip": "attack_a",
           "layer": "fullBody",
@@ -211,6 +220,9 @@
           "loop": true,
           "strideMeters": 2.21
         },
+        "guardedBackwardWalk": null,
+        "guardedLeftWalk": null,
+        "guardedRightWalk": null,
         "melee": {
           "clip": "attack_a",
           "layer": "fullBody",
@@ -273,6 +285,9 @@
           "loop": true,
           "strideMeters": 2.21
         },
+        "guardedBackwardWalk": null,
+        "guardedLeftWalk": null,
+        "guardedRightWalk": null,
         "melee": {
           "clip": "attack_a",
           "layer": "fullBody",
@@ -338,6 +353,9 @@
           "loop": true,
           "strideMeters": 2.21
         },
+        "guardedBackwardWalk": null,
+        "guardedLeftWalk": null,
+        "guardedRightWalk": null,
         "melee": {
           "clip": "attack_a",
           "layer": "fullBody",
@@ -408,6 +426,9 @@
           "loop": true,
           "strideMeters": 2.21
         },
+        "guardedBackwardWalk": null,
+        "guardedLeftWalk": null,
+        "guardedRightWalk": null,
         "melee": {
           "clip": "attack_a",
           "layer": "riderUpperBody",
@@ -470,6 +491,9 @@
           "loop": true,
           "strideMeters": 2.21
         },
+        "guardedBackwardWalk": null,
+        "guardedLeftWalk": null,
+        "guardedRightWalk": null,
         "melee": {
           "clip": "attack_a",
           "layer": "riderUpperBody",
@@ -535,6 +559,9 @@
           "loop": true,
           "strideMeters": 2.21
         },
+        "guardedBackwardWalk": null,
+        "guardedLeftWalk": null,
+        "guardedRightWalk": null,
         "melee": {
           "clip": "attack_a",
           "layer": "fullBody",
@@ -600,6 +627,9 @@
           "loop": true,
           "strideMeters": 2.21
         },
+        "guardedBackwardWalk": null,
+        "guardedLeftWalk": null,
+        "guardedRightWalk": null,
         "melee": {
           "clip": "attack_a",
           "layer": "fullBody",
@@ -657,6 +687,9 @@
           "loop": true,
           "strideMeters": 2.21
         },
+        "guardedBackwardWalk": null,
+        "guardedLeftWalk": null,
+        "guardedRightWalk": null,
         "melee": {
           "clip": "attack_a",
           "layer": "fullBody",
@@ -714,6 +747,9 @@
           "loop": true,
           "strideMeters": 2.21
         },
+        "guardedBackwardWalk": null,
+        "guardedLeftWalk": null,
+        "guardedRightWalk": null,
         "melee": {
           "clip": "attack_a",
           "layer": "fullBody",
@@ -771,6 +807,9 @@
           "loop": true,
           "strideMeters": 2.21
         },
+        "guardedBackwardWalk": null,
+        "guardedLeftWalk": null,
+        "guardedRightWalk": null,
         "melee": {
           "clip": "attack_a",
           "layer": "fullBody",
@@ -828,6 +867,9 @@
           "loop": true,
           "strideMeters": 2.21
         },
+        "guardedBackwardWalk": null,
+        "guardedLeftWalk": null,
+        "guardedRightWalk": null,
         "melee": {
           "clip": "attack_a",
           "layer": "fullBody",
@@ -885,6 +927,9 @@
           "loop": true,
           "strideMeters": 2.21
         },
+        "guardedBackwardWalk": null,
+        "guardedLeftWalk": null,
+        "guardedRightWalk": null,
         "melee": {
           "clip": "attack_a",
           "layer": "fullBody",
@@ -952,6 +997,9 @@
           "loop": true,
           "strideMeters": 2.21
         },
+        "guardedBackwardWalk": null,
+        "guardedLeftWalk": null,
+        "guardedRightWalk": null,
         "melee": {
           "clip": "attack_a",
           "layer": "riderUpperBody",
@@ -1009,6 +1057,9 @@
           "loop": true,
           "strideMeters": 2.21
         },
+        "guardedBackwardWalk": null,
+        "guardedLeftWalk": null,
+        "guardedRightWalk": null,
         "melee": {
           "clip": "attack_a",
           "layer": "fullBody",
@@ -1066,6 +1117,9 @@
           "loop": true,
           "strideMeters": 2.21
         },
+        "guardedBackwardWalk": null,
+        "guardedLeftWalk": null,
+        "guardedRightWalk": null,
         "melee": {
           "clip": "attack_a",
           "layer": "fullBody",
@@ -1123,6 +1177,9 @@
           "loop": true,
           "strideMeters": 2.21
         },
+        "guardedBackwardWalk": null,
+        "guardedLeftWalk": null,
+        "guardedRightWalk": null,
         "melee": {
           "clip": "attack_a",
           "layer": "fullBody",
@@ -1180,6 +1237,9 @@
           "loop": true,
           "strideMeters": 2.21
         },
+        "guardedBackwardWalk": null,
+        "guardedLeftWalk": null,
+        "guardedRightWalk": null,
         "melee": {
           "clip": "attack_a",
           "layer": "fullBody",

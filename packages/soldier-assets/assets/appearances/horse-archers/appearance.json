@@ -25,6 +25,9 @@
         "clip": "run",
         "layer": "fullBody"
       },
+      "guardedBackwardWalk": null,
+      "guardedLeftWalk": null,
+      "guardedRightWalk": null,
       "melee": {
         "clip": "attack_a",
         "layer": "riderUpperBody"

@@ -35,6 +35,9 @@ export function mountedTemporalFixture(source: AppearanceBundle): AppearanceBund
       death: { clip: "fixture-fullbody-terminal", layer: "fullBody" },
       melee: null,
       pikeReady: null,
+      guardedBackwardWalk: null,
+      guardedLeftWalk: null,
+      guardedRightWalk: null,
     },
   };
   assertAppearancePresentation(fixture.manifest.presentation, fixture.rig, fixture.animation, true);

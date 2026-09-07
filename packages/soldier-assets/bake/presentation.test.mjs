@@ -26,6 +26,27 @@ await once(server, "listening");
 const base = `http://127.0.0.1:${server.address().port}/`;
 try {
   const catalog = await loadAppearanceCatalog(`${base}catalog.json`);
+  const guardedPath = "appearances/heavy-sword/appearance.json";
+  const guardedOriginal = structuredClone(files[guardedPath]);
+  for (const role of ["guardedBackwardWalk", "guardedLeftWalk", "guardedRightWalk"]) {
+    files[guardedPath] = structuredClone(guardedOriginal);
+    files[guardedPath].presentation.actions[role] = { clip: "march", layer: "fullBody" };
+    assert.equal(
+      (await loadAppearanceBundle(`${base}${guardedPath}`)).manifest.presentation.actions[role]
+        .clip,
+      "march",
+    );
+    for (const binding of [
+      undefined,
+      { clip: "idle", layer: "fullBody" },
+      { clip: "march", layer: "riderUpperBody" },
+      { clip: "missing", layer: "fullBody" },
+    ]) {
+      files[guardedPath].presentation.actions[role] = binding;
+      await assert.rejects(loadAppearanceBundle(`${base}${guardedPath}`), /presentation/);
+    }
+  }
+  files[guardedPath] = guardedOriginal;
   const releases = new Map();
   const states = new Set();
   for (const [id, bundle] of Object.entries(catalog)) {

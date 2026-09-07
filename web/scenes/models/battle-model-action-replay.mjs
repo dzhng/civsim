@@ -6,9 +6,12 @@ import { PNG } from "pngjs";
 const disabledSnapshots = [15.1, 15.9].map(
   (tick) => `shared/soldiers/action-replay/disabled-${tick}`,
 );
+const protectedSnapshots = ["safe", "threatened"].map(
+  (posture) => `shared/soldiers/action-replay/protected-${posture}`,
+);
 
-// This is the same workbench/timeline submission as the longer temporal replay.
-export async function verifyDisabledGait(ctx, page) {
+// Both bounded controller proofs share the production world, framing and submission.
+async function replayDraw(page, proof) {
   await page.evaluate(() => {
     const h = window.__battleModels;
     h.freeze();
@@ -26,8 +29,8 @@ export async function verifyDisabledGait(ctx, page) {
   await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw, undefined, {
     timeout: 30000,
   });
-  const draw = await page.evaluateHandle(
-    async (root) => {
+  return page.evaluateHandle(
+    async ({ root, proof }) => {
       const { BattleModelReplay } = await import(
         `${root}apps/renderer-lab/src/battleModelReplay.ts`
       );
@@ -42,18 +45,35 @@ export async function verifyDisabledGait(ctx, page) {
       );
       const speed = walk.strideMeters / walk.duration;
       const initial = new BattleModelReplay(w.soldierAssets, 4).seek(0).observation;
-      const replay = new BattleModelReplay(w.soldierAssets, 4, {
+      const fixtureAsset = {
+        ...asset,
+        manifest: { ...asset.manifest, presentation: structuredClone(asset.manifest.presentation) },
+      };
+      if (proof !== "disabled") {
+        // Diagnostic transport only: existing block run is visibly distinct from march.
+        fixtureAsset.manifest.presentation.actions.guardedBackwardWalk = {
+          clip: asset.manifest.presentation.actions.run.clip,
+          layer: "fullBody",
+        };
+      }
+      const replay = new BattleModelReplay({ 4: fixtureAsset }, 4, {
         endTick: 16,
         events: [],
         observation: (tick) => ({
           ...initial,
           speedMps: speed,
-          forwardMps: speed,
-          incapacitated: tick >= 15,
+          forwardMps: proof === "disabled" ? speed : -speed,
+          lateralMps: 0,
+          guardedFacing: proof !== "disabled",
+          atEase: proof === "safe",
+          incapacitated: proof === "disabled" && tick >= 15,
         }),
       });
       w.crowd.upload([]);
       w.setTime(0);
+      const expectedClip =
+        proof === "threatened" ? asset.manifest.presentation.actions.run.clip : walk.name;
+      const stride = asset.animation.clips.find((clip) => clip.name === expectedClip).strideMeters;
       return async (tick) => {
         const state = replay.seek(tick);
         w.drawInstances(state.instances, camera);
@@ -64,12 +84,20 @@ export async function verifyDisabledGait(ctx, page) {
           playback: state.playback,
           observation: state.observation,
           locals: Array.from(evaluatePlaybackPose(asset, state.playback)),
-          expectedPhase: (15 * ACTION_TICK_SECONDS) / walk.duration,
+          expectedPhase:
+            proof === "disabled"
+              ? (15 * ACTION_TICK_SECONDS) / walk.duration
+              : (tick * ACTION_TICK_SECONDS * speed) / stride,
+          expectedClip,
         };
       };
     },
-    `/@fs${fileURLToPath(new URL("../../../", import.meta.url))}`,
+    { root: `/@fs${fileURLToPath(new URL("../../../", import.meta.url))}`, proof },
   );
+}
+
+export async function verifyDisabledGait(ctx, page) {
+  const draw = await replayDraw(page, "disabled");
   try {
     const frames = [];
     for (const [i, tick] of [15.1, 15.9].entries()) {
@@ -109,6 +137,39 @@ export async function verifyDisabledGait(ctx, page) {
   }
 }
 
+export async function verifyProtectedGait(ctx, page) {
+  const frames = [];
+  for (const [i, proof] of ["safe", "threatened"].entries()) {
+    const draw = await replayDraw(page, proof);
+    try {
+      const state = await draw.evaluate((draw) => draw(10));
+      const shot = await page.locator("canvas").first().screenshot();
+      const repeated = await draw.evaluate((draw) => draw(10));
+      const repeatShot = await page.locator("canvas").first().screenshot();
+      ctx.check(
+        `protected/${proof}: exact repeat pose and pixels`,
+        JSON.stringify(state) === JSON.stringify(repeated) &&
+          PNG.sync.read(shot).data.equals(PNG.sync.read(repeatShot).data),
+      );
+      ctx.check(
+        `protected/${proof}: canonical posture selects diagnostic clip`,
+        state.playback.base.destination.clip === state.expectedClip &&
+          Math.abs(state.playback.base.destination.phase - state.expectedPhase) < 1e-12,
+        state,
+      );
+      await ctx.snap(null, protectedSnapshots[i], { shot, threshold: 0, maxDiffRatio: 0 });
+      frames.push({ state, pixels: PNG.sync.read(shot).data });
+    } finally {
+      await draw.dispose();
+    }
+  }
+  ctx.check(
+    "protected: posture changes submitted pose and production pixels",
+    JSON.stringify(frames[0].state.locals) !== JSON.stringify(frames[1].state.locals) &&
+      !frames[0].pixels.equals(frames[1].pixels),
+  );
+}
+
 export const meta = {
   name: "battle-model-action-replay",
   kind: "visual",
@@ -118,6 +179,7 @@ export const meta = {
     "shared/soldiers/action-replay/controller",
     ...temporalSnapshots,
     ...disabledSnapshots,
+    ...protectedSnapshots,
   ],
   describe:
     "Synthetic observation replay through the real timeline, catalog and GPU-blended production submission; numerical and temporal pose gates remain separate.",
@@ -316,6 +378,7 @@ export async function run(ctx) {
     await page.evaluate(() => window.__battleModels.reload());
     await verifyTemporalReplay(ctx, page);
     await verifyDisabledGait(ctx, page);
+    await verifyProtectedGait(ctx, page);
     await page.goto(
       `${ctx.target}/renderer/battle-models?ref=1&catalog=/assets/soldiers/candidates/blender-reference/catalog.json`,
     );

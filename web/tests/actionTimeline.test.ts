@@ -25,6 +25,9 @@ const actions: AppearancePresentation["actions"] = {
   hit: { clip: "recoil", layer: "fullBody" },
   death: { clip: "fall", layer: "fullBody" },
   pikeReady: null,
+  guardedBackwardWalk: null,
+  guardedLeftWalk: null,
+  guardedRightWalk: null,
 };
 const clips: Pick<LocalAnimationClip, "name" | "duration" | "loop" | "strideMeters">[] = [
   ["rest", 4, true],
@@ -79,6 +82,125 @@ const soldier = (changes: Partial<ActionObservation> = {}): ActionObservation =>
   releaseTtl: 0,
   releaseAgeSeconds: 0,
   ...changes,
+});
+
+const guardedActions = {
+  guardedBackwardWalk: { clip: "backward", layer: "fullBody" as const },
+  guardedLeftWalk: { clip: "left", layer: "fullBody" as const },
+  guardedRightWalk: { clip: "right", layer: "fullBody" as const },
+};
+const guardedClips = ["backward", "left", "right"].map((name, i) => ({
+  name,
+  duration: 1,
+  loop: true,
+  strideMeters: i + 1,
+}));
+const guardedAppearance = {
+  manifest: {
+    presentation: { actions: { ...actions, ...guardedActions }, riderUpperBodyJoints: null },
+  },
+  animation: { clips: [...clips, ...guardedClips] },
+  rig: {
+    ...rig,
+    clips: [
+      ...rig.clips,
+      ...guardedClips.map((clip, i) => ({
+        ...clip,
+        tracks: { 0: { T: { times: [0, 1], values: [10 + i, 0, 0, 11 + i, 0, 0] } } },
+      })),
+    ],
+  },
+};
+
+test("protected gait uses nearest cardinal with longitudinal ties and canonical eligibility", () => {
+  for (const [forwardMps, lateralMps, expected] of [
+    [-1, 0, "backward"],
+    [0, -1, "left"],
+    [0, 1, "right"],
+    [-1, -1, "backward"],
+    [-1, 1, "backward"],
+    [1, -1, "walk"],
+    [1, 1, "walk"],
+    [1, -1.01, "left"],
+    [-1, 1.01, "right"],
+    [0, 0, "walk"],
+  ] as const) {
+    const timeline = new ActionTimeline({ 0: guardedAppearance });
+    timeline.update(0, [soldier({ speedMps: 1, forwardMps, lateralMps, guardedFacing: true })]);
+    assert.equal(timeline.sample()[0].base.destination.clip, expected);
+    const pose = timeline.sample(10)[0];
+    assert.equal(
+      evaluatePlaybackPose(guardedAppearance, pose)[0],
+      expected === "walk"
+        ? 1 + pose.base.destination.phase
+        : 10 +
+            guardedClips.findIndex((clip) => clip.name === expected) +
+            pose.base.destination.phase,
+    );
+  }
+  for (const changes of [{ atEase: true }, { routing: true }, { guardedFacing: false }]) {
+    const timeline = new ActionTimeline({ 0: guardedAppearance });
+    timeline.update(0, [soldier({ speedMps: 1, forwardMps: -1, guardedFacing: true, ...changes })]);
+    assert.equal(timeline.sample()[0].base.destination.clip, "walk");
+  }
+  const missing = new ActionTimeline(appearances);
+  missing.update(0, [soldier({ speedMps: 1, forwardMps: -1, guardedFacing: true })]);
+  assert.equal(missing.sample()[0].base.destination.clip, "walk");
+});
+
+test("direction changes transport normalized phase and disabled endpoints retain their compatible gait", () => {
+  const timeline = new ActionTimeline({ 0: guardedAppearance, 1: guardedAppearance });
+  const motion = soldier({ speedMps: 1, forwardMps: -1, guardedFacing: true });
+  timeline.update(0, [motion]);
+  timeline.update(15, [{ ...motion, forwardMps: 0, lateralMps: -1 }]);
+  assert.deepEqual(timeline.sample()[0].base.destination, { clip: "left", phase: 0.25 });
+  timeline.update(30, [{ ...motion, incapacitated: true }]);
+  assert.deepEqual(timeline.sample(30.9)[0].base.destination, { clip: "left", phase: 0.5 });
+  timeline.update(45, [{ ...motion, incapacitated: true }]);
+  assert.deepEqual(timeline.sample(45.9)[0].base.destination, { clip: "left", phase: 0.75 });
+  const paused = timeline.sample(45.9);
+  timeline.update(45, [{ ...motion, speedMps: 20 }]);
+  assert.deepEqual(timeline.sample(45.9), paused);
+  timeline.update(60, [{ ...motion, forwardMps: 0, lateralMps: 1 }]);
+  assert.deepEqual(timeline.sample()[0].base.destination, { clip: "right", phase: 0.75 + 0.5 / 3 });
+  timeline.update(75, [{ ...motion, appearanceId: 1, incapacitated: true, atEase: true }]);
+  assert.deepEqual(timeline.sample()[0].base.destination, { clip: "rest", phase: 0 });
+  timeline.update(0, [motion]);
+  assert.deepEqual(timeline.sample()[0].base.destination, { clip: "backward", phase: 0 });
+  timeline.reset();
+  timeline.update(30, [soldier({ incapacitated: true, atEase: true })]);
+  assert.deepEqual(timeline.sample()[0].base.destination, { clip: "rest", phase: 0 });
+});
+
+test("protected direction changes and time-driven combat preserve exact interruption sources", () => {
+  for (const change of [
+    { forwardMps: 0, lateralMps: -1 },
+    { health: 90 },
+    { alive: false },
+    { fighting: true },
+  ]) {
+    const timeline = new ActionTimeline({ 0: guardedAppearance });
+    const motion = soldier({ speedMps: 1, forwardMps: -1, guardedFacing: true });
+    timeline.update(0, [motion]);
+    const before = evaluatePlaybackPose(guardedAppearance, timeline.sample(10)[0]);
+    timeline.update(10, [{ ...motion, speedMps: 0.5, ...change }]);
+    assert.deepEqual(evaluatePlaybackPose(guardedAppearance, timeline.sample()[0]), before);
+    const clip =
+      "health" in change
+        ? "recoil"
+        : "alive" in change
+          ? "fall"
+          : "fighting" in change
+            ? "swing"
+            : "left";
+    assert.equal(timeline.sample()[0].base.destination.clip, clip);
+    if (clip !== "left") {
+      const duration = clips.find((c) => c.name === clip)!.duration;
+      assert.ok(
+        Math.abs(timeline.sample(13)[0].base.destination.phase - 3 / 30 / duration) < 1e-12,
+      );
+    }
+  }
 });
 
 test("corpse presentation leaves live instances unchanged and keeps manual corpses terminal", () => {

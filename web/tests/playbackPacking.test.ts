@@ -610,6 +610,9 @@ test("real action timeline interruptions and upper exit pack the same composed m
       hit: { clip: "rider-action", layer: "fullBody" },
       death: { clip: "rider-action", layer: "fullBody" },
       pikeReady: null,
+      guardedBackwardWalk: null,
+      guardedLeftWalk: null,
+      guardedRightWalk: null,
     },
     riderUpperBodyJoints: ["rider-spine", "rider-arm", "rider-head"],
   };

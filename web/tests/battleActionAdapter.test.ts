@@ -159,19 +159,96 @@ test("held pike motion uses the presented unit facing, returning to soldier faci
     weapons[0] = adapter.classSpecs[3].weapons.findIndex((weapon) => weapon.braced);
     views.facings()[0] = 0;
     views.unitInfo()[UNIT_INFO.facing] = Math.PI / 2;
+    const posture = new Uint8Array(wasm.memory.buffer, game.posture_ptr(), 1);
+    posture[0] = 4; // Unit retained-facing branch, but not soldier-facing branch.
     adapter.read(0);
     views.positions()[0] += 1;
     const held = adapter.read(30);
     expect(held.facings[0]).toBeCloseTo(Math.PI / 2);
     expect(held.observations[0].forwardMps).toBeCloseTo(0, 5);
     expect(held.observations[0].lateralMps).toBeCloseTo(1, 5);
+    expect(held.observations[0].guardedFacing).toBe(true);
     weapons[0] = adapter.classSpecs[3].weapons.findIndex((weapon) => !weapon.braced);
     views.positions()[0] += 1;
     const sidearm = adapter.read(60);
     expect(sidearm.facings[0]).toBe(0);
     expect(sidearm.observations[0].forwardMps).toBe(1);
     expect(sidearm.observations[0].lateralMps).toBe(0);
+    expect(sidearm.observations[0].guardedFacing).toBe(false);
     expect(views.facings()[0]).toBe(0);
+  } finally {
+    game.free();
+  }
+});
+
+test("routing and incapacitation stay distinct from guarded facing and signed displacement", () => {
+  const game = new Game(59);
+  try {
+    game.spawn_class(0, 0, 0, 1, 1, 0, 0);
+    const adapter = new BattleActionAdapter(game, wasm.memory);
+    const views = createBattleViews(game, wasm.memory);
+    const posture = new Uint8Array(wasm.memory.buffer, game.posture_ptr(), 1);
+    expect(adapter.read(0).observations[0]).toMatchObject({
+      routing: false,
+      incapacitated: false,
+      guardedFacing: false,
+    });
+    posture[0] = 3;
+    views.unitInfo()[UNIT_INFO.routing] = 1;
+    views.positions()[0] -= 1;
+    const displaced = adapter.read(30).observations[0];
+    expect(displaced).toMatchObject({
+      forwardMps: -1,
+      speedMps: 1,
+      routing: true,
+      incapacitated: true,
+      guardedFacing: true,
+    });
+    expect(displaced.lateralMps).toBeCloseTo(0);
+    // Flags are observations, not a fabricated mutually exclusive gameplay state.
+    posture[0] = 0;
+    views.unitInfo()[UNIT_INFO.routing] = 0;
+    adapter.reset();
+    expect(adapter.read(30).observations[0]).toMatchObject({
+      forwardMps: 0,
+      speedMps: 0,
+      routing: false,
+      incapacitated: false,
+      guardedFacing: false,
+    });
+  } finally {
+    game.free();
+  }
+});
+
+test("engine targetless withdrawal reaches the real held-pike adapter without synthetic posture bits", () => {
+  const game = new Game(59);
+  try {
+    // The real battle routes remnants of nine or fewer men; keep the smallest
+    // non-remnant formations so this probes withdrawal, not rout.
+    game.spawn_class(0, 0, 0, 10, 5, 3, 0);
+    game.spawn_class(80, 0, Math.PI, 10, 5, 0, 1);
+    const adapter = new BattleActionAdapter(game, wasm.memory);
+    const views = createBattleViews(game, wasm.memory);
+    expect(adapter.read(0).observations[0].guardedFacing).toBe(false);
+    game.set_disengage_order(0, -30, 0);
+    let withdrawal;
+    for (let tick = 1; tick <= 120; tick++) {
+      game.tick();
+      const observation = adapter.read(tick).observations[0];
+      if (views.unitInfo()[UNIT_INFO.mode] === 2 && observation.forwardMps < -0.01) {
+        withdrawal = observation;
+        break;
+      }
+    }
+    expect(withdrawal).toMatchObject({
+      alive: true,
+      pikeReady: true,
+      routing: false,
+      incapacitated: false,
+      guardedFacing: true,
+    });
+    expect(withdrawal!.forwardMps).toBeLessThan(0);
   } finally {
     game.free();
   }

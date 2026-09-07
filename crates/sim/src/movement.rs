@@ -15,6 +15,68 @@ pub(crate) fn stamina_factor(stamina: f32) -> f32 {
     (stamina / 0.7).min(1.0).powf(1.5)
 }
 
+#[cfg(test)]
+mod posture_observation_tests {
+    use super::*;
+    use crate::unit::OrderMode;
+    use crate::{Sim, Vec2, DT};
+
+    #[test]
+    fn withdrawal_reports_retained_facing_without_a_soldier_target() {
+        let mut sim = Sim::new(Tunables::default(), 47);
+        sim.spawn_unit(Vec2::ZERO, 0.0, 1, 1, Vec2::new(1.0, 1.0), 0, 1.0);
+        let u = &mut sim.units[0];
+        u.mode = OrderMode::Disengage;
+        u.move_target = Some(Vec2::new(-30.0, 0.0));
+        update_unit_motion(&sim.tun, u, DT, 1.0);
+        assert!(u.guarded_facing);
+        assert!(u.anchor.x < 0.0);
+        assert!(
+            u.facing.cos() > 0.9,
+            "withdrawal retains the old front while wheeling"
+        );
+        u.move_target = None;
+        u.at_ease = true;
+        update_unit_motion(&sim.tun, u, DT, 1.0);
+        assert!(
+            !u.guarded_facing,
+            "the observation must not survive a different branch"
+        );
+    }
+
+    #[test]
+    fn threat_drift_and_locked_retreat_report_guarded_but_free_pivot_does_not() {
+        let mut sim = Sim::new(Tunables::default(), 47);
+        sim.spawn_unit(Vec2::ZERO, 0.0, 1, 1, Vec2::new(1.0, 1.0), 0, 1.0);
+        let u = &mut sim.units[0];
+        u.move_target = Some(Vec2::new(-30.0, 0.0));
+        u.threat_bearing = Some(0.0);
+        u.pace = Pace::Run;
+        update_unit_motion(&sim.tun, u, DT, 1.0);
+        assert!(
+            u.guarded_facing,
+            "the engine's walking drift overrides ordered run"
+        );
+        assert_eq!(u.facing, 0.0);
+        u.threat_bearing = None;
+        u.engaged = 1;
+        update_unit_motion(&sim.tun, u, DT, 1.0);
+        assert!(u.guarded_facing, "locked retreat holds the contact front");
+        u.engaged = 0;
+        update_unit_motion(&sim.tun, u, DT, 1.0);
+        assert!(
+            !u.guarded_facing,
+            "an ordinary about-face is not a threat-facing branch"
+        );
+        u.evade_auto = true;
+        update_unit_motion(&sim.tun, u, DT, 1.0);
+        assert!(
+            u.guarded_facing,
+            "automatic escape uses the same retained-facing drift"
+        );
+    }
+}
+
 /// Off-axis legs: full pace straight ahead, ~0.7 for a sidestep, sliding
 /// toward ~0.55 walking backwards — you cannot sprint sideways or
 /// backwards. One law for every loose-order drift (kiting flight, the
@@ -118,6 +180,7 @@ pub(crate) fn soldier_charge_speed(tun: &Tunables, u: &Unit) -> f32 {
 }
 
 pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: f32) {
+    u.guarded_facing = false;
     // Turn rate is NOT throttled by cohesion: a disordered unit must still be
     // able to WHEEL — above all to about-face and flee a grind it is losing.
     // Cohesion gating the turn made a routed-but-not-yet-broken unit unable to
@@ -159,6 +222,7 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                 return;
             }
             if u.waiting {
+                u.guarded_facing = !u.at_ease;
                 // Queued behind same-flow traffic in a corridor.
                 u.frame_speed = move_toward(u.frame_speed, 0.0, accel * 2.0 * dt);
                 if u.frame_speed > 0.0 {
@@ -174,6 +238,7 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
             // facing it), at a modest penalty. A wide screen that had to
             // about-face like a phalanx would die where it stood.
             if u.evade_auto {
+                u.guarded_facing = true;
                 u.pivoting = false;
                 u.facing = rotate_toward(u.facing, desired, DRIFT_TURN_RATE * dt);
                 let target_speed = (pace_speed(tun, u) * ground * drift_factor(desired, u.facing))
@@ -200,6 +265,7 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
             if matches!(u.mode, crate::unit::OrderMode::Disengage)
                 && (!u.is_mounted() || u.engaged > 0)
             {
+                u.guarded_facing = true;
                 u.pivoting = false;
                 let geom = tun.wheel_speed_factor * top / u.bound_radius().max(1.0);
                 let rate = tun.base_turn_rate.min(geom);
@@ -229,6 +295,7 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
             let locked = !u.is_mounted()
                 && (u.engaged * 12 > u.alive_count.max(1)
                     || u.engaged >= u.files_eff.max(1) as usize);
+            u.guarded_facing = locked;
 
             // ENGAGE posture (the Move default): a foot unit maneuvering
             // near an enemy never shows its back. If the move direction
@@ -242,6 +309,7 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                 if let Some(threat) = u.threat_bearing {
                     let move_off = wrap_angle(desired - threat).abs();
                     if move_off > 1.35 {
+                        u.guarded_facing = true;
                         u.pivoting = false;
                         u.facing = rotate_toward(u.facing, threat, DRIFT_TURN_RATE * dt);
                         // Walking pace by design (a strafe is never a run), and
@@ -371,6 +439,7 @@ pub(crate) fn update_unit_motion(tun: &Tunables, u: &mut Unit, dt: f32, ground: 
                 }
             } else {
                 u.pivoting = false;
+                u.guarded_facing = !u.at_ease;
             }
         }
     }

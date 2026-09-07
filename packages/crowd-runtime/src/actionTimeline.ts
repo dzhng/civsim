@@ -20,6 +20,13 @@ export interface ActionObservation {
   /** Measured travel to the presented soldier's right (negative to the left). */
   lateralMps: number;
   running: boolean;
+  routing: boolean;
+  /** Current engine steering-disable condition (stunned or bowled). */
+  incapacitated: boolean;
+  /** Selected defensive/retained facing branch of the displayed-facing owner.
+   * Alive, nonrouting, nonincapacitated nonforward motion permits a guarded
+   * posture, not a claim of deliberate stepping: displacement can include a shove. */
+  guardedFacing: boolean;
   atEase: boolean;
   /** The current weapon supports a held pike pose, not proof of physical bracing. */
   pikeReady: boolean;

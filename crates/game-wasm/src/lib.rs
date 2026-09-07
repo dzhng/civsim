@@ -64,6 +64,7 @@ pub fn generated_map_manifest(seed: u64) -> String {
 pub struct Game {
     battle: Battle,
     unit_info: Vec<f32>,
+    posture_info: Vec<u8>,
     generated_recipe: Option<MapRecipe>,
     generated_vista: Option<VistaGrid>,
 }
@@ -75,6 +76,7 @@ impl Game {
         Game {
             battle: Battle::from_sim(Sim::new(Tunables::default(), seed as u64)),
             unit_info: Vec::new(),
+            posture_info: Vec::new(),
             generated_recipe: None,
             generated_vista: None,
         }
@@ -88,6 +90,7 @@ impl Game {
         let mut g = Game {
             battle,
             unit_info: Vec::new(),
+            posture_info: Vec::new(),
             generated_recipe: None,
             generated_vista: None,
         };
@@ -474,6 +477,13 @@ impl Game {
         self.battle.sim.alive.as_ptr()
     }
 
+    /// Presentation observations, one byte per soldier: bit 0 incapacitated,
+    /// bit 1 guarded soldier-facing branch, bit 2 guarded unit-facing branch.
+    /// Routing remains in unit_info. These bits never drive the simulation.
+    pub fn posture_ptr(&self) -> *const u8 {
+        self.posture_info.as_ptr()
+    }
+
     /// Current infantry/rider health, one value per soldier; not a hit event.
     pub fn health_ptr(&self) -> *const f32 {
         self.battle.sim.health.as_ptr()
@@ -699,11 +709,19 @@ impl Game {
     // (UNIT_INFO) — extend both together.
     fn refresh_unit_info(&mut self) {
         self.unit_info.clear();
+        self.posture_info.resize(self.battle.sim.soldier_count(), 0);
         for u in &self.battle.sim.units {
             // Mean crowd pressure over living soldiers (the CRUSH readout).
             let mut press = 0.0f32;
             let mut np = 0u32;
             for i in u.start..u.start + u.count {
+                self.posture_info[i] = if self.battle.sim.alive[i] == 1 {
+                    (self.battle.sim.incapacitated(i) as u8)
+                        | (self.battle.sim.guarded_facings[i] << 1)
+                        | ((u.guarded_facing as u8) << 2)
+                } else {
+                    0
+                };
                 if self.battle.sim.alive[i] == 1 {
                     press += self.battle.sim.pressure[i];
                     np += 1;
@@ -893,5 +911,26 @@ mod tests {
                 &[0.0, 4.5]
             );
         }
+    }
+
+    #[test]
+    fn posture_buffer_observes_current_incapacitation_and_initializes_new_soldiers() {
+        let mut game = Game::new(7);
+        game.spawn_unit(0.0, 0.0, 0.0, 1, 1, 1.0, 1.0, 0, 0.5);
+        assert_eq!(game.posture_info, [0]);
+        game.battle.sim.stun[0] = 1.0;
+        game.battle.sim.guarded_facings[0] = 1;
+        game.battle.sim.units[0].guarded_facing = true;
+        game.refresh_unit_info();
+        assert_eq!(game.posture_info, [7]);
+        assert_eq!(game.posture_ptr(), game.posture_info.as_ptr());
+        game.spawn_unit(10.0, 0.0, 0.0, 1, 1, 1.0, 1.0, 0, 0.5);
+        assert_eq!(game.posture_info, [7, 0]);
+        game.battle.sim.stun[0] = 0.0;
+        game.refresh_unit_info();
+        assert_eq!(game.posture_info, [6, 0]);
+        game.battle.sim.alive[0] = 0;
+        game.refresh_unit_info();
+        assert_eq!(game.posture_info, [0, 0]);
     }
 }

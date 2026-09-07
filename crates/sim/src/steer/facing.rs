@@ -14,6 +14,7 @@ pub(super) struct FacingArgs<'a> {
     pub(super) target: &'a [i32],
     pub(super) hit_dir: &'a [f32],
     pub(super) hit_ttl: &'a mut [f32],
+    pub(super) guarded_facing: &'a mut u8,
     pub(super) dt: f32,
 }
 
@@ -32,12 +33,15 @@ pub(crate) fn soldier_facing(args: FacingArgs<'_>) -> f32 {
         target,
         hit_dir,
         hit_ttl,
+        guarded_facing,
         dt,
     } = args;
 
     let i = ctx.i;
     let u = ctx.u;
+    *guarded_facing = 0;
     if ctx.aware {
+        *guarded_facing = 1;
         // Tick-start target positions keep opposing front ranks symmetric.
         let tp = Vec2::new(
             prev_positions[2 * target[i] as usize],
@@ -62,14 +66,114 @@ pub(crate) fn soldier_facing(args: FacingArgs<'_>) -> f32 {
             (c - ctx.p).y.atan2((c - ctx.p).x)
         }
     } else if hit_ttl[i] > 0.0 {
+        *guarded_facing = 1;
         hit_ttl[i] -= dt;
         hit_dir[i]
     } else if err > 0.5 {
         velocity.y.atan2(velocity.x)
     } else if idle {
+        *guarded_facing = u.guarded_facing as u8;
         u.facing + (stagger01(i * 3 + 2, tick / 4) - 0.5) * IDLE_GLANCE
     } else {
+        *guarded_facing = u.guarded_facing as u8;
         u.facing
+    }
+}
+
+#[cfg(test)]
+mod posture_observation_tests {
+    use super::*;
+
+    fn facing(sim: &mut Sim, aware: bool, err: f32) -> (f32, u8) {
+        let pre = precompute_unit(sim, 0);
+        let mut guarded = 9;
+        let angle = soldier_facing(FacingArgs {
+            ctx: &SoldierCtx {
+                i: 0,
+                u: &sim.units[0],
+                p: Vec2::ZERO,
+                f: dir(0.0),
+                r: dir(0.0).perp(),
+                pre: &pre,
+                aware,
+                engaged: false,
+                order_advancing: true,
+                trampling: false,
+            },
+            tun: &sim.tun,
+            velocity: Vec2::new(0.0, 1.0),
+            err,
+            idle: false,
+            tick: 0,
+            units: &sim.units,
+            soldier_unit: &sim.soldier_unit,
+            prev_positions: &sim.positions,
+            mounted: &sim.mounted,
+            target: &sim.target,
+            hit_dir: &sim.hit_dir,
+            hit_ttl: &mut sim.hit_ttl,
+            dt: DT,
+            guarded_facing: &mut guarded,
+        });
+        (angle, guarded)
+    }
+
+    #[test]
+    fn observation_follows_selected_facing_branch_without_changing_angle() {
+        let mut sim = Sim::new(Tunables::default(), 47);
+        sim.spawn_unit(Vec2::ZERO, 0.0, 1, 1, Vec2::new(1.0, 1.0), 0, 1.0);
+        sim.spawn_unit(Vec2::new(3.0, 0.0), 0.0, 1, 1, Vec2::new(1.0, 1.0), 1, 1.0);
+        sim.target[0] = 1;
+        assert_eq!(facing(&mut sim, true, 1.0), (0.0, 1));
+        sim.hit_ttl[0] = 1.0;
+        sim.hit_dir[0] = 0.4;
+        assert_eq!(facing(&mut sim, false, 1.0), (0.4, 1));
+        sim.hit_ttl[0] = 0.0;
+        sim.units[0].guarded_facing = true;
+        assert_eq!(facing(&mut sim, false, 0.0), (0.0, 1));
+        assert_eq!(
+            facing(&mut sim, false, 1.0),
+            (std::f32::consts::FRAC_PI_2, 0)
+        );
+        sim.units[0].guarded_facing = false;
+        assert_eq!(facing(&mut sim, false, 0.0), (0.0, 0));
+    }
+
+    #[test]
+    fn disabled_routing_and_dead_steering_clear_old_facing_observations() {
+        let mut sim = Sim::new(Tunables::default(), 47);
+        sim.spawn_unit(Vec2::ZERO, 0.0, 1, 1, Vec2::new(1.0, 1.0), 0, 1.0);
+        assert_eq!(sim.guarded_facings, [0]);
+        for (stun, bowled, routing, alive) in [
+            (1.0, 0.0, false, 1),
+            (0.0, 1.0, false, 1),
+            (0.0, 0.0, true, 1),
+            (0.0, 0.0, false, 0),
+        ] {
+            sim.stun[0] = stun;
+            sim.trampled[0] = bowled;
+            sim.units[0].routing = routing;
+            sim.alive[0] = alive;
+            sim.guarded_facings[0] = 1;
+            assert_eq!(sim.incapacitated(0), stun > 0.0 || bowled > 0.0);
+            steer_soldiers(&mut sim, DT);
+            assert_eq!(
+                sim.guarded_facings[0], 0,
+                "early-return paths cannot retain a prior decision"
+            );
+        }
+        sim.alive[0] = 1;
+        sim.stun[0] = DT * 0.5;
+        sim.guarded_facings[0] = 1;
+        steer_soldiers(&mut sim, DT);
+        assert!(
+            !sim.incapacitated(0),
+            "the current timer expired during this step"
+        );
+        assert_eq!(
+            sim.guarded_facings[0], 0,
+            "expiry does not mean this step ran ordinary steering"
+        );
     }
 }
 
@@ -108,6 +212,7 @@ pub(super) struct FinishArgs<'a> {
     pub(super) press_y: &'a mut [f32],
     pub(super) awareness: &'a [f32],
     pub(super) facings: &'a mut [f32],
+    pub(super) guarded_facings: &'a mut [u8],
     pub(super) terrain: &'a Terrain,
     pub(super) mounted: &'a [u8],
     pub(super) target: &'a [i32],
@@ -151,6 +256,7 @@ pub(super) fn finish_soldier(args: FinishArgs<'_>, tracer: &mut Tracer<'_>) {
         press_y,
         awareness,
         facings,
+        guarded_facings,
         terrain,
         mounted,
         target,
@@ -286,6 +392,7 @@ pub(super) fn finish_soldier(args: FinishArgs<'_>, tracer: &mut Tracer<'_>) {
         hit_dir,
         hit_ttl,
         dt,
+        guarded_facing: &mut guarded_facings[i],
     });
     // Deadzone: a man holds his stance and only re-aims when the threat
     // has genuinely shifted off it (> ~8°). Without this his facing

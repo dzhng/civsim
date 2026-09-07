@@ -40,6 +40,9 @@ pub struct Sim {
     /// Interleaved soldier positions [x0, y0, x1, y1, ...].
     pub positions: Vec<f32>,
     pub facings: Vec<f32>,
+    /// Presentation-only output of the selected soldier-facing branch (0/1).
+    /// Cleared before steering; never consumed by gameplay decisions.
+    pub guarded_facings: Vec<u8>,
     pub health: Vec<f32>,
     /// Collision/push mass per soldier (from class; bracing multiplies it).
     pub mass: Vec<f32>,
@@ -213,6 +216,7 @@ impl Sim {
             balance,
             positions: Vec::new(),
             facings: Vec::new(),
+            guarded_facings: Vec::new(),
             health: Vec::new(),
             mass: Vec::new(),
             radius: Vec::new(),
@@ -311,6 +315,11 @@ impl Sim {
         self.facings.len()
     }
 
+    /// Current steering-disabling state, without exposing its internal timers.
+    pub fn incapacitated(&self, soldier: usize) -> bool {
+        self.stun[soldier] > 0.0 || self.trampled[soldier] > 0.0
+    }
+
     pub fn soldier_pos(&self, i: usize) -> Vec2 {
         Vec2::new(self.positions[2 * i], self.positions[2 * i + 1])
     }
@@ -356,6 +365,7 @@ impl Sim {
         let map_mid_y = self.terrain.origin.y + 0.5 * self.terrain.h as f32 * self.terrain.cell;
         let home_dir_y = if anchor.y >= map_mid_y { 1.0 } else { -1.0 };
         let mut unit = Unit {
+            guarded_facing: false,
             class,
             render_look: look,
             stats,
@@ -440,6 +450,7 @@ impl Sim {
             self.positions.push(p.x);
             self.positions.push(p.y);
             self.facings.push(facing);
+            self.guarded_facings.push(0);
             self.health.push(stats.health);
             self.mass.push(stats.mass);
             self.radius.push(stats.soldier_radius);

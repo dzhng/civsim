@@ -57,6 +57,9 @@ pub struct Unit {
     /// Front-center of the formation; slots extend behind it.
     pub anchor: Vec2,
     pub facing: f32,
+    /// Presentation-only observation of this tick's retained/defensive facing branch.
+    /// Not an order, gameplay input, or claim of self-propelled movement.
+    pub guarded_facing: bool,
     /// Measured gross motion of the formation FRAME (anchor displacement in
     /// the movement pass, m/s). Honest in the open; blind to the anchor
     /// law's leash pullback, so in a stalled press it reads ~commanded pace

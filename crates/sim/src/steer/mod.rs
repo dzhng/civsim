@@ -56,6 +56,7 @@ pub(crate) const SLOT_TERRAIN_CHECK_DIST: f32 = 3.0;
 
 /// Per-soldier steering and measurement. Returns one `UnitMeasure` per unit.
 pub(crate) fn steer_soldiers(sim: &mut Sim, dt: f32) -> Vec<UnitMeasure> {
+    sim.guarded_facings.fill(0);
     let unit_pre: Vec<_> = (0..sim.units.len())
         .map(|ui| precompute_unit(sim, ui))
         .collect();
@@ -78,6 +79,7 @@ pub(crate) fn steer_soldiers(sim: &mut Sim, dt: f32) -> Vec<UnitMeasure> {
         front_clear,
         awareness,
         facings,
+        guarded_facings,
         soldier_slot,
         fidget_offset,
         terrain,
@@ -329,6 +331,7 @@ pub(crate) fn steer_soldiers(sim: &mut Sim, dt: f32) -> Vec<UnitMeasure> {
                     press_y,
                     awareness,
                     facings,
+                    guarded_facings,
                     terrain,
                     mounted,
                     target,

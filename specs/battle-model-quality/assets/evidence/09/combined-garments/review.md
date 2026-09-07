@@ -45,7 +45,9 @@ reference. It favors the current shoulder silhouette with high confidence and
 finds no obvious new gear detachment. It independently retains rigid cuffs/hem,
 sweater-like mail and the small pale armpit sliver around run phases 10–16.
 This supports retaining the integration as a working candidate, not acceptance.
-Human Preview comparison was opened; no user verdict is recorded yet.
+Human Preview comparison was opened while independent work continued, then
+closed after the review interval without a user response. The provisional
+retention decision rests on the recorded evidence, not assumed user approval.
 
 Independent source review found no concrete correctness or maintenance issue:
 the fitted surface feeds thickness and weight transfer consistently, non-garment

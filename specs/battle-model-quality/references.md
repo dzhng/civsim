@@ -10,6 +10,26 @@ For this 1920×1080 reference, start with the left/central phalanx bodies (appro
 
 Further authorized leads: [official Rome II unit spotlights](https://wiki.totalwar.com/w/Unit_Spotlight_(TWR2).html), [Rome II gallery](https://www.gamestar.de/galerien/total_war_rome_2,95215.html), and [Nomadic Tribes gallery](https://www.nuuvem.com/br-pt/item/total-war-rome-ii-nomadic-tribes-culture-pack). These were discovered as leads, not accepted angle/motion evidence. Before a new family row, inspect relevant images/videos, confirm title/unit context, and save source attribution and permitted feature-owned reference evidence. Do not treat mislabeled search thumbnails or original Rome screenshots as verified Rome II art. Reference images inform design; do not extract/repackage commercial meshes or textures.
 
+### Inspected supplementary angles
+
+The [official Steam gallery](https://store.steampowered.com/app/214950/Total_War_ROME_II__Emperor_Edition/)
+was verified through Steam's app214950 screenshot listing on2026-09-07.
+Two original1920×1080 images are retained for reference only:
+
+- [Infantry melee](assets/references/steam/infantry-melee.jpg), gallery id0,
+  image key `b4ea26bb6fbe4625119fdb1fa48fda313b700b2d`: the central mail wearer
+  shows shoulder reinforcement, a belted torso and hanging lower armor. The
+  surrounding overlapping scales are a different surface, not a mail target.
+  The extended hand and raised spear grip supplement hand-form inspection.
+- [Linen layers and shield grip](assets/references/steam/linen-shield-grip.jpg),
+  gallery id1, image key `ee35fcc92bddeacb5c0468f1a71c6054639a6fdc`: the foreground
+  back view exposes shoulder panels, skirt overlap, shield straps and a spear grip.
+
+These are inspected promotional stills, not matched lighting, isolated anatomy,
+named-unit identification or motion evidence. They supplement the user's primary
+reference without changing the heavy-mail/medium-leather direction. No commercial
+mesh or texture is extracted for the game.
+
 ## Primary technical research
 
 - [Khronos glTF 2.0 specification](https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html): the source contract for skin attributes, inverse binds, materials and animation. The project importer currently accepts a narrower subset; do not mistake that for a glTF limitation.

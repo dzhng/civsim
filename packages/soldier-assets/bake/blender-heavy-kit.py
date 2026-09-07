@@ -170,21 +170,84 @@ def build():
          [(1.026, .198, .148), (1.031, .201, .151),
           (1.061, .201, .151), (1.066, .198, .148)]])
     for side, sign in [("L", 1), ("R", -1)]:
-        loft("Sandal sole." + side,
-             [((sign*.124, -.067, z), w, d) for z, w, d in
-              [(.012, .064, .13), (.020, .068, .135), (.036, .066, .129)]], "foot." + side)
-        for band, (y, width, crown) in enumerate([(-.137, .054, .059),
-                                                 (-.083, .050, .080),
-                                                 (-.028, .043, .111)]):
+        # The outsole follows the forefoot, medial arch and heel separately.
+        outline = [(.109, -.204), (.082, -.190), (.065, -.165),
+                   (.060, -.125), (.066, -.084), (.082, -.040),
+                   (.085, .006), (.088, .044), (.106, .068),
+                   (.124, .075), (.144, .065), (.160, .043),
+                   (.164, .005), (.166, -.040), (.174, -.085),
+                   (.177, -.125), (.166, -.167), (.144, -.192),
+                   (.119, -.204)]
+        vertices = [(sign*x, y, z) for z in (.012, .024) for x, y in outline]
+        count = len(outline)
+        faces = [tuple(reversed(range(count))), tuple(range(count, count*2))]
+        faces += [(i, (i+1)%count, (i+1)%count+count, i+count) for i in range(count)]
+        mesh = bpy.data.meshes.new("Sandal sole." + side)
+        mesh.from_pydata(vertices, [], faces)
+        surface = bmesh.new()
+        surface.from_mesh(mesh)
+        bmesh.ops.recalc_face_normals(surface, faces=list(surface.faces))
+        surface.to_mesh(mesh)
+        surface.free()
+        sole = bpy.data.objects.new(mesh.name, mesh)
+        scene.collection.objects.link(sole)
+        bpy.context.view_layer.objects.active = sole
+        sole.select_set(True)
+        bevel = sole.modifiers.new("Rounded cut leather edge", "BEVEL")
+        bevel.width, bevel.segments = .002, 3
+        bpy.ops.object.modifier_apply(modifier=bevel.name)
+        finish(sole, "foot." + side)
+        # Crossing vamp bands wrap the actual skin; their ends enter the sole.
+        for band, slope in enumerate((-.024, .024)):
             vertices = []
-            for edge in (-.010, .010):
-                for step in range(13):
-                    angle = math.pi*step/12
-                    vertices.append((sign*.124 + width*math.cos(angle), y+edge,
-                                     .031+(crown-.031)*math.sin(angle)))
-            faces = [(j, j+1, 14+j, 13+j) for j in range(12)]
+            for edge in (-.009, .009):
+                for step in range(17):
+                    angle = math.pi*step/16
+                    y = -.100 + slope*math.cos(angle) + edge
+                    ray = Vector((sign*math.cos(angle), 0, math.sin(angle)))
+                    point, normal, _, _ = nearest.ray_cast(Vector((sign*.120, y, .035)), ray)
+                    if point is None:
+                        raise RuntimeError("Vamp strap ray missed the fixed foot")
+                    crossing = math.exp(-((angle-math.pi/2)/.40)**2)
+                    point += normal*(.0025+band*.003*crossing)
+                    if step in (0, 16):
+                        point.z = .024
+                    vertices.append(point)
+            faces = [(j, j+1, 18+j, 17+j) for j in range(16)]
             thin_surface(f"Sandal strap {band}.{side}", vertices, faces,
                          "foot." + side, offset=0)
+        # A rear sling joins the two side risers, so the heel cannot slide out.
+        vertices = []
+        for edge in (-.009, .009):
+            for j in range(21):
+                angle = math.pi*j/20
+                ray = Vector((sign*.038*math.cos(angle), -.022+.072*math.sin(angle), 0))
+                point, normal, _, _ = nearest.ray_cast(Vector((sign*.124, .004, .079+edge)), ray)
+                if point is None:
+                    raise RuntimeError("Heel sling ray missed the fixed foot")
+                vertices.append(point+normal*.004)
+        faces = [(j, j+1, 22+j, 21+j) for j in range(20)]
+        thin_surface("Sandal heel sling."+side, vertices, faces, "foot."+side, offset=0)
+        for edge_sign in (-1, 1):
+            path = [Vector(p) for p in ((.043, -.100, .024), (.043, -.090, .035),
+                    (.038, -.028, .075), (.038, -.018, .080),
+                    (.038, -.008, .075), (.039, .028, .035), (.039, .035, .024))]
+            vertices = []
+            for edge in (-.009, .009):
+                for j in range(25):
+                    segment = min(j//4, 5)
+                    x, y, z = path[segment].lerp(path[segment+1], j/4-segment)
+                    point = Vector((sign*(.124+edge_sign*x), y+edge, z))
+                    if z > .03:
+                        hit, normal, _, _ = nearest.ray_cast(Vector((sign*.124, y+edge, z)),
+                                                            Vector((sign*edge_sign, 0, 0)))
+                        if hit is None:
+                            raise RuntimeError("Heel riser ray missed the fixed foot")
+                        point = hit+normal*.0025
+                    vertices.append(point)
+            faces = [(j, j+1, 26+j, 25+j) for j in range(24)]
+            thin_surface(f"Sandal heel riser {edge_sign}.{side}", vertices, faces,
+                         "foot."+side, offset=0)
 
     loft("Helmet bowl and rolled edge", [((0, .013, z), w, d) for z, w, d in
          [(1.680, .099, .104), (1.686, .103, .108), (1.694, .100, .105),

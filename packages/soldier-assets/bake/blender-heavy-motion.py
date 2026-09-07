@@ -41,6 +41,22 @@ def cycle_value(keys, phase):
     raise ValueError("Cycle phase outside authored keys")
 
 
+def loaded_body(arm, phase, running):
+    """World Z is vertical: local Y, not local Z, follows these torso bones."""
+    stride = math.cos(math.tau*phase)
+    impact = math.sin(2*math.tau*phase)
+    pitch = .27 if running else .12
+    for name, lean, turn in (
+        ("pelvis", .12 if running else .045, .065*stride),
+        ("spine", pitch, -.075*stride),
+        ("chest", pitch+.025*impact, -.12*stride),
+        ("neck", pitch*.35, -.04*stride),
+        ("head", .025, -.02*stride),
+    ):
+        rotation = (Matrix.Rotation(turn, 3, "Z") @ Matrix.Rotation(lean, 3, "X")).to_quaternion()
+        orient(arm, name, rotation @ arm.data.bones[name].matrix_local.to_quaternion())
+
+
 def author_motion(arm, scene):
     """Key loaded locomotion on the fixed rig; retain all inspection actions."""
     active = arm.animation_data.action
@@ -69,18 +85,16 @@ def author_motion(arm, scene):
                 bone.rotation_mode = "XYZ"
                 bone.rotation_euler = (0, 0, 0)
                 bone.location = (0, 0, 0)
-            sway = math.sin(math.tau*phase) if walking else 0
             arm.pose.bones["spine"].rotation_euler.x = .035
-            arm.pose.bones["spine"].rotation_euler.z = .035*sway
-            arm.pose.bones["chest"].rotation_euler.y = .025*sway
-            arm.pose.bones["chest"].rotation_euler.z = -.07*sway
+            if walking:
+                loaded_body(arm, phase, False)
             bpy.context.view_layer.update()
             for side, sign in (("R", -1), ("L", 1)):
                 step = (phase + (0 if side == "R" else .5)) % 1
                 swing = max(0, (step-.5)*2)
                 knee = cycle_value(((0,.10),(.08,.27),(.25,.10),(.35,.10),
-                                    (.50,.80),(.65,1.0),(.80,.65),(1,.10)), step) if walking else .10
-                roll = cycle_value(((0,-.25),(.10,0),(.35,0),(.50,.45),
+                                    (.50,.88),(.65,1.03),(.80,.65),(1,.10)), step) if walking else .10
+                roll = cycle_value(((0,-.25),(.10,0),(.30,0),(.42,.35),(.50,.52),
                                     (.65,.20),(.85,-.15),(1,-.25)), step) if walking else 0
                 # 0.765m steps in a .9s cycle target the class-independent
                 # 1.7m/s walk floor. Class pace scales only the ABOVE-walk range.
@@ -89,21 +103,29 @@ def author_motion(arm, scene):
                 toe = min(soles[side].data.vertices, key=lambda v:v.co.y).co
                 pivot = toe.lerp(heel, .5+.5*math.cos(math.tau*step))-arm.data.bones["foot."+side].head_local
                 stride -= (Matrix.Rotation(roll,3,"X")@pivot-pivot).y
+                stride -= arm.pose.bones["thigh."+side].head.y-arm.data.bones["thigh."+side].head_local.y
                 # Offline joint authoring: chosen knee lift plus a linear support
                 # interval. No target solver or planted-foot state enters runtime.
                 upper, lower = arm.data.bones["thigh."+side].length, arm.data.bones["shin."+side].length
                 reach = math.hypot(upper+lower*math.cos(knee), lower*math.sin(knee))
                 thigh = math.asin(stride/reach)-math.atan2(lower*math.sin(knee), upper+lower*math.cos(knee))
-                arm.pose.bones["thigh."+side].rotation_euler.x = thigh
+                if walking:
+                    orient(arm, "thigh."+side, Matrix.Rotation(thigh, 3, "X").to_quaternion() @ arm.data.bones["thigh."+side].matrix_local.to_quaternion())
+                else:
+                    arm.pose.bones["thigh."+side].rotation_euler.x = thigh
                 arm.pose.bones["shin."+side].rotation_euler.x = knee
                 arm.pose.bones["knee-volume."+side].rotation_euler.x = knee/2
                 bpy.context.view_layer.update()
                 foot = arm.data.bones["foot."+side].matrix_local.to_quaternion()
                 foot = Matrix.Rotation(roll, 3, "X").to_quaternion() @ foot
                 orient(arm, "foot."+side, foot)
-                aim(arm, "upper-arm."+side, (sign*(.12 if side == "R" else .42), -.10+.07*sway*sign, -1))
+                carriage = math.cos(math.tau*phase)*(-sign) if walking else 0
+                # Carry the shield ahead of the advancing knee throughout the stride.
+                upper_forward = -.20 if walking and side == "L" else -.10
+                fore_forward = -.72 if side == "R" else (-.65 if walking else -.30)
+                aim(arm, "upper-arm."+side, (sign*(.12 if side == "R" else .42), upper_forward+(.23 if side == "R" else .10)*carriage, -1))
                 aim(arm, "forearm."+side,
-                    (sign*.15, (-.72 if side == "R" else -.30)+.08*sway*sign, -.65 if side == "R" else -.95),
+                    (sign*.15, fore_forward+(.19 if side == "R" else .08)*carriage, -.65 if side == "R" else -.95),
                     math.pi/2 if side == "R" else 0)
                 helper = arm.pose.bones["elbow-volume."+side]
                 base = helper.parent.matrix @ helper.parent.bone.matrix_local.inverted() @ helper.bone.matrix_local
@@ -164,10 +186,7 @@ def author_run(arm, scene):
             bone.rotation_mode = "XYZ"
             bone.rotation_euler = (0,0,0)
             bone.location = (0,0,0)
-        arm.pose.bones["spine"].rotation_euler.x = .20
-        arm.pose.bones["spine"].rotation_euler.z = .055*math.sin(math.tau*phase)
-        arm.pose.bones["chest"].rotation_euler.y = .055*math.sin(math.tau*phase)
-        arm.pose.bones["chest"].rotation_euler.z = -.11*math.sin(math.tau*phase)
+        loaded_body(arm, phase, True)
         bpy.context.view_layer.update()
         minimum = {}
         for side, sign in (("R",-1),("L",1)):
@@ -183,17 +202,18 @@ def author_run(arm, scene):
             toe = min(soles[side].data.vertices,key=lambda v:v.co.y).co
             pivot = toe.lerp(heel,.5+.5*math.cos(math.pi*min(step/.35,1)))-arm.data.bones["foot."+side].head_local
             stride -= (Matrix.Rotation(roll,3,"X")@pivot-pivot).y
+            stride -= arm.pose.bones["thigh."+side].head.y-arm.data.bones["thigh."+side].head_local.y
             upper,lower=arm.data.bones["thigh."+side].length,arm.data.bones["shin."+side].length
             reach=math.hypot(upper+lower*math.cos(knee),lower*math.sin(knee))
             thigh=math.asin(stride/reach)-math.atan2(lower*math.sin(knee),upper+lower*math.cos(knee))
-            arm.pose.bones["thigh."+side].rotation_euler.x=thigh
+            orient(arm,"thigh."+side,Matrix.Rotation(thigh,3,"X").to_quaternion()@arm.data.bones["thigh."+side].matrix_local.to_quaternion())
             arm.pose.bones["shin."+side].rotation_euler.x=knee
             arm.pose.bones["knee-volume."+side].rotation_euler.x=knee/2
             bpy.context.view_layer.update()
             orient(arm,"foot."+side,Matrix.Rotation(roll,3,"X").to_quaternion()@arm.data.bones["foot."+side].matrix_local.to_quaternion())
-            sway=math.sin(math.tau*phase)*sign
-            aim(arm,"upper-arm."+side,(sign*.20,-.16+.14*sway,-1))
-            aim(arm,"forearm."+side,(sign*.15,-.85+.13*sway,-.5 if side=="R" else -.80),math.pi/2 if side=="R" else 0)
+            carriage=math.cos(math.tau*phase)*(-sign)
+            aim(arm,"upper-arm."+side,(sign*.20,-.16+(.38 if side=="R" else .17)*carriage,-1))
+            aim(arm,"forearm."+side,(sign*.15,-.85+(.30 if side=="R" else .12)*carriage,-.45 if side=="R" else -.80),math.pi/2 if side=="R" else 0)
             helper=arm.pose.bones["elbow-volume."+side]
             base=helper.parent.matrix@helper.parent.bone.matrix_local.inverted()@helper.bone.matrix_local
             orient(arm,helper.name,base.to_quaternion().slerp(arm.pose.bones["forearm."+side].matrix.to_quaternion(),.5))

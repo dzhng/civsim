@@ -9,32 +9,32 @@ Worktree: `/Users/david/dev/game-battle-model-quality`, branch
 `codex/battle-model-quality`. No art envelope or detailed model is accepted.
 
 Current pickup has independent authoring and measurement lanes:
-- **09 Blender equipment authoring:** fit a recognizable heavy swordsman to the
-  provisional08 body/rig. The first equipped candidate is integrated through
-  f5a57d1b plus the connected-garment working pass. The hand study is integrated
-  through54860ea2 and fuller limbs throughf3dbdd18; actual weapon contacts and
-  thin helmet plates are being fitted.
-  Prioritize the whole heavy silhouette: shoulder slope, hanging garment hems,
-  exposed limbs and broken contacts. The forearm-pronation proof is integrated
-  through18f1f182; heavy refit captures now include the current body and garment weights.
-  Candidate surface and equipped ready/walk authoring now run in separate lanes;
-  the existing bend and pronation are fitting probes, not combat motion.
-  Frozen surface and walk studies are integrated throughe6975444 and24677a9a.
-  The current dirty heavy assembly composes both on the refitted body/kit;
-  [combined review](assets/evidence/11/combined-heavy.md) records successful
-  export/capture checks and unresolved visual defects. The continuous-mail
-  correction is rebuilt on the current source; combined walk fitting capture is
-  complete. Rear belt/body weighting now keeps the belt outside the mail in all
-  reviewed frames; the [combined review](assets/evidence/11/combined-heavy.md)
-  records exact source provenance and remaining contact defects.
-  Its old1.53m/s target was wrong:
-  `pace_speed` preserves the1.7m/s walk floor. Locomotion authoring is correcting
-  walk and adding run; keep the existing frames as fitting evidence only.
-  Next inspect the corrected cycle and improve the whole-body
-  ready/load silhouette and footwear. No combined visual acceptance yet.
-  Rounded lips remain the body source; eye relief/sphere trials were rejected.
-  Keep unclothed08 anatomy review open for facial form, shoulders, pelvis and
-  grips. Equipment cannot conceal those defects or satisfy anatomy acceptance.
+- **09–11 combined heavy:** 43cab350 composes the local Blender geometry,
+  materials and motion, including reviewed rear-belt fitting. 4926aa16 adds the
+  corrected walk and initial run authoring. The current rebuild combines
+  facial-form 7ea34c11, loaded-body motion b8577b62 and footwear a9b55b0e,
+  retaining the latest belt and correcting a newly discovered shield/knee clash.
+  [Current combined review](assets/evidence/11/combined-footwear-shield/review.md)
+  supports this working composition, not art acceptance; technical checks pass.
+  [Prior combined control](assets/evidence/11/combined-locomotion/review.md)
+  retains the pre-face/pre-loaded-gait evidence; do not confuse its source hash
+  with the current build.
+  [Combined review](assets/evidence/11/combined-heavy.md) owns fitting evidence;
+  [locomotion review](assets/evidence/11/heavy-run/review.md) owns the frozen motion
+  study, actual pace rationale and unresolved contact/carry defects. Old 1.53m/s
+  walk captures are fitting evidence only, not gameplay-speed acceptance.
+- **08 face and 11 motion authoring:** facial landmarks are integrated as a
+  provisional improvement, not finished anatomy. Loaded movement now uses
+  explicit world-axis torso orientation. Keep body proportions, hands, shoulders and
+  pelvis review open; clothing cannot establish anatomy acceptance.
+- **09 next geometry priority:** whole-heavy silhouette and believable contacts:
+  shoulder/sleeve fit, hanging garment, footwear, grips and scabbard suspension.
+  Footwear is now composed and reviewed. The active garment lane in
+  `/Users/david/dev/game-heavy-garment-candidate` addresses sleeve volume and
+  armpit exposure on fixed inputs; review its complete source/evidence, then
+  recompose it with the current footwear and corrected carry. Do not copy its
+  frozen generated mesh over the root candidate.
+  Do not propagate unresolved heavy defects to medium phalanx.
 - **07 animated budget:** the reusable LOD result experiment was rejected after
   worse matched timing; its code is not integrated. Finish combined geometry,
   camera, physical-display, storage and executable asset limits using separately

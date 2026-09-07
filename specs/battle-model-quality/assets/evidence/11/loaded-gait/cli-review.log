@@ -1,0 +1,36 @@
+2026-09-07T03:13:09.990090Z ERROR codex_models_manager::cache: failed to load models cache: missing field `base_instructions` at line 132 column 5
+2026-09-07T03:13:10.369787Z  WARN codex_models_manager::model_info: Unknown model gpt-6-astra is used. This will use fallback model metadata.
+2026-09-07T03:13:10.370021Z  WARN codex_protocol::openai_models: Model personality requested but model_messages is missing, falling back to base instructions. model=gpt-6-astra personality=pragmatic
+2026-09-07T03:13:10.377479Z  WARN codex_core_plugins::manifest: ignoring hooks: expected a string, string array, object, or object array; found object
+2026-09-07T03:13:10.378709Z  WARN codex_core_plugins::manifest: ignoring hooks: expected a string, string array, object, or object array; found object
+2026-09-07T03:13:10.379179Z  WARN codex_core_plugins::manifest: ignoring hooks: expected a string, string array, object, or object array; found object
+2026-09-07T03:13:10.379843Z  WARN codex_core_plugins::manifest: ignoring hooks: expected a string, string array, object, or object array; found object
+2026-09-07T03:13:10.427739Z  WARN codex_core_skills::loader: ignoring interface.icon_small: icon path with '..' must resolve under plugin assets/
+2026-09-07T03:13:10.427769Z  WARN codex_core_skills::loader: ignoring interface.icon_large: icon path with '..' must resolve under plugin assets/
+2026-09-07T03:13:10.550208Z  WARN codex_models_manager::model_info: Unknown model gpt-6-astra is used. This will use fallback model metadata.
+OpenAI Codex v0.144.4
+--------
+workdir: /Users/david/dev/game-heavy-kit-candidate
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR]
+reasoning effort: medium
+reasoning summaries: none
+session id: 01a079da-fee2-7ba2-978e-ad5d730f1d53
+--------
+user
+current changes
+2026-09-07T03:13:10.562922Z  WARN codex_models_manager::model_info: Unknown model gpt-6-astra is used. This will use fallback model metadata.
+2026-09-07T03:13:10.565399Z  WARN codex_models_manager::model_info: Unknown model gpt-6-astra is used. This will use fallback model metadata.
+warning: Model metadata for `gpt-6-astra` not found. Defaulting to fallback metadata; this can degrade performance and cause issues.
+2026-09-07T03:13:10.568650Z  WARN codex_models_manager::model_info: Unknown model gpt-6-astra is used. This will use fallback model metadata.
+2026-09-07T03:13:10.667712Z  WARN codex_models_manager::model_info: Unknown model gpt-6-astra is used. This will use fallback model metadata.
+2026-09-07T03:13:10.670343Z  WARN codex_models_manager::model_info: Unknown model gpt-6-astra is used. This will use fallback model metadata.
+warning: Model metadata for `gpt-6-astra` not found. Defaulting to fallback metadata; this can degrade performance and cause issues.
+2026-09-07T03:13:11.911397Z  WARN codex_core::session_startup_prewarm: startup websocket prewarm setup failed: {"type":"error","status":400,"error":{"type":"invalid_request_error","message":"The 'gpt-6-astra' model requires a newer version of Codex. Please upgrade to the latest app or CLI and try again."}}
+warning: Skill descriptions were shortened to fit the 2% skills context budget. Codex can still see every skill, but some descriptions are shorter. Disable unused skills or plugins to leave more room for the rest.
+ERROR: {"type":"error","status":400,"error":{"type":"invalid_request_error","message":"The 'gpt-6-astra' model requires a newer version of Codex. Please upgrade to the latest app or CLI and try again."}}
+codex
+Review was interrupted. Please re-run /review and wait for it to complete.
+ERROR: {"type":"error","status":400,"error":{"type":"invalid_request_error","message":"The 'gpt-6-astra' model requires a newer version of Codex. Please upgrade to the latest app or CLI and try again."}}

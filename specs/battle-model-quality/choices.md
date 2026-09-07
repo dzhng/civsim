@@ -1054,3 +1054,52 @@ The plan required credible footwear and planted motion but did not prescribe
 this framing. It is an extra review view, not a new gameplay zoom or renderer.
 Its standing pose cannot establish clearance throughout a walk; moving frames
 remain separately required.
+
+### Use distinct authored walk and run rhythms for the heavy candidate (11)
+
+**Sound, provisional; confidence: medium.** When a heavy soldier walks, the
+candidate takes 0.765-metre steps over a 0.9-second two-step cycle. Running uses
+a shorter 0.8-second cycle with brief periods when neither foot touches ground.
+The animations leave horizontal movement to the game; their backward foot travel
+is designed around the existing prescribed pace, not a new simulation speed.
+Simply accelerating the walking clip would retain walking's support pattern and
+would not create a visibly distinct run.
+
+The plan required individual walk/run motion but left rhythm and support timing
+to authoring. This first rhythm is a reversible working choice, not accepted
+motion: upright carriage, weak push-off and small between-key contact errors
+still require correction. Future changes must keep the actual movement consumer's
+pace relationship and be reviewed at real playback speed, rather than preserve
+these timings merely because they were captured once. No simulation or runtime
+schema change is implied.
+
+### Fit sandal straps from the frozen foot surface during baking (09)
+
+**Sound; confidence: medium.** When the sandal is rebuilt, short rays start
+inside the foot and locate its actual skin. The leather strips are placed just
+outside those intersections, with one strip lifted locally over the crossing.
+This lets the strip follow the current foot rather than assuming an oval foot
+cross-section. It is an offline modeling operation; gameplay receives the same
+ordinary weighted mesh as before.
+
+The footwear task delegated styling and asked for a fit to the fixed body, but
+did not prescribe how to find that fit. The implementation reuses the body's
+existing surface lookup in the geometry author. A substantially different foot
+can move the ray origins outside the skin, so future anatomy changes still
+require a deliberate footwear refit and contact review. This does not promise
+automatic fitting to arbitrary bodies or introduce runtime collision/IK.
+
+### Refine the face after assigning the body's skin weights (08)
+
+**Sound, provisional; confidence: medium.** Adding eyelid and nose detail should
+not change which bones move the untouched hands and torso. The local facial
+pass subdivides only front-head triangles after the existing bone weights have
+been assigned, interpolates those weights, and projects the new vertices onto
+the detailed head before shaping landmarks. Re-running whole-body weight solving
+instead could alter unrelated joints. The final editable deformation mesh owns
+these details; the hidden sculpt is a construction input, not an identical copy.
+
+The spec requires editable anatomy but leaves topology allocation and operation
+order open. This adds provisional face geometry rather than taking detail away
+elsewhere merely to hold an unaccepted count. Future body and distance work must
+still fit the measured budget; this does not accept the face's quality or count.

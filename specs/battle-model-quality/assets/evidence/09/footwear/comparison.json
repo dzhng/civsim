@@ -1,0 +1,44 @@
+[
+  {
+    "name": "ready-feet",
+    "width": 2560,
+    "height": 640,
+    "changedPixels": 89208,
+    "changedRatio": 0.0544482421875
+  },
+  {
+    "name": "ready",
+    "width": 2560,
+    "height": 640,
+    "changedPixels": 4081,
+    "changedRatio": 0.0024908447265625
+  },
+  {
+    "name": "close",
+    "width": 2560,
+    "height": 1280,
+    "changedPixels": 7859,
+    "changedRatio": 0.00239837646484375
+  },
+  {
+    "name": "gameplay-pitch",
+    "width": 2560,
+    "height": 1280,
+    "changedPixels": 3351,
+    "changedRatio": 0.00102264404296875
+  },
+  {
+    "name": "heel-lift",
+    "width": 2560,
+    "height": 640,
+    "changedPixels": 234130,
+    "changedRatio": 0.142901611328125
+  },
+  {
+    "name": "swing",
+    "width": 2560,
+    "height": 640,
+    "changedPixels": 58601,
+    "changedRatio": 0.0357672119140625
+  }
+]

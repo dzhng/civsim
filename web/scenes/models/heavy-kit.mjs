@@ -5,10 +5,11 @@ const details = [
     poses: [["ready", 0, "ready"]] },
   { name: "ready-feet", pitch: 1.2, zoom: 1000, target: [0, 0, 0.12],
     poses: [["ready", 0, "ready"]] },
-  { name: "walk-frames", pitch: 1.4, zoom: 230, target: [0, 0, 0.95],
-    poses: Array.from({ length: 31 }, (_, i) => [`walk frame ${i}`, i / 30, "walk"]),
+  ...[["walk", 27], ["run", 24]].map(([clip, frames]) => ({
+    name: `${clip}-frames`, pitch: 1.4, zoom: 230, target: [0, 0, 0.95],
+    poses: Array.from({ length: frames + 1 }, (_, i) => [`${clip} frame ${i}`, i / frames, clip]),
     views: [["front", 0], ["right side", -Math.PI / 2],
-      ["rear", Math.PI], ["three-quarter", Math.PI / 4]] },
+      ["rear", Math.PI], ["three-quarter", Math.PI / 4]] })),
 ];
 
 export const meta = {
@@ -18,7 +19,7 @@ export const meta = {
   tier: "full",
   snapshots: candidateSnapshots("heavy-kit", details),
   describe:
-    "Composed Blender heavy equipment, surfaces and ready stance on the shared provisional rig; candidate-only.",
+    "Composed Blender heavy equipment, surfaces and locomotion on the shared provisional rig; candidate-only.",
 };
 
 export async function run(ctx) {

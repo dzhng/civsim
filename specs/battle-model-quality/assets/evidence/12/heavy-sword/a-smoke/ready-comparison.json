@@ -1,0 +1,125 @@
+{
+  "scope": "Full width, y80..639 excludes caption only",
+  "rows": [
+    {
+      "view": "front",
+      "frame": 0,
+      "changedWorldPixels": 0
+    },
+    {
+      "view": "front",
+      "frame": 1,
+      "changedWorldPixels": 43350
+    },
+    {
+      "view": "front",
+      "frame": 2,
+      "changedWorldPixels": 46247
+    },
+    {
+      "view": "front",
+      "frame": 3,
+      "changedWorldPixels": 49688
+    },
+    {
+      "view": "front",
+      "frame": 4,
+      "changedWorldPixels": 45119
+    },
+    {
+      "view": "front",
+      "frame": 5,
+      "changedWorldPixels": 54946
+    },
+    {
+      "view": "front",
+      "frame": 6,
+      "changedWorldPixels": 55516
+    },
+    {
+      "view": "front",
+      "frame": 7,
+      "changedWorldPixels": 55336
+    },
+    {
+      "view": "front",
+      "frame": 8,
+      "changedWorldPixels": 54980
+    },
+    {
+      "view": "front",
+      "frame": 9,
+      "changedWorldPixels": 41325
+    },
+    {
+      "view": "front",
+      "frame": 10,
+      "changedWorldPixels": 6248
+    },
+    {
+      "view": "front",
+      "frame": 11,
+      "changedWorldPixels": 1
+    },
+    {
+      "view": "oblique",
+      "frame": 0,
+      "changedWorldPixels": 0
+    },
+    {
+      "view": "oblique",
+      "frame": 1,
+      "changedWorldPixels": 36522
+    },
+    {
+      "view": "oblique",
+      "frame": 2,
+      "changedWorldPixels": 43190
+    },
+    {
+      "view": "oblique",
+      "frame": 3,
+      "changedWorldPixels": 51496
+    },
+    {
+      "view": "oblique",
+      "frame": 4,
+      "changedWorldPixels": 37226
+    },
+    {
+      "view": "oblique",
+      "frame": 5,
+      "changedWorldPixels": 46197
+    },
+    {
+      "view": "oblique",
+      "frame": 6,
+      "changedWorldPixels": 47430
+    },
+    {
+      "view": "oblique",
+      "frame": 7,
+      "changedWorldPixels": 46888
+    },
+    {
+      "view": "oblique",
+      "frame": 8,
+      "changedWorldPixels": 46148
+    },
+    {
+      "view": "oblique",
+      "frame": 9,
+      "changedWorldPixels": 34980
+    },
+    {
+      "view": "oblique",
+      "frame": 10,
+      "changedWorldPixels": 9771
+    },
+    {
+      "view": "oblique",
+      "frame": 11,
+      "changedWorldPixels": 1
+    }
+  ]
+}

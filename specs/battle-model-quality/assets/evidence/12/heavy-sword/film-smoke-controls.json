@@ -1,0 +1,122 @@
+[
+  {
+    "view": "opposing",
+    "smoke": 0,
+    "film": 6,
+    "exactBytes": true
+  },
+  {
+    "view": "opposing",
+    "smoke": 1,
+    "film": 9,
+    "exactBytes": true
+  },
+  {
+    "view": "opposing",
+    "smoke": 2,
+    "film": 12,
+    "exactBytes": true
+  },
+  {
+    "view": "opposing",
+    "smoke": 3,
+    "film": 15,
+    "exactBytes": true
+  },
+  {
+    "view": "opposing",
+    "smoke": 4,
+    "film": 17,
+    "exactBytes": true
+  },
+  {
+    "view": "opposing",
+    "smoke": 5,
+    "film": 19,
+    "exactBytes": true
+  },
+  {
+    "view": "opposing",
+    "smoke": 6,
+    "film": 21,
+    "exactBytes": true
+  },
+  {
+    "view": "opposing",
+    "smoke": 7,
+    "film": 24,
+    "exactBytes": true
+  },
+  {
+    "view": "opposing",
+    "smoke": 8,
+    "film": 28,
+    "exactBytes": true
+  },
+  {
+    "view": "opposing",
+    "smoke": 9,
+    "film": 33,
+    "exactBytes": true
+  },
+  {
+    "view": "oblique",
+    "smoke": 0,
+    "film": 6,
+    "exactBytes": true
+  },
+  {
+    "view": "oblique",
+    "smoke": 1,
+    "film": 9,
+    "exactBytes": true
+  },
+  {
+    "view": "oblique",
+    "smoke": 2,
+    "film": 12,
+    "exactBytes": true
+  },
+  {
+    "view": "oblique",
+    "smoke": 3,
+    "film": 15,
+    "exactBytes": true
+  },
+  {
+    "view": "oblique",
+    "smoke": 4,
+    "film": 17,
+    "exactBytes": true
+  },
+  {
+    "view": "oblique",
+    "smoke": 5,
+    "film": 19,
+    "exactBytes": true
+  },
+  {
+    "view": "oblique",
+    "smoke": 6,
+    "film": 21,
+    "exactBytes": true
+  },
+  {
+    "view": "oblique",
+    "smoke": 7,
+    "film": 24,
+    "exactBytes": true
+  },
+  {
+    "view": "oblique",
+    "smoke": 8,
+    "film": 28,
+    "exactBytes": true
+  },
+  {
+    "view": "oblique",
+    "smoke": 9,
+    "film": 33,
+    "exactBytes": true
+  }
+]

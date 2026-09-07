@@ -1,0 +1,118 @@
+{
+  "checks": [
+    {
+      "name": "sword-effort candidate is manually inspectable for its declared classes",
+      "ok": true,
+      "detail": "{\"catalog\":\"http://localhost:5279/assets/soldiers/candidates/sword-effort/catalog.json\",\"assets\":[{\"id\":0,\"name\":\"sword-effort\",\"presentation\":null,\"bones\":26,\"triangles\":[127196,127196,127196],\"clips\":[{\"name\":\"bend\",\"duration\":2,\"loop\":false},{\"name\":\"bend-pronation\",\"duration\":2,\"loop\":false},{\"name\":\"guarded-backward-walk\",\"duration\":1,\"loop\":true},{\"name\":\"guarded-left-walk\",\"duration\":0.6000000238418579,\"loop\":true},{\"name\":\"guarded-right-walk\",\"duration\":0.6000000238418579,\"loop\":true},{\"name\":\"idle\",\"duration\":6,\"loop\":true},{\"name\":\"pronation\",\"duration\":2,\"loop\":false},{\"name\":\"ready\",\"duration\":6,\"loop\":true},{\"name\":\"run\",\"duration\":0.800000011920929,\"loop\":true},{\"name\":\"sword-effort\",\"duration\":1.2000000476837158,\"loop\":false},{\"name\":\"walk\",\"duration\":0.8999999761581421,\"loop\":true}]}]}"
+    },
+    {
+      "name": "shared/soldiers/sword-effort/sword-effort-opposing-00 exact repeat",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/sword-effort/sword-effort-opposing-00",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/sword-effort/sword-effort-opposing-01 exact repeat",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/sword-effort/sword-effort-opposing-01",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/sword-effort/sword-effort-opposing-02 exact repeat",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/sword-effort/sword-effort-opposing-02",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/sword-effort/sword-effort-opposing-03 exact repeat",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/sword-effort/sword-effort-opposing-03",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/sword-effort/sword-effort-opposing-04 exact repeat",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/sword-effort/sword-effort-opposing-04",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/sword-effort/sword-effort-opposing-05 exact repeat",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/sword-effort/sword-effort-opposing-05",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/sword-effort/sword-effort-opposing-06 exact repeat",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/sword-effort/sword-effort-opposing-06",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/sword-effort/sword-effort-opposing-07 exact repeat",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/sword-effort/sword-effort-opposing-07",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/sword-effort/sword-effort-opposing-08 exact repeat",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/sword-effort/sword-effort-opposing-08",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/sword-effort/sword-effort-opposing-09 exact repeat",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/sword-effort/sword-effort-opposing-09",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/sword-effort/sword-effort-opposing-10 exact repeat",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/sword-effort/sword-effort-opposing-10",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "shared/soldiers/sword-effort/sword-effort-opposing-11 exact repeat",
+      "ok": true
+    },
+    {
+      "name": "snapshot shared/soldiers/sword-effort/sword-effort-opposing-11",
+      "ok": true,
+      "detail": "baseline created"
+    }
+  ],
+  "errors": []
+}

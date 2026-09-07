@@ -1,0 +1,11 @@
+Independent Codex review 95676, terminal 0.
+Session: 01a07dc2-624a-7653-aa30-23c51da6471a
+
+The reproduction procedure validates the wrong artifact. No actionable correctness or ownership defect was identified in the new action or shared extraction through static review; visual acceptance was not assessed.
+
+Review comment:
+
+- [P2] Validate the newly exported reproduction candidate — /Users/david/dev/game-heavy-attack-study/specs/battle-model-quality/assets/evidence/12/heavy-sword/review.md:56-59
+  Following these commands exports the fresh source to `b-repeat`, but the subsequent import, bake, and source-control commands select the preserved `b` directory. Those scripts resolve their input paths from `CANDIDATE`, so successful checks validate archived B rather than the reproduced action and cannot detect reproduction regressions. Point the downstream steps at `b-repeat`, retaining frozen B separately for comparison.
+
+Author disposition: confirmed and corrected. Reproduction controls select b-repeat against CONTROL=b; captured-donor replay is a separately labeled B bake/capture block. All eleven source/imported actions and rig match B; editable meshes match. Fresh export tangent differences are recorded, not pinned or represented as reproduced pixel identity.

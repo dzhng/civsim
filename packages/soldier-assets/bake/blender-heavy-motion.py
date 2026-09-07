@@ -397,25 +397,29 @@ def action_fcurves(action):
             for bag in strip.channelbags for curve in bag.fcurves]
 
 
+def limb_joint(origin, target, upper, lower, bend_hint):
+    """Offline two-segment geometry shared by supported legs and the sword arm."""
+    axis = (target - origin).normalized()
+    reach = (target - origin).length
+    along = (upper * upper - lower * lower + reach * reach) / (2 * reach)
+    pole = (bend_hint - axis * bend_hint.dot(axis)).normalized()
+    return origin + axis * along + pole * math.sqrt(upper * upper - along * along)
+
+
 def place_supported_leg(arm, side, ankle, forward=Vector((0, -1, 0))):
     """Offline two-segment construction; runtime receives ordinary pose keys."""
     thigh, shin = (arm.pose.bones[name + "." + side] for name in ("thigh", "shin"))
     hip = thigh.head.copy()
-    axis = (ankle - hip).normalized()
-    reach = (ankle - hip).length
-    upper, lower = thigh.bone.length, shin.bone.length
-    along = (upper * upper - lower * lower + reach * reach) / (2 * reach)
-    pole = (forward - axis * forward.dot(axis)).normalized()
-    knee = hip + axis * along + pole * math.sqrt(upper * upper - along * along)
+    knee = limb_joint(hip, ankle, thigh.bone.length, shin.bone.length, forward)
     orient(arm, thigh.name, (thigh.bone.tail_local - thigh.bone.head_local).rotation_difference(knee - hip) @ thigh.bone.matrix_local.to_quaternion())
     orient(arm, shin.name, (shin.bone.tail_local - shin.bone.head_local).rotation_difference(ankle - knee) @ shin.bone.matrix_local.to_quaternion())
     arm.pose.bones["knee-volume." + side].rotation_euler = tuple(v * .5 for v in shin.rotation_euler)
 
 
-def begin_guarded_action(arm, scene, clip, author):
+def begin_ready_action(arm, scene, clip, author):
     """Rebuild owned clips from ready, leaving unrelated source controls intact."""
     if scene.render.fps / scene.render.fps_base != 30:
-        raise ValueError("Guarded authoring requires the frozen 30 fps donor")
+        raise ValueError("Ready-based authoring requires the frozen 30 fps donor")
     controls = {action.name: action_signature(action) for action in bpy.data.actions if action.name != clip}
     previous = bpy.data.actions.get(clip)
     if previous:
@@ -440,10 +444,11 @@ def begin_guarded_action(arm, scene, clip, author):
     return controls, base, feet, soles
 
 
-def finish_guarded_action(arm, clip, author, distance, controls):
+def finish_ready_action(arm, clip, author, distance, controls):
     action = arm.animation_data.action
     action.name, action["author"] = clip, author
-    action["stride_distance_m"] = distance
+    if distance is not None:
+        action["stride_distance_m"] = distance
     for curve in action_fcurves(action):
         for key in curve.keyframe_points:
             key.interpolation = "LINEAR"
@@ -458,7 +463,7 @@ def author_guarded_backward(arm, scene):
     """Provisional threat-facing retreat, calibrated to the recorded centroid trace."""
     clip, author = "guarded-backward-walk", "heavy-guarded-backward"
     speed = .9161101579666129
-    controls, base, feet, soles = begin_guarded_action(arm, scene, clip, author)
+    controls, base, feet, soles = begin_ready_action(arm, scene, clip, author)
     # Each foot stays supported for 62% of this one-second cycle. Rebuild
     # from ready, never from the previous candidate's accumulated offsets.
     for frame in range(31):
@@ -504,14 +509,14 @@ def author_guarded_backward(arm, scene):
         for bone in arm.pose.bones:
             bone.keyframe_insert("rotation_euler", frame=frame)
             bone.keyframe_insert("location", frame=frame)
-    finish_guarded_action(arm, clip, author, speed, controls)
+    finish_ready_action(arm, clip, author, speed, controls)
 
 
 def author_guarded_left(arm, scene):
     """Left-leading step-close: shield side stays left, never a mirrored rig."""
     clip, author = "guarded-left-walk", "heavy-guarded-left"
     duration, speed = .6, .760776176053138
-    controls, base, feet, soles = begin_guarded_action(arm, scene, clip, author)
+    controls, base, feet, soles = begin_ready_action(arm, scene, clip, author)
     distance = speed * duration
     for frame in range(19):
         phase = (frame % 18) / 18
@@ -553,14 +558,14 @@ def author_guarded_left(arm, scene):
         for bone in arm.pose.bones:
             bone.keyframe_insert("rotation_euler", frame=frame)
             bone.keyframe_insert("location", frame=frame)
-    finish_guarded_action(arm, clip, author, distance, controls)
+    finish_ready_action(arm, clip, author, distance, controls)
 
 
 def author_guarded_right(arm, scene):
     """Right-leading guarded step; original shield-side stagger stays intact."""
     clip, author = "guarded-right-walk", "heavy-guarded-right"
     duration, speed = .6, .9253140324024038
-    controls, base, feet, soles = begin_guarded_action(arm, scene, clip, author)
+    controls, base, feet, soles = begin_ready_action(arm, scene, clip, author)
     distance = speed * duration
     for frame in range(19):
         phase = (frame % 18) / 18
@@ -600,7 +605,107 @@ def author_guarded_right(arm, scene):
         for bone in arm.pose.bones:
             bone.keyframe_insert("rotation_euler", frame=frame)
             bone.keyframe_insert("location", frame=frame)
-    finish_guarded_action(arm, clip, author, distance, controls)
+    finish_ready_action(arm, clip, author, distance, controls)
+
+
+def author_sword_effort(arm, scene):
+    """Unpaired descending cut: art cadence, never a simulated contact event."""
+    clip, author = "sword-effort", "heavy-sword-effort"
+    controls, base, feet, soles = begin_ready_action(arm, scene, clip, author)
+    ready_world = {b.name: b.matrix.to_quaternion().copy() for b in arm.pose.bones}
+    ankles = {side: arm.pose.bones["foot."+side].head.copy() for side in ("L", "R")}
+    forearm = arm.pose.bones["forearm.R"]
+    axis = (forearm.tail-forearm.head).normalized()
+    hand = arm.pose.bones["hand.R"]
+    centers = [sum((v.co for v in scene.objects[name].data.vertices), Vector()) / len(scene.objects[name].data.vertices)
+               for name in ("Sword blade", "Sword grip")]
+    blade = (hand.matrix.to_3x3() @ hand.bone.matrix_local.to_3x3().inverted() @ (centers[0]-centers[1])).normalized()
+    blade = (blade-axis*blade.dot(axis)).normalized()
+    source = Matrix((axis.cross(blade), axis, blade)).transposed()
+    upper = arm.pose.bones["upper-arm.R"]
+    upper_axis = (upper.tail-upper.head).normalized()
+    shield_upper = arm.pose.bones["upper-arm.L"]
+    shield_axis = (shield_upper.tail-shield_upper.head).normalized()
+    shield_elbow = shield_upper.tail.copy()
+    wrist = forearm.tail.copy()
+    goals = [(0, wrist, blade, upper_axis)]
+    for seconds, target, edge, pole in (
+        (.08, (-.51, -.227, 1.00), blade, upper_axis),
+        (.18, (-.53, -.25, 1.27), (0, -.35, .94), (-1, 0, .1)),
+        (.30, (-.49, -.17, 1.53), (0, .25, .97), (-.8, .2, .7)),
+        (.40, (-.48, -.32, 1.30), (0, -.95, .31), (-.4, -1, .5)),
+        (.50, (-.40, -.38, 1.08), (0, -.87, -.5), (-.3, -1, .5)),
+        (.65, (-.40, -.37, 1.10), (0, -.9, -.43), (-.3, -1, .5)),
+        (.85, (-.50, -.25, 1.00), blade, (-.4, -1, .5)),
+        (.94, (-.50, -.227, .95), blade, upper_axis),
+    ):
+        goals.append((seconds, Vector(target), Vector(edge), Vector(pole)))
+    goals.append((1.05, wrist, blade, upper_axis))
+    previous = {}
+    for frame in range(37):
+        seconds = frame/30
+        for bone in arm.pose.bones:
+            bone.rotation_euler, bone.location = base[bone.name]
+        if 0 < seconds < 1.05:
+            turn = cycle_value(((0, 0), (.30, -.18), (.50, .24), (.72, .17), (1.05, 0), (1.2, 0)), seconds)
+            drive = cycle_value(((0, 0), (.22, -.055), (.32, -.030), (.50, .095), (.65, .080), (.85, .015), (1.05, 0)), seconds)
+            lateral = cycle_value(((0, 0), (.22, -.045), (.50, .045), (.80, .02), (1.05, 0)), seconds)
+            sink = cycle_value(((0, 0), (.22, .035), (.50, .035), (.65, .025), (.85, .020), (1.05, 0)), seconds)
+            heel = cycle_value(((0, 0), (.30, 0), (.46, .32), (.65, .25), (.85, 0), (1.05, 0)), seconds)
+            advance = cycle_value(((0, 0), (.22, 0), (.40, 1), (.85, 1), (1.05, 0)), seconds)
+            lift = 0
+            for start, end in ((.22, .40), (.85, 1.05)):
+                if start < seconds < end:
+                    lift = .035*math.sin(math.pi*(seconds-start)/(end-start))**2
+            pelvis = arm.pose.bones["pelvis"]
+            pelvis.location += pelvis.bone.matrix_local.to_3x3().inverted() @ Vector((lateral, -drive, -sink))
+            bpy.context.view_layer.update()
+            for name, twist, lean in (("pelvis", .45, .3), ("spine", .7, 1), ("chest", 1, .5), ("neck", -.55, -.4)):
+                bone = arm.pose.bones[name]
+                orient(arm, name, (Matrix.Rotation(turn*twist, 3, "Z") @ Matrix.Rotation(drive*lean, 3, "X")).to_quaternion() @ bone.matrix.to_quaternion())
+            for side in ("L", "R"):
+                foot = arm.data.bones["foot."+side]
+                roll = heel if side == "R" else cycle_value(((0, 0), (.32, 0), (.40, -.10), (.46, 0), (1.05, 0)), seconds)
+                rotation = Matrix.Rotation(roll, 3, "X").to_quaternion() @ feet[side]
+                ready_transform = feet[side].to_matrix() @ foot.matrix_local.to_3x3().inverted()
+                transform = rotation.to_matrix() @ foot.matrix_local.to_3x3().inverted()
+                toe = min(soles[side].data.vertices, key=lambda v: (ready_transform @ (v.co-foot.head_local)).y).co-foot.head_local
+                ankle = ankles[side] + ready_transform@toe-transform@toe
+                offsets = [transform@(v.co-foot.head_local) for v in soles[side].data.vertices]
+                if side == "L":
+                    ankle += Vector((.035*advance, -.14*advance, 0))
+                ankle.z = -min(v.z for v in offsets)+(lift if side == "L" else 0)
+                place_supported_leg(arm, side, ankle)
+                orient(arm, "foot."+side, rotation)
+            for (start, wa, ba, pa), (end, wb, bb, pb) in zip(goals, goals[1:]):
+                if start <= seconds <= end:
+                    u = (seconds-start)/(end-start)
+                    u = u*u*(3-2*u)
+                    target_wrist = wa.lerp(wb, u)
+                    elbow = limb_joint(upper.head.copy(), target_wrist, upper.bone.length, forearm.bone.length, pa.lerp(pb, u))
+                    orient(arm, upper.name, upper_axis.rotation_difference(elbow-upper.head) @ ready_world[upper.name])
+                    target_axis = (target_wrist-elbow).normalized()
+                    target_blade = ba.lerp(bb, u)
+                    target_blade = (target_blade-target_axis*target_blade.dot(target_axis)).normalized()
+                    target = Matrix((target_axis.cross(target_blade), target_axis, target_blade)).transposed()
+                    orient(arm, forearm.name, (target @ source.transposed()).to_quaternion() @ ready_world[forearm.name])
+                    break
+            # The shield arm compensates the chest turn around its own grip.
+            target = shield_elbow + Vector((0, -.04*min(sink/.025, 1), -sink*.4))
+            direction = (target-shield_upper.head).normalized()
+            orient(arm, shield_upper.name, shield_axis.rotation_difference(direction) @ ready_world[shield_upper.name])
+            orient(arm, "forearm.L", Matrix.Rotation(max(turn, 0)*1.25, 3, "Z").to_quaternion() @ ready_world["forearm.L"])
+            for side in ("L", "R"):
+                helper = arm.pose.bones["elbow-volume."+side]
+                parent = helper.parent.matrix @ helper.parent.bone.matrix_local.inverted() @ helper.bone.matrix_local
+                orient(arm, helper.name, parent.to_quaternion().slerp(arm.pose.bones["forearm."+side].matrix.to_quaternion(), .5))
+        for bone in arm.pose.bones:
+            if bone.name in previous:
+                bone.rotation_euler = bone.rotation_euler.to_quaternion().to_euler("XYZ", previous[bone.name])
+            previous[bone.name] = bone.rotation_euler.copy()
+            bone.keyframe_insert("rotation_euler", frame=frame)
+            bone.keyframe_insert("location", frame=frame)
+    finish_ready_action(arm, clip, author, None, controls)
 
 
 def supported_ready_stance(arm):
@@ -694,6 +799,7 @@ def build(source, output=OUTPUT):
     author_guarded_backward(arm, scene)
     author_guarded_left(arm, scene)
     author_guarded_right(arm, scene)
+    author_sword_effort(arm, scene)
     anatomy.export_candidate(body, arm, output, "heavy-kit")
 
 

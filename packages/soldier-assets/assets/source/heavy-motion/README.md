@@ -5,8 +5,10 @@ authored ready/walk actions. Its geometry-source hash identifies the actual
 comparison input; it is not a production catalog entry. Refit new geometry before
 claiming these clips work with it.
 
-[Motion authoring](../../../bake/blender-heavy-motion.py) regenerates only owned
-motion actions on this scene. It preserves shared inspection actions and bind
+[Motion authoring](../../../bake/blender-heavy-motion.py) now defaults to the
+combined heavy-kit source, whose fitted hand and equipment orientation supports
+the current carry recipe. This directory is a frozen older motion study; do not
+substitute it for that combined source. The recipe preserves shared inspection actions and bind
 geometry. Foot support is authored into joint keys and pelvis height offline;
 no foot solver, horizontal root displacement or combat authority enters runtime.
 The same production exporter, loader and skinning path consume the result.

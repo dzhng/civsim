@@ -1,0 +1,193 @@
+{
+  "sourceSha256": "0a7beffb16f962e9cbb2993a5a30a83dd0b0c76a2a58a6eabf78f0af6c5f31a8",
+  "regeneratedSha256": "42817ada70ad38c73e4bdf0428449ea45d2c01b336e2d0e07138633c20dd625a",
+  "fullRigAndAnimationExact": true,
+  "positionsNormalsUvsWeightsJointsIndicesExact": true,
+  "tangentChanges": [
+    {
+      "primitive": 0,
+      "component": 34642,
+      "before": -0.2867000102996826,
+      "after": -0.28679999709129333
+    },
+    {
+      "primitive": 0,
+      "component": 83349,
+      "before": -0.47530001401901245,
+      "after": -0.47519999742507935
+    },
+    {
+      "primitive": 0,
+      "component": 83350,
+      "before": -0.8690000176429749,
+      "after": -0.8690999746322632
+    },
+    {
+      "primitive": 0,
+      "component": 86178,
+      "before": 0.44830000400543213,
+      "after": 0.44839999079704285
+    },
+    {
+      "primitive": 0,
+      "component": 88560,
+      "before": 0.32019999623298645,
+      "after": 0.32010000944137573
+    },
+    {
+      "primitive": 0,
+      "component": 94382,
+      "before": 0.3041999936103821,
+      "after": 0.30410000681877136
+    },
+    {
+      "primitive": 0,
+      "component": 99549,
+      "before": -0.5540000200271606,
+      "after": -0.5539000034332275
+    },
+    {
+      "primitive": 0,
+      "component": 99550,
+      "before": -0.7702000141143799,
+      "after": -0.7702999711036682
+    },
+    {
+      "primitive": 0,
+      "component": 113981,
+      "before": 0.5221999883651733,
+      "after": 0.5220999717712402
+    },
+    {
+      "primitive": 0,
+      "component": 123220,
+      "before": 0.5056999921798706,
+      "after": 0.5055999755859375
+    },
+    {
+      "primitive": 1,
+      "component": 29036,
+      "before": 0.3440000116825104,
+      "after": 0.3440999984741211
+    },
+    {
+      "primitive": 1,
+      "component": 30689,
+      "before": 0.28679999709129333,
+      "after": 0.28690001368522644
+    },
+    {
+      "primitive": 7,
+      "component": 33232,
+      "before": -0.7111999988555908,
+      "after": -0.7110999822616577
+    },
+    {
+      "primitive": 7,
+      "component": 54777,
+      "before": 0.6571999788284302,
+      "after": 0.6572999954223633
+    }
+  ],
+  "previousCanonicalComparison": {
+    "bindRigExact": true,
+    "changedTracks": [
+      {
+        "clip": "ready",
+        "bone": "upper-arm.L"
+      },
+      {
+        "clip": "ready",
+        "bone": "elbow-volume.L"
+      },
+      {
+        "clip": "ready",
+        "bone": "forearm.L"
+      },
+      {
+        "clip": "ready",
+        "bone": "hand.L"
+      },
+      {
+        "clip": "ready",
+        "bone": "upper-arm.R"
+      },
+      {
+        "clip": "ready",
+        "bone": "elbow-volume.R"
+      },
+      {
+        "clip": "ready",
+        "bone": "forearm.R"
+      },
+      {
+        "clip": "ready",
+        "bone": "hand.R"
+      },
+      {
+        "clip": "run",
+        "bone": "upper-arm.L"
+      },
+      {
+        "clip": "run",
+        "bone": "elbow-volume.L"
+      },
+      {
+        "clip": "run",
+        "bone": "forearm.L"
+      },
+      {
+        "clip": "run",
+        "bone": "hand.L"
+      },
+      {
+        "clip": "run",
+        "bone": "upper-arm.R"
+      },
+      {
+        "clip": "run",
+        "bone": "elbow-volume.R"
+      },
+      {
+        "clip": "run",
+        "bone": "forearm.R"
+      },
+      {
+        "clip": "run",
+        "bone": "hand.R"
+      },
+      {
+        "clip": "walk",
+        "bone": "upper-arm.L"
+      },
+      {
+        "clip": "walk",
+        "bone": "elbow-volume.L"
+      },
+      {
+        "clip": "walk",
+        "bone": "forearm.L"
+      },
+      {
+        "clip": "walk",
+        "bone": "hand.L"
+      },
+      {
+        "clip": "walk",
+        "bone": "upper-arm.R"
+      },
+      {
+        "clip": "walk",
+        "bone": "elbow-volume.R"
+      },
+      {
+        "clip": "walk",
+        "bone": "forearm.R"
+      },
+      {
+        "clip": "walk",
+        "bone": "hand.R"
+      }
+    ]
+  }
+}

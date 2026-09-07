@@ -20,44 +20,6 @@
       "occlusionStrength": 1
     },
     {
-      "name": "heavy-cloth",
-      "baseColor": [
-        1,
-        1,
-        1,
-        1
-      ],
-      "roughness": 0.9399999976158142,
-      "metallic": 0,
-      "textures": {
-        "baseColor": true,
-        "normal": true,
-        "metallicRoughness": true,
-        "occlusion": true
-      },
-      "normalScale": 0.25,
-      "occlusionStrength": 1
-    },
-    {
-      "name": "heavy-mail",
-      "baseColor": [
-        1,
-        1,
-        1,
-        1
-      ],
-      "roughness": 1,
-      "metallic": 1,
-      "textures": {
-        "baseColor": true,
-        "normal": true,
-        "metallicRoughness": true,
-        "occlusion": true
-      },
-      "normalScale": 0.8500000238418579,
-      "occlusionStrength": 1
-    },
-    {
       "name": "heavy-leather",
       "baseColor": [
         1,
@@ -150,6 +112,44 @@
         "occlusion": true
       },
       "normalScale": 0.18000000715255737,
+      "occlusionStrength": 1
+    },
+    {
+      "name": "heavy-cloth",
+      "baseColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.9399999976158142,
+      "metallic": 0,
+      "textures": {
+        "baseColor": true,
+        "normal": true,
+        "metallicRoughness": true,
+        "occlusion": true
+      },
+      "normalScale": 0.25,
+      "occlusionStrength": 1
+    },
+    {
+      "name": "heavy-mail",
+      "baseColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "roughness": 1,
+      "metallic": 1,
+      "textures": {
+        "baseColor": true,
+        "normal": true,
+        "metallicRoughness": true,
+        "occlusion": true
+      },
+      "normalScale": 0.8500000238418579,
       "occlusionStrength": 1
     }
   ],

@@ -27,6 +27,7 @@ const details = [
     target: [0, 0, 0.95],
     formation: true,
     poses: [
+      ["at ease", 0, "idle"],
       ["ready", 0, "ready"],
       ["walk", 0.25, "walk"],
       ["run", 0.25, "run"],
@@ -76,6 +77,7 @@ const details = [
     views: bearings,
   },
   { name: "ready", pitch: 1.4, zoom: 230, target: [0, 0, 0.95], poses: [["ready", 0, "ready"]] },
+  { name: "idle", pitch: 1.4, zoom: 230, target: [0, 0, 0.95], poses: [["at ease", 0, "idle"]] },
   {
     name: "ready-feet",
     pitch: 1.2,

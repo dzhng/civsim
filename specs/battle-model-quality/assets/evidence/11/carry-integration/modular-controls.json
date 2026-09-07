@@ -1,0 +1,31 @@
+{
+  "unchangedModularParts": {
+    "lowerBodyPositionsAndWeights": "5ff8798c79a6693248403848004253190295201720295eb20f78896d56bc487c",
+    "HumanAnatomy-Sculpt": "0b7f271aa4c8cd76436f59b568602f8e3aeee4d68e53411c6b63bef3fac6550c",
+    "Sandal sole.L": "c188652563fa5671bbbd4f3e9cdd12aa52eface70bf7eeb3911f6caaf6a1dad2",
+    "Sandal strap 0.L": "8e6108a30286560dbeac3735c4ce545017ff2ff40fedd4d4f5212632e0493c3d",
+    "Sandal strap 1.L": "34e8b06cf72ba19261d66b2fea5e8b33cb9cf6fa314b0af14d614a267f931f6e",
+    "Sandal heel sling.L": "e740672602a2e635226db8d0d7e03cbf2ed80a07ac645be937e3bb7130225f3e",
+    "Sandal heel riser -1.L": "1400388362e4882daf4bc20805e9d87dd3382d50b46f8f9316bd9ccbb9581caf",
+    "Sandal heel riser 1.L": "3ad570646ccdc904b2a55c005e49e7900a24c2c5fa34051c18cc2df42b084303",
+    "Sandal sole.R": "5ca598a744684f19e3a3b5cb78f24e2b13e3cc195eb23c376dbebd804fcbfc25",
+    "Sandal strap 0.R": "3a745ee9852f6d5c13b7f833c8afa8bef51ba769f74b940aee6217750424517b",
+    "Sandal strap 1.R": "71cc21f459d622de2547091970ba9e738e874e390b68441a126f5d05fc972099",
+    "Sandal heel sling.R": "39a28c9bf67835bd97737fa95004f007d91352c7bc94f83266e56b41cda6891b",
+    "Sandal heel riser -1.R": "ef736dc22d280bf16ba7c913f6f2927dba770d245f36155c57d3f291e6ebc69d",
+    "Sandal heel riser 1.R": "55c6c054a464aeec2878c7990cdda62ce470c95e67e159ec9e3926369c0e47ec",
+    "Helmet bowl and rolled edge": "8838165b0d1e7660cccab25d2014b63bedb5f79092d48ee08af50f48aaa79c11",
+    "Helmet cheek plate.L": "879b3285782ca7e32758756d095f32858b7f652d1946ba637d3d52fc7770e318",
+    "Helmet cheek plate.R": "d00540d6bd5c3069d0fdd36173c102d490e4ff3cf9d7f4cb940e843b1527b335",
+    "Scabbard": "6d402469a19ad2b793e4730dba075407650ae89ab7e48e4a62037cf67b303898",
+    "Scabbard fitting mouth": "f93a7c083014eec45232a1af8f280cc63afcc311d5c7274ee8cdb14a215cded7",
+    "Scabbard fitting upper band": "15d0150734a7134b205fb906d9d763a042eef4c2049c961e4180615dced6437c",
+    "Scabbard fitting lower band": "43331cf35f84f3a9b02ab887ade08cd56fa6269d9af6077940a8b14073608eb1",
+    "Scabbard fitting chape": "fb9491f73c121147089e0b79169693165576c070d268eeda4b3875bd62fd1396",
+    "Scabbard suspension 0": "bfe779b91ed8af289172c1d8c35ebb35da961edd118621b1784f02f22984fa2a",
+    "Scabbard suspension 1": "3b78fcea1768e3771b41419f00537d43e65947119c3284146c857f5486d97fdf",
+    "Tunic": "edf28c145c8fcc2af8725776c5f9bbb1ce0fea89b54fb83599677e139cb1219a",
+    "Mail shirt": "43db0d35e6767222dc760c87e98bce60d79ad369245da3c81a47f6e089da6efb",
+    "Waist belt": "dc716e4e3e2e673e3063b54ad4123099ff8ddddc25726c36cde6a1af90542c6c"
+  }
+}

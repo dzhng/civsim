@@ -10,7 +10,7 @@ import bpy
 from mathutils import Matrix, Vector
 
 HERE = Path(__file__).resolve().parent
-OUTPUT = HERE.parent / "assets/source/heavy-motion"
+OUTPUT = HERE.parent / "assets/source/heavy-kit"
 spec = importlib.util.spec_from_file_location("anatomy", HERE / "blender-human-anatomy.py")
 anatomy = importlib.util.module_from_spec(spec)
 sys.dont_write_bytecode = True
@@ -31,6 +31,32 @@ def aim(arm, name, direction, roll=0):
     rotation = rest.to_3x3().col[1].rotation_difference(Vector(direction).normalized()) @ rest.to_quaternion()
     rotation = rotation @ Matrix.Rotation(roll, 3, "Y").to_quaternion()
     orient(arm, name, rotation)
+
+
+def shield_forearm(arm, axis, normal):
+    """Orient the gripped board's outward normal without changing its wrist anchor."""
+    name = "forearm.L"
+    axis, normal = Vector(axis).normalized(), Vector(normal)
+    normal = (normal-axis*normal.dot(axis)).normalized()
+    source_axis = arm.data.bones[name].matrix_local.to_3x3().col[1].normalized()
+    source_normal = Vector((0, 1, 0))
+    source_normal = (source_normal-source_axis*source_normal.dot(source_axis)).normalized()
+    source = Matrix((source_normal, source_axis.cross(source_normal), source_axis)).transposed()
+    target = Matrix((normal, axis.cross(normal), axis)).transposed()
+    orient(arm, name, (target@source.transposed()).to_quaternion()@arm.data.bones[name].matrix_local.to_quaternion())
+
+
+def carry_arm(arm, side, phase, traveling, running=False):
+    if side == "R":
+        carriage = math.cos(math.tau*phase) if traveling else 0
+        upper = (-.20, -.08+.38*carriage, -1) if running else (-.12, -.10+.23*carriage, -1)
+        forearm = (-.15, -.72+.15*carriage, .10) if running else (-.15, -.72+.19*carriage, -.65)
+        aim(arm, "upper-arm.R", upper, -math.pi/4)
+        aim(arm, "forearm.R", forearm, math.pi/2-math.pi)
+    else:
+        sway = math.cos(math.tau*phase) if traveling else 0
+        aim(arm, "upper-arm.L", (.32, -.04+.04*sway, -1))
+        shield_forearm(arm, (-.12, -.10+.06*sway, -1), (1, 0, 0))
 
 
 def cycle_value(keys, phase):
@@ -82,11 +108,11 @@ def author_motion(arm, scene):
             if arm.animation_data.action == action:
                 arm.animation_data.action = None
             bpy.data.actions.remove(action)
-    if any(name in bpy.data.actions for name in ("ready", "walk")):
-        raise RuntimeError("Unrelated ready/walk action exists; use an isolated source scene")
+    if any(name in bpy.data.actions for name in ("idle", "ready", "walk")):
+        raise RuntimeError("Unrelated idle/ready/walk action exists; use an isolated source scene")
     soles = {side: next(o for o in scene.objects if o.name == "Sandal sole."+side)
              for side in ("L", "R")}
-    for clip, walking in (("ready", False), ("walk", True)):
+    for clip, walking in (("idle", False), ("walk", True)):
         arm.animation_data.action = None
         cycle_frames = 27 if walking else 36
         for frame in range(cycle_frames+1):
@@ -99,7 +125,7 @@ def author_motion(arm, scene):
             if walking:
                 loaded_body(arm, phase, False)
             bpy.context.view_layer.update()
-            for side, sign in (("R", -1), ("L", 1)):
+            for side in ("R", "L"):
                 step = (phase + (0 if side == "R" else .5)) % 1
                 swing = max(0, (step-.5)*2)
                 knee = cycle_value(((0,.10),(.08,.27),(.25,.10),(.35,.10),
@@ -130,14 +156,7 @@ def author_motion(arm, scene):
                 foot = arm.data.bones["foot."+side].matrix_local.to_quaternion()
                 foot = Matrix.Rotation(roll, 3, "X").to_quaternion() @ foot
                 orient(arm, "foot."+side, foot)
-                carriage = math.cos(math.tau*phase)*(-sign) if walking else 0
-                # Carry the shield ahead of the advancing knee throughout the stride.
-                upper_forward = -.20 if walking and side == "L" else -.10
-                fore_forward = -.72 if side == "R" else (-.65 if walking else -.30)
-                aim(arm, "upper-arm."+side, (sign*(.12 if side == "R" else .42), upper_forward+(.23 if side == "R" else .10)*carriage, -1))
-                aim(arm, "forearm."+side,
-                    (sign*.15, fore_forward+(.19 if side == "R" else .08)*carriage, -.65 if side == "R" else -.95),
-                    math.pi/2 if side == "R" else 0)
+                carry_arm(arm, side, phase, walking)
                 helper = arm.pose.bones["elbow-volume."+side]
                 base = helper.parent.matrix @ helper.parent.bone.matrix_local.inverted() @ helper.bone.matrix_local
                 orient(arm, helper.name, base.to_quaternion().slerp(arm.pose.bones["forearm."+side].matrix.to_quaternion(), .5))
@@ -171,10 +190,33 @@ def author_motion(arm, scene):
                     for curve in bag.fcurves:
                         for key in curve.keyframe_points:
                             key.interpolation = "LINEAR"
-    arm.animation_data.action = bpy.data.actions["ready"]
+    arm.animation_data.action = bpy.data.actions["idle"]
     arm.animation_data.action_slot = arm.animation_data.action.slots[0]
     scene.frame_set(0)
     author_run(arm, scene)
+    author_ready(arm, scene)
+
+
+def author_ready(arm, scene):
+    """Keep the planted idle body, raising only the shield arm into protection."""
+    ready = bpy.data.actions["idle"].copy()
+    ready.name = "ready"
+    arm.animation_data.action = ready
+    arm.animation_data.action_slot = ready.slots[0]
+    for frame in range(37):
+        scene.frame_set(frame)
+        aim(arm, "upper-arm.L", (.32, -.60, -1))
+        shield_forearm(arm, (-.8, -.10, .16), (0, -1, 0))
+        helper = arm.pose.bones["elbow-volume.L"]
+        base = helper.parent.matrix@helper.parent.bone.matrix_local.inverted()@helper.bone.matrix_local
+        orient(arm, helper.name, base.to_quaternion().slerp(arm.pose.bones["forearm.L"].matrix.to_quaternion(), .5))
+        for name in ("upper-arm.L", "forearm.L", "elbow-volume.L"):
+            arm.pose.bones[name].keyframe_insert("rotation_euler", frame=frame)
+    track = arm.animation_data.nla_tracks.new()
+    track.name, track.mute = "ready", True
+    strip = track.strips.new("ready", 0, ready)
+    strip.action_slot = ready.slots[0]
+    scene.frame_set(0)
 
 
 def author_run(arm, scene):
@@ -200,7 +242,7 @@ def author_run(arm, scene):
         loaded_body(arm, phase, True)
         bpy.context.view_layer.update()
         minimum = {}
-        for side, sign in (("R",-1),("L",1)):
+        for side in ("R", "L"):
             step = (phase+(0 if side == "R" else .5))%1
             knee = cycle_value(((0,.30),(.12,.68),(.28,.34),(.35,.30),
                                 (.50,1.75),(.70,1.15),(.90,.45),(1,.30)),step)
@@ -220,12 +262,7 @@ def author_run(arm, scene):
             arm.pose.bones["knee-volume."+side].rotation_euler.x=knee/2
             bpy.context.view_layer.update()
             orient(arm,"foot."+side,Matrix.Rotation(roll,3,"X").to_quaternion()@arm.data.bones["foot."+side].matrix_local.to_quaternion())
-            carriage=math.cos(math.tau*phase)*(-sign)
-            aim(arm,"upper-arm."+side,
-                (sign*.20,(-.08 if side=="R" else -.16)+(.38 if side=="R" else .17)*carriage,-1))
-            aim(arm,"forearm."+side,
-                (sign*.15,-.72+.15*carriage if side=="R" else -.85+.12*carriage,
-                 .10 if side=="R" else -.80),math.pi/2 if side=="R" else 0)
+            carry_arm(arm, side, phase, True, running=True)
             helper=arm.pose.bones["elbow-volume."+side]
             base=helper.parent.matrix@helper.parent.bone.matrix_local.inverted()@helper.bone.matrix_local
             orient(arm,helper.name,base.to_quaternion().slerp(arm.pose.bones["forearm."+side].matrix.to_quaternion(),.5))
@@ -256,12 +293,12 @@ def author_run(arm, scene):
             for bag in strip.channelbags:
                 for curve in bag.fcurves:
                     for key in curve.keyframe_points:key.interpolation="LINEAR"
-    arm.animation_data.action=bpy.data.actions["ready"]
+    arm.animation_data.action=bpy.data.actions["idle"]
     arm.animation_data.action_slot=arm.animation_data.action.slots[0]
     scene.frame_set(0)
 
 
-def build(source):
+def build(source, output=OUTPUT):
     with bpy.data.libraries.load(str(source)) as (data, target):
         target.scenes = [next(n for n in data.scenes if n in ("HeavyKitCandidate", "HeavyMotionCandidate"))]
     scene = target.scenes[0]
@@ -277,11 +314,12 @@ def build(source):
     if not {name for name, _, _ in anatomy.INSPECTION_CLIPS} <= owned:
         raise RuntimeError("Freeze a fitted source with the shared rig's inspection clips before authoring motion")
     author_motion(arm, scene)
-    anatomy.export_candidate(body, arm, OUTPUT, "heavy-motion")
+    anatomy.export_candidate(body, arm, output, "heavy-kit")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--source", type=Path, default=OUTPUT/"heavy-motion.blend")
+    parser.add_argument("--source", type=Path, default=OUTPUT/"heavy-kit.blend")
+    parser.add_argument("--output", type=Path, default=OUTPUT)
     args = parser.parse_args(sys.argv[sys.argv.index("--")+1:] if "--" in sys.argv else [])
-    build(args.source)
+    build(args.source, args.output)

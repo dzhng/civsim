@@ -1,0 +1,48 @@
+{
+  "rigAndSevenClips": "exact",
+  "geometryExceptTangents": "exact",
+  "tangents": [
+    {
+      "primitive": 0,
+      "count": 6,
+      "max": 0.00010001659393310547
+    },
+    {
+      "primitive": 1,
+      "count": 1,
+      "max": 0.00009999796748161316
+    },
+    {
+      "primitive": 2,
+      "count": 7,
+      "max": 0.00010001659393310547
+    },
+    {
+      "primitive": 3,
+      "count": 3,
+      "max": 0.00010001659393310547
+    },
+    {
+      "primitive": 4,
+      "count": 0,
+      "max": 0
+    },
+    {
+      "primitive": 5,
+      "count": 0,
+      "max": 0
+    },
+    {
+      "primitive": 6,
+      "count": 0,
+      "max": 0
+    }
+  ],
+  "leftGripCenterlineGap": 0.00013831066188485733,
+  "footFloor": {
+    "L": 3.499909660212297e-7,
+    "R": 4.094040085139694e-7
+  },
+  "shaftElevationDegrees": 11.76543509760309,
+  "staticEndpoints": "exact"
+}

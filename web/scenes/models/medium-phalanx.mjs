@@ -87,6 +87,34 @@ const cameras = [
       ["right", Math.PI / 2],
     ],
   },
+  {
+    name: "pike-ready-whole",
+    pitch: 1.4,
+    zoom: 230,
+    target: [0, 0, 0.95],
+    poses: [
+      ["forward control", 0, "pike-carry"],
+      ["loaded ready", 0, "pike-ready"],
+    ],
+    views: [
+      ["front-left", -0.65],
+      ["front-right", 0.65],
+    ],
+  },
+  {
+    name: "pike-ready-complete",
+    pitch: 1.4,
+    zoom: 85,
+    target: [0, -0.8, 1.15],
+    poses: [
+      ["forward control", 0, "pike-carry"],
+      ["loaded ready", 0, "pike-ready"],
+    ],
+    views: [
+      ["left", -Math.PI / 2],
+      ["right", Math.PI / 2],
+    ],
+  },
 ];
 
 export const meta = {

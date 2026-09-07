@@ -10,7 +10,7 @@ const bundle = bakeAppearance({
   name: "medium-phalanx",
   mounted: false,
   tiers: [source, source, source],
-  loopClips: ["pike-carry", "ready", "walk", "run"],
+  loopClips: ["pike-carry", "ready", "walk", "run", "pike-ready"],
   presentation: null,
 });
 const files = { "catalog.json": { appearances: { 14: "medium/appearance.json" } } };

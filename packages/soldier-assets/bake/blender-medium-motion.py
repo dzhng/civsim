@@ -1,6 +1,6 @@
-"""Ordinary upright-pike locomotion on the saved fitted medium assembly.
+"""Pike posture and locomotion on the saved fitted medium assembly.
 
-Run in Blender on SOURCE.blend, then -- --clip walk|run --output DIRECTORY.
+Run in Blender on SOURCE.blend, then -- --clip CLIP --output DIRECTORY.
 Only the selected action changes; geometry and every other action stay intact.
 """
 import argparse
@@ -84,15 +84,56 @@ def upright_carry(arm, original_forearm, phase, running=False):
         motion.orient(arm, helper.name, base.to_quaternion().slerp(arm.pose.bones["forearm." + side].matrix.to_quaternion(), .5))
 
 
+def author_pike_ready(arm):
+    """Held-hedge ready study, not a measurement of the engine's brace ramp."""
+    pelvis = arm.pose.bones["pelvis"]
+    pelvis.location = pelvis.bone.matrix_local.to_3x3().inverted() @ (Vector((0, -.035, .890)) - pelvis.bone.head_local)
+    bpy.context.view_layer.update()
+    for side, sign in (("L", 1), ("R", -1)):
+        foot = arm.pose.bones["foot." + side]
+        direction = foot.bone.tail_local - foot.bone.head_local
+        direction.z = 0
+        motion.place_supported_leg(arm, side, Vector((sign * .15, -.14 if side == "L" else .10, .093)), direction.normalized())
+        motion.orient(arm, foot.name, foot.bone.matrix_local.to_quaternion())
+    # Both established arm chains travel with the common trunk, preserving
+    # purchases without choosing a different elbow branch for a static load.
+    arm.pose.bones["spine"].rotation_euler.x += .14
+    arm.pose.bones["neck"].rotation_euler.x -= .10
+    bpy.context.view_layer.update()
+    for frame in (0, 30):
+        for bone in arm.pose.bones:
+            bone.keyframe_insert("rotation_euler", frame=frame)
+            bone.keyframe_insert("location", frame=frame)
+
+
 def author(arm, clip):
     arm.animation_data.action = bpy.data.actions["pike-carry"]
     arm.animation_data.action_slot = arm.animation_data.action.slots[0]
     bpy.context.scene.frame_set(0)
     original_forearm = arm.pose.bones["forearm.L"].matrix.copy()
     carry = {b.name: b.rotation_euler.copy() for b in arm.pose.bones}
-    action = bpy.data.actions[clip]
+    if clip == "pike-ready":
+        for track in list(arm.animation_data.nla_tracks):
+            if track.name == clip:
+                arm.animation_data.nla_tracks.remove(track)
+        if clip in bpy.data.actions:
+            bpy.data.actions.remove(bpy.data.actions[clip])
+        action = bpy.data.actions["pike-carry"].copy()
+        action.name = clip
+    else:
+        action = bpy.data.actions[clip]
     arm.animation_data.action = action
     arm.animation_data.action_slot = action.slots[0]
+    if clip == "pike-ready":
+        bpy.context.scene.frame_set(0)
+        author_pike_ready(arm)
+        action["author"] = "medium-held-pike-ready"
+        track = arm.animation_data.nla_tracks.new()
+        track.name, track.mute = clip, True
+        strip = track.strips.new(clip, 0, action)
+        strip.action_slot = action.slots[0]
+        bpy.context.scene.frame_set(0)
+        return
     upper = [n for n in carry if n in ("spine", "chest", "neck", "head")
              or n.startswith(("clavicle.", "upper-arm.", "forearm.", "hand.", "elbow-volume."))]
     # The donor's .9 s / 1.53 m walk follows the class-independent 1.7 m/s
@@ -126,7 +167,7 @@ def author(arm, clip):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--clip", choices=("walk", "run"), required=True)
+    parser.add_argument("--clip", choices=("walk", "run", "pike-ready"), required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:])
     arm = next(o for o in bpy.context.scene.objects if o.type == "ARMATURE")

@@ -19,20 +19,25 @@ motion = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(motion)
 
 
-def upright_carry(arm):
-    arm.animation_data.action = bpy.data.actions["pike-carry"]
-    arm.animation_data.action_slot = arm.animation_data.action.slots[0]
-    bpy.context.scene.frame_set(0)
-    original_forearm = arm.pose.bones["forearm.L"].matrix.copy()
+def upright_carry(arm, original_forearm, phase):
     old_axis = original_forearm.to_3x3().col[1].normalized()
     old_normal = Vector((0, -1, 0))
     old_normal = (old_normal - old_axis * old_normal.dot(old_axis)).normalized()
-    torso_turn = Matrix.Rotation(math.radians(25), 3, "Z")
-    motion.orient(arm, "chest", torso_turn.to_quaternion() @ arm.data.bones["chest"].matrix_local.to_quaternion())
-    motion.orient(arm, "neck", arm.data.bones["neck"].matrix_local.to_quaternion())
-    motion.orient(arm, "head", arm.data.bones["head"].matrix_local.to_quaternion())
-    shaft = Vector((0, -.15, 1)).normalized()
-    right_grip = Vector((.24, -.08, 1.46))
+    step = math.tau * phase
+    lean = .045 + .012 * math.sin(2 * step)
+    turn = math.radians(25) + .04 * math.sin(step)
+    torso_turn = Matrix.Rotation(turn, 3, "Z") @ Matrix.Rotation(lean, 3, "X")
+    for name, yaw, pitch in (("spine", 0, lean), ("chest", turn, lean),
+                             ("neck", 0, .015), ("head", 0, .015)):
+        rotation = Matrix.Rotation(yaw, 3, "Z") @ Matrix.Rotation(pitch, 3, "X")
+        motion.orient(arm, name, rotation.to_quaternion() @ arm.data.bones[name].matrix_local.to_quaternion())
+    # The held load lags the chest; connected elbow flex absorbs their relative
+    # motion. A wider lateral carry gives the advancing ankle room below it.
+    shaft = Vector((.008 * math.sin(step - .5), -.15 + .015 * math.sin(2 * step - .7), 1)).normalized()
+    rise = arm.pose.bones["pelvis"].head.z - arm.data.bones["pelvis"].head_local.z
+    right_grip = Vector((.30 + .008 * math.sin(step - .5),
+                         -.08 + .006 * math.sin(2 * step - .7),
+                         1.46 + .6 * rise + .012 * math.sin(2 * step - .7)))
     # The left hand purchases below the right for ordinary upright travel.
     # Raising both old forward-carry grips would lift the shield beside the head.
     grips = {"R": right_grip, "L": right_grip - shaft * .34}
@@ -75,30 +80,35 @@ def upright_carry(arm):
         helper = arm.pose.bones["elbow-volume." + side]
         base = helper.parent.matrix @ helper.parent.bone.matrix_local.inverted() @ helper.bone.matrix_local
         motion.orient(arm, helper.name, base.to_quaternion().slerp(arm.pose.bones["forearm." + side].matrix.to_quaternion(), .5))
-    return {b.name: b.rotation_euler.copy() for b in arm.pose.bones}
 
 
 def author(arm):
-    carry = upright_carry(arm)
+    arm.animation_data.action = bpy.data.actions["pike-carry"]
+    arm.animation_data.action_slot = arm.animation_data.action.slots[0]
+    bpy.context.scene.frame_set(0)
+    original_forearm = arm.pose.bones["forearm.L"].matrix.copy()
+    carry = {b.name: b.rotation_euler.copy() for b in arm.pose.bones}
     action = bpy.data.actions["walk"]
     arm.animation_data.action = action
     arm.animation_data.action_slot = action.slots[0]
     upper = [n for n in carry if n in ("spine", "chest", "neck", "head")
              or n.startswith(("clavicle.", "upper-arm.", "forearm.", "hand.", "elbow-volume."))]
     # The donor's .9 s / 1.53 m walk follows the class-independent 1.7 m/s
-    # floor. Keep its planted travel keys; pose the carried load as one assembly.
+    # floor. Keep its planted travel keys while the arms absorb the held load.
+    previous = {}
     for frame in range(28):
         bpy.context.scene.frame_set(frame)
         phase = frame / 27
         for name in upper:
             arm.pose.bones[name].rotation_euler = carry[name]
-        pitch = .045 + .008 * math.sin(2 * math.tau * phase)
-        for name, turn, lean in (("spine", 0, pitch), ("chest", math.radians(25), pitch),
-                                 ("neck", 0, .015), ("head", 0, .015)):
-            rotation = Matrix.Rotation(turn, 3, "Z") @ Matrix.Rotation(lean, 3, "X")
-            motion.orient(arm, name, rotation.to_quaternion() @ arm.data.bones[name].matrix_local.to_quaternion())
+        upright_carry(arm, original_forearm, phase)
         for name in upper:
-            arm.pose.bones[name].keyframe_insert("rotation_euler", frame=frame)
+            bone = arm.pose.bones[name]
+            if name in previous:
+                # Equivalent Euler branches must not spin a wrist between keys.
+                bone.rotation_euler = bone.rotation_euler.to_quaternion().to_euler("XYZ", previous[name])
+            previous[name] = bone.rotation_euler.copy()
+            bone.keyframe_insert("rotation_euler", frame=frame)
     for layer in action.layers:
         for strip in layer.strips:
             for bag in strip.channelbags:

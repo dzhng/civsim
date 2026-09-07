@@ -1,9 +1,6 @@
 # 11 — First-pair locomotion
 
-Status: TODO. Acceptance depends on [10](./10-pair-surfaces.md). Candidate ready
-and walk clips may be authored once the provisional rig and equipment contacts
-are usable; final surface acceptance is not an authoring dependency. Freeze the
-rig/kit revision for each motion comparison and repeat affected checks after refits.
+Status: IN PROGRESS, working candidate only. Acceptance depends on [10](./10-pair-surfaces.md).
 
 ## Contract and ownership
 
@@ -54,4 +51,10 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 - [ ] Comparison and final unprimed critique recorded.
 - [ ] Review/cleanup completed; README pickup and decisions updated.
 
-Record actual commands, evidence links, measured results, decisions and unresolved defects here during implementation. No implementation or visual acceptance has occurred yet.
+The [first equipped-heavy ready/walk candidate](../assets/evidence/11/heavy-walk/review.md)
+uses frozen provisional geometry and the existing rig. It targets the actual heavy
+march pace, retains inspection clips, and has all-frame production captures plus
+offline grounding telemetry. Fresh review permits continued authoring, not slice
+acceptance: upper-body stiffness, joint shape and fully observed playback cadence
+remain open. Refit and recapture after concurrent body/equipment changes. Ready is
+a static planted stance; run, speed ramps, phalanx motion and transitions remain.

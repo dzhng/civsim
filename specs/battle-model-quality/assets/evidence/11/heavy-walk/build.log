@@ -1,0 +1,10 @@
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+09:20:45 | INFO: Starting glTF 2.0 export
+09:20:45 | INFO: Extracting primitive: thorax-pelvis.002
+09:20:45 | INFO: Primitives created: 1
+09:20:45 | INFO: Finished glTF 2.0 export in 0.5401408672332764 s
+
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

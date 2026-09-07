@@ -145,6 +145,34 @@ The root/stride equality is a constant enabled-motion contract, not a claim
 about disabled transport or mixed-direction intervals. Review actual moving
 production frames and attached overlays before accepting the presentation change.
 
+### Next sampling experiment: retain one completed interval
+
+Before another browser implementation, prove the delayed interval contract on
+CPU in isolation. Retain only the preceding observation interval and its history
+shells, sharing immutable clip/frozen-pose payloads. No full-pose capture for every
+soldier on every tick. An already-active gait uses completed interval distance
+and its own stride, not the previous predicted speed. Its endpoint composed pose
+must also own the frozen source when a hit or other interruption arrives at that
+boundary; count distance once. Variable-speed source expectations may therefore
+need an explicit correction, while unchanged-rate exact arithmetic stays pinned.
+
+The eventual candidate would render at one tick behind the engine plus the
+existing fraction, interpolating raw endpoints only inside their observed
+interval. Posture, alive/equipment/facing and attached effects must refer to that
+same presented history; latest engine values cannot masquerade as past state.
+This changes presentation latency, not engine event timing. First appearance,
+replacement and rewind require atomic boundaries; ordinary pause holds its
+fraction, while explicit freeze is an authoritative-time override.
+
+The initial CPU tracer is a walking soldier changing speed and receiving a hit:
+pin midpoint distance/phase agreement and exact interval-end interruption source,
+then masked upper-body interruption and retained-source immutability. An interval
+beginning in idle remains unresolved: retaining old role ownership leaves root
+travel without gait, while retroactive entry is a different transition policy.
+Expose that case as red, not accepted coverage. This experiment does not authorize
+a broad history subsystem, per-bone snapshots, a new physics classifier or live
+promotion. Choose the complete boundary policy before wiring delayed crowd draws.
+
 ### Integrated: stop future gait while disabled
 
 [Evidence](../assets/evidence/11/final-disabled-gait/review.md) includes a matched

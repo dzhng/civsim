@@ -109,3 +109,8 @@ again `0958a94cc79ec1eb208dc810b3793cd1cb65c83afe75b5a1830ec622843e65f7` and
 the human GLB is `33753b624d76aa07298f72d95af010b50949739ec7a3f9ca2a427a31b53ee91d`.
 Inherited harness files and unrelated mail artifacts were not changed by the
 restoration. Root's settled hands remain unchanged.
+
+Root intake: all six archived sheets were inspected again. The candidate's
+pointed dorsal ridges are visibly worse than its control, and neither replaces
+the settled source. Only this negative evidence was integrated; the archived
+patches are not applied to model sources or generated assets.

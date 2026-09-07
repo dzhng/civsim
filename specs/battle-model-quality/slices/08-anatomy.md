@@ -156,3 +156,10 @@ The [rounded-grasp rejection](../assets/evidence/08/rejected-rounded-grasp/revie
 shows that smoothing the repeated finger loops does not establish anatomical
 form. Independently placed knuckles, finger segments and an opposing thumb pad
 are the next construction study; contact and topology remain separate gates.
+
+The [connected-metacarpal rejection](../assets/evidence/08/rejected-metacarpal-grip/review.md)
+shows that explicit joint tuples can still repeat nearly identical finger lengths
+and bends. Both closed-hand studies remain rejected despite sampled clearance.
+The next study establishes a reference-led open hand before bending it offline
+and fitting equipment. It must establish palm depth and natural segment hierarchy,
+not merely smooth the same closed loops. No new runtime finger rig is implied.

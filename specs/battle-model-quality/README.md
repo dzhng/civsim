@@ -8,8 +8,16 @@ Last updated **2026-09-07**. **01–06 complete;07 envelope open;08 candidate au
 Worktree: `/Users/david/dev/game-battle-model-quality`, branch
 `codex/battle-model-quality`. No art envelope or detailed model is accepted.
 
-Current pickup: **author the medium-phalanx comparison while refining the shared
-hand/handle form in parallel**. Defer further isolated face detail. The
+Current pickup: **complete the medium-phalanx sleeve/pike fit and capture the
+first-pair comparison; rebuild the shared hand from open anatomy in parallel**.
+The medium lane must distinguish buried sleeve attachments from exposed cloth,
+check triangle intersections as well as vertices, and preserve the sewn root
+instead of stretching it across the armpit. Recheck both contacts when pike carry
+changes. The
+[closed-hand study rejection](assets/evidence/08/rejected-metacarpal-grip/review.md)
+keeps all those candidate meshes out of the combined model; establish natural
+open-hand proportions before offline closure and equipment fitting.
+Defer further isolated face detail. The
 [combined worn garment](assets/evidence/09/combined-worn-garment/review.md) now
 contains the supported lining/mail and pelvis-bound belt on the retained root
 body, hands and helmet. It is an intermediate improvement, not accepted armor.

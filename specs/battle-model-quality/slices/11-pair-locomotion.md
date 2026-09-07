@@ -26,8 +26,8 @@ movement or facing to make an authored cycle fit.
 
 The timeline now advances walk/run from measured travel and chooses the nearest
 authored nominal pace, preserving phase through speed changes and existing
-interruption ownership. It does not yet distinguish motor-capable travel from
-disabled transport or select protected directional clips. A slowed, threatened
+interruption ownership. Its integrated observation now distinguishes motor-capable
+travel from disabled transport; protected directional selection remains open. A slowed, threatened
 backward step must not run a full-speed cycle merely because the order requested
 running. Keep standing
 breathing and combat event timing independent of distance-driven gait; neither
@@ -53,14 +53,18 @@ Implementation checkpoints, in order:
 
 API seam: Authored clips on shared human rig → clip registry and timeline; stride phase follows measured motion, visual root displacement removed to preserve sim positions.
 
-### Next bounded pass: movement while motor-capable
+### Integrated observation: movement while motor-capable
+
+[Implementation evidence](../assets/evidence/11/motor-capable-travel/review.md)
+records actual native/bulk/production consumer tests and unchanged playback images.
+Root merged gates are underway; this is not locomotion-art acceptance.
 
 The engine can skip movement because a body is stunned or bowled, then decrement
 that timer to zero before the browser reads it. Final posture cannot classify the
 whole interval. Conversely, an enabled body can take a pressure-recovery step;
 there is no canonical voluntary-versus-pushed gait state to invent.
 
-Implement read-only cumulative travel qualified by the movement branch that
+Read-only cumulative travel is qualified by the movement branch that
 actually ran. Ordinary and routing movement qualify; dead or disabled branches
 do not. Count resulting tick-start-to-final displacement, not commanded velocity
 or pre-separation drive that a constraint may undo. Preserve cumulative world X/Y

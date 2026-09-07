@@ -19,8 +19,12 @@ its runtime selection is still unbuilt. [Measured-distance playback](assets/evid
 is integrated and independently verified on the merged tree. Clip calibration
 selects walk/run from measured pace and advances gait by observed travel;
 combat remains time-driven. Numerical comparison and reference shadow-history
-corrections preserve exact same-input image repeatability. Movement during
-incapacity and live root smoothing remain explicit acceptance gaps.
+corrections preserve exact same-input image repeatability.
+[Motor-capable travel](assets/evidence/11/motor-capable-travel/review.md) is now
+integrated: disabled transport does not advance measured gait distance, while
+enabled recovery and routing do. Its implementing-worktree gates pass; merged
+gates are underway. Live root/phase agreement and prospective disabled/protected
+pose selection remain explicit acceptance gaps.
 The
 [carry-fit study](assets/evidence/11/carry-fit/review.md) records the rejected
 support attachments and current provisional fit. Prioritize whole-soldier
@@ -54,8 +58,9 @@ branch. They permit posture selection, not a claim that displacement is a
 voluntary step; shove-aware gait still needs evidence.
 
 Priority order:
-- **Engine-faithful locomotion:** implement measured-distance gait and protected
-  travel without changing engine movement or combat timing. Preserve the
+- **Engine-faithful locomotion:** finish merged travel-observation checks, then
+  align fractional root placement with gait and bind protected travel without
+  changing engine movement or combat timing. Preserve the
   [combined motion source](assets/evidence/11/composed-motion/review.md) and its
   unrelated clips; do not repeat composition or overwrite fitted geometry from
   an older study. Upper-body weight response, ground contact and transitions

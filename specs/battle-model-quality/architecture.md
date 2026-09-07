@@ -63,6 +63,15 @@ preserves forward/right displacement relative to the displayed facing. It is a
 read-only measurement, not a new gameplay mode or proof that displacement was
 voluntary. Authored protected travel remains part of the locomotion contract.
 
+The [qualified interval measurement](assets/evidence/11/motor-capable-travel/review.md)
+now supplies gait travel from ticks whose ordinary/routing movement branch ran,
+excluding disabled transport even when the disabling timer expires before the
+browser reads it. Cumulative world displacement preserves net direction; summed
+tick lengths preserve cadence through reversals. One double-precision record
+crosses the bulk WASM boundary and replaces adapter endpoint history. This does
+not classify voluntary drive: conscious constrained recovery counts. Raw engine
+positions still own body placement, including transport while disabled.
+
 Current firing TTL is set when the projectile fires; it is not automatically an advance draw cue. Hit TTL exists internally, but inspect its precise coverage and reset semantics before treating it as every melee/ranged hit. Slice05 must record each observable event, consumer, reliable edge and unavailable information. Add a minimal read-only presentation accessor if needed and pin unchanged sim results. Generic fighting can animate unpaired attack effort; it cannot fabricate a specific successful strike or victim reaction.
 
 A release observed too late for a full windup enters the release-compatible clip phase. Never delay gameplay projectile emission to fit animation. Death has highest terminal priority; other interruption rules and blends are delegated only with deterministic replay tests. Clear controller state on battle reset, identity reuse and time reset; preserve pause determinism. No exact attack-contact guarantee is promised without an authoritative signal.

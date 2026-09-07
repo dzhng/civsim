@@ -73,6 +73,12 @@ No UPDATE, baseline change, fixture-clock edit or new visual-quality claim was m
 This is the existing playback regression gate; actual qualified-engine observation
 is proved by the native/bulk and production CPU consumer tests above.
 
+Merged root `e879fb47` rebuilt its own WASM (terminal2562, exit0) and independently
+passed all343 web tests and typecheck (21633),13 simulation library tests plus5
+travel tests,6 Game tests, the unchanged golden hash and campaign save round-trip
+(31380). Both test terminals exited0. Merged browser repeat is queued separately;
+the implementing-worktree image result above is not relabelled as that repeat.
+
 ## Change ledger
 
 | Test | Previous behavior | New behavior | Why |

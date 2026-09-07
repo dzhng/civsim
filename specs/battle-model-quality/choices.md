@@ -1557,3 +1557,28 @@ Only isolated comparisons reset that history; continuous playback checks remain.
 This deliberately changes reference-context shadows, including later inherited
 frames, not production shadow policy. Future changes must preserve the independent
 pose proof, state-matching controls and exact committed-snapshot repeatability.
+
+### Count constrained travel only when the movement branch ran
+
+**Sound; confidence: medium. Motor-capable travel e879fb47.** A stunned soldier
+can be carried sideways, and his stun can expire before the browser sees him.
+The engine therefore qualifies each tick where ordinary or routing movement
+actually ran, then counts the final constrained displacement. Conscious pressure
+recovery counts as possible stepping; this is not a claim of voluntary propulsion.
+The plan required engine authority but did not prescribe the measurement. A
+temporary per-body flag preserves branch eligibility through later combat: movement
+before death still counts, whereas an already dead body contributes nothing.
+Animation reads this history; no gameplay decision reads it.
+
+### Preserve travel distance separately from net direction
+
+**Sound; confidence: high. Motor-capable travel e879fb47.** Two opposite steps
+can leave a soldier where he started without cancelling the work of his legs.
+One cumulative record therefore carries world X/Y displacement and summed
+tick-path length through the bulk simulation boundary. The adapter replaces its
+old position copy with this record, using path for pace and final-facing net
+motion for direction. Double precision retains small increments in long battles;
+the engine's stored positions are converted before subtraction and never changed.
+The plan left this layout and interval policy open. A batch still cannot reveal
+its sequence of directions, so this is not a reconstructed trajectory or proof
+of planted feet.

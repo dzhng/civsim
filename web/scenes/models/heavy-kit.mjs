@@ -2,6 +2,7 @@ import { runCandidateSheet, candidateSnapshots } from "./_candidate-sheet.mjs";
 import { captureHeavyTravel, heavyTravelSnapshots } from "./_heavy-travel.mjs";
 import { captureHeavyRest, heavyRestSnapshots } from "./_heavy-rest.mjs";
 import { captureHeavyBackward, heavyBackwardSnapshots } from "./_heavy-backward.mjs";
+import { snapshotSelected } from "../../snapshot.mjs";
 
 const bearings = [
   ["front", 0],
@@ -19,6 +20,43 @@ const fittingPoses = [
 ];
 
 const details = [
+  {
+    name: "hit-motion",
+    pitch: 1.4,
+    zoom: 230,
+    target: [0, 0, 0.95],
+    poses: [
+      ["ready lead", 0, "ready"],
+      ...Array.from({ length: 19 }, (_, frame) => [`hit frame ${frame}`, frame / 18, "hit"]),
+      ["ready tail", 0, "ready"],
+    ],
+    views: [
+      ["right side", -Math.PI / 2],
+      ["opposing oblique", (3 * Math.PI) / 4],
+    ],
+  },
+  {
+    name: "hit-side-smoke",
+    pitch: 1.4,
+    zoom: 230,
+    target: [0, 0, 0.95],
+    poses: [0, 1 / 3, 2 / 3, 1].map((phase) => [`hit phase ${phase}`, phase, "hit"]),
+    views: [
+      ["right side", -Math.PI / 2],
+      ["opposing oblique", (3 * Math.PI) / 4],
+    ],
+  },
+  {
+    name: "hit-smoke",
+    pitch: 1.4,
+    zoom: 230,
+    target: [0, 0, 0.95],
+    poses: [0, 1 / 3, 2 / 3, 1].map((phase) => [`hit phase ${phase}`, phase, "hit"]),
+    views: [
+      ["actual front", 0],
+      ["actual rear", Math.PI],
+    ],
+  },
   ...[
     ["formation", 0.9],
     ["formation-gameplay", 0.42],
@@ -104,6 +142,21 @@ const details = [
     views: [["scabbard side", -Math.PI / 3]],
   },
   {
+    name: "sword-effort-poses",
+    pitch: 1.4,
+    zoom: 180,
+    target: [0, 0, 1],
+    poses: [0, 0.3, 11 / 30, 0.5, 0.7, 0.9, 1.2].map((seconds) => [
+      `effort ${seconds.toFixed(3)} s`,
+      seconds / 1.2,
+      "sword-effort",
+    ]),
+    views: [
+      ["front", 0],
+      ["sword-side opposing", -Math.PI / 3],
+    ],
+  },
+  {
     name: "ready-feet",
     pitch: 1.2,
     zoom: 1000,
@@ -123,6 +176,73 @@ const details = [
   })),
 ];
 
+const effortViews = [
+  ["opposing", (Math.PI * 2) / 3],
+  ["oblique", (Math.PI * 4) / 3],
+];
+const effortName = (view, frame) =>
+  `shared/soldiers/heavy-kit/sword-effort-${view}-${String(frame).padStart(2, "0")}`;
+const effortSnapshots = effortViews.flatMap(([view]) =>
+  Array.from({ length: 48 }, (_, frame) => effortName(view, frame)),
+);
+
+/** One reviewed effort at 30fps with .2s ready lead/tail; no simulated strike. */
+async function captureSwordEffort(ctx, page) {
+  if (!effortSnapshots.some((name) => snapshotSelected(name))) return;
+  const metadata = await page.evaluate(() =>
+    window.__battleModels.world.soldierAssets[0].animation.clips.find(
+      (c) => c.name === "sword-effort",
+    ),
+  );
+  ctx.check(
+    "Sword effort retains reviewed nonlooping duration",
+    !metadata.loop && Math.abs(metadata.duration - 1.2) < 1e-6,
+  );
+  for (const [view, yaw] of effortViews)
+    for (let frame = 0; frame < 48; frame++) {
+      const name = effortName(view, frame);
+      if (!snapshotSelected(name)) continue;
+      const seconds = (frame - 6) / 30;
+      const clip = seconds < 0 || seconds >= 1.2 ? "ready" : "sword-effort";
+      const phase = clip === "ready" ? 0 : seconds / 1.2;
+      const draw = async () => {
+        await page.evaluate(
+          ({ clip, phase, yaw, view, seconds }) => {
+            const h = window.__battleModels;
+            h.freeze();
+            h.set({
+              classId: 0,
+              clip,
+              phase,
+              formation: false,
+              yaw,
+              pitch: 1.4,
+              zoom: 180,
+              target: [0, 0, 1],
+            });
+            const caption = document.querySelector("#candidate-caption");
+            caption.style.display = "";
+            caption.textContent = `Unpaired sword effort · ${view}\n${clip} · ${seconds.toFixed(3)} s`;
+          },
+          { clip, phase, yaw, view, seconds },
+        );
+        await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
+        return {
+          shot: await page.screenshot({ clip: { x: 128, y: 96, width: 1024, height: 640 } }),
+          sampled: await page.evaluate(() => window.__battleModels.stats().sampled),
+        };
+      };
+      const sample = await draw(),
+        repeat = await draw();
+      ctx.check(`${name}: exact repeated pose`, sample.shot.equals(repeat.shot));
+      ctx.check(
+        `${name}: authored phase reaches production`,
+        sample.sampled.clip === clip && Math.abs(sample.sampled.phase - phase) < 1e-6,
+      );
+      await ctx.snap(null, name, { shot: sample.shot, threshold: 0, maxDiffRatio: 0 });
+    }
+}
+
 export const meta = {
   name: "heavy-kit",
   kind: "visual",
@@ -133,6 +253,7 @@ export const meta = {
     ...heavyTravelSnapshots,
     ...heavyRestSnapshots,
     ...heavyBackwardSnapshots,
+    ...effortSnapshots,
   ],
   describe:
     "Composed Blender heavy equipment, surfaces and locomotion on the shared provisional rig; candidate-only.",
@@ -150,6 +271,7 @@ export async function run(ctx) {
       await captureHeavyRest(ctx, page);
       await captureHeavyTravel(ctx, page);
       await captureHeavyBackward(ctx, page);
+      await captureSwordEffort(ctx, page);
     },
   });
 }

@@ -1,0 +1,15 @@
+**Provisional verdict: keep as a restrained, nonlethal reaction by a heavy soldier.** Revise if it needs to convey a substantial impact: the upper body remains composed enough that the motion risks reading as a small guard adjustment. **Confidence: medium.**
+
+Inspected all 42 panels across the five sheets in the requested order. An independent unprimed review broadly agreed.
+
+| Frames | Finding | Confidence |
+|---|---|---|
+| Ready lead → 0–3 | Entry poses closely match; no obvious start jump. Response is initially very small, with little disturbance of head, chest, or shield. | High on continuity; medium on readability |
+| 4–8 | Knees bend further, pelvis settles, and sword hand lowers with the body. Loading looks connected, but the almost upright torso and stable guard weaken the sense of an involuntary reaction. | Medium-high |
+| 6–8, deepest compression | Both feet remain apparently planted; the pelvis stays plausibly supported between them. No conspicuous knee collapse, reversed joint, or ankle break. A recovery step does not appear necessary for this small displacement. | Medium-high |
+| 9–13 | Legs straighten gradually as the body and sword recover together. No obvious isolated arm reset or abrupt pose reversal. Recovery appears coherent, though little separate head/shoulder settling is visible. | Medium-high |
+| 14–18 → ready tail | Returns close to the opening guard without an obvious endpoint snap. | High for visible pose continuity |
+
+**Equipment and intersections:** Across the sequence, sword grip, shield placement, and scabbard attachment remain visually coherent; nothing visibly detaches or disappears. The sword hand and lower shield edge overlap in side projection, while a small blade segment projects beyond the shield in the oblique view. Neither establishes penetration. Hidden hand/forearm surfaces prevent a firm clearance verdict. No conspicuous self-intersection is visible; confidence is moderate.
+
+I inspected **stills only**, not actual GIF playback. These support pose continuity, but cannot establish perceived acceleration, impact sharpness, temporal jitter, or how the stated ready holds affect the loop. No impact direction or opponent/contact choreography was assumed.

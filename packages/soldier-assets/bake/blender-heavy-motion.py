@@ -803,9 +803,46 @@ def build(source, output=OUTPUT):
     anatomy.export_candidate(body, arm, output, "heavy-kit")
 
 
+def compose_reviewed_actions(source, donors, output=OUTPUT):
+    """Append reviewed actions to fitted geometry without rerunning authoring."""
+    with bpy.data.libraries.load(str(source)) as (data, target):
+        target.scenes = [next(n for n in data.scenes if n == "HeavyMotionCandidate")]
+    scene = target.scenes[0]
+    bpy.context.window.scene = scene
+    if scene.render.fps / scene.render.fps_base != 30:
+        raise ValueError("Reviewed action composition requires the frozen 30 fps source")
+    arm = next(o for o in scene.objects if o.type == "ARMATURE")
+    controls = {a.name: action_signature(a) for a in bpy.data.actions}
+    def bind_signature(rig):
+        return [(b.name, b.parent.name if b.parent else None,
+                 tuple(b.head_local), tuple(b.tail_local),
+                 tuple(tuple(row) for row in b.matrix_local), b.use_deform) for b in rig.bones]
+    for clip, donor in donors:
+        if clip in bpy.data.actions:
+            raise ValueError(f"Refusing to replace existing action {clip}")
+        with bpy.data.libraries.load(str(donor)) as (data, target):
+            if clip not in data.actions or len(data.armatures) != 1:
+                raise ValueError(f"Donor must contain {clip} and one matching rig")
+            target.actions, target.armatures = [clip], data.armatures[:]
+        action, rig = target.actions[0], target.armatures[0]
+        if bind_signature(rig) != bind_signature(arm.data):
+            raise ValueError(f"Donor rig does not match fitted source for {clip}")
+        bpy.data.armatures.remove(rig)
+        track = arm.animation_data.nla_tracks.new()
+        track.name, track.mute = clip, True
+        strip = track.strips.new(clip, 0, action)
+        strip.action_slot = action.slots[0]
+    assert controls == {name: action_signature(bpy.data.actions[name]) for name in controls}
+    anatomy.export_candidate(scene.objects["HeavyKit-Deform"], arm, output, "heavy-kit")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", type=Path, default=OUTPUT/"heavy-kit.blend")
     parser.add_argument("--output", type=Path, default=OUTPUT)
+    parser.add_argument("--action-donor", nargs=2, action="append", metavar=("CLIP", "BLEND"))
     args = parser.parse_args(sys.argv[sys.argv.index("--")+1:] if "--" in sys.argv else [])
-    build(args.source, args.output)
+    if args.action_donor:
+        compose_reviewed_actions(args.source, args.action_donor, args.output)
+    else:
+        build(args.source, args.output)

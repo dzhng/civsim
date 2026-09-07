@@ -1,0 +1,4 @@
+Independent Codex review, terminal 0.
+Session: 01a07dde-32dc-7100-bb58-22b398c12bfc
+
+No actionable correctness or shape defects found in the requested scope. Read-only comparisons confirmed preservation of all ten old imported animations and geometry apart from the disclosed tangent changes; the leaf correctly leaves pixel and film gates pending. No Blender, browser/GPU, formatters, or file writes were run.

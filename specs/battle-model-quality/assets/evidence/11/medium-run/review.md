@@ -23,7 +23,8 @@ remain exact. This small source arithmetic variation is not pixel equivalence.
 
 ## Measured scope
 
-MediumPhalanx is engine class3; manual candidate row14 is only a catalog key.
+MediumPhalanx is engine class14 (class3 is HeavyPhalanx). Manual candidate row14
+is a separate catalog key that happens to coincide, not an engine binding.
 Its fresh unimpeded ordinary target is1.7+(3.4−1.7)×.9=3.23m/s. Fatigue and
 pressure reduce actual speed. Existing run duration is.8s. Neither these targets
 nor their product2.584m establishes physical stride calibration by itself.
@@ -135,6 +136,12 @@ already exact. Standard full10598 then passed **1,160 checks, 356 snapshots,
 zero failures and zero page errors**, without UPDATE or SNAP overrides. All
 193 pre-existing static/walk/context images remain pixel-exact despite unpinned
 exported tangents. Every new frame also repeats exactly. No tolerances changed.
+
+Independent merged verification72587 also passes all1,160 checks and356 exact
+snapshots, with no failures or page errors and no baseline update. The root
+candidate bake check and all six focused suites pass independently (20238).
+See [the merged raw report](merged-root.json). This confirms integration of the
+manual study, not live appearance or support-motion acceptance.
 
 - Existing 193 snapshots: unchanged content and assertions; their check labels
   now identify walk when applicable.

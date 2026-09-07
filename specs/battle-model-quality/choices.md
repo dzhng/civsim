@@ -1676,3 +1676,26 @@ shared semantics but left their location open. Distinct existing fixture clips
 prove that safe and threatened observations select different rendered poses;
 they do not become replacement soldier art or bypass complete live admission.
 This keeps one controller and leaves missing detailed bindings explicitly null.
+
+### Correct the medium's carried load before replacing its lower run
+
+**Provisional; confidence: medium. Medium run5f54a533.** The inherited run
+lets the left hand lose the pike and drives the shaft underground. This pass
+changes connected upper-body carrying while retaining the existing leg motion,
+so the comparison isolates that obvious defect. The retained legs are not
+accepted support motion: their measured planted travel differs from the fixture's
+prescribed speed and a small between-key sole dip remains. The plan delegated
+motion authoring but did not specify whether to replace both halves together.
+Keeping the bounded improvement is reversible; later ground-contact and load
+response work must judge the whole soldier before live promotion. The fixture's
+travel speed never overrides measured engine movement.
+
+### Give upright walk and run one authoring owner
+
+**Sound; confidence: high. Medium run5f54a533.** Reauthoring the medium's run
+starts from its saved two-hand carry and changes only the explicitly selected
+action. Walk and run share the same connected-arm calculation instead of
+maintaining competing recipes that could disagree about the hand or shield.
+The plan required preserved unrelated actions but left recipe ownership open.
+Existing walk geometry and images remain controls; shared authoring does not
+mean that the two motions share accepted timing or stride calibration.

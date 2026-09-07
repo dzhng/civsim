@@ -61,4 +61,12 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 - [ ] Comparison and final unprimed critique recorded.
 - [ ] Review/cleanup completed; README pickup and decisions updated.
 
-Record actual commands, evidence links, measured results, decisions and unresolved defects here during implementation. No implementation or visual acceptance has occurred yet.
+The [heavy sword study](../assets/evidence/12/heavy-sword/review.md) is retained
+provisionally after whole-body comparison and sampled full-motion review.
+Selective integration must preserve the fitted kit and every unrelated clip;
+the cramped release and low-finish hold remain unresolved. No live binding,
+damage-contact correspondence or final combat-art acceptance is established.
+
+The medium's next pose depicts the existing held-pike readiness observation.
+That observation does not expose the simulation's continuous brace-strength
+ramp, so a loaded stance must not be described as a new fully-braced state.

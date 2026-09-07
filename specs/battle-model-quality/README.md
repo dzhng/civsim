@@ -48,6 +48,9 @@ Independent authoring and measurement lanes:
 - **11 motion:** the [locomotion review](assets/evidence/11/heavy-run/review.md)
   owns actual pace and remaining contact/carry work. Old 1.53m/s walk captures
   are fitting evidence only, not gameplay-speed acceptance.
+  The [travel smoke](assets/evidence/11/heavy-travel/review.md) exposes the
+  candidate facing opposite production travel; align the whole export before
+  completing timed moving-world evidence. No fixture direction override.
 - **07 animated budget:** the reusable LOD result experiment was rejected after
   worse matched timing; its code is not integrated. Finish combined geometry,
   camera, physical-display, storage and executable asset limits using separately

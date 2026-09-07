@@ -66,9 +66,9 @@ not only frozen poses or in-place loops. Upper-body stiffness, joint shape,
 support contact, speed ramps, phalanx motion and transitions remain open. Ready
 is a static planted stance, not an accepted animated idle.
 
-The moving-world fixture exposed a forward-axis mismatch: the current authored
-body faces Blender negativeY, while production's native forward is positiveY.
-At facingπ/2 the renderer applies no yaw correction, so prescribed forward travel
-moves this candidate backward. Correct the whole exported geometry/rig/clip
-system consistently before locomotion acceptance. Do not reverse fixture travel
-or add a candidate-only renderer correction to make the evidence look right.
+The [prescribed world-travel smoke](../assets/evidence/11/heavy-travel/review.md)
+exposes the combined candidate facing opposite production travel. Correct the
+whole exported asset basis before completing the timed sequence. Its harness
+and repeat checks are available; the rejected smoke accepts no motion.
+Do not reverse fixture travel or add a candidate-only renderer correction to
+make the evidence look right.

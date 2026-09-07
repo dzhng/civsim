@@ -1186,3 +1186,19 @@ open. Keeping all rendering before the filter wastes minutes on unrelated poses;
 introducing a second quick harness would duplicate the rendering setup. Moving
 the shared selection earlier keeps one path and makes focused iteration practical.
 Future full acceptance must continue to use an unfiltered run.
+
+### Two-cycle prescribed travel review (11)
+
+**Sound; confidence: medium.** When reviewing walking or running, the candidate
+travels through a fixed camera for two full animation cycles. The scene samples
+every 50 ms and the review GIF displays each frame for the same 50 ms, so the
+reviewer sees the authored rhythm at the prescribed speed and can inspect the
+clip boundary. The GIF jumps back to the beginning only after the complete
+traversal. This is a bounded inspection window, not proof of every subframe's
+contact or of the actual simulation speed.
+
+The task requires moving-world evidence but leaves the sampling interval and
+number of steps open. Two cycles expose both foot alternation and the wrap
+without making one authoring check a long replay. The original all-authored-frame
+in-place sheets remain available. Later contact acceptance must retain finer
+grounding evidence where this display sampling cannot resolve it.

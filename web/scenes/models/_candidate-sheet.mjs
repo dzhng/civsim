@@ -35,7 +35,7 @@ export const candidateSnapshots = (folder, details = []) =>
 
 export async function runCandidateSheet(
   ctx,
-  { name, asset, label, folder, classes, details = [] },
+  { name, asset, label, folder, classes, details = [], afterSheets },
 ) {
   requireSwiftShaderBaseline(name);
   const page = await ctx.newPage({ viewport: { width: 1280, height: 800 } });
@@ -177,6 +177,7 @@ export async function runCandidateSheet(
         maxDiffRatio: 0,
       });
     }
+    if (afterSheets) await afterSheets(ctx, page);
   } finally {
     await page.close();
   }

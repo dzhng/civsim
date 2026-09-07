@@ -9,6 +9,21 @@ for each comparison and repeat affected checks after refits.
 
 Idle/ready, walk/march and run communicate supported weight and equipment load.
 
+The engine owns posture and movement. At-ease standing carries the shield at
+the side; threatened standing raises it forward. Ordinary forward walk/run uses
+side carry. Threat-facing backward or lateral travel must retain protection,
+including when the player ordered running but the engine actually drifts at
+walking pace. Preserve signed measured displacement relative to the displayed
+soldier facing; scalar speed and the ordered pace alone cannot select these
+poses faithfully. The existing movement rules in `crates/sim/src/movement.rs`
+are the authority, not new animation-driven gameplay states.
+
+Verify those distinctions in the observation adapter before wiring the authored
+poses. A signed-motion observation alone is not a finished protected-travel
+animation: the clip/binding, actual-speed rhythm, interruption blends and live
+battle presentation still need their own evidence. Do not reverse simulation
+movement or facing to make an authored cycle fit.
+
 API seam: Authored clips on shared human rig → clip registry and timeline; stride phase follows measured motion, visual root displacement removed to preserve sim positions.
 
 Names of new functions/routes in this plan are proposed, not existing commands. Use the [shared acceptance contract](../README.md#acceptance-contract) and [architecture](../architecture.md) for inherited requirements.

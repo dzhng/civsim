@@ -8,8 +8,16 @@ Last updated **2026-09-07**. **01–06 complete;07 envelope open;08–11 provisi
 authoring;12–30 pending.** Worktree: `/Users/david/dev/game-battle-model-quality`,
 branch `codex/battle-model-quality`. No detailed model or art envelope is accepted.
 
-Current pickup: **improve whole-body motion and functional hand form**. The
-integrated [medium candidate](assets/evidence/09/medium-phalanx/review.md) retains the upright shield
+Current pickup: **integrate the provisional carry source cleanly, then improve
+loaded whole-body motion and author protected travel**. The
+[carry-fit study](assets/evidence/11/carry-fit/review.md) records the rejected
+support attachments and current provisional fit. Prioritize whole-soldier
+proportions, equipment silhouette and full-body motion. David
+explicitly deferred small-detail polishing on 2026-09-07: hands must be
+serviceable, but isolated finger anatomy must not hold up the big visual forms.
+The reported outward-facing palm is a basic grip/pose defect, not permission to
+resume fine hand sculpting. The integrated
+[medium candidate](assets/evidence/09/medium-phalanx/review.md) retains the upright shield
 and fitted cuirass, with a refitted belt and suspension upper loops. Matched
 shield-hidden front review confirms the irregular white waist wedge is now a
 continuous layer edge; whole/formation readability is preserved. Its grip and
@@ -19,14 +27,27 @@ this worktree; do not regenerate it against a changed heavy donor without an
 explicit refit. Do not flatten the shield to eliminate a contact failure.
 Do not accept detail fixes without reviewing the whole model and formation.
 
+David's shield-carry direction: in at-ease standing and ordinary walk/run, carry
+the shield beside the left flank, outward face pointing sideways and roughly
+edge-on from the front. Battle-ready is distinct: raise it forward. Use the
+existing `atEase`/`ready` presentation roles; stationary does not itself imply
+at-ease. Both hands need correct handedness and palm orientation. Correct the
+connected arm/hand pose, not equipment alone; review the whole silhouette and
+leg clearance through the cycle. Backing away while facing a threat must not
+silently inherit relaxed forward-travel carry. The
+[signed-motion observation](assets/evidence/05/signed-motion/review.md) now
+preserves that direction; authored selection and protected travel remain open.
+
 Priority order:
-- **Shared hand:** rebuild a coherent whole hand from open anatomy in
+- **Shared hand (detail work paused):** preserve the coherent open-hand studies in
   `/Users/david/dev/game-heavy-hand-form`; the old experimental finger controls
   are not a user requirement. The reference-led `hand-thumb-study` improves the
   open palm/segment hierarchy but remains provisional. An offline closure copy
-  now tests that form around actual shaft dimensions; its failures inform anatomy
+  tests that form around actual shaft dimensions; its failures inform future anatomy
   without accepting it or replacing the frozen open control. Both open and closed
-  form must pass before grafting. Retain the
+  form must pass before grafting. Do not continue isolated anatomical refinement
+  ahead of whole-model silhouette and motion. Correct the canonical wrist/grip
+  orientation independently, checking the sword, elbow and full arm together. Retain the
   canonical body/hands until a replacement passes. The
   [closed-hand rejection](assets/evidence/08/rejected-metacarpal-grip/review.md)
   and [connected-hand rejection](assets/evidence/08/rejected-connected-hand/review.md)

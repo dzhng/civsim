@@ -44,6 +44,18 @@ Artillery equipment currently lives inside soldier mesh construction, not a sepa
 
 ## Action observations, not invented events
 
+Simulation state is canonical; animation follows it, never the reverse. A missing
+pose or clip cannot justify changing a unit's state, orders or mechanics. Extend
+read-only presentation observations when an existing simulation distinction is
+needed, then depict that distinction. In particular, at-ease standing is not
+battle-ready standing, and backward threat-facing movement is not ordinary
+forward travel with the same shield carry.
+
+The [signed-motion observation](assets/evidence/05/signed-motion/review.md)
+preserves forward/right displacement relative to the displayed facing. It is a
+read-only measurement, not a new gameplay mode or proof that displacement was
+voluntary. Authored protected travel remains part of the locomotion contract.
+
 Current firing TTL is set when the projectile fires; it is not automatically an advance draw cue. Hit TTL exists internally, but inspect its precise coverage and reset semantics before treating it as every melee/ranged hit. Slice05 must record each observable event, consumer, reliable edge and unavailable information. Add a minimal read-only presentation accessor if needed and pin unchanged sim results. Generic fighting can animate unpaired attack effort; it cannot fabricate a specific successful strike or victim reaction.
 
 A release observed too late for a full windup enters the release-compatible clip phase. Never delay gameplay projectile emission to fit animation. Death has highest terminal priority; other interruption rules and blends are delegated only with deterministic replay tests. Clear controller state on battle reset, identity reuse and time reset; preserve pause determinism. No exact attack-contact guarantee is promised without an authoritative signal.

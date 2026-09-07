@@ -1379,3 +1379,34 @@ this matched view existed. The plan asks for unobstructed grip evidence but
 leaves its implementation open. This diagnostic export never replaces the
 equipped candidate or its production catalog, and its source version must match
 the image under review.
+
+### Measure travel relative to the facing actually displayed (signed-motion pass)
+
+**Sound; confidence: high.** A pike soldier can be shown facing along the unit's
+frontage while his individual simulation angle differs. A step to his displayed
+right must be reported as rightward travel, not forward travel according to the
+other angle. The adapter therefore measures displacement against the existing
+presented facing, with positive lateral speed meaning right. The plan required
+faithful directional motion but did not choose a sign convention. Future carry
+selection inherits this basis; it must not change simulation facing to fit it.
+
+### Keep directional motion on the existing observation interval
+
+**Sound; confidence: high.** Between two reads, a soldier can move and turn. The
+new components describe net displacement over that same interval, projected
+against the final displayed facing—not instantaneous velocity or total distance
+along a curved path. First reads and resets have no earlier position, so all
+components are zero; repeated ticks reuse the observation. The scope gap was
+whether to introduce another history or sampling clock. Keeping one history
+preserves playback cadence. Both components are required numbers supplied by
+every producer, so consumers do not need a second missing-data interpretation.
+
+### Support attachment must fit the curved board, not its rim plane
+
+**Sound; confidence: high.** A support that reaches the shield's rim depth can
+still end in empty space behind the deeper curved center. The authoring study
+therefore fits support end vertices against the actual board surface. One ray
+through the center of a thick support is insufficient: its edges can pierce the
+shield face. The plan required credible equipment but left attachment fitting
+open. This geometric rule applies to future shield refits; the current long
+stand-off and open grip remain provisional, not accepted construction.

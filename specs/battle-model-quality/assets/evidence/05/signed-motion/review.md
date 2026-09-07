@@ -47,6 +47,12 @@ confirmed the scalar arithmetic and selection branches are unchanged, and that
 projection occurs after the held-pike facing override. Documentation review
 kept rationale here; the integrating agent owns the parent spec's evidence link.
 
+Integrated as `a56d108c`; the root worktree repeated all 50 focused tests and
+typecheck successfully. A fresh independent reviewer found no actionable issues
+and independently repeated the 50 tests. CLI review was attempted but could not
+start: the installed CLI rejected the configured model as requiring an upgrade.
+The fresh reviewer is the fallback, not a claimed successful CLI review.
+
 ## Change ledger
 
 | Test | Previous behavior | New behavior | Why |

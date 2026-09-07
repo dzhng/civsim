@@ -25,7 +25,7 @@ def upright_carry(arm, original_forearm, phase):
     old_normal = (old_normal - old_axis * old_normal.dot(old_axis)).normalized()
     step = math.tau * phase
     lean = .045 + .012 * math.sin(2 * step)
-    turn = math.radians(25) + .04 * math.sin(step)
+    turn = math.radians(10) + .04 * math.sin(step)
     torso_turn = Matrix.Rotation(turn, 3, "Z") @ Matrix.Rotation(lean, 3, "X")
     for name, yaw, pitch in (("spine", 0, lean), ("chest", turn, lean),
                              ("neck", 0, .015), ("head", 0, .015)):
@@ -33,14 +33,16 @@ def upright_carry(arm, original_forearm, phase):
         motion.orient(arm, name, rotation.to_quaternion() @ arm.data.bones[name].matrix_local.to_quaternion())
     # The held load lags the chest; connected elbow flex absorbs their relative
     # motion. A wider lateral carry gives the advancing ankle room below it.
-    shaft = Vector((.008 * math.sin(step - .5), -.15 + .015 * math.sin(2 * step - .7), 1)).normalized()
+    # A slight rearward upright rake brings the lower purchase forward, keeping
+    # the left wrist aligned while the shield-bearing elbow hangs at the flank.
+    shaft = Vector((.008 * math.sin(step - .5), .28 + .015 * math.sin(2 * step - .7), 1)).normalized()
     rise = arm.pose.bones["pelvis"].head.z - arm.data.bones["pelvis"].head_local.z
     right_grip = Vector((.30 + .008 * math.sin(step - .5),
-                         -.08 + .006 * math.sin(2 * step - .7),
-                         1.46 + .6 * rise + .012 * math.sin(2 * step - .7)))
-    # The left hand purchases below the right for ordinary upright travel.
-    # Raising both old forward-carry grips would lift the shield beside the head.
-    grips = {"R": right_grip, "L": right_grip - shaft * .34}
+                         -.23 + .006 * math.sin(2 * step - .7),
+                         1.38 + .6 * rise + .012 * math.sin(2 * step - .7)))
+    # Closely spaced lower purchases let the elbows hang beneath the load,
+    # carrying the shield at flank without folding a forearm beside the face.
+    grips = {"R": right_grip, "L": right_grip - shaft * .16}
     for side, sign in (("R", -1), ("L", 1)):
         rest_grip = Vector((sign * .5732, -.051, .9024))
         rest_along, rest_across = Vector((sign * .6, 0, -.8)), Vector((sign * .8, 0, .6))
@@ -58,7 +60,7 @@ def upright_carry(arm, original_forearm, phase):
             reach, forward = delta.length, delta.normalized()
             if not abs(upper - lower) < reach < upper + lower:
                 raise ValueError(f"Unreachable upright {side} wrist")
-            pole = torso_turn @ Vector((0, -1, -.2) if side == "L" else (sign, .2, -.8))
+            pole = torso_turn @ Vector((.25, -.7, -1) if side == "L" else (0, -.8, -1))
             pole = (pole - forward * pole.dot(forward)).normalized()
             distance = (upper * upper - lower * lower + reach * reach) / (2 * reach)
             elbow = shoulder + forward * distance + pole * math.sqrt(upper * upper - distance * distance)

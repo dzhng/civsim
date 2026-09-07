@@ -1,0 +1,46 @@
+{
+  "quarterFrameSamples": 109,
+  "shieldTorsoIntersectionPairMaximum": 0,
+  "shieldHeadIntersectionPairMaximum": 0,
+  "forearmTorsoIntersectionPairMaximum": {
+    "L": 0,
+    "R": 0
+  },
+  "elbowHeightRangeMeters": {
+    "L": [
+      1.0561634302139282,
+      1.1627413034439087
+    ],
+    "R": [
+      1.1992002725601196,
+      1.2826060056686401
+    ]
+  },
+  "elbowAngleRangeDegrees": {
+    "L": [
+      59.29688833611266,
+      71.9999883432042
+    ],
+    "R": [
+      109.95056159835687,
+      116.18842993335694
+    ]
+  },
+  "wristDeviationRangeDegrees": {
+    "L": [
+      0.04423465961263638,
+      6.989825205067935
+    ],
+    "R": [
+      22.117240240126613,
+      31.123454255171847
+    ]
+  },
+  "shieldHeightRangeMeters": [
+    0.7945687770843506,
+    1.4367696046829224
+  ],
+  "shaftHeadIntersectionPairMaximum": 0,
+  "shaftTorsoIntersectionPairMaximum": 0,
+  "shieldLegIntersectionPairMaximum": 0
+}

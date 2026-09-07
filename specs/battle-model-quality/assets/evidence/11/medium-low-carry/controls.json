@@ -1,0 +1,60 @@
+{
+  "meshExact": true,
+  "rigExact": true,
+  "unchanged": [
+    {
+      "name": "bend",
+      "exact": true
+    },
+    {
+      "name": "bend-pronation",
+      "exact": true
+    },
+    {
+      "name": "pike-carry",
+      "exact": true
+    },
+    {
+      "name": "pronation",
+      "exact": true
+    },
+    {
+      "name": "ready",
+      "exact": true
+    },
+    {
+      "name": "run",
+      "exact": true
+    }
+  ],
+  "clips": [
+    {
+      "name": "bend",
+      "maxChannelFrames": 61
+    },
+    {
+      "name": "bend-pronation",
+      "maxChannelFrames": 61
+    },
+    {
+      "name": "pike-carry",
+      "maxChannelFrames": 2
+    },
+    {
+      "name": "pronation",
+      "maxChannelFrames": 61
+    },
+    {
+      "name": "ready",
+      "maxChannelFrames": 2
+    },
+    {
+      "name": "run",
+      "maxChannelFrames": 25
+    },
+    {
+      "name": "walk",
+      "maxChannelFrames": 28
+    }
+  ]
+}

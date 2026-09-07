@@ -8,12 +8,15 @@ Last updated **2026-09-07**. **01–06 complete;07 envelope open;08–11 provisi
 authoring;12–30 pending.** Worktree: `/Users/david/dev/game-battle-model-quality`,
 branch `codex/battle-model-quality`. No detailed model or art envelope is accepted.
 
-Current pickup: **correct the medium-phalanx shield mounting, then compare the
-whole first pair again**. Trial4's whole/model/formation captures establish the
-leather-versus-mail and pike-versus-sword distinction, but fresh review rejects
-the tray-like shield, apron-like cuirass, harsh waist band and weak front grip.
-The next trial mounts the shield upright on the proximal forearm and fits the
-shaft past its rim; do not flatten the board to eliminate a contact failure.
+Current pickup: **finish the medium-phalanx waist/armor fit, then review the
+whole first pair again**. Trial7 mounts the shield upright and fits cuirass
+geometry to the tunic's actual outer surface, respecting its armholes. Its
+captured whole silhouette is less apron-like, but close views still expose an
+irregular white waist edge and an elongated front grip. Zero sampled mesh
+intersections do not resolve those visible defects. Frozen source and32-tile
+captures are in the medium lane's `throwaway/trial7`; final independent review
+and root integration remain pending. Do not flatten the shield to eliminate
+a contact failure.
 The medium lane owns source and evidence in `/Users/david/dev/game-medium-phalanx`.
 Do not accept detail fixes without reviewing the whole model and formation.
 
@@ -22,7 +25,9 @@ Priority order:
   `/Users/david/dev/game-heavy-hand-form`; the old experimental finger controls
   are not a user requirement. Thenar-only Boolean/implicit patches were rejected
   as swollen and glove-like. The new connected quad study needs natural open
-  palm/finger form before closure, equipment fitting or grafting. Retain the
+  palm/finger form before closure, equipment fitting or grafting. The isolated
+  `hand-plane-study` improves thumb flexion but still has a shelf-like palm;
+  the next correction targets that continuous surface, not nail detail. Retain the
   canonical body/hands until a replacement passes. The
   [closed-hand rejection](assets/evidence/08/rejected-metacarpal-grip/review.md)
   and [connected-hand rejection](assets/evidence/08/rejected-connected-hand/review.md)

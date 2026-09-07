@@ -176,6 +176,11 @@ finds duplicate clip resolution primarily in settled lanes, not transitions.
 Its exact-output CPU probe is positive at the median but mixed at the tail;
 no code is integrated and no browser speedup or budget acceptance is inferred.
 
+The [synchronized capture dismissal](../assets/evidence/07/synchronized-capture-dismissal.md)
+rules out per-body full pose evaluation as the synchronized interruption cause:
+existing exact sharing evaluates one pose per transition. Distinct histories
+remain separate; this does not establish their timing or the remaining envelope.
+
 Future hardware comparisons must check machine-wide background activity, not
 only serialize this task's agents. On2026-09-07 a read-only process check found an
 unrelated Chrome152 GPU/renderer process active after this task's capture jobs

@@ -108,43 +108,14 @@ Retain the underlying root/gait and attached-overlay requirements; reslice the
 sampling policy before another implementation. Delayed sampling must account for
 event history explicitly, not simply ask the latest timeline for an earlier time.
 
-Rejected policy, retained to explain the comparison:
-
-The current crowd advances gait at fractional simulation time while moving its
-root only at integer observations through residual-error easing. Thus feet can
-cycle over a stationary displayed root, and the root can keep catching up after
-the engine stops. Replace that easing in the existing crowd owner after the
-motor-capable observation pass lands.
-
-Use the latest authoritative endpoint plus the existing clock fraction times
-the last observed endpoint displacement per tick. Cache endpoint and rate,
-separately from rendered output; each observation reanchors prediction rather
-than integrating the previous prediction. Body translation uses raw engine
-positions, including disabled transport; only gait uses qualified travel.
-No new clock, delayed state history, simulation write or trajectory solver.
-
-This explicitly chooses sub-tick extrapolation over delayed interpolation.
-An unobserved stop or collision can overshoot until the next observation;
-batched rates average the interval and cannot reconstruct reversals. There is
-no canonical teleport discriminator: large corrections reanchor normally,
-without repurposing the old distance threshold as an invented game state.
-New bodies, rewind/reset and dead bodies use authoritative endpoints without
-prediction. Explicit freeze samples both root and pose at integer time;
-ordinary pause retains the clock fraction, and unfreeze restores that fraction.
-
-Standards and readouts already consume displayed centroids. Route displayed
-roots explicitly to soldier selection rings and attack-arc origins as well.
-Keep destination grids, order paths, queued waypoints and engine diagnostics
-authoritative; never replace the shared world-position accessor globally.
-
-Begin with a production crowd/clock test proving that two fractional draws
-during steady straight motion move the submitted root by the unwrapped gait
-phase advance times stride. A subsequent stationary observation must stop both.
-Replace the old residual-easing assertions deliberately, then cover pause,
-freeze/unfreeze, batched observations, append, rewind, death and corrections.
-The root/stride equality is a constant enabled-motion contract, not a claim
-about disabled transport or mixed-direction intervals. Review actual moving
-production frames and attached overlays before accepting the presentation change.
+The [rejected experiment](../assets/evidence/11/live-root-phase/review.md) owns
+the old prediction recipe, behavior ledger and full comparison. Do not implement
+that recipe again. The surviving requirement is common presented time: steady
+straight enabled travel should advance root and stride together, while disabled
+transport must not be counted as gait. Attached rings, arcs and readouts must
+follow the displayed body; order destinations and engine diagnostics remain
+authoritative. Any replacement needs pause/freeze, reset/growth, batched motion,
+death and contact-correction coverage through the actual crowd/clock consumer.
 
 ### Unresolved sampling experiment: retain one completed interval
 

@@ -1,0 +1,32 @@
+**B is marginally less wrong, with moderate confidence.** Its frame-13 pose shows more bodily participation in the catch. Both versions still read too much as an arm action over a largely unchanged stance to establish the full target.
+
+| Paired images | Visible comparison |
+|---|---|
+| Left/right 10 — .50 s | A and B are visually indistinguishable at this scale. Hands hold the shaft around waist height; the torso is upright and knees lightly bent. This establishes a held position, but does not itself communicate forceful extension. **Tie, high confidence.** |
+| Left/right 11 — .55 s | Differences remain small, principally around shield orientation and slight body settling. Neither presents a clearly readable bodily brake at this sample. **No reliable winner, moderate confidence.** |
+| Left/right 13 — .65 s | B has a lower head/shoulder position and more visible knee/hip adjustment while the feet retain their positions. A stays closer to its earlier upright silhouette. B therefore suggests absorption through the body more clearly. However, the shaft and hands remain almost unchanged: the added movement could still read as a dip beneath a held weapon. **B less wrong, moderate confidence.** |
+| Left/right 17 — .85 s | Both show retrieval through a more bent, outward-projecting elbow and hands drawn toward the waist; the shaft has shifted relative to the body. The shield also turns substantially. Lower-body contribution remains subdued, and B’s advantage is much smaller here. **Near tie; both have weak whole-body retrieval, moderate confidence.** |
+
+Concrete concerns across the samples:
+
+- **Limited phase separation:** frames 10–13 keep nearly the same weapon line and hand position. Extension and catch are difficult to distinguish by silhouette. High confidence in the similarity; low confidence about its effect at playback speed.
+- **Retrieval concentrates in the arms:** frame 17’s elbow change is clearer than any coordinated torso/pelvis recovery. Moderate confidence.
+- **Equipment control is only partly observable:** the shaft remains visually straight and both hands appear associated with it in the less occluded view. The shield hides much of the opposite-side grip and forearm; its changing angle is visible, but slipping, collision, or uncontrolled rotation is not established.
+- **Support looks positionally planted:** no obvious foot relocation across these samples. That does not prove continuous ground contact, absence of sliding, or convincing weight transfer.
+
+**Yes, these justify a bounded full-motion comparison**, particularly to determine whether B’s frame-13 compression reads as braking connected to the weapon, and whether the transition into frame-17 retrieval is active and continuous. Review one complete action from both existing cameras at normal speed, then slow the catch/retrieval interval. These stills support further review, not simulation or final-art acceptance.
+
+Source/control questions remain separate: whether the weapon is deliberately held during the catch, how the shield is driven, and how foot planting is enforced cannot be determined from these images.
+
+Actual full images loaded with `view_image`, all under `/Users/david/dev/game-medium-pike-thrust/throwaway/pike-thrust/revision-i-targeted/`:
+
+- `pair-whole-left-10.png`
+- `pair-whole-left-11.png`
+- `pair-whole-left-13.png`
+- `pair-whole-left-17.png`
+- `pair-whole-right-10.png`
+- `pair-whole-right-11.png`
+- `pair-whole-right-13.png`
+- `pair-whole-right-17.png`
+
+No source, history, or other reviews inspected.

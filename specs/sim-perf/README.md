@@ -34,6 +34,7 @@ unchanged pending an explicit decision.
 
 **Evidence:** [native baseline](assets/tick00-native-2026-09-09.md),
 [developed-window verification](assets/developed-window.md),
+[browser hash identity](assets/worker-state-hash.md),
 [original visual reference](assets/visual-baseline.md),
 [acceptance changes](assets/acceptance-changes.md), and
 [choices](choices.md). Run expensive correctness checks concurrently

@@ -162,6 +162,7 @@ where
     // pass-start candidate positions, then apply together) so pair order does
     // not make one line shove with freshly-updated state.
     const BODY_PROJECTION_PASSES: usize = 3;
+    perf_scope!(_timer, "separation projection");
     if project_any {
         for _ in 0..BODY_PROJECTION_PASSES {
             body_pos.clear();

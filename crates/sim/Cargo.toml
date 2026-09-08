@@ -18,6 +18,7 @@ serde_json = "1"
 # run on demand, never part of a normal build.
 shots = ["dep:png"]
 force-trace = []
+perf_timing = []
 
 # `weave_shots` is gated so `cargo build` / the wasm build never pull in `png`.
 # Run it with: cargo run -p sim --bin weave_shots --features shots

@@ -816,6 +816,7 @@ impl Sim {
     }
 
     pub fn tick(&mut self) {
+        perf_scope!(_timer, "displacement");
         let dt = DT;
         let tun = self.tun;
         let n = self.soldier_count();
@@ -860,12 +861,16 @@ impl Sim {
         self.prev_positions.resize(2 * n, 0.0);
         self.prev_positions.copy_from_slice(&self.positions);
 
+        perf_next!(_timer, "mark_at_ease");
         self.mark_at_ease(); // current centroids; before stance/fidget/slot logic reads it
+        perf_next!(_timer, "orders and reflexes");
         self.refresh_contact_engagement();
         self.deliver_orders_and_reflexes(dt);
         self.run_skirmish_evade();
+        perf_next!(_timer, "navigate_units");
         self.navigate_units();
 
+        perf_next!(_timer, "unit motion");
         for (unit_index, u) in self.units.iter_mut().enumerate() {
             let ground = self.terrain.speed_at(u.anchor).max(0.15);
             let a0 = u.anchor;
@@ -905,29 +910,40 @@ impl Sim {
         #[cfg(feature = "force-trace")]
         self.force_trace.extend(tick_force_records);
 
+        perf_next!(_timer, "slide_halted_frames");
         slide_halted_frames(self);
+        perf_next!(_timer, "reform_slots");
         reform_slots(self);
 
+        perf_next!(_timer, "steer_soldiers");
         let measures = steer_soldiers(self, dt);
         // Honest kinematics: what each body's own legs and carried momentum
         // did this tick (prev_positions snapshots the tick start; nothing
         // but the steer pass has moved anyone yet). Captured BEFORE the
         // separation solver so impacts read motion, not constraint churn.
+        perf_next!(_timer, "kinematics");
         for i in 0..self.kin_vx.len() {
             self.kin_vx[i] = (self.positions[2 * i] - self.prev_positions[2 * i]) / dt;
             self.kin_vy[i] = (self.positions[2 * i + 1] - self.prev_positions[2 * i + 1]) / dt;
         }
+        perf_next!(_timer, "separation setup");
         apply_separation(self);
+        perf_next!(_timer, "combat resolution");
         run_combat(self);
+        perf_next!(_timer, "missiles");
         self.run_missiles();
         for ttl in &mut self.loosing_ttl {
             if *ttl > 0.0 {
                 *ttl = (*ttl - dt).max(0.0);
             }
         }
+        perf_next!(_timer, "contact_facing");
         self.contact_facing(&measures, dt);
+        perf_next!(_timer, "integrate_units");
         self.integrate_units(&measures, dt);
+        perf_next!(_timer, "mark_at_ease");
         self.mark_at_ease(); // fresh centroids; before morale reads it
+        perf_next!(_timer, "morale");
         self.run_morale(dt);
 
         self.tick_count += 1;

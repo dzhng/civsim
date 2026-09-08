@@ -52,3 +52,34 @@ Everything; this slice measures and changes nothing.
 
 If David re-opens the 25 ms budget (the July interview locked it), the
 gate's threshold moves; nothing else here does.
+
+## Measurement contract
+
+The profiler reports exclusive time: a nested targeting or projection scope
+is subtracted from its enclosing pass, so stage rows can be compared without
+double-counting. Scopes are diagnostics only; the default build expands their
+macros to nothing and `scripts/test-perf` runs that uninstrumented build.
+Per-target clock/accounting overhead means the instrumented result is not the
+budget measurement. Stage rows cover `Sim::tick`; the outer benchmark also
+includes the commanders in `Battle::tick`.
+
+The fighting fixture retains the native oracle's seed-7 initialization and
+grows it through the renderer gate's fixed spawn grid. It waits for observed
+melee, then requires melee throughout the measured window. Preparation is
+bounded so failure to make contact fails instead of timing an idle approach.
+The output includes contact tick, living population, minimum fighting men and
+final hashes: army size alone must never be mistaken for combat participation.
+Repeated runs start fresh and must end at the same hash. The budget compares
+the median of the two repeat means and reports each window’s tick-cost
+standard deviation; preparation, validation scans and output are outside those
+tick timers. The generated-only and expanded battles can
+reach contact at different times, which is why window provenance is printed.
+
+## Verification status
+
+Profiler, fixture and standing gate are implemented. [Native evidence](../../assets/tick00-native-2026-09-09.md)
+records exact off/on/original hashes, a clean default check, both unchanged
+golden-test passes, stage tables and the **red** 36.294 ms budget run. The
+late interleaved idle control found no measurable disabled-profiler overhead.
+The integrated workspace gate remains the integrating agent's responsibility;
+this slice does not claim that pending result or that the performance goal is met.

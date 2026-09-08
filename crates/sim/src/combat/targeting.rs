@@ -25,6 +25,7 @@ pub(super) struct TargetSearch {
 }
 
 pub(super) fn find_target(sim: &mut Sim, search: TargetSearch) -> Option<Targeting> {
+    perf_scope!(_timer, "combat targeting");
     let TargetSearch {
         i,
         ui,

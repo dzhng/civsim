@@ -11,6 +11,8 @@
 //! Soldier state lives in structure-of-arrays Vecs so the wasm layer can
 //! expose raw pointers for zero-copy rendering.
 
+#[macro_use]
+pub mod perf_timing;
 pub mod ai;
 pub mod balance;
 pub mod battle;

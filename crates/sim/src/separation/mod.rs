@@ -150,6 +150,7 @@ pub(crate) fn apply_separation(sim: &mut Sim) {
             })
         })
         .collect();
+    perf_scope!(_timer, "separation body pairs");
     bodies::separate_pairs(
         bodies::PairCtx {
             tun,
@@ -192,6 +193,7 @@ pub(crate) fn apply_separation(sim: &mut Sim) {
         &mut tracer,
     );
 
+    perf_next!(_timer, "separation momentum");
     bodies::apply_momentum(
         bodies::MomentumCtx {
             n_sol,
@@ -206,6 +208,7 @@ pub(crate) fn apply_separation(sim: &mut Sim) {
         },
         &mut tracer,
     );
+    perf_next!(_timer, "separation weapon repel");
     weapon_repel::apply(
         weapon_repel::WeaponRepelCtx {
             units,
@@ -226,6 +229,7 @@ pub(crate) fn apply_separation(sim: &mut Sim) {
         &m_eff,
         &mut tracer,
     );
+    perf_next!(_timer, "separation walls");
     walls::apply(
         walls::WallsCtx {
             n,

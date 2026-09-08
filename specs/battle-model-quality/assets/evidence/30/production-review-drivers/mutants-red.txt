@@ -1,0 +1,82 @@
+(node:34326) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-mounted-family-delivery/packages/soldier-assets/src/appearance.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/david/dev/game-mounted-family-delivery/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✖ portrait crop retains every source pixel, including bronze, green cloth and alpha (2.244667ms)
+✔ motion reviews sample full exported cycles and retain a nonloop terminal pose (0.100042ms)
+✔ review roles resolve the loaded manifest's actual clips, never placeholder names (0.206875ms)
+✔ registry-derived artifact names preserve every existing card consumer URL (1.574917ms)
+✖ static review accepts zero-duration holds and an inapplicable melee action (0.100083ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 3
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 165.278625
+
+✖ failing tests:
+
+test at web/tests/soldierCapture.test.mjs:15:1
+✖ portrait crop retains every source pixel, including bronze, green cloth and alpha (2.244667ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  +   0,
+  +   0,
+  +   0,
+  +   0,
+  +   0,
+  +   0,
+  +   0,
+  +   0,
+  -   155,
+  -   149,
+  -   82,
+  -   255,
+  -   76,
+  -   128,
+  -   71,
+  -   127,
+      100,
+      117,
+      134,
+      151,
+      168,
+  
+      at TestContext.<anonymous> (file:///Users/david/dev/game-mounted-family-delivery/web/tests/soldierCapture.test.mjs:22:10)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.start (node:internal/test_runner/test:1015:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [
+        0,   0,   0,   0,   0,   0,
+        0,   0, 100, 117, 134, 151,
+      168, 185, 202, 219
+    ],
+    expected: [
+      155, 149,  82, 255,  76,
+      128,  71, 127, 100, 117,
+      134, 151, 168, 185, 202,
+      219
+    ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at web/tests/soldierCapture.test.mjs:80:1
+✖ static review accepts zero-duration holds and an inapplicable melee action (0.100083ms)
+  Error: Missing exported clip stand for ready
+      at roleClip (file:///Users/david/dev/game-mounted-family-delivery/web/shots/models/scripts/_soldier-capture.mjs:29:44)
+      at TestContext.<anonymous> (file:///Users/david/dev/game-mounted-family-delivery/web/tests/soldierCapture.test.mjs:88:16)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:787:18)
+      at Test.postRun (node:internal/test_runner/test:1247:19)
+      at Test.run (node:internal/test_runner/test:1175:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:787:7)

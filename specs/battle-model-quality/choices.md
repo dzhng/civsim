@@ -16,19 +16,21 @@ observations still own life state during replay and gameplay.
 ### Test delayed motion with an explicit bounded approximation (11)
 
 When a batch says a soldier travelled but does not say exactly when he started,
-the proposed presentation spreads that travel over the observed interval. A gait
+the CPU candidate spreads that travel over the observed interval. A gait
 already playing owns its stride until the endpoint; an enabled standing soldier
-may be inferred to start at the interval's beginning. This replaces the current
-incoming-stride convention in the candidate only. Combat, disability and
+may be inferred to start at the interval's beginning. This replaces the previous
+incoming-stride convention in the timeline. Combat, disability and
 incompatible appearances cannot be overwritten by an inferred walk. Transport
 without leg drive can therefore remain visible at mixed-state boundaries.
 
 The spec left approximation versus finer engine observations open. Choosing one
 bounded interval avoids new observation infrastructure and prediction beyond
 known positions, but does not recover missing chronology. **Sound, provisional;
-confidence medium:** test the explicit compromise on CPU before any live wiring,
-then reject it if matched live movement still looks wrong. This is a planned
-candidate, not accepted runtime behavior or a relaxation of foot-contact review.
+confidence medium:** the isolated CPU contract is implemented; reject the
+compromise if matched live movement still looks wrong. Coherent delayed live
+presentation remains unbuilt, with no relaxation of foot-contact review. Compatible
+standing entry requires identical at-ease, pike-ready, guarded-facing and routing
+flags across the interval; this conservative choice avoids backdating a new posture.
 
 ### Use diagnostic closure to inform unfinished open-hand anatomy (08)
 
@@ -49,6 +51,19 @@ a reversible copy tests the requested functional form earlier without treating
 a convincing closed silhouette as proof of natural open anatomy.
 
 ## Sound — high confidence
+
+### Ask for the completed pose before applying an endpoint event (11)
+
+When a soldier's measured speed changes and a hit arrives together, replay must
+freeze the pose reached using that completed travel, not the previous speed's
+prediction. The existing timeline exposes the latest completed endpoint before
+new events; requesting that boundary at another time is an error. The plan left
+the query shape open. One explicit query keeps replay on the controller's truth
+without adding a second history owner. New soldiers have no invented earlier
+history: they anchor at their first known pose. Existing dead soldiers still keep
+their death appearance until reset. This constrains future delayed live wiring,
+which must not mix these retained poses with latest-only equipment or life state.
+
 
 ### Fit provisional equipment before anatomy acceptance (08/09 authoring)
 

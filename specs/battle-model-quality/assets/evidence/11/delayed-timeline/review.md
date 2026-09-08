@@ -132,3 +132,13 @@ Its test attempt failed environment/configuration setup, so its conclusion is
 code inspection only; the separate own full365/tsc terminal-0 checks above supply
 execution evidence. Shape, diff and documentation review are complete. Parent
 owns adding this leaf pointer/current status to global slice/README/choices.
+
+## Merged CPU checkpoint
+
+Integrated as823a6105 after manual-life a2de8ea7. Main reviewed the production
+and assertion diffs, preserving the separate manual-state test in the shared
+replay test file. Full366 tests/60 files and typecheck pass on the merged tree.
+The extra test is manual life-state coverage, not a changed timeline count.
+Global handoff and choices now identify the completed CPU policy and still-open
+live clock/root integration. No browser, live-contact or hardware acceptance is
+claimed for this CPU checkpoint.

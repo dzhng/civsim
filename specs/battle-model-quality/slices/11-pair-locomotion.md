@@ -134,7 +134,7 @@ fidelity to canonical state. Equal path/net displacement and final posture can
 hide different starts or reversals. A delayed consumer must explicitly choose
 an approximation or request finer observations; it cannot reconstruct missing
 history by interpolation. The bounded candidate policy below resolves that
-choice provisionally; no implementation or live acceptance follows from planning.
+choice provisionally; the isolated CPU implementation below is not live acceptance.
 
 Before another browser implementation, prove the delayed interval contract on
 CPU in isolation. Retain only the preceding observation interval and its history
@@ -153,22 +153,13 @@ This changes presentation latency, not engine event timing. First appearance,
 replacement and rewind require atomic boundaries; ordinary pause holds its
 fraction, while explicit freeze is an authoritative-time override.
 
-The initial CPU tracer is a walking soldier changing speed and receiving a hit:
-pin midpoint distance/phase agreement and exact interval-end interruption source,
-then masked upper-body interruption and retained-source immutability. An interval
-beginning in idle remains unresolved: retaining old role ownership leaves root
-travel without gait, while retroactive entry is a different transition policy.
-Expose that case as red, not accepted coverage. This experiment does not authorize
-a broad history subsystem, per-bone snapshots, a new physics classifier or live
-promotion. The next CPU pass uses the boundary policy below before wiring delayed
-crowd draws.
+### Integrated CPU candidate: bounded completed-interval policy
 
-### Next CPU pass: bounded completed-interval policy
-
-**Planned, not implemented.** Keep one completed observation interval in the
-existing timeline owner. This is a deliberately approximate presentation of
-batched observations, not reconstruction of intermediate engine states. The
-earlier incomplete prototype is evidence, not a patch to bless wholesale.
+[Implementation and changed-behavior ledger](../assets/evidence/11/delayed-timeline/review.md)
+record the isolated controller pass. The existing timeline retains one completed
+interval, sharing immutable pose payloads instead of capturing every bone every
+tick. This deliberately approximates batched observations; it does not reconstruct
+intermediate engine states. The earlier incomplete prototype is historical evidence.
 
 - An eligible active gait owns the completed interval through its own stride.
   Apply the newly selected gait at the right endpoint, transporting normalized
@@ -196,8 +187,9 @@ per-soldier per-tick bone capture, generalized history, new engine fields or
 simulation/save changes. Storage shape is delegated within this bounded owner;
 event/stride/entry ownership above is not.
 
-**Do not wire the crowd in this first pass.** After the isolated contract passes
-review, a separate actual crowd/clock pass may present at latest tick minus one
+**Crowd/clock wiring remains open.** The existing replay now asks explicitly for
+the completed pre-event endpoint; it cannot use an old-speed prediction as the
+interruption source. A separate actual crowd/clock pass may present at latest tick minus one
 plus the existing fraction, interpolating raw roots over the actual observed
 interval and facing along the shortest arc. Discrete state and attached effects
 must share that presented time. Pause holds; explicit freeze shows authoritative

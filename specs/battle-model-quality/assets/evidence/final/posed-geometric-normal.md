@@ -13,6 +13,13 @@ there is no new buffer, material override, controller or source-art change.
 
 ## Causal controls
 
+The archived [before report](posed-geometric-normal/before/report.json) and
+[after report](posed-geometric-normal/after/report.json) own the measurements.
+Each report's folder retains its ON/OFF live (`gpu`) and CPU-preposed
+(`readback`) full PNGs, so both comparisons can be recomputed without scratch
+outputs. “Baseline created” in these reports refers to isolated probe snapshots,
+not changes to committed acceptance baselines.
+
 At authored archer appearance 4, replay tick 0, frozen production camera/time:
 
 | Shader | Normal-map use | Live/reference differing pixels | Max channel error |
@@ -30,6 +37,14 @@ normal before emitting `v_normalViewGeometry`; the roughness derivative term rem
 GPU probe 61253 exited 0 and closed its browser. The existing ≤1-channel raster
 gate is unchanged; full replay verification remains with the parent integration.
 
+The captured [original vertex shader](posed-geometric-normal/before/off.vertex.wgsl)
+and [fragment shader](posed-geometric-normal/before/off.fragment.wgsl) came from
+the original OFF float-target diagnostic; an original ON shader was not saved.
+The corrected [vertex shader](posed-geometric-normal/after/off.vertex.wgsl) and
+[fragment shader](posed-geometric-normal/after/off.fragment.wgsl) came from the
+successful OFF raster probe; that folder also retains the corrected ON shaders.
+These are complete emitted shader artifacts, not reconstructed excerpts.
+
 Earlier raw-direction reference arithmetic was insufficient: all 18 failing
 maxima persisted. A subsequent float-target scratch probe stopped on its own
 incorrect row-padding assertion, not a production error. Before stopping it
@@ -45,6 +60,11 @@ shadow positions. Fresh neutral A/B image review found unchanged pose, equipment
 and framing, with no new conspicuous holes/spikes/displacement. Existing pixel
 edges and dark elbow/sleeve patch remain accepted art limitations. The implementer
 also inspected every corrected full image.
+
+The [independent review record](posed-geometric-normal/reviews.md) preserves both
+verdicts and their scope. Its neutral visual review used the original and corrected
+ON live images plus this [enlarged torso comparison](posed-geometric-normal/ab-crop.png)
+(original left, corrected right).
 
 This uses the existing browser parity failure as the regression: no private
 material factory or fake graph API was exported just for a CPU test. Production

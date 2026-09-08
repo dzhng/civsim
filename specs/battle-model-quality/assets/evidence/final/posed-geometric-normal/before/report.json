@@ -1,0 +1,484 @@
+{
+  "checks": [
+    {
+      "name": "snapshot on-gpu",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "snapshot on-gpu",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "name": "on/gpu: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "snapshot on-readback",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "snapshot on-readback",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "name": "on/readback: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "on: same main/shadow/corpse state",
+      "ok": true
+    },
+    {
+      "name": "on: independent matrix bound",
+      "ok": true,
+      "detail": 2.384185791015625e-7
+    },
+    {
+      "name": "snapshot off-gpu",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "snapshot off-gpu",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "name": "off/gpu: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "snapshot off-readback",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "snapshot off-readback",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "name": "off/readback: exact repeat",
+      "ok": true
+    },
+    {
+      "name": "off: same main/shadow/corpse state",
+      "ok": true
+    },
+    {
+      "name": "off: independent matrix bound",
+      "ok": true,
+      "detail": 2.384185791015625e-7
+    },
+    {
+      "name": "normal image stays present",
+      "ok": true
+    },
+    {
+      "name": "only normal-use flags changed",
+      "ok": true
+    },
+    {
+      "name": "no page errors",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "errors": [],
+  "samples": {
+    "on": {
+      "render": {
+        "changedPixels": 825,
+        "maximumChannelError": 4,
+        "channelsOver1": 9
+      },
+      "gpuState": {
+        "main": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "shadow": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 1,
+          "l3": 0
+        },
+        "corpse": [
+          0
+        ]
+      },
+      "readbackState": {
+        "main": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "shadow": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 1,
+          "l3": 0
+        },
+        "corpse": [
+          0
+        ]
+      },
+      "framing": {
+        "pose": {
+          "classId": 4,
+          "clip": "idle",
+          "phase": 0,
+          "alive": true,
+          "formation": false,
+          "yaw": 0.45,
+          "pitch": 1.15,
+          "zoom": 190,
+          "target": [
+            0,
+            0,
+            1
+          ]
+        },
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 190,
+          "zoomT": 1,
+          "camera3d": {
+            "target": [
+              0,
+              0,
+              1
+            ],
+            "distance": 7.069809076100015,
+            "pitch": 0.42079632679489665,
+            "yaw": -1.1207963267948966,
+            "fovY": 0.55,
+            "aspect": 1.279683377308707,
+            "near": 0.07069809076100016,
+            "far": 4000
+          }
+        },
+        "width": 970,
+        "height": 758
+      }
+    },
+    "off": {
+      "render": {
+        "changedPixels": 808,
+        "maximumChannelError": 4,
+        "channelsOver1": 9
+      },
+      "gpuState": {
+        "main": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "shadow": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 1,
+          "l3": 0
+        },
+        "corpse": [
+          0
+        ]
+      },
+      "readbackState": {
+        "main": {
+          "l0": 1,
+          "l1": 0,
+          "l2": 0,
+          "l3": 0
+        },
+        "shadow": {
+          "l0": 0,
+          "l1": 0,
+          "l2": 1,
+          "l3": 0
+        },
+        "corpse": [
+          0
+        ]
+      },
+      "framing": {
+        "pose": {
+          "classId": 4,
+          "clip": "idle",
+          "phase": 0,
+          "alive": true,
+          "formation": false,
+          "yaw": 0.45,
+          "pitch": 1.15,
+          "zoom": 190,
+          "target": [
+            0,
+            0,
+            1
+          ]
+        },
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 190,
+          "zoomT": 1,
+          "camera3d": {
+            "target": [
+              0,
+              0,
+              1
+            ],
+            "distance": 7.069809076100015,
+            "pitch": 0.42079632679489665,
+            "yaw": -1.1207963267948966,
+            "fovY": 0.55,
+            "aspect": 1.279683377308707,
+            "near": 0.07069809076100016,
+            "far": 4000
+          }
+        },
+        "width": 970,
+        "height": 758
+      }
+    }
+  },
+  "flags": {
+    "prior": [
+      {
+        "name": "heavy-leather",
+        "baseColor": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "roughness": 0.8199999928474426,
+        "metallic": 0,
+        "textures": {
+          "baseColor": true,
+          "normal": true,
+          "metallicRoughness": true,
+          "occlusion": true
+        },
+        "normalScale": 0.2800000011920929,
+        "occlusionStrength": 1
+      },
+      {
+        "name": "heavy-bronze",
+        "baseColor": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "roughness": 0.5699999928474426,
+        "metallic": 1,
+        "textures": {
+          "baseColor": true,
+          "normal": true,
+          "metallicRoughness": true,
+          "occlusion": true
+        },
+        "normalScale": 0.3199999928474426,
+        "occlusionStrength": 1
+      },
+      {
+        "name": "heavy-iron",
+        "baseColor": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "roughness": 0.30000001192092896,
+        "metallic": 1,
+        "textures": {
+          "baseColor": true,
+          "normal": true,
+          "metallicRoughness": true,
+          "occlusion": true
+        },
+        "normalScale": 0.18000000715255737,
+        "occlusionStrength": 1
+      },
+      {
+        "name": "heavy-skin",
+        "baseColor": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "roughness": 0.7599999904632568,
+        "metallic": 0,
+        "textures": {
+          "baseColor": true,
+          "normal": true,
+          "metallicRoughness": true,
+          "occlusion": true
+        },
+        "normalScale": 0.18000000715255737,
+        "occlusionStrength": 1
+      },
+      {
+        "name": "heavy-cloth",
+        "baseColor": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "roughness": 0.9399999976158142,
+        "metallic": 0,
+        "textures": {
+          "baseColor": true,
+          "normal": true,
+          "metallicRoughness": true,
+          "occlusion": true
+        },
+        "normalScale": 0.25,
+        "occlusionStrength": 1
+      },
+      {
+        "name": "heavy-wood",
+        "baseColor": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "roughness": 0.8600000143051147,
+        "metallic": 0,
+        "textures": {
+          "baseColor": true,
+          "normal": true,
+          "metallicRoughness": true,
+          "occlusion": true
+        },
+        "normalScale": 0.2800000011920929,
+        "occlusionStrength": 1
+      }
+    ],
+    "current": [
+      {
+        "name": "heavy-leather",
+        "baseColor": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "roughness": 0.8199999928474426,
+        "metallic": 0,
+        "textures": {
+          "baseColor": true,
+          "metallicRoughness": true,
+          "occlusion": true
+        },
+        "normalScale": 0.2800000011920929,
+        "occlusionStrength": 1
+      },
+      {
+        "name": "heavy-bronze",
+        "baseColor": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "roughness": 0.5699999928474426,
+        "metallic": 1,
+        "textures": {
+          "baseColor": true,
+          "metallicRoughness": true,
+          "occlusion": true
+        },
+        "normalScale": 0.3199999928474426,
+        "occlusionStrength": 1
+      },
+      {
+        "name": "heavy-iron",
+        "baseColor": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "roughness": 0.30000001192092896,
+        "metallic": 1,
+        "textures": {
+          "baseColor": true,
+          "metallicRoughness": true,
+          "occlusion": true
+        },
+        "normalScale": 0.18000000715255737,
+        "occlusionStrength": 1
+      },
+      {
+        "name": "heavy-skin",
+        "baseColor": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "roughness": 0.7599999904632568,
+        "metallic": 0,
+        "textures": {
+          "baseColor": true,
+          "metallicRoughness": true,
+          "occlusion": true
+        },
+        "normalScale": 0.18000000715255737,
+        "occlusionStrength": 1
+      },
+      {
+        "name": "heavy-cloth",
+        "baseColor": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "roughness": 0.9399999976158142,
+        "metallic": 0,
+        "textures": {
+          "baseColor": true,
+          "metallicRoughness": true,
+          "occlusion": true
+        },
+        "normalScale": 0.25,
+        "occlusionStrength": 1
+      },
+      {
+        "name": "heavy-wood",
+        "baseColor": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "roughness": 0.8600000143051147,
+        "metallic": 0,
+        "textures": {
+          "baseColor": true,
+          "metallicRoughness": true,
+          "occlusion": true
+        },
+        "normalScale": 0.2800000011920929,
+        "occlusionStrength": 1
+      }
+    ],
+    "normalImagePresent": true
+  },
+  "browserClosed": true
+}

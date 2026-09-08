@@ -74,32 +74,34 @@ export function lodWithHysteresis(prevLevel: LodLevel, screenSize: number, polic
   return screenSize <= boundary - margin ? raw : prevLevel;
 }
 
-/** Per-instance LOD by camera distance, with optional previous levels for
- *  hysteresis. The production battle path uses this instead of a binary switch. */
-export function assignCrowdLodsByDistance(
-  instances: CrowdInstance[],
+/** Per-instance LOD by camera distance, written into `out` (one level per
+ *  instance), with hysteresis against `prevLevels` when given. The production
+ *  battle path calls this every frame, so it allocates nothing. */
+export function assignCrowdLodLevels(
+  instances: readonly CrowdInstance[],
   camera: LodCamera,
+  prevLevels: ArrayLike<number> | undefined,
+  out: Uint8Array,
   policy = DEFAULT_LOD_POLICY,
-  prevLevels?: ArrayLike<number>,
-): LodAssignment[] {
-  return instances.map((inst, i) => {
+): void {
+  for (let i = 0; i < instances.length; i++) {
+    const inst = instances[i];
     const screenSize = instanceScreenSize(inst.x, inst.y, camera, inst.mounted, policy);
-    const level = prevLevels
+    out[i] = prevLevels
       ? lodWithHysteresis((prevLevels[i] ?? 0) as LodLevel, screenSize, policy)
       : assignLodForScreenSize(screenSize, policy);
-    return { level, screenSize };
-  });
+  }
 }
 
-export function countLods(assignments: LodAssignment[]): LodCounts {
+export function countLods(levels: ArrayLike<number>, count = levels.length): LodCounts {
   // Plain counters, not a template-string key per instance: this runs over
   // the whole crowd every frame.
   let l0 = 0;
   let l1 = 0;
   let l2 = 0;
   let l3 = 0;
-  for (let i = 0; i < assignments.length; i++) {
-    const level = assignments[i].level;
+  for (let i = 0; i < count; i++) {
+    const level = levels[i];
     if (level === 0) l0++;
     else if (level === 1) l1++;
     else if (level === 2) l2++;

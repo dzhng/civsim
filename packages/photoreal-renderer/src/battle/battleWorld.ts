@@ -374,23 +374,26 @@ export class PhotorealBattleWorld {
   ): void {
     this.frame.dt.value = Number.isFinite(frameDt) ? Math.max(0, frameDt) : 0;
     this.setCamera(camera);
-    const built = buildCrowdInstances({
-      positions,
-      facings,
-      frames,
-      alive,
-      soldierUnit: this.soldierUnit,
-      unitTeam: this.unitTeam,
-      unitClass: this.unitClass,
-      renderClass: renderClass ?? undefined,
-      mountedClasses: this.mountedClasses,
-      terrainHeight: this.terrainSurface.heightSampler(),
-      simTick: simTick ?? 0,
-      count,
-    });
-    this.instances = built.instances;
+    // Refreshes last frame's instance objects in place (see buildCrowdInstances).
+    buildCrowdInstances(
+      {
+        positions,
+        facings,
+        frames,
+        alive,
+        soldierUnit: this.soldierUnit,
+        unitTeam: this.unitTeam,
+        unitClass: this.unitClass,
+        renderClass: renderClass ?? undefined,
+        mountedClasses: this.mountedClasses,
+        terrainHeight: this.terrainSurface.heightSampler(),
+        simTick: simTick ?? 0,
+        count,
+      },
+      this.instances,
+    );
     this.markers = [];
-    this.updateSeating(built.instances);
+    this.updateSeating(this.instances);
     this.updateGrass();
     applyCamera3d(this.camera, this.lastCamera.camera3d);
     this.shadowRig.update(this.camera);

@@ -51,15 +51,20 @@ export interface CrowdBuildStats {
 }
 
 export interface CrowdInstanceBuffers {
-  packed: Float32Array;
   instances: CrowdInstance[];
 }
 
-export function buildCrowdInstances(inputs: CrowdBuildInputs): CrowdInstanceBuffers & { stats: CrowdBuildStats } {
+/** Build (or refresh) the per-soldier render instances from the sim's flat
+ *  arrays. Pass the previous frame's `pool` to refresh its objects in place:
+ *  the crowd is rebuilt every frame, and 30k fresh objects a frame is pure
+ *  garbage-collector load. The pool is truncated to the written count. */
+export function buildCrowdInstances(
+  inputs: CrowdBuildInputs,
+  pool: CrowdInstance[] = [],
+): CrowdInstanceBuffers & { stats: CrowdBuildStats } {
   const count = inputs.count ?? Math.floor(inputs.positions.length / 2);
   const mountedClasses = new Set(inputs.mountedClasses ?? []);
-  const packed = new Float32Array(count * 12);
-  const instances: CrowdInstance[] = [];
+  const instances = pool;
   const stats: CrowdBuildStats = { input: count, written: 0, alive: 0, player: 0, enemy: 0 };
   for (let i = 0; i < count; i++) {
     const unit = inputs.soldierUnit?.[i] ?? 0;
@@ -73,43 +78,49 @@ export function buildCrowdInstances(inputs: CrowdBuildInputs): CrowdInstanceBuff
       simTick: inputs.simTick ?? 0,
       alive,
     });
-    const seed = deterministicInstanceSeed(i, unit);
-    const inst: CrowdInstance = {
-      x: inputs.positions[i * 2],
-      y: inputs.positions[i * 2 + 1],
-      facing: inputs.facings?.[i] ?? (faction === 0 ? Math.PI / 2 : -Math.PI / 2),
-      classId,
-      faction,
-      alive,
-      frame,
-      clip: anim.clip,
-      phase: anim.phase,
-      seed,
-      mounted: mountedClasses.has(classId),
-      lod: 0,
-      elevation: inputs.terrainHeight ? inputs.terrainHeight(inputs.positions[i * 2], inputs.positions[i * 2 + 1]) : 0,
-      deathVariant: anim.deathVariant,
-    };
-    instances.push(inst);
-    const o = stats.written * 12;
-    packed[o] = inst.x;
-    packed[o + 1] = inst.y;
-    packed[o + 2] = inst.facing;
-    packed[o + 3] = inst.classId;
-    packed[o + 4] = inst.faction;
-    packed[o + 5] = inst.alive ? 1 : 0;
-    packed[o + 6] = frame;
-    packed[o + 7] = anim.phase;
-    packed[o + 8] = seed;
-    packed[o + 9] = unit;
-    packed[o + 10] = inst.mounted ? 1 : 0;
-    packed[o + 11] = inst.elevation ?? 0;
+    const x = inputs.positions[i * 2];
+    const y = inputs.positions[i * 2 + 1];
+    let inst = instances[i];
+    if (inst === undefined) {
+      inst = {
+        x: 0,
+        y: 0,
+        facing: 0,
+        classId: 0,
+        faction: 0,
+        alive: true,
+        frame: 0,
+        clip: "idle",
+        phase: 0,
+        seed: 0,
+        mounted: false,
+        lod: 0,
+        elevation: 0,
+        deathVariant: 0,
+      };
+      instances[i] = inst;
+    }
+    inst.x = x;
+    inst.y = y;
+    inst.facing = inputs.facings?.[i] ?? (faction === 0 ? Math.PI / 2 : -Math.PI / 2);
+    inst.classId = classId;
+    inst.faction = faction;
+    inst.alive = alive;
+    inst.frame = frame;
+    inst.clip = anim.clip;
+    inst.phase = anim.phase;
+    inst.seed = deterministicInstanceSeed(i, unit);
+    inst.mounted = mountedClasses.has(classId);
+    inst.lod = 0;
+    inst.elevation = inputs.terrainHeight ? inputs.terrainHeight(x, y) : 0;
+    inst.deathVariant = anim.deathVariant;
     stats.written++;
     if (alive) stats.alive++;
     if (faction === 0) stats.player++;
     if (faction === 1) stats.enemy++;
   }
-  return { packed: packed.subarray(0, stats.written * 12), instances, stats };
+  instances.length = stats.written;
+  return { instances, stats };
 }
 
 export function deterministicInstanceSeed(index: number, unit: number): number {

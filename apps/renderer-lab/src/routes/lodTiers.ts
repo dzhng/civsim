@@ -1,5 +1,5 @@
 import { SkinnedCrowdPipeline } from "@packages/renderer-core/src/skinnedPipeline";
-import { assignCrowdLodsByDistance, lodWithHysteresis } from "@packages/crowd-runtime/src/lod";
+import { assignCrowdLodLevels, lodWithHysteresis } from "@packages/crowd-runtime/src/lod";
 import { loadPlaceholderVat } from "@packages/soldier-assets/src/placeholders";
 import { createPlaceholderSoldierMeshTiers } from "@packages/soldier-assets/src/soldierMesh";
 import { crowdInstance } from "../labFixtures";
@@ -32,7 +32,8 @@ export async function route(ctx: LabContext) {
     ...crowdInstance(0, 0, 0, "idle"),
     y: i * 30,
   }));
-  const probeLevels = assignCrowdLodsByDistance(probe, probeCamera).map((a) => a.level);
+  const probeLevels = new Uint8Array(probe.length);
+  assignCrowdLodLevels(probe, probeCamera, undefined, probeLevels);
   const monotonic = probeLevels.every((lvl, i) => i === 0 || lvl >= probeLevels[i - 1]);
   const tiersReached = new Set(probeLevels).size;
 

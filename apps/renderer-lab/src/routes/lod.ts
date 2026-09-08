@@ -12,7 +12,7 @@ export async function route(ctx: LabContext) {
     frame: 1,
   }).concat(generatedFormation(900, { x: 16, y: 4, faction: 1, columns: 30, frame: 1 }));
   const lods = assignCrowdLods(instances, zoom);
-  const counts = countLods(lods);
+  const counts = countLods(lods.map((a) => a.level));
   const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: -1, zoom, pitch: 0.24, yaw: 0 });
   const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88]);
   const renderInstances = instances.map((instance, i) => ({ ...instance, lod: lods[i].level }));

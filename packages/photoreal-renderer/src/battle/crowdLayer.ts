@@ -63,7 +63,10 @@ export class PhotorealCrowd {
   private readonly textures = new Set<THREE.DataTexture>();
   private instanceCount = 0;
   private readonly materialIdentity: ReturnType<typeof soldierMaterialIdentity>;
-  private previousLevels: number[] = [];
+  // Last frame's tiers feed this frame's hysteresis; the two buffers swap
+  // each upload so the plan never allocates.
+  private previousLevels: Uint8Array = new Uint8Array(0);
+  private levels: Uint8Array = new Uint8Array(0);
   private assignedCounts = emptyLodCounts();
   private visibleCounts = emptyLodCounts();
   private culling: CrowdCullingStats = { input: 0, visible: 0, culled: 0, viewFrusta: 0, shadowFrusta: 0 };
@@ -132,11 +135,25 @@ export class PhotorealCrowd {
     for (const bucketSet of this.buckets) {
       for (const bucket of bucketSet) bucket.pending.length = 0;
     }
-    const plan = scope
-      ? planPhotorealCrowdLods(instances, scope.lodCamera, this.previousLevels)
-      : { assignments: instances.map(() => ({ level: 0 as const, screenSize: 999 })), counts: { l0: instances.length, l1: 0, l2: 0, l3: 0 }, policy: undefined };
-    this.previousLevels = plan.assignments.map((assignment) => assignment.level);
-    this.assignedCounts = plan.counts;
+    if (this.levels.length < instances.length) {
+      this.levels = new Uint8Array(Math.max(instances.length, this.levels.length * 2));
+      const prev = new Uint8Array(this.levels.length);
+      prev.set(this.previousLevels.subarray(0, Math.min(this.previousLevels.length, prev.length)));
+      this.previousLevels = prev;
+    }
+    let levels: Uint8Array;
+    if (scope) {
+      const plan = planPhotorealCrowdLods(instances, scope.lodCamera, this.previousLevels, this.levels);
+      levels = plan.levels;
+      this.assignedCounts = plan.counts;
+    } else {
+      levels = this.levels;
+      levels.fill(0, 0, instances.length);
+      this.assignedCounts = { l0: instances.length, l1: 0, l2: 0, l3: 0 };
+    }
+    // `levels` is this frame's buffer; it becomes next frame's `previousLevels`.
+    this.levels = this.previousLevels;
+    this.previousLevels = levels;
     this.visibleCounts = emptyLodCounts();
     this.culling = {
       input: instances.length,
@@ -148,7 +165,7 @@ export class PhotorealCrowd {
     const impostors: CrowdInstance[] = [];
     for (let i = 0; i < instances.length; i++) {
       const inst = instances[i];
-      const level = plan.assignments[i]?.level ?? 0;
+      const level = levels[i];
       inst.lod = level;
       if (scope && !this.instanceIntersectsAnyFrustum(inst, scope.frusta)) {
         this.culling.culled++;

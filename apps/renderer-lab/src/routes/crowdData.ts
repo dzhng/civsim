@@ -28,10 +28,9 @@ export async function route(ctx: LabContext) {
   });
   const pipeline = await createSkinnedPipeline(shell, [0.2, 0.42, 0.88]);
   animateSkinned(shell, pipeline, () => instances);
-  const packed = buildCrowdInstances(toCrowdBuildInputs(instances));
+  const built = buildCrowdInstances(toCrowdBuildInputs(instances));
   publish("crowd-data", true, {
     route: "crowd-data",
-    stats: packed.stats,
-    packedFloats: packed.packed.length,
+    stats: built.stats,
   });
 }

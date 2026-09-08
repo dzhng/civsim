@@ -1,4 +1,4 @@
-"""Pike posture and locomotion on the saved fitted medium assembly.
+"""Pike motion on the saved fitted medium assembly.
 
 Run in Blender on SOURCE.blend, then -- --clip CLIP --output DIRECTORY.
 Only the selected action changes; geometry and every other action stay intact.
@@ -10,13 +10,14 @@ import sys
 from pathlib import Path
 
 import bpy
-from mathutils import Matrix, Vector
+from mathutils import Matrix, Quaternion, Vector
 
 sys.dont_write_bytecode = True
 HERE = Path(__file__).resolve().parent
 spec = importlib.util.spec_from_file_location("motion", HERE / "blender-heavy-motion.py")
 motion = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(motion)
+GRIP_CENTERS = {side: Vector((sign * .5732, -.051, .9024)) for side, sign in (("L", 1), ("R", -1))}
 
 
 def upright_carry(arm, original_forearm, phase, running=False):
@@ -44,7 +45,7 @@ def upright_carry(arm, original_forearm, phase, running=False):
     # carrying the shield at flank without folding a forearm beside the face.
     grips = {"R": right_grip, "L": right_grip - shaft * .16}
     for side, sign in (("R", -1), ("L", 1)):
-        rest_grip = Vector((sign * .5732, -.051, .9024))
+        rest_grip = GRIP_CENTERS[side]
         rest_along, rest_across = Vector((sign * .6, 0, -.8)), Vector((sign * .8, 0, .6))
         source = Matrix((rest_across, rest_along, rest_across.cross(rest_along))).transposed()
         along, across = Vector((-sign, -.2, -.1)), shaft * -sign
@@ -106,28 +107,110 @@ def author_pike_ready(arm):
             bone.keyframe_insert("location", frame=frame)
 
 
+def author_pike_thrust(arm):
+    ready = {b.name: (b.rotation_euler.copy(), b.location.copy()) for b in arm.pose.bones}
+    pelvis = arm.pose.bones["pelvis"]
+    feet = {side: arm.pose.bones["foot." + side].head.copy() for side in ("L", "R")}
+    hands = {side: arm.pose.bones["hand." + side].matrix.copy() for side in ("L", "R")}
+    support = [arm.pose.bones[name + ".L"] for name in ("upper-arm", "forearm")]
+    support_rotations = [bone.matrix.to_quaternion() for bone in support]
+    support_directions = [bone.tail - bone.head for bone in support]
+    support_bend = support[1].head - support[0].head
+    grips = {side: hands[side] @ arm.data.bones["hand." + side].matrix_local.inverted() @ center
+             for side, center in GRIP_CENTERS.items()}
+    axis = (grips["L"] - grips["R"]).normalized()
+    # One effort, not the simulation's damage cadence. Ease into preparation,
+    # accelerate through extension, then recover under the held weapon's load.
+    # Pelvis travel/height, trunk lean, and weapon travel have separate loads:
+    # the body braces forward while the hands retrieve the shaft.
+    keys = ((0, 0, 0, 0, 0, 0), (6, .055, -.015, -.12, -.18, .10),
+            (15, -.09, -.008, .15, .435, -.40), (19, -.095, -.04, .16, .433, -.40),
+            (32, -.045, -.015, .065, -.02, 0),
+            (39, 0, 0, 0, 0, 0))
+    previous = {}
+    for frame in range(40):
+        bpy.context.scene.frame_set(frame)
+        for name, (rotation, location) in ready.items():
+            arm.pose.bones[name].rotation_euler = rotation
+            arm.pose.bones[name].location = location
+        if frame not in (0, 39):
+            a, b = next((a, b) for a, b in zip(keys, keys[1:]) if a[0] <= frame <= b[0])
+            t = (frame - a[0]) / (b[0] - a[0])
+            t = t * t * (3 - 2 * t)
+            travel, height, lean, reach, turn = (a[i] + (b[i] - a[i]) * t for i in (1, 2, 3, 4, 5))
+            pelvis.location += pelvis.bone.matrix_local.to_3x3().inverted() @ Vector((0, travel, height))
+            bpy.context.view_layer.update()
+            for side in ("L", "R"):
+                foot = arm.pose.bones["foot." + side]
+                motion.place_supported_leg(arm, side, feet[side], Vector((0, -1, 0)))
+                motion.orient(arm, foot.name, foot.bone.matrix_local.to_quaternion())
+            arm.pose.bones["spine"].rotation_euler.x += lean
+            arm.pose.bones["neck"].rotation_euler.x -= lean * .7
+            bpy.context.view_layer.update()
+            # Unwind the shoulders around the planted body: the rear arm gains
+            # reach while the front shoulder follows its already extended hand.
+            if turn:
+                spine = arm.pose.bones["spine"]
+                motion.orient(arm, spine.name, Quaternion((0, 0, 1), turn) @ spine.matrix.to_quaternion())
+            # The held shaft travels axially, independently of the leaning trunk.
+            # Elbow flex absorbs that difference without a new bend branch.
+            for side in ("L", "R"):
+                upper, lower, hand = (arm.pose.bones[n + "." + side] for n in ("upper-arm", "forearm", "hand"))
+                shoulder, old_elbow = upper.head.copy(), lower.head.copy()
+                wrist = hands[side].translation + axis * reach
+                upper_rotation, lower_rotation = (b.matrix.to_quaternion() for b in (upper, lower))
+                old_upper, old_lower = upper.tail - upper.head, lower.tail - lower.head
+                bend_hint = old_elbow - shoulder
+                if side == "L":
+                    # The shield follows this forearm. Keep its anatomical bend
+                    # reference in ready-world space instead of inheriting torso
+                    # yaw as an extra elbow swivel; the actual wrist still moves.
+                    upper_rotation, lower_rotation = support_rotations
+                    old_upper, old_lower = support_directions
+                    bend_hint = support_bend
+                delta = wrist - shoulder
+                distance = delta.length
+                u, v = upper.bone.length, lower.bone.length
+                if not abs(u - v) < distance < u + v:
+                    raise ValueError(f"Unreachable thrust {side} wrist at frame {frame}: {distance:.6f} outside ({abs(u-v):.6f}, {u+v:.6f})")
+                elbow = motion.limb_joint(shoulder, wrist, u, v, bend_hint)
+                motion.orient(arm, upper.name, old_upper.rotation_difference(elbow - shoulder) @ upper_rotation)
+                motion.orient(arm, lower.name, old_lower.rotation_difference(wrist - elbow) @ lower_rotation)
+                motion.orient(arm, hand.name, hands[side].to_quaternion())
+                helper = arm.pose.bones["elbow-volume." + side]
+                base = helper.parent.matrix @ helper.parent.bone.matrix_local.inverted() @ helper.bone.matrix_local
+                motion.orient(arm, helper.name, base.to_quaternion().slerp(lower.matrix.to_quaternion(), .5))
+        for bone in arm.pose.bones:
+            if frame not in (0, 39):
+                bone.rotation_euler = bone.rotation_euler.to_quaternion().to_euler("XYZ", previous[bone.name])
+            previous[bone.name] = bone.rotation_euler.copy()
+            bone.keyframe_insert("rotation_euler", frame=frame)
+            bone.keyframe_insert("location", frame=frame)
+
+
 def author(arm, clip):
-    arm.animation_data.action = bpy.data.actions["pike-carry"]
+    source = "pike-ready" if clip == "pike-thrust" else "pike-carry"
+    arm.animation_data.action = bpy.data.actions[source]
     arm.animation_data.action_slot = arm.animation_data.action.slots[0]
     bpy.context.scene.frame_set(0)
     original_forearm = arm.pose.bones["forearm.L"].matrix.copy()
     carry = {b.name: b.rotation_euler.copy() for b in arm.pose.bones}
-    if clip == "pike-ready":
+    if clip in ("pike-ready", "pike-thrust"):
         for track in list(arm.animation_data.nla_tracks):
             if track.name == clip:
                 arm.animation_data.nla_tracks.remove(track)
         if clip in bpy.data.actions:
             bpy.data.actions.remove(bpy.data.actions[clip])
-        action = bpy.data.actions["pike-carry"].copy()
+        action = bpy.data.actions[source].copy()
         action.name = clip
     else:
         action = bpy.data.actions[clip]
     arm.animation_data.action = action
     arm.animation_data.action_slot = action.slots[0]
-    if clip == "pike-ready":
+    if clip in ("pike-ready", "pike-thrust"):
         bpy.context.scene.frame_set(0)
-        author_pike_ready(arm)
-        action["author"] = "medium-held-pike-ready"
+        (author_pike_thrust if clip == "pike-thrust" else author_pike_ready)(arm)
+        action["author"] = "medium-held-" + clip
         track = arm.animation_data.nla_tracks.new()
         track.name, track.mute = clip, True
         strip = track.strips.new(clip, 0, action)
@@ -167,7 +250,7 @@ def author(arm, clip):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--clip", choices=("walk", "run", "pike-ready"), required=True)
+    parser.add_argument("--clip", choices=("walk", "run", "pike-ready", "pike-thrust"), required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:])
     arm = next(o for o in bpy.context.scene.objects if o.type == "ARMATURE")

@@ -1,5 +1,5 @@
 import { runCandidateSheet, candidateSnapshots } from "./_candidate-sheet.mjs";
-import { captureMediumTravel, mediumTravelSnapshots } from "./_medium-travel.mjs";
+import { captureMediumMotion, mediumMotionSnapshots } from "./_medium-motion.mjs";
 
 const views = [
   ["front", 0],
@@ -13,6 +13,12 @@ const handViews = [
   ["outer", -Math.PI / 2],
   ["rear", Math.PI],
   ["front-quarter", -Math.PI / 4],
+];
+const thrustPoses = [
+  ["ready control", 0, "pike-ready"],
+  ["preparation", 8 / 39, "pike-thrust"],
+  ["extension", 15 / 39, "pike-thrust"],
+  ["recovery", 28 / 39, "pike-thrust"],
 ];
 const cameras = [
   { name: "complete-pike", pitch: 1.4, zoom: 85, target: [0, -0.8, 1.15], poses, views },
@@ -115,6 +121,28 @@ const cameras = [
       ["right", Math.PI / 2],
     ],
   },
+  {
+    name: "pike-thrust-poses",
+    pitch: 1.4,
+    zoom: 230,
+    target: [0, 0, 0.95],
+    poses: thrustPoses,
+    views: [
+      ["front-left", -0.65],
+      ["front-right", 0.65],
+    ],
+  },
+  {
+    name: "pike-thrust-complete",
+    pitch: 1.4,
+    zoom: 85,
+    target: [0, -0.8, 1.15],
+    poses: thrustPoses,
+    views: [
+      ["left", -Math.PI / 2],
+      ["right", Math.PI / 2],
+    ],
+  },
 ];
 
 export const meta = {
@@ -122,9 +150,9 @@ export const meta = {
   kind: "visual",
   world: "medium-phalanx-candidate",
   tier: "full",
-  snapshots: [...candidateSnapshots("medium-phalanx", [], cameras), ...mediumTravelSnapshots],
+  snapshots: [...candidateSnapshots("medium-phalanx", [], cameras), ...mediumMotionSnapshots],
   describe:
-    "Fitted medium armor, forward pike carry and ordinary upright-pike walk/run; manual row14 candidate only.",
+    "Fitted medium armor, pike posture, upright-pike travel and stationary thrust; manual row14 candidate only.",
 };
 
 export async function run(ctx) {
@@ -135,6 +163,6 @@ export async function run(ctx) {
     folder: "medium-phalanx",
     classes: [14],
     baseCameras: cameras,
-    afterSheets: captureMediumTravel,
+    afterSheets: captureMediumMotion,
   });
 }

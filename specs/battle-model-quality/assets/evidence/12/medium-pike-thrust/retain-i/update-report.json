@@ -1,0 +1,2279 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-08T08:56:31.657Z",
+  "target": "http://localhost:5447",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "medium-phalanx",
+      "file": "models/medium-phalanx.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "medium-phalanx",
+      "name": "medium-phalanx candidate is manually inspectable for its declared classes",
+      "ok": true,
+      "detail": "{\"catalog\":\"http://localhost:5447/assets/soldiers/candidates/medium-phalanx/catalog.json\",\"assets\":[{\"id\":14,\"name\":\"medium-phalanx\",\"presentation\":null,\"bones\":26,\"triangles\":[155190,155190,155190],\"clips\":[{\"name\":\"bend\",\"duration\":2,\"loop\":false},{\"name\":\"bend-pronation\",\"duration\":2,\"loop\":false},{\"name\":\"pike-carry\",\"duration\":1,\"loop\":true},{\"name\":\"pike-ready\",\"duration\":1,\"loop\":true},{\"name\":\"pike-thrust\",\"duration\":1.2999999523162842,\"loop\":false},{\"name\":\"pronation\",\"duration\":2,\"loop\":false},{\"name\":\"ready\",\"duration\":1.2000000476837158,\"loop\":true},{\"name\":\"run\",\"duration\":0.800000011920929,\"loop\":true},{\"name\":\"walk\",\"duration\":0.8999999761581421,\"loop\":true}]}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-poses/ready control/front-left: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-ready\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":803704,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-poses/ready control/front-left: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-poses/ready control/front-right: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-ready\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":803704,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-poses/ready control/front-right: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-poses/preparation/front-left: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-thrust\",\"phase\":0.20512820512820512,\"duration\":1.2999999523162842},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":803704,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-poses/preparation/front-left: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-poses/preparation/front-right: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-thrust\",\"phase\":0.20512820512820512,\"duration\":1.2999999523162842},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":803704,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-poses/preparation/front-right: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-poses/extension/front-left: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-thrust\",\"phase\":0.38461538461538464,\"duration\":1.2999999523162842},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":803704,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-poses/extension/front-left: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-poses/extension/front-right: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-thrust\",\"phase\":0.38461538461538464,\"duration\":1.2999999523162842},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":803704,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-poses/extension/front-right: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-poses/recovery/front-left: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-thrust\",\"phase\":0.717948717948718,\"duration\":1.2999999523162842},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":803704,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-poses/recovery/front-left: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-poses/recovery/front-right: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-thrust\",\"phase\":0.717948717948718,\"duration\":1.2999999523162842},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":803704,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-poses/recovery/front-right: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-poses",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-complete/ready control/left: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-ready\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":803704,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-complete/ready control/left: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-complete/ready control/right: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-ready\",\"phase\":0,\"duration\":1},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":803704,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-complete/ready control/right: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-complete/preparation/left: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-thrust\",\"phase\":0.20512820512820512,\"duration\":1.2999999523162842},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":803704,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-complete/preparation/left: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-complete/preparation/right: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-thrust\",\"phase\":0.20512820512820512,\"duration\":1.2999999523162842},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":803704,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-complete/preparation/right: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-complete/extension/left: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-thrust\",\"phase\":0.38461538461538464,\"duration\":1.2999999523162842},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":803704,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-complete/extension/left: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-complete/extension/right: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-thrust\",\"phase\":0.38461538461538464,\"duration\":1.2999999523162842},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":803704,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-complete/extension/right: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-complete/recovery/left: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-thrust\",\"phase\":0.717948717948718,\"duration\":1.2999999523162842},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":803704,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-complete/recovery/left: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-complete/recovery/right: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"clip\":\"pike-thrust\",\"phase\":0.717948717948718,\"duration\":1.2999999523162842},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":26,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":803704,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust-complete/recovery/right: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-complete",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust/whole-left: absolute time reset is exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust/whole-left: stationary root reaches submission",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust/whole-left: terminal phase one holds exactly",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust/whole-left: terminal returns to ready starting pose",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-00: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-00: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-00",
+      "ok": true,
+      "detail": "baseline unchanged"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-01: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-01: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-01",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-02: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-02: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-02",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-03: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-03: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-03",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-04: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-04: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-04",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-05: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-05: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-05",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-06: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-06: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-06",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-07: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-07: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-07",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-08: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-08: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-08",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-09: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-09: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-09",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-10: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-10: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-10",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-11: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-11: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-11",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-12: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-12: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-12",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-13: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-13: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-13",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-14: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-14: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-14",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-15: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-15: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-15",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-16: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-16: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-16",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-17: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-17: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-17",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-18: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-18: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-18",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-19: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-19: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-19",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-20: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-20: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-20",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-21: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-21: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-21",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-22: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-22: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-22",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-23: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-23: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-23",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-24: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-24: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-24",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-25: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-25: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-25",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-26: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-left-26: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-left-26",
+      "ok": true,
+      "detail": "baseline unchanged"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust/whole-right: absolute time reset is exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust/whole-right: stationary root reaches submission",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust/whole-right: terminal phase one holds exactly",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust/whole-right: terminal returns to ready starting pose",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-00: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-00: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-00",
+      "ok": true,
+      "detail": "baseline unchanged"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-01: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-01: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-01",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-02: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-02: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-02",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-03: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-03: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-03",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-04: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-04: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-04",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-05: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-05: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-05",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-06: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-06: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-06",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-07: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-07: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-07",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-08: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-08: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-08",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-09: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-09: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-09",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-10: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-10: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-10",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-11: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-11: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-11",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-12: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-12: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-12",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-13: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-13: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-13",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-14: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-14: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-14",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-15: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-15: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-15",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-16: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-16: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-16",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-17: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-17: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-17",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-18: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-18: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-18",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-19: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-19: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-19",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-20: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-20: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-20",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-21: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-21: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-21",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-22: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-22: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-22",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-23: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-23: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-23",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-24: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-24: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-24",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-25: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-25: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-25",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-26: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-whole-right-26: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-whole-right-26",
+      "ok": true,
+      "detail": "baseline unchanged"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust/pike-left: absolute time reset is exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust/pike-left: stationary root reaches submission",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust/pike-left: terminal phase one holds exactly",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust/pike-left: terminal returns to ready starting pose",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-00: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-00: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-00",
+      "ok": true,
+      "detail": "baseline unchanged"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-01: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-01: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-01",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-02: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-02: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-02",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-03: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-03: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-03",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-04: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-04: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-04",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-05: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-05: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-05",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-06: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-06: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-06",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-07: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-07: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-07",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-08: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-08: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-08",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-09: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-09: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-09",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-10: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-10: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-10",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-11: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-11: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-11",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-12: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-12: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-12",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-13: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-13: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-13",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-14: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-14: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-14",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-15: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-15: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-15",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-16: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-16: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-16",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-17: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-17: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-17",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-18: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-18: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-18",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-19: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-19: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-19",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-20: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-20: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-20",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-21: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-21: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-21",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-22: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-22: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-22",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-23: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-23: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-23",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-24: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-24: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-24",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-25: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-25: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-25",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-26: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-left-26: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-left-26",
+      "ok": true,
+      "detail": "baseline unchanged"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust/pike-right: absolute time reset is exact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust/pike-right: stationary root reaches submission",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust/pike-right: terminal phase one holds exactly",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "pike-thrust/pike-right: terminal returns to ready starting pose",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-00: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-00: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-00",
+      "ok": true,
+      "detail": "baseline unchanged"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-01: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-01: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-01",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-02: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-02: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-02",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-03: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-03: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-03",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-04: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-04: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-04",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-05: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-05: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-05",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-06: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-06: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-06",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-07: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-07: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-07",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-08: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-08: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-08",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-09: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-09: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-09",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-10: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-10: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-10",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-11: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-11: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-11",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-12: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-12: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-12",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-13: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-13: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-13",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-14: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-14: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-14",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-15: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-15: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-15",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-16: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-16: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-16",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-17: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-17: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-17",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-18: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-18: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-18",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-19: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-19: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-19",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-20: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-20: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-20",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-21: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-21: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-21",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-22: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-22: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-22",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-23: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-23: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-23",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-24: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-24: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-24",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-25: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-25: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-25",
+      "ok": true,
+      "detail": "baseline updated"
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-26: frozen frame repeats",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "shared/soldiers/medium-phalanx/pike-thrust-pike-right-26: manual pike-thrust reaches production",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "medium-phalanx",
+      "name": "snapshot shared/soldiers/medium-phalanx/pike-thrust-pike-right-26",
+      "ok": true,
+      "detail": "baseline unchanged"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

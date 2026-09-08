@@ -63,6 +63,28 @@ body intersections and dense floor clearance; then use paired production views.
 Existing loops failing to form a credible cap require a separate bounded topology
 decision, not an unrecorded rewrite. All old-clip re-review obligations remain.
 
+### Bounded proximal shoulder refit
+
+The [sleeve-transition rejection](../assets/evidence/08/sleeve-cap-refit/review.md)
+and [unchanged unarmored inspection](../assets/evidence/08/sleeve-cap-refit/unarmored-review.md)
+expose unsound underlying shoulder form. Do not fit cloth over that defect or
+weaken the fall to conceal it. Author one local proximal deltoid/axillary
+rest-position and existing chest/clavicle/upper-arm weight experiment on the
+saved fitted body. Keep topology, patch boundary, distal arms/hands, unrelated
+body, rig and all action keys fixed. No whole-body regeneration or heat re-solve,
+new bones, corrective system or renderer compensation.
+
+First compare both shoulders across relaxed carry, ready, bend, pronation,
+sword effort, hit and late fall: local triangle crossings, edge/area distortion,
+rest/source controls and dense floor clearance. Then inspect paired production
+views with fresh critique before retaining any body change. Only a less-wrong
+body permits garment refitting; full old-clip re-review remains mandatory.
+Topology that cannot support a credible cap requires another explicit decision.
+
+The medium's current fitted source stays frozen. A retained shared-anatomy
+correction requires a separately reviewed medium body/equipment refit, never
+silent replacement of its saved source. This authoring scope is not art acceptance.
+
 API seam: Blender human source mesh and deform rig → existing appearance bundle, initially classes 0 and 14 with equipment hidden.
 
 Names of new functions/routes in this plan are proposed, not existing commands. Use the [shared acceptance contract](../README.md#acceptance-contract) and [architecture](../architecture.md) for inherited requirements.

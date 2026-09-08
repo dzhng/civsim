@@ -1804,3 +1804,18 @@ audiences; it does not restore the superseded distance-only decision. Separate
 output buffers preserve preceding history if planning throws. These are merge
 adaptations to the existing explicit-pose and projected-view contracts, not new
 animation or visibility policy.
+
+### Repair the visible proximal body before refitting its sleeve
+
+**Sound; confidence: high. Authorized shoulder study,2026-09-08.** When the
+lowered arm reveals a deep back/arm ridge, correcting cloth weights alone can
+hide the skin beneath without making the joint believable. Inspecting the saved
+unarmored body shows poor shoulder-cap form and local self-crossing skin, so the
+next experiment may reshape and reweight only that proximal body patch. Its
+boundary, distal arms/hands, topology, rig and every action key remain fixed;
+there is no new bone, corrective system or whole-body rebuild. The earlier
+garment-only freedom did not cover body edits, so this is an explicit scope
+extension, not a successful-refit claim. The medium's frozen fitted source is
+not overwritten; any retained shared anatomy must be refitted and reviewed there
+separately. If the existing body topology cannot support the cap, stop and bound
+that decision instead of widening this experiment invisibly.

@@ -1,8 +1,9 @@
 # Production artifact refresh
 
 Final card/static checkpoint. All twenty sheets and the complete portrait montage
-passed immediate zero-pixel repeats on the isolated production workbench. Motion
-artifact refresh remains a separately queued pass. No model source or authored
+passed immediate zero-pixel repeats on the isolated production workbench. The
+[motion artifact review](motion-review.md) completes the matching film refresh.
+No model source or authored
 motion changes belong to this pass.
 
 The initial nineteen-card pass preserved the pending crew image; the final pass

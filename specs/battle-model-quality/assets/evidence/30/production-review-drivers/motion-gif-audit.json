@@ -1,0 +1,942 @@
+{
+  "films": 104,
+  "invalid": [],
+  "rows": [
+    {
+      "stem": "00-heavy-sword-walk",
+      "clip": "walk",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.760000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "00-heavy-sword-run",
+      "clip": "run",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.600000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "00-heavy-sword-attack",
+      "clip": "sword-effort",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "1.350000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "00-heavy-sword-hit",
+      "clip": "hit",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.720000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "00-heavy-sword-die",
+      "clip": "death",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "6.630000",
+      "nb_frames": "39"
+    },
+    {
+      "stem": "01-light-spear-walk",
+      "clip": "walk",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.760000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "01-light-spear-run",
+      "clip": "run",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.600000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "01-light-spear-attack",
+      "clip": "spear-effort",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "1.350000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "01-light-spear-hit",
+      "clip": "hit",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.720000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "01-light-spear-die",
+      "clip": "death",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "6.630000",
+      "nb_frames": "39"
+    },
+    {
+      "stem": "02-longsword-walk",
+      "clip": "walk",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.760000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "02-longsword-run",
+      "clip": "run",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.600000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "02-longsword-attack",
+      "clip": "sword-effort",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "1.440000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "02-longsword-hit",
+      "clip": "hit",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.720000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "02-longsword-die",
+      "clip": "death",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "6.630000",
+      "nb_frames": "39"
+    },
+    {
+      "stem": "03-phalanx-walk",
+      "clip": "walk",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.760000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "03-phalanx-run",
+      "clip": "run",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.600000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "03-phalanx-attack",
+      "clip": "pike-thrust",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "1.440000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "03-phalanx-hit",
+      "clip": "hit",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.720000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "03-phalanx-die",
+      "clip": "death",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "6.630000",
+      "nb_frames": "39"
+    },
+    {
+      "stem": "04-archers-walk",
+      "clip": "walk",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.760000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "04-archers-run",
+      "clip": "run",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.600000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "04-archers-attack",
+      "clip": "sword-effort",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "1.350000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "04-archers-shoot",
+      "clip": "bow-release",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.900000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "04-archers-hit",
+      "clip": "hit",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.720000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "04-archers-die",
+      "clip": "death",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "6.630000",
+      "nb_frames": "39"
+    },
+    {
+      "stem": "05-skirmishers-walk",
+      "clip": "walk",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.760000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "05-skirmishers-run",
+      "clip": "run",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.600000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "05-skirmishers-attack",
+      "clip": "sword-effort",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "1.350000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "05-skirmishers-shoot",
+      "clip": "throw-release",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.900000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "05-skirmishers-hit",
+      "clip": "hit",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.720000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "05-skirmishers-die",
+      "clip": "death",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "6.630000",
+      "nb_frames": "39"
+    },
+    {
+      "stem": "06-shock-cav-walk",
+      "clip": "walk",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.600000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "06-shock-cav-run",
+      "clip": "run",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.600000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "06-shock-cav-attack",
+      "clip": "melee",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.900000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "06-shock-cav-hit",
+      "clip": "hit",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.720000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "06-shock-cav-die",
+      "clip": "death",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "7.250000",
+      "nb_frames": "29"
+    },
+    {
+      "stem": "07-horse-archers-walk",
+      "clip": "walk",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.600000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "07-horse-archers-run",
+      "clip": "run",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.600000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "07-horse-archers-attack",
+      "clip": "melee",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.900000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "07-horse-archers-shoot",
+      "clip": "release",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "1.170000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "07-horse-archers-hit",
+      "clip": "hit",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.720000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "07-horse-archers-die",
+      "clip": "death",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "7.250000",
+      "nb_frames": "29"
+    },
+    {
+      "stem": "08-artillery-walk",
+      "clip": "walk",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.760000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "08-artillery-run",
+      "clip": "run",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.600000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "08-artillery-attack",
+      "clip": "sword-effort",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "1.350000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "08-artillery-shoot",
+      "clip": "crew-release",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.900000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "08-artillery-hit",
+      "clip": "hit",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.720000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "08-artillery-die",
+      "clip": "death",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "6.630000",
+      "nb_frames": "39"
+    },
+    {
+      "stem": "09-peasant-walk",
+      "clip": "walk",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.760000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "09-peasant-run",
+      "clip": "run",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.600000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "09-peasant-attack",
+      "clip": "sword-effort",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "1.350000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "09-peasant-hit",
+      "clip": "hit",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.720000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "09-peasant-die",
+      "clip": "death",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "6.630000",
+      "nb_frames": "39"
+    },
+    {
+      "stem": "10-light-sword-walk",
+      "clip": "walk",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.760000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "10-light-sword-run",
+      "clip": "run",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.600000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "10-light-sword-attack",
+      "clip": "sword-effort",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "1.350000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "10-light-sword-hit",
+      "clip": "hit",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.720000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "10-light-sword-die",
+      "clip": "death",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "6.630000",
+      "nb_frames": "39"
+    },
+    {
+      "stem": "11-heavy-spear-walk",
+      "clip": "walk",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.760000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "11-heavy-spear-run",
+      "clip": "run",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.600000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "11-heavy-spear-attack",
+      "clip": "spear-effort",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "1.350000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "11-heavy-spear-hit",
+      "clip": "hit",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.720000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "11-heavy-spear-die",
+      "clip": "death",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "6.630000",
+      "nb_frames": "39"
+    },
+    {
+      "stem": "12-medium-infantry-walk",
+      "clip": "walk",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.760000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "12-medium-infantry-run",
+      "clip": "run",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.600000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "12-medium-infantry-attack",
+      "clip": "sword-effort",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "1.350000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "12-medium-infantry-hit",
+      "clip": "hit",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.720000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "12-medium-infantry-die",
+      "clip": "death",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "6.630000",
+      "nb_frames": "39"
+    },
+    {
+      "stem": "13-medium-spear-walk",
+      "clip": "walk",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.760000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "13-medium-spear-run",
+      "clip": "run",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.600000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "13-medium-spear-attack",
+      "clip": "spear-effort",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "1.350000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "13-medium-spear-hit",
+      "clip": "hit",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.720000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "13-medium-spear-die",
+      "clip": "death",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "6.630000",
+      "nb_frames": "39"
+    },
+    {
+      "stem": "14-medium-phalanx-walk",
+      "clip": "walk",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.760000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "14-medium-phalanx-run",
+      "clip": "run",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.600000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "14-medium-phalanx-attack",
+      "clip": "pike-thrust",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "1.440000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "14-medium-phalanx-hit",
+      "clip": "hit",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.720000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "14-medium-phalanx-die",
+      "clip": "death",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "6.630000",
+      "nb_frames": "39"
+    },
+    {
+      "stem": "15-shock-cav-sidearm-walk",
+      "clip": "walk",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.600000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "15-shock-cav-sidearm-run",
+      "clip": "run",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.600000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "15-shock-cav-sidearm-attack",
+      "clip": "melee",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.900000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "15-shock-cav-sidearm-hit",
+      "clip": "hit",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.720000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "15-shock-cav-sidearm-die",
+      "clip": "death",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "7.250000",
+      "nb_frames": "29"
+    },
+    {
+      "stem": "16-heavy-phalanx-rest-walk",
+      "clip": "walk",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.760000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "16-heavy-phalanx-rest-run",
+      "clip": "run",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.600000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "16-heavy-phalanx-rest-attack",
+      "clip": "pike-thrust",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "1.440000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "16-heavy-phalanx-rest-hit",
+      "clip": "hit",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.720000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "16-heavy-phalanx-rest-die",
+      "clip": "death",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "6.630000",
+      "nb_frames": "39"
+    },
+    {
+      "stem": "17-medium-phalanx-rest-walk",
+      "clip": "walk",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.760000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "17-medium-phalanx-rest-run",
+      "clip": "run",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.600000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "17-medium-phalanx-rest-attack",
+      "clip": "pike-thrust",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "1.440000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "17-medium-phalanx-rest-hit",
+      "clip": "hit",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.720000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "17-medium-phalanx-rest-die",
+      "clip": "death",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "6.630000",
+      "nb_frames": "39"
+    },
+    {
+      "stem": "18-heavy-phalanx-sidearm-walk",
+      "clip": "walk",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.760000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "18-heavy-phalanx-sidearm-run",
+      "clip": "run",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.600000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "18-heavy-phalanx-sidearm-attack",
+      "clip": "sword-effort",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "1.350000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "18-heavy-phalanx-sidearm-hit",
+      "clip": "hit",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.720000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "18-heavy-phalanx-sidearm-die",
+      "clip": "death",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "6.630000",
+      "nb_frames": "39"
+    },
+    {
+      "stem": "19-medium-phalanx-sidearm-walk",
+      "clip": "walk",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.760000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "19-medium-phalanx-sidearm-run",
+      "clip": "run",
+      "frames": 8,
+      "width": 360,
+      "height": 360,
+      "duration": "1.600000",
+      "nb_frames": "16"
+    },
+    {
+      "stem": "19-medium-phalanx-sidearm-attack",
+      "clip": "sword-effort",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "1.350000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "19-medium-phalanx-sidearm-hit",
+      "clip": "hit",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "0.720000",
+      "nb_frames": "9"
+    },
+    {
+      "stem": "19-medium-phalanx-sidearm-die",
+      "clip": "death",
+      "frames": 9,
+      "width": 360,
+      "height": 360,
+      "duration": "6.630000",
+      "nb_frames": "39"
+    }
+  ]
+}

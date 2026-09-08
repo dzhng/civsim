@@ -1,6 +1,6 @@
 # 13 — First-pair hit and death
 
-Status: provisional heavy hit authoring; no acceptance. Depends on [12](./12-pair-combat.md).
+Status: provisional heavy hit integrated; heavy fall revision open, no acceptance. Depends on [12](./12-pair-combat.md).
 
 Final acceptance follows12. Provisional reaction authoring can use its current
 usable saved rig/kit without waiting for locomotion's complete live binding,
@@ -63,3 +63,11 @@ full-motion review must distinguish an involuntary reaction from a voluntary
 crouch. It is not a new stun state or an impact-direction claim. The engine's
 observed health loss remains authoritative, and detailed live binding is still
 unbuilt. Death authoring and this slice's acceptance remain open.
+
+The [rejected fall](../assets/evidence/13/rejected-death-g/review.md) owns the
+unsupported finish and clearance findings. Revise whole-body support on the
+current fitted source without changing existing actions. In parallel, remove
+the renderer's additional corpse rotation: the authored pose must own body
+geometry and grounding, while corpse shading remains independent. Verify both
+renderers and visibility bounds against that contract before live fall review;
+do not compensate by lifting the source asset.

@@ -1,6 +1,6 @@
 # 12 — First-pair attack and brace
 
-Status: IN PROGRESS, provisional heavy sword study only. Acceptance depends on
+Status: IN PROGRESS, integrated provisional heavy sword and medium held-pike ready. Acceptance depends on
 [11](./11-pair-locomotion.md).
 
 This is an acceptance dependency, not a requirement to postpone provisional
@@ -63,10 +63,13 @@ When presenting shots, use **preview-shots**, offer approximately five minutes f
 
 The [heavy sword study](../assets/evidence/12/heavy-sword/review.md) is retained
 provisionally after whole-body comparison and sampled full-motion review.
-Selective integration must preserve the fitted kit and every unrelated clip;
+The [combined integration](../assets/evidence/12/heavy-action-integration/review.md)
+preserves the fitted kit and every unrelated clip;
 the cramped release and low-finish hold remain unresolved. No live binding,
 damage-contact correspondence or final combat-art acceptance is established.
 
-The medium's next pose depicts the existing held-pike readiness observation.
-That observation does not expose the simulation's continuous brace-strength
-ramp, so a loaded stance must not be described as a new fully-braced state.
+The [medium held-pike ready](../assets/evidence/12/medium-pike-ready/review.md)
+is integrated provisionally. Its next action is an unpaired thrust with readable
+anticipation, body transfer and recovery while preserving connected purchases.
+The held-pike observation does not expose the simulation's continuous
+brace-strength ramp; neither pose nor effort introduces a fully-braced state.

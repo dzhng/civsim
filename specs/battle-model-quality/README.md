@@ -4,140 +4,61 @@ Direct-authored Blender models, articulated skeletons and individual animations 
 
 ## Next Agent Prompt
 
-Last updated **2026-09-08**. **01–06 complete;07 envelope open;08–11 provisional
-authoring;12–13 provisional authoring;14–30 pending.** Worktree: `/Users/david/dev/game-battle-model-quality`,
-branch `codex/battle-model-quality`. No detailed model or art envelope is accepted.
+Last updated **2026-09-08; implementation resumed**. **01–06 complete;
+07 budget open;08–13 provisional;14–30 pending.** Worktree:
+`/Users/david/dev/game-battle-model-quality`, branch `codex/battle-model-quality`.
+No detailed appearance or final art is accepted; candidates remain manual-only.
 
-**Latest committed checkpoint (2026-09-08).**
-The reviewed heavy attack/hit and medium held-pike ready studies are integrated
-as manual-only, provisional candidates. See the [checkpoint handoff](checkpoint.md)
-for verification and the next work to resume.
-Protected directional selection and manual guarded-right integration are merged.
-The [root/attached-overlay candidate](assets/evidence/11/live-root-phase/review.md)
-passed numerical checks but failed the live comparison: unconditional prediction
-exaggerated contact excursions. The [completed-interval experiment](assets/evidence/11/completed-interval/review.md)
-also remains unshipped: summarized observations cannot reconstruct movement entry
-or direction changes exactly. Choose an explicit sampling approximation or finer
-observations before live wiring; do not delay independent model authoring for it.
-The [locomotion slice](slices/11-pair-locomotion.md) bounds these passes.
-No live appearance, final locomotion or art is accepted.
-
-Integrated locomotion evidence:
-
-- [Distance playback](assets/evidence/11/measured-distance/review.md) and
-  [motor-capable travel](assets/evidence/11/motor-capable-travel/review.md) pass
-  independent merged CPU, simulation/save and exact-image gates. Measured pace
-  owns gait; combat remains time-driven. Enabled recovery/routing count as travel,
-  disabled transport does not. This is not proof of voluntary steps or foot plants.
-- [Final-disabled gait](assets/evidence/11/final-disabled-gait/review.md) counts
-  completed travel and then stops prospective gait phase. Canonical standing,
-  time-driven combat and existing blend settling remain unchanged. Independent
-  merged350 CPU tests and629 checks/42 exact images pass; this is not stunned-art acceptance.
-- [Combined heavy motion](assets/evidence/11/composed-motion/review.md),
-  [backward](assets/evidence/11/backward-integration/review.md) and
-  [left](assets/evidence/11/left-integration/review.md) are manual candidates on
-  the fitted source. Preserve all unrelated clips and geometry. Left's404-image
-  gate passes independently on the merged tree. Narrow gathering,
-  low recovery clearance and restrained upper-body loading remain provisional.
-  The [right integration](assets/evidence/11/right-integration/review.md) passes
-  the independent merged477-image gate. Its extra hip probes expose scabbard/mail
-  overlap in both lateral clips, without a whole-body visual blocker to study.
-- [Protected selection](assets/evidence/11/protected-selection/review.md) respects
-  the engine's at-ease distinction, including safe facing-retained withdrawals.
-  Merged354 CPU tests and636 checks/44 exact images pass. Missing detailed
-  bindings remain null; diagnostic fixture poses are not art acceptance.
-- The fitted [medium](assets/evidence/09/medium-phalanx/review.md) includes the
-  [lower upright-pike march](assets/evidence/11/medium-walk-integration/review.md),
-  with exact merged static/moving gates. Right-arm rigidity, flat footfall,
-  pike-butt proximity and dense engine-formation clearance remain open. Its saved
-  fitted source—not a rebuilt heavy donor—owns geometry.
-  The [upright run correction](assets/evidence/11/medium-run/review.md) passes
-  the independent merged356-image gate, preserving the earlier193 images.
-  Connected carrying is retained provisionally; support calibration, the small
-  sole dip and stiff upper-body loading remain open.
-
-Prioritize whole-soldier proportions, equipment silhouette and full-body motion.
-David deferred small-detail polishing on2026-09-07. Correct basic handedness and
-palm orientation, but do not restart finger sculpting. The
-[carry-fit study](assets/evidence/11/carry-fit/review.md) owns provisional fit and
-rejected attachments; do not flatten the shield to conceal contact failures.
-
-David's shield-carry direction: in at-ease standing and ordinary walk/run, carry
-the shield beside the left flank, outward face pointing sideways and roughly
-edge-on from the front. Battle-ready is distinct: raise it forward. Use the
-existing `atEase`/`ready` presentation roles; stationary does not itself imply
-at-ease. Both hands need correct handedness and palm orientation. Correct the
-connected arm/hand pose, not equipment alone; review the whole silhouette and
-leg clearance through the cycle. Backing away while facing a threat must not
-silently inherit relaxed forward-travel carry. Existing
-[signed motion](assets/evidence/05/signed-motion/review.md) and
-[guarded-facing observations](assets/evidence/11/guarded-observation/review.md)
-preserve the engine's direction/posture distinctions; detailed live bindings remain open.
-Retained facing also occurs during safe withdrawals: protected selection must
-respect `atEase`, not treat `guardedFacing` alone as a threat decision.
+**Current pickup: complete the first pair's missing combat/reaction motion,
+with authored poses owning corpse geometry.** The [checkpoint](checkpoint.md)
+records the integrated heavy attack/hit and medium held-pike ready, their exact
+merged verification, and the rejected heavy fall.
 
 Priority order:
-- **Whole-body authoring:** heavy shield-protected sword effort, compact hit
-  reaction and medium two-hand upright-pike run proceed independently on frozen
-  fitted sources. The medium run correction is integrated; its next pose must
-  depict the existing held-pike readiness, not invent a fully-braced state.
-  Attack braking and reaction weight remain provisional. Genuine12/13 actions
-  supply the complete pose set required for later live admission.
-- **Engine-faithful locomotion:** resolve fractional root placement with gait,
-  then bind detailed protected travel without
-  changing engine movement or combat timing. Upper-body weight response, ground
-  contact and transitions remain open. Do not overwrite fitted sources from older studies.
-  Do not block provisional combat/reaction authoring on that same admission or
-  weaken the loader with stand-ins.
-- **Medium ordinary march:** retain the integrated lower carry provisionally;
-  continue full-body motion and live binding, not another isolated hand study.
-  Two-hand purchase, flank shield and pike length remain constraints. The
-  lower left arm improves the silhouette but does not resolve right-arm rigidity.
-- **Shared hand detail stays paused:** preserve studies in
-  `/Users/david/dev/game-heavy-hand-form` without grafting them into the current
-  soldier. Basic handedness is required; finger refinement must not displace
-  whole-body work. The [closure](assets/evidence/08/rejected-metacarpal-grip/review.md)
-  and [connected-hand](assets/evidence/08/rejected-connected-hand/review.md) rejections
-  explain why connected geometry and collision counts do not prove a grasp.
-- **Medium equipment/surfaces:** retain the fitted sleeveless under-tunic as
-  provisional, not an anatomy fix. Review exposed axilla, actual cloth edges,
-  both grips, shield and sidearm after carry changes. Fit armor/waist to the
-  body once the carrying silhouette works; defer isolated face detail.
-- **07 budget:** [base packing](assets/evidence/07/settled-base-packing.md) has
-  mixed hardware costs and no cadence pass. The
-  [retirement cleanup](assets/evidence/07/frozen-retirement/review.md) and
-  [near-density comparison](assets/evidence/07/near-density/review.md) do not pass
-  the33ms animated envelope.07 gates art acceptance, not editable authoring.
-  The [upper-wrapper cleanup](assets/evidence/07/upper-wrapper/review.md) preserves
-  exact output; mixed CPU medians do not establish a performance-budget win.
 
-Retained composition and evidence:
-- [Combined garment](assets/evidence/09/combined-worn-garment/review.md),
-  [mail](assets/evidence/10/combined-mail/review.md),
-  [helmet](assets/evidence/09/combined-helmet/review.md),
-  [footwear/carry](assets/evidence/11/combined-footwear-shield/review.md) and
-  [scabbard](assets/evidence/09/scabbard-suspension/review.md) own modular source
-  revisions. Preserve their exact geometry/rig controls during selective
-  integration; a full procedural gear rebuild moved unrelated surfaces.
-- [Anatomy](assets/evidence/08/anatomy-review.md),
-  [head volumes](assets/evidence/08/head-volumes/review.md) and
-  [grip integration](assets/evidence/08/power-grip-closure/integration.md)
-  are intermediate work, not accepted natural anatomy.
-- [06 playback](assets/evidence/06/merged-validation.md),
-  [snapshot storage](assets/evidence/07/snapshot-banks.md) and
-  [projected detail](assets/evidence/07/projected-lod.md) own transport contracts.
-  [Forward export](assets/evidence/11/heavy-travel/forward-export-probe.md)
-  owns the native-facing correction; never reverse only fixture travel.
-- [Focused capture selection](assets/evidence/01/candidate-filter/review.md)
-  preserves unfiltered coverage while allowing bounded detail review.
+1. In parallel, author medium thrust and revise the heavy fall's unsupported
+   finish. Use the current fitted sources; preserve unrelated meshes, rig and
+   actions. The fall needs convincing body/ground support, not simply a passing
+   minimum-height number. Correct the shared renderer's additional corpse roll
+   before judging live grounding; do not lift a particular asset to compensate.
+2. Resolve engine-faithful live movement sampling, foot contact and transitions,
+   then admit complete detailed appearances. Missing actions are not filled with
+   stand-ins. Measured travel owns gait; engine observations own posture and
+   reactions, not animation clocks.
+3. Finish first-pair anatomy, equipment, surfaces and distance representations,
+   prove the animated performance envelope, then pass16 before roster expansion.
+   Budget07 blocks art acceptance, not isolated editable authoring.
+
+Carry constraints: at-ease standing and ordinary forward walk/run carry the
+shield beside the left flank; battle-ready/protected travel carries it forward.
+Retained facing alone is not a threat decision: respect canonical `atEase`.
+The medium's held-pike readiness is not the unobserved continuous brace-strength
+ramp. Preserve connected grips and basic handedness. Whole-body motion comes
+before fine fingers or faces; the separate hand-detail worktree remains deferred.
+
+Evidence ledger:
+
+- [Checkpoint and combined gates](checkpoint.md): current integrated sources,
+  retained limitations and rejected death G.
+- [Locomotion](slices/11-pair-locomotion.md): measured-distance playback, protected
+  travel and fitted heavy/medium motion. Contact calibration, rigidity and
+  equipment overlap remain open. [Live prediction](assets/evidence/11/live-root-phase/review.md)
+  and [completed-interval sampling](assets/evidence/11/completed-interval/review.md)
+  are unshipped: summarized observations cannot reconstruct entry/direction
+  changes exactly. Choose an explicit approximation or finer observations before
+  live wiring; do not delay independent authoring.
+- [Anatomy](slices/08-anatomy.md), [equipment](slices/09-pair-gear.md) and
+  [surfaces](slices/10-pair-surfaces.md): provisional fitted composition.
+  Preserve saved geometry rather than regenerating unrelated equipment.
+- [Budget](slices/07-budget-envelope.md): mixed hardware measurements do not
+  establish the animated33ms envelope.
+- [Choices](choices.md): banked decisions and unresolved quality tradeoffs.
 
 Preserve simulation/save/balance, exact interruption poses, atomic catalog
-replacement, one production skin/material/environment path and existing image
-gates. Local Blender processes and separate worktree files isolate authoring
-from other sessions' interactive Blender/MCP scene; coordinate GPU captures.
-No external AI or downloaded soldiers. Block fixtures prove transport/cost,
-never final art. Complete appearances promote atomically only after
-distance-ready acceptance. The full TODO below remains the objective.
+replacement, the production skin/material/environment path and existing image
+gates. Author with isolated background Blender processes and separate worktree
+files; never alter another session's interactive Blender/MCP scene. Serialize
+GPU captures across authoring lanes. Scope and acceptance below remain binding.
 
 ## Scope and firewalls
 

@@ -1,6 +1,8 @@
 # 18 — Remaining foot materials
 
-Status: TODO. Depends on [17](./17-foot-geometry.md).
+Status: In progress. The first three foot-sword candidates have atlas-correct
+[authored materials and reviewed sheets](../assets/evidence/17/foot-sword-delivery.md).
+Remaining roles and production admission are still open.
 
 ## Contract and ownership
 

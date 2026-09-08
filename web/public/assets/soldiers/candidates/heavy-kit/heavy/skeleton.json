@@ -20631,7 +20631,8 @@
           }
         }
       },
-      "loop": true
+      "loop": true,
+      "strideMeters": 0.9161101579666129
     },
     {
       "name": "guarded-left-walk",
@@ -22951,7 +22952,8 @@
           }
         }
       },
-      "loop": true
+      "loop": true,
+      "strideMeters": 0.45646570563188277
     },
     {
       "name": "guarded-right-walk",
@@ -25271,7 +25273,8 @@
           }
         }
       },
-      "loop": true
+      "loop": true,
+      "strideMeters": 0.5551884194414423
     },
     {
       "name": "hit",

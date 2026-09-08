@@ -14,6 +14,10 @@ waivers. Functional coverage and usable production integration remain in scope.
   minor equipment intersections after the complete roster is working.
 - Anatomy, faces, fingers and material finish: refine class by class without
   reopening the shared asset/runtime architecture.
+- Foot variants: remove small outer-hip skin pokes and shoulder seams; improve
+  light/medium armor separation and shield-handle readability. The current
+  contact sheets also expose rectangular ground-shadow patches. These are
+  retained visual limitations, not claims of finished close-up polish.
 - Static HUD portrait repeat variation remains outside the explicit live
   body-region gate; preserve the original red evidence rather than claiming
   full-frame determinism.

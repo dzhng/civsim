@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { bakeAppearance, writeAppearance } from "./appearance.mjs";
+import { heavyMotionBake } from "./heavy-motion-contract.mjs";
 
 const {
   values: { check },
@@ -12,17 +13,7 @@ const bundle = bakeAppearance({
   name: "heavy-kit",
   mounted: false,
   tiers: [source, source, source],
-  loopClips: [
-    "idle",
-    "ready",
-    "walk",
-    "run",
-    "guarded-backward-walk",
-    "guarded-left-walk",
-    "guarded-right-walk",
-  ],
-  // Reviewed motion recipe: metres traveled during one authored support/recovery cycle.
-  clipMetadata: { walk: { strideMeters: 1.53 }, run: { strideMeters: 2.584 } },
+  ...heavyMotionBake,
   presentation: null,
 });
 const files = { "catalog.json": { appearances: { 0: "heavy/appearance.json" } } };

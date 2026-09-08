@@ -1830,3 +1830,16 @@ channel step even though source, style and layout were unchanged; this falsifies
 those changing-input hypotheses, not proves a compositor mechanism. The new
 explicitly named body-motion-region gate excludes HUD/full-frame acceptance and
 keeps all existing default gates and zero tolerances unchanged.
+
+### Reuse fitted source parts and action calibration across sword infantry
+
+**Sound; confidence: high. Foot delivery pass,2026-09-08.** When creating a
+light swordsman, keep the already-fitted human skeleton and motions, remove the
+mail and swap the tunic's atlas tile to leather. A medium swordsman retains a
+shoulder cuirass; a peasant omits the shield and helmet. The spec allowed shared
+parts but did not select an assembly method. Composing saved editable parts
+avoids another anatomy generator and preserves the same joint/weapon placement
+across these roles. Shared stride calibration has one bake-time owner, so a
+future gait update cannot silently give identical action keys different travel
+speeds. Role-specific refinements remain possible in their saved Blend files;
+this does not create a runtime equipment assembly system.

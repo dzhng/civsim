@@ -1,0 +1,13 @@
+**Clear defects**
+- **Skin pokes through clothing — high confidence.** Peasant and light infantry have exposed skin patches at the outer hips in battle-ready side/rear views. These look like leg–tunic intersections.
+- **Rectangular shadow artifacts — high confidence.** Light and medium equipment sheets show straight-edged dark patches beneath and behind the feet, visibly breaking the soft ground shadows.
+- **Light/medium distinction is weak — high confidence.** Their bodies, shields, weapons, and poses look nearly identical. The medium’s helmet is the main readable upgrade; its torso protection barely distinguishes it at gameplay scale.
+
+**Smaller defects / uncertainties**
+- **Shoulder joins look assembled — high confidence.** Abrupt sleeve boundaries and dark shoulder seams make the arms look attached to a separate torso shell, especially on medium infantry.
+- **Shield attachment looks awkward — medium confidence.** At-ease front/rear views expose a bright horizontal connector between hand and shield. It reads as a projecting metal bar; the grip relationship is difficult to understand.
+- **Battle-ready sword overlaps the shield face in front projection — high confidence overlap, low confidence actual intersection.** Side views suggest depth separation, so these images alone do not establish penetration.
+- **Materials lack separation — high confidence.** Clothing and skin have similarly smooth shading; shields read as soft, rounded discs. Medium armor reads largely like the light unit’s brown clothing.
+- **Framing wastes inspection space — high confidence.** Gameplay figures occupy a small central portion of each panel, making attachment and geometry defects hard to judge.
+
+No definite floating equipment or missing piece is established by these sheets.

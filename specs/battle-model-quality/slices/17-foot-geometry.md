@@ -1,6 +1,9 @@
 # 17 — Remaining foot equipment geometry
 
-Status: TODO. Depends on [16](./16-pair-checkpoint.md).
+Status: In progress under the user's completion-first delivery direction.
+Peasant, light sword and medium infantry have saved fitted candidates and
+[reviewed static evidence](../assets/evidence/17/foot-sword-delivery.md).
+Other foot roles and production admission remain open.
 
 ## Contract and ownership
 

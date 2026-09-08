@@ -22,7 +22,9 @@ contact pass is being implemented in its own worktree. `worker/00` has a
 matching cross-thread hash, but no admissible quiet-machine timing yet.
 
 **Current pickup:** measure the contact variants, then verify and integrate
-`tick/01`. Follow with scratch reuse and the budget checkpoint.
+`tick/01`. Implement scratch reuse in parallel, then integrate both before
+the budget checkpoint. Their source owners are separate; correctness and
+timing checks remain coordinated so measurements do not include other jobs.
 The first-contact window is a small skirmish; check a developed fight before
 concluding the broad budget is met. Worker measurements proceed independently
 when a quiet timing lane is available; worker production refactoring starts
@@ -171,10 +173,10 @@ is worth having regardless).
 ```
 TICK (crates/sim)                          WORKER (web)
 tick/00 profiler + budget gate             worker/00 measure ── KILL #1
-   │                                          │
-tick/01 shared contact neighborhood        worker/01 read seam (in-process)
-   │                                          │
-tick/02 scratch buffers                    worker/02 command seam + harness
+   ├─ tick/01 contact                         │
+   └─ tick/02 scratch (parallel)           worker/01 read seam (in-process)
+            │                                 │
+       integrate both                     worker/02 command seam + harness
    │                                          │
 tick/03 BUDGET CHECKPOINT ── David         worker/03 campaign handoff as JSON
    │                                          │

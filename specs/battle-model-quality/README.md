@@ -46,8 +46,9 @@ Evidence ledger:
   equipment overlap remain open. [Live prediction](assets/evidence/11/live-root-phase/review.md)
   and [completed-interval sampling](assets/evidence/11/completed-interval/review.md)
   are unshipped: summarized observations cannot reconstruct entry/direction
-  changes exactly. Choose an explicit approximation or finer observations before
-  live wiring; do not delay independent authoring.
+  changes exactly. Slice11 now specifies a bounded completed-interval CPU
+  candidate with explicit entry/stride approximations; prove that contract before
+  live wiring, without delaying independent authoring.
 - [Anatomy](slices/08-anatomy.md), [equipment](slices/09-pair-gear.md) and
   [surfaces](slices/10-pair-surfaces.md): provisional fitted composition.
   Preserve saved geometry rather than regenerating unrelated equipment.

@@ -133,7 +133,8 @@ previous clip for the interval is therefore a changed approximation, not greater
 fidelity to canonical state. Equal path/net displacement and final posture can
 hide different starts or reversals. A delayed consumer must explicitly choose
 an approximation or request finer observations; it cannot reconstruct missing
-history by interpolation. This decision remains isolated from Blender authoring.
+history by interpolation. The bounded candidate policy below resolves that
+choice provisionally; no implementation or live acceptance follows from planning.
 
 Before another browser implementation, prove the delayed interval contract on
 CPU in isolation. Retain only the preceding observation interval and its history
@@ -159,7 +160,50 @@ beginning in idle remains unresolved: retaining old role ownership leaves root
 travel without gait, while retroactive entry is a different transition policy.
 Expose that case as red, not accepted coverage. This experiment does not authorize
 a broad history subsystem, per-bone snapshots, a new physics classifier or live
-promotion. Choose the complete boundary policy before wiring delayed crowd draws.
+promotion. The next CPU pass uses the boundary policy below before wiring delayed
+crowd draws.
+
+### Next CPU pass: bounded completed-interval policy
+
+**Planned, not implemented.** Keep one completed observation interval in the
+existing timeline owner. This is a deliberately approximate presentation of
+batched observations, not reconstruction of intermediate engine states. The
+earlier incomplete prototype is evidence, not a patch to bless wholesale.
+
+- An eligible active gait owns the completed interval through its own stride.
+  Apply the newly selected gait at the right endpoint, transporting normalized
+  phase without counting that distance again. Preserve unchanged-rate arithmetic.
+- Infer a gait beginning at the left endpoint only from enabled background
+  rest/ready, within compatible posture and the same appearance, when qualified
+  travel is positive. Blend from the exact prior rest pose. The inferred onset
+  and uniform interval speed are explicit approximations.
+- Never infer entry over a left-boundary attack, release, hit, death or disabled
+  state. Time-driven actions/blends continue. If disability expires within the
+  batch, root transport may have no matching gait before the endpoint; do not
+  replay that unassigned distance later. A retained compatible gait resumes its
+  held phase; genuine new entry starts at zero.
+- Finish eligible interval gait and continuing overlays before applying newly
+  observed injury, release, disability or death at the right endpoint. A reaction
+  captures that exact composed endpoint. Appearance replacement stays an atomic
+  reset; incompatible posture cannot borrow a retrospective gait.
+
+The CPU review surface is calibrated local-pose evaluation through the existing
+timeline tests: eligible idle entry, unequal directional strides, both disability
+edges, protected combat, posture/appearance incompatibility, masked interruptions,
+no deferred catch-up, retained-result immutability and bounded payload accounting.
+Use discriminating red cases and explicit before/after behavior ledgers. No
+per-soldier per-tick bone capture, generalized history, new engine fields or
+simulation/save changes. Storage shape is delegated within this bounded owner;
+event/stride/entry ownership above is not.
+
+**Do not wire the crowd in this first pass.** After the isolated contract passes
+review, a separate actual crowd/clock pass may present at latest tick minus one
+plus the existing fraction, interpolating raw roots over the actual observed
+interval and facing along the shortest arc. Discrete state and attached effects
+must share that presented time. Pause holds; explicit freeze shows authoritative
+time without destroying retained history. Append, rewind and catalog replacement
+need atomic boundaries. Batched starts/stops and reversals remain approximate;
+the live comparison must reject contact excursions even if CPU tests pass.
 
 ### Integrated: stop future gait while disabled
 

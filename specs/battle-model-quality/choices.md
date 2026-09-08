@@ -2,6 +2,23 @@
 
 ## Sound — medium confidence
 
+### Test delayed motion with an explicit bounded approximation (11)
+
+When a batch says a soldier travelled but does not say exactly when he started,
+the proposed presentation spreads that travel over the observed interval. A gait
+already playing owns its stride until the endpoint; an enabled standing soldier
+may be inferred to start at the interval's beginning. This replaces the current
+incoming-stride convention in the candidate only. Combat, disability and
+incompatible appearances cannot be overwritten by an inferred walk. Transport
+without leg drive can therefore remain visible at mixed-state boundaries.
+
+The spec left approximation versus finer engine observations open. Choosing one
+bounded interval avoids new observation infrastructure and prediction beyond
+known positions, but does not recover missing chronology. **Sound, provisional;
+confidence medium:** test the explicit compromise on CPU before any live wiring,
+then reject it if matched live movement still looks wrong. This is a planned
+candidate, not accepted runtime behavior or a relaxation of foot-contact review.
+
 ### Use diagnostic closure to inform unfinished open-hand anatomy (08)
 
 When a reference-led open hand has recognizable palm and finger segments but

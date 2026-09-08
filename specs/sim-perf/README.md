@@ -62,6 +62,9 @@ Worker track
 - [ ] `worker/05` proof, standing gate, keep/drop ([slices/worker/05-proof-and-gate.md](slices/worker/05-proof-and-gate.md))
 - [ ] close-spec when both tracks have a verdict
 
+Additional accepted follow-up
+- [ ] Re-baseline the authored-model renderer workload and address its remaining frame-time budget miss ([model-rendering-follow-up.md](model-rendering-follow-up.md)). This is separate from the tick and worker tracks; their renderer firewalls remain unchanged.
+
 **Instruction to the next agent:** update this section before ending your
 pass, and record every decision made where the spec was silent in
 [choices.md](choices.md).

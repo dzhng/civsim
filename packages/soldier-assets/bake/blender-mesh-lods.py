@@ -8,11 +8,43 @@ from pathlib import Path
 import sys
 
 import bpy
+import bmesh
 
 
 def triangle_count(obj):
     obj.data.calc_loop_triangles()
     return len(obj.data.loop_triangles)
+
+
+def preserve_tangent_frames(mesh):
+    """Use face normals only where collapsed smooth normals lose UV direction."""
+    bm = bmesh.new()
+    bm.from_mesh(mesh)
+    bmesh.ops.triangulate(bm, faces=list(bm.faces))
+    bm.to_mesh(mesh)
+    bm.free()
+    # The fitted material owner connects Normal Map directly to Principled.
+    # Unmapped slots do not require a tangent frame and must not be flattened.
+    mapped = {i for i, material in enumerate(mesh.materials)
+              if material and material.use_nodes and any(
+                  node.type == "BSDF_PRINCIPLED" and any(
+                      link.from_node.type == "NORMAL_MAP" for link in node.inputs["Normal"].links)
+                  for node in material.node_tree.nodes)}
+    if not mapped:
+        return 0
+    mesh.calc_tangents(uvmap=mesh.uv_layers.active.name)
+    bad = [p for p in mesh.polygons if p.material_index in mapped and any(
+        mesh.loops[i].normal.cross(mesh.loops[i].tangent).length_squared < 1e-12
+        for i in p.loop_indices)]
+    for polygon in bad:
+        polygon.use_smooth = False
+    if bad:
+        mesh.update()
+        mesh.calc_tangents(uvmap=mesh.uv_layers.active.name)
+        if any(mesh.loops[i].normal.cross(mesh.loops[i].tangent).length_squared < 1e-12
+               for p in mesh.polygons if p.material_index in mapped for i in p.loop_indices):
+            raise ValueError("Reduced UV surface still has a degenerate tangent frame")
+    return len(bad)
 
 
 def reduced_copy(body, target_triangles, min_extent=0, min_triangles=12):
@@ -65,6 +97,8 @@ def reduced_copy(body, target_triangles, min_extent=0, min_triangles=12):
     result = pieces[0]
     bpy.context.view_layer.objects.active = result
     bpy.ops.object.join()
+    corrected = preserve_tangent_frames(result.data)
+    print(f"Reduced mesh: {corrected} degenerate smooth faces use face normals")
     return result
 
 

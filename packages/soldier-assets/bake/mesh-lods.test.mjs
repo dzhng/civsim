@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { bakeGltf, parseGlb } from "./gltf.mjs";
+import { assertMappedTangentFrames } from "../src/skin.ts";
 
 const paths = process.argv.slice(2);
 assert.equal(paths.length, 3, "Pass the original, mid and coarse GLB paths");
@@ -20,6 +21,12 @@ for (let tier = 1; tier < sources.length; tier++) {
   for (const mesh of sources[tier].primitives) {
     for (const field of ["positions", "normals", "tangents", "uvs", "weights"])
       assert.ok(mesh[field].every(Number.isFinite), `tier ${tier}: nonfinite ${field}`);
+    const material = materials[tier]?.[mesh.materialIndex];
+    if (material?.normalTexture)
+      assertMappedTangentFrames(
+        { ...mesh, materialIds: new Uint8Array(mesh.positions.length / 3) },
+        [{ textures: { normal: material.normalTexture } }],
+      );
     for (let vertex = 0; vertex < mesh.positions.length / 3; vertex++) {
       const offset = vertex * 4;
       const weights = mesh.weights.subarray(offset, offset + 4);

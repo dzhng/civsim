@@ -1,0 +1,80 @@
+import assert from 'node:assert/strict';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { readFile, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { loadAppearanceCatalog } from './checkout/packages/soldier-assets/src/appearanceBundle.ts';
+import { assertGameplayAppearances } from '/Users/david/dev/game-battle-model-quality/packages/crowd-runtime/src/animationState.ts';
+
+const output = '/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY';
+const manifest = JSON.parse(await readFile(resolve(output, 'manifest.json')));
+const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+const run = promisify(execFile);
+const reports = await Promise.all(manifest.appearances.map(appearance =>
+  readFile(resolve(output, 'comparisons', `${appearance.name}.json`)).then(JSON.parse)));
+const contracts = [];
+for (const source of manifest.sources) {
+  const args = [resolve(output, 'checkout/packages/soldier-assets/bake/mesh-lods.test.mjs'),
+    ...['near', 'mid', 'far'].map(tier => resolve(output, 'products', source.key, `${tier}.glb`))];
+  const logfile = resolve(output, 'logs', `${source.key}-lod-contract.txt`);
+  let exitCode = 0, stdout = '', stderr = '';
+  try { ({ stdout, stderr } = await run('node', args, { cwd: output, timeout: 120000 })); }
+  catch (error) { exitCode = error.code; stdout = error.stdout ?? ''; stderr = error.stderr ?? String(error); }
+  await writeFile(logfile, stdout + stderr);
+  contracts.push({ key: source.key, command: ['node', ...args], exitCode, logfile });
+  console.log('LOD CONTRACT', source.key, exitCode);
+}
+await writeFile(resolve(output, 'lod-contracts.json'), JSON.stringify(contracts, null, 2) + '\n');
+assert.ok(contracts.every(contract => contract.exitCode === 0), 'one or more fresh LOD contracts failed');
+const appearances = Object.fromEntries(manifest.appearances.map(a => [a.id, `${a.name}/appearance.json`]));
+const catalogPath = resolve(output, 'bundles/catalog.json');
+await writeFile(catalogPath, JSON.stringify({ appearances }, null, 2) + '\n');
+globalThis.fetch = async url => {
+  try { return new Response(await readFile(new URL(url))); }
+  catch { return new Response(null, { status: 404 }); }
+};
+const loaded = await loadAppearanceCatalog(pathToFileURL(catalogPath).href);
+assertGameplayAppearances(loaded);
+const originalCatalog = await loadAppearanceCatalog(pathToFileURL(resolve(manifest.root, 'web/public/assets/soldiers/catalog.json')).href);
+const bytesEqual = (a, b) => Buffer.from(a.buffer, a.byteOffset, a.byteLength).equals(Buffer.from(b.buffer, b.byteOffset, b.byteLength));
+const byteComparisons = {};
+for (const [id, fresh] of Object.entries(loaded)) {
+  assert.deepEqual(Object.keys(fresh.surface.textures).sort(), Object.keys(originalCatalog[id].surface.textures).sort());
+  byteComparisons[id] = {
+    meshBytesExact: fresh.tiers.every((mesh, tier) => Object.keys(mesh).every(field =>
+      bytesEqual(mesh[field], originalCatalog[id].tiers[tier][field]))),
+    animationBytesExact: bytesEqual(fresh.animation.data, originalCatalog[id].animation.data),
+  };
+}
+const sourcesUnchanged = [];
+for (const source of manifest.sources) {
+  const archived = sha(await readFile(resolve(output, 'checkout', source.source)));
+  const original = sha(await readFile(resolve(manifest.root, source.source)));
+  sourcesUnchanged.push({ key: source.key, sha256: archived, archivedMatches: archived === source.sourceSha256,
+    productionSourceUnchanged: original === source.sourceSha256 });
+}
+assert.ok(sourcesUnchanged.every(s => s.archivedMatches && s.productionSourceUnchanged));
+const sameStructureAndNumbers = difference => difference.structuralDifferences === 0 && difference.changedNumbers === 0;
+const finalCatalogSha256 = sha(await readFile(resolve(manifest.root, 'web/public/assets/soldiers/catalog.json')));
+const summary = {
+  revision: manifest.revision, blender: JSON.parse(await readFile(resolve(output, 'source-inventory.json'))).blender,
+  sourceCount: manifest.sources.length, appearanceCount: reports.length, freshCatalogAdmission: 'PASS',
+  existingLodContractPasses: contracts.length, sourcesUnchanged,
+  productionCatalogUnchanged: reports.every(r => r.productionCatalogSha256 === finalCatalogSha256),
+  appearances: reports.map(r => ({
+    id: r.appearanceId, name: r.name, sourceKey: r.key, triangles: r.triangles,
+    ...byteComparisons[r.appearanceId],
+    meshDifferences: r.tiers.flatMap(t => Object.entries(t.comparisons)
+      .filter(([, d]) => !d.sameLength || d.changed)
+      .map(([field, difference]) => ({ tier: t.tier, field, ...difference }))),
+    rigExact: sameStructureAndNumbers(r.rig), animationMetadataExact: sameStructureAndNumbers(r.animationMetadata),
+    animationDataExact: r.animationData.sameLength && r.animationData.changed === 0,
+    materialExact: sameStructureAndNumbers(r.materials), boundsExact: sameStructureAndNumbers(r.bounds),
+    texturesExact: Object.values(r.textures).every(t => t.byteIdentical && sameStructureAndNumbers(t.metadata)),
+  })),
+};
+await writeFile(resolve(output, 'summary.json'), JSON.stringify(summary, null, 2) + '\n');
+assert.equal(summary.productionCatalogUnchanged, true);
+console.log(JSON.stringify(summary));

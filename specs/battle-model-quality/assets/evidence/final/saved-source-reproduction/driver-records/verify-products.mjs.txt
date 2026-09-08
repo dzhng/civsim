@@ -1,0 +1,96 @@
+import assert from 'node:assert/strict';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { bakeAppearance, writeAppearance } from './checkout/packages/soldier-assets/bake/appearance.mjs';
+import { loadAppearanceBundle } from './checkout/packages/soldier-assets/src/appearanceBundle.ts';
+
+const output = '/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY';
+const manifest = JSON.parse(await readFile(resolve(output, 'manifest.json')));
+const selected = process.argv.slice(2);
+const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+const catalogBytes = await readFile(resolve(manifest.root, 'web/public/assets/soldiers/catalog.json'));
+const catalog = JSON.parse(catalogBytes);
+globalThis.fetch = async url => {
+  try { return new Response(await readFile(new URL(url))); }
+  catch { return new Response(null, { status: 404 }); }
+};
+
+function compareNumbers(prior, fresh) {
+  if (prior.length !== fresh.length) return { sameLength: false, priorLength: prior.length, freshLength: fresh.length };
+  let changed = 0, maximumDifference = 0;
+  for (let i = 0; i < prior.length; i++) {
+    if (!Number.isFinite(prior[i]) || !Number.isFinite(fresh[i])) throw new Error('nonfinite number');
+    const difference = Math.abs(prior[i] - fresh[i]);
+    if (difference !== 0) changed++;
+    maximumDifference = Math.max(maximumDifference, difference);
+  }
+  return { sameLength: true, length: prior.length, changed, maximumDifference };
+}
+
+function compareStructured(prior, fresh) {
+  let changedNumbers = 0, maximumDifference = 0, structuralDifferences = 0;
+  const examples = [];
+  function visit(a, b, path) {
+    if (typeof a === 'number' && typeof b === 'number') {
+      if (a !== b) { changedNumbers++; maximumDifference = Math.max(maximumDifference, Math.abs(a - b)); }
+      return;
+    }
+    if (a && b && typeof a === 'object' && typeof b === 'object') {
+      const ak = Object.keys(a), bk = Object.keys(b);
+      if (JSON.stringify(ak) !== JSON.stringify(bk)) { structuralDifferences++; if (examples.length < 5) examples.push({ path, keysBefore: ak, keysAfter: bk }); return; }
+      for (const key of ak) visit(a[key], b[key], `${path}.${key}`);
+      return;
+    }
+    if (a !== b) { structuralDifferences++; if (examples.length < 5) examples.push({ path, before: a, after: b }); }
+  }
+  visit(prior, fresh, '$');
+  return { structuralDifferences, changedNumbers, maximumDifference, examples };
+}
+
+for (const appearance of manifest.appearances) {
+  if (selected.length && !selected.includes(appearance.key)) continue;
+  const row = manifest.sources.find(source => source.key === appearance.key);
+  const product = resolve(output, 'products', row.key);
+  const tiers = await Promise.all(['near', 'mid', 'far'].map(tier => readFile(resolve(product, `${tier}.glb`))));
+  const { source, lods, ...recipe } = appearance.recipe;
+  const files = bakeAppearance({ name: appearance.name, mounted: appearance.mounted, tiers, ...recipe });
+  const bundleDir = resolve(output, 'bundles', appearance.name);
+  await writeAppearance(files, bundleDir);
+  const fresh = await loadAppearanceBundle(pathToFileURL(resolve(bundleDir, 'appearance.json')).href);
+  const priorManifest = resolve(manifest.root, 'web/public/assets/soldiers', catalog.appearances[appearance.id]);
+  const prior = await loadAppearanceBundle(pathToFileURL(priorManifest).href);
+  assert.equal(fresh.manifest.name, appearance.name);
+  assert.equal(fresh.manifest.mounted, appearance.mounted);
+  assert.deepEqual(fresh.manifest.presentation, appearance.recipe.presentation);
+  const triangles = fresh.tiers.map(mesh => mesh.indices.length / 3);
+  assert.ok(triangles[0] > triangles[1] && triangles[1] > triangles[2]);
+  const surface = compareStructured(prior.surface.materials, fresh.surface.materials);
+  const textures = Object.fromEntries(Object.keys(prior.surface.textures).map(channel => {
+    const a = prior.surface.textures[channel], b = fresh.surface.textures[channel];
+    if (!b) return [channel, { missing: true }];
+    const { image: ai, ...am } = a, { image: bi, ...bm } = b;
+    return [channel, { metadata: compareStructured(am, bm), beforeSha256: sha(ai), afterSha256: sha(bi), byteIdentical: Buffer.from(ai).equals(Buffer.from(bi)) }];
+  }));
+  const result = {
+    appearanceId: appearance.id, name: appearance.name, key: row.key,
+    sourceSha256: row.sourceSha256, loader: 'PASS', presentation: 'exact current rosterRecipe',
+    triangles, priorTriangles: prior.tiers.map(mesh => mesh.indices.length / 3),
+    rig: compareStructured(prior.rig, fresh.rig),
+    animationMetadata: compareStructured(prior.animation.clips, fresh.animation.clips),
+    animationData: compareNumbers(prior.animation.data, fresh.animation.data),
+    materials: surface, textures,
+    bounds: compareStructured(prior.manifest.bounds, fresh.manifest.bounds),
+    tiers: fresh.tiers.map((mesh, tier) => ({ tier,
+      freshGlbSha256: sha(tiers[tier]),
+      comparisons: Object.fromEntries(Object.keys(mesh).map(field => [field, compareNumbers(prior.tiers[tier][field], mesh[field])])),
+    })),
+    sourceHashUnchanged: sha(await readFile(resolve(output, 'checkout', row.source))) === row.sourceSha256,
+    productionCatalogSha256: sha(catalogBytes),
+  };
+  assert.equal(result.sourceHashUnchanged, true);
+  await mkdir(resolve(output, 'comparisons'), { recursive: true });
+  await writeFile(resolve(output, 'comparisons', `${appearance.name}.json`), JSON.stringify(result, null, 2) + '\n');
+  console.log(JSON.stringify(result));
+}

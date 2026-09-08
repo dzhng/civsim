@@ -1,0 +1,33 @@
+{
+  "source": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/heavy-phalanx-sidearm/heavy-phalanx-sidearm.blend",
+  "sourceSha256": "fea71deae1a634884aec0deef061230f346bb1b96da6df134b0f370ec7368281",
+  "tiers": [
+    {
+      "name": "near",
+      "targetTriangles": 8000,
+      "sourceTriangles": 151534,
+      "triangles": 7984,
+      "omittedBelowMetres": 0,
+      "retainedIslandTriangleFloor": 12,
+      "glbSha256": "eadecb4be2a23dd3f4384197473849f349ff9c0323867d561c3fefe03b881255"
+    },
+    {
+      "name": "mid",
+      "targetTriangles": 1000,
+      "sourceTriangles": 151534,
+      "triangles": 1072,
+      "omittedBelowMetres": 0.03,
+      "retainedIslandTriangleFloor": 8,
+      "glbSha256": "90e10f6e93bdab0e52c1400f0f9c2f03bc7744df4dd8b857d6e2c605cc5e13f1"
+    },
+    {
+      "name": "far",
+      "targetTriangles": 800,
+      "sourceTriangles": 151534,
+      "triangles": 876,
+      "omittedBelowMetres": 0.15,
+      "retainedIslandTriangleFloor": 4,
+      "glbSha256": "3054016c331b1eef6eba4f6e2f2057ac8b8f17f4470889821b8012d14bca2ed8"
+    }
+  ]
+}

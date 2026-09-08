@@ -1,0 +1,285 @@
+{
+  "appearanceId": 8,
+  "name": "artillery-crew",
+  "key": "foot-roster--artillery-crew",
+  "sourceSha256": "fb6afe7a48051998fc9cfec3ce99e344f1452ec6f02ca1bb9428a77f445c227f",
+  "loader": "PASS",
+  "presentation": "exact current rosterRecipe",
+  "triangles": [
+    7968,
+    986,
+    790
+  ],
+  "priorTriangles": [
+    7968,
+    986,
+    790
+  ],
+  "rig": {
+    "structuralDifferences": 0,
+    "changedNumbers": 0,
+    "maximumDifference": 0,
+    "examples": []
+  },
+  "animationMetadata": {
+    "structuralDifferences": 0,
+    "changedNumbers": 0,
+    "maximumDifference": 0,
+    "examples": []
+  },
+  "animationData": {
+    "sameLength": true,
+    "length": 275268,
+    "changed": 0,
+    "maximumDifference": 0
+  },
+  "materials": {
+    "structuralDifferences": 0,
+    "changedNumbers": 0,
+    "maximumDifference": 0,
+    "examples": []
+  },
+  "textures": {
+    "orm": {
+      "metadata": {
+        "structuralDifferences": 0,
+        "changedNumbers": 0,
+        "maximumDifference": 0,
+        "examples": []
+      },
+      "beforeSha256": "3aff0ee401f10b38f464964569311dff62bf67c74a29befd5ecc525dd20889d1",
+      "afterSha256": "3aff0ee401f10b38f464964569311dff62bf67c74a29befd5ecc525dd20889d1",
+      "byteIdentical": true
+    },
+    "normal": {
+      "metadata": {
+        "structuralDifferences": 0,
+        "changedNumbers": 0,
+        "maximumDifference": 0,
+        "examples": []
+      },
+      "beforeSha256": "624f0ae76564c1f8d4fa0f7b575d7660308d30d703c2206b206028df997656eb",
+      "afterSha256": "624f0ae76564c1f8d4fa0f7b575d7660308d30d703c2206b206028df997656eb",
+      "byteIdentical": true
+    },
+    "baseColor": {
+      "metadata": {
+        "structuralDifferences": 0,
+        "changedNumbers": 0,
+        "maximumDifference": 0,
+        "examples": []
+      },
+      "beforeSha256": "8610819c0c161b40d017810158a6113c20903f921fb91beec29c0c59591f4765",
+      "afterSha256": "8610819c0c161b40d017810158a6113c20903f921fb91beec29c0c59591f4765",
+      "byteIdentical": true
+    }
+  },
+  "bounds": {
+    "structuralDifferences": 0,
+    "changedNumbers": 0,
+    "maximumDifference": 0,
+    "examples": []
+  },
+  "tiers": [
+    {
+      "tier": 0,
+      "freshGlbSha256": "08c3a03999b0e196c094e7f533b787e11d861aadecb88305cb1fbe318fa9c3e0",
+      "comparisons": {
+        "positions": {
+          "sameLength": true,
+          "length": 25152,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "normals": {
+          "sameLength": true,
+          "length": 25152,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "colors": {
+          "sameLength": true,
+          "length": 33536,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "joints": {
+          "sameLength": true,
+          "length": 33536,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "weights": {
+          "sameLength": true,
+          "length": 33536,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "uvs": {
+          "sameLength": true,
+          "length": 16768,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "tangents": {
+          "sameLength": true,
+          "length": 33536,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "materialIds": {
+          "sameLength": true,
+          "length": 8384,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "factionMasks": {
+          "sameLength": true,
+          "length": 8384,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "indices": {
+          "sameLength": true,
+          "length": 23904,
+          "changed": 0,
+          "maximumDifference": 0
+        }
+      }
+    },
+    {
+      "tier": 1,
+      "freshGlbSha256": "32d92c0c6dc8381be35249e95e15db14fe5e2a667860bcad31b78e502a525a2e",
+      "comparisons": {
+        "positions": {
+          "sameLength": true,
+          "length": 5862,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "normals": {
+          "sameLength": true,
+          "length": 5862,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "colors": {
+          "sameLength": true,
+          "length": 7816,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "joints": {
+          "sameLength": true,
+          "length": 7816,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "weights": {
+          "sameLength": true,
+          "length": 7816,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "uvs": {
+          "sameLength": true,
+          "length": 3908,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "tangents": {
+          "sameLength": true,
+          "length": 7816,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "materialIds": {
+          "sameLength": true,
+          "length": 1954,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "factionMasks": {
+          "sameLength": true,
+          "length": 1954,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "indices": {
+          "sameLength": true,
+          "length": 2958,
+          "changed": 0,
+          "maximumDifference": 0
+        }
+      }
+    },
+    {
+      "tier": 2,
+      "freshGlbSha256": "f598dad1080f94b43f81e13bda9a713b50a1aad4bbb7805bd78b003e47a6cce9",
+      "comparisons": {
+        "positions": {
+          "sameLength": true,
+          "length": 4620,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "normals": {
+          "sameLength": true,
+          "length": 4620,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "colors": {
+          "sameLength": true,
+          "length": 6160,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "joints": {
+          "sameLength": true,
+          "length": 6160,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "weights": {
+          "sameLength": true,
+          "length": 6160,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "uvs": {
+          "sameLength": true,
+          "length": 3080,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "tangents": {
+          "sameLength": true,
+          "length": 6160,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "materialIds": {
+          "sameLength": true,
+          "length": 1540,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "factionMasks": {
+          "sameLength": true,
+          "length": 1540,
+          "changed": 0,
+          "maximumDifference": 0
+        },
+        "indices": {
+          "sameLength": true,
+          "length": 2370,
+          "changed": 0,
+          "maximumDifference": 0
+        }
+      }
+    }
+  ],
+  "sourceHashUnchanged": true,
+  "productionCatalogSha256": "a5c782407b9077066d91a966ff42dda4e9540d53e6597738f6d27ed49c6b4b1e"
+}

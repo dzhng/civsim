@@ -1,0 +1,33 @@
+{
+  "source": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/foot-roster/archers/archers.blend",
+  "sourceSha256": "bab7443ad2450e830a5f2294405fb176b10ec6bb6f3d0ada395bc46fb42ef049",
+  "tiers": [
+    {
+      "name": "near",
+      "targetTriangles": 8000,
+      "sourceTriangles": 94036,
+      "triangles": 7978,
+      "omittedBelowMetres": 0,
+      "retainedIslandTriangleFloor": 12,
+      "glbSha256": "6059cbf264da9c2688ffff0566936928059ea5ad30a282b3b23e0c8d303fdc48"
+    },
+    {
+      "name": "mid",
+      "targetTriangles": 1000,
+      "sourceTriangles": 94036,
+      "triangles": 980,
+      "omittedBelowMetres": 0.03,
+      "retainedIslandTriangleFloor": 8,
+      "glbSha256": "4fdb7fccca5b508fc763cf3cb360cdce24c3913934f8388d3e2cd105f3871fad"
+    },
+    {
+      "name": "far",
+      "targetTriangles": 800,
+      "sourceTriangles": 94036,
+      "triangles": 784,
+      "omittedBelowMetres": 0.15,
+      "retainedIslandTriangleFloor": 4,
+      "glbSha256": "12ce227e7a22e594b15a5dd0fe1e8fb71a1423f91e4b5e852460bddff0983201"
+    }
+  ]
+}

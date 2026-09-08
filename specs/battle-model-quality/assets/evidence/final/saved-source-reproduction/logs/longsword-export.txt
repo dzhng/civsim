@@ -1,0 +1,52 @@
+00:01.196  blend            | Read blend: "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/longsword/longsword.blend"
+/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/bake/blender-mesh-lods.py:29: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  if material and material.use_nodes and any(
+Warning: Library file, loading empty scene
+Reduced mesh: 0 degenerate smooth faces use face normals
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+22:03:46 | INFO: Starting glTF 2.0 export
+22:03:46 | INFO: Extracting primitive: Sandal sole.L.001
+22:03:46 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:03:46 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:03:46 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:03:46 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:03:46 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:03:46 | INFO: Primitives created: 5
+22:03:46 | WARNING: There are more than 4 joint vertex influences.The 4 with highest weight will be used (and normalized).
+22:03:53 | INFO: Finished glTF 2.0 export in 6.6043126583099365 s
+00:10.538  blend            | Read blend: "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/longsword/longsword.blend"
+/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/bake/blender-mesh-lods.py:29: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  if material and material.use_nodes and any(
+
+Warning: Library file, loading empty scene
+Reduced mesh: 0 degenerate smooth faces use face normals
+22:03:56 | INFO: Starting glTF 2.0 export
+22:03:56 | INFO: Extracting primitive: Sandal sole.L.001
+22:03:56 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:03:56 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:03:56 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:03:56 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:03:56 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:03:56 | INFO: Primitives created: 5
+22:03:56 | WARNING: There are more than 4 joint vertex influences.The 4 with highest weight will be used (and normalized).
+22:04:01 | INFO: Finished glTF 2.0 export in 4.80319619178772 s
+00:18.268  blend            | Read blend: "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/longsword/longsword.blend"
+
+Warning: Library file, loading empty scene
+Reduced mesh: 1 degenerate smooth faces use face normals
+22:04:03 | INFO: Starting glTF 2.0 export
+22:04:03 | INFO: Extracting primitive: Sandal sole.L.001
+22:04:03 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:04:03 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:04:03 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:04:03 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:04:03 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:04:03 | INFO: Primitives created: 5
+22:04:03 | WARNING: There are more than 4 joint vertex influences.The 4 with highest weight will be used (and normalized).
+22:04:07 | INFO: Finished glTF 2.0 export in 4.620213031768799 s
+
+{"source": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/longsword/longsword.blend", "sourceSha256": "1813f79fa057ae1aaf570d288a409b15de426c8c1e3fe71dc5b274f7702bcdd6", "tiers": [{"name": "near", "targetTriangles": 8000, "sourceTriangles": 150074, "triangles": 7980, "omittedBelowMetres": 0, "retainedIslandTriangleFloor": 12, "glbSha256": "89d64ff428ef57f6c4dc7a62f0b3124af7ca029cf139b0dc3f73bc5ebc96c56b"}, {"name": "mid", "targetTriangles": 1000, "sourceTriangles": 150074, "triangles": 1048, "omittedBelowMetres": 0.03, "retainedIslandTriangleFloor": 8, "glbSha256": "7e865ad0d68bf2189092c05fafa8177e64f9411d8d1436897c5d4ac40c50366c"}, {"name": "far", "targetTriangles": 800, "sourceTriangles": 150074, "triangles": 868, "omittedBelowMetres": 0.15, "retainedIslandTriangleFloor": 4, "glbSha256": "7a15350ceff65e509ecb1424bc9c7417d5bad6c348d7b547d19b51a50769ff15"}]}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

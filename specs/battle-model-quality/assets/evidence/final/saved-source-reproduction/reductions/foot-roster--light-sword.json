@@ -1,0 +1,33 @@
+{
+  "source": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/foot-roster/light-sword/light-sword.blend",
+  "sourceSha256": "217c19b03e10452f47d5734a78e9f335177f3c8d6e0072b56ff0db21835f0d26",
+  "tiers": [
+    {
+      "name": "near",
+      "targetTriangles": 8000,
+      "sourceTriangles": 98364,
+      "triangles": 7972,
+      "omittedBelowMetres": 0,
+      "retainedIslandTriangleFloor": 12,
+      "glbSha256": "e1f52c2c413e0bf3c5581a49f914cc3efe3dff2ad00a1badbf17afdec3b1338f"
+    },
+    {
+      "name": "mid",
+      "targetTriangles": 1000,
+      "sourceTriangles": 98364,
+      "triangles": 976,
+      "omittedBelowMetres": 0.03,
+      "retainedIslandTriangleFloor": 8,
+      "glbSha256": "512df85ac02f1abbdc817e99a533f6ea85e6c0044a38f94a8511554fd6eb69a8"
+    },
+    {
+      "name": "far",
+      "targetTriangles": 800,
+      "sourceTriangles": 98364,
+      "triangles": 786,
+      "omittedBelowMetres": 0.15,
+      "retainedIslandTriangleFloor": 4,
+      "glbSha256": "bbcefc1461e0cf8720daafae32c3f104d44e0cb2faf6e84d40a25ad2674ac3e3"
+    }
+  ]
+}

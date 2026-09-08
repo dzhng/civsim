@@ -1,0 +1,33 @@
+{
+  "source": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/mounted-family/horse-archer.blend",
+  "sourceSha256": "249406fcbbc351a0367ea6c29012a6c0e17bf537e1705ea85e7783fd3eca2602",
+  "tiers": [
+    {
+      "name": "near",
+      "targetTriangles": 8000,
+      "sourceTriangles": 102880,
+      "triangles": 7950,
+      "omittedBelowMetres": 0,
+      "retainedIslandTriangleFloor": 12,
+      "glbSha256": "0f7c366d6e3db8339c07f50deacbd156c337ec62d24570785731b92ff604f54d"
+    },
+    {
+      "name": "mid",
+      "targetTriangles": 1000,
+      "sourceTriangles": 102880,
+      "triangles": 968,
+      "omittedBelowMetres": 0.03,
+      "retainedIslandTriangleFloor": 8,
+      "glbSha256": "138d65ff15a6d801d89cc075f86d2275d62ae8b522f515deeec97e0605a0a63d"
+    },
+    {
+      "name": "far",
+      "targetTriangles": 800,
+      "sourceTriangles": 102880,
+      "triangles": 760,
+      "omittedBelowMetres": 0.15,
+      "retainedIslandTriangleFloor": 4,
+      "glbSha256": "953cb74c03f60f43b2dfe6d88b7d06f31dac5906442ed1ecdcaba6a14b33f543"
+    }
+  ]
+}

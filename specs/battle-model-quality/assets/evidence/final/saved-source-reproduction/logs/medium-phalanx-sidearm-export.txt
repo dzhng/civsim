@@ -1,0 +1,59 @@
+00:01.385  blend            | Read blend: "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/medium-phalanx-sidearm/medium-phalanx-sidearm.blend"
+/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/bake/blender-mesh-lods.py:29: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  if material and material.use_nodes and any(
+Warning: Library file, loading empty scene
+Reduced mesh: 0 degenerate smooth faces use face normals
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+22:08:45 | INFO: Starting glTF 2.0 export
+22:08:45 | INFO: Extracting primitive: Sandal sole.L.001
+22:08:45 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:46 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:46 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:46 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:46 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:46 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:46 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:46 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:08:46 | INFO: Primitives created: 8
+22:08:46 | WARNING: There are more than 4 joint vertex influences.The 4 with highest weight will be used (and normalized).
+22:09:00 | INFO: Finished glTF 2.0 export in 14.777267217636108 s
+00:19.104  blend            | Read blend: "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/medium-phalanx-sidearm/medium-phalanx-sidearm.blend"
+/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/bake/blender-mesh-lods.py:29: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  if material and material.use_nodes and any(
+
+Warning: Library file, loading empty scene
+Reduced mesh: 0 degenerate smooth faces use face normals
+22:09:03 | INFO: Starting glTF 2.0 export
+22:09:03 | INFO: Extracting primitive: Sandal sole.L.001
+22:09:03 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:09:03 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:09:03 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:09:03 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:09:03 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:09:03 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:09:03 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:09:03 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:09:03 | INFO: Primitives created: 8
+22:09:03 | WARNING: There are more than 4 joint vertex influences.The 4 with highest weight will be used (and normalized).
+22:09:16 | INFO: Finished glTF 2.0 export in 13.641301155090332 s
+00:35.314  blend            | Read blend: "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/medium-phalanx-sidearm/medium-phalanx-sidearm.blend"
+
+Warning: Library file, loading empty scene
+Reduced mesh: 1 degenerate smooth faces use face normals
+22:09:19 | INFO: Starting glTF 2.0 export
+22:09:19 | INFO: Extracting primitive: Sandal sole.L.001
+22:09:19 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:09:19 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:09:19 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:09:19 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:09:19 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:09:19 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+22:09:19 | INFO: Primitives created: 6
+22:09:19 | WARNING: There are more than 4 joint vertex influences.The 4 with highest weight will be used (and normalized).
+22:09:34 | INFO: Finished glTF 2.0 export in 14.768408060073853 s
+
+{"source": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/medium-phalanx-sidearm/medium-phalanx-sidearm.blend", "sourceSha256": "724ba4bdf00b5b6e83e0a14620d291e5c51773965343fe678528abb6e40ccbb0", "tiers": [{"name": "near", "targetTriangles": 8000, "sourceTriangles": 154826, "triangles": 7970, "omittedBelowMetres": 0, "retainedIslandTriangleFloor": 12, "glbSha256": "bfbe52c6d5615dacce0defc732cdc116745da01aa1bbf9ff6518768e68522493"}, {"name": "mid", "targetTriangles": 1000, "sourceTriangles": 154826, "triangles": 1066, "omittedBelowMetres": 0.03, "retainedIslandTriangleFloor": 8, "glbSha256": "4f33dc8e01d3d2b599a17c0f321e9ea3ad6c08381b519f0dfaba309229f4a1ce"}, {"name": "far", "targetTriangles": 800, "sourceTriangles": 154826, "triangles": 870, "omittedBelowMetres": 0.15, "retainedIslandTriangleFloor": 4, "glbSha256": "7207761968a0ae5bc3425885f7a0fe3394c20137576bc7617d7522e8c3dc7dcb"}]}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

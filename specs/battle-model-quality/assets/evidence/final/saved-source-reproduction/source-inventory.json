@@ -1,0 +1,861 @@
+{
+  "blender": "5.2.1 LTS",
+  "sources": [
+    {
+      "key": "heavy-kit",
+      "scene": "HeavyMotionCandidate",
+      "body": "HeavyKit-Deform",
+      "vertices": 63632,
+      "triangles": 127196,
+      "armature": "HumanAnatomy-Rig",
+      "bones": 26,
+      "nlaTracks": [
+        "bend",
+        "pronation",
+        "bend-pronation",
+        "idle",
+        "walk",
+        "run",
+        "ready",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "sword-effort",
+        "hit",
+        "death"
+      ],
+      "images": [
+        {
+          "name": "heavy-baseColor",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/baseColor.png"
+        },
+        {
+          "name": "heavy-normal",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/normal.png"
+        },
+        {
+          "name": "heavy-orm",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/orm.png"
+        }
+      ],
+      "sourceSha256": "5eb5e4d2093d198b070c3b61230e657bb699829b37cd1238d3b954affa9b4c05"
+    },
+    {
+      "key": "light-spear",
+      "scene": "FootVariant-light-spear",
+      "body": "light-spear-Deform",
+      "vertices": 49114,
+      "triangles": 98168,
+      "armature": "HumanAnatomy-Rig",
+      "bones": 26,
+      "nlaTracks": [
+        "bend",
+        "pronation",
+        "bend-pronation",
+        "idle",
+        "walk",
+        "run",
+        "ready",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "spear-effort",
+        "hit",
+        "death"
+      ],
+      "images": [
+        {
+          "name": "heavy-baseColor",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/baseColor.png"
+        },
+        {
+          "name": "heavy-normal",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/normal.png"
+        },
+        {
+          "name": "heavy-orm",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/orm.png"
+        }
+      ],
+      "sourceSha256": "91d3d236cf192a2b293061f8d1dfd98b3b51ade955ca508f3a18878fb6ce81c2"
+    },
+    {
+      "key": "longsword",
+      "scene": "MediumPhalanxCandidate",
+      "body": "longsword-Deform",
+      "vertices": 75115,
+      "triangles": 150074,
+      "armature": "HumanAnatomy-Rig",
+      "bones": 26,
+      "nlaTracks": [
+        "bend",
+        "pronation",
+        "bend-pronation",
+        "ready",
+        "walk",
+        "run",
+        "twohand-carry",
+        "twohand-ready",
+        "sword-effort",
+        "hit",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "death",
+        "at-ease"
+      ],
+      "images": [
+        {
+          "name": "heavy-baseColor",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/baseColor.png"
+        },
+        {
+          "name": "heavy-normal",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/normal.png"
+        },
+        {
+          "name": "heavy-orm",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/orm.png"
+        }
+      ],
+      "sourceSha256": "1813f79fa057ae1aaf570d288a409b15de426c8c1e3fe71dc5b274f7702bcdd6"
+    },
+    {
+      "key": "phalanx",
+      "scene": "PikeFamily-phalanx",
+      "body": "MediumPhalanx-Deform",
+      "vertices": 75989,
+      "triangles": 151898,
+      "armature": "HumanAnatomy-Rig",
+      "bones": 26,
+      "nlaTracks": [
+        "bend",
+        "pronation",
+        "bend-pronation",
+        "ready",
+        "walk",
+        "run",
+        "pike-carry",
+        "pike-ready",
+        "pike-thrust",
+        "hit",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "death",
+        "at-ease"
+      ],
+      "images": [
+        {
+          "name": "heavy-baseColor",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/baseColor.png"
+        },
+        {
+          "name": "heavy-baseColor.001",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/baseColor.png"
+        },
+        {
+          "name": "heavy-normal",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/normal.png"
+        },
+        {
+          "name": "heavy-normal.001",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/normal.png"
+        },
+        {
+          "name": "heavy-orm",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/orm.png"
+        },
+        {
+          "name": "heavy-orm.001",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/orm.png"
+        }
+      ],
+      "sourceSha256": "1bbacf1f72a91a11bef2e9556dd3b1b77358a32b3f4a5eb75b9ae4686a960a6f"
+    },
+    {
+      "key": "foot-roster--archers",
+      "scene": "FootVariant-archers",
+      "body": "archers-Deform",
+      "vertices": 47064,
+      "triangles": 94036,
+      "armature": "HumanAnatomy-Rig",
+      "bones": 29,
+      "nlaTracks": [
+        "bend",
+        "pronation",
+        "bend-pronation",
+        "idle",
+        "walk",
+        "run",
+        "ready",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "sword-effort",
+        "hit",
+        "death",
+        "bow-release"
+      ],
+      "images": [
+        {
+          "name": "heavy-baseColor",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/baseColor.png"
+        },
+        {
+          "name": "heavy-normal",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/normal.png"
+        },
+        {
+          "name": "heavy-orm",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/orm.png"
+        }
+      ],
+      "sourceSha256": "bab7443ad2450e830a5f2294405fb176b10ec6bb6f3d0ada395bc46fb42ef049"
+    },
+    {
+      "key": "foot-roster--skirmishers",
+      "scene": "FootVariant-skirmishers",
+      "body": "skirmishers-Deform",
+      "vertices": 47340,
+      "triangles": 94612,
+      "armature": "HumanAnatomy-Rig",
+      "bones": 28,
+      "nlaTracks": [
+        "bend",
+        "pronation",
+        "bend-pronation",
+        "idle",
+        "walk",
+        "run",
+        "ready",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "sword-effort",
+        "hit",
+        "death",
+        "throw-release"
+      ],
+      "images": [
+        {
+          "name": "heavy-baseColor",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/baseColor.png"
+        },
+        {
+          "name": "heavy-normal",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/normal.png"
+        },
+        {
+          "name": "heavy-orm",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/orm.png"
+        }
+      ],
+      "sourceSha256": "b985bb7f0e133fb8d74a2a570381baf7c282b50e12f1448c230a5b2013bb055e"
+    },
+    {
+      "key": "shock-cavalry",
+      "scene": "FootVariant-rider-heavy",
+      "body": "shock-cavalry-Deform",
+      "vertices": 66312,
+      "triangles": 132432,
+      "armature": "HumanAnatomy-Rig",
+      "bones": 47,
+      "nlaTracks": [
+        "idle",
+        "ready",
+        "walk",
+        "run",
+        "melee",
+        "hit",
+        "death"
+      ],
+      "images": [
+        {
+          "name": "heavy-baseColor",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/baseColor.png"
+        },
+        {
+          "name": "heavy-normal",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/normal.png"
+        },
+        {
+          "name": "heavy-orm",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/orm.png"
+        }
+      ],
+      "sourceSha256": "7ec91a3be051cf1cf9c367a68033a1229b5d270495e19af2027deff27c0b0173"
+    },
+    {
+      "key": "horse-archer",
+      "scene": "FootVariant-rider-light",
+      "body": "horse-archer-Deform",
+      "vertices": 51530,
+      "triangles": 102880,
+      "armature": "HumanAnatomy-Rig",
+      "bones": 49,
+      "nlaTracks": [
+        "idle",
+        "ready",
+        "walk",
+        "run",
+        "melee",
+        "hit",
+        "death",
+        "release"
+      ],
+      "images": [
+        {
+          "name": "heavy-baseColor",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/baseColor.png"
+        },
+        {
+          "name": "heavy-normal",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/normal.png"
+        },
+        {
+          "name": "heavy-orm",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/orm.png"
+        }
+      ],
+      "sourceSha256": "249406fcbbc351a0367ea6c29012a6c0e17bf537e1705ea85e7783fd3eca2602"
+    },
+    {
+      "key": "foot-roster--artillery-crew",
+      "scene": "FootVariant-artillery-crew",
+      "body": "artillery-crew-Deform",
+      "vertices": 48774,
+      "triangles": 97420,
+      "armature": "HumanAnatomy-Rig",
+      "bones": 28,
+      "nlaTracks": [
+        "bend",
+        "pronation",
+        "bend-pronation",
+        "idle",
+        "walk",
+        "run",
+        "ready",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "sword-effort",
+        "hit",
+        "death",
+        "crew-release"
+      ],
+      "images": [
+        {
+          "name": "heavy-baseColor",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/baseColor.png"
+        },
+        {
+          "name": "heavy-normal",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/normal.png"
+        },
+        {
+          "name": "heavy-orm",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/orm.png"
+        }
+      ],
+      "sourceSha256": "fb6afe7a48051998fc9cfec3ce99e344f1452ec6f02ca1bb9428a77f445c227f"
+    },
+    {
+      "key": "foot-roster--peasant",
+      "scene": "FootVariant-peasant",
+      "body": "peasant-Deform",
+      "vertices": 46636,
+      "triangles": 93232,
+      "armature": "HumanAnatomy-Rig",
+      "bones": 26,
+      "nlaTracks": [
+        "bend",
+        "pronation",
+        "bend-pronation",
+        "idle",
+        "walk",
+        "run",
+        "ready",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "sword-effort",
+        "hit",
+        "death"
+      ],
+      "images": [
+        {
+          "name": "heavy-baseColor",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/baseColor.png"
+        },
+        {
+          "name": "heavy-normal",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/normal.png"
+        },
+        {
+          "name": "heavy-orm",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/orm.png"
+        }
+      ],
+      "sourceSha256": "f7c6ca9972dceb81efeb02c83e47fb041b41071e565328a3f40154ca965376ac"
+    },
+    {
+      "key": "foot-roster--light-sword",
+      "scene": "FootVariant-light-sword",
+      "body": "light-sword-Deform",
+      "vertices": 49214,
+      "triangles": 98364,
+      "armature": "HumanAnatomy-Rig",
+      "bones": 26,
+      "nlaTracks": [
+        "bend",
+        "pronation",
+        "bend-pronation",
+        "idle",
+        "walk",
+        "run",
+        "ready",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "sword-effort",
+        "hit",
+        "death"
+      ],
+      "images": [
+        {
+          "name": "heavy-baseColor",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/baseColor.png"
+        },
+        {
+          "name": "heavy-normal",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/normal.png"
+        },
+        {
+          "name": "heavy-orm",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/orm.png"
+        }
+      ],
+      "sourceSha256": "217c19b03e10452f47d5734a78e9f335177f3c8d6e0072b56ff0db21835f0d26"
+    },
+    {
+      "key": "heavy-spear",
+      "scene": "FootVariant-heavy-spear",
+      "body": "heavy-spear-Deform",
+      "vertices": 63552,
+      "triangles": 127036,
+      "armature": "HumanAnatomy-Rig",
+      "bones": 26,
+      "nlaTracks": [
+        "bend",
+        "pronation",
+        "bend-pronation",
+        "idle",
+        "walk",
+        "run",
+        "ready",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "spear-effort",
+        "hit",
+        "death"
+      ],
+      "images": [
+        {
+          "name": "heavy-baseColor",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/baseColor.png"
+        },
+        {
+          "name": "heavy-normal",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/normal.png"
+        },
+        {
+          "name": "heavy-orm",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/orm.png"
+        }
+      ],
+      "sourceSha256": "d41cb70c3892ebba33b53ae569f3f0bb66626b4d34747f1da278741febb7ce82"
+    },
+    {
+      "key": "foot-roster--medium-infantry",
+      "scene": "FootVariant-medium-infantry",
+      "body": "medium-infantry-Deform",
+      "vertices": 63632,
+      "triangles": 127196,
+      "armature": "HumanAnatomy-Rig",
+      "bones": 26,
+      "nlaTracks": [
+        "bend",
+        "pronation",
+        "bend-pronation",
+        "idle",
+        "walk",
+        "run",
+        "ready",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "sword-effort",
+        "hit",
+        "death"
+      ],
+      "images": [
+        {
+          "name": "heavy-baseColor",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/baseColor.png"
+        },
+        {
+          "name": "heavy-normal",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/normal.png"
+        },
+        {
+          "name": "heavy-orm",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/orm.png"
+        }
+      ],
+      "sourceSha256": "6cb754d4b8cad20dbabf22f27b1cb53a23d73b14b6c2d827c406fb8375c71264"
+    },
+    {
+      "key": "medium-spear",
+      "scene": "FootVariant-medium-spear",
+      "body": "medium-spear-Deform",
+      "vertices": 63532,
+      "triangles": 127000,
+      "armature": "HumanAnatomy-Rig",
+      "bones": 26,
+      "nlaTracks": [
+        "bend",
+        "pronation",
+        "bend-pronation",
+        "idle",
+        "walk",
+        "run",
+        "ready",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "spear-effort",
+        "hit",
+        "death"
+      ],
+      "images": [
+        {
+          "name": "heavy-baseColor",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/baseColor.png"
+        },
+        {
+          "name": "heavy-normal",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/normal.png"
+        },
+        {
+          "name": "heavy-orm",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/orm.png"
+        }
+      ],
+      "sourceSha256": "5f8ddf97979b1d029b5c8326cffe20dbc930589173ed4c368ad97378b6f89d71"
+    },
+    {
+      "key": "medium-phalanx",
+      "scene": "MediumPhalanxCandidate",
+      "body": "MediumPhalanx-Deform",
+      "vertices": 77679,
+      "triangles": 155190,
+      "armature": "HumanAnatomy-Rig",
+      "bones": 26,
+      "nlaTracks": [
+        "bend",
+        "pronation",
+        "bend-pronation",
+        "ready",
+        "walk",
+        "run",
+        "pike-carry",
+        "pike-ready",
+        "pike-thrust",
+        "hit",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "death",
+        "at-ease"
+      ],
+      "images": [
+        {
+          "name": "heavy-baseColor",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/baseColor.png"
+        },
+        {
+          "name": "heavy-normal",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/normal.png"
+        },
+        {
+          "name": "heavy-orm",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/orm.png"
+        }
+      ],
+      "sourceSha256": "8580938b9a6f082f57218492071c4e95a426de60de8bd557f92742b54991735e"
+    },
+    {
+      "key": "shock-cavalry-sidearm",
+      "scene": "FootVariant-rider-heavy",
+      "body": "shock-cavalry-sidearm-Deform",
+      "vertices": 66464,
+      "triangles": 132728,
+      "armature": "HumanAnatomy-Rig",
+      "bones": 47,
+      "nlaTracks": [
+        "idle",
+        "ready",
+        "walk",
+        "run",
+        "melee",
+        "hit",
+        "death"
+      ],
+      "images": [
+        {
+          "name": "heavy-baseColor",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/baseColor.png"
+        },
+        {
+          "name": "heavy-normal",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/normal.png"
+        },
+        {
+          "name": "heavy-orm",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/orm.png"
+        }
+      ],
+      "sourceSha256": "d4871b10bd0f37edb0a218a2110edccd956652f40de898e8d5df5cb1b25a92b2"
+    },
+    {
+      "key": "heavy-phalanx-sidearm",
+      "scene": "PikeFamily-heavy-phalanx-sidearm",
+      "body": "MediumPhalanx-Deform",
+      "vertices": 75801,
+      "triangles": 151534,
+      "armature": "HumanAnatomy-Rig",
+      "bones": 26,
+      "nlaTracks": [
+        "bend",
+        "pronation",
+        "bend-pronation",
+        "idle",
+        "walk",
+        "run",
+        "ready",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "sword-effort",
+        "hit",
+        "death"
+      ],
+      "images": [
+        {
+          "name": "heavy-baseColor",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/baseColor.png"
+        },
+        {
+          "name": "heavy-baseColor.001",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/baseColor.png"
+        },
+        {
+          "name": "heavy-normal",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/normal.png"
+        },
+        {
+          "name": "heavy-normal.001",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/normal.png"
+        },
+        {
+          "name": "heavy-orm",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/orm.png"
+        },
+        {
+          "name": "heavy-orm.001",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/orm.png"
+        }
+      ],
+      "sourceSha256": "fea71deae1a634884aec0deef061230f346bb1b96da6df134b0f370ec7368281"
+    },
+    {
+      "key": "medium-phalanx-sidearm",
+      "scene": "PikeFamily-medium-phalanx-sidearm",
+      "body": "MediumPhalanx-Deform",
+      "vertices": 77491,
+      "triangles": 154826,
+      "armature": "HumanAnatomy-Rig",
+      "bones": 26,
+      "nlaTracks": [
+        "bend",
+        "pronation",
+        "bend-pronation",
+        "idle",
+        "walk",
+        "run",
+        "ready",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "sword-effort",
+        "hit",
+        "death"
+      ],
+      "images": [
+        {
+          "name": "heavy-baseColor",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/baseColor.png"
+        },
+        {
+          "name": "heavy-baseColor.001",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/baseColor.png"
+        },
+        {
+          "name": "heavy-normal",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/normal.png"
+        },
+        {
+          "name": "heavy-normal.001",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/normal.png"
+        },
+        {
+          "name": "heavy-orm",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/orm.png"
+        },
+        {
+          "name": "heavy-orm.001",
+          "packed": true,
+          "source": "FILE",
+          "filepath": "//../../../../../../../packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/packages/soldier-assets/assets/source/retained-gear/packages/soldier-assets/assets/source/heavy-surfaces/orm.png"
+        }
+      ],
+      "sourceSha256": "724ba4bdf00b5b6e83e0a14620d291e5c51773965343fe678528abb6e40ccbb0"
+    }
+  ]
+}

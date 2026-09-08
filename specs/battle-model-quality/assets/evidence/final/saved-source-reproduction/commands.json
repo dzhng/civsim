@@ -1,0 +1,937 @@
+[
+  {
+    "key": "light-spear",
+    "stage": "export",
+    "executable": "/Applications/Blender.app/Contents/MacOS/Blender",
+    "args": [
+      "--background",
+      "--factory-startup",
+      "--threads",
+      "2",
+      "--python-exit-code",
+      "1",
+      "--python",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/bake/blender-mesh-lods.py",
+      "--",
+      "--source",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/light-spear/light-spear.blend",
+      "--body",
+      "light-spear-Deform",
+      "--output",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/products/light-spear",
+      "--near-triangles",
+      "8000",
+      "--mid-triangles",
+      "1000",
+      "--far-triangles",
+      "800"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:03:42.504Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/light-spear-export.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:04:13.202Z"
+  },
+  {
+    "key": "longsword",
+    "stage": "export",
+    "executable": "/Applications/Blender.app/Contents/MacOS/Blender",
+    "args": [
+      "--background",
+      "--factory-startup",
+      "--threads",
+      "2",
+      "--python-exit-code",
+      "1",
+      "--python",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/bake/blender-mesh-lods.py",
+      "--",
+      "--source",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/longsword/longsword.blend",
+      "--body",
+      "longsword-Deform",
+      "--output",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/products/longsword",
+      "--near-triangles",
+      "8000",
+      "--mid-triangles",
+      "1000",
+      "--far-triangles",
+      "800"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:03:42.504Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/longsword-export.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:04:08.556Z"
+  },
+  {
+    "key": "longsword",
+    "stage": "bake-load-compare",
+    "executable": "/Users/david/.nvm/versions/node/v24.14.0/bin/node",
+    "args": [
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/verify-products.mjs",
+      "longsword"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:04:08.557Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/longsword-verify.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:04:12.541Z"
+  },
+  {
+    "key": "phalanx",
+    "stage": "export",
+    "executable": "/Applications/Blender.app/Contents/MacOS/Blender",
+    "args": [
+      "--background",
+      "--factory-startup",
+      "--threads",
+      "2",
+      "--python-exit-code",
+      "1",
+      "--python",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/bake/blender-mesh-lods.py",
+      "--",
+      "--source",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/phalanx/phalanx.blend",
+      "--body",
+      "MediumPhalanx-Deform",
+      "--output",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/products/phalanx",
+      "--near-triangles",
+      "8000",
+      "--mid-triangles",
+      "1000",
+      "--far-triangles",
+      "800"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:04:12.542Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/phalanx-export.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:04:44.778Z"
+  },
+  {
+    "key": "light-spear",
+    "stage": "bake-load-compare",
+    "executable": "/Users/david/.nvm/versions/node/v24.14.0/bin/node",
+    "args": [
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/verify-products.mjs",
+      "light-spear"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:04:13.203Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/light-spear-verify.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:04:19.536Z"
+  },
+  {
+    "key": "foot-roster--archers",
+    "stage": "export",
+    "executable": "/Applications/Blender.app/Contents/MacOS/Blender",
+    "args": [
+      "--background",
+      "--factory-startup",
+      "--threads",
+      "2",
+      "--python-exit-code",
+      "1",
+      "--python",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/bake/blender-mesh-lods.py",
+      "--",
+      "--source",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/foot-roster/archers/archers.blend",
+      "--body",
+      "archers-Deform",
+      "--output",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/products/foot-roster--archers",
+      "--near-triangles",
+      "8000",
+      "--mid-triangles",
+      "1000",
+      "--far-triangles",
+      "800"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:04:19.538Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/foot-roster--archers-export.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:05:00.483Z"
+  },
+  {
+    "key": "phalanx",
+    "stage": "bake-load-compare",
+    "executable": "/Users/david/.nvm/versions/node/v24.14.0/bin/node",
+    "args": [
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/verify-products.mjs",
+      "phalanx"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:04:44.779Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/phalanx-verify.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:04:53.594Z"
+  },
+  {
+    "key": "foot-roster--skirmishers",
+    "stage": "export",
+    "executable": "/Applications/Blender.app/Contents/MacOS/Blender",
+    "args": [
+      "--background",
+      "--factory-startup",
+      "--threads",
+      "2",
+      "--python-exit-code",
+      "1",
+      "--python",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/bake/blender-mesh-lods.py",
+      "--",
+      "--source",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/foot-roster/skirmishers/skirmishers.blend",
+      "--body",
+      "skirmishers-Deform",
+      "--output",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/products/foot-roster--skirmishers",
+      "--near-triangles",
+      "8000",
+      "--mid-triangles",
+      "1000",
+      "--far-triangles",
+      "800"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:04:53.595Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/foot-roster--skirmishers-export.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:05:27.755Z"
+  },
+  {
+    "key": "foot-roster--archers",
+    "stage": "bake-load-compare",
+    "executable": "/Users/david/.nvm/versions/node/v24.14.0/bin/node",
+    "args": [
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/verify-products.mjs",
+      "foot-roster--archers"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:05:00.483Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/foot-roster--archers-verify.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:05:06.529Z"
+  },
+  {
+    "key": "shock-cavalry",
+    "stage": "export",
+    "executable": "/Applications/Blender.app/Contents/MacOS/Blender",
+    "args": [
+      "--background",
+      "--factory-startup",
+      "--threads",
+      "2",
+      "--python-exit-code",
+      "1",
+      "--python",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/bake/blender-mesh-lods.py",
+      "--",
+      "--source",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/mounted-family/shock-cavalry.blend",
+      "--body",
+      "shock-cavalry-Deform",
+      "--output",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/products/shock-cavalry",
+      "--near-triangles",
+      "8000",
+      "--mid-triangles",
+      "1000",
+      "--far-triangles",
+      "800"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:05:06.531Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/shock-cavalry-export.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:05:26.988Z"
+  },
+  {
+    "key": "shock-cavalry",
+    "stage": "bake-load-compare",
+    "executable": "/Users/david/.nvm/versions/node/v24.14.0/bin/node",
+    "args": [
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/verify-products.mjs",
+      "shock-cavalry"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:05:26.989Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/shock-cavalry-verify.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:05:30.070Z"
+  },
+  {
+    "key": "foot-roster--skirmishers",
+    "stage": "bake-load-compare",
+    "executable": "/Users/david/.nvm/versions/node/v24.14.0/bin/node",
+    "args": [
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/verify-products.mjs",
+      "foot-roster--skirmishers"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:05:27.756Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/foot-roster--skirmishers-verify.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:05:35.088Z"
+  },
+  {
+    "key": "horse-archer",
+    "stage": "export",
+    "executable": "/Applications/Blender.app/Contents/MacOS/Blender",
+    "args": [
+      "--background",
+      "--factory-startup",
+      "--threads",
+      "2",
+      "--python-exit-code",
+      "1",
+      "--python",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/bake/blender-mesh-lods.py",
+      "--",
+      "--source",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/mounted-family/horse-archer.blend",
+      "--body",
+      "horse-archer-Deform",
+      "--output",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/products/horse-archer",
+      "--near-triangles",
+      "8000",
+      "--mid-triangles",
+      "1000",
+      "--far-triangles",
+      "800"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:05:30.072Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/horse-archer-export.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:05:48.854Z"
+  },
+  {
+    "key": "foot-roster--artillery-crew",
+    "stage": "export",
+    "executable": "/Applications/Blender.app/Contents/MacOS/Blender",
+    "args": [
+      "--background",
+      "--factory-startup",
+      "--threads",
+      "2",
+      "--python-exit-code",
+      "1",
+      "--python",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/bake/blender-mesh-lods.py",
+      "--",
+      "--source",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/foot-roster/artillery-crew/artillery-crew.blend",
+      "--body",
+      "artillery-crew-Deform",
+      "--output",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/products/foot-roster--artillery-crew",
+      "--near-triangles",
+      "8000",
+      "--mid-triangles",
+      "1000",
+      "--far-triangles",
+      "800"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:05:35.090Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/foot-roster--artillery-crew-export.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:06:11.767Z"
+  },
+  {
+    "key": "horse-archer",
+    "stage": "bake-load-compare",
+    "executable": "/Users/david/.nvm/versions/node/v24.14.0/bin/node",
+    "args": [
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/verify-products.mjs",
+      "horse-archer"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:05:48.856Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/horse-archer-verify.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:05:51.679Z"
+  },
+  {
+    "key": "foot-roster--peasant",
+    "stage": "export",
+    "executable": "/Applications/Blender.app/Contents/MacOS/Blender",
+    "args": [
+      "--background",
+      "--factory-startup",
+      "--threads",
+      "2",
+      "--python-exit-code",
+      "1",
+      "--python",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/bake/blender-mesh-lods.py",
+      "--",
+      "--source",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/foot-roster/peasant/peasant.blend",
+      "--body",
+      "peasant-Deform",
+      "--output",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/products/foot-roster--peasant",
+      "--near-triangles",
+      "8000",
+      "--mid-triangles",
+      "1000",
+      "--far-triangles",
+      "800"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:05:51.681Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/foot-roster--peasant-export.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:06:23.219Z"
+  },
+  {
+    "key": "foot-roster--artillery-crew",
+    "stage": "bake-load-compare",
+    "executable": "/Users/david/.nvm/versions/node/v24.14.0/bin/node",
+    "args": [
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/verify-products.mjs",
+      "foot-roster--artillery-crew"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:06:11.768Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/foot-roster--artillery-crew-verify.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:06:18.855Z"
+  },
+  {
+    "key": "foot-roster--light-sword",
+    "stage": "export",
+    "executable": "/Applications/Blender.app/Contents/MacOS/Blender",
+    "args": [
+      "--background",
+      "--factory-startup",
+      "--threads",
+      "2",
+      "--python-exit-code",
+      "1",
+      "--python",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/bake/blender-mesh-lods.py",
+      "--",
+      "--source",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/foot-roster/light-sword/light-sword.blend",
+      "--body",
+      "light-sword-Deform",
+      "--output",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/products/foot-roster--light-sword",
+      "--near-triangles",
+      "8000",
+      "--mid-triangles",
+      "1000",
+      "--far-triangles",
+      "800"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:06:18.856Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/foot-roster--light-sword-export.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:06:56.932Z"
+  },
+  {
+    "key": "foot-roster--peasant",
+    "stage": "bake-load-compare",
+    "executable": "/Users/david/.nvm/versions/node/v24.14.0/bin/node",
+    "args": [
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/verify-products.mjs",
+      "foot-roster--peasant"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:06:23.220Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/foot-roster--peasant-verify.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:06:29.378Z"
+  },
+  {
+    "key": "heavy-spear",
+    "stage": "export",
+    "executable": "/Applications/Blender.app/Contents/MacOS/Blender",
+    "args": [
+      "--background",
+      "--factory-startup",
+      "--threads",
+      "2",
+      "--python-exit-code",
+      "1",
+      "--python",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/bake/blender-mesh-lods.py",
+      "--",
+      "--source",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/heavy-spear/heavy-spear.blend",
+      "--body",
+      "heavy-spear-Deform",
+      "--output",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/products/heavy-spear",
+      "--near-triangles",
+      "8000",
+      "--mid-triangles",
+      "1000",
+      "--far-triangles",
+      "800"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:06:29.380Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/heavy-spear-export.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:07:17.486Z"
+  },
+  {
+    "key": "foot-roster--light-sword",
+    "stage": "bake-load-compare",
+    "executable": "/Users/david/.nvm/versions/node/v24.14.0/bin/node",
+    "args": [
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/verify-products.mjs",
+      "foot-roster--light-sword"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:06:56.933Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/foot-roster--light-sword-verify.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:07:04.444Z"
+  },
+  {
+    "key": "foot-roster--medium-infantry",
+    "stage": "export",
+    "executable": "/Applications/Blender.app/Contents/MacOS/Blender",
+    "args": [
+      "--background",
+      "--factory-startup",
+      "--threads",
+      "2",
+      "--python-exit-code",
+      "1",
+      "--python",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/bake/blender-mesh-lods.py",
+      "--",
+      "--source",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/foot-roster/medium-infantry/medium-infantry.blend",
+      "--body",
+      "medium-infantry-Deform",
+      "--output",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/products/foot-roster--medium-infantry",
+      "--near-triangles",
+      "8000",
+      "--mid-triangles",
+      "1000",
+      "--far-triangles",
+      "800"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:07:04.445Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/foot-roster--medium-infantry-export.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:07:49.567Z"
+  },
+  {
+    "key": "heavy-spear",
+    "stage": "bake-load-compare",
+    "executable": "/Users/david/.nvm/versions/node/v24.14.0/bin/node",
+    "args": [
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/verify-products.mjs",
+      "heavy-spear"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:07:17.487Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/heavy-spear-verify.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:07:24.934Z"
+  },
+  {
+    "key": "medium-spear",
+    "stage": "export",
+    "executable": "/Applications/Blender.app/Contents/MacOS/Blender",
+    "args": [
+      "--background",
+      "--factory-startup",
+      "--threads",
+      "2",
+      "--python-exit-code",
+      "1",
+      "--python",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/bake/blender-mesh-lods.py",
+      "--",
+      "--source",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/medium-spear/medium-spear.blend",
+      "--body",
+      "medium-spear-Deform",
+      "--output",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/products/medium-spear",
+      "--near-triangles",
+      "8000",
+      "--mid-triangles",
+      "1000",
+      "--far-triangles",
+      "800"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:07:24.936Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/medium-spear-export.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:08:10.447Z"
+  },
+  {
+    "key": "foot-roster--medium-infantry",
+    "stage": "bake-load-compare",
+    "executable": "/Users/david/.nvm/versions/node/v24.14.0/bin/node",
+    "args": [
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/verify-products.mjs",
+      "foot-roster--medium-infantry"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:07:49.568Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/foot-roster--medium-infantry-verify.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:07:57.421Z"
+  },
+  {
+    "key": "medium-phalanx",
+    "stage": "export",
+    "executable": "/Applications/Blender.app/Contents/MacOS/Blender",
+    "args": [
+      "--background",
+      "--factory-startup",
+      "--threads",
+      "2",
+      "--python-exit-code",
+      "1",
+      "--python",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/bake/blender-mesh-lods.py",
+      "--",
+      "--source",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/medium-phalanx/medium-phalanx.blend",
+      "--body",
+      "MediumPhalanx-Deform",
+      "--output",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/products/medium-phalanx",
+      "--near-triangles",
+      "8000",
+      "--mid-triangles",
+      "1000",
+      "--far-triangles",
+      "800"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:07:57.423Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/medium-phalanx-export.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:08:28.660Z"
+  },
+  {
+    "key": "medium-spear",
+    "stage": "bake-load-compare",
+    "executable": "/Users/david/.nvm/versions/node/v24.14.0/bin/node",
+    "args": [
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/verify-products.mjs",
+      "medium-spear"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:08:10.447Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/medium-spear-verify.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:08:17.168Z"
+  },
+  {
+    "key": "shock-cavalry-sidearm",
+    "stage": "export",
+    "executable": "/Applications/Blender.app/Contents/MacOS/Blender",
+    "args": [
+      "--background",
+      "--factory-startup",
+      "--threads",
+      "2",
+      "--python-exit-code",
+      "1",
+      "--python",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/bake/blender-mesh-lods.py",
+      "--",
+      "--source",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/mounted-family/shock-cavalry-sidearm.blend",
+      "--body",
+      "shock-cavalry-sidearm-Deform",
+      "--output",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/products/shock-cavalry-sidearm",
+      "--near-triangles",
+      "8000",
+      "--mid-triangles",
+      "1000",
+      "--far-triangles",
+      "800"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:08:17.170Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/shock-cavalry-sidearm-export.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:08:38.571Z"
+  },
+  {
+    "key": "medium-phalanx",
+    "stage": "bake-load-compare",
+    "executable": "/Users/david/.nvm/versions/node/v24.14.0/bin/node",
+    "args": [
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/verify-products.mjs",
+      "medium-phalanx"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:08:28.661Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/medium-phalanx-verify.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:08:37.940Z"
+  },
+  {
+    "key": "heavy-phalanx-sidearm",
+    "stage": "export",
+    "executable": "/Applications/Blender.app/Contents/MacOS/Blender",
+    "args": [
+      "--background",
+      "--factory-startup",
+      "--threads",
+      "2",
+      "--python-exit-code",
+      "1",
+      "--python",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/bake/blender-mesh-lods.py",
+      "--",
+      "--source",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/heavy-phalanx-sidearm/heavy-phalanx-sidearm.blend",
+      "--body",
+      "MediumPhalanx-Deform",
+      "--output",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/products/heavy-phalanx-sidearm",
+      "--near-triangles",
+      "8000",
+      "--mid-triangles",
+      "1000",
+      "--far-triangles",
+      "800"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:08:37.943Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/heavy-phalanx-sidearm-export.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:09:24.181Z"
+  },
+  {
+    "key": "shock-cavalry-sidearm",
+    "stage": "bake-load-compare",
+    "executable": "/Users/david/.nvm/versions/node/v24.14.0/bin/node",
+    "args": [
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/verify-products.mjs",
+      "shock-cavalry-sidearm"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:08:38.572Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/shock-cavalry-sidearm-verify.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:08:41.331Z"
+  },
+  {
+    "key": "medium-phalanx-sidearm",
+    "stage": "export",
+    "executable": "/Applications/Blender.app/Contents/MacOS/Blender",
+    "args": [
+      "--background",
+      "--factory-startup",
+      "--threads",
+      "2",
+      "--python-exit-code",
+      "1",
+      "--python",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/bake/blender-mesh-lods.py",
+      "--",
+      "--source",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/checkout/packages/soldier-assets/assets/source/medium-phalanx-sidearm/medium-phalanx-sidearm.blend",
+      "--body",
+      "MediumPhalanx-Deform",
+      "--output",
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/products/medium-phalanx-sidearm",
+      "--near-triangles",
+      "8000",
+      "--mid-triangles",
+      "1000",
+      "--far-triangles",
+      "800"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:08:41.333Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/medium-phalanx-sidearm-export.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:09:35.131Z"
+  },
+  {
+    "key": "heavy-phalanx-sidearm",
+    "stage": "bake-load-compare",
+    "executable": "/Users/david/.nvm/versions/node/v24.14.0/bin/node",
+    "args": [
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/verify-products.mjs",
+      "heavy-phalanx-sidearm"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:09:24.183Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/heavy-phalanx-sidearm-verify.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:09:31.316Z"
+  },
+  {
+    "key": "medium-phalanx-sidearm",
+    "stage": "bake-load-compare",
+    "executable": "/Users/david/.nvm/versions/node/v24.14.0/bin/node",
+    "args": [
+      "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/verify-products.mjs",
+      "medium-phalanx-sidearm"
+    ],
+    "cwd": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY",
+    "env": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "startedAt": "2026-09-08T15:09:35.131Z",
+    "logfile": "/Users/david/dev/game-catalog-admission/throwaway/catalog-admission/source-reproduction.cdjpuY/logs/medium-phalanx-sidearm-verify.txt",
+    "exitCode": 0,
+    "signal": null,
+    "finishedAt": "2026-09-08T15:09:41.154Z"
+  }
+]

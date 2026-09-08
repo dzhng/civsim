@@ -1,4 +1,4 @@
-use crate::class::{HORSE_BODY_R, HORSE_HALF_LEN};
+use crate::class::HORSE_HALF_LEN;
 use crate::force_trace::{ForceChannel, Tracer};
 use crate::grid::SpatialHash;
 use crate::math::Vec2;
@@ -30,12 +30,11 @@ pub(super) struct WallsCtx<'a> {
     pub(super) soldier_unit: &'a [u32],
     pub(super) project_any: bool,
     pub(super) body_pos: &'a mut Vec<f32>,
-    pub(super) body_r: &'a mut Vec<f32>,
-    pub(super) body_owner: &'a mut Vec<u32>,
+    pub(super) body_r: &'a [f32],
+    pub(super) body_owner: &'a [u32],
     pub(super) alive: &'a [u8],
     pub(super) mounted: &'a [u8],
     pub(super) facings: &'a [f32],
-    pub(super) radius: &'a [f32],
     pub(super) grid: &'a mut SpatialHash,
     pub(super) cell: f32,
     pub(super) project_unit_active: &'a [u8],
@@ -65,7 +64,6 @@ where
         alive,
         mounted,
         facings,
-        radius,
         grid,
         cell,
         project_unit_active,
@@ -164,10 +162,10 @@ where
     const BODY_PROJECTION_PASSES: usize = 3;
     perf_scope!(_timer, "separation projection");
     if project_any {
+        // Alive state, mounts and radii stay fixed until impact casualties apply.
+        // Only body positions change between these Jacobi passes.
         for _ in 0..BODY_PROJECTION_PASSES {
             body_pos.clear();
-            body_r.clear();
-            body_owner.clear();
             for i in 0..n {
                 if alive[i] == 0 {
                     continue;
@@ -179,14 +177,10 @@ where
                     for s in [-1.0f32, 1.0] {
                         body_pos.push(px + f.x * HORSE_HALF_LEN * s);
                         body_pos.push(py + f.y * HORSE_HALF_LEN * s);
-                        body_r.push(HORSE_BODY_R);
-                        body_owner.push(i as u32);
                     }
                 } else {
                     body_pos.push(px);
                     body_pos.push(py);
-                    body_r.push(radius[i]);
-                    body_owner.push(i as u32);
                 }
             }
             grid.rebuild(cell, body_pos);

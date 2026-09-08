@@ -1,62 +1,40 @@
-# tick/01 — Shared per-tick contact neighborhood (pure-perf, highest ordering risk)
+# tick/01 — Reuse immutable contact metadata
 
-## Contract unlocked
+## Shipped contract
 
-The fighting tick's three scans stop rediscovering the same neighbours.
-Measured 2026-09-08 in melee (native, self-time): target search
-`combat/targeting.rs::find_target` ~35% (an up-to-81-cell scan per soldier
-every third tick), the iterative body projection in `separation/walls.rs`
-~21% (three Jacobi passes each rebuilding bodies and the grid and rescanning
-nine cells per active body), weapon-repel ~13% once engaged (its far-field
-cull no longer helps). July's ranking said the same (investigation
-recommendations 2 and 3). One per-tick contact neighborhood feeds them.
+Projection reuses the body owners and radii established by the initial body
+build. Alive state, mounted state, facing and radius cannot change during those
+Jacobi passes; impact casualties apply afterward. Only body positions are
+rebuilt each pass. Immutable slice borrows express this boundary and remove
+redundant metadata writes without adding retained state.
 
-## Approach guardrails (July's warning, taken seriously)
+The timing and snapshot boundaries stay unchanged: weapon-repel uses bodies
+before wall correction, projection rebuilds positions at each pass's start,
+and targeting reads the final rebuilt body snapshot with its final soldier
+query position. Rebuilding bodies immediately before targeting would change
+behavior and is not part of this optimization.
 
-Target choice, obstruction sampling, weapon-repel and strike resolution are
-sensitive to **candidate order and dedup**, especially mounted two-body
-soldiers. The shared structure must reproduce the EXACT candidate sequence
-each consumer sees today (the bucket walk order, the `seen` dedup, the
-strict-less-than tie rule), or that consumer is not shared yet. No hash-map
-iteration order may feed a decision. If reproducing a consumer's order
-proves impossible without behavior change, SPLIT: share the consumers that
-stay hash-identical, record the holdout and why in `choices.md`, and leave
-it for the behavior track.
+## Shared-neighborhood verdict
 
-The consumers also read different **body snapshots**. Weapon-repel reads
-bodies before wall correction; projection rebuilds at each pass's start;
-targeting reads the last rebuilt body snapshot but queries from final
-soldier positions. Keep those phase boundaries: rebuilding just before
-combat would change behavior. Share grid/traversal work, never cached live
-combat decisions. The grid's counting sort yields descending body IDs in
-each bucket. Targeting and projection deduplicate bucket hashes in first
-`oy`-then-`ox` occurrence order; weapon-repel does not deduplicate buckets.
-Owner deduplication remains local to each consumer.
+The planned shared neighborhood was **rejected after measured trials, not
+delivered**. A retained bucket-membership layout and a direct-mapped query cache
+both preserved state hashes, but the bounded interleaved comparison did not
+establish a robust developed-combat gain under the observed host variance.
+Both were removed; no future pickup or hidden compatibility mode remains.
+[Evidence and all trial results](../../assets/tick01-native-2026-09-09.md)
+record the decision and its limits.
 
-Known exact levers to try first, each provable by the hash:
-- The projection passes rebuild `body_pos` and the grid three times; the
-  second and third passes can reuse the previous pass's grid when no body
-  crossed a cell boundary (check, do not assume).
-- The target search's window is clamped to four cells regardless of reach;
-  the clamp is pinned behavior, so the saving is in candidate reuse across
-  the three soldiers of a phase, not a smaller window.
+Targeting and projection retain their existing first-occurrence hash-bucket
+walk and owner handling. Weapon-repel remains independent: its dynamically
+sized window and non-deduplicating bucket walk are a different traversal
+contract. Mounted bodies, first candidate ties and strike-owner dedup retain
+their original semantics. No consumer order was changed to force sharing.
 
 ## Verification
 
-- **State hash bit-identical**: golden test, `profile_tick duels`, and the
-  seed-7 `ai` run to 9,000 ticks. This is the slice most likely to fail it —
-  treat a mismatch as a wrong candidate order, never as noise.
-- Ledger row from tick/00's fixture; the budget gate (this is where ≤ 25 ms
-  at 30k fighting should land or come close).
-- `cargo test --workspace` plus the full mechanics, scenario and balance
-  suites, and one vibe.
-
-## Delegated to the implementer
-
-The neighborhood's representation (per-cell candidate lists vs a per-body
-adjacency), and which of the three consumers migrates first (targeting is
-the biggest, projection the most self-contained).
-
-## Must stay green
-
-Everything. Re-pinning any test in a pure-perf slice is prohibited.
+The final change reproduces the golden state hash, all-class duel combined
+hash and seed-7 AI run through 9,000 ticks. Default checking, formatting and
+independent review pass; no test was re-pinned. The integrating agent runs the full workspace, mechanics,
+scenario and balance suites and the rebuilt-wasm vibe, then profiles the final
+combined change and evaluates the standing budget gate. Trial measurements
+alone do not claim those integrated gates passed.

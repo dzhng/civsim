@@ -1,4 +1,5 @@
 import { PNG } from "pngjs";
+import { isDeepStrictEqual } from "node:util";
 import { snapshotSelected } from "../../snapshot.mjs";
 import { PHOTOREAL_SUBSTRATE } from "../../../packages/photoreal-renderer/src/stats.ts";
 import { requireSwiftShaderBaseline } from "./_swiftshader-baseline.ts";
@@ -35,7 +36,18 @@ export const candidateSnapshots = (folder, details = [], baseCameras = cameras) 
 
 export async function runCandidateSheet(
   ctx,
-  { name, asset, label, folder, classes, details = [], baseCameras = cameras, afterSheets },
+  {
+    name,
+    asset,
+    label,
+    folder,
+    classes,
+    details = [],
+    baseCameras = cameras,
+    afterSheets,
+    expectedPresentation = null,
+    inspectionClip = { name: "bend", loop: false },
+  },
 ) {
   requireSwiftShaderBaseline(name);
   const page = await ctx.newPage({ viewport: { width: 1280, height: 800 } });
@@ -80,8 +92,13 @@ export async function runCandidateSheet(
         admission.assets.every(
           (entry) =>
             entry.name === asset &&
-            entry.presentation === null &&
-            entry.clips.some((clip) => clip.name === "bend" && clip.duration > 0 && !clip.loop),
+            isDeepStrictEqual(entry.presentation, expectedPresentation) &&
+            entry.clips.some(
+              (clip) =>
+                clip.name === inspectionClip.name &&
+                clip.duration > 0 &&
+                clip.loop === inspectionClip.loop,
+            ),
         ),
       JSON.stringify(admission),
     );

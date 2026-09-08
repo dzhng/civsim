@@ -23,6 +23,79 @@ foot = module("foot", "blender-foot-variant.py")
 motion = module("motion", "blender-heavy-motion.py")
 
 
+def finish_equipment(scene, arm, parts, obj, material, joint, smooth=True):
+    obj.data.materials.append(bpy.data.materials["heavy-" + material])
+    obj.vertex_groups.new(name=joint).add(list(range(len(obj.data.vertices))), 1, "REPLACE")
+    obj.parent = arm
+    obj.modifiers.new("Fitted rig attachment", "ARMATURE").object = arm
+    bpy.ops.object.select_all(action="DESELECT")
+    obj.select_set(True)
+    bpy.context.view_layer.objects.active = obj
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.uv.smart_project(island_margin=.02)
+    bpy.ops.object.mode_set(mode="OBJECT")
+    tile = list(foot.surfaces.SURFACES).index(material)
+    for loop in obj.data.uv_layers.active.data:
+        loop.uv.x = (tile % 4 + loop.uv.x) / 4
+        loop.uv.y = (tile // 4 + loop.uv.y) / 2
+    for polygon in obj.data.polygons:
+        polygon.use_smooth = smooth
+    parts.append(obj)
+    return obj
+
+
+def add_artillery_equipment(scene, arm, parts):
+    """Rigid root-mounted carriage in the existing native right/forward envelope.
+
+    Coordinates below are native engine XYZ; the saved authoring scene faces
+    -Y and the shared exporter rotates the complete assembly by pi. No weapon
+    mechanism is animated, and the crew's authored channels remain untouched.
+    """
+    if any(part.name.startswith("Artillery ") for part in parts):
+        raise ValueError("Artillery equipment already exists")
+    arm.data.bones["root"].use_deform = True
+
+    def finish(obj, label, material="wood"):
+        obj.name = "Artillery " + label
+        bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+        modifier = obj.modifiers.new("Rigid equipment triangles", "TRIANGULATE")
+        bpy.ops.object.modifier_apply(modifier=modifier.name)
+        return finish_equipment(scene, arm, parts, obj, material, "root", smooth=False)
+
+    def beam(label, start, end, width, depth=None, material="wood"):
+        a, b = (Vector((-p[0], -p[1], p[2])) for p in (start, end))
+        bpy.ops.mesh.primitive_cube_add(size=1, location=(a+b)/2)
+        obj = bpy.context.object
+        obj.rotation_euler = (b-a).to_track_quat("Z", "Y").to_euler()
+        obj.scale = (width, depth or width, (b-a).length)
+        return finish(obj, label, material)
+
+    # Two long rails, crossmembers and connected wheel axles keep an open,
+    # readable wooden carriage rather than reproducing the old solid blocks.
+    for x in (.18, .98):
+        beam(f"chassis rail {x}", (x, -.18, .42), (x, .64, .42), .13)
+    for y in (-.12, .26, .58):
+        beam(f"crossmember {y}", (.12, y, .50), (1.04, y, .50), .12)
+    for y in (0, .50):
+        beam(f"axle {y}", (.02, y, .26), (1.14, y, .26), .085, material="iron")
+        for x in (.04, 1.12):
+            # Eight-sided wheels remain below the shared simple-island floor;
+            # runtime reduction must not push their grounded rims below soil.
+            bpy.ops.mesh.primitive_cylinder_add(vertices=8, radius=.26, depth=.12,
+                location=(-x, -y, .26), rotation=(0, math.pi/2, 0))
+            finish(bpy.context.object, f"wheel {x} {y}")
+    for x in (.24, .92):
+        beam(f"upright {x}", (x, .28, .48), (x, .28, .86), .11)
+        beam(f"diagonal brace {x}", (x, -.12, .48), (x, .28, .85), .085)
+    beam("pivot", (.18, .28, .86), (.98, .28, .86), .10, material="iron")
+    beam("throwing beam", (.58, .24, .86), (.58, 1.40, 1.06), .10)
+    # Open wooden projectile cradle at the same forward tip as the legacy cup.
+    for x in (.47, .69):
+        beam(f"cradle side {x}", (x, 1.28, 1.08), (x, 1.50, 1.08), .055)
+    beam("cradle base", (.47, 1.39, 1.025), (.69, 1.39, 1.025), .055, .22)
+
+
 def crew_pose(arm, recover):
     direction = Vector((1, 0, .15)).normalized()
     right = Vector((-.18, -.36 + .12 * recover, 1.13))
@@ -41,26 +114,7 @@ def build(source, output, name):
     side = "L" if archer else "R"
 
     def finish(obj, material="wood", joint=None):
-        obj.data.materials.append(bpy.data.materials["heavy-" + material])
-        obj.vertex_groups.new(name=joint or "hand." + side).add(
-            list(range(len(obj.data.vertices))), 1, "REPLACE")
-        obj.parent = arm
-        obj.modifiers.new("Fitted hand attachment", "ARMATURE").object = arm
-        bpy.ops.object.select_all(action="DESELECT")
-        obj.select_set(True)
-        bpy.context.view_layer.objects.active = obj
-        bpy.ops.object.mode_set(mode="EDIT")
-        bpy.ops.mesh.select_all(action="SELECT")
-        bpy.ops.uv.smart_project(island_margin=.02)
-        bpy.ops.object.mode_set(mode="OBJECT")
-        tile = list(foot.surfaces.SURFACES).index(material)
-        for loop in obj.data.uv_layers.active.data:
-            loop.uv.x = (tile % 4 + loop.uv.x) / 4
-            loop.uv.y = (tile // 4 + loop.uv.y) / 2
-        for polygon in obj.data.polygons:
-            polygon.use_smooth = True
-        parts.append(obj)
-        return obj
+        return finish_equipment(scene, arm, parts, obj, material, joint or "hand." + side)
 
     def rod(label, points, radius, material="wood", across=(0, 1, 0), depth=None):
         obj = foot.anatomy.loft(label, [(p, radius, radius) for p in points],
@@ -206,6 +260,8 @@ def build(source, output, name):
         for frame in action.frame_range:
             arm.pose.bones["held-projectile"].scale = (.0001, .0001, .0001)
             arm.pose.bones["held-projectile"].keyframe_insert("scale", frame=frame)
+    if crew:
+        add_artillery_equipment(scene, arm, parts)
     foot.export_parts(scene, arm, parts, output, name)
 
 

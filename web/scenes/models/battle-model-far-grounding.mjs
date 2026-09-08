@@ -15,7 +15,7 @@ export const meta = {
   kind: "visual",
   world: "battle-models-exact-view-material-diagnostic",
   tier: "full",
-  snapshots: names.map((name) => `battle/far-grounding/${name}`),
+  snapshots: [...names, "far-production"].map((name) => `battle/far-grounding/${name}`),
   describe:
     "Exact representative view isolates material transfer and living contact AO; close explicit far selection is not production LOD quality acceptance.",
 };
@@ -129,7 +129,7 @@ export async function run(ctx) {
         w.crowd = replacement;
         w.soldierAssets = { 0: bundle };
         if (name === "near-unshadowed" || name === "near-authored-ao")
-          for (const bucket of replacement.buckets[0]) {
+          for (const bucket of replacement.buckets[0].main) {
             bucket.mesh.receiveShadow = false;
             if (name === "near-authored-ao") bucket.mesh.material.aoNode = null;
             bucket.mesh.material.needsUpdate = true;
@@ -146,7 +146,7 @@ export async function run(ctx) {
         camera.camera3d.distance = 2000;
         camera.camera3d.fovY =
           2 * Math.atan((Math.tan(camera.camera3d.fovY / 2) * oldDistance) / 2000);
-        if (name.startsWith("far")) camera.zoom = 0.9;
+        const { farAdmissionCamera } = await import("/scenes/models/_far-inspection.ts");
         const instance = {
           x: 0,
           y: 0,
@@ -162,12 +162,13 @@ export async function run(ctx) {
           mounted: false,
           lod: 0,
         };
-        w.drawInstances([instance], camera);
+        w.drawInstances([instance], name.startsWith("far") ? farAdmissionCamera(camera) : camera);
         w.render();
         await w.settlePresentedFrame();
         return {
           camera,
           lod: w.stats().lod,
+          shadow: w.stats().crowd.shadowTierHistogram,
           selectedTile: replacement.impostors[0].mesh.geometry
             .getAttribute("impostorMeta")
             ?.getX(0),
@@ -181,6 +182,28 @@ export async function run(ctx) {
           : state.lod.skinned === 1,
         JSON.stringify(state),
       );
+      ctx.check(
+        `${name}: shadow audience remains independent of the main representation`,
+        state.shadow.l3 === 0 && state.shadow.l0 + state.shadow.l1 + state.shadow.l2 === 1,
+        JSON.stringify(state.shadow),
+      );
+      if (name.startsWith("far")) {
+        if (name === "far") {
+          const physical = await page.screenshot();
+          await ctx.snap(page, "battle/far-grounding/far-production", {
+            shot: physical,
+            threshold: 0,
+            maxDiffRatio: 0,
+          });
+          ctx.check("far: production far pixels frozen", physical.equals(await page.screenshot()));
+        }
+        await page.evaluate(async (camera) => {
+          const world = window.__battleModels.world;
+          world.setCamera(camera);
+          world.render();
+          await world.settlePresentedFrame();
+        }, state.camera);
+      }
       // Half-float control intentionally changes its test-only allocation; all
       // production modes retain the same three RGBA8 mip chains plus depth.
       if (name !== "far-half-properties")

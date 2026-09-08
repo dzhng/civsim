@@ -1,0 +1,477 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-08T08:52:49.244Z",
+  "target": "http://localhost:5475",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 1,
+  "status": "fail",
+  "scenarios": [
+    {
+      "name": "battle-model-far-bundles",
+      "file": "models/battle-model-far-bundles.mjs",
+      "kind": "visual",
+      "tier": "full"
+    },
+    {
+      "name": "battle-model-far-grounding",
+      "file": "models/battle-model-far-grounding.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-near: full appearance submission",
+      "ok": true,
+      "detail": "{\"ids\":[0,14,6],\"count\":3}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-near: expected representation",
+      "ok": true,
+      "detail": "{\"skinned\":3,\"impostors\":0}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-near: independent shadow audience stays mesh-only",
+      "ok": true,
+      "detail": "{\"l0\":0,\"l1\":1,\"l2\":2,\"l3\":0}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-near: pike remains on the mesh's right-hand side",
+      "ok": true,
+      "detail": "{\"polePixels\":177,\"centroidX\":669.3220338983051}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "snapshot battle/far-bundles/front-near",
+      "ok": false,
+      "detail": "3364 px differ (0.3285%) — see shots/diff/battle/far-bundles/front-near.png"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-near: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-far-diagnostic: full appearance submission",
+      "ok": true,
+      "detail": "{\"ids\":[0,14,6],\"count\":3}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-far-diagnostic: expected representation",
+      "ok": true,
+      "detail": "{\"skinned\":0,\"impostors\":3}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-far-diagnostic: independent shadow audience stays mesh-only",
+      "ok": true,
+      "detail": "{\"l0\":0,\"l1\":1,\"l2\":2,\"l3\":0}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "snapshot battle/far-bundles/front-far-production",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-far-diagnostic: production far pixels frozen",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-far-diagnostic: pike remains on the mesh's right-hand side",
+      "ok": true,
+      "detail": "{\"polePixels\":266,\"centroidX\":669.9812030075188}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "snapshot battle/far-bundles/front-far-diagnostic",
+      "ok": false,
+      "detail": "23161 px differ (2.2618%) — see shots/diff/battle/far-bundles/front-far-diagnostic.png"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "front-far-diagnostic: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-near: full appearance submission",
+      "ok": true,
+      "detail": "{\"ids\":[0,14,6],\"count\":3}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-near: expected representation",
+      "ok": true,
+      "detail": "{\"skinned\":3,\"impostors\":0}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-near: independent shadow audience stays mesh-only",
+      "ok": true,
+      "detail": "{\"l0\":0,\"l1\":1,\"l2\":2,\"l3\":0}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "snapshot battle/far-bundles/side-near",
+      "ok": false,
+      "detail": "27231 px differ (2.6593%) — see shots/diff/battle/far-bundles/side-near.png"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-near: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-far-diagnostic: full appearance submission",
+      "ok": true,
+      "detail": "{\"ids\":[0,14,6],\"count\":3}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-far-diagnostic: expected representation",
+      "ok": true,
+      "detail": "{\"skinned\":0,\"impostors\":3}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-far-diagnostic: independent shadow audience stays mesh-only",
+      "ok": true,
+      "detail": "{\"l0\":0,\"l1\":1,\"l2\":2,\"l3\":0}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "snapshot battle/far-bundles/side-far-production",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-far-diagnostic: production far pixels frozen",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "snapshot battle/far-bundles/side-far-diagnostic",
+      "ok": false,
+      "detail": "30726 px differ (3.0006%) — see shots/diff/battle/far-bundles/side-far-diagnostic.png"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "side-far-diagnostic: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "roster-production-far: full appearance submission",
+      "ok": true,
+      "detail": "{\"ids\":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19],\"count\":320}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "roster-production-far: catalog covers every current appearance",
+      "ok": true,
+      "detail": "[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "roster-production-far: expected representation",
+      "ok": true,
+      "detail": "{\"skinned\":0,\"impostors\":320}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "roster-production-far: independent shadow audience stays mesh-only",
+      "ok": true,
+      "detail": "{\"l0\":0,\"l1\":48,\"l2\":272,\"l3\":0}"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "snapshot battle/far-bundles/roster-production-far",
+      "ok": false,
+      "detail": "96 px differ (0.0094%) — see shots/diff/battle/far-bundles/roster-production-far.png"
+    },
+    {
+      "scenario": "battle-model-far-bundles",
+      "name": "roster-production-far: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "near: requested representation",
+      "ok": true,
+      "detail": "{\"camera\":{\"x\":0,\"y\":0,\"zoom\":80,\"zoomT\":1,\"camera3d\":{\"target\":[0.045835405588150024,0.07664388790726662,1.1900000274181366],\"distance\":2000,\"pitch\":0.3737921748345104,\"yaw\":-1.373400766945016,\"fovY\":0.004999989583372396,\"aspect\":1.6,\"near\":0.17721157314762573,\"far\":4000}},\"lod\":{\"skinned\":1,\"impostors\":0},\"shadow\":{\"l0\":0,\"l1\":0,\"l2\":1,\"l3\":0},\"allocatedBytes\":11796456}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "near: shadow audience remains independent of the main representation",
+      "ok": true,
+      "detail": "{\"l0\":0,\"l1\":0,\"l2\":1,\"l3\":0}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "near: atlas allocation unchanged",
+      "ok": true,
+      "detail": "11796456"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "snapshot battle/far-grounding/near",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "near: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "near-unshadowed: requested representation",
+      "ok": true,
+      "detail": "{\"camera\":{\"x\":0,\"y\":0,\"zoom\":80,\"zoomT\":1,\"camera3d\":{\"target\":[0.045835405588150024,0.07664388790726662,1.1900000274181366],\"distance\":2000,\"pitch\":0.3737921748345104,\"yaw\":-1.373400766945016,\"fovY\":0.004999989583372396,\"aspect\":1.6,\"near\":0.17721157314762573,\"far\":4000}},\"lod\":{\"skinned\":1,\"impostors\":0},\"shadow\":{\"l0\":0,\"l1\":0,\"l2\":1,\"l3\":0},\"allocatedBytes\":11796456}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "near-unshadowed: shadow audience remains independent of the main representation",
+      "ok": true,
+      "detail": "{\"l0\":0,\"l1\":0,\"l2\":1,\"l3\":0}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "near-unshadowed: atlas allocation unchanged",
+      "ok": true,
+      "detail": "11796456"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "snapshot battle/far-grounding/near-unshadowed",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "near-unshadowed: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "near-authored-ao: requested representation",
+      "ok": true,
+      "detail": "{\"camera\":{\"x\":0,\"y\":0,\"zoom\":80,\"zoomT\":1,\"camera3d\":{\"target\":[0.045835405588150024,0.07664388790726662,1.1900000274181366],\"distance\":2000,\"pitch\":0.3737921748345104,\"yaw\":-1.373400766945016,\"fovY\":0.004999989583372396,\"aspect\":1.6,\"near\":0.17721157314762573,\"far\":4000}},\"lod\":{\"skinned\":1,\"impostors\":0},\"shadow\":{\"l0\":0,\"l1\":0,\"l2\":1,\"l3\":0},\"allocatedBytes\":11796456}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "near-authored-ao: shadow audience remains independent of the main representation",
+      "ok": true,
+      "detail": "{\"l0\":0,\"l1\":0,\"l2\":1,\"l3\":0}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "near-authored-ao: atlas allocation unchanged",
+      "ok": true,
+      "detail": "11796456"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "snapshot battle/far-grounding/near-authored-ao",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "near-authored-ao: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "far: requested representation",
+      "ok": true,
+      "detail": "{\"camera\":{\"x\":0,\"y\":0,\"zoom\":80,\"zoomT\":1,\"camera3d\":{\"target\":[0.045835405588150024,0.07664388790726662,1.1900000274181366],\"distance\":2000,\"pitch\":0.3737921748345104,\"yaw\":-1.373400766945016,\"fovY\":0.004999989583372396,\"aspect\":1.6,\"near\":0.17721157314762573,\"far\":4000}},\"lod\":{\"skinned\":0,\"impostors\":1},\"shadow\":{\"l0\":0,\"l1\":0,\"l2\":1,\"l3\":0},\"selectedTile\":5,\"allocatedBytes\":11796456}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "far: shadow audience remains independent of the main representation",
+      "ok": true,
+      "detail": "{\"l0\":0,\"l1\":0,\"l2\":1,\"l3\":0}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "snapshot battle/far-grounding/far-production",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "far: production far pixels frozen",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "far: atlas allocation unchanged",
+      "ok": true,
+      "detail": "11796456"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "snapshot battle/far-grounding/far",
+      "ok": false,
+      "detail": "10079 px differ (0.9843%) — see shots/diff/battle/far-grounding/far.png"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "far: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "far-half-properties: requested representation",
+      "ok": true,
+      "detail": "{\"camera\":{\"x\":0,\"y\":0,\"zoom\":80,\"zoomT\":1,\"camera3d\":{\"target\":[0.045835405588150024,0.07664388790726662,1.1900000274181366],\"distance\":2000,\"pitch\":0.3737921748345104,\"yaw\":-1.373400766945016,\"fovY\":0.004999989583372396,\"aspect\":1.6,\"near\":0.17721157314762573,\"far\":4000}},\"lod\":{\"skinned\":0,\"impostors\":1},\"shadow\":{\"l0\":0,\"l1\":0,\"l2\":1,\"l3\":0},\"selectedTile\":5,\"allocatedBytes\":11796456}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "far-half-properties: shadow audience remains independent of the main representation",
+      "ok": true,
+      "detail": "{\"l0\":0,\"l1\":0,\"l2\":1,\"l3\":0}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "snapshot battle/far-grounding/far-half-properties",
+      "ok": false,
+      "detail": "10078 px differ (0.9842%) — see shots/diff/battle/far-grounding/far-half-properties.png"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "far-half-properties: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "far-dead: requested representation",
+      "ok": true,
+      "detail": "{\"camera\":{\"x\":0,\"y\":0,\"zoom\":80,\"zoomT\":1,\"camera3d\":{\"target\":[0.045835405588150024,0.07664388790726662,1.1900000274181366],\"distance\":2000,\"pitch\":0.3737921748345104,\"yaw\":-1.373400766945016,\"fovY\":0.004999989583372396,\"aspect\":1.6,\"near\":0.17721157314762573,\"far\":4000}},\"lod\":{\"skinned\":0,\"impostors\":1},\"shadow\":{\"l0\":0,\"l1\":0,\"l2\":1,\"l3\":0},\"selectedTile\":5,\"allocatedBytes\":11796456}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "far-dead: shadow audience remains independent of the main representation",
+      "ok": true,
+      "detail": "{\"l0\":0,\"l1\":0,\"l2\":1,\"l3\":0}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "far-dead: atlas allocation unchanged",
+      "ok": true,
+      "detail": "11796456"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "snapshot battle/far-grounding/far-dead",
+      "ok": false,
+      "detail": "10078 px differ (0.9842%) — see shots/diff/battle/far-grounding/far-dead.png"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "far-dead: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "far-nearest-properties: requested representation",
+      "ok": true,
+      "detail": "{\"camera\":{\"x\":0,\"y\":0,\"zoom\":80,\"zoomT\":1,\"camera3d\":{\"target\":[0.045835405588150024,0.07664388790726662,1.1900000274181366],\"distance\":2000,\"pitch\":0.3737921748345104,\"yaw\":-1.373400766945016,\"fovY\":0.004999989583372396,\"aspect\":1.6,\"near\":0.17721157314762573,\"far\":4000}},\"lod\":{\"skinned\":0,\"impostors\":1},\"shadow\":{\"l0\":0,\"l1\":0,\"l2\":1,\"l3\":0},\"selectedTile\":5,\"allocatedBytes\":11796456}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "far-nearest-properties: shadow audience remains independent of the main representation",
+      "ok": true,
+      "detail": "{\"l0\":0,\"l1\":0,\"l2\":1,\"l3\":0}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "far-nearest-properties: atlas allocation unchanged",
+      "ok": true,
+      "detail": "11796456"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "snapshot battle/far-grounding/far-nearest-properties",
+      "ok": false,
+      "detail": "10098 px differ (0.9861%) — see shots/diff/battle/far-grounding/far-nearest-properties.png"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "far-nearest-properties: frozen pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "living interior material response matches",
+      "ok": true,
+      "detail": "{\"count\":3557,\"mean\":0.9046949676693843,\"max\":1,\"p99\":1}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "dead instances disable contact grounding",
+      "ok": true,
+      "detail": "{\"count\":3593,\"mean\":0.995825215697189,\"max\":1,\"p99\":1}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "normal and ORM precision do not cause stronger highlights",
+      "ok": true,
+      "detail": "{\"count\":4018,\"mean\":0.053260328521652564,\"max\":1,\"p99\":1}"
+    },
+    {
+      "scenario": "battle-model-far-grounding",
+      "name": "living contact factor actually affects lower body",
+      "ok": true,
+      "detail": "{\"count\":4024,\"mean\":1.8876739562624254,\"max\":16,\"p99\":15}"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [
+    "battle-model-far-bundles: snapshot battle/far-bundles/front-near",
+    "battle-model-far-bundles: snapshot battle/far-bundles/front-far-diagnostic",
+    "battle-model-far-bundles: snapshot battle/far-bundles/side-near",
+    "battle-model-far-bundles: snapshot battle/far-bundles/side-far-diagnostic",
+    "battle-model-far-bundles: snapshot battle/far-bundles/roster-production-far",
+    "battle-model-far-grounding: snapshot battle/far-grounding/far",
+    "battle-model-far-grounding: snapshot battle/far-grounding/far-half-properties",
+    "battle-model-far-grounding: snapshot battle/far-grounding/far-dead",
+    "battle-model-far-grounding: snapshot battle/far-grounding/far-nearest-properties"
+  ],
+  "pageErrors": []
+}

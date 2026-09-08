@@ -139,7 +139,7 @@ export async function run(ctx) {
           world.crowd = replacement;
           world.soldierAssets = { 0: bundle };
           const camera = structuredClone(world.stats().camera);
-          if (far) camera.zoom = 0.9;
+          const { farAdmissionCamera } = await import("/scenes/models/_far-inspection.ts");
           const instance = {
             x: 0,
             y: 0,
@@ -155,11 +155,14 @@ export async function run(ctx) {
             mounted: false,
             lod: 0,
           };
-          world.drawInstances([instance], camera);
+          world.drawInstances([instance], far ? farAdmissionCamera(camera) : camera);
+          const lod = world.stats().lod;
+          // Preserve close material inspection after genuine projected admission.
+          if (far) world.setCamera(camera);
           world.render();
           await world.settlePresentedFrame();
-          window.__farPropertyDraw = { camera, instance };
-          return { replacementMs, lod: world.stats().lod };
+          window.__farPropertyDraw = { camera, instance, far };
+          return { replacementMs, lod };
         },
         { type, far, name },
       );
@@ -181,7 +184,12 @@ export async function run(ctx) {
           await new Promise(requestAnimationFrame);
           const world = window.__battleModels.world,
             draw = window.__farPropertyDraw;
-          world.drawInstances([{ ...draw.instance, faction: 1, seed: 0.93 }], draw.camera);
+          const { farAdmissionCamera } = await import("/scenes/models/_far-inspection.ts");
+          world.drawInstances(
+            [{ ...draw.instance, faction: 1, seed: 0.93 }],
+            draw.far ? farAdmissionCamera(draw.camera) : draw.camera,
+          );
+          if (draw.far) world.setCamera(draw.camera);
           world.render();
           await world.settlePresentedFrame();
         });

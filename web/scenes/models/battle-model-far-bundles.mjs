@@ -10,8 +10,10 @@ export const meta = {
   snapshots: [
     "front-near",
     "front-far-diagnostic",
+    "front-far-production",
     "side-near",
     "side-far-diagnostic",
+    "side-far-production",
     "roster-production-far",
   ].map((name) => `battle/far-bundles/${name}`),
   describe:
@@ -50,9 +52,7 @@ export async function run(ctx) {
           await new Promise(requestAnimationFrame);
           const world = h.world;
           const camera = structuredClone(world.stats().camera);
-          // Diagnostic only: keep the genuine close projection and explicitly
-          // select the far representation through its existing LOD input.
-          if (diagnostic) camera.zoom = 0.9;
+          const { farAdmissionCamera } = await import("/scenes/models/_far-inspection.ts");
           const ids = roster ? Object.keys(world.soldierAssets).map(Number) : [0, 14, 6];
           const instances = ids.flatMap((classId, index) => {
             const asset = world.soldierAssets[classId];
@@ -75,10 +75,10 @@ export async function run(ctx) {
               lod: 0,
             }));
           });
-          world.drawInstances(instances, camera);
+          world.drawInstances(instances, diagnostic ? farAdmissionCamera(camera) : camera);
           world.render();
           await world.settlePresentedFrame();
-          return { stats: world.stats(), count: instances.length, ids };
+          return { stats: world.stats(), count: instances.length, ids, inspectionCamera: camera };
         },
         { yaw, diagnostic, roster },
       );
@@ -101,6 +101,31 @@ export async function run(ctx) {
           : result.stats.lod.skinned === result.count && result.stats.lod.impostors === 0,
         JSON.stringify(result.stats.lod),
       );
+      const shadow = result.stats.crowd.shadowTierHistogram;
+      ctx.check(
+        `${name}: independent shadow audience stays mesh-only`,
+        shadow.l3 === 0 && shadow.l0 + shadow.l1 + shadow.l2 > 0,
+        JSON.stringify(shadow),
+      );
+      if (diagnostic) {
+        const physical = await page.screenshot();
+        await ctx.snap(page, `battle/far-bundles/${name.replace("diagnostic", "production")}`, {
+          shot: physical,
+          threshold: 0,
+          maxDiffRatio: 0,
+        });
+        ctx.check(
+          `${name}: production far pixels frozen`,
+          physical.equals(await page.screenshot()),
+        );
+        // Magnify already-admitted far content; do not re-tier it with the close projection.
+        await page.evaluate(async (camera) => {
+          const world = window.__battleModels.world;
+          world.setCamera(camera);
+          world.render();
+          await world.settlePresentedFrame();
+        }, result.inspectionCamera);
+      }
       const shot = await page.screenshot();
       if (name.startsWith("front-")) {
         const png = PNG.sync.read(shot);

@@ -1,0 +1,6 @@
+SHA256, frozen through capture82081 and final formatting check:
+d4078183547390134ed1146b2ab185ae5bd6bc17805c3951a56a02cca232bbb2  web/scenes/models/_far-inspection.ts
+77952d0b988e335c40263142b204db42e1a556131fa4de2b07352ae1c79e024d  web/scenes/models/battle-model-far-bundles.mjs
+c640c8fd9361e9602dff98ba7f1d7bccfb92215773a6ee517196ed4361589ce5  web/scenes/models/battle-model-far-grounding.mjs
+21e63182408deb971631ec31c762d215e9348b514b2fe52a63bb0b7b071d1c57  web/scenes/models/battle-model-far-properties.mjs
+039436e5f9d94466ed59dbedf08600ba6011f2a479d92d48b02fc1eeb277ee59  web/tests/farInspection.test.ts

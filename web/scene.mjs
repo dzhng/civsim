@@ -134,7 +134,7 @@ function createReporter() {
   };
 }
 
-async function runSelected(selected) {
+export async function runSelected(selected) {
   const gpuArgs =
     process.env.VERIFY_GPU === "1"
       ? process.env.VERIFY_GPU_ADAPTER === "hardware"
@@ -194,6 +194,16 @@ async function runSelected(selected) {
           false,
           error instanceof Error ? (error.stack ?? error.message) : String(error),
         );
+      } finally {
+        // This browser belongs to the run; scenes may create contexts directly
+        // or through newPage. Close both paths before the next independent scene.
+        const closed = await Promise.allSettled(
+          browser.contexts().map((context) => context.close()),
+        );
+        for (const result of closed) {
+          if (result.status === "rejected")
+            reporter.check(scene.meta.name, "scene contexts closed", false, String(result.reason));
+        }
       }
     }
     reporter.check(

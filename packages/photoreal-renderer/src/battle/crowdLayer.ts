@@ -10,9 +10,11 @@ import {
   clamp,
   dot,
   float,
+  Fn,
   uint,
   mix,
   normalize,
+  normalLocal,
   transformNormalToView,
   varying,
   vec3,
@@ -568,12 +570,17 @@ function crowdMaterial(
     inst0.y.add(p.x.mul(s)).add(p.y.mul(c)),
     p.z.add(inst2.x),
   );
-  material.positionNode = worldPosition;
   const vWorldPosition = varying(worldPosition);
   material.receivedShadowPositionNode = vWorldPosition;
 
   // Authored skinning owns body orientation; instance facing rotates into world space.
   const worldN = vec3(n.x.mul(c).sub(n.y.mul(s)), n.x.mul(s).add(n.y.mul(c)), n.z);
+  material.positionNode = Fn(() => {
+    // Three's geometric roughness also consumes normalLocal, independently of
+    // normalNode. Both must follow the same posed, instance-facing normal.
+    normalLocal.assign(worldN);
+    return worldPosition;
+  })();
   material.normalNode = viewNormalNode(worldN);
 
   // Pack scalar instance/contact properties into one varying location so mapped

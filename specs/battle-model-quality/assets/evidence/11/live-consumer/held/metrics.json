@@ -1,0 +1,37 @@
+[
+  {
+    "a": "A-fractional",
+    "b": "B-fractional",
+    "exactRGBAPixels": 367026,
+    "maxChannelDelta": 190,
+    "totalPixels": 1024000
+  },
+  {
+    "a": "A-frozen",
+    "b": "B-frozen",
+    "exactRGBAPixels": 0,
+    "maxChannelDelta": 0,
+    "totalPixels": 1024000
+  },
+  {
+    "a": "A-restored",
+    "b": "B-restored",
+    "exactRGBAPixels": 417595,
+    "maxChannelDelta": 193,
+    "totalPixels": 1024000
+  },
+  {
+    "a": "A-fractional",
+    "b": "A-restored",
+    "exactRGBAPixels": 313338,
+    "maxChannelDelta": 191,
+    "totalPixels": 1024000
+  },
+  {
+    "a": "B-fractional",
+    "b": "B-restored",
+    "exactRGBAPixels": 3619,
+    "maxChannelDelta": 149,
+    "totalPixels": 1024000
+  }
+]

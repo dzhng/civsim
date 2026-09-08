@@ -7,6 +7,17 @@ for each comparison and repeat affected checks after refits.
 
 ## Contract and ownership
 
+The live body-motion comparison gates the fixed viewport region
+`x400,y140,width512,height500` in every A/B motion frame. The subject, rings and
+relevant motion cues must remain contained, with whole-frame inspection retained.
+Original full captures and red reports remain evidence: the static HUD portrait
+repeated with eleven one-channel-step RGBA pixel differences despite unchanged
+source, style and layout; its compositing cause is unproven. This separately named
+body-region gate does not accept the HUD or full frame and does not change any
+existing default gate or tolerance.
+The [live comparison evidence](../assets/evidence/11/live-consumer/film/review.md)
+records the full-frame limitation and separately scoped body-region result.
+
 Idle/ready, walk/march and run communicate supported weight and equipment load.
 
 The engine owns posture and movement. At-ease standing carries the shield at

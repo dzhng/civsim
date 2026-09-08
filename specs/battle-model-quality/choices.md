@@ -1819,3 +1819,14 @@ extension, not a successful-refit claim. The medium's frozen fitted source is
 not overwritten; any retained shared anatomy must be refitted and reviewed there
 separately. If the existing body topology cannot support the cap, stop and bound
 that decision instead of widening this experiment invisibly.
+
+### Bound the live motion pixel gate to its reviewed body region
+
+**Authorized; confidence: high for scope, unresolved compositor cause.** Use the
+same fixed `x400,y140,width512,height500` region for every A/B motion frame, with
+complete subject/rings/cues and whole-frame review required. Preserve original
+full images and their red reports. Eleven static portrait pixels varied by one
+channel step even though source, style and layout were unchanged; this falsifies
+those changing-input hypotheses, not proves a compositor mechanism. The new
+explicitly named body-motion-region gate excludes HUD/full-frame acceptance and
+keeps all existing default gates and zero tolerances unchanged.

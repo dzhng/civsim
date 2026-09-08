@@ -424,6 +424,7 @@ export class PhotorealCrowd {
     const inst = this.sourceInstances[index];
     if (!inst) return null;
     return {
+      root: [inst.x, inst.y],
       clip: inst.clip,
       phase: inst.phase,
       playback: inst.playback,

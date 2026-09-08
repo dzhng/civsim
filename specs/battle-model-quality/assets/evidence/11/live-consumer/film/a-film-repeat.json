@@ -1,0 +1,1589 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-08T07:42:33.309Z",
+  "target": "http://localhost:5463",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "battle-delayed-root-phase",
+      "file": "battle/battle-delayed-root-phase.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start: real fractional-clock start",
+      "ok": true,
+      "detail": "{\"tick\":4004,\"clock\":{\"alpha\":0.18,\"paused\":true,\"frozen\":false},\"index\":0,\"alive\":1,\"endpoint\":[-13.055105209350586,-89.9958724975586],\"playback\":{\"root\":[-13.057670593261719,-89.99720001220703],\"clip\":\"at_ease\",\"phase\":0.13933333333332598,\"playback\":{\"appearanceId\":0,\"base\":{\"source\":{\"kind\":\"clip\",\"sample\":{\"clip\":\"at_ease\",\"phase\":0.13933333333332598}},\"destination\":{\"clip\":\"at_ease\",\"phase\":0.13933333333332598},\"weight\":1}},\"duration\":1},\"formation\":{\"files\":30,\"ranks\":8,\"total\":240,\"centerX\":0.0016682108398526907,\"centerY\":-93.8508071899414}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 0: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4004,\"alpha\":0.18,\"endpoint\":[-13.055105209350586,-89.9958724975586],\"root\":[-13.057670593261719,-89.99720001220703],\"context\":{\"foot\":[640.9322964693797,455.77368514795904],\"head\":[641.0705052227042,314.9283560311993],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-000",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 1: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4004,\"alpha\":0.6599999999999999,\"endpoint\":[-13.055105209350586,-89.9958724975586],\"root\":[-13.057670593261719,-89.99720001220703],\"context\":{\"foot\":[640.9322964693797,455.77368514795904],\"head\":[641.0705052227042,314.9283560311993],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-001",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 2: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4005,\"alpha\":0.1399999999999999,\"endpoint\":[-13.053590774536133,-89.99527740478516],\"root\":[-13.056528091430664,-89.99665832519531],\"context\":{\"foot\":[641.0848256185137,455.7114312996602],\"head\":[641.2456415246992,314.86090805169056],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-002",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 3: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4005,\"alpha\":0.6199999999999999,\"endpoint\":[-13.053590774536133,-89.99527740478516],\"root\":[-13.056528091430664,-89.99665832519531],\"context\":{\"foot\":[641.0848256185137,455.7114312996602],\"head\":[641.2456415246992,314.86090805169056],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-003",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 4: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4006,\"alpha\":0.09999999999999987,\"endpoint\":[-13.053276062011719,-89.99553680419922],\"root\":[-13.055617332458496,-89.99634552001953],\"context\":{\"foot\":[641.2064172111247,455.675483308973],\"head\":[641.3852550488402,314.82196097835964],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-004",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 5: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4006,\"alpha\":0.5799999999999998,\"endpoint\":[-13.053276062011719,-89.99553680419922],\"root\":[-13.055617332458496,-89.99634552001953],\"context\":{\"foot\":[641.2064172111247,455.675483308973],\"head\":[641.3852550488402,314.82196097835964],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-005",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 6: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4007,\"alpha\":0.05999999999999983,\"endpoint\":[-13.052543640136719,-89.99551391601562],\"root\":[-13.054757118225098,-89.99610900878906],\"context\":{\"foot\":[641.3212611576934,455.6483038084753],\"head\":[641.517120874512,314.79251404658254],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-006",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 7: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4007,\"alpha\":0.5399999999999998,\"endpoint\":[-13.052543640136719,-89.99551391601562],\"root\":[-13.054757118225098,-89.99610900878906],\"context\":{\"foot\":[641.3212611576934,455.6483038084753],\"head\":[641.517120874512,314.79251404658254],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-007",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 8: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4008,\"alpha\":0.019999999999999796,\"endpoint\":[-13.052138328552246,-89.99417877197266],\"root\":[-13.054023742675781,-89.99556732177734],\"context\":{\"foot\":[641.419147152368,455.58605621559093],\"head\":[641.629511164324,314.7250738490145],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-008",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 9: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4008,\"alpha\":0.4999999999999998,\"endpoint\":[-13.052138328552246,-89.99417877197266],\"root\":[-13.054023742675781,-89.99556732177734],\"context\":{\"foot\":[641.419147152368,455.58605621559093],\"head\":[641.629511164324,314.7250738490145],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-009",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 10: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4008,\"alpha\":0.9799999999999998,\"endpoint\":[-13.052138328552246,-89.99417877197266],\"root\":[-13.054023742675781,-89.99556732177734],\"context\":{\"foot\":[641.419147152368,455.58605621559093],\"head\":[641.629511164324,314.7250738490145],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-010",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 11: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4009,\"alpha\":0.45999999999999974,\"endpoint\":[-13.052053451538086,-89.99151611328125],\"root\":[-13.053472518920898,-89.99443054199219],\"context\":{\"foot\":[641.4926673928624,455.455434039907],\"head\":[641.7139162092315,314.58355698068965],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-011",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 12: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4009,\"alpha\":0.9399999999999997,\"endpoint\":[-13.052053451538086,-89.99151611328125],\"root\":[-13.053472518920898,-89.99443054199219],\"context\":{\"foot\":[641.4926673928624,455.455434039907],\"head\":[641.7139162092315,314.58355698068965],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-012",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 13: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4010,\"alpha\":0.4199999999999997,\"endpoint\":[-13.051878929138184,-89.98751831054688],\"root\":[-13.05302619934082,-89.99249267578125],\"context\":{\"foot\":[641.5521175376255,455.2327942037216],\"head\":[641.7821547094076,314.34235267493074],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-013",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 14: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4010,\"alpha\":0.8999999999999997,\"endpoint\":[-13.051878929138184,-89.98751831054688],\"root\":[-13.05302619934082,-89.99249267578125],\"context\":{\"foot\":[641.5521175376255,455.2327942037216],\"head\":[641.7821547094076,314.34235267493074],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-014",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 15: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4011,\"alpha\":0.37999999999999967,\"endpoint\":[-13.052306175231934,-89.98219299316406],\"root\":[-13.052824974060059,-89.98960876464844],\"context\":{\"foot\":[641.5787713209444,454.9015376047471],\"head\":[641.8127231424046,313.9834865779472],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-015",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 16: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4011,\"alpha\":0.8599999999999997,\"endpoint\":[-13.052306175231934,-89.98219299316406],\"root\":[-13.052824974060059,-89.98960876464844],\"context\":{\"foot\":[641.5787713209444,454.9015376047471],\"head\":[641.8127231424046,313.9834865779472],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-016",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 17: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4012,\"alpha\":0.33999999999999964,\"endpoint\":[-13.051643371582031,-89.97553253173828],\"root\":[-13.052494049072266,-89.98566436767578],\"context\":{\"foot\":[641.6226490327708,454.44861211924206],\"head\":[641.863052792256,313.49283362046486],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-017",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 18: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4012,\"alpha\":0.8199999999999996,\"endpoint\":[-13.051643371582031,-89.97553253173828],\"root\":[-13.052494049072266,-89.98566436767578],\"context\":{\"foot\":[641.6226490327708,454.44861211924206],\"head\":[641.863052792256,313.49283362046486],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-018",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 19: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4013,\"alpha\":0.2999999999999996,\"endpoint\":[-13.05296516418457,-89.96754455566406],\"root\":[-13.05262565612793,-89.9805908203125],\"context\":{\"foot\":[641.6047103538493,453.86627081952787],\"head\":[641.8423926752816,312.8620236533],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-019",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 20: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4013,\"alpha\":0.7799999999999996,\"endpoint\":[-13.05296516418457,-89.96754455566406],\"root\":[-13.05262565612793,-89.9805908203125],\"context\":{\"foot\":[641.6047103538493,453.86627081952787],\"head\":[641.8423926752816,312.8620236533],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-020",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 21: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4014,\"alpha\":0.25999999999999956,\"endpoint\":[-13.05150318145752,-89.95822143554688],\"root\":[-13.052310943603516,-89.97432708740234],\"context\":{\"foot\":[641.6462267016476,453.1476951247804],\"head\":[641.8899775650341,312.08370055365907],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-021",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 22: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4014,\"alpha\":0.7399999999999995,\"endpoint\":[-13.05150318145752,-89.95822143554688],\"root\":[-13.052310943603516,-89.97432708740234],\"context\":{\"foot\":[641.6462267016476,453.1476951247804],\"head\":[641.8899775650341,312.08370055365907],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-022",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 23: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4015,\"alpha\":0.21999999999999953,\"endpoint\":[-13.054036140441895,-89.94757080078125],\"root\":[-13.052794456481934,-89.96683502197266],\"context\":{\"foot\":[641.5811870325579,452.28874881380426],\"head\":[641.8152150976309,311.1534226131421],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-023",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 24: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4015,\"alpha\":0.6999999999999995,\"endpoint\":[-13.054036140441895,-89.94757080078125],\"root\":[-13.052794456481934,-89.96683502197266],\"context\":{\"foot\":[641.5811870325579,452.28874881380426],\"head\":[641.8152150976309,311.1534226131421],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-024",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 25: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4016,\"alpha\":0.1799999999999995,\"endpoint\":[-13.051817893981934,-89.93559265136719],\"root\":[-13.052520751953125,-89.95808410644531],\"context\":{\"foot\":[641.6170324829751,451.28622768890574],\"head\":[641.8562554290196,310.06776665000615],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-025",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 26: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4016,\"alpha\":0.6599999999999995,\"endpoint\":[-13.051817893981934,-89.93559265136719],\"root\":[-13.052520751953125,-89.95808410644531],\"context\":{\"foot\":[641.6170324829751,451.28622768890574],\"head\":[641.8562554290196,310.06776665000615],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-026",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 27: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4017,\"alpha\":0.13999999999999946,\"endpoint\":[-13.05400276184082,-89.92228698730469],\"root\":[-13.052935600280762,-89.94805908203125],\"context\":{\"foot\":[641.5610187212695,450.13873315660453],\"head\":[641.7918329088113,308.82527390881495],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-027",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 28: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4017,\"alpha\":0.6199999999999994,\"endpoint\":[-13.05400276184082,-89.92228698730469],\"root\":[-13.052935600280762,-89.94805908203125],\"context\":{\"foot\":[641.5610187212695,450.13873315660453],\"head\":[641.7918329088113,308.82527390881495],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-028",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 29: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4018,\"alpha\":0.09999999999999942,\"endpoint\":[-13.082721710205078,-89.90765380859375],\"root\":[-13.061275482177734,-89.9367446899414],\"context\":{\"foot\":[640.4496900985338,448.84492294998637],\"head\":[640.5161421840036,307.4245554706378],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-029",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 30: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4018,\"alpha\":0.5799999999999994,\"endpoint\":[-13.082721710205078,-89.90765380859375],\"root\":[-13.061275482177734,-89.9367446899414],\"context\":{\"foot\":[640.4496900985338,448.84492294998637],\"head\":[640.5161421840036,307.4245554706378],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-030",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 31: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4019,\"alpha\":0.05999999999999939,\"endpoint\":[-13.0535249710083,-89.8917007446289],\"root\":[-13.059104919433594,-89.92413330078125],\"context\":{\"foot\":[640.7382890986783,447.4043837734467],\"head\":[640.8473158640759,305.8652369717083],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-031",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 32: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4019,\"alpha\":0.5399999999999994,\"endpoint\":[-13.0535249710083,-89.8917007446289],\"root\":[-13.059104919433594,-89.92413330078125],\"context\":{\"foot\":[640.7382890986783,447.4043837734467],\"head\":[640.8473158640759,305.8652369717083],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-032",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 33: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4020,\"alpha\":0.01999999999999935,\"endpoint\":[-13.126829147338867,-89.87442016601562],\"root\":[-13.078067779541016,-89.91021728515625],\"context\":{\"foot\":[638.2158441405759,445.81675752984233],\"head\":[637.9525621154469,304.1470123382478],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-033",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 34: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4020,\"alpha\":0.49999999999999933,\"endpoint\":[-13.126829147338867,-89.87442016601562],\"root\":[-13.078067779541016,-89.91021728515625],\"context\":{\"foot\":[638.2158441405759,445.81675752984233],\"head\":[637.9525621154469,304.1470123382478],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-034",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 35: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4020,\"alpha\":0.9799999999999993,\"endpoint\":[-13.126829147338867,-89.87442016601562],\"root\":[-13.078067779541016,-89.91021728515625],\"context\":{\"foot\":[638.2158441405759,445.81675752984233],\"head\":[637.9525621154469,304.1470123382478],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-035",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 36: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4021,\"alpha\":0.4599999999999993,\"endpoint\":[-13.073874473571777,-89.85581970214844],\"root\":[-13.07689380645752,-89.89498901367188],\"context\":{\"foot\":[638.3731136243363,444.0817418881405],\"head\":[638.1332316330908,302.2696444063053],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-036",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 37: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4021,\"alpha\":0.9399999999999993,\"endpoint\":[-13.073874473571777,-89.85581970214844],\"root\":[-13.07689380645752,-89.89498901367188],\"context\":{\"foot\":[638.3731136243363,444.0817418881405],\"head\":[638.1332316330908,302.2696444063053],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-037",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 38: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4022,\"alpha\":0.41999999999999926,\"endpoint\":[-13.129137992858887,-89.83589935302734],\"root\":[-13.091522216796875,-89.8784408569336],\"context\":{\"foot\":[636.4316667412243,442.19909080131873],\"head\":[635.9059788317775,300.23296547031447],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-038",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 39: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4022,\"alpha\":0.8999999999999992,\"endpoint\":[-13.129137992858887,-89.83589935302734],\"root\":[-13.091522216796875,-89.8784408569336],\"context\":{\"foot\":[636.4316667412243,442.19909080131873],\"head\":[635.9059788317775,300.23296547031447],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-039",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 40: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4023,\"alpha\":0.3799999999999992,\"endpoint\":[-13.07507610321045,-89.790771484375],\"root\":[-13.08691692352295,-89.85389709472656],\"context\":{\"foot\":[637.0465784680554,439.4120451631475],\"head\":[636.6120400118895,297.2187351236739],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-040",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 41: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4023,\"alpha\":0.8599999999999992,\"endpoint\":[-13.07507610321045,-89.790771484375],\"root\":[-13.08691692352295,-89.85389709472656],\"context\":{\"foot\":[637.0465784680554,439.4120451631475],\"head\":[636.6120400118895,297.2187351236739],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-041",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 42: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4024,\"alpha\":0.3399999999999992,\"endpoint\":[-13.099921226501465,-89.77348327636719],\"root\":[-13.090558052062988,-89.83138275146484],\"context\":{\"foot\":[636.5671090227968,436.8609471922689],\"head\":[636.0626221008667,294.460559557585],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-042",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 43: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4024,\"alpha\":0.8199999999999992,\"endpoint\":[-13.099921226501465,-89.77348327636719],\"root\":[-13.090558052062988,-89.83138275146484],\"context\":{\"foot\":[636.5671090227968,436.8609471922689],\"head\":[636.0626221008667,294.460559557585],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-043",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 44: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4025,\"alpha\":0.29999999999999916,\"endpoint\":[-13.092089653015137,-89.73808288574219],\"root\":[-13.090987205505371,-89.80525970458984],\"context\":{\"foot\":[636.5144009151153,433.90751959189424],\"head\":[636.0028686805832,291.26843928414826],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-044",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 45: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4025,\"alpha\":0.7799999999999991,\"endpoint\":[-13.092089653015137,-89.73808288574219],\"root\":[-13.090987205505371,-89.80525970458984],\"context\":{\"foot\":[636.5144009151153,433.90751959189424],\"head\":[636.0028686805832,291.26843928414826],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-045",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 46: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4026,\"alpha\":0.2599999999999991,\"endpoint\":[-13.085356712341309,-89.70082092285156],\"root\":[-13.089410781860352,-89.77601623535156],\"context\":{\"foot\":[636.7274223621298,430.6096477388348],\"head\":[636.247886408338,287.70535886428627],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-046",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 47: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4026,\"alpha\":0.7399999999999991,\"endpoint\":[-13.085356712341309,-89.70082092285156],\"root\":[-13.089410781860352,-89.77601623535156],\"context\":{\"foot\":[636.7274223621298,430.6096477388348],\"head\":[636.247886408338,287.70535886428627],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-047",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 48: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4027,\"alpha\":0.21999999999999909,\"endpoint\":[-13.08034610748291,-89.66829681396484],\"root\":[-13.086873054504395,-89.74585723876953],\"context\":{\"foot\":[637.066896427392,427.2177273173332],\"head\":[636.6377806116933,284.0421205838581],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-048",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 49: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4027,\"alpha\":0.6999999999999991,\"endpoint\":[-13.08034610748291,-89.66829681396484],\"root\":[-13.086873054504395,-89.74585723876953],\"context\":{\"foot\":[637.066896427392,427.2177273173332],\"head\":[636.6377806116933,284.0421205838581],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-049",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 50: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4028,\"alpha\":0.17999999999999905,\"endpoint\":[-13.076045989990234,-89.63616180419922],\"root\":[-13.083841323852539,-89.71514129638672],\"context\":{\"foot\":[637.4706227189024,423.7727292255048],\"head\":[637.10116468475,280.3230672138868],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-050",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 51: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4028,\"alpha\":0.659999999999999,\"endpoint\":[-13.076045989990234,-89.63616180419922],\"root\":[-13.083841323852539,-89.71514129638672],\"context\":{\"foot\":[637.4706227189024,423.7727292255048],\"head\":[637.10116468475,280.3230672138868],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-051",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 52: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4029,\"alpha\":0.13999999999999901,\"endpoint\":[-13.072545051574707,-89.60847473144531],\"root\":[-13.08067798614502,-89.68527221679688],\"context\":{\"foot\":[637.8904656055953,420.4319273309573],\"head\":[637.5828114843571,276.717949825936],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-052",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 53: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4029,\"alpha\":0.619999999999999,\"endpoint\":[-13.072545051574707,-89.60847473144531],\"root\":[-13.08067798614502,-89.68527221679688],\"context\":{\"foot\":[637.8904656055953,420.4319273309573],\"head\":[637.5828114843571,276.717949825936],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-053",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 54: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4030,\"alpha\":0.09999999999999898,\"endpoint\":[-13.069539070129395,-89.58118438720703],\"root\":[-13.077559471130371,-89.6561279296875],\"context\":{\"foot\":[638.3032232158236,417.18091454509556],\"head\":[638.0561402168364,273.21109606330936],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-054",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 55: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4030,\"alpha\":0.579999999999999,\"endpoint\":[-13.069539070129395,-89.58118438720703],\"root\":[-13.077559471130371,-89.6561279296875],\"context\":{\"foot\":[638.3032232158236,417.18091454509556],\"head\":[638.0561402168364,273.21109606330936],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-055",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 56: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4031,\"alpha\":0.05999999999999894,\"endpoint\":[-13.06662654876709,-89.55738067626953],\"root\":[-13.074498176574707,-89.62847900390625],\"context\":{\"foot\":[638.7072913836284,414.104639946901],\"head\":[638.5193183725387,269.89397585308143],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-056",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 57: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4031,\"alpha\":0.5399999999999989,\"endpoint\":[-13.06662654876709,-89.55738067626953],\"root\":[-13.074498176574707,-89.62847900390625],\"context\":{\"foot\":[638.7072913836284,414.104639946901],\"head\":[638.5193183725387,269.89397585308143],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-057",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 58: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4032,\"alpha\":0.019999999999998908,\"endpoint\":[-13.06692886352539,-89.53297424316406],\"root\":[-13.072379112243652,-89.60173797607422],\"context\":{\"foot\":[638.9867485585492,411.13669930976295],\"head\":[638.8396155532179,266.69481726954274],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-058",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 59: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4032,\"alpha\":0.4999999999999989,\"endpoint\":[-13.06692886352539,-89.53297424316406],\"root\":[-13.072379112243652,-89.60173797607422],\"context\":{\"foot\":[638.9867485585492,411.13669930976295],\"head\":[638.8396155532179,266.69481726954274],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-059",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 60: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4032,\"alpha\":0.9799999999999989,\"endpoint\":[-13.06692886352539,-89.53297424316406],\"root\":[-13.072379112243652,-89.60173797607422],\"context\":{\"foot\":[638.9867485585492,411.13669930976295],\"head\":[638.8396155532179,266.69481726954274],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-060",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 61: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4033,\"alpha\":0.45999999999999885,\"endpoint\":[-13.062536239624023,-89.51801300048828],\"root\":[-13.069622993469238,-89.57829284667969],\"context\":{\"foot\":[639.3488758378248,408.54046523750486],\"head\":[639.25444157613,263.8972455466466],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-061",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 62: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4033,\"alpha\":0.9399999999999988,\"endpoint\":[-13.062536239624023,-89.51801300048828],\"root\":[-13.069622993469238,-89.57829284667969],\"context\":{\"foot\":[639.3488758378248,408.54046523750486],\"head\":[639.25444157613,263.8972455466466],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-062",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start 63: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":4034,\"alpha\":0.4199999999999988,\"endpoint\":[-13.064925193786621,-89.49713897705078],\"root\":[-13.068307876586914,-89.55557250976562],\"context\":{\"foot\":[639.5216483389844,406.0297348727218],\"head\":[639.452353183988,261.19262669238196],\"engaged\":0,\"hasTarget\":0,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/start-063",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "start: movement actually occurred after the command",
+      "ok": true,
+      "detail": "{\"halted\":true}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact: real fractional-clock start",
+      "ok": true,
+      "detail": "{\"tick\":6978,\"clock\":{\"alpha\":0.18,\"paused\":true,\"frozen\":false},\"index\":28,\"alive\":1,\"endpoint\":[12.345707893371582,86.4775619506836],\"playback\":{\"root\":[12.404802322387695,86.57976531982422],\"clip\":\"hit_a\",\"phase\":0.017142857142857792,\"playback\":{\"appearanceId\":0,\"base\":{\"source\":{\"kind\":\"frozen\",\"locals\":[0,0,0.95,0,0,0,1,1,1,1,0,0.02,0.45,0,0,-0.032586822504991356,0.9994689084704077,1,1,1,0,0,0.42,0,0,0,1,1,1,1,-0.33,0,0.14,0,0,0,1,1,1,1,0.33,0,0.14,0.027377531183640422,0,0,0.9996251651425593,1,1,1,-0.16,0,0,0,0,0,1,1,1,1,0.16,0,0,0,0,0,1,1,1,1]},\"destination\":{\"clip\":\"hit_a\",\"phase\":0.017142857142857792},\"weight\":0.04000000000000152}},\"duration\":0.35},\"formation\":{\"files\":30,\"ranks\":8,\"total\":240,\"centerX\":-0.003713369369506836,\"centerY\":78.97517395019531}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 0: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6978,\"alpha\":0.18,\"endpoint\":[12.345707893371582,86.4775619506836],\"root\":[12.404802322387695,86.57976531982422],\"context\":{\"foot\":[618.7420819830893,430.93678280870586],\"head\":[615.626651902779,288.05869656421726],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-000",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 1: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6978,\"alpha\":0.6599999999999999,\"endpoint\":[12.345707893371582,86.4775619506836],\"root\":[12.404802322387695,86.57976531982422],\"context\":{\"foot\":[618.7420819830893,430.93678280870586],\"head\":[615.626651902779,288.05869656421726],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-001",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 2: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6979,\"alpha\":0.1399999999999999,\"endpoint\":[12.350909233093262,86.49420166015625],\"root\":[12.3897123336792,86.5558090209961],\"context\":{\"foot\":[616.7217693674917,433.6384695175985],\"head\":[613.3059767318304,290.9776578741282],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-002",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 3: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6979,\"alpha\":0.6199999999999999,\"endpoint\":[12.350909233093262,86.49420166015625],\"root\":[12.3897123336792,86.5558090209961],\"context\":{\"foot\":[616.7217693674917,433.6384695175985],\"head\":[613.3059767318304,290.9776578741282],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-003",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 4: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6980,\"alpha\":0.09999999999999987,\"endpoint\":[12.356576919555664,86.5108413696289],\"root\":[12.380434036254883,86.54322052001953],\"context\":{\"foot\":[615.479754265018,435.0605152112056],\"head\":[611.8793388343305,292.5144430047685],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-004",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 5: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6980,\"alpha\":0.5799999999999998,\"endpoint\":[12.356576919555664,86.5108413696289],\"root\":[12.380434036254883,86.54322052001953],\"context\":{\"foot\":[615.479754265018,435.0605152112056],\"head\":[611.8793388343305,292.5144430047685],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-005",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 6: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6981,\"alpha\":0.05999999999999983,\"endpoint\":[12.362115859985352,86.52655792236328],\"root\":[12.37530517578125,86.5385513305664],\"context\":{\"foot\":[614.7952159937789,435.5883807097184],\"head\":[611.0933814611836,293.0849659544739],\"engaged\":1,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-006",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 7: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6981,\"alpha\":0.5399999999999998,\"endpoint\":[12.362115859985352,86.52655792236328],\"root\":[12.37530517578125,86.5385513305664],\"context\":{\"foot\":[614.7952159937789,435.5883807097184],\"head\":[611.0933814611836,293.0849659544739],\"engaged\":1,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-007",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 8: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6982,\"alpha\":0.019999999999999796,\"endpoint\":[12.368227005004883,86.54206848144531],\"root\":[12.373323440551758,86.53953552246094],\"context\":{\"foot\":[614.5338837519089,435.47709621346416],\"head\":[610.7938601181717,292.96468545016216],\"engaged\":1,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-008",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 9: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6982,\"alpha\":0.4999999999999998,\"endpoint\":[12.368227005004883,86.54206848144531],\"root\":[12.373323440551758,86.53953552246094],\"context\":{\"foot\":[614.5338837519089,435.47709621346416],\"head\":[610.7938601181717,292.96468545016216],\"engaged\":1,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-009",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 10: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6982,\"alpha\":0.9799999999999998,\"endpoint\":[12.368227005004883,86.54206848144531],\"root\":[12.373323440551758,86.53953552246094],\"context\":{\"foot\":[614.5338837519089,435.47709621346416],\"head\":[610.7938601181717,292.96468545016216],\"engaged\":1,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-010",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 11: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6983,\"alpha\":0.45999999999999974,\"endpoint\":[12.4087495803833,85.95943450927734],\"root\":[12.399892807006836,86.10446166992188],\"context\":{\"foot\":[617.6077629275508,485.6670146715528],\"head\":[614.2424728615786,347.37352177476345],\"engaged\":1,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-011",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 12: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6983,\"alpha\":0.9399999999999997,\"endpoint\":[12.4087495803833,85.95943450927734],\"root\":[12.399892807006836,86.10446166992188],\"context\":{\"foot\":[617.6077629275508,485.6670146715528],\"head\":[614.2424728615786,347.37352177476345],\"engaged\":1,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-012",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 13: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6984,\"alpha\":0.4199999999999997,\"endpoint\":[12.14680290222168,86.0420913696289],\"root\":[12.32902717590332,86.08699798583984],\"context\":{\"foot\":[608.0058085034324,487.7241418771481],\"head\":[603.1929515577056,349.61050385106745],\"engaged\":1,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-013",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 14: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6984,\"alpha\":0.8999999999999997,\"endpoint\":[12.14680290222168,86.0420913696289],\"root\":[12.32902717590332,86.08699798583984],\"context\":{\"foot\":[608.0058085034324,487.7241418771481],\"head\":[603.1929515577056,349.61050385106745],\"engaged\":1,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-014",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 15: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6985,\"alpha\":0.37999999999999967,\"endpoint\":[12.14672565460205,86.05756378173828],\"root\":[12.277982711791992,86.0787582397461],\"context\":{\"foot\":[601.0877105427439,488.6959033587257],\"head\":[595.2315811576277,350.6674170626944],\"engaged\":1,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-015",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 16: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6985,\"alpha\":0.8599999999999997,\"endpoint\":[12.14672565460205,86.05756378173828],\"root\":[12.277982711791992,86.0787582397461],\"context\":{\"foot\":[601.0877105427439,488.6959033587257],\"head\":[595.2315811576277,350.6674170626944],\"engaged\":1,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-016",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 17: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6986,\"alpha\":0.33999999999999964,\"endpoint\":[12.150325775146484,86.07296752929688],\"root\":[12.242238998413086,86.07713317871094],\"context\":{\"foot\":[596.2486321346582,488.8876445445146],\"head\":[589.6636681359419,350.87597423540194],\"engaged\":1,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-017",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 18: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6986,\"alpha\":0.8199999999999996,\"endpoint\":[12.150325775146484,86.07296752929688],\"root\":[12.242238998413086,86.07713317871094],\"context\":{\"foot\":[596.2486321346582,488.8876445445146],\"head\":[589.6636681359419,350.87597423540194],\"engaged\":1,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-018",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 19: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6987,\"alpha\":0.2999999999999996,\"endpoint\":[12.154122352600098,86.089599609375],\"root\":[12.21756649017334,86.08062744140625],\"context\":{\"foot\":[592.9181168958149,488.4753919424155],\"head\":[585.8332103460042,350.427572352865],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-019",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 20: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6987,\"alpha\":0.7799999999999996,\"endpoint\":[12.154122352600098,86.089599609375],\"root\":[12.21756649017334,86.08062744140625],\"context\":{\"foot\":[592.9181168958149,488.4753919424155],\"head\":[585.8332103460042,350.427572352865],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-020",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 21: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6988,\"alpha\":0.25999999999999956,\"endpoint\":[12.158354759216309,86.10723876953125],\"root\":[12.200986862182617,86.08808135986328],\"context\":{\"foot\":[590.692405958924,487.59642879771025],\"head\":[583.2755408908456,349.47160885414996],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-021",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 22: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6988,\"alpha\":0.7399999999999995,\"endpoint\":[12.158354759216309,86.10723876953125],\"root\":[12.200986862182617,86.08808135986328],\"context\":{\"foot\":[590.692405958924,487.59642879771025],\"head\":[583.2755408908456,349.47160885414996],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-022",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 23: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6989,\"alpha\":0.21999999999999953,\"endpoint\":[12.185099601745605,86.2210464477539],\"root\":[12.196537971496582,86.12531280517578],\"context\":{\"foot\":[590.1772972099384,483.2152458103192],\"head\":[582.6978913084181,344.7081097710319],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-023",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 24: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6989,\"alpha\":0.6999999999999995,\"endpoint\":[12.185099601745605,86.2210464477539],\"root\":[12.196537971496582,86.12531280517578],\"context\":{\"foot\":[590.1772972099384,483.2152458103192],\"head\":[582.6978913084181,344.7081097710319],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-024",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 25: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6990,\"alpha\":0.1799999999999995,\"endpoint\":[12.187921524047852,86.26150512695312],\"root\":[12.194125175476074,86.16344451904297],\"context\":{\"foot\":[589.9404561471326,478.7438416909423],\"head\":[582.4408096836376,339.8490767283756],\"engaged\":1,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-025",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 26: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6990,\"alpha\":0.6599999999999995,\"endpoint\":[12.187921524047852,86.26150512695312],\"root\":[12.194125175476074,86.16344451904297],\"context\":{\"foot\":[589.9404561471326,478.7438416909423],\"head\":[582.4408096836376,339.8490767283756],\"engaged\":1,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-026",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 27: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6991,\"alpha\":0.13999999999999946,\"endpoint\":[12.190110206604004,86.28228759765625],\"root\":[12.193000793457031,86.19672393798828],\"context\":{\"foot\":[589.8664826928824,474.8543601765517],\"head\":[582.3690880768256,335.62451522277274],\"engaged\":2,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-027",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 28: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6991,\"alpha\":0.6199999999999994,\"endpoint\":[12.190110206604004,86.28228759765625],\"root\":[12.193000793457031,86.19672393798828],\"context\":{\"foot\":[589.8664826928824,474.8543601765517],\"head\":[582.3690880768256,335.62451522277274],\"engaged\":2,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-028",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 29: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6992,\"alpha\":0.09999999999999942,\"endpoint\":[12.19186782836914,86.30694580078125],\"root\":[12.192683219909668,86.22758483886719],\"context\":{\"foot\":[589.8955105932253,471.2582597651565],\"head\":[582.4147727939649,331.7203481785035],\"engaged\":2,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-029",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 30: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6992,\"alpha\":0.5799999999999994,\"endpoint\":[12.19186782836914,86.30694580078125],\"root\":[12.192683219909668,86.22758483886719],\"context\":{\"foot\":[589.8955105932253,471.2582597651565],\"head\":[582.4147727939649,331.7203481785035],\"engaged\":2,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-030",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 31: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6993,\"alpha\":0.05999999999999939,\"endpoint\":[12.196011543273926,86.34254455566406],\"root\":[12.193614959716797,86.25977325439453],\"context\":{\"foot\":[590.0951352311962,467.51841169476637],\"head\":[582.6569533816411,327.6618897233228],\"engaged\":4,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-031",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 32: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6993,\"alpha\":0.5399999999999994,\"endpoint\":[12.196011543273926,86.34254455566406],\"root\":[12.193614959716797,86.25977325439453],\"context\":{\"foot\":[590.0951352311962,467.51841169476637],\"head\":[582.6569533816411,327.6618897233228],\"engaged\":4,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-032",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 33: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6994,\"alpha\":0.01999999999999935,\"endpoint\":[12.19920825958252,86.38597869873047],\"root\":[12.195180892944336,86.29511260986328],\"context\":{\"foot\":[590.3863436670041,463.4252765069723],\"head\":[583.0054337483881,323.2221142393421],\"engaged\":3,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-033",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 34: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6994,\"alpha\":0.49999999999999933,\"endpoint\":[12.19920825958252,86.38597869873047],\"root\":[12.195180892944336,86.29511260986328],\"context\":{\"foot\":[590.3863436670041,463.4252765069723],\"head\":[583.0054337483881,323.2221142393421],\"engaged\":3,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-034",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 35: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6994,\"alpha\":0.9799999999999993,\"endpoint\":[12.19920825958252,86.38597869873047],\"root\":[12.195180892944336,86.29511260986328],\"context\":{\"foot\":[590.3863436670041,463.4252765069723],\"head\":[583.0054337483881,323.2221142393421],\"engaged\":3,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-035",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 36: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6995,\"alpha\":0.4599999999999993,\"endpoint\":[12.205315589904785,86.432373046875],\"root\":[12.198019027709961,86.33354187011719],\"context\":{\"foot\":[590.8537245301936,458.98939836411563],\"head\":[583.5572260454817,318.41300783563355],\"engaged\":3,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-036",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 37: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6995,\"alpha\":0.9399999999999993,\"endpoint\":[12.205315589904785,86.432373046875],\"root\":[12.198019027709961,86.33354187011719],\"context\":{\"foot\":[590.8537245301936,458.98939836411563],\"head\":[583.5572260454817,318.41300783563355],\"engaged\":3,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-037",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 38: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6996,\"alpha\":0.41999999999999926,\"endpoint\":[12.438762664794922,85.9252700805664],\"root\":[12.265427589416504,86.21922302246094],\"context\":{\"foot\":[599.653575945575,472.23161333205655],\"head\":[593.6270602280356,332.77692108367455],\"engaged\":3,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-038",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 39: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6996,\"alpha\":0.8999999999999992,\"endpoint\":[12.438762664794922,85.9252700805664],\"root\":[12.265427589416504,86.21922302246094],\"context\":{\"foot\":[599.653575945575,472.23161333205655],\"head\":[593.6270602280356,332.77692108367455],\"engaged\":3,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-039",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 40: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6997,\"alpha\":0.3799999999999992,\"endpoint\":[12.450234413146973,86.05271911621094],\"root\":[12.317173957824707,86.17259979248047],\"context\":{\"foot\":[606.5364191627522,477.67263378221776],\"head\":[601.5255405917949,338.68538889313993],\"engaged\":4,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-040",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 41: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6997,\"alpha\":0.8599999999999992,\"endpoint\":[12.450234413146973,86.05271911621094],\"root\":[12.317173957824707,86.17259979248047],\"context\":{\"foot\":[606.5364191627522,477.67263378221776],\"head\":[601.5255405917949,338.68538889313993],\"engaged\":4,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-041",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 42: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6998,\"alpha\":0.3399999999999992,\"endpoint\":[12.441082000732422,86.1079330444336],\"root\":[12.351868629455566,86.15449523925781],\"context\":{\"foot\":[611.1855551235075,479.79182889734346],\"head\":[606.8666673697429,340.9876826901862],\"engaged\":6,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-042",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 43: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6998,\"alpha\":0.8199999999999992,\"endpoint\":[12.441082000732422,86.1079330444336],\"root\":[12.351868629455566,86.15449523925781],\"context\":{\"foot\":[611.1855551235075,479.79182889734346],\"head\":[606.8666673697429,340.9876826901862],\"engaged\":6,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-043",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 44: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6999,\"alpha\":0.29999999999999916,\"endpoint\":[12.439739227294922,86.15824890136719],\"root\":[12.376472473144531,86.15554809570312],\"context\":{\"foot\":[614.5037308863641,479.6684910181943],\"head\":[610.6824070154174,340.853672495704],\"engaged\":6,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-044",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 45: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":6999,\"alpha\":0.7799999999999991,\"endpoint\":[12.439739227294922,86.15824890136719],\"root\":[12.376472473144531,86.15554809570312],\"context\":{\"foot\":[614.5037308863641,479.6684910181943],\"head\":[610.6824070154174,340.853672495704],\"engaged\":6,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-045",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 46: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":7000,\"alpha\":0.2599999999999991,\"endpoint\":[12.439043998718262,86.20750427246094],\"root\":[12.39399242401123,86.17009735107422],\"context\":{\"foot\":[616.8811785310295,477.9653401019843],\"head\":[613.4188744016756,339.00335052076775],\"engaged\":6,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-046",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 47: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":7000,\"alpha\":0.7399999999999991,\"endpoint\":[12.439043998718262,86.20750427246094],\"root\":[12.39399242401123,86.17009735107422],\"context\":{\"foot\":[616.8811785310295,477.9653401019843],\"head\":[613.4188744016756,339.00335052076775],\"engaged\":6,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-047",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 48: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":7001,\"alpha\":0.21999999999999909,\"endpoint\":[12.43997859954834,86.25588989257812],\"root\":[12.406868934631348,86.19412231445312],\"context\":{\"foot\":[618.6396905936006,475.15798804415397],\"head\":[615.4448439748177,335.95423039019454],\"engaged\":5,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-048",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 49: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":7001,\"alpha\":0.6999999999999991,\"endpoint\":[12.43997859954834,86.25588989257812],\"root\":[12.406868934631348,86.19412231445312],\"context\":{\"foot\":[618.6396905936006,475.15798804415397],\"head\":[615.4448439748177,335.95423039019454],\"engaged\":5,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-049",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 50: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":7002,\"alpha\":0.17999999999999905,\"endpoint\":[12.438986778259277,86.30514526367188],\"root\":[12.415862083435059,86.22521209716797],\"context\":{\"foot\":[619.8788913344997,471.53438105761387],\"head\":[616.8743749004605,332.0200647367983],\"engaged\":6,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-050",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 51: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":7002,\"alpha\":0.659999999999999,\"endpoint\":[12.438986778259277,86.30514526367188],\"root\":[12.415862083435059,86.22521209716797],\"context\":{\"foot\":[619.8788913344997,471.53438105761387],\"head\":[616.8743749004605,332.0200647367983],\"engaged\":6,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-051",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 52: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":7003,\"alpha\":0.13999999999999901,\"endpoint\":[12.43991470336914,86.35389709472656],\"root\":[12.42259693145752,86.26124572753906],\"context\":{\"foot\":[620.8159006077608,467.3475971551495],\"head\":[617.9567875711737,327.4765660046751],\"engaged\":6,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-052",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 53: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":7003,\"alpha\":0.619999999999999,\"endpoint\":[12.43991470336914,86.35389709472656],\"root\":[12.42259693145752,86.26124572753906],\"context\":{\"foot\":[620.8159006077608,467.3475971551495],\"head\":[617.9567875711737,327.4765660046751],\"engaged\":6,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-053",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 54: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":7004,\"alpha\":0.09999999999999898,\"endpoint\":[12.438612937927246,86.40379333496094],\"root\":[12.427081108093262,86.30116271972656],\"context\":{\"foot\":[621.4516983629601,462.72586981217376],\"head\":[618.6931957155035,322.4636921180634],\"engaged\":6,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-054",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 55: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":7004,\"alpha\":0.579999999999999,\"endpoint\":[12.438612937927246,86.40379333496094],\"root\":[12.427081108093262,86.30116271972656],\"context\":{\"foot\":[621.4516983629601,462.72586981217376],\"head\":[618.6931957155035,322.4636921180634],\"engaged\":6,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-055",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 56: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":7005,\"alpha\":0.05999999999999894,\"endpoint\":[12.43815803527832,86.451904296875],\"root\":[12.430182456970215,86.34336853027344],\"context\":{\"foot\":[621.9022455158425,457.85763283942646],\"head\":[619.2167611956121,317.18642309890026],\"engaged\":7,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-056",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 57: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":7005,\"alpha\":0.5399999999999989,\"endpoint\":[12.43815803527832,86.451904296875],\"root\":[12.430182456970215,86.34336853027344],\"context\":{\"foot\":[621.9022455158425,457.85763283942646],\"head\":[619.2167611956121,317.18642309890026],\"engaged\":7,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-057",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 58: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":7006,\"alpha\":0.019999999999998908,\"endpoint\":[12.436145782470703,86.49911499023438],\"root\":[12.431852340698242,86.38697814941406],\"context\":{\"foot\":[622.1612659177326,452.8473301218482],\"head\":[619.520313336624,311.75833860845177],\"engaged\":7,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-058",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 59: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":7006,\"alpha\":0.4999999999999989,\"endpoint\":[12.436145782470703,86.49911499023438],\"root\":[12.431852340698242,86.38697814941406],\"context\":{\"foot\":[622.1612659177326,452.8473301218482],\"head\":[619.520313336624,311.75833860845177],\"engaged\":7,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-059",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 60: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":7006,\"alpha\":0.9799999999999989,\"endpoint\":[12.436145782470703,86.49911499023438],\"root\":[12.431852340698242,86.38697814941406],\"context\":{\"foot\":[622.1612659177326,452.8473301218482],\"head\":[619.520313336624,311.75833860845177],\"engaged\":7,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-060",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 61: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":7007,\"alpha\":0.45999999999999885,\"endpoint\":[12.434391021728516,86.54512786865234],\"root\":[12.432562828063965,86.43125915527344],\"context\":{\"foot\":[622.2920948724933,447.780418644012],\"head\":[619.6766272869038,306.2722096830771],\"engaged\":8,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-061",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 62: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":7007,\"alpha\":0.9399999999999988,\"endpoint\":[12.434391021728516,86.54512786865234],\"root\":[12.432562828063965,86.43125915527344],\"context\":{\"foot\":[622.2920948724933,447.780418644012],\"head\":[619.6766272869038,306.2722096830771],\"engaged\":8,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-062",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact 63: submitted root exists and target remains framed",
+      "ok": true,
+      "detail": "{\"tick\":7008,\"alpha\":0.4199999999999988,\"endpoint\":[12.431488990783691,86.59356689453125],\"root\":[12.432262420654297,86.4767074584961],\"context\":{\"foot\":[622.2890624859467,442.6013148809009],\"head\":[619.6793960075701,300.6680165951738],\"engaged\":8,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}}"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "snapshot delayed-root-phase/contact-063",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-delayed-root-phase",
+      "name": "contact: actual engagement is present for visual arc review",
+      "ok": true,
+      "detail": "{\"foot\":[618.7420819830893,430.93678280870586],\"head\":[615.626651902779,288.05869656421726],\"engaged\":0,\"hasTarget\":1,\"tacticalLines\":{\"groundCues\":{\"vertices\":0,\"lineSegments\":0},\"rings\":{\"rings\":240},\"effects\":{\"vertices\":0,\"lineSegments\":0}}}"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

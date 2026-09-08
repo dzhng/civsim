@@ -188,7 +188,7 @@ test("production crowd submits distance-driven poses despite contrary ordered pa
   }
 });
 
-test("production crowd preserves smoothed positions across append and resets playback on catalog replacement", async () => {
+test("production crowd preserves delayed positions across append and resets playback on catalog replacement", async () => {
   const url = new URL(
     "../public/assets/soldiers/appearances/heavy-sword/appearance.json",
     import.meta.url,
@@ -231,13 +231,13 @@ test("production crowd preserves smoothed positions across append and resets pla
     const initialX = views.positions()[0];
     views.positions()[0] += 1;
     crowd.draw(1, false, 0, 0, []);
-    expect(submitted.at(-1)!.positions[0]).toBeCloseTo(initialX + 0.75);
+    expect(submitted.at(-1)!.positions[0]).toBe(initialX);
     game.spawn_class(4, 0, 0, 1, 1, 0, 0);
     crowd.draw(1, false, 0, 0, []);
-    expect(submitted.at(-1)!.positions[0]).toBeCloseTo(initialX + 0.75);
+    expect(submitted.at(-1)!.positions[0]).toBe(initialX);
     expect(submitted.at(-1)!.positions.slice(2)).toEqual(Array.from(views.positions().slice(2)));
     crowd.draw(2, false, 0, 0, []);
-    expect(submitted.at(-1)!.positions[0]).toBeCloseTo(initialX + 0.82);
+    expect(submitted.at(-1)!.positions[0]).toBeCloseTo(initialX + 1);
     crowd.draw(3, false, 0, 0, []);
     expect(submitted.at(-1)!.phase).toBeGreaterThan(0);
     renderer.soldierAssets = { 0: bundle };

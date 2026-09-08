@@ -9,14 +9,40 @@ import { BattleActionAdapter } from "./battleActionAdapter";
 import type { BattleUnitPresentation } from "./battleUnitPresentation";
 import type { BattleWorld } from "./battleWorld";
 
+/** Frame-local, read-only inputs for body-attached overlays, not command authority. */
+export interface PresentedSoldiers {
+  positions: Float32Array;
+  alive: Float32Array;
+  units: Uint32Array;
+}
+
+interface CrowdEndpoint {
+  tick: number;
+  positions: Float32Array;
+  facings: Float32Array;
+  observations: readonly ActionObservation[];
+  units: Uint32Array;
+  weapons: Uint8Array;
+  unitInfo: Float32Array;
+}
+
 export class BattleCrowd {
   private readonly adapter: BattleActionAdapter;
   private timeline: ActionTimeline | null = null;
   private catalog: Record<number, AppearanceBundle> | null = null;
   private alive = new Float32Array(0);
   private renderPositions = new Float32Array(0);
-  private renderPositionTick = -1;
+  private renderFacings = new Float32Array(0);
+  private unitInfo = new Float32Array(0);
+  private left: CrowdEndpoint | null = null;
+  private right: CrowdEndpoint | null = null;
+  private fighting = new Uint8Array(0);
+  private weapons = new Uint8Array(0);
+  private units = new Uint32Array(0);
   private observations: readonly ActionObservation[] = [];
+  get presented(): PresentedSoldiers {
+    return { positions: this.renderPositions, alive: this.alive, units: this.units };
+  }
   get classSpecs() {
     return this.adapter.classSpecs;
   }
@@ -44,15 +70,18 @@ export class BattleCrowd {
       this.timeline = new ActionTimeline(assets);
     }
     const { observations, facings } = this.adapter.read(simTick);
-    if (replaced || observations !== this.observations)
+    if (replaced || observations !== this.observations) {
       this.timeline!.update(simTick, observations);
+      this.observe(simTick, observations, facings, replaced);
+    }
     this.observations = observations;
-    const playback: SoldierPlayback[] = this.timeline!.sample(frozen ? simTick : simTick + alpha);
-    this.buildPositions(simTick, frozen);
-    this.presentation.update(selectedUnits);
+    const tick = frozen ? simTick : Math.max(this.left!.tick, simTick - 1 + alpha);
+    const playback: SoldierPlayback[] = this.timeline!.sample(tick);
+    this.present(tick);
+    this.presentation.update(selectedUnits, this.unitInfo);
     this.world.renderer.draw(
       this.renderPositions,
-      facings,
+      this.renderFacings,
       playback,
       this.alive,
       observations.length,
@@ -63,93 +92,101 @@ export class BattleCrowd {
     this.drawAttackArcs(frozen);
   }
 
-  private buildPositions(simTick: number, frozen: boolean): void {
-    const positions = this.world.positions();
-    const count = this.observations.length;
-    const oldCount = this.alive.length;
-    if (simTick < this.renderPositionTick || count < oldCount) {
-      this.alive = new Float32Array(count);
-      this.renderPositions = new Float32Array(positions);
-      this.renderPositionTick = simTick;
-    } else if (count > oldCount) {
-      this.alive = new Float32Array(count);
-      const grown = new Float32Array(positions);
-      grown.set(this.renderPositions);
-      this.renderPositions = grown;
-      if (oldCount === 0) this.renderPositionTick = simTick;
+  private observe(
+    tick: number,
+    observations: readonly ActionObservation[],
+    facings: Float32Array,
+    replaced: boolean,
+  ): void {
+    const { game, memory } = this.world;
+    const count = observations.length;
+    const next: CrowdEndpoint = {
+      tick,
+      positions: new Float32Array(this.world.positions()),
+      facings: new Float32Array(facings),
+      observations: observations.map((observation) => ({ ...observation })),
+      units: new Uint32Array(new Uint32Array(memory.buffer, game.soldier_unit_ptr(), count)),
+      weapons: new Uint8Array(new Uint8Array(memory.buffer, game.cur_weapon_ptr(), count)),
+      unitInfo: new Float32Array(this.world.unitInfo()),
+    };
+    const previous = this.right;
+    if (replaced || !previous || tick < previous.tick || count < previous.observations.length) {
+      this.left = next;
+    } else if (tick === previous.tick) {
+      // Same-boundary append has no past for the additions; old endpoints stay frozen.
+      next.positions.set(previous.positions);
+      next.facings.set(previous.facings);
+      next.units.set(previous.units);
+      next.weapons.set(previous.weapons);
+      next.unitInfo.set(previous.unitInfo);
+    } else {
+      this.left = previous;
     }
-    const tickDelta = Math.max(0, simTick - this.renderPositionTick);
-    const update = tickDelta > 0;
-    const soldierUnit = new Uint32Array(
-      this.world.memory.buffer,
-      this.world.game.soldier_unit_ptr(),
-      count,
-    );
-    const unitCount = this.world.game.unit_count();
+    this.right = next;
+    if (this.alive.length !== count) {
+      this.alive = new Float32Array(count);
+      this.renderPositions = new Float32Array(count * 2);
+      this.renderFacings = new Float32Array(count);
+      this.units = new Uint32Array(count);
+      this.weapons = new Uint8Array(count);
+      this.fighting = new Uint8Array(count);
+    }
+    if (this.unitInfo.length !== next.unitInfo.length)
+      this.unitInfo = new Float32Array(next.unitInfo.length);
+  }
+
+  private present(tick: number): void {
+    const left = this.left!,
+      right = this.right!;
+    const fraction = right.tick === left.tick ? 1 : (tick - left.tick) / (right.tick - left.tick);
+    const before = tick < right.tick;
+    this.unitInfo.set(right.unitInfo);
+    if (before) this.unitInfo.set(left.unitInfo);
+    const unitCount = this.unitInfo.length / this.world.game.unit_info_stride();
     this.presentation.beginFrame(unitCount);
-    for (let soldier = 0; soldier < count; soldier++) {
-      this.alive[soldier] = this.observations[soldier].alive ? 1 : 0;
-      this.updatePosition(soldier, soldier * 2, positions, this.alive, frozen, update, tickDelta);
+    for (let soldier = 0; soldier < right.observations.length; soldier++) {
+      const start = soldier < left.observations.length ? left : right;
+      const discrete = before ? start : right;
+      const observation = discrete.observations[soldier];
+      this.alive[soldier] = observation.alive ? 1 : 0;
+      this.fighting[soldier] = observation.fighting ? 1 : 0;
+      this.units[soldier] = discrete.units[soldier];
+      this.weapons[soldier] = discrete.weapons[soldier];
+      const position = soldier * 2;
+      for (let axis = 0; axis < 2; axis++)
+        this.renderPositions[position + axis] =
+          start.positions[position + axis] +
+          (right.positions[position + axis] - start.positions[position + axis]) * fraction;
+      const angle = right.facings[soldier] - start.facings[soldier];
+      this.renderFacings[soldier] =
+        fraction === 1
+          ? right.facings[soldier]
+          : start.facings[soldier] + Math.atan2(Math.sin(angle), Math.cos(angle)) * fraction;
       if (this.alive[soldier])
         this.presentation.addSoldier(
-          soldierUnit[soldier],
+          this.units[soldier],
           this.renderPositions[soldier * 2],
           this.renderPositions[soldier * 2 + 1],
           unitCount,
         );
     }
     this.presentation.finishFrame(unitCount);
-    if (update) this.renderPositionTick = simTick;
-  }
-
-  private updatePosition(
-    soldier: number,
-    position: number,
-    positions: Float32Array,
-    alive: Float32Array,
-    frozen: boolean,
-    update: boolean,
-    tickDelta: number,
-  ): void {
-    if (frozen) {
-      this.renderPositions[position] = positions[position];
-      this.renderPositions[position + 1] = positions[position + 1];
-    } else if (alive[soldier] && update) {
-      const errorX = positions[position] - this.renderPositions[position];
-      const errorY = positions[position + 1] - this.renderPositions[position + 1];
-      const errorSquared = errorX * errorX + errorY * errorY;
-      const baseAlpha = errorSquared > 0.25 ? 0.75 : 0.28;
-      const alpha = tickDelta > 12 ? 1 : 1 - Math.pow(1 - baseAlpha, tickDelta);
-      this.renderPositions[position] += errorX * alpha;
-      this.renderPositions[position + 1] += errorY * alpha;
-    } else if (!alive[soldier]) {
-      this.renderPositions[position] = positions[position];
-      this.renderPositions[position + 1] = positions[position + 1];
-    }
   }
 
   private drawAttackArcs(frozen: boolean): void {
-    const { camera, canvas, game, memory, renderer, stride } = this.world;
+    const { camera, canvas, renderer, stride } = this.world;
     if (frozen || camera.zoom <= 2.5) return;
     const triangles: number[] = [];
-    const positions = this.world.positions();
-    const facings = this.world.facings();
-    const currentWeapon = new Uint8Array(
-      memory.buffer,
-      game.cur_weapon_ptr(),
-      game.soldier_count(),
-    );
-    const soldierUnit = new Uint32Array(
-      memory.buffer,
-      game.soldier_unit_ptr(),
-      game.soldier_count(),
-    );
-    const info = this.world.unitInfo();
+    const positions = this.renderPositions;
+    const facings = this.renderFacings;
+    const currentWeapon = this.weapons;
+    const soldierUnit = this.units;
+    const info = this.unitInfo;
     const [worldX0, worldY1] = camera.screenToWorld(0, 0);
     const [worldX1, worldY0] = camera.screenToWorld(canvas.width, canvas.height);
     let budget = 900;
-    for (let soldier = 0; soldier < game.soldier_count() && budget > 0; soldier++) {
-      if (!this.observations[soldier]?.alive || !this.observations[soldier].fighting) continue;
+    for (let soldier = 0; soldier < this.alive.length && budget > 0; soldier++) {
+      if (!this.alive[soldier] || !this.fighting[soldier]) continue;
       const x = positions[2 * soldier];
       const y = positions[2 * soldier + 1];
       if (x < worldX0 || x > worldX1 || y < worldY0 || y > worldY1) continue;
@@ -161,7 +198,7 @@ export class BattleCrowd {
       const [red, green, blue] = team === 0 ? [0.55, 0.85, 1.0] : [1.0, 0.72, 0.35];
       const half = Math.max(weapon.arc, 0.18) / 2;
       const segments = weapon.arc > 1.2 ? 5 : 3;
-      const facing = weapon.braced ? info[unit * stride + UNIT_INFO.facing] : facings[soldier];
+      const facing = facings[soldier];
       const reach = weapon.reach + 0.45;
       for (let segment = 0; segment < segments; segment++) {
         const angle0 = facing - half + (segment / segments) * weapon.arc;

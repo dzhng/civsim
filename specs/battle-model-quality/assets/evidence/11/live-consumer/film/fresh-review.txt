@@ -1,0 +1,18 @@
+**delayed-live-film-review — B slightly less wrong, low-to-moderate confidence.** The advantage is contact continuity; start/stop quality is indeterminate.
+
+- **Visible discontinuities:** A-contact **10→11** abruptly shifts the clustered bodies and overlays; B distributes that change across **10–14**. A-contact **37→38** similarly jumps into overlapping ring positions; B transitions across **37–40**. These favor B, although stills cannot establish playback smoothness.
+- **Body/ring coherence:** No clear detached ring or missing central body in either version. Overlapping rings at contact **38–43** remain associated with overlapping soldiers.
+- **Overlays:** Both show abrupt visibility changes—A-contact **16→17, 22→23**, B-contact **18→19, 24→25**. Visible overlays overlap their soldiers; I see no unequivocal orphaned overlay. Layering substantially obscures bodies in both at **32–63**.
+- **Sliding and shared limits:** Start **24–63** shows translation with limited visible stepping in both, suggesting a stiff/gliding presentation. Excessive sliding cannot be established without timing and clearer foot contact. Blocky diagnostic geometry, soldier overlap, image-edge cropping and HUD occlusion are shared limitations, not demonstrated comparative missing-body defects.
+
+Chronology establishes sampled order only: it cannot rule out between-panel glitches or certify start/stop timing.
+
+**Exactly viewed:** 28 PNGs in the specified `film` directory:
+
+- `A-start-{0,1,2,3}.png`, `B-start-{0,1,2,3}.png`
+- `A-contact-{0,1,2,3}.png`, `B-contact-{0,1,2,3}.png`
+  All sixteen panels per sheet: **256 panels total**.
+- `A-start-whole-{0,39,63}.png`, `B-start-whole-{0,39,63}.png`
+- `A-contact-whole-{0,39,63}.png`, `B-contact-whole-{0,39,63}.png`
+
+The four whole-0 images were inspected first. No other image contents, code, metrics, traces or reports were read.

@@ -210,7 +210,6 @@ export function createBattleControls(
     freeze,
     input,
     myUnits,
-    soldierStartOf,
     unitCenter,
     unitInfo: world.unitInfo,
     unitSnap,

@@ -13,6 +13,7 @@ import type { Input } from "./input";
 import { groupMoveDests, type UnitSnap } from "./orders";
 import type { BattleTacticalLineFrame } from "./renderer";
 import type { BattleWorld } from "./battleWorld";
+import type { PresentedSoldiers } from "./battleCrowd";
 
 export interface BattleOrders {
   groupMove(
@@ -26,7 +27,7 @@ export interface BattleOrders {
   markFlash(units: number[]): void;
   orderPointAttack(units: number[], target: number): void;
   previewDebug(unit: number): unknown;
-  tacticalLineFrame(withPaths: boolean): BattleTacticalLineFrame;
+  tacticalLineFrame(withPaths: boolean, soldiers: PresentedSoldiers): BattleTacticalLineFrame;
   tickGroupAttacks(): void;
 }
 
@@ -42,7 +43,6 @@ export function createBattleOrders({
   freeze,
   input,
   myUnits,
-  soldierStartOf,
   unitCenter,
   unitInfo,
   unitSnap,
@@ -52,7 +52,6 @@ export function createBattleOrders({
   freeze: BattleFreeze;
   input: Input;
   myUnits(units: number[]): number[];
-  soldierStartOf(unit: number, info?: Float32Array): number;
   unitCenter(unit: number): [number, number];
   unitInfo(): Float32Array;
   unitSnap(unit: number): UnitSnap;
@@ -71,7 +70,6 @@ export function createBattleOrders({
     input,
     myUnits,
     orderFlash,
-    soldierStartOf,
     unitCenter,
     unitInfo,
     unitSnap,
@@ -158,7 +156,6 @@ interface TacticalLineDependencies {
   input: Input;
   myUnits(units: number[]): number[];
   orderFlash: Map<number, number>;
-  soldierStartOf(unit: number, info?: Float32Array): number;
   unitCenter(unit: number): [number, number];
   unitInfo(): Float32Array;
   unitSnap(unit: number): UnitSnap;
@@ -266,22 +263,10 @@ function buildTacticalLineFrame(
   deps: TacticalLineDependencies,
   lastPreviewBounds: Map<number, PreviewBounds>,
   withPaths: boolean,
+  soldiers: PresentedSoldiers,
 ): BattleTacticalLineFrame {
-  const {
-    clock,
-    freeze,
-    input,
-    myUnits,
-    orderFlash,
-    soldierStartOf,
-    unitCenter,
-    unitInfo,
-    unitSnap,
-    world,
-  } = deps;
+  const { clock, freeze, input, myUnits, orderFlash, unitCenter, unitInfo, unitSnap, world } = deps;
   const { game, stride: STRIDE } = world;
-  const wasm = world.cfg.wasm;
-  const positions = world.positions;
   const info = unitInfo();
   const n = game.unit_count();
   const groundCues: number[] = [];
@@ -464,23 +449,12 @@ function buildTacticalLineFrame(
   }
   // Selection rings.
   if (input.selected.length > 0) {
-    const pos = positions();
-    const aliveSoldiers = new Uint8Array(
-      wasm.memory.buffer,
-      game.alive_ptr(),
-      game.soldier_count(),
-    );
-    for (const u of input.selected) {
-      const o = u * STRIDE;
-      if (info[o + UNIT_INFO.alive] === 0) continue;
-      const start = soldierStartOf(u, info);
-      const count = Math.max(0, Math.floor(info[o + UNIT_INFO.total]));
-      const end = Math.min(start + count, aliveSoldiers.length);
-      for (let i = start; i < end; i++) {
-        if (aliveSoldiers[i] === 0) continue;
-        const p = i * 2;
-        rings.push(pos[p], pos[p + 1], SOLDIER_RING_RADIUS, ...SELECTION_GREEN, 1);
-      }
+    const { positions: pos, alive: aliveSoldiers, units } = soldiers;
+    const selected = new Set(input.selected);
+    for (let i = 0; i < aliveSoldiers.length; i++) {
+      if (!selected.has(units[i]) || aliveSoldiers[i] === 0) continue;
+      const p = i * 2;
+      rings.push(pos[p], pos[p + 1], SOLDIER_RING_RADIUS, ...SELECTION_GREEN, 1);
     }
   }
   pushProjectiles(effects, showTransient, world);
@@ -590,9 +564,9 @@ function pushProjectiles(effects: number[], showTransient: boolean, world: Battl
 function createBattleTacticalLines(deps: TacticalLineDependencies) {
   let lastPreviewBounds = new Map<number, PreviewBounds>();
   return {
-    frame: (withPaths: boolean) => {
+    frame: (withPaths: boolean, soldiers: PresentedSoldiers) => {
       lastPreviewBounds = new Map();
-      return buildTacticalLineFrame(deps, lastPreviewBounds, withPaths);
+      return buildTacticalLineFrame(deps, lastPreviewBounds, withPaths, soldiers);
     },
     previewDebug: (unit: number) => lastPreviewBounds.get(unit) ?? null,
   };

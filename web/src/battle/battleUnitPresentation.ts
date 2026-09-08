@@ -63,20 +63,17 @@ export class BattleUnitPresentation {
     }
   }
 
-  update(selectedUnits: number[]): void {
-    const { camera, game, renderer, stride } = this.world;
-    const info = this.world.unitInfo();
+  update(selectedUnits: number[], info: Float32Array): void {
+    const { camera, renderer, stride } = this.world;
     const selected = selectedUnits.length > 0 ? selectedUnits[0] : -1;
     const showReadouts = camera.zoom > READOUT_TACTICAL_ZOOM;
     const standards: BattleStandardInstance[] = [];
     const readouts: BattleReadoutInstance[] = [];
-    for (let unit = 0; unit < game.unit_count(); unit++) {
+    for (let unit = 0; unit < info.length / stride; unit++) {
       const offset = unit * stride;
-      if (info[offset + UNIT_INFO.alive] === 0) continue;
-      const anchorX =
-        this.anchorX[unit] > -Infinity ? this.anchorX[unit] : info[offset + UNIT_INFO.centerX];
-      const anchorY =
-        this.anchorY[unit] > -Infinity ? this.anchorY[unit] : info[offset + UNIT_INFO.centerY];
+      if (!this.aliveCount[unit]) continue;
+      const anchorX = this.anchorX[unit];
+      const anchorY = this.anchorY[unit];
       const galleryIndex = this.galleryMode ? GALLERY_UNIT_FOR_STATE.indexOf(unit) : -1;
       const gallery = galleryIndex >= 0 ? READOUT_GALLERY[galleryIndex].state : undefined;
       const isSelected = unit === selected;

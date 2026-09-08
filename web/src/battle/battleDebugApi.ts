@@ -13,6 +13,7 @@ import type { Camera } from "../shared/camera";
 import { awaitRendererReady } from "../shared/rendererReady";
 import type { BattleRenderer } from "./renderer";
 import type { BattleAmbientAudio } from "./battleAudio";
+import type { SimClock } from "../shared/simClock";
 
 interface DebugOwners {
   advance(n: number): void;
@@ -55,7 +56,12 @@ export function installBattleDebugApi({
   canvas: HTMLCanvasElement;
   game: Game;
   generatedVista: BattleVistaGrid | null;
-  metrics: () => { tickMs: number; audioUpdateMs: number; fps: number };
+  metrics: () => {
+    tickMs: number;
+    audioUpdateMs: number;
+    fps: number;
+    clock: Pick<SimClock, "alpha" | "paused" | "frozen">;
+  };
   owners: DebugOwners;
   renderer: BattleRenderer;
   stride: number;

@@ -146,7 +146,10 @@ export function enterBattleScene(
     }
 
     crowd.draw(simTick, clock.frozen, clock.alpha, frameDt, input.selected);
-    renderer.drawTacticalLines(orders.tacticalLineFrame(controls.showPaths()), camera);
+    renderer.drawTacticalLines(
+      orders.tacticalLineFrame(controls.showPaths(), crowd.presented),
+      camera,
+    );
 
     // DOM selection rectangle.
     if (input.box) {
@@ -192,7 +195,12 @@ export function enterBattleScene(
     canvas,
     game,
     generatedVista: generatedVistaForDebug,
-    metrics: () => ({ tickMs: tickMsAvg, audioUpdateMs: audioUpdateMsAvg, fps: fpsAvg }),
+    metrics: () => ({
+      tickMs: tickMsAvg,
+      audioUpdateMs: audioUpdateMsAvg,
+      fps: fpsAvg,
+      clock: { alpha: clock.alpha, paused: clock.paused, frozen: clock.frozen },
+    }),
     owners: {
       advance: (n) => {
         game.advance_ticks(n);

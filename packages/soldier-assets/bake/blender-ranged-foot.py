@@ -23,29 +23,11 @@ foot = module("foot", "blender-foot-variant.py")
 motion = module("motion", "blender-heavy-motion.py")
 
 
-def grip_pose(arm, side, target, direction):
-    hand = arm.data.bones["hand." + side]
-    center = Vector((.5732 if side == "L" else -.5732, -.051, .9024))
-    source_axis = Vector((-.8, 0, -.6) if side == "L" else (.8, 0, -.6))
-    rotation = source_axis.rotation_difference(Vector(direction))
-    wrist = Vector(target) - rotation @ (center - hand.head_local)
-    upper, lower = (arm.pose.bones[n + "." + side] for n in ("upper-arm", "forearm"))
-    origin = upper.head.copy()
-    elbow = motion.limb_joint(origin, wrist, upper.bone.length, lower.bone.length,
-                               Vector((1 if side == "L" else -1, .2, -.4)))
-    motion.aim(arm, upper.name, elbow - origin)
-    motion.aim(arm, lower.name, wrist - elbow)
-    motion.orient(arm, hand.name, rotation @ hand.matrix_local.to_quaternion())
-    helper = arm.pose.bones["elbow-volume." + side]
-    motion.orient(arm, helper.name,
-        upper.matrix.to_quaternion().slerp(lower.matrix.to_quaternion(), .5))
-
-
 def crew_pose(arm, recover):
     direction = Vector((1, 0, .15)).normalized()
     right = Vector((-.18, -.36 + .12 * recover, 1.13))
-    grip_pose(arm, "R", right, direction)
-    grip_pose(arm, "L", right + direction * .30, direction)
+    motion.grip_pose(arm, "R", right, direction)
+    motion.grip_pose(arm, "L", right + direction * .30, direction)
 
 
 def build(source, output, name):
@@ -131,8 +113,8 @@ def build(source, output, name):
         arm.animation_data.action, arm.animation_data.action_slot = ready, ready.slots[0]
         for frame in range(181):
             scene.frame_set(frame)
-            grip_pose(arm, "L", (.1, -.48, 1.42), (0, 0, 1))
-            grip_pose(arm, "R", (.1, -.08, 1.42), (0, 0, 1))
+            motion.grip_pose(arm, "L", (.1, -.48, 1.42), (0, 0, 1))
+            motion.grip_pose(arm, "R", (.1, -.08, 1.42), (0, 0, 1))
             arm.pose.bones["bow-string"].location.y = .22
             for bone in arm.pose.bones:
                 if bone.name.startswith(("upper-arm", "forearm", "hand", "elbow-volume")):
@@ -185,8 +167,8 @@ def build(source, output, name):
             arm.pose.bones["bow-string"].location.y = 0
             arm.pose.bones["held-arrow"].scale = (.0001, .0001, .0001)
             arm.pose.bones["held-arrow"].keyframe_insert("scale", frame=frame)
-            grip_pose(arm, "L", (.1, -.48, 1.42 - .18 * recover), (0, 0, 1))
-            grip_pose(arm, "R", (.1 - .30 * recover, -.08 + .05 * recover,
+            motion.grip_pose(arm, "L", (.1, -.48, 1.42 - .18 * recover), (0, 0, 1))
+            motion.grip_pose(arm, "R", (.1 - .30 * recover, -.08 + .05 * recover,
                                    1.42 - .25 * recover), (0, 0, 1))
         elif crew:
             crew_pose(arm, recover)

@@ -406,6 +406,26 @@ def limb_joint(origin, target, upper, lower, bend_hint):
     return origin + axis * along + pole * math.sqrt(upper * upper - along * along)
 
 
+def grip_pose(arm, side, target, direction, rotation=None):
+    """Place the fitted closed hand and its existing two-segment arm chain."""
+    hand = arm.data.bones["hand." + side]
+    center = Vector((.5732 if side == "L" else -.5732, -.051, .9024))
+    source_axis = Vector((-.8, 0, -.6) if side == "L" else (.8, 0, -.6))
+    if rotation is None:
+        rotation = source_axis.rotation_difference(Vector(direction))
+    wrist = Vector(target) - rotation @ (center - hand.head_local)
+    upper, lower = (arm.pose.bones[n + "." + side] for n in ("upper-arm", "forearm"))
+    origin = upper.head.copy()
+    elbow = limb_joint(origin, wrist, upper.bone.length, lower.bone.length,
+                       Vector((1 if side == "L" else -1, .2, -.4)))
+    aim(arm, upper.name, elbow - origin)
+    aim(arm, lower.name, wrist - elbow)
+    orient(arm, hand.name, rotation @ hand.matrix_local.to_quaternion())
+    helper = arm.pose.bones["elbow-volume." + side]
+    orient(arm, helper.name,
+        upper.matrix.to_quaternion().slerp(lower.matrix.to_quaternion(), .5))
+
+
 def place_supported_leg(arm, side, ankle, forward=Vector((0, -1, 0))):
     """Offline two-segment construction; runtime receives ordinary pose keys."""
     thigh, shin = (arm.pose.bones[name + "." + side] for name in ("thigh", "shin"))

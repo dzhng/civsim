@@ -18,7 +18,10 @@ catalog and verify its consumers. Heavy AQ death and medium I thrust are now
 integrated, as are fitted peasant/light-sword/medium-infantry candidates.
 [Foot delivery evidence](assets/evidence/17/foot-sword-delivery.md) records their
 static checks and retained limitations. They remain manual candidates until
-distance meshes and genuine state bindings are ready.
+distance meshes and genuine state bindings are ready. Fitted ranged infantry
+and crew now have [source/equipment-action evidence](assets/evidence/20/ranged-foot-delivery.md);
+their final three sheets repeat exactly, with motion-readability refinements
+explicitly deferred.
 
 Parallel owners: pike family completes reactions/protected travel and all six
 equipment states; mounted family completes original horse/rider/tack and actions;

@@ -1877,3 +1877,14 @@ distance geometry but did not choose a reduction method. The retained per-piece
 triangle floors and initial targets are practical authoring defaults, not
 performance guarantees; real projected views and measured frame costs decide
 whether the output is usable. Near sources and action keys stay authoritative.
+
+### Release observations start recovery, not an invented firing countdown
+
+**Sound; confidence: high. Ranged foot delivery,2026-09-08.** When the game
+reports a shot, the handheld arrow or javelin disappears and the authored
+release action starts at its release pose. The engine still owns the projectile
+and its flight. The alternative would start a windup after the shot already
+happened, or change combat timing to suit the film. The plan required canonical
+engine timing but left the clip entry unspecified. A release marker at zero
+preserves that authority; a future anticipation system would need its own
+honest earlier observation rather than delaying the existing event.

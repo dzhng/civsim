@@ -21,6 +21,11 @@ waivers. Functional coverage and usable production integration remain in scope.
 - Static HUD portrait repeat variation remains outside the explicit live
   body-region gate; preserve the original red evidence rather than claiming
   full-frame determinism.
+- Foot ranged/crew release readability: strengthen the bow-hand/string snap,
+  javelin follow-through and crew rammer stroke. Current release events hide
+  handheld projectiles and play recovery, but the fresh contact-sheet review
+  found the bow and crew gestures too subtle to communicate clearly. Improve
+  retained-bow placement during sword use as a separate equipment refinement.
 
 Performance failures, missing required actions, broken assets, incorrect class
 identity and missing production consumers are not cosmetic follow-ups.

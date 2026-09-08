@@ -16,14 +16,22 @@ const { values } = parseArgs({
 const id = APPEARANCE_DESCRIPTORS.findIndex(({ name }) => name === values.name);
 if (id < 0 || !values.source) throw new Error("Provide a canonical --name and saved --source GLB");
 const descriptor = APPEARANCE_DESCRIPTORS[id];
-if (descriptor.look.mounted || descriptor.look.weapon !== "sword")
-  throw new Error("This composition imports the fitted foot-sword action set");
+if (descriptor.look.mounted || !["sword", "bow", "javelin", "artillery"].includes(descriptor.look.weapon))
+  throw new Error("This composition imports fitted foot actions, not mounted motion");
 const source = await readFile(resolve(values.source));
 const bundle = bakeAppearance({
   name: descriptor.name,
   mounted: false,
   tiers: [source, source, source],
   ...heavyMotionBake,
+  clipMetadata: {
+    ...heavyMotionBake.clipMetadata,
+    ...Object.fromEntries(
+      ({ bow: ["bow-release"], javelin: ["throw-release"], artillery: ["crew-release"] }[
+        descriptor.look.weapon
+      ] ?? []).map((clip) => [clip, { markers: { release: 0 } }]),
+    ),
+  },
   presentation: null,
 });
 const files = { "catalog.json": { appearances: { [id]: "soldier/appearance.json" } } };

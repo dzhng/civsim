@@ -1,0 +1,929 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-08T10:20:38.879Z",
+  "target": "http://localhost:5437",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "blender-ranged-foot",
+      "file": "models/blender-ranged-foot.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "archers candidate is manually inspectable for its declared classes",
+      "ok": true,
+      "detail": "{\"catalog\":\"http://localhost:5437/assets/soldiers/candidates/archers/catalog.json\",\"assets\":[{\"id\":4,\"name\":\"archers\",\"presentation\":null,\"bones\":29,\"triangles\":[94036,94036,94036],\"clips\":[{\"name\":\"bend\",\"duration\":2,\"loop\":false},{\"name\":\"bend-pronation\",\"duration\":2,\"loop\":false},{\"name\":\"bow-release\",\"duration\":0.800000011920929,\"loop\":false},{\"name\":\"death\",\"duration\":1.399999976158142,\"loop\":false},{\"name\":\"guarded-backward-walk\",\"duration\":1,\"loop\":true},{\"name\":\"guarded-left-walk\",\"duration\":0.6000000238418579,\"loop\":true},{\"name\":\"guarded-right-walk\",\"duration\":0.6000000238418579,\"loop\":true},{\"name\":\"hit\",\"duration\":0.6000000238418579,\"loop\":false},{\"name\":\"idle\",\"duration\":6,\"loop\":true},{\"name\":\"pronation\",\"duration\":2,\"loop\":false},{\"name\":\"ready\",\"duration\":6,\"loop\":true},{\"name\":\"run\",\"duration\":0.800000011920929,\"loop\":true},{\"name\":\"sword-effort\",\"duration\":1.2000000476837158,\"loop\":false},{\"name\":\"walk\",\"duration\":0.8999999761581421,\"loop\":true}]}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/at ease/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"idle\",\"phase\":0,\"duration\":6},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":29,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1603184,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/at ease/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/at ease/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"idle\",\"phase\":0,\"duration\":6},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":29,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1603184,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/at ease/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/at ease/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"idle\",\"phase\":0,\"duration\":6},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":29,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1603184,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/at ease/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/at ease/three-quarter: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"idle\",\"phase\":0,\"duration\":6},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":29,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1603184,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/at ease/three-quarter: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/ready/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"ready\",\"phase\":0,\"duration\":6},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":29,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1603184,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/ready/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/ready/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"ready\",\"phase\":0,\"duration\":6},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":29,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1603184,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/ready/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/ready/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"ready\",\"phase\":0,\"duration\":6},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":29,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1603184,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/ready/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/ready/three-quarter: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"ready\",\"phase\":0,\"duration\":6},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":29,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1603184,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/ready/three-quarter: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/release/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"bow-release\",\"phase\":0,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":29,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1603184,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/release/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/release/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"bow-release\",\"phase\":0,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":29,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1603184,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/release/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/release/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"bow-release\",\"phase\":0,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":29,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1603184,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/release/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/release/three-quarter: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"bow-release\",\"phase\":0,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":29,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1603184,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/release/three-quarter: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovery/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"bow-release\",\"phase\":0.35,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":29,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1603184,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovery/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovery/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"bow-release\",\"phase\":0.35,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":29,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1603184,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovery/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovery/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"bow-release\",\"phase\":0.35,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":29,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1603184,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovery/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovery/three-quarter: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"bow-release\",\"phase\":0.35,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":29,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1603184,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovery/three-quarter: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovered equipment/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"bow-release\",\"phase\":1,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":29,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1603184,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovered equipment/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovered equipment/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"bow-release\",\"phase\":1,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":29,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1603184,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovered equipment/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovered equipment/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"bow-release\",\"phase\":1,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":29,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1603184,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovered equipment/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovered equipment/three-quarter: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"bow-release\",\"phase\":1,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":29,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1603184,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovered equipment/three-quarter: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/melee sidearm/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"sword-effort\",\"phase\":0.35,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":29,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1603184,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/melee sidearm/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/melee sidearm/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"sword-effort\",\"phase\":0.35,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":29,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1603184,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/melee sidearm/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/melee sidearm/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"sword-effort\",\"phase\":0.35,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":29,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1603184,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/melee sidearm/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/melee sidearm/three-quarter: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"sword-effort\",\"phase\":0.35,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":29,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1603184,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/melee sidearm/three-quarter: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "snapshot shared/soldiers/ranged-foot/archers/equipment-release",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "skirmishers candidate is manually inspectable for its declared classes",
+      "ok": true,
+      "detail": "{\"catalog\":\"http://localhost:5437/assets/soldiers/candidates/skirmishers/catalog.json\",\"assets\":[{\"id\":5,\"name\":\"skirmishers\",\"presentation\":null,\"bones\":28,\"triangles\":[94612,94612,94612],\"clips\":[{\"name\":\"bend\",\"duration\":2,\"loop\":false},{\"name\":\"bend-pronation\",\"duration\":2,\"loop\":false},{\"name\":\"death\",\"duration\":1.399999976158142,\"loop\":false},{\"name\":\"guarded-backward-walk\",\"duration\":1,\"loop\":true},{\"name\":\"guarded-left-walk\",\"duration\":0.6000000238418579,\"loop\":true},{\"name\":\"guarded-right-walk\",\"duration\":0.6000000238418579,\"loop\":true},{\"name\":\"hit\",\"duration\":0.6000000238418579,\"loop\":false},{\"name\":\"idle\",\"duration\":6,\"loop\":true},{\"name\":\"pronation\",\"duration\":2,\"loop\":false},{\"name\":\"ready\",\"duration\":6,\"loop\":true},{\"name\":\"run\",\"duration\":0.800000011920929,\"loop\":true},{\"name\":\"sword-effort\",\"duration\":1.2000000476837158,\"loop\":false},{\"name\":\"throw-release\",\"duration\":0.800000011920929,\"loop\":false},{\"name\":\"walk\",\"duration\":0.8999999761581421,\"loop\":true}]}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/at ease/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"idle\",\"phase\":0,\"duration\":6},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/at ease/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/at ease/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"idle\",\"phase\":0,\"duration\":6},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/at ease/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/at ease/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"idle\",\"phase\":0,\"duration\":6},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/at ease/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/at ease/three-quarter: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"idle\",\"phase\":0,\"duration\":6},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/at ease/three-quarter: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/ready/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"ready\",\"phase\":0,\"duration\":6},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/ready/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/ready/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"ready\",\"phase\":0,\"duration\":6},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/ready/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/ready/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"ready\",\"phase\":0,\"duration\":6},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/ready/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/ready/three-quarter: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"ready\",\"phase\":0,\"duration\":6},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/ready/three-quarter: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/release/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"throw-release\",\"phase\":0,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/release/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/release/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"throw-release\",\"phase\":0,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/release/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/release/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"throw-release\",\"phase\":0,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/release/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/release/three-quarter: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"throw-release\",\"phase\":0,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/release/three-quarter: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovery/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"throw-release\",\"phase\":0.35,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovery/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovery/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"throw-release\",\"phase\":0.35,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovery/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovery/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"throw-release\",\"phase\":0.35,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovery/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovery/three-quarter: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"throw-release\",\"phase\":0.35,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovery/three-quarter: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovered equipment/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"throw-release\",\"phase\":1,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovered equipment/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovered equipment/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"throw-release\",\"phase\":1,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovered equipment/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovered equipment/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"throw-release\",\"phase\":1,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovered equipment/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovered equipment/three-quarter: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"throw-release\",\"phase\":1,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovered equipment/three-quarter: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/melee sidearm/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"sword-effort\",\"phase\":0.35,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/melee sidearm/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/melee sidearm/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"sword-effort\",\"phase\":0.35,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/melee sidearm/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/melee sidearm/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"sword-effort\",\"phase\":0.35,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/melee sidearm/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/melee sidearm/three-quarter: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"sword-effort\",\"phase\":0.35,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/melee sidearm/three-quarter: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "snapshot shared/soldiers/ranged-foot/skirmishers/equipment-release",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "artillery-crew candidate is manually inspectable for its declared classes",
+      "ok": true,
+      "detail": "{\"catalog\":\"http://localhost:5437/assets/soldiers/candidates/artillery-crew/catalog.json\",\"assets\":[{\"id\":8,\"name\":\"artillery-crew\",\"presentation\":null,\"bones\":28,\"triangles\":[97116,97116,97116],\"clips\":[{\"name\":\"bend\",\"duration\":2,\"loop\":false},{\"name\":\"bend-pronation\",\"duration\":2,\"loop\":false},{\"name\":\"crew-release\",\"duration\":0.800000011920929,\"loop\":false},{\"name\":\"death\",\"duration\":1.399999976158142,\"loop\":false},{\"name\":\"guarded-backward-walk\",\"duration\":1,\"loop\":true},{\"name\":\"guarded-left-walk\",\"duration\":0.6000000238418579,\"loop\":true},{\"name\":\"guarded-right-walk\",\"duration\":0.6000000238418579,\"loop\":true},{\"name\":\"hit\",\"duration\":0.6000000238418579,\"loop\":false},{\"name\":\"idle\",\"duration\":6,\"loop\":true},{\"name\":\"pronation\",\"duration\":2,\"loop\":false},{\"name\":\"ready\",\"duration\":6,\"loop\":true},{\"name\":\"run\",\"duration\":0.800000011920929,\"loop\":true},{\"name\":\"sword-effort\",\"duration\":1.2000000476837158,\"loop\":false},{\"name\":\"walk\",\"duration\":0.8999999761581421,\"loop\":true}]}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/at ease/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"idle\",\"phase\":0,\"duration\":6},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/at ease/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/at ease/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"idle\",\"phase\":0,\"duration\":6},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/at ease/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/at ease/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"idle\",\"phase\":0,\"duration\":6},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/at ease/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/at ease/three-quarter: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"idle\",\"phase\":0,\"duration\":6},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/at ease/three-quarter: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/ready/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"ready\",\"phase\":0,\"duration\":6},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/ready/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/ready/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"ready\",\"phase\":0,\"duration\":6},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/ready/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/ready/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"ready\",\"phase\":0,\"duration\":6},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/ready/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/ready/three-quarter: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"ready\",\"phase\":0,\"duration\":6},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/ready/three-quarter: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/release/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"crew-release\",\"phase\":0,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/release/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/release/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"crew-release\",\"phase\":0,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/release/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/release/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"crew-release\",\"phase\":0,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/release/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/release/three-quarter: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"crew-release\",\"phase\":0,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/release/three-quarter: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovery/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"crew-release\",\"phase\":0.35,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovery/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovery/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"crew-release\",\"phase\":0.35,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovery/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovery/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"crew-release\",\"phase\":0.35,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovery/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovery/three-quarter: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"crew-release\",\"phase\":0.35,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovery/three-quarter: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovered equipment/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"crew-release\",\"phase\":1,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovered equipment/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovered equipment/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"crew-release\",\"phase\":1,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovered equipment/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovered equipment/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"crew-release\",\"phase\":1,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovered equipment/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovered equipment/three-quarter: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"crew-release\",\"phase\":1,\"duration\":0.800000011920929},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/recovered equipment/three-quarter: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/melee sidearm/front: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"sword-effort\",\"phase\":0.35,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/melee sidearm/front: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/melee sidearm/side: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"sword-effort\",\"phase\":0.35,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/melee sidearm/side: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/melee sidearm/rear: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"sword-effort\",\"phase\":0.35,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/melee sidearm/rear: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/melee sidearm/three-quarter: production weighted pose submitted",
+      "ok": true,
+      "detail": "{\"sampled\":{\"root\":[0,0],\"clip\":\"sword-effort\",\"phase\":0.35,\"duration\":1.2000000476837158},\"lod\":{\"skinned\":1,\"impostors\":0},\"palettes\":[{\"bones\":28,\"visible\":1,\"capacity\":256,\"snapshotCapacity\":2,\"snapshotBankCapacity\":1,\"residentSnapshots\":0,\"snapshotSlotHighWater\":0,\"allocatedBytes\":1548608,\"uploadedBytes\":80,\"snapshotUploadedBytes\":0}]}"
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "equipment-release/melee sidearm/three-quarter: newly rendered frozen crop is byte-stable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "blender-ranged-foot",
+      "name": "snapshot shared/soldiers/ranged-foot/artillery-crew/equipment-release",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

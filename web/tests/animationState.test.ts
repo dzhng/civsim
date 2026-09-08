@@ -59,6 +59,36 @@ test("submission preserves explicit terminal destination and opaque base/overlay
   );
 });
 
+test("instance pool refresh replaces playback and defaults, truncates and regrows", () => {
+  const pose = (appearanceId: number): SoldierPlayback => ({
+    appearanceId,
+    base: {
+      source: { kind: "clip", sample: { clip: "idle", phase: 0 } },
+      destination: { clip: "walk", phase: 0.4 },
+      weight: 1,
+    },
+  });
+  const initial = buildCrowdInstances({
+    positions: new Float32Array([2, 3, 4, 5]),
+    playback: [pose(41), pose(41)],
+    alive: new Uint8Array([0, 0]),
+    unitTeam: [1],
+    mountedClasses: [41],
+    terrainHeight: () => 7,
+  }).instances;
+  const first = initial[0];
+  const replacement = pose(0);
+  const inputs = { positions: new Float32Array([8, 9]), playback: [replacement] };
+  const refreshed = buildCrowdInstances(inputs, initial);
+  expect(refreshed.instances).toBe(initial);
+  expect(refreshed.instances[0]).toBe(first);
+  expect(first.playback).toBe(replacement);
+  expect(refreshed).toEqual(buildCrowdInstances(inputs));
+  const empty = { positions: new Float32Array(), playback: [] };
+  expect(buildCrowdInstances(empty, initial).instances).toHaveLength(0);
+  expect(buildCrowdInstances(inputs, initial)).toEqual(buildCrowdInstances(inputs));
+});
+
 test("gameplay admission rejects manual-only appearances without imposing a blanket clip list", () => {
   // Loader owns the complete schema; this gate owns only gameplay/manual admission.
   const catalog = { 40: { manifest: { presentation: null } } } as unknown as Record<
@@ -91,7 +121,9 @@ test("all shipped gameplay action clips match their local rig, and mismatches fa
   const original = appearances[0].rig.clips;
   const name = appearances[0].manifest.presentation!.actions.ready!.clip;
   appearances[0].rig.clips = original.filter((clip) => clip.name !== name);
-  expect(() => assertGameplayAppearances(appearances)).toThrow("missing or mismatched source/sampled");
+  expect(() => assertGameplayAppearances(appearances)).toThrow(
+    "missing or mismatched source/sampled",
+  );
   for (const field of ["duration", "loop", "markers"] as const) {
     appearances[0].rig.clips = original.map((clip) =>
       clip.name !== name
@@ -106,6 +138,8 @@ test("all shipped gameplay action clips match their local rig, and mismatches fa
                   : { release: 0.2 },
           },
     );
-    expect(() => assertGameplayAppearances(appearances)).toThrow("missing or mismatched source/sampled");
+    expect(() => assertGameplayAppearances(appearances)).toThrow(
+      "missing or mismatched source/sampled",
+    );
   }
 });

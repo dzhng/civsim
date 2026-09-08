@@ -12,6 +12,20 @@ pub(crate) struct UnitPre {
     pub soldier_at_slot: Vec<usize>,
     pub projected_pivot: Vec<Vec2>,
     pub mounted_threat_near: bool,
+    /// Opposing foot formations squared up against this unit — the only
+    /// frontages its men may not power through (see `corridor_term`) — in
+    /// unit index order, with the per-foe geometry every man reads.
+    pub corridor_foes: Vec<CorridorFoe>,
+}
+
+pub(crate) struct CorridorFoe {
+    /// Foe's lateral axis (perp of its facing).
+    pub vr: Vec2,
+    /// Half the foe's frontage plus half a file: the corridor's lateral reach.
+    pub half_w: f32,
+    pub center: Vec2,
+    /// Foe's centre along this unit's facing: past it, a man is "through".
+    pub v_mid: f32,
 }
 
 pub(crate) fn precompute_unit(sim: &Sim, ui: usize) -> UnitPre {
@@ -76,6 +90,30 @@ pub(crate) fn precompute_unit(sim: &Sim, ui: usize) -> UnitPre {
             lateral_overlap && axial > -u.depth() && axial < 220.0
         });
     let reach = u.stats.weapons.iter().fold(0.0f32, |m, w| m.max(w.reach));
+    // The corridor test is per man, but which foes can gate him at all is
+    // per unit: living enemy foot, squared up against this facing. Resolve
+    // that (and each foe's geometry) once here rather than per soldier.
+    let corridor_foes: Vec<CorridorFoe> = if u.tramples() {
+        Vec::new()
+    } else {
+        sim.units
+            .iter()
+            .filter(|v| v.team != u.team && v.alive_count > 0 && !v.is_mounted() && !v.tramples())
+            .filter_map(|v| {
+                let vf = dir(v.facing);
+                if f.dot(vf) > -0.35 {
+                    return None;
+                }
+                let center = v.center();
+                Some(CorridorFoe {
+                    vr: vf.perp(),
+                    half_w: 0.5 * (v.files_eff.max(1) - 1) as f32 * v.spacing.x + 0.5 * v.spacing.x,
+                    center,
+                    v_mid: center.dot(f),
+                })
+            })
+            .collect()
+    };
 
     let slot_capacity = u.count.div_ceil(u.files_eff.max(1)) * u.files_eff.max(1);
     let mut soldier_at_slot = vec![usize::MAX; slot_capacity];
@@ -115,6 +153,7 @@ pub(crate) fn precompute_unit(sim: &Sim, ui: usize) -> UnitPre {
         soldier_at_slot,
         projected_pivot: vec![Vec2::ZERO; u.count],
         mounted_threat_near,
+        corridor_foes,
     };
     if living_count > 0.0 {
         let order_advancing = u.move_target.is_some() || matches!(u.mode, OrderMode::Attack(_));
@@ -143,7 +182,7 @@ pub(crate) fn precompute_unit(sim: &Sim, ui: usize) -> UnitPre {
                 let si = sim.soldier_slot[i] as usize;
                 let mut raw = Vec2::ZERO;
                 for (j, off) in
-                    slot_neighbours(u, &pre, si, neighbor_skip, &sim.alive, &sim.trampled)
+                    slot_neighbours(u, &pre, f, si, neighbor_skip, &sim.alive, &sim.trampled)
                 {
                     let jp = Vec2::new(sim.prev_positions[2 * j], sim.prev_positions[2 * j + 1]);
                     let d = p - jp;

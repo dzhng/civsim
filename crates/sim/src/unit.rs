@@ -383,7 +383,11 @@ pub(crate) fn slide_halted_frames(sim: &mut Sim) {
                 let my_centroid = u.centroid;
                 let my_frame_r = u.frame_extent();
                 let my_soldier_r = sim.radius[u.start];
-                let body_blockers: Vec<(usize, Vec2)> = sim
+                // (unit, centroid, extent of its living bodies grown by the
+                // largest clearance a slot could need). A slot outside that
+                // box cannot be occupied by any of its men, so the per-man
+                // scan below runs only where a body could actually be.
+                let body_blockers: Vec<(usize, Vec2, [f32; 4])> = sim
                     .units
                     .iter()
                     .enumerate()
@@ -392,11 +396,31 @@ pub(crate) fn slide_halted_frames(sim: &mut Sim) {
                             return None;
                         }
                         let r = v.frame_extent();
-                        if (v.center() - my_center).len() < my_frame_r + r + 2.0 {
-                            Some((vi, v.centroid))
-                        } else {
-                            None
+                        if (v.center() - my_center).len() >= my_frame_r + r + 2.0 {
+                            return None;
                         }
+                        let mut lo = Vec2::new(f32::INFINITY, f32::INFINITY);
+                        let mut hi = Vec2::new(f32::NEG_INFINITY, f32::NEG_INFINITY);
+                        let mut clearance = 0.0f32;
+                        for i in v.start..v.start + v.count {
+                            if sim.alive[i] == 0 {
+                                continue;
+                            }
+                            let q = sim.soldier_pos(i);
+                            lo = Vec2::new(lo.x.min(q.x), lo.y.min(q.y));
+                            hi = Vec2::new(hi.x.max(q.x), hi.y.max(q.y));
+                            clearance = clearance.max(sim.radius[i] + my_soldier_r);
+                        }
+                        Some((
+                            vi,
+                            v.centroid,
+                            [
+                                lo.x - clearance,
+                                lo.y - clearance,
+                                hi.x + clearance,
+                                hi.y + clearance,
+                            ],
+                        ))
                     })
                     .collect();
 
@@ -417,7 +441,10 @@ pub(crate) fn slide_halted_frames(sim: &mut Sim) {
                     }
 
                     if !body_blockers.is_empty() {
-                        for &(vi, other_centroid) in &body_blockers {
+                        for &(vi, other_centroid, [x0, y0, x1, y1]) in &body_blockers {
+                            if p.x < x0 || p.x > x1 || p.y < y0 || p.y > y1 {
+                                continue;
+                            }
                             let v = &sim.units[vi];
                             let mut occupied = false;
                             for i in v.start..v.start + v.count {

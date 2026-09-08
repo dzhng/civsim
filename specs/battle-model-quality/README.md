@@ -71,6 +71,10 @@ replacement, the production skin/material/environment path and existing image
 gates. Author with isolated background Blender processes and separate worktree
 files; never alter another session's interactive Blender/MCP scene. Serialize
 GPU captures across authoring lanes. Scope and acceptance below remain binding.
+Keep this integration worktree current with `origin/main` at checkpoints; merge
+upstream changes rather than allowing conflicts to accumulate. Frozen A/B study
+worktrees stay fixed during a comparison, then their retained changes are
+integrated and reverified on the updated branch.
 
 ## Scope and firewalls
 

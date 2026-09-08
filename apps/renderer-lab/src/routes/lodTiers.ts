@@ -1,5 +1,5 @@
 import { SkinnedCrowdPipeline } from "@packages/renderer-core/src/skinnedPipeline";
-import { assignCrowdLods, lodWithHysteresis } from "@packages/crowd-runtime/src/lod";
+import { assignCrowdLodLevels, lodWithHysteresis } from "@packages/crowd-runtime/src/lod";
 import { projectionFootprint, viewMatrix, projMatrix } from "@packages/renderer-core/src/camera3d";
 import { loadAppearanceCatalog } from "@packages/soldier-assets/src/appearanceBundle";
 import { crowdInstance } from "../labFixtures";
@@ -47,10 +47,13 @@ export async function route(ctx: LabContext) {
     ...crowdInstance(0, 0, 0, "idle"),
     y: i * 30,
   }));
-  const probeLevels = assignCrowdLods(
+  const probeLevels = new Uint8Array(probe.length);
+  assignCrowdLodLevels(
     probe,
     projectionFootprint(viewMatrix(probeCamera), projMatrix(probeCamera), 800, probeCamera.near),
-  ).map((a) => a.level);
+    undefined,
+    probeLevels,
+  );
   const monotonic = probeLevels.every((lvl, i) => i === 0 || lvl >= probeLevels[i - 1]);
   const tiersReached = new Set(probeLevels).size;
 

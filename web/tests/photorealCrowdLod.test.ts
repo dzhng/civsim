@@ -7,6 +7,7 @@ import { generatedFormation, type CrowdInstance } from "@packages/crowd-runtime/
 import { assignLodForProjection, DEFAULT_LOD_POLICY } from "@packages/crowd-runtime/src/lod";
 import {
   planPhotorealCrowdLods,
+  createCrowdLodBuffers,
   type CrowdProjectionView,
 } from "@packages/photoreal-renderer/src/battle/crowdLod";
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
@@ -78,6 +79,7 @@ test("projected LOD keeps the exact pre-optimization audience sequence", () => {
   const rows: unknown[] = [];
   let mainHistory: number[] = [];
   let shadowHistory: number[] = [];
+  const reusable = createCrowdLodBuffers(24);
   for (const [frame, count] of [24, 24, 12, 0, 24, 24].entries()) {
     const instances = Array.from({ length: count }, (_, i) => ({
       ...body(i % 3 === 0 ? 0 : (i - 12) * 30, [-100, 0, 10, 150, 300, 1000][i % 6]),
@@ -99,10 +101,26 @@ test("projected LOD keeps the exact pre-optimization audience sequence", () => {
       mainHistory,
       policy,
       shadowHistory,
+      reusable,
     );
-    rows.push(plan);
-    mainHistory = plan.assignments.map((a) => a.level);
-    shadowHistory = plan.shadowAssignments.map((a) => a.level);
+    // Preserve the pre-buffer serialized shape and exact golden, not typed-array JSON.
+    rows.push({
+      assignments: Array.from(plan.levels.slice(0, count), (level, i) => ({
+        level,
+        screenSize: plan.screenSizes[i],
+      })),
+      counts: plan.counts,
+      shadowAssignments: Array.from(plan.shadowLevels.slice(0, count), (level, i) => ({
+        level,
+        screenSize: plan.shadowScreenSizes[i],
+      })),
+      shadowCounts: plan.shadowCounts,
+      visibility: plan.visibility.slice(0, count),
+      viewVisible: plan.viewVisible,
+      shadowOnly: plan.shadowOnly,
+    });
+    mainHistory = Array.from(plan.levels.slice(0, count));
+    shadowHistory = Array.from(plan.shadowLevels.slice(0, count));
   }
   const serialized = JSON.stringify(rows, (_key, value) =>
     typeof value === "number" && !Number.isFinite(value) ? String(value) : value,
@@ -116,32 +134,26 @@ test("projected LOD keeps the exact pre-optimization audience sequence", () => {
 test("production LOD follows projected depth and exits L0 for the visible 150m mounted body", () => {
   const instances = [10, 150, 300, 1000].map((y) => ({ ...body(0, y), mounted: true }));
   const plan = planPhotorealCrowdLods(instances, [mainView()], assets);
-  assert.deepEqual(
-    plan.assignments.map((a) => a.level),
-    [0, 1, 2, 3],
-  );
+  assert.deepEqual(Array.from(plan.levels), [0, 1, 2, 3]);
   assert.equal(plan.viewVisible, 4);
   assert.equal(plan.shadowOnly, 0);
-  assert.ok(plan.assignments[1].screenSize < 16.5);
-  assert.equal(
-    planPhotorealCrowdLods([instances[1]], [mainView()], assets, [0]).assignments[0].level,
-    1,
-  );
+  assert.ok(plan.screenSizes[1] < 16.5);
+  assert.equal(planPhotorealCrowdLods([instances[1]], [mainView()], assets, [0]).levels[0], 1);
   assert.deepEqual(plan.counts, { l0: 1, l1: 1, l2: 1, l3: 1 });
 });
 
 test("unseen bodies make no view contribution while retaining the policy floor", () => {
   const plan = planPhotorealCrowdLods([body(0, -100)], [mainView()], assets);
   assert.equal(plan.visibility[0], 0);
-  assert.equal(plan.assignments[0].screenSize, DEFAULT_LOD_POLICY.minScreenPixels);
-  assert.equal(plan.assignments[0].level, 3);
+  assert.equal(plan.screenSizes[0], DEFAULT_LOD_POLICY.minScreenPixels);
+  assert.equal(plan.levels[0], 3);
 });
 
 test("a shadow caster does not replace the main view's distant impostor", () => {
   const plan = planPhotorealCrowdLods([body(0, 1000)], [mainView(), shadowView()], assets);
   assert.equal(plan.visibility[0], 3);
-  assert.equal(plan.assignments[0].level, 3);
-  assert.equal(plan.shadowAssignments[0].level, 2);
+  assert.equal(plan.levels[0], 3);
+  assert.equal(plan.shadowLevels[0], 2);
   assert.deepEqual(plan.shadowCounts, { l0: 0, l1: 0, l2: 1, l3: 0 });
 });
 
@@ -151,10 +163,11 @@ test("isolated mounted oracle needs the same initial shadow history as productio
   const views = [mainView(), shadowView(Math.hypot(128, 128) / 2 + 40)];
   const retained = planPhotorealCrowdLods([instance], views, assets, [], undefined, [2]);
   const fresh = planPhotorealCrowdLods([instance], views, assets, [], undefined, []);
-  assert.ok(Math.abs(fresh.shadowAssignments[0].screenSize - 10.239241433693344) < 1e-10);
-  assert.equal(retained.shadowAssignments[0].level, 2);
-  assert.equal(fresh.shadowAssignments[0].level, 1);
-  assert.deepEqual(retained.assignments, fresh.assignments);
+  assert.ok(Math.abs(fresh.shadowScreenSizes[0] - 10.239241433693344) < 1e-10);
+  assert.equal(retained.shadowLevels[0], 2);
+  assert.equal(fresh.shadowLevels[0], 1);
+  assert.deepEqual(retained.levels, fresh.levels);
+  assert.deepEqual(retained.screenSizes, fresh.screenSizes);
 });
 
 test("removing shadow views leaves the main representation and its hysteresis unchanged", () => {
@@ -164,11 +177,12 @@ test("removing shadow views leaves the main representation and its hysteresis un
     [instance],
     [mainView()],
     assets,
-    [withShadow.assignments[0].level],
+    [withShadow.levels[0]],
     undefined,
-    [withShadow.shadowAssignments[0].level],
+    [withShadow.shadowLevels[0]],
   );
-  assert.deepEqual(withoutShadow.assignments, withShadow.assignments);
+  assert.deepEqual(withoutShadow.levels, withShadow.levels);
+  assert.deepEqual(withoutShadow.screenSizes, withShadow.screenSizes);
   assert.equal(withoutShadow.visibility[0], 1);
   assert.deepEqual(withoutShadow.shadowCounts, { l0: 0, l1: 0, l2: 0, l3: 0 });
 });
@@ -180,7 +194,7 @@ test("production size uses each body's actual terrain elevation", () => {
     assets,
   );
   assert.deepEqual(Array.from(plan.visibility), [1, 1]);
-  assert.ok(plan.assignments[1].screenSize > plan.assignments[0].screenSize);
+  assert.ok(plan.screenSizes[1] > plan.screenSizes[0]);
 });
 
 test("unchanged hysteresis applies to measured pixels and shadow casters remain meshes", () => {
@@ -192,8 +206,8 @@ test("unchanged hysteresis applies to measured pixels and shadow casters remain 
   assert.equal(plan.visibility[0], 2);
   assert.equal(plan.viewVisible, 0);
   assert.equal(plan.shadowOnly, 1);
-  assert.equal(plan.assignments[0].level, 3);
-  assert.equal(plan.shadowAssignments[0].level, 2);
+  assert.equal(plan.levels[0], 3);
+  assert.equal(plan.shadowLevels[0], 2);
 });
 
 test("the production mesh selected for a shadow-only body really casts shadows", () => {
@@ -203,7 +217,7 @@ test("the production mesh selected for a shadow-only body really casts shadows",
   const meshes = geometries.map((geometry, lod) =>
     createCrowdDrawMesh(0, lod, geometry, materials[lod], "shadow"),
   );
-  assert.equal(meshes[plan.shadowAssignments[0].level].castShadow, true);
+  assert.equal(meshes[plan.shadowLevels[0]].castShadow, true);
   assert.deepEqual(
     meshes.map((mesh) => mesh.castShadow),
     [true, true, true],
@@ -217,10 +231,10 @@ test("a finer shadow map changes only the shadow audience", () => {
   const instance = body(0, 150);
   const coarse = planPhotorealCrowdLods([instance], [mainView(), shadowView()], assets);
   const fine = planPhotorealCrowdLods([instance], [mainView(), shadowView(20, 150)], assets);
-  assert.equal(coarse.assignments[0].level, 1);
-  assert.equal(fine.assignments[0].level, 1);
-  assert.equal(coarse.shadowAssignments[0].level, 2);
-  assert.equal(fine.shadowAssignments[0].level, 0);
+  assert.equal(coarse.levels[0], 1);
+  assert.equal(fine.levels[0], 1);
+  assert.equal(coarse.shadowLevels[0], 2);
+  assert.equal(fine.shadowLevels[0], 0);
   assert.equal(fine.visibility[0], 3);
 });
 
@@ -280,8 +294,8 @@ test("near-plane bounds keep full detail and corpse shading never moves authored
   const near = { ...body(0, -3), elevation: 2.3 };
   const plan = planPhotorealCrowdLods([near], [view], assets);
   assert.equal(plan.visibility[0], 1);
-  assert.equal(plan.assignments[0].level, 0);
-  assert.equal(plan.assignments[0].screenSize, Infinity);
+  assert.equal(plan.levels[0], 0);
+  assert.equal(plan.screenSizes[0], Infinity);
   const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.9 - 0.15);
   const halfspace = {
     ...view,
@@ -309,5 +323,56 @@ test("near-plane bounds keep full detail and corpse shading never moves authored
     [0, 0],
     "Changing death shading weight must not rotate the authored bounding sphere into view",
   );
-  assert.deepEqual(admission.assignments[0], admission.assignments[1]);
+  assert.equal(admission.levels[0], admission.levels[1]);
+  assert.equal(admission.screenSizes[0], admission.screenSizes[1]);
+});
+
+test("projected LOD reuses both audience buffers and clears only the active visibility prefix", () => {
+  const instances = [body(0, 10), body(0, 150), body(0, 300), body(0, 1000)];
+  const out = createCrowdLodBuffers(8);
+  out.visibility.fill(255);
+  const first = planPhotorealCrowdLods(
+    instances,
+    [mainView(), shadowView()],
+    assets,
+    undefined,
+    undefined,
+    undefined,
+    out,
+  );
+  for (const key of [
+    "levels",
+    "shadowLevels",
+    "screenSizes",
+    "shadowScreenSizes",
+    "visibility",
+  ] as const)
+    assert.equal(first[key], out[key]);
+  assert.deepEqual(Array.from(first.levels.slice(0, 4)), [0, 1, 2, 3]);
+  assert.equal(first.counts.l0 + first.counts.l1 + first.counts.l2 + first.counts.l3, 4);
+  assert.equal(out.visibility[4], 255, "capacity tail is not an active soldier");
+  const priorMain = out.levels.slice(0, 4);
+  const priorShadow = out.shadowLevels.slice(0, 4);
+  const expected = planPhotorealCrowdLods(
+    instances.slice(0, 2),
+    [mainView()],
+    assets,
+    priorMain,
+    undefined,
+    priorShadow,
+  );
+  const reused = planPhotorealCrowdLods(
+    instances.slice(0, 2),
+    [mainView()],
+    assets,
+    out.levels.subarray(0, 4),
+    undefined,
+    out.shadowLevels.subarray(0, 4),
+    out,
+  );
+  assert.deepEqual(reused.levels.slice(0, 2), expected.levels);
+  assert.deepEqual(reused.shadowLevels.slice(0, 2), expected.shadowLevels);
+  assert.deepEqual(Array.from(reused.visibility.slice(0, 2)), [1, 1]);
+  assert.deepEqual(reused.counts, expected.counts);
+  assert.deepEqual(reused.shadowCounts, { l0: 0, l1: 0, l2: 0, l3: 0 });
 });

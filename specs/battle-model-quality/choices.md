@@ -1793,3 +1793,14 @@ support weights from a verified underlying shoulder, keeping existing topology
 and the saved fitted source. This replaces threshold nudging with an explicit
 support surface; it still risks gaps or shifted collapse and earns retention only
 through both-shoulder and old-clip review. No chosen refit is yet accepted.
+
+### Preserve presentation ownership when merging upstream pooling
+
+**Sound; confidence: high.** Reusable crowd objects belong to the world's
+battle-input pool, not whichever array was last submitted by a model preview.
+This keeps a later battle draw from mutating a caller-owned inspection array.
+Upstream typed LOD storage is applied independently to camera and shadow
+audiences; it does not restore the superseded distance-only decision. Separate
+output buffers preserve preceding history if planning throws. These are merge
+adaptations to the existing explicit-pose and projected-view contracts, not new
+animation or visibility policy.

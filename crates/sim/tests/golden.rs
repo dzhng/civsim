@@ -5,29 +5,6 @@
 use sim::{Pace, Sim, Tunables, Vec2, DT};
 use std::f32::consts::PI;
 
-fn fnv1a(hash: &mut u64, v: u32) {
-    *hash ^= v as u64;
-    *hash = hash.wrapping_mul(0x100000001b3);
-}
-
-fn state_hash(sim: &Sim) -> u64 {
-    let mut h = 0x245893d74d55793au64;
-    for &p in &sim.positions {
-        fnv1a(&mut h, p.to_bits());
-    }
-    for &f in &sim.facings {
-        fnv1a(&mut h, f.to_bits());
-    }
-    for u in &sim.units {
-        fnv1a(&mut h, u.cohesion.to_bits());
-        fnv1a(&mut h, u.stamina.to_bits());
-    }
-    for &ttl in &sim.loosing_ttl {
-        fnv1a(&mut h, ttl.to_bits());
-    }
-    h
-}
-
 #[test]
 fn golden_state_hash_stable() {
     let mut sim = Sim::new(Tunables::default(), 0xBEEF);
@@ -55,8 +32,8 @@ fn golden_state_hash_stable() {
     for _ in 0..(45.0 / DT) as usize {
         sim.tick();
     }
-    let h = state_hash(&sim);
-    const EXPECTED: u64 = 0x46c3732a78dc549c;
+    let h = sim.state_hash();
+    const EXPECTED: u64 = 0x68f4569d1cc8116f;
     assert_eq!(
         h, EXPECTED,
         "sim behavior changed: golden hash {h:#018x} != pinned {EXPECTED:#018x}. \

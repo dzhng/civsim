@@ -80,12 +80,39 @@ export function assignLodForProjection(
   policy = DEFAULT_LOD_POLICY,
 ): LodAssignment {
   const screenSize = Math.max(policy.minScreenPixels, pixels);
+  return { level: levelForProjection(pixels, shadow, prevLevel, policy), screenSize };
+}
+
+export function levelForProjection(
+  pixels: number,
+  shadow: boolean,
+  prevLevel?: LodLevel,
+  policy = DEFAULT_LOD_POLICY,
+): LodLevel {
+  const screenSize = Math.max(policy.minScreenPixels, pixels);
   let level =
     prevLevel === undefined
       ? assignLodForScreenSize(screenSize, policy)
       : lodWithHysteresis(prevLevel, screenSize, policy);
   if (shadow && pixels > 0) level = Math.min(COARSEST_SHADOW_LOD, level) as LodLevel;
-  return { level, screenSize };
+  return level;
+}
+
+/** Caller-owned levels, using the same projected footprint as both render audiences. */
+export function assignCrowdLodLevels(
+  instances: readonly CrowdInstance[],
+  projection: ProjectionFootprint,
+  prevLevels: ArrayLike<number> | undefined,
+  out: Uint8Array,
+  policy = DEFAULT_LOD_POLICY,
+): void {
+  for (let i = 0; i < instances.length; i++)
+    out[i] = levelForProjection(
+      instanceScreenSize(instances[i], projection),
+      false,
+      prevLevels?.[i] as LodLevel | undefined,
+      policy,
+    );
 }
 
 export function assignCrowdLods(
@@ -104,8 +131,19 @@ export function assignCrowdLods(
   });
 }
 
-export function countLods(assignments: LodAssignment[]): LodCounts {
-  const counts: LodCounts = { l0: 0, l1: 0, l2: 0, l3: 0 };
-  for (const a of assignments) counts[`l${a.level}` as keyof LodCounts]++;
-  return counts;
+export function countLods(levels: ArrayLike<number>, count = levels.length): LodCounts {
+  // Plain counters, not a template-string key per instance: this runs over
+  // the whole crowd every frame.
+  let l0 = 0;
+  let l1 = 0;
+  let l2 = 0;
+  let l3 = 0;
+  for (let i = 0; i < count; i++) {
+    const level = levels[i];
+    if (level === 0) l0++;
+    else if (level === 1) l1++;
+    else if (level === 2) l2++;
+    else l3++;
+  }
+  return { l0, l1, l2, l3 };
 }

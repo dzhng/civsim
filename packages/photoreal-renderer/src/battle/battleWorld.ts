@@ -136,6 +136,7 @@ export class PhotorealBattleWorld {
   private readonly wind: BladeFieldWindUniforms = createBladeFieldWindUniforms();
   private cameraInitialized = false;
   private instances: CrowdInstance[] = [];
+  private readonly instancePool: CrowdInstance[] = [];
   private markers: MarkerInstance[] = [];
   private seating = { checked: 0, matches: true, span: 0 };
   private lastCamera: BattleCameraSnapshot = {
@@ -422,17 +423,20 @@ export class PhotorealBattleWorld {
     camera: BattleCameraSnapshot,
     frameDt = 0,
   ): void {
-    const built = buildCrowdInstances({
-      positions,
-      facings,
-      playback,
-      alive,
-      soldierUnit: this.soldierUnit,
-      unitTeam: this.unitTeam,
-      mountedClasses: this.mountedClasses,
-      terrainHeight: this.terrainSurface.heightSampler(),
-      count,
-    });
+    const built = buildCrowdInstances(
+      {
+        positions,
+        facings,
+        playback,
+        alive,
+        soldierUnit: this.soldierUnit,
+        unitTeam: this.unitTeam,
+        mountedClasses: this.mountedClasses,
+        terrainHeight: this.terrainSurface.heightSampler(),
+        count,
+      },
+      this.instancePool,
+    );
     this.drawInstances(built.instances, camera, frameDt);
   }
 

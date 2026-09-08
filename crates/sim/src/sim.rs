@@ -326,6 +326,39 @@ impl Sim {
         self.stun[soldier] > 0.0 || self.trampled[soldier] > 0.0
     }
 
+    /// Fingerprint of the physical state: where every man stands and faces,
+    /// his health and life, each unit's frame, cohesion and stamina, and the
+    /// missile-loose timers. Bit-exact, so two builds that agree on it after a
+    /// scripted battle ran the same physics. The golden regression pins it and
+    /// the `profile_tick` A/B compares it.
+    pub fn state_hash(&self) -> u64 {
+        let mut h = 0xcbf29ce484222325u64;
+        let mut mix = |v: u32| {
+            h ^= v as u64;
+            h = h.wrapping_mul(0x100000001b3);
+        };
+        for v in self
+            .positions
+            .iter()
+            .chain(&self.facings)
+            .chain(&self.health)
+            .chain(&self.loosing_ttl)
+        {
+            mix(v.to_bits());
+        }
+        for &a in &self.alive {
+            mix(a as u32);
+        }
+        for u in &self.units {
+            mix(u.anchor.x.to_bits());
+            mix(u.anchor.y.to_bits());
+            mix(u.facing.to_bits());
+            mix(u.cohesion.to_bits());
+            mix(u.stamina.to_bits());
+        }
+        h
+    }
+
     pub fn soldier_pos(&self, i: usize) -> Vec2 {
         Vec2::new(self.positions[2 * i], self.positions[2 * i + 1])
     }

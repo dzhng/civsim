@@ -28,6 +28,7 @@ import {
   soldierSurfaceNodes,
   type PreparedSoldierSurface,
 } from "./soldierSurface";
+import { hemiOctTileDirections, nearestHemiOctTile } from "./impostorTile";
 import { RENDER_ORDER } from "./terrainLayer";
 
 export interface ImpostorAtlas {
@@ -65,7 +66,11 @@ export async function createSoldierImpostorAtlas(
   const rows = opts.rows ?? 8;
   const tileSize = opts.tileSize ?? 96;
   const posedMesh = poseSoldierMesh(mesh, palette);
-  const directions = hemiOctDirections(columns, rows);
+  const flat = hemiOctTileDirections(columns, rows);
+  const directions: THREE.Vector3[] = [];
+  for (let i = 0; i < columns * rows; i++) {
+    directions.push(new THREE.Vector3(flat[i * 3], flat[i * 3 + 1], flat[i * 3 + 2]));
+  }
   const projectedBounds = directions.map((dir) => projectedMeshBounds(posedMesh, viewBasis(dir)));
   const box = new THREE.Box3().setFromArray(posedMesh.positions);
   const center = box.getCenter(new THREE.Vector3());
@@ -175,11 +180,13 @@ export class OctahedralImpostorLayer {
   private meta = new Float32Array(0);
   private living = new Float32Array(0);
   private source: CrowdInstance[] = [];
+  private readonly tileDirs: Float64Array;
 
   constructor(
     scene: THREE.Scene,
     private readonly atlas: ImpostorAtlas,
   ) {
+    this.tileDirs = hemiOctTileDirections(atlas.columns, atlas.rows);
     this.geometry = new THREE.InstancedBufferGeometry();
     this.geometry.setAttribute(
       "position",
@@ -308,7 +315,14 @@ export class OctahedralImpostorLayer {
       localDir.normalize();
       rotateViewDirectionIntoSoldierLocal(localDir, src.facing);
       const o = i * 4;
-      this.meta[o] = nearestTile(localDir, this.atlas.directions);
+      this.meta[o] = nearestHemiOctTile(
+        localDir.x,
+        localDir.y,
+        localDir.z,
+        this.atlas.columns,
+        this.atlas.rows,
+        this.tileDirs,
+      );
       // Screen-size floor: enlarge the world-space billboard whenever it would
       // project below the minimum viewport fraction, so a far crowd stays a
       // visible blob instead of sub-pixel-vanishing through the alpha-tested
@@ -490,27 +504,6 @@ function bakePropertyAtlas(
   }
 }
 
-function hemiOctDirections(columns: number, rows: number): THREE.Vector3[] {
-  const out: THREE.Vector3[] = [];
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < columns; x++) {
-      const ox = ((x + 0.5) / columns) * 2 - 1;
-      const oy = ((y + 0.5) / rows) * 2 - 1;
-      let dx = ox;
-      let dy = oy;
-      let dz = 1 - Math.abs(dx) - Math.abs(dy);
-      if (dz < 0) {
-        const px = dx;
-        dx = (1 - Math.abs(dy)) * Math.sign(px || 1);
-        dy = (1 - Math.abs(px)) * Math.sign(dy || 1);
-        dz = -dz;
-      }
-      out.push(new THREE.Vector3(dx, dy, Math.abs(dz)).normalize());
-    }
-  }
-  return out;
-}
-
 function viewBasis(dir: THREE.Vector3) {
   const forward = dir.clone().normalize();
   const fallback =
@@ -543,17 +536,4 @@ function rotateViewDirectionIntoSoldierLocal(dir: THREE.Vector3, facing: number)
   dir.x = x;
   dir.y = y;
   dir.normalize();
-}
-
-function nearestTile(dir: THREE.Vector3, directions: THREE.Vector3[]): number {
-  let best = 0;
-  let bestDot = -Infinity;
-  for (let i = 0; i < directions.length; i++) {
-    const d = dir.dot(directions[i]);
-    if (d > bestDot) {
-      bestDot = d;
-      best = i;
-    }
-  }
-  return best;
 }

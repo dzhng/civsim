@@ -438,5 +438,13 @@ UPDATE_SHOTS=1 node web/scene.mjs campaign-visual
 bun run --cwd web perf:30k
 ```
 
+The perf gate measures the renderer with the sim paused, so it cannot see the
+sim failing to hold real time. Two tools answer the CPU question the gate does
+not: `web/scenes/battle/battle-cpu-profile.mjs` samples the live main thread
+and prints self-time per function, and `crates/sim/src/bin/profile_tick.rs`
+ticks the same generated battle natively for a sampling profiler and ends in
+`Sim::state_hash`, the one fingerprint the golden test also pins — its `duels`
+mode is how a physics-pass speedup proves itself bit-identical in melee.
+
 See `crates/sim/tests/README.md` for the sim test taxonomy and
 `.agents/skills/screenshot-regression/` for the snapshot workflow.

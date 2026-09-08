@@ -51,14 +51,17 @@ export interface CrowdBuildStats {
   enemy: number;
 }
 
-export function buildCrowdInstances(inputs: CrowdBuildInputs): {
+/** Refresh caller-owned instances in place; playback remains the animation authority. */
+export function buildCrowdInstances(
+  inputs: CrowdBuildInputs,
+  instances: CrowdInstance[] = [],
+): {
   instances: CrowdInstance[];
   stats: CrowdBuildStats;
 } {
   const count = inputs.count ?? Math.floor(inputs.positions.length / 2);
   if (inputs.playback.length !== count) throw new Error("Playback count must match soldier count");
   const mountedClasses = new Set(inputs.mountedClasses ?? []);
-  const instances: CrowdInstance[] = [];
   const stats: CrowdBuildStats = { input: count, written: 0, alive: 0, player: 0, enemy: 0 };
   for (let i = 0; i < count; i++) {
     const unit = inputs.soldierUnit?.[i] ?? 0;
@@ -66,30 +69,38 @@ export function buildCrowdInstances(inputs: CrowdBuildInputs): {
     const playback = inputs.playback[i];
     const classId = playback.appearanceId;
     const alive = (inputs.alive?.[i] ?? 1) > 0.5;
-    const seed = deterministicInstanceSeed(i, unit);
-    const inst: CrowdInstance = {
-      x: inputs.positions[i * 2],
-      y: inputs.positions[i * 2 + 1],
-      facing: inputs.facings?.[i] ?? (faction === 0 ? Math.PI / 2 : -Math.PI / 2),
-      classId,
-      faction,
-      alive,
+    const inst = (instances[i] ??= {
+      x: 0,
+      y: 0,
+      facing: 0,
+      classId: 0,
+      faction: 0,
+      alive: true,
       clip: playback.base.destination.clip,
-      phase: playback.base.destination.phase,
-      playback,
-      seed,
-      mounted: mountedClasses.has(classId),
+      phase: 0,
+      seed: 0,
+      mounted: false,
       lod: 0,
-      elevation: inputs.terrainHeight
-        ? inputs.terrainHeight(inputs.positions[i * 2], inputs.positions[i * 2 + 1])
-        : 0,
-    };
-    instances.push(inst);
+    });
+    inst.x = inputs.positions[i * 2];
+    inst.y = inputs.positions[i * 2 + 1];
+    inst.facing = inputs.facings?.[i] ?? (faction === 0 ? Math.PI / 2 : -Math.PI / 2);
+    inst.classId = classId;
+    inst.faction = faction;
+    inst.alive = alive;
+    inst.clip = playback.base.destination.clip;
+    inst.phase = playback.base.destination.phase;
+    inst.playback = playback;
+    inst.seed = deterministicInstanceSeed(i, unit);
+    inst.mounted = mountedClasses.has(classId);
+    inst.lod = 0;
+    inst.elevation = inputs.terrainHeight ? inputs.terrainHeight(inst.x, inst.y) : 0;
     stats.written++;
     if (alive) stats.alive++;
     if (faction === 0) stats.player++;
     if (faction === 1) stats.enemy++;
   }
+  instances.length = stats.written;
   return { instances, stats };
 }
 

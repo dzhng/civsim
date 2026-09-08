@@ -94,7 +94,9 @@ pub(super) fn find_target(sim: &mut Sim, search: TargetSearch) -> Option<Targeti
                 if d_surf > search {
                     continue;
                 }
-                let bearing = to.y.atan2(to.x);
+                // The bearing is an atan2 per body in range; only a recorded
+                // friend, a rider's wheel cost, or a strike candidate reads it.
+                let bearing = || to.y.atan2(to.x);
                 let uj = sim.soldier_unit[j] as usize;
                 if sim.units[uj].team == my_team {
                     if uj == ui && sim.fighting[j] == 1 && d_surf < DISENGAGE_DIST {
@@ -111,7 +113,7 @@ pub(super) fn find_target(sim: &mut Sim, search: TargetSearch) -> Option<Targeti
                             &mut friends_len,
                             NearbyFriend {
                                 owner: j as u32,
-                                bearing,
+                                bearing: bearing(),
                                 distance: d_surf.max(0.05),
                                 fighting: sim.fighting[j] == 1,
                                 priority,
@@ -131,8 +133,8 @@ pub(super) fn find_target(sim: &mut Sim, search: TargetSearch) -> Option<Targeti
                 // rider genuinely must wheel to bring the blade to bear: a
                 // foe in the flank lobe is cheap, one dead-ahead in the
                 // blind front is dear. That wheel cost is the measured bug.
-                let off = wrap_angle(bearing - sim.facings[i]).abs();
                 let cost = if sim.mounted[i] == 1 {
+                    let off = wrap_angle(bearing() - sim.facings[i]).abs();
                     d_surf + tgt_field.turn_to_edge(off) / turn_rate * approach_speed
                 } else {
                     d_surf
@@ -148,7 +150,7 @@ pub(super) fn find_target(sim: &mut Sim, search: TargetSearch) -> Option<Targeti
                 if cand_len < candidates.len() && d_surf <= max_reach {
                     // Dedup per owner (two horse circles = one victim).
                     if !candidates[..cand_len].iter().any(|c| c.0 == j as u32) {
-                        candidates[cand_len] = (j as u32, d_surf, bearing);
+                        candidates[cand_len] = (j as u32, d_surf, bearing());
                         cand_len += 1;
                     }
                 }

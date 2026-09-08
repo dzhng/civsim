@@ -1,5 +1,5 @@
 import { generatedFormation } from "@packages/crowd-runtime/src/instanceData";
-import { assignCrowdLods, countLods } from "@packages/crowd-runtime/src/lod";
+import { assignCrowdLodLevels, countLods } from "@packages/crowd-runtime/src/lod";
 import {
   chartCamera3d,
   projectionFootprint,
@@ -27,13 +27,16 @@ export async function route(ctx: LabContext) {
   const shell = await createConfiguredShell(ctx.canvas, { x: 0, y: -1, zoom, pitch: 0.24, yaw: 0 });
   const height = shell.stats().height;
   const camera = chartCamera3d({ x: 0, y: -1, zoom, pitch: 0.24, yaw: 0 }, height);
-  const lods = assignCrowdLods(
+  const lods = new Uint8Array(instances.length);
+  assignCrowdLodLevels(
     instances,
     projectionFootprint(viewMatrix(camera), projMatrix(camera), height, camera.near),
+    undefined,
+    lods,
   );
   const counts = countLods(lods);
   const pipeline = await createSkinnedPipeline(shell);
-  const renderInstances = instances.map((instance, i) => ({ ...instance, lod: lods[i].level }));
+  const renderInstances = instances.map((instance, i) => ({ ...instance, lod: lods[i] }));
   animateSkinned(shell, pipeline, () => renderInstances);
   ctx.status.innerHTML = reportTable({
     route: "lod",

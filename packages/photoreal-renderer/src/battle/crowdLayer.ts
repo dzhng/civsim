@@ -29,7 +29,11 @@ import { decodeLocalSample, resolveLocalSample } from "../../../soldier-assets/s
 import { localPoseToJointMatrices } from "../../../soldier-assets/src/localPose";
 import { viewNormalNode } from "./battleTsl";
 import { createSoldierImpostorAtlas, OctahedralImpostorLayer } from "./impostorLayer";
-import { planPhotorealCrowdLods, type CrowdProjectionView } from "./crowdLod";
+import {
+  createCrowdLodBuffers,
+  planPhotorealCrowdLods,
+  type CrowdProjectionView,
+} from "./crowdLod";
 import { CROWD_SHADOW_LAYER, type CrowdAudience } from "./crowdAudience";
 import { RENDER_ORDER } from "./terrainLayer";
 import { weightedPaletteColumns } from "./skinNodes";
@@ -135,8 +139,10 @@ export class PhotorealCrowd {
   private readonly surfaces = new Set<PreparedSoldierSurface>();
   private instanceCount = 0;
   private readonly materialIdentity = soldierMaterialIdentity();
-  private readonly previousLevels: number[] = [];
-  private readonly previousShadowLevels: number[] = [];
+  private lodBuffers = createCrowdLodBuffers(0);
+  private previousLodBuffers = createCrowdLodBuffers(0);
+  private previousLevels: Uint8Array = new Uint8Array(0);
+  private previousShadowLevels: Uint8Array = new Uint8Array(0);
   private assignedCounts = emptyLodCounts();
   private visibleCounts = emptyLodCounts();
   private shadowCounts = emptyLodCounts();
@@ -314,6 +320,11 @@ export class PhotorealCrowd {
       }
     }
     for (const group of this.groups) group.pending.length = 0;
+    if (this.lodBuffers.levels.length < instances.length)
+      this.lodBuffers = createCrowdLodBuffers(
+        Math.max(instances.length, this.lodBuffers.levels.length * 2),
+      );
+    // Separate output keeps a failed plan from partly replacing the preceding history.
     const plan = scope
       ? planPhotorealCrowdLods(
           instances,
@@ -322,24 +333,22 @@ export class PhotorealCrowd {
           this.previousLevels,
           undefined,
           this.previousShadowLevels,
+          this.lodBuffers,
         )
       : {
-          assignments: instances.map(() => ({ level: 0 as const, screenSize: 999 })),
-          shadowAssignments: [],
+          levels: this.lodBuffers.levels.fill(0, 0, instances.length),
+          shadowLevels: this.lodBuffers.shadowLevels,
           shadowCounts: emptyLodCounts(),
           counts: { l0: instances.length, l1: 0, l2: 0, l3: 0 },
-          visibility: new Uint8Array(instances.length).fill(1),
+          visibility: this.lodBuffers.visibility.fill(1, 0, instances.length),
           viewVisible: instances.length,
           shadowOnly: 0,
         };
-    this.previousLevels.length = plan.assignments.length;
-    this.previousShadowLevels.length = plan.shadowAssignments.length;
-    for (let i = 0; i < plan.assignments.length; i++) {
-      this.previousLevels[i] = plan.assignments[i].level;
-    }
-    for (let i = 0; i < plan.shadowAssignments.length; i++) {
-      this.previousShadowLevels[i] = plan.shadowAssignments[i].level;
-    }
+    this.previousLevels = plan.levels.subarray(0, instances.length);
+    this.previousShadowLevels = plan.shadowLevels.subarray(0, scope ? instances.length : 0);
+    const spare = this.previousLodBuffers;
+    this.previousLodBuffers = this.lodBuffers;
+    this.lodBuffers = spare;
     this.assignedCounts = plan.counts;
     this.visibleCounts = emptyLodCounts();
     this.shadowCounts = plan.shadowCounts;
@@ -358,7 +367,7 @@ export class PhotorealCrowd {
     for (let i = 0; i < instances.length; i++) {
       const inst = instances[i];
       if (!this.assets[inst.classId]) throw new Error(`Missing appearance ${inst.classId}`);
-      const level = plan.assignments[i]?.level ?? 0;
+      const level = plan.levels[i];
       inst.lod = level;
       if (!plan.visibility[i]) {
         this.culling.culled++;
@@ -374,7 +383,7 @@ export class PhotorealCrowd {
         inst,
         mainVisible && level !== 3 ? this.buckets[inst.classId].main[level] : undefined,
         plan.visibility[i] & 2
-          ? this.buckets[inst.classId].shadow[plan.shadowAssignments[i].level]
+          ? this.buckets[inst.classId].shadow[plan.shadowLevels[i]]
           : undefined,
       );
     }

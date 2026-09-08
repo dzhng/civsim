@@ -19,71 +19,38 @@ A reusable articulated human base has natural adult proportions and believable j
 
 ### Reopened dressed shoulder deformation
 
-The provisional heavy fall exposes a large sleeve-cap collapse when the sword
-arm drops beside the body. The saved motion must not be weakened to conceal a
-skinning defect. A read-only zero-twist control leaves the collapse, identifying
-the existing clavicle-to-upper-arm transition under large swing as the next
-bounded experiment, not proof that a particular replacement weight is correct.
+The lowered sword arm exposes a large sleeve-cap collapse. The
+[saved-source audit](../assets/evidence/08/sleeve-cap-refit/review.md) and
+[unarmored inspection](../assets/evidence/08/sleeve-cap-refit/unarmored-review.md)
+place the underlying defect in shoulder form and support, not excessive wrist
+twist. Do not weaken the fall, hide the body with armor, or compensate in the
+renderer. The images show tubular upper arms, an indistinct cap, chest webbing
+and a deep posterior ridge; they do not establish an open tear.
 
-On a copy of the saved fitted source, move only the proximal sleeve's existing
-smooth weight transition to its authored cap-ring centers. Keep the proximal
-attachment anchored and distal sleeve unchanged. Propagate through existing
-lining/mail/shoulder-layer correspondence; add no bones, topology, corrective
-system or alternate renderer. Preserve rest geometry, material/UV data and action
-keys. This is a local deformation refit, not regenerated anatomy or accepted art.
+The garment transition relocation and three
+[fixed-topology body trials](../assets/evidence/08/sleeve-cap-refit/body-trials-review.md)
+are rejected. Lower aggregate crossing counts did not establish better form
+across poses. No garment refit or body promotion followed.
 
-First compare strained shoulder edge/area collapse and armhole/lining clearance,
-then matched old/new whole and low shoulder views with exact repeats and fresh
-critique. A narrower blend can move the pinch or open the armhole; numerical
-improvement alone cannot retain it. If retained, re-review every existing heavy
-clip and its full frame gate: identical keys do not mean identical posed garment
-geometry. Unrelated geometry and motion remain controlled. Reaction acceptance
-stays open until the corrected garment and whole fall pass together.
+**Current pickup:** design the proximal deltoid, pectoral and axillary contour
+and its skeletal support from the saved mesh and rest rig. More smoothing or
+weight-threshold nudging is not a design. Local reconstruction may be proposed
+where it serves that form; bank its exact boundary and transfer obligations
+before changing topology. This does not require proving every fixed-topology
+method impossible. Preserve distal arms/hands, unrelated body, rig and all action
+keys; no whole-body regeneration, global heat solve, new bones or corrective system.
 
-The first transition-relocation experiment is rejected: it improves collapsed
-edge/area ratios but introduces new armhole/body overlap and a small ground
-intersection. It disproves that uniform redistribution, not every weight-only
-solution. Next inspect the underlying shoulder at the strained poses; if sound,
-fit only the saved proximal cap and adjacent armhole boundary around that actual
-support surface, using the existing local weight-transfer mechanism. Allow
-scoped rest-position and corresponding lining/mail/layer changes, initially
-without topology changes. Preserve the set-in overlapping construction, distal
-sleeves, rig, all action keys and unrelated geometry. Do not regenerate the body.
-If the underlying shoulder is unsound, diagnose its owner before fitting over it.
+Compare both shoulders across relaxed carry, ready, bend, pronation, sword
+effort, hit and late fall. Source invariants, triangle crossings, edge/area
+distortion and dense floor clearance support—but do not replace—paired production
+views and fresh critique. Only a less-wrong body permits fitting the saved
+proximal sleeve/armhole and corresponding lining/mail/layers. Preserve distal
+sleeves and set-in overlapping construction, then re-review every affected old
+clip: identical keys do not preserve posed geometry after a shape/weight change.
 
-The [saved-source audit](../assets/evidence/08/sleeve-cap-refit/review.md) now
-finds nonadjacent triangle crossings in the underlying shoulder, including some
-in ready before the fall. The cap refit therefore has not begun. Inspect the
-unchanged body without armor through the production poser before selecting a
-local anatomy remedy; numerical warnings alone do not choose new weights or form.
-
-Before screenshots, compare both shoulders at relaxed carry, ready, deep bend,
-pronation, sword effort, hit and late fall. Check coverage, lining orientation,
-body intersections and dense floor clearance; then use paired production views.
-Existing loops failing to form a credible cap require a separate bounded topology
-decision, not an unrecorded rewrite. All old-clip re-review obligations remain.
-
-### Bounded proximal shoulder refit
-
-The [sleeve-transition rejection](../assets/evidence/08/sleeve-cap-refit/review.md)
-and [unchanged unarmored inspection](../assets/evidence/08/sleeve-cap-refit/unarmored-review.md)
-expose unsound underlying shoulder form. Do not fit cloth over that defect or
-weaken the fall to conceal it. Author one local proximal deltoid/axillary
-rest-position and existing chest/clavicle/upper-arm weight experiment on the
-saved fitted body. Keep topology, patch boundary, distal arms/hands, unrelated
-body, rig and all action keys fixed. No whole-body regeneration or heat re-solve,
-new bones, corrective system or renderer compensation.
-
-First compare both shoulders across relaxed carry, ready, bend, pronation,
-sword effort, hit and late fall: local triangle crossings, edge/area distortion,
-rest/source controls and dense floor clearance. Then inspect paired production
-views with fresh critique before retaining any body change. Only a less-wrong
-body permits garment refitting; full old-clip re-review remains mandatory.
-Topology that cannot support a credible cap requires another explicit decision.
-
-The medium's current fitted source stays frozen. A retained shared-anatomy
-correction requires a separately reviewed medium body/equipment refit, never
-silent replacement of its saved source. This authoring scope is not art acceptance.
+The medium's fitted source remains frozen during its thrust study. Any retained
+shared anatomy requires a separately reviewed medium body/equipment refit.
+Anatomy, reactions and performance acceptance remain open.
 
 API seam: Blender human source mesh and deform rig → existing appearance bundle, initially classes 0 and 14 with equipment hidden.
 

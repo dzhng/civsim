@@ -3,6 +3,8 @@ import { captureHeavyTravel, heavyTravelSnapshots } from "./_heavy-travel.mjs";
 import { captureHeavyRest, heavyRestSnapshots } from "./_heavy-rest.mjs";
 import { captureHeavyBackward, heavyBackwardSnapshots } from "./_heavy-backward.mjs";
 import { snapshotSelected } from "../../snapshot.mjs";
+import { heavyPresentation } from "../../../packages/soldier-assets/bake/heavy-motion-contract.mjs";
+import { captureMeshLods, meshLodSnapshots } from "./_mesh-lod-sheet.mjs";
 
 const bearings = [
   ["front", 0],
@@ -266,6 +268,7 @@ export const meta = {
     ...heavyRestSnapshots,
     ...heavyBackwardSnapshots,
     ...effortSnapshots,
+    ...meshLodSnapshots("heavy-kit"),
   ],
   describe:
     "Composed Blender heavy equipment, surfaces and locomotion on the shared provisional rig; candidate-only.",
@@ -278,8 +281,16 @@ export async function run(ctx) {
     label: "Heavy infantry candidate",
     folder: "heavy-kit",
     classes: [0],
+    expectedPresentation: heavyPresentation,
     details,
     afterSheets: async (ctx, page) => {
+      await captureMeshLods(ctx, page, {
+        folder: "heavy-kit",
+        classId: 0,
+        ready: "ready",
+        attack: "sword-effort",
+        zoom: 180,
+      });
       await captureHeavyRest(ctx, page);
       await captureHeavyTravel(ctx, page);
       await captureHeavyBackward(ctx, page);

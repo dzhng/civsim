@@ -1,0 +1,1 @@
+{"triangles":[155190,4140,1610],"clips":["at-ease","bend","bend-pronation","death","guarded-backward-walk","guarded-left-walk","guarded-right-walk","hit","pike-carry","pike-ready","pike-thrust","pronation","ready","run","walk"],"invariant":"exact rig/actions/materials; finite UV/tangent/normal/skin; normalized four-weight export"}

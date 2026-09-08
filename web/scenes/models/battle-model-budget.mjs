@@ -23,7 +23,8 @@ export async function run(ctx) {
   const cameraMode = process.env.BUDGET_CAMERA ?? "gameplay";
   if (!["gameplay", "chart-stress"].includes(cameraMode)) throw new Error("Unknown budget camera");
   const fixture = process.env.BUDGET_FIXTURE ?? "foot";
-  if (!["foot", "mounted"].includes(fixture)) throw new Error("Unknown budget fixture");
+  if (!["foot", "mounted", "heavy", "medium"].includes(fixture))
+    throw new Error("Unknown budget fixture");
   const detail = JSON.parse(process.env.BUDGET_DETAIL ?? "{}");
   const textureSize = Number(process.env.BUDGET_TEXTURE_SIZE ?? 0);
   if (
@@ -41,7 +42,7 @@ export async function run(ctx) {
     )
   )
     throw new Error("Unknown synthetic detail option");
-  if (fixture === "foot" && (Object.keys(detail).length || textureSize))
+  if (fixture !== "mounted" && (Object.keys(detail).length || textureSize))
     throw new Error("Detail sweeps require the mounted synthetic fixture");
   for (const key of ["jointCopies", "keySubdivisions"])
     if (Object.hasOwn(detail, key) && (!Number.isSafeInteger(detail[key]) || detail[key] < 1))
@@ -100,24 +101,24 @@ export async function run(ctx) {
         if (!device.features.has("timestamp-query"))
           throw new Error("Hardware timestamps unavailable");
         const raf = () => new Promise(requestAnimationFrame);
-        const appearanceId = config.fixture === "mounted" ? 41 : 4;
+        const appearanceId = { foot: 4, mounted: 41, heavy: 0, medium: 14 }[config.fixture];
         let source = w.soldierAssets[appearanceId];
-        if (config.fixture === "mounted") {
+        if (config.fixture !== "foot") {
           const { loadAppearanceBundle } = await module(
             "packages/soldier-assets/src/appearanceBundle.ts",
           );
           const { syntheticBudgetFixture, budgetTextureSurface } = await module(
             "web/scenes/models/_synthetic-budget-fixture.ts",
           );
-          source = syntheticBudgetFixture(
-            await loadAppearanceBundle(
-              new URL(
-                "/assets/soldiers/candidates/blender-reference/mounted/appearance.json",
-                location.href,
-              ).href,
-            ),
-            config.detail,
+          const path = {
+            mounted: "blender-reference/mounted",
+            heavy: "heavy-kit/heavy",
+            medium: "medium-phalanx/medium",
+          }[config.fixture];
+          source = await loadAppearanceBundle(
+            new URL(`/assets/soldiers/candidates/${path}/appearance.json`, location.href).href,
           );
+          if (config.fixture === "mounted") source = syntheticBudgetFixture(source, config.detail);
           if (config.textureSize)
             source.surface = await budgetTextureSurface(source.surface, config.textureSize);
           const replacement = await w.crowd.constructor.create(w.world.renderer, w.world.scene, {

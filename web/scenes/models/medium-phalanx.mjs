@@ -1,4 +1,6 @@
 import { runCandidateSheet, candidateSnapshots } from "./_candidate-sheet.mjs";
+import { pikeFamilyPresentation } from "../../../packages/soldier-assets/bake/pike-motion-contract.mjs";
+import { captureMeshLods, meshLodSnapshots } from "./_mesh-lod-sheet.mjs";
 import { captureMediumMotion, mediumMotionSnapshots } from "./_medium-motion.mjs";
 import { pikeFamilyPresentation } from "../../../packages/soldier-assets/bake/pike-motion-contract.mjs";
 
@@ -151,7 +153,11 @@ export const meta = {
   kind: "visual",
   world: "medium-phalanx-candidate",
   tier: "full",
-  snapshots: [...candidateSnapshots("medium-phalanx", [], cameras), ...mediumMotionSnapshots],
+  snapshots: [
+    ...candidateSnapshots("medium-phalanx", [], cameras),
+    ...mediumMotionSnapshots,
+    ...meshLodSnapshots("medium-phalanx"),
+  ],
   describe:
     "Fitted medium armor, pike posture, upright-pike travel and stationary thrust with playable action bindings.",
 };
@@ -165,6 +171,15 @@ export async function run(ctx) {
     classes: [14],
     expectedPresentation: pikeFamilyPresentation(),
     baseCameras: cameras,
-    afterSheets: captureMediumMotion,
+    afterSheets: async (ctx, page) => {
+      await captureMeshLods(ctx, page, {
+        folder: "medium-phalanx",
+        classId: 14,
+        ready: "pike-ready",
+        attack: "pike-thrust",
+        zoom: 85,
+      });
+      await captureMediumMotion(ctx, page);
+    },
   });
 }

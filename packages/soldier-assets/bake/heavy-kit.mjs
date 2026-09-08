@@ -2,19 +2,21 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { bakeAppearance, writeAppearance } from "./appearance.mjs";
-import { heavyMotionBake } from "./heavy-motion-contract.mjs";
+import { heavyMotionBake, heavyPresentation } from "./heavy-motion-contract.mjs";
 
 const {
   values: { check },
 } = parseArgs({ options: { check: { type: "boolean", default: false } } });
-const source = await readFile(new URL("../assets/source/heavy-kit/heavy-kit.glb", import.meta.url));
-// These identical tiers are source-fitting candidates, not accepted distance representations.
 const bundle = bakeAppearance({
   name: "heavy-kit",
   mounted: false,
-  tiers: [source, source, source],
+  tiers: [
+    await readFile(new URL("../assets/source/heavy-kit/lods/near.glb", import.meta.url)),
+    await readFile(new URL("../assets/source/heavy-kit/lods/mid.glb", import.meta.url)),
+    await readFile(new URL("../assets/source/heavy-kit/lods/far.glb", import.meta.url)),
+  ],
   ...heavyMotionBake,
-  presentation: null,
+  presentation: heavyPresentation,
 });
 const files = { "catalog.json": { appearances: { 0: "heavy/appearance.json" } } };
 for (const [path, content] of Object.entries(bundle)) files[`heavy/${path}`] = content;

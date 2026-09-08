@@ -1,0 +1,8 @@
+5eb5e4d2093d198b070c3b61230e657bb699829b37cd1238d3b954affa9b4c05  packages/soldier-assets/assets/source/heavy-kit/heavy-kit.blend
+b5d9123c0b84b0def4b59449d5ff8fdd31dc4fe0aa8d2569f5d43bc9b045c8b1  packages/soldier-assets/assets/source/heavy-kit/heavy-kit.glb
+8580938b9a6f082f57218492071c4e95a426de60de8bd557f92742b54991735e  packages/soldier-assets/assets/source/medium-phalanx/medium-phalanx.blend
+b4b116b253f071c7ae0f4e8b4a5e62430541ae3fb79a27dd632075ace75a90db  packages/soldier-assets/assets/source/medium-phalanx/medium-phalanx.glb
+bf5839e1fcacdaf4f980a10f4d6a7a6e360fa85641fb3f6061ab8e724cadf2ed  packages/soldier-assets/assets/source/heavy-kit/lods/mid.glb
+c9d1e1aff1799486512ef5bf34fa995f68e478bafbf83b01bd961edac7c0f07f  packages/soldier-assets/assets/source/heavy-kit/lods/far.glb
+d942995971f109d4a723042f0631b293c14060f7dadfdcc0ee20fb68531cdd3d  packages/soldier-assets/assets/source/medium-phalanx/lods/mid.glb
+8b05c3e72b8de0d6427a686647a55242f9dd19d7b85c6ef4fe8eedf35ae3a2ab  packages/soldier-assets/assets/source/medium-phalanx/lods/far.glb

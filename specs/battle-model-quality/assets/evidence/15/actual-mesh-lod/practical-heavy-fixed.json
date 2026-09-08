@@ -1,0 +1,33 @@
+{
+  "source": "/Users/david/dev/game-actual-mesh-lod/packages/soldier-assets/assets/source/heavy-kit/heavy-kit.blend",
+  "sourceSha256": "5eb5e4d2093d198b070c3b61230e657bb699829b37cd1238d3b954affa9b4c05",
+  "tiers": [
+    {
+      "name": "near",
+      "targetTriangles": 8000,
+      "sourceTriangles": 127196,
+      "triangles": 7958,
+      "omittedBelowMetres": 0,
+      "retainedIslandTriangleFloor": 12,
+      "glbSha256": "47e79dfddf16c898978f15de1e4c64817146c51a53b8f63333aaf7ac74fe147f"
+    },
+    {
+      "name": "mid",
+      "targetTriangles": 1000,
+      "sourceTriangles": 127196,
+      "triangles": 982,
+      "omittedBelowMetres": 0.03,
+      "retainedIslandTriangleFloor": 8,
+      "glbSha256": "d889f239a218ed070621ecc089c8397c47eb7da89753f875978ad65ad2553ca0"
+    },
+    {
+      "name": "far",
+      "targetTriangles": 250,
+      "sourceTriangles": 127196,
+      "triangles": 376,
+      "omittedBelowMetres": 0.15,
+      "retainedIslandTriangleFloor": 4,
+      "glbSha256": "804cb65c88b520eeec3369c4ebef69a99dbb4168bf407fa1fcf9bec6584cf67f"
+    }
+  ]
+}

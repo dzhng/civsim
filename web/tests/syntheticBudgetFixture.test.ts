@@ -37,7 +37,33 @@ vi.stubGlobal(
 const source = await loadAppearanceBundle(
   "http://fixture/candidates/blender-reference/mounted/appearance.json",
 );
+const heavy = await loadAppearanceBundle(
+  "http://fixture/candidates/heavy-kit/heavy/appearance.json",
+);
+const medium = await loadAppearanceBundle(
+  "http://fixture/candidates/medium-phalanx/medium/appearance.json",
+);
 vi.unstubAllGlobals();
+
+test("actual heavy and medium budgets follow authored walk/run without inventing release", () => {
+  const exercise = (asset: AppearanceBundle) => {
+    const timeline = new ActionTimeline({ 0: asset });
+    const workload = synchronizedBudgetObservations(1, 0, asset);
+    const clips = new Set<string>();
+    for (let tick = 0; tick < 60; tick++) {
+      workload.update(tick, "interruptions");
+      timeline.update(tick, workload.observations);
+      const sample = timeline.sample(tick)[0];
+      clips.add(sample.base.destination.clip);
+      assert.equal(sample.riderUpperBody, undefined);
+    }
+    return [...clips].sort();
+  };
+  assert.deepEqual(exercise(heavy), ["run", "walk"]);
+  assert.deepEqual(exercise(medium), ["run", "walk"]);
+  const manualOnly = { ...heavy, manifest: { ...heavy.manifest, presentation: null } };
+  assert.throws(() => exercise(manualOnly), "manual-only donor cannot serve the live benchmark");
+});
 
 test("timed mounted workload exercises measured walk/run and release interruptions", () => {
   const fixture = syntheticBudgetFixture(source);

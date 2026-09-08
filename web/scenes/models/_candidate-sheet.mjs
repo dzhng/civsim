@@ -118,6 +118,7 @@ export async function runCandidateSheet(
             classId: classes[0],
             clip,
             phase,
+            alive: camera.alive ?? true,
             formation: camera.formation ?? false,
             // Detail landmarks are authored in Blender's -Y-facing source space.
             target: [-camera.target[0], -camera.target[1], camera.target[2]],
@@ -137,6 +138,7 @@ export async function runCandidateSheet(
               stats.render.lod.skinned === soldierCount &&
               stats.sampled.clip === clip &&
               stats.sampled.phase === phase &&
+              stats.pose.alive === pose.alive &&
               stats.render.crowd.palettes.some(
                 (palette) => palette.bones === admission.assets[0].bones,
               ),

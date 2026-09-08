@@ -21,6 +21,18 @@ const fittingPoses = [
 
 const details = [
   {
+    name: "death-fall",
+    alive: false,
+    pitch: 1.15,
+    zoom: 220,
+    target: [0.2, 0, 0.85],
+    poses: [0, 6, 14, 24, 33, 42].map((frame) => [`death frame ${frame}`, frame / 42, "death"]),
+    views: [
+      ["left oblique", Math.PI / 4],
+      ["opposing oblique", (-3 * Math.PI) / 4],
+    ],
+  },
+  {
     name: "hit-motion",
     pitch: 1.4,
     zoom: 230,
